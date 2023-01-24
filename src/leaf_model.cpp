@@ -2,18 +2,17 @@
 #include <cmath>
 
 namespace plant {
-Leaf::Leaf(double vcmax, double p_50, double c, double b,
+Leaf::Leaf(double vcmax, double c, double b,
            double psi_crit, // derived from b and c
-           double K_s, double epsilon_leaf, double beta1, double beta2)
+           double epsilon_leaf, double beta1, double beta2, double jmax)
     : vcmax(vcmax), // umol m^-2 s^-1 
-    p_50(p_50), // -MPa
     c(c), //unitless
     b(b), //-MPa
     psi_crit(psi_crit), //-MPa 
-    K_s(K_s), // kg m^-1 s^-1 MPa^-1 
     beta1(beta1),
     beta2(beta2),
     epsilon_leaf(epsilon_leaf), //tolerance value 
+    jmax(jmax),
     leaf_specific_conductance_max_(NA_REAL), //kg m^-2 s^-1 MPa^-1 
     sapwood_volume_per_leaf_area_ (NA_REAL),
     PPFD_(NA_REAL), //? 
@@ -126,9 +125,7 @@ double Leaf::stom_cond_CO2(double psi_stem) {
 //ensure that units of PPFD_ actually correspond to something real.
 // electron trnansport rate based on light availability and vcmax assuming co-limitation hypothesis
 double Leaf::electron_transport() {
-  double jmax = vcmax * vcmax_25_to_jmax_25;
   double electron_transport_ = (a * PPFD_ + jmax - sqrt(pow(a * PPFD_ + jmax, 2) - 4 * curv_fact * a * PPFD_ * jmax)) / (2 * curv_fact); // check brackets are correct
-
   return electron_transport_;           
 }
 

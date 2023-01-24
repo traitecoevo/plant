@@ -52,6 +52,11 @@ calc_k_l_max <- function(K_s, h_v, h){
   K_s * h_v / h
 }
 
+#calculate sapwood volume per leaf area (m^3 sapwod m^-2 leaf area) 
+calc_sapwood_volume_per_leaf_area <- function(h_v, h){
+  h_v*h
+}
+
 #calculate b (-MPa) from c (unitless) and p_50 (-MPa)
 calc_vul_b <- function(p_50, c){
   num <- p_50
@@ -93,8 +98,8 @@ calc_E_supply <- function(psi_stem, psi_soil, ...){
 
 #calculate stomatal conductance to h20 (g_w) and co2 (g_c) from E supply and VPD
 calc_g_c <- function(psi_stem, psi_soil, atm_vpd,...){
-  # g_w = atm_kpa*l$transpiration(psi_stem)*kg_2_mol_h20/atm_vpd
-  g_w = atm_kpa*calc_E_supply(psi_stem = psi_stem, psi_soil = psi_soil, ...)$value*kg_2_mol_h20/atm_vpd
+  g_w = atm_kpa*l$transpiration(psi_stem)*kg_2_mol_h20/atm_vpd
+  # g_w = atm_kpa*calc_E_supply(psi_stem = psi_stem, psi_soil = psi_soil, ...)$value*kg_2_mol_h20/atm_vpd
   g_w/1.6
 }
 
@@ -218,7 +223,7 @@ calc_profit_Sperry_ci_one_line <- function(c_i, ...){
 }
 
 calc_profit_Sperry_psi_stem_one_line <- function(psi_stem, ...){                                  
-  benefit_ = calc_ben_gross_one_line(psi_stem = psi_stem, psi_soil = psi_soil, atm_vpd = atm_vpd, k_l_max = k_l_max, b = b, c =c , PPFD = PPFD, vcmax = vcmax, ca = ca)
+    benefit_ = calc_ben_gross_one_line(psi_stem = psi_stem, psi_soil = psi_soil, atm_vpd = atm_vpd, k_l_max = k_l_max, b = b, c =c , PPFD = PPFD, vcmax = vcmax, ca = ca)
 
   lambda_ = calc_ben_gross_one_line(psi_stem = psi_crit, psi_soil = psi_soil, atm_vpd = atm_vpd, k_l_max = k_l_max, b = b, c =c , PPFD = PPFD, vcmax = vcmax, ca = ca) / calc_hydraulic_cost(psi_soil = psi_soil, psi_stem = psi_crit, ...)
   

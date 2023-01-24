@@ -2,8 +2,8 @@
 #include <plant.h>
 
 // [[Rcpp::export]]
-plant::Leaf Leaf__ctor(double vcmax, double p_50, double c, double b, double psi_crit, double K_s, double epsilon_leaf, double beta1, double beta2) {
-  return plant::Leaf(vcmax, p_50, c, b, psi_crit, K_s, epsilon_leaf, beta1, beta2);
+plant::Leaf Leaf__ctor(double vcmax, double c, double b, double psi_crit, double epsilon_leaf, double beta1, double beta2, double jmax) {
+  return plant::Leaf(vcmax, c, b, psi_crit, epsilon_leaf, beta1, beta2, jmax);
 }
 // [[Rcpp::export]]
 void Leaf__initialize_integrator(plant::RcppR6::RcppR6<plant::Leaf> obj_, int integration_rule, double integration_tol) {
@@ -4096,16 +4096,16 @@ double FF16_Environment__canopy_openness(plant::RcppR6::RcppR6<plant::FF16_Envir
   return obj_->canopy_openness(height);
 }
 // [[Rcpp::export]]
-double FF16_Environment__calc_n_psi(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
-  return obj_->calc_n_psi();
+double FF16_Environment__n_psi(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
+  return obj_->n_psi();
 }
 // [[Rcpp::export]]
-double FF16_Environment__calc_a_psi(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
-  return obj_->calc_a_psi();
+double FF16_Environment__a_psi(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
+  return obj_->a_psi();
 }
 // [[Rcpp::export]]
-double FF16_Environment__calc_psi(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double theta_) {
-  return obj_->calc_psi(theta_);
+double FF16_Environment__psi_from_soil_moist(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double theta_) {
+  return obj_->psi_from_soil_moist(theta_);
 }
 // [[Rcpp::export]]
 double FF16_Environment__soil_moist_from_psi(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double psi_soil_) {

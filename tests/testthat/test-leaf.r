@@ -1,4 +1,4 @@
-source("tests/leaf_functions.R")
+source("R/leaf.R")
 context("SCM-general")
 
 test_that("Basic functions", {
@@ -9,15 +9,16 @@ test_that("Basic functions", {
   
   vcmax = 100 #maximum carboxylation rate, defined by leaf nitrogen (umol m^-2 s^-1) 
   p_50 = 1.731347 #stem water potential at 50% loss of conductivity
-  
   c = 2.04 #shape parameter for hydraulic vulnerability curve (unitless) estimated from trait data in Austraits from Choat et al. 2012
   b = calc_vul_b(p_50 = p_50, c = c) #shape parameter for vulnerability curve, point of 37% conductance (-MPa) 
   psi_crit = calc_psi_crit(b, c) #stem water potential at which conductance is 95%
   theta = 0.000157 #huber value (m^2 sapwood area m^-2 leaf area)
   K_s = 2 #stem-specific conductivity (kg h2o m^-1 stem s^-1 MPa^-1)
   h = 5 #height or path length (m)
+  beta1 = 15000
+  beta2 = 1.5
   
-  l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, K_s = K_s, epsilon_leaf = 0.0001)
+  l <- Leaf(vcmax = vcmax, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2)
   
   #without setting physiology, PPFD_, k_l_max_, and psi_soil_ should all be NA
   
@@ -32,12 +33,13 @@ test_that("Basic functions", {
   #now set physiology, PPFD_, k_l_max_, and psi_soil_, atm_vpd_ should be not NA
   
   PPFD = 900
+  sapwood_volume_per_leaf_area = calc_sapwood_volume_per_leaf_area(theta, h)
   leaf_specific_conductance_max = calc_k_l_max(K_s, theta, h)
   psi_soil = 2
   atm_vpd = 2
   ca = 40
   
-  l$set_physiology(PPFD = PPFD, psi_soil = psi_soil, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca)
+  l$set_physiology(PPFD = PPFD, psi_soil = psi_soil, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area)
   
   expect_equal(l$PPFD_, PPFD)
   expect_equal(l$leaf_specific_conductance_max_, leaf_specific_conductance_max)
@@ -46,7 +48,7 @@ test_that("Basic functions", {
   
   #generating a new leaf object should wipe the previously stored values
   
-  l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, K_s = K_s, epsilon_leaf = 0.0001)
+  l <- Leaf(vcmax = vcmax, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2)
   
   expect_true(is.na(l$PPFD_))
   expect_true(is.na(l$leaf_specific_conductance_max_))
@@ -54,7 +56,7 @@ test_that("Basic functions", {
   expect_true(is.na(l$electron_transport_))
   
   #set physiology again for testing 
-  l$set_physiology(PPFD = PPFD, psi_soil = psi_soil, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca =ca)
+  l$set_physiology(PPFD = PPFD, psi_soil = psi_soil, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area)
   
   psi <- 1 #nominated value for water potential for testing vulnerability curve equations only (-MPa)
   
@@ -81,14 +83,14 @@ test_that("Basic functions", {
   #for situations where psi_soil exceeds psi_crit + tolerance
   
   psi_soil = psi_crit + psi_crit*0.1
-  l$set_physiology(PPFD, psi_soil = psi_soil, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca)
+  l$set_physiology(PPFD = PPFD, psi_soil = psi_soil, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area)
   psi_stem = psi_soil 
   
   expect_error(l$transpiration(psi_stem), "Extrapolation disabled and evaluation point outside of interpolated domain.")
   
   #test that fast E supply calculation is closely approximating full integration
   psi_soil = 0
-  l$set_physiology(PPFD, psi_soil = psi_soil, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca)
+  l$set_physiology(PPFD = PPFD, psi_soil = psi_soil, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area)
   psi_stem = psi_soil + 3
   
   expect_equal(l$transpiration(psi_stem), l$transpiration_full_integration(psi_stem))
@@ -114,8 +116,8 @@ test_that("Basic functions", {
 
   psi_soil = 2
   
-  l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, K_s = K_s, epsilon_leaf = 0.0001)
-  l$set_physiology(PPFD = PPFD, psi_soil = psi_soil, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca)
+  l <- Leaf(vcmax = vcmax, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2)
+  l$set_physiology(PPFD = PPFD, psi_soil = psi_soil, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area)
   
   l$set_leaf_states_rates_from_psi_stem_analytical(psi_soil - 1)
   
@@ -184,9 +186,6 @@ test_that("Basic functions", {
   #test whether max cis are roughly equivalent between numerical and analytical
   expect_equal(ci_numerical, ci_analytical, tolerance = 0.5)
   
-  #test whether finding the maximum ci (i.e at psi_crit) is roughly equivalent
-  expect_equal(ci_analytical - find_max_ci_one_line(psi_crit = psi_crit, psi_soil = psi_soil, atm_vpd = atm_vpd, vcmax = vcmax, PPFD = PPFD), 0, tolerance = 1e-03)
-  
   #test whether conversion between E and psi is equivalent between R and C++
   
   E = 0.0001109062
@@ -205,8 +204,8 @@ test_that("Basic functions", {
   #let's start testing profit functions
   
   psi_soil = 0
-  l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, K_s = K_s, epsilon_leaf = 0.0001)
-  l$set_physiology(PPFD = PPFD, psi_soil = psi_soil, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca)
+  l <- Leaf(vcmax = vcmax, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2)
+  l$set_physiology(PPFD = PPFD, psi_soil = psi_soil, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area)
   
   expect_equal(l$profit_psi_stem_Sperry_analytical(2), calc_profit_Sperry_psi_stem_one_line(psi_stem = 2, k_l_max = leaf_specific_conductance_max, b = b, c = c), tolerance = 0.01)
   
@@ -222,28 +221,111 @@ test_that("Basic functions", {
   #test some scenarios just using the c++ implementation - if they deviate strongly we have done something to change the implementation significantly which will warn us if we don't think we've done anything
   
   #first off- what happens when we moving psi_soil around
-  l$set_physiology(PPFD = 900, psi_soil = psi_crit + 1, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca)
+  l$set_physiology(PPFD = PPFD, psi_soil = psi_crit+1, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca,sapwood_volume_per_leaf_area=sapwood_volume_per_leaf_area)
   l$optimise_psi_stem_Sperry_Newton_analytical(NA)
   
   expect_equal(l$profit_, 0)
   expect_equal(l$opt_psi_stem_, psi_crit+1)
   expect_equal(l$transpiration_, 0)
   
-  l$set_physiology(PPFD = 900, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca)
+  l$set_physiology(PPFD = 900, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area=sapwood_volume_per_leaf_area)
   l$optimise_psi_stem_Sperry_Newton_analytical(NA)
   expect_equal(l$profit_, 14.14675, tolerance = 1e-6)
   expect_equal(l$opt_psi_stem_, 0.8451968, tolerance = 1e-6)
   
-  l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, K_s = K_s, epsilon_leaf = 0.0001)
+  l <- Leaf(vcmax = vcmax, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2)
   
-  l$set_physiology(PPFD = 0, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca)
+  l$set_physiology(PPFD = 0, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area)
   l$optimise_psi_stem_Sperry_Newton_analytical(NA)
   
   
   #when no profit can be made at any point at the three points used for newtons method, assume profit = 0, transpiration= 0, and opt_psi_stem is set to psi_soil, representing the plant completely closing stomata. 
   expect_equal(l$profit_, 0, tolerance = 1e-6)
   expect_equal(l$opt_psi_stem_, l$psi_soil_, tolerance = 1e-6)
-})
+  
+  #test various responses to environmental gradients to check that behaviour is being conserved
+  
+  #light
+  l <- Leaf(vcmax = vcmax, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2)
+  l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area)
+  l$optimise_psi_stem_Bartlett_analytical()
+  
+  high_light <- l$profit_
+  
+  l <- Leaf(vcmax = vcmax, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2)
+  l$set_physiology(PPFD = 500, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area)
+  l$optimise_psi_stem_Bartlett_analytical()
+  
+  low_light <- l$profit_
+  
+  expect_true(high_light > low_light)
+  
+  #soil moist
+  
+  l <- Leaf(vcmax = vcmax, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2)
+  l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area)
+  l$optimise_psi_stem_Bartlett_analytical()
+  
+  high_moisture <- l$profit_
+  
+  l <- Leaf(vcmax = vcmax, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2)
+  l$set_physiology(PPFD = 1000, psi_soil = 2, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area)
+  l$optimise_psi_stem_Bartlett_analytical()
+  
+  low_moisture <- l$profit_
+  
+  expect_true(high_moisture > low_moisture)
+  
+  #vpd'
+  
+  l <- Leaf(vcmax = vcmax, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2)
+  l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area)
+  l$optimise_psi_stem_Bartlett_analytical()
+  
+  low_vpd <- l$profit_
+  
+  l <- Leaf(vcmax = vcmax, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2)
+  l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 3, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area)
+  l$optimise_psi_stem_Bartlett_analytical()
+  
+  high_vpd <- l$profit_
+  
+  expect_true(high_vpd < low_vpd)
+  
+  #ca
+  
+  l <- Leaf(vcmax = vcmax, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2)
+  l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = 20, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area)
+  l$optimise_psi_stem_Bartlett_analytical()
+  
+  low_ca <- l$profit_
+  
+  l <- Leaf(vcmax = vcmax, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2)
+  l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = 40, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area)
+  l$optimise_psi_stem_Bartlett_analytical()
+  
+  high_ca <- l$profit_
+  
+  expect_true(low_ca < high_ca)
+  
+  
+  #beta1
+  
+  l <- Leaf(vcmax = vcmax, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = 5000, beta2= beta2)
+  l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area)
+  l$optimise_psi_stem_Bartlett_analytical()
+  
+  low_beta1 <- l$profit_
+  
+  l <- Leaf(vcmax = vcmax, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = 50000, beta2= beta2)
+  l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area)
+  l$optimise_psi_stem_Bartlett_analytical()
+  
+  high_beta1 <- l$profit_
+  
+  expect_true(high_beta1 < low_beta1)
+  
+  })
   
   
   

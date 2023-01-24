@@ -32,15 +32,15 @@ names(sw)
 
 There are 9 new traits thus far:
 
--vcmax: the maximum rate 
--p_50
--K_s
--c
--b
--psi_crit
--epsilon_leaf
--beta1
--beta2
+-vcmax: the maximum rate carboxylation ($\mu mol~m^{-2}~s^{-1}$)
+-p_50: The leaf water potential ($\psi_l$) at which 50% of conductivity is lost
+-K_s: The maximum hydraulic conductivity ($kg~m^{-2}~s^{-1}~MPa^{-1})
+-c: Shape parameter for the hydraulic vulnerability curve (unitless)
+-b: Sensitivity parameter for the hydraulic vulnerability curve (-MPa)
+-psi_crit: $\psi_l$ at which 95% of conductivity is lost. Maximum water potential. (-MPa)
+-epsilon_leaf: actually a control parameter. controls accuracy of optimisation routive if newtons method is used.
+-beta1: cost of sapwood per volume per unit of hydraulic damage (umol C m^{-3} sapwood)
+-beta2: shape parameter for relationship between lost conductivity and sapwood repair cost (unitless). 
 
 For the most part, these traits, in combination with traits from `ff16`, determine how plant assimilate carbon and tranpsire water via the physiological `Leaf` submodel. We can start by exploring the theory behind how the `Leaf` submodel works, found in `leaf_model.cpp`. 
 

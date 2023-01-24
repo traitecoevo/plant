@@ -1,4 +1,9 @@
 ## Support code:
+##' @title Make the equilibrium runner
+##' @param p A Parameters object
+##' @param ctrl Control object
+#'
+#' @return offspring_production
 make_equilibrium_runner <- function(p, ctrl) {
   pretty_num_collapse <- function(x, collapse=", ") {
     paste0("{", paste(prettyNum(x), collapse=collapse), "}")

@@ -3,14 +3,13 @@ Leaf:
   constructor:
     args:
       - vcmax: double
-      - p_50: double
       - c: double
       - b: double
       - psi_crit: double
-      - K_s: double
       - epsilon_leaf: double
       - beta1: double
       - beta2: double
+      - jmax: double
       
   active:
     ci_: {type: double, access: field}
@@ -1037,13 +1036,13 @@ FF16_Environment:
     canopy_openness:
       args: [height: double]
       return_type: double
-    calc_n_psi:
+    n_psi:
       args: []
       return_type: double
-    calc_a_psi:
+    a_psi:
       args: []
       return_type: double
-    calc_psi:
+    psi_from_soil_moist:
       args: [theta_: double]
       return_type: double 
     soil_moist_from_psi:
@@ -1229,6 +1228,7 @@ FF16w_Strategy:
     - epsilon_leaf: double
     - beta1: double
     - beta2: double
+    - jmax: double
     - recruitment_decay: double
     - control: "plant::Control"
     - collect_all_auxiliary: bool

@@ -102,8 +102,6 @@ void Node<T,E>::compute_rates(const environment_type& environment,
     - growth_rate_gradient(environment)
     - individual.rate("mortality");
 
-    // std::cout << "growth: " << - growth_rate_gradient(environment) << "mort: " << - individual.rate("mortality") << "density_dt: " << exp(log_density_dt) << std::endl;
-
   // survival_individual: converts from the mean of the poisson process (on
   // [0,Inf)) to a probability (on [0,1]).
   double survival_individual = exp(-individual.state(MORTALITY_INDEX));
@@ -181,7 +179,10 @@ double Node<T,E>::r_growth_rate_gradient(const environment_type& environment) {
 
 template <typename T, typename E>
 double Node<T,E>::compute_competition(double height_) const {
+  
   return density * individual.compute_competition(height_);
+
+
 }
 
 template <typename T, typename E>

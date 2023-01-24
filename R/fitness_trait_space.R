@@ -45,6 +45,15 @@ solve_max_fitness <- function(bounds, params, log_scale = TRUE, tol = 1e-3){
   return(ret)
 }
 
+#' @title Execute finding point of maximum fitness within some range
+#'
+#' @param f function passed from solve_max_fitness
+#' @param outcome Desired outcome, e.g. "fitness"
+#' @param bounds Two element vector specifying range within which to
+#' @param tol Tolerance used in the optimisation
+#' @return ret 
+#' @export
+#'
 solve_max_worker <- function(bounds, f, tol=1e-3, outcome) {
   if (length(rownames(bounds)) == 1L) {
     if (!all(is.finite(bounds))) {

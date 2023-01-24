@@ -47,14 +47,13 @@ static const double kPa_to_Pa = 1000.0;
 class Leaf {
 public:
   Leaf(double vcmax        = 100, // umol m^-2 s^-1
-       double p_50         = 1.0, // (- MPa)
        double c            = 2.04, //unitless
        double b            = 2.0, // MPa
        double psi_crit     = 3.42,  // derived from b and c (- MPa)
        double beta1 = 20000, // umol m^-3 s^-1
        double beta2 = 1.5,
-       double K_s = 2, // kg m^-1 s^-1 MPa ^-1 Liu et al. 2010 
-       double epsilon_leaf = 0.001); 
+       double epsilon_leaf = 0.001,
+       double jmax = 167); 
 
   quadrature::QAG integrator;
   interpolator::Interpolator transpiration_from_psi;
@@ -63,13 +62,12 @@ public:
   // psi_from_E
 
   double vcmax;
-  double p_50;
   double c;
   double b;
   double psi_crit;  // derived from b and c
-  double K_s;
   double beta1;
   double beta2;
+  double jmax;
 
   //actually a control paramaeter and needs to be moved
   double epsilon_leaf;

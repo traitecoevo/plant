@@ -41,46 +41,60 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
  
   };
 
+// calculate the average light environment based on the height of the plant
   double average_light_environment =
       integrator.is_adaptive() && reuse_intervals
           ? integrator.integrate_with_last_intervals(f, 0.0, height)
           : integrator.integrate(f, 0.0, height);
-
-  if(average_light_environment < 0){
-    for (double height_test = 0; height_test <= height; height_test += height/control.assimilator_integration_iterations){
-      double compute_test = compute_average_light_environment(height_test, height, environment);
-
-    }
-
-    util::stop("Error");
-    }
     
-    // k_I adds self shading in addition to patch competition
+    // calculate average radiation by multipling average canopy openness by PPFD and accounting for self-shading k_I.
   const double average_radiation = k_I * average_light_environment * environment.PPFD;
     
+    // calculate psi_soil (-MPa)
   const double psi_soil = environment.get_psi_soil() / 1000000;
 
+  // find leaf specific max hydraulic conductance
+  // K_s: max hydraulic conductivity (kg m^-2 s^-1 MPa^-1),
+  // theta: huber value
+  // eta_c: accounts for average position of leaf mass
+  // height: maximum plant height
+
+
   const double leaf_specific_conductance_max = K_s * theta / (height * eta_c);
+
+  // find sapwood volume per leaf area
+  // theta: huber value
+  // eta_c: accounts for average position of leaf mass
+
   const double sapwood_volume_per_leaf_area = theta * (height * eta_c);
 
+
+// set strategy-level physiological parameters for the leaf-submodel.
   leaf.set_physiology(average_radiation, psi_soil, leaf_specific_conductance_max, environment.get_vpd(), environment.get_co2(), sapwood_volume_per_leaf_area);
     
+
+  // optimise psi_stem, setting opt_psi_stem_, profit_, hydraulic_cost_, assim_colimited_ etc.
   leaf.optimise_psi_stem_Bartlett_analytical();
 
+  // optimum psi_stem (-MPa)
   vars.set_aux(aux_index.at("opt_psi_stem_"), leaf.opt_psi_stem_);
     
+  // programming variable, check number of iterations of optimiser 
   vars.set_aux(aux_index.at("count"), leaf.count);
 
+  // profit (umol m^-2 s^-1), assim_colimited_ - hydraulic_cost_
   vars.set_aux(aux_index.at("profit_"), leaf.profit_);
 
+  // assim_colimted_(umol m^-2 s^-1), per leaf area
   vars.set_aux(aux_index.at("assim_colimited_"), leaf.assim_colimited_);
   
+  // cost (umol m^-2 s^-1), hydraulic_cost_
   vars.set_aux(aux_index.at("hydraulic_cost_"), leaf.hydraulic_cost_);
 
+  // convert assimilation per leaf area per second (umol m^-2 s^-1) to canopy-level total yearly assimilation (mol yr^-1)
+  // assuming photosynthesis occcurs for 12 hours a day every day
 
-  const double assimilation_per_area = leaf.profit_;
-    
-  const double assimilation = assimilation_per_area * area_leaf_* 60*60*12*365/1000000;
+  const double assimilation = leaf.profit_ * area_leaf_* 60*60*12*365/1000000;
     
   const double respiration_ = 
   respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
@@ -98,6 +112,7 @@ void FF16w_Strategy::compute_rates(const FF16_Environment &environment,
                                    bool reuse_intervals, Internals &vars) {
 
   double height = vars.state(HEIGHT_INDEX);
+
   double area_leaf_ = vars.aux(aux_index.at("competition_effect"));
 
   const double net_mass_production_dt_ =
@@ -107,6 +122,8 @@ void FF16w_Strategy::compute_rates(const FF16_Environment &environment,
   // store the aux sate
   vars.set_aux(aux_index.at("net_mass_production_dt"), net_mass_production_dt_);
 
+  // convert evapotranspiration per leaf area (kg H20 m^-2 s^-1) to canopy-level total yearly assimilation (m yr^-1)
+  // assuming photosynthesis occcurs for 12 hours a day every day
   // stubbing out E_p for integration
   for (size_t i = 0; i < environment.ode_size(); i++) {
 
@@ -171,7 +188,7 @@ void FF16w_Strategy::prepare_strategy() {
   } else {
     extrinsic_drivers.set_constant("birth_rate", birth_rate_y[0]);
   }
-  leaf = Leaf(vcmax, p_50, c, b, psi_crit, K_s, epsilon_leaf, beta1, beta2);
+  leaf = Leaf(vcmax, c, b, psi_crit, epsilon_leaf, beta1, beta2);
   
 }
 

@@ -47,6 +47,16 @@ solar_angle <- function(decimal_day_time, latitude) {
   asin(SinA)
 }
 
+#' Title
+#'
+#' @param decimal_day_time Day of the year in decimal time
+#' @param latitude Latitude in degrees
+#'
+#' @return Hour of sunrise (hr)
+#' @export
+#'
+#' @examples sun_rise(90, -27)
+#' 
 sun_rise <- function(decimal_day_time, latitude){
 
   radians <- function(x) {
@@ -58,5 +68,6 @@ sun_rise <- function(decimal_day_time, latitude){
                                                                     2 * pi))
   
   Hrang <- acos(-1*(sin(lat_radians)*sin(delta)) / (cos(lat_radians)*cos(delta)))
-  (Hrang / pi * 180 - 180) / -15
+  sunrise <- (Hrang / pi * 180 - 180) / -15
+  sunrise
 }

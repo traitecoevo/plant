@@ -37,15 +37,27 @@ FF16w_make_environment(
 FF16w_fixed_environment(e = 1, height_max = 150)
 }
 \arguments{
-\item{canopy_rescale_usually}{turns on environment rescaling (default = TRUE)}
+\item{canopy_rescale_usually}{}
 
 \item{soil_number_of_depths}{the number of soil layers}
+
+\item{canopy_light_tol}{}
+
+\item{canopy_light_nbase}{}
+
+\item{canopy_light_max_depth}{}
 
 \item{e}{Value of environment (deafult  = 1.0)}
 
 \item{height_max}{= 150.0 maximum possible height in environment}
 
-\item{rainfall}{constant function value for rainfall driver, y = rainfall}
+\item{soil_initial_state}{initial soil moisture (m3 m^-3)}
+
+\item{rainfall}{constant function value for rainfall driver (m), y = rainfall}
+
+\item{vpd}{constant function value for vapour pressure deficit (kPa), y = vpd}
+
+\item{co2}{constant function value for atmos. co2 partial pressure (Pa) driver, y = co2}
 }
 \description{
 FF16_Environment object

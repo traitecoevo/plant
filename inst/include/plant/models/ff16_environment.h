@@ -14,10 +14,10 @@ namespace plant {
 static const double PAR_to_SW = 0.4376; // slp, gamma and lh are temp-dependent, but assumed at 25 deg C for now.
 static const double slp = 0.1887;
 static const double gamma = 0.0674;
-static const double lh = 44002.59;
-static const double MH2O = 18.02;
-static const double g_to_kg = 1/1000.0;
-static const double kg_to_m3 = 1/1000.0;
+static const double lh = 44002.59; // latent heat of vaporisation of water
+static const double MH2O = 18.02; // molar mass of water (g mol^-1 H20)
+static const double g_to_kg = 1/1000.0; // convert grams to kilograms
+static const double kg_to_m3 = 1/1000.0; // converget kilograms of water to volume
 
 class FF16_Environment : public Environment {
 public:
@@ -63,16 +63,16 @@ public:
     canopy.r_init_interpolators(state);
   }
 
-  // soil variables
+  
   double PPFD = 1000;
-
-  //paramaterised for sandy loam
-  double soil_moist_sat = 0.453;
+  
+  // soil variables - paramaterised for sandy loam
+  double soil_moist_sat = 0.453; // saturated soil moisture content (m3 water m^-3 soil) 
   double r_soil = 0.01;
-  double soil_moist_wp = 0.081;
-  double soil_moist_fc = 0.180;
+  double soil_moist_wp = 0.081; // soil moisture at wilting point (m3 water m^-3 soil) 
+  double soil_moist_fc = 0.180; // soil moisture at field capacity (m3 water m^-3 soil) 
   double swf = 1;
-  double k_sat = 440.628;
+  double k_sat = 440.628; //saturated hydraulic conductivity of soil
   double b_infil = 8;
 
   virtual void compute_rates(std::vector<double> const& resource_depletion) {
@@ -104,7 +104,8 @@ public:
         saturation = std::max(0.0, 1 - std::pow(vars.state(i)/soil_moist_sat, b_infil));
         infiltration = extrinsic_drivers.evaluate("rainfall", time) * saturation;
 
-        // drainage = 200*18.02/1000000 * pow((0.35*10e-3/calc_psi(vars.state(i))), 5)
+
+        // drainage = 200*18.02/1000000 * pow((0.35*10e-3/psi_from_soil_moist(vars.state(i))), 5)
 
         // // Evaporation at soil surface
         // double E_bare_soil_pot_mol = (1.0 - r_soil) * ground_radiation * PAR_to_SW * slp / ((slp + gamma) * lh);
@@ -128,7 +129,7 @@ public:
       }
 
       // if (i == soil_number_of_depths){
-      //   drainage = k_sat * std::pow(vars.state(i)/soil_moist_sat, 2*calc_n_psi() + 3);
+      //   drainage = k_sat * std::pow(vars.state(i)/soil_moist_sat, 2*n_psi() + 3);
       // }
 
       // TODO: add drainage
@@ -144,7 +145,7 @@ public:
       // net_flux = infiltration  - resource_depletion[i] - drainage;
       // net_flux = infiltration   - drainage;
 
-      // drainage = k_sat * std::pow(vars.state(i)/soil_moist_sat, 2*calc_n_psi() + 3);
+      // drainage = k_sat * std::pow(vars.state(i)/soil_moist_sat, 2*n_psi() + 3);
 
       // drainage = 0;
 
@@ -161,38 +162,41 @@ public:
       vars.set_rate(i, net_flux);
     }
   }
-
-  double calc_n_psi() const {
-  double n_psi = -((log(1500/33))/(log(soil_moist_wp/soil_moist_fc)));
-  return n_psi;
+// calculate n_psi (parameter to convert soil mositure to soil water potential) from soil field capacity and soil wilting point
+  double n_psi() const {
+  double n_psi_ = -((log(1500/33))/(log(soil_moist_wp/soil_moist_fc)));
+  return n_psi_;
 }
 
-  double calc_a_psi() const {
-  double n_psi = calc_n_psi();
-  double a_psi = 1.5e6 * std::pow(soil_moist_wp, calc_n_psi());
-  return a_psi;
+// calculate a_psi (parameter to convert soil mositure to soil water potential) from n_psi and soil wilting point
+  double a_psi() const {
+  double n_psi_ = n_psi();
+  double a_psi_ = 1.5e6 * std::pow(soil_moist_wp, n_psi_);
+  return a_psi_;
 }
 
-  double calc_psi(double soil_moist_) const {
-  double n_psi = calc_n_psi();
-  double a_psi = calc_a_psi();
+// convert soil moisture to soil water potential
+  double psi_from_soil_moist(double soil_moist_) const {
+  double n_psi_ = n_psi();
+  double a_psi_ = a_psi();
 
-    double psi = a_psi * std::pow(soil_moist_, -n_psi);
+    double psi = a_psi_ * std::pow(soil_moist_, -n_psi_);
   return psi;
 }
 
+// convert soil water potential to soil moisture
   double soil_moist_from_psi(double psi_soil_) const {
-  double n_psi = calc_n_psi();
-  double a_psi = calc_a_psi();  
+  double n_psi_ = n_psi();
+  double a_psi_ = a_psi();  
   
-  return pow((psi_soil_/a_psi), (-1/n_psi));
+  return pow((psi_soil_/a_psi_), (-1/n_psi_));
 }
 
 
   double get_psi_soil() const {
     // soil volumetric water: m3.m-3
     // assume one layer for now - later extend to include layers of variable depth
-    double soil_moist = get_soil_water_state()[0];
+    double soil_moist_ = get_soil_water_state()[0];
 // std::cout << "soil_moist" << soil_moist << std::endl;
     // later average over all layers
     // for(i in 1:n_soil_layers)
@@ -200,14 +204,14 @@ public:
     //    soil_moist_soil = total / n_soil_layers
 
     // hardcode for now; later set in enviornment constructor
-    double a_psi = calc_a_psi();
-    double n_psi = calc_n_psi();
+    double a_psi_ = a_psi();
+    double n_psi_ = n_psi();
 
-    double psi = calc_psi(soil_moist);
+    double psi_ = psi_from_soil_moist(soil_moist_);
     // TODO: convert soil_moist to psi
     // calc_apsi(soil_moist_fc, soil_moist_wp)*(soil_moist/soil_moist_sat)^(-calc_npsi(soil_moist_fc, soil_moist_wp))
 
-    return psi;
+    return psi_;
   }
 
 double get_vpd() const {

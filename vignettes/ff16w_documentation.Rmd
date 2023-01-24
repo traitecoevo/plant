@@ -73,24 +73,30 @@ indv$ode_rates
 
 Great! There are two other environmental variables that we can work with, being vapour pressure deficit (kPa) and atmospheric carbon dioxide (Pa). Check out the `leaf_submodel` documentation to see how these variables work. In short though, we set them via the extrinsic drivers. These are kept seperate to soil water state, because whereas soil water state is an emergent property of the hydrology model, vpd, rainfall and co2 are directly set. 
 
-
-This doesn't actually work...
+At the moment, we have to set each of the extrinsic drivers as they do not have default values when only one is set. Let's set a second set of environmental conditions which has low $\rm CO_2$. Low $\rm CO_2$, all else beig equal, should yield slower growth rates and a lower maximum height at the resource compensation point (i.e. the point at which assimilation equals the combined cost of respiration and turnover)/
 
 ```{r}
-env$extrinsic_drivers$get_names()
-env$extrinsic_drivers$set_constant("rainfall", 1)
-env$
+env2 <-FF16w_make_environment()
+env2$set_soil_water_state(env$soil_moist_from_psi(1e06))
+
+
+drivers <- ExtrinsicDrivers()
+drivers$set_constant("co2", 20)
+drivers$set_constant("vpd", 1)
+
+env2$extrinsic_drivers <- drivers
 ```
 
-We are now able to grow plants to a given height as in `ff16`
+We are now able to grow plants to a given height as in `ff16` Grow with the original, high $\rm CO_2$.
 
 ```{r}
-target_height <- 10
+indv <- FF16w_Individual()
+target_height <- 20
 res <- plant::grow_individual_to_height(indv, heights = target_height, env, time_max =100)
 
 res$trajectory %>%
   as_tibble() %>% 
-  mutate(indv = 1) -> indv1
+  mutate(CO2 = "High CO2") -> indv1
 
 indv1 %>%
   ggplot(aes(x = time, y = height)) +
@@ -98,24 +104,120 @@ indv1 %>%
   theme_classic()
 ```
 
-Let's compare two plants growing under soil water regimes. We'll have individual 2 growing under nicer soil water conditions.
+Let's compare the two plants growing under different concentrations of $\rm CO_2$ as we set above.
 
 ```{r}
-indv <- FF16w_Individual()
-indv$set_state("height", 5)
-env$set_soil_water_state(env$soil_moist_from_psi(0.5e06))
-
-res <- plant::grow_individual_to_height(indv, heights = target_height, env, time_max =100)
+target_height <- 20
+res <- plant::grow_individual_to_height(indv, heights = target_height, env2, time_max =100)
 
 res$trajectory %>%
   as_tibble() %>% 
-  mutate(indv = 2) -> indv2
+  mutate(CO2 = "Low CO2") -> indv2
 
-bind_rows(indv1, indv2) %>%
-  mutate(indv = as_factor(indv)) %>%
+
+bind_rows(indv1, indv2) %>% 
   ggplot(aes(x = time, y = height)) +
-  geom_line(aes(colour = indv, group = indv)) + 
+  geom_line(aes(group = CO2, colour = CO2)) +
   theme_classic()
 ```
 
-As can be seen, individual 2 grows much faster, and will have a higher maximum growth rate. Note that because we are growing individuals here, the plants are NOT affecting the soil water, but are only responding to it. We will see plants affecting the soil water when we starting growing patches. 
+We can also compare the effect of varying soil moisture.
+
+```{r}
+env1 <-FF16w_make_environment()
+env2 <-FF16w_make_environment()
+
+#high soil moisture
+env1$set_soil_water_state(env$soil_moist_from_psi(0.5e06))
+#low soil moisture
+env2$set_soil_water_state(env$soil_moist_from_psi(1e06))
+
+target_height <- 20
+
+res <- plant::grow_individual_to_height(indv, heights = target_height, env1, time_max =100)
+res$trajectory %>%
+  as_tibble() %>% 
+  mutate(soil_moist = "High") -> indv1
+
+res <- plant::grow_individual_to_height(indv, heights = target_height, env2, time_max =100)
+res$trajectory %>%
+  as_tibble() %>% 
+  mutate(soil_moist = "Low") -> indv2
+
+bind_rows(indv1, indv2) %>%
+  mutate(soil_moist = as_factor(soil_moist)) %>%
+  ggplot(aes(x = time, y = height)) +
+  geom_line(aes(colour = soil_moist, group = soil_moist)) + 
+  theme_classic()
+```
+
+As can be seen, individual 2 grows much faster, and will have a higher maximum growth rate. Note that because we are growing individuals here, the plants are NOT affecting the soil water, but are only responding to it. We will see plants affecting the soil water when we starting growing patches.
+
+We can also experiment with varying some of the new traits. Hydraulic conductivity controls the trade-off between hydraulic conductivity and the vulnerability to cavitation. The higher the conductivity, the more vulnerable the stem is to cavitation. In wet soil, therefore, we would expect species with higher K_s to growth faster.
+
+```{r}
+params <- scm_base_parameters("FF16w")
+s1 <- strategy(trait_matrix(4,  "K_s"), params, birth_rate_list = 1)
+s2 <- strategy(trait_matrix(2,  "K_s"), params, birth_rate_list = 1)
+
+indv1 <- FF16w_Individual(s1)
+indv2 <- FF16w_Individual(s2)
+
+target_height <- 20
+
+res <- plant::grow_individual_to_height(indv1, heights = target_height, env1, time_max =100)
+res$trajectory %>%
+  as_tibble() %>% 
+  mutate(K_s = "High") -> indv1_results
+
+res <- plant::grow_individual_to_height(indv2, heights = target_height, env2, time_max =100)
+res$trajectory %>%
+  as_tibble() %>% 
+  mutate(K_s = "Low") -> indv2_results
+
+bind_rows(indv1_results, indv2_results) %>%
+  mutate(K_s = as_factor(K_s)) %>%
+  ggplot(aes(x = time, y = height)) +
+  geom_line(aes(colour = K_s, group = K_s)) + 
+  theme_classic()
+```
+
+Lets start working on growing some patches. When we grow patches, plants will compete for water, and we can track how this competition proceeeds by assessing soil mositure through time. First. 
+
+
+```{r}
+  p0 <- scm_base_parameters("FF16w")
+  p0$max_patch_lifetime <- 10
+  
+  p1 <- expand_parameters(trait_matrix(c(3), "K_s"), p0, mutant=FALSE, birth_rate_list = c(10))
+  
+  env <- make_environment("FF16w", soil_initial_state = 0.2, rainfall = 1)
+  result <- build_schedule(p1, env, ctrl)
+  result <- run_scm_collect(result, env, ctrl, collect_auxiliary_variables = TRUE)
+```
+
+We can use tools now available in `plant` to tidy up these results and plot them.
+
+```{r}
+result %>%
+  tidy_patch() %>%
+  pluck("species") %>%
+  plot_size_distribution() +
+  theme(legend.position = "none") -> size_distribution
+```
+
+Based on the figure we can see that first cohorts grow rapidly but then all but disappear. Why might that be?
+
+```{r}
+result %>%
+  tidy_patch() %>%
+  pluck("env") %>%
+  pluck("soil_moist") %>%
+  ggplot(aes(x = time, y = soil_moist)) +
+  geom_line() +
+  theme_classic() -> soil_moisture
+
+cowplot::plot_grid(size_distribution, soil_moisture, ncol = 1)
+```
+
+Comparing the two figures, we can see that soil moisture increases rapidly while plant density is low. Then as the density increases, soil moisture increases to a peak, before declining rapidly as plant use up the available water, to then reach equilibrium.

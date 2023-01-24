@@ -27,7 +27,7 @@ test_that("FF16w Environment", {
   expect_equal(e$soil$states, 0)
   e$compute_rates(c(0.3))
   # 0.6 - 0.3 
-  expect_equal(e$soil$rates, 4.6)
+  expect_equal(e$soil$rates, 0.3)
 
   # Water logged
   e$set_soil_water_state(100)
@@ -39,6 +39,7 @@ test_that("FF16w Environment", {
                         rainfall = 10)
 
   expect_equal(e$soil$states, 0)
+  
   e$compute_rates(c(0.4))
   # 10 - 0.4 - 0.0*0.1
   # weird because setting the soil water state to 100 doesn't affect
@@ -59,31 +60,50 @@ test_that("FF16w Environment", {
                                      soil_initial_state = c(1, 1)),
                "Not enough starting points for all layers")
 
-
+  
+  # Check that having a slightly full soil layer reduces the rate of recharge
+  e <- make_environment("FF16w",
+                        soil_number_of_depths = 1,
+                        rainfall = 1,
+                        soil_initial_state = 0.4)
+  
+  e$compute_rates(c(0.4))
+  saturated_rate <- e$soil$rates
+  
+  e$set_soil_water_state(0)
+  e$compute_rates(c(0.4))
+  unsaturated_rate <- e$soil$rates
+  
+  expect_true(saturated_rate < unsaturated_rate)
+  
 })
 
 test_that("Rainfall spline basic run", {
   # one species
   p0 <- scm_base_parameters("FF16w")
   p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,
-                          mutant = FALSE, birth_rate_list = list(20))
+                          mutant = FALSE, birth_rate_list = list(1))
 
 
   # init rainfall spline for env
   x <- seq(0, 110, 1)
   rain = list(
     x = x,
-    y = 1 + sin(x)
+    y = 2 + sin(x)
   )
 
   env <- make_environment("FF16w",
-                          soil_number_of_depths = 10,
-                          soil_initial_state = rep(1, 10),
+                          soil_number_of_depths = 1,
+                          soil_initial_state = rep(0.5, 1),
                           rainfall = rain)
 
   ctrl <- scm_base_control()
+  
+  p1$max_patch_lifetime <- 1
 
   out <- run_scm(p1, env, ctrl)
+  
+  
   
   expect_equal(out$patch$environment$ode_size, 10)
 

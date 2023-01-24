@@ -14,11 +14,15 @@ public:
   typedef std::shared_ptr<FF16w_Strategy> ptr;
   FF16w_Strategy();
 
+
   double compute_average_light_environment(double z, double height,
                                            const FF16_Environment &environment);
 
+  // calculate the amount of water transpired relativised by leaf area index.
+
   double evapotranspiration_dt(double area_leaf_);
-  
+
+  // Net production
   virtual double net_mass_production_dt(const FF16_Environment &environment,
                                         double height, double area_leaf_, Internals &vars, 
                                         bool reuse_intervals = false);
@@ -28,6 +32,7 @@ public:
                              
   virtual void prepare_strategy();
 
+// set names of auxillary variables
 virtual std::vector<std::string> aux_names() {
   std::vector<std::string> ret(
       {"competition_effect", "net_mass_production_dt", "opt_psi_stem_","opt_ci_", "count","profit_","assim_colimited_","hydraulic_cost_"});
@@ -44,12 +49,13 @@ virtual std::vector<std::string> aux_names() {
   double vcmax = 100;
   double c = 2.04;
   double K_s = 1.5;
-  double p_50 = 1.731347*pow(K_s/2,-0.7246377);
+  double p_50 = 5;
   double b = p_50 / std::pow(-log(1 - 50.0 / 100.0), 1 / c);
   double psi_crit = b*std::pow(log(1/0.05),1/c); // derived from b and c
   double epsilon_leaf = 0.001;
   double beta1 = 20000;
   double beta2 = 1.5;
+  double jmax = 167;
 
 };
 

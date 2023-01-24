@@ -20,7 +20,6 @@ strategy_list <- function(x, parameters, hyperpar=param_hyperpar(parameters), bi
   if (!is.matrix(x)) {
     stop("Invalid type x -- expected a matrix")
   }
-
   strategy <- parameters$strategy_default
   x <- hyperpar(x, strategy)
 
@@ -116,7 +115,6 @@ expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), mutan
   }
   extra <- strategy_list(trait_matrix, p, hyperpar, birth_rate_list)
   n_extra <- length(extra)
-
   ret <- p <- validate(p) # Ensure times are set up correctly.
   ret$strategies <- c(p$strategies, extra)
   ret$is_resident <- c(p$is_resident, rep(!mutant, n_extra))

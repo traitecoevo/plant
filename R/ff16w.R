@@ -64,8 +64,16 @@ FF16w_StochasticPatchRunner <- function(p) {
 ## Helper:
 ##' @export
 ##' @rdname FF16_Environment
+##'
 ##' @param soil_number_of_depths the number of soil layers
-##' @param rainfall constant function value for rainfall driver, y = rainfall
+##' @param canopy_light_tol 
+##' @param canopy_light_nbase 
+##' @param canopy_light_max_depth 
+##' @param canopy_rescale_usually 
+##' @param soil_initial_state initial soil moisture (m3 m^-3)
+##' @param vpd constant function value for vapour pressure deficit (kPa), y = vpd
+##' @param co2 constant function value for atmos. co2 partial pressure (Pa) driver, y = co2
+##' @param rainfall constant function value for rainfall driver (m), y = rainfall
 FF16w_make_environment <- function(canopy_light_tol = 1e-4, 
                                    canopy_light_nbase = 17,
                                    canopy_light_max_depth = 16, 
@@ -186,6 +194,7 @@ FF16w_test_environment <- function(height,
 
 ##' Hyperparameters for FF16w physiological model
 ##' @title Hyperparameters for FF16w physiological model
+##'
 ##' @param lma_0 Central (mean) value for leaf mass per area [kg /m2]
 ##' @param B_kl1 Rate of leaf turnover at lma_0 [/yr]
 ##' @param B_kl2 Scaling slope for phi in leaf turnover [dimensionless]
@@ -197,15 +206,18 @@ FF16w_test_environment <- function(height,
 ##' @param B_rs1 CO_2 respiration per unit sapwood volume [mol / yr / m3 ]
 ##' @param B_rb1 CO_2 respiration per unit sapwood volume [mol / yr / m3 ]
 ##' @param B_f1 Cost of seed accessories per unit seed mass [dimensionless]
-##' @param narea nitrogen per leaf area [kg / m2]
-##' @param narea_0 central (mean) value for nitrogen per leaf area [kg / m2]
-##' @param B_lf1 Potential CO_2 photosynthesis at average leaf nitrogen [mol / d / m2]
-##' @param B_lf2 Curvature of leaf photosynthetic light response curve [dimensionless]
-##' @param B_lf3 Quantum yield of leaf photosynthetic light response curve [dimensionless]
+##' @param B_lf1 Beta coefficient for empirical relationship between narea ~ lma [g/m2] (Dong et al. 2022)
+##' @param B_lf2 Beta coefficient for empirical relationship between narea ~ vcmax [umol / m2 / s] (Dong et al. 2022)
 ##' @param B_lf4 CO_2 respiration per unit leaf nitrogen [mol / yr / kg]
-##' @param B_lf5 Scaling exponent for leaf nitrogen in maximum leaf photosynthesis [dimensionless]
 ##' @param k_I light extinction coefficient [dimensionless]
+##' @param a_lf1 intercept for empirical relationship between narea and vcmax, lma (Dong et al. 2022)
+##' @param B_Hv1 p50 at K_s_0 [-MPa]
+##' @param B_Hv2 Scaling slope for K_s in p50 [dimensionless]
 ##' @param latitude degrees from equator (0-90), used in solar model [deg]
+##' @param K_s_0 Central (mean) value for maximum sapwood conductivity [kg /m2 / s / MPA]
+##' @param VJ_1 vcmax:jmax ratio [dimensionless]
+
+##'
 ##' @importFrom stats coef nls
 ##' @export
 ##' @rdname FF16w_hyperpar
@@ -221,16 +233,16 @@ make_FF16w_hyperpar <- function(
                                 B_rs1=4012.0,
                                 B_rb1=2.0*4012.0,
                                 B_f1 =3.0,
-                                narea=1.87e-3,
-                                narea_0=1.87e-3,
-                                B_lf1=5120.738 * 1.87e-3 * 24 * 3600 / 1e+06,
-                                B_lf2=0.5,
-                                B_lf3=0.04,
+                                a_lf1=0.535, 
+                                B_lf1=0.009, 
+                                B_lf2=0.007,
                                 B_lf4=21000,
-                                B_lf5=1,
                                 k_I=0.5,
-                                K_s_0 = 2, 
-                                latitude=0) {
+                                latitude=0,
+                                B_Hv1 = 1.731347,
+                                B_Hv2 = -0.7246377,
+                                K_s_0 = 2,
+                                VJ_1 = 1.67) {
   assert_scalar <- function(x, name=deparse(substitute(x))) {
     if (length(x) != 1L) {
       stop(sprintf("%s must be a scalar", name), call. = FALSE)
@@ -247,17 +259,16 @@ make_FF16w_hyperpar <- function(
   assert_scalar(B_rs1)
   assert_scalar(B_rb1)
   assert_scalar(B_f1)
-  assert_scalar(narea)
-  assert_scalar(narea_0)
+  assert_scalar(a_lf1)
   assert_scalar(B_lf1)
   assert_scalar(B_lf2)
-  assert_scalar(B_lf3)
   assert_scalar(B_lf4)
-  assert_scalar(B_lf5)
-  assert_scalar(k_I)
+  assert_scalar(B_Hv1)
+  assert_scalar(B_Hv2)
   assert_scalar(K_s_0)
+  assert_scalar(k_I)
   assert_scalar(latitude)
-
+  assert_scalar(VJ_1)
   function(m, s, filter=TRUE) {
     with_default <- function(name, default_value=s[[name]]) {
       rep_len(if (name %in% colnames(m)) m[, name] else default_value,
@@ -281,15 +292,14 @@ make_FF16w_hyperpar <- function(
 
     ## hard coded model parameters for now
     ## p_50 sapwood specific conductivity turnover:
-    p_50 <- 1.731347*(K_s/K_s_0)^(-0.7246377)
+    p_50 <- B_Hv1*(K_s/K_s_0)^(B_Hv2)
 
-    ## sensitivity parameter hydraulic vulnerability curve (return unitless):
+    ## sensitivity parameter hydraulic vulnerability curve, water potential at 37% conductivity remaining (return unitless):
     b <- p_50/((-log(1-50/100))^(1/c))
 
     ## water potential at critical xylem failure (95%) (return -MPa):
     psi_crit <- b*(log(1/0.05))^(1/c)
 
-    
     ## rho / sapwood respiration relationship:
 
     ## Respiration rates are per unit mass, so this next line has the
@@ -307,7 +317,9 @@ make_FF16w_hyperpar <- function(
 
     ## n_area from structural (lma) and metabolic (vcmax) N (Dong et al. 2022)
 
-    narea <- (0.535 + 0.009*lma*1000 + 0.007*vcmax)/1000
+    narea <- (a_lf1 + B_lf1*lma*1000 + B_lf2*vcmax)/1000
+    
+    jmax = VJ_1*vcmax
     
     ## Respiration rates are per unit mass, so convert to mass-based
     ## rate by dividing with lma
@@ -319,6 +331,7 @@ make_FF16w_hyperpar <- function(
                    d_I, k_s, r_s, r_b, # rho
                    a_f3,               # omega
                    r_l,                # lma, narea
+                   jmax, #vcmax
                    p_50, b, psi_crit)  # K_s, c              
 
     overlap <- intersect(colnames(m), colnames(extra))

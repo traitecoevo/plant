@@ -12,21 +12,20 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // Leaf__ctor
-plant::Leaf Leaf__ctor(double vcmax, double p_50, double c, double b, double psi_crit, double K_s, double epsilon_leaf, double beta1, double beta2);
-RcppExport SEXP _plant_Leaf__ctor(SEXP vcmaxSEXP, SEXP p_50SEXP, SEXP cSEXP, SEXP bSEXP, SEXP psi_critSEXP, SEXP K_sSEXP, SEXP epsilon_leafSEXP, SEXP beta1SEXP, SEXP beta2SEXP) {
+plant::Leaf Leaf__ctor(double vcmax, double c, double b, double psi_crit, double epsilon_leaf, double beta1, double beta2, double jmax);
+RcppExport SEXP _plant_Leaf__ctor(SEXP vcmaxSEXP, SEXP cSEXP, SEXP bSEXP, SEXP psi_critSEXP, SEXP epsilon_leafSEXP, SEXP beta1SEXP, SEXP beta2SEXP, SEXP jmaxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< double >::type vcmax(vcmaxSEXP);
-    Rcpp::traits::input_parameter< double >::type p_50(p_50SEXP);
     Rcpp::traits::input_parameter< double >::type c(cSEXP);
     Rcpp::traits::input_parameter< double >::type b(bSEXP);
     Rcpp::traits::input_parameter< double >::type psi_crit(psi_critSEXP);
-    Rcpp::traits::input_parameter< double >::type K_s(K_sSEXP);
     Rcpp::traits::input_parameter< double >::type epsilon_leaf(epsilon_leafSEXP);
     Rcpp::traits::input_parameter< double >::type beta1(beta1SEXP);
     Rcpp::traits::input_parameter< double >::type beta2(beta2SEXP);
-    rcpp_result_gen = Rcpp::wrap(Leaf__ctor(vcmax, p_50, c, b, psi_crit, K_s, epsilon_leaf, beta1, beta2));
+    Rcpp::traits::input_parameter< double >::type jmax(jmaxSEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__ctor(vcmax, c, b, psi_crit, epsilon_leaf, beta1, beta2, jmax));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -10147,37 +10146,37 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// FF16_Environment__calc_n_psi
-double FF16_Environment__calc_n_psi(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
-RcppExport SEXP _plant_FF16_Environment__calc_n_psi(SEXP obj_SEXP) {
+// FF16_Environment__n_psi
+double FF16_Environment__n_psi(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
+RcppExport SEXP _plant_FF16_Environment__n_psi(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16_Environment__calc_n_psi(obj_));
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__n_psi(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
-// FF16_Environment__calc_a_psi
-double FF16_Environment__calc_a_psi(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
-RcppExport SEXP _plant_FF16_Environment__calc_a_psi(SEXP obj_SEXP) {
+// FF16_Environment__a_psi
+double FF16_Environment__a_psi(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
+RcppExport SEXP _plant_FF16_Environment__a_psi(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16_Environment__calc_a_psi(obj_));
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__a_psi(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
-// FF16_Environment__calc_psi
-double FF16_Environment__calc_psi(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double theta_);
-RcppExport SEXP _plant_FF16_Environment__calc_psi(SEXP obj_SEXP, SEXP theta_SEXP) {
+// FF16_Environment__psi_from_soil_moist
+double FF16_Environment__psi_from_soil_moist(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double theta_);
+RcppExport SEXP _plant_FF16_Environment__psi_from_soil_moist(SEXP obj_SEXP, SEXP theta_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type theta_(theta_SEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16_Environment__calc_psi(obj_, theta_));
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__psi_from_soil_moist(obj_, theta_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -10830,7 +10829,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_plant_Leaf__ctor", (DL_FUNC) &_plant_Leaf__ctor, 9},
+    {"_plant_Leaf__ctor", (DL_FUNC) &_plant_Leaf__ctor, 8},
     {"_plant_Leaf__initialize_integrator", (DL_FUNC) &_plant_Leaf__initialize_integrator, 3},
     {"_plant_Leaf__set_physiology", (DL_FUNC) &_plant_Leaf__set_physiology, 7},
     {"_plant_Leaf__proportion_of_conductivity", (DL_FUNC) &_plant_Leaf__proportion_of_conductivity, 2},
@@ -11733,9 +11732,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_FF16_Strategy__ctor", (DL_FUNC) &_plant_FF16_Strategy__ctor, 0},
     {"_plant_FF16_Environment__ctor", (DL_FUNC) &_plant_FF16_Environment__ctor, 2},
     {"_plant_FF16_Environment__canopy_openness", (DL_FUNC) &_plant_FF16_Environment__canopy_openness, 2},
-    {"_plant_FF16_Environment__calc_n_psi", (DL_FUNC) &_plant_FF16_Environment__calc_n_psi, 1},
-    {"_plant_FF16_Environment__calc_a_psi", (DL_FUNC) &_plant_FF16_Environment__calc_a_psi, 1},
-    {"_plant_FF16_Environment__calc_psi", (DL_FUNC) &_plant_FF16_Environment__calc_psi, 2},
+    {"_plant_FF16_Environment__n_psi", (DL_FUNC) &_plant_FF16_Environment__n_psi, 1},
+    {"_plant_FF16_Environment__a_psi", (DL_FUNC) &_plant_FF16_Environment__a_psi, 1},
+    {"_plant_FF16_Environment__psi_from_soil_moist", (DL_FUNC) &_plant_FF16_Environment__psi_from_soil_moist, 2},
     {"_plant_FF16_Environment__soil_moist_from_psi", (DL_FUNC) &_plant_FF16_Environment__soil_moist_from_psi, 2},
     {"_plant_FF16_Environment__clear", (DL_FUNC) &_plant_FF16_Environment__clear, 1},
     {"_plant_FF16_Environment__set_fixed_environment", (DL_FUNC) &_plant_FF16_Environment__set_fixed_environment, 3},
