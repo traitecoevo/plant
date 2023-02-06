@@ -25,7 +25,7 @@ public:
 
   void run();
   void run_mutant();
-  std::vector<size_t> run_next();\
+  std::vector<size_t> run_next();
 
   double time() const;
   void reset();
@@ -124,15 +124,18 @@ template <typename T, typename E> std::vector<size_t> SCM<T, E>::run_next() {
   return ret;
 }
 
-template <typename T, typename E> void SCM<T, E>::run_mutant() {
+template <typename T, typename E> 
+void SCM<T, E>::run_mutant() {
   patch.save_RK45_cache = false;
   patch.use_cached_environment = true;
+  patch.set_mutant(0);
 
-  // need some way to add mutant strategy
-
+  reset();
   for(size_t i; i < patch_step_history.size(); ++i) {
     patch.environment_cache.clear();
     patch.environment_cache = environment_history[i];
+
+    patch.r_set_time(patch_step_history[i]);
 
     run_next(); 
   }

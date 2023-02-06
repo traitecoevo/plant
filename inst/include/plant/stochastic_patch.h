@@ -163,7 +163,7 @@ void StochasticPatch<T,E>::introduce_new_node_and_update(size_t species_index) {
   // Add a offspring, setting ODE variables based on the *current* light environment
   species[species_index].introduce_new_node(environment);
   // Then we update the light environment.
-  if (parameters.is_resident[species_index]) {
+  if (is_resident[species_index]) {
     compute_environment();
   }
 }

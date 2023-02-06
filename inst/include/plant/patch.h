@@ -25,6 +25,9 @@ public:
 
   Patch(parameters_type p, environment_type e, plant::Control c);
 
+  // void add_species(strategy_type strategy);
+  void set_mutant(size_t species_index);
+
   void reset();
   size_t size() const {return species.size();}
   double time() const {return environment.time;}
@@ -98,13 +101,19 @@ public:
   bool save_RK45_cache;
   bool use_cached_environment = false;
 
+  std::vector<bool> is_resident;
+
+  // TODO: remove from
+  size_t n_residents() const {
+    return std::count(is_resident.begin(), is_resident.end(), true);
+  }
+
 private:
   void compute_environment();
   void rescale_environment();
   void compute_rates();
 
   parameters_type parameters;
-  std::vector<bool> is_resident;
   environment_type environment;
   std::vector<species_type> species;
   std::vector<double> resource_depletion;
@@ -135,6 +144,11 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
   resource_depletion.reserve(environment.ode_size());
 
   reset();
+}
+
+template <typename T, typename E>
+void Patch<T,E>::set_mutant(size_t species_index) {
+    is_resident.at(species_index) = false;
 }
 
 template <typename T, typename E>
@@ -184,7 +198,7 @@ std::vector<double> Patch<T,E>::r_competition_effect_error(size_t species_index)
 
 template <typename T, typename E>
 void Patch<T,E>::compute_environment() {
-  if (parameters.n_residents() > 0) {
+  if (n_residents() > 0) {
     auto f = [&] (double x) -> double {return compute_competition(x);};
     environment.compute_environment(f, height_max());
   }
@@ -192,7 +206,7 @@ void Patch<T,E>::compute_environment() {
 
 template <typename T, typename E>
 void Patch<T,E>::rescale_environment() {
-  if (parameters.n_residents() > 0) {
+  if (n_residents() > 0) {
     auto f = [&] (double x) -> double {return compute_competition(x);};
     environment.rescale_environment(f, height_max());
   }
@@ -227,7 +241,7 @@ void Patch<T,E>::compute_rates() {
 template <typename T, typename E>
 void Patch<T,E>::introduce_new_node(size_t species_index) {
   species[species_index].introduce_new_node();
-  if (parameters.is_resident[species_index]) {
+  if (is_resident[species_index]) {
     compute_environment();
   }
 }
@@ -237,7 +251,7 @@ void Patch<T,E>::introduce_new_nodes(const std::vector<size_t>& species_index) {
   bool recompute = false;
   for (size_t i : species_index) {
     species[i].introduce_new_node();
-    recompute = recompute || parameters.is_resident[i];
+    recompute = recompute || is_resident[i];
   }
   if (recompute) {
     compute_environment();
