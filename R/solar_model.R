@@ -47,7 +47,7 @@ solar_angle <- function(decimal_day_time, latitude) {
   asin(SinA)
 }
 
-#' Title
+#' Title Calculate the hour of sun rise
 #'
 #' @param decimal_day_time Day of the year in decimal time
 #' @param latitude Latitude in degrees

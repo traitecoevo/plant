@@ -20,7 +20,7 @@ Leaf::Leaf(double vcmax, double c, double b,
     ca_(NA_REAL), //Pa
     psi_soil_(NA_REAL), //-MPa 
     ci_(NA_REAL), // Pa
-    stom_cond_CO2_(NA_REAL), //umol Co2 m^-2 s^-1 
+    stom_cond_CO2_(NA_REAL), //mol Co2 m^-2 s^-1 
     electron_transport_(NA_REAL), //electron transport rate 
     assim_colimited_(NA_REAL), // umol C m^-2 s^-1 
     transpiration_(NA_REAL), // kg m^-2 s^-1 
@@ -254,7 +254,7 @@ double Leaf::hydraulic_cost_Sperry(double psi_stem) {
 
 double Leaf::hydraulic_cost_Bartlett(double psi_stem) {
 
-hydraulic_cost_ = beta1 * sapwood_volume_per_leaf_area_ * pow((1 - proportion_of_conductivity(psi_stem)), beta2);
+hydraulic_cost_ = beta1 * sapwood_volume_per_leaf_area_ * pow((proportion_of_conductivity(psi_soil_) - proportion_of_conductivity(psi_stem)), beta2);
 
 return hydraulic_cost_;
 }
@@ -946,7 +946,7 @@ void Leaf::optimise_psi_stem_Bartlett() {
   opt_psi_stem_ = psi_soil_;
 
 
-  if ((PPFD_ < 1.5e-8 )| (psi_soil_ > psi_crit)){
+  if (psi_soil_ > psi_crit){
     profit_ = 0;
     transpiration_ = 0;
     stom_cond_CO2_ = 0;
@@ -961,6 +961,8 @@ void Leaf::optimise_psi_stem_Bartlett() {
 
     double bound_c = bound_b - (bound_b - bound_a) / gr;
     double bound_d = bound_a + (bound_b - bound_a) / gr;
+
+
 GSS_count = 0;
 
     while (abs(bound_b - bound_a) > delta_crit) {
@@ -984,6 +986,14 @@ GSS_count +=1 ;
 
     opt_psi_stem_ = ((bound_b + bound_a) / 2);
     profit_ = profit_psi_stem_Bartlett(opt_psi_stem_);
+
+    if(profit_ < 0){
+    profit_ = 0;
+    transpiration_ = 0;
+    stom_cond_CO2_ = 0;
+    opt_psi_stem_ = psi_soil_;
+    return;
+      }
   }
 
 

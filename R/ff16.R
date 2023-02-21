@@ -69,8 +69,7 @@ FF16_make_environment <- function(canopy_light_tol = 1e-4,
                                   canopy_rescale_usually = TRUE) {
   
   e <- FF16_Environment(canopy_rescale_usually, 
-                        soil_number_of_depths = 0,
-                        PPFD_ = 0)
+                        soil_number_of_depths = 0)
   
   # Canopy defaults have lower tolerance which are overwritten for speed
   e$canopy <- Canopy(canopy_light_tol, 

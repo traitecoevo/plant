@@ -40,7 +40,6 @@ Leaf:
     set_physiology:
       return_type: void 
       args: [PPFD: double, psi_soil: double, leaf_specific_conductance_max: double, atm_vpd: double, ca: double, sapwood_volume_per_leaf_area: double]
-
     #transpiration functions
     proportion_of_conductivity:
       return_type: double
@@ -57,7 +56,6 @@ Leaf:
     transpiration_to_psi_stem:
       return_type: double
       args: [transpiration_: double]
-    
     # assimilation functions 
     assim_rubisco_limited:
       return_type: double
@@ -89,7 +87,6 @@ Leaf:
     psi_stem_to_ci_analytical:
       return_type: double
       args: [psi_stem: double]
-    
     #leaf economics functions
     hydraulic_cost_Sperry:
       return_type: double
@@ -115,8 +112,6 @@ Leaf:
     profit_psi_stem_Bartlett_analytical:
       return_type: double
       args: [psi_stem: double]
-
-
       # optimiser functions
     optimise_psi_stem_Sperry_Newton:
       return_type: void
@@ -148,9 +143,6 @@ Leaf:
     optimise_psi_stem_Bartlett_analytical:
       return_type: void
       args: []
-
-
-
 
 Lorenz:
   name_cpp: "plant::ode::test::Lorenz"
@@ -1028,7 +1020,7 @@ FF16_Environment:
     args:
       - canopy_rescale_usually: bool
       - soil_number_of_depths: int
-      # - PPFD_: double
+
     roxygen: |
       FF16_Environment object
       @export

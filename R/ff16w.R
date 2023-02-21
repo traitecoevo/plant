@@ -71,9 +71,9 @@ FF16w_StochasticPatchRunner <- function(p) {
 ##' @param canopy_light_max_depth 
 ##' @param canopy_rescale_usually 
 ##' @param soil_initial_state initial soil moisture (m3 m^-3)
-##' @param vpd constant function value for vapour pressure deficit (kPa), y = vpd
-##' @param co2 constant function value for atmos. co2 partial pressure (Pa) driver, y = co2
-##' @param rainfall constant function value for rainfall driver (m), y = rainfall
+##' @param vpd Vapour pressure deficit (kPa). Can be a constant value or a list (x = time, y = VPD)
+##' @param co2 CO2 partial pressure (Pa). Can be a constant value or a list (x = time, y = co2)
+##' @param rainfall Rainfall (m). Can be a constant value or a list (x = time, y = rainfall)
 FF16w_make_environment <- function(canopy_light_tol = 1e-4, 
                                    canopy_light_nbase = 17,
                                    canopy_light_max_depth = 16, 
@@ -102,8 +102,6 @@ FF16w_make_environment <- function(canopy_light_tol = 1e-4,
     e$set_soil_water_state(soil_initial_state)
   }
     
-  x <- seq(0, 10, 1)
-  y <- rep(rainfall, 11)
   drivers <- ExtrinsicDrivers()
   if (is.list(rainfall)) {
     drivers$set_variable("rainfall", rainfall$x, rainfall$y)
@@ -115,9 +113,7 @@ FF16w_make_environment <- function(canopy_light_tol = 1e-4,
   }
   
   #TO DO: This probably wasn't the nicest way to add VPD, would recommend we think about how to do this better? - Isaac
-  x <- seq(0, 10, 1)
-  y <- rep(vpd, 11)
-  
+
   if (is.list(vpd)) {
     drivers$set_variable("vpd", vpd$x, vpd$y)
   } else if (is.numeric(vpd)) {
@@ -126,9 +122,6 @@ FF16w_make_environment <- function(canopy_light_tol = 1e-4,
   } else {
     stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
   }
-  
-  x <- seq(0, 10, 1)
-  y <- rep(co2, 11)
   
   if (is.list(co2)) {
     drivers$set_variable("co2", co2$x, co2$y)

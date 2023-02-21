@@ -25,8 +25,7 @@ public:
   // except for soil_number_of_depths and canopy_rescale_usually
   // which are only updated on construction
   FF16_Environment(bool canopy_rescale_usually = false,
-                   int soil_number_of_depths = 0,
-                   double PPFD_ = 0)
+                   int soil_number_of_depths = 0)
       : canopy_rescale_usually(canopy_rescale_usually) {
     time = 0.0;
     canopy = Canopy();

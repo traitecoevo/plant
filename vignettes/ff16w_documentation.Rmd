@@ -188,7 +188,7 @@ Lets start working on growing some patches. When we grow patches, plants will co
 ```{r}
   p0 <- scm_base_parameters("FF16w")
   p0$max_patch_lifetime <- 10
-  
+  ctrl <- scm_base_control()
   p1 <- expand_parameters(trait_matrix(c(3), "K_s"), p0, mutant=FALSE, birth_rate_list = c(10))
   
   env <- make_environment("FF16w", soil_initial_state = 0.2, rainfall = 1)
@@ -221,3 +221,66 @@ cowplot::plot_grid(size_distribution, soil_moisture, ncol = 1)
 ```
 
 Comparing the two figures, we can see that soil moisture increases rapidly while plant density is low. Then as the density increases, soil moisture increases to a peak, before declining rapidly as plant use up the available water, to then reach equilibrium.
+
+```{r}
+  p0 <- scm_base_parameters("FF16w")
+  p0$max_patch_lifetime <- 12
+  ctrl <- scm_base_control()
+  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,
+                          mutant = FALSE, birth_rate_list = list(20))  
+  env <- make_environment("FF16w", soil_initial_state = 0.7, rainfall = 0.55)
+  result <- run_scm_collect(p1, env, ctrl, collect_auxiliary_variables = TRUE)
+```
+
+```{r}
+  p0 <- scm_base_parameters("FF16w")
+  p0$max_patch_lifetime <- 1.90345
+  ctrl <- scm_base_control()
+  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,
+                          mutant = FALSE, birth_rate_list = list(1))  
+  env <- make_environment("FF16w", soil_initial_state = 0.7, rainfall = 0.55)
+  result <- run_scm_collect(p1, env, ctrl, collect_auxiliary_variables = TRUE)
+```
+
+```{r}
+result %>%
+  pluck("env") %>%
+  tidy_env() %>%
+  pluck("soil_moist") -> env_results
+  
+result %>%
+  tidy_patch() %>%
+  pluck("species") -> species_result
+
+species_result %>% 
+  left_join(env_results)  -> species_with_env
+
+plot_size_distribution(species_with_env)
+
+species_with_env %>% 
+  drop_na(profit_) %>%
+  distinct(time, .keep_all = T) %>%
+  mutate(soil_psi = map_dbl(soil_moist, ~env$psi_from_soil_moist(.x)/1e6)) %>%
+  ggplot(aes(x = time, y = soil_psi)) +
+  geom_line() +
+  theme_classic() +
+  geom_hline(yintercept =p1$strategies[[1]]$psi_crit) +
+  geom_vline(xintercept = species_with_env %>%
+  drop_na(profit_) %>%
+  filter(net_mass_production_dt < 0) %>%
+  arrange(desc(net_mass_production_dt)) %>%
+  slice(1) %>% pull(time))
+```
+
+
+```{r}
+  p0 <- scm_base_parameters("FF16w")
+  p0$max_patch_lifetime <- 1.90349
+  ctrl <- scm_base_control()
+  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,
+                          mutant = FALSE, birth_rate_list = list(1))  
+  env <- make_environment("FF16w", soil_initial_state = 0.7, rainfall = 0.55)
+  result <- run_scm_collect(p1, env, ctrl, collect_auxiliary_variables = TRUE)
+```
+
+

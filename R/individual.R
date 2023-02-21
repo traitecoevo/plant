@@ -34,10 +34,12 @@ grow_individual_to_size <- function(individual, sizes, size_name, env,
 
   state <- t(sapply(res, "[[", "state"))
   rate <- t(sapply(res, function(x) x$individual$ode_rates))
+
+  #this might have been required at some point if rates were NA but unsure at the moment
+  # if(rate[[1]] %>% is.null()){
+  # rate <- matrix(NA_real_,nrow=nrow(state), ncol = ncol(state))
+  # }
   
-  if(rate[[1]] %>% is.null()){
-  rate <- matrix(NA_real_,nrow=nrow(state), ncol = ncol(state))
-  }
   colnames(state) <- colnames(obj$state)
   colnames(rate) <- colnames(obj$state)
   colnames(obj$auxs) <- res[[1]]$individual$aux_names 
@@ -150,7 +152,7 @@ grow_individual_bracket <- function(individual, sizes, size_name, env,
   i <- 1L
   n <- length(sizes)
   j <- rep_len(NA_integer_, n)
-  internals(runner)
+
   state <- list(list(time=runner$time, state=runner$state))
   aux <- list(list(time=runner$time, state=internals(runner)$auxs))
   

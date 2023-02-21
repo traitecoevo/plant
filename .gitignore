@@ -22,7 +22,4 @@ inst/doc
 doc
 Meta
 *.RDS
-examples_vignettes/data
-katana_results/
-katana/
-examples_vignettes/*.png
+

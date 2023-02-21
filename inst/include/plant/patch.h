@@ -202,7 +202,7 @@ template <typename T, typename E>
 void Patch<T,E>::compute_rates() {
   double pr_patch_survival = survival_weighting->pr_survival(time());
 
-  if (counter == 1000){
+  if (counter == 100){
     std::cout << "time " << time() << std::endl;
     counter = 0;
   }

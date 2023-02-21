@@ -179,9 +179,9 @@ double Node<T,E>::r_growth_rate_gradient(const environment_type& environment) {
 
 template <typename T, typename E>
 double Node<T,E>::compute_competition(double height_) const {
-  
-  return density * individual.compute_competition(height_);
+  std::cout << "density" << density << "individual.compute_competition(height_)" << individual.compute_competition(height_) << std::endl;
 
+  return density * individual.compute_competition(height_);
 
 }
 
