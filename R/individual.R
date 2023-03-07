@@ -23,7 +23,6 @@
 grow_individual_to_size <- function(individual, sizes, size_name, env,
                                time_max=Inf, warn=TRUE, filter=FALSE) {
 
-  
   obj <- grow_individual_bracket(individual, sizes, size_name, env, time_max, warn)
   polish <- function(i) {
     grow_individual_bisect(obj$runner, sizes[[i]], size_name,
@@ -35,11 +34,10 @@ grow_individual_to_size <- function(individual, sizes, size_name, env,
   state <- t(sapply(res, "[[", "state"))
   rate <- t(sapply(res, function(x) x$individual$ode_rates))
 
-  #this might have been required at some point if rates were NA but unsure at the moment
-  # if(rate[[1]] %>% is.null()){
-  # rate <- matrix(NA_real_,nrow=nrow(state), ncol = ncol(state))
-  # }
-  
+  #deals with situation where rate is NA because plants can't grow at height
+  if(rate[[1]] %>% is.null()){
+  rate <- matrix(NA_real_,nrow=nrow(state), ncol = ncol(state))
+  }
   colnames(state) <- colnames(obj$state)
   colnames(rate) <- colnames(obj$state)
   colnames(obj$auxs) <- res[[1]]$individual$aux_names 

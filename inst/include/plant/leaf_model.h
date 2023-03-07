@@ -53,7 +53,8 @@ public:
        double beta1 = 20000, // umol m^-3 s^-1
        double beta2 = 1.5,
        double epsilon_leaf = 0.001,
-       double jmax = 167); 
+       double jmax = 167,
+       double hydraulic_turnover = 0.1/365/24/60/60); 
 
   quadrature::QAG integrator;
   interpolator::Interpolator transpiration_from_psi;
@@ -68,6 +69,7 @@ public:
   double beta1;
   double beta2;
   double jmax;
+  double hydraulic_turnover;
 
   //actually a control paramaeter and needs to be moved
   double epsilon_leaf;
@@ -88,6 +90,9 @@ public:
   double hydraulic_cost_;
   double leaf_specific_conductance_max_;
   double sapwood_volume_per_leaf_area_;
+  double k_s_;
+  double rho_;
+  double a_bio_;
   double psi_soil_;
   double opt_psi_stem_;
   double opt_ci_;
@@ -112,7 +117,7 @@ public:
   }
   
   // set-up functions
-  void set_physiology(double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area);
+  void set_physiology(double k_s, double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area);
   void setup_transpiration(double resolution);
 
   // transpiration functions
@@ -150,6 +155,7 @@ public:
 // leaf economics functions
   double hydraulic_cost_Bartlett(double psi_stem);
   double hydraulic_cost_Sperry(double psi_stem);
+  double hydraulic_cost_TF(double psi_stem);
   double profit_psi_stem_Bartlett(double psi_stem);
   double profit_psi_stem_Bartlett_analytical(double psi_stem);
 
@@ -157,6 +163,7 @@ public:
   double profit_psi_stem_Sperry_analytical(double psi_stem);
   double profit_Sperry_ci(double ci_);
   double profit_Sperry_ci_analytical(double ci_);
+  double profit_psi_stem_TF(double psi_stem);
 
 // optimiser functions
   void optimise_psi_stem_Sperry();
@@ -169,7 +176,7 @@ public:
   void optimise_ci_Sperry_Newton_analytical(double ci_guess);
   void optimise_psi_stem_Bartlett();
   void optimise_psi_stem_Bartlett_analytical();
-
+  void optimise_psi_stem_TF();
 };
 } // namespace plant
 #endif

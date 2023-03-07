@@ -2,7 +2,7 @@
 % Please edit documentation in R/solar_model.R
 \name{sun_rise}
 \alias{sun_rise}
-\title{Title}
+\title{Title Calculate the hour of sun rise}
 \usage{
 sun_rise(decimal_day_time, latitude)
 }
@@ -15,7 +15,7 @@ sun_rise(decimal_day_time, latitude)
 Hour of sunrise (hr)
 }
 \description{
-Title
+Title Calculate the hour of sun rise
 }
 \examples{
 sun_rise(90, -27)

@@ -37,7 +37,6 @@ solve_max_fitness <- function(bounds, params, log_scale = TRUE, tol = 1e-3){
   f <- function(x) fundamental_fitness(ff(trait_matrix(x, traits)), params)
 
   ret <- solve_max_worker(bounds, f, tol = 1e-3, outcome ="fitness")
-  browser()
   if (log_scale) {
     ret <- exp(ret)
   }
@@ -54,8 +53,8 @@ solve_max_fitness <- function(bounds, params, log_scale = TRUE, tol = 1e-3){
 #' @return ret 
 #' @export
 #'
-solve_max_worker <- function(bounds, f, tol=1e-3, outcome) {
-  if (length(rownames(bounds)) == 1L) {
+solve_max_worker <- function(bounds, f, tol=1e-3, outcome, use_optim = FALSE) {
+  if (length(rownames(bounds)) == 1L & use_optim == FALSE) {
     if (!all(is.finite(bounds))) {
       stop("Starting value did not have finite fitness; finite bounds required")
     }
@@ -66,7 +65,8 @@ solve_max_worker <- function(bounds, f, tol=1e-3, outcome) {
     ##   NA/Inf replaced by maximum positive value
     ##
     ## which is probably the desired behaviour here.
-    out <- suppressWarnings(optimise(f, interval=bounds, maximum=TRUE, tol=tol))
+    
+    out <- (optimise(f, interval=bounds, maximum=TRUE, tol=tol))
     ret <- out$maximum
     attr(ret, outcome) <- out$objective
     

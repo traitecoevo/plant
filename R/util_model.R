@@ -20,6 +20,8 @@ strategy_list <- function(x, parameters, hyperpar=param_hyperpar(parameters), bi
   if (!is.matrix(x)) {
     stop("Invalid type x -- expected a matrix")
   }
+
+  
   strategy <- parameters$strategy_default
   x <- hyperpar(x, strategy)
 

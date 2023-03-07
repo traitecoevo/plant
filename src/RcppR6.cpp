@@ -2,16 +2,16 @@
 #include <plant.h>
 
 // [[Rcpp::export]]
-plant::Leaf Leaf__ctor(double vcmax, double c, double b, double psi_crit, double epsilon_leaf, double beta1, double beta2, double jmax) {
-  return plant::Leaf(vcmax, c, b, psi_crit, epsilon_leaf, beta1, beta2, jmax);
+plant::Leaf Leaf__ctor(double vcmax, double c, double b, double psi_crit, double epsilon_leaf, double beta1, double beta2, double jmax, double hydraulic_turnover) {
+  return plant::Leaf(vcmax, c, b, psi_crit, epsilon_leaf, beta1, beta2, jmax, hydraulic_turnover);
 }
 // [[Rcpp::export]]
 void Leaf__initialize_integrator(plant::RcppR6::RcppR6<plant::Leaf> obj_, int integration_rule, double integration_tol) {
   obj_->initialize_integrator(integration_rule, integration_tol);
 }
 // [[Rcpp::export]]
-void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area) {
-  obj_->set_physiology(PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area);
+void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double k_s, double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area) {
+  obj_->set_physiology(k_s, rho, a_bio, PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area);
 }
 // [[Rcpp::export]]
 double Leaf__proportion_of_conductivity(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi) {
@@ -82,6 +82,10 @@ double Leaf__hydraulic_cost_Bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_, do
   return obj_->hydraulic_cost_Bartlett(psi_stem);
 }
 // [[Rcpp::export]]
+double Leaf__hydraulic_cost_TF(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
+  return obj_->hydraulic_cost_TF(psi_stem);
+}
+// [[Rcpp::export]]
 double Leaf__profit_psi_stem_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
   return obj_->profit_psi_stem_Sperry(psi_stem);
 }
@@ -100,6 +104,10 @@ double Leaf__profit_Sperry_ci_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_
 // [[Rcpp::export]]
 double Leaf__profit_psi_stem_Bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
   return obj_->profit_psi_stem_Bartlett(psi_stem);
+}
+// [[Rcpp::export]]
+double Leaf__profit_psi_stem_TF(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
+  return obj_->profit_psi_stem_TF(psi_stem);
 }
 // [[Rcpp::export]]
 double Leaf__profit_psi_stem_Bartlett_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
@@ -144,6 +152,10 @@ void Leaf__optimise_psi_stem_Bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
 // [[Rcpp::export]]
 void Leaf__optimise_psi_stem_Bartlett_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   obj_->optimise_psi_stem_Bartlett_analytical();
+}
+// [[Rcpp::export]]
+void Leaf__optimise_psi_stem_TF(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  obj_->optimise_psi_stem_TF();
 }
 // [[Rcpp::export]]
 double Leaf__ci___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
@@ -233,6 +245,33 @@ double Leaf__leaf_specific_conductance_max___get(plant::RcppR6::RcppR6<plant::Le
 // [[Rcpp::export]]
 void Leaf__leaf_specific_conductance_max___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
   obj_->leaf_specific_conductance_max_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__k_s___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->k_s_;
+}
+// [[Rcpp::export]]
+void Leaf__k_s___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->k_s_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__rho___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->rho_;
+}
+// [[Rcpp::export]]
+void Leaf__rho___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->rho_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__a_bio___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->a_bio_;
+}
+// [[Rcpp::export]]
+void Leaf__a_bio___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->a_bio_ = value;
 }
 
 // [[Rcpp::export]]

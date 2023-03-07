@@ -69,12 +69,14 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
   const double sapwood_volume_per_leaf_area = theta * (height * eta_c);
 
 
+
 // set strategy-level physiological parameters for the leaf-submodel.
-  leaf.set_physiology(average_radiation, psi_soil, leaf_specific_conductance_max, environment.get_vpd(), environment.get_co2(), sapwood_volume_per_leaf_area);
+  leaf.set_physiology(k_s, rho, a_bio, average_radiation, psi_soil, leaf_specific_conductance_max, environment.get_vpd(), environment.get_co2(), sapwood_volume_per_leaf_area);
     
 
   // optimise psi_stem, setting opt_psi_stem_, profit_, hydraulic_cost_, assim_colimited_ etc.
-  leaf.optimise_psi_stem_Bartlett_analytical();
+  // leaf.optimise_psi_stem_Bartlett_analytical();
+  leaf.optimise_psi_stem_TF();
 
   // optimum psi_stem (-MPa)
   vars.set_aux(aux_index.at("opt_psi_stem_"), leaf.opt_psi_stem_);
@@ -131,6 +133,8 @@ void FF16w_Strategy::compute_rates(const FF16_Environment &environment,
 
     // std::cout << "area_leaf" << area_leaf_ << "water_use" << evapotranspiration_dt(area_leaf_)*60*60*12*365/1000 << std::endl;
   }
+
+
 
   if (net_mass_production_dt_ > 0) {
     const double fraction_allocation_reproduction_ =

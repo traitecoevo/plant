@@ -4,7 +4,7 @@
 \alias{solve_max_worker}
 \title{Execute finding point of maximum fitness within some range}
 \usage{
-solve_max_worker(bounds, f, tol = 0.001, outcome)
+solve_max_worker(bounds, f, tol = 0.001, outcome, use_optim = FALSE)
 }
 \arguments{
 \item{bounds}{Two element vector specifying range within which to}

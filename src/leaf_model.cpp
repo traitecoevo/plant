@@ -4,7 +4,7 @@
 namespace plant {
 Leaf::Leaf(double vcmax, double c, double b,
            double psi_crit, // derived from b and c
-           double epsilon_leaf, double beta1, double beta2, double jmax)
+           double epsilon_leaf, double beta1, double beta2, double jmax, double hydraulic_turnover)
     : vcmax(vcmax), // umol m^-2 s^-1 
     c(c), //unitless
     b(b), //-MPa
@@ -13,11 +13,15 @@ Leaf::Leaf(double vcmax, double c, double b,
     beta2(beta2),
     epsilon_leaf(epsilon_leaf), //tolerance value 
     jmax(jmax),
+    hydraulic_turnover(hydraulic_turnover), // s^-1
     leaf_specific_conductance_max_(NA_REAL), //kg m^-2 s^-1 MPa^-1 
     sapwood_volume_per_leaf_area_ (NA_REAL),
     PPFD_(NA_REAL), //? 
     atm_vpd_(NA_REAL), //kPa 
     ca_(NA_REAL), //Pa
+    k_s_(NA_REAL), // yr ^ -1
+    rho_(NA_REAL), //kg m^-3
+    a_bio_(NA_REAL), //kg mol^-1
     psi_soil_(NA_REAL), //-MPa 
     ci_(NA_REAL), // Pa
     stom_cond_CO2_(NA_REAL), //mol Co2 m^-2 s^-1 
@@ -37,7 +41,10 @@ Leaf::Leaf(double vcmax, double c, double b,
 
 //sets various parameters which are constant for a given node at a given time
 
-void Leaf::set_physiology(double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area) {
+void Leaf::set_physiology(double k_s, double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area) {
+   k_s_ = k_s;
+   rho_ = rho;
+   a_bio_ = a_bio;
    atm_vpd_ = atm_vpd;
    PPFD_ = PPFD;
    psi_soil_ = psi_soil;
@@ -259,6 +266,14 @@ hydraulic_cost_ = beta1 * sapwood_volume_per_leaf_area_ * pow((proportion_of_con
 return hydraulic_cost_;
 }
 
+double Leaf::hydraulic_cost_TF(double psi_stem) {
+
+hydraulic_cost_ = 1e6 * k_s_ /(365*24*60*60) * (1/a_bio_) * rho_ * sapwood_volume_per_leaf_area_ * pow((proportion_of_conductivity(psi_soil_) - proportion_of_conductivity(psi_stem)), beta2);
+
+return hydraulic_cost_;
+}
+
+
 // Profit functions
 
 double Leaf::profit_psi_stem_Sperry(double psi_stem) {
@@ -281,6 +296,15 @@ set_leaf_states_rates_from_psi_stem(psi_stem);
   return benefit_ - hydraulic_cost_;
 }
 
+double Leaf::profit_psi_stem_TF(double psi_stem) {
+
+set_leaf_states_rates_from_psi_stem(psi_stem);
+
+  double benefit_ = assim_colimited_;
+  double hydraulic_cost_ = hydraulic_cost_TF(psi_stem);
+
+  return benefit_ - hydraulic_cost_;
+}
 
 double Leaf::profit_psi_stem_Bartlett_analytical(double psi_stem) {
 
@@ -1043,5 +1067,60 @@ GSS_count +=1 ;
   }
 
 
+void Leaf::optimise_psi_stem_TF() {
+
+  double gr = (sqrt(5) + 1) / 2;
+  opt_psi_stem_ = psi_soil_;
+
+
+  if (psi_soil_ > psi_crit){
+    profit_ = 0;
+    transpiration_ = 0;
+    stom_cond_CO2_ = 0;
+    return;
+  }
+
+  // optimise for stem water potential
+    double bound_a = psi_soil_;
+    double bound_b = psi_crit;
+
+    double delta_crit = 1e-07;
+
+    double bound_c = bound_b - (bound_b - bound_a) / gr;
+    double bound_d = bound_a + (bound_b - bound_a) / gr;
+
+
+GSS_count = 0;
+
+    while (abs(bound_b - bound_a) > delta_crit) {
+GSS_count +=1 ;
+
+      double profit_at_c =
+          profit_psi_stem_TF(bound_c);
+
+      double profit_at_d =
+          profit_psi_stem_TF(bound_d);
+
+      if (profit_at_c > profit_at_d) {
+        bound_b = bound_d;
+      } else {
+        bound_a = bound_c;
+      }
+
+      bound_c = bound_b - (bound_b - bound_a) / gr;
+      bound_d = bound_a + (bound_b - bound_a) / gr;
+    }
+
+    opt_psi_stem_ = ((bound_b + bound_a) / 2);
+    profit_ = profit_psi_stem_TF(opt_psi_stem_);
+
+    if(profit_ < 0){
+    profit_ = 0;
+    transpiration_ = 0;
+    stom_cond_CO2_ = 0;
+    opt_psi_stem_ = psi_soil_;
+    return;
+      }
+  }
 
 } // namespace plant

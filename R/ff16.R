@@ -403,8 +403,7 @@ FF16_hyperpar <- make_FF16_hyperpar()
 
 #' @author Isaac Towers, Daniel Falster and Andrew O'Reilly-Nugent
 
-FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, tol = 1e-3, height = 10, params = scm_base_parameters("FF16"), env = FF16_make_environment(), outcome = "height"){
-  
+FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, tol = 1e-3, height = 10, params = scm_base_parameters("FF16"), env = FF16_make_environment(), outcome = "height", use_optim = FALSE, hyperpars = make_hyperpar("FF16")){
   #can't handle situations yet where bounds are outside of positive growth
   bounds <- check_bounds(bounds)
   traits <- rownames(bounds)
@@ -419,25 +418,21 @@ FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, 
   }
   
   f <- function(x) {
-    
-    s <- strategy(ff(trait_matrix(x,  rownames(bounds))), params, birth_rate_list = 1)
+    s <- strategy(ff(trait_matrix(x,  rownames(bounds))), parameters = params, hyperpar = hyperpars, birth_rate_list = 1)
     #Would be great to have other options for this switch here
-    
     if(attr(params, "class") [[1]] == "Parameters<FF16w,FF16_Env>"){
     indv <- FF16w_Individual(s)
     } else{
     indv <- FF16_Individual(s)
     }
-    
     res <- grow_individual_to_height(indv, height, env,
                                      time_max=100, warn=FALSE, filter=TRUE)
     
     res <- res$rate[colnames(res$rate) == outcome]
-
     return(res)
   }
   
-  ret <- solve_max_worker(bounds, f, tol = 1e-3, outcome = paste0(outcome, "_growth_rate"))
+  ret <- solve_max_worker(bounds, f, tol = 1e-3, outcome = paste0(outcome, "_growth_rate"), use_optim = use_optim)
   if (log_scale) {
     ret <- exp(ret)
   }

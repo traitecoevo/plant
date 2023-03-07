@@ -11,7 +11,8 @@ FF16_solve_max_size_growth_rate_at_height(
   height = 10,
   params = scm_base_parameters("FF16"),
   env = FF16_make_environment(),
-  outcome = "height"
+  outcome = "height",
+  use_optim = FALSE
 )
 }
 \arguments{

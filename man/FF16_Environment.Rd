@@ -53,11 +53,11 @@ FF16w_fixed_environment(e = 1, height_max = 150)
 
 \item{soil_initial_state}{initial soil moisture (m3 m^-3)}
 
-\item{rainfall}{constant function value for rainfall driver (m), y = rainfall}
+\item{rainfall}{Rainfall (m). Can be a constant value or a list (x = time, y = rainfall)}
 
-\item{vpd}{constant function value for vapour pressure deficit (kPa), y = vpd}
+\item{vpd}{Vapour pressure deficit (kPa). Can be a constant value or a list (x = time, y = VPD)}
 
-\item{co2}{constant function value for atmos. co2 partial pressure (Pa) driver, y = co2}
+\item{co2}{CO2 partial pressure (Pa). Can be a constant value or a list (x = time, y = co2)}
 }
 \description{
 FF16_Environment object
