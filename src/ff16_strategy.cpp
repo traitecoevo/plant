@@ -128,6 +128,7 @@ void FF16_Strategy::compute_rates(const FF16_Environment &environment,
     vars.set_rate(state_index.at("area_heartwood"),
                   area_heartwood_dt(area_leaf_));
     const double area_sapwood_ = area_sapwood(area_leaf_);
+
     const double mass_sapwood_ = mass_sapwood(area_sapwood_, height);
     vars.set_rate(state_index.at("mass_heartwood"),
                   mass_heartwood_dt(mass_sapwood_));
@@ -151,6 +152,7 @@ void FF16_Strategy::compute_rates(const FF16_Environment &environment,
 // NOTE: In contrast with Falster ref model, we do not normalise by a_y*a_bio.
 double FF16_Strategy::respiration(double mass_leaf, double mass_sapwood,
                                   double mass_bark, double mass_root) const {
+
   return respiration_leaf(mass_leaf) + respiration_bark(mass_bark) +
          respiration_sapwood(mass_sapwood) + respiration_root(mass_root);
 }
@@ -168,6 +170,7 @@ double FF16_Strategy::respiration_root(double mass) const { return r_r * mass; }
 // [eqn 14] Total turnover
 double FF16_Strategy::turnover(double mass_leaf, double mass_bark,
                                double mass_sapwood, double mass_root) const {
+
   return turnover_leaf(mass_leaf) + turnover_bark(mass_bark) +
          turnover_sapwood(mass_sapwood) + turnover_root(mass_root);
 }
@@ -187,6 +190,7 @@ double FF16_Strategy::turnover_root(double mass) const { return k_r * mass; }
 double FF16_Strategy::net_mass_production_dt_A(double assimilation,
                                                double respiration,
                                                double turnover) const {
+
   return a_bio * a_y * (assimilation - respiration) - turnover;
 }
 
@@ -227,10 +231,14 @@ FF16_Strategy::net_mass_production_dt(const FF16_Environment &environment,
 
   const double assimilation = assimilation_per_area * area_leaf_;
 
+
+  vars.set_aux(aux_index.at("assimilation_per_area"), assimilation_per_area);
+
   const double respiration_ =
       respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
   const double turnover_ =
       turnover(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
+
 
   return net_mass_production_dt_A(assimilation, respiration_, turnover_);
 }

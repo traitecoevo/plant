@@ -16,15 +16,27 @@
 ##  \code{`is_variable_bithrate = TRUE`}
 ##'
 ##' @export
-strategy_list <- function(x, parameters, hyperpar=param_hyperpar(parameters), birth_rate_list) {
+strategy_list <- function(x, parameters, hyperpar=param_hyperpar(parameters), birth_rate_list, use_default_strategy = TRUE) {
   if (!is.matrix(x)) {
     stop("Invalid type x -- expected a matrix")
   }
 
-  
+if(isTRUE(use_default_strategy)){
   strategy <- parameters$strategy_default
   x <- hyperpar(x, strategy)
+} else {
+  strategy <- parameters$strategies[[1]]
+  x <- hyperpar(x, strategy)
+}
 
+  
+
+  
+  
+
+  
+  
+  
   trait_names <- colnames(x)
   f <- function(xi, br) {
     strategy[trait_names] <- xi
@@ -54,11 +66,11 @@ strategy_default <- function(parameters, hyperpar=param_hyperpar(parameters)) {
 
 ##' @export
 ##' @rdname strategy_list
-strategy <- function(x, parameters, hyperpar=param_hyperpar(parameters), birth_rate_list) {
+strategy <- function(x, parameters, hyperpar=param_hyperpar(parameters), birth_rate_list, use_default_strategy = TRUE) {
   if (nrow(x) != 1L) {
     stop("Expected a single type")
   }
-  strategy_list(x, parameters, hyperpar, birth_rate_list)[[1]]
+  strategy_list(x, parameters, hyperpar, birth_rate_list, use_default_strategy = use_default_strategy)[[1]]
 }
 
 ##' @rdname strategy_list

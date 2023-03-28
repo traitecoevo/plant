@@ -32,10 +32,10 @@ public:
                              
   virtual void prepare_strategy();
 
-// set names of auxillary variables
+// names of auxillary variables
 virtual std::vector<std::string> aux_names() {
   std::vector<std::string> ret(
-      {"competition_effect", "net_mass_production_dt", "opt_psi_stem_","opt_ci_", "count","profit_","assim_colimited_","hydraulic_cost_"});
+      {"competition_effect", "net_mass_production_dt", "opt_psi_stem_","opt_ci_", "count","profit_","assim_colimited_","hydraulic_cost_", "ci_","darea_leaf_dmass_live_"});
   // add the associated computation to compute_rates and compute there
   if (collect_all_auxiliary) {
     ret.push_back("area_sapwood");
@@ -56,6 +56,9 @@ virtual std::vector<std::string> aux_names() {
   double beta1 = 20000;
   double beta2 = 1.5;
   double jmax = 167;
+  double hk_s = 4;
+  double VJ_1 = 0;
+
 
 };
 

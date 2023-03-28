@@ -54,7 +54,7 @@ public:
        double beta2 = 1.5,
        double epsilon_leaf = 0.001,
        double jmax = 167,
-       double hydraulic_turnover = 0.1/365/24/60/60); 
+       double hk_s = 4/365/24/60/60); 
 
   quadrature::QAG integrator;
   interpolator::Interpolator transpiration_from_psi;
@@ -70,6 +70,7 @@ public:
   double beta2;
   double jmax;
   double hydraulic_turnover;
+  double hk_s;
 
   //actually a control paramaeter and needs to be moved
   double epsilon_leaf;
@@ -117,7 +118,7 @@ public:
   }
   
   // set-up functions
-  void set_physiology(double k_s, double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area);
+  void set_physiology(double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area);
   void setup_transpiration(double resolution);
 
   // transpiration functions

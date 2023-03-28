@@ -403,7 +403,7 @@ FF16_hyperpar <- make_FF16_hyperpar()
 
 #' @author Isaac Towers, Daniel Falster and Andrew O'Reilly-Nugent
 
-FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, tol = 1e-3, height = 10, params = scm_base_parameters("FF16"), env = FF16_make_environment(), outcome = "height", use_optim = FALSE, hyperpars = make_hyperpar("FF16")){
+FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, tol = 1e-3, height = 10, params = scm_base_parameters("FF16"), env = FF16_make_environment(), outcome = "height", use_optim = FALSE, hyperpars = make_hyperpar("FF16"), use_default_strategy = TRUE){
   #can't handle situations yet where bounds are outside of positive growth
   bounds <- check_bounds(bounds)
   traits <- rownames(bounds)
@@ -411,14 +411,14 @@ FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, 
   if (log_scale) {
     bounds[bounds[,1] == -Inf, 1] <- 0
     bounds <- log(bounds)
-    
     ff <- exp
   } else {
     ff <- I
   }
   
   f <- function(x) {
-    s <- strategy(ff(trait_matrix(x,  rownames(bounds))), parameters = params, hyperpar = hyperpars, birth_rate_list = 1)
+
+    s <- strategy(ff(trait_matrix(x,  rownames(bounds))), parameters = params, hyperpar = hyperpars, birth_rate_list = 1, use_default_strategy = use_default_strategy)
     #Would be great to have other options for this switch here
     if(attr(params, "class") [[1]] == "Parameters<FF16w,FF16_Env>"){
     indv <- FF16w_Individual(s)

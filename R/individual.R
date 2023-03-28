@@ -22,7 +22,6 @@
 ##' @export
 grow_individual_to_size <- function(individual, sizes, size_name, env,
                                time_max=Inf, warn=TRUE, filter=FALSE) {
-
   obj <- grow_individual_bracket(individual, sizes, size_name, env, time_max, warn)
   polish <- function(i) {
     grow_individual_bisect(obj$runner, sizes[[i]], size_name,

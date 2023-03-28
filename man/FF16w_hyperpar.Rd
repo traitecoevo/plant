@@ -13,6 +13,8 @@ make_FF16w_hyperpar(
   B_dI1 = 0.01,
   B_dI2 = 0,
   B_ks1 = 0.2,
+  B_hks1 = 0.2,
+  B_hks2 = 0,
   B_ks2 = 0,
   B_rs1 = 4012,
   B_rb1 = 2 * 4012,
@@ -26,7 +28,7 @@ make_FF16w_hyperpar(
   B_Hv1 = 1.731347,
   B_Hv2 = -0.7246377,
   K_s_0 = 2,
-  VJ_1 = 1.67
+  VJ_2 = 1.67
 )
 
 FF16w_hyperpar(m, s, filter = TRUE)
@@ -72,14 +74,14 @@ FF16w_hyperpar(m, s, filter = TRUE)
 
 \item{K_s_0}{Central (mean) value for maximum sapwood conductivity [kg /m2 / s / MPA]}
 
-\item{VJ_1}{vcmax:jmax ratio [dimensionless]}
-
 \item{m}{A matrix of trait values, as returned by \code{trait_matrix}}
 
 \item{s}{A strategy object}
 
 \item{filter}{A flag indicating whether to filter columns. If TRUE, any numbers
 that are within eps of the default strategy are not replaced.}
+
+\item{VJ_1}{vcmax:jmax ratio [dimensionless]}
 }
 \description{
 Hyperparameters for FF16w physiological model

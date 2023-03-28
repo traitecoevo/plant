@@ -10,7 +10,7 @@ Leaf:
       - beta1: double
       - beta2: double
       - jmax: double
-      - hydraulic_turnover: double
+      - hk_s_: double
       
   active:
     ci_: {type: double, access: field}
@@ -23,7 +23,6 @@ Leaf:
     lambda_analytical_: {type: double, access: field}
     electron_transport_: {type: double, access: field}
     leaf_specific_conductance_max_: {type: double, access: field}
-    k_s_: {type: double, access: field}
     rho_: {type: double, access: field}
     a_bio_: {type: double, access: field}
     PPFD_: {type: double, access: field}
@@ -43,7 +42,7 @@ Leaf:
       args: [integration_rule: int, integration_tol: double]
     set_physiology:
       return_type: void 
-      args: [k_s: double, rho: double, a_bio: double, PPFD: double, psi_soil: double, leaf_specific_conductance_max: double, atm_vpd: double, ca: double, sapwood_volume_per_leaf_area: double]
+      args: [rho: double, a_bio: double, PPFD: double, psi_soil: double, leaf_specific_conductance_max: double, atm_vpd: double, ca: double, sapwood_volume_per_leaf_area: double]
     #transpiration functions
     proportion_of_conductivity:
       return_type: double
@@ -1231,7 +1230,9 @@ FF16w_Strategy:
     - K_s: double
     - c: double
     - b: double
+    - VJ_1: double
     - psi_crit: double
+    - hk_s: double
     - epsilon_leaf: double
     - beta1: double
     - beta2: double

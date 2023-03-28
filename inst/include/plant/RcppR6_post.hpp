@@ -1326,7 +1326,9 @@ template <> inline SEXP wrap(const plant::FF16w_Strategy& x) {
   ret["K_s"] = Rcpp::wrap(x.K_s);
   ret["c"] = Rcpp::wrap(x.c);
   ret["b"] = Rcpp::wrap(x.b);
+  ret["VJ_1"] = Rcpp::wrap(x.VJ_1);
   ret["psi_crit"] = Rcpp::wrap(x.psi_crit);
+  ret["hk_s"] = Rcpp::wrap(x.hk_s);
   ret["epsilon_leaf"] = Rcpp::wrap(x.epsilon_leaf);
   ret["beta1"] = Rcpp::wrap(x.beta1);
   ret["beta2"] = Rcpp::wrap(x.beta2);
@@ -1421,8 +1423,12 @@ template <> inline plant::FF16w_Strategy as(SEXP x) {
   ret.c = Rcpp::as<double >(xl["c"]);
   // ret.b = Rcpp::as<decltype(retb) >(xl["b"]);
   ret.b = Rcpp::as<double >(xl["b"]);
+  // ret.VJ_1 = Rcpp::as<decltype(retVJ_1) >(xl["VJ_1"]);
+  ret.VJ_1 = Rcpp::as<double >(xl["VJ_1"]);
   // ret.psi_crit = Rcpp::as<decltype(retpsi_crit) >(xl["psi_crit"]);
   ret.psi_crit = Rcpp::as<double >(xl["psi_crit"]);
+  // ret.hk_s = Rcpp::as<decltype(rethk_s) >(xl["hk_s"]);
+  ret.hk_s = Rcpp::as<double >(xl["hk_s"]);
   // ret.epsilon_leaf = Rcpp::as<decltype(retepsilon_leaf) >(xl["epsilon_leaf"]);
   ret.epsilon_leaf = Rcpp::as<double >(xl["epsilon_leaf"]);
   // ret.beta1 = Rcpp::as<decltype(retbeta1) >(xl["beta1"]);

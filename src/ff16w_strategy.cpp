@@ -31,6 +31,8 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
   const double mass_leaf_ = mass_leaf(area_leaf_);
   const double area_sapwood_ = area_sapwood(area_leaf_);
   const double mass_sapwood_ = mass_sapwood(area_sapwood_, height);
+  
+  
   const double area_bark_ = area_bark(area_leaf_);
   const double mass_bark_ = mass_bark(area_bark_, height);
   const double mass_root_ = mass_root(area_leaf_);
@@ -69,16 +71,16 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
   const double sapwood_volume_per_leaf_area = theta * (height * eta_c);
 
 
-
 // set strategy-level physiological parameters for the leaf-submodel.
-  leaf.set_physiology(k_s, rho, a_bio, average_radiation, psi_soil, leaf_specific_conductance_max, environment.get_vpd(), environment.get_co2(), sapwood_volume_per_leaf_area);
-    
+  leaf.set_physiology(rho, a_bio, average_radiation, psi_soil, leaf_specific_conductance_max, environment.get_vpd(), environment.get_co2(), sapwood_volume_per_leaf_area);
 
   // optimise psi_stem, setting opt_psi_stem_, profit_, hydraulic_cost_, assim_colimited_ etc.
   // leaf.optimise_psi_stem_Bartlett_analytical();
   leaf.optimise_psi_stem_TF();
 
   // optimum psi_stem (-MPa)
+  vars.set_aux(aux_index.at("ci_"), leaf.ci_);
+
   vars.set_aux(aux_index.at("opt_psi_stem_"), leaf.opt_psi_stem_);
     
   // programming variable, check number of iterations of optimiser 
@@ -96,14 +98,15 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
   // convert assimilation per leaf area per second (umol m^-2 s^-1) to canopy-level total yearly assimilation (mol yr^-1)
   // assuming photosynthesis occcurs for 12 hours a day every day
 
-  const double assimilation = leaf.profit_ * area_leaf_* 60*60*12*365/1000000;
+  const double assimilation = leaf.profit_ * area_leaf_* 60*60*12*365/1e6;
     
   const double respiration_ = 
   respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
       
+
   const double turnover_ = 
-  turnover(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
-  
+  turnover(mass_leaf_, mass_bark_, mass_sapwood_, mass_root_);
+
   return net_mass_production_dt_A(assimilation, respiration_, turnover_);
 
 }
@@ -145,6 +148,9 @@ void FF16w_Strategy::compute_rates(const FF16_Environment &environment,
     const double area_leaf_dt = net_mass_production_dt_ *
                                 fraction_allocation_growth_ *
                                 darea_leaf_dmass_live_;
+
+  vars.set_aux(aux_index.at("darea_leaf_dmass_live_"), darea_leaf_dmass_live_);
+
 
     vars.set_rate(HEIGHT_INDEX, dheight_darea_leaf(area_leaf_) * area_leaf_dt);
     vars.set_rate(FECUNDITY_INDEX,
@@ -192,7 +198,7 @@ void FF16w_Strategy::prepare_strategy() {
   } else {
     extrinsic_drivers.set_constant("birth_rate", birth_rate_y[0]);
   }
-  leaf = Leaf(vcmax, c, b, psi_crit, epsilon_leaf, beta1, beta2);
+  leaf = Leaf( vcmax,  c,  b, psi_crit, epsilon_leaf,  beta1,  beta2, jmax, hk_s);
   
 }
 

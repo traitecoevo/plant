@@ -222,20 +222,23 @@ make_FF16w_hyperpar <- function(
                                 B_dI1=0.01,
                                 B_dI2=0.0,
                                 B_ks1=0.2,
+                                B_hks1 = 0.2,
+                                B_hks2 = 0.0,
                                 B_ks2=0.0,
                                 B_rs1=4012.0,
                                 B_rb1=2.0*4012.0,
                                 B_f1 =3.0,
                                 a_lf1=0.535, 
                                 B_lf1=0.009, 
-                                B_lf2=0.007,
+                                B_lf2=0.004,
+                                B_lf3=0.0008,
                                 B_lf4=21000,
                                 k_I=0.5,
                                 latitude=0,
                                 B_Hv1 = 1.731347,
                                 B_Hv2 = -0.7246377,
                                 K_s_0 = 2,
-                                VJ_1 = 1.67) {
+                                VJ_2 = 1.67) {
   assert_scalar <- function(x, name=deparse(substitute(x))) {
     if (length(x) != 1L) {
       stop(sprintf("%s must be a scalar", name), call. = FALSE)
@@ -248,6 +251,8 @@ make_FF16w_hyperpar <- function(
   assert_scalar(B_dI1)
   assert_scalar(B_dI2)
   assert_scalar(B_ks1)
+  assert_scalar(B_hks1)
+  assert_scalar(B_hks2)
   assert_scalar(B_ks2)
   assert_scalar(B_rs1)
   assert_scalar(B_rb1)
@@ -255,13 +260,14 @@ make_FF16w_hyperpar <- function(
   assert_scalar(a_lf1)
   assert_scalar(B_lf1)
   assert_scalar(B_lf2)
+  assert_scalar(B_lf3)
   assert_scalar(B_lf4)
   assert_scalar(B_Hv1)
   assert_scalar(B_Hv2)
   assert_scalar(K_s_0)
   assert_scalar(k_I)
   assert_scalar(latitude)
-  assert_scalar(VJ_1)
+  assert_scalar(VJ_2)
   function(m, s, filter=TRUE) {
     with_default <- function(name, default_value=s[[name]]) {
       rep_len(if (name %in% colnames(m)) m[, name] else default_value,
@@ -273,6 +279,8 @@ make_FF16w_hyperpar <- function(
     K_s     <- with_default("K_s")
     vcmax     <- with_default("vcmax")
     c     <- with_default("c")
+    jmax     <- with_default("jmax")
+    
 
     ## lma / leaf turnover relationship:
     k_l   <- B_kl1 * (lma / lma_0) ^ (-B_kl2)
@@ -283,6 +291,9 @@ make_FF16w_hyperpar <- function(
     ## rho / wood turnover relationship:
     k_s  <- B_ks1 *  (rho / rho_0) ^ (-B_ks2)
 
+    ## rho / moisture-wood turnover relationship:
+    hk_s  <- B_hks1 *  (rho / rho_0) ^ (-B_hks2)
+    
     ## hard coded model parameters for now
     ## p_50 sapwood specific conductivity turnover:
     p_50 <- B_Hv1*(K_s/K_s_0)^(B_Hv2)
@@ -310,18 +321,18 @@ make_FF16w_hyperpar <- function(
 
     ## n_area from structural (lma) and metabolic (vcmax) N (Dong et al. 2022)
 
-    narea <- (a_lf1 + B_lf1*lma*1000 + B_lf2*vcmax)/1000
+    narea <- (a_lf1 + B_lf1*lma*1000 + B_lf2*vcmax + B_lf3*jmax)/1000
     
-    jmax = VJ_1*vcmax
+    jmax = VJ_1 + VJ_2*vcmax
     
     ## Respiration rates are per unit mass, so convert to mass-based
     ## rate by dividing with lma
     ## So respiration rates per unit mass vary with lma, while
     ## respiration rates per unit area don't.
     r_l  <- B_lf4 * narea / lma
-
-    extra <- cbind(k_l,                # lma
-                   d_I, k_s, r_s, r_b, # rho
+    
+    extra <- cbind(k_l,                 # lma
+                   d_I, k_s, r_s, r_b, hk_s,  # rho
                    a_f3,               # omega
                    r_l,                # lma, narea
                    jmax, #vcmax

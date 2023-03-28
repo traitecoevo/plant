@@ -2,16 +2,16 @@
 #include <plant.h>
 
 // [[Rcpp::export]]
-plant::Leaf Leaf__ctor(double vcmax, double c, double b, double psi_crit, double epsilon_leaf, double beta1, double beta2, double jmax, double hydraulic_turnover) {
-  return plant::Leaf(vcmax, c, b, psi_crit, epsilon_leaf, beta1, beta2, jmax, hydraulic_turnover);
+plant::Leaf Leaf__ctor(double vcmax, double c, double b, double psi_crit, double epsilon_leaf, double beta1, double beta2, double jmax, double hk_s_) {
+  return plant::Leaf(vcmax, c, b, psi_crit, epsilon_leaf, beta1, beta2, jmax, hk_s_);
 }
 // [[Rcpp::export]]
 void Leaf__initialize_integrator(plant::RcppR6::RcppR6<plant::Leaf> obj_, int integration_rule, double integration_tol) {
   obj_->initialize_integrator(integration_rule, integration_tol);
 }
 // [[Rcpp::export]]
-void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double k_s, double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area) {
-  obj_->set_physiology(k_s, rho, a_bio, PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area);
+void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area) {
+  obj_->set_physiology(rho, a_bio, PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area);
 }
 // [[Rcpp::export]]
 double Leaf__proportion_of_conductivity(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi) {
@@ -245,15 +245,6 @@ double Leaf__leaf_specific_conductance_max___get(plant::RcppR6::RcppR6<plant::Le
 // [[Rcpp::export]]
 void Leaf__leaf_specific_conductance_max___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
   obj_->leaf_specific_conductance_max_ = value;
-}
-
-// [[Rcpp::export]]
-double Leaf__k_s___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->k_s_;
-}
-// [[Rcpp::export]]
-void Leaf__k_s___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
-  obj_->k_s_ = value;
 }
 
 // [[Rcpp::export]]
