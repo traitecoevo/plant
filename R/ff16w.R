@@ -208,7 +208,6 @@ FF16w_test_environment <- function(height,
 ##' @param B_Hv2 Scaling slope for K_s in p50 [dimensionless]
 ##' @param latitude degrees from equator (0-90), used in solar model [deg]
 ##' @param K_s_0 Central (mean) value for maximum sapwood conductivity [kg /m2 / s / MPA]
-##' @param VJ_1 vcmax:jmax ratio [dimensionless]
 
 ##'
 ##' @importFrom stats coef nls
@@ -233,12 +232,12 @@ make_FF16w_hyperpar <- function(
                                 B_lf2=0.004,
                                 B_lf3=0.0008,
                                 B_lf4=21000,
+                                B_lf5= 40000,
                                 k_I=0.5,
                                 latitude=0,
                                 B_Hv1 = 1.731347,
                                 B_Hv2 = -0.7246377,
-                                K_s_0 = 2,
-                                VJ_2 = 1.67) {
+                                K_s_0 = 2) {
   assert_scalar <- function(x, name=deparse(substitute(x))) {
     if (length(x) != 1L) {
       stop(sprintf("%s must be a scalar", name), call. = FALSE)
@@ -262,12 +261,12 @@ make_FF16w_hyperpar <- function(
   assert_scalar(B_lf2)
   assert_scalar(B_lf3)
   assert_scalar(B_lf4)
+  assert_scalar(B_lf5)
   assert_scalar(B_Hv1)
   assert_scalar(B_Hv2)
   assert_scalar(K_s_0)
   assert_scalar(k_I)
   assert_scalar(latitude)
-  assert_scalar(VJ_2)
   function(m, s, filter=TRUE) {
     with_default <- function(name, default_value=s[[name]]) {
       rep_len(if (name %in% colnames(m)) m[, name] else default_value,
@@ -321,21 +320,22 @@ make_FF16w_hyperpar <- function(
 
     ## n_area from structural (lma) and metabolic (vcmax) N (Dong et al. 2022)
 
-    narea <- (a_lf1 + B_lf1*lma*1000 + B_lf2*vcmax + B_lf3*jmax)/1000
-    
-    jmax = VJ_1 + VJ_2*vcmax
+    narea_s <- (a_lf1 + B_lf1*lma*1000)/1000
+    narea_p <- (B_lf2*vcmax + B_lf3*jmax)/1000
     
     ## Respiration rates are per unit mass, so convert to mass-based
     ## rate by dividing with lma
     ## So respiration rates per unit mass vary with lma, while
     ## respiration rates per unit area don't.
-    r_l  <- B_lf4 * narea / lma
+    r_ls  <- B_lf4 * narea_s / lma
+    r_lp  <- B_lf5 * narea_p / lma
+    
+    r_l <- r_ls + r_lp
     
     extra <- cbind(k_l,                 # lma
                    d_I, k_s, r_s, r_b, hk_s,  # rho
                    a_f3,               # omega
                    r_l,                # lma, narea
-                   jmax, #vcmax
                    p_50, b, psi_crit)  # K_s, c              
 
     overlap <- intersect(colnames(m), colnames(extra))

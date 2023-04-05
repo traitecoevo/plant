@@ -11,6 +11,11 @@ Leaf:
       - beta2: double
       - jmax: double
       - hk_s_: double
+      - a: double
+      - curv_fact_elec_trans: double
+      - curv_fact_colim: double
+
+
       
   active:
     ci_: {type: double, access: field}
@@ -1230,13 +1235,15 @@ FF16w_Strategy:
     - K_s: double
     - c: double
     - b: double
-    - VJ_1: double
     - psi_crit: double
     - hk_s: double
     - epsilon_leaf: double
     - beta1: double
     - beta2: double
     - jmax: double
+    - a: double
+    - curv_fact_elec_trans: double
+    - curv_fact_colim: double
     - recruitment_decay: double
     - control: "plant::Control"
     - collect_all_auxiliary: bool

@@ -17,10 +17,6 @@ namespace plant {
 // double check best namespace for constants (private vs global)
 // converts vcmax to jmax 25 unitless (Sperry et el. (2017))
 static const double vcmax_25_to_jmax_25 = 1.67;
-// unitless - obtained from Sperry et al. (2017)
-static const double curv_fact = 0.9;
-// effective quantum yield of electron transport  (mol photon mol ^-1 electron) Sabot et al. 2020
-static const double a = 0.3;
 // umol ^ -1 mol ^ 1
 static const double gamma_25 = 42.75;
 // Pa umol ^ -1 mol ^ 1 
@@ -54,7 +50,11 @@ public:
        double beta2 = 1.5,
        double epsilon_leaf = 0.001,
        double jmax = 167,
-       double hk_s = 4/365/24/60/60); 
+       double hk_s = 4/365/24/60/60,
+       double a = 0.30, // effective quantum yield of electron transport  (mol photon mol ^-1 electron)  Sabot et al. 2020
+       double curv_fact_elec_trans = 0.85, // unitless - obtained from Smith and Keenan (2020)
+       double curv_fact_colim = 0.98);
+        
 
   quadrature::QAG integrator;
   interpolator::Interpolator transpiration_from_psi;
@@ -71,6 +71,9 @@ public:
   double jmax;
   double hydraulic_turnover;
   double hk_s;
+  double a;
+  double curv_fact_elec_trans; // unitless - obtained from Smith and Keenan (2020)
+  double curv_fact_colim;
 
   //actually a control paramaeter and needs to be moved
   double epsilon_leaf;

@@ -417,7 +417,6 @@ FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, 
   }
   
   f <- function(x) {
-
     s <- strategy(ff(trait_matrix(x,  rownames(bounds))), parameters = params, hyperpar = hyperpars, birth_rate_list = 1, use_default_strategy = use_default_strategy)
     #Would be great to have other options for this switch here
     if(attr(params, "class") [[1]] == "Parameters<FF16w,FF16_Env>"){
@@ -425,17 +424,22 @@ FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, 
     } else{
     indv <- FF16_Individual(s)
     }
+
     res <- grow_individual_to_height(indv, height, env,
                                      time_max=100, warn=FALSE, filter=TRUE)
-    
     res <- res$rate[colnames(res$rate) == outcome]
+    if(is.na(res)){
+      res <- 0
+    }
     return(res)
   }
   
   ret <- solve_max_worker(bounds, f, tol = 1e-3, outcome = paste0(outcome, "_growth_rate"), use_optim = use_optim)
-  if (log_scale) {
-    ret <- exp(ret)
-  }
-  
+
+  #not sure that below is required or correct
+  # if (log_scale) {
+  #   ret <- exp(ret)
+  # }
+
   return(ret)
 }

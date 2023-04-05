@@ -21,14 +21,15 @@ make_FF16w_hyperpar(
   B_f1 = 3,
   a_lf1 = 0.535,
   B_lf1 = 0.009,
-  B_lf2 = 0.007,
+  B_lf2 = 0.004,
+  B_lf3 = 8e-04,
   B_lf4 = 21000,
+  B_lf5 = 40000,
   k_I = 0.5,
   latitude = 0,
   B_Hv1 = 1.731347,
   B_Hv2 = -0.7246377,
-  K_s_0 = 2,
-  VJ_2 = 1.67
+  K_s_0 = 2
 )
 
 FF16w_hyperpar(m, s, filter = TRUE)
@@ -80,8 +81,6 @@ FF16w_hyperpar(m, s, filter = TRUE)
 
 \item{filter}{A flag indicating whether to filter columns. If TRUE, any numbers
 that are within eps of the default strategy are not replaced.}
-
-\item{VJ_1}{vcmax:jmax ratio [dimensionless]}
 }
 \description{
 Hyperparameters for FF16w physiological model

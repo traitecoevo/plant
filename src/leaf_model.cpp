@@ -4,7 +4,8 @@
 namespace plant {
 Leaf::Leaf(double vcmax, double c, double b,
            double psi_crit, // derived from b and c
-           double epsilon_leaf, double beta1, double beta2, double jmax, double hk_s)
+           double epsilon_leaf, double beta1, double beta2, double jmax, double hk_s,
+           double a, double curv_fact_elec_trans, double curv_fact_colim)
     : vcmax(vcmax), // umol m^-2 s^-1 
     c(c), //unitless
     b(b), //-MPa
@@ -14,6 +15,9 @@ Leaf::Leaf(double vcmax, double c, double b,
     epsilon_leaf(epsilon_leaf), //tolerance value 
     jmax(jmax),
     hk_s(hk_s),  // yr ^ -1
+    a(a),
+    curv_fact_elec_trans(curv_fact_elec_trans),
+    curv_fact_colim(curv_fact_colim),
     leaf_specific_conductance_max_(NA_REAL), //kg m^-2 s^-1 MPa^-1 
     sapwood_volume_per_leaf_area_ (NA_REAL),
     PPFD_(NA_REAL), //? 
@@ -120,7 +124,7 @@ double Leaf::transpiration_to_psi_stem(double transpiration_) {
   }
 
 // returns stomatal conductance to CO2, mol C m^-2 LA s^-1
-double Leaf::stom_cond_CO2(double psi_stem) {
+double Leaf:: stom_cond_CO2(double psi_stem) {
   double transpiration_ = transpiration(psi_stem);
   return atm_kpa * transpiration_ * kg_to_mol_h2o / atm_vpd_ / 1.6;
 }
@@ -130,8 +134,8 @@ double Leaf::stom_cond_CO2(double psi_stem) {
 //ensure that units of PPFD_ actually correspond to something real.
 // electron trnansport rate based on light availability and vcmax assuming co-limitation hypothesis
 double Leaf::electron_transport() {
-  double electron_transport_ = (a * PPFD_ + jmax - sqrt(pow(a * PPFD_ + jmax, 2) - 4 * curv_fact * a * PPFD_ * jmax)) / (2 * curv_fact); // check brackets are correct
-  
+  double electron_transport_ = (a * PPFD_ + jmax - sqrt(pow(a * PPFD_ + jmax, 2) - 4 * curv_fact_elec_trans * a * PPFD_ * jmax)) / (2 * curv_fact_elec_trans); // check brackets are correct
+  // double electron_transport_ = (4*a*PPFD_)/sqrt(pow(4*a*PPFD_/jmax,2)+ 1);
   return electron_transport_;           
 }
 
@@ -150,13 +154,14 @@ double Leaf::assim_electron_limited(double ci_) {
 // returns co-limited assimilation umol m^-2 s^-1
 double Leaf::assim_colimited(double ci_) {
   
-  double assim_rubisco_limited_ = assim_rubisco_limited(ci_);
-  double assim_electron_limited_ = assim_electron_limited(ci_);
-  
   double R_d = vcmax * 0.015;
+
+  double assim_rubisco_limited_ = assim_rubisco_limited(ci_) - R_d;
+  double assim_electron_limited_ = assim_electron_limited(ci_)- R_d;
+  
   // no dark respiration included at the moment
-  return (assim_rubisco_limited_ + assim_electron_limited_ - sqrt(pow(assim_rubisco_limited_ + assim_electron_limited_, 2) - 4 * 0.98 * assim_rubisco_limited_ * assim_electron_limited_)) /
-             (2 * 0.98);
+  return (assim_rubisco_limited_ + assim_electron_limited_ - sqrt(pow(assim_rubisco_limited_ + assim_electron_limited_, 2) - 4 * curv_fact_colim * assim_rubisco_limited_ * assim_electron_limited_)) /
+             (2 * curv_fact_colim);
 
 }
 
@@ -271,7 +276,6 @@ hydraulic_cost_ = 1e6 *
     hk_s /(365*24*60*60)* 
     (1/a_bio_) * 
     rho_ * sapwood_volume_per_leaf_area_ * pow((1 - proportion_of_conductivity(psi_stem)), beta2);
-
 return hydraulic_cost_;
 }
 
@@ -1075,7 +1079,6 @@ void Leaf::optimise_psi_stem_TF() {
 
   double gr = (sqrt(5) + 1) / 2;
   opt_psi_stem_ = psi_soil_;
-
 
   if (psi_soil_ > psi_crit){
     profit_ = 0;

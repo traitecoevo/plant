@@ -51,7 +51,6 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
     
     // calculate average radiation by multipling average canopy openness by PPFD and accounting for self-shading k_I.
   const double average_radiation = k_I * average_light_environment * environment.PPFD;
-    
     // calculate psi_soil (-MPa)
   const double psi_soil = environment.get_psi_soil() / 1000000;
 
@@ -198,8 +197,7 @@ void FF16w_Strategy::prepare_strategy() {
   } else {
     extrinsic_drivers.set_constant("birth_rate", birth_rate_y[0]);
   }
-  leaf = Leaf( vcmax,  c,  b, psi_crit, epsilon_leaf,  beta1,  beta2, jmax, hk_s);
-  
+  leaf = Leaf( vcmax,  c,  b, psi_crit, epsilon_leaf,  beta1,  beta2, jmax, hk_s, a, curv_fact_colim, curv_fact_elec_trans);
 }
 
 

@@ -12,8 +12,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // Leaf__ctor
-plant::Leaf Leaf__ctor(double vcmax, double c, double b, double psi_crit, double epsilon_leaf, double beta1, double beta2, double jmax, double hk_s_);
-RcppExport SEXP _plant_Leaf__ctor(SEXP vcmaxSEXP, SEXP cSEXP, SEXP bSEXP, SEXP psi_critSEXP, SEXP epsilon_leafSEXP, SEXP beta1SEXP, SEXP beta2SEXP, SEXP jmaxSEXP, SEXP hk_s_SEXP) {
+plant::Leaf Leaf__ctor(double vcmax, double c, double b, double psi_crit, double epsilon_leaf, double beta1, double beta2, double jmax, double hk_s_, double a, double curv_fact_elec_trans, double curv_fact_colim);
+RcppExport SEXP _plant_Leaf__ctor(SEXP vcmaxSEXP, SEXP cSEXP, SEXP bSEXP, SEXP psi_critSEXP, SEXP epsilon_leafSEXP, SEXP beta1SEXP, SEXP beta2SEXP, SEXP jmaxSEXP, SEXP hk_s_SEXP, SEXP aSEXP, SEXP curv_fact_elec_transSEXP, SEXP curv_fact_colimSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -26,7 +26,10 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type beta2(beta2SEXP);
     Rcpp::traits::input_parameter< double >::type jmax(jmaxSEXP);
     Rcpp::traits::input_parameter< double >::type hk_s_(hk_s_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Leaf__ctor(vcmax, c, b, psi_crit, epsilon_leaf, beta1, beta2, jmax, hk_s_));
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< double >::type curv_fact_elec_trans(curv_fact_elec_transSEXP);
+    Rcpp::traits::input_parameter< double >::type curv_fact_colim(curv_fact_colimSEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__ctor(vcmax, c, b, psi_crit, epsilon_leaf, beta1, beta2, jmax, hk_s_, a, curv_fact_elec_trans, curv_fact_colim));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -10910,7 +10913,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_plant_Leaf__ctor", (DL_FUNC) &_plant_Leaf__ctor, 9},
+    {"_plant_Leaf__ctor", (DL_FUNC) &_plant_Leaf__ctor, 12},
     {"_plant_Leaf__initialize_integrator", (DL_FUNC) &_plant_Leaf__initialize_integrator, 3},
     {"_plant_Leaf__set_physiology", (DL_FUNC) &_plant_Leaf__set_physiology, 9},
     {"_plant_Leaf__proportion_of_conductivity", (DL_FUNC) &_plant_Leaf__proportion_of_conductivity, 2},

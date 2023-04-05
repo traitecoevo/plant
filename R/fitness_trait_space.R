@@ -54,7 +54,7 @@ solve_max_fitness <- function(bounds, params, log_scale = TRUE, tol = 1e-3){
 #' @export
 #'
 solve_max_worker <- function(bounds, f, tol=1e-3, outcome, use_optim = FALSE) {
-  if (length(rownames(bounds)) == 1L & use_optim == FALSE) {
+   if (length(rownames(bounds)) == 1L & use_optim == FALSE) {
     if (!all(is.finite(bounds))) {
       stop("Starting value did not have finite fitness; finite bounds required")
     }
@@ -72,10 +72,9 @@ solve_max_worker <- function(bounds, f, tol=1e-3, outcome, use_optim = FALSE) {
     
   } else {
     ## This is not very well tested, and the tolerance is not useful:
-    out <- optim(rowMeans(bounds), f, method="L-BFGS-B",
-                 lower=bounds[, "lower"], upper=bounds[, "upper"],
-                 control=list(fnscale=-1, factr=1e10))
-    
+    out <- optim(rowMeans(bounds), f, method="Nelder-Mead",
+                 # lower=bounds[, "lower"], upper=bounds[, "upper"],
+                 control=list(fnscale=-1, factr=1e7))
     ret <- out$value
     attr(ret, outcome) <- out$par
   }

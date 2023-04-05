@@ -57,8 +57,9 @@ virtual std::vector<std::string> aux_names() {
   double beta2 = 1.5;
   double jmax = 167;
   double hk_s = 4;
-  double VJ_1 = 0;
-
+  double a = 0.30; // effective quantum yield of electron transport  (mol photon mol ^-1 electron)  Sabot et al. 2020
+  double curv_fact_elec_trans = 0.85; 
+  double curv_fact_colim = 0.98; 
 
 };
 
