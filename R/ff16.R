@@ -415,7 +415,6 @@ FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, 
   } else {
     ff <- I
   }
-  
   f <- function(x) {
     s <- strategy(ff(trait_matrix(x,  rownames(bounds))), parameters = params, hyperpar = hyperpars, birth_rate_list = 1, use_default_strategy = use_default_strategy)
     #Would be great to have other options for this switch here

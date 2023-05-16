@@ -35,7 +35,7 @@ public:
 // names of auxillary variables
 virtual std::vector<std::string> aux_names() {
   std::vector<std::string> ret(
-      {"competition_effect", "net_mass_production_dt", "opt_psi_stem_","opt_ci_", "count","profit_","assim_colimited_","hydraulic_cost_", "ci_","darea_leaf_dmass_live_"});
+      {"competition_effect", "net_mass_production_dt", "opt_psi_stem_","opt_ci_", "count","profit_","assim_colimited_","hydraulic_cost_", "ci_","darea_leaf_dmass_live_", "stom_cond_CO2_", "transpiration_"});
   // add the associated computation to compute_rates and compute there
   if (collect_all_auxiliary) {
     ret.push_back("area_sapwood");
@@ -60,7 +60,10 @@ virtual std::vector<std::string> aux_names() {
   double a = 0.30; // effective quantum yield of electron transport  (mol photon mol ^-1 electron)  Sabot et al. 2020
   double curv_fact_elec_trans = 0.85; 
   double curv_fact_colim = 0.98; 
-
+  double B_rs1 = 0.01;
+  double B_lf2 = 0.01;
+  double B_lf3 = 0.01;  
+  double B_lf5 = 0.01;
 };
 
 

@@ -2,8 +2,8 @@
 #include <plant.h>
 
 // [[Rcpp::export]]
-plant::Leaf Leaf__ctor(double vcmax, double c, double b, double psi_crit, double epsilon_leaf, double beta1, double beta2, double jmax, double hk_s_, double a, double curv_fact_elec_trans, double curv_fact_colim) {
-  return plant::Leaf(vcmax, c, b, psi_crit, epsilon_leaf, beta1, beta2, jmax, hk_s_, a, curv_fact_elec_trans, curv_fact_colim);
+plant::Leaf Leaf__ctor(double vcmax, double c, double b, double psi_crit, double epsilon_leaf, double beta1, double beta2, double jmax, double hk_s_, double a, double curv_fact_elec_trans, double curv_fact_colim, double B_rs1, double B_lf2, double B_lf3, double B_lf5) {
+  return plant::Leaf(vcmax, c, b, psi_crit, epsilon_leaf, beta1, beta2, jmax, hk_s_, a, curv_fact_elec_trans, curv_fact_colim, B_rs1, B_lf2, B_lf3, B_lf5);
 }
 // [[Rcpp::export]]
 void Leaf__initialize_integrator(plant::RcppR6::RcppR6<plant::Leaf> obj_, int integration_rule, double integration_tol) {
@@ -150,12 +150,16 @@ void Leaf__optimise_psi_stem_Bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   obj_->optimise_psi_stem_Bartlett();
 }
 // [[Rcpp::export]]
-void Leaf__optimise_psi_stem_Bartlett_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  obj_->optimise_psi_stem_Bartlett_analytical();
-}
-// [[Rcpp::export]]
 void Leaf__optimise_psi_stem_TF(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   obj_->optimise_psi_stem_TF();
+}
+// [[Rcpp::export]]
+void Leaf__optimise_psi_stem_TF_newton(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_guess) {
+  obj_->optimise_psi_stem_TF_newton(psi_guess);
+}
+// [[Rcpp::export]]
+double Leaf__calculate_cost_LCT(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
+  return obj_->calculate_cost_LCT(psi_stem);
 }
 // [[Rcpp::export]]
 double Leaf__ci___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {

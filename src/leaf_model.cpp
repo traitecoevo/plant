@@ -5,34 +5,40 @@ namespace plant {
 Leaf::Leaf(double vcmax, double c, double b,
            double psi_crit, // derived from b and c
            double epsilon_leaf, double beta1, double beta2, double jmax, double hk_s,
-           double a, double curv_fact_elec_trans, double curv_fact_colim)
+           double a, double curv_fact_elec_trans, double curv_fact_colim, double B_rs1, double B_lf2, double B_lf3, double B_lf5)
     : vcmax(vcmax), // umol m^-2 s^-1 
     c(c), //unitless
     b(b), //-MPa
     psi_crit(psi_crit), //-MPa 
-    beta1(beta1),
-    beta2(beta2),
+    beta1(beta1), //hydraulic cost for Bartlett method umol m^-3 s^-1
+    beta2(beta2), //exponent for effect of hydraulic risk (unitless)
     epsilon_leaf(epsilon_leaf), //tolerance value 
-    jmax(jmax),
-    hk_s(hk_s),  // yr ^ -1
-    a(a),
-    curv_fact_elec_trans(curv_fact_elec_trans),
-    curv_fact_colim(curv_fact_colim),
+    jmax(jmax), // maximum electron transport rate umol m^-2 s^-1
+    hk_s(hk_s),  // maximum hydraulic-dependent sapwood turnover rate yr ^ -1
+    a(a), //quantum yield of photosynthetic electron transport (mol mol^-1)
+    curv_fact_elec_trans(curv_fact_elec_trans), //curvature factor for the light response curve (unitless)
+    curv_fact_colim(curv_fact_colim), //curvature factor for the colimited photosythnthesis equation
+    B_rs1(B_rs1),
+    B_lf2(B_lf2), //?
+    B_lf3(B_lf3), //?
+    B_lf5(B_lf5), //?
     leaf_specific_conductance_max_(NA_REAL), //kg m^-2 s^-1 MPa^-1 
-    sapwood_volume_per_leaf_area_ (NA_REAL),
-    PPFD_(NA_REAL), //? 
+    sapwood_volume_per_leaf_area_ (NA_REAL), //m^3 SA m^-2 LA
+    PPFD_(NA_REAL), //umol m^-2 s^-1
     atm_vpd_(NA_REAL), //kPa 
     ca_(NA_REAL), //Pa
     rho_(NA_REAL), //kg m^-3
+    lma_(NA_REAL), //kg m^-2
     a_bio_(NA_REAL), //kg mol^-1
     psi_soil_(NA_REAL), //-MPa 
     ci_(NA_REAL), // Pa
     stom_cond_CO2_(NA_REAL), //mol Co2 m^-2 s^-1 
-    electron_transport_(NA_REAL), //electron transport rate 
+    electron_transport_(NA_REAL), //electron transport rate umol m^-2 s^-1
     assim_colimited_(NA_REAL), // umol C m^-2 s^-1 
     transpiration_(NA_REAL), // kg m^-2 s^-1 
     lambda_(NA_REAL), // umol C m^-2 s^-1 kg^-1 m^2 s^1
     lambda_analytical_(NA_REAL), // umol C m^-2 s^-1 kg^-1 m^2 s^1
+    LCT_cost_(NA_REAL), // umol C m^-2 s^-1 
     hydraulic_cost_(NA_REAL), // umol C m^-2 s^-1 
     profit_(NA_REAL), // umol C m^-2 s^-1 
     opt_psi_stem_(NA_REAL), //-MPa 
@@ -40,6 +46,7 @@ Leaf::Leaf(double vcmax, double c, double b,
     count(NA_REAL), 
     GSS_count(NA_REAL) {
       setup_transpiration(100);
+
 }
 
 //sets various parameters which are constant for a given node at a given time
@@ -56,16 +63,16 @@ void Leaf::set_physiology(double rho, double a_bio, double PPFD, double psi_soil
    electron_transport_ = electron_transport();
 
 // set lambda, if psi_soil is higher than psi_crit, then set to 0. Currently doing both the numerical and analytical version. Ideally would do one.
-  if(psi_soil >= psi_crit){
-    lambda_ = 0;
-    lambda_analytical_ = 0;
+  // if(psi_soil >= psi_crit){
+  //   lambda_ = 0;
+  //   lambda_analytical_ = 0;
 
-  } else {
-    set_leaf_states_rates_from_psi_stem(psi_crit);
-    lambda_ = assim_colimited(ci_) / hydraulic_cost_Sperry(psi_crit);
-    set_leaf_states_rates_from_psi_stem_analytical(psi_crit);
-    lambda_analytical_ = assim_colimited_analytical(ci_) / hydraulic_cost_Sperry(psi_crit);
-  }
+  // } else {
+  //   set_leaf_states_rates_from_psi_stem(psi_crit);
+  //   lambda_ = assim_colimited(ci_) / hydraulic_cost_Sperry(psi_crit);
+  //   set_leaf_states_rates_from_psi_stem_analytical(psi_crit);
+  //   lambda_analytical_ = assim_colimited_analytical(ci_) / hydraulic_cost_Sperry(psi_crit);
+  // }
 }
 
 // transpiration supply functions
@@ -136,17 +143,23 @@ double Leaf:: stom_cond_CO2(double psi_stem) {
 double Leaf::electron_transport() {
   double electron_transport_ = (a * PPFD_ + jmax - sqrt(pow(a * PPFD_ + jmax, 2) - 4 * curv_fact_elec_trans * a * PPFD_ * jmax)) / (2 * curv_fact_elec_trans); // check brackets are correct
   // double electron_transport_ = (4*a*PPFD_)/sqrt(pow(4*a*PPFD_/jmax,2)+ 1);
-  return electron_transport_;           
+    return electron_transport_;           
 }
 
 //calculate the rubisco-limited assimilation rate, returns umol m^-2 s^-1
 double Leaf::assim_rubisco_limited(double ci_) {
+  
+
   return (vcmax * (ci_ - gamma_25 * umol_per_mol_to_Pa)) / (ci_ + km_25);
+
+
+
 }
 
 //calculate the light-limited assimilation rate, returns umol m^-2 s^-1
 double Leaf::assim_electron_limited(double ci_) {
   
+
   return electron_transport_ / 4 *
   ((ci_ - gamma_25 * umol_per_mol_to_Pa) / (ci_ + 2 * gamma_25 * umol_per_mol_to_Pa));
 }
@@ -154,14 +167,15 @@ double Leaf::assim_electron_limited(double ci_) {
 // returns co-limited assimilation umol m^-2 s^-1
 double Leaf::assim_colimited(double ci_) {
   
-  double R_d = vcmax * 0.015;
+  // double R_d = vcmax * 0.015;
+  double R_d = 0;
 
-  double assim_rubisco_limited_ = assim_rubisco_limited(ci_) - R_d;
-  double assim_electron_limited_ = assim_electron_limited(ci_)- R_d;
-  
+  double assim_rubisco_limited_ = assim_rubisco_limited(ci_) ;
+  double assim_electron_limited_ = assim_electron_limited(ci_);
+ 
   // no dark respiration included at the moment
   return (assim_rubisco_limited_ + assim_electron_limited_ - sqrt(pow(assim_rubisco_limited_ + assim_electron_limited_, 2) - 4 * curv_fact_colim * assim_rubisco_limited_ * assim_electron_limited_)) /
-             (2 * curv_fact_colim);
+             (2 * curv_fact_colim)- R_d;
 
 }
 
@@ -199,7 +213,7 @@ double Leaf::psi_stem_to_ci(double psi_stem) {
   };
 
   // tol and iterations copied from control defaults (for now) - changed recently to 1e-6
-  return ci_ = util::uniroot(target, 0, ca_, 1e-6, 1000);
+  return ci_ = util::uniroot(target, gamma_25 * umol_per_mol_to_Pa, ca_, 1e-6, 1000);
 }
 
 // given psi_stem, find assimilation, transpiration and stomal conductance to c02
@@ -278,7 +292,6 @@ hydraulic_cost_ = 1e6 *
     rho_ * sapwood_volume_per_leaf_area_ * pow((1 - proportion_of_conductivity(psi_stem)), beta2);
 return hydraulic_cost_;
 }
-
 
 // Profit functions
 
@@ -1028,53 +1041,6 @@ GSS_count +=1 ;
       }
   }
 
-
-
-void Leaf::optimise_psi_stem_Bartlett_analytical() {
-  double gr = (sqrt(5) + 1) / 2;
-  opt_psi_stem_ = psi_soil_;
-
-  if ((PPFD_ < 1.5e-8 )| (psi_soil_ > psi_crit)){
-    profit_ = 0;
-    transpiration_ = 0;
-    stom_cond_CO2_ = 0;
-    return;
-  }
-
-  // optimise for stem water potential
-    double bound_a = psi_soil_;
-    double bound_b = psi_crit;
-
-    double delta_crit = 1e-07;
-
-    double bound_c = bound_b - (bound_b - bound_a) / gr;
-    double bound_d = bound_a + (bound_b - bound_a) / gr;
-GSS_count = 0;
-
-    while (abs(bound_b - bound_a) > delta_crit) {
-GSS_count +=1 ;
-
-      double profit_at_c =
-          profit_psi_stem_Bartlett_analytical(bound_c);
-
-      double profit_at_d =
-          profit_psi_stem_Bartlett_analytical(bound_d);
-
-      if (profit_at_c > profit_at_d) {
-        bound_b = bound_d;
-      } else {
-        bound_a = bound_c;
-      }
-
-      bound_c = bound_b - (bound_b - bound_a) / gr;
-      bound_d = bound_a + (bound_b - bound_a) / gr;
-    }
-
-    opt_psi_stem_ = ((bound_b + bound_a) / 2);
-    profit_ = profit_psi_stem_Bartlett_analytical(opt_psi_stem_);
-  }
-
-
 void Leaf::optimise_psi_stem_TF() {
 
   double gr = (sqrt(5) + 1) / 2;
@@ -1129,5 +1095,126 @@ GSS_count +=1 ;
     return;
       }
   }
+
+
+
+void Leaf::optimise_psi_stem_TF_newton(double psi_guess) {
+
+
+  count = 0;
+
+  double x_1, x_2, y_0, y_1, y_2, first_dev, sec_dev;
+
+  // Early exit -- XXXX 
+  if (psi_soil_ > psi_crit){
+
+    opt_psi_stem_ = psi_soil_;
+    profit_ = 0.0;
+    transpiration_ = 0.0;
+    stom_cond_CO2_ = 0.0;
+    return;
+  }
+
+  // optimise for stem water potential
+  double diff_value = 0.01; 
+  // TODO: rename as delta_ci
+  
+  
+  double psi_stem_initial;
+
+  int unfinished=1; 
+
+  opt_psi_stem_ = psi_guess;
+// add in the max ci
+  if (R_IsNA(opt_psi_stem_)){
+  set_leaf_states_rates_from_psi_stem(psi_crit);
+
+  opt_psi_stem_ = psi_crit - diff_value;
+
+  }
+
+  while(unfinished == 1){
+
+    count += 1;
+
+  if (R_IsNA(opt_psi_stem_) | (opt_psi_stem_ > psi_crit)){
+
+  opt_psi_stem_ = psi_crit - diff_value;
+
+  }
+
+  if (R_IsNA(opt_psi_stem_) | (opt_psi_stem_ < psi_soil_)){
+
+  opt_psi_stem_ = psi_soil_ + diff_value;
+
+  }
+
+    if(count > 10){
+std::cout << "used regular" << std::endl;
+      optimise_psi_stem_TF();
+
+      return;
+
+    }
+
+    psi_stem_initial = opt_psi_stem_;
+    
+    if (!util::is_finite(opt_psi_stem_)) {
+      util::stop("Detected NAN ci value");
+    }
+
+    x_1 = psi_stem_initial - diff_value;
+    x_2 = psi_stem_initial + diff_value;
+
+    std::cout << x_1 << x_2 << psi_stem_initial << std::endl;
+
+
+    y_2 = profit_psi_stem_TF(x_2);
+
+    y_1 = profit_psi_stem_TF(x_1);
+
+    y_0 = profit_psi_stem_TF(psi_stem_initial);
+
+
+    first_dev = (y_2 - y_1)/(2*diff_value);
+    sec_dev = (y_2 - 2*y_0 + y_1)/pow(diff_value, 2);
+
+    opt_psi_stem_ = psi_stem_initial -  first_dev/sec_dev;
+
+
+
+
+    if(abs(opt_psi_stem_ - psi_stem_initial) < (epsilon_leaf)){
+     
+      unfinished = 0;
+    }
+
+    profit_ = y_0;
+  }
+
+    return;
+  }
+
+double Leaf::calculate_cost_LCT(double psi_stem) {
+
+set_leaf_states_rates_from_psi_stem(psi_stem);
+
+  double benefit_ = assim_colimited_;
+
+  double Nv_ = (B_lf2*vcmax)/1000;
+  double Nj_ = (B_lf3*jmax)/1000;
+
+  double Rv_ = B_lf5*Nv_*1e6/365/24/60/60;
+  double Rj_ = B_lf5*Nj_*1e6/365/24/60/60;
+
+  double Rs_ = B_rs1* sapwood_volume_per_leaf_area_*1e6/365/24/60/60;
+
+  LCT_cost_ = (Rs_/benefit_ + Rv_/benefit_ + Rj_/benefit_);
+
+  std::cout << B_lf2 << " " << B_rs1 << "" <<B_lf5  << "" <<B_lf3  << "" <<  sapwood_volume_per_leaf_area_<< "" << std::endl;
+
+  return LCT_cost_;
+}
+
 
 } // namespace plant

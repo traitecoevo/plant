@@ -77,6 +77,12 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
   // leaf.optimise_psi_stem_Bartlett_analytical();
   leaf.optimise_psi_stem_TF();
 
+  // stomatal conductance to c02 (umol m^-2 s^-1)
+  vars.set_aux(aux_index.at("transpiration_"), leaf.transpiration_);
+
+
+  vars.set_aux(aux_index.at("stom_cond_CO2_"), leaf.stom_cond_CO2_);
+
   // optimum psi_stem (-MPa)
   vars.set_aux(aux_index.at("ci_"), leaf.ci_);
 
