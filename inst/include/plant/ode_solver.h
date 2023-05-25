@@ -87,9 +87,7 @@ template <class System>
 void Solver<System>::advance(System& system, double time_max_) {
   set_time_max(time_max_);
   while (time < time_max) {
-    std::cout << "###### Solver advancing to next integration node ####### \n";
     step(system);
-    std::cout << "End of step\n\n" << std::endl;
   }
 }
 

@@ -72,7 +72,6 @@ size_t Step<System>::order() const {
 template <typename System>
 typename std::enable_if<has_cache<System>::value, void>::type
 cache(System& system, int rk_step) {
-  std::cout << "RK" << rk_step << "\n";
   system.cache_RK45_step(rk_step);
 }
 

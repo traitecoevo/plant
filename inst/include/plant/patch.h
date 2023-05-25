@@ -327,7 +327,6 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
   it = ode::set_ode_state(species.begin(), species.end(), it);
   it = environment.set_ode_state(it);
 
-  std::cout << "Re-using environment_cache at RK step " << index << "\n";
   environment = environment_cache[index];
   compute_rates();
   return it;
@@ -338,11 +337,8 @@ template <typename T, typename E>
 void Patch<T,E>::cache_RK45_step(int step) {
   if(save_RK45_cache) {  
     if(step == 0) {
-      std::cout << "Resetting environment_cache" << "\n";
       environment_cache.clear();
     }
-
-    std::cout << "Saving environment to cache" << "\n";
     environment_cache.push_back(environment);
   }
 }
