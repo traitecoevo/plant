@@ -165,11 +165,29 @@ test_that("fitness", {
   )
 })
 
-# TO-DO: `check_inviable` has fallen into disuse - either deprecate or document
-# test_that("viable strategies", {
-#   params <- scm_base_parameters("FF16")
-#   patch <- expand_parameters(trait_matrix(c(0.005, 0.03, 0.1), "lma"), params, mutant = FALSE)
+test_that("viable strategies", {
+  params <- scm_base_parameters("FF16")
+  params$max_patch_lifetime <- 60
 
-#   expect_silent()
-#   check_inviable(patch)
-# })
+  patch <- expand_parameters(trait_matrix(c(0.005, 0.03, 0.1), "lma"), params, mutant = FALSE, birth_rate_list = c(1, 0.1, 0.001))
+
+  ctrl = scm_base_control()
+
+  expect_silent(
+    ret <- check_inviable(patch, ctrl)
+  )
+
+  comparison <- c(0.0, 0.001386715, 3.150417828)
+  expect_equal(as.numeric(ret), comparison, tolerance = 1e-4)
+  expect_equal(attr(ret, "drop"), c(TRUE, FALSE, FALSE))
+
+  # Change the extinction threshold
+  ctrl$equilibrium_extinct_birth_rate <- 1
+  expect_silent(
+    ret <- check_inviable(patch, ctrl)
+  )
+  expect_equal(as.numeric(ret), comparison, tolerance = 1e-4)
+  expect_equal(attr(ret, "drop"), c(TRUE, TRUE, FALSE))
+
+})
+
