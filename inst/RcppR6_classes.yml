@@ -799,9 +799,10 @@ Weibull_Disturbance_Regime:
   constructor:
     args: [max_patch_lifetime: double]
     roxygen: |
-      The frequency of disturbance in a meta-population of patches follows a Weibull distribution
+      Weibull_Disturbance_Regime control object.
       @title Weibull disturbance regime
-      Weibull_Disturbance_Regime control object
+      The frequency of disturbance in a meta-population of patches follows a Weibull distribution
+      @param max_patch_lifetime Maximum lifetime of a patch, determines length of a simulation
       @export
   methods:
     density:
@@ -876,6 +877,8 @@ FF16_Environment:
       - soil_number_of_depths: int
     roxygen: |
       FF16_Environment object
+      @param  canopy_rescale_usually whether to rescale intervals when estimating light environment
+      @param  soil_number_of_depths Number of soil layers to include
       @export
   methods:
     canopy_openness:

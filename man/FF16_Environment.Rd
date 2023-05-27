@@ -2,7 +2,6 @@
 % Please edit documentation in R/RcppR6.R, R/ff16.R, R/ff16r.R, R/ff16w.R
 \name{FF16_Environment}
 \alias{FF16_Environment}
-\alias{FF16_make_environment}
 \alias{FF16_fixed_environment}
 \alias{FF16r_make_environment}
 \alias{FF16w_make_environment}
@@ -10,13 +9,6 @@
 \title{FF16_Environment object}
 \usage{
 FF16_Environment(canopy_rescale_usually, soil_number_of_depths)
-
-FF16_make_environment(
-  canopy_light_tol = 1e-04,
-  canopy_light_nbase = 17,
-  canopy_light_max_depth = 16,
-  canopy_rescale_usually = TRUE
-)
 
 FF16_fixed_environment(e = 1, height_max = 150)
 

@@ -60,6 +60,8 @@ scm_base_control <- function() {
 ##' removed).
 ##' @title Basic default parameters for a given strategy
 ##' @author Rich FitzJohn
+##' @param type Any strategy name as a string, e.g.: \code{"FF16"}.
+##' @param env And environment object
 ##' @export
 scm_base_parameters <- function(type = NA, env = environment_type(type)) {
   
@@ -220,6 +222,7 @@ run_scm_error <- function(p, env = make_environment(parameters = p),
 ##' @title Helper function for creating parameter objects
 ##' @param ... Named set of parameters
 ##' @param pars A list of parameters
+##' @param type Any strategy name as a string, e.g.: \code{"FF16"}.
 ##' @param base_parameters_fn Function for creating base parameter set (default scm_base_parameters)
 ##' @param base_control_fn Function for creating base Control object (default scm_base_control)
 ##' @param make_hyperpar_fn Function for creating hyperparameterisation (default make_FF16_hyperpar)
