@@ -51,7 +51,7 @@ tidy_env <- function(env) {
             ~purrr::pluck(.x, v) %>% 
               data.frame, .id = "step") %>%
               tibble::as_tibble() %>%
-              dplyr::mutate(across(dplyr::any_of("step"), as.integer)) %>%
+              dplyr::mutate(dplyr::across(dplyr::any_of("step"), as.integer)) %>%
               dplyr::rename_with(~ gsub("\\.", v, .x)
           )
         )
@@ -85,7 +85,7 @@ tidy_patch <- function(results) {
   
   out[["env"]] <- 
     tidy_env(results$env) %>%
-    purrr::map(., dplyr::left_join, data, by = "step")
+    purrr::map(dplyr::left_join, data, by = "step")
   
   out[["n_spp"]] <- length(results$species)
   
@@ -150,20 +150,12 @@ interpolate_to_heights <- function(tidy_species_data, heights, method="natural")
   }
 
   tidy_species_data %>%
-    tidyr::drop_na(-step) %>%
+    tidyr::drop_na(-dplyr::any_of("step")) %>%
     dplyr::group_by(.data$species, .data$time, .data$step) %>%
-<<<<<<< HEAD
-    dplyr::summarise(
-      dplyr::across(tidyselect::where(is.double), ~f(.data$height, .x, xout=heights)),
-      .groups = "keep") %>%
-    dplyr::mutate(density = exp(.data$log_density)) %>%
-    dplyr::ungroup()
-=======
     dplyr::reframe(
-      dplyr::across(where(is.double), ~f(.data$height, .x, xout=heights))
+      dplyr::across(tidyselect::where(is.double), ~ f(.data$height, .x, xout = heights))
     ) %>%
     dplyr::mutate(density = exp(.data$log_density))
->>>>>>> fix-tests
 }
 
 
@@ -207,18 +199,10 @@ integrate_over_size_distribution <- function(tidy_species_data) {
     dplyr::select(-.data$node) %>% stats::na.omit() %>%
     dplyr::filter(.data$step > 1) %>% 
     dplyr::group_by(.data$step, .data$time, .data$patch_density, .data$species) %>% 
-    dplyr::summarise(
-<<<<<<< HEAD
+    dplyr::reframe(
       density_integrated = -trapezium(.data$height, .data$density), 
       min_height = min(.data$height),
-      dplyr::across(tidyselect::where(is.double) & !c(.data$density, .data$density_integrated, .data$min_height) , ~-trapezium(height, density * .x)), 
-=======
-      density_integrated = -trapezium(height, density), 
-      min_height = min(height),
-      dplyr::across(where(is.double) & !c(density, density_integrated, min_height), 
-                    ~-trapezium(height, density * .x)), 
->>>>>>> fix-tests
-      .groups = "drop"
+      dplyr::across(tidyselect::where(is.double) & !c(.data$density, .data$density_integrated, .data$min_height) , ~-trapezium(height, density * .x)) 
     ) %>% 
     dplyr::rename(density = .data$density_integrated)
 }

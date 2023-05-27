@@ -66,9 +66,16 @@ K93_StochasticPatchRunner <- function(p) {
 }
 
 
-## Helper:
+## Helper to create K93_environment object. Useful for running individuals
+##' create K93_environment object
+##' @param canopy_light_tol
+##'
+##' @param canopy_light_nbase
+##' @param canopy_light_max_depth
+##' @param canopy_rescale_usually
+##'
 ##' @export
-##' @rdname K93_Environment
+##' @rdname K93_make_environment
 K93_make_environment <- function(canopy_light_tol = 1e-4, 
                                  canopy_light_nbase = 17,
                                  canopy_light_max_depth = 16, 

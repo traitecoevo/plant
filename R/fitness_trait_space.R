@@ -12,7 +12,7 @@
 ##' search
 ##' @param log_scale Is the parameter naturally on a log scale?  If
 ##' so, this will greatly speed things up.
-##' @param params 
+##' @param params Parameters for fundamental_fitness function
 ##' @param tol Tolerance used in the optimisation
 ##'
 ##' @importFrom stats optimise optim 
