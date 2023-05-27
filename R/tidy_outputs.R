@@ -116,10 +116,9 @@ interpolate_to_times <- function(tidy_species_data, times, method="natural") {
   tidy_species_data %>%
     tidyr::drop_na() %>%
     dplyr::group_by(.data$species, .data$node) %>%
-    dplyr::summarise(
+    dplyr::reframe(
       dplyr::across(where(is.double), ~f(.data$time, .x, xout=times)),
-      .groups = "keep") %>%
-    dplyr::ungroup()
+    )
 }
 
 
@@ -151,11 +150,10 @@ interpolate_to_heights <- function(tidy_species_data, heights, method="natural")
   tidy_species_data %>%
     tidyr::drop_na(-step) %>%
     dplyr::group_by(.data$species, .data$time, .data$step) %>%
-    dplyr::summarise(
-      dplyr::across(where(is.double), ~f(.data$height, .x, xout=heights)),
-      .groups = "keep") %>%
-    dplyr::mutate(density = exp(.data$log_density)) %>%
-    dplyr::ungroup()
+    dplyr::reframe(
+      dplyr::across(where(is.double), ~f(.data$height, .x, xout=heights))
+    ) %>%
+    dplyr::mutate(density = exp(.data$log_density))
 }
 
 
@@ -194,6 +192,7 @@ tidy_individual <- function(results) {
 #'
 #' @importFrom rlang .data
 integrate_over_size_distribution <- function(tidy_species_data) {
+  
   tidy_species_data  %>%
     dplyr::select(-.data$node) %>% stats::na.omit() %>%
     dplyr::filter(.data$step > 1) %>% 
