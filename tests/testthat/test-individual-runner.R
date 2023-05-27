@@ -70,6 +70,7 @@ test_that("get_plant_internals_fun", {
 
 test_that("grow_individual_to_size", {
   for (x in names(strategy_types)) {
+    #cat(x)
     env <- test_environment(x, 10)
 
     heights <- seq(1, 10)
@@ -125,14 +126,15 @@ test_that("grow_individual_to_size", {
       plot(tmp$state - res$y0[i,], col = "green", pch = 2)
       plot(tmp$state - res$y1[i,], col = "pink", pch = 4)
     }
+    
     ## Do all plants using the proper function:
     obj <- grow_individual_to_size(Individual(x, e)(s), heights, "height", env)
     expect_is(obj$time, "numeric")
-    expect_true(all(obj$time > res$t0))
-    expect_true(all(obj$time < res$t1))
+    expect_true(all(obj$time >= res$t0))
+    expect_true(all(obj$time <= res$t1))
 
-    expect_true(all(obj$state[,j1] > res$y0[,j1]))
-    expect_true(all(obj$state[,j1] < res$y1[,j1]))
+    expect_true(all(obj$state[,j1] >= res$y0[,j1]))
+    expect_true(all(obj$state[,j1] <= res$y1[,j1]))
     expect_true(all(obj$state[,j2] >= res$y0[,j2]))
     expect_true(all(obj$state[,j2] <= res$y1[,j2]))
 

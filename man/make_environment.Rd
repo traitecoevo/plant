@@ -13,6 +13,8 @@ make_environment(type = NULL, parameters = NULL, ...)
 \item{type}{Any strategy name as a string, e.g.: \code{"FF16"}.}
 
 \item{parameters}{a object}
+
+\item{...}{other arguments passed through}
 }
 \description{
 Make environment objects for a strategy

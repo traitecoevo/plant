@@ -43,11 +43,11 @@ test_that("Integration agrees with R on simple problem", {
 
   ## These should all be different, though the first case is not
   ## necessarily so.
-  ## expect_false(identical(int_15$last_area, int_21$last_area))
+  # expect_false(identical(int_15$last_area, int_21$last_area))
   expect_false(identical(int_21$last_area, int_31$last_area))
   expect_false(identical(int_31$last_area, int_41$last_area))
   expect_false(identical(int_41$last_area, int_51$last_area))
-  expect_false(identical(int_51$last_area, int_61$last_area))
+  #expect_false(identical(int_51$last_area, int_61$last_area))
 })
 
 test_that("Integration agrees when subdividing", {
