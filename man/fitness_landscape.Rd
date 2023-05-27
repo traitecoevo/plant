@@ -8,7 +8,7 @@ fitness_landscape(
   trait_matrix,
   p,
   hyperpar = param_hyperpar(p),
-  log_fitness = FALSE
+  log_fitness = TRUE
 )
 }
 \arguments{

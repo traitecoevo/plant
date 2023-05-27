@@ -118,10 +118,9 @@ interpolate_to_times <- function(tidy_species_data, times, method="natural") {
   tidy_species_data %>%
     tidyr::drop_na() %>%
     dplyr::group_by(.data$species, .data$node) %>%
-    dplyr::summarise(
+    dplyr::reframe(
       dplyr::across(tidyselect::where(is.double), ~f(.data$time, .x, xout=times)),
-      .groups = "keep") %>%
-    dplyr::ungroup()
+    )
 }
 
 
@@ -151,13 +150,20 @@ interpolate_to_heights <- function(tidy_species_data, heights, method="natural")
   }
 
   tidy_species_data %>%
-    tidyr::drop_na(-.data$step) %>%
+    tidyr::drop_na(-step) %>%
     dplyr::group_by(.data$species, .data$time, .data$step) %>%
+<<<<<<< HEAD
     dplyr::summarise(
       dplyr::across(tidyselect::where(is.double), ~f(.data$height, .x, xout=heights)),
       .groups = "keep") %>%
     dplyr::mutate(density = exp(.data$log_density)) %>%
     dplyr::ungroup()
+=======
+    dplyr::reframe(
+      dplyr::across(where(is.double), ~f(.data$height, .x, xout=heights))
+    ) %>%
+    dplyr::mutate(density = exp(.data$log_density))
+>>>>>>> fix-tests
 }
 
 
@@ -196,14 +202,22 @@ tidy_individual <- function(results) {
 #'
 #' @importFrom rlang .data
 integrate_over_size_distribution <- function(tidy_species_data) {
+  
   tidy_species_data  %>%
     dplyr::select(-.data$node) %>% stats::na.omit() %>%
     dplyr::filter(.data$step > 1) %>% 
     dplyr::group_by(.data$step, .data$time, .data$patch_density, .data$species) %>% 
     dplyr::summarise(
+<<<<<<< HEAD
       density_integrated = -trapezium(.data$height, .data$density), 
       min_height = min(.data$height),
       dplyr::across(tidyselect::where(is.double) & !c(.data$density, .data$density_integrated, .data$min_height) , ~-trapezium(height, density * .x)), 
+=======
+      density_integrated = -trapezium(height, density), 
+      min_height = min(height),
+      dplyr::across(where(is.double) & !c(density, density_integrated, min_height), 
+                    ~-trapezium(height, density * .x)), 
+>>>>>>> fix-tests
       .groups = "drop"
     ) %>% 
     dplyr::rename(density = .data$density_integrated)
