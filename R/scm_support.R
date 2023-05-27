@@ -60,6 +60,8 @@ scm_base_control <- function() {
 ##' removed).
 ##' @title Basic default parameters for a given strategy
 ##' @author Rich FitzJohn
+##' @param type Any strategy name as a string, e.g.: \code{"FF16"}.
+##' @param env And environment object
 ##' @export
 scm_base_parameters <- function(type = NA, env = environment_type(type)) {
   
@@ -214,7 +216,6 @@ run_scm_error <- function(p, env = make_environment(parameters = p),
        err=list(lai=lai_error, offspring_production=average_fecundity_error, total=total),
        ode_times=scm$ode_times)
 }
-
 
 scm_to_internals <- function(obj, use_environment=TRUE) {
   dat <- lapply(seq_along(obj$time), function(i)

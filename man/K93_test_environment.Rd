@@ -14,8 +14,6 @@ K93_test_environment(height, n = 101, light_env = NULL, n_strategies = 1)
 \item{light_env}{function for light environment in test object}
 
 \item{n_strategies}{number of strategies for test environment}
-
-\item{birth_rate}{birth_rate for test environment}
 }
 \description{
 This makes a pretend light environment over the plant height,

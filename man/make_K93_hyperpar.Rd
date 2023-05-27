@@ -30,6 +30,10 @@ make_K93_hyperpar(
 \item{d_0}{Recruitment rate (cm2.year-1)}
 
 \item{d_1}{Recruitment suppression rate (m2.cm-2)}
+
+\item{eta}{Crown shape parameter}
+
+\item{k_I}{Extinction coefficient used when estimating competitive effect}
 }
 \description{
 Construct hyperparameter object for K93 physiological model

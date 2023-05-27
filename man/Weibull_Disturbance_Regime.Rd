@@ -3,10 +3,13 @@
 \name{Weibull_Disturbance_Regime}
 \alias{Weibull_Disturbance_Regime}
 \title{Weibull disturbance regime
-Weibull_Disturbance_Regime control object}
+The frequency of disturbance in a meta-population of patches follows a Weibull distribution}
 \usage{
 Weibull_Disturbance_Regime(max_patch_lifetime)
 }
+\arguments{
+\item{max_patch_lifetime}{Maximum lifetime of a patch, determines length of a simulation}
+}
 \description{
-The frequency of disturbance in a meta-population of patches follows a Weibull distribution
+Weibull_Disturbance_Regime control object.
 }

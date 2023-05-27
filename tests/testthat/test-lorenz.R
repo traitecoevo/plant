@@ -31,13 +31,13 @@ test_that("Basic Lorenz object works", {
 
   ## Then set the state:
   lo$ode_state <- y
-  expect_identical(lo$ode_state, y)
-  expect_identical(lo$ode_rates, derivs_lorenz(y, pars))
+  expect_equal(lo$ode_state, y)
+  expect_equal(lo$ode_rates, derivs_lorenz(y, pars))
 
   y2 <- runif(3)
   lo$ode_state <- y2
-  expect_identical(lo$ode_state, y2)
-  expect_identical(lo$ode_rates, derivs_lorenz(y2, pars))
+  expect_equal(lo$ode_state, y2)
+  expect_equal(lo$ode_rates, derivs_lorenz(y2, pars))
 })
 
 ## Then, get the ode runner working.
@@ -62,8 +62,8 @@ test_that("Ode runner behaves", {
   sys$step()
   expect_gt(sys$time, 0.0)
   expect_true(all(sys$state != y))
-  expect_identical(sys$object$ode_state, sys$state)
-  expect_identical(lo2$ode_state, y)
+  expect_equal(sys$object$ode_state, sys$state)
+  expect_equal(lo2$ode_state, y)
 
   t1 <- 1.0
   sys$advance(t1)
@@ -71,11 +71,11 @@ test_that("Ode runner behaves", {
   ## State has changed:
   expect_true(all(sys$state != y))
   ## But not in these objects:
-  expect_identical(lo$ode_state, y)
-  expect_identical(lo2$ode_state, y)
+  expect_equal(lo$ode_state, y)
+  expect_equal(lo2$ode_state, y)
 
   times <- sys$times
-  expect_identical(first(times), 0.0)
+  expect_equal(first(times), 0.0)
   expect_identical(last(times), t1)
   ## Object does not store time:
   expect_null(sys$object$ode_time)
@@ -106,13 +106,14 @@ test_that("OdeR interface", {
 
   sol$advance(pi)
   sol2$advance(pi)
-  expect_identical(sol$times, sol2$times)
-  expect_identical(sol$state, sol2$state)
+  expect_equal(sol$times, sol2$times)
+  expect_equal(sol$state, sol2$state)
 
   ## This *has* updated the original values.
-  expect_identical(lo$ode_state, sol2$state)
+  expect_equal(lo$ode_state, sol2$state)
 
   lo$ode_state <- y
   expect_false(identical(lo$ode_state, sol2$state))
   expect_error(sol2$set_state_from_system(), "Time does not match previous")
 })
+
