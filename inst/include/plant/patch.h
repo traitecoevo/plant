@@ -307,8 +307,11 @@ double Patch<T,E>::ode_time() const {
 template <typename T, typename E>
 ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
                                               double time) {
+  
   it = ode::set_ode_state(species.begin(), species.end(), it);
   it = environment.set_ode_state(it);
+
+  std::cout << "resident: etime " << environment.time << std::endl;
 
   environment.time = time;
   if (environment.canopy_rescale_usually) {
@@ -324,10 +327,14 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
 template <typename T, typename E>
 ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
                                               int index) {
+
   it = ode::set_ode_state(species.begin(), species.end(), it);
-  it = environment.set_ode_state(it);
 
   environment = environment_cache[index];
+  it = environment.set_ode_state(it);
+
+  std::cout << "mutant: etime " << environment.time << "; index " << index << std::endl;
+
   compute_rates();
   return it;
 }

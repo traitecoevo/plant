@@ -155,8 +155,10 @@ derivs(T& obj, const state_type& y, state_type& dydt,
             const double time, const int index) {
 
     if(obj.use_cached_environment) {
+      std::cout << "mutant: step time " << time << "; ";
       internal::set_ode_state(obj, y, index); // only works for patches
     } else {
+      std::cout << "resident: step time " << time << "; ";
       internal::set_ode_state(obj, y, time);
     }
   

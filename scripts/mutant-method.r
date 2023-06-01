@@ -10,8 +10,9 @@ collect_state <- function(scm) {
   return(res)
 }
 
-run_one_patch <- function(birth_rate) {
+run_one_patch <- function(birth_rate, logfile = "logs.txt") {
 
+  sink(logfile)
   p <- scm_base_parameters("FF16")
 
   p1 <- expand_parameters(trait_matrix(0.8, "lma"), p, mutant = F,
@@ -25,7 +26,7 @@ run_one_patch <- function(birth_rate) {
   types <- extract_RcppR6_template_types(p1, "Parameters")
   scm <- do.call('SCM', types)(p1, e, ctrl)
   
-  resident <- collect(scm)
+  resident <- collect_state(scm)
 
   time <- purrr::map_dbl(resident, `[[`, "time") %>%
     data.frame(time = .) %>%
@@ -52,14 +53,16 @@ run_one_patch <- function(birth_rate) {
     t() %>% tibble::as_tibble() %>%
     dplyr::mutate(time = scm$time, 
                   node = seq_along(time))
-  
+  sink()
   return(list(fitnesses = c(resident_rr, mutant_rr),
               resident_state = state,
               mutant_endpoint = mutant_endpoint))
 }
 
 birth_rates <- c(100, 50, 10, 5, 1, 0.1, 0.01, 0.001)
-grid_search <- purrr::map(birth_rates, run_one_patch)
+
+grid_search <- purrr::map(birth_rates[1], run_one_patch)
+
 
 fitnesses <- purrr::map_df(grid_search,
                            ~ purrr::pluck(., "fitnesses") %>% 
