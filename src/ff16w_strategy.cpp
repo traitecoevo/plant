@@ -116,6 +116,17 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
 
 }
 
+ double FF16w_Strategy::darea_leaf_dmass_live(double area_leaf) const {
+
+  return 1.0 /
+         (dmass_leaf_darea_leaf(area_leaf) * (1 + dmass_dN * nmass_l) +
+          dmass_sapwood_darea_leaf(area_leaf) * (1 + dmass_dN * nmass_s)  +
+          dmass_bark_darea_leaf(area_leaf) * (1 + dmass_dN * nmass_b) + 
+          dmass_root_darea_leaf(area_leaf) * (1 + dmass_dN * nmass_r));
+
+}
+
+
 // one-shot update of the scm variables
 // i.e. setting rates of ode vars from the state and updating aux vars
 void FF16w_Strategy::compute_rates(const FF16_Environment &environment,
@@ -142,8 +153,7 @@ void FF16w_Strategy::compute_rates(const FF16_Environment &environment,
     // std::cout << "area_leaf" << area_leaf_ << "water_use" << evapotranspiration_dt(area_leaf_)*60*60*12*365/1000 << std::endl;
   }
 
-
-
+ 
   if (net_mass_production_dt_ > 0) {
     const double fraction_allocation_reproduction_ =
         fraction_allocation_reproduction(height);
@@ -203,7 +213,7 @@ void FF16w_Strategy::prepare_strategy() {
   } else {
     extrinsic_drivers.set_constant("birth_rate", birth_rate_y[0]);
   }
-  leaf = Leaf( vcmax,  c,  b, psi_crit, epsilon_leaf,  beta1,  beta2, jmax, hk_s, a, curv_fact_colim, curv_fact_elec_trans);
+  leaf = Leaf(vcmax_25,  c,  b, psi_crit, epsilon_leaf,  beta1,  beta2, jmax_25, hk_s, a, curv_fact_colim, curv_fact_elec_trans);
 }
 
 

@@ -2,18 +2,18 @@
 #include <cmath>
 
 namespace plant {
-Leaf::Leaf(double vcmax, double c, double b,
+Leaf::Leaf(double vcmax_25, double c, double b,
            double psi_crit, // derived from b and c
-           double epsilon_leaf, double beta1, double beta2, double jmax, double hk_s,
+           double epsilon_leaf, double beta1, double beta2, double jmax_25, double hk_s,
            double a, double curv_fact_elec_trans, double curv_fact_colim, double B_rs1, double B_lf2, double B_lf3, double B_lf5)
-    : vcmax(vcmax), // umol m^-2 s^-1 
+    : vcmax_25(vcmax_25), // umol m^-2 s^-1 
     c(c), //unitless
     b(b), //-MPa
     psi_crit(psi_crit), //-MPa 
     beta1(beta1), //hydraulic cost for Bartlett method umol m^-3 s^-1
     beta2(beta2), //exponent for effect of hydraulic risk (unitless)
     epsilon_leaf(epsilon_leaf), //tolerance value 
-    jmax(jmax), // maximum electron transport rate umol m^-2 s^-1
+    jmax_25(jmax_25), // maximum electron transport rate umol m^-2 s^-1
     hk_s(hk_s),  // maximum hydraulic-dependent sapwood turnover rate yr ^ -1
     a(a), //quantum yield of photosynthetic electron transport (mol mol^-1)
     curv_fact_elec_trans(curv_fact_elec_trans), //curvature factor for the light response curve (unitless)
@@ -30,10 +30,17 @@ Leaf::Leaf(double vcmax, double c, double b,
     rho_(NA_REAL), //kg m^-3
     lma_(NA_REAL), //kg m^-2
     a_bio_(NA_REAL), //kg mol^-1
-    psi_soil_(NA_REAL), //-MPa 
+    psi_soil_(NA_REAL), //-MPa
+    leaf_temp_(NA_REAL); // deg C
+    atm_o2_kpa_(NA_REAL); // kPa
     ci_(NA_REAL), // Pa
     stom_cond_CO2_(NA_REAL), //mol Co2 m^-2 s^-1 
     electron_transport_(NA_REAL), //electron transport rate umol m^-2 s^-1
+    gamma_(NA_REAL),
+    ko_(NA_REAL),
+    kc_(NA_REAL),
+    km_(NA_REAL),
+    R_d_(NA_REAL),
     assim_colimited_(NA_REAL), // umol C m^-2 s^-1 
     transpiration_(NA_REAL), // kg m^-2 s^-1 
     lambda_(NA_REAL), // umol C m^-2 s^-1 kg^-1 m^2 s^1
@@ -51,16 +58,26 @@ Leaf::Leaf(double vcmax, double c, double b,
 
 //sets various parameters which are constant for a given node at a given time
 
-void Leaf::set_physiology(double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area) {
+void Leaf::set_physiology(double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa) {
    rho_ = rho;
    a_bio_ = a_bio;
    atm_vpd_ = atm_vpd;
+   leaf_temp_ = leaf_temp;
+   atm_o2_kpa_ = atm_o2_kpa;
    PPFD_ = PPFD;
    psi_soil_ = psi_soil;
    leaf_specific_conductance_max_ = leaf_specific_conductance_max;
    sapwood_volume_per_leaf_area_ = sapwood_volume_per_leaf_area;
    ca_ = ca;
    electron_transport_ = electron_transport();
+   gamma_ = arrh_curve(gamma_ha, gamma_25, leaf_temp_);
+   ko_ = arrh_curve(ko_ha, ko_25, leaf_temp_);
+   kc_ = arrh_curve(kc_ha, kc_25, leaf_temp_);
+   vcmax = vcmax_25;
+   jmax = jmax_25;
+   R_d_ = vcmax*0.015;
+   km_ = (kc_*umol_per_mol_to_Pa)*(1 + (atm_o2_kpa*kPa_to_Pa)/(ko_*umol_per_mol_to_Pa));
+
 
 // set lambda, if psi_soil is higher than psi_crit, then set to 0. Currently doing both the numerical and analytical version. Ideally would do one.
   // if(psi_soil >= psi_crit){
@@ -74,6 +91,19 @@ void Leaf::set_physiology(double rho, double a_bio, double PPFD, double psi_soil
   //   lambda_analytical_ = assim_colimited_analytical(ci_) / hydraulic_cost_Sperry(psi_crit);
   // }
 }
+
+double Leaf::arrh_curve(double Ea, double ref_value, double leaf_temp) const {
+  return ref_value*exp(Ea*(leaf_temp - 25)/(298*R*(leaf_temp+273)));
+}
+
+double Leaf::peak_arrh_curve(double Ea, double ref_value, double leaf_temp, double H_d, double d_S) const {
+  double arrh = arrh_curve(Ea, ref_value, leaf_temp);
+  double arg2 = 1 + exp((d_S*ref_value - H_d)/(R*ref_value));
+  double arg3 = 1 + exp((d_S*leaf_temp - H_d)/(R*leaf_temp));
+
+  return arrh * arg2/arg3
+}
+
 
 // transpiration supply functions
 
@@ -149,10 +179,7 @@ double Leaf::electron_transport() {
 //calculate the rubisco-limited assimilation rate, returns umol m^-2 s^-1
 double Leaf::assim_rubisco_limited(double ci_) {
   
-
   return (vcmax * (ci_ - gamma_25 * umol_per_mol_to_Pa)) / (ci_ + km_25);
-
-
 
 }
 
@@ -627,7 +654,6 @@ void Leaf::optimise_psi_stem_Sperry_Newton_analytical(double psi_guess) {
     opt_psi_stem_ = psi_soil_;
     profit_ = 0.0;
     transpiration_ = 0.0;
-    std::cout << "warning2" << std::endl;
     return;
     }
 

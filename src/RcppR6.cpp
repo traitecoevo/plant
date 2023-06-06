@@ -2,20 +2,28 @@
 #include <plant.h>
 
 // [[Rcpp::export]]
-plant::Leaf Leaf__ctor(double vcmax, double c, double b, double psi_crit, double epsilon_leaf, double beta1, double beta2, double jmax, double hk_s_, double a, double curv_fact_elec_trans, double curv_fact_colim, double B_rs1, double B_lf2, double B_lf3, double B_lf5) {
-  return plant::Leaf(vcmax, c, b, psi_crit, epsilon_leaf, beta1, beta2, jmax, hk_s_, a, curv_fact_elec_trans, curv_fact_colim, B_rs1, B_lf2, B_lf3, B_lf5);
+plant::Leaf Leaf__ctor(double vcmax_25, double c, double b, double psi_crit, double epsilon_leaf, double beta1, double beta2, double jmax_25, double hk_s_, double a, double curv_fact_elec_trans, double curv_fact_colim, double B_rs1, double B_lf2, double B_lf3, double B_lf5) {
+  return plant::Leaf(vcmax_25, c, b, psi_crit, epsilon_leaf, beta1, beta2, jmax_25, hk_s_, a, curv_fact_elec_trans, curv_fact_colim, B_rs1, B_lf2, B_lf3, B_lf5);
 }
 // [[Rcpp::export]]
 void Leaf__initialize_integrator(plant::RcppR6::RcppR6<plant::Leaf> obj_, int integration_rule, double integration_tol) {
   obj_->initialize_integrator(integration_rule, integration_tol);
 }
 // [[Rcpp::export]]
-void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area) {
-  obj_->set_physiology(rho, a_bio, PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area);
+void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa) {
+  obj_->set_physiology(rho, a_bio, PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area, leaf_temp, atm_o2_kpa);
 }
 // [[Rcpp::export]]
 double Leaf__proportion_of_conductivity(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi) {
   return obj_->proportion_of_conductivity(psi);
+}
+// [[Rcpp::export]]
+double Leaf__arrh_curve(plant::RcppR6::RcppR6<plant::Leaf> obj_, double Ea, double ref_value, double leaf_temp) {
+  return obj_->arrh_curve(Ea, ref_value, leaf_temp);
+}
+// [[Rcpp::export]]
+double Leaf__peak_arrh_curve(plant::RcppR6::RcppR6<plant::Leaf> obj_, double Ea, double ref_value, double leaf_temp, double H_d, double d_S) {
+  return obj_->peak_arrh_curve(Ea, ref_value, leaf_temp, H_d, d_S);
 }
 // [[Rcpp::export]]
 double Leaf__transpiration(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
@@ -243,6 +251,51 @@ void Leaf__electron_transport___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, dou
 }
 
 // [[Rcpp::export]]
+double Leaf__gamma___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->gamma_;
+}
+// [[Rcpp::export]]
+void Leaf__gamma___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->gamma_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__ko___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->ko_;
+}
+// [[Rcpp::export]]
+void Leaf__ko___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->ko_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__kc___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->kc_;
+}
+// [[Rcpp::export]]
+void Leaf__kc___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->kc_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__km___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->km_;
+}
+// [[Rcpp::export]]
+void Leaf__km___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->km_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__R_d___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->R_d_;
+}
+// [[Rcpp::export]]
+void Leaf__R_d___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->R_d_ = value;
+}
+
+// [[Rcpp::export]]
 double Leaf__leaf_specific_conductance_max___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   return obj_->leaf_specific_conductance_max_;
 }
@@ -303,6 +356,24 @@ double Leaf__psi_soil___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
 // [[Rcpp::export]]
 void Leaf__psi_soil___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
   obj_->psi_soil_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__leaf_temp___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->leaf_temp_;
+}
+// [[Rcpp::export]]
+void Leaf__leaf_temp___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->leaf_temp_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__atm_o2_kpa___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->atm_o2_kpa_;
+}
+// [[Rcpp::export]]
+void Leaf__atm_o2_kpa___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->atm_o2_kpa_ = value;
 }
 
 // [[Rcpp::export]]

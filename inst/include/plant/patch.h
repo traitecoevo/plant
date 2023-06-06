@@ -203,7 +203,6 @@ void Patch<T,E>::compute_rates() {
   double pr_patch_survival = survival_weighting->pr_survival(time());
 
   if (counter == 100){
-    std::cout << "time " << time() << std::endl;
     counter = 0;
   }
   counter += 1;

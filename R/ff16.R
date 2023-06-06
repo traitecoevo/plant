@@ -407,7 +407,6 @@ FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, 
   #can't handle situations yet where bounds are outside of positive growth
   bounds <- check_bounds(bounds)
   traits <- rownames(bounds)
-  
   if (log_scale) {
     bounds[bounds[,1] == -Inf, 1] <- 0
     bounds <- log(bounds)
@@ -416,6 +415,7 @@ FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, 
     ff <- I
   }
   f <- function(x) {
+    browser()
     s <- strategy(ff(trait_matrix(x,  rownames(bounds))), parameters = params, hyperpar = hyperpars, birth_rate_list = 1, use_default_strategy = use_default_strategy)
     #Would be great to have other options for this switch here
     if(attr(params, "class") [[1]] == "Parameters<FF16w,FF16_Env>"){
@@ -423,10 +423,16 @@ FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, 
     } else{
     indv <- FF16_Individual(s)
     }
-
+    # browser()
+    browser()
     res <- grow_individual_to_height(indv, height, env,
                                      time_max=100, warn=FALSE, filter=TRUE)
+
+    
     res <- res$rate[colnames(res$rate) == outcome]
+    
+    
+    
     if(is.na(res)){
       res <- 0
     }
@@ -434,6 +440,7 @@ FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, 
   }
   
   ret <- solve_max_worker(bounds, f, tol = 1e-3, outcome = paste0(outcome, "_growth_rate"), use_optim = use_optim)
+  
 
   #not sure that below is required or correct
   # if (log_scale) {

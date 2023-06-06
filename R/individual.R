@@ -56,7 +56,6 @@ grow_individual_to_size <- function(individual, sizes, size_name, env,
       ret$individual <- ret$individual[i]
     }
   }
-  
   ret
 }
 

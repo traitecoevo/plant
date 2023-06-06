@@ -19,19 +19,29 @@ namespace plant {
 static const double vcmax_25_to_jmax_25 = 1.67;
 // umol ^ -1 mol ^ 1
 static const double gamma_25 = 42.75;
-// Pa umol ^ -1 mol ^ 1 
-static const double umol_per_mol_to_Pa = 0.1013;
+// dimensionless
+static const double gamma_c = 19.02;
+// kJ mol ^-1
+static const double gamma_ha = 37.83e3;
+
 // umol mol ^-1
 static const double kc_25 = 404.9 ;
-//partial pressure o2 (kPa)
-static const double atm_o2_kpa = 21 ;
-//multiplicative converter from kPa to Pa (Pa kPa^-1)
-static const double kPa_2_Pa = 1000;
-//umol mol ^-1
-static const double ko_25 = 278400;
+// dimensionless
+static const double kc_c = 38.05;
+// kJ mol ^-1
+static const double kc_ha = 79.43e3;
 
-// Pa
-static const double km_25 = (kc_25*umol_per_mol_to_Pa)*(1 + (atm_o2_kpa*kPa_2_Pa)/(ko_25*umol_per_mol_to_Pa));
+
+// umol mol ^-1
+static const double ko_25 = 278400 ;
+// dimensionless
+static const double ko_c = 20.30;
+// kJ mol ^-1
+static const double ko_ha = 36.38e3;
+
+// Pa umol ^ -1 mol ^ 1 
+static const double umol_per_mol_to_Pa = 0.1013;
+
 // mol H2o kg ^-1
 static const double kg_to_mol_h2o = 55.4939;
 // mol mol ^-1 / (umol mol ^-1)
@@ -39,17 +49,20 @@ static const double umol_to_mol = 1e-6;
 // Pa kPa^-1
 static const double kPa_to_Pa = 1000.0;
 
+// universal gas constant J mol^-1 K^-1
+static const double R = 8.314;
+
 
 class Leaf {
 public:
-  Leaf(double vcmax        = 100, // umol m^-2 s^-1
+  Leaf(double vcmax_25        = 100, // umol m^-2 s^-1
        double c            = 2.04, //unitless
        double b            = 2.0, // MPa
        double psi_crit     = 3.42,  // derived from b and c (- MPa)
        double beta1 = 20000, // umol m^-3 s^-1
        double beta2 = 1.5, //exponent for effect of hydraulic risk (unitless)
        double epsilon_leaf = 0.001,
-       double jmax = 167, // maximum electron transport rate umol m^-2 s^-1
+       double jmax_25 = 167, // maximum electron transport rate umol m^-2 s^-1
        double hk_s = 4/365/24/60/60, // maximum hydraulic-dependent sapwood turnover rate yr ^ -1
        double a = 0.30, // effective quantum yield of electron transport  (mol photon mol ^-1 electron)  Sabot et al. 2020
        double curv_fact_elec_trans = 0.85, // unitless - obtained from Smith and Keenan (2020)
@@ -66,13 +79,13 @@ public:
 
   // psi_from_E
 
-  double vcmax;
+  double vcmax_25;
   double c;
   double b;
   double psi_crit;  // derived from b and c
   double beta1;
   double beta2;
-  double jmax;
+  double jmax_25;
   double hydraulic_turnover;
   double hk_s;
   double a;
@@ -85,10 +98,13 @@ public:
 
   //actually a control paramaeter and needs to be moved
   double epsilon_leaf;
-
-
   double ci_;
   double electron_transport_;
+  double gamma_;
+  double ko_;
+  double kc_;
+  double km_;
+  double R_d_;
   double stom_cond_CO2_;
   double assim_colimited_;
   double transpiration_;
@@ -107,6 +123,7 @@ public:
   double lma_; //kg m^-2
   double a_bio_;
   double psi_soil_;
+  double leaf_temp_;
   double opt_psi_stem_;
   double opt_ci_;
   double count;
@@ -121,6 +138,12 @@ public:
   double atm_vpd = 2.0; //kPa
   double ca = 40.0; // Pa
   double atm_kpa = 101.3; //kPa
+  //partial pressure o2 (kPa)
+  double atm_o2_kpa = 21;
+  //leaf temperature (deg C)
+  double leaf_temp = 25;
+
+
 
   // this might end up hard-coded
   void initialize_integrator(int integration_rule = 21,
@@ -134,6 +157,9 @@ public:
   // set-up functions
   void set_physiology(double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area);
   void setup_transpiration(double resolution);
+
+  double arrh_curve(double Ea, double ref_value, double leaf_temp);
+  double peak_arrh_curve(double Ea, double ref_value, double leaf_temp, double H_d, double d_S);
 
   // transpiration functions
 

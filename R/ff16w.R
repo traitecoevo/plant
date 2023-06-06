@@ -320,22 +320,27 @@ make_FF16w_hyperpar <- function(
 
     ## n_area from structural (lma) and metabolic (vcmax) N (Dong et al. 2022)
 
-    narea_s <- (a_lf1 + B_lf1*lma*1000)/1000
-    narea_p <- (B_lf2*vcmax + B_lf3*jmax)/1000
+    narea_ls <- (a_lf1 + B_lf1*lma*1000)/1000
+    narea_lp <- (B_lf2*vcmax + B_lf3*jmax)/1000
+    
+    
+    nmass_ls <- narea_ls / lma
+    nmass_lp <- narea_lp / lma
+    nmass_l <- nmass_ls + nmass_lp
     
     ## Respiration rates are per unit mass, so convert to mass-based
     ## rate by dividing with lma
     ## So respiration rates per unit mass vary with lma, while
     ## respiration rates per unit area don't.
-    r_ls  <- B_lf4 * narea_s / lma
-    r_lp  <- B_lf5 * narea_p / lma
+    r_ls  <- B_lf4 * nmass_ls
+    r_lp  <- B_lf5 * nmass_lp
     
     r_l <- r_ls + r_lp
     
     extra <- cbind(k_l,                 # lma
                    d_I, k_s, r_s, r_b, hk_s,  # rho
                    a_f3,               # omega
-                   r_l,                # lma, narea
+                   r_l,nmass_l,        # lma, narea
                    p_50, b, psi_crit)  # K_s, c              
 
     overlap <- intersect(colnames(m), colnames(extra))
@@ -355,8 +360,10 @@ make_FF16w_hyperpar <- function(
           eps <- sqrt(.Machine$double.eps)
           x1 <- extra[1, pos]
           x2 <- unlist(s[names(x1)])
-
           drop <- abs(x1 - x2) < eps & abs(1 - x1/x2) < eps
+          if(any(is.na(drop))){
+            browser()
+          }
           if (any(drop)) {
             keep <- setdiff(colnames(extra), names(drop)[drop])
             extra <- extra[, keep, drop=FALSE]

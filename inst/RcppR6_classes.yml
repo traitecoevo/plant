@@ -2,14 +2,14 @@ Leaf:
   name_cpp: "plant::Leaf"
   constructor:
     args:
-      - vcmax: double
+      - vcmax_25: double
       - c: double
       - b: double
       - psi_crit: double
       - epsilon_leaf: double
       - beta1: double
       - beta2: double
-      - jmax: double
+      - jmax_25: double
       - hk_s_: double
       - a: double
       - curv_fact_elec_trans: double
@@ -29,6 +29,11 @@ Leaf:
     lambda_: {type: double, access: field}
     lambda_analytical_: {type: double, access: field}
     electron_transport_: {type: double, access: field}
+    gamma_: {type: double, access: field}
+    ko_: {type: double, access: field}
+    kc_: {type: double, access: field}
+    km_: {type: double, access: field}
+    R_d_: {type: double, access: field}
     leaf_specific_conductance_max_: {type: double, access: field}
     rho_: {type: double, access: field}
     a_bio_: {type: double, access: field}
@@ -36,6 +41,8 @@ Leaf:
     atm_vpd_: {type: double, access: field}
     ca_: {type: double, access: field}
     psi_soil_: {type: double, access: field}
+    leaf_temp_: {type: double, access: field} 
+    atm_o2_kpa_: {type: double, access: field} 
     hydraulic_cost_: {type: double, access: field}
     opt_psi_stem_: {type: double, access: field}
     opt_ci_: {type: double, access: field}
@@ -49,11 +56,17 @@ Leaf:
       args: [integration_rule: int, integration_tol: double]
     set_physiology:
       return_type: void 
-      args: [rho: double, a_bio: double, PPFD: double, psi_soil: double, leaf_specific_conductance_max: double, atm_vpd: double, ca: double, sapwood_volume_per_leaf_area: double]
+      args: [rho: double, a_bio: double, PPFD: double, psi_soil: double, leaf_specific_conductance_max: double, atm_vpd: double, ca: double, sapwood_volume_per_leaf_area: double, leaf_temp: double, atm_o2_kpa: double]
     #transpiration functions
     proportion_of_conductivity:
       return_type: double
       args: [psi: double]
+    arrh_curve:
+      return_type: double
+      args: [Ea: double, ref_value: double, leaf_temp: double]
+    peak_arrh_curve:
+      return_type: double
+      args: [Ea: double, ref_value: double, leaf_temp: double, H_d: double, d_S: double] 
     transpiration:
       return_type: double
       args: [psi_stem: double]
@@ -1251,6 +1264,11 @@ FF16w_Strategy:
     - a: double
     - curv_fact_elec_trans: double
     - curv_fact_colim: double
+    - nmass_l: double
+    - nmass_s: double
+    - nmass_b: double
+    - nmass_r: double
+    - dmass_dN: double
     - recruitment_decay: double
     - control: "plant::Control"
     - collect_all_auxiliary: bool
