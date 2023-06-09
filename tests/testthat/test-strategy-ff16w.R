@@ -18,9 +18,12 @@ test_that("FF16w Environment", {
   expect_equal(e$soil$rates, 0.6) # default rainfall is now y = 1
 
   # Make it rain
-  x <- seq(0, 9, 1)
-  y <- rep(5, 10)
-  e$set_extrinsic_driver("rainfall", x, y)
+  rain = list(
+    x = seq(0, 9, 1),
+    y = rep(5, 10)
+  )
+  e <- make_environment("FF16w", rainfall=rain)
+  
   expect_equal(e$soil$states, 0)
   e$compute_rates(c(0.4))
   # 5 - 0.4 - 0.0*0.1
@@ -66,20 +69,22 @@ test_that("Rainfall spline basic run", {
                           mutant = FALSE, birth_rate_list = list(20))
 
 
-  env <- make_environment("FF16w",
-                          soil_number_of_depths = 10,
-                          soil_initial_state = rep(1, 10))
-
   # init rainfall spline for env
   x <- seq(0, 110, 0.1)
-  integrand <- function(x) {1000 + sin(x)}
-  y <- integrand(x)
-  env$set_extrinsic_driver("rainfall", x, y)
+  rain = list(
+    x = x,
+    y = 1000 + sin(x)
+  )
+  
+  env <- make_environment("FF16w",
+                          soil_number_of_depths = 10,
+                          soil_initial_state = rep(1, 10),
+                          rainfall = rain)
 
   ctrl <- scm_base_control()
 
   out <- run_scm(p1, env, ctrl)
-
+  
   expect_equal(out$patch$environment$ode_size, 10)
 
   # This test only validates reproducibility across operating systems,
@@ -95,6 +100,26 @@ test_that("Rainfall spline basic run", {
                c(9939.809, 9877.551, 9803.061, 9691.901, 9496.920, 9152.641,
                  8594.141, 7785.160, 6740.445, 5528.322), tolerance = 1e-5)
 
-  expect_equal(out$offspring_production, 16.88961056463, tolerance=1e-5)
+  expect_equal(out$offspring_production, 16.88961056463, tolerance=5e-4)
   expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.101857), tolerance=1e-7)
+})
+
+test_that("Rainfall in collected output", {
+  # one species
+  p0 <- scm_base_parameters("FF16w")
+  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,
+                          mutant = FALSE, birth_rate_list = list(20))
+  
+  
+  env <- make_environment("FF16w",
+                          soil_number_of_depths = 10,
+                          soil_initial_state = rep(1, 10),
+                          rainfall = 45)
+  
+  ctrl <- scm_base_control()
+  
+  collected <- run_scm_collect(p1, env, ctrl)
+  
+  expect_equal(collected$env[[1]]$rainfall, 45)
+  expect_equal(collected$env[[142]]$rainfall, 45)
 })

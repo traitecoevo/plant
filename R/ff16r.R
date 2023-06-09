@@ -78,7 +78,6 @@ FF16r_make_environment <- function(canopy_rescale_usually = TRUE) {
 ##' @param n number of points
 ##' @param light_env function for light environment in test object
 ##' @param n_strategies number of strategies for test environment
-##' @param seed_rain seed_rain for test environment
 ##' @export
 ##' @rdname FF16r_test_environment
 ##' @examples

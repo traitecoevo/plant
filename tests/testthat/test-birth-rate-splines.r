@@ -48,16 +48,16 @@ test_that("Can set birth rate splines correctly", {
   s1 <- FF16_Species(p1$strategies[[1]])
 
   k = c(1, 2, 3)
-  expect_equal(s1$extrinsic_drivers()$evaluate("birth_rate", 200), 1 + sin(200))
-  expect_equal(s1$extrinsic_drivers()$evaluate_range("birth_rate", k), 1 + sin(k))
-  expect_equal(s1$extrinsic_drivers()$get_names(), c("birth_rate"))
+  expect_equal(s1$extrinsic_drivers$evaluate("birth_rate", 200), 1 + sin(200))
+  expect_equal(s1$extrinsic_drivers$evaluate_range("birth_rate", k), 1 + sin(k))
+  expect_equal(s1$extrinsic_drivers$get_names(), c("birth_rate"))
   
   # strategy 2 (constant)
   s2 <- FF16_Species(p1$strategies[[2]])
   
-  expect_equal(s2$extrinsic_drivers()$evaluate("birth_rate", 200), 2)
-  expect_equal(s2$extrinsic_drivers()$evaluate_range("birth_rate", k), c(2, 2, 2))
-  expect_equal(s2$extrinsic_drivers()$get_names(), c("birth_rate"))
+  expect_equal(s2$extrinsic_drivers$evaluate("birth_rate", 200), 2)
+  expect_equal(s2$extrinsic_drivers$evaluate_range("birth_rate", k), c(2, 2, 2))
+  expect_equal(s2$extrinsic_drivers$get_names(), c("birth_rate"))
   
   # trial run
   env <- make_environment("FF16")

@@ -14,8 +14,6 @@ FF16r_test_environment(height, n = 101, light_env = NULL, n_strategies = 1)
 \item{light_env}{function for light environment in test object}
 
 \item{n_strategies}{number of strategies for test environment}
-
-\item{seed_rain}{seed_rain for test environment}
 }
 \description{
 This makes a pretend light environment over the plant height,

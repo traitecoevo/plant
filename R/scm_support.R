@@ -60,6 +60,8 @@ scm_base_control <- function() {
 ##' removed).
 ##' @title Basic default parameters for a given strategy
 ##' @author Rich FitzJohn
+##' @param type Any strategy name as a string, e.g.: \code{"FF16"}.
+##' @param env And environment object
 ##' @export
 scm_base_parameters <- function(type = NA, env = environment_type(type)) {
   
@@ -148,7 +150,7 @@ run_scm_collect <- function(p, env = make_environment(parameters = p),
 
   ret <- list(time=time, species=species,
               env=env,
-              net_reproduction_ratios=scm$net_reproduction_ratios,
+              offspring_production=scm$offspring_production,
               patch_density=patch_density,
               p=p)
 }
@@ -165,7 +167,7 @@ make_patch <- function(state, p, env = make_environment(parameters = p),
   types <- extract_RcppR6_template_types(p, "Parameters")
   n <- viapply(state$species, ncol)
   patch <- do.call('Patch', types)(p, env, ctrl)
-  patch$set_state(state$time, unlist(state$species), n, state$env)
+  patch$set_state(state$time, unlist(state$species), n, state$env$canopy)
   patch
 }
 
@@ -210,57 +212,9 @@ run_scm_error <- function(p, env = make_environment(parameters = p),
   }
   total <- lapply(seq_len(n_spp), function(idx)
                   f(rbind(lai_error[[idx]], average_fecundity_error[[idx]])))
-
-  list(net_reproduction_ratios=scm$net_reproduction_ratios,
-       err=list(lai=lai_error, net_reproduction_ratios=average_fecundity_error, total=total),
+  list(offspring_production=scm$offspring_production,
+       err=list(lai=lai_error, offspring_production=average_fecundity_error, total=total),
        ode_times=scm$ode_times)
-}
-
-##' Helper function for creating parameter objects suitable for an
-##' assembly.
-##' @title Helper function for creating parameter objects
-##' @param ... Named set of parameters
-##' @param pars A list of parameters
-##' @param base_parameters_fn Function for creating base parameter set (default scm_base_parameters)
-##' @param base_control_fn Function for creating base Control object (default scm_base_control)
-##' @param make_hyperpar_fn Function for creating hyperparameterisation (default make_FF16_hyperpar)
-##' @export
-assembly_parameters <- function(..., pars=NULL, type = NA,
-                                base_parameters_fn = scm_base_parameters,
-                                base_control_fn = scm_base_control,
-                                make_hyperpar_fn = make_FF16_hyperpar) {
-
-  p <- base_parameters_fn(type)
-  ctrl <- base_control_fn()
-
-  ## These are nice to have:
-  ctrl$equilibrium_solver_name <- "hybrid"
-  ctrl$equilibrium_nsteps <- 60
-
-  if (is.null(pars)) {
-    pars <- list(...)
-  } else if (length(list(...)) > 0L) {
-    stop("Do not provide both ... and pars")
-  }
-
-  if (length(pars) > 0L) {
-    assert_named_if_not_empty(pars)
-
-    excl <- c("strategy_default", "hyperpar")
-    pos <- setdiff(c(names(formals(make_hyperpar_fn)),
-                     names(p),
-                     names(p$strategy_default)),
-                   excl)
-    unk <- setdiff(names(pars), pos)
-    if (length(unk) > 0L) {
-      stop("Unknown parameters: ", paste(unk, collapse=", "))
-    }
-
-    nms_hyper <- intersect(names(pars), names(formals(make_hyperpar_fn)))
-    p                  <- modify_list(p,                  pars)
-    p$strategy_default <- modify_list(p$strategy_default, pars)
-  }
-  p
 }
 
 scm_to_internals <- function(obj, use_environment=TRUE) {

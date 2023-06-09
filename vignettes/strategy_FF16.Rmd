@@ -13,6 +13,8 @@ vignette: >
 
 ```{r, echo=FALSE}
 library(plant)
+
+assets_path <- system.file("docs/FF16", "FF16-params-core.csv", package = "plant") %>% dirname()
 ```
 
 # Introduction
@@ -36,7 +38,7 @@ units and definitions of all variables, parameters, and hyper-parameters used in
 the material below. 
 
 ```{r phys, out.width = '100%', fig.cap="**Physiological model in `plant`, giving demographic rates on the basis of its traits, size, and light environment, as functions of net mass production.** The dashed arrow towards mortality indicates that, although the mortality rate is assumed to depend on mass production, no mass is actually allocated there. Figure adapted from @Falster-2011 and @Falster-2015.", echo=FALSE}
-knitr::include_graphics("assets/FF16-schematic-phys.png")
+knitr::include_graphics(file.path(assets_path, "FF16-schematic-phys.png"))
 ```
 
 # Growth {#growth}
@@ -455,23 +457,26 @@ extract_strategy_parameter_values <- function(vars){
 ```
 
 ```{r definitions, echo=FALSE, results='asis'}
-x <- read.csv("assets/FF16-vars.csv", stringsAsFactors = FALSE)
+file.path(assets_path, "..", "demography-vars.csv") %>% 
+read_csv() %>%
 # TODO: can we get groups as headers spanning multiple columns?
-knitr::kable(x,  align = "l",
+knitr::kable(align = "l",
   caption = 'Key variables of the `FF16` physiological model. For mass ($M$), respiration ($r$), and turnover ($k$) variables, subscripts refer to any of the following tissues: ${\\rm l}$ = leaves, ${\\rm b}$ = bark, ${\\rm s}$ = sapwood,${\\rm r}$ = roots, ${\\rm a}$ = all living tissue. For area $A$ variables, subscripts refer to any of the following: ${\\rm l}$ = leaves, ${\\rm st}$ = total stem cross-section, ${\\rm s}$ = sapwood cross-section, ${\\rm b}$ = bark cross-section, ${\\rm h}$ = heartwood cross-section'
 )
 ```
 
 ```{r allometry, echo=FALSE, results='asis'}
-x <- read.csv("assets/FF16-eqns.csv", stringsAsFactors = FALSE)
-knitr::kable(x,  align = "l",
+file.path(assets_path, "FF16-eqns.csv") %>%
+  read_csv() %>% 
+  knitr::kable(align = "l",
   caption = 'Equations of the allometric growth model implemented within the `FF16` physiological model, based on functional-balance assumptions (see text for details). In (a) we list  key assumptions of allocation model between specific variation with leaf area, under "Function". From these assumptions, allocation functions are derived for tissue areas and tissue masses (b). Also the growth rate of each tissue type can be expressed as a function of the growth rate of leaf area. For mass ($M$), respiration ($r$), and turnover ($k$) variables, subscripts refer to any of the following tissues: ${\\rm l}$ = leaves, ${\\rm b}$ = bark, ${\\rm s}$ = sapwood, ${\\rm r}$ = roots, ${\\rm a}$ = all living tissue. For area $A$ variables, subscripts refer to any of the following: ${\\rm l}$ = leaves, ${\\rm st}$ = total stem cross-section, ${\\rm s}$ = sapwood cross-section, ${\\rm b}$ = bark cross-section, ${\\rm h}$ = heartwood cross-section'
 )
 ```
 
 ```{r params-core, echo=FALSE, results='asis'}
+x <- file.path(assets_path, "FF16-params-core.csv") %>%
+  read_csv()
 
-x <- read.csv("assets/FF16-params-core.csv", stringsAsFactors = FALSE)
 x$Value <- extract_strategy_parameter_values(x$Code)
 knitr::kable(x,  align = "l",
   caption = 'Core parameters of the `FF16` physiological model.'
@@ -480,7 +485,9 @@ knitr::kable(x,  align = "l",
 
 
 ```{r params-hyper, echo=FALSE, results='asis'}
-x <- read.csv("assets/FF16-params-hyper.csv", stringsAsFactors = FALSE)
+x <- file.path(assets_path, "FF16-params-hyper.csv") %>%
+  read_csv()
+
 x$Value <- extract_strategy_parameter_values(x$Code)
 knitr::kable(x,  align = "l",
   caption = 'Parameters for hyper-parameterisation of the `FF16` physiological model.'

@@ -94,8 +94,16 @@ FF16w_make_environment <- function(canopy_light_tol = 1e-4,
     
   x <- seq(0, 10, 1)
   y <- rep(rainfall, 11)
-  e$set_extrinsic_driver("rainfall", x, y)
-  e$extrinsic_driver_extrapolation("rainfall", TRUE);
+  drivers <- ExtrinsicDrivers()
+  if (is.list(rainfall)) {
+    drivers$set_variable("rainfall", rainfall$x, rainfall$y)
+  } else if (is.numeric(rainfall)) {
+    drivers$set_constant("rainfall", rainfall)
+    drivers$set_extrapolate("rainfall", FALSE)
+  } else {
+    stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
+  }
+  e$extrinsic_drivers <- drivers
   
   return(e)
 }
@@ -122,7 +130,6 @@ FF16w_fixed_environment <- function(e=1.0, height_max = 150.0) {
 ##' @param n number of points
 ##' @param light_env function for light environment in test object
 ##' @param n_strategies number of strategies for test environment
-##' @param birth_rate birth_rate for test environment
 ##' @export
 ##' @rdname FF16w_test_environment
 ##' @examples

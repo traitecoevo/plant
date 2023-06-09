@@ -78,7 +78,7 @@ public:
   void r_set_state(double time,
                    const std::vector<double>& state,
                    const std::vector<size_t>& n,
-                   const std::vector<double>& env);
+                   const std::vector<double>& canopy);
   void r_introduce_new_node(util::index species_index) {
     introduce_new_node(species_index.check_bounds(size()));
   }
@@ -248,7 +248,7 @@ template <typename T, typename E>
 void Patch<T,E>::r_set_state(double time,
                            const std::vector<double>& state,
                            const std::vector<size_t>& n,
-                           const std::vector<double>& env) {
+                           const std::vector<double>& canopy) {
   const size_t n_species = species.size();
   util::check_length(n.size(), n_species);
   reset();
@@ -259,7 +259,7 @@ void Patch<T,E>::r_set_state(double time,
   }
   util::check_length(state.size(), ode_size());
   set_ode_state(state.begin(), time);
-  environment.r_init_interpolators(env);
+  environment.r_init_interpolators(canopy);
 }
 
 // ODE interface

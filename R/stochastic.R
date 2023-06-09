@@ -3,7 +3,7 @@
 ## Generate a vector of arrival times.
 ##
 ## This will be slow, but fairly easy to get right.
-##' @importFrom stats rexp
+##' @importFrom stats rexp rpois runif
 stochastic_arrival_times <- function(max_time, species, delta_t = 0.1, patch_area = 1) {
   ret <- numeric(0)
   t0 <- 0.0
@@ -65,6 +65,7 @@ stochastic_schedule <- function(p) {
 ##'
 ##' @title Run a stochastic patch, Collecting Output
 ##' @param p A \code{\link{FF16_Parameters}} object
+##' @param env Environment object
 ##' @param ctrl Control object
 ##' @param random_schedule setting to TRUE causes algorithm to generate
 ##' a random schedule based on offspring arrival and area.
@@ -113,7 +114,7 @@ run_stochastic_collect <- function(p, env = make_environment(parameters = p),
   ret <- list(time=time,
               species=species,
               light_env=light_env,
-              net_reproduction_ratios=obj$net_reproduction_ratios,
+              offspring_production=obj$offspring_production,
               # patch_density=patch_density,
               p=p)
 

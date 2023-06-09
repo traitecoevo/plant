@@ -2,15 +2,20 @@
 % Please edit documentation in R/strategy_support.R
 \name{make_hyperpar}
 \alias{make_hyperpar}
+\alias{param_hyperpar}
 \alias{hyperpar}
 \title{Hyperparameters for FF16 physiological model}
 \usage{
 make_hyperpar(type)
 
+param_hyperpar(parameters)
+
 hyperpar(type)
 }
 \arguments{
 \item{type}{Any strategy name as a string, e.g.: \code{"FF16"}.}
+
+\item{parameters}{A parameters object}
 }
 \description{
 Set a suitable hyperparameter function for chosen physiological model

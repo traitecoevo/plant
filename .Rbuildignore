@@ -1,5 +1,8 @@
 ^.git$
 ^.github$
+^.vscode$
+^.*\.code-workspace$
+(^|/)\\.DS_Store$
 ^_pkgdown\.yml$
 ^pkgdown$
 ^scripts$
@@ -17,9 +20,10 @@
 ^plant.Rcheck$
 ^check$
 ^inst/slow_vignettes$
+^inst/docs/figures$
 ^inst/scripts$
 ^inst/website$
-^inst/docs$
+^inst/RcppR6*$
 ^vignettes/(?!plant).*$
 ^Meta$
 ^water_bucket_submodel$

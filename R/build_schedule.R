@@ -8,6 +8,7 @@
 ##'
 ##' @title Build Node Schedule
 ##' @param p Parameters object
+##' @param env Environment object
 ##' @param ctrl Control object
 ##' @return A Parameters object, with schedule components set.  The
 ##' output offspring produced is also available as an attribute
@@ -26,8 +27,10 @@ build_schedule <- function(p, env = make_environment(parameters = p),
   eps <- ctrl$schedule_eps
 
   for (i in seq_len(ctrl$schedule_nsteps)) {
+    
     res <- run_scm_error(p, env, ctrl)
-    net_reproduction_ratios <- res[["net_reproduction_ratios"]]
+    offspring_production <- res[["offspring_production"]]
+    
     split <- lapply(res$err$total, function(x) x > eps)
 
     if (!any(unlist(split), na.rm=TRUE)) {
@@ -50,8 +53,8 @@ build_schedule <- function(p, env = make_environment(parameters = p),
 
   p$node_schedule_ode_times <- res$ode_times
   ## Useful to record the last offspring produced:
-  attr(p, "net_reproduction_ratios") <- net_reproduction_ratios
 
+  attr(p, "offspring_production") <- offspring_production
   p
 }
 
