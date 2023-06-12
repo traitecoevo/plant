@@ -1,0 +1,126 @@
+---
+title: "Self-thinning"
+author: "Rebecca Stolper"
+date: "2023"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{demographic_equilibrium}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Create a classic self-thinning plot
+
+In a recently cleared stand, a new cohort of saplings will emerge and start to grow, increasing in size, and eventually reaching a crowded state whereby all incoming light is being intercepted by the plants. At this point there will be very strong competition for light between individuals, and some plants will become taller than others, thus out-competing them. Some of those smaller plants will have insufficient growth to survive, and will eventually die. 
+
+This process of growth-dependent mortality is known as "self-thinning", and can be equally understood as a size-density relationship, essentially resulting from the growth, survival and reproductive processes of the evolving stand, with the "self-thinning line" (STL) being an emergent outcome. Self-thinning is a widely documented empirical phenomenon, observed in many forest types around the world.
+
+The STL is thought to be constant across stands, though there is conflicting evidence on the generality of the "law" across species, environments and stand types. The typical STL can be captured in `plant` by using the output of a stand simulation to determine mean size and mean density, per unit area and parameterised by time, which are plotted on a double-log scale and show a typically linear trajectory.
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load libraries}
+library(plant)
+library(dplyr)
+library(ggplot2)
+```
+
+```{r}
+plant_log_console()
+```
+
+Grow a stand of plants with the default parameters of the `plant` "FF16" model:
+
+```{r}
+p0 <- scm_base_parameters("FF16")
+
+p0$strategy_default$recruitment_decay <- 5
+#stops seeds continuing to come into the stand from early on to isolate first "group" of plants that emerges around the same time
+
+p0$control$schedule_eps <- 0.005
+# more refined scheduling
+
+lma_trait <- trait_matrix(0.1457419, "lma")
+
+p1 <- expand_parameters(p0, trait_matrix = lma_trait, mutant = FALSE)
+
+stand_results <- build_schedule(p1)
+# creates a schedule for time steps when running the model, with many "steps" early on and fewer as the stand ages and doesn't change as rapidly
+
+out <- run_scm_collect(stand_results)
+# run the SCM model
+```
+
+
+2. We convert this output into a more manageable format to manipulate, and calculate totals and mean values for the properties of the stand.
+
+```{r}
+tidy_stand <- tidy_patch(out)
+# function converts "out" object into a more manageable format, a tibble with all state variables as separate columns
+
+stand_expand <- FF16_expand_state(tidy_stand)
+# adds in more state variables from our stand output (leaf, bark, sapwood, stem properties to name a few)
+
+patch_total <-
+    stand_expand$species %>%
+    integrate_over_size_distribution() %>%
+    mutate(
+      # create average sizes
+      across(c(diameter_stem, area_stem, area_leaf, height, mass_above_ground), ~.x/density, 
+             .names = "{.col}_av"))
+# this gives us a final table of all the metrics gathered from the stand, and creates variables of averages calculated for leaf area, stem size (including the mean stem diameter that we need), height & biomass
+```
+
+Plot the STL: mean stem diameter (m) against density, per square meter, with log-scaled axes
+
+```{r}
+patch_total %>% 
+    ggplot(aes(diameter_stem_av, density)) + 
+             geom_line() + 
+             scale_x_log10() +
+             scale_y_log10() +
+             xlab("stem diameter (m)") +
+             ylab("density " ~(m^2)) +
+             ggtitle("Self-thinning plot") +
+             theme_classic(base_size = 18)
+```
+
+We can also plot other variables such as biomass and leaf area, to better understand the stand's development
+
+```{r}
+patch_total %>% 
+      ggplot(aes(time, area_leaf)) + 
+               geom_line() + 
+               xlab("time (yr)") +
+               ylab("leaf area (m^2)") +
+               ggtitle("Leaf Area over time") +
+               theme_classic(base_size = 18)
+
+patch_total %>% 
+    ggplot(aes(time, mass_above_ground)) + 
+             geom_line() + 
+             xlab("time (yr)") +
+             ylab("above-ground biomass (kg)") +
+             ggtitle("Above-ground Biomass over time") +
+             theme_classic(base_size = 18)
+```
+
+Finally, we can plot the height-density distribution evolving through time, as `plant` generates a size-distribution at each instance in time that the solver runs
+
+Extracting and highlighting a few specific time points, we can see more clearly how the stand has developed. Initially there is a higher density of saplings that have emerged, with less height variation across the distribution. The population continually reduces in number as mortality is occurring, with greater size variation emerging as asymmetric competition for light is occurring, which benefits the taller plants the most. There is a narrower range of heights in the final distribution, which is late in the stand's development, at ~ 98 years.
+
+```{r}
+times <- c(tidy_stand$species$time[[10000]], tidy_stand$species$time[[10500]], tidy_stand$species$time[[12000]], tidy_stand$species$time[[13000]], tidy_stand$species$time[[13500]], tidy_stand$species$time[[14000]], tidy_stand$species$time[[15000]], tidy_stand$species$time[[17000]], tidy_stand$species$time[[20000]])
+# give explicit rows from time column to highlight
+
+tidy_stand$species %>%
+  na.omit() %>%
+  filter(time %in% times) %>% 
+  ggplot(aes(height, density, group=time)) +
+  geom_line() +
+  theme_classic()
+```
+
+
