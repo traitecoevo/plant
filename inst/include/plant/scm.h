@@ -111,6 +111,11 @@ template <typename T, typename E> std::vector<size_t> SCM<T, E>::run_next() {
   solver.set_state_from_system(patch);
   if (use_ode_times) {
     solver.advance_fixed(patch, e.times);
+  } else if (patch.use_cached_environment) {
+    std::vector<double> step_time;
+    step_time.push_back(t0);
+    step_time.push_back(e.time_end());
+    solver.advance_fixed(patch, step_time);
   } else {
     solver.advance(patch, e.time_end());
   }

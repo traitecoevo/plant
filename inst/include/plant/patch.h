@@ -311,9 +311,9 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
   it = ode::set_ode_state(species.begin(), species.end(), it);
   it = environment.set_ode_state(it);
 
-  std::cout << "resident: etime " << environment.time << std::endl;
-
   environment.time = time;
+  std::cout << "resident: etime " << environment.time << std::endl;
+  
   if (environment.canopy_rescale_usually) {
     rescale_environment();
   } else {
