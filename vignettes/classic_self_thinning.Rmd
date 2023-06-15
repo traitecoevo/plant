@@ -21,13 +21,13 @@ The STL is thought to be constant across stands, though there is conflicting evi
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r load libraries}
+```{r load libraries, message = FALSE}
 library(plant)
 library(dplyr)
 library(ggplot2)
 ```
 
-```{r}
+```{r, message = FALSE}
 plant_log_console()
 ```
 
@@ -54,7 +54,7 @@ out <- run_scm_collect(stand_results)
 ```
 
 
-2. We convert this output into a more manageable format to manipulate, and calculate totals and mean values for the properties of the stand.
+We convert this output into a more manageable format to manipulate, and calculate totals and mean values for the properties of the stand.
 
 ```{r}
 tidy_stand <- tidy_patch(out)
@@ -94,7 +94,7 @@ patch_total %>%
       ggplot(aes(time, area_leaf)) + 
                geom_line() + 
                xlab("time (yr)") +
-               ylab("leaf area (m^2)") +
+               ylab("leaf area " ~(m^2)) +
                ggtitle("Leaf Area over time") +
                theme_classic(base_size = 18)
 
@@ -112,7 +112,7 @@ Finally, we can plot the height-density distribution evolving through time, as `
 Extracting and highlighting a few specific time points, we can see more clearly how the stand has developed. Initially there is a higher density of saplings that have emerged, with less height variation across the distribution. The population continually reduces in number as mortality is occurring, with greater size variation emerging as asymmetric competition for light is occurring, which benefits the taller plants the most. There is a narrower range of heights in the final distribution, which is late in the stand's development, at ~ 98 years.
 
 ```{r}
-times <- c(tidy_stand$species$time[[10000]], tidy_stand$species$time[[10500]], tidy_stand$species$time[[12000]], tidy_stand$species$time[[13000]], tidy_stand$species$time[[13500]], tidy_stand$species$time[[14000]], tidy_stand$species$time[[15000]], tidy_stand$species$time[[17000]], tidy_stand$species$time[[20000]])
+times <- c(tidy_stand$species$time[[10500]], tidy_stand$species$time[[12000]], tidy_stand$species$time[[13000]], tidy_stand$species$time[[13500]], tidy_stand$species$time[[14000]], tidy_stand$species$time[[15000]], tidy_stand$species$time[[17000]], tidy_stand$species$time[[20000]])
 # give explicit rows from time column to highlight
 
 tidy_stand$species %>%
@@ -120,7 +120,10 @@ tidy_stand$species %>%
   filter(time %in% times) %>% 
   ggplot(aes(height, density, group=time)) +
   geom_line() +
-  theme_classic()
+  xlab("height (m)") +
+  ylab("density " ~(m^-2)) +
+  ggtitle("Size distributions between 0.5 - 98 years") +
+  theme_classic(base_size = 16)
 ```
 
 
