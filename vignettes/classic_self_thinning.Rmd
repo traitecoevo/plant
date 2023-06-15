@@ -115,15 +115,34 @@ Extracting and highlighting a few specific time points, we can see more clearly 
 times <- c(tidy_stand$species$time[[10500]], tidy_stand$species$time[[12000]], tidy_stand$species$time[[13000]], tidy_stand$species$time[[13500]], tidy_stand$species$time[[14000]], tidy_stand$species$time[[15000]], tidy_stand$species$time[[17000]], tidy_stand$species$time[[20000]])
 # give explicit rows from time column to highlight
 
+# mark time points using `directlabels` package
+#install.packages("directlabels")
+library(directlabels)
+
+# find closest times to a given vector of times for labelling selected size distributions
+find_closest <- function(x, at){
+  out <- rep("", length(x))  
+  
+  for(a in at){
+    dist <- abs(x-a)
+    i <- which(dist == min(dist))
+    out[i] <- a
+  } 
+  out
+}
+
 tidy_stand$species %>%
+  mutate(my_label = find_closest(round(time, 2), at = c(0.5, 2, 5, 9, 14, 28, 56, 98))) %>% 
   na.omit() %>%
   filter(time %in% times) %>% 
-  ggplot(aes(height, density, group=time)) +
+  ggplot(aes(height, density, group=time, label = my_label)) +
   geom_line() +
+  geom_dl(aes(label = my_label), method = list(dl.combine("last.points"), vjust = -0.5)) +
   xlab("height (m)") +
   ylab("density " ~(m^-2)) +
-  ggtitle("Size distributions between 0.5 - 98 years") +
-  theme_classic(base_size = 16)
+  ggtitle("Size distributions over time") +
+  theme_classic(base_size = 18) +
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
 
