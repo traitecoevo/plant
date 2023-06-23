@@ -94,7 +94,12 @@ public:
   void r_compute_rates() {compute_rates();}
 
   // Prototype env. cache for assembly
+  std::vector<double> step_history{0.0};  // always start at zero
+  std::vector<std::vector<environment_type>> environment_history;
+
+  void cache_ode_step();
   void cache_RK45_step(int step);
+  void load_ode_step();
   std::vector<environment_type> environment_cache;
 
   // use cache for mutant runs
@@ -339,6 +344,30 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
   return it;
 }
 
+template <typename T, typename E>
+void Patch<T,E>::cache_ode_step() {
+  if(save_RK45_cache) { 
+    step_history.push_back(time());
+    environment_history.push_back(environment_cache);
+    // environment_cache.clear()
+  }
+}
+
+template <typename T, typename E>
+void Patch<T,E>::load_ode_step() {
+  if(use_cached_environment) { 
+    std::vector<double>::iterator step;
+    step = std::find(step_history.begin(), step_history.end(), time());
+
+    if(*step != time()) {
+      util::stop("ODE time not found in step history");
+    }
+
+    int idx = std::distance(step_history.begin(), step);
+    environment_cache.clear();
+    environment_cache = environment_history[idx];
+  }
+}
 
 template <typename T, typename E>
 void Patch<T,E>::cache_RK45_step(int step) {

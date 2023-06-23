@@ -74,6 +74,28 @@ void Solver<System>::reset(const System& system) {
   set_state_from_system(system);
 }
 
+// saving ode steps during adaptive solve
+template <typename System>
+typename std::enable_if<has_cache<System>::value, void>::type
+cache(System& system) {
+  system.cache_ode_step();
+}
+
+template <typename System>
+typename std::enable_if<!has_cache<System>::value, void>::type
+cache(System& system) {}
+
+// load ode history during mutant run
+template <typename System>
+typename std::enable_if<has_cache<System>::value, void>::type
+load(System& system) {
+  system.load_ode_step();
+}
+
+template <typename System>
+typename std::enable_if<!has_cache<System>::value, void>::type
+load(System& system) {}
+
 template <class System>
 void Solver<System>::set_state_from_system(const System& system) {
   set_time(ode::ode_time(system));
@@ -155,8 +177,10 @@ void Solver<System>::step(System& system) {
     if (final_step) {
       step_size = time_remaining;
     }
-    stepper.step(system, time, step_size, y, yerr, dydt_in, dydt_out);
 
+    stepper.step(system, time, step_size, y, yerr, dydt_in, dydt_out);
+    cache(system);
+   
     const double step_size_next =
       control.adjust_step_size(size, stepper.order(), step_size,
 			       y, yerr, dydt_out);
@@ -204,6 +228,7 @@ void Solver<System>::step(System& system) {
 template <class System>
 void Solver<System>::step_to(System& system, double time_max_) {
   set_time_max(time_max_);
+  load(system);
   setup_dydt_in(system);
   stepper.step(system, time, time_max - time, y, yerr, dydt_in, dydt_out);
   save_dydt_out_as_in();

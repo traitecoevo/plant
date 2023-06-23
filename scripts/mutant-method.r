@@ -10,10 +10,10 @@ collect_state <- function(scm) {
   return(res)
 }
 
-run_one_patch <- function(birth_rate, logfile = "logs.txt") {
+run_one_patch <- function(birth_rate = 1, lifetime = 1) {
 
-  sink(logfile)
   p <- scm_base_parameters("FF16")
+  p$max_patch_lifetime <- lifetime
 
   p1 <- expand_parameters(trait_matrix(0.8, "lma"), p, mutant = F,
                           birth_rate_list = birth_rate)
@@ -59,9 +59,15 @@ run_one_patch <- function(birth_rate, logfile = "logs.txt") {
               mutant_endpoint = mutant_endpoint))
 }
 
+result <- run_one_patch(1, 1)
+
+# [1] 7.066999e-24 7.066999e-24
+result$fitnesses
+
+# test over grid
 birth_rates <- c(100, 50, 10, 5, 1, 0.1, 0.01, 0.001)
 
-grid_search <- purrr::map(birth_rates[1], run_one_patch)
+grid_search <- purrr::map(birth_rates, run_one_patch)
 
 
 fitnesses <- purrr::map_df(grid_search,
@@ -80,13 +86,57 @@ library(ggplot2)
 theme_set(theme_classic() +
             theme(aspect.ratio = 1))
 
-purrr::pluck(grid_search, 1) %>%
-  {
-    ggplot(.$resident_state, aes(time, exp(log_density), group = node)) +
-    geom_line() +
-    geom_point(data = .$mutant_endpoint, color = "red")
-  
-  ggplot(.$resident_state, aes(time, height, group = node)) +
-    geom_line() +
-    geom_point(data = .$mutant_endpoint, color = "red")
-  }
+q <- purrr::pluck(grid_search, 8)
+
+x <- dplyr::group_by(q$resident_state, node) %>%
+  dplyr::mutate(age = time - min(time),
+                birth_year = min(time),
+                density = exp(log_density)) %>%
+  dplyr::ungroup()
+
+ggplot(x, aes(time, density, group = node, color = birth_year)) +
+  geom_line() +
+  scale_colour_viridis_c()
+
+ggplot(x, aes(time, height, group = node, colour = birth_year)) +
+ geom_line() +
+ scale_colour_viridis_c()
+
+y <- x  %>%
+ dplyr::select(-node, -log_density, -age, -birth_year) %>% stats::na.omit() %>%
+ dplyr::filter(step > 1) %>% 
+ dplyr::group_by(step, time) %>% 
+ dplyr::summarise(
+   density_integrated = -trapezium(height, density), 
+   min_height = min(height),
+   dplyr::across(where(is.double) & !c(density, density_integrated, min_height), 
+                 ~-trapezium(height, density * .x)), 
+   .groups = "drop"
+ ) %>% 
+ dplyr::rename(density = density_integrated)
+
+ggplot(y, aes(time, density)) +
+ geom_line()
+
+# helper function - predicts to new values with spline
+# only needed to ensure predictions for xout outside the ange of x are set to NA
+f <- function(x, y, xout) {
+ y_pred <- stats::spline(x, y, xout=xout)$y
+ y_pred[!dplyr::between(xout, min(x), max(x))] <- NA
+ y_pred
+}
+
+heights = c(1, 2, 8, 10, 16)
+
+z <- x %>%
+ dplyr::group_by(time, step) %>%
+ dplyr::summarise(
+   dplyr::across(where(is.double), ~f(height, .x, xout=heights)),
+   .groups = "keep") %>%
+ dplyr::mutate(density = exp(log_density),
+               node = seq_len(dplyr::n())) %>%
+ dplyr::ungroup()
+
+ggplot(z, aes(time, density, group = node, colour = factor(height))) +
+ geom_line()
+

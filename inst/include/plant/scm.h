@@ -56,9 +56,6 @@ public:
   NodeSchedule r_node_schedule() const { return node_schedule; }
   void r_set_node_schedule(NodeSchedule x);
   void r_set_node_schedule_times(std::vector<std::vector<double>> x);
-
-  std::vector<double> patch_step_history;
-  std::vector<std::vector<environment_type>> environment_history;
   
 private:
   double total_offspring_production() const;
@@ -106,24 +103,15 @@ template <typename T, typename E> std::vector<size_t> SCM<T, E>::run_next() {
     }
   }
   patch.introduce_new_nodes(ret);
-
-  const bool use_ode_times = node_schedule.using_ode_times();
   solver.set_state_from_system(patch);
+  
+  // some schedules have fixed integration points
+  const bool use_ode_times = node_schedule.using_ode_times();
+  
   if (use_ode_times) {
     solver.advance_fixed(patch, e.times);
-  } else if (patch.use_cached_environment) {
-    std::vector<double> step_time;
-    step_time.push_back(t0);
-    step_time.push_back(e.time_end());
-    solver.advance_fixed(patch, step_time);
   } else {
     solver.advance(patch, e.time_end());
-  }
-
-  // after each full RK45 step, save the patch cache
-  if(patch.save_RK45_cache) {
-    patch_step_history.push_back(t0);
-    environment_history.push_back(patch.environment_cache);
   }
 
   return ret;
@@ -136,14 +124,12 @@ void SCM<T, E>::run_mutant() {
   patch.set_mutant(0);
 
   reset();
-  for(size_t i; i < patch_step_history.size(); ++i) {
-    patch.environment_cache.clear();
-    patch.environment_cache = environment_history[i];
 
-    patch.r_set_time(patch_step_history[i]);
+  node_schedule.r_set_ode_times(patch.step_history);
+  node_schedule.r_set_use_ode_times(true);
+  node_schedule.reset();
 
-    run_next(); 
-  }
+  run();
 }
 
 template <typename T, typename E> double SCM<T, E>::time() const {
