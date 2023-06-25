@@ -221,6 +221,18 @@ double get_co2() const {
     return extrinsic_drivers.evaluate("co2", time);
   }
 
+double get_leaf_temp() const {
+    return extrinsic_drivers.evaluate("leaf_temp", time);
+  }
+
+double get_atm_o2() const {
+    return extrinsic_drivers.evaluate("o2", time);
+  } 
+
+double get_atm() const {
+    return extrinsic_drivers.evaluate("atm", time);
+  } 
+
 
   std::vector<double> get_soil_water_state() const {
     return vars.states;

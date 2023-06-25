@@ -1321,7 +1321,7 @@ template <> inline SEXP wrap(const plant::FF16w_Strategy& x) {
   ret["a_dG1"] = Rcpp::wrap(x.a_dG1);
   ret["a_dG2"] = Rcpp::wrap(x.a_dG2);
   ret["k_I"] = Rcpp::wrap(x.k_I);
-  ret["vcmax"] = Rcpp::wrap(x.vcmax);
+  ret["vcmax_25"] = Rcpp::wrap(x.vcmax_25);
   ret["p_50"] = Rcpp::wrap(x.p_50);
   ret["K_s"] = Rcpp::wrap(x.K_s);
   ret["c"] = Rcpp::wrap(x.c);
@@ -1331,7 +1331,7 @@ template <> inline SEXP wrap(const plant::FF16w_Strategy& x) {
   ret["epsilon_leaf"] = Rcpp::wrap(x.epsilon_leaf);
   ret["beta1"] = Rcpp::wrap(x.beta1);
   ret["beta2"] = Rcpp::wrap(x.beta2);
-  ret["jmax"] = Rcpp::wrap(x.jmax);
+  ret["jmax_25"] = Rcpp::wrap(x.jmax_25);
   ret["a"] = Rcpp::wrap(x.a);
   ret["curv_fact_elec_trans"] = Rcpp::wrap(x.curv_fact_elec_trans);
   ret["curv_fact_colim"] = Rcpp::wrap(x.curv_fact_colim);
@@ -1420,8 +1420,8 @@ template <> inline plant::FF16w_Strategy as(SEXP x) {
   ret.a_dG2 = Rcpp::as<double >(xl["a_dG2"]);
   // ret.k_I = Rcpp::as<decltype(retk_I) >(xl["k_I"]);
   ret.k_I = Rcpp::as<double >(xl["k_I"]);
-  // ret.vcmax = Rcpp::as<decltype(retvcmax) >(xl["vcmax"]);
-  ret.vcmax = Rcpp::as<double >(xl["vcmax"]);
+  // ret.vcmax_25 = Rcpp::as<decltype(retvcmax_25) >(xl["vcmax_25"]);
+  ret.vcmax_25 = Rcpp::as<double >(xl["vcmax_25"]);
   // ret.p_50 = Rcpp::as<decltype(retp_50) >(xl["p_50"]);
   ret.p_50 = Rcpp::as<double >(xl["p_50"]);
   // ret.K_s = Rcpp::as<decltype(retK_s) >(xl["K_s"]);
@@ -1440,8 +1440,8 @@ template <> inline plant::FF16w_Strategy as(SEXP x) {
   ret.beta1 = Rcpp::as<double >(xl["beta1"]);
   // ret.beta2 = Rcpp::as<decltype(retbeta2) >(xl["beta2"]);
   ret.beta2 = Rcpp::as<double >(xl["beta2"]);
-  // ret.jmax = Rcpp::as<decltype(retjmax) >(xl["jmax"]);
-  ret.jmax = Rcpp::as<double >(xl["jmax"]);
+  // ret.jmax_25 = Rcpp::as<decltype(retjmax_25) >(xl["jmax_25"]);
+  ret.jmax_25 = Rcpp::as<double >(xl["jmax_25"]);
   // ret.a = Rcpp::as<decltype(reta) >(xl["a"]);
   ret.a = Rcpp::as<double >(xl["a"]);
   // ret.curv_fact_elec_trans = Rcpp::as<decltype(retcurv_fact_elec_trans) >(xl["curv_fact_elec_trans"]);

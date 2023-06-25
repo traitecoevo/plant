@@ -35,6 +35,8 @@ Leaf:
     km_: {type: double, access: field}
     R_d_: {type: double, access: field}
     leaf_specific_conductance_max_: {type: double, access: field}
+    vcmax_: {type: double, access: field}
+    jmax_: {type: double, access: field}
     rho_: {type: double, access: field}
     a_bio_: {type: double, access: field}
     PPFD_: {type: double, access: field}
@@ -43,6 +45,7 @@ Leaf:
     psi_soil_: {type: double, access: field}
     leaf_temp_: {type: double, access: field} 
     atm_o2_kpa_: {type: double, access: field} 
+    atm_kpa_: {type: double, access: field} 
     hydraulic_cost_: {type: double, access: field}
     opt_psi_stem_: {type: double, access: field}
     opt_ci_: {type: double, access: field}
@@ -56,7 +59,7 @@ Leaf:
       args: [integration_rule: int, integration_tol: double]
     set_physiology:
       return_type: void 
-      args: [rho: double, a_bio: double, PPFD: double, psi_soil: double, leaf_specific_conductance_max: double, atm_vpd: double, ca: double, sapwood_volume_per_leaf_area: double, leaf_temp: double, atm_o2_kpa: double]
+      args: [rho: double, a_bio: double, PPFD: double, psi_soil: double, leaf_specific_conductance_max: double, atm_vpd: double, ca: double, sapwood_volume_per_leaf_area: double, leaf_temp: double, atm_o2_kpa: double, atm_kpa: double]
     #transpiration functions
     proportion_of_conductivity:
       return_type: double
@@ -1093,6 +1096,15 @@ FF16_Environment:
     get_co2:
       args: []
       return_type: double
+    get_leaf_temp:
+      args: []
+      return_type: double
+    get_atm_o2:
+      args: []
+      return_type: double
+    get_atm:
+      args: []
+      return_type: double
     set_soil_water_state:
       args: [state: "std::vector<double>"]
       return_type: void
@@ -1250,7 +1262,7 @@ FF16w_Strategy:
     - a_dG1: double
     - a_dG2: double
     - k_I: double
-    - vcmax: double
+    - vcmax_25: double
     - p_50: double
     - K_s: double
     - c: double
@@ -1260,7 +1272,7 @@ FF16w_Strategy:
     - epsilon_leaf: double
     - beta1: double
     - beta2: double
-    - jmax: double
+    - jmax_25: double
     - a: double
     - curv_fact_elec_trans: double
     - curv_fact_colim: double

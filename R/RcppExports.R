@@ -9,8 +9,8 @@ Leaf__initialize_integrator <- function(obj_, integration_rule, integration_tol)
     invisible(.Call('_plant_Leaf__initialize_integrator', PACKAGE = 'plant', obj_, integration_rule, integration_tol))
 }
 
-Leaf__set_physiology <- function(obj_, rho, a_bio, PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area, leaf_temp, atm_o2_kpa) {
-    invisible(.Call('_plant_Leaf__set_physiology', PACKAGE = 'plant', obj_, rho, a_bio, PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area, leaf_temp, atm_o2_kpa))
+Leaf__set_physiology <- function(obj_, rho, a_bio, PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area, leaf_temp, atm_o2_kpa, atm_kpa) {
+    invisible(.Call('_plant_Leaf__set_physiology', PACKAGE = 'plant', obj_, rho, a_bio, PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area, leaf_temp, atm_o2_kpa, atm_kpa))
 }
 
 Leaf__proportion_of_conductivity <- function(obj_, psi) {
@@ -289,6 +289,22 @@ Leaf__leaf_specific_conductance_max___set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__leaf_specific_conductance_max___set', PACKAGE = 'plant', obj_, value))
 }
 
+Leaf__vcmax___get <- function(obj_) {
+    .Call('_plant_Leaf__vcmax___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__vcmax___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__vcmax___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__jmax___get <- function(obj_) {
+    .Call('_plant_Leaf__jmax___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__jmax___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__jmax___set', PACKAGE = 'plant', obj_, value))
+}
+
 Leaf__rho___get <- function(obj_) {
     .Call('_plant_Leaf__rho___get', PACKAGE = 'plant', obj_)
 }
@@ -351,6 +367,14 @@ Leaf__atm_o2_kpa___get <- function(obj_) {
 
 Leaf__atm_o2_kpa___set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__atm_o2_kpa___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__atm_kpa___get <- function(obj_) {
+    .Call('_plant_Leaf__atm_kpa___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__atm_kpa___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__atm_kpa___set', PACKAGE = 'plant', obj_, value))
 }
 
 Leaf__hydraulic_cost___get <- function(obj_) {
@@ -3743,6 +3767,18 @@ FF16_Environment__get_vpd <- function(obj_) {
 
 FF16_Environment__get_co2 <- function(obj_) {
     .Call('_plant_FF16_Environment__get_co2', PACKAGE = 'plant', obj_)
+}
+
+FF16_Environment__get_leaf_temp <- function(obj_) {
+    .Call('_plant_FF16_Environment__get_leaf_temp', PACKAGE = 'plant', obj_)
+}
+
+FF16_Environment__get_atm_o2 <- function(obj_) {
+    .Call('_plant_FF16_Environment__get_atm_o2', PACKAGE = 'plant', obj_)
+}
+
+FF16_Environment__get_atm <- function(obj_) {
+    .Call('_plant_FF16_Environment__get_atm', PACKAGE = 'plant', obj_)
 }
 
 FF16_Environment__set_soil_water_state <- function(obj_, state) {

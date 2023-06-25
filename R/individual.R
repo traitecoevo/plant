@@ -151,7 +151,6 @@ grow_individual_bracket <- function(individual, sizes, size_name, env,
 
   state <- list(list(time=runner$time, state=runner$state))
   aux <- list(list(time=runner$time, state=internals(runner)$auxs))
-  
   while (i <= n & runner$time < time_max) {
 
     ok <- tryCatch({

@@ -71,9 +71,8 @@ solve_max_worker <- function(bounds, f, tol=1e-3, outcome, use_optim = FALSE) {
     
   } else {
     ## This is not very well tested, and the tolerance is not useful:
-# 
     out <- optim(rowMeans(bounds), f, method="L-BFGS-B",
-                 lower=-Inf, upper=Inf,
+                 lower= bounds[,"lower"], upper= bounds[,"upper"],
                  control=list(fnscale=-0.01, reltol = 1e-10, trace = 6))
     
     ret <- out$value

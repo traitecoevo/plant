@@ -60,7 +60,6 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
   // eta_c: accounts for average position of leaf mass
   // height: maximum plant height
 
-
   const double leaf_specific_conductance_max = K_s * theta / (height * eta_c);
 
   // find sapwood volume per leaf area
@@ -71,7 +70,7 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
 
 
 // set strategy-level physiological parameters for the leaf-submodel.
-  leaf.set_physiology(rho, a_bio, average_radiation, psi_soil, leaf_specific_conductance_max, environment.get_vpd(), environment.get_co2(), sapwood_volume_per_leaf_area);
+  leaf.set_physiology(rho, a_bio, average_radiation, psi_soil, leaf_specific_conductance_max, environment.get_vpd(), environment.get_co2(), sapwood_volume_per_leaf_area, environment.get_leaf_temp(), environment.get_atm_o2(), environment.get_atm());
 
   // optimise psi_stem, setting opt_psi_stem_, profit_, hydraulic_cost_, assim_colimited_ etc.
   // leaf.optimise_psi_stem_Bartlett_analytical();

@@ -82,7 +82,10 @@ FF16w_make_environment <- function(canopy_light_tol = 1e-4,
                                    soil_initial_state = 0.0,
                                    rainfall = 1,
                                    vpd = 1,
-                                   co2 = 40) {
+                                   co2 = 40,
+                                   leaf_temp = 25,
+                                   atm_o2 = 21,
+                                   atm_kpa = 100.5) {
   
   if(soil_number_of_depths < 1)
     stop("FF16w Environment must have at least one soil layer")
@@ -128,6 +131,33 @@ FF16w_make_environment <- function(canopy_light_tol = 1e-4,
   } else if (is.numeric(co2)) {
     drivers$set_constant("co2", co2)
     drivers$set_extrapolate("co2", FALSE)
+  } else {
+    stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
+  }
+  
+  if (is.list(leaf_temp)) {
+    drivers$set_variable("leaf_temp", leaf_temp$x, leaf_temp$y)
+  } else if (is.numeric(leaf_temp)) {
+    drivers$set_constant("leaf_temp", leaf_temp)
+    drivers$set_extrapolate("leaf_temp", FALSE)
+  } else {
+    stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
+  }
+  
+  if (is.list(atm_o2)) {
+    drivers$set_variable("o2", atm_o2$x, atm_o2$y)
+  } else if (is.numeric(atm_o2)) {
+    drivers$set_constant("o2", atm_o2)
+    drivers$set_extrapolate("o2", FALSE)
+  } else {
+    stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
+  }
+  
+  if (is.list(atm_kpa)) {
+    drivers$set_variable("atm", atm_kpa$x, atm_kpa$y)
+  } else if (is.numeric(atm_kpa)) {
+    drivers$set_constant("atm", atm_kpa)
+    drivers$set_extrapolate("atm", FALSE)
   } else {
     stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
   }
@@ -276,9 +306,9 @@ make_FF16w_hyperpar <- function(
     rho       <- with_default("rho")
     omega     <- with_default("omega")
     K_s     <- with_default("K_s")
-    vcmax     <- with_default("vcmax")
+    vcmax_25     <- with_default("vcmax_25")
     c     <- with_default("c")
-    jmax     <- with_default("jmax")
+    jmax_25     <- with_default("jmax_25")
     
 
     ## lma / leaf turnover relationship:
@@ -292,7 +322,7 @@ make_FF16w_hyperpar <- function(
 
     ## rho / moisture-wood turnover relationship:
     hk_s  <- B_hks1 *  (rho / rho_0) ^ (-B_hks2)
-    
+
     ## hard coded model parameters for now
     ## p_50 sapwood specific conductivity turnover:
     p_50 <- B_Hv1*(K_s/K_s_0)^(B_Hv2)
@@ -321,7 +351,7 @@ make_FF16w_hyperpar <- function(
     ## n_area from structural (lma) and metabolic (vcmax) N (Dong et al. 2022)
 
     narea_ls <- (a_lf1 + B_lf1*lma*1000)/1000
-    narea_lp <- (B_lf2*vcmax + B_lf3*jmax)/1000
+    narea_lp <- (B_lf2*vcmax_25 + B_lf3*jmax_25)/1000
     
     
     nmass_ls <- narea_ls / lma
@@ -362,7 +392,6 @@ make_FF16w_hyperpar <- function(
           x2 <- unlist(s[names(x1)])
           drop <- abs(x1 - x2) < eps & abs(1 - x1/x2) < eps
           if(any(is.na(drop))){
-            browser()
           }
           if (any(drop)) {
             keep <- setdiff(colnames(extra), names(drop)[drop])
@@ -387,3 +416,80 @@ make_FF16w_hyperpar <- function(
 ##' that are within eps of the default strategy are not replaced.
 ##' @export
 FF16w_hyperpar <- make_FF16w_hyperpar()
+
+
+
+make_FF16w_parameters <- function(p0 = FF16w_Parameters(),
+                            lma = p0$strategy_default$lma,
+                            rho = p0$strategy_default$rho,
+                            hmat = p0$strategy_default$hmat,
+                            omega = p0$strategy_default$omega,
+                            theta = p0$strategy_default$theta,
+                            a_l1 = p0$strategy_default$a_l1,
+                            a_l2 = p0$strategy_default$a_l2,
+                            a_r1 = p0$strategy_default$a_r1,
+                            a_b1 = p0$strategy_default$a_b1,
+                            r_r = p0$strategy_default$r_r,
+                            a_y = p0$strategy_default$a_y,
+                            a_bio = p0$strategy_default$a_bio,
+                            k_b = p0$strategy_default$k_b,
+                            k_r = p0$strategy_default$k_r,
+                            a_f1 = p0$strategy_default$a_f1,
+                            a_f2 = p0$strategy_default$a_f2,
+                            S_D = p0$strategy_default$S_D,
+                            a_d0 = p0$strategy_default$a_d0,
+                            a_dG1 = p0$strategy_default$a_dG1,
+                            k_I = p0$strategy_default$k_I,
+                            vcmax_25 = p0$strategy_default$vcmax_25,
+                            K_s = p0$strategy_default$K_s,
+                            c = p0$strategy_default$c,
+                            beta1 = p0$strategy_default$beta1,
+                            beta2 = p0$strategy_default$beta2,
+                            hk_s_ = p0$strategy_default$hk_s_,
+                            jmax_25 = p0$strategy_default$jmax_25,
+                            a = p0$strategy_default$a,
+                            curv_fact_elec_trans = p0$strategy_default$curv_fact_elec_trans,
+                            curv_fact_colim = p0$strategy_default$curv_fact_colim,
+                            nmass_s = p0$strategy_default$nmass_s,
+                            nmass_b = p0$strategy_default$nmass_b,
+                            nmass_r = p0$strategy_default$nmass_r,
+                            dmass_dN = p0$strategy_default$dmass_dN
+                            
+                            
+){
+  params <- expand_grid(lma = lma,
+                        rho = rho,
+                        hmat = hmat,
+                        omega = omega,
+                        theta = theta,
+                        a_l1 = a_l1,
+                        a_l2 = a_l2,
+                        a_r1 = a_r1,
+                        a_b1 = a_b1,
+                        r_r = r_r,
+                        a_y = a_y,
+                        a_bio = a_bio,
+                        k_b = k_b,
+                        k_r = k_r,
+                        a_f1 = a_f1,
+                        a_f2 = a_f2,
+                        S_D = S_D,
+                        a_d0 = a_d0,
+                        a_dG1 = a_dG1,
+                        k_I = k_I,
+                        vcmax_25 = vcmax_25,
+                        K_s = K_s,
+                        c = c,
+                        beta1 = beta1,
+                        beta2 = beta2,
+                        hk_s_ = hk_s_,
+                        jmax_25 = jmax_25,
+                        a = a,
+                        curv_fact_elec_trans = curv_fact_elec_trans,
+                        curv_fact_colim = curv_fact_colim,
+                        nmass_s = nmass_s,
+                        nmass_b = nmass_b,
+                        nmass_r = nmass_r,
+                        dmass_dN = dmass_dN)
+}
+

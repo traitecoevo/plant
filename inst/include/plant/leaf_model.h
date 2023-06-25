@@ -17,6 +17,21 @@ namespace plant {
 // double check best namespace for constants (private vs global)
 // converts vcmax to jmax 25 unitless (Sperry et el. (2017))
 static const double vcmax_25_to_jmax_25 = 1.67;
+
+// kJ mol ^-1
+static const double vcmax_ha = 60000;
+// kJ mol ^-1
+static const double vcmax_H_d = 200000;
+// kJ mol ^-1
+static const double vcmax_d_S = 650;
+
+// kJ mol ^-1
+static const double jmax_ha = 30000;
+// kJ mol ^-1
+static const double jmax_H_d = 200000;
+// kJ mol ^-1
+static const double jmax_d_S = 650;
+
 // umol ^ -1 mol ^ 1
 static const double gamma_25 = 42.75;
 // dimensionless
@@ -30,7 +45,6 @@ static const double kc_25 = 404.9 ;
 static const double kc_c = 38.05;
 // kJ mol ^-1
 static const double kc_ha = 79.43e3;
-
 
 // umol mol ^-1
 static const double ko_25 = 278400 ;
@@ -52,6 +66,11 @@ static const double kPa_to_Pa = 1000.0;
 // universal gas constant J mol^-1 K^-1
 static const double R = 8.314;
 
+//convert deg C to deg K
+static const double C_to_K = 273.15;
+
+//H20:CO2 stomatal diffusion ratio
+static const double H2O_CO2_stom_diff_ratio = 1.67;
 
 class Leaf {
 public:
@@ -114,12 +133,16 @@ public:
   double lambda_analytical_;
   double PPFD_;
   double atm_vpd_;
+  double atm_o2_kpa_;
+  double atm_kpa_;
   double ca_;
   double hydraulic_cost_;
   double leaf_specific_conductance_max_;
   double sapwood_volume_per_leaf_area_;
   double k_s_;
   double rho_;
+  double vcmax_;
+  double jmax_;
   double lma_; //kg m^-2
   double a_bio_;
   double psi_soil_;
@@ -155,11 +178,11 @@ public:
   }
   
   // set-up functions
-  void set_physiology(double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area);
+  void set_physiology(double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa);
   void setup_transpiration(double resolution);
 
-  double arrh_curve(double Ea, double ref_value, double leaf_temp);
-  double peak_arrh_curve(double Ea, double ref_value, double leaf_temp, double H_d, double d_S);
+  double arrh_curve(double Ea, double ref_value, double leaf_temp) const;
+  double peak_arrh_curve(double Ea, double ref_value, double leaf_temp, double H_d, double d_S) const;
 
   // transpiration functions
 

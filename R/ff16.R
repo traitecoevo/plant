@@ -415,7 +415,6 @@ FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, 
     ff <- I
   }
   f <- function(x) {
-    browser()
     s <- strategy(ff(trait_matrix(x,  rownames(bounds))), parameters = params, hyperpar = hyperpars, birth_rate_list = 1, use_default_strategy = use_default_strategy)
     #Would be great to have other options for this switch here
     if(attr(params, "class") [[1]] == "Parameters<FF16w,FF16_Env>"){
@@ -423,8 +422,6 @@ FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, 
     } else{
     indv <- FF16_Individual(s)
     }
-    # browser()
-    browser()
     res <- grow_individual_to_height(indv, height, env,
                                      time_max=100, warn=FALSE, filter=TRUE)
 

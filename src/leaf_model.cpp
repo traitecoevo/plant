@@ -28,11 +28,14 @@ Leaf::Leaf(double vcmax_25, double c, double b,
     atm_vpd_(NA_REAL), //kPa 
     ca_(NA_REAL), //Pa
     rho_(NA_REAL), //kg m^-3
+    vcmax_(NA_REAL), //kg m^-3
+    jmax_(NA_REAL), //kg m^-3
     lma_(NA_REAL), //kg m^-2
     a_bio_(NA_REAL), //kg mol^-1
     psi_soil_(NA_REAL), //-MPa
-    leaf_temp_(NA_REAL); // deg C
-    atm_o2_kpa_(NA_REAL); // kPa
+    leaf_temp_(NA_REAL), // deg C
+    atm_kpa_(NA_REAL), // kPa
+    atm_o2_kpa_(NA_REAL), // kPa
     ci_(NA_REAL), // Pa
     stom_cond_CO2_(NA_REAL), //mol Co2 m^-2 s^-1 
     electron_transport_(NA_REAL), //electron transport rate umol m^-2 s^-1
@@ -58,24 +61,25 @@ Leaf::Leaf(double vcmax_25, double c, double b,
 
 //sets various parameters which are constant for a given node at a given time
 
-void Leaf::set_physiology(double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa) {
+void Leaf::set_physiology(double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa) {
    rho_ = rho;
    a_bio_ = a_bio;
    atm_vpd_ = atm_vpd;
    leaf_temp_ = leaf_temp;
+   atm_kpa_ = atm_kpa;
    atm_o2_kpa_ = atm_o2_kpa;
    PPFD_ = PPFD;
    psi_soil_ = psi_soil;
    leaf_specific_conductance_max_ = leaf_specific_conductance_max;
    sapwood_volume_per_leaf_area_ = sapwood_volume_per_leaf_area;
    ca_ = ca;
+   vcmax_ = peak_arrh_curve(vcmax_ha, vcmax_25, leaf_temp_, vcmax_H_d, vcmax_d_S);
+   jmax_ = peak_arrh_curve(jmax_ha, jmax_25, leaf_temp_, jmax_H_d, jmax_d_S);
    electron_transport_ = electron_transport();
    gamma_ = arrh_curve(gamma_ha, gamma_25, leaf_temp_);
    ko_ = arrh_curve(ko_ha, ko_25, leaf_temp_);
    kc_ = arrh_curve(kc_ha, kc_25, leaf_temp_);
-   vcmax = vcmax_25;
-   jmax = jmax_25;
-   R_d_ = vcmax*0.015;
+   R_d_ = vcmax_*0.015;
    km_ = (kc_*umol_per_mol_to_Pa)*(1 + (atm_o2_kpa*kPa_to_Pa)/(ko_*umol_per_mol_to_Pa));
 
 
@@ -93,15 +97,15 @@ void Leaf::set_physiology(double rho, double a_bio, double PPFD, double psi_soil
 }
 
 double Leaf::arrh_curve(double Ea, double ref_value, double leaf_temp) const {
-  return ref_value*exp(Ea*(leaf_temp - 25)/(298*R*(leaf_temp+273)));
+  return ref_value*exp(Ea*((leaf_temp+C_to_K) - (25 + C_to_K))/((25 + C_to_K)*R*(leaf_temp+C_to_K)));
 }
 
 double Leaf::peak_arrh_curve(double Ea, double ref_value, double leaf_temp, double H_d, double d_S) const {
   double arrh = arrh_curve(Ea, ref_value, leaf_temp);
-  double arg2 = 1 + exp((d_S*ref_value - H_d)/(R*ref_value));
-  double arg3 = 1 + exp((d_S*leaf_temp - H_d)/(R*leaf_temp));
+  double arg2 = 1 + exp((d_S*(25 + C_to_K) - H_d)/(R*(25 + C_to_K)));
+  double arg3 = 1 + exp((d_S*(leaf_temp + C_to_K) - H_d)/(R*(leaf_temp + C_to_K)));
 
-  return arrh * arg2/arg3
+  return arrh * arg2/arg3;
 }
 
 
@@ -163,7 +167,7 @@ double Leaf::transpiration_to_psi_stem(double transpiration_) {
 // returns stomatal conductance to CO2, mol C m^-2 LA s^-1
 double Leaf:: stom_cond_CO2(double psi_stem) {
   double transpiration_ = transpiration(psi_stem);
-  return atm_kpa * transpiration_ * kg_to_mol_h2o / atm_vpd_ / 1.6;
+  return atm_kpa_ * transpiration_ * kg_to_mol_h2o / atm_vpd_ / H2O_CO2_stom_diff_ratio;
 }
 
 
@@ -171,7 +175,7 @@ double Leaf:: stom_cond_CO2(double psi_stem) {
 //ensure that units of PPFD_ actually correspond to something real.
 // electron trnansport rate based on light availability and vcmax assuming co-limitation hypothesis
 double Leaf::electron_transport() {
-  double electron_transport_ = (a * PPFD_ + jmax - sqrt(pow(a * PPFD_ + jmax, 2) - 4 * curv_fact_elec_trans * a * PPFD_ * jmax)) / (2 * curv_fact_elec_trans); // check brackets are correct
+  double electron_transport_ = (a * PPFD_ + jmax_ - sqrt(pow(a * PPFD_ + jmax_, 2) - 4 * curv_fact_elec_trans * a * PPFD_ * jmax_)) / (2 * curv_fact_elec_trans); // check brackets are correct
   // double electron_transport_ = (4*a*PPFD_)/sqrt(pow(4*a*PPFD_/jmax,2)+ 1);
     return electron_transport_;           
 }
@@ -179,7 +183,7 @@ double Leaf::electron_transport() {
 //calculate the rubisco-limited assimilation rate, returns umol m^-2 s^-1
 double Leaf::assim_rubisco_limited(double ci_) {
   
-  return (vcmax * (ci_ - gamma_25 * umol_per_mol_to_Pa)) / (ci_ + km_25);
+  return (vcmax_ * (ci_ - gamma_ * umol_per_mol_to_Pa)) / (ci_ + km_);
 
 }
 
@@ -188,21 +192,18 @@ double Leaf::assim_electron_limited(double ci_) {
   
 
   return electron_transport_ / 4 *
-  ((ci_ - gamma_25 * umol_per_mol_to_Pa) / (ci_ + 2 * gamma_25 * umol_per_mol_to_Pa));
+  ((ci_ - gamma_ * umol_per_mol_to_Pa) / (ci_ + 2 * gamma_ * umol_per_mol_to_Pa));
 }
 
 // returns co-limited assimilation umol m^-2 s^-1
 double Leaf::assim_colimited(double ci_) {
   
-  // double R_d = vcmax * 0.015;
-  double R_d = 0;
-
   double assim_rubisco_limited_ = assim_rubisco_limited(ci_) ;
   double assim_electron_limited_ = assim_electron_limited(ci_);
  
   // no dark respiration included at the moment
   return (assim_rubisco_limited_ + assim_electron_limited_ - sqrt(pow(assim_rubisco_limited_ + assim_electron_limited_, 2) - 4 * curv_fact_colim * assim_rubisco_limited_ * assim_electron_limited_)) /
-             (2 * curv_fact_colim)- R_d;
+             (2 * curv_fact_colim)- R_d_;
 
 }
 
@@ -214,7 +215,7 @@ double Leaf::assim_colimited_analytical(double ci_) {
   // no dark respiration included at the moment
   
   return electron_transport_ / 4 *
-         ((ci_ - gamma_25 * umol_per_mol_to_Pa) /
+         ((ci_ - gamma_ * umol_per_mol_to_Pa) /
           (ci_ + c2));
 }
 
@@ -223,12 +224,13 @@ double Leaf::assim_colimited_analytical(double ci_) {
 // returns difference between co-limited assimilation and stom_cond_CO2, to be minimised (umol m^-2 s^-1)
 double Leaf::assim_minus_stom_cond_CO2(double x, double psi_stem) {
 
-  double assim_colimited_x_ = assim_colimited(x);
+  double assim_colimited_x_ = assim_colimited(x) + R_d_;
 
   double stom_cond_CO2_x_ = stom_cond_CO2(psi_stem);
 
+
   return assim_colimited_x_ * umol_to_mol -
-         (stom_cond_CO2_x_ * (ca_ - x) / (atm_kpa * kPa_to_Pa));
+         (stom_cond_CO2_x_ * (ca_ - x) / (atm_kpa_ * kPa_to_Pa));
 }
 
 // converts psi stem to ci, used to find ci which makes A(ci) = gc(ca - ci)
@@ -240,22 +242,24 @@ double Leaf::psi_stem_to_ci(double psi_stem) {
   };
 
   // tol and iterations copied from control defaults (for now) - changed recently to 1e-6
-  return ci_ = util::uniroot(target, gamma_25 * umol_per_mol_to_Pa, ca_, 1e-6, 1000);
+  return ci_ = util::uniroot(target, gamma_ * umol_per_mol_to_Pa, ca_, 1e-6, 1000);
 }
 
 // given psi_stem, find assimilation, transpiration and stomal conductance to c02
 void Leaf::set_leaf_states_rates_from_psi_stem(double psi_stem) {
   
   if (psi_soil_ >= psi_stem){
-    ci_ = gamma_25*umol_per_mol_to_Pa;
+    ci_ = gamma_*umol_per_mol_to_Pa;
+    transpiration_ = 0;
     stom_cond_CO2_ = 0;
     } else{
       ci_ = psi_stem_to_ci(psi_stem);
+      transpiration_ = transpiration(psi_stem);
+      stom_cond_CO2_ = atm_kpa_ * transpiration_ * kg_to_mol_h2o / atm_vpd_ / H2O_CO2_stom_diff_ratio;
       }
   
   assim_colimited_ = assim_colimited(ci_);
-  transpiration_ = transpiration(psi_stem);
-  stom_cond_CO2_ = atm_kpa * transpiration_ * kg_to_mol_h2o / atm_vpd_ / 1.6;
+  
 
 }
 
@@ -265,13 +269,13 @@ double Leaf::psi_stem_to_ci_analytical(double psi_stem) {
     stom_cond_CO2_ = stom_cond_CO2(psi_stem);
     double c2 = 13.13652;
         
-    double first_term = 8 * electron_transport_ * umol_to_mol * (atm_kpa*kPa_to_Pa) * stom_cond_CO2_ * (-ca_ + c2 + 2 * gamma_25 * umol_per_mol_to_Pa);
+    double first_term = 8 * electron_transport_ * umol_to_mol * (atm_kpa_*kPa_to_Pa) * stom_cond_CO2_ * (-ca_ + c2 + 2 * gamma_ * umol_per_mol_to_Pa);
     double second_term = 16 * pow(stom_cond_CO2_, 2);
     double third_term = pow((ca_ + c2),2);
-    double fourth_term = pow(electron_transport_, 2) * pow(umol_to_mol,2) * pow(atm_kpa*kPa_to_Pa, 2);
+    double fourth_term = pow(electron_transport_, 2) * pow(umol_to_mol,2) * pow(atm_kpa_*kPa_to_Pa, 2);
     double fifth_term = 4*ca_*stom_cond_CO2_;
     double sixth_term = 4*c2*stom_cond_CO2_;
-    double seventh_term = electron_transport_*umol_to_mol*(atm_kpa*kPa_to_Pa);
+    double seventh_term = electron_transport_*umol_to_mol*(atm_kpa_*kPa_to_Pa);
     double eigth_term = 8*stom_cond_CO2_;
 
     return ci_ = (sqrt(first_term + second_term*third_term+ fourth_term) + fifth_term - sixth_term - seventh_term)/eigth_term;    
@@ -281,14 +285,14 @@ void Leaf::set_leaf_states_rates_from_psi_stem_analytical(double psi_stem) {
 
 if (psi_soil_ >= psi_stem){
     stom_cond_CO2_ = 0;
-    ci_ = gamma_25*umol_per_mol_to_Pa;
+    ci_ = gamma_*umol_per_mol_to_Pa;
       } else{
         psi_stem_to_ci_analytical(psi_stem);
     }
 
     assim_colimited_ = assim_colimited_analytical(ci_);    
 
-    transpiration_ = stom_cond_CO2_ * 1.6 * atm_vpd / kg_to_mol_h2o / atm_kpa;   
+    transpiration_ = stom_cond_CO2_ * H2O_CO2_stom_diff_ratio * atm_vpd / kg_to_mol_h2o / atm_kpa_;   
 }
 
 // Hydraulic cost equations
@@ -375,8 +379,8 @@ double Leaf::profit_psi_stem_Sperry_analytical(double psi_stem) {
 double Leaf::profit_Sperry_ci(double ci_) {                                  
   double benefit_ =
       assim_colimited(ci_);
-  double stom_cond_CO2_ = (benefit_ * umol_to_mol * atm_kpa * kPa_to_Pa)/(ca_ - ci_); 
-  double transpiration_ = stom_cond_CO2_ * 1.6 * atm_vpd_ / kg_to_mol_h2o / atm_kpa;
+  double stom_cond_CO2_ = (benefit_ * umol_to_mol * atm_kpa_ * kPa_to_Pa)/(ca_ - ci_); 
+  double transpiration_ = stom_cond_CO2_ * H2O_CO2_stom_diff_ratio * atm_vpd_ / kg_to_mol_h2o / atm_kpa_;
   
   double psi_stem = transpiration_to_psi_stem(transpiration_);
   double hydraulic_cost_ = hydraulic_cost_Sperry(psi_stem);
@@ -388,8 +392,8 @@ double Leaf::profit_Sperry_ci_analytical(double ci_) {
   double benefit_ =
       assim_colimited_analytical(ci_);
 
-  double stom_cond_CO2_ = (benefit_ * umol_to_mol * atm_kpa * kPa_to_Pa)/(ca_ - ci_); 
-  transpiration_ = stom_cond_CO2_ * 1.6 * atm_vpd_ / kg_to_mol_h2o / atm_kpa;  
+  double stom_cond_CO2_ = (benefit_ * umol_to_mol * atm_kpa_ * kPa_to_Pa)/(ca_ - ci_); 
+  transpiration_ = stom_cond_CO2_ * H2O_CO2_stom_diff_ratio * atm_vpd_ / kg_to_mol_h2o / atm_kpa_;  
 
   double psi_stem = transpiration_to_psi_stem(transpiration_);
   double hydraulic_cost_ = hydraulic_cost_Sperry(psi_stem);
@@ -673,7 +677,7 @@ void Leaf::optimise_ci_Sperry_analytical(double max_ci) {
 
   if (psi_soil_ > psi_crit){
 
-    opt_ci_ = gamma_25*umol_per_mol_to_Pa;
+    opt_ci_ = gamma_*umol_per_mol_to_Pa;
     profit_ = 0.0;
     transpiration_ = 0.0;
     stom_cond_CO2_ = 0.0;
@@ -684,7 +688,7 @@ void Leaf::optimise_ci_Sperry_analytical(double max_ci) {
 
   
   // optimise for stem water potential
-    double bound_a = gamma_25*umol_per_mol_to_Pa;
+    double bound_a = gamma_*umol_per_mol_to_Pa;
     double bound_b = max_ci;
 
     double delta_crit = 0.01;
@@ -723,7 +727,7 @@ void Leaf::optimise_ci_Sperry(double max_ci) {
   // Early exit -- XXXX 
   if (psi_soil_ > psi_crit){
 
-    opt_ci_ = gamma_25*umol_per_mol_to_Pa;
+    opt_ci_ = gamma_*umol_per_mol_to_Pa;
     profit_ = 0.0;
     transpiration_ = 0.0;
     return;
@@ -733,7 +737,7 @@ void Leaf::optimise_ci_Sperry(double max_ci) {
 
   
   // optimise for stem water potential
-    double bound_a = gamma_25*umol_per_mol_to_Pa;
+    double bound_a = gamma_*umol_per_mol_to_Pa;
     double bound_b = max_ci;
 
     double delta_crit = 0.01;
@@ -776,7 +780,7 @@ void Leaf::optimise_ci_Sperry_Newton_analytical(double ci_guess) {
   // Early exit -- XXXX 
   if (psi_soil_ > psi_crit){
 
-    opt_ci_ = gamma_25*umol_per_mol_to_Pa;
+    opt_ci_ = gamma_*umol_per_mol_to_Pa;
     profit_ = 0.0;
     transpiration_ = 0.0;
     stom_cond_CO2_ = 0.0;
@@ -828,10 +832,10 @@ void Leaf::optimise_ci_Sperry_Newton_analytical(double ci_guess) {
     double benefit_ = assim_colimited_analytical(x_2);
 
 
-    double stom_cond_CO2_ = (benefit_ * umol_to_mol * atm_kpa * kPa_to_Pa)/(ca_ - x_2); 
+    double stom_cond_CO2_ = (benefit_ * umol_to_mol * atm_kpa_ * kPa_to_Pa)/(ca_ - x_2); 
     
 
-    transpiration_ = stom_cond_CO2_ * 1.6 * atm_vpd_ / kg_to_mol_h2o / atm_kpa;  
+    transpiration_ = stom_cond_CO2_ * H2O_CO2_stom_diff_ratio * atm_vpd_ / kg_to_mol_h2o / atm_kpa_;  
 
 //move to top
 
@@ -866,7 +870,7 @@ void Leaf::optimise_ci_Sperry_Newton_analytical(double ci_guess) {
 
 //added this in to account for situations where profit curve is flat and 0, likely due to no light
     if(y_0 == 0.0 & first_dev == 0.0 & sec_dev == 0.0){
-    opt_ci_ = gamma_25*umol_per_mol_to_Pa;
+    opt_ci_ = gamma_*umol_per_mol_to_Pa;
     profit_ = 0.0;
     transpiration_ = 0.0;
 
@@ -897,7 +901,7 @@ void Leaf::optimise_ci_Sperry_Newton(double ci_guess) {
   // Early exit -- XXXX 
   if (psi_soil_ > psi_crit){
 
-    opt_ci_ = gamma_25*umol_per_mol_to_Pa;
+    opt_ci_ = gamma_*umol_per_mol_to_Pa;
     profit_ = 0.0;
     transpiration_ = 0.0;
     stom_cond_CO2_ = 0.0;
@@ -949,10 +953,10 @@ void Leaf::optimise_ci_Sperry_Newton(double ci_guess) {
     double benefit_ = assim_colimited(x_2);
 
 
-    double stom_cond_CO2_ = (benefit_ * umol_to_mol * atm_kpa * kPa_to_Pa)/(ca_ - x_2); 
+    double stom_cond_CO2_ = (benefit_ * umol_to_mol * atm_kpa_ * kPa_to_Pa)/(ca_ - x_2); 
     
 
-    transpiration_ = stom_cond_CO2_ * 1.6 * atm_vpd_ / kg_to_mol_h2o / atm_kpa;  
+    transpiration_ = stom_cond_CO2_ * H2O_CO2_stom_diff_ratio * atm_vpd_ / kg_to_mol_h2o / atm_kpa_;  
 
 //move to top
 
@@ -988,7 +992,7 @@ void Leaf::optimise_ci_Sperry_Newton(double ci_guess) {
 
 //added this in to account for situations where profit curve is flat and 0, likely due to no light
     if(y_0 == 0.0 & first_dev == 0.0 & sec_dev == 0.0){
-    opt_ci_ = gamma_25*umol_per_mol_to_Pa;
+    opt_ci_ = gamma_*umol_per_mol_to_Pa;
     profit_ = 0.0;
     transpiration_ = 0.0;
 std::cout << "warning2" << std::endl;
@@ -1227,8 +1231,8 @@ set_leaf_states_rates_from_psi_stem(psi_stem);
 
   double benefit_ = assim_colimited_;
 
-  double Nv_ = (B_lf2*vcmax)/1000;
-  double Nj_ = (B_lf3*jmax)/1000;
+  double Nv_ = (B_lf2*vcmax_)/1000;
+  double Nj_ = (B_lf3*vcmax_)/1000;
 
   double Rv_ = B_lf5*Nv_*1e6/365/24/60/60;
   double Rj_ = B_lf5*Nj_*1e6/365/24/60/60;

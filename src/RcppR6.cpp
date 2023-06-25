@@ -10,8 +10,8 @@ void Leaf__initialize_integrator(plant::RcppR6::RcppR6<plant::Leaf> obj_, int in
   obj_->initialize_integrator(integration_rule, integration_tol);
 }
 // [[Rcpp::export]]
-void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa) {
-  obj_->set_physiology(rho, a_bio, PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area, leaf_temp, atm_o2_kpa);
+void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa) {
+  obj_->set_physiology(rho, a_bio, PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area, leaf_temp, atm_o2_kpa, atm_kpa);
 }
 // [[Rcpp::export]]
 double Leaf__proportion_of_conductivity(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi) {
@@ -305,6 +305,24 @@ void Leaf__leaf_specific_conductance_max___set(plant::RcppR6::RcppR6<plant::Leaf
 }
 
 // [[Rcpp::export]]
+double Leaf__vcmax___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->vcmax_;
+}
+// [[Rcpp::export]]
+void Leaf__vcmax___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->vcmax_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__jmax___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->jmax_;
+}
+// [[Rcpp::export]]
+void Leaf__jmax___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->jmax_ = value;
+}
+
+// [[Rcpp::export]]
 double Leaf__rho___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   return obj_->rho_;
 }
@@ -374,6 +392,15 @@ double Leaf__atm_o2_kpa___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
 // [[Rcpp::export]]
 void Leaf__atm_o2_kpa___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
   obj_->atm_o2_kpa_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__atm_kpa___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->atm_kpa_;
+}
+// [[Rcpp::export]]
+void Leaf__atm_kpa___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->atm_kpa_ = value;
 }
 
 // [[Rcpp::export]]
@@ -4235,6 +4262,18 @@ double FF16_Environment__get_vpd(plant::RcppR6::RcppR6<plant::FF16_Environment> 
 // [[Rcpp::export]]
 double FF16_Environment__get_co2(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
   return obj_->get_co2();
+}
+// [[Rcpp::export]]
+double FF16_Environment__get_leaf_temp(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
+  return obj_->get_leaf_temp();
+}
+// [[Rcpp::export]]
+double FF16_Environment__get_atm_o2(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
+  return obj_->get_atm_o2();
+}
+// [[Rcpp::export]]
+double FF16_Environment__get_atm(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
+  return obj_->get_atm();
 }
 // [[Rcpp::export]]
 void FF16_Environment__set_soil_water_state(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::vector<double> state) {
