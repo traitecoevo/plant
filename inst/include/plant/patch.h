@@ -317,7 +317,6 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
   it = environment.set_ode_state(it);
 
   environment.time = time;
-  std::cout << "resident: etime " << environment.time << std::endl;
   
   if (environment.canopy_rescale_usually) {
     rescale_environment();
@@ -337,8 +336,6 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
 
   environment = environment_cache[index];
   it = environment.set_ode_state(it);
-
-  std::cout << "mutant: etime " << environment.time << "; index " << index << std::endl;
 
   compute_rates();
   return it;

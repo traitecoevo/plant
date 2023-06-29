@@ -179,8 +179,7 @@ void Solver<System>::step(System& system) {
     }
 
     stepper.step(system, time, step_size, y, yerr, dydt_in, dydt_out);
-    cache(system);
-   
+       
     const double step_size_next =
       control.adjust_step_size(size, stepper.order(), step_size,
 			       y, yerr, dydt_out);
@@ -218,6 +217,7 @@ void Solver<System>::step(System& system) {
       }
       prev_times.push_back(time);
       save_dydt_out_as_in();
+      cache(system);
       return; // This exits the infinite loop.
     }
   }
