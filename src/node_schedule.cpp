@@ -22,13 +22,23 @@ size_t NodeSchedule::get_n_species() const {
 }
 
 NodeSchedule NodeSchedule::expand(size_t n_extra,
-                                      std::vector<double> times) {
+                                  std::vector<double> times) {
   NodeSchedule ret = *this;
   ret.n_species += n_extra;
   for (size_t i = n_species; i < ret.n_species; ++i) {
     ret.set_times(times, i);
   }
   return ret;
+}
+
+// TODO: check if supercedes `expand` in scm_utils.h
+void NodeSchedule::expand_inplace(size_t n_extra,
+                                  std::vector<double> times) {
+  size_t orig_species = get_n_species();
+  n_species += n_extra;
+  for (size_t i = orig_species; i < n_species; ++i) {
+    set_times(times, i);
+  }
 }
 
 void NodeSchedule::clear_times(size_t species_index) {

@@ -8,6 +8,9 @@ namespace plant {
 
 std::vector<double> node_schedule_times_default(double max_time);
 
+NodeSchedule make_mutant_schedule(const size_t n_mutants, const double max_time, 
+                                  const std::vector<double> step_history);
+
 template <typename Parameters>
 NodeSchedule node_schedule_default(const Parameters& p) {
   const double max_time = p.max_patch_lifetime;

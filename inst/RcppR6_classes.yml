@@ -359,7 +359,6 @@ Parameters:
     - patch_type: "std::string"
     - max_patch_lifetime: double
     - strategies: "std::vector<T>"
-    - is_resident: "std::vector<bool>"
     - strategy_default: "T"
     - node_schedule_times_default: "std::vector<double>"
     - node_schedule_times: "std::vector<std::vector<double> >"
@@ -537,6 +536,7 @@ SCM:
     run:
       return_type: void
     run_mutant:
+      args: [strategies: "std::vector<T>", append: bool, update_schedule: bool]
       return_type: void
     run_next:
       return_type: "std::vector<plant::util::index>"
@@ -563,8 +563,6 @@ SCM:
     net_reproduction_ratios: {type: "std::vector<double>", access: member}
     offspring_production: {type: "std::vector<double>", access: member}
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
-    patch_step_history: {type: "std::vector<double>", access: field}
-    environment_history: {type: "std::vector<std::vector<E>>", access: field}
     patch:
       type: "plant::Patch<T,E>"
       access: member

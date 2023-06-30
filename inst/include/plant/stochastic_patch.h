@@ -77,7 +77,7 @@ private:
   void compute_rates();
 
   parameters_type parameters;
-  std::vector<bool> is_resident;
+
   E environment;
   std::vector<species_type> species;
   Control control;
@@ -86,7 +86,7 @@ private:
 template <typename T, typename E>
 StochasticPatch<T,E>::StochasticPatch(parameters_type p, environment_type e, Control c)
   : parameters(p),
-    is_resident(p.is_resident),
+
     environment(e),
     control(c) {
   parameters.validate();
@@ -111,9 +111,7 @@ template <typename T, typename E>
 double StochasticPatch<T,E>::height_max() const {
   double ret = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
-    if (is_resident[i]) {
       ret = std::max(ret, species[i].height_max());
-    }
   }
   return ret;
 }
@@ -122,16 +120,14 @@ template <typename T, typename E>
 double StochasticPatch<T,E>::compute_competition(double height) const {
   double tot = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
-    if (is_resident[i]) {
       tot += species[i].compute_competition(height);
-    }
   }
   return tot;
 }
 
 template <typename T, typename E>
 void StochasticPatch<T,E>::compute_environment() {
-  if (parameters.n_residents() > 0 && height_max() > 0.0) {
+  if (height_max() > 0.0) {
     auto f = [&] (double x) -> double {return compute_competition(x);};
     environment.compute_environment(f, height_max());
   } else {
@@ -141,7 +137,7 @@ void StochasticPatch<T,E>::compute_environment() {
 
 template <typename T, typename E>
 void StochasticPatch<T,E>::rescale_environment() {
-  if (parameters.n_residents() > 0 && height_max() > 0.0) {
+  if (height_max() > 0.0) {
     auto f = [&] (double x) -> double {return compute_competition(x);};
     environment.rescale_environment(f, height_max());
   }
@@ -163,9 +159,7 @@ void StochasticPatch<T,E>::introduce_new_node_and_update(size_t species_index) {
   // Add a offspring, setting ODE variables based on the *current* light environment
   species[species_index].introduce_new_node(environment);
   // Then we update the light environment.
-  if (is_resident[species_index]) {
-    compute_environment();
-  }
+  compute_environment();
 }
 
 template <typename T, typename E>

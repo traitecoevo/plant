@@ -18,15 +18,12 @@ public:
   typedef T                 strategy_type;
   typedef E                 environment_type;
   typedef Individual<T,E>   individual_type;
-  typedef Node<T,E>       node_type;
+  typedef Node<T,E>         node_type;
   typedef Species<T,E>      species_type;
   typedef Parameters<T,E>   parameters_type;
 
 
   Patch(parameters_type p, environment_type e, plant::Control c);
-
-  // void add_species(strategy_type strategy);
-  void set_mutant(size_t species_index);
 
   void reset();
   size_t size() const {return species.size();}
@@ -66,8 +63,6 @@ public:
   // * R interface
   // Data accessors:
 
-  // this sucks - we couldn't get Rcpp to resolve disturbance pointers needed
-  // to switch between No_Disturbance and Weibull_Disturbance safely
   std::vector<double> r_density(std::vector<double> time) const {return survival_weighting->r_density(time);}
   double r_pr_survival(double time) const {return survival_weighting->pr_survival(time);}
   double r_disturbance_mean_interval() const {return survival_weighting->r_mean_interval();}
@@ -106,12 +101,11 @@ public:
   bool save_RK45_cache;
   bool use_cached_environment = false;
 
-  std::vector<bool> is_resident;
+  bool is_mutant_run = false;
 
-  // TODO: remove from
-  size_t n_residents() const {
-    return std::count(is_resident.begin(), is_resident.end(), true);
-  }
+  void set_mutant();
+  void add_strategies(std::vector<strategy_type> strategies);
+  void overwrite_strategies(std::vector<strategy_type> strategies);
 
 private:
   void compute_environment();
@@ -128,7 +122,6 @@ private:
 template <typename T, typename E>
 Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
   : parameters(p),
-    is_resident(p.is_resident),
     environment(e),
     control(c),
     environment_cache(6) {  // length of ode::Step
@@ -137,14 +130,7 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
   save_RK45_cache = control.save_RK45_cache;
   survival_weighting = p.disturbance;
 
-  // Overwrite all strategy control objects so that they take the
-  // patch control object and also set per species birth rates
-	for (auto i = 0; i < parameters.strategies.size(); ++i) {
-		auto s = parameters.strategies[i];
-    s.control = control;
-    auto spec = Species<T,E>(s);
-    species.push_back(spec);
-  }
+  add_strategies(parameters.strategies);
 
   resource_depletion.reserve(environment.ode_size());
 
@@ -152,8 +138,30 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
 }
 
 template <typename T, typename E>
-void Patch<T,E>::set_mutant(size_t species_index) {
-    is_resident.at(species_index) = false;
+void Patch<T,E>::overwrite_strategies(std::vector<strategy_type> strategies) {
+  species.clear();
+  add_strategies(strategies);
+}
+
+template <typename T, typename E>
+void Patch<T,E>::add_strategies(std::vector<strategy_type> strategies) {
+  for (auto i = 0; i < strategies.size(); ++i) {
+		auto s = strategies[i];
+    s.control = control; // Overwrite to take the patch control object 
+    auto spec = Species<T,E>(s);
+    species.push_back(spec);
+  }
+}
+
+template <typename T, typename E>
+void Patch<T,E>::set_mutant() {
+    is_mutant_run = true;
+    save_RK45_cache = false;
+    use_cached_environment = true;
+
+    // check cache is valid
+    // if cache = invalid
+    //  util::stop("Run a resident first to generate a competitve landscape")
 }
 
 template <typename T, typename E>
@@ -177,7 +185,7 @@ template <typename T, typename E>
 double Patch<T,E>::height_max() const {
   double ret = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
-    if (is_resident[i]) {
+    if (!is_mutant_run) {
       ret = std::max(ret, species[i].height_max());
     }
   }
@@ -188,7 +196,7 @@ template <typename T, typename E>
 double Patch<T,E>::compute_competition(double height) const {
   double tot = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
-    if (is_resident[i]) {
+    if (!is_mutant_run) {
       tot += species[i].compute_competition(height);
     }
   }
@@ -203,7 +211,7 @@ std::vector<double> Patch<T,E>::r_competition_effect_error(size_t species_index)
 
 template <typename T, typename E>
 void Patch<T,E>::compute_environment() {
-  if (n_residents() > 0) {
+  if (!is_mutant_run) {
     auto f = [&] (double x) -> double {return compute_competition(x);};
     environment.compute_environment(f, height_max());
   }
@@ -211,7 +219,7 @@ void Patch<T,E>::compute_environment() {
 
 template <typename T, typename E>
 void Patch<T,E>::rescale_environment() {
-  if (n_residents() > 0) {
+  if (!is_mutant_run) {
     auto f = [&] (double x) -> double {return compute_competition(x);};
     environment.rescale_environment(f, height_max());
   }
@@ -246,19 +254,20 @@ void Patch<T,E>::compute_rates() {
 template <typename T, typename E>
 void Patch<T,E>::introduce_new_node(size_t species_index) {
   species[species_index].introduce_new_node();
-  if (is_resident[species_index]) {
+  if (!is_mutant_run) {
     compute_environment();
   }
 }
 
 template <typename T, typename E>
 void Patch<T,E>::introduce_new_nodes(const std::vector<size_t>& species_index) {
-  bool recompute = false;
+  // std::cout << "introducing nodes for species: ";
   for (size_t i : species_index) {
+    // std::cout << i << " ";
     species[i].introduce_new_node();
-    recompute = recompute || is_resident[i];
   }
-  if (recompute) {
+  // std::cout << std::endl;
+  if (!is_mutant_run) {
     compute_environment();
   }
 }
@@ -317,6 +326,7 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
   it = environment.set_ode_state(it);
 
   environment.time = time;
+  // std::cout << "resident: etime " << environment.time << std::endl;
   
   if (environment.canopy_rescale_usually) {
     rescale_environment();
@@ -336,6 +346,8 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
 
   environment = environment_cache[index];
   it = environment.set_ode_state(it);
+
+  // std::cout << "mutant: etime " << environment.time << "; index " << index << std::endl;
 
   compute_rates();
   return it;

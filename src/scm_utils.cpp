@@ -21,6 +21,26 @@ std::vector<double> node_schedule_times_default(double max_time) {
   return times;
 }
 
+NodeSchedule make_mutant_schedule(const size_t n_mutants, const double max_time, 
+                                  std::vector<double> ode_times) {
+  NodeSchedule ret(n_mutants);
+  ret.r_set_max_time(max_time);
+
+  // use fixed (cached) ode steps
+  ret.r_set_ode_times(ode_times);
+  ret.r_set_use_ode_times(true);
+
+  // Drop the last time; that's not going to be needed:
+  ode_times.resize(ode_times.size() - 1);
+  
+  // mutant nodes at every step
+  for (size_t i = 0; i < n_mutants; ++i) {
+    ret.set_times(ode_times, i);
+  }
+  
+  return ret;
+}
+
 }
 
 //' Generate a suitable set of default node introduction times,

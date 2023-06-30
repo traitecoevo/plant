@@ -24,7 +24,7 @@ public:
   SCM(parameters_type p, environment_type e, plant::Control c);
 
   void run();
-  void run_mutant();
+  void run_mutant(std::vector<strategy_type> strategies, bool append, bool update_schedule);
   std::vector<size_t> run_next();
 
   double time() const;
@@ -41,6 +41,7 @@ public:
   std::vector<util::index> r_run_next();
   parameters_type r_parameters() const { return parameters; }
   const patch_type &r_patch() const { return patch; }
+
   // TODO: These are liable to change to return all species at once by
   // default.  The pluralisation difference between
   // SCM::r_competition_effect_error and Species::r_competition_effects_error
@@ -118,16 +119,48 @@ template <typename T, typename E> std::vector<size_t> SCM<T, E>::run_next() {
 }
 
 template <typename T, typename E> 
-void SCM<T, E>::run_mutant() {
-  patch.save_RK45_cache = false;
-  patch.use_cached_environment = true;
-  patch.set_mutant(0);
-
+void SCM<T, E>::run_mutant(std::vector<strategy_type> strategies, bool append, bool update_schedule) {
+  
+  // re-initialise solver
   reset();
+  
+  // switch to cached environment
+  patch.set_mutant();
 
-  node_schedule.r_set_ode_times(patch.step_history);
-  node_schedule.r_set_use_ode_times(true);
-  node_schedule.reset();
+  // add strategies
+  if(append) {
+    patch.add_strategies(strategies);
+  } else {
+    patch.overwrite_strategies(strategies);
+  }
+
+  if(update_schedule) {
+    // create new schedule
+    NodeSchedule mutant_schedule = make_mutant_schedule(
+      patch.size(), parameters.max_patch_lifetime, patch.step_history
+    );
+
+    // std::cout << "resident schedule length: " << node_schedule.size() << " mutant schedule length: " << mutant_schedule.size() << std::endl;
+    // std::cout << "printing mutant schedule: " << std::endl;
+
+    // std::vector<std::vector<double>> ret = mutant_schedule.get_times();
+    // for (std::vector<double> i : ret) {
+    //   for(double j : i) {
+    //     // std::cout << j << " ";
+    //   }
+    // }
+
+    // std::cout << std::endl;
+    node_schedule = mutant_schedule;
+  } else {
+    if(append){
+      util::stop("Must update schedule if appending new mutants");
+    }
+
+    node_schedule.r_set_ode_times(patch.step_history);
+    node_schedule.r_set_use_ode_times(true);
+    node_schedule.reset();
+  }
 
   run();
 }

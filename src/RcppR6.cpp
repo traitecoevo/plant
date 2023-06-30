@@ -2329,8 +2329,8 @@ void SCM___FF16__FF16_Env__run(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Stra
   obj_->run();
 }
 // [[Rcpp::export]]
-void SCM___FF16__FF16_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
-  obj_->run_mutant();
+void SCM___FF16__FF16_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, std::vector<plant::FF16_Strategy> strategies, bool append, bool update_schedule) {
+  obj_->run_mutant(strategies, append, update_schedule);
 }
 // [[Rcpp::export]]
 std::vector<plant::util::index> SCM___FF16__FF16_Env__run_next(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
@@ -2375,24 +2375,6 @@ std::vector<double> SCM___FF16__FF16_Env__offspring_production__get(plant::RcppR
 // [[Rcpp::export]]
 plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> SCM___FF16__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->r_parameters();
-}
-
-// [[Rcpp::export]]
-std::vector<double> SCM___FF16__FF16_Env__patch_step_history__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->patch_step_history;
-}
-// [[Rcpp::export]]
-void SCM___FF16__FF16_Env__patch_step_history__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, std::vector<double> value) {
-  obj_->patch_step_history = value;
-}
-
-// [[Rcpp::export]]
-std::vector<std::vector<plant::FF16_Environment>> SCM___FF16__FF16_Env__environment_history__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->environment_history;
-}
-// [[Rcpp::export]]
-void SCM___FF16__FF16_Env__environment_history__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, std::vector<std::vector<plant::FF16_Environment>> value) {
-  obj_->environment_history = value;
 }
 
 // [[Rcpp::export]]
@@ -2448,8 +2430,8 @@ void SCM___FF16w__FF16_Env__run(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_St
   obj_->run();
 }
 // [[Rcpp::export]]
-void SCM___FF16w__FF16_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
-  obj_->run_mutant();
+void SCM___FF16w__FF16_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, std::vector<plant::FF16w_Strategy> strategies, bool append, bool update_schedule) {
+  obj_->run_mutant(strategies, append, update_schedule);
 }
 // [[Rcpp::export]]
 std::vector<plant::util::index> SCM___FF16w__FF16_Env__run_next(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
@@ -2494,24 +2476,6 @@ std::vector<double> SCM___FF16w__FF16_Env__offspring_production__get(plant::Rcpp
 // [[Rcpp::export]]
 plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> SCM___FF16w__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->r_parameters();
-}
-
-// [[Rcpp::export]]
-std::vector<double> SCM___FF16w__FF16_Env__patch_step_history__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->patch_step_history;
-}
-// [[Rcpp::export]]
-void SCM___FF16w__FF16_Env__patch_step_history__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, std::vector<double> value) {
-  obj_->patch_step_history = value;
-}
-
-// [[Rcpp::export]]
-std::vector<std::vector<plant::FF16_Environment>> SCM___FF16w__FF16_Env__environment_history__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->environment_history;
-}
-// [[Rcpp::export]]
-void SCM___FF16w__FF16_Env__environment_history__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, std::vector<std::vector<plant::FF16_Environment>> value) {
-  obj_->environment_history = value;
 }
 
 // [[Rcpp::export]]
@@ -2567,8 +2531,8 @@ void SCM___FF16r__FF16_Env__run(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_St
   obj_->run();
 }
 // [[Rcpp::export]]
-void SCM___FF16r__FF16_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
-  obj_->run_mutant();
+void SCM___FF16r__FF16_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, std::vector<plant::FF16r_Strategy> strategies, bool append, bool update_schedule) {
+  obj_->run_mutant(strategies, append, update_schedule);
 }
 // [[Rcpp::export]]
 std::vector<plant::util::index> SCM___FF16r__FF16_Env__run_next(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
@@ -2613,24 +2577,6 @@ std::vector<double> SCM___FF16r__FF16_Env__offspring_production__get(plant::Rcpp
 // [[Rcpp::export]]
 plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> SCM___FF16r__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->r_parameters();
-}
-
-// [[Rcpp::export]]
-std::vector<double> SCM___FF16r__FF16_Env__patch_step_history__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->patch_step_history;
-}
-// [[Rcpp::export]]
-void SCM___FF16r__FF16_Env__patch_step_history__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, std::vector<double> value) {
-  obj_->patch_step_history = value;
-}
-
-// [[Rcpp::export]]
-std::vector<std::vector<plant::FF16_Environment>> SCM___FF16r__FF16_Env__environment_history__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->environment_history;
-}
-// [[Rcpp::export]]
-void SCM___FF16r__FF16_Env__environment_history__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, std::vector<std::vector<plant::FF16_Environment>> value) {
-  obj_->environment_history = value;
 }
 
 // [[Rcpp::export]]
@@ -2686,8 +2632,8 @@ void SCM___K93__K93_Env__run(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strateg
   obj_->run();
 }
 // [[Rcpp::export]]
-void SCM___K93__K93_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  obj_->run_mutant();
+void SCM___K93__K93_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, std::vector<plant::K93_Strategy> strategies, bool append, bool update_schedule) {
+  obj_->run_mutant(strategies, append, update_schedule);
 }
 // [[Rcpp::export]]
 std::vector<plant::util::index> SCM___K93__K93_Env__run_next(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
@@ -2732,24 +2678,6 @@ std::vector<double> SCM___K93__K93_Env__offspring_production__get(plant::RcppR6:
 // [[Rcpp::export]]
 plant::Parameters<plant::K93_Strategy,plant::K93_Environment> SCM___K93__K93_Env__parameters__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
   return obj_->r_parameters();
-}
-
-// [[Rcpp::export]]
-std::vector<double> SCM___K93__K93_Env__patch_step_history__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  return obj_->patch_step_history;
-}
-// [[Rcpp::export]]
-void SCM___K93__K93_Env__patch_step_history__set(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, std::vector<double> value) {
-  obj_->patch_step_history = value;
-}
-
-// [[Rcpp::export]]
-std::vector<std::vector<plant::K93_Environment>> SCM___K93__K93_Env__environment_history__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  return obj_->environment_history;
-}
-// [[Rcpp::export]]
-void SCM___K93__K93_Env__environment_history__set(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, std::vector<std::vector<plant::K93_Environment>> value) {
-  obj_->environment_history = value;
 }
 
 // [[Rcpp::export]]
