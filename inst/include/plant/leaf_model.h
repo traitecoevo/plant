@@ -86,10 +86,10 @@ public:
        double a = 0.30, // effective quantum yield of electron transport  (mol photon mol ^-1 electron)  Sabot et al. 2020
        double curv_fact_elec_trans = 0.85, // unitless - obtained from Smith and Keenan (2020)
        double curv_fact_colim = 0.98,
-      double B_rs1 = 0.01,
-      double B_lf2 = 0.01, //?
-      double B_lf3 = 0.01, //?
-      double B_lf5 = 0.01); //?); //curvature factor for the colimited photosythnthesis equation
+       double B_rs1 = 0.01,
+       double B_lf2 = 0.01, //?
+       double B_lf3 = 0.01, //?
+       double B_lf5 = 0.01); //?); //curvature factor for the colimited photosythnthesis equation
         
 
   quadrature::QAG integrator;

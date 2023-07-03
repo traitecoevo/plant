@@ -48,21 +48,21 @@ virtual std::vector<std::string> aux_names() {
 
   Leaf leaf;
 
-  // leaf traits
-  double vcmax_25 = 100;
-  double c = 2.04;
-  double K_s = 1.5;
-  double p_50 = 5;
+  // leaf traits - default values Eucalyptus saligna
+  double vcmax_25 = 96;
+  double p_50 = 3.4;
+  double K_s = (pow(p_50/1.731347,1/-0.7246377))*2;
+  double c = log(log(1-0.5)/log(1-0.88))/(log(p_50) - log(5.16));
   double b = p_50 / std::pow(-log(1 - 50.0 / 100.0), 1 / c);
   double psi_crit = b*std::pow(log(1/0.05),1/c); // derived from b and c
   double epsilon_leaf = 0.001;
   double beta1 = 20000;
   double beta2 = 1.5;
-  double jmax_25 = 167;
+  double jmax_25 = vcmax_25*1.64;
   double hk_s = 4;
   double a = 0.30; // effective quantum yield of electron transport  (mol photon mol ^-1 electron)  Sabot et al. 2020
-  double curv_fact_elec_trans = 0.85; 
-  double curv_fact_colim = 0.98; 
+  double curv_fact_elec_trans = 0.7; 
+  double curv_fact_colim = 0.99; 
   double B_rs1 = 0.01;
   double B_lf2 = 0.01;
   double B_lf3 = 0.01;  

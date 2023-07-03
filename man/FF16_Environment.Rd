@@ -31,7 +31,10 @@ FF16w_make_environment(
   soil_initial_state = 0,
   rainfall = 1,
   vpd = 1,
-  co2 = 40
+  co2 = 40,
+  leaf_temp = 25,
+  atm_o2 = 21,
+  atm_kpa = 100.5
 )
 
 FF16w_fixed_environment(e = 1, height_max = 150)

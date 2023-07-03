@@ -175,7 +175,8 @@ double Leaf:: stom_cond_CO2(double psi_stem) {
 //ensure that units of PPFD_ actually correspond to something real.
 // electron trnansport rate based on light availability and vcmax assuming co-limitation hypothesis
 double Leaf::electron_transport() {
-  double electron_transport_ = (a * PPFD_ + jmax_ - sqrt(pow(a * PPFD_ + jmax_, 2) - 4 * curv_fact_elec_trans * a * PPFD_ * jmax_)) / (2 * curv_fact_elec_trans); // check brackets are correct
+  double electron_transport_ = (a * PPFD_ + jmax_ - sqrt(pow(a * PPFD_ + jmax_, 2) - 
+  4 * curv_fact_elec_trans * a * PPFD_ * jmax_)) / (2 * curv_fact_elec_trans); // check brackets are correct
   // double electron_transport_ = (4*a*PPFD_)/sqrt(pow(4*a*PPFD_/jmax,2)+ 1);
     return electron_transport_;           
 }
@@ -1117,13 +1118,13 @@ GSS_count +=1 ;
     opt_psi_stem_ = ((bound_b + bound_a) / 2);
     profit_ = profit_psi_stem_TF(opt_psi_stem_);
 
-    if(profit_ < 0){
-    profit_ = 0;
-    transpiration_ = 0;
-    stom_cond_CO2_ = 0;
-    opt_psi_stem_ = psi_soil_;
+    // if(profit_ < 0){
+    // profit_ = 0;
+    // transpiration_ = 0;
+    // stom_cond_CO2_ = 0;
+    // opt_psi_stem_ = psi_soil_;
     return;
-      }
+      // }
   }
 
 
