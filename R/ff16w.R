@@ -539,11 +539,12 @@ make_FF16w_parameters <- function(p0 = FF16w_Parameters(),
 
 #' Wrapper function to create a leaf object with built-in values
 #' @title Wrapper function to create a leaf object with built-in values
+#'
 #' @param ff16w_params Traits for the leaf object with a ff16w strategy matrix, uses the default ff16w strategy if NULL
 #' @param ff16w_env Environmental values, tibble with any of the following column names: "psi_soil", "PPFD", "atm_vpd", "ca", "leaf_temp" or an ff16_environment object
-#' @param height (m)
+#' @param height Height of plants in metres (m)
 #'
-#' @return
+#' @return Returns a Leaf object
 #' @export
 #'
 #' @examples
@@ -600,7 +601,6 @@ eta_c = 1 - 2 / (1 + ff16w_params$eta) + 1 / (1 + 2 * ff16w_params$eta)
 
 leaf_specific_conductance_max <- ff16w_params$K_s * ff16w_params$theta / (height * eta_c)
 sapwood_volume_per_leaf_area <- ff16w_params$theta * height
-
 #make leaf  
 leaf_obj <- Leaf(vcmax_25 = ff16w_params$vcmax_25, jmax_25 = ff16w_params$jmax_25, c = ff16w_params$c, b = ff16w_params$b, psi_crit = ff16w_params$psi_crit, epsilon_leaf = 0.0001, beta1 = ff16w_params$beta1, beta2= ff16w_params$beta2, hk_s_ = ff16w_params$hk_s, a = ff16w_params$a,
           curv_fact_elec_trans = ff16w_params$curv_fact_elec_trans, curv_fact_colim = ff16w_params$curv_fact_colim, B_rs1 = B_rs1, B_lf2 = B_lf2, B_lf3 = B_lf3, B_lf5 = B_lf5)

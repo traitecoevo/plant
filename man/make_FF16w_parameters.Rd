@@ -31,7 +31,7 @@ make_FF16w_parameters(
   c = p0$strategy_default$c,
   beta1 = p0$strategy_default$beta1,
   beta2 = p0$strategy_default$beta2,
-  hk_s_ = p0$strategy_default$hk_s_,
+  hk_s_ = p0$strategy_default$hk_s,
   jmax_25 = p0$strategy_default$jmax_25,
   a = p0$strategy_default$a,
   curv_fact_elec_trans = p0$strategy_default$curv_fact_elec_trans,

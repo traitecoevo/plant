@@ -28,7 +28,7 @@ FF16w_make_environment(
   canopy_light_max_depth = 16,
   canopy_rescale_usually = TRUE,
   soil_number_of_depths = 1,
-  soil_initial_state = 0,
+  soil_initial_state = 0.5,
   rainfall = 1,
   vpd = 1,
   co2 = 40,

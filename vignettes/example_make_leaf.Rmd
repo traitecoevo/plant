@@ -25,18 +25,20 @@ library(tidyverse)
 #example using a tibble of environment values
 
 ```{r}
-tibble(make_FF16w_parameters(a_f1 = c(0, 0.5))) %>%
+tibble(make_FF16w_parameters(a = 0.05, vcmax_25 = c(50, 300))) %>%
+  mutate(jmax_25 = vcmax_25 * 1.67) %>%
   mutate(trait_set = 1:n()) %>%
   group_by(trait_set) %>%
   nest(trait_matrix = c(-trait_set)) %>%
-  mutate(trait_matrix = map(trait_matrix, ~expand_parameters(as.matrix(.x), p = FF16w_Parameters()) %>% .$strategy)) %>%
-  expand_grid(psi_soil = c(1,2), PPFD = 1000) %>%
+  mutate(trait_matrix_plant = map(trait_matrix, ~expand_parameters(as.matrix(.x), p = FF16w_Parameters()))) %>%
+  mutate(strategy = map2(trait_matrix, trait_matrix_plant, ~strategy(as.matrix(.x), .y, birth_rate_list = 1, use_default_strategy = FALSE))) %>%
+  expand_grid(psi_soil = c(1), PPFD = 1000) %>%
   group_by(trait_set) %>%
   mutate(environment_set = 1:n()) %>%
   group_by(trait_set, environment_set) %>%
-  nest(environment = -c(trait_set, trait_matrix, environment_set)) %>%
+  nest(environment = -c(trait_set, trait_matrix, environment_set, trait_matrix_plant, strategy)) %>%
   ungroup() %>%
-  mutate(leaf = pmap(.l = list(ff16w_params = trait_matrix, ff16w_env = environment), .f = make_leaf)) -> example_tibble
+  mutate(leaf = pmap(.l = list(ff16w_params = strategy, ff16w_env = environment), .f = make_leaf))-> example_tibble
 ```
 
 #example setting a ff16env object (to come)
@@ -48,12 +50,16 @@ tibble(make_FF16w_parameters(a_f1 = c(0, 0.5))) %>%
 
 ```{r}
 example_tibble %>%
-  expand_grid(ci = seq(5, 40, 5)) %>%
-  # need walk here to run optimise because it is a void function (I think)
-  mutate(leaf_psi_optimised = walk(.x = leaf, .f = ~.x$optimise_psi_stem_TF)) %>%
-  # use the optimised leaf to find optimised values
-  mutate(opt_assim = map_dbl(.x = leaf_psi_optimised, .f = ~.x$assim_colimited_)) %>%
-  # use a regular leaf to do stuff
-  mutate(assim_at_ci = map2_dbl(.x = leaf, .y = ci, ~.x$assim_colimited(.y)))
+  expand_grid(ci = seq(0,40)) %>%
+  mutate(assim_electron_limited_ = map2_dbl(.x = leaf, .y = ci, ~.x$assim_electron_limited(.y))) %>%
+  mutate(assim_rubisco_limited_ = map2_dbl(.x = leaf, .y = ci, ~.x$assim_rubisco_limited(.y))) %>%
+  mutate(assim_colimited_gross_ = map2_dbl(.x = leaf, .y = ci, ~.x$assim_colimited(.y) + .x$vcmax_*0.015)) %>%
+  mutate(assim_colimited_net_ = map2_dbl(.x = leaf, .y = ci, ~.x$assim_colimited(.y))) %>%
+  pivot_longer(cols = c(assim_electron_limited_, assim_rubisco_limited_, assim_colimited_net_)) %>% 
+  unnest(trait_matrix) %>%
+  ggplot(aes(x = ci, y = value)) +
+  geom_line(aes(colour = vcmax_25, group = interaction(name,vcmax_25), linetype = name)) + 
+  ylab("Assimilation") +
+  xlab(expression(paste(C[i])))
 ```
 
