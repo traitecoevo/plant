@@ -540,15 +540,14 @@ make_FF16w_parameters <- function(p0 = FF16w_Parameters(),
 #' Wrapper function to create a leaf object with built-in values
 #' @title Wrapper function to create a leaf object with built-in values
 #' @param ff16w_params Traits for the leaf object with a ff16w strategy matrix, uses the default ff16w strategy if NULL
-#' @param ff16w_env Environmental values, tibble with any of the following column names: "psi_soil", "PPFD", "atm_vpd", "ca", "leaf_temp"
-#' @param height Height of plant (m)
+#' @param ff16w_env Environmental values, tibble with any of the following column names: "psi_soil", "PPFD", "atm_vpd", "ca", "leaf_temp" or an ff16_environment object
+#' @param height (m)
 #'
 #' @return
 #' @export
 #'
 #' @examples
-make_leaf <- function(ff16w_params = FF16w_Parameters()[["strategy_default"]], ff16w_env = NULL, height = 1){
-  
+make_leaf <- function(ff16w_params = FF16w_Parameters()[["strategy_default"]], ff16w_env = FF16w_make_environment(), height = 1){
 #these are actually hyperparameters which I needed for a least-cost theory function nested within leaf, meaning that these params are arguments in the leaf
 #they don't really get used at the moment but here for now
   B_rs1 = 0.01
@@ -556,33 +555,45 @@ make_leaf <- function(ff16w_params = FF16w_Parameters()[["strategy_default"]], f
   B_lf3 = 0.01
   B_lf5 = 0.01
 
-  
-height = 1   
+#set some default environmental values
 ff16w_env_default <- FF16w_make_environment()  
+  
+#if using an environment class to import environment   
+if(class(ff16w_env)[1] == "FF16_Environment"){
+  psi_soil <- ff16w_env$psi_from_soil_moist(ff16w_env$get_soil_water_state())*1e-6
+  PPFD <- 1000*ff16w_env$canopy_openness(1)
+  atm_vpd <- ff16w_env$get_vpd()
+  ca <- ff16w_env$get_co2()
+  leaf_temp <- ff16w_env$get_leaf_temp()
+}
+
+#if using tibble
+if(class(ff16w_env)[1] %in% c("tbl_df","data.frame")){
 
 psi_soil <- ff16w_env[["psi_soil"]]
 if(!is.numeric(ff16w_env[["psi_soil"]])){
-  psi_soil <- 0.1
+  psi_soil <- ff16w_env_default$psi_from_soil_moist(ff16w_env_default$get_soil_water_state())*1e-6
 }
 
 PPFD <- ff16w_env[["PPFD"]]
 if(!is.numeric(ff16w_env[["PPFD"]])){
-  PPFD <- 1000
+  PPFD <- 1000*ff16w_env_default$canopy_openness(1)
 }
 
 atm_vpd <- ff16w_env[["atm_vpd"]]
 if(!is.numeric(ff16w_env[["atm_vpd"]])){
-  atm_vpd <- 1
+  atm_vpd <- ff16w_env_default$get_vpd()
 }
 
 ca <- ff16w_env[["ca"]]
 if(!is.numeric(ff16w_env[["ca"]])){
-  ca <- 40
+  ca <- ff16w_env_default$get_co2()
 }
 
 leaf_temp <- ff16w_env[["leaf_temp"]]
 if(!is.numeric(ff16w_env[["leaf_temp"]])){
-  leaf_temp <- 25
+  leaf_temp <- ff16w_env_default$get_leaf_temp()
+}
 }
 
 eta_c = 1 - 2 / (1 + ff16w_params$eta) + 1 / (1 + 2 * ff16w_params$eta)
@@ -591,13 +602,14 @@ leaf_specific_conductance_max <- ff16w_params$K_s * ff16w_params$theta / (height
 sapwood_volume_per_leaf_area <- ff16w_params$theta * height
 
 #make leaf  
-l_obj<- Leaf(vcmax_25 = ff16w_params$vcmax_25, jmax_25 = ff16w_params$jmax_25, c = ff16w_params$c, b = ff16w_params$b, psi_crit = ff16w_params$psi_crit, epsilon_leaf = 0.0001, beta1 = ff16w_params$beta1, beta2= ff16w_params$beta2, hk_s_ = ff16w_params$hk_s, a = ff16w_params$a,
+leaf_obj <- Leaf(vcmax_25 = ff16w_params$vcmax_25, jmax_25 = ff16w_params$jmax_25, c = ff16w_params$c, b = ff16w_params$b, psi_crit = ff16w_params$psi_crit, epsilon_leaf = 0.0001, beta1 = ff16w_params$beta1, beta2= ff16w_params$beta2, hk_s_ = ff16w_params$hk_s, a = ff16w_params$a,
           curv_fact_elec_trans = ff16w_params$curv_fact_elec_trans, curv_fact_colim = ff16w_params$curv_fact_colim, B_rs1 = B_rs1, B_lf2 = B_lf2, B_lf3 = B_lf3, B_lf5 = B_lf5)
 
-l_obj$set_physiology(PPFD = PPFD, psi_soil = psi_soil, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, 
+leaf_obj$set_physiology(PPFD = PPFD, psi_soil = psi_soil, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, 
                  ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = ff16w_params$rho, a_bio = ff16w_params$a_bio, 
                  leaf_temp = leaf_temp, atm_o2_kpa = ff16w_env_default$get_atm_o2(), atm_kpa = ff16w_env_default$get_atm())
-return(l_obj)
+
+return(leaf_obj)
 }
 
 
