@@ -6,6 +6,11 @@
 \usage{
 scm_base_parameters(type = NA, env = environment_type(type))
 }
+\arguments{
+\item{type}{Any strategy name as a string, e.g.: \code{"FF16"}.}
+
+\item{env}{And environment object}
+}
 \description{
 Basic default settings for a given strategy, environment only really
 used for templating initially and will be overloaded later by passing

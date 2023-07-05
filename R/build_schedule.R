@@ -8,6 +8,7 @@
 ##'
 ##' @title Build Node Schedule
 ##' @param p Parameters object
+##' @param env Environment object
 ##' @param ctrl Control object
 ##' @return A Parameters object, with schedule components set.  The
 ##' output offspring produced is also available as an attribute

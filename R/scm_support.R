@@ -60,6 +60,8 @@ scm_base_control <- function() {
 ##' removed).
 ##' @title Basic default parameters for a given strategy
 ##' @author Rich FitzJohn
+##' @param type Any strategy name as a string, e.g.: \code{"FF16"}.
+##' @param env And environment object
 ##' @export
 scm_base_parameters <- function(type = NA, env = environment_type(type)) {
   

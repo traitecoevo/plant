@@ -2,18 +2,10 @@
 % Please edit documentation in R/RcppR6.R, R/k93.R
 \name{K93_Environment}
 \alias{K93_Environment}
-\alias{K93_make_environment}
 \alias{K93_fixed_environment}
 \title{K93_Environment object}
 \usage{
 K93_Environment()
-
-K93_make_environment(
-  canopy_light_tol = 1e-04,
-  canopy_light_nbase = 17,
-  canopy_light_max_depth = 16,
-  canopy_rescale_usually = TRUE
-)
 
 K93_fixed_environment(e = 1, height_max = 300)
 }
