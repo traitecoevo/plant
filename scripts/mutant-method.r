@@ -10,7 +10,7 @@ collect_state <- function(scm) {
   return(res)
 }
 
-run_one_patch <- function(birth_rate = 1, lifetime = 1) {
+run_one_patch <- function(birth_rate = 1, lifetime = 105.32) {
 
   p <- scm_base_parameters("FF16")
   p$max_patch_lifetime <- lifetime
@@ -39,12 +39,12 @@ run_one_patch <- function(birth_rate = 1, lifetime = 1) {
     dplyr::group_by(step) %>%
     dplyr::mutate(node = seq_len(dplyr::n())) %>%
     dplyr::ungroup() %>%
-    dplyr::left_join(time)
+    dplyr::left_join(time, by = "step")
     
   resident_rr <- scm$net_reproduction_ratios
 
   # use stateful SCM for efficient mutant runs
-  scm$run_mutant()
+  scm$run_mutant(p1$strategies, append = F, update_schedule = F)
   
   mutant_rr <- scm$net_reproduction_ratios
   
@@ -53,7 +53,7 @@ run_one_patch <- function(birth_rate = 1, lifetime = 1) {
     t() %>% tibble::as_tibble() %>%
     dplyr::mutate(time = scm$time, 
                   node = seq_along(time))
-  sink()
+#  sink()
   return(list(fitnesses = c(resident_rr, mutant_rr),
               resident_state = state,
               mutant_endpoint = mutant_endpoint))
@@ -62,6 +62,11 @@ run_one_patch <- function(birth_rate = 1, lifetime = 1) {
 result <- run_one_patch(1, 1)
 
 # [1] 7.066999e-24 7.066999e-24
+result$fitnesses
+
+result <- run_one_patch(1)
+
+# [1] 47.66136 47.66136
 result$fitnesses
 
 # test over grid
@@ -74,9 +79,8 @@ fitnesses <- purrr::map_df(grid_search,
                            ~ purrr::pluck(., "fitnesses") %>% 
                              tibble::tibble(., rownames = c("resident_rr", "mutant_rr"),
                                             .name_repair = ~ c("net_reproduction_ratio", "invasion_type")),
-                           .id = "grid_step")
-
-tidyr::spread(fitnesses, invasion_type, net_reproduction_ratio) %>%
+                           .id = "grid_step") %>%
+  tidyr::spread(invasion_type, net_reproduction_ratio) %>%
   dplyr::mutate(birth_rate = birth_rates,
                 unit = "seeds_per_m2_yr") %>%
   dplyr::group_by(grid_step, birth_rate, unit) %>%
@@ -85,6 +89,14 @@ tidyr::spread(fitnesses, invasion_type, net_reproduction_ratio) %>%
 library(ggplot2)
 theme_set(theme_classic() +
             theme(aspect.ratio = 1))
+
+ggplot(fitnesses, aes(birth_rate, resident_rr)) +
+  geom_point(col="red") +
+  geom_line(col="red") +
+  geom_line(aes(birth_rate, y=1)) +
+  scale_x_log10() +
+  scale_y_log10()
+
 
 q <- purrr::pluck(grid_search, 8)
 
