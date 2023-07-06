@@ -217,6 +217,7 @@ run_scm_error <- function(p, env = make_environment(parameters = p),
        ode_times=scm$ode_times)
 }
 
+
 scm_to_internals <- function(obj, use_environment=TRUE) {
   dat <- lapply(seq_along(obj$time), function(i)
     patch_to_internals(scm_patch(i, obj), use_environment))

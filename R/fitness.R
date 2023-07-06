@@ -10,12 +10,13 @@
 ##' to standard function for this strategy type.
 ##' @param log_fitness Logical; if \code{TRUE} report per capita
 ##' seed rain rather than fitness.
+##' @param ctrl A plant control object
 ##' @return Vector with the output seed rain.  Mutants have an
 ##' arbitrary seed rain of one, so this is the rate of seed
 ##' production per capita.
 ##' @author Rich FitzJohn
 ##' @export
-fitness_landscape <- function(trait_matrix, p, hyperpar=param_hyperpar(p), log_fitness=TRUE) {
+fitness_landscape <- function(trait_matrix, p, hyperpar=param_hyperpar(p), log_fitness=TRUE, ctrl = scm_base_control()) {
   n_residents <- length(p$strategies)
   
   birth_rates <- rep(0, nrow(trait_matrix))
@@ -25,7 +26,9 @@ fitness_landscape <- function(trait_matrix, p, hyperpar=param_hyperpar(p), log_f
                                       birth_rate_list = birth_rates)
   
   scm <- run_scm(p_with_mutants,
-                 use_ode_times=length(p$node_schedule_ode_times) > 0)
+                 use_ode_times=length(p$node_schedule_ode_times) > 0,
+                 ctrl = ctrl
+                 )
   
   net_reproduction_ratios <- scm$net_reproduction_ratios
   if (n_residents > 0L) {
