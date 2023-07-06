@@ -6,11 +6,6 @@ devtools::load_all()
 p <- scm_base_parameters("FF16")
 p$max_patch_lifetime <- 100
 
-p1 <- expand_parameters(trait_matrix(0.1978791, "lma"), p,
-  mutant = F,
-  birth_rate_list = 40
-)
-
 create_resident <- function(p1, cache = F) {
   
   e <- make_environment("FF16")
@@ -24,6 +19,11 @@ create_resident <- function(p1, cache = F) {
   
   return(scm)
 }
+
+p1 <- expand_parameters(trait_matrix(0.1978791, "lma"), p,
+  mutant = F,
+  birth_rate_list = 40
+)
 
 # timing for resident only without caching
 system.time(create_resident(p1))
@@ -85,3 +85,67 @@ mutate(diff = rr - rr_many)
 # What is speed cost of caching? Run same resident without
 
 # why is mutant as slow as resident? Loading cache??? Use pointers
+n <- 5
+birth_total <- 40
+
+p1 <- expand_parameters(trait_matrix(0.1978791, "lma"), p,
+  mutant = F,
+  birth_rate_list = birth_total
+)
+
+p1_diff <- expand_parameters(trait_matrix(0.25, "lma"), p,
+  mutant = F,
+  birth_rate_list = 1
+)
+
+scm1 <- create_resident(p1, cache = T)
+scm1$net_reproduction_ratios
+scm1$run_mutant(p1$strategies, append = F, update_schedule = F)
+scm1$net_reproduction_ratios
+
+scm1$run_mutant(p1_diff$strategies, append = F, update_schedule = F)
+scm1$net_reproduction_ratios
+
+pn <- expand_parameters(trait_matrix(rep(0.1978791, n), "lma"), p,
+  mutant = F,
+  birth_rate_list = rep(birth_total, n)/n
+)
+
+scmn <- create_resident(pn, cache = T)
+scmn$net_reproduction_ratios
+
+## Works!!!
+
+scmn$run_mutant(pn$strategies, append = F, update_schedule = F)
+scmn$net_reproduction_ratios
+
+## Works!!!
+
+scmn$run_mutant(p1_diff$strategies, append = F, update_schedule = F)
+scmn$net_reproduction_ratios
+
+## Fails-  memory allocation fault
+scmn$run_mutant(pn$strategies, append = F, update_schedule = F)
+scmn$net_reproduction_ratios
+
+
+## Same number of strategies --
+pn_diff <- expand_parameters(trait_matrix(c(rep(0.25, n)), "lma"), p,
+  mutant = F,
+  birth_rate_list = rep(1, n)
+)
+
+# Works
+scmn$run_mutant(pn_diff$strategies, append = F, update_schedule = F)
+scmn$net_reproduction_ratios
+
+## Extra number of strategies -- Try adding 1 more strategy, predict this fails
+## Fails -- Error: Need at least two points for the trapezium rule
+pn_diff <- expand_parameters(trait_matrix(c(rep(0.25, n+1)), "lma"), p,
+  mutant = F,
+  birth_rate_list = rep(1, n+1)
+)
+
+scmn$run_mutant(pn_diff$strategies, append = F, update_schedule = F)
+scmn$net_reproduction_ratios
+
