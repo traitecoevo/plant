@@ -536,7 +536,7 @@ SCM:
     run:
       return_type: void
     run_mutant:
-      args: [strategies: "std::vector<T>", append: bool, update_schedule: bool]
+      args: [p: "plant::Parameters<T,E>"]
       return_type: void
     run_next:
       return_type: "std::vector<plant::util::index>"

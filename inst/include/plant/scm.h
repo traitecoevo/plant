@@ -24,7 +24,7 @@ public:
   SCM(parameters_type p, environment_type e, plant::Control c);
 
   void run();
-  void run_mutant(std::vector<strategy_type> strategies, bool append, bool update_schedule);
+  void run_mutant(parameters_type p);
   std::vector<size_t> run_next();
 
   double time() const;
@@ -119,48 +119,27 @@ template <typename T, typename E> std::vector<size_t> SCM<T, E>::run_next() {
 }
 
 template <typename T, typename E> 
-void SCM<T, E>::run_mutant(std::vector<strategy_type> strategies, bool append, bool update_schedule) {
-  
-  // re-initialise solver
-  reset();
+void SCM<T, E>::run_mutant(parameters_type p) {
   
   // switch to cached environment
   patch.set_mutant();
 
+  // destructive operation; overwrites resident params.
+  parameters = p;
+
   // add strategies
-  if(append) {
-    patch.add_strategies(strategies);
-  } else {
-    patch.overwrite_strategies(strategies);
-  }
+  patch.overwrite_strategies(parameters.strategies);
 
-  if(update_schedule) {
-    // create new schedule
-    NodeSchedule mutant_schedule = make_mutant_schedule(
-      patch.size(), parameters.max_patch_lifetime, patch.step_history
-    );
+  // resize schedule
+  node_schedule = make_node_schedule(parameters);
+  
+  // then set ode_times to patch history
+  node_schedule.r_set_ode_times(patch.step_history);
+  node_schedule.r_set_use_ode_times(true);
+  node_schedule.reset();
 
-    // std::cout << "resident schedule length: " << node_schedule.size() << " mutant schedule length: " << mutant_schedule.size() << std::endl;
-    // std::cout << "printing mutant schedule: " << std::endl;
-
-    // std::vector<std::vector<double>> ret = mutant_schedule.get_times();
-    // for (std::vector<double> i : ret) {
-    //   for(double j : i) {
-    //     // std::cout << j << " ";
-    //   }
-    // }
-
-    // std::cout << std::endl;
-    node_schedule = mutant_schedule;
-  } else {
-    if(append){
-      util::stop("Must update schedule if appending new mutants");
-    }
-
-    node_schedule.r_set_ode_times(patch.step_history);
-    node_schedule.r_set_use_ode_times(true);
-    node_schedule.reset();
-  }
+  // re-initialise solver
+  reset();
 
   run();
 }
