@@ -11,7 +11,7 @@ test_that("mutant runs work", {
   # n identical residents
   lma <- 0.19
   n <- 2
-  birth_rate <- 100
+  birth_rate <- 1
   
   pn <- expand_parameters(trait_matrix(rep(lma, n), "lma"), p,
                           mutant = F,
@@ -23,12 +23,12 @@ test_that("mutant runs work", {
   
   # check fitness
   resident_rr <- scm$net_reproduction_ratios
-  expect_equal(resident_rr, c(4.290414e-23, 4.290414e-23))
+  expect_equal(resident_rr, c(4.520153e-23, 4.520153e-23), tolerance = 1e-24)
   
   
   # identical mutants - same environment
   scm$run_mutant(pn)
-  expect_setequal(resident_rr, scm$net_reproduction_ratios)
+  expect_equal(resident_rr, scm$net_reproduction_ratios, tolerance = 1e-24)
   
   # one mutant
   p1 <- expand_parameters(trait_matrix(lma, "lma"), p,
@@ -36,7 +36,7 @@ test_that("mutant runs work", {
                           birth_rate_list = birth_rate)
   
   scm$run_mutant(p1)
-  expect_equal(resident_rr[1], scm$net_reproduction_ratios)
+  expect_equal(resident_rr[1], scm$net_reproduction_ratios, tolerance = 1e-24)
   
   # n + 1 mutants
   pn_p1 <- expand_parameters(trait_matrix(c(rep(lma, n + 1)), "lma"), p,
@@ -44,9 +44,9 @@ test_that("mutant runs work", {
                              birth_rate_list = rep(birth_rate, n + 1))
   
   scm$run_mutant(pn_p1)
-  expect_equal(rep(resident_rr[1], n + 1), scm$net_reproduction_ratios)
+  expect_equal(rep(resident_rr[1], n + 1), scm$net_reproduction_ratios, tolerance = 1e-24)
   
-  # non-identical mutant
+  # non-identical mutant - non-invasible
   new_lma = 0.20
     
   p1 <- expand_parameters(trait_matrix(new_lma, "lma"), p,
@@ -54,5 +54,15 @@ test_that("mutant runs work", {
                           birth_rate_list = birth_rate)
   
   scm$run_mutant(p1)
-  expect_false(resident_rr[1] == scm$net_reproduction_ratios)
+  expect_gt(resident_rr[1] - scm$net_reproduction_ratios, 0.0)
+  
+  # non-identical mutant - viable invader
+  new_lma = 0.18
+  
+  p1 <- expand_parameters(trait_matrix(new_lma, "lma"), p,
+                          mutant = F,
+                          birth_rate_list = birth_rate)
+  
+  scm$run_mutant(p1)
+  expect_lt(resident_rr[1] - scm$net_reproduction_ratios, 0)
 })
