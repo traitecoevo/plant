@@ -11,6 +11,7 @@ namespace plant {
 class FF16_Strategy: public Strategy<FF16_Environment> {
 public:
   typedef std::shared_ptr<FF16_Strategy> ptr;
+  typedef FF16_Environment::ptr environment_ptr;
   FF16_Strategy();
 
   // Overrides ----------------------------------------------
@@ -89,7 +90,7 @@ public:
                            double mass_sapwood, double mass_root) const;
 
 
-  void compute_rates(const FF16_Environment& environment, bool reuse_intervals,
+  void compute_rates(const environment_ptr& environment, bool reuse_intervals,
                 Internals& vars);
 
   void update_dependent_aux(const int index, Internals& vars);
@@ -116,7 +117,7 @@ public:
   double net_mass_production_dt_A(double assimilation, double respiration,
                                   double turnover) const;
 
-  virtual double net_mass_production_dt(const FF16_Environment& environment,
+  virtual double net_mass_production_dt(const environment_ptr& environment,
                                 double height, double area_leaf_,
                                 bool reuse_intervals=false);
 
@@ -172,7 +173,7 @@ public:
   double mortality_growth_independent_dt()const ;
   double mortality_growth_dependent_dt(double productivity_area) const;
   // [eqn 20] Survival of seedlings during establishment
-  double establishment_probability(const FF16_Environment& environment);
+  double establishment_probability(const environment_ptr& environment);
 
   // * Competitive environment
   // [eqn 11] total projected leaf area above height above height `z` for given plant
@@ -277,7 +278,7 @@ public:
 
   std::string name;
 
-  Assimilation<FF16_Environment> assimilator;
+  Assimilation<environment_ptr> assimilator;
 
 };
 

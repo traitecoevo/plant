@@ -16,6 +16,8 @@ public:
   typedef T strategy_type;
   typedef E environment_type;
   typedef typename strategy_type::ptr strategy_type_ptr;
+  typedef typename environment_type::ptr environment_type_ptr;
+
   // for the time being...
   Individual(strategy_type_ptr s) : strategy(s) {
     if (strategy->aux_index.size() != s->aux_size()) {
@@ -64,20 +66,20 @@ public:
     return strategy->compute_competition(z, state(HEIGHT_INDEX)); // aux("competition_effect"));
   }
 
-  void compute_rates(const environment_type& environment,
+  void compute_rates(const environment_type_ptr& environment,
                          bool reuse_intervals = false) {
-    if (vars.resource_size != environment.ode_size()) {
+    if (vars.resource_size != environment->ode_size()) {
       // handles when Individual hasn't been instantiated in a Patch (ie with an environment)
-      vars.resize_consumption_rates(environment.ode_size());
+      vars.resize_consumption_rates(environment->ode_size());
     }
     strategy->compute_rates(environment, reuse_intervals, vars);
   }
   
-  double establishment_probability(const environment_type &environment) {
+  double establishment_probability(const environment_type_ptr &environment) {
     return strategy->establishment_probability(environment);
   }
 
-  double net_mass_production_dt(const environment_type &environment) {
+  double net_mass_production_dt(const environment_type_ptr &environment) {
     // TODO:  maybe reuse intervals? default false 
     return strategy->net_mass_production_dt(environment, state(HEIGHT_INDEX), aux("competition_effect"));
   }
@@ -125,7 +127,7 @@ public:
   void reset_mortality() { set_state("mortality", 0.0); }
 
   // TODO: Eventually change to growth rate given size
-  double growth_rate_given_height(double height, const environment_type& environment) {
+  double growth_rate_given_height(double height, const environment_type_ptr& environment) {
     set_state("height", height);
     compute_rates(environment, true);
     return rate("height");

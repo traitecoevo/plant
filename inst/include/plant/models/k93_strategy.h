@@ -15,6 +15,7 @@ namespace plant {
 class K93_Strategy: public Strategy<K93_Environment> {
 public:
   typedef std::shared_ptr<K93_Strategy> ptr;
+  typedef K93_Environment::ptr environment_ptr;
   K93_Strategy();
 
   // update this when the length of state_names changes
@@ -34,7 +35,7 @@ public:
     return std::vector<std::string>({"competition_effect"});
   }
 
-  void compute_rates(const K93_Environment& environment,
+  void compute_rates(const environment_ptr& environment,
                      bool reuse_intervals,
                      Internals& vars);
 
@@ -43,8 +44,8 @@ public:
   void refresh_indices();
 
   // These are stuck in plant.h
-  double establishment_probability(const K93_Environment& environment);
-  double net_mass_production_dt(const K93_Environment& environment,
+  double establishment_probability(const environment_ptr& environment);
+  double net_mass_production_dt(const environment_ptr& environment,
                                 double size, double cumulative_basal_area,
                                 bool reuse_intervals=false);
 

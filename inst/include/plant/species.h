@@ -21,6 +21,7 @@ public:
   typedef Individual<T,E>  individual_type;
   typedef Node<T,E> node_type;
   typedef typename strategy_type::ptr strategy_type_ptr;
+  typedef typename environment_type::ptr environment_type_ptr;
   Species(strategy_type s);
 
   size_t size() const;
@@ -29,7 +30,7 @@ public:
 
   double height_max() const;
   double compute_competition(double height) const;
-  void compute_rates(const environment_type& environment, double pr_patch_survival, double birth_rate);
+  void compute_rates(const environment_type_ptr& environment, double pr_patch_survival, double birth_rate);
   std::vector<double> net_reproduction_ratio_by_node() const;
 
   // * ODE interface
@@ -182,7 +183,7 @@ double Species<T,E>::compute_competition(double height) const {
 // NOTE: We should probably prefer to rescale when this is called
 // through the ode stepper.
 template <typename T, typename E>
-void Species<T,E>::compute_rates(const E& environment, double pr_patch_survival, double birth_rate) {
+void Species<T,E>::compute_rates(const environment_type_ptr& environment, double pr_patch_survival, double birth_rate) {
   for (auto& c : nodes) {
     c.compute_rates(environment, pr_patch_survival);
   }

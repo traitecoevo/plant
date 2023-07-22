@@ -15,7 +15,7 @@ double FF16w_Strategy::evapotranspiration_dt(double area_leaf) const {
 
 // one-shot update of the scm variables
 // i.e. setting rates of ode vars from the state and updating aux vars
-void FF16w_Strategy::compute_rates(const FF16_Environment& environment,
+void FF16w_Strategy::compute_rates(const environment_ptr& environment,
                                   bool reuse_intervals,
                                   Internals& vars) {
 
@@ -29,7 +29,7 @@ void FF16w_Strategy::compute_rates(const FF16_Environment& environment,
   vars.set_aux(aux_index.at("net_mass_production_dt"), net_mass_production_dt_);
 
   // stubbing out E_p for integration
-  for(size_t i = 0; i < environment.ode_size(); i++) {
+  for(size_t i = 0; i < environment->ode_size(); i++) {
     vars.set_consumption_rate(i, evapotranspiration_dt(area_leaf_));
   }
 

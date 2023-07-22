@@ -12,6 +12,7 @@ namespace plant {
 template <typename E>
 class Assimilation {
   public:
+    typedef E environment_type_ptr;
 
   Assimilation() : a_p1(0.0), a_p2(0.0), eta(0.0) { };
   Assimilation(double a_p1, double a_p2, double eta) : a_p1(a_p1), a_p2(a_p2), eta(eta) { };
@@ -27,7 +28,7 @@ class Assimilation {
   //
   // NOTE: In contrast with Daniel's implementation (but following
   // Falster 2012), we do not normalise by a_y*a_bio here.
-  double assimilate(const E& environment,
+  double assimilate(const environment_type_ptr& environment,
                     double height,
                     double area_leaf,
                     bool reuse_intervals) {
@@ -73,8 +74,8 @@ class Assimilation {
   /* } */
 
   double compute_assimilation_h(double z, double height,
-                                       const E& environment) const {
-    return assimilation_leaf(environment.get_environment_at_height(z)) * q(z, height);
+                                       const environment_type_ptr& environment) const {
+    return assimilation_leaf(environment->get_environment_at_height(z)) * q(z, height);
   }
 
   // double compute_assimilation_p(double p, double height,

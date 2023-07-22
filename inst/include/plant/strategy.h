@@ -16,8 +16,9 @@ namespace plant {
 template <typename E> 
 class Strategy {
 public:
-  typedef E             environment_type;
   typedef std::shared_ptr<Strategy> ptr;
+  typedef E environment_type;
+  typedef typename environment_type::ptr environment_type_ptr;
 
   // update this when the length of state_names changes
   static size_t state_size ();
@@ -50,16 +51,16 @@ public:
 
   double competition_effect_state(Internals& vars);
 
-  void compute_rates(const environment_type& environment, bool reuse_intervals,
+  void compute_rates(const environment_type_ptr& environment, bool reuse_intervals,
                 Internals& vars);
 
   void update_dependent_aux(const int index, Internals& vars);
 
-  double net_mass_production_dt(const environment_type& environment,
+  double net_mass_production_dt(const environment_type_ptr& environment,
                                 double size, double competition_effect_,
                                 bool reuse_intervals=false);
 
-  double establishment_probability(const environment_type& environment);
+  double establishment_probability(const environment_type_ptr& environment);
 
   double fecundity_dt(double net_mass_production_dt,
                       double fraction_allocation_reproduction) const;

@@ -2,6 +2,8 @@
 #ifndef PLANT_PLANT_PATCH_H_
 #define PLANT_PLANT_PATCH_H_
 
+#include <memory> // std::shared_ptr
+
 #include <plant/parameters.h>
 #include <plant/species.h>
 #include <plant/ode_interface.h>
@@ -22,12 +24,13 @@ public:
   typedef Species<T,E>      species_type;
   typedef Parameters<T,E>   parameters_type;
 
+  typedef typename environment_type::ptr environment_type_ptr;
 
   Patch(parameters_type p, environment_type e, plant::Control c);
 
   void reset();
   size_t size() const {return species.size();}
-  double time() const {return environment.time;}
+  double time() const {return environment->time;}
 
   double height_max() const;
 
@@ -39,7 +42,7 @@ public:
 
   // Open to better ways to test whether nodes have been introduced
   int node_ode_size() const {
-    int node_ode_size = ode_size() - environment.ode_size();
+    int node_ode_size = ode_size() - environment->ode_size();
     return(node_ode_size);
   }
 
@@ -71,7 +74,7 @@ public:
   double r_survival_weighting_icdf(double prob) const {return survival_weighting->icdf(prob);}
 
   parameters_type r_parameters() const {return parameters;}
-  environment_type r_environment() const {return environment;}
+  environment_type r_environment() const {return *environment;}
   std::vector<species_type> r_species() const {return species;}
   std::vector<double> r_competition_effect_error(size_t species_index) const;
   void r_set_time(double time);
@@ -95,10 +98,13 @@ private:
   void compute_rates();
 
   parameters_type parameters;
+
   std::vector<bool> is_resident;
-  environment_type environment;
   std::vector<species_type> species;
   std::vector<double> resource_depletion;
+
+  environment_type_ptr environment;
+
   Control control;
 };
 
@@ -106,8 +112,8 @@ template <typename T, typename E>
 Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
   : parameters(p),
     is_resident(p.is_resident),
-    environment(e),
-    control(c) {
+    environment(make_environment_ptr(e)),
+    control(c){  // length of ode::Step
   parameters.validate();
 
   survival_weighting = p.disturbance;
@@ -121,7 +127,7 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
     species.push_back(spec);
   }
 
-  resource_depletion.reserve(environment.ode_size());
+  resource_depletion.reserve(environment->ode_size());
 
   reset();
 }
@@ -132,11 +138,11 @@ void Patch<T,E>::reset() {
     s.clear();
 
     // allocate variables for tracking resource consumption
-    s.resize_consumption_rates(environment.ode_size());
+    s.resize_consumption_rates(environment->ode_size());
   }
 
   // compute ephemeral effects like canopy
-  environment.clear();
+  environment->clear();
   compute_environment();
 
   // compute effects of resource consumption
@@ -175,7 +181,7 @@ template <typename T, typename E>
 void Patch<T,E>::compute_environment() {
   if (parameters.n_residents() > 0) {
     auto f = [&] (double x) -> double {return compute_competition(x);};
-    environment.compute_environment(f, height_max());
+    environment->compute_environment(f, height_max());
   }
 }
 
@@ -183,7 +189,7 @@ template <typename T, typename E>
 void Patch<T,E>::rescale_environment() {
   if (parameters.n_residents() > 0) {
     auto f = [&] (double x) -> double {return compute_competition(x);};
-    environment.rescale_environment(f, height_max());
+    environment->rescale_environment(f, height_max());
   }
 }
 
@@ -197,8 +203,8 @@ void Patch<T,E>::compute_rates() {
     species[i].compute_rates(environment, pr_patch_survival, birth_rate);
   }
 
-  resource_depletion.reserve(environment.ode_size());
-  for(size_t i = 0; i < environment.ode_size(); i++) {
+  resource_depletion.reserve(environment->ode_size());
+  for(size_t i = 0; i < environment->ode_size(); i++) {
     double resource_consumed = std::accumulate(species.begin(), species.end(), 0.0, [i](double r, const species_type& s) {
       return r + s.consumption_rate(i); // accumulates r from zero
     });
@@ -206,7 +212,7 @@ void Patch<T,E>::compute_rates() {
     resource_depletion.push_back(resource_consumed);
   }
 
-  environment.compute_rates(resource_depletion);
+  environment->compute_rates(resource_depletion);
   resource_depletion.clear();
 }
 
@@ -236,7 +242,7 @@ void Patch<T,E>::introduce_new_nodes(const std::vector<size_t>& species_index) {
 
 template <typename T, typename E>
 void Patch<T,E>::r_set_time(double time) {
-  environment.time = time;
+  environment->time = time;
 }
 
 
@@ -259,19 +265,19 @@ void Patch<T,E>::r_set_state(double time,
   }
   util::check_length(state.size(), ode_size());
   set_ode_state(state.begin(), time);
-  environment.r_init_interpolators(canopy);
+  environment->r_init_interpolators(canopy);
 }
 
 // ODE interface
 template <typename T, typename E>
 size_t Patch<T,E>::ode_size() const {
-  return ode::ode_size(species.begin(), species.end()) + environment.ode_size();
+  return ode::ode_size(species.begin(), species.end()) + environment->ode_size();
 }
 
 template <typename T, typename E>
 size_t Patch<T,E>::aux_size() const {
   // no use for auxiliary environment variables (yet)
-  return ode::aux_size(species.begin(), species.end());// + environment.ode_size();
+  return ode::aux_size(species.begin(), species.end());// + environment->ode_size();
 }
 
 template <typename T, typename E>
@@ -283,10 +289,11 @@ template <typename T, typename E>
 ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
                                               double time) {
   it = ode::set_ode_state(species.begin(), species.end(), it);
-  it = environment.set_ode_state(it);
+  it = environment->set_ode_state(it);
 
-  environment.time = time;
-  if (environment.canopy_rescale_usually) {
+
+  environment->time = time;
+  if (environment->canopy_rescale_usually) {
     rescale_environment();
   } else {
     compute_environment();
@@ -298,21 +305,21 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
 template <typename T, typename E>
 ode::iterator Patch<T,E>::ode_state(ode::iterator it) const {
   it = ode::ode_state(species.begin(), species.end(), it);
-  it = environment.ode_state(it);
+  it = environment->ode_state(it);
   return it;
 }
 
 template <typename T, typename E>
 ode::iterator Patch<T,E>::ode_rates(ode::iterator it) const {
   it = ode::ode_rates(species.begin(), species.end(), it);
-  it = environment.ode_rates(it);
+  it = environment->ode_rates(it);
   return it;
 }
 
 template <typename T, typename E>
 ode::iterator Patch<T,E>::ode_aux(ode::iterator it) const {
   it = ode::ode_aux(species.begin(), species.end(), it);
-  //it = environment.ode_rates(it);
+  //it = environment->ode_rates(it);
   return it;
 }
 

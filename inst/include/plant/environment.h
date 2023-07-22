@@ -18,6 +18,8 @@ namespace plant {
 
 class Environment {
 public:
+  typedef std::shared_ptr<Environment> ptr;
+
   template <typename Function>
   void compute_environment(Function f, double height_max);
   template <typename Function>

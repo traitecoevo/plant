@@ -15,13 +15,14 @@ public:
   typedef E        environment_type;
   typedef Individual<T,E> individual_type;
   typedef typename strategy_type::ptr strategy_type_ptr;
+  typedef typename environment_type::ptr environment_type_ptr;
   Node(strategy_type_ptr s);
 
-  void compute_rates(const environment_type& environment, double pr_patch_survival);
-  void compute_initial_conditions(const environment_type& environment, double pr_patch_survival, double birth_rate);
+  void compute_rates(const environment_type_ptr& environment, double pr_patch_survival);
+  void compute_initial_conditions(const environment_type_ptr& environment, double pr_patch_survival, double birth_rate);
 
   // * R interface (testing only, really)
-  double r_growth_rate_gradient(const environment_type& environment);
+  double r_growth_rate_gradient(const environment_type_ptr& environment);
 
   double height() const {return individual.state(HEIGHT_INDEX);}
   double compute_competition(double z) const;
@@ -67,7 +68,7 @@ public:
 
 private:
   // This is the gradient of growth rate with respect to height:
-  double growth_rate_gradient(const environment_type& environment) const;
+  double growth_rate_gradient(const environment_type_ptr& environment) const;
 
   double log_density;
   double log_density_dt;
@@ -88,7 +89,7 @@ Node<T,E>::Node(strategy_type_ptr s)
 }
 
 template <typename T, typename E>
-void Node<T,E>::compute_rates(const environment_type& environment,
+void Node<T,E>::compute_rates(const environment_type_ptr& environment,
                                 double pr_patch_survival) {
   individual.compute_rates(environment);
 
@@ -121,7 +122,7 @@ void Node<T,E>::compute_rates(const environment_type& environment,
 // NOTE: The initial condition for log_density is also a bit tricky, and
 // defined on p 7 at the moment.
 template <typename T, typename E>
-void Node<T,E>::compute_initial_conditions(const environment_type& environment,
+void Node<T,E>::compute_initial_conditions(const environment_type_ptr& environment,
                                              double pr_patch_survival, double birth_rate) {
   pr_patch_survival_at_birth = pr_patch_survival;
   compute_rates(environment, pr_patch_survival);
@@ -145,7 +146,7 @@ void Node<T,E>::compute_initial_conditions(const environment_type& environment,
 }
 
 template <typename T, typename E>
-double Node<T,E>::growth_rate_gradient(const environment_type& environment) const {
+double Node<T,E>::growth_rate_gradient(const environment_type_ptr& environment) const {
   individual_type p = individual;
   auto fun = [&] (double h) mutable -> double {
     return p.growth_rate_given_height(h, environment);
@@ -163,7 +164,7 @@ double Node<T,E>::growth_rate_gradient(const environment_type& environment) cons
 }
 
 template <typename T, typename E>
-double Node<T,E>::r_growth_rate_gradient(const environment_type& environment) {
+double Node<T,E>::r_growth_rate_gradient(const environment_type_ptr& environment) {
   // We need to compute the physiological variables here, first, so
   // that reusing intervals works as expected.  This would ordinarily
   // be taken care of because of the calling order of

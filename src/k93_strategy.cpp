@@ -56,12 +56,12 @@ double K93_Strategy::compute_competition(double z, double size) const {
   return k_I * size_to_basal_area(size) * Q(z, size);
  }
 
-double K93_Strategy::establishment_probability(const K93_Environment& environment){
+double K93_Strategy::establishment_probability(const environment_ptr& environment){
   //TODO: may want to make this dependent on achieving positive growth rate
   return 1.0;
 }
 
-double K93_Strategy::net_mass_production_dt(const K93_Environment& environment,
+double K93_Strategy::net_mass_production_dt(const environment_ptr& environment,
                                             double height, double area_leaf_,
                                             bool reuse_intervals) {
   // TODO: there was no return value here - added 0.0
@@ -83,7 +83,7 @@ void K93_Strategy::refresh_indices () {
 }
 
 // i.e. setting rates of ode vars from the state and updating aux vars
-void K93_Strategy::compute_rates(const K93_Environment& environment,
+void K93_Strategy::compute_rates(const environment_ptr& environment,
                               bool reuse_intervals,
                               Internals& vars) {
 
@@ -91,7 +91,7 @@ void K93_Strategy::compute_rates(const K93_Environment& environment,
 
   // suppression integral mapped [0, 1] using adaptive spline
   // back transform to basal area and add suppression from self
-  double competition = environment.get_environment_at_height(height);
+  double competition = environment->get_environment_at_height(height);
 
   double cumulative_basal_area = -log(competition) / k_I;
 
