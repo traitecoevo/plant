@@ -132,8 +132,6 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
 
   add_strategies(parameters.strategies);
 
-  resource_depletion.reserve(environment.ode_size());
-
   reset();
 }
 
@@ -172,6 +170,9 @@ void Patch<T,E>::reset() {
     // allocate variables for tracking resource consumption
     s.resize_consumption_rates(environment.ode_size());
   }
+
+  // resize to species count
+  resource_depletion.reserve(environment.ode_size());
 
   // compute ephemeral effects like canopy
   environment.clear();
@@ -366,12 +367,15 @@ template <typename T, typename E>
 void Patch<T,E>::load_ode_step() {
   if(use_cached_environment) { 
     std::vector<double>::iterator step;
+    
+    // find where we are in the cache
     step = std::find(step_history.begin(), step_history.end(), time());
 
     if(*step != time()) {
       util::stop("ODE time not found in step history");
     }
 
+    // index into the right environment
     int idx = std::distance(step_history.begin(), step);
     environment_cache.clear();
     environment_cache = environment_history[idx];
