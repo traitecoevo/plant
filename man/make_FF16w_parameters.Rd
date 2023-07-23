@@ -28,10 +28,8 @@ make_FF16w_parameters(
   k_I = p0$strategy_default$k_I,
   vcmax_25 = p0$strategy_default$vcmax_25,
   K_s = p0$strategy_default$K_s,
-  c = p0$strategy_default$c,
   beta1 = p0$strategy_default$beta1,
   beta2 = p0$strategy_default$beta2,
-  hk_s_ = p0$strategy_default$hk_s,
   jmax_25 = p0$strategy_default$jmax_25,
   a = p0$strategy_default$a,
   curv_fact_elec_trans = p0$strategy_default$curv_fact_elec_trans,
@@ -39,7 +37,8 @@ make_FF16w_parameters(
   nmass_s = p0$strategy_default$nmass_s,
   nmass_b = p0$strategy_default$nmass_b,
   nmass_r = p0$strategy_default$nmass_r,
-  dmass_dN = p0$strategy_default$dmass_dN
+  dmass_dN = p0$strategy_default$dmass_dN,
+  var_sapwood_volume_cost = p0$strategy_default$var_sapwood_volume_cost
 )
 }
 \arguments{
@@ -89,13 +88,9 @@ make_FF16w_parameters(
 
 \item{K_s}{}
 
-\item{c}{}
-
 \item{beta1}{}
 
 \item{beta2}{}
-
-\item{hk_s_}{}
 
 \item{jmax_25}{}
 
@@ -112,6 +107,10 @@ make_FF16w_parameters(
 \item{nmass_r}{}
 
 \item{dmass_dN}{}
+
+\item{c}{}
+
+\item{hk_s}{}
 }
 \description{
 Make a parameter tibble for use in strategy objects

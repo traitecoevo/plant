@@ -65,16 +65,31 @@ solve_max_worker <- function(bounds, f, tol=1e-3, outcome, use_optim = FALSE) {
     ##   NA/Inf replaced by maximum positive value
     ##
     ## which is probably the desired behaviour here.
-    out <- (optimise(f, interval=bounds, maximum=TRUE, tol=tol))
+    
+     out <- (optimise(f, interval=bounds, maximum=TRUE, tol=tol))
     ret <- out$objective
-    attr(ret, outcome) <- out$maximum
+
+    ret_min <- f(bounds[1])
+    ret_max <- f(bounds[2])
+
+    tibble(ret = c(ret, ret_min, ret_max),
+           value = c(out$maximum, bounds[1], bounds[2])) %>%
+      filter(ret == max(ret)) -> out
+    
+    if(length(out$ret) > 1){
+      out %>%
+        filter(ret == "ret") -> out
+    }
+    ret <- out$ret
+    attr(ret, outcome) <- out$value
+    return(ret)
     
   } else {
+
     ## This is not very well tested, and the tolerance is not useful:
     out <- optim(rowMeans(bounds), f, method="L-BFGS-B",
                  lower= bounds[,"lower"], upper= bounds[,"upper"],
                  control=list(fnscale=-0.01, reltol = 1e-10, trace = 6))
-    
     ret <- out$value
     attr(ret, outcome) <- out$par
   }

@@ -12,8 +12,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // Leaf__ctor
-plant::Leaf Leaf__ctor(double vcmax_25, double c, double b, double psi_crit, double epsilon_leaf, double beta1, double beta2, double jmax_25, double hk_s_, double a, double curv_fact_elec_trans, double curv_fact_colim, double B_rs1, double B_lf2, double B_lf3, double B_lf5);
-RcppExport SEXP _plant_Leaf__ctor(SEXP vcmax_25SEXP, SEXP cSEXP, SEXP bSEXP, SEXP psi_critSEXP, SEXP epsilon_leafSEXP, SEXP beta1SEXP, SEXP beta2SEXP, SEXP jmax_25SEXP, SEXP hk_s_SEXP, SEXP aSEXP, SEXP curv_fact_elec_transSEXP, SEXP curv_fact_colimSEXP, SEXP B_rs1SEXP, SEXP B_lf2SEXP, SEXP B_lf3SEXP, SEXP B_lf5SEXP) {
+plant::Leaf Leaf__ctor(double vcmax_25, double c, double b, double psi_crit, double epsilon_leaf, double beta1, double beta2, double jmax_25, double hk_s, double a, double curv_fact_elec_trans, double curv_fact_colim, double B_rs1, double B_lf2, double B_lf3, double B_lf5);
+RcppExport SEXP _plant_Leaf__ctor(SEXP vcmax_25SEXP, SEXP cSEXP, SEXP bSEXP, SEXP psi_critSEXP, SEXP epsilon_leafSEXP, SEXP beta1SEXP, SEXP beta2SEXP, SEXP jmax_25SEXP, SEXP hk_sSEXP, SEXP aSEXP, SEXP curv_fact_elec_transSEXP, SEXP curv_fact_colimSEXP, SEXP B_rs1SEXP, SEXP B_lf2SEXP, SEXP B_lf3SEXP, SEXP B_lf5SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -25,7 +25,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type beta1(beta1SEXP);
     Rcpp::traits::input_parameter< double >::type beta2(beta2SEXP);
     Rcpp::traits::input_parameter< double >::type jmax_25(jmax_25SEXP);
-    Rcpp::traits::input_parameter< double >::type hk_s_(hk_s_SEXP);
+    Rcpp::traits::input_parameter< double >::type hk_s(hk_sSEXP);
     Rcpp::traits::input_parameter< double >::type a(aSEXP);
     Rcpp::traits::input_parameter< double >::type curv_fact_elec_trans(curv_fact_elec_transSEXP);
     Rcpp::traits::input_parameter< double >::type curv_fact_colim(curv_fact_colimSEXP);
@@ -33,7 +33,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type B_lf2(B_lf2SEXP);
     Rcpp::traits::input_parameter< double >::type B_lf3(B_lf3SEXP);
     Rcpp::traits::input_parameter< double >::type B_lf5(B_lf5SEXP);
-    rcpp_result_gen = Rcpp::wrap(Leaf__ctor(vcmax_25, c, b, psi_crit, epsilon_leaf, beta1, beta2, jmax_25, hk_s_, a, curv_fact_elec_trans, curv_fact_colim, B_rs1, B_lf2, B_lf3, B_lf5));
+    rcpp_result_gen = Rcpp::wrap(Leaf__ctor(vcmax_25, c, b, psi_crit, epsilon_leaf, beta1, beta2, jmax_25, hk_s, a, curv_fact_elec_trans, curv_fact_colim, B_rs1, B_lf2, B_lf3, B_lf5));
     return rcpp_result_gen;
 END_RCPP
 }

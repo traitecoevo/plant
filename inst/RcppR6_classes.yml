@@ -10,7 +10,7 @@ Leaf:
       - beta1: double
       - beta2: double
       - jmax_25: double
-      - hk_s_: double
+      - hk_s: double
       - a: double
       - curv_fact_elec_trans: double
       - curv_fact_colim: double
@@ -1281,6 +1281,7 @@ FF16w_Strategy:
     - nmass_b: double
     - nmass_r: double
     - dmass_dN: double
+    - var_sapwood_volume_cost: double
     - recruitment_decay: double
     - control: "plant::Control"
     - collect_all_auxiliary: bool

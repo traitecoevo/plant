@@ -1340,6 +1340,7 @@ template <> inline SEXP wrap(const plant::FF16w_Strategy& x) {
   ret["nmass_b"] = Rcpp::wrap(x.nmass_b);
   ret["nmass_r"] = Rcpp::wrap(x.nmass_r);
   ret["dmass_dN"] = Rcpp::wrap(x.dmass_dN);
+  ret["var_sapwood_volume_cost"] = Rcpp::wrap(x.var_sapwood_volume_cost);
   ret["recruitment_decay"] = Rcpp::wrap(x.recruitment_decay);
   ret["control"] = Rcpp::wrap(x.control);
   ret["collect_all_auxiliary"] = Rcpp::wrap(x.collect_all_auxiliary);
@@ -1458,6 +1459,8 @@ template <> inline plant::FF16w_Strategy as(SEXP x) {
   ret.nmass_r = Rcpp::as<double >(xl["nmass_r"]);
   // ret.dmass_dN = Rcpp::as<decltype(retdmass_dN) >(xl["dmass_dN"]);
   ret.dmass_dN = Rcpp::as<double >(xl["dmass_dN"]);
+  // ret.var_sapwood_volume_cost = Rcpp::as<decltype(retvar_sapwood_volume_cost) >(xl["var_sapwood_volume_cost"]);
+  ret.var_sapwood_volume_cost = Rcpp::as<double >(xl["var_sapwood_volume_cost"]);
   // ret.recruitment_decay = Rcpp::as<decltype(retrecruitment_decay) >(xl["recruitment_decay"]);
   ret.recruitment_decay = Rcpp::as<double >(xl["recruitment_decay"]);
   // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);

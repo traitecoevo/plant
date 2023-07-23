@@ -265,8 +265,10 @@ make_FF16w_hyperpar <- function(
                                 B_lf5= 40000,
                                 k_I=0.5,
                                 latitude=0,
-                                B_Hv1 = 1.731347,
-                                B_Hv2 = -0.7246377,
+                                B_Hv1 = 0.4607063,
+                                B_Hv2 = -0.2,
+                                B_c1 = 2.04,
+                                B_c2 = 0,
                                 K_s_0 = 2) {
   assert_scalar <- function(x, name=deparse(substitute(x))) {
     if (length(x) != 1L) {
@@ -294,6 +296,8 @@ make_FF16w_hyperpar <- function(
   assert_scalar(B_lf5)
   assert_scalar(B_Hv1)
   assert_scalar(B_Hv2)
+  assert_scalar(B_c1)
+  assert_scalar(B_c2)
   assert_scalar(K_s_0)
   assert_scalar(k_I)
   assert_scalar(latitude)
@@ -307,7 +311,6 @@ make_FF16w_hyperpar <- function(
     omega     <- with_default("omega")
     K_s     <- with_default("K_s")
     vcmax_25     <- with_default("vcmax_25")
-    c     <- with_default("c")
     jmax_25     <- with_default("jmax_25")
     
 
@@ -323,10 +326,12 @@ make_FF16w_hyperpar <- function(
     ## rho / moisture-wood turnover relationship:
     hk_s  <- B_hks1 *  (rho / rho_0) ^ (-B_hks2)
 
-    ## hard coded model parameters for now
     ## p_50 sapwood specific conductivity turnover:
-    p_50 <- B_Hv1*(K_s/K_s_0)^(B_Hv2)
-
+    # p_50 <- B_Hv1*(K_s/K_s_0)^(B_Hv2)
+    # p_50 <- B_Hv1*(K_s/K_s_0)^(B_Hv2)
+    p_50 = 10^(B_Hv1 + B_Hv2*log10(K_s)) 
+    c = B_c1*p_50^B_c2
+    
     ## sensitivity parameter hydraulic vulnerability curve, water potential at 37% conductivity remaining (return unitless):
     b <- p_50/((-log(1-50/100))^(1/c))
 
@@ -371,7 +376,7 @@ make_FF16w_hyperpar <- function(
                    d_I, k_s, r_s, r_b, hk_s,  # rho
                    a_f3,               # omega
                    r_l,nmass_l,        # lma, narea
-                   p_50, b, psi_crit)  # K_s, c              
+                   c, p_50, b, psi_crit)  # K_s             
 
     overlap <- intersect(colnames(m), colnames(extra))
     if (length(overlap) > 0L) {
@@ -449,7 +454,7 @@ FF16w_hyperpar <- make_FF16w_hyperpar()
 #' @param c 
 #' @param beta1 
 #' @param beta2 
-#' @param hk_s_ 
+#' @param hk_s 
 #' @param jmax_25 
 #' @param a 
 #' @param curv_fact_elec_trans 
@@ -486,10 +491,8 @@ make_FF16w_parameters <- function(p0 = FF16w_Parameters(),
                             k_I = p0$strategy_default$k_I,
                             vcmax_25 = p0$strategy_default$vcmax_25,
                             K_s = p0$strategy_default$K_s,
-                            c = p0$strategy_default$c,
                             beta1 = p0$strategy_default$beta1,
                             beta2 = p0$strategy_default$beta2,
-                            hk_s_ = p0$strategy_default$hk_s,
                             jmax_25 = p0$strategy_default$jmax_25,
                             a = p0$strategy_default$a,
                             curv_fact_elec_trans = p0$strategy_default$curv_fact_elec_trans,
@@ -497,9 +500,9 @@ make_FF16w_parameters <- function(p0 = FF16w_Parameters(),
                             nmass_s = p0$strategy_default$nmass_s,
                             nmass_b = p0$strategy_default$nmass_b,
                             nmass_r = p0$strategy_default$nmass_r,
-                            dmass_dN = p0$strategy_default$dmass_dN
-                            
-                            
+                            dmass_dN = p0$strategy_default$dmass_dN,
+                            var_sapwood_volume_cost = p0$strategy_default$var_sapwood_volume_cost
+                      
 ){
   params <- expand_grid(lma = lma,
                         rho = rho,
@@ -523,10 +526,8 @@ make_FF16w_parameters <- function(p0 = FF16w_Parameters(),
                         k_I = k_I,
                         vcmax_25 = vcmax_25,
                         K_s = K_s,
-                        c = c,
                         beta1 = beta1,
                         beta2 = beta2,
-                        hk_s_ = hk_s_,
                         jmax_25 = jmax_25,
                         a = a,
                         curv_fact_elec_trans = curv_fact_elec_trans,
@@ -534,7 +535,8 @@ make_FF16w_parameters <- function(p0 = FF16w_Parameters(),
                         nmass_s = nmass_s,
                         nmass_b = nmass_b,
                         nmass_r = nmass_r,
-                        dmass_dN = dmass_dN)
+                        dmass_dN = dmass_dN,
+                        var_sapwood_volume_cost = var_sapwood_volume_cost)
 }
 
 #' Wrapper function to create a leaf object with built-in values
@@ -602,7 +604,7 @@ eta_c = 1 - 2 / (1 + ff16w_params$eta) + 1 / (1 + 2 * ff16w_params$eta)
 leaf_specific_conductance_max <- ff16w_params$K_s * ff16w_params$theta / (height * eta_c)
 sapwood_volume_per_leaf_area <- ff16w_params$theta * height
 #make leaf  
-leaf_obj <- Leaf(vcmax_25 = ff16w_params$vcmax_25, jmax_25 = ff16w_params$jmax_25, c = ff16w_params$c, b = ff16w_params$b, psi_crit = ff16w_params$psi_crit, epsilon_leaf = 0.0001, beta1 = ff16w_params$beta1, beta2= ff16w_params$beta2, hk_s_ = ff16w_params$hk_s, a = ff16w_params$a,
+leaf_obj <- Leaf(vcmax_25 = ff16w_params$vcmax_25, jmax_25 = ff16w_params$jmax_25, c = ff16w_params$c, b = ff16w_params$b, psi_crit = ff16w_params$psi_crit, epsilon_leaf = 0.0001, beta1 = ff16w_params$beta1, beta2= ff16w_params$beta2, hk_s = ff16w_params$hk_s, a = ff16w_params$a,
           curv_fact_elec_trans = ff16w_params$curv_fact_elec_trans, curv_fact_colim = ff16w_params$curv_fact_colim, B_rs1 = B_rs1, B_lf2 = B_lf2, B_lf3 = B_lf3, B_lf5 = B_lf5)
 
 leaf_obj$set_physiology(PPFD = PPFD, psi_soil = psi_soil, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, 

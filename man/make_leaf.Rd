@@ -15,7 +15,10 @@ make_leaf(
 
 \item{ff16w_env}{Environmental values, tibble with any of the following column names: "psi_soil", "PPFD", "atm_vpd", "ca", "leaf_temp" or an ff16_environment object}
 
-\item{height}{(m)}
+\item{height}{Height of plants in metres (m)}
+}
+\value{
+Returns a Leaf object
 }
 \description{
 Wrapper function to create a leaf object with built-in values

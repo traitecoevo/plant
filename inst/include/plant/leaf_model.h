@@ -75,7 +75,7 @@ static const double H2O_CO2_stom_diff_ratio = 1.67;
 class Leaf {
 public:
   Leaf(double vcmax_25        = 100, // umol m^-2 s^-1
-       double c            = 2.04, //unitless
+       double c            = 2.05, //unitless
        double b            = 2.0, // MPa
        double psi_crit     = 3.42,  // derived from b and c (- MPa)
        double beta1 = 20000, // umol m^-3 s^-1

@@ -423,7 +423,7 @@ FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, 
     indv <- FF16_Individual(s)
     }
     res <- grow_individual_to_height(indv, height, env,
-                                     time_max=100, warn=FALSE, filter=TRUE)
+                                     time_max=100, warn=TRUE, filter=TRUE)
 
     
     res <- res$rate[colnames(res$rate) == outcome]
@@ -435,8 +435,7 @@ FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, 
     }
     return(res)
   }
-  
-  ret <- solve_max_worker(bounds, f, tol = 1e-3, outcome = paste0(outcome, "_growth_rate"), use_optim = use_optim)
+  ret <- solve_max_worker(bounds, f, tol = 1e-6, outcome = paste0(outcome, "_growth_rate"), use_optim = use_optim)
   
 
   #not sure that below is required or correct

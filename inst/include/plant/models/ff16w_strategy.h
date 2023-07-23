@@ -67,6 +67,7 @@ virtual std::vector<std::string> aux_names() {
   double B_lf2 = 0.01;
   double B_lf3 = 0.01;  
   double B_lf5 = 0.01;
+  double var_sapwood_volume_cost = 1; 
 
   //nitrogen allocation traits (parameterised from Austraits 4.1.0)
   double nmass_l = 13e-3; // kg N kg^-1 mass

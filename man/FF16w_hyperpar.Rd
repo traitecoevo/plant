@@ -29,6 +29,8 @@ make_FF16w_hyperpar(
   latitude = 0,
   B_Hv1 = 1.731347,
   B_Hv2 = -0.7246377,
+  B_c1 = 2.04,
+  B_c2 = 0,
   K_s_0 = 2
 )
 
