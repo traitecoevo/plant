@@ -14,6 +14,8 @@ run_stochastic_collect(
 \arguments{
 \item{p}{A \code{\link{FF16_Parameters}} object}
 
+\item{env}{Environment object}
+
 \item{ctrl}{Control object}
 
 \item{random_schedule}{setting to TRUE causes algorithm to generate

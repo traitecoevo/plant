@@ -18,6 +18,8 @@ assembly_parameters(
 
 \item{pars}{A list of parameters}
 
+\item{type}{Any strategy name as a string, e.g.: \code{"FF16"}.}
+
 \item{base_parameters_fn}{Function for creating base parameter set (default scm_base_parameters)}
 
 \item{base_control_fn}{Function for creating base Control object (default scm_base_control)}

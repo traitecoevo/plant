@@ -13,6 +13,8 @@ build_schedule(
 \arguments{
 \item{p}{Parameters object}
 
+\item{env}{Environment object}
+
 \item{ctrl}{Control object}
 }
 \value{

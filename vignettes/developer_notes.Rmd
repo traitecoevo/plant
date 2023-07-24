@@ -33,6 +33,8 @@ make target_name
 where `target_name` is the target to build. Targets are as follows:
 
 - **`all`**: Compiles the package and builds the function documentation to `/man`
+- **`compile`**: Builds the dll
+- **`debug`**: Builds the dll with debug information
 - **`install`**: Installs this package (` R CMD INSTALL .`)
 - **`build`**: Builds plant (` R CMD build --no-build-vignettes`)
 - **`RcppR6`**:  Update or install RcppR6 files
@@ -43,6 +45,30 @@ where `target_name` is the target to build. Targets are as follows:
 - **`clean`**: Deletes `*.o` and `*.so` files that were produced when compiling the package
 - **`vignettes`**: Builds the vignettes
 - **`website`**: Makes the website using pkgdown
+
+### Speed and optimisation
+
+Which build method you use can drastically change performance. 
+
+If you compile with debug symbols and no optimsation the code runs much slower. By default, `pkgbuild::compile_dll` has argument debug=TRUE which leads causes debug symbols to be included and slow runtime. Using `devtools::load_all()` will aslo be slow.
+
+If you compile with optimisation, the code runs much faster. By default, `R CMD INSTALL` and `devtools::install()` compile with optimisation. You will want to clean first. 
+
+When developing, you can make everything faster by compiling as follows. After changing some cpp code, run
+
+```{r}
+pkgbuild::compile_dll(debug=FALSE, compile_attributes = FALSE)
+devtools::load_all()
+```
+
+The first line recompiles with optimisation, and the second line loads the package with the new code. If the code is already compiled, `devtools::load_all` won't recompile it. If you skip the first line, your code will be recompiled with debug symbols, and will be slow.
+
+Also, including `compile_attributes = FALSE` in the first line avoids the need to recompile the Rcpp exports.
+
+You'll want to do something different when
+
+- you've changed the interface so need to recompile the Rcpp exports and or a cpp header file
+- you want to use debug symbols to diagnose a problem
 
 # Design & Structure
 

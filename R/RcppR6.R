@@ -4788,9 +4788,10 @@ StochasticPatchRunner <- function(T, E) {
       }),
     active=list())
 
-##' The frequency of disturbance in a meta-population of patches follows a Weibull distribution
+##' Weibull_Disturbance_Regime control object.
 ##' @title Weibull disturbance regime
-##' Weibull_Disturbance_Regime control object
+##' The frequency of disturbance in a meta-population of patches follows a Weibull distribution
+##' @param max_patch_lifetime Maximum lifetime of a patch, determines length of a simulation
 ##' @export
 `Weibull_Disturbance_Regime` <- function(max_patch_lifetime) {
   Weibull_Disturbance_Regime__ctor(max_patch_lifetime)

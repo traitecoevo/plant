@@ -16,10 +16,9 @@ Description: Solves trait, size and patch structured model
     from (Falster et al. 2016) using either method of
     characteristics or as stochastic, finite-sized population.
 Depends:
-    R (>= 3.3.0)
+    R (>= 4.1.0)
 Encoding: UTF-8
 License: GPL-2
-LazyData: true
 LinkingTo: Rcpp, BH
 Imports:
     Rcpp,
@@ -32,6 +31,7 @@ Imports:
     tibble,
     rlang,
     dplyr,
+    tidyselect (>= 1.2.0),
     tidyr,
     purrr
 Suggests:
@@ -54,4 +54,4 @@ Remotes:
 VignetteBuilder: knitr
 URL: https://github.com/traitecoevo/plant
 BugReports: https://github.com/traitecoevo/plant/issues
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
