@@ -118,6 +118,7 @@ public:
   void overwrite_strategies(std::vector<strategy_type> strategies);
 
 private:
+  int idx;
   void compute_environment();
   void rescale_environment();
   void compute_rates();
@@ -391,8 +392,8 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
   it = ode::set_ode_state(species.begin(), species.end(), it);
 
   // todo: use pointer here
-  environment = environment_cache[index];
-  
+  environment = environment_history[idx][index];
+
   // todo: Possibly should skip next step. We don't want to write to env
   // Instead could increment the iterator by an appropriate amount
   // it = environment.set_ode_state(it);
@@ -430,9 +431,9 @@ void Patch<T,E>::load_ode_step() {
     // index into the right environment
     // todo: pointer here
     // loads a set of 6 environments for the current step
-    int idx = std::distance(step_history.begin(), step);
-    environment_cache.clear();
-    environment_cache = environment_history[idx];
+    idx = std::distance(step_history.begin(), step);
+   // environment_cache.clear();
+   // environment_cache = environment_history[idx];
   }
 }
 
