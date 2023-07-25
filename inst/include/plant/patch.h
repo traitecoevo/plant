@@ -57,6 +57,12 @@ public:
   size_t ode_size() const;
   size_t aux_size() const;
   double ode_time() const;
+  // set_ode_state is the main interface for stepping the patch as an ode system
+  // There are two implementations.
+  // First set_ode_state function is for resident runs.
+  // Second is for mutant runs
+  // the decision which to use is based on whether we are using the stored cache of
+  // environment (determined by `use_cached_environment` in ode_interface.h)
   ode::const_iterator set_ode_state(ode::const_iterator it, double time);
   ode::const_iterator set_ode_state(ode::const_iterator it, int index);
   ode::iterator       ode_state(ode::iterator it) const;
@@ -101,6 +107,7 @@ public:
   std::vector<environment_type> environment_cache;
 
   // use cache for mutant runs
+  // todo: document more -- what variable does save_RK45_cache relate to in ode_interface
   bool save_RK45_cache;
   bool use_cached_environment = false;
 
@@ -136,6 +143,8 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
     environment_cache(6) {  // length of ode::Step
   parameters.validate();
 
+  // todo: document this.
+  // save_RK45_cache is not in ode interface
   save_RK45_cache = control.save_RK45_cache;
   survival_weighting = p.disturbance;
 
@@ -269,8 +278,8 @@ void Patch<T,E>::compute_rates() {
     species[i].compute_rates(*env_ptr1, pr_patch_survival, birth_rate);
   }
 
-  resource_depletion.reserve(environment.ode_size());
-  for(size_t i = 0; i < environment.ode_size(); i++) {
+  resource_depletion.reserve(env_ptr1->ode_size());
+  for(size_t i = 0; i < env_ptr1->ode_size(); i++) {
     double resource_consumed = std::accumulate(species.begin(), species.end(), 0.0, [i](double r, const species_type& s) {
       return r + s.consumption_rate(i); // accumulates r from zero
     });
@@ -278,7 +287,8 @@ void Patch<T,E>::compute_rates() {
     resource_depletion.push_back(resource_consumed);
   }
 
-  environment.compute_rates(resource_depletion);
+  env_ptr1->compute_rates(resource_depletion);
+  //todo do we need to clear this everyt step?
   resource_depletion.clear();
 }
 
@@ -352,13 +362,13 @@ double Patch<T,E>::ode_time() const {
   return time();
 }
 
+// First set_ode_state function is for resident runs. Second is for mutant runs
 template <typename T, typename E>
 ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
                                               double time) {
   
   it = ode::set_ode_state(species.begin(), species.end(), it);
   it = environment.set_ode_state(it);
-
 
   environment.time = time;
   // std::cout << "resident: etime " << environment.time << std::endl;
@@ -373,15 +383,21 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
 }
 
 // pre-cached environments, used for mutant runs
+// differs from above in that an index is passed in as argument
 template <typename T, typename E>
 ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
                                               int index) {
 
   it = ode::set_ode_state(species.begin(), species.end(), it);
 
+  // todo: use pointer here
   environment = environment_cache[index];
-  it = environment.set_ode_state(it);
-
+  
+  // todo: Possibly should skip next step. We don't want to write to env
+  // Instead could increment the iterator by an appropriate amount
+  // it = environment.set_ode_state(it);
+  for (size_t i = 0; i < environment.ode_size(); i++) {*it++;}
+ 
   // std::cout << "mutant: etime " << environment.time << "; index " << index << std::endl;
 
   compute_rates();
@@ -397,6 +413,8 @@ void Patch<T,E>::cache_ode_step() {
   }
 }
 
+// This function used in ode_solver.h
+// only gets called for mutant runs
 template <typename T, typename E>
 void Patch<T,E>::load_ode_step() {
   if(use_cached_environment) { 
@@ -410,6 +428,8 @@ void Patch<T,E>::load_ode_step() {
     }
 
     // index into the right environment
+    // todo: pointer here
+    // loads a set of 6 environments for the current step
     int idx = std::distance(step_history.begin(), step);
     environment_cache.clear();
     environment_cache = environment_history[idx];

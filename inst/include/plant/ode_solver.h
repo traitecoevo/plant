@@ -85,13 +85,16 @@ template <typename System>
 typename std::enable_if<!has_cache<System>::value, void>::type
 cache(System& system) {}
 
-// load ode history during mutant run
+// During mutant run, load ode history
+// the history is a vector of 6 states for env, needed to make a 
+// full RK step. Called as part of `step_to`
 template <typename System>
 typename std::enable_if<has_cache<System>::value, void>::type
 load(System& system) {
   system.load_ode_step();
 }
 
+// During resident run, no cache loaded, proceed as normal
 template <typename System>
 typename std::enable_if<!has_cache<System>::value, void>::type
 load(System& system) {}
@@ -228,6 +231,7 @@ void Solver<System>::step(System& system) {
 template <class System>
 void Solver<System>::step_to(System& system, double time_max_) {
   set_time_max(time_max_);
+  // Option to load prec-calculated states for environment in mutant runs
   load(system);
   setup_dydt_in(system);
   stepper.step(system, time, time_max - time, y, yerr, dydt_in, dydt_out);
