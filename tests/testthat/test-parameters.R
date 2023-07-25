@@ -32,33 +32,20 @@ test_that("Nontrivial creation", {
     s <- strategy_types[[x]]()
     e <- environment_types[[x]]
     p <- Parameters(x, e)(strategies=list(s))
-    #expect_equal(p$birth_rate, 1.0)
-    expect_true(p$is_resident)
-    
-    #expect_error(Parameters(x, e)(birth_rate=pi), "Incorrect length birth_rate")
-    expect_error(Parameters(x, e)(is_resident=FALSE), "Incorrect length is_resident")
 
-    # expect_error(Parameters(x, e)(strategies=list(strategy_types[[x]](),
-    #                                strategy_types[[x]]()),
-    #                              birth_rate=pi),
-    #              "Incorrect length birth_rate")
     expect_error(Parameters(x, e)(strategies=list(strategy_types[[x]](),
-                                   strategy_types[[x]]()),
-                                 is_resident=TRUE),
-                 "Incorrect length is_resident")
+                                   rep(strategy_types[[x]](),2))),
+                 sprintf("Expected an object of type %s_Strategy", x))
 
-    p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          is_resident=TRUE)
+    p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()))
 
     expect_identical(p$node_schedule_times_default, node_schedule_times_default(p$max_patch_lifetime))
     expect_identical(p$node_schedule_times, list(p$node_schedule_times_default))
 
     ## Now, with some of these set:
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          is_resident=TRUE,
                           max_patch_lifetime=7.021333)
 
-    message(x, " ", p$max_patch_lifetime)
     expect_lt(p$max_patch_lifetime, 10)
     expect_identical(p$node_schedule_times_default, node_schedule_times_default(p$max_patch_lifetime))
     expect_identical(p$node_schedule_times, list(p$node_schedule_times_default))
@@ -84,7 +71,6 @@ test_that("Nontrivial creation", {
 # 
 #     p$strategies <- list(s)
 #     p$birth_rate <- 1
-#     p$is_resident <- TRUE
 #     ## Pass though to force validation:
 #     tmp <- Patch(x, e)(p)$parameters
 #     expect_identical(tmp$control, ctrl_p)
@@ -101,8 +87,7 @@ test_that("Nontrivial creation", {
 test_that("Generate node schedule", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
-    p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          is_resident=TRUE)
+    p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()))
     sched <- make_node_schedule(p)
 
     expect_equal(sched$n_species, 1)
@@ -117,8 +102,6 @@ test_that("Validate", {
     e <- environment_types[[x]]
     p <- Parameters(x, e)()
     expect_equal(validate(p), p)
-    p$is_resident <- TRUE
-    expect_error(validate(p), "Incorrect length is_resident")
   }
 })
 

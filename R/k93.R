@@ -137,7 +137,6 @@ K93_test_environment <- function(height, n=101, light_env=NULL,
   # parameters <- K93_Parameters()
   # parameters$strategies <- rep(list(K93_Strategy()), n_strategies)
   # 
-  # parameters$is_resident <- rep(TRUE, n_strategies)
 
   ret <- K93_make_environment()
   ret$canopy$canopy_interpolator <- interpolator

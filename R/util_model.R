@@ -119,7 +119,6 @@ expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), mutan
 
   ret <- p <- validate(p) # Ensure times are set up correctly.
   ret$strategies <- c(p$strategies, extra)
-  ret$is_resident <- c(p$is_resident, rep(!mutant, n_extra))
 
   ## Introduce mutants at all unique times:
   if (length(p$strategies) == 0L || !mutant) {
@@ -139,7 +138,6 @@ expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), mutan
 remove_residents <- function(p) {
   if (length(p$strategies) > 0L) {
     p$strategies <- list()
-    p$is_resident <- logical(0)
     p$birth_rate <- numeric(0)
     p$node_schedule_times <- list()
   }

@@ -16,7 +16,6 @@ for (x in names(strategy_types)) {
   node <- Node(x, e)(s)
   
   p <- Parameters(x, e)(strategies=list(s),
-                        is_resident=TRUE,
                         patch_type = 'meta-population')
   
   env <- make_environment(x)
@@ -27,7 +26,6 @@ for (x in names(strategy_types)) {
 
   test_that(sprintf("Basics %s", x), {
     ## TODO: This is something that needs validating: the birth_rate and
-    ## is_resident vectors must be the right length.
     expect_equal(patch$size, 1)
     expect_identical(patch$height_max, cmp$height)
     expect_equal(patch$parameters, p)

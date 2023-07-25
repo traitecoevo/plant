@@ -12,8 +12,7 @@ test_that("Run SCM", {
     node <- Node(x, e)(s)
 
     p <- Parameters(x, e)(strategies=list(s),
-                          patch_area=10,
-                          is_resident=TRUE)
+                          patch_area=10)
     
     env <- make_environment(x)
     ctrl <- Control()
@@ -167,7 +166,6 @@ test_that("schedule setting", {
     e <- environment_types[[x]]
     p <- Parameters(x, e)(
       strategies=list(strategy_types[[x]]()),
-      is_resident=TRUE,
       max_patch_lifetime=5.0)
     env <- make_environment(x)
     ctrl <- scm_base_control()
