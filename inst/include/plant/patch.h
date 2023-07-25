@@ -164,7 +164,9 @@ void Patch<T,E>::set_mutant() {
 
 template <typename T, typename E>
 void Patch<T,E>::reset() {
-  for (auto& s : species) {
+ 
+    for (auto& s : species)
+    {
     s.clear();
 
     // allocate variables for tracking resource consumption
@@ -212,17 +214,25 @@ std::vector<double> Patch<T,E>::r_competition_effect_error(size_t species_index)
 
 template <typename T, typename E>
 void Patch<T,E>::compute_environment() {
-  if (!is_mutant_run) {
-    auto f = [&] (double x) -> double {return compute_competition(x);};
-    environment.compute_environment(f, height_max());
+  if (size() > 0)
+  {
+    if (!is_mutant_run)
+    {
+      auto f = [&] (double x) -> double
+      {return compute_competition(x);};
+      environment.compute_environment(f, height_max());
+    }
   }
 }
 
 template <typename T, typename E>
 void Patch<T,E>::rescale_environment() {
-  if (!is_mutant_run) {
-    auto f = [&] (double x) -> double {return compute_competition(x);};
+  if (size() > 0) {
+    if (!is_mutant_run ) {
+      auto f = [&] (double x) -> double
+      {return compute_competition(x);};
     environment.rescale_environment(f, height_max());
+    }
   }
 }
 
