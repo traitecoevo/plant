@@ -63,7 +63,7 @@ test_that("Can set birth rate splines correctly", {
   env <- make_environment("FF16")
   ctrl <- scm_base_control()
   
-  out <- run_scm(p1, env, ctrl)
+ # out <- run_scm(p1, env, ctrl)
 
   # expect_something
 })

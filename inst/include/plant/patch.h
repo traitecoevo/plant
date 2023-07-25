@@ -2,6 +2,8 @@
 #ifndef PLANT_PLANT_PATCH_H_
 #define PLANT_PLANT_PATCH_H_
 
+#include <memory> // std::shared_ptr
+
 #include <plant/parameters.h>
 #include <plant/species.h>
 #include <plant/ode_interface.h>
@@ -22,11 +24,12 @@ public:
   typedef Species<T,E>      species_type;
   typedef Parameters<T,E>   parameters_type;
 
+  // typedef std::shared_ptr<environment_type> environment_type_ptr;
 
   Patch(parameters_type p, environment_type e, plant::Control c);
-
   void reset();
   size_t size() const {return species.size();}
+  //Try using pointer in place of object itself
   double time() const {return environment.time;}
 
   double height_max() const;
@@ -116,6 +119,10 @@ private:
   environment_type environment;
   std::vector<species_type> species;
   std::vector<double> resource_depletion;
+
+  environment_type* env_ptr1;
+  std::shared_ptr<environment_type> env_ptr2;
+
   Control control;
 };
 
@@ -123,6 +130,8 @@ template <typename T, typename E>
 Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
   : parameters(p),
     environment(e),
+// Ideally we'd set pointer here, code below runs but the connection between pointer and env get's lost somewhere
+//   env_ptr1(&environment),
     control(c),
     environment_cache(6) {  // length of ode::Step
   parameters.validate();
@@ -134,6 +143,8 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
 
   reset();
 }
+
+
 
 template <typename T, typename E>
 void Patch<T,E>::overwrite_strategies(std::vector<strategy_type> strategies) {
@@ -238,12 +249,24 @@ void Patch<T,E>::rescale_environment() {
 
 template <typename T, typename E>
 void Patch<T,E>::compute_rates() {
+
+  // Setting the pointer here, as a proof of concept that pointers work
+  // env_ptr1 and environment should access the same data
+  // Below we use the pointer when computing rates, this works
+  // next need to figure out how to redirect to correct env object
+  env_ptr1 = &environment;
+
   double pr_patch_survival = survival_weighting->pr_survival(time());
-  
+
+//  std::cout << "E " << environment.time << " " << env_ptr1->time << std::endl;
+
   for (size_t i = 0; i < size(); ++i) {
     double pr_patch_survival = survival_weighting->pr_survival(time());
 		double birth_rate = species[i].extrinsic_drivers().evaluate("birth_rate", time());
-    species[i].compute_rates(environment, pr_patch_survival, birth_rate);
+
+   // species[i].compute_rates(environment, pr_patch_survival, birth_rate);
+   //Pass pointer into compute rates. This works
+    species[i].compute_rates(*env_ptr1, pr_patch_survival, birth_rate);
   }
 
   resource_depletion.reserve(environment.ode_size());
@@ -335,6 +358,7 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
   
   it = ode::set_ode_state(species.begin(), species.end(), it);
   it = environment.set_ode_state(it);
+
 
   environment.time = time;
   // std::cout << "resident: etime " << environment.time << std::endl;

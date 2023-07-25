@@ -292,8 +292,9 @@ test_that("Can create empty SCM", {
     ## Check light environment is empty:
     env <- scm$patch$environment
     patch <- scm$patch
+
     # This is no longer zero:
-    # expect_equal(env$canopy$canopy_interpolator$size, 0)
+    expect_gt(env$canopy$canopy_interpolator$size, 30)
     expect_equal(env$canopy_openness(0), 1.0)
   }
 })

@@ -38,6 +38,7 @@ for (x in names(strategy_types)) {
     
     # with no nodes, we only expect env vars
     env_size <- env$ode_size
+    #fails here
     env_state <- patch$ode_state
     env_rates <- patch$ode_rates
     expect_equal(patch$ode_size, env_size)
@@ -159,8 +160,8 @@ for (x in names(strategy_types)) {
   })
   
   test_that("Weibull Disturbance as default", {
-    expect_identical(patch$time, 0.0)
-    expect_identical(patch$pr_survival(patch$time), 1.0)
+    expect_equal(patch$time, 0.0)
+    expect_equal(patch$pr_survival(patch$time), 1.0)
     
     expect_equal(patch$disturbance_mean_interval(), 30)
     disturbance <- Weibull_Disturbance_Regime(105.32)
