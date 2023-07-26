@@ -11,8 +11,6 @@ namespace plant {
 
 class K93_Environment : public Environment {
 public:
-  typedef std::shared_ptr<K93_Environment> ptr;
-
   K93_Environment() {
     canopy_rescale_usually = false;
     time = 0.0;
@@ -71,10 +69,6 @@ inline Rcpp::List get_state(const K93_Environment environment, double time) {
   ret["canopy"] = get_state(environment.canopy); // does a full copy of ret, not efficient
   return ret;
 }
-
-// K93_Environment::ptr make_environment_ptr(K93_Environment e) {
-//   return std::make_shared<K93_Environment>(e);
-// }
 
 }
 

@@ -14,7 +14,6 @@ test_that("mutant runs work", {
   birth_rate <- 1
   
   pn <- expand_parameters(trait_matrix(rep(lma, n), "lma"), p,
-                          mutant = F,
                           birth_rate_list = rep(birth_rate, n))
   
   types <- extract_RcppR6_template_types(pn, "Parameters")
@@ -32,7 +31,6 @@ test_that("mutant runs work", {
   
   # one mutant
   p1 <- expand_parameters(trait_matrix(lma, "lma"), p,
-                          mutant = F,
                           birth_rate_list = birth_rate)
   
   scm$run_mutant(p1)
@@ -40,7 +38,6 @@ test_that("mutant runs work", {
   
   # n + 1 mutants
   pn_p1 <- expand_parameters(trait_matrix(c(rep(lma, n + 1)), "lma"), p,
-                             mutant = F,
                              birth_rate_list = rep(birth_rate, n + 1))
   
   scm$run_mutant(pn_p1)
@@ -50,7 +47,6 @@ test_that("mutant runs work", {
   new_lma = 0.20
     
   p1 <- expand_parameters(trait_matrix(new_lma, "lma"), p,
-                          mutant = F,
                           birth_rate_list = birth_rate)
   
   scm$run_mutant(p1)
@@ -60,7 +56,6 @@ test_that("mutant runs work", {
   new_lma = 0.18
   
   p1 <- expand_parameters(trait_matrix(new_lma, "lma"), p,
-                          mutant = F,
                           birth_rate_list = birth_rate)
   
   scm$run_mutant(p1)
@@ -80,17 +75,14 @@ test_that("mutant runs work", {
   birth_rate <- 1
 
   p1 <- expand_parameters(trait_matrix(lma[2], "lma"), p,
-    mutant = F,
     birth_rate_list = rep(birth_rate, 1)
   )
 
   p3 <- expand_parameters(trait_matrix(lma, "lma"), p,
-    mutant = F,
     birth_rate_list = rep(birth_rate, 3)
   )
 
   p21 <- expand_parameters(trait_matrix(rep(lma, 7), "lma"), p,
-    mutant = F,
     birth_rate_list = rep(birth_rate, 21)
   )
 

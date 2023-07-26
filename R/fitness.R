@@ -21,18 +21,20 @@ fitness_landscape <- function(trait_matrix, p, hyperpar=param_hyperpar(p), log_f
   
   birth_rates <- rep(0, nrow(trait_matrix))
   
-  p_with_mutants <- expand_parameters(trait_matrix, p, hyperpar,
-                                      mutant = TRUE,
+  p_mutants <- expand_parameters(trait_matrix, remove_residents(p), hyperpar,
                                       birth_rate_list = birth_rates)
   
-  scm <- run_scm(p_with_mutants,
+  ## Check here
+  scm <- run_scm(p,
                  use_ode_times=length(p$node_schedule_ode_times) > 0,
                  ctrl = ctrl
                  )
   
+  scm$run_mutant(p_mutants)
+
   net_reproduction_ratios <- scm$net_reproduction_ratios
   if (n_residents > 0L) {
-    net_reproduction_ratios <- net_reproduction_ratios[-seq_len(n_residents)]
+    net_reproduction_ratios <- net_reproduction_ratios
   }
   if (log_fitness) {
     log(net_reproduction_ratios)

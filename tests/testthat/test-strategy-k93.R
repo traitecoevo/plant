@@ -83,7 +83,7 @@ test_that("K93 seed rain is unchanged", {
   ctrl <- scm_base_control()
 
   # Use single sp. defaults
-  p1 <- expand_parameters(trait_matrix(0.059, "b_0"), p0, mutant = FALSE, birth_rate_list=20)
+  p1 <- expand_parameters(trait_matrix(0.059, "b_0"), p0,  birth_rate_list=20)
   #p1$birth_rate <- 20
 
   out <- run_scm(p1, env, ctrl)
@@ -100,7 +100,7 @@ test_that("K93 seed rain is unchanged", {
                       c("b_0", "b_1", "b_2",
                         "c_0", "c_1", "d_0", "d_1"))
 
-  p2 <- expand_parameters(sp, p0, mutant = FALSE, birth_rate_list = c(20, 20, 20))
+  p2 <- expand_parameters(sp, p0,  birth_rate_list = c(20, 20, 20))
   #p2$birth_rate <- c(20, 20, 20)
   out <- run_scm(p2, env, ctrl)
 

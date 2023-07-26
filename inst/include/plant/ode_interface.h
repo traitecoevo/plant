@@ -168,7 +168,7 @@ derivs(T& obj, const state_type& y, state_type& dydt,
 template <typename T>
 state_type r_derivs(T& obj, const state_type& y, const double time) {
   state_type dydt(obj.ode_size());
-  derivs(obj, y, dydt, time); 
+  derivs(obj, y, dydt, time);
   return dydt;
 }
 

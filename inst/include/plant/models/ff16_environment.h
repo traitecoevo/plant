@@ -12,8 +12,6 @@ namespace plant {
 
 class FF16_Environment : public Environment {
 public:
-  typedef std::shared_ptr<FF16_Environment> ptr;
-
   // constructor for R interface - default settings can be modified
   // except for soil_number_of_depths and canopy_rescale_usually
   // which are only updated on construction
@@ -119,11 +117,6 @@ inline Rcpp::List get_state(const FF16_Environment environment, double time) {
   ret["canopy"] = get_state(environment.canopy); // does a full copy of ret, not efficient
   return ret;
 }
-
-// FF16_Environment::ptr make_environment_ptr(FF16_Environment e) {
-//   return std::make_shared<FF16_Environment>(e);
-// }
-
 }
 
 #endif

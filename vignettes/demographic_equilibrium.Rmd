@@ -25,7 +25,7 @@ library(parallel)
 n_cores = max(1, detectCores() - 1)
 
 params <- scm_base_parameters("FF16")
-patch <- expand_parameters(trait_matrix(0.0825, "lma"), params, mutant = FALSE)
+patch <- expand_parameters(trait_matrix(0.0825, "lma"), params)
 ```
 
 # Propagule arrival (seed rain)

@@ -169,7 +169,7 @@ test_that("viable strategies", {
   params <- scm_base_parameters("FF16")
   params$max_patch_lifetime <- 60
 
-  patch <- expand_parameters(trait_matrix(c(0.005, 0.03, 0.1), "lma"), params, mutant = FALSE, birth_rate_list = c(1, 0.1, 0.001))
+  patch <- expand_parameters(trait_matrix(c(0.005, 0.03, 0.1), "lma"), params, birth_rate_list = c(1, 0.1, 0.001))
 
   ctrl = scm_base_control()
 

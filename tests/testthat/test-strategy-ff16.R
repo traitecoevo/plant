@@ -185,7 +185,7 @@ test_that("offspring arrival", {
   
   # one species
   p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar, 
-                          mutant = FALSE, birth_rate_list = list(20))
+                           birth_rate_list = list(20))
 
   out <- run_scm(p1, env, ctrl)
   expect_equal(out$offspring_production, 16.88946, tolerance=1e-5)
@@ -193,7 +193,7 @@ test_that("offspring arrival", {
 
   # two species
   p2 <- expand_parameters(trait_matrix(c(0.0825, 0.2625), "lma"), p0, FF16_hyperpar, 
-                          mutant = FALSE, birth_rate_list = list(11.99177, 16.51006))
+                           birth_rate_list = list(11.99177, 16.51006))
   
   out <- run_scm(p2, env, ctrl)
   expect_equal(out$offspring_production, c(11.99529, 16.47519), tolerance=1e-5)
@@ -207,7 +207,7 @@ test_that("Report generation", {
   ctrl <- scm_base_control()
   
   p2 <- expand_parameters(trait_matrix(c(0.0825, 0.2625), "lma"), p0,   FF16_hyperpar, 
-                          mutant = FALSE, birth_rate_list = list(11.99177, 16.51006))
+                           birth_rate_list = list(11.99177, 16.51006))
 
   # test report generation
   out <- run_scm_collect(p2, env, ctrl)
