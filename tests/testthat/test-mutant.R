@@ -65,20 +65,17 @@ test_that("mutant runs work", {
   
   scm$run_mutant(p1)
   expect_lt(resident_rr[1] - scm$net_reproduction_ratios, 0)
-})
 
-test_that("many mutants for speed", {
+  # many mutants for speed
+
   # basic setup
   p <- scm_base_parameters("FF16")
-  p$max_patch_lifetime <- 100
+  p$max_patch_lifetime <- 50
 
   e <- make_environment("FF16")
   ctrl <- scm_base_control()
   ctrl$save_RK45_cache <- TRUE
-  ctrl_no_cache <- scm_base_control()
 
-
-  # n identical residents
   lma <- c(0.05, 0.1, 0.2)
   birth_rate <- 1
 
@@ -99,43 +96,17 @@ test_that("many mutants for speed", {
 
   types <- extract_RcppR6_template_types(p1, "Parameters")
   scm <- do.call("SCM", types)(p1, e, ctrl)
-  cat("Residents 1: ", system.time(scm$run()), "\n")
+  scm$run()
   resident_rr1 <- scm$net_reproduction_ratios
-
-  cat("mutants 1: ", system.time(scm$run_mutant(p1)), "\n")
-  expect_equal(resident_rr1, scm$net_reproduction_ratios, tolerance = 1e-3)
-  cat("mutants 3: ", system.time(scm$run_mutant(p3)), "\n")
-  cat("mutants 21: ", system.time(scm$run_mutant(p21)), "\n")
- 
+  scm$run_mutant(p1)
+  expect_equal(resident_rr1, scm$net_reproduction_ratios, tolerance = 1e-3) 
 
   types <- extract_RcppR6_template_types(p3, "Parameters")
   scm <- do.call("SCM", types)(p3, e, ctrl)
-  cat("Residents 3: ", system.time(scm$run()), "\n")
+  scm$run()
   resident_rr3 <- scm$net_reproduction_ratios
-
-  cat("mutants 1: ", system.time(scm$run_mutant(p1)), "\n")
-  cat("mutants 3: ", system.time(scm$run_mutant(p3)), "\n")
+  scm$run_mutant(p3)
   expect_equal(resident_rr3, scm$net_reproduction_ratios, tolerance = 1e-3)
-  cat("mutants 21: ", system.time(scm$run_mutant(p21)), "\n")
-
-
-  types <- extract_RcppR6_template_types(p21, "Parameters")
-  scm <- do.call("SCM", types)(p21, e, ctrl)
-  cat("Residents 21: ", system.time(scm$run()), "\n")
-  resident_rr21 <- scm$net_reproduction_ratios
-
-  # one mutants - same environment
-  cat("mutants 1: ", system.time(scm$run_mutant(p1)), "\n")
-  cat("mutants 3: ", system.time(scm$run_mutant(p3)), "\n")
-  cat("mutants 21: ", system.time(scm$run_mutant(p21)), "\n")
-  expect_equal(resident_rr21, scm$net_reproduction_ratios, tolerance = 1e-3)
-
-  scm <- do.call("SCM", types)(p1, e, ctrl_no_cache)
-  cat("Residents 1: ", system.time(scm$run()), "\n")
-  scm <- do.call("SCM", types)(p3, e, ctrl_no_cache)
-  cat("Residents 3: ", system.time(scm$run()), "\n")
-  scm <- do.call("SCM", types)(p21, e, ctrl_no_cache)
-  cat("Residents 21: ", system.time(scm$run()), "\n")
 
 })
 

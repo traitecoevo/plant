@@ -252,18 +252,12 @@ void Solver<System>::resize(size_t size_) {
   stepper.resize(size_);
 }
 
-// TODO: Need to go through and sort out the logic here; it might be
-// that we can just access the rates.  Could probably do something
-// where we ask what 'y' is in the model, and if it's the same then we
-// use the existing rates, otherwise we apply our y.  For now, this
-// should be correct, but comes at a cost of an extra evaluation.
 template <class System>
 void Solver<System>::setup_dydt_in(System& system) {
   if (stepper.can_use_dydt_in && !dydt_in_is_clean) {
     // TODO: Not clear that this is the right thing here; should just
     // be able to look up the correct dydt rates because we've already
     // set state?
-    //   system.ode_rates(dydt_in.begin());
     ode::derivs(system, y, dydt_in, time);
     dydt_in_is_clean = true;
   }

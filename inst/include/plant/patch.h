@@ -96,7 +96,7 @@ public:
   // These are only here because they wrap private functions.
   void r_compute_environment() {compute_environment();}
   void r_compute_rates() {
-    env_ptr1 = &environment;
+    environment_ptr = &environment;
     compute_rates();
     }
 
@@ -131,8 +131,7 @@ private:
   std::vector<species_type> species;
   std::vector<double> resource_depletion;
 
-  environment_type* env_ptr1;
-  std::shared_ptr<environment_type> env_ptr2;
+  environment_type* environment_ptr;
 
   Control control;
 };
@@ -141,8 +140,6 @@ template <typename T, typename E>
 Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
   : parameters(p),
     environment(e),
-// Ideally we'd set pointer here, code below runs but the connection between pointer and env get's lost somewhere
-//   env_ptr1(&environment),
     control(c),
     environment_cache(6) {  // length of ode::Step
   parameters.validate();
@@ -205,7 +202,7 @@ void Patch<T,E>::reset() {
   compute_environment();
 
   // compute effects of resource consumption
-  env_ptr1 = &environment;
+  environment_ptr = &environment;
   compute_rates();
 }
 
@@ -269,25 +266,21 @@ void Patch<T,E>::compute_rates() {
   // the env_ptr, which is a pointer to an environment object
   //  -- for the resident the pointer points to the internal environment object
   //  -- for a mutant, the pointer points to a cached environment object
-  double time_ = env_ptr1->time;
-
-  std::cout << "\t\t\tRates" << time_ << std::endl;
+  double time_ = environment_ptr->time;
 
   double pr_patch_survival = survival_weighting->pr_survival(time_);
-
-  //  std::cout << "E " << environment.time << " " << env_ptr1->time << std::endl;
 
   for (size_t i = 0; i < size(); ++i) {
     double pr_patch_survival = survival_weighting->pr_survival(time_);
     double birth_rate = species[i].extrinsic_drivers().evaluate("birth_rate", time_);
 
-   // species[i].compute_rates(environment, pr_patch_survival, birth_rate);
-   //Pass pointer into compute rates. This works
-    species[i].compute_rates(*env_ptr1, pr_patch_survival, birth_rate);
+    // Pass pointer into compute rates.
+    // species[i].compute_rates(environment, pr_patch_survival, birth_rate);
+    species[i].compute_rates(*environment_ptr, pr_patch_survival, birth_rate);
   }
 
-  resource_depletion.reserve(env_ptr1->ode_size());
-  for(size_t i = 0; i < env_ptr1->ode_size(); i++) {
+  resource_depletion.reserve(environment_ptr->ode_size());
+  for(size_t i = 0; i < environment_ptr->ode_size(); i++) {
     double resource_consumed = std::accumulate(species.begin(), species.end(), 0.0, [i](double r, const species_type& s) {
       return r + s.consumption_rate(i); // accumulates r from zero
     });
@@ -295,7 +288,7 @@ void Patch<T,E>::compute_rates() {
     resource_depletion.push_back(resource_consumed);
   }
 
-  env_ptr1->compute_rates(resource_depletion);
+  environment_ptr->compute_rates(resource_depletion);
 
   //todo do we need to clear this every step?
   resource_depletion.clear();
@@ -314,23 +307,18 @@ void Patch<T,E>::introduce_new_node(size_t species_index) {
 
 template <typename T, typename E>
 void Patch<T,E>::introduce_new_nodes(const std::vector<size_t>& species_index) {
-  // std::cout << "introducing nodes for species: ";
   for (size_t i : species_index) {
-    // std::cout << i << " ";
     species[i].introduce_new_node();
   }
-  // std::cout << std::endl;
   if (!is_mutant_run) {
     compute_environment();
   }
 }
 
-
 template <typename T, typename E>
 void Patch<T,E>::r_set_time(double time) {
   environment.time = time;
 }
-
 
 // Arguments here are:
 //   time: time
@@ -379,23 +367,21 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
   it = ode::set_ode_state(species.begin(), species.end(), it);
   it = environment.set_ode_state(it);
 
-  std::cout << "\t\tSet state" << time << std::endl;
-
   environment.time = time;
-  // std::cout << "resident: etime " << environment.time << std::endl;
   
   if (environment.canopy_rescale_usually) {
     rescale_environment();
   } else {
     compute_environment();
   }
-  env_ptr1 = &environment;
+  environment_ptr = &environment;
   compute_rates();
   return it;
 }
 
-// pre-cached environments, used for mutant runs
-// differs from above in that an index is passed in as argument
+// used for mutant runs
+// -- differs from above in that an index is passed in as argument
+// -- Environments are loaded from history, instead of being calculated 
 template <typename T, typename E>
 ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
                                               int index) {
@@ -404,27 +390,13 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
 
   // Using a pointer here to avoid copying environemnt object
   // Just point the pointer, used inside compute rates to get env, to relevant env object
-  // todo - might even 
-  env_ptr1 = &(environment_history[idx][index]);
-  // make sure time is set correctly
-  // todo: could avoid this by getting time from env in compute_rates, rather than using time()
-  environment.time = env_ptr1->time;
+  environment_ptr = &(environment_history[idx][index]);
+  environment.time = environment_ptr->time;
 
-  std::cout << "\t\tSet state " << env_ptr1->time << std::endl;
-
-  // old (intermediate method)
-  //  environment = environment_history[idx][index];
-  //  env_ptr1 = &environment;
-
-  // std::cout << "mutant: etime " << environment.time << "; index " << index << std::endl;
-
-  // todo: Possibly should skip next step. We don't want to write to env
-  // Instead could increment the iterator by an appropriate amount
+  // Increment the iterator by an appropriate amount, but don't actually do anything in the env
   // it = environment.set_ode_state(it);
-  for (size_t i = 0; i < env_ptr1->ode_size(); i++) {*it++;}
+  for (size_t i = 0; i < environment_ptr->ode_size(); i++) {*it++;}
  
-  // std::cout << "mutant: etime " << environment.time << "; index " << index << std::endl;
-
   compute_rates();
   return it;
 }
@@ -434,7 +406,6 @@ void Patch<T,E>::cache_ode_step() {
   if(save_RK45_cache) { 
     step_history.push_back(time());
     environment_history.push_back(environment_cache);
-    // environment_cache.clear()
   }
 }
 
@@ -446,8 +417,6 @@ void Patch<T,E>::load_ode_step() {
   {
     std::vector<double>::iterator step;
 
-    std::cout << "\tLoad " << time() << std::endl;
-
     // find where we are in the cache
     step = std::find(step_history.begin(), step_history.end(), time());
 
@@ -455,12 +424,8 @@ void Patch<T,E>::load_ode_step() {
       util::stop("ODE time not found in step history");
     }
 
-    // index into the right environment
-    // todo: pointer here
-    // loads a set of 6 environments for the current step
+    // load index to a set of 6 environments for the current step
     idx = std::distance(step_history.begin(), step);
-   // environment_cache.clear();
-   // environment_cache = environment_history[idx];
   }
 }
 
@@ -491,7 +456,6 @@ ode::iterator Patch<T,E>::ode_rates(ode::iterator it) const {
 template <typename T, typename E>
 ode::iterator Patch<T,E>::ode_aux(ode::iterator it) const {
   it = ode::ode_aux(species.begin(), species.end(), it);
-  //it = environment.ode_rates(it);
   return it;
 }
 
