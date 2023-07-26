@@ -95,7 +95,10 @@ public:
   }
   // These are only here because they wrap private functions.
   void r_compute_environment() {compute_environment();}
-  void r_compute_rates() {compute_rates();}
+  void r_compute_rates() {
+    env_ptr1 = &environment;
+    compute_rates();
+    }
 
   // Prototype env. cache for assembly
   std::vector<double> step_history{0.0};  // always start at zero
@@ -202,6 +205,7 @@ void Patch<T,E>::reset() {
   compute_environment();
 
   // compute effects of resource consumption
+  env_ptr1 = &environment;
   compute_rates();
 }
 
@@ -264,7 +268,7 @@ void Patch<T,E>::compute_rates() {
   // env_ptr1 and environment should access the same data
   // Below we use the pointer when computing rates, this works
   // next need to figure out how to redirect to correct env object
-  env_ptr1 = &environment;
+  //env_ptr1 = &environment
 
   double pr_patch_survival = survival_weighting->pr_survival(time());
 
@@ -379,6 +383,7 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
   } else {
     compute_environment();
   }
+  env_ptr1 = &environment;
   compute_rates();
   return it;
 }
@@ -391,13 +396,24 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
 
   it = ode::set_ode_state(species.begin(), species.end(), it);
 
-  // todo: use pointer here
-  environment = environment_history[idx][index];
+  // Using a pointer here to avoid copying environemnt object
+  // Just point the pointer, used inside compute rates to get env, to relevant env object
+  // todo - might even 
+  env_ptr1 = &(environment_history[idx][index]);
+  // make sure time is set correctly
+  // todo: could avoid this by getting time from env in compute_rates, rather than using time()
+  environment.time = env_ptr1->time;
+
+  // old (intermediate method)
+  //  environment = environment_history[idx][index];
+  //  env_ptr1 = &environment;
+
+  // std::cout << "mutant: etime " << environment.time << "; index " << index << std::endl;
 
   // todo: Possibly should skip next step. We don't want to write to env
   // Instead could increment the iterator by an appropriate amount
   // it = environment.set_ode_state(it);
-  for (size_t i = 0; i < environment.ode_size(); i++) {*it++;}
+  for (size_t i = 0; i < env_ptr1->ode_size(); i++) {*it++;}
  
   // std::cout << "mutant: etime " << environment.time << "; index " << index << std::endl;
 
@@ -418,9 +434,10 @@ void Patch<T,E>::cache_ode_step() {
 // only gets called for mutant runs
 template <typename T, typename E>
 void Patch<T,E>::load_ode_step() {
-  if(use_cached_environment) { 
+  if (use_cached_environment)
+  {
     std::vector<double>::iterator step;
-    
+
     // find where we are in the cache
     step = std::find(step_history.begin(), step_history.end(), time());
 

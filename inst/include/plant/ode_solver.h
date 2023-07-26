@@ -166,6 +166,7 @@ void Solver<System>::step(System& system) {
   const double time_orig = time, time_remaining = time_max - time;
   double step_size = step_size_last;
 
+
   // Save y in case of failure in a step (recall that stepper.step
   // changes 'y')
   const state_type y_orig = y;
@@ -202,7 +203,7 @@ void Solver<System>::step(System& system) {
       } else {
       	// We've reached limits of machine accuracy in differences of
       	// step sizes or time (or both).
-      	util::stop("Cannot achive the desired accuracy");
+      	util::stop("Cannot achieve the desired accuracy");
       }
     } else {
       // We have successfully taken a step and will return.  Update
@@ -231,6 +232,7 @@ void Solver<System>::step(System& system) {
 template <class System>
 void Solver<System>::step_to(System& system, double time_max_) {
   set_time_max(time_max_);
+
   // Option to load prec-calculated states for environment in mutant runs
   load(system);
   setup_dydt_in(system);
