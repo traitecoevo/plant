@@ -268,7 +268,8 @@ void Patch<T,E>::compute_rates() {
   // env_ptr1 and environment should access the same data
   // Below we use the pointer when computing rates, this works
   // next need to figure out how to redirect to correct env object
-  //env_ptr1 = &environment
+  //env_ptr1 = &environment;
+  std::cout << "\t\t\tRates" << time() << std::endl;
 
   double pr_patch_survival = survival_weighting->pr_survival(time());
 
@@ -375,6 +376,8 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
   it = ode::set_ode_state(species.begin(), species.end(), it);
   it = environment.set_ode_state(it);
 
+  std::cout << "\t\tSet state" << time << std::endl;
+
   environment.time = time;
   // std::cout << "resident: etime " << environment.time << std::endl;
   
@@ -403,6 +406,8 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
   // make sure time is set correctly
   // todo: could avoid this by getting time from env in compute_rates, rather than using time()
   environment.time = env_ptr1->time;
+
+  std::cout << "\t\tSet state " << env_ptr1->time << std::endl;
 
   // old (intermediate method)
   //  environment = environment_history[idx][index];
@@ -437,6 +442,8 @@ void Patch<T,E>::load_ode_step() {
   if (use_cached_environment)
   {
     std::vector<double>::iterator step;
+
+    std::cout << "\tLoad " << time() << std::endl;
 
     // find where we are in the cache
     step = std::find(step_history.begin(), step_history.end(), time());
