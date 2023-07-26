@@ -264,20 +264,22 @@ void Patch<T,E>::rescale_environment() {
 template <typename T, typename E>
 void Patch<T,E>::compute_rates() {
 
-  // Setting the pointer here, as a proof of concept that pointers work
-  // env_ptr1 and environment should access the same data
-  // Below we use the pointer when computing rates, this works
-  // next need to figure out how to redirect to correct env object
-  //env_ptr1 = &environment;
-  std::cout << "\t\t\tRates" << time() << std::endl;
+  // Computes rates of change for the patch, including all the component species
+  // While the patch has an `environment`, the rates here are calculated from
+  // the env_ptr, which is a pointer to an environment object
+  //  -- for the resident the pointer points to the internal environment object
+  //  -- for a mutant, the pointer points to a cached environment object
+  double time_ = env_ptr1->time;
 
-  double pr_patch_survival = survival_weighting->pr_survival(time());
+  std::cout << "\t\t\tRates" << time_ << std::endl;
 
-//  std::cout << "E " << environment.time << " " << env_ptr1->time << std::endl;
+  double pr_patch_survival = survival_weighting->pr_survival(time_);
+
+  //  std::cout << "E " << environment.time << " " << env_ptr1->time << std::endl;
 
   for (size_t i = 0; i < size(); ++i) {
-    double pr_patch_survival = survival_weighting->pr_survival(time());
-		double birth_rate = species[i].extrinsic_drivers().evaluate("birth_rate", time());
+    double pr_patch_survival = survival_weighting->pr_survival(time_);
+    double birth_rate = species[i].extrinsic_drivers().evaluate("birth_rate", time_);
 
    // species[i].compute_rates(environment, pr_patch_survival, birth_rate);
    //Pass pointer into compute rates. This works
@@ -294,7 +296,8 @@ void Patch<T,E>::compute_rates() {
   }
 
   env_ptr1->compute_rates(resource_depletion);
-  //todo do we need to clear this everyt step?
+
+  //todo do we need to clear this every step?
   resource_depletion.clear();
 }
 
