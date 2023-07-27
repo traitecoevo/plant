@@ -79,12 +79,27 @@ test_that("bounds", {
 
 test_that("fitness", {
   
-  # Now solve actual bounds for viable fitness
   params <- scm_base_parameters("FF16")
 
+  # max growth rate function
+  expect_silent(
+    fitness2 <- fundamental_fitness(trait_matrix(0.05, "lma"), params)
+  )
+  expect_equal(fitness2, 8.372336, tolerance = 1e-4)
+
+
+  # Now solve actual bounds for viable fitness
   expect_silent({ 
     bounds1 <- viable_fitness(bounds_infinite("lma"), params)
   })
+
+  # max fitness
+  expect_silent(
+    max_f <- max_fitness(bounds1, params, log_scale = TRUE)
+  )
+
+  expect_equal(max_f[1], 0.2985623, tolerance = 1e-4)
+  expect_equal(attr(max_f, "fitness"), 11.09135, tolerance = 1e-4)
 
   expect_is(bounds1, "matrix")
   expect_equal(
@@ -117,24 +132,6 @@ test_that("fitness", {
     bounds2 <- viable_fitness(rbind(bounds0, bounds0, bounds0), params)
   )
 
-  # max growth rate function
-  expect_silent(
-    fitness2 <- fundamental_fitness(trait_matrix(0.05, "lma"), params)
-  )
-  expect_equal(
-    fitness2,
-    8.372336,
-    tolerance = 1e-4
-  )
-
-  # max fitness
-  expect_silent(
-    max_f <- max_fitness(bounds1, params, log_scale = TRUE)
-  )
-
-  expect_equal(max_f[1], 0.2985623, tolerance = 1e-4)
-  expect_equal(attr(max_f, "fitness"), 11.09135, tolerance = 1e-4)
-
   # fitness landscape
   lma <- trait_matrix(seq_log_range(bounds1, 5), "lma")
 
@@ -144,10 +141,7 @@ test_that("fitness", {
 
   comparison <- c(-0.000510755977418667, 10.3682397084861, 11.0785948241787, 9.84121044132885, -0.000147021768340749)
 
-  expect_equal(
-    fitness, comparison, 
-    tolerance = 1e-4
-  )
+  expect_equal(fitness, comparison, tolerance = 1e-4)
 })
 
 test_that("viable strategies", {
