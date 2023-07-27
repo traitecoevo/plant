@@ -106,8 +106,6 @@ void Step<System>::step(System& system,
     ytmp[i] = y[i] + h * (b3[0] * k1[i] + b3[1] * k2[i]);
   }
 
-  
-
   // k3 step:
   derivs(system, ytmp, k3, time + ah[1] * h, 1);
   cache(system, 1);
@@ -115,7 +113,6 @@ void Step<System>::step(System& system,
   for (size_t i = 0; i < size; ++i) {
     ytmp[i] = y[i] + h * (b4[0] * k1[i] + b4[1] * k2[i] + b4[2] * k3[i]);
   }
-
 
   // k4 step:
   derivs(system, ytmp, k4, time + ah[2] * h, 2);
@@ -135,7 +132,6 @@ void Step<System>::step(System& system,
 			  b6[3] * k4[i] + b6[4] * k5[i]);
   }
 
-
   // k6 step and final sum
   derivs(system, ytmp, k6, time + ah[4] * h, 4);
   cache(system, 4);
@@ -145,7 +141,6 @@ void Step<System>::step(System& system,
     const double d_i = c1 * k1[i] + c3 * k3[i] + c4 * k4[i] + c6 * k6[i];
     y[i] += h * d_i;
   }
-
 
   // Evaluate dydt_out.
   derivs(system, y, dydt_out, time + h, 5);

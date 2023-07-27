@@ -232,9 +232,7 @@ void Solver<System>::step(System& system) {
 template <class System>
 void Solver<System>::step_to(System& system, double time_max_) {
   set_time_max(time_max_);
-
-  // Option to load prec-calculated states for environment in mutant runs
-  load(system);
+  load(system); // option to load pre-calculated states in mutant runs
   setup_dydt_in(system);
   stepper.step(system, time, time_max - time, y, yerr, dydt_in, dydt_out);
   save_dydt_out_as_in();

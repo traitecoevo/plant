@@ -2,8 +2,6 @@
 #ifndef PLANT_PLANT_PATCH_H_
 #define PLANT_PLANT_PATCH_H_
 
-#include <memory> // std::shared_ptr
-
 #include <plant/parameters.h>
 #include <plant/species.h>
 #include <plant/ode_interface.h>
@@ -24,11 +22,10 @@ public:
   typedef Species<T,E>      species_type;
   typedef Parameters<T,E>   parameters_type;
 
-  // typedef std::shared_ptr<environment_type> environment_type_ptr;
-
   Patch(parameters_type p, environment_type e, plant::Control c);
   void reset();
   size_t size() const {return species.size();}
+
   //Try using pointer in place of object itself
   double time() const {return environment.time;}
 
@@ -57,21 +54,21 @@ public:
   size_t ode_size() const;
   size_t aux_size() const;
   double ode_time() const;
-  // set_ode_state is the main interface for stepping the patch as an ode system
-  // There are two implementations.
-  // First set_ode_state function is for resident runs.
-  // Second is for mutant runs
-  // the decision which to use is based on whether we are using the stored cache of
-  // environment (determined by `use_cached_environment` in ode_interface.h)
-  ode::const_iterator set_ode_state(ode::const_iterator it, double time);
-  ode::const_iterator set_ode_state(ode::const_iterator it, int index);
+
   ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
   ode::iterator       ode_aux(ode::iterator it) const;
 
+  // set_ode_state is the main interface for stepping the patch as an ode system
+  // There are two implementations.
+  //   - first set_ode_state function is for resident runs.
+  //   - second is for mutant runs
+  // The decision which to use is determined by `use_cached_environment` below
+  ode::const_iterator set_ode_state(ode::const_iterator it, double time);
+  ode::const_iterator set_ode_state(ode::const_iterator it, int index);
+
   // * R interface
   // Data accessors:
-
   std::vector<double> r_density(std::vector<double> time) const {return survival_weighting->r_density(time);}
   double r_pr_survival(double time) const {return survival_weighting->pr_survival(time);}
   double r_disturbance_mean_interval() const {return survival_weighting->r_mean_interval();}
@@ -100,18 +97,19 @@ public:
     compute_rates();
     }
 
-  // Prototype env. cache for assembly
+  // env. cache for assembly
   std::vector<double> step_history{0.0};  // always start at zero
   std::vector<std::vector<environment_type>> environment_history;
+  std::vector<environment_type> environment_cache;
 
   void cache_ode_step();
   void cache_RK45_step(int step);
   void load_ode_step();
-  std::vector<environment_type> environment_cache;
-
-  // use cache for mutant runs
-  // todo: document more -- what variable does save_RK45_cache relate to in ode_interface
+  
+  // used cache_ode_step for mutant runs
   bool save_RK45_cache;
+
+  // used in load_ode_step for mutant runs
   bool use_cached_environment = false;
 
   bool is_mutant_run = false;
@@ -121,7 +119,7 @@ public:
   void overwrite_strategies(std::vector<strategy_type> strategies);
 
 private:
-  int idx;
+  int idx; // used to access environment cache for mutant runs
   void compute_environment();
   void rescale_environment();
   void compute_rates();
@@ -144,8 +142,6 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
     environment_cache(6) {  // length of ode::Step
   parameters.validate();
 
-  // todo: document this.
-  // save_RK45_cache is not in ode interface
   save_RK45_cache = control.save_RK45_cache;
   survival_weighting = p.disturbance;
 
@@ -153,8 +149,6 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
 
   reset();
 }
-
-
 
 template <typename T, typename E>
 void Patch<T,E>::overwrite_strategies(std::vector<strategy_type> strategies) {
@@ -185,11 +179,8 @@ void Patch<T,E>::set_mutant() {
 
 template <typename T, typename E>
 void Patch<T,E>::reset() {
- 
-    for (auto& s : species)
-    {
+   for (auto& s : species) {
     s.clear();
-
     // allocate variables for tracking resource consumption
     s.resize_consumption_rates(environment.ode_size());
   }
@@ -236,10 +227,8 @@ std::vector<double> Patch<T,E>::r_competition_effect_error(size_t species_index)
 
 template <typename T, typename E>
 void Patch<T,E>::compute_environment() {
-  if (size() > 0)
-  {
-    if (!is_mutant_run)
-    {
+  if (size() > 0) {
+    if (!is_mutant_run) {
       auto f = [&] (double x) -> double
       {return compute_competition(x);};
       environment.compute_environment(f, height_max());
@@ -251,9 +240,8 @@ template <typename T, typename E>
 void Patch<T,E>::rescale_environment() {
   if (size() > 0) {
     if (!is_mutant_run ) {
-      auto f = [&] (double x) -> double
-      {return compute_competition(x);};
-    environment.rescale_environment(f, height_max());
+      auto f = [&] (double x) -> double {return compute_competition(x);};
+      environment.rescale_environment(f, height_max());
     }
   }
 }
@@ -274,8 +262,7 @@ void Patch<T,E>::compute_rates() {
     double pr_patch_survival = survival_weighting->pr_survival(time_);
     double birth_rate = species[i].extrinsic_drivers().evaluate("birth_rate", time_);
 
-    // Pass pointer into compute rates.
-    // species[i].compute_rates(environment, pr_patch_survival, birth_rate);
+    // Pass the environment that pointer is tracking into compute rates.
     species[i].compute_rates(*environment_ptr, pr_patch_survival, birth_rate);
   }
 
@@ -381,26 +368,27 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
 
 // used for mutant runs
 // -- differs from above in that an index is passed in as argument
-// -- Environments are loaded from history, instead of being calculated 
+// -- environments are loaded from ODE history, instead of being calculated 
 template <typename T, typename E>
 ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
                                               int index) {
 
   it = ode::set_ode_state(species.begin(), species.end(), it);
 
-  // Using a pointer here to avoid copying environemnt object
-  // Just point the pointer, used inside compute rates to get env, to relevant env object
+  // using a pointer here to avoid copying environemnt object
+  // just point the pointer, used inside compute rates to get env, to relevant env object
   environment_ptr = &(environment_history[idx][index]);
   environment.time = environment_ptr->time;
 
-  // Increment the iterator by an appropriate amount, but don't actually do anything in the env
-  // it = environment.set_ode_state(it);
+  // increment the iterator by an appropriate amount, but don't actually do anything in the env
   for (size_t i = 0; i < environment_ptr->ode_size(); i++) {*it++;}
  
   compute_rates();
   return it;
 }
 
+// called from ode_solver->cache
+// saves cached set of environments(6) from each ODE step to the step history
 template <typename T, typename E>
 void Patch<T,E>::cache_ode_step() {
   if(save_RK45_cache) { 
@@ -409,26 +397,8 @@ void Patch<T,E>::cache_ode_step() {
   }
 }
 
-// This function used in ode_solver.h
-// only gets called for mutant runs
-template <typename T, typename E>
-void Patch<T,E>::load_ode_step() {
-  if (use_cached_environment)
-  {
-    std::vector<double>::iterator step;
-
-    // find where we are in the cache
-    step = std::find(step_history.begin(), step_history.end(), time());
-
-    if(*step != time()) {
-      util::stop("ODE time not found in step history");
-    }
-
-    // load index to a set of 6 environments for the current step
-    idx = std::distance(step_history.begin(), step);
-  }
-}
-
+// called from ode_step->cache
+// saves environment at each RK45 step to the environment cache
 template <typename T, typename E>
 void Patch<T,E>::cache_RK45_step(int step) {
   if(save_RK45_cache) {  
@@ -436,6 +406,25 @@ void Patch<T,E>::cache_RK45_step(int step) {
       environment_cache.clear();
     }
     environment_cache.push_back(environment);
+  }
+}
+
+// called from ode_solver->load, only gets called for mutant runs
+template <typename T, typename E>
+void Patch<T,E>::load_ode_step() {
+  if (use_cached_environment)
+  {
+    std::vector<double>::iterator step;
+
+    // find where we are in the ODE history
+    step = std::find(step_history.begin(), step_history.end(), time());
+
+    if(*step != time()) {
+      util::stop("ODE time not found in step history");
+    }
+
+    // index to a cached set of environments(6) for the current ODE step
+    idx = std::distance(step_history.begin(), step);
   }
 }
 
