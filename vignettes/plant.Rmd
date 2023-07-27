@@ -161,7 +161,7 @@ params <- scm_base_parameters("FF16")
 We can then need to specify the particular species by specifying their traits and seed rains. Here we use `lma` but other traits are possible (see Examples -> XXX).
 
 ```{r}
-species_parameters <- expand_parameters(trait_matrix(0.0825, "lma"), params, mutant = FALSE)
+species_parameters <- expand_parameters(trait_matrix(0.0825, "lma"), params)
 ```
 
 Then we run `plant` solver (SCM) to solve the size distribution over time. There are two steps
@@ -231,7 +231,7 @@ result%>%
 We can now look at the size distributions of two species competing in a patch. We can use the trait matrix function to specify multiple values for a given trait, each representing a different species in the community, or, as below, we can build upon the one-patch example above by using the expand_parameters function, including species_parameters as an argument.
 
 ```{r}
-species_parameters_2sp <- expand_parameters(trait_matrix(0.2625, "lma"), species_parameters, mutant = FALSE)
+species_parameters_2sp <- expand_parameters(trait_matrix(0.2625, "lma"), species_parameters)
 ```
 
 As above in the single-species patch, we then determine the appropriate number of characteristics and rerun the solver, collecting the output from the patch-level dynamics.

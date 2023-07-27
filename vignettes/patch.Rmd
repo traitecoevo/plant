@@ -28,7 +28,7 @@ params$disturbance_mean_interval <- 30.0
 Next, we configure a patch containing a single species:
 
 ```{r}
-patch <- expand_parameters(trait_matrix(0.0825, "lma"), params, mutant = FALSE)
+patch <- expand_parameters(trait_matrix(0.0825, "lma"), params)
 ```
 
 <!-- TODO: rename SCM to solve_characteristic_method (issue: \#206) -->
@@ -171,7 +171,7 @@ plot(result$time, lai, type="l", las=1, xlab="Time (years)", ylab="Leaf area ind
 If multiple species are grown at once, they compete with one another.  This adds a second species -- with a higher leaf mass area (LMA) than the first species -- to the population (see [Comparing Indivudals][https://traitecoevo.github.io/plant/articles/individuals.html#comparing-individuals] for a refresher on species traits)
 
 ```{r}
-patch_2sp <- expand_parameters(trait_matrix(0.2625, "lma"), patch, mutant = FALSE)
+patch_2sp <- expand_parameters(trait_matrix(0.2625, "lma"), patch)
 ```
 
 Then collect the patch-level dynamics:

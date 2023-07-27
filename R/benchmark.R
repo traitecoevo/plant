@@ -13,7 +13,7 @@ run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy,
                                  iterations = 1) {
   f_scm <- function(x) {
     p0 <- scm_base_parameters(x)
-    p <- expand_parameters(trait_matrix(0.0825, "lma"), p0, mutant = FALSE)
+    p <- expand_parameters(trait_matrix(0.0825, "lma"), p0)
     res <- run_scm(p)
   }
 

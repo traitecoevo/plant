@@ -63,7 +63,7 @@ library(parallel)
 n_cores = max(1, detectCores() - 1)
 
 params <- scm_base_parameters("FF16")
-patch <- expand_parameters(trait_matrix(0.0825, "lma"), params, mutant = FALSE)
+patch <- expand_parameters(trait_matrix(0.0825, "lma"), params)
 patch$seed_rain <- 20
 
 times_default <- patch$node_schedule_times[[1]]
