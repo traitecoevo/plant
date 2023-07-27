@@ -31,16 +31,6 @@ NodeSchedule NodeSchedule::expand(size_t n_extra,
   return ret;
 }
 
-// TODO: check if supercedes `expand` in scm_utils.h
-void NodeSchedule::expand_inplace(size_t n_extra,
-                                  std::vector<double> times) {
-  size_t orig_species = get_n_species();
-  n_species += n_extra;
-  for (size_t i = orig_species; i < n_species; ++i) {
-    set_times(times, i);
-  }
-}
-
 void NodeSchedule::clear_times(size_t species_index) {
   events_iterator e = events.begin();
   while (e != events.end()) {
