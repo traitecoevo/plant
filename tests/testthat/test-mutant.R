@@ -18,6 +18,10 @@ test_that("mutant runs work", {
   
   types <- extract_RcppR6_template_types(pn, "Parameters")
   scm <- do.call('SCM', types)(pn, e, ctrl)
+  
+  # test error handling
+  expect_error(scm$run_mutant(p), "Run a resident first to generate a competitve landscape") 
+  
   scm$run()
   
   # check fitness

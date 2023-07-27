@@ -174,13 +174,13 @@ void Patch<T,E>::add_strategies(std::vector<strategy_type> strategies) {
 
 template <typename T, typename E>
 void Patch<T,E>::set_mutant() {
+    if (environment_history.empty()) {
+       util::stop("Run a resident first to generate a competitve landscape");
+    }
+
     is_mutant_run = true;
     save_RK45_cache = false;
     use_cached_environment = true;
-
-    // check cache is valid
-    // if cache = invalid
-    //  util::stop("Run a resident first to generate a competitve landscape")
 }
 
 template <typename T, typename E>
