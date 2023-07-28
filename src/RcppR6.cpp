@@ -2329,6 +2329,10 @@ void SCM___FF16__FF16_Env__run(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Stra
   obj_->run();
 }
 // [[Rcpp::export]]
+void SCM___FF16__FF16_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> p) {
+  obj_->run_mutant(p);
+}
+// [[Rcpp::export]]
 std::vector<plant::util::index> SCM___FF16__FF16_Env__run_next(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->r_run_next();
 }
@@ -2345,7 +2349,7 @@ std::vector<double> SCM___FF16__FF16_Env__competition_effect_error(plant::RcppR6
   return obj_->r_competition_effect_error(species_index);
 }
 // [[Rcpp::export]]
-void SCM___FF16__FF16_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, std::vector<std::vector<double> > times) {
+void SCM___FF16__FF16_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, std::vector<std::vector<double>> times) {
   obj_->r_set_node_schedule_times(times);
 }
 // [[Rcpp::export]]
@@ -2412,7 +2416,7 @@ void SCM___FF16__FF16_Env__use_ode_times__set(plant::RcppR6::RcppR6<plant::SCM<p
 }
 
 // [[Rcpp::export]]
-std::vector<std::vector<double> > SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+std::vector<std::vector<double>> SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->r_net_reproduction_ratio_errors();
 }
 
@@ -2424,6 +2428,10 @@ plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> SCM___FF16w__FF16_Env_
 // [[Rcpp::export]]
 void SCM___FF16w__FF16_Env__run(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
   obj_->run();
+}
+// [[Rcpp::export]]
+void SCM___FF16w__FF16_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> p) {
+  obj_->run_mutant(p);
 }
 // [[Rcpp::export]]
 std::vector<plant::util::index> SCM___FF16w__FF16_Env__run_next(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
@@ -2442,7 +2450,7 @@ std::vector<double> SCM___FF16w__FF16_Env__competition_effect_error(plant::RcppR
   return obj_->r_competition_effect_error(species_index);
 }
 // [[Rcpp::export]]
-void SCM___FF16w__FF16_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, std::vector<std::vector<double> > times) {
+void SCM___FF16w__FF16_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, std::vector<std::vector<double>> times) {
   obj_->r_set_node_schedule_times(times);
 }
 // [[Rcpp::export]]
@@ -2509,7 +2517,7 @@ void SCM___FF16w__FF16_Env__use_ode_times__set(plant::RcppR6::RcppR6<plant::SCM<
 }
 
 // [[Rcpp::export]]
-std::vector<std::vector<double> > SCM___FF16w__FF16_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
+std::vector<std::vector<double>> SCM___FF16w__FF16_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->r_net_reproduction_ratio_errors();
 }
 
@@ -2521,6 +2529,10 @@ plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> SCM___FF16r__FF16_Env_
 // [[Rcpp::export]]
 void SCM___FF16r__FF16_Env__run(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
   obj_->run();
+}
+// [[Rcpp::export]]
+void SCM___FF16r__FF16_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> p) {
+  obj_->run_mutant(p);
 }
 // [[Rcpp::export]]
 std::vector<plant::util::index> SCM___FF16r__FF16_Env__run_next(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
@@ -2539,7 +2551,7 @@ std::vector<double> SCM___FF16r__FF16_Env__competition_effect_error(plant::RcppR
   return obj_->r_competition_effect_error(species_index);
 }
 // [[Rcpp::export]]
-void SCM___FF16r__FF16_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, std::vector<std::vector<double> > times) {
+void SCM___FF16r__FF16_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, std::vector<std::vector<double>> times) {
   obj_->r_set_node_schedule_times(times);
 }
 // [[Rcpp::export]]
@@ -2606,7 +2618,7 @@ void SCM___FF16r__FF16_Env__use_ode_times__set(plant::RcppR6::RcppR6<plant::SCM<
 }
 
 // [[Rcpp::export]]
-std::vector<std::vector<double> > SCM___FF16r__FF16_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
+std::vector<std::vector<double>> SCM___FF16r__FF16_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->r_net_reproduction_ratio_errors();
 }
 
@@ -2618,6 +2630,10 @@ plant::SCM<plant::K93_Strategy,plant::K93_Environment> SCM___K93__K93_Env__ctor(
 // [[Rcpp::export]]
 void SCM___K93__K93_Env__run(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
   obj_->run();
+}
+// [[Rcpp::export]]
+void SCM___K93__K93_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::Parameters<plant::K93_Strategy,plant::K93_Environment> p) {
+  obj_->run_mutant(p);
 }
 // [[Rcpp::export]]
 std::vector<plant::util::index> SCM___K93__K93_Env__run_next(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
@@ -2636,7 +2652,7 @@ std::vector<double> SCM___K93__K93_Env__competition_effect_error(plant::RcppR6::
   return obj_->r_competition_effect_error(species_index);
 }
 // [[Rcpp::export]]
-void SCM___K93__K93_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, std::vector<std::vector<double> > times) {
+void SCM___K93__K93_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, std::vector<std::vector<double>> times) {
   obj_->r_set_node_schedule_times(times);
 }
 // [[Rcpp::export]]
@@ -2703,7 +2719,7 @@ void SCM___K93__K93_Env__use_ode_times__set(plant::RcppR6::RcppR6<plant::SCM<pla
 }
 
 // [[Rcpp::export]]
-std::vector<std::vector<double> > SCM___K93__K93_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+std::vector<std::vector<double>> SCM___K93__K93_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
   return obj_->r_net_reproduction_ratio_errors();
 }
 

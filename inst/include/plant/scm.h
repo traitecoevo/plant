@@ -16,7 +16,7 @@ public:
   typedef T                strategy_type;
   typedef E                environment_type;
   typedef Individual<T, E> individual_type;
-  typedef Node<T, E>     node_type;
+  typedef Node<T, E>       node_type;
   typedef Species<T, E>    species_type;
   typedef Patch<T, E>      patch_type;
   typedef Parameters<T, E> parameters_type;
@@ -24,6 +24,7 @@ public:
   SCM(parameters_type p, environment_type e, plant::Control c);
 
   void run();
+  void run_mutant(parameters_type p);
   std::vector<size_t> run_next();
 
   double time() const;
@@ -31,8 +32,7 @@ public:
   bool complete() const;
 
   // * Output total offspring calculation (not per capita)
-  std::vector<double>
-  net_reproduction_ratio_by_node_weighted(size_t species_index) const;
+  std::vector<double> net_reproduction_ratio_by_node_weighted(size_t species_index) const;
   double net_reproduction_ratio_for_species(size_t species_index, std::vector<double> const& scalars) const;
   std::vector<double> net_reproduction_ratios() const;
   std::vector<double> offspring_production() const;
@@ -41,6 +41,7 @@ public:
   std::vector<util::index> r_run_next();
   parameters_type r_parameters() const { return parameters; }
   const patch_type &r_patch() const { return patch; }
+
   // TODO: These are liable to change to return all species at once by
   // default.  The pluralisation difference between
   // SCM::r_competition_effect_error and Species::r_competition_effects_error
@@ -56,7 +57,7 @@ public:
   NodeSchedule r_node_schedule() const { return node_schedule; }
   void r_set_node_schedule(NodeSchedule x);
   void r_set_node_schedule_times(std::vector<std::vector<double>> x);
-
+  
 private:
   double total_offspring_production() const;
 
@@ -71,6 +72,7 @@ SCM<T, E>::SCM(parameters_type p, environment_type e, Control c)
     : parameters(p), patch(parameters, e, c),
       node_schedule(make_node_schedule(parameters)),
       solver(patch, make_ode_control(c)) {
+
   parameters.validate();
   if (!util::identical(parameters.patch_area, 1.0)) {
     util::stop("Patch area must be exactly 1 for the SCM");
@@ -102,9 +104,11 @@ template <typename T, typename E> std::vector<size_t> SCM<T, E>::run_next() {
     }
   }
   patch.introduce_new_nodes(ret);
-
-  const bool use_ode_times = node_schedule.using_ode_times();
   solver.set_state_from_system(patch);
+  
+  // some schedules have fixed integration points
+  const bool use_ode_times = node_schedule.using_ode_times();
+  
   if (use_ode_times) {
     solver.advance_fixed(patch, e.times);
   } else {
@@ -112,6 +116,32 @@ template <typename T, typename E> std::vector<size_t> SCM<T, E>::run_next() {
   }
 
   return ret;
+}
+
+template <typename T, typename E> 
+void SCM<T, E>::run_mutant(parameters_type p) {
+  
+  // switch to cached environment
+  patch.set_mutant();
+
+  // destructive operation; overwrites resident params.
+  parameters = p;
+
+  // add strategies
+  patch.overwrite_strategies(parameters.strategies);
+
+  // resize schedule
+  node_schedule = make_node_schedule(parameters);
+  
+  // then set ode_times to patch history
+  node_schedule.r_set_ode_times(patch.step_history);
+  node_schedule.r_set_use_ode_times(true);
+  node_schedule.reset();
+
+  // re-initialise solver
+  reset();
+
+  run();
 }
 
 template <typename T, typename E> double SCM<T, E>::time() const {

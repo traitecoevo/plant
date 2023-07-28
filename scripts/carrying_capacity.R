@@ -18,8 +18,7 @@ carrying_capacity <- function(trait_matrix, p, birth_rate=1,
     ## use to iterate over this, does not preserve array-ness or
     ## names.
     p <- expand_parameters(trait_matrix(x, traits),
-                           remove_residents(p),
-                           mutant=FALSE)
+                           remove_residents(p))
     p$birth_rate <- birth_rate
     equilibrium_birth_rate(p)$birth_rate
   }

@@ -11,7 +11,6 @@ namespace plant {
 
 class K93_Environment : public Environment {
 public:
-
   K93_Environment() {
     canopy_rescale_usually = false;
     time = 0.0;

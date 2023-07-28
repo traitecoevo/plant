@@ -44,7 +44,7 @@ p0$control$schedule_eps <- 0.005
 
 lma_trait <- trait_matrix(0.1457419, "lma")
 
-p1 <- expand_parameters(p0, trait_matrix = lma_trait, mutant = FALSE)
+p1 <- expand_parameters(p0, trait_matrix = lma_trait)
 
 stand_results <- build_schedule(p1)
 # creates a schedule for time steps when running the model, with many "steps" early on and fewer as the stand ages and doesn't change as rapidly

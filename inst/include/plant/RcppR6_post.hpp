@@ -361,6 +361,7 @@ template <> inline SEXP wrap(const plant::Control& x) {
   ret["equilibrium_nattempts"] = Rcpp::wrap(x.equilibrium_nattempts);
   ret["equilibrium_solver_logN"] = Rcpp::wrap(x.equilibrium_solver_logN);
   ret["equilibrium_solver_try_keep"] = Rcpp::wrap(x.equilibrium_solver_try_keep);
+  ret["save_RK45_cache"] = Rcpp::wrap(x.save_RK45_cache);
   ret.attr("class") = "Control";
   return ret;
 }
@@ -431,6 +432,8 @@ template <> inline plant::Control as(SEXP x) {
   ret.equilibrium_solver_logN = Rcpp::as<bool >(xl["equilibrium_solver_logN"]);
   // ret.equilibrium_solver_try_keep = Rcpp::as<decltype(retequilibrium_solver_try_keep) >(xl["equilibrium_solver_try_keep"]);
   ret.equilibrium_solver_try_keep = Rcpp::as<bool >(xl["equilibrium_solver_try_keep"]);
+  // ret.save_RK45_cache = Rcpp::as<decltype(retsave_RK45_cache) >(xl["save_RK45_cache"]);
+  ret.save_RK45_cache = Rcpp::as<bool >(xl["save_RK45_cache"]);
   return ret;
 }
 template <> inline SEXP wrap(const plant::ode::OdeControl& x) {
@@ -555,7 +558,6 @@ template <> inline SEXP wrap(const plant::Parameters<plant::FF16_Strategy,plant:
   ret["patch_type"] = Rcpp::wrap(x.patch_type);
   ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
   ret["strategies"] = Rcpp::wrap(x.strategies);
-  ret["is_resident"] = Rcpp::wrap(x.is_resident);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
   ret["node_schedule_times_default"] = Rcpp::wrap(x.node_schedule_times_default);
   ret["node_schedule_times"] = Rcpp::wrap(x.node_schedule_times);
@@ -582,8 +584,6 @@ template <> inline plant::Parameters<plant::FF16_Strategy,plant::FF16_Environmen
   ret.max_patch_lifetime = Rcpp::as<double >(xl["max_patch_lifetime"]);
   // ret.strategies = Rcpp::as<decltype(retstrategies) >(xl["strategies"]);
   ret.strategies = Rcpp::as<std::vector<plant::FF16_Strategy> >(xl["strategies"]);
-  // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
-  ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
   ret.strategy_default = Rcpp::as<plant::FF16_Strategy >(xl["strategy_default"]);
   // ret.node_schedule_times_default = Rcpp::as<decltype(retnode_schedule_times_default) >(xl["node_schedule_times_default"]);
@@ -603,7 +603,6 @@ template <> inline SEXP wrap(const plant::Parameters<plant::FF16w_Strategy,plant
   ret["patch_type"] = Rcpp::wrap(x.patch_type);
   ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
   ret["strategies"] = Rcpp::wrap(x.strategies);
-  ret["is_resident"] = Rcpp::wrap(x.is_resident);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
   ret["node_schedule_times_default"] = Rcpp::wrap(x.node_schedule_times_default);
   ret["node_schedule_times"] = Rcpp::wrap(x.node_schedule_times);
@@ -630,8 +629,6 @@ template <> inline plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environme
   ret.max_patch_lifetime = Rcpp::as<double >(xl["max_patch_lifetime"]);
   // ret.strategies = Rcpp::as<decltype(retstrategies) >(xl["strategies"]);
   ret.strategies = Rcpp::as<std::vector<plant::FF16w_Strategy> >(xl["strategies"]);
-  // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
-  ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
   ret.strategy_default = Rcpp::as<plant::FF16w_Strategy >(xl["strategy_default"]);
   // ret.node_schedule_times_default = Rcpp::as<decltype(retnode_schedule_times_default) >(xl["node_schedule_times_default"]);
@@ -651,7 +648,6 @@ template <> inline SEXP wrap(const plant::Parameters<plant::FF16r_Strategy,plant
   ret["patch_type"] = Rcpp::wrap(x.patch_type);
   ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
   ret["strategies"] = Rcpp::wrap(x.strategies);
-  ret["is_resident"] = Rcpp::wrap(x.is_resident);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
   ret["node_schedule_times_default"] = Rcpp::wrap(x.node_schedule_times_default);
   ret["node_schedule_times"] = Rcpp::wrap(x.node_schedule_times);
@@ -678,8 +674,6 @@ template <> inline plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environme
   ret.max_patch_lifetime = Rcpp::as<double >(xl["max_patch_lifetime"]);
   // ret.strategies = Rcpp::as<decltype(retstrategies) >(xl["strategies"]);
   ret.strategies = Rcpp::as<std::vector<plant::FF16r_Strategy> >(xl["strategies"]);
-  // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
-  ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
   ret.strategy_default = Rcpp::as<plant::FF16r_Strategy >(xl["strategy_default"]);
   // ret.node_schedule_times_default = Rcpp::as<decltype(retnode_schedule_times_default) >(xl["node_schedule_times_default"]);
@@ -699,7 +693,6 @@ template <> inline SEXP wrap(const plant::Parameters<plant::K93_Strategy,plant::
   ret["patch_type"] = Rcpp::wrap(x.patch_type);
   ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
   ret["strategies"] = Rcpp::wrap(x.strategies);
-  ret["is_resident"] = Rcpp::wrap(x.is_resident);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
   ret["node_schedule_times_default"] = Rcpp::wrap(x.node_schedule_times_default);
   ret["node_schedule_times"] = Rcpp::wrap(x.node_schedule_times);
@@ -726,8 +719,6 @@ template <> inline plant::Parameters<plant::K93_Strategy,plant::K93_Environment>
   ret.max_patch_lifetime = Rcpp::as<double >(xl["max_patch_lifetime"]);
   // ret.strategies = Rcpp::as<decltype(retstrategies) >(xl["strategies"]);
   ret.strategies = Rcpp::as<std::vector<plant::K93_Strategy> >(xl["strategies"]);
-  // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
-  ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
   ret.strategy_default = Rcpp::as<plant::K93_Strategy >(xl["strategy_default"]);
   // ret.node_schedule_times_default = Rcpp::as<decltype(retnode_schedule_times_default) >(xl["node_schedule_times_default"]);

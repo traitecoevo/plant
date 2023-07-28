@@ -5,9 +5,8 @@ test_that("collect / make_patch", {
   env <- make_environment("FF16")
   ctrl <- scm_base_control()
   p0 <- scm_base_parameters("FF16")
-  hyperpar <- make_FF16_hyperpar()
   p0$disturbance_mean_interval <- 30.0
-  p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, hyperpar, FALSE, 1.0)
+  p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, birth_rate_list = 1.0)
 
   res <- run_scm_collect(p1, env, ctrl)
 
@@ -59,19 +58,18 @@ test_that("collect / make_patch", {
 test_that("expand_parameters", {
   hyperpar <- make_FF16_hyperpar()
   p0 <- scm_base_parameters("FF16")
-  p1 <- expand_parameters(trait_matrix(0.1, "lma"), p0, mutant=FALSE, birth_rate_list=1.0)
+  p1 <- expand_parameters(trait_matrix(0.1, "lma"), p0, birth_rate_list = 1.0)
   ## This will trigger rebuilding the times:
   p1$max_patch_lifetime <- 100
-  expect_silent(p2 <- expand_parameters(trait_matrix(0.2, "lma"), p1, mutant=FALSE, birth_rate_list=1.0))
+  expect_silent(p2 <- expand_parameters(trait_matrix(0.2, "lma"), p1, birth_rate_list = 1.0))
 })
 
 test_that("collect_auxiliary_variables", {
   env <- make_environment("FF16")
   ctrl <- scm_base_control()
   p0 <- scm_base_parameters("FF16")
-  hyperpar <- make_FF16_hyperpar()
   p0$disturbance_mean_interval <- 30.0
-  p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, hyperpar, FALSE, 1.0)
+  p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, birth_rate_list = 1.0)
   
   res <- run_scm_collect(p1, env, ctrl, collect_auxiliary_variables=TRUE)
   state <- res$species[[1]]

@@ -81,7 +81,7 @@ p0$strategy_default$a_dG2 <- 30
 hyperpar <- make_FF16_hyperpar(B_dI1 = 0)
 
 traits <- trait_matrix(c(0.7, 5), c("lma", "eta"))
-p1 <- expand_parameters(traits, p0, hyperpar = hyperpar, mutant = FALSE,
+p1 <- expand_parameters(traits, p0, hyperpar = hyperpar,
                         birth_rate_list = list(
                           list(x = seq(0, 200, len = 20),
                                y = sin(seq(0, 200, len = 20)) + 2)

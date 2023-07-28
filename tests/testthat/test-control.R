@@ -22,6 +22,8 @@ test_that("Defaults", {
 
     offspring_production_iterations = 1000, # size_t
     offspring_production_tol = 1e-8, # 1e-6, Had to change this...
+    
+    save_RK45_cache = FALSE,
 
     schedule_nsteps   = 20, # size_t
     schedule_eps      = 1e-3,

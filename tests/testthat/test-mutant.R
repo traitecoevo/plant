@@ -1,4 +1,3 @@
-# many mutants for speed
 test_that("mutant runs work", {
   # basic setup 
   p <- scm_base_parameters("FF16")
@@ -16,73 +15,63 @@ test_that("mutant runs work", {
   birth_rate <- 1
 
   # 1 resident strategies
-
   p1 <- expand_parameters(trait_matrix(lma[2], "lma"), p,
-    mutant = F,
     birth_rate_list = rep(birth_rate, 1)
   )
 
   p1m1 <- expand_parameters(trait_matrix(lma[3], "lma"), p1,
-    mutant = T,
     birth_rate_list = rep(birth_rate, 1)
   )
 
   p1m3 <- expand_parameters(trait_matrix(lma, "lma"), p1,
-    mutant = T,
     birth_rate_list = rep(birth_rate, 3)
   )
 
   p1m10 <- expand_parameters(trait_matrix(seq(lma[1], lma[3], length.out=10), "lma"), p1,
-    mutant = T,
     birth_rate_list = rep(birth_rate, 10)
   )
 
   types <- extract_RcppR6_template_types(p1, "Parameters")
   scm <- do.call("SCM", types)(p1, e, ctrl)
+
+  # test error handling
+  expect_error(scm$run_mutant(p), "Run a resident first to generate a competitve landscape") 
+
   scm$run()
   p1_rr <- scm$net_reproduction_ratios
   expected <- 2.77322
   expect_equal(p1_rr, expected, tol = tol)
 
-
-  scm <- do.call("SCM", types)(p1m1, e, ctrl)
-  scm$run()
+  scm$run_mutant(p1m1)
   p1m1_rr <- scm$net_reproduction_ratios
   expected <- c(2.77322, 3.707605)
   expect_equal(p1m1_rr, expected, tol = tol)
 
-  scm <- do.call("SCM", types)(p1m3, e, ctrl)
-  scm$run()
+  scm$run_mutant(p1m3)
   p1m3_rr <- scm$net_reproduction_ratios
   expected <- c(2.77322, 3.7429e-10, 2.77322, 3.70753)
   expect_equal(p1m3_rr, expected, tol = tol)
 
-  scm <- do.call("SCM", types)(p1m10, e, ctrl)
-  scm$run()
+  scm$run_mutant(p1m10)
   p1m10_rr <- scm$net_reproduction_ratios
   expected <- c(2.773222, 3.742935e-10, 9.308944e-07, 0.1363641, 2.773222, 3.890554, 1.524582, 1.160212, 1.871261, 2.765328, 3.707372)
   expect_equal(p1m10_rr, expected, tol = tol)
 
 
   # 3 resident strategies
-
   p3 <- expand_parameters(trait_matrix(lma, "lma"), p,
-    mutant = F,
     birth_rate_list = rep(birth_rate, 3)
-    )
+  )
   
   p3m1 <- expand_parameters(trait_matrix(lma[3], "lma"), p3,
-    mutant = T,
     birth_rate_list = rep(birth_rate, 1)
   )
 
   p3m3 <- expand_parameters(trait_matrix(lma, "lma"), p3,
-    mutant = T,
     birth_rate_list = rep(birth_rate, 3)
   )
 
   p3m10 <- expand_parameters(trait_matrix(seq(lma[1], lma[3], length.out = 10), "lma"), p3,
-    mutant = T,
     birth_rate_list = rep(birth_rate, 10)
   )
 
@@ -94,23 +83,18 @@ test_that("mutant runs work", {
   expect_equal(p3_rr, expected, tol = tol)
 
 
-  scm <- do.call("SCM", types)(p3m1, e, ctrl)
-  scm$run()
+  scm$run_mutant(p3m1)
   p3m1_rr <- scm$net_reproduction_ratios
   expected <- c(4.265e-10, 2.831741, 0.09125339, 0.09125339)
   expect_equal(p3m1_rr, expected, tol = tol)
 
-  scm <- do.call("SCM", types)(p3m3, e, ctrl)
-  scm$run()
+  scm$run_mutant(p3m3)
   p3m3_rr <- scm$net_reproduction_ratios
   expected <- c(4.265e-10, 2.831741, 0.09125339, 4.265e-10, 2.831741, 0.09125339)
   expect_equal(p3m3_rr, expected, tol = tol)
 
-  scm <- do.call("SCM", types)(p3m10, e, ctrl)
-  scm$run()
+  scm$run_mutant(p3m10)
   p3m10_rr <- scm$net_reproduction_ratios
-  # p3m10_rr %>% format(digits =7) %>% datapasta::vector_paste()
   expected <- c(4.265011e-10, 2.831741, 0.09125377, 4.265011e-10, 5.587752e-06, 0.266188, 2.831741, 2.690585, 0.3796333, 0.07098642, 0.07226859, 0.08342181, 0.09125377)
   expect_equal(p3m10_rr, expected, tol = tol)
-
 })

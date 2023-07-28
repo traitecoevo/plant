@@ -43,7 +43,6 @@ public:
   size_t size() const;
   size_t get_n_species() const;
   NodeSchedule expand(size_t n_extra, std::vector<double> times);
-
   void clear_times(size_t species_index);
   void set_times(const std::vector<double>& times_, size_t species_index);
   void set_times(const std::vector<std::vector<double> >& times);

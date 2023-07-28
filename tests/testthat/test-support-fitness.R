@@ -15,21 +15,6 @@ test_that("positive_1d", {
   expect_error(positive_1d(f, -2, 0.1, tol=tol), "no positive values")
 })
 
-
-# ANDREW: I don't have a `skip_if_no_plant_ml_python` so this fails on my
-# machine. Is it from another package?
-# test_that("positive_2d", {
-#   skip_if_no_plant_ml_python()
-#   f <- function(x) {
-#     if (!is.matrix(x)) {
-#       x <- rbind(x, deparse.level=0)
-#     }
-#     -rowSums(x ^ 2) + 1
-#   }
-# 
-#   ans <- positive_2d(f, c(0, 0), -2, 2)
-# })
-
 test_that("bounds", {
 
   # First test object with infinite bounds
@@ -163,7 +148,7 @@ test_that("viable strategies", {
   params <- scm_base_parameters("FF16")
   params$max_patch_lifetime <- 60
 
-  patch <- expand_parameters(trait_matrix(c(0.005, 0.03, 0.1), "lma"), params,  mutant = FALSE, birth_rate_list = c(1, 0.1, 0.001))
+  patch <- expand_parameters(trait_matrix(c(0.005, 0.03, 0.1), "lma"), params, birth_rate_list = c(1, 0.1, 0.001))
 
   ctrl = scm_base_control()
 

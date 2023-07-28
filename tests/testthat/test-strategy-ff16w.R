@@ -66,7 +66,7 @@ test_that("Rainfall spline basic run", {
   # one species
   p0 <- scm_base_parameters("FF16w")
   p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,
-                          mutant = FALSE, birth_rate_list = list(20))
+                           birth_rate_list = list(20))
 
 
   # init rainfall spline for env
@@ -108,7 +108,7 @@ test_that("Rainfall in collected output", {
   # one species
   p0 <- scm_base_parameters("FF16w")
   p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,
-                          mutant = FALSE, birth_rate_list = list(20))
+                           birth_rate_list = list(20))
   
   
   env <- make_environment("FF16w",

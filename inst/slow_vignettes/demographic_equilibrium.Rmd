@@ -33,7 +33,7 @@ n_cores = max(1, detectCores() - 1)
 
 ```{r}
 params <- scm_base_parameters("FF16")
-patch <- expand_parameters(trait_matrix(c(0.0825), "lma"), params, mutant = FALSE, birth_rate_list = c(1))
+patch <- expand_parameters(trait_matrix(c(0.0825), "lma"), params,  birth_rate_list = c(1))
 ```
 
 # Propagule arrival (seed rain)
@@ -157,7 +157,7 @@ As always, this example is simple to extend to patches of competing species:
 
 ```{r}
 lma <- c(0.0825, 0.15)
-patch_2sp <- expand_parameters(trait_matrix(lma, "lma"), params, mutant = FALSE, birth_rate_list = c(17.5, 1))
+patch_2sp <- expand_parameters(trait_matrix(lma, "lma"), params,  birth_rate_list = c(17.5, 1))
 
 patch_2sp_eq <- equilibrium_birth_rate(patch_2sp, ctrl = ctrl)
 approach_2sp <- attr(patch_2sp_eq, "progress")
@@ -190,7 +190,7 @@ trivial 2d case, first identify the other two equilibria.
 ```{r}
 patches <- mclapply(lma, function(x) 
   equilibrium_birth_rate(
-    expand_parameters(trait_matrix(x, "lma"), params, mutant = FALSE, birth_rate_list = 1),
+    expand_parameters(trait_matrix(x, "lma"), params,  birth_rate_list = 1),
     ctrl = ctrl),
     mc.cores = n_cores)
 ```

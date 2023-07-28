@@ -12,8 +12,7 @@ test_that("Run SCM", {
     node <- Node(x, e)(s)
 
     p <- Parameters(x, e)(strategies=list(s),
-                          patch_area=10,
-                          is_resident=TRUE)
+                          patch_area=10)
     
     env <- make_environment(x)
     ctrl <- Control()
@@ -167,7 +166,6 @@ test_that("schedule setting", {
     e <- environment_types[[x]]
     p <- Parameters(x, e)(
       strategies=list(strategy_types[[x]]()),
-      is_resident=TRUE,
       max_patch_lifetime=5.0)
     env <- make_environment(x)
     ctrl <- scm_base_control()
@@ -241,7 +239,7 @@ test_that("Seed rain & error calculations correct", {
     context(sprintf("SCM-%s", x))
     e <- environment_types[[x]]
     p0 <- scm_base_parameters(x)
-    p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, mutant=FALSE, birth_rate_list=1.0)
+    p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, birth_rate_list=1.0)
     
     env <- make_environment(x)
     ctrl <- scm_base_control()
@@ -294,8 +292,9 @@ test_that("Can create empty SCM", {
     ## Check light environment is empty:
     env <- scm$patch$environment
     patch <- scm$patch
+
     # This is no longer zero:
-    # expect_equal(env$canopy$canopy_interpolator$size, 0)
+    expect_gt(env$canopy$canopy_interpolator$size, 30)
     expect_equal(env$canopy_openness(0), 1.0)
   }
 })

@@ -117,7 +117,6 @@ inline Rcpp::List get_state(const FF16_Environment environment, double time) {
   ret["canopy"] = get_state(environment.canopy); // does a full copy of ret, not efficient
   return ret;
 }
-
 }
 
 #endif

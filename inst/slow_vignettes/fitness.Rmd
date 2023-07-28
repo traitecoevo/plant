@@ -75,7 +75,7 @@ lot of output:
 
 ``` {r results="hide"}
 add_eq <- function(x, p, ctrl) {
-  p <- expand_parameters(trait_matrix(x, "lma"), p, mutant=FALSE)
+  p <- expand_parameters(trait_matrix(x, "lma"), p)
   equilibrium_birth_rate(p, ctrl)
 }
 

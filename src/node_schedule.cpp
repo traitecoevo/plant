@@ -22,7 +22,7 @@ size_t NodeSchedule::get_n_species() const {
 }
 
 NodeSchedule NodeSchedule::expand(size_t n_extra,
-                                      std::vector<double> times) {
+                                  std::vector<double> times) {
   NodeSchedule ret = *this;
   ret.n_species += n_extra;
   for (size_t i = n_species; i < ret.n_species; ++i) {

@@ -8,8 +8,7 @@ test_that("empty", {
     context(sprintf("StochasticPatch-%s",x))
 
     e <- environment_types[[x]]
-    p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          is_resident=TRUE)
+    p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()))
     
     env <- make_environment(x)
     ctrl <- Control()
@@ -36,8 +35,7 @@ test_that("non empty", {
     context(sprintf("StochasticPatch-%s",x))
 
     e <- environment_types[[x]]
-    p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          is_resident=TRUE)
+    p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()))
     
     env <- make_environment(x)
     ctrl <- Control()

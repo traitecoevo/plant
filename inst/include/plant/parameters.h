@@ -43,7 +43,6 @@ struct Parameters {
   std::string patch_type;
   double max_patch_lifetime; // Disturbance interval (years)
   std::vector<strategy_type> strategies;
-  std::vector<bool> is_resident;
 
   Disturbance_Regime* disturbance;
 
@@ -57,8 +56,6 @@ struct Parameters {
 
   // Some little query functions for use on the C side:
   size_t size() const;
-  size_t n_residents() const;
-  size_t n_mutants() const;
   void validate();
 
 private:
@@ -70,29 +67,12 @@ size_t Parameters<T,E>::size() const {
   return strategies.size();
 }
 
-template <typename T, typename E>
-size_t Parameters<T,E>::n_residents() const {
-  return static_cast<size_t>
-    (std::count(is_resident.begin(), is_resident.end(), true));
-}
-
-template <typename T, typename E>
-size_t Parameters<T,E>::n_mutants() const {
-  return size() - n_residents();
-}
-
 // NOTE: this will be called *every time* that the object is passed in
 // from R -> C++.  That's unlikely to be that often, but it does incur
 // a penalty.  So don't put anything too stupidly heavy in here.
 template <typename T, typename E>
 void Parameters<T,E>::validate() {
   const size_t n_spp = size();
-
-  if (is_resident.empty()) {
-    is_resident = std::vector<bool>(n_spp, true);
-  } else if (is_resident.size() != n_spp) {
-    util::stop("Incorrect length is_resident");
-  }
 
   setup_node_schedule();
   if (node_schedule_times.size() != n_spp) {

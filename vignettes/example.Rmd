@@ -39,7 +39,7 @@ p0 <- scm_base_parameters("FF16", "FF16_Env")
 
 traits <- trait_matrix(c(0.07), c("lma"))
 
-p1 <- expand_parameters(traits, p0, mutant = FALSE)
+p1 <- expand_parameters(traits, p0)
 
 results <- build_schedule(p1)
 results <- run_scm_collect(results)
@@ -74,7 +74,7 @@ run_mypatch <- function(
   ) {
   
   hyper_par_fn = make_FF16_hyperpar(B_lf1 = B_lf1, latitude = latitude)
-  p1 <- expand_parameters(traits, p0, hyper_par_fn, mutant = FALSE, birth_rate_list = birth_rate_list)
+  p1 <- expand_parameters(traits, p0, hyper_par_fn,  birth_rate_list = birth_rate_list)
   
    if(find_equilbrium)
     result <- equilibrium_seed_rain(p1)
