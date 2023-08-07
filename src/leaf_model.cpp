@@ -5,7 +5,7 @@ namespace plant {
 Leaf::Leaf(double vcmax_25, double c, double b,
            double psi_crit, // derived from b and c
            double epsilon_leaf, double beta1, double beta2, double jmax_25, double hk_s,
-           double a, double curv_fact_elec_trans, double curv_fact_colim, double B_rs1, double B_lf2, double B_lf3, double B_lf5)
+           double a, double curv_fact_elec_trans, double curv_fact_colim)
     : vcmax_25(vcmax_25), // umol m^-2 s^-1 
     c(c), //unitless
     b(b), //-MPa

@@ -85,11 +85,7 @@ public:
        double hk_s = 4/365/24/60/60, // maximum hydraulic-dependent sapwood turnover rate yr ^ -1
        double a = 0.30, // effective quantum yield of electron transport  (mol photon mol ^-1 electron)  Sabot et al. 2020
        double curv_fact_elec_trans = 0.85, // unitless - obtained from Smith and Keenan (2020)
-       double curv_fact_colim = 0.98,
-       double B_rs1 = 0.01,
-       double B_lf2 = 0.01, //?
-       double B_lf3 = 0.01, //?
-       double B_lf5 = 0.01); //?); //curvature factor for the colimited photosythnthesis equation
+       double curv_fact_colim = 0.98); //?); //curvature factor for the colimited photosythnthesis equation
         
 
   quadrature::QAG integrator;
@@ -110,10 +106,6 @@ public:
   double a;
   double curv_fact_elec_trans; // unitless - obtained from Smith and Keenan (2020)
   double curv_fact_colim;
-  double B_rs1;
-  double B_lf2;
-  double B_lf3;
-  double B_lf5; 
 
   //actually a control paramaeter and needs to be moved
   double epsilon_leaf;

@@ -63,10 +63,6 @@ virtual std::vector<std::string> aux_names() {
   double a = 0.30; // effective quantum yield of electron transport  (mol photon mol ^-1 electron)  Sabot et al. 2020
   double curv_fact_elec_trans = 0.7; 
   double curv_fact_colim = 0.99; 
-  double B_rs1 = 0.01;
-  double B_lf2 = 0.01;
-  double B_lf3 = 0.01;  
-  double B_lf5 = 0.01;
   double var_sapwood_volume_cost = 1; 
 
   //nitrogen allocation traits (parameterised from Austraits 4.1.0)
