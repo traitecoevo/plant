@@ -955,6 +955,10 @@ FF16r_Strategy:
     - a_dG1: double
     - a_dG2: double
     - k_I: double
+    - lma_p: double
+    - rho_p: double
+    - lma_c: double
+    - rho_c: double
     - recruitment_decay: double
     - control: "plant::Control"
     - collect_all_auxiliary: bool
