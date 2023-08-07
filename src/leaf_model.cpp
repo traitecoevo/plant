@@ -18,10 +18,6 @@ Leaf::Leaf(double vcmax_25, double c, double b,
     a(a), //quantum yield of photosynthetic electron transport (mol mol^-1)
     curv_fact_elec_trans(curv_fact_elec_trans), //curvature factor for the light response curve (unitless)
     curv_fact_colim(curv_fact_colim), //curvature factor for the colimited photosythnthesis equation
-    B_rs1(B_rs1),
-    B_lf2(B_lf2), //?
-    B_lf3(B_lf3), //?
-    B_lf5(B_lf5), //?
     leaf_specific_conductance_max_(NA_REAL), //kg m^-2 s^-1 MPa^-1 
     sapwood_volume_per_leaf_area_ (NA_REAL), //m^3 SA m^-2 LA
     PPFD_(NA_REAL), //umol m^-2 s^-1
@@ -48,7 +44,6 @@ Leaf::Leaf(double vcmax_25, double c, double b,
     transpiration_(NA_REAL), // kg m^-2 s^-1 
     lambda_(NA_REAL), // umol C m^-2 s^-1 kg^-1 m^2 s^1
     lambda_analytical_(NA_REAL), // umol C m^-2 s^-1 kg^-1 m^2 s^1
-    LCT_cost_(NA_REAL), // umol C m^-2 s^-1 
     hydraulic_cost_(NA_REAL), // umol C m^-2 s^-1 
     profit_(NA_REAL), // umol C m^-2 s^-1 
     opt_psi_stem_(NA_REAL), //-MPa 
@@ -357,7 +352,6 @@ set_leaf_states_rates_from_psi_stem(psi_stem);
 
   double benefit_ = assim_colimited_;
   double hydraulic_cost_ = hydraulic_cost_TF(psi_stem);
-
   return benefit_ - hydraulic_cost_;
 }
 
@@ -1226,27 +1220,5 @@ std::cout << "used regular" << std::endl;
 
     return;
   }
-
-double Leaf::calculate_cost_LCT(double psi_stem) {
-
-set_leaf_states_rates_from_psi_stem(psi_stem);
-
-  double benefit_ = assim_colimited_;
-
-  double Nv_ = (B_lf2*vcmax_)/1000;
-  double Nj_ = (B_lf3*vcmax_)/1000;
-
-  double Rv_ = B_lf5*Nv_*1e6/365/24/60/60;
-  double Rj_ = B_lf5*Nj_*1e6/365/24/60/60;
-
-  double Rs_ = B_rs1* sapwood_volume_per_leaf_area_*1e6/365/24/60/60;
-
-  LCT_cost_ = (Rs_/benefit_ + Rv_/benefit_ + Rj_/benefit_);
-
-  std::cout << B_lf2 << " " << B_rs1 << "" <<B_lf5  << "" <<B_lf3  << "" <<  sapwood_volume_per_leaf_area_<< "" << std::endl;
-
-  return LCT_cost_;
-}
-
 
 } // namespace plant

@@ -151,7 +151,6 @@ public:
   double opt_ci_;
   double count;
   double GSS_count;
-  double LCT_cost_;
 
 
 
@@ -241,7 +240,6 @@ public:
   void optimise_psi_stem_Bartlett();
   void optimise_psi_stem_TF();
   void optimise_psi_stem_TF_newton(double psi_guess);
-  double calculate_cost_LCT(double psi_stem);
 
 };
 } // namespace plant

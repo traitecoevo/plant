@@ -24,12 +24,8 @@ test_that("Basic functions", {
   curv_fact_elec_trans = FF16w_strategy$curv_fact_elec_trans
   a = FF16w_strategy$a
   curv_fact_colim = FF16w_strategy$curv_fact_colim
-  B_rs1 = 0.01
-  B_lf2 = 0.01
-  B_lf3 = 0.01
-  B_lf5 = 0.01
   
-  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, B_rs1 = B_rs1, B_lf2 = B_lf2, B_lf3 = B_lf3, B_lf5 = B_lf5)
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim)
   
   #without setting physiology, PPFD_, k_l_max_, and psi_soil_ should all be NA
   
@@ -64,7 +60,7 @@ test_that("Basic functions", {
 
   #generating a new leaf object should wipe the previously stored values
   
-  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, B_rs1 = B_rs1, B_lf2 = B_lf2, B_lf3 = B_lf3, B_lf5 = B_lf5)
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim)
   
   expect_true(is.na(l$PPFD_))
   expect_true(is.na(l$leaf_specific_conductance_max_))
@@ -137,7 +133,7 @@ test_that("Basic functions", {
 
   psi_soil = 2
   
-  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, B_rs1 = B_rs1, B_lf2 = B_lf2, B_lf3 = B_lf3, B_lf5 = B_lf5)
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim)
   l$set_physiology(PPFD = PPFD, psi_soil = psi_soil, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = FF16w_strategy$rho, a_bio = FF16w_strategy$a_bio, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_)
   
   l$set_leaf_states_rates_from_psi_stem(psi_soil - 1)
@@ -186,7 +182,7 @@ test_that("Basic functions", {
   #let's start testing profit functions
   
   psi_soil = 0
-  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, B_rs1 = B_rs1, B_lf2 = B_lf2, B_lf3 = B_lf3, B_lf5 = B_lf5)
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, B_rs1 = , B_lf2 = B_lf2, B_lf3 = B_lf3, B_lf5 = B_lf5)
   
   #first off- what happens when we moving psi_soil around
   l$set_physiology(PPFD = PPFD, psi_soil = psi_crit + 1, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = FF16w_strategy$rho, a_bio = FF16w_strategy$a_bio, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_)
@@ -213,13 +209,13 @@ test_that("Basic functions", {
   #test various responses to environmental gradients to check that behaviour is being conserved
   
   #light
-  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, B_rs1 = B_rs1, B_lf2 = B_lf2, B_lf3 = B_lf3, B_lf5 = B_lf5)
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim)
   l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = FF16w_strategy$rho, a_bio = FF16w_strategy$a_bio, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_)
   l$optimise_psi_stem_TF()
   
   high_light <- l$profit_
   
-  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, B_rs1 = B_rs1, B_lf2 = B_lf2, B_lf3 = B_lf3, B_lf5 = B_lf5)
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim)
   l$set_physiology(PPFD = 500, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = FF16w_strategy$rho, a_bio = FF16w_strategy$a_bio, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_)
   l$optimise_psi_stem_TF()
   
@@ -229,13 +225,13 @@ test_that("Basic functions", {
   
   #soil moist
   
-  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, B_rs1 = B_rs1, B_lf2 = B_lf2, B_lf3 = B_lf3, B_lf5 = B_lf5)
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim)
   l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = FF16w_strategy$rho, a_bio = FF16w_strategy$a_bio, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_)
   l$optimise_psi_stem_TF()
   
   high_moist <- l$profit_
   
-  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, B_rs1 = B_rs1, B_lf2 = B_lf2, B_lf3 = B_lf3, B_lf5 = B_lf5)
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim)
   l$set_physiology(PPFD = 1000, psi_soil = 2, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = FF16w_strategy$rho, a_bio = FF16w_strategy$a_bio, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_)
   l$optimise_psi_stem_TF()
   
@@ -246,13 +242,13 @@ test_that("Basic functions", {
   
   #vpd'
   
-  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, B_rs1 = B_rs1, B_lf2 = B_lf2, B_lf3 = B_lf3, B_lf5 = B_lf5)
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim)
   l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = FF16w_strategy$rho, a_bio = FF16w_strategy$a_bio, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_)
   l$optimise_psi_stem_TF()
   
   low_vpd <- l$profit_
   
-  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, B_rs1 = B_rs1, B_lf2 = B_lf2, B_lf3 = B_lf3, B_lf5 = B_lf5)
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim)
   l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 3, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = FF16w_strategy$rho, a_bio = FF16w_strategy$a_bio, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_)
   l$optimise_psi_stem_TF()
   
@@ -262,13 +258,13 @@ test_that("Basic functions", {
   
   #ca
   
-  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, B_rs1 = B_rs1, B_lf2 = B_lf2, B_lf3 = B_lf3, B_lf5 = B_lf5)
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim)
   l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = 20, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = FF16w_strategy$rho, a_bio = FF16w_strategy$a_bio, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_)
   l$optimise_psi_stem_TF()
   
   low_ca <- l$profit_
   
-  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, B_rs1 = B_rs1, B_lf2 = B_lf2, B_lf3 = B_lf3, B_lf5 = B_lf5)
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = beta1, beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim)
   l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = 40, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = FF16w_strategy$rho, a_bio = FF16w_strategy$a_bio, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_)
   l$optimise_psi_stem_TF()
   
@@ -279,7 +275,7 @@ test_that("Basic functions", {
   
   #vcmax_25
   
-  l <- Leaf(vcmax_25 = 50, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = 5000, beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, B_rs1 = B_rs1, B_lf2 = B_lf2, B_lf3 = B_lf3, B_lf5 = B_lf5)
+  l <- Leaf(vcmax_25 = 50, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, epsilon_leaf = 0.0001, beta1 = 5000, beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,  = B_rs1, B_lf2 = B_lf2, B_lf3 = B_lf3, B_lf5 = B_lf5)
   l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = 40, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = FF16w_strategy$rho, a_bio = FF16w_strategy$a_bio, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_)
   l$optimise_psi_stem_TF()
   

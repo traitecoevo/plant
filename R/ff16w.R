@@ -330,8 +330,7 @@ make_FF16w_hyperpar <- function(
     # p_50 <- B_Hv1*(K_s/K_s_0)^(B_Hv2)
     # p_50 <- B_Hv1*(K_s/K_s_0)^(B_Hv2)
     p_50 = 10^(B_Hv1 + B_Hv2*log10(K_s)) 
-    c = B_c1*p_50^B_c2
-    
+    c = B_c1*exp(-B_c2*p_50)
     ## sensitivity parameter hydraulic vulnerability curve, water potential at 37% conductivity remaining (return unitless):
     b <- p_50/((-log(1-50/100))^(1/c))
 
@@ -550,17 +549,15 @@ make_FF16w_parameters <- function(p0 = FF16w_Parameters(),
 #' @export
 #'
 #' @examples
-make_leaf <- function(ff16w_params = FF16w_Parameters()[["strategy_default"]], ff16w_env = FF16w_make_environment(), height = 1){
-#these are actually hyperparameters which I needed for a least-cost theory function nested within leaf, meaning that these params are arguments in the leaf
-#they don't really get used at the moment but here for now
-  B_rs1 = 0.01
-  B_lf2 = 0.01
-  B_lf3 = 0.01
-  B_lf5 = 0.01
 
-#set some default environmental values
+make_leaf <- function(ff16w_params = FF16w_Parameters()[["strategy_default"]], ff16w_env = FF16w_make_environment(), height = 1, ff16w_hyper = make_FF16w_hyperpar()){
+
+  #set some default environmental values
 ff16w_env_default <- FF16w_make_environment()  
-  
+# ff16w_env <- ff16w_env[[1]] 
+p0 <- FF16w_Parameters()
+p1 <- expand_parameters(as.matrix(ff16w_params), p0, birth_rate_list = 1, hyperpar = do.call(make_FF16w_hyperpar, ff16w_hyper))
+ff16w_params <- p1$strategies[[1]]
 #if using an environment class to import environment   
 if(class(ff16w_env)[1] == "FF16_Environment"){
   psi_soil <- ff16w_env$psi_from_soil_moist(ff16w_env$get_soil_water_state())*1e-6
@@ -569,7 +566,6 @@ if(class(ff16w_env)[1] == "FF16_Environment"){
   ca <- ff16w_env$get_co2()
   leaf_temp <- ff16w_env$get_leaf_temp()
 }
-
 #if using tibble
 if(class(ff16w_env)[1] %in% c("tbl_df","data.frame")){
 
@@ -577,7 +573,6 @@ psi_soil <- ff16w_env[["psi_soil"]]
 if(!is.numeric(ff16w_env[["psi_soil"]])){
   psi_soil <- ff16w_env_default$psi_from_soil_moist(ff16w_env_default$get_soil_water_state())*1e-6
 }
-
 PPFD <- ff16w_env[["PPFD"]]
 if(!is.numeric(ff16w_env[["PPFD"]])){
   PPFD <- 1000*ff16w_env_default$canopy_openness(1)
@@ -598,20 +593,15 @@ if(!is.numeric(ff16w_env[["leaf_temp"]])){
   leaf_temp <- ff16w_env_default$get_leaf_temp()
 }
 }
-
 eta_c = 1 - 2 / (1 + ff16w_params$eta) + 1 / (1 + 2 * ff16w_params$eta)
-
 leaf_specific_conductance_max <- ff16w_params$K_s * ff16w_params$theta / (height * eta_c)
-sapwood_volume_per_leaf_area <- ff16w_params$theta * height
-#make leaf  
-leaf_obj <- Leaf(vcmax_25 = ff16w_params$vcmax_25, jmax_25 = ff16w_params$jmax_25, c = ff16w_params$c, b = ff16w_params$b, psi_crit = ff16w_params$psi_crit, epsilon_leaf = 0.0001, beta1 = ff16w_params$beta1, beta2= ff16w_params$beta2, hk_s = ff16w_params$hk_s, a = ff16w_params$a,
-          curv_fact_elec_trans = ff16w_params$curv_fact_elec_trans, curv_fact_colim = ff16w_params$curv_fact_colim, B_rs1 = B_rs1, B_lf2 = B_lf2, B_lf3 = B_lf3, B_lf5 = B_lf5)
+sapwood_volume_per_leaf_area <- ff16w_params$theta * height* eta_c
 
+leaf_obj <- Leaf(vcmax_25 = ff16w_params$vcmax_25, jmax_25 = ff16w_params$jmax_25, c = ff16w_params$c, b = ff16w_params$b, psi_crit = ff16w_params$psi_crit, epsilon_leaf = 0.0001, beta1 = ff16w_params$beta1, beta2= ff16w_params$beta2, hk_s = ff16w_params$hk_s, a = ff16w_params$a,
+          curv_fact_elec_trans = ff16w_params$curv_fact_elec_trans, curv_fact_colim = ff16w_params$curv_fact_colim)
 leaf_obj$set_physiology(PPFD = PPFD, psi_soil = psi_soil, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, 
                  ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = ff16w_params$rho, a_bio = ff16w_params$a_bio, 
                  leaf_temp = leaf_temp, atm_o2_kpa = ff16w_env_default$get_atm_o2(), atm_kpa = ff16w_env_default$get_atm())
 
 return(leaf_obj)
 }
-
-

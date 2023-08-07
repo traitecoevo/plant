@@ -403,7 +403,7 @@ FF16_hyperpar <- make_FF16_hyperpar()
 
 #' @author Isaac Towers, Daniel Falster and Andrew O'Reilly-Nugent
 
-FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, tol = 1e-3, height = 10, params = scm_base_parameters("FF16"), env = FF16_make_environment(), outcome = "height", use_optim = FALSE, hyperpars = make_hyperpar("FF16"), use_default_strategy = TRUE){
+FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, tol = 1e-3, height = 1, params = scm_base_parameters("FF16"), env = FF16_make_environment(), outcome = "height", use_optim = FALSE, hyperpars = make_hyperpar("FF16"), use_default_strategy = TRUE){
   #can't handle situations yet where bounds are outside of positive growth
   bounds <- check_bounds(bounds)
   traits <- rownames(bounds)
@@ -437,7 +437,6 @@ FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, 
   }
   ret <- solve_max_worker(bounds, f, tol = 1e-6, outcome = paste0(outcome, "_growth_rate"), use_optim = use_optim)
   
-
   #not sure that below is required or correct
   # if (log_scale) {
   #   ret <- exp(ret)

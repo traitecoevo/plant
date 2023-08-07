@@ -14,10 +14,7 @@ Leaf:
       - a: double
       - curv_fact_elec_trans: double
       - curv_fact_colim: double
-      - B_rs1: double
-      - B_lf2: double
-      - B_lf3: double
-      - B_lf5: double
+
       
   active:
     ci_: {type: double, access: field}
@@ -178,9 +175,6 @@ Leaf:
     optimise_psi_stem_TF_newton:
       return_type: void
       args: [psi_guess: double]
-    calculate_cost_LCT:
-      return_type: double
-      args: [psi_stem: double]
 
     
 
@@ -1167,6 +1161,10 @@ FF16r_Strategy:
     - a_dG1: double
     - a_dG2: double
     - k_I: double
+    - lma_p: double
+    - rho_p: double
+    - lma_c: double
+    - rho_c: double
     - recruitment_decay: double
     - control: "plant::Control"
     - collect_all_auxiliary: bool
