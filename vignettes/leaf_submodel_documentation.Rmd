@@ -12,7 +12,7 @@ This is the documentation for the ff16w strategy
 
 #Introduction
 
-ff16w is a new implementation of the ff16 strategy including water dynamics. This includes an updated strategy object `ff16w`, a physiological sub-model which determines how plants assimilate carbon and transpire water dynamically in response to water availability and a soil-water submodel which takes rainfall as an input and determines how much soil moisture is available to plants after accounting for soil hydrology, evaporation and soil use.
+ff16w is a new implementation of the ff16 strategy including water dynamics. This includes an updated strategy object `ff16w`, a physiological sub-model which determines how plants assimilate carbon and transpire water dynamically in response to water availability and a soil-water submodel which takes rainfall as an input and determines how much soil moisture is available to plants.
 
 We can compare the two strategy objects to first undestand the new traits that have been introduced in `ff16w`
 
@@ -48,10 +48,10 @@ For the most part, these traits, in combination with traits from `ff16`, determi
 
 Plants are known to vary the aperture of their stomata, which control the rate of conductance of $H_2O$ for $CO_2$, in response to environmental stimuli including the amount of available soil moisture. But how do plants determine the optimum rate of exchange? Multiple theoretical frameworks exist to address this question, but currently `ff16w` employs the `profitmax` model. The profitmax models states that the optimum stomatal conductance is the point at which profits, $P~(\mu mol~m^{-2}~s^{-1})$, is maximimised.
 
-$P (\mu mol~m^{-2}~s^{-1})$ is the difference between photosynthetic revenue, $A~(\mu mol~m^{-2}~s^{-1})$ and the costs,$H~(\mu mol~m^{-2}~s^{-1})$ required to maintain the transpirational pathway which supplies water for transpiration through the stomates: 
+$P (\mu mol~m^{-2}~s^{-1})$ is the difference between photosynthetic revenue, $A~(\mu mol~m^{-2}~s^{-1})$ and the costs,$C~(\mu mol~m^{-2}~s^{-1})$ required to maintain the transpirational pathway which supplies water for transpiration through the stomates: 
 
 \begin{equation}
-P~(\psi_l) = R~(\psi_l) - H~(\psi_l).
+P~(\psi_l) = A~(\psi_l) - C~(\psi_l).
 \end{equation}
 
 $\psi_l~(-MPa)$ is the water potential of the canopy xylem. This can considered equivalent to the rate of stomatal conductance, because the larger that the leaf water potential gets, the greater the stomatal conductance, all else being equal, which we return to later. What is clear from the equation is that, because both $R$ and $C$ are functions of $\psi_l$, there is a value of $\psi_l$ which can be found which results in $max(P)$. In other words, the maximum profit. We will return to how we numerically solve this function later.
@@ -76,7 +76,7 @@ g_c(\psi_{l}) = \frac{g_w(\psi_{l})}{1.6},
 
 where $g_w$ is the stomatal conducatance to $H_2O$ and 1.6 is ratio of exchange of $CO_2$ and $H_2O$ at the stomatal boundary. For now, we will treat $g_c$ as a constant, because $\psi_l$ varies when maximising the profit function. As can be seen in the coupled stomatal model, $C_i$ is present on both sides of the equation, meaning that we must solve for the value of $C_i$. To better understand this, we first need to understand how $A$ relates to $C_i$  
 
-$A$ is itself a function of $C_i$ and is calculated using a biochemical photosynthetic model (Farquhar et al. 1980) which incorporates both the rubisco-limited, $A_c~(umol~m^{-2}~s^{-1})$ and electron-transport limited photosythnetic rate $A_j~(umol~m^{-2}~s^{-1})$. Net $A$ occurs at the most limiting of these two rates.
+$A$ is itself a function of $C_i$ and is calculated using a biochemical photosynthetic model (Farquhar et al. 1980) which incorporates both the rubisco-limited, $A_c~(umol~m^{-2}~s^{-1})$ and electron-transport limited photosythnetic rate $A_j~(umol~m^{-2}~s^{-1})$. Net $A$ occurs at the most limiting of these two rate using a smoothing transitiion function.
 
 The standard electron-transport limited photosynthetic rate equation describes how photosynthesis varies with light availability and $C_i$:
 
@@ -92,18 +92,13 @@ J=\frac{aQ+J_{max}-\sqrt{(aQ+J_{max})^2-4caQJ_{max}}}{2c},
 
 where $a~(mol~photon~mol^{-1}~electron)$ is the effective quantum yield of electron transport, $Q~(umol~m^{-2}~s^{-1})$ is the PPFD (i.e. the light), $c (unitless)$ is the curvature of the the response of the electron transport rate to light and $J_{max}~(umol~m^{-2}~s^{-1})$ is the maximum electron transport rate.
 
-We set $J_{max}$ as:
-
-$$J_{max} = 1.67V_{c,max},$$
-assuming co-variation between these variables. 
-
 $A_c$ is calculated as:
 
 \begin{equation}
 A_c=\frac{V_{c,max}(C_i-\Gamma*)}{C_i + K_m},
 \end{equation}
 
-where $K_m~(Pa)$ is the effective Michaelis-Menten constant. $V_{c,max}$, $\Gamma*$ and $K_m$ are all temperature dependent variables. However, we do not yet allow for temperature to influence physiology other than by affecting VPD (discussed later), so we assume that these variables are set at their value at 25$^\circ C$
+where $K_m~(Pa)$ is the effective Michaelis-Menten constant. $V_{c,max}$, $\Gamma*$ and $K_m$ are all temperature dependent variables.
 
 We can view the functional form of $A_c$ and $A_j$ a function of $C_i$ below.
 
@@ -112,13 +107,16 @@ First, we need to initialise a leaf with some traits and some environmental info
 The `Leaf` function creates a `Leaf` object, which contains most of the internal functions which are used when calculating the photosynthetic assimilation and water use of a unit of leaf area when using `ff16w`. We initialise the `Leaf` object with a set of traits.
 
 ```{r}
-leaf <- Leaf(vcmax = sw$vcmax, p_50 = sw$p_50, b = sw$b, c = sw$c, psi_crit = sw$psi_crit, K_s = sw$k_s, epsilon_leaf = sw$epsilon_leaf, beta1 = sw$beta1, beta2 = sw$beta2)
+leaf <- Leaf(vcmax= sw$vcmax_25, b = sw$b, c = sw$c, psi_crit = sw$psi_crit, epsilon_leaf = sw$epsilon_leaf, beta1 = sw$beta1, beta2 = sw$beta2, jmax_25 = sw$jmax_25, hk_s = sw$hk_s, a = sw$a, curv_fact_elec_trans = sw$curv_fact_elec_trans, curv_fact_colim = sw$curv_fact_colim)
 ```
 
-We also need to set a series of variables which describe the environmment and physiology of the plant at a given time using the `set_physiology` function. Whereas the traits set using the `Leaf` function describe a species' strategy and do not vary over time, the variables set in `set_physiology` do vary. This becomes more relevant for when we dynamically running an individual plant or forest. For now, we will set some constants. 
+We also need to set a series of variables which describe the environmment and physiology of the plant at a given time using the `set_physiology` function. Whereas the traits set using the `Leaf` function describe a species' strategy and do not vary over time, the variables set in `set_physiology` do vary. This becomes more relevant for when we dynamically running an individual plant or forest. For now, we will set some constants, based on plant height. 
 
 ```{r}
-leaf$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = 4.8e-05, atm_vpd = 2, ca = 40, sapwood_volume_per_leaf_area = 1.8e-04)
+height = 1
+leaf$K_s = 2
+
+leaf$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = 4.8e-05, atm_vpd = 2, ca = 40, sapwood_volume_per_leaf_area = 1.8e-04, rho = 608, a_bio = 0.0245, leaf_temp = 25, atm_o2_kpa = 21, atm_kpa = 101.3)
 ```
 
 Set some $C_i$ values.
@@ -139,53 +137,21 @@ tibble(C_i = C_i) %>%
   theme_classic()
 ```
 
-As can be seen in the plot, $A$ increases with $C_i$ regardless of whether it is rubisco or light-limited. However, the most-limiting rate changes as $C_i$ increases. To obtain a smooth curve relating a single value for net $A$ to $C_i$, we define $A$ principally based on the electron-transport limited rate, but include an empirically parameterised smoothing term, $c_2$:
-
-\begin{equation}
-A=\frac{J(C_i-\Gamma^*)}{4(C_i+c_2)},
-\end{equation}
-
-$c_2$ which is set at 13.13652 was estimated by parameterising a series of $A_c$ and $A_j$ curves and minimising the difference between them. This smoothed curved is demonstrated below by plotting over the $A_c$ and $A_j$ curves.
+As can be seen in the plot, $A$ increases with $C_i$ regardless of whether it is rubisco or light-limited. However, the most-limiting rate changes as $C_i$ increases, which can be captured using a smoothing function (see paper for details.) 
 
 ```{r}
 tibble(C_i = C_i) %>%
   mutate(A_j = map_dbl(C_i, leaf$assim_electron_limited),
          A_c = map_dbl(C_i, leaf$assim_rubisco_limited)) %>%
-  mutate(A_net = map_dbl(C_i, leaf$assim_colimited_analytical)) %>%
-  mutate(A_net_num = map_dbl(C_i, leaf$assim_colimited)) %>%
-  pivot_longer(cols = c(A_j, A_c,A_net), names_to = "rate", values_to = "assim") %>%
+  mutate(A_net = map_dbl(C_i, leaf$assim_colimited)) %>%
+  mutate(A_net_plus_R_d = A_net + leaf$R_d_) %>%
+  pivot_longer(cols = c(A_j, A_c,A_net, A_net_plus_R_d), names_to = "rate", values_to = "assim") %>%
   ggplot(aes(x = C_i, y = assim))+
   geom_line(aes(colour = rate, group = rate)) +
   theme_classic()
 ```
 
-As can be seen above, the smoothing term behaves moderately well. Alternative methods are available in `ff16w`, including a smoothed hyperbolic transition between $A_c$ and $A_j$ such as used in Sabot et al. (2020). However, they behave similarly (as seen below), and the empirical method permits us to bypass a costly numerical method when solving for $C_i$ as mentioned above. 
-
-```{r}
-tibble(C_i = C_i) %>%
-  mutate(A_j = map_dbl(C_i, leaf$assim_electron_limited),
-         A_c = map_dbl(C_i, leaf$assim_rubisco_limited)) %>%
-  mutate(A_net = map_dbl(C_i, leaf$assim_colimited_analytical)) %>%
-  mutate(A_net_hyper = map_dbl(C_i, leaf$assim_colimited)) %>%
-  pivot_longer(cols = c(A_j, A_c,A_net,A_net_hyper), names_to = "rate", values_to = "assim") %>%
-  ggplot(aes(x = C_i, y = assim))+
-  geom_line(aes(colour = rate, group = rate)) +
-  theme_classic()
-```
-
-As mentioned above, $C_i$ must be found in order to equate both sides of the coupled-stomatal model, which permits $A$ to be found. To do this analytically, which is computationally more efficient, we subsitute the smoothed equation for $A$ into the coupled stomatal model:
-
-\begin{equation}
-\frac{J(C_i-\Gamma^*)}{4(C_i+c_2)} = \frac{g_c(\psi_{l})(C_a - C_i)}{P_{atm}},
-\end{equation}
-
-and re-arrange to find $C_i$, which yields:
-
-\begin{equation}
-C_i = \frac{\sqrt{8Jm(P_{atm}n)g_c(C_a+c_2+2\Gamma^*o) + 16g{_c}^2 + ({C_a+c_2})^2 + J^2m^2(P_{atm}n)^2} + 4C_ag_c - 4c_2g_c - JmP_{atm}n}{8g_c}.
-\end{equation}
-
-Here, $m$, $n$, and $o$ convert $\mu mol~mol^{-1}$ to $mol~mol^{-1}$, $kPa$ to $Pa$ and $\mu mol~mol^{-1}$ to $Pa$, respectively. With $C_i$ known, it is therefore possible to calculate $A$, provided that $g_c$ is known which, as mentioned previously, is found numerically when maximsing profit as a function of $\psi_l$. This requires the cost function to be calculated.
+The A_net function also includes a carbon deduction associated with dark respiration, so we can add this back on to show correspondence between the A_net curve and A_c/Aj.
 
 #Cost
 

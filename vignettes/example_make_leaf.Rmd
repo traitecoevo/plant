@@ -9,7 +9,6 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
 ```{r}
 rm(list=ls())
 ```
@@ -22,6 +21,60 @@ devtools::load_all(".")
 library(tidyverse)
 ```
 
+A generic leaf to work with can be created simply by using `make_leaf`. This automatically sets default traits, hyperparametersied traits, and states that are either height or environment-dependent.
+
+```{r}
+leaf <- make_leaf()
+```
+
+You can now access different functions or states that are nested with leaf. For example, we can evaluate the temperature-apparent vcmax of the leaf, or calcualte the assimilation at a given $C_i$.
+
+```{r}
+leaf$vcmax_
+leaf$assim_colimited(35)
+```
+
+Often, you will want to use the leaf more specifically, by setting some parameters (or hyperparameters), which is done here.
+
+```{r}
+params <- make_FF16w_parameters(a = 0.05, vcmax_25 = c(300))
+environment <- tibble(psi_soil = 1.5, PPFD = 400, atm_vpd = 2, ca = 45, leaf_temp = 30)
+height <- 1
+hyperparms <- list(lma_0 = 0.25)
+```
+
+```{r}
+leaf2 <- make_leaf(ff16w_params = params, ff16w_env = environment, height = 1, ff16w_hyper = hyperparms)
+```
+
+Compare vcmax between the two leaves, look at environment
+
+```{r}
+leaf$vcmax_
+leaf2$vcmax_
+
+leaf$atm_vpd_
+leaf2$atm_vpd_
+
+leaf$PPFD_
+leaf2$PPFD_
+
+leaf$ca_
+leaf2$ca_
+
+leaf$leaf_temp_
+leaf2$leaf_temp_
+```
+
+Can also make the environment by using `make_environment` and setting environment
+
+```{r}
+environment_ff16w <- FF16w_make_environment(leaf_temp = 35)
+
+leaf3 <- make_leaf(ff16w_params = params, ff16w_env = environment_ff16w, height = 1, ff16w_hyper = hyperparms)
+leaf3$leaf_temp_
+```
+
 #example using a tibble of environment values
 
 ```{r}
@@ -30,36 +83,58 @@ tibble(make_FF16w_parameters(a = 0.05, vcmax_25 = c(50, 300))) %>%
   mutate(trait_set = 1:n()) %>%
   group_by(trait_set) %>%
   nest(trait_matrix = c(-trait_set)) %>%
-  mutate(trait_matrix_plant = map(trait_matrix, ~expand_parameters(as.matrix(.x), p = FF16w_Parameters()))) %>%
-  mutate(strategy = map2(trait_matrix, trait_matrix_plant, ~strategy(as.matrix(.x), .y, birth_rate_list = 1, use_default_strategy = FALSE))) %>%
   expand_grid(psi_soil = c(1), PPFD = 1000) %>%
   group_by(trait_set) %>%
   mutate(environment_set = 1:n()) %>%
   group_by(trait_set, environment_set) %>%
-  nest(environment = -c(trait_set, trait_matrix, environment_set, trait_matrix_plant, strategy)) %>%
+  nest(environment = -c(trait_set, trait_matrix, environment_set)) %>%
   ungroup() %>%
-  mutate(leaf = pmap(.l = list(ff16w_params = strategy, ff16w_env = environment), .f = make_leaf))-> example_tibble
+  mutate(leaf = pmap(.l = list(ff16w_params = trait_matrix, ff16w_env = environment), .f = make_leaf))-> example_tibble
 ```
 
-#example setting a ff16env object (to come)
-
-```{r}
-```
-
-#use the leaf
+#use purrr::map to utilise leaf values
 
 ```{r}
 example_tibble %>%
-  expand_grid(ci = seq(0,40)) %>%
-  mutate(assim_electron_limited_ = map2_dbl(.x = leaf, .y = ci, ~.x$assim_electron_limited(.y))) %>%
-  mutate(assim_rubisco_limited_ = map2_dbl(.x = leaf, .y = ci, ~.x$assim_rubisco_limited(.y))) %>%
-  mutate(assim_colimited_gross_ = map2_dbl(.x = leaf, .y = ci, ~.x$assim_colimited(.y) + .x$vcmax_*0.015)) %>%
-  mutate(assim_colimited_net_ = map2_dbl(.x = leaf, .y = ci, ~.x$assim_colimited(.y))) %>%
-  pivot_longer(cols = c(assim_electron_limited_, assim_rubisco_limited_, assim_colimited_net_)) %>% 
-  unnest(trait_matrix) %>%
-  ggplot(aes(x = ci, y = value)) +
-  geom_line(aes(colour = vcmax_25, group = interaction(name,vcmax_25), linetype = name)) + 
-  ylab("Assimilation") +
-  xlab(expression(paste(C[i])))
+  expand_grid(ci = seq(5, 40, length.out = 100)) %>%
+  mutate(vcmax_ = map_dbl(leaf, ~.x$vcmax_)) %>%
+  mutate(assim_colimited_ = map2_dbl(.x = ci, .y = leaf, ~.y$assim_colimited(.x))) %>%
+  ggplot(aes(x = ci , y= assim_colimited_)) +
+  geom_line(aes(colour = vcmax_, group = vcmax_))
+```
+
+sometimes funcitons will be necessary to use leaves because (as far as I am aware) you cannot use void functions in leaves dynamically in tibbles
+
+```{r}
+calc_states <- function(psi_stem, leaf){
+  leaf$set_leaf_states_rates_from_psi_stem(psi_stem)
+  return(leaf$assim_colimited_)
+}
+```
+
+
+```{r}
+tibble(make_FF16w_parameters(a = 0.05, vcmax_25 = c(100))) %>%
+  mutate(jmax_25 = vcmax_25 * 1.67) %>%
+  mutate(trait_set = 1:n()) %>%
+  group_by(trait_set) %>%
+  nest(trait_matrix = c(-trait_set)) %>%
+  expand_grid(psi_soil = c(1), PPFD = 1000) %>%
+  group_by(trait_set) %>%
+  mutate(environment_set = 1:n()) %>%
+  group_by(trait_set, environment_set) %>%
+  nest(environment = -c(trait_set, trait_matrix, environment_set)) %>%
+  ungroup() %>%
+  mutate(leaf = pmap(.l = list(ff16w_params = trait_matrix, ff16w_env = environment), .f = make_leaf))-> example_tibble2
+```
+
+```{r}
+example_tibble2 %>%
+  expand_grid(psi_stem = seq(1,12,length.out = 100)) %>%
+  mutate(assim_colimited_ = map2_dbl(.x = psi_stem, .y = leaf, .f = ~calc_states(.x, .y))) %>%
+  mutate(hydraulic_cost_ = map2_dbl(.x = psi_stem, .y = leaf, .f = ~.y$hydraulic_cost_TF(.x))) %>%
+  mutate(profit_ = assim_colimited_ - hydraulic_cost_) %>% View
+  ggplot(aes(x = psi_stem, y = profit_)) +
+  geom_line()
 ```
 
