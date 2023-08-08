@@ -371,6 +371,11 @@ template <> inline SEXP wrap(const plant::Control& x) {
   ret["equilibrium_solver_logN"] = Rcpp::wrap(x.equilibrium_solver_logN);
   ret["equilibrium_solver_try_keep"] = Rcpp::wrap(x.equilibrium_solver_try_keep);
   ret["save_RK45_cache"] = Rcpp::wrap(x.save_RK45_cache);
+  ret["newton_tol_abs"] = Rcpp::wrap(x.newton_tol_abs);
+  ret["GSS_tol_abs"] = Rcpp::wrap(x.GSS_tol_abs);
+  ret["vulnerability_curve_ncontrol"] = Rcpp::wrap(x.vulnerability_curve_ncontrol);
+  ret["ci_abs_tol"] = Rcpp::wrap(x.ci_abs_tol);
+  ret["ci_niter"] = Rcpp::wrap(x.ci_niter);
   ret.attr("class") = "Control";
   return ret;
 }
@@ -443,6 +448,16 @@ template <> inline plant::Control as(SEXP x) {
   ret.equilibrium_solver_try_keep = Rcpp::as<bool >(xl["equilibrium_solver_try_keep"]);
   // ret.save_RK45_cache = Rcpp::as<decltype(retsave_RK45_cache) >(xl["save_RK45_cache"]);
   ret.save_RK45_cache = Rcpp::as<bool >(xl["save_RK45_cache"]);
+  // ret.newton_tol_abs = Rcpp::as<decltype(retnewton_tol_abs) >(xl["newton_tol_abs"]);
+  ret.newton_tol_abs = Rcpp::as<double >(xl["newton_tol_abs"]);
+  // ret.GSS_tol_abs = Rcpp::as<decltype(retGSS_tol_abs) >(xl["GSS_tol_abs"]);
+  ret.GSS_tol_abs = Rcpp::as<double >(xl["GSS_tol_abs"]);
+  // ret.vulnerability_curve_ncontrol = Rcpp::as<decltype(retvulnerability_curve_ncontrol) >(xl["vulnerability_curve_ncontrol"]);
+  ret.vulnerability_curve_ncontrol = Rcpp::as<double >(xl["vulnerability_curve_ncontrol"]);
+  // ret.ci_abs_tol = Rcpp::as<decltype(retci_abs_tol) >(xl["ci_abs_tol"]);
+  ret.ci_abs_tol = Rcpp::as<double >(xl["ci_abs_tol"]);
+  // ret.ci_niter = Rcpp::as<decltype(retci_niter) >(xl["ci_niter"]);
+  ret.ci_niter = Rcpp::as<double >(xl["ci_niter"]);
   return ret;
 }
 template <> inline SEXP wrap(const plant::ode::OdeControl& x) {
@@ -1331,7 +1346,8 @@ template <> inline SEXP wrap(const plant::FF16w_Strategy& x) {
   ret["b"] = Rcpp::wrap(x.b);
   ret["psi_crit"] = Rcpp::wrap(x.psi_crit);
   ret["hk_s"] = Rcpp::wrap(x.hk_s);
-  ret["epsilon_leaf"] = Rcpp::wrap(x.epsilon_leaf);
+  ret["newton_tol_abs"] = Rcpp::wrap(x.newton_tol_abs);
+  ret["GSS_tol_abs"] = Rcpp::wrap(x.GSS_tol_abs);
   ret["beta1"] = Rcpp::wrap(x.beta1);
   ret["beta2"] = Rcpp::wrap(x.beta2);
   ret["jmax_25"] = Rcpp::wrap(x.jmax_25);
@@ -1438,8 +1454,10 @@ template <> inline plant::FF16w_Strategy as(SEXP x) {
   ret.psi_crit = Rcpp::as<double >(xl["psi_crit"]);
   // ret.hk_s = Rcpp::as<decltype(rethk_s) >(xl["hk_s"]);
   ret.hk_s = Rcpp::as<double >(xl["hk_s"]);
-  // ret.epsilon_leaf = Rcpp::as<decltype(retepsilon_leaf) >(xl["epsilon_leaf"]);
-  ret.epsilon_leaf = Rcpp::as<double >(xl["epsilon_leaf"]);
+  // ret.newton_tol_abs = Rcpp::as<decltype(retnewton_tol_abs) >(xl["newton_tol_abs"]);
+  ret.newton_tol_abs = Rcpp::as<double >(xl["newton_tol_abs"]);
+  // ret.GSS_tol_abs = Rcpp::as<decltype(retGSS_tol_abs) >(xl["GSS_tol_abs"]);
+  ret.GSS_tol_abs = Rcpp::as<double >(xl["GSS_tol_abs"]);
   // ret.beta1 = Rcpp::as<decltype(retbeta1) >(xl["beta1"]);
   ret.beta1 = Rcpp::as<double >(xl["beta1"]);
   // ret.beta2 = Rcpp::as<decltype(retbeta2) >(xl["beta2"]);

@@ -79,8 +79,6 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
 
   // stomatal conductance to c02 (umol m^-2 s^-1)
   vars.set_aux(aux_index.at("transpiration_"), leaf.transpiration_);
-
-
   vars.set_aux(aux_index.at("stom_cond_CO2_"), leaf.stom_cond_CO2_);
 
   // optimum psi_stem (-MPa)
@@ -101,7 +99,6 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
   vars.set_aux(aux_index.at("hydraulic_cost_"), leaf.hydraulic_cost_);
 
   // convert assimilation per leaf area per second (umol m^-2 s^-1) to canopy-level total yearly assimilation (mol yr^-1)
-  // assuming photosynthesis occcurs for 12 hours a day every day
 
   const double assimilation = leaf.profit_ * area_leaf_* 60*60*24*365/1e6;
     
@@ -211,7 +208,10 @@ void FF16w_Strategy::prepare_strategy() {
   } else {
     extrinsic_drivers.set_constant("birth_rate", birth_rate_y[0]);
   }
-  leaf = Leaf(vcmax_25,  c,  b, psi_crit, epsilon_leaf,  beta1,  beta2, jmax_25, hk_s, a, curv_fact_colim, curv_fact_elec_trans);
+  leaf = Leaf(vcmax_25,  c,  b, psi_crit,  beta1,  beta2, jmax_25, hk_s, a, curv_fact_colim, curv_fact_elec_trans, control.newton_tol_abs, control.GSS_tol_abs,
+           control.vulnerability_curve_ncontrol,
+           control.ci_abs_tol,
+           control.ci_niter);
 }
 
 

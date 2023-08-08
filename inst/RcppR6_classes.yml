@@ -6,7 +6,6 @@ Leaf:
       - c: double
       - b: double
       - psi_crit: double
-      - epsilon_leaf: double
       - beta1: double
       - beta2: double
       - jmax_25: double
@@ -14,6 +13,12 @@ Leaf:
       - a: double
       - curv_fact_elec_trans: double
       - curv_fact_colim: double     
+      - newton_tol_abs: double
+      - GSS_tol_abs: double
+      - vulnerability_curve_ncontrol: double
+      - ci_abs_tol: double
+      - ci_niter: double
+
   active:
     ci_: {type: double, access: field}
     stom_cond_CO2_: {type: double, access: field}
@@ -45,7 +50,6 @@ Leaf:
     opt_psi_stem_: {type: double, access: field}
     opt_ci_: {type: double, access: field}
     count: {type: double, access: field}
-    GSS_count: {type: double, access: field}
 
   methods:
     initialize_integrator:
@@ -126,43 +130,22 @@ Leaf:
     profit_psi_stem_Sperry_analytical:
       return_type: double
       args: [psi_stem: double]  
-    profit_Sperry_ci_analytical:
-      return_type: double
-      args: [ci_: double]
     profit_psi_stem_Bartlett:
       return_type: double
       args: [psi_stem: double]
     profit_psi_stem_TF:
       return_type: double
       args: [psi_stem: double]
-    profit_psi_stem_Bartlett_analytical:
-      return_type: double
-      args: [psi_stem: double]
       # optimiser functions
-    optimise_psi_stem_Sperry_Newton:
-      return_type: void
-      args: [psi_guess: double]
-    optimise_psi_stem_Sperry_Newton_analytical:
-      return_type: void
-      args: [psi_guess: double]
     optimise_psi_stem_Sperry:
       return_type: void
       args: []
     optimise_psi_stem_Sperry_analytical:
       return_type: void
       args: []
-    optimise_ci_Sperry_Newton:
-      return_type: void
-      args: [ci_guess: double]
     optimise_ci_Sperry:
       return_type: void
       args: [max_ci: double]
-    optimise_ci_Sperry_analytical:
-      return_type: void
-      args: [max_ci: double]
-    optimise_ci_Sperry_Newton_analytical:
-      return_type: void
-      args: [ci_guess: double]
     optimise_psi_stem_Bartlett:
       return_type: void
       args: []
@@ -172,10 +155,6 @@ Leaf:
     optimise_psi_stem_TF_newton:
       return_type: void
       args: [psi_guess: double]
-
-    
-
-
 
 Lorenz:
   name_cpp: "plant::ode::test::Lorenz"
@@ -314,6 +293,11 @@ Control:
     - equilibrium_solver_logN: bool
     - equilibrium_solver_try_keep: bool
     - save_RK45_cache: bool
+    - newton_tol_abs: double
+    - GSS_tol_abs: double
+    - vulnerability_curve_ncontrol: double
+    - ci_abs_tol: double
+    - ci_niter: double
 
 OdeControl:
   name_cpp: "plant::ode::OdeControl"
@@ -1271,7 +1255,8 @@ FF16w_Strategy:
     - b: double
     - psi_crit: double
     - hk_s: double
-    - epsilon_leaf: double
+    - newton_tol_abs: double
+    - GSS_tol_abs: double
     - beta1: double
     - beta2: double
     - jmax_25: double

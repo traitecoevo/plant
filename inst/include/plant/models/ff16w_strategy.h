@@ -55,7 +55,6 @@ virtual std::vector<std::string> aux_names() {
   double c = log(log(1-0.5)/log(1-0.88))/(log(p_50) - log(5.16));
   double b = p_50 / std::pow(-log(1 - 50.0 / 100.0), 1 / c);
   double psi_crit = b*std::pow(log(1/0.05),1/c); // derived from b and c
-  double epsilon_leaf = 0.001;
   double beta1 = 20000;
   double beta2 = 1.5;
   double jmax_25 = vcmax_25*1.64;
@@ -64,6 +63,11 @@ virtual std::vector<std::string> aux_names() {
   double curv_fact_elec_trans = 0.7; 
   double curv_fact_colim = 0.99; 
   double var_sapwood_volume_cost = 1; 
+  double newton_tol_abs = 0.001;
+  double GSS_tol_abs = 0.0001;
+  double vulnerability_curve_ncontrol = 100;
+  double ci_abs_tol = 1e-3;
+  double ci_niter = 1000;
 
   //nitrogen allocation traits (parameterised from Austraits 4.1.0)
   double nmass_l = 13e-3; // kg N kg^-1 mass

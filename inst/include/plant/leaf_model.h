@@ -74,18 +74,25 @@ static const double H2O_CO2_stom_diff_ratio = 1.67;
 
 class Leaf {
 public:
-  Leaf(double vcmax_25        = 100, // umol m^-2 s^-1
-       double c            = 2.05, //unitless
-       double b            = 2.0, // MPa
-       double psi_crit     = 3.42,  // derived from b and c (- MPa)
-       double epsilon_leaf = 0.001,
-       double beta1 = 20000, // umol m^-3 s^-1
-       double beta2 = 1.5, //exponent for effect of hydraulic risk (unitless)
-       double jmax_25 = 167, // maximum electron transport rate umol m^-2 s^-1
-       double hk_s = 4/365/24/60/60, // maximum hydraulic-dependent sapwood turnover rate yr ^ -1
-       double a = 0.30, // effective quantum yield of electron transport  (mol photon mol ^-1 electron)  Sabot et al. 2020
-       double curv_fact_elec_trans = 0.85, // unitless - obtained from Smith and Keenan (2020)
-       double curv_fact_colim = 0.98); //?); //curvature factor for the colimited photosythnthesis equation
+  //anonymous Leaf function as in canopy.h
+  Leaf();
+  
+  Leaf(double vcmax_25, 
+       double c, 
+       double b, 
+       double psi_crit,
+       double beta1,
+       double beta2, 
+       double jmax_25, 
+       double hk_s,
+       double a, 
+       double curv_fact_elec_trans, 
+       double curv_fact_colim,
+       double newton_tol_abs, 
+       double GSS_tol_abs,
+       double vulnerability_curve_ncontrol,
+       double ci_abs_tol,
+       double ci_niter); 
         
   quadrature::QAG integrator;
   interpolator::Interpolator transpiration_from_psi;
@@ -97,7 +104,11 @@ public:
   double c;
   double b;
   double psi_crit;  // derived from b and c
-  double epsilon_leaf; //actually a control paramaeter and needs to be moved
+  double newton_tol_abs; //actually a control paramaeter and needs to be moved
+  double GSS_tol_abs;
+  double vulnerability_curve_ncontrol;
+  double ci_abs_tol;
+  double ci_niter;
   double beta1;
   double beta2;
   double jmax_25;
@@ -142,7 +153,6 @@ public:
   double opt_psi_stem_;
   double opt_ci_;
   double count;
-  double GSS_count;
 
   // TODO: move into environment?
 
@@ -167,6 +177,7 @@ public:
   // set-up functions
   void set_physiology(double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa);
   void setup_transpiration(double resolution);
+  void setup_clean_leaf();
 
   double arrh_curve(double Ea, double ref_value, double leaf_temp) const;
   double peak_arrh_curve(double Ea, double ref_value, double leaf_temp, double H_d, double d_S) const;
@@ -219,12 +230,7 @@ public:
 // optimiser functions
   void optimise_psi_stem_Sperry();
   void optimise_psi_stem_Sperry_analytical();
-  void optimise_psi_stem_Sperry_Newton(double psi_guess);
-  void optimise_psi_stem_Sperry_Newton_analytical(double psi_guess);
   void optimise_ci_Sperry(double ci_guess);
-  void optimise_ci_Sperry_analytical(double max_ci);
-  void optimise_ci_Sperry_Newton(double ci_guess);
-  void optimise_ci_Sperry_Newton_analytical(double ci_guess);
   void optimise_psi_stem_Bartlett();
   void optimise_psi_stem_TF();
   void optimise_psi_stem_TF_newton(double psi_guess);

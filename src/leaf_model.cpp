@@ -2,55 +2,91 @@
 #include <cmath>
 
 namespace plant {
+Leaf::Leaf()
+    :
+    vcmax_25(96), // umol m^-2 s^-1 
+    c(2.680147), //unitless
+    b(3.898245), //-MPa
+    psi_crit(5.870283), //-MPa 
+    beta1(20000), //hydraulic cost for Bartlett method umol m^-3 s^-1
+    beta2(1.5), //exponent for effect of hydraulic risk (unitless)
+    jmax_25(157.44), // maximum electron transport rate umol m^-2 s^-1
+    hk_s(4),  // maximum hydraulic-dependent sapwood turnover rate yr ^ -1
+    a(0.30), //quantum yield of photosynthetic electron transport (mol mol^-1)
+    curv_fact_elec_trans(0.7), //curvature factor for the light response curve (unitless)
+    curv_fact_colim(0.99), //curvature factor for the colimited photosythnthesis equatiom
+    newton_tol_abs(1e-3),
+    GSS_tol_abs(1e-3),
+    vulnerability_curve_ncontrol(100),
+    ci_abs_tol(1e-3),
+    ci_niter(1000)
+   {
+      setup_transpiration(100); // arg: num control points for integration
+      setup_clean_leaf();
+}
+
 Leaf::Leaf(double vcmax_25, double c, double b,
-           double psi_crit, // derived from b and c
-           double epsilon_leaf, double beta1, double beta2, double jmax_25, double hk_s,
-           double a, double curv_fact_elec_trans, double curv_fact_colim)
+           double psi_crit, // derived from b and c,
+           double beta1, double beta2, double jmax_25, double hk_s,
+           double a, double curv_fact_elec_trans, double curv_fact_colim, 
+           double newton_tol_abs,
+           double GSS_tol_abs,
+           double vulnerability_curve_ncontrol,
+           double ci_abs_tol,
+           double ci_niter)
     : vcmax_25(vcmax_25), // umol m^-2 s^-1 
     c(c), //unitless
     b(b), //-MPa
     psi_crit(psi_crit), //-MPa 
-    epsilon_leaf(epsilon_leaf), //tolerance value 
     beta1(beta1), //hydraulic cost for Bartlett method umol m^-3 s^-1
     beta2(beta2), //exponent for effect of hydraulic risk (unitless)
     jmax_25(jmax_25), // maximum electron transport rate umol m^-2 s^-1
     hk_s(hk_s),  // maximum hydraulic-dependent sapwood turnover rate yr ^ -1
     a(a), //quantum yield of photosynthetic electron transport (mol mol^-1)
     curv_fact_elec_trans(curv_fact_elec_trans), //curvature factor for the light response curve (unitless)
-    curv_fact_colim(curv_fact_colim), //curvature factor for the colimited photosythnthesis equatio
-    ci_(NA_REAL), // Pa
-    stom_cond_CO2_(NA_REAL), //mol Co2 m^-2 s^-1 
-    assim_colimited_(NA_REAL), // umol C m^-2 s^-1 
-    transpiration_(NA_REAL), // kg m^-2 s^-1 
-    profit_(NA_REAL), // umol C m^-2 s^-1 
-    lambda_(NA_REAL), // umol C m^-2 s^-1 kg^-1 m^2 s^1
-    lambda_analytical_(NA_REAL), // umol C m^-2 s^-1 kg^-1 m^2 s^1
-    hydraulic_cost_(NA_REAL), // umol C m^-2 s^-1 
-    electron_transport_(NA_REAL), //electron transport rate umol m^-2 s^-1
-    gamma_(NA_REAL),
-    ko_(NA_REAL),
-    kc_(NA_REAL),
-    km_(NA_REAL),
-    R_d_(NA_REAL),
-    leaf_specific_conductance_max_(NA_REAL), //kg m^-2 s^-1 MPa^-1 
-    sapwood_volume_per_leaf_area_ (NA_REAL), //m^3 SA m^-2 LA
-    rho_(NA_REAL), //kg m^-3
-    vcmax_(NA_REAL), //kg m^-3
-    jmax_(NA_REAL), //kg m^-3
-    a_bio_(NA_REAL), //kg mol^-1
-    psi_soil_(NA_REAL), //-MPa
-    leaf_temp_(NA_REAL), // deg C
-    PPFD_(NA_REAL), //umol m^-2 s^-1
-    atm_vpd_(NA_REAL), //kPa 
-    atm_o2_kpa_(NA_REAL), // kPa
-    atm_kpa_(NA_REAL), // kPa
-    ca_(NA_REAL), //Pa
-    opt_psi_stem_(NA_REAL), //-MPa 
-    opt_ci_(NA_REAL), //Pa 
-    count(NA_REAL), 
-    GSS_count(NA_REAL) {
-      setup_transpiration(100); // arg: num control points for integration
+    curv_fact_colim(curv_fact_colim), //curvature factor for the colimited photosythnthesis equation
+    newton_tol_abs(newton_tol_abs),
+    GSS_tol_abs(GSS_tol_abs),
+    vulnerability_curve_ncontrol(vulnerability_curve_ncontrol),
+    ci_abs_tol(ci_abs_tol),
+    ci_niter(ci_niter)
+   {
+      setup_transpiration(vulnerability_curve_ncontrol); // arg: num control points for integration
+      setup_clean_leaf();
+}
 
+
+//set various states and physiology parameters obtained from ff16w to NA to clean leaf object
+void Leaf::setup_clean_leaf() {
+  ci_ = NA_REAL; // Pa
+  stom_cond_CO2_= NA_REAL; //mol Co2 m^-2 s^-1 
+  assim_colimited_= NA_REAL; // umol C m^-2 s^-1 
+  transpiration_= NA_REAL; // kg m^-2 s^-1 
+  profit_= NA_REAL; // umol C m^-2 s^-1 
+  lambda_= NA_REAL; // umol C m^-2 s^-1 kg^-1 m^2 s^1
+  lambda_analytical_= NA_REAL; // umol C m^-2 s^-1 kg^-1 m^2 s^1
+  hydraulic_cost_= NA_REAL; // umol C m^-2 s^-1 
+  electron_transport_= NA_REAL; //electron transport rate umol m^-2 s^-1
+  gamma_= NA_REAL;
+  ko_= NA_REAL;
+  kc_= NA_REAL;
+  km_= NA_REAL;
+  R_d_= NA_REAL;
+  leaf_specific_conductance_max_= NA_REAL; //kg m^-2 s^-1 MPa^-1 
+  sapwood_volume_per_leaf_area_ = NA_REAL; //m^3 SA m^-2 LA
+  rho_= NA_REAL; //kg m^-3
+  vcmax_= NA_REAL; //kg m^-3
+  jmax_= NA_REAL; //kg m^-3
+  a_bio_= NA_REAL; //kg mol^-1
+  psi_soil_= NA_REAL; //-MPa
+  leaf_temp_= NA_REAL; // deg C
+  PPFD_= NA_REAL; //umol m^-2 s^-1
+  atm_vpd_= NA_REAL; //kPa 
+  atm_o2_kpa_= NA_REAL; // kPa
+  atm_kpa_= NA_REAL; // kPa
+  ca_= NA_REAL; //Pa
+  opt_psi_stem_= NA_REAL; //-MPa 
+  opt_ci_= NA_REAL; //Pa 
 }
 
 //sets various parameters which are constant for a given node at a given time
@@ -235,7 +271,7 @@ double Leaf::psi_stem_to_ci(double psi_stem) {
   };
 
   // tol and iterations copied from control defaults (for now) - changed recently to 1e-6
-  return ci_ = util::uniroot(target, gamma_ * umol_per_mol_to_Pa, ca_, 1e-8, 1000);
+  return ci_ = util::uniroot(target, gamma_ * umol_per_mol_to_Pa, ca_, ci_abs_tol, ci_niter);
 }
 
 // given psi_stem, find assimilation, transpiration and stomal conductance to c02
@@ -416,14 +452,10 @@ void Leaf::optimise_psi_stem_Sperry() {
     double bound_a = psi_soil_;
     double bound_b = psi_crit;
 
-    double delta_crit = 1e-07;
-
     double bound_c = bound_b - (bound_b - bound_a) / gr;
     double bound_d = bound_a + (bound_b - bound_a) / gr;
-GSS_count = 0;
 
-    while (abs(bound_b - bound_a) > delta_crit) {
-GSS_count +=1 ;
+    while (abs(bound_b - bound_a) > GSS_tol_abs) {
 
       double profit_at_c =
           profit_psi_stem_Sperry(bound_c);
@@ -463,12 +495,10 @@ void Leaf::optimise_psi_stem_Sperry_analytical() {
     double bound_a = psi_soil_;
     double bound_b = psi_crit;
 
-    double delta_crit = 1e-2;
-
     double bound_c = bound_b - (bound_b - bound_a) / gr;
     double bound_d = bound_a + (bound_b - bound_a) / gr;
 
-    while (abs(bound_b - bound_a) > delta_crit) {
+    while (abs(bound_b - bound_a) > GSS_tol_abs) {
 
       double profit_at_c =
           profit_psi_stem_Sperry_analytical(bound_c);
@@ -492,228 +522,6 @@ void Leaf::optimise_psi_stem_Sperry_analytical() {
 
   }
 
-void Leaf::optimise_psi_stem_Sperry_Newton(double psi_guess) {
-
-  count = 0;
-  int max_psi;
-  double x_1, x_2, y_0, y_1, y_2, first_dev, sec_dev;
-
-  // Early exit -- XXXX 
-  if (psi_soil_ > psi_crit){
-
-    opt_psi_stem_ = psi_soil_;
-    profit_ = 0.0;
-    transpiration_ = 0.0;
-    stom_cond_CO2_ = 0.0;
-    return;
-  }
-
-  // optimise for stem water potential
-  double diff_value = 0.01; 
- 
-  double psi_stem_initial;
-
-  int finished=1;
-
-  opt_psi_stem_ = psi_guess;
-
-
-  if (R_IsNA(opt_psi_stem_) | (opt_psi_stem_ > psi_crit) | (opt_psi_stem_ < psi_soil_)){
-
-  max_psi = 1;
-
-  opt_psi_stem_ = psi_crit - diff_value;
-
-  }
-
-  while(finished == 1){
-
-    count += 1;
-
-    if((count > 15) | ((R_IsNA(opt_psi_stem_) | (opt_psi_stem_ > psi_crit) | (opt_psi_stem_ < psi_soil_)) && max_psi == 3)){
-
-      optimise_psi_stem_Sperry();
-      return;
-    }
-
-  if ((R_IsNA(opt_psi_stem_) | (opt_psi_stem_ > psi_crit) | (opt_psi_stem_ < psi_soil_))  && max_psi == 1){
-
-    count = 0;
-    max_psi = 2;
-
-    opt_psi_stem_ = psi_soil_ + diff_value;
-
-  }
-
-    if ((R_IsNA(opt_psi_stem_) | (opt_psi_stem_ > psi_crit) | (opt_psi_stem_ < psi_soil_)) && max_psi == 2){
-
-
-    count = 0;
-
-    max_psi = 3;
-
-    opt_psi_stem_ = (psi_soil_ + psi_crit)/2;
-
-  }
-
-    psi_stem_initial = opt_psi_stem_;
-
-    x_1 = psi_stem_initial - diff_value;
-    x_2 = psi_stem_initial + diff_value;
-    
-    y_2 = profit_psi_stem_Sperry(x_2);
-
-    y_1 = profit_psi_stem_Sperry(x_1);
-
-    y_0 = profit_psi_stem_Sperry(psi_stem_initial);
-
-    first_dev = (y_2 - y_1)/(2*diff_value);
-    sec_dev = (y_2 - 2*y_0 + y_1)/pow(diff_value, 2);
-
-    opt_psi_stem_ = psi_stem_initial -  first_dev/sec_dev;
-
-    if(abs(opt_psi_stem_ - psi_stem_initial) < epsilon_leaf){
-      finished = 0;
-    }
-
-    profit_ = y_0;
-  }
-    return;
-  }
-
-
-void Leaf::optimise_psi_stem_Sperry_Newton_analytical(double psi_guess) {
-
-  count = 0;
-
-  double x_1, x_2, y_0, y_1, y_2, first_dev, sec_dev;
-
-  // Early exit -- XXXX 
-  if (psi_soil_ > psi_crit){
-
-    opt_psi_stem_ = psi_soil_;
-    profit_ = 0.0;
-    transpiration_ = 0.0;
-    stom_cond_CO2_ = 0.0;
-    return;
-  }
-
-  // optimise for stem water potential
-  double diff_value = 0.001; 
- 
-  double psi_stem_initial;
-
-  int finished=1;
-
-  opt_psi_stem_ = psi_guess;
-
-  if (R_IsNA(opt_psi_stem_) | (opt_psi_stem_ > psi_crit)){
-
-  opt_psi_stem_ = psi_crit - diff_value;
-
-  }
-
-  while(finished == 1){
-
-    count += 1;
-
-  if (R_IsNA(opt_psi_stem_) | (opt_psi_stem_ > psi_crit)){
-
-  opt_psi_stem_ = psi_crit - diff_value;
-
-  }
-
-    if(count > 10){
-      optimise_psi_stem_Sperry_analytical();
-
-      return;
-    }
-
-
-    psi_stem_initial = opt_psi_stem_;
-
-    x_1 = psi_stem_initial - diff_value;
-    x_2 = psi_stem_initial + diff_value;
-    
-    y_2 = profit_psi_stem_Sperry_analytical(x_2);
-
-    y_1 = profit_psi_stem_Sperry_analytical(x_1);
-
-    y_0 = profit_psi_stem_Sperry_analytical(psi_stem_initial);
-
-    first_dev = (y_2 - y_1)/(2*diff_value);
-    sec_dev = (y_2 - 2*y_0 + y_1)/pow(diff_value, 2);
-
-    opt_psi_stem_ = psi_stem_initial -  first_dev/sec_dev;
-
-    if(y_0 == 0.0 & y_1 == 0.0 & y_2 == 0.0){
-    opt_psi_stem_ = psi_soil_;
-    profit_ = 0.0;
-    transpiration_ = 0.0;
-    return;
-    }
-
-
-    if(abs(opt_psi_stem_ - psi_stem_initial) < epsilon_leaf){
-      finished = 0;
-    }
-
-    profit_ = y_0;
-  }
-    return;
-  }
-
-
-
-void Leaf::optimise_ci_Sperry_analytical(double max_ci) {
-
-  if (psi_soil_ > psi_crit){
-
-    opt_ci_ = gamma_*umol_per_mol_to_Pa;
-    profit_ = 0.0;
-    transpiration_ = 0.0;
-    stom_cond_CO2_ = 0.0;
-    return;
-  }
-  
-  double gr = (sqrt(5) + 1) / 2;
-
-  
-  // optimise for stem water potential
-    double bound_a = gamma_*umol_per_mol_to_Pa;
-    double bound_b = max_ci;
-
-    double delta_crit = 0.01;
-
-    double bound_c = bound_b - (bound_b - bound_a) / gr;
-    double bound_d = bound_a + (bound_b - bound_a) / gr;
-
-    while (abs(bound_b - bound_a) > delta_crit) {
-
-      double profit_at_c = profit_Sperry_ci_analytical(bound_c);
-
-      double profit_at_d = profit_Sperry_ci_analytical(bound_d);
-
-      if (profit_at_c > profit_at_d) {
-        bound_b = bound_d;
-      } else {
-        bound_a = bound_c;
-      }
-
-      bound_c = bound_b - (bound_b - bound_a) / gr;
-      bound_d = bound_a + (bound_b - bound_a) / gr;
-    }
-
-    opt_ci_ = ((bound_b + bound_a) / 2);
-    profit_ = profit_Sperry_ci_analytical(opt_ci_);
-
-  
-    return;
-
-  }
-
-
-
 void Leaf::optimise_ci_Sperry(double max_ci) {
 
   // Early exit -- XXXX 
@@ -732,14 +540,9 @@ void Leaf::optimise_ci_Sperry(double max_ci) {
     double bound_a = gamma_*umol_per_mol_to_Pa;
     double bound_b = max_ci;
 
-    double delta_crit = 0.01;
-
     double bound_c = bound_b - (bound_b - bound_a) / gr;
     double bound_d = bound_a + (bound_b - bound_a) / gr;
-GSS_count = 0;
-    while (abs(bound_b - bound_a) > delta_crit) {
-GSS_count += 1;
-      
+    while (abs(bound_b - bound_a) > GSS_tol_abs) {      
 
       double profit_at_c = profit_Sperry_ci(bound_c);
 
@@ -763,246 +566,6 @@ GSS_count += 1;
 
   }
 
-void Leaf::optimise_ci_Sperry_Newton_analytical(double ci_guess) {
-
-  int count = 0;
-
-  double x_1, x_2, y_0, y_1, y_2, first_dev, sec_dev;
-
-  // Early exit -- XXXX 
-  if (psi_soil_ > psi_crit){
-
-    opt_ci_ = gamma_*umol_per_mol_to_Pa;
-    profit_ = 0.0;
-    transpiration_ = 0.0;
-    stom_cond_CO2_ = 0.0;
-    return;
-  }
-
-  // optimise for stem water potential
-  double diff_value = 0.001; 
-  // TODO: rename as delta_ci
-  
-  
-  double ci_initial;
-
-  int unfinished=1; 
-
-  opt_ci_ = ci_guess;
-
-// add in the max ci
-  if (R_IsNA(opt_ci_)){
-  set_leaf_states_rates_from_psi_stem_analytical(psi_crit);
-
-  opt_ci_ = ci_ - diff_value;
-
-  }
-
-  while(unfinished == 1){
-
-    count += 1;
-
-    if(count > 5){
-      set_leaf_states_rates_from_psi_stem_analytical(psi_crit);
-      optimise_ci_Sperry_analytical(ci_);
-
-
-      return;
-
-    }
-
-    ci_initial = opt_ci_;
-    
-    if (!util::is_finite(opt_ci_)) {
-      util::stop("Detected NAN ci value");
-    }
-
-    x_1 = ci_initial - diff_value;
-    x_2 = ci_initial + diff_value;
-
-// start with calculation of highest ci, this is the estimate with the highest required transpiration stream so the estimate most likely to exceed maximum possible transpiration stream
-    double benefit_ = assim_colimited_analytical(x_2);
-
-
-    double stom_cond_CO2_ = (benefit_ * umol_to_mol * atm_kpa_ * kPa_to_Pa)/(ca_ - x_2); 
-    
-
-    transpiration_ = stom_cond_CO2_ * H2O_CO2_stom_diff_ratio * atm_vpd_ / kg_to_mol_h2o / atm_kpa_;  
-
-//move to top
-
-    double E_max = transpiration(psi_crit);
-
-    if(((E_max < transpiration_) & (abs(transpiration_ - E_max) > 1e-15)) | (transpiration_ < 0)){
-
-    set_leaf_states_rates_from_psi_stem_analytical(psi_crit); 
-
-    opt_ci_ = ci_ - diff_value;
-
-
-    continue;
-
-    } else{
-
-    double psi_stem = transpiration_to_psi_stem(transpiration_);
-
-    double hydraulic_cost_ = hydraulic_cost_Sperry(psi_stem);
-    y_2 = benefit_ - lambda_analytical_*hydraulic_cost_;
-
-    }
-
-    y_1 = profit_Sperry_ci_analytical(x_1);
-
-// start with calculation of highest ci, this is the estimate with the highest required transpiration stream so the estimate most likely to exceed maximum possible transpiration stream
-
-    y_0 = profit_Sperry_ci_analytical(ci_initial);
-
-    first_dev = (y_2 - y_1)/(2*diff_value);
-    sec_dev = (y_2 - 2*y_0 + y_1)/pow(diff_value, 2);
-
-//added this in to account for situations where profit curve is flat and 0, likely due to no light
-    if(y_0 == 0.0 & first_dev == 0.0 & sec_dev == 0.0){
-    opt_ci_ = gamma_*umol_per_mol_to_Pa;
-    profit_ = 0.0;
-    transpiration_ = 0.0;
-
-    return;
-    }
-
-    opt_ci_ = ci_initial -  first_dev/sec_dev;
-
-    if(abs(opt_ci_ - ci_initial) < (epsilon_leaf)){
-     
-      unfinished = 0;
-    }
-
-    profit_ = y_0;
-  }
-
-    return;
-  }
-
-
-
-void Leaf::optimise_ci_Sperry_Newton(double ci_guess) {
-
-  count = 0;
-
-  double x_1, x_2, y_0, y_1, y_2, first_dev, sec_dev;
-
-  // Early exit -- XXXX 
-  if (psi_soil_ > psi_crit){
-
-    opt_ci_ = gamma_*umol_per_mol_to_Pa;
-    profit_ = 0.0;
-    transpiration_ = 0.0;
-    stom_cond_CO2_ = 0.0;
-    return;
-  }
-
-  // optimise for stem water potential
-  double diff_value = 0.001; 
-  // TODO: rename as delta_ci
-  
-  
-  double ci_initial;
-
-  int unfinished=1; 
-
-  opt_ci_ = ci_guess;
-
-// add in the max ci
-  if (R_IsNA(opt_ci_)){
-  set_leaf_states_rates_from_psi_stem(psi_crit);
-
-  opt_ci_ = ci_ - diff_value;
-
-  }
-
-  while(unfinished == 1){
-
-    count += 1;
-
-    if(count > 10){
-
-      set_leaf_states_rates_from_psi_stem(psi_crit);
-      optimise_ci_Sperry(ci_);
-
-      return;
-
-    }
-
-    ci_initial = opt_ci_;
-    
-    if (!util::is_finite(opt_ci_)) {
-      util::stop("Detected NAN ci value");
-    }
-
-    x_1 = ci_initial - diff_value;
-    x_2 = ci_initial + diff_value;
-
-// start with calculation of highest ci, this is the estimate with the highest required transpiration stream so the estimate most likely to exceed maximum possible transpiration stream
-    double benefit_ = assim_colimited(x_2);
-
-
-    double stom_cond_CO2_ = (benefit_ * umol_to_mol * atm_kpa_ * kPa_to_Pa)/(ca_ - x_2); 
-    
-
-    transpiration_ = stom_cond_CO2_ * H2O_CO2_stom_diff_ratio * atm_vpd_ / kg_to_mol_h2o / atm_kpa_;  
-
-//move to top
-
-    double E_max = transpiration(psi_crit);
-
-    if(((E_max < transpiration_) & (abs(transpiration_ - E_max) > 1e-15)) | (transpiration_ < 0)){
-
-    set_leaf_states_rates_from_psi_stem(psi_crit); 
-
-    opt_ci_ = ci_ - diff_value;
-
-
-    continue;
-
-    } 
-
-
-    double psi_stem = transpiration_to_psi_stem(transpiration_);
-
-    double hydraulic_cost_ = hydraulic_cost_Sperry(psi_stem);
-    
-    // start with calculation of highest ci, this is the estimate with the highest required transpiration stream so the estimate most likely to exceed maximum possible transpiration stream
-
-    y_2 = benefit_ - lambda_*hydraulic_cost_;
-
-    y_1 = profit_Sperry_ci(x_1);
-
-    y_0 = profit_Sperry_ci(ci_initial);
-
-    first_dev = (y_2 - y_1)/(2*diff_value);
-    sec_dev = (y_2 - 2*y_0 + y_1)/pow(diff_value, 2);
-
-//added this in to account for situations where profit curve is flat and 0, likely due to no light
-    if(y_0 == 0.0 & first_dev == 0.0 & sec_dev == 0.0){
-    opt_ci_ = gamma_*umol_per_mol_to_Pa;
-    profit_ = 0.0;
-    transpiration_ = 0.0;
-    return;
-    }
-
-    opt_ci_ = ci_initial -  first_dev/sec_dev;
-
-
-    if(abs(opt_ci_ - ci_initial) < (epsilon_leaf)){
-     
-      unfinished = 0;
-    }
-
-    profit_ = y_0;
-  }
-
-    return;
-  }
-
 void Leaf::optimise_psi_stem_Bartlett() {
 
   double gr = (sqrt(5) + 1) / 2;
@@ -1019,16 +582,10 @@ void Leaf::optimise_psi_stem_Bartlett() {
     double bound_a = psi_soil_;
     double bound_b = psi_crit;
 
-    double delta_crit = 1e-07;
-
     double bound_c = bound_b - (bound_b - bound_a) / gr;
     double bound_d = bound_a + (bound_b - bound_a) / gr;
 
-
-GSS_count = 0;
-
-    while (abs(bound_b - bound_a) > delta_crit) {
-GSS_count +=1 ;
+    while (abs(bound_b - bound_a) > GSS_tol_abs) {
 
       double profit_at_c =
           profit_psi_stem_Bartlett(bound_c);
@@ -1067,16 +624,12 @@ void Leaf::optimise_psi_stem_TF() {
     double bound_a = psi_soil_;
     double bound_b = psi_crit;
 
-    double delta_crit = 1e-07;
-
     double bound_c = bound_b - (bound_b - bound_a) / gr;
     double bound_d = bound_a + (bound_b - bound_a) / gr;
 
 
-GSS_count = 0;
 
-    while (abs(bound_b - bound_a) > delta_crit) {
-GSS_count +=1 ;
+    while (abs(bound_b - bound_a) > GSS_tol_abs) {
 
       double profit_at_c =
           profit_psi_stem_TF(bound_c);
@@ -1186,7 +739,7 @@ void Leaf::optimise_psi_stem_TF_newton(double psi_guess) {
 
 
 
-    if(abs(opt_psi_stem_ - psi_stem_initial) < (epsilon_leaf)){
+    if(abs(opt_psi_stem_ - psi_stem_initial) < (newton_tol_abs)){
      
       unfinished = 0;
     }
