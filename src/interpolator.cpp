@@ -24,7 +24,6 @@ void Interpolator::initialise() {
   // https://stackoverflow.com/questions/17769114/stdis-sorted-and-strictly-less-comparison
   if (not std::is_sorted(x.begin(), x.end(), std::less_equal<double>())) {
 // for (std::vector<double>::const_iterator i = x.begin(); i != x.end(); ++i){
-//     std::cout << *i << ' ';
 // }
     util::stop("spline control points must be unique and in ascending order");
   }

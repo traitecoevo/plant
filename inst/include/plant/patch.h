@@ -164,9 +164,6 @@ double Patch<T,E>::compute_competition(double height) const {
   double tot = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
     if (is_resident[i]) {
-      // if(height == 0){
-      //   std::cout << "height" << height << std::endl;
-      // }
  
       tot += species[i].compute_competition(height);
 

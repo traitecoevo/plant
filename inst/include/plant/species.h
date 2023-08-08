@@ -161,7 +161,6 @@ double Species<T,E>::compute_competition(double height) const {
   for (++it; it != nodes.end(); ++it) {
     
     const double h0 = it->height(), f_h0 = it->compute_competition(height);
-    // std::cout << f_h0 << "f_h0" << std::endl;
     if (!util::is_finite(f_h0)) {
       util::stop("Detected non-finite contribution");
     }
@@ -188,12 +187,8 @@ double Species<T,E>::compute_competition(double height) const {
 // through the ode stepper.
 template <typename T, typename E>
 void Species<T,E>::compute_rates(const E& environment, double pr_patch_survival, double birth_rate) {
-  //   int counter_species = 0; 
-  // std::cout << "\ntime\t"<< environment.time; 
 
   for (auto& c : nodes) {
-  // counter_species += 1;
-  // std::cout << "\tnode\t" << counter_species; 
     c.compute_rates(environment, pr_patch_survival);
   }
   new_node.compute_initial_conditions(environment, pr_patch_survival, birth_rate);
