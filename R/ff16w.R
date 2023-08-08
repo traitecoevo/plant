@@ -463,10 +463,10 @@ FF16w_hyperpar <- make_FF16w_hyperpar()
 #' @param nmass_r 
 #' @param dmass_dN 
 #'
-#' @return
+#'  
 #' @export
 #'
-#' @examples
+#'
 make_FF16w_parameters <- function(p0 = FF16w_Parameters(),
                             lma = p0$strategy_default$lma,
                             rho = p0$strategy_default$rho,
@@ -548,10 +548,9 @@ make_FF16w_parameters <- function(p0 = FF16w_Parameters(),
 #' @return Returns a Leaf object
 #' @export
 #'
-#' @examples
+#' 
 
-make_leaf <- function(ff16w_params = FF16w_Parameters()[["strategy_default"]], ff16w_env = FF16w_make_environment(), height = 1, ff16w_hyper = make_FF16w_hyperpar()){
-
+make_leaf <- function(ff16w_params = make_FF16w_parameters(), ff16w_env = FF16w_make_environment(), height = 1, ff16w_hyper = list(lma_0=0.1978791)){
   #set some default environmental values
 ff16w_env_default <- FF16w_make_environment()  
 # ff16w_env <- ff16w_env[[1]] 

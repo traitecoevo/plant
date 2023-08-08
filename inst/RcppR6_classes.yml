@@ -13,9 +13,7 @@ Leaf:
       - hk_s: double
       - a: double
       - curv_fact_elec_trans: double
-      - curv_fact_colim: double
-
-      
+      - curv_fact_colim: double     
   active:
     ci_: {type: double, access: field}
     stom_cond_CO2_: {type: double, access: field}
@@ -48,7 +46,6 @@ Leaf:
     opt_ci_: {type: double, access: field}
     count: {type: double, access: field}
     GSS_count: {type: double, access: field}
-
 
   methods:
     initialize_integrator:

@@ -78,16 +78,15 @@ public:
        double c            = 2.05, //unitless
        double b            = 2.0, // MPa
        double psi_crit     = 3.42,  // derived from b and c (- MPa)
+       double epsilon_leaf = 0.001,
        double beta1 = 20000, // umol m^-3 s^-1
        double beta2 = 1.5, //exponent for effect of hydraulic risk (unitless)
-       double epsilon_leaf = 0.001,
        double jmax_25 = 167, // maximum electron transport rate umol m^-2 s^-1
        double hk_s = 4/365/24/60/60, // maximum hydraulic-dependent sapwood turnover rate yr ^ -1
        double a = 0.30, // effective quantum yield of electron transport  (mol photon mol ^-1 electron)  Sabot et al. 2020
        double curv_fact_elec_trans = 0.85, // unitless - obtained from Smith and Keenan (2020)
        double curv_fact_colim = 0.98); //?); //curvature factor for the colimited photosythnthesis equation
         
-
   quadrature::QAG integrator;
   interpolator::Interpolator transpiration_from_psi;
   interpolator::Interpolator psi_from_transpiration;
@@ -98,24 +97,16 @@ public:
   double c;
   double b;
   double psi_crit;  // derived from b and c
+  double epsilon_leaf; //actually a control paramaeter and needs to be moved
   double beta1;
   double beta2;
   double jmax_25;
-  double hydraulic_turnover;
   double hk_s;
   double a;
   double curv_fact_elec_trans; // unitless - obtained from Smith and Keenan (2020)
   double curv_fact_colim;
 
-  //actually a control paramaeter and needs to be moved
-  double epsilon_leaf;
   double ci_;
-  double electron_transport_;
-  double gamma_;
-  double ko_;
-  double kc_;
-  double km_;
-  double R_d_;
   double stom_cond_CO2_;
   double assim_colimited_;
   double transpiration_;
@@ -123,12 +114,14 @@ public:
   double psi_stem;
   double lambda_;
   double lambda_analytical_;
-  double PPFD_;
-  double atm_vpd_;
-  double atm_o2_kpa_;
-  double atm_kpa_;
-  double ca_;
   double hydraulic_cost_;
+  
+  double electron_transport_;
+  double gamma_;
+  double ko_;
+  double kc_;
+  double km_;
+  double R_d_;
   double leaf_specific_conductance_max_;
   double sapwood_volume_per_leaf_area_;
   double k_s_;
@@ -137,14 +130,19 @@ public:
   double jmax_;
   double lma_; //kg m^-2
   double a_bio_;
+  
   double psi_soil_;
   double leaf_temp_;
+  double PPFD_;
+  double atm_vpd_;
+  double atm_o2_kpa_;
+  double atm_kpa_;
+  double ca_;
+  
   double opt_psi_stem_;
   double opt_ci_;
   double count;
   double GSS_count;
-
-
 
   // TODO: move into environment?
 
@@ -156,8 +154,6 @@ public:
   double atm_o2_kpa = 21;
   //leaf temperature (deg C)
   double leaf_temp = 25;
-
-
 
   // this might end up hard-coded
   void initialize_integrator(int integration_rule = 21,

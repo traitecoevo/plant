@@ -10,47 +10,46 @@ Leaf::Leaf(double vcmax_25, double c, double b,
     c(c), //unitless
     b(b), //-MPa
     psi_crit(psi_crit), //-MPa 
+    epsilon_leaf(epsilon_leaf), //tolerance value 
     beta1(beta1), //hydraulic cost for Bartlett method umol m^-3 s^-1
     beta2(beta2), //exponent for effect of hydraulic risk (unitless)
-    epsilon_leaf(epsilon_leaf), //tolerance value 
     jmax_25(jmax_25), // maximum electron transport rate umol m^-2 s^-1
     hk_s(hk_s),  // maximum hydraulic-dependent sapwood turnover rate yr ^ -1
     a(a), //quantum yield of photosynthetic electron transport (mol mol^-1)
     curv_fact_elec_trans(curv_fact_elec_trans), //curvature factor for the light response curve (unitless)
-    curv_fact_colim(curv_fact_colim), //curvature factor for the colimited photosythnthesis equation
-    leaf_specific_conductance_max_(NA_REAL), //kg m^-2 s^-1 MPa^-1 
-    sapwood_volume_per_leaf_area_ (NA_REAL), //m^3 SA m^-2 LA
-    PPFD_(NA_REAL), //umol m^-2 s^-1
-    atm_vpd_(NA_REAL), //kPa 
-    ca_(NA_REAL), //Pa
-    rho_(NA_REAL), //kg m^-3
-    vcmax_(NA_REAL), //kg m^-3
-    jmax_(NA_REAL), //kg m^-3
-    lma_(NA_REAL), //kg m^-2
-    a_bio_(NA_REAL), //kg mol^-1
-    psi_soil_(NA_REAL), //-MPa
-    leaf_temp_(NA_REAL), // deg C
-    atm_kpa_(NA_REAL), // kPa
-    atm_o2_kpa_(NA_REAL), // kPa
+    curv_fact_colim(curv_fact_colim), //curvature factor for the colimited photosythnthesis equatio
     ci_(NA_REAL), // Pa
     stom_cond_CO2_(NA_REAL), //mol Co2 m^-2 s^-1 
+    assim_colimited_(NA_REAL), // umol C m^-2 s^-1 
+    transpiration_(NA_REAL), // kg m^-2 s^-1 
+    profit_(NA_REAL), // umol C m^-2 s^-1 
+    lambda_(NA_REAL), // umol C m^-2 s^-1 kg^-1 m^2 s^1
+    lambda_analytical_(NA_REAL), // umol C m^-2 s^-1 kg^-1 m^2 s^1
+    hydraulic_cost_(NA_REAL), // umol C m^-2 s^-1 
     electron_transport_(NA_REAL), //electron transport rate umol m^-2 s^-1
     gamma_(NA_REAL),
     ko_(NA_REAL),
     kc_(NA_REAL),
     km_(NA_REAL),
     R_d_(NA_REAL),
-    assim_colimited_(NA_REAL), // umol C m^-2 s^-1 
-    transpiration_(NA_REAL), // kg m^-2 s^-1 
-    lambda_(NA_REAL), // umol C m^-2 s^-1 kg^-1 m^2 s^1
-    lambda_analytical_(NA_REAL), // umol C m^-2 s^-1 kg^-1 m^2 s^1
-    hydraulic_cost_(NA_REAL), // umol C m^-2 s^-1 
-    profit_(NA_REAL), // umol C m^-2 s^-1 
+    leaf_specific_conductance_max_(NA_REAL), //kg m^-2 s^-1 MPa^-1 
+    sapwood_volume_per_leaf_area_ (NA_REAL), //m^3 SA m^-2 LA
+    rho_(NA_REAL), //kg m^-3
+    vcmax_(NA_REAL), //kg m^-3
+    jmax_(NA_REAL), //kg m^-3
+    a_bio_(NA_REAL), //kg mol^-1
+    psi_soil_(NA_REAL), //-MPa
+    leaf_temp_(NA_REAL), // deg C
+    PPFD_(NA_REAL), //umol m^-2 s^-1
+    atm_vpd_(NA_REAL), //kPa 
+    atm_o2_kpa_(NA_REAL), // kPa
+    atm_kpa_(NA_REAL), // kPa
+    ca_(NA_REAL), //Pa
     opt_psi_stem_(NA_REAL), //-MPa 
     opt_ci_(NA_REAL), //Pa 
     count(NA_REAL), 
     GSS_count(NA_REAL) {
-      setup_transpiration(100);
+      setup_transpiration(100); // arg: num control points for integration
 
 }
 
@@ -116,13 +115,12 @@ void Leaf::setup_transpiration(double resolution) {
   // integrate and accumulate results
   auto x_psi_ = std::vector<double>{0.0};  // {0.0}
   auto y_cumulative_transpiration_ = std::vector<double>{0.0}; // {0.0}
-  double step = (b*pow((log(1/1e-5)),(1/c)))/resolution;
+  double step = (b*pow((log(1/1e-2)),(1/c)))/resolution;
 
-  for (double psi_spline = 0.0 + step; psi_spline <= (b*pow((log(1/1e-5)),(1/c))); psi_spline += step) {
+  for (double psi_spline = 0.0 + step; psi_spline <= (b*pow((log(1/1e-2)),(1/c))); psi_spline += step) {
     double E_psi = step * ((proportion_of_conductivity(psi_spline-step) + proportion_of_conductivity(psi_spline))/2) + y_cumulative_transpiration_.back();
     x_psi_.push_back(psi_spline); // x values for spline
     y_cumulative_transpiration_.push_back(E_psi); // y values for spline
-// std::cout << psi_spline << proportion_of_conductivity(psi_spline) << y_cumulative_transpiration_ << std::end;
 }
 // setup interpolator
 transpiration_from_psi.init(x_psi_, y_cumulative_transpiration_);
@@ -144,8 +142,6 @@ double Leaf::transpiration_full_integration(double psi_stem) {
 //calculates supply-side transpiration from psi_stem and psi_soil, returns kg h20 s^-1 m^-2 LA
 double Leaf::transpiration(double psi_stem) {
   // integration of proportion_of_conductivity over [psi_soil_, psi_stem]
-  // std::cout << "E_stem" << transpiration_from_psi.eval(psi_stem) << std::endl;
-// std::cout << "trans_stem" << transpiration_full_integration(psi_stem) << "trans_soil" <<  transpiration_full_integration(psi_soil_) << std::endl;
   return leaf_specific_conductance_max_ * (transpiration_from_psi.eval(psi_stem) - transpiration_from_psi.eval(psi_soil_));
   // return (transpiration_full_integration(psi_stem));
 
@@ -156,7 +152,6 @@ double Leaf::transpiration(double psi_stem) {
 double Leaf::transpiration_to_psi_stem(double transpiration_) {
   // integration of proportion_of_conductivity over [psi_soil_, psi_stem]
   double E_psi_stem = transpiration_/leaf_specific_conductance_max_ +  transpiration_from_psi.eval(psi_soil_);
-
   return psi_from_transpiration.eval(E_psi_stem);
   }
 
@@ -199,9 +194,10 @@ double Leaf::assim_colimited(double ci_) {
   double assim_electron_limited_ = assim_electron_limited(ci_);
  
   // no dark respiration included at the moment
+
+
   return (assim_rubisco_limited_ + assim_electron_limited_ - sqrt(pow(assim_rubisco_limited_ + assim_electron_limited_, 2) - 4 * curv_fact_colim * assim_rubisco_limited_ * assim_electron_limited_)) /
              (2 * curv_fact_colim)- R_d_;
-
 }
 
 // returns co-limited assimilation based only on light-limited transport rate and empirically-parameterised smothing term, returns umol m^-2 s^-1
@@ -225,7 +221,6 @@ double Leaf::assim_minus_stom_cond_CO2(double x, double psi_stem) {
 
   double stom_cond_CO2_x_ = stom_cond_CO2(psi_stem);
 
-// std::cout<< "assim" <<  assim_colimited_x_ << "stom" << stom_cond_CO2_x_ << "x" << x << std::endl;
   return assim_colimited_x_ * umol_to_mol -
          (stom_cond_CO2_x_ * (ca_ - x) / (atm_kpa_ * kPa_to_Pa));
 }
@@ -234,7 +229,6 @@ double Leaf::assim_minus_stom_cond_CO2(double x, double psi_stem) {
 double Leaf::psi_stem_to_ci(double psi_stem) {
   // not clear what x is here
   
-// std::cout << psi_stem << "psi_stem"<< std::endl;
 
   auto target = [&](double x) mutable -> double {
     return assim_minus_stom_cond_CO2(x, psi_stem);
@@ -632,7 +626,6 @@ void Leaf::optimise_psi_stem_Sperry_Newton_analytical(double psi_guess) {
     if(count > 10){
       optimise_psi_stem_Sperry_analytical();
 
-      // std::cout << "gss" << std::endl;
       return;
     }
 
@@ -966,7 +959,6 @@ void Leaf::optimise_ci_Sperry_Newton(double ci_guess) {
     set_leaf_states_rates_from_psi_stem(psi_crit); 
 
     opt_ci_ = ci_ - diff_value;
-    std::cout << "warning" << std::endl;
 
 
     continue;
@@ -994,7 +986,6 @@ void Leaf::optimise_ci_Sperry_Newton(double ci_guess) {
     opt_ci_ = gamma_*umol_per_mol_to_Pa;
     profit_ = 0.0;
     transpiration_ = 0.0;
-std::cout << "warning2" << std::endl;
     return;
     }
 
@@ -1058,11 +1049,6 @@ GSS_count +=1 ;
     opt_psi_stem_ = ((bound_b + bound_a) / 2);
     profit_ = profit_psi_stem_Bartlett(opt_psi_stem_);
 
-    // if(profit_ < 0){
-    // profit_ = 0;
-    // transpiration_ = 0;
-    // stom_cond_CO2_ = 0;
-    // opt_psi_stem_ = psi_soil_;
     return;
       // }
   }
@@ -1073,9 +1059,7 @@ void Leaf::optimise_psi_stem_TF() {
   opt_psi_stem_ = psi_soil_;
 
   if (psi_soil_ > psi_crit){
-    profit_ = 0;
-    transpiration_ = 0;
-    stom_cond_CO2_ = 0;
+    profit_ = profit_psi_stem_TF(psi_soil_);
     return;
   }
 
@@ -1113,13 +1097,7 @@ GSS_count +=1 ;
     opt_psi_stem_ = ((bound_b + bound_a) / 2);
     profit_ = profit_psi_stem_TF(opt_psi_stem_);
 
-    // if(profit_ < 0){
-    // profit_ = 0;
-    // transpiration_ = 0;
-    // stom_cond_CO2_ = 0;
-    // opt_psi_stem_ = psi_soil_;
     return;
-      // }
   }
 
 
@@ -1176,7 +1154,6 @@ void Leaf::optimise_psi_stem_TF_newton(double psi_guess) {
   }
 
     if(count > 10){
-std::cout << "used regular" << std::endl;
       optimise_psi_stem_TF();
 
       return;
@@ -1192,7 +1169,6 @@ std::cout << "used regular" << std::endl;
     x_1 = psi_stem_initial - diff_value;
     x_2 = psi_stem_initial + diff_value;
 
-    std::cout << x_1 << x_2 << psi_stem_initial << std::endl;
 
 
     y_2 = profit_psi_stem_TF(x_2);
