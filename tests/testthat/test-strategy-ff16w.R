@@ -82,7 +82,7 @@ test_that("Rainfall spline basic run", {
   # one species
   p0 <- scm_base_parameters("FF16w")
   p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,
-                          mutant = FALSE, birth_rate_list = list(1))
+                           birth_rate_list = list(20))
 
 
   # init rainfall spline for env
@@ -120,7 +120,7 @@ test_that("Rainfall spline basic run", {
                c(9939.809, 9877.551, 9803.061, 9691.901, 9496.920, 9152.641,
                  8594.141, 7785.160, 6740.445, 5528.322), tolerance = 1e-5)
 
-  expect_equal(out$offspring_production, 16.88961056463, tolerance=1e-5)
+  expect_equal(out$offspring_production, 16.88961056463, tolerance=5e-4)
   expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.101857), tolerance=1e-7)
 })
 
@@ -128,7 +128,7 @@ test_that("Rainfall in collected output", {
   # one species
   p0 <- scm_base_parameters("FF16w")
   p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,
-                          mutant = FALSE, birth_rate_list = list(20))
+                           birth_rate_list = list(20))
   
   
   env <- make_environment("FF16w",

@@ -8,6 +8,7 @@
 ##'
 ##' @title Build Node Schedule
 ##' @param p Parameters object
+##' @param env Environment object
 ##' @param ctrl Control object
 ##' @return A Parameters object, with schedule components set.  The
 ##' output offspring produced is also available as an attribute
@@ -19,7 +20,7 @@ build_schedule <- function(p, env = make_environment(parameters = p),
   p <- validate(p)
 
   n_spp <- length(p$strategies)
-  if (n_spp == 0L || !any(p$is_resident)) {
+  if (n_spp == 0L) {
     stop("Can't build a schedule with no residents")
   }
 

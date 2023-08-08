@@ -43,8 +43,7 @@ test_that("Node schedule max time", {
 test_that("Default schedule", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
-    p <- Parameters(x, e)(strategies=list(strategy_types[[x]](), strategy_types[[x]]()),
-                          is_resident=c(TRUE, TRUE))
+    p <- Parameters(x, e)(strategies=list(strategy_types[[x]](), strategy_types[[x]]()))
     node_schedule <- node_schedule_default(p)
     expect_is(node_schedule, "NodeSchedule")
     expect_equal(node_schedule$n_species, length(p$strategies))

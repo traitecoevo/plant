@@ -60,9 +60,16 @@ FF16_StochasticPatchRunner <- function(p) {
 }
 
 
-## Helper:
+## Helper to create FF16_environment object. Useful for running individuals
+##' @title create FF16_environment object
+##' @param canopy_light_tol 
+##'
+##' @param canopy_light_nbase 
+##' @param canopy_light_max_depth 
+##' @param canopy_rescale_usually 
+##'
 ##' @export
-##' @rdname FF16_Environment
+##' @rdname FF16_make_environment
 FF16_make_environment <- function(canopy_light_tol = 1e-4, 
                                   canopy_light_nbase = 17,
                                   canopy_light_max_depth = 16, 
@@ -100,7 +107,6 @@ FF16_fixed_environment <- function(e=1.0, height_max = 150.0) {
 ##' @param n number of points
 ##' @param light_env function for light environment in test object
 ##' @param n_strategies number of strategies for test environment
-##' @param birth_rate birth_rate for test environment
 ##' @export
 ##' @rdname FF16_test_environment
 ##' @examples
@@ -391,22 +397,25 @@ FF16_hyperpar <- make_FF16_hyperpar()
 
 #' Solves the maximum growth rate at a given height within the interval of the bounds of a given trait
 #'
-#' @param bounds 
-#' @param log_scale 
-#' @param tol 
-#' @param height 
-#' @param params 
-#' @param env 
+#' @param bounds
+#' @param log_scale
+#' @param tol
+#' @param height
+#' @param params
+#' @param env
 #' @param outcome 
 
 #' @export
 
 #' @author Isaac Towers, Daniel Falster and Andrew O'Reilly-Nugent
 
-FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, tol = 1e-3, height = 1, params = scm_base_parameters("FF16"), env = FF16_make_environment(), outcome = "height", use_optim = FALSE, hyperpars = make_hyperpar("FF16"), use_default_strategy = TRUE){
+FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, tol = 1e-3, height = 1, 
+params = scm_base_parameters("FF16"), env = FF16_make_environment(), outcome = "height", use_optim = FALSE, hyperpars = make_hyperpar("FF16"), use_default_strategy = TRUE){
   #can't handle situations yet where bounds are outside of positive growth
+  
   bounds <- check_bounds(bounds)
   traits <- rownames(bounds)
+  
   if (log_scale) {
     bounds[bounds[,1] == -Inf, 1] <- 0
     bounds <- log(bounds)

@@ -81,7 +81,7 @@ p0$strategy_default$a_dG2 <- 30
 hyperpar <- make_FF16_hyperpar(B_dI1 = 0)
 
 traits <- trait_matrix(c(0.7, 5), c("lma", "eta"))
-p1 <- expand_parameters(traits, p0, hyperpar = hyperpar, mutant = FALSE,
+p1 <- expand_parameters(traits, p0, hyperpar = hyperpar,
                         birth_rate_list = list(
                           list(x = seq(0, 200, len = 20),
                                y = sin(seq(0, 200, len = 20)) + 2)
@@ -146,8 +146,9 @@ pars <-
   pivot_wider(values_from = value, names_from = species)
 
 pars_def <- 
- system.file("docs/FF16", "FF16-params-core.csv", package = "plant") %>% read.csv(stringsAsFactors = FALSE, header = TRUE) %>%
-  rename("parameter" = "Code")
+ system.file("docs/FF16", "FF16-params-core.csv", package = "plant") %>% 
+ read.csv(stringsAsFactors = FALSE, header = TRUE) %>%
+ rename("parameter" = "Code")
 
 names(pars_def) <- tolower(names(pars_def))
 
@@ -160,11 +161,9 @@ pars_def %>%
   select(description, parameter, everything()) %>% 
   select(-symbol) %>% 
   mutate(across(everything(), ~replace_na(.x,""))) %>%
-  knitr::kable(
-    align = "l") %>% 
+  knitr::kable(align = "l") %>% 
   kableExtra::kable_material(c("striped", "hover")) %>%
   kableExtra::row_spec(i_bold, bold = TRUE)
-
 ```
 
 ### Traits
@@ -198,7 +197,7 @@ extract_birthrates <- function(strategy, times) {
     ylim(c(0, max(df$birth_rate)*1.2)) +
     labs(title = "Annual birth rate",
          x = "Time (years)",
-         y = "Birth rate ( # / m2 / yr)",
+         y = "Birth rate (# / m2 / yr)",
          color = "Species")
 
 ```

@@ -16,7 +16,6 @@ for (x in names(strategy_types)) {
   node <- Node(x, e)(s)
   
   p <- Parameters(x, e)(strategies=list(s),
-                        is_resident=TRUE,
                         patch_type = 'meta-population')
   
   env <- make_environment(x)
@@ -27,7 +26,6 @@ for (x in names(strategy_types)) {
 
   test_that(sprintf("Basics %s", x), {
     ## TODO: This is something that needs validating: the birth_rate and
-    ## is_resident vectors must be the right length.
     expect_equal(patch$size, 1)
     expect_identical(patch$height_max, cmp$height)
     expect_equal(patch$parameters, p)
@@ -40,11 +38,16 @@ for (x in names(strategy_types)) {
     
     # with no nodes, we only expect env vars
     env_size <- env$ode_size
+    #fails here
     env_state <- patch$ode_state
     env_rates <- patch$ode_rates
     expect_equal(patch$ode_size, env_size)
     
     # either 0 or numeric(0)
+    if(x %in% c("FF16", "FF16r", "K93")) {
+      expect_equal(patch$ode_state, numeric(0))
+      expect_equal(patch$ode_rates, numeric(0))
+    }
     expect_identical(patch$ode_state, env_state)
     expect_identical(patch$ode_rates, env_rates)
     
@@ -61,7 +64,10 @@ for (x in names(strategy_types)) {
     patch$introduce_new_node(1)
     expect_equal(patch$node_ode_size, node_size)
     expect_equal(patch$ode_size, ode_size)
-    
+    if (x == "FF16") {
+      expect_equal(patch$node_ode_size, 7)
+      expect_equal(patch$ode_size, 7)
+    }
     ## Then pull this out:
     cmp$compute_initial_conditions(patch$environment, patch$pr_survival(0.0), 
                                    patch$species[[1]]$extrinsic_drivers$evaluate("birth_rate", 0))
@@ -70,7 +76,10 @@ for (x in names(strategy_types)) {
     ode_rates <- c(cmp$ode_rates, env_rates)
     expect_identical(patch$ode_state, ode_state)
     expect_identical(patch$ode_rates, ode_rates)
-    
+    if (x == "FF16") {
+      expect_equal(ode_state, c(0.3441947, 0.009159, 0, 0, 0, 0, 1.08695), tolerance = 1e-4)
+      expect_equal(ode_rates, c(0.3341652, 0.01000000, 0, 5.1781e-09, 9.60270e-07, 0, -0.78726), tolerance = 1e-4)
+    }
     y <- patch$ode_state
     patch$set_ode_state(y, 0)
     expect_identical(patch$ode_state, y)
@@ -161,8 +170,8 @@ for (x in names(strategy_types)) {
   })
   
   test_that("Weibull Disturbance as default", {
-    expect_identical(patch$time, 0.0)
-    expect_identical(patch$pr_survival(patch$time), 1.0)
+    expect_equal(patch$time, 0.0)
+    expect_equal(patch$pr_survival(patch$time), 1.0)
     
     expect_equal(patch$disturbance_mean_interval(), 30)
     disturbance <- Weibull_Disturbance_Regime(105.32)

@@ -12,7 +12,7 @@
 ##' search
 ##' @param log_scale Is the parameter naturally on a log scale?  If
 ##' so, this will greatly speed things up.
-##' @param params 
+##' @param params Parameters for fundamental_fitness function
 ##' @param tol Tolerance used in the optimisation
 ##'
 ##' @importFrom stats optimise optim 
@@ -158,6 +158,7 @@ max_fitness <- function(bounds, p, log_scale=TRUE, tol=1e-3) {
 ##' @export
 ##' @author Rich FitzJohn
 viable_fitness <- function(bounds, p, x=NULL, log_scale=TRUE, dx=1) {
+  # browser()
   bounds <- check_bounds(bounds)
   traits <- rownames(bounds)
   if (is.null(x)) {

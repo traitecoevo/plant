@@ -6,11 +6,15 @@ all: compile
 rebuild: clean RcppR6 full_compile roxygen
 
 compile:
-	Rscript -e 'pkgbuild::compile_dll(compile_attributes = FALSE)' 
+	Rscript -e 'pkgbuild::compile_dll(compile_attributes = FALSE, debug=FALSE)' 
+
+debug: RcppR6
+	Rscript -e 'pkgbuild::compile_dll(debug=TRUE)' \ 
+	make roxygen
 
 # compared to compile, also generates src/RcppExports.cpp, R/RcppExports.R 
 full_compile:
-	Rscript -e 'pkgbuild::compile_dll()' 
+	Rscript -e 'pkgbuild::compile_dll(debug=FALSE)' 
 
 # generates 
 RcppR6:
@@ -43,7 +47,7 @@ check: build
 	@rm -rf ${PACKAGE}.Rcheck
 
 clean:
-	rm -f src/*.o src/*.so
+	rm -f src/*.o src/*.so src/*.o.tmp
 
 slow_vignettes:
 	(cd inst/slow_vignettes; ln -sfn ../../vignettes vignettes; remake update_vignettes)

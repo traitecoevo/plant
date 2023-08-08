@@ -66,9 +66,16 @@ K93_StochasticPatchRunner <- function(p) {
 }
 
 
-## Helper:
+## Helper to create K93_environment object. Useful for running individuals
+##' create K93_environment object
+##' @param canopy_light_tol
+##'
+##' @param canopy_light_nbase
+##' @param canopy_light_max_depth
+##' @param canopy_rescale_usually
+##'
 ##' @export
-##' @rdname K93_Environment
+##' @rdname K93_make_environment
 K93_make_environment <- function(canopy_light_tol = 1e-4, 
                                  canopy_light_nbase = 17,
                                  canopy_light_max_depth = 16, 
@@ -109,7 +116,6 @@ K93_fixed_environment <- function(e=1.0, height_max = 300.0) {
 ##' @param n number of points
 ##' @param light_env function for light environment in test object
 ##' @param n_strategies number of strategies for test environment
-##' @param birth_rate birth_rate for test environment
 ##' @export
 ##' @rdname K93_test_environment
 ##' @examples
@@ -131,7 +137,6 @@ K93_test_environment <- function(height, n=101, light_env=NULL,
   # parameters <- K93_Parameters()
   # parameters$strategies <- rep(list(K93_Strategy()), n_strategies)
   # 
-  # parameters$is_resident <- rep(TRUE, n_strategies)
 
   ret <- K93_make_environment()
   ret$canopy$canopy_interpolator <- interpolator
@@ -148,6 +153,8 @@ K93_test_environment <- function(height, n=101, light_env=NULL,
 ##' @param c_1 Mortality suppression rate m2.cm-2.year-1
 ##' @param d_0 Recruitment rate (cm2.year-1)
 ##' @param d_1 Recruitment suppression rate (m2.cm-2)
+##' @param eta Crown shape parameter
+##' @param k_I Extinction coefficient used when estimating competitive effect
 ##' @export
 ##' @rdname make_K93_hyperpar
 make_K93_hyperpar <- function(

@@ -223,7 +223,6 @@ inline Rcpp::List get_state(const FF16_Environment environment, double time) {
   ret["soil_moist"] = rcpp_soil_moist_vec;
   return ret;
 }
-
 }
 
 #endif

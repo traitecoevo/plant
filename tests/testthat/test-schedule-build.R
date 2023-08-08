@@ -7,8 +7,6 @@ test_that("Corner case", {
   for (x in names(strategy_types)) {
     p <- scm_base_parameters(x)
     expect_error(build_schedule(p), "no residents")
-    p <- expand_parameters(trait_matrix(0.1, "lma"), p, birth_rate_list=0.1)
-    expect_error(build_schedule(p), "no residents")
   }
 })
 

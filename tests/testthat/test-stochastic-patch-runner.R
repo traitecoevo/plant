@@ -7,8 +7,7 @@ test_that("empty", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     set.seed(1)
-    p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          is_resident=TRUE)
+    p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()))
     
     env <- make_environment(x)
     ctrl <- scm_base_control()
@@ -53,8 +52,7 @@ test_that("collect", {
     e <- environment_types[[x]]
     set.seed(1)
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          patch_area=50,
-                          is_resident=TRUE)
+                          patch_area=50)
     
     env <- make_environment(x)
     ctrl <- Control()

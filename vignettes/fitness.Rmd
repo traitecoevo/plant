@@ -81,7 +81,7 @@ lot of output:
 
 ```r
 add_eq <- function(x, p) {
-  p <- expand_parameters(trait_matrix(x, "lma"), p, mutant=FALSE)
+  p <- expand_parameters(trait_matrix(x, "lma"), p)
   equilibrium_seed_rain(p)
 }
 

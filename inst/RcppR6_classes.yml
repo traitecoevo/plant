@@ -313,6 +313,7 @@ Control:
     - equilibrium_nattempts: int
     - equilibrium_solver_logN: bool
     - equilibrium_solver_try_keep: bool
+    - save_RK45_cache: bool
 
 OdeControl:
   name_cpp: "plant::ode::OdeControl"
@@ -537,7 +538,6 @@ Parameters:
     - patch_type: "std::string"
     - max_patch_lifetime: double
     - strategies: "std::vector<T>"
-    - is_resident: "std::vector<bool>"
     - strategy_default: "T"
     - node_schedule_times_default: "std::vector<double>"
     - node_schedule_times: "std::vector<std::vector<double> >"
@@ -714,6 +714,9 @@ SCM:
   methods:
     run:
       return_type: void
+    run_mutant:
+      args: [p: "plant::Parameters<T,E>"]
+      return_type: void
     run_next:
       return_type: "std::vector<plant::util::index>"
       name_cpp: r_run_next
@@ -728,7 +731,7 @@ SCM:
       return_type: "std::vector<double>"
       name_cpp: r_competition_effect_error
     set_node_schedule_times:
-      args: [times: "std::vector<std::vector<double> >"]
+      args: [times: "std::vector<std::vector<double>>"]
       return_type: void
       name_cpp: r_set_node_schedule_times
     # times
@@ -766,9 +769,10 @@ SCM:
       name_cpp: r_use_ode_times
       name_cpp_set: r_set_use_ode_times
     net_reproduction_ratio_errors:
-      type: "std::vector<std::vector<double> >"
+      type: "std::vector<std::vector<double>>"
       access: member
       name_cpp: r_net_reproduction_ratio_errors
+
 
 StochasticSpecies:
   name_cpp: "plant::StochasticSpecies<T,E>"
@@ -978,9 +982,10 @@ Weibull_Disturbance_Regime:
   constructor:
     args: [max_patch_lifetime: double]
     roxygen: |
-      The frequency of disturbance in a meta-population of patches follows a Weibull distribution
+      Weibull_Disturbance_Regime control object.
       @title Weibull disturbance regime
-      Weibull_Disturbance_Regime control object
+      The frequency of disturbance in a meta-population of patches follows a Weibull distribution
+      @param max_patch_lifetime Maximum lifetime of a patch, determines length of a simulation
       @export
   methods:
     density:
@@ -1056,6 +1061,8 @@ FF16_Environment:
 
     roxygen: |
       FF16_Environment object
+      @param  canopy_rescale_usually whether to rescale intervals when estimating light environment
+      @param  soil_number_of_depths Number of soil layers to include
       @export
   methods:
     canopy_openness:

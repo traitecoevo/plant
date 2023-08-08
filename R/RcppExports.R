@@ -2457,6 +2457,10 @@ SCM___FF16__FF16_Env__run <- function(obj_) {
     invisible(.Call('_plant_SCM___FF16__FF16_Env__run', PACKAGE = 'plant', obj_))
 }
 
+SCM___FF16__FF16_Env__run_mutant <- function(obj_, p) {
+    invisible(.Call('_plant_SCM___FF16__FF16_Env__run_mutant', PACKAGE = 'plant', obj_, p))
+}
+
 SCM___FF16__FF16_Env__run_next <- function(obj_) {
     .Call('_plant_SCM___FF16__FF16_Env__run_next', PACKAGE = 'plant', obj_)
 }
@@ -2539,6 +2543,10 @@ SCM___FF16w__FF16_Env__ctor <- function(parameters, environment, control) {
 
 SCM___FF16w__FF16_Env__run <- function(obj_) {
     invisible(.Call('_plant_SCM___FF16w__FF16_Env__run', PACKAGE = 'plant', obj_))
+}
+
+SCM___FF16w__FF16_Env__run_mutant <- function(obj_, p) {
+    invisible(.Call('_plant_SCM___FF16w__FF16_Env__run_mutant', PACKAGE = 'plant', obj_, p))
 }
 
 SCM___FF16w__FF16_Env__run_next <- function(obj_) {
@@ -2625,6 +2633,10 @@ SCM___FF16r__FF16_Env__run <- function(obj_) {
     invisible(.Call('_plant_SCM___FF16r__FF16_Env__run', PACKAGE = 'plant', obj_))
 }
 
+SCM___FF16r__FF16_Env__run_mutant <- function(obj_, p) {
+    invisible(.Call('_plant_SCM___FF16r__FF16_Env__run_mutant', PACKAGE = 'plant', obj_, p))
+}
+
 SCM___FF16r__FF16_Env__run_next <- function(obj_) {
     .Call('_plant_SCM___FF16r__FF16_Env__run_next', PACKAGE = 'plant', obj_)
 }
@@ -2707,6 +2719,10 @@ SCM___K93__K93_Env__ctor <- function(parameters, environment, control) {
 
 SCM___K93__K93_Env__run <- function(obj_) {
     invisible(.Call('_plant_SCM___K93__K93_Env__run', PACKAGE = 'plant', obj_))
+}
+
+SCM___K93__K93_Env__run_mutant <- function(obj_, p) {
+    invisible(.Call('_plant_SCM___K93__K93_Env__run_mutant', PACKAGE = 'plant', obj_, p))
 }
 
 SCM___K93__K93_Env__run_next <- function(obj_) {

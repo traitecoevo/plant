@@ -74,6 +74,31 @@ void Solver<System>::reset(const System& system) {
   set_state_from_system(system);
 }
 
+// saving ode steps during adaptive solve
+template <typename System>
+typename std::enable_if<has_cache<System>::value, void>::type
+cache(System& system) {
+  system.cache_ode_step();
+}
+
+template <typename System>
+typename std::enable_if<!has_cache<System>::value, void>::type
+cache(System& system) {}
+
+// During mutant run, load ode history
+// the history is a vector of 6 states for env, needed to make a 
+// full RK step. Called as part of `step_to`
+template <typename System>
+typename std::enable_if<has_cache<System>::value, void>::type
+load(System& system) {
+  system.load_ode_step();
+}
+
+// During resident run, no cache loaded, proceed as normal
+template <typename System>
+typename std::enable_if<!has_cache<System>::value, void>::type
+load(System& system) {}
+
 template <class System>
 void Solver<System>::set_state_from_system(const System& system) {
   set_time(ode::ode_time(system));
@@ -141,6 +166,7 @@ void Solver<System>::step(System& system) {
   const double time_orig = time, time_remaining = time_max - time;
   double step_size = step_size_last;
 
+
   // Save y in case of failure in a step (recall that stepper.step
   // changes 'y')
   const state_type y_orig = y;
@@ -155,28 +181,29 @@ void Solver<System>::step(System& system) {
     if (final_step) {
       step_size = time_remaining;
     }
-    stepper.step(system, time, step_size, y, yerr, dydt_in, dydt_out);
 
+    stepper.step(system, time, step_size, y, yerr, dydt_in, dydt_out);
+       
     const double step_size_next =
       control.adjust_step_size(size, stepper.order(), step_size,
 			       y, yerr, dydt_out);
 
     if (control.step_size_shrank()) {
-      // GSL checks that the step size is actually decreased.
-      // Probably we can do this by comparing against hmin?  There are
-      // probably loops that this will not catch, but require that
-      // hmin << t
-      const double time_next = time + step_size_next;
+        // GSL checks that the step size is actually decreased.
+        // Probably we can do this by comparing against hmin?  There are
+        // probably loops that this will not catch, but require that
+        // hmin << t
+         const double time_next = time + step_size_next;
       if (step_size_next < step_size && time_next > time_orig) {
-	// Step was decreased. Undo step (resetting the state y and
-	// time), and try again with the new step_size.
-	y         = y_orig;
-	time      = time_orig;
-	step_size = step_size_next;
+      	// Step was decreased. Undo step (resetting the state y and
+        // time), and try again with the new step_size.
+      	y         = y_orig;
+      	time      = time_orig;
+      	step_size = step_size_next;
       } else {
-	// We've reached limits of machine accuracy in differences of
-	// step sizes or time (or both).
-	util::stop("Cannot achive the desired accuracy");
+      	// We've reached limits of machine accuracy in differences of
+      	// step sizes or time (or both).
+      	util::stop("Cannot achieve the desired accuracy");
       }
     } else {
       // We have successfully taken a step and will return.  Update
@@ -187,13 +214,14 @@ void Solver<System>::step(System& system) {
       //  suggested in the final step, because that step can be very
       //  small compared to previous step, to reach time_max.
       if (final_step) {
-	time = time_max;
+	      time = time_max;
       } else {
-	time += step_size;
-	step_size_last = step_size_next;
+	      time += step_size;
+	      step_size_last = step_size_next;
       }
       prev_times.push_back(time);
       save_dydt_out_as_in();
+      cache(system);
       return; // This exits the infinite loop.
     }
   }
@@ -204,6 +232,7 @@ void Solver<System>::step(System& system) {
 template <class System>
 void Solver<System>::step_to(System& system, double time_max_) {
   set_time_max(time_max_);
+  load(system); // option to load pre-calculated states in mutant runs
   setup_dydt_in(system);
   stepper.step(system, time, time_max - time, y, yerr, dydt_in, dydt_out);
   save_dydt_out_as_in();
@@ -221,18 +250,12 @@ void Solver<System>::resize(size_t size_) {
   stepper.resize(size_);
 }
 
-// TODO: Need to go through and sort out the logic here; it might be
-// that we can just access the rates.  Could probably do something
-// where we ask what 'y' is in the model, and if it's the same then we
-// use the existing rates, otherwise we apply our y.  For now, this
-// should be correct, but comes at a cost of an extra evaluation.
 template <class System>
 void Solver<System>::setup_dydt_in(System& system) {
   if (stepper.can_use_dydt_in && !dydt_in_is_clean) {
     // TODO: Not clear that this is the right thing here; should just
     // be able to look up the correct dydt rates because we've already
     // set state?
-    //   system.ode_rates(dydt_in.begin());
     ode::derivs(system, y, dydt_in, time);
     dydt_in_is_clean = true;
   }

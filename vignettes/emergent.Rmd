@@ -23,7 +23,7 @@ We'll work with a single species at demographic equilibrium:
 library(plant)
 
 params <- scm_base_parameters("FF16")
-patch <- expand_parameters(trait_matrix(0.0825, "lma"), params, mutant = FALSE)
+patch <- expand_parameters(trait_matrix(0.0825, "lma"), params)
 patch_eq <- equilibrium_seed_rain(patch)
 result <- run_scm_collect(patch_eq)
 ```
