@@ -10,15 +10,6 @@ using namespace Rcpp;
 
 namespace plant {
 
-// double check best namespace for constants (private vs global)
-static const double PAR_to_SW = 0.4376; // slp, gamma and lh are temp-dependent, but assumed at 25 deg C for now.
-static const double slp = 0.1887;
-static const double gamma = 0.0674;
-static const double lh = 44002.59; // latent heat of vaporisation of water
-static const double MH2O = 18.02; // molar mass of water (g mol^-1 H20)
-static const double g_to_kg = 1/1000.0; // convert grams to kilograms
-static const double kg_to_m3 = 1/1000.0; // converget kilograms of water to volume
-
 class FF16_Environment : public Environment {
 public:
   // constructor for R interface - default settings can be modified
@@ -81,50 +72,16 @@ public:
     double drainage;
     double net_flux;
 
-    //debugging
-
-    // canopy_openness -> shading_above -> includes k_I
-    // double ground_radiation = PPFD * get_environment_at_height(0);
-
     // treat each soil layer as a separate resource pool
     for (size_t i = 0; i < vars.state_size; i++) {
 
       if(i == 0) {
 
-        // double k_I = 0.5;
-
-        //     double canopy_openness_at_ground = get_environment_at_height(0);
-        //     double total_LAI = log(canopy_openness_at_ground) / (-k_I);
-        //     // std::cout << "total_LAI" << total_LAI;
-        //     double ground_radiation = PPFD * get_environment_at_height(0);
-
-
-
         saturation = std::max(0.0, 1 - std::pow(vars.state(i)/soil_moist_sat, b_infil));
         infiltration = extrinsic_drivers.evaluate("rainfall", time) * saturation;
 
-
-        // drainage = 200*18.02/1000000 * pow((0.35*10e-3/psi_from_soil_moist(vars.state(i))), 5)
-
-        // // Evaporation at soil surface
-        // double E_bare_soil_pot_mol = (1.0 - r_soil) * ground_radiation * PAR_to_SW * slp / ((slp + gamma) * lh);
-
-        // // mols ->  m3/m2/s
-        // double E_bare_soil_pot_m = std::max(0.0, E_bare_soil_pot_mol * MH2O * g_to_kg * kg_to_m3);
-
-        // // need to access total leaf area for environment?
-        // double patch_total_area_leaf = 1.0;
-        // double Ev_pot = E_bare_soil_pot_m * std::exp(-0.398 * total_LAI);
-
-        // double soil_wetness = std::pow(((vars.state(i) - soil_moist_wp) / (soil_moist_fc - soil_moist_wp)), swf);
-
-        // evaporation = std::max(0.0, Ev_pot * soil_wetness)*60*60*24*365;
       } else {
         infiltration = 0.0;
-        
-        
-        // evaporation = 0.0;
-
       }
 
       // if (i == soil_number_of_depths){
@@ -149,14 +106,8 @@ public:
       // drainage = 0;
 
       net_flux = infiltration  -  resource_depletion[i];
-      // std::cout << "resource_depletion" << resource_depletion[i] << std::endl;
 
       // net_flux = infiltration - evaporation - drainage -  resource_depletion[i];
-
-        // std::cout << "; soil_moist: " << vars.state(i) << "resource depletion: " << resource_depletion[i] << std::endl;
-
-      // std::cout << "net_flux" << net_flux << std::endl;
-
 
       vars.set_rate(i, net_flux);
     }
@@ -196,7 +147,6 @@ public:
     // soil volumetric water: m3.m-3
     // assume one layer for now - later extend to include layers of variable depth
     double soil_moist_ = get_soil_water_state()[0];
-// std::cout << "soil_moist" << soil_moist << std::endl;
     // later average over all layers
     // for(i in 1:n_soil_layers)
     //    total = sum(environment.vars.state(i))
@@ -207,8 +157,6 @@ public:
     double n_psi_ = n_psi();
 
     double psi_ = psi_from_soil_moist(soil_moist_);
-    // TODO: convert soil_moist to psi
-    // calc_apsi(soil_moist_fc, soil_moist_wp)*(soil_moist/soil_moist_sat)^(-calc_npsi(soil_moist_fc, soil_moist_wp))
 
     return psi_;
   }
