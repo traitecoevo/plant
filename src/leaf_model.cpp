@@ -152,7 +152,6 @@ void Leaf::setup_transpiration(double resolution) {
   auto x_psi_ = std::vector<double>{0.0};  // {0.0}
   auto y_cumulative_transpiration_ = std::vector<double>{0.0}; // {0.0}
   double step = (b*pow((log(1/1e-2)),(1/c)))/resolution;
-
   for (double psi_spline = 0.0 + step; psi_spline <= (b*pow((log(1/1e-2)),(1/c))); psi_spline += step) {
     double E_psi = step * ((proportion_of_conductivity(psi_spline-step) + proportion_of_conductivity(psi_spline))/2) + y_cumulative_transpiration_.back();
     x_psi_.push_back(psi_spline); // x values for spline
@@ -664,11 +663,7 @@ void Leaf::optimise_psi_stem_TF_newton(double psi_guess) {
 
   // Early exit -- XXXX 
   if (psi_soil_ > psi_crit){
-
-    opt_psi_stem_ = psi_soil_;
-    profit_ = 0.0;
-    transpiration_ = 0.0;
-    stom_cond_CO2_ = 0.0;
+    profit_ = profit_psi_stem_TF(psi_soil_);
     return;
   }
 

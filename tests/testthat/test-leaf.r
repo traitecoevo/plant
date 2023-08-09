@@ -1,9 +1,6 @@
 context("SCM-general")
 
 test_that("Basic functions", {
-  devtools::load_all(".")
-  library(tidyverse)
-
   #first set physiological parameters
   
   FF16w_strategy <- FF16w_Strategy()
