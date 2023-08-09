@@ -100,7 +100,7 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
 
   // convert assimilation per leaf area per second (umol m^-2 s^-1) to canopy-level total yearly assimilation (mol yr^-1)
 
-  const double assimilation = leaf.profit_ * area_leaf_* 60*60*24*365/1e6;
+  const double assimilation = leaf.profit_ * area_leaf_* 60*60*12*365/1e6;
     
   const double respiration_ = 
   respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
@@ -144,7 +144,7 @@ void FF16w_Strategy::compute_rates(const FF16_Environment &environment,
   // stubbing out E_p for integration
   for (size_t i = 0; i < environment.ode_size(); i++) {
 
-    vars.set_consumption_rate(i, evapotranspiration_dt(area_leaf_)*60*60*24*365/1000);
+    vars.set_consumption_rate(i, evapotranspiration_dt(area_leaf_)*60*60*12*365/1000);
 
   }
 
