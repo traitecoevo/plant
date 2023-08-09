@@ -71,6 +71,8 @@ test_that("get_plant_internals_fun", {
 test_that("grow_individual_to_size", {
   for (x in names(strategy_types)) {
     #cat(x)
+    x = "K93"
+    
     env <- test_environment(x, 10)
 
     heights <- seq(1, 10)

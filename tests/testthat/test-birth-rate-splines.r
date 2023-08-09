@@ -1,4 +1,4 @@
-context("Extrinisic drivers - birth rates")
+context("Extrinisic drivers")
 
 test_that("Can set birth rate splines correctly", {
   p0 <- scm_base_parameters("FF16")

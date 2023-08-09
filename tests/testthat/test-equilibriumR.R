@@ -4,7 +4,7 @@ test_that("demographic equilibrium", {
   ctrl <- scm_base_control()
   ctrl2 <- scm_base_control()
   
-  patch <- expand_parameters(trait_matrix(0.0825, "lma"), params, mutant = FALSE)
+  patch <- expand_parameters(trait_matrix(0.0825, "lma"), params)
   expect_silent(
     patch_eq1 <- equilibrium_birth_rate(patch, ctrl=ctrl)
   )
@@ -31,7 +31,7 @@ test_that("demographic equilibrium", {
   )
   
   ## 2spp
-  patch <- expand_parameters(trait_matrix(c(0.0825, 0.2), "lma"), params, mutant = FALSE, birth_rate_list = c(1,1))
+  patch <- expand_parameters(trait_matrix(c(0.0825, 0.2), "lma"), params, birth_rate_list = c(1,1))
   expect_silent(
     patch_eq5 <- equilibrium_birth_rate(patch, ctrl)
   )
