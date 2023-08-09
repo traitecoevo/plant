@@ -9,13 +9,22 @@ namespace plant {
 // TODO: Consider moving to activating as an initialisation list?
 FF16r_Strategy::FF16r_Strategy() {
   // height above hmat at which allocation to reproduction is half its max value
-
+  a_f2 = 2; // [dimensionless]
+  
   collect_all_auxiliary = false;
   // build the string state/aux name to index map
   refresh_indices();
   name = "FF16r";
 }
 
+
+// [eqn 16] Fraction of production allocated to reproduction
+double FF16r_Strategy::fraction_allocation_reproduction(double height) const {
+  if(height <= hmat)
+    return 0.0;
+  else
+    return a_f1 * (height - hmat) / (a_f2  + (height - hmat));
+}
 
 FF16r_Strategy::ptr make_strategy_ptr(FF16r_Strategy s) {
   s.prepare_strategy();
