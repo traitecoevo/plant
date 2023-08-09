@@ -68,14 +68,13 @@ public:
   virtual void compute_rates(std::vector<double> const& resource_depletion) {
     double saturation;
     double infiltration;
-    double evaporation;
-    double drainage;
     double net_flux;
 
     // treat each soil layer as a separate resource pool
     for (size_t i = 0; i < vars.state_size; i++) {
 
       if(i == 0) {
+
 
         saturation = std::max(0.0, 1 - std::pow(vars.state(i)/soil_moist_sat, b_infil));
         infiltration = extrinsic_drivers.evaluate("rainfall", time) * saturation;
@@ -84,30 +83,10 @@ public:
         infiltration = 0.0;
       }
 
-      // if (i == soil_number_of_depths){
-      //   drainage = k_sat * std::pow(vars.state(i)/soil_moist_sat, 2*n_psi() + 3);
-      // }
-
-      // TODO: add drainage
-      // if (i == n_soil_layers) {
-      //    drainage = something
-      // } else {
-      //    drainage = vars.state(i + 1) * something;
-      // }
-
-      // drainage = 0.4;
-
-      // net_flux = infiltration - resource_depletion[i] - evaporation - drainage;
-      // net_flux = infiltration  - resource_depletion[i] - drainage;
-      // net_flux = infiltration   - drainage;
-
-      // drainage = k_sat * std::pow(vars.state(i)/soil_moist_sat, 2*n_psi() + 3);
-
-      // drainage = 0;
-
       net_flux = infiltration  -  resource_depletion[i];
 
-      // net_flux = infiltration - evaporation - drainage -  resource_depletion[i];
+
+
 
       vars.set_rate(i, net_flux);
     }
