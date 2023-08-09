@@ -104,11 +104,6 @@ public:
   double c;
   double b;
   double psi_crit;  // derived from b and c
-  double newton_tol_abs; //actually a control paramaeter and needs to be moved
-  double GSS_tol_abs;
-  double vulnerability_curve_ncontrol;
-  double ci_abs_tol;
-  double ci_niter;
   double beta1;
   double beta2;
   double jmax_25;
@@ -116,6 +111,11 @@ public:
   double a;
   double curv_fact_elec_trans; // unitless - obtained from Smith and Keenan (2020)
   double curv_fact_colim;
+  double newton_tol_abs; //actually a control paramaeter and needs to be moved
+  double GSS_tol_abs;
+  double vulnerability_curve_ncontrol;
+  double ci_abs_tol;
+  double ci_niter;
 
   double ci_;
   double stom_cond_CO2_;

@@ -58,30 +58,10 @@ solve_max_worker <- function(bounds, f, tol=1e-3, outcome, use_optim = FALSE) {
     if (!all(is.finite(bounds))) {
       stop("Starting value did not have finite fitness; finite bounds required")
     }
-    ## The suppressWarnings here is for warnings like:
-    ##
-    ## Warning message:
-    ## In optimise(f, interval = bounds, maximum = TRUE, tol = tol) :
-    ##   NA/Inf replaced by maximum positive value
-    ##
-    ## which is probably the desired behaviour here.
     
-     out <- (optimise(f, interval=bounds, maximum=TRUE, tol=tol))
-    ret <- out$objective
-
-    ret_min <- f(bounds[1])
-    ret_max <- f(bounds[2])
-
-    tibble(ret = c(ret, ret_min, ret_max),
-           value = c(out$maximum, bounds[1], bounds[2])) %>%
-      filter(ret == max(ret)) -> out
-    
-    if(length(out$ret) > 1){
-      out %>%
-        filter(ret == "ret") -> out
-    }
-    ret <- out$ret
-    attr(ret, outcome) <- out$value
+    out <- (optimise(f, interval=bounds, maximum=TRUE, tol=tol))
+    ret <- out$maximum
+    attr(ret, outcome) <- out$objective
     return(ret)
     
   } else {
