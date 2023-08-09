@@ -10,7 +10,7 @@ test_that("collect / make_patch", {
 
   res <- run_scm_collect(p1, env, ctrl)
 
-  st_113 <- scm_state(113, res)
+    st_113 <- scm_state(113, res)
   p1_113 <- make_patch(st_113, p1, env, ctrl)
 
   expect_equal(p1_113$ode_state, unlist(st_113$species))

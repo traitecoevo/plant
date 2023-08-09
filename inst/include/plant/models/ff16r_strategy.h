@@ -5,6 +5,7 @@
 
 #include <plant/models/ff16_strategy.h>
 #include <plant/models/ff16_environment.h>
+#include <plant/models/assimilation.h>
 
 namespace plant {
 
@@ -16,11 +17,8 @@ public:
 
   // Overloads ----------------------------------------------
 
-  double lma_p = 0;   // Leaf mass per area [kg / m2]
-  double rho_p = 0;   // rho [kg / m3]
-  double lma_c = 0.1978791;   // Leaf mass per area [kg / m2]
-  double rho_c = 608;   // rho [kg / m3]
-
+// [eqn 16] Fraction of whole plant growth that is leaf
+  virtual double fraction_allocation_reproduction(double height) const;
 
 };
 

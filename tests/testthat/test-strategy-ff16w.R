@@ -85,13 +85,13 @@ test_that("FF16w Environment", {
 test_that("Rainfall spline basic run", {
   # one species
   p0 <- scm_base_parameters("FF16w")
-  p0$max_patch_lifetime <- 0.001
+  p0$max_patch_lifetime <- 10
   p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,
                            birth_rate_list = list(10))
 
 
   # init rainfall spline for env
-  x <- seq(0, 0.1, length.out = 100)
+  x <- seq(0, 10, length.out = 1000)
   rain = list(
     x = x,
     y = 2 + sin(x)
@@ -104,51 +104,51 @@ test_that("Rainfall spline basic run", {
 
   ctrl <- scm_base_control()
   ctrl$ci_niter = 1000
-  ctrl$GSS_tol_abs <- 1e-3
-  ctrl$ci_abs_tol <- 1e-3
+  ctrl$GSS_tol_abs <- 1e-1
+  ctrl$ci_abs_tol <- 1e-8
   ctrl$vulnerability_curve_ncontrol <- 100
 
-  system.time(out <- run_scm(p1, env, ctrl, use_ode_times = FALSE))
-  
+  out <- run_scm(p1, env, ctrl)
+
   expect_equal(out$patch$environment$ode_size, 1)
 
   # This test only validates reproducibility across operating systems,
   # not any kind of ecological process. It should be replaced once the
   # water model is completed
   expect_equal(out$patch$environment$soil$rates,
-               c(1.259021), tolerance = 1e-5)
+               c(-0.2374372), tolerance = 1e-5)
 
   # check the states are correct
   # again these values not yet verified
   expect_equal(out$patch$environment$soil$states,
-               c(0.400126), tolerance = 1e-5)
+               c(0.334688), tolerance = 1e-5)
 
-  expect_equal(out$offspring_production, 1.205037e-24, tolerance=5e-4)
-  expect_equal(out$ode_times[c(1,5,10)], c(0, 1.00000e-05, 5.83303e-05), tolerance=1e-7)
+  expect_equal(out$offspring_production, 0.0003052265, tolerance=5e-4)
+  expect_equal(out$ode_times[c(1,5,10)], c(0, 2e-05, 7e-05), tolerance=1e-7)
 })
 
 test_that("Rainfall in collected output", {
   # one species
   p0 <- scm_base_parameters("FF16w")
   
-  p0$max_patch_lifetime <- 0.001
+  p0$max_patch_lifetime <- 7.5
 
   p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,
-                           birth_rate_list = list(20))
+                           birth_rate_list = list(10))
   
   
   env <- make_environment("FF16w",
                           soil_number_of_depths = 1,
-                          soil_initial_state = rep(1, 1),
+                          soil_initial_state = rep(0.4, 1),
                           rainfall = 1)
   
   ctrl <- scm_base_control()
   ctrl$ci_niter = 1000
-  ctrl$GSS_tol_abs <- 1e-3
-  ctrl$ci_abs_tol <- 1e-3
+  ctrl$GSS_tol_abs <- 1e-1
+  ctrl$ci_abs_tol <- 1e-8
   ctrl$vulnerability_curve_ncontrol <- 100
   
-  collected <- run_scm_collect(p1, env, ctrl)
+  system.time(collected <- run_scm_collect(p1, env, ctrl))
   
   expect_equal(collected$env[[1]]$rainfall, 45)
   expect_equal(collected$env[[142]]$rainfall, 45)

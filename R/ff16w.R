@@ -250,7 +250,7 @@ make_FF16w_hyperpar <- function(
                                 B_dI1=0.01,
                                 B_dI2=0.0,
                                 B_ks1=0.2,
-                                B_hks1 = 0.2,
+                                B_hks1 = 25,
                                 B_hks2 = 0.0,
                                 B_ks2=0.0,
                                 B_rs1=4012.0,
@@ -549,11 +549,12 @@ make_FF16w_parameters <- function(p0 = FF16w_Parameters(),
 #'
 #' 
 
-make_leaf <- function(ff16w_params = make_FF16w_parameters(), ff16w_env = FF16w_make_environment(), height = 1, ff16w_hyper = list(lma_0=0.1978791)){
-  #set some default environmental values
+make_leaf <- function(ff16w_params = make_FF16w_parameters(), ff16w_env = FF16w_make_environment(), height = 1, ff16w_hyper = list(lma_0=0.1978791), control = Control()){
+    #set some default environmental values
 ff16w_env_default <- FF16w_make_environment()  
 # ff16w_env <- ff16w_env[[1]] 
 p0 <- FF16w_Parameters()
+p0$strategy_default$control <- control
 p1 <- expand_parameters(as.matrix(ff16w_params), p0, birth_rate_list = 1, hyperpar = do.call(make_FF16w_hyperpar, ff16w_hyper))
 ff16w_params <- p1$strategies[[1]]
 #if using an environment class to import environment   
@@ -595,8 +596,10 @@ eta_c = 1 - 2 / (1 + ff16w_params$eta) + 1 / (1 + 2 * ff16w_params$eta)
 leaf_specific_conductance_max <- ff16w_params$K_s * ff16w_params$theta / (height * eta_c)
 sapwood_volume_per_leaf_area <- ff16w_params$theta * height* eta_c
 
-leaf_obj <- Leaf(vcmax_25 = ff16w_params$vcmax_25, jmax_25 = ff16w_params$jmax_25, c = ff16w_params$c, b = ff16w_params$b, psi_crit = ff16w_params$psi_crit, epsilon_leaf = 0.0001, beta1 = ff16w_params$beta1, beta2= ff16w_params$beta2, hk_s = ff16w_params$hk_s, a = ff16w_params$a,
-          curv_fact_elec_trans = ff16w_params$curv_fact_elec_trans, curv_fact_colim = ff16w_params$curv_fact_colim)
+leaf_obj <- Leaf(vcmax_25 = ff16w_params$vcmax_25, jmax_25 = ff16w_params$jmax_25, c = ff16w_params$c, b = ff16w_params$b, psi_crit = ff16w_params$psi_crit, beta1 = ff16w_params$beta1, beta2= ff16w_params$beta2, hk_s = ff16w_params$hk_s, a = ff16w_params$a,
+          curv_fact_elec_trans = ff16w_params$curv_fact_elec_trans, curv_fact_colim = ff16w_params$curv_fact_colim,
+          newton_tol_abs = ff16w_params$control$newton_tol_abs, GSS_tol_abs = ff16w_params$control$GSS_tol_abs, vulnerability_curve_ncontrol = ff16w_params$control$vulnerability_curve_ncontrol, ci_abs_tol = ff16w_params$control$ci_abs_tol, 
+          ci_niter = ff16w_params$control$ci_niter)
 leaf_obj$set_physiology(PPFD = PPFD, psi_soil = psi_soil, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, 
                  ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = ff16w_params$rho, a_bio = ff16w_params$a_bio, 
                  leaf_temp = leaf_temp, atm_o2_kpa = ff16w_env_default$get_atm_o2(), atm_kpa = ff16w_env_default$get_atm())
