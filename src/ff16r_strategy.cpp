@@ -9,7 +9,6 @@ namespace plant {
 // TODO: Consider moving to activating as an initialisation list?
 FF16r_Strategy::FF16r_Strategy() {
   // height above hmat at which allocation to reproduction is half its max value
-  a_f2   = 2; // [dimensionless]
 
   collect_all_auxiliary = false;
   // build the string state/aux name to index map
@@ -18,13 +17,10 @@ FF16r_Strategy::FF16r_Strategy() {
 }
 
 
-// [eqn 16] Fraction of production allocated to reproduction
-double FF16r_Strategy::fraction_allocation_reproduction(double height) const {
-  if(height <= hmat)
-    return 0.0;
-  else
-    return a_f1 * (height - hmat) / (a_f2  + (height - hmat));
-}
+  double lma_p = 0;   // Leaf mass per area [kg / m2]
+  double rho_p = 0;   // rho [kg / m3]
+  double lma_c = 0.1978791;   // Leaf mass per area [kg / m2]
+  double rho_c = 608;   // rho [kg / m3]
 
 
 FF16r_Strategy::ptr make_strategy_ptr(FF16r_Strategy s) {

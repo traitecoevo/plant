@@ -924,8 +924,10 @@ FF16r_Strategy:
     variadic arguments, or as a list, but not both).
     @export
   list:
-    - lma: double
-    - rho: double
+    - lma_c: double
+    - rho_c: double
+    - lma_p: double
+    - rho_p: double
     - hmat: double
     - omega: double
     - eta: double
