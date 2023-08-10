@@ -1078,6 +1078,8 @@ template <> inline plant::FF16_Environment as(SEXP x) {
 }
 template <> inline SEXP wrap(const plant::FF16r_Strategy& x) {
   Rcpp::List ret;
+  ret["lma"] = Rcpp::wrap(x.lma);
+  ret["rho"] = Rcpp::wrap(x.rho);
   ret["lma_c"] = Rcpp::wrap(x.lma_c);
   ret["rho_c"] = Rcpp::wrap(x.rho_c);
   ret["lma_p"] = Rcpp::wrap(x.lma_p);
@@ -1129,6 +1131,10 @@ template <> inline plant::FF16r_Strategy as(SEXP x) {
   // field twice.  No current support for a hook.
   plant::FF16r_Strategy ret;
   Rcpp::List xl(x);
+  // ret.lma = Rcpp::as<decltype(retlma) >(xl["lma"]);
+  ret.lma = Rcpp::as<double >(xl["lma"]);
+  // ret.rho = Rcpp::as<decltype(retrho) >(xl["rho"]);
+  ret.rho = Rcpp::as<double >(xl["rho"]);
   // ret.lma_c = Rcpp::as<decltype(retlma_c) >(xl["lma_c"]);
   ret.lma_c = Rcpp::as<double >(xl["lma_c"]);
   // ret.rho_c = Rcpp::as<decltype(retrho_c) >(xl["rho_c"]);
