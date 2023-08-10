@@ -5,7 +5,7 @@
 
 #include <plant/models/ff16_strategy.h>
 #include <plant/models/ff16_environment.h>
-#include <plant/models/assimilation.h>
+// #include <plant/models/assimilation.h>
 
 namespace plant {
 
@@ -21,8 +21,6 @@ public:
   double rho_p = 0;   // rho [kg / m3]
   double lma_c = 0.1978791;   // Leaf mass per area [kg / m2]
   double rho_c = 608;   // rho [kg / m3]
-  // Maximum allocation to reproduction
-  double a_f1   = 0.0; //[dimensionless]
 };
 
 FF16r_Strategy::ptr make_strategy_ptr(FF16r_Strategy s);

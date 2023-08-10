@@ -113,6 +113,8 @@ void FF16_Strategy::compute_rates(const FF16_Environment& environment,
   if (net_mass_production_dt_ > 0) {
 
     const double fraction_allocation_reproduction_ = fraction_allocation_reproduction(height);
+
+    std::cout <<fraction_allocation_reproduction_ << std::endl;
     const double darea_leaf_dmass_live_ = darea_leaf_dmass_live(area_leaf_);
 
     vars.set_aux(aux_index.at("darea_leaf_dmass_live_"), darea_leaf_dmass_live_);
@@ -221,12 +223,14 @@ double FF16_Strategy::net_mass_production_dt(const FF16_Environment& environment
     respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
 
   const double turnover_ =
-    turnover(mass_leaf_, mass_bark_, mass_sapwood_, mass_root_);
+    turnover(mass_leaf_,  mass_sapwood_,mass_bark_, mass_root_);
   return net_mass_production_dt_A(assimilation_, respiration_, turnover_);
 }
 
 // [eqn 16] Fraction of production allocated to reproduction
 double FF16_Strategy::fraction_allocation_reproduction(double height) const {
+
+  std::cout << a_f1 << std::endl;
   return a_f1 / (1.0 + exp(a_f2 * (1.0 - height / hmat)));
 }
 
@@ -262,6 +266,8 @@ double FF16_Strategy::dmass_leaf_darea_leaf(double /* area_leaf */) const {
 
 // Mass of stem needed for new unit area leaf, d m_s / d a_l
 double FF16_Strategy::dmass_sapwood_darea_leaf(double area_leaf) const {
+std::cout << rho << std::endl;
+
   return rho * eta_c * a_l1 * theta * (a_l2 + 1.0) * pow(area_leaf, a_l2);
 }
 
