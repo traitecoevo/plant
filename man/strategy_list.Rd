@@ -11,12 +11,19 @@ strategy_list(
   x,
   parameters,
   hyperpar = param_hyperpar(parameters),
-  birth_rate_list
+  birth_rate_list,
+  use_default_strategy = TRUE
 )
 
 strategy_default(parameters, hyperpar = param_hyperpar(parameters))
 
-strategy(x, parameters, hyperpar = param_hyperpar(parameters), birth_rate_list)
+strategy(
+  x,
+  parameters,
+  hyperpar = param_hyperpar(parameters),
+  birth_rate_list,
+  use_default_strategy = TRUE
+)
 
 individual_list(
   x,
