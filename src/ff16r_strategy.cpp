@@ -16,13 +16,6 @@ FF16r_Strategy::FF16r_Strategy() {
   name = "FF16r";
 }
 
-
-  double lma_p = 0;   // Leaf mass per area [kg / m2]
-  double rho_p = 0;   // rho [kg / m3]
-  double lma_c = 0.1978791;   // Leaf mass per area [kg / m2]
-  double rho_c = 608;   // rho [kg / m3]
-
-
 FF16r_Strategy::ptr make_strategy_ptr(FF16r_Strategy s) {
   s.prepare_strategy();
   return std::make_shared<FF16r_Strategy>(s);
