@@ -109,7 +109,7 @@ public:
   double n_psi_ = n_psi();
   double a_psi_ = a_psi();
 
-    double psi = a_psi_ * std::pow(soil_moist_, -n_psi_);
+    double psi = a_psi_ * std::pow(soil_moist_/soil_moist_sat, -n_psi_);
   return psi;
 }
 
@@ -140,24 +140,24 @@ public:
     return psi_;
   }
 
-double get_vpd() const {
-    return extrinsic_drivers.evaluate("vpd", time);
+double get_atm_vpd() const {
+    return extrinsic_drivers.evaluate("atm_vpd", time);
   }
 
-double get_co2() const {
-    return extrinsic_drivers.evaluate("co2", time);
+double get_ca() const {
+    return extrinsic_drivers.evaluate("ca", time);
   }
 
 double get_leaf_temp() const {
     return extrinsic_drivers.evaluate("leaf_temp", time);
   }
 
-double get_atm_o2() const {
-    return extrinsic_drivers.evaluate("o2", time);
+double get_atm_o2_kpa() const {
+    return extrinsic_drivers.evaluate("atm_o2_kpa", time);
   } 
 
-double get_atm() const {
-    return extrinsic_drivers.evaluate("atm", time);
+double get_atm_kpa() const {
+    return extrinsic_drivers.evaluate("atm_kpa", time);
   } 
 
 

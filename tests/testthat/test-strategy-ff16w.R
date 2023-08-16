@@ -80,6 +80,28 @@ test_that("FF16w Environment", {
   
   expect_true(saturated_rate < unsaturated_rate)
   
+  e <- FF16w_make_environment(ca = 42,
+                        atm_vpd = 1.5,
+                        leaf_temp = 22.5,
+                        atm_o2_kpa = 123,
+                        atm_kpa = 2.1)
+  
+  expect_equal(e$get_atm_kpa(), 2.1)
+  expect_equal(e$get_atm_o2_kpa(), 123)
+  expect_equal(e$get_leaf_temp(), 22.5)
+  expect_equal(e$get_atm_vpd(), 1.5)
+  expect_equal(e$get_ca(), 42)
+  
+  atm_vpd = list(
+    x = seq(0, 9, 1),
+    y = seq(0.6, 1, length.out = 10)
+  )
+  
+  e <- FF16w_make_environment(atm_vpd = atm_vpd)
+  e$extrinsic_drivers$evaluate("atm_vpd", 2)
+  
+  expect_equal(e$extrinsic_drivers$evaluate("atm_vpd", 2), 0.6888889)
+
 })
 
 test_that("Rainfall spline basic run", {
@@ -131,10 +153,10 @@ test_that("Rainfall in collected output", {
   # one species
   p0 <- scm_base_parameters("FF16w")
   
-  p0$max_patch_lifetime <- 7.5
+  p0$max_patch_lifetime <- 7.01036
 
   p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,
-                           birth_rate_list = list(10))
+                           birth_rate_list = list(100))
   
   
   env <- make_environment("FF16w",

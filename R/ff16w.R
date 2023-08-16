@@ -72,7 +72,7 @@ FF16w_StochasticPatchRunner <- function(p) {
 ##' @param canopy_rescale_usually 
 ##' @param soil_initial_state initial soil moisture (m3 m^-3)
 ##' @param vpd Vapour pressure deficit (kPa). Can be a constant value or a list (x = time, y = VPD)
-##' @param co2 CO2 partial pressure (Pa). Can be a constant value or a list (x = time, y = co2)
+##' @param ca CO2 partial pressure (Pa). Can be a constant value or a list (x = time, y = ca)
 ##' @param rainfall Rainfall (m). Can be a constant value or a list (x = time, y = rainfall)
 FF16w_make_environment <- function(canopy_light_tol = 1e-4, 
                                    canopy_light_nbase = 17,
@@ -81,10 +81,10 @@ FF16w_make_environment <- function(canopy_light_tol = 1e-4,
                                    soil_number_of_depths = 1,
                                    soil_initial_state = 0.5,
                                    rainfall = 1,
-                                   vpd = 1,
-                                   co2 = 40,
+                                   atm_vpd = 1,
+                                   ca = 40,
                                    leaf_temp = 25,
-                                   atm_o2 = 21,
+                                   atm_o2_kpa = 21,
                                    atm_kpa = 100.5) {
   
   if(soil_number_of_depths < 1)
@@ -104,64 +104,80 @@ FF16w_make_environment <- function(canopy_light_tol = 1e-4,
     
     e$set_soil_water_state(soil_initial_state)
   }
-    
-  drivers <- ExtrinsicDrivers()
-  if (is.list(rainfall)) {
-    drivers$set_variable("rainfall", rainfall$x, rainfall$y)
-  } else if (is.numeric(rainfall)) {
-    drivers$set_constant("rainfall", rainfall)
-    drivers$set_extrapolate("rainfall", FALSE)
-  } else {
-    stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
-  }
-  
-  #TO DO: This probably wasn't the nicest way to add VPD, would recommend we think about how to do this better? - Isaac
 
-  if (is.list(vpd)) {
-    drivers$set_variable("vpd", vpd$x, vpd$y)
-  } else if (is.numeric(vpd)) {
-    drivers$set_constant("vpd", vpd)
-    drivers$set_extrapolate("vpd", FALSE)
-  } else {
-    stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
-  }
+  drivers <- ExtrinsicDrivers()
+
+  drivers_args <- list(atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp, atm_o2_kpa = atm_o2_kpa, atm_kpa = atm_kpa, rainfall = rainfall)   
   
-  if (is.list(co2)) {
-    drivers$set_variable("co2", co2$x, co2$y)
-  } else if (is.numeric(co2)) {
-    drivers$set_constant("co2", co2)
-    drivers$set_extrapolate("co2", FALSE)
-  } else {
-    stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
+  add_driver <- function(drivers_arg, driver_name){
+
+     if (is.list(drivers_arg)){
+      drivers$set_variable(driver_name, drivers_arg$x, drivers_arg$y)
+    } else if (is.numeric(drivers_arg)) {
+      drivers$set_constant(driver_name, drivers_arg)
+      drivers$set_extrapolate(driver_name, FALSE)
+    }else {
+      stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
+    }
   }
-  
-  if (is.list(leaf_temp)) {
-    drivers$set_variable("leaf_temp", leaf_temp$x, leaf_temp$y)
-  } else if (is.numeric(leaf_temp)) {
-    drivers$set_constant("leaf_temp", leaf_temp)
-    drivers$set_extrapolate("leaf_temp", FALSE)
-  } else {
-    stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
-  }
-  
-  if (is.list(atm_o2)) {
-    drivers$set_variable("o2", atm_o2$x, atm_o2$y)
-  } else if (is.numeric(atm_o2)) {
-    drivers$set_constant("o2", atm_o2)
-    drivers$set_extrapolate("o2", FALSE)
-  } else {
-    stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
-  }
-  
-  if (is.list(atm_kpa)) {
-    drivers$set_variable("atm", atm_kpa$x, atm_kpa$y)
-  } else if (is.numeric(atm_kpa)) {
-    drivers$set_constant("atm", atm_kpa)
-    drivers$set_extrapolate("atm", FALSE)
-  } else {
-    stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
-  }
-  
+  purrr::imap(drivers_args, ~add_driver(.x, .y))
+  # 
+  # if (is.list(rainfall)) {
+  #   drivers$set_variable("rainfall", rainfall$x, rainfall$y)
+  # } else if (is.numeric(rainfall)) {
+  #   drivers$set_constant("rainfall", rainfall)
+  #   drivers$set_extrapolate("rainfall", FALSE)
+  # } else {
+  #   stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
+  # }
+  # 
+  # #TO DO: This probably wasn't the nicest way to add VPD, would recommend we think about how to do this better? - Isaac
+  # 
+  # if (is.list(atm_vpd)) {
+  #   drivers$set_variable("atm_vpd", atm_vpd$x, atm_vpd$y)
+  # } else if (is.numeric(atm_vpd)) {
+  #   drivers$set_constant("atm_vpd", atm_vpd)
+  #   drivers$set_extrapolate("atm_vpd", FALSE)
+  # } else {
+  #   stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
+  # }
+  # 
+  # if (is.list(ca)) {
+  #   drivers$set_variable("ca", ca$x, ca$y)
+  # } else if (is.numeric(ca)) {
+  #   drivers$set_constant("ca", ca)
+  #   drivers$set_extrapolate("ca", FALSE)
+  # } else {
+  #   stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
+  # }
+  # 
+  # if (is.list(leaf_temp)) {
+  #   drivers$set_variable("leaf_temp", leaf_temp$x, leaf_temp$y)
+  # } else if (is.numeric(leaf_temp)) {
+  #   drivers$set_constant("leaf_temp", leaf_temp)
+  #   drivers$set_extrapolate("leaf_temp", FALSE)
+  # } else {
+  #   stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
+  # }
+  # 
+  # if (is.list(atm_o2_kpa)) {
+  #   drivers$set_variable("atm_o2_kpa", atm_o2_kpa$x, atm_o2_kpa$y)
+  # } else if (is.numeric(atm_o2_kpa)) {
+  #   drivers$set_constant("atm_o2_kpa", atm_o2_kpa)
+  #   drivers$set_extrapolate("atm_o2_kpa", FALSE)
+  # } else {
+  #   stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
+  # }
+  # 
+  # if (is.list(atm_kpa)) {
+  #   drivers$set_variable("atm_kpa", atm_kpa$x, atm_kpa$y)
+  # } else if (is.numeric(atm_kpa)) {
+  #   drivers$set_constant("atm_kpa", atm_kpa)
+  #   drivers$set_extrapolate("atm_kpa", FALSE)
+  # } else {
+  #   stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
+  # }
+  # 
   e$extrinsic_drivers <- drivers
   
   return(e)
@@ -561,8 +577,8 @@ ff16w_params <- p1$strategies[[1]]
 if(class(ff16w_env)[1] == "FF16_Environment"){
   psi_soil <- ff16w_env$psi_from_soil_moist(ff16w_env$get_soil_water_state())*1e-6
   PPFD <- 1000*ff16w_env$canopy_openness(1)
-  atm_vpd <- ff16w_env$get_vpd()
-  ca <- ff16w_env$get_co2()
+  atm_vpd <- ff16w_env$get_atm_vpd()
+  ca <- ff16w_env$get_ca()
   leaf_temp <- ff16w_env$get_leaf_temp()
 }
 #if using tibble
@@ -579,12 +595,12 @@ if(!is.numeric(ff16w_env[["PPFD"]])){
 
 atm_vpd <- ff16w_env[["atm_vpd"]]
 if(!is.numeric(ff16w_env[["atm_vpd"]])){
-  atm_vpd <- ff16w_env_default$get_vpd()
+  atm_vpd <- ff16w_env_default$get_atm_vpd()
 }
 
 ca <- ff16w_env[["ca"]]
 if(!is.numeric(ff16w_env[["ca"]])){
-  ca <- ff16w_env_default$get_co2()
+  ca <- ff16w_env_default$get_ca()
 }
 
 leaf_temp <- ff16w_env[["leaf_temp"]]
