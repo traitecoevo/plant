@@ -10,7 +10,7 @@ solve_max_fitness(bounds, params, log_scale = TRUE, tol = 0.001)
 \item{bounds}{Two element vector specifying range within which to
 search}
 
-\item{params}{}
+\item{params}{Parameters for fundamental_fitness function}
 
 \item{log_scale}{Is the parameter naturally on a log scale?  If
 so, this will greatly speed things up.}

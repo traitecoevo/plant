@@ -14,6 +14,8 @@ hyperpar(type)
 }
 \arguments{
 \item{type}{Any strategy name as a string, e.g.: \code{"FF16"}.}
+
+\item{parameters}{A parameters object}
 }
 \description{
 Set a suitable hyperparameter function for chosen physiological model

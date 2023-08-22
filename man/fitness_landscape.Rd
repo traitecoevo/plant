@@ -8,7 +8,8 @@ fitness_landscape(
   trait_matrix,
   p,
   hyperpar = param_hyperpar(p),
-  log_fitness = TRUE
+  log_fitness = TRUE,
+  ctrl = scm_base_control()
 )
 }
 \arguments{
@@ -24,6 +25,8 @@ to standard function for this strategy type.}
 
 \item{log_fitness}{Logical; if \code{TRUE} report per capita
 seed rain rather than fitness.}
+
+\item{ctrl}{A plant control object}
 }
 \value{
 Vector with the output seed rain.  Mutants have an

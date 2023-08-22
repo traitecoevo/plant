@@ -43,7 +43,7 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
  
   };
 
-// calculate the average light environment based on the height of the plant
+  // calculate the average light environment based on the height of the plant
   double average_light_environment =
       integrator.is_adaptive() && reuse_intervals
           ? integrator.integrate_with_last_intervals(f, 0.0, height)
@@ -101,9 +101,11 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
   const double respiration_ = 
   respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
       
-
   const double turnover_ = 
   turnover(mass_leaf_, mass_bark_, mass_sapwood_, mass_root_);
+
+  vars.set_aux(aux_index.at("respiration_"), respiration_);
+  vars.set_aux(aux_index.at("turnover_"), turnover_);
 
   return net_mass_production_dt_A(assimilation, respiration_, turnover_);
 

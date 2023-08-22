@@ -5,9 +5,11 @@
 \title{Wrapper function to create a leaf object with built-in values}
 \usage{
 make_leaf(
-  ff16w_params = FF16w_Parameters()[["strategy_default"]],
+  ff16w_params = make_FF16w_parameters(),
   ff16w_env = FF16w_make_environment(),
-  height = 1
+  height = 1,
+  ff16w_hyper = list(lma_0 = 0.1978791),
+  control = Control()
 )
 }
 \arguments{

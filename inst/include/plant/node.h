@@ -187,8 +187,8 @@ double Node<T,E>::compute_competition(double height_) const {
 double f_h0 = density * individual.compute_competition(height_);
 
     if (!util::is_finite(f_h0)) {
-      // std::cout << "Node compute competition: height " << height_ << " density " <<  density << " f_h " << individual.compute_competition(height_) << " height state " << 
-      // individual.state(HEIGHT_INDEX) << " height rate " << individual.rate(HEIGHT_INDEX) << " individual.state(mortality) " << individual.state("mortality") << " individual.rate(mortality) " << individual.rate("mortality") << std::endl;
+      std::cout << "Node compute competition: height " << height_ << " density " <<  density << " f_h " << individual.compute_competition(height_) << " height state " << 
+      individual.state(HEIGHT_INDEX) << " height rate " << individual.rate(HEIGHT_INDEX) << " individual.state(mortality) " << individual.state("mortality") << " individual.rate(mortality) " << individual.rate("mortality") << std::endl;
     }
   return f_h0;
 }

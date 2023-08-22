@@ -8,28 +8,17 @@ FF16_solve_max_size_growth_rate_at_height(
   bounds,
   log_scale = TRUE,
   tol = 0.001,
-  height = 10,
-  params = scm_base_parameters("FF16"),
-  env = FF16_make_environment(),
+  height = 1,
+  type = "FF16",
+  params = scm_base_parameters(type),
+  env = make_environment(type = type),
   outcome = "height",
   use_optim = FALSE,
-  hyperpars = make_hyperpar("FF16"),
+  hyperpars = hyperpar(type),
   use_default_strategy = TRUE
 )
 }
 \arguments{
-\item{bounds}{}
-
-\item{log_scale}{}
-
-\item{tol}{}
-
-\item{height}{}
-
-\item{params}{}
-
-\item{env}{}
-
 \item{outcome}{}
 }
 \description{
