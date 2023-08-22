@@ -86,4 +86,8 @@ test_that("FF16 rainfall spline", {
   env$set_soil_water_state(theta_sat)
   expect_equal(env$psi_from_soil_moist(env$get_soil_water_state()), env$a_psi())
   
+  psi_soil = 4
+  env$set_soil_water_state(theta_sat)
+  expect_equal(env$psi_from_soil_moist(env$get_soil_water_state()), env$a_psi())
+  
   })
