@@ -12,9 +12,9 @@ This is the documentation for the ff16w strategy
 
 #Introduction
 
-ff16w is a new implementation of the ff16 strategy including water dynamics. This includes an updated strategy object `ff16w`, a physiological sub-model which determines how plants assimilate carbon and transpire water dynamically in response to water availability and a soil-water submodel which takes rainfall as an input and determines how much soil moisture is available to plants.
+ff16w is an implementation of the ff16 strategy including water dynamics. This includes an updated strategy object `ff16w`, a physiological stomatal optimisation sub-model which determines how plants assimilate carbon and transpire water dynamically in response to water availability, vapour pressure deficit, leaf temperature, in a trait-dependent manner, and a soil-water submodel which takes rainfall as an input and determines how much soil moisture is available to plants.
 
-We can compare the two strategy objects to first undestand the new traits that have been introduced in `ff16w`
+We can compare the two strategy objects to first understand the new traits that have been introduced in `ff16w`
 
 ```{r}
 devtools::load_all()
@@ -38,7 +38,6 @@ There are 9 new traits thus far:
 -c: Shape parameter for the hydraulic vulnerability curve (unitless)
 -b: Sensitivity parameter for the hydraulic vulnerability curve (-MPa)
 -psi_crit: $\psi_l$ at which 95% of conductivity is lost. Maximum water potential. (-MPa)
--epsilon_leaf: actually a control parameter. controls accuracy of optimisation routive if newtons method is used.
 -beta1: cost of sapwood per volume per unit of hydraulic damage (umol C m^{-3} sapwood)
 -beta2: shape parameter for relationship between lost conductivity and sapwood repair cost (unitless). 
 
