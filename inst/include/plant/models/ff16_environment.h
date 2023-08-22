@@ -54,7 +54,7 @@ public:
   }
 
   
-  double PPFD = 2000;
+  double PPFD = 1780;
   
   // soil variables - paramaterised for sandy loam
   double soil_moist_sat = 0.453; // saturated soil moisture content (m3 water m^-3 soil) 
@@ -118,7 +118,7 @@ public:
   double n_psi_ = n_psi();
   double a_psi_ = a_psi();  
   
-  return pow((psi_soil_/a_psi_), (-1/n_psi_));
+  return pow((psi_soil_/a_psi_), (-1/n_psi_))*soil_moist_sat;
 }
 
 

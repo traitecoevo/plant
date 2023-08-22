@@ -1072,19 +1072,19 @@ FF16_Environment:
     get_soil_water_state:
       args: []
       return_type: std::vector<double>
-    get_vpd:
+    get_atm_vpd:
       args: []
       return_type: double
-    get_co2:
+    get_ca:
       args: []
       return_type: double
     get_leaf_temp:
       args: []
       return_type: double
-    get_atm_o2:
+    get_atm_o2_kpa:
       args: []
       return_type: double
-    get_atm:
+    get_atm_kpa:
       args: []
       return_type: double
     set_soil_water_state:
