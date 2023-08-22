@@ -157,12 +157,15 @@ double Species<T,E>::compute_competition(double height) const {
   nodes_const_iterator it = nodes.begin();
   double h1 = it->height(), f_h1 = it->compute_competition(height);
 
+  // std::cout << "\t Species compute competition; top height " << h1  << std::endl;
+
   // Loop over nodes
   for (++it; it != nodes.end(); ++it) {
     
     const double h0 = it->height(), f_h0 = it->compute_competition(height);
     if (!util::is_finite(f_h0)) {
-      util::stop("Detected non-finite contribution");
+      // std::cout << "\t \t Species compute competition height " << height << " h0 " << h0 << " f(height) " <<  f_h0 << std::endl;
+      util::stop("Detected non-finite contribution in competition");
     }
 
     // Integration
