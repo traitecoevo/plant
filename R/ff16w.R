@@ -348,9 +348,8 @@ make_FF16w_hyperpar <- function(
     c = B_c1*exp(-B_c2*p_50)
     ## sensitivity parameter hydraulic vulnerability curve, water potential at 37% conductivity remaining (return unitless):
     b <- p_50/((-log(1-50/100))^(1/c))
-
     ## water potential at critical xylem failure (95%) (return -MPa):
-    psi_crit <- b*(log(1/0.05))^(1/c)
+    psi_crit <- b*(log(1/0.0005))^(1/c)
 
     ## rho / sapwood respiration relationship:
 
@@ -376,7 +375,6 @@ make_FF16w_hyperpar <- function(
     nmass_ls <- narea_ls / lma
     nmass_lp <- narea_lp / lma
     nmass_l <- nmass_ls + nmass_lp
-    
     ## Respiration rates are per unit mass, so convert to mass-based
     ## rate by dividing with lma
     ## So respiration rates per unit mass vary with lma, while
