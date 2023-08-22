@@ -151,8 +151,8 @@ void Leaf::setup_transpiration(double resolution) {
   // integrate and accumulate results
   auto x_psi_ = std::vector<double>{0.0};  // {0.0}
   auto y_cumulative_transpiration_ = std::vector<double>{0.0}; // {0.0}
-  double step = (b*pow((log(1/1e-2)),(1/c)))/resolution;
-  for (double psi_spline = 0.0 + step; psi_spline <= (b*pow((log(1/1e-2)),(1/c))); psi_spline += step) {
+  double step = (b*pow((log(1/1e-4)),(1/c)))/resolution;
+  for (double psi_spline = 0.0 + step; psi_spline <= (b*pow((log(1/1e-4)),(1/c))); psi_spline += step) {
     double E_psi = step * ((proportion_of_conductivity(psi_spline-step) + proportion_of_conductivity(psi_spline))/2) + y_cumulative_transpiration_.back();
     x_psi_.push_back(psi_spline); // x values for spline
     y_cumulative_transpiration_.push_back(E_psi); // y values for spline
@@ -203,6 +203,7 @@ double Leaf:: stom_cond_CO2(double psi_stem) {
 double Leaf::electron_transport() {
   double electron_transport_ = (a * PPFD_ + jmax_ - sqrt(pow(a * PPFD_ + jmax_, 2) - 
   4 * curv_fact_elec_trans * a * PPFD_ * jmax_)) / (2 * curv_fact_elec_trans); // check brackets are correct
+
   // double electron_transport_ = (4*a*PPFD_)/sqrt(pow(4*a*PPFD_/jmax_,2)+ 1);
     return electron_transport_;           
 }
@@ -230,9 +231,10 @@ double Leaf::assim_colimited(double ci_) {
  
   // no dark respiration included at the moment
 
-
   return (assim_rubisco_limited_ + assim_electron_limited_ - sqrt(pow(assim_rubisco_limited_ + assim_electron_limited_, 2) - 4 * curv_fact_colim * assim_rubisco_limited_ * assim_electron_limited_)) /
              (2 * curv_fact_colim)- R_d_;
+
+
 }
 
 // returns co-limited assimilation based only on light-limited transport rate and empirically-parameterised smothing term, returns umol m^-2 s^-1
@@ -376,11 +378,11 @@ set_leaf_states_rates_from_psi_stem(psi_stem);
 }
 
 double Leaf::profit_psi_stem_TF(double psi_stem) {
-
 set_leaf_states_rates_from_psi_stem(psi_stem);
 
   double benefit_ = assim_colimited_;
   double hydraulic_cost_ = hydraulic_cost_TF(psi_stem);
+
   return benefit_ - hydraulic_cost_;
 }
 
@@ -657,8 +659,6 @@ void Leaf::optimise_psi_stem_TF() {
 void Leaf::optimise_psi_stem_TF_newton(double psi_guess) {
 
 
-  count = 0;
-
   double x_1, x_2, y_0, y_1, y_2, first_dev, sec_dev;
 
   // Early exit -- XXXX 
@@ -687,8 +687,6 @@ void Leaf::optimise_psi_stem_TF_newton(double psi_guess) {
 
   while(unfinished == 1){
 
-    count += 1;
-
   if (R_IsNA(opt_psi_stem_) | (opt_psi_stem_ > psi_crit)){
 
   opt_psi_stem_ = psi_crit - diff_value;
@@ -700,13 +698,6 @@ void Leaf::optimise_psi_stem_TF_newton(double psi_guess) {
   opt_psi_stem_ = psi_soil_ + diff_value;
 
   }
-
-    if(count > 10){
-      optimise_psi_stem_TF();
-
-      return;
-
-    }
 
     psi_stem_initial = opt_psi_stem_;
     
