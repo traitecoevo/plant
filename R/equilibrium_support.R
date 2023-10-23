@@ -81,10 +81,12 @@ equilibrium_runner_cleanup <- function(runner, converged=TRUE) {
   
   # ANDREW: I think this resets the birth rate back to the original
   # arrival rates from when the `runner` was created - this seems like strange behaviour
-  arrivals <- e$last_arrival_rates
-  for(i in seq_along(p$strategies))
-    p$strategies[[i]]$birth_rate_y <- arrivals[i]
-  
+  # Daniel: yes, removing for now
+
+  # arrivals <- e$last_arrival_rates
+  # for(i in seq_along(p$strategies))
+  #   p$strategies[[i]]$birth_rate_y <- arrivals[i]
+
   # I'm pretty sure this `p` has already been through `build_schedule`
   # but overloading the schedule times because that's what this used to do.
   p$node_schedule_times <- e$last_schedule_times
