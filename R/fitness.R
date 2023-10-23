@@ -20,24 +20,28 @@ fitness_landscape <- function(trait_matrix, p, hyperpar=param_hyperpar(p), log_f
   
   n_residents <- length(p$strategies)
   mutant_birth_rates <- rep(0, nrow(trait_matrix))
-  
-  p_mutants <- expand_parameters(trait_matrix, remove_residents(p), hyperpar,
+  p_mutants <- expand_parameters(trait_matrix, p, hyperpar,
                                  birth_rate_list = mutant_birth_rates)
   
   if (n_residents > 0L) {
     # if there's a resident, use the saved environment to calculate mutant fitness
     ctrl$save_RK45_cache = T  
-    scm <- run_scm(p, use_ode_times=length(p$node_schedule_ode_times) > 0,
-                   ctrl = ctrl)
-  
+    
+
+    #p3 <- build_schedule(p, ctrl = ctrl)
+    #scm <- run_scm(p, ctrl = ctrl)
+    scm <- run_scm(p, use_ode_times=length(p$node_schedule_ode_times) > 0, ctrl = ctrl)
+    #scm$net_reproduction_ratios
     scm$run_mutant(p_mutants)
+    #scm$net_reproduction_ratios
+    net_reproduction_ratios <- scm$net_reproduction_ratios[-(1:n_residents)]
   } else {
     # otherwise just run mutants with zero birth rate
     scm <- run_scm(p_mutants, use_ode_times=length(p$node_schedule_ode_times) > 0,
                    ctrl = ctrl)
+    net_reproduction_ratios <- scm$net_reproduction_ratios
   }
 
-  net_reproduction_ratios <- scm$net_reproduction_ratios
 
   if (log_fitness) {
     log(net_reproduction_ratios)

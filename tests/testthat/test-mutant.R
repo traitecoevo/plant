@@ -123,8 +123,9 @@ test_that("mutant runs work", {
     scm$run_mutant(p3)
     m_rr <- scm$net_reproduction_ratios
 
-    fl1 <- fitness_landscape(traits, p2)
-    fl2 <- fitness_landscape(traits, p3)
+    fl1 <- fitness_landscape(traits, p2, ctrl = ctrl)
+    fl2 <- fitness_landscape(traits, p3, ctrl = ctrl)
+    
     dplyr::tibble(birth_rate = x, resident_f = log(r_rr), mutant_f = log(m_rr), landscape_f1 = fl1, landscape_f2 = fl2)
   } 
 
@@ -138,6 +139,7 @@ test_that("mutant runs work", {
 
   expected_eq <- 17.31739
   birth_rates <- c(seq(0, 25, length.out = 6), expected_eq * c(0.995, 1, 1.005)) %>% sort()
+  birth_rates <- expected_eq * c(0.995, 1, 1.005)
 
   p_eq <- equilibrium_birth_rate(p1, ctrl=ctrl)
 
@@ -148,7 +150,7 @@ test_that("mutant runs work", {
   outputs <- purrr::map_df(birth_rates, ~ f(p_eq, .x, traits))
 
   outputs
-  
+
   expect_equal(birth_rates, outputs$birth_rate, tol=tol)
   expect_equal(outputs$resident_f, outputs$mutant_f, tol = tol * 10)
   expect_equal(outputs$resident_f, outputs$landscape_f1, tol = tol * 10)

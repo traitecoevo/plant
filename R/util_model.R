@@ -114,10 +114,11 @@ expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), birth
   ret <- p <- validate(p) # Ensure times are set up correctly.
   ret$strategies <- c(p$strategies, extra)
 
-  ## Introduce mutants at all unique times:
+  ## Determine nmode introduction times
   if (length(p$strategies) == 0L) {
     times_new <- p$node_schedule_times_default
   } else {
+    ## if residnets are present, use all unique times of all residents
     times_new <- unique(sort(unlist(p$node_schedule_times)))
   }
   ret$node_schedule_times <- c(p$node_schedule_times,
@@ -128,6 +129,8 @@ expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), birth
 
   ret
 }
+
+
 
 remove_residents <- function(p) {
   if (length(p$strategies) > 0L) {
