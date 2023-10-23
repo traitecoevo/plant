@@ -103,7 +103,78 @@ test_that("mutant runs work", {
   expect_equal(p3m10_rr, expected, tol = tol)
   expect_equal(p3m3_rr[1:3], p3_rr, tol = tol)
 
-  # Test with different residnet densities
+  # Test with different resident densities
+  
+  
+  # 1 resident strategies
+  ctrl <- scm_base_control()
+  ctrl$equilibrium_eps <- 1e-5
+  ctrl$save_RK45_cache = TRUE
+
+
+  f <- function(p, x, traits) {
+    p2 <- p
+    p2$strategies[[1]]$birth_rate_y <- x
+
+    p3 <- build_schedule(p2, ctrl = ctrl)
+    scm <- run_scm(p3, ctrl = ctrl)
+    r_rr <- scm$net_reproduction_ratios
+
+    scm$run_mutant(p3)
+    m_rr <- scm$net_reproduction_ratios
+
+    fl1 <- fitness_landscape(traits, p2)
+    fl2 <- fitness_landscape(traits, p3)
+    dplyr::tibble(birth_rate = x, resident_f = log(r_rr), mutant_f = log(m_rr), landscape_f1 = fl1, landscape_f2 = fl2)
+  } 
+
+  lma_attr <- 0.0825
+  p <- scm_base_parameters("FF16")
+  traits <- trait_matrix(lma_attr, c("lma"))
+
+  p$max_patch_lifetime <- 105.32 # default
+
+  p1 <- expand_parameters(traits, p, birth_rate_list = 1)
+
+  expected_eq <- 17.31739
+  birth_rates <- c(seq(0, 25, length.out = 6), expected_eq * c(0.995, 1, 1.005)) %>% sort()
+
+  p_eq <- equilibrium_birth_rate(p1, ctrl=ctrl)
+
+  expect_equal(
+    p_eq$strategies[[1]]$birth_rate_y,
+    expected_eq, tol=tol)
+
+  outputs <- purrr::map_df(birth_rates, ~ f(p_eq, .x, traits))
+
+  outputs
+  
+  expect_equal(birth_rates, outputs$birth_rate, tol=tol)
+  expect_equal(outputs$resident_f, outputs$mutant_f, tol = tol * 10)
+  expect_equal(outputs$resident_f, outputs$landscape_f1, tol = tol * 10)
+  expect_equal(outputs$resident_f, outputs$landscape_f2, tol = tol * 10)
+
+  # Test 2
+
+  p$max_patch_lifetime <- 50
+  expected_eq <- 1.662159
+  birth_rates <- c(seq(0, 2, length.out = 6), expected_eq * c(0.995, 1, 1.005)) %>% sort()
+
+  p1 <- expand_parameters(traits, p, birth_rate_list = 1)
+
+  p_eq <- equilibrium_birth_rate(p1, ctrl=ctrl)
+
+  expect_equal(
+    p_eq$strategies[[1]]$birth_rate_y,
+    expected_eq, tol=tol)
+
+  outputs <- purrr::map_df(birth_rates, ~ f(p_eq, .x, traits))
+
+  expect_equal(birth_rates, outputs$birth_rate, tol=tol)
+  expect_equal(outputs$resident_f, outputs$mutant_f, tol = tol * 10)
+  expect_equal(outputs$resident_f, outputs$landscape_f1, tol = tol * 10)
+  expect_equal(outputs$resident_f, outputs$landscape_f2, tol = tol * 10)
+
 
   # Test with equilbirum seed rain
 
