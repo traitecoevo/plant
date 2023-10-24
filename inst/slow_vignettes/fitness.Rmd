@@ -53,7 +53,7 @@ fitness landscape:
 
 ```{r}
 lma <- trait_matrix(seq_log_range(bounds, 101), "lma")
-fitness <- fitness_landscape(lma, params)
+fitness <- fitness_landscape(lma, params, ctrl = control)
 
 plot(lma, fitness, type="l", log="x", las=1, ylab="Fitness (empty environment)")
 abline(h=0, col="grey")
@@ -79,14 +79,14 @@ add_eq <- function(x, p, ctrl) {
   equilibrium_birth_rate(p, ctrl)
 }
 
-patches_eq <- mclapply(lma_sample, add_eq, p = params, ctrl = control, mc.cores = 1)
+patches_eq <- mclapply(lma_sample, add_eq, p = params, ctrl = control, mc.cores = n_cores)
 ```
 
 Then compute fitness landscapes for each of these:
 
 ```{r}
 fitness_sample <- mclapply(patches_eq, 
-                           function(p, lma) fitness_landscape(lma, p), 
+                           function(p, lma) fitness_landscape(lma, p, ctrl = control), 
                            lma, mc.cores = n_cores)
 fitness_sample <- do.call("cbind", fitness_sample)
              
@@ -101,9 +101,9 @@ LMA values of 0.0825:
 
 ```{r}
 lma_attr <- 0.0825
-patch_eq_attr <- add_eq(lma_attr, params)
+patch_eq_attr <- add_eq(lma_attr, params, ctrl = control)
 
-fitness_attr <- fitness_landscape(lma, patch_eq_attr)
+fitness_attr <- fitness_landscape(lma, patch_eq_attr, ctrl = control)
 plot(lma, fitness_attr, log="x", type="l", las=1,
      xlab="Leaf mass per unit leaf area", ylab="Fitness")
 abline(h=0, col="grey")
@@ -116,7 +116,7 @@ resident!
 
 ```{r}
 lma_detail <- trait_matrix(seq_log(lma_attr * 0.95, lma_attr * 1.05, 51), "lma")
-fitness_detail <- fitness_landscape(lma_detail, patch_eq_attr)
+fitness_detail <- fitness_landscape(lma_detail, patch_eq_attr, ctrl = control)
 plot(lma_detail, fitness_detail, log="x", type="l", las=1,
      xlab="Leaf mass per unit leaf area", ylab="Fitness")
 abline(h=0, col="grey")
@@ -147,8 +147,8 @@ Introducing a new species the point of maximum fitness
 with a fitness gradient that points towards increased LMA.
 
 ```{r}
-patch_eq_max <- add_eq(lma_max, patch_eq_attr)
-fitness_max <- fitness_landscape(lma, patch_eq_max)
+patch_eq_max <- add_eq(lma_max, patch_eq_attr, ctrl = control)
+fitness_max <- fitness_landscape(lma, patch_eq_max, ctrl = control)
 
 plot(lma, fitness_attr, log="x", type="l", las=1,
      xlab="Leaf mass per unit leaf area", ylab="Fitness", col="grey")
@@ -167,8 +167,8 @@ and plotting.  For comparison the previous landscapes are retained
 as dotted lines.
 
 ```{r}
-patch_eq_max_2 <- add_eq(lma_max_2, patch_eq_attr)
-fitness_max_2 <- fitness_landscape(lma, patch_eq_max_2)
+patch_eq_max_2 <- add_eq(lma_max_2, patch_eq_attr, ctrl = control)
+fitness_max_2 <- fitness_landscape(lma, patch_eq_max_2, ctrl = control)
 
 plot(lma, fitness_attr, log="x", type="l", las=1,
      xlab="Leaf mass per unit leaf area", ylab="Fitness", col="grey")
@@ -181,8 +181,8 @@ points(lma_max_2, 0, pch=19, col="red")
 lma_max_3 <- lma[which.max(fitness_max_2)]
 abline(v=lma_max_3)
 
-patch_eq_max_3 <- add_eq(lma_max_3, patch_eq_attr)
-fitness_max_3 <- fitness_landscape(lma, patch_eq_max_3)
+patch_eq_max_3 <- add_eq(lma_max_3, patch_eq_attr, ctrl = control)
+fitness_max_3 <- fitness_landscape(lma, patch_eq_max_3, ctrl = control)
 
 plot(lma, fitness_attr, log="x", type="l", las=1,
      xlab="Leaf mass per unit leaf area", ylab="Fitness", col="grey")
@@ -197,8 +197,8 @@ points(lma_max_3, 0, pch=19, col="red")
 lma_max_4 <- lma[which.max(fitness_max_3)]
 abline(v=lma_max_4)
 
-patch_eq_max_4 <- add_eq(lma_max_4, patch_eq_attr)
-fitness_max_4 <- fitness_landscape(lma, patch_eq_max_4)
+patch_eq_max_4 <- add_eq(lma_max_4, patch_eq_attr, ctrl = control)
+fitness_max_4 <- fitness_landscape(lma, patch_eq_max_4, ctrl = control)
 
 plot(lma, fitness_attr, log="x", type="l", las=1,
      xlab="Leaf mass per unit leaf area", ylab="Fitness", col="grey")
