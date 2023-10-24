@@ -55,13 +55,35 @@ test_that("collect / make_patch", {
 
 })
 
-test_that("expand_parameters", {
+test_that("expand_parameters & mutant_parameters", {
+  
   hyperpar <- make_FF16_hyperpar()
   p0 <- scm_base_parameters("FF16")
+
+  expect_equal(p0$strategies |> length(), 0)
+
   p1 <- expand_parameters(trait_matrix(0.1, "lma"), p0, birth_rate_list = 1.0)
-  ## This will trigger rebuilding the times:
+  
+  expect_equal(p1$strategies |> length(), 1)
+  expect_equal(p1$strategies[[1]]$lma, 0.1)
+
   p1$max_patch_lifetime <- 100
   expect_silent(p2 <- expand_parameters(trait_matrix(0.2, "lma"), p1, birth_rate_list = 1.0))
+  expect_equal(p2$max_patch_lifetime, p1$max_patch_lifetime)
+
+  expect_equal(p2$strategies |> length(), 2)
+  expect_equal(p2$strategies[[1]]$lma, 0.1)
+  expect_equal(p2$strategies[[2]]$lma, 0.2)
+
+  expect_silent(p3 <- expand_parameters(trait_matrix(0.3, "lma"), p1, birth_rate_list = 1.0, keep_existing_strategies = FALSE))
+
+  expect_equal(p3$strategies |> length(), 1)
+  expect_equal(p3$strategies[[1]]$lma, 0.3)
+
+  expect_silent(p4 <- mutant_parameters(trait_matrix(0.3, "lma"), p1, birth_rate_list = 1.0))
+
+  expect_equal(p3, p4)
+
 })
 
 test_that("collect_auxiliary_variables", {
