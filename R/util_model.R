@@ -85,26 +85,24 @@ trait_matrix <- function(x, trait_name) {
   m
 }
 
-##' Expand Parameters to include mutants.  All mutants get the same
-##' schedule, equal to all the unique times that any resident was
-##' introduced (if mutants) or the default schedule (if residents).
-##' This results in more work than is really needed, but should be
-##' reasonable most of the time.
-##'
-##' @title Expand Parameters to include mutants
+##' The functions expand_parameters and mutant_parameters convert trait values into parametr objects for the model. By default, expand_parameters adds an extra strategy to existing.
+
+##' @title Setup parameters to run resindets or mutants
 ##' @param trait_matrix A matrix of traits corresponding to the
 ##' new types to introduce.
 ##' @param p A \code{Parameters} object.
 ##' @param hyperpar Hyperparameter function to use. By default links
 ##' to standard function for this strategy type.
 ##' @param birth_rate_list List object with birth rates for each species in
+##' @param keep_existing_strategies Should existing residents be retained
 ##' x. Birth rates can take the form of a scalar (constant) or a vector.
 ##' In either case birth rates are set as \code{strategy$birth_rate_y}, however
 ##' varying birth rates will also have \code{strategy$birth_rate_x} and
 ##  \code{`is_variable_bithrate = TRUE`}
 ##' @author Rich FitzJohn
 ##' @export
-expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), birth_rate_list = 1) {
+##' @rdname expand_parameters
+expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), birth_rate_list = 1, keep_existing_strategies = TRUE) {
   if(nrow(trait_matrix) != length(birth_rate_list)) {
     stop("Must provide exactly one birth rate input for each species")
   }
@@ -112,22 +110,37 @@ expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), birth
   n_extra <- length(extra)
 
   ret <- p <- validate(p) # Ensure times are set up correctly.
-  ret$strategies <- c(p$strategies, extra)
 
-  ## Introduce mutants at all unique times:
+  ## Determine node introduction times
   if (length(p$strategies) == 0L) {
     times_new <- p$node_schedule_times_default
   } else {
+    ## if residnets are present, use all unique times of all residents
     times_new <- unique(sort(unlist(p$node_schedule_times)))
   }
-  ret$node_schedule_times <- c(p$node_schedule_times,
-                                 rep(list(times_new), n_extra))
+  
+  if (keep_existing_strategies) {
+    ret$strategies <- c(p$strategies, extra)
+    ret$node_schedule_times <- c(p$node_schedule_times, 
+                                  rep(list(times_new), n_extra))
+  } else {
+    ret$strategies <- extra
+    ret$node_schedule_times <- rep(list(times_new), n_extra)
+  }
 
   ## Clear this if it's present:
   attr(ret, "offspring_production") <- NULL
 
   ret
 }
+
+##' @export
+##' @rdname expand_parameters
+mutant_parameters <- function(..., keep_existing_strategies = FALSE) {
+  expand_parameters(..., keep_existing_strategies = keep_existing_strategies)
+}
+
+
 
 remove_residents <- function(p) {
   if (length(p$strategies) > 0L) {

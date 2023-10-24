@@ -236,6 +236,7 @@ void Solver<System>::step_to(System& system, double time_max_) {
   setup_dydt_in(system);
   stepper.step(system, time, time_max - time, y, yerr, dydt_in, dydt_out);
   save_dydt_out_as_in();
+  cache(system);
 
   time = time_max;
   prev_times.push_back(time);
