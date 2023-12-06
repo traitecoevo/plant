@@ -21,9 +21,12 @@ public:
     time = 0.0;
     canopy = Canopy();
     vars = Internals(soil_number_of_depths);
+    q.resize(soil_number_of_depths + 1);
     set_soil_water_state(std::vector<double>(soil_number_of_depths, 0.0));
   };
 
+  //TODO: should we use auxilliary in internals
+  std::vector<double> q;
 
   // Light interface
   bool canopy_rescale_usually;
@@ -66,31 +69,58 @@ public:
   double b_infil = 8;
 
   virtual void compute_rates(std::vector<double> const& resource_depletion) {
-    double saturation;
-    double infiltration;
-    double net_flux;
 
-    // treat each soil layer as a separate resource pool
-    for (size_t i = 0; i < vars.state_size; i++) {
+    //Zeng and Decker (2009; https://doi.org/10.1175/2008JHM1011.1), Ireson et al. 2023 (https://doi.org/10.5194/gmd-16-659-2023) 
+    //as per Ireson et al. (2023) we track soil moisture at a series of nodes and fluxes at the midpoints evenly spaced between the nodes (Figure 1)
+    // unlike Ireson et al. (2023) we track theta instead of psi (soil water potential) for conceptual simplicity and to facilitate averaging of layers for transpiration
 
-      if(i == 0) {
+    
+    //number of nodes in soil water column
+    int n = vars.state_size;
+    //distance between nodes
+    double delta_z = 0.1;
+    //helpers
+    double dq_dz;
+    double dtheta_dt;
+    double dpsi_dz;
 
+    //flux across top boundary layer
+    q[0] = // rainfall at time
+        extrinsic_drivers.evaluate("rainfall", time) * 
+        // fraction of precipitation infiltrating
+        std::max(0.0, 1 - std::pow(vars.state(0)/soil_moist_sat, b_infil));;
+    
+    //for each node below top node including last node 
+    for (size_t i = 0; i < n; i++) {
 
-        saturation = std::max(0.0, 1 - std::pow(vars.state(i)/soil_moist_sat, b_infil));
-        infiltration = extrinsic_drivers.evaluate("rainfall", time) * saturation;
+      //calculate flux across boundary below node (hence i + 1, rather than i)
+      if(i < (n-1)){
+        //Eq. 3 + 11, Ireson et al. (2023)
+        dpsi_dz = (psi_from_soil_moist(vars.state(i + 1)) - psi_from_soil_moist(vars.state(i)))/delta_z;
+        q[i + 1] =  0.5 * (soil_K_from_soil_theta(vars.state(i)) + soil_K_from_soil_theta(vars.state(i+1))) * (dpsi_dz - 1);
 
       } else {
-        infiltration = 0.0;
+        //Eq. 13 free drainage boundary used at lower boundary
+        q[i + 1] = soil_K_from_soil_theta(vars.state(n-1));
       }
+      // Eq. 10, derivative of flux at node w.r.t to depth
+      dq_dz = (q[i+1] - q[i])/delta_z;
 
-      net_flux = infiltration  -  resource_depletion[i];
+      // Eq. 2, but we have subtracted resource depletion rates
+      dtheta_dt = -dq_dz -  resource_depletion[i];
 
-
-
-
-      vars.set_rate(i, net_flux);
-    }
+      vars.set_rate(i, dtheta_dt);
+      }
   }
+
+// calculate K from K_sat based on theta
+double soil_K_from_soil_theta(double theta) {
+  //Eq. 5 Zeng and Decker (2009), ref Clapp and Hornberger (1978)
+double K = K_sat * std::pow(soil_moist_/soil_moist_sat, 2*n_psi() + 3);
+return K
+}
+
+
 // calculate n_psi (parameter to convert soil mositure to soil water potential) from soil field capacity and soil wilting point
   double n_psi() const {
   double n_psi_ = -((log(1500/33))/(log(soil_moist_wp/soil_moist_fc)));
