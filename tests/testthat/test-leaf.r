@@ -327,6 +327,7 @@ test_that("Basic functions", {
   
   #ca
   
+  
   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, beta1 = beta1, 
             beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
             newton_tol_abs = newton_tol_abs, GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
@@ -334,7 +335,8 @@ test_that("Basic functions", {
   l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = 20, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = FF16w_strategy$rho, a_bio = FF16w_strategy$a_bio, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   l$optimise_psi_stem_TF()
   
-  low_ca <- l$profit_
+  low_ca_profit <- l$profit_
+  low_ca_stom_cond_co2 <- l$stom_cond_CO2_
   
   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, beta1 = beta1, 
             beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
@@ -343,9 +345,11 @@ test_that("Basic functions", {
   l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = 40, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = FF16w_strategy$rho, a_bio = FF16w_strategy$a_bio, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   l$optimise_psi_stem_TF()
   
-  high_ca <- l$profit_
+  high_ca_profit <- l$profit_
+  high_ca_stom_cond_co2 <- l$stom_cond_CO2_
   
-  expect_true(low_ca < high_ca)
+  expect_true(low_ca_profit < high_ca_profit)
+  expect_true(low_ca_stom_cond_co2 > high_ca_stom_cond_co2)
   
   
   #vcmax_25

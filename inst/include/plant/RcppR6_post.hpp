@@ -1133,10 +1133,6 @@ template <> inline SEXP wrap(const plant::FF16r_Strategy& x) {
   ret["a_dG1"] = Rcpp::wrap(x.a_dG1);
   ret["a_dG2"] = Rcpp::wrap(x.a_dG2);
   ret["k_I"] = Rcpp::wrap(x.k_I);
-  ret["lma_p"] = Rcpp::wrap(x.lma_p);
-  ret["rho_p"] = Rcpp::wrap(x.rho_p);
-  ret["lma_c"] = Rcpp::wrap(x.lma_c);
-  ret["rho_c"] = Rcpp::wrap(x.rho_c);
   ret["recruitment_decay"] = Rcpp::wrap(x.recruitment_decay);
   ret["control"] = Rcpp::wrap(x.control);
   ret["collect_all_auxiliary"] = Rcpp::wrap(x.collect_all_auxiliary);
@@ -1217,14 +1213,6 @@ template <> inline plant::FF16r_Strategy as(SEXP x) {
   ret.a_dG2 = Rcpp::as<double >(xl["a_dG2"]);
   // ret.k_I = Rcpp::as<decltype(retk_I) >(xl["k_I"]);
   ret.k_I = Rcpp::as<double >(xl["k_I"]);
-  // ret.lma_p = Rcpp::as<decltype(retlma_p) >(xl["lma_p"]);
-  ret.lma_p = Rcpp::as<double >(xl["lma_p"]);
-  // ret.rho_p = Rcpp::as<decltype(retrho_p) >(xl["rho_p"]);
-  ret.rho_p = Rcpp::as<double >(xl["rho_p"]);
-  // ret.lma_c = Rcpp::as<decltype(retlma_c) >(xl["lma_c"]);
-  ret.lma_c = Rcpp::as<double >(xl["lma_c"]);
-  // ret.rho_c = Rcpp::as<decltype(retrho_c) >(xl["rho_c"]);
-  ret.rho_c = Rcpp::as<double >(xl["rho_c"]);
   // ret.recruitment_decay = Rcpp::as<decltype(retrecruitment_decay) >(xl["recruitment_decay"]);
   ret.recruitment_decay = Rcpp::as<double >(xl["recruitment_decay"]);
   // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);

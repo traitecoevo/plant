@@ -59,7 +59,6 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
   // theta: huber value
   // eta_c: accounts for average position of leaf mass
   // height: maximum plant height
-
   const double leaf_specific_conductance_max = K_s * theta / (height * eta_c);
 
   // find sapwood volume per leaf area
@@ -104,6 +103,10 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
 
   const double turnover_ = 
   turnover(mass_leaf_, mass_bark_, mass_sapwood_, mass_root_);
+
+  vars.set_aux(aux_index.at("respiration_"), respiration_);
+  vars.set_aux(aux_index.at("turnover_"), turnover_);
+
 
   return net_mass_production_dt_A(assimilation, respiration_, turnover_);
 

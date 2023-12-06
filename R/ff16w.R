@@ -349,7 +349,7 @@ make_FF16w_hyperpar <- function(
     ## sensitivity parameter hydraulic vulnerability curve, water potential at 37% conductivity remaining (return unitless):
     b <- p_50/((-log(1-50/100))^(1/c))
     ## water potential at critical xylem failure (95%) (return -MPa):
-    psi_crit <- b*(log(1/0.0005))^(1/c)
+    psi_crit <- b*(log(1/0.05))^(1/c)
 
     ## rho / sapwood respiration relationship:
 
@@ -516,7 +516,7 @@ make_FF16w_parameters <- function(p0 = FF16w_Parameters(),
                             var_sapwood_volume_cost = p0$strategy_default$var_sapwood_volume_cost
                       
 ){
-  params <- expand_grid(lma = lma,
+    params <- expand_grid(lma = lma,
                         rho = rho,
                         hmat = hmat,
                         omega = omega,
@@ -579,6 +579,8 @@ if(class(ff16w_env)[1] == "FF16_Environment"){
   ca <- ff16w_env$get_ca()
   leaf_temp <- ff16w_env$get_leaf_temp()
 }
+
+
 #if using tibble
 if(class(ff16w_env)[1] %in% c("tbl_df","data.frame")){
 
@@ -609,14 +611,12 @@ if(!is.numeric(ff16w_env[["leaf_temp"]])){
 eta_c = 1 - 2 / (1 + ff16w_params$eta) + 1 / (1 + 2 * ff16w_params$eta)
 leaf_specific_conductance_max <- ff16w_params$K_s * ff16w_params$theta / (height * eta_c)
 sapwood_volume_per_leaf_area <- ff16w_params$theta * height* eta_c
-
 leaf_obj <- Leaf(vcmax_25 = ff16w_params$vcmax_25, jmax_25 = ff16w_params$jmax_25, c = ff16w_params$c, b = ff16w_params$b, psi_crit = ff16w_params$psi_crit, beta1 = ff16w_params$beta1, beta2= ff16w_params$beta2, hk_s = ff16w_params$hk_s, a = ff16w_params$a,
           curv_fact_elec_trans = ff16w_params$curv_fact_elec_trans, curv_fact_colim = ff16w_params$curv_fact_colim,
           newton_tol_abs = ff16w_params$control$newton_tol_abs, GSS_tol_abs = ff16w_params$control$GSS_tol_abs, vulnerability_curve_ncontrol = ff16w_params$control$vulnerability_curve_ncontrol, ci_abs_tol = ff16w_params$control$ci_abs_tol, 
           ci_niter = ff16w_params$control$ci_niter)
 leaf_obj$set_physiology(PPFD = PPFD, psi_soil = psi_soil, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, 
                  ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = ff16w_params$rho, a_bio = ff16w_params$a_bio, 
-                 leaf_temp = leaf_temp, atm_o2_kpa = ff16w_env_default$get_atm_o2(), atm_kpa = ff16w_env_default$get_atm())
-
+                 leaf_temp = leaf_temp, atm_o2_kpa = ff16w_env_default$get_atm_o2_kpa(), atm_kpa = ff16w_env_default$get_atm_kpa())
 return(leaf_obj)
 }

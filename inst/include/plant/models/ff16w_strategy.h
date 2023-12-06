@@ -38,7 +38,7 @@ virtual double net_mass_production_dt(const FF16_Environment &environment,
 // names of auxillary variables
 virtual std::vector<std::string> aux_names() {
   std::vector<std::string> ret(
-      {"competition_effect", "net_mass_production_dt", "opt_psi_stem_","opt_ci_","profit_","assim_colimited_","hydraulic_cost_", "ci_","darea_leaf_dmass_live_", "stom_cond_CO2_", "transpiration_"});
+      {"competition_effect", "net_mass_production_dt", "opt_psi_stem_","opt_ci_","profit_","assim_colimited_","hydraulic_cost_", "ci_", "stom_cond_CO2_", "transpiration_", "assimilation_per_area","darea_leaf_dmass_live_", "assimilation","respiration_", "turnover_"});
   // add the associated computation to compute_rates and compute there
   if (collect_all_auxiliary) {
     ret.push_back("area_sapwood");
@@ -50,8 +50,8 @@ virtual std::vector<std::string> aux_names() {
 
   // leaf traits - default values Eucalyptus saligna
   double vcmax_25 = 96;
-  double p_50 = 3.4;
-  double K_s = (pow(p_50/1.731347,1/-0.7246377))*2;
+  double p_50 = 1.85;
+  double K_s = 1;
   double c = log(log(1-0.5)/log(1-0.88))/(log(p_50) - log(5.16));
   double b = p_50 / std::pow(-log(1 - 50.0 / 100.0), 1 / c);
   double psi_crit = b*std::pow(log(1/0.05),1/c); // derived from b and c
@@ -64,9 +64,9 @@ virtual std::vector<std::string> aux_names() {
   double curv_fact_colim = 0.99; 
   double var_sapwood_volume_cost = 1; 
   double newton_tol_abs = 0.001;
-  double GSS_tol_abs = 0.0001;
+  double GSS_tol_abs = 1e-7;
   double vulnerability_curve_ncontrol = 100;
-  double ci_abs_tol = 1e-3;
+  double ci_abs_tol = 1e-6;
   double ci_niter = 1000;
 
   //nitrogen allocation traits (parameterised from Austraits 4.1.0)

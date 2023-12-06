@@ -110,7 +110,7 @@ void Leaf::set_physiology(double rho, double a_bio, double PPFD, double psi_soil
    ko_ = arrh_curve(ko_ha, ko_25, leaf_temp_);
    kc_ = arrh_curve(kc_ha, kc_25, leaf_temp_);
    R_d_ = vcmax_*0.015;
-   km_ = (kc_*umol_per_mol_to_Pa)*(1 + (atm_o2_kpa*kPa_to_Pa)/(ko_*umol_per_mol_to_Pa));
+   km_ = (kc_*umol_per_mol_to_Pa)*(1 + (atm_o2_kpa_*kPa_to_Pa)/(ko_*umol_per_mol_to_Pa));
 
 
 // set lambda, if psi_soil is higher than psi_crit, then set to 0. Currently doing both the numerical and analytical version. Ideally would do one.
@@ -151,8 +151,10 @@ void Leaf::setup_transpiration(double resolution) {
   // integrate and accumulate results
   auto x_psi_ = std::vector<double>{0.0};  // {0.0}
   auto y_cumulative_transpiration_ = std::vector<double>{0.0}; // {0.0}
-  double step = (b*pow((log(1/1e-4)),(1/c)))/resolution;
-  for (double psi_spline = 0.0 + step; psi_spline <= (b*pow((log(1/1e-4)),(1/c))); psi_spline += step) {
+  double step = (b*pow((log(1/0.01)),(1/c)))/resolution;
+  
+  for (double psi_spline = 0.0 + step; psi_spline <= (b*pow((log(1/0.01)),(1/c))); psi_spline += step) {
+
     double E_psi = step * ((proportion_of_conductivity(psi_spline-step) + proportion_of_conductivity(psi_spline))/2) + y_cumulative_transpiration_.back();
     x_psi_.push_back(psi_spline); // x values for spline
     y_cumulative_transpiration_.push_back(E_psi); // y values for spline
@@ -201,6 +203,9 @@ double Leaf:: stom_cond_CO2(double psi_stem) {
 //ensure that units of PPFD_ actually correspond to something real.
 // electron trnansport rate based on light availability and vcmax assuming co-limitation hypothesis
 double Leaf::electron_transport() {
+
+
+
   double electron_transport_ = (a * PPFD_ + jmax_ - sqrt(pow(a * PPFD_ + jmax_, 2) - 
   4 * curv_fact_elec_trans * a * PPFD_ * jmax_)) / (2 * curv_fact_elec_trans); // check brackets are correct
 
@@ -210,7 +215,7 @@ double Leaf::electron_transport() {
 
 //calculate the rubisco-limited assimilation rate, returns umol m^-2 s^-1
 double Leaf::assim_rubisco_limited(double ci_) {
-  
+
   return (vcmax_ * (ci_ - gamma_ * umol_per_mol_to_Pa)) / (ci_ + km_);
 
 }
@@ -228,9 +233,8 @@ double Leaf::assim_colimited(double ci_) {
   
   double assim_rubisco_limited_ = assim_rubisco_limited(ci_) ;
   double assim_electron_limited_ = assim_electron_limited(ci_);
- 
-  // no dark respiration included at the moment
 
+  // no dark respiration included at the moment
   return (assim_rubisco_limited_ + assim_electron_limited_ - sqrt(pow(assim_rubisco_limited_ + assim_electron_limited_, 2) - 4 * curv_fact_colim * assim_rubisco_limited_ * assim_electron_limited_)) /
              (2 * curv_fact_colim)- R_d_;
 
@@ -257,7 +261,6 @@ double Leaf::assim_minus_stom_cond_CO2(double x, double psi_stem) {
   double assim_colimited_x_ = assim_colimited(x) + R_d_;
 
   double stom_cond_CO2_x_ = stom_cond_CO2(psi_stem);
-
   return assim_colimited_x_ * umol_to_mol -
          (stom_cond_CO2_x_ * (ca_ - x) / (atm_kpa_ * kPa_to_Pa));
 }
@@ -346,7 +349,7 @@ return hydraulic_cost_;
 }
 
 double Leaf::hydraulic_cost_TF(double psi_stem) {
-
+std::cout << hk_s << "hk_s" << std::endl;
 hydraulic_cost_ = 1e6 * 
     hk_s /(365*24*60*60)* 
     (1/a_bio_) * 
@@ -627,9 +630,6 @@ void Leaf::optimise_psi_stem_TF() {
 
     double bound_c = bound_b - (bound_b - bound_a) / gr;
     double bound_d = bound_a + (bound_b - bound_a) / gr;
-
-
-
     while (abs(bound_b - bound_a) > GSS_tol_abs) {
 
       double profit_at_c =

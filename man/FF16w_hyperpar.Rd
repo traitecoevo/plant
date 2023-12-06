@@ -13,7 +13,7 @@ make_FF16w_hyperpar(
   B_dI1 = 0.01,
   B_dI2 = 0,
   B_ks1 = 0.2,
-  B_hks1 = 0.2,
+  B_hks1 = 25,
   B_hks2 = 0,
   B_ks2 = 0,
   B_rs1 = 4012,
