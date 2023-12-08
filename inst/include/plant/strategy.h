@@ -57,6 +57,7 @@ public:
 
   double net_mass_production_dt(const environment_type& environment,
                                 double size, double competition_effect_,
+                                double time,
                                 bool reuse_intervals=false);
 
   double establishment_probability(const environment_type& environment);
