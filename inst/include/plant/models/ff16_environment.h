@@ -65,12 +65,18 @@ public:
   double soil_moist_wp = 0.081; // soil moisture at wilting point (m3 water m^-3 soil) 
   double soil_moist_fc = 0.180; // soil moisture at field capacity (m3 water m^-3 soil) 
   double swf = 1;
-  double k_sat = 440.628; //saturated hydraulic conductivity of soil
+  double K_sat = 440.628; //saturated hydraulic conductivity of soil
   double b_infil = 8;
 
   virtual void compute_rates(std::vector<double> const& resource_depletion) {
 
-    //Zeng and Decker (2009; https://doi.org/10.1175/2008JHM1011.1), Ireson et al. 2023 (https://doi.org/10.5194/gmd-16-659-2023) 
+    //TODO: add variable depths
+    //TODO: track inflow and outflow for mass convservation
+    //TODO: check equation for resource consumption
+
+    //Zeng and Decker (2009; https://doi.org/10.1175/2008JHM1011.1), Ireson et al. 2023 (https://doi.org/10.5194/gmd-16-659-2023), can also see Wang et al. 2011 for further agreement
+    //Zeng and Decker (2009) suggest the idea of a modified Richards equation (implemented in CABLE in Decker (2015);doi/10.1002/2015MS000507)
+    //to account for inadqueate boundary condition in water table but we opt here for simpler version as in Wang et al. (2011; doi/full/10.1029/2010JG001385)
     //as per Ireson et al. (2023) we track soil moisture at a series of nodes and fluxes at the midpoints evenly spaced between the nodes (Figure 1)
     // unlike Ireson et al. (2023) we track theta instead of psi (soil water potential) for conceptual simplicity and to facilitate averaging of layers for transpiration
 
@@ -116,8 +122,8 @@ public:
 // calculate K from K_sat based on theta
 double soil_K_from_soil_theta(double theta) {
   //Eq. 5 Zeng and Decker (2009), ref Clapp and Hornberger (1978)
-double K = K_sat * std::pow(soil_moist_/soil_moist_sat, 2*n_psi() + 3);
-return K
+double K = K_sat * std::pow(theta/soil_moist_sat, 2*n_psi() + 3);
+return K;
 }
 
 

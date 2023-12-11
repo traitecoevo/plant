@@ -1,0 +1,31 @@
+---
+title: "Richards_equation"
+author: "Isaac Towers"
+date: "2023-12-05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+devtools::install("/Users/z3533545/Documents/GitHub/plant")
+devtools::load_all("/Users/z3533545/Documents/GitHub/plant")
+```
+
+```{r}
+env <- make_environment("FF16w")
+```
+
+```{r}
+?FF16w_make_environment
+
+```
+
+
+```{r}
+library(plant)
+```
+
+ˆ
