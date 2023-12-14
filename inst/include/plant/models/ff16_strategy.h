@@ -89,8 +89,8 @@ public:
                            double mass_sapwood, double mass_root) const;
 
 
-  void compute_rates(const FF16_Environment& environment, bool reuse_intervals,
-                Internals& vars);
+  virtual void compute_rates(const FF16_Environment& environment, bool reuse_intervals,
+                            Internals& vars);
 
   void update_dependent_aux(const int index, Internals& vars);
 

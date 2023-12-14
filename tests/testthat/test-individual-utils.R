@@ -54,7 +54,7 @@ test_that("Default schedule", {
 })
 
 test_that("strategy_list", {
-  for (x in c("FF16", "FF16r")) {
+  for (x in c("FF16", "FF16r", "FF16drivers")) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)()
     s <- strategy_list(trait_matrix(1, "lma"), p, make_hyperpar(x)(), 1.0)

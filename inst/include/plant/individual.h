@@ -79,7 +79,7 @@ public:
 
   double net_mass_production_dt(const environment_type &environment) {
     // TODO:  maybe reuse intervals? default false 
-    return strategy->net_mass_production_dt(environment, state(HEIGHT_INDEX), aux("competition_effect"));
+    return strategy->net_mass_production_dt(environment, state(HEIGHT_INDEX), aux("competition_effect"), environment.time);
   }
 
   // * ODE interface
