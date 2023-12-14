@@ -122,7 +122,13 @@ The following parameters were included in the model. Note, values for species ar
 p <- results$p
 
 extract_strategy <- function(strat) {
-  ex <- c("control" , "collect_all_auxiliary",   "birth_rate_x", "birth_rate_y", "is_variable_birth_rate")
+  ex <- c("control" , "collect_all_auxiliary",   "birth_rate_x", "birth_rate_y",
+  "is_variable_birth_rate",
+  "growth_rate_x", "growth_rate_y",
+  "is_variable_growth_rate",
+  "mortality_rate_x", "mortality_rate_y",
+  "is_variable_mortality_rate"
+  )
 
   x <- strat[!(names(strat) %in% ex)]
   
