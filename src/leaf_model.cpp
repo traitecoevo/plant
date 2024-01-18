@@ -349,7 +349,6 @@ return hydraulic_cost_;
 }
 
 double Leaf::hydraulic_cost_TF(double psi_stem) {
-std::cout << hk_s << "hk_s" << std::endl;
 hydraulic_cost_ = 1e6 * 
     hk_s /(365*24*60*60)* 
     (1/a_bio_) * 

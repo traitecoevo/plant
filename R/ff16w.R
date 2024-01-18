@@ -85,13 +85,19 @@ FF16w_make_environment <- function(canopy_light_tol = 1e-4,
                                    ca = 40,
                                    leaf_temp = 25,
                                    atm_o2_kpa = 21,
-                                   atm_kpa = 100.5) {
+                                   atm_kpa = 100.5,
+                                   delta_z = 0.1,
+                                   soil_moist_sat = 0.453,
+                                   K_sat = 440.628) {
   
   if(soil_number_of_depths < 1)
     stop("FF16w Environment must have at least one soil layer")
   
   e <- FF16_Environment(canopy_rescale_usually, 
-                        soil_number_of_depths)
+                        soil_number_of_depths,
+                        delta_z,
+                        soil_moist_sat,
+                        K_sat)
   
   e$canopy <- Canopy(canopy_light_tol, 
                      canopy_light_nbase, 

@@ -4195,8 +4195,8 @@ SEXP FF16_Strategy__ctor() {
 
 
 // [[Rcpp::export]]
-plant::FF16_Environment FF16_Environment__ctor(bool canopy_rescale_usually, int soil_number_of_depths) {
-  return plant::FF16_Environment(canopy_rescale_usually, soil_number_of_depths);
+plant::FF16_Environment FF16_Environment__ctor(bool canopy_rescale_usually, int soil_number_of_depths, double delta_z, double K_sat, double soil_moist_sat) {
+  return plant::FF16_Environment(canopy_rescale_usually, soil_number_of_depths, delta_z, K_sat, soil_moist_sat);
 }
 // [[Rcpp::export]]
 double FF16_Environment__canopy_openness(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double height) {

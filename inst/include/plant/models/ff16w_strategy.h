@@ -7,6 +7,7 @@
 #include <plant/leaf_model.h>
 #include <plant/models/ff16_strategy.h>
 
+
 namespace plant {
 
 class FF16w_Strategy : public FF16_Strategy {
@@ -30,10 +31,13 @@ virtual double net_mass_production_dt(const FF16_Environment &environment,
                                         double height, double area_leaf_, Internals &vars, 
                                         bool reuse_intervals = false);
                                         
-  virtual void compute_rates(const FF16_Environment &environment,
+virtual void compute_rates(const FF16_Environment &environment,
                              bool reuse_intervals, Internals &vars);
                              
-  virtual void prepare_strategy();
+std::vector<double> compute_root_frac(double soil_number_of_depths, double depth, double height);
+std::vector<double> compute_root_frac_per_layer(double soil_number_of_depths, double depth, double height);
+
+virtual void prepare_strategy();
 
 // names of auxillary variables
 virtual std::vector<std::string> aux_names() {
@@ -68,6 +72,7 @@ virtual std::vector<std::string> aux_names() {
   double vulnerability_curve_ncontrol = 100;
   double ci_abs_tol = 1e-6;
   double ci_niter = 1000;
+  
 
   //nitrogen allocation traits (parameterised from Austraits 4.1.0)
   double nmass_l = 13e-3; // kg N kg^-1 mass

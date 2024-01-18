@@ -1042,6 +1042,9 @@ FF16_Environment:
     args:
       - canopy_rescale_usually: bool
       - soil_number_of_depths: int
+      - delta_z: double
+      - K_sat: double
+      - soil_moist_sat: double
 
     roxygen: |
       FF16_Environment object
@@ -1093,6 +1096,9 @@ FF16_Environment:
     compute_rates:
       args: [resource_depletion: "std::vector<double>"]
       return_type: void
+
+
+
   active:
     time: {type: double, access: field}
     ode_size: {type: size_t, access: member}
@@ -1271,6 +1277,7 @@ FF16w_Strategy:
     - birth_rate_x: std::vector<double>
     - birth_rate_y: std::vector<double>
     - is_variable_birth_rate: bool
+    
 
 ExtrinsicDrivers:
   name_cpp: "plant::ExtrinsicDrivers"

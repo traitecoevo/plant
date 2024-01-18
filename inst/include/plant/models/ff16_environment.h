@@ -16,8 +16,16 @@ public:
   // except for soil_number_of_depths and canopy_rescale_usually
   // which are only updated on construction
   FF16_Environment(bool canopy_rescale_usually = false,
-                   int soil_number_of_depths = 0)
-      : canopy_rescale_usually(canopy_rescale_usually) {
+                   int soil_number_of_depths = 0, 
+                   double delta_z = 0.1,
+                   double soil_moist_sat = 0.453, // saturated soil moisture content (m3 water m^-3 soil) 
+                   double K_sat = 440.628 //saturated hydraulic conductivity of soil
+)
+      : canopy_rescale_usually(canopy_rescale_usually),
+      delta_z(delta_z),
+      soil_moist_sat(soil_moist_sat),
+      K_sat(K_sat)
+      {
     time = 0.0;
     canopy = Canopy();
     vars = Internals(soil_number_of_depths);
@@ -30,6 +38,15 @@ public:
 
   // Light interface
   bool canopy_rescale_usually;
+  
+  //distance between layers
+  double delta_z;
+
+  //saturated soil moisture
+  double soil_moist_sat;
+
+  //Saturated soil hydraulic conductivity
+  double K_sat;
 
   // private?
   Canopy canopy;
@@ -60,13 +77,17 @@ public:
   double PPFD = 1800;
   
   // soil variables - paramaterised for sandy loam
-  double soil_moist_sat = 0.453; // saturated soil moisture content (m3 water m^-3 soil) 
+  // double soil_moist_sat = 0.453; 
+  // saturated soil moisture content (m3 water m^-3 soil) 
   double r_soil = 0.01;
   double soil_moist_wp = 0.081; // soil moisture at wilting point (m3 water m^-3 soil) 
   double soil_moist_fc = 0.180; // soil moisture at field capacity (m3 water m^-3 soil) 
   double swf = 1;
-  double K_sat = 440.628; //saturated hydraulic conductivity of soil
+  // double K_sat = 440.628; 
+  //saturated hydraulic conductivity of soil
   double b_infil = 8;
+  
+
 
   virtual void compute_rates(std::vector<double> const& resource_depletion) {
 
@@ -84,7 +105,7 @@ public:
     //number of nodes in soil water column
     int n = vars.state_size;
     //distance between nodes
-    double delta_z = 0.1;
+    // double delta_z = 0.1;
     //helpers
     double dq_dz;
     double dtheta_dt;
@@ -114,6 +135,8 @@ public:
 
       // Eq. 2, but we have subtracted resource depletion rates
       dtheta_dt = -dq_dz -  resource_depletion[i];
+
+      // std::cout << resource_depletion[i] << std::endl;
 
       vars.set_rate(i, dtheta_dt);
       }
@@ -156,7 +179,6 @@ return K;
   
   return pow((psi_soil_/a_psi_), (-1/n_psi_))*soil_moist_sat;
 }
-
 
   double get_psi_soil() const {
     // soil volumetric water: m3.m-3
