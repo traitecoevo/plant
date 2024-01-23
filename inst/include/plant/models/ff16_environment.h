@@ -26,12 +26,15 @@ public:
 
 
   // Light interface
-  bool canopy_rescale_usually;
 
-  // private?
+  // Canopy object is used for calculating shading
   Canopy canopy;
 
-  // Should this be here or in canopy?
+  // TODO: What is this? It used to be used to indicate whether the intervals used for integration were stored and reused
+  bool canopy_rescale_usually;
+
+  // Ability to prescribe a fixed value
+  // TODO: add setting to set other variables like water
   void set_fixed_environment(double value, double height_max) {
     canopy.set_fixed_canopy(value, height_max);
   }
@@ -45,6 +48,7 @@ public:
     return canopy.get_canopy_at_height(height);
   }
 
+  // TODO: canopy.canopy_openness = canopy.get_canopy_at_height
   double canopy_openness(double height) const {
     return canopy.canopy_openness(height);
   }
@@ -83,7 +87,7 @@ public:
     return vars.states;
   }
 
-  // I wonder if this needs a better name? See also environment.h
+  // TODO: I wonder if this needs a better name? See also environment.h
   Internals r_internals() const { return vars; }
 
   // R interface

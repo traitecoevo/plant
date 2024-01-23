@@ -31,7 +31,6 @@ public:
 
   double height_max() const;
 
-  // [eqn 11] Canopy openness at `height`
   double compute_competition(double height) const;
 
   void introduce_new_node(size_t species_index);
@@ -127,6 +126,8 @@ private:
   parameters_type parameters;
   environment_type environment;
   std::vector<species_type> species;
+
+  //TODO: Move into environment?
   std::vector<double> resource_depletion;
 
   environment_type* environment_ptr;
@@ -337,6 +338,7 @@ size_t Patch<T,E>::ode_size() const {
 
 template <typename T, typename E>
 size_t Patch<T,E>::aux_size() const {
+  // TODO: Is this useful for environment vectors?
   // no use for auxiliary environment variables (yet)
   return ode::aux_size(species.begin(), species.end());// + environment.ode_size();
 }

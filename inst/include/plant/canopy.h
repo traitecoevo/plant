@@ -1,4 +1,6 @@
 // -*-c++-*-
+// todo: Whgat does this class do?
+
 #ifndef PLANT_PLANT_CANOPY_H_
 #define PLANT_PLANT_CANOPY_H_
 
@@ -14,9 +16,14 @@ namespace plant {
 class Canopy {
 public:
 
+  // Constructors
   Canopy() {
-    // Define an anonymous function to pass got the environment generator
+    
+    // Initialise adaptive interpolator. This object can create an interpolator spline
     canopy_generator = interpolator::AdaptiveInterpolator(1e-6, 1e-6, 17, 16);
+    // Create an actual spline, For initalisation
+    // Provide a dummy function and construct
+    // This will be over-written later with actual function
     canopy_interpolator = canopy_generator.construct(
       [&](double height) {
           return get_canopy_at_height(height);
@@ -24,8 +31,13 @@ public:
   };
 
   Canopy(double tol, size_t nbase, size_t max_depth) {
+
+    // Initialise adaptive interpolator. This object can create an interpolator spline
     canopy_generator =
         interpolator::AdaptiveInterpolator(tol, tol, nbase, max_depth);
+    // Create an actual spline, For initalisation
+    // Provide a dummy function and construct
+    // This will be over-written later with actual function
     canopy_interpolator = canopy_generator.construct(
         [&](double height) { return get_canopy_at_height(height); }, 0,
         1); // these are update with init(x, y) when patch is created
@@ -96,9 +108,12 @@ public:
     canopy_interpolator.init(state_x, state_y);
   }
 
-  interpolator::Interpolator canopy_interpolator;
-  interpolator::AdaptiveInterpolator canopy_generator;
-};
+    // This object will store an interpolator spline of shading
+    interpolator::Interpolator canopy_interpolator;
+
+    // This object can create an interpolator spline via adaptive refinement
+    interpolator::AdaptiveInterpolator canopy_generator;
+  };
 
 inline Rcpp::NumericMatrix get_state(const Canopy canopy) {
   using namespace Rcpp;
