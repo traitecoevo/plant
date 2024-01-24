@@ -482,16 +482,14 @@ double FF16_Strategy::height_seed(void) const {
 void FF16_Strategy::prepare_strategy() {
 
   // Set up the integrator
-  size_t iterations = control.assimilator_integration_iterations;
-  if (!control.assimilator_adaptive_integration) {
-    iterations = 1;
-  }
-
   integrator = quadrature::QAG(
-    control.assimilator_integration_rule,
-    iterations,
-    control.assimilator_integration_tol, 
-    control.assimilator_integration_tol);
+      // Gauss-Kronrod quadrature integeration rule (see qkrules)
+      control.assimilator_integration_rule,
+      // maximum iterations
+      control.assimilator_adaptive_integration ? control.assimilator_integration_iterations : 1,
+      // error tolerances
+      control.assimilator_integration_tol,
+      control.assimilator_integration_tol);
 
   // NOTE: this pre-computes something to save a very small amount of time
   eta_c = 1 - 2/(1 + eta) + 1/(1 + 2*eta);
