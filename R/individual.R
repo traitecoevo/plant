@@ -286,15 +286,13 @@ optimise_individual_rate_at_size_by_trait <- function(
     types <- extract_RcppR6_template_types(params, "Parameters")
     indv <- do.call("Individual", types)(s) # equiavlent to calling Individual<FF16w,FF16_Env> or FF16_individual(s)
 
-    browser()
-
-    # grow inidividual to specified size
-    res <- grow_individual_to_height(indv,
-      height = size, env,
-      time_max = 100, warn = TRUE, filter = TRUE
-    )
-
-    res <- res$rate[colnames(res$rate) == rate]
+    # set inidividual at specified size
+    indv$set_state(size_name, size)
+    # compute rates given environment
+    indv$compute_rates(env)
+    
+    #filter ode rate based on size name
+    res <- indv$ode_rates[indv$ode_names == size_name]
 
     # turn NA (non-positive growth) to 0, allows optimiser to get finite value but at minimum and thus avoided
     if (is.na(res)) {
@@ -303,9 +301,7 @@ optimise_individual_rate_at_size_by_trait <- function(
     return(res)
   }
 
-  f(0.05)
-
-  ret <- solve_max_worker(bounds, f, tol = 1e-6, outcome = paste0(outcome, "_growth_rate"))
+  ret <- solve_max_worker(bounds, f, tol = 1e-6, outcome = paste0(size_name, "_growth_rate"))
 
   if (log_scale) {
     ret <- exp(ret)

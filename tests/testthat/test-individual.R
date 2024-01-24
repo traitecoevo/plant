@@ -136,3 +136,25 @@ test_that("resource_compensation_point", {
     expect_equal(p$resource_compensation_point(), resource_compensation_point_R(x, p), tolerance=1e-5)
   }
 })
+
+
+test_that("Maximise individual outcome", {
+  #set bounds
+  bounds = bounds(lma=c(0.01, 0.08))
+  
+  size_res <- optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = 3, type = names(strategy_types)[x], size_name = "height")
+  #check outcome real and positive
+  expect_true(res > 0)
+  
+  #check that height and size are convergent with same parameters
+  height_res <- optimise_individual_rate_at_height_by_trait(bounds = bounds, height = 3)
+  expect_true(height_res == size_res)  
+  
+  #set bounds - too low for positive growth
+  bounds = bounds(lma=c(1e-8, 1e-7))
+  size_res <- optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = 3, type = names(strategy_types)[x], size_name = "height")
+  #check that outcome is 0
+  expect_true(attr(size_res, "height_growth_rate") == 0)
+})
+    
+    
