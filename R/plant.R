@@ -23,16 +23,16 @@
 grow_individual_to_size <- function(individual, sizes, size_name, env,
                                time_max=Inf, warn=TRUE, filter=FALSE) {
   obj <- grow_individual_bracket(individual, sizes, size_name, env, time_max, warn)
-  
+
   polish <- function(i) {
     grow_individual_bisect(obj$runner, sizes[[i]], size_name,
                       obj$t0[[i]], obj$t1[[i]], obj$y0[i, ])
   }
   res <- lapply(seq_along(sizes), polish)
-  
+
   state <- t(sapply(res, "[[", "state"))
   colnames(state) <- colnames(obj$state)
-  
+
   ret <- list(time=vnapply(res, "[[", "time"),
               state=state,
               individual=lapply(res, "[[", "individual"),
@@ -55,7 +55,6 @@ grow_individual_to_size <- function(individual, sizes, size_name, env,
 ##' \code{grow_individual_to_size}.
 ##' @param heights Heights (when using \code{grow_individual_to_height})
 grow_individual_to_height <- function(individual, heights, env, ...) {
-
   grow_individual_to_size(individual, heights, "height", env, ...)
 }
 
@@ -120,7 +119,6 @@ get_individual_internals_fun <- function (individual) {
 
 grow_individual_bracket <- function(individual, sizes, size_name, env,
                                time_max=Inf, warn=TRUE) {
-
   if (length(sizes) == 0L || is.unsorted(sizes)) {
     stop("sizes must be non-empty and sorted")
   }
@@ -138,11 +136,9 @@ grow_individual_bracket <- function(individual, sizes, size_name, env,
   i <- 1L
   n <- length(sizes)
   j <- rep_len(NA_integer_, n)
-
   state <- list(list(time=runner$time, state=runner$state))
 
   while (i <= n & runner$time < time_max) {
-
     ok <- tryCatch({
       runner$step()
       TRUE
@@ -181,7 +177,6 @@ grow_individual_bracket <- function(individual, sizes, size_name, env,
 
   t <- vnapply(state, "[[", "time")
   m <- t(sapply(state, "[[", "state"))
-
   k <- j + 1L
   colnames(m) <- runner$object$individual$ode_names
   list(t0=t[j],
@@ -215,7 +210,6 @@ grow_individual_bisect <- function(runner, size, size_name, t0, t1, y0) {
     list(time=NA_real_, state=y0, individual=NULL)
   } else {
     root <- uniroot(f, lower=t0, upper=t1)
-    
     list(time=root$root, state=runner$state, individual=runner$object$individual)
   }
 }
