@@ -108,9 +108,6 @@ for (x in names(strategy_types)) {
     expect_equal(p$state("mortality"), 0.0)
     expect_equal(p$mortality_probability, 0.0)
   })
-  
-
-
 
   test_that("resource_compensation_point", {
   if(x == "FF16") {
@@ -142,26 +139,26 @@ for (x in names(strategy_types)) {
 
   test_that("Maximise individual rate", {
   if(x %in% c("FF16", "FF16r")) {
-  
-  #set bounds
-  bounds = bounds(lma=c(0.01, 0.08))
-  
-  size_res <- optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = 3, type = x, size_name = "height")
+    
+    #set bounds
+    bounds = bounds(lma=c(0.01, 0.08))
+    
+    size_res <- optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = 3, type = x, size_name = "height")
 
-  #check outcome real and positive
-  expect_true(size_res > 0)
-  
-  #check that height and size are convergent with same parameters
-  height_res <- optimise_individual_rate_at_height_by_trait(bounds = bounds, height = 3)
-  expect_true(height_res == size_res)  
-  
-  #set bounds - too low for positive growth
-  bounds = bounds(lma=c(1e-8, 1e-7))
-  
-  size_res <- optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = 3, type = x, size_name = "height")
-  
-  #check that outcome is 0
-  expect_true(attr(size_res, "height_growth_rate") == 0)
+    #check outcome real and positive
+    expect_true(size_res > 0)
+    
+    #check that height and size are convergent with same parameters
+    height_res <- optimise_individual_rate_at_height_by_trait(bounds = bounds, height = 3)
+    expect_true(height_res == size_res)  
+    
+    #set bounds - too low for positive growth
+    bounds = bounds(lma=c(1e-8, 1e-7))
+    
+    size_res <- optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = 3, type = x, size_name = "height")
+    
+    #check that outcome is 0
+    expect_true(attr(size_res, "height_growth_rate") == 0)
   } else {
     expect_equal(x, x) # to avoid a warning for empty
   }
