@@ -19,6 +19,8 @@ namespace traits {
 template <typename T> class Exporter<plant::RcppR6::RcppR6<T> >;
 }
 
+template <> SEXP wrap(const plant::Leaf&);
+template <> plant::Leaf as(SEXP);
 template <> SEXP wrap(const plant::ode::test::Lorenz&);
 template <> plant::ode::test::Lorenz as(SEXP);
 template <> SEXP wrap(const plant::ode::test::OdeR&);

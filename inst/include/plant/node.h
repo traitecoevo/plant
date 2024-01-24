@@ -60,7 +60,10 @@ public:
   }
 
   double consumption_rate(int i) const {
+
+    
     return individual.consumption_rate(i) * density;
+
   }
 
   individual_type individual;
@@ -97,6 +100,10 @@ void Node<T,E>::compute_rates(const environment_type& environment,
   log_density_dt =
     - growth_rate_gradient(environment)
     - individual.rate("mortality");
+
+    if (!util::is_finite(log_density_dt)) {
+      // std::cout << "\t node_compute_rates " << " density " <<  density << " log_density " << log_density << "log_density_dt " <<  log_density_dt << " growth_rate_gradient(environment) " << growth_rate_gradient(environment) << " individual.rate(mortality) " << individual.rate("mortality") << " individual.state(mortality) " << individual.state("mortality") << " individual.state(height) " << individual.state("height") << " dB_dt " << individual.aux("net_mass_production_dt")  << " opt_psi_stem " << individual.aux("opt_psi_stem_") << " profit_ " << individual.aux("profit_") << " hydraulic_cost_ " << individual.aux("hydraulic_cost_")  << std::endl;
+    }
 
   // survival_individual: converts from the mean of the poisson process (on
   // [0,Inf)) to a probability (on [0,1]).
@@ -142,6 +149,8 @@ void Node<T,E>::compute_initial_conditions(const environment_type& environment,
   // NOTE: It's *possible* here that we need to set
   // individual.vars.mortality_dt to zero here, but I don't see that's
   // likely.
+    // std::cout << "birth" << birth_rate << "pr_estab" << pr_estab << "g" << g << std::endl;
+
 }
 
 template <typename T, typename E>
@@ -174,7 +183,14 @@ double Node<T,E>::r_growth_rate_gradient(const environment_type& environment) {
 
 template <typename T, typename E>
 double Node<T,E>::compute_competition(double height_) const {
-  return density * individual.compute_competition(height_);
+
+double f_h0 = density * individual.compute_competition(height_);
+
+    if (!util::is_finite(f_h0)) {
+      // std::cout << "Node compute competition: height " << height_ << " density " <<  density << " f_h " << individual.compute_competition(height_) << " height state " << 
+      // individual.state(HEIGHT_INDEX) << " height rate " << individual.rate(HEIGHT_INDEX) << " individual.state(mortality) " << individual.state("mortality") << " individual.rate(mortality) " << individual.rate("mortality") << std::endl;
+    }
+  return f_h0;
 }
 
 template <typename T, typename E>
@@ -190,7 +206,9 @@ ode::const_iterator Node<T,E>::set_ode_state(ode::const_iterator it) {
     individual.set_state(i, *it++);
   }
   offspring_produced_survival_weighted = *it++;
-  set_log_density(*it++);
+  set_log_density(*it++); 
+  // std::cout << "set_states: density " << density << " log_density " << log_density << " log_density_dt" << log_density_dt << "height" << individual.state(HEIGHT_INDEX)  << "mort_state" << individual.state(MORTALITY_INDEX)  << "mort_rate" << individual.rate(MORTALITY_INDEX) << std::endl;
+  if(log_density)
   return it;
 }
 template <typename T, typename E>

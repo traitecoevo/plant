@@ -1,0 +1,92 @@
+---
+title: "ci_time_check"
+author: "Isaac Towers"
+date: "2023-08-09"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+#high acc
+tibble(ci_abs_tol = 1e-08) %>%
+  mutate(leaf = map(ci_abs_tol, ~make_leaf(control = Control(ci_abs_tol = .x)))) %>%
+  expand_grid(psi_stem = seq(0.5,4,length.out = 1000000)) -> high_acc
+
+#low acc
+tibble(ci_abs_tol = 1e-06) %>%
+  mutate(leaf = map(ci_abs_tol, ~make_leaf(control = Control(ci_abs_tol = .x)))) %>%
+  expand_grid(psi_stem = seq(0.5,4,length.out = 1000000)) -> low_acc
+
+#4.272s
+system.time(high_acc %>%
+  mutate(outcome = map2_dbl(.x = leaf, .y = psi_stem, ~.x$psi_stem_to_ci(.y)))) -> high_out
+
+#3.976s
+system.time(low_acc %>%
+  mutate(outcome = map2_dbl(.x = leaf, .y = psi_stem, ~.x$psi_stem_to_ci(.y)))) -> low_out
+```
+
+5.98 seconds
+
+```{r}
+#low tolerance value
+
+p0 <- scm_base_parameters("FF16w")
+p0$max_patch_lifetime <- 5
+p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,
+                           birth_rate_list = list(10))
+
+
+# init rainfall spline for env
+x <- seq(0, 10, length.out = 1000)
+  rain = list(
+    x = x,
+    y = 2 + sin(x)
+  )
+
+env <- make_environment("FF16w",
+                          soil_number_of_depths = 1,
+                          soil_initial_state = rep(0.4),
+                          rainfall = rain)
+
+ctrl <- scm_base_control()
+ctrl$ci_niter = 1000
+ctrl$GSS_tol_abs <- 1e-1
+ctrl$ci_abs_tol <- 1e-8
+ctrl$vulnerability_curve_ncontrol <- 100
+
+system.time(out <- run_scm(p1, env, ctrl))
+```
+
+118 seconds
+
+```{r}
+#high tolerance value
+p0 <- scm_base_parameters("FF16w")
+p0$max_patch_lifetime <- 5
+p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,
+                           birth_rate_list = list(10))
+
+
+# init rainfall spline for env
+x <- seq(0, 10, length.out = 1000)
+  rain = list(
+    x = x,
+    y = 2 + sin(x)
+  )
+
+env <- make_environment("FF16w",
+                          soil_number_of_depths = 1,
+                          soil_initial_state = rep(0.4),
+                          rainfall = rain)
+
+ctrl <- scm_base_control()
+ctrl$ci_abs_tol <- 1e-6
+ctrl$vulnerability_curve_ncontrol <- 100
+
+system.time(out <- run_scm(p1, env, ctrl))
+```

@@ -1,8 +1,6 @@
 // Built from  src/ff16r_strategy.cpp on Wed Aug 12 15:46:38 2020 using the scaffolder, from the strategy:  FF16r
-// Built from  src/ff16_strategy.cpp on Fri Jul  3 08:14:35 2020 using the scaffolder, from the strategy:  FF16
 #include <plant/uniroot.h>
 #include <plant/qag.h>
-#include <plant/models/assimilation.h>
 #include <plant/models/ff16_environment.h>
 #include <plant/models/k93_strategy.h>
 #include <RcppCommon.h> // NA_REAL
@@ -56,13 +54,13 @@ double K93_Strategy::compute_competition(double z, double size) const {
   return k_I * size_to_basal_area(size) * Q(z, size);
  }
 
-double K93_Strategy::establishment_probability(const K93_Environment& environment){
+double K93_Strategy::establishment_probability(const K93_Environment& environment, Internals& vars){
   //TODO: may want to make this dependent on achieving positive growth rate
   return 1.0;
 }
 
 double K93_Strategy::net_mass_production_dt(const K93_Environment& environment,
-                                            double height, double area_leaf_,
+                                            double height, double area_leaf_, Internals& vars,
                                             bool reuse_intervals) {
   // TODO: there was no return value here - added 0.0
   return 1.0;

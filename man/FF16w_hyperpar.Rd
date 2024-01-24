@@ -13,19 +13,25 @@ make_FF16w_hyperpar(
   B_dI1 = 0.01,
   B_dI2 = 0,
   B_ks1 = 0.2,
+  B_hks1 = 25,
+  B_hks2 = 0,
   B_ks2 = 0,
   B_rs1 = 4012,
   B_rb1 = 2 * 4012,
   B_f1 = 3,
-  narea = 0.00187,
-  narea_0 = 0.00187,
-  B_lf1 = 5120.738 * 0.00187 * 24 * 3600/1e+06,
-  B_lf2 = 0.5,
-  B_lf3 = 0.04,
+  a_lf1 = 0.535,
+  B_lf1 = 0.009,
+  B_lf2 = 0.004,
+  B_lf3 = 8e-04,
   B_lf4 = 21000,
-  B_lf5 = 1,
+  B_lf5 = 40000,
   k_I = 0.5,
-  latitude = 0
+  latitude = 0,
+  B_Hv1 = 0.4607063,
+  B_Hv2 = -0.2,
+  B_c1 = 2.04,
+  B_c2 = 0,
+  K_s_0 = 2
 )
 
 FF16w_hyperpar(m, s, filter = TRUE)
@@ -53,23 +59,23 @@ FF16w_hyperpar(m, s, filter = TRUE)
 
 \item{B_f1}{Cost of seed accessories per unit seed mass [dimensionless]}
 
-\item{narea}{nitrogen per leaf area [kg / m2]}
+\item{a_lf1}{intercept for empirical relationship between narea and vcmax, lma (Dong et al. 2022)}
 
-\item{narea_0}{central (mean) value for nitrogen per leaf area [kg / m2]}
+\item{B_lf1}{Beta coefficient for empirical relationship between narea ~ lma [g/m2] (Dong et al. 2022)}
 
-\item{B_lf1}{Potential CO_2 photosynthesis at average leaf nitrogen [mol / d / m2]}
-
-\item{B_lf2}{Curvature of leaf photosynthetic light response curve [dimensionless]}
-
-\item{B_lf3}{Quantum yield of leaf photosynthetic light response curve [dimensionless]}
+\item{B_lf2}{Beta coefficient for empirical relationship between narea ~ vcmax [umol / m2 / s] (Dong et al. 2022)}
 
 \item{B_lf4}{CO_2 respiration per unit leaf nitrogen [mol / yr / kg]}
-
-\item{B_lf5}{Scaling exponent for leaf nitrogen in maximum leaf photosynthesis [dimensionless]}
 
 \item{k_I}{light extinction coefficient [dimensionless]}
 
 \item{latitude}{degrees from equator (0-90), used in solar model [deg]}
+
+\item{B_Hv1}{p50 at K_s_0 [-MPa]}
+
+\item{B_Hv2}{Scaling slope for K_s in p50 [dimensionless]}
+
+\item{K_s_0}{Central (mean) value for maximum sapwood conductivity [kg /m2 / s / MPA]}
 
 \item{m}{A matrix of trait values, as returned by \code{trait_matrix}}
 

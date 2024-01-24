@@ -22,6 +22,9 @@ public:
   typedef Species<T,E>      species_type;
   typedef Parameters<T,E>   parameters_type;
 
+  int counter;
+
+
   Patch(parameters_type p, environment_type e, plant::Control c);
   void reset();
   size_t size() const {return species.size();}
@@ -214,6 +217,8 @@ double Patch<T,E>::compute_competition(double height) const {
   for (size_t i = 0; i < species.size(); ++i) {
     if (!is_mutant_run) {
       tot += species[i].compute_competition(height);
+
+ 
     }
   }
   return tot;
@@ -255,8 +260,14 @@ void Patch<T,E>::compute_rates() {
   //  -- for the resident the pointer points to the internal environment object
   //  -- for a mutant, the pointer points to a cached environment object
   double time_ = environment_ptr->time;
-
+// std::cout << "\n Patch_step " << time_ << std::endl;
   double pr_patch_survival = survival_weighting->pr_survival(time_);
+
+  if (counter == 100){
+    counter = 0;
+  }
+  counter += 1;
+
 
   for (size_t i = 0; i < size(); ++i) {
     double pr_patch_survival = survival_weighting->pr_survival(time_);

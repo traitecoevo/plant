@@ -37,7 +37,13 @@ test_that("Defaults", {
     equilibrium_extinct_birth_rate = 1e-3,
     equilibrium_nattempts   = 5, # size_t
     equilibrium_solver_logN = TRUE,
-    equilibrium_solver_try_keep = TRUE)
+    equilibrium_solver_try_keep = TRUE,
+    
+    newton_tol_abs = 1e-3,
+    GSS_tol_abs = 1e-3,
+    vulnerability_curve_ncontrol = 1e2,
+    ci_abs_tol = 1e-3,
+    ci_niter = 1000)
 
   keys <- sort(names(expected))
 

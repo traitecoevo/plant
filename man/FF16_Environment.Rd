@@ -20,14 +20,19 @@ FF16w_make_environment(
   canopy_light_max_depth = 16,
   canopy_rescale_usually = TRUE,
   soil_number_of_depths = 1,
-  soil_initial_state = 0,
-  rainfall = 1
+  soil_initial_state = 0.5,
+  rainfall = 1,
+  atm_vpd = 1,
+  ca = 40,
+  leaf_temp = 25,
+  atm_o2_kpa = 21,
+  atm_kpa = 100.5
 )
 
 FF16w_fixed_environment(e = 1, height_max = 150)
 }
 \arguments{
-\item{canopy_rescale_usually}{turns on environment rescaling (default = TRUE)}
+\item{canopy_rescale_usually}{}
 
 \item{soil_number_of_depths}{the number of soil layers}
 
@@ -35,7 +40,19 @@ FF16w_fixed_environment(e = 1, height_max = 150)
 
 \item{height_max}{= 150.0 maximum possible height in environment}
 
-\item{rainfall}{constant function value for rainfall driver, y = rainfall}
+\item{canopy_light_tol}{}
+
+\item{canopy_light_nbase}{}
+
+\item{canopy_light_max_depth}{}
+
+\item{soil_initial_state}{initial soil moisture (m3 m^-3)}
+
+\item{rainfall}{Rainfall (m). Can be a constant value or a list (x = time, y = rainfall)}
+
+\item{ca}{CO2 partial pressure (Pa). Can be a constant value or a list (x = time, y = ca)}
+
+\item{vpd}{Vapour pressure deficit (kPa). Can be a constant value or a list (x = time, y = VPD)}
 }
 \description{
 FF16_Environment object

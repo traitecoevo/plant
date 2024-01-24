@@ -148,6 +148,8 @@ double Species<T,E>::height_max() const {
 // the integral).
 template <typename T, typename E>
 double Species<T,E>::compute_competition(double height) const {
+  
+  
   if (size() == 0 || height_max() < height) {
     return 0.0;
   }
@@ -155,12 +157,17 @@ double Species<T,E>::compute_competition(double height) const {
   nodes_const_iterator it = nodes.begin();
   double h1 = it->height(), f_h1 = it->compute_competition(height);
 
+  // std::cout << "\t Species compute competition; top height " << h1  << std::endl;
+
   // Loop over nodes
   for (++it; it != nodes.end(); ++it) {
+    
     const double h0 = it->height(), f_h0 = it->compute_competition(height);
     if (!util::is_finite(f_h0)) {
-      util::stop("Detected non-finite contribution");
+      // std::cout << "\t \t Species compute competition height " << height << " h0 " << h0 << " f(height) " <<  f_h0 << std::endl;
+      util::stop("Detected non-finite contribution in competition");
     }
+
     // Integration
     tot += (h1 - h0) * (f_h1 + f_h0);
     // Upper point moves for next time:
@@ -183,6 +190,7 @@ double Species<T,E>::compute_competition(double height) const {
 // through the ode stepper.
 template <typename T, typename E>
 void Species<T,E>::compute_rates(const E& environment, double pr_patch_survival, double birth_rate) {
+
   for (auto& c : nodes) {
     c.compute_rates(environment, pr_patch_survival);
   }
@@ -210,7 +218,7 @@ double Species<T,E>::consumption_rate(int i) const {
   if(size() < 2) {
     return 0.0;
   } else {
-    // node heights are in descending order - we need ascending for integration
+    
     return util::trapezium(r_heights_rev(), consumption_rate_by_node_rev(i));
   }
 }

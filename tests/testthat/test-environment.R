@@ -48,7 +48,7 @@ test_that("FF16 rainfall spline", {
   
   env <- make_environment("FF16w")
   # get list of extrinsic drivers for the environment
-  expect_equal(env$extrinsic_drivers$get_names(), c("rainfall"))
+  expect_equal(env$extrinsic_drivers$get_names(), c("rainfall","leaf_temp","atm_o2_kpa","atm_kpa","ca", "atm_vpd"))
   
   # test extrapolation on default spline of y = 1
   expect_equal(env$extrinsic_drivers$evaluate("rainfall", 100), 1)
@@ -77,4 +77,17 @@ test_that("FF16 rainfall spline", {
   
   ## interpolated range of points
   expect_equal(env$extrinsic_drivers$evaluate_range("rainfall", c(-7, 1, 7.8345)), c(49, 1, 61.37939025), tolerance=1e-6)
-})
+  
+  ## conversion of soil moisture to soil water potential
+  
+  #psi soil == a_psi when soil_water_state == theta_sat
+  
+  theta_sat = 0.453
+  env$set_soil_water_state(theta_sat)
+  expect_equal(env$psi_from_soil_moist(env$get_soil_water_state()), env$a_psi())
+  
+  psi_soil = 4
+  env$set_soil_water_state(theta_sat)
+  expect_equal(env$psi_from_soil_moist(env$get_soil_water_state()), env$a_psi())
+  
+  })

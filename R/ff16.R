@@ -409,34 +409,54 @@ FF16_hyperpar <- make_FF16_hyperpar()
 
 #' @author Isaac Towers, Daniel Falster and Andrew O'Reilly-Nugent
 
-FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, tol = 1e-3, height = 10, params, env = FF16_make_environment(), outcome = "height"){
-  
+FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, tol = 1e-3, height = 1, type = "FF16",
+params = scm_base_parameters(type), env = make_environment(type = type), outcome = "height", use_optim = FALSE, hyperpars = hyperpar(type), use_default_strategy = TRUE){
+  #can't handle situations yet where bounds are outside of positive growth, not working for K93
   bounds <- check_bounds(bounds)
   traits <- rownames(bounds)
   
   if (log_scale) {
     bounds[bounds[,1] == -Inf, 1] <- 0
     bounds <- log(bounds)
-    
     ff <- exp
   } else {
     ff <- I
   }
-  
   f <- function(x) {
+    s <- strategy(ff(trait_matrix(x,  rownames(bounds))), parameters = params, hyperpar = hyperpars, birth_rate_list = 1, use_default_strategy = use_default_strategy)
+    #Would be great to have other options for this switch here
+    if(attr(params, "class") [[1]] == "Parameters<FF16w,FF16_Env>"){
+    indv <- FF16w_Individual(s)
+    }
+    if(attr(params, "class") [[1]] == "Parameters<FF16,FF16_Env>"){
+      indv <- FF16_Individual(s)
+    }
+    if(attr(params, "class") [[1]] == "Parameters<FF16r,FF16_Env>"){
+      indv <- FF16r_Individual(s)
+    }
+    if(attr(params, "class") [[1]] == "Parameters<K93,K93_Env>"){
+      indv <- K93_Individual(s)
+    } 
     
-    s <- strategy(ff(trait_matrix(x,  rownames(bounds))), params, birth_rate_list = 1)
-    indv <- FF16_Individual(s)
+
     res <- grow_individual_to_height(indv, height, env,
-                                     time_max=100, warn=FALSE, filter=TRUE)
+                                     time_max=100, warn=TRUE, filter=TRUE)
+
     
-    res$individual[[1]]$ode_rates[res$individual[[1]]$ode_names == outcome]    
+    res <- res$rate[colnames(res$rate) == outcome]
+    
+    
+    #turn NA (non-positive growth) to 0, allows optimiser to get finite value but at minimum and thus avoided
+    if(is.na(res)){
+      res <- 0
+    }
+    return(res)
   }
   
-  ret <- solve_max_worker(bounds, f, tol = 1e-3, outcome = paste0(outcome, "_growth_rate"))
+  ret <- solve_max_worker(bounds, f, tol = 1e-6, outcome = paste0(outcome, "_growth_rate"), use_optim = use_optim)
   if (log_scale) {
     ret <- exp(ret)
   }
-  
+
   return(ret)
 }

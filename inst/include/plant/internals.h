@@ -25,7 +25,8 @@ public:
       rates(s_size, NA_REAL) ,
       auxs(a_size, 0.0),
       consumption_rates(r_size, NA_REAL)
-    {}
+    {
+    }
   size_t state_size;
   size_t aux_size;
   size_t resource_size;
@@ -52,7 +53,7 @@ public:
     aux_size = new_aux_size;
     states.resize(new_size, 0.0);
     rates.resize(new_size, NA_REAL);
-    auxs.resize(new_aux_size, 0.0);
+    auxs.resize(new_aux_size, NA_REAL);
   }
 
   void resize_consumption_rates(size_t new_resource_size) {

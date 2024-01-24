@@ -1,0 +1,339 @@
+---
+title: "ff16w_documentation"
+output: html_document
+date: "2023-01-10"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This is the documentation for the ff16w strategy
+
+#Introduction
+
+ff16w is an implementation of the ff16 strategy including water dynamics. This includes an updated strategy object `ff16w`, a physiological stomatal optimisation sub-model which determines how plants assimilate carbon and transpire water dynamically in response to water availability, vapour pressure deficit, leaf temperature, in a trait-dependent manner, and a soil-water submodel which takes rainfall as an input and determines how much soil moisture is available to plants.
+
+We can compare the two strategy objects to first understand the new traits that have been introduced in `ff16w`
+
+```{r}
+devtools::load_all()
+library(tidyverse)
+```
+
+
+```{r}
+s <- FF16_Strategy()
+sw <- FF16w_Strategy()
+
+names(s)
+names(sw)
+```
+
+There are 9 new traits thus far:
+
+-vcmax: the maximum rate carboxylation ($\mu mol~m^{-2}~s^{-1}$)
+-p_50: The leaf water potential ($\psi_l$) at which 50% of conductivity is lost
+-K_s: The maximum hydraulic conductivity ($kg~m^{-2}~s^{-1}~MPa^{-1})
+-c: Shape parameter for the hydraulic vulnerability curve (unitless)
+-b: Sensitivity parameter for the hydraulic vulnerability curve (-MPa)
+-psi_crit: $\psi_l$ at which 95% of conductivity is lost. Maximum water potential. (-MPa)
+-beta1: cost of sapwood per volume per unit of hydraulic damage (umol C m^{-3} sapwood)
+-beta2: shape parameter for relationship between lost conductivity and sapwood repair cost (unitless). 
+
+For the most part, these traits, in combination with traits from `ff16`, determine how plant assimilate carbon and tranpsire water via the physiological `Leaf` submodel. We can start by exploring the theory behind how the `Leaf` submodel works, found in `leaf_model.cpp`. 
+
+#Profitmax
+
+Plants are known to vary the aperture of their stomata, which control the rate of conductance of $H_2O$ for $CO_2$, in response to environmental stimuli including the amount of available soil moisture. But how do plants determine the optimum rate of exchange? Multiple theoretical frameworks exist to address this question, but currently `ff16w` employs the `profitmax` model. The profitmax models states that the optimum stomatal conductance is the point at which profits, $P~(\mu mol~m^{-2}~s^{-1})$, is maximimised.
+
+$P (\mu mol~m^{-2}~s^{-1})$ is the difference between photosynthetic revenue, $A~(\mu mol~m^{-2}~s^{-1})$ and the costs,$C~(\mu mol~m^{-2}~s^{-1})$ required to maintain the transpirational pathway which supplies water for transpiration through the stomates: 
+
+\begin{equation}
+P~(\psi_l) = A~(\psi_l) - C~(\psi_l).
+\end{equation}
+
+$\psi_l~(-MPa)$ is the water potential of the canopy xylem. This can considered equivalent to the rate of stomatal conductance, because the larger that the leaf water potential gets, the greater the stomatal conductance, all else being equal, which we return to later. What is clear from the equation is that, because both $R$ and $C$ are functions of $\psi_l$, there is a value of $\psi_l$ which can be found which results in $max(P)$. In other words, the maximum profit. We will return to how we numerically solve this function later.
+
+For now, lets go through how the cost and revenue are calculated as a function of $\psi_l$.
+
+#Revenue
+
+Revenue is `profitmax` is the photosynthetic assimilate $A~(\mu mol~m^{-2}~s^{-1})$ that can produced at a given level of stomatal conductance before taking away costs associated with transpiration.
+
+$A~(\mu mol~m^{-2}~s^{-1})$ is related to stomatal behaviour via a coupled-stomatal conductance model, which employs Fick's first law to describe the flux of $CO_2$ across a concentration gradients from the atmosphere $C_a~(Pa)$ to the inter-cellular spaces in the leaf $C_i~(Pa)$:
+
+\begin{equation}
+A~(C_i) = \frac{g_c(\psi_{l})(C_a - C_i)}{P_{atm}}.
+\end{equation}
+
+In the above equation, $P_{atm}~(kPa)$ is the atmospheric pressure and $g_c$ is the stomatal conducatance to $CO_2$, which is calculated as 
+
+\begin{equation}
+g_c(\psi_{l}) = \frac{g_w(\psi_{l})}{1.6},
+\end{equation}
+
+where $g_w$ is the stomatal conducatance to $H_2O$ and 1.6 is ratio of exchange of $CO_2$ and $H_2O$ at the stomatal boundary. For now, we will treat $g_c$ as a constant, because $\psi_l$ varies when maximising the profit function. As can be seen in the coupled stomatal model, $C_i$ is present on both sides of the equation, meaning that we must solve for the value of $C_i$. To better understand this, we first need to understand how $A$ relates to $C_i$  
+
+$A$ is itself a function of $C_i$ and is calculated using a biochemical photosynthetic model (Farquhar et al. 1980) which incorporates both the rubisco-limited, $A_c~(umol~m^{-2}~s^{-1})$ and electron-transport limited photosythnetic rate $A_j~(umol~m^{-2}~s^{-1})$. Net $A$ occurs at the most limiting of these two rate using a smoothing transitiion function.
+
+The standard electron-transport limited photosynthetic rate equation describes how photosynthesis varies with light availability and $C_i$:
+
+\begin{equation}
+A_j=\frac{J(C_i-\Gamma^*)}{4(C_i+2\Gamma^*)},
+\end{equation}
+
+where $\Gamma^*~(Pa)$ is the CO2 compensation point of photosynthesis. $J~(umol~m^{-2}~s^{-1})$ describes the effect of light availability on photosythnesis, being the irradiance dependence of electron transport:
+
+\begin{equation}
+J=\frac{aQ+J_{max}-\sqrt{(aQ+J_{max})^2-4caQJ_{max}}}{2c},
+\end{equation}
+
+where $a~(mol~photon~mol^{-1}~electron)$ is the effective quantum yield of electron transport, $Q~(umol~m^{-2}~s^{-1})$ is the PPFD (i.e. the light), $c (unitless)$ is the curvature of the the response of the electron transport rate to light and $J_{max}~(umol~m^{-2}~s^{-1})$ is the maximum electron transport rate.
+
+$A_c$ is calculated as:
+
+\begin{equation}
+A_c=\frac{V_{c,max}(C_i-\Gamma*)}{C_i + K_m},
+\end{equation}
+
+where $K_m~(Pa)$ is the effective Michaelis-Menten constant. $V_{c,max}$, $\Gamma*$ and $K_m$ are all temperature dependent variables.
+
+We can view the functional form of $A_c$ and $A_j$ a function of $C_i$ below.
+
+First, we need to initialise a leaf with some traits and some environmental information. We can extract them from the strategy object. Remember, we only need to initalise the leaf object with traits which are related to leaf physiological sub-model, rather than the whole plant as would be required for growing an `Individual` or a `patch`.
+
+The `Leaf` function creates a `Leaf` object, which contains most of the internal functions which are used when calculating the photosynthetic assimilation and water use of a unit of leaf area when using `ff16w`. We initialise the `Leaf` object with a set of traits.
+
+```{r}
+leaf <- Leaf(vcmax= sw$vcmax_25, b = sw$b, c = sw$c, psi_crit = sw$psi_crit, epsilon_leaf = sw$epsilon_leaf, beta1 = sw$beta1, beta2 = sw$beta2, jmax_25 = sw$jmax_25, hk_s = sw$hk_s, a = sw$a, curv_fact_elec_trans = sw$curv_fact_elec_trans, curv_fact_colim = sw$curv_fact_colim)
+```
+
+We also need to set a series of variables which describe the environmment and physiology of the plant at a given time using the `set_physiology` function. Whereas the traits set using the `Leaf` function describe a species' strategy and do not vary over time, the variables set in `set_physiology` do vary. This becomes more relevant for when we dynamically running an individual plant or forest. For now, we will set some constants, based on plant height. 
+
+```{r}
+height = 1
+leaf$K_s = 2
+
+leaf$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = 4.8e-05, atm_vpd = 2, ca = 40, sapwood_volume_per_leaf_area = 1.8e-04, rho = 608, a_bio = 0.0245, leaf_temp = 25, atm_o2_kpa = 21, atm_kpa = 101.3)
+```
+
+Set some $C_i$ values.
+
+```{r}
+C_i = seq(0,40,1)
+```
+
+Plot $A_j$ and $A_c$ against $C_i$
+
+```{r}
+tibble(C_i = C_i) %>%
+  mutate(A_j = map_dbl(C_i, leaf$assim_electron_limited),
+         A_c = map_dbl(C_i, leaf$assim_rubisco_limited)) %>%
+  pivot_longer(cols = c(A_j, A_c), names_to = "limit", values_to = "assim") %>%
+  ggplot(aes(x = C_i, y = assim))+
+  geom_line(aes(colour = limit, group = limit)) +
+  theme_classic()
+```
+
+As can be seen in the plot, $A$ increases with $C_i$ regardless of whether it is rubisco or light-limited. However, the most-limiting rate changes as $C_i$ increases, which can be captured using a smoothing function (see paper for details.) 
+
+```{r}
+tibble(C_i = C_i) %>%
+  mutate(A_j = map_dbl(C_i, leaf$assim_electron_limited),
+         A_c = map_dbl(C_i, leaf$assim_rubisco_limited)) %>%
+  mutate(A_net = map_dbl(C_i, leaf$assim_colimited)) %>%
+  mutate(A_net_plus_R_d = A_net + leaf$R_d_) %>%
+  pivot_longer(cols = c(A_j, A_c,A_net, A_net_plus_R_d), names_to = "rate", values_to = "assim") %>%
+  ggplot(aes(x = C_i, y = assim))+
+  geom_line(aes(colour = rate, group = rate)) +
+  theme_classic()
+```
+
+The A_net function also includes a carbon deduction associated with dark respiration, so we can add this back on to show correspondence between the A_net curve and A_c/Aj.
+
+#Cost
+
+In order for plants to photosynthesise, plants must move from water from the soil to the canopy via the xylem. To do this, the downstream water potential must be lower (i.e. more negative) than the soil. In `profitmax`, the hydraulic cost incurred by plants is associated with the fact that as the xylem water potential increases, the hydraulic conductance $k_{l,max}~(\mu mol~m^{-2}~s^{-1}~MPa^{-1})$ of the xylem pathway declines, which is assumed to be caused by an increased risk of embolism in the xylem. For simplicity, in `ff16w`, we currently represent the xylem pathway as a single element representing the roots, stem and leaves. We acknowledge that in reality these elements would each have seperate hydraulic conductances. The decline in hydraulic conductance with increasing $\psi_l$ follows the hydraulic vulnerability curve:
+
+\begin{equation}
+k_l = k_{l,max}e^{-{(\frac{\psi_l}{b})}^c}.
+\end{equation}
+
+We can this demonstrated graphically using the traits from above.
+
+```{r}
+tibble(psi_stem = seq(0, 5, length.out = 100)) %>%
+  mutate(proportion_conductance = map_dbl(psi_stem, leaf$proportion_of_conductivity)) %>%
+  mutate(conductance = 4.8e-05*proportion_conductance) %>%
+  ggplot(aes(x = psi_stem, y = conductance)) +
+  geom_line() + 
+  theme_classic()
+```
+
+
+$b~(MPa)$ and $c~(unitless)$ are the sensitivity and shape parameters of the hydraulic vulnerability curve. $b$ is calculated as:
+
+$$b = \frac{p_{50}}{-log(1-\frac{50}{100}^{\frac{1}{c}})},$$
+where $p_{50}$ is the $\psi_l$ at which 50% of hydraulic conductance is lost. $c$ can be calculated if two hydraulic vulnerability (i.e. $p_{x}$) values are known. Instead, we use an empirical value for $c$ obtained from Austraits.
+
+$p_{50}$, in turn, is calculated from an empirical relaitonship between $p_50$ and the hydraulic conductivity of the xylem pathway, where more conductive stems lose conductivity at a less negative water potential (Liu et al. 2019):
+
+$$p_{50} = 1.73\frac{K_s}{2}^{-0.72}$$
+
+$k_{l,max}$ is the maximum hydraulic conductance achievable by the plant at $\psi_l = 0$ and is calculated as:
+
+\begin{equation}
+$$k_{l,max} = \frac{K_s\theta}{h\eta_c},$$
+\end{equation}
+
+where $\theta~(m^2~sapwood~m^{-2}~leaf~area)$ is the huber value (described in `ff16`), $h$ is the height of the plant and $eta_c~(unitless)[0,1]$ (described in `ff16`) is the average relative position of leaves in the canopy. Input traits required to parameterise these equations beyond those required in `ff16` are therefore: $K_s$, $\theta$ and $c$, with the remaining traits being handled by the `ff16w` hyperparameterisation function. $h$ is the height of the plant, and is therefore resolved dynamically when running `plant`
+
+The total volume of water transpiring through a given unit area of leaf is given by the following equation:
+
+\begin{equation}
+$$E_{supply} = \int^{\psi_l}_{\psi_s}k_l(\psi)\delta\psi $$
+\end{equation}
+
+Again, visualising this below, the water supplied for transpiration is equivalent to the area under the curve between  the soil water potential ($\psi_s~(-MPa)$) and the xylem water potential ($\psi_l~(-MPa)$).
+
+```{r}
+tibble(psi_stem = seq(0, 5, length.out = 100)) %>%
+  mutate(proportion_conductance = map_dbl(psi_stem, leaf$proportion_of_conductivity)) %>%
+  mutate(conductance = 4.8e-05*proportion_conductance) %>%
+  ggplot(aes(x = psi_stem, y = conductance)) +
+  geom_line() + 
+  theme_classic() +
+  geom_area(aes(ifelse(psi_stem > 2 | psi_stem < 1, NA, psi_stem), conductance), fill = "red", alpha= 0.5) +
+  geom_vline(xintercept = 2, col = "red", size = 2, linetype = "dashed") +
+  geom_vline(xintercept = 1, col = "red", size = 2, linetype = "dashed") +
+  annotate("text", x = 1.2, y = 4.8e-05, label = expression(psi[s]), col = "red") +
+  annotate("text", x = 2.2, y = 4.8e-05, label = expression(psi[l]), col = "red")
+```
+
+Or, put another way, for a given $\psi_s$, this is the $E_{supply}$ that could be achieved as $psi_l$ becomes more negative. It can be seen that $E_{supply}$ slowly tapers off as $psi_s$ increases, owing to the shape of the hydraulic vulnerability curve. This is important as it implies declining marginal returns to transpired water as $psi_stem$ becomes increasingly negative. 
+
+```{r}
+tibble(psi_stem = seq(1, 5, length.out = 100)) %>%
+  mutate(E_supply = map_dbl(psi_stem, leaf$transpiration_full_integration)) %>%
+  ggplot(aes(x = psi_stem, y = E_supply)) +
+  geom_line() + 
+  theme_classic() 
+```
+
+We assume an upper critical limit to $\psi_l$ beyond which catastrophic xylem failure would occur, $\psi_{crit}$. Here, $psi_{crit}$ is assumed to the $\psi_l$ at which 95% of conductance is lost.
+
+Recall from the `Revenue` section that $g_c$ is required in order to determine the $A$. We can take advantage of the robust assumption that plants optimally allocate water transport resources to ensure that $E_{supply}$, that is, the water transpired from the soil to the canopy, is equivalent to $E_{demand}$, which is the atmospheric demand for water. In other words, we assume:
+
+$$E_{supply} = E_{demand}$$
+
+$E_{demand}$ is calculated according to the following equation:
+
+$$E_{demand} = \frac{g_sD}{P_{atm}},$$
+
+where $D~(kPa)$ is the atmospheric vapour pressure deficit. For simplicity, we assume that it is the atmospheric VPD, not the leaf-to-atmoshpere VPD, which emerges from variation in leaf temperature relative to air temperature, that drives $E_demand$, although we acknolwedge that this could have important consequences for stomatal behaviour. From the equation above, it is clear to see that all else being held equal, $E_{demand}$ increases when either the $g_s$ or $D$ increases. The key point here is that, all else being equal, in order for the assimilation of carbon into the leaf to increase via an increase in $g_s$, there must be an increase in $E_{demand}$, which in turns requires an increasingly negative $\psi_l$, which, in turn, means that there is further drop in hydraulic conductance. This captures the inherent trade-off of stomatal conductance between greater assimilation and a higher risk of xylem damage.
+
+To represent the risk of xylem damage as a cost in units of carbon, we calculate $H~(\psi_l)$ (from the profit equation) as: 
+$$H(\psi_l) = b_1z(1-e^{-{(\frac{\psi_l}{b})}^c})^{b_2}.$$ 
+Here, $z~(m^3~sapwood~m^{-2}~leaf~area}$ is the sapwood volume per leaf area, $b_1(\mu mol~m^{-2}~s^{-1})$ is the carbon cost per unit of conductivity lost and $b^2~(unitless)$ is a shape parameter. The second term in the brackets is the proportion of conductivity remaining at a $\psi_l$, such that $H=0$ when $\psi_l = 0$.
+
+$z$ is calculated based on the size of the tree and $theta$, representing the total amount of sapwood supplying transpiration:
+
+$$z = \frac{\theta*h}{\eta_c}$$
+#Profit
+
+The relative forms of the $R$ and $H$ curves in relation to $\psi_l$ means that a single $psi_l$ which maximises profit emerges. Let's demonstrate this below, graphically.
+
+
+```{r}
+tibble(psi_stem = seq(1, 4, length.out = 100)) %>%
+  mutate(R = map_dbl(psi_stem, ~{
+    leaf$set_leaf_states_rates_from_psi_stem_analytical(.x)
+    leaf$assim_colimited_}
+    )) %>%
+  mutate(C = map_dbl(psi_stem, ~leaf$hydraulic_cost_Bartlett(.x)))-> data
+
+data %>%
+  mutate(P = R-C) %>%
+  pivot_longer(cols = c(P, R,C)) %>%
+  ggplot(aes(x = psi_stem, y = value)) +
+  geom_line(aes(colour = name, group = name)) +
+  theme_classic() +
+  geom_vline(xintercept = 2.05, linetype = "dashed")
+```
+
+That's a pretty complicated way to do it though. We can just automatically calculated these values using a given profit funciton. For example, the in-built profit funciton in `ff16w` is the `profit_psi_stem_Bartlett_analytical`.
+
+```{r}
+tibble(psi_stem = seq(1, 4, length.out = 100)) %>%
+  mutate(outcomes = map(.x = psi_stem, ~{
+    leaf$profit_psi_stem_Bartlett(.x)
+    return(tibble(H = leaf$hydraulic_cost_, R = leaf$assim_colimited_, P = R-H, ))
+    }))-> data
+
+data %>%
+  unnest(outcomes) %>%
+  pivot_longer(cols = c(H,R,P)) %>%
+  ggplot(aes(x = psi_stem, y = value)) +
+  geom_line(aes(colour = name, group = name)) +
+  theme_classic()
+```
+
+#Optimising profit
+
+Recall that the goal of the leaf physiology sub-model is to calculate the $CO_2$ assimilation and water use of a given unit of leaf area given the presiding environmental conditions and plant state. In order to do this, then, a numerical method is required to find the $\psi_l$ which maximises $P$. This also allows $E$ to be calculated, which is used in the soil hydrology sub-model (discussed elsewhere).
+
+The preferred method for numerical optimisation at the time of writing for `ff16` is the Golden Section Search algorthim. This algorithm finds local maxima or minima by successively narrowing the position of two initial boundary values until the distance of movement is below a defined tolerance values. As above, the x-values of the method is $\psi_l$, and the two initial boundary values in this case are $\psi_s$ and $psi_{crit}$; $psi_l$ cannot be less negative than $psi_s$ and is assumed to not surpass $psi_crit$. 
+
+A manual demonstration is shown below, and then the method implemented in `ff16w`
+
+```{r}
+#golden ratio
+gr = (sqrt(5) + 1) / 2;
+
+bound_a = NA  
+bound_b = NA
+bound_c = NA
+bound_d = NA
+
+#set lower boundary to psi_soil
+bound_a = leaf$psi_soil_;
+
+#set upper boundary to psi_crit
+bound_b = sw$psi_crit;
+
+#tolerance value
+delta_crit = 0.01;
+
+bound_c = bound_b - (bound_b - bound_a) / gr;
+bound_d = bound_a + (bound_b - bound_a) / gr;
+
+while (abs(bound_b - bound_a) > delta_crit) {
+  
+  profit_at_c = leaf$profit_psi_stem_Bartlett_analytical(bound_c);
+  profit_at_d = leaf$profit_psi_stem_Bartlett_analytical(bound_d);
+  
+  if (profit_at_c > profit_at_d) {
+        bound_b = bound_d;
+      } else {
+        bound_a = bound_c;
+      }
+
+      bound_c = bound_b - (bound_b - bound_a) / gr;
+      bound_d = bound_a + (bound_b - bound_a) / gr;
+
+      }
+
+    opt_psi_stem = ((bound_b + bound_a) / 2);
+    profit = leaf$profit_psi_stem_Bartlett_analytical(opt_psi_stem);
+    transpiration = leaf$transpiration_
+```
+
+`ff16w` implementation.
+
+```{r}
+leaf$optimise_psi_stem_Bartlett_analytical()
+leaf$profit_
+leaf$transpiration_
+```
+

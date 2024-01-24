@@ -37,7 +37,6 @@ solve_max_fitness <- function(bounds, params, log_scale = TRUE, tol = 1e-3){
   f <- function(x) fundamental_fitness(ff(trait_matrix(x, traits)), params)
 
   ret <- solve_max_worker(bounds, f, tol = 1e-3, outcome ="fitness")
-  #browser()
   if (log_scale) {
     ret <- exp(ret)
   }
@@ -45,29 +44,32 @@ solve_max_fitness <- function(bounds, params, log_scale = TRUE, tol = 1e-3){
   return(ret)
 }
 
-solve_max_worker <- function(bounds, f, tol=1e-3, outcome) {
-  if (length(rownames(bounds)) == 1L) {
+#' @title Execute finding point of maximum fitness within some range
+#'
+#' @param f function passed from solve_max_fitness
+#' @param outcome Desired outcome, e.g. "fitness"
+#' @param bounds Two element vector specifying range within which to
+#' @param tol Tolerance used in the optimisation
+#' @return ret 
+#' @export
+#'
+solve_max_worker <- function(bounds, f, tol=1e-3, outcome, use_optim = FALSE) {
+   if (length(rownames(bounds)) == 1L & use_optim == FALSE) {
     if (!all(is.finite(bounds))) {
       stop("Starting value did not have finite fitness; finite bounds required")
     }
-    ## The suppressWarnings here is for warnings like:
-    ##
-    ## Warning message:
-    ## In optimise(f, interval = bounds, maximum = TRUE, tol = tol) :
-    ##   NA/Inf replaced by maximum positive value
-    ##
-    ## which is probably the desired behaviour here.
-    out <- suppressWarnings(optimise(f, interval=bounds, maximum=TRUE, tol=tol))
-    # browser()
+    
+    out <- (optimise(f, interval=bounds, maximum=TRUE, tol=tol))
     ret <- out$maximum
     attr(ret, outcome) <- out$objective
+    return(ret)
     
   } else {
+
     ## This is not very well tested, and the tolerance is not useful:
     out <- optim(rowMeans(bounds), f, method="L-BFGS-B",
-                 lower=bounds[, "lower"], upper=bounds[, "upper"],
-                 control=list(fnscale=-1, factr=1e10))
-    
+                 lower= bounds[,"lower"], upper= bounds[,"upper"],
+                 control=list(fnscale=-0.01, reltol = 1e-10, trace = 6))
     ret <- out$value
     attr(ret, outcome) <- out$par
   }

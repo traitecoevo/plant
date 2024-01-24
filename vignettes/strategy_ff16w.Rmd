@@ -1,0 +1,247 @@
+---
+title: "strategy_ff16w"
+output: html_document
+date: "2023-01-16"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+ff16w is a new implementation of the ff16 strategy including water dynamics. This includes an updated strategy object `ff16w`, a physiological sub-model which determines how plants assimilate carbon and transpire water dynamically in response to water availability and a soil-water submodel which takes rainfall as an input and determines how much soil moisture is available to plants after accounting for soil hydrology, evaporation and soil use.
+
+This vignette outlines the `ff16w` strategy. Because the `ff16w` strategy is based on the same core physiological model for plant growth as `ff16`, we focus only on the differences between the strategies. 
+
+```{r}
+devtools::load_all()
+library(tidyverse)
+```
+
+The fundamental difference between `ff16` and `ff16w` is the inclusion of a detailed coupled photosynthesis-stomatal model which is mechanistically linked to soil moisture availability through a stomatal optimality model known as `profitmax`. This is discussed in detail in `leaf_submodel_documentation.Rmd`. This replaces the original photosythnesis equation in `ff16`. Importantly, whereas the original photosynthesis model outputted carbon assimilation per leaf area only, the new leaf photosynthesis model outputs both carbon assimilation per leaf area, as well as water transpiration per leaf area. In this way, the outcome of leaf photosythnesis is to drive plant growth as well as the soil moisture balance which, in turn, affects plant growth. 
+
+
+Let's start by growing a ff16w individual.
+
+As in `ff16w` we can set rates and view states for individuals.
+```{r}
+indv <- FF16w_Individual()
+```
+
+```{r}
+indv$state("height")
+```
+
+```{r}
+indv$set_state("height", 5)
+indv$state("height")
+```
+
+As in `ff16`, in `ff16w`, without information about the environment, it is not possible to compute the rates.
+
+```{r}
+indv$ode_rates
+```
+
+Let's make an `ff16w` environment object. There are a number of new environmetal variables which are currently set as defualt which we explore momentarily. For now though, lets just check that `ode_rates` works once we `compute_rates` with an `env` object.
+
+```{r}
+env <-FF16w_make_environment(soil_initial_state = 0)
+indv$compute_rates(env)
+indv$ode_rates
+```
+
+Interesting. We get 0s for everything except mortality. Why is that?
+
+```{r}
+env$get_soil_water_state()
+```
+
+It is because soil water $(m^3~water~m^{-3}soil)$ is currently 0, and thus the soil water potential $\psi$ approaches infinity. With no water, the stomata close, net photosynthesis becomes negative, and thus net biomass production $(\frac{dB}{dt})$ and mortality begins to increase. 
+
+We can confirm this by inspecting some of the new auxiliary variables available in ff16w.
+
+```{r}
+indv$aux_names
+
+#stomatal conductance is 0
+indv$aux("stom_cond_CO2_")
+#transpiration is 0
+indv$aux("transpiration_")
+#assimilation is negative due to dark-respiration
+indv$aux("assim_colimited_")
+#hydraulic costs are at their maximum
+indv$aux("hydraulic_cost_")
+#profit is the combination of the above two
+indv$aux("profit_")
+#as such net mass produciton is negative
+indv$aux("net_mass_production_dt")
+```
+
+Let's set a positive value of soil water to get growth growing. We work in values of soil water potential $\psi$ in (-Pa), that is, converting the negative water potential values into positive values to make them easier to work with. 1.5 -MPa is wilting point for plants, so let's set it at 1 -MPa. We convert $\psi$ to soil water using `soil_moist_from_psi` before passing the soil moisture value to `set_soil_water_state`. Even though we input water potential, we work with soil moisture because it is the units used for the soil hydrology sub-model.
+
+
+```{r}
+env$set_soil_water_state(env$soil_moist_from_psi(1e06))
+env$get_soil_water_state()
+```
+
+Soil water is now non-zero. Let's see `compute_rates` now.
+
+```{r}
+indv$compute_rates(env)
+indv$ode_rates
+```
+
+Great! We know have positive height growth rates and trivial mortality rates. As mentioned before, there are a range of other environmental variables that influence the outcome of leaf photosythnesis. Check out the `leaf_submodel` documentation to see how these variables work. In short though, we set them via the extrinsic drivers. These are kept separate to soil water state, because whereas soil water state is an emergent property of the hydrology model, the other environmental variables are directly set. 
+
+Let's set a second set of environmental conditions which has low $\rm CO_2$. Low $\rm CO_2$, all else beig equal, should yield slower growth rates and a lower maximum height at the resource compensation point (i.e. the point at which assimilation equals the combined cost of respiration and turnover)/
+
+```{r}
+env2 <-FF16w_make_environment()
+
+drivers <- ExtrinsicDrivers()
+drivers$set_constant("ca", 20)
+drivers$set_constant("atm_kpa", 101.3)
+drivers$set_constant("leaf_temp", 25)
+drivers$set_constant("atm_vpd", 1)
+drivers$set_constant("atm_o2_kpa", 21)
+drivers$set_constant("rainfall", 1)
+
+env2$extrinsic_drivers <- drivers
+```
+
+We can also set the above directly in `FF16w_make_environment`
+
+```{r}
+env2 <-FF16w_make_environment(ca = 20, atm_kpa = 101.3, leaf_temp = 25, atm_vpd = 1, atm_o2_kpa = 21, rainfall = 1)
+```
+
+```{r}
+indv <- FF16w_Individual()
+target_height <- 20
+res <- plant::grow_individual_to_height(indv, heights = target_height, env, time_max =100)
+
+res$trajectory %>%
+  as_tibble() %>% 
+  mutate(CO2 = "High CO2") -> indv1
+```
+
+Let's compare the two plants growing under different concentrations of $\rm CO_2$ as we set above.
+
+```{r}
+target_height <- 20
+res <- plant::grow_individual_to_height(indv, heights = target_height, env2, time_max =100)
+
+res$trajectory %>%
+  as_tibble() %>% 
+  mutate(CO2 = "Low CO2") -> indv2
+
+
+bind_rows(indv1, indv2) %>% 
+  ggplot(aes(x = time, y = height)) +
+  geom_line(aes(group = CO2, colour = CO2)) +
+  theme_classic()
+```
+
+Lets start working on growing some patches. When we grow patches, plants will compete for water, and we can track how this competition proceeeds by assessing soil mositure through time. First. 
+
+
+```{r}
+  p0 <- scm_base_parameters("FF16w")
+  p0$max_patch_lifetime <- 10
+  ctrl <- scm_base_control()
+  p1 <- expand_parameters(trait_matrix(c(3), "K_s"), p0, mutant=FALSE, birth_rate_list = c(10))
+  
+  env <- make_environment("FF16w", soil_initial_state = 0.2, rainfall = 1)
+  result <- build_schedule(p1, env, ctrl)
+  result <- run_scm_collect(result, env, ctrl, collect_auxiliary_variables = TRUE)
+```
+
+We can use tools now available in `plant` to tidy up these results and plot them.
+
+```{r}
+result %>%
+  tidy_patch() %>%
+  pluck("species") %>%
+  plot_size_distribution() +
+  theme(legend.position = "none") -> size_distribution
+```
+
+Based on the figure we can see that first cohorts grow rapidly but then all but disappear. Why might that be?
+
+```{r}
+result %>%
+  tidy_patch() %>%
+  pluck("env") %>%
+  pluck("soil_moist") %>%
+  ggplot(aes(x = time, y = soil_moist)) +
+  geom_line() +
+  theme_classic() -> soil_moisture
+
+cowplot::plot_grid(size_distribution, soil_moisture, ncol = 1)
+```
+
+Comparing the two figures, we can see that soil moisture increases rapidly while plant density is low. Then as the density increases, soil moisture increases to a peak, before declining rapidly as plant use up the available water, to then reach equilibrium.
+
+```{r}
+  p0 <- scm_base_parameters("FF16w")
+  p0$max_patch_lifetime <- 12
+  ctrl <- scm_base_control()
+  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,
+                          mutant = FALSE, birth_rate_list = list(20))  
+  env <- make_environment("FF16w", soil_initial_state = 0.7, rainfall = 0.55)
+  result <- run_scm_collect(p1, env, ctrl, collect_auxiliary_variables = TRUE)
+```
+
+```{r}
+  p0 <- scm_base_parameters("FF16w")
+  p0$max_patch_lifetime <- 1.90345
+  ctrl <- scm_base_control()
+  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,
+                          mutant = FALSE, birth_rate_list = list(1))  
+  env <- make_environment("FF16w", soil_initial_state = 0.7, rainfall = 0.55)
+  result <- run_scm_collect(p1, env, ctrl, collect_auxiliary_variables = TRUE)
+```
+
+```{r}
+result %>%
+  pluck("env") %>%
+  tidy_env() %>%
+  pluck("soil_moist") -> env_results
+  
+result %>%
+  tidy_patch() %>%
+  pluck("species") -> species_result
+
+species_result %>% 
+  left_join(env_results)  -> species_with_env
+
+plot_size_distribution(species_with_env)
+
+species_with_env %>% 
+  drop_na(profit_) %>%
+  distinct(time, .keep_all = T) %>%
+  mutate(soil_psi = map_dbl(soil_moist, ~env$psi_from_soil_moist(.x)/1e6)) %>%
+  ggplot(aes(x = time, y = soil_psi)) +
+  geom_line() +
+  theme_classic() +
+  geom_hline(yintercept =p1$strategies[[1]]$psi_crit) +
+  geom_vline(xintercept = species_with_env %>%
+  drop_na(profit_) %>%
+  filter(net_mass_production_dt < 0) %>%
+  arrange(desc(net_mass_production_dt)) %>%
+  slice(1) %>% pull(time))
+```
+
+
+```{r}
+  p0 <- scm_base_parameters("FF16w")
+  p0$max_patch_lifetime <- 1.90349
+  ctrl <- scm_base_control()
+  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,
+                          mutant = FALSE, birth_rate_list = list(1))  
+  env <- make_environment("FF16w", soil_initial_state = 0.7, rainfall = 0.55)
+  result <- run_scm_collect(p1, env, ctrl, collect_auxiliary_variables = TRUE)
+```
+
+

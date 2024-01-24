@@ -61,6 +61,7 @@ public:
   double consumption_rate(int i) const { return vars.consumption_rate(i); }
 
   double compute_competition(double z) const {
+
     return strategy->compute_competition(z, state(HEIGHT_INDEX)); // aux("competition_effect"));
   }
 
@@ -74,12 +75,12 @@ public:
   }
   
   double establishment_probability(const environment_type &environment) {
-    return strategy->establishment_probability(environment);
+    return strategy->establishment_probability(environment, vars);
   }
 
   double net_mass_production_dt(const environment_type &environment) {
     // TODO:  maybe reuse intervals? default false 
-    return strategy->net_mass_production_dt(environment, state(HEIGHT_INDEX), aux("competition_effect"));
+    return strategy->net_mass_production_dt(environment, state(HEIGHT_INDEX), aux("competition_effect"), vars);
   }
 
   // * ODE interface

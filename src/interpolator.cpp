@@ -25,6 +25,7 @@ void Interpolator::initialise() {
     util::stop("spline control points must be unique and in ascending order");
   }
   if (x.size() > 0) {
+
     tk_spline.set_points(x, y);
     active = true;
   }
