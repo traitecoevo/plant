@@ -152,13 +152,12 @@ double FF16_Strategy::assimilation(const FF16_Environment& environment,
   // Define an anonymous function to integrate
   // For given height in crown, take photosynthesis at depth multipled by 
   //   amount of leaf at that depth
-  std::function<double(double)> f = [&](double x) -> double {
-    double E = environment.get_environment_at_height(x);
-    return assimilation_leaf(E) * q(x, height);
+  std::function<double(double)> f = [&](double z) -> double {
+    return assimilation_leaf(environment.get_environment_at_height(z)) * q(z, height);
   };
 
   // Integrate over crown depth using adaptive integrator
-  if (control.assimilator_adaptive_integration && reuse_intervals) {
+  if (control.assimilation_adaptive_integration && reuse_intervals) {
     A = integrator.integrate_with_last_intervals(f, 0.0, height);
   } else {
     A = integrator.integrate(f, 0.0, height);
@@ -484,12 +483,12 @@ void FF16_Strategy::prepare_strategy() {
   // Set up the integrator
   integrator = quadrature::QAG(
       // Gauss-Kronrod quadrature integeration rule (see qkrules)
-      control.assimilator_integration_rule,
+      control.assimilation_integration_rule,
       // maximum iterations
-      control.assimilator_adaptive_integration ? control.assimilator_integration_iterations : 1,
+      control.assimilation_adaptive_integration ? control.assimilation_integration_iterations : 1,
       // error tolerances
-      control.assimilator_integration_tol,
-      control.assimilator_integration_tol);
+      control.assimilation_integration_tol,
+      control.assimilation_integration_tol);
 
   // NOTE: this pre-computes something to save a very small amount of time
   eta_c = 1 - 2/(1 + eta) + 1/(1 + 2*eta);

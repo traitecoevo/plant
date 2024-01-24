@@ -27,10 +27,10 @@ namespace plant {
 struct Control {
   Control();
 
-  bool   assimilator_adaptive_integration;
-  double assimilator_integration_tol;
-  size_t assimilator_integration_iterations;
-  size_t assimilator_integration_rule;
+  bool   assimilation_adaptive_integration;
+  double assimilation_integration_tol;
+  size_t assimilation_integration_iterations;
+  size_t assimilation_integration_rule;
 
   double offspring_production_tol;
   size_t offspring_production_iterations;

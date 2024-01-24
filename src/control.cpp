@@ -3,10 +3,10 @@
 namespace plant {
 
 Control::Control() {
-  assimilator_adaptive_integration = true;
-  assimilator_integration_tol = 1e-6;
-  assimilator_integration_iterations = 1000;
-  assimilator_integration_rule = 21;
+  assimilation_adaptive_integration = true;
+  assimilation_integration_tol = 1e-6;
+  assimilation_integration_iterations = 1000;
+  assimilation_integration_rule = 21;
 
   offspring_production_tol= 1e-8;
   offspring_production_iterations = 1000;

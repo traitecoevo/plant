@@ -332,10 +332,10 @@ template <> inline plant::NodeSchedule as(SEXP x) {
 }
 template <> inline SEXP wrap(const plant::Control& x) {
   Rcpp::List ret;
-  ret["assimilator_adaptive_integration"] = Rcpp::wrap(x.assimilator_adaptive_integration);
-  ret["assimilator_integration_tol"] = Rcpp::wrap(x.assimilator_integration_tol);
-  ret["assimilator_integration_iterations"] = Rcpp::wrap(x.assimilator_integration_iterations);
-  ret["assimilator_integration_rule"] = Rcpp::wrap(x.assimilator_integration_rule);
+  ret["assimilation_adaptive_integration"] = Rcpp::wrap(x.assimilation_adaptive_integration);
+  ret["assimilation_integration_tol"] = Rcpp::wrap(x.assimilation_integration_tol);
+  ret["assimilation_integration_iterations"] = Rcpp::wrap(x.assimilation_integration_iterations);
+  ret["assimilation_integration_rule"] = Rcpp::wrap(x.assimilation_integration_rule);
   ret["offspring_production_tol"] = Rcpp::wrap(x.offspring_production_tol);
   ret["offspring_production_iterations"] = Rcpp::wrap(x.offspring_production_iterations);
   ret["node_gradient_eps"] = Rcpp::wrap(x.node_gradient_eps);
@@ -374,14 +374,14 @@ template <> inline plant::Control as(SEXP x) {
   // field twice.  No current support for a hook.
   plant::Control ret;
   Rcpp::List xl(x);
-  // ret.assimilator_adaptive_integration = Rcpp::as<decltype(retassimilator_adaptive_integration) >(xl["assimilator_adaptive_integration"]);
-  ret.assimilator_adaptive_integration = Rcpp::as<bool >(xl["assimilator_adaptive_integration"]);
-  // ret.assimilator_integration_tol = Rcpp::as<decltype(retassimilator_integration_tol) >(xl["assimilator_integration_tol"]);
-  ret.assimilator_integration_tol = Rcpp::as<double >(xl["assimilator_integration_tol"]);
-  // ret.assimilator_integration_iterations = Rcpp::as<decltype(retassimilator_integration_iterations) >(xl["assimilator_integration_iterations"]);
-  ret.assimilator_integration_iterations = Rcpp::as<size_t >(xl["assimilator_integration_iterations"]);
-  // ret.assimilator_integration_rule = Rcpp::as<decltype(retassimilator_integration_rule) >(xl["assimilator_integration_rule"]);
-  ret.assimilator_integration_rule = Rcpp::as<size_t >(xl["assimilator_integration_rule"]);
+  // ret.assimilation_adaptive_integration = Rcpp::as<decltype(retassimilation_adaptive_integration) >(xl["assimilation_adaptive_integration"]);
+  ret.assimilation_adaptive_integration = Rcpp::as<bool >(xl["assimilation_adaptive_integration"]);
+  // ret.assimilation_integration_tol = Rcpp::as<decltype(retassimilation_integration_tol) >(xl["assimilation_integration_tol"]);
+  ret.assimilation_integration_tol = Rcpp::as<double >(xl["assimilation_integration_tol"]);
+  // ret.assimilation_integration_iterations = Rcpp::as<decltype(retassimilation_integration_iterations) >(xl["assimilation_integration_iterations"]);
+  ret.assimilation_integration_iterations = Rcpp::as<size_t >(xl["assimilation_integration_iterations"]);
+  // ret.assimilation_integration_rule = Rcpp::as<decltype(retassimilation_integration_rule) >(xl["assimilation_integration_rule"]);
+  ret.assimilation_integration_rule = Rcpp::as<size_t >(xl["assimilation_integration_rule"]);
   // ret.offspring_production_tol = Rcpp::as<decltype(retoffspring_production_tol) >(xl["offspring_production_tol"]);
   ret.offspring_production_tol = Rcpp::as<double >(xl["offspring_production_tol"]);
   // ret.offspring_production_iterations = Rcpp::as<decltype(retoffspring_production_iterations) >(xl["offspring_production_iterations"]);
