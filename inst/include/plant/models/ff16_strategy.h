@@ -4,7 +4,7 @@
 
 #include <plant/strategy.h>
 #include <plant/models/ff16_environment.h>
-#include <plant/models/assimilation.h>
+#include <plant/qag.h>
 
 namespace plant {
 
@@ -94,6 +94,12 @@ public:
 
   void update_dependent_aux(const int index, Internals& vars);
 
+  // * Mass production
+  // [eqn 12] Gross annual CO2 assimilation
+  double assimilation(const FF16_Environment& environment, double height,
+                      double area_leaf, bool reuse_intervals);
+  // [Appendix S6] Per-leaf photosynthetic rate.
+  double assimilation_leaf(double x) const;
 
   // [eqn 13] Total maintenance respiration
   double respiration(double mass_leaf, double mass_sapwood,
@@ -177,17 +183,19 @@ public:
   // * Competitive environment
   // [eqn 11] total projected leaf area above height above height `z` for given plant
   double shading_above(double z, double height) const;
+
+  // [eqn  9] Probability density of leaf area at height `z`
+  double q(double z, double height) const;
   // [eqn 10] Fraction of leaf area above height `z`
   double Q(double z, double height) const;
+  // [      ] Inverse of Q: height above which fraction 'x' of leaf found
+  double Qp(double x, double height) const;
 
   // The aim is to find a plant height that gives the correct seed mass.
   double height_seed(void) const;
 
   // Set constants within FF16_Strategy
   void prepare_strategy();
-
-  // Previously there was an "integrator" here.  I'm going to stick
-  // that into Control or FF16_Environment instead.
 
   // * Core traits
   double lma       = 0.1978791;  // Leaf mass per area [kg / m2]
@@ -277,8 +285,8 @@ public:
 
   std::string name;
 
-  Assimilation<FF16_Environment> assimilator;
-
+  // For integrating functions with using Gauss-Kronrod quadrature
+  quadrature::QAG integrator;
 };
 
 FF16_Strategy::ptr make_strategy_ptr(FF16_Strategy s);

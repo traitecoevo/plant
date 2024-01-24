@@ -140,6 +140,38 @@ void FF16_Strategy::compute_rates(const FF16_Environment& environment,
       mortality_dt(net_mass_production_dt_ / area_leaf_, vars.state(MORTALITY_INDEX)));
 }
 
+// [eqn 12] Gross annual CO2 assimilation
+double FF16_Strategy::assimilation(const FF16_Environment& environment,
+                                    double height,
+                                    double area_leaf,
+                                    bool reuse_intervals) {
+
+
+  double A = 0.0;
+
+  // Define an anonymous function to integrate
+  // For given height in crown, take photosynthesis at depth multipled by 
+  //   amount of leaf at that depth
+  std::function<double(double)> f = [&](double x) -> double {
+    double E = environment.get_environment_at_height(x);
+    return assimilation_leaf(E) * q(x, height);
+  };
+
+  // Integrate over crown depth using adaptive integrator
+  if (control.assimilator_adaptive_integration && reuse_intervals) {
+    A = integrator.integrate_with_last_intervals(f, 0.0, height);
+  } else {
+    A = integrator.integrate(f, 0.0, height);
+  }
+
+  return area_leaf * A;
+}
+
+// Photosynthetic rate per leaf area
+// `x` is openness, ranging from 0 to 1.
+double FF16_Strategy::assimilation_leaf(double x) const {
+  return a_p1 * x / (x + a_p2);
+}
 
 // [eqn 13] Total maintenance respiration
 // NOTE: In contrast with Falster ref model, we do not normalise by a_y*a_bio.
@@ -212,7 +244,7 @@ double FF16_Strategy::net_mass_production_dt(const FF16_Environment& environment
   const double area_bark_    = area_bark(area_leaf_);
   const double mass_bark_    = mass_bark(area_bark_, height);
   const double mass_root_    = mass_root(area_leaf_);
-  const double assimilation_ = assimilator.assimilate(environment, height,
+  const double assimilation_ = assimilation(environment, height,
                                             area_leaf_, reuse_intervals);
   const double respiration_ =
     respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
@@ -402,6 +434,12 @@ double FF16_Strategy::shading_above(double z, double height) const {
   return k_I * area_leaf(height) * Q(z, height);
 }
 
+// [eqn  9] Probability density of leaf area at height `z`
+double FF16_Strategy::q(double z, double height) const {
+  const double tmp = pow(z / height, eta);
+  return 2 * eta * (1 - tmp) * tmp / z;
+}
+
 // [eqn 10] ... Fraction of leaf area above height 'z' for an
 //              individual of height 'height'
 double FF16_Strategy::Q(double z, double height) const {
@@ -410,6 +448,12 @@ double FF16_Strategy::Q(double z, double height) const {
   }
   const double tmp = 1.0-pow(z / height, eta);
   return tmp * tmp;
+}
+
+// (inverse of [eqn 10]; return the height above which fraction 'x' of
+// the leaf mass would be found).
+double FF16_Strategy::Qp(double x, double height) const { // x in [0,1], unchecked.
+  return pow(1 - sqrt(x), (1/eta)) * height;
 }
 
 // The aim is to find a plant height that gives the correct seed mass.
@@ -436,12 +480,18 @@ double FF16_Strategy::height_seed(void) const {
 }
 
 void FF16_Strategy::prepare_strategy() {
+
   // Set up the integrator
-  assimilator.initialize(a_p1, a_p2, eta,
-                         control.assimilator_adaptive_integration,
-                         control.assimilator_integration_rule,
-                         control.assimilator_integration_iterations,
-                         control.assimilator_integration_tol);
+  size_t iterations = control.assimilator_integration_iterations;
+  if (!control.assimilator_adaptive_integration) {
+    iterations = 1;
+  }
+
+  integrator = quadrature::QAG(
+    control.assimilator_integration_rule,
+    iterations,
+    control.assimilator_integration_tol, 
+    control.assimilator_integration_tol);
 
   // NOTE: this pre-computes something to save a very small amount of time
   eta_c = 1 - 2/(1 + eta) + 1/(1 + 2*eta);

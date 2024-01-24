@@ -5,7 +5,6 @@
 
 #include <plant/models/ff16_strategy.h>
 #include <plant/models/ff16_environment.h>
-#include <plant/models/assimilation.h>
 
 namespace plant {
 
