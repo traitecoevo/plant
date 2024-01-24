@@ -249,7 +249,6 @@ resource_compensation_point.Plant <- function(p, ...) {
 #' @param rate
 #' @param params
 #' @param env
-#' @param use_optim
 #' @param hyperpars
 #'
 #' @export
@@ -262,9 +261,8 @@ optimise_individual_rate_at_size_by_trait <- function(
     size = 1, size_name = "height",
     rate = size_name,
     params = scm_base_parameters(type),
-    env = make_environment(type = type),
-    hyperpars = hyperpar(type),
-    use_optim = FALSE) {
+    env = make_environment(type),
+    hyperpars = hyperpar(type)) {
   # can't handle situations yet where bounds are outside of positive growth, not working for K93
   bounds <- check_bounds(bounds)
   traits <- rownames(bounds)
