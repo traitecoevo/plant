@@ -13,10 +13,10 @@ FF16_Strategy::FF16_Strategy() {
   name = "FF16";
 }
 
-void FF16_Strategy::refresh_indices() {
-  // Create and fill the name to state index maps
-  state_index = std::map<std::string, int>();
-  aux_index = std::map<std::string, int>();
+void FF16_Strategy::refresh_indices () {
+    // Create and fill the name to state index maps
+  state_index = std::map<std::string,int>();
+  aux_index   = std::map<std::string,int>();
   std::vector<std::string> aux_names_vec = aux_names();
   std::vector<std::string> state_names_vec = state_names();
   for (size_t i = 0; i < state_names_vec.size(); i++) {
@@ -56,7 +56,7 @@ double FF16_Strategy::mass_bark(double area_bark, double height) const {
 }
 
 double FF16_Strategy::area_stem(double area_bark, double area_sapwood,
-                                double area_heartwood) const {
+                            double area_heartwood) const {
   return area_bark + area_sapwood + area_heartwood;
 }
 
@@ -71,68 +71,60 @@ double FF16_Strategy::mass_root(double area_leaf) const {
 
 // [eqn 8] Total mass
 double FF16_Strategy::mass_live(double mass_leaf, double mass_bark,
-                                double mass_sapwood, double mass_root) const {
+                           double mass_sapwood, double mass_root) const {
   return mass_leaf + mass_sapwood + mass_bark + mass_root;
 }
 
 double FF16_Strategy::mass_total(double mass_leaf, double mass_bark,
-                                 double mass_sapwood, double mass_heartwood,
-                                 double mass_root) const {
-  return mass_leaf + mass_bark + mass_sapwood + mass_heartwood + mass_root;
+                            double mass_sapwood, double mass_heartwood,
+                            double mass_root) const {
+  return mass_leaf + mass_bark + mass_sapwood +  mass_heartwood + mass_root;
 }
 
 double FF16_Strategy::mass_above_ground(double mass_leaf, double mass_bark,
-                                        double mass_sapwood,
-                                        double mass_root) const {
+                            double mass_sapwood, double mass_root) const {
   return mass_leaf + mass_bark + mass_sapwood + mass_root;
 }
 
 // for updating auxiliary state
-void FF16_Strategy::update_dependent_aux(const int index, Internals &vars) {
+void FF16_Strategy::update_dependent_aux(const int index, Internals& vars) {
   if (index == HEIGHT_INDEX) {
     double height = vars.state(HEIGHT_INDEX);
     vars.set_aux(aux_index.at("competition_effect"), area_leaf(height));
   }
 }
 
+
 // one-shot update of the scm variables
 // i.e. setting rates of ode vars from the state and updating aux vars
-void FF16_Strategy::compute_rates(const FF16_Environment &environment,
-                                  bool reuse_intervals, Internals &vars) {
+void FF16_Strategy::compute_rates(const FF16_Environment& environment,
+                              bool reuse_intervals,
+                              Internals& vars) {
 
   double height = vars.state(HEIGHT_INDEX);
   double area_leaf_ = vars.aux(aux_index.at("competition_effect"));
 
   const double net_mass_production_dt_ =
-      net_mass_production_dt(environment, height, area_leaf_, vars, reuse_intervals);
+    net_mass_production_dt(environment, height, area_leaf_, vars, reuse_intervals);
 
   // store the aux sate
   vars.set_aux(aux_index.at("net_mass_production_dt"), net_mass_production_dt_);
 
   if (net_mass_production_dt_ > 0) {
 
-    const double fraction_allocation_reproduction_ =
-        fraction_allocation_reproduction(height);
+    const double fraction_allocation_reproduction_ = fraction_allocation_reproduction(height);
     const double darea_leaf_dmass_live_ = darea_leaf_dmass_live(area_leaf_);
-
-    const double fraction_allocation_growth_ =
-        fraction_allocation_growth(height);
-    const double area_leaf_dt = net_mass_production_dt_ *
-                                fraction_allocation_growth_ *
-                                darea_leaf_dmass_live_;
+    const double fraction_allocation_growth_ = fraction_allocation_growth(height);
+    const double area_leaf_dt = net_mass_production_dt_ * fraction_allocation_growth_ * darea_leaf_dmass_live_;
 
     vars.set_rate(HEIGHT_INDEX, dheight_darea_leaf(area_leaf_) * area_leaf_dt);
     vars.set_rate(FECUNDITY_INDEX,
-                  fecundity_dt(net_mass_production_dt_,
-                               fraction_allocation_reproduction_));
+      fecundity_dt(net_mass_production_dt_, fraction_allocation_reproduction_));
 
-    vars.set_rate(state_index.at("area_heartwood"),
-                  area_heartwood_dt(area_leaf_));
+    vars.set_rate(state_index.at("area_heartwood"), area_heartwood_dt(area_leaf_));
     const double area_sapwood_ = area_sapwood(area_leaf_);
-
     const double mass_sapwood_ = mass_sapwood(area_sapwood_, height);
-    vars.set_rate(state_index.at("mass_heartwood"),
-                  mass_heartwood_dt(mass_sapwood_));
+    vars.set_rate(state_index.at("mass_heartwood"), mass_heartwood_dt(mass_sapwood_));
 
     if (collect_all_auxiliary) {
       vars.set_aux(aux_index.at("area_sapwood"), area_sapwood_);
@@ -145,53 +137,67 @@ void FF16_Strategy::compute_rates(const FF16_Environment &environment,
   }
   // [eqn 21] - Instantaneous mortality rate
   vars.set_rate(MORTALITY_INDEX,
-                mortality_dt(net_mass_production_dt_ / area_leaf_,
-                             vars.state(MORTALITY_INDEX)));
+      mortality_dt(net_mass_production_dt_ / area_leaf_, vars.state(MORTALITY_INDEX)));
 }
+
 
 // [eqn 13] Total maintenance respiration
 // NOTE: In contrast with Falster ref model, we do not normalise by a_y*a_bio.
 double FF16_Strategy::respiration(double mass_leaf, double mass_sapwood,
-                                  double mass_bark, double mass_root) const {
-
-  return respiration_leaf(mass_leaf) + respiration_bark(mass_bark) +
-         respiration_sapwood(mass_sapwood) + respiration_root(mass_root);
+                             double mass_bark, double mass_root) const {
+  return respiration_leaf(mass_leaf) +
+         respiration_bark(mass_bark) +
+         respiration_sapwood(mass_sapwood) +
+         respiration_root(mass_root);
 }
 
-double FF16_Strategy::respiration_leaf(double mass) const { return r_l * mass; }
+double FF16_Strategy::respiration_leaf(double mass) const {
+  return r_l * mass;
+}
 
-double FF16_Strategy::respiration_bark(double mass) const { return r_b * mass; }
+double FF16_Strategy::respiration_bark(double mass) const {
+  return r_b * mass;
+}
 
 double FF16_Strategy::respiration_sapwood(double mass) const {
   return r_s * mass;
 }
 
-double FF16_Strategy::respiration_root(double mass) const { return r_r * mass; }
+double FF16_Strategy::respiration_root(double mass) const {
+  return r_r * mass;
+}
 
 // [eqn 14] Total turnover
 double FF16_Strategy::turnover(double mass_leaf, double mass_bark,
-                               double mass_sapwood, double mass_root) const {
-
-  return turnover_leaf(mass_leaf) + turnover_bark(mass_bark) +
-         turnover_sapwood(mass_sapwood) + turnover_root(mass_root);
+                          double mass_sapwood, double mass_root) const {
+   return turnover_leaf(mass_leaf) +
+          turnover_bark(mass_bark) +
+          turnover_sapwood(mass_sapwood) +
+          turnover_root(mass_root);
 }
 
-double FF16_Strategy::turnover_leaf(double mass) const { return k_l * mass; }
+double FF16_Strategy::turnover_leaf(double mass) const {
+  return k_l * mass;
+}
 
-double FF16_Strategy::turnover_bark(double mass) const { return k_b * mass; }
+double FF16_Strategy::turnover_bark(double mass) const {
+  return k_b * mass;
+}
 
-double FF16_Strategy::turnover_sapwood(double mass) const { return k_s * mass; }
+double FF16_Strategy::turnover_sapwood(double mass) const {
+  return k_s * mass;
+}
 
-double FF16_Strategy::turnover_root(double mass) const { return k_r * mass; }
+double FF16_Strategy::turnover_root(double mass) const {
+  return k_r * mass;
+}
 
 // [eqn 15] Net production
 //
 // NOTE: Translation of variable names from the Falster 2011.  Everything
 // before the minus sign is SCM's N, our `net_mass_production_dt` is SCM's P.
-double FF16_Strategy::net_mass_production_dt_A(double assimilation,
-                                               double respiration,
-                                               double turnover) const {
-
+double FF16_Strategy::net_mass_production_dt_A(double assimilation, double respiration,
+                                double turnover) const {
   return a_bio * a_y * (assimilation - respiration) - turnover;
 }
 
@@ -233,10 +239,9 @@ FF16_Strategy::net_mass_production_dt(const FF16_Environment &environment,
   const double assimilation = assimilation_per_area * area_leaf_;
 
   const double respiration_ =
-      respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
+    respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
   const double turnover_ =
-      turnover(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
-
+    turnover(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
   return net_mass_production_dt_A(assimilation, respiration_, turnover_);
 }
 
@@ -251,18 +256,17 @@ double FF16_Strategy::fraction_allocation_growth(double height) const {
 }
 
 // [eqn 17] Rate of offspring production
-double
-FF16_Strategy::fecundity_dt(double net_mass_production_dt,
-                            double fraction_allocation_reproduction) const {
+double FF16_Strategy::fecundity_dt(double net_mass_production_dt,
+                               double fraction_allocation_reproduction) const {
   return net_mass_production_dt * fraction_allocation_reproduction /
-         (omega + a_f3);
+    (omega + a_f3);
 }
 
 double FF16_Strategy::darea_leaf_dmass_live(double area_leaf) const {
-  return 1.0 /
-         (dmass_leaf_darea_leaf(area_leaf) +
-          dmass_sapwood_darea_leaf(area_leaf) +
-          dmass_bark_darea_leaf(area_leaf) + dmass_root_darea_leaf(area_leaf));
+  return 1.0/(  dmass_leaf_darea_leaf(area_leaf)
+              + dmass_sapwood_darea_leaf(area_leaf)
+              + dmass_bark_darea_leaf(area_leaf)
+              + dmass_root_darea_leaf(area_leaf));
 }
 
 // TODO: Ordering below here needs working on, probably as @dfalster
@@ -301,8 +305,8 @@ double FF16_Strategy::area_sapwood_dt(double area_leaf_dt) const {
   return area_leaf_dt * theta;
 }
 
-// Note, unlike others, heartwood growth does not depend on leaf area growth,
-// but rather existing sapwood
+// Note, unlike others, heartwood growth does not depend on leaf area growth, but
+// rather existing sapwood
 double FF16_Strategy::area_heartwood_dt(double area_leaf) const {
   return k_s * area_sapwood(area_leaf);
 }
@@ -314,56 +318,59 @@ double FF16_Strategy::area_bark_dt(double area_leaf_dt) const {
 
 // Growth rate of stem basal area per unit time
 double FF16_Strategy::area_stem_dt(double area_leaf,
-                                   double area_leaf_dt) const {
-  return area_sapwood_dt(area_leaf_dt) + area_bark_dt(area_leaf_dt) +
-         area_heartwood_dt(area_leaf);
+                               double area_leaf_dt) const {
+  return area_sapwood_dt(area_leaf_dt) +
+    area_bark_dt(area_leaf_dt) +
+    area_heartwood_dt(area_leaf);
 }
 
 // Growth rate of basal diameter_stem per unit time
-double FF16_Strategy::diameter_stem_dt(double area_stem,
-                                       double area_stem_dt) const {
+double FF16_Strategy::diameter_stem_dt(double area_stem, double area_stem_dt) const {
   return ddiameter_stem_darea_stem(area_stem) * area_stem_dt;
 }
 
 // Growth rate of root mass per unit time
 double FF16_Strategy::mass_root_dt(double area_leaf,
-                                   double area_leaf_dt) const {
+                               double area_leaf_dt) const {
   return area_leaf_dt * dmass_root_darea_leaf(area_leaf);
 }
 
 double FF16_Strategy::mass_live_dt(double fraction_allocation_reproduction,
-                                   double net_mass_production_dt) const {
+                               double net_mass_production_dt) const {
   return (1 - fraction_allocation_reproduction) * net_mass_production_dt;
 }
 
 // TODO: Change top two to use mass_live_dt
 double FF16_Strategy::mass_total_dt(double fraction_allocation_reproduction,
-                                    double net_mass_production_dt,
-                                    double mass_heartwood_dt) const {
-  return mass_live_dt(fraction_allocation_reproduction,
-                      net_mass_production_dt) +
-         mass_heartwood_dt;
+                                     double net_mass_production_dt,
+                                     double mass_heartwood_dt) const {
+  return mass_live_dt(fraction_allocation_reproduction, net_mass_production_dt) +
+    mass_heartwood_dt;
 }
 
 // TODO: Do we not track root mass change?
-double FF16_Strategy::mass_above_ground_dt(
-    double area_leaf, double fraction_allocation_reproduction,
-    double net_mass_production_dt, double mass_heartwood_dt,
-    double area_leaf_dt) const {
-  const double mass_root_dt = area_leaf_dt * dmass_root_darea_leaf(area_leaf);
+double FF16_Strategy::mass_above_ground_dt(double area_leaf,
+                                       double fraction_allocation_reproduction,
+                                       double net_mass_production_dt,
+                                       double mass_heartwood_dt,
+                                       double area_leaf_dt) const {
+  const double mass_root_dt =
+    area_leaf_dt * dmass_root_darea_leaf(area_leaf);
   return mass_total_dt(fraction_allocation_reproduction, net_mass_production_dt,
-                       mass_heartwood_dt) -
-         mass_root_dt;
+                        mass_heartwood_dt) - mass_root_dt;
 }
 
 double FF16_Strategy::mass_heartwood_dt(double mass_sapwood) const {
   return turnover_sapwood(mass_sapwood);
 }
 
+
 double FF16_Strategy::mass_live_given_height(double height) const {
   double area_leaf_ = area_leaf(height);
-  return mass_leaf(area_leaf_) + mass_bark(area_bark(area_leaf_), height) +
-         mass_sapwood(area_sapwood(area_leaf_), height) + mass_root(area_leaf_);
+  return mass_leaf(area_leaf_) +
+         mass_bark(area_bark(area_leaf_), height) +
+         mass_sapwood(area_sapwood(area_leaf_), height) +
+         mass_root(area_leaf_);
 }
 
 double FF16_Strategy::height_given_mass_leaf(double mass_leaf) const {
@@ -371,7 +378,7 @@ double FF16_Strategy::height_given_mass_leaf(double mass_leaf) const {
 }
 
 double FF16_Strategy::mortality_dt(double productivity_area,
-                                   double cumulative_mortality) const {
+                              double cumulative_mortality) const {
 
   // NOTE: When plants are extremely inviable, the rate of change in
   // mortality can be Inf, because net production is negative, leaf
@@ -381,9 +388,10 @@ double FF16_Strategy::mortality_dt(double productivity_area,
   // we will need to trim this to some large finite value, but for
   // now, just checking that the actual mortality rate is finite.
   if (R_FINITE(cumulative_mortality)) {
-    return mortality_growth_independent_dt() +
-           mortality_growth_dependent_dt(productivity_area);
-  } else {
+    return
+      mortality_growth_independent_dt() +
+      mortality_growth_dependent_dt(productivity_area);
+ } else {
     // If mortality probability is 1 (latency = Inf) then the rate
     // calculations break.  Setting them to zero gives the correct
     // behaviour.
@@ -391,10 +399,11 @@ double FF16_Strategy::mortality_dt(double productivity_area,
   }
 }
 
-double FF16_Strategy::mortality_growth_independent_dt() const { return d_I; }
+double FF16_Strategy::mortality_growth_independent_dt() const {
+  return d_I;
+}
 
-double
-FF16_Strategy::mortality_growth_dependent_dt(double productivity_area) const {
+double FF16_Strategy::mortality_growth_dependent_dt(double productivity_area) const {
   return a_dG1 * exp(-a_dG2 * productivity_area);
 }
 
@@ -403,7 +412,7 @@ double
 FF16_Strategy::establishment_probability(const FF16_Environment &environment, Internals &vars) {
 
   double decay_over_time = exp(-recruitment_decay * environment.time);
-
+  
   const double net_mass_production_dt_ =
       net_mass_production_dt(environment, height_0, area_leaf_0, vars);
   if (net_mass_production_dt_ > 0) {
