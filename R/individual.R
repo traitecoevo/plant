@@ -236,3 +236,86 @@ resource_compensation_point <- function(p, ...) {
 resource_compensation_point.Plant <- function(p, ...) {
   resource_compensation_point(p, ...)
 }
+
+#' The function `optimise_individual_rate_at_height_by_trait` and `optimise_individual_rate_at_size_by_trait` solve for the maximum of
+#' some rate (e.g. growth rate) at a specified height within
+#' the interval of the bounds of a given trait
+#' @param type
+#' @param bounds
+#' @param log_scale
+#' @param tol
+#' @param size
+#' @param size_name
+#' @param rate
+#' @param params
+#' @param env
+#' @param use_optim
+#' @param hyperpars
+#'
+#' @export
+#' @rdname optimise_individual_rate_at_size_by_trait
+#' @author Isaac Towers, Daniel Falster and Andrew O'Reilly-Nugent
+
+optimise_individual_rate_at_size_by_trait <- function(
+    type = "FF16",
+    bounds, log_scale = TRUE, tol = 1e-3,
+    size = 1, size_name = "height",
+    rate = size_name,
+    params = scm_base_parameters(type),
+    env = make_environment(type = type),
+    hyperpars = hyperpar(type),
+    use_optim = FALSE) {
+  # can't handle situations yet where bounds are outside of positive growth, not working for K93
+  bounds <- check_bounds(bounds)
+  traits <- rownames(bounds)
+
+  if (log_scale) {
+    bounds[bounds[, 1] == -Inf, 1] <- 0
+    bounds <- log(bounds)
+    ff <- exp
+  } else {
+    ff <- I
+  }
+
+  ## Define function to optimise
+  f <- function(x) {
+    # create a strategy object
+    s <- strategy(ff(trait_matrix(x, rownames(bounds))), parameters = params, hyperpar = hyperpars, birth_rate_list = 1)
+
+    # Create an individual object
+    types <- extract_RcppR6_template_types(params, "Parameters")
+    indv <- do.call("Individual", types)(s) # equiavlent to calling Individual<FF16w,FF16_Env> or FF16_individual(s)
+
+    browser()
+
+    # grow inidividual to specified size
+    res <- grow_individual_to_height(indv,
+      height = size, env,
+      time_max = 100, warn = TRUE, filter = TRUE
+    )
+
+    res <- res$rate[colnames(res$rate) == rate]
+
+    # turn NA (non-positive growth) to 0, allows optimiser to get finite value but at minimum and thus avoided
+    if (is.na(res)) {
+      res <- 0
+    }
+    return(res)
+  }
+
+  f(0.05)
+
+  ret <- solve_max_worker(bounds, f, tol = 1e-6, outcome = paste0(outcome, "_growth_rate"))
+
+  if (log_scale) {
+    ret <- exp(ret)
+  }
+
+  return(ret)
+}
+
+#' @export
+#' @rdname optimise_individual_rate_at_size_by_trait
+optimise_individual_rate_at_height_by_trait <- function(..., height = 1) {
+  optimise_individual_rate_at_size_by_trait(..., size = height, size_name = "height")
+}
