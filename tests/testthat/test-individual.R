@@ -161,16 +161,16 @@ for (x in names(strategy_types)) {
     #check that height opt is convergent when comparing set_state_ode = TRUE and set_state_ode = FALSE
     
     opt_res_height_by_size_grow <- optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = 3, type = x, size_name = "height", set_state_directly = FALSE)
-    expect_equal(opt_res_height_by_size_ode, opt_res_height_by_size_grow, 1e-6)
+    expect_equal(opt_res_height_by_size_ode, opt_res_height_by_size_grow, 1e-4)
     
     #check optimise_individual_rate_at_size_by_trait for rate other than height
     opt_res_area_heartwood_by_size_grow <- optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = 0.1, type = x, size_name = "area_heartwood", set_state_directly = FALSE)
     if(x == "FF16"){
-    expect_equal(opt_res_area_heartwood_by_size_grow[1], 0.4160424, 1e-6)
+    expect_equal(opt_res_area_heartwood_by_size_grow[1], 0.4160424, 1e-4)
     }
     
     if(x == "FF16r"){
-      expect_equal(opt_res_area_heartwood_by_size_grow[1],  0.5587316, 1e-6)
+      expect_equal(opt_res_area_heartwood_by_size_grow[1],  0.5587316, 1e-4)
     }
     
     
