@@ -263,7 +263,7 @@ optimise_individual_rate_at_size_by_trait <- function(
     params = scm_base_parameters(type),
     env = make_environment(type),
     hyperpars = hyperpar(type),
-    set_state_by_ode = FALSE) {
+    set_state_directly = FALSE) {
   # can't handle situations yet where bounds are outside of positive growth, not working for K93
   bounds <- check_bounds(bounds)
   traits <- rownames(bounds)
@@ -285,7 +285,7 @@ optimise_individual_rate_at_size_by_trait <- function(
     types <- extract_RcppR6_template_types(params, "Parameters")
     indv <- do.call("Individual", types)(s) # equiavlent to calling Individual<FF16w,FF16_Env> or FF16_individual(s)
     
-    if(set_state_by_ode & size_name == "height"){
+    if(set_state_directly & size_name == "height"){
       # set inidividual at specified size
       indv$set_state(size_name, size)
       # compute rates given environment
@@ -333,5 +333,5 @@ optimise_individual_rate_at_size_by_trait <- function(
 #' @export
 #' @rdname optimise_individual_rate_at_size_by_trait
 optimise_individual_rate_at_height_by_trait <- function(..., height = 1) {
-  optimise_individual_rate_at_size_by_trait(..., size = height, size_name = "height", set_state_by_ode = TRUE)
+  optimise_individual_rate_at_size_by_trait(..., size = height, size_name = "height", set_state_directly = TRUE)
 }
