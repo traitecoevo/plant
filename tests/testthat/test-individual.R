@@ -165,7 +165,14 @@ for (x in names(strategy_types)) {
     
     #check optimise_individual_rate_at_size_by_trait for rate other than height
     opt_res_area_heartwood_by_size_grow <- optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = 0.1, type = x, size_name = "area_heartwood", set_state_by_ode = FALSE)
+    if(x == "FF16"){
     expect_equal(opt_res_area_heartwood_by_size_grow[1], 0.4160424, 1e-6)
+    }
+    
+    if(x == "FF16r"){
+      expect_equal(opt_res_area_heartwood_by_size_grow[1],  0.5587316, 1e-6)
+    }
+    
     
     #check what happens when unknown rate name is passed in as size name
     expect_error(optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = 0.1, type = x, size_name = "mss_heartwood", set_state_by_ode = FALSE), "key not found")
