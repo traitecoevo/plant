@@ -141,25 +141,60 @@ for (x in names(strategy_types)) {
   if(x %in% c("FF16", "FF16r")) {
     
     #set bounds
-    bounds = bounds(lma=c(0.01, 0.08))
+    bounds = bounds(lma=c(0.01, 3))
     
-    size_res <- optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = 3, type = x, size_name = "height")
+    opt_res_height_by_size_ode <- optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = 3, type = x, size_name = "height", set_state_by_ode = TRUE)
 
     #check outcome real and positive
-    expect_true(size_res > 0)
+    expect_true(opt_res_height_by_size_ode > 0)
+    #check trait optima equal to realistic value
+    expect_equal(opt_res_height_by_size_ode[1],0.09015998)
+    #check height growth rate equal to realistic value
+    expect_equal(attr(opt_res_height_by_size_ode, "height_growth_rate"), 1.141283, tolerance = 1e-6)
     
-    #check that height and size are convergent with same parameters
-    height_res <- optimise_individual_rate_at_height_by_trait(bounds = bounds, height = 3)
-    expect_true(height_res == size_res)  
+    
+    #check that height and size are convergent with same parameters when using set_state_ode = TRUE
+    
+    opt_res_height_by_height_ode <- optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = 3, type = x, size_name = "height", set_state_by_ode = TRUE)
+    expect_true(opt_res_height_by_size_ode == opt_res_height_by_height_ode)  
+    
+    #check that height opt is convergent when comparing set_state_ode = TRUE and set_state_ode = FALSE
+    
+    opt_res_height_by_size_grow <- optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = 3, type = x, size_name = "height", set_state_by_ode = FALSE)
+    expect_equal(opt_res_height_by_size_ode, opt_res_height_by_size_grow, 1e-6)
+    
+    #check optimise_individual_rate_at_size_by_trait for rate other than height
+    opt_res_area_heartwood_by_size_grow <- optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = 0.1, type = x, size_name = "area_heartwood", set_state_by_ode = FALSE)
+    expect_equal(opt_res_area_heartwood_by_size_grow[1], 0.4160424, 1e-6)
+    
+    #check what happens when unknown rate name is passed in as size name
+    expect_error(optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = 0.1, type = x, size_name = "mss_heartwood", set_state_by_ode = FALSE), "key not found")
+    
+    #check that only one size can be passed to function at a time (grow individual to size can take many values as a fector)
+    expect_error(optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = c(3,6,9), type = x, size_name = "height", set_state_by_ode = TRUE), "Expecting a single value")
     
     #set bounds - too low for positive growth
     bounds = bounds(lma=c(1e-8, 1e-7))
     
-    size_res <- optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = 3, type = x, size_name = "height")
+    #optimum trait should be NA and optimum height growth rate 0
+    size_res_ode_state_true_no_pos_growth <- optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = 3, type = x, size_name = "height", set_state_by_ode = TRUE)
+    expect_true(is.na(size_res_ode_state_true_no_pos_growth[1]))
+    expect_equal(attr(size_res_ode_state_true_no_pos_growth, "height_growth_rate"), 0)
     
-    #check that outcome is 0
-    expect_true(attr(size_res, "height_growth_rate") == 0)
-  } else {
+    
+    #optimum trait should be NA and optimum height growth rate 0
+    size_res_ode_state_false_no_pos_growth <- optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = 3, type = x, size_name = "height", set_state_by_ode = TRUE)
+    expect_true(is.na(size_res_ode_state_false_no_pos_growth[1]))
+    expect_equal(attr(size_res_ode_state_false_no_pos_growth, "height_growth_rate"), 0)
+    
+    #check when bounds allow positive growth but dont include root (approx 0.09)
+    bounds = bounds(lma=c(0.01, 0.07))
+    size_res_ode_state_true_no_root = optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = 3, type = x, size_name = "height", set_state_by_ode = TRUE)
+    expect_equal(0.07, size_res_ode_state_true_no_root[1], 1e-6)
+    
+    size_res_ode_state_false_no_root = optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = 3, type = x, size_name = "height", set_state_by_ode = FALSE)
+    expect_equal(0.07, size_res_ode_state_true_no_root[1], 1e-6)
+    } else {
     expect_equal(x, x) # to avoid a warning for empty
   }
 })

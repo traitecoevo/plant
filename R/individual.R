@@ -262,7 +262,8 @@ optimise_individual_rate_at_size_by_trait <- function(
     rate = size_name,
     params = scm_base_parameters(type),
     env = make_environment(type),
-    hyperpars = hyperpar(type)) {
+    hyperpars = hyperpar(type),
+    set_state_by_ode = FALSE) {
   # can't handle situations yet where bounds are outside of positive growth, not working for K93
   bounds <- check_bounds(bounds)
   traits <- rownames(bounds)
@@ -283,33 +284,54 @@ optimise_individual_rate_at_size_by_trait <- function(
     # Create an individual object
     types <- extract_RcppR6_template_types(params, "Parameters")
     indv <- do.call("Individual", types)(s) # equiavlent to calling Individual<FF16w,FF16_Env> or FF16_individual(s)
-
-    # set inidividual at specified size
-    indv$set_state(size_name, size)
-    # compute rates given environment
-    indv$compute_rates(env)
     
-    #filter ode rate based on size name
-    res <- indv$ode_rates[indv$ode_names == size_name]
+    if(set_state_by_ode & size_name == "height"){
+      # set inidividual at specified size
+      indv$set_state(size_name, size)
+      # compute rates given environment
+      indv$compute_rates(env)
+      #filter ode rate based on size name
+      res <- indv$ode_rates[indv$ode_names == size_name]
+      
+    } else{
+      res <- grow_individual_to_size(indv,
+                                       sizes = size, size_name = size_name, env,
+                                       time_max = 100, warn = TRUE, filter = TRUE) 
+      #check if there was positive growth (indicated by the presence of postive numbers of rows in res$stae)
+      if(nrow(res$state) == 0){
+        res = NA
+      } else{
+      res <- res$individual[[1]]$ode_rates[res$individual[[1]]$ode_names == size_name]
+      }
 
     # turn NA (non-positive growth) to 0, allows optimiser to get finite value but at minimum and thus avoided
     if (is.na(res)) {
       res <- 0
     }
     return(res)
+    }
   }
+  
 
+  #solve for the trait value which maximise size growth
   ret <- solve_max_worker(bounds, f, tol = 1e-6, outcome = paste0(size_name, "_growth_rate"))
 
+  #exponentiate the optimum trait value
   if (log_scale) {
     ret <- exp(ret)
   }
+  
+  #if the optimum growth rate is 0, means no postive growth, so set set optimum trait value to NA
+  if (attr(ret, paste0(size_name, "_growth_rate")) == 0){
+    ret[1] = NA
+  }
 
+  
   return(ret)
 }
 
 #' @export
 #' @rdname optimise_individual_rate_at_size_by_trait
 optimise_individual_rate_at_height_by_trait <- function(..., height = 1) {
-  optimise_individual_rate_at_size_by_trait(..., size = height, size_name = "height")
+  optimise_individual_rate_at_size_by_trait(..., size = height, size_name = "height", set_state_by_ode = TRUE)
 }
