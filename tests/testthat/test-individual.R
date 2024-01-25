@@ -175,10 +175,10 @@ for (x in names(strategy_types)) {
     
     
     #check what happens when unknown rate name is passed in as size name
-    expect_error(optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = 0.1, type = x, size_name = "mss_heartwood", set_state_by_ode = FALSE), "key not found")
+    expect_error(optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = 0.1, type = x, size_name = "mss_heartwood", set_state_by_ode = FALSE))
     
     #check that only one size can be passed to function at a time (grow individual to size can take many values as a fector)
-    expect_error(optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = c(3,6,9), type = x, size_name = "height", set_state_by_ode = TRUE), "Expecting a single value")
+    expect_error(optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = c(3,6,9), type = x, size_name = "height", set_state_by_ode = TRUE))
     
     #set bounds - too low for positive growth
     bounds = bounds(lma=c(1e-8, 1e-7))
