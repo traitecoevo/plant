@@ -877,11 +877,11 @@ FF16_Environment:
   name_cpp: "plant::FF16_Environment"
   constructor:
     args:
-      - canopy_rescale_usually: bool
+      - shading_spline_rescale_usually: bool
       - soil_number_of_depths: int
     roxygen: |
       FF16_Environment object
-      @param  canopy_rescale_usually whether to rescale intervals when estimating light environment
+      @param  shading_spline_rescale_usually whether to rescale intervals when estimating light environment
       @param  soil_number_of_depths Number of soil layers to include
       @export
   methods:

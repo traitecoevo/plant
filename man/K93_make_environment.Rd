@@ -5,16 +5,16 @@
 \title{create K93_environment object}
 \usage{
 K93_make_environment(
-  canopy_light_tol = 1e-04,
-  canopy_light_nbase = 17,
-  canopy_light_max_depth = 16,
-  canopy_rescale_usually = TRUE
+  shading_spline_tol = 1e-04,
+  shading_spline_nbase = 17,
+  shading_spline_max_depth = 16,
+  shading_spline_rescale_usually = TRUE
 )
 }
 \arguments{
-\item{canopy_light_tol}{}
+\item{shading_spline_tol}{}
 
-\item{canopy_rescale_usually}{}
+\item{shading_spline_rescale_usually}{}
 }
 \description{
 create K93_environment object

@@ -9323,14 +9323,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // FF16_Environment__ctor
-plant::FF16_Environment FF16_Environment__ctor(bool canopy_rescale_usually, int soil_number_of_depths);
-RcppExport SEXP _plant_FF16_Environment__ctor(SEXP canopy_rescale_usuallySEXP, SEXP soil_number_of_depthsSEXP) {
+plant::FF16_Environment FF16_Environment__ctor(bool shading_spline_rescale_usually, int soil_number_of_depths);
+RcppExport SEXP _plant_FF16_Environment__ctor(SEXP shading_spline_rescale_usuallySEXP, SEXP soil_number_of_depthsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< bool >::type canopy_rescale_usually(canopy_rescale_usuallySEXP);
+    Rcpp::traits::input_parameter< bool >::type shading_spline_rescale_usually(shading_spline_rescale_usuallySEXP);
     Rcpp::traits::input_parameter< int >::type soil_number_of_depths(soil_number_of_depthsSEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16_Environment__ctor(canopy_rescale_usually, soil_number_of_depths));
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__ctor(shading_spline_rescale_usually, soil_number_of_depths));
     return rcpp_result_gen;
 END_RCPP
 }

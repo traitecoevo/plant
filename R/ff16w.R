@@ -66,10 +66,10 @@ FF16w_StochasticPatchRunner <- function(p) {
 ##' @rdname FF16_Environment
 ##' @param soil_number_of_depths the number of soil layers
 ##' @param rainfall constant function value for rainfall driver, y = rainfall
-FF16w_make_environment <- function(canopy_light_tol = 1e-4, 
-                                   canopy_light_nbase = 17,
-                                   canopy_light_max_depth = 16, 
-                                   canopy_rescale_usually = TRUE,
+FF16w_make_environment <- function(shading_spline_tol = 1e-4, 
+                                   shading_spline_nbase = 17,
+                                   shading_spline_max_depth = 16, 
+                                   shading_spline_rescale_usually = TRUE,
                                    soil_number_of_depths = 1,
                                    soil_initial_state = 0.0,
                                    rainfall = 1) {
@@ -77,12 +77,12 @@ FF16w_make_environment <- function(canopy_light_tol = 1e-4,
   if(soil_number_of_depths < 1)
     stop("FF16w Environment must have at least one soil layer")
   
-  e <- FF16_Environment(canopy_rescale_usually, 
+  e <- FF16_Environment(shading_spline_rescale_usually, 
                         soil_number_of_depths)
   
-  e$canopy <- Canopy(canopy_light_tol, 
-                     canopy_light_nbase, 
-                     canopy_light_max_depth)
+  e$canopy <- Canopy(shading_spline_tol, 
+                     shading_spline_nbase, 
+                     shading_spline_max_depth)
 
   # there might be a better way to skip this if using defaults
   if(sum(soil_initial_state) > 0.0) {

@@ -68,29 +68,29 @@ K93_StochasticPatchRunner <- function(p) {
 
 ## Helper to create K93_environment object. Useful for running individuals
 ##' create K93_environment object
-##' @param canopy_light_tol
+##' @param shading_spline_tol
 ##'
-##' @param canopy_light_nbase
-##' @param canopy_light_max_depth
-##' @param canopy_rescale_usually
+##' @param shading_spline_nbase
+##' @param shading_spline_max_depth
+##' @param shading_spline_rescale_usually
 ##'
 ##' @export
 ##' @rdname K93_make_environment
-K93_make_environment <- function(canopy_light_tol = 1e-4, 
-                                 canopy_light_nbase = 17,
-                                 canopy_light_max_depth = 16, 
-                                 canopy_rescale_usually = TRUE) {
+K93_make_environment <- function(shading_spline_tol = 1e-4, 
+                                 shading_spline_nbase = 17,
+                                 shading_spline_max_depth = 16, 
+                                 shading_spline_rescale_usually = TRUE) {
   
   # for reasons unknown, we can't add arguments to the K93 constructor
   # as it causes the FF16 StochasticPatch tests to fail 🙃  opted to hard-code
   # these defaults into the K93_Environment
   
-  # e <- K93_Environment(canopy_rescale_usually = TRUE)
+  # e <- K93_Environment(shading_spline_rescale_usually = TRUE)
   e <- K93_Environment()
   
-  e$canopy <- Canopy(canopy_light_tol, 
-                     canopy_light_nbase, 
-                     canopy_light_max_depth)
+  e$canopy <- Canopy(shading_spline_tol, 
+                     shading_spline_nbase, 
+                     shading_spline_max_depth)
   
   return(e)
 }

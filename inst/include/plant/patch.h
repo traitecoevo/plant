@@ -358,7 +358,7 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
 
   environment.time = time;
   
-  if (environment.canopy_rescale_usually) {
+  if (environment.shading_spline_rescale_usually) {
     rescale_environment();
   } else {
     compute_environment();

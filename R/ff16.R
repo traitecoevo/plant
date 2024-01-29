@@ -62,26 +62,26 @@ FF16_StochasticPatchRunner <- function(p) {
 
 ## Helper to create FF16_environment object. Useful for running individuals
 ##' @title create FF16_environment object
-##' @param canopy_light_tol 
+##' @param shading_spline_tol 
 ##'
-##' @param canopy_light_nbase 
-##' @param canopy_light_max_depth 
-##' @param canopy_rescale_usually 
+##' @param shading_spline_nbase 
+##' @param shading_spline_max_depth 
+##' @param shading_spline_rescale_usually 
 ##'
 ##' @export
 ##' @rdname FF16_make_environment
-FF16_make_environment <- function(canopy_light_tol = 1e-4, 
-                                  canopy_light_nbase = 17,
-                                  canopy_light_max_depth = 16, 
-                                  canopy_rescale_usually = TRUE) {
+FF16_make_environment <- function(shading_spline_tol = 1e-4, 
+                                  shading_spline_nbase = 17,
+                                  shading_spline_max_depth = 16, 
+                                  shading_spline_rescale_usually = TRUE) {
   
-  e <- FF16_Environment(canopy_rescale_usually, 
+  e <- FF16_Environment(shading_spline_rescale_usually, 
                         soil_number_of_depths = 0)
   
   # Canopy defaults have lower tolerance which are overwritten for speed
-  e$canopy <- Canopy(canopy_light_tol, 
-                     canopy_light_nbase, 
-                     canopy_light_max_depth)
+  e$canopy <- Canopy(shading_spline_tol, 
+                     shading_spline_nbase, 
+                     shading_spline_max_depth)
   
   return(e)
 }

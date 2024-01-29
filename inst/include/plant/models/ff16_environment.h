@@ -13,11 +13,11 @@ namespace plant {
 class FF16_Environment : public Environment {
 public:
   // constructor for R interface - default settings can be modified
-  // except for soil_number_of_depths and canopy_rescale_usually
+  // except for soil_number_of_depths and shading_spline_rescale_usually
   // which are only updated on construction
-  FF16_Environment(bool canopy_rescale_usually = false,
+  FF16_Environment(bool shading_spline_rescale_usually = false,
                    int soil_number_of_depths = 0)
-      : canopy_rescale_usually(canopy_rescale_usually) {
+      : shading_spline_rescale_usually(shading_spline_rescale_usually) {
     time = 0.0;
     canopy = Canopy();
     vars = Internals(soil_number_of_depths);
@@ -31,7 +31,7 @@ public:
   Canopy canopy;
 
   // TODO: What is this? It used to be used to indicate whether the intervals used for integration were stored and reused
-  bool canopy_rescale_usually;
+  bool shading_spline_rescale_usually;
 
   // Ability to prescribe a fixed value
   // TODO: add setting to set other variables like water

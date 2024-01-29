@@ -64,10 +64,10 @@ FF16r_StochasticPatchRunner <- function(p) {
 ## Helper:
 ##' @export
 ##' @rdname FF16_Environment
-##' @param canopy_rescale_usually turns on environment rescaling (default = TRUE)
-FF16r_make_environment <- function(canopy_rescale_usually = TRUE) {
+##' @param shading_spline_rescale_usually turns on environment rescaling (default = TRUE)
+FF16r_make_environment <- function(shading_spline_rescale_usually = TRUE) {
   
-  FF16_make_environment(canopy_rescale_usually)
+  FF16_make_environment(shading_spline_rescale_usually)
 }
 
 

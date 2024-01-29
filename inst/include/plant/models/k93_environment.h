@@ -12,13 +12,13 @@ namespace plant {
 class K93_Environment : public Environment {
 public:
   K93_Environment() {
-    canopy_rescale_usually = false;
+    shading_spline_rescale_usually = false;
     time = 0.0;
     canopy = Canopy();
   };
 
   // Light interface
-  bool canopy_rescale_usually;
+  bool shading_spline_rescale_usually;
 
   Canopy canopy;
 

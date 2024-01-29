@@ -4844,11 +4844,11 @@ StochasticPatchRunner <- function(T, E) {
 }
 
 ##' FF16_Environment object
-##' @param  canopy_rescale_usually whether to rescale intervals when estimating light environment
+##' @param  shading_spline_rescale_usually whether to rescale intervals when estimating light environment
 ##' @param  soil_number_of_depths Number of soil layers to include
 ##' @export
-`FF16_Environment` <- function(canopy_rescale_usually, soil_number_of_depths) {
-  FF16_Environment__ctor(canopy_rescale_usually, soil_number_of_depths)
+`FF16_Environment` <- function(shading_spline_rescale_usually, soil_number_of_depths) {
+  FF16_Environment__ctor(shading_spline_rescale_usually, soil_number_of_depths)
 }
 .R6_FF16_Environment <-
   R6::R6Class(
