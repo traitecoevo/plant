@@ -18,21 +18,14 @@ public:
 
   // Constructors
   Resource_spline() {
-    
-    // Initialise adaptive interpolator. This object can create an interpolator spline
-    spline_construction = interpolator::AdaptiveInterpolator(1e-6, 1e-6, 17, 16);
-    // Create an actual spline, For initalisation
-    // Provide a dummy function and construct
-    // This will be over-written later with actual function
-    spline = spline_construction.construct(
-      [&](double height) {
-          return get_value_at_height(height);
-      }, 0, 1); // these are update with init(x, y) when patch is created
-
-    spline_rescale_usually = false;
-  };
+    setup(1e-6, 17, 16, false);
+  }
 
   Resource_spline(double tol, size_t nbase, size_t max_depth, bool rescale_usually) {
+    setup(tol, nbase, max_depth, rescale_usually);
+  }
+
+  void setup(double tol, size_t nbase, size_t max_depth, bool rescale_usually) {
 
     // Initialise adaptive interpolator. This object can create an interpolator spline
     spline_construction =
