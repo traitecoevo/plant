@@ -3,7 +3,7 @@
 #define PLANT_PLANT_K93_ENVIRONMENT_H_
 
 #include <plant/environment.h>
-#include <plant/shading.h>
+#include <plant/resource_spline.h>
 
 using namespace Rcpp;
 
@@ -13,11 +13,11 @@ class K93_Environment : public Environment {
 public:
   K93_Environment() {
     time = 0.0;
-    shading = Shading();
+    shading = Resource_spline();
   };
 
   // Light interface
-  Shading shading;
+  Resource_spline shading;
 
   // todo: Should this be here or in shading?
   void set_fixed_environment(double value, double height_max) {

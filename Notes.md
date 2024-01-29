@@ -22,10 +22,10 @@ TODO:
   - [x] `canopy.compute_canopy` -> `shading.construct_spline`?
   - [x]`canopy` -> `shading`. Canopy too abstract?
   - [x] `canopy::set_fixed_canopy` -> `canopy::set_fixed_values`
-- shading.h -> resource_spline (on scale 0-1)
+- [x] shading.h -> resource_spline (on scale 0-1)
   - [x] get_canopy_at_height
   - shading instance -> light?
-  - pass in full function
+  - [x] pass in full function
 
 could remove, are these used?
  - environment::init_interpolators, r_init_interpolators

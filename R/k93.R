@@ -87,7 +87,7 @@ K93_make_environment <- function(shading_spline_tol = 1e-4,
   
   e <- K93_Environment()
   
-  e$shading <- Shading(shading_spline_tol, 
+  e$shading <- Resource_spline(shading_spline_tol, 
                      shading_spline_nbase, 
                      shading_spline_max_depth, 
                      shading_spline_rescale_usually)

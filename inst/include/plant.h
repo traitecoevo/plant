@@ -15,7 +15,7 @@
 #include <plant/ode_runner.h>
 
 #include <plant/environment.h>
-#include <plant/shading.h>
+#include <plant/resource_spline.h>
 
 #include <plant/control.h>
 #include <plant/strategy.h>

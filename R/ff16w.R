@@ -80,7 +80,7 @@ FF16w_make_environment <- function(shading_spline_tol = 1e-4,
   e <- FF16_Environment(shading_spline_rescale_usually,
                   soil_number_of_depths)
   
-  e$shading <- Shading(shading_spline_tol, 
+  e$shading <- Resource_spline(shading_spline_tol, 
                      shading_spline_nbase, 
                      shading_spline_max_depth,
                      shading_spline_rescale_usually)

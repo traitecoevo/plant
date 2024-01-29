@@ -9117,9 +9117,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Shading__ctor
-plant::Shading Shading__ctor(double tol, double nbase, double max_depth, bool rescale_usually);
-RcppExport SEXP _plant_Shading__ctor(SEXP tolSEXP, SEXP nbaseSEXP, SEXP max_depthSEXP, SEXP rescale_usuallySEXP) {
+// Resource_spline__ctor
+plant::Resource_spline Resource_spline__ctor(double tol, double nbase, double max_depth, bool rescale_usually);
+RcppExport SEXP _plant_Resource_spline__ctor(SEXP tolSEXP, SEXP nbaseSEXP, SEXP max_depthSEXP, SEXP rescale_usuallySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -9127,51 +9127,51 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type nbase(nbaseSEXP);
     Rcpp::traits::input_parameter< double >::type max_depth(max_depthSEXP);
     Rcpp::traits::input_parameter< bool >::type rescale_usually(rescale_usuallySEXP);
-    rcpp_result_gen = Rcpp::wrap(Shading__ctor(tol, nbase, max_depth, rescale_usually));
+    rcpp_result_gen = Rcpp::wrap(Resource_spline__ctor(tol, nbase, max_depth, rescale_usually));
     return rcpp_result_gen;
 END_RCPP
 }
-// Shading__get_value_at_height
-double Shading__get_value_at_height(plant::RcppR6::RcppR6<plant::Shading> obj_, double height);
-RcppExport SEXP _plant_Shading__get_value_at_height(SEXP obj_SEXP, SEXP heightSEXP) {
+// Resource_spline__get_value_at_height
+double Resource_spline__get_value_at_height(plant::RcppR6::RcppR6<plant::Resource_spline> obj_, double height);
+RcppExport SEXP _plant_Resource_spline__get_value_at_height(SEXP obj_SEXP, SEXP heightSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Shading> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Resource_spline> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type height(heightSEXP);
-    rcpp_result_gen = Rcpp::wrap(Shading__get_value_at_height(obj_, height));
+    rcpp_result_gen = Rcpp::wrap(Resource_spline__get_value_at_height(obj_, height));
     return rcpp_result_gen;
 END_RCPP
 }
-// Shading__clear
-void Shading__clear(plant::RcppR6::RcppR6<plant::Shading> obj_);
-RcppExport SEXP _plant_Shading__clear(SEXP obj_SEXP) {
+// Resource_spline__clear
+void Resource_spline__clear(plant::RcppR6::RcppR6<plant::Resource_spline> obj_);
+RcppExport SEXP _plant_Resource_spline__clear(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Shading> >::type obj_(obj_SEXP);
-    Shading__clear(obj_);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Resource_spline> >::type obj_(obj_SEXP);
+    Resource_spline__clear(obj_);
     return R_NilValue;
 END_RCPP
 }
-// Shading__spline__get
-plant::interpolator::Interpolator Shading__spline__get(plant::RcppR6::RcppR6<plant::Shading> obj_);
-RcppExport SEXP _plant_Shading__spline__get(SEXP obj_SEXP) {
+// Resource_spline__spline__get
+plant::interpolator::Interpolator Resource_spline__spline__get(plant::RcppR6::RcppR6<plant::Resource_spline> obj_);
+RcppExport SEXP _plant_Resource_spline__spline__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Shading> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Shading__spline__get(obj_));
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Resource_spline> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Resource_spline__spline__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
-// Shading__spline__set
-void Shading__spline__set(plant::RcppR6::RcppR6<plant::Shading> obj_, plant::interpolator::Interpolator value);
-RcppExport SEXP _plant_Shading__spline__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// Resource_spline__spline__set
+void Resource_spline__spline__set(plant::RcppR6::RcppR6<plant::Resource_spline> obj_, plant::interpolator::Interpolator value);
+RcppExport SEXP _plant_Resource_spline__spline__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Shading> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Resource_spline> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::interpolator::Interpolator >::type value(valueSEXP);
-    Shading__spline__set(obj_, value);
+    Resource_spline__spline__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -9436,7 +9436,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // FF16_Environment__shading__get
-plant::Shading FF16_Environment__shading__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
+plant::Resource_spline FF16_Environment__shading__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
 RcppExport SEXP _plant_FF16_Environment__shading__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -9447,12 +9447,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // FF16_Environment__shading__set
-void FF16_Environment__shading__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::Shading value);
+void FF16_Environment__shading__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::Resource_spline value);
 RcppExport SEXP _plant_FF16_Environment__shading__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< plant::Shading >::type value(valueSEXP);
+    Rcpp::traits::input_parameter< plant::Resource_spline >::type value(valueSEXP);
     FF16_Environment__shading__set(obj_, value);
     return R_NilValue;
 END_RCPP
@@ -9577,7 +9577,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // K93_Environment__shading__get
-plant::Shading K93_Environment__shading__get(plant::RcppR6::RcppR6<plant::K93_Environment> obj_);
+plant::Resource_spline K93_Environment__shading__get(plant::RcppR6::RcppR6<plant::K93_Environment> obj_);
 RcppExport SEXP _plant_K93_Environment__shading__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -9588,12 +9588,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // K93_Environment__shading__set
-void K93_Environment__shading__set(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, plant::Shading value);
+void K93_Environment__shading__set(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, plant::Resource_spline value);
 RcppExport SEXP _plant_K93_Environment__shading__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::K93_Environment> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< plant::Shading >::type value(valueSEXP);
+    Rcpp::traits::input_parameter< plant::Resource_spline >::type value(valueSEXP);
     K93_Environment__shading__set(obj_, value);
     return R_NilValue;
 END_RCPP
@@ -10764,11 +10764,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatchRunner___K93__K93_Env__schedule__get", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__schedule__get, 1},
     {"_plant_StochasticPatchRunner___K93__K93_Env__schedule__set", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__schedule__set, 2},
     {"_plant_StochasticPatchRunner___K93__K93_Env__state__get", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__state__get, 1},
-    {"_plant_Shading__ctor", (DL_FUNC) &_plant_Shading__ctor, 4},
-    {"_plant_Shading__get_value_at_height", (DL_FUNC) &_plant_Shading__get_value_at_height, 2},
-    {"_plant_Shading__clear", (DL_FUNC) &_plant_Shading__clear, 1},
-    {"_plant_Shading__spline__get", (DL_FUNC) &_plant_Shading__spline__get, 1},
-    {"_plant_Shading__spline__set", (DL_FUNC) &_plant_Shading__spline__set, 2},
+    {"_plant_Resource_spline__ctor", (DL_FUNC) &_plant_Resource_spline__ctor, 4},
+    {"_plant_Resource_spline__get_value_at_height", (DL_FUNC) &_plant_Resource_spline__get_value_at_height, 2},
+    {"_plant_Resource_spline__clear", (DL_FUNC) &_plant_Resource_spline__clear, 1},
+    {"_plant_Resource_spline__spline__get", (DL_FUNC) &_plant_Resource_spline__spline__get, 1},
+    {"_plant_Resource_spline__spline__set", (DL_FUNC) &_plant_Resource_spline__spline__set, 2},
     {"_plant_Disturbance_Regime__ctor", (DL_FUNC) &_plant_Disturbance_Regime__ctor, 0},
     {"_plant_Disturbance_Regime__density", (DL_FUNC) &_plant_Disturbance_Regime__density, 2},
     {"_plant_Disturbance_Regime__pr_survival", (DL_FUNC) &_plant_Disturbance_Regime__pr_survival, 2},

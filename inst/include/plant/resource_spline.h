@@ -13,11 +13,11 @@ using namespace Rcpp;
 
 namespace plant {
 
-class Shading {
+class Resource_spline {
 public:
 
   // Constructors
-  Shading() {
+  Resource_spline() {
     
     // Initialise adaptive interpolator. This object can create an interpolator spline
     spline_construction = interpolator::AdaptiveInterpolator(1e-6, 1e-6, 17, 16);
@@ -29,10 +29,10 @@ public:
           return get_value_at_height(height);
       }, 0, 1); // these are update with init(x, y) when patch is created
 
-    shading_spline_rescale_usually = false;
+    spline_rescale_usually = false;
   };
 
-  Shading(double tol, size_t nbase, size_t max_depth, bool rescale_usually) {
+  Resource_spline(double tol, size_t nbase, size_t max_depth, bool rescale_usually) {
 
     // Initialise adaptive interpolator. This object can create an interpolator spline
     spline_construction =
@@ -44,43 +44,17 @@ public:
         [&](double height) { return get_value_at_height(height); }, 0,
         1); // these are update with init(x, y) when patch is created
     
-    shading_spline_rescale_usually = rescale_usually;
+    spline_rescale_usually = rescale_usually;
   };
 
   template <typename Function>
   void compute_environment(Function f_compute_competition, double height_max, bool rescale) {
-    if (rescale & shading_spline_rescale_usually) {
+    if (rescale & spline_rescale_usually) {
       rescale_spline(f_compute_competition, height_max);
     } else {
       construct_spline(f_compute_competition, height_max);
     }
   };
-
-  template <typename Function>
-  void construct_spline(Function f_compute_competition, double height_max)
-  {
-    const double lower_bound = 0.0;
-    double upper_bound = height_max;
-
-    spline =
-      spline_construction.construct(f_compute_competition, lower_bound, upper_bound);
-  }
-
-  template <typename Function>
-  void rescale_spline(Function f_compute_competition, double height_max) {
-    std::vector<double> h = spline.get_x();
-    const double min = spline.min(), // 0.0?
-      height_max_old = spline.max();
-
-    util::rescale(h.begin(), h.end(), min, height_max_old, min, height_max);
-    h.back() = height_max; // Avoid round-off error.
-
-    spline.clear();
-    for (auto hi : h) {
-      spline.add_point(hi, f_compute_competition(hi));
-    }
-    spline.initialise();
-  }
 
   void set_fixed_values(double value, double height_max) {
     std::vector<double> x = {0, height_max/2.0, height_max};
@@ -115,17 +89,46 @@ public:
     spline.init(state_x, state_y);
   }
 
-    // This object will store an interpolator spline of shading
-    interpolator::Interpolator spline;
+  // This object will store an interpolator spline of shading
+  interpolator::Interpolator spline;
 
-    // This object can create an interpolator spline via adaptive refinement
-    interpolator::AdaptiveInterpolator spline_construction;
+  // This object can create an interpolator spline via adaptive refinement
+  interpolator::AdaptiveInterpolator spline_construction;
 
-    // flag, do we try to rescale the spline when possible? this is quicker
-    bool shading_spline_rescale_usually;
+  // flag, do we try to rescale the spline when possible? this is quicker
+  bool spline_rescale_usually;
+
+private:
+
+  template <typename Function>
+  void construct_spline(Function f_compute_competition, double height_max)
+  {
+    const double lower_bound = 0.0;
+    double upper_bound = height_max;
+
+    spline =
+      spline_construction.construct(f_compute_competition, lower_bound, upper_bound);
+  }
+
+  template <typename Function>
+  void rescale_spline(Function f_compute_competition, double height_max) {
+    std::vector<double> h = spline.get_x();
+    const double min = spline.min(), // 0.0?
+      height_max_old = spline.max();
+
+    util::rescale(h.begin(), h.end(), min, height_max_old, min, height_max);
+    h.back() = height_max; // Avoid round-off error.
+
+    spline.clear();
+    for (auto hi : h) {
+      spline.add_point(hi, f_compute_competition(hi));
+    }
+    spline.initialise();
+  }
+
   };
 
-inline Rcpp::NumericMatrix get_state(const Shading shading) {
+inline Rcpp::NumericMatrix get_state(const Resource_spline shading) {
   using namespace Rcpp;
   NumericMatrix xy = shading.spline.r_get_xy();
   Rcpp::CharacterVector colnames =
@@ -135,6 +138,6 @@ inline Rcpp::NumericMatrix get_state(const Shading shading) {
 }
 
 
-}
+} // plant namespace
 
 #endif

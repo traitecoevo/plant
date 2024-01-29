@@ -166,8 +166,8 @@ template <> plant::StochasticPatchRunner<plant::FF16r_Strategy,plant::FF16_Envir
 
 template <> SEXP wrap(const plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment>&);
 template <> plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> as(SEXP);
-template <> SEXP wrap(const plant::Shading&);
-template <> plant::Shading as(SEXP);
+template <> SEXP wrap(const plant::Resource_spline&);
+template <> plant::Resource_spline as(SEXP);
 template <> SEXP wrap(const plant::Disturbance_Regime&);
 template <> plant::Disturbance_Regime as(SEXP);
 template <> SEXP wrap(const plant::No_Disturbance&);

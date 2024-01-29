@@ -3,7 +3,7 @@
 #define PLANT_PLANT_FF16_ENVIRONMENT_H_
 
 #include <plant/environment.h>
-#include <plant/shading.h>
+#include <plant/resource_spline.h>
 #include <plant/interpolator.h>
 
 using namespace Rcpp;
@@ -19,8 +19,8 @@ public:
                    int soil_number_of_depths = 0) {
     time = 0.0;
     
-    shading = Shading();
-    shading.shading_spline_rescale_usually = shading_spline_rescale_usually;
+    shading = Resource_spline();
+    shading.spline_rescale_usually = shading_spline_rescale_usually;
 
     vars = Internals(soil_number_of_depths);
     set_soil_water_state(std::vector<double>(soil_number_of_depths, 0.0));
@@ -29,7 +29,7 @@ public:
 
   // Light interface
   // Shading object is used for calculating shading
-  Shading shading;
+  Resource_spline shading;
 
   // Ability to prescribe a fixed value
   // TODO: add setting to set other variables like water
