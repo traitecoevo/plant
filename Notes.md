@@ -19,6 +19,9 @@ see `AdaptiveInterpolator::update_spline()`
 TODO:
 - document classes QAG, tk etc
 - test Resource_spline
+- Further generalise resource spline
+  - flexible bounds, currently hardcoded (0.0, 1.0)
+  - what if just have vectors? Add vector option
 - rename 
   - [x] `canopy.compute_canopy` -> `light_availability.compute_environment`?
   - [x] canopy.h -> resource_spline.h (on scale 0-1)
