@@ -16,7 +16,7 @@ for (x in names(strategy_types)) {
     expect_equal(env$canopy_openness(0), 1.0)
     expect_equal(env$canopy_openness(100), 1.0)
 
-    spline <- env$canopy$canopy_interpolator
+    spline <- env$canopy$shading_spline
     expect_equal(spline$size, 33)
     expect_equal(spline$x, seq(0,1, length.out=33))
   })
@@ -33,12 +33,12 @@ for (x in names(strategy_types)) {
     interplator$init(hh, ee)
 
     ## And set it
-    env$canopy$canopy_interpolator <- interplator
+    env$canopy$shading_spline <- interplator
 
-    expect_identical(env$canopy$canopy_interpolator$xy, interplator$xy)
+    expect_identical(env$canopy$shading_spline$xy, interplator$xy)
 
     hmid <- (hh[-1] + hh[-length(hh)])/2
-    expect_identical(sapply(hmid, env$canopy$canopy_interpolator$eval), sapply(hmid, interplator$eval))
+    expect_identical(sapply(hmid, env$canopy$shading_spline$eval), sapply(hmid, interplator$eval))
   })
 }
 

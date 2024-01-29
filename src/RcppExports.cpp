@@ -9152,25 +9152,25 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Canopy__canopy_interpolator__get
-plant::interpolator::Interpolator Canopy__canopy_interpolator__get(plant::RcppR6::RcppR6<plant::Canopy> obj_);
-RcppExport SEXP _plant_Canopy__canopy_interpolator__get(SEXP obj_SEXP) {
+// Canopy__shading_spline__get
+plant::interpolator::Interpolator Canopy__shading_spline__get(plant::RcppR6::RcppR6<plant::Canopy> obj_);
+RcppExport SEXP _plant_Canopy__shading_spline__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Canopy> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Canopy__canopy_interpolator__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(Canopy__shading_spline__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
-// Canopy__canopy_interpolator__set
-void Canopy__canopy_interpolator__set(plant::RcppR6::RcppR6<plant::Canopy> obj_, plant::interpolator::Interpolator value);
-RcppExport SEXP _plant_Canopy__canopy_interpolator__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// Canopy__shading_spline__set
+void Canopy__shading_spline__set(plant::RcppR6::RcppR6<plant::Canopy> obj_, plant::interpolator::Interpolator value);
+RcppExport SEXP _plant_Canopy__shading_spline__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Canopy> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::interpolator::Interpolator >::type value(valueSEXP);
-    Canopy__canopy_interpolator__set(obj_, value);
+    Canopy__shading_spline__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -10766,8 +10766,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Canopy__ctor", (DL_FUNC) &_plant_Canopy__ctor, 3},
     {"_plant_Canopy__canopy_openness", (DL_FUNC) &_plant_Canopy__canopy_openness, 2},
     {"_plant_Canopy__clear", (DL_FUNC) &_plant_Canopy__clear, 1},
-    {"_plant_Canopy__canopy_interpolator__get", (DL_FUNC) &_plant_Canopy__canopy_interpolator__get, 1},
-    {"_plant_Canopy__canopy_interpolator__set", (DL_FUNC) &_plant_Canopy__canopy_interpolator__set, 2},
+    {"_plant_Canopy__shading_spline__get", (DL_FUNC) &_plant_Canopy__shading_spline__get, 1},
+    {"_plant_Canopy__shading_spline__set", (DL_FUNC) &_plant_Canopy__shading_spline__set, 2},
     {"_plant_Disturbance_Regime__ctor", (DL_FUNC) &_plant_Disturbance_Regime__ctor, 0},
     {"_plant_Disturbance_Regime__density", (DL_FUNC) &_plant_Disturbance_Regime__density, 2},
     {"_plant_Disturbance_Regime__pr_survival", (DL_FUNC) &_plant_Disturbance_Regime__pr_survival, 2},

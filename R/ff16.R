@@ -125,7 +125,7 @@ FF16_test_environment <- function(height, n=101, light_env=NULL,
   interpolator$init(hh, ee)
 
   ret <- FF16_make_environment()
-  ret$canopy$canopy_interpolator <- interpolator
+  ret$canopy$shading_spline <- interpolator
   attr(ret, "light_env") <- light_env
   ret
 }

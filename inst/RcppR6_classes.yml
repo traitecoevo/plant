@@ -763,7 +763,7 @@ Canopy:
     clear:
       return_type: void
   active:
-    canopy_interpolator: {type: "plant::interpolator::Interpolator", access: field}
+    shading_spline: {type: "plant::interpolator::Interpolator", access: field}
 
 Disturbance_Regime:
   name_cpp: "plant::Disturbance_Regime"

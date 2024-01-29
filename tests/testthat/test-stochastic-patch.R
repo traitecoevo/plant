@@ -53,7 +53,7 @@ test_that("non empty", {
 
     expect_equal(patch$deaths(), 0)
 
-    ci <- patch$environment$canopy$canopy_interpolator
+    ci <- patch$environment$canopy$shading_spline
     expect_equal(range(ci$x), c(0.0, cmp$state("height")))
     expect_equal(max(ci$y), 1.0)
     expect_lt(ci$y[[1]], 1.0)

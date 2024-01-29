@@ -4731,11 +4731,11 @@ StochasticPatchRunner <- function(T, E) {
         Canopy__clear(self)
       }),
     active=list(
-      canopy_interpolator = function(value) {
+      shading_spline = function(value) {
         if (missing(value)) {
-          Canopy__canopy_interpolator__get(self)
+          Canopy__shading_spline__get(self)
         } else {
-          Canopy__canopy_interpolator__set(self, value)
+          Canopy__shading_spline__set(self, value)
         }
       }))
 

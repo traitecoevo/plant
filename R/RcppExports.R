@@ -3265,12 +3265,12 @@ Canopy__clear <- function(obj_) {
     invisible(.Call('_plant_Canopy__clear', PACKAGE = 'plant', obj_))
 }
 
-Canopy__canopy_interpolator__get <- function(obj_) {
-    .Call('_plant_Canopy__canopy_interpolator__get', PACKAGE = 'plant', obj_)
+Canopy__shading_spline__get <- function(obj_) {
+    .Call('_plant_Canopy__shading_spline__get', PACKAGE = 'plant', obj_)
 }
 
-Canopy__canopy_interpolator__set <- function(obj_, value) {
-    invisible(.Call('_plant_Canopy__canopy_interpolator__set', PACKAGE = 'plant', obj_, value))
+Canopy__shading_spline__set <- function(obj_, value) {
+    invisible(.Call('_plant_Canopy__shading_spline__set', PACKAGE = 'plant', obj_, value))
 }
 
 Disturbance_Regime__ctor <- function() {

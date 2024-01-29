@@ -3721,12 +3721,12 @@ void Canopy__clear(plant::RcppR6::RcppR6<plant::Canopy> obj_) {
   obj_->clear();
 }
 // [[Rcpp::export]]
-plant::interpolator::Interpolator Canopy__canopy_interpolator__get(plant::RcppR6::RcppR6<plant::Canopy> obj_) {
-  return obj_->canopy_interpolator;
+plant::interpolator::Interpolator Canopy__shading_spline__get(plant::RcppR6::RcppR6<plant::Canopy> obj_) {
+  return obj_->shading_spline;
 }
 // [[Rcpp::export]]
-void Canopy__canopy_interpolator__set(plant::RcppR6::RcppR6<plant::Canopy> obj_, plant::interpolator::Interpolator value) {
-  obj_->canopy_interpolator = value;
+void Canopy__shading_spline__set(plant::RcppR6::RcppR6<plant::Canopy> obj_, plant::interpolator::Interpolator value) {
+  obj_->shading_spline = value;
 }
 
 

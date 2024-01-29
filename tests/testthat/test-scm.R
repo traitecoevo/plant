@@ -294,7 +294,7 @@ test_that("Can create empty SCM", {
     patch <- scm$patch
 
     # This is no longer zero:
-    expect_gt(env$canopy$canopy_interpolator$size, 30)
+    expect_gt(env$canopy$shading_spline$size, 30)
     expect_equal(env$canopy_openness(0), 1.0)
   }
 })
