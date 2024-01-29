@@ -253,7 +253,7 @@ canopy <-
   group_by(step) %>% 
   mutate(
     # LAI at height
-    LAI_above = -log(canopy_openness)/0.5,
+    LAI_above = -log(XXX_openness)/0.5,
     # Cumulative LAI from the rgound up
     LAI_below = max(LAI_above) - LAI_above
   ) %>% ungroup()
@@ -584,7 +584,7 @@ d2 <-
     filter(time %in% select_closest(time, target_ages)) %>% 
     mutate(
       time = round(time),
-      LAI = -log(canopy_openness)/ 0.5      
+      LAI = -log(XXX_openness)/ 0.5      
     )
 
 d2_max <- d2 %>%
@@ -593,7 +593,7 @@ d2_max <- d2 %>%
 
 p1 <- 
   d2 %>%
-  ggplot(aes(x = height, y = canopy_openness, label = time, group = time, col = time)) +
+  ggplot(aes(x = height, y = XXX_openness, label = time, group = time, col = time)) +
   geom_line() +
   geom_text(data = d2_max, nudge_y = 0.05) +
   labs(

@@ -4724,8 +4724,8 @@ StochasticPatchRunner <- function(T, E) {
       initialize = function(ptr) {
         self$.ptr <- ptr
       },
-      canopy_openness = function(height) {
-        Canopy__canopy_openness(self, height)
+      XXX_openness = function(height) {
+        Canopy__XXX_openness(self, height)
       },
       clear = function() {
         Canopy__clear(self)
@@ -4860,8 +4860,8 @@ StochasticPatchRunner <- function(T, E) {
       initialize = function(ptr) {
         self$.ptr <- ptr
       },
-      canopy_openness = function(height) {
-        FF16_Environment__canopy_openness(self, height)
+      XXX_openness = function(height) {
+        FF16_Environment__XXX_openness(self, height)
       },
       clear = function() {
         FF16_Environment__clear(self)
@@ -4974,8 +4974,8 @@ StochasticPatchRunner <- function(T, E) {
       initialize = function(ptr) {
         self$.ptr <- ptr
       },
-      canopy_openness = function(height) {
-        K93_Environment__canopy_openness(self, height)
+      XXX_openness = function(height) {
+        K93_Environment__XXX_openness(self, height)
       },
       clear = function() {
         K93_Environment__clear(self)

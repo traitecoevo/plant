@@ -48,9 +48,9 @@ public:
     return canopy.get_canopy_at_height(height);
   }
 
-  // TODO: canopy.canopy_openness = canopy.get_canopy_at_height
-  double canopy_openness(double height) const {
-    return canopy.canopy_openness(height);
+  // TODO: canopy.XXX_openness = canopy.get_canopy_at_height
+  double XXX_openness(double height) const {
+    return canopy.XXX_openness(height);
   }
 
   void r_init_interpolators(const std::vector<double>& state) {

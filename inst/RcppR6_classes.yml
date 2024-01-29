@@ -757,7 +757,7 @@ Canopy:
       - nbase: double
       - max_depth: double
   methods:
-    canopy_openness:
+    XXX_openness:
       args: [height: double]
       return_type: double
     clear:
@@ -885,7 +885,7 @@ FF16_Environment:
       @param  soil_number_of_depths Number of soil layers to include
       @export
   methods:
-    canopy_openness:
+    XXX_openness:
       args: [height: double]
       return_type: double
     clear:
@@ -996,7 +996,7 @@ K93_Environment:
       K93_Environment object
       @export
   methods:
-    canopy_openness:
+    XXX_openness:
       args: [height: double]
       return_type: double
     clear:

@@ -48,9 +48,9 @@ public:
     const double lower_bound = 0.0;
     double upper_bound = height_max;
 
-    auto f_canopy_openness = [&] (double height) -> double {return exp(-f_compute_competition(height));};
+    auto f_XXX_openness = [&] (double height) -> double {return exp(-f_compute_competition(height));};
     shading_spline =
-      shading_spline_construction.construct(f_canopy_openness, lower_bound, upper_bound);
+      shading_spline_construction.construct(f_XXX_openness, lower_bound, upper_bound);
   }
 
   template <typename Function>
@@ -59,13 +59,13 @@ public:
     const double min = shading_spline.min(), // 0.0?
       height_max_old = shading_spline.max();
 
-    auto f_canopy_openness = [&] (double height) -> double {return exp(-f_compute_competition(height));};
+    auto f_XXX_openness = [&] (double height) -> double {return exp(-f_compute_competition(height));};
     util::rescale(h.begin(), h.end(), min, height_max_old, min, height_max);
     h.back() = height_max; // Avoid round-off error.
 
     shading_spline.clear();
     for (auto hi : h) {
-      shading_spline.add_point(hi, f_canopy_openness(hi));
+      shading_spline.add_point(hi, f_XXX_openness(hi));
     }
     shading_spline.initialise();
   }
@@ -87,7 +87,7 @@ public:
     return within ? shading_spline.eval(height) : 1.0;
   }
 
-  double canopy_openness(double height) const {
+  double XXX_openness(double height) const {
     return get_canopy_at_height(height);
   }
 
@@ -119,7 +119,7 @@ inline Rcpp::NumericMatrix get_state(const Canopy canopy) {
   using namespace Rcpp;
   NumericMatrix xy = canopy.shading_spline.r_get_xy();
   Rcpp::CharacterVector colnames =
-    Rcpp::CharacterVector::create("height", "canopy_openness");
+    Rcpp::CharacterVector::create("height", "XXX_openness");
   xy.attr("dimnames") = Rcpp::List::create(R_NilValue, colnames);
   return xy;
 }
