@@ -81,7 +81,8 @@ FF16_make_environment <- function(shading_spline_tol = 1e-4,
   # Shading defaults have lower tolerance which are overwritten for speed
   e$shading <- Shading(shading_spline_tol, 
                      shading_spline_nbase, 
-                     shading_spline_max_depth)
+                     shading_spline_max_depth, 
+                     shading_spline_rescale_usually)
   
   return(e)
 }

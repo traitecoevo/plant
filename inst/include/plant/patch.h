@@ -90,7 +90,7 @@ public:
     at(species_index.check_bounds(size()));
   }
   // These are only here because they wrap private functions.
-  void r_compute_environment() {compute_environment();}
+  void r_compute_environment() {compute_environment(false);}
   void r_compute_rates() {
     environment_ptr = &environment;
     compute_rates();
@@ -119,8 +119,7 @@ public:
 
 private:
   int idx; // used to access environment cache for mutant runs
-  void compute_environment();
-  void rescale_environment();
+  void compute_environment(bool rescale);
   void compute_rates();
 
   parameters_type parameters;
@@ -191,7 +190,7 @@ void Patch<T,E>::reset() {
 
   // compute ephemeral effects like shading
   environment.clear();
-  compute_environment();
+  compute_environment(false);
 
   // compute effects of resource consumption
   environment_ptr = &environment;
@@ -227,25 +226,16 @@ std::vector<double> Patch<T,E>::r_competition_effect_error(size_t species_index)
 }
 
 template <typename T, typename E>
-void Patch<T,E>::compute_environment() {
-  if (size() > 0) {
-    if (!is_mutant_run) {
-      auto f = [&] (double x) -> double
-      {return compute_competition(x);};
-      environment.compute_environment(f, height_max());
-    }
+void Patch<T,E>::compute_environment(bool rescale) {
+  
+  // Define an anonymous function to use in creation of environemnt
+  auto f = [&](double x) -> double { return compute_competition(x); };
+
+  if (size() > 0 & !is_mutant_run) {
+    environment.compute_environment(f, height_max(), rescale);
   }
 }
 
-template <typename T, typename E>
-void Patch<T,E>::rescale_environment() {
-  if (size() > 0) {
-    if (!is_mutant_run ) {
-      auto f = [&] (double x) -> double {return compute_competition(x);};
-      environment.rescale_environment(f, height_max());
-    }
-  }
-}
 
 template <typename T, typename E>
 void Patch<T,E>::compute_rates() {
@@ -287,10 +277,10 @@ void Patch<T,E>::compute_rates() {
 // light environment; probably worth just doing a rescale there?
 template <typename T, typename E>
 void Patch<T,E>::introduce_new_node(size_t species_index) {
+  
   species[species_index].introduce_new_node();
-  if (!is_mutant_run) {
-    compute_environment();
-  }
+
+  compute_environment(false);
 }
 
 template <typename T, typename E>
@@ -298,9 +288,8 @@ void Patch<T,E>::introduce_new_nodes(const std::vector<size_t>& species_index) {
   for (size_t i : species_index) {
     species[i].introduce_new_node();
   }
-  if (!is_mutant_run) {
-    compute_environment();
-  }
+
+  compute_environment(false);
 }
 
 template <typename T, typename E>
@@ -353,17 +342,17 @@ template <typename T, typename E>
 ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
                                               double time) {
   
+  // Set ode states
   it = ode::set_ode_state(species.begin(), species.end(), it);
   it = environment.set_ode_state(it);
 
+  // update time
   environment.time = time;
-  
-  if (environment.shading_spline_rescale_usually) {
-    rescale_environment();
-  } else {
-    compute_environment();
-  }
+  // Pre-compute environment, as shaped by residents
+  compute_environment(true);
   environment_ptr = &environment;
+
+  // Compute rates of change
   compute_rates();
   return it;
 }

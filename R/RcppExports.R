@@ -3253,8 +3253,8 @@ StochasticPatchRunner___K93__K93_Env__state__get <- function(obj_) {
     .Call('_plant_StochasticPatchRunner___K93__K93_Env__state__get', PACKAGE = 'plant', obj_)
 }
 
-Shading__ctor <- function(tol, nbase, max_depth) {
-    .Call('_plant_Shading__ctor', PACKAGE = 'plant', tol, nbase, max_depth)
+Shading__ctor <- function(tol, nbase, max_depth, rescale_usually) {
+    .Call('_plant_Shading__ctor', PACKAGE = 'plant', tol, nbase, max_depth, rescale_usually)
 }
 
 Shading__canopy_openness <- function(obj_, height) {

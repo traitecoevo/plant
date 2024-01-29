@@ -9118,15 +9118,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // Shading__ctor
-plant::Shading Shading__ctor(double tol, double nbase, double max_depth);
-RcppExport SEXP _plant_Shading__ctor(SEXP tolSEXP, SEXP nbaseSEXP, SEXP max_depthSEXP) {
+plant::Shading Shading__ctor(double tol, double nbase, double max_depth, bool rescale_usually);
+RcppExport SEXP _plant_Shading__ctor(SEXP tolSEXP, SEXP nbaseSEXP, SEXP max_depthSEXP, SEXP rescale_usuallySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
     Rcpp::traits::input_parameter< double >::type nbase(nbaseSEXP);
     Rcpp::traits::input_parameter< double >::type max_depth(max_depthSEXP);
-    rcpp_result_gen = Rcpp::wrap(Shading__ctor(tol, nbase, max_depth));
+    Rcpp::traits::input_parameter< bool >::type rescale_usually(rescale_usuallySEXP);
+    rcpp_result_gen = Rcpp::wrap(Shading__ctor(tol, nbase, max_depth, rescale_usually));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -10763,7 +10764,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatchRunner___K93__K93_Env__schedule__get", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__schedule__get, 1},
     {"_plant_StochasticPatchRunner___K93__K93_Env__schedule__set", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__schedule__set, 2},
     {"_plant_StochasticPatchRunner___K93__K93_Env__state__get", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__state__get, 1},
-    {"_plant_Shading__ctor", (DL_FUNC) &_plant_Shading__ctor, 3},
+    {"_plant_Shading__ctor", (DL_FUNC) &_plant_Shading__ctor, 4},
     {"_plant_Shading__canopy_openness", (DL_FUNC) &_plant_Shading__canopy_openness, 2},
     {"_plant_Shading__clear", (DL_FUNC) &_plant_Shading__clear, 1},
     {"_plant_Shading__spline__get", (DL_FUNC) &_plant_Shading__spline__get, 1},

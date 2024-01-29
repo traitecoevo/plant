@@ -16,20 +16,20 @@ public:
   // except for soil_number_of_depths and shading_spline_rescale_usually
   // which are only updated on construction
   FF16_Environment(bool shading_spline_rescale_usually = false,
-                   int soil_number_of_depths = 0)
-      : shading_spline_rescale_usually(shading_spline_rescale_usually) {
+                   int soil_number_of_depths = 0) {
     time = 0.0;
+    
     shading = Shading();
+    shading.shading_spline_rescale_usually = shading_spline_rescale_usually;
+
     vars = Internals(soil_number_of_depths);
     set_soil_water_state(std::vector<double>(soil_number_of_depths, 0.0));
   };
 
 
   // Light interface
-
   // Shading object is used for calculating shading
   Shading shading;
-  bool shading_spline_rescale_usually;
 
   // Ability to prescribe a fixed value
   // TODO: add setting to set other variables like water
@@ -95,15 +95,13 @@ public:
     }
   }
 
-  // Core functions
+  // Pre-compute resources available in the environment, as a function of height
   template <typename Function>
-  void compute_environment(Function f_compute_competition, double height_max) {
-    shading.compute_shading(f_compute_competition, height_max);
-  }
+  void compute_environment(Function f_compute_competition, double height_max, bool rescale) {
 
-  template <typename Function>
-  void rescale_environment(Function f_compute_competition, double height_max) {
-    shading.rescale_points(f_compute_competition, height_max);
+    // Calculates the shading environment, fitting a spline to the the function
+    // `f_compute_competition` as a function of height
+    shading.compute_environment(f_compute_competition, height_max, rescale);
   }
 
   void clear_environment() {
@@ -111,12 +109,10 @@ public:
   }
 };
 
-//inline Rcpp::NumericMatrix get_state(const FF16_Environment environment) {
-//  return get_state(environment.shading);
-//}
+
 inline Rcpp::List get_state(const FF16_Environment environment, double time) {
   auto ret = get_state(environment.extrinsic_drivers, time);
-  ret["shading"] = get_state(environment.shading); // does a full copy of ret, not efficient
+  ret["shading"] = get_state(environment.shading);
   return ret;
 }
 }

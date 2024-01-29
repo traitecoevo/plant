@@ -239,7 +239,7 @@ double K93_Strategy::compute_competition(double z, double size) const {
 This does a round-about-trip to `K93_environment.h`:
 
 ```{c++}
-void compute_environment(Function f_compute_competition, double height_max) {
+void compute_environment(Function f_compute_competition, double height_max, bool rescale) {
   const double lower_bound = 0.0;
   double upper_bound = height_max;
 

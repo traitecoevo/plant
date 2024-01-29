@@ -12,14 +12,11 @@ namespace plant {
 class K93_Environment : public Environment {
 public:
   K93_Environment() {
-    shading_spline_rescale_usually = false;
     time = 0.0;
     shading = Shading();
   };
 
   // Light interface
-  bool shading_spline_rescale_usually;
-
   Shading shading;
 
   // todo: Should this be here or in shading?
@@ -46,13 +43,11 @@ public:
 
   // Core functions
   template <typename Function>
-  void compute_environment(Function f_compute_competition, double height_max) {
-    shading.compute_shading(f_compute_competition, height_max);
-  }
+  void compute_environment(Function f_compute_competition, double height_max, bool rescale) {
 
-  template <typename Function>
-  void rescale_environment(Function f_compute_competition, double height_max) {
-    shading.rescale_points(f_compute_competition, height_max);
+    // Calculates the shading environment, fitting a spline to the the function
+    // `f_compute_competition` as a function of height
+    shading.compute_environment(f_compute_competition, height_max, rescale);
   }
 
   void clear_environment() {
@@ -61,9 +56,7 @@ public:
 
 };
 
-//inline Rcpp::NumericMatrix get_state(const K93_Environment environment) {
-//  return get_state(environment.shading);
-//}
+
 inline Rcpp::List get_state(const K93_Environment environment, double time) {
   auto ret = get_state(environment.extrinsic_drivers, time);
   ret["shading"] = get_state(environment.shading); // does a full copy of ret, not efficient

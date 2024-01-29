@@ -486,7 +486,6 @@ Patch:
     compute_rates:
       return_type: void
       name_cpp: r_compute_rates
-    # TODO: Not 100% sure this is needed from R:
     reset:
       return_type: void
     # Because we now care about time, we need to make sure that the
@@ -756,6 +755,7 @@ Shading:
       - tol: double
       - nbase: double
       - max_depth: double
+      - rescale_usually: bool
   methods:
     canopy_openness:
       args: [height: double]

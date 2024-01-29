@@ -85,12 +85,12 @@ K93_make_environment <- function(shading_spline_tol = 1e-4,
   # as it causes the FF16 StochasticPatch tests to fail 🙃  opted to hard-code
   # these defaults into the K93_Environment
   
-  # e <- K93_Environment(shading_spline_rescale_usually = TRUE)
   e <- K93_Environment()
   
   e$shading <- Shading(shading_spline_tol, 
                      shading_spline_nbase, 
-                     shading_spline_max_depth)
+                     shading_spline_max_depth, 
+                     shading_spline_rescale_usually)
   
   return(e)
 }

@@ -28,9 +28,11 @@ public:
       [&](double height) {
           return get_canopy_at_height(height);
       }, 0, 1); // these are update with init(x, y) when patch is created
+
+    shading_spline_rescale_usually = false;
   };
 
-  Shading(double tol, size_t nbase, size_t max_depth) {
+  Shading(double tol, size_t nbase, size_t max_depth, bool rescale_usually) {
 
     // Initialise adaptive interpolator. This object can create an interpolator spline
     spline_construction =
@@ -41,10 +43,22 @@ public:
     spline = spline_construction.construct(
         [&](double height) { return get_canopy_at_height(height); }, 0,
         1); // these are update with init(x, y) when patch is created
+    
+    shading_spline_rescale_usually = rescale_usually;
   };
 
   template <typename Function>
-  void compute_shading(Function f_compute_competition, double height_max) {
+  void compute_environment(Function f_compute_competition, double height_max, bool rescale) {
+    if (rescale & shading_spline_rescale_usually) {
+      rescale_spline(f_compute_competition, height_max);
+    } else {
+      construct_spline(f_compute_competition, height_max);
+    }
+  };
+
+  template <typename Function>
+  void construct_spline(Function f_compute_competition, double height_max)
+  {
     const double lower_bound = 0.0;
     double upper_bound = height_max;
 
@@ -54,7 +68,7 @@ public:
   }
 
   template <typename Function>
-  void rescale_points(Function f_compute_competition, double height_max) {
+  void rescale_spline(Function f_compute_competition, double height_max) {
     std::vector<double> h = spline.get_x();
     const double min = spline.min(), // 0.0?
       height_max_old = spline.max();
@@ -113,6 +127,9 @@ public:
 
     // This object can create an interpolator spline via adaptive refinement
     interpolator::AdaptiveInterpolator spline_construction;
+
+    // flag, do we try to rescale the spline when possible? this is quicker
+    bool shading_spline_rescale_usually;
   };
 
 inline Rcpp::NumericMatrix get_state(const Shading shading) {

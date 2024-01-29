@@ -77,12 +77,13 @@ FF16w_make_environment <- function(shading_spline_tol = 1e-4,
   if(soil_number_of_depths < 1)
     stop("FF16w Environment must have at least one soil layer")
   
-  e <- FF16_Environment(shading_spline_rescale_usually, 
-                        soil_number_of_depths)
+  e <- FF16_Environment(shading_spline_rescale_usually,
+                  soil_number_of_depths)
   
   e$shading <- Shading(shading_spline_tol, 
                      shading_spline_nbase, 
-                     shading_spline_max_depth)
+                     shading_spline_max_depth,
+                     shading_spline_rescale_usually)
 
   # there might be a better way to skip this if using defaults
   if(sum(soil_initial_state) > 0.0) {

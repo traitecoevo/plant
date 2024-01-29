@@ -3709,8 +3709,8 @@ Rcpp::List StochasticPatchRunner___K93__K93_Env__state__get(plant::RcppR6::RcppR
 
 
 // [[Rcpp::export]]
-plant::Shading Shading__ctor(double tol, double nbase, double max_depth) {
-  return plant::Shading(tol, nbase, max_depth);
+plant::Shading Shading__ctor(double tol, double nbase, double max_depth, bool rescale_usually) {
+  return plant::Shading(tol, nbase, max_depth, rescale_usually);
 }
 // [[Rcpp::export]]
 double Shading__canopy_openness(plant::RcppR6::RcppR6<plant::Shading> obj_, double height) {
