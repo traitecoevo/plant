@@ -177,7 +177,7 @@ util.h
 
 ## Strategies
 
-The foundation of the `plant` package are sub-models for an individual species’ physiological strategy. The `FF16` strategy is the default strategy. However, the plant package has been written to enable new physiological strategies to be added, and then use the same machinery for modelling size-structured population dynamics, we do this by using templating in C++11 (see [Templating](#templating)).
+The foundation of the `plant` package are sub-models for an individual species’ physiological strategy. The `FF16` strategy is the default strategy. However, the plant package has been written to enable new physiological strategies to be added, and then use the same machinery for modelling size-structured population dynamics, we do this by using templating in c++14 (see [Templating](#templating)).
 
 Adding a new physiological strategy requires some changes to be made throughout the code and then the code recompiled. To achieve this, you'll need to download the package code from Github (new strategies cannot be added using an installed R package) and follow the instructions below. 
 
