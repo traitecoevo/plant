@@ -1,8 +1,7 @@
 // -*-c++-*-
-// todo: What does this class do?
 
-#ifndef PLANT_PLANT_SHADING_H_
-#define PLANT_PLANT_SHADING_H_
+#ifndef PLANT_PLANT_RESOURCE_SPLINE_H_
+#define PLANT_PLANT_RESOURCE_SPLINE_H_
 
 #include <plant/interpolator.h>
 #include <plant/adaptive_interpolator.h>
@@ -126,7 +125,7 @@ inline Rcpp::NumericMatrix get_state(const Resource_spline resource_spline) {
   using namespace Rcpp;
   NumericMatrix xy = resource_spline.spline.r_get_xy();
   Rcpp::CharacterVector colnames =
-    Rcpp::CharacterVector::create("height", "canopy_openness");
+    Rcpp::CharacterVector::create("height", "light_availability");
   xy.attr("dimnames") = Rcpp::List::create(R_NilValue, colnames);
   return xy;
 }

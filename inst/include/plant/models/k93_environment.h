@@ -44,13 +44,13 @@ public:
     // Define an anonymous function to use in creation of light_availability spline
     // Note: extinction coefficient was already applied in strategy, so
     // f_compute_competition gives sum of projected leaf area (k L) across species. Just need to apply Beer's law, E = exp(- (k L))
-    auto f_canopy_openness = [&](double height) -> double
+    auto f_light_availability = [&](double height) -> double
     { return exp(-f_compute_competition(height)); };
 
     // Calculates the light_availability spline, by fitting to the function
     // `f_compute_competition` as a function of height
 
-    light_availability.compute_environment(f_canopy_openness, height_max, rescale);
+    light_availability.compute_environment(f_light_availability, height_max, rescale);
   }
 
   virtual void clear_environment() {
