@@ -23,7 +23,6 @@ public:
 
   void set_fixed_environment(double value, double height_max);
   void set_fixed_environment(double value);
-  void init_interpolators(const std::vector<double>& state);
 
   // ODE interface: do nothing if the environment has no state.
   size_t ode_size() const { return vars.state_size; }
@@ -56,9 +55,9 @@ public:
     clear_environment();
   }
 
-  void clear_environment() {}
+  virtual void clear_environment() {}
 
-  void r_init_interpolators(const std::vector<double>& state) {}
+  virtual void r_init_interpolators(const std::vector<double>& state) {}
 
   double get_environment_at_height(double height) { return 0.0; };
 

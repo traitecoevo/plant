@@ -37,7 +37,8 @@ public:
     return shading.canopy_openness(height);
   }
 
-  void r_init_interpolators(const std::vector<double>& state) {
+  virtual void r_init_interpolators(const std::vector<double> &state)
+  {
     shading.r_init_interpolators(state);
   }
 
@@ -50,7 +51,7 @@ public:
     shading.compute_environment(f_compute_competition, height_max, rescale);
   }
 
-  void clear_environment() {
+  virtual void clear_environment() {
     shading.clear();
   }
 

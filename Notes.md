@@ -19,17 +19,17 @@ see `AdaptiveInterpolator::update_spline()`
 TODO:
 - document classes QAG, tk etc
 - rename 
-  - `compute_competiton` to `precompute_direct_competiton`?
   - [x] `canopy.compute_canopy` -> `shading.construct_spline`?
   - [x]`canopy` -> `shading`. Canopy too abstract?
-- is environmet.rescale_environment used?
-- [x] `canopy::set_fixed_canopy` -> `canopy::set_fixed_values`
-- environment::init_interpolators, r_init_interpolators
+  - [x] `canopy::set_fixed_canopy` -> `canopy::set_fixed_values`
 - shading.h -> resource_spline (on scale 0-1)
   - get_canopy_at_height
   - shading instance -> light?
   - pass in full function
 
+could remove, are these used?
+ - environment::init_interpolators, r_init_interpolators
+ - 
 Environment.h already has vars.states (Internals object). Check Isaac not redefining these
 
 # Using the shading environment

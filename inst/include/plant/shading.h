@@ -106,7 +106,7 @@ public:
   }
 
 
-  void r_init_interpolators(const std::vector<double>& state) {
+  virtual void r_init_interpolators(const std::vector<double>& state) {
     // See issue #144; this is important as we have to at least refine
     // the light environment, but doing this is better because it means
     // that if rescale_usually is on we do get the same light
