@@ -13,15 +13,14 @@ class K93_Environment : public Environment {
 public:
   K93_Environment() {
     time = 0.0;
-    shading = Resource_spline();
+    light_availability = Resource_spline();
   };
 
   // Light interface
-  Resource_spline shading;
+  Resource_spline light_availability;
 
-  // todo: Should this be here or in shading?
   void set_fixed_environment(double value, double height_max) {
-    shading.set_fixed_values(value, height_max);
+    light_availability.set_fixed_value(value, height_max);
   }
 
   void set_fixed_environment(double value) {
@@ -30,29 +29,32 @@ public:
   }
 
   double get_environment_at_height(double height) const {
-    return shading.get_value_at_height(height);
+    return light_availability.get_value_at_height(height);
   }
 
   virtual void r_init_interpolators(const std::vector<double> &state)
   {
-    shading.r_init_interpolators(state);
+    light_availability.r_init_interpolators(state);
   }
 
   // Core functions
   template <typename Function>
   void compute_environment(Function f_compute_competition, double height_max, bool rescale) {
 
-    // Define an anonymous function to use in creation of environment
+    // Define an anonymous function to use in creation of light_availability spline
+    // Note: extinction coefficient was already applied in strategy, so
+    // f_compute_competition gives sum of projected leaf area (k L) across species. Just need to apply Beer's law, E = exp(- (k L))
     auto f_canopy_openness = [&](double height) -> double
     { return exp(-f_compute_competition(height)); };
 
-    // Calculates the shading environment, fitting a spline to the the function
+    // Calculates the light_availability spline, by fitting to the function
     // `f_compute_competition` as a function of height
-    shading.compute_environment(f_canopy_openness, height_max, rescale);
+
+    light_availability.compute_environment(f_canopy_openness, height_max, rescale);
   }
 
   virtual void clear_environment() {
-    shading.clear();
+    light_availability.clear();
   }
 
 };
@@ -60,7 +62,7 @@ public:
 
 inline Rcpp::List get_state(const K93_Environment environment, double time) {
   auto ret = get_state(environment.extrinsic_drivers, time);
-  ret["shading"] = get_state(environment.shading); // does a full copy of ret, not efficient
+  ret["light_availability"] = get_state(environment.light_availability);
   return ret;
 }
 

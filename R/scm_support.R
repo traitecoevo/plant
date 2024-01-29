@@ -168,7 +168,7 @@ make_patch <- function(state, p, env = make_environment(parameters = p),
   types <- extract_RcppR6_template_types(p, "Parameters")
   n <- viapply(state$species, ncol)
   patch <- do.call('Patch', types)(p, env, ctrl)
-  patch$set_state(state$time, unlist(state$species), n, state$env$shading)
+  patch$set_state(state$time, unlist(state$species), n, state$env$light_availability)
   patch
 }
 

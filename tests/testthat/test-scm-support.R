@@ -15,7 +15,7 @@ test_that("collect / make_patch", {
 
   expect_equal(p1_113$ode_state, unlist(st_113$species))
   expect_equal(p1_113$time, st_113$time)
-  expect_equal(p1_113$environment$shading$spline$xy, unname(st_113$env$shading))
+  expect_equal(p1_113$environment$light_availability$spline$xy, unname(st_113$env$light_availability))
   expect_lt(exp(-p1_113$compute_competition(0)), 0.5)
   expect_gt(p1_113$height_max, 10)
 

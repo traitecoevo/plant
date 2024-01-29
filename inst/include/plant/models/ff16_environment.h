@@ -13,28 +13,26 @@ namespace plant {
 class FF16_Environment : public Environment {
 public:
   // constructor for R interface - default settings can be modified
-  // except for soil_number_of_depths and shading_spline_rescale_usually
+  // except for soil_number_of_depths and light_availability_spline_rescale_usually
   // which are only updated on construction
-  FF16_Environment(bool shading_spline_rescale_usually = false,
+  FF16_Environment(bool light_availability_spline_rescale_usually = false,
                    int soil_number_of_depths = 0) {
     time = 0.0;
     
-    shading = Resource_spline();
-    shading.spline_rescale_usually = shading_spline_rescale_usually;
+    light_availability = Resource_spline();
+    light_availability.spline_rescale_usually = light_availability_spline_rescale_usually;
 
     vars = Internals(soil_number_of_depths);
     set_soil_water_state(std::vector<double>(soil_number_of_depths, 0.0));
   };
 
-
-  // Light interface
-  // Shading object is used for calculating shading
-  Resource_spline shading;
+  // A Resource_spline used for storing light availbility (0-1)
+  Resource_spline light_availability;
 
   // Ability to prescribe a fixed value
   // TODO: add setting to set other variables like water
   void set_fixed_environment(double value, double height_max) {
-    shading.set_fixed_values(value, height_max);
+    light_availability.set_fixed_value(value, height_max);
   }
 
   void set_fixed_environment(double value) {
@@ -43,12 +41,12 @@ public:
   }
 
   double get_environment_at_height(double height) const {
-    return shading.get_value_at_height(height);
+    return light_availability.get_value_at_height(height);
   }
 
   virtual void r_init_interpolators(const std::vector<double> &state)
   {
-    shading.r_init_interpolators(state);
+    light_availability.r_init_interpolators(state);
   }
 
   virtual void compute_rates(std::vector<double> const& resource_depletion) {
@@ -95,26 +93,26 @@ public:
   template <typename Function>
   void compute_environment(Function f_compute_competition, double height_max, bool rescale) {
 
-    // Define an anonymous function to use in creation of shading spline
+    // Define an anonymous function to use in creation of light_availability spline
     // Note: extinction coefficient was already applied in strategy, so
-    // f_compute_competition gives sum of projected leaf area across species
+    // f_compute_competition gives sum of projected leaf area (k L) across species. Just need to apply Beer's law, E = exp(- (k L))
     auto f_canopy_openness = [&](double height) -> double
     { return exp(-f_compute_competition(height)); };
 
-    // Calculates the shading environment, fitting a spline to the the function
+    // Calculates the light_availability spline, by fitting to the function
     // `f_compute_competition` as a function of height
-    shading.compute_environment(f_canopy_openness, height_max, rescale);
+    light_availability.compute_environment(f_canopy_openness, height_max, rescale);
   }
 
   virtual void clear_environment() {
-    shading.clear();
+    light_availability.clear();
   }
 };
 
 
 inline Rcpp::List get_state(const FF16_Environment environment, double time) {
   auto ret = get_state(environment.extrinsic_drivers, time);
-  ret["shading"] = get_state(environment.shading);
+  ret["light_availability"] = get_state(environment.light_availability);
   return ret;
 }
 }

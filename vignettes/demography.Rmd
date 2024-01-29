@@ -550,7 +550,7 @@ Starting with an initial set of 33 points, we assess how much each point
 contributes to the accuracy of the spline fit at the location of each
 node, first via exact calculation, and second by linearly interpolating
 from adjacent nodes. The absolute difference in these values is
-compared to the control parameter `shading_spline_tol`. If
+compared to the control parameter `light_availability_spline_tol`. If
 the error is greater than this tolerance, the interval is bisected and the is
 process repeated (see [adaptive_interpolator.h](https://github.com/traitecoevo/plant/blob/master/inst/include/plant/adaptive_interpolator.h) for details).
 

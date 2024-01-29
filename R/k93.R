@@ -68,18 +68,18 @@ K93_StochasticPatchRunner <- function(p) {
 
 ## Helper to create K93_environment object. Useful for running individuals
 ##' create K93_environment object
-##' @param shading_spline_tol
+##' @param light_availability_spline_tol
 ##'
-##' @param shading_spline_nbase
-##' @param shading_spline_max_depth
-##' @param shading_spline_rescale_usually
+##' @param light_availability_spline_nbase
+##' @param light_availability_spline_max_depth
+##' @param light_availability_spline_rescale_usually
 ##'
 ##' @export
 ##' @rdname K93_make_environment
-K93_make_environment <- function(shading_spline_tol = 1e-4, 
-                                 shading_spline_nbase = 17,
-                                 shading_spline_max_depth = 16, 
-                                 shading_spline_rescale_usually = TRUE) {
+K93_make_environment <- function(light_availability_spline_tol = 1e-4, 
+                                 light_availability_spline_nbase = 17,
+                                 light_availability_spline_max_depth = 16, 
+                                 light_availability_spline_rescale_usually = TRUE) {
   
   # for reasons unknown, we can't add arguments to the K93 constructor
   # as it causes the FF16 StochasticPatch tests to fail 🙃  opted to hard-code
@@ -87,10 +87,10 @@ K93_make_environment <- function(shading_spline_tol = 1e-4,
   
   e <- K93_Environment()
   
-  e$shading <- Resource_spline(shading_spline_tol, 
-                     shading_spline_nbase, 
-                     shading_spline_max_depth, 
-                     shading_spline_rescale_usually)
+  e$light_availability <- Resource_spline(light_availability_spline_tol, 
+                     light_availability_spline_nbase, 
+                     light_availability_spline_max_depth, 
+                     light_availability_spline_rescale_usually)
   
   return(e)
 }
@@ -139,7 +139,7 @@ K93_test_environment <- function(height, n=101, light_env=NULL,
   # 
 
   ret <- K93_make_environment()
-  ret$shading$spline <- interpolator
+  ret$light_availability$spline <- interpolator
   attr(ret, "light_env") <- light_env
   ret
 }

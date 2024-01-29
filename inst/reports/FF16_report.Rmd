@@ -248,8 +248,8 @@ data_species_tot <-
   data_species %>%
   integrate_over_size_distribution()
 
-shading <-
-  results_tidy_expand$env$shading %>%
+light_availability <-
+  results_tidy_expand$env$light_availability %>%
   group_by(step) %>% 
   mutate(
     # LAI at height
@@ -466,7 +466,7 @@ d2 <-
 d2_com <- 
   d2 %>%
   bind_rows(
-    shading %>% mutate(species= "whole stand") %>%
+    light_availability %>% mutate(species= "whole stand") %>%
       filter(time %in% select_closest(time, target_ages))
    )
 
@@ -580,7 +580,7 @@ XXX
 
 ```{r}
 d2 <-
-    shading %>% mutate(species = "shading") %>%
+    light_availability %>% mutate(species = "light_availability") %>%
     filter(time %in% select_closest(time, target_ages)) %>% 
     mutate(
       time = round(time),

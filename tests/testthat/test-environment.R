@@ -16,7 +16,7 @@ for (x in names(strategy_types)) {
     expect_equal(env$get_environment_at_height(0), 1.0)
     expect_equal(env$get_environment_at_height(100), 1.0)
 
-    spline <- env$shading$spline
+    spline <- env$light_availability$spline
     expect_equal(spline$size, 33)
     expect_equal(spline$x, seq(0,1, length.out=33))
   })
@@ -33,12 +33,12 @@ for (x in names(strategy_types)) {
     interplator$init(hh, ee)
 
     ## And set it
-    env$shading$spline <- interplator
+    env$light_availability$spline <- interplator
 
-    expect_identical(env$shading$spline$xy, interplator$xy)
+    expect_identical(env$light_availability$spline$xy, interplator$xy)
 
     hmid <- (hh[-1] + hh[-length(hh)])/2
-    expect_identical(sapply(hmid, env$shading$spline$eval), sapply(hmid, interplator$eval))
+    expect_identical(sapply(hmid, env$light_availability$spline$eval), sapply(hmid, interplator$eval))
   })
 }
 

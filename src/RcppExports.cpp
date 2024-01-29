@@ -9324,14 +9324,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // FF16_Environment__ctor
-plant::FF16_Environment FF16_Environment__ctor(bool shading_spline_rescale_usually, int soil_number_of_depths);
-RcppExport SEXP _plant_FF16_Environment__ctor(SEXP shading_spline_rescale_usuallySEXP, SEXP soil_number_of_depthsSEXP) {
+plant::FF16_Environment FF16_Environment__ctor(bool light_availability_spline_rescale_usually, int soil_number_of_depths);
+RcppExport SEXP _plant_FF16_Environment__ctor(SEXP light_availability_spline_rescale_usuallySEXP, SEXP soil_number_of_depthsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< bool >::type shading_spline_rescale_usually(shading_spline_rescale_usuallySEXP);
+    Rcpp::traits::input_parameter< bool >::type light_availability_spline_rescale_usually(light_availability_spline_rescale_usuallySEXP);
     Rcpp::traits::input_parameter< int >::type soil_number_of_depths(soil_number_of_depthsSEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16_Environment__ctor(shading_spline_rescale_usually, soil_number_of_depths));
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__ctor(light_availability_spline_rescale_usually, soil_number_of_depths));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -9435,25 +9435,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// FF16_Environment__shading__get
-plant::Resource_spline FF16_Environment__shading__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
-RcppExport SEXP _plant_FF16_Environment__shading__get(SEXP obj_SEXP) {
+// FF16_Environment__light_availability__get
+plant::Resource_spline FF16_Environment__light_availability__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
+RcppExport SEXP _plant_FF16_Environment__light_availability__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16_Environment__shading__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__light_availability__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
-// FF16_Environment__shading__set
-void FF16_Environment__shading__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::Resource_spline value);
-RcppExport SEXP _plant_FF16_Environment__shading__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// FF16_Environment__light_availability__set
+void FF16_Environment__light_availability__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::Resource_spline value);
+RcppExport SEXP _plant_FF16_Environment__light_availability__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::Resource_spline >::type value(valueSEXP);
-    FF16_Environment__shading__set(obj_, value);
+    FF16_Environment__light_availability__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -9576,25 +9576,25 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// K93_Environment__shading__get
-plant::Resource_spline K93_Environment__shading__get(plant::RcppR6::RcppR6<plant::K93_Environment> obj_);
-RcppExport SEXP _plant_K93_Environment__shading__get(SEXP obj_SEXP) {
+// K93_Environment__light_availability__get
+plant::Resource_spline K93_Environment__light_availability__get(plant::RcppR6::RcppR6<plant::K93_Environment> obj_);
+RcppExport SEXP _plant_K93_Environment__light_availability__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::K93_Environment> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(K93_Environment__shading__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(K93_Environment__light_availability__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
-// K93_Environment__shading__set
-void K93_Environment__shading__set(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, plant::Resource_spline value);
-RcppExport SEXP _plant_K93_Environment__shading__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// K93_Environment__light_availability__set
+void K93_Environment__light_availability__set(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, plant::Resource_spline value);
+RcppExport SEXP _plant_K93_Environment__light_availability__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::K93_Environment> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::Resource_spline >::type value(valueSEXP);
-    K93_Environment__shading__set(obj_, value);
+    K93_Environment__light_availability__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -10792,8 +10792,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_FF16_Environment__time__set", (DL_FUNC) &_plant_FF16_Environment__time__set, 2},
     {"_plant_FF16_Environment__ode_size__get", (DL_FUNC) &_plant_FF16_Environment__ode_size__get, 1},
     {"_plant_FF16_Environment__soil_number_of_depths__get", (DL_FUNC) &_plant_FF16_Environment__soil_number_of_depths__get, 1},
-    {"_plant_FF16_Environment__shading__get", (DL_FUNC) &_plant_FF16_Environment__shading__get, 1},
-    {"_plant_FF16_Environment__shading__set", (DL_FUNC) &_plant_FF16_Environment__shading__set, 2},
+    {"_plant_FF16_Environment__light_availability__get", (DL_FUNC) &_plant_FF16_Environment__light_availability__get, 1},
+    {"_plant_FF16_Environment__light_availability__set", (DL_FUNC) &_plant_FF16_Environment__light_availability__set, 2},
     {"_plant_FF16_Environment__soil__get", (DL_FUNC) &_plant_FF16_Environment__soil__get, 1},
     {"_plant_FF16_Environment__extrinsic_drivers__get", (DL_FUNC) &_plant_FF16_Environment__extrinsic_drivers__get, 1},
     {"_plant_FF16_Environment__extrinsic_drivers__set", (DL_FUNC) &_plant_FF16_Environment__extrinsic_drivers__set, 2},
@@ -10805,8 +10805,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_K93_Environment__set_fixed_environment", (DL_FUNC) &_plant_K93_Environment__set_fixed_environment, 3},
     {"_plant_K93_Environment__time__get", (DL_FUNC) &_plant_K93_Environment__time__get, 1},
     {"_plant_K93_Environment__time__set", (DL_FUNC) &_plant_K93_Environment__time__set, 2},
-    {"_plant_K93_Environment__shading__get", (DL_FUNC) &_plant_K93_Environment__shading__get, 1},
-    {"_plant_K93_Environment__shading__set", (DL_FUNC) &_plant_K93_Environment__shading__set, 2},
+    {"_plant_K93_Environment__light_availability__get", (DL_FUNC) &_plant_K93_Environment__light_availability__get, 1},
+    {"_plant_K93_Environment__light_availability__set", (DL_FUNC) &_plant_K93_Environment__light_availability__set, 2},
     {"_plant_K93_Environment__ode_size__get", (DL_FUNC) &_plant_K93_Environment__ode_size__get, 1},
     {"_plant_FF16w_Strategy__ctor", (DL_FUNC) &_plant_FF16w_Strategy__ctor, 0},
     {"_plant_ExtrinsicDrivers__ctor", (DL_FUNC) &_plant_ExtrinsicDrivers__ctor, 0},

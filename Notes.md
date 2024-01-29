@@ -24,11 +24,11 @@ TODO:
   - could rename light? Or canopy_openness? That would at least preserve the current functions and align directionality implied by the name with the numbers?
 
 - rename 
-  - [x] `canopy.compute_canopy` -> `shading.construct_spline`?
-  - [x]`canopy` -> `shading`. Canopy too abstract?
+  - [x] `canopy.compute_canopy` -> `light_availability.compute_environment`?
+  - [x] canopy.h -> resource_spline.h (on scale 0-1)
+  - [x] `FF16environment::canopy` -> `light_availability`. (Canopy too abstract)
   - [x] `canopy::set_fixed_canopy` -> `canopy::set_fixed_values`
-- [x] shading.h -> resource_spline (on scale 0-1)
-  - [x] get_canopy_at_height
+  - [x] get_canopy_at_height -> get_value_at_height
   - [x] pass in full function
 
 could remove, are these used?

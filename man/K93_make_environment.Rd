@@ -5,16 +5,16 @@
 \title{create K93_environment object}
 \usage{
 K93_make_environment(
-  shading_spline_tol = 1e-04,
-  shading_spline_nbase = 17,
-  shading_spline_max_depth = 16,
-  shading_spline_rescale_usually = TRUE
+  light_availability_spline_tol = 1e-04,
+  light_availability_spline_nbase = 17,
+  light_availability_spline_max_depth = 16,
+  light_availability_spline_rescale_usually = TRUE
 )
 }
 \arguments{
-\item{shading_spline_tol}{}
+\item{light_availability_spline_tol}{}
 
-\item{shading_spline_rescale_usually}{}
+\item{light_availability_spline_rescale_usually}{}
 }
 \description{
 create K93_environment object

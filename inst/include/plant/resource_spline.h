@@ -56,7 +56,7 @@ public:
     }
   };
 
-  void set_fixed_values(double value, double height_max) {
+  void set_fixed_value(double value, double height_max) {
     std::vector<double> x = {0, height_max/2.0, height_max};
     std::vector<double> y = {value, value, value};
     clear();
@@ -89,7 +89,8 @@ public:
     spline.init(state_x, state_y);
   }
 
-  // This object will store an interpolator spline of shading
+  // This object will store an interpolator spline of 
+  // resource availability as a function of size
   interpolator::Interpolator spline;
 
   // This object can create an interpolator spline via adaptive refinement
@@ -128,9 +129,9 @@ private:
 
   };
 
-inline Rcpp::NumericMatrix get_state(const Resource_spline shading) {
+inline Rcpp::NumericMatrix get_state(const Resource_spline resource_spline) {
   using namespace Rcpp;
-  NumericMatrix xy = shading.spline.r_get_xy();
+  NumericMatrix xy = resource_spline.spline.r_get_xy();
   Rcpp::CharacterVector colnames =
     Rcpp::CharacterVector::create("height", "canopy_openness");
   xy.attr("dimnames") = Rcpp::List::create(R_NilValue, colnames);

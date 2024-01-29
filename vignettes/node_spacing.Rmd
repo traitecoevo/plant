@@ -294,8 +294,7 @@ results_insert <- collect_with_times(patch, times_insert)
 In order to make a direct comparison, we need to interpolate the light
 environment over a common set of heights at each time step.
 
-We reconstruct the light environment spline for both runs, and compute
-shading in both:
+We reconstruct the light environment spline for both runs, and compute light_availability in both:
 
 
 ```r
@@ -320,16 +319,16 @@ max_height <- max(results_default$env[[n]][, 1],
                   results_insert$env[[n+1]][, 1])
 
 heights <- seq(0, max_height, length.out=201)
-interpolated_shading_default <- sapply(results_default$env, interpolated_environment, heights)
-interpolated_shading_insert <- sapply(results_insert$env, interpolated_environment, heights)
+interpolated_light_availability_default <- sapply(results_default$env, interpolated_environment, heights)
+interpolated_light_availability_insert <- sapply(results_insert$env, interpolated_environment, heights)
 
-interpolated_shading_difference <- t(interpolated_shading_insert[, -(insert_position + 1)] - interpolated_shading_default)
-interpolated_shading_difference[abs(interpolated_shading_difference) < 1e-10] <- NA
+interpolated_light_availability_difference <- t(interpolated_light_availability_insert[, -(insert_position + 1)] - interpolated_light_availability_default)
+interpolated_light_availability_difference[abs(interpolated_light_availability_difference) < 1e-10] <- NA
 ```
 
 Taking the difference between light environments at each height and timestep,
 the resulting image plot is blue in regions where the refined light environment,
-with the additional node is lighter (lower shading)
+with the additional node is lighter (higher light_availability)
 and red in regions where the the light environment is darker with the additional
 node.
 
@@ -340,7 +339,7 @@ cols <- c("#B2182B", "#D6604D", "#F4A582", "#FDDBC7",
           "#D1E5F0", "#92C5DE", "#4393C3", "#2166AC")
 pal <- colorRampPalette(cols)(20)
 
-image(results_default$time, heights, interpolated_shading_difference,
+image(results_default$time, heights, interpolated_light_availability_difference,
       xlab="Time (years)", ylab="Height (m)", las=1, col=pal)
 ```
 
@@ -369,7 +368,7 @@ increases the error in the estimate of the total seed
 production from the patch. The relative error in each integration is then
 calculated using the `local_error_integration` function.
 
-We've shown that large differences  manifest in shading.
+We've shown that large differences  manifest in light_availability.
 Here we use `plant:::run_scm_error` to assess the integration error of
 the leaf area for all nodes.
 

@@ -64,10 +64,10 @@ FF16r_StochasticPatchRunner <- function(p) {
 ## Helper:
 ##' @export
 ##' @rdname FF16_Environment
-##' @param shading_spline_rescale_usually turns on environment rescaling (default = TRUE)
-FF16r_make_environment <- function(shading_spline_rescale_usually = TRUE) {
+##' @param light_availability_spline_rescale_usually turns on environment rescaling (default = TRUE)
+FF16r_make_environment <- function(light_availability_spline_rescale_usually = TRUE) {
   
-  FF16_make_environment(shading_spline_rescale_usually)
+  FF16_make_environment(light_availability_spline_rescale_usually)
 }
 
 
@@ -95,7 +95,7 @@ FF16r_test_environment <- function(height, n=101, light_env=NULL,
   interpolator$init(hh, ee)
 
   ret <- FF16r_make_environment()
-  ret$shading$spline <- interpolator
+  ret$light_availability$spline <- interpolator
   attr(ret, "light_env") <- light_env
   ret
 }

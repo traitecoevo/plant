@@ -877,11 +877,11 @@ FF16_Environment:
   name_cpp: "plant::FF16_Environment"
   constructor:
     args:
-      - shading_spline_rescale_usually: bool
+      - light_availability_spline_rescale_usually: bool
       - soil_number_of_depths: int
     roxygen: |
       FF16_Environment object
-      @param  shading_spline_rescale_usually whether to rescale intervals when estimating light environment
+      @param  light_availability_spline_rescale_usually whether to rescale intervals when estimating light environment
       @param  soil_number_of_depths Number of soil layers to include
       @export
   methods:
@@ -903,7 +903,7 @@ FF16_Environment:
     time: {type: double, access: field}
     ode_size: {type: size_t, access: member}
     soil_number_of_depths: {type: size_t, access: member, name_cpp: ode_size}
-    shading:
+    light_availability:
       type: "plant::Resource_spline"
       access: field
     soil:
@@ -1006,7 +1006,7 @@ K93_Environment:
       return_type: void
   active:
     time: {type: double, access: field}
-    shading: {type: "plant::Resource_spline", access: field}
+    light_availability: {type: "plant::Resource_spline", access: field}
     ode_size: {type: size_t, access: member}
 
 # The following strategy was built from FF16 on Mon Jul 19 11:01:04 2021
