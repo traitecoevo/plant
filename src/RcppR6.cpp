@@ -3709,24 +3709,24 @@ Rcpp::List StochasticPatchRunner___K93__K93_Env__state__get(plant::RcppR6::RcppR
 
 
 // [[Rcpp::export]]
-plant::Canopy Canopy__ctor(double tol, double nbase, double max_depth) {
-  return plant::Canopy(tol, nbase, max_depth);
+plant::Shading Shading__ctor(double tol, double nbase, double max_depth) {
+  return plant::Shading(tol, nbase, max_depth);
 }
 // [[Rcpp::export]]
-double Canopy__XXX_openness(plant::RcppR6::RcppR6<plant::Canopy> obj_, double height) {
+double Shading__XXX_openness(plant::RcppR6::RcppR6<plant::Shading> obj_, double height) {
   return obj_->XXX_openness(height);
 }
 // [[Rcpp::export]]
-void Canopy__clear(plant::RcppR6::RcppR6<plant::Canopy> obj_) {
+void Shading__clear(plant::RcppR6::RcppR6<plant::Shading> obj_) {
   obj_->clear();
 }
 // [[Rcpp::export]]
-plant::interpolator::Interpolator Canopy__shading_spline__get(plant::RcppR6::RcppR6<plant::Canopy> obj_) {
-  return obj_->shading_spline;
+plant::interpolator::Interpolator Shading__spline__get(plant::RcppR6::RcppR6<plant::Shading> obj_) {
+  return obj_->spline;
 }
 // [[Rcpp::export]]
-void Canopy__shading_spline__set(plant::RcppR6::RcppR6<plant::Canopy> obj_, plant::interpolator::Interpolator value) {
-  obj_->shading_spline = value;
+void Shading__spline__set(plant::RcppR6::RcppR6<plant::Shading> obj_, plant::interpolator::Interpolator value) {
+  obj_->spline = value;
 }
 
 
@@ -3831,12 +3831,12 @@ size_t FF16_Environment__soil_number_of_depths__get(plant::RcppR6::RcppR6<plant:
 }
 
 // [[Rcpp::export]]
-plant::Canopy FF16_Environment__canopy__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
-  return obj_->canopy;
+plant::Shading FF16_Environment__shading__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
+  return obj_->shading;
 }
 // [[Rcpp::export]]
-void FF16_Environment__canopy__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::Canopy value) {
-  obj_->canopy = value;
+void FF16_Environment__shading__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::Shading value) {
+  obj_->shading = value;
 }
 
 // [[Rcpp::export]]
@@ -3892,12 +3892,12 @@ void K93_Environment__time__set(plant::RcppR6::RcppR6<plant::K93_Environment> ob
 }
 
 // [[Rcpp::export]]
-plant::Canopy K93_Environment__canopy__get(plant::RcppR6::RcppR6<plant::K93_Environment> obj_) {
-  return obj_->canopy;
+plant::Shading K93_Environment__shading__get(plant::RcppR6::RcppR6<plant::K93_Environment> obj_) {
+  return obj_->shading;
 }
 // [[Rcpp::export]]
-void K93_Environment__canopy__set(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, plant::Canopy value) {
-  obj_->canopy = value;
+void K93_Environment__shading__set(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, plant::Shading value) {
+  obj_->shading = value;
 }
 
 // [[Rcpp::export]]

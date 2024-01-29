@@ -88,7 +88,7 @@ K93_make_environment <- function(shading_spline_tol = 1e-4,
   # e <- K93_Environment(shading_spline_rescale_usually = TRUE)
   e <- K93_Environment()
   
-  e$canopy <- Canopy(shading_spline_tol, 
+  e$shading <- Shading(shading_spline_tol, 
                      shading_spline_nbase, 
                      shading_spline_max_depth)
   
@@ -139,7 +139,7 @@ K93_test_environment <- function(height, n=101, light_env=NULL,
   # 
 
   ret <- K93_make_environment()
-  ret$canopy$shading_spline <- interpolator
+  ret$shading$spline <- interpolator
   attr(ret, "light_env") <- light_env
   ret
 }

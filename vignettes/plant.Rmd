@@ -116,7 +116,7 @@ Which we can plot against time
 #just do ggplot for now
 result %>%
   ggplot() +
-  geom_line(aes(x=time, y=height), size=1.5) +
+  geom_line(aes(x=time, y=height), linewidth =1.5) +
   theme_classic()
 ```
 
@@ -211,7 +211,7 @@ To see the change in canopy openness over time we can explore the patch Environm
 
 ```{r}
 result %>%
-  pluck("env", "canopy") %>%
+  pluck("env", "shading") %>%
   filter(step == "99") %>%
   ggplot() +
   geom_line(aes(x=height, y = XXX_openness), size=1.5) +
@@ -220,8 +220,7 @@ result %>%
 If we look at the light environment at the forest floor (height = 0.0) we can see that it varies through time as older individuals thin out and gaps form
 
 ```{r}
-result%>%
-  pluck("env", "canopy") %>%
+  pluck("env", "shading") %>%
   filter(height == 0) %>%
   ggplot() +
   geom_line(aes(x= time, y=XXX_openness), size=1.5) +

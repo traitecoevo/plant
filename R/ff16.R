@@ -78,8 +78,8 @@ FF16_make_environment <- function(shading_spline_tol = 1e-4,
   e <- FF16_Environment(shading_spline_rescale_usually, 
                         soil_number_of_depths = 0)
   
-  # Canopy defaults have lower tolerance which are overwritten for speed
-  e$canopy <- Canopy(shading_spline_tol, 
+  # Shading defaults have lower tolerance which are overwritten for speed
+  e$shading <- Shading(shading_spline_tol, 
                      shading_spline_nbase, 
                      shading_spline_max_depth)
   
@@ -125,7 +125,7 @@ FF16_test_environment <- function(height, n=101, light_env=NULL,
   interpolator$init(hh, ee)
 
   ret <- FF16_make_environment()
-  ret$canopy$shading_spline <- interpolator
+  ret$shading$spline <- interpolator
   attr(ret, "light_env") <- light_env
   ret
 }

@@ -82,7 +82,7 @@ public:
   void r_set_state(double time,
                    const std::vector<double>& state,
                    const std::vector<size_t>& n,
-                   const std::vector<double>& canopy);
+                   const std::vector<double>& shading);
   void r_introduce_new_node(util::index species_index) {
     introduce_new_node(species_index.check_bounds(size()));
   }
@@ -189,7 +189,7 @@ void Patch<T,E>::reset() {
   // resize to species count
   resource_depletion.reserve(environment.ode_size());
 
-  // compute ephemeral effects like canopy
+  // compute ephemeral effects like shading
   environment.clear();
   compute_environment();
 
@@ -316,7 +316,7 @@ template <typename T, typename E>
 void Patch<T,E>::r_set_state(double time,
                            const std::vector<double>& state,
                            const std::vector<size_t>& n,
-                           const std::vector<double>& canopy) {
+                           const std::vector<double>& shading) {
   const size_t n_species = species.size();
   util::check_length(n.size(), n_species);
   reset();
@@ -327,7 +327,7 @@ void Patch<T,E>::r_set_state(double time,
   }
   util::check_length(state.size(), ode_size());
   set_ode_state(state.begin(), time);
-  environment.r_init_interpolators(canopy);
+  environment.r_init_interpolators(shading);
 }
 
 // ODE interface

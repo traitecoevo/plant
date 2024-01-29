@@ -3253,24 +3253,24 @@ StochasticPatchRunner___K93__K93_Env__state__get <- function(obj_) {
     .Call('_plant_StochasticPatchRunner___K93__K93_Env__state__get', PACKAGE = 'plant', obj_)
 }
 
-Canopy__ctor <- function(tol, nbase, max_depth) {
-    .Call('_plant_Canopy__ctor', PACKAGE = 'plant', tol, nbase, max_depth)
+Shading__ctor <- function(tol, nbase, max_depth) {
+    .Call('_plant_Shading__ctor', PACKAGE = 'plant', tol, nbase, max_depth)
 }
 
-Canopy__XXX_openness <- function(obj_, height) {
-    .Call('_plant_Canopy__XXX_openness', PACKAGE = 'plant', obj_, height)
+Shading__XXX_openness <- function(obj_, height) {
+    .Call('_plant_Shading__XXX_openness', PACKAGE = 'plant', obj_, height)
 }
 
-Canopy__clear <- function(obj_) {
-    invisible(.Call('_plant_Canopy__clear', PACKAGE = 'plant', obj_))
+Shading__clear <- function(obj_) {
+    invisible(.Call('_plant_Shading__clear', PACKAGE = 'plant', obj_))
 }
 
-Canopy__shading_spline__get <- function(obj_) {
-    .Call('_plant_Canopy__shading_spline__get', PACKAGE = 'plant', obj_)
+Shading__spline__get <- function(obj_) {
+    .Call('_plant_Shading__spline__get', PACKAGE = 'plant', obj_)
 }
 
-Canopy__shading_spline__set <- function(obj_, value) {
-    invisible(.Call('_plant_Canopy__shading_spline__set', PACKAGE = 'plant', obj_, value))
+Shading__spline__set <- function(obj_, value) {
+    invisible(.Call('_plant_Shading__spline__set', PACKAGE = 'plant', obj_, value))
 }
 
 Disturbance_Regime__ctor <- function() {
@@ -3365,12 +3365,12 @@ FF16_Environment__soil_number_of_depths__get <- function(obj_) {
     .Call('_plant_FF16_Environment__soil_number_of_depths__get', PACKAGE = 'plant', obj_)
 }
 
-FF16_Environment__canopy__get <- function(obj_) {
-    .Call('_plant_FF16_Environment__canopy__get', PACKAGE = 'plant', obj_)
+FF16_Environment__shading__get <- function(obj_) {
+    .Call('_plant_FF16_Environment__shading__get', PACKAGE = 'plant', obj_)
 }
 
-FF16_Environment__canopy__set <- function(obj_, value) {
-    invisible(.Call('_plant_FF16_Environment__canopy__set', PACKAGE = 'plant', obj_, value))
+FF16_Environment__shading__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Environment__shading__set', PACKAGE = 'plant', obj_, value))
 }
 
 FF16_Environment__soil__get <- function(obj_) {
@@ -3417,12 +3417,12 @@ K93_Environment__time__set <- function(obj_, value) {
     invisible(.Call('_plant_K93_Environment__time__set', PACKAGE = 'plant', obj_, value))
 }
 
-K93_Environment__canopy__get <- function(obj_) {
-    .Call('_plant_K93_Environment__canopy__get', PACKAGE = 'plant', obj_)
+K93_Environment__shading__get <- function(obj_) {
+    .Call('_plant_K93_Environment__shading__get', PACKAGE = 'plant', obj_)
 }
 
-K93_Environment__canopy__set <- function(obj_, value) {
-    invisible(.Call('_plant_K93_Environment__canopy__set', PACKAGE = 'plant', obj_, value))
+K93_Environment__shading__set <- function(obj_, value) {
+    invisible(.Call('_plant_K93_Environment__shading__set', PACKAGE = 'plant', obj_, value))
 }
 
 K93_Environment__ode_size__get <- function(obj_) {

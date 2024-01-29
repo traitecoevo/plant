@@ -9117,60 +9117,60 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Canopy__ctor
-plant::Canopy Canopy__ctor(double tol, double nbase, double max_depth);
-RcppExport SEXP _plant_Canopy__ctor(SEXP tolSEXP, SEXP nbaseSEXP, SEXP max_depthSEXP) {
+// Shading__ctor
+plant::Shading Shading__ctor(double tol, double nbase, double max_depth);
+RcppExport SEXP _plant_Shading__ctor(SEXP tolSEXP, SEXP nbaseSEXP, SEXP max_depthSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
     Rcpp::traits::input_parameter< double >::type nbase(nbaseSEXP);
     Rcpp::traits::input_parameter< double >::type max_depth(max_depthSEXP);
-    rcpp_result_gen = Rcpp::wrap(Canopy__ctor(tol, nbase, max_depth));
+    rcpp_result_gen = Rcpp::wrap(Shading__ctor(tol, nbase, max_depth));
     return rcpp_result_gen;
 END_RCPP
 }
-// Canopy__XXX_openness
-double Canopy__XXX_openness(plant::RcppR6::RcppR6<plant::Canopy> obj_, double height);
-RcppExport SEXP _plant_Canopy__XXX_openness(SEXP obj_SEXP, SEXP heightSEXP) {
+// Shading__XXX_openness
+double Shading__XXX_openness(plant::RcppR6::RcppR6<plant::Shading> obj_, double height);
+RcppExport SEXP _plant_Shading__XXX_openness(SEXP obj_SEXP, SEXP heightSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Canopy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Shading> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type height(heightSEXP);
-    rcpp_result_gen = Rcpp::wrap(Canopy__XXX_openness(obj_, height));
+    rcpp_result_gen = Rcpp::wrap(Shading__XXX_openness(obj_, height));
     return rcpp_result_gen;
 END_RCPP
 }
-// Canopy__clear
-void Canopy__clear(plant::RcppR6::RcppR6<plant::Canopy> obj_);
-RcppExport SEXP _plant_Canopy__clear(SEXP obj_SEXP) {
+// Shading__clear
+void Shading__clear(plant::RcppR6::RcppR6<plant::Shading> obj_);
+RcppExport SEXP _plant_Shading__clear(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Canopy> >::type obj_(obj_SEXP);
-    Canopy__clear(obj_);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Shading> >::type obj_(obj_SEXP);
+    Shading__clear(obj_);
     return R_NilValue;
 END_RCPP
 }
-// Canopy__shading_spline__get
-plant::interpolator::Interpolator Canopy__shading_spline__get(plant::RcppR6::RcppR6<plant::Canopy> obj_);
-RcppExport SEXP _plant_Canopy__shading_spline__get(SEXP obj_SEXP) {
+// Shading__spline__get
+plant::interpolator::Interpolator Shading__spline__get(plant::RcppR6::RcppR6<plant::Shading> obj_);
+RcppExport SEXP _plant_Shading__spline__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Canopy> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Canopy__shading_spline__get(obj_));
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Shading> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Shading__spline__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
-// Canopy__shading_spline__set
-void Canopy__shading_spline__set(plant::RcppR6::RcppR6<plant::Canopy> obj_, plant::interpolator::Interpolator value);
-RcppExport SEXP _plant_Canopy__shading_spline__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// Shading__spline__set
+void Shading__spline__set(plant::RcppR6::RcppR6<plant::Shading> obj_, plant::interpolator::Interpolator value);
+RcppExport SEXP _plant_Shading__spline__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Canopy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Shading> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::interpolator::Interpolator >::type value(valueSEXP);
-    Canopy__shading_spline__set(obj_, value);
+    Shading__spline__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -9434,25 +9434,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// FF16_Environment__canopy__get
-plant::Canopy FF16_Environment__canopy__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
-RcppExport SEXP _plant_FF16_Environment__canopy__get(SEXP obj_SEXP) {
+// FF16_Environment__shading__get
+plant::Shading FF16_Environment__shading__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
+RcppExport SEXP _plant_FF16_Environment__shading__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16_Environment__canopy__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__shading__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
-// FF16_Environment__canopy__set
-void FF16_Environment__canopy__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::Canopy value);
-RcppExport SEXP _plant_FF16_Environment__canopy__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// FF16_Environment__shading__set
+void FF16_Environment__shading__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::Shading value);
+RcppExport SEXP _plant_FF16_Environment__shading__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< plant::Canopy >::type value(valueSEXP);
-    FF16_Environment__canopy__set(obj_, value);
+    Rcpp::traits::input_parameter< plant::Shading >::type value(valueSEXP);
+    FF16_Environment__shading__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -9575,25 +9575,25 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// K93_Environment__canopy__get
-plant::Canopy K93_Environment__canopy__get(plant::RcppR6::RcppR6<plant::K93_Environment> obj_);
-RcppExport SEXP _plant_K93_Environment__canopy__get(SEXP obj_SEXP) {
+// K93_Environment__shading__get
+plant::Shading K93_Environment__shading__get(plant::RcppR6::RcppR6<plant::K93_Environment> obj_);
+RcppExport SEXP _plant_K93_Environment__shading__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::K93_Environment> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(K93_Environment__canopy__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(K93_Environment__shading__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
-// K93_Environment__canopy__set
-void K93_Environment__canopy__set(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, plant::Canopy value);
-RcppExport SEXP _plant_K93_Environment__canopy__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// K93_Environment__shading__set
+void K93_Environment__shading__set(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, plant::Shading value);
+RcppExport SEXP _plant_K93_Environment__shading__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::K93_Environment> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< plant::Canopy >::type value(valueSEXP);
-    K93_Environment__canopy__set(obj_, value);
+    Rcpp::traits::input_parameter< plant::Shading >::type value(valueSEXP);
+    K93_Environment__shading__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -10763,11 +10763,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatchRunner___K93__K93_Env__schedule__get", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__schedule__get, 1},
     {"_plant_StochasticPatchRunner___K93__K93_Env__schedule__set", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__schedule__set, 2},
     {"_plant_StochasticPatchRunner___K93__K93_Env__state__get", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__state__get, 1},
-    {"_plant_Canopy__ctor", (DL_FUNC) &_plant_Canopy__ctor, 3},
-    {"_plant_Canopy__XXX_openness", (DL_FUNC) &_plant_Canopy__XXX_openness, 2},
-    {"_plant_Canopy__clear", (DL_FUNC) &_plant_Canopy__clear, 1},
-    {"_plant_Canopy__shading_spline__get", (DL_FUNC) &_plant_Canopy__shading_spline__get, 1},
-    {"_plant_Canopy__shading_spline__set", (DL_FUNC) &_plant_Canopy__shading_spline__set, 2},
+    {"_plant_Shading__ctor", (DL_FUNC) &_plant_Shading__ctor, 3},
+    {"_plant_Shading__XXX_openness", (DL_FUNC) &_plant_Shading__XXX_openness, 2},
+    {"_plant_Shading__clear", (DL_FUNC) &_plant_Shading__clear, 1},
+    {"_plant_Shading__spline__get", (DL_FUNC) &_plant_Shading__spline__get, 1},
+    {"_plant_Shading__spline__set", (DL_FUNC) &_plant_Shading__spline__set, 2},
     {"_plant_Disturbance_Regime__ctor", (DL_FUNC) &_plant_Disturbance_Regime__ctor, 0},
     {"_plant_Disturbance_Regime__density", (DL_FUNC) &_plant_Disturbance_Regime__density, 2},
     {"_plant_Disturbance_Regime__pr_survival", (DL_FUNC) &_plant_Disturbance_Regime__pr_survival, 2},
@@ -10791,8 +10791,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_FF16_Environment__time__set", (DL_FUNC) &_plant_FF16_Environment__time__set, 2},
     {"_plant_FF16_Environment__ode_size__get", (DL_FUNC) &_plant_FF16_Environment__ode_size__get, 1},
     {"_plant_FF16_Environment__soil_number_of_depths__get", (DL_FUNC) &_plant_FF16_Environment__soil_number_of_depths__get, 1},
-    {"_plant_FF16_Environment__canopy__get", (DL_FUNC) &_plant_FF16_Environment__canopy__get, 1},
-    {"_plant_FF16_Environment__canopy__set", (DL_FUNC) &_plant_FF16_Environment__canopy__set, 2},
+    {"_plant_FF16_Environment__shading__get", (DL_FUNC) &_plant_FF16_Environment__shading__get, 1},
+    {"_plant_FF16_Environment__shading__set", (DL_FUNC) &_plant_FF16_Environment__shading__set, 2},
     {"_plant_FF16_Environment__soil__get", (DL_FUNC) &_plant_FF16_Environment__soil__get, 1},
     {"_plant_FF16_Environment__extrinsic_drivers__get", (DL_FUNC) &_plant_FF16_Environment__extrinsic_drivers__get, 1},
     {"_plant_FF16_Environment__extrinsic_drivers__set", (DL_FUNC) &_plant_FF16_Environment__extrinsic_drivers__set, 2},
@@ -10804,8 +10804,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_K93_Environment__set_fixed_environment", (DL_FUNC) &_plant_K93_Environment__set_fixed_environment, 3},
     {"_plant_K93_Environment__time__get", (DL_FUNC) &_plant_K93_Environment__time__get, 1},
     {"_plant_K93_Environment__time__set", (DL_FUNC) &_plant_K93_Environment__time__set, 2},
-    {"_plant_K93_Environment__canopy__get", (DL_FUNC) &_plant_K93_Environment__canopy__get, 1},
-    {"_plant_K93_Environment__canopy__set", (DL_FUNC) &_plant_K93_Environment__canopy__set, 2},
+    {"_plant_K93_Environment__shading__get", (DL_FUNC) &_plant_K93_Environment__shading__get, 1},
+    {"_plant_K93_Environment__shading__set", (DL_FUNC) &_plant_K93_Environment__shading__set, 2},
     {"_plant_K93_Environment__ode_size__get", (DL_FUNC) &_plant_K93_Environment__ode_size__get, 1},
     {"_plant_FF16w_Strategy__ctor", (DL_FUNC) &_plant_FF16w_Strategy__ctor, 0},
     {"_plant_ExtrinsicDrivers__ctor", (DL_FUNC) &_plant_ExtrinsicDrivers__ctor, 0},

@@ -275,7 +275,7 @@ heights <- seq(0, max_height, length.out=201)
 shading_spline_default <- sapply(results_default$env, interpolated_shading, heights)
 shading_spline_insert <- sapply(results_insert$env, interpolated_shading, heights)
 
-shading_spline_difference <- t(shading_spline_insert[, -(insert_position + 1)] - shading_spline_default)
+shading_spline_difference <- t(shading_spline_insert[, -(insert_position + 1)] - canopy_default)
 shading_spline_difference[abs(shading_spline_difference) < 1e-10] <- NA
 ```
 
@@ -291,7 +291,7 @@ cols <- c("#B2182B", "#D6604D", "#F4A582", "#FDDBC7",
           "#D1E5F0", "#92C5DE", "#4393C3", "#2166AC")
 pal <- colorRampPalette(cols)(20)
 
-image(results_default$time, heights, shading_spline_difference,
+image(results_default$time, heights, canopy_difference,
       xlab="Time (years)", ylab="Height (m)", las=1, col=pal)
 ```
 Shading is

@@ -1,6 +1,6 @@
 #params <- function(){
 
-#canopy shape parameters from Yokozawa et al 1995
+#shading_spline shape parameters from Yokozawa et al 1995
 p.eta=12;
 
 #ratio leaf area to sapwood area

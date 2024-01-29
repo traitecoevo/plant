@@ -19,7 +19,7 @@ public:
                    int soil_number_of_depths = 0)
       : shading_spline_rescale_usually(shading_spline_rescale_usually) {
     time = 0.0;
-    canopy = Canopy();
+    shading = Shading();
     vars = Internals(soil_number_of_depths);
     set_soil_water_state(std::vector<double>(soil_number_of_depths, 0.0));
   };
@@ -27,16 +27,14 @@ public:
 
   // Light interface
 
-  // Canopy object is used for calculating shading
-  Canopy canopy;
-
-  // TODO: What is this? It used to be used to indicate whether the intervals used for integration were stored and reused
+  // Shading object is used for calculating shading
+  Shading shading;
   bool shading_spline_rescale_usually;
 
   // Ability to prescribe a fixed value
   // TODO: add setting to set other variables like water
   void set_fixed_environment(double value, double height_max) {
-    canopy.set_fixed_canopy(value, height_max);
+    shading.set_fixed_values(value, height_max);
   }
 
   void set_fixed_environment(double value) {
@@ -45,16 +43,16 @@ public:
   }
 
   double get_environment_at_height(double height) const {
-    return canopy.get_canopy_at_height(height);
+    return shading.get_canopy_at_height(height);
   }
 
-  // TODO: canopy.XXX_openness = canopy.get_canopy_at_height
+  // TODO: shading.XXX_openness = shading.get_canopy_at_height
   double XXX_openness(double height) const {
-    return canopy.XXX_openness(height);
+    return shading.XXX_openness(height);
   }
 
   void r_init_interpolators(const std::vector<double>& state) {
-    canopy.r_init_interpolators(state);
+    shading.r_init_interpolators(state);
   }
 
   virtual void compute_rates(std::vector<double> const& resource_depletion) {
@@ -100,25 +98,25 @@ public:
   // Core functions
   template <typename Function>
   void compute_environment(Function f_compute_competition, double height_max) {
-    canopy.compute_canopy(f_compute_competition, height_max);
+    shading.compute_shading(f_compute_competition, height_max);
   }
 
   template <typename Function>
   void rescale_environment(Function f_compute_competition, double height_max) {
-    canopy.rescale_canopy(f_compute_competition, height_max);
+    shading.rescale_points(f_compute_competition, height_max);
   }
 
   void clear_environment() {
-    canopy.clear();
+    shading.clear();
   }
 };
 
 //inline Rcpp::NumericMatrix get_state(const FF16_Environment environment) {
-//  return get_state(environment.canopy);
+//  return get_state(environment.shading);
 //}
 inline Rcpp::List get_state(const FF16_Environment environment, double time) {
   auto ret = get_state(environment.extrinsic_drivers, time);
-  ret["canopy"] = get_state(environment.canopy); // does a full copy of ret, not efficient
+  ret["shading"] = get_state(environment.shading); // does a full copy of ret, not efficient
   return ret;
 }
 }

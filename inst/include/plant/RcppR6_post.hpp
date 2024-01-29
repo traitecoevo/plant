@@ -211,9 +211,9 @@ template <> inline std::string generator_name<plant::StochasticPatchRunner<plant
 template <> inline std::string   class_name_r<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> >() {return "StochasticPatchRunner<K93,K93_Env>";}
 template <> inline std::string   package_name<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> >() {return ".R6_StochasticPatchRunner___K93__K93_Env";}
-template <> inline std::string   class_name_r<plant::Canopy >() {return "Canopy";}
-template <> inline std::string   package_name<plant::Canopy >() {return "plant";}
-template <> inline std::string generator_name<plant::Canopy >() {return ".R6_Canopy";}
+template <> inline std::string   class_name_r<plant::Shading >() {return "Shading";}
+template <> inline std::string   package_name<plant::Shading >() {return "plant";}
+template <> inline std::string generator_name<plant::Shading >() {return ".R6_Shading";}
 template <> inline std::string   class_name_r<plant::Disturbance_Regime >() {return "Disturbance_Regime";}
 template <> inline std::string   package_name<plant::Disturbance_Regime >() {return "plant";}
 template <> inline std::string generator_name<plant::Disturbance_Regime >() {return ".R6_Disturbance_Regime";}
@@ -919,11 +919,11 @@ template <> inline SEXP wrap(const plant::StochasticPatchRunner<plant::K93_Strat
 template <> inline plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> >(x));
 }
-template <> inline SEXP wrap(const plant::Canopy& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::Canopy>(x));
+template <> inline SEXP wrap(const plant::Shading& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::Shading>(x));
 }
-template <> inline plant::Canopy as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::Canopy>(x));
+template <> inline plant::Shading as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::Shading>(x));
 }
 template <> inline SEXP wrap(const plant::Disturbance_Regime& x) {
   return wrap(plant::RcppR6::RcppR6<plant::Disturbance_Regime>(x));
