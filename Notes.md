@@ -18,13 +18,17 @@ see `AdaptiveInterpolator::update_spline()`
 
 TODO:
 - document classes QAG, tk etc
+- test Resource_spline
+- reconfigure shading so higher is more shading?  
+  - currently, 1 - full light whereas 0 = no light. Should higher light be 
+  - could rename light? Or canopy_openness? That would at least preserve the current functions and align directionality implied by the name with the numbers?
+
 - rename 
   - [x] `canopy.compute_canopy` -> `shading.construct_spline`?
   - [x]`canopy` -> `shading`. Canopy too abstract?
   - [x] `canopy::set_fixed_canopy` -> `canopy::set_fixed_values`
 - [x] shading.h -> resource_spline (on scale 0-1)
   - [x] get_canopy_at_height
-  - shading instance -> light?
   - [x] pass in full function
 
 could remove, are these used?
