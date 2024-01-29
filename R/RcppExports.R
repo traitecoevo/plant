@@ -3257,8 +3257,8 @@ Shading__ctor <- function(tol, nbase, max_depth, rescale_usually) {
     .Call('_plant_Shading__ctor', PACKAGE = 'plant', tol, nbase, max_depth, rescale_usually)
 }
 
-Shading__get_canopy_at_height <- function(obj_, height) {
-    .Call('_plant_Shading__get_canopy_at_height', PACKAGE = 'plant', obj_, height)
+Shading__get_value_at_height <- function(obj_, height) {
+    .Call('_plant_Shading__get_value_at_height', PACKAGE = 'plant', obj_, height)
 }
 
 Shading__clear <- function(obj_) {

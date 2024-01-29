@@ -4724,8 +4724,8 @@ StochasticPatchRunner <- function(T, E) {
       initialize = function(ptr) {
         self$.ptr <- ptr
       },
-      get_canopy_at_height = function(height) {
-        Shading__get_canopy_at_height(self, height)
+      get_value_at_height = function(height) {
+        Shading__get_value_at_height(self, height)
       },
       clear = function() {
         Shading__clear(self)

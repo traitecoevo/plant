@@ -26,7 +26,7 @@ public:
     // This will be over-written later with actual function
     spline = spline_construction.construct(
       [&](double height) {
-          return get_canopy_at_height(height);
+          return get_value_at_height(height);
       }, 0, 1); // these are update with init(x, y) when patch is created
 
     shading_spline_rescale_usually = false;
@@ -41,7 +41,7 @@ public:
     // Provide a dummy function and construct
     // This will be over-written later with actual function
     spline = spline_construction.construct(
-        [&](double height) { return get_canopy_at_height(height); }, 0,
+        [&](double height) { return get_value_at_height(height); }, 0,
         1); // these are update with init(x, y) when patch is created
     
     shading_spline_rescale_usually = rescale_usually;
@@ -93,7 +93,7 @@ public:
     spline.clear();
   }
 
-  double get_canopy_at_height(double height) const {
+  double get_value_at_height(double height) const {
     const bool within = height <= spline.max();
     // TODO: change maximum - here hard-coded to 1.0
     return within ? spline.eval(height) : 1.0;

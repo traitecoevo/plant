@@ -757,7 +757,7 @@ Shading:
       - max_depth: double
       - rescale_usually: bool
   methods:
-    get_canopy_at_height:
+    get_value_at_height:
       args: [height: double]
       return_type: double
     clear:

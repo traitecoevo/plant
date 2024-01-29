@@ -3713,8 +3713,8 @@ plant::Shading Shading__ctor(double tol, double nbase, double max_depth, bool re
   return plant::Shading(tol, nbase, max_depth, rescale_usually);
 }
 // [[Rcpp::export]]
-double Shading__get_canopy_at_height(plant::RcppR6::RcppR6<plant::Shading> obj_, double height) {
-  return obj_->get_canopy_at_height(height);
+double Shading__get_value_at_height(plant::RcppR6::RcppR6<plant::Shading> obj_, double height) {
+  return obj_->get_value_at_height(height);
 }
 // [[Rcpp::export]]
 void Shading__clear(plant::RcppR6::RcppR6<plant::Shading> obj_) {

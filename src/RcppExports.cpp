@@ -9131,15 +9131,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Shading__get_canopy_at_height
-double Shading__get_canopy_at_height(plant::RcppR6::RcppR6<plant::Shading> obj_, double height);
-RcppExport SEXP _plant_Shading__get_canopy_at_height(SEXP obj_SEXP, SEXP heightSEXP) {
+// Shading__get_value_at_height
+double Shading__get_value_at_height(plant::RcppR6::RcppR6<plant::Shading> obj_, double height);
+RcppExport SEXP _plant_Shading__get_value_at_height(SEXP obj_SEXP, SEXP heightSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Shading> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type height(heightSEXP);
-    rcpp_result_gen = Rcpp::wrap(Shading__get_canopy_at_height(obj_, height));
+    rcpp_result_gen = Rcpp::wrap(Shading__get_value_at_height(obj_, height));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -10765,7 +10765,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatchRunner___K93__K93_Env__schedule__set", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__schedule__set, 2},
     {"_plant_StochasticPatchRunner___K93__K93_Env__state__get", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__state__get, 1},
     {"_plant_Shading__ctor", (DL_FUNC) &_plant_Shading__ctor, 4},
-    {"_plant_Shading__get_canopy_at_height", (DL_FUNC) &_plant_Shading__get_canopy_at_height, 2},
+    {"_plant_Shading__get_value_at_height", (DL_FUNC) &_plant_Shading__get_value_at_height, 2},
     {"_plant_Shading__clear", (DL_FUNC) &_plant_Shading__clear, 1},
     {"_plant_Shading__spline__get", (DL_FUNC) &_plant_Shading__spline__get, 1},
     {"_plant_Shading__spline__set", (DL_FUNC) &_plant_Shading__spline__set, 2},

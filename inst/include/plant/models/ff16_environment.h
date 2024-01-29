@@ -43,7 +43,7 @@ public:
   }
 
   double get_environment_at_height(double height) const {
-    return shading.get_canopy_at_height(height);
+    return shading.get_value_at_height(height);
   }
 
   virtual void r_init_interpolators(const std::vector<double> &state)
