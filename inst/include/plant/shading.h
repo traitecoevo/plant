@@ -1,8 +1,8 @@
 // -*-c++-*-
 // todo: Whgat does this class do?
 
-#ifndef PLANT_PLANT_CANOPY_H_
-#define PLANT_PLANT_CANOPY_H_
+#ifndef PLANT_PLANT_SHADING_H_
+#define PLANT_PLANT_SHADING_H_
 
 #include <plant/interpolator.h>
 #include <plant/adaptive_interpolator.h>

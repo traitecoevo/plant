@@ -3,7 +3,7 @@
 #define PLANT_PLANT_FF16_ENVIRONMENT_H_
 
 #include <plant/environment.h>
-#include <plant/canopy.h>
+#include <plant/shading.h>
 #include <plant/interpolator.h>
 
 using namespace Rcpp;

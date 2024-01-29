@@ -3,7 +3,7 @@
 #define PLANT_PLANT_K93_ENVIRONMENT_H_
 
 #include <plant/environment.h>
-#include <plant/canopy.h>
+#include <plant/shading.h>
 
 using namespace Rcpp;
 

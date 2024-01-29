@@ -35,7 +35,6 @@ Environmentn.h already has vars.states (Internals object). Check Isaac not redef
 
 TODO:
 
-- would it be more useful to have assimilation take function for leaf ptss and weights, and average it, i.e. store leaf model, canopy in FF16? 
 - How is Issac doing integration? What's happened to assimilation?
 
 
@@ -43,9 +42,10 @@ TODO:
 
 ## Approximating functions with splines
 
+
 ## Numerical integration
 
-## Gauss-Kronrod quadrature
+### Gauss-Kronrod quadrature
 
 The class `QAG` provides methods to use Gauss-Kronrod quadrature to numerically integration of a function, e.g. `double QAG::integrate(Function f, double a, double b)`. 
 
