@@ -101,11 +101,6 @@ public:
     return within ? spline.eval(height) : 1.0;
   }
 
-  double canopy_openness(double height) const {
-    return get_canopy_at_height(height);
-  }
-
-
   virtual void r_init_interpolators(const std::vector<double>& state) {
     // See issue #144; this is important as we have to at least refine
     // the light environment, but doing this is better because it means

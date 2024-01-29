@@ -13,8 +13,8 @@ for (x in names(strategy_types)) {
 
     ## At this point, we should have full canopy openness, partly because
     ## the spline is just not constructed.
-    expect_equal(env$canopy_openness(0), 1.0)
-    expect_equal(env$canopy_openness(100), 1.0)
+    expect_equal(env$get_environment_at_height(0), 1.0)
+    expect_equal(env$get_environment_at_height(100), 1.0)
 
     spline <- env$shading$spline
     expect_equal(spline$size, 33)

@@ -46,11 +46,6 @@ public:
     return shading.get_canopy_at_height(height);
   }
 
-  // TODO: shading.canopy_openness = shading.get_canopy_at_height
-  double canopy_openness(double height) const {
-    return shading.canopy_openness(height);
-  }
-
   virtual void r_init_interpolators(const std::vector<double> &state)
   {
     shading.r_init_interpolators(state);

@@ -3257,8 +3257,8 @@ Shading__ctor <- function(tol, nbase, max_depth, rescale_usually) {
     .Call('_plant_Shading__ctor', PACKAGE = 'plant', tol, nbase, max_depth, rescale_usually)
 }
 
-Shading__canopy_openness <- function(obj_, height) {
-    .Call('_plant_Shading__canopy_openness', PACKAGE = 'plant', obj_, height)
+Shading__get_canopy_at_height <- function(obj_, height) {
+    .Call('_plant_Shading__get_canopy_at_height', PACKAGE = 'plant', obj_, height)
 }
 
 Shading__clear <- function(obj_) {
@@ -3329,8 +3329,8 @@ FF16_Environment__ctor <- function(shading_spline_rescale_usually, soil_number_o
     .Call('_plant_FF16_Environment__ctor', PACKAGE = 'plant', shading_spline_rescale_usually, soil_number_of_depths)
 }
 
-FF16_Environment__canopy_openness <- function(obj_, height) {
-    .Call('_plant_FF16_Environment__canopy_openness', PACKAGE = 'plant', obj_, height)
+FF16_Environment__get_environment_at_height <- function(obj_, height) {
+    .Call('_plant_FF16_Environment__get_environment_at_height', PACKAGE = 'plant', obj_, height)
 }
 
 FF16_Environment__clear <- function(obj_) {
@@ -3397,8 +3397,8 @@ K93_Environment__ctor <- function() {
     .Call('_plant_K93_Environment__ctor', PACKAGE = 'plant')
 }
 
-K93_Environment__canopy_openness <- function(obj_, height) {
-    .Call('_plant_K93_Environment__canopy_openness', PACKAGE = 'plant', obj_, height)
+K93_Environment__get_environment_at_height <- function(obj_, height) {
+    .Call('_plant_K93_Environment__get_environment_at_height', PACKAGE = 'plant', obj_, height)
 }
 
 K93_Environment__clear <- function(obj_) {
