@@ -429,7 +429,7 @@ double FF16_Strategy::establishment_probability(const FF16_Environment& environm
   }
 }
 
-double FF16_Strategy::shading_above(double z, double height) const {
+double FF16_Strategy::compute_competition(double z, double height) const {
   return k_I * area_leaf(height) * Q(z, height);
 }
 

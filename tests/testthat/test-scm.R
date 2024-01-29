@@ -293,7 +293,7 @@ test_that("Can create empty SCM", {
     env <- scm$patch$environment
     patch <- scm$patch
 
-    expect_gt(env$shading$spline$size, 0)
+    expect_equal(env$shading$spline$size, 0)
     expect_equal(env$get_environment_at_height(0), 1.0)
   }
 })

@@ -48,10 +48,6 @@ public:
     return area_leaf(height);
   }
 
-  double compute_competition(double z, double height) const {
-    return shading_above(z, height);
-  }
-
   void refresh_indices();
 
 
@@ -182,7 +178,7 @@ public:
 
   // * Competitive environment
   // [eqn 11] total projected leaf area above height above height `z` for given plant
-  double shading_above(double z, double height) const;
+  double compute_competition(double z, double height) const;
 
   // [eqn  9] Probability density of leaf area at height `z`
   double q(double z, double height) const;

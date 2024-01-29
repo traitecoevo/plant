@@ -42,9 +42,13 @@ public:
   template <typename Function>
   void compute_environment(Function f_compute_competition, double height_max, bool rescale) {
 
+    // Define an anonymous function to use in creation of environment
+    auto f_canopy_openness = [&](double height) -> double
+    { return exp(-f_compute_competition(height)); };
+
     // Calculates the shading environment, fitting a spline to the the function
     // `f_compute_competition` as a function of height
-    shading.compute_environment(f_compute_competition, height_max, rescale);
+    shading.compute_environment(f_canopy_openness, height_max, rescale);
   }
 
   virtual void clear_environment() {

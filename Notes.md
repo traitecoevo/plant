@@ -23,7 +23,7 @@ TODO:
   - [x]`canopy` -> `shading`. Canopy too abstract?
   - [x] `canopy::set_fixed_canopy` -> `canopy::set_fixed_values`
 - shading.h -> resource_spline (on scale 0-1)
-  - get_canopy_at_height
+  - [x] get_canopy_at_height
   - shading instance -> light?
   - pass in full function
 

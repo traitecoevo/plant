@@ -225,10 +225,12 @@ std::vector<double> Patch<T,E>::r_competition_effect_error(size_t species_index)
   return species[species_index].r_competition_effects_error(tot_competition_effect);
 }
 
+// Pre-compute environment, as shaped by residents
+// Creates splines of resource availability
 template <typename T, typename E>
 void Patch<T,E>::compute_environment(bool rescale) {
   
-  // Define an anonymous function to use in creation of environemnt
+  // Define an anonymous function to use in creation of environment
   auto f = [&](double x) -> double { return compute_competition(x); };
 
   if (size() > 0 & !is_mutant_run) {
@@ -348,6 +350,7 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
 
   // update time
   environment.time = time;
+
   // Pre-compute environment, as shaped by residents
   compute_environment(true);
   environment_ptr = &environment;
@@ -366,7 +369,7 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
 
   it = ode::set_ode_state(species.begin(), species.end(), it);
 
-  // using a pointer here to avoid copying environemnt object
+  // using a pointer here to avoid copying environment object
   // just point the pointer, used inside compute rates to get env, to relevant env object
   environment_ptr = &(environment_history[idx][index]);
   environment.time = environment_ptr->time;
