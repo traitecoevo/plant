@@ -118,7 +118,7 @@ ylim <- range(result$env[[length(result$env)]][, "height"])
 # Draw the spline at each step
 plot(NA, xlim=xlim, ylim=ylim, las=1, xlab="Canopy openness", ylab="Height (m)")
 for (i in result$env) {
-  lines(i[, "XXX_openness"], i[, "height"], col="grey")
+  lines(i[, "canopy_openness"], i[, "height"], col="grey")
 }
 
 # Add labels at specific times
@@ -130,7 +130,7 @@ cols <- colorRampPalette(blues[-(1:2)])(length(times))
 
 for (i in seq_along(times)) {
   x <- result$env[[which.min(abs(times[[i]] - result$time))]]
-  lines(x[, "XXX_openness"], x[, "height"], col=cols[[i]])
+  lines(x[, "canopy_openness"], x[, "height"], col=cols[[i]])
 
   y <- x[nrow(x), "height"]
   points(1, y, pch=19, col=cols[[i]])
@@ -143,7 +143,7 @@ initally (bottom right) all nodes in the patch are short and the canopy is rathe
 This is best shown by plotting the canopy openness at ground level over time:
 
 ```{r}
-y <- sapply(result$env, function(x) x[1, "XXX_openness"])
+y <- sapply(result$env, function(x) x[1, "canopy_openness"])
 plot(result$time, y, type="l", las=1,
      ylim=c(0, 1), xlab="Time (years)", ylab="Canopy openness")
 ```

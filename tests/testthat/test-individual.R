@@ -113,8 +113,8 @@ for (x in names(strategy_types)) {
   if(x == "FF16") {
     ## R implementation:
     resource_compensation_point_R <- function(x, plant, ...) {
-      target <- function(XXX_openness) {
-        env <- fixed_environment(x, XXX_openness)
+      target <- function(canopy_openness) {
+        env <- fixed_environment(x, canopy_openness)
         plant$compute_rates(env)
         plant$aux("net_mass_production_dt")
       }

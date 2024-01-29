@@ -9130,15 +9130,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Shading__XXX_openness
-double Shading__XXX_openness(plant::RcppR6::RcppR6<plant::Shading> obj_, double height);
-RcppExport SEXP _plant_Shading__XXX_openness(SEXP obj_SEXP, SEXP heightSEXP) {
+// Shading__canopy_openness
+double Shading__canopy_openness(plant::RcppR6::RcppR6<plant::Shading> obj_, double height);
+RcppExport SEXP _plant_Shading__canopy_openness(SEXP obj_SEXP, SEXP heightSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Shading> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type height(heightSEXP);
-    rcpp_result_gen = Rcpp::wrap(Shading__XXX_openness(obj_, height));
+    rcpp_result_gen = Rcpp::wrap(Shading__canopy_openness(obj_, height));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -9334,15 +9334,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// FF16_Environment__XXX_openness
-double FF16_Environment__XXX_openness(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double height);
-RcppExport SEXP _plant_FF16_Environment__XXX_openness(SEXP obj_SEXP, SEXP heightSEXP) {
+// FF16_Environment__canopy_openness
+double FF16_Environment__canopy_openness(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double height);
+RcppExport SEXP _plant_FF16_Environment__canopy_openness(SEXP obj_SEXP, SEXP heightSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type height(heightSEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16_Environment__XXX_openness(obj_, height));
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__canopy_openness(obj_, height));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -9519,15 +9519,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// K93_Environment__XXX_openness
-double K93_Environment__XXX_openness(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, double height);
-RcppExport SEXP _plant_K93_Environment__XXX_openness(SEXP obj_SEXP, SEXP heightSEXP) {
+// K93_Environment__canopy_openness
+double K93_Environment__canopy_openness(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, double height);
+RcppExport SEXP _plant_K93_Environment__canopy_openness(SEXP obj_SEXP, SEXP heightSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::K93_Environment> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type height(heightSEXP);
-    rcpp_result_gen = Rcpp::wrap(K93_Environment__XXX_openness(obj_, height));
+    rcpp_result_gen = Rcpp::wrap(K93_Environment__canopy_openness(obj_, height));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -10764,7 +10764,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatchRunner___K93__K93_Env__schedule__set", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__schedule__set, 2},
     {"_plant_StochasticPatchRunner___K93__K93_Env__state__get", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__state__get, 1},
     {"_plant_Shading__ctor", (DL_FUNC) &_plant_Shading__ctor, 3},
-    {"_plant_Shading__XXX_openness", (DL_FUNC) &_plant_Shading__XXX_openness, 2},
+    {"_plant_Shading__canopy_openness", (DL_FUNC) &_plant_Shading__canopy_openness, 2},
     {"_plant_Shading__clear", (DL_FUNC) &_plant_Shading__clear, 1},
     {"_plant_Shading__spline__get", (DL_FUNC) &_plant_Shading__spline__get, 1},
     {"_plant_Shading__spline__set", (DL_FUNC) &_plant_Shading__spline__set, 2},
@@ -10782,7 +10782,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Weibull_Disturbance_Regime__icdf", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__icdf, 2},
     {"_plant_FF16_Strategy__ctor", (DL_FUNC) &_plant_FF16_Strategy__ctor, 0},
     {"_plant_FF16_Environment__ctor", (DL_FUNC) &_plant_FF16_Environment__ctor, 2},
-    {"_plant_FF16_Environment__XXX_openness", (DL_FUNC) &_plant_FF16_Environment__XXX_openness, 2},
+    {"_plant_FF16_Environment__canopy_openness", (DL_FUNC) &_plant_FF16_Environment__canopy_openness, 2},
     {"_plant_FF16_Environment__clear", (DL_FUNC) &_plant_FF16_Environment__clear, 1},
     {"_plant_FF16_Environment__set_fixed_environment", (DL_FUNC) &_plant_FF16_Environment__set_fixed_environment, 3},
     {"_plant_FF16_Environment__set_soil_water_state", (DL_FUNC) &_plant_FF16_Environment__set_soil_water_state, 2},
@@ -10799,7 +10799,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_FF16r_Strategy__ctor", (DL_FUNC) &_plant_FF16r_Strategy__ctor, 0},
     {"_plant_K93_Strategy__ctor", (DL_FUNC) &_plant_K93_Strategy__ctor, 0},
     {"_plant_K93_Environment__ctor", (DL_FUNC) &_plant_K93_Environment__ctor, 0},
-    {"_plant_K93_Environment__XXX_openness", (DL_FUNC) &_plant_K93_Environment__XXX_openness, 2},
+    {"_plant_K93_Environment__canopy_openness", (DL_FUNC) &_plant_K93_Environment__canopy_openness, 2},
     {"_plant_K93_Environment__clear", (DL_FUNC) &_plant_K93_Environment__clear, 1},
     {"_plant_K93_Environment__set_fixed_environment", (DL_FUNC) &_plant_K93_Environment__set_fixed_environment, 3},
     {"_plant_K93_Environment__time__get", (DL_FUNC) &_plant_K93_Environment__time__get, 1},

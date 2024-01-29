@@ -3713,8 +3713,8 @@ plant::Shading Shading__ctor(double tol, double nbase, double max_depth) {
   return plant::Shading(tol, nbase, max_depth);
 }
 // [[Rcpp::export]]
-double Shading__XXX_openness(plant::RcppR6::RcppR6<plant::Shading> obj_, double height) {
-  return obj_->XXX_openness(height);
+double Shading__canopy_openness(plant::RcppR6::RcppR6<plant::Shading> obj_, double height) {
+  return obj_->canopy_openness(height);
 }
 // [[Rcpp::export]]
 void Shading__clear(plant::RcppR6::RcppR6<plant::Shading> obj_) {
@@ -3792,8 +3792,8 @@ plant::FF16_Environment FF16_Environment__ctor(bool shading_spline_rescale_usual
   return plant::FF16_Environment(shading_spline_rescale_usually, soil_number_of_depths);
 }
 // [[Rcpp::export]]
-double FF16_Environment__XXX_openness(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double height) {
-  return obj_->XXX_openness(height);
+double FF16_Environment__canopy_openness(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double height) {
+  return obj_->canopy_openness(height);
 }
 // [[Rcpp::export]]
 void FF16_Environment__clear(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
@@ -3871,8 +3871,8 @@ plant::K93_Environment K93_Environment__ctor() {
   return plant::K93_Environment();
 }
 // [[Rcpp::export]]
-double K93_Environment__XXX_openness(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, double height) {
-  return obj_->XXX_openness(height);
+double K93_Environment__canopy_openness(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, double height) {
+  return obj_->canopy_openness(height);
 }
 // [[Rcpp::export]]
 void K93_Environment__clear(plant::RcppR6::RcppR6<plant::K93_Environment> obj_) {

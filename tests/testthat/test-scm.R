@@ -295,7 +295,7 @@ test_that("Can create empty SCM", {
 
     # This is no longer zero:
     expect_gt(env$shading$spline$size, 30)
-    expect_equal(env$XXX_openness(0), 1.0)
+    expect_equal(env$canopy_openness(0), 1.0)
   }
 })
 

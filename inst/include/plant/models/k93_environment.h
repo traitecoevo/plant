@@ -36,8 +36,8 @@ public:
     return shading.get_canopy_at_height(height);
   }
 
-  double XXX_openness(double height) const {
-    return shading.XXX_openness(height);
+  double canopy_openness(double height) const {
+    return shading.canopy_openness(height);
   }
 
   void r_init_interpolators(const std::vector<double>& state) {
