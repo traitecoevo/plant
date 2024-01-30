@@ -21,3 +21,4 @@ scrap.R
 inst/doc
 doc
 Meta
+*.knit.md

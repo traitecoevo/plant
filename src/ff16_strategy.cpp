@@ -157,11 +157,7 @@ double FF16_Strategy::assimilation(const FF16_Environment& environment,
   };
 
   // Integrate over crown depth using adaptive integrator
-  if (control.assimilation_adaptive_integration && reuse_intervals) {
-    A = integrator.integrate_with_last_intervals(f, 0.0, height);
-  } else {
-    A = integrator.integrate(f, 0.0, height);
-  }
+    A = function_integrator.integrate(f, 0.0, height);
 
   return area_leaf * A;
 }
@@ -480,15 +476,10 @@ double FF16_Strategy::height_seed(void) const {
 
 void FF16_Strategy::prepare_strategy() {
 
-  // Set up the integrator
-  integrator = quadrature::QAG(
+  // Set up the function_integrator
+  function_integrator = quadrature::QK(
       // Gauss-Kronrod quadrature integeration rule (see qkrules)
-      control.assimilation_integration_rule,
-      // maximum iterations
-      control.assimilation_adaptive_integration ? control.assimilation_integration_iterations : 1,
-      // error tolerances
-      control.assimilation_integration_tol,
-      control.assimilation_integration_tol);
+      control.assimilation_integration_rule);
 
   // NOTE: this pre-computes something to save a very small amount of time
   eta_c = 1 - 2/(1 + eta) + 1/(1 + 2*eta);

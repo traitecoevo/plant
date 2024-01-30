@@ -105,9 +105,6 @@ Control:
     variadic arguments, or as a list, but not both).
     @export
   list:
-    - assimilation_adaptive_integration: bool
-    - assimilation_integration_tol: double
-    - assimilation_integration_iterations: size_t
     - assimilation_integration_rule: size_t
     - offspring_production_tol: double
     - offspring_production_iterations: int

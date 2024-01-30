@@ -45,12 +45,12 @@ public:
   double r_integrate(SEXP f, double a, double b);
   double r_integrate_with_intervals(SEXP f, SEXP intervals);
   double r_integrate_with_last_intervals(SEXP f, double a, double b);
-
-private:
   template <typename Function>
   double integrate_adaptive(Function f, double a, double b);
   template <typename Function>
   double integrate_fixed(Function f, double a, double b);
+
+private:
   template <typename Function>
   internal::workspace::point do_integrate(Function f, double a, double b);
   template <typename Function>

@@ -84,7 +84,6 @@ public:
   double mass_above_ground(double mass_leaf, double mass_bark,
                            double mass_sapwood, double mass_root) const;
 
-
   void compute_rates(const FF16_Environment& environment, bool reuse_intervals,
                 Internals& vars);
 
@@ -282,7 +281,7 @@ public:
   std::string name;
 
   // For integrating functions with using Gauss-Kronrod quadrature
-  quadrature::QAG integrator;
+  quadrature::QK function_integrator;
 };
 
 FF16_Strategy::ptr make_strategy_ptr(FF16_Strategy s);

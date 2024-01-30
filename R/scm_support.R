@@ -6,9 +6,7 @@
 ##' @param base An optional \code{Control} object.  If omitted, the
 ##' defaults are used.
 fast_control <- function(base=Control()) {
-  base$assimilation_adaptive_integration <- FALSE
   base$assimilation_integration_rule <- 21
-  base$assimilation_integration_tol <- 1e-4
 
   base$ode_tol_rel <- 1e-4
   base$ode_tol_abs <- 1e-4

@@ -558,12 +558,7 @@ process repeated (see [adaptive_interpolator.h](https://github.com/traitecoevo/p
 
 Plants have leaf area distributed over a range of heights. Estimating
 a plant's assimilation at each time step thus requires integrating
-leaf-level rates over the plant. The integration is performed using
-Gaussian quadrature, using the QUADPACK routines [@Piessens-1983]
-adapted from the [GNU Scientific Library](http://www.gnu.org/software/gsl/) [@Galassi-2009]; see [qag.h](https://github.com/traitecoevo/plant/blob/master/inst/include/plant/qag.h) for details.
-If the control parameter `assimilation_adaptive_integration` is `TRUE`,
-the integration is performed using adaptive refinement with an accuracy
-controlled by the parameter `assimilation_integration_tol`.
+leaf-level rates over the plant. The integration is performed using Gauss-Kronrod quadrature. A rule controls the level of detail in the integration.
 
 ### Solving for seed rains {#solving-demographic-seed-rain}
 

@@ -5,16 +5,11 @@ patch calls `compute_environment`,
     - where f = `compute_competiton` 
       -> compute_competition pass through species 
         - in species, compute_competition integrate density over nodes
-          - todo: why not use QAG integrator here and anywhere else we do integration?
-          -> in node, compute_competition = density * individual.compute_competition(height_); 
+          -> in node, `compute_competition = density * individual.compute_competition(height_);` 
             -> individual passes straight through to strategy
-              -> strategy calculates fraction of leaf above = k_I * area_leaf(height) * Q(z, height);
+              -> strategy calculates fraction of `leaf above = k_I * area_leaf(height) * Q(z, height);`
   - environment.compute_environment creates the spline of light
     - passes directly through to `canopy.compute_canopy(f_compute_competition, height_max)`
-    - canopy_rescale_usually = false by default (check)
-
-Can use the existing interpolator object, pass in vectors of x,y (of water)
-see `AdaptiveInterpolator::update_spline()`
 
 TODO:
 - document classes QAG, tk etc
@@ -22,6 +17,10 @@ TODO:
 - Further generalise resource spline
   - flexible bounds, currently hardcoded (0.0, 1.0)
   - what if just have vectors? Add vector option
+    - Can use the existing interpolator object, pass in vectors of x,y (of water) competition_effect
+see `AdaptiveInterpolator::update_spline()`
+  - create method for integrator in `species::compute_competion`, anyhere and anywhere else we do integration with vectors
+
 - rename 
   - [x] `canopy.compute_canopy` -> `light_availability.compute_environment`?
   - [x] canopy.h -> resource_spline.h (on scale 0-1)

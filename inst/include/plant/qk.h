@@ -21,6 +21,7 @@ namespace quadrature {
 
 class QK {
 public:
+  QK();
   QK(size_t rule);
   template <typename Function>
   double integrate(Function f, double a, double b);
