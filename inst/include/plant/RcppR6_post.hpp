@@ -332,7 +332,7 @@ template <> inline plant::NodeSchedule as(SEXP x) {
 }
 template <> inline SEXP wrap(const plant::Control& x) {
   Rcpp::List ret;
-  ret["assimilation_integration_rule"] = Rcpp::wrap(x.assimilation_integration_rule);
+  ret["function_integration_rule"] = Rcpp::wrap(x.function_integration_rule);
   ret["offspring_production_tol"] = Rcpp::wrap(x.offspring_production_tol);
   ret["offspring_production_iterations"] = Rcpp::wrap(x.offspring_production_iterations);
   ret["node_gradient_eps"] = Rcpp::wrap(x.node_gradient_eps);
@@ -371,8 +371,8 @@ template <> inline plant::Control as(SEXP x) {
   // field twice.  No current support for a hook.
   plant::Control ret;
   Rcpp::List xl(x);
-  // ret.assimilation_integration_rule = Rcpp::as<decltype(retassimilation_integration_rule) >(xl["assimilation_integration_rule"]);
-  ret.assimilation_integration_rule = Rcpp::as<size_t >(xl["assimilation_integration_rule"]);
+  // ret.function_integration_rule = Rcpp::as<decltype(retfunction_integration_rule) >(xl["function_integration_rule"]);
+  ret.function_integration_rule = Rcpp::as<size_t >(xl["function_integration_rule"]);
   // ret.offspring_production_tol = Rcpp::as<decltype(retoffspring_production_tol) >(xl["offspring_production_tol"]);
   ret.offspring_production_tol = Rcpp::as<double >(xl["offspring_production_tol"]);
   // ret.offspring_production_iterations = Rcpp::as<decltype(retoffspring_production_iterations) >(xl["offspring_production_iterations"]);

@@ -57,8 +57,7 @@ double K93_Strategy::establishment_probability(const K93_Environment& environmen
 }
 
 double K93_Strategy::net_mass_production_dt(const K93_Environment& environment,
-                                            double height, double area_leaf_,
-                                            bool reuse_intervals) {
+                                            double height, double area_leaf_) {
   // TODO: there was no return value here - added 0.0
   return 1.0;
 }
@@ -78,9 +77,7 @@ void K93_Strategy::refresh_indices () {
 }
 
 // i.e. setting rates of ode vars from the state and updating aux vars
-void K93_Strategy::compute_rates(const K93_Environment& environment,
-                              bool reuse_intervals,
-                              Internals& vars) {
+void K93_Strategy::compute_rates(const K93_Environment& environment, Internals& vars) {
 
   double height = vars.state(HEIGHT_INDEX);
 

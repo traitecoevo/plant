@@ -22,7 +22,7 @@ namespace plant {
 struct Control {
   Control();
 
-  size_t assimilation_integration_rule;
+  size_t function_integration_rule;
 
   double offspring_production_tol;
   size_t offspring_production_iterations;

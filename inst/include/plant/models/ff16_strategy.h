@@ -84,7 +84,7 @@ public:
   double mass_above_ground(double mass_leaf, double mass_bark,
                            double mass_sapwood, double mass_root) const;
 
-  void compute_rates(const FF16_Environment& environment, bool reuse_intervals,
+  void compute_rates(const FF16_Environment& environment,
                 Internals& vars);
 
   void update_dependent_aux(const int index, Internals& vars);
@@ -92,7 +92,7 @@ public:
   // * Mass production
   // [eqn 12] Gross annual CO2 assimilation
   double assimilation(const FF16_Environment& environment, double height,
-                      double area_leaf, bool reuse_intervals);
+                      double area_leaf);
   // [Appendix S6] Per-leaf photosynthetic rate.
   double assimilation_leaf(double x) const;
 
@@ -118,8 +118,7 @@ public:
                                   double turnover) const;
 
   virtual double net_mass_production_dt(const FF16_Environment& environment,
-                                double height, double area_leaf_,
-                                bool reuse_intervals=false);
+                                double height, double area_leaf_);
 
   // [eqn 16] Fraction of whole plan growth that is leaf
   virtual double fraction_allocation_reproduction(double height) const;

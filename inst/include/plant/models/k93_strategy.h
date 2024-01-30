@@ -30,19 +30,14 @@ public:
     return std::vector<std::string>({"competition_effect"});
   }
 
-  void compute_rates(const K93_Environment& environment,
-                     bool reuse_intervals,
-                     Internals& vars);
-
-
+  void compute_rates(const K93_Environment& environment, Internals& vars);
 
   void refresh_indices();
 
   // These are stuck in plant.h
   double establishment_probability(const K93_Environment& environment);
   double net_mass_production_dt(const K93_Environment& environment,
-                                double size, double cumulative_basal_area,
-                                bool reuse_intervals=false);
+                                double size, double cumulative_basal_area);
 
   double Q(double z, double size) const;
 

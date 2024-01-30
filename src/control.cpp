@@ -3,7 +3,7 @@
 namespace plant {
 
 Control::Control() {
-  assimilation_integration_rule = 21;
+  function_integration_rule = 21;
 
   offspring_production_tol= 1e-8;
   offspring_production_iterations = 1000;

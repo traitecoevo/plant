@@ -105,7 +105,7 @@ Control:
     variadic arguments, or as a list, but not both).
     @export
   list:
-    - assimilation_integration_rule: size_t
+    - function_integration_rule: size_t
     - offspring_production_tol: double
     - offspring_production_iterations: int
     - node_gradient_eps: double
