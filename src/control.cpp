@@ -3,6 +3,9 @@
 namespace plant {
 
 Control::Control() {
+
+  // Number of points used when numerically intergrating a function
+  // using Gauss-Kronrod quadrature. Rules defined in qk_rules.cpp
   function_integration_rule = 21;
 
   offspring_production_tol= 1e-8;

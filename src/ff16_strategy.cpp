@@ -153,8 +153,10 @@ double FF16_Strategy::assimilation(const FF16_Environment& environment,
     return assimilation_leaf(environment.get_environment_at_height(z)) * q(z, height);
   };
 
-  // Integrate over crown depth using adaptive integrator
-    A = function_integrator.integrate(f, 0.0, height);
+  // Integrate over crown depth using using Gauss-Kronrod quadrature.
+  // The number of points used in the integration is determined by the control parameter
+  // function_integration_rule. Rules defined in qk_rules.cpp
+  A = function_integrator.integrate(f, 0.0, height);
 
   return area_leaf * A;
 }
