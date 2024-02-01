@@ -3709,23 +3709,23 @@ Rcpp::List StochasticPatchRunner___K93__K93_Env__state__get(plant::RcppR6::RcppR
 
 
 // [[Rcpp::export]]
-plant::Resource_spline Resource_spline__ctor(double tol, double nbase, double max_depth, bool rescale_usually) {
-  return plant::Resource_spline(tol, nbase, max_depth, rescale_usually);
+plant::ResourceSpline ResourceSpline__ctor(double tol, double nbase, double max_depth, bool rescale_usually) {
+  return plant::ResourceSpline(tol, nbase, max_depth, rescale_usually);
 }
 // [[Rcpp::export]]
-double Resource_spline__get_value_at_height(plant::RcppR6::RcppR6<plant::Resource_spline> obj_, double height) {
+double ResourceSpline__get_value_at_height(plant::RcppR6::RcppR6<plant::ResourceSpline> obj_, double height) {
   return obj_->get_value_at_height(height);
 }
 // [[Rcpp::export]]
-void Resource_spline__clear(plant::RcppR6::RcppR6<plant::Resource_spline> obj_) {
+void ResourceSpline__clear(plant::RcppR6::RcppR6<plant::ResourceSpline> obj_) {
   obj_->clear();
 }
 // [[Rcpp::export]]
-plant::interpolator::Interpolator Resource_spline__spline__get(plant::RcppR6::RcppR6<plant::Resource_spline> obj_) {
+plant::interpolator::Interpolator ResourceSpline__spline__get(plant::RcppR6::RcppR6<plant::ResourceSpline> obj_) {
   return obj_->spline;
 }
 // [[Rcpp::export]]
-void Resource_spline__spline__set(plant::RcppR6::RcppR6<plant::Resource_spline> obj_, plant::interpolator::Interpolator value) {
+void ResourceSpline__spline__set(plant::RcppR6::RcppR6<plant::ResourceSpline> obj_, plant::interpolator::Interpolator value) {
   obj_->spline = value;
 }
 
@@ -3831,11 +3831,11 @@ size_t FF16_Environment__soil_number_of_depths__get(plant::RcppR6::RcppR6<plant:
 }
 
 // [[Rcpp::export]]
-plant::Resource_spline FF16_Environment__light_availability__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
+plant::ResourceSpline FF16_Environment__light_availability__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
   return obj_->light_availability;
 }
 // [[Rcpp::export]]
-void FF16_Environment__light_availability__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::Resource_spline value) {
+void FF16_Environment__light_availability__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::ResourceSpline value) {
   obj_->light_availability = value;
 }
 
@@ -3892,11 +3892,11 @@ void K93_Environment__time__set(plant::RcppR6::RcppR6<plant::K93_Environment> ob
 }
 
 // [[Rcpp::export]]
-plant::Resource_spline K93_Environment__light_availability__get(plant::RcppR6::RcppR6<plant::K93_Environment> obj_) {
+plant::ResourceSpline K93_Environment__light_availability__get(plant::RcppR6::RcppR6<plant::K93_Environment> obj_) {
   return obj_->light_availability;
 }
 // [[Rcpp::export]]
-void K93_Environment__light_availability__set(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, plant::Resource_spline value) {
+void K93_Environment__light_availability__set(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, plant::ResourceSpline value) {
   obj_->light_availability = value;
 }
 

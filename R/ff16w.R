@@ -80,7 +80,7 @@ FF16w_make_environment <- function(light_availability_spline_tol = 1e-4,
   e <- FF16_Environment(light_availability_spline_rescale_usually,
                   soil_number_of_depths)
   
-  e$light_availability <- Resource_spline(light_availability_spline_tol, 
+  e$light_availability <- ResourceSpline(light_availability_spline_tol, 
                      light_availability_spline_nbase, 
                      light_availability_spline_max_depth,
                      light_availability_spline_rescale_usually)

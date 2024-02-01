@@ -1,4 +1,5 @@
-// The class `QAG` provides methods to use Gauss-Kronrod quadrature to numerically integration of a function, e.g. `double QAG::integrate(Function f, double a, double b)`. 
+// The class `QAG` provides methods to use Gauss-Kronrod quadrature to numerically integrate a function,
+// e.g. `double QAG::integrate(Function f, double a, double b)`. 
 //
 // There are adaptive and non-adaptive methods. In the adaptive method, the difference between a Gauss quadrature rule and its Kronrod extension is used as an estimate of the approximation error, from which the need for more points is determined.
 //

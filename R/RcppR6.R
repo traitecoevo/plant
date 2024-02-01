@@ -4711,12 +4711,12 @@ StochasticPatchRunner <- function(T, E) {
       }))
 
 
-`Resource_spline` <- function(tol, nbase, max_depth, rescale_usually) {
-  Resource_spline__ctor(tol, nbase, max_depth, rescale_usually)
+`ResourceSpline` <- function(tol, nbase, max_depth, rescale_usually) {
+  ResourceSpline__ctor(tol, nbase, max_depth, rescale_usually)
 }
-.R6_Resource_spline <-
+.R6_ResourceSpline <-
   R6::R6Class(
-    "Resource_spline",
+    "ResourceSpline",
     inherit=,
     portable=TRUE,
     public=list(
@@ -4725,17 +4725,17 @@ StochasticPatchRunner <- function(T, E) {
         self$.ptr <- ptr
       },
       get_value_at_height = function(height) {
-        Resource_spline__get_value_at_height(self, height)
+        ResourceSpline__get_value_at_height(self, height)
       },
       clear = function() {
-        Resource_spline__clear(self)
+        ResourceSpline__clear(self)
       }),
     active=list(
       spline = function(value) {
         if (missing(value)) {
-          Resource_spline__spline__get(self)
+          ResourceSpline__spline__get(self)
         } else {
-          Resource_spline__spline__set(self, value)
+          ResourceSpline__spline__set(self, value)
         }
       }))
 

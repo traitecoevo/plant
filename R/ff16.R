@@ -79,7 +79,7 @@ FF16_make_environment <- function(light_availability_spline_tol = 1e-4,
                         soil_number_of_depths = 0)
   
   # Shading defaults have lower tolerance which are overwritten for speed
-  e$light_availability <- Resource_spline(light_availability_spline_tol, 
+  e$light_availability <- ResourceSpline(light_availability_spline_tol, 
                      light_availability_spline_nbase, 
                      light_availability_spline_max_depth, 
                      light_availability_spline_rescale_usually)

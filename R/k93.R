@@ -87,7 +87,7 @@ K93_make_environment <- function(light_availability_spline_tol = 1e-4,
   
   e <- K93_Environment()
   
-  e$light_availability <- Resource_spline(light_availability_spline_tol, 
+  e$light_availability <- ResourceSpline(light_availability_spline_tol, 
                      light_availability_spline_nbase, 
                      light_availability_spline_max_depth, 
                      light_availability_spline_rescale_usually)

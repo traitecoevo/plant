@@ -1,12 +1,11 @@
 // -*-c++-*-
 
-// The class `QK` provides methods to use Gauss-Kronrod quadrature to numerically integration of a function. This class is called via the class QAG, so users should review that file first. 
-
-// The `QAG` class calls class `QK`, which does the actual integration. This is code is ported from GSL.
+// The class `QK` provides methods to use Gauss-Kronrod quadrature to numerically integrate a function.
+// This is code is ported from GSL
 // The integration has several "rules", defined in qk_rules.cpp. These include QK15, QK21, QK31, QK41, QK51. These allow for different numbers of points in the integration.
-
 // General background on the method is available at: https://en.wikipedia.org/wiki/ or
 // or https://www.gnu.org/software/gsl/doc/html/integration.html
+// These methods can also be accessed via the class QAG, which offers an adaptive extension of the method.
 // Implemented by Rich FitzJohn
 
 #ifndef PLANT_PLANT_QK_H_

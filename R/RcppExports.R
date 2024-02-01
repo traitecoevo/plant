@@ -3253,24 +3253,24 @@ StochasticPatchRunner___K93__K93_Env__state__get <- function(obj_) {
     .Call('_plant_StochasticPatchRunner___K93__K93_Env__state__get', PACKAGE = 'plant', obj_)
 }
 
-Resource_spline__ctor <- function(tol, nbase, max_depth, rescale_usually) {
-    .Call('_plant_Resource_spline__ctor', PACKAGE = 'plant', tol, nbase, max_depth, rescale_usually)
+ResourceSpline__ctor <- function(tol, nbase, max_depth, rescale_usually) {
+    .Call('_plant_ResourceSpline__ctor', PACKAGE = 'plant', tol, nbase, max_depth, rescale_usually)
 }
 
-Resource_spline__get_value_at_height <- function(obj_, height) {
-    .Call('_plant_Resource_spline__get_value_at_height', PACKAGE = 'plant', obj_, height)
+ResourceSpline__get_value_at_height <- function(obj_, height) {
+    .Call('_plant_ResourceSpline__get_value_at_height', PACKAGE = 'plant', obj_, height)
 }
 
-Resource_spline__clear <- function(obj_) {
-    invisible(.Call('_plant_Resource_spline__clear', PACKAGE = 'plant', obj_))
+ResourceSpline__clear <- function(obj_) {
+    invisible(.Call('_plant_ResourceSpline__clear', PACKAGE = 'plant', obj_))
 }
 
-Resource_spline__spline__get <- function(obj_) {
-    .Call('_plant_Resource_spline__spline__get', PACKAGE = 'plant', obj_)
+ResourceSpline__spline__get <- function(obj_) {
+    .Call('_plant_ResourceSpline__spline__get', PACKAGE = 'plant', obj_)
 }
 
-Resource_spline__spline__set <- function(obj_, value) {
-    invisible(.Call('_plant_Resource_spline__spline__set', PACKAGE = 'plant', obj_, value))
+ResourceSpline__spline__set <- function(obj_, value) {
+    invisible(.Call('_plant_ResourceSpline__spline__set', PACKAGE = 'plant', obj_, value))
 }
 
 Disturbance_Regime__ctor <- function() {

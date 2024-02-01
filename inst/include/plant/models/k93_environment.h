@@ -13,11 +13,11 @@ class K93_Environment : public Environment {
 public:
   K93_Environment() {
     time = 0.0;
-    light_availability = Resource_spline();
+    light_availability = ResourceSpline();
   };
 
   // Light interface
-  Resource_spline light_availability;
+  ResourceSpline light_availability;
 
   void set_fixed_environment(double value, double height_max) {
     light_availability.set_fixed_value(value, height_max);

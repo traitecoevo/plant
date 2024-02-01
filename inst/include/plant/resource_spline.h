@@ -12,15 +12,15 @@ using namespace Rcpp;
 
 namespace plant {
 
-class Resource_spline {
+class ResourceSpline {
 public:
 
   // Constructors
-  Resource_spline() {
+  ResourceSpline() {
     setup(1e-6, 17, 16, false);
   }
 
-  Resource_spline(double tol, size_t nbase, size_t max_depth, bool rescale_usually) {
+  ResourceSpline(double tol, size_t nbase, size_t max_depth, bool rescale_usually) {
     setup(tol, nbase, max_depth, rescale_usually);
   }
 
@@ -121,7 +121,7 @@ private:
 
   };
 
-inline Rcpp::NumericMatrix get_state(const Resource_spline resource_spline) {
+inline Rcpp::NumericMatrix get_state(const ResourceSpline resource_spline) {
   using namespace Rcpp;
   NumericMatrix xy = resource_spline.spline.r_get_xy();
   Rcpp::CharacterVector colnames =

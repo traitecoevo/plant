@@ -19,15 +19,15 @@ public:
                    int soil_number_of_depths = 0) {
     time = 0.0;
     
-    light_availability = Resource_spline();
+    light_availability = ResourceSpline();
     light_availability.spline_rescale_usually = light_availability_spline_rescale_usually;
 
     vars = Internals(soil_number_of_depths);
     set_soil_water_state(std::vector<double>(soil_number_of_depths, 0.0));
   };
 
-  // A Resource_spline used for storing light availbility (0-1)
-  Resource_spline light_availability;
+  // A ResourceSpline used for storing light availbility (0-1)
+  ResourceSpline light_availability;
 
   // Ability to prescribe a fixed value
   // TODO: add setting to set other variables like water

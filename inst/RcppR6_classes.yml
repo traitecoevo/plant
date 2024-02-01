@@ -745,8 +745,8 @@ StochasticPatchRunner:
       access: function
       name_cpp: "plant::get_state"
 
-Resource_spline:
-  name_cpp: "plant::Resource_spline"
+ResourceSpline:
+  name_cpp: "plant::ResourceSpline"
   constructor:
     args:
       - tol: double
@@ -901,7 +901,7 @@ FF16_Environment:
     ode_size: {type: size_t, access: member}
     soil_number_of_depths: {type: size_t, access: member, name_cpp: ode_size}
     light_availability:
-      type: "plant::Resource_spline"
+      type: "plant::ResourceSpline"
       access: field
     soil:
       type: "plant::Internals"
@@ -1003,7 +1003,7 @@ K93_Environment:
       return_type: void
   active:
     time: {type: double, access: field}
-    light_availability: {type: "plant::Resource_spline", access: field}
+    light_availability: {type: "plant::ResourceSpline", access: field}
     ode_size: {type: size_t, access: member}
 
 # The following strategy was built from FF16 on Mon Jul 19 11:01:04 2021

@@ -233,8 +233,8 @@ patch calls `compute_environment`,
           -> individual passes straight through to strategy
             -> strategy calculates fraction of `leaf above = k_I * area_leaf(height) * Q(z, height);`
   - `environment.compute_environment` creates the a spline of light availability, as a function of height
-    - to do this, uses the `Resource_spline` class. 
-      ->  `Resource_spline` class uses an adaptive routine to sample across the height range to approximate the function
+    - to do this, uses the `ResourceSpline` class. 
+      ->  `ResourceSpline` class uses an adaptive routine to sample across the height range to approximate the function
         -> the function is ultimatelky approximated with a spline, using the `tk` class 
     - creating the spline is achieved through calls to `compute_competiton`, as described above
 
