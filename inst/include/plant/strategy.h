@@ -50,14 +50,12 @@ public:
 
   double competition_effect_state(Internals& vars);
 
-  void compute_rates(const environment_type& environment, bool reuse_intervals,
-                Internals& vars);
+  void compute_rates(const environment_type& environment, Internals& vars);
 
   void update_dependent_aux(const int index, Internals& vars);
 
   double net_mass_production_dt(const environment_type& environment,
-                                double size, double competition_effect_,
-                                bool reuse_intervals=false);
+                                double size, double competition_effect_);
 
   double establishment_probability(const environment_type& environment);
 

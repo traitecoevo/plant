@@ -8,17 +8,17 @@
 \alias{FF16w_fixed_environment}
 \title{FF16_Environment object}
 \usage{
-FF16_Environment(canopy_rescale_usually, soil_number_of_depths)
+FF16_Environment(light_availability_spline_rescale_usually, soil_number_of_depths)
 
 FF16_fixed_environment(e = 1, height_max = 150)
 
-FF16r_make_environment(canopy_rescale_usually = TRUE)
+FF16r_make_environment(light_availability_spline_rescale_usually = TRUE)
 
 FF16w_make_environment(
-  canopy_light_tol = 1e-04,
-  canopy_light_nbase = 17,
-  canopy_light_max_depth = 16,
-  canopy_rescale_usually = TRUE,
+  light_availability_spline_tol = 1e-04,
+  light_availability_spline_nbase = 17,
+  light_availability_spline_max_depth = 16,
+  light_availability_spline_rescale_usually = TRUE,
   soil_number_of_depths = 1,
   soil_initial_state = 0,
   rainfall = 1
@@ -27,7 +27,7 @@ FF16w_make_environment(
 FF16w_fixed_environment(e = 1, height_max = 150)
 }
 \arguments{
-\item{canopy_rescale_usually}{turns on environment rescaling (default = TRUE)}
+\item{light_availability_spline_rescale_usually}{turns on environment rescaling (default = TRUE)}
 
 \item{soil_number_of_depths}{the number of soil layers}
 

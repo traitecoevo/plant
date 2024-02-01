@@ -23,16 +23,16 @@
 grow_individual_to_size <- function(individual, sizes, size_name, env,
                                time_max=Inf, warn=TRUE, filter=FALSE) {
   obj <- grow_individual_bracket(individual, sizes, size_name, env, time_max, warn)
-
+  
   polish <- function(i) {
     grow_individual_bisect(obj$runner, sizes[[i]], size_name,
                       obj$t0[[i]], obj$t1[[i]], obj$y0[i, ])
   }
   res <- lapply(seq_along(sizes), polish)
-
+  
   state <- t(sapply(res, "[[", "state"))
   colnames(state) <- colnames(obj$state)
-
+  
   ret <- list(time=vnapply(res, "[[", "time"),
               state=state,
               individual=lapply(res, "[[", "individual"),
@@ -55,6 +55,7 @@ grow_individual_to_size <- function(individual, sizes, size_name, env,
 ##' \code{grow_individual_to_size}.
 ##' @param heights Heights (when using \code{grow_individual_to_height})
 grow_individual_to_height <- function(individual, heights, env, ...) {
+
   grow_individual_to_size(individual, heights, "height", env, ...)
 }
 
@@ -119,6 +120,7 @@ get_individual_internals_fun <- function (individual) {
 
 grow_individual_bracket <- function(individual, sizes, size_name, env,
                                time_max=Inf, warn=TRUE) {
+
   if (length(sizes) == 0L || is.unsorted(sizes)) {
     stop("sizes must be non-empty and sorted")
   }
@@ -136,9 +138,11 @@ grow_individual_bracket <- function(individual, sizes, size_name, env,
   i <- 1L
   n <- length(sizes)
   j <- rep_len(NA_integer_, n)
+
   state <- list(list(time=runner$time, state=runner$state))
 
   while (i <= n & runner$time < time_max) {
+
     ok <- tryCatch({
       runner$step()
       TRUE
@@ -177,6 +181,7 @@ grow_individual_bracket <- function(individual, sizes, size_name, env,
 
   t <- vnapply(state, "[[", "time")
   m <- t(sapply(state, "[[", "state"))
+
   k <- j + 1L
   colnames(m) <- runner$object$individual$ode_names
   list(t0=t[j],
@@ -210,6 +215,7 @@ grow_individual_bisect <- function(runner, size, size_name, t0, t1, y0) {
     list(time=NA_real_, state=y0, individual=NULL)
   } else {
     root <- uniroot(f, lower=t0, upper=t1)
+    
     list(time=root$root, state=runner$state, individual=runner$object$individual)
   }
 }
@@ -229,4 +235,103 @@ resource_compensation_point <- function(p, ...) {
 ##' @export
 resource_compensation_point.Plant <- function(p, ...) {
   resource_compensation_point(p, ...)
+}
+
+#' The function `optimise_individual_rate_at_height_by_trait` and `optimise_individual_rate_at_size_by_trait` solve for the maximum of
+#' some rate (e.g. growth rate) at a specified height within
+#' the interval of the bounds of a given trait
+#' @param type
+#' @param bounds
+#' @param log_scale
+#' @param tol
+#' @param size
+#' @param size_name
+#' @param rate
+#' @param params
+#' @param env
+#' @param hyperpars
+#'
+#' @export
+#' @rdname optimise_individual_rate_at_size_by_trait
+#' @author Isaac Towers, Daniel Falster and Andrew O'Reilly-Nugent
+
+optimise_individual_rate_at_size_by_trait <- function(
+    type = "FF16",
+    bounds, log_scale = TRUE, tol = 1e-3,
+    size = 1, size_name = "height",
+    rate = size_name,
+    params = scm_base_parameters(type),
+    env = make_environment(type),
+    hyperpars = hyperpar(type),
+    set_state_directly = FALSE) {
+  # can't handle situations yet where bounds are outside of positive growth, not working for K93
+  bounds <- check_bounds(bounds)
+  traits <- rownames(bounds)
+
+  if (log_scale) {
+    bounds[bounds[, 1] == -Inf, 1] <- 0
+    bounds <- log(bounds)
+    ff <- exp
+  } else {
+    ff <- I
+  }
+
+  ## Define function to optimise
+  f <- function(x) {
+    # create a strategy object
+    s <- strategy(ff(trait_matrix(x, rownames(bounds))), parameters = params, hyperpar = hyperpars, birth_rate_list = 1)
+
+    # Create an individual object
+    types <- extract_RcppR6_template_types(params, "Parameters")
+    indv <- do.call("Individual", types)(s) # equiavlent to calling Individual<FF16w,FF16_Env> or FF16_individual(s)
+    
+    if(set_state_directly & size_name == "height"){
+      # set inidividual at specified size
+      indv$set_state(size_name, size)
+      # compute rates given environment
+      indv$compute_rates(env)
+      #filter ode rate based on size name
+      res <- indv$ode_rates[indv$ode_names == size_name]
+      
+    } else{
+      res <- grow_individual_to_size(indv,
+                                       sizes = size, size_name = size_name, env,
+                                       time_max = 100, warn = TRUE, filter = TRUE) 
+      #check if there was positive growth (indicated by the presence of postive numbers of rows in res$stae)
+      if(nrow(res$state) == 0){
+        res = NA
+      } else{
+      res <- res$individual[[1]]$ode_rates[res$individual[[1]]$ode_names == size_name]
+      }
+
+    # turn NA (non-positive growth) to 0, allows optimiser to get finite value but at minimum and thus avoided
+    if (is.na(res)) {
+      res <- 0
+    }
+    return(res)
+    }
+  }
+  
+
+  #solve for the trait value which maximise size growth
+  ret <- solve_max_worker(bounds, f, tol = 1e-6, outcome = paste0(size_name, "_growth_rate"))
+
+  #exponentiate the optimum trait value
+  if (log_scale) {
+    ret <- exp(ret)
+  }
+  
+  #if the optimum growth rate is 0, means no postive growth, so set set optimum trait value to NA
+  if (attr(ret, paste0(size_name, "_growth_rate")) == 0){
+    ret[1] = NA
+  }
+
+  
+  return(ret)
+}
+
+#' @export
+#' @rdname optimise_individual_rate_at_size_by_trait
+optimise_individual_rate_at_height_by_trait <- function(..., height = 1) {
+  optimise_individual_rate_at_size_by_trait(..., size = height, size_name = "height", set_state_directly = TRUE)
 }

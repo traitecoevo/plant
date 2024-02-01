@@ -4,7 +4,7 @@
 
 #include <plant/strategy.h>
 #include <plant/models/ff16_environment.h>
-#include <plant/models/assimilation.h>
+#include <plant/qag.h>
 
 namespace plant {
 
@@ -48,10 +48,6 @@ public:
     return area_leaf(height);
   }
 
-  double compute_competition(double z, double height) const {
-    return shading_above(z, height);
-  }
-
   void refresh_indices();
 
 
@@ -88,12 +84,17 @@ public:
   double mass_above_ground(double mass_leaf, double mass_bark,
                            double mass_sapwood, double mass_root) const;
 
-
-  void compute_rates(const FF16_Environment& environment, bool reuse_intervals,
+  void compute_rates(const FF16_Environment& environment,
                 Internals& vars);
 
   void update_dependent_aux(const int index, Internals& vars);
 
+  // * Mass production
+  // [eqn 12] Gross annual CO2 assimilation
+  double assimilation(const FF16_Environment& environment, double height,
+                      double area_leaf);
+  // [Appendix S6] Per-leaf photosynthetic rate.
+  double assimilation_leaf(double x) const;
 
   // [eqn 13] Total maintenance respiration
   double respiration(double mass_leaf, double mass_sapwood,
@@ -117,8 +118,7 @@ public:
                                   double turnover) const;
 
   virtual double net_mass_production_dt(const FF16_Environment& environment,
-                                double height, double area_leaf_,
-                                bool reuse_intervals=false);
+                                double height, double area_leaf_);
 
   // [eqn 16] Fraction of whole plan growth that is leaf
   virtual double fraction_allocation_reproduction(double height) const;
@@ -176,18 +176,20 @@ public:
 
   // * Competitive environment
   // [eqn 11] total projected leaf area above height above height `z` for given plant
-  double shading_above(double z, double height) const;
+  double compute_competition(double z, double height) const;
+
+  // [eqn  9] Probability density of leaf area at height `z`
+  double q(double z, double height) const;
   // [eqn 10] Fraction of leaf area above height `z`
   double Q(double z, double height) const;
+  // [      ] Inverse of Q: height above which fraction 'x' of leaf found
+  double Qp(double x, double height) const;
 
   // The aim is to find a plant height that gives the correct seed mass.
   double height_seed(void) const;
 
   // Set constants within FF16_Strategy
   void prepare_strategy();
-
-  // Previously there was an "integrator" here.  I'm going to stick
-  // that into Control or FF16_Environment instead.
 
   // * Core traits
   double lma       = 0.1978791;  // Leaf mass per area [kg / m2]
@@ -277,8 +279,8 @@ public:
 
   std::string name;
 
-  Assimilation<FF16_Environment> assimilator;
-
+  // For integrating functions with using Gauss-Kronrod quadrature
+  quadrature::QK function_integrator;
 };
 
 FF16_Strategy::ptr make_strategy_ptr(FF16_Strategy s);

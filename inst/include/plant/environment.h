@@ -19,13 +19,10 @@ namespace plant {
 class Environment {
 public:
   template <typename Function>
-  void compute_environment(Function f, double height_max);
-  template <typename Function>
-  void rescale_environment(Function f, double height_max);
+  void compute_environment(Function f, double height_max, bool rescale);
 
   void set_fixed_environment(double value, double height_max);
   void set_fixed_environment(double value);
-  void init_interpolators(const std::vector<double>& state);
 
   // ODE interface: do nothing if the environment has no state.
   size_t ode_size() const { return vars.state_size; }
@@ -52,17 +49,17 @@ public:
     return it;
   }
 
-  // Reset the environment.
+  // Reset the environment
   void clear() {
     time = 0.0;
     clear_environment();
   }
 
-  void clear_environment() {}
+  virtual void clear_environment() {}
 
-  void r_init_interpolators(const std::vector<double>& state) {}
+  virtual void r_init_interpolators(const std::vector<double>& state) {}
 
-  double get_environment_at_height(double height) { return 0.0; };
+  double get_environment_at_height(double height) const { return 0.0; };
 
   virtual ~Environment() = default;
 

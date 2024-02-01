@@ -15,10 +15,7 @@ test_that("Defaults", {
     ode_tol_abs = 1e-6,
     ode_tol_rel = 1e-6,
 
-    assimilator_adaptive_integration = TRUE,
-    assimilator_integration_iterations = 1000, # size_t so not int
-    assimilator_integration_rule = 21, # size_t so not int
-    assimilator_integration_tol = 1e-6,
+    function_integration_rule = 21, # size_t so not int
 
     offspring_production_iterations = 1000, # size_t
     offspring_production_tol = 1e-8, # 1e-6, Had to change this...

@@ -248,12 +248,12 @@ data_species_tot <-
   data_species %>%
   integrate_over_size_distribution()
 
-canopy <-
-  results_tidy_expand$env$canopy %>%
+light_availability <-
+  results_tidy_expand$env$light_availability %>%
   group_by(step) %>% 
   mutate(
     # LAI at height
-    LAI_above = -log(canopy_openness)/0.5,
+    LAI_above = -log(light_availability)/0.5,
     # Cumulative LAI from the rgound up
     LAI_below = max(LAI_above) - LAI_above
   ) %>% ungroup()
@@ -466,7 +466,7 @@ d2 <-
 d2_com <- 
   d2 %>%
   bind_rows(
-    canopy %>% mutate(species= "whole stand") %>%
+    light_availability %>% mutate(species= "whole stand") %>%
       filter(time %in% select_closest(time, target_ages))
    )
 
@@ -580,11 +580,11 @@ XXX
 
 ```{r}
 d2 <-
-    canopy %>% mutate(species = "canopy") %>%
+    light_availability %>% mutate(species = "light_availability") %>%
     filter(time %in% select_closest(time, target_ages)) %>% 
     mutate(
       time = round(time),
-      LAI = -log(canopy_openness)/ 0.5      
+      LAI = -log(light_availability)/ 0.5      
     )
 
 d2_max <- d2 %>%
@@ -593,7 +593,7 @@ d2_max <- d2 %>%
 
 p1 <- 
   d2 %>%
-  ggplot(aes(x = height, y = canopy_openness, label = time, group = time, col = time)) +
+  ggplot(aes(x = height, y = light_availability, label = time, group = time, col = time)) +
   geom_line() +
   geom_text(data = d2_max, nudge_y = 0.05) +
   labs(

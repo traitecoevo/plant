@@ -3,10 +3,10 @@
 namespace plant {
 
 Control::Control() {
-  assimilator_adaptive_integration = true;
-  assimilator_integration_tol = 1e-6;
-  assimilator_integration_iterations = 1000;
-  assimilator_integration_rule = 21;
+
+  // Number of points used when numerically intergrating a function
+  // using Gauss-Kronrod quadrature. Rules defined in qk_rules.cpp
+  function_integration_rule = 21;
 
   offspring_production_tol= 1e-8;
   offspring_production_iterations = 1000;

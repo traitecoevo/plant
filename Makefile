@@ -29,7 +29,7 @@ roxygen:
 	@mkdir -p man
 	Rscript -e "library(methods); devtools::document()"
 
-test:
+test: all
 	Rscript -e 'library(methods); devtools::test()'
 
 benchmark:

@@ -211,9 +211,9 @@ template <> inline std::string generator_name<plant::StochasticPatchRunner<plant
 template <> inline std::string   class_name_r<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> >() {return "StochasticPatchRunner<K93,K93_Env>";}
 template <> inline std::string   package_name<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> >() {return ".R6_StochasticPatchRunner___K93__K93_Env";}
-template <> inline std::string   class_name_r<plant::Canopy >() {return "Canopy";}
-template <> inline std::string   package_name<plant::Canopy >() {return "plant";}
-template <> inline std::string generator_name<plant::Canopy >() {return ".R6_Canopy";}
+template <> inline std::string   class_name_r<plant::ResourceSpline >() {return "ResourceSpline";}
+template <> inline std::string   package_name<plant::ResourceSpline >() {return "plant";}
+template <> inline std::string generator_name<plant::ResourceSpline >() {return ".R6_ResourceSpline";}
 template <> inline std::string   class_name_r<plant::Disturbance_Regime >() {return "Disturbance_Regime";}
 template <> inline std::string   package_name<plant::Disturbance_Regime >() {return "plant";}
 template <> inline std::string generator_name<plant::Disturbance_Regime >() {return ".R6_Disturbance_Regime";}
@@ -332,10 +332,7 @@ template <> inline plant::NodeSchedule as(SEXP x) {
 }
 template <> inline SEXP wrap(const plant::Control& x) {
   Rcpp::List ret;
-  ret["assimilator_adaptive_integration"] = Rcpp::wrap(x.assimilator_adaptive_integration);
-  ret["assimilator_integration_tol"] = Rcpp::wrap(x.assimilator_integration_tol);
-  ret["assimilator_integration_iterations"] = Rcpp::wrap(x.assimilator_integration_iterations);
-  ret["assimilator_integration_rule"] = Rcpp::wrap(x.assimilator_integration_rule);
+  ret["function_integration_rule"] = Rcpp::wrap(x.function_integration_rule);
   ret["offspring_production_tol"] = Rcpp::wrap(x.offspring_production_tol);
   ret["offspring_production_iterations"] = Rcpp::wrap(x.offspring_production_iterations);
   ret["node_gradient_eps"] = Rcpp::wrap(x.node_gradient_eps);
@@ -374,14 +371,8 @@ template <> inline plant::Control as(SEXP x) {
   // field twice.  No current support for a hook.
   plant::Control ret;
   Rcpp::List xl(x);
-  // ret.assimilator_adaptive_integration = Rcpp::as<decltype(retassimilator_adaptive_integration) >(xl["assimilator_adaptive_integration"]);
-  ret.assimilator_adaptive_integration = Rcpp::as<bool >(xl["assimilator_adaptive_integration"]);
-  // ret.assimilator_integration_tol = Rcpp::as<decltype(retassimilator_integration_tol) >(xl["assimilator_integration_tol"]);
-  ret.assimilator_integration_tol = Rcpp::as<double >(xl["assimilator_integration_tol"]);
-  // ret.assimilator_integration_iterations = Rcpp::as<decltype(retassimilator_integration_iterations) >(xl["assimilator_integration_iterations"]);
-  ret.assimilator_integration_iterations = Rcpp::as<size_t >(xl["assimilator_integration_iterations"]);
-  // ret.assimilator_integration_rule = Rcpp::as<decltype(retassimilator_integration_rule) >(xl["assimilator_integration_rule"]);
-  ret.assimilator_integration_rule = Rcpp::as<size_t >(xl["assimilator_integration_rule"]);
+  // ret.function_integration_rule = Rcpp::as<decltype(retfunction_integration_rule) >(xl["function_integration_rule"]);
+  ret.function_integration_rule = Rcpp::as<size_t >(xl["function_integration_rule"]);
   // ret.offspring_production_tol = Rcpp::as<decltype(retoffspring_production_tol) >(xl["offspring_production_tol"]);
   ret.offspring_production_tol = Rcpp::as<double >(xl["offspring_production_tol"]);
   // ret.offspring_production_iterations = Rcpp::as<decltype(retoffspring_production_iterations) >(xl["offspring_production_iterations"]);
@@ -919,11 +910,11 @@ template <> inline SEXP wrap(const plant::StochasticPatchRunner<plant::K93_Strat
 template <> inline plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> >(x));
 }
-template <> inline SEXP wrap(const plant::Canopy& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::Canopy>(x));
+template <> inline SEXP wrap(const plant::ResourceSpline& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::ResourceSpline>(x));
 }
-template <> inline plant::Canopy as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::Canopy>(x));
+template <> inline plant::ResourceSpline as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::ResourceSpline>(x));
 }
 template <> inline SEXP wrap(const plant::Disturbance_Regime& x) {
   return wrap(plant::RcppR6::RcppR6<plant::Disturbance_Regime>(x));

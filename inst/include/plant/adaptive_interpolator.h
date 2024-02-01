@@ -2,6 +2,8 @@
 #ifndef PLANT_PLANT_ADAPTIVE_INTERPOLATOR_H_
 #define PLANT_PLANT_ADAPTIVE_INTERPOLATOR_H_
 
+// This class creates an interpolator object, using adaptive refinement
+
 #include <list>
 #include <plant/interpolator.h>
 #include <plant/util.h> // util::stop, util::seq_len

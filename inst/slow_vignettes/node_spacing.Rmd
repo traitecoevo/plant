@@ -247,11 +247,10 @@ results_insert <- collect_with_times(patch, times_insert)
 In order to make a direct comparison, we need to interpolate the light
 environment over a common set of heights at each time step.
 
-We reconstruct the light environment spline for both runs, and compute
-canopy openness in both:
+We reconstruct the light environment spline for both runs, and compute light_availability in both:
 
 ```{r}
-interpolated_environment <- function(env, heights) {
+interpolated_light_availability <- function(env, heights) {
   # intialise new spline with existing values
   spline <- plant:::Interpolator()
   spline$init(env[, 1], env[, 2])
@@ -272,16 +271,16 @@ max_height <- max(results_default$env[[n]][, 1],
                   results_insert$env[[n+1]][, 1])
 
 heights <- seq(0, max_height, length.out=201)
-canopy_default <- sapply(results_default$env, interpolated_environment, heights)
-canopy_insert <- sapply(results_insert$env, interpolated_environment, heights)
+light_availability_spline_default <- sapply(results_default$env, interpolated_light_availability, heights)
+light_availability_spline_insert <- sapply(results_insert$env, interpolated_light_availability, heights)
 
-canopy_difference <- t(canopy_insert[, -(insert_position + 1)] - canopy_default)
-canopy_difference[abs(canopy_difference) < 1e-10] <- NA
+light_availability_spline_difference <- t(light_availability_spline_insert[, -(insert_position + 1)] - canopy_default)
+light_availability_spline_difference[abs(light_availability_spline_difference) < 1e-10] <- NA
 ```
 
 Taking the difference between light environments at each height and timestep,
 the resulting image plot is blue in regions where the refined light environment,
-with the additional node is lighter (higher canopy openness)
+with the additional node is lighter (higher light_availability)
 and red in regions where the the light environment is darker with the additional
 node.
 
@@ -294,8 +293,8 @@ pal <- colorRampPalette(cols)(20)
 image(results_default$time, heights, canopy_difference,
       xlab="Time (years)", ylab="Height (m)", las=1, col=pal)
 ```
-Canopy openness is
-`r round(100 * max(abs(canopy_difference), na.rm = T) / mean(canopy_default), 2)`%
+Shading is
+`r round(100 * max(abs(light_availability_spline_difference), na.rm = T) / mean(light_availability_spline_default), 2)`%
 lower for ~7 m tall nodes at year 25. This increased competitive intensity
 may be driving differences in seed rain.
 
@@ -318,7 +317,7 @@ increases the error in the estimate of the total seed
 production from the patch. The relative error in each integration is then
 calculated using the `local_error_integration` function.
 
-We've shown that large differences  manifest in canopy openness.
+We've shown that large differences  manifest in light_availability.
 Here we use `plant:::run_scm_error` to assess the integration error of
 the leaf area for all nodes.
 

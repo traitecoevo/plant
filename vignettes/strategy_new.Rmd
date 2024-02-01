@@ -239,13 +239,13 @@ double K93_Strategy::compute_competition(double z, double size) const {
 This does a round-about-trip to `K93_environment.h`:
 
 ```{c++}
-void compute_environment(Function f_compute_competition, double height_max) {
+void compute_environment(Function f_compute_competition, double height_max, bool rescale) {
   const double lower_bound = 0.0;
   double upper_bound = height_max;
 
-  auto f_canopy_openness = [&] (double height) -> double {return exp(-k_I * f_compute_competition(height));};
+  auto f_light_availability = [&] (double height) -> double {return exp(-k_I * f_compute_competition(height));};
   environment_interpolator =
-    environment_generator.construct(f_canopy_openness, lower_bound, upper_bound);
+    environment_generator.construct(f_light_availability, lower_bound, upper_bound);
 }
 ```
 
@@ -257,9 +257,7 @@ Back transform environment interpolator so that smallest individual experience l
 
 ```{c++}
   // i.e. setting rates of ode vars from the state and updating aux vars
-  void K93_Strategy::compute_rates(const K93_Environment& environment,
-                                bool reuse_intervals,
-                                Internals& vars) {
+  void K93_Strategy::compute_rates(const K93_Environment& environment, Internals& vars) {
 
     double height = vars.state(HEIGHT_INDEX);
 
@@ -273,6 +271,8 @@ Back transform environment interpolator so that smallest individual experience l
     if (!util::is_finite(cumulative_basal_area)) {
       util::stop("Environmental interpolation out of bounds");
     }
+  ...
+  }
 ```
 
 Then calculate impact on growth:
@@ -312,7 +312,6 @@ There are two special methods that must be defined:
 
 ```{c++}
   void compute_rates(const K93_Environment& environment,
-                     bool reuse_intervals,
                      Internals& vars);
 
   double compute_competition(double z, double size) const;

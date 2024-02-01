@@ -3,10 +3,6 @@
 #ifndef PLANT_PLANT_K93_STRATEGY_H_
 #define PLANT_PLANT_K93_STRATEGY_H_
 
-#include <memory>
-#include <plant/control.h>
-#include <plant/qag_internals.h> // quadrature::intervals_type
-#include <plant/internals.h> // quadrature::intervals_type
 #include <plant/strategy.h>
 #include <plant/models/k93_environment.h>
 
@@ -34,19 +30,14 @@ public:
     return std::vector<std::string>({"competition_effect"});
   }
 
-  void compute_rates(const K93_Environment& environment,
-                     bool reuse_intervals,
-                     Internals& vars);
-
-
+  void compute_rates(const K93_Environment& environment, Internals& vars);
 
   void refresh_indices();
 
   // These are stuck in plant.h
   double establishment_probability(const K93_Environment& environment);
   double net_mass_production_dt(const K93_Environment& environment,
-                                double size, double cumulative_basal_area,
-                                bool reuse_intervals=false);
+                                double size, double cumulative_basal_area);
 
   double Q(double z, double size) const;
 

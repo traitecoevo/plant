@@ -62,26 +62,27 @@ FF16_StochasticPatchRunner <- function(p) {
 
 ## Helper to create FF16_environment object. Useful for running individuals
 ##' @title create FF16_environment object
-##' @param canopy_light_tol 
+##' @param light_availability_spline_tol 
 ##'
-##' @param canopy_light_nbase 
-##' @param canopy_light_max_depth 
-##' @param canopy_rescale_usually 
+##' @param light_availability_spline_nbase 
+##' @param light_availability_spline_max_depth 
+##' @param light_availability_spline_rescale_usually 
 ##'
 ##' @export
 ##' @rdname FF16_make_environment
-FF16_make_environment <- function(canopy_light_tol = 1e-4, 
-                                  canopy_light_nbase = 17,
-                                  canopy_light_max_depth = 16, 
-                                  canopy_rescale_usually = TRUE) {
+FF16_make_environment <- function(light_availability_spline_tol = 1e-4, 
+                                  light_availability_spline_nbase = 17,
+                                  light_availability_spline_max_depth = 16, 
+                                  light_availability_spline_rescale_usually = TRUE) {
   
-  e <- FF16_Environment(canopy_rescale_usually, 
+  e <- FF16_Environment(light_availability_spline_rescale_usually, 
                         soil_number_of_depths = 0)
   
-  # Canopy defaults have lower tolerance which are overwritten for speed
-  e$canopy <- Canopy(canopy_light_tol, 
-                     canopy_light_nbase, 
-                     canopy_light_max_depth)
+  # Shading defaults have lower tolerance which are overwritten for speed
+  e$light_availability <- ResourceSpline(light_availability_spline_tol, 
+                     light_availability_spline_nbase, 
+                     light_availability_spline_max_depth, 
+                     light_availability_spline_rescale_usually)
   
   return(e)
 }
@@ -125,7 +126,7 @@ FF16_test_environment <- function(height, n=101, light_env=NULL,
   interpolator$init(hh, ee)
 
   ret <- FF16_make_environment()
-  ret$canopy$canopy_interpolator <- interpolator
+  ret$light_availability$spline <- interpolator
   attr(ret, "light_env") <- light_env
   ret
 }
@@ -394,49 +395,3 @@ make_FF16_hyperpar <- function(
 ##' that are within eps of the default strategy are not replaced.
 ##' @export
 FF16_hyperpar <- make_FF16_hyperpar()
-
-#' Solves the maximum growth rate at a given height within the interval of the bounds of a given trait
-#'
-#' @param bounds
-#' @param log_scale
-#' @param tol
-#' @param height
-#' @param params
-#' @param env
-#' @param outcome 
-
-#' @export
-
-#' @author Isaac Towers, Daniel Falster and Andrew O'Reilly-Nugent
-
-FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, tol = 1e-3, height = 10, params, env = FF16_make_environment(), outcome = "height"){
-  
-  bounds <- check_bounds(bounds)
-  traits <- rownames(bounds)
-  
-  if (log_scale) {
-    bounds[bounds[,1] == -Inf, 1] <- 0
-    bounds <- log(bounds)
-    
-    ff <- exp
-  } else {
-    ff <- I
-  }
-  
-  f <- function(x) {
-    
-    s <- strategy(ff(trait_matrix(x,  rownames(bounds))), params, birth_rate_list = 1)
-    indv <- FF16_Individual(s)
-    res <- grow_individual_to_height(indv, height, env,
-                                     time_max=100, warn=FALSE, filter=TRUE)
-    
-    res$individual[[1]]$ode_rates[res$individual[[1]]$ode_names == outcome]    
-  }
-  
-  ret <- solve_max_worker(bounds, f, tol = 1e-3, outcome = paste0(outcome, "_growth_rate"))
-  if (log_scale) {
-    ret <- exp(ret)
-  }
-  
-  return(ret)
-}
