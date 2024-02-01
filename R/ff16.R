@@ -62,26 +62,27 @@ FF16_StochasticPatchRunner <- function(p) {
 
 ## Helper to create FF16_environment object. Useful for running individuals
 ##' @title create FF16_environment object
-##' @param canopy_light_tol 
+##' @param light_availability_spline_tol 
 ##'
-##' @param canopy_light_nbase 
-##' @param canopy_light_max_depth 
-##' @param canopy_rescale_usually 
+##' @param light_availability_spline_nbase 
+##' @param light_availability_spline_max_depth 
+##' @param light_availability_spline_rescale_usually 
 ##'
 ##' @export
 ##' @rdname FF16_make_environment
-FF16_make_environment <- function(canopy_light_tol = 1e-4, 
-                                  canopy_light_nbase = 17,
-                                  canopy_light_max_depth = 16, 
-                                  canopy_rescale_usually = TRUE) {
+FF16_make_environment <- function(light_availability_spline_tol = 1e-4, 
+                                  light_availability_spline_nbase = 17,
+                                  light_availability_spline_max_depth = 16, 
+                                  light_availability_spline_rescale_usually = TRUE) {
   
-  e <- FF16_Environment(canopy_rescale_usually, 
+  e <- FF16_Environment(light_availability_spline_rescale_usually, 
                         soil_number_of_depths = 0)
   
-  # Canopy defaults have lower tolerance which are overwritten for speed
-  e$canopy <- Canopy(canopy_light_tol, 
-                     canopy_light_nbase, 
-                     canopy_light_max_depth)
+  # Shading defaults have lower tolerance which are overwritten for speed
+  e$light_availability <- ResourceSpline(light_availability_spline_tol, 
+                     light_availability_spline_nbase, 
+                     light_availability_spline_max_depth, 
+                     light_availability_spline_rescale_usually)
   
   return(e)
 }
@@ -125,7 +126,7 @@ FF16_test_environment <- function(height, n=101, light_env=NULL,
   interpolator$init(hh, ee)
 
   ret <- FF16_make_environment()
-  ret$canopy$canopy_interpolator <- interpolator
+  ret$light_availability$spline <- interpolator
   attr(ret, "light_env") <- light_env
   ret
 }

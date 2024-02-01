@@ -3709,24 +3709,24 @@ Rcpp::List StochasticPatchRunner___K93__K93_Env__state__get(plant::RcppR6::RcppR
 
 
 // [[Rcpp::export]]
-plant::Canopy Canopy__ctor(double tol, double nbase, double max_depth) {
-  return plant::Canopy(tol, nbase, max_depth);
+plant::ResourceSpline ResourceSpline__ctor(double tol, double nbase, double max_depth, bool rescale_usually) {
+  return plant::ResourceSpline(tol, nbase, max_depth, rescale_usually);
 }
 // [[Rcpp::export]]
-double Canopy__canopy_openness(plant::RcppR6::RcppR6<plant::Canopy> obj_, double height) {
-  return obj_->canopy_openness(height);
+double ResourceSpline__get_value_at_height(plant::RcppR6::RcppR6<plant::ResourceSpline> obj_, double height) {
+  return obj_->get_value_at_height(height);
 }
 // [[Rcpp::export]]
-void Canopy__clear(plant::RcppR6::RcppR6<plant::Canopy> obj_) {
+void ResourceSpline__clear(plant::RcppR6::RcppR6<plant::ResourceSpline> obj_) {
   obj_->clear();
 }
 // [[Rcpp::export]]
-plant::interpolator::Interpolator Canopy__canopy_interpolator__get(plant::RcppR6::RcppR6<plant::Canopy> obj_) {
-  return obj_->canopy_interpolator;
+plant::interpolator::Interpolator ResourceSpline__spline__get(plant::RcppR6::RcppR6<plant::ResourceSpline> obj_) {
+  return obj_->spline;
 }
 // [[Rcpp::export]]
-void Canopy__canopy_interpolator__set(plant::RcppR6::RcppR6<plant::Canopy> obj_, plant::interpolator::Interpolator value) {
-  obj_->canopy_interpolator = value;
+void ResourceSpline__spline__set(plant::RcppR6::RcppR6<plant::ResourceSpline> obj_, plant::interpolator::Interpolator value) {
+  obj_->spline = value;
 }
 
 
@@ -3788,12 +3788,12 @@ SEXP FF16_Strategy__ctor() {
 
 
 // [[Rcpp::export]]
-plant::FF16_Environment FF16_Environment__ctor(bool canopy_rescale_usually, int soil_number_of_depths) {
-  return plant::FF16_Environment(canopy_rescale_usually, soil_number_of_depths);
+plant::FF16_Environment FF16_Environment__ctor(bool light_availability_spline_rescale_usually, int soil_number_of_depths) {
+  return plant::FF16_Environment(light_availability_spline_rescale_usually, soil_number_of_depths);
 }
 // [[Rcpp::export]]
-double FF16_Environment__canopy_openness(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double height) {
-  return obj_->canopy_openness(height);
+double FF16_Environment__get_environment_at_height(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double height) {
+  return obj_->get_environment_at_height(height);
 }
 // [[Rcpp::export]]
 void FF16_Environment__clear(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
@@ -3831,12 +3831,12 @@ size_t FF16_Environment__soil_number_of_depths__get(plant::RcppR6::RcppR6<plant:
 }
 
 // [[Rcpp::export]]
-plant::Canopy FF16_Environment__canopy__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
-  return obj_->canopy;
+plant::ResourceSpline FF16_Environment__light_availability__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
+  return obj_->light_availability;
 }
 // [[Rcpp::export]]
-void FF16_Environment__canopy__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::Canopy value) {
-  obj_->canopy = value;
+void FF16_Environment__light_availability__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::ResourceSpline value) {
+  obj_->light_availability = value;
 }
 
 // [[Rcpp::export]]
@@ -3871,8 +3871,8 @@ plant::K93_Environment K93_Environment__ctor() {
   return plant::K93_Environment();
 }
 // [[Rcpp::export]]
-double K93_Environment__canopy_openness(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, double height) {
-  return obj_->canopy_openness(height);
+double K93_Environment__get_environment_at_height(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, double height) {
+  return obj_->get_environment_at_height(height);
 }
 // [[Rcpp::export]]
 void K93_Environment__clear(plant::RcppR6::RcppR6<plant::K93_Environment> obj_) {
@@ -3892,12 +3892,12 @@ void K93_Environment__time__set(plant::RcppR6::RcppR6<plant::K93_Environment> ob
 }
 
 // [[Rcpp::export]]
-plant::Canopy K93_Environment__canopy__get(plant::RcppR6::RcppR6<plant::K93_Environment> obj_) {
-  return obj_->canopy;
+plant::ResourceSpline K93_Environment__light_availability__get(plant::RcppR6::RcppR6<plant::K93_Environment> obj_) {
+  return obj_->light_availability;
 }
 // [[Rcpp::export]]
-void K93_Environment__canopy__set(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, plant::Canopy value) {
-  obj_->canopy = value;
+void K93_Environment__light_availability__set(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, plant::ResourceSpline value) {
+  obj_->light_availability = value;
 }
 
 // [[Rcpp::export]]

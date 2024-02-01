@@ -105,10 +105,7 @@ Control:
     variadic arguments, or as a list, but not both).
     @export
   list:
-    - assimilator_adaptive_integration: bool
-    - assimilator_integration_tol: double
-    - assimilator_integration_iterations: size_t
-    - assimilator_integration_rule: size_t
+    - function_integration_rule: size_t
     - offspring_production_tol: double
     - offspring_production_iterations: int
     - node_gradient_eps: double
@@ -486,7 +483,6 @@ Patch:
     compute_rates:
       return_type: void
       name_cpp: r_compute_rates
-    # TODO: Not 100% sure this is needed from R:
     reset:
       return_type: void
     # Because we now care about time, we need to make sure that the
@@ -749,21 +745,22 @@ StochasticPatchRunner:
       access: function
       name_cpp: "plant::get_state"
 
-Canopy:
-  name_cpp: "plant::Canopy"
+ResourceSpline:
+  name_cpp: "plant::ResourceSpline"
   constructor:
     args:
       - tol: double
       - nbase: double
       - max_depth: double
+      - rescale_usually: bool
   methods:
-    canopy_openness:
+    get_value_at_height:
       args: [height: double]
       return_type: double
     clear:
       return_type: void
   active:
-    canopy_interpolator: {type: "plant::interpolator::Interpolator", access: field}
+    spline: {type: "plant::interpolator::Interpolator", access: field}
 
 Disturbance_Regime:
   name_cpp: "plant::Disturbance_Regime"
@@ -877,15 +874,15 @@ FF16_Environment:
   name_cpp: "plant::FF16_Environment"
   constructor:
     args:
-      - canopy_rescale_usually: bool
+      - light_availability_spline_rescale_usually: bool
       - soil_number_of_depths: int
     roxygen: |
       FF16_Environment object
-      @param  canopy_rescale_usually whether to rescale intervals when estimating light environment
+      @param  light_availability_spline_rescale_usually whether to rescale intervals when estimating light environment
       @param  soil_number_of_depths Number of soil layers to include
       @export
   methods:
-    canopy_openness:
+    get_environment_at_height:
       args: [height: double]
       return_type: double
     clear:
@@ -903,8 +900,8 @@ FF16_Environment:
     time: {type: double, access: field}
     ode_size: {type: size_t, access: member}
     soil_number_of_depths: {type: size_t, access: member, name_cpp: ode_size}
-    canopy:
-      type: "plant::Canopy"
+    light_availability:
+      type: "plant::ResourceSpline"
       access: field
     soil:
       type: "plant::Internals"
@@ -996,7 +993,7 @@ K93_Environment:
       K93_Environment object
       @export
   methods:
-    canopy_openness:
+    get_environment_at_height:
       args: [height: double]
       return_type: double
     clear:
@@ -1006,7 +1003,7 @@ K93_Environment:
       return_type: void
   active:
     time: {type: double, access: field}
-    canopy: {type: "plant::Canopy", access: field}
+    light_availability: {type: "plant::ResourceSpline", access: field}
     ode_size: {type: size_t, access: member}
 
 # The following strategy was built from FF16 on Mon Jul 19 11:01:04 2021

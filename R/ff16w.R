@@ -66,10 +66,10 @@ FF16w_StochasticPatchRunner <- function(p) {
 ##' @rdname FF16_Environment
 ##' @param soil_number_of_depths the number of soil layers
 ##' @param rainfall constant function value for rainfall driver, y = rainfall
-FF16w_make_environment <- function(canopy_light_tol = 1e-4, 
-                                   canopy_light_nbase = 17,
-                                   canopy_light_max_depth = 16, 
-                                   canopy_rescale_usually = TRUE,
+FF16w_make_environment <- function(light_availability_spline_tol = 1e-4, 
+                                   light_availability_spline_nbase = 17,
+                                   light_availability_spline_max_depth = 16, 
+                                   light_availability_spline_rescale_usually = TRUE,
                                    soil_number_of_depths = 1,
                                    soil_initial_state = 0.0,
                                    rainfall = 1) {
@@ -77,12 +77,13 @@ FF16w_make_environment <- function(canopy_light_tol = 1e-4,
   if(soil_number_of_depths < 1)
     stop("FF16w Environment must have at least one soil layer")
   
-  e <- FF16_Environment(canopy_rescale_usually, 
-                        soil_number_of_depths)
+  e <- FF16_Environment(light_availability_spline_rescale_usually,
+                  soil_number_of_depths)
   
-  e$canopy <- Canopy(canopy_light_tol, 
-                     canopy_light_nbase, 
-                     canopy_light_max_depth)
+  e$light_availability <- ResourceSpline(light_availability_spline_tol, 
+                     light_availability_spline_nbase, 
+                     light_availability_spline_max_depth,
+                     light_availability_spline_rescale_usually)
 
   # there might be a better way to skip this if using defaults
   if(sum(soil_initial_state) > 0.0) {
@@ -150,7 +151,7 @@ FF16w_test_environment <- function(height,
   interpolator$init(hh, ee)
   
   ret <- FF16w_make_environment()
-  ret$canopy$canopy_interpolator <- interpolator
+  ret$light_availability$spline <- interpolator
   attr(ret, "light_env") <- light_env
   ret
 }

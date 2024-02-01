@@ -5,20 +5,20 @@
 \title{create FF16_environment object}
 \usage{
 FF16_make_environment(
-  canopy_light_tol = 1e-04,
-  canopy_light_nbase = 17,
-  canopy_light_max_depth = 16,
-  canopy_rescale_usually = TRUE
+  light_availability_spline_tol = 1e-04,
+  light_availability_spline_nbase = 17,
+  light_availability_spline_max_depth = 16,
+  light_availability_spline_rescale_usually = TRUE
 )
 }
 \arguments{
-\item{canopy_light_tol}{}
+\item{light_availability_spline_tol}{}
 
-\item{canopy_light_nbase}{}
+\item{light_availability_spline_nbase}{}
 
-\item{canopy_light_max_depth}{}
+\item{light_availability_spline_max_depth}{}
 
-\item{canopy_rescale_usually}{}
+\item{light_availability_spline_rescale_usually}{}
 }
 \description{
 create FF16_environment object

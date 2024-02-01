@@ -64,13 +64,12 @@ public:
     return strategy->compute_competition(z, state(HEIGHT_INDEX)); // aux("competition_effect"));
   }
 
-  void compute_rates(const environment_type& environment,
-                         bool reuse_intervals = false) {
+  void compute_rates(const environment_type& environment) {
     if (vars.resource_size != environment.ode_size()) {
       // handles when Individual hasn't been instantiated in a Patch (ie with an environment)
       vars.resize_consumption_rates(environment.ode_size());
     }
-    strategy->compute_rates(environment, reuse_intervals, vars);
+    strategy->compute_rates(environment, vars);
   }
   
   double establishment_probability(const environment_type &environment) {
@@ -124,10 +123,9 @@ public:
   
   void reset_mortality() { set_state("mortality", 0.0); }
 
-  // TODO: Eventually change to growth rate given size
   double growth_rate_given_height(double height, const environment_type& environment) {
     set_state("height", height);
-    compute_rates(environment, true);
+    compute_rates(environment);
     return rate("height");
   }
 

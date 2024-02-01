@@ -6,9 +6,7 @@
 ##' @param base An optional \code{Control} object.  If omitted, the
 ##' defaults are used.
 fast_control <- function(base=Control()) {
-  base$assimilator_adaptive_integration <- FALSE
-  base$assimilator_integration_rule <- 21
-  base$assimilator_integration_tol <- 1e-4
+  base$function_integration_rule <- 21
 
   base$ode_tol_rel <- 1e-4
   base$ode_tol_abs <- 1e-4
@@ -164,10 +162,11 @@ run_scm_collect <- function(p, env = make_environment(parameters = p),
 ##' @export
 make_patch <- function(state, p, env = make_environment(parameters = p),
                        ctrl = scm_base_control()) {
+
   types <- extract_RcppR6_template_types(p, "Parameters")
   n <- viapply(state$species, ncol)
   patch <- do.call('Patch', types)(p, env, ctrl)
-  patch$set_state(state$time, unlist(state$species), n, state$env$canopy)
+  patch$set_state(state$time, unlist(state$species), n, state$env$light_availability)
   patch
 }
 

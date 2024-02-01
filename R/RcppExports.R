@@ -3253,24 +3253,24 @@ StochasticPatchRunner___K93__K93_Env__state__get <- function(obj_) {
     .Call('_plant_StochasticPatchRunner___K93__K93_Env__state__get', PACKAGE = 'plant', obj_)
 }
 
-Canopy__ctor <- function(tol, nbase, max_depth) {
-    .Call('_plant_Canopy__ctor', PACKAGE = 'plant', tol, nbase, max_depth)
+ResourceSpline__ctor <- function(tol, nbase, max_depth, rescale_usually) {
+    .Call('_plant_ResourceSpline__ctor', PACKAGE = 'plant', tol, nbase, max_depth, rescale_usually)
 }
 
-Canopy__canopy_openness <- function(obj_, height) {
-    .Call('_plant_Canopy__canopy_openness', PACKAGE = 'plant', obj_, height)
+ResourceSpline__get_value_at_height <- function(obj_, height) {
+    .Call('_plant_ResourceSpline__get_value_at_height', PACKAGE = 'plant', obj_, height)
 }
 
-Canopy__clear <- function(obj_) {
-    invisible(.Call('_plant_Canopy__clear', PACKAGE = 'plant', obj_))
+ResourceSpline__clear <- function(obj_) {
+    invisible(.Call('_plant_ResourceSpline__clear', PACKAGE = 'plant', obj_))
 }
 
-Canopy__canopy_interpolator__get <- function(obj_) {
-    .Call('_plant_Canopy__canopy_interpolator__get', PACKAGE = 'plant', obj_)
+ResourceSpline__spline__get <- function(obj_) {
+    .Call('_plant_ResourceSpline__spline__get', PACKAGE = 'plant', obj_)
 }
 
-Canopy__canopy_interpolator__set <- function(obj_, value) {
-    invisible(.Call('_plant_Canopy__canopy_interpolator__set', PACKAGE = 'plant', obj_, value))
+ResourceSpline__spline__set <- function(obj_, value) {
+    invisible(.Call('_plant_ResourceSpline__spline__set', PACKAGE = 'plant', obj_, value))
 }
 
 Disturbance_Regime__ctor <- function() {
@@ -3325,12 +3325,12 @@ FF16_Strategy__ctor <- function() {
     .Call('_plant_FF16_Strategy__ctor', PACKAGE = 'plant')
 }
 
-FF16_Environment__ctor <- function(canopy_rescale_usually, soil_number_of_depths) {
-    .Call('_plant_FF16_Environment__ctor', PACKAGE = 'plant', canopy_rescale_usually, soil_number_of_depths)
+FF16_Environment__ctor <- function(light_availability_spline_rescale_usually, soil_number_of_depths) {
+    .Call('_plant_FF16_Environment__ctor', PACKAGE = 'plant', light_availability_spline_rescale_usually, soil_number_of_depths)
 }
 
-FF16_Environment__canopy_openness <- function(obj_, height) {
-    .Call('_plant_FF16_Environment__canopy_openness', PACKAGE = 'plant', obj_, height)
+FF16_Environment__get_environment_at_height <- function(obj_, height) {
+    .Call('_plant_FF16_Environment__get_environment_at_height', PACKAGE = 'plant', obj_, height)
 }
 
 FF16_Environment__clear <- function(obj_) {
@@ -3365,12 +3365,12 @@ FF16_Environment__soil_number_of_depths__get <- function(obj_) {
     .Call('_plant_FF16_Environment__soil_number_of_depths__get', PACKAGE = 'plant', obj_)
 }
 
-FF16_Environment__canopy__get <- function(obj_) {
-    .Call('_plant_FF16_Environment__canopy__get', PACKAGE = 'plant', obj_)
+FF16_Environment__light_availability__get <- function(obj_) {
+    .Call('_plant_FF16_Environment__light_availability__get', PACKAGE = 'plant', obj_)
 }
 
-FF16_Environment__canopy__set <- function(obj_, value) {
-    invisible(.Call('_plant_FF16_Environment__canopy__set', PACKAGE = 'plant', obj_, value))
+FF16_Environment__light_availability__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Environment__light_availability__set', PACKAGE = 'plant', obj_, value))
 }
 
 FF16_Environment__soil__get <- function(obj_) {
@@ -3397,8 +3397,8 @@ K93_Environment__ctor <- function() {
     .Call('_plant_K93_Environment__ctor', PACKAGE = 'plant')
 }
 
-K93_Environment__canopy_openness <- function(obj_, height) {
-    .Call('_plant_K93_Environment__canopy_openness', PACKAGE = 'plant', obj_, height)
+K93_Environment__get_environment_at_height <- function(obj_, height) {
+    .Call('_plant_K93_Environment__get_environment_at_height', PACKAGE = 'plant', obj_, height)
 }
 
 K93_Environment__clear <- function(obj_) {
@@ -3417,12 +3417,12 @@ K93_Environment__time__set <- function(obj_, value) {
     invisible(.Call('_plant_K93_Environment__time__set', PACKAGE = 'plant', obj_, value))
 }
 
-K93_Environment__canopy__get <- function(obj_) {
-    .Call('_plant_K93_Environment__canopy__get', PACKAGE = 'plant', obj_)
+K93_Environment__light_availability__get <- function(obj_) {
+    .Call('_plant_K93_Environment__light_availability__get', PACKAGE = 'plant', obj_)
 }
 
-K93_Environment__canopy__set <- function(obj_, value) {
-    invisible(.Call('_plant_K93_Environment__canopy__set', PACKAGE = 'plant', obj_, value))
+K93_Environment__light_availability__set <- function(obj_, value) {
+    invisible(.Call('_plant_K93_Environment__light_availability__set', PACKAGE = 'plant', obj_, value))
 }
 
 K93_Environment__ode_size__get <- function(obj_) {

@@ -31,7 +31,6 @@ public:
 
   double height_max() const;
 
-  // [eqn 11] Canopy openness at `height`
   double compute_competition(double height) const;
 
   void introduce_new_node(size_t species_index);
@@ -83,7 +82,7 @@ public:
   void r_set_state(double time,
                    const std::vector<double>& state,
                    const std::vector<size_t>& n,
-                   const std::vector<double>& canopy);
+                   const std::vector<double>& light_availability);
   void r_introduce_new_node(util::index species_index) {
     introduce_new_node(species_index.check_bounds(size()));
   }
@@ -91,7 +90,7 @@ public:
     at(species_index.check_bounds(size()));
   }
   // These are only here because they wrap private functions.
-  void r_compute_environment() {compute_environment();}
+  void r_compute_environment() {compute_environment(false);}
   void r_compute_rates() {
     environment_ptr = &environment;
     compute_rates();
@@ -120,13 +119,14 @@ public:
 
 private:
   int idx; // used to access environment cache for mutant runs
-  void compute_environment();
-  void rescale_environment();
+  void compute_environment(bool rescale);
   void compute_rates();
 
   parameters_type parameters;
   environment_type environment;
   std::vector<species_type> species;
+
+  //TODO: Move into environment?
   std::vector<double> resource_depletion;
 
   environment_type* environment_ptr;
@@ -188,9 +188,9 @@ void Patch<T,E>::reset() {
   // resize to species count
   resource_depletion.reserve(environment.ode_size());
 
-  // compute ephemeral effects like canopy
+  // compute ephemeral effects like light_availability
   environment.clear();
-  compute_environment();
+  compute_environment(false);
 
   // compute effects of resource consumption
   environment_ptr = &environment;
@@ -225,26 +225,19 @@ std::vector<double> Patch<T,E>::r_competition_effect_error(size_t species_index)
   return species[species_index].r_competition_effects_error(tot_competition_effect);
 }
 
+// Pre-compute environment, as shaped by residents
+// Creates splines of resource availability
 template <typename T, typename E>
-void Patch<T,E>::compute_environment() {
-  if (size() > 0) {
-    if (!is_mutant_run) {
-      auto f = [&] (double x) -> double
-      {return compute_competition(x);};
-      environment.compute_environment(f, height_max());
-    }
+void Patch<T,E>::compute_environment(bool rescale) {
+  
+  // Define an anonymous function to use in creation of environment
+  auto f = [&](double x) -> double { return compute_competition(x); };
+
+  if (size() > 0 & !is_mutant_run) {
+    environment.compute_environment(f, height_max(), rescale);
   }
 }
 
-template <typename T, typename E>
-void Patch<T,E>::rescale_environment() {
-  if (size() > 0) {
-    if (!is_mutant_run ) {
-      auto f = [&] (double x) -> double {return compute_competition(x);};
-      environment.rescale_environment(f, height_max());
-    }
-  }
-}
 
 template <typename T, typename E>
 void Patch<T,E>::compute_rates() {
@@ -286,10 +279,10 @@ void Patch<T,E>::compute_rates() {
 // light environment; probably worth just doing a rescale there?
 template <typename T, typename E>
 void Patch<T,E>::introduce_new_node(size_t species_index) {
+  
   species[species_index].introduce_new_node();
-  if (!is_mutant_run) {
-    compute_environment();
-  }
+
+  compute_environment(false);
 }
 
 template <typename T, typename E>
@@ -297,9 +290,8 @@ void Patch<T,E>::introduce_new_nodes(const std::vector<size_t>& species_index) {
   for (size_t i : species_index) {
     species[i].introduce_new_node();
   }
-  if (!is_mutant_run) {
-    compute_environment();
-  }
+
+  compute_environment(false);
 }
 
 template <typename T, typename E>
@@ -315,7 +307,7 @@ template <typename T, typename E>
 void Patch<T,E>::r_set_state(double time,
                            const std::vector<double>& state,
                            const std::vector<size_t>& n,
-                           const std::vector<double>& canopy) {
+                           const std::vector<double>& light_availability) {
   const size_t n_species = species.size();
   util::check_length(n.size(), n_species);
   reset();
@@ -326,7 +318,7 @@ void Patch<T,E>::r_set_state(double time,
   }
   util::check_length(state.size(), ode_size());
   set_ode_state(state.begin(), time);
-  environment.r_init_interpolators(canopy);
+  environment.r_init_interpolators(light_availability);
 }
 
 // ODE interface
@@ -337,6 +329,7 @@ size_t Patch<T,E>::ode_size() const {
 
 template <typename T, typename E>
 size_t Patch<T,E>::aux_size() const {
+  // TODO: Is this useful for environment vectors?
   // no use for auxiliary environment variables (yet)
   return ode::aux_size(species.begin(), species.end());// + environment.ode_size();
 }
@@ -351,17 +344,18 @@ template <typename T, typename E>
 ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
                                               double time) {
   
+  // Set ode states
   it = ode::set_ode_state(species.begin(), species.end(), it);
   it = environment.set_ode_state(it);
 
+  // update time
   environment.time = time;
-  
-  if (environment.canopy_rescale_usually) {
-    rescale_environment();
-  } else {
-    compute_environment();
-  }
+
+  // Pre-compute environment, as shaped by residents
+  compute_environment(true);
   environment_ptr = &environment;
+
+  // Compute rates of change
   compute_rates();
   return it;
 }
@@ -375,7 +369,7 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
 
   it = ode::set_ode_state(species.begin(), species.end(), it);
 
-  // using a pointer here to avoid copying environemnt object
+  // using a pointer here to avoid copying environment object
   // just point the pointer, used inside compute rates to get env, to relevant env object
   environment_ptr = &(environment_history[idx][index]);
   environment.time = environment_ptr->time;

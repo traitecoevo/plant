@@ -18,19 +18,11 @@
 // Because Control is essentially a dumb set of parameters that has no
 // real functionality, we don't export it as a reference class, but
 // instead use RcppR6's "list" export ability.
-//
-// TODO: Eventually I need to make sure that the numbers here are
-// reasonable, and probably shepherd the translation from int to
-// size_t.
 namespace plant {
-
 struct Control {
   Control();
 
-  bool   assimilator_adaptive_integration;
-  double assimilator_integration_tol;
-  size_t assimilator_integration_iterations;
-  size_t assimilator_integration_rule;
+  size_t function_integration_rule;
 
   double offspring_production_tol;
   size_t offspring_production_iterations;

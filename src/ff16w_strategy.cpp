@@ -15,15 +15,13 @@ double FF16w_Strategy::evapotranspiration_dt(double area_leaf) const {
 
 // one-shot update of the scm variables
 // i.e. setting rates of ode vars from the state and updating aux vars
-void FF16w_Strategy::compute_rates(const FF16_Environment& environment,
-                                  bool reuse_intervals,
-                                  Internals& vars) {
+void FF16w_Strategy::compute_rates(const FF16_Environment& environment, Internals& vars) {
 
   double height = vars.state(HEIGHT_INDEX);
   double area_leaf_ = vars.aux(aux_index.at("competition_effect"));
 
   const double net_mass_production_dt_ =
-    net_mass_production_dt(environment, height, area_leaf_, reuse_intervals);
+    net_mass_production_dt(environment, height, area_leaf_);
 
   // store the aux sate
   vars.set_aux(aux_index.at("net_mass_production_dt"), net_mass_production_dt_);

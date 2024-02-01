@@ -3,7 +3,7 @@
 #define PLANT_PLANT_K93_ENVIRONMENT_H_
 
 #include <plant/environment.h>
-#include <plant/canopy.h>
+#include <plant/resource_spline.h>
 
 using namespace Rcpp;
 
@@ -12,19 +12,15 @@ namespace plant {
 class K93_Environment : public Environment {
 public:
   K93_Environment() {
-    canopy_rescale_usually = false;
     time = 0.0;
-    canopy = Canopy();
+    light_availability = ResourceSpline();
   };
 
   // Light interface
-  bool canopy_rescale_usually;
+  ResourceSpline light_availability;
 
-  Canopy canopy;
-
-  // Should this be here or in canopy?
   void set_fixed_environment(double value, double height_max) {
-    canopy.set_fixed_canopy(value, height_max);
+    light_availability.set_fixed_value(value, height_max);
   }
 
   void set_fixed_environment(double value) {
@@ -33,40 +29,40 @@ public:
   }
 
   double get_environment_at_height(double height) const {
-    return canopy.get_canopy_at_height(height);
+    return light_availability.get_value_at_height(height);
   }
 
-  double canopy_openness(double height) const {
-    return canopy.canopy_openness(height);
-  }
-
-  void r_init_interpolators(const std::vector<double>& state) {
-    canopy.r_init_interpolators(state);
+  virtual void r_init_interpolators(const std::vector<double> &state)
+  {
+    light_availability.r_init_interpolators(state);
   }
 
   // Core functions
   template <typename Function>
-  void compute_environment(Function f_compute_competition, double height_max) {
-    canopy.compute_canopy(f_compute_competition, height_max);
+  void compute_environment(Function f_compute_competition, double height_max, bool rescale) {
+
+    // Define an anonymous function to use in creation of light_availability spline
+    // Note: extinction coefficient was already applied in strategy, so
+    // f_compute_competition gives sum of projected leaf area (k L) across species. Just need to apply Beer's law, E = exp(- (k L))
+    auto f_light_availability = [&](double height) -> double
+    { return exp(-f_compute_competition(height)); };
+
+    // Calculates the light_availability spline, by fitting to the function
+    // `f_compute_competition` as a function of height
+
+    light_availability.compute_environment(f_light_availability, height_max, rescale);
   }
 
-  template <typename Function>
-  void rescale_environment(Function f_compute_competition, double height_max) {
-    canopy.rescale_canopy(f_compute_competition, height_max);
-  }
-
-  void clear_environment() {
-    canopy.clear();
+  virtual void clear_environment() {
+    light_availability.clear();
   }
 
 };
 
-//inline Rcpp::NumericMatrix get_state(const K93_Environment environment) {
-//  return get_state(environment.canopy);
-//}
+
 inline Rcpp::List get_state(const K93_Environment environment, double time) {
   auto ret = get_state(environment.extrinsic_drivers, time);
-  ret["canopy"] = get_state(environment.canopy); // does a full copy of ret, not efficient
+  ret["light_availability"] = get_state(environment.light_availability);
   return ret;
 }
 

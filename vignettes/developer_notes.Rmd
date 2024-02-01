@@ -101,7 +101,7 @@ The code is organised as follows. This structure reflects structure generally us
 ├── scripts 	  		# R scripts
 ├── src 			  		# C++ files with implementation where not included in headers
 ├── tests 		  		# Tests
-└── vignettes   		# Empty until the documentation is built
+└── vignettes   		# Vignettes
 ```
 
 ## Templating
@@ -223,6 +223,46 @@ Then recompile and test as above.
 
 After the project compiles, you will notices even more files that have changed, for example in files like `NAMESPACE`, `R/RcppExports.R` etc. These files are auto-generated and therefore modifications are triggered from files listed above.
 
+# Creating the light environment
+
+patch calls `compute_environment`, 
+  - which calls `environment.compute_environment(f, height_max())`, where f = `compute_competiton` 
+    -> compute_competition pass through species 
+      -> in species, compute_competition integrate density over nodes
+        -> in node, `compute_competition = density * individual.compute_competition(height_);` 
+          -> individual passes straight through to strategy
+            -> strategy calculates fraction of `leaf above = k_I * area_leaf(height) * Q(z, height);`
+  - `environment.compute_environment` creates the a spline of light availability, as a function of height
+    - to do this, uses the `ResourceSpline` class. 
+      ->  `ResourceSpline` class uses an adaptive routine to sample across the height range to approximate the function
+        -> the function is ultimatelky approximated with a spline, using the `tk` class 
+    - creating the spline is achieved through calls to `compute_competiton`, as described above
+
+# Using the light environment
+
+- In compute_rates, environment gets passed from Patch -> Species -> Node -> Individual -> Strategy
+  - FF16_strategy `net_mass_production_dt` calls `assimilation`
+    - assimilation uses the object `quadrature::QK function_integrator` to integrate the function `assimilation_leaf(environment.get_environment_at_height(z)) * q(z, height)` over z, where z is depth in the plant. The function is integrated using Gauss-Kronrod quadrature. The number of points used when numerically intergrating the function is defined by the argument `function_integration_rule` (see below), the default number of points is 21.
+      - Previously, we use the QAG (instead of QK) class, to enable adaptive integration of the function. The QAG class uses QK, but icnludes and extra layer to refine the number of points. However, this is slower and isn't noticeably changing the results. The adaptive routine may take twice as long 
+
+# Numerical methods
+
+## tk splines
+
+## Trapezium
+
+trapezium(xx, yy),
+
+## Gauss-Kronrod quadrature
+
+To numerically integration functions, we use the Gauss-Kronrod quadrature method. This is implemented in the `QK` and `QAG` classes. 
+  - General background on the method is available at: https://en.wikipedia.org/wiki/Gaussian_quadrature
+  - The `QK` class is used to numerically integrate functions using Gauss-Kronrod quadrature.
+    - The number of points used when numerically intergrating the function is defined by the control variable `function_integration_rule`. The integration has several "rules", including QK15, QK21, QK31, QK41, QK51, defined in qk_rules.cpp. These determine the numbers of points in the integration. The default number of points is 21.
+    - the QK code was ported from GSL by Rich FitzJohn.
+  - The `QAG` class uses the `QK` class, for adaptive integration  using Gauss-Kronrod quadrature. In the adaptive method, the difference between a Gauss quadrature rule and its Kronrod extension is used as an estimate of the approximation error, from which the need for more points is determined.
+    - The QAG routine is adapted from the "QAG" algorithm in QUADPACK
+    - The `QAG` class call class `QK`, which does the actual integration.
 
 # Website
 
