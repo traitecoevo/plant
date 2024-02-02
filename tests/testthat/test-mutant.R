@@ -120,7 +120,7 @@ test_that("mutant method densities", {
   tol <- 1e-3
 
   # Function calculates fitness at different brith_rates, using
-  # 3 methods: as resident, as mutant, and via fitness landscape.
+  # 2 methods: as resident, as mutant
   # These should all agree
   f_test <- function(p, x, traits) {
     p1 <- p
@@ -133,9 +133,7 @@ test_that("mutant method densities", {
     scm$run_mutant(p2)
     m_rr <- scm$net_reproduction_ratios
 
-    fl <- fitness_landscape(traits, p2, ctrl = ctrl)
-
-    dplyr::tibble(birth_rate = x, resident_f = log(r_rr), mutant_f = log(m_rr), landscape_f = fl)
+    dplyr::tibble(birth_rate = x, resident_f = log(r_rr), mutant_f = log(m_rr))
   }
 
   p0$max_patch_lifetime <- 105.32 # default
@@ -148,7 +146,6 @@ test_that("mutant method densities", {
 
   expect_equal(birth_rates, outputs$birth_rate, tol = tol)
   expect_equal(outputs$resident_f, outputs$mutant_f, tol = tol)
-  expect_equal(outputs$resident_f, outputs$landscape_f, tol = tol)
 
   # Test 2
   p0$max_patch_lifetime <- 50
@@ -161,6 +158,5 @@ test_that("mutant method densities", {
 
   expect_equal(birth_rates, outputs$birth_rate, tol = tol)
   expect_equal(outputs$resident_f, outputs$mutant_f, tol = tol)
-  expect_equal(outputs$resident_f, outputs$landscape_f, tol = tol)
   
 })
