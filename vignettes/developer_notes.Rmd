@@ -83,8 +83,6 @@ The code is organised as follows. This structure reflects structure generally us
 
 
 ```sh
-├── docker      		# Docker files
-│   └── plant-test
 ├── inst
 │   ├── RcppR6_classes.yml    # Used by RCppR6 to generate the interface for Rcpp (C++ classes)
 │   ├── RcppR6_functions.yml  # Used by RCppR6 to generate the interface for Rcpp (C++ function)
