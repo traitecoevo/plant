@@ -16,9 +16,13 @@ vignette: >
 
 setwd("vignettes")
 knitr::knit("node_spacing.Rmd.orig", "node_spacing.md")
-file.copy(\"node_spacing.md", "node_spacing.Rmd", overwrite = TRUE)
+file.copy("node_spacing.md", "node_spacing.Rmd", overwrite = TRUE)
 unlink("node_spacing.md")
- -->"
+-->"
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(fig.path = "figures/node_spacing_")
+```
 
 # Background
 
