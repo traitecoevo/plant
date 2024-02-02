@@ -11,7 +11,14 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-<!-- This file is generated from the Rmd in inst/slow_vignettes. Make any edits there-->
+<!-- NB:
+ This file is generated from the file `vignettes/Node_spacing.Rmd`. Make any edits there. To regenerate
+
+setwd("vignettes")
+knitr::knit("node_spacing.Rmd.orig", "node_spacing.md")
+file.copy(\"node_spacing.md", "node_spacing.Rmd", overwrite = TRUE)
+unlink("node_spacing.md")
+ -->"
 
 # Background
 
@@ -58,17 +65,16 @@ patterns of node refining:
 ```r
 library(plant)
 library(parallel)
-n_cores = max(1, detectCores() - 1)
+ncores <- detectCores() - 1
 
-params <- scm_base_parameters("FF16")
-patch <- expand_parameters(trait_matrix(0.0825, "lma"), params)
-patch$seed_rain <- 20
+p0 <- scm_base_parameters("FF16")
+p <- expand_parameters(trait_matrix(0.0825, "lma"), p0, birth_rate_list = 20)
 
-times_default <- patch$node_schedule_times[[1]]
+times_default <- p$node_schedule_times[[1]]
 plot(times_default, cex=.2, pch=19, ylab="Time (years)", las=1)
 ```
 
-![](figure/node_spacing__unnamed-chunk-2-1.png)
+![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-1-1.png)
 <!-- TODO: explain how introducing two species together reduces work -->
 
 The actual differences are stepped in order to increase the chance
@@ -80,13 +86,14 @@ time and reduce the total amount of work being done.
 plot(diff(times_default), pch=19, cex=.2, ylab="Time difference (years)", las=1)
 ```
 
-![](figure/node_spacing__unnamed-chunk-3-1.png)
+![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2-1.png)
 
 
-# Seed rain
+# Estimating error in node spacing
+
 
 We can assess the impact of node spacing on integration error by examining
-the cumulative propagule output (e.g. seed rain) of a patch.
+the cumulative offspring production of a patch.
 
 Increasing the number of nodes is expected to increase integration accuracy
 at the expense of more computational effort. We can create more refined schedules
@@ -104,16 +111,14 @@ interleave <- function(x) {
 
 times_2x <- interleave(times_default)
 times_4x <- interleave(times_2x)
-times_8x <- interleave(times_4x)
 
 plot(times_default, xlab = "Node #", ylab="Time (years)",
      xlim = c(1, length(times_8x)), las=1, pch = 19, cex=.2,)
 points(times_2x, pch=19, cex=.2, las=1, col = "blue")
 points(times_4x, pch=19, cex=.2, las=1, col = "red")
-points(times_8x, pch=19, cex=.2, las=1, col = "black")
 ```
 
-![](figure/node_spacing__unnamed-chunk-4-1.png)
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png)
 Each schedule runs for the same duration, but `times_high` has 4x as many nodes.
 Running a patch with each node schedule allows us to compare the propagule
 outputs:
@@ -121,80 +126,72 @@ outputs:
 
 
 ```r
-run_with_times <- function(patch, t) {
-  patch$node_schedule_times[[1]] <- t
+run_with_times <- function(p, t) {
+  p$node_schedule_times[[1]] <- t
   
   start <- Sys.time()
-  seed_rain <- run_scm(patch)$seed_rains
+  offspring_production <- run_scm(p)$offspring_production
   print(paste("Time to solve:", round(Sys.time() - start, 2)))
   
-  return(seed_rain)
+  return(offspring_production)
 }
 
-seed_rain_default <- run_with_times(patch, times_default)
+offspring_production_default <- run_with_times(p, times_default)
 ```
 
 ```
-## [1] "Time to solve: 1.47"
-```
-
-```r
-seed_rain_2x <- run_with_times(patch, times_2x)
-```
-
-```
-## [1] "Time to solve: 2.97"
+## [1] "Time to solve: 0.66"
 ```
 
 ```r
-seed_rain_4x <- run_with_times(patch, times_4x)
+offspring_production_2x <- run_with_times(p, times_2x)
 ```
 
 ```
-## [1] "Time to solve: 9.05"
+## [1] "Time to solve: 1.33"
 ```
 
 ```r
-seed_rain_8x <- run_with_times(patch, times_8x)
+offspring_production_4x <- run_with_times(p, times_4x)
 ```
 
 ```
-## [1] "Time to solve: 28.6"
+## [1] "Time to solve: 4.23"
 ```
 
 ```r
 node_range <- c(length(times_default), length(times_2x),
-                  length(times_4x), length(times_8x))
-seed_rain_range <- c(seed_rain_default, seed_rain_2x, 
-                     seed_rain_4x, seed_rain_8x)
+                  length(times_4x))
+offspring_production_range <- c(offspring_production_default, offspring_production_2x, 
+                     offspring_production_4x)
 ```
 Quadrupling the number of nodes results in nearly a 6x increase in runtime,
-eight times the nodes takes roughly 26x longer.
+eight times the nodes takes roughly 26x longer (the latter not shown).
 
 
 ```r
-plot(x = node_range, y = seed_rain_range,
-     xlab="Number of node introductions", ylab="Seed rain", las=1)
+plot(x = node_range, y = offspring_production_range,
+     xlab="Number of node introductions", ylab="Offspring production", las=1)
 ```
 
-![](figure/node_spacing__unnamed-chunk-6-1.png)
-Seed rain increases as nodes are introduced more finely,
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-1.png)
+Offspring production increases as nodes are introduced more finely,
 though at a saturating rate, meaning there are diminishing returns in accuracy
 for additional nodes.
 
 
-The differences in seed rain are not actually that striking
+The differences in sffspring production are not actually that striking
 (perhaps 
-2%) but 
+1%) but 
 the introduced  *variation* creates instabilities of sufficient concern.
 
-# Individual seed rain contributions
+# Individual Offspring production contributions
 
-Where is the fitness difference driving change in seed rain coming from? 
+Where is the fitness difference driving change in Offspring production coming from? 
 
 Consider adding a *single* additional node at one of the points
 along the first vector of times `times_default` and computing the 
-output seed rain:
+output Offspring production:
 
 
 ```r
@@ -202,24 +199,24 @@ insert_time <- function(i, x) {
   j <- seq_len(i)
   c(x[j], (x[i] + x[i+1])/2, x[-j])
 }
-run_with_insert <- function(i, patch, t) {
-  run_with_times(patch, insert_time(i, t))
+run_with_insert <- function(i, p, t) {
+  run_with_times(p, insert_time(i, t))
 }
 
 insert_positions <- seq_len(length(times_default) - 1)
-seed_rains <- unlist(mclapply(insert_positions, run_with_insert, 
-                              patch, times_default, mc.cores = n_cores))
+offspring_productions <- unlist(mclapply(insert_positions, run_with_insert, 
+                              p, times_default, mc.cores = ncores))
 
-seed_rain_differences <- seed_rains - seed_rain_default
+offspring_production_differences <- offspring_productions - offspring_production_default
 
-plot(insert_positions, seed_rain_differences, 
-     xlab="Node #", ylab="Difference from default seed rain", las=1)
+plot(insert_positions, offspring_production_differences, 
+     xlab="Node #", ylab="Difference from default Offspring production", las=1)
 abline(h=0, col="grey")
 ```
 
-![](figure/node_spacing__unnamed-chunk-7-1.png)
+![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6-1.png)
 
-The biggest deviations in output seed rain come about half way
+The biggest deviations in output Offspring production come about half way
 through the schedule, though because of the compression of early times 
 this occurs fairly early in patch development:
 
@@ -228,28 +225,28 @@ this occurs fairly early in patch development:
 times_interpolated <- (times_default[-1L] + 
                          times_default[-length(times_default)]) / 2
 
-plot(times_interpolated, seed_rain_differences,
-     xlab="Time (years)", ylab="Difference from default seed rain", las=1)
+plot(times_interpolated, offspring_production_differences,
+     xlab="Time (years)", ylab="Difference from default Offspring production", las=1)
 abline(h=0, col="grey")
 ```
 
-![](figure/node_spacing__unnamed-chunk-8-1.png)
+![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-7-1.png)
 Now look at the contribution of different nodes to the overall patch output
 (log scaled for clarity):
 
+Todo: This code and thes rest of this sectiuon is broken, need to fix
+
 
 ```r
-default <- run_scm(patch)
+default <- run_scm(p)
 
 # remove first node to avoid log(0)
-plot(times_default[-1], default$seed_rain_node(1)[-1], log = "y",
-     xlab="Time (years)", ylab="Seed rain (log scale)")
+plot(times_default[-1], default$offspring_production_node(1)[-1], log = "y",
+     xlab="Time (years)", ylab="Offspring production (log scale)")
 
-top_5 <- order(abs(seed_rain_differences), decreasing=TRUE)[1:5]
+top_5 <- order(abs(offspring_production_differences), decreasing=TRUE)[1:5]
 abline(v=times_interpolated[top_5], col=c("red", rep("grey", 4)))
 ```
-
-![](figure/node_spacing__unnamed-chunk-9-1.png)
 <!-- TODO: there might be a clearer way to summarise this point -->
 
 In this case almost all the contribution comes from early nodes
@@ -257,16 +254,16 @@ In this case almost all the contribution comes from early nodes
 
 Overlaid on this are the five nodes where extra refinement
 (i.e. inserting an additional node) causes the largest
-change in overall seed rain output (biggest difference in red).  
+change in overall Offspring production output (biggest difference in red).  
 
-The difference is not coming from seed rain contributions of those
+The difference is not coming from Offspring production contributions of those
 nodes, which is basically zero, though it is higher than the
 surrounding nodes.
 
 
 # Individual competitive impacts
 
-If the inserted nodes are not altering seed rain through individual
+If the inserted nodes are not altering Offspring production through individual
 contributions, they may be altering the output of neighbouring nodes
 through comepttive interactions.
 
@@ -279,17 +276,17 @@ set of patch conditions at each timestep.
 
 
 ```r
-collect_with_times <- function(patch, t) {
-  patch$node_schedule_times[[1]] <- t
-  result <- run_scm_collect(patch)
+collect_with_times <- function(p, t) {
+  p$node_schedule_times[[1]] <- t
+  result <- run_scm_collect(p)
   return(result)
 }
 
 insert_position <- top_5[1]
 times_insert <- insert_time(insert_position, times_default)
 
-results_default <- collect_with_times(patch, times_default)
-results_insert <- collect_with_times(patch, times_insert)
+results_default <- collect_with_times(p, times_default)
+results_insert <- collect_with_times(p, times_insert)
 ```
 In order to make a direct comparison, we need to interpolate the light
 environment over a common set of heights at each time step.
@@ -298,7 +295,7 @@ We reconstruct the light environment spline for both runs, and compute light_ava
 
 
 ```r
-interpolated_environment <- function(env, heights) {
+interpolated_light_availability <- function(env, heights) {
   # intialise new spline with existing values
   spline <- plant:::Interpolator()
   spline$init(env[, 1], env[, 2])
@@ -319,11 +316,11 @@ max_height <- max(results_default$env[[n]][, 1],
                   results_insert$env[[n+1]][, 1])
 
 heights <- seq(0, max_height, length.out=201)
-interpolated_light_availability_default <- sapply(results_default$env, interpolated_environment, heights)
-interpolated_light_availability_insert <- sapply(results_insert$env, interpolated_environment, heights)
+light_availability_spline_default <- sapply(results_default$env, interpolated_light_availability, heights)
+light_availability_spline_insert <- sapply(results_insert$env, interpolated_light_availability, heights)
 
-interpolated_light_availability_difference <- t(interpolated_light_availability_insert[, -(insert_position + 1)] - interpolated_light_availability_default)
-interpolated_light_availability_difference[abs(interpolated_light_availability_difference) < 1e-10] <- NA
+light_availability_spline_difference <- t(light_availability_spline_insert[, -(insert_position + 1)] - canopy_default)
+light_availability_spline_difference[abs(light_availability_spline_difference) < 1e-10] <- NA
 ```
 
 Taking the difference between light environments at each height and timestep,
@@ -339,15 +336,11 @@ cols <- c("#B2182B", "#D6604D", "#F4A582", "#FDDBC7",
           "#D1E5F0", "#92C5DE", "#4393C3", "#2166AC")
 pal <- colorRampPalette(cols)(20)
 
-image(results_default$time, heights, interpolated_light_availability_difference,
+image(results_default$time, heights, light_availability_spline_difference,
       xlab="Time (years)", ylab="Height (m)", las=1, col=pal)
 ```
-
-![](figure/node_spacing__unnamed-chunk-12-1.png)
-XXX openness is
-9.68%
-lower for ~7 m tall nodes at year 25. This increased competitive intensity
-may be driving differences in seed rain.
+Shading is lower for ~7 m tall nodes at year 25. This increased competitive intensity
+may be driving differences in Offspring production.
 
 # Monitoring integration accuracy
 
@@ -357,13 +350,13 @@ The internal function `plant:::run_scm_error` runs the SCM and
 computes errors as the integration proceeds. 
 
 We integrate two different functions over the size-density distribution,
-`area_leaf_error` and `seed_rain_error`, and assess how much removing the focal
+`area_leaf_error` and `offspring_production_error`, and assess how much removing the focal
 node increases the error in these two integrations.
 
 `area_leaf_error`, determines how much the removal of the focal node
 increases the error in the estimate of the total leaf area in the patch. 
 
-Similarly, `seed_rain_error`, determines how much the removal of the focal node
+Similarly, `offspring_production_error`, determines how much the removal of the focal node
 increases the error in the estimate of the total seed
 production from the patch. The relative error in each integration is then
 calculated using the `local_error_integration` function.
@@ -376,13 +369,16 @@ The black line indicates the node identified as problematic above.
 
 
 ```r
-patch_error <- plant:::run_scm_error(patch)
+patch_error <- plant:::run_scm_error(p)
 image(times_default, times_default, patch_error$err$lai[[1]],
       xlab="Patch age (years)", ylab="Introduction time (years)", las=1)
-abline(h=times_default[top_5[1]])
 ```
 
-![](figure/node_spacing__unnamed-chunk-13-1.png)
+![plot of chunk unnamed-chunk-12](figure/unnamed-chunk-12-1.png)
+
+```r
+#abline(h=times_default[top_5[1]])
+```
 
 `plant:::run_scm_error` is used by the `build_schedule` function to find
 an appropriately refined node spacing algorithm that minimises both
@@ -390,42 +386,42 @@ integration errors.
 
 
 ```r
-patch_refined <- build_schedule(patch)
-seed_rain_refined <- attr(patch_refined, "seed_rain_out")
+p_refined <- build_schedule(p)
+offspring_production_refined <- attr(p_refined, "offspring_production")
 ```
 
 We can see the impact of this refinement by repeating our earlier analysis
-and inserting a new node at each timestep and extracting the seed rain:
+and inserting a new node at each timestep and extracting the Offspring production:
 
 
 ```r
-times_refined <- patch_refined$node_schedule_times[[1]]
+times_refined <- p_refined$node_schedule_times[[1]]
 
 insert_positions <- seq_len(length(times_refined) - 1)
 
-seed_rains_refined <- unlist(mclapply(insert_positions, run_with_insert, 
-                                      patch_refined, times_refined, 
+offspring_productions_refined <- unlist(mclapply(insert_positions, run_with_insert, 
+                                      p_refined, times_refined, 
                                       mc.cores = n_cores))
 
-refined_differences = seed_rains_refined - seed_rain_refined
+refined_differences = offspring_productions_refined - offspring_production_refined
 
 plot(insert_positions, refined_differences, 
-     xlab="Index", ylab="Seed rain differences", las=1)
+     xlab="Index", ylab="Offspring production differences", las=1)
 abline(h=0, col="grey")
 ```
 
-![](figure/node_spacing__unnamed-chunk-15-1.png)
+![plot of chunk unnamed-chunk-14](figure/unnamed-chunk-14-1.png)
 
-Some nodes still introduce variation, however errors in seed rain are reduced
+Some nodes still introduce variation, however errors in Offspring production are reduced
 by an order of magnitude, and are even smaller if considering relative error:
 
 
 ```r
-plot(insert_positions, seed_rains_refined / seed_rain_refined - 1, 
-     xlab="Index", ylab="Relative seed rain differences", las=1)
+plot(insert_positions, offspring_productions_refined / offspring_production_refined - 1, 
+     xlab="Index", ylab="Relative Offspring production differences", las=1)
 ```
 
-![](figure/node_spacing__unnamed-chunk-16-1.png)
-The refined node introduction schedule results in a seed rain near the
-saturating value identified in [# Seed rain] but with 211
+![plot of chunk unnamed-chunk-15](figure/unnamed-chunk-15-1.png)
+The refined node introduction schedule results in a Offspring production near the
+saturating value identified in [# Offspring production] but with 210
 nodes rather than the 1121 nodes used in naive interpolation.
