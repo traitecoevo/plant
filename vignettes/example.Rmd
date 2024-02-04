@@ -60,7 +60,7 @@ base_parameters <- function() {
 }
 ```
 
-We can now create a second function called `run_mypatch` which takes a number of a arguments, including `traits` which we assign a trait matrix. The `expand_parameters` function takes this trait matrix as an argument which allows us to simulate patches with multiple functional strategies, in addition to the base_parameters and any newly defined hyperparameters such as B_lf1. We also provide a latitude as an argument, as well as whether or not we want to run the patch to equilibrium seed rain.
+We can now create a second function called `run_mypatch` which takes a number of a arguments, including `traits` which we assign a trait matrix. The `expand_parameters` function takes this trait matrix as an argument which allows us to simulate patches with multiple functional strategies, in addition to the base_parameters and any newly defined hyperparameters such as B_lf1. We also provide a latitude as an argument, as well as whether or not we want to run the patch to equilibrium birth rate.
 
 ```{r}
 run_mypatch <- function(

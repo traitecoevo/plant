@@ -14,7 +14,7 @@ $A_{\rm l}(H)$,m$^2$,Leaf area of a plant with height $H$
 "$Q(z, H)$",,Fraction of leaf area above height $z$ for a plant with height $H$
 **Abundance measures**,,
 $P(a)$,yr$^{-1}$,Frequency-density of patches of age $a$ 
-$Y_{x}$,m$^{-2}$ yr$^{-1}$,Global seed rain for a species with traits $x$
+$Y_{x}$,m$^{-2}$ yr$^{-1}$,Global birth rate for a species with traits $x$
 "$N(H | x, a)$",m$^{-1}$ m$^{-2}$,Density of plants at height $H$ per unit ground area for given traits $x$ and patch age $a$
 **Demographic rates**,,
 "$g(x, H, E_a)$",m yr$^{-1}$,Height growth rate of a plant with traits $x$ and height $H$ in the light environment $E_a$ in a patch of age $a$

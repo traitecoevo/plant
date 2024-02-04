@@ -50,8 +50,9 @@ Entries are:
   * time: time of the step
   * species: a list with the state of each species (in this case there is only 1).  The contents is a 3D array of variable /
     time step / node
-  * env: a list containing 2D splines that describe the competitive environment of the patch at each step (e.g a matrix of canopy openness at a given height in the FF16 strategy)
-  * seed_rain: the seed rain output from the patch during it's development
+  * env: a list containing resource availability. This includes `light_availability`, which are 2D splines that describe the competitive environment of the patch at each step (e.g a matrix of canopy openness at a given height in the FF16 strategy)
+  * offspring_production: the offspring_production from the patch during it's development
+  * patch_density: the density of patches this age in the metapopulation
   * p: a copy of the input parameters
 
 First we explore patch state:

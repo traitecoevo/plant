@@ -17,7 +17,7 @@ The aim here is to use the plant package to investigate dynamics
 within a patch of competing individuals, focusing on emergent patch-level
 properties, rather than properties of individuals within the patch.
 
-We'll work with a single species at seed rain close to demographic equilibrium:
+We'll work with a single species at birth rate close to demographic equilibrium:
 
 
 ```{r}
