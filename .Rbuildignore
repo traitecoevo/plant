@@ -24,6 +24,5 @@
 ^inst/scripts$
 ^inst/website$
 ^inst/RcppR6*$
-^vignettes/(?!plant).*$
 ^Meta$
 ^water_bucket_submodel$
