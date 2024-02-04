@@ -24,17 +24,8 @@ test_that("Defaults", {
 
     schedule_nsteps   = 20, # size_t
     schedule_eps      = 1e-3,
-    schedule_verbose  = FALSE,
-
-    equilibrium_nsteps   = 20, # size_t
-    equilibrium_eps      = 1e-5,
-    equilibrium_large_birth_rate_change = 10.0,
-    equilibrium_verbose  = TRUE,
-    equilibrium_solver_name = "iteration",
-    equilibrium_extinct_birth_rate = 1e-3,
-    equilibrium_nattempts   = 5, # size_t
-    equilibrium_solver_logN = TRUE,
-    equilibrium_solver_try_keep = TRUE)
+    schedule_verbose  = FALSE
+  )
 
   keys <- sort(names(expected))
 

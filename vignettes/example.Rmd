@@ -68,7 +68,6 @@ run_mypatch <- function(
   birth_rate_list = c(10, 10), 
   B_lf1 = 1,
   p0 = base_parameters(),
-  find_equilbrium = FALSE,
   optimise_schedule = FALSE,
   latitude = 28.182
   ) {
@@ -76,9 +75,7 @@ run_mypatch <- function(
   hyper_par_fn = make_FF16_hyperpar(B_lf1 = B_lf1, latitude = latitude)
   p1 <- expand_parameters(traits, p0, hyper_par_fn,  birth_rate_list = birth_rate_list)
   
-   if(find_equilbrium)
-    result <- equilibrium_seed_rain(p1)
-  else if(optimise_schedule)
+  if(optimise_schedule)
     result <- build_schedule(p1)
   else
     result <- p1

@@ -18,26 +18,6 @@ fast_control <- function(base=Control()) {
   base
 }
 
-##' Control parameters for \code{\link{equilibrium_birth_rate}} that
-##' make progress noisier.  This is just a convenience function.
-##'
-##' @title Noisy Parameters for Equilibrium Finding
-##' @export
-##' @param base An optional \code{Control} object.  If omitted, the
-##' defaults are used.
-equilibrium_verbose <- function(base=Control()) {
-  base$schedule_verbose <- TRUE
-  base$equilibrium_verbose <- TRUE
-  base
-}
-##' @export
-##' @rdname equilibrium_verbose
-equilibrium_quiet <- function(base=Control()) {
-  base$schedule_verbose <- FALSE
-  base$equilibrium_verbose <- FALSE
-  base
-}
-
 ##' Hopefully sensible set of parameters for use with the SCM.  Turns
 ##' accuracy down a bunch, makes it noisy, sets up the
 ##' hyperparameterisation that we most often use.
@@ -45,9 +25,8 @@ equilibrium_quiet <- function(base=Control()) {
 ##' @author Rich FitzJohn
 ##' @export
 scm_base_control <- function() {
-  ctrl <- equilibrium_verbose(fast_control())
+  ctrl <- fast_control()
   ctrl$schedule_eps <- 0.005
-  ctrl$equilibrium_eps <- 1e-3
   return(ctrl)
 }
 

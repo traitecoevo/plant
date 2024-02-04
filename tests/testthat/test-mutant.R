@@ -111,7 +111,6 @@ test_that("mutant method densities", {
     
   # 1 resident strategies
   ctrl <- scm_base_control()
-  ctrl$equilibrium_eps <- 1e-5
   ctrl$save_RK45_cache = TRUE
 
   lma_attr <- 0.0825

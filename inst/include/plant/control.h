@@ -44,16 +44,6 @@ struct Control {
   double schedule_eps;
   bool   schedule_verbose;
 
-  size_t equilibrium_nsteps;
-  double equilibrium_eps;
-  double equilibrium_large_birth_rate_change;
-  bool   equilibrium_verbose;
-  std::string equilibrium_solver_name;
-  double equilibrium_extinct_birth_rate;
-  size_t equilibrium_nattempts;
-  bool   equilibrium_solver_logN;
-  bool   equilibrium_solver_try_keep;
-
   bool   save_RK45_cache;
 };
 
