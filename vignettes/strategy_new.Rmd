@@ -9,6 +9,11 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
+
+```{r setup, include=FALSE}
+options(rmarkdown.html_vignette.check_title = FALSE)
+```
+
 # 🚧 Under construction 🚧
 
 This vignette is still under active development. Some parts may appear incomplete or refer to a previous version of `plant`. We include it as reference material for advanced users looking to develop their own modules. Please raise issues or pull requests any time you encounter a mistake or area for improvement.

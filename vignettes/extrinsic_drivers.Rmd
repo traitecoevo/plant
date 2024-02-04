@@ -74,7 +74,9 @@ birth_rates <- list(
     species2 = 3.14
   )
   
-p1 <- expand_parameters(lmas, p0, FF16_hyperpar, FALSE, birth_rates)
+p1 <- expand_parameters(lmas, p0, FF16_hyperpar, 
+          keep_existing_strategies = FALSE, 
+          birth_rate_list = birth_rates)
 
 # set up env and ctrl...
 ctrl <- scm_base_control()

@@ -113,12 +113,13 @@ The light environment is stored over each time step, meaning that we can also pl
 ```{r}
 # Set limits
 xlim <- c(0, 1.1)
-ylim <- range(result$env[[length(result$env)]][, "height"])
+ylim <- range(result$env[[length(result$env)]]$light_availability[, "height"])
 
 # Draw the spline at each step
 plot(NA, xlim=xlim, ylim=ylim, las=1, xlab="Canopy openness", ylab="Height (m)")
 for (i in result$env) {
-  lines(i[, "light_availability"], i[, "height"], col="grey")
+  x <- i$light_availability
+  lines(x[, "light_availability"], x[, "height"], col = "grey")
 }
 
 # Add labels at specific times
@@ -129,7 +130,7 @@ times <- c(5, 10, 20, 40, result$time[[length(result$time)]])
 cols <- colorRampPalette(blues[-(1:2)])(length(times))
 
 for (i in seq_along(times)) {
-  x <- result$env[[which.min(abs(times[[i]] - result$time))]]
+  x <- result$env[[which.min(abs(times[[i]] - result$time))]]$light_availability
   lines(x[, "light_availability"], x[, "height"], col=cols[[i]])
 
   y <- x[nrow(x), "height"]
@@ -143,7 +144,7 @@ initally (bottom right) all nodes in the patch are short and the canopy is rathe
 This is best shown by plotting the canopy openness at ground level over time:
 
 ```{r}
-y <- sapply(result$env, function(x) x[1, "light_availability"])
+y <- sapply(result$env, function(x) x$light_availability[1, "light_availability"])
 plot(result$time, y, type="l", las=1,
      ylim=c(0, 1), xlab="Time (years)", ylab="Canopy openness")
 ```

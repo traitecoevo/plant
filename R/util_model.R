@@ -103,6 +103,7 @@ trait_matrix <- function(x, trait_name) {
 ##' @export
 ##' @rdname expand_parameters
 expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), birth_rate_list = 1, keep_existing_strategies = TRUE) {
+
   if(nrow(trait_matrix) != length(birth_rate_list)) {
     stop("Must provide exactly one birth rate input for each species")
   }

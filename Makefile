@@ -39,7 +39,7 @@ install:
 	R CMD INSTALL .
 
 build:
-	R CMD build --no-build-vignettes .
+	R CMD build .
 
 check: build
 	R CMD check --no-manual `ls -1tr ${PACKAGE}*gz | tail -n1`
@@ -48,9 +48,6 @@ check: build
 
 clean:
 	rm -f src/*.o src/*.so src/*.o.tmp
-
-slow_vignettes:
-	(cd inst/slow_vignettes; ln -sfn ../../vignettes vignettes; remake update_vignettes)
 
 vignettes:
 	Rscript -e "devtools::build_vignettes()"

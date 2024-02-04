@@ -15,6 +15,10 @@ editor_options:
   chunk_output_type: console
 ---
 
+```{r setup, include=FALSE}
+options(rmarkdown.html_vignette.check_title = FALSE)
+```
+
 # Background
 
 This page contains a brief introduction to get you started with `plant`. 

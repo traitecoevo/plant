@@ -1,5 +1,5 @@
 ---
-title: "Node spacing algorithm"
+title: "Node spacing in the size-density distribution"
 author: 
 - Rich FitzJohn
 - Daniel Falster
@@ -22,6 +22,7 @@ unlink("node_spacing.md")
 
 ```{r, echo=FALSE}
 knitr::opts_chunk$set(fig.path = "figures/node_spacing_")
+options(rmarkdown.html_vignette.check_title = FALSE)
 ```
 
 # Background

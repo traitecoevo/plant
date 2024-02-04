@@ -16,16 +16,18 @@ vignette: >
 The aim here is to use the plant package to investigate dynamics
 within a patch of competing individuals, focusing on emergent patch-level
 properties, rather than properties of individuals within the patch.
-We'll work with a single species at demographic equilibrium:
+
+We'll work with a single species at seed rain close to demographic equilibrium:
 
 
 ```{r}
 library(plant)
 
-params <- scm_base_parameters("FF16")
-patch <- expand_parameters(trait_matrix(0.0825, "lma"), params)
-patch_eq <- equilibrium_seed_rain(patch)
-result <- run_scm_collect(patch_eq)
+p0 <- scm_base_parameters("FF16")
+p <- expand_parameters(trait_matrix(0.0825, "lma"), p0, birth_rate_list = 17.31)
+patch <- build_schedule(p)
+result <- run_scm_collect(patch)
+
 ```
 
 # Node densities

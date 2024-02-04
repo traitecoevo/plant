@@ -13,6 +13,7 @@ vignette: >
 
 ```{r, echo=FALSE}
 library(plant)
+library(readr)
 
 assets_path <- system.file("docs/FF16", "FF16-params-core.csv", package = "plant") %>% dirname()
 ```

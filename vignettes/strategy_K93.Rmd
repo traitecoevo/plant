@@ -12,6 +12,10 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r setup, include=FALSE}
+options(rmarkdown.html_vignette.check_title = FALSE)
+```
+
 # Background
 
 This document outlines the `K93` physiological model used in the `plant`
