@@ -44,8 +44,7 @@ options(
   # default for table format  
   knitr.table.format = "html", 
   # remove warnings from dplyr about "summarise"
-  dplyr.summarise.inform = FALSE,
-  readr.show_col_types = FALSE
+  dplyr.summarise.inform = FALSE
   )
 
 library(ggplot2)
@@ -147,7 +146,7 @@ pars <-
 
 pars_def <- 
  system.file("docs/FF16", "FF16-params-core.csv", package = "plant") %>% 
- read.csv(stringsAsFactors = FALSE, header = TRUE) %>%
+ read.csv(stringsAsFactors = FALSE, header = TRUE) %>% as_tiible() %>%
  rename("parameter" = "Code")
 
 names(pars_def) <- tolower(names(pars_def))

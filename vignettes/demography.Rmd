@@ -19,7 +19,6 @@ vignette: >
 ```{r setup, include=FALSE}
 options(rmarkdown.html_vignette.check_title = FALSE)
 library(plant)
-library(readr)
 ```
 
 # Introduction
@@ -36,7 +35,7 @@ throughout this document.
 
 
 ```{r definitions, echo=FALSE, results='asis'}
-system.file("docs", "demography-vars.csv", package = "plant") %>%  read_csv() %>%
+system.file("docs", "demography-vars.csv", package = "plant") %>%  read.csv() %>% as_tibble() %>%
 knitr::kable(align = "l",
   caption = 'Variable names and definitions in the demographic model of the `plant` package.'
 )
