@@ -35,7 +35,7 @@ throughout this document.
 
 
 ```{r definitions, echo=FALSE, results='asis'}
-system.file("docs", "demography-vars.csv", package = "plant") %>%  read.csv() %>% as_tibble() %>%
+system.file("docs", "demography-vars.csv", package = "plant") %>%  read.csv() %>% dplyr::as_tibble() %>%
 knitr::kable(align = "l",
   caption = 'Variable names and definitions in the demographic model of the `plant` package.'
 )
