@@ -146,7 +146,7 @@ pars <-
 
 pars_def <- 
  system.file("docs/FF16", "FF16-params-core.csv", package = "plant") %>% 
- read.csv(stringsAsFactors = FALSE, header = TRUE) %>% as_tiible() %>%
+ read.csv(stringsAsFactors = FALSE, header = TRUE) %>% dplyr::as_tibble() %>%
  rename("parameter" = "Code")
 
 names(pars_def) <- tolower(names(pars_def))
