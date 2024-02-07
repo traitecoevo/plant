@@ -264,8 +264,10 @@ optimise_individual_rate_at_size_by_trait <- function(
     env = make_environment(type),
     hyperpars = hyperpar(type),
     set_state_directly = FALSE) {
-  # can't handle situations yet where bounds are outside of positive growth, not working for K93
+  
+   # can't handle situations yet where bounds are outside of positive growth, not working for K93
   bounds <- check_bounds(bounds)
+
   traits <- rownames(bounds)
 
   if (log_scale) {
@@ -334,4 +336,34 @@ optimise_individual_rate_at_size_by_trait <- function(
 #' @rdname optimise_individual_rate_at_size_by_trait
 optimise_individual_rate_at_height_by_trait <- function(..., height = 1) {
   optimise_individual_rate_at_size_by_trait(..., size = height, size_name = "height", set_state_directly = TRUE)
+}
+
+solve_max_worker <- function(bounds, f, tol = 1e-3, outcome) {
+  if (length(rownames(bounds)) == 1L) {
+    if (!all(is.finite(bounds))) {
+      stop("Starting value did not have finite fitness; finite bounds required")
+    }
+    ## The suppressWarnings here is for warnings like:
+    ##
+    ## Warning message:
+    ## In optimise(f, interval = bounds, maximum = TRUE, tol = tol) :
+    ##   NA/Inf replaced by maximum positive value
+    ##
+    ## which is probably the desired behaviour here.
+    out <- suppressWarnings(optimise(f, interval = bounds, maximum = TRUE, tol = tol))
+    # browser()
+    ret <- out$maximum
+    attr(ret, outcome) <- out$objective
+  } else {
+    ## This is not very well tested, and the tolerance is not useful:
+    out <- optim(rowMeans(bounds), f,
+      method = "L-BFGS-B",
+      lower = bounds[, "lower"], upper = bounds[, "upper"],
+      control = list(fnscale = -1, factr = 1e10)
+    )
+
+    ret <- out$value
+    attr(ret, outcome) <- out$par
+  }
+  return(ret)
 }

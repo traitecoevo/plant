@@ -5,7 +5,7 @@ author:
 date: 2022
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{workflow}
+  %\VignetteIndexEntry{Example workflow}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -60,7 +60,7 @@ base_parameters <- function() {
 }
 ```
 
-We can now create a second function called `run_mypatch` which takes a number of a arguments, including `traits` which we assign a trait matrix. The `expand_parameters` function takes this trait matrix as an argument which allows us to simulate patches with multiple functional strategies, in addition to the base_parameters and any newly defined hyperparameters such as B_lf1. We also provide a latitude as an argument, as well as whether or not we want to run the patch to equilibrium seed rain.
+We can now create a second function called `run_mypatch` which takes a number of a arguments, including `traits` which we assign a trait matrix. The `expand_parameters` function takes this trait matrix as an argument which allows us to simulate patches with multiple functional strategies, in addition to the base_parameters and any newly defined hyperparameters such as B_lf1. We also provide a latitude as an argument, as well as whether or not we want to run the patch to equilibrium birth rate.
 
 ```{r}
 run_mypatch <- function(
@@ -68,7 +68,6 @@ run_mypatch <- function(
   birth_rate_list = c(10, 10), 
   B_lf1 = 1,
   p0 = base_parameters(),
-  find_equilbrium = FALSE,
   optimise_schedule = FALSE,
   latitude = 28.182
   ) {
@@ -76,9 +75,7 @@ run_mypatch <- function(
   hyper_par_fn = make_FF16_hyperpar(B_lf1 = B_lf1, latitude = latitude)
   p1 <- expand_parameters(traits, p0, hyper_par_fn,  birth_rate_list = birth_rate_list)
   
-   if(find_equilbrium)
-    result <- equilibrium_seed_rain(p1)
-  else if(optimise_schedule)
+  if(optimise_schedule)
     result <- build_schedule(p1)
   else
     result <- p1

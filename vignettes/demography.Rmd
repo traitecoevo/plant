@@ -15,6 +15,12 @@ vignette: >
 
 ---
 
+
+```{r setup, include=FALSE}
+options(rmarkdown.html_vignette.check_title = FALSE)
+library(plant)
+```
+
 # Introduction
 
 This document outlines methods used to model demography in the `plant`
@@ -29,7 +35,7 @@ throughout this document.
 
 
 ```{r definitions, echo=FALSE, results='asis'}
-system.file("docs", "demography-vars.csv", package = "plant") %>%  read_csv() %>%
+system.file("docs", "demography-vars.csv", package = "plant") %>%  read.csv() %>% dplyr::as_tibble() %>%
 knitr::kable(align = "l",
   caption = 'Variable names and definitions in the demographic model of the `plant` package.'
 )
@@ -197,7 +203,7 @@ as a metapopulation (for a single species) or metacommunity (for multiple
 species). The dynamics of such a metacommunity are described by the
 PDEs in Eqs. \@ref(eq:PDE)-\@ref(eq:agepde4).
 
-The seed rain of each species in the metacommunity is given by the rate at which seeds are produced across all patches,
+The offspring production of each species in the metacommunity is given by the rate at which seeds are produced across all patches,
 \begin{equation}
 Y_x  = \int_0^{\infty} \int_0^{\infty} P(a) \, S_{\rm D} \, f(x, H, E_a) \, N(H | x, a) \, {\rm d} H \, {\rm d} a,
 (\#eq:seed-rain)
@@ -209,7 +215,7 @@ the dynamics of a single patch scale up to give the dynamics of the
 entire metacommunity. Note that the rate $Y_x$ at which offspring of individuals with traits $x$ arrive from the
 disperser pool is constant when the metacommunity is at
 equilibrium. Combined with the assumption that all patches have the same
-initial (empty) size-density distribution after a disturbance, the assumption of constant seed rains
+initial (empty) size-density distribution after a disturbance, the assumption of constant birth rates
 ensures that all patches show the same temporal behaviour, the only
 difference between them being their ages.
 
@@ -439,7 +445,7 @@ requires numerically identifying a vector of patch ages at which new nodes are
 introduced, and then numerically stepping the equations for each node forward in time to
 estimate their size, survival, and fecundity at different subsequent patch ages.
 - To solve for the initial height of a plant given
-its seed mass, and for the equilibrium seed rains across the
+its seed mass, and for the equilibrium birth rates across the
 metacommunity, requires numerical root finding.
 
 
@@ -560,17 +566,14 @@ Plants have leaf area distributed over a range of heights. Estimating
 a plant's assimilation at each time step thus requires integrating
 leaf-level rates over the plant. The integration is performed using Gauss-Kronrod quadrature. A rule controls the level of detail in the integration.
 
-### Solving for seed rains {#solving-demographic-seed-rain}
+### Solving for offspring production {#solving-demographic-seed-rain}
 
 For a single species, solving for $Y_x$ is a straightforward
-one-dimensional root-finding problem, which can be solved with accuracy
-`equilibrium_eps` via a simple bisection algorithm (see
-[equlibrium.R](https://github.com/traitecoevo/plant/blob/master/R/equilibrium.R) for details).
+one-dimensional root-finding problem, which can be solved via a simple bisection algorithm.
 
-Solving for seed rains in metacommunities with multiple species is significantly harder,
+Solving for offspring production in metacommunities with multiple species is significantly harder,
 because there is no generally applicable method for multi-dimensional root finding. In `plant`, we
-have therefore implemented several different approaches (see
-[equlibrium.R](https://github.com/traitecoevo/plant/blob/master/R/equilibrium.R) for details).
+have therefore implemented several different approaches, which are available via the package [{plant.assembly}](https://github.com/traitecoevo/plant.assembly).
 
 # Appendices {#appendices}
 

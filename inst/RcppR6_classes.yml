@@ -122,15 +122,6 @@ Control:
     - schedule_nsteps: size_t
     - schedule_eps: double
     - schedule_verbose: bool
-    - equilibrium_nsteps: size_t
-    - equilibrium_eps: double
-    - equilibrium_large_birth_rate_change: double
-    - equilibrium_verbose: bool
-    - equilibrium_solver_name: "std::string"
-    - equilibrium_extinct_birth_rate: double
-    - equilibrium_nattempts: int
-    - equilibrium_solver_logN: bool
-    - equilibrium_solver_try_keep: bool
     - save_RK45_cache: bool
 
 OdeControl:

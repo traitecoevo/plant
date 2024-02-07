@@ -1,7 +1,7 @@
 inst/website
 inst/docs/*.md
 inst/docs/figure
-vignettes/figure/*
+inst/doc
 *Rproj*
 *.Rhistory*
 ^plant.Rcheck$
@@ -18,7 +18,6 @@ tmp*
 scrap.R
 .RData
 *.html
-inst/doc
 doc
 Meta
 *.knit.md

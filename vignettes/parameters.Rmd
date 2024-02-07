@@ -125,7 +125,7 @@ This is the Strategy object that all others will be built from by
 difference.  Running
 
 ```{r}
-s <- strategy(trait_matrix(0.1, "lma"), p)
+s <- strategy(trait_matrix(0.1, "lma"), p, birth_rate_list = 1)
 ```
 
 will create a strategy `s` where lma is set but also all the
@@ -138,7 +138,7 @@ strategies:
 lma <- trait_matrix(seq(0.1, 0.5, length.out=5), "lma")
 FF16_hyperpar(trait_matrix(lma, "lma"), s)
 
-ss <- strategy_list(lma, p)
+ss <- strategy_list(lma, p, birth_rate_list = rep(1, 5))
 length(ss)
 ```
 
@@ -155,7 +155,7 @@ There's a convenience function `plant_list` that returns a set of
 *plants* based on a vector of traits:
 
 ```{r}
-pp <- individual_list(lma, p)
+pp <- individual_list(lma, p, birth_rate_list = rep(1, 5))
 
 sapply(pp, function(p) p$compute_competition(0))
 ```

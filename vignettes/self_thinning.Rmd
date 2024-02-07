@@ -4,7 +4,7 @@ author: "Rebecca Stolper"
 date: "2023"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{demographic_equilibrium}
+  %\VignetteIndexEntry{Self-thinning}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

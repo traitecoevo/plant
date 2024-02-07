@@ -234,7 +234,7 @@ test_that("schedule setting", {
   ##   expect_identical(scm$times(1), times)
   ## })
 
-test_that("Seed rain & error calculations correct", {
+test_that("Offspring production & error calculations correct", {
   for (x in c("FF16")) {
     context(sprintf("SCM-%s", x))
     e <- environment_types[[x]]

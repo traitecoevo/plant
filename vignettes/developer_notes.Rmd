@@ -8,6 +8,10 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r setup, include=FALSE}
+options(rmarkdown.html_vignette.check_title = FALSE)
+```
+
 # Development
 
 ## Issues
@@ -56,7 +60,7 @@ If you compile with optimisation, the code runs much faster. By default, `R CMD 
 
 When developing, you can make everything faster by compiling as follows. After changing some cpp code, run
 
-```{r}
+```{r, eval=FALSE}
 pkgbuild::compile_dll(debug=FALSE, compile_attributes = FALSE)
 devtools::load_all()
 ```
@@ -83,8 +87,6 @@ The code is organised as follows. This structure reflects structure generally us
 
 
 ```sh
-├── docker      		# Docker files
-│   └── plant-test
 ├── inst
 │   ├── RcppR6_classes.yml    # Used by RCppR6 to generate the interface for Rcpp (C++ classes)
 │   ├── RcppR6_functions.yml  # Used by RCppR6 to generate the interface for Rcpp (C++ function)
@@ -271,4 +273,3 @@ To numerically integration functions, we use the Gauss-Kronrod quadrature method
 To build and push the website to the `gh-pages` branch run `make website`.
 This builds the site with [pkgdown](http://pkgdown.r-lib.org).
 The site is then pushed to the `gh-pages` branch. (https://traitecoevo.github.io/plant)
-

@@ -237,12 +237,12 @@ params <- scm_base_parameters("FF16")
 
 Then we can use the `params` object to set a low LMA ("fast growth") species:
 ```{r }
-s1 <- strategy(trait_matrix(0.0825,  "lma"), params)
+s1 <- strategy(trait_matrix(0.0825,  "lma"), params, birth_rate_list = 1)
 ```
 
 and a high LMA ("low growth") species:
 ```{r }
-s2 <- strategy(trait_matrix(0.2625, "lma"), params)
+s2 <- strategy(trait_matrix(0.2625, "lma"), params, birth_rate_list = 1)
 ```
 
 In the FF16 model, LMA is related to leaf turnover (`k_l`) and

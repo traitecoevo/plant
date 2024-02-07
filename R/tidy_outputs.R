@@ -50,7 +50,7 @@ tidy_env <- function(env) {
           function(v) purrr::map_dfr(env, 
             ~purrr::pluck(.x, v) %>% 
               data.frame, .id = "step") %>%
-              tibble::as_tibble() %>%
+              dplyr::as_tibble() %>%
               dplyr::mutate(dplyr::across(dplyr::any_of("step"), as.integer)) %>%
               dplyr::rename_with(~ gsub("\\.", v, .x)
           )
@@ -196,7 +196,7 @@ tidy_individual <- function(results) {
 integrate_over_size_distribution <- function(tidy_species_data) {
   
   tidy_species_data  %>%
-    dplyr::select(-.data$node) %>% stats::na.omit() %>%
+    dplyr::select(-node) %>% stats::na.omit() %>%
     dplyr::filter(.data$step > 1) %>% 
     dplyr::group_by(.data$step, .data$time, .data$patch_density, .data$species) %>% 
     dplyr::reframe(
