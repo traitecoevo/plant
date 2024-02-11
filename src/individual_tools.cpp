@@ -28,3 +28,11 @@ plant::Internals FF16w_oderunner_individual_internals(
   const plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16w_Strategy, plant::FF16_Environment>>& obj) {
   return obj.obj.individual.r_internals();
 }
+
+// [[Rcpp::export]]
+plant::Internals TF24_oderunner_individual_internals(
+  const plant::ode::Runner<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment>>& obj) {
+  return obj.obj.individual.r_internals();
+}
+
+

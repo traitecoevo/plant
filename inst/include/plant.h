@@ -29,6 +29,7 @@
 
 // Specific models
 #include <plant/models/ff16_strategy.h>
+#include <plant/models/tf24_strategy.h>
 #include <plant/models/ff16w_strategy.h>
 #include <plant/models/ff16r_strategy.h>
 #include <plant/models/k93_strategy.h>

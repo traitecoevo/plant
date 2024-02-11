@@ -24,6 +24,7 @@ OdeRunner:
       - ["Lorenz": "plant::ode::test::Lorenz"]
       - ["OdeR":   "plant::ode::test::OdeR"]
       - ["FF16": "plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment>"]
+      - ["TF24": "plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment>"]
       - ["FF16w": "plant::tools::IndividualRunner<plant::FF16w_Strategy, plant::FF16_Environment>"]
       - ["FF16r": "plant::tools::IndividualRunner<plant::FF16r_Strategy, plant::FF16_Environment>"]
       - ["K93": "plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment>"]
@@ -221,6 +222,7 @@ Individual:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
@@ -280,6 +282,7 @@ IndividualRunner:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
@@ -336,6 +339,7 @@ Parameters:
     parameters: [T, E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
@@ -358,6 +362,7 @@ Node:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
@@ -396,6 +401,7 @@ Species:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
@@ -441,6 +447,7 @@ Patch:
     parameters: [T, E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
@@ -511,6 +518,7 @@ SCM:
     parameters: [T, E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
@@ -588,6 +596,7 @@ StochasticSpecies:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
@@ -633,6 +642,7 @@ StochasticPatch:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
@@ -698,6 +708,7 @@ StochasticPatchRunner:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
@@ -1065,3 +1076,95 @@ ExtrinsicDrivers:
     set_extrapolate:
       return_type: void
       args: [ driver_name: std::string, extrapolate: bool]
+
+# The following strategy was built from FF16 on Mon Feb 12 09:52:27 2024
+TF24_Strategy:
+  name_cpp: "plant::TF24_Strategy"
+  roxygen: |
+    Strategy parameters that tune various aspects of the biological model.
+    @title Strategy parameters
+    @param ...,values Values to initialise the struct with (either as
+    variadic arguments, or as a list, but not both).
+    @export
+  list:
+    - lma: double
+    - rho: double
+    - hmat: double
+    - omega: double
+    - eta: double
+    - theta: double
+    - a_l1: double
+    - a_l2: double
+    - a_r1: double
+    - a_b1: double
+    - r_s: double
+    - r_b: double
+    - r_r: double
+    - r_l: double
+    - a_y: double
+    - a_bio: double
+    - k_l: double
+    - k_b: double
+    - k_s: double
+    - k_r: double
+    - a_p1: double
+    - a_p2: double
+    - a_f3: double
+    - a_f1: double
+    - a_f2: double
+    - S_D: double
+    - a_d0: double
+    - d_I: double
+    - a_dG1: double
+    - a_dG2: double
+    - k_I: double
+    - recruitment_decay: double
+    - control: "plant::Control"
+    - collect_all_auxiliary: bool
+    - birth_rate_x: std::vector<double>
+    - birth_rate_y: std::vector<double>
+    - is_variable_birth_rate: bool
+
+
+# The following environment was built from FF16 on Mon Feb 12 09:52:27 2024
+TF24_Environment:
+  name_cpp: "plant::TF24_Environment"
+  constructor:
+    args:
+      - light_availability_spline_rescale_usually: bool
+      - soil_number_of_depths: int
+    roxygen: |
+      TF24_Environment object
+      @param  light_availability_spline_rescale_usually whether to rescale intervals when estimating light environment
+      @param  soil_number_of_depths Number of soil layers to include
+      @export
+  methods:
+    get_environment_at_height:
+      args: [height: double]
+      return_type: double
+    clear:
+      return_type: void
+    set_fixed_environment:
+      args: [value: double, height_max: double]
+      return_type: void
+    set_soil_water_state:
+      args: [state: "std::vector<double>"]
+      return_type: void
+    compute_rates:
+      args: [resource_depletion: "std::vector<double>"]
+      return_type: void
+  active:
+    time: {type: double, access: field}
+    ode_size: {type: size_t, access: member}
+    soil_number_of_depths: {type: size_t, access: member, name_cpp: ode_size}
+    light_availability:
+      type: "plant::ResourceSpline"
+      access: field
+    soil:
+      type: "plant::Internals"
+      access: member
+      name_cpp: "r_internals"
+    extrinsic_drivers: # this actually exists in the base class, not in the derived environment classes
+      type: "plant::ExtrinsicDrivers"
+      access: field
+
