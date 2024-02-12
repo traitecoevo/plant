@@ -1225,7 +1225,6 @@ TF24_Strategy:
     - birth_rate_y: std::vector<double>
     - is_variable_birth_rate: bool
 
-
 # The following environment was built from FF16 on Mon Feb 12 09:52:27 2024
 TF24_Environment:
   name_cpp: "plant::TF24_Environment"
@@ -1239,7 +1238,6 @@ TF24_Environment:
       - a_psi: double
       - n_psi: double
       - b_infil: double
-
     roxygen: |
       TF24_Environment object
       @param  light_availability_spline_rescale_usually whether to rescale intervals when estimating light environment
@@ -1254,9 +1252,34 @@ TF24_Environment:
     set_fixed_environment:
       args: [value: double, height_max: double]
       return_type: void
+    psi_from_soil_moist:
+      args: [theta_: double]
+      return_type: double 
+    soil_moist_from_psi:
+      args: [psi_soil_: double]
+      return_type: double
     set_soil_water_state:
       args: [state: "std::vector<double>"]
       return_type: void
+    get_soil_water_state:
+      args: []
+      return_type: std::vector<double>
+    get_atm_vpd:
+      args: []
+      return_type: double
+    get_ca:
+      args: []
+      return_type: double
+    get_leaf_temp:
+      args: []
+      return_type: double
+    get_atm_o2_kpa:
+      args: []
+      return_type: double
+    get_atm_kpa:
+      args: []
+      return_type: double
+
     compute_rates:
       args: [resource_depletion: "std::vector<double>"]
       return_type: void
@@ -1274,4 +1297,3 @@ TF24_Environment:
     extrinsic_drivers: # this actually exists in the base class, not in the derived environment classes
       type: "plant::ExtrinsicDrivers"
       access: field
-

@@ -44,6 +44,11 @@ public:
   //TODO: should we use auxilliary in internals
   std::vector<double> q;
 
+  // A ResourceSpline used for storing light availbility (0-1)
+  ResourceSpline light_availability;
+
+  // Light interface
+  bool canopy_rescale_usually;
   //distance between layers
   double delta_z;
   //saturated soil moisture
@@ -53,9 +58,6 @@ public:
   double a_psi;
   double n_psi;
   double b_infil;
-
-  // A ResourceSpline used for storing light availbility (0-1)
-  ResourceSpline light_availability;
 
   // Ability to prescribe a fixed value
   // TODO: add setting to set other variables like water

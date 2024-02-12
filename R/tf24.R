@@ -98,6 +98,7 @@ TF24_make_environment <- function(light_availability_spline_tol = 1e-4,
                         a_psi = a_psi,
                         n_psi = n_psi,
                         b_infil = b_infil)
+
   
   # Shading defaults have lower tolerance which are overwritten for speed
   e$light_availability <- ResourceSpline(light_availability_spline_tol, 
