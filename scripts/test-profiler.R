@@ -36,13 +36,13 @@ test_that("offspring arrival", {
   out_file <- tempfile("jointprof", fileext = ".pb.gz")
   jointprof::start_profiler(out_file)
   
-    p0 <- scm_base_parameters("FF16w")
+    p0 <- scm_base_parameters("TF24")
     p0$max_patch_lifetime = 10
     
-    p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,FALSE)
+    p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, TF24_hyperpar,FALSE)
     p1$cohort_schedule_times <- list(seq(0, 10, len = 3))
     
-    env <- make_environment("FF16w", 
+    env <- make_environment("TF24", 
                             soil_number_of_depths = 3,
                             soil_initial_state = rep(1, 3))
     

@@ -46,7 +46,7 @@ test_that("FF16 rainfall spline", {
   
   context("Rainfall-FF16")
   
-  env <- make_environment("FF16w")
+  env <- make_environment("TF24")
   # get list of extrinsic drivers for the environment
   expect_equal(env$extrinsic_drivers$get_names(), c("rainfall"))
   
@@ -55,7 +55,7 @@ test_that("FF16 rainfall spline", {
   expect_equal(env$extrinsic_drivers$evaluate("rainfall", 10000000), 1)
   
   # test extrapolation on spline of y = 5.613432
-  env <- make_environment("FF16w", rainfall=5.613432)
+  env <- make_environment("TF24", rainfall=5.613432)
   expect_equal(env$extrinsic_drivers$evaluate("rainfall", 100), 5.613432)
   expect_equal(env$extrinsic_drivers$evaluate("rainfall", 10000000), 5.613432)
   
@@ -65,7 +65,7 @@ test_that("FF16 rainfall spline", {
     x = x,
     y = x^2
   )
-  env <- make_environment("FF16w", rainfall=quadratic_rain) # overwrites previously created spline
+  env <- make_environment("TF24", rainfall=quadratic_rain) # overwrites previously created spline
   
   # interpolated points
   expect_equal(env$extrinsic_drivers$evaluate("rainfall", 2), 4)

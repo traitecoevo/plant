@@ -8,7 +8,7 @@
 
 run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy,
                                                        # FF16r = FF16r_Strategy,
-                                                       FF16w = FF16w_Strategy,
+                                                       TF24 = TF24_Strategy,
                                                        K93 = K93_Strategy),
                                  iterations = 1) {
   f_scm <- function(x) {
@@ -37,17 +37,17 @@ run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy,
                })
 }
 
-# Evaluate overheads of having multiple soil layers in FF16w, to ensure that
+# Evaluate overheads of having multiple soil layers in TF24, to ensure that
 # our approach to computing individual resource consumption is scalable.
 run_resource_consumption_benchmarks <- function(its = 10) {
   
   f_scm <- function(layers) {
-    p0 <- scm_base_parameters("FF16w")
+    p0 <- scm_base_parameters("TF24")
     p0$max_patch_lifetime = 10
     
-    p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,FALSE)
+    p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, TF24_hyperpar,FALSE)
     
-    env <- make_environment("FF16w", 
+    env <- make_environment("TF24", 
                             soil_number_of_depths = layers,
                             soil_initial_state = rep(1, layers))
     

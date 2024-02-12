@@ -285,7 +285,7 @@ optimise_individual_rate_at_size_by_trait <- function(
 
     # Create an individual object
     types <- extract_RcppR6_template_types(params, "Parameters")
-    indv <- do.call("Individual", types)(s) # equiavlent to calling Individual<FF16w,FF16_Env> or FF16_individual(s)
+    indv <- do.call("Individual", types)(s) # equiavlent to calling Individual<TF24,TF24_Env> or FF16_individual(s)
     
     if(set_state_directly & size_name == "height"){
       # set inidividual at specified size
