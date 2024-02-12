@@ -18,7 +18,7 @@ optimise_individual_rate_at_size_by_trait(
   params = scm_base_parameters(type),
   env = make_environment(type),
   hyperpars = hyperpar(type),
-  set_state_by_ode = FALSE
+  set_state_directly = FALSE
 )
 
 optimise_individual_rate_at_height_by_trait(..., height = 1)
