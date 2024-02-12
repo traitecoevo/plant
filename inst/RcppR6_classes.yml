@@ -1,3 +1,161 @@
+Leaf:
+  name_cpp: "plant::Leaf"
+  constructor:
+    args:
+      - vcmax_25: double
+      - c: double
+      - b: double
+      - psi_crit: double
+      - beta1: double
+      - beta2: double
+      - jmax_25: double
+      - hk_s: double
+      - a: double
+      - curv_fact_elec_trans: double
+      - curv_fact_colim: double     
+      - newton_tol_abs: double
+      - GSS_tol_abs: double
+      - vulnerability_curve_ncontrol: double
+      - ci_abs_tol: double
+      - ci_niter: double
+
+  active:
+    ci_: {type: double, access: field}
+    stom_cond_CO2_: {type: double, access: field}
+    assim_colimited_: {type: double, access: field}
+    transpiration_: {type: double, access: field}
+    profit_: {type: double, access: field}
+    psi_stem: {type: double, access: field}
+    lambda_: {type: double, access: field}
+    lambda_analytical_: {type: double, access: field}
+    electron_transport_: {type: double, access: field}
+    gamma_: {type: double, access: field}
+    ko_: {type: double, access: field}
+    kc_: {type: double, access: field}
+    km_: {type: double, access: field}
+    R_d_: {type: double, access: field}
+    leaf_specific_conductance_max_: {type: double, access: field}
+    vcmax_: {type: double, access: field}
+    jmax_: {type: double, access: field}
+    rho_: {type: double, access: field}
+    a_bio_: {type: double, access: field}
+    PPFD_: {type: double, access: field}
+    atm_vpd_: {type: double, access: field}
+    ca_: {type: double, access: field}
+    psi_soil_: {type: double, access: field}
+    leaf_temp_: {type: double, access: field} 
+    atm_o2_kpa_: {type: double, access: field} 
+    atm_kpa_: {type: double, access: field} 
+    hydraulic_cost_: {type: double, access: field}
+    opt_psi_stem_: {type: double, access: field}
+    opt_ci_: {type: double, access: field}
+    count: {type: double, access: field}
+
+  methods:
+    initialize_integrator:
+      return_type: void
+      args: [integration_rule: int, integration_tol: double]
+    set_physiology:
+      return_type: void 
+      args: [rho: double, a_bio: double, PPFD: double, psi_soil: double, leaf_specific_conductance_max: double, atm_vpd: double, ca: double, sapwood_volume_per_leaf_area: double, leaf_temp: double, atm_o2_kpa: double, atm_kpa: double]
+    #transpiration functions
+    proportion_of_conductivity:
+      return_type: double
+      args: [psi: double]
+    arrh_curve:
+      return_type: double
+      args: [Ea: double, ref_value: double, leaf_temp: double]
+    peak_arrh_curve:
+      return_type: double
+      args: [Ea: double, ref_value: double, leaf_temp: double, H_d: double, d_S: double] 
+    transpiration:
+      return_type: double
+      args: [psi_stem: double]
+    transpiration_full_integration:
+      return_type: double
+      args: [psi_stem: double]
+    stom_cond_CO2:
+      return_type: double
+      args: [psi_stem: double]
+    transpiration_to_psi_stem:
+      return_type: double
+      args: [transpiration_: double]
+    # assimilation functions 
+    assim_rubisco_limited:
+      return_type: double
+      args: [ci_: double]
+    assim_electron_limited:
+      return_type: double
+      args: [ci_: double]
+    assim_colimited:
+      return_type: double
+      args: [ci_: double]
+    assim_minus_stom_cond_CO2:
+      return_type: double
+      args: [x: double, psi_stem: double]
+    electron_transport:
+      return_type: double
+      args: []      
+    assim_colimited_analytical:
+      return_type: double
+      args: [ci_: double]  
+    set_leaf_states_rates_from_psi_stem:
+      return_type: void
+      args: [psi_stem: double]
+    set_leaf_states_rates_from_psi_stem_analytical:
+      return_type: void
+      args: [psi_stem: double]
+    psi_stem_to_ci:
+      return_type: double
+      args: [psi_stem: double]
+    psi_stem_to_ci_analytical:
+      return_type: double
+      args: [psi_stem: double]
+    #leaf economics functions
+    hydraulic_cost_Sperry:
+      return_type: double
+      args: [psi_stem: double]
+    hydraulic_cost_Bartlett:
+      return_type: double
+      args: [psi_stem: double] 
+    hydraulic_cost_TF:
+      return_type: double
+      args: [psi_stem: double]
+    profit_psi_stem_Sperry:
+      return_type: double
+      args: [psi_stem: double]
+    profit_Sperry_ci:
+      return_type: double
+      args: [ci_: double]
+    profit_psi_stem_Sperry_analytical:
+      return_type: double
+      args: [psi_stem: double]  
+    profit_psi_stem_Bartlett:
+      return_type: double
+      args: [psi_stem: double]
+    profit_psi_stem_TF:
+      return_type: double
+      args: [psi_stem: double]
+      # optimiser functions
+    optimise_psi_stem_Sperry:
+      return_type: void
+      args: []
+    optimise_psi_stem_Sperry_analytical:
+      return_type: void
+      args: []
+    optimise_ci_Sperry:
+      return_type: void
+      args: [max_ci: double]
+    optimise_psi_stem_Bartlett:
+      return_type: void
+      args: []
+    optimise_psi_stem_TF:
+      return_type: void
+      args: []
+    optimise_psi_stem_TF_newton:
+      return_type: void
+      args: [psi_guess: double]
+      
 Lorenz:
   name_cpp: "plant::ode::test::Lorenz"
   constructor:
