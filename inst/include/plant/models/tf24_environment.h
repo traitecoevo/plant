@@ -168,6 +168,28 @@ return K;
   double soil_moist_from_psi(double psi_soil_) const {
   return pow((psi_soil_/a_psi), (-1/n_psi))*soil_moist_sat;
 }
+
+double get_atm_vpd() const {
+    return extrinsic_drivers.evaluate("atm_vpd", time);
+  }
+
+double get_ca() const {
+    return extrinsic_drivers.evaluate("ca", time);
+  }
+
+double get_leaf_temp() const {
+    return extrinsic_drivers.evaluate("leaf_temp", time);
+  }
+
+double get_atm_o2_kpa() const {
+    return extrinsic_drivers.evaluate("atm_o2_kpa", time);
+  } 
+
+double get_atm_kpa() const {
+    return extrinsic_drivers.evaluate("atm_kpa", time);
+  } 
+
+
   std::vector<double> get_soil_water_state() const {
     return vars.states;
   }
