@@ -362,6 +362,11 @@ template <> inline SEXP wrap(const plant::Control& x) {
   ret["schedule_eps"] = Rcpp::wrap(x.schedule_eps);
   ret["schedule_verbose"] = Rcpp::wrap(x.schedule_verbose);
   ret["save_RK45_cache"] = Rcpp::wrap(x.save_RK45_cache);
+  ret["newton_tol_abs"] = Rcpp::wrap(x.newton_tol_abs);
+  ret["GSS_tol_abs"] = Rcpp::wrap(x.GSS_tol_abs);
+  ret["vulnerability_curve_ncontrol"] = Rcpp::wrap(x.vulnerability_curve_ncontrol);
+  ret["ci_abs_tol"] = Rcpp::wrap(x.ci_abs_tol);
+  ret["ci_niter"] = Rcpp::wrap(x.ci_niter);
   ret.attr("class") = "Control";
   return ret;
 }
