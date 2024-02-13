@@ -8,7 +8,21 @@ TF24_make_environment(
   light_availability_spline_tol = 1e-04,
   light_availability_spline_nbase = 17,
   light_availability_spline_max_depth = 16,
-  light_availability_spline_rescale_usually = TRUE
+  light_availability_spline_rescale_usually = TRUE,
+  soil_number_of_depths = 1,
+  soil_initial_state = 0.5,
+  rainfall = 1,
+  atm_vpd = 1,
+  ca = 40,
+  leaf_temp = 25,
+  atm_o2_kpa = 21,
+  atm_kpa = 100.5,
+  delta_z = 0.1,
+  soil_moist_sat = 0.453,
+  K_sat = 440.628,
+  a_psi = 8.7,
+  n_psi = 4.8,
+  b_infil = 8
 )
 }
 \arguments{

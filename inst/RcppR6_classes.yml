@@ -281,6 +281,11 @@ Control:
     - schedule_eps: double
     - schedule_verbose: bool
     - save_RK45_cache: bool
+    - newton_tol_abs: size_t
+    - GSS_tol_abs: double
+    - vulnerability_curve_ncontrol: bool
+    - ci_abs_tol: bool
+    - ci_niter: bool
 
 OdeControl:
   name_cpp: "plant::ode::OdeControl"
