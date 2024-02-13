@@ -4349,8 +4349,8 @@ SEXP TF24_Strategy__ctor() {
 
 
 // [[Rcpp::export]]
-plant::TF24_Environment TF24_Environment__ctor(bool light_availability_spline_rescale_usually, int soil_number_of_depths, double delta_z, double soil_moist_sat, double K_sat, double a_psi, double n_psi, double b_infil) {
-  return plant::TF24_Environment(light_availability_spline_rescale_usually, soil_number_of_depths, delta_z, soil_moist_sat, K_sat, a_psi, n_psi, b_infil);
+plant::TF24_Environment TF24_Environment__ctor(bool light_availability_spline_rescale_usually, int soil_number_of_depths) {
+  return plant::TF24_Environment(light_availability_spline_rescale_usually, soil_number_of_depths);
 }
 // [[Rcpp::export]]
 double TF24_Environment__get_environment_at_height(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, double height) {
@@ -4365,40 +4365,8 @@ void TF24_Environment__set_fixed_environment(plant::RcppR6::RcppR6<plant::TF24_E
   obj_->set_fixed_environment(value, height_max);
 }
 // [[Rcpp::export]]
-double TF24_Environment__psi_from_soil_moist(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, double theta_) {
-  return obj_->psi_from_soil_moist(theta_);
-}
-// [[Rcpp::export]]
-double TF24_Environment__soil_moist_from_psi(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, double psi_soil_) {
-  return obj_->soil_moist_from_psi(psi_soil_);
-}
-// [[Rcpp::export]]
 void TF24_Environment__set_soil_water_state(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, std::vector<double> state) {
   obj_->set_soil_water_state(state);
-}
-// [[Rcpp::export]]
-std::vector<double> TF24_Environment__get_soil_water_state(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_) {
-  return obj_->get_soil_water_state();
-}
-// [[Rcpp::export]]
-double TF24_Environment__get_atm_vpd(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_) {
-  return obj_->get_atm_vpd();
-}
-// [[Rcpp::export]]
-double TF24_Environment__get_ca(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_) {
-  return obj_->get_ca();
-}
-// [[Rcpp::export]]
-double TF24_Environment__get_leaf_temp(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_) {
-  return obj_->get_leaf_temp();
-}
-// [[Rcpp::export]]
-double TF24_Environment__get_atm_o2_kpa(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_) {
-  return obj_->get_atm_o2_kpa();
-}
-// [[Rcpp::export]]
-double TF24_Environment__get_atm_kpa(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_) {
-  return obj_->get_atm_kpa();
 }
 // [[Rcpp::export]]
 void TF24_Environment__compute_rates(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, std::vector<double> resource_depletion) {

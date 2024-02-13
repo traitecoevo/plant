@@ -10789,20 +10789,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // TF24_Environment__ctor
-plant::TF24_Environment TF24_Environment__ctor(bool light_availability_spline_rescale_usually, int soil_number_of_depths, double delta_z, double soil_moist_sat, double K_sat, double a_psi, double n_psi, double b_infil);
-RcppExport SEXP _plant_TF24_Environment__ctor(SEXP light_availability_spline_rescale_usuallySEXP, SEXP soil_number_of_depthsSEXP, SEXP delta_zSEXP, SEXP soil_moist_satSEXP, SEXP K_satSEXP, SEXP a_psiSEXP, SEXP n_psiSEXP, SEXP b_infilSEXP) {
+plant::TF24_Environment TF24_Environment__ctor(bool light_availability_spline_rescale_usually, int soil_number_of_depths);
+RcppExport SEXP _plant_TF24_Environment__ctor(SEXP light_availability_spline_rescale_usuallySEXP, SEXP soil_number_of_depthsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< bool >::type light_availability_spline_rescale_usually(light_availability_spline_rescale_usuallySEXP);
     Rcpp::traits::input_parameter< int >::type soil_number_of_depths(soil_number_of_depthsSEXP);
-    Rcpp::traits::input_parameter< double >::type delta_z(delta_zSEXP);
-    Rcpp::traits::input_parameter< double >::type soil_moist_sat(soil_moist_satSEXP);
-    Rcpp::traits::input_parameter< double >::type K_sat(K_satSEXP);
-    Rcpp::traits::input_parameter< double >::type a_psi(a_psiSEXP);
-    Rcpp::traits::input_parameter< double >::type n_psi(n_psiSEXP);
-    Rcpp::traits::input_parameter< double >::type b_infil(b_infilSEXP);
-    rcpp_result_gen = Rcpp::wrap(TF24_Environment__ctor(light_availability_spline_rescale_usually, soil_number_of_depths, delta_z, soil_moist_sat, K_sat, a_psi, n_psi, b_infil));
+    rcpp_result_gen = Rcpp::wrap(TF24_Environment__ctor(light_availability_spline_rescale_usually, soil_number_of_depths));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -10840,30 +10834,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// TF24_Environment__psi_from_soil_moist
-double TF24_Environment__psi_from_soil_moist(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, double theta_);
-RcppExport SEXP _plant_TF24_Environment__psi_from_soil_moist(SEXP obj_SEXP, SEXP theta_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type theta_(theta_SEXP);
-    rcpp_result_gen = Rcpp::wrap(TF24_Environment__psi_from_soil_moist(obj_, theta_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// TF24_Environment__soil_moist_from_psi
-double TF24_Environment__soil_moist_from_psi(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, double psi_soil_);
-RcppExport SEXP _plant_TF24_Environment__soil_moist_from_psi(SEXP obj_SEXP, SEXP psi_soil_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type psi_soil_(psi_soil_SEXP);
-    rcpp_result_gen = Rcpp::wrap(TF24_Environment__soil_moist_from_psi(obj_, psi_soil_));
-    return rcpp_result_gen;
-END_RCPP
-}
 // TF24_Environment__set_soil_water_state
 void TF24_Environment__set_soil_water_state(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, std::vector<double> state);
 RcppExport SEXP _plant_TF24_Environment__set_soil_water_state(SEXP obj_SEXP, SEXP stateSEXP) {
@@ -10873,72 +10843,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::vector<double> >::type state(stateSEXP);
     TF24_Environment__set_soil_water_state(obj_, state);
     return R_NilValue;
-END_RCPP
-}
-// TF24_Environment__get_soil_water_state
-std::vector<double> TF24_Environment__get_soil_water_state(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_);
-RcppExport SEXP _plant_TF24_Environment__get_soil_water_state(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(TF24_Environment__get_soil_water_state(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// TF24_Environment__get_atm_vpd
-double TF24_Environment__get_atm_vpd(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_);
-RcppExport SEXP _plant_TF24_Environment__get_atm_vpd(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(TF24_Environment__get_atm_vpd(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// TF24_Environment__get_ca
-double TF24_Environment__get_ca(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_);
-RcppExport SEXP _plant_TF24_Environment__get_ca(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(TF24_Environment__get_ca(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// TF24_Environment__get_leaf_temp
-double TF24_Environment__get_leaf_temp(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_);
-RcppExport SEXP _plant_TF24_Environment__get_leaf_temp(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(TF24_Environment__get_leaf_temp(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// TF24_Environment__get_atm_o2_kpa
-double TF24_Environment__get_atm_o2_kpa(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_);
-RcppExport SEXP _plant_TF24_Environment__get_atm_o2_kpa(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(TF24_Environment__get_atm_o2_kpa(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// TF24_Environment__get_atm_kpa
-double TF24_Environment__get_atm_kpa(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_);
-RcppExport SEXP _plant_TF24_Environment__get_atm_kpa(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(TF24_Environment__get_atm_kpa(obj_));
-    return rcpp_result_gen;
 END_RCPP
 }
 // TF24_Environment__compute_rates
@@ -12258,19 +12162,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_ExtrinsicDrivers__set_variable", (DL_FUNC) &_plant_ExtrinsicDrivers__set_variable, 4},
     {"_plant_ExtrinsicDrivers__set_extrapolate", (DL_FUNC) &_plant_ExtrinsicDrivers__set_extrapolate, 3},
     {"_plant_TF24_Strategy__ctor", (DL_FUNC) &_plant_TF24_Strategy__ctor, 0},
-    {"_plant_TF24_Environment__ctor", (DL_FUNC) &_plant_TF24_Environment__ctor, 8},
+    {"_plant_TF24_Environment__ctor", (DL_FUNC) &_plant_TF24_Environment__ctor, 2},
     {"_plant_TF24_Environment__get_environment_at_height", (DL_FUNC) &_plant_TF24_Environment__get_environment_at_height, 2},
     {"_plant_TF24_Environment__clear", (DL_FUNC) &_plant_TF24_Environment__clear, 1},
     {"_plant_TF24_Environment__set_fixed_environment", (DL_FUNC) &_plant_TF24_Environment__set_fixed_environment, 3},
-    {"_plant_TF24_Environment__psi_from_soil_moist", (DL_FUNC) &_plant_TF24_Environment__psi_from_soil_moist, 2},
-    {"_plant_TF24_Environment__soil_moist_from_psi", (DL_FUNC) &_plant_TF24_Environment__soil_moist_from_psi, 2},
     {"_plant_TF24_Environment__set_soil_water_state", (DL_FUNC) &_plant_TF24_Environment__set_soil_water_state, 2},
-    {"_plant_TF24_Environment__get_soil_water_state", (DL_FUNC) &_plant_TF24_Environment__get_soil_water_state, 1},
-    {"_plant_TF24_Environment__get_atm_vpd", (DL_FUNC) &_plant_TF24_Environment__get_atm_vpd, 1},
-    {"_plant_TF24_Environment__get_ca", (DL_FUNC) &_plant_TF24_Environment__get_ca, 1},
-    {"_plant_TF24_Environment__get_leaf_temp", (DL_FUNC) &_plant_TF24_Environment__get_leaf_temp, 1},
-    {"_plant_TF24_Environment__get_atm_o2_kpa", (DL_FUNC) &_plant_TF24_Environment__get_atm_o2_kpa, 1},
-    {"_plant_TF24_Environment__get_atm_kpa", (DL_FUNC) &_plant_TF24_Environment__get_atm_kpa, 1},
     {"_plant_TF24_Environment__compute_rates", (DL_FUNC) &_plant_TF24_Environment__compute_rates, 2},
     {"_plant_TF24_Environment__time__get", (DL_FUNC) &_plant_TF24_Environment__time__get, 1},
     {"_plant_TF24_Environment__time__set", (DL_FUNC) &_plant_TF24_Environment__time__set, 2},
