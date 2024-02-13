@@ -7,7 +7,13 @@
 \usage{
 TF24_Environment(
   light_availability_spline_rescale_usually,
-  soil_number_of_depths
+  soil_number_of_depths,
+  delta_z,
+  soil_moist_sat,
+  K_sat,
+  a_psi,
+  n_psi,
+  b_infil
 )
 
 TF24_fixed_environment(e = 1, height_max = 150)
