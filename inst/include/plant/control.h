@@ -45,6 +45,13 @@ struct Control {
   bool   schedule_verbose;
 
   bool   save_RK45_cache;
+
+  //TF24 control parameters
+  double newton_tol_abs;
+  double GSS_tol_abs;
+  double vulnerability_curve_ncontrol;
+  double ci_abs_tol;
+  double ci_niter;
 };
 
 inline ode::OdeControl make_ode_control(const Control& control) {
