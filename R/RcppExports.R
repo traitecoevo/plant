@@ -3837,8 +3837,8 @@ TF24_Strategy__ctor <- function() {
     .Call('_plant_TF24_Strategy__ctor', PACKAGE = 'plant')
 }
 
-TF24_Environment__ctor <- function(light_availability_spline_rescale_usually, soil_number_of_depths) {
-    .Call('_plant_TF24_Environment__ctor', PACKAGE = 'plant', light_availability_spline_rescale_usually, soil_number_of_depths)
+TF24_Environment__ctor <- function(light_availability_spline_rescale_usually, soil_number_of_depths, delta_z, soil_moist_sat, K_sat, a_psi, n_psi, b_infil) {
+    .Call('_plant_TF24_Environment__ctor', PACKAGE = 'plant', light_availability_spline_rescale_usually, soil_number_of_depths, delta_z, soil_moist_sat, K_sat, a_psi, n_psi, b_infil)
 }
 
 TF24_Environment__get_environment_at_height <- function(obj_, height) {
@@ -3853,8 +3853,40 @@ TF24_Environment__set_fixed_environment <- function(obj_, value, height_max) {
     invisible(.Call('_plant_TF24_Environment__set_fixed_environment', PACKAGE = 'plant', obj_, value, height_max))
 }
 
+TF24_Environment__psi_from_soil_moist <- function(obj_, theta_) {
+    .Call('_plant_TF24_Environment__psi_from_soil_moist', PACKAGE = 'plant', obj_, theta_)
+}
+
+TF24_Environment__soil_moist_from_psi <- function(obj_, psi_soil_) {
+    .Call('_plant_TF24_Environment__soil_moist_from_psi', PACKAGE = 'plant', obj_, psi_soil_)
+}
+
 TF24_Environment__set_soil_water_state <- function(obj_, state) {
     invisible(.Call('_plant_TF24_Environment__set_soil_water_state', PACKAGE = 'plant', obj_, state))
+}
+
+TF24_Environment__get_soil_water_state <- function(obj_) {
+    .Call('_plant_TF24_Environment__get_soil_water_state', PACKAGE = 'plant', obj_)
+}
+
+TF24_Environment__get_atm_vpd <- function(obj_) {
+    .Call('_plant_TF24_Environment__get_atm_vpd', PACKAGE = 'plant', obj_)
+}
+
+TF24_Environment__get_ca <- function(obj_) {
+    .Call('_plant_TF24_Environment__get_ca', PACKAGE = 'plant', obj_)
+}
+
+TF24_Environment__get_leaf_temp <- function(obj_) {
+    .Call('_plant_TF24_Environment__get_leaf_temp', PACKAGE = 'plant', obj_)
+}
+
+TF24_Environment__get_atm_o2_kpa <- function(obj_) {
+    .Call('_plant_TF24_Environment__get_atm_o2_kpa', PACKAGE = 'plant', obj_)
+}
+
+TF24_Environment__get_atm_kpa <- function(obj_) {
+    .Call('_plant_TF24_Environment__get_atm_kpa', PACKAGE = 'plant', obj_)
 }
 
 TF24_Environment__compute_rates <- function(obj_, resource_depletion) {
