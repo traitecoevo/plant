@@ -1223,27 +1223,6 @@ TF24_Strategy:
     - a_dG1: double
     - a_dG2: double
     - k_I: double
-    - vcmax_25: double
-    - p_50: double
-    - K_s: double
-    - c: double
-    - b: double
-    - psi_crit: double
-    - hk_s: double
-    - newton_tol_abs: double
-    - GSS_tol_abs: double
-    - beta1: double
-    - beta2: double
-    - jmax_25: double
-    - a: double
-    - curv_fact_elec_trans: double
-    - curv_fact_colim: double
-    - nmass_l: double
-    - nmass_s: double
-    - nmass_b: double
-    - nmass_r: double
-    - dmass_dN: double
-    - var_sapwood_volume_cost: double
     - recruitment_decay: double
     - control: "plant::Control"
     - collect_all_auxiliary: bool
@@ -1305,6 +1284,7 @@ TF24_Environment:
     get_atm_kpa:
       args: []
       return_type: double
+
     compute_rates:
       args: [resource_depletion: "std::vector<double>"]
       return_type: void
@@ -1322,4 +1302,3 @@ TF24_Environment:
     extrinsic_drivers: # this actually exists in the base class, not in the derived environment classes
       type: "plant::ExtrinsicDrivers"
       access: field
-      
