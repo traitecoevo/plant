@@ -24,7 +24,13 @@ test_that("Defaults", {
 
     schedule_nsteps   = 20, # size_t
     schedule_eps      = 1e-3,
-    schedule_verbose  = FALSE
+    schedule_verbose  = FALSE,
+    
+    newton_tol_abs = 1e-3,
+    GSS_tol_abs = 1e-3,
+    vulnerability_curve_ncontrol = 1e2,
+    ci_abs_tol = 1e-3,
+    ci_niter = 1000
   )
 
   keys <- sort(names(expected))
