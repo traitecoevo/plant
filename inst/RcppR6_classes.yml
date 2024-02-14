@@ -1233,6 +1233,13 @@ TF24_Environment:
     args:
       - light_availability_spline_rescale_usually: bool
       - soil_number_of_depths: int
+      - delta_z: double
+      - soil_moist_sat: double
+      - K_sat: double
+      - a_psi: double
+      - n_psi: double
+      - b_infil: double
+
     roxygen: |
       TF24_Environment object
       @param  light_availability_spline_rescale_usually whether to rescale intervals when estimating light environment

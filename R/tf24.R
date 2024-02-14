@@ -74,16 +74,63 @@ TF24_StochasticPatchRunner <- function(p) {
 TF24_make_environment <- function(light_availability_spline_tol = 1e-4, 
                                   light_availability_spline_nbase = 17,
                                   light_availability_spline_max_depth = 16, 
-                                  light_availability_spline_rescale_usually = TRUE) {
+                                  light_availability_spline_rescale_usually = TRUE,
+                                  soil_number_of_depths = 1,
+                                  soil_initial_state = 0.25,
+                                  rainfall = 1,
+                                  atm_vpd = 1,
+                                  ca = 40,
+                                  leaf_temp = 25,
+                                  atm_o2_kpa = 21,
+                                  atm_kpa = 100.5,
+                                  delta_z = 0.1,
+                                  soil_moist_sat = 0.453,
+                                  K_sat = 440.628,
+                                  a_psi = 8.7,
+                                  n_psi = 4.8,
+                                  b_infil = 8) {
   
   e <- TF24_Environment(light_availability_spline_rescale_usually, 
-                        soil_number_of_depths = 0)
+                        soil_number_of_depths = soil_number_of_depths, 
+                        delta_z = delta_z,
+                        soil_moist_sat = soil_moist_sat,
+                        K_sat = K_sat,
+                        a_psi = a_psi,
+                        n_psi = n_psi,
+                        b_infil = b_infil)
   
   # Shading defaults have lower tolerance which are overwritten for speed
   e$light_availability <- ResourceSpline(light_availability_spline_tol, 
                      light_availability_spline_nbase, 
                      light_availability_spline_max_depth, 
                      light_availability_spline_rescale_usually)
+  
+  # there might be a better way to skip this if using defaults
+  if(sum(soil_initial_state) > 0.0) {
+    if(soil_number_of_depths != length(soil_initial_state))
+      stop("Not enough starting points for all layers")
+    
+    e$set_soil_water_state(soil_initial_state)
+  }
+  
+  drivers <- ExtrinsicDrivers()
+  
+  drivers_args <- list(atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp, atm_o2_kpa = atm_o2_kpa, atm_kpa = atm_kpa, rainfall = rainfall)   
+  
+  add_driver <- function(drivers_arg, driver_name){
+    
+    if (is.list(drivers_arg)){
+      drivers$set_variable(driver_name, drivers_arg$x, drivers_arg$y)
+    } else if (is.numeric(drivers_arg)) {
+      drivers$set_constant(driver_name, drivers_arg)
+      drivers$set_extrapolate(driver_name, FALSE)
+    }else {
+      stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
+    }
+  }
+  purrr::imap(drivers_args, ~add_driver(.x, .y))
+  
+  e$extrinsic_drivers <- drivers
   
   return(e)
 }

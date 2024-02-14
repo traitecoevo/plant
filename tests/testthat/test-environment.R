@@ -48,7 +48,7 @@ test_that("FF16 rainfall spline", {
   
   env <- make_environment("TF24")
   # get list of extrinsic drivers for the environment
-  expect_equal(env$extrinsic_drivers$get_names(), c("rainfall"))
+  expect_equal(env$extrinsic_drivers$get_names(), c("rainfall", "leaf_temp","atm_o2_kpa", "atm_kpa", "ca", "atm_vpd"))
   
   # test extrapolation on default spline of y = 1
   expect_equal(env$extrinsic_drivers$evaluate("rainfall", 100), 1)
