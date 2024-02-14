@@ -182,6 +182,28 @@ return K;
     }
   }
 
+
+double get_atm_vpd() const {
+    return extrinsic_drivers.evaluate("atm_vpd", time);
+  }
+
+double get_ca() const {
+    return extrinsic_drivers.evaluate("ca", time);
+  }
+
+double get_leaf_temp() const {
+    return extrinsic_drivers.evaluate("leaf_temp", time);
+  }
+
+double get_atm_o2_kpa() const {
+    return extrinsic_drivers.evaluate("atm_o2_kpa", time);
+  } 
+
+double get_atm_kpa() const {
+    return extrinsic_drivers.evaluate("atm_kpa", time);
+  } 
+
+
   // Pre-compute resources available in the environment, as a function of height
   template <typename Function>
   void compute_environment(Function f_compute_competition, double height_max, bool rescale) {
