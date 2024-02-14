@@ -22,6 +22,9 @@ public:
   std::vector<double> mortality_rate_y = {1.0};
   bool is_variable_mortality_rate = false;
 
+  // add size threshold
+  double growth_independent_mortality_size_threshold = 1.2;
+
   // Overloads ----------------------------------------------
   virtual void compute_rates(const FF16_Environment& environment, bool reuse_intervals,
                               Internals& vars);
@@ -30,8 +33,8 @@ public:
                                         double height, double area_leaf_, double time,
                                         bool reuse_intervals=false);
 
-  virtual double mortality_dt(double productivity_area, double cumulative_mortality, double time, double height) const;
-  virtual double mortality_growth_independent_dt(double time, double height) const;
+  virtual double mortality_dt(double productivity_area, double cumulative_mortality, double time, double height, double threshold) const;
+  virtual double mortality_growth_independent_dt(double time, double height, double threshold) const;
   
   virtual double establishment_probability(const FF16_Environment& environment);
 

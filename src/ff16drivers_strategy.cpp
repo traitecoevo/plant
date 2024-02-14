@@ -54,7 +54,8 @@ void FF16drivers_Strategy::compute_rates(const FF16_Environment& environment,
       mortality_dt(net_mass_production_dt_ / area_leaf_, 
                   vars.state(MORTALITY_INDEX), 
                   environment.time, 
-                  vars.state(HEIGHT_INDEX)));
+                  vars.state(HEIGHT_INDEX),
+                  growth_independent_mortality_size_threshold));
 }
 
 // One shot calculation of net_mass_production_dt
@@ -86,7 +87,7 @@ double FF16drivers_Strategy::net_mass_production_dt(const FF16_Environment& envi
 
 double FF16drivers_Strategy::mortality_dt(double productivity_area,
                                    double cumulative_mortality,
-                                   double time, double height) const {
+                                   double time, double height, double threshold) const {
 
   // NOTE: When plants are extremely inviable, the rate of change in
   // mortality can be Inf, because net production is negative, leaf
@@ -97,7 +98,7 @@ double FF16drivers_Strategy::mortality_dt(double productivity_area,
   // now, just checking that the actual mortality rate is finite.
   if (R_FINITE(cumulative_mortality)) {
     return
-      mortality_growth_independent_dt(time, height) +
+      mortality_growth_independent_dt(time, height, threshold) +
       mortality_growth_dependent_dt(productivity_area);
  } else {
     // If mortality probability is 1 (latency = Inf) then the rate
@@ -107,10 +108,10 @@ double FF16drivers_Strategy::mortality_dt(double productivity_area,
   }
 }
 
-double FF16drivers_Strategy::mortality_growth_independent_dt(double time, double height) const {
+double FF16drivers_Strategy::mortality_growth_independent_dt(double time, double height, double threshold) const {
   double temp;
 
-  temp = (height < 1.2) ? 
+  temp = (height < threshold) ? 
     extrinsic_drivers.evaluate("growth_independent_mortality_multiplier", time) :
     1.0;
 

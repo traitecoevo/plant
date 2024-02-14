@@ -978,6 +978,7 @@ FF16drivers_Strategy:
     - mortality_rate_x: std::vector<double>
     - mortality_rate_y: std::vector<double>
     - is_variable_mortality_rate: bool
+    - growth_independent_mortality_size_threshold: double
 
 # The following strategy was built from FF16 on Wed Aug 12 11:12:34 2020
 FF16r_Strategy:
