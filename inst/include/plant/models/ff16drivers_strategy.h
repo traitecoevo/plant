@@ -30,8 +30,8 @@ public:
                                         double height, double area_leaf_, double time,
                                         bool reuse_intervals=false);
 
-  virtual double mortality_dt(double productivity_area, double cumulative_mortality, double time) const;
-  virtual double mortality_growth_independent_dt(double time) const;
+  virtual double mortality_dt(double productivity_area, double cumulative_mortality, double time, double height) const;
+  virtual double mortality_growth_independent_dt(double time, double height) const;
   
   virtual double establishment_probability(const FF16_Environment& environment);
 

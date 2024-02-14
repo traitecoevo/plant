@@ -51,7 +51,10 @@ void FF16drivers_Strategy::compute_rates(const FF16_Environment& environment,
   }
   // [eqn 21] - Instantaneous mortality rate
   vars.set_rate(MORTALITY_INDEX,
-      mortality_dt(net_mass_production_dt_ / area_leaf_, vars.state(MORTALITY_INDEX), environment.time));
+      mortality_dt(net_mass_production_dt_ / area_leaf_, 
+                  vars.state(MORTALITY_INDEX), 
+                  environment.time, 
+                  vars.state(HEIGHT_INDEX)));
 }
 
 // One shot calculation of net_mass_production_dt
@@ -83,7 +86,7 @@ double FF16drivers_Strategy::net_mass_production_dt(const FF16_Environment& envi
 
 double FF16drivers_Strategy::mortality_dt(double productivity_area,
                                    double cumulative_mortality,
-                                   double time) const {
+                                   double time, double height) const {
 
   // NOTE: When plants are extremely inviable, the rate of change in
   // mortality can be Inf, because net production is negative, leaf
@@ -94,7 +97,7 @@ double FF16drivers_Strategy::mortality_dt(double productivity_area,
   // now, just checking that the actual mortality rate is finite.
   if (R_FINITE(cumulative_mortality)) {
     return
-      mortality_growth_independent_dt(time) +
+      mortality_growth_independent_dt(time, height) +
       mortality_growth_dependent_dt(productivity_area);
  } else {
     // If mortality probability is 1 (latency = Inf) then the rate
@@ -104,8 +107,14 @@ double FF16drivers_Strategy::mortality_dt(double productivity_area,
   }
 }
 
-double FF16drivers_Strategy::mortality_growth_independent_dt(double time) const {
-  return d_I * extrinsic_drivers.evaluate("growth_independent_mortality_multiplier", time);
+double FF16drivers_Strategy::mortality_growth_independent_dt(double time, double height) const {
+  double temp;
+
+  temp = (height < 1.2) ? 
+    extrinsic_drivers.evaluate("growth_independent_mortality_multiplier", time) :
+    1.0;
+
+  return d_I * temp;
 }
 
 // [eqn 20] Survival of seedlings during establishment
