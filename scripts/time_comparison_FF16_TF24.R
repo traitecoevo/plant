@@ -52,6 +52,10 @@ p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, TF24_hyperpar,
 
 system.time(out <- run_scm_collect(p1, env, ctrl))
 
+out$env %>% tidy_env %>% purrr::pluck("soil_moist") %>% dplyr::mutate(depth = rep(seq(0.1,1,length.out = 10), 61)) %>%
+  ggplot(aes(y = soil_moist, x = -depth, group = step)) + geom_line() 
+
+
 ##TF24 - 100 depths - small time decrease? 14.987
 
 p0 <- scm_base_parameters("TF24")
