@@ -181,7 +181,7 @@ test_that("narea calculation", {
 test_that("offspring arrival", {
 
   p0 <- scm_base_parameters("TF24")
-  env <- make_environment("TF24", soil_number_of_depths = 2)
+  env <- make_environment("TF24", soil_number_of_depths = 1)
   ctrl <- scm_base_control()
   
   # one species
