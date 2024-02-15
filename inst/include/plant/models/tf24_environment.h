@@ -142,7 +142,7 @@ public:
 
 
       vars.set_rate(i, dtheta_dt);
-    std::cout << " \n start step soil moist: " << vars.state(0) <<  "\t q0:\t" << q[0] << "\t outflow: \t"<< q[n] << " dq_dz: " <<  dq_dz << " dtheta_dt: " <<  dtheta_dt << " delta_z: "  << delta_z << "resource_depletion" << resource_depletion[i] << std::endl;
+    // std::cout << " \n start step soil moist: " << vars.state(0) <<  "\t q0:\t" << q[0] << "\t outflow: \t"<< q[n] << " dq_dz: " <<  dq_dz << " dtheta_dt: " <<  dtheta_dt << " delta_z: "  << delta_z << "resource_depletion" << resource_depletion[i] << std::endl;
 
       // std::cout << " \n i: " << i<< " var_state_i: " << vars.state(i) <<  " var_state_i+1: " << vars.state(i + 1) << " dq_dz: " <<  dq_dz << " dtheta_dt: " <<  dtheta_dt << " delta_z: "  << delta_z  << " dtheta_dt_sum: "  << dtheta_dt_sum  << " resource: "   << resource_depletion_sum <<  std::endl;
 
