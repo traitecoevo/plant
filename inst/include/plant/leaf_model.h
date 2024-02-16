@@ -88,7 +88,6 @@ public:
        double a, 
        double curv_fact_elec_trans, 
        double curv_fact_colim,
-       double newton_tol_abs, 
        double GSS_tol_abs,
        double vulnerability_curve_ncontrol,
        double ci_abs_tol,
@@ -111,7 +110,6 @@ public:
   double a;
   double curv_fact_elec_trans; // unitless - obtained from Smith and Keenan (2020)
   double curv_fact_colim;
-  double newton_tol_abs; //actually a control paramaeter and needs to be moved
   double GSS_tol_abs;
   double vulnerability_curve_ncontrol;
   double ci_abs_tol;
@@ -233,7 +231,6 @@ public:
   void optimise_ci_Sperry(double ci_guess);
   void optimise_psi_stem_Bartlett();
   void optimise_psi_stem_TF();
-  void optimise_psi_stem_TF_newton(double psi_guess);
 
 };
 } // namespace plant

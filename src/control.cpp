@@ -30,7 +30,6 @@ Control::Control() {
 
   save_RK45_cache = false;
 
-  newton_tol_abs = 1e-3;
   GSS_tol_abs = 1e-3;
   vulnerability_curve_ncontrol = 1e2;
   ci_abs_tol = 1e-3;

@@ -13,7 +13,6 @@ Leaf:
       - a: double
       - curv_fact_elec_trans: double
       - curv_fact_colim: double     
-      - newton_tol_abs: double
       - GSS_tol_abs: double
       - vulnerability_curve_ncontrol: double
       - ci_abs_tol: double
@@ -152,9 +151,6 @@ Leaf:
     optimise_psi_stem_TF:
       return_type: void
       args: []
-    optimise_psi_stem_TF_newton:
-      return_type: void
-      args: [psi_guess: double]
       
 Lorenz:
   name_cpp: "plant::ode::test::Lorenz"
@@ -281,7 +277,6 @@ Control:
     - schedule_eps: double
     - schedule_verbose: bool
     - save_RK45_cache: bool
-    - newton_tol_abs: double
     - GSS_tol_abs: double
     - vulnerability_curve_ncontrol: double
     - ci_abs_tol: double

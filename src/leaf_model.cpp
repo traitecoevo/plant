@@ -15,7 +15,6 @@ Leaf::Leaf()
     a(0.30), //quantum yield of photosynthetic electron transport (mol mol^-1)
     curv_fact_elec_trans(0.7), //curvature factor for the light response curve (unitless)
     curv_fact_colim(0.99), //curvature factor for the colimited photosythnthesis equatiom
-    newton_tol_abs(1e-3),
     GSS_tol_abs(1e-3),
     vulnerability_curve_ncontrol(100),
     ci_abs_tol(1e-3),
@@ -29,7 +28,6 @@ Leaf::Leaf(double vcmax_25, double c, double b,
            double psi_crit, // derived from b and c,
            double beta1, double beta2, double jmax_25, double hk_s,
            double a, double curv_fact_elec_trans, double curv_fact_colim, 
-           double newton_tol_abs,
            double GSS_tol_abs,
            double vulnerability_curve_ncontrol,
            double ci_abs_tol,
@@ -45,7 +43,6 @@ Leaf::Leaf(double vcmax_25, double c, double b,
     a(a), //quantum yield of photosynthetic electron transport (mol mol^-1)
     curv_fact_elec_trans(curv_fact_elec_trans), //curvature factor for the light response curve (unitless)
     curv_fact_colim(curv_fact_colim), //curvature factor for the colimited photosythnthesis equation
-    newton_tol_abs(newton_tol_abs),
     GSS_tol_abs(GSS_tol_abs),
     vulnerability_curve_ncontrol(vulnerability_curve_ncontrol),
     ci_abs_tol(ci_abs_tol),
@@ -649,88 +646,6 @@ void Leaf::optimise_psi_stem_TF() {
 
     opt_psi_stem_ = ((bound_b + bound_a) / 2);
     profit_ = profit_psi_stem_TF(opt_psi_stem_);
-
-    return;
-  }
-
-
-
-void Leaf::optimise_psi_stem_TF_newton(double psi_guess) {
-
-
-  double x_1, x_2, y_0, y_1, y_2, first_dev, sec_dev;
-
-  // Early exit -- XXXX 
-  if (psi_soil_ > psi_crit){
-    profit_ = profit_psi_stem_TF(psi_soil_);
-    return;
-  }
-
-  // optimise for stem water potential
-  double diff_value = 0.01; 
-  // TODO: rename as delta_ci
-  
-  
-  double psi_stem_initial;
-
-  int unfinished=1; 
-
-  opt_psi_stem_ = psi_guess;
-// add in the max ci
-  if (R_IsNA(opt_psi_stem_)){
-  set_leaf_states_rates_from_psi_stem(psi_crit);
-
-  opt_psi_stem_ = psi_crit - diff_value;
-
-  }
-
-  while(unfinished == 1){
-
-  if (R_IsNA(opt_psi_stem_) | (opt_psi_stem_ > psi_crit)){
-
-  opt_psi_stem_ = psi_crit - diff_value;
-
-  }
-
-  if (R_IsNA(opt_psi_stem_) | (opt_psi_stem_ < psi_soil_)){
-
-  opt_psi_stem_ = psi_soil_ + diff_value;
-
-  }
-
-    psi_stem_initial = opt_psi_stem_;
-    
-    if (!util::is_finite(opt_psi_stem_)) {
-      util::stop("Detected NAN ci value");
-    }
-
-    x_1 = psi_stem_initial - diff_value;
-    x_2 = psi_stem_initial + diff_value;
-
-
-
-    y_2 = profit_psi_stem_TF(x_2);
-
-    y_1 = profit_psi_stem_TF(x_1);
-
-    y_0 = profit_psi_stem_TF(psi_stem_initial);
-
-
-    first_dev = (y_2 - y_1)/(2*diff_value);
-    sec_dev = (y_2 - 2*y_0 + y_1)/pow(diff_value, 2);
-
-    opt_psi_stem_ = psi_stem_initial -  first_dev/sec_dev;
-
-
-
-
-    if(abs(opt_psi_stem_ - psi_stem_initial) < (newton_tol_abs)){
-     
-      unfinished = 0;
-    }
-
-    profit_ = y_0;
-  }
 
     return;
   }
