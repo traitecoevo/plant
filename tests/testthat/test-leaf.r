@@ -150,9 +150,7 @@ test_that("Basic functions", {
   expect_equal(l$hydraulic_cost_Sperry(psi_soil) == 0, TRUE)
   expect_equal(l$hydraulic_cost_TF(psi_soil) > 0, TRUE)
   
-  #for situations where psi stem is greater than psi soil
-  l$set_leaf_states_rates_from_psi_stem_analytical(psi_soil + 1)
-  
+
   #assimilation becomes greater than 0 
   expect_equal(l$assim_colimited_ >0, TRUE)
   #stomatal conductance becomes greater than 0 

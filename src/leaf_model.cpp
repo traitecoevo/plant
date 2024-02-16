@@ -238,17 +238,6 @@ double Leaf::assim_colimited(double ci_) {
 
 }
 
-// returns co-limited assimilation based only on light-limited transport rate and empirically-parameterised smothing term, returns umol m^-2 s^-1
-double Leaf::assim_colimited_analytical(double ci_) {
-
-  double c2 = 13.13652;
-
-  // no dark respiration included at the moment
-  
-  return electron_transport_ / 4 *
-         ((ci_ - gamma_ * umol_per_mol_to_Pa) /
-          (ci_ + c2));
-}
 
 // A - gc curves
 
@@ -293,37 +282,6 @@ void Leaf::set_leaf_states_rates_from_psi_stem(double psi_stem) {
 
 }
 
-//this set of equations can make values greater than 40 (ca) when PPFD is extremely low
-double Leaf::psi_stem_to_ci_analytical(double psi_stem) {
-
-    stom_cond_CO2_ = stom_cond_CO2(psi_stem);
-    double c2 = 13.13652;
-        
-    double first_term = 8 * electron_transport_ * umol_to_mol * (atm_kpa_*kPa_to_Pa) * stom_cond_CO2_ * (-ca_ + c2 + 2 * gamma_ * umol_per_mol_to_Pa);
-    double second_term = 16 * pow(stom_cond_CO2_, 2);
-    double third_term = pow((ca_ + c2),2);
-    double fourth_term = pow(electron_transport_, 2) * pow(umol_to_mol,2) * pow(atm_kpa_*kPa_to_Pa, 2);
-    double fifth_term = 4*ca_*stom_cond_CO2_;
-    double sixth_term = 4*c2*stom_cond_CO2_;
-    double seventh_term = electron_transport_*umol_to_mol*(atm_kpa_*kPa_to_Pa);
-    double eigth_term = 8*stom_cond_CO2_;
-
-    return ci_ = (sqrt(first_term + second_term*third_term+ fourth_term) + fifth_term - sixth_term - seventh_term)/eigth_term;    
-}
-
-void Leaf::set_leaf_states_rates_from_psi_stem_analytical(double psi_stem) {
-
-if (psi_soil_ >= psi_stem){
-    stom_cond_CO2_ = 0;
-    ci_ = gamma_*umol_per_mol_to_Pa;
-      } else{
-        psi_stem_to_ci_analytical(psi_stem);
-    }
-
-    assim_colimited_ = assim_colimited_analytical(ci_);    
-
-    transpiration_ = stom_cond_CO2_ * H2O_CO2_stom_diff_ratio * atm_vpd / kg_to_mol_h2o / atm_kpa_;   
-}
 
 // Hydraulic cost equations
 
@@ -385,26 +343,6 @@ set_leaf_states_rates_from_psi_stem(psi_stem);
   return benefit_ - hydraulic_cost_;
 }
 
-double Leaf::profit_psi_stem_Bartlett_analytical(double psi_stem) {
-
-set_leaf_states_rates_from_psi_stem_analytical(psi_stem);
-  double benefit_ = assim_colimited_;
-  double hydraulic_cost_ = hydraulic_cost_Bartlett(psi_stem);
-
-  return benefit_ - hydraulic_cost_;
-}
-
-
-double Leaf::profit_psi_stem_Sperry_analytical(double psi_stem) {
-
-  set_leaf_states_rates_from_psi_stem_analytical(psi_stem);
-
-  double benefit_ = assim_colimited_;
-  double hydraulic_cost_ = hydraulic_cost_Sperry(psi_stem);
-
-  return benefit_ - lambda_analytical_ * hydraulic_cost_;
-}
-
 double Leaf::profit_Sperry_ci(double ci_) {                                  
   double benefit_ =
       assim_colimited(ci_);
@@ -416,20 +354,6 @@ double Leaf::profit_Sperry_ci(double ci_) {
 
   return benefit_ - lambda_*hydraulic_cost_;
 }
-
-double Leaf::profit_Sperry_ci_analytical(double ci_) {                                  
-  double benefit_ =
-      assim_colimited_analytical(ci_);
-
-  double stom_cond_CO2_ = (benefit_ * umol_to_mol * atm_kpa_ * kPa_to_Pa)/(ca_ - ci_); 
-  transpiration_ = stom_cond_CO2_ * H2O_CO2_stom_diff_ratio * atm_vpd_ / kg_to_mol_h2o / atm_kpa_;  
-
-  double psi_stem = transpiration_to_psi_stem(transpiration_);
-  double hydraulic_cost_ = hydraulic_cost_Sperry(psi_stem);
-
-  return benefit_ - lambda_analytical_*hydraulic_cost_;
-}
-
 
 //optimisation functions
 
@@ -478,49 +402,6 @@ void Leaf::optimise_psi_stem_Sperry() {
 
   }
   
-void Leaf::optimise_psi_stem_Sperry_analytical() {
-
-  double gr = (sqrt(5) + 1) / 2;
-  opt_psi_stem_ = psi_soil_;
-
-
-  if (psi_soil_ > psi_crit){
-    profit_ = 0;
-    transpiration_ = 0;
-    stom_cond_CO2_ = 0;    
-    return;  
-    }
-
-  // optimise for stem water potential
-    double bound_a = psi_soil_;
-    double bound_b = psi_crit;
-
-    double bound_c = bound_b - (bound_b - bound_a) / gr;
-    double bound_d = bound_a + (bound_b - bound_a) / gr;
-
-    while (abs(bound_b - bound_a) > GSS_tol_abs) {
-
-      double profit_at_c =
-          profit_psi_stem_Sperry_analytical(bound_c);
-
-      double profit_at_d =
-          profit_psi_stem_Sperry_analytical(bound_d);
-
-      if (profit_at_c > profit_at_d) {
-        bound_b = bound_d;
-      } else {
-        bound_a = bound_c;
-      }
-
-      bound_c = bound_b - (bound_b - bound_a) / gr;
-      bound_d = bound_a + (bound_b - bound_a) / gr;
-    }
-
-
-    opt_psi_stem_ = ((bound_b + bound_a) / 2);
-    profit_ = profit_psi_stem_Sperry_analytical(opt_psi_stem_);
-
-  }
 
 void Leaf::optimise_ci_Sperry(double max_ci) {
 

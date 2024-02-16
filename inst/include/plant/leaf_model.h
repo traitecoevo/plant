@@ -204,10 +204,7 @@ public:
   double electron_transport();
   double assim_electron_limited(double ci_);
   double assim_colimited(double ci_);
-  double assim_colimited_analytical(double ci_);
   double assim_minus_stom_cond_CO2(double x, double psi_stem);
-  double psi_stem_to_ci_analytical(double psi_stem);
-  void set_leaf_states_rates_from_psi_stem_analytical(double psi_stem);
   double psi_stem_to_ci(double psi_stem);
   void set_leaf_states_rates_from_psi_stem(double psi_stem);
 
@@ -217,17 +214,13 @@ public:
   double hydraulic_cost_Sperry(double psi_stem);
   double hydraulic_cost_TF(double psi_stem);
   double profit_psi_stem_Bartlett(double psi_stem);
-  double profit_psi_stem_Bartlett_analytical(double psi_stem);
 
   double profit_psi_stem_Sperry(double psi_stem);
-  double profit_psi_stem_Sperry_analytical(double psi_stem);
   double profit_Sperry_ci(double ci_);
-  double profit_Sperry_ci_analytical(double ci_);
   double profit_psi_stem_TF(double psi_stem);
 
 // optimiser functions
   void optimise_psi_stem_Sperry();
-  void optimise_psi_stem_Sperry_analytical();
   void optimise_ci_Sperry(double ci_guess);
   void optimise_psi_stem_Bartlett();
   void optimise_psi_stem_TF();

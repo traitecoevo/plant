@@ -95,19 +95,10 @@ Leaf:
     electron_transport:
       return_type: double
       args: []      
-    assim_colimited_analytical:
-      return_type: double
-      args: [ci_: double]  
     set_leaf_states_rates_from_psi_stem:
       return_type: void
       args: [psi_stem: double]
-    set_leaf_states_rates_from_psi_stem_analytical:
-      return_type: void
-      args: [psi_stem: double]
     psi_stem_to_ci:
-      return_type: double
-      args: [psi_stem: double]
-    psi_stem_to_ci_analytical:
       return_type: double
       args: [psi_stem: double]
     #leaf economics functions
@@ -125,10 +116,7 @@ Leaf:
       args: [psi_stem: double]
     profit_Sperry_ci:
       return_type: double
-      args: [ci_: double]
-    profit_psi_stem_Sperry_analytical:
-      return_type: double
-      args: [psi_stem: double]  
+      args: [ci_: double] 
     profit_psi_stem_Bartlett:
       return_type: double
       args: [psi_stem: double]
@@ -137,9 +125,6 @@ Leaf:
       args: [psi_stem: double]
       # optimiser functions
     optimise_psi_stem_Sperry:
-      return_type: void
-      args: []
-    optimise_psi_stem_Sperry_analytical:
       return_type: void
       args: []
     optimise_ci_Sperry:
