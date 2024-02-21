@@ -68,3 +68,145 @@ p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, TF24_hyperpar,
                         birth_rate_list = list(20))
 
 system.time(out <- run_scm_collect(p1, env, ctrl))
+
+##below is only relevant when unique TF24 strategy is present in model
+
+##TF24 - 1 depths - with strategy 10.390s with patchlife 0.001
+
+p0 <- scm_base_parameters("TF24")
+p0$max_patch_lifetime <- 0.01
+env <- make_environment("TF24", soil_number_of_depths = 1)
+ctrl <- scm_base_control()
+
+# one species
+p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, TF24_hyperpar, 
+                        birth_rate_list = list(20))
+
+system.time(out <- run_scm_collect(p1, env, ctrl))
+
+
+######below I am manually re-adding components to the TF24 strategy to test speed issues
+##TF24 - 1 depths - with unique aspects of strategy basically removed, 2 seconds at patchlife of 0.1
+
+p0 <- scm_base_parameters("TF24")
+p0$max_patch_lifetime <- 0.1 
+env <- make_environment("TF24", soil_number_of_depths = 1)
+ctrl <- scm_base_control()
+
+# one species
+p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, TF24_hyperpar, 
+                        birth_rate_list = list(20))
+
+system.time(out <- run_scm_collect(p1, env, ctrl))
+
+
+##TF24 - 1 depths - with average_light_environment integrated, 4.3 seconds at patchlife of 0.1
+
+p0 <- scm_base_parameters("TF24")
+p0$max_patch_lifetime <- 0.1 
+env <- make_environment("TF24", soil_number_of_depths = 1)
+ctrl <- scm_base_control()
+
+# one species
+p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, TF24_hyperpar, 
+                        birth_rate_list = list(20))
+
+system.time(out <- run_scm_collect(p1, env, ctrl))
+
+
+##TF24 - 1 depths - with get soil water state and compute root frac per layer included, 4.1 seconds at patchlife of 0.1
+
+p0 <- scm_base_parameters("TF24")
+p0$max_patch_lifetime <- 0.1 
+env <- make_environment("TF24", soil_number_of_depths = 1)
+ctrl <- scm_base_control()
+
+# one species
+p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, TF24_hyperpar, 
+                        birth_rate_list = list(20))
+
+system.time(out <- run_scm_collect(p1, env, ctrl))
+
+
+##TF24 - 1 depths - with average soil moist-root frac loop included, 3.9 seconds at patchlife of 0.1
+
+p0 <- scm_base_parameters("TF24")
+p0$max_patch_lifetime <- 0.1 
+env <- make_environment("TF24", soil_number_of_depths = 1)
+ctrl <- scm_base_control()
+
+# one species
+p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, TF24_hyperpar, 
+                        birth_rate_list = list(20))
+
+system.time(out <- run_scm_collect(p1, env, ctrl))
+
+
+##TF24 - 1 depths - with get psi from soil moist, 4.044 seconds at patchlife of 0.1
+
+p0 <- scm_base_parameters("TF24")
+p0$max_patch_lifetime <- 0.1 
+env <- make_environment("TF24", soil_number_of_depths = 1)
+ctrl <- scm_base_control()
+
+# one species
+p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, TF24_hyperpar, 
+                        birth_rate_list = list(20))
+
+system.time(out <- run_scm_collect(p1, env, ctrl))
+
+
+
+##TF24 - 1 depths - with set physiology, 4.890 seconds at patchlife of 0.1
+
+p0 <- scm_base_parameters("TF24")
+p0$max_patch_lifetime <- 0.1 
+env <- make_environment("TF24", soil_number_of_depths = 1)
+ctrl <- scm_base_control()
+
+# one species
+p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, TF24_hyperpar, 
+                        birth_rate_list = list(20))
+
+system.time(out <- run_scm_collect(p1, env, ctrl))
+
+##TF24 - 1 depths - with set physiology, 6.397 seconds at patchlife of 0.1
+
+p0 <- scm_base_parameters("TF24")
+p0$max_patch_lifetime <- 0.1 
+env <- make_environment("TF24", soil_number_of_depths = 1)
+ctrl <- scm_base_control()
+
+# one species
+p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, TF24_hyperpar, 
+                        birth_rate_list = list(20))
+
+system.time(out <- run_scm_collect(p1, env, ctrl))
+
+
+##TF24 - 1 depths - assimilation fixed 1.129 secs
+
+p0 <- scm_base_parameters("TF24")
+p0$max_patch_lifetime <- 0.025
+env <- make_environment("TF24", soil_number_of_depths = 1)
+ctrl <- scm_base_control()
+
+# one species
+p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, TF24_hyperpar, 
+                        birth_rate_list = list(20))
+
+system.time(out <- run_scm_collect(p1, env, ctrl))
+
+##TF24 - 1 depths - assimilation fixed 50.998 secs
+
+p0 <- scm_base_parameters("TF24")
+p0$max_patch_lifetime <- 0.001
+env <- make_environment("TF24", soil_number_of_depths = 1)
+ctrl <- scm_base_control()
+
+# one species
+p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, TF24_hyperpar, 
+                        birth_rate_list = list(20))
+
+system.time(out <- run_scm_collect(p1, env, ctrl))
+
