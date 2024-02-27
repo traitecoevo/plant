@@ -242,7 +242,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   const double respiration_ =
     respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
   const double turnover_ =
-    turnover(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
+    turnover(mass_leaf_, mass_bark_, mass_sapwood_, mass_root_);
   return net_mass_production_dt_A(assimilation_, respiration_, turnover_);
 }
 
