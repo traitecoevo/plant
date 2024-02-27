@@ -1280,10 +1280,13 @@ template <> inline SEXP wrap(const plant::FF16drivers_Strategy& x) {
   ret["growth_rate_x"] = Rcpp::wrap(x.growth_rate_x);
   ret["growth_rate_y"] = Rcpp::wrap(x.growth_rate_y);
   ret["is_variable_growth_rate"] = Rcpp::wrap(x.is_variable_growth_rate);
+  ret["herbivory_rate_x"] = Rcpp::wrap(x.herbivory_rate_x);
+  ret["herbivory_rate_y"] = Rcpp::wrap(x.herbivory_rate_y);
+  ret["is_variable_herbivory_rate"] = Rcpp::wrap(x.is_variable_herbivory_rate);
   ret["mortality_rate_x"] = Rcpp::wrap(x.mortality_rate_x);
   ret["mortality_rate_y"] = Rcpp::wrap(x.mortality_rate_y);
   ret["is_variable_mortality_rate"] = Rcpp::wrap(x.is_variable_mortality_rate);
-  ret["growth_independent_mortality_size_threshold"] = Rcpp::wrap(x.growth_independent_mortality_size_threshold);
+  ret["herbivory_size_threshold"] = Rcpp::wrap(x.herbivory_size_threshold);
   ret.attr("class") = "FF16drivers_Strategy";
   return ret;
 }
@@ -1376,14 +1379,20 @@ template <> inline plant::FF16drivers_Strategy as(SEXP x) {
   ret.growth_rate_y = Rcpp::as<std::vector<double> >(xl["growth_rate_y"]);
   // ret.is_variable_growth_rate = Rcpp::as<decltype(retis_variable_growth_rate) >(xl["is_variable_growth_rate"]);
   ret.is_variable_growth_rate = Rcpp::as<bool >(xl["is_variable_growth_rate"]);
+  // ret.herbivory_rate_x = Rcpp::as<decltype(retherbivory_rate_x) >(xl["herbivory_rate_x"]);
+  ret.herbivory_rate_x = Rcpp::as<std::vector<double> >(xl["herbivory_rate_x"]);
+  // ret.herbivory_rate_y = Rcpp::as<decltype(retherbivory_rate_y) >(xl["herbivory_rate_y"]);
+  ret.herbivory_rate_y = Rcpp::as<std::vector<double> >(xl["herbivory_rate_y"]);
+  // ret.is_variable_herbivory_rate = Rcpp::as<decltype(retis_variable_herbivory_rate) >(xl["is_variable_herbivory_rate"]);
+  ret.is_variable_herbivory_rate = Rcpp::as<bool >(xl["is_variable_herbivory_rate"]);
   // ret.mortality_rate_x = Rcpp::as<decltype(retmortality_rate_x) >(xl["mortality_rate_x"]);
   ret.mortality_rate_x = Rcpp::as<std::vector<double> >(xl["mortality_rate_x"]);
   // ret.mortality_rate_y = Rcpp::as<decltype(retmortality_rate_y) >(xl["mortality_rate_y"]);
   ret.mortality_rate_y = Rcpp::as<std::vector<double> >(xl["mortality_rate_y"]);
   // ret.is_variable_mortality_rate = Rcpp::as<decltype(retis_variable_mortality_rate) >(xl["is_variable_mortality_rate"]);
   ret.is_variable_mortality_rate = Rcpp::as<bool >(xl["is_variable_mortality_rate"]);
-  // ret.growth_independent_mortality_size_threshold = Rcpp::as<decltype(retgrowth_independent_mortality_size_threshold) >(xl["growth_independent_mortality_size_threshold"]);
-  ret.growth_independent_mortality_size_threshold = Rcpp::as<double >(xl["growth_independent_mortality_size_threshold"]);
+  // ret.herbivory_size_threshold = Rcpp::as<decltype(retherbivory_size_threshold) >(xl["herbivory_size_threshold"]);
+  ret.herbivory_size_threshold = Rcpp::as<double >(xl["herbivory_size_threshold"]);
   return ret;
 }
 template <> inline SEXP wrap(const plant::FF16r_Strategy& x) {

@@ -18,8 +18,8 @@ void FF16drivers_Strategy::compute_rates(const FF16_Environment& environment,
   double height = vars.state(HEIGHT_INDEX);
   double area_leaf_ = vars.aux(aux_index.at("competition_effect"));
 
-  const double net_mass_production_dt_ =
-    net_mass_production_dt(environment, height, area_leaf_, environment.time, reuse_intervals);
+  const double net_mass_production_dt_ = 
+    net_mass_production_dt(environment, height, area_leaf_, environment.time, reuse_intervals, herbivory_size_threshold);
 
   // store the aux sate
   vars.set_aux(aux_index.at("net_mass_production_dt"), net_mass_production_dt_);
@@ -55,14 +55,14 @@ void FF16drivers_Strategy::compute_rates(const FF16_Environment& environment,
                   vars.state(MORTALITY_INDEX), 
                   environment.time, 
                   vars.state(HEIGHT_INDEX),
-                  growth_independent_mortality_size_threshold));
+                  herbivory_size_threshold));
 }
 
 // One shot calculation of net_mass_production_dt
 // Used by establishment_probability() and compute_rates().
 double FF16drivers_Strategy::net_mass_production_dt(const FF16_Environment& environment,
-                                              double height, double area_leaf_, double time,
-                                              bool reuse_intervals) {
+                                                    double height, double area_leaf_, double time,
+                                                    bool reuse_intervals, double threshold) {
 
   const double mass_leaf_    = mass_leaf(area_leaf_);
   const double area_sapwood_ = area_sapwood(area_leaf_);
@@ -77,13 +77,27 @@ double FF16drivers_Strategy::net_mass_production_dt(const FF16_Environment& envi
                                                       reuse_intervals) *
                                 extrinsic_drivers.evaluate("growth_multiplier", time);
 
-  const double respiration_ =
-    respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
-  const double turnover_ =
-    turnover(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
+  const double respiration_ = respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
+  const double turnover_ = turnover(mass_leaf_, mass_bark_, mass_sapwood_, mass_root_, time, height, threshold);
   return net_mass_production_dt_A(assimilation_, respiration_, turnover_);
 }
 
+// [eqn 14] Total turnover
+double FF16drivers_Strategy::turnover(double mass_leaf, double mass_bark,
+                          double mass_sapwood, double mass_root, double time, double height, double threshold) const {
+   return turnover_leaf(mass_leaf, height, threshold, time) +
+          turnover_bark(mass_bark) +
+          turnover_sapwood(mass_sapwood) +
+          turnover_root(mass_root);
+}
+
+double FF16drivers_Strategy::turnover_leaf(double mass, double time, double height, double threshold) const {
+  double temp = (height < threshold) ? 
+    extrinsic_drivers.evaluate("leaf_turnover_multiplier", time) :
+    1.0;
+
+  return (k_l * temp) * mass;
+}
 
 double FF16drivers_Strategy::mortality_dt(double productivity_area,
                                    double cumulative_mortality,
@@ -158,6 +172,13 @@ void FF16drivers_Strategy::prepare_strategy() {
   } else {
     extrinsic_drivers.set_constant("growth_multiplier", growth_rate_y[0]);
   }
+
+  if (is_variable_herbivory_rate) {
+    extrinsic_drivers.set_variable("leaf_turnover_multiplier", herbivory_rate_x, herbivory_rate_y);
+  } else {
+    extrinsic_drivers.set_constant("leaf_turnover_multiplier", herbivory_rate_y[0]);
+  }
+
 
   if (is_variable_mortality_rate) {
     extrinsic_drivers.set_variable("growth_independent_mortality_multiplier", mortality_rate_x, mortality_rate_y);

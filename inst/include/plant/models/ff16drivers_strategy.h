@@ -18,12 +18,16 @@ public:
   std::vector<double> growth_rate_y = {1.0};
   bool is_variable_growth_rate = false;
 
+  std::vector<double> herbivory_rate_x;
+  std::vector<double> herbivory_rate_y = {1.0};
+  bool is_variable_herbivory_rate = false;
+
   std::vector<double> mortality_rate_x;
   std::vector<double> mortality_rate_y = {1.0};
   bool is_variable_mortality_rate = false;
 
   // add size threshold
-  double growth_independent_mortality_size_threshold = 1.2;
+  double herbivory_size_threshold = 1.2;
 
   // Overloads ----------------------------------------------
   virtual void compute_rates(const FF16_Environment& environment, bool reuse_intervals,
@@ -31,7 +35,11 @@ public:
 
   virtual double net_mass_production_dt(const FF16_Environment& environment,
                                         double height, double area_leaf_, double time,
-                                        bool reuse_intervals=false);
+                                        bool reuse_intervals=false, double threshold=0.0);
+
+                                        
+  virtual double turnover(double mass_leaf, double mass_bark, double mass_sapwood, double mass_root, double time, double height, double threshold=0.0) const;
+  virtual double turnover_leaf(double mass, double time, double height, double threshold) const;                                      
 
   virtual double mortality_dt(double productivity_area, double cumulative_mortality, double time, double height, double threshold) const;
   virtual double mortality_growth_independent_dt(double time, double height, double threshold) const;
