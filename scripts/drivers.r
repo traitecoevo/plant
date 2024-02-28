@@ -41,7 +41,7 @@ sp = expand_parameters(trait_matrix(c(0.0825), "lma"),
 time_pts <- seq(0, 150)
 
 sp$strategies[[1]]$herbivory_rate_x = time_pts
-sp$strategies[[1]]$herbivory_rate_y = 1 + sin(time_pts)
+sp$strategies[[1]]$herbivory_rate_y = rep(2, 151)
 sp$strategies[[1]]$is_variable_herbivory_rate = T
 sp$strategies[[1]]$herbivory_size_threshold = 1.2
 
@@ -58,7 +58,7 @@ ggplot(result, aes(x = time, y = height, group = node, alpha = density)) +
     x = "Time (yrs)",
     y = "Height (m)",
     alpha = "Density (individuals.m^-2)",
-    subtitle = "Time-varying growth: 1 + sin(t)"
+    subtitle = "Double leaf turnover for cohorts < 1.2m"
   ) +
   scale_alpha(na.value = 0) +
   theme_classic(base_size = 16) +

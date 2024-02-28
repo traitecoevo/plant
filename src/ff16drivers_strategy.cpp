@@ -83,9 +83,8 @@ double FF16drivers_Strategy::net_mass_production_dt(const FF16_Environment& envi
 }
 
 // [eqn 14] Total turnover
-double FF16drivers_Strategy::turnover(double mass_leaf, double mass_bark,
-                          double mass_sapwood, double mass_root, double time, double height, double threshold) const {
-   return turnover_leaf(mass_leaf, height, threshold, time) +
+double FF16drivers_Strategy::turnover(double mass_leaf, double mass_bark, double mass_sapwood, double mass_root, double time, double height, double threshold) const {
+   return turnover_leaf(mass_leaf, time, height, threshold) +
           turnover_bark(mass_bark) +
           turnover_sapwood(mass_sapwood) +
           turnover_root(mass_root);
