@@ -4,7 +4,7 @@ output: html_document
 date: "2023-01-10"
 ---
 
-**authors**: Isaac Towers
+**authors**: Isaac Towers, Daniel Falster
 **date**: 2024
 
 ```{r setup, include=FALSE}
@@ -21,7 +21,7 @@ This is the documentation for the Leaf model within the `TF24` strategy.
 
 # Introduction
 
-The TF24 strategy will include water dynamics, built off a physiological stomatal optimisation sub-model which determines how plants assimilate carbon and transpire water dynamically in response to water availability, vapour pressure deficit, leaf temperature, in a trait-dependent manner, and a soil-water submodel which takes rainfall as an input and determines how much soil moisture is available to plants.
+At a broad level, the TF24 strategy module includes additional processes which capture plant-soil water feedbacks driven by precipitation. A critical subcompontent of this module is a physiological stomatal optimisation sub-model which determines how plants assimilate carbon and transpire water dynamically in response to water availability, vapour pressure deficit, leaf temperature (still to be implemented), in a trait-dependent manner. This stomatal optimisation model is described below. The other components of the TF24 strategy, such as the soil water submodule, are discussed elsewhere.
 
 The strategy will enable several new parameters to be considered:
 
