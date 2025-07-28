@@ -136,10 +136,10 @@ reference:
   contents:
   - contains("FF16r_")
 
-- title: FF16w model
-  desc:  Functions for runnign the FF16w model
+- title: TF24 model
+  desc:  Functions for runnign the TF24 model
   contents:
-  - contains("FF16w_")
+  - contains("TF24_")
 
 - title: K93 model
   desc:  Functions for runnign the K93 model

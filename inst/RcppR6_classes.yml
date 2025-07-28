@@ -25,7 +25,6 @@ OdeRunner:
       - ["OdeR":   "plant::ode::test::OdeR"]
       - ["FF16": "plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment>"]
       - ["TF24": "plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment>"]
-      - ["FF16w": "plant::tools::IndividualRunner<plant::FF16w_Strategy, plant::FF16_Environment>"]
       - ["FF16r": "plant::tools::IndividualRunner<plant::FF16r_Strategy, plant::FF16_Environment>"]
       - ["K93": "plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment>"]
   constructor:
@@ -222,7 +221,6 @@ Individual:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
-      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -282,7 +280,6 @@ IndividualRunner:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
-      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -338,7 +335,6 @@ Parameters:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
-      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   validator:
@@ -361,7 +357,6 @@ Node:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
-      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -399,7 +394,6 @@ Species:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
-      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -445,7 +439,6 @@ Patch:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
-      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -517,7 +510,6 @@ SCM:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
-      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -595,7 +587,6 @@ StochasticSpecies:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
-      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -641,7 +632,6 @@ StochasticPatch:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
-      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -708,7 +698,6 @@ StochasticPatchRunner:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
-      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -1009,54 +998,7 @@ K93_Environment:
     light_availability: {type: "plant::ResourceSpline", access: field}
     ode_size: {type: size_t, access: member}
 
-# The following strategy was built from FF16 on Mon Jul 19 11:01:04 2021
-FF16w_Strategy:
-  name_cpp: "plant::FF16w_Strategy"
-  roxygen: |
-    Strategy parameters that tune various aspects of the biological model.
-    @title Strategy parameters
-    @param ...,values Values to initialise the struct with (either as
-    variadic arguments, or as a list, but not both).
-    @export
-  list:
-    - lma: double
-    - rho: double
-    - hmat: double
-    - omega: double
-    - eta: double
-    - theta: double
-    - a_l1: double
-    - a_l2: double
-    - a_r1: double
-    - a_b1: double
-    - r_s: double
-    - r_b: double
-    - r_r: double
-    - r_l: double
-    - a_y: double
-    - a_bio: double
-    - k_l: double
-    - k_b: double
-    - k_s: double
-    - k_r: double
-    - a_p1: double
-    - a_p2: double
-    - a_f3: double
-    - a_f1: double
-    - a_f2: double
-    - S_D: double
-    - a_d0: double
-    - d_I: double
-    - a_dG1: double
-    - a_dG2: double
-    - k_I: double
-    - recruitment_decay: double
-    - control: "plant::Control"
-    - collect_all_auxiliary: bool
-    - birth_rate_x: std::vector<double>
-    - birth_rate_y: std::vector<double>
-    - is_variable_birth_rate: bool
-    
+
 ExtrinsicDrivers:
   name_cpp: "plant::ExtrinsicDrivers"
   methods:
