@@ -8,6 +8,9 @@
 namespace plant {
 namespace RcppR6 {
 namespace traits {
+template <> inline std::string   class_name_r<plant::Leaf >() {return "Leaf";}
+template <> inline std::string   package_name<plant::Leaf >() {return "plant";}
+template <> inline std::string generator_name<plant::Leaf >() {return ".R6_Leaf";}
 template <> inline std::string   class_name_r<plant::ode::test::Lorenz >() {return "Lorenz";}
 template <> inline std::string   package_name<plant::ode::test::Lorenz >() {return "plant";}
 template <> inline std::string generator_name<plant::ode::test::Lorenz >() {return ".R6_Lorenz";}
@@ -221,6 +224,12 @@ private:
 };
 }
 
+template <> inline SEXP wrap(const plant::Leaf& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::Leaf>(x));
+}
+template <> inline plant::Leaf as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::Leaf>(x));
+}
 template <> inline SEXP wrap(const plant::ode::test::Lorenz& x) {
   return wrap(plant::RcppR6::RcppR6<plant::ode::test::Lorenz>(x));
 }
@@ -299,6 +308,10 @@ template <> inline SEXP wrap(const plant::Control& x) {
   ret["schedule_eps"] = Rcpp::wrap(x.schedule_eps);
   ret["schedule_verbose"] = Rcpp::wrap(x.schedule_verbose);
   ret["save_RK45_cache"] = Rcpp::wrap(x.save_RK45_cache);
+  ret["GSS_tol_abs"] = Rcpp::wrap(x.GSS_tol_abs);
+  ret["vulnerability_curve_ncontrol"] = Rcpp::wrap(x.vulnerability_curve_ncontrol);
+  ret["ci_abs_tol"] = Rcpp::wrap(x.ci_abs_tol);
+  ret["ci_niter"] = Rcpp::wrap(x.ci_niter);
   ret.attr("class") = "Control";
   return ret;
 }
@@ -347,6 +360,14 @@ template <> inline plant::Control as(SEXP x) {
   ret.schedule_verbose = Rcpp::as<bool >(xl["schedule_verbose"]);
   // ret.save_RK45_cache = Rcpp::as<decltype(retsave_RK45_cache) >(xl["save_RK45_cache"]);
   ret.save_RK45_cache = Rcpp::as<bool >(xl["save_RK45_cache"]);
+  // ret.GSS_tol_abs = Rcpp::as<decltype(retGSS_tol_abs) >(xl["GSS_tol_abs"]);
+  ret.GSS_tol_abs = Rcpp::as<double >(xl["GSS_tol_abs"]);
+  // ret.vulnerability_curve_ncontrol = Rcpp::as<decltype(retvulnerability_curve_ncontrol) >(xl["vulnerability_curve_ncontrol"]);
+  ret.vulnerability_curve_ncontrol = Rcpp::as<double >(xl["vulnerability_curve_ncontrol"]);
+  // ret.ci_abs_tol = Rcpp::as<decltype(retci_abs_tol) >(xl["ci_abs_tol"]);
+  ret.ci_abs_tol = Rcpp::as<double >(xl["ci_abs_tol"]);
+  // ret.ci_niter = Rcpp::as<decltype(retci_niter) >(xl["ci_niter"]);
+  ret.ci_niter = Rcpp::as<double >(xl["ci_niter"]);
   return ret;
 }
 template <> inline SEXP wrap(const plant::ode::OdeControl& x) {

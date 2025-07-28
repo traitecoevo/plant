@@ -31,6 +31,7 @@
 #include <plant/models/ff16_strategy.h>
 #include <plant/models/tf24_strategy.h>
 #include <plant/models/k93_strategy.h>
+#include <plant/leaf_model.h>
 
 // Getting more serious down here.
 #include <plant/individual.h>
