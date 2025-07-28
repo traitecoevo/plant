@@ -59,9 +59,6 @@ for (x in names(strategy_types)) {
 
     if (x == "FF16") {
       expect_true(all(patch$ode_rates > 0.0))
-    } else if (x == "FF16r") {
-      expect_true(all(patch$ode_rates[-3] > 0.0))
-      expect_equal(patch$ode_rates[[3]], 0)
     }
   })
 

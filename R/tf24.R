@@ -1,5 +1,4 @@
-# Built from  R/ff16.R on Mon Feb 12 09:52:27 2024 using the scaffolder, from the strategy:  FF16
-##' Create a TF24 Plant or Node
+# Built from  R/TF24.R on Mon Feb 12 09:52:27 2024 using the scaffolder, from the strategy:  TF24
 ##' @title Create a TF24 Plant or Node
 ##' @param s A \code{\link{TF24_Strategy}} object
 ##' @export
@@ -11,8 +10,19 @@ TF24_Individual <- function(s=TF24_Strategy()) {
   Individual("TF24", "TF24_Env")(s)
 }
 
+##' @title Setup an a TF24 system with  default or specified parameters
+##' @description Setup an a model system with default or specified parameters.
+##' @param ... Arguments to be passed to the model constructor. These include
+##'
+##'   *`patch_area`: Area of idnividfual patch. Only relevant for stochastic model. Default is 1.0m2.
+##'   *`max_patch_lifetime`: The maximum time in years we want to simulate
+##'   *`strategies`: A list of stratgies to simulate. The default is an empty list.
+##'   *`strategy_default`: Values for the default startegy. The default values are those specified in the C++ code for the model.
+##'   *`node_schedule_times_default`: Default vector of times at which to introduce nodes. The default is chosen to have close spacing at the start of the simulation.
+##'   *`node_schedule_times`: A list with each element containing the vector of times we want to introduce nodes for each strategy. The default is an empty list.
+##'   *`ode_times`: A vector of patch ages we want the ode solver to stop at
 ##' @export
-##' @rdname FF16_Parameters
+##' @rdname TF24_Parameters
 ##' @examples
 ##' p1 <- TF24_Parameters()
 ##' p2 <- TF24_Parameters(max_patch_lifetime = 10.0)
@@ -20,9 +30,14 @@ TF24_Parameters <- function(...) {
   Parameters("TF24","TF24_Env")(...)
 }
 
-##' @inheritParams FF16_make_environment
+##' @title: Helper functions to create an TF24_Environment object. Useful for running individuals
+##' @param light_availability_spline_tol Error tolerance of adpative spline method. Deafult is 1e-4.
+##' @param light_availability_spline_nbase Parameter used in adaptive spline method. Default is 17.
+##' @param light_availability_spline_max_depth Parameter used in adaptive spline method. Default is 16.
+##' @param soil_initial_state Initial state of the soil moisture, a vector of length `soil_number_of_depths`
+##' @inheritParams TF24_Environment
 ##' @export
-##' @rdname FF16_make_environment
+##' @rdname TF24_make_environment
 TF24_make_environment <- function(light_availability_spline_tol = 1e-4, 
                                   light_availability_spline_nbase = 17,
                                   light_availability_spline_max_depth = 16, 
@@ -81,14 +96,17 @@ TF24_make_environment <- function(light_availability_spline_tol = 1e-4,
       stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
     }
   }
-  purrr::imap(drivers_args, ~add_driver(.x, .y))
+  purrr::iwalk(drivers_args, ~add_driver(.x, .y))
   
   e$extrinsic_drivers <- drivers
   
   return(e)
 }
 
-##' @rdname FF16_fixed_environment
+##' Construct a fixed environment for a TF24 model
+##'
+##' @inheritParams FF16_fixed_environment
+##' @rdname TF24_fixed_environment
 ##'
 ##' @export
 TF24_fixed_environment <- function(e=1.0, height_max = 150.0, ...) {
@@ -97,9 +115,9 @@ TF24_fixed_environment <- function(e=1.0, height_max = 150.0, ...) {
   env
 }
 
-##' @rdname FF16_test_environment
-##' @examples
-##' environment <- plant:::TF24_test_environment(10)
+##' @title Create a test environment for TF24 startegy. Only used in testing
+##' @inheritParams FF16_test_environment
+##' @rdname TF24_test_environment
 TF24_test_environment <- function(height, n=101, light_env=NULL,
                                   n_strategies=1) {
   
@@ -124,13 +142,7 @@ TF24_test_environment <- function(height, n=101, light_env=NULL,
 ##' Builds a detailed report on stand grown with TF24 strategy, based on the template Rmd file provided.  The reports are
 ##' rendered as html files and saved in the specified output folder.
 ##'
-##' @param results results of runnning \code{run_scm_collect}
-##' @param output_file name of output file
-##' @param overwrite logical value to determine whether to overwrite existing report
-##' @param target_ages Patches ages at which to make plots
-##' @param input_file report script (.Rmd) file to build study report
-##' @param quiet An option to suppress printing during rendering from knitr, pandoc command line and others.
-##'
+##' @inheritParams FF16_generate_stand_report
 ##' @rdname TF24_generate_stand_report
 ##' @return html file of the rendered report located in the specified output folder.
 ##' @export
@@ -197,6 +209,7 @@ TF24_generate_stand_report <- function(results,
 ##' @param latitude degrees from equator (0-90), used in solar model [deg]
 ##' @importFrom stats coef nls
 ##' @export
+##' @rdname make_FF16_hyperpar
 make_TF24_hyperpar <- function(
                                 lma_0=0.1978791,
                                 B_kl1=0.4565855,
@@ -376,6 +389,10 @@ make_TF24_hyperpar <- function(
 
 ##' Hyperparameter function for TF24 physiological model
 ##' @title Hyperparameter function for TF24 physiological model
-##' @inheritParams FF16_hyperpar
+##' @param m A matrix of trait values, as returned by \code{trait_matrix}
+##' @param s A strategy object
+##' @param filter A flag indicating whether to filter columns. If TRUE, any numbers
+##' that are within eps of the default strategy are not replaced.
 ##' @export
+##' @rdname TF24_hyperpar
 TF24_hyperpar <- make_TF24_hyperpar()

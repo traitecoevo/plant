@@ -173,7 +173,6 @@ OdeRunner:
       - ["OdeR":   "plant::ode::test::OdeR"]
       - ["FF16": "plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment>"]
       - ["TF24": "plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment>"]
-      - ["FF16r": "plant::tools::IndividualRunner<plant::FF16r_Strategy, plant::FF16_Environment>"]
       - ["K93": "plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment>"]
   constructor:
     args: [obj: T, control: "plant::ode::OdeControl=OdeControl()"]
@@ -373,7 +372,6 @@ Individual:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [s: T]
@@ -432,7 +430,6 @@ IndividualRunner:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     name_cpp: "plant::tools::IndividualRunner<T,E>"
@@ -487,7 +484,6 @@ Parameters:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   validator:
     name_cpp: validate
@@ -509,7 +505,6 @@ Node:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     name_cpp: "plant::make_node<T,E>"
@@ -546,7 +541,6 @@ Species:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [strategy: T]
@@ -591,7 +585,6 @@ Patch:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args:
@@ -662,7 +655,6 @@ SCM:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args:
@@ -739,7 +731,6 @@ StochasticSpecies:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [strategy: "T"]
@@ -784,7 +775,6 @@ StochasticPatch:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args:
@@ -850,7 +840,6 @@ StochasticPatchRunner:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args:
@@ -1054,55 +1043,7 @@ FF16_Environment:
       type: "plant::ExtrinsicDrivers"
       access: field
 
-# The following strategy was built from FF16 on Wed Aug 12 11:12:34 2020
-FF16r_Strategy:
-  name_cpp: "plant::FF16r_Strategy"
-  roxygen: |
-    Strategy parameters that tune various aspects of the biological model.
-    @title Strategy parameters
-    @param ...,values Values to initialise the struct with (either as
-    variadic arguments, or as a list, but not both).
-    @export
-  list:
-    - lma: double
-    - rho: double
-    - hmat: double
-    - omega: double
-    - eta: double
-    - theta: double
-    - a_l1: double
-    - a_l2: double
-    - a_r1: double
-    - a_b1: double
-    - r_s: double
-    - r_b: double
-    - r_r: double
-    - r_l: double
-    - a_y: double
-    - a_bio: double
-    - k_l: double
-    - k_b: double
-    - k_s: double
-    - k_r: double
-    - a_p1: double
-    - a_p2: double
-    - a_f3: double
-    - a_f1: double
-    - a_f2: double
-    - S_D: double
-    - a_d0: double
-    - d_I: double
-    - a_dG1: double
-    - a_dG2: double
-    - k_I: double
-    - recruitment_decay: double
-    - control: "plant::Control"
-    - collect_all_auxiliary: bool
-    - birth_rate_x: std::vector<double>
-    - birth_rate_y: std::vector<double>
-    - is_variable_birth_rate: bool
-
-# The following strategy was built from FF16r on Wed Aug 12 15:33:08 2020
+# The following strategy was built from FF16 on Wed Aug 12 15:33:08 2020
 K93_Strategy:
   name_cpp: "plant::K93_Strategy"
   roxygen: |
@@ -1128,7 +1069,7 @@ K93_Strategy:
     - birth_rate_y: std::vector<double>
     - is_variable_birth_rate: bool
 
-# The following environment was built from FF16r on Wed Aug 12 15:46:38 2020
+# The following environment was built from FF16 on Wed Aug 12 15:46:38 2020
 K93_Environment:
   name_cpp: "plant::K93_Environment"
   constructor:
@@ -1172,7 +1113,6 @@ ExtrinsicDrivers:
       return_type: void
       args: [ driver_name: std::string, extrapolate: bool]
 
-# The following strategy was built from FF16 on Mon Feb 12 09:52:27 2024
 TF24_Strategy:
   name_cpp: "plant::TF24_Strategy"
   roxygen: |
@@ -1220,8 +1160,6 @@ TF24_Strategy:
     - birth_rate_y: std::vector<double>
     - is_variable_birth_rate: bool
 
-
-# The following environment was built from FF16 on Mon Feb 12 09:52:27 2024
 TF24_Environment:
   name_cpp: "plant::TF24_Environment"
   constructor:
@@ -1235,7 +1173,24 @@ TF24_Environment:
       - n_psi: double
       - b_infil: double
     roxygen: |
-      @rdname FF16_Environment
+      @title Create an TF24_Environment object.
+      @description This environment is used for the TF24 strategy, which includes soil moisture and hydraulic
+      conductivity parameters.
+      @param light_availability_spline_rescale_usually whether to rescale intervals when estimating light environment
+      @param soil_number_of_depths Number of soil layers to include
+      @param delta_z Thickness of soil layers
+      @param soil_moist_sat Soil moisture at saturation
+      @param K_sat Saturated hydraulic conductivity
+      @param a_psi Coefficient for soil water potential
+      @param n_psi Exponent for soil water potential
+      @param b_infil Coefficient for infiltration
+      @param rainfall Rainfall amount
+      @param atm_vpd Atmospheric vapor pressure deficit
+      @param ca Atmospheric CO2 concentration
+      @param leaf_temp Leaf temperature
+      @param atm_o2_kpa Atmospheric O2 partial pressure
+      @param atm_kpa Atmospheric pressure
+      @rdname TF24_Environment
       @export
   methods:
     get_environment_at_height:
@@ -1273,7 +1228,6 @@ TF24_Environment:
     get_atm_kpa:
       args: []
       return_type: double
-
     compute_rates:
       args: [resource_depletion: "std::vector<double>"]
       return_type: void

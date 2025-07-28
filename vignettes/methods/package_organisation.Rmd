@@ -230,7 +230,7 @@ The foundation of the `plant` package are sub-models for an individual speciesâ€
 
 Adding a new physiological strategy requires some changes to be made throughout the code and then the code recompiled. To achieve this, you'll need to download the package code from Github (new strategies cannot be added using an installed R package) and follow the instructions below. 
 
-As a naming convention, strategies are named using two initials r (eg. the first two authors) followed by a year, e.g. `FF16`. A single letter suffix can be added to indicate a minor modification of an existing strategy, e.g. `FF16r`. 
+As a naming convention, strategies are named using two initials r (eg. the first two authors) followed by a year, e.g. `FF16`. A single letter suffix can be added to indicate a minor modification of an existing strategy. 
 
 ### Installing new strategies
 
