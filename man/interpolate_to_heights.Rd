@@ -4,7 +4,12 @@
 \alias{interpolate_to_heights}
 \title{Interpolate data on size distributions for each species to specific heights at every time point}
 \usage{
-interpolate_to_heights(tidy_species_data, heights, method = "natural")
+interpolate_to_heights(
+  tidy_species_data,
+  heights,
+  method = "natural",
+  min_log_density = -100
+)
 }
 \arguments{
 \item{tidy_species_data}{output of either `tidy_patch` or `tidy_species`}
@@ -12,6 +17,8 @@ interpolate_to_heights(tidy_species_data, heights, method = "natural")
 \item{heights}{heights to interpolate to}
 
 \item{method}{Method for interpolation. For more info see help on stats::spline}
+
+\item{min_log_density}{Set minimum possible value of log_density}
 }
 \value{
 Returns a tibble of similar format to input, but with all outputs interpolated to specified hieghts.

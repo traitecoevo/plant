@@ -3,7 +3,6 @@
 \name{FF16_Environment}
 \alias{FF16_Environment}
 \alias{K93_Environment}
-\alias{TF24_Environment}
 \title{Create an FF16_Environment object.}
 \usage{
 FF16_Environment(
@@ -12,11 +11,6 @@ FF16_Environment(
 )
 
 K93_Environment()
-
-TF24_Environment(
-  light_availability_spline_rescale_usually,
-  soil_number_of_depths
-)
 }
 \arguments{
 \item{light_availability_spline_rescale_usually}{whether to rescale intervals when estimating light environment}

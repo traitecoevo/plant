@@ -32,8 +32,7 @@ FF16_Parameters <- function(...) {
   Parameters("FF16","FF16_Env")(...)
 }
 
-## Helper functions to create an XXX_Environment object. Useful for running individuals
-##' @title create a model Environment object
+##' @title: Helper functions to create an FF16_Environment object. Useful for running individuals
 ##' @param light_availability_spline_tol Error tolerance of adpative spline method. Deafult is 1e-4.
 ##' @param light_availability_spline_nbase Parameter used in adaptive spline method. Default is 17.
 ##' @param light_availability_spline_max_depth Parameter used in adaptive spline method. Default is 16.
@@ -61,7 +60,7 @@ FF16_make_environment <- function(light_availability_spline_tol = 1e-4,
 ##'
 ##' @param e Value of environment (deafult  = 1.0)
 ##' @param height_max maximum possible height in environment
-##' @param ... Additional parameters to be passed to \code{XXXX_make_environment}, where XXXX referes to model name.
+##' @param ... Additional parameters to be passed to \code{FF16_make_environment}
 ##' @rdname FF16_fixed_environment
 ##'
 ##' @export
@@ -72,16 +71,12 @@ FF16_fixed_environment <- function(e=1.0, height_max = 150.0, ...) {
 }
 
 
-##' This makes a pretend light environment over the plant height,
-##' slightly concave up, whatever.
-##' @title Create a test environment for FF16 startegy
+##' @title Create a test environment for FF16 startegy. Only used in testing
 ##' @param height top height of environment object
 ##' @param n number of points
 ##' @param light_env function for light environment in test object
 ##' @param n_strategies number of strategies for test environment
 ##' @rdname FF16_test_environment
-##' @examples
-##' environment <- plant:::FF16_test_environment(10)
 FF16_test_environment <- function(height, n=101, light_env=NULL,
                                   n_strategies=1) {
   
