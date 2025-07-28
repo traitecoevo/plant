@@ -134,13 +134,15 @@ interpolate_to_times <- function(tidy_species_data, times, method="natural") {
 #' @export
 #' @importFrom stats spline
 #' @importFrom rlang .data
-interpolate_to_heights <- function(tidy_species_data, heights, method="natural") {
+interpolate_to_heights <- function(tidy_species_data, heights, method="natural", min_log_density = -100) {
   
   # helper function - predicts to new values with spline
   # only needed to ensure predictions for xout outside the ange of x are set to NA
-  f <- function(x, y, xout) {
+  f <- function(x, y, xout, time) {
+
     y_pred <- stats::spline(x, y, xout=xout, method=method)$y
     y_pred[!dplyr::between(xout, min(x), max(x))] <- NA
+
     y_pred
   }
 
@@ -148,12 +150,20 @@ interpolate_to_heights <- function(tidy_species_data, heights, method="natural")
     tidy_species_data <- tidy_species_data %>%
       tibble::add_column(step = NA)
   }
-
+  
   tidy_species_data %>%
     tidyr::drop_na(-dplyr::any_of("step")) %>%
+    
+    # check for very negative values
+    dplyr::mutate(
+      log_density = ifelse(.data$log_density < min_log_density, min_log_density, .data$log_density)
+    ) %>%
     dplyr::group_by(.data$species, .data$time, .data$step) %>%
+    # remove any repated x values - these cuase warnings in the interpolation
+    dplyr::filter(!duplicated(.data$height)) %>%
+
     dplyr::reframe(
-      dplyr::across(tidyselect::where(is.double), ~ f(.data$height, .x, xout = heights))
+      dplyr::across(tidyselect::where(is.double), ~ f(.data$height, .x, xout = heights, .data$time[1]))
     ) %>%
     dplyr::mutate(density = exp(.data$log_density))
 }
