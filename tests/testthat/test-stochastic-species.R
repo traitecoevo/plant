@@ -54,11 +54,8 @@ test_that("Single individual", {
 
     if (x == "FF16") {
       expect_true(all(sp$ode_rates > 0.0))
-    } else if (x == "FF16r") {
-      expect_true(all(sp$ode_rates[-3] > 0.0))
-      expect_identical(sp$ode_rates[[3]], 0.0)
     }
-
+    
     pl <- sp$individuals
     expect_equal(length(pl), 1)
     expect_equal(class(pl[[1]]), class(p))

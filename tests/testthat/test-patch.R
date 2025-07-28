@@ -44,7 +44,7 @@ for (x in names(strategy_types)) {
     expect_equal(patch$ode_size, env_size)
     
     # either 0 or numeric(0)
-    if(x %in% c("FF16", "FF16r", "K93")) {
+    if(x %in% c("FF16", "K93")) {
       expect_equal(patch$ode_state, numeric(0))
       expect_equal(patch$ode_rates, numeric(0))
     }
