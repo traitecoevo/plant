@@ -5,17 +5,12 @@
 \alias{K93_Environment}
 \title{Create an FF16_Environment object.}
 \usage{
-FF16_Environment(
-  light_availability_spline_rescale_usually,
-  soil_number_of_depths
-)
+FF16_Environment(light_availability_spline_rescale_usually)
 
 K93_Environment()
 }
 \arguments{
 \item{light_availability_spline_rescale_usually}{whether to rescale intervals when estimating light environment}
-
-\item{soil_number_of_depths}{Number of soil layers to include}
 }
 \description{
 Create an FF16_Environment object.

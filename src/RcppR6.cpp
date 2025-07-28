@@ -3011,8 +3011,8 @@ SEXP FF16_Strategy__ctor() {
 
 
 // [[Rcpp::export]]
-plant::FF16_Environment FF16_Environment__ctor(bool light_availability_spline_rescale_usually, int soil_number_of_depths) {
-  return plant::FF16_Environment(light_availability_spline_rescale_usually, soil_number_of_depths);
+plant::FF16_Environment FF16_Environment__ctor(bool light_availability_spline_rescale_usually) {
+  return plant::FF16_Environment(light_availability_spline_rescale_usually);
 }
 // [[Rcpp::export]]
 double FF16_Environment__get_environment_at_height(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double height) {
@@ -3025,10 +3025,6 @@ void FF16_Environment__clear(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_
 // [[Rcpp::export]]
 void FF16_Environment__set_fixed_environment(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double value, double height_max) {
   obj_->set_fixed_environment(value, height_max);
-}
-// [[Rcpp::export]]
-void FF16_Environment__set_soil_water_state(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::vector<double> state) {
-  obj_->set_soil_water_state(state);
 }
 // [[Rcpp::export]]
 void FF16_Environment__compute_rates(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::vector<double> resource_depletion) {
@@ -3049,22 +3045,12 @@ size_t FF16_Environment__ode_size__get(plant::RcppR6::RcppR6<plant::FF16_Environ
 }
 
 // [[Rcpp::export]]
-size_t FF16_Environment__soil_number_of_depths__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
-  return obj_->ode_size();
-}
-
-// [[Rcpp::export]]
 plant::ResourceSpline FF16_Environment__light_availability__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
   return obj_->light_availability;
 }
 // [[Rcpp::export]]
 void FF16_Environment__light_availability__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::ResourceSpline value) {
   obj_->light_availability = value;
-}
-
-// [[Rcpp::export]]
-plant::Internals FF16_Environment__soil__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
-  return obj_->r_internals();
 }
 
 // [[Rcpp::export]]

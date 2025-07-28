@@ -854,10 +854,8 @@ FF16_Environment:
   constructor:
     args:
       - light_availability_spline_rescale_usually: bool
-      - soil_number_of_depths: int
     roxygen: |
       Create an FF16_Environment object.
-      @param  soil_number_of_depths Number of soil layers to include
       @param light_availability_spline_rescale_usually whether to rescale intervals when estimating light environment
       @rdname FF16_Environment
       @export
@@ -870,23 +868,15 @@ FF16_Environment:
     set_fixed_environment:
       args: [value: double, height_max: double]
       return_type: void
-    set_soil_water_state:
-      args: [state: "std::vector<double>"]
-      return_type: void
     compute_rates:
       args: [resource_depletion: "std::vector<double>"]
       return_type: void
   active:
     time: {type: double, access: field}
     ode_size: {type: size_t, access: member}
-    soil_number_of_depths: {type: size_t, access: member, name_cpp: ode_size}
     light_availability:
       type: "plant::ResourceSpline"
       access: field
-    soil:
-      type: "plant::Internals"
-      access: member
-      name_cpp: "r_internals"
     extrinsic_drivers: # this actually exists in the base class, not in the derived environment classes
       type: "plant::ExtrinsicDrivers"
       access: field

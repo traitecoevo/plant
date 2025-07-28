@@ -2641,8 +2641,8 @@ FF16_Strategy__ctor <- function() {
     .Call('_plant_FF16_Strategy__ctor', PACKAGE = 'plant')
 }
 
-FF16_Environment__ctor <- function(light_availability_spline_rescale_usually, soil_number_of_depths) {
-    .Call('_plant_FF16_Environment__ctor', PACKAGE = 'plant', light_availability_spline_rescale_usually, soil_number_of_depths)
+FF16_Environment__ctor <- function(light_availability_spline_rescale_usually) {
+    .Call('_plant_FF16_Environment__ctor', PACKAGE = 'plant', light_availability_spline_rescale_usually)
 }
 
 FF16_Environment__get_environment_at_height <- function(obj_, height) {
@@ -2655,10 +2655,6 @@ FF16_Environment__clear <- function(obj_) {
 
 FF16_Environment__set_fixed_environment <- function(obj_, value, height_max) {
     invisible(.Call('_plant_FF16_Environment__set_fixed_environment', PACKAGE = 'plant', obj_, value, height_max))
-}
-
-FF16_Environment__set_soil_water_state <- function(obj_, state) {
-    invisible(.Call('_plant_FF16_Environment__set_soil_water_state', PACKAGE = 'plant', obj_, state))
 }
 
 FF16_Environment__compute_rates <- function(obj_, resource_depletion) {
@@ -2677,20 +2673,12 @@ FF16_Environment__ode_size__get <- function(obj_) {
     .Call('_plant_FF16_Environment__ode_size__get', PACKAGE = 'plant', obj_)
 }
 
-FF16_Environment__soil_number_of_depths__get <- function(obj_) {
-    .Call('_plant_FF16_Environment__soil_number_of_depths__get', PACKAGE = 'plant', obj_)
-}
-
 FF16_Environment__light_availability__get <- function(obj_) {
     .Call('_plant_FF16_Environment__light_availability__get', PACKAGE = 'plant', obj_)
 }
 
 FF16_Environment__light_availability__set <- function(obj_, value) {
     invisible(.Call('_plant_FF16_Environment__light_availability__set', PACKAGE = 'plant', obj_, value))
-}
-
-FF16_Environment__soil__get <- function(obj_) {
-    .Call('_plant_FF16_Environment__soil__get', PACKAGE = 'plant', obj_)
 }
 
 FF16_Environment__extrinsic_drivers__get <- function(obj_) {

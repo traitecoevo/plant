@@ -13,17 +13,13 @@ namespace plant {
 class FF16_Environment : public Environment {
 public:
   // constructor for R interface - default settings can be modified
-  // except for soil_number_of_depths and light_availability_spline_rescale_usually
+  // except for light_availability_spline_rescale_usually
   // which are only updated on construction
-  FF16_Environment(bool light_availability_spline_rescale_usually = false,
-                   int soil_number_of_depths = 0) {
+  FF16_Environment(bool light_availability_spline_rescale_usually = false) {
     time = 0.0;
     
     light_availability = ResourceSpline();
     light_availability.spline_rescale_usually = light_availability_spline_rescale_usually;
-
-    vars = Internals(soil_number_of_depths);
-    set_soil_water_state(std::vector<double>(soil_number_of_depths, 0.0));
   };
 
   // A ResourceSpline used for storing light availbility (0-1)
@@ -50,43 +46,7 @@ public:
   }
 
   virtual void compute_rates(std::vector<double> const& resource_depletion) {
-    double infiltration;
-    double net_flux;
 
-    double drainage_multiplier = 0.1; // experimental only;
-
-    // treat each soil layer as a separate resource pool
-    for (size_t i = 0; i < vars.state_size; i++) {
-
-      // initial representation of drainage; to be improved
-      if(i == 0) {
-        infiltration = extrinsic_drivers.evaluate("rainfall", time);
-      } else {
-        infiltration = std::max(vars.state(i - 1), 0.0) * drainage_multiplier;
-      }
-
-      // ecologically, soil water shouldn't go below zero
-      // truncating at zero until such a model is implemented
-      double drainage_rate = std::max(vars.state(i), 0.0) * drainage_multiplier;
-
-      net_flux = infiltration - resource_depletion[i] - drainage_rate;
-      vars.set_rate(i, net_flux);
-    }
-
-  }
-
-  std::vector<double> get_soil_water_state() const {
-    return vars.states;
-  }
-
-  // TODO: I wonder if this needs a better name? See also environment.h
-  Internals r_internals() const { return vars; }
-
-  // R interface
-  void set_soil_water_state(std::vector<double> state) {
-    for (size_t i = 0; i < vars.state_size; i++) {
-      vars.set_state(i, state[i]);
-    }
   }
 
   // Pre-compute resources available in the environment, as a function of height

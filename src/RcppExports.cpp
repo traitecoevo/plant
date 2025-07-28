@@ -7410,14 +7410,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // FF16_Environment__ctor
-plant::FF16_Environment FF16_Environment__ctor(bool light_availability_spline_rescale_usually, int soil_number_of_depths);
-RcppExport SEXP _plant_FF16_Environment__ctor(SEXP light_availability_spline_rescale_usuallySEXP, SEXP soil_number_of_depthsSEXP) {
+plant::FF16_Environment FF16_Environment__ctor(bool light_availability_spline_rescale_usually);
+RcppExport SEXP _plant_FF16_Environment__ctor(SEXP light_availability_spline_rescale_usuallySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< bool >::type light_availability_spline_rescale_usually(light_availability_spline_rescale_usuallySEXP);
-    Rcpp::traits::input_parameter< int >::type soil_number_of_depths(soil_number_of_depthsSEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16_Environment__ctor(light_availability_spline_rescale_usually, soil_number_of_depths));
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__ctor(light_availability_spline_rescale_usually));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -7452,17 +7451,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type value(valueSEXP);
     Rcpp::traits::input_parameter< double >::type height_max(height_maxSEXP);
     FF16_Environment__set_fixed_environment(obj_, value, height_max);
-    return R_NilValue;
-END_RCPP
-}
-// FF16_Environment__set_soil_water_state
-void FF16_Environment__set_soil_water_state(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::vector<double> state);
-RcppExport SEXP _plant_FF16_Environment__set_soil_water_state(SEXP obj_SEXP, SEXP stateSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type state(stateSEXP);
-    FF16_Environment__set_soil_water_state(obj_, state);
     return R_NilValue;
 END_RCPP
 }
@@ -7510,17 +7498,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// FF16_Environment__soil_number_of_depths__get
-size_t FF16_Environment__soil_number_of_depths__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
-RcppExport SEXP _plant_FF16_Environment__soil_number_of_depths__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16_Environment__soil_number_of_depths__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
 // FF16_Environment__light_availability__get
 plant::ResourceSpline FF16_Environment__light_availability__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
 RcppExport SEXP _plant_FF16_Environment__light_availability__get(SEXP obj_SEXP) {
@@ -7541,17 +7518,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::ResourceSpline >::type value(valueSEXP);
     FF16_Environment__light_availability__set(obj_, value);
     return R_NilValue;
-END_RCPP
-}
-// FF16_Environment__soil__get
-plant::Internals FF16_Environment__soil__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
-RcppExport SEXP _plant_FF16_Environment__soil__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16_Environment__soil__get(obj_));
-    return rcpp_result_gen;
 END_RCPP
 }
 // FF16_Environment__extrinsic_drivers__get
@@ -8917,19 +8883,16 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Weibull_Disturbance_Regime__cdf", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__cdf, 2},
     {"_plant_Weibull_Disturbance_Regime__icdf", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__icdf, 2},
     {"_plant_FF16_Strategy__ctor", (DL_FUNC) &_plant_FF16_Strategy__ctor, 0},
-    {"_plant_FF16_Environment__ctor", (DL_FUNC) &_plant_FF16_Environment__ctor, 2},
+    {"_plant_FF16_Environment__ctor", (DL_FUNC) &_plant_FF16_Environment__ctor, 1},
     {"_plant_FF16_Environment__get_environment_at_height", (DL_FUNC) &_plant_FF16_Environment__get_environment_at_height, 2},
     {"_plant_FF16_Environment__clear", (DL_FUNC) &_plant_FF16_Environment__clear, 1},
     {"_plant_FF16_Environment__set_fixed_environment", (DL_FUNC) &_plant_FF16_Environment__set_fixed_environment, 3},
-    {"_plant_FF16_Environment__set_soil_water_state", (DL_FUNC) &_plant_FF16_Environment__set_soil_water_state, 2},
     {"_plant_FF16_Environment__compute_rates", (DL_FUNC) &_plant_FF16_Environment__compute_rates, 2},
     {"_plant_FF16_Environment__time__get", (DL_FUNC) &_plant_FF16_Environment__time__get, 1},
     {"_plant_FF16_Environment__time__set", (DL_FUNC) &_plant_FF16_Environment__time__set, 2},
     {"_plant_FF16_Environment__ode_size__get", (DL_FUNC) &_plant_FF16_Environment__ode_size__get, 1},
-    {"_plant_FF16_Environment__soil_number_of_depths__get", (DL_FUNC) &_plant_FF16_Environment__soil_number_of_depths__get, 1},
     {"_plant_FF16_Environment__light_availability__get", (DL_FUNC) &_plant_FF16_Environment__light_availability__get, 1},
     {"_plant_FF16_Environment__light_availability__set", (DL_FUNC) &_plant_FF16_Environment__light_availability__set, 2},
-    {"_plant_FF16_Environment__soil__get", (DL_FUNC) &_plant_FF16_Environment__soil__get, 1},
     {"_plant_FF16_Environment__extrinsic_drivers__get", (DL_FUNC) &_plant_FF16_Environment__extrinsic_drivers__get, 1},
     {"_plant_FF16_Environment__extrinsic_drivers__set", (DL_FUNC) &_plant_FF16_Environment__extrinsic_drivers__set, 2},
     {"_plant_K93_Strategy__ctor", (DL_FUNC) &_plant_K93_Strategy__ctor, 0},
