@@ -46,16 +46,17 @@ test_that("FF16 rainfall spline", {
   
   context("Rainfall-FF16")
   
-  env <- make_environment("FF16w")
+  env <- make_environment("TF24")
   # get list of extrinsic drivers for the environment
-  expect_equal(env$extrinsic_drivers$get_names(), c("rainfall"))
+
+  expect_equal(env$extrinsic_drivers$get_names(), c("rainfall", "leaf_temp","atm_o2_kpa", "atm_kpa", "ca", "atm_vpd"))
   
   # test extrapolation on default spline of y = 1
   expect_equal(env$extrinsic_drivers$evaluate("rainfall", 100), 1)
   expect_equal(env$extrinsic_drivers$evaluate("rainfall", 10000000), 1)
   
   # test extrapolation on spline of y = 5.613432
-  env <- make_environment("FF16w", rainfall=5.613432)
+  env <- make_environment("TF24", rainfall=5.613432)
   expect_equal(env$extrinsic_drivers$evaluate("rainfall", 100), 5.613432)
   expect_equal(env$extrinsic_drivers$evaluate("rainfall", 10000000), 5.613432)
   
@@ -65,7 +66,10 @@ test_that("FF16 rainfall spline", {
     x = x,
     y = x^2
   )
-  env <- make_environment("FF16w", rainfall=quadratic_rain) # overwrites previously created spline
+  
+  a_psi = 10
+  env <- make_environment("TF24", rainfall=quadratic_rain, 
+                          a_psi = a_psi) # overwrites previously created spline
   
   # interpolated points
   expect_equal(env$extrinsic_drivers$evaluate("rainfall", 2), 4)
@@ -77,4 +81,10 @@ test_that("FF16 rainfall spline", {
   
   ## interpolated range of points
   expect_equal(env$extrinsic_drivers$evaluate_range("rainfall", c(-7, 1, 7.8345)), c(49, 1, 61.37939025), tolerance=1e-6)
+  
+  theta_sat = 0.453
+  env$set_soil_water_state(theta_sat)
+  expect_equal(env$psi_from_soil_moist(env$get_soil_water_state()), a_psi)
+  
+  
 })
