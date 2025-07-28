@@ -126,3 +126,14 @@ make_K93_hyperpar <- function(
 ##' @inheritParams FF16_hyperpar
 ##' @export
 K93_hyperpar <- make_K93_hyperpar()
+
+#' @export
+#' @inheritParams expand_state
+#' @importFrom rlang .data
+#' @rdname expand_state
+K93_expand_state <- function(tidy_patch_results) {
+
+  # currently not doing anything
+  
+  tidy_patch_results
+}
