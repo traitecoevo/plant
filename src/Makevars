@@ -1,5 +1,8 @@
 ## Flags for compiler
 
+## Using C++25
+CXX_STD = CXX23
+
 ## Where to find headers
 PKG_CPPFLAGS = -isystem../inst/include/
 
