@@ -1,8 +1,5 @@
 ## Flags for compiler
 
-## Using C++14
-CXX_STD = CXX14
-
 ## Where to find headers
 PKG_CPPFLAGS = -isystem../inst/include/
 
