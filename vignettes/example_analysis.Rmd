@@ -29,7 +29,7 @@ plant_log_console()
 Very minimalist 
 
 ```{r}
-p0 <- scm_base_parameters("FF16", "FF16_Env")
+p0 <- scm_base_parameters("TF24", "TF24_Env")
 
 traits <- trait_matrix(c(0.07), c("lma"))
 
@@ -43,7 +43,7 @@ This uses the default parameters in plant. But you may want alter some of the de
 
 ```{r}
 base_parameters <- function() {
-  p0 <- scm_base_parameters("FF16", "FF16_Env")
+  p0 <- scm_base_parameters("TF24", "TF24_Env")
 
   p0$strategy_default$hmat <- 15
   p0$strategy_default$rho <- 700
@@ -66,7 +66,7 @@ run_mypatch <- function(
   latitude = 28.182
   ) {
   
-  hyper_par_fn = make_FF16_hyperpar(B_lf1 = B_lf1, latitude = latitude)
+  hyper_par_fn = make_TF24_hyperpar(B_lf1 = B_lf1, latitude = latitude)
   p1 <- expand_parameters(traits, p0, hyper_par_fn,  birth_rate_list = birth_rate_list)
   
   if(optimise_schedule)
@@ -125,10 +125,10 @@ data_species_tot %>%
   geom_line()
 ```
 
-We can use the function `FF16_expand_state` to capture a large number of additional state variables (e.g.leaf area)
+We can use the function `TF24_expand_state` to capture a large number of additional state variables (e.g.leaf area)
 
 ```{r}
-results_tidy_expand <- results_tidy %>% FF16_expand_state()
+results_tidy_expand <- results_tidy %>% expand_state()
 
 results_tidy_expand$species
 ```

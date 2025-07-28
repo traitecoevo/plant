@@ -1,6 +1,6 @@
 
 ##' Set a suitable hyperparameter function for chosen physiological model
-##' @title Hyperparameters for FF16 physiological model
+##' @title Hyperparameters for physiological model
 ##' @param type Any strategy name as a string, e.g.: \code{"FF16"}.
 ##' @param parameters A parameters object
 ##' @rdname Hyperparameter_functions
@@ -24,7 +24,6 @@ param_hyperpar <- function(parameters) {
          K93_Strategy=K93_hyperpar,
          stop("Unknown type ", type))
 }
-
 
 
 ##' @rdname Hyperparameter_functions
@@ -66,6 +65,25 @@ make_environment <- function(type = NULL, parameters = NULL, ...) {
          TF24=TF24_make_environment(...),
          K93=K93_make_environment(...),
          stop("Unknown type ", type))
+}
+
+#' Add additional state variables to the species component in output of a model.
+#'
+#' @param tidy_patch_results from `tidy_patch`
+#'
+#' @return similar format to input, but with additional columns for additional state variables
+#' @export
+#' @importFrom rlang .data
+#' @rdname expand_state
+expand_state <- function(results_tidy) {
+  type <- extract_RcppR6_template_types(results_tidy$p, "Parameters")[[1]][1]
+
+  switch(type,
+    FF16 = FF16_expand_state(results_tidy),
+    TF24 = TF24_expand_state(results_tidy),
+    K93 = K93_expand_state(results_tidy),
+    stop("Unknown type ", type)
+  )
 }
 
 node_schedule_default <- function(p) {
