@@ -3,6 +3,7 @@
 ^.vscode$
 ^.*\.code-workspace$
 (^|/)\\.DS_Store$
+^.devcontainer$
 ^_pkgdown\.yml$
 ^pkgdown$
 ^scripts$

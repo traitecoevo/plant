@@ -22,7 +22,7 @@ TF24_Parameters <- function(...) {
 
 ##' @inheritParams FF16_make_environment
 ##' @export
-##' @rdname FF16_make_environment
+##' @rdname TF24_make_environment
 TF24_make_environment <- function(light_availability_spline_tol = 1e-4, 
                                   light_availability_spline_nbase = 17,
                                   light_availability_spline_max_depth = 16, 

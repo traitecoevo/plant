@@ -129,7 +129,7 @@ interpolate_to_times <- function(tidy_species_data, times, method="natural") {
 #' @param tidy_species_data output of either `tidy_patch` or `tidy_species`
 #' @param heights heights to interpolate to
 #' @param method Method for interpolation. For more info see help on stats::spline
-#'
+#' @param min_log_density Set minimum possible value of log_density
 #' @return Returns a tibble of similar format to input, but with all outputs interpolated to specified hieghts.
 #' @export
 #' @importFrom stats spline
