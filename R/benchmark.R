@@ -7,7 +7,6 @@
 #' @export
 
 run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy,
-                                                       # FF16r = FF16r_Strategy,
                                                        TF24 = TF24_Strategy,
                                                        K93 = K93_Strategy),
                                  iterations = 1) {

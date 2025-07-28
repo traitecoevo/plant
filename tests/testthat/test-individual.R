@@ -145,7 +145,7 @@ for (x in names(strategy_types)) {
 
 
   test_that("Maximise individual rate", {
-  if(x %in% c("FF16", "FF16r")) {
+  if(x %in% c("FF16")) {
 
     #set bounds
     bounds = bounds(lma=c(0.01, 3))
@@ -175,11 +175,6 @@ for (x in names(strategy_types)) {
     if(x == "FF16"){
       expect_equal(opt_res_area_heartwood_by_size_grow[1], 0.4160424, tolerance = tol)
     }
-    
-    if(x == "FF16r"){
-      expect_equal(opt_res_area_heartwood_by_size_grow[1], 0.5587316, tolerance = tol)
-    }
-    
     
     #check what happens when unknown rate name is passed in as size name
     expect_error(optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = 0.1, type = x, size_name = "mss_heartwood", set_state_directly = FALSE))
