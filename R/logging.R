@@ -14,17 +14,6 @@ plant_log_debug <- function(...) {
   loggr::log_debug(..., package="plant", pid=Sys.getpid())
 }
 
-plant_log_eq <- function(...) {
-  plant_log_info(..., routine="equilibrium")
-}
-
-plant_log_viable <- function(...) {
-  plant_log_info(..., routine="viable")
-}
-
-plant_log_inviable <- function(...) {
-  plant_log_info(..., routine="inviable")
-}
 
 make_plant_format_log_entry <- function(colour) {
   if (colour) {

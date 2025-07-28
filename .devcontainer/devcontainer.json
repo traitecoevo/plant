@@ -1,0 +1,21 @@
+{
+	"image": "mcr.microsoft.com/devcontainers/universal:2",
+	"features": {
+		"ghcr.io/rocker-org/devcontainer-features/r-apt:0": {
+			"installDevTools": true,
+			"installREnv": true,
+			"installRMarkdown": true,
+			"installRadian": true,
+			"installVscDebugger": true,
+			"useTesting": true,
+			"vscodeRSupport": "lsp"
+		},
+		"ghcr.io/rocker-org/devcontainer-features/r-dependent-packages:0": {
+			"when": "updateContent",
+			"pakVersion": "auto",
+			"manifestRoot": ".",
+			"additionalRepositories": "rhub = 'https://r-hub.r-universe.dev', jeroen = 'https://jeroen.r-universe.dev'",
+			"dependencyTypes": "all"
+		}
+	}
+}
