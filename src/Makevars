@@ -1,6 +1,6 @@
 ## Flags for compiler
 
-## Using C++25
+## Using C++23
 CXX_STD = CXX23
 
 ## Where to find headers
