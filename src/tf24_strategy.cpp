@@ -122,6 +122,14 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   // store the aux sate
   vars.set_aux(aux_index.at("net_mass_production_dt"), net_mass_production_dt_);
 
+    // convert evapotranspiration per leaf area (kg H20 m^-2 s^-1) to canopy-level total yearly assimilation (m yr^-1)
+  // stubbing out E_p for integration
+  for (size_t i = 0; i < environment.ode_size(); i++) {
+
+    vars.set_consumption_rate(i, evapotranspiration_dt(area_leaf_)*60*60*12*365/1000);
+
+  }
+
   if (net_mass_production_dt_ > 0) {
 
     const double fraction_allocation_reproduction_ = fraction_allocation_reproduction(height);
@@ -570,6 +578,10 @@ void TF24_Strategy::prepare_strategy() {
   } else {
     extrinsic_drivers.set_constant("birth_rate", birth_rate_y[0]);
   }
+    leaf = Leaf(vcmax_25,  c,  b, psi_crit, beta2, jmax_25, hk_s, a, curv_fact_elec_trans,curv_fact_colim, control.GSS_tol_abs,
+           control.vulnerability_curve_ncontrol,
+           control.ci_abs_tol,
+           control.ci_niter);
 }
 
 TF24_Strategy::ptr make_strategy_ptr(TF24_Strategy s) {
