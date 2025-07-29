@@ -14,6 +14,19 @@ TF24_Strategy::TF24_Strategy() {
   name = "TF24";
 }
 
+// not sure 'average' is the right term here..
+double TF24_Strategy::compute_average_light_environment(
+    double z, double height, const TF24_Environment &environment) {
+//NOTE: this function is currently being constrained at 0 because 
+
+     return std::max(environment.get_environment_at_height(z), 0.0001) * q(z, height);
+}
+
+// assumes optimise_psi_stem_TF has been run for optimal psi_stem
+double TF24_Strategy::evapotranspiration_dt(double area_leaf_) {
+  return leaf.transpiration_ * area_leaf_;
+}
+
 void TF24_Strategy::refresh_indices () {
     // Create and fill the name to state index maps
   state_index = std::map<std::string,int>();
