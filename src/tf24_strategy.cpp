@@ -251,6 +251,73 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   const double area_bark_    = area_bark(area_leaf_);
   const double mass_bark_    = mass_bark(area_bark_, height);
   const double mass_root_    = mass_root(area_leaf_);
+
+  // integrate over x from zero to `height`, with fixed canopy openness
+  auto f = [&](double x) -> double {
+    return compute_average_light_environment(x, height, environment);
+ 
+  };
+
+  double average_light_environment = function_integrator.integrate(f, 0.0, height);
+
+  // calculate average radiation by multipling average canopy openness by PPFD and accounting for self-shading k_I.
+  const double average_radiation = k_I * average_light_environment * environment.PPFD;
+  // const double psi_soil = environment.get_psi_soil() / 1000000;
+  double psi_soil = 1;
+
+// find leaf specific max hydraulic conductance
+  // K_s: max hydraulic conductivity (kg m^-2 s^-1 MPa^-1),
+  // theta: huber value
+  // eta_c: accounts for average position of leaf mass
+  // height: maximum plant height
+  const double leaf_specific_conductance_max = K_s * theta / (height * eta_c);
+
+  // find sapwood volume per leaf area
+  // theta: huber value
+  // eta_c: accounts for average position of leaf mass
+
+  // const double sapwood_volume_per_leaf_area = theta * (height * eta_c);
+
+  const double sapwood_volume_per_leaf_area = (0.000157*(1-var_sapwood_volume_cost) + theta*var_sapwood_volume_cost)  * (height * eta_c);
+// set strategy-level physiological parameters for the leaf-submodel.
+  leaf.set_physiology(rho, a_bio, average_radiation, psi_soil, leaf_specific_conductance_max, environment.get_atm_vpd(), environment.get_ca(), sapwood_volume_per_leaf_area, environment.get_leaf_temp(), environment.get_atm_o2_kpa(), environment.get_atm_kpa());
+
+  // optimise psi_stem, setting opt_psi_stem_, profit_, hydraulic_cost_, assim_colimited_ etc.
+  //leaf.optimise_psi_stem_TF();
+
+
+  // stomatal conductance to c02 (umol m^-2 s^-1)
+  //vars.set_aux(aux_index.at("transpiration_"), leaf.transpiration_);
+  //vars.set_aux(aux_index.at("stom_cond_CO2_"), leaf.stom_cond_CO2_);
+
+  // optimum psi_stem (-MPa)
+  //vars.set_aux(aux_index.at("ci_"), leaf.ci_);
+
+  //vars.set_aux(aux_index.at("opt_psi_stem_"), leaf.opt_psi_stem_);
+    
+  // profit (umol m^-2 s^-1), assim_colimited_ - hydraulic_cost_
+  //vars.set_aux(aux_index.at("profit_"), leaf.profit_);
+
+  // assim_colimted_(umol m^-2 s^-1), per leaf area
+  //vars.set_aux(aux_index.at("assim_colimited_"), leaf.assim_colimited_);
+  
+  // cost (umol m^-2 s^-1), hydraulic_cost_
+  //vars.set_aux(aux_index.at("hydraulic_cost_"), leaf.hydraulic_cost_);
+
+  // convert assimilation per leaf area per second (umol m^-2 s^-1) to canopy-level total yearly assimilation (mol yr^-1)
+
+  //const double assimilation = leaf.profit_ * area_leaf_* 60*60*12*365/1e6;
+    
+  //const double respiration_ = 
+  //respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
+      
+
+  //const double turnover_ = 
+  //turnover(mass_leaf_, mass_bark_, mass_sapwood_, mass_root_);
+
+  //vars.set_aux(aux_index.at("respiration_"), respiration_);
+  //vars.set_aux(aux_index.at("turnover_"), turnover_);
+
   const double assimilation_ = assimilation(environment, height, area_leaf_);
   const double respiration_ =
     respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
