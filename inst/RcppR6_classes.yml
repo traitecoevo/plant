@@ -339,7 +339,6 @@ QAG:
     last_intervals: {type: "plant::quadrature::intervals_type", access: member, name_cpp: get_last_intervals}
     is_adaptive: {type: bool, access: member}
 
-
 Interpolator:
   name_cpp: "plant::interpolator::Interpolator"
   constructor:
@@ -476,7 +475,6 @@ Internals:
       args: [new_size: size_t, new_aux_size: size_t]
       return_type: void
 
-
 Parameters:
   name_cpp: "plant::Parameters<T,E>"
   templates:
@@ -606,6 +604,7 @@ Patch:
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
     ode_aux: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_aux"}
     node_ode_size: {type: size_t, access: member}
+    state: {type: "Rcpp::List", access: member, name_cpp: r_get_state}
   methods:
     introduce_new_node:
       return_type: void
@@ -709,10 +708,6 @@ SCM:
       type: "std::vector<double>"
       access: member
       name_cpp: r_ode_times
-    state:
-      type: "Rcpp::List"
-      access: function
-      name_cpp: "plant::get_state"
     aux:
       type: "Rcpp::List"
       access: function
@@ -731,7 +726,6 @@ SCM:
       type: "std::vector<std::vector<double>>"
       access: member
       name_cpp: r_net_reproduction_ratio_errors
-
 
 StochasticSpecies:
   name_cpp: "plant::StochasticSpecies<T,E>"

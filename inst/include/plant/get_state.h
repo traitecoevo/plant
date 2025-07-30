@@ -14,35 +14,7 @@ namespace plant {
 // about that though as it revolves pretty closely around Rcpp types
 // and is kind of separate to the rest of the model.  It won't matter
 // though; if it does move in then we just adjust the yml.
-template <typename T, typename E>
-Rcpp::NumericMatrix::iterator get_state(const Node<T,E>& node,
-                                        Rcpp::NumericMatrix::iterator it) {
-  std::vector<double> tmp = ode::r_ode_state(node);
-  return std::copy(tmp.begin(), tmp.end(), it);
-}
 
-template <typename T, typename E>
-Rcpp::NumericMatrix get_state(const Species<T,E>& species) {
-  typedef Node<T,E> node_type;
-  size_t ode_size = node_type::ode_size(), np = species.size();
-  Rcpp::NumericMatrix ret(static_cast<int>(ode_size), np + 1); // +1 is seed
-  Rcpp::NumericMatrix::iterator it = ret.begin();
-  for (size_t i = 0; i < np; ++i) {
-    it = get_state(species.r_node_at(i), it);
-  }
-  it = get_state(species.r_new_node(), it);
-  ret.attr("dimnames") = Rcpp::List::create(node_type::ode_names(), R_NilValue);
-  return ret;
-}
-
-template <typename T, typename E>
-Rcpp::List get_state(const Patch<T,E>& patch) {
-  Rcpp::List ret;
-  for (size_t i = 0; i < patch.size(); ++i) {
-    ret.push_back(get_state(patch.at(i)));
-  }
-  return ret;
-}
 
 inline Rcpp::NumericMatrix get_state(const Environment environment, double time) {
   // Empty vector
@@ -50,14 +22,6 @@ inline Rcpp::NumericMatrix get_state(const Environment environment, double time)
   return Rcpp::wrap(util::to_rcpp_matrix(xy));
 }
 
-template <typename T, typename E>
-Rcpp::List get_state(const SCM<T,E>& scm) {
-  using namespace Rcpp;
-  const Patch<T,E>& patch = scm.r_patch();
-  return List::create(_["time"] = scm.time(),
-                      _["species"] = get_state(patch),
-                      _["env"] = get_state(patch.r_environment(), scm.time()));
-}
 
 // stochastic model:
 template <typename T, typename E>
@@ -98,8 +62,8 @@ Rcpp::List get_state(const StochasticPatchRunner<T,E>& obj) {
   using namespace Rcpp;
   const StochasticPatch<T,E>& patch = obj.r_patch();
   return List::create(_["time"] = obj.time(),
-                      _["species"] = get_state(patch),
-                      _["env"] = get_state(patch.r_environment(), obj.time()));
+                      _["species"] = get_state(patch));
+                      // _["env"] = get_state(patch.r_environment(), obj.time()));
 }
 
 }

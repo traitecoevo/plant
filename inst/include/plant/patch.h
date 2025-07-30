@@ -65,6 +65,11 @@ public:
   // Retrieve auxillary variables and save into the ode solver
   ode::iterator ode_aux(ode::iterator it) const;
 
+  // Returns state in structure format as opposed to single 
+  // vector as given by ode_state
+  Rcpp::List r_get_state() const;
+  Rcpp::List get_community_state() const;
+
   // Set state of patch, based on estimate of future state estimated by the solver
   // There are two implementations.
   //   - first function is for resident runs.
@@ -438,6 +443,26 @@ ode::iterator Patch<T,E>::ode_state(ode::iterator it) const {
   it = ode::ode_state(species.begin(), species.end(), it);
   it = environment.ode_state(it);
   return it;
+}
+
+template <typename T, typename E>
+Rcpp::List Patch<T, E>::r_get_state() const
+{
+  
+  return Rcpp::List::create(_["time"] = time(),
+                            _["species"] = get_community_state()); //,
+                                                                         // _["env"] = patch.environment.get_state(time());
+}
+
+template <typename T, typename E>
+Rcpp::List Patch<T, E>::get_community_state() const
+{
+  Rcpp::List ret;
+  for (size_t i = 0; i < species.size(); ++i)
+  {
+    ret.push_back(species[i].get_node_states());
+  }
+  return ret;
 }
 
 template <typename T, typename E>

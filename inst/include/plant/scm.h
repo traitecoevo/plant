@@ -41,7 +41,6 @@ public:
   std::vector<util::index> r_run_next();
   parameters_type r_parameters() const { return parameters; }
   const patch_type &r_patch() const { return patch; }
-
   const std::vector <patch_type> &r_history() const { return history; }
 
   // TODO: These are liable to change to return all species at once by
@@ -67,6 +66,7 @@ public:
   bool collect;
   std::vector<patch_type> history;
 
+  Rcpp::List r_get_state() const { patch.r_get_state(); };
 
 private:
   double total_offspring_production() const;
@@ -96,7 +96,7 @@ template <typename T, typename E> void SCM<T, E>::run() {
   reset();
   while (!complete()) {
     run_next();
-    // store results
+    // store
     if(collect) {
       history.push_back(patch);
     }
@@ -241,6 +241,7 @@ void SCM<T, E>::r_set_node_schedule_times(
   node_schedule.set_times(x);
   parameters.node_schedule_times = x;
 }
+
 
 // Offspring production, equal to overall fitness scaled by the birth rate
 template <typename T, typename E>
