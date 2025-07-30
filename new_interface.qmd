@@ -37,6 +37,11 @@ traits <- trait_matrix(c(0.07), c("lma"))
 
 p1 <- expand_parameters(traits, p0)
 
+traits6 <- trait_matrix(rep(c(0.07), 6), c("lma"))
+
+p6 <- expand_parameters(traits6, p0, birth_rate_list = rep(1, 6))
+
+
 # existing - using wrappers
 results <- run_scm(p1)
 results$net_reproduction_ratios
@@ -125,6 +130,118 @@ system.time(scm$run())
 scm <- SCM("FF16", "FF16_Env")(p1, env, ctrl)
 scm$collect <- FALSE
 system.time(scm$run())
+```
+
+Extract details
+
+```{r}
+# can access history using map
+scm$history |> map_dbl(~ .x$ode_size)
+scm$history |> map_dbl(~ .x$environment$ode_size)
 
 ```
 
+Extarct state
+
+```{r}
+# old
+s1 <- scm$state$species[[1]] |>
+  t() |>
+  as_tibble()
+
+# new
+scm$patch$species[[1]]$nodes[[1]]$ode_names
+nm <- scm$patch$species[[1]]$nodes[[1]]$ode_names
+s2 <- scm$patch$species[[1]]$nodes |> map_df(~ .x$ode_state |> setNames(nm))
+
+s1 |> ggplot(aes(height, log_density)) +
+  geom_line()
+
+s2 |> ggplot(aes(height, log_density)) +
+  geom_line()
+
+all.equal(s1 |> slice_head( n = nrow(s2)), s2)
+```
+
+Functions
+
+```{r}
+get_state_species <- function(species, i = NA_real_, time = NA_real_, step = NA_real_) {
+  # nm <- species$nodes[[1]]$ode_names
+  # extracting odeNames is really slow
+  nm <- c("height", "mortality", "fecundity", "area_heartwood", "mass_heartwood", "offspring_produced_survival_weighted", "log_density")
+
+  # Convert vector to tibble
+  df <- 
+    species$ode_state |>
+    matrix(ncol = length(nm), byrow = TRUE)
+  colnames(df) <- nm
+  
+  df |> 
+    dplyr::as_tibble() |>
+    dplyr::mutate(
+      step = step,
+      time = time,
+      species = i,
+      node = seq_len(n())
+    ) |>
+    dplyr::select(step, time, species, node, dplyr::everything())
+}
+
+system.time(y <- scm$patch$species[[1]] |> get_state_species())
+
+
+get_state_community <- function(patch, step_i = NA_real_) {
+  patch$species |>
+    purrr::imap(get_state_species) |>
+    purrr::list_rbind() |>
+    dplyr::mutate(
+      time = patch$time,
+      step = step_i
+    )
+}
+
+system.time(
+  y <- scm$patch |> get_state_community(step_i = 5)
+)
+
+get_state_history <- function(history) {
+  history |> purrr::imap_dfr(get_state_community)
+}
+
+system.time(
+  y <- scm$history |> get_state_history()
+)
+```
+
+Many species
+
+Neglible cost of collecting via either methods
+```{r}
+scm <- SCM("FF16", "FF16_Env")(p6, env, ctrl)
+scm$collect <- FALSE
+system.time(scm$run())
+
+scm <- SCM("FF16", "FF16_Env")(p6, env, ctrl)
+scm$collect <- TRUE
+system.time(scm$run())
+
+system.time(
+  run_scm_collect(p6, env, ctrl)
+)
+
+system.time(
+  run_scm(p6, env, ctrl)
+)
+```
+
+Extract
+```{r}
+system.time(
+  y <- scm$patch |> get_state_community(step_i = 5)
+)
+
+system.time(
+  y <- scm$history |> get_state_history()
+)
+```
