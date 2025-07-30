@@ -75,8 +75,8 @@ test_that("Ode runner behaves", {
   expect_equal(lo2$ode_state, y)
 
   times <- sys$times
-  expect_equal(first(times), 0.0)
-  expect_identical(last(times), t1)
+  expect_equal(times[[1]], 0.0)
+  expect_identical(dplyr::last(times), t1)
   ## Object does not store time:
   expect_null(sys$object$ode_time)
 

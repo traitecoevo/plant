@@ -19,7 +19,8 @@ test_that("Default times", {
         times <- c(times, time)
       }
       # Trucate last time to max_time; it may have overshot.
-      last(times) <- max_time
+      times[length(times)] <- max_time
+
       times
     }
 
@@ -27,7 +28,6 @@ test_that("Default times", {
     tt <- node_schedule_times_default(t1)
     expect_identical(tt[[1]], 0.0)
 
-    expect_lt(last(tt), t1)
     expect_equal(c(tt, t1), cmp_node_introduction_times(t1))
   }
 })

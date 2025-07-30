@@ -39,7 +39,7 @@ last <- function(x) {
   x[[length(x)]]
 }
 
-times <- c(5, 10, 20, 40, last(result$time))
+times <- c(5, 10, 20, 40, dplyr::last(result$time))
 i <- vapply(times, closest, integer(1), result$time)
 blues <- c("#DEEBF7", "#C6DBEF", "#9ECAE1", "#6BAED6",
            "#4292C6", "#2171B5", "#08519C", "#08306B")

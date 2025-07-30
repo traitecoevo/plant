@@ -315,7 +315,7 @@ make_TF24_hyperpar <- function(
       }
       if(all(diff(AA) < 1E-8)) {
         # line fitting will fail if all have are zero, or potentially same value
-        ret <- c(last(AA), 0)
+        ret <- c(dplyr::last(AA), 0)
         names(ret) <- c("p1","p2")
       } else {
         fit <- nls(AA ~ p1 * E/(p2 + E), data.frame(E = E, AA = AA), start = list(p1 = 100, p2 = 0.2))

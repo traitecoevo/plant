@@ -171,7 +171,7 @@ test_that("Setting max time behaves sensibly", {
 
   ## Before setting max_time, the finishing time will be Inf:
   e <- last_event(sched)
-  expect_equal(e$time_introduction, last(t1))
+  expect_equal(e$time_introduction, dplyr::last(t1))
   expect_equal(e$time_end, Inf)
 
   ## Set max_time to something stupid:
@@ -184,7 +184,7 @@ test_that("Setting max time behaves sensibly", {
 
   ## Make sure that the last event has been modified:
   e <- last_event(sched)
-  expect_equal(e$time_introduction, last(t1))
+  expect_equal(e$time_introduction, dplyr::last(t1))
   expect_equal(e$time_end, max_t)
 
   ## Now this will fail
@@ -267,9 +267,9 @@ test_that("ode_times", {
 
   cmp <- drain_schedule(sched)
 
-  expect_equal(sapply(cmp, first), expected$species_index)
-  expect_equal(sapply(cmp, second), expected$start)
-  expect_equal(sapply(cmp, last), expected$end)
+  expect_equal(sapply(cmp, dplyr::first), expected$species_index)
+  expect_equal(sapply(cmp, dplyr::nth, n=2), expected$start)
+  expect_equal(sapply(cmp, dplyr::last), expected$end)
 
   expect_equal(lapply(cmp, function(x) x[3:(length(x) - 1)]), expected_ode)
 

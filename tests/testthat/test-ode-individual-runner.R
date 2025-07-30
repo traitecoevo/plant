@@ -160,12 +160,12 @@ test_that("grow_individual_to_size", {
 
     expect_equal(res$state[, "height"], sizes, tolerance=1e-4)
 
-    sizes2 <- c(sizes, last(sizes) * 2)
+    sizes2 <- c(sizes, dplyr::last(sizes) * 2)
     if(x == "FF16") {
       expect_warning(res2 <- grow_individual_to_size(pl, sizes2, "height", env, 100),
                 "Time exceeded time_max")
       expect_equal(length(res2$time), length(sizes2))
-      expect_equal(last(res2$time), NA_real_)
+      expect_equal(dplyr::last(res2$time), NA_real_)
       expect_false(any(is.na(res2$time[-length(sizes2)])))
 
       expect_silent(res3 <- grow_individual_to_size(pl, sizes2, "height", env,

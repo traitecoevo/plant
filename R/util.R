@@ -1,23 +1,3 @@
-first <- function(x) {
-  x[[1]]
-}
-`first<-` <- function(x, value) {
-  x[[1]] <- value
-  x
-}
-
-second <- function(x) {
-  x[[2]]
-}
-
-last <- function(x) {
-  x[[length(x)]]
-}
-`last<-` <- function(x, value) {
-  x[[length(x)]] <- value
-  x
-}
-
 list_to_array <- function(x) {
   if (length(unique(lapply(x, dim))) > 1L) {
     stop("More than one dimension")
@@ -115,9 +95,6 @@ viapply <- function(X, FUN, ...) {
 vnapply <- function(X, FUN, ...) {
   vapply(X, FUN, numeric(1), ...)
 }
-vcapply <- function(X, FUN, ...) {
-  vapply(X, FUN, character(1), ...)
-}
 
 ##' Make colours transparent
 ##' @title Make colours transparent
@@ -144,20 +121,6 @@ util_colour_set_opacity <- function(col, opacity=.5) {
   }
 }
 
-assert_named_if_not_empty <- function(x, name=deparse(substitute(x))) {
-  if (length(x) > 0L) {
-    nms <- names(x)
-    if (is.null(nms) || any(nms == "") || any(duplicated(nms))) {
-      stop(sprintf("All elements of %s must be uniquely named", name))
-    }
-  }
-}
-
-#' @importFrom utils modifyList
-modify_list <- function(x, val) {
-  modifyList(x, val[intersect(names(val), names(x))])
-}
-
 extract_RcppR6_template_types <- function(x, base) {
   cl <- class(x)[[1]]
   re <- sprintf("^%s<([^>]+)>$", base)
@@ -166,14 +129,4 @@ extract_RcppR6_template_types <- function(x, base) {
   }
   # Return a vector of type name strings
   as.list(strsplit(sub(re, "\\1", cl), ',')[[1]])
-}
-
-rep1 <- function(x, length.out, name=deparse(substitute(x))) {
-  if (length(x) == length.out) {
-    x
-  } else if (length(x) == 1L) {
-    rep_len(x, length.out)
-  } else {
-    stop(sprintf("%s must be length %d or scalar", name))
-  }
 }

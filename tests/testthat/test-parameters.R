@@ -123,7 +123,7 @@ test_that("Patch runtime", {
     ## This is going to force us back through the validator
     p$max_patch_lifetime <- 35.10667
     p2 <- plant:::validate(p)
-    expect_lt(last(p2$node_schedule_times_default), p2$max_patch_lifetime)
+    expect_lt(dplyr::last(p2$node_schedule_times_default), p2$max_patch_lifetime)
     expect_equal(p2$node_schedule_times, list(p2$node_schedule_times_default))
 
     ## We will blow away any data that is stored in p$node_schedule*
