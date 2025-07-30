@@ -1,0 +1,130 @@
+---
+title: "Example workflow"
+output: bookdown::html_document2
+---
+
+**authors**: DS Falster
+**date**: 2022
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# installation
+
+```{r load libraries}
+#library(plant)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(patchwork)
+```
+
+Activate logger
+
+```{r}
+plant_log_console()
+```
+
+Very minimalist 
+
+A basic run without 
+
+```{r}
+p0 <- Parameters("FF16", "FF16_Env")()
+
+traits <- trait_matrix(c(0.07), c("lma"))
+
+p1 <- expand_parameters(traits, p0)
+
+# existing - using wrappers
+results <- run_scm(p1)
+results$net_reproduction_ratios
+
+
+# existing - using base functions
+scm <- SCM("FF16","FF16_Env")(p1, 
+        environment = FF16_Environment(light_availability_spline_rescale_usually = TRUE)
+        control = fast_control() # Control()).
+scm$run()
+scm$net_reproduction_ratios
+
+```
+
+To simplify
+- unify `run_scm`, `run_scm_collect`, `build_schedule`
+  - add collect into scm
+  - integrate `build_schedule` into scm
+
+- simplify handling of offspring calculations in SCM 
+  - add as auxillary variable or ODE to species?
+
+collect
+
+```{r}
+env <- FF16_Environment(light_availability_spline_rescale_usually = TRUE)
+ctrl <- fast_control()
+
+scm <- SCM("FF16", "FF16_Env")(p1, env, ctrl)
+res <- list(scm$state)
+
+while (!scm$complete) {
+  scm$run_next()
+  res <- c(res, list(scm$state))
+}
+```
+
+`scm$state` calls `get_state` function defined in [`get_state.h`](inst/include/plant/get_state.h)
+  - move these into each class - i.e. scm, patch, node, species, environemt. 
+  - as system progresses, archive a copy of 
+    - patch OR
+    - state vector
+
+We can access all the states at all times at different levls, so why not just archive the patch in C++ and then retreive through patch history on R side?
+
+```{r}
+scm
+scm$patch$ode_size
+
+scm$patch$species[[1]]$ode_size
+scm$patch$species[[1]]$nodes[[1]]$ode_names
+
+scm$patch$species[[1]]$nodes[[1]]$ode_state
+
+scm$patch$species$ode_size
+```
+
+Try simple C++ vector push back to store patch throught time
+
+How does this differ to mutants?
+- mutants need to store patch environment at all intermediate time points, whereas we only need to 
+
+- also, we have set_state, get_state functions. Can input/output large vector of states
+- can iterator return colnames for state?
+
+```{r}
+devtools::load_all()
+scm <- SCM("FF16", "FF16_Env")(p1, env, ctrl)
+scm$collect <- TRUE
+scm$run()
+scm$patch
+scm$history[[1]]$ode_state
+scm$history[[4]]$ode_state
+scm$history[[141]]$ode_state
+
+all(scm$patch$ode_state == scm$history[[141]]$ode_state)
+```
+
+compare times, what is cost of collect
+
+```{r}
+scm <- SCM("FF16", "FF16_Env")(p1, env, ctrl)
+scm$collect <- TRUE
+system.time(scm$run())
+
+scm <- SCM("FF16", "FF16_Env")(p1, env, ctrl)
+scm$collect <- FALSE
+system.time(scm$run())
+
+```
+

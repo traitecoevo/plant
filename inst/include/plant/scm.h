@@ -42,6 +42,8 @@ public:
   parameters_type r_parameters() const { return parameters; }
   const patch_type &r_patch() const { return patch; }
 
+  const std::vector <patch_type> &r_history() const { return history; }
+
   // TODO: These are liable to change to return all species at once by
   // default.  The pluralisation difference between
   // SCM::r_competition_effect_error and Species::r_competition_effects_error
@@ -51,13 +53,21 @@ public:
   std::vector<double>
   r_competition_effect_error(util::index species_index) const;
   std::vector<double> r_ode_times() const;
+  
   bool r_use_ode_times() const;
   void r_set_use_ode_times(bool x);
+
+  bool r_get_collect() const;
+  void r_set_collect(bool x);
 
   NodeSchedule r_node_schedule() const { return node_schedule; }
   void r_set_node_schedule(NodeSchedule x);
   void r_set_node_schedule_times(std::vector<std::vector<double>> x);
   
+  bool collect;
+  std::vector<patch_type> history;
+
+
 private:
   double total_offspring_production() const;
 
@@ -74,6 +84,9 @@ SCM<T, E>::SCM(parameters_type p, environment_type e, Control c)
       solver(patch, make_ode_control(c)) {
 
   parameters.validate();
+
+  collect = false;
+
   if (!util::identical(parameters.patch_area, 1.0)) {
     util::warning("We recommened keeping patch_area = 1 for the SCM, as need to check units for all other sizes");
   }
@@ -83,6 +96,10 @@ template <typename T, typename E> void SCM<T, E>::run() {
   reset();
   while (!complete()) {
     run_next();
+    // store results
+    if(collect) {
+      history.push_back(patch);
+    }
   }
 }
 
@@ -156,6 +173,7 @@ template <typename T, typename E> void SCM<T, E>::reset() {
   patch.reset();
   node_schedule.reset();
   solver.reset(patch);
+  history.clear();
 }
 
 template <typename T, typename E> bool SCM<T, E>::complete() const {
@@ -189,6 +207,17 @@ template <typename T, typename E> bool SCM<T, E>::r_use_ode_times() const {
 template <typename T, typename E> void SCM<T, E>::r_set_use_ode_times(bool x) {
   node_schedule.r_set_use_ode_times(x);
 }
+
+
+template <typename T, typename E> bool SCM<T, E>::r_get_collect() const {
+  return collect;
+}
+
+template <typename T, typename E> void SCM<T, E>::r_set_collect(bool x) {
+    collect = x;
+}
+
+
 
 template <typename T, typename E>
 void SCM<T, E>::r_set_node_schedule(NodeSchedule x) {

@@ -696,6 +696,10 @@ SCM:
       type: "plant::Patch<T,E>"
       access: member
       name_cpp: r_patch
+    history:
+      type: "std::vector<plant::Patch<T,E>>"
+      access: member
+      name_cpp: r_history
     node_schedule:
       type: "plant::NodeSchedule"
       access: member
@@ -718,6 +722,11 @@ SCM:
       access: member
       name_cpp: r_use_ode_times
       name_cpp_set: r_set_use_ode_times
+    collect:
+      type: bool
+      access: member
+      name_cpp: r_get_collect
+      name_cpp_set: r_set_collect
     net_reproduction_ratio_errors:
       type: "std::vector<std::vector<double>>"
       access: member
