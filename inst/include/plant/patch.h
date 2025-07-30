@@ -450,8 +450,8 @@ Rcpp::List Patch<T, E>::r_get_state() const
 {
   
   return Rcpp::List::create(_["time"] = time(),
-                            _["species"] = get_community_state()); //,
-                                                                         // _["env"] = patch.environment.get_state(time());
+                            _["species"] = get_community_state(),
+                            _["env"] = environment.r_get_state());
 }
 
 template <typename T, typename E>

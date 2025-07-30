@@ -275,24 +275,29 @@ public:
   virtual void clear_environment() {
     light_availability.clear();
   }
+
+  virtual Rcpp::List r_get_state() const
+  {
+    
+    // Surely an easier way?
+    auto const &soil_depth_list = get_soil_depths();
+    auto rcpp_soil_depth_vec = Rcpp::NumericVector(soil_depth_list.begin(), soil_depth_list.end());
+
+    auto const &soil_moist_list = get_soil_water_state();
+    auto rcpp_soil_moist_vec = Rcpp::NumericVector(soil_moist_list.begin(), soil_moist_list.end());
+
+    return Rcpp::List::create(
+        //    auto ret = get_state(environment.extrinsic_drivers, time);
+
+        _["light_availability"] = light_availability.r_get_state(),
+        _["soil_moist"] = rcpp_soil_moist_vec,
+        _["soil_depth"] = rcpp_soil_depth_vec
+    );
+  }
 };
 
 
-inline Rcpp::List get_state(const TF24_Environment environment, double time) {
-  auto ret = get_state(environment.extrinsic_drivers, time);
-  
-  ret["light_availability"] = get_state(environment.light_availability);
-  
-  auto const& soil_moist_list = environment.get_soil_water_state();
-  auto rcpp_soil_moist_vec = Rcpp::NumericVector(soil_moist_list.begin(), soil_moist_list.end());
-  ret["soil_moist"] = rcpp_soil_moist_vec;
 
-  // Surely an easier way?
-  auto const &soil_depth_list = environment.get_soil_depths();
-  auto rcpp_soil_depth_vec = Rcpp::NumericVector(soil_depth_list.begin(), soil_depth_list.end());
-  ret["soil_depth"] = rcpp_soil_depth_vec;
-  return ret;
-}
 }
 
 #endif

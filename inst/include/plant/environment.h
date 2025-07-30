@@ -49,6 +49,11 @@ public:
     return it;
   }
 
+  virtual Rcpp::List r_get_state() const
+  {
+    return Rcpp::List::create(_["time"] = time);
+  }
+
   // Reset the environment
   void clear() {
     time = 0.0;

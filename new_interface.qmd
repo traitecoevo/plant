@@ -3,54 +3,51 @@ title: "Example workflow"
 output: bookdown::html_document2
 ---
 
-**authors**: DS Falster
-**date**: 2022
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 
 # installation
 
 ```{r load libraries}
 #library(plant)
 library(dplyr)
+library(purrr)
 library(tidyr)
 library(ggplot2)
 library(patchwork)
+
+devtools::load_all()
 ```
-
-Activate logger
-
-```{r}
-plant_log_console()
-```
-
-Very minimalist 
 
 A basic run without 
 
 ```{r}
-p0 <- Parameters("FF16", "FF16_Env")()
+p0 <- Parameters("TF24", "TF24_Env")()
 
 traits <- trait_matrix(c(0.07), c("lma"))
-
 p1 <- expand_parameters(traits, p0)
 
 traits6 <- trait_matrix(rep(c(0.07), 6), c("lma"))
-
 p6 <- expand_parameters(traits6, p0, birth_rate_list = rep(1, 6))
 
+env <- TF24_Environment(
+                  light_availability_spline_rescale_usually = FALSE,
+                   soil_number_of_depths = 1, 
+                   delta_z = 9999,
+                   soil_moist_sat = 0.453,
+                   K_sat = 440.628,
+                   a_psi = 8.7,
+                   n_psi = 4.8,
+                   b_infil = 8)
+ctrl <- fast_control()
+```
 
+```{r}
 # existing - using wrappers
 results <- run_scm(p1)
 results$net_reproduction_ratios
 
 
 # existing - using base functions
-scm <- SCM("FF16","FF16_Env")(p1, 
-        environment = FF16_Environment(light_availability_spline_rescale_usually = TRUE)
-        control = fast_control() # Control()).
+scm <- SCM("FF16", "FF16_Env")(p1, env, ctrl)
 scm$run()
 scm$net_reproduction_ratios
 
@@ -222,7 +219,7 @@ scm <- SCM("FF16", "FF16_Env")(p6, env, ctrl)
 scm$collect <- FALSE
 system.time(scm$run())
 
-scm <- SCM("FF16", "FF16_Env")(p6, env, ctrl)
+scm <- SCM("FF16", "FF16_Env")(p1, env, ctrl)
 scm$collect <- TRUE
 system.time(scm$run())
 
@@ -233,15 +230,18 @@ system.time(
 system.time(
   run_scm(p6, env, ctrl)
 )
+
 ```
 
-Extract
-```{r}
-system.time(
-  y <- scm$patch |> get_state_community(step_i = 5)
-)
 
-system.time(
-  y <- scm$history |> get_state_history()
-)
+```{r}
+# existing - using base functions
+scm <- SCM("FF16", "FF16_Env")(p1, env, ctrl)
+scm <- SCM("TF24", "TF24_Env")(p1, env, ctrl)
+scm$collect <- FALSE # TRUE
+scm$run()
+scm$net_reproduction_ratios
+system.time(y <- scm$patch$state)
+system.time(yy <- scm$history |> map(~ .x$state))
+all.equal(y, last(yy))
 ```

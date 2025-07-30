@@ -91,6 +91,15 @@ public:
   // flag, do we try to rescale the spline when possible? this is quicker
   bool spline_rescale_usually;
 
+  Rcpp::NumericMatrix r_get_state() const {
+
+    // format spline as Matrix
+    Rcpp::NumericMatrix xy = spline.r_get_xy();
+    // Add colnames
+    xy.attr("dimnames") = Rcpp::List::create(R_NilValue, Rcpp::CharacterVector::create("height", "light_availability"));
+    return xy;
+  }
+
 private:
 
   template <typename Function>
@@ -120,15 +129,6 @@ private:
   }
 
   };
-
-inline Rcpp::NumericMatrix get_state(const ResourceSpline resource_spline) {
-  using namespace Rcpp;
-  NumericMatrix xy = resource_spline.spline.r_get_xy();
-  Rcpp::CharacterVector colnames =
-    Rcpp::CharacterVector::create("height", "light_availability");
-  xy.attr("dimnames") = Rcpp::List::create(R_NilValue, colnames);
-  return xy;
-}
 
 
 } // plant namespace

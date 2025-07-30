@@ -16,12 +16,6 @@ namespace plant {
 // though; if it does move in then we just adjust the yml.
 
 
-inline Rcpp::NumericMatrix get_state(const Environment environment, double time) {
-  // Empty vector
-  std::vector<std::vector<double>> xy;
-  return Rcpp::wrap(util::to_rcpp_matrix(xy));
-}
-
 
 // stochastic model:
 template <typename T, typename E>
