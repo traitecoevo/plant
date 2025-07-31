@@ -3382,8 +3382,8 @@ SEXP FF16_Strategy__ctor() {
 
 
 // [[Rcpp::export]]
-plant::FF16_Environment FF16_Environment__ctor(bool light_availability_spline_rescale_usually) {
-  return plant::FF16_Environment(light_availability_spline_rescale_usually);
+plant::FF16_Environment FF16_Environment__ctor() {
+  return plant::FF16_Environment();
 }
 // [[Rcpp::export]]
 double FF16_Environment__get_environment_at_height(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double height) {
@@ -3516,8 +3516,8 @@ SEXP TF24_Strategy__ctor() {
 
 
 // [[Rcpp::export]]
-plant::TF24_Environment TF24_Environment__ctor(bool light_availability_spline_rescale_usually, int soil_number_of_depths, double delta_z, double soil_moist_sat, double K_sat, double a_psi, double n_psi, double b_infil) {
-  return plant::TF24_Environment(light_availability_spline_rescale_usually, soil_number_of_depths, delta_z, soil_moist_sat, K_sat, a_psi, n_psi, b_infil);
+plant::TF24_Environment TF24_Environment__ctor(int soil_number_of_depths, double delta_z, double soil_moist_sat, double K_sat, double a_psi, double n_psi, double b_infil) {
+  return plant::TF24_Environment(soil_number_of_depths, delta_z, soil_moist_sat, K_sat, a_psi, n_psi, b_infil);
 }
 // [[Rcpp::export]]
 double TF24_Environment__get_environment_at_height(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, double height) {

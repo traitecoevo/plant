@@ -8391,13 +8391,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // FF16_Environment__ctor
-plant::FF16_Environment FF16_Environment__ctor(bool light_availability_spline_rescale_usually);
-RcppExport SEXP _plant_FF16_Environment__ctor(SEXP light_availability_spline_rescale_usuallySEXP) {
+plant::FF16_Environment FF16_Environment__ctor();
+RcppExport SEXP _plant_FF16_Environment__ctor() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< bool >::type light_availability_spline_rescale_usually(light_availability_spline_rescale_usuallySEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16_Environment__ctor(light_availability_spline_rescale_usually));
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__ctor());
     return rcpp_result_gen;
 END_RCPP
 }
@@ -8727,12 +8726,11 @@ BEGIN_RCPP
 END_RCPP
 }
 // TF24_Environment__ctor
-plant::TF24_Environment TF24_Environment__ctor(bool light_availability_spline_rescale_usually, int soil_number_of_depths, double delta_z, double soil_moist_sat, double K_sat, double a_psi, double n_psi, double b_infil);
-RcppExport SEXP _plant_TF24_Environment__ctor(SEXP light_availability_spline_rescale_usuallySEXP, SEXP soil_number_of_depthsSEXP, SEXP delta_zSEXP, SEXP soil_moist_satSEXP, SEXP K_satSEXP, SEXP a_psiSEXP, SEXP n_psiSEXP, SEXP b_infilSEXP) {
+plant::TF24_Environment TF24_Environment__ctor(int soil_number_of_depths, double delta_z, double soil_moist_sat, double K_sat, double a_psi, double n_psi, double b_infil);
+RcppExport SEXP _plant_TF24_Environment__ctor(SEXP soil_number_of_depthsSEXP, SEXP delta_zSEXP, SEXP soil_moist_satSEXP, SEXP K_satSEXP, SEXP a_psiSEXP, SEXP n_psiSEXP, SEXP b_infilSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< bool >::type light_availability_spline_rescale_usually(light_availability_spline_rescale_usuallySEXP);
     Rcpp::traits::input_parameter< int >::type soil_number_of_depths(soil_number_of_depthsSEXP);
     Rcpp::traits::input_parameter< double >::type delta_z(delta_zSEXP);
     Rcpp::traits::input_parameter< double >::type soil_moist_sat(soil_moist_satSEXP);
@@ -8740,7 +8738,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type a_psi(a_psiSEXP);
     Rcpp::traits::input_parameter< double >::type n_psi(n_psiSEXP);
     Rcpp::traits::input_parameter< double >::type b_infil(b_infilSEXP);
-    rcpp_result_gen = Rcpp::wrap(TF24_Environment__ctor(light_availability_spline_rescale_usually, soil_number_of_depths, delta_z, soil_moist_sat, K_sat, a_psi, n_psi, b_infil));
+    rcpp_result_gen = Rcpp::wrap(TF24_Environment__ctor(soil_number_of_depths, delta_z, soil_moist_sat, K_sat, a_psi, n_psi, b_infil));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -9949,7 +9947,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Weibull_Disturbance_Regime__cdf", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__cdf, 2},
     {"_plant_Weibull_Disturbance_Regime__icdf", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__icdf, 2},
     {"_plant_FF16_Strategy__ctor", (DL_FUNC) &_plant_FF16_Strategy__ctor, 0},
-    {"_plant_FF16_Environment__ctor", (DL_FUNC) &_plant_FF16_Environment__ctor, 1},
+    {"_plant_FF16_Environment__ctor", (DL_FUNC) &_plant_FF16_Environment__ctor, 0},
     {"_plant_FF16_Environment__get_environment_at_height", (DL_FUNC) &_plant_FF16_Environment__get_environment_at_height, 2},
     {"_plant_FF16_Environment__clear", (DL_FUNC) &_plant_FF16_Environment__clear, 1},
     {"_plant_FF16_Environment__set_fixed_environment", (DL_FUNC) &_plant_FF16_Environment__set_fixed_environment, 3},
@@ -9979,7 +9977,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_ExtrinsicDrivers__set_variable", (DL_FUNC) &_plant_ExtrinsicDrivers__set_variable, 4},
     {"_plant_ExtrinsicDrivers__set_extrapolate", (DL_FUNC) &_plant_ExtrinsicDrivers__set_extrapolate, 3},
     {"_plant_TF24_Strategy__ctor", (DL_FUNC) &_plant_TF24_Strategy__ctor, 0},
-    {"_plant_TF24_Environment__ctor", (DL_FUNC) &_plant_TF24_Environment__ctor, 8},
+    {"_plant_TF24_Environment__ctor", (DL_FUNC) &_plant_TF24_Environment__ctor, 7},
     {"_plant_TF24_Environment__get_environment_at_height", (DL_FUNC) &_plant_TF24_Environment__get_environment_at_height, 2},
     {"_plant_TF24_Environment__clear", (DL_FUNC) &_plant_TF24_Environment__clear, 1},
     {"_plant_TF24_Environment__set_fixed_environment", (DL_FUNC) &_plant_TF24_Environment__set_fixed_environment, 3},

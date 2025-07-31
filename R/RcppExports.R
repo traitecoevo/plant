@@ -2981,8 +2981,8 @@ FF16_Strategy__ctor <- function() {
     .Call('_plant_FF16_Strategy__ctor', PACKAGE = 'plant')
 }
 
-FF16_Environment__ctor <- function(light_availability_spline_rescale_usually) {
-    .Call('_plant_FF16_Environment__ctor', PACKAGE = 'plant', light_availability_spline_rescale_usually)
+FF16_Environment__ctor <- function() {
+    .Call('_plant_FF16_Environment__ctor', PACKAGE = 'plant')
 }
 
 FF16_Environment__get_environment_at_height <- function(obj_, height) {
@@ -3101,8 +3101,8 @@ TF24_Strategy__ctor <- function() {
     .Call('_plant_TF24_Strategy__ctor', PACKAGE = 'plant')
 }
 
-TF24_Environment__ctor <- function(light_availability_spline_rescale_usually, soil_number_of_depths, delta_z, soil_moist_sat, K_sat, a_psi, n_psi, b_infil) {
-    .Call('_plant_TF24_Environment__ctor', PACKAGE = 'plant', light_availability_spline_rescale_usually, soil_number_of_depths, delta_z, soil_moist_sat, K_sat, a_psi, n_psi, b_infil)
+TF24_Environment__ctor <- function(soil_number_of_depths, delta_z, soil_moist_sat, K_sat, a_psi, n_psi, b_infil) {
+    .Call('_plant_TF24_Environment__ctor', PACKAGE = 'plant', soil_number_of_depths, delta_z, soil_moist_sat, K_sat, a_psi, n_psi, b_infil)
 }
 
 TF24_Environment__get_environment_at_height <- function(obj_, height) {
