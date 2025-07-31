@@ -30,28 +30,6 @@ TF24_Parameters <- function(...) {
   Parameters("TF24","TF24_Env")(...)
 }
 
-##' @title Create a test environment for TF24 startegy. Only used in testing
-##' @inheritParams FF16_test_environment
-##' @rdname TF24_test_environment
-TF24_test_environment <- function(height, n=101, light_env=NULL,
-                                  n_strategies=1) {
-  
-  hh <- seq(0, height, length.out=n)
-  if (is.null(light_env)) {
-    light_env <- function(x) {
-      exp(x/(height*2)) - 1 + (1 - (exp(.5) - 1))/2
-    }
-  }
-  ee <- light_env(hh)
-  interpolator <- Interpolator()
-  interpolator$init(hh, ee)
-
-  ret <- TF24_Environment()
-  ret$light_availability$spline <- interpolator
-  attr(ret, "light_env") <- light_env
-  ret
-}
-
 ##' Generates a report on stand grown with TF24 strategy
 ##'
 ##' Builds a detailed report on stand grown with TF24 strategy, based on the template Rmd file provided.  The reports are

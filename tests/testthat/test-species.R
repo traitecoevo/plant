@@ -11,7 +11,7 @@ for (x in names(strategy_types)) {
   context(sprintf("Species-%s",x))
 
   test_that("Basics", {
-    env <- test_environment(x, 3)
+    env <- Environment(x)
     s <- strategy_types[[x]]()
     sp <- Species(x, e)(s)
     new_node <- Node(x, e)(s)
@@ -90,7 +90,7 @@ for (x in names(strategy_types)) {
 
   ## 2: Node up against boundary has no leaf area:
   test_that("species with only boundary node no leaf area", {
-    env <- test_environment(x, 3)
+    env <- Environment(x)
     sp <- Species(x, e)(strategy_types[[x]]())
     sp$introduce_new_node()
     sp$compute_rates(env, pr_patch_survival = 1, birth_rate = 1)
@@ -108,7 +108,7 @@ for (x in names(strategy_types)) {
 
   ## 3: Single node; one round of trapezium:
   test_that("Leaf area sensible with one node", {
-    env <- test_environment(x, 3)
+    env <- Environment(x)
     sp <- Species(x, e)(strategy_types[[x]]())
     sp$compute_rates(env, pr_patch_survival = 1, birth_rate = 1)
     sp$introduce_new_node()
@@ -133,7 +133,7 @@ for (x in names(strategy_types)) {
   })
 
   test_that("Leaf area sensible with two nodes", {
-    env <- test_environment(x, 3)
+    env <- Environment(x)
     sp <- Species(x, e)(strategy_types[[x]]())
     sp$compute_rates(env, pr_patch_survival = 1, birth_rate = 1)
     sp$introduce_new_node()
@@ -159,7 +159,7 @@ for (x in names(strategy_types)) {
   })
 
   test_that("Leaf area sensible with three nodes", {
-    env <- test_environment(x, 3)
+    env <- Environment(x)
     sp <- Species(x, e)(strategy_types[[x]]())
     sp$compute_rates(env, pr_patch_survival = 1, birth_rate = 1)
     sp$introduce_new_node()

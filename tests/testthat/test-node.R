@@ -17,8 +17,8 @@ for (x in names(strategy_types)) {
     expect_is(node, sprintf("Node<%s,%s>", x, e))
     expect_is(node$individual, sprintf("Individual<%s,%s>", x, e))
 
-    env <- test_environment(x, 2 * plant$state("height"),
-                            light_env=function(x) rep(1, length(x)))
+    env <- Environment(x)
+    env$set_fixed_environment(1.0)
 
     ## The big unknown is the growth rate gradient calculation; that is,
     ## the derivative d(dh/dt)/dh.
@@ -103,8 +103,8 @@ for (x in names(strategy_types)) {
     plant <- Individual(x, e)(s)
     node <- Node(x, e)(s)
 
-    env <- test_environment(x, 2 * plant$state("height"),
-                            light_env=function(x) rep(1, length(x)))
+    env <- Environment(x)
+    env$set_fixed_environment(1.0)
 
     node$compute_initial_conditions(env, pr_patch_survival = 1, birth_rate = 1)
     plant$compute_rates(env)
@@ -149,8 +149,8 @@ for (x in names(strategy_types)) {
     plant <- Individual(x, e)(s)
     node <- Node(x, e)(s)
 
-    env <- test_environment(x, 10,
-                            light_env=function(x) rep(1, length(x)))
+    env <- test_environment(x)
+    env$set_fixed_environment(1)
 
     h <- node$height
 

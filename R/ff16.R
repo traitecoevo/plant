@@ -32,31 +32,6 @@ FF16_Parameters <- function(...) {
   Parameters("FF16","FF16_Env")(...)
 }
 
-##' @title Create a test environment for FF16 startegy. Only used in testing
-##' @param height top height of environment object
-##' @param n number of points
-##' @param light_env function for light environment in test object
-##' @param n_strategies number of strategies for test environment
-##' @rdname FF16_test_environment
-FF16_test_environment <- function(height, n=101, light_env=NULL,
-                                  n_strategies=1) {
-  
-  hh <- seq(0, height, length.out=n)
-  if (is.null(light_env)) {
-    light_env <- function(x) {
-      exp(x/(height*2)) - 1 + (1 - (exp(.5) - 1))/2
-    }
-  }
-  ee <- light_env(hh)
-  interpolator <- Interpolator()
-  interpolator$init(hh, ee)
-
-  ret <- FF16_Environment()
-  ret$light_availability$spline <- interpolator
-  attr(ret, "light_env") <- light_env
-  ret
-}
-
 ##' Generates a report on stand grown with FF16 strategy
 ##'
 ##' Builds a detailed report on stand grown with FF16 strategy, based on the template Rmd file provided.  The reports are

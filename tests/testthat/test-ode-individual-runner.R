@@ -8,7 +8,7 @@ test_that("IndividualRunner", {
 
     e <- environment_types[[x]]
     p <- Individual(x, e)(strategy_types[[x]]())
-    env <- test_environment(x, 10)
+    env <- Environment(x)
     p$compute_rates(env)
 
     pr <- IndividualRunner(x, e)(p, env)
@@ -54,7 +54,7 @@ test_that("get_plant_internals_fun", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Individual(x, e)(strategy_types[[x]]())
-    env <- test_environment(x, 10)
+    env <- Environment(x)
     p$compute_rates(env)
 
     runner <- OdeRunner(x)(IndividualRunner(x, e)(p, env))
@@ -71,7 +71,7 @@ test_that("get_plant_internals_fun", {
 test_that("grow_individual_to_size", {
   for (x in names(strategy_types)) {
     #cat(x)
-    env <- test_environment(x, 10)
+    env <- Environment(x)
 
     heights <- seq(1, 10)
     

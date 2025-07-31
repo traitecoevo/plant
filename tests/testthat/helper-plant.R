@@ -59,11 +59,3 @@ get_list_of_hyperpar_functions <- function() {
     )
 }
 
-test_environment <- function(type, ...) {
-  switch(type,
-    FF16=FF16_test_environment(...),
-    TF24=TF24_test_environment(...),
-    K93=K93_test_environment(...),
-    stop("Unknown type ", type))
-}
-

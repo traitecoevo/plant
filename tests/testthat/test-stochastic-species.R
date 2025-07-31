@@ -5,7 +5,7 @@ environment_types <- get_list_of_environment_types()
 
 test_that("empty", {
   for (x in names(strategy_types)) {
-    env <- test_environment(x, 3)
+    env <- Environment(x)
     e <- environment_types[[x]]
     s <- strategy_types[[x]]()
     sp <- StochasticSpecies(x, e)(s)
@@ -32,7 +32,7 @@ test_that("empty", {
 
 test_that("Single individual", {
   for (x in names(strategy_types)) {
-    env <- test_environment(x, 3)
+    env <- Environment(x)
     s <- strategy_types[[x]]()
     e <- environment_types[[x]]
     sp <- StochasticSpecies(x, e)(s)
@@ -67,7 +67,7 @@ test_that("Single individual", {
 test_that("Multiple individuals", {
   for (x in names(strategy_types)) {
     h <- 10
-    env <- test_environment(x, h)
+    env <- Environment(x)
     s <- strategy_types[[x]]()
     e <- environment_types[[x]]
     sp <- StochasticSpecies(x, e)(s)
@@ -130,7 +130,7 @@ test_that("Multiple individuals", {
 
 test_that("establishment probability", {
   for (x in names(strategy_types)) {
-    env <- test_environment(x, 3)
+    env <- Environment(x)
     s <- strategy_types[[x]]()
     e <- environment_types[[x]]
     sp <- StochasticSpecies(x, e)(s)

@@ -19,29 +19,6 @@ K93_Parameters <- function() {
 }
 
 
-##' @rdname FF16_test_environment
-##' @examples
-##' environment <- plant:::K93_test_environment(10)
-K93_test_environment <- function(height, n=101, light_env=NULL,
-                             n_strategies=1) {
-  hh <- seq(0, height, length.out=n)
-  if (is.null(light_env)) {
-    light_env <- function(x) {
-      # arbitary function. aiming to produce values of -log(light_env)/0.01
-      # in range 0:100
-      exp(x/(height*2)) - (exp(.5) - 1)
-    }
-  }
-  ee <- light_env(hh)
-  interpolator <- Interpolator()
-  interpolator$init(hh, ee)
-
-  ret <- K93_Environment()
-  ret$light_availability$spline <- interpolator
-  attr(ret, "light_env") <- light_env
-  ret
-}
-
 ##' Construct hyperparameter object for K93 physiological model
 ##' @title Hyperparameters for K93 physiological model
 ##' @param b_0 Growth intercept year-1

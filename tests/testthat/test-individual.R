@@ -63,8 +63,7 @@ for (x in names(strategy_types)) {
     # expect_true(all(c(variable_names, rate_names) %in% names(vars_pl)))
     
     ## Compute the vital rates and compare them
-    env <- test_environment(x, h0)
-    light_env <- attr(env, "light_env") # underlying function
+    env <- Environment(x)
     
     pl$compute_rates(env)
     
