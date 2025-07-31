@@ -30,87 +30,14 @@ TF24_Parameters <- function(...) {
   Parameters("TF24","TF24_Env")(...)
 }
 
-##' @title: Helper functions to create an TF24_Environment object. Useful for running individuals
-##' @param light_availability_spline_tol Error tolerance of adpative spline method. Deafult is 1e-4.
-##' @param light_availability_spline_nbase Parameter used in adaptive spline method. Default is 17.
-##' @param light_availability_spline_max_depth Parameter used in adaptive spline method. Default is 16.
-##' @param soil_initial_state Initial state of the soil moisture, a vector of length `soil_number_of_depths`
-##' @inheritParams TF24_Environment
-##' @export
-##' @rdname TF24_make_environment
-TF24_make_environment <- function(light_availability_spline_tol = 1e-4, 
-                                  light_availability_spline_nbase = 17,
-                                  light_availability_spline_max_depth = 16, 
-                                  light_availability_spline_rescale_usually = TRUE,
-                                  soil_number_of_depths = 1,
-                                  soil_initial_state = rep(0.25,soil_number_of_depths),
-                                  rainfall = 1,
-                                  atm_vpd = 1,
-                                  ca = 40,
-                                  leaf_temp = 25,
-                                  atm_o2_kpa = 21,
-                                  atm_kpa = 100.5,
-                                  delta_z = 0.1,
-                                  soil_moist_sat = 0.453,
-                                  K_sat = 440.628,
-                                  a_psi = 8.7,
-                                  n_psi = 4.8,
-                                  b_infil = 8) {
-  
-  e <- TF24_Environment(light_availability_spline_rescale_usually, 
-                        soil_number_of_depths = soil_number_of_depths, 
-                        delta_z = delta_z,
-                        soil_moist_sat = soil_moist_sat,
-                        K_sat = K_sat,
-                        a_psi = a_psi,
-                        n_psi = n_psi,
-                        b_infil = b_infil)
-
-  
-  # Shading defaults have lower tolerance which are overwritten for speed
-  e$light_availability <- ResourceSpline(light_availability_spline_tol, 
-                     light_availability_spline_nbase, 
-                     light_availability_spline_max_depth, 
-                     light_availability_spline_rescale_usually)
-  
-  # there might be a better way to skip this if using defaults
-  if(sum(soil_initial_state) > 0.0) {
-    if(soil_number_of_depths != length(soil_initial_state))
-      stop("Not enough starting points for all layers")
-    
-    e$set_soil_water_state(soil_initial_state)
-  }
-  
-  drivers <- ExtrinsicDrivers()
-  
-  drivers_args <- list(atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp, atm_o2_kpa = atm_o2_kpa, atm_kpa = atm_kpa, rainfall = rainfall)   
-  
-  add_driver <- function(drivers_arg, driver_name){
-    
-    if (is.list(drivers_arg)){
-      drivers$set_variable(driver_name, drivers_arg$x, drivers_arg$y)
-    } else if (is.numeric(drivers_arg)) {
-      drivers$set_constant(driver_name, drivers_arg)
-      drivers$set_extrapolate(driver_name, FALSE)
-    }else {
-      stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
-    }
-  }
-  purrr::iwalk(drivers_args, ~add_driver(.x, .y))
-  
-  e$extrinsic_drivers <- drivers
-  
-  return(e)
-}
-
 ##' Construct a fixed environment for a TF24 model
 ##'
 ##' @inheritParams FF16_fixed_environment
 ##' @rdname TF24_fixed_environment
 ##'
 ##' @export
-TF24_fixed_environment <- function(e=1.0, height_max = 150.0, ...) {
-  env <- TF24_make_environment(...)
+TF24_fixed_environment <- function(e=1.0, height_max = 150.0) {
+  env <- TF24_Environment()
   env$set_fixed_environment(e, height_max)
   env
 }
@@ -131,7 +58,7 @@ TF24_test_environment <- function(height, n=101, light_env=NULL,
   interpolator <- Interpolator()
   interpolator$init(hh, ee)
 
-  ret <- TF24_make_environment()
+  ret <- TF24_Environment()
   ret$light_availability$spline <- interpolator
   attr(ret, "light_env") <- light_env
   ret

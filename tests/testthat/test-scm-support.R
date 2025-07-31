@@ -2,7 +2,7 @@ context("SCM support")
 
 
 test_that("collect / make_patch", {
-  env <- make_environment("FF16")
+  env <- Environment("FF16")
   ctrl <- scm_base_control()
   p0 <- scm_base_parameters("FF16")
   p0$disturbance_mean_interval <- 30.0
@@ -87,7 +87,7 @@ test_that("expand_parameters & mutant_parameters", {
 })
 
 test_that("collect_auxiliary_variables", {
-  env <- make_environment("FF16")
+  env <- Environment("FF16")
   ctrl <- scm_base_control()
   p0 <- scm_base_parameters("FF16")
   p0$disturbance_mean_interval <- 30.0

@@ -29,7 +29,6 @@ traits6 <- trait_matrix(rep(c(0.07), 6), c("lma"))
 p6 <- expand_parameters(traits6, p0, birth_rate_list = rep(1, 6))
 
 env <- TF24_Environment(
-                  light_availability_spline_rescale_usually = FALSE,
                    soil_number_of_depths = 1, 
                    delta_z = 9999,
                    soil_moist_sat = 0.453,
@@ -42,15 +41,31 @@ ctrl <- fast_control()
 
 ```{r}
 # existing - using wrappers
-results <- run_scm(p1)
+results <- run_scm(p1, env = TF24_Environment())
 results$net_reproduction_ratios
 
 
 # existing - using base functions
-scm <- SCM("FF16", "FF16_Env")(p1, env, ctrl)
+scm <- SCM("TF24", "TF24_Env")(p1, env, ctrl)
 scm$run()
 scm$net_reproduction_ratios
 
+
+system.time(
+  run_scm(p1, env, ctrl)
+)
+
+system.time({
+  scm <- SCM("TF24", "TF24_Env")(p1, env, ctrl)
+  scm$run()
+})
+
+env1 <- TF24_Environment()
+
+system.time({
+  scm <- SCM("TF24", "TF24_Env")(p1, env1, ctrl)
+  scm$run()
+})
 ```
 
 To simplify
@@ -64,7 +79,7 @@ To simplify
 collect
 
 ```{r}
-env <- FF16_Environment(light_availability_spline_rescale_usually = TRUE)
+env <- FF16_Environment()
 ctrl <- fast_control()
 
 scm <- SCM("FF16", "FF16_Env")(p1, env, ctrl)
@@ -236,12 +251,24 @@ system.time(
 
 ```{r}
 # existing - using base functions
-scm <- SCM("FF16", "FF16_Env")(p1, env, ctrl)
 scm <- SCM("TF24", "TF24_Env")(p1, env, ctrl)
+run_scm(p1, env, ctrl)
 scm$collect <- FALSE # TRUE
 scm$run()
 scm$net_reproduction_ratios
 system.time(y <- scm$patch$state)
 system.time(yy <- scm$history |> map(~ .x$state))
 all.equal(y, last(yy))
+```
+
+
+```{r}
+env1 <- TF24_Environment()
+
+env2 <- TF24_Environment()
+# env3 <- env2
+# env3$extrinsic_drivers <- env1$extrinsic_drivers
+
+scm <- SCM("TF24", "TF24_Env")(p1, env2, ctrl)
+
 ```

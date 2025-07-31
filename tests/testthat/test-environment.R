@@ -9,7 +9,7 @@ for (x in names(strategy_types)) {
 
   test_that("Empty environment", {
     p <- Parameters(x, e)()
-    env <- make_environment(x)
+    env <- Environment(x)
 
     ## At this point, we should have full canopy openness, partly because
     ## the spline is just not constructed.
@@ -22,7 +22,7 @@ for (x in names(strategy_types)) {
   })
 
   test_that("Manually set environment", {
-    env <- make_environment(x)
+    env <- Environment(x)
     ## Now, set the light environment.
     hh <- seq(0, 10, length.out=101)
     light_env <- function(x) {
@@ -46,7 +46,7 @@ test_that("TF24 rainfall spline", {
   
   context("Rainfall-TF24")
   
-  env <- make_environment("TF24")
+  env <- Environment("TF24")
   # get list of extrinsic drivers for the environment
 
   expect_contains(env$extrinsic_drivers$get_names(), c("rainfall", "leaf_temp","atm_o2_kpa", "atm_kpa", "ca", "atm_vpd"))
@@ -56,7 +56,7 @@ test_that("TF24 rainfall spline", {
   expect_equal(env$extrinsic_drivers$evaluate("rainfall", 10000000), 1)
   
   # test extrapolation on spline of y = 5.613432
-  env <- make_environment("TF24", rainfall=5.613432)
+  env <- Environment("TF24", rainfall=5.613432)
   expect_equal(env$extrinsic_drivers$evaluate("rainfall", 100), 5.613432)
   expect_equal(env$extrinsic_drivers$evaluate("rainfall", 10000000), 5.613432)
   
@@ -68,7 +68,7 @@ test_that("TF24 rainfall spline", {
   )
   
   a_psi = 10
-  env <- make_environment("TF24", rainfall=quadratic_rain, 
+  env <- Environment("TF24", rainfall=quadratic_rain, 
                           a_psi = a_psi) # overwrites previously created spline
   
   # interpolated points

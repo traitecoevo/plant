@@ -42,7 +42,7 @@ test_that("offspring arrival", {
     p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, TF24_hyperpar,FALSE)
     p1$cohort_schedule_times <- list(seq(0, 10, len = 3))
     
-    env <- make_environment("TF24", 
+    env <- Environment("TF24", 
                             soil_number_of_depths = 3,
                             soil_initial_state = rep(1, 3))
     

@@ -14,7 +14,7 @@ test_that("Run SCM", {
     p <- Parameters(x, e)(strategies=list(s),
                           patch_area=1)
     
-    env <- make_environment(x)
+    env <- Environment(x)
     ctrl <- Control()
     scm <- SCM(x, e)(p, env, ctrl)
     expect_is(scm, sprintf("SCM<%s,%s>", x, e))
@@ -163,7 +163,7 @@ test_that("schedule setting", {
     p <- Parameters(x, e)(
       strategies=list(strategy_types[[x]]()),
       max_patch_lifetime=5.0)
-    env <- make_environment(x)
+    env <- Environment(x)
     ctrl <- scm_base_control()
     scm <- SCM(x, e)(p, env, ctrl)
 
@@ -237,7 +237,7 @@ test_that("Offspring production & error calculations correct", {
     p0 <- scm_base_parameters(x)
     p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, birth_rate_list=1.0)
     
-    env <- make_environment(x)
+    env <- Environment(x)
     ctrl <- scm_base_control()
 
     scm <- run_scm(p1, env, ctrl)
@@ -281,7 +281,7 @@ test_that("Can create empty SCM", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)()
-    env <- make_environment(x)
+    env <- Environment(x)
     ctrl <- scm_base_control()
     scm <- SCM(x, e)(p, env, ctrl)
 

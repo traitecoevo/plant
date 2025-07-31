@@ -15,7 +15,7 @@
 ##' \code{birth_rate}.
 ##' @author Rich FitzJohn
 ##' @export
-build_schedule <- function(p, env = make_environment(parameters = p),
+build_schedule <- function(p, env = Environment(parameters = p),
                            ctrl = scm_base_control()) {
   p <- validate(p)
 

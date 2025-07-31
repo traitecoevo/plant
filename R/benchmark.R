@@ -47,7 +47,7 @@ run_resource_consumption_benchmarks <- function(its = 10) {
     
     p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, TF24_hyperpar,FALSE)
     
-    env <- make_environment("TF24", 
+    env <- Environment("TF24", 
                             soil_number_of_depths = layers,
                             soil_initial_state = rep(1, layers))
     

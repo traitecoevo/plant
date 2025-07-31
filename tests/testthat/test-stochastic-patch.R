@@ -12,7 +12,7 @@ for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()))
     
-    env <- make_environment(x)
+    env <- Environment(x)
     ctrl <- Control()
     patch <- StochasticPatch(x, e)(p, env, ctrl)
 
@@ -38,7 +38,7 @@ for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()))
     
-    env <- make_environment(x)
+    env <- Environment(x)
     ctrl <- Control()
     patch <- StochasticPatch(x, e)(p, env, ctrl)
     cmp <- Individual(x, e)(p$strategies[[1]])
@@ -65,7 +65,7 @@ for (x in names(strategy_types)) {
 
   test_that("change patch size", {
   
-    env <- make_environment(x)
+    env <- Environment(x)
     ctrl <- Control()
   
     e <- environment_types[[x]]

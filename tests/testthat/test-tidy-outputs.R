@@ -9,7 +9,7 @@ for (x in c("FF16", "K93")) {
   if (x == "K93")
     p1 <- expand_parameters(trait_matrix(0.059, "b_0"), p0,  birth_rate_list=1.0)
 
-  env <- make_environment(x)
+  env <- Environment(x)
   ctrl <- scm_base_control()
 
   results <- run_scm_collect(p1, env, ctrl)

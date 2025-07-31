@@ -79,7 +79,7 @@ test_that("K93 offspring production is unchanged", {
   p0 <- scm_base_parameters("K93")
   p0$max_patch_lifetime <- 35.10667
   
-  env <- make_environment("K93")
+  env <- Environment("K93")
   ctrl <- scm_base_control()
 
   # Use single sp. defaults

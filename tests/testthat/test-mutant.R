@@ -5,7 +5,7 @@ test_that("mutant method works", {
   p0 <- scm_base_parameters("FF16")
   p0$max_patch_lifetime <- 50
   
-  e <- make_environment("FF16")
+  e <- Environment("FF16")
   ctrl <- scm_base_control()
   ctrl$save_RK45_cache = TRUE
     

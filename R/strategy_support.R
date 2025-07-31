@@ -54,9 +54,12 @@ environment_type <- function(type) {
 Environment <- function(type = NULL) {
 
   switch(type,
+         FF16=FF16_Environment(),
          FF16_Env=FF16_Environment(),
-         TF24_Env=TF24_Environment(...),
-         K93_Env=K93_Environment(...),
+         TF24=TF24_Environment(),
+         TF24_Env=TF24_Environment(),
+         K93=K93_Environment(),
+         K93_Env=K93_Environment(),
          stop("Unknown type ", type))
 }
 

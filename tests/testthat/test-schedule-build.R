@@ -19,7 +19,7 @@ test_that("Schedule building", {
     p$strategies <- list(strategy_types[[x]]())
     p$strategies[[1]]$birth_rate_y <- 0.1
     
-    env <- make_environment(x)
+    env <- Environment(x)
     ctrl <- scm_base_control()
 
     p <- build_schedule(p, env, ctrl)

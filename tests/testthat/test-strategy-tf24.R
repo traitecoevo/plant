@@ -181,7 +181,7 @@ test_that("narea calculation", {
 test_that("offspring arrival", {
 
   p0 <- scm_base_parameters("TF24")
-  env <- make_environment("TF24")
+  env <- Environment("TF24")
   ctrl <- scm_base_control()
   
   # one species
@@ -204,7 +204,7 @@ test_that("offspring arrival", {
 test_that("Report generation", {
 
   p0 <- scm_base_parameters("TF24")
-  env <- make_environment("TF24")
+  env <- Environment("TF24")
   ctrl <- scm_base_control()
   
   p2 <- expand_parameters(trait_matrix(c(0.0825, 0.2625), "lma"), p0,   TF24_hyperpar, 

@@ -32,29 +32,6 @@ FF16_Parameters <- function(...) {
   Parameters("FF16","FF16_Env")(...)
 }
 
-##' @title: Helper functions to create an FF16_Environment object. Useful for running individuals
-##' @param light_availability_spline_tol Error tolerance of adpative spline method. Deafult is 1e-4.
-##' @param light_availability_spline_nbase Parameter used in adaptive spline method. Default is 17.
-##' @param light_availability_spline_max_depth Parameter used in adaptive spline method. Default is 16.
-##' @inheritParams FF16_Environment
-##' @export
-##' @rdname FF16_make_environment
-FF16_make_environment <- function(light_availability_spline_tol = 1e-4, 
-                                  light_availability_spline_nbase = 17,
-                                  light_availability_spline_max_depth = 16, 
-                                  light_availability_spline_rescale_usually = TRUE) {
-  
-  e <- FF16_Environment(light_availability_spline_rescale_usually)
-  
-  # Shading defaults have lower tolerance which are overwritten for speed
-  e$light_availability <- ResourceSpline(light_availability_spline_tol, 
-                     light_availability_spline_nbase, 
-                     light_availability_spline_max_depth, 
-                     light_availability_spline_rescale_usually)
-  
-  return(e)
-}
-
 ##' Construct a fixed environment for a model
 ##'
 ##' @param e Value of environment (deafult  = 1.0)
@@ -63,8 +40,8 @@ FF16_make_environment <- function(light_availability_spline_tol = 1e-4,
 ##' @rdname FF16_fixed_environment
 ##'
 ##' @export
-FF16_fixed_environment <- function(e=1.0, height_max = 150.0, ...) {
-  env <- FF16_make_environment(...)
+FF16_fixed_environment <- function(e=1.0, height_max = 150.0) {
+  env <- FF16_Environment()
   env$set_fixed_environment(e, height_max)
   env
 }
@@ -89,7 +66,7 @@ FF16_test_environment <- function(height, n=101, light_env=NULL,
   interpolator <- Interpolator()
   interpolator$init(hh, ee)
 
-  ret <- FF16_make_environment()
+  ret <- FF16_Environment()
   ret$light_availability$spline <- interpolator
   attr(ret, "light_env") <- light_env
   ret

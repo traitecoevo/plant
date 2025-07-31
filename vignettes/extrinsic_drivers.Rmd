@@ -26,11 +26,11 @@ Rainfall is handled inside `TF24_Environment`, and is set upon construction. If 
 will default to a value of `1`:
 
 ```{r}
-env <- make_environment("TF24")
+env <- Environment("TF24")
 ```
 Otherwise, it can either be a constant:
 ```{r}
-env <- make_environment("TF24", rainfall=3.14)
+env <- Environment("TF24", rainfall=3.14)
 ```
 ... or varying over time, by providing a list with `x` and `y` control points (ie the point pairs are `(x[i], y[i])`):
 
@@ -40,7 +40,7 @@ rain <- list(
   x = x_pts,
   y = 1 + sin(x_pts)
 )
-env <- make_environment("TF24", rainfall=rain)
+env <- Environment("TF24", rainfall=rain)
 ```
 The resulting function of rainfall over time can then be evaluated at any time. Note how the point of evaluation was not one of the control points passed in - we
 are able to get rainfall at time `5.634` because of the smooth interpolated function.
