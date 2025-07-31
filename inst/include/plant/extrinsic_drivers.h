@@ -51,7 +51,9 @@ private:
 }
 
 class ExtrinsicDrivers {
+  
   using variable = interpolator::Interpolator;
+
 public:
   // this will override any previously defined drivers with the same name
   void set_constant(std::string driver_name, double k) {
@@ -85,6 +87,11 @@ public:
     }
     return ret;
   }
+
+  void clear() {
+    drivers.clear();
+  }
+  
 
 private:
   std::unordered_map <std::string, Function> drivers;

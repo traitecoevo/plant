@@ -5,12 +5,9 @@
 \alias{K93_Environment}
 \title{Create an FF16_Environment object.}
 \usage{
-FF16_Environment(light_availability_spline_rescale_usually)
+FF16_Environment()
 
 K93_Environment()
-}
-\arguments{
-\item{light_availability_spline_rescale_usually}{whether to rescale intervals when estimating light environment}
 }
 \description{
 Create an FF16_Environment object.

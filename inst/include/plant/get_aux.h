@@ -35,7 +35,7 @@ template <typename T, typename E>
 Rcpp::List get_aux(const Patch<T,E>& patch) {
   Rcpp::List ret;
   for (size_t i = 0; i < patch.size(); ++i) {
-    ret.push_back(get_aux(patch.at(i)));
+    ret.push_back(get_aux(patch.at_species(i)));
   }
   return ret;
 }

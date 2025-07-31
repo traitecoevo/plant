@@ -39,7 +39,7 @@ template <typename T, typename E>
 Rcpp::List get_state(const Patch<T,E>& patch) {
   Rcpp::List ret;
   for (size_t i = 0; i < patch.size(); ++i) {
-    ret.push_back(get_state(patch.at(i)));
+    ret.push_back(get_state(patch.at_species(i)));
   }
   return ret;
 }
@@ -88,7 +88,7 @@ template <typename T, typename E>
 Rcpp::List get_state(const StochasticPatch<T,E>& patch) {
   Rcpp::List ret;
   for (size_t i = 0; i < patch.size(); ++i) {
-    ret.push_back(get_state(patch.at(i)));
+    ret.push_back(get_state(patch.at_species(i)));
   }
   return ret;
 }

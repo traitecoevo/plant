@@ -32,8 +32,6 @@ TF24_make_environment(
 
 \item{light_availability_spline_max_depth}{Parameter used in adaptive spline method. Default is 16.}
 
-\item{light_availability_spline_rescale_usually}{whether to rescale intervals when estimating light environment}
-
 \item{soil_number_of_depths}{Number of soil layers to include}
 
 \item{soil_initial_state}{Initial state of the soil moisture, a vector of length `soil_number_of_depths`}

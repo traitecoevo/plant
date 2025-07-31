@@ -57,7 +57,7 @@ TF24_make_environment <- function(light_availability_spline_tol = 1e-4,
                                   n_psi = 4.8,
                                   b_infil = 8) {
   
-  e <- TF24_Environment(light_availability_spline_rescale_usually, 
+  e <- TF24_Environment( 
                         soil_number_of_depths = soil_number_of_depths, 
                         delta_z = delta_z,
                         soil_moist_sat = soil_moist_sat,
@@ -83,7 +83,7 @@ TF24_make_environment <- function(light_availability_spline_tol = 1e-4,
   
   drivers <- ExtrinsicDrivers()
   
-  drivers_args <- list(atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp, atm_o2_kpa = atm_o2_kpa, atm_kpa = atm_kpa, rainfall = rainfall)   
+  drivers_args <- list(PPFD = 1800, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp, atm_o2_kpa = atm_o2_kpa, atm_kpa = atm_kpa, rainfall = rainfall)   
   
   add_driver <- function(drivers_arg, driver_name){
     

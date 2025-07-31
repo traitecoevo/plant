@@ -42,7 +42,7 @@ public:
     return(node_ode_size);
   }
 
-  const species_type& at(size_t species_index) const {
+  const species_type& at_species(size_t species_index) const {
     return species[species_index];
   }
 
@@ -102,7 +102,7 @@ public:
   void r_compute_rates() {
     environment_ptr = &environment;
     compute_rates();
-    }
+  }
 
   // env. cache for assembly
   std::vector<double> step_history{0.0};  // always start at zero
@@ -151,6 +151,7 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
     environment(e),
     control(c),
     environment_cache(6) {  // length of ode::Step
+  
   parameters.validate();
 
   save_RK45_cache = control.save_RK45_cache;

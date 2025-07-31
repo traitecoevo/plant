@@ -49,8 +49,22 @@ test_that("TF24 rainfall spline", {
   env <- make_environment("TF24")
   # get list of extrinsic drivers for the environment
 
-  expect_contains(env$extrinsic_drivers$get_names(), c("rainfall", "leaf_temp","atm_o2_kpa", "atm_kpa", "ca", "atm_vpd"))
+  expect_contains(env$extrinsic_drivers$get_names(), c("PPFD", "rainfall", "leaf_temp","atm_o2_kpa", "atm_kpa", "ca", "atm_vpd"))
   
+  # test default values - check at two values of second argument (should give same result)
+  expect_equal(env$extrinsic_drivers$evaluate("PPFD", 0), 1800)
+  expect_equal(env$extrinsic_drivers$evaluate("PPFD", 10), 1800)
+  expect_equal(env$extrinsic_drivers$evaluate("rainfall", 0), 1)
+  expect_equal(env$extrinsic_drivers$evaluate("rainfall", 10), 1)
+  expect_equal(env$extrinsic_drivers$evaluate("atm_vpd", 0), 1)
+  expect_equal(env$extrinsic_drivers$evaluate("atm_vpd", 10), 1)
+  expect_equal(env$extrinsic_drivers$evaluate("ca", 0), 40)
+  expect_equal(env$extrinsic_drivers$evaluate("ca", 10), 40)
+  expect_equal(env$extrinsic_drivers$evaluate("PPFD", 0), 1800)
+  expect_equal(env$extrinsic_drivers$evaluate("PPFD", 10), 1800)
+  expect_equal(env$extrinsic_drivers$evaluate("atm_kpa", 0), 100.5)
+  expect_equal(env$extrinsic_drivers$evaluate("atm_kpa", 10), 100.5)
+
   # test extrapolation on default spline of y = 1
   expect_equal(env$extrinsic_drivers$evaluate("rainfall", 100), 1)
   expect_equal(env$extrinsic_drivers$evaluate("rainfall", 10000000), 1)
@@ -59,13 +73,11 @@ test_that("TF24 rainfall spline", {
   env <- make_environment("TF24", rainfall=5.613432)
   expect_equal(env$extrinsic_drivers$evaluate("rainfall", 100), 5.613432)
   expect_equal(env$extrinsic_drivers$evaluate("rainfall", 10000000), 5.613432)
-  
+
+
   ## simple quadratic
   x <- seq(-10, 10, 0.41)
-  quadratic_rain <- list(
-    x = x,
-    y = x^2
-  )
+  quadratic_rain <- list( x = x, y = x^2)
   
   a_psi = 10
   env <- make_environment("TF24", rainfall=quadratic_rain, 

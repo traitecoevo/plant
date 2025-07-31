@@ -14,9 +14,9 @@ namespace plant {
 class TF24_Environment : public Environment {
 public:
   // constructor for R interface - default settings can be modified
-  // except for soil_number_of_depths and light_availability_spline_rescale_usually
+  // except for soil_number_of_depths
   // which are only updated on construction
-  TF24_Environment(bool light_availability_spline_rescale_usually = false,
+  TF24_Environment(
                    int soil_number_of_depths = 1, 
                    double delta_z = 9999, // not using this
                    double soil_moist_sat = 0.453, // saturated soil moisture content (m3 water m^-3 soil) 
@@ -35,11 +35,28 @@ public:
     //todo: add soil depth as parameter
     depth = 2;
 
-    light_availability = ResourceSpline();
-    light_availability.spline_rescale_usually = light_availability_spline_rescale_usually;
+    // Shading defaults have lower tolerance which are overwritten for speed
+    light_availability = ResourceSpline(
+                   1e-4,  // light_availability_spline_tol,
+                   17,    // light_availability_spline_nbase,
+                   16,    // light_availability_spline_max_depth,
+                   true //light_availability_spline_rescale_usually)
+                  );
 
+    // set_extrinsic_drivers_defaults
+    ExtrinsicDrivers extrinsic_drivers;
+    set_extrinsic_drivers(
+        1800, // PPFD
+        1,    // rainfall
+        1,    // atm_vpd
+        40,   // ca
+        25,   // leaf_temp
+        21,   // atm_o2_kpa
+        100.5 // atm_kpa
+    );
+
+    // Setup soil water distribtuion
     vars = Internals(soil_number_of_depths);
-
     z.resize(soil_number_of_depths);
     dz.resize(soil_number_of_depths);
     K.resize(soil_number_of_depths);
@@ -103,9 +120,21 @@ public:
   {
     light_availability.r_init_interpolators(state);
   }
+  
+  void set_extrinsic_drivers(double PPFD, double rainfall, double atm_vpd, double ca, double leaf_temp, double atm_o2_kpa, double atm_kpa) {
+    
+    extrinsic_drivers.clear();
 
-  double PPFD = 1800;
-
+    extrinsic_drivers.set_constant("PPFD", PPFD);
+    extrinsic_drivers.set_constant("rainfall", rainfall);
+    extrinsic_drivers.set_constant("atm_vpd", atm_vpd);
+    extrinsic_drivers.set_constant("ca", ca);
+    extrinsic_drivers.set_constant("leaf_temp", leaf_temp);
+    extrinsic_drivers.set_constant("atm_o2_kpa", atm_o2_kpa);
+    extrinsic_drivers.set_constant("atm_kpa", atm_kpa);
+ 
+  }
+  
   virtual void compute_rates_simple(std::vector<double> const &resource_depletion)
   {
     double infiltration;
@@ -218,34 +247,16 @@ public:
     return pow((psi_soil_/a_psi), (-1/n_psi))*soil_moist_sat;
   }
 
-  double get_atm_vpd() const {
-    return extrinsic_drivers.evaluate("atm_vpd", time);
-  }
+  //todo - turn into generic getters and setters?
+  double get_PPFD()      const { return extrinsic_drivers.evaluate("PPFD", time); }
+  double get_atm_vpd()   const { return extrinsic_drivers.evaluate("atm_vpd", time); }
+  double get_ca()        const { return extrinsic_drivers.evaluate("ca", time); }
+  double get_leaf_temp() const { return extrinsic_drivers.evaluate("leaf_temp", time); }
+  double get_atm_o2_kpa()const { return extrinsic_drivers.evaluate("atm_o2_kpa", time); } 
+  double get_atm_kpa()   const { return extrinsic_drivers.evaluate("atm_kpa", time); } 
 
-  double get_ca() const {
-    return extrinsic_drivers.evaluate("ca", time);
-  }
-
-  double get_leaf_temp() const {
-    return extrinsic_drivers.evaluate("leaf_temp", time);
-  }
-
-  double get_atm_o2_kpa() const {
-    return extrinsic_drivers.evaluate("atm_o2_kpa", time);
-  } 
-
-  double get_atm_kpa() const {
-    return extrinsic_drivers.evaluate("atm_kpa", time);
-  } 
-
-  std::vector<double> get_soil_water_state() const {
-    return vars.states;
-  }
-
-  std::vector<double> get_soil_depths() const
-  {
-    return z;
-  }
+  std::vector<double> get_soil_water_state() const { return vars.states; }
+  std::vector<double> get_soil_depths() const { return z; }
 
   // TODO: I wonder if this needs a better name? See also environment.h
   Internals r_internals() const { return vars; }

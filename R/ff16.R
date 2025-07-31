@@ -44,7 +44,7 @@ FF16_make_environment <- function(light_availability_spline_tol = 1e-4,
                                   light_availability_spline_max_depth = 16, 
                                   light_availability_spline_rescale_usually = TRUE) {
   
-  e <- FF16_Environment(light_availability_spline_rescale_usually)
+  e <- FF16_Environment()
   
   # Shading defaults have lower tolerance which are overwritten for speed
   e$light_availability <- ResourceSpline(light_availability_spline_tol, 

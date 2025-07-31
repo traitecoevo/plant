@@ -5,7 +5,6 @@
 \title{Create an TF24_Environment object.}
 \usage{
 TF24_Environment(
-  light_availability_spline_rescale_usually,
   soil_number_of_depths,
   delta_z,
   soil_moist_sat,
@@ -16,8 +15,6 @@ TF24_Environment(
 )
 }
 \arguments{
-\item{light_availability_spline_rescale_usually}{whether to rescale intervals when estimating light environment}
-
 \item{soil_number_of_depths}{Number of soil layers to include}
 
 \item{delta_z}{Thickness of soil layers}

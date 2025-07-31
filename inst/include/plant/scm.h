@@ -222,7 +222,7 @@ std::vector<double> SCM<T, E>::offspring_production() const {
 		auto const& times = node_schedule.times(i);
 		auto scalars = std::vector<double>(times.size());
 		for (size_t j = 0; j < times.size(); ++j) {
-			scalars[j] = patch.at(i).extrinsic_drivers().evaluate("birth_rate", times[j]);
+			scalars[j] = patch.at_species(i).extrinsic_drivers().evaluate("birth_rate", times[j]);
 		}
 		ret[i] = net_reproduction_ratio_for_species(i, scalars);
   }
@@ -278,7 +278,7 @@ std::vector<double> SCM<T, E>::net_reproduction_ratio_by_node_weighted(
 
   // retrieve lifetime fitness for each node
   std::vector<double> net_reproduction_ratio_by_node_weighted =
-      patch.at(species_index).net_reproduction_ratio_by_node();
+      patch.at_species(species_index).net_reproduction_ratio_by_node();
 
   // weight by probabilty of reproduction
   for (size_t i = 0; i < net_reproduction_ratio_by_node_weighted.size();

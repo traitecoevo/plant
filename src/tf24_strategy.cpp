@@ -269,7 +269,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   double average_light_environment = function_integrator.integrate(f, 0.0, height);
 
   // calculate average radiation by multipling average canopy openness by PPFD and accounting for self-shading k_I.
-  const double average_radiation = k_I * average_light_environment * environment.PPFD;
+  const double average_radiation = k_I * average_light_environment * environment.get_PPFD();
   // const double psi_soil = environment.get_psi_soil() / 1000000;
   double psi_soil = 1;
 
