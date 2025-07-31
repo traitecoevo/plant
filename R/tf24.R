@@ -30,18 +30,6 @@ TF24_Parameters <- function(...) {
   Parameters("TF24","TF24_Env")(...)
 }
 
-##' Construct a fixed environment for a TF24 model
-##'
-##' @inheritParams FF16_fixed_environment
-##' @rdname TF24_fixed_environment
-##'
-##' @export
-TF24_fixed_environment <- function(e=1.0, height_max = 150.0) {
-  env <- TF24_Environment()
-  env$set_fixed_environment(e, height_max)
-  env
-}
-
 ##' @title Create a test environment for TF24 startegy. Only used in testing
 ##' @inheritParams FF16_test_environment
 ##' @rdname TF24_test_environment

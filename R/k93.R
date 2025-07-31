@@ -18,13 +18,6 @@ K93_Parameters <- function() {
   Parameters("K93","K93_Env")()
 }
 
-##' @rdname FF16_fixed_environment
-##' @export
-K93_fixed_environment <- function(e=1.0, height_max = 300.0) {
-  env <- K93_Environment()
-  env$set_fixed_environment(e, height_max)
-  env
-}
 
 ##' @rdname FF16_test_environment
 ##' @examples

@@ -32,21 +32,6 @@ FF16_Parameters <- function(...) {
   Parameters("FF16","FF16_Env")(...)
 }
 
-##' Construct a fixed environment for a model
-##'
-##' @param e Value of environment (deafult  = 1.0)
-##' @param height_max maximum possible height in environment
-##' @param ... Additional parameters to be passed to \code{FF16_make_environment}
-##' @rdname FF16_fixed_environment
-##'
-##' @export
-FF16_fixed_environment <- function(e=1.0, height_max = 150.0) {
-  env <- FF16_Environment()
-  env$set_fixed_environment(e, height_max)
-  env
-}
-
-
 ##' @title Create a test environment for FF16 startegy. Only used in testing
 ##' @param height top height of environment object
 ##' @param n number of points

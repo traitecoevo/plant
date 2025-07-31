@@ -121,7 +121,8 @@ for (x in names(strategy_types)) {
     ## R implementation:
     resource_compensation_point_R <- function(x, plant, ...) {
       target <- function(light_availability) {
-        env <- fixed_environment(x, light_availability)
+        env <- Environment(x)
+        env$set_fixed_environment(light_availability, height_max = 150)
         plant$compute_rates(env)
         plant$aux("net_mass_production_dt")
       }

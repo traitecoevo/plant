@@ -155,7 +155,9 @@ test_that("grow_individual_to_size", {
     sizes <- c(1, 5, 10, 12, strategy$hmat)
     if(grepl("K93", x)) 
       sizes <- c(2.5, 5, 10, 12)
-    env <- fixed_environment(x, 1.0)
+    env <- Environment(x)
+    env$set_fixed_environment(1.0, height_max = 150)
+    
     res <- grow_individual_to_size(pl, sizes, "height", env, 10000)
 
     expect_equal(res$state[, "height"], sizes, tolerance=1e-4)
@@ -199,7 +201,9 @@ test_that("grow_individual_to_time", {
     strategy <- strategy_types[[x]]()
     e <- environment_types[[x]]
     pl <- Individual(x, e)(strategy)
-    env <- fixed_environment(x, 1.0)
+    env <- Environment(x)
+    env$set_fixed_environment(1.0, height_max = 150)
+
     times <- c(0, 10^(-4:3))
     res <- grow_individual_to_time(pl, times, env)
     expect_is(res$individual, "list")
@@ -219,7 +223,9 @@ test_that("Sensible behaviour on integration failure", {
   pl <- FF16_Individual()
   hyperpar <- make_FF16_hyperpar()
 
-  env <- fixed_environment("FF16", 1)
+  env <- Environment("FF16")
+  env$set_fixed_environment(1.0, height_max = 150)
+
   sizes <- seq_range(c(pl$state("height"), 50), 50)
   expect_warning(res <- grow_individual_to_size(pl, sizes, "height", env, 10, warn = TRUE, filter = TRUE),
                   "Time exceeded time_max")
@@ -236,7 +242,9 @@ test_that("Sensible behaviour on integration failure", {
   s <- strategy_list(traits, scm_base_parameters("FF16"), hyperpar, 1.0)[[1]]
   pl <- FF16_Individual(s)
 
-  env <- fixed_environment("FF16", 1)
+  env <-Environment("FF16")
+  env$set_fixed_environment(1.0, height_max = 150)
+     
   sizes <- seq_range(c(pl$state("height"), 50), 50)
   expect_warning(res <- grow_individual_to_size(pl, sizes, "height", env, 1000, warn = TRUE, filter = TRUE),
                   "50 larger sizes dropped")
