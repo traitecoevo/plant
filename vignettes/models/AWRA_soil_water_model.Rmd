@@ -1,0 +1,289 @@
+---
+title: "AWRA_soil_water_model"
+author: "Isaac Towers"
+date: "2025-07-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+```
+
+```{r}
+timesteps = 1:20
+```
+
+
+```{r}
+soil_layers = 15
+```
+
+
+```{r}
+f_drain_ <- function(Sz, Sz_fc, K_fc, beta, kw, f_dfc){
+  wz = Sz/Sz_fc
+  # wz = Sz_fc/Sz
+
+  if(wz > 1){
+  # if(Sz > Sz_fc){
+    f_drain = max(K_fc, 1 - 1/wz)
+    # f_drain = 1 - Sz_fc/Sz
+  }
+  
+  if(wz <= 1){
+  # if(Sz <= Sz_fc){
+    f_drain = K_fc*exp(-beta*(1-wz))
+    # f_drain = f_dfc*exp(kw*(Sz/Sz_fc))
+  }
+  return(f_drain)
+}
+```
+
+
+```{r}
+rates_psi <- function(t, Sz, params) {
+  with(as.list(c(Sz, params)), {
+    dSz_dt <- rep(NA_real_, n_layers)
+    # Calculate fluxes at boundaries
+    # top boundary layer - depends on soil water content and rain
+    dSz_dt[1] = rain - Sz[1]*f_drain_(Sz[1], Sz_fc*depth, K_fc, beta, kw, f_dfc)
+        
+    
+    # Boundary below each node, except the last one
+    # Eq. 3 + 11, Ireson et al. (2023)
+    for (i in seq_len(n_layers-1)) {
+      dSz_dt[i + 1] = Sz[i]*f_drain_(Sz[i], Sz_fc*depth, K_fc, beta, kw, f_dfc)-Sz[i + 1]*f_drain_(Sz[i + 1], Sz_fc*depth, K_fc, beta, kw, f_dfc)
+    }
+
+    return(list(dSz_dt))
+  })
+}
+```
+
+
+```{r}
+solve <- function(times, rates, state, method = "rk4", output = "theta") {
+  deSolve::ode(
+    y = state,
+    times = times,
+    func = rates,
+    parms = params,
+    method = method) %>% 
+  as_tibble() %>% 
+  pivot_longer(-time, names_to = "depth", values_to = output)
+}
+```
+
+
+
+```{r}
+read_csv("~/Documents/export-edap61.Falster.NSW.Corrie Downs weather.csv") %>%
+  filter(Id != "Units") %>%
+  setNames(as.character(.[1,])) %>%
+  slice(-1) -> soil_moist_obs
+
+str_extract_all(names(soil_moist_obs)[-1], "\\d+") %>%
+  map(~.x[3]) %>%
+  unlist() -> layernames
+
+names(soil_moist_obs)[-1] <- layernames
+
+soil_moist_obs %>%
+  pivot_longer(cols = -Timestamp) %>%
+  mutate(dom = lubridate::day(Timestamp)) %>%
+  mutate(mod = lubridate::minute(Timestamp)) %>%
+  mutate(hod = lubridate::hour(Timestamp)) %>%
+  filter(dom == 4 & mod == 0 & hod == 0) %>%
+  arrange(as.numeric(name)) -> soil_inits
+```
+
+```{r}
+clay_con_iter <- seq(10,100,length.out = 10)
+pore_space_iter <- seq(20,80,length.out = 10)
+
+LHS <- expand_grid(clay_con_iter, pore_space_iter)
+
+rmse <- c()
+for(i in 1:nrow(LHS)){
+#clay content %
+clay_con = LHS[i,"clay_con_iter"]$clay_con_iter
+pore_space = LHS[i,"pore_space_iter"]$pore_space_iter/100
+
+clay_con = 50
+pore_space = 80/100
+
+
+# Peeters 2013
+
+#soil field capacity (mm)
+Sz_fc = 685*(clay_con/100)
+#drainage fraction at field capacity (day ^-1)
+K_fc = 0.4256*exp(-7.984*clay_con/100)
+beta = 2.05
+
+params <- c(Sz_fc = Sz_fc, 
+            K_fc  = K_fc, 
+            beta = 2.05, 
+            depth = 0.1,
+            n_layers = 15,
+            rain = 0,
+            pore_space = 0.5,
+            kw = 4.43,
+            f_dfc = 0.03)
+
+state <- as.numeric(soil_inits$value)/100*(pore_space*1000)*0.1
+
+Sz_solve <- solve(times = seq(0,20, by = 1), rates=rates_psi, state=state, method="lsoda", output = "Sz")
+
+Sz_solve %>%
+  rename(dom = time) %>%
+  mutate(dom = as.numeric(dom)) %>%
+  mutate(dom = dom + 4) -> Sz_solve_select
+
+soil_moist_obs %>%
+  pivot_longer(cols = -Timestamp, names_to = "depth") %>%
+  mutate(dom = lubridate::day(Timestamp)) %>%
+  mutate(mod = lubridate::minute(Timestamp)) %>%
+  mutate(hod = lubridate::hour(Timestamp)) %>%
+  mutate(value = as.numeric(value)/(1/pore_space)) %>%
+  filter(mod == 0) %>%
+  filter(hod == 0) %>%
+  left_join(Sz_solve_select)%>%
+  mutate(Sz = as.numeric(Sz))%>%
+  drop_na() -> test_data
+
+rmse[i] <- Metrics::rmse(test_data$value, as.numeric(test_data$Sz))
+rmse[i] <- cor(test_data$value, as.numeric(test_data$Sz))
+
+}
+```
+
+```{r}
+LHS %>%
+  bind_cols(rmse = rmse) %>% View()
+  ggplot(aes(x = clay_con_iter, y = pore_space_iter)) +
+  geom_tile(aes(fill = rmse))
+plot(rmse~clay_con_iter)
+```
+
+```{r}
+test_data %>%
+  filter(depth == 6) %>%
+  ggplot(aes(x = dom)) + 
+  geom_line(aes(y = value)) +
+  geom_line(aes(y = Sz))
+```
+
+
+
+```{r}
+f_drain_ <- function(Sz, Sz_fc, K_fc, beta, kw, f_dfc){
+  wz = Sz/Sz_fc
+  # wz = Sz_fc/Sz
+
+  if(wz > 1){
+  # if(Sz > Sz_fc){
+    f_drain = max(K_fc, 1 - 1/wz)
+    # f_drain = 1 - Sz_fc/Sz
+  }
+  
+  if(wz <= 1){
+  # if(Sz <= Sz_fc){
+    f_drain = K_fc*exp(-beta*(1-wz))
+    # f_drain = f_dfc*exp(kw*(Sz/Sz_fc))
+  }
+  return(f_drain)
+}
+```
+
+
+```{r}
+rates_psi <- function(t, Sz, params) {
+  with(as.list(c(Sz, params)), {
+    dSz_dt <- rep(NA_real_, n_layers)
+    # Calculate fluxes at boundaries
+    # top boundary layer - depends on soil water content and rain
+    dSz_dt[1] = rain - Sz[1]*f_drain_(Sz[1], Sz_fc*depth, K_fc, beta, kw, f_dfc)
+        
+    
+    # Boundary below each node, except the last one
+    # Eq. 3 + 11, Ireson et al. (2023)
+    for (i in seq_len(n_layers-1)) {
+      dSz_dt[i + 1] = Sz[i]*f_drain_(Sz[i], Sz_fc*depth, K_fc, beta, kw, f_dfc)-Sz[i + 1]*f_drain_(Sz[i + 1], Sz_fc*depth, K_fc, beta, kw, f_dfc)
+    }
+
+    return(list(dSz_dt))
+  })
+}
+```
+
+
+```{r}
+clay_con_iter <- seq(10,100,length.out = 10)
+pore_space_iter <- seq(20,80,length.out = 10)
+
+LHS <- expand_grid(clay_con_iter, pore_space_iter)
+
+rmse <- c()
+for(i in 1:nrow(LHS)){
+#clay content %
+clay_con = LHS[i,"clay_con_iter"]$clay_con_iter
+pore_space = LHS[i,"pore_space_iter"]$pore_space_iter/100
+
+clay_con = 50
+pore_space = 80/100
+
+
+# Peeters 2013
+
+#soil field capacity (mm)
+theta_33 = 0.3543*(1-exp(-0.0385*clay_con)) + 0.083
+theta_1500 = 0.4016*(1 - exp(-0.0230*clay_con)) + 0.0027
+sdawc = theta_33 - theta_1500
+Sx_max = dd*sdawc*sdmaxscale
+#drainage fraction at field capacity (mm day ^-1)
+K_fc = 303.84*exp(-0.144*0.3) *0.043
+beta = 2.05
+
+params <- c(Sz_fc = Sz_fc, 
+            K_fc  = K_fc, 
+            beta = 2.05, 
+            depth = 0.1,
+            n_layers = 15,
+            rain = 0,
+            pore_space = 0.5,
+            kw = 4.43,
+            f_dfc = 0.03)
+
+state <- as.numeric(soil_inits$value)/100*(pore_space*1000)*0.1
+
+Sz_solve <- solve(times = seq(0,20, by = 1), rates=rates_psi, state=state, method="lsoda", output = "Sz")
+
+Sz_solve %>%
+  rename(dom = time) %>%
+  mutate(dom = as.numeric(dom)) %>%
+  mutate(dom = dom + 4) -> Sz_solve_select
+
+soil_moist_obs %>%
+  pivot_longer(cols = -Timestamp, names_to = "depth") %>%
+  mutate(dom = lubridate::day(Timestamp)) %>%
+  mutate(mod = lubridate::minute(Timestamp)) %>%
+  mutate(hod = lubridate::hour(Timestamp)) %>%
+  mutate(value = as.numeric(value)/(1/pore_space)) %>%
+  filter(mod == 0) %>%
+  filter(hod == 0) %>%
+  left_join(Sz_solve_select)%>%
+  mutate(Sz = as.numeric(Sz))%>%
+  drop_na() -> test_data
+
+rmse[i] <- Metrics::rmse(test_data$value, as.numeric(test_data$Sz))
+rmse[i] <- cor(test_data$value, as.numeric(test_data$Sz))
+
+}
+```
+
