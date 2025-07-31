@@ -15,9 +15,14 @@ public:
   // constructor for R interface - default settings can be modified
   // except for light_availability_spline_rescale_usually
   // which are only updated on construction
-  FF16_Environment(bool light_availability_spline_rescale_usually = false) {
+  FF16_Environment() {
     time = 0.0;
-    
+    light_availability = ResourceSpline();
+    light_availability.spline_rescale_usually = true;
+  };
+
+  FF16_Environment(bool light_availability_spline_rescale_usually) {
+    time = 0.0;
     light_availability = ResourceSpline();
     light_availability.spline_rescale_usually = light_availability_spline_rescale_usually;
   };

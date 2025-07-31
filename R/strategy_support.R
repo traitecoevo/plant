@@ -37,7 +37,7 @@ hyperpar <- function(type) {
          stop("Unknown type ", type))
 }
 
-##' @rdname make_environment
+##' @rdname Environment
 ##' @export
 environment_type <- function(type) {
   switch(type,
@@ -47,23 +47,16 @@ environment_type <- function(type) {
          stop("Unknown type ", type))
 }
 
-##' Make environment objects for a strategy
-##' @param type Any strategy name as a string, e.g.: \code{"FF16"}.
-##' @param parameters a object
-##' @param ... other arguments passed through
-##' @rdname make_environment
+##' Creates an environment object of specified type
+##' @param type Any environment name as a string, e.g.: \code{"FF16_Env"}.
+##' @rdname Environment
 ##' @export
-make_environment <- function(type = NULL, parameters = NULL, ...) {
-  
-  if(!is.null(parameters)) {
-    type = extract_RcppR6_template_types(parameters, "Parameters")[[1]][1]
-#    plant_log_debug(sprintf("Creating default %s environment", type))
-  }
-    
+Environment <- function(type = NULL) {
+
   switch(type,
-         FF16=FF16_make_environment(...),
-         TF24=TF24_make_environment(...),
-         K93=K93_make_environment(...),
+         FF16_Env=FF16_Environment(),
+         TF24_Env=TF24_Environment(...),
+         K93_Env=K93_Environment(...),
          stop("Unknown type ", type))
 }
 

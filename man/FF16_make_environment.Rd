@@ -25,8 +25,6 @@ K93_make_environment(
 \item{light_availability_spline_nbase}{Parameter used in adaptive spline method. Default is 17.}
 
 \item{light_availability_spline_max_depth}{Parameter used in adaptive spline method. Default is 16.}
-
-\item{light_availability_spline_rescale_usually}{whether to rescale intervals when estimating light environment}
 }
 \description{
 : Helper functions to create an FF16_Environment object. Useful for running individuals

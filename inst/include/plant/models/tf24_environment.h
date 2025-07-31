@@ -16,7 +16,8 @@ public:
   // constructor for R interface - default settings can be modified
   // except for soil_number_of_depths and light_availability_spline_rescale_usually
   // which are only updated on construction
-  TF24_Environment(bool light_availability_spline_rescale_usually = false,
+  
+  TF24_Environment(bool light_availability_spline_rescale_usually = true,
                    int soil_number_of_depths = 1, 
                    double delta_z = 9999, // not using this
                    double soil_moist_sat = 0.453, // saturated soil moisture content (m3 water m^-3 soil) 
@@ -30,7 +31,7 @@ public:
       n_psi(n_psi),
       K_sat(K_sat),
       b_infil(b_infil)
-      {
+  {
     time = 0.0;
     //todo: add soil depth as parameter
     depth = 2;

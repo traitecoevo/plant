@@ -32,35 +32,7 @@ TF24_make_environment(
 
 \item{light_availability_spline_max_depth}{Parameter used in adaptive spline method. Default is 16.}
 
-\item{light_availability_spline_rescale_usually}{whether to rescale intervals when estimating light environment}
-
-\item{soil_number_of_depths}{Number of soil layers to include}
-
 \item{soil_initial_state}{Initial state of the soil moisture, a vector of length `soil_number_of_depths`}
-
-\item{rainfall}{Rainfall amount}
-
-\item{atm_vpd}{Atmospheric vapor pressure deficit}
-
-\item{ca}{Atmospheric CO2 concentration}
-
-\item{leaf_temp}{Leaf temperature}
-
-\item{atm_o2_kpa}{Atmospheric O2 partial pressure}
-
-\item{atm_kpa}{Atmospheric pressure}
-
-\item{delta_z}{Thickness of soil layers}
-
-\item{soil_moist_sat}{Soil moisture at saturation}
-
-\item{K_sat}{Saturated hydraulic conductivity}
-
-\item{a_psi}{Coefficient for soil water potential}
-
-\item{n_psi}{Exponent for soil water potential}
-
-\item{b_infil}{Coefficient for infiltration}
 }
 \description{
 : Helper functions to create an TF24_Environment object. Useful for running individuals

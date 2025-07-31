@@ -14,6 +14,7 @@ public:
   K93_Environment() {
     time = 0.0;
     light_availability = ResourceSpline();
+    light_availability.spline_rescale_usually = true;
   };
 
   // Light interface
