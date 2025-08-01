@@ -10,12 +10,7 @@
 
 namespace plant {
 
-// TODO: Might be worth moving this into the main interface?  Not sure
-// about that though as it revolves pretty closely around Rcpp types
-// and is kind of separate to the rest of the model.  It won't matter
-// though; if it does move in then we just adjust the yml.
-
-
+  // TODO cleanup scm
 
 // stochastic model:
 template <typename T, typename E>
@@ -46,7 +41,7 @@ template <typename T, typename E>
 Rcpp::List get_state(const StochasticPatch<T,E>& patch) {
   Rcpp::List ret;
   for (size_t i = 0; i < patch.size(); ++i) {
-    ret.push_back(get_state(patch.at(i)));
+    ret.push_back(get_state(patch.at_species(i)));
   }
   return ret;
 }

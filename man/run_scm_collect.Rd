@@ -6,7 +6,7 @@
 \usage{
 run_scm_collect(
   p,
-  env = make_environment(parameters = p),
+  env = Environment(parameters = p),
   ctrl = scm_base_control(),
   collect_auxiliary_variables = FALSE
 )

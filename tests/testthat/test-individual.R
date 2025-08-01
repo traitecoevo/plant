@@ -20,8 +20,6 @@ for (x in names(strategy_types)) {
     pl <- Individual(x, e)(s)
 
     expect_is(pl, sprintf("Individual<%s,%s>",x,e))
-    # expect_is(pp, sprintf("IndividualPlus<%s>",x))
-    # expect_identical(pp$strategy, s)
     expect_identical(pl$strategy, s)
 
     ## Expected initial conditions

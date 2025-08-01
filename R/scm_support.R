@@ -57,9 +57,14 @@ scm_base_parameters <- function(type = NA, env = environment_type(type)) {
 ##' @return A \code{SCM} object.
 ##' @author Rich FitzJohn
 ##' @export
-run_scm <- function(p, env = Environment(parameters = p), 
+run_scm <- function(p, env = NULL, 
                     ctrl = scm_base_control(), use_ode_times=FALSE) {
+
   types <- extract_RcppR6_template_types(p, "Parameters")
+  
+  if(is.null(env))
+    env <- Environment(types[[1]])
+
   scm <- do.call('SCM', types)(p, env, ctrl)
   if (use_ode_times) {
     scm$use_ode_times <- TRUE

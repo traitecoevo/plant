@@ -6,7 +6,7 @@
 \usage{
 run_scm(
   p,
-  env = make_environment(parameters = p),
+  env = Environment(parameters = p),
   ctrl = scm_base_control(),
   use_ode_times = FALSE
 )

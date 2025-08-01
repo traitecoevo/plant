@@ -133,7 +133,7 @@ public:
     environment_type env = environment_type();
 
     auto target = [&] (double x) mutable -> double {
-      env.set_fixed_environment(x);
+      env.set_fixed_environment(x, 100);
       compute_rates(env);
       return net_mass_production_dt(env);
     };

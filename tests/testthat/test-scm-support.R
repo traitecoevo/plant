@@ -2,6 +2,7 @@ context("SCM support")
 
 
 test_that("collect / make_patch", {
+  
   env <- Environment("FF16")
   ctrl <- scm_base_control()
   p0 <- scm_base_parameters("FF16")

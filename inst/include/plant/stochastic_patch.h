@@ -38,7 +38,7 @@ public:
 
   std::vector<size_t> deaths();
 
-  const species_type& at(size_t species_index) const {
+  const species_type& at_species(size_t species_index) const {
     return species[species_index];
   }
 

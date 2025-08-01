@@ -48,6 +48,10 @@ for (x in names(strategy_types)) {
       expect_equal(patch$ode_state, numeric(0))
       expect_equal(patch$ode_rates, numeric(0))
     }
+    if(x %in% c("TF24")) {
+      expect_equal(patch$ode_state, 0.25)
+      expect_equal(patch$ode_rates, 0.0)
+    }
     expect_identical(patch$ode_state, env_state)
     expect_identical(patch$ode_rates, env_rates)
     

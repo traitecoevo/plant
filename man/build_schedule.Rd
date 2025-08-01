@@ -4,11 +4,7 @@
 \alias{build_schedule}
 \title{Build Node Schedule}
 \usage{
-build_schedule(
-  p,
-  env = make_environment(parameters = p),
-  ctrl = scm_base_control()
-)
+build_schedule(p, env = Environment(parameters = p), ctrl = scm_base_control())
 }
 \arguments{
 \item{p}{Parameters object}

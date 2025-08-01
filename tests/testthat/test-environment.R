@@ -42,36 +42,46 @@ for (x in names(strategy_types)) {
   })
 }
 
-test_that("TF24 rainfall spline", {
+test_that("Environment-TF24 drivers", {
   
-  context("Rainfall-TF24")
+  context("ExtrinsicDrivers-TF24")
   
   env <- Environment("TF24")
   # get list of extrinsic drivers for the environment
 
-  expect_contains(env$extrinsic_drivers$get_names(), c("rainfall", "leaf_temp","atm_o2_kpa", "atm_kpa", "ca", "atm_vpd"))
+  expect_contains(env$extrinsic_drivers$get_names(), c("PPFD", "rainfall", "leaf_temp","atm_o2_kpa", "atm_kpa", "ca", "atm_vpd"))
   
-  # test extrapolation on default spline of y = 1
-  expect_equal(env$extrinsic_drivers$evaluate("rainfall", 100), 1)
-  expect_equal(env$extrinsic_drivers$evaluate("rainfall", 10000000), 1)
-  
-  # test extrapolation on spline of y = 5.613432
-  env <- Environment("TF24", rainfall=5.613432)
-  expect_equal(env$extrinsic_drivers$evaluate("rainfall", 100), 5.613432)
-  expect_equal(env$extrinsic_drivers$evaluate("rainfall", 10000000), 5.613432)
-  
-  ## simple quadratic
+  # test default values - check at two values of second argument (should give same result)
+  expect_equal(env$extrinsic_drivers$evaluate("PPFD", 0), 1800)
+  expect_equal(env$extrinsic_drivers$evaluate("PPFD", 10), 1800)
+  expect_equal(env$extrinsic_drivers$evaluate("rainfall", 0), 1)
+  expect_equal(env$extrinsic_drivers$evaluate("rainfall", 10), 1)
+  expect_equal(env$extrinsic_drivers$evaluate("atm_vpd", 0), 1)
+  expect_equal(env$extrinsic_drivers$evaluate("atm_vpd", 10), 1)
+  expect_equal(env$extrinsic_drivers$evaluate("ca", 0), 40)
+  expect_equal(env$extrinsic_drivers$evaluate("ca", 10), 40)
+  expect_equal(env$extrinsic_drivers$evaluate("PPFD", 0), 1800)
+  expect_equal(env$extrinsic_drivers$evaluate("PPFD", 10), 1800)
+  expect_equal(env$extrinsic_drivers$evaluate("atm_kpa", 0), 100.5)
+  expect_equal(env$extrinsic_drivers$evaluate("atm_kpa", 10), 100.5)
+
+  # test updating values
+  v <- 200
+  expect_silent(env$extrinsic_drivers$set_constant("rainfall", v))
+  expect_equal(env$extrinsic_drivers$evaluate("rainfall", 100), v)
+  expect_equal(env$extrinsic_drivers$evaluate("rainfall", 10000000), v)
+
+  ## a function (simple quadratic)
   x <- seq(-10, 10, 0.41)
-  quadratic_rain <- list(
-    x = x,
-    y = x^2
-  )
+  y <- x^2
+  a_psi <- 10
   
-  a_psi = 10
-  env <- Environment("TF24", rainfall=quadratic_rain, 
-                          a_psi = a_psi) # overwrites previously created spline
+  env <- Environment("TF24")
+  expect_silent(env$extrinsic_drivers$set_constant("a_psi", a_psi))
+  expect_equal(env$extrinsic_drivers$evaluate("a_psi", 2), a_psi)
   
   # interpolated points
+  expect_silent(env$extrinsic_drivers$set_variable("rainfall", x, y))
   expect_equal(env$extrinsic_drivers$evaluate("rainfall", 2), 4)
   expect_equal(env$extrinsic_drivers$evaluate("rainfall", -2), 4)
   expect_equal(env$extrinsic_drivers$evaluate("rainfall", 3), 9, tolerance=1e-7)

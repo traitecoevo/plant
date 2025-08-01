@@ -9,7 +9,7 @@
 make_patch(
   state,
   p,
-  env = make_environment(parameters = p),
+  env = Environment(parameters = p),
   ctrl = scm_base_control()
 )
 

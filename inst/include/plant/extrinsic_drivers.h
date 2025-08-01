@@ -50,17 +50,33 @@ private:
 };
 }
 
+// TODO cleanup scm untested
+
 class ExtrinsicDrivers {
-  using variable = interpolator::Interpolator;
+  
 public:
   // this will override any previously defined drivers with the same name
   void set_constant(std::string driver_name, double k) {
-    drivers[driver_name] = Function(k);
+    std::cout << "In set_constant " << k << " ";
+
+    if (drivers.find(driver_name) != drivers.end()) 
+    {
+      std::cout << "existing " << drivers.at(driver_name).evaluate(10) << " ";
+
+      drivers.erase(driver_name);
+    }
+    std::cout << " set " << " ";
+    drivers.insert({driver_name, Function(k)});
+    std::cout << "new " << drivers.at(driver_name).evaluate(10) << " ";
   }
 
   // initialise spline of driver with x, y control points
   void set_variable(std::string driver_name, std::vector<double> const &x, std::vector<double> const &y) {
-    drivers[driver_name] = Function(x, y);
+    if (drivers.find(driver_name) != drivers.end())
+    {
+      drivers.erase(driver_name);
+    }
+    drivers.insert({driver_name, Function(x, y)});
   }
 
   void set_extrapolate(std::string driver_name, bool extrapolate) {
@@ -71,6 +87,7 @@ public:
   double evaluate(std::string driver_name, double u) const {
     return drivers.at(driver_name).evaluate(u);
   }
+
 
   // evaluate/query interpolated spline for driver at vector of points, return vector of values
   std::vector<double> evaluate_range(std::string driver_name, std::vector<double> u) const {
@@ -86,10 +103,16 @@ public:
     return ret;
   }
 
+  void clear() {
+    drivers.clear();
+  }
+  
+
 private:
   std::unordered_map <std::string, Function> drivers;
 };
 
+//TODO cleanup scm
 inline Rcpp::List get_state(const ExtrinsicDrivers& drivers, double time) {
   auto const& names = drivers.get_names();
   auto driver_names = Rcpp::StringVector(names.size());

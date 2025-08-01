@@ -17,14 +17,15 @@ public:
   // which are only updated on construction
   FF16_Environment() {
     time = 0.0;
-    light_availability = ResourceSpline();
-    light_availability.spline_rescale_usually = true;
-  };
 
-  FF16_Environment(bool light_availability_spline_rescale_usually) {
-    time = 0.0;
-    light_availability = ResourceSpline();
-    light_availability.spline_rescale_usually = light_availability_spline_rescale_usually;
+    // Shading defaults have lower tolerance which are overwritten for speed
+    light_availability = ResourceSpline(
+        1e-4, // light_availability_spline_tol,
+        17,   // light_availability_spline_nbase,
+        16,   // light_availability_spline_max_depth,
+        true  // light_availability_spline_rescale_usually)
+    );
+
   };
 
   // A ResourceSpline used for storing light availbility (0-1)
@@ -79,7 +80,6 @@ public:
     light_availability.clear();
   }
 };
-
 
 
 }

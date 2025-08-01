@@ -251,10 +251,63 @@ system.time(
 
 ```{r}
 # existing - using base functions
-scm <- SCM("TF24", "TF24_Env")(p1, env, ctrl)
+
+
 run_scm(p1, env, ctrl)
-scm$collect <- FALSE # TRUE
-scm$run()
+run_collect(p1, env, ctrl)
+
+get_state
+
+build_schedule(p1, env, ctrl)
+-run_scm_error()
+
+scm <- SCM("TF24", "TF24_Env")(p1, env, ctrl)
+scm$collect <- FALSE
+scm$refine <- TRUE
+scm$run
+
+scm$run_next
+
+ParametersFF16,FF16_Env>()
+
+Environment(x)
+  FF16_Environment()
+
+make_environemnt
+  - FF16_make_environment()
+test_environment
+  - FF16_test_environment()
+
+run_patch <- function() {
+
+  p <- Parameters("FF16")
+  p$max_patch_lifetime <- 40
+
+  p1 <- expand_parameters("lma", 0.1)
+
+  # create environment object
+  env <- Environment("FF16")
+
+  env$extrinsic_drivers$get()
+  env$extrinsic_drivers$set_constant("ca", 50)
+  
+  ctrl <- Control()
+  
+  scm <- SCM("TF24", "TF24_Env")(p1, env, ctrl)
+  scm$refine_node_schedule <- TRUE
+  scm$collect_history <- TRUE
+  scm$run
+    - run
+    - (if node schedule) check errors, add nodes
+    - (if collect histoiry) collect
+  data <- scm |> tidy_outputs
+  scm$net_reproduction_ratios
+
+}
+
+scm <- patch_TF24(p1, env, ctrl)
+       multi_patch_TF24(p1, env, ctrl)
+
 scm$net_reproduction_ratios
 system.time(y <- scm$patch$state)
 system.time(yy <- scm$history |> map(~ .x$state))

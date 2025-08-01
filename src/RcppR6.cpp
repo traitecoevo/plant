@@ -1993,6 +1993,11 @@ size_t Patch___FF16__FF16_Env__node_ode_size__get(plant::RcppR6::RcppR6<plant::P
   return obj_->node_ode_size();
 }
 
+// [[Rcpp::export]]
+Rcpp::List Patch___FF16__FF16_Env__state__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->r_get_state();
+}
+
 
 // [[Rcpp::export]]
 plant::Patch<plant::TF24_Strategy,plant::TF24_Environment> Patch___TF24__TF24_Env__ctor(plant::Parameters<plant::TF24_Strategy,plant::TF24_Environment> parameters, plant::TF24_Environment environment, plant::Control control) {
@@ -2117,6 +2122,11 @@ plant::ode::state_type Patch___TF24__TF24_Env__ode_aux__get(plant::RcppR6::RcppR
 // [[Rcpp::export]]
 size_t Patch___TF24__TF24_Env__node_ode_size__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
   return obj_->node_ode_size();
+}
+
+// [[Rcpp::export]]
+Rcpp::List Patch___TF24__TF24_Env__state__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->r_get_state();
 }
 
 
@@ -2245,6 +2255,11 @@ size_t Patch___K93__K93_Env__node_ode_size__get(plant::RcppR6::RcppR6<plant::Pat
   return obj_->node_ode_size();
 }
 
+// [[Rcpp::export]]
+Rcpp::List Patch___K93__K93_Env__state__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->r_get_state();
+}
+
 
 // [[Rcpp::export]]
 plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> SCM___FF16__FF16_Env__ctor(plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> parameters, plant::FF16_Environment environment, plant::Control control) {
@@ -2309,6 +2324,11 @@ plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> SCM___FF16__FF16_Env_
 }
 
 // [[Rcpp::export]]
+std::vector<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment>> SCM___FF16__FF16_Env__history__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->r_history();
+}
+
+// [[Rcpp::export]]
 plant::NodeSchedule SCM___FF16__FF16_Env__node_schedule__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->r_node_schedule();
 }
@@ -2323,11 +2343,6 @@ std::vector<double> SCM___FF16__FF16_Env__ode_times__get(plant::RcppR6::RcppR6<p
 }
 
 // [[Rcpp::export]]
-Rcpp::List SCM___FF16__FF16_Env__state__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
-  return plant::get_state(*obj_);
-}
-
-// [[Rcpp::export]]
 Rcpp::List SCM___FF16__FF16_Env__aux__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
   return plant::get_aux(*obj_);
 }
@@ -2339,6 +2354,15 @@ bool SCM___FF16__FF16_Env__use_ode_times__get(plant::RcppR6::RcppR6<plant::SCM<p
 // [[Rcpp::export]]
 void SCM___FF16__FF16_Env__use_ode_times__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, bool value) {
   obj_->r_set_use_ode_times(value);
+}
+
+// [[Rcpp::export]]
+bool SCM___FF16__FF16_Env__collect__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->r_get_collect();
+}
+// [[Rcpp::export]]
+void SCM___FF16__FF16_Env__collect__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, bool value) {
+  obj_->r_set_collect(value);
 }
 
 // [[Rcpp::export]]
@@ -2410,6 +2434,11 @@ plant::Patch<plant::TF24_Strategy,plant::TF24_Environment> SCM___TF24__TF24_Env_
 }
 
 // [[Rcpp::export]]
+std::vector<plant::Patch<plant::TF24_Strategy,plant::TF24_Environment>> SCM___TF24__TF24_Env__history__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->r_history();
+}
+
+// [[Rcpp::export]]
 plant::NodeSchedule SCM___TF24__TF24_Env__node_schedule__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
   return obj_->r_node_schedule();
 }
@@ -2424,11 +2453,6 @@ std::vector<double> SCM___TF24__TF24_Env__ode_times__get(plant::RcppR6::RcppR6<p
 }
 
 // [[Rcpp::export]]
-Rcpp::List SCM___TF24__TF24_Env__state__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
-  return plant::get_state(*obj_);
-}
-
-// [[Rcpp::export]]
 Rcpp::List SCM___TF24__TF24_Env__aux__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
   return plant::get_aux(*obj_);
 }
@@ -2440,6 +2464,15 @@ bool SCM___TF24__TF24_Env__use_ode_times__get(plant::RcppR6::RcppR6<plant::SCM<p
 // [[Rcpp::export]]
 void SCM___TF24__TF24_Env__use_ode_times__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_, bool value) {
   obj_->r_set_use_ode_times(value);
+}
+
+// [[Rcpp::export]]
+bool SCM___TF24__TF24_Env__collect__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->r_get_collect();
+}
+// [[Rcpp::export]]
+void SCM___TF24__TF24_Env__collect__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_, bool value) {
+  obj_->r_set_collect(value);
 }
 
 // [[Rcpp::export]]
@@ -2511,6 +2544,11 @@ plant::Patch<plant::K93_Strategy,plant::K93_Environment> SCM___K93__K93_Env__pat
 }
 
 // [[Rcpp::export]]
+std::vector<plant::Patch<plant::K93_Strategy,plant::K93_Environment>> SCM___K93__K93_Env__history__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->r_history();
+}
+
+// [[Rcpp::export]]
 plant::NodeSchedule SCM___K93__K93_Env__node_schedule__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
   return obj_->r_node_schedule();
 }
@@ -2525,11 +2563,6 @@ std::vector<double> SCM___K93__K93_Env__ode_times__get(plant::RcppR6::RcppR6<pla
 }
 
 // [[Rcpp::export]]
-Rcpp::List SCM___K93__K93_Env__state__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  return plant::get_state(*obj_);
-}
-
-// [[Rcpp::export]]
 Rcpp::List SCM___K93__K93_Env__aux__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
   return plant::get_aux(*obj_);
 }
@@ -2541,6 +2574,15 @@ bool SCM___K93__K93_Env__use_ode_times__get(plant::RcppR6::RcppR6<plant::SCM<pla
 // [[Rcpp::export]]
 void SCM___K93__K93_Env__use_ode_times__set(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, bool value) {
   obj_->r_set_use_ode_times(value);
+}
+
+// [[Rcpp::export]]
+bool SCM___K93__K93_Env__collect__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->r_get_collect();
+}
+// [[Rcpp::export]]
+void SCM___K93__K93_Env__collect__set(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, bool value) {
+  obj_->r_set_collect(value);
 }
 
 // [[Rcpp::export]]
@@ -3382,8 +3424,8 @@ SEXP FF16_Strategy__ctor() {
 
 
 // [[Rcpp::export]]
-plant::FF16_Environment FF16_Environment__ctor(bool light_availability_spline_rescale_usually) {
-  return plant::FF16_Environment(light_availability_spline_rescale_usually);
+plant::FF16_Environment FF16_Environment__ctor() {
+  return plant::FF16_Environment();
 }
 // [[Rcpp::export]]
 double FF16_Environment__get_environment_at_height(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double height) {
@@ -3516,8 +3558,8 @@ SEXP TF24_Strategy__ctor() {
 
 
 // [[Rcpp::export]]
-plant::TF24_Environment TF24_Environment__ctor(bool light_availability_spline_rescale_usually, int soil_number_of_depths, double delta_z, double soil_moist_sat, double K_sat, double a_psi, double n_psi, double b_infil) {
-  return plant::TF24_Environment(light_availability_spline_rescale_usually, soil_number_of_depths, delta_z, soil_moist_sat, K_sat, a_psi, n_psi, b_infil);
+plant::TF24_Environment TF24_Environment__ctor() {
+  return plant::TF24_Environment();
 }
 // [[Rcpp::export]]
 double TF24_Environment__get_environment_at_height(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, double height) {

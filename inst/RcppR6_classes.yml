@@ -1143,6 +1143,25 @@ TF24_Strategy:
     - a_dG1: double
     - a_dG2: double
     - k_I: double
+    - vcmax_25: double
+    - p_50: double
+    - K_s: double
+    - c: double
+    - b: double
+    - psi_crit: double
+    - beta1: double
+    - beta2: double
+    - jmax_25: double
+    - hk_s: double
+    - a: double
+    - curv_fact_elec_trans: double
+    - curv_fact_colim: double
+    - var_sapwood_volume_cost: double
+    - nmass_l: double
+    - nmass_s: double
+    - nmass_b: double
+    - nmass_r: double
+    - dmass_dN: double
     - recruitment_decay: double
     - control: "plant::Control"
     - collect_all_auxiliary: bool
