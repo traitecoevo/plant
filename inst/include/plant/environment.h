@@ -74,6 +74,33 @@ public:
 
   Internals vars;
   ExtrinsicDrivers extrinsic_drivers;
+
+  // The
+  std::vector<std::string> extrinsic_drivers_get_names() const
+  {
+    return  extrinsic_drivers.get_names();
+  }
+
+  void extrinsic_drivers_set_constant(std::string driver_name, double value)
+  {
+    extrinsic_drivers.set_constant(driver_name, value);
+  }
+
+  void extrinsic_drivers_set_variable(std::string driver_name, std::vector<double> const &x, std::vector<double> const &y)
+  {
+    extrinsic_drivers.set_variable(driver_name, x, y);
+  }
+
+  double extrinsic_drivers_evaluate(std::string driver_name, double x) const
+  {
+    return extrinsic_drivers.evaluate(driver_name, x);
+  }
+
+  std::vector<double> extrinsic_drivers_evaluate_range(std::string driver_name, std::vector<double> const &x) const
+  {
+    return extrinsic_drivers.evaluate_range(driver_name, x);
+  }
+  
 };
 }
 #endif

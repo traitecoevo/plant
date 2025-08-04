@@ -57,17 +57,12 @@ class ExtrinsicDrivers {
 public:
   // this will override any previously defined drivers with the same name
   void set_constant(std::string driver_name, double k) {
-    std::cout << "In set_constant " << k << " ";
-
+   
     if (drivers.find(driver_name) != drivers.end()) 
     {
-      std::cout << "existing " << drivers.at(driver_name).evaluate(10) << " ";
-
       drivers.erase(driver_name);
     }
-    std::cout << " set " << " ";
     drivers.insert({driver_name, Function(k)});
-    std::cout << "new " << drivers.at(driver_name).evaluate(10) << " ";
   }
 
   // initialise spline of driver with x, y control points
@@ -83,15 +78,16 @@ public:
     drivers.at(driver_name).set_extrapolate(extrapolate);
   }
 
-  // evaluate/query interpolated spline for driver at point u, return s(u), where s is interpolated function
-  double evaluate(std::string driver_name, double u) const {
-    return drivers.at(driver_name).evaluate(u);
+  // evaluate/query interpolated spline for driver at point u, return s(x), where s is interpolated function
+  double evaluate(std::string driver_name, double x) const {
+
+    return drivers.at(driver_name).evaluate(x);
   }
 
 
   // evaluate/query interpolated spline for driver at vector of points, return vector of values
-  std::vector<double> evaluate_range(std::string driver_name, std::vector<double> u) const {
-    return drivers.at(driver_name).evaluate_range(u);
+  std::vector<double> evaluate_range(std::string driver_name, std::vector<double> x) const {
+    return drivers.at(driver_name).evaluate_range(x);
   }
 
   // returns the name of each active driver - useful for R output
@@ -111,19 +107,6 @@ public:
 private:
   std::unordered_map <std::string, Function> drivers;
 };
-
-//TODO cleanup scm
-inline Rcpp::List get_state(const ExtrinsicDrivers& drivers, double time) {
-  auto const& names = drivers.get_names();
-  auto driver_names = Rcpp::StringVector(names.size());
-  auto ret = Rcpp::List(names.size());
-  for (auto i = 0; i < names.size(); i++) {
-    ret[i] = drivers.evaluate(names[i], time);
-    driver_names[i] = names[i];
-  }
-  ret.names() = driver_names;
-  return ret;
-}
 
 }
 

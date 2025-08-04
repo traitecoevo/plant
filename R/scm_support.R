@@ -88,9 +88,16 @@ run_scm <- function(p, env = NULL,
 ##' competition_effect)
 ##' @author Rich FitzJohn
 ##' @export
-run_scm_collect <- function(p, env = Environment(parameters = p), 
+run_scm_collect <- function(p, env = NULL, 
                             ctrl = scm_base_control(),
                             collect_auxiliary_variables=FALSE) {
+  
+  types <- extract_RcppR6_template_types(p, "Parameters")
+
+  if (is.null(env)) {
+    env <- Environment(types[[1]])
+  }
+  
   collect_default <- function(scm) {
     scm$state
   }

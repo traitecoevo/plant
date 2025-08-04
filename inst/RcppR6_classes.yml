@@ -1029,9 +1029,6 @@ FF16_Environment:
     light_availability:
       type: "plant::ResourceSpline"
       access: field
-    extrinsic_drivers: # this actually exists in the base class, not in the derived environment classes
-      type: "plant::ExtrinsicDrivers"
-      access: field
 
 # The following strategy was built from FF16 on Wed Aug 12 15:33:08 2020
 K93_Strategy:
@@ -1187,6 +1184,22 @@ TF24_Environment:
     set_fixed_environment:
       args: [value: double, height_max: double]
       return_type: void
+    # methods for extinsic drivers are defined in the base class `environment.h`, not in the derived environment class    
+    extrinsic_drivers_get_names:
+      args: []
+      return_type: std::vector<std::string>
+    extrinsic_drivers_set_constant:
+      args: [driver_name: std::string, value: double]
+      return_type: void
+    extrinsic_drivers_set_variable:
+      args: [driver_name: std::string, x: std::vector<double>, y: std::vector<double>]
+      return_type: void
+    extrinsic_drivers_evaluate:
+      args: [driver_name: std::string, x: double]
+      return_type: double
+    extrinsic_drivers_evaluate_range:
+      args: [driver_name: std::string, x: std::vector<double>]
+      return_type: std::vector<double>
     psi_from_soil_moist:
       args: [theta_: double]
       return_type: double 
@@ -1194,11 +1207,14 @@ TF24_Environment:
       args: [psi_soil_: double]
       return_type: double
     set_soil_water_state:
-      args: [state: "std::vector<double>"]
+      args: [state: std::vector<double>]
       return_type: void
     get_soil_water_state:
       args: []
       return_type: std::vector<double>
+    get_PPFD:
+      args: []
+      return_type: double
     get_atm_vpd:
       args: []
       return_type: double
@@ -1215,7 +1231,7 @@ TF24_Environment:
       args: []
       return_type: double
     compute_rates:
-      args: [resource_depletion: "std::vector<double>"]
+      args: [resource_depletion: std::vector<double>]
       return_type: void
   active:
     time: {type: double, access: field}
@@ -1228,6 +1244,3 @@ TF24_Environment:
       type: "plant::Internals"
       access: member
       name_cpp: "r_internals"
-    extrinsic_drivers: # this actually exists in the base class, not in the derived environment classes
-      type: "plant::ExtrinsicDrivers"
-      access: field

@@ -15,8 +15,16 @@
 ##' \code{birth_rate}.
 ##' @author Rich FitzJohn
 ##' @export
-build_schedule <- function(p, env = Environment(parameters = p),
+build_schedule <- function(p, env = NULL,
                            ctrl = scm_base_control()) {
+  
+  types <- extract_RcppR6_template_types(p, "Parameters")
+
+  if (is.null(env)) {
+    env <- Environment(types[[1]])
+  }
+
+
   p <- validate(p)
 
   n_spp <- length(p$strategies)

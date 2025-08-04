@@ -44,17 +44,15 @@ public:
                    true //light_availability_spline_rescale_usually)
                   );
 
-    // set_extrinsic_drivers_defaults
     ExtrinsicDrivers extrinsic_drivers;
-    set_extrinsic_drivers(
-        1800, // PPFD
-        1,    // rainfall
-        1,    // atm_vpd
-        40,   // ca
-        25,   // leaf_temp
-        21,   // atm_o2_kpa
-        100.5 // atm_kpa
-    );
+
+    extrinsic_drivers_set_constant("PPFD",1800);
+    extrinsic_drivers_set_constant("rainfall",1);
+    extrinsic_drivers_set_constant("atm_vpd",1);
+    extrinsic_drivers_set_constant("ca",40);
+    extrinsic_drivers_set_constant("leaf_temp",25);
+    extrinsic_drivers_set_constant("atm_o2_kpa",21);
+    extrinsic_drivers_set_constant("atm_kpa",100.5);
 
     // Setup soil water distribtuion
     vars = Internals(soil_number_of_depths);
@@ -120,20 +118,6 @@ public:
   virtual void r_init_interpolators(const std::vector<double> &state)
   {
     light_availability.r_init_interpolators(state);
-  }
-  
-  void set_extrinsic_drivers(double PPFD, double rainfall, double atm_vpd, double ca, double leaf_temp, double atm_o2_kpa, double atm_kpa) {
-    
-    extrinsic_drivers.clear();
-
-    extrinsic_drivers.set_constant("PPFD", PPFD);
-    extrinsic_drivers.set_constant("rainfall", rainfall);
-    extrinsic_drivers.set_constant("atm_vpd", atm_vpd);
-    extrinsic_drivers.set_constant("ca", ca);
-    extrinsic_drivers.set_constant("leaf_temp", leaf_temp);
-    extrinsic_drivers.set_constant("atm_o2_kpa", atm_o2_kpa);
-    extrinsic_drivers.set_constant("atm_kpa", atm_kpa);
- 
   }
   
   virtual void compute_rates_simple(std::vector<double> const &resource_depletion)
@@ -248,7 +232,8 @@ public:
     return pow((psi_soil_/a_psi), (-1/n_psi))*soil_moist_sat;
   }
 
-  //todo - turn into generic getters and setters?
+  // Easy wrappers. Cn also use `extrinsic_drivers_evaluate("PPFD", time)
+
   double get_PPFD()      const { return extrinsic_drivers.evaluate("PPFD", time); }
   double get_atm_vpd()   const { return extrinsic_drivers.evaluate("atm_vpd", time); }
   double get_ca()        const { return extrinsic_drivers.evaluate("ca", time); }
