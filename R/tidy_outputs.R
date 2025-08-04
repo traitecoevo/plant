@@ -17,7 +17,8 @@ tidy_species <- function(results) {
   
   purrr::map_dfr(seq_len(n_spp), get_species_sdd) |>
     dplyr::mutate(
-      density = exp(.data$log_density)
+      density = exp(.data$log_density),
+      species = as.character(species)
     ) 
 }
 
@@ -57,7 +58,7 @@ tidy_env <- function(env) {
 #'
 #' @return a list, containing outputs of plant solver in tidy format
 #' @importFrom rlang .data
-tidy_results <- function(results) {
+tidy_patch <- function(results) {
 
   time <- sapply(results, "[[", "time")
 

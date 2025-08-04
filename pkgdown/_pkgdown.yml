@@ -169,9 +169,7 @@ reference:
 
 - title: Review if still needed
   contents:
-  - make_scm_integrate
   - node_schedule_times_default
-  - make_patch
 
 - title: Internal functions (for developers/advanced users only)
   contents:

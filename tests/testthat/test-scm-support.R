@@ -1,7 +1,7 @@
 context("SCM support")
 
 
-test_that("collect / make_patch", {
+test_that("collect", {
   
   env <- Environment("FF16")
   ctrl <- scm_base_control()
@@ -9,63 +9,14 @@ test_that("collect / make_patch", {
   p0$disturbance_mean_interval <- 30.0
   p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, birth_rate_list = 1.0)
 
-  expect_silent(
-    res <- run_scm_collect(p1, env, ctrl)
-  )
-  # saveRDS(res, "tests/testthat/test_data/run_collect.rds")
+  expect_silent(res <- run_scm(p1, env, ctrl))
 
   expect_contains(
-    names(res), c("time", "species", "env", "offspring_production", "patch_density", "p")
+    names(res), cc("clone", "collect", "competition_effect_error", "complete", "history", "initialize", "net_reproduction_ratio_errors", "net_reproduction_ratio_for_species", "net_reproduction_ratios", "node_schedule", "ode_times", "offspring_production", "parameters", "patch", "reset", "run", "run_mutant", "run_next", "set_node_schedule_times", "time", "use_ode_times")
   )
-
-  ref <- readRDS(file.path(rprojroot::find_testthat_root_file(), "test_data/run_collect.rds"))
-  expect_equal(names(res), names(ref))
-  expect_equal(res, ref)
-
-  expect_equal(res$time, ref$time)
-
-  st_113 <- scm_state(113, res)
-  p1_113 <- make_patch(st_113, p1, env, ctrl)
-
-  expect_equal(p1_113$ode_state, unlist(st_113$species))
-  expect_equal(p1_113$time, st_113$time)
-  expect_equal(p1_113$environment$light_availability$spline$xy, unname(st_113$env$light_availability))
-  expect_lt(exp(-p1_113$compute_competition(0)), 0.5)
-  expect_gt(p1_113$height_max, 10)
 
   cmp_patch_density <- Weibull_Disturbance_Regime(p1$max_patch_lifetime)$density(res$time)
   expect_equal(res$patch_density, cmp_patch_density)
-
-  dat <- patch_to_internals(p1_113)
-  expect_is(dat, "list")
-  expect_equal(length(dat), 1)
-
-  dat <- dat[[1]]
-  expect_is(dat, "matrix")
-  expect_equal(nrow(dat), length(p1_113$species[[1]]$nodes))
-  
-  # once for rates, once for states
-  n_int <- (Individual("FF16","FF16_Env")(p1$strategies[[1]])$ode_size * 2) +
-    Individual("FF16","FF16_Env")(p1$strategies[[1]])$aux_size
-  
-  expect_equal(ncol(dat), n_int + 2L)
-
-  # NOTE: this currently takes *longer* than the SCM to run due to (I
-  # think) the RcppR6 calling being pretty inefficient in this case.
-  # I should really benchmark it and see why it is so slow, but
-  # possibly we could do this within C++ for a major speedup.
-  ints <- scm_to_internals(res)
-
-  n_times <- length(p1$node_schedule_times[[1]])
-  expect_equal(length(ints), 1)
-  ints <- ints[[1]]
-  expect_is(ints, "array")
-  expect_equal(length(dim(ints)), 3)
-  expect_equal(dim(ints), c(n_int + 2L, n_times + 1, n_times))
-
-  v <- rownames(res$species[[1]])
-  expect_true(all(v %in% rownames(ints)))
-  expect_equal(ints[v, , ], res$species[[1]])
 
 })
 
@@ -105,13 +56,37 @@ test_that("collect_auxiliary_variables", {
   ctrl <- scm_base_control()
   p0 <- scm_base_parameters("FF16")
   p0$disturbance_mean_interval <- 30.0
-  p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, birth_rate_list = 1.0)
-  
-  res <- run_scm_collect(p1, env, ctrl, collect_auxiliary_variables=TRUE)
-  state <- res$species[[1]]
-  expect_equal(nrow(state), 9)
-  expect_equal(rownames(state)[8:9], c("competition_effect", "net_mass_production_dt"))
-  expect_equal(as.numeric(state[8:9, 142, 141]), c(0.0007211209, 0.0001707292))
+  # two species
+  p2 <- expand_parameters(trait_matrix(c(0.0825, 0.2625), "lma"), p0, FF16_hyperpar,
+    birth_rate_list = list(11.99177, 16.51006)
+  )
 
+  results <- run_scm_collect(p2, env, ctrl)
+  
+  expect_equal(ncol(results$species), 14)
+  
+  v <- c("competition_effect", "net_mass_production_dt")
+  expect_contains(names(results$species), c("competition_effect", "net_mass_production_dt")) 
+#  saveRDS(results, "tests/testthat/test_data/run_collect_tidy_2spp.rds")
+  
+  ref <- readRDS(file.path(rprojroot::find_testthat_root_file(), "test_data/run_collect_tidy_2spp.rds"))
+  expect_contains(names(results), names(ref))
+  
+  expect_equal(results$time, ref$time)
+  expect_equal(results$n_spp, ref$n_spp)
+  expect_equal(results$offspring_production, ref$offspring_production)
+  expect_equal(results$p, ref$p)
+  expect_equal(results$env$light_availability, ref$env$light_availability |> dplyr::select(-patch_density))
+
+  v1 <- results$species |> dplyr::arrange(species, time, node) 
+  
+  v2 <- ref$species |>
+    tidyr::drop_na() |>
+    dplyr::select(names(v1)) |>
+    dplyr::arrange(species, time, node) |> dplyr::slice(1:nrow(v2))
+  
+  # failing here
+  expect_equal(v1, v2)
+  
 
 })

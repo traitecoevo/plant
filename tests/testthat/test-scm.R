@@ -262,17 +262,6 @@ test_that("Offspring production & error calculations correct", {
       scm$patch$species[[1]]$competition_effects_error(scm$patch$compute_competition(0))
     expect_identical(scm$competition_effect_error(1), lae_cmp)
 
-    int <- make_scm_integrate(scm)
-    S_D <- scm$parameters$strategies[[1]]$S_D
-    expect_equal(int("offspring_produced_survival_weighted") * S_D, scm$net_reproduction_ratio_for_species(1))
-
-    res <- run_scm_collect(p1, env, ctrl)
-    int2 <- make_scm_integrate(res)
-
-    expect_equal(int2("offspring_produced_survival_weighted"), int("offspring_produced_survival_weighted"))
-    expect_equal(int2("height"), int("height"))
-    expect_equal(int2("mortality"), int("mortality"))
-    expect_equal(int2("fecundity"), int("fecundity"))
   }
 })
 

@@ -58,7 +58,7 @@ scm_base_parameters <- function(type = NA, env = environment_type(type)) {
 ##' @author Rich FitzJohn
 ##' @export
 run_scm <- function(p, env = NULL, 
-                    ctrl = scm_base_control(), use_ode_times=FALSE) {
+                    ctrl = scm_base_control(), use_ode_times=FALSE, collect = FALSE) {
 
   types <- extract_RcppR6_template_types(p, "Parameters")
   
@@ -68,6 +68,9 @@ run_scm <- function(p, env = NULL,
   scm <- do.call('SCM', types)(p, env, ctrl)
   if (use_ode_times) {
     scm$use_ode_times <- TRUE
+  }
+  if(collect) {
+    scm$collect <- TRUE
   }
   scm$run()
   scm
@@ -84,71 +87,26 @@ run_scm <- function(p, env = NULL,
 ##' @param p A \code{Parameters} object
 ##' @param env Environment object (defaults to FF16_Environment)
 ##' @param ctrl Control object
-##' @param collect_auxiliary_variables Return additional strategy variables (eg
 ##' competition_effect)
 ##' @author Rich FitzJohn
 ##' @export
 run_scm_collect <- function(p, env = NULL, 
-                            ctrl = scm_base_control(),
-                            collect_auxiliary_variables=FALSE) {
+                            ctrl = scm_base_control()) {
   
-  types <- extract_RcppR6_template_types(p, "Parameters")
+  scm <- run_scm(p, env, ctrl, collect = TRUE)
 
-  if (is.null(env)) {
-    env <- Environment(types[[1]])
-  }
-  
-  scm <- do.call("SCM", types)(p, env, ctrl)
-  scm$collect <- TRUE
-  scm$run()
-
-  results <- lapply(scm$history, "[[", "state") |> tidy_results()
+  results <- lapply(scm$history, "[[", "state") |> tidy_patch()
 
   ## todo: ideally pacth density is collected as part of environment object
-  results$steps <- results$steps |> mutate(patch_density = scm$patch$density(time))
+  results[["steps"]] <- results[["steps"]] |> dplyr::mutate(patch_density = scm$patch$density(time))
 
   results[["offspring_production"]] <- scm$offspring_production
   results[["net_reproduction_ratios"]] <- scm$net_reproduction_ratios
+  results[["time"]] <- results[["steps"]][["time"]]
   
   results[["p"]] <- p
 
   results
-}
-
-##' Functions for reconstructing a Patch from an SCM
-##' @title Reconstruct a patch
-##' @param state State object created by \code{scm_state}
-##' @param p Parameters object
-##' @param env Environment object (defaults to FF16_Environment)
-##' @param ctrl Control object
-##' @export
-make_patch <- function(state, p, env = Environment(parameters = p),
-                       ctrl = scm_base_control()) {
-
-  types <- extract_RcppR6_template_types(p, "Parameters")
-  n <- viapply(state$species, ncol)
-  patch <- do.call('Patch', types)(p, env, ctrl)
-  patch$set_state(state$time, unlist(state$species), n, state$env$light_availability)
-  patch
-}
-
-##' @rdname make_patch
-##' @param i Index to extract from \code{x}
-##' @param x Result of running \code{\link{run_scm_collect}}
-##' @export
-scm_state <- function(i, x) {
-  f_sp <- function(el) {
-    el <- el[, i, ]
-    el[, !is.na(el[1, ]), drop=FALSE]
-  }
-  list(time=x$time[[i]], species=lapply(x$species, f_sp),
-       env=x$env[[i]])
-}
-
-##' @export
-##' @rdname make_patch
-scm_patch <- function(i, x) {
-  make_patch(scm_state(i, x), x$p)
 }
 
 run_scm_error <- function(p, env = Environment(parameters = p),
@@ -180,88 +138,3 @@ run_scm_error <- function(p, env = Environment(parameters = p),
        ode_times=scm$ode_times)
 }
 
-
-scm_to_internals <- function(obj, use_environment=TRUE) {
-  dat <- lapply(seq_along(obj$time), function(i)
-    patch_to_internals(scm_patch(i, obj), use_environment))
-  f <- function(i) {
-    aperm(pad_list_to_array(lapply(dat, function(x) t(x[[i]]))), c(1, 3, 2))
-  }
-  lapply(seq_along(dat[[1]]), f)
-}
-
-patch_to_internals <- function(x, use_environment=TRUE) {
-  env <- if (use_environment) x$environment else NULL
-  lapply(x$species, species_to_internals, env)
-}
-
-
-species_to_internals <- function(sp, environment=NULL) {
-  # Aggregate and extract plants
-  sp_p <- lapply(sp$nodes, function(x) x$individual )
-  new_names <- c(sp_p[[1]]$ode_names, paste0(sp_p[[1]]$ode_names, '_dt'), sp_p[[1]]$aux_names)
-  ints <- do.call("rbind", lapply(sp_p, function(x) c(x$internals$states, x$internals$rates, x$internals$auxs)))
-  colnames(ints) <- new_names
-  cbind(ints,
-        log_density=sp$log_densities,
-        offspring_produced_survival_weighted=sp$net_reproduction_ratio_by_node)
-}
-
-##' Create a function that allows integrating aggregate properties of
-##' the SCM system.
-##'
-##' The workflow here is to run an SCM to create an SCM by running
-##' \code{run_scm}, or a set of data from \code{run_scm_collect} and
-##' then reconstitute all the intermediate bits of data so that an any
-##' variable that \code{PlantPlus} tracks can be integrated out.
-##' Because the pre-processing step is reasonably slow, this function
-##' returns a function that takes a variable name and integrates it.
-##'
-##' @title Integrate SCM variables
-##' @param obj An object from \code{run_scm} or \code{run_scm_collect}
-##' @export
-make_scm_integrate <- function(obj) {
-  ## TODO: This needs to be made to work with the output of
-  ## run_scm_collect, which means that it could possibly work with the
-  ## output over time, which would be cool; that might help with some
-  ## of the stuff from the "emergent" vignette.
-  if (inherits(obj, "SCM")) {
-    internals <- patch_to_internals(obj$patch)
-    n <- length(internals)
-    sched <- obj$node_schedule
-    a <- lapply(seq_len(n), sched$times)
-    pa <- lapply(a, obj$patch$density)
-  } else {
-    internals <- patch_to_internals(scm_patch(length(obj$time), obj))
-    n <- length(internals)
-    a <- obj$p$node_schedule_times
-    if(obj$p$patch_type == 'meta-population')
-      d = Weibull_Disturbance_Regime(obj$p$max_patch_lifetime)
-    else
-      d = No_Disturbance()
-    pa = lapply(a, d$density)
-  }
-
-  if (n == 0L) {
-    stop("This just isn't going to work out (plant internals are empty)")
-  }
-
-  pos <- colnames(internals[[1]])
-
-  f1 <- function(i, name, error=FALSE) {
-    x <- a[[i]]
-    y <- pa[[i]] * internals[[i]][, name]
-    total <- trapezium(x, y)
-    if (error) {
-      local_error_integration(x, y, total)
-    } else {
-      total
-    }
-  }
-  function(name, error=FALSE) {
-    if (!(name %in% pos)) {
-      stop("Unknown variable: ", name)
-    }
-    vnapply(seq_len(n), f1, name, error)
-  }
-}
