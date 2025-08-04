@@ -25,7 +25,7 @@ soil_layers = 15
 
 
 ```{r}
-f_drain_ <- function(Sz, Sz_fc, K_fc, beta, kw, f_dfc){
+f_drain_FS_2021 <- function(Sz, Sz_fc, K_fc, beta, kw, f_dfc){
   wz = Sz/Sz_fc
   # wz = Sz_fc/Sz
 
@@ -44,6 +44,25 @@ f_drain_ <- function(Sz, Sz_fc, K_fc, beta, kw, f_dfc){
 }
 ```
 
+```{r}
+f_drain_ <- function(Sz, Sz_fc, K_fc, beta, kw, f_dfc){
+  wz = Sz/Sz_fc
+  # wz = Sz_fc/Sz
+
+  if(wz > 1){
+  # if(Sz > Sz_fc){
+    f_drain = max(K_fc, 1 - 1/wz)
+    # f_drain = 1 - Sz_fc/Sz
+  }
+  
+  if(wz <= 1){
+  # if(Sz <= Sz_fc){
+    f_drain = K_fc*exp(-beta*(1-wz))
+    # f_drain = f_dfc*exp(kw*(Sz/Sz_fc))
+  }
+  return(f_drain)
+}
+```
 
 ```{r}
 rates_psi <- function(t, Sz, params) {
@@ -103,27 +122,27 @@ soil_moist_obs %>%
 ```
 
 ```{r}
-clay_con_iter <- seq(10,100,length.out = 10)
-pore_space_iter <- seq(20,80,length.out = 10)
+clay_con_iter <- seq(10,100,length.out = 5)
+pore_space_iter <- seq(20,80,length.out = 5)
 
 LHS <- expand_grid(clay_con_iter, pore_space_iter)
 
 rmse <- c()
 for(i in 1:nrow(LHS)){
 #clay content %
-clay_con = LHS[i,"clay_con_iter"]$clay_con_iter
+clay_con = LHS[i,"clay_con_iter"]$clay_con_iter/100
 pore_space = LHS[i,"pore_space_iter"]$pore_space_iter/100
 
-clay_con = 50
-pore_space = 80/100
+# clay_con = 50
+# pore_space = 80/100
 
 
 # Peeters 2013
 
 #soil field capacity (mm)
-Sz_fc = 685*(clay_con/100)
+Sz_fc = 685*(clay_con)
 #drainage fraction at field capacity (day ^-1)
-K_fc = 0.4256*exp(-7.984*clay_con/100)
+K_fc = 0.4256*exp(-7.984*clay_con)
 beta = 2.05
 
 params <- c(Sz_fc = Sz_fc, 
@@ -157,7 +176,7 @@ soil_moist_obs %>%
   mutate(Sz = as.numeric(Sz))%>%
   drop_na() -> test_data
 
-rmse[i] <- Metrics::rmse(test_data$value, as.numeric(test_data$Sz))
+# rmse[i] <- Metrics::rmse(test_data$value, as.numeric(test_data$Sz))
 rmse[i] <- cor(test_data$value, as.numeric(test_data$Sz))
 
 }
@@ -222,9 +241,45 @@ rates_psi <- function(t, Sz, params) {
 }
 ```
 
+```{r}
+D <- function(Sz, clay_con){
+  #clay_con in dag/ka
+  theta_33 = 0.3543*(1-exp(-0.0385*clay_con)) + 0.083
+  theta_1500 = 0.4016*(1-exp(-0.0230*clay_con)) + 0.0027
+  Kd_satPedo = 303.84*exp(-0.144*clay_con)
+  Kd_satscale = 0.043   
+  S_dawc = theta_33 - theta_1500
+  S_dmaxscale = 0.904
+  
+  dd = 100
+  Sd_max = dd*S_dawc*S_dmaxscale
+  Kd_sat = Kd_satscale*Kd_satPedo
+  return(Kd_sat*((Sz/Sd_max)^2))
+}
+```
+
 
 ```{r}
-clay_con_iter <- seq(10,100,length.out = 10)
+rates_psi_FS_2021 <- function(t, Sz, params) {
+  with(as.list(c(Sz, params)), {
+    dSz_dt <- rep(NA_real_, n_layers)
+    # Calculate fluxes at boundaries
+    # top boundary layer - depends on soil water content and rain
+    dSz_dt[1] = rain - Sz[1]*D(Sz[1], clay_con)
+        
+    # Boundary below each node, except the last one
+    # Eq. 3 + 11, Ireson et al. (2023)
+    for (i in seq_len(n_layers-1)) {
+      dSz_dt[i + 1] = -Sz[i + 1]*D(Sz[i + 1], clay_con) + Sz[i]*D(Sz[i], clay_con)
+    }
+
+    return(list(dSz_dt))
+  })
+}
+```
+
+```{r}
+clay_con_iter <- seq(40,80,length.out = 10)
 pore_space_iter <- seq(20,80,length.out = 10)
 
 LHS <- expand_grid(clay_con_iter, pore_space_iter)
@@ -235,34 +290,24 @@ for(i in 1:nrow(LHS)){
 clay_con = LHS[i,"clay_con_iter"]$clay_con_iter
 pore_space = LHS[i,"pore_space_iter"]$pore_space_iter/100
 
-clay_con = 50
-pore_space = 80/100
+#dag/kg or %
+# clay_con = 51
+# pore_space = S_dmaxscale/100
 
 
 # Peeters 2013
 
 #soil field capacity (mm)
-theta_33 = 0.3543*(1-exp(-0.0385*clay_con)) + 0.083
-theta_1500 = 0.4016*(1 - exp(-0.0230*clay_con)) + 0.0027
-sdawc = theta_33 - theta_1500
-Sx_max = dd*sdawc*sdmaxscale
-#drainage fraction at field capacity (mm day ^-1)
-K_fc = 303.84*exp(-0.144*0.3) *0.043
-beta = 2.05
 
-params <- c(Sz_fc = Sz_fc, 
-            K_fc  = K_fc, 
-            beta = 2.05, 
+
+params <- c(clay_con = clay_con, 
             depth = 0.1,
             n_layers = 15,
-            rain = 0,
-            pore_space = 0.5,
-            kw = 4.43,
-            f_dfc = 0.03)
+            rain = 0)
 
 state <- as.numeric(soil_inits$value)/100*(pore_space*1000)*0.1
 
-Sz_solve <- solve(times = seq(0,20, by = 1), rates=rates_psi, state=state, method="lsoda", output = "Sz")
+Sz_solve <- solve(times = seq(0,20, by = 1), rates=rates_psi_FS_2021, state=state, method="lsoda", output = "Sz")
 
 Sz_solve %>%
   rename(dom = time) %>%
@@ -285,5 +330,21 @@ rmse[i] <- Metrics::rmse(test_data$value, as.numeric(test_data$Sz))
 rmse[i] <- cor(test_data$value, as.numeric(test_data$Sz))
 
 }
+```
+
+```{r}
+LHS %>%
+  bind_cols(rmse = rmse) %>% View()
+  ggplot(aes(x = clay_con_iter, y = pore_space_iter)) +
+  geom_tile(aes(fill = rmse))
+```
+
+
+```{r}
+test_data %>%
+  ggplot(aes(x = dom)) +
+  geom_line(aes(y = Sz)) +
+  geom_line(aes(y = value,col = "red")) +
+  facet_wrap(~as.numeric(depth))
 ```
 
