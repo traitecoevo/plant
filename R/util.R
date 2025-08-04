@@ -89,17 +89,6 @@ validate <- function(x, ...) {
 }
 
 
-
-vlapply <- function(X, FUN, ...) {
-  vapply(X, FUN, logical(1), ...)
-}
-viapply <- function(X, FUN, ...) {
-  vapply(X, FUN, integer(1), ...)
-}
-vnapply <- function(X, FUN, ...) {
-  vapply(X, FUN, numeric(1), ...)
-}
-
 ##' Make colours transparent
 ##' @title Make colours transparent
 ##' @param col Vector of colours

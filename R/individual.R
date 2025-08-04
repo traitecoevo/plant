@@ -33,13 +33,14 @@ grow_individual_to_size <- function(individual, sizes, size_name, env,
   state <- t(sapply(res, "[[", "state"))
   colnames(state) <- colnames(obj$state)
   
-  ret <- list(time=vnapply(res, "[[", "time"),
+  ret <- list(time=vapply(res, "[[", "time", numeric(1)),
               state=state,
               individual=lapply(res, "[[", "individual"),
               trajectory=cbind(time=obj$time, state=obj$state),
               env=env)
+  
   if (filter) {
-    i <- !vlapply(ret$individual, is.null)
+    i <- !vapply(ret$individual, is.null, logical(1))
     if (!all(i)) {
       ret$time  <- ret$time[i]
       ret$state <- ret$state[i, , drop=FALSE]
@@ -179,7 +180,8 @@ grow_individual_bracket <- function(individual, sizes, size_name, env,
     }
   }
 
-  t <- vnapply(state, "[[", "time")
+
+  t <- vapply(state, "[[", "time", numeric(1))
   m <- t(sapply(state, "[[", "state"))
 
   k <- j + 1L
