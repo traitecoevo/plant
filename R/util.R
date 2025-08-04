@@ -1,3 +1,4 @@
+## todo: delete
 list_to_array <- function(x) {
   if (length(unique(lapply(x, dim))) > 1L) {
     stop("More than one dimension")
@@ -19,6 +20,8 @@ list_to_array <- function(x) {
         dimnames=c(dimnames2(x[[1]]), list(names(x))))
 }
 
+## todo: delete
+
 pad_matrix <- function(x) {
   if (is.matrix(x[[1]])) {
     nc <- max(sapply(x, ncol))
@@ -30,6 +33,7 @@ pad_matrix <- function(x) {
   }
 }
 
+## todo: delete
 pad_list_to_array <- function(x) {
   list_to_array(pad_matrix(x))
 }

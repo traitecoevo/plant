@@ -50,12 +50,14 @@ public:
   ode::iterator       ode_rates(ode::iterator it) const;
   ode::iterator       ode_aux(ode::iterator it) const;
 
-  Rcpp::NumericMatrix get_node_states() const;
+  Rcpp::NumericMatrix r_get_state() const;
 
+  //TODO ideally move this down to node but i can't get it to work
   Rcpp::NumericMatrix::iterator get_node_state(const Node<T, E> &node, Rcpp::NumericMatrix::iterator it) const;
+  Rcpp::NumericMatrix::iterator get_node_aux(const Node<T, E> &node, Rcpp::NumericMatrix::iterator it) const;
 
-      // * R interface
-      std::vector<double> r_heights() const;
+  // * R interface
+  std::vector<double> r_heights() const;
   std::vector<double> r_heights_rev() const;
   void r_set_heights(std::vector<double> heights);
   const node_type& r_new_node() const {return new_node;}
@@ -273,20 +275,32 @@ ode::iterator Species<T,E>::ode_aux(ode::iterator it) const {
 }
 
 template <typename T, typename E>
-Rcpp::NumericMatrix Species<T, E>::get_node_states() const {
+Rcpp::NumericMatrix Species<T, E>::r_get_state() const {
 
   // typedef Node<T, E> node_type;
-  size_t ode_size = node_type::ode_size(), np = size();
+  size_t ode_size = node_type::ode_size(), n_nodes = size();
+  size_t aux_size = strategy_aux_size();
 
   // Set output size. // +1 is seed
-  Rcpp::NumericMatrix ret(static_cast<int>(ode_size), np + 1); 
+  Rcpp::NumericMatrix ret(static_cast<int>(ode_size + aux_size), n_nodes + 1); 
   Rcpp::NumericMatrix::iterator it = ret.begin();
-  for (size_t i = 0; i < np; ++i)
+  
+  for (size_t i = 0; i < n_nodes; ++i)
   {
     it = get_node_state(nodes[i], it);
+    it = get_node_aux(nodes[i], it);
   }
+
   it = get_node_state(new_node, it);
-  ret.attr("dimnames") = Rcpp::List::create(node_type::ode_names(), R_NilValue);
+  it = get_node_aux(new_node, it);
+
+  // Combine ode_names and aux_names into a single vector for dimnames
+  std::vector<std::string> names = node_type::ode_names();
+  std::vector<std::string> aux = strategy -> aux_names();
+  names.insert(names.end(), aux.begin(), aux.end());
+
+  ret.attr("dimnames") = Rcpp::List::create(names, R_NilValue);
+
   return ret;
 }
 
@@ -294,6 +308,13 @@ template <typename T, typename E>
 Rcpp::NumericMatrix::iterator Species<T, E>::get_node_state(const Node<T, E> &node, Rcpp::NumericMatrix::iterator it) const
 {
   std::vector<double> tmp = ode::r_ode_state(node);
+  return std::copy(tmp.begin(), tmp.end(), it);
+}
+
+template <typename T, typename E>
+Rcpp::NumericMatrix::iterator Species<T, E>::get_node_aux(const Node<T, E> &node, Rcpp::NumericMatrix::iterator it) const
+{
+  std::vector<double> tmp = ode::r_ode_aux(node);
   return std::copy(tmp.begin(), tmp.end(), it);
 }
 

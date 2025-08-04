@@ -102,36 +102,17 @@ run_scm_collect <- function(p, env = NULL,
   scm$collect <- TRUE
   scm$run()
 
-  res <- scm$history |> lapply("[[", "state")
+  results <- lapply(scm$history, "[[", "state") |> tidy_results()
 
-  time <- sapply(res, "[[", "time")
-  env <- lapply(res, "[[", "env")
-  species <- lapply(res, "[[", "species")
+  ## todo: ideally pacth density is collected as part of environment object
+  results$steps <- results$steps |> mutate(patch_density = scm$patch$density(time))
 
-  ## The aperm() here means that dimensions are
-  ## [variable,time,node], so that taking species[[1]]["height",,]
-  ## gives a matrix that has time down rows and nodes across columns
-  ## (so is therefore plottable with matplot)
-  species <- lapply(seq_along(species[[1]]), function(i)
-                    aperm(pad_list_to_array(lapply(species, "[[", i)),
-                          c(1, 3, 2)))
+  results[["offspring_production"]] <- scm$offspring_production
+  results[["net_reproduction_ratios"]] <- scm$net_reproduction_ratios
   
-  ## Drop the boundary condition; we do this mostly because it cannot
-  ## be compared against the reference output, which does not contain
-  ## this.  This does have the nice property of giving a non-square
-  ## matrix, so the difference between time and node becomes a
-  ## little more obvious.
-  species <- lapply(species, function(m) m[,,-dim(m)[[3]]])
+  results[["p"]] <- p
 
-  patch_density <- scm$patch$density(time)
-
-  ret <- list(time=time,
-              species=species,
-              env=env,
-              offspring_production=scm$offspring_production,
-              patch_density=patch_density,
-              p=p)
-
+  results
 }
 
 ##' Functions for reconstructing a Patch from an SCM

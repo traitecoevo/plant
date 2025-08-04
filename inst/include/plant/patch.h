@@ -68,7 +68,6 @@ public:
   // Returns state in structure format as opposed to single 
   // vector as given by ode_state
   Rcpp::List r_get_state() const;
-  Rcpp::List get_community_state() const;
 
   // Set state of patch, based on estimate of future state estimated by the solver
   // There are two implementations.
@@ -450,33 +449,17 @@ template <typename T, typename E>
 Rcpp::List Patch<T, E>::r_get_state() const
 {
 
-  return Rcpp::List::create(_["time"] = time(),
-                            _["species"] = get_community_state(),
-                            //_["aux"] = get_community_aux(),
-                            _["env"] = environment.r_get_state());
-}
-
-template <typename T, typename E>
-Rcpp::List Patch<T, E>::get_community_state() const
-{
-  Rcpp::List ret;
+  // Aseemble commkunity state, icnluding auxiallry variables
+  Rcpp::List community_state;
   for (size_t i = 0; i < species.size(); ++i)
   {
-    ret.push_back(species[i].get_node_states());
+    community_state.push_back(species[i].r_get_state());
   }
-  return ret;
-}
 
-// template <typename T, typename E>
-// Rcpp::List Patch<T, E>::get_community_aux() const
-// {
-//   Rcpp::List ret;
-//   for (size_t i = 0; i < species.size(); ++i)
-//   {
-//     ret.push_back(species[i].get_species_aux());
-//   }
-//   return ret;
-// }
+  return Rcpp::List::create(_["time"] = time(),
+                            _["species"] = community_state,
+                            _["env"] = environment.r_get_state());
+}
 
 template <typename T, typename E>
 ode::iterator Patch<T,E>::ode_rates(ode::iterator it) const {

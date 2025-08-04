@@ -220,6 +220,7 @@ ode::iterator Node<T,E>::ode_aux(ode::iterator it) const {
   return it;
 }
 
+
 template <typename T, typename E>
 Node<T,E> make_node(typename Node<T,E>::strategy_type s) {
   return Node<T,E>(make_strategy_ptr(s));

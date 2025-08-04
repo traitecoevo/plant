@@ -68,8 +68,6 @@ public:
 
   Rcpp::List r_get_state() const { return patch.r_get_state(); };
 
-  Rcpp::List r_get_aux() const { return patch.r_get_aux(); };
-
 private:
   double total_offspring_production() const;
 

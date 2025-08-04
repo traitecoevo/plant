@@ -4,31 +4,21 @@
 #'
 #' @return a tibble whose columns provide metrics on each breakpoint in species size distribution
 #' @importFrom rlang .data
-tidy_species <- function(data) {
+tidy_species <- function(results) {
+
+  n_spp <- length(results[[1]]$species)
+
+   get_species_sdd <- function(i) {
+     purrr:::imap_dfr(results, ~ .x$species[[i]] |>
+       t() |>
+       dplyr::as_tibble() |>
+       dplyr::mutate(step = .y, node = seq_len(dplyr::n()), species = i))
+   }
   
-  # get dimensions of data = number of steps * number of nodes
-  dimensions <- dim(data[1,,] )
-  
-  # establish data structure for results    
-  data_species <- 
-    tidyr::expand_grid(
-      step = seq_len(dimensions[1]), 
-      node = seq_len(dimensions[2])
-    )
-  
-  # retrieve bnames of all tracked variables
-  vars <- data[,1,1] %>% names()
-  
-  # bind each onto main data frame
-  for(v in vars) {
-    data_species[[v]] <- 
-      data[v, , ] %>% 
-      as.data.frame %>% tidyr::as_tibble() %>%
-      tidyr::pivot_longer(cols=dplyr::starts_with("V"), names_to = "node") %>%
-      dplyr::pull(.data$value)
-  }
-  
-  data_species %>% dplyr::mutate(density = exp(.data$log_density))
+  purrr::map_dfr(seq_len(n_spp), get_species_sdd) |>
+    dplyr::mutate(
+      density = exp(.data$log_density)
+    ) 
 }
 
 
@@ -66,30 +56,31 @@ tidy_env <- function(env) {
 #' @param results output of run_scm_collect
 #'
 #' @return a list, containing outputs of plant solver in tidy format
-#' @export
 #' @importFrom rlang .data
-tidy_patch <- function(results) {
+tidy_results <- function(results) {
 
-  out <- results
-  
-  data <- dplyr::tibble(
-    step = seq_len(length(results$time)),
-    time = results$time, 
-    patch_density = results$patch_density
+  time <- sapply(results, "[[", "time")
+
+  out <- list()
+
+  out[["steps"]] <-
+    dplyr::tibble(
+      step = seq_len(length(time)),
+      time = time
     )
-  
-  out[["species"]] <- 
-    dplyr::left_join(by = "step", data,
-      purrr::map_df(results$species, tidy_species, .id="species")
-    )
-  
+
+  out[["n_spp"]] <- length(results[[1]]$species)
+
+  out[["species"]] <-
+    results |>
+    tidy_species() |>
+    dplyr::left_join(by = "step", out[["steps"]]) |>
+    dplyr::select(species, time, step, node, density, log_density, dplyr::everything())
+
   out[["env"]] <- 
-    tidy_env(results$env) %>%
-    purrr::map(dplyr::left_join, data, by = "step")
-  
-  out[["n_spp"]] <- length(results$species)
-  
-  out[["patch_density"]] <- NULL
+    lapply(results, "[[", "env") |>
+    tidy_env() |>
+    purrr::map(dplyr::left_join, out[["steps"]], by = "step")
   
   out
 }
