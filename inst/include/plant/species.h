@@ -290,13 +290,6 @@ Rcpp::NumericMatrix Species<T, E>::get_node_states() const {
   return ret;
 }
 
-// template <typename T, typename E>
-// Rcpp::NumericMatrix::iterator Node<T, E>::get_node_state(Rcpp::NumericMatrix::iterator it) const
-// {
-//   std::vector<double> tmp = ode::r_ode_state(this);
-//   return std::copy(tmp.begin(), tmp.end(), it);
-// }
-
 template <typename T, typename E>
 Rcpp::NumericMatrix::iterator Species<T, E>::get_node_state(const Node<T, E> &node, Rcpp::NumericMatrix::iterator it) const
 {

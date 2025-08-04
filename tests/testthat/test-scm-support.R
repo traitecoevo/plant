@@ -9,7 +9,20 @@ test_that("collect / make_patch", {
   p0$disturbance_mean_interval <- 30.0
   p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, birth_rate_list = 1.0)
 
-  res <- run_scm_collect(p1, env, ctrl)
+  expect_silent(
+    res <- run_scm_collect(p1, env, ctrl)
+  )
+  # saveRDS(res, "tests/testthat/test_data/run_collect.rds")
+
+  expect_contains(
+    names(res), c("time", "species", "env", "offspring_production", "patch_density", "p")
+  )
+
+  ref <- readRDS(file.path(rprojroot::find_testthat_root_file(), "test_data/run_collect.rds"))
+  expect_equal(names(res), names(ref))
+  expect_equal(res, ref)
+
+  expect_equal(res$time, ref$time)
 
   st_113 <- scm_state(113, res)
   p1_113 <- make_patch(st_113, p1, env, ctrl)
@@ -99,4 +112,6 @@ test_that("collect_auxiliary_variables", {
   expect_equal(nrow(state), 9)
   expect_equal(rownames(state)[8:9], c("competition_effect", "net_mass_production_dt"))
   expect_equal(as.numeric(state[8:9, 142, 141]), c(0.0007211209, 0.0001707292))
+
+
 })

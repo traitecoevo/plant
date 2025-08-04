@@ -66,7 +66,9 @@ public:
   bool collect;
   std::vector<patch_type> history;
 
-  Rcpp::List r_get_state() const { patch.r_get_state(); };
+  Rcpp::List r_get_state() const { return patch.r_get_state(); };
+
+  Rcpp::List r_get_aux() const { return patch.r_get_aux(); };
 
 private:
   double total_offspring_production() const;
@@ -94,10 +96,16 @@ SCM<T, E>::SCM(parameters_type p, environment_type e, Control c)
 
 template <typename T, typename E> void SCM<T, E>::run() {
   reset();
+  if (collect)
+  {
+    history.push_back(patch);
+  }
+
   while (!complete()) {
     run_next();
     // store
-    if(collect) {
+    if(collect) 
+    {
       history.push_back(patch);
     }
   }

@@ -98,29 +98,16 @@ run_scm_collect <- function(p, env = NULL,
     env <- Environment(types[[1]])
   }
   
-  collect_default <- function(scm) {
-    scm$state
-  }
-  collect_aux <- function(scm) {
-    ret <- scm$state
-    aux <- scm$aux
-    ret$species <- mapply(rbind, ret$species, aux$species, SIMPLIFY=FALSE)
-    ret
-  }
-  collect <- if (collect_auxiliary_variables) collect_aux else collect_default
-  types <- extract_RcppR6_template_types(p, "Parameters")
-  
-  scm <- do.call('SCM', types)(p, env, ctrl)
-  res <- list(collect(scm))
+  scm <- do.call("SCM", types)(p, env, ctrl)
+  scm$collect <- TRUE
+  scm$run()
 
-  while (!scm$complete) {
-    scm$run_next()
-    res <- c(res, list(collect(scm)))
-  }
+  res <- scm$history |> lapply("[[", "state")
 
   time <- sapply(res, "[[", "time")
   env <- lapply(res, "[[", "env")
   species <- lapply(res, "[[", "species")
+
   ## The aperm() here means that dimensions are
   ## [variable,time,node], so that taking species[[1]]["height",,]
   ## gives a matrix that has time down rows and nodes across columns
@@ -128,6 +115,7 @@ run_scm_collect <- function(p, env = NULL,
   species <- lapply(seq_along(species[[1]]), function(i)
                     aperm(pad_list_to_array(lapply(species, "[[", i)),
                           c(1, 3, 2)))
+  
   ## Drop the boundary condition; we do this mostly because it cannot
   ## be compared against the reference output, which does not contain
   ## this.  This does have the nice property of giving a non-square
@@ -137,11 +125,13 @@ run_scm_collect <- function(p, env = NULL,
 
   patch_density <- scm$patch$density(time)
 
-  ret <- list(time=time, species=species,
+  ret <- list(time=time,
+              species=species,
               env=env,
               offspring_production=scm$offspring_production,
               patch_density=patch_density,
               p=p)
+
 }
 
 ##' Functions for reconstructing a Patch from an SCM

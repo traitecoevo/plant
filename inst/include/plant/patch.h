@@ -449,9 +449,10 @@ ode::iterator Patch<T,E>::ode_state(ode::iterator it) const {
 template <typename T, typename E>
 Rcpp::List Patch<T, E>::r_get_state() const
 {
-  
+
   return Rcpp::List::create(_["time"] = time(),
                             _["species"] = get_community_state(),
+                            //_["aux"] = get_community_aux(),
                             _["env"] = environment.r_get_state());
 }
 
@@ -465,6 +466,17 @@ Rcpp::List Patch<T, E>::get_community_state() const
   }
   return ret;
 }
+
+// template <typename T, typename E>
+// Rcpp::List Patch<T, E>::get_community_aux() const
+// {
+//   Rcpp::List ret;
+//   for (size_t i = 0; i < species.size(); ++i)
+//   {
+//     ret.push_back(species[i].get_species_aux());
+//   }
+//   return ret;
+// }
 
 template <typename T, typename E>
 ode::iterator Patch<T,E>::ode_rates(ode::iterator it) const {
