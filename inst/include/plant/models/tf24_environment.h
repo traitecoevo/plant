@@ -60,29 +60,29 @@ public:
 
   // Setup soil water distribtuion
   void set_soil_number_of_depths(int soil_number_of_depths) {
-    n_depths = soil_number_of_depths;
+    soil_number_of_depths = soil_number_of_depths;
     
-    vars = Internals(n_depths);
-    z.resize(n_depths);
-    dz.resize(n_depths);
-    K.resize(n_depths);
-    psi.resize(n_depths);
-    q.resize(n_depths + 1);
+    vars = Internals(soil_number_of_depths);
+    z.resize(soil_number_of_depths);
+    dz.resize(soil_number_of_depths);
+    K.resize(soil_number_of_depths);
+    psi.resize(soil_number_of_depths);
+    q.resize(soil_number_of_depths + 1);
 
-    delta_z = depth / n_depths;
+    delta_z = depth / soil_number_of_depths;
 
-    for (int i = 0; i < n_depths; i++)
+    for (int i = 0; i < soil_number_of_depths; i++)
     {
       z[i] = (i + 0.5) * delta_z;
     }
 
-    for (int i = 0; i < n_depths - 1; i++)
+    for (int i = 0; i < soil_number_of_depths - 1; i++)
     {
       dz[i] = z[i + 1] - z[i];
     }
-    dz[n_depths - 1] = dz[n_depths - 2];
+    dz[soil_number_of_depths - 1] = dz[soil_number_of_depths - 2];
   }
-  int get_soil_number_of_depths() const {return n_depths;}
+  int get_soil_number_of_depths() const {return soil_number_of_depths;}
 
   // TODO: should we use auxilliary in internals
   std::vector<double> q;
@@ -97,7 +97,7 @@ public:
   // Light interface
   bool canopy_rescale_usually;
   //distance between layers
-  int n_depths;
+  int soil_number_of_depths;
   double delta_z;
 
   double depth;
