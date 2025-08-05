@@ -3,7 +3,6 @@ context("StochasticPatch")
 strategy_types <- get_list_of_strategy_types()
 environment_types <- get_list_of_environment_types()
 
-
 for (x in names(strategy_types)) {
   context(sprintf("StochasticPatch-%s",x))
 

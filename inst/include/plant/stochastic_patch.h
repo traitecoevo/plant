@@ -59,6 +59,7 @@ public:
   void r_set_state(double time,
                    const std::vector<double>& state,
                    const std::vector<size_t>& n);
+  Rcpp::List r_get_state() const;
   // TODO: No support here for setting *vectors* of species.  Might
   // want to supoprt that?
   bool r_introduce_new_node(util::index species_index) {
@@ -203,6 +204,22 @@ void StochasticPatch<T,E>::r_set_state(double time,
   }
   util::check_length(state.size(), ode_size());
   set_ode_state(state.begin(), time);
+}
+
+template <typename T, typename E>
+Rcpp::List StochasticPatch<T, E>::r_get_state() const
+{
+
+  // Aseemble commkunity state, icnluding auxiallry variables
+  Rcpp::List community_state;
+  for (size_t i = 0; i < species.size(); ++i)
+  {
+    community_state.push_back(species[i].r_get_state());
+  }
+
+  return Rcpp::List::create(_["time"] = time(),
+                            _["species"] = community_state);
+                            // _["env"] = environment.r_get_state());
 }
 
 // ODE interface

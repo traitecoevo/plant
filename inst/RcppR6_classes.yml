@@ -870,10 +870,6 @@ StochasticPatchRunner:
       access: member
       name_cpp: r_schedule
       name_cpp_set: r_set_schedule
-    state:
-      type: "Rcpp::List"
-      access: function
-      name_cpp: "plant::get_state"
 
 ResourceSpline:
   name_cpp: "plant::ResourceSpline"

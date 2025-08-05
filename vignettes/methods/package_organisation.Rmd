@@ -202,7 +202,6 @@ stochastic_utils.h
 ### Utilities
 
 adaptive_interpolator.h
-get_state.h
 gradient.h
 interpolator.h
 lorenz.h

@@ -3213,11 +3213,6 @@ void StochasticPatchRunner___FF16__FF16_Env__schedule__set(plant::RcppR6::RcppR6
   obj_->r_set_schedule(value);
 }
 
-// [[Rcpp::export]]
-Rcpp::List StochasticPatchRunner___FF16__FF16_Env__state__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
-  return plant::get_state(*obj_);
-}
-
 
 // [[Rcpp::export]]
 plant::StochasticPatchRunner<plant::TF24_Strategy,plant::TF24_Environment> StochasticPatchRunner___TF24__TF24_Env__ctor(plant::Parameters<plant::TF24_Strategy,plant::TF24_Environment> parameters, plant::TF24_Environment environment, plant::Control control) {
@@ -3268,11 +3263,6 @@ void StochasticPatchRunner___TF24__TF24_Env__schedule__set(plant::RcppR6::RcppR6
   obj_->r_set_schedule(value);
 }
 
-// [[Rcpp::export]]
-Rcpp::List StochasticPatchRunner___TF24__TF24_Env__state__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
-  return plant::get_state(*obj_);
-}
-
 
 // [[Rcpp::export]]
 plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> StochasticPatchRunner___K93__K93_Env__ctor(plant::Parameters<plant::K93_Strategy,plant::K93_Environment> parameters, plant::K93_Environment environment, plant::Control control) {
@@ -3321,11 +3311,6 @@ plant::NodeSchedule StochasticPatchRunner___K93__K93_Env__schedule__get(plant::R
 // [[Rcpp::export]]
 void StochasticPatchRunner___K93__K93_Env__schedule__set(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::NodeSchedule value) {
   obj_->r_set_schedule(value);
-}
-
-// [[Rcpp::export]]
-Rcpp::List StochasticPatchRunner___K93__K93_Env__state__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  return plant::get_state(*obj_);
 }
 
 

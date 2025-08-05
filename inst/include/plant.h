@@ -70,7 +70,6 @@
 // point after RcppR6_pre.hpp is included.
 #include <plant/RcppR6_post.hpp>
 #include <plant/util_post_rcpp.h>
-#include <plant/get_state.h>
 
 // gperftools profiler
 // Uncomment next line if you want to use the profiler.

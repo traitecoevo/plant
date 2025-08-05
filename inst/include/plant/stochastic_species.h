@@ -52,6 +52,10 @@ public:
   void compute_rates(const E& environment);
   std::vector<double> net_reproduction_ratio_by_node() const;
 
+  Rcpp::NumericMatrix r_get_state() const;
+  Rcpp::NumericMatrix::iterator get_node_state(const Individual<T, E> &individual, Rcpp::NumericMatrix::iterator it) const;
+  Rcpp::NumericMatrix::iterator get_node_aux(const Individual<T, E> &individual, Rcpp::NumericMatrix::iterator it) const;
+
   // This is totally new, relative to the deterministic model; this
   // will destructively modify the species by removing individuals.
   size_t deaths();
@@ -64,6 +68,7 @@ public:
   // time in as an argument.  All the bits involving time are taken
   // care of by Environment for us.
   size_t ode_size() const;
+
   ode::const_iterator set_ode_state(ode::const_iterator it);
   ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
@@ -276,6 +281,44 @@ void StochasticSpecies<T,E>::r_set_heights(std::vector<double> heights) {
   }
 }
 
+template <typename T, typename E>
+Rcpp::NumericMatrix StochasticSpecies<T,E>::r_get_state() const
+{
+  size_t ode_size = individual_type::ode_size(), n_individuals = size_individuals();
+  size_t aux_size = strategy->aux_size();
+
+  Rcpp::NumericMatrix ret(static_cast<int>(ode_size + aux_size), n_individuals);
+  Rcpp::NumericMatrix::iterator it = ret.begin();
+
+  for (size_t i = 0; i < n_individuals; ++i)
+  {
+    it = get_node_state(individuals[i], it);
+    it = get_node_aux(individuals[i], it);
+  }
+
+  // Combine ode_names and aux_names into a single vector for dimnames
+  std::vector<std::string> names = individual_type::ode_names();
+  std::vector<std::string> aux = strategy->aux_names();
+  names.insert(names.end(), aux.begin(), aux.end());
+
+  ret.attr("dimnames") = Rcpp::List::create(names, R_NilValue);
+
+  return ret;
+}
+
+template <typename T, typename E>
+Rcpp::NumericMatrix::iterator StochasticSpecies<T, E>::get_node_state(const Individual<T, E> &individual, Rcpp::NumericMatrix::iterator it) const
+{
+  std::vector<double> tmp = ode::r_ode_state(individual);
+  return std::copy(tmp.begin(), tmp.end(), it);
+}
+
+template <typename T, typename E>
+Rcpp::NumericMatrix::iterator StochasticSpecies<T, E>::get_node_aux(const Individual<T, E> &individual, Rcpp::NumericMatrix::iterator it) const
+{
+  std::vector<double> tmp = ode::r_ode_aux(individual);
+  return std::copy(tmp.begin(), tmp.end(), it);
+}
 }
 
 #endif /* STOCHASTIC_SPECIES */

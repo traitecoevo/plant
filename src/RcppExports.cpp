@@ -7975,17 +7975,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// StochasticPatchRunner___FF16__FF16_Env__state__get
-Rcpp::List StochasticPatchRunner___FF16__FF16_Env__state__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
-RcppExport SEXP _plant_StochasticPatchRunner___FF16__FF16_Env__state__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatchRunner___FF16__FF16_Env__state__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
 // StochasticPatchRunner___TF24__TF24_Env__ctor
 plant::StochasticPatchRunner<plant::TF24_Strategy,plant::TF24_Environment> StochasticPatchRunner___TF24__TF24_Env__ctor(plant::Parameters<plant::TF24_Strategy,plant::TF24_Environment> parameters, plant::TF24_Environment environment, plant::Control control);
 RcppExport SEXP _plant_StochasticPatchRunner___TF24__TF24_Env__ctor(SEXP parametersSEXP, SEXP environmentSEXP, SEXP controlSEXP) {
@@ -8107,17 +8096,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// StochasticPatchRunner___TF24__TF24_Env__state__get
-Rcpp::List StochasticPatchRunner___TF24__TF24_Env__state__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24_Strategy,plant::TF24_Environment> > obj_);
-RcppExport SEXP _plant_StochasticPatchRunner___TF24__TF24_Env__state__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24_Strategy,plant::TF24_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatchRunner___TF24__TF24_Env__state__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
 // StochasticPatchRunner___K93__K93_Env__ctor
 plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> StochasticPatchRunner___K93__K93_Env__ctor(plant::Parameters<plant::K93_Strategy,plant::K93_Environment> parameters, plant::K93_Environment environment, plant::Control control);
 RcppExport SEXP _plant_StochasticPatchRunner___K93__K93_Env__ctor(SEXP parametersSEXP, SEXP environmentSEXP, SEXP controlSEXP) {
@@ -8237,17 +8215,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::NodeSchedule >::type value(valueSEXP);
     StochasticPatchRunner___K93__K93_Env__schedule__set(obj_, value);
     return R_NilValue;
-END_RCPP
-}
-// StochasticPatchRunner___K93__K93_Env__state__get
-Rcpp::List StochasticPatchRunner___K93__K93_Env__state__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> > obj_);
-RcppExport SEXP _plant_StochasticPatchRunner___K93__K93_Env__state__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatchRunner___K93__K93_Env__state__get(obj_));
-    return rcpp_result_gen;
 END_RCPP
 }
 // ResourceSpline__ctor
@@ -10119,7 +10086,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatchRunner___FF16__FF16_Env__patch__get", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__FF16_Env__patch__get, 1},
     {"_plant_StochasticPatchRunner___FF16__FF16_Env__schedule__get", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__FF16_Env__schedule__get, 1},
     {"_plant_StochasticPatchRunner___FF16__FF16_Env__schedule__set", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__FF16_Env__schedule__set, 2},
-    {"_plant_StochasticPatchRunner___FF16__FF16_Env__state__get", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__FF16_Env__state__get, 1},
     {"_plant_StochasticPatchRunner___TF24__TF24_Env__ctor", (DL_FUNC) &_plant_StochasticPatchRunner___TF24__TF24_Env__ctor, 3},
     {"_plant_StochasticPatchRunner___TF24__TF24_Env__run", (DL_FUNC) &_plant_StochasticPatchRunner___TF24__TF24_Env__run, 1},
     {"_plant_StochasticPatchRunner___TF24__TF24_Env__run_next", (DL_FUNC) &_plant_StochasticPatchRunner___TF24__TF24_Env__run_next, 1},
@@ -10131,7 +10097,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatchRunner___TF24__TF24_Env__patch__get", (DL_FUNC) &_plant_StochasticPatchRunner___TF24__TF24_Env__patch__get, 1},
     {"_plant_StochasticPatchRunner___TF24__TF24_Env__schedule__get", (DL_FUNC) &_plant_StochasticPatchRunner___TF24__TF24_Env__schedule__get, 1},
     {"_plant_StochasticPatchRunner___TF24__TF24_Env__schedule__set", (DL_FUNC) &_plant_StochasticPatchRunner___TF24__TF24_Env__schedule__set, 2},
-    {"_plant_StochasticPatchRunner___TF24__TF24_Env__state__get", (DL_FUNC) &_plant_StochasticPatchRunner___TF24__TF24_Env__state__get, 1},
     {"_plant_StochasticPatchRunner___K93__K93_Env__ctor", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__ctor, 3},
     {"_plant_StochasticPatchRunner___K93__K93_Env__run", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__run, 1},
     {"_plant_StochasticPatchRunner___K93__K93_Env__run_next", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__run_next, 1},
@@ -10143,7 +10108,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatchRunner___K93__K93_Env__patch__get", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__patch__get, 1},
     {"_plant_StochasticPatchRunner___K93__K93_Env__schedule__get", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__schedule__get, 1},
     {"_plant_StochasticPatchRunner___K93__K93_Env__schedule__set", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__schedule__set, 2},
-    {"_plant_StochasticPatchRunner___K93__K93_Env__state__get", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__state__get, 1},
     {"_plant_ResourceSpline__ctor", (DL_FUNC) &_plant_ResourceSpline__ctor, 4},
     {"_plant_ResourceSpline__get_value_at_height", (DL_FUNC) &_plant_ResourceSpline__get_value_at_height, 2},
     {"_plant_ResourceSpline__clear", (DL_FUNC) &_plant_ResourceSpline__clear, 1},
