@@ -24,6 +24,6 @@ test_that("Schedule building", {
 
     p <- build_schedule(p, env, ctrl)
     expect_equal(length(p$node_schedule_times_default), 141)
-    expect_equal(length(p$node_schedule_times[[1]]), 176)
+    expect_equal(length(p$node_schedule_times[[1]]), 186)
   }
 })

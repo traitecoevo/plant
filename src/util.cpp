@@ -75,7 +75,7 @@ std::vector<double> local_error_integration(const std::vector<double>& x,
   std::vector<double> ret;
   check_length(x.size(), y.size());
 
-  if (x.size() < 3) {
+  if ((x.size() < 3) || (scal == 0)) {
     for (size_t i = 0; i < x.size(); ++i) {
       ret.push_back(NA_REAL);
     }
