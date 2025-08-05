@@ -45,15 +45,12 @@ run_resource_consumption_benchmarks <- function(its = 10) {
     p0 <- scm_base_parameters("TF24")
     p0$max_patch_lifetime = 10
     
-    p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, TF24_hyperpar,FALSE)
+    p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0)
     
-    env <- Environment("TF24", 
-                            soil_number_of_depths = layers,
-                            soil_initial_state = rep(1, layers))
-    
+    env <- Environment("TF24")
+    env$set_soil_number_of_depths(layers)
+
     ctrl <- scm_base_control()
-    env$set_extrinsic_driver("rainfall", 0:10, 0:10)
-    
     out <- run_scm(p1, env, ctrl)
   }
   

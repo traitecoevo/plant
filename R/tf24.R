@@ -291,14 +291,13 @@ make_TF24_hyperpar <- function(
 TF24_hyperpar <- make_TF24_hyperpar()
 
 #' @export
-#' @inheritParams expand_state
 #' @importFrom rlang .data
 #' @rdname expand_state
-TF24_expand_state <- function(tidy_patch_results) {
-  data <- split(tidy_patch_results$species, tidy_patch_results$species$species)
+TF24_expand_state <- function(results) {
+  data <- split(results$species, results$species$species)
 
-  for (i in seq_len(tidy_patch_results$n_spp)) {
-    s <- tidy_patch_results$p$strategies[[i]]
+  for (i in seq_len(results$n_spp)) {
+    s <- results$p$strategies[[i]]
     s$eta_c <- 1 - 2 / (1 + s$eta) + 1 / (1 + 2 * s$eta)
 
     data[[i]] <-
@@ -323,7 +322,7 @@ TF24_expand_state <- function(tidy_patch_results) {
       )
   }
 
-  tidy_patch_results$species <- data %>% dplyr::bind_rows()
+  results$species <- data %>% dplyr::bind_rows()
 
-  tidy_patch_results
+  results
 }

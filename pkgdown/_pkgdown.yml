@@ -118,8 +118,6 @@ reference:
 - title: Manipulating outputs
   contents:
   - tidy_patch
-  - tidy_env
-  - tidy_species
   - tidy_individual
   - integrate_over_size_distribution
   - interpolate_to_heights

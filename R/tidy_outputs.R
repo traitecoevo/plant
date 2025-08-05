@@ -1,15 +1,13 @@
 #' Turn `species` component of plant solver output into a tidy data object 
 #'
-#' @param data a list, the `species` component of plant solver output.
-#'
-#' @return a tibble whose columns provide metrics on each breakpoint in species size distribution
+#' @rdname tidy_patch
 #' @importFrom rlang .data
 tidy_species <- function(results) {
 
   n_spp <- length(results[[1]]$species)
 
    get_species_sdd <- function(i) {
-     purrr:::imap_dfr(results, ~ .x$species[[i]] |>
+     purrr::imap_dfr(results, ~ .x$species[[i]] |>
        t() |>
        dplyr::as_tibble() |>
        dplyr::mutate(step = .y, node = seq_len(dplyr::n()), species = i))
@@ -18,18 +16,19 @@ tidy_species <- function(results) {
   purrr::map_dfr(seq_len(n_spp), get_species_sdd) |>
     dplyr::mutate(
       density = exp(.data$log_density),
-      species = as.character(species)
+      species = as.character(.data$species)
     ) 
 }
 
 
 #' Turn `env` component of solver output into a tidy data object 
 #'
-#' @param env a list, the `env` component of solver output.
-#'
-#' @return a tibble describing the environment in a patch
+#' @rdname tidy_patch
 #' @importFrom rlang .data
-tidy_env <- function(env) {
+tidy_env <- function(results) {
+
+  env <- lapply(results, "[[", "env")
+
   # get list of variables
   env_variables = names(env[[1]])
   
@@ -78,13 +77,13 @@ tidy_patch <- function(results) {
     results |>
     tidy_species() |>
     dplyr::left_join(by = "step", out[["steps"]]) |>
-    dplyr::select(species, time, step, patch_density, node, density, log_density, dplyr::everything())
+    dplyr::select(dplyr::all_of(c("species", "time", "step", "patch_density", "node", "density", "log_density")), dplyr::everything())
 
   out[["env"]] <- 
-    lapply(results, "[[", "env") |>
+    results |>
     tidy_env() |>
     purrr::map(dplyr::left_join, out[["steps"]], by = "step") |>
-    purrr::map(~.x |> dplyr::select(time, step, patch_density, dplyr::everything()))
+    purrr::map(~.x |> dplyr::select(dplyr::all_of(c("time", "step", "patch_density")), dplyr::everything()))
   
   out
 }

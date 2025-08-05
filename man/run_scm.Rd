@@ -2,6 +2,7 @@
 % Please edit documentation in R/scm_support.R
 \name{run_scm}
 \alias{run_scm}
+\alias{run_scm_collect}
 \title{Run SCM}
 \usage{
 run_scm(
@@ -11,6 +12,8 @@ run_scm(
   use_ode_times = FALSE,
   collect = FALSE
 )
+
+run_scm_collect(p, env = NULL, ctrl = scm_base_control())
 }
 \arguments{
 \item{p}{Parameters object}
@@ -20,15 +23,14 @@ run_scm(
 \item{ctrl}{Control object}
 
 \item{use_ode_times}{Should ODE times be used?}
+
+\item{collect}{Should results be collected?}
 }
 \value{
 A \code{SCM} object.
 }
 \description{
 Run the SCM, returning the SCM object for interrogation
-}
-\details{
-This is the simplest way of using the SCM, probably.
 }
 \author{
 Rich FitzJohn

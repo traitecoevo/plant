@@ -3578,6 +3578,14 @@ double TF24_Environment__soil_moist_from_psi(plant::RcppR6::RcppR6<plant::TF24_E
   return obj_->soil_moist_from_psi(psi_soil_);
 }
 // [[Rcpp::export]]
+void TF24_Environment__set_soil_number_of_depths(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, int soil_number_of_depths) {
+  obj_->set_soil_number_of_depths(soil_number_of_depths);
+}
+// [[Rcpp::export]]
+int TF24_Environment__get_soil_number_of_depths(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_) {
+  return obj_->get_soil_number_of_depths();
+}
+// [[Rcpp::export]]
 void TF24_Environment__set_soil_water_state(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, std::vector<double> state) {
   obj_->set_soil_water_state(state);
 }

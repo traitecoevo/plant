@@ -70,3 +70,30 @@ test_that("Environment-TF24 drivers", {
 
   
 })
+
+test_that("Environment-TF24 soil layers", {
+  context("Soil-TF24")
+
+  env <- Environment("TF24")
+  # get list of extrinsic drivers for the environment
+
+  # default value is 1
+  expect_equal(env$get_soil_number_of_depths(), 1)
+  expect_equal(env$get_soil_water_state(), 0)
+
+  expect_silent(env$set_soil_water_state(0.5))
+  expect_equal(env$get_soil_water_state(), 0.5)
+  # should error when passed a vector that is too long
+  expect_error(env$set_soil_water_state(c(0.5, 0.4)))
+
+  # resize
+  layers <- 10
+  expect_silent(env$set_soil_number_of_depths(layers))
+  expect_equal(env$get_soil_number_of_depths(), layers)
+  expect_equal(env$get_soil_water_state(), rep(0, layers))
+
+  expect_silent(env$set_soil_water_state(1:10))
+  expect_equal(env$get_soil_water_state(), 1:10)
+  # should error when passed a vector that is too long
+  expect_error(env$set_soil_water_state(c(0.5, 0.4)))
+ })

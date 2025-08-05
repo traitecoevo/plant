@@ -7,16 +7,16 @@
 \alias{TF24_expand_state}
 \title{Add additional state variables to the species component in output of a model.}
 \usage{
-FF16_expand_state(tidy_patch_results)
+FF16_expand_state(results)
 
-K93_expand_state(tidy_patch_results)
+K93_expand_state(results)
 
-expand_state(results_tidy)
+expand_state(results)
 
-TF24_expand_state(tidy_patch_results)
+TF24_expand_state(results)
 }
 \arguments{
-\item{tidy_patch_results}{from `tidy_patch`}
+\item{results}{from `tidy_patch`}
 }
 \value{
 similar format to input, but with additional columns for additional state variables

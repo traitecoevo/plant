@@ -54,30 +54,39 @@ public:
     extrinsic_drivers_set_constant("atm_o2_kpa",21);
     extrinsic_drivers_set_constant("atm_kpa",100.5);
 
-    // Setup soil water distribtuion
-    vars = Internals(soil_number_of_depths);
-    z.resize(soil_number_of_depths);
-    dz.resize(soil_number_of_depths);
-    K.resize(soil_number_of_depths);
-    psi.resize(soil_number_of_depths);
-    q.resize(soil_number_of_depths + 1);
-
-    delta_z = depth / soil_number_of_depths;
-
-    for (int i = 0; i < soil_number_of_depths; i++) {
-      z[i] = (i+0.5) * delta_z;
-    }
-
-    for (int i = 0; i < soil_number_of_depths - 1; i++) {
-      dz[i] = z[i+1] - z[i];
-    }
-    dz[soil_number_of_depths - 1] = dz[soil_number_of_depths - 2];
-
+    set_soil_number_of_depths(soil_number_of_depths);
     set_soil_water_state(std::vector<double>(soil_number_of_depths, 0.0));
   };
 
-  //TODO: should we use auxilliary in internals
-  std::vector<double> q;
+  // Setup soil water distribtuion
+  void set_soil_number_of_depths(int soil_number_of_depths) {
+    n_depths = soil_number_of_depths;
+    
+    vars = Internals(n_depths);
+    z.resize(n_depths);
+    dz.resize(n_depths);
+    K.resize(n_depths);
+    psi.resize(n_depths);
+    q.resize(n_depths + 1);
+
+    delta_z = depth / n_depths;
+
+    for (int i = 0; i < n_depths; i++)
+    {
+      z[i] = (i + 0.5) * delta_z;
+    }
+
+    for (int i = 0; i < n_depths - 1; i++)
+    {
+      dz[i] = z[i + 1] - z[i];
+    }
+    dz[n_depths - 1] = dz[n_depths - 2];
+  }
+  int get_soil_number_of_depths() const {return n_depths;}
+
+      // TODO: should we use auxilliary in internals
+      std::vector<double>
+          q;
   std::vector<double> z;
   std::vector<double> K;
   std::vector<double> psi;
@@ -89,6 +98,7 @@ public:
   // Light interface
   bool canopy_rescale_usually;
   //distance between layers
+  int n_depths;
   double delta_z;
 
   double depth;
@@ -249,6 +259,10 @@ public:
 
   // R interface
   void set_soil_water_state(std::vector<double> state) {
+    if(state.size() != vars.state_size) {
+      throw std::invalid_argument("Input vector size does not match soil state size.");
+    }
+    
     for (size_t i = 0; i < vars.state_size; i++) {
       vars.set_state(i, state[i]);
     }
@@ -291,10 +305,7 @@ public:
         _["soil_depth"] = rcpp_soil_depth_vec
     );
   }
-};
-
-
-
+  };
 }
 
 #endif

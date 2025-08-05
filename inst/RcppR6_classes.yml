@@ -1199,6 +1199,12 @@ TF24_Environment:
     soil_moist_from_psi:
       args: [psi_soil_: double]
       return_type: double
+    set_soil_number_of_depths:
+      args: [soil_number_of_depths: int]
+      return_type: void
+    get_soil_number_of_depths:
+      args: []
+      return_type: int
     set_soil_water_state:
       args: [state: std::vector<double>]
       return_type: void
