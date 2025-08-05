@@ -128,7 +128,7 @@ test_that("Environment-TF24 soil layers", {
   p0 <- scm_base_parameters("TF24")
   p0$max_patch_lifetime <- 1  
   p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0)
-  out <- run_scm(p1, env, ctrl)
+  out <- run_scm(p1, env)
   expect_equal(out$patch$environment$n_psi, 4)
   expect_equal(out$patch$environment$b_infil, 5)
 })
