@@ -91,13 +91,12 @@ test_that("Reference comparison", {
   expect_identical(p$state("height"), vars$states[which(p$ode_names == "height")])
 })
 
-
-
 test_that("Critical Names", {
   s <- FF16_Strategy()
   my_names <- FF16_Individual(s)$ode_names
   expect_identical(my_names[1:3], c("height", "mortality", "fecundity"))
 })
+
 test_that("FF16_Strategy hyper-parameterisation", {
   s <- FF16_Strategy()
 
@@ -176,7 +175,6 @@ test_that("narea calculation", {
 
 # integration test - runs a full patch meta-population
 # the offspring arrival produced integrates all demographic behaviours
-
 test_that("offspring arrival", {
 
   p0 <- scm_base_parameters("FF16")

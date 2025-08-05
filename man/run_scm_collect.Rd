@@ -4,21 +4,14 @@
 \alias{run_scm_collect}
 \title{Run the SCM, Collecting Output}
 \usage{
-run_scm_collect(
-  p,
-  env = Environment(parameters = p),
-  ctrl = scm_base_control(),
-  collect_auxiliary_variables = FALSE
-)
+run_scm_collect(p, env = NULL, ctrl = scm_base_control())
 }
 \arguments{
 \item{p}{A \code{Parameters} object}
 
 \item{env}{Environment object (defaults to FF16_Environment)}
 
-\item{ctrl}{Control object}
-
-\item{collect_auxiliary_variables}{Return additional strategy variables (eg
+\item{ctrl}{Control object
 competition_effect)}
 }
 \description{

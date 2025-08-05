@@ -61,13 +61,15 @@ tidy_env <- function(env) {
 tidy_patch <- function(results) {
 
   time <- sapply(results, "[[", "time")
+  patch_density <- sapply(results, "[[", "patch_density")
 
   out <- list()
 
   out[["steps"]] <-
     dplyr::tibble(
       step = seq_len(length(time)),
-      time = time
+      time = time,
+      patch_density = patch_density
     )
 
   out[["n_spp"]] <- length(results[[1]]$species)
@@ -76,12 +78,13 @@ tidy_patch <- function(results) {
     results |>
     tidy_species() |>
     dplyr::left_join(by = "step", out[["steps"]]) |>
-    dplyr::select(species, time, step, node, density, log_density, dplyr::everything())
+    dplyr::select(species, time, step, patch_density, node, density, log_density, dplyr::everything())
 
   out[["env"]] <- 
     lapply(results, "[[", "env") |>
     tidy_env() |>
-    purrr::map(dplyr::left_join, out[["steps"]], by = "step")
+    purrr::map(dplyr::left_join, out[["steps"]], by = "step") |>
+    purrr::map(~.x |> dplyr::select(time, step, patch_density, dplyr::everything()))
   
   out
 }

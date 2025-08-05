@@ -32,15 +32,15 @@ grow_individual_to_size <- function(individual, sizes, size_name, env,
   
   state <- t(sapply(res, "[[", "state"))
   colnames(state) <- colnames(obj$state)
-  
-  ret <- list(time=vapply(res, "[[", "time", numeric(1)),
+
+  ret <- list(time=vnapply(res, "[[", "time"),
               state=state,
               individual=lapply(res, "[[", "individual"),
               trajectory=cbind(time=obj$time, state=obj$state),
               env=env)
   
   if (filter) {
-    i <- !vapply(ret$individual, is.null, logical(1))
+    i <- !vlapply(ret$individual, is.null)
     if (!all(i)) {
       ret$time  <- ret$time[i]
       ret$state <- ret$state[i, , drop=FALSE]
@@ -48,6 +48,14 @@ grow_individual_to_size <- function(individual, sizes, size_name, env,
     }
   }
   ret
+}
+
+vlapply <- function(X, FUN, ...) {
+  vapply(X, FUN, logical(1), ...)
+}
+
+vnapply <- function(X, FUN, ...) {
+  vapply(X, FUN, numeric(1), ...)
 }
 
 ##' @export
@@ -181,7 +189,7 @@ grow_individual_bracket <- function(individual, sizes, size_name, env,
   }
 
 
-  t <- vapply(state, "[[", "time", numeric(1))
+  t <- vnapply(state, "[[", "time")
   m <- t(sapply(state, "[[", "state"))
 
   k <- j + 1L
@@ -222,7 +230,6 @@ grow_individual_bisect <- function(runner, size, size_name, t0, t1, y0) {
   }
 }
 
-#!
 #' Compute the whole plant light compensation point for a single
 #' plant.
 #' @title Whole plant light compensation point

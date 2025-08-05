@@ -80,7 +80,7 @@ public:
 
   // * R interface
   // Data accessors:
-  std::vector<double> r_density(std::vector<double> time) const {return survival_weighting->r_density(time);}
+  double r_density(double time) const {return survival_weighting->r_density(time);}
   double r_pr_survival(double time) const {return survival_weighting->pr_survival(time);}
   double r_disturbance_mean_interval() const {return survival_weighting->r_mean_interval();}
   double r_survival_weighting_cdf(double time) const {return survival_weighting->cdf(time);}
@@ -457,6 +457,7 @@ Rcpp::List Patch<T, E>::r_get_state() const
   }
 
   return Rcpp::List::create(_["time"] = time(),
+                            _["patch_density"] = r_density(time()),
                             _["species"] = community_state,
                             _["env"] = environment.r_get_state());
 }

@@ -245,7 +245,8 @@ test_that("Offspring production & error calculations correct", {
 
     net_reproduction_ratio_R <- function(scm, error=FALSE) {
       a <- scm$node_schedule$times(1)
-      net_reproduction_ratio_by_node_weighted <- scm$patch$density(a) *
+      density <- purrr::map_dbl(a, ~ scm$patch$density(.x))
+      net_reproduction_ratio_by_node_weighted <- density *
         scm$patch$species[[1]]$net_reproduction_ratio_by_node *
         scm$parameters$strategies[[1]]$S_D
       total <- trapezium(a, net_reproduction_ratio_by_node_weighted)

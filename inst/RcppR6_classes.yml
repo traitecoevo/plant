@@ -640,7 +640,7 @@ Patch:
       name_cpp: r_set_state
       return_type: void
     # Disturbance interface
-    density: {return_type: "std::vector<double>", args: [time: "std::vector<double>"], name_cpp: r_density}
+    density: {return_type: double, args: [time: double], name_cpp: r_density}
     pr_survival: {return_type: double, args: [time: double], name_cpp: r_pr_survival}
     disturbance_mean_interval: {return_type: double, name_cpp: r_disturbance_mean_interval}
     survival_weighting_cdf: {return_type: double, args: [time: double], name_cpp: r_survival_weighting_cdf}
@@ -901,8 +901,8 @@ Disturbance_Regime:
       @export
   methods:
     density:
-      args: [time: "std::vector<double>"]
-      return_type: "std::vector<double>"
+      args: [time: double]
+      return_type: double
       name_cpp: r_density
     pr_survival:
       args: [time: double]
@@ -918,8 +918,8 @@ No_Disturbance:
       @export
   methods:
     density:
-      args: [time: "std::vector<double>"]
-      return_type: "std::vector<double>"
+      args: [time: double]
+      return_type: double
       name_cpp: r_density
     pr_survival:
       args: [time: double]
@@ -937,8 +937,8 @@ Weibull_Disturbance_Regime:
       @export
   methods:
     density:
-      args: [time: "std::vector<double>"]
-      return_type: "std::vector<double>"
+      args: [time: double]
+      return_type: double
       name_cpp: r_density
     pr_survival:
       args: [time: double]
@@ -1026,7 +1026,6 @@ FF16_Environment:
       type: "plant::ResourceSpline"
       access: field
 
-# The following strategy was built from FF16 on Wed Aug 12 15:33:08 2020
 K93_Strategy:
   name_cpp: "plant::K93_Strategy"
   roxygen: |
@@ -1052,7 +1051,6 @@ K93_Strategy:
     - birth_rate_y: std::vector<double>
     - is_variable_birth_rate: bool
 
-# The following environment was built from FF16 on Wed Aug 12 15:46:38 2020
 K93_Environment:
   name_cpp: "plant::K93_Environment"
   constructor:

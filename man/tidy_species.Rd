@@ -4,7 +4,7 @@
 \alias{tidy_species}
 \title{Turn `species` component of plant solver output into a tidy data object}
 \usage{
-tidy_species(data)
+tidy_species(results)
 }
 \arguments{
 \item{data}{a list, the `species` component of plant solver output.}

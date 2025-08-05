@@ -18,7 +18,7 @@ public:
   when static and dynamic types differ for an object (ie through pointers) and 
   an attempt to delete it is made */
   virtual ~Disturbance_Regime() = default;
-  std::vector<double> r_density(std::vector<double> time) const;
+  double r_density(double time) const {return density(time);}
 };
 
 }

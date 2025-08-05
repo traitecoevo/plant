@@ -32,6 +32,8 @@ FF16_Parameters <- function(...) {
   Parameters("FF16","FF16_Env")(...)
 }
 
+# Todo -- generalise report generation
+
 ##' Generates a report on stand grown with FF16 strategy
 ##'
 ##' Builds a detailed report on stand grown with FF16 strategy, based on the template Rmd file provided.  The reports are

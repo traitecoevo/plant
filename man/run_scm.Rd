@@ -6,9 +6,10 @@
 \usage{
 run_scm(
   p,
-  env = Environment(parameters = p),
+  env = NULL,
   ctrl = scm_base_control(),
-  use_ode_times = FALSE
+  use_ode_times = FALSE,
+  collect = FALSE
 )
 }
 \arguments{

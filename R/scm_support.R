@@ -97,12 +97,8 @@ run_scm_collect <- function(p, env = NULL,
 
   results <- lapply(scm$history, "[[", "state") |> tidy_patch()
 
-  ## todo: ideally pacth density is collected as part of environment object
-  results[["steps"]] <- results[["steps"]] |> dplyr::mutate(patch_density = scm$patch$density(time))
-
   results[["offspring_production"]] <- scm$offspring_production
   results[["net_reproduction_ratios"]] <- scm$net_reproduction_ratios
-  results[["time"]] <- results[["steps"]][["time"]]
   
   results[["p"]] <- p
 
