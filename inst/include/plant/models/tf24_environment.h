@@ -59,8 +59,8 @@ public:
   };
 
   // Setup soil water distribtuion
-  void set_soil_number_of_depths(int soil_number_of_depths) {
-    soil_number_of_depths = soil_number_of_depths;
+  void set_soil_number_of_depths(int n) {
+    soil_number_of_depths = n;
     
     vars = Internals(soil_number_of_depths);
     z.resize(soil_number_of_depths);
