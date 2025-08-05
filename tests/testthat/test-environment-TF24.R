@@ -131,4 +131,5 @@ test_that("Environment-TF24 soil layers", {
   out <- run_scm(p1, env)
   expect_equal(out$patch$environment$n_psi, 4)
   expect_equal(out$patch$environment$b_infil, 5)
+
 })
