@@ -3213,12 +3213,48 @@ TF24_Environment__time__set <- function(obj_, value) {
     invisible(.Call('_plant_TF24_Environment__time__set', PACKAGE = 'plant', obj_, value))
 }
 
-TF24_Environment__ode_size__get <- function(obj_) {
-    .Call('_plant_TF24_Environment__ode_size__get', PACKAGE = 'plant', obj_)
+TF24_Environment__soil_moist_sat__get <- function(obj_) {
+    .Call('_plant_TF24_Environment__soil_moist_sat__get', PACKAGE = 'plant', obj_)
 }
 
-TF24_Environment__soil_number_of_depths__get <- function(obj_) {
-    .Call('_plant_TF24_Environment__soil_number_of_depths__get', PACKAGE = 'plant', obj_)
+TF24_Environment__soil_moist_sat__set <- function(obj_, value) {
+    invisible(.Call('_plant_TF24_Environment__soil_moist_sat__set', PACKAGE = 'plant', obj_, value))
+}
+
+TF24_Environment__K_sat__get <- function(obj_) {
+    .Call('_plant_TF24_Environment__K_sat__get', PACKAGE = 'plant', obj_)
+}
+
+TF24_Environment__K_sat__set <- function(obj_, value) {
+    invisible(.Call('_plant_TF24_Environment__K_sat__set', PACKAGE = 'plant', obj_, value))
+}
+
+TF24_Environment__a_psi__get <- function(obj_) {
+    .Call('_plant_TF24_Environment__a_psi__get', PACKAGE = 'plant', obj_)
+}
+
+TF24_Environment__a_psi__set <- function(obj_, value) {
+    invisible(.Call('_plant_TF24_Environment__a_psi__set', PACKAGE = 'plant', obj_, value))
+}
+
+TF24_Environment__n_psi__get <- function(obj_) {
+    .Call('_plant_TF24_Environment__n_psi__get', PACKAGE = 'plant', obj_)
+}
+
+TF24_Environment__n_psi__set <- function(obj_, value) {
+    invisible(.Call('_plant_TF24_Environment__n_psi__set', PACKAGE = 'plant', obj_, value))
+}
+
+TF24_Environment__b_infil__get <- function(obj_) {
+    .Call('_plant_TF24_Environment__b_infil__get', PACKAGE = 'plant', obj_)
+}
+
+TF24_Environment__b_infil__set <- function(obj_, value) {
+    invisible(.Call('_plant_TF24_Environment__b_infil__set', PACKAGE = 'plant', obj_, value))
+}
+
+TF24_Environment__ode_size__get <- function(obj_) {
+    .Call('_plant_TF24_Environment__ode_size__get', PACKAGE = 'plant', obj_)
 }
 
 TF24_Environment__light_availability__get <- function(obj_) {

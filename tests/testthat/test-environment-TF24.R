@@ -6,7 +6,7 @@ context("Environment-TF24")
 
 test_that("Environment-TF24 drivers", {
   
-  context("ExtrinsicDrivers-TF24")
+  context("TF24-Env-ExtrinsicDrivers")
   
   env <- Environment("TF24")
   # get list of extrinsic drivers for the environment
@@ -72,7 +72,7 @@ test_that("Environment-TF24 drivers", {
 })
 
 test_that("Environment-TF24 soil layers", {
-  context("Soil-TF24")
+  context("TF24-Env-Soil water")
 
   env <- Environment("TF24")
   # get list of extrinsic drivers for the environment
@@ -97,3 +97,38 @@ test_that("Environment-TF24 soil layers", {
   # should error when passed a vector that is too long
   expect_error(env$set_soil_water_state(c(0.5, 0.4)))
  })
+
+test_that("Environment-TF24 soil layers", {
+  context("TF24-Env-parameters")
+
+  env <- Environment("TF24")
+  # get list of extrinsic drivers for the environment
+
+  # default values
+  expect_equal(env$soil_moist_sat, 0.453)
+  expect_equal(env$K_sat, 440.628)
+  expect_equal(env$a_psi, 8.7)
+  expect_equal(env$n_psi, 4.8)
+  expect_equal(env$b_infil, 8)
+
+  # set values
+  expect_silent(env$soil_moist_sat <- 1)
+  expect_silent(env$K_sat <- 2)
+  expect_silent(env$a_psi <- 3)
+  expect_silent(env$n_psi <- 4)
+  expect_silent(env$b_infil <- 5)
+
+  expect_equal(env$soil_moist_sat, 1)
+  expect_equal(env$K_sat, 2)
+  expect_equal(env$a_psi, 3)
+  expect_equal(env$n_psi, 4)
+  expect_equal(env$b_infil, 5)
+
+  # check values from above are inherited when apssed into scm
+  p0 <- scm_base_parameters("TF24")
+  p0$max_patch_lifetime <- 1  
+  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0)
+  out <- run_scm(p1, env, ctrl)
+  expect_equal(out$patch$environment$n_psi, 4)
+  expect_equal(out$patch$environment$b_infil, 5)
+})

@@ -84,9 +84,8 @@ public:
   }
   int get_soil_number_of_depths() const {return n_depths;}
 
-      // TODO: should we use auxilliary in internals
-      std::vector<double>
-          q;
+  // TODO: should we use auxilliary in internals
+  std::vector<double> q;
   std::vector<double> z;
   std::vector<double> K;
   std::vector<double> psi;

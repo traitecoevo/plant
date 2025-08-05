@@ -3631,12 +3631,52 @@ void TF24_Environment__time__set(plant::RcppR6::RcppR6<plant::TF24_Environment> 
 }
 
 // [[Rcpp::export]]
-size_t TF24_Environment__ode_size__get(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_) {
-  return obj_->ode_size();
+double TF24_Environment__soil_moist_sat__get(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_) {
+  return obj_->soil_moist_sat;
+}
+// [[Rcpp::export]]
+void TF24_Environment__soil_moist_sat__set(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, double value) {
+  obj_->soil_moist_sat = value;
 }
 
 // [[Rcpp::export]]
-size_t TF24_Environment__soil_number_of_depths__get(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_) {
+double TF24_Environment__K_sat__get(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_) {
+  return obj_->K_sat;
+}
+// [[Rcpp::export]]
+void TF24_Environment__K_sat__set(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, double value) {
+  obj_->K_sat = value;
+}
+
+// [[Rcpp::export]]
+double TF24_Environment__a_psi__get(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_) {
+  return obj_->a_psi;
+}
+// [[Rcpp::export]]
+void TF24_Environment__a_psi__set(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, double value) {
+  obj_->a_psi = value;
+}
+
+// [[Rcpp::export]]
+double TF24_Environment__n_psi__get(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_) {
+  return obj_->n_psi;
+}
+// [[Rcpp::export]]
+void TF24_Environment__n_psi__set(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, double value) {
+  obj_->n_psi = value;
+}
+
+// [[Rcpp::export]]
+double TF24_Environment__b_infil__get(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_) {
+  return obj_->b_infil;
+}
+// [[Rcpp::export]]
+void TF24_Environment__b_infil__set(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, double value) {
+  obj_->b_infil = value;
+}
+
+// [[Rcpp::export]]
+size_t TF24_Environment__ode_size__get(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_) {
   return obj_->ode_size();
 }
 

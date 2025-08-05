@@ -1234,8 +1234,12 @@ TF24_Environment:
       return_type: void
   active:
     time: {type: double, access: field}
+    soil_moist_sat: {type: double, access: field}
+    K_sat: {type: double, access: field}
+    a_psi: {type: double, access: field}
+    n_psi: {type: double, access: field}
+    b_infil: {type: double, access: field}
     ode_size: {type: size_t, access: member}
-    soil_number_of_depths: {type: size_t, access: member, name_cpp: ode_size}
     light_availability:
       type: "plant::ResourceSpline"
       access: field
