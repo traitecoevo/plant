@@ -19,7 +19,6 @@ test_that("Run SCM", {
     scm <- SCM(x, e)(p, env, ctrl)
     expect_is(scm, sprintf("SCM<%s,%s>", x, e))
 
-    ## NOTE: I'm not sure where these are only equal and not identical.
     expect_equal(scm$parameters, p)
 
     ## Check that the underlying Patch really is a Patch<NodeTop>:
@@ -192,44 +191,6 @@ test_that("schedule setting", {
   }
 })
 
-  ## ## TODO: This is a fairly inadequate set of tests; none of the failure
-  ## ## conditions are tested, and it's undefined what will happen if we
-  ## ## set a node schedule that leaves us between introduction points.
-  ## test_that("State get/set works", {
-  ##   ## Next, try and partly run the SCM, grab its state and push it into a
-  ##   ## second copy.
-  ##   scm$reset()
-  ##   tmp <- run_scm_test(scm, sched$max_time / 2)
-  ##   state <- scm$state
-
-  ##   scm2 <- new(SCM, scm$parameters)
-  ##   scm2$state <- state
-
-  ##   expect_equal(scm2$state, scm$state)
-  ##   ## Emergent things:
-  ##   expect_equal(scm2$patch$environment$environment_interpolator$xy,
-  ##                scm$patch$environment$environment_interpolator$xy)
-  ##   expect_equal(scm2$ode_state, scm$ode_state)
-  ##   expect_equal(scm2$ode_rates, scm$ode_rates)
-  ##   # TODO: This needs implementing; requires get/set of the ODE solver
-  ##   # state.
-  ##   # expect_equal(scm2$time, scm$time)
-  ## })
-
-  ## test_that("Can set times directly", {
-  ##   scm$reset()
-  ##   times <- scm$times(1)
-  ##   times2 <- sort(c(times, 0.5*(times[-1] + times[-length(times)])))
-  ##   scm$set_times(times2, 1)
-  ##   expect_identical(scm$times(1), times2)
-  ##   expect_identical(scm$node_schedule$times(1), times2)
-  ##   scm$run_next()
-  ##   expect_error(scm$set_times(times, 1))
-  ##   scm$reset()
-  ##   scm$set_times(times, 1)
-  ##   expect_identical(scm$times(1), times)
-  ## })
-
 test_that("Offspring production & error calculations correct", {
   for (x in c("FF16")) {
     context(sprintf("SCM-%s", x))
@@ -260,8 +221,8 @@ test_that("Offspring production & error calculations correct", {
     expect_equal(scm$net_reproduction_ratio_errors[[1]], net_reproduction_ratio_R(scm, error=TRUE))
 
     lae_cmp <-
-      scm$patch$species[[1]]$competition_effects_error(scm$patch$compute_competition(0))
-    expect_identical(scm$competition_effect_error(1), lae_cmp)
+      scm$patch$species[[1]]$compute_competition_effect_by_nodes_error(scm$patch$compute_competition(0))
+    expect_identical(scm$compute_competition_effect_error_by_node_for_species_i(1), lae_cmp)
 
   }
 })

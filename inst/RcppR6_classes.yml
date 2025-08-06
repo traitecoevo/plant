@@ -549,7 +549,7 @@ Species:
     log_densities: {type: "std::vector<double>", access: member, name_cpp: r_log_densities}
     nodes: {type: "std::vector<plant::Node<T,E> >", access: member, name_cpp: r_nodes}
     net_reproduction_ratio_by_node: {type: "std::vector<double>", access: member}
-    competition_effects: {type: "std::vector<double>", access: member, name_cpp: r_competition_effects}
+    compute_competition_effect_by_nodes: {type: "std::vector<double>", access: member, name_cpp: r_compute_competition_effect_by_nodes}
     extrinsic_drivers: {type: "plant::ExtrinsicDrivers", access: member, name_cpp: extrinsic_drivers}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
@@ -570,10 +570,10 @@ Species:
       return_type: "plant::Node<T,E>"
       args: [index: "plant::util::index"]
       name_cpp: r_node_at
-    competition_effects_error:
+    compute_competition_effect_by_nodes_error:
       return_type: "std::vector<double>"
       args: [scal: double=1]
-      name_cpp: r_competition_effects_error
+      name_cpp: r_compute_competition_effect_by_nodes_error
 
 Patch:
   name_cpp: "plant::Patch<T,E>"
@@ -674,10 +674,10 @@ SCM:
       args: [species_index: "plant::util::index"]
       return_type: double
       name_cpp: r_net_reproduction_ratio_for_species
-    competition_effect_error:
+    compute_competition_effect_error_by_node_for_species_i:
       args: [species_index: "plant::util::index"]
       return_type: "std::vector<double>"
-      name_cpp: r_competition_effect_error
+      name_cpp: r_compute_competition_effect_error_by_node_for_species_i
     set_node_schedule_times:
       args: [times: "std::vector<std::vector<double>>"]
       return_type: void

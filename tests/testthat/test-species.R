@@ -19,8 +19,8 @@ for (x in names(strategy_types)) {
     expect_identical(sp$nodes, list())
     expect_identical(sp$height, NULL)
     expect_identical(sp$log_densities, numeric(0))
-    expect_identical(sp$competition_effects, numeric(0))
-    expect_identical(sp$competition_effects_error(1.0), numeric(0))
+    expect_identical(sp$compute_competition_effect_by_nodes, numeric(0))
+    expect_identical(sp$compute_competition_effect_by_nodes_error(1.0), numeric(0))
     expect_equal(sp$ode_size, 0)
     expect_identical(sp$ode_state, numeric(0))
     expect_identical(sp$ode_rates, numeric(0))
@@ -42,7 +42,7 @@ for (x in names(strategy_types)) {
     expect_identical(nodes[[1]]$rates, new_node$rates)
     expect_equal(sp$heights, new_node$height)
     expect_equal(sp$log_densities, new_node$log_density)
-    expect_equal(sp$competition_effects, new_node$compute_competition(0.0))
+    expect_equal(sp$compute_competition_effect_by_nodes, new_node$compute_competition(0.0))
     ## NOTE: Didn't check ode values
 
     ## Internal and test new_node report same values:
@@ -175,14 +175,13 @@ for (x in names(strategy_types)) {
 
     cmp_competition_effect <- sapply(seq_len(sp$size),
                             function(i) sp$node_at(i)$compute_competition(0.0))
-    expect_identical(sp$competition_effects, cmp_competition_effect)
+    expect_identical(sp$compute_competition_effect_by_nodes, cmp_competition_effect)
 
     cmp    <- local_error_integration(sp$heights, cmp_competition_effect, 1.0)
     cmp_pi <- local_error_integration(sp$heights, cmp_competition_effect, pi)
 
-    expect_identical(sp$competition_effects_error(), cmp)
-    expect_identical(sp$competition_effects_error(1.0), cmp)
-    expect_identical(sp$competition_effects_error(pi), cmp_pi)
+    expect_identical(sp$compute_competition_effect_by_nodes_error(1.0), cmp)
+    expect_identical(sp$compute_competition_effect_by_nodes_error(pi), cmp_pi)
 
     ode_size <- Node(x, e)(strategy_types[[x]]())$ode_size
     ode_state <- sp$ode_state

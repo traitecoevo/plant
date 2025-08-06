@@ -43,14 +43,10 @@ public:
   const patch_type &r_patch() const { return patch; }
   const std::vector <patch_type> &r_history() const { return history; }
 
-  // TODO: These are liable to change to return all species at once by
-  // default.  The pluralisation difference between
-  // SCM::r_competition_effect_error and Species::r_competition_effects_error
-  // will get dealt with then.
   double r_net_reproduction_ratio_for_species(util::index species_index) const;
   std::vector<std::vector<double>> r_net_reproduction_ratio_errors() const;
   std::vector<double>
-  r_competition_effect_error(util::index species_index) const;
+  r_compute_competition_effect_error_by_node_for_species_i(util::index species_index) const;
   std::vector<double> r_ode_times() const;
   
   bool r_use_ode_times() const;
@@ -193,12 +189,12 @@ std::vector<util::index> SCM<T, E>::r_run_next() {
 
 template <typename T, typename E>
 std::vector<double>
-SCM<T, E>::r_competition_effect_error(util::index species_index) const {
+SCM<T, E>::r_compute_competition_effect_error_by_node_for_species_i(util::index species_index) const {
   // TODO: I think we need to scale this by total area; that should be
   // computed for everything so will get passed in as an argument.
   // const double tot_competition_effect  = patch.compute_competition(0.0);
   const size_t idx = species_index.check_bounds(patch.size());
-  return patch.r_competition_effect_error(idx);
+  return patch.r_compute_competition_effect_error_by_node_for_species_i(idx);
 }
 
 template <typename T, typename E>

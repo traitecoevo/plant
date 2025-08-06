@@ -1249,10 +1249,6 @@ Node___FF16__FF16_Env__log_density__get <- function(obj_) {
     .Call('_plant_Node___FF16__FF16_Env__log_density__get', PACKAGE = 'plant', obj_)
 }
 
-Node___FF16__FF16_Env__competition_effect__get <- function(obj_) {
-    .Call('_plant_Node___FF16__FF16_Env__competition_effect__get', PACKAGE = 'plant', obj_)
-}
-
 Node___FF16__FF16_Env__fecundity__get <- function(obj_) {
     .Call('_plant_Node___FF16__FF16_Env__fecundity__get', PACKAGE = 'plant', obj_)
 }
@@ -1307,10 +1303,6 @@ Node___TF24__TF24_Env__height__get <- function(obj_) {
 
 Node___TF24__TF24_Env__log_density__get <- function(obj_) {
     .Call('_plant_Node___TF24__TF24_Env__log_density__get', PACKAGE = 'plant', obj_)
-}
-
-Node___TF24__TF24_Env__competition_effect__get <- function(obj_) {
-    .Call('_plant_Node___TF24__TF24_Env__competition_effect__get', PACKAGE = 'plant', obj_)
 }
 
 Node___TF24__TF24_Env__fecundity__get <- function(obj_) {
@@ -1369,10 +1361,6 @@ Node___K93__K93_Env__log_density__get <- function(obj_) {
     .Call('_plant_Node___K93__K93_Env__log_density__get', PACKAGE = 'plant', obj_)
 }
 
-Node___K93__K93_Env__competition_effect__get <- function(obj_) {
-    .Call('_plant_Node___K93__K93_Env__competition_effect__get', PACKAGE = 'plant', obj_)
-}
-
 Node___K93__K93_Env__fecundity__get <- function(obj_) {
     .Call('_plant_Node___K93__K93_Env__fecundity__get', PACKAGE = 'plant', obj_)
 }
@@ -1421,8 +1409,8 @@ Species___FF16__FF16_Env__node_at <- function(obj_, index) {
     .Call('_plant_Species___FF16__FF16_Env__node_at', PACKAGE = 'plant', obj_, index)
 }
 
-Species___FF16__FF16_Env__competition_effects_error <- function(obj_, scal) {
-    .Call('_plant_Species___FF16__FF16_Env__competition_effects_error', PACKAGE = 'plant', obj_, scal)
+Species___FF16__FF16_Env__compute_competition_effect_by_nodes_error <- function(obj_, scal) {
+    .Call('_plant_Species___FF16__FF16_Env__compute_competition_effect_by_nodes_error', PACKAGE = 'plant', obj_, scal)
 }
 
 Species___FF16__FF16_Env__size__get <- function(obj_) {
@@ -1457,8 +1445,8 @@ Species___FF16__FF16_Env__net_reproduction_ratio_by_node__get <- function(obj_) 
     .Call('_plant_Species___FF16__FF16_Env__net_reproduction_ratio_by_node__get', PACKAGE = 'plant', obj_)
 }
 
-Species___FF16__FF16_Env__competition_effects__get <- function(obj_) {
-    .Call('_plant_Species___FF16__FF16_Env__competition_effects__get', PACKAGE = 'plant', obj_)
+Species___FF16__FF16_Env__compute_competition_effect_by_nodes__get <- function(obj_) {
+    .Call('_plant_Species___FF16__FF16_Env__compute_competition_effect_by_nodes__get', PACKAGE = 'plant', obj_)
 }
 
 Species___FF16__FF16_Env__extrinsic_drivers__get <- function(obj_) {
@@ -1505,8 +1493,8 @@ Species___TF24__TF24_Env__node_at <- function(obj_, index) {
     .Call('_plant_Species___TF24__TF24_Env__node_at', PACKAGE = 'plant', obj_, index)
 }
 
-Species___TF24__TF24_Env__competition_effects_error <- function(obj_, scal) {
-    .Call('_plant_Species___TF24__TF24_Env__competition_effects_error', PACKAGE = 'plant', obj_, scal)
+Species___TF24__TF24_Env__compute_competition_effect_by_nodes_error <- function(obj_, scal) {
+    .Call('_plant_Species___TF24__TF24_Env__compute_competition_effect_by_nodes_error', PACKAGE = 'plant', obj_, scal)
 }
 
 Species___TF24__TF24_Env__size__get <- function(obj_) {
@@ -1541,8 +1529,8 @@ Species___TF24__TF24_Env__net_reproduction_ratio_by_node__get <- function(obj_) 
     .Call('_plant_Species___TF24__TF24_Env__net_reproduction_ratio_by_node__get', PACKAGE = 'plant', obj_)
 }
 
-Species___TF24__TF24_Env__competition_effects__get <- function(obj_) {
-    .Call('_plant_Species___TF24__TF24_Env__competition_effects__get', PACKAGE = 'plant', obj_)
+Species___TF24__TF24_Env__compute_competition_effect_by_nodes__get <- function(obj_) {
+    .Call('_plant_Species___TF24__TF24_Env__compute_competition_effect_by_nodes__get', PACKAGE = 'plant', obj_)
 }
 
 Species___TF24__TF24_Env__extrinsic_drivers__get <- function(obj_) {
@@ -1589,8 +1577,8 @@ Species___K93__K93_Env__node_at <- function(obj_, index) {
     .Call('_plant_Species___K93__K93_Env__node_at', PACKAGE = 'plant', obj_, index)
 }
 
-Species___K93__K93_Env__competition_effects_error <- function(obj_, scal) {
-    .Call('_plant_Species___K93__K93_Env__competition_effects_error', PACKAGE = 'plant', obj_, scal)
+Species___K93__K93_Env__compute_competition_effect_by_nodes_error <- function(obj_, scal) {
+    .Call('_plant_Species___K93__K93_Env__compute_competition_effect_by_nodes_error', PACKAGE = 'plant', obj_, scal)
 }
 
 Species___K93__K93_Env__size__get <- function(obj_) {
@@ -1625,8 +1613,8 @@ Species___K93__K93_Env__net_reproduction_ratio_by_node__get <- function(obj_) {
     .Call('_plant_Species___K93__K93_Env__net_reproduction_ratio_by_node__get', PACKAGE = 'plant', obj_)
 }
 
-Species___K93__K93_Env__competition_effects__get <- function(obj_) {
-    .Call('_plant_Species___K93__K93_Env__competition_effects__get', PACKAGE = 'plant', obj_)
+Species___K93__K93_Env__compute_competition_effect_by_nodes__get <- function(obj_) {
+    .Call('_plant_Species___K93__K93_Env__compute_competition_effect_by_nodes__get', PACKAGE = 'plant', obj_)
 }
 
 Species___K93__K93_Env__extrinsic_drivers__get <- function(obj_) {
@@ -2021,8 +2009,8 @@ SCM___FF16__FF16_Env__net_reproduction_ratio_for_species <- function(obj_, speci
     .Call('_plant_SCM___FF16__FF16_Env__net_reproduction_ratio_for_species', PACKAGE = 'plant', obj_, species_index)
 }
 
-SCM___FF16__FF16_Env__competition_effect_error <- function(obj_, species_index) {
-    .Call('_plant_SCM___FF16__FF16_Env__competition_effect_error', PACKAGE = 'plant', obj_, species_index)
+SCM___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i <- function(obj_, species_index) {
+    .Call('_plant_SCM___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i', PACKAGE = 'plant', obj_, species_index)
 }
 
 SCM___FF16__FF16_Env__set_node_schedule_times <- function(obj_, times) {
@@ -2113,8 +2101,8 @@ SCM___TF24__TF24_Env__net_reproduction_ratio_for_species <- function(obj_, speci
     .Call('_plant_SCM___TF24__TF24_Env__net_reproduction_ratio_for_species', PACKAGE = 'plant', obj_, species_index)
 }
 
-SCM___TF24__TF24_Env__competition_effect_error <- function(obj_, species_index) {
-    .Call('_plant_SCM___TF24__TF24_Env__competition_effect_error', PACKAGE = 'plant', obj_, species_index)
+SCM___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i <- function(obj_, species_index) {
+    .Call('_plant_SCM___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i', PACKAGE = 'plant', obj_, species_index)
 }
 
 SCM___TF24__TF24_Env__set_node_schedule_times <- function(obj_, times) {
@@ -2205,8 +2193,8 @@ SCM___K93__K93_Env__net_reproduction_ratio_for_species <- function(obj_, species
     .Call('_plant_SCM___K93__K93_Env__net_reproduction_ratio_for_species', PACKAGE = 'plant', obj_, species_index)
 }
 
-SCM___K93__K93_Env__competition_effect_error <- function(obj_, species_index) {
-    .Call('_plant_SCM___K93__K93_Env__competition_effect_error', PACKAGE = 'plant', obj_, species_index)
+SCM___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i <- function(obj_, species_index) {
+    .Call('_plant_SCM___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i', PACKAGE = 'plant', obj_, species_index)
 }
 
 SCM___K93__K93_Env__set_node_schedule_times <- function(obj_, times) {
