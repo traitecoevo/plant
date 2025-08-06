@@ -344,7 +344,7 @@ std::vector<double> Species<T,E>::r_competition_effects() const {
   std::vector<double> ret;
   ret.reserve(size());
   for (auto& c : nodes) {
-    ret.push_back(c.competition_effect());
+    ret.push_back(c.compute_competition(0.0));
   }
   return ret;
 }

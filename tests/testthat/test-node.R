@@ -1,6 +1,3 @@
-## TODO: This is all just ported over from tree1 and needs splitting
-## into units.
-
 strategy_types <- get_list_of_strategy_types()
 environment_types <- get_list_of_environment_types()
 
@@ -66,34 +63,6 @@ for (x in names(strategy_types)) {
     node2 <- Node(x, e)(strategy_types[[x]](control=Control(node_gradient_richardson=TRUE)))
     expect_true(node2$individual$strategy$control$node_gradient_richardson)
 
-    ## NOTE: Not sure why this is not identical: it's either a bug
-    ## somewhere or an issue due to reusing intervals.
-    dgdh2 <- node2$growth_rate_gradient(env)
-    ## expect_identical(dgdh2, dgdh_richardson)
-    expect_false(identical(dgdh2, dgdh))
-
-    ## p <- node2$individual
-    ## p$compute_rates(env)
-    ## f <- function(x) {
-    ##   growth_rate_given_height(x, p, env)
-    ## }
-    ## dgdh3 <- test_gradient_richardson(f, p$set_state("height", ), ctrl$node_gradient_eps,
-    ##                                   ctrl$node_gradient_richardson_depth)
-    ## dgdh3 - dgdh2
-
-    ## This is entirely optional, but kind of nice to see.
-    if (interactive()) {
-      hh <- seq(plant$state("height") * 0.5, plant$state("height") * 1.5, length.out=101)
-      gr <- sapply(hh, growth_rate_given_height, p2, env)
-      p2$set_state("height", plant$state("height"))
-      h_focus <- plant$state("height")
-      g_focus <- growth_rate_given_height(plant$state("height"), p2, env)
-      plot(gr ~ hh, xlab="Height", ylab="Growth rate")
-      points(g_focus ~ h_focus, col="red", pch=19)
-      ## Intercept by solving y = m*x + c for c => (c = y - m * x).
-      abline(g_focus - dgdh * plant$state("height"), dgdh)
-    }
-
   })
 
   ## TODO: Not done yet:
@@ -156,12 +125,12 @@ for (x in names(strategy_types)) {
 
     expect_equal(node$log_density, -Inf) # zero
     expect_equal(exp(node$log_density), 0.0) # zero
-    expect_equal(node$competition_effect, 0) # zero density
+    expect_equal(node$compute_competition(0.0), 0) # zero density
     node$compute_initial_conditions(env, pr_patch_survival = 1, birth_rate = 1)
 
     expect_equal(node$ode_state[[node$ode_size]], node$log_density)
     density <- exp(node$log_density)
-    expect_equal(node$competition_effect, plant$compute_competition(0.0) * density)
+    expect_equal(node$compute_competition(0.0), plant$compute_competition(0.0) * density)
     expect_equal(node$compute_competition(h / 2), plant$compute_competition(h / 2) * density)
 
     h <- 8.0
@@ -172,7 +141,7 @@ for (x in names(strategy_types)) {
     expect_identical(plant$state("height"), h)
     expect_identical(node$height, h)
 
-    expect_equal(node$competition_effect, plant$compute_competition(0) * density)
+    expect_equal(node$compute_competition(0.0), plant$compute_competition(0) * density)
     expect_equal(node$compute_competition(h / 2), plant$compute_competition(h / 2) * density)
   })
 }

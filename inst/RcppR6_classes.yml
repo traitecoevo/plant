@@ -511,7 +511,6 @@ Node:
     individual: {type: "plant::Individual<T,E>", access: field, readonly: true}
     height: {type: double, access: member}
     log_density: {type: double, access: member, name_cpp: get_log_density}
-    competition_effect: {type: double, access: member}
     fecundity: {type: double, access: member}
     ode_size: {type: size_t, access: member}
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
