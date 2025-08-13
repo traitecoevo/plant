@@ -1,0 +1,417 @@
+---
+title: "root_water_uptake"
+author: "Isaac Towers"
+date: "2025-08-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+rm(list=ls())
+```
+
+```{r}
+H = 5.44
+LA = 1
+n = 20
+```
+
+```{r}
+b2 = 9.3e-1
+c2 = 0.93
+D = 0.1
+D_ref = 1
+```
+
+
+```{r}
+#got from supps in Potkay
+k_sw_max = 0.1
+```
+
+
+```{r}
+P_soil = c(-0.06,-0.12)
+```
+
+```{r}
+P_s_min = min(P_soil)
+```
+
+```{r}
+z_soil_mid = c(0.05,0.15)
+```
+
+```{r}
+z_P_s_min = z_soil_mid[P_soil == P_s_min]
+z_P_s_min = max(z_P_s_min)
+```
+
+```{r}
+P_s_max = max(P_soil)
+```
+
+```{r}
+z_P_s_max = z_soil_mid[P_soil == P_s_max]
+z_P_s_max = max(z_P_s_max)
+```
+
+```{r}
+P_x_r_UB_0 = P_s_max
+```
+
+```{r}
+rho = 1e3 #kg m^-3
+g = 9.8 # m s^-2
+```
+
+```{r}
+P_x_r_LB_0 = P_s_min - rho * g * z_P_s_min / 1e6
+```
+
+```{r}
+if(abs(P_x_r_LB_0 - P_x_r_UB_0) < 1){
+    P_x_r_LB_0 = P_x_r_UB_0 - 1
+}
+```
+
+```{r}
+P_x_r_M_0 = (P_x_r_UB_0 + P_x_r_LB_0) / 2
+```
+
+```{r}
+P_x_r_3_0 = c(P_x_r_UB_0, P_x_r_M_0, P_x_r_LB_0)
+```
+
+```{r}
+E_3_0 = rep(0,3)
+```
+
+```{r}
+while((length(E_3_0[E_3_0 < 0]) == 0) +
+      (length(E_3_0[E_3_0 > 0]) == 0) > 0){
+  for(i in 1:3){
+    P_x_r_i = P_x_r_3_0[i]
+    
+    E_3_0[i] <- E_from_Soil_to_Root_Collar(P_x_r_i, P_soil = P_soil, rho = rho, g = g)[[1]]
+  }
+  
+  if(length(E_3_0[E_3_0 <0]) == 0){
+    P_x_r_3_0[1] = P_x_r_3_0[1] + 0.1;
+  }
+  
+  if(length(E_3_0[E_3_0 >0]) == 0){
+    P_x_r_3_0[3] = P_x_r_3_0[3] - 0.1;
+  }
+  
+  P_x_r_3_0[2] = (P_x_r_3_0[1] + P_x_r_3_0[3]) / 2;
+}
+```
+
+```{r}
+i = 0
+
+while(abs(range(P_x_r_3_0)[1]-range(P_x_r_3_0)[2]) > 1e-3){
+  
+  i = i + 1;
+  
+  if(i > 100){
+    print("error")
+    stop()
+  }
+  
+  if(length(E_3_0[E_3_0 < 0]) == 0){
+        stop()
+  } else if(length(E_3_0[E_3_0 > 0]) == 0){
+        stop()
+  }
+
+  E_UB_0 = max(E_3_0[E_3_0 < 0]);
+  E_LB_0 = min(E_3_0[E_3_0 > 0]);
+  
+ # Root collar xylem pressures that correspond to ZERO transpiration rates
+    P_x_r_UB_0 = P_x_r_3_0[E_3_0 == E_UB_0];
+    P_x_r_UB_0 = max(P_x_r_UB_0);
+    P_x_r_LB_0 = P_x_r_3_0[E_3_0 == E_LB_0];
+    P_x_r_LB_0 = min(P_x_r_LB_0);
+    # Mid-point for bisection
+    P_x_r_M_0 = (P_x_r_UB_0 + P_x_r_LB_0) / 2;
+
+    P_x_r_3_0_new = c(P_x_r_UB_0, P_x_r_M_0, P_x_r_LB_0);
+  
+  if(sum(P_x_r_3_0_new == P_x_r_3_0) == 3){
+    stop()
+  }
+  
+  P_x_r_3_0 = P_x_r_3_0_new; 
+    
+  E_3_0 = c(E_UB_0, NA, E_LB_0)
+  
+  P_x_r_i = P_x_r_3_0[2];
+  
+  E_i = E_from_Soil_to_Root_Collar(P_x_r_i, P_soil = P_soil, rho = rho, g = g)[[1]]
+  
+  E_3_0[2] = E_i
+  
+  }
+```
+
+```{r}
+E_0 = min(E_3_0[E_3_0 > 0])
+```
+
+```{r}
+P_x_r_0 = P_x_r_3_0[E_3_0 == E_0];
+P_x_r_0 = min(P_x_r_0); 
+```
+
+```{r}
+P_x_l_crit = -1
+```
+
+```{r}
+while(VC_l(P_x_l_crit) > (1 - 0.999)){
+    P_x_l_crit = P_x_l_crit - 0.1;
+}
+```
+
+```{r}
+# inital guesses for upper and lower bounds of critical root collar pressure for bisection method
+P_x_r_UB_crit = P_x_r_0; 
+P_x_r_LB_crit = P_x_l_crit;
+P_x_r_M_crit = (P_x_r_LB_crit + P_x_r_UB_crit) / 2;
+```
+
+```{r}
+P_x_r_3_crit = c(P_x_r_UB_crit, P_x_r_M_crit, P_x_r_LB_crit);
+P_x_l_3_crit = rep(NA,3); 
+```
+
+```{r}
+k_l = 1.6e-2
+
+for(i in 1:3){
+  P_x_r_i = P_x_r_3_crit[i];
+  E_i = E_from_Soil_to_Root_Collar(P_x_r_i, P_soil = P_soil, rho = rho, g = g)[[1]]
+  
+  P_x_l_i = P_x_r_i;
+  
+  for(j in 1:n){
+    P_x_l_i = P_x_l_i - rho * g * (H / n) / 1e6 - (E_i * LA) / (n * k_sw_max * VC_sw(min(0, P_x_l_i))); 
+  }
+  
+    for(j in 1:n){
+    P_x_l_i = P_x_l_i - E_i/(n*k_l*VC_l(min(0, P_x_l_i))); 
+  }
+  
+  P_x_l_3_crit[i] = P_x_l_i
+  
+  }
+```
+
+```{r}
+i = 0;
+
+
+while(abs(range(P_x_r_3_crit)[1]-range(P_x_r_3_crit)[2]) > 1e-3){
+  
+  i = i + 1;
+
+    if(i > 100){
+    print("error")
+    stop()
+    }
+  
+  F_value = P_x_l_crit - P_x_l_3_crit; #objective function, F -- we seek to find that P_x_r that makes F equal to zero
+    
+  
+    F_UB = max(F_value[F_value < 0]);
+    F_UB = F_UB[1]; 
+    F_LB = min(F_value[F_value > 0]);
+    F_LB = F_LB[1];
+
+  P_x_r_UB_crit = P_x_r_3_crit[F_value == F_UB];
+  P_x_r_UB_crit = P_x_r_UB_crit[1];
+
+  P_x_r_LB_crit = P_x_r_3_crit[F_value == F_LB];
+  P_x_r_LB_crit = P_x_r_LB_crit[1];
+  
+P_x_r_M_crit = (P_x_r_LB_crit + P_x_r_UB_crit) / 2; 
+  
+P_l_UB_crit = P_x_l_3_crit[P_x_r_3_crit == P_x_r_UB_crit];
+P_l_LB_crit = P_x_l_3_crit[P_x_r_3_crit == P_x_r_LB_crit];
+
+  
+  P_x_r_3_crit = c(P_x_r_UB_crit, P_x_r_M_crit, P_x_r_LB_crit);
+    P_x_l_3_crit = c(P_l_UB_crit, NA, P_l_LB_crit);
+    
+  P_x_r_i = P_x_r_3_crit[2];
+
+    E_i = E_from_Soil_to_Root_Collar(P_x_r_i, P_soil = P_soil, rho = rho, g = g)[[1]]
+  
+      P_x_l_i = P_x_r_i; 
+      
+      for(j in 1:n){
+        P_x_l_i = P_x_l_i - rho * g * (H / n) / 1e6 - (E_i * LA) / (n * k_sw_max * VC_sw(min(0, P_x_l_i))); 
+      }
+      
+      
+      for(j in 1:n){
+              P_x_l_i = P_x_l_i - E_i / (n * k_l * VC_l(min(0, P_x_l_i))); 
+
+      }
+      
+      P_x_l_3_crit[2] = P_x_l_i;
+
+}
+```
+
+```{r}
+P_x_r_crit = min(P_x_r_3_crit[P_x_l_3_crit > -Inf]);
+```
+
+```{r}
+P_x_r = seq(P_x_r_0, P_x_r_crit, length.out = 50);
+P_x_s = rep(NA, length(P_x_r))
+P_x_l = rep(NA, length(P_x_r))
+E = rep(NA, length(P_x_r))
+E_soil = matrix(NA, nrow = 2, ncol = length(P_x_r));
+r_R_H = matrix(NA, nrow = 2, ncol = length(P_x_r));
+r_R_V = matrix(NA, nrow = 2, ncol = length(P_x_r));
+f_r = matrix(NA, nrow = 2, ncol = length(P_x_r));
+```
+
+```{r}
+for(i in 1:length(P_x_r)){
+  P_x_r_i = P_x_r[i];
+  
+  res = E_from_Soil_to_Root_Collar(P_x_r_i, P_soil = P_soil, rho = rho, g = g)
+  
+  E[i] = res[[1]]
+  E_soil[1:2, i] = res[[2]];
+  r_R_H[1:2, i] = res[[3]];
+  r_R_V[1:2, i] = res[[4]];
+  f_r[1:2, i] = res[[5]]; 
+  
+  P_x_s_i = P_x_r_i; 
+  
+   for(j in 1:n){
+        P_x_s_i = P_x_s_i - rho * g * (H / n) / 1e6 - (E_i * LA) / (n * k_sw_max * VC_sw(min(0, P_x_l_i))); 
+   }
+
+  P_x_s[i] = P_x_s_i;
+
+  P_x_l_i = P_x_s_i;
+
+    for(j in 1:n){
+        P_x_l_i = P_x_l_i - E_i / (n * k_l * VC_l(min(0, P_x_l_i))); 
+    }
+  
+  P_x_l[i] = P_x_l_i;
+}
+```
+
+```{r}
+T_a = 25
+
+T_l = T_a * rep(1, length(P_x_l)); #in [C] -- assuming leaf temperature equals air temperature
+```
+
+```{r}
+satur_mol_fract_air = (-0.0043 + 0.01 * exp(0.0511 * T_a)); #saturated mole fraction of vapor in air [kPa]
+satur_mol_fract_leaf = (-0.0043 + 0.01 * exp(0.0511 * T_l)); #saturated mole fraction of vapor in leaf [kPa]
+RH = min(0.5, 0.99); 
+VPD_air = (1 - RH) * 0.61094 * exp(17.625* T_a / (T_a + 243.04)); #air-to-air vapor pressure deficit [kPa]
+VPD_l = satur_mol_fract_leaf - satur_mol_fract_air + VPD_air; #leaf-to-air vapor pressure deficit in kPa
+VPD_l = max(0, VPD_l);
+```
+
+```{r}
+# Interpreting stomatal conductances, G_w and G_c
+G_w = abs(E / VPD_l); #stomatal conductance to vapor [mol H2O * m^-2 * s^-1 * kPa^-1]
+G_w[E == 0] = 0; 
+G_w = max(0, G_w); 
+G_c = G_w / 1.6; #stomatal conductance to CO2 [mol CO2 * m^-2 * s^-1 * kPa^-1]
+```
+
+```{r}
+V_cmax = 100
+J_max = 167
+R_abs = 1000
+var_kappa = 6.9e-7
+J_phi = var_kappa * R_abs; #var_kappa is proportionality constant between J and R_abs in [mol CO2 * J^-1]
+c_prime2 = 0.97
+J = (J_max + J_phi - ((J_max + J_phi)^ 2 - 4 * c_prime2 * J_max * J_phi)^ 0.5) / (2 * c_prime2); #hyperbolic minimum of J_max and J_phi with curvature of 0.9
+Gamma_star = 36e-6 * 101.325; #in [kPa]
+K_c = 275e-6 * 101.325; #in [kPa]
+K_o = 420000e-6 * 101.325; #in [kPa]
+R_d = 0.01 * V_cmax; #leaf dark respiration in [mol CO2 * m^-2 * s^-1]
+
+```
+
+```{r}
+#Eller et al. (2019; SOX appendix)
+o_a = 21
+# Gamma_star = 42.75
+c_a = 410e-6 * 101.325
+
+a_c = V_cmax; 
+a_j = J / 4;
+b_c = K_c * (1 + o_a / K_o);
+b_j = 2 * Gamma_star;
+beta_c = (R_d - a_c) - G_c * (c_a + b_c);
+beta_j = (R_d - a_j) - G_c * (c_a + b_j);
+gamma_c = a_c * (c_a - Gamma_star) - R_d * (c_a + b_c); 
+gamma_j = a_j * (c_a - Gamma_star) - R_d * (c_a + b_j); 
+```
+
+```{r}
+A_c = -beta_c / 2 - ((beta_c / 2)^2 - gamma_c * G_c)^0.5;
+A_j = -beta_j / 2 - ((beta_j / 2)^2 - gamma_j * G_c)^ 0.5;
+A_j = real(A_j);
+```
+
+```{r}
+# correct for if G_c == inf, in which case c_i = c_a
+A_c[G_c == Inf] = a_c[G_c == Inf]* (c_a - Gamma_star[G_c == Inf]) / (c_a + b_c[G_c == Inf]) - R_d[G_c == Inf];  
+A_j[G_c == Inf] = a_j[G_c == Inf] * (c_a - Gamma_star[G_c == Inf]) / (c_a + b_j[G_c == Inf]) - R_d[G_c == Inf];  
+```
+
+```{r}
+#calculate photosynthesis by hyperbolic-minimum
+
+c_prime1 = 0.97
+
+A_n = (A_c + A_j - ((A_c + A_j)^2 - 4 * c_prime1 * A_c * A_j)^ 0.5) / (2 * c_prime1); #net carbon assimilation rate [mol CO2 * m^-2 * s^-1] 
+```
+
+```{r}
+# determine dA_n/dR_abs by chain-rule, assuming negligle effect of 
+# electron-transport rate, J, on stomatal conductance, G_c (derrived 
+# assuming dG_c/dJ = 0)
+dA_n_dA_c = (1 - ((A_c + (1 - 2 * c_prime1) * A_j) / ((A_c + A_j)^ 2 - 4 * c_prime1 * A_c * A_j)^ 0.5)) / (2 * c_prime1);
+dA_n_dA_j = (1 - ((A_j + (1 - 2 * c_prime1) * A_c) / ((A_c + A_j)^ 2 - 4 * c_prime1 * A_c * A_j)^ 0.5)) / (2 * c_prime1);
+var_H = (J/4 + G_c * (c_a + 2 * Gamma_star) - R_d) / 2; 
+#inv_Ohm = J/4 .* (c_a - Gamma_star) - R_d .* (c_a + 2 * Gamma_star);
+dA_j_dJ = (1 / 8) * (G_c * (c_a - Gamma_star)) / (var_H - A_j);
+dA_j_dJ[G_c == Inf] = 1/4 * (c_a - Gamma_star[G_c == Inf]) / (c_a + b_j[G_c == Inf]); 
+dJ_dJ_phi = (1 - ((J_phi + (1 - 2 * c_prime2) * J_max) / ((J_max + J_phi)^ 2 - 4 * c_prime2 * J_max * J_phi)^ 0.5)) / (2 * c_prime2);
+dJ_phi_dR_abs = var_kappa; 
+dA_n_dR_abs = dA_n_dA_j * dA_j_dJ * dJ_dJ_phi * dJ_phi_dR_abs; 
+
+```
+
+```{r}
+#determine Cowan & Farquhar's (1977) marginal cost (lambda), dA_n/dE, by finite-difference
+c_i = c_a - A_n / G_c; 
+dA_c_dc_i = a_c .* (Gamma_star + b_c) ./ (c_i + b_c).^2;
+dA_j_dc_i = a_j .* (Gamma_star + b_j) ./ (c_i + b_j).^2;
+x = dA_n_dA_c .* dA_c_dc_i + dA_n_dA_j .* dA_j_dc_i; %%% dA_n_dc_i
+dA_n_dE = A_n ./ E .* x ./ (x + G_c); %%%Eq. 4 in Buckley et al. (2016) "Optimal Plant Water Economy"
+
+```
+
+
