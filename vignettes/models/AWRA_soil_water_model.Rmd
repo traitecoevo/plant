@@ -9,81 +9,344 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Load packages
+
 ```{r}
 library(tidyverse)
 library(ggplot2)
 ```
 
+
 ```{r}
-timesteps = 1:20
+read_csv("~/Documents/export-edap61.Falster.NSW.Corrie Downs weather-2.csv") %>%
+  filter(Id != "Units") %>%
+  setNames(as.character(.[1,])) %>%
+  slice(-1) -> soil_moist_obs
+
+str_extract_all(names(soil_moist_obs)[-1], "\\d+") %>%
+  map(~.x[3]) %>%
+  unlist() -> layernames
+
+names(soil_moist_obs)[-1] <- layernames
+
+soil_moist_obs %>%
+  rename(Prec = 17) %>%
+  pivot_longer(cols = -c(Prec,Timestamp), names_to = "depth") %>%
+  mutate(dom = lubridate::day(Timestamp)) %>%
+  mutate(mod = lubridate::minute(Timestamp)) %>%
+  mutate(hod = lubridate::hour(Timestamp)) %>%
+  mutate(moy = lubridate::month(Timestamp)) %>%
+  filter(!(dom == 3 & moy == 7)) %>%
+  mutate(depth = as.numeric(depth)) %>%
+  arrange(depth) -> soil_moist_obs
+
+soil_moist_obs%>%
+  mutate(Prec = as.numeric(Prec)/4) %>%
+  group_by(dom, moy, depth) %>%
+  summarise(Prec = sum(as.numeric(Prec)), value = mean(as.numeric(value))) %>%
+  mutate(date = lubridate::make_datetime(year = 2025, month = moy, day = dom))%>%
+  arrange(date) %>%
+  nest() %>%
+  ungroup() %>%
+  mutate(time = 1:n() - 1)%>%
+  unnest(data) -> soil_moist_obs
+
+soil_moist_obs  %>%
+  group_by(date) %>%
+  summarise(Prec = mean(Prec)) %>%
+  arrange(date)-> Prec_obs
 ```
 
 
 ```{r}
-soil_layers = 15
+timesteps = 1:length(Prec_obs$date)
 ```
 
 
 ```{r}
-f_drain_FS_2021 <- function(Sz, Sz_fc, K_fc, beta, kw, f_dfc){
-  wz = Sz/Sz_fc
-  # wz = Sz_fc/Sz
+soil_layers = length(unique(soil_moist_obs$depth))
+```
 
-  if(wz > 1){
-  # if(Sz > Sz_fc){
-    f_drain = max(K_fc, 1 - 1/wz)
-    # f_drain = 1 - Sz_fc/Sz
-  }
+# Frost, A. J., and Shokri, A., (2021) The Australian Landscape Water Balance model (AWRA-L v7). Technical Description of the Australian Water Resources Assessment Landscape model version 7. Bureau of Meteorology Technical Report
+
+## Functions
+
+```{r}
+# Saturated hydraulic conductivity (mm day^-1)
+
+K_satpedo_ <- function(clay_con){
+  303.84*exp(-0.144*clay_con)
+}
+
+K_sat_ <- function(clay_con, K_satscale){
+  K_satscale*K_satpedo_(clay_con)
+}
+
+# Slope (%)
+
+Beta_ <- function(avg_Slope){
+  avg_Slope/(2*pi)*100
+}
+
+# Unscaled reference precipitation controls infiltration-excess runoff (mm day^-1)
+
+P_refmap_ <- function(clay_con, Beta){
+  20*(2 + log(K_satpedo_(clay_con)/Beta))
+}
+
+# Infiltration-excess runoff (mm day^-1)
+
+Qh_ <- function(P){
+  P - P_refmap*tanh(P/P_refmap)
+}
+
+# Soil water retention at -10kPa
+
+theta_10_ <- function(clay_con){
+  0.3064*(1-exp(-0.0406*clay_con)) + 0.1452
+}
+
+# Soil water retention at field capacity
+
+theta_33_ <- function(clay_con){
+  0.3543*(1-exp(-0.0385*clay_con)) + 0.083
+}
+
+# Soil water retention at wilting point
+
+theta_1500_ <- function(theta_1500){
+  0.4016*(1-exp(-0.0230*clay_con)) + 0.0027
+}
+
+# Clapp and Hornberger (1978)
+
+theta_to_psi_ <- function(theta){
+  psi_s * (theta/theta_s)^(-b)
+} 
+
+psi_to_theta_ <- function(psi){
+  exp((log(psi) - log(psi_s))/-b + log(theta_s))
+} 
+
+# Empirical relationships (Cosby 1984)
+
+b_ <- function(clay_con){
+  3.10 + 0.157*clay_con
+}
+
+psi_s_ <- function(sand_con){
+  exp(1.54 + -0.0095*sand_con)
+}
+
+theta_s_ <- function(sand_con){
+  50.5 + -0.142*sand_con
+}
+
+S_awc_ <- function(clay_con, sand_con){
+  b <- b_(clay_con)
+  psi_s <- psi_s_(sand_con)
+  theta_s <- theta_s_(sand_con)
   
-  if(wz <= 1){
-  # if(Sz <= Sz_fc){
-    f_drain = K_fc*exp(-beta*(1-wz))
-    # f_drain = f_dfc*exp(kw*(Sz/Sz_fc))
-  }
-  return(f_drain)
+  psi_to_theta_(33)/100 - psi_to_theta_(1500)/100
+}
+
+Sz_sat_ <- function(clay_con, sand_con, z){
+  c(z[1], diff(z))*S_awc_(clay_con, sand_con)*Szmaxscale_(z)
+}
+
+```
+
+Frost and Shokri (2021) provide empirical equations for the relationship between clay content and the theta at -33kPa and -1500kPa. These values are then used to calculate soil water available content (soilawc). However, there is no way in this method to convert resulting soil moistures back into soil water potentials which we need to run the plant hydraulics module. So, we replace these empirical equations with the Clapp and Hornberger relationship between psi and theta (function: psi_) and estimate the parameters for this function from Cosby 1984. We can check that we get roughly equivalent results below. 
+
+Works well for clay loam and clay but not so much for almost pure sand
+
+```{r}
+# Test that it works for clay loam
+
+clay_con = 34 # Clay (%)
+sand_con = 32 # Sand (%)
+
+# Frost and Shokri emp equations for theta at 10,33,1500 based on clay content
+
+# 0.4225188 (42.25%)
+theta_10 = theta_10_(clay_con)
+# 0.3993 (39.93%)
+theta_33 = theta_33_(clay_con)
+# 0.2985 (29.85%)
+theta_1500 = theta_1500_(clay_con)
+
+FS_2021_psi_theta <- tibble(psi = c(10,33,1500), theta = c(theta_10, theta_33, theta_1500)*100)
+
+# Estimation of parameters for Clapp and Hornberger equation, used in psi_
+
+b = b_(clay_con = clay_con)
+psi_s = psi_s_(sand_con = sand_con)
+theta_s = theta_s_(sand_con = sand_con)
+
+tibble(theta = seq(1,theta_s, length.out = 100)) %>%
+  mutate(psi = theta_to_psi_(theta)) %>%
+  ggplot() +
+  geom_line(aes(x = theta, y = psi)) +
+  geom_point(data = FS_2021_psi_theta, aes(x = theta, y = psi)) +
+  scale_y_log10() +
+  theme_bw()
+```
+
+
+```{r}
+# Test that it works for clay
+
+clay_con = 58 # Clay (%)
+sand_con = 22 # Sand (%)
+
+# Frost and Shokri emp equations for theta at 10,33,1500 based on clay content
+
+# 0.4225188 (42.25%)
+theta_10 = theta_10_(clay_con)
+# 0.3993 (39.93%)
+theta_33 = theta_33_(clay_con)
+# 0.2985 (29.85%)
+theta_1500 = theta_1500_(clay_con)
+
+FS_2021_psi_theta <- tibble(psi = c(10,33,1500), theta = c(theta_10, theta_33, theta_1500)*100)
+
+# Estimation of parameters for Clapp and Hornberger equation, used in psi_
+
+b = b_(clay_con = clay_con)
+psi_s = psi_s_(sand_con = sand_con)
+theta_s = theta_s_(sand_con = sand_con)
+
+tibble(theta = seq(1,theta_s, length.out = 100)) %>%
+  mutate(psi = theta_to_psi_(theta)) %>%
+  ggplot() +
+  geom_line(aes(x = theta, y = psi)) +
+  geom_point(data = FS_2021_psi_theta, aes(x = theta, y = psi)) +
+  scale_y_log10() +
+  theme_bw()
+```
+
+
+```{r}
+# Test that it works for sand
+
+clay_con = 3 # Clay (%)
+sand_con = 92 # Sand (%)
+
+# Frost and Shokri emp equations for theta at 10,33,1500 based on clay content
+
+# 0.4225188 (42.25%)
+theta_10 = theta_10_(clay_con)
+# 0.3993 (39.93%)
+theta_33 = theta_33_(clay_con)
+# 0.2985 (29.85%)
+theta_1500 = theta_1500_(clay_con)
+
+FS_2021_psi_theta <- tibble(psi = c(10,33,1500), theta = c(theta_10, theta_33, theta_1500)*100)
+
+# Estimation of parameters for Clapp and Hornberger equation, used in psi_
+
+b = b_(clay_con = clay_con)
+psi_s = psi_s_(sand_con = sand_con)
+theta_s = theta_s_(sand_con = sand_con)
+
+tibble(theta = seq(1,theta_s, length.out = 100)) %>%
+  mutate(psi = theta_to_psi_(theta)) %>%
+  ggplot() +
+  geom_line(aes(x = theta, y = psi)) +
+  geom_point(data = FS_2021_psi_theta, aes(x = theta, y = psi)) +
+  scale_y_log10() +
+  theme_bw()
+```
+
+There are a variety of scaling parameters in the Frost and Shokri model which vary with depth. Unclear how this should vary if model has different depths. Could try and fit a spline to it? Spline for ksat looks good.
+
+```{r}
+#Spline for Szmaxscale
+
+tibble(z = c(1e2, 1e3, 6e3),
+       scale_factor = c(2.465, 1.637, 0.904)) -> data_for_spline
+
+spline(x = data_for_spline$z,
+       y = data_for_spline$scale_factor,
+       method = "hyman") -> spline_values  
+
+ggplot() +
+  geom_point(data =data_for_spline, aes(x = z, y = scale_factor)) +
+  geom_line(data = as.tibble(spline_values), aes(x = x, y = y))
+
+
+#Make Szmaxscale spline
+Szmaxscale_ <- splinefun(x = data_for_spline$z,
+       y = data_for_spline$scale_factor,
+       method = "hyman")
+```
+
+
+```{r}
+#Spline for Ksat going negative because last two values are so low. Instead, just assume that this value must drop off extremely quickly
+
+tibble(z = c(1e2, 1e3, 6e3),
+       scale_factor = c(8.307, 0.016, 0.043)) -> data_for_spline
+
+spline(x = data_for_spline$z,
+       y = data_for_spline$scale_factor,
+       method = "fmm") -> spline_values  
+
+ggplot() +
+  geom_point(data =data_for_spline, aes(x = z, y = scale_factor)) +
+  geom_line(data = as.tibble(spline_values), aes(x = x, y = y))
+```
+
+```{r}
+#Set the last two values to equal to make the spline instead
+
+tibble(z = c(1e2, 1e3, 6e3),
+       scale_factor = c(8.307, 0.016, 0.016)) -> data_for_spline
+
+spline(x = data_for_spline$z,
+       y = data_for_spline$scale_factor,
+       method = "hyman") -> spline_values  
+
+ggplot() +
+  geom_point(data =data_for_spline, aes(x = z, y = scale_factor)) +
+  geom_line(data = as.tibble(spline_values), aes(x = x, y = y))
+
+#Make Kzsatscale spline
+Kzsatscale_ <- splinefun(x = data_for_spline$z,
+       y = data_for_spline$scale_factor,
+       method = "hyman")
+```
+
+## Functions
+
+```{r}
+Dz <- function(Sz, i){
+  K_sat[i]*(Sz/Sz_sat[i])^2
 }
 ```
 
 ```{r}
-f_drain_ <- function(Sz, Sz_fc, K_fc, beta, kw, f_dfc){
-  wz = Sz/Sz_fc
-  # wz = Sz_fc/Sz
-
-  if(wz > 1){
-  # if(Sz > Sz_fc){
-    f_drain = max(K_fc, 1 - 1/wz)
-    # f_drain = 1 - Sz_fc/Sz
-  }
-  
-  if(wz <= 1){
-  # if(Sz <= Sz_fc){
-    f_drain = K_fc*exp(-beta*(1-wz))
-    # f_drain = f_dfc*exp(kw*(Sz/Sz_fc))
-  }
-  return(f_drain)
-}
-```
-
-```{r}
-rates_psi <- function(t, Sz, params) {
+rates_psi_FS_2021 <- function(t, Sz, params) {
   with(as.list(c(Sz, params)), {
-    dSz_dt <- rep(NA_real_, n_layers)
+    dSz_dt <- rep(NA_real_, nlayers)
+    Dz_ <- rep(NA_real_, nlayers)
+
     # Calculate fluxes at boundaries
     # top boundary layer - depends on soil water content and rain
-    dSz_dt[1] = rain - Sz[1]*f_drain_(Sz[1], Sz_fc*depth, K_fc, beta, kw, f_dfc)
-        
-    
+    I = P[t+1] - Qh_(P[t+1])
+    Dz_[1] <- Dz(Sz[1], 1)    
+    dSz_dt[1] = I - Dz_[1]
     # Boundary below each node, except the last one
     # Eq. 3 + 11, Ireson et al. (2023)
-    for (i in seq_len(n_layers-1)) {
-      dSz_dt[i + 1] = Sz[i]*f_drain_(Sz[i], Sz_fc*depth, K_fc, beta, kw, f_dfc)-Sz[i + 1]*f_drain_(Sz[i + 1], Sz_fc*depth, K_fc, beta, kw, f_dfc)
+    for (i in seq_len(nlayers-1)) {
+      Dz_[i + 1] <- Dz(Sz[i + 1], i + 1)    
+      dSz_dt[i + 1] = -Dz_[i + 1] + Dz_[i]
     }
 
     return(list(dSz_dt))
   })
 }
 ```
-
 
 ```{r}
 solve <- function(times, rates, state, method = "rk4", output = "theta") {
@@ -99,252 +362,261 @@ solve <- function(times, rates, state, method = "rk4", output = "theta") {
 ```
 
 
+## Parameters
 
 ```{r}
-read_csv("~/Documents/export-edap61.Falster.NSW.Corrie Downs weather.csv") %>%
-  filter(Id != "Units") %>%
-  setNames(as.character(.[1,])) %>%
-  slice(-1) -> soil_moist_obs
+  # Soil info
+  nlayers = soil_layers
+  soil_depth = 1.5e3
+  z = seq(soil_depth/nlayers, soil_depth, length.out= nlayers)
+  clay_con = 58 # Clay (%)
+  sand_con = 22 # Sand (%)
+  K_sat = K_sat_(clay_con, Kzsatscale_(z))
+  Sz_sat = Sz_sat_(clay_con, sand_con, z)
+  
+  # Slope parameters
+  P_refscale = 2.637 # unitless
+  avg_Slope = 10^-5 # radians
+  Beta = Beta_(avg_Slope) # Slope (percent)
+  P_refmap = P_refmap_(clay_con, Beta) # Unscaled reference precipitation
+  P_ref = P_refmap*P_refscale # Scaled reference precipitation
+  
+  S_awc = S_awc_(58,22)
+  
+  # Rain
+  P = Prec_obs$Prec
 
-str_extract_all(names(soil_moist_obs)[-1], "\\d+") %>%
-  map(~.x[3]) %>%
-  unlist() -> layernames
+params <- list(
+  # Soil info
+  nlayers = soil_layers,
+  soil_depth = soil_depth,
+  z = z,
+  clay_con = clay_con, # Clay (%)
+  sand_con = sand_con, # Sand (%)
+  K_sat = K_sat,
+  Sz_sat = Sz_sat,
+  
+  # Slope parameters
+  P_refscale = P_refscale, # unitless
+  avg_Slope = avg_Slope, # radians
+  Beta = Beta, # Slope (percent)
+  P_refmap = P_refmap, # Unscaled reference precipitation
+  P_ref = P_ref, # Scaled reference precipitation
+  
+  S_awc = S_awc,
+  
+  # Rain
+  P = P
+)
+```
 
-names(soil_moist_obs)[-1] <- layernames
 
-soil_moist_obs %>%
-  pivot_longer(cols = -Timestamp) %>%
-  mutate(dom = lubridate::day(Timestamp)) %>%
-  mutate(mod = lubridate::minute(Timestamp)) %>%
-  mutate(hod = lubridate::hour(Timestamp)) %>%
-  filter(dom == 4 & mod == 0 & hod == 0) %>%
-  arrange(as.numeric(name)) -> soil_inits
+```{r}
+state <- soil_moist_obs %>%
+  slice(1:nlayers) %>%
+  arrange(depth) %>%
+  pull(value)
+  
+
+Sz_solve <- solve(times = seq(0,max(timesteps)-1, by = 1), rates=rates_psi_FS_2021, state=state, method="lsoda", output = "Sz")
 ```
 
 ```{r}
-clay_con_iter <- seq(10,100,length.out = 5)
-pore_space_iter <- seq(20,80,length.out = 5)
-
-LHS <- expand_grid(clay_con_iter, pore_space_iter)
-
-rmse <- c()
-for(i in 1:nrow(LHS)){
-#clay content %
-clay_con = LHS[i,"clay_con_iter"]$clay_con_iter/100
-pore_space = LHS[i,"pore_space_iter"]$pore_space_iter/100
-
-# clay_con = 50
-# pore_space = 80/100
-
-
-# Peeters 2013
-
-#soil field capacity (mm)
-Sz_fc = 685*(clay_con)
-#drainage fraction at field capacity (day ^-1)
-K_fc = 0.4256*exp(-7.984*clay_con)
-beta = 2.05
-
-params <- c(Sz_fc = Sz_fc, 
-            K_fc  = K_fc, 
-            beta = 2.05, 
-            depth = 0.1,
-            n_layers = 15,
-            rain = 0,
-            pore_space = 0.5,
-            kw = 4.43,
-            f_dfc = 0.03)
-
-state <- as.numeric(soil_inits$value)/100*(pore_space*1000)*0.1
-
-Sz_solve <- solve(times = seq(0,20, by = 1), rates=rates_psi, state=state, method="lsoda", output = "Sz")
+soil_moist_obs %>% 
+  ungroup() %>% 
+  arrange(date) %>%
+  select(value, date, depth) -> soil_moist_obs_rearranged
 
 Sz_solve %>%
-  rename(dom = time) %>%
-  mutate(dom = as.numeric(dom)) %>%
-  mutate(dom = dom + 4) -> Sz_solve_select
-
-soil_moist_obs %>%
-  pivot_longer(cols = -Timestamp, names_to = "depth") %>%
-  mutate(dom = lubridate::day(Timestamp)) %>%
-  mutate(mod = lubridate::minute(Timestamp)) %>%
-  mutate(hod = lubridate::hour(Timestamp)) %>%
-  mutate(value = as.numeric(value)/(1/pore_space)) %>%
-  filter(mod == 0) %>%
-  filter(hod == 0) %>%
-  left_join(Sz_solve_select)%>%
-  mutate(Sz = as.numeric(Sz))%>%
-  drop_na() -> test_data
-
-# rmse[i] <- Metrics::rmse(test_data$value, as.numeric(test_data$Sz))
-rmse[i] <- cor(test_data$value, as.numeric(test_data$Sz))
-
-}
-```
-
-```{r}
-LHS %>%
-  bind_cols(rmse = rmse) %>% View()
-  ggplot(aes(x = clay_con_iter, y = pore_space_iter)) +
-  geom_tile(aes(fill = rmse))
-plot(rmse~clay_con_iter)
-```
-
-```{r}
-test_data %>%
-  filter(depth == 6) %>%
-  ggplot(aes(x = dom)) + 
-  geom_line(aes(y = value)) +
-  geom_line(aes(y = Sz))
-```
-
-
-
-```{r}
-f_drain_ <- function(Sz, Sz_fc, K_fc, beta, kw, f_dfc){
-  wz = Sz/Sz_fc
-  # wz = Sz_fc/Sz
-
-  if(wz > 1){
-  # if(Sz > Sz_fc){
-    f_drain = max(K_fc, 1 - 1/wz)
-    # f_drain = 1 - Sz_fc/Sz
-  }
-  
-  if(wz <= 1){
-  # if(Sz <= Sz_fc){
-    f_drain = K_fc*exp(-beta*(1-wz))
-    # f_drain = f_dfc*exp(kw*(Sz/Sz_fc))
-  }
-  return(f_drain)
-}
-```
-
-
-```{r}
-rates_psi <- function(t, Sz, params) {
-  with(as.list(c(Sz, params)), {
-    dSz_dt <- rep(NA_real_, n_layers)
-    # Calculate fluxes at boundaries
-    # top boundary layer - depends on soil water content and rain
-    dSz_dt[1] = rain - Sz[1]*f_drain_(Sz[1], Sz_fc*depth, K_fc, beta, kw, f_dfc)
-        
-    
-    # Boundary below each node, except the last one
-    # Eq. 3 + 11, Ireson et al. (2023)
-    for (i in seq_len(n_layers-1)) {
-      dSz_dt[i + 1] = Sz[i]*f_drain_(Sz[i], Sz_fc*depth, K_fc, beta, kw, f_dfc)-Sz[i + 1]*f_drain_(Sz[i + 1], Sz_fc*depth, K_fc, beta, kw, f_dfc)
-    }
-
-    return(list(dSz_dt))
-  })
-}
-```
-
-```{r}
-D <- function(Sz, clay_con){
-  #clay_con in dag/ka
-  theta_33 = 0.3543*(1-exp(-0.0385*clay_con)) + 0.083
-  theta_1500 = 0.4016*(1-exp(-0.0230*clay_con)) + 0.0027
-  Kd_satPedo = 303.84*exp(-0.144*clay_con)
-  Kd_satscale = 0.043   
-  S_dawc = theta_33 - theta_1500
-  S_dmaxscale = 0.904
-  
-  dd = 100
-  Sd_max = dd*S_dawc*S_dmaxscale
-  Kd_sat = Kd_satscale*Kd_satPedo
-  return(Kd_sat*((Sz/Sd_max)^2))
-}
-```
-
-
-```{r}
-rates_psi_FS_2021 <- function(t, Sz, params) {
-  with(as.list(c(Sz, params)), {
-    dSz_dt <- rep(NA_real_, n_layers)
-    # Calculate fluxes at boundaries
-    # top boundary layer - depends on soil water content and rain
-    dSz_dt[1] = rain - Sz[1]*D(Sz[1], clay_con)
-        
-    # Boundary below each node, except the last one
-    # Eq. 3 + 11, Ireson et al. (2023)
-    for (i in seq_len(n_layers-1)) {
-      dSz_dt[i + 1] = -Sz[i + 1]*D(Sz[i + 1], clay_con) + Sz[i]*D(Sz[i], clay_con)
-    }
-
-    return(list(dSz_dt))
-  })
-}
-```
-
-```{r}
-clay_con_iter <- seq(40,80,length.out = 10)
-pore_space_iter <- seq(20,80,length.out = 10)
-
-LHS <- expand_grid(clay_con_iter, pore_space_iter)
-
-rmse <- c()
-for(i in 1:nrow(LHS)){
-#clay content %
-clay_con = LHS[i,"clay_con_iter"]$clay_con_iter
-pore_space = LHS[i,"pore_space_iter"]$pore_space_iter/100
-
-#dag/kg or %
-# clay_con = 51
-# pore_space = S_dmaxscale/100
-
-
-# Peeters 2013
-
-#soil field capacity (mm)
-
-
-params <- c(clay_con = clay_con, 
-            depth = 0.1,
-            n_layers = 15,
-            rain = 0)
-
-state <- as.numeric(soil_inits$value)/100*(pore_space*1000)*0.1
-
-Sz_solve <- solve(times = seq(0,20, by = 1), rates=rates_psi_FS_2021, state=state, method="lsoda", output = "Sz")
-
-Sz_solve %>%
-  rename(dom = time) %>%
-  mutate(dom = as.numeric(dom)) %>%
-  mutate(dom = dom + 4) -> Sz_solve_select
-
-soil_moist_obs %>%
-  pivot_longer(cols = -Timestamp, names_to = "depth") %>%
-  mutate(dom = lubridate::day(Timestamp)) %>%
-  mutate(mod = lubridate::minute(Timestamp)) %>%
-  mutate(hod = lubridate::hour(Timestamp)) %>%
-  mutate(value = as.numeric(value)/(1/pore_space)) %>%
-  filter(mod == 0) %>%
-  filter(hod == 0) %>%
-  left_join(Sz_solve_select)%>%
-  mutate(Sz = as.numeric(Sz))%>%
-  drop_na() -> test_data
-
-rmse[i] <- Metrics::rmse(test_data$value, as.numeric(test_data$Sz))
-rmse[i] <- cor(test_data$value, as.numeric(test_data$Sz))
-
-}
-```
-
-```{r}
-LHS %>%
-  bind_cols(rmse = rmse) %>% View()
-  ggplot(aes(x = clay_con_iter, y = pore_space_iter)) +
-  geom_tile(aes(fill = rmse))
-```
-
-
-```{r}
-test_data %>%
-  ggplot(aes(x = dom)) +
+  mutate(depth = as.numeric(depth)) %>%
+  mutate(date = soil_moist_obs_rearranged$date) %>%
+  left_join(soil_moist_obs_rearranged) %>%
+  ggplot(aes(x = time)) +
   geom_line(aes(y = Sz)) +
-  geom_line(aes(y = value,col = "red")) +
+  geom_line(aes(y = value), col = "red") +
+  facet_wrap(~as.numeric(depth))
+```
+
+```{r}
+soiltype <- tibble(soil = c("sand","loamsand","sandyloam","loam",
+                "siltyloam","sandyclayloam","clayloam",                "siltyclayloam","sandyclay","siltyclay",
+                "clay"),
+       sand = c(92,82,58,43,17,58,32,10,52,6,22),
+       clay = c(3,6,10,18,13,27,34,34,42,47,58))
+
+rmse <- c()
+bias <- c()
+```
+
+```{r}
+for(i in 1:nrow(soiltype)){
+
+
+## Parameters
+
+  # Soil info
+  nlayers = soil_layers
+  soil_depth = 1.5e3
+  z = seq(soil_depth/nlayers, soil_depth, length.out= nlayers)
+  clay_con = soiltype[i,]$clay # Clay (%)
+  sand_con = soiltype[i,]$sand # Sand (%)
+  K_sat = K_sat_(clay_con, Kzsatscale_(z))
+  Sz_sat = Sz_sat_(clay_con, sand_con, z)
+  
+  # Slope parameters
+  P_refscale = 2.637 # unitless
+  avg_Slope = 10^-5 # radians
+  Beta = Beta_(avg_Slope) # Slope (percent)
+  P_refmap = P_refmap_(clay_con, Beta) # Unscaled reference precipitation
+  P_ref = P_refmap*P_refscale # Scaled reference precipitation
+  
+  S_awc = S_awc_(58,22)
+  
+  # Rain
+  P = Prec_obs$Prec
+
+params <- list(
+  # Soil info
+  nlayers = soil_layers,
+  soil_depth = soil_depth,
+  z = z,
+  clay_con = clay_con, # Clay (%)
+  sand_con = sand_con, # Sand (%)
+  K_sat = K_sat,
+  Sz_sat = Sz_sat,
+  
+  # Slope parameters
+  P_refscale = P_refscale, # unitless
+  avg_Slope = avg_Slope, # radians
+  Beta = Beta, # Slope (percent)
+  P_refmap = P_refmap, # Unscaled reference precipitation
+  P_ref = P_ref, # Scaled reference precipitation
+  
+  S_awc = S_awc,
+  
+  # Rain
+  P = P
+)
+
+
+state <- soil_moist_obs %>%
+  slice(1:nlayers) %>%
+  arrange(depth) %>%
+  pull(value)
+  
+
+Sz_solve <- solve(times = seq(0,max(timesteps)-1, by = 1), rates=rates_psi_FS_2021, state=state, method="lsoda", output = "Sz")
+
+soil_moist_obs %>% 
+  ungroup() %>% 
+  arrange(date) %>%
+  select(value, date, depth) -> soil_moist_obs_rearranged
+
+Sz_solve %>%
+  mutate(depth = as.numeric(depth)) %>%
+  mutate(date = soil_moist_obs_rearranged$date) %>%
+  left_join(soil_moist_obs_rearranged) %>%
+  select(Sz, value) -> res
+
+rmse[i] <- Metrics::rmse(res$Sz, res$value)
+bias[i] <- Metrics::bias(res$Sz, res$value)
+
+Sz_solve %>%
+  mutate(depth = as.numeric(depth)) %>%
+  mutate(date = soil_moist_obs_rearranged$date) %>%
+  left_join(soil_moist_obs_rearranged) %>%
+  ggplot(aes(x = time)) +
+  geom_line(aes(y = Sz)) +
+  geom_line(aes(y = value), col = "red") +
+  facet_wrap(~as.numeric(depth)) -> p
+
+print(p)
+
+}
+```
+
+```{r}
+i = 4
+
+## Parameters
+
+  # Soil info
+  nlayers = soil_layers
+  soil_depth = 1.5e3
+  z = seq(soil_depth/nlayers, soil_depth, length.out= nlayers)
+  clay_con = soiltype[i,]$clay # Clay (%)
+  sand_con = soiltype[i,]$sand # Sand (%)
+  K_sat = K_sat_(clay_con, Kzsatscale_(z))
+  Sz_sat = Sz_sat_(clay_con, sand_con, z)
+  
+  # Slope parameters
+  P_refscale = 2.637 # unitless
+  avg_Slope = 10^-5 # radians
+  Beta = Beta_(avg_Slope) # Slope (percent)
+  P_refmap = P_refmap_(clay_con, Beta) # Unscaled reference precipitation
+  P_ref = P_refmap*P_refscale # Scaled reference precipitation
+  
+  S_awc = S_awc_(58,22)
+  
+  # Rain
+  P = Prec_obs$Prec
+
+params <- list(
+  # Soil info
+  nlayers = soil_layers,
+  soil_depth = soil_depth,
+  z = z,
+  clay_con = clay_con, # Clay (%)
+  sand_con = sand_con, # Sand (%)
+  K_sat = K_sat,
+  Sz_sat = Sz_sat,
+  
+  # Slope parameters
+  P_refscale = P_refscale, # unitless
+  avg_Slope = avg_Slope, # radians
+  Beta = Beta, # Slope (percent)
+  P_refmap = P_refmap, # Unscaled reference precipitation
+  P_ref = P_ref, # Scaled reference precipitation
+  
+  S_awc = S_awc,
+  
+  # Rain
+  P = P
+)
+
+
+state <- soil_moist_obs %>%
+  slice(1:nlayers) %>%
+  arrange(depth) %>%
+  pull(value)
+  
+
+Sz_solve <- solve(times = seq(0,max(timesteps)-1, by = 1), rates=rates_psi_FS_2021, state=state, method="lsoda", output = "Sz")
+
+soil_moist_obs %>% 
+  ungroup() %>% 
+  arrange(date) %>%
+  select(value, date, depth) -> soil_moist_obs_rearranged
+
+Sz_solve %>%
+  mutate(depth = as.numeric(depth)) %>%
+  mutate(date = soil_moist_obs_rearranged$date) %>%
+  left_join(soil_moist_obs_rearranged) %>%
+  select(Sz, value) -> res
+
+rmse[i] <- Metrics::rmse(res$Sz, res$value)
+bias[i] <- Metrics::bias(res$Sz, res$value)
+
+```
+
+```{r}
+Sz_solve %>%
+  mutate(depth = as.numeric(depth)) %>%
+  mutate(date = soil_moist_obs_rearranged$date) %>%
+  left_join(soil_moist_obs_rearranged) %>%
+  ggplot(aes(x = time)) +
+  geom_line(aes(y = Sz)) +
+  geom_line(aes(y = value), col = "red") +
   facet_wrap(~as.numeric(depth))
 ```
 
