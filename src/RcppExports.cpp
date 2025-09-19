@@ -277,18 +277,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Leaf__profit_Sperry_ci
-double Leaf__profit_Sperry_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double ci_);
-RcppExport SEXP _plant_Leaf__profit_Sperry_ci(SEXP obj_SEXP, SEXP ci_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type ci_(ci_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Leaf__profit_Sperry_ci(obj_, ci_));
-    return rcpp_result_gen;
-END_RCPP
-}
 // Leaf__profit_psi_stem_TF
 double Leaf__profit_psi_stem_TF(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem);
 RcppExport SEXP _plant_Leaf__profit_psi_stem_TF(SEXP obj_SEXP, SEXP psi_stemSEXP) {
@@ -308,17 +296,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
     Leaf__optimise_psi_stem_Sperry(obj_);
-    return R_NilValue;
-END_RCPP
-}
-// Leaf__optimise_ci_Sperry
-void Leaf__optimise_ci_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_, double max_ci);
-RcppExport SEXP _plant_Leaf__optimise_ci_Sperry(SEXP obj_SEXP, SEXP max_ciSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type max_ci(max_ciSEXP);
-    Leaf__optimise_ci_Sperry(obj_, max_ci);
     return R_NilValue;
 END_RCPP
 }
@@ -9365,10 +9342,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__hydraulic_cost_Sperry", (DL_FUNC) &_plant_Leaf__hydraulic_cost_Sperry, 2},
     {"_plant_Leaf__hydraulic_cost_TF", (DL_FUNC) &_plant_Leaf__hydraulic_cost_TF, 2},
     {"_plant_Leaf__profit_psi_stem_Sperry", (DL_FUNC) &_plant_Leaf__profit_psi_stem_Sperry, 2},
-    {"_plant_Leaf__profit_Sperry_ci", (DL_FUNC) &_plant_Leaf__profit_Sperry_ci, 2},
     {"_plant_Leaf__profit_psi_stem_TF", (DL_FUNC) &_plant_Leaf__profit_psi_stem_TF, 2},
     {"_plant_Leaf__optimise_psi_stem_Sperry", (DL_FUNC) &_plant_Leaf__optimise_psi_stem_Sperry, 1},
-    {"_plant_Leaf__optimise_ci_Sperry", (DL_FUNC) &_plant_Leaf__optimise_ci_Sperry, 2},
     {"_plant_Leaf__optimise_psi_stem_TF", (DL_FUNC) &_plant_Leaf__optimise_psi_stem_TF, 1},
     {"_plant_Leaf__ci___get", (DL_FUNC) &_plant_Leaf__ci___get, 1},
     {"_plant_Leaf__ci___set", (DL_FUNC) &_plant_Leaf__ci___set, 2},

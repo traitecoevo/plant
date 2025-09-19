@@ -82,20 +82,12 @@ double Leaf__profit_psi_stem_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_, dou
   return obj_->profit_psi_stem_Sperry(psi_stem);
 }
 // [[Rcpp::export]]
-double Leaf__profit_Sperry_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double ci_) {
-  return obj_->profit_Sperry_ci(ci_);
-}
-// [[Rcpp::export]]
 double Leaf__profit_psi_stem_TF(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
   return obj_->profit_psi_stem_TF(psi_stem);
 }
 // [[Rcpp::export]]
 void Leaf__optimise_psi_stem_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   obj_->optimise_psi_stem_Sperry();
-}
-// [[Rcpp::export]]
-void Leaf__optimise_ci_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_, double max_ci) {
-  obj_->optimise_ci_Sperry(max_ci);
 }
 // [[Rcpp::export]]
 void Leaf__optimise_psi_stem_TF(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
