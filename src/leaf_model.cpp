@@ -17,7 +17,10 @@ Leaf::Leaf()
     GSS_tol_abs(1e-3),
     vulnerability_curve_ncontrol(100),
     ci_abs_tol(1e-3),
-    ci_niter(1000)
+    ci_niter(1000),
+    g0(0.022),
+    g1(2.57)
+
    {
       setup_transpiration(100); // arg: num control points for integration
       setup_clean_leaf();
@@ -30,7 +33,9 @@ Leaf::Leaf(double vcmax_25, double c, double b,
            double GSS_tol_abs,
            double vulnerability_curve_ncontrol,
            double ci_abs_tol,
-           double ci_niter)
+           double ci_niter,
+           double g0,
+           double g1)
     : vcmax_25(vcmax_25), // umol m^-2 s^-1 
     c(c), //unitless
     b(b), //-MPa
@@ -44,7 +49,9 @@ Leaf::Leaf(double vcmax_25, double c, double b,
     GSS_tol_abs(GSS_tol_abs),
     vulnerability_curve_ncontrol(vulnerability_curve_ncontrol),
     ci_abs_tol(ci_abs_tol),
-    ci_niter(ci_niter)
+    ci_niter(ci_niter),
+    g0(g0),
+    g1(g1)
    {
       setup_transpiration(vulnerability_curve_ncontrol); // arg: num control points for integration
       setup_clean_leaf();
@@ -54,6 +61,7 @@ Leaf::Leaf(double vcmax_25, double c, double b,
 void Leaf::setup_clean_leaf() {
   ci_ = NA_REAL; // Pa
   stom_cond_CO2_= NA_REAL; //mol Co2 m^-2 s^-1 
+  medlyn_model_gs_ = NA_REAL; //mol Co2 m^-2 s^-1 
   assim_colimited_= NA_REAL; // umol C m^-2 s^-1 
   transpiration_= NA_REAL; // kg m^-2 s^-1 
   profit_= NA_REAL; // umol C m^-2 s^-1 
@@ -80,12 +88,16 @@ void Leaf::setup_clean_leaf() {
   atm_kpa_= NA_REAL; // kPa
   ca_= NA_REAL; //Pa
   opt_psi_stem_= NA_REAL; //-MPa 
-  opt_ci_= NA_REAL; //Pa 
+  opt_ci_= NA_REAL; //Pa
+  theta_w_ = NA_REAL;
+  theta_fc_ = NA_REAL;
+  theta_ = NA_REAL;
 }
+
 
 //sets various parameters which are constant for a given node at a given time
 
-void Leaf::set_physiology(double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa) {
+void Leaf::set_physiology(double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa, double theta_w, double theta_fc, double theta) {
    rho_ = rho;
    a_bio_ = a_bio;
    atm_vpd_ = atm_vpd;
@@ -105,7 +117,9 @@ void Leaf::set_physiology(double rho, double a_bio, double PPFD, double psi_soil
    kc_ = arrh_curve(kc_ha, kc_25, leaf_temp_);
    R_d_ = vcmax_*0.015;
    km_ = (kc_*umol_per_mol_to_Pa)*(1 + (atm_o2_kpa_*kPa_to_Pa)/(ko_*umol_per_mol_to_Pa));
-
+   theta_w_ = theta_w;
+   theta_fc_ = theta_fc;
+   theta_ = theta;
 
 // set lambda, if psi_soil is higher than psi_crit, then set to 0. Currently doing both the numerical and analytical version. Ideally would do one.
   // if(psi_soil >= psi_crit){
@@ -275,8 +289,6 @@ void Leaf::set_leaf_states_rates_from_psi_stem(double psi_stem) {
       }
   
   assim_colimited_ = assim_colimited(ci_);
-  
-
 }
 
 
@@ -469,4 +481,64 @@ void Leaf::optimise_psi_stem_TF() {
     return;
   }
 
-} // namespace plant
+double Leaf::medlyn_model_gs(double assim_colimited_){
+
+  double beta_ = (theta_ - theta_w_)/(theta_fc_ - theta_w_);
+
+  if(atm_vpd == 0){
+     medlyn_model_gs_ = g0;
+  } else{
+     medlyn_model_gs_ = g0 + 1.6*(1 + (g1*beta_)/sqrt(atm_vpd_))*(assim_colimited_/(ca_*(1/umol_per_mol_to_Pa)));
+  }
+return medlyn_model_gs_;
+}
+
+// returns difference between co-limited assimilation and stom_cond_CO2, to be minimised (umol m^-2 s^-1)
+double Leaf::medlyn_stom_cond_minus_coupled_stom_cond(double x) {
+
+  double assim_colimited_x_ = assim_colimited(x);
+  double stom_cond_CO2_ = (assim_colimited_x_ * (atm_kpa_*kPa_to_Pa) / (ca_ - x) * 1.6) / 1e6;
+
+  if(ca_ == x){
+    stom_cond_CO2_ = 0;
+  }
+
+  medlyn_model_gs_ = medlyn_model_gs(assim_colimited_x_);
+  return 1/abs(medlyn_model_gs_ - stom_cond_CO2_);
+}
+
+void Leaf::solve_medlyn_ci(){
+    
+double gr = (sqrt(5) + 1) / 2;
+
+  // optimise for stem water potential
+    double bound_a = gamma_ * umol_per_mol_to_Pa;
+    double bound_b = ca_;
+
+    double bound_c = bound_b - (bound_b - bound_a) / gr;
+    double bound_d = bound_a + (bound_b - bound_a) / gr;
+    while (abs(bound_b - bound_a) > GSS_tol_abs) {
+
+      double profit_at_c =
+          medlyn_stom_cond_minus_coupled_stom_cond(bound_c);
+
+      double profit_at_d =
+          medlyn_stom_cond_minus_coupled_stom_cond(bound_d);
+
+      if (profit_at_c > profit_at_d) {
+        bound_b = bound_d;
+      } else {
+        bound_a = bound_c;
+      }
+
+      bound_c = bound_b - (bound_b - bound_a) / gr;
+      bound_d = bound_a + (bound_b - bound_a) / gr;
+    }
+
+    ci_ = ((bound_b + bound_a) / 2);
+    assim_colimited_ = assim_colimited(ci_);
+    stom_cond_CO2_ = medlyn_model_gs(assim_colimited_);
+    return;
+
+} 
+}// namespace plant

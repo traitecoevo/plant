@@ -17,7 +17,8 @@ Leaf:
       @param vulnerability_curve_ncontrol number of points for pre-calculating vulnerability curve
       @param ci_abs_tol absolute tolerance value for root-solving ci
       @param ci_niter maximum number of iterations for root-solving ci
-
+      @param g0 g0 parameter in the medlyn model umol m^-2 s^-1
+      @param g1 parameter in the medlyn model umol kPa^0.5
 
       @export
     args:
@@ -35,10 +36,13 @@ Leaf:
       - vulnerability_curve_ncontrol: double
       - ci_abs_tol: double
       - ci_niter: double
+      - g0: double
+      - g1: double 
 
   active:
     ci_: {type: double, access: field}
     stom_cond_CO2_: {type: double, access: field}
+    medlyn_model_gs_: {type: double, access: field}
     assim_colimited_: {type: double, access: field}
     transpiration_: {type: double, access: field}
     profit_: {type: double, access: field}
@@ -67,6 +71,10 @@ Leaf:
     opt_psi_stem_: {type: double, access: field}
     opt_ci_: {type: double, access: field}
     count: {type: double, access: field}
+    theta_w_: {type: double, access: field}
+    theta_fc_: {type: double, access: field}
+    theta_: {type: double, access: field}
+
 
   methods:
     initialize_integrator:
@@ -74,7 +82,7 @@ Leaf:
       args: [integration_rule: int, integration_tol: double]
     set_physiology:
       return_type: void 
-      args: [rho: double, a_bio: double, PPFD: double, psi_soil: double, leaf_specific_conductance_max: double, atm_vpd: double, ca: double, sapwood_volume_per_leaf_area: double, leaf_temp: double, atm_o2_kpa: double, atm_kpa: double]
+      args: [rho: double, a_bio: double, PPFD: double, psi_soil: double, leaf_specific_conductance_max: double, atm_vpd: double, ca: double, sapwood_volume_per_leaf_area: double, leaf_temp: double, atm_o2_kpa: double, atm_kpa: double, theta_w: double, theta_fc: double, theta: double]
     #transpiration functions
     proportion_of_conductivity:
       return_type: double
@@ -145,6 +153,17 @@ Leaf:
     optimise_psi_stem_TF:
       return_type: void
       args: []
+    solve_medlyn_ci:
+      return_type: void
+      args: []
+    medlyn_model_gs:
+      return_type: double
+      args: [assim_colimited_: double]
+    medlyn_stom_cond_minus_coupled_stom_cond:
+      return_type: double
+      args: [x: double]
+
+  
       
 Lorenz:
   name_cpp: "plant::ode::test::Lorenz"

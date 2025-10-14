@@ -310,6 +310,8 @@ public:
   double vulnerability_curve_ncontrol = 100;
   double ci_abs_tol = 1e-6;
   double ci_niter = 1000;
+  double g0 = 0.022; //g0 parameter in the medlyn model umol m^-2 s^-1
+  double g1 = 2.57; //g1 parameter in the medlyn model umol kPa^0.5
   
 
   //nitrogen allocation traits (parameterised from Austraits 4.1.0)

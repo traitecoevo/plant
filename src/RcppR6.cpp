@@ -2,16 +2,16 @@
 #include <plant.h>
 
 // [[Rcpp::export]]
-plant::Leaf Leaf__ctor(double vcmax_25, double c, double b, double psi_crit, double beta2, double jmax_25, double hk_s, double a, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter) {
-  return plant::Leaf(vcmax_25, c, b, psi_crit, beta2, jmax_25, hk_s, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter);
+plant::Leaf Leaf__ctor(double vcmax_25, double c, double b, double psi_crit, double beta2, double jmax_25, double hk_s, double a, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter, double g0, double g1) {
+  return plant::Leaf(vcmax_25, c, b, psi_crit, beta2, jmax_25, hk_s, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, g0, g1);
 }
 // [[Rcpp::export]]
 void Leaf__initialize_integrator(plant::RcppR6::RcppR6<plant::Leaf> obj_, int integration_rule, double integration_tol) {
   obj_->initialize_integrator(integration_rule, integration_tol);
 }
 // [[Rcpp::export]]
-void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa) {
-  obj_->set_physiology(rho, a_bio, PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area, leaf_temp, atm_o2_kpa, atm_kpa);
+void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa, double theta_w, double theta_fc, double theta) {
+  obj_->set_physiology(rho, a_bio, PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area, leaf_temp, atm_o2_kpa, atm_kpa, theta_w, theta_fc, theta);
 }
 // [[Rcpp::export]]
 double Leaf__proportion_of_conductivity(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi) {
@@ -102,6 +102,18 @@ void Leaf__optimise_psi_stem_TF(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   obj_->optimise_psi_stem_TF();
 }
 // [[Rcpp::export]]
+void Leaf__solve_medlyn_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  obj_->solve_medlyn_ci();
+}
+// [[Rcpp::export]]
+double Leaf__medlyn_model_gs(plant::RcppR6::RcppR6<plant::Leaf> obj_, double assim_colimited_) {
+  return obj_->medlyn_model_gs(assim_colimited_);
+}
+// [[Rcpp::export]]
+double Leaf__medlyn_stom_cond_minus_coupled_stom_cond(plant::RcppR6::RcppR6<plant::Leaf> obj_, double x) {
+  return obj_->medlyn_stom_cond_minus_coupled_stom_cond(x);
+}
+// [[Rcpp::export]]
 double Leaf__ci___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   return obj_->ci_;
 }
@@ -117,6 +129,15 @@ double Leaf__stom_cond_CO2___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
 // [[Rcpp::export]]
 void Leaf__stom_cond_CO2___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
   obj_->stom_cond_CO2_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__medlyn_model_gs___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->medlyn_model_gs_;
+}
+// [[Rcpp::export]]
+void Leaf__medlyn_model_gs___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->medlyn_model_gs_ = value;
 }
 
 // [[Rcpp::export]]
@@ -369,6 +390,33 @@ double Leaf__count__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
 // [[Rcpp::export]]
 void Leaf__count__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
   obj_->count = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__theta_w___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->theta_w_;
+}
+// [[Rcpp::export]]
+void Leaf__theta_w___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->theta_w_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__theta_fc___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->theta_fc_;
+}
+// [[Rcpp::export]]
+void Leaf__theta_fc___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->theta_fc_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__theta___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->theta_;
+}
+// [[Rcpp::export]]
+void Leaf__theta___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->theta_ = value;
 }
 
 
