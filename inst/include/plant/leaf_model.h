@@ -225,12 +225,10 @@ public:
   double hydraulic_cost_TF(double psi_stem);
 
   double profit_psi_stem_Sperry(double psi_stem);
-  double profit_Sperry_ci(double ci_);
   double profit_psi_stem_TF(double psi_stem);
 
 // optimiser functions
   void optimise_psi_stem_Sperry();
-  void optimise_ci_Sperry(double ci_guess);
   void optimise_psi_stem_TF();
   void solve_medlyn_ci();
   double medlyn_model_gs(double assim_colimited_);

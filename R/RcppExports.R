@@ -81,20 +81,12 @@ Leaf__profit_psi_stem_Sperry <- function(obj_, psi_stem) {
     .Call('_plant_Leaf__profit_psi_stem_Sperry', PACKAGE = 'plant', obj_, psi_stem)
 }
 
-Leaf__profit_Sperry_ci <- function(obj_, ci_) {
-    .Call('_plant_Leaf__profit_Sperry_ci', PACKAGE = 'plant', obj_, ci_)
-}
-
 Leaf__profit_psi_stem_TF <- function(obj_, psi_stem) {
     .Call('_plant_Leaf__profit_psi_stem_TF', PACKAGE = 'plant', obj_, psi_stem)
 }
 
 Leaf__optimise_psi_stem_Sperry <- function(obj_) {
     invisible(.Call('_plant_Leaf__optimise_psi_stem_Sperry', PACKAGE = 'plant', obj_))
-}
-
-Leaf__optimise_ci_Sperry <- function(obj_, max_ci) {
-    invisible(.Call('_plant_Leaf__optimise_ci_Sperry', PACKAGE = 'plant', obj_, max_ci))
 }
 
 Leaf__optimise_psi_stem_TF <- function(obj_) {
