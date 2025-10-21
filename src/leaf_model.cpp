@@ -17,7 +17,8 @@ Leaf::Leaf()
     GSS_tol_abs(1e-3),
     vulnerability_curve_ncontrol(100),
     ci_abs_tol(1e-3),
-    ci_niter(1000)
+    ci_niter(1000),
+    g1_TF24(46.32995) //cost parameter for TF24 profit model umol m^-2 s^-1
    {
       setup_transpiration(100); // arg: num control points for integration
       setup_clean_leaf();
@@ -30,7 +31,8 @@ Leaf::Leaf(double vcmax_25, double c, double b,
            double GSS_tol_abs,
            double vulnerability_curve_ncontrol,
            double ci_abs_tol,
-           double ci_niter)
+           double ci_niter,
+          double g1_TF24)
     : vcmax_25(vcmax_25), // umol m^-2 s^-1 
     c(c), //unitless
     b(b), //-MPa
@@ -44,7 +46,8 @@ Leaf::Leaf(double vcmax_25, double c, double b,
     GSS_tol_abs(GSS_tol_abs),
     vulnerability_curve_ncontrol(vulnerability_curve_ncontrol),
     ci_abs_tol(ci_abs_tol),
-    ci_niter(ci_niter)
+    ci_niter(ci_niter),
+    g1_TF24(g1_TF24) //cost parameter for TF24 profit model umol m^-2 s^-1
    {
       setup_transpiration(vulnerability_curve_ncontrol); // arg: num control points for integration
       setup_clean_leaf();
@@ -294,10 +297,13 @@ double Leaf::hydraulic_cost_Sperry(double psi_stem) {
 }
 
 double Leaf::hydraulic_cost_TF(double psi_stem) {
-hydraulic_cost_ = 1e6 * 
-    hk_s /(365*24*60*60)* 
-    (1/a_bio_) * 
-    rho_ * sapwood_volume_per_leaf_area_ * pow((1 - proportion_of_conductivity(psi_stem)), beta2);
+//hydraulic_cost_ = 1e6 * 
+  //  hk_s /(365*24*60*60)* 
+    //(1/a_bio_) * 
+    //rho_ * sapwood_volume_per_leaf_area_ * pow((1 - proportion_of_conductivity(psi_stem)), beta2);
+
+  hydraulic_cost_ = g1_TF24 * pow((1 - proportion_of_conductivity(psi_stem)), beta2);
+
 
 return hydraulic_cost_;
 }

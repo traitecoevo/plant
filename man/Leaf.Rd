@@ -18,7 +18,8 @@ Leaf(
   GSS_tol_abs,
   vulnerability_curve_ncontrol,
   ci_abs_tol,
-  ci_niter
+  ci_niter,
+  g1_TF24
 )
 }
 \arguments{
@@ -49,6 +50,8 @@ Leaf(
 \item{ci_abs_tol}{absolute tolerance value for root-solving ci}
 
 \item{ci_niter}{maximum number of iterations for root-solving ci}
+
+\item{g1_TF24}{cost parameter for TF24 cost model}
 }
 \description{
 Leaf model

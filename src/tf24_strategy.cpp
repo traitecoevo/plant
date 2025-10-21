@@ -581,7 +581,7 @@ void TF24_Strategy::prepare_strategy() {
     leaf = Leaf(vcmax_25,  c,  b, psi_crit, beta2, jmax_25, hk_s, a, curv_fact_elec_trans,curv_fact_colim, control.GSS_tol_abs,
            control.vulnerability_curve_ncontrol,
            control.ci_abs_tol,
-           control.ci_niter);
+           control.ci_niter,g1_TF24);
 }
 
 TF24_Strategy::ptr make_strategy_ptr(TF24_Strategy s) {

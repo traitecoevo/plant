@@ -17,7 +17,8 @@ Leaf:
       @param vulnerability_curve_ncontrol number of points for pre-calculating vulnerability curve
       @param ci_abs_tol absolute tolerance value for root-solving ci
       @param ci_niter maximum number of iterations for root-solving ci
-
+      @param g1_TF24 cost parameter for TF24 profit model umol m^-2 s^-1
+   {
 
       @export
     args:
@@ -35,6 +36,7 @@ Leaf:
       - vulnerability_curve_ncontrol: double
       - ci_abs_tol: double
       - ci_niter: double
+      - g1_TF24: double
 
   active:
     ci_: {type: double, access: field}

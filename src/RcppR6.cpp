@@ -2,8 +2,8 @@
 #include <plant.h>
 
 // [[Rcpp::export]]
-plant::Leaf Leaf__ctor(double vcmax_25, double c, double b, double psi_crit, double beta2, double jmax_25, double hk_s, double a, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter) {
-  return plant::Leaf(vcmax_25, c, b, psi_crit, beta2, jmax_25, hk_s, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter);
+plant::Leaf Leaf__ctor(double vcmax_25, double c, double b, double psi_crit, double beta2, double jmax_25, double hk_s, double a, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter, double g1_TF24) {
+  return plant::Leaf(vcmax_25, c, b, psi_crit, beta2, jmax_25, hk_s, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, g1_TF24);
 }
 // [[Rcpp::export]]
 void Leaf__initialize_integrator(plant::RcppR6::RcppR6<plant::Leaf> obj_, int integration_rule, double integration_tol) {
