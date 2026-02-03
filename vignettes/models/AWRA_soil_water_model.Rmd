@@ -190,7 +190,6 @@ Dz <- function(Sz, i){
 # Soil evaporation rate (mm day ^ -1);; work in progress
 
 E <- function(Sz){
-  browser()
   7 * ((Sz - theta_1500*100)/(theta_33*100 - theta_1500*100))
 }
 ```
@@ -368,7 +367,7 @@ rates_psi_FS_2021 <- function(t, Sz, params) {
     # top boundary layer - depends on soil water content, rain, soil water evaporation
     I = P[t+1] - Qh_(P[t+1])
     Dz_[1] <- Dz(Sz[1], 1)    
-    dSz_dt[1] = I - Dz_[1] - E(Sz[1])
+    dSz_dt[1] = I - Dz_[1]
     # Boundary below each node, except the last one
     # Eq. 3 + 11, Ireson et al. (2023)
     for (i in seq_len(nlayers-1)) {
@@ -580,16 +579,24 @@ Sz_solve %>%
 print(p)
 
 }
+
+rmse
+bias
+
 ```
 
+
+# Minimise rmse
+
 ```{r}
-i = 4
+i = 1
+
 
 ## Parameters
 
   # Soil info
   nlayers = soil_layers
-  soil_depth = 0.3e3
+  soil_depth = 1.5e3
   z = seq(soil_depth/nlayers, soil_depth, length.out= nlayers)
   clay_con = soiltype[i,]$clay # Clay (%)
   sand_con = soiltype[i,]$sand # Sand (%)
@@ -603,10 +610,10 @@ i = 4
   P_refmap = P_refmap_(clay_con, Beta) # Unscaled reference precipitation
   P_ref = P_refmap*P_refscale # Scaled reference precipitation
   
-  S_awc = S_awc_(clay_con,sand_con)
+  S_awc = S_awc_(58,22)
   
   # Rain
-  P = Prec_obs$Prec
+  P = as.numeric(Prec_obs$Prec_mm_per_day)
 
 params <- list(
   # Soil info
@@ -624,8 +631,7 @@ params <- list(
   Beta = Beta, # Slope (percent)
   P_refmap = P_refmap, # Unscaled reference precipitation
   P_ref = P_ref, # Scaled reference precipitation
-  theta_1500 = theta_1500_(clay_con),
-  theta_33 = theta_33_(clay_con),
+  
   S_awc = S_awc,
   
   # Rain
@@ -636,7 +642,7 @@ params <- list(
 state <- soil_moist_obs %>%
   slice(1:nlayers) %>%
   arrange(depth) %>%
-  pull(value)
+  pull(Soil_moist)
   
 
 Sz_solve <- solve(times = timesteps, rates=rates_psi_FS_2021, state=state, method="lsoda", output = "Sz")
@@ -657,15 +663,80 @@ Sz_solve %>%
 
 ```
 
+# Minimise bias
+
 ```{r}
-Sz_solve %>%
+i = 4
+
+## Parameters
+
+  # Soil info
+  nlayers = soil_layers
+  soil_depth = 1.5e3
+  z = seq(soil_depth/nlayers, soil_depth, length.out= nlayers)
+  clay_con = soiltype[i,]$clay # Clay (%)
+  sand_con = soiltype[i,]$sand # Sand (%)
+  K_sat = K_sat_(clay_con, Kzsatscale_(z))
+  Sz_sat = Sz_sat_(clay_con, sand_con, z)
+  
+  # Slope parameters
+  P_refscale = 2.637 # unitless
+  avg_Slope = 10^-5 # radians
+  Beta = Beta_(avg_Slope) # Slope (percent)
+  P_refmap = P_refmap_(clay_con, Beta) # Unscaled reference precipitation
+  P_ref = P_refmap*P_refscale # Scaled reference precipitation
+  
+  S_awc = S_awc_(58,22)
+  
+  # Rain
+  P = as.numeric(Prec_obs$Prec_mm_per_day)
+
+params <- list(
+  # Soil info
+  nlayers = soil_layers,
+  soil_depth = soil_depth,
+  z = z,
+  clay_con = clay_con, # Clay (%)
+  sand_con = sand_con, # Sand (%)
+  K_sat = K_sat,
+  Sz_sat = Sz_sat,
+  
+  # Slope parameters
+  P_refscale = P_refscale, # unitless
+  avg_Slope = avg_Slope, # radians
+  Beta = Beta, # Slope (percent)
+  P_refmap = P_refmap, # Unscaled reference precipitation
+  P_ref = P_ref, # Scaled reference precipitation
+  
+  S_awc = S_awc,
+  
+  # Rain
+  P = P
+)
+
+
+state <- soil_moist_obs %>%
+  slice(1:nlayers) %>%
+  arrange(depth) %>%
+  pull(Soil_moist)
+  
+
+Sz_solve <- solve(times = timesteps, rates=rates_psi_FS_2021, state=state, method="lsoda", output = "Sz")
+
+soil_moist_obs %>% 
+  ungroup() %>% 
   mutate(depth = as.numeric(depth)) %>%
-  mutate(date = soil_moist_obs_rearranged$date) %>%
+  select(Soil_moist, Timestamp, depth, timestep) -> soil_moist_obs_rearranged
+
+Sz_solve %>%
+  mutate(timestep = as.numeric(time)) %>%
+  mutate(depth = as.numeric(depth)) %>%
   left_join(soil_moist_obs_rearranged) %>%
   ggplot(aes(x = time)) +
-  geom_line(aes(y = Sz)) +
-  geom_line(aes(y = value), col = "red") +
+  geom_line(aes(y = as.numeric(Sz))) +
+  geom_line(aes(y = as.numeric(Soil_moist)), col = "red") +
   facet_wrap(~as.numeric(depth))
+
 ```
 
 ## Delta bare soil example
