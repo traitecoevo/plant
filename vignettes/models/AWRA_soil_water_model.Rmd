@@ -137,7 +137,7 @@ Qh_ <- function(P){
 # Drainage rate (mm day ^ -1)
 
 Dz_ <- function(Sz, i){
-  K_sat[i]*(Sz/Sz_sat[i])^2
+  K_sat*(Sz/Sz_sat[i])^2
 }
 ```
 
@@ -152,6 +152,9 @@ rates_psi_FS_2021 <- function(t, Sz, params) {
 
     # Calculate fluxes at boundaries
     # top boundary layer - depends on soil water content, rain, soil water evaporation
+    if(P[t+1] == 0){
+      browser()
+    }
     I = P[t+1] - Qh_(P[t+1])
     Dz[1] <- Dz_(Sz[1], 1)    
     dSz_dt[1] = I - Dz[1]
@@ -171,6 +174,7 @@ rates_psi_FS_2021 <- function(t, Sz, params) {
 
 ```{r}
 solve <- function(times, rates, state, method = "rk4", output = "theta") {
+  browser()
   deSolve::ode(
     y = state,
     times = times,
@@ -193,24 +197,22 @@ solve <- function(times, rates, state, method = "rk4", output = "theta") {
   z = seq(soil_depth/nlayers, soil_depth, length.out= nlayers)
   # Distances between depths starting from 0 (mm)
   dz = diff(c(0,z))
-  clay_con = 58 # Clay (%)
-  sand_con = 22 # Sand (%)
+  clay_con = 34 # Clay (%)
+  sand_con = 10 # Sand (%)
+  # Saturated conducitivity (mm day ^-1)
   K_sat = K_sat_(sand_con)
     
-
   # One value per soil layer
-  Sz_sat = Sz_sat_(sand_con, z)
+  Sz_sat = Sz_sat_(sand_con, dz)
   
-  # Slope parameters
+  # Slope parameters (i.e. relating to the effect of slope on drainage)
   P_refscale = 2.637 # unitless
   avg_Slope = 10^-5 # radians
   Beta = Beta_(avg_Slope) # Slope (percent)
   P_refmap = P_refmap_(clay_con, Beta) # Unscaled reference precipitation
   P_ref = P_refmap*P_refscale # Scaled reference precipitation
   
-  S_awc = S_awc_(clay_con,sand_con)
-  
-  # Rain
+  # Rain (mm day^-1)
   P = as.numeric(Prec_obs$Prec_mm_per_day)
 
 params <- list(
@@ -230,8 +232,6 @@ params <- list(
   P_refmap = P_refmap, # Unscaled reference precipitation
   P_ref = P_ref, # Scaled reference precipitation
   
-  S_awc = S_awc,
-  
   # Rain
   P = P
 )
@@ -244,21 +244,19 @@ timesteps <- soil_moist_obs %>%
   pull(timestep)
 ```
 
-
-
 ```{r}
-state <- soil_moist_obs %>%
+init_state <- soil_moist_obs %>%
   slice(1:nlayers) %>%
   arrange(as.numeric(depth)) %>%
   pull(Soil_moist) %>%
   as.numeric()
   
 
-Sz_solve <- solve(times = timesteps, rates=rates_psi_FS_2021, state=state, method="lsoda", output = "Sz")
+Sz_solve <- solve(times = timesteps, rates=rates_psi_FS_2021, state=init_state, method="lsoda", output = "Sz")
 ```
 
 ```{r}
-soil_moist_obs %>% 
+soil_moist_obs %>%
   ungroup() %>% 
   mutate(depth = as.numeric(depth)) %>%
   select(Soil_moist, Timestamp, depth, timestep) -> soil_moist_obs_rearranged
