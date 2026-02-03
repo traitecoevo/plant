@@ -183,15 +183,12 @@ Sz_sat_ <- function(clay_con, sand_con, z){
 
 # Drainage rate (mm day ^ -1)
 
-Dz <- function(Sz, i){
+Dz_ <- function(Sz, i){
   K_sat[i]*(Sz/Sz_sat[i])^2
 }
 
-# Soil evaporation rate (mm day ^ -1);; work in progress
+# Soil evaporation rate (mm day ^ -1);; TO-DO
 
-E <- function(Sz){
-  7 * ((Sz - theta_1500*100)/(theta_33*100 - theta_1500*100))
-}
 ```
 
 Frost and Shokri (2021) provide empirical equations for the relationship between clay content and the theta at -33kPa and -1500kPa. These values are then used to calculate soil water available content (soilawc). However, there is no way in this method to convert resulting soil moistures back into soil water potentials which we need to run the plant hydraulics module. So, we replace these empirical equations with the Clapp and Hornberger relationship between psi and theta (function: psi_) and estimate the parameters for this function from Cosby 1984. We can check that we get roughly equivalent results below. 
@@ -361,18 +358,18 @@ Kzsatscale_ <- splinefun(x = data_for_spline$z,
 rates_psi_FS_2021 <- function(t, Sz, params) {
   with(as.list(c(Sz, params)), {
     dSz_dt <- rep(NA_real_, nlayers)
-    Dz_ <- rep(NA_real_, nlayers)
+    Dz <- rep(NA_real_, nlayers)
 
     # Calculate fluxes at boundaries
     # top boundary layer - depends on soil water content, rain, soil water evaporation
     I = P[t+1] - Qh_(P[t+1])
-    Dz_[1] <- Dz(Sz[1], 1)    
-    dSz_dt[1] = I - Dz_[1]
+    Dz[1] <- Dz_(Sz[1], 1)    
+    dSz_dt[1] = I - Dz[1]
     # Boundary below each node, except the last one
     # Eq. 3 + 11, Ireson et al. (2023)
     for (i in seq_len(nlayers-1)) {
-      Dz_[i + 1] <- Dz(Sz[i + 1], i + 1)    
-      dSz_dt[i + 1] = -Dz_[i + 1] + Dz_[i]
+      Dz[i + 1] <- Dz_(Sz[i + 1], i + 1)    
+      dSz_dt[i + 1] = -Dz[i + 1] + Dz[i]
     }
 
     return(list(dSz_dt))
