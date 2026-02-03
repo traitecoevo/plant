@@ -22,7 +22,7 @@ library(patchwork)
 First lets open up some observational data from Edaphic at the Corrie Downs site. It has precipitation and soil moisture observations.
 
 ```{r}
-read_csv("~/Documents/export-edap61.Falster.NSW.Corrie Downs weather-6.csv") %>%
+read_csv("export-edap61.Falster.NSW.Corrie Downs weather-6.csv") %>%
   filter(Id != "Units") %>%
   setNames(as.character(.[1,])) %>%
   slice(-1) -> soil_moist_obs
@@ -46,6 +46,7 @@ soil_moist_obs %>%
   mutate(Prec_mm_per_15min = as.numeric(Prec_mm_per_15min)) %>%
   # Convert those rates into units of mm/day (for each 15 step)
   mutate(Prec_mm_per_day = Prec_mm_per_15min*96) %>%
+  # m3 water per m3 soil - measured using electrical field
   mutate(Soil_moist = as.numeric(Soil_moist)) -> soil_moist_obs
 ```
 
@@ -88,17 +89,21 @@ soil_layers = length(unique(soil_moist_obs$depth))
 
 # Frost, A. J., and Shokri, A., (2021) The Australian Landscape Water Balance model (AWRA-L v7). Technical Description of the Australian Water Resources Assessment Landscape model version 7. Bureau of Meteorology Technical Report
 
+# Melton et al., (2017) Tiling soil textures for terrestrial ecosystem modelling via clustering analysis: a case study with CLASS-CTEM (version 2.1) depending on 
+
+# Cosby et al. (1984) A Statistical Exploration of the Relationships of Soil Moisture Characteristics to the Physical Properties of Soils
+
 ## Functions
 
 ```{r}
-# Saturated hydraulic conductivity (mm day^-1)
 
-K_satpedo_ <- function(clay_con){
-  303.84*exp(-0.144*clay_con)
-}
+#### Parameters functions
 
-K_sat_ <- function(clay_con, K_satscale){
-  K_satscale*K_satpedo_(clay_con)
+# Saturated hydraulic conductivity (mm day^-1) depends on sand content
+
+K_sat_ <- function(sand_con){
+  # Melton et al., (2017)
+  7.0556e-6*exp(0.0352*sand_con-2.035) * 1000 * 60*60*24
 }
 
 # Slope (%)
@@ -109,9 +114,19 @@ Beta_ <- function(avg_Slope){
 
 # Unscaled reference precipitation controls infiltration-excess runoff (mm day^-1)
 
-P_refmap_ <- function(clay_con, Beta){
-  20*(2 + log(K_satpedo_(clay_con)/Beta))
+P_refmap_ <- function(sand_con, Beta){
+  20*(2 + log(K_sat_(sand_con)/Beta))
 }
+
+
+# Soil saturation capacity (mm)
+
+# Parameters from Cosby et al. (1984)
+Sz_sat_ <- function(sand_con, dz){
+  dz*((50.5 -0.142*sand_con)/100)
+}
+
+#### Rates functions
 
 # Infiltration-excess runoff (mm day^-1)
 
@@ -119,240 +134,11 @@ Qh_ <- function(P){
   P - P_refmap*tanh(P/P_refmap)
 }
 
-# Soil water retention at -10kPa
-
-theta_10_ <- function(clay_con){
-  0.3064*(1-exp(-0.0406*clay_con)) + 0.1452
-}
-
-# Soil water retention at field capacity
-
-theta_33_ <- function(clay_con){
-  0.3543*(1-exp(-0.0385*clay_con)) + 0.083
-}
-
-# Soil water retention at wilting point
-
-theta_1500_ <- function(theta_1500){
-  0.4016*(1-exp(-0.0230*clay_con)) + 0.0027
-}
-
-# Clapp and Hornberger (1978)
-
-theta_to_psi_ <- function(theta){
-  psi_s * (theta/theta_s)^(-b)
-} 
-
-psi_to_theta_ <- function(psi){
-  exp((log(psi) - log(psi_s))/-b + log(theta_s))
-} 
-
-# Empirical relationships (Cosby 1984)
-
-b_ <- function(clay_con){
-  3.10 + 0.157*clay_con
-}
-# Soil water potential at saturation  (mm^3/mm^-3), Cosby
-
-psi_s_ <- function(sand_con){
-  exp(1.54 + -0.0095*sand_con)
-}
-
-# Maximum soil water storage (mm^3/mm^-3), Cosby
-
-theta_s_ <- function(sand_con){
-  50.5 + -0.142*sand_con
-}
-
-# Available water capacity in soil (mm^3/mm^-3)
-
-S_awc_ <- function(clay_con, sand_con){
-  b <- b_(clay_con)
-  psi_s <- psi_s_(sand_con)
-  theta_s <- theta_s_(sand_con)
-  
-  psi_to_theta_(33)/100 - psi_to_theta_(1500)/100
-}
-
-
-# Maximum soil water storage (mm)
-
-Sz_sat_ <- function(clay_con, sand_con, z){
-  c(z[1], diff(z))*S_awc_(clay_con, sand_con)*Szmaxscale_(z)
-}
-
 # Drainage rate (mm day ^ -1)
 
-Dz <- function(Sz, i){
+Dz_ <- function(Sz, i){
   K_sat[i]*(Sz/Sz_sat[i])^2
 }
-
-# Soil evaporation rate (mm day ^ -1);; work in progress
-
-E <- function(Sz){
-  7 * ((Sz - theta_1500*100)/(theta_33*100 - theta_1500*100))
-}
-```
-
-Frost and Shokri (2021) provide empirical equations for the relationship between clay content and the theta at -33kPa and -1500kPa. These values are then used to calculate soil water available content (soilawc). However, there is no way in this method to convert resulting soil moistures back into soil water potentials which we need to run the plant hydraulics module. So, we replace these empirical equations with the Clapp and Hornberger relationship between psi and theta (function: psi_) and estimate the parameters for this function from Cosby 1984. We can check that we get roughly equivalent results below. 
-
-Works well for clay loam and clay but not so much for almost pure sand
-
-```{r}
-# Test that it works for clay loam
-
-clay_con = 34 # Clay (%)
-sand_con = 32 # Sand (%)
-
-# Frost and Shokri emp equations for theta at 10,33,1500 based on clay content
-
-# 0.4225188 (42.25%)
-theta_10 = theta_10_(clay_con)
-# 0.3993 (39.93%)
-theta_33 = theta_33_(clay_con)
-# 0.2985 (29.85%)
-theta_1500 = theta_1500_(clay_con)
-
-FS_2021_psi_theta <- tibble(psi = c(10,33,1500), theta = c(theta_10, theta_33, theta_1500)*100)
-
-# Estimation of parameters for Clapp and Hornberger equation, used in psi_
-
-b = b_(clay_con = clay_con)
-psi_s = psi_s_(sand_con = sand_con)
-theta_s = theta_s_(sand_con = sand_con)
-
-tibble(theta = seq(1,theta_s, length.out = 100)) %>%
-  mutate(psi = theta_to_psi_(theta)) %>%
-  ggplot() +
-  geom_line(aes(x = theta, y = psi)) +
-  geom_point(data = FS_2021_psi_theta, aes(x = theta, y = psi)) +
-  scale_y_log10() +
-  theme_bw()
-```
-
-
-```{r}
-# Test that it works for clay
-
-clay_con = 58 # Clay (%)
-sand_con = 22 # Sand (%)
-
-# Frost and Shokri emp equations for theta at 10,33,1500 based on clay content
-
-# 0.4225188 (42.25%)
-theta_10 = theta_10_(clay_con)
-# 0.3993 (39.93%)
-theta_33 = theta_33_(clay_con)
-# 0.2985 (29.85%)
-theta_1500 = theta_1500_(clay_con)
-
-FS_2021_psi_theta <- tibble(psi = c(10,33,1500), theta = c(theta_10, theta_33, theta_1500)*100)
-
-# Estimation of parameters for Clapp and Hornberger equation, used in psi_
-
-b = b_(clay_con = clay_con)
-psi_s = psi_s_(sand_con = sand_con)
-theta_s = theta_s_(sand_con = sand_con)
-
-tibble(theta = seq(1,theta_s, length.out = 100)) %>%
-  mutate(psi = theta_to_psi_(theta)) %>%
-  ggplot() +
-  geom_line(aes(x = theta, y = psi)) +
-  geom_point(data = FS_2021_psi_theta, aes(x = theta, y = psi)) +
-  scale_y_log10() +
-  theme_bw()
-```
-
-
-```{r}
-# Test that it works for sand
-
-clay_con = 3 # Clay (%)
-sand_con = 92 # Sand (%)
-
-# Frost and Shokri emp equations for theta at 10,33,1500 based on clay content
-
-# 0.4225188 (42.25%)
-theta_10 = theta_10_(clay_con)
-# 0.3993 (39.93%)
-theta_33 = theta_33_(clay_con)
-# 0.2985 (29.85%)
-theta_1500 = theta_1500_(clay_con)
-
-FS_2021_psi_theta <- tibble(psi = c(10,33,1500), theta = c(theta_10, theta_33, theta_1500)*100)
-
-# Estimation of parameters for Clapp and Hornberger equation, used in psi_
-
-b = b_(clay_con = clay_con)
-psi_s = psi_s_(sand_con = sand_con)
-theta_s = theta_s_(sand_con = sand_con)
-
-tibble(theta = seq(1,theta_s, length.out = 100)) %>%
-  mutate(psi = theta_to_psi_(theta)) %>%
-  ggplot() +
-  geom_line(aes(x = theta, y = psi)) +
-  geom_point(data = FS_2021_psi_theta, aes(x = theta, y = psi)) +
-  scale_y_log10() +
-  theme_bw()
-```
-
-There are a variety of scaling parameters in the Frost and Shokri model which vary with depth. Unclear how this should vary if model has different depths. Could try and fit a spline to it? Spline for ksat looks good.
-
-```{r}
-#Spline for Szmaxscale
-
-tibble(z = c(1e2, 1e3, 6e3),
-       scale_factor = c(2.465, 1.637, 0.904)) -> data_for_spline
-
-spline(x = data_for_spline$z,
-       y = data_for_spline$scale_factor,
-       method = "hyman") -> spline_values  
-
-ggplot() +
-  geom_point(data =data_for_spline, aes(x = z, y = scale_factor)) +
-  geom_line(data = as.tibble(spline_values), aes(x = x, y = y))
-
-
-#Make Szmaxscale spline
-Szmaxscale_ <- splinefun(x = data_for_spline$z,
-       y = data_for_spline$scale_factor,
-       method = "hyman")
-```
-
-
-```{r}
-#Spline for Ksat going negative because last two values are so low. Instead, just assume that this value must drop off extremely quickly
-
-tibble(z = c(1e2, 1e3, 6e3),
-       scale_factor = c(8.307, 0.016, 0.043)) -> data_for_spline
-
-spline(x = data_for_spline$z,
-       y = data_for_spline$scale_factor,
-       method = "fmm") -> spline_values  
-
-ggplot() +
-  geom_point(data =data_for_spline, aes(x = z, y = scale_factor)) +
-  geom_line(data = as.tibble(spline_values), aes(x = x, y = y))
-```
-
-```{r}
-#Set the last two values to equal to make the spline instead
-
-tibble(z = c(1e2, 1e3, 6e3),
-       scale_factor = c(8.307, 0.016, 0.016)) -> data_for_spline
-
-spline(x = data_for_spline$z,
-       y = data_for_spline$scale_factor,
-       method = "hyman") -> spline_values  
-
-ggplot() +
-  geom_point(data =data_for_spline, aes(x = z, y = scale_factor)) +
-  geom_line(data = as.tibble(spline_values), aes(x = x, y = y))
-
-#Make Kzsatscale spline
-Kzsatscale_ <- splinefun(x = data_for_spline$z,
-       y = data_for_spline$scale_factor,
-       method = "hyman")
 ```
 
 ## Soil water model
@@ -360,8 +146,9 @@ Kzsatscale_ <- splinefun(x = data_for_spline$z,
 ```{r}
 rates_psi_FS_2021 <- function(t, Sz, params) {
   with(as.list(c(Sz, params)), {
+    # Sz values are in mm
     dSz_dt <- rep(NA_real_, nlayers)
-    Dz_ <- rep(NA_real_, nlayers)
+    Dz <- rep(NA_real_, nlayers)
 
     # Calculate fluxes at boundaries
     # top boundary layer - depends on soil water content, rain, soil water evaporation
@@ -400,12 +187,19 @@ solve <- function(times, rates, state, method = "rk4", output = "theta") {
 ```{r}
   # Soil info
   nlayers = soil_layers
+  # Soil depth (mm)s
   soil_depth = 1.5e3
+  # Different depths through sequence (mm)
   z = seq(soil_depth/nlayers, soil_depth, length.out= nlayers)
+  # Distances between depths starting from 0 (mm)
+  dz = diff(c(0,z))
   clay_con = 58 # Clay (%)
   sand_con = 22 # Sand (%)
-  K_sat = K_sat_(clay_con, Kzsatscale_(z))
-  Sz_sat = Sz_sat_(clay_con, sand_con, z)
+  K_sat = K_sat_(sand_con)
+    
+
+  # One value per soil layer
+  Sz_sat = Sz_sat_(sand_con, z)
   
   # Slope parameters
   P_refscale = 2.637 # unitless
@@ -500,10 +294,13 @@ for(i in 1:nrow(soiltype)){
   nlayers = soil_layers
   soil_depth = 1.5e3
   z = seq(soil_depth/nlayers, soil_depth, length.out= nlayers)
+  dz = diff(c(0,z))
+
   clay_con = soiltype[i,]$clay # Clay (%)
   sand_con = soiltype[i,]$sand # Sand (%)
   K_sat = K_sat_(clay_con, Kzsatscale_(z))
-  Sz_sat = Sz_sat_(clay_con, sand_con, z)
+  # One value per layer
+  Sz_sat = Sz_sat_(sand_con, z)
   
   # Slope parameters
   P_refscale = 2.637 # unitless
