@@ -72,6 +72,7 @@ soil_moist_obs%>%
   ungroup() %>%
   mutate(timestep = seq(1:n()) - 1) %>%
   mutate(timestep = timestep / 96) %>%
+  filter(timestep > 100) %>%
   unnest(data) -> soil_moist_obs
   
 # Make data frame for precipitation timesteps (only need one for timestep)
@@ -79,6 +80,8 @@ soil_moist_obs  %>%
   group_by(Timestamp) %>%
   slice(1) %>%
   arrange(Timestamp)-> Prec_obs
+
+Prec_spline <- splinefun(x = Prec_obs$timestep, y = Prec_obs$Prec_mm_per_day)
 ```
 
 # Number of soil layers
@@ -149,13 +152,13 @@ rates_psi_FS_2021 <- function(t, Sz, params) {
     # Sz values are in mm
     dSz_dt <- rep(NA_real_, nlayers)
     Dz <- rep(NA_real_, nlayers)
-
+    Qh <- rep(NA_real_)
     # Calculate fluxes at boundaries
     # top boundary layer - depends on soil water content, rain, soil water evaporation
-    if(P[t+1] == 0){
-      browser()
-    }
-    I = P[t+1] - Qh_(P[t+1])
+    P <- Prec_spline(t)
+    Qh <- Qh_(P)
+    Qh <- 0
+    I = P - Qh
     Dz[1] <- Dz_(Sz[1], 1)    
     dSz_dt[1] = I - Dz[1]
     # Boundary below each node, except the last one
@@ -165,7 +168,7 @@ rates_psi_FS_2021 <- function(t, Sz, params) {
       dSz_dt[i + 1] = -Dz[i + 1] + Dz[i]
     }
 
-    return(list(dSz_dt))
+    return(list(dSz_dt = dSz_dt, Qh = Qh, P = P))
   })
 }
 ```
@@ -174,7 +177,7 @@ rates_psi_FS_2021 <- function(t, Sz, params) {
 
 ```{r}
 solve <- function(times, rates, state, method = "rk4", output = "theta") {
-  browser()
+  
   deSolve::ode(
     y = state,
     times = times,
@@ -182,7 +185,7 @@ solve <- function(times, rates, state, method = "rk4", output = "theta") {
     parms = params,
     method = method) %>% 
   as_tibble() %>% 
-  pivot_longer(-time, names_to = "depth", values_to = output)
+  pivot_longer(-c(time, Qh, P), names_to = "depth", values_to = output)
 }
 ```
 
@@ -207,13 +210,10 @@ solve <- function(times, rates, state, method = "rk4", output = "theta") {
   
   # Slope parameters (i.e. relating to the effect of slope on drainage)
   P_refscale = 2.637 # unitless
-  avg_Slope = 10^-5 # radians
+  avg_Slope = 10^-3 # radians
   Beta = Beta_(avg_Slope) # Slope (percent)
-  P_refmap = P_refmap_(clay_con, Beta) # Unscaled reference precipitation
+  P_refmap = P_refmap_(sand_con, Beta) # Unscaled reference precipitation (mm day^-1)
   P_ref = P_refmap*P_refscale # Scaled reference precipitation
-  
-  # Rain (mm day^-1)
-  P = as.numeric(Prec_obs$Prec_mm_per_day)
 
 params <- list(
   # Soil info
@@ -230,10 +230,7 @@ params <- list(
   avg_Slope = avg_Slope, # radians
   Beta = Beta, # Slope (percent)
   P_refmap = P_refmap, # Unscaled reference precipitation
-  P_ref = P_ref, # Scaled reference precipitation
-  
-  # Rain
-  P = P
+  P_ref = P_ref # Scaled reference precipitation
 )
 ```
 
@@ -252,7 +249,7 @@ init_state <- soil_moist_obs %>%
   as.numeric()
   
 
-Sz_solve <- solve(times = timesteps, rates=rates_psi_FS_2021, state=init_state, method="lsoda", output = "Sz")
+Sz_solve <- solve(times = timesteps, rates=rates_psi_FS_2021, state=init_state, method="rk4", output = c("Sz"))
 ```
 
 ```{r}
@@ -268,15 +265,33 @@ Sz_solve %>%
   ggplot(aes(x = time)) +
   geom_line(aes(y = as.numeric(Sz))) +
   geom_line(aes(y = as.numeric(Soil_moist)), col = "red") +
-  facet_wrap(~as.numeric(depth))
+  facet_wrap(~as.numeric(depth)) -> a
+
+Sz_solve %>%
+  mutate(timestep = as.numeric(time)) %>%
+  mutate(depth = as.numeric(depth)) %>%
+  # left_join(soil_moist_obs_rearranged) %>%
+  ggplot(aes(x = time)) +
+  geom_line(aes(y = as.numeric(Qh))) -> b
+
+Sz_solve %>%
+  mutate(timestep = as.numeric(time)) %>%
+  mutate(depth = as.numeric(depth)) %>%
+  # left_join(soil_moist_obs_rearranged) %>%
+  ggplot(aes(x = time)) +
+  geom_line(aes(y = as.numeric(P))) -> c
+
+
+
+a/(b+c)
 ```
 
 ```{r}
 soiltype <- tibble(soil = c("sand","loamsand","sandyloam","loam",
                 "siltyloam","sandyclayloam","clayloam",                "siltyclayloam","sandyclay","siltyclay",
-                "clay"),
-       sand = c(92,82,58,43,17,58,32,10,52,6,22),
-       clay = c(3,6,10,18,13,27,34,34,42,47,58))
+                "clay","fullclay"),
+       sand = c(92,82,58,43,17,58,32,10,52,6,22,0),
+       clay = c(3,6,10,18,13,27,34,34,42,47,58,100))
 
 rmse <- c()
 bias <- c()
@@ -285,32 +300,28 @@ bias <- c()
 ```{r}
 for(i in 1:nrow(soiltype)){
 
-
-## Parameters
-
-  # Soil info
+    # Soil info
   nlayers = soil_layers
+  # Soil depth (mm)s
   soil_depth = 1.5e3
+  # Different depths through sequence (mm)
   z = seq(soil_depth/nlayers, soil_depth, length.out= nlayers)
+  # Distances between depths starting from 0 (mm)
   dz = diff(c(0,z))
-
-  clay_con = soiltype[i,]$clay # Clay (%)
-  sand_con = soiltype[i,]$sand # Sand (%)
-  K_sat = K_sat_(clay_con, Kzsatscale_(z))
-  # One value per layer
-  Sz_sat = Sz_sat_(sand_con, z)
+  clay_con = soiltype$clay[i] # Clay (%)
+  sand_con = soiltype$sand[i] # Sand (%)
+  # Saturated conducitivity (mm day ^-1)
+  K_sat = K_sat_(sand_con)
+    
+  # One value per soil layer
+  Sz_sat = Sz_sat_(sand_con, dz)
   
-  # Slope parameters
+  # Slope parameters (i.e. relating to the effect of slope on drainage)
   P_refscale = 2.637 # unitless
   avg_Slope = 10^-5 # radians
   Beta = Beta_(avg_Slope) # Slope (percent)
   P_refmap = P_refmap_(clay_con, Beta) # Unscaled reference precipitation
   P_ref = P_refmap*P_refscale # Scaled reference precipitation
-  
-  S_awc = S_awc_(58,22)
-  
-  # Rain
-  P = as.numeric(Prec_obs$Prec_mm_per_day)
 
 params <- list(
   # Soil info
@@ -327,12 +338,7 @@ params <- list(
   avg_Slope = avg_Slope, # radians
   Beta = Beta, # Slope (percent)
   P_refmap = P_refmap, # Unscaled reference precipitation
-  P_ref = P_ref, # Scaled reference precipitation
-  
-  S_awc = S_awc,
-  
-  # Rain
-  P = P
+  P_ref = P_ref # Scaled reference precipitation
 )
 
 
@@ -343,7 +349,7 @@ state <- soil_moist_obs %>%
   as.numeric()
   
 
-Sz_solve <- solve(times = timesteps, rates=rates_psi_FS_2021, state=state, method="lsoda", output = "Sz")
+Sz_solve <- solve(times = timesteps, rates=rates_psi_FS_2021, state=state, method="ode45", output = "Sz")
 
 soil_moist_obs %>% 
   ungroup() %>% 
