@@ -134,7 +134,7 @@ Sz_sat_ <- function(sand_con, dz){
 # Infiltration-excess runoff (mm day^-1)
 
 Qh_ <- function(P){
-  P - P_refmap*tanh(P/P_refmap)
+  P_refmap*tanh(P/P_refmap)
 }
 
 # Drainage rate (mm day ^ -1)
@@ -157,7 +157,6 @@ rates_psi_FS_2021 <- function(t, Sz, params) {
     # top boundary layer - depends on soil water content, rain, soil water evaporation
     P <- Prec_spline(t)
     Qh <- Qh_(P)
-    Qh <- 0
     I = P - Qh
     Dz[1] <- Dz_(Sz[1], 1)    
     dSz_dt[1] = I - Dz[1]
@@ -212,6 +211,7 @@ solve <- function(times, rates, state, method = "rk4", output = "theta") {
   P_refscale = 2.637 # unitless
   avg_Slope = 10^-3 # radians
   Beta = Beta_(avg_Slope) # Slope (percent)
+  # Set to 0 to disable runoff
   P_refmap = P_refmap_(sand_con, Beta) # Unscaled reference precipitation (mm day^-1)
   P_ref = P_refmap*P_refscale # Scaled reference precipitation
 
