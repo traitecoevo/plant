@@ -155,7 +155,7 @@ rates_psi_FS_2021 <- function(t, Sz, params) {
     Qh <- rep(NA_real_)
     # Calculate fluxes at boundaries
     # top boundary layer - depends on soil water content, rain, soil water evaporation
-    P <- Prec_spline(t)
+    P <- P_func_(t)
     Qh <- Qh_(P, Qh_switch)
     I = P - Qh
     Dz[1] <- Dz_(Sz[1], 1)    
@@ -217,6 +217,11 @@ solve <- function(times, rates, state, method = "rk4", output = "theta") {
   Qh_switch = 0
 
   P_ref = P_refmap*P_refscale # Scaled reference precipitation
+  
+  # Change which function is used to represent precipitation in the model
+  
+  # P_func_ <- function(t) {Prec_spline(t)} # Use spline function to represent precipitation
+  P_func_ <- function(t) {1*sin(t)+1} # Change precipitation function to a sine wave. First number is amplitude, second is the y-axis midpoint.
 
 params <- list(
   # Soil info
@@ -234,7 +239,8 @@ params <- list(
   Beta = Beta, # Slope (percent)
   P_refmap = P_refmap, # Unscaled reference precipitation
   P_ref = P_ref, # Scaled reference precipitation
-  Qh_switch = Qh_switch # Runoff switch
+  Qh_switch = Qh_switch, # Runoff switch
+  P_func_ = P_func_
 )
 ```
 
@@ -267,9 +273,9 @@ soil_moist_obs %>%
   mutate(timestep = as.numeric(timestep) %>% round(digits = 4)) %>% # standardising decimal places for left join
   select(Soil_moist, Timestamp, depth, timestep) -> soil_moist_obs_rearranged
 
-Sz_solve %>%
-  mutate(timestep = as.numeric(time) %>% round(digits = 4)) %>%
-  mutate(depth = as.numeric(depth)) -> Sz_solve 
+# Sz_solve %>%
+#   mutate(timestep = as.numeric(time) %>% round(digits = 4)) %>%
+#   mutate(depth = as.numeric(depth)) -> Sz_solve 
 
 ggplot()+
   geom_line(data = soil_moist_obs_rearranged, aes(y = Soil_moist, x = timestep), col = "black") +
