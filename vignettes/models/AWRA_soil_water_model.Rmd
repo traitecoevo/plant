@@ -239,10 +239,12 @@ params <- list(
 ```
 
 ```{r}
-timesteps <- soil_moist_obs %>%
-  group_by(Timestamp) %>%
-  slice(1) %>%
-  pull(timestep)
+# generates timesteps per 15 minutes
+timesteps <- seq(min(soil_moist_obs$timestep), max(soil_moist_obs$timestep), by = 1/96)
+
+# generates timesteps per 10 days
+timesteps <- seq(min(soil_moist_obs$timestep), max(soil_moist_obs$timestep), by = 10)
+
 ```
 
 ```{r}
@@ -253,41 +255,40 @@ init_state <- soil_moist_obs %>%
   as.numeric()
   
 
-Sz_solve <- solve(times = timesteps, rates=rates_psi_FS_2021, state=init_state, method="rk4", output = c("Sz"))
+Sz_solve_ode23 <- solve(times = timesteps, rates=rates_psi_FS_2021, state=init_state, method="ode23", output = c("Sz"))
+
+Sz_solve_lsoda <- solve(times = timesteps, rates=rates_psi_FS_2021, state=init_state, method="lsoda", output = c("Sz"))
 ```
 
 ```{r}
 soil_moist_obs %>%
   ungroup() %>% 
   mutate(depth = as.numeric(depth)) %>%
+  mutate(timestep = as.numeric(timestep) %>% round(digits = 4)) %>% # standardising decimal places for left join
   select(Soil_moist, Timestamp, depth, timestep) -> soil_moist_obs_rearranged
 
 Sz_solve %>%
-  mutate(timestep = as.numeric(time)) %>%
-  mutate(depth = as.numeric(depth)) %>%
-  left_join(soil_moist_obs_rearranged) %>%
-  ggplot(aes(x = time)) +
-  geom_line(aes(y = as.numeric(Sz))) +
-  geom_line(aes(y = as.numeric(Soil_moist)), col = "red") +
-  facet_wrap(~as.numeric(depth)) -> a
+  mutate(timestep = as.numeric(time) %>% round(digits = 4)) %>%
+  mutate(depth = as.numeric(depth)) -> Sz_solve 
 
-Sz_solve %>%
-  mutate(timestep = as.numeric(time)) %>%
-  mutate(depth = as.numeric(depth)) %>%
+ggplot()+
+  geom_line(data = soil_moist_obs_rearranged, aes(y = Soil_moist, x = timestep), col = "black") +
+  geom_line(data = Sz_solve_ode23, aes(y = Sz, x = time), col = "red", linetype = 2) +
+  geom_line(data = Sz_solve_lsoda, aes(y = Sz, x = time), col = "blue", linetype = 2) +
+  facet_wrap(~as.numeric(depth)) -> a
+  
+Sz_solve_ode23 %>%
   # left_join(soil_moist_obs_rearranged) %>%
   ggplot(aes(x = time)) +
-  geom_line(aes(y = as.numeric(Qh))) -> b
+  geom_line(aes(y = as.numeric(Qh)))  -> b
 
-Sz_solve %>%
-  mutate(timestep = as.numeric(time)) %>%
-  mutate(depth = as.numeric(depth)) %>%
+Sz_solve_lsoda %>%
   # left_join(soil_moist_obs_rearranged) %>%
   ggplot(aes(x = time)) +
   geom_line(aes(y = as.numeric(P))) -> c
 
-
-
 a/(b+c)
+
 ```
 
 ```{r}
