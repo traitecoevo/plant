@@ -40,12 +40,17 @@ soil_moist_obs %>%
   pivot_longer(cols = -c(Prec_mm_per_15min,Timestamp), names_to = "depth", values_to = "Soil_moist") %>%
   mutate(dom = lubridate::day(Timestamp)) %>%
   mutate(mod = lubridate::minute(Timestamp)) %>%
-  mutate(hod = lubridate::hour(Timestamp)) %>%
+  mutate(hod = lubridate::hour(Timestamp)) %>% 
+  mutate(week = lubridate::week(Timestamp)) %>% 
   mutate(moy = lubridate::month(Timestamp)) %>%
   # Precipitation is in units of mm/15mins
   mutate(Prec_mm_per_15min = as.numeric(Prec_mm_per_15min)) %>%
-  # Convert those rates into units of mm/day (for each 15 step)
-  mutate(Prec_mm_per_day = Prec_mm_per_15min*96) %>%
+  # Convert those rates into units of mm/day (for each 15 step) %>% 
+  mutate(Prec_mm_per_day = as.numeric(Prec_mm_per_15min*96)) %>% 
+  # Calculating total rainfall per week
+  group_by(week, depth) %>% 
+  mutate(Prec_mm_per_week = sum(Prec_mm_per_15min)) %>%
+  # mutate(Prec_mm_per_week = Prec_mm_per_15min*96*7) %>% 
   # m3 water per m3 soil - measured using electrical field
   mutate(Soil_moist = as.numeric(Soil_moist)) -> soil_moist_obs
 ```
@@ -75,13 +80,15 @@ soil_moist_obs%>%
   filter(timestep > 100) %>%
   unnest(data) -> soil_moist_obs
   
-# Make data frame for precipitation timesteps (only need one for timestep)
-soil_moist_obs  %>%
-  group_by(Timestamp) %>%
-  slice(1) %>%
-  arrange(Timestamp)-> Prec_obs
 
-Prec_spline <- splinefun(x = Prec_obs$timestep, y = Prec_obs$Prec_mm_per_day)
+# Creating precipitation data table using the total rainfall per week data
+soil_moist_obs  %>%
+  group_by(week) %>%
+  slice(1) %>%
+  arrange(timestep) -> Prec_obs
+
+# Spline function using the precipitation data
+Prec_spline <- splinefun(x = Prec_obs$timestep, y = Prec_obs$Prec_mm_per_week)
 ```
 
 # Number of soil layers
@@ -155,7 +162,7 @@ rates_psi_FS_2021 <- function(t, Sz, params) {
     Qh <- rep(NA_real_)
     # Calculate fluxes at boundaries
     # top boundary layer - depends on soil water content, rain, soil water evaporation
-    P <- P_func_(t)
+    P <- pmax(P_func_(t), 0) # pmax(x, 0) forces all negative values to zero
     Qh <- Qh_(P, Qh_switch)
     I = P - Qh
     Dz[1] <- Dz_(Sz[1], 1)    
@@ -167,7 +174,7 @@ rates_psi_FS_2021 <- function(t, Sz, params) {
       dSz_dt[i + 1] = -Dz[i + 1] + Dz[i]
     }
 
-    return(list(dSz_dt = dSz_dt, Qh = Qh, P = P))
+    return(list(dSz_dt = dSz_dt, Qh = Qh, P = P, I = I))
   })
 }
 ```
@@ -183,8 +190,8 @@ solve <- function(times, rates, state, method = "rk4", output = "theta") {
     func = rates,
     parms = params,
     method = method) %>% 
-  as_tibble() %>% 
-  pivot_longer(-c(time, Qh, P), names_to = "depth", values_to = output)
+  as_tibble() %>%
+  pivot_longer(-c(time, Qh, P, I), names_to = "depth", values_to = output)
 }
 ```
 
@@ -220,9 +227,10 @@ solve <- function(times, rates, state, method = "rk4", output = "theta") {
   
   # Change which function is used to represent precipitation in the model
   
-  # P_func_ <- function(t) {Prec_spline(t)} # Use spline function to represent precipitation
-  P_func_ <- function(t) {1*sin(t)+1} # Change precipitation function to a sine wave. First number is amplitude, second is the y-axis midpoint.
-
+  P_func_ <- function(t) {Prec_spline(t)} # Use spline function to represent precipitation
+  # P_func_ <- function(t) {30*sin(t)+30} # Change precipitation function to a sine wave. First number is amplitude, second is the y-axis midpoint.
+  # P_func_ <- function(t) {t = 1} # Testing constant precipitation
+  
 params <- list(
   # Soil info
   nlayers = soil_layers,
@@ -254,16 +262,14 @@ timesteps <- seq(min(soil_moist_obs$timestep), max(soil_moist_obs$timestep), by 
 ```
 
 ```{r}
+# Setting initial state of all soil layers
 init_state <- soil_moist_obs %>%
   slice(1:nlayers) %>%
   arrange(as.numeric(depth)) %>%
   pull(Soil_moist) %>%
   as.numeric()
-  
 
 Sz_solve_ode23 <- solve(times = timesteps, rates=rates_psi_FS_2021, state=init_state, method="ode23", output = c("Sz"))
-
-Sz_solve_lsoda <- solve(times = timesteps, rates=rates_psi_FS_2021, state=init_state, method="lsoda", output = c("Sz"))
 ```
 
 ```{r}
@@ -280,21 +286,34 @@ soil_moist_obs %>%
 ggplot()+
   geom_line(data = soil_moist_obs_rearranged, aes(y = Soil_moist, x = timestep), col = "black") +
   geom_line(data = Sz_solve_ode23, aes(y = Sz, x = time), col = "red", linetype = 2) +
-  geom_line(data = Sz_solve_lsoda, aes(y = Sz, x = time), col = "blue", linetype = 2) +
+  ylim(0, 50) +
+  # geom_line(data = Sz_solve_lsoda, aes(y = Sz, x = time), col = "blue", linetype = 2) +
   facet_wrap(~as.numeric(depth)) -> a
-  
+
 Sz_solve_ode23 %>%
   # left_join(soil_moist_obs_rearranged) %>%
   ggplot(aes(x = time)) +
-  geom_line(aes(y = as.numeric(Qh)))  -> b
+  # ylim(0, 100) +
+  geom_line(aes(y = as.numeric(P))) -> b
 
-Sz_solve_lsoda %>%
+
+Sz_solve_ode23 %>%
   # left_join(soil_moist_obs_rearranged) %>%
   ggplot(aes(x = time)) +
-  geom_line(aes(y = as.numeric(P))) -> c
+  # ylim(0, 100) +
+  geom_line(aes(y = as.numeric(Qh))) -> c
 
-a/(b+c)
 
+Sz_solve_ode23 %>%
+  # left_join(soil_moist_obs_rearranged) %>%
+  ggplot(aes(x = time)) +
+  # ylim(0, 100) +
+  geom_line(aes(y = as.numeric(I))) -> d
+
+
+a/(b+c+d)
+
+a+b
 ```
 
 ```{r}
