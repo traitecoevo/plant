@@ -90,7 +90,8 @@ public:
        double GSS_tol_abs,
        double vulnerability_curve_ncontrol,
        double ci_abs_tol,
-       double ci_niter); 
+       double ci_niter,
+      double g1_TF24); 
         
   quadrature::QAG integrator;
   interpolator::Interpolator transpiration_from_psi;
@@ -112,6 +113,7 @@ public:
   double vulnerability_curve_ncontrol;
   double ci_abs_tol;
   double ci_niter;
+  double g1_TF24;
 
   double ci_;
   double stom_cond_CO2_;
@@ -212,12 +214,10 @@ public:
   double hydraulic_cost_TF(double psi_stem);
 
   double profit_psi_stem_Sperry(double psi_stem);
-  double profit_Sperry_ci(double ci_);
   double profit_psi_stem_TF(double psi_stem);
 
 // optimiser functions
   void optimise_psi_stem_Sperry();
-  void optimise_ci_Sperry(double ci_guess);
   void optimise_psi_stem_TF();
 
 };

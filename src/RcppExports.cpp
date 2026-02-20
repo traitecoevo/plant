@@ -12,8 +12,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // Leaf__ctor
-plant::Leaf Leaf__ctor(double vcmax_25, double c, double b, double psi_crit, double beta2, double jmax_25, double hk_s, double a, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter);
-RcppExport SEXP _plant_Leaf__ctor(SEXP vcmax_25SEXP, SEXP cSEXP, SEXP bSEXP, SEXP psi_critSEXP, SEXP beta2SEXP, SEXP jmax_25SEXP, SEXP hk_sSEXP, SEXP aSEXP, SEXP curv_fact_elec_transSEXP, SEXP curv_fact_colimSEXP, SEXP GSS_tol_absSEXP, SEXP vulnerability_curve_ncontrolSEXP, SEXP ci_abs_tolSEXP, SEXP ci_niterSEXP) {
+plant::Leaf Leaf__ctor(double vcmax_25, double c, double b, double psi_crit, double beta2, double jmax_25, double hk_s, double a, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter, double g1_TF24);
+RcppExport SEXP _plant_Leaf__ctor(SEXP vcmax_25SEXP, SEXP cSEXP, SEXP bSEXP, SEXP psi_critSEXP, SEXP beta2SEXP, SEXP jmax_25SEXP, SEXP hk_sSEXP, SEXP aSEXP, SEXP curv_fact_elec_transSEXP, SEXP curv_fact_colimSEXP, SEXP GSS_tol_absSEXP, SEXP vulnerability_curve_ncontrolSEXP, SEXP ci_abs_tolSEXP, SEXP ci_niterSEXP, SEXP g1_TF24SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -31,7 +31,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type vulnerability_curve_ncontrol(vulnerability_curve_ncontrolSEXP);
     Rcpp::traits::input_parameter< double >::type ci_abs_tol(ci_abs_tolSEXP);
     Rcpp::traits::input_parameter< double >::type ci_niter(ci_niterSEXP);
-    rcpp_result_gen = Rcpp::wrap(Leaf__ctor(vcmax_25, c, b, psi_crit, beta2, jmax_25, hk_s, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter));
+    Rcpp::traits::input_parameter< double >::type g1_TF24(g1_TF24SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__ctor(vcmax_25, c, b, psi_crit, beta2, jmax_25, hk_s, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, g1_TF24));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -277,18 +278,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Leaf__profit_Sperry_ci
-double Leaf__profit_Sperry_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double ci_);
-RcppExport SEXP _plant_Leaf__profit_Sperry_ci(SEXP obj_SEXP, SEXP ci_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type ci_(ci_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Leaf__profit_Sperry_ci(obj_, ci_));
-    return rcpp_result_gen;
-END_RCPP
-}
 // Leaf__profit_psi_stem_TF
 double Leaf__profit_psi_stem_TF(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem);
 RcppExport SEXP _plant_Leaf__profit_psi_stem_TF(SEXP obj_SEXP, SEXP psi_stemSEXP) {
@@ -308,17 +297,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
     Leaf__optimise_psi_stem_Sperry(obj_);
-    return R_NilValue;
-END_RCPP
-}
-// Leaf__optimise_ci_Sperry
-void Leaf__optimise_ci_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_, double max_ci);
-RcppExport SEXP _plant_Leaf__optimise_ci_Sperry(SEXP obj_SEXP, SEXP max_ciSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type max_ci(max_ciSEXP);
-    Leaf__optimise_ci_Sperry(obj_, max_ci);
     return R_NilValue;
 END_RCPP
 }
@@ -3543,17 +3521,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Node___FF16__FF16_Env__competition_effect__get
-double Node___FF16__FF16_Env__competition_effect__get(plant::RcppR6::RcppR6<plant::Node<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
-RcppExport SEXP _plant_Node___FF16__FF16_Env__competition_effect__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Node<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Node___FF16__FF16_Env__competition_effect__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
 // Node___FF16__FF16_Env__fecundity__get
 double Node___FF16__FF16_Env__fecundity__get(plant::RcppR6::RcppR6<plant::Node<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_Node___FF16__FF16_Env__fecundity__get(SEXP obj_SEXP) {
@@ -3710,17 +3677,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Node<plant::TF24_Strategy,plant::TF24_Environment> > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(Node___TF24__TF24_Env__log_density__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Node___TF24__TF24_Env__competition_effect__get
-double Node___TF24__TF24_Env__competition_effect__get(plant::RcppR6::RcppR6<plant::Node<plant::TF24_Strategy,plant::TF24_Environment> > obj_);
-RcppExport SEXP _plant_Node___TF24__TF24_Env__competition_effect__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Node<plant::TF24_Strategy,plant::TF24_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Node___TF24__TF24_Env__competition_effect__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -3883,17 +3839,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Node___K93__K93_Env__competition_effect__get
-double Node___K93__K93_Env__competition_effect__get(plant::RcppR6::RcppR6<plant::Node<plant::K93_Strategy,plant::K93_Environment> > obj_);
-RcppExport SEXP _plant_Node___K93__K93_Env__competition_effect__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Node<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Node___K93__K93_Env__competition_effect__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
 // Node___K93__K93_Env__fecundity__get
 double Node___K93__K93_Env__fecundity__get(plant::RcppR6::RcppR6<plant::Node<plant::K93_Strategy,plant::K93_Environment> > obj_);
 RcppExport SEXP _plant_Node___K93__K93_Env__fecundity__get(SEXP obj_SEXP) {
@@ -4028,15 +3973,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Species___FF16__FF16_Env__competition_effects_error
-std::vector<double> Species___FF16__FF16_Env__competition_effects_error(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > obj_, double scal);
-RcppExport SEXP _plant_Species___FF16__FF16_Env__competition_effects_error(SEXP obj_SEXP, SEXP scalSEXP) {
+// Species___FF16__FF16_Env__compute_competition_effect_by_nodes_error
+std::vector<double> Species___FF16__FF16_Env__compute_competition_effect_by_nodes_error(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > obj_, double scal);
+RcppExport SEXP _plant_Species___FF16__FF16_Env__compute_competition_effect_by_nodes_error(SEXP obj_SEXP, SEXP scalSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type scal(scalSEXP);
-    rcpp_result_gen = Rcpp::wrap(Species___FF16__FF16_Env__competition_effects_error(obj_, scal));
+    rcpp_result_gen = Rcpp::wrap(Species___FF16__FF16_Env__compute_competition_effect_by_nodes_error(obj_, scal));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -4128,14 +4073,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Species___FF16__FF16_Env__competition_effects__get
-std::vector<double> Species___FF16__FF16_Env__competition_effects__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
-RcppExport SEXP _plant_Species___FF16__FF16_Env__competition_effects__get(SEXP obj_SEXP) {
+// Species___FF16__FF16_Env__compute_competition_effect_by_nodes__get
+std::vector<double> Species___FF16__FF16_Env__compute_competition_effect_by_nodes__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_Species___FF16__FF16_Env__compute_competition_effect_by_nodes__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Species___FF16__FF16_Env__competition_effects__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(Species___FF16__FF16_Env__compute_competition_effect_by_nodes__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -4262,15 +4207,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Species___TF24__TF24_Env__competition_effects_error
-std::vector<double> Species___TF24__TF24_Env__competition_effects_error(plant::RcppR6::RcppR6<plant::Species<plant::TF24_Strategy,plant::TF24_Environment> > obj_, double scal);
-RcppExport SEXP _plant_Species___TF24__TF24_Env__competition_effects_error(SEXP obj_SEXP, SEXP scalSEXP) {
+// Species___TF24__TF24_Env__compute_competition_effect_by_nodes_error
+std::vector<double> Species___TF24__TF24_Env__compute_competition_effect_by_nodes_error(plant::RcppR6::RcppR6<plant::Species<plant::TF24_Strategy,plant::TF24_Environment> > obj_, double scal);
+RcppExport SEXP _plant_Species___TF24__TF24_Env__compute_competition_effect_by_nodes_error(SEXP obj_SEXP, SEXP scalSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::TF24_Strategy,plant::TF24_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type scal(scalSEXP);
-    rcpp_result_gen = Rcpp::wrap(Species___TF24__TF24_Env__competition_effects_error(obj_, scal));
+    rcpp_result_gen = Rcpp::wrap(Species___TF24__TF24_Env__compute_competition_effect_by_nodes_error(obj_, scal));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -4362,14 +4307,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Species___TF24__TF24_Env__competition_effects__get
-std::vector<double> Species___TF24__TF24_Env__competition_effects__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24_Strategy,plant::TF24_Environment> > obj_);
-RcppExport SEXP _plant_Species___TF24__TF24_Env__competition_effects__get(SEXP obj_SEXP) {
+// Species___TF24__TF24_Env__compute_competition_effect_by_nodes__get
+std::vector<double> Species___TF24__TF24_Env__compute_competition_effect_by_nodes__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24_Strategy,plant::TF24_Environment> > obj_);
+RcppExport SEXP _plant_Species___TF24__TF24_Env__compute_competition_effect_by_nodes__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::TF24_Strategy,plant::TF24_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Species___TF24__TF24_Env__competition_effects__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(Species___TF24__TF24_Env__compute_competition_effect_by_nodes__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -4496,15 +4441,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Species___K93__K93_Env__competition_effects_error
-std::vector<double> Species___K93__K93_Env__competition_effects_error(plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > obj_, double scal);
-RcppExport SEXP _plant_Species___K93__K93_Env__competition_effects_error(SEXP obj_SEXP, SEXP scalSEXP) {
+// Species___K93__K93_Env__compute_competition_effect_by_nodes_error
+std::vector<double> Species___K93__K93_Env__compute_competition_effect_by_nodes_error(plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > obj_, double scal);
+RcppExport SEXP _plant_Species___K93__K93_Env__compute_competition_effect_by_nodes_error(SEXP obj_SEXP, SEXP scalSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type scal(scalSEXP);
-    rcpp_result_gen = Rcpp::wrap(Species___K93__K93_Env__competition_effects_error(obj_, scal));
+    rcpp_result_gen = Rcpp::wrap(Species___K93__K93_Env__compute_competition_effect_by_nodes_error(obj_, scal));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -4596,14 +4541,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Species___K93__K93_Env__competition_effects__get
-std::vector<double> Species___K93__K93_Env__competition_effects__get(plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > obj_);
-RcppExport SEXP _plant_Species___K93__K93_Env__competition_effects__get(SEXP obj_SEXP) {
+// Species___K93__K93_Env__compute_competition_effect_by_nodes__get
+std::vector<double> Species___K93__K93_Env__compute_competition_effect_by_nodes__get(plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > obj_);
+RcppExport SEXP _plant_Species___K93__K93_Env__compute_competition_effect_by_nodes__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Species___K93__K93_Env__competition_effects__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(Species___K93__K93_Env__compute_competition_effect_by_nodes__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -5716,15 +5661,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// SCM___FF16__FF16_Env__competition_effect_error
-std::vector<double> SCM___FF16__FF16_Env__competition_effect_error(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::util::index species_index);
-RcppExport SEXP _plant_SCM___FF16__FF16_Env__competition_effect_error(SEXP obj_SEXP, SEXP species_indexSEXP) {
+// SCM___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i
+std::vector<double> SCM___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::util::index species_index);
+RcppExport SEXP _plant_SCM___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i(SEXP obj_SEXP, SEXP species_indexSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::util::index >::type species_index(species_indexSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__competition_effect_error(obj_, species_index));
+    rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i(obj_, species_index));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -5971,15 +5916,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// SCM___TF24__TF24_Env__competition_effect_error
-std::vector<double> SCM___TF24__TF24_Env__competition_effect_error(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_, plant::util::index species_index);
-RcppExport SEXP _plant_SCM___TF24__TF24_Env__competition_effect_error(SEXP obj_SEXP, SEXP species_indexSEXP) {
+// SCM___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i
+std::vector<double> SCM___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_, plant::util::index species_index);
+RcppExport SEXP _plant_SCM___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i(SEXP obj_SEXP, SEXP species_indexSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::util::index >::type species_index(species_indexSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24__TF24_Env__competition_effect_error(obj_, species_index));
+    rcpp_result_gen = Rcpp::wrap(SCM___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i(obj_, species_index));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -6226,15 +6171,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// SCM___K93__K93_Env__competition_effect_error
-std::vector<double> SCM___K93__K93_Env__competition_effect_error(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::util::index species_index);
-RcppExport SEXP _plant_SCM___K93__K93_Env__competition_effect_error(SEXP obj_SEXP, SEXP species_indexSEXP) {
+// SCM___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i
+std::vector<double> SCM___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::util::index species_index);
+RcppExport SEXP _plant_SCM___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i(SEXP obj_SEXP, SEXP species_indexSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::util::index >::type species_index(species_indexSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__competition_effect_error(obj_, species_index));
+    rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i(obj_, species_index));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -8910,6 +8855,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// TF24_Environment__get_soil_water_state_cumulative_flux
+std::vector<double> TF24_Environment__get_soil_water_state_cumulative_flux(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_);
+RcppExport SEXP _plant_TF24_Environment__get_soil_water_state_cumulative_flux(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(TF24_Environment__get_soil_water_state_cumulative_flux(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // TF24_Environment__get_PPFD
 double TF24_Environment__get_PPFD(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_);
 RcppExport SEXP _plant_TF24_Environment__get_PPFD(SEXP obj_SEXP) {
@@ -9053,6 +9009,28 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// TF24_Environment__depth__get
+double TF24_Environment__depth__get(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_);
+RcppExport SEXP _plant_TF24_Environment__depth__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(TF24_Environment__depth__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// TF24_Environment__depth__set
+void TF24_Environment__depth__set(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, double value);
+RcppExport SEXP _plant_TF24_Environment__depth__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    TF24_Environment__depth__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
 // TF24_Environment__a_psi__get
 double TF24_Environment__a_psi__get(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_);
 RcppExport SEXP _plant_TF24_Environment__a_psi__get(SEXP obj_SEXP) {
@@ -9094,6 +9072,28 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type value(valueSEXP);
     TF24_Environment__n_psi__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// TF24_Environment__a_infil__get
+double TF24_Environment__a_infil__get(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_);
+RcppExport SEXP _plant_TF24_Environment__a_infil__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(TF24_Environment__a_infil__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// TF24_Environment__a_infil__set
+void TF24_Environment__a_infil__set(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, double value);
+RcppExport SEXP _plant_TF24_Environment__a_infil__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    TF24_Environment__a_infil__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -9378,7 +9378,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_plant_Leaf__ctor", (DL_FUNC) &_plant_Leaf__ctor, 14},
+    {"_plant_Leaf__ctor", (DL_FUNC) &_plant_Leaf__ctor, 15},
     {"_plant_Leaf__initialize_integrator", (DL_FUNC) &_plant_Leaf__initialize_integrator, 3},
     {"_plant_Leaf__set_physiology", (DL_FUNC) &_plant_Leaf__set_physiology, 12},
     {"_plant_Leaf__proportion_of_conductivity", (DL_FUNC) &_plant_Leaf__proportion_of_conductivity, 2},
@@ -9398,10 +9398,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__hydraulic_cost_Sperry", (DL_FUNC) &_plant_Leaf__hydraulic_cost_Sperry, 2},
     {"_plant_Leaf__hydraulic_cost_TF", (DL_FUNC) &_plant_Leaf__hydraulic_cost_TF, 2},
     {"_plant_Leaf__profit_psi_stem_Sperry", (DL_FUNC) &_plant_Leaf__profit_psi_stem_Sperry, 2},
-    {"_plant_Leaf__profit_Sperry_ci", (DL_FUNC) &_plant_Leaf__profit_Sperry_ci, 2},
     {"_plant_Leaf__profit_psi_stem_TF", (DL_FUNC) &_plant_Leaf__profit_psi_stem_TF, 2},
     {"_plant_Leaf__optimise_psi_stem_Sperry", (DL_FUNC) &_plant_Leaf__optimise_psi_stem_Sperry, 1},
-    {"_plant_Leaf__optimise_ci_Sperry", (DL_FUNC) &_plant_Leaf__optimise_ci_Sperry, 2},
     {"_plant_Leaf__optimise_psi_stem_TF", (DL_FUNC) &_plant_Leaf__optimise_psi_stem_TF, 1},
     {"_plant_Leaf__ci___get", (DL_FUNC) &_plant_Leaf__ci___get, 1},
     {"_plant_Leaf__ci___set", (DL_FUNC) &_plant_Leaf__ci___set, 2},
@@ -9690,7 +9688,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Node___FF16__FF16_Env__individual__get", (DL_FUNC) &_plant_Node___FF16__FF16_Env__individual__get, 1},
     {"_plant_Node___FF16__FF16_Env__height__get", (DL_FUNC) &_plant_Node___FF16__FF16_Env__height__get, 1},
     {"_plant_Node___FF16__FF16_Env__log_density__get", (DL_FUNC) &_plant_Node___FF16__FF16_Env__log_density__get, 1},
-    {"_plant_Node___FF16__FF16_Env__competition_effect__get", (DL_FUNC) &_plant_Node___FF16__FF16_Env__competition_effect__get, 1},
     {"_plant_Node___FF16__FF16_Env__fecundity__get", (DL_FUNC) &_plant_Node___FF16__FF16_Env__fecundity__get, 1},
     {"_plant_Node___FF16__FF16_Env__ode_size__get", (DL_FUNC) &_plant_Node___FF16__FF16_Env__ode_size__get, 1},
     {"_plant_Node___FF16__FF16_Env__ode_state__get", (DL_FUNC) &_plant_Node___FF16__FF16_Env__ode_state__get, 1},
@@ -9705,7 +9702,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Node___TF24__TF24_Env__individual__get", (DL_FUNC) &_plant_Node___TF24__TF24_Env__individual__get, 1},
     {"_plant_Node___TF24__TF24_Env__height__get", (DL_FUNC) &_plant_Node___TF24__TF24_Env__height__get, 1},
     {"_plant_Node___TF24__TF24_Env__log_density__get", (DL_FUNC) &_plant_Node___TF24__TF24_Env__log_density__get, 1},
-    {"_plant_Node___TF24__TF24_Env__competition_effect__get", (DL_FUNC) &_plant_Node___TF24__TF24_Env__competition_effect__get, 1},
     {"_plant_Node___TF24__TF24_Env__fecundity__get", (DL_FUNC) &_plant_Node___TF24__TF24_Env__fecundity__get, 1},
     {"_plant_Node___TF24__TF24_Env__ode_size__get", (DL_FUNC) &_plant_Node___TF24__TF24_Env__ode_size__get, 1},
     {"_plant_Node___TF24__TF24_Env__ode_state__get", (DL_FUNC) &_plant_Node___TF24__TF24_Env__ode_state__get, 1},
@@ -9720,7 +9716,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Node___K93__K93_Env__individual__get", (DL_FUNC) &_plant_Node___K93__K93_Env__individual__get, 1},
     {"_plant_Node___K93__K93_Env__height__get", (DL_FUNC) &_plant_Node___K93__K93_Env__height__get, 1},
     {"_plant_Node___K93__K93_Env__log_density__get", (DL_FUNC) &_plant_Node___K93__K93_Env__log_density__get, 1},
-    {"_plant_Node___K93__K93_Env__competition_effect__get", (DL_FUNC) &_plant_Node___K93__K93_Env__competition_effect__get, 1},
     {"_plant_Node___K93__K93_Env__fecundity__get", (DL_FUNC) &_plant_Node___K93__K93_Env__fecundity__get, 1},
     {"_plant_Node___K93__K93_Env__ode_size__get", (DL_FUNC) &_plant_Node___K93__K93_Env__ode_size__get, 1},
     {"_plant_Node___K93__K93_Env__ode_state__get", (DL_FUNC) &_plant_Node___K93__K93_Env__ode_state__get, 1},
@@ -9733,7 +9728,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Species___FF16__FF16_Env__compute_competition", (DL_FUNC) &_plant_Species___FF16__FF16_Env__compute_competition, 2},
     {"_plant_Species___FF16__FF16_Env__introduce_new_node", (DL_FUNC) &_plant_Species___FF16__FF16_Env__introduce_new_node, 1},
     {"_plant_Species___FF16__FF16_Env__node_at", (DL_FUNC) &_plant_Species___FF16__FF16_Env__node_at, 2},
-    {"_plant_Species___FF16__FF16_Env__competition_effects_error", (DL_FUNC) &_plant_Species___FF16__FF16_Env__competition_effects_error, 2},
+    {"_plant_Species___FF16__FF16_Env__compute_competition_effect_by_nodes_error", (DL_FUNC) &_plant_Species___FF16__FF16_Env__compute_competition_effect_by_nodes_error, 2},
     {"_plant_Species___FF16__FF16_Env__size__get", (DL_FUNC) &_plant_Species___FF16__FF16_Env__size__get, 1},
     {"_plant_Species___FF16__FF16_Env__new_node__get", (DL_FUNC) &_plant_Species___FF16__FF16_Env__new_node__get, 1},
     {"_plant_Species___FF16__FF16_Env__height_max__get", (DL_FUNC) &_plant_Species___FF16__FF16_Env__height_max__get, 1},
@@ -9742,7 +9737,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Species___FF16__FF16_Env__log_densities__get", (DL_FUNC) &_plant_Species___FF16__FF16_Env__log_densities__get, 1},
     {"_plant_Species___FF16__FF16_Env__nodes__get", (DL_FUNC) &_plant_Species___FF16__FF16_Env__nodes__get, 1},
     {"_plant_Species___FF16__FF16_Env__net_reproduction_ratio_by_node__get", (DL_FUNC) &_plant_Species___FF16__FF16_Env__net_reproduction_ratio_by_node__get, 1},
-    {"_plant_Species___FF16__FF16_Env__competition_effects__get", (DL_FUNC) &_plant_Species___FF16__FF16_Env__competition_effects__get, 1},
+    {"_plant_Species___FF16__FF16_Env__compute_competition_effect_by_nodes__get", (DL_FUNC) &_plant_Species___FF16__FF16_Env__compute_competition_effect_by_nodes__get, 1},
     {"_plant_Species___FF16__FF16_Env__extrinsic_drivers__get", (DL_FUNC) &_plant_Species___FF16__FF16_Env__extrinsic_drivers__get, 1},
     {"_plant_Species___FF16__FF16_Env__ode_size__get", (DL_FUNC) &_plant_Species___FF16__FF16_Env__ode_size__get, 1},
     {"_plant_Species___FF16__FF16_Env__ode_state__get", (DL_FUNC) &_plant_Species___FF16__FF16_Env__ode_state__get, 1},
@@ -9754,7 +9749,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Species___TF24__TF24_Env__compute_competition", (DL_FUNC) &_plant_Species___TF24__TF24_Env__compute_competition, 2},
     {"_plant_Species___TF24__TF24_Env__introduce_new_node", (DL_FUNC) &_plant_Species___TF24__TF24_Env__introduce_new_node, 1},
     {"_plant_Species___TF24__TF24_Env__node_at", (DL_FUNC) &_plant_Species___TF24__TF24_Env__node_at, 2},
-    {"_plant_Species___TF24__TF24_Env__competition_effects_error", (DL_FUNC) &_plant_Species___TF24__TF24_Env__competition_effects_error, 2},
+    {"_plant_Species___TF24__TF24_Env__compute_competition_effect_by_nodes_error", (DL_FUNC) &_plant_Species___TF24__TF24_Env__compute_competition_effect_by_nodes_error, 2},
     {"_plant_Species___TF24__TF24_Env__size__get", (DL_FUNC) &_plant_Species___TF24__TF24_Env__size__get, 1},
     {"_plant_Species___TF24__TF24_Env__new_node__get", (DL_FUNC) &_plant_Species___TF24__TF24_Env__new_node__get, 1},
     {"_plant_Species___TF24__TF24_Env__height_max__get", (DL_FUNC) &_plant_Species___TF24__TF24_Env__height_max__get, 1},
@@ -9763,7 +9758,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Species___TF24__TF24_Env__log_densities__get", (DL_FUNC) &_plant_Species___TF24__TF24_Env__log_densities__get, 1},
     {"_plant_Species___TF24__TF24_Env__nodes__get", (DL_FUNC) &_plant_Species___TF24__TF24_Env__nodes__get, 1},
     {"_plant_Species___TF24__TF24_Env__net_reproduction_ratio_by_node__get", (DL_FUNC) &_plant_Species___TF24__TF24_Env__net_reproduction_ratio_by_node__get, 1},
-    {"_plant_Species___TF24__TF24_Env__competition_effects__get", (DL_FUNC) &_plant_Species___TF24__TF24_Env__competition_effects__get, 1},
+    {"_plant_Species___TF24__TF24_Env__compute_competition_effect_by_nodes__get", (DL_FUNC) &_plant_Species___TF24__TF24_Env__compute_competition_effect_by_nodes__get, 1},
     {"_plant_Species___TF24__TF24_Env__extrinsic_drivers__get", (DL_FUNC) &_plant_Species___TF24__TF24_Env__extrinsic_drivers__get, 1},
     {"_plant_Species___TF24__TF24_Env__ode_size__get", (DL_FUNC) &_plant_Species___TF24__TF24_Env__ode_size__get, 1},
     {"_plant_Species___TF24__TF24_Env__ode_state__get", (DL_FUNC) &_plant_Species___TF24__TF24_Env__ode_state__get, 1},
@@ -9775,7 +9770,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Species___K93__K93_Env__compute_competition", (DL_FUNC) &_plant_Species___K93__K93_Env__compute_competition, 2},
     {"_plant_Species___K93__K93_Env__introduce_new_node", (DL_FUNC) &_plant_Species___K93__K93_Env__introduce_new_node, 1},
     {"_plant_Species___K93__K93_Env__node_at", (DL_FUNC) &_plant_Species___K93__K93_Env__node_at, 2},
-    {"_plant_Species___K93__K93_Env__competition_effects_error", (DL_FUNC) &_plant_Species___K93__K93_Env__competition_effects_error, 2},
+    {"_plant_Species___K93__K93_Env__compute_competition_effect_by_nodes_error", (DL_FUNC) &_plant_Species___K93__K93_Env__compute_competition_effect_by_nodes_error, 2},
     {"_plant_Species___K93__K93_Env__size__get", (DL_FUNC) &_plant_Species___K93__K93_Env__size__get, 1},
     {"_plant_Species___K93__K93_Env__new_node__get", (DL_FUNC) &_plant_Species___K93__K93_Env__new_node__get, 1},
     {"_plant_Species___K93__K93_Env__height_max__get", (DL_FUNC) &_plant_Species___K93__K93_Env__height_max__get, 1},
@@ -9784,7 +9779,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Species___K93__K93_Env__log_densities__get", (DL_FUNC) &_plant_Species___K93__K93_Env__log_densities__get, 1},
     {"_plant_Species___K93__K93_Env__nodes__get", (DL_FUNC) &_plant_Species___K93__K93_Env__nodes__get, 1},
     {"_plant_Species___K93__K93_Env__net_reproduction_ratio_by_node__get", (DL_FUNC) &_plant_Species___K93__K93_Env__net_reproduction_ratio_by_node__get, 1},
-    {"_plant_Species___K93__K93_Env__competition_effects__get", (DL_FUNC) &_plant_Species___K93__K93_Env__competition_effects__get, 1},
+    {"_plant_Species___K93__K93_Env__compute_competition_effect_by_nodes__get", (DL_FUNC) &_plant_Species___K93__K93_Env__compute_competition_effect_by_nodes__get, 1},
     {"_plant_Species___K93__K93_Env__extrinsic_drivers__get", (DL_FUNC) &_plant_Species___K93__K93_Env__extrinsic_drivers__get, 1},
     {"_plant_Species___K93__K93_Env__ode_size__get", (DL_FUNC) &_plant_Species___K93__K93_Env__ode_size__get, 1},
     {"_plant_Species___K93__K93_Env__ode_state__get", (DL_FUNC) &_plant_Species___K93__K93_Env__ode_state__get, 1},
@@ -9883,7 +9878,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___FF16__FF16_Env__run_next", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__run_next, 1},
     {"_plant_SCM___FF16__FF16_Env__reset", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__reset, 1},
     {"_plant_SCM___FF16__FF16_Env__net_reproduction_ratio_for_species", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__net_reproduction_ratio_for_species, 2},
-    {"_plant_SCM___FF16__FF16_Env__competition_effect_error", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__competition_effect_error, 2},
+    {"_plant_SCM___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i, 2},
     {"_plant_SCM___FF16__FF16_Env__set_node_schedule_times", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__set_node_schedule_times, 2},
     {"_plant_SCM___FF16__FF16_Env__complete__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__complete__get, 1},
     {"_plant_SCM___FF16__FF16_Env__time__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__time__get, 1},
@@ -9906,7 +9901,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___TF24__TF24_Env__run_next", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__run_next, 1},
     {"_plant_SCM___TF24__TF24_Env__reset", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__reset, 1},
     {"_plant_SCM___TF24__TF24_Env__net_reproduction_ratio_for_species", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__net_reproduction_ratio_for_species, 2},
-    {"_plant_SCM___TF24__TF24_Env__competition_effect_error", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__competition_effect_error, 2},
+    {"_plant_SCM___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i, 2},
     {"_plant_SCM___TF24__TF24_Env__set_node_schedule_times", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__set_node_schedule_times, 2},
     {"_plant_SCM___TF24__TF24_Env__complete__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__complete__get, 1},
     {"_plant_SCM___TF24__TF24_Env__time__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__time__get, 1},
@@ -9929,7 +9924,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___K93__K93_Env__run_next", (DL_FUNC) &_plant_SCM___K93__K93_Env__run_next, 1},
     {"_plant_SCM___K93__K93_Env__reset", (DL_FUNC) &_plant_SCM___K93__K93_Env__reset, 1},
     {"_plant_SCM___K93__K93_Env__net_reproduction_ratio_for_species", (DL_FUNC) &_plant_SCM___K93__K93_Env__net_reproduction_ratio_for_species, 2},
-    {"_plant_SCM___K93__K93_Env__competition_effect_error", (DL_FUNC) &_plant_SCM___K93__K93_Env__competition_effect_error, 2},
+    {"_plant_SCM___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i", (DL_FUNC) &_plant_SCM___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i, 2},
     {"_plant_SCM___K93__K93_Env__set_node_schedule_times", (DL_FUNC) &_plant_SCM___K93__K93_Env__set_node_schedule_times, 2},
     {"_plant_SCM___K93__K93_Env__complete__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__complete__get, 1},
     {"_plant_SCM___K93__K93_Env__time__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__time__get, 1},
@@ -10169,6 +10164,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_TF24_Environment__get_soil_number_of_depths", (DL_FUNC) &_plant_TF24_Environment__get_soil_number_of_depths, 1},
     {"_plant_TF24_Environment__set_soil_water_state", (DL_FUNC) &_plant_TF24_Environment__set_soil_water_state, 2},
     {"_plant_TF24_Environment__get_soil_water_state", (DL_FUNC) &_plant_TF24_Environment__get_soil_water_state, 1},
+    {"_plant_TF24_Environment__get_soil_water_state_cumulative_flux", (DL_FUNC) &_plant_TF24_Environment__get_soil_water_state_cumulative_flux, 1},
     {"_plant_TF24_Environment__get_PPFD", (DL_FUNC) &_plant_TF24_Environment__get_PPFD, 1},
     {"_plant_TF24_Environment__get_atm_vpd", (DL_FUNC) &_plant_TF24_Environment__get_atm_vpd, 1},
     {"_plant_TF24_Environment__get_ca", (DL_FUNC) &_plant_TF24_Environment__get_ca, 1},
@@ -10182,10 +10178,14 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_TF24_Environment__soil_moist_sat__set", (DL_FUNC) &_plant_TF24_Environment__soil_moist_sat__set, 2},
     {"_plant_TF24_Environment__K_sat__get", (DL_FUNC) &_plant_TF24_Environment__K_sat__get, 1},
     {"_plant_TF24_Environment__K_sat__set", (DL_FUNC) &_plant_TF24_Environment__K_sat__set, 2},
+    {"_plant_TF24_Environment__depth__get", (DL_FUNC) &_plant_TF24_Environment__depth__get, 1},
+    {"_plant_TF24_Environment__depth__set", (DL_FUNC) &_plant_TF24_Environment__depth__set, 2},
     {"_plant_TF24_Environment__a_psi__get", (DL_FUNC) &_plant_TF24_Environment__a_psi__get, 1},
     {"_plant_TF24_Environment__a_psi__set", (DL_FUNC) &_plant_TF24_Environment__a_psi__set, 2},
     {"_plant_TF24_Environment__n_psi__get", (DL_FUNC) &_plant_TF24_Environment__n_psi__get, 1},
     {"_plant_TF24_Environment__n_psi__set", (DL_FUNC) &_plant_TF24_Environment__n_psi__set, 2},
+    {"_plant_TF24_Environment__a_infil__get", (DL_FUNC) &_plant_TF24_Environment__a_infil__get, 1},
+    {"_plant_TF24_Environment__a_infil__set", (DL_FUNC) &_plant_TF24_Environment__a_infil__set, 2},
     {"_plant_TF24_Environment__b_infil__get", (DL_FUNC) &_plant_TF24_Environment__b_infil__get, 1},
     {"_plant_TF24_Environment__b_infil__set", (DL_FUNC) &_plant_TF24_Environment__b_infil__set, 2},
     {"_plant_TF24_Environment__ode_size__get", (DL_FUNC) &_plant_TF24_Environment__ode_size__get, 1},

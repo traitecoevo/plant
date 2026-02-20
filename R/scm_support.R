@@ -110,7 +110,7 @@ run_scm_error <- function(p, env = NULL,
     added <- scm$run_next()
     for (idx in added) {
       lai_error[[idx]] <-
-        c(lai_error[[idx]], list(scm$competition_effect_error(idx)))
+        c(lai_error[[idx]], list(scm$compute_competition_effect_error_by_node_for_species_i(idx)))
     }
   }
 

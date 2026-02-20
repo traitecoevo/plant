@@ -17,7 +17,8 @@ Leaf::Leaf()
     GSS_tol_abs(1e-3),
     vulnerability_curve_ncontrol(100),
     ci_abs_tol(1e-3),
-    ci_niter(1000)
+    ci_niter(1000),
+    g1_TF24(46.32995) //cost parameter for TF24 profit model umol m^-2 s^-1
    {
       setup_transpiration(100); // arg: num control points for integration
       setup_clean_leaf();
@@ -30,7 +31,8 @@ Leaf::Leaf(double vcmax_25, double c, double b,
            double GSS_tol_abs,
            double vulnerability_curve_ncontrol,
            double ci_abs_tol,
-           double ci_niter)
+           double ci_niter,
+          double g1_TF24)
     : vcmax_25(vcmax_25), // umol m^-2 s^-1 
     c(c), //unitless
     b(b), //-MPa
@@ -44,7 +46,8 @@ Leaf::Leaf(double vcmax_25, double c, double b,
     GSS_tol_abs(GSS_tol_abs),
     vulnerability_curve_ncontrol(vulnerability_curve_ncontrol),
     ci_abs_tol(ci_abs_tol),
-    ci_niter(ci_niter)
+    ci_niter(ci_niter),
+    g1_TF24(g1_TF24) //cost parameter for TF24 profit model umol m^-2 s^-1
    {
       setup_transpiration(vulnerability_curve_ncontrol); // arg: num control points for integration
       setup_clean_leaf();
@@ -294,10 +297,13 @@ double Leaf::hydraulic_cost_Sperry(double psi_stem) {
 }
 
 double Leaf::hydraulic_cost_TF(double psi_stem) {
-hydraulic_cost_ = 1e6 * 
-    hk_s /(365*24*60*60)* 
-    (1/a_bio_) * 
-    rho_ * sapwood_volume_per_leaf_area_ * pow((1 - proportion_of_conductivity(psi_stem)), beta2);
+//hydraulic_cost_ = 1e6 * 
+  //  hk_s /(365*24*60*60)* 
+    //(1/a_bio_) * 
+    //rho_ * sapwood_volume_per_leaf_area_ * pow((1 - proportion_of_conductivity(psi_stem)), beta2);
+
+  hydraulic_cost_ = g1_TF24 * pow((1 - proportion_of_conductivity(psi_stem)), beta2);
+
 
 return hydraulic_cost_;
 }
@@ -324,17 +330,6 @@ set_leaf_states_rates_from_psi_stem(psi_stem);
   return benefit_ - hydraulic_cost_;
 }
 
-double Leaf::profit_Sperry_ci(double ci_) {                                  
-  double benefit_ =
-      assim_colimited(ci_);
-  double stom_cond_CO2_ = (benefit_ * umol_to_mol * atm_kpa_ * kPa_to_Pa)/(ca_ - ci_); 
-  double transpiration_ = stom_cond_CO2_ * H2O_CO2_stom_diff_ratio * atm_vpd_ / kg_to_mol_h2o / atm_kpa_;
-  
-  double psi_stem = transpiration_to_psi_stem(transpiration_);
-  double hydraulic_cost_ = hydraulic_cost_Sperry(psi_stem);
-
-  return benefit_ - lambda_*hydraulic_cost_;
-}
 
 //optimisation functions
 
@@ -383,51 +378,6 @@ void Leaf::optimise_psi_stem_Sperry() {
 
   }
   
-
-void Leaf::optimise_ci_Sperry(double max_ci) {
-
-  // Early exit -- XXXX 
-  if (psi_soil_ > psi_crit){
-
-    opt_ci_ = gamma_*umol_per_mol_to_Pa;
-    profit_ = 0.0;
-    transpiration_ = 0.0;
-    return;
-  }
-
-  double gr = (sqrt(5) + 1) / 2;
-
-  
-  // optimise for stem water potential
-    double bound_a = gamma_*umol_per_mol_to_Pa;
-    double bound_b = max_ci;
-
-    double bound_c = bound_b - (bound_b - bound_a) / gr;
-    double bound_d = bound_a + (bound_b - bound_a) / gr;
-    while (abs(bound_b - bound_a) > GSS_tol_abs) {      
-
-      double profit_at_c = profit_Sperry_ci(bound_c);
-
-      double profit_at_d = profit_Sperry_ci(bound_d);
-
-      if (profit_at_c > profit_at_d) {
-        bound_b = bound_d;
-      } else {
-        bound_a = bound_c;
-      }
-
-      bound_c = bound_b - (bound_b - bound_a) / gr;
-      bound_d = bound_a + (bound_b - bound_a) / gr;
-    }
-
-    opt_ci_ = ((bound_b + bound_a) / 2);
-    profit_ = profit_Sperry_ci(opt_ci_);
-
-  
-    return;
-
-  }
-
 
 void Leaf::optimise_psi_stem_TF() {
 

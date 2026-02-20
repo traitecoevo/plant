@@ -310,7 +310,7 @@ public:
   double vulnerability_curve_ncontrol = 100;
   double ci_abs_tol = 1e-6;
   double ci_niter = 1000;
-  
+  double g1_TF24 = 46.32995;
 
   //nitrogen allocation traits (parameterised from Austraits 4.1.0)
   double nmass_l = 13e-3; // kg N kg^-1 mass

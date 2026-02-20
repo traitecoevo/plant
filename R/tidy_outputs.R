@@ -26,7 +26,6 @@ tidy_species <- function(results) {
 #' @rdname tidy_patch
 #' @importFrom rlang .data
 tidy_env <- function(results) {
-
   env <- lapply(results, "[[", "env")
 
   # get list of variables
@@ -43,10 +42,19 @@ tidy_env <- function(results) {
               dplyr::as_tibble() %>%
               dplyr::mutate(dplyr::across(dplyr::any_of("step"), as.integer)) %>%
               dplyr::rename_with(~ gsub("\\.", v, .x)
+                                 
+                                 
           )
         )
 
   names(env_long) <- env_variables
+  if(any(env_variables == "soil_moist_cumulative_flux")){
+  cumulative_names <- c("sum_rainfall","sum_infiltration","sum_drainage")
+  
+  env_long$soil_moist_cumulative_flux <- env_long$soil_moist_cumulative_flux %>%
+    dplyr::mutate(cumulative_variables = rep(cumulative_names, times = nrow(.)/length(cumulative_names))) %>%
+    tidyr::pivot_wider(names_from = "cumulative_variables", values_from = "soil_moist_cumulative_flux")
+  }
   return(env_long)
 }
 
@@ -58,7 +66,6 @@ tidy_env <- function(results) {
 #' @return a list, containing outputs of plant solver in tidy format
 #' @importFrom rlang .data
 tidy_patch <- function(results) {
-
   time <- sapply(results, "[[", "time")
   patch_density <- sapply(results, "[[", "patch_density")
 

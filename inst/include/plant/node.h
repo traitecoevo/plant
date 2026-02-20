@@ -20,12 +20,11 @@ public:
   void compute_rates(const environment_type& environment, double pr_patch_survival);
   void compute_initial_conditions(const environment_type& environment, double pr_patch_survival, double birth_rate);
 
-  // * R interface (testing only, really)
+  // Wrapper to growth_rate_gradient for testing
   double r_growth_rate_gradient(const environment_type& environment);
 
   double height() const {return individual.state(HEIGHT_INDEX);}
   double compute_competition(double z) const;
-  double competition_effect() const;
   double fecundity() const {return offspring_produced_survival_weighted;}
 
   // Unfortunate, but need a get_ here because of name shadowing...
@@ -162,6 +161,7 @@ double Node<T,E>::growth_rate_gradient(const environment_type& environment) cons
   }
 }
 
+// Wrapper to growth_rate_gradient for testing
 template <typename T, typename E>
 double Node<T,E>::r_growth_rate_gradient(const environment_type& environment) {
   // We need to compute the physiological variables here, first, so
@@ -175,11 +175,6 @@ double Node<T,E>::r_growth_rate_gradient(const environment_type& environment) {
 template <typename T, typename E>
 double Node<T,E>::compute_competition(double height_) const {
   return density * individual.compute_competition(height_);
-}
-
-template <typename T, typename E>
-double Node<T,E>::competition_effect() const {
-  return compute_competition(0.0);
 }
 
 // ODE interface -- note that the don't care about time in the node;

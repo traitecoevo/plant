@@ -12,7 +12,7 @@ test_that("collect", {
   expect_silent(res <- run_scm(p1, env, ctrl))
 
   expect_contains(
-    names(res), c("clone", "collect", "competition_effect_error", "complete", "history", "initialize", "net_reproduction_ratio_errors", "net_reproduction_ratio_for_species", "net_reproduction_ratios", "node_schedule", "ode_times", "offspring_production", "parameters", "patch", "reset", "run", "run_mutant", "run_next", "set_node_schedule_times", "time", "use_ode_times")
+    names(res), c("clone", "collect", "compute_competition_effect_error_by_node_for_species_i", "complete", "history", "initialize", "net_reproduction_ratio_errors", "net_reproduction_ratio_for_species", "net_reproduction_ratios", "node_schedule", "ode_times", "offspring_production", "parameters", "patch", "reset", "run", "run_mutant", "run_next", "set_node_schedule_times", "time", "use_ode_times")
   )
 
 })

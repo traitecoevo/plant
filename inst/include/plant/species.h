@@ -75,8 +75,8 @@ public:
 
 
   // These are used to determine the degree of node refinement.
-  std::vector<double> r_competition_effects() const;
-  std::vector<double> r_competition_effects_error(double scal) const;
+  std::vector<double> r_compute_competition_effect_by_nodes() const;
+  std::vector<double> r_compute_competition_effect_by_nodes_error(double scal) const;
 
   // This is just kind of useful
   std::vector<double> r_log_densities() const;
@@ -340,18 +340,18 @@ void Species<T,E>::r_set_heights(std::vector<double> heights) {
 }
 
 template <typename T, typename E>
-std::vector<double> Species<T,E>::r_competition_effects() const {
+std::vector<double> Species<T,E>::r_compute_competition_effect_by_nodes() const {
   std::vector<double> ret;
   ret.reserve(size());
   for (auto& c : nodes) {
-    ret.push_back(c.competition_effect());
+    ret.push_back(c.compute_competition(0.0));
   }
   return ret;
 }
 
 template <typename T, typename E>
-std::vector<double> Species<T,E>::r_competition_effects_error(double scal) const {
-  return util::local_error_integration(r_heights(), r_competition_effects(), scal);
+std::vector<double> Species<T,E>::r_compute_competition_effect_by_nodes_error(double scal) const {
+  return util::local_error_integration(r_heights(), r_compute_competition_effect_by_nodes(), scal);
 }
 
 template <typename T, typename E>

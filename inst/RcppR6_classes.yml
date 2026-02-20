@@ -17,7 +17,7 @@ Leaf:
       @param vulnerability_curve_ncontrol number of points for pre-calculating vulnerability curve
       @param ci_abs_tol absolute tolerance value for root-solving ci
       @param ci_niter maximum number of iterations for root-solving ci
-
+      @param g1_TF24 cost parameter for TF24 profit model umol m^-2 s^-1
 
       @export
     args:
@@ -35,6 +35,7 @@ Leaf:
       - vulnerability_curve_ncontrol: double
       - ci_abs_tol: double
       - ci_niter: double
+      - g1_TF24: double
 
   active:
     ci_: {type: double, access: field}
@@ -129,9 +130,6 @@ Leaf:
     profit_psi_stem_Sperry:
       return_type: double
       args: [psi_stem: double]
-    profit_Sperry_ci:
-      return_type: double
-      args: [ci_: double] 
     profit_psi_stem_TF:
       return_type: double
       args: [psi_stem: double]
@@ -139,9 +137,6 @@ Leaf:
     optimise_psi_stem_Sperry:
       return_type: void
       args: []
-    optimise_ci_Sperry:
-      return_type: void
-      args: [max_ci: double]
     optimise_psi_stem_TF:
       return_type: void
       args: []
@@ -511,7 +506,6 @@ Node:
     individual: {type: "plant::Individual<T,E>", access: field, readonly: true}
     height: {type: double, access: member}
     log_density: {type: double, access: member, name_cpp: get_log_density}
-    competition_effect: {type: double, access: member}
     fecundity: {type: double, access: member}
     ode_size: {type: size_t, access: member}
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
@@ -550,7 +544,7 @@ Species:
     log_densities: {type: "std::vector<double>", access: member, name_cpp: r_log_densities}
     nodes: {type: "std::vector<plant::Node<T,E> >", access: member, name_cpp: r_nodes}
     net_reproduction_ratio_by_node: {type: "std::vector<double>", access: member}
-    competition_effects: {type: "std::vector<double>", access: member, name_cpp: r_competition_effects}
+    compute_competition_effect_by_nodes: {type: "std::vector<double>", access: member, name_cpp: r_compute_competition_effect_by_nodes}
     extrinsic_drivers: {type: "plant::ExtrinsicDrivers", access: member, name_cpp: extrinsic_drivers}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
@@ -571,10 +565,10 @@ Species:
       return_type: "plant::Node<T,E>"
       args: [index: "plant::util::index"]
       name_cpp: r_node_at
-    competition_effects_error:
+    compute_competition_effect_by_nodes_error:
       return_type: "std::vector<double>"
       args: [scal: double=1]
-      name_cpp: r_competition_effects_error
+      name_cpp: r_compute_competition_effect_by_nodes_error
 
 Patch:
   name_cpp: "plant::Patch<T,E>"
@@ -675,10 +669,10 @@ SCM:
       args: [species_index: "plant::util::index"]
       return_type: double
       name_cpp: r_net_reproduction_ratio_for_species
-    competition_effect_error:
+    compute_competition_effect_error_by_node_for_species_i:
       args: [species_index: "plant::util::index"]
       return_type: "std::vector<double>"
-      name_cpp: r_competition_effect_error
+      name_cpp: r_compute_competition_effect_error_by_node_for_species_i
     set_node_schedule_times:
       args: [times: "std::vector<std::vector<double>>"]
       return_type: void
@@ -1207,6 +1201,9 @@ TF24_Environment:
     get_soil_water_state:
       args: []
       return_type: std::vector<double>
+    get_soil_water_state_cumulative_flux:
+      args: []
+      return_type: std::vector<double>  
     get_PPFD:
       args: []
       return_type: double
@@ -1232,8 +1229,10 @@ TF24_Environment:
     time: {type: double, access: field}
     soil_moist_sat: {type: double, access: field}
     K_sat: {type: double, access: field}
+    depth: {type: double, access: field}
     a_psi: {type: double, access: field}
     n_psi: {type: double, access: field}
+    a_infil: {type: double, access: field}
     b_infil: {type: double, access: field}
     ode_size: {type: size_t, access: member}
     light_availability:
