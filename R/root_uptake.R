@@ -75,7 +75,7 @@ E_from_Soil_to_Root_Collar <- function(P_x_r = P_x_r, P_soil,
   E = sum(E_soil); # [mol H2O / m^2 / s]
   
   # Recalculate resistances in each layer (TODO: Bit unsure about why z_soil_mid is [i])
-  r_R = (P_soil - P_x_r - rho * g * z_soil_mid[i] / 10^6) / E_soil / LA; 
+  r_R = (P_soil - P_x_r - rho * g * z_soil_mid / 10^6) / E_soil / LA; 
   r_R_H = r_R - r_R_V_sum; 
   r_R_H = pmax(r_R_H, r_R_H_min) #[MPa * s * (mol H2O)^-1]
   

@@ -42,6 +42,7 @@ Leaf:
     stom_cond_CO2_: {type: double, access: field}
     assim_colimited_: {type: double, access: field}
     transpiration_: {type: double, access: field}
+    soil_consumption_: {type: "std::vector<double>", access: field}
     profit_: {type: double, access: field}
     psi_stem: {type: double, access: field}
     lambda_: {type: double, access: field}
@@ -60,13 +61,16 @@ Leaf:
     PPFD_: {type: double, access: field}
     atm_vpd_: {type: double, access: field}
     ca_: {type: double, access: field}
-    psi_soil_: {type: double, access: field}
+    soil_moist_: {type: "std::vector<double>", access: field}
+    root_collar_psi_: {type: double, access: field}
     leaf_temp_: {type: double, access: field} 
     atm_o2_kpa_: {type: double, access: field} 
     atm_kpa_: {type: double, access: field} 
     hydraulic_cost_: {type: double, access: field}
     opt_psi_stem_: {type: double, access: field}
     opt_ci_: {type: double, access: field}
+    E_up_: {type: double, access: field}
+    f_r: {type: "std::vector<double>", access: field} 
     count: {type: double, access: field}
 
   methods:
@@ -75,7 +79,7 @@ Leaf:
       args: [integration_rule: int, integration_tol: double]
     set_physiology:
       return_type: void 
-      args: [rho: double, a_bio: double, PPFD: double, psi_soil: double, leaf_specific_conductance_max: double, atm_vpd: double, ca: double, sapwood_volume_per_leaf_area: double, leaf_temp: double, atm_o2_kpa: double, atm_kpa: double]
+      args: [rho: double, a_bio: double, PPFD: double, soil_moist: "std::vector<double>", root_collar_psi: double, leaf_specific_conductance_max: double, atm_vpd: double, ca: double, sapwood_volume_per_leaf_area: double, leaf_temp: double, atm_o2_kpa: double, atm_kpa: double]
     #transpiration functions
     proportion_of_conductivity:
       return_type: double
@@ -117,6 +121,19 @@ Leaf:
     set_leaf_states_rates_from_psi_stem:
       return_type: void
       args: [psi_stem: double]
+    E_from_Soil_to_Root_Collar:
+      return_type: double
+      args: [P_x_r: double, P_soil: "std::vector<double>", n_soil: double, z_soil_mid: "std::vector<double>", dz: double, LA: double, c_r_H: "std::vector<double>", c_r_VH: "std::vector<double>", beta_R_H: double, beta_R_V: double]
+    find_root_collar_psi:
+      return_type: double
+      args: [soil_moist_: "std::vector<double>"]
+    find_root_psi:
+      return_type: double
+      args: [wettest_soil_layer: double, psi_soil_seperate_: "std::vector<double>", psi_leaf: double, find_root_crit: int]
+    find_psi_stem_from_psi_root:
+      return_type: double
+      args: [psi_root: double, psi_soil_seperate_: "std::vector<double>"]
+
     psi_stem_to_ci:
       return_type: double
       args: [psi_stem: double]

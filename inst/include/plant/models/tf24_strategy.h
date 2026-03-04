@@ -96,6 +96,9 @@ public:
 
   void compute_rates(const TF24_Environment& environment,
                 Internals& vars);
+  
+  void compute_roots(const TF24_Environment& environment,
+                Internals& vars);
 
   void update_dependent_aux(const int index, Internals& vars);
 

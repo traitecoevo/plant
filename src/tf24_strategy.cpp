@@ -286,9 +286,10 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
 
   // const double sapwood_volume_per_leaf_area = theta * (height * eta_c);
 
+
   const double sapwood_volume_per_leaf_area = (0.000157*(1-var_sapwood_volume_cost) + theta*var_sapwood_volume_cost)  * (height * eta_c);
 // set strategy-level physiological parameters for the leaf-submodel.
-  leaf.set_physiology(rho, a_bio, average_radiation, psi_soil, leaf_specific_conductance_max, environment.get_atm_vpd(), environment.get_ca(), sapwood_volume_per_leaf_area, environment.get_leaf_temp(), environment.get_atm_o2_kpa(), environment.get_atm_kpa());
+  leaf.set_physiology(rho, a_bio, average_radiation, environment.get_soil_water_state(), psi_soil, leaf_specific_conductance_max, environment.get_atm_vpd(), environment.get_ca(), sapwood_volume_per_leaf_area, environment.get_leaf_temp(), environment.get_atm_o2_kpa(), environment.get_atm_kpa());
 
   // optimise psi_stem, setting opt_psi_stem_, profit_, hydraulic_cost_, assim_colimited_ etc.
   //leaf.optimise_psi_stem_TF();

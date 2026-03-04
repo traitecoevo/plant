@@ -14,8 +14,8 @@ rm(list=ls())
 ```
 
 ```{r}
-source("R/leaf.R")
-source("R/root_uptake.R")
+source("/Users/z3533545/Documents/GitHub/plant/R/leaf.R")
+source("/Users/z3533545/Documents/GitHub/plant/R/root_uptake.R")
 ```
 
 ```{r}
@@ -679,11 +679,11 @@ sw <- list(
 )
 
 leaf <- Leaf(vcmax= sw$vcmax_25, b = sw$b, c = sw$c, psi_crit = sw$psi_crit,
-             beta2 = sw$beta2, jmax_25 = sw$jmax_25, hk_s = sw$hk_s, a = sw$a, curv_fact_elec_trans = sw$curv_fact_elec_trans, curv_fact_colim = sw$curv_fact_colim, GSS_tol_abs = sw$GSS_tol_abs, vulnerability_curve_ncontrol = sw$vulnerability_curve_ncontrol, ci_abs_tol = sw$ci_abs_tol, ci_niter = sw$ci_niter)
+             beta2 = sw$beta2, jmax_25 = sw$jmax_25, hk_s = sw$hk_s, a = sw$a, curv_fact_elec_trans = sw$curv_fact_elec_trans, curv_fact_colim = sw$curv_fact_colim, GSS_tol_abs = sw$GSS_tol_abs, vulnerability_curve_ncontrol = sw$vulnerability_curve_ncontrol, ci_abs_tol = sw$ci_abs_tol, ci_niter = sw$ci_niter, g1_TF24 = 46.32995)
 ```
 
 ```{r}
-tibble(psi_r = seq(P_x_r_UB_crit,-3.30,-0.01)) %>%
+tibble(psi_r = seq(-0.06,-3.30,-0.01)) %>%
 mutate(E = purrr::map_dbl(psi_r,
     ~E_from_Soil_to_Root_Collar(.x, P_soil = P_soil, rho = rho, g = g)[[1]])) -> psi_r_E
 
@@ -694,8 +694,7 @@ psi_r_E %>%
 
 ```{r}
 find_psi_leaf_from_root <- function(psi_root, E){
-  leaf$set_physiology(PPFD = 1000, psi_soil = psi_root, leaf_specific_conductance_max = k_sw_max, atm_vpd = 2, ca = 40, sapwood_volume_per_leaf_area = 1.8e-04, rho = 608, a_bio = 0.0245, leaf_temp = 25, atm_o2_kpa = 21, atm_kpa = 101.3)
-  
+  leaf$set_physiology(PPFD = 1000, psi_soil = psi_root, soil_moist = 0.01, leaf_specific_conductance_max = k_sw_max, atm_vpd = 2, ca = 40, sapwood_volume_per_leaf_area = 1.8e-04, rho = 608, a_bio = 0.0245, leaf_temp = 25, atm_o2_kpa = 21, atm_kpa = 101.3)
   psi_stem = leaf$transpiration_to_psi_stem(E/kg_2_mol_h20)
   psi_stem = leaf$transpiration_to_psi_stem(E)
   leaf$set_leaf_states_rates_from_psi_stem(psi_stem)
@@ -728,7 +727,7 @@ find_psi_leaf_from_root <- function(psi_root, E){
 
 ```{r}
 psi_r_E %>%
-  # slice(1:76) %>%
+  slice(1:324) %>%
   mutate(psi_l = map2(psi_r, E, ~find_psi_leaf_from_root(-.x, .y)))%>%
   unnest_wider(psi_l) -> psi_r_l_E
 
@@ -749,10 +748,11 @@ psi_r_l_E %>%
 ```{r}
 psi_r_l_E %>%
   mutate(profit = assim_colimited_ - hydraulic_cost_TF) %>%
+  mutate(E_max_profit = ifelse(profit == max(profit), E, NA)) %>%
   pivot_longer(cols = c(profit,hydraulic_cost_TF, assim_colimited_)) %>%
   ggplot(aes(y = value, x = E)) +
   geom_point(aes(colour = name, group = name))+
-  # geom_vline(xintercept = 0.00320) +
+  geom_vline(aes(xintercept = E_max_profit)) +
   ylab("Carbon inputs and outputs") +
   theme_bw()-> b
 ```

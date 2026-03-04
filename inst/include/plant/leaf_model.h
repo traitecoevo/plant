@@ -8,7 +8,7 @@
 // #define kg_to_mol_h2o ...
 // #define kPa_to_Pa ...
 
-#include <plant/models/ff16_environment.h>
+#include <plant/models/tf24_environment.h>
 #include <plant/qag.h>
 #include <plant/uniroot.h>
 
@@ -119,6 +119,7 @@ public:
   double stom_cond_CO2_;
   double assim_colimited_;
   double transpiration_;
+  std::vector<double> soil_consumption_;
   double profit_;
   double psi_stem;
   double lambda_;
@@ -140,18 +141,21 @@ public:
   double lma_; //kg m^-2
   double a_bio_;
   
-  double psi_soil_;
+  std::vector<double> soil_moist_;
   double leaf_temp_;
   double PPFD_;
   double atm_vpd_;
   double atm_o2_kpa_;
   double atm_kpa_;
   double ca_;
+  double root_collar_psi_;
+
   
   double opt_psi_stem_;
   double opt_ci_;
   double count;
-
+  double E_up_;
+  std::vector<double> f_r;
   // TODO: move into environment?
 
   // TODO: atm_vpd - now set in set_physiology although ideally should be moved to enviroment
@@ -162,6 +166,8 @@ public:
   double atm_o2_kpa = 21;
   //leaf temperature (deg C)
   double leaf_temp = 25;
+  // density of water 
+
 
   // this might end up hard-coded
   void initialize_integrator(int integration_rule = 21,
@@ -173,10 +179,24 @@ public:
   }
   
   // set-up functions
-  void set_physiology(double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa);
+  void set_physiology(double rho, double a_bio, double PPFD, std::vector<double> soil_moist, double root_collar_psi, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa);
   void setup_transpiration(double resolution);
   void setup_clean_leaf();
+  // std::vector<double> root_collar_psi(std::vector<double> soil_moist_);
 
+  double VC_l(double psi);
+  double vulnerability_curve_root(double P_soil);
+  double VC_sw(double psi);
+
+  double E_from_Soil_to_Root_Collar(double P_x_r = -0.12, std::vector<double> P_soil = {-0.06, -0.12},
+                                       double n_soil = 2, std::vector<double> z_soil_mid = {0.05, 0.15}, double dz = 0.1,
+                                       double LA = 1, std::vector<double> c_r_H = {20,30}, std::vector<double> c_r_V = {20,30}, double beta_R_H = 3.4e3, double beta_R_V = 9.4e4);
+  double find_root_collar_psi(std::vector<double> soil_moist_);
+  double find_root_psi(double wettest_soil_layer, std::vector<double> psi_soil_seperate_, double psi_leaf, int find_root_crit);
+  double find_psi_stem_from_psi_root(double psi_root, std::vector<double> psi_soil_seperate_);
+  double E_column(double x, std::vector<double> psi_soil_seperate_, double psi_leaf);
+  double E_column_zero(double x, std::vector<double> psi_soil_seperate_);
+  
   double arrh_curve(double Ea, double ref_value, double leaf_temp) const;
   double peak_arrh_curve(double Ea, double ref_value, double leaf_temp, double H_d, double d_S) const;
 
