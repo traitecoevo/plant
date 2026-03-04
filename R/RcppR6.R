@@ -4456,6 +4456,9 @@ StochasticPatchRunner <- function(T, E) {
       get_soil_water_state = function() {
         TF24_Environment__get_soil_water_state(self)
       },
+      get_soil_water_state_cumulative_flux = function() {
+        TF24_Environment__get_soil_water_state_cumulative_flux(self)
+      },
       get_PPFD = function() {
         TF24_Environment__get_PPFD(self)
       },
@@ -4499,6 +4502,13 @@ StochasticPatchRunner <- function(T, E) {
           TF24_Environment__K_sat__set(self, value)
         }
       },
+      depth = function(value) {
+        if (missing(value)) {
+          TF24_Environment__depth__get(self)
+        } else {
+          TF24_Environment__depth__set(self, value)
+        }
+      },
       a_psi = function(value) {
         if (missing(value)) {
           TF24_Environment__a_psi__get(self)
@@ -4511,6 +4521,13 @@ StochasticPatchRunner <- function(T, E) {
           TF24_Environment__n_psi__get(self)
         } else {
           TF24_Environment__n_psi__set(self, value)
+        }
+      },
+      a_infil = function(value) {
+        if (missing(value)) {
+          TF24_Environment__a_infil__get(self)
+        } else {
+          TF24_Environment__a_infil__set(self, value)
         }
       },
       b_infil = function(value) {

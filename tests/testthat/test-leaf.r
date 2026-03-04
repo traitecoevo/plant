@@ -19,7 +19,7 @@ test_that("Basic functions", {
   curv_fact_elec_trans = 0.7
   a = 0.3
   curv_fact_colim = 0.99
-  
+  g1_TF24 = 46.32995
   GSS_tol_abs = 1e-8
   vulnerability_curve_ncontrol = 100
   ci_abs_tol = 1e-6
@@ -285,11 +285,9 @@ test_that("Basic functions", {
   
   #first off- what happens when we moving psi_soil around
   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, 
-            beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
-            GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
-            ci_niter = ci_niter, g0 = g0, g1 = g1)
-    
-  psi_soil = psi_crit+1
+                    beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = 1000, ci_abs_tol = ci_abs_tol, 
+                    ci_niter = ci_niter, g1_TF24 = g1_TF24)
+    psi_soil = 0
 
   #first off- what happens when we moving psi_soil around
   l$set_physiology(PPFD = PPFD, psi_soil = psi_soil, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_, theta_w = theta_w_, theta_fc = theta_fc_, theta = theta_)
@@ -391,20 +389,18 @@ test_that("Basic functions", {
   #light
   
   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, 
-            beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
-            GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
-            ci_niter = ci_niter, g0 = g0, g1 = g1)
-  l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_, theta_w = theta_w_, theta_fc = theta_fc_, theta = theta_)
-
+                    beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = 1000, ci_abs_tol = ci_abs_tol, 
+                    ci_niter = ci_niter, g1_TF24 = g1_TF24)
+  l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   l$optimise_psi_stem_TF()
   
   high_light <- l$profit_
   
   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, 
-            beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
-            GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
-            ci_niter = ci_niter, g0 = g0, g1 = g1)
-  l$set_physiology(PPFD = 500, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_, theta_w = theta_w_, theta_fc = theta_fc_, theta = theta_)
+            beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
+             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
+            ci_niter = ci_niter, g1_TF24 = g1_TF24)
+  l$set_physiology(PPFD = 500, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   l$optimise_psi_stem_TF()
   
   low_light <- l$profit_
@@ -414,19 +410,19 @@ test_that("Basic functions", {
   #soil moist
   
   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, 
-            beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
-            GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
-            ci_niter = ci_niter, g0 = g0, g1 = g1)
-  l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_, theta_w = theta_w_, theta_fc = theta_fc_, theta = theta_)
+            beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
+             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
+            ci_niter = ci_niter, g1_TF24 = g1_TF24)
+  l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   l$optimise_psi_stem_TF()
   
   high_moist <- l$profit_
   
   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, 
-            beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
-            GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
-            ci_niter = ci_niter, g0 = g0, g1 = g1)
-  l$set_physiology(PPFD = 1000, psi_soil = 2, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_, theta_w = theta_w_, theta_fc = theta_fc_, theta = theta_)
+                    beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
+                    GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
+                    ci_niter = ci_niter, g1_TF24 = g1_TF24)
+  l$set_physiology(PPFD = 1000, psi_soil = 2, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   l$optimise_psi_stem_TF()
   
   low_moist <- l$profit_
@@ -437,19 +433,19 @@ test_that("Basic functions", {
   #vpd'
   
   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, 
-            beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
-            GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
-            ci_niter = ci_niter, g0 = g0, g1 = g1)
-  l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_, theta_w = theta_w_, theta_fc = theta_fc_, theta = theta_)
+                    beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
+                    GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
+                    ci_niter = ci_niter, g1_TF24 = g1_TF24)
+  l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   l$optimise_psi_stem_TF()
   
   low_vpd <- l$profit_
   
   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, 
-            beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
-            GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
-            ci_niter = ci_niter, g0 = g0, g1 = g1)
-  l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 2, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_, theta_w = theta_w_, theta_fc = theta_fc_, theta = theta_)
+                    beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
+                    GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
+                    ci_niter = ci_niter, g1_TF24 = g1_TF24)
+  l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 2, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   l$optimise_psi_stem_TF()
   
   high_vpd <- l$profit_
@@ -459,19 +455,21 @@ test_that("Basic functions", {
   #vcmax_25
   
   l <- Leaf(vcmax_25 = 50, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, 
-            beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
-            GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
-            ci_niter = ci_niter, g0 = g0, g1 = g1)
-  l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 2, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_, theta_w = theta_w_, theta_fc = theta_fc_, theta = theta_)
+                    beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
+                    GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
+                    ci_niter = ci_niter, g1_TF24 = g1_TF24)
+  l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   l$optimise_psi_stem_TF()
   
   low_vcmax <- l$profit_
   
   l <- Leaf(vcmax_25 = 150, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, 
-            beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
-            GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
-            ci_niter = ci_niter, g0 = g0, g1 = g1)
-  l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 2, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_, theta_w = theta_w_, theta_fc = theta_fc_, theta = theta_)
+                    beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
+                    GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
+                    ci_niter = ci_niter, g1_TF24 = g1_TF24)
+  
+  
+  l$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   l$optimise_psi_stem_TF()
   
   high_vcmax <- l$profit_
@@ -483,28 +481,28 @@ test_that("Basic functions", {
   l_low_temp <-Leaf(vcmax_25 = 50, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, 
                             beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
                             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
-                            ci_niter = ci_niter, g0 = g0, g1 = g1)
-  l_low_temp$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = 20, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_, theta_w = theta_w_, theta_fc = theta_fc_, theta = theta_)
+                            ci_niter = ci_niter, g1_TF24 = g1_TF24)
+  l_low_temp$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = 20, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   
   l_ref_temp <- Leaf(vcmax_25 = 50, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, 
                              beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
                              GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
-                             ci_niter = ci_niter, g0 = g0, g1 = g1)
-  l_ref_temp$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = 25, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_, theta_w = theta_w_, theta_fc = theta_fc_, theta = theta_)
+                             ci_niter = ci_niter, g1_TF24 = g1_TF24)
+  l_ref_temp$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = 25, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   
   l_high_temp <- Leaf(vcmax_25 = 50, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, 
                               beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
                               GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
-                              ci_niter = ci_niter, g0 = g0, g1 = g1)
-  l_high_temp$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = 30, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_, theta_w = theta_w_, theta_fc = theta_fc_, theta = theta_)
+                              ci_niter = ci_niter, g1_TF24 = g1_TF24)
+  l_high_temp$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = 30, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   
   expect_true(l_low_temp$gamma_ < l_ref_temp$gamma_ &  l_ref_temp$gamma_ <  l_high_temp$gamma_)
   
   l_high_temp <-Leaf(vcmax_25 = 50, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, 
                              beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
                              GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
-                             ci_niter = ci_niter, g0 = g0, g1 = g1)
-  l_high_temp$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = 40, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_, theta_w = theta_w_, theta_fc = theta_fc_, theta = theta_)
+                             ci_niter = ci_niter, g1_TF24 = g1_TF24)
+  l_high_temp$set_physiology(PPFD = 1000, psi_soil = 0, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = 40, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   
   expect_equal(round(l_high_temp$ko_, 1), round(562314.4,1))
   expect_equal(round(l_high_temp$kc_, 1), round(1879.0751,1))

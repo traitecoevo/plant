@@ -19,6 +19,7 @@ Leaf:
       @param ci_niter maximum number of iterations for root-solving ci
       @param g0 g0 parameter in the medlyn model umol m^-2 s^-1
       @param g1 parameter in the medlyn model umol kPa^0.5
+      @param g1_TF24 cost parameter for TF24 profit model umol m^-2 s^-1
 
       @export
     args:
@@ -38,6 +39,7 @@ Leaf:
       - ci_niter: double
       - g0: double
       - g1: double 
+      - g1_TF24: double
 
   active:
     ci_: {type: double, access: field}
@@ -1222,6 +1224,9 @@ TF24_Environment:
     get_soil_water_state:
       args: []
       return_type: std::vector<double>
+    get_soil_water_state_cumulative_flux:
+      args: []
+      return_type: std::vector<double>  
     get_PPFD:
       args: []
       return_type: double
@@ -1247,8 +1252,10 @@ TF24_Environment:
     time: {type: double, access: field}
     soil_moist_sat: {type: double, access: field}
     K_sat: {type: double, access: field}
+    depth: {type: double, access: field}
     a_psi: {type: double, access: field}
     n_psi: {type: double, access: field}
+    a_infil: {type: double, access: field}
     b_infil: {type: double, access: field}
     ode_size: {type: size_t, access: member}
     light_availability:

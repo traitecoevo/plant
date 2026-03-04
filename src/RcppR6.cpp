@@ -3608,6 +3608,10 @@ std::vector<double> TF24_Environment__get_soil_water_state(plant::RcppR6::RcppR6
   return obj_->get_soil_water_state();
 }
 // [[Rcpp::export]]
+std::vector<double> TF24_Environment__get_soil_water_state_cumulative_flux(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_) {
+  return obj_->get_soil_water_state_cumulative_flux();
+}
+// [[Rcpp::export]]
 double TF24_Environment__get_PPFD(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_) {
   return obj_->get_PPFD();
 }
@@ -3663,6 +3667,15 @@ void TF24_Environment__K_sat__set(plant::RcppR6::RcppR6<plant::TF24_Environment>
 }
 
 // [[Rcpp::export]]
+double TF24_Environment__depth__get(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_) {
+  return obj_->depth;
+}
+// [[Rcpp::export]]
+void TF24_Environment__depth__set(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, double value) {
+  obj_->depth = value;
+}
+
+// [[Rcpp::export]]
 double TF24_Environment__a_psi__get(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_) {
   return obj_->a_psi;
 }
@@ -3678,6 +3691,15 @@ double TF24_Environment__n_psi__get(plant::RcppR6::RcppR6<plant::TF24_Environmen
 // [[Rcpp::export]]
 void TF24_Environment__n_psi__set(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, double value) {
   obj_->n_psi = value;
+}
+
+// [[Rcpp::export]]
+double TF24_Environment__a_infil__get(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_) {
+  return obj_->a_infil;
+}
+// [[Rcpp::export]]
+void TF24_Environment__a_infil__set(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, double value) {
+  obj_->a_infil = value;
 }
 
 // [[Rcpp::export]]
