@@ -314,13 +314,23 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Leaf__solve_medlyn_ci
-void Leaf__solve_medlyn_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_);
-RcppExport SEXP _plant_Leaf__solve_medlyn_ci(SEXP obj_SEXP) {
+// Leaf__solve_medlyn_ci_numerical
+void Leaf__solve_medlyn_ci_numerical(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__solve_medlyn_ci_numerical(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
-    Leaf__solve_medlyn_ci(obj_);
+    Leaf__solve_medlyn_ci_numerical(obj_);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__solve_medlyn_ci_analytical
+void Leaf__solve_medlyn_ci_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__solve_medlyn_ci_analytical(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Leaf__solve_medlyn_ci_analytical(obj_);
     return R_NilValue;
 END_RCPP
 }
@@ -9472,7 +9482,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__profit_psi_stem_TF", (DL_FUNC) &_plant_Leaf__profit_psi_stem_TF, 2},
     {"_plant_Leaf__optimise_psi_stem_Sperry", (DL_FUNC) &_plant_Leaf__optimise_psi_stem_Sperry, 1},
     {"_plant_Leaf__optimise_psi_stem_TF", (DL_FUNC) &_plant_Leaf__optimise_psi_stem_TF, 1},
-    {"_plant_Leaf__solve_medlyn_ci", (DL_FUNC) &_plant_Leaf__solve_medlyn_ci, 1},
+    {"_plant_Leaf__solve_medlyn_ci_numerical", (DL_FUNC) &_plant_Leaf__solve_medlyn_ci_numerical, 1},
+    {"_plant_Leaf__solve_medlyn_ci_analytical", (DL_FUNC) &_plant_Leaf__solve_medlyn_ci_analytical, 1},
     {"_plant_Leaf__medlyn_model_gs", (DL_FUNC) &_plant_Leaf__medlyn_model_gs, 2},
     {"_plant_Leaf__medlyn_stom_cond_minus_coupled_stom_cond", (DL_FUNC) &_plant_Leaf__medlyn_stom_cond_minus_coupled_stom_cond, 2},
     {"_plant_Leaf__ci___get", (DL_FUNC) &_plant_Leaf__ci___get, 1},

@@ -18,8 +18,8 @@ Leaf::Leaf()
     vulnerability_curve_ncontrol(100),
     ci_abs_tol(1e-3),
     ci_niter(1000),
-    g0(0.022),
-    g1(2.57)
+    g0(0.022), // residual stomatal conductance umol m^-2 s^-1
+    g1(2.57) // sensitivity to vpd kPa ^0.5 
 
    {
       setup_transpiration(100); // arg: num control points for integration
@@ -451,7 +451,7 @@ double Leaf::medlyn_stom_cond_minus_coupled_stom_cond(double x) {
   return 1/abs(medlyn_model_gs_ - stom_cond_CO2_);
 }
 
-void Leaf::solve_medlyn_ci(){
+void Leaf::solve_medlyn_ci_numerical(){
     
 double gr = (sqrt(5) + 1) / 2;
 
@@ -479,7 +479,17 @@ double gr = (sqrt(5) + 1) / 2;
       bound_d = bound_a + (bound_b - bound_a) / gr;
     }
 
+
     ci_ = ((bound_b + bound_a) / 2);
+    assim_colimited_ = assim_colimited(ci_);
+    stom_cond_CO2_ = medlyn_model_gs(assim_colimited_);
+    return;
+
+}
+
+void Leaf::solve_medlyn_ci_analytical(){
+    
+    ci_ = ca_ * (g1/(g1 + sqrt(atm_vpd_)));
     assim_colimited_ = assim_colimited(ci_);
     stom_cond_CO2_ = medlyn_model_gs(assim_colimited_);
     return;

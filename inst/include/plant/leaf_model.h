@@ -230,7 +230,8 @@ public:
 // optimiser functions
   void optimise_psi_stem_Sperry();
   void optimise_psi_stem_TF();
-  void solve_medlyn_ci();
+  void solve_medlyn_ci_numerical();
+  void solve_medlyn_ci_analytical();
   double medlyn_model_gs(double assim_colimited_);
   double medlyn_stom_cond_minus_coupled_stom_cond(double x);
 

@@ -93,8 +93,12 @@ Leaf__optimise_psi_stem_TF <- function(obj_) {
     invisible(.Call('_plant_Leaf__optimise_psi_stem_TF', PACKAGE = 'plant', obj_))
 }
 
-Leaf__solve_medlyn_ci <- function(obj_) {
-    invisible(.Call('_plant_Leaf__solve_medlyn_ci', PACKAGE = 'plant', obj_))
+Leaf__solve_medlyn_ci_numerical <- function(obj_) {
+    invisible(.Call('_plant_Leaf__solve_medlyn_ci_numerical', PACKAGE = 'plant', obj_))
+}
+
+Leaf__solve_medlyn_ci_analytical <- function(obj_) {
+    invisible(.Call('_plant_Leaf__solve_medlyn_ci_analytical', PACKAGE = 'plant', obj_))
 }
 
 Leaf__medlyn_model_gs <- function(obj_, assim_colimited_) {

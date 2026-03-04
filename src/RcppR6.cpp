@@ -94,8 +94,12 @@ void Leaf__optimise_psi_stem_TF(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   obj_->optimise_psi_stem_TF();
 }
 // [[Rcpp::export]]
-void Leaf__solve_medlyn_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  obj_->solve_medlyn_ci();
+void Leaf__solve_medlyn_ci_numerical(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  obj_->solve_medlyn_ci_numerical();
+}
+// [[Rcpp::export]]
+void Leaf__solve_medlyn_ci_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  obj_->solve_medlyn_ci_analytical();
 }
 // [[Rcpp::export]]
 double Leaf__medlyn_model_gs(plant::RcppR6::RcppR6<plant::Leaf> obj_, double assim_colimited_) {

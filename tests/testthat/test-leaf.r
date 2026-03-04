@@ -322,7 +322,7 @@ test_that("Basic functions", {
             ci_niter = ci_niter, g0 = g0, g1 = g1)
   l$set_physiology(PPFD = PPFD, psi_soil = psi_soil, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_, theta_w = theta_w_, theta_fc = theta_fc_, theta = theta_)
   
-  l$solve_medlyn_ci()
+  l$solve_medlyn_ci_numerical()
   
   medlyn_default_ci_ = 19.86574
   medlyn_default_stom_cond_CO2_ = 0.1147429
@@ -340,11 +340,52 @@ test_that("Basic functions", {
             ci_niter = ci_niter, g0 = g0, g1 = g1)
   l$set_physiology(PPFD = PPFD, psi_soil = psi_soil+1, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_, theta_w = theta_w_, theta_fc = theta_fc_, theta = theta_)
   
-  l$solve_medlyn_ci()
+  l$solve_medlyn_ci_numerical()
   expect_equal(l$ci_,medlyn_default_ci_,tolerance = 1e-5)
   expect_equal(l$stom_cond_CO2_, medlyn_default_stom_cond_CO2_, tolerance = 1e-6)
   expect_equal(l$assim_colimited_, medlyn_default_assim_colimited_, tolerance = 1e-6)
 
+  # medlyn model - analytical version - check that gs decreases with D
+  
+  D_for_analytical <- seq(0.01,5,0.01)
+  a_cad_ <- c()
+  gs_ <- c()
+  
+  for(d in 1:length(D_for_analytical)){
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, 
+            beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
+            GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
+            ci_niter = ci_niter, g0 = g0, g1 = 3.3)
+  l$set_physiology(PPFD = PPFD, psi_soil = psi_soil+1, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = D_for_analytical[d], ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_, theta_w = theta_w_, theta_fc = theta_fc_, theta = theta_)
+  
+  l$solve_medlyn_ci_analytical()
+  a_cad_[d] <- l$assim_colimited_/(l$ca_*10*sqrt(D_for_analytical[d]))
+  gs_[d] <- l$stom_cond_CO2_
+  }
+  
+  expect_true(coef(lm(gs_~D_for_analytical))[2] < 0)
+  
+  # confirm that the analyitical method from Medlyn et al. (2011) matches the numerical case for field capacity soil moisture and zero residual stomatal conductance
+  
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, 
+            beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
+            GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
+            ci_niter = ci_niter, g0 = 0, g1 = 3.3)
+  l$set_physiology(PPFD = PPFD, psi_soil = psi_soil+1, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = D_for_analytical[d], ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_, theta_w = theta_w_, theta_fc = theta_fc_, theta = theta_fc_)
+  
+  l$solve_medlyn_ci_numerical()
+  numerical_ci <- l$ci_
+  
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, 
+            beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
+            GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
+            ci_niter = ci_niter, g0 = 0, g1 = 3.3)
+  l$set_physiology(PPFD = PPFD, psi_soil = psi_soil+1, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = D_for_analytical[d], ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, rho = 608, a_bio = 0.0245, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_, theta_w = theta_w_, theta_fc = theta_fc_, theta = theta_fc_)
+  l$solve_medlyn_ci_analytical()
+  analytical_ci_ <- l$ci_
+  
+  expect_equal(numerical_ci,analytical_ci_)
+  
   #test various responses to environmental gradients to check that behaviour is being conserved
   
   #light

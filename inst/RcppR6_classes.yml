@@ -147,7 +147,10 @@ Leaf:
     optimise_psi_stem_TF:
       return_type: void
       args: []
-    solve_medlyn_ci:
+    solve_medlyn_ci_numerical:
+      return_type: void
+      args: []
+    solve_medlyn_ci_analytical:
       return_type: void
       args: []
     medlyn_model_gs:
