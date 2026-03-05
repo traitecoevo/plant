@@ -18,9 +18,9 @@ Leaf::Leaf()
     vulnerability_curve_ncontrol(100),
     ci_abs_tol(1e-3),
     ci_niter(1000),
+    g1_TF24(46.32995), //cost parameter for TF24 profit model umol m^-2 s^-1
     g0(0.022), // residual stomatal conductance umol m^-2 s^-1
-    g1(2.57), // sensitivity to vpd kPa ^0.5 
-    g1_TF24(46.32995) //cost parameter for TF24 profit model umol m^-2 s^-1
+    g1(2.57) // sensitivity to vpd kPa ^0.5
    {
       setup_transpiration(100); // arg: num control points for integration
       setup_clean_leaf();
@@ -51,9 +51,9 @@ Leaf::Leaf(double vcmax_25, double c, double b,
     vulnerability_curve_ncontrol(vulnerability_curve_ncontrol),
     ci_abs_tol(ci_abs_tol),
     ci_niter(ci_niter),
+    g1_TF24(g1_TF24), //cost parameter for TF24 profit model umol m^-2 s^-1
     g0(g0),
-    g1(g1),
-    g1_TF24(g1_TF24) //cost parameter for TF24 profit model umol m^-2 s^-1
+    g1(g1)
    {
       setup_transpiration(vulnerability_curve_ncontrol); // arg: num control points for integration
       setup_clean_leaf();
