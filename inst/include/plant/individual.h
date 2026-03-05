@@ -3,7 +3,7 @@
 #define PLANT_PLANT_PLANT_MINIMAL_H_
 
 #include <memory> // std::shared_ptr
-#include <plant/ode_solver/ode_interface.h>
+#include <odelia/ode_interface.hpp>
 #include <vector>
 #include <plant/internals.h>
 #include <plant/uniroot.h>

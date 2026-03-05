@@ -3,7 +3,7 @@
 #define PLANT_PLANT_CONTROL_H_
 
 #include <plant/qag.h>
-#include <plant/ode_solver/ode_control.h>
+#include <odelia/ode_control.hpp>
 #include <string>
 
 // The `Control` object holds all the non-biological control

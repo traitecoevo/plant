@@ -5,7 +5,7 @@
 
 #include <odelia/interpolator.hpp>
 #include <plant/adaptive_interpolator.h>
-#include <plant/ode_solver/ode_interface.h>
+#include <odelia/ode_interface.hpp>
 #include <plant/util.h>
 
 using namespace Rcpp;

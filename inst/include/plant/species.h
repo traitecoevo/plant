@@ -5,9 +5,9 @@
 #include <vector>
 #include <plant/util.h>
 #include <plant/environment.h>
-#include <plant/ode_solver/ode_interface.h>
+#include <odelia/ode_interface.hpp>
 #include <plant/node.h>
-#include <plant/extrinsic_drivers.h>
+#include <odelia/drivers.hpp>
 
 namespace plant {
 

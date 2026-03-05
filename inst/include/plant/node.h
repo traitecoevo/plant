@@ -4,7 +4,7 @@
 
 #include <plant/environment.h>
 #include <plant/gradient.h>
-#include <plant/ode_solver/ode_interface.h>
+#include <odelia/ode_interface.hpp>
 
 namespace plant {
 

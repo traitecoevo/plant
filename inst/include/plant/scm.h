@@ -3,7 +3,7 @@
 #define PLANT_PLANT_SCM_H_
 
 #include <plant/node_schedule.h>
-#include <plant/ode_solver/ode_solver.h>
+#include <odelia/ode_solver.hpp>
 #include <plant/patch.h>
 #include <plant/scm_utils.h>
 

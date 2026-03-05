@@ -6,13 +6,15 @@
 
 #include <plant/qk.h>
 #include <plant/qag.h>
+
 #include <odelia/interpolator.hpp>
 #include <plant/adaptive_interpolator.h>
 
-#include <plant/ode_solver/ode_control.h>
-#include <plant/ode_solver/ode_step.h>
-#include <plant/ode_solver/ode_solver.h>
-#include <plant/ode_solver/ode_runner.h>
+#include <odelia/ode_control.hpp>
+#include <odelia/ode_step.hpp>
+#include <odelia/ode_solver.hpp>
+#include <odelia/ode_runner.hpp>
+#include <odelia/solver_interface.hpp>
 
 #include <plant/environment.h>
 #include <plant/resource_spline.h>
@@ -49,9 +51,6 @@
 
 #include <plant/individual_runner.h>
 
-// Purely for testing
-#include <plant/ode_solver/lorenz.h>
-
 // Include this early on.  It can be either after classes have been
 // declared (but before Rcpp has been loaded) or first.  This file will
 // attempt to provide declarations for the classes and namespaces that
@@ -64,7 +63,7 @@
 // them earlier up.
 
 #include <Rcpp.h>
-#include <plant/ode_solver/ode_r.h>
+// #include <plant/ode_solver/ode_r.h>
 
 // This line can safely be the last line in the file, but may go any
 // point after RcppR6_pre.hpp is included.

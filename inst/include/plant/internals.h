@@ -7,7 +7,7 @@
 #define FECUNDITY_INDEX 2
 
 #include <memory> // std::shared_ptr
-#include <plant/ode_solver/ode_interface.h>
+#include <odelia/ode_interface.hpp>
 #include <vector>
 // #include <plant/plant_internals.h>
 

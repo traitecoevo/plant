@@ -5,7 +5,7 @@
 #include <plant/control.h>
 #include <odelia/interpolator.hpp>
 #include <plant/adaptive_interpolator.h>
-#include <plant/ode_solver/ode_interface.h>
+#include <odelia/ode_interface.hpp>
 #include <plant/internals.h>
 #include <plant/util.h>
 #include <unordered_map>

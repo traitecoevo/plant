@@ -162,33 +162,12 @@ Leaf:
       return_type: double
       args: [x: double]
 
-  
-      
-Lorenz:
-  name_cpp: "plant::ode::test::Lorenz"
-  constructor:
-    args: [sigma: double, R: double, b: double]
-  active:
-    ode_size: {type: size_t, access: member}
-    ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
-    ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
-    pars: {type: "std::vector<double>", access: member}
-
-OdeR:
-  name_cpp: "plant::ode::test::OdeR"
-  forward_declare: true
-  constructor:
-    args: [derivs: "Rcpp::Function", state: "Rcpp::Function", time: double]
-  methods:
-    update_state: {return_type: void}
 
 OdeRunner:
   name_cpp: "plant::ode::Runner<T>"
   templates:
     parameters: T
     concrete:
-      - ["Lorenz": "plant::ode::test::Lorenz"]
-      - ["OdeR":   "plant::ode::test::OdeR"]
       - ["FF16": "plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment>"]
       - ["TF24": "plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment>"]
       - ["K93": "plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment>"]
