@@ -265,17 +265,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // Leaf__find_root_psi
-double Leaf__find_root_psi(plant::RcppR6::RcppR6<plant::Leaf> obj_, double wettest_soil_layer, std::vector<double> psi_soil_seperate_, double psi_leaf, int find_root_crit);
-RcppExport SEXP _plant_Leaf__find_root_psi(SEXP obj_SEXP, SEXP wettest_soil_layerSEXP, SEXP psi_soil_seperate_SEXP, SEXP psi_leafSEXP, SEXP find_root_critSEXP) {
+double Leaf__find_root_psi(plant::RcppR6::RcppR6<plant::Leaf> obj_, double wettest_soil_layer, std::vector<double> psi_soil_seperate_, int find_root_crit);
+RcppExport SEXP _plant_Leaf__find_root_psi(SEXP obj_SEXP, SEXP wettest_soil_layerSEXP, SEXP psi_soil_seperate_SEXP, SEXP find_root_critSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type wettest_soil_layer(wettest_soil_layerSEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type psi_soil_seperate_(psi_soil_seperate_SEXP);
-    Rcpp::traits::input_parameter< double >::type psi_leaf(psi_leafSEXP);
     Rcpp::traits::input_parameter< int >::type find_root_crit(find_root_critSEXP);
-    rcpp_result_gen = Rcpp::wrap(Leaf__find_root_psi(obj_, wettest_soil_layer, psi_soil_seperate_, psi_leaf, find_root_crit));
+    rcpp_result_gen = Rcpp::wrap(Leaf__find_root_psi(obj_, wettest_soil_layer, psi_soil_seperate_, find_root_crit));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -9546,7 +9545,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__set_leaf_states_rates_from_psi_stem", (DL_FUNC) &_plant_Leaf__set_leaf_states_rates_from_psi_stem, 2},
     {"_plant_Leaf__E_from_Soil_to_Root_Collar", (DL_FUNC) &_plant_Leaf__E_from_Soil_to_Root_Collar, 11},
     {"_plant_Leaf__find_root_collar_psi", (DL_FUNC) &_plant_Leaf__find_root_collar_psi, 2},
-    {"_plant_Leaf__find_root_psi", (DL_FUNC) &_plant_Leaf__find_root_psi, 5},
+    {"_plant_Leaf__find_root_psi", (DL_FUNC) &_plant_Leaf__find_root_psi, 4},
     {"_plant_Leaf__find_psi_stem_from_psi_root", (DL_FUNC) &_plant_Leaf__find_psi_stem_from_psi_root, 3},
     {"_plant_Leaf__psi_stem_to_ci", (DL_FUNC) &_plant_Leaf__psi_stem_to_ci, 2},
     {"_plant_Leaf__hydraulic_cost_Sperry", (DL_FUNC) &_plant_Leaf__hydraulic_cost_Sperry, 2},

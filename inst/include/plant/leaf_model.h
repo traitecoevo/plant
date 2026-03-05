@@ -192,7 +192,7 @@ public:
                                        double n_soil = 2, std::vector<double> z_soil_mid = {0.05, 0.15}, double dz = 0.1,
                                        double LA = 1, std::vector<double> c_r_H = {20,30}, std::vector<double> c_r_V = {20,30}, double beta_R_H = 3.4e3, double beta_R_V = 9.4e4);
   double find_root_collar_psi(std::vector<double> soil_moist_);
-  double find_root_psi(double wettest_soil_layer, std::vector<double> psi_soil_seperate_, double psi_leaf, int find_root_crit);
+  double find_root_psi(double wettest_soil_layer, std::vector<double> psi_soil_seperate_, int find_root_crit);
   double find_psi_stem_from_psi_root(double psi_root, std::vector<double> psi_soil_seperate_);
   double E_column(double x, std::vector<double> psi_soil_seperate_, double psi_leaf);
   double E_column_zero(double x, std::vector<double> psi_soil_seperate_);

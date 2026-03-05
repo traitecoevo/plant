@@ -73,8 +73,8 @@ Leaf__find_root_collar_psi <- function(obj_, soil_moist_) {
     .Call('_plant_Leaf__find_root_collar_psi', PACKAGE = 'plant', obj_, soil_moist_)
 }
 
-Leaf__find_root_psi <- function(obj_, wettest_soil_layer, psi_soil_seperate_, psi_leaf, find_root_crit) {
-    .Call('_plant_Leaf__find_root_psi', PACKAGE = 'plant', obj_, wettest_soil_layer, psi_soil_seperate_, psi_leaf, find_root_crit)
+Leaf__find_root_psi <- function(obj_, wettest_soil_layer, psi_soil_seperate_, find_root_crit) {
+    .Call('_plant_Leaf__find_root_psi', PACKAGE = 'plant', obj_, wettest_soil_layer, psi_soil_seperate_, find_root_crit)
 }
 
 Leaf__find_psi_stem_from_psi_root <- function(obj_, psi_root, psi_soil_seperate_) {

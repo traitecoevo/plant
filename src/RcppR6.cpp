@@ -74,8 +74,8 @@ double Leaf__find_root_collar_psi(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::
   return obj_->find_root_collar_psi(soil_moist_);
 }
 // [[Rcpp::export]]
-double Leaf__find_root_psi(plant::RcppR6::RcppR6<plant::Leaf> obj_, double wettest_soil_layer, std::vector<double> psi_soil_seperate_, double psi_leaf, int find_root_crit) {
-  return obj_->find_root_psi(wettest_soil_layer, psi_soil_seperate_, psi_leaf, find_root_crit);
+double Leaf__find_root_psi(plant::RcppR6::RcppR6<plant::Leaf> obj_, double wettest_soil_layer, std::vector<double> psi_soil_seperate_, int find_root_crit) {
+  return obj_->find_root_psi(wettest_soil_layer, psi_soil_seperate_, find_root_crit);
 }
 // [[Rcpp::export]]
 double Leaf__find_psi_stem_from_psi_root(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_root, std::vector<double> psi_soil_seperate_) {

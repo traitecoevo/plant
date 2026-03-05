@@ -129,7 +129,7 @@ Leaf:
       args: [soil_moist_: "std::vector<double>"]
     find_root_psi:
       return_type: double
-      args: [wettest_soil_layer: double, psi_soil_seperate_: "std::vector<double>", psi_leaf: double, find_root_crit: int]
+      args: [wettest_soil_layer: double, psi_soil_seperate_: "std::vector<double>", find_root_crit: int]
     find_psi_stem_from_psi_root:
       return_type: double
       args: [psi_root: double, psi_soil_seperate_: "std::vector<double>"]
