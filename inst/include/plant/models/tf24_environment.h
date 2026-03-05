@@ -18,23 +18,27 @@ public:
   // which are only updated on construction
   
   TF24_Environment(bool light_availability_spline_rescale_usually = true,
-                   int soil_number_of_depths = 1, 
+                   int soil_number_of_depths = 5, 
                    double delta_z = 9999, // not using this
                    double soil_moist_sat = 0.453, // saturated soil moisture content (m3 water m^-3 soil) 
                    double K_sat = 440.628, //saturated hydraulic conductivity of soil
-                   double a_psi = 8.7,
-                   double n_psi = 4.8,
-                   double b_infil = 8)  
+                   double a_psi = 8.7, // not currently being used
+                   double n_psi = 4.8, // not currently being used
+                   double a_infil = 1, // infiltration switch (0-1), 0 no runoff, 1 runoff
+                   double b_infil = 8, // unitless, determines infiltration rate
+                   double depth = 1.5)  // total depth of soil (m)
       : delta_z(delta_z),
       soil_moist_sat(soil_moist_sat),
       a_psi(a_psi),
       n_psi(n_psi),
       K_sat(K_sat),
-      b_infil(b_infil)
+      a_infil(a_infil),
+      b_infil(b_infil),
+      depth(depth)
   {
     time = 0.0;
-    //todo: add soil depth as parameter
-    depth = 2;
+
+
 
     // Shading defaults have lower tolerance which are overwritten for speed
     light_availability = ResourceSpline(
@@ -55,40 +59,40 @@ public:
     extrinsic_drivers_set_constant("atm_kpa",100.5);
 
     set_soil_number_of_depths(soil_number_of_depths);
-    set_soil_water_state(std::vector<double>(soil_number_of_depths, 0.0));
+    set_soil_water_state(std::vector<double>(soil_number_of_depths, soil_moist_sat*0.5));
   };
-
+  
+  // Number of cumulative auxilliary variables to track in soil moisture model
+  double aux_num = 3;
+  
   // Setup soil water distribtuion
   void set_soil_number_of_depths(int n) {
     soil_number_of_depths = n;
     
-    vars = Internals(soil_number_of_depths);
+    vars = Internals(soil_number_of_depths + aux_num);
+
     z.resize(soil_number_of_depths);
     dz.resize(soil_number_of_depths);
-    K.resize(soil_number_of_depths);
-    psi.resize(soil_number_of_depths);
-    q.resize(soil_number_of_depths + 1);
+    // positive downwards
+    water_flux.resize(soil_number_of_depths);
 
     delta_z = depth / soil_number_of_depths;
 
     for (int i = 0; i < soil_number_of_depths; i++)
     {
-      z[i] = (i + 0.5) * delta_z;
+      z[i] = (i + 1) * delta_z;
     }
 
-    for (int i = 0; i < soil_number_of_depths - 1; i++)
+    for (int i = 0; i < soil_number_of_depths; i++)
     {
-      dz[i] = z[i + 1] - z[i];
+      dz[i] = delta_z;
     }
-    dz[soil_number_of_depths - 1] = dz[soil_number_of_depths - 2];
   }
   int get_soil_number_of_depths() const {return soil_number_of_depths;}
 
   // TODO: should we use auxilliary in internals
-  std::vector<double> q;
+  std::vector<double> water_flux;
   std::vector<double> z;
-  std::vector<double> K;
-  std::vector<double> psi;
   std::vector<double> dz;
 
   // A ResourceSpline used for storing light availbility (0-1)
@@ -107,6 +111,7 @@ public:
   double K_sat;
   double a_psi;
   double n_psi;
+  double a_infil;
   double b_infil;
 
   // Ability to prescribe a fixed value
@@ -129,99 +134,35 @@ public:
     light_availability.r_init_interpolators(state);
   }
   
-  virtual void compute_rates_simple(std::vector<double> const &resource_depletion)
+  virtual void compute_rates(std::vector<double> const &resource_depletion)
   {
-    double infiltration;
-    double net_flux;
-
-    double drainage_multiplier = 0.1; // experimental only;
-    int n = vars.state_size;
+    double water_input;
+    double rainfall = extrinsic_drivers.evaluate("rainfall", time);
+    double infiltration = rainfall*std::max(0.0, 1 - a_infil*std::pow(vars.state(0)/soil_moist_sat, b_infil));
 
     // treat each soil layer as a separate resource pool
-    for (size_t i = 0; i < vars.state_size; i++)
+    for (size_t i = 0; i < soil_number_of_depths; i++)
     {
 
       // initial representation of drainage; to be improved
       if (i == 0)
       {
-        infiltration = extrinsic_drivers.evaluate("rainfall", time);
+        water_input = infiltration;
       }
       else
       {
-        infiltration = std::max(vars.state(i - 1), 0.0) * drainage_multiplier;
+        // m3 m^-2
+        water_input = water_flux[i-1];
       }
+        // TODO: m3 m^-2
+      water_flux[i] = K_sat*pow(vars.state(i)/soil_moist_sat, 2);
+      // this function does runoff
 
-      // ecologically, soil water shouldn't go below zero
-      // truncating at zero until such a model is implemented
-      double drainage_rate = std::max(vars.state(i), 0.0) * drainage_multiplier;
-
-      net_flux = infiltration - resource_depletion[i] - drainage_rate;
-      vars.set_rate(i, net_flux);
+      vars.set_rate(i, (water_input - water_flux[i])/dz[i]); 
     }
-  }
-
-  void compute_rates(std::vector<double> const& resource_depletion) {
-
-    //TODO: add variable depths
-    //TODO: track inflow and outflow for mass convservation
-    //TODO: check equation for resource consumption
-
-    //Zeng and Decker (2009; https://doi.org/10.1175/2008JHM1011.1), Ireson et al. 2023 (https://doi.org/10.5194/gmd-16-659-2023), can also see Wang et al. 2011 for further agreement
-    //Zeng and Decker (2009) suggest the idea of a modified Richards equation (implemented in CABLE in Decker (2015);doi/10.1002/2015MS000507)
-    //to account for inadqueate boundary condition in water table but we opt here for simpler version as in Wang et al. (2011; doi/full/10.1029/2010JG001385)
-    //as per Ireson et al. (2023) we track soil moisture at a series of nodes and fluxes at the midpoints evenly spaced between the nodes (Figure 1)
-    // unlike Ireson et al. (2023) we track theta instead of psi (soil water potential) for conceptual simplicity and to facilitate averaging of layers for transpiration
-
-    //number of nodes in soil water column
-    int n = vars.state_size;
-    //distance between nodes
-    // double delta_z = 0.1;
-    //helpers
-    double dq_dz;
-    double dtheta_dt;
-    double dpsi_dz;
-
-    //flux across top boundary layer
-    q[0] = // rainfall at time
-        extrinsic_drivers.evaluate("rainfall", time) * 
-        // fraction of precipitation infiltrating
-        std::max(0.0, 1 - std::pow(vars.state(0)/soil_moist_sat, b_infil));
-    
-    //Eq. 13 free drainage boundary used at lower boundary
-    q[n] = soil_K_from_soil_theta(vars.state(n-1));
-  
-    double dtheta_dt_sum = 0;
-    double resource_depletion_sum = 0;
-
-    //for each node below top node including last node 
-    
-    //start of step
-    // std::cout << " \n start step soil moist: " << vars.state(0) <<  "\t q0:\t" << q[0] << "\t outflow: \t"<< q[n] << std::endl;
-
-    for (size_t i = 0; i < n; i++) {
-      //calculate flux across boundary below node (hence i + 1, rather than i)
-      if(i < (n-1)){
-        //Eq. 3 + 11, Ireson et al. (2023)
-        dpsi_dz = (psi_from_soil_moist(vars.state(i + 1)) - psi_from_soil_moist(vars.state(i)))/delta_z;
-        q[i + 1] =  0.5 * (soil_K_from_soil_theta(vars.state(i)) + soil_K_from_soil_theta(vars.state(i+1))) * (dpsi_dz - 1);
-
-      } 
-      // Eq. 10, derivative of flux at node w.r.t to depth
-      dq_dz = (q[i+1] - q[i])/delta_z;
-
-      // Eq. 2, but we have subtracted resource depletion rates
-      dtheta_dt = 0;//-dq_dz; -  resource_depletion[i];
-
-      dtheta_dt_sum += dtheta_dt;
-      resource_depletion_sum += resource_depletion[i];
-
-      vars.set_rate(i, dtheta_dt);
-    // std::cout << " \n start step soil moist: " << vars.state(0) <<  "\t q0:\t" << q[0] << "\t outflow: \t"<< q[n] << " dq_dz: " <<  dq_dz << " dtheta_dt: " <<  dtheta_dt << " delta_z: "  << delta_z << "resource_depletion" << resource_depletion[i] << std::endl;
-
-      // std::cout << " \n i: " << i<< " var_state_i: " << vars.state(i) <<  " var_state_i+1: " << vars.state(i + 1) << " dq_dz: " <<  dq_dz << " dtheta_dt: " <<  dtheta_dt << " delta_z: "  << delta_z  << " dtheta_dt_sum: "  << dtheta_dt_sum  << " resource: "   << resource_depletion_sum <<  std::endl;
-
-      }
-
+      vars.set_rate(soil_number_of_depths, rainfall);
+      vars.set_rate(soil_number_of_depths + 1, infiltration);
+      vars.set_rate(soil_number_of_depths + 2, water_flux[soil_number_of_depths - 1]);
   }
 
   // calculate K from K_sat based on theta
@@ -250,7 +191,9 @@ public:
   double get_atm_o2_kpa()const { return extrinsic_drivers.evaluate("atm_o2_kpa", time); } 
   double get_atm_kpa()   const { return extrinsic_drivers.evaluate("atm_kpa", time); } 
 
-  std::vector<double> get_soil_water_state() const { return vars.states; }
+
+  std::vector<double> get_soil_water_state() const { return {vars.states.begin(), vars.states.end() - aux_num}; }
+  std::vector<double> get_soil_water_state_cumulative_flux() const { return {vars.states.end()-aux_num, vars.states.end()}; }
   std::vector<double> get_soil_depths() const { return z; }
 
   // TODO: I wonder if this needs a better name? See also environment.h
@@ -258,14 +201,17 @@ public:
 
   // R interface
   void set_soil_water_state(std::vector<double> state) {
-    if(state.size() != vars.state_size) {
+    if(state.size() != (vars.state_size- aux_num)) {
       throw std::invalid_argument("Input vector size does not match soil state size.");
     }
-    
-    for (size_t i = 0; i < vars.state_size; i++) {
-      vars.set_state(i, state[i]);
-    }
+    for (size_t i = 0; i < (vars.state_size); i++) {
+      if(i < soil_number_of_depths){
+        vars.set_state(i, state[i]);
+      } else {
+        vars.set_state(i, 0);
+      }
   }
+}
 
   // Pre-compute resources available in the environment, as a function of height
   template <typename Function>
@@ -296,12 +242,16 @@ public:
     auto const &soil_moist_list = get_soil_water_state();
     auto rcpp_soil_moist_vec = Rcpp::NumericVector(soil_moist_list.begin(), soil_moist_list.end());
 
+    auto const &soil_moist_cumulative_flux_list = get_soil_water_state_cumulative_flux();
+    auto rcpp_soil_moist_vec_cumulative_flux = Rcpp::NumericVector(soil_moist_cumulative_flux_list.begin(), soil_moist_cumulative_flux_list.end());
+
     return Rcpp::List::create(
-        //    auto ret = get_state(environment.extrinsic_drivers, time);
+        // auto ret = get_state(environment.extrinsic_drivers, time);
 
         _["light_availability"] = light_availability.r_get_state(),
         _["soil_moist"] = rcpp_soil_moist_vec,
-        _["soil_depth"] = rcpp_soil_depth_vec
+        _["soil_depth"] = rcpp_soil_depth_vec,
+        _["soil_moist_cumulative_flux"] = rcpp_soil_moist_vec_cumulative_flux
     );
   }
   };

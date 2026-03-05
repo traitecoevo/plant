@@ -8,7 +8,7 @@
 // #define kg_to_mol_h2o ...
 // #define kPa_to_Pa ...
 
-#include <plant/models/ff16_environment.h>
+#include <plant/models/tf24_environment.h>
 #include <plant/qag.h>
 #include <plant/uniroot.h>
 
@@ -90,7 +90,10 @@ public:
        double GSS_tol_abs,
        double vulnerability_curve_ncontrol,
        double ci_abs_tol,
-       double ci_niter); 
+       double ci_niter,
+       double g0,
+       double g1,
+      double g1_TF24); 
         
   quadrature::QAG integrator;
   odelia::interpolator::Interpolator transpiration_from_psi;
@@ -112,9 +115,11 @@ public:
   double vulnerability_curve_ncontrol;
   double ci_abs_tol;
   double ci_niter;
+  double g1_TF24;
 
   double ci_;
   double stom_cond_CO2_;
+  double medlyn_model_gs_;
   double assim_colimited_;
   double transpiration_;
   double profit_;
@@ -150,6 +155,13 @@ public:
   double opt_ci_;
   double count;
 
+  double theta_w_;
+  double theta_fc_;
+  double theta_;
+
+  double g0;
+  double g1;
+
   // TODO: move into environment?
 
   // TODO: atm_vpd - now set in set_physiology although ideally should be moved to enviroment
@@ -160,6 +172,9 @@ public:
   double atm_o2_kpa = 21;
   //leaf temperature (deg C)
   double leaf_temp = 25;
+  double theta_w = 0.2; //m^3 m^-3
+  double theta_fc = 0.5; //m^3 m^-3
+  double theta = 0.3; //m^3 m^-3
 
   // this might end up hard-coded
   void initialize_integrator(int integration_rule = 21,
@@ -171,7 +186,7 @@ public:
   }
   
   // set-up functions
-  void set_physiology(double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa);
+  void set_physiology(double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa, double theta_w, double theta_fc, double theta);
   void setup_transpiration(double resolution);
   void setup_clean_leaf();
 
@@ -212,13 +227,15 @@ public:
   double hydraulic_cost_TF(double psi_stem);
 
   double profit_psi_stem_Sperry(double psi_stem);
-  double profit_Sperry_ci(double ci_);
   double profit_psi_stem_TF(double psi_stem);
 
 // optimiser functions
   void optimise_psi_stem_Sperry();
-  void optimise_ci_Sperry(double ci_guess);
   void optimise_psi_stem_TF();
+  void solve_medlyn_ci_numerical();
+  void solve_medlyn_ci_analytical();
+  double medlyn_model_gs(double assim_colimited_);
+  double medlyn_stom_cond_minus_coupled_stom_cond(double x);
 
 };
 } // namespace plant
