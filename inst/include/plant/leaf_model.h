@@ -93,8 +93,8 @@ public:
        double ci_niter); 
         
   quadrature::QAG integrator;
-  interpolator::Interpolator transpiration_from_psi;
-  interpolator::Interpolator psi_from_transpiration;
+  odelia::interpolator::Interpolator transpiration_from_psi;
+  odelia::interpolator::Interpolator psi_from_transpiration;
 
   // psi_from_E
 

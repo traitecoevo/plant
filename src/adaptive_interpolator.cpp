@@ -33,14 +33,3 @@ bool AdaptiveInterpolator::check_err(double y_true, double y_pred) const {
 
 }
 }
-
-// [[Rcpp::export]]
-plant::interpolator::Interpolator
-test_adaptive_interpolator(Rcpp::Function f, double a, double b) {
-  plant::util::RFunctionWrapper fw(f);
-  const double atol = 1e-6, rtol = 1e-6;
-  const size_t nbase = 17, max_depth = 16;
-  plant::interpolator::AdaptiveInterpolator
-    generator(atol, rtol, nbase, max_depth);
-  return generator.construct(fw, a, b);
-}

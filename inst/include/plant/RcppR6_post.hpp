@@ -54,9 +54,6 @@ template <> inline std::string generator_name<plant::quadrature::QK >() {return 
 template <> inline std::string   class_name_r<plant::quadrature::QAG >() {return "QAG";}
 template <> inline std::string   package_name<plant::quadrature::QAG >() {return "plant";}
 template <> inline std::string generator_name<plant::quadrature::QAG >() {return ".R6_QAG";}
-template <> inline std::string   class_name_r<plant::interpolator::Interpolator >() {return "Interpolator";}
-template <> inline std::string   package_name<plant::interpolator::Interpolator >() {return "plant";}
-template <> inline std::string generator_name<plant::interpolator::Interpolator >() {return ".R6_Interpolator";}
 template <> inline std::string   class_name_r<plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> >() {return "Individual<FF16,FF16_Env>";}
 template <> inline std::string   package_name<plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> >() {return ".R6_Individual___FF16__FF16_Env";}
@@ -173,6 +170,9 @@ template <> inline std::string generator_name<plant::StochasticPatchRunner<plant
 template <> inline std::string   class_name_r<plant::ResourceSpline >() {return "ResourceSpline";}
 template <> inline std::string   package_name<plant::ResourceSpline >() {return "plant";}
 template <> inline std::string generator_name<plant::ResourceSpline >() {return ".R6_ResourceSpline";}
+template <> inline std::string   class_name_r<odelia::interpolator::Interpolator >() {return "Interpolator";}
+template <> inline std::string   package_name<odelia::interpolator::Interpolator >() {return "plant";}
+template <> inline std::string generator_name<odelia::interpolator::Interpolator >() {return ".R6_Interpolator";}
 template <> inline std::string   class_name_r<plant::Disturbance_Regime >() {return "Disturbance_Regime";}
 template <> inline std::string   package_name<plant::Disturbance_Regime >() {return "plant";}
 template <> inline std::string generator_name<plant::Disturbance_Regime >() {return ".R6_Disturbance_Regime";}
@@ -418,12 +418,6 @@ template <> inline SEXP wrap(const plant::quadrature::QAG& x) {
 }
 template <> inline plant::quadrature::QAG as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::quadrature::QAG>(x));
-}
-template <> inline SEXP wrap(const plant::interpolator::Interpolator& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::interpolator::Interpolator>(x));
-}
-template <> inline plant::interpolator::Interpolator as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::interpolator::Interpolator>(x));
 }
 template <> inline SEXP wrap(const plant::Individual<plant::FF16_Strategy,plant::FF16_Environment>& x) {
   return wrap(plant::RcppR6::RcppR6<plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> >(x));
@@ -750,6 +744,12 @@ template <> inline SEXP wrap(const plant::ResourceSpline& x) {
 }
 template <> inline plant::ResourceSpline as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::ResourceSpline>(x));
+}
+template <> inline SEXP wrap(const odelia::interpolator::Interpolator& x) {
+  return wrap(plant::RcppR6::RcppR6<odelia::interpolator::Interpolator>(x));
+}
+template <> inline odelia::interpolator::Interpolator as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<odelia::interpolator::Interpolator>(x));
 }
 template <> inline SEXP wrap(const plant::Disturbance_Regime& x) {
   return wrap(plant::RcppR6::RcppR6<plant::Disturbance_Regime>(x));

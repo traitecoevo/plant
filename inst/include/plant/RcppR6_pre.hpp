@@ -51,8 +51,6 @@ template <> SEXP wrap(const plant::quadrature::QK&);
 template <> plant::quadrature::QK as(SEXP);
 template <> SEXP wrap(const plant::quadrature::QAG&);
 template <> plant::quadrature::QAG as(SEXP);
-template <> SEXP wrap(const plant::interpolator::Interpolator&);
-template <> plant::interpolator::Interpolator as(SEXP);
 template <> SEXP wrap(const plant::Individual<plant::FF16_Strategy,plant::FF16_Environment>&);
 template <> plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> as(SEXP);
 
@@ -137,6 +135,8 @@ template <> SEXP wrap(const plant::StochasticPatchRunner<plant::K93_Strategy,pla
 template <> plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> as(SEXP);
 template <> SEXP wrap(const plant::ResourceSpline&);
 template <> plant::ResourceSpline as(SEXP);
+template <> SEXP wrap(const odelia::interpolator::Interpolator&);
+template <> odelia::interpolator::Interpolator as(SEXP);
 template <> SEXP wrap(const plant::Disturbance_Regime&);
 template <> plant::Disturbance_Regime as(SEXP);
 template <> SEXP wrap(const plant::No_Disturbance&);

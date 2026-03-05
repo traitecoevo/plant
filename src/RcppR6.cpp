@@ -874,53 +874,6 @@ bool QAG__is_adaptive__get(plant::RcppR6::RcppR6<plant::quadrature::QAG> obj_) {
 
 
 // [[Rcpp::export]]
-plant::interpolator::Interpolator Interpolator__ctor() {
-  return plant::interpolator::Interpolator();
-}
-// [[Rcpp::export]]
-void Interpolator__init(plant::RcppR6::RcppR6<plant::interpolator::Interpolator> obj_, const std::vector<double>& x, const std::vector<double>& y) {
-  obj_->init(x, y);
-}
-// [[Rcpp::export]]
-std::vector<double> Interpolator__eval(plant::RcppR6::RcppR6<plant::interpolator::Interpolator> obj_, std::vector<double> x) {
-  return obj_->r_eval(x);
-}
-// [[Rcpp::export]]
-void Interpolator__set_extrapolate(plant::RcppR6::RcppR6<plant::interpolator::Interpolator> obj_, bool e) {
-  obj_->set_extrapolate(e);
-}
-// [[Rcpp::export]]
-std::vector<double> Interpolator__x__get(plant::RcppR6::RcppR6<plant::interpolator::Interpolator> obj_) {
-  return obj_->get_x();
-}
-
-// [[Rcpp::export]]
-std::vector<double> Interpolator__y__get(plant::RcppR6::RcppR6<plant::interpolator::Interpolator> obj_) {
-  return obj_->get_y();
-}
-
-// [[Rcpp::export]]
-SEXP Interpolator__xy__get(plant::RcppR6::RcppR6<plant::interpolator::Interpolator> obj_) {
-  return obj_->r_get_xy();
-}
-
-// [[Rcpp::export]]
-size_t Interpolator__size__get(plant::RcppR6::RcppR6<plant::interpolator::Interpolator> obj_) {
-  return obj_->size();
-}
-
-// [[Rcpp::export]]
-double Interpolator__min__get(plant::RcppR6::RcppR6<plant::interpolator::Interpolator> obj_) {
-  return obj_->min();
-}
-
-// [[Rcpp::export]]
-double Interpolator__max__get(plant::RcppR6::RcppR6<plant::interpolator::Interpolator> obj_) {
-  return obj_->max();
-}
-
-
-// [[Rcpp::export]]
 plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> Individual___FF16__FF16_Env__ctor(plant::FF16_Strategy s) {
   return plant::make_individual<plant::FF16_Strategy,plant::FF16_Environment>(s);
 }
@@ -3312,12 +3265,54 @@ void ResourceSpline__clear(plant::RcppR6::RcppR6<plant::ResourceSpline> obj_) {
   obj_->clear();
 }
 // [[Rcpp::export]]
-plant::interpolator::Interpolator ResourceSpline__spline__get(plant::RcppR6::RcppR6<plant::ResourceSpline> obj_) {
+odelia::interpolator::Interpolator ResourceSpline__spline__get(plant::RcppR6::RcppR6<plant::ResourceSpline> obj_) {
   return obj_->spline;
 }
 // [[Rcpp::export]]
-void ResourceSpline__spline__set(plant::RcppR6::RcppR6<plant::ResourceSpline> obj_, plant::interpolator::Interpolator value) {
+void ResourceSpline__spline__set(plant::RcppR6::RcppR6<plant::ResourceSpline> obj_, odelia::interpolator::Interpolator value) {
   obj_->spline = value;
+}
+
+
+// [[Rcpp::export]]
+odelia::interpolator::Interpolator Interpolator__ctor() {
+  return odelia::interpolator::Interpolator();
+}
+// [[Rcpp::export]]
+void Interpolator__init(plant::RcppR6::RcppR6<odelia::interpolator::Interpolator> obj_, const std::vector<double>& x, const std::vector<double>& y) {
+  obj_->init(x, y);
+}
+// [[Rcpp::export]]
+std::vector<double> Interpolator__eval(plant::RcppR6::RcppR6<odelia::interpolator::Interpolator> obj_, std::vector<double> x) {
+  return obj_->r_eval(x);
+}
+// [[Rcpp::export]]
+void Interpolator__set_extrapolate(plant::RcppR6::RcppR6<odelia::interpolator::Interpolator> obj_, bool e) {
+  obj_->set_extrapolate(e);
+}
+// [[Rcpp::export]]
+std::vector<double> Interpolator__x__get(plant::RcppR6::RcppR6<odelia::interpolator::Interpolator> obj_) {
+  return obj_->get_x();
+}
+
+// [[Rcpp::export]]
+std::vector<double> Interpolator__y__get(plant::RcppR6::RcppR6<odelia::interpolator::Interpolator> obj_) {
+  return obj_->get_y();
+}
+
+// [[Rcpp::export]]
+size_t Interpolator__size__get(plant::RcppR6::RcppR6<odelia::interpolator::Interpolator> obj_) {
+  return obj_->size();
+}
+
+// [[Rcpp::export]]
+double Interpolator__min__get(plant::RcppR6::RcppR6<odelia::interpolator::Interpolator> obj_) {
+  return obj_->min();
+}
+
+// [[Rcpp::export]]
+double Interpolator__max__get(plant::RcppR6::RcppR6<odelia::interpolator::Interpolator> obj_) {
+  return obj_->max();
 }
 
 

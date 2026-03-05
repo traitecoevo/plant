@@ -5,8 +5,8 @@
 // This class creates an interpolator object, using adaptive refinement
 
 #include <list>
-#include <plant/interpolator.h>
 #include <plant/util.h> // util::stop, util::seq_len
+#include <odelia/interpolator.hpp>
 
 namespace plant {
 namespace interpolator {
@@ -34,7 +34,7 @@ public:
   }
 
   template <typename Function>
-  Interpolator construct(Function target, double a, double b);
+  odelia::interpolator::Interpolator construct(Function target, double a, double b);
 private:
   void update_spline();
   template <typename Function>
@@ -54,14 +54,15 @@ private:
   std::list<bool> zz;
 
   // Temporary interpolator object that we build.
-  Interpolator interpolator;
+  odelia::interpolator::Interpolator interpolator;
 };
 
 // Adaptively refine a interpolator that spans from a to b so that the
 // midpoints of evaluated points have sufficiently low error.
 template <typename Function>
-Interpolator AdaptiveInterpolator::construct(Function target,
-                                             double a, double b) {
+odelia::interpolator::Interpolator AdaptiveInterpolator::construct(Function target,
+                                                                   double a, double b)
+{
   check_bounds(a, b);
   dx = (b - a) / (static_cast<int>(nbase) - 1);
   dxmin = dx / pow(2, max_depth);

@@ -5,7 +5,7 @@
 
 #include <plant/environment.h>
 #include <plant/resource_spline.h>
-#include <plant/interpolator.h>
+#include <odelia/interpolator.hpp>
 
 using namespace Rcpp;
 

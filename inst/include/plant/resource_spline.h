@@ -3,7 +3,7 @@
 #ifndef PLANT_PLANT_RESOURCE_SPLINE_H_
 #define PLANT_PLANT_RESOURCE_SPLINE_H_
 
-#include <plant/interpolator.h>
+#include <odelia/interpolator.hpp>
 #include <plant/adaptive_interpolator.h>
 #include <plant/ode_solver/ode_interface.h>
 #include <plant/util.h>
@@ -83,7 +83,7 @@ public:
 
   // This object will store an interpolator spline of 
   // resource availability as a function of size
-  interpolator::Interpolator spline;
+  odelia::interpolator::Interpolator spline;
 
   // This object can create an interpolator spline via adaptive refinement
   interpolator::AdaptiveInterpolator spline_construction;
@@ -91,13 +91,26 @@ public:
   // flag, do we try to rescale the spline when possible? this is quicker
   bool spline_rescale_usually;
 
-  Rcpp::NumericMatrix r_get_state() const {
+  Rcpp::NumericMatrix r_get_state() const
+  {
 
     // format spline as Matrix
-    Rcpp::NumericMatrix xy = spline.r_get_xy();
+    std::vector<std::vector<double>> xy;
+    xy.push_back(spline.get_x());
+    xy.push_back(spline.get_y());
+
+    const size_t n = xy.size();
+    Rcpp::NumericMatrix ret(static_cast<int>(xy.begin()->size()),
+                            static_cast<int>(n));
+    Rcpp::NumericMatrix::iterator it = ret.begin();
+    for (size_t i = 0; i < n; ++i)
+    {
+      it = std::copy(xy[i].begin(), xy[i].end(), it);
+    }
+
     // Add colnames
-    xy.attr("dimnames") = Rcpp::List::create(R_NilValue, Rcpp::CharacterVector::create("height", "light_availability"));
-    return xy;
+    ret.attr("dimnames") = Rcpp::List::create(R_NilValue, Rcpp::CharacterVector::create("height", "light_availability"));
+    return ret;
   }
 
 private:

@@ -781,46 +781,6 @@ QAG__is_adaptive__get <- function(obj_) {
     .Call('_plant_QAG__is_adaptive__get', PACKAGE = 'plant', obj_)
 }
 
-Interpolator__ctor <- function() {
-    .Call('_plant_Interpolator__ctor', PACKAGE = 'plant')
-}
-
-Interpolator__init <- function(obj_, x, y) {
-    invisible(.Call('_plant_Interpolator__init', PACKAGE = 'plant', obj_, x, y))
-}
-
-Interpolator__eval <- function(obj_, x) {
-    .Call('_plant_Interpolator__eval', PACKAGE = 'plant', obj_, x)
-}
-
-Interpolator__set_extrapolate <- function(obj_, e) {
-    invisible(.Call('_plant_Interpolator__set_extrapolate', PACKAGE = 'plant', obj_, e))
-}
-
-Interpolator__x__get <- function(obj_) {
-    .Call('_plant_Interpolator__x__get', PACKAGE = 'plant', obj_)
-}
-
-Interpolator__y__get <- function(obj_) {
-    .Call('_plant_Interpolator__y__get', PACKAGE = 'plant', obj_)
-}
-
-Interpolator__xy__get <- function(obj_) {
-    .Call('_plant_Interpolator__xy__get', PACKAGE = 'plant', obj_)
-}
-
-Interpolator__size__get <- function(obj_) {
-    .Call('_plant_Interpolator__size__get', PACKAGE = 'plant', obj_)
-}
-
-Interpolator__min__get <- function(obj_) {
-    .Call('_plant_Interpolator__min__get', PACKAGE = 'plant', obj_)
-}
-
-Interpolator__max__get <- function(obj_) {
-    .Call('_plant_Interpolator__max__get', PACKAGE = 'plant', obj_)
-}
-
 Individual___FF16__FF16_Env__ctor <- function(s) {
     .Call('_plant_Individual___FF16__FF16_Env__ctor', PACKAGE = 'plant', s)
 }
@@ -2929,6 +2889,42 @@ ResourceSpline__spline__set <- function(obj_, value) {
     invisible(.Call('_plant_ResourceSpline__spline__set', PACKAGE = 'plant', obj_, value))
 }
 
+Interpolator__ctor <- function() {
+    .Call('_plant_Interpolator__ctor', PACKAGE = 'plant')
+}
+
+Interpolator__init <- function(obj_, x, y) {
+    invisible(.Call('_plant_Interpolator__init', PACKAGE = 'plant', obj_, x, y))
+}
+
+Interpolator__eval <- function(obj_, x) {
+    .Call('_plant_Interpolator__eval', PACKAGE = 'plant', obj_, x)
+}
+
+Interpolator__set_extrapolate <- function(obj_, e) {
+    invisible(.Call('_plant_Interpolator__set_extrapolate', PACKAGE = 'plant', obj_, e))
+}
+
+Interpolator__x__get <- function(obj_) {
+    .Call('_plant_Interpolator__x__get', PACKAGE = 'plant', obj_)
+}
+
+Interpolator__y__get <- function(obj_) {
+    .Call('_plant_Interpolator__y__get', PACKAGE = 'plant', obj_)
+}
+
+Interpolator__size__get <- function(obj_) {
+    .Call('_plant_Interpolator__size__get', PACKAGE = 'plant', obj_)
+}
+
+Interpolator__min__get <- function(obj_) {
+    .Call('_plant_Interpolator__min__get', PACKAGE = 'plant', obj_)
+}
+
+Interpolator__max__get <- function(obj_) {
+    .Call('_plant_Interpolator__max__get', PACKAGE = 'plant', obj_)
+}
+
 Disturbance_Regime__ctor <- function() {
     .Call('_plant_Disturbance_Regime__ctor', PACKAGE = 'plant')
 }
@@ -3243,10 +3239,6 @@ TF24_Environment__light_availability__set <- function(obj_, value) {
 
 TF24_Environment__soil__get <- function(obj_) {
     .Call('_plant_TF24_Environment__soil__get', PACKAGE = 'plant', obj_)
-}
-
-test_adaptive_interpolator <- function(f, a, b) {
-    .Call('_plant_test_adaptive_interpolator', PACKAGE = 'plant', f, a, b)
 }
 
 node_schedule_default__Parameters___FF16__FF16_Env <- function(p) {

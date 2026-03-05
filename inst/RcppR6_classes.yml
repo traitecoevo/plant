@@ -339,31 +339,6 @@ QAG:
     last_intervals: {type: "plant::quadrature::intervals_type", access: member, name_cpp: get_last_intervals}
     is_adaptive: {type: bool, access: member}
 
-Interpolator:
-  name_cpp: "plant::interpolator::Interpolator"
-  constructor:
-    roxygen: |
-      Spline interpolation
-      @export
-  methods:
-    init:
-      return_type: void
-      args: [x: "const std::vector<double>&", y: "const std::vector<double>&"]
-    eval:
-      return_type: "std::vector<double>"
-      args: [x: "std::vector<double>"]
-      name_cpp: r_eval
-    set_extrapolate:
-      return_type: void
-      args: [e: bool]
-  active:
-    x: {type: "std::vector<double>", access: member, name_cpp: get_x}
-    y: {type: "std::vector<double>", access: member, name_cpp: get_y}
-    xy: {type: SEXP, access: member, name_cpp: r_get_xy}
-    size: {type: size_t, access: member}
-    min: {type: double, access: member}
-    max: {type: double, access: member}
-
 Individual:
   name_cpp: "plant::Individual<T,E>"
   templates:
@@ -885,7 +860,31 @@ ResourceSpline:
     clear:
       return_type: void
   active:
-    spline: {type: "plant::interpolator::Interpolator", access: field}
+    spline: {type: "odelia::interpolator::Interpolator", access: field}
+
+Interpolator:
+  name_cpp: "odelia::interpolator::Interpolator"
+  constructor:
+    roxygen: |
+      Spline interpolation
+      @export
+  methods:
+    init:
+      return_type: void
+      args: [x: "const std::vector<double>&", y: "const std::vector<double>&"]
+    eval:
+      return_type: "std::vector<double>"
+      args: [x: "std::vector<double>"]
+      name_cpp: r_eval
+    set_extrapolate:
+      return_type: void
+      args: [e: bool]
+  active:
+    x: {type: "std::vector<double>", access: member, name_cpp: get_x}
+    y: {type: "std::vector<double>", access: member, name_cpp: get_y}
+    size: {type: size_t, access: member}
+    min: {type: double, access: member}
+    max: {type: double, access: member}
 
 Disturbance_Regime:
   name_cpp: "plant::Disturbance_Regime"

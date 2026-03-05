@@ -2,7 +2,7 @@
 #define PLANT_EXTRINSIC_DRIVERS_H
 
 #include <plant/util.h>
-#include <plant/interpolator.h>
+#include <odelia/interpolator.hpp>
 #include <Rcpp.h>
 
 namespace plant {
@@ -44,7 +44,7 @@ public:
   }
 
 private:
-    interpolator::Interpolator variable;
+    odelia::interpolator::Interpolator variable;
     double constant;
     bool is_variable;
 };

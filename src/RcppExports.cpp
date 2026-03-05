@@ -2224,117 +2224,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Interpolator__ctor
-plant::interpolator::Interpolator Interpolator__ctor();
-RcppExport SEXP _plant_Interpolator__ctor() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(Interpolator__ctor());
-    return rcpp_result_gen;
-END_RCPP
-}
-// Interpolator__init
-void Interpolator__init(plant::RcppR6::RcppR6<plant::interpolator::Interpolator> obj_, const std::vector<double>& x, const std::vector<double>& y);
-RcppExport SEXP _plant_Interpolator__init(SEXP obj_SEXP, SEXP xSEXP, SEXP ySEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::interpolator::Interpolator> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< const std::vector<double>& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double>& >::type y(ySEXP);
-    Interpolator__init(obj_, x, y);
-    return R_NilValue;
-END_RCPP
-}
-// Interpolator__eval
-std::vector<double> Interpolator__eval(plant::RcppR6::RcppR6<plant::interpolator::Interpolator> obj_, std::vector<double> x);
-RcppExport SEXP _plant_Interpolator__eval(SEXP obj_SEXP, SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::interpolator::Interpolator> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(Interpolator__eval(obj_, x));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Interpolator__set_extrapolate
-void Interpolator__set_extrapolate(plant::RcppR6::RcppR6<plant::interpolator::Interpolator> obj_, bool e);
-RcppExport SEXP _plant_Interpolator__set_extrapolate(SEXP obj_SEXP, SEXP eSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::interpolator::Interpolator> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< bool >::type e(eSEXP);
-    Interpolator__set_extrapolate(obj_, e);
-    return R_NilValue;
-END_RCPP
-}
-// Interpolator__x__get
-std::vector<double> Interpolator__x__get(plant::RcppR6::RcppR6<plant::interpolator::Interpolator> obj_);
-RcppExport SEXP _plant_Interpolator__x__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::interpolator::Interpolator> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Interpolator__x__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Interpolator__y__get
-std::vector<double> Interpolator__y__get(plant::RcppR6::RcppR6<plant::interpolator::Interpolator> obj_);
-RcppExport SEXP _plant_Interpolator__y__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::interpolator::Interpolator> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Interpolator__y__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Interpolator__xy__get
-SEXP Interpolator__xy__get(plant::RcppR6::RcppR6<plant::interpolator::Interpolator> obj_);
-RcppExport SEXP _plant_Interpolator__xy__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::interpolator::Interpolator> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Interpolator__xy__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Interpolator__size__get
-size_t Interpolator__size__get(plant::RcppR6::RcppR6<plant::interpolator::Interpolator> obj_);
-RcppExport SEXP _plant_Interpolator__size__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::interpolator::Interpolator> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Interpolator__size__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Interpolator__min__get
-double Interpolator__min__get(plant::RcppR6::RcppR6<plant::interpolator::Interpolator> obj_);
-RcppExport SEXP _plant_Interpolator__min__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::interpolator::Interpolator> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Interpolator__min__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Interpolator__max__get
-double Interpolator__max__get(plant::RcppR6::RcppR6<plant::interpolator::Interpolator> obj_);
-RcppExport SEXP _plant_Interpolator__max__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::interpolator::Interpolator> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Interpolator__max__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
 // Individual___FF16__FF16_Env__ctor
 plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> Individual___FF16__FF16_Env__ctor(plant::FF16_Strategy s);
 RcppExport SEXP _plant_Individual___FF16__FF16_Env__ctor(SEXP sSEXP) {
@@ -8221,7 +8110,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // ResourceSpline__spline__get
-plant::interpolator::Interpolator ResourceSpline__spline__get(plant::RcppR6::RcppR6<plant::ResourceSpline> obj_);
+odelia::interpolator::Interpolator ResourceSpline__spline__get(plant::RcppR6::RcppR6<plant::ResourceSpline> obj_);
 RcppExport SEXP _plant_ResourceSpline__spline__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -8232,14 +8121,114 @@ BEGIN_RCPP
 END_RCPP
 }
 // ResourceSpline__spline__set
-void ResourceSpline__spline__set(plant::RcppR6::RcppR6<plant::ResourceSpline> obj_, plant::interpolator::Interpolator value);
+void ResourceSpline__spline__set(plant::RcppR6::RcppR6<plant::ResourceSpline> obj_, odelia::interpolator::Interpolator value);
 RcppExport SEXP _plant_ResourceSpline__spline__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ResourceSpline> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< plant::interpolator::Interpolator >::type value(valueSEXP);
+    Rcpp::traits::input_parameter< odelia::interpolator::Interpolator >::type value(valueSEXP);
     ResourceSpline__spline__set(obj_, value);
     return R_NilValue;
+END_RCPP
+}
+// Interpolator__ctor
+odelia::interpolator::Interpolator Interpolator__ctor();
+RcppExport SEXP _plant_Interpolator__ctor() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(Interpolator__ctor());
+    return rcpp_result_gen;
+END_RCPP
+}
+// Interpolator__init
+void Interpolator__init(plant::RcppR6::RcppR6<odelia::interpolator::Interpolator> obj_, const std::vector<double>& x, const std::vector<double>& y);
+RcppExport SEXP _plant_Interpolator__init(SEXP obj_SEXP, SEXP xSEXP, SEXP ySEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::interpolator::Interpolator> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type y(ySEXP);
+    Interpolator__init(obj_, x, y);
+    return R_NilValue;
+END_RCPP
+}
+// Interpolator__eval
+std::vector<double> Interpolator__eval(plant::RcppR6::RcppR6<odelia::interpolator::Interpolator> obj_, std::vector<double> x);
+RcppExport SEXP _plant_Interpolator__eval(SEXP obj_SEXP, SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::interpolator::Interpolator> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(Interpolator__eval(obj_, x));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Interpolator__set_extrapolate
+void Interpolator__set_extrapolate(plant::RcppR6::RcppR6<odelia::interpolator::Interpolator> obj_, bool e);
+RcppExport SEXP _plant_Interpolator__set_extrapolate(SEXP obj_SEXP, SEXP eSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::interpolator::Interpolator> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< bool >::type e(eSEXP);
+    Interpolator__set_extrapolate(obj_, e);
+    return R_NilValue;
+END_RCPP
+}
+// Interpolator__x__get
+std::vector<double> Interpolator__x__get(plant::RcppR6::RcppR6<odelia::interpolator::Interpolator> obj_);
+RcppExport SEXP _plant_Interpolator__x__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::interpolator::Interpolator> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Interpolator__x__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Interpolator__y__get
+std::vector<double> Interpolator__y__get(plant::RcppR6::RcppR6<odelia::interpolator::Interpolator> obj_);
+RcppExport SEXP _plant_Interpolator__y__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::interpolator::Interpolator> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Interpolator__y__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Interpolator__size__get
+size_t Interpolator__size__get(plant::RcppR6::RcppR6<odelia::interpolator::Interpolator> obj_);
+RcppExport SEXP _plant_Interpolator__size__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::interpolator::Interpolator> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Interpolator__size__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Interpolator__min__get
+double Interpolator__min__get(plant::RcppR6::RcppR6<odelia::interpolator::Interpolator> obj_);
+RcppExport SEXP _plant_Interpolator__min__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::interpolator::Interpolator> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Interpolator__min__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Interpolator__max__get
+double Interpolator__max__get(plant::RcppR6::RcppR6<odelia::interpolator::Interpolator> obj_);
+RcppExport SEXP _plant_Interpolator__max__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::interpolator::Interpolator> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Interpolator__max__get(obj_));
+    return rcpp_result_gen;
 END_RCPP
 }
 // Disturbance_Regime__ctor
@@ -9130,19 +9119,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// test_adaptive_interpolator
-plant::interpolator::Interpolator test_adaptive_interpolator(Rcpp::Function f, double a, double b);
-RcppExport SEXP _plant_test_adaptive_interpolator(SEXP fSEXP, SEXP aSEXP, SEXP bSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::Function >::type f(fSEXP);
-    Rcpp::traits::input_parameter< double >::type a(aSEXP);
-    Rcpp::traits::input_parameter< double >::type b(bSEXP);
-    rcpp_result_gen = Rcpp::wrap(test_adaptive_interpolator(f, a, b));
-    return rcpp_result_gen;
-END_RCPP
-}
 // node_schedule_default__Parameters___FF16__FF16_Env
 plant::NodeSchedule node_schedule_default__Parameters___FF16__FF16_Env(const plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment>& p);
 RcppExport SEXP _plant_node_schedule_default__Parameters___FF16__FF16_Env(SEXP pSEXP) {
@@ -9540,16 +9516,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_QAG__last_iterations__get", (DL_FUNC) &_plant_QAG__last_iterations__get, 1},
     {"_plant_QAG__last_intervals__get", (DL_FUNC) &_plant_QAG__last_intervals__get, 1},
     {"_plant_QAG__is_adaptive__get", (DL_FUNC) &_plant_QAG__is_adaptive__get, 1},
-    {"_plant_Interpolator__ctor", (DL_FUNC) &_plant_Interpolator__ctor, 0},
-    {"_plant_Interpolator__init", (DL_FUNC) &_plant_Interpolator__init, 3},
-    {"_plant_Interpolator__eval", (DL_FUNC) &_plant_Interpolator__eval, 2},
-    {"_plant_Interpolator__set_extrapolate", (DL_FUNC) &_plant_Interpolator__set_extrapolate, 2},
-    {"_plant_Interpolator__x__get", (DL_FUNC) &_plant_Interpolator__x__get, 1},
-    {"_plant_Interpolator__y__get", (DL_FUNC) &_plant_Interpolator__y__get, 1},
-    {"_plant_Interpolator__xy__get", (DL_FUNC) &_plant_Interpolator__xy__get, 1},
-    {"_plant_Interpolator__size__get", (DL_FUNC) &_plant_Interpolator__size__get, 1},
-    {"_plant_Interpolator__min__get", (DL_FUNC) &_plant_Interpolator__min__get, 1},
-    {"_plant_Interpolator__max__get", (DL_FUNC) &_plant_Interpolator__max__get, 1},
     {"_plant_Individual___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_Individual___FF16__FF16_Env__ctor, 1},
     {"_plant_Individual___FF16__FF16_Env__state", (DL_FUNC) &_plant_Individual___FF16__FF16_Env__state, 2},
     {"_plant_Individual___FF16__FF16_Env__rate", (DL_FUNC) &_plant_Individual___FF16__FF16_Env__rate, 2},
@@ -10077,6 +10043,15 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_ResourceSpline__clear", (DL_FUNC) &_plant_ResourceSpline__clear, 1},
     {"_plant_ResourceSpline__spline__get", (DL_FUNC) &_plant_ResourceSpline__spline__get, 1},
     {"_plant_ResourceSpline__spline__set", (DL_FUNC) &_plant_ResourceSpline__spline__set, 2},
+    {"_plant_Interpolator__ctor", (DL_FUNC) &_plant_Interpolator__ctor, 0},
+    {"_plant_Interpolator__init", (DL_FUNC) &_plant_Interpolator__init, 3},
+    {"_plant_Interpolator__eval", (DL_FUNC) &_plant_Interpolator__eval, 2},
+    {"_plant_Interpolator__set_extrapolate", (DL_FUNC) &_plant_Interpolator__set_extrapolate, 2},
+    {"_plant_Interpolator__x__get", (DL_FUNC) &_plant_Interpolator__x__get, 1},
+    {"_plant_Interpolator__y__get", (DL_FUNC) &_plant_Interpolator__y__get, 1},
+    {"_plant_Interpolator__size__get", (DL_FUNC) &_plant_Interpolator__size__get, 1},
+    {"_plant_Interpolator__min__get", (DL_FUNC) &_plant_Interpolator__min__get, 1},
+    {"_plant_Interpolator__max__get", (DL_FUNC) &_plant_Interpolator__max__get, 1},
     {"_plant_Disturbance_Regime__ctor", (DL_FUNC) &_plant_Disturbance_Regime__ctor, 0},
     {"_plant_Disturbance_Regime__density", (DL_FUNC) &_plant_Disturbance_Regime__density, 2},
     {"_plant_Disturbance_Regime__pr_survival", (DL_FUNC) &_plant_Disturbance_Regime__pr_survival, 2},
@@ -10156,7 +10131,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_TF24_Environment__light_availability__get", (DL_FUNC) &_plant_TF24_Environment__light_availability__get, 1},
     {"_plant_TF24_Environment__light_availability__set", (DL_FUNC) &_plant_TF24_Environment__light_availability__set, 2},
     {"_plant_TF24_Environment__soil__get", (DL_FUNC) &_plant_TF24_Environment__soil__get, 1},
-    {"_plant_test_adaptive_interpolator", (DL_FUNC) &_plant_test_adaptive_interpolator, 3},
     {"_plant_node_schedule_default__Parameters___FF16__FF16_Env", (DL_FUNC) &_plant_node_schedule_default__Parameters___FF16__FF16_Env, 1},
     {"_plant_make_node_schedule__Parameters___FF16__FF16_Env", (DL_FUNC) &_plant_make_node_schedule__Parameters___FF16__FF16_Env, 1},
     {"_plant_test_gradient_fd1", (DL_FUNC) &_plant_test_gradient_fd1, 5},
