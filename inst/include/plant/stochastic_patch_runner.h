@@ -92,8 +92,7 @@ size_t StochasticPatchRunner<T, E>::run_next() {
 
   if (patch.introduce_new_node(idx)) {
     solver.get_system_ref() = patch;
-    solver.set_state(odelia::ode::r_ode_state(solver.get_system_ref()),
-                     patch.ode_time());
+    solver.set_state_from_system();
   }
   advance(e.time_end());
 
@@ -106,8 +105,7 @@ void StochasticPatchRunner<T, E>::advance(double time_) {
   patch = solver.get_system();
   if (deaths()) {
     solver.get_system_ref() = patch;
-    solver.set_state(odelia::ode::r_ode_state(solver.get_system_ref()),
-                     patch.ode_time());
+    solver.set_state_from_system();
   }
 }
 

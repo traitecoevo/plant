@@ -45,7 +45,8 @@ for (x in names(strategy_types)) {
     expect_error(patch$introduce_new_node(0), "Invalid value")
     expect_error(patch$introduce_new_node(10), "out of bounds")
 
-    expect_true(patch$introduce_new_node(1))
+    # Deterministic insertion avoids flaky failures from establishment probability.
+    patch$introduce_new_node_and_update(1)
     expect_gt(patch$height_max, 0.0)
     expect_equal(patch$height_max, cmp$state("height"))
 

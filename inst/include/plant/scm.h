@@ -77,7 +77,7 @@ template <typename T, typename E>
 SCM<T, E>::SCM(parameters_type p, environment_type e, Control c)
     : parameters(p), patch(parameters, e, c),
       node_schedule(make_node_schedule(parameters)),
-      solver(patch, make_ode_control(c)) {
+  solver(patch, make_ode_control(c)) {
 
   parameters.validate();
 
@@ -124,8 +124,7 @@ template <typename T, typename E> std::vector<size_t> SCM<T, E>::run_next() {
   }
   patch.introduce_new_nodes(ret);
   solver.get_system_ref() = patch;
-  solver.set_state(odelia::ode::r_ode_state(solver.get_system_ref()),
-                   patch.ode_time());
+  solver.set_state_from_system();
   
   // some schedules have fixed integration points
   const bool use_ode_times = node_schedule.using_ode_times();

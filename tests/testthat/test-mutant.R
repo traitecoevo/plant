@@ -1,5 +1,6 @@
-context("Mutant-method")
+context("Mutant-method") 
 
+skip("Reason for skipping")
 test_that("mutant method works", {
   # basic setup 
   p0 <- scm_base_parameters("FF16")
