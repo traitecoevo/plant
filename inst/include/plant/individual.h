@@ -89,27 +89,27 @@ public:
   size_t aux_size() const { return strategy->aux_size(); }
   std::vector<std::string> aux_names() { return strategy->aux_names(); }
 
-  ode::const_iterator set_ode_state(ode::const_iterator it) {
+  odelia::ode::const_iterator set_ode_state(odelia::ode::const_iterator it) {
     for (size_t i = 0; i < vars.state_size; i++) {
       vars.states[i] = *it++;
       strategy->update_dependent_aux(i, vars);
     }
     return it;
   }
-  ode::iterator ode_state(ode::iterator it) const {
+  odelia::ode::iterator ode_state(odelia::ode::iterator it) const {
     for (size_t i = 0; i < vars.state_size; i++) {
       *it++ = vars.states[i];
     }
     return it;
   }
-  ode::iterator ode_rates(ode::iterator it) const {
+  odelia::ode::iterator ode_rates(odelia::ode::iterator it) const {
     for (size_t i = 0; i < vars.state_size; i++) {
       *it++ = vars.rates[i];
     }
     return it;
   }
 
-  ode::iterator ode_aux(ode::iterator it) const {
+  odelia::ode::iterator ode_aux(odelia::ode::iterator it) const {
     for (size_t i = 0; i < vars.aux_size; i++) {
       *it++ = vars.auxs[i];
     }

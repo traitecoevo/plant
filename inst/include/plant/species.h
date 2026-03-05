@@ -43,10 +43,10 @@ public:
   double consumption_rate(int i) const;
   std::vector<double> consumption_rate_by_node_rev(int i) const;
 
-  ode::const_iterator set_ode_state(ode::const_iterator it);
-  ode::iterator       ode_state(ode::iterator it) const;
-  ode::iterator       ode_rates(ode::iterator it) const;
-  ode::iterator       ode_aux(ode::iterator it) const;
+  odelia::ode::const_iterator set_ode_state(odelia::ode::const_iterator it);
+  odelia::ode::iterator       ode_state(odelia::ode::iterator it) const;
+  odelia::ode::iterator       ode_rates(odelia::ode::iterator it) const;
+  odelia::ode::iterator       ode_aux(odelia::ode::iterator it) const;
 
   Rcpp::NumericMatrix r_get_state() const;
 
@@ -241,24 +241,24 @@ size_t Species<T,E>::aux_size() const {
 }
 
 template <typename T, typename E>
-ode::const_iterator Species<T,E>::set_ode_state(ode::const_iterator it) {
-  return ode::set_ode_state(nodes.begin(), nodes.end(), it);
+odelia::ode::const_iterator Species<T,E>::set_ode_state(odelia::ode::const_iterator it) {
+  return odelia::ode::set_ode_state(nodes.begin(), nodes.end(), it);
 }
 
 template <typename T, typename E>
-ode::iterator Species<T,E>::ode_state(ode::iterator it) const {
-  return ode::ode_state(nodes.begin(), nodes.end(), it);
+odelia::ode::iterator Species<T,E>::ode_state(odelia::ode::iterator it) const {
+  return odelia::ode::ode_state(nodes.begin(), nodes.end(), it);
 }
 
 template <typename T, typename E>
-ode::iterator Species<T,E>::ode_rates(ode::iterator it) const {
-  return ode::ode_rates(nodes.begin(), nodes.end(), it);
+odelia::ode::iterator Species<T,E>::ode_rates(odelia::ode::iterator it) const {
+  return odelia::ode::ode_rates(nodes.begin(), nodes.end(), it);
 }
 //double sum_aux(int index) {}
 
 template <typename T, typename E>
-ode::iterator Species<T,E>::ode_aux(ode::iterator it) const {
-  return ode::ode_aux(nodes.begin(), nodes.end(), it);
+odelia::ode::iterator Species<T,E>::ode_aux(odelia::ode::iterator it) const {
+  return odelia::ode::ode_aux(nodes.begin(), nodes.end(), it);
 }
 
 template <typename T, typename E>
@@ -293,14 +293,14 @@ Rcpp::NumericMatrix Species<T, E>::r_get_state() const {
 template <typename T, typename E>
 Rcpp::NumericMatrix::iterator Species<T, E>::get_node_state(const Node<T, E> &node, Rcpp::NumericMatrix::iterator it) const
 {
-  std::vector<double> tmp = ode::r_ode_state(node);
+  std::vector<double> tmp = odelia::ode::r_ode_state(node);
   return std::copy(tmp.begin(), tmp.end(), it);
 }
 
 template <typename T, typename E>
 Rcpp::NumericMatrix::iterator Species<T, E>::get_node_aux(const Node<T, E> &node, Rcpp::NumericMatrix::iterator it) const
 {
-  std::vector<double> tmp = ode::r_ode_aux(node);
+  std::vector<double> tmp = odelia::ode::r_ode_aux(node);
   return std::copy(tmp.begin(), tmp.end(), it);
 }
 

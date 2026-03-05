@@ -70,7 +70,7 @@ private:
   parameters_type parameters;
   patch_type patch;
   NodeSchedule node_schedule;
-  ode::Solver<patch_type> solver;
+  odelia::ode::Solver<patch_type> solver;
 };
 
 template <typename T, typename E>
@@ -123,16 +123,19 @@ template <typename T, typename E> std::vector<size_t> SCM<T, E>::run_next() {
     }
   }
   patch.introduce_new_nodes(ret);
-  solver.set_state_from_system(patch);
+  solver.get_system_ref() = patch;
+  solver.set_state(odelia::ode::r_ode_state(solver.get_system_ref()),
+                   patch.ode_time());
   
   // some schedules have fixed integration points
   const bool use_ode_times = node_schedule.using_ode_times();
   
   if (use_ode_times) {
-    solver.advance_fixed(patch, e.times);
+    solver.advance_fixed(e.times);
   } else {
-    solver.advance_adaptive(patch, e.time_end());
+    solver.advance_adaptive({solver.time(), e.time_end()});
   }
+  patch = solver.get_system();
 
   return ret;
 }
@@ -170,11 +173,12 @@ template <typename T, typename E> double SCM<T, E>::time() const {
 // NOTE: solver.reset() will set time within the solver to zero.
 // However, there is no other current way of setting the time within
 // the solver.  It might be better to add a set_time method within
-// ode::Solver, and then here do explicitly ode_solver.set_time(0)?
+// odelia::ode::Solver, and then here do explicitly ode_solver.set_time(0)?
 template <typename T, typename E> void SCM<T, E>::reset() {
   patch.reset();
   node_schedule.reset();
-  solver.reset(patch);
+  solver.get_system_ref() = patch;
+  solver.reset();
   history.clear();
 }
 
@@ -199,7 +203,7 @@ SCM<T, E>::r_compute_competition_effect_error_by_node_for_species_i(util::index 
 
 template <typename T, typename E>
 std::vector<double> SCM<T, E>::r_ode_times() const {
-  return solver.get_times();
+  return solver.times();
 }
 
 template <typename T, typename E> bool SCM<T, E>::r_use_ode_times() const {

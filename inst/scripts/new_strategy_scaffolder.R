@@ -109,7 +109,7 @@ update_individual_tools <- function (name) {
   whisker.render("
 // [[Rcpp::export]]
 plant::Internals {{name}}_oderunner_individual_internals(
-  const plant::ode::Runner<plant::tools::IndividualRunner<plant::{{name}}_Strategy, plant::{{name}}_Environment>>& obj) {
+  const odelia::ode::Solver<plant::tools::IndividualRunner<plant::{{name}}_Strategy, plant::{{name}}_Environment>>& obj) {
   return obj.obj.individual.r_internals();
 }
 

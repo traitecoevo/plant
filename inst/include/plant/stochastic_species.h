@@ -69,9 +69,9 @@ public:
   // care of by Environment for us.
   size_t ode_size() const;
 
-  ode::const_iterator set_ode_state(ode::const_iterator it);
-  ode::iterator       ode_state(ode::iterator it) const;
-  ode::iterator       ode_rates(ode::iterator it) const;
+  odelia::ode::const_iterator set_ode_state(odelia::ode::const_iterator it);
+  odelia::ode::iterator       ode_state(odelia::ode::iterator it) const;
+  odelia::ode::iterator       ode_rates(odelia::ode::iterator it) const;
 
   // * R interface
   std::vector<bool> r_is_alive() const {return is_alive;}
@@ -225,7 +225,7 @@ size_t StochasticSpecies<T,E>::ode_size() const {
 }
 
 template <typename T, typename E>
-ode::const_iterator StochasticSpecies<T,E>::set_ode_state(ode::const_iterator it) {
+odelia::ode::const_iterator StochasticSpecies<T,E>::set_ode_state(odelia::ode::const_iterator it) {
   for (size_t i = 0; i < size_individuals(); ++i) {
     if (is_alive[i]) {
       it = individuals[i].set_ode_state(it);
@@ -235,7 +235,7 @@ ode::const_iterator StochasticSpecies<T,E>::set_ode_state(ode::const_iterator it
 }
 
 template <typename T, typename E>
-ode::iterator StochasticSpecies<T,E>::ode_state(ode::iterator it) const {
+odelia::ode::iterator StochasticSpecies<T,E>::ode_state(odelia::ode::iterator it) const {
   for (size_t i = 0; i < size_individuals(); ++i) {
     if (is_alive[i]) {
       it = individuals[i].ode_state(it);
@@ -245,7 +245,7 @@ ode::iterator StochasticSpecies<T,E>::ode_state(ode::iterator it) const {
 }
 
 template <typename T, typename E>
-ode::iterator StochasticSpecies<T,E>::ode_rates(ode::iterator it) const {
+odelia::ode::iterator StochasticSpecies<T,E>::ode_rates(odelia::ode::iterator it) const {
   for (size_t i = 0; i < size_individuals(); ++i) {
     if (is_alive[i]) {
       it = individuals[i].ode_rates(it);
@@ -309,14 +309,14 @@ Rcpp::NumericMatrix StochasticSpecies<T,E>::r_get_state() const
 template <typename T, typename E>
 Rcpp::NumericMatrix::iterator StochasticSpecies<T, E>::get_node_state(const Individual<T, E> &individual, Rcpp::NumericMatrix::iterator it) const
 {
-  std::vector<double> tmp = ode::r_ode_state(individual);
+  std::vector<double> tmp = odelia::ode::r_ode_state(individual);
   return std::copy(tmp.begin(), tmp.end(), it);
 }
 
 template <typename T, typename E>
 Rcpp::NumericMatrix::iterator StochasticSpecies<T, E>::get_node_aux(const Individual<T, E> &individual, Rcpp::NumericMatrix::iterator it) const
 {
-  std::vector<double> tmp = ode::r_ode_aux(individual);
+  std::vector<double> tmp = odelia::ode::r_ode_aux(individual);
   return std::copy(tmp.begin(), tmp.end(), it);
 }
 }

@@ -30,7 +30,7 @@ Any extensions should therefore be wary of stiff behaviours.
 
 The characteristic method used to solve density requires regular introduction of new nodes, which entails a resizing of the ODE system as the system progresses. To make this play nicely with the ODE stepping, Rich FitzJohn deisgned a custom ODE solver class based on the RK45 method. The code is built into the model, with some details ported from the [GNU Scientific Library](http://www.gnu.org/software/gsl/) [@Galassi-2009]. 
 
-The main interface is described in the class `plant::ode::Solver` described in the file `ode_solver.h`. (See folder `inst/include/plant/ode_solver` where this and related class are impleemnted.) The class is established using a template `System` class, meaning you can effectively cast any variety of classes as an ODE Solver. (In a similar way, you can create a vector of any variety of data types.) 
+The main interface is described in the class `odelia::ode::Solver` described in the file `ode_solver.h`. (See folder `inst/include/plant/ode_solver` where this and related class are impleemnted.) The class is established using a template `System` class, meaning you can effectively cast any variety of classes as an ODE Solver. (In a similar way, you can create a vector of any variety of data types.) 
 
 From `ode_solver.h`:
 
@@ -49,7 +49,7 @@ The main solver for the our system is the class `SCM`, (in the file `sch.h`). Th
 
 ```cpp
 patch_type patch;                 # Instance of patch
-ode::Solver<patch_type> solver;   # ODE solver
+odelia::ode::Solver<patch_type> solver;   # ODE solver
 ```
 
 All we need to do to advance the system is make calls like the following. These advance the system, using the patch to estimate rates of change. Moreoever, we can take steps of a specified fixed size, or an adapative step where the solver determines the spacing .
@@ -79,21 +79,21 @@ size_t aux_size() const;
 double ode_time() const;
 
 // Retrieve ode state from patch and save into the ode solver
-ode::iterator ode_state(ode::iterator it) const;
+odelia::ode::iterator ode_state(odelia::ode::iterator it) const;
 // Retrieve ode rates from patch and save into the ode solver
-ode::iterator ode_rates(ode::iterator it) const;
+odelia::ode::iterator ode_rates(odelia::ode::iterator it) const;
 // Retrieve auxillary variables and save into the ode solver
-ode::iterator ode_aux(ode::iterator it) const;
+odelia::ode::iterator ode_aux(odelia::ode::iterator it) const;
 
 // Set state of patch, based on estimate of future state estimated by the solver
-ode::const_iterator set_ode_state(ode::const_iterator it, double time);
+odelia::ode::const_iterator set_ode_state(odelia::ode::const_iterator it, double time);
 ```
 
 Note the use of iterators. These enable state from a complicated data structure like a patch, to be converted into a vector, as needed by ode solver. And vice versa. 
 
 ## Solving individuals and other systems
 
-As templated C++, we can use the `ode::Solver` class to step any "system" that has the rwquisite functions. In addition to patches, we also use the ode solevr to run individual plants, given an environment. This is acheived by introducing a wrapper classs `ode::Runner` (in `ode_runner.h`), which according to it's author simplifies _" the difficuly of ownership semantics around the solver and object."_ 
+As templated C++, we can use the `odelia::ode::Solver` class to step any "system" that has the rwquisite functions. In addition to patches, we also use the ode solevr to run individual plants, given an environment. This is acheived by introducing a wrapper classs `odelia::ode::Runner` (in `ode_runner.h`), which according to it's author simplifies _" the difficuly of ownership semantics around the solver and object."_ 
 
 Like the `Solver` class, the `Runner` class is templated, meaning we can setup a variety of systems. 
 

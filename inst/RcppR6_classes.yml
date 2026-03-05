@@ -164,7 +164,7 @@ Leaf:
 
 
 OdeRunner:
-  name_cpp: "plant::ode::Runner<T>"
+  name_cpp: "plant::ode::SolverR6<T>"
   templates:
     parameters: T
     concrete:
@@ -172,10 +172,10 @@ OdeRunner:
       - ["TF24": "plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment>"]
       - ["K93": "plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment>"]
   constructor:
-    args: [obj: T, control: "plant::ode::OdeControl=OdeControl()"]
+    args: [obj: T, control: "odelia::ode::OdeControl=OdeControl()"]
   active:
     time: {type: double, access: member}
-    state: {type: "plant::ode::state_type", access: member}
+    state: {type: "std::vector<double>", access: member}
     times: {type: "std::vector<double>", access: member}
     object: {type: T, access: member}
   methods:
@@ -183,7 +183,7 @@ OdeRunner:
     advance_fixed: {return_type: void, args: [time: "std::vector<double>"]}
     step: {return_type: void}
     step_to: {return_type: void, args: [time: double]}
-    set_state: {return_type: void, args: [y: "plant::ode::state_type", time: double]}
+    set_state: {return_type: void, args: [y: "std::vector<double>", time: double]}
     set_state_from_system: {return_type: void}
 
 NodeScheduleEvent:
@@ -273,7 +273,7 @@ Control:
     - ci_niter: double
 
 OdeControl:
-  name_cpp: "plant::ode::OdeControl"
+  name_cpp: "odelia::ode::OdeControl"
   roxygen: |
     Control parameters for the ode system
     @title ODE Control parameters
@@ -359,8 +359,8 @@ Individual:
     ode_size: {type: size_t, access: member}
     ode_names: {type: "std::vector<std::string>", access: member}
     aux_names: {type: "std::vector<std::string>", access: member}
-    ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
-    ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
+    ode_state: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_state", name_cpp_set: "odelia::ode::r_set_ode_state"}
+    ode_rates: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_rates"}
     mortality_probability: {type: double, access: member}
     strategy_name: {type: "std::string", access: member}
   methods:
@@ -485,8 +485,8 @@ Node:
     log_density: {type: double, access: member, name_cpp: get_log_density}
     fecundity: {type: double, access: member}
     ode_size: {type: size_t, access: member}
-    ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
-    ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
+    ode_state: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_state", name_cpp_set: "odelia::ode::r_set_ode_state"}
+    ode_rates: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_rates"}
     ode_names: {type: "std::vector<std::string>", access: member}
   methods:
     compute_competition:
@@ -525,8 +525,8 @@ Species:
     extrinsic_drivers: {type: "plant::ExtrinsicDrivers", access: member, name_cpp: extrinsic_drivers}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
-    ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
-    ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
+    ode_state: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_state", name_cpp_set: "odelia::ode::r_set_ode_state"}
+    ode_rates: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_rates"}
   methods:
     clear:
       return_type: void
@@ -570,10 +570,10 @@ Patch:
     species: {type: "std::vector<plant::Species<T,E> >", access: member, name_cpp: r_species}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
-    ode_time: {type: double, access: function, name_cpp: "plant::ode::r_ode_time"}
-    ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state"}
-    ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
-    ode_aux: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_aux"}
+    ode_time: {type: double, access: function, name_cpp: "odelia::ode::r_ode_time"}
+    ode_state: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_state"}
+    ode_rates: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_rates"}
+    ode_aux: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_aux"}
     node_ode_size: {type: size_t, access: member}
     state: {type: "Rcpp::List", access: member, name_cpp: r_get_state}
   methods:
@@ -595,13 +595,13 @@ Patch:
     set_ode_state:
       return_type: void
       access: function
-      name_cpp: "plant::ode::r_set_ode_state"
-      args: [values: "plant::ode::state_type", time: double]
+      name_cpp: "odelia::ode::r_set_ode_state"
+      args: [values: "std::vector<double>", time: double]
     derivs:
-      return_type: "plant::ode::state_type"
+      return_type: "std::vector<double>"
       access: function
-      name_cpp: "plant::ode::r_derivs"
-      args: [y: "const plant::ode::state_type&", time: double]
+      name_cpp: "odelia::ode::r_derivs"
+      args: [y: "const std::vector<double>&", time: double]
     set_time:
       args: [time: double]
       name_cpp: r_set_time
@@ -715,8 +715,8 @@ StochasticSpecies:
     net_reproduction_ratio_by_node: {type: "std::vector<double>", access: member}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
-    ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
-    ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
+    ode_state: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_state", name_cpp_set: "odelia::ode::r_set_ode_state"}
+    ode_rates: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_rates"}
   methods:
     clear:
       return_type: void
@@ -761,9 +761,9 @@ StochasticPatch:
     species: {type: "std::vector<plant::StochasticSpecies<T,E> >", access: member, name_cpp: r_species}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
-    ode_time: {type: double, access: function, name_cpp: "plant::ode::r_ode_time"}
-    ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state"}
-    ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
+    ode_time: {type: double, access: function, name_cpp: "odelia::ode::r_ode_time"}
+    ode_state: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_state"}
+    ode_rates: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_rates"}
   methods:
     compute_competition: {return_type: double, args: [height: double]}
     introduce_new_node:
@@ -789,13 +789,13 @@ StochasticPatch:
     set_ode_state:
       return_type: void
       access: function
-      name_cpp: "plant::ode::r_set_ode_state"
-      args: [values: "plant::ode::state_type", time: double]
+      name_cpp: "odelia::ode::r_set_ode_state"
+      args: [values: "std::vector<double>", time: double]
     derivs:
-      return_type: "plant::ode::state_type"
+      return_type: "std::vector<double>"
       access: function
-      name_cpp: "plant::ode::r_derivs"
-      args: [y: "const plant::ode::state_type&", time: double]
+      name_cpp: "odelia::ode::r_derivs"
+      args: [y: "const std::vector<double>&", time: double]
     set_state:
       args: [time: double, state: "const std::vector<double>&", n: "const std::vector<size_t>&"]
       name_cpp: r_set_state

@@ -53,8 +53,8 @@ struct Control {
   double ci_niter;
 };
 
-inline ode::OdeControl make_ode_control(const Control& control) {
-  return ode::OdeControl(control.ode_tol_abs,
+inline odelia::ode::OdeControl make_ode_control(const Control& control) {
+  return odelia::ode::OdeControl(control.ode_tol_abs,
                          control.ode_tol_rel,
                          control.ode_a_y,
                          control.ode_a_dydt,

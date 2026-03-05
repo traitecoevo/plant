@@ -11,31 +11,17 @@ namespace traits {
 template <> inline std::string   class_name_r<plant::Leaf >() {return "Leaf";}
 template <> inline std::string   package_name<plant::Leaf >() {return "plant";}
 template <> inline std::string generator_name<plant::Leaf >() {return ".R6_Leaf";}
-template <> inline std::string   class_name_r<plant::ode::test::Lorenz >() {return "Lorenz";}
-template <> inline std::string   package_name<plant::ode::test::Lorenz >() {return "plant";}
-template <> inline std::string generator_name<plant::ode::test::Lorenz >() {return ".R6_Lorenz";}
-template <> inline std::string   class_name_r<plant::ode::test::OdeR >() {return "OdeR";}
-template <> inline std::string   package_name<plant::ode::test::OdeR >() {return "plant";}
-template <> inline std::string generator_name<plant::ode::test::OdeR >() {return ".R6_OdeR";}
-template <> inline std::string   class_name_r<plant::ode::Runner<plant::ode::test::Lorenz> >() {return "OdeRunner<Lorenz>";}
-template <> inline std::string   package_name<plant::ode::Runner<plant::ode::test::Lorenz> >() {return "plant";}
-template <> inline std::string generator_name<plant::ode::Runner<plant::ode::test::Lorenz> >() {return ".R6_OdeRunner___Lorenz";}
+template <> inline std::string   class_name_r<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > >() {return "OdeRunner<FF16>";}
+template <> inline std::string   package_name<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > >() {return "plant";}
+template <> inline std::string generator_name<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > >() {return ".R6_OdeRunner___FF16";}
 
-template <> inline std::string   class_name_r<plant::ode::Runner<plant::ode::test::OdeR> >() {return "OdeRunner<OdeR>";}
-template <> inline std::string   package_name<plant::ode::Runner<plant::ode::test::OdeR> >() {return "plant";}
-template <> inline std::string generator_name<plant::ode::Runner<plant::ode::test::OdeR> >() {return ".R6_OdeRunner___OdeR";}
+template <> inline std::string   class_name_r<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > >() {return "OdeRunner<TF24>";}
+template <> inline std::string   package_name<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > >() {return "plant";}
+template <> inline std::string generator_name<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > >() {return ".R6_OdeRunner___TF24";}
 
-template <> inline std::string   class_name_r<plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > >() {return "OdeRunner<FF16>";}
-template <> inline std::string   package_name<plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > >() {return "plant";}
-template <> inline std::string generator_name<plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > >() {return ".R6_OdeRunner___FF16";}
-
-template <> inline std::string   class_name_r<plant::ode::Runner<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > >() {return "OdeRunner<TF24>";}
-template <> inline std::string   package_name<plant::ode::Runner<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > >() {return "plant";}
-template <> inline std::string generator_name<plant::ode::Runner<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > >() {return ".R6_OdeRunner___TF24";}
-
-template <> inline std::string   class_name_r<plant::ode::Runner<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > >() {return "OdeRunner<K93>";}
-template <> inline std::string   package_name<plant::ode::Runner<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > >() {return "plant";}
-template <> inline std::string generator_name<plant::ode::Runner<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > >() {return ".R6_OdeRunner___K93";}
+template <> inline std::string   class_name_r<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > >() {return "OdeRunner<K93>";}
+template <> inline std::string   package_name<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > >() {return "plant";}
+template <> inline std::string generator_name<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > >() {return ".R6_OdeRunner___K93";}
 template <> inline std::string   class_name_r<plant::NodeScheduleEvent >() {return "NodeScheduleEvent";}
 template <> inline std::string   package_name<plant::NodeScheduleEvent >() {return "plant";}
 template <> inline std::string generator_name<plant::NodeScheduleEvent >() {return ".R6_NodeScheduleEvent";}
@@ -45,9 +31,9 @@ template <> inline std::string generator_name<plant::NodeSchedule >() {return ".
 template <> inline std::string   class_name_r<plant::Control >() {return "Control";}
 template <> inline std::string   package_name<plant::Control >() {return "plant";}
 template <> inline std::string generator_name<plant::Control >() {return "";}
-template <> inline std::string   class_name_r<plant::ode::OdeControl >() {return "OdeControl";}
-template <> inline std::string   package_name<plant::ode::OdeControl >() {return "plant";}
-template <> inline std::string generator_name<plant::ode::OdeControl >() {return "";}
+template <> inline std::string   class_name_r<odelia::ode::OdeControl >() {return "OdeControl";}
+template <> inline std::string   package_name<odelia::ode::OdeControl >() {return "plant";}
+template <> inline std::string generator_name<odelia::ode::OdeControl >() {return "";}
 template <> inline std::string   class_name_r<plant::quadrature::QK >() {return "QK";}
 template <> inline std::string   package_name<plant::quadrature::QK >() {return "plant";}
 template <> inline std::string generator_name<plant::quadrature::QK >() {return ".R6_QK";}
@@ -230,51 +216,25 @@ template <> inline SEXP wrap(const plant::Leaf& x) {
 template <> inline plant::Leaf as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::Leaf>(x));
 }
-template <> inline SEXP wrap(const plant::ode::test::Lorenz& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::ode::test::Lorenz>(x));
+template <> inline SEXP wrap(const plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> >& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > >(x));
 }
-template <> inline plant::ode::test::Lorenz as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::ode::test::Lorenz>(x));
-}
-template <> inline SEXP wrap(const plant::ode::test::OdeR& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::ode::test::OdeR>(x));
-}
-template <> inline plant::ode::test::OdeR as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::ode::test::OdeR>(x));
-}
-template <> inline SEXP wrap(const plant::ode::Runner<plant::ode::test::Lorenz>& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::ode::Runner<plant::ode::test::Lorenz> >(x));
-}
-template <> inline plant::ode::Runner<plant::ode::test::Lorenz> as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::ode::Runner<plant::ode::test::Lorenz> >(x));
+template <> inline plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > >(x));
 }
 
-template <> inline SEXP wrap(const plant::ode::Runner<plant::ode::test::OdeR>& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::ode::Runner<plant::ode::test::OdeR> >(x));
+template <> inline SEXP wrap(const plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> >& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > >(x));
 }
-template <> inline plant::ode::Runner<plant::ode::test::OdeR> as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::ode::Runner<plant::ode::test::OdeR> >(x));
-}
-
-template <> inline SEXP wrap(const plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> >& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > >(x));
-}
-template <> inline plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > >(x));
+template <> inline plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > >(x));
 }
 
-template <> inline SEXP wrap(const plant::ode::Runner<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> >& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > >(x));
+template <> inline SEXP wrap(const plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> >& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > >(x));
 }
-template <> inline plant::ode::Runner<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > >(x));
-}
-
-template <> inline SEXP wrap(const plant::ode::Runner<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> >& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > >(x));
-}
-template <> inline plant::ode::Runner<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > >(x));
+template <> inline plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > >(x));
 }
 template <> inline SEXP wrap(const plant::NodeScheduleEvent& x) {
   return wrap(plant::RcppR6::RcppR6<plant::NodeScheduleEvent>(x));
@@ -370,7 +330,7 @@ template <> inline plant::Control as(SEXP x) {
   ret.ci_niter = Rcpp::as<double >(xl["ci_niter"]);
   return ret;
 }
-template <> inline SEXP wrap(const plant::ode::OdeControl& x) {
+template <> inline SEXP wrap(const odelia::ode::OdeControl& x) {
   Rcpp::List ret;
   ret["tol_abs"] = Rcpp::wrap(x.tol_abs);
   ret["tol_rel"] = Rcpp::wrap(x.tol_rel);
@@ -382,14 +342,14 @@ template <> inline SEXP wrap(const plant::ode::OdeControl& x) {
   ret.attr("class") = "OdeControl";
   return ret;
 }
-template <> inline plant::ode::OdeControl as(SEXP x) {
-  if (!plant::RcppR6::is<plant::ode::OdeControl >(x)) {
+template <> inline odelia::ode::OdeControl as(SEXP x) {
+  if (!plant::RcppR6::is<odelia::ode::OdeControl >(x)) {
     Rcpp::stop("Expected an object of type OdeControl");
     // NOTE: Won't drop through or return anything.
   }
   // NOTE: assumes default constructable, and will assign *every*
   // field twice.  No current support for a hook.
-  plant::ode::OdeControl ret;
+  odelia::ode::OdeControl ret;
   Rcpp::List xl(x);
   // ret.tol_abs = Rcpp::as<decltype(rettol_abs) >(xl["tol_abs"]);
   ret.tol_abs = Rcpp::as<double >(xl["tol_abs"]);
