@@ -52,7 +52,7 @@ Suggests:
 Remotes:
     smbache/loggr,
     richfitz/RcppR6,
-    traitecoevo/odelia
+    traitecoevo/odelia@xad
 VignetteBuilder: knitr
 URL: https://github.com/traitecoevo/plant
 BugReports: https://github.com/traitecoevo/plant/issues
