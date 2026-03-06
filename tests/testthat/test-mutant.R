@@ -110,8 +110,10 @@ test_that("mutant method densities", {
   # Now test with different resident densities
     
   # 1 resident strategies
-  ctrl <- scm_base_control()
-  ctrl$save_RK45_cache = TRUE
+  ctrl_no_cache <- scm_base_control()
+
+  ctrl_cache <- scm_base_control()
+  ctrl_cache $save_RK45_cache = TRUE
 
   lma_attr <- 0.0825
   p0 <- scm_base_parameters("FF16")
@@ -125,8 +127,8 @@ test_that("mutant method densities", {
     p1 <- p
     p1$strategies[[1]]$birth_rate_y <- x
 
-    p2 <- build_schedule(p1, ctrl = ctrl)
-    scm <- run_scm(p2, ctrl = ctrl)
+    p2 <- build_schedule(p1, ctrl = ctrl_no_cache)
+    scm <- run_scm(p2, ctrl = ctrl_cache)
     r_rr <- scm$net_reproduction_ratios
 
     scm$run_mutant(p2)

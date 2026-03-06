@@ -20,7 +20,8 @@ Leaf(
   ci_abs_tol,
   ci_niter,
   g0,
-  g1
+  g1,
+  g1_TF24
 )
 }
 \arguments{
@@ -55,6 +56,8 @@ Leaf(
 \item{g0}{g0 parameter in the medlyn model umol m^-2 s^-1}
 
 \item{g1}{parameter in the medlyn model umol kPa^0.5}
+
+\item{g1_TF24}{cost parameter for TF24 profit model umol m^-2 s^-1}
 }
 \description{
 Leaf model

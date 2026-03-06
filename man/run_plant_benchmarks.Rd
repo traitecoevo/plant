@@ -20,3 +20,8 @@ A dataframe of results
 \description{
 Check performance on current system using package bench
 }
+\details{
+For branch-to-branch performance comparisons, run `make` before
+`devtools::load_all(quiet = TRUE)` so compiled code is rebuilt with the
+package's intended optimization flags.
+}

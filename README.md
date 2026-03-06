@@ -74,6 +74,21 @@ or
 devtools::load_all()
 ```
 
+
+## Benchmarking
+
+For fair performance comparisons across branches, rebuild compiled code before
+running benchmarks:
+
+```sh
+make
+Rscript -e "devtools::load_all(quiet=TRUE); run_plant_benchmarks()"
+```
+
+Running benchmarks without a fresh `make` can compare stale binaries and give
+misleading timing differences.
+
+
 ## Usage
 
 Here are some example publications using plant:
