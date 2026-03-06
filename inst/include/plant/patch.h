@@ -132,7 +132,7 @@ public:
   void overwrite_strategies(std::vector<strategy_type> strategies);
 
 private:
-  int idx; // used to access environment cache for mutant runs
+  int idx = 0; // used to access environment cache for mutant runs
   void compute_environment(bool rescale);
   void compute_rates();
 
@@ -193,6 +193,7 @@ void Patch<T,E>::set_mutant() {
     is_mutant_run = true;
     save_RK45_cache = false;
     use_cached_environment = true;
+  idx = 0;
 }
 
 template <typename T, typename E>
@@ -426,17 +427,28 @@ template <typename T, typename E>
 void Patch<T,E>::load_ode_step() {
   if (use_cached_environment)
   {
-    std::vector<double>::iterator step;
+    // Minor optimization to check the current and next index before doing a search, as the most common case is that the ODE solver is stepping through the cached environments in order. If the call sequence was not strictly sequential, we fallback to a search through the step history to find the correct environment.
 
-    // find where we are in the ODE history
-    step = std::find(step_history.begin(), step_history.end(), time());
+    const double t = time();
+    const size_t n = step_history.size();
 
-    if(*step != time()) {
-      util::stop("ODE time not found in step history");
+    // Fast path: step_to() advances through ode_times in order, so this is
+    // usually either the current cached step index or the next one.
+    if (static_cast<size_t>(idx) < n && util::identical(step_history[idx], t)) {
+      return;
+    }
+    if (static_cast<size_t>(idx + 1) < n &&
+        util::identical(step_history[idx + 1], t)) {
+      ++idx;
+      return;
     }
 
-    // index to a cached set of environments(6) for the current ODE step
-    idx = std::distance(step_history.begin(), step);
+    // Fallback to search if the call sequence was not strictly sequential.
+    auto step = std::find(step_history.begin(), step_history.end(), t);
+    if (step == step_history.end()) {
+      util::stop("ODE time not found in step history");
+    }
+    idx = static_cast<int>(std::distance(step_history.begin(), step));
   }
 }
 
