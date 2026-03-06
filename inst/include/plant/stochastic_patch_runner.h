@@ -66,6 +66,7 @@ StochasticPatchRunner<T, E>::StochasticPatchRunner(parameters_type p,
       schedule(make_empty_stochastic_schedule(parameters)),
       solver(patch, make_ode_control(c)) {
   parameters.validate();
+  solver.set_collect(false);
 }
 
 template <typename T, typename E> void StochasticPatchRunner<T, E>::run() {

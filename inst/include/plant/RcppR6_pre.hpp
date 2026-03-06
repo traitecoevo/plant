@@ -21,14 +21,14 @@ template <typename T> class Exporter<plant::RcppR6::RcppR6<T> >;
 
 template <> SEXP wrap(const plant::Leaf&);
 template <> plant::Leaf as(SEXP);
-template <> SEXP wrap(const plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> >&);
-template <> plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > as(SEXP);
+template <> SEXP wrap(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> >&);
+template <> odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > as(SEXP);
 
-template <> SEXP wrap(const plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> >&);
-template <> plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > as(SEXP);
+template <> SEXP wrap(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> >&);
+template <> odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > as(SEXP);
 
-template <> SEXP wrap(const plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> >&);
-template <> plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > as(SEXP);
+template <> SEXP wrap(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> >&);
+template <> odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > as(SEXP);
 template <> SEXP wrap(const plant::NodeScheduleEvent&);
 template <> plant::NodeScheduleEvent as(SEXP);
 template <> SEXP wrap(const plant::NodeSchedule&);

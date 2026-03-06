@@ -14,8 +14,6 @@
 #include <odelia/ode_step.hpp>
 #include <odelia/ode_solver.hpp>
 #include <odelia/solver_interface.hpp>
-#include <plant/ode_solver_r6.h>
-#include <plant/ode_solver_compat.h>
 
 #include <plant/environment.h>
 #include <plant/resource_spline.h>

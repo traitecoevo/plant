@@ -164,7 +164,7 @@ Leaf:
 
 
 OdeRunner:
-  name_cpp: "plant::ode::SolverR6<T>"
+  name_cpp: "odelia::ode::Solver<T>"
   templates:
     parameters: T
     concrete:
@@ -177,12 +177,11 @@ OdeRunner:
     time: {type: double, access: member}
     state: {type: "std::vector<double>", access: member}
     times: {type: "std::vector<double>", access: member}
-    object: {type: T, access: member}
+    object: {type: T, access: member, name_cpp: get_system}
   methods:
-    advance_adaptive: {return_type: void, args: [time: double]}
+    advance_adaptive: {return_type: void, args: [time: "std::vector<double>"]}
     advance_fixed: {return_type: void, args: [time: "std::vector<double>"]}
     step: {return_type: void}
-    step_to: {return_type: void, args: [time: double]}
     set_state: {return_type: void, args: [y: "std::vector<double>", time: double]}
     set_state_from_system: {return_type: void}
 

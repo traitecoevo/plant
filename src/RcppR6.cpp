@@ -417,149 +417,155 @@ void Leaf__theta___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
 
 
 // [[Rcpp::export]]
-plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > OdeRunner___FF16__ctor(plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> obj, odelia::ode::OdeControl control) {
-  return plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> >(obj, control);
+odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > OdeRunner___FF16__ctor(plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> obj, odelia::ode::OdeControl control) {
+  auto ret = odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> >(obj, control);
+  ret.set_collect(false);
+  return ret;
 }
 // [[Rcpp::export]]
-void OdeRunner___FF16__advance_adaptive(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_, double time) {
-  obj_->advance_adaptive(time);
+void OdeRunner___FF16__advance_adaptive(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_, double time) {
+  obj_->advance_adaptive({obj_->time(), time});
 }
 // [[Rcpp::export]]
-void OdeRunner___FF16__advance_fixed(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_, std::vector<double> time) {
+void OdeRunner___FF16__advance_fixed(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_, std::vector<double> time) {
   obj_->advance_fixed(time);
 }
 // [[Rcpp::export]]
-void OdeRunner___FF16__step(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_) {
+void OdeRunner___FF16__step(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_) {
   obj_->step();
 }
 // [[Rcpp::export]]
-void OdeRunner___FF16__step_to(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_, double time) {
-  obj_->step_to(time);
+void OdeRunner___FF16__step_to(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_, double time) {
+  obj_->advance_fixed({obj_->time(), time});
 }
 // [[Rcpp::export]]
-void OdeRunner___FF16__set_state(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_, std::vector<double> y, double time) {
+void OdeRunner___FF16__set_state(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_, std::vector<double> y, double time) {
   obj_->set_state(y, time);
 }
 // [[Rcpp::export]]
-void OdeRunner___FF16__set_state_from_system(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_) {
+void OdeRunner___FF16__set_state_from_system(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_) {
   obj_->set_state_from_system();
 }
 // [[Rcpp::export]]
-double OdeRunner___FF16__time__get(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_) {
+double OdeRunner___FF16__time__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_) {
   return obj_->time();
 }
 
 // [[Rcpp::export]]
-std::vector<double> OdeRunner___FF16__state__get(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_) {
+std::vector<double> OdeRunner___FF16__state__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_) {
   return obj_->state();
 }
 
 // [[Rcpp::export]]
-std::vector<double> OdeRunner___FF16__times__get(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_) {
+std::vector<double> OdeRunner___FF16__times__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_) {
   return obj_->times();
 }
 
 // [[Rcpp::export]]
-plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> OdeRunner___FF16__object__get(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_) {
-  return obj_->object();
+plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> OdeRunner___FF16__object__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_) {
+  return obj_->get_system();
 }
 
 
 // [[Rcpp::export]]
-plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > OdeRunner___TF24__ctor(plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> obj, odelia::ode::OdeControl control) {
-  return plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> >(obj, control);
+odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > OdeRunner___TF24__ctor(plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> obj, odelia::ode::OdeControl control) {
+  auto ret = odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> >(obj, control);
+  ret.set_collect(false);
+  return ret;
 }
 // [[Rcpp::export]]
-void OdeRunner___TF24__advance_adaptive(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_, double time) {
-  obj_->advance_adaptive(time);
+void OdeRunner___TF24__advance_adaptive(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_, double time) {
+  obj_->advance_adaptive({obj_->time(), time});
 }
 // [[Rcpp::export]]
-void OdeRunner___TF24__advance_fixed(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_, std::vector<double> time) {
+void OdeRunner___TF24__advance_fixed(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_, std::vector<double> time) {
   obj_->advance_fixed(time);
 }
 // [[Rcpp::export]]
-void OdeRunner___TF24__step(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_) {
+void OdeRunner___TF24__step(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_) {
   obj_->step();
 }
 // [[Rcpp::export]]
-void OdeRunner___TF24__step_to(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_, double time) {
-  obj_->step_to(time);
+void OdeRunner___TF24__step_to(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_, double time) {
+  obj_->advance_fixed({obj_->time(), time});
 }
 // [[Rcpp::export]]
-void OdeRunner___TF24__set_state(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_, std::vector<double> y, double time) {
+void OdeRunner___TF24__set_state(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_, std::vector<double> y, double time) {
   obj_->set_state(y, time);
 }
 // [[Rcpp::export]]
-void OdeRunner___TF24__set_state_from_system(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_) {
+void OdeRunner___TF24__set_state_from_system(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_) {
   obj_->set_state_from_system();
 }
 // [[Rcpp::export]]
-double OdeRunner___TF24__time__get(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_) {
+double OdeRunner___TF24__time__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_) {
   return obj_->time();
 }
 
 // [[Rcpp::export]]
-std::vector<double> OdeRunner___TF24__state__get(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_) {
+std::vector<double> OdeRunner___TF24__state__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_) {
   return obj_->state();
 }
 
 // [[Rcpp::export]]
-std::vector<double> OdeRunner___TF24__times__get(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_) {
+std::vector<double> OdeRunner___TF24__times__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_) {
   return obj_->times();
 }
 
 // [[Rcpp::export]]
-plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> OdeRunner___TF24__object__get(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_) {
-  return obj_->object();
+plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> OdeRunner___TF24__object__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_) {
+  return obj_->get_system();
 }
 
 
 // [[Rcpp::export]]
-plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > OdeRunner___K93__ctor(plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> obj, odelia::ode::OdeControl control) {
-  return plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> >(obj, control);
+odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > OdeRunner___K93__ctor(plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> obj, odelia::ode::OdeControl control) {
+  auto ret = odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> >(obj, control);
+  ret.set_collect(false);
+  return ret;
 }
 // [[Rcpp::export]]
-void OdeRunner___K93__advance_adaptive(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_, double time) {
-  obj_->advance_adaptive(time);
+void OdeRunner___K93__advance_adaptive(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_, double time) {
+  obj_->advance_adaptive({obj_->time(), time});
 }
 // [[Rcpp::export]]
-void OdeRunner___K93__advance_fixed(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_, std::vector<double> time) {
+void OdeRunner___K93__advance_fixed(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_, std::vector<double> time) {
   obj_->advance_fixed(time);
 }
 // [[Rcpp::export]]
-void OdeRunner___K93__step(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_) {
+void OdeRunner___K93__step(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_) {
   obj_->step();
 }
 // [[Rcpp::export]]
-void OdeRunner___K93__step_to(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_, double time) {
-  obj_->step_to(time);
+void OdeRunner___K93__step_to(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_, double time) {
+  obj_->advance_fixed({obj_->time(), time});
 }
 // [[Rcpp::export]]
-void OdeRunner___K93__set_state(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_, std::vector<double> y, double time) {
+void OdeRunner___K93__set_state(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_, std::vector<double> y, double time) {
   obj_->set_state(y, time);
 }
 // [[Rcpp::export]]
-void OdeRunner___K93__set_state_from_system(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_) {
+void OdeRunner___K93__set_state_from_system(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_) {
   obj_->set_state_from_system();
 }
 // [[Rcpp::export]]
-double OdeRunner___K93__time__get(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_) {
+double OdeRunner___K93__time__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_) {
   return obj_->time();
 }
 
 // [[Rcpp::export]]
-std::vector<double> OdeRunner___K93__state__get(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_) {
+std::vector<double> OdeRunner___K93__state__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_) {
   return obj_->state();
 }
 
 // [[Rcpp::export]]
-std::vector<double> OdeRunner___K93__times__get(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_) {
+std::vector<double> OdeRunner___K93__times__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_) {
   return obj_->times();
 }
 
 // [[Rcpp::export]]
-plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> OdeRunner___K93__object__get(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_) {
-  return obj_->object();
+plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> OdeRunner___K93__object__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_) {
+  return obj_->get_system();
 }
 
 

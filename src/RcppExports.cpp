@@ -1108,7 +1108,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // OdeRunner___FF16__ctor
-plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > OdeRunner___FF16__ctor(plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> obj, odelia::ode::OdeControl control);
+odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > OdeRunner___FF16__ctor(plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> obj, odelia::ode::OdeControl control);
 RcppExport SEXP _plant_OdeRunner___FF16__ctor(SEXP objSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -1120,54 +1120,54 @@ BEGIN_RCPP
 END_RCPP
 }
 // OdeRunner___FF16__advance_adaptive
-void OdeRunner___FF16__advance_adaptive(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_, double time);
+void OdeRunner___FF16__advance_adaptive(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_, double time);
 RcppExport SEXP _plant_OdeRunner___FF16__advance_adaptive(SEXP obj_SEXP, SEXP timeSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type time(timeSEXP);
     OdeRunner___FF16__advance_adaptive(obj_, time);
     return R_NilValue;
 END_RCPP
 }
 // OdeRunner___FF16__advance_fixed
-void OdeRunner___FF16__advance_fixed(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_, std::vector<double> time);
+void OdeRunner___FF16__advance_fixed(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_, std::vector<double> time);
 RcppExport SEXP _plant_OdeRunner___FF16__advance_fixed(SEXP obj_SEXP, SEXP timeSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type time(timeSEXP);
     OdeRunner___FF16__advance_fixed(obj_, time);
     return R_NilValue;
 END_RCPP
 }
 // OdeRunner___FF16__step
-void OdeRunner___FF16__step(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_);
+void OdeRunner___FF16__step(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_);
 RcppExport SEXP _plant_OdeRunner___FF16__step(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > >::type obj_(obj_SEXP);
     OdeRunner___FF16__step(obj_);
     return R_NilValue;
 END_RCPP
 }
 // OdeRunner___FF16__step_to
-void OdeRunner___FF16__step_to(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_, double time);
+void OdeRunner___FF16__step_to(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_, double time);
 RcppExport SEXP _plant_OdeRunner___FF16__step_to(SEXP obj_SEXP, SEXP timeSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type time(timeSEXP);
     OdeRunner___FF16__step_to(obj_, time);
     return R_NilValue;
 END_RCPP
 }
 // OdeRunner___FF16__set_state
-void OdeRunner___FF16__set_state(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_, std::vector<double> y, double time);
+void OdeRunner___FF16__set_state(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_, std::vector<double> y, double time);
 RcppExport SEXP _plant_OdeRunner___FF16__set_state(SEXP obj_SEXP, SEXP ySEXP, SEXP timeSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type y(ySEXP);
     Rcpp::traits::input_parameter< double >::type time(timeSEXP);
     OdeRunner___FF16__set_state(obj_, y, time);
@@ -1175,61 +1175,61 @@ BEGIN_RCPP
 END_RCPP
 }
 // OdeRunner___FF16__set_state_from_system
-void OdeRunner___FF16__set_state_from_system(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_);
+void OdeRunner___FF16__set_state_from_system(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_);
 RcppExport SEXP _plant_OdeRunner___FF16__set_state_from_system(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > >::type obj_(obj_SEXP);
     OdeRunner___FF16__set_state_from_system(obj_);
     return R_NilValue;
 END_RCPP
 }
 // OdeRunner___FF16__time__get
-double OdeRunner___FF16__time__get(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_);
+double OdeRunner___FF16__time__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_);
 RcppExport SEXP _plant_OdeRunner___FF16__time__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(OdeRunner___FF16__time__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
 // OdeRunner___FF16__state__get
-std::vector<double> OdeRunner___FF16__state__get(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_);
+std::vector<double> OdeRunner___FF16__state__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_);
 RcppExport SEXP _plant_OdeRunner___FF16__state__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(OdeRunner___FF16__state__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
 // OdeRunner___FF16__times__get
-std::vector<double> OdeRunner___FF16__times__get(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_);
+std::vector<double> OdeRunner___FF16__times__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_);
 RcppExport SEXP _plant_OdeRunner___FF16__times__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(OdeRunner___FF16__times__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
 // OdeRunner___FF16__object__get
-plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> OdeRunner___FF16__object__get(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_);
+plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> OdeRunner___FF16__object__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_);
 RcppExport SEXP _plant_OdeRunner___FF16__object__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(OdeRunner___FF16__object__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
 // OdeRunner___TF24__ctor
-plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > OdeRunner___TF24__ctor(plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> obj, odelia::ode::OdeControl control);
+odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > OdeRunner___TF24__ctor(plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> obj, odelia::ode::OdeControl control);
 RcppExport SEXP _plant_OdeRunner___TF24__ctor(SEXP objSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -1241,54 +1241,54 @@ BEGIN_RCPP
 END_RCPP
 }
 // OdeRunner___TF24__advance_adaptive
-void OdeRunner___TF24__advance_adaptive(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_, double time);
+void OdeRunner___TF24__advance_adaptive(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_, double time);
 RcppExport SEXP _plant_OdeRunner___TF24__advance_adaptive(SEXP obj_SEXP, SEXP timeSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type time(timeSEXP);
     OdeRunner___TF24__advance_adaptive(obj_, time);
     return R_NilValue;
 END_RCPP
 }
 // OdeRunner___TF24__advance_fixed
-void OdeRunner___TF24__advance_fixed(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_, std::vector<double> time);
+void OdeRunner___TF24__advance_fixed(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_, std::vector<double> time);
 RcppExport SEXP _plant_OdeRunner___TF24__advance_fixed(SEXP obj_SEXP, SEXP timeSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type time(timeSEXP);
     OdeRunner___TF24__advance_fixed(obj_, time);
     return R_NilValue;
 END_RCPP
 }
 // OdeRunner___TF24__step
-void OdeRunner___TF24__step(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_);
+void OdeRunner___TF24__step(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_);
 RcppExport SEXP _plant_OdeRunner___TF24__step(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > >::type obj_(obj_SEXP);
     OdeRunner___TF24__step(obj_);
     return R_NilValue;
 END_RCPP
 }
 // OdeRunner___TF24__step_to
-void OdeRunner___TF24__step_to(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_, double time);
+void OdeRunner___TF24__step_to(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_, double time);
 RcppExport SEXP _plant_OdeRunner___TF24__step_to(SEXP obj_SEXP, SEXP timeSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type time(timeSEXP);
     OdeRunner___TF24__step_to(obj_, time);
     return R_NilValue;
 END_RCPP
 }
 // OdeRunner___TF24__set_state
-void OdeRunner___TF24__set_state(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_, std::vector<double> y, double time);
+void OdeRunner___TF24__set_state(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_, std::vector<double> y, double time);
 RcppExport SEXP _plant_OdeRunner___TF24__set_state(SEXP obj_SEXP, SEXP ySEXP, SEXP timeSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type y(ySEXP);
     Rcpp::traits::input_parameter< double >::type time(timeSEXP);
     OdeRunner___TF24__set_state(obj_, y, time);
@@ -1296,61 +1296,61 @@ BEGIN_RCPP
 END_RCPP
 }
 // OdeRunner___TF24__set_state_from_system
-void OdeRunner___TF24__set_state_from_system(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_);
+void OdeRunner___TF24__set_state_from_system(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_);
 RcppExport SEXP _plant_OdeRunner___TF24__set_state_from_system(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > >::type obj_(obj_SEXP);
     OdeRunner___TF24__set_state_from_system(obj_);
     return R_NilValue;
 END_RCPP
 }
 // OdeRunner___TF24__time__get
-double OdeRunner___TF24__time__get(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_);
+double OdeRunner___TF24__time__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_);
 RcppExport SEXP _plant_OdeRunner___TF24__time__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(OdeRunner___TF24__time__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
 // OdeRunner___TF24__state__get
-std::vector<double> OdeRunner___TF24__state__get(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_);
+std::vector<double> OdeRunner___TF24__state__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_);
 RcppExport SEXP _plant_OdeRunner___TF24__state__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(OdeRunner___TF24__state__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
 // OdeRunner___TF24__times__get
-std::vector<double> OdeRunner___TF24__times__get(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_);
+std::vector<double> OdeRunner___TF24__times__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_);
 RcppExport SEXP _plant_OdeRunner___TF24__times__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(OdeRunner___TF24__times__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
 // OdeRunner___TF24__object__get
-plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> OdeRunner___TF24__object__get(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_);
+plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> OdeRunner___TF24__object__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_);
 RcppExport SEXP _plant_OdeRunner___TF24__object__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(OdeRunner___TF24__object__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
 // OdeRunner___K93__ctor
-plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > OdeRunner___K93__ctor(plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> obj, odelia::ode::OdeControl control);
+odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > OdeRunner___K93__ctor(plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> obj, odelia::ode::OdeControl control);
 RcppExport SEXP _plant_OdeRunner___K93__ctor(SEXP objSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -1362,54 +1362,54 @@ BEGIN_RCPP
 END_RCPP
 }
 // OdeRunner___K93__advance_adaptive
-void OdeRunner___K93__advance_adaptive(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_, double time);
+void OdeRunner___K93__advance_adaptive(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_, double time);
 RcppExport SEXP _plant_OdeRunner___K93__advance_adaptive(SEXP obj_SEXP, SEXP timeSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type time(timeSEXP);
     OdeRunner___K93__advance_adaptive(obj_, time);
     return R_NilValue;
 END_RCPP
 }
 // OdeRunner___K93__advance_fixed
-void OdeRunner___K93__advance_fixed(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_, std::vector<double> time);
+void OdeRunner___K93__advance_fixed(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_, std::vector<double> time);
 RcppExport SEXP _plant_OdeRunner___K93__advance_fixed(SEXP obj_SEXP, SEXP timeSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type time(timeSEXP);
     OdeRunner___K93__advance_fixed(obj_, time);
     return R_NilValue;
 END_RCPP
 }
 // OdeRunner___K93__step
-void OdeRunner___K93__step(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_);
+void OdeRunner___K93__step(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_);
 RcppExport SEXP _plant_OdeRunner___K93__step(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > >::type obj_(obj_SEXP);
     OdeRunner___K93__step(obj_);
     return R_NilValue;
 END_RCPP
 }
 // OdeRunner___K93__step_to
-void OdeRunner___K93__step_to(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_, double time);
+void OdeRunner___K93__step_to(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_, double time);
 RcppExport SEXP _plant_OdeRunner___K93__step_to(SEXP obj_SEXP, SEXP timeSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type time(timeSEXP);
     OdeRunner___K93__step_to(obj_, time);
     return R_NilValue;
 END_RCPP
 }
 // OdeRunner___K93__set_state
-void OdeRunner___K93__set_state(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_, std::vector<double> y, double time);
+void OdeRunner___K93__set_state(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_, std::vector<double> y, double time);
 RcppExport SEXP _plant_OdeRunner___K93__set_state(SEXP obj_SEXP, SEXP ySEXP, SEXP timeSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type y(ySEXP);
     Rcpp::traits::input_parameter< double >::type time(timeSEXP);
     OdeRunner___K93__set_state(obj_, y, time);
@@ -1417,55 +1417,55 @@ BEGIN_RCPP
 END_RCPP
 }
 // OdeRunner___K93__set_state_from_system
-void OdeRunner___K93__set_state_from_system(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_);
+void OdeRunner___K93__set_state_from_system(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_);
 RcppExport SEXP _plant_OdeRunner___K93__set_state_from_system(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > >::type obj_(obj_SEXP);
     OdeRunner___K93__set_state_from_system(obj_);
     return R_NilValue;
 END_RCPP
 }
 // OdeRunner___K93__time__get
-double OdeRunner___K93__time__get(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_);
+double OdeRunner___K93__time__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_);
 RcppExport SEXP _plant_OdeRunner___K93__time__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(OdeRunner___K93__time__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
 // OdeRunner___K93__state__get
-std::vector<double> OdeRunner___K93__state__get(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_);
+std::vector<double> OdeRunner___K93__state__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_);
 RcppExport SEXP _plant_OdeRunner___K93__state__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(OdeRunner___K93__state__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
 // OdeRunner___K93__times__get
-std::vector<double> OdeRunner___K93__times__get(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_);
+std::vector<double> OdeRunner___K93__times__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_);
 RcppExport SEXP _plant_OdeRunner___K93__times__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(OdeRunner___K93__times__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
 // OdeRunner___K93__object__get
-plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> OdeRunner___K93__object__get(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_);
+plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> OdeRunner___K93__object__get(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_);
 RcppExport SEXP _plant_OdeRunner___K93__object__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(OdeRunner___K93__object__get(obj_));
     return rcpp_result_gen;
 END_RCPP
@@ -9008,34 +9008,34 @@ BEGIN_RCPP
 END_RCPP
 }
 // FF16_oderunner_individual_internals
-plant::Internals FF16_oderunner_individual_internals(const plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment>>& obj);
+plant::Internals FF16_oderunner_individual_internals(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment>>& obj);
 RcppExport SEXP _plant_FF16_oderunner_individual_internals(SEXP objSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment>>& >::type obj(objSEXP);
+    Rcpp::traits::input_parameter< const odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment>>& >::type obj(objSEXP);
     rcpp_result_gen = Rcpp::wrap(FF16_oderunner_individual_internals(obj));
     return rcpp_result_gen;
 END_RCPP
 }
 // K93_oderunner_individual_internals
-plant::Internals K93_oderunner_individual_internals(const plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment>>& obj);
+plant::Internals K93_oderunner_individual_internals(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment>>& obj);
 RcppExport SEXP _plant_K93_oderunner_individual_internals(SEXP objSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment>>& >::type obj(objSEXP);
+    Rcpp::traits::input_parameter< const odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment>>& >::type obj(objSEXP);
     rcpp_result_gen = Rcpp::wrap(K93_oderunner_individual_internals(obj));
     return rcpp_result_gen;
 END_RCPP
 }
 // TF24_oderunner_individual_internals
-plant::Internals TF24_oderunner_individual_internals(const plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment>>& obj);
+plant::Internals TF24_oderunner_individual_internals(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment>>& obj);
 RcppExport SEXP _plant_TF24_oderunner_individual_internals(SEXP objSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment>>& >::type obj(objSEXP);
+    Rcpp::traits::input_parameter< const odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment>>& >::type obj(objSEXP);
     rcpp_result_gen = Rcpp::wrap(TF24_oderunner_individual_internals(obj));
     return rcpp_result_gen;
 END_RCPP

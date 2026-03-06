@@ -82,6 +82,7 @@ SCM<T, E>::SCM(parameters_type p, environment_type e, Control c)
   parameters.validate();
 
   collect = false;
+  solver.set_collect(false);
 
   if (!util::identical(parameters.patch_area, 1.0)) {
     util::warning("We recommened keeping patch_area = 1 for the SCM, as need to check units for all other sizes");

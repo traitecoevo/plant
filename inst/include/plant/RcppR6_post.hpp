@@ -11,17 +11,17 @@ namespace traits {
 template <> inline std::string   class_name_r<plant::Leaf >() {return "Leaf";}
 template <> inline std::string   package_name<plant::Leaf >() {return "plant";}
 template <> inline std::string generator_name<plant::Leaf >() {return ".R6_Leaf";}
-template <> inline std::string   class_name_r<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > >() {return "OdeRunner<FF16>";}
-template <> inline std::string   package_name<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > >() {return "plant";}
-template <> inline std::string generator_name<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > >() {return ".R6_OdeRunner___FF16";}
+template <> inline std::string   class_name_r<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > >() {return "OdeRunner<FF16>";}
+template <> inline std::string   package_name<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > >() {return "plant";}
+template <> inline std::string generator_name<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > >() {return ".R6_OdeRunner___FF16";}
 
-template <> inline std::string   class_name_r<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > >() {return "OdeRunner<TF24>";}
-template <> inline std::string   package_name<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > >() {return "plant";}
-template <> inline std::string generator_name<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > >() {return ".R6_OdeRunner___TF24";}
+template <> inline std::string   class_name_r<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > >() {return "OdeRunner<TF24>";}
+template <> inline std::string   package_name<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > >() {return "plant";}
+template <> inline std::string generator_name<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > >() {return ".R6_OdeRunner___TF24";}
 
-template <> inline std::string   class_name_r<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > >() {return "OdeRunner<K93>";}
-template <> inline std::string   package_name<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > >() {return "plant";}
-template <> inline std::string generator_name<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > >() {return ".R6_OdeRunner___K93";}
+template <> inline std::string   class_name_r<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > >() {return "OdeRunner<K93>";}
+template <> inline std::string   package_name<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > >() {return "plant";}
+template <> inline std::string generator_name<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > >() {return ".R6_OdeRunner___K93";}
 template <> inline std::string   class_name_r<plant::NodeScheduleEvent >() {return "NodeScheduleEvent";}
 template <> inline std::string   package_name<plant::NodeScheduleEvent >() {return "plant";}
 template <> inline std::string generator_name<plant::NodeScheduleEvent >() {return ".R6_NodeScheduleEvent";}
@@ -216,25 +216,25 @@ template <> inline SEXP wrap(const plant::Leaf& x) {
 template <> inline plant::Leaf as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::Leaf>(x));
 }
-template <> inline SEXP wrap(const plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> >& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > >(x));
+template <> inline SEXP wrap(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> >& x) {
+  return wrap(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > >(x));
 }
-template <> inline plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > >(x));
-}
-
-template <> inline SEXP wrap(const plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> >& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > >(x));
-}
-template <> inline plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > >(x));
+template <> inline odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > >(x));
 }
 
-template <> inline SEXP wrap(const plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> >& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > >(x));
+template <> inline SEXP wrap(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> >& x) {
+  return wrap(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > >(x));
 }
-template <> inline plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::ode::SolverR6<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > >(x));
+template <> inline odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > >(x));
+}
+
+template <> inline SEXP wrap(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> >& x) {
+  return wrap(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > >(x));
+}
+template <> inline odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > >(x));
 }
 template <> inline SEXP wrap(const plant::NodeScheduleEvent& x) {
   return wrap(plant::RcppR6::RcppR6<plant::NodeScheduleEvent>(x));
