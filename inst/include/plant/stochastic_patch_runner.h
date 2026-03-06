@@ -79,6 +79,7 @@ template <typename T, typename E> void StochasticPatchRunner<T, E>::run() {
 template <typename T, typename E>
 size_t StochasticPatchRunner<T, E>::run_next() {
   const double t0 = time();
+  auto& patch_solver = solver.get_system_ref();
 
   // NOTE: Unlike SCM::run_next(), this assumes that there is only a
   // single event at a given time.  That's not all bad -- multiple
@@ -91,11 +92,11 @@ size_t StochasticPatchRunner<T, E>::run_next() {
   const size_t idx = e.species_index;
   schedule.pop();
 
-  if (patch.introduce_new_node(idx)) {
-    solver.get_system_ref() = patch;
+  if (patch_solver.introduce_new_node(idx)) {
     solver.set_state_from_system();
   }
   advance(e.time_end());
+  patch = solver.get_system_ref();
 
   return idx;
 }
@@ -103,7 +104,7 @@ size_t StochasticPatchRunner<T, E>::run_next() {
 template <typename T, typename E>
 void StochasticPatchRunner<T, E>::advance(double time_) {
   solver.advance_adaptive({solver.time(), time_});
-  patch = solver.get_system();
+  patch = solver.get_system_ref();
   if (deaths()) {
     solver.get_system_ref() = patch;
     solver.set_state_from_system();

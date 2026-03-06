@@ -65,6 +65,7 @@ public:
   Rcpp::List r_get_state() const { return patch.r_get_state(); };
 
 private:
+  std::vector<size_t> run_next_impl(bool sync_patch);
   double total_offspring_production() const;
 
   parameters_type parameters;
@@ -93,22 +94,31 @@ template <typename T, typename E> void SCM<T, E>::run() {
   reset();
   if (collect)
   {
-    history.push_back(patch);
+    history.push_back(solver.get_system_ref());
   }
 
   while (!complete()) {
-    run_next();
+    run_next_impl(false);
     // store
     if(collect) 
     {
-      history.push_back(patch);
+      history.push_back(solver.get_system_ref());
     }
   }
+
+  // Expose final state through patch accessor after loop completion.
+  patch = solver.get_system_ref();
 }
 
 template <typename T, typename E> std::vector<size_t> SCM<T, E>::run_next() {
+  return run_next_impl(true);
+}
+
+template <typename T, typename E>
+std::vector<size_t> SCM<T, E>::run_next_impl(bool sync_patch) {
   std::vector<size_t> ret;
   const double t0 = time();
+  auto& patch_solver = solver.get_system_ref();
 
   NodeSchedule::Event e = node_schedule.next_event();
   while (true) {
@@ -123,8 +133,7 @@ template <typename T, typename E> std::vector<size_t> SCM<T, E>::run_next() {
       e = node_schedule.next_event();
     }
   }
-  patch.introduce_new_nodes(ret);
-  solver.get_system_ref() = patch;
+  patch_solver.introduce_new_nodes(ret);
   solver.set_state_from_system();
   
   // some schedules have fixed integration points
@@ -135,7 +144,10 @@ template <typename T, typename E> std::vector<size_t> SCM<T, E>::run_next() {
   } else {
     solver.advance_adaptive({solver.time(), e.time_end()});
   }
-  patch = solver.get_system();
+
+  if (sync_patch) {
+    patch = patch_solver;
+  }
 
   return ret;
 }
@@ -167,7 +179,7 @@ void SCM<T, E>::run_mutant(parameters_type p) {
 }
 
 template <typename T, typename E> double SCM<T, E>::time() const {
-  return patch.time();
+  return solver.time();
 }
 
 // NOTE: solver.reset() will set time within the solver to zero.
@@ -177,8 +189,10 @@ template <typename T, typename E> double SCM<T, E>::time() const {
 template <typename T, typename E> void SCM<T, E>::reset() {
   patch.reset();
   node_schedule.reset();
+  // Keep both objects in sync once, but avoid repetitive copies in run_next().
   solver.get_system_ref() = patch;
   solver.reset();
+  patch = solver.get_system_ref();
   history.clear();
 }
 
