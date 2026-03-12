@@ -36,6 +36,8 @@ Leaf:
       - ci_abs_tol: double
       - ci_niter: double
       - g1_TF24: double
+      - beta_R_H: double
+      - beta_R_V: double
 
   active:
     ci_: {type: double, access: field}
@@ -57,11 +59,21 @@ Leaf:
     vcmax_: {type: double, access: field}
     jmax_: {type: double, access: field}
     rho_: {type: double, access: field}
+    root_mass_: {type: double, access: field}
+    c_r_V_total_: {type: double, access: field}
+    c_r_H_total_: {type: double, access: field}
+    c_r_V_: {type: "std::vector<double>", access: field}
+    c_r_H_: {type: "std::vector<double>", access: field}
+
     a_bio_: {type: double, access: field}
     PPFD_: {type: double, access: field}
     atm_vpd_: {type: double, access: field}
     ca_: {type: double, access: field}
-    soil_moist_: {type: "std::vector<double>", access: field}
+    soil_depth_: {type: "std::vector<double>", access: field}
+    z_soil_mid_: {type: "std::vector<double>", access: field}
+
+    soil_number_of_depths_: {type: int, access: field}
+    psi_soil_: {type: "std::vector<double>", access: field}
     root_collar_psi_: {type: double, access: field}
     leaf_temp_: {type: double, access: field} 
     atm_o2_kpa_: {type: double, access: field} 
@@ -79,7 +91,7 @@ Leaf:
       args: [integration_rule: int, integration_tol: double]
     set_physiology:
       return_type: void 
-      args: [rho: double, a_bio: double, PPFD: double, soil_moist: "std::vector<double>", root_collar_psi: double, leaf_specific_conductance_max: double, atm_vpd: double, ca: double, sapwood_volume_per_leaf_area: double, leaf_temp: double, atm_o2_kpa: double, atm_kpa: double]
+      args: [root_mass: double, rho: double, a_bio: double, PPFD: double, psi_soil: "std::vector<double>", soil_depth: "std::vector<double>", leaf_specific_conductance_max: double, atm_vpd: double, ca: double, sapwood_volume_per_leaf_area: double, leaf_temp: double, atm_o2_kpa: double, atm_kpa: double]
     #transpiration functions
     proportion_of_conductivity:
       return_type: double
@@ -92,16 +104,16 @@ Leaf:
       args: [Ea: double, ref_value: double, leaf_temp: double, H_d: double, d_S: double] 
     transpiration:
       return_type: double
-      args: [psi_stem: double]
+      args: [psi_stem: double, psi_upstream: double]
     transpiration_full_integration:
       return_type: double
-      args: [psi_stem: double]
+      args: [psi_stem: double, psi_upstream: double]
     stom_cond_CO2:
       return_type: double
-      args: [psi_stem: double]
+      args: [psi_stem: double, psi_upstream: double]
     transpiration_to_psi_stem:
       return_type: double
-      args: [transpiration_: double]
+      args: [transpiration_: double, psi_upstream: double]
     # assimilation functions 
     assim_rubisco_limited:
       return_type: double
@@ -114,42 +126,42 @@ Leaf:
       args: [ci_: double]
     assim_minus_stom_cond_CO2:
       return_type: double
-      args: [x: double, psi_stem: double]
+      args: [x: double, psi_stem: double, psi_upstream: double]
     electron_transport:
       return_type: double
       args: []      
     set_leaf_states_rates_from_psi_stem:
       return_type: void
-      args: [psi_stem: double]
+      args: [psi_stem: double, psi_upstream: double]
     E_from_Soil_to_Root_Collar:
       return_type: double
-      args: [P_x_r: double, P_soil: "std::vector<double>", n_soil: double, z_soil_mid: "std::vector<double>", dz: double, LA: double, c_r_H: "std::vector<double>", c_r_VH: "std::vector<double>", beta_R_H: double, beta_R_V: double]
+      args: [P_x_r: double, P_soil: "std::vector<double>", dz: double, LA: double]
     find_root_collar_psi:
       return_type: double
-      args: [soil_moist_: "std::vector<double>"]
+      args: []
     find_root_psi:
       return_type: double
-      args: [wettest_soil_layer: double, psi_soil_seperate_: "std::vector<double>", find_root_crit: int]
+      args: [wettest_soil_layer: double, psi_soil_: "std::vector<double>", find_root_crit: int]
     find_psi_stem_from_psi_root:
       return_type: double
-      args: [psi_root: double, psi_soil_seperate_: "std::vector<double>"]
+      args: [psi_root: double, psi_soil_: "std::vector<double>"]
 
     psi_stem_to_ci:
       return_type: double
-      args: [psi_stem: double]
+      args: [psi_stem: double, psi_upstream: double]
     #leaf economics functions
     hydraulic_cost_Sperry:
       return_type: double
-      args: [psi_stem: double]
+      args: [psi_stem: double, psi_upstream: double]
     hydraulic_cost_TF:
       return_type: double
       args: [psi_stem: double]
     profit_psi_stem_Sperry:
       return_type: double
-      args: [psi_stem: double]
+      args: [psi_stem: double, psi_upstream: double]
     profit_psi_stem_TF:
       return_type: double
-      args: [psi_stem: double]
+      args: [psi_stem: double, psi_upstream: double]
       # optimiser functions
     optimise_psi_stem_Sperry:
       return_type: void

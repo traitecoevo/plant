@@ -271,8 +271,14 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   // calculate average radiation by multipling average canopy openness by PPFD and accounting for self-shading k_I.
   const double average_radiation = k_I * average_light_environment * environment.get_PPFD();
   // const double psi_soil = environment.get_psi_soil() / 1000000;
-  double psi_soil = 1;
+  std::vector<double> psi_soil;
+  std::vector<double> soil_moist = environment.get_soil_water_state();
 
+  psi_soil.resize(environment.get_soil_number_of_depths());
+  for(size_t i = 0; i < psi_soil.size(); i++){
+    psi_soil[i] = environment.psi_from_soil_moist(soil_moist[i]); 
+  }
+  
 // find leaf specific max hydraulic conductance
   // K_s: max hydraulic conductivity (kg m^-2 s^-1 MPa^-1),
   // theta: huber value
@@ -288,8 +294,9 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
 
 
   const double sapwood_volume_per_leaf_area = (0.000157*(1-var_sapwood_volume_cost) + theta*var_sapwood_volume_cost)  * (height * eta_c);
+
 // set strategy-level physiological parameters for the leaf-submodel.
-  leaf.set_physiology(rho, a_bio, average_radiation, environment.get_soil_water_state(), psi_soil, leaf_specific_conductance_max, environment.get_atm_vpd(), environment.get_ca(), sapwood_volume_per_leaf_area, environment.get_leaf_temp(), environment.get_atm_o2_kpa(), environment.get_atm_kpa());
+  leaf.set_physiology(mass_root_, rho, a_bio, average_radiation, psi_soil, environment.get_soil_depths(), leaf_specific_conductance_max, environment.get_atm_vpd(), environment.get_ca(), sapwood_volume_per_leaf_area, environment.get_leaf_temp(), environment.get_atm_o2_kpa(), environment.get_atm_kpa());
 
   // optimise psi_stem, setting opt_psi_stem_, profit_, hydraulic_cost_, assim_colimited_ etc.
   //leaf.optimise_psi_stem_TF();
@@ -582,7 +589,7 @@ void TF24_Strategy::prepare_strategy() {
     leaf = Leaf(vcmax_25,  c,  b, psi_crit, beta2, jmax_25, hk_s, a, curv_fact_elec_trans,curv_fact_colim, control.GSS_tol_abs,
            control.vulnerability_curve_ncontrol,
            control.ci_abs_tol,
-           control.ci_niter,g1_TF24);
+           control.ci_niter,g1_TF24, beta_R_H, beta_R_V);
 }
 
 TF24_Strategy::ptr make_strategy_ptr(TF24_Strategy s) {

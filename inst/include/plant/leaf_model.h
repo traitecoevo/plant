@@ -91,7 +91,9 @@ public:
        double vulnerability_curve_ncontrol,
        double ci_abs_tol,
        double ci_niter,
-      double g1_TF24); 
+      double g1_TF24,
+    double beta_R_H,
+    double beta_R_V); 
         
   quadrature::QAG integrator;
   interpolator::Interpolator transpiration_from_psi;
@@ -114,6 +116,9 @@ public:
   double ci_abs_tol;
   double ci_niter;
   double g1_TF24;
+  double beta_R_H;
+  double beta_R_V;
+  double soil_number_of_depths_;
 
   double ci_;
   double stom_cond_CO2_;
@@ -135,13 +140,21 @@ public:
   double leaf_specific_conductance_max_;
   double sapwood_volume_per_leaf_area_;
   double k_s_;
+  double root_mass_;
+  std::vector<double> c_r_V_;
+  std::vector<double> c_r_H_;
+  double c_r_V_total_;
+  double c_r_H_total_;
   double rho_;
   double vcmax_;
   double jmax_;
   double lma_; //kg m^-2
   double a_bio_;
   
-  std::vector<double> soil_moist_;
+  std::vector<double> psi_soil_;
+  std::vector<double> soil_depth_;
+  std::vector<double> z_soil_mid_;
+
   double leaf_temp_;
   double PPFD_;
   double atm_vpd_;
@@ -179,7 +192,7 @@ public:
   }
   
   // set-up functions
-  void set_physiology(double rho, double a_bio, double PPFD, std::vector<double> soil_moist, double root_collar_psi, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa);
+  void set_physiology(double root_mass, double rho, double a_bio, double PPFD, std::vector<double> psi_soil, std::vector<double> soil_depth, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa);
   void setup_transpiration(double resolution);
   void setup_clean_leaf();
   // std::vector<double> root_collar_psi(std::vector<double> soil_moist_);
@@ -188,14 +201,13 @@ public:
   double vulnerability_curve_root(double P_soil);
   double VC_sw(double psi);
 
-  double E_from_Soil_to_Root_Collar(double P_x_r = -0.12, std::vector<double> P_soil = {-0.06, -0.12},
-                                       double n_soil = 2, std::vector<double> z_soil_mid = {0.05, 0.15}, double dz = 0.1,
-                                       double LA = 1, std::vector<double> c_r_H = {20,30}, std::vector<double> c_r_V = {20,30}, double beta_R_H = 3.4e3, double beta_R_V = 9.4e4);
-  double find_root_collar_psi(std::vector<double> soil_moist_);
-  double find_root_psi(double wettest_soil_layer, std::vector<double> psi_soil_seperate_, int find_root_crit);
-  double find_psi_stem_from_psi_root(double psi_root, std::vector<double> psi_soil_seperate_);
-  double E_column(double x, std::vector<double> psi_soil_seperate_, double psi_leaf);
-  double E_column_zero(double x, std::vector<double> psi_soil_seperate_);
+  double E_from_Soil_to_Root_Collar(double P_x_r = -0.12, std::vector<double> P_soil = {-0.06, -0.12}, double dz = 0.1,
+                                       double LA = 1);
+  double find_root_collar_psi();
+  double find_root_psi(double wettest_soil_layer, std::vector<double> psi_soil_, int find_root_crit);
+  double find_psi_stem_from_psi_root(double psi_root, std::vector<double> psi_soil_);
+  double E_column(double x, std::vector<double> psi_soil_, double psi_leaf);
+  double E_column_zero(double x, std::vector<double> psi_soil_);
   
   double arrh_curve(double Ea, double ref_value, double leaf_temp) const;
   double peak_arrh_curve(double Ea, double ref_value, double leaf_temp, double H_d, double d_S) const;
@@ -208,14 +220,14 @@ public:
   // supply-side transpiration for a given water potential gradient between leaves and soil, 
   // references setup_transpiraiton for values (return: kg h20 s^-1 m^-2 LA)
   // should be renamed to reflect supply-side
-  double transpiration(double psi_stem);
+  double transpiration(double psi_stem, double psi_upstream);
   // supply-side transpiration for a given water potential gradient between leaves and soil, integrated internally (return: kg h20 s^-1 m^-2 LA)
   // should be renamed to reflect supply-side
-  double transpiration_full_integration(double psi_stem);                    
+  double transpiration_full_integration(double psi_stem, double psi_upstream);                    
   // stomatal conductance rate of c02 (return: mol CO2 m^-2 s^-1)
-  double stom_cond_CO2(double psi_stem); // define as a constant
+  double stom_cond_CO2(double psi_stem, double psi_upstream); // define as a constant
   // converts transpiration in kg h20 s^-1 m^-2 LA to psi_stem (return: -MPa)
-  double transpiration_to_psi_stem(double transpiration_);
+  double transpiration_to_psi_stem(double transpiration_, double psi_upstream);
   
   // assimilation functions
 
@@ -224,17 +236,17 @@ public:
   double electron_transport();
   double assim_electron_limited(double ci_);
   double assim_colimited(double ci_);
-  double assim_minus_stom_cond_CO2(double x, double psi_stem);
-  double psi_stem_to_ci(double psi_stem);
-  void set_leaf_states_rates_from_psi_stem(double psi_stem);
+  double assim_minus_stom_cond_CO2(double x, double psi_stem, double psi_upstream);
+  double psi_stem_to_ci(double psi_stem, double psi_upstream);
+  void set_leaf_states_rates_from_psi_stem(double psi_stem, double psi_upstream);
 
 
 // leaf economics functions
-  double hydraulic_cost_Sperry(double psi_stem);
+  double hydraulic_cost_Sperry(double psi_stem, double psi_upstream);
   double hydraulic_cost_TF(double psi_stem);
 
-  double profit_psi_stem_Sperry(double psi_stem);
-  double profit_psi_stem_TF(double psi_stem);
+  double profit_psi_stem_Sperry(double psi_stem, double psi_upstream);
+  double profit_psi_stem_TF(double psi_stem, double psi_upstream);
 
 // optimiser functions
   void optimise_psi_stem_Sperry();

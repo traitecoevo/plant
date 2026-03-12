@@ -314,6 +314,8 @@ public:
   double ci_abs_tol = 1e-6;
   double ci_niter = 1000;
   double g1_TF24 = 46.32995;
+  double beta_R_H = 3.4e3;
+  double beta_R_V = 9.4e4;
 
   //nitrogen allocation traits (parameterised from Austraits 4.1.0)
   double nmass_l = 13e-3; // kg N kg^-1 mass

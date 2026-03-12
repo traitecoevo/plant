@@ -19,7 +19,9 @@ Leaf(
   vulnerability_curve_ncontrol,
   ci_abs_tol,
   ci_niter,
-  g1_TF24
+  g1_TF24,
+  beta_R_H,
+  beta_R_V
 )
 }
 \arguments{
