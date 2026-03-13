@@ -267,29 +267,29 @@ BEGIN_RCPP
 END_RCPP
 }
 // Leaf__find_root_psi
-double Leaf__find_root_psi(plant::RcppR6::RcppR6<plant::Leaf> obj_, double wettest_soil_layer, std::vector<double> psi_soil_, int find_root_crit);
-RcppExport SEXP _plant_Leaf__find_root_psi(SEXP obj_SEXP, SEXP wettest_soil_layerSEXP, SEXP psi_soil_SEXP, SEXP find_root_critSEXP) {
+double Leaf__find_root_psi(plant::RcppR6::RcppR6<plant::Leaf> obj_, double wettest_soil_layer, std::vector<double> psi_soil, int find_root_crit);
+RcppExport SEXP _plant_Leaf__find_root_psi(SEXP obj_SEXP, SEXP wettest_soil_layerSEXP, SEXP psi_soilSEXP, SEXP find_root_critSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type wettest_soil_layer(wettest_soil_layerSEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type psi_soil_(psi_soil_SEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type psi_soil(psi_soilSEXP);
     Rcpp::traits::input_parameter< int >::type find_root_crit(find_root_critSEXP);
-    rcpp_result_gen = Rcpp::wrap(Leaf__find_root_psi(obj_, wettest_soil_layer, psi_soil_, find_root_crit));
+    rcpp_result_gen = Rcpp::wrap(Leaf__find_root_psi(obj_, wettest_soil_layer, psi_soil, find_root_crit));
     return rcpp_result_gen;
 END_RCPP
 }
 // Leaf__find_psi_stem_from_psi_root
-double Leaf__find_psi_stem_from_psi_root(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_root, std::vector<double> psi_soil_);
-RcppExport SEXP _plant_Leaf__find_psi_stem_from_psi_root(SEXP obj_SEXP, SEXP psi_rootSEXP, SEXP psi_soil_SEXP) {
+double Leaf__find_psi_stem_from_psi_root(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_root, std::vector<double> psi_soil);
+RcppExport SEXP _plant_Leaf__find_psi_stem_from_psi_root(SEXP obj_SEXP, SEXP psi_rootSEXP, SEXP psi_soilSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type psi_root(psi_rootSEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type psi_soil_(psi_soil_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Leaf__find_psi_stem_from_psi_root(obj_, psi_root, psi_soil_));
+    Rcpp::traits::input_parameter< std::vector<double> >::type psi_soil(psi_soilSEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__find_psi_stem_from_psi_root(obj_, psi_root, psi_soil));
     return rcpp_result_gen;
 END_RCPP
 }

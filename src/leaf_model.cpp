@@ -381,36 +381,38 @@ double Leaf::E_from_Soil_to_Root_Collar(double P_x_r, std::vector<double> P_soil
 // A - gc curves
 
 // returns difference between co-limited assimilation and stom_cond_CO2, to be minimised (umol m^-2 s^-1)
-double Leaf::E_column(double x, std::vector<double> psi_soil_, double psi_leaf) {
+double Leaf::E_column(double x, std::vector<double> psi_soil, double psi_leaf) {
 
-  double E_soil_to_root = E_from_Soil_to_Root_Collar(x, psi_soil_, 0.1, 1);
+
+  double E_soil_to_root = E_from_Soil_to_Root_Collar(x, psi_soil, 0.1, 1);
   // double E_soil_to_root = -0.2;
   root_collar_psi_ = -x;
   // double E_root_to_leaf = x;
-
   double E_root_to_leaf = transpiration(psi_leaf, root_collar_psi_);
 
   return E_soil_to_root - E_root_to_leaf;
 }
 
-double Leaf::E_column_zero(double x, std::vector<double> psi_soil_) {
+double Leaf::E_column_zero(double x, std::vector<double> psi_soil) {
 
-  double E_soil_to_root = E_from_Soil_to_Root_Collar(x, psi_soil_, 0.1, 1);
+  double E_soil_to_root = E_from_Soil_to_Root_Collar(x, psi_soil, 0.1, 1);
     // std::cout << "starting E column:" << E_soil_to_root << std::endl;
 
   return E_soil_to_root;
 }
 
 // converts psi stem to ci, used to find ci which makes A(ci) = gc(ca - ci)
-double Leaf::find_root_psi(double wettest_soil_layer, std::vector<double> psi_soil_, int find_root_crit) {
+double Leaf::find_root_psi(double wettest_soil_layer, std::vector<double> psi_soil, int find_root_crit) {
   // not clear what x is here
   
 
   auto target = [&](double x) mutable -> double {
     if(find_root_crit == 1){
-    return E_column(x, psi_soil_, psi_crit);
+std::cout << "x:" << x  << "psi_soil:"  << psi_soil[0] << std::endl;
+
+    return E_column(x, psi_soil, psi_crit);
     } else{
-      return E_column_zero(x, psi_soil_);
+      return E_column_zero(x, psi_soil);
     }
   };
   std::cout << "-psi_crit:" << -psi_crit << "wettest_soil_layer:" << wettest_soil_layer << std::endl;
@@ -421,24 +423,34 @@ double Leaf::find_root_psi(double wettest_soil_layer, std::vector<double> psi_so
 
 }
 
-double Leaf::find_psi_stem_from_psi_root(double psi_root, std::vector<double> psi_soil_){
-  double E_soil_to_root = E_from_Soil_to_Root_Collar(psi_root, psi_soil_, 0.1, 1);
+double Leaf::find_psi_stem_from_psi_root(double psi_root, std::vector<double> psi_soil){
+  double E_soil_to_root = E_from_Soil_to_Root_Collar(psi_root, psi_soil, 0.1, 1);
   double psi_stem = transpiration_to_psi_stem(E_soil_to_root, root_collar_psi_);
   return psi_stem;
 }
 
 double Leaf::find_root_collar_psi(){
 
+  std::vector<double> psi_soil_inverted_;
+  psi_soil_inverted_.reserve(soil_number_of_depths_);
+  psi_soil_inverted_.resize(soil_number_of_depths_);
+
   for(size_t i = 0; i < soil_number_of_depths_; i++){
-    psi_soil_[i] = -psi_soil_[i];
+    psi_soil_inverted_[i] = -psi_soil_[i];
   }
 
 
-double wettest_soil_layer = *std::max_element(psi_soil_.begin(), psi_soil_.end());
+double wettest_soil_layer = *std::max_element(psi_soil_inverted_.begin(), psi_soil_inverted_.end());
 std::cout << "wettest_soil_layer:" << wettest_soil_layer << std::endl;
 
-double root_crit = find_root_psi(wettest_soil_layer, psi_soil_, 1);
-double root_zero_E = find_root_psi(wettest_soil_layer, psi_soil_, 0);
+double root_crit = find_root_psi(wettest_soil_layer, psi_soil_inverted_, 1);
+
+std::cout << "root_crit:" << root_crit << std::endl;
+
+
+double root_zero_E = find_root_psi(wettest_soil_layer, psi_soil_inverted_, 0);
+
+std::cout << "root_zero_E:" << root_zero_E << std::endl;
 
 double gr = (sqrt(5) + 1) / 2;
 //   // opt_psi_stem_ = psi_soil_;
@@ -458,12 +470,12 @@ double gr = (sqrt(5) + 1) / 2;
     while (abs(bound_b - bound_a) > GSS_tol_abs) {
 
       std::cout << "bound_c:              !!" << bound_c << std::endl;
-      double psi_stem_c = find_psi_stem_from_psi_root(-bound_c, psi_soil_);
+      double psi_stem_c = find_psi_stem_from_psi_root(-bound_c, psi_soil_inverted_);
       root_collar_psi_ = -root_collar_psi_;
       double profit_at_c =
           profit_psi_stem_TF(psi_stem_c, root_collar_psi_);
       std::cout << "bound_d:              !!" << bound_d << std::endl;
-      double psi_stem_d = find_psi_stem_from_psi_root(-bound_d, psi_soil_);
+      double psi_stem_d = find_psi_stem_from_psi_root(-bound_d, psi_soil_inverted_);
       root_collar_psi_ = -root_collar_psi_;
       double profit_at_d =
           profit_psi_stem_TF(psi_stem_d, root_collar_psi_);
@@ -481,7 +493,9 @@ double gr = (sqrt(5) + 1) / 2;
     std::cout << "made it out" << std::endl;
 
     double opt_root_psi = ((bound_b + bound_a) / 2);
-    opt_psi_stem_ = find_psi_stem_from_psi_root(-opt_root_psi, psi_soil_);
+    opt_psi_stem_ = find_psi_stem_from_psi_root(-opt_root_psi, psi_soil_inverted_);
+
+    std::cout << "opt_root_psi:" << opt_root_psi << std::endl;
 
     root_collar_psi_ = opt_root_psi;
     profit_ = profit_psi_stem_TF(opt_psi_stem_, root_collar_psi_);

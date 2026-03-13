@@ -204,10 +204,10 @@ public:
   double E_from_Soil_to_Root_Collar(double P_x_r = -0.12, std::vector<double> P_soil = {-0.06, -0.12}, double dz = 0.1,
                                        double LA = 1);
   double find_root_collar_psi();
-  double find_root_psi(double wettest_soil_layer, std::vector<double> psi_soil_, int find_root_crit);
-  double find_psi_stem_from_psi_root(double psi_root, std::vector<double> psi_soil_);
-  double E_column(double x, std::vector<double> psi_soil_, double psi_leaf);
-  double E_column_zero(double x, std::vector<double> psi_soil_);
+  double find_root_psi(double wettest_soil_layer, std::vector<double> psi_soil, int find_root_crit);
+  double find_psi_stem_from_psi_root(double psi_root, std::vector<double> psi_soil);
+  double E_column(double x, std::vector<double> psi_soil, double psi_leaf);
+  double E_column_zero(double x, std::vector<double> psi_soil);
   
   double arrh_curve(double Ea, double ref_value, double leaf_temp) const;
   double peak_arrh_curve(double Ea, double ref_value, double leaf_temp, double H_d, double d_S) const;
