@@ -20,7 +20,7 @@ public:
 
   // calculate the amount of water transpired relativised by leaf area index.
 
-  double evapotranspiration_dt(double area_leaf_);
+  double evapotranspiration_dt(double area_leaf_, int soil_depth);
 
 
   // Overrides ----------------------------------------------
@@ -43,7 +43,8 @@ public:
   std::vector<std::string> aux_names() {
     std::vector<std::string> ret({
       "competition_effect",
-      "net_mass_production_dt"
+      "net_mass_production_dt",
+      "root_mass"
     });
     // add the associated computation to compute_rates and compute there
     if (collect_all_auxiliary) {
@@ -309,11 +310,11 @@ public:
   double curv_fact_colim = 0.99; 
   double var_sapwood_volume_cost = 1; 
   double newton_tol_abs = 0.001;
-  double GSS_tol_abs = 1e-7;
+  double GSS_tol_abs = 1e-3;
   double vulnerability_curve_ncontrol = 100;
   double ci_abs_tol = 1e-6;
   double ci_niter = 1000;
-  double g1_TF24 = 46.32995;
+  double g1_TF24 = 1;
   double beta_R_H = 3.4e3;
   double beta_R_V = 9.4e4;
 

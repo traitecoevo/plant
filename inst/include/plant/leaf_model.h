@@ -119,6 +119,7 @@ public:
   double beta_R_H;
   double beta_R_V;
   double soil_number_of_depths_;
+  int max_soil_layer;
 
   double ci_;
   double stom_cond_CO2_;
@@ -143,8 +144,6 @@ public:
   double root_mass_;
   std::vector<double> c_r_V_;
   std::vector<double> c_r_H_;
-  double c_r_V_total_;
-  double c_r_H_total_;
   double rho_;
   double vcmax_;
   double jmax_;
@@ -154,6 +153,15 @@ public:
   std::vector<double> psi_soil_;
   std::vector<double> soil_depth_;
   std::vector<double> z_soil_mid_;
+  double dz_;
+  std::vector<double> r_R_H_min;
+        // vertical root resistance
+    std::vector<double> r_R_V;
+        // total root carbon, make it same size as crb
+    std::vector<double> c_r;
+            // cumulative vertical sum of root resistance
+    std::vector<double> r_R_V_sum;
+    
 
   double leaf_temp_;
   double PPFD_;
@@ -162,6 +170,7 @@ public:
   double atm_kpa_;
   double ca_;
   double root_collar_psi_;
+  double assim_max_;
 
   
   double opt_psi_stem_;
@@ -192,7 +201,7 @@ public:
   }
   
   // set-up functions
-  void set_physiology(double root_mass, double rho, double a_bio, double PPFD, std::vector<double> psi_soil, std::vector<double> soil_depth, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa);
+  void set_physiology(std::vector<double> mass_root_prop, double rho, double a_bio, double PPFD, std::vector<double> psi_soil, std::vector<double> soil_depth, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa);
   void setup_transpiration(double resolution);
   void setup_clean_leaf();
   // std::vector<double> root_collar_psi(std::vector<double> soil_moist_);
@@ -201,13 +210,12 @@ public:
   double vulnerability_curve_root(double P_soil);
   double VC_sw(double psi);
 
-  double E_from_Soil_to_Root_Collar(double P_x_r = -0.12, std::vector<double> P_soil = {-0.06, -0.12}, double dz = 0.1,
-                                       double LA = 1);
-  double find_root_collar_psi();
-  double find_root_psi(double wettest_soil_layer, std::vector<double> psi_soil, int find_root_crit);
-  double find_psi_stem_from_psi_root(double psi_root, std::vector<double> psi_soil);
-  double E_column(double x, std::vector<double> psi_soil, double psi_leaf);
-  double E_column_zero(double x, std::vector<double> psi_soil);
+  double E_from_Soil_to_Root_Collar(double P_x_r = -0.12, const std::vector<double>& P_soil = {-0.06, -0.12});
+  void find_root_collar_psi();
+  double find_root_psi(double wettest_soil_layer, const std::vector<double>& psi_soil, int find_root_crit);
+  double find_psi_stem_from_psi_root(double psi_root, const std::vector<double>& psi_soil);
+  double E_column(double x, const std::vector<double>& psi_soil, double psi_leaf);
+  double E_column_zero(double x, const std::vector<double>& psi_soil);
   
   double arrh_curve(double Ea, double ref_value, double leaf_temp) const;
   double peak_arrh_curve(double Ea, double ref_value, double leaf_temp, double H_d, double d_S) const;

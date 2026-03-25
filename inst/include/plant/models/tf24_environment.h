@@ -21,7 +21,7 @@ public:
                    int soil_number_of_depths = 5, 
                    double delta_z = 9999, // not using this
                    double soil_moist_sat = 0.453, // saturated soil moisture content (m3 water m^-3 soil) 
-                   double K_sat = 440.628, //saturated hydraulic conductivity of soil
+                   double K_sat = 440.628/10, //saturated hydraulic conductivity of soil
                    double a_psi = 8.7, // not currently being used
                    double n_psi = 4.8, // not currently being used
                    double a_infil = 1, // infiltration switch (0-1), 0 no runoff, 1 runoff
@@ -136,6 +136,7 @@ public:
   
   virtual void compute_rates(std::vector<double> const &resource_depletion)
   {
+
     double water_input;
     double rainfall = extrinsic_drivers.evaluate("rainfall", time);
     double infiltration = rainfall*std::max(0.0, 1 - a_infil*std::pow(vars.state(0)/soil_moist_sat, b_infil));
@@ -158,7 +159,10 @@ public:
       water_flux[i] = K_sat*pow(vars.state(i)/soil_moist_sat, 2);
       // this function does runoff
 
-      vars.set_rate(i, (water_input - water_flux[i])/dz[i]); 
+      vars.set_rate(i, (water_input - water_flux[i] - resource_depletion[i])/dz[i]); 
+      if(i == 0){
+        std::cout << "water_input" << water_input << "water_flux[i]" << water_flux[i] << "resource_depletion[i]: "<< resource_depletion[i]  << std::endl;
+      }
     }
       vars.set_rate(soil_number_of_depths, rainfall);
       vars.set_rate(soil_number_of_depths + 1, infiltration);
@@ -174,7 +178,7 @@ public:
 
   // convert soil moisture to soil water potential
   double psi_from_soil_moist(double soil_moist_) const {
-    return a_psi * std::pow(soil_moist_/soil_moist_sat, -n_psi);
+    return a_psi * std::pow(soil_moist_/soil_moist_sat, -n_psi)/1e6; // convert from Pa to MPa
   }
 
   // convert soil water potential to soil moisture

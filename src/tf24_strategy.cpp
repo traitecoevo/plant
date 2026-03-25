@@ -23,8 +23,8 @@ double TF24_Strategy::compute_average_light_environment(
 }
 
 // assumes optimise_psi_stem_TF has been run for optimal psi_stem
-double TF24_Strategy::evapotranspiration_dt(double area_leaf_) {
-  return leaf.transpiration_ * area_leaf_;
+double TF24_Strategy::evapotranspiration_dt(double area_leaf_, int soil_depth) {
+  return leaf.soil_consumption_[soil_depth] * area_leaf_;
 }
 
 void TF24_Strategy::refresh_indices () {
@@ -112,7 +112,6 @@ void TF24_Strategy::update_dependent_aux(const int index, Internals& vars) {
 // one-shot update of the scm variables
 // i.e. setting rates of ode vars from the state and updating aux vars
 void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internals& vars) {
-
   double height = vars.state(HEIGHT_INDEX);
   double area_leaf_ = vars.aux(aux_index.at("competition_effect"));
 
@@ -121,13 +120,18 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
 
   // store the aux sate
   vars.set_aux(aux_index.at("net_mass_production_dt"), net_mass_production_dt_);
+  vars.set_aux(aux_index.at("root_mass"), mass_root(area_leaf_));
 
     // convert evapotranspiration per leaf area (kg H20 m^-2 s^-1) to canopy-level total yearly assimilation (m yr^-1)
   // stubbing out E_p for integration
-  for (size_t i = 0; i < environment.ode_size(); i++) {
+  for (size_t i = 0; i < environment.soil_number_of_depths; i++) {
 
-    vars.set_consumption_rate(i, evapotranspiration_dt(area_leaf_)*60*60*12*365/1000);
 
+    vars.set_consumption_rate(i, evapotranspiration_dt(area_leaf_, i)*60*60*12*365/1000*0.018015);
+
+    if(i == 0 & abs(vars.consumption_rate(0)) > 1e4){
+    std::cout << "vars.consumption_rate(0)" << vars.consumption_rate(0) << std::endl;
+}
   }
 
   if (net_mass_production_dt_ > 0) {
@@ -158,6 +162,7 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   // [eqn 21] - Instantaneous mortality rate
   vars.set_rate(MORTALITY_INDEX,
       mortality_dt(net_mass_production_dt_ / area_leaf_, vars.state(MORTALITY_INDEX)));
+
 }
 
 // [eqn 12] Gross annual CO2 assimilation
@@ -270,7 +275,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
 
   // calculate average radiation by multipling average canopy openness by PPFD and accounting for self-shading k_I.
   const double average_radiation = k_I * average_light_environment * environment.get_PPFD();
-  // const double psi_soil = environment.get_psi_soil() / 1000000;
+
   std::vector<double> psi_soil;
   std::vector<double> soil_moist = environment.get_soil_water_state();
 
@@ -290,16 +295,62 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   // theta: huber value
   // eta_c: accounts for average position of leaf mass
 
-  // const double sapwood_volume_per_leaf_area = theta * (height * eta_c);
+  const double sapwood_volume_per_leaf_area = theta * (height * eta_c);
+  
+  // set strategy-level physiological parameters for the leaf-submodel.
+  // const double average_radiation = 2000;
+  // mass_root_ = 1.0;
 
+  std::vector<double> mass_root_prop_;
+  std::vector<double> c_r_V_;
+  std::vector<double> c_r_H_;
 
-  const double sapwood_volume_per_leaf_area = (0.000157*(1-var_sapwood_volume_cost) + theta*var_sapwood_volume_cost)  * (height * eta_c);
+  mass_root_prop_.reserve(environment.get_soil_number_of_depths());
+  mass_root_prop_.resize(environment.get_soil_number_of_depths());
+  std::fill(mass_root_prop_.begin(), mass_root_prop_.end(), 0); 
+  
+  for (int a = 0; a < environment.get_soil_number_of_depths(); a++){
+    
+    double prop_roots = environment.get_soil_depths()[a]/(1.5 * height / 30);
+     // std::cout << "a:" << a << "prop_roots:" << prop_roots << std::endl;
+    if(a == 0){
 
-// set strategy-level physiological parameters for the leaf-submodel.
-  leaf.set_physiology(mass_root_, rho, a_bio, average_radiation, psi_soil, environment.get_soil_depths(), leaf_specific_conductance_max, environment.get_atm_vpd(), environment.get_ca(), sapwood_volume_per_leaf_area, environment.get_leaf_temp(), environment.get_atm_o2_kpa(), environment.get_atm_kpa());
+      if(prop_roots > 1){
+        mass_root_prop_[a] = mass_root_;
+        break;
+      } else {
+        mass_root_prop_[a] = mass_root_*prop_roots;
+      }
+    } else{
+
+      if(prop_roots > 1){
+        mass_root_prop_[a] = mass_root_ - mass_root_*environment.get_soil_depths()[a - 1]/(1.5 * height / 30);
+              break;
+
+      } else {
+        mass_root_prop_[a] = mass_root_*prop_roots - mass_root_*environment.get_soil_depths()[a - 1]/(1.5 * height / 30);
+      }
+    }
+  }
+
+     for (int a = 0; a < environment.get_soil_number_of_depths(); a++){
+      if(mass_root_prop_[a] != 0){
+        //convert to mols and per leaf area
+
+         // std::cout << "a:" << a << "mass_root_prop_[a]:" << mass_root_prop_[a] << std::endl;
+
+              mass_root_prop_[a] = 83.26*0.5*mass_root_prop_[a] / area_leaf_;
+     }
+    }
+  //TODO: replace 1 with root_mass_
+  leaf.set_physiology(mass_root_prop_, rho, a_bio, average_radiation, psi_soil, environment.get_soil_depths(), leaf_specific_conductance_max, environment.get_atm_vpd(), environment.get_ca(), sapwood_volume_per_leaf_area, environment.get_leaf_temp(), environment.get_atm_o2_kpa(), environment.get_atm_kpa());
 
   // optimise psi_stem, setting opt_psi_stem_, profit_, hydraulic_cost_, assim_colimited_ etc.
   //leaf.optimise_psi_stem_TF();
+  leaf.find_root_collar_psi();
+
+
+
 
 
   // stomatal conductance to c02 (umol m^-2 s^-1)
@@ -322,8 +373,9 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
 
   // convert assimilation per leaf area per second (umol m^-2 s^-1) to canopy-level total yearly assimilation (mol yr^-1)
 
-  //const double assimilation = leaf.profit_ * area_leaf_* 60*60*12*365/1e6;
-    
+  const double assimilation_ = leaf.profit_ * area_leaf_* 60*60*12*365/1e6;
+
+
   //const double respiration_ = 
   //respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
       
@@ -334,7 +386,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   //vars.set_aux(aux_index.at("respiration_"), respiration_);
   //vars.set_aux(aux_index.at("turnover_"), turnover_);
 
-  const double assimilation_ = assimilation(environment, height, area_leaf_);
+  // const double assimilation_ = assimilation(environment, height, area_leaf_);
   const double respiration_ =
     respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
   const double turnover_ =

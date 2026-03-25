@@ -19,7 +19,7 @@ Leaf::Leaf()
     vulnerability_curve_ncontrol(100),
     ci_abs_tol(1e-3),
     ci_niter(1000),
-    g1_TF24(46.32995), //cost parameter for TF24 profit model umol m^-2 s^-1
+    g1_TF24(1), //cost parameter for TF24 profit model umol m^-2 s^-1
     beta_R_H(3.4e3),
     beta_R_V(9.4e4)
    {
@@ -92,19 +92,23 @@ void Leaf::setup_clean_leaf() {
   opt_psi_stem_= NA_REAL; //-MPa 
   opt_ci_= NA_REAL; //Pa 
   E_up_ = NA_REAL;
-  psi_soil_ = {NA_REAL};
-  soil_depth_ = {NA_REAL};
-  z_soil_mid_ = {NA_REAL};  // ADD THIS LINE
-  c_r_V_total_ = NA_REAL;
-  c_r_H_total_ = NA_REAL;
-  root_mass_ = NA_REAL;
+  psi_soil_.clear();
+  soil_depth_.clear();
+  z_soil_mid_.clear();  // ADD THIS LINE
+  c_r_V_.clear();
+  c_r_H_.clear();
+  r_R_H_min.clear();
+  r_R_V.clear();
+  c_r.clear();
+  r_R_V_sum.clear();
+
   soil_number_of_depths_ = NA_INTEGER;
-  // soil_consumption_.reserve(2);
+  max_soil_layer = NA_INTEGER;
 }
 
 //sets various parameters which are constant for a given node at a given time
 
-void Leaf::set_physiology(double root_mass, double rho, double a_bio, double PPFD, std::vector<double> psi_soil, std::vector<double> soil_depth, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa) {
+void Leaf::set_physiology(std::vector<double> mass_root_prop, double rho, double a_bio, double PPFD, std::vector<double> psi_soil, std::vector<double> soil_depth, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa) {
     if (psi_soil.size() != soil_depth.size()) {
     util::stop("soil_depth and psi_soil must have the same number of elements");
   }
@@ -118,7 +122,6 @@ void Leaf::set_physiology(double root_mass, double rho, double a_bio, double PPF
    psi_soil_ = psi_soil;
    soil_depth_ = soil_depth;
    soil_number_of_depths_ = soil_depth_.size();
-   
    // Calculate z_soil_mid_ based on soil_depth_
    z_soil_mid_.clear();
    z_soil_mid_.reserve(soil_number_of_depths_);
@@ -141,28 +144,72 @@ void Leaf::set_physiology(double root_mass, double rho, double a_bio, double PPF
    kc_ = arrh_curve(kc_ha, kc_25, leaf_temp_);
    R_d_ = vcmax_*0.015;
    km_ = (kc_*umol_per_mol_to_Pa)*(1 + (atm_o2_kpa_*kPa_to_Pa)/(ko_*umol_per_mol_to_Pa));
-   root_mass_ = root_mass;
-   c_r_V_total_ = root_mass_*(1.0/3.0);
-   c_r_H_total_ = root_mass_*(2.0/3.0);
-   
-   c_r_V_.reserve(soil_number_of_depths_);
-   c_r_H_.reserve(soil_number_of_depths_); 
-   c_r_V_.resize(soil_number_of_depths_);
-   c_r_H_.resize(soil_number_of_depths_);
 
-   for (int a = 0; a < soil_number_of_depths_; a++){
-       
-    if(a == 0){
-    c_r_H_[a] = c_r_H_total_*pow(0.5, (1 - soil_depth_[a]/soil_depth_.back()));  
-    c_r_V_[a] = c_r_V_total_*pow(0.5, (1 - soil_depth_[a]/soil_depth_.back()));
+   dz_ = soil_depth_.back()/soil_number_of_depths_;
+  //  std::cout << "dz:_" << dz_ << std::endl;
 
-      
 
-    } else{
-    c_r_H_[a] = c_r_H_total_*pow(0.5, (1 - soil_depth_[a]/soil_depth_.back())) - c_r_H_total_*pow(0.5, (1 - soil_depth_[a-1]/soil_depth_.back()));  
-    c_r_V_[a] = c_r_V_total_*pow(0.5, (1 - soil_depth_[a]/soil_depth_.back())) - c_r_V_total_*pow(0.5, (1 - soil_depth_[a-1]/soil_depth_.back()));
+  for (size_t i = 0; i < soil_number_of_depths_; ++i) {
+    if(mass_root_prop[i] != 0){
+    max_soil_layer = i + 1;  
     }
   }
+// std::cout << "max_soil_layer:" << max_soil_layer << std::endl;
+  c_r_V_.clear();
+  c_r_H_.clear();
+  c_r_V_.resize(max_soil_layer, 0.0);
+  c_r_H_.resize(max_soil_layer, 0.0);
+
+   for (size_t i = 0; i < max_soil_layer; ++i) {
+    if(mass_root_prop[i] != 0){
+    c_r_V_[i] = mass_root_prop[i] * 1/3;
+    c_r_H_[i] = mass_root_prop[i] * 2/3;
+   }
+}
+
+    // horizantal root resistance
+    r_R_H_min.resize(max_soil_layer);
+
+    // Make sure r_R_V has the correct size
+    r_R_V.resize(max_soil_layer);
+
+    c_r.resize(max_soil_layer);
+
+        // add carbon from horizantal to vertical components
+    for (size_t i = 0; i < max_soil_layer; i++)
+    {
+      // std::cout << "i: " << c_r[i] << "c_r[i]" << std::endl;
+      c_r[i] = c_r_H_[i] + c_r_V_[i];
+    }
+
+    for (size_t i = 0; i < max_soil_layer; i++)
+    {
+      // std::cout << "i: " << c_r_H_[i] << "c_r_H_[i]" << std::endl;
+      r_R_H_min[i] = beta_R_H/c_r_H_[i];
+    }
+
+        for (size_t i = 0; i < max_soil_layer; i++)
+    {
+            // std::cout << "i: " << c_r_V_[i] << "c_r_V_[i]" << std::endl;
+
+      r_R_V[i] = beta_R_V * ((dz_ * dz_) / c_r_V_[i]);
+                  // std::cout << "i: " << r_R_V[i] << "r_R_V[i]" << std::endl;
+
+      // std::cout << "r_R_V[i]:" << r_R_V[i] << std::endl;
+    }
+
+    r_R_V_sum.clear();
+    r_R_V_sum.resize(max_soil_layer);
+
+    // Cumulative sum of vertical root resistance
+    std::partial_sum(r_R_V.begin(), r_R_V.end(), r_R_V_sum.begin());
+
+        // Set up vector of root water uptake from layer
+  soil_consumption_.clear();
+  soil_consumption_.resize(soil_number_of_depths_, 0.0);
+
+  assim_max_ = assim_colimited(ca_);
+
 }
 
 // Vulnerability curve for leaf (parameterised from Potkay et al. 2021) [frac]
@@ -186,167 +233,149 @@ double VC_sw(double psi){
 }
 
 // This function calculates the total transpiration from the soil based on the root collar pressure and the respective soil layer pressures
-double Leaf::E_from_Soil_to_Root_Collar(double P_x_r, std::vector<double> P_soil, double dz, double LA){
+double Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>& P_soil){
     //   // Integration steps
-    
+  // std::cout << "E_from_Soil_to_Root_Collar" << std::endl;
     // number of intergration steps
-    double n = 20;
-    // water density
-    double water_dens = 1e3;
-    // gravity // m s^-2
-    double gravity = 9.8;    
+    double n = 5;
+    // water_dens (1e3 kg/m^3) * gravity (9.8 m/s^2) / 1e6 (Pa->MPa), precomputed
+    const double gravity_head = 9.8e-3; // MPa / m
     
     // root vulnerability curve parameters
-    double b_root = 1.29; //Mpa
+    double b_root = 2; //Mpa
     double c_root = 2.65;
 
-    // total root carbon, make it same size as crb
-    std::vector<double> c_r;
-    c_r.reserve(c_r_V_.size());
 
-    // add carbon from horizantal to vertical components
-    for (size_t i = 0; i < c_r_V_.size(); i++)
-    {
-      c_r[i] = c_r_H_[i] + c_r_V_[i];
-      // std::cout << "c_r[i]:" << c_r[i] << std::endl;
-    }
+    for(size_t i = 0; i < max_soil_layer; i++){
+// std::cout << "max_soil_layer2:" << max_soil_layer << std::endl;
 
-    // horizantal root resistance
-    std::vector<double> r_R_H_min;
-    r_R_H_min.reserve(c_r_V_.size());
-    
-    for (size_t i = 0; i < c_r_V_.size(); i++)
-    {
-      r_R_H_min[i] = beta_R_H/c_r_H_[i];
-    }
-    
-    // vertical root resistance
-    std::vector<double> r_R_V;
-    
-    // Make sure r_R_V has the correct size
-    r_R_V.resize(c_r_V_.size());
-    
-    for (size_t i = 0; i < c_r_V_.size(); i++)
-    {
-      r_R_V[i] = beta_R_V * ((dz * dz) / c_r_V_[i]);
-      // std::cout << "r_R_V[i]:" << r_R_V[i] << std::endl;
-    }
-    
-    // cumulative vertical sum of root resistance
-    std::vector<double> r_R_V_sum;
-    
-    // Cumulative sum of vertical root resistance
-    std::partial_sum(r_R_V.begin(), r_R_V.end(), std::back_inserter(r_R_V_sum));
-    // Set up vector of root water uptake from layer
-    // std::vector<double> soil_consumption_;
-    soil_consumption_.reserve(soil_number_of_depths_);
-    soil_consumption_.resize(soil_number_of_depths_);
-    // Set up vector of fractional resistance from each layer
-    std::vector<double> f_r;
-    
-    for(size_t i = 0; i < soil_number_of_depths_; i++){
+if(P_soil[i] > 0){
+    std::cout << "P_soil[i]:" << P_soil[i] << "P_x_r:" <<  P_x_r << std::endl;
+}
 
+if(P_x_r > 0){
+    std::cout << "P_soil[i]:" << P_soil[i] << "P_x_r:" <<  P_x_r << std::endl;
+}
 
     // Find the most negative soil potential out of the given soil layer and the root collar
     double P_src_min = std::min(P_soil[i], P_x_r);
+
     // Find the least negative soil potential out of the given soil layer and the root collar
     double P_src_max = std::max(P_soil[i], P_x_r);
     
-    // std::cout << "P_src_min: " << P_src_min << "P_src_max: "<< P_src_max << std::endl;
+
+    if(P_src_min > P_src_max){
+    util::stop("P_src_min must be more negative than P_src_max");
+    }
+
 
      // If root collar soil water potential equals the soil water potential in a given layer
-    if(P_x_r == P_soil[i]){
+    if(abs(P_x_r - P_soil[i]) < 1e-20){
 
       // Fraction of conductance in roots in a given layer at most negative soil water potential
+      if(P_src_min > 0){
+      std::cout << "P_src_min:" << P_src_min<< std::endl;
+      }
       double f_ri = exp(-(pow(-P_src_min/b_root,c_root)));
       // std::cout << "f_ri, px = ps: "<< f_ri << std::endl;
 
       // Fraction of conductance in roots in a given layer at most negative soil water potential
       double r_R_H = r_R_H_min[i] / f_ri; // [MPa * s * (mol H2O)^-1]
       // std::cout << "r_R_H:" << r_R_H << "r_R_H_min[i]" << r_R_H_min[i] << "f_ri: " << f_ri << std::endl;
-
+// std::cout << "r_R_V_sumi: " << r_R_V_sum[i] << std::endl;
       // Total root resistance (horizantal plus vertical)
       double r_R = r_R_H + r_R_V_sum[i];
       // std::cout << "r_R:" << r_R << "r_R_V_sum[i]" << r_R_V_sum[i] << std::endl;
 
       // Transpiration is equivalent to gravitational water loss (i.e. layer gains water)
-      double E_i = -(water_dens * gravity * z_soil_mid_[i] / 1e6) / r_R / LA;
+      double E_i = -(gravity_head * z_soil_mid_[i]) / r_R ;
       // std::cout << "E_i:" << E_i << std::endl;
 
 
 
       soil_consumption_[i] = E_i;
-      f_r[i] = f_ri;
 
     }
-    else if((P_soil[i] - P_x_r) == (water_dens * gravity * z_soil_mid_[i] / 1e6)){
+    else if((P_soil[i] - P_x_r) == (gravity_head * z_soil_mid_[i])){
 
       // If pressure difference perfectly balances gravity transpiration is equal to zero
-      double E_i = 0; // [mol H2O / m^2 / s]
+      double E_i = 0.0; // [mol H2O / m^2 / s]
       // std::cout << "E_i:" << E_i << std::endl;
 
-      double f_ri = exp(-(pow(-P_src_min/b_root,c_root)));
+      // double f_ri = exp(-(pow(-P_src_min/b_root,c_root)));
       // std::cout << "f_ri, gravity: "<< f_ri << std::endl;
 
 
       soil_consumption_[i] = E_i;
-      f_r[i] = f_ri;
+
+      // f_r[i] = f_ri;
 
     } else{
 
       // Sequence through the most negative to least negative soil water potential
       
       double step = (P_src_max - P_src_min)/n;
-      std::vector<double> f_r;
-      f_r.reserve(n+1);
+      // f_r.clear();
+      // f_r.reserve(n+1);
+      // double f_r_sum = 0;
+      double f_r_average = 0;
 
       // std::cout << "n:" << n << std::endl;
-      for (double P_src_step = P_src_min; P_src_step <= P_src_max; P_src_step += step) {
+      for (size_t i = 0; i < (n+1); i++) {
+
+        double stepper = i;
+        double P_src_step = P_src_min + step*stepper;
+      // for (double P_src_step = P_src_min; P_src_step <= P_src_max; P_src_step += step) {
        if(P_src_step > 0){
-        f_r.push_back(exp(-(pow(0/b_root,c_root))));
-      // std::cout << "f_ri, working, 0: "<< exp(-(pow(0/b_root,c_root))) << std::endl;
+
+        // f_r[i] = exp(-(pow(0/b_root,c_root)));
+        f_r_average += exp(-(pow(0/b_root,c_root)))/(n+1);
 
       } else{
-        f_r.push_back(exp(-(pow(-P_src_step/b_root,c_root))));
+        // f_r[i] = exp(-(pow(-P_src_step/b_root,c_root)));
+        f_r_average += exp(-(pow(-P_src_step/b_root,c_root)))/(n+1);
 
       // std::cout << "f_ri, working: "<< exp(-(pow(-P_src_step/b_root,c_root))) << std::endl;
       }
     }
-    double f_r_sum = 0;
+
 
     // Find the average f_ri
 
     // std::cout << "size" << f_r.size()<< std::endl;
 
-    for (size_t i = 0; i < n; i++ ){
-      // std::cout << "f_r[i]_to_sum" << f_r.at(i) << std::endl;
-      f_r_sum += f_r.at(i);
-            // std::cout << "f_r_sum" << f_r_sum << std::endl;
+    // for (size_t b = 0; b < (n+1); b++ ){
 
-    }
+    //   f_r_sum += f_r[b];
+    //         // std::cout << "f_r_sum" << f_r_sum << std::endl;
+
+    // }
 
 
-    double f_r_average = f_r_sum / n;
+    // double f_r_average = f_r_sum / (n+1);
+
 
     // Find the horizantal resistance in a given layer by dividing the minimum resistance (i.e. maximum conductivity) by the fractional loss of conductivity
     double r_R_H = r_R_H_min[i] / f_r_average; // [MPa * s * (mol H2O)^-1]
-    // std::cout << "r_R_H:" << r_R_H<< "r_R_H_min[i]:" << r_R_H_min[i] << "f_r_average:" << f_r_average << std::endl;
+    // std::cout << i << std::endl;
+    // std::cout << "r_R_H_min:" << r_R_H_min[i] << "f_r_average:" << f_r_average << i << "r_R_V_sum[i]" << r_R_V_sum[i] << "r_R_H:" << r_R_H << std::endl;
 
     // Find the total resistance in a given layer by adding the vertical resistance in that layer
     double r_R = r_R_H + r_R_V_sum[i]; // [MPa * s * (mol H2O)^-1]
-    // std::cout << "r_R:" << r_R << "r_R_V_sum[i]" << r_R_V_sum[i] << std::endl;
 
   
 
-
     // Transpiration is equal to the potentail gradient between the root collar and the soil, accounting for gravitational potential
-    double E_i = (P_soil[i] - P_x_r - water_dens * gravity * z_soil_mid_[i]/ 1e6) / r_R / LA; // [mol H2O / m^2 / s]
+    double E_i = (P_soil[i] - P_x_r - gravity_head * z_soil_mid_[i]) / r_R; // [mol H2O / m^2 / s]
 
     // std::cout << "E_i:" << E_i << std::endl;
+    // std::cout << "Finished E_collar" << std::endl;
 
     root_collar_psi_ = P_x_r;
     soil_consumption_[i] = E_i;
-    f_r[i] = f_r_average;
+
+
+    // f_r[i] = f_r_average;
     }
   }
   
@@ -355,7 +384,7 @@ double Leaf::E_from_Soil_to_Root_Collar(double P_x_r, std::vector<double> P_soil
 
    E_up_ = 0;
 
-  for(size_t i = 0; i < soil_number_of_depths_; i++){
+  for(size_t i = 0; i < max_soil_layer; i++){
 
     E_up_ += soil_consumption_[i];
   }
@@ -363,16 +392,16 @@ double Leaf::E_from_Soil_to_Root_Collar(double P_x_r, std::vector<double> P_soil
 
   std::vector<double> r_R;
   // Recalculate resistances in each layer (TODO: Bit unsure about why z_soil_mid is [i])
-  for (size_t i = 0; i < z_soil_mid_.size(); i++){
+  // for (size_t i = 0; i < max_soil_layer; i++){
 
 
-    r_R.push_back((P_soil[i] - P_x_r - water_dens * gravity * z_soil_mid_[i] / 1e6) / soil_consumption_[i] / LA);
-    double r_R_H_max = std::max((r_R[i] - r_R_V_sum[i]), r_R_H_min[i]);
-    //  std::cout << "P_soil[i]: " << P_soil[i]<< "P_x_r: " << P_x_r << "E_soil[i]: " << E_soil[i] << "z_soil_mid[i]:" << z_soil_mid[i] << "r_R[i]: " << r_R[i] << "r_R_V_sum[i]: " << r_R_V_sum[i] << "r_R_H_min[i]: " << r_R_H_min[i] << std::endl;
+  //   r_R.push_back((P_soil[i] - P_x_r - water_dens * gravity * z_soil_mid_[i] / 1e6) / soil_consumption_[i]);
+  //   double r_R_H_max = std::max((r_R[i] - r_R_V_sum[i]), r_R_H_min[i]);
+  //   //  std::cout << "P_soil[i]: " << P_soil[i]<< "P_x_r: " << P_x_r << "E_soil[i]: " << E_soil[i] << "z_soil_mid[i]:" << z_soil_mid[i] << "r_R[i]: " << r_R[i] << "r_R_V_sum[i]: " << r_R_V_sum[i] << "r_R_H_min[i]: " << r_R_H_min[i] << std::endl;
 
-    r_R_H.push_back(r_R_H_max);
-  }
-  return E_up_;
+  //   r_R_H.push_back(r_R_H_max);
+  // }
+  return E_up_*0.018015;
 // std::cout << "gravity:" << gravity << std::endl;
 }
 
@@ -381,102 +410,147 @@ double Leaf::E_from_Soil_to_Root_Collar(double P_x_r, std::vector<double> P_soil
 // A - gc curves
 
 // returns difference between co-limited assimilation and stom_cond_CO2, to be minimised (umol m^-2 s^-1)
-double Leaf::E_column(double x, std::vector<double> psi_soil, double psi_leaf) {
+double Leaf::E_column(double x, const std::vector<double>& psi_soil, double psi_leaf) {
 
 
-  double E_soil_to_root = E_from_Soil_to_Root_Collar(x, psi_soil, 0.1, 1);
-  // double E_soil_to_root = -0.2;
+  double E_soil_to_root = E_from_Soil_to_Root_Collar(x, psi_soil);
   root_collar_psi_ = -x;
-  // double E_root_to_leaf = x;
   double E_root_to_leaf = transpiration(psi_leaf, root_collar_psi_);
-
   return E_soil_to_root - E_root_to_leaf;
 }
 
-double Leaf::E_column_zero(double x, std::vector<double> psi_soil) {
+double Leaf::E_column_zero(double x, const std::vector<double>& psi_soil) {
 
-  double E_soil_to_root = E_from_Soil_to_Root_Collar(x, psi_soil, 0.1, 1);
+  double E_soil_to_root = E_from_Soil_to_Root_Collar(x, psi_soil);
     // std::cout << "starting E column:" << E_soil_to_root << std::endl;
 
   return E_soil_to_root;
 }
 
 // converts psi stem to ci, used to find ci which makes A(ci) = gc(ca - ci)
-double Leaf::find_root_psi(double wettest_soil_layer, std::vector<double> psi_soil, int find_root_crit) {
+double Leaf::find_root_psi(double wettest_soil_layer, const std::vector<double>& psi_soil, int find_root_crit) {
   // not clear what x is here
   
 
+if(wettest_soil_layer > 0){
+
+  std::cout << "find_root_crit:" << find_root_crit << std::endl;
+  std::cout << "wettest_soil_layer:" << wettest_soil_layer << std::endl;
+}
   auto target = [&](double x) mutable -> double {
     if(find_root_crit == 1){
-std::cout << "x:" << x  << "psi_soil:"  << psi_soil[0] << std::endl;
 
     return E_column(x, psi_soil, psi_crit);
     } else{
+
+      // std::cout << "finding root zero E" << std::endl; 
+
       return E_column_zero(x, psi_soil);
     }
   };
-  std::cout << "-psi_crit:" << -psi_crit << "wettest_soil_layer:" << wettest_soil_layer << std::endl;
 
 
   // tol and iterations copied from control defaults (for now) - changed recently to 1e-6
-  return util::uniroot(target, -psi_crit, wettest_soil_layer, 1e-11, ci_niter);
+  return util::uniroot(target, -psi_crit, wettest_soil_layer, 1e-3, ci_niter);
 
 }
 
-double Leaf::find_psi_stem_from_psi_root(double psi_root, std::vector<double> psi_soil){
-  double E_soil_to_root = E_from_Soil_to_Root_Collar(psi_root, psi_soil, 0.1, 1);
+double Leaf::find_psi_stem_from_psi_root(double psi_root, const std::vector<double>& psi_soil){
+  double E_soil_to_root = E_from_Soil_to_Root_Collar(psi_root, psi_soil);
+  // std::cout << "E_soil_to_root:" << E_soil_to_root << "psi_soil:" << psi_soil[0] << std::endl;
   double psi_stem = transpiration_to_psi_stem(E_soil_to_root, root_collar_psi_);
   return psi_stem;
 }
 
-double Leaf::find_root_collar_psi(){
-
+void Leaf::find_root_collar_psi(){
+    
   std::vector<double> psi_soil_inverted_;
-  psi_soil_inverted_.reserve(soil_number_of_depths_);
-  psi_soil_inverted_.resize(soil_number_of_depths_);
+  psi_soil_inverted_.reserve(max_soil_layer);
+  psi_soil_inverted_.resize(max_soil_layer);
 
-  for(size_t i = 0; i < soil_number_of_depths_; i++){
+  for(size_t i = 0; i < max_soil_layer; i++){
     psi_soil_inverted_[i] = -psi_soil_[i];
   }
 
-
 double wettest_soil_layer = *std::max_element(psi_soil_inverted_.begin(), psi_soil_inverted_.end());
-std::cout << "wettest_soil_layer:" << wettest_soil_layer << std::endl;
+
+    if(std::isnan(wettest_soil_layer)){
+      for(size_t i = 0; i < max_soil_layer; i++){
+      }
+    }
+
+  if (-wettest_soil_layer >= psi_crit){
+
+    // profit_ = 0;
+    root_collar_psi_ = -psi_crit;
+    opt_psi_stem_ = psi_crit;
+    profit_ = - R_d_ - hydraulic_cost_TF(psi_crit);
+    // return profit_;
+    return;
+  }
 
 double root_crit = find_root_psi(wettest_soil_layer, psi_soil_inverted_, 1);
 
-std::cout << "root_crit:" << root_crit << std::endl;
 
+    if (-root_crit >= psi_crit){
+    std::cout << "is this being invoked" << std::endl;
+    // profit_ = 0;
+    root_collar_psi_ = root_crit;
+    opt_psi_stem_ = psi_crit;
+    profit_ = - R_d_ - hydraulic_cost_TF(psi_crit);
+    // return profit_;
+  }
 
 double root_zero_E = find_root_psi(wettest_soil_layer, psi_soil_inverted_, 0);
+if(assim_max_ < 0){
+  std::cout << "being accessed" << std::endl;
+    opt_psi_stem_ = root_zero_E;
+    root_collar_psi_ = root_zero_E;
+    double E_up = E_from_Soil_to_Root_Collar(root_collar_psi_, psi_soil_inverted_);
 
-std::cout << "root_zero_E:" << root_zero_E << std::endl;
+    profit_ = - R_d_ - hydraulic_cost_TF(-root_collar_psi_);
+
+            std::cout << soil_consumption_[0] << std::endl;
+
+        // std::cout << "R_d_ " << R_d_ << "hydraulic_cost_TF(root_collar_psi_):" << hydraulic_cost_TF(root_collar_psi_)<<  std::endl;
+
+    // std::cout << "profit_ from inside " << profit_ << std::endl;
+    return;
+}
 
 double gr = (sqrt(5) + 1) / 2;
 //   // opt_psi_stem_ = psi_soil_;
 
-//   if (-wettest_soil_layer > psi_crit){
-//     profit_ = 0;
-//     // profit_ = profit_psi_stem_TF(psi_soil_);
-//     return profit_;
-//   }
+
 
   // optimise for stem water potential
     double bound_a = -root_zero_E;
 //     std::cout << "root_crit_loop" << root_crit << std::endl;
     double bound_b = -root_crit;
+// std::cout << "bound_a:" << bound_a << "bound_b:" << bound_b << std::endl;
     double bound_c = bound_b - (bound_b - bound_a) / gr;
+
+
     double bound_d = bound_a + (bound_b - bound_a) / gr;
+// std::cout << "made it to here5" << std::endl;
+
     while (abs(bound_b - bound_a) > GSS_tol_abs) {
 
-      std::cout << "bound_c:              !!" << bound_c << std::endl;
       double psi_stem_c = find_psi_stem_from_psi_root(-bound_c, psi_soil_inverted_);
+
+
       root_collar_psi_ = -root_collar_psi_;
+// std::cout << "made it to here6" << std::endl;
+
       double profit_at_c =
           profit_psi_stem_TF(psi_stem_c, root_collar_psi_);
-      std::cout << "bound_d:              !!" << bound_d << std::endl;
+
+// std::cout << "made it to here7" << std::endl;
+
       double psi_stem_d = find_psi_stem_from_psi_root(-bound_d, psi_soil_inverted_);
       root_collar_psi_ = -root_collar_psi_;
+
+
       double profit_at_d =
           profit_psi_stem_TF(psi_stem_d, root_collar_psi_);
 
@@ -486,21 +560,27 @@ double gr = (sqrt(5) + 1) / 2;
         bound_a = bound_c;
       }
 
+
       bound_c = bound_b - (bound_b - bound_a) / gr;
       bound_d = bound_a + (bound_b - bound_a) / gr;
     }
 
-    std::cout << "made it out" << std::endl;
 
     double opt_root_psi = ((bound_b + bound_a) / 2);
+    
     opt_psi_stem_ = find_psi_stem_from_psi_root(-opt_root_psi, psi_soil_inverted_);
 
-    std::cout << "opt_root_psi:" << opt_root_psi << std::endl;
 
     root_collar_psi_ = opt_root_psi;
     profit_ = profit_psi_stem_TF(opt_psi_stem_, root_collar_psi_);
 
-    return opt_psi_stem_;
+
+    // std::cout << "opt_psi_stem_:" << opt_psi_stem_ << "root_collar_psi_:" << root_collar_psi_ << "profit_:" << profit_ << std::endl;
+
+    if(std::isnan(profit_)){
+      std::cout << "root_collar_psi_: " << root_collar_psi_ << "opt_psi_stem_: " << opt_psi_stem_ << "assim_colimited_" << assim_colimited_ << "hydraulic_cost_:" << hydraulic_cost_ << "bound_b: " << bound_b << "bound_a:" << bound_a << "-root_zero_E:" << -root_zero_E << "-root_crit:" << -root_crit << "wettest_soil_layer:" << wettest_soil_layer << std::endl;
+          util::stop("Error: nan");
+    }
 }
 
 
@@ -523,6 +603,11 @@ double Leaf::peak_arrh_curve(double Ea, double ref_value, double leaf_temp, doub
 
 // returns proportion of conductance taken from hydraulic vulnerability curve (unitless)
 double Leaf::proportion_of_conductivity(double psi) const {
+
+  if(psi < 0){
+    std::cout <<  "psi:" << psi << std::endl;
+  }
+
   return exp(-pow((psi / b), c));
 }
 
@@ -572,11 +657,7 @@ double Leaf::transpiration_to_psi_stem(double transpiration_, double psi_upstrea
   // integration of proportion_of_conductivity over [root_collar_psi_, psi_stem]
 
 
-  // std::cout << "transpiration_:" << transpiration_ << std::endl;
-  // std::cout << "leaf_specific_conductance_max_:" << leaf_specific_conductance_max_ << std::endl;
-
   double E_psi_stem = transpiration_/leaf_specific_conductance_max_ +  transpiration_from_psi.eval(-psi_upstream);
-
 
 
   return psi_from_transpiration.eval(E_psi_stem);
@@ -654,25 +735,29 @@ double Leaf::psi_stem_to_ci(double psi_stem, double psi_upstream) {
   };
 
   // tol and iterations copied from control defaults (for now) - changed recently to 1e-6
-  return ci_ = util::uniroot(target, gamma_ * umol_per_mol_to_Pa, ca_, ci_abs_tol, ci_niter);
+  return ci_ = util::uniroot(target, gamma_ * umol_per_mol_to_Pa, ca_, 1e-8, ci_niter);
 }
 
 // given psi_stem, find assimilation, transpiration and stomal conductance to c02
 void Leaf::set_leaf_states_rates_from_psi_stem(double psi_stem, double psi_upstream) {
-  
+
   if (psi_upstream >= psi_stem){
     ci_ = gamma_*umol_per_mol_to_Pa;
     transpiration_ = 0;
     stom_cond_CO2_ = 0;
     } else{
+      if(assim_max_ < 0){
+        // std::cout << "being accessed2:" << std::endl;
+        ci_ = gamma_*umol_per_mol_to_Pa;
+        transpiration_ = 0;
+        stom_cond_CO2_ = 0;
+        } else{
       ci_ = psi_stem_to_ci(psi_stem, psi_upstream);
       transpiration_ = transpiration(psi_stem, psi_upstream);
       stom_cond_CO2_ = atm_kpa_ * transpiration_ * kg_to_mol_h2o / atm_vpd_ / H2O_CO2_stom_diff_ratio;
       }
-  
+    }
   assim_colimited_ = assim_colimited(ci_);
-  
-
 }
 
 
@@ -697,7 +782,6 @@ double Leaf::hydraulic_cost_TF(double psi_stem) {
 
   hydraulic_cost_ = g1_TF24 * pow((1 - proportion_of_conductivity(psi_stem)), beta2);
 
-
 return hydraulic_cost_;
 }
 
@@ -717,7 +801,7 @@ set_leaf_states_rates_from_psi_stem(psi_stem, psi_upstream);
 double Leaf::profit_psi_stem_TF(double psi_stem, double psi_upstream) {
 set_leaf_states_rates_from_psi_stem(psi_stem, psi_upstream);
 
-  double benefit_ = assim_colimited_;
+double benefit_ = assim_colimited_;
   double hydraulic_cost_ = hydraulic_cost_TF(psi_stem);
 
   return benefit_ - hydraulic_cost_;

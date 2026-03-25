@@ -9,8 +9,8 @@ Leaf__initialize_integrator <- function(obj_, integration_rule, integration_tol)
     invisible(.Call('_plant_Leaf__initialize_integrator', PACKAGE = 'plant', obj_, integration_rule, integration_tol))
 }
 
-Leaf__set_physiology <- function(obj_, root_mass, rho, a_bio, PPFD, psi_soil, soil_depth, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area, leaf_temp, atm_o2_kpa, atm_kpa) {
-    invisible(.Call('_plant_Leaf__set_physiology', PACKAGE = 'plant', obj_, root_mass, rho, a_bio, PPFD, psi_soil, soil_depth, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area, leaf_temp, atm_o2_kpa, atm_kpa))
+Leaf__set_physiology <- function(obj_, mass_root_prop, rho, a_bio, PPFD, psi_soil, soil_depth, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area, leaf_temp, atm_o2_kpa, atm_kpa) {
+    invisible(.Call('_plant_Leaf__set_physiology', PACKAGE = 'plant', obj_, mass_root_prop, rho, a_bio, PPFD, psi_soil, soil_depth, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area, leaf_temp, atm_o2_kpa, atm_kpa))
 }
 
 Leaf__proportion_of_conductivity <- function(obj_, psi) {
@@ -65,12 +65,12 @@ Leaf__set_leaf_states_rates_from_psi_stem <- function(obj_, psi_stem, psi_upstre
     invisible(.Call('_plant_Leaf__set_leaf_states_rates_from_psi_stem', PACKAGE = 'plant', obj_, psi_stem, psi_upstream))
 }
 
-Leaf__E_from_Soil_to_Root_Collar <- function(obj_, P_x_r, P_soil, dz, LA) {
-    .Call('_plant_Leaf__E_from_Soil_to_Root_Collar', PACKAGE = 'plant', obj_, P_x_r, P_soil, dz, LA)
+Leaf__E_from_Soil_to_Root_Collar <- function(obj_, P_x_r, P_soil) {
+    .Call('_plant_Leaf__E_from_Soil_to_Root_Collar', PACKAGE = 'plant', obj_, P_x_r, P_soil)
 }
 
 Leaf__find_root_collar_psi <- function(obj_) {
-    .Call('_plant_Leaf__find_root_collar_psi', PACKAGE = 'plant', obj_)
+    invisible(.Call('_plant_Leaf__find_root_collar_psi', PACKAGE = 'plant', obj_))
 }
 
 Leaf__find_root_psi <- function(obj_, wettest_soil_layer, psi_soil, find_root_crit) {
@@ -259,30 +259,6 @@ Leaf__rho___get <- function(obj_) {
 
 Leaf__rho___set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__rho___set', PACKAGE = 'plant', obj_, value))
-}
-
-Leaf__root_mass___get <- function(obj_) {
-    .Call('_plant_Leaf__root_mass___get', PACKAGE = 'plant', obj_)
-}
-
-Leaf__root_mass___set <- function(obj_, value) {
-    invisible(.Call('_plant_Leaf__root_mass___set', PACKAGE = 'plant', obj_, value))
-}
-
-Leaf__c_r_V_total___get <- function(obj_) {
-    .Call('_plant_Leaf__c_r_V_total___get', PACKAGE = 'plant', obj_)
-}
-
-Leaf__c_r_V_total___set <- function(obj_, value) {
-    invisible(.Call('_plant_Leaf__c_r_V_total___set', PACKAGE = 'plant', obj_, value))
-}
-
-Leaf__c_r_H_total___get <- function(obj_) {
-    .Call('_plant_Leaf__c_r_H_total___get', PACKAGE = 'plant', obj_)
-}
-
-Leaf__c_r_H_total___set <- function(obj_, value) {
-    invisible(.Call('_plant_Leaf__c_r_H_total___set', PACKAGE = 'plant', obj_, value))
 }
 
 Leaf__c_r_V___get <- function(obj_) {

@@ -559,6 +559,21 @@ l$set_physiology(root_mass = 1, rho = 608, a_bio = 0.0245, PPFD = 1000, psi_soil
 
 
 l$find_root_collar_psi()
+
+system.time(for(i in 1:10000){
+  print(i)
+  soil_depth = seq(0.5,1,length.out = 15)
+  psi_soil = seq(0.5,1,length.out = 15)
+
+l$set_physiology(root_mass = 1, rho = 608, a_bio = 0.0245, PPFD = 1000, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+
+
+l$find_root_collar_psi()
+assim = l$assim_colimited_
+print(assim)
+})
+
+
 l$root_collar_psi_
 bound_a = l$find_root_psi(-0.5, -psi_soil, 1)
 bound_b = l$find_root_psi(-0.5, -psi_soil, 0)
@@ -655,5 +670,93 @@ E
 
 
 l$E_from_Soil_to_Root_Collar(P_x_r = -5, P_soil = c(-0.0597947, -0.1221), dz = 0.1, z_soil_mid = c(0.05, 0.15), LA = 1, c_r_H = c(20,30), c_r_V = c(20,30), beta_R_H = 3.4e3, beta_R_V = 9.4e4)
+
+
+vcmax_25 = 100 #maximum carboxylation rate (umol m^-2 s^-1) 
+  jmax_25 = vcmax_25*167 #maximum electron transport rate (umol m^-2 s^-1) 
+  p_50 = 2 #stem water potential at 50% loss of conductivity
+  c = 2.04 #shape parameter for hydraulic vulnerability curve (unitless) estimated from trait data in Austraits from Choat et al. 2012
+  b = 3 #shape parameter for vulnerability curve, point of 37% conductance (-MPa) 
+  psi_crit = 5 #stem water potential at which conductance is 95%
+  theta = 0.000157 #huber value (m^2 sapwood area m^-2 leaf area)
+  K_s = 1 #stem-specific conductivity (kg h2o m^-1 stem s^-1 MPa^-1)
+  h = 5 #height or path length (m)
+  beta2 = 1
+  hk_s = 75
+  curv_fact_elec_trans = 0.7
+  a = 0.3
+  curv_fact_colim = 0.99
+  g1_TF24 = 46.32995
+  GSS_tol_abs = 1e-8
+  vulnerability_curve_ncontrol = 100
+  ci_abs_tol = 1e-6
+  ci_niter = 1000
+  beta_R_H = 3.4e3
+  beta_R_V = 9.4e4
+  
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, 
+            beta2= beta2, hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
+            GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
+            ci_niter = ci_niter, g1_TF24 = g1_TF24, beta_R_H = beta_R_H, beta_R_V = beta_R_V)
+  
+  #without setting physiology, PPFD_, k_l_max_, and psi_soil_ should all be NA
+  
+  expect_true(is.na(l$PPFD_))
+  expect_true(is.na(l$leaf_specific_conductance_max_))
+  # expect_true(is.na(l$psi_soil_))
+  expect_true(is.na(l$atm_vpd_))
+  expect_true(is.na(l$ca_))
+  expect_true(is.na(l$lambda_))
+  expect_true(is.na(l$lambda_analytical_))
+  expect_true(is.na(l$atm_o2_kpa_))
+  expect_true(is.na(l$leaf_temp_))
+  expect_true(is.na(l$ci_))
+  expect_true(is.na(l$stom_cond_CO2_))
+  expect_true(is.na(l$assim_colimited_))
+  expect_true(is.na(l$transpiration_))
+  expect_true(is.na(l$profit_))
+  expect_true(is.na(l$lambda_))
+  expect_true(is.na(l$lambda_analytical_))
+  expect_true(is.na(l$hydraulic_cost_))
+  expect_true(is.na(l$electron_transport_))
+  expect_true(is.na(l$gamma_))
+  expect_true(is.na(l$ko_))
+  expect_true(is.na(l$kc_))
+  expect_true(is.na(l$km_))
+  expect_true(is.na(l$R_d_))
+  expect_true(is.na(l$rho_))
+  expect_true(is.na(l$vcmax_))
+  expect_true(is.na(l$jmax_))
+  expect_true(is.na(l$a_bio_))
+  expect_true(is.na(l$root_collar_psi_))
+  expect_true(is.na(l$opt_psi_stem_))
+  expect_true(is.na(l$opt_ci_))
+  expect_true(is.na(l$E_up_))
+
+  #now set physiology, PPFD_, k_l_max_, and psi_soil_, atm_vpd_ should be not NA
+  
+  PPFD = 20
+  sapwood_volume_per_leaf_area = theta*h
+  leaf_specific_conductance_max = K_s*theta/h
+  psi_soil = 2
+  atm_vpd = 2
+  ca = 40
+  atm_o2_kpa_ = 21
+  leaf_temp_ = 25
+  atm_kpa_ = 101.3
+  
+  l$set_physiology(mass_root_prop = 1, rho = 608, a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_soil, soil_depth = 1, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+  l$assim_colimited(40)
+
+  l$set_leaf_states_rates_from_psi_stem(3,1)
+  l$assim_colimited_
+  tibble(ci = seq(4,40,1)) %>%
+  mutate(assim = map_dbl(ci, ~l$assim_colimited(.x))/1e6) %>%
+  mutate(stom_cond_CO2_ = l$stom_cond_CO2(3,1)) %>%
+  mutate(stom_cond_CO2_ = stom_cond_CO2_*(40 - ci)/ (atm_kpa_ * 1000)) %>%
+  pivot_longer(cols = c(assim, stom_cond_CO2_)) %>%
+  ggplot(aes(x = ci, y =value)) + 
+  geom_line(aes(group = name, colour = name))
+  
 
   })

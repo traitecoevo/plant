@@ -257,6 +257,7 @@ void Patch<T,E>::compute_environment(bool rescale) {
 
 template <typename T, typename E>
 void Patch<T,E>::compute_rates() {
+        std::cout << "STARTING PATCH" << std::endl;
 
   // Computes rates of change for the patch, including all the component species
   // While the patch has an `environment`, the rates here are calculated from
@@ -266,7 +267,6 @@ void Patch<T,E>::compute_rates() {
   double time_ = environment_ptr->time;
 
   double pr_patch_survival = survival_weighting->pr_survival(time_);
-
   for (size_t i = 0; i < size(); ++i) {
     double pr_patch_survival = survival_weighting->pr_survival(time_);
     double birth_rate = species[i].extrinsic_drivers().evaluate("birth_rate", time_);
@@ -283,11 +283,15 @@ void Patch<T,E>::compute_rates() {
 
     resource_depletion.push_back(resource_consumed);
   }
+  
+  std::cout << "size:" <<size() <<std::endl;
 
   environment_ptr->compute_rates(resource_depletion);
 
   //todo do we need to clear this every step?
   resource_depletion.clear();
+          std::cout << "ENDING PATCH" << std::endl;
+
 }
 
 // TODO: We should only be recomputing the light environment for the
