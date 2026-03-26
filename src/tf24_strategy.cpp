@@ -121,17 +121,15 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   // store the aux sate
   vars.set_aux(aux_index.at("net_mass_production_dt"), net_mass_production_dt_);
   vars.set_aux(aux_index.at("root_mass"), mass_root(area_leaf_));
+  vars.set_aux(aux_index.at("opt_psi_stem"), leaf.opt_psi_stem_);
+  vars.set_aux(aux_index.at("opt_root_psi"), leaf.root_collar_psi_);
+  vars.set_aux(aux_index.at("transpiration"), leaf.transpiration_);
+
 
     // convert evapotranspiration per leaf area (kg H20 m^-2 s^-1) to canopy-level total yearly assimilation (m yr^-1)
   // stubbing out E_p for integration
   for (size_t i = 0; i < environment.soil_number_of_depths; i++) {
-
-
     vars.set_consumption_rate(i, evapotranspiration_dt(area_leaf_, i)*60*60*12*365/1000*0.018015);
-
-    if(i == 0 & abs(vars.consumption_rate(0)) > 1e4){
-    std::cout << "vars.consumption_rate(0)" << vars.consumption_rate(0) << std::endl;
-}
   }
 
   if (net_mass_production_dt_ > 0) {
@@ -311,8 +309,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   
   for (int a = 0; a < environment.get_soil_number_of_depths(); a++){
     
-    double prop_roots = environment.get_soil_depths()[a]/(1.5 * height / 30);
-     // std::cout << "a:" << a << "prop_roots:" << prop_roots << std::endl;
+    double prop_roots = environment.get_soil_depths()[a]/(1.5 * height / 15);
     if(a == 0){
 
       if(prop_roots > 1){
@@ -324,11 +321,11 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
     } else{
 
       if(prop_roots > 1){
-        mass_root_prop_[a] = mass_root_ - mass_root_*environment.get_soil_depths()[a - 1]/(1.5 * height / 30);
+        mass_root_prop_[a] = mass_root_ - mass_root_*environment.get_soil_depths()[a - 1]/(1.5 * height / 15);
               break;
 
       } else {
-        mass_root_prop_[a] = mass_root_*prop_roots - mass_root_*environment.get_soil_depths()[a - 1]/(1.5 * height / 30);
+        mass_root_prop_[a] = mass_root_*prop_roots - mass_root_*environment.get_soil_depths()[a - 1]/(1.5 * height / 15);
       }
     }
   }
@@ -336,8 +333,6 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
      for (int a = 0; a < environment.get_soil_number_of_depths(); a++){
       if(mass_root_prop_[a] != 0){
         //convert to mols and per leaf area
-
-         // std::cout << "a:" << a << "mass_root_prop_[a]:" << mass_root_prop_[a] << std::endl;
 
               mass_root_prop_[a] = 83.26*0.5*mass_root_prop_[a] / area_leaf_;
      }

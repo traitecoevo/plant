@@ -96,7 +96,6 @@ void Node<T,E>::compute_rates(const environment_type& environment,
   log_density_dt =
     - growth_rate_gradient(environment)
     - individual.rate("mortality");
-
   // survival_individual: converts from the mean of the poisson process (on
   // [0,Inf)) to a probability (on [0,1]).
   double survival_individual = exp(-individual.state(MORTALITY_INDEX));

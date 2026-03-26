@@ -49,7 +49,7 @@ tidy_env <- function(results) {
 
   names(env_long) <- env_variables
   if(any(env_variables == "soil_moist_cumulative_flux")){
-  cumulative_names <- c("sum_rainfall","sum_infiltration","sum_drainage")
+  cumulative_names <- c("sum_rainfall","sum_infiltration","sum_drainage","sum_resource_depletion")
   
   env_long$soil_moist_cumulative_flux <- env_long$soil_moist_cumulative_flux %>%
     dplyr::mutate(cumulative_variables = rep(cumulative_names, times = nrow(.)/length(cumulative_names))) %>%
@@ -205,7 +205,6 @@ tidy_individual <- function(results) {
 #'
 #' @importFrom rlang .data
 integrate_over_size_distribution <- function(tidy_species_data) {
-  
   tidy_species_data  %>%
     dplyr::select(-dplyr::any_of("node")) %>% stats::na.omit() %>%
     dplyr::filter(.data$step > 1) %>% 

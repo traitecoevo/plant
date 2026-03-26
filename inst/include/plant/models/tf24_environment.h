@@ -63,7 +63,7 @@ public:
   };
   
   // Number of cumulative auxilliary variables to track in soil moisture model
-  double aux_num = 3;
+  double aux_num = 4;
   
   // Setup soil water distribtuion
   void set_soil_number_of_depths(int n) {
@@ -140,6 +140,8 @@ public:
     double water_input;
     double rainfall = extrinsic_drivers.evaluate("rainfall", time);
     double infiltration = rainfall*std::max(0.0, 1 - a_infil*std::pow(vars.state(0)/soil_moist_sat, b_infil));
+    double total_resource_depletion = 0;
+
 
     // treat each soil layer as a separate resource pool
     for (size_t i = 0; i < soil_number_of_depths; i++)
@@ -160,13 +162,13 @@ public:
       // this function does runoff
 
       vars.set_rate(i, (water_input - water_flux[i] - resource_depletion[i])/dz[i]); 
-      if(i == 0){
-        std::cout << "water_input" << water_input << "water_flux[i]" << water_flux[i] << "resource_depletion[i]: "<< resource_depletion[i]  << std::endl;
-      }
+      total_resource_depletion += resource_depletion[i];
     }
       vars.set_rate(soil_number_of_depths, rainfall);
       vars.set_rate(soil_number_of_depths + 1, infiltration);
       vars.set_rate(soil_number_of_depths + 2, water_flux[soil_number_of_depths - 1]);
+      vars.set_rate(soil_number_of_depths + 3, total_resource_depletion);
+
   }
 
   // calculate K from K_sat based on theta

@@ -257,7 +257,6 @@ void Patch<T,E>::compute_environment(bool rescale) {
 
 template <typename T, typename E>
 void Patch<T,E>::compute_rates() {
-        std::cout << "STARTING PATCH" << std::endl;
 
   // Computes rates of change for the patch, including all the component species
   // While the patch has an `environment`, the rates here are calculated from
@@ -265,6 +264,10 @@ void Patch<T,E>::compute_rates() {
   //  -- for the resident the pointer points to the internal environment object
   //  -- for a mutant, the pointer points to a cached environment object
   double time_ = environment_ptr->time;
+
+  if(time_ < 0.1){
+  std::cout << "time_:" << time_ << std::endl;
+}
 
   double pr_patch_survival = survival_weighting->pr_survival(time_);
   for (size_t i = 0; i < size(); ++i) {
@@ -284,13 +287,11 @@ void Patch<T,E>::compute_rates() {
     resource_depletion.push_back(resource_consumed);
   }
   
-  std::cout << "size:" <<size() <<std::endl;
 
   environment_ptr->compute_rates(resource_depletion);
 
   //todo do we need to clear this every step?
   resource_depletion.clear();
-          std::cout << "ENDING PATCH" << std::endl;
 
 }
 
