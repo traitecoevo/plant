@@ -235,19 +235,11 @@ double Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>&
     const double gravity_head = 9.8e-3; // MPa / m
     
     // root vulnerability curve parameters
-    double b_root = 2; //Mpa
+    double b_root = 1.29; //Mpa
     double c_root = 2.65;
 
 
     for(size_t i = 0; i < max_soil_layer; i++){
-
-if(P_soil[i] > 0){
-    std::cout << "P_soil[i]:" << P_soil[i] << "P_x_r:" <<  P_x_r << std::endl;
-}
-
-if(P_x_r > 0){
-    std::cout << "P_soil[i]:" << P_soil[i] << "P_x_r:" <<  P_x_r << std::endl;
-}
 
     // Find the most negative soil potential out of the given soil layer and the root collar
     double P_src_min = std::min(P_soil[i], P_x_r);
@@ -265,9 +257,7 @@ if(P_x_r > 0){
     if(abs(P_x_r - P_soil[i]) < 1e-20){
 
       // Fraction of conductance in roots in a given layer at most negative soil water potential
-      if(P_src_min > 0){
-      std::cout << "P_src_min:" << P_src_min<< std::endl;
-      }
+
       double f_ri = exp(-(pow(-P_src_min/b_root,c_root)));
 
       // Fraction of conductance in roots in a given layer at most negative soil water potential
@@ -352,9 +342,7 @@ if(P_x_r > 0){
     // f_r[i] = f_r_average;
     }
   }
-  
-  std::vector<double> r_R_H;
-  // Total transpiration equal to sum of uptake from each layer
+    // Total transpiration equal to sum of uptake from each layer
 
    E_up_ = 0;
 
@@ -363,16 +351,6 @@ if(P_x_r > 0){
     E_up_ += soil_consumption_[i];
   }
 
-  std::vector<double> r_R;
-  // Recalculate resistances in each layer (TODO: Bit unsure about why z_soil_mid is [i])
-  // for (size_t i = 0; i < max_soil_layer; i++){
-
-
-  //   r_R.push_back((P_soil[i] - P_x_r - water_dens * gravity * z_soil_mid_[i] / 1e6) / soil_consumption_[i]);
-  //   double r_R_H_max = std::max((r_R[i] - r_R_V_sum[i]), r_R_H_min[i]);
-
-  //   r_R_H.push_back(r_R_H_max);
-  // }
   return E_up_*0.018015;
 }
 
@@ -441,7 +419,6 @@ double wettest_soil_layer = *std::max_element(psi_soil_inverted_.begin(), psi_so
     }
 
   if (-wettest_soil_layer >= psi_crit){
-    std::cout<<  "is this being accessed!!" << std::endl;
 
     // profit_ = 0;
     root_collar_psi_ = -psi_crit;
@@ -455,7 +432,6 @@ double root_crit = find_root_psi(wettest_soil_layer, psi_soil_inverted_, 1);
 
 
     if (-root_crit >= psi_crit){
-    std::cout<<  "is this being accessed?" << std::endl;
     // profit_ = 0;
     root_collar_psi_ = root_crit;
     opt_psi_stem_ = psi_crit;
@@ -465,7 +441,6 @@ double root_crit = find_root_psi(wettest_soil_layer, psi_soil_inverted_, 1);
 
 double root_zero_E = find_root_psi(wettest_soil_layer, psi_soil_inverted_, 0);
 if(assim_max_ < 0){
-  std::cout << "being accessed" << std::endl;
     opt_psi_stem_ = root_zero_E;
     root_collar_psi_ = root_zero_E;
     double E_up = E_from_Soil_to_Root_Collar(root_collar_psi_, psi_soil_inverted_);
@@ -473,7 +448,6 @@ if(assim_max_ < 0){
     profit_ = - R_d_ - hydraulic_cost_TF(-root_collar_psi_);
 
         if(std::isnan(profit_)){
-      std::cout << "root_collar_psi_: " << root_collar_psi_ << "opt_psi_stem_: " << opt_psi_stem_ << "assim_colimited_" << assim_colimited_ << "hydraulic_cost_:" << hydraulic_cost_ << std::endl;
           util::stop("Error: nan");
     }
 
@@ -526,12 +500,10 @@ double gr = (sqrt(5) + 1) / 2;
     
     opt_psi_stem_ = find_psi_stem_from_psi_root(-opt_root_psi, psi_soil_inverted_);
 
-
     root_collar_psi_ = opt_root_psi;
     profit_ = profit_psi_stem_TF(opt_psi_stem_, root_collar_psi_);
 
     if(std::isnan(profit_)){
-      std::cout << "root_collar_psi_: " << root_collar_psi_ << "opt_psi_stem_: " << opt_psi_stem_ << "assim_colimited_" << assim_colimited_ << "hydraulic_cost_:" << hydraulic_cost_ << "bound_b: " << bound_b << "bound_a:" << bound_a << "-root_zero_E:" << -root_zero_E << "-root_crit:" << -root_crit << "wettest_soil_layer:" << wettest_soil_layer << std::endl;
           util::stop("Error: nan");
     }
 }

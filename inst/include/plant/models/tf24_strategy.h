@@ -48,7 +48,8 @@ public:
       "opt_psi_stem",
       "opt_root_psi",
       "transpiration",
-      "profit"
+      "profit",
+      "stom_cond_CO2"
     });
     // add the associated computation to compute_rates and compute there
     if (collect_all_auxiliary) {
