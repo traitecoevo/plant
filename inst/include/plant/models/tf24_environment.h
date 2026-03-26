@@ -72,6 +72,7 @@ public:
     vars = Internals(soil_number_of_depths + aux_num);
 
     z.resize(soil_number_of_depths);
+    z_mid.resize(soil_number_of_depths);
     dz.resize(soil_number_of_depths);
     // positive downwards
     water_flux.resize(soil_number_of_depths);
@@ -81,6 +82,11 @@ public:
     for (int i = 0; i < soil_number_of_depths; i++)
     {
       z[i] = (i + 1) * delta_z;
+      if (i == 0) {
+        z_mid[i] = z[i] / 2.0;
+      } else {
+        z_mid[i] = (z[i - 1] + z[i]) / 2.0;
+      }
     }
 
     for (int i = 0; i < soil_number_of_depths; i++)
@@ -89,10 +95,12 @@ public:
     }
   }
   int get_soil_number_of_depths() const {return soil_number_of_depths;}
+  std::vector<double> get_soil_mid_depths() const { return z_mid; }
 
   // TODO: should we use auxilliary in internals
   std::vector<double> water_flux;
   std::vector<double> z;
+  std::vector<double> z_mid;
   std::vector<double> dz;
 
   // A ResourceSpline used for storing light availbility (0-1)

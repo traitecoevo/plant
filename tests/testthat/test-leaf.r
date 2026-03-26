@@ -35,7 +35,6 @@ test_that("Basic functions", {
   
   expect_true(is.na(l$PPFD_))
   expect_true(is.na(l$leaf_specific_conductance_max_))
-  # expect_true(is.na(l$psi_soil_))
   expect_true(is.na(l$atm_vpd_))
   expect_true(is.na(l$ca_))
   expect_true(is.na(l$lambda_))
@@ -64,7 +63,16 @@ test_that("Basic functions", {
   expect_true(is.na(l$opt_psi_stem_))
   expect_true(is.na(l$opt_ci_))
   expect_true(is.na(l$E_up_))
+  expect_true(is.na(l$soil_number_of_depths_))
+  
+  
+  expect_true(length(l$psi_soil_) == 0)
+  expect_true(length(l$soil_depth_) == 0)
+  expect_true(length(l$z_soil_mid_) == 0)
+  expect_true(length(l$c_r_H_) == 0)
+  expect_true(length(l$c_r_V_) == 0)
 
+  
   #now set physiology, PPFD_, k_l_max_, and psi_soil_, atm_vpd_ should be not NA
   
   PPFD = 900

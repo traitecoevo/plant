@@ -153,6 +153,7 @@ public:
   std::vector<double> psi_soil_;
   std::vector<double> soil_depth_;
   std::vector<double> z_soil_mid_;
+  bool use_precomputed_z_soil_mid_;
   double dz_;
   std::vector<double> r_R_H_min;
         // vertical root resistance

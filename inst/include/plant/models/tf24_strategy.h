@@ -47,7 +47,8 @@ public:
       "root_mass",
       "opt_psi_stem",
       "opt_root_psi",
-      "transpiration"
+      "transpiration",
+      "profit"
     });
     // add the associated computation to compute_rates and compute there
     if (collect_all_auxiliary) {
@@ -317,7 +318,7 @@ public:
   double vulnerability_curve_ncontrol = 100;
   double ci_abs_tol = 1e-6;
   double ci_niter = 1000;
-  double g1_TF24 = 10;
+  double g1_TF24 = 7.5;
   double beta_R_H = 3.4e3;
   double beta_R_V = 9.4e4;
 

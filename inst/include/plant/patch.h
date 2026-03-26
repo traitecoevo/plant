@@ -265,10 +265,6 @@ void Patch<T,E>::compute_rates() {
   //  -- for a mutant, the pointer points to a cached environment object
   double time_ = environment_ptr->time;
 
-  if(time_ < 0.1){
-  std::cout << "time_:" << time_ << std::endl;
-}
-
   double pr_patch_survival = survival_weighting->pr_survival(time_);
   for (size_t i = 0; i < size(); ++i) {
     double pr_patch_survival = survival_weighting->pr_survival(time_);

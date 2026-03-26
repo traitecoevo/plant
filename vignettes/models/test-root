@@ -1,0 +1,201 @@
+---
+title: "Testing root model"
+format: html
+editor_options:
+  chunk_output_type: console
+---
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(patchwork)
+```
+
+```{r}
+devtools::load_all("/Users/z3533545/Documents/GitHub/plant/")
+p0 <- scm_base_parameters("TF24", "TF24_Env")
+p0$max_patch_lifetime <-6
+traits <- trait_matrix(c(0.07), c("lma"))
+p1 <- expand_parameters(traits, p0)
+env <- Environment("TF24")
+env$set_soil_number_of_depths(15)
+env$set_soil_water_state(rep(c(0.09), times = 15))
+x = seq(0,20,length.out = 10000)
+y = 0.25*sin(2*pi*x) + 1
+env$extrinsic_drivers_set_variable("rainfall", x=x, y=y)
+system.time(results <- run_scm_collect(p1, env = env))
+```
+
+```{r}
+root_mass_prop <- function(data){
+mass_root_prop_ <- rep(0,15)
+for (i in 1:15){ 
+    prop_roots = data$soil_depth$soil_depth[i]/(1.5 * data$height[i] / 4)
+    if(i == 1){
+      if(prop_roots > 1){
+        mass_root_prop_[i] = data$mass_root[1]
+
+        break;
+      } else {
+        mass_root_prop_[i] = data$mass_root[1]*prop_roots
+      }
+    } else{
+
+      if(prop_roots > 1){
+        mass_root_prop_[i] = data$mass_root[1] - data$mass_root[1]*data$soil_depth$soil_depth[i - 1]/(1.5 * data$height[i] / 4)
+              break
+
+      } else {
+        mass_root_prop_[i] = data$mass_root[1]*prop_roots - data$mass_root[1]*data$soil_depth$soil_depth[i - 1]/(1.5 * data$height[i] / 4)
+      }
+    }
+  }
+  return(mass_root_prop_)
+}
+```
+
+```{r}
+results %>%
+expand_state() %>% 
+pluck("species") %>% 
+  integrate_over_size_distribution()%>% 
+  ggplot(aes(time, area_leaf)) +
+  geom_line(size = 2, colour = "forestgreen") +
+  theme_bw() +
+  theme(text = element_text(size = 20)) +
+  ylab(expression(paste(Patch~leaf~area, " (",m^2," ",m^{-2},")"))) +
+  xlab("Time (yr)") -> a
+```
+
+```{r}
+results  %>% 
+expand_state() %>% 
+pluck("species") %>% 
+  tidyr::crossing(soil_depth = results$env$soil_depth %>% select(soil_depth)) %>% 
+  group_by(species,time,step,node) %>% 
+  nest() %>%
+  slice(1) %>%
+  mutate(root_mass_prop = map(data, ~root_mass_prop(.x))) %>% 
+  unnest(cols = c(data, root_mass_prop)) %>%
+  ungroup() %>%
+  select(patch_density, time, species, step, density, height, soil_depth, area_leaf, root_mass_prop, node) %>%
+  mutate(soil_depth = soil_depth$soil_depth) %>% 
+  pivot_wider(names_from = soil_depth, values_from = root_mass_prop) %>%
+  unnest(cols = c(`0.1`,`0.2`,`0.3`,`0.4`,`0.5`,`0.6`,`0.7`,`0.8`,`0.9`,`1`,`1.1`, `1.2`, `1.3`, `1.4`, `1.5`)) %>%
+  integrate_over_size_distribution() %>%
+  pivot_longer(cols = c(`0.1`,`0.2`,`0.3`,`0.4`,`0.5`,`0.6`,`0.7`,`0.8`,`0.9`,`1`,`1.1`, `1.2`, `1.3`, `1.4`, `1.5`), names_to = "soil_layer", values_to = "root_mass_prop")%>%
+  mutate(soil_layer = as.numeric(soil_layer)) %>%
+  # mutate(root_mass_prop = ifelse(root_mass_prop == 0, NA, root_mass_prop)) %>% 
+  group_by(species, soil_layer) %>% 
+  ggplot(aes(time, root_mass_prop)) +
+  geom_line() +
+  facet_wrap(~soil_layer, nrow = 3) +
+  theme_bw() +
+  theme(text = element_text(size = 20)) +
+  ylab(expression(paste(Patch~root~area, " (",kg," ",m^{-2},")"))) +
+  xlab("Time (years)") -> b
+```
+
+```{r}
+results$species %>%
+  drop_na() %>%
+  plot_size_distribution() +
+  theme_bw() +
+  theme(legend.position = "none")+
+  theme(text = element_text(size = 20))-> c_plot
+```
+
+```{r}
+results$env$soil_moist %>%
+mutate(soil_depth = results$env$soil_depth$soil_depth) %>%
+mutate(psi_soil = (8.7 * (soil_moist/0.453)^ -4.8)/1e6) %>%
+ggplot(aes(x = time, y = psi_soil, group = soil_depth, colour = soil_depth)) +
+geom_line() +
+  theme_bw() +
+  theme(text = element_text(size = 20)) +
+  ylab(expression(paste(psi[soil], " (",-Mpa,")"))) +
+  xlab("Time (years)") +
+  labs(colour = "Soil depth (m)") -> d
+```
+
+```{r}
+results$species %>%
+ggplot(aes(x = time, y = opt_psi_stem)) +
+geom_line(aes(colour = height, group = node)) +
+  theme_bw() +
+  theme(text = element_text(size = 20)) +
+  ylab(expression(paste(psi[stem], " (",-Mpa,")"))) +
+  xlab("Time (years)") +
+  labs(colour = "Height (m)") -> e
+```
+
+```{r}
+results$species %>%
+ggplot(aes(x = time, y = opt_root_psi)) +
+geom_line(aes(colour = height, group = node)) +
+  theme_bw() +
+  theme(text = element_text(size = 20)) +
+  ylab(expression(paste(psi[root], " (",-Mpa,")"))) +
+  xlab("Time (years)") +
+  labs(colour = "Height (m)") -> f
+```
+
+```{r}
+results$species %>%
+ggplot(aes(x = time, y = profit)) +
+geom_line(aes(colour = height, group = node)) +
+  theme_bw() +
+  theme(text = element_text(size = 20)) +
+  ylab(expression(paste(Profit, " (",mu,mol~m^{-2}~s^{-1},")"))) +
+  xlab("Time (years)") +
+  labs(colour = "Height (m)") -> f2  
+```
+
+```{r}
+tibble(x = x, y= y) %>%
+ggplot(aes(x = x, y = y)) +
+geom_line() +
+  theme_bw() +
+  theme(text = element_text(size = 20)) +
+  ylab(expression(paste(Rainfall, " (",m,")"))) +
+  scale_x_continuous(limits =c(0,6)) +
+  xlab("Time (years)") -> g
+```
+
+```{r}
+tibble(deplet = results$env$soil_moist_cumulative_flux$sum_resource_depletion,
+time =results$env$soil_moist_cumulative_flux$time) %>%
+mutate(deplet = deplet - lag(deplet)) %>%
+ggplot(aes(x = time, y = deplet)) +
+geom_line() +
+  theme_bw() +
+  theme(text = element_text(size = 20)) +
+  ylab(expression(paste(Transpiration, " (",m~yr^{-1},")"))) +
+  xlab("Time (years)") -> h
+```
+
+```{r}
+total_area_leaf <- results %>%
+expand_state() %>% 
+pluck("species") %>% 
+  integrate_over_size_distribution() %>%
+  pull(area_leaf)
+
+tibble(deplet = results$env$soil_moist_cumulative_flux$sum_resource_depletion,
+time =results$env$soil_moist_cumulative_flux$time) %>%
+mutate(deplet = deplet - lag(deplet)) %>%
+mutate(deplet_per_area = deplet/c(NA,total_area_leaf)) %>%
+ggplot(aes(x = time, y = deplet_per_area)) +
+geom_line() +
+  theme_bw() +
+  theme(text = element_text(size = 20)) +
+  ylab(expression(paste(Transpiration~per~leaf~area, " (",m~m^{-2}~yr^{-1},")"))) +
+  xlab("Time (years)") -> i
+```
+
+```{r}
+library(patchwork)
+(a+c_plot+b)/((d+f)/(e + f2))/(h+i)/(g+g)
+
+ggsave("diagnostic_plot.png", height = 40, width = 20)
+```

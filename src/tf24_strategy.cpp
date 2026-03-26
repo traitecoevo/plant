@@ -124,6 +124,8 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   vars.set_aux(aux_index.at("opt_psi_stem"), leaf.opt_psi_stem_);
   vars.set_aux(aux_index.at("opt_root_psi"), leaf.root_collar_psi_);
   vars.set_aux(aux_index.at("transpiration"), leaf.transpiration_);
+  vars.set_aux(aux_index.at("profit"), leaf.profit_);
+
 
 
     // convert evapotranspiration per leaf area (kg H20 m^-2 s^-1) to canopy-level total yearly assimilation (m yr^-1)
@@ -309,7 +311,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   
   for (int a = 0; a < environment.get_soil_number_of_depths(); a++){
     
-    double prop_roots = environment.get_soil_depths()[a]/(1.5 * height / 15);
+    double prop_roots = environment.get_soil_depths()[a]/(1.5 * height / 4);
     if(a == 0){
 
       if(prop_roots > 1){
@@ -321,11 +323,11 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
     } else{
 
       if(prop_roots > 1){
-        mass_root_prop_[a] = mass_root_ - mass_root_*environment.get_soil_depths()[a - 1]/(1.5 * height / 15);
+        mass_root_prop_[a] = mass_root_ - mass_root_*environment.get_soil_depths()[a - 1]/(1.5 * height / 4);
               break;
 
       } else {
-        mass_root_prop_[a] = mass_root_*prop_roots - mass_root_*environment.get_soil_depths()[a - 1]/(1.5 * height / 15);
+        mass_root_prop_[a] = mass_root_*prop_roots - mass_root_*environment.get_soil_depths()[a - 1]/(1.5 * height / 4);
       }
     }
   }
@@ -337,6 +339,10 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
               mass_root_prop_[a] = 83.26*0.5*mass_root_prop_[a] / area_leaf_;
      }
     }
+  // Reuse geometry precomputed by environment; avoids rebuilding z midpoints each call.
+  leaf.z_soil_mid_ = environment.get_soil_mid_depths();
+  leaf.use_precomputed_z_soil_mid_ = true;
+
   //TODO: replace 1 with root_mass_
   leaf.set_physiology(mass_root_prop_, rho, a_bio, average_radiation, psi_soil, environment.get_soil_depths(), leaf_specific_conductance_max, environment.get_atm_vpd(), environment.get_ca(), sapwood_volume_per_leaf_area, environment.get_leaf_temp(), environment.get_atm_o2_kpa(), environment.get_atm_kpa());
 

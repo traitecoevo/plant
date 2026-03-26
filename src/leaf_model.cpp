@@ -19,7 +19,7 @@ Leaf::Leaf()
     vulnerability_curve_ncontrol(100),
     ci_abs_tol(1e-3),
     ci_niter(1000),
-    g1_TF24(10), //cost parameter for TF24 profit model umol m^-2 s^-1
+    g1_TF24(7.5), //cost parameter for TF24 profit model umol m^-2 s^-1
     beta_R_H(3.4e3),
     beta_R_V(9.4e4)
    {
@@ -95,12 +95,14 @@ void Leaf::setup_clean_leaf() {
   psi_soil_.clear();
   soil_depth_.clear();
   z_soil_mid_.clear();  // ADD THIS LINE
+  use_precomputed_z_soil_mid_ = false;
   c_r_V_.clear();
   c_r_H_.clear();
   r_R_H_min.clear();
   r_R_V.clear();
   c_r.clear();
   r_R_V_sum.clear();
+  soil_consumption_.clear();
 
   soil_number_of_depths_ = NA_INTEGER;
   max_soil_layer = NA_INTEGER;
@@ -122,16 +124,19 @@ void Leaf::set_physiology(std::vector<double> mass_root_prop, double rho, double
    psi_soil_ = psi_soil;
    soil_depth_ = soil_depth;
    soil_number_of_depths_ = soil_depth_.size();
-   // Calculate z_soil_mid_ based on soil_depth_
-   z_soil_mid_.clear();
-   z_soil_mid_.reserve(soil_number_of_depths_);
-   for (size_t i = 0; i < soil_number_of_depths_; ++i) {
-     if (i == 0) {
-       z_soil_mid_.push_back(soil_depth_[i] / 2.0);
-     } else {
-       z_soil_mid_.push_back((soil_depth_[i-1] + soil_depth_[i]) / 2.0);
+   if (!(use_precomputed_z_soil_mid_ &&
+         z_soil_mid_.size() == static_cast<size_t>(soil_number_of_depths_))) {
+     // Fallback for paths that do not provide environment-precomputed midpoints.
+     z_soil_mid_.resize(soil_number_of_depths_);
+     for (size_t i = 0; i < soil_number_of_depths_; ++i) {
+       if (i == 0) {
+         z_soil_mid_[i] = (soil_depth_[i] / 2.0);
+       } else {
+         z_soil_mid_[i] = ((soil_depth_[i - 1] + soil_depth_[i]) / 2.0);
+       }
      }
    }
+   use_precomputed_z_soil_mid_ = false;
    
    leaf_specific_conductance_max_ = leaf_specific_conductance_max;
    sapwood_volume_per_leaf_area_ = sapwood_volume_per_leaf_area;
@@ -153,8 +158,6 @@ void Leaf::set_physiology(std::vector<double> mass_root_prop, double rho, double
     max_soil_layer = i + 1;  
     }
   }
-  c_r_V_.clear();
-  c_r_H_.clear();
   c_r_V_.resize(max_soil_layer, 0.0);
   c_r_H_.resize(max_soil_layer, 0.0);
 
@@ -191,14 +194,12 @@ void Leaf::set_physiology(std::vector<double> mass_root_prop, double rho, double
 
     }
 
-    r_R_V_sum.clear();
     r_R_V_sum.resize(max_soil_layer);
 
     // Cumulative sum of vertical root resistance
     std::partial_sum(r_R_V.begin(), r_R_V.end(), r_R_V_sum.begin());
 
         // Set up vector of root water uptake from layer
-  soil_consumption_.clear();
   soil_consumption_.resize(soil_number_of_depths_, 0.0);
 
   assim_max_ = assim_colimited(ca_);
