@@ -20,10 +20,10 @@ public:
   TF24_Environment(bool light_availability_spline_rescale_usually = true,
                    int soil_number_of_depths = 5, 
                    double delta_z = 9999, // not using this
-                   double soil_moist_sat = 0.453, // saturated soil moisture content (m3 water m^-3 soil) 
-                   double K_sat = 440.628/10, //saturated hydraulic conductivity of soil
-                   double a_psi = 8.7, // not currently being used
-                   double n_psi = 4.8, // not currently being used
+                   double soil_moist_sat = 0.428, // saturated soil moisture content (m3 water m^-3 soil) 
+                   double K_sat = 163.0411, //saturated hydraulic conductivity of soil
+                   double a_psi = 1.78e3, // not currently being used
+                   double n_psi = 6.57, // not currently being used
                    double a_infil = 1, // infiltration switch (0-1), 0 no runoff, 1 runoff
                    double b_infil = 8, // unitless, determines infiltration rate
                    double depth = 1.5)  // total depth of soil (m)
@@ -166,7 +166,7 @@ public:
         water_input = water_flux[i-1];
       }
         // TODO: m3 m^-2
-      water_flux[i] = K_sat*pow(vars.state(i)/soil_moist_sat, 2);
+      water_flux[i] = soil_K_from_soil_theta(vars.state(i));
       // this function does runoff
 
       vars.set_rate(i, (water_input - water_flux[i] - resource_depletion[i])/dz[i]); 

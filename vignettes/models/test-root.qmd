@@ -12,7 +12,7 @@ library(patchwork)
 ```
 
 ```{r}
-max_patch_lifetime <- 1
+max_patch_lifetime <- 5
 
 devtools::load_all("/Users/z3533545/Documents/GitHub/plant/")
 p0 <- scm_base_parameters("TF24", "TF24_Env")
@@ -21,7 +21,7 @@ traits <- trait_matrix(c(0.07), c("lma"))
 p1 <- expand_parameters(traits, p0)
 env <- Environment("TF24")
 env$set_soil_number_of_depths(15)
-env$set_soil_water_state(rep(c(0.09), times = 15))
+env$set_soil_water_state(rep(c(0.2), times = 15))
 x = seq(0,max_patch_lifetime,length.out = 10000)
 y = 0.25*sin(2*pi*x) + 1
 env$extrinsic_drivers_set_variable("rainfall", x=x, y=y)
@@ -110,7 +110,7 @@ results$species %>%
 ```{r}
 results$env$soil_moist %>%
 mutate(soil_depth = results$env$soil_depth$soil_depth) %>%
-mutate(psi_soil = (8.7 * (soil_moist/0.453)^ -4.8)/1e6) %>%
+mutate(psi_soil = (1.78e3 * (soil_moist/0.428)^ -6.57)/1e6) %>%
 ggplot(aes(x = time, y = psi_soil, group = soil_depth, colour = soil_depth)) +
 geom_line() +
   theme_bw() +

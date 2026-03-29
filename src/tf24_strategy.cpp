@@ -335,11 +335,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   }
 
      for (int a = 0; a < environment.get_soil_number_of_depths(); a++){
-      if(mass_root_prop_[a] != 0){
-        //convert to mols and per leaf area
-
               mass_root_prop_[a] = 83.26*0.5*mass_root_prop_[a] / area_leaf_;
-     }
     }
   // Reuse geometry precomputed by environment; avoids rebuilding z midpoints each call.
   leaf.z_soil_mid_ = environment.get_soil_mid_depths();
