@@ -158,8 +158,7 @@ public:
   std::vector<double> r_R_H_min;
         // vertical root resistance
     std::vector<double> r_R_V;
-        // total root carbon, make it same size as crb
-    std::vector<double> c_r;
+
             // cumulative vertical sum of root resistance
     std::vector<double> r_R_V_sum;
     
@@ -206,10 +205,6 @@ public:
   void setup_transpiration(double resolution);
   void setup_clean_leaf();
   // std::vector<double> root_collar_psi(std::vector<double> soil_moist_);
-
-  double VC_l(double psi);
-  double vulnerability_curve_root(double P_soil);
-  double VC_sw(double psi);
 
   double E_from_Soil_to_Root_Collar(double P_x_r = -0.12, const std::vector<double>& P_soil = {-0.06, -0.12});
   void find_root_collar_psi();

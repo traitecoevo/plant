@@ -20,8 +20,8 @@ Leaf::Leaf()
     ci_abs_tol(1e-3),
     ci_niter(1000),
     g1_TF24(7.5), //cost parameter for TF24 profit model umol m^-2 s^-1
-    beta_R_H(3.4e3),
-    beta_R_V(9.4e4)
+    beta_R_H(3.4e3), //proportionality constant between minimum horizontal (intraleyer) root hydraulic resistance and C_r^-1 in [MPa * s * (mol C) / (mol H2O)]
+    beta_R_V(9.4e4) //proportionality constant between minimum vertical (interlayer) root hydraulic resistance and dz^2/C_r in [MPa * (mol C) * s / (mol H2O) / m^2]
    {
       setup_transpiration(100); // arg: num control points for integration
       setup_clean_leaf();
@@ -96,16 +96,15 @@ void Leaf::setup_clean_leaf() {
   soil_depth_.clear();
   z_soil_mid_.clear();  // ADD THIS LINE
   use_precomputed_z_soil_mid_ = false;
-  c_r_V_.clear();
-  c_r_H_.clear();
-  r_R_H_min.clear();
-  r_R_V.clear();
-  c_r.clear();
-  r_R_V_sum.clear();
-  soil_consumption_.clear();
+  c_r_V_.clear(); // carbon per layer dedicated to vertical transport (kg m^-2);
+  c_r_H_.clear(); // carbon per layer dedicated to horizantal transport (kg m^-2);
+  r_R_H_min.clear(); //minimum horizontal portion of root resistance in each soil-layer in [MPa * s * (mol H2O)^-1 m^-2];
+  r_R_V.clear(); // vertical root resitance [MPa * s * (mol H2O)^-1 m^-2];
+  r_R_V_sum.clear(); // summed vertical root resistance as depth increase;
+  soil_consumption_.clear(); // soil consumption mol  m^-2 s^-1;
 
   soil_number_of_depths_ = NA_INTEGER;
-  max_soil_layer = NA_INTEGER;
+  max_soil_layer = NA_INTEGER; // number of soil layers with root mass greater than 0;
 }
 
 //sets various parameters which are constant for a given node at a given time
@@ -153,6 +152,7 @@ void Leaf::set_physiology(std::vector<double> mass_root_prop, double rho, double
    dz_ = soil_depth_.back()/soil_number_of_depths_;
 
 
+// find max soil layer as last iteration with mass_root_prop greater than 0
   for (size_t i = 0; i < soil_number_of_depths_; ++i) {
     if(mass_root_prop[i] != 0){
     max_soil_layer = i + 1;  
@@ -174,61 +174,38 @@ void Leaf::set_physiology(std::vector<double> mass_root_prop, double rho, double
     // Make sure r_R_V has the correct size
     r_R_V.resize(max_soil_layer);
 
-    c_r.resize(max_soil_layer);
-
-        // add carbon from horizantal to vertical components
     for (size_t i = 0; i < max_soil_layer; i++)
     {
-      c_r[i] = c_r_H_[i] + c_r_V_[i];
-    }
-
-    for (size_t i = 0; i < max_soil_layer; i++)
-    {
+      // set horizantal minimum resistance per soil layer (i.e. reciprocal of maximum conductance)
       r_R_H_min[i] = beta_R_H/c_r_H_[i];
     }
 
         for (size_t i = 0; i < max_soil_layer; i++)
     {
 
+      // the vertical conductivity is likely linearly proportional to the root area projected onto the horizontal plane, hence dz^2 (Potkay et al. 2021, supps)
       r_R_V[i] = beta_R_V * ((dz_ * dz_) / c_r_V_[i]);
 
     }
 
     r_R_V_sum.resize(max_soil_layer);
 
-    // Cumulative sum of vertical root resistance
-    std::partial_sum(r_R_V.begin(), r_R_V.end(), r_R_V_sum.begin());
+  // Cumulative sum of vertical root resistance
+   std::partial_sum(r_R_V.begin(), r_R_V.end(), r_R_V_sum.begin());
 
-        // Set up vector of root water uptake from layer
+  // Set up vector of root water uptake from layer
   soil_consumption_.resize(soil_number_of_depths_, 0.0);
 
+  // Find maximum assimilation assuming ci = ca
   assim_max_ = assim_colimited(ca_);
 
 }
 
-// Vulnerability curve for leaf (parameterised from Potkay et al. 2021) [frac]
-double VC_l(double psi){
-  double b_r = 0.85; //Mpa
-  double c_r = 0.81;
-  return(exp(-(pow(-psi/b_r,c_r))));
-}
-// Vulnerability curve for root (parameterised from Potkay et al. 2021) [frac]
-double vulnerability_curve_root(double P_soil){
-  double b_r = 1.29; //Mpa
-  double c_r = 2.65;
-  return(exp(-(pow(-P_soil/b_r,c_r))));
-}
-
-// Vulnerability curve for sapwood (parameterised from Potkay et al. 2021) [frac]
-double VC_sw(double psi){
-  double b_r = 5.32; //Mpa
-  double c_r = 0.80;
-  return(exp(-(pow(-psi/b_r,c_r))));
-}
-
 // This function calculates the total transpiration from the soil based on the root collar pressure and the respective soil layer pressures
 double Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>& P_soil){
-    //   // Integration steps
+    
+  // TODO: These need to be moved as constants to either leaf_model.h or variables at top
+  //   // Integration steps
     // number of intergration steps
     double n = 5;
     // water_dens (1e3 kg/m^3) * gravity (9.8 m/s^2) / 1e6 (Pa->MPa), precomputed
@@ -256,7 +233,7 @@ double Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>&
      // If root collar soil water potential equals the soil water potential in a given layer
     if(abs(P_x_r - P_soil[i]) < 1e-20){
 
-      // Fraction of conductance in roots in a given layer at most negative soil water potential
+      // Fraction of conductance in roots in a given layer at most negative soil water potential (but actually is equal to root collar)
 
       double f_ri = exp(-(pow(-P_src_min/b_root,c_root)));
 
@@ -276,53 +253,27 @@ double Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>&
 
       // If pressure difference perfectly balances gravity transpiration is equal to zero
       double E_i = 0.0; // [mol H2O / m^2 / s]
-
-      // double f_ri = exp(-(pow(-P_src_min/b_root,c_root)));
-
-
       soil_consumption_[i] = E_i;
-
-      // f_r[i] = f_ri;
 
     } else{
 
-      // Sequence through the most negative to least negative soil water potential
-      
+      // Sequence through the least negative to most negative soil water potential
+      // step will be negative
       double step = (P_src_max - P_src_min)/n;
-      // f_r.clear();
-      // f_r.reserve(n+1);
-      // double f_r_sum = 0;
+
       double f_r_average = 0;
 
       for (size_t i = 0; i < (n+1); i++) {
 
         double stepper = i;
         double P_src_step = P_src_min + step*stepper;
-      // for (double P_src_step = P_src_min; P_src_step <= P_src_max; P_src_step += step) {
        if(P_src_step > 0){
-
-        // f_r[i] = exp(-(pow(0/b_root,c_root)));
         f_r_average += exp(-(pow(0/b_root,c_root)))/(n+1);
 
       } else{
-        // f_r[i] = exp(-(pow(-P_src_step/b_root,c_root)));
         f_r_average += exp(-(pow(-P_src_step/b_root,c_root)))/(n+1);
       }
     }
-
-
-    // Find the average f_ri
-
-
-    // for (size_t b = 0; b < (n+1); b++ ){
-
-    //   f_r_sum += f_r[b];
-
-    // }
-
-
-    // double f_r_average = f_r_sum / (n+1);
-
 
     // Find the horizantal resistance in a given layer by dividing the minimum resistance (i.e. maximum conductivity) by the fractional loss of conductivity
     double r_R_H = r_R_H_min[i] / f_r_average; // [MPa * s * (mol H2O)^-1]
@@ -330,16 +281,12 @@ double Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>&
     // Find the total resistance in a given layer by adding the vertical resistance in that layer
     double r_R = r_R_H + r_R_V_sum[i]; // [MPa * s * (mol H2O)^-1]
 
-  
-
     // Transpiration is equal to the potentail gradient between the root collar and the soil, accounting for gravitational potential
     double E_i = (P_soil[i] - P_x_r - gravity_head * z_soil_mid_[i]) / r_R; // [mol H2O / m^2 / s]
 
     root_collar_psi_ = P_x_r;
     soil_consumption_[i] = E_i;
 
-
-    // f_r[i] = f_r_average;
     }
   }
     // Total transpiration equal to sum of uptake from each layer
@@ -351,14 +298,13 @@ double Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>&
     E_up_ += soil_consumption_[i];
   }
 
+  // convert to kg h20 m-2 s-1 consistent with rest of leaf model and environment TODO: possibly change this
   return E_up_*0.018015;
 }
 
 
 
-// A - gc curves
-
-// returns difference between co-limited assimilation and stom_cond_CO2, to be minimised (umol m^-2 s^-1)
+// This function is used to find root collar pressure which equilibrates the soil-root-stem water continuuum
 double Leaf::E_column(double x, const std::vector<double>& psi_soil, double psi_leaf) {
 
 
@@ -368,6 +314,7 @@ double Leaf::E_column(double x, const std::vector<double>& psi_soil, double psi_
   return E_soil_to_root - E_root_to_leaf;
 }
 
+// This function is used to find root collar pressure where water form soil is equal to zero
 double Leaf::E_column_zero(double x, const std::vector<double>& psi_soil) {
 
   double E_soil_to_root = E_from_Soil_to_Root_Collar(x, psi_soil);
@@ -375,7 +322,7 @@ double Leaf::E_column_zero(double x, const std::vector<double>& psi_soil) {
   return E_soil_to_root;
 }
 
-// converts psi stem to ci, used to find ci which makes A(ci) = gc(ca - ci)
+// find root psi based on required condition, i.e. equilibrated continuum, zero water from soil
 double Leaf::find_root_psi(double wettest_soil_layer, const std::vector<double>& psi_soil, int find_root_crit) {
   // not clear what x is here
   
@@ -395,6 +342,7 @@ double Leaf::find_root_psi(double wettest_soil_layer, const std::vector<double>&
 
 }
 
+// When root pressure is known, find E from soil, then use E from soil to find psi stem
 double Leaf::find_psi_stem_from_psi_root(double psi_root, const std::vector<double>& psi_soil){
   double E_soil_to_root = E_from_Soil_to_Root_Collar(psi_root, psi_soil);
   double psi_stem = transpiration_to_psi_stem(E_soil_to_root, root_collar_psi_);
@@ -402,7 +350,8 @@ double Leaf::find_psi_stem_from_psi_root(double psi_root, const std::vector<doub
 }
 
 void Leaf::find_root_collar_psi(){
-    
+  
+  // Psi soil comes in as positive values but is utilised as negative so need to flip TODO: change thi s around
   std::vector<double> psi_soil_inverted_;
   psi_soil_inverted_.reserve(max_soil_layer);
   psi_soil_inverted_.resize(max_soil_layer);
@@ -411,12 +360,11 @@ void Leaf::find_root_collar_psi(){
     psi_soil_inverted_[i] = -psi_soil_[i];
   }
 
+  // Find the wettest layer
 double wettest_soil_layer = *std::max_element(psi_soil_inverted_.begin(), psi_soil_inverted_.end());
 
-    if(std::isnan(wettest_soil_layer)){
-      for(size_t i = 0; i < max_soil_layer; i++){
-      }
-    }
+  // Avoid loop if the wettest psi layer is drier than psi_crit in stem, transpiration not possible and so all variables set to 
+  // shut down
 
   if (-wettest_soil_layer >= psi_crit){
 
@@ -428,15 +376,20 @@ double wettest_soil_layer = *std::max_element(psi_soil_inverted_.begin(), psi_so
     return;
   }
 
+  // Avoid loop if the wettest psi layer is drier than psi_crit in stem, transpiration not possible and so all variables set to 
+  // shut down
 double root_crit = find_root_psi(wettest_soil_layer, psi_soil_inverted_, 1);
 
+
+// If root crit would have to be larger than psi crit, also avoid loop as above
 
     if (-root_crit >= psi_crit){
     // profit_ = 0;
     root_collar_psi_ = root_crit;
     opt_psi_stem_ = psi_crit;
     profit_ = - R_d_ - hydraulic_cost_TF(psi_crit);
-    // return profit_;
+       return;
+
   }
 
 double root_zero_E = find_root_psi(wettest_soil_layer, psi_soil_inverted_, 0);

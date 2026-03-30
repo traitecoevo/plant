@@ -49,7 +49,8 @@ public:
       "opt_root_psi",
       "transpiration",
       "profit",
-      "stom_cond_CO2"
+      "stom_cond_CO2",
+      "assimilation"
     });
     // add the associated computation to compute_rates and compute there
     if (collect_all_auxiliary) {

@@ -12,7 +12,7 @@ library(patchwork)
 ```
 
 ```{r}
-max_patch_lifetime <- 5
+max_patch_lifetime <-1
 
 devtools::load_all("/Users/z3533545/Documents/GitHub/plant/")
 p0 <- scm_base_parameters("TF24", "TF24_Env")
