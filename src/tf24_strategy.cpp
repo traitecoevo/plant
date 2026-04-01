@@ -273,10 +273,14 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   const double mass_bark_    = mass_bark(area_bark_, height);
   const double mass_root_    = mass_root(area_leaf_);
 
+  int soil_number_of_depths_ = environment.get_soil_number_of_depths();
+  std::vector<double> soil_depths_ = environment.z;
+
+
+
   // integrate over x from zero to `height`, with fixed canopy openness
   auto f = [&](double x) -> double {
     return compute_average_light_environment(x, height, environment);
- 
   };
 
   double average_light_environment = function_integrator.integrate(f, 0.0, height);
@@ -284,15 +288,8 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   // calculate average radiation by multipling average canopy openness by PPFD and accounting for self-shading k_I.
   const double average_radiation = k_I * average_light_environment * environment.get_PPFD();
 
-  std::vector<double> psi_soil;
-  std::vector<double> soil_moist = environment.get_soil_water_state();
-
-  //psi_soil (-MPa)
-  //soil_moist (m^3 m^-3)
-  psi_soil.resize(environment.get_soil_number_of_depths());
-  for(size_t i = 0; i < psi_soil.size(); i++){
-    psi_soil[i] = environment.psi_from_soil_moist(soil_moist[i]); 
-  }
+  // psi_soil (-MPa), computed once per soil state and cached in environment.
+  const std::vector<double>& psi_soil = environment.get_soil_water_potential_state();
   
 // find leaf specific max hydraulic conductance (kg m^-2 LA s^-1 MPa ^-1)
   // K_s: max hydraulic conductivity (kg m^-2 s^-1 MPa^-1),
@@ -308,50 +305,48 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   const double sapwood_volume_per_leaf_area = theta * (height * eta_c);
   
   // root mass (kg in each layer)
-  std::vector<double> mass_root_prop_;
-
-  // set number of root divisions to number of layers
-  mass_root_prop_.reserve(environment.get_soil_number_of_depths());
-  mass_root_prop_.resize(environment.get_soil_number_of_depths());
-  
+  //TODO: move to a higher level? allocate system memory
   // initialise mass_root_prop with 0 mass
-  std::fill(mass_root_prop_.begin(), mass_root_prop_.end(), 0); 
+  // calcualte plant height
+  // calculate root mass
+  // calculate nroot depth proportion to plant height (should be trait but hard-coded for now)
+  // shape function like leaf area
+  // easily integratable, like leaf area captial Q 
+
+  std::vector<double> mass_root_prop_(soil_number_of_depths_, 0.0);
+  // set number of root divisions to number of layers
+  // mass_root_prop_.reserve(environment.get_soil_number_of_depths());
+  // mass_root_prop_.resize(environment.get_soil_number_of_depths());
   
-  for (int a = 0; a < environment.get_soil_number_of_depths(); a++){
-    
-    // set proportion of roots in a given layer as proportional to maximum height relative to maximum height of 4
-    double prop_roots = environment.get_soil_depths()[a]/(1.5 * height / 4);
-    if(a == 0){
 
-      if(prop_roots >= 1){
-        // in first layer, if proportion is 1 or greater, set full mass to the first layer
-        mass_root_prop_[a] = mass_root_;
+
+  // Use Q function with new arghument
+  // std::fill(mass_root_prop_.begin(), mass_root_prop_.end(), 0); 
+  
+// change to while?
+// environment.get_soil_depths() should ask for the ath element to save calling for a new vector each time
+// change environment.get_soil_number_of_depths() change to n or soemtyhing
+    double rooting_depth = std::min(height, 1.5);
+    // std::vector<double> Q_root;
+    // Q_root.reserve(soil_number_of_depths_);
+
+    double prev_q = 1.0;
+    for (int a = 0; a < soil_number_of_depths_; ++a) {
+      if(prev_q == 0){
         break;
-      } else {
-        // otherwise, just the proportion
-        mass_root_prop_[a] = mass_root_*prop_roots;
       }
-    } else{
+      const double q = Q(soil_depths_[a], rooting_depth, 0.2);
 
-      if(prop_roots > 1){
-        // at following layer, if proportion now greater than 1, take away proportion up to the last layer away from total
-        mass_root_prop_[a] = mass_root_ - mass_root_*environment.get_soil_depths()[a - 1]/(1.5 * height / 4);
-              break;
-
-      } else {
-        // if not, take away proportion up to the last layer away proportion at current layer
-        mass_root_prop_[a] = mass_root_*prop_roots - mass_root_*environment.get_soil_depths()[a - 1]/(1.5 * height / 4);
-      }
+      mass_root_prop_[a] = 83.26*0.5*mass_root_ * (prev_q - q)/ area_leaf_;
+      prev_q = q;
     }
-  }
 
-  // convert mass_root_prop (kg) to mass_root_prop (mol m^-2)
-     for (int a = 0; a < environment.get_soil_number_of_depths(); a++){
-              mass_root_prop_[a] = 83.26*0.5*mass_root_prop_[a] / area_leaf_;
-    }
   // Reuse geometry precomputed by environment; avoids rebuilding z midpoints each call.
   leaf.z_soil_mid_ = environment.get_soil_mid_depths();
   leaf.use_precomputed_z_soil_mid_ = true;
+
+  // update physiology instead of set_physiology
+  // set vs update
 
   leaf.set_physiology(mass_root_prop_, rho, a_bio, average_radiation, psi_soil, environment.get_soil_depths(), leaf_specific_conductance_max, environment.get_atm_vpd(), environment.get_ca(), sapwood_volume_per_leaf_area, environment.get_leaf_temp(), environment.get_atm_o2_kpa(), environment.get_atm_kpa());
 
@@ -359,10 +354,12 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   //leaf.optimise_psi_stem_TF();
   leaf.find_root_collar_psi();
 
-  // convert assimilation per leaf area per second (umol m^-2 s^-1) to canopy-level total yearly assimilation (mol yr^-1)
 
-  // const double assimilation_ = leaf.profit_ * area_leaf_* 60*60*12*365/1e6;
-  const double assimilation_ = assimilation(environment, height, area_leaf_);
+  //TODO: one point constant ratio and integral width for daylength
+  // convert assimilation per leaf area per second (umol m^-2 s^-1) to canopy-level total yearly assimilation (mol yr^-1)
+  // converts to canopy area, then years, then mols
+  const double assimilation_ = leaf.profit_ * area_leaf_* 60*60*12*365/1e6;
+  // const double assimilation_ = assimilation(environment, height, area_leaf_);
   const double respiration_ =
     respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
   const double turnover_ =
@@ -548,7 +545,7 @@ double TF24_Strategy::establishment_probability(const TF24_Environment& environm
 }
 
 double TF24_Strategy::compute_competition(double z, double height) const {
-  return k_I * area_leaf(height) * Q(z, height);
+  return k_I * area_leaf(height) * Q(z, height, eta);
 }
 
 // [eqn  9] Probability density of leaf area at height `z`
@@ -559,11 +556,11 @@ double TF24_Strategy::q(double z, double height) const {
 
 // [eqn 10] ... Fraction of leaf area above height 'z' for an
 //              individual of height 'height'
-double TF24_Strategy::Q(double z, double height) const {
+double TF24_Strategy::Q(double z, double height, double eta_x) const {
   if (z > height) {
     return 0.0;
   }
-  const double tmp = 1.0-pow(z / height, eta);
+  const double tmp = 1.0-pow(z / height, eta_x);
   return tmp * tmp;
 }
 
@@ -618,6 +615,7 @@ void TF24_Strategy::prepare_strategy() {
            control.vulnerability_curve_ncontrol,
            control.ci_abs_tol,
            control.ci_niter,g1_TF24, beta_R_H, beta_R_V);
+   // set phsyiology possibly here?        
 }
 
 TF24_Strategy::ptr make_strategy_ptr(TF24_Strategy s) {

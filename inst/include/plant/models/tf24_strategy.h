@@ -201,7 +201,7 @@ public:
   // [eqn  9] Probability density of leaf area at height `z`
   double q(double z, double height) const;
   // [eqn 10] Fraction of leaf area above height `z`
-  double Q(double z, double height) const;
+  double Q(double z, double height, double eta_x) const;
   // [      ] Inverse of Q: height above which fraction 'x' of leaf found
   double Qp(double x, double height) const;
 

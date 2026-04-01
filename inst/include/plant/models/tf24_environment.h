@@ -93,6 +93,10 @@ public:
     {
       dz[i] = delta_z;
     }
+
+    psi_soil_cache_.resize(soil_number_of_depths);
+    psi_soil_cache_state_.resize(soil_number_of_depths);
+    psi_soil_cache_valid_ = false;
   }
   int get_soil_number_of_depths() const {return soil_number_of_depths;}
   std::vector<double> get_soil_mid_depths() const { return z_mid; }
@@ -102,6 +106,9 @@ public:
   std::vector<double> z;
   std::vector<double> z_mid;
   std::vector<double> dz;
+  mutable std::vector<double> psi_soil_cache_;
+  mutable std::vector<double> psi_soil_cache_state_;
+  mutable bool psi_soil_cache_valid_ = false;
 
   // A ResourceSpline used for storing light availbility (0-1)
   ResourceSpline light_availability;
@@ -207,8 +214,36 @@ public:
 
 
   std::vector<double> get_soil_water_state() const { return {vars.states.begin(), vars.states.end() - aux_num}; }
+  const std::vector<double>& get_soil_water_potential_state() const {
+    bool cache_stale = !psi_soil_cache_valid_ ||
+      psi_soil_cache_state_.size() != static_cast<size_t>(soil_number_of_depths);
+
+    if (!cache_stale) {
+      for (int i = 0; i < soil_number_of_depths; ++i) {
+        if (psi_soil_cache_state_[i] != vars.state(i)) {
+          cache_stale = true;
+          break;
+        }
+      }
+    }
+
+    if (cache_stale) {
+      psi_soil_cache_.resize(soil_number_of_depths);
+      psi_soil_cache_state_.resize(soil_number_of_depths);
+      for (int i = 0; i < soil_number_of_depths; ++i) {
+        const double soil_moist = vars.state(i);
+        psi_soil_cache_state_[i] = soil_moist;
+        psi_soil_cache_[i] = psi_from_soil_moist(soil_moist);
+      }
+      psi_soil_cache_valid_ = true;
+    }
+
+    return psi_soil_cache_;
+  }
   std::vector<double> get_soil_water_state_cumulative_flux() const { return {vars.states.end()-aux_num, vars.states.end()}; }
   std::vector<double> get_soil_depths() const { return z; }
+  // double get_soil_depth(int layer) const { return z[layer]; }
+
 
   // TODO: I wonder if this needs a better name? See also environment.h
   Internals r_internals() const { return vars; }
@@ -225,6 +260,7 @@ public:
         vars.set_state(i, 0);
       }
   }
+    psi_soil_cache_valid_ = false;
 }
 
   // Pre-compute resources available in the environment, as a function of height

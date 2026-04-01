@@ -24,6 +24,7 @@ Leaf::Leaf()
     beta_R_V(9.4e4) //proportionality constant between minimum vertical (interlayer) root hydraulic resistance and dz^2/C_r in [MPa * (mol C) * s / (mol H2O) / m^2]
    {
       setup_transpiration(100); // arg: num control points for integration
+      setup_root_vulnerability(100);
       setup_clean_leaf();
 }
 
@@ -57,6 +58,7 @@ Leaf::Leaf(double vcmax_25, double c, double b,
     beta_R_V(beta_R_V)
    {
       setup_transpiration(vulnerability_curve_ncontrol); // arg: num control points for integration
+      setup_root_vulnerability(vulnerability_curve_ncontrol);
       setup_clean_leaf();
 }
 
@@ -109,7 +111,7 @@ void Leaf::setup_clean_leaf() {
 
 //sets various parameters which are constant for a given node at a given time
 
-void Leaf::set_physiology(std::vector<double> mass_root_prop, double rho, double a_bio, double PPFD, std::vector<double> psi_soil, std::vector<double> soil_depth, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa) {
+void Leaf::set_physiology(const std::vector<double>& mass_root_prop, double rho, double a_bio, double PPFD, const std::vector<double>& psi_soil, const std::vector<double>& soil_depth, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa) {
     if (psi_soil.size() != soil_depth.size()) {
     util::stop("soil_depth and psi_soil must have the same number of elements");
   }
@@ -123,6 +125,7 @@ void Leaf::set_physiology(std::vector<double> mass_root_prop, double rho, double
    psi_soil_ = psi_soil;
    soil_depth_ = soil_depth;
    soil_number_of_depths_ = soil_depth_.size();
+   
    if (!(use_precomputed_z_soil_mid_ &&
          z_soil_mid_.size() == static_cast<size_t>(soil_number_of_depths_))) {
      // Fallback for paths that do not provide environment-precomputed midpoints.
@@ -135,6 +138,7 @@ void Leaf::set_physiology(std::vector<double> mass_root_prop, double rho, double
        }
      }
    }
+
    use_precomputed_z_soil_mid_ = false;
    
    leaf_specific_conductance_max_ = leaf_specific_conductance_max;
@@ -152,10 +156,11 @@ void Leaf::set_physiology(std::vector<double> mass_root_prop, double rho, double
    dz_ = soil_depth_.back()/soil_number_of_depths_;
 
 
-// find max soil layer as last iteration with mass_root_prop greater than 0
+  // find max soil layer as last iteration with mass_root_prop greater than 0
+  max_soil_layer = 0;
   for (size_t i = 0; i < soil_number_of_depths_; ++i) {
-    if(mass_root_prop[i] != 0){
-    max_soil_layer = i + 1;  
+    if (mass_root_prop[i] != 0) {
+      max_soil_layer = i + 1;
     }
   }
   c_r_V_.resize(max_soil_layer, 0.0);
@@ -176,21 +181,20 @@ void Leaf::set_physiology(std::vector<double> mass_root_prop, double rho, double
 
     for (size_t i = 0; i < max_soil_layer; i++)
     {
-      // set horizantal minimum resistance per soil layer (i.e. reciprocal of maximum conductance)
+      // set horizantal minimum resistance per soil layer (i.e. reciprical of maximum conductance)
       r_R_H_min[i] = beta_R_H/c_r_H_[i];
     }
 
         for (size_t i = 0; i < max_soil_layer; i++)
     {
-
       // the vertical conductivity is likely linearly proportional to the root area projected onto the horizontal plane, hence dz^2 (Potkay et al. 2021, supps)
       r_R_V[i] = beta_R_V * ((dz_ * dz_) / c_r_V_[i]);
-
     }
 
     r_R_V_sum.resize(max_soil_layer);
 
   // Cumulative sum of vertical root resistance
+  // TODO: cehck that partial sum is working as inteneded
    std::partial_sum(r_R_V.begin(), r_R_V.end(), r_R_V_sum.begin());
 
   // Set up vector of root water uptake from layer
@@ -206,15 +210,8 @@ double Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>&
     
   // TODO: These need to be moved as constants to either leaf_model.h or variables at top
   //   // Integration steps
-    // number of intergration steps
-    double n = 5;
-    // water_dens (1e3 kg/m^3) * gravity (9.8 m/s^2) / 1e6 (Pa->MPa), precomputed
-    const double gravity_head = 9.8e-3; // MPa / m
-    
-    // root vulnerability curve parameters
-    double b_root = 1.29; //Mpa
-    double c_root = 2.65;
 
+    E_up_ = 0;
 
     for(size_t i = 0; i < max_soil_layer; i++){
 
@@ -231,11 +228,11 @@ double Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>&
 
 
      // If root collar soil water potential equals the soil water potential in a given layer
-    if(abs(P_x_r - P_soil[i]) < 1e-20){
+    if(std::abs(P_x_r - P_soil[i]) < 1e-20){
 
       // Fraction of conductance in roots in a given layer at most negative soil water potential (but actually is equal to root collar)
-
-      double f_ri = exp(-(pow(-P_src_min/b_root,c_root)));
+      // root_vuln_from_psi is a pre-built spline of exp(-(|psi|/b_root)^c_root)
+      double f_ri = root_vuln_from_psi.eval(-P_src_min);
 
       // Fraction of conductance in roots in a given layer at most negative soil water potential
       double r_R_H = r_R_H_min[i] / f_ri; // [MPa * s * (mol H2O)^-1]
@@ -246,14 +243,19 @@ double Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>&
       // Transpiration is equivalent to gravitational water loss (i.e. layer gains water)
       double E_i = -(gravity_head * z_soil_mid_[i]) / r_R ;
 
+      root_collar_psi_ = P_x_r;
       soil_consumption_[i] = E_i;
+      E_up_ += E_i;
 
     }
     else if((P_soil[i] - P_x_r) == (gravity_head * z_soil_mid_[i])){
 
       // If pressure difference perfectly balances gravity transpiration is equal to zero
       double E_i = 0.0; // [mol H2O / m^2 / s]
+      
+      root_collar_psi_ = P_x_r;
       soil_consumption_[i] = E_i;
+      E_up_ += E_i;
 
     } else{
 
@@ -263,15 +265,15 @@ double Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>&
 
       double f_r_average = 0;
 
-      for (size_t i = 0; i < (n+1); i++) {
-
-        double stepper = i;
-        double P_src_step = P_src_min + step*stepper;
+      for (size_t j = 0; j < (n + 1); j++) {
+        double stepper = j;
+        double P_src_step = P_src_min + step * stepper;
        if(P_src_step > 0){
-        f_r_average += exp(-(pow(0/b_root,c_root)))/(n+1);
-
+        // psi > 0 means above-atmospheric pressure; vulnerability = 1 (no loss)
+        f_r_average += 1.0 / (n + 1);
       } else{
-        f_r_average += exp(-(pow(-P_src_step/b_root,c_root)))/(n+1);
+        // look up pre-computed root vulnerability spline instead of exp(pow(...))
+        f_r_average += root_vuln_from_psi.eval(-P_src_step) / (n + 1);
       }
     }
 
@@ -286,16 +288,9 @@ double Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>&
 
     root_collar_psi_ = P_x_r;
     soil_consumption_[i] = E_i;
+    E_up_ += E_i;
 
     }
-  }
-    // Total transpiration equal to sum of uptake from each layer
-
-   E_up_ = 0;
-
-  for(size_t i = 0; i < max_soil_layer; i++){
-
-    E_up_ += soil_consumption_[i];
   }
 
   // convert to kg h20 m-2 s-1 consistent with rest of leaf model and environment TODO: possibly change this
@@ -324,20 +319,17 @@ double Leaf::E_column_zero(double x, const std::vector<double>& psi_soil) {
 
 // find root psi based on required condition, i.e. equilibrated continuum, zero water from soil
 double Leaf::find_root_psi(double wettest_soil_layer, const std::vector<double>& psi_soil, int find_root_crit) {
-  // not clear what x is here
-  
-
-  auto target = [&](double x) mutable -> double {
-    if(find_root_crit == 1){
-
-    return E_column(x, psi_soil, psi_crit);
-    } else{
-      return E_column_zero(x, psi_soil);
-    }
-  };
-
-
   // tol and iterations copied from control defaults (for now) - changed recently to 1e-6
+  if (find_root_crit == 1) {
+    auto target = [&](double x) -> double {
+      return E_column(x, psi_soil, psi_crit);
+    };
+    return util::uniroot(target, -psi_crit, wettest_soil_layer, 1e-3, ci_niter);
+  }
+
+  auto target = [&](double x) -> double {
+    return E_column_zero(x, psi_soil);
+  };
   return util::uniroot(target, -psi_crit, wettest_soil_layer, 1e-3, ci_niter);
 
 }
@@ -352,9 +344,7 @@ double Leaf::find_psi_stem_from_psi_root(double psi_root, const std::vector<doub
 void Leaf::find_root_collar_psi(){
   
   // Psi soil comes in as positive values but is utilised as negative so need to flip TODO: change thi s around
-  std::vector<double> psi_soil_inverted_;
-  psi_soil_inverted_.reserve(max_soil_layer);
-  psi_soil_inverted_.resize(max_soil_layer);
+  std::vector<double> psi_soil_inverted_(max_soil_layer);
 
   for(size_t i = 0; i < max_soil_layer; i++){
     psi_soil_inverted_[i] = -psi_soil_[i];
@@ -392,7 +382,10 @@ double root_crit = find_root_psi(wettest_soil_layer, psi_soil_inverted_, 1);
 
   }
 
+// Find root collar where transpiration from soil is 0
 double root_zero_E = find_root_psi(wettest_soil_layer, psi_soil_inverted_, 0);
+
+// If assimilation would be less than 0 even at Ca, also end loop
 if(assim_max_ < 0){
     opt_psi_stem_ = root_zero_E;
     root_collar_psi_ = root_zero_E;
@@ -483,6 +476,23 @@ double Leaf::peak_arrh_curve(double Ea, double ref_value, double leaf_temp, doub
 double Leaf::proportion_of_conductivity(double psi) const {
 
   return exp(-pow((psi / b), c));
+}
+
+// pre-compute root vulnerability curve f(psi) = exp(-(|psi|/b_root)^c_root) as a spline,
+// evaluated over the range [0, psi_max_root] where conductivity drops to 1%.
+// This avoids repeated exp(pow(...)) calls inside E_from_Soil_to_Root_Collar.
+void Leaf::setup_root_vulnerability(double resolution) {
+  auto x_psi_root = std::vector<double>{0.0};
+  auto y_f_r       = std::vector<double>{1.0}; // f(0) = exp(0) = 1
+  // upper limit: psi where conductivity = 1%
+  double psi_max_root = b_root * pow(log(1.0 / 0.01), 1.0 / c_root);
+  double step = psi_max_root / resolution;
+  for (double psi = step; psi <= psi_max_root; psi += step) {
+    x_psi_root.push_back(psi);
+    y_f_r.push_back(exp(-pow(psi * inv_b_root, c_root)));
+  }
+  root_vuln_from_psi.init(x_psi_root, y_f_r);
+  root_vuln_from_psi.set_extrapolate(true); // clamp to last value beyond range
 }
 
 // set spline for proportion of conductivity

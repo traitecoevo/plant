@@ -72,6 +72,16 @@ static const double C_to_K = 273.15;
 //H20:CO2 stomatal diffusion ratio
 static const double H2O_CO2_stom_diff_ratio = 1.67;
 
+const double gravity_head = 9.8e-3; // MPa / m
+
+    // number of intergration steps
+    const double n = 5;
+    
+    // root vulnerability curve parameters
+    const double b_root = 1.29; //Mpa
+    const double c_root = 2.65;
+    const double inv_b_root = 1.0 / b_root;
+
 class Leaf {
 public:
   //anonymous Leaf function as in canopy.h
@@ -98,6 +108,8 @@ public:
   quadrature::QAG integrator;
   interpolator::Interpolator transpiration_from_psi;
   interpolator::Interpolator psi_from_transpiration;
+  // pre-computed root vulnerability curve (same role as transpiration_from_psi for xylem)
+  interpolator::Interpolator root_vuln_from_psi;
 
   // psi_from_E
 
@@ -201,8 +213,9 @@ public:
   }
   
   // set-up functions
-  void set_physiology(std::vector<double> mass_root_prop, double rho, double a_bio, double PPFD, std::vector<double> psi_soil, std::vector<double> soil_depth, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa);
+  void set_physiology(const std::vector<double>& mass_root_prop, double rho, double a_bio, double PPFD, const std::vector<double>& psi_soil, const std::vector<double>& soil_depth, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa);
   void setup_transpiration(double resolution);
+  void setup_root_vulnerability(double resolution);
   void setup_clean_leaf();
   // std::vector<double> root_collar_psi(std::vector<double> soil_moist_);
 

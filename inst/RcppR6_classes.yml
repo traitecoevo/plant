@@ -88,7 +88,7 @@ Leaf:
       args: [integration_rule: int, integration_tol: double]
     set_physiology:
       return_type: void 
-      args: [mass_root_prop: "std::vector<double>", rho: double, a_bio: double, PPFD: double, psi_soil: "std::vector<double>", soil_depth: "std::vector<double>", leaf_specific_conductance_max: double, atm_vpd: double, ca: double, sapwood_volume_per_leaf_area: double, leaf_temp: double, atm_o2_kpa: double, atm_kpa: double]
+      args: [mass_root_prop: "const std::vector<double>&", rho: double, a_bio: double, PPFD: double, psi_soil: "const std::vector<double>&", soil_depth: "const std::vector<double>&", leaf_specific_conductance_max: double, atm_vpd: double, ca: double, sapwood_volume_per_leaf_area: double, leaf_temp: double, atm_o2_kpa: double, atm_kpa: double]
     #transpiration functions
     proportion_of_conductivity:
       return_type: double
