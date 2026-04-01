@@ -73,6 +73,7 @@ static const double C_to_K = 273.15;
 static const double H2O_CO2_stom_diff_ratio = 1.67;
 
 const double gravity_head = 9.8e-3; // MPa / m
+const double gr = (sqrt(5.0) + 1.0) / 2.0;  // ~1.6180339...
 
     // number of intergration steps
     const double n = 5;

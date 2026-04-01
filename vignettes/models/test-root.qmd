@@ -24,7 +24,9 @@ env$set_soil_number_of_depths(15)
 env$set_soil_water_state(rep(c(0.2), times = 15))
 x = seq(0,max_patch_lifetime,length.out = 10000)
 y = 0.25*sin(2*pi*x) + 1
-env$extrinsic_drivers_set_variable("rainfall", x=x, y=y)
+## env$extrinsic_drivers_set_variable("rainfall", x=x, y=y)
+env$extrinsic_drivers_set_constant("rainfall", 1)
+
 system.time(results <- run_scm_collect(p1, env = env))
 ```
 
@@ -103,7 +105,7 @@ results$species %>%
   drop_na() %>%
   plot_size_distribution() +
   theme_bw() +
-  theme(legend.position = "none")+
+  # theme(legend.position = "none")+
   theme(text = element_text(size = 20))-> c_plot
 ```
 
@@ -156,7 +158,20 @@ geom_line(aes(colour = height, group = node)) +
 ```{r}
 results$species %>%
 ggplot(aes(x = time, y = stom_cond_CO2)) +
-geom_line(aes(colour = height, group = node)) +
+geom_line(aes(colour = height, group = node, alpha = density)) +
+  theme_bw() +
+  theme(text = element_text(size = 20)) +
+  ylab(expression(paste(g[s], " (",mol~m^{-2}~s^{-1},")"))) +
+  xlab("Time (years)") +
+  labs(colour = "Height (m)") -> f3  
+```
+
+```{r}
+results$species %>%
+  # integrate_over_size_distribution()  %>%
+ggplot(aes(x = time, y = stom_cond_CO2)) +
+# geom_line()
+geom_line(aes(colour = height, group = node, alpha = density)) +
   theme_bw() +
   theme(text = element_text(size = 20)) +
   ylab(expression(paste(g[s], " (",mol~m^{-2}~s^{-1},")"))) +
@@ -171,7 +186,7 @@ geom_line() +
   theme_bw() +
   theme(text = element_text(size = 20)) +
   ylab(expression(paste(Rainfall, " (",m,")"))) +
-  scale_x_continuous(limits =c(0,6)) +
+  scale_x_continuous(limits =c(0,10)) +
   xlab("Time (years)") -> g
 ```
 
@@ -208,7 +223,7 @@ geom_line() +
 
 ```{r}
 library(patchwork)
-(a+c_plot+b)/((d+f)/(e + f2))/(f3+h)/(i+g)
+(a+c_plot)/((d+f)/(e + f2))/(f3+h)/(i)
 
-ggsave("diagnostic_plot.png", height = 40, width = 20)
+ggsave("diagnostic_plot.png", height = 20, width = 15)
 ```

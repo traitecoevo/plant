@@ -133,9 +133,11 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   // consumption rates should be emerging from net_mass_produciton_dt
   // convert evapotranspiration per leaf area per soil layer (mol H20 m^-2 s^-1) to canopy-level total 
   // yearly evapotranspiration per soil layer (m yr^-1)
-  
   // stubbing out E_p for integration
-  for (size_t i = 0; i < environment.soil_number_of_depths; i++) {
+  int soil_number_of_depths_ = environment.get_soil_number_of_depths();
+
+
+  for (size_t i = 0; i < soil_number_of_depths_; i++) {
 
     // evapotranspiration (mol H20 m^-2 s^-1 layer^-1)
     // consumption rate (m yr^-1 layer ^-1)
@@ -274,7 +276,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   const double mass_root_    = mass_root(area_leaf_);
 
   int soil_number_of_depths_ = environment.get_soil_number_of_depths();
-  std::vector<double> soil_depths_ = environment.z;
+  const std::vector<double>& soil_depths_ = environment.z;
 
 
 
@@ -348,7 +350,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   // update physiology instead of set_physiology
   // set vs update
 
-  leaf.set_physiology(mass_root_prop_, rho, a_bio, average_radiation, psi_soil, environment.get_soil_depths(), leaf_specific_conductance_max, environment.get_atm_vpd(), environment.get_ca(), sapwood_volume_per_leaf_area, environment.get_leaf_temp(), environment.get_atm_o2_kpa(), environment.get_atm_kpa());
+  leaf.set_physiology(mass_root_prop_, rho, a_bio, average_radiation, psi_soil, soil_depths_, leaf_specific_conductance_max, environment.get_atm_vpd(), environment.get_ca(), sapwood_volume_per_leaf_area, environment.get_leaf_temp(), environment.get_atm_o2_kpa(), environment.get_atm_kpa());
 
   // optimise psi_stem, setting opt_psi_stem_, profit_, hydraulic_cost_, assim_colimited_ etc.
   //leaf.optimise_psi_stem_TF();

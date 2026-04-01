@@ -20,8 +20,8 @@ Leaf::Leaf()
     ci_abs_tol(1e-3),
     ci_niter(1000),
     g1_TF24(7.5), //cost parameter for TF24 profit model umol m^-2 s^-1
-    beta_R_H(3.4e3), //proportionality constant between minimum horizontal (intraleyer) root hydraulic resistance and C_r^-1 in [MPa * s * (mol C) / (mol H2O)]
-    beta_R_V(9.4e4) //proportionality constant between minimum vertical (interlayer) root hydraulic resistance and dz^2/C_r in [MPa * (mol C) * s / (mol H2O) / m^2]
+    beta_R_H(3.4e2), //proportionality constant between minimum horizontal (intraleyer) root hydraulic resistance and C_r^-1 in [MPa * s * (mol C) / (mol H2O)]
+    beta_R_V(9.4e3) //proportionality constant between minimum vertical (interlayer) root hydraulic resistance and dz^2/C_r in [MPa * (mol C) * s / (mol H2O) / m^2]
    {
       setup_transpiration(100); // arg: num control points for integration
       setup_root_vulnerability(100);
@@ -370,6 +370,8 @@ double wettest_soil_layer = *std::max_element(psi_soil_inverted_.begin(), psi_so
   // shut down
 double root_crit = find_root_psi(wettest_soil_layer, psi_soil_inverted_, 1);
 
+double psi_max_root = b_root * pow(log(1.0 / 0.05), 1.0 / c_root);
+
 
 // If root crit would have to be larger than psi crit, also avoid loop as above
 
@@ -400,46 +402,75 @@ if(assim_max_ < 0){
     return;
 }
 
-double gr = (sqrt(5) + 1) / 2;
 //   // opt_psi_stem_ = psi_soil_;
 
 
 
   // optimise for stem water potential
     double bound_a = -root_zero_E;
-    double bound_b = -root_crit;
+    double bound_b = std::max(-root_crit,-psi_max_root);
     double bound_c = bound_b - (bound_b - bound_a) / gr;
-
-
     double bound_d = bound_a + (bound_b - bound_a) / gr;
 
-    while (abs(bound_b - bound_a) > GSS_tol_abs) {
+    double psi_stem_c    = find_psi_stem_from_psi_root(-bound_c, psi_soil_inverted_);
+    double rc_c          = -root_collar_psi_;   // save side-effect
+    double profit_at_c   = profit_psi_stem_TF(psi_stem_c, rc_c);
+    
+    double psi_stem_d    = find_psi_stem_from_psi_root(-bound_d, psi_soil_inverted_);
+    double rc_d          = -root_collar_psi_;
+    double profit_at_d   = profit_psi_stem_TF(psi_stem_d, rc_d);
 
-      double psi_stem_c = find_psi_stem_from_psi_root(-bound_c, psi_soil_inverted_);
+while (std::abs(bound_b - bound_a) > GSS_tol_abs) {
+  if (profit_at_c > profit_at_d) {
+    bound_b    = bound_d;
+    bound_d    = bound_c;  
+    profit_at_d = profit_at_c;  // reuse
+    bound_c    = bound_b - (bound_b - bound_a) / gr;
+    psi_stem_c = find_psi_stem_from_psi_root(-bound_c, psi_soil_inverted_);
+    rc_c       = -root_collar_psi_;
+    profit_at_c = profit_psi_stem_TF(psi_stem_c, rc_c);  // 1 new eval
+  } else {
+    bound_a    = bound_c;
+    bound_c    = bound_d;  
+    profit_at_c = profit_at_d;  // reuse
+    bound_d    = bound_a + (bound_b - bound_a) / gr;
+    psi_stem_d = find_psi_stem_from_psi_root(-bound_d, psi_soil_inverted_);
+    rc_d       = -root_collar_psi_;
+    profit_at_d = profit_psi_stem_TF(psi_stem_d, rc_d);  // 1 new eval
+  }
+}
 
 
-      root_collar_psi_ = -root_collar_psi_;
-
-      double profit_at_c =
-          profit_psi_stem_TF(psi_stem_c, root_collar_psi_);
-
-      double psi_stem_d = find_psi_stem_from_psi_root(-bound_d, psi_soil_inverted_);
-      root_collar_psi_ = -root_collar_psi_;
 
 
-      double profit_at_d =
-          profit_psi_stem_TF(psi_stem_d, root_collar_psi_);
 
-      if (profit_at_c > profit_at_d) {
-        bound_b = bound_d;
-      } else {
-        bound_a = bound_c;
-      }
+    // while (abs(bound_b - bound_a) > GSS_tol_abs) {
+
+    //   double psi_stem_c = find_psi_stem_from_psi_root(-bound_c, psi_soil_inverted_);
 
 
-      bound_c = bound_b - (bound_b - bound_a) / gr;
-      bound_d = bound_a + (bound_b - bound_a) / gr;
-    }
+    //   root_collar_psi_ = -root_collar_psi_;
+
+    //   double profit_at_c =
+    //       profit_psi_stem_TF(psi_stem_c, root_collar_psi_);
+
+    //   double psi_stem_d = find_psi_stem_from_psi_root(-bound_d, psi_soil_inverted_);
+    //   root_collar_psi_ = -root_collar_psi_;
+
+
+    //   double profit_at_d =
+    //       profit_psi_stem_TF(psi_stem_d, root_collar_psi_);
+
+    //   if (profit_at_c > profit_at_d) {
+    //     bound_b = bound_d;
+    //   } else {
+    //     bound_a = bound_c;
+    //   }
+
+
+    //   bound_c = bound_b - (bound_b - bound_a) / gr;
+    //   bound_d = bound_a + (bound_b - bound_a) / gr;
+    // }
 
 
     double opt_root_psi = ((bound_b + bound_a) / 2);
@@ -701,7 +732,6 @@ void Leaf::optimise_psi_stem_Sperry() {
     util::stop("psi soil must have only one value to use non-root-based profit optimisation methods");
   }
 
-  double gr = (sqrt(5) + 1) / 2;
   opt_psi_stem_ = psi_soil_[0];
 
 
@@ -749,7 +779,6 @@ void Leaf::optimise_psi_stem_TF() {
     util::stop("psi soil must have only one value to use non-root-based profit optimisation methods");
   }
 
-  double gr = (sqrt(5) + 1) / 2;
   opt_psi_stem_ = psi_soil_[0];
 
   if (psi_soil_[0] > psi_crit){
