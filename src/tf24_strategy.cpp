@@ -613,7 +613,7 @@ void TF24_Strategy::prepare_strategy() {
   } else {
     extrinsic_drivers.set_constant("birth_rate", birth_rate_y[0]);
   }
-    leaf = Leaf(vcmax_25,  c,  b, psi_crit, beta2, jmax_25, hk_s, a, curv_fact_elec_trans,curv_fact_colim, control.GSS_tol_abs,
+    leaf = Leaf(vcmax_25,  c,  b, psi_crit, root_c, root_b, root_psi_crit, beta2, jmax_25, hk_s, a, curv_fact_elec_trans,curv_fact_colim, control.GSS_tol_abs,
            control.vulnerability_curve_ncontrol,
            control.ci_abs_tol,
            control.ci_niter,g1_TF24, beta_R_H, beta_R_V);

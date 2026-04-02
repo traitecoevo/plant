@@ -75,13 +75,8 @@ static const double H2O_CO2_stom_diff_ratio = 1.67;
 const double gravity_head = 9.8e-3; // MPa / m
 const double gr = (sqrt(5.0) + 1.0) / 2.0;  // ~1.6180339...
 
-    // number of intergration steps
-    const double n = 5;
-    
-    // root vulnerability curve parameters
-    const double b_root = 1.29; //Mpa
-    const double c_root = 2.65;
-    const double inv_b_root = 1.0 / b_root;
+// number of intergration steps
+const double n = 5;
 
 class Leaf {
 public:
@@ -92,6 +87,9 @@ public:
        double c, 
        double b, 
        double psi_crit,
+       double root_c,
+       double root_b,
+       double root_psi_crit,
        double beta2, 
        double jmax_25, 
        double hk_s,
@@ -118,6 +116,9 @@ public:
   double c;
   double b;
   double psi_crit;  // derived from b and c
+  double root_c;
+  double root_b;
+  double root_psi_crit;
   double beta2;
   double jmax_25;
   double hk_s;

@@ -7,6 +7,9 @@ Leaf:
       @param c shape parameter of hydraulic vulnerability curve (unitless)
       @param b sensitivity parameter of hydraulic vulnerability curve (MPa)
       @param psi_crit critical psi stem (-MPa )
+      @param root_c shape parameter of hydraulic vulnerability curve for roots(unitless)
+      @param root_b sensitivity parameter of hydraulic vulnerability curve for roots (MPa)
+      @param root_psi_crit critical psi stem for roots (-MPa )
       @param beta2 exponent for effect of hydraulic risk (unitless)
       @param jmax_25  maximum rate of electron transport (umol m^-2 s^-1)
       @param hk_s maximum hydraulic-dependent sapwood turnover rate yr ^ -1
@@ -25,6 +28,9 @@ Leaf:
       - c: double
       - b: double
       - psi_crit: double
+      - root_c: double
+      - root_b: double
+      - root_psi_crit: double
       - beta2: double
       - jmax_25: double
       - hk_s: double

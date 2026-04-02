@@ -307,6 +307,9 @@ public:
   double c = log(log(1-0.5)/log(1-0.88))/(log(p_50) - log(5.16));
   double b = p_50 / std::pow(-log(1 - 50.0 / 100.0), 1 / c);
   double psi_crit = b*std::pow(log(1/0.05),1/c); // derived from b and c
+  double root_c = 2.65;
+  double root_b = 1.29;
+  double root_psi_crit = root_b*std::pow(log(1/0.05),1/root_c); // derived from b and c
   double beta1 = 20000;
   double beta2 = 1.5;
   double jmax_25 = vcmax_25*1.64;

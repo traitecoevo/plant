@@ -9,6 +9,9 @@ Leaf::Leaf()
     c(2.680147), //unitless
     b(3.898245), //-MPa
     psi_crit(5.870283), //-MPa 
+    root_c(2.65), //unitless
+    root_b(1.29), //-MPa
+    root_psi_crit(1.951651), //-MPa 
     beta2(1.5), //exponent for effect of hydraulic risk (unitless)
     jmax_25(157.44), // maximum electron transport rate umol m^-2 s^-1
     hk_s(4),  // maximum hydraulic-dependent sapwood turnover rate yr ^ -1
@@ -30,6 +33,9 @@ Leaf::Leaf()
 
 Leaf::Leaf(double vcmax_25, double c, double b,
            double psi_crit, // derived from b and c,
+           double root_c,
+           double root_b,
+           double root_psi_crit,
            double beta2, double jmax_25, double hk_s,
            double a, double curv_fact_elec_trans, double curv_fact_colim, 
            double GSS_tol_abs,
@@ -43,6 +49,9 @@ Leaf::Leaf(double vcmax_25, double c, double b,
     c(c), //unitless
     b(b), //-MPa
     psi_crit(psi_crit), //-MPa 
+    root_c(root_c), //unitless
+    root_b(root_b), //-MPa
+    root_psi_crit(root_psi_crit), //-MPa 
     beta2(beta2), //exponent for effect of hydraulic risk (unitless)
     jmax_25(jmax_25), // maximum electron transport rate umol m^-2 s^-1
     hk_s(hk_s),  // maximum hydraulic-dependent sapwood turnover rate yr ^ -1
@@ -202,7 +211,6 @@ void Leaf::set_physiology(const std::vector<double>& mass_root_prop, double rho,
 
   // Find maximum assimilation assuming ci = ca
   assim_max_ = assim_colimited(ca_);
-
 }
 
 // This function calculates the total transpiration from the soil based on the root collar pressure and the respective soil layer pressures
@@ -324,13 +332,13 @@ double Leaf::find_root_psi(double wettest_soil_layer, const std::vector<double>&
     auto target = [&](double x) -> double {
       return E_column(x, psi_soil, psi_crit);
     };
-    return util::uniroot(target, -psi_crit, wettest_soil_layer, 1e-3, ci_niter);
+    return util::uniroot(target, -psi_crit, wettest_soil_layer, 1e-4, ci_niter);
   }
 
   auto target = [&](double x) -> double {
     return E_column_zero(x, psi_soil);
   };
-  return util::uniroot(target, -psi_crit, wettest_soil_layer, 1e-3, ci_niter);
+  return util::uniroot(target, -psi_crit, wettest_soil_layer, 1e-4, ci_niter);
 
 }
 
@@ -370,9 +378,6 @@ double wettest_soil_layer = *std::max_element(psi_soil_inverted_.begin(), psi_so
   // shut down
 double root_crit = find_root_psi(wettest_soil_layer, psi_soil_inverted_, 1);
 
-double psi_max_root = b_root * pow(log(1.0 / 0.05), 1.0 / c_root);
-
-
 // If root crit would have to be larger than psi crit, also avoid loop as above
 
     if (-root_crit >= psi_crit){
@@ -401,14 +406,12 @@ if(assim_max_ < 0){
 
     return;
 }
-
-//   // opt_psi_stem_ = psi_soil_;
-
+// opt_psi_stem_ = psi_soil_;
 
 
   // optimise for stem water potential
     double bound_a = -root_zero_E;
-    double bound_b = std::max(-root_crit,-psi_max_root);
+    double bound_b = std::max(-root_crit,-root_psi_crit);
     double bound_c = bound_b - (bound_b - bound_a) / gr;
     double bound_d = bound_a + (bound_b - bound_a) / gr;
 
@@ -439,38 +442,6 @@ while (std::abs(bound_b - bound_a) > GSS_tol_abs) {
     profit_at_d = profit_psi_stem_TF(psi_stem_d, rc_d);  // 1 new eval
   }
 }
-
-
-
-
-
-    // while (abs(bound_b - bound_a) > GSS_tol_abs) {
-
-    //   double psi_stem_c = find_psi_stem_from_psi_root(-bound_c, psi_soil_inverted_);
-
-
-    //   root_collar_psi_ = -root_collar_psi_;
-
-    //   double profit_at_c =
-    //       profit_psi_stem_TF(psi_stem_c, root_collar_psi_);
-
-    //   double psi_stem_d = find_psi_stem_from_psi_root(-bound_d, psi_soil_inverted_);
-    //   root_collar_psi_ = -root_collar_psi_;
-
-
-    //   double profit_at_d =
-    //       profit_psi_stem_TF(psi_stem_d, root_collar_psi_);
-
-    //   if (profit_at_c > profit_at_d) {
-    //     bound_b = bound_d;
-    //   } else {
-    //     bound_a = bound_c;
-    //   }
-
-
-    //   bound_c = bound_b - (bound_b - bound_a) / gr;
-    //   bound_d = bound_a + (bound_b - bound_a) / gr;
-    // }
 
 
     double opt_root_psi = ((bound_b + bound_a) / 2);
@@ -516,11 +487,11 @@ void Leaf::setup_root_vulnerability(double resolution) {
   auto x_psi_root = std::vector<double>{0.0};
   auto y_f_r       = std::vector<double>{1.0}; // f(0) = exp(0) = 1
   // upper limit: psi where conductivity = 1%
-  double psi_max_root = b_root * pow(log(1.0 / 0.01), 1.0 / c_root);
+  double psi_max_root = root_b * pow(log(1.0 / 0.01), 1.0 / root_c);
   double step = psi_max_root / resolution;
   for (double psi = step; psi <= psi_max_root; psi += step) {
     x_psi_root.push_back(psi);
-    y_f_r.push_back(exp(-pow(psi * inv_b_root, c_root)));
+    y_f_r.push_back(exp(-pow(psi/root_b, root_c)));
   }
   root_vuln_from_psi.init(x_psi_root, y_f_r);
   root_vuln_from_psi.set_extrapolate(true); // clamp to last value beyond range
@@ -650,7 +621,7 @@ double Leaf::psi_stem_to_ci(double psi_stem, double psi_upstream) {
   };
 
   // tol and iterations copied from control defaults (for now) - changed recently to 1e-6
-  return ci_ = util::uniroot(target, gamma_ * umol_per_mol_to_Pa, ca_, 1e-8, ci_niter);
+  return ci_ = util::uniroot(target, gamma_ * umol_per_mol_to_Pa, ca_, 1e-7, ci_niter);
 }
 
 // given psi_stem, find assimilation, transpiration and stomal conductance to c02
