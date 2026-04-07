@@ -63,7 +63,7 @@ public:
   };
   
   // Number of cumulative auxilliary variables to track in soil moisture model
-  double aux_num = 4;
+  static constexpr size_t aux_num = 4;
   
   // Setup soil water distribtuion
   void set_soil_number_of_depths(int n) {

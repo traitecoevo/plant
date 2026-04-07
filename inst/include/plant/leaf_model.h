@@ -158,6 +158,7 @@ public:
   double root_mass_;
   std::vector<double> c_r_V_;
   std::vector<double> c_r_H_;
+  double area_leaf_;
   double rho_;
   double vcmax_;
   double jmax_;
@@ -165,6 +166,7 @@ public:
   double a_bio_;
   
   std::vector<double> psi_soil_;
+  std::vector<double> psi_soil_inverted_;
   std::vector<double> soil_depth_;
   std::vector<double> z_soil_mid_;
   bool use_precomputed_z_soil_mid_;
@@ -215,13 +217,13 @@ public:
   }
   
   // set-up functions
-  void set_physiology(const std::vector<double>& mass_root_prop, double rho, double a_bio, double PPFD, const std::vector<double>& psi_soil, const std::vector<double>& soil_depth, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa);
+  void set_physiology(double area_leaf, const std::vector<double>& mass_root_prop, double rho, double a_bio, double PPFD, const std::vector<double>& psi_soil, const std::vector<double>& soil_depth, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa);
   void setup_transpiration(double resolution);
   void setup_root_vulnerability(double resolution);
   void setup_clean_leaf();
   // std::vector<double> root_collar_psi(std::vector<double> soil_moist_);
 
-  double E_from_Soil_to_Root_Collar(double P_x_r = -0.12, const std::vector<double>& P_soil = {-0.06, -0.12});
+  void E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>& psi_soil);
   void find_root_collar_psi();
   double find_root_psi(double wettest_soil_layer, const std::vector<double>& psi_soil, int find_root_crit);
   double find_psi_stem_from_psi_root(double psi_root, const std::vector<double>& psi_soil);

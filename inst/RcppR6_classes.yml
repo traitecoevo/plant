@@ -64,6 +64,7 @@ Leaf:
     leaf_specific_conductance_max_: {type: double, access: field}
     vcmax_: {type: double, access: field}
     jmax_: {type: double, access: field}
+    area_leaf_: {type: double, access: field}
     rho_: {type: double, access: field}
     c_r_V_: {type: "std::vector<double>", access: field}
     c_r_H_: {type: "std::vector<double>", access: field}
@@ -94,7 +95,7 @@ Leaf:
       args: [integration_rule: int, integration_tol: double]
     set_physiology:
       return_type: void 
-      args: [mass_root_prop: "const std::vector<double>&", rho: double, a_bio: double, PPFD: double, psi_soil: "const std::vector<double>&", soil_depth: "const std::vector<double>&", leaf_specific_conductance_max: double, atm_vpd: double, ca: double, sapwood_volume_per_leaf_area: double, leaf_temp: double, atm_o2_kpa: double, atm_kpa: double]
+      args: [area_leaf: double, mass_root_prop: "const std::vector<double>&", rho: double, a_bio: double, PPFD: double, psi_soil: "const std::vector<double>&", soil_depth: "const std::vector<double>&", leaf_specific_conductance_max: double, atm_vpd: double, ca: double, sapwood_volume_per_leaf_area: double, leaf_temp: double, atm_o2_kpa: double, atm_kpa: double]
     #transpiration functions
     proportion_of_conductivity:
       return_type: double
@@ -137,8 +138,8 @@ Leaf:
       return_type: void
       args: [psi_stem: double, psi_upstream: double]
     E_from_Soil_to_Root_Collar:
-      return_type: double
-      args: [P_x_r: double, P_soil: "std::vector<double>"]
+      return_type: void
+      args: [P_x_r: double, psi_soil: "std::vector<double>"]
     find_root_collar_psi:
       return_type: void
       args: []

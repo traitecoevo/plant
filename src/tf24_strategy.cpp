@@ -329,6 +329,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
 // environment.get_soil_depths() should ask for the ath element to save calling for a new vector each time
 // change environment.get_soil_number_of_depths() change to n or soemtyhing
     double rooting_depth = std::min(height, 1.5);
+  const double root_mass_scale = 83.26 * 0.5 * mass_root_;
     // std::vector<double> Q_root;
     // Q_root.reserve(soil_number_of_depths_);
 
@@ -339,7 +340,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
       }
       const double q = Q(soil_depths_[a], rooting_depth, 0.2);
 
-      mass_root_prop_[a] = 83.26*0.5*mass_root_ * (prev_q - q)/ area_leaf_;
+      mass_root_prop_[a] = root_mass_scale * (prev_q - q);
       prev_q = q;
     }
 
@@ -350,7 +351,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   // update physiology instead of set_physiology
   // set vs update
 
-  leaf.set_physiology(mass_root_prop_, rho, a_bio, average_radiation, psi_soil, soil_depths_, leaf_specific_conductance_max, environment.get_atm_vpd(), environment.get_ca(), sapwood_volume_per_leaf_area, environment.get_leaf_temp(), environment.get_atm_o2_kpa(), environment.get_atm_kpa());
+  leaf.set_physiology(area_leaf_, mass_root_prop_, rho, a_bio, average_radiation, psi_soil, soil_depths_, leaf_specific_conductance_max, environment.get_atm_vpd(), environment.get_ca(), sapwood_volume_per_leaf_area, environment.get_leaf_temp(), environment.get_atm_o2_kpa(), environment.get_atm_kpa());
 
   // optimise psi_stem, setting opt_psi_stem_, profit_, hydraulic_cost_, assim_colimited_ etc.
   //leaf.optimise_psi_stem_TF();
