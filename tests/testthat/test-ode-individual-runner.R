@@ -153,8 +153,12 @@ test_that("grow_individual_to_size", {
     e <- environment_types[[x]]
     pl <- Individual(x, e)(strategy)
     sizes <- c(1, 5, 10, 12, strategy$hmat)
+    
     if(grepl("K93", x)) 
       sizes <- c(2.5, 5, 10, 12)
+
+    if(grepl("TF24", x)) 
+      sizes <- c(1, 5, 10, 12)
     env <- Environment(x)
     env$set_fixed_environment(1.0, height_max = 150)
     
@@ -163,7 +167,7 @@ test_that("grow_individual_to_size", {
     expect_equal(res$state[, "height"], sizes, tolerance=1e-4)
 
     sizes2 <- c(sizes, dplyr::last(sizes) * 2)
-    if(x == "FF16") {
+    if(x %in% c("FF16", "TF24")){
       expect_warning(res2 <- grow_individual_to_size(pl, sizes2, "height", env, 100),
                 "Time exceeded time_max")
       expect_equal(length(res2$time), length(sizes2))

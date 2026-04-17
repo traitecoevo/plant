@@ -280,7 +280,7 @@ void Patch<T,E>::compute_rates() {
       return r + s.consumption_rate(i); // accumulates r from zero
     });
 
-    resource_depletion.push_back(resource_consumed);
+    resource_depletion.push_back(resource_consumed/area);
   }
   
 

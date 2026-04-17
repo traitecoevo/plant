@@ -124,6 +124,7 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   vars.set_aux(aux_index.at("opt_psi_stem"), leaf.opt_psi_stem_);
   vars.set_aux(aux_index.at("opt_root_psi"), leaf.root_collar_psi_);
   vars.set_aux(aux_index.at("transpiration"), leaf.transpiration_);
+  vars.set_aux(aux_index.at("E_up_"), leaf.E_up_);
   vars.set_aux(aux_index.at("profit"), leaf.profit_);
   vars.set_aux(aux_index.at("stom_cond_CO2"), leaf.stom_cond_CO2_);
 

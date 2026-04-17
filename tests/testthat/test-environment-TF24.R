@@ -58,14 +58,14 @@ test_that("Environment-TF24 drivers", {
   num_depths <- env$get_soil_number_of_depths()
   expect_equal(num_depths, 5)
   
-  theta_sat <- 0.453
-  a_psi <- 8.7
+  theta_sat <- 0.428
+  a_psi <- 1.78e3
   
   expect_silent(env$set_soil_water_state(rep(theta_sat,num_depths)))
   expect_equal(env$get_soil_water_state(), rep(theta_sat,num_depths))
-  expect_equal(env$get_soil_water_state_cumulative_flux(), rep(0,3))  
+  expect_equal(env$get_soil_water_state_cumulative_flux(), rep(0,4))  
   
-  expect_equal(env$psi_from_soil_moist(theta_sat), a_psi)
+  expect_equal(env$psi_from_soil_moist(theta_sat), a_psi/1e6)
   
   # test handy wrappers
   expect_equal(env$get_PPFD(), env$extrinsic_drivers_evaluate("PPFD", 1))
@@ -82,7 +82,7 @@ test_that("Environment-TF24 soil layers", {
   context("TF24-Env-Soil water")
 
   env <- Environment("TF24")
-  theta_sat <- 0.453
+  theta_sat <- 0.428
   num_depths <- env$get_soil_number_of_depths()
   
   # get list of extrinsic drivers for the environment
@@ -115,10 +115,10 @@ test_that("Environment-TF24 running soil moisture profile", {
   # get list of extrinsic drivers for the environment
 
   # default values
-  expect_equal(env$soil_moist_sat, 0.453)
-  expect_equal(env$K_sat, 440.628)
-  expect_equal(env$a_psi, 8.7)
-  expect_equal(env$n_psi, 4.8)
+  expect_equal(env$soil_moist_sat, 0.428)
+  expect_equal(env$K_sat, 163.0411)
+  expect_equal(env$a_psi, 1.78e3)
+  expect_equal(env$n_psi, 6.57)
   expect_equal(env$a_infil, 1)
   expect_equal(env$b_infil, 8)
 

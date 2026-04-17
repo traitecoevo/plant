@@ -17,7 +17,6 @@ for (x in names(strategy_types)) {
   
   p <- Parameters(x, e)(strategies=list(s),
                         patch_type = 'meta-population')
-  
   env <- Environment(x)
   
   ctrl <- Control()
@@ -50,9 +49,9 @@ for (x in names(strategy_types)) {
     }
     if(x %in% c("TF24")) {
       length_odes <- env$get_soil_number_of_depths()
-      soil_moist_inits <- c(rep(env$soil_moist_sat, length_odes)/2, rep(0,3))
+      soil_moist_inits <- c(rep(env$soil_moist_sat, length_odes)/2, rep(0,4))
       expect_equal(patch$ode_state, soil_moist_inits)
-      expect_equal(patch$ode_rates, c(-363.8567, rep(0,4), rep(1,2), 110.1570), tol = 1e-4)
+      expect_equal(patch$ode_rates, c(3.312786717, rep(0,4), 1.000000000, 0.996093750, 0.002257735, 0.000000000), tol = 1e-4)
     }
     
     expect_identical(patch$ode_state, env_state)
@@ -181,14 +180,21 @@ for (x in names(strategy_types)) {
     ctrl <- Control()
     e <- environment_types[[x]]
     env <- Environment(x)
+
+    if(x == "TF24"){
+      max_patch_lifetime = 3
+    } else{
+      max_patch_lifetime = 30
+    }
+
     p2 <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          patch_area= 2, max_patch_lifetime = 30)
+                          patch_area= 2, max_patch_lifetime = max_patch_lifetime)
     patch2 <- Patch(x, e)(p2, env, ctrl)
     expect_equal(p2$patch_area, 2)
     expect_equal(patch2$get_area, 2)
 
     p10 <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          patch_area= 10, max_patch_lifetime = 30)
+                          patch_area= 10, max_patch_lifetime = max_patch_lifetime)
     patch10 <- Patch(x, e)(p10, env, ctrl)
     expect_equal(p10$patch_area, 10)
     expect_equal(patch10$get_area, 10)

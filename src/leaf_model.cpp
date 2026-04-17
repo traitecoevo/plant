@@ -9,9 +9,9 @@ Leaf::Leaf()
     c(2.680147), //unitless
     b(3.898245), //-MPa
     psi_crit(5.870283), //-MPa 
-    root_c(2.65), //unitless
-    root_b(1.29), //-MPa
-    root_psi_crit(1.951651), //-MPa 
+    root_c(2.680147), //unitless
+    root_b(3.898245), //-MPa
+    root_psi_crit(5.870283), //-MPa 
     beta2(1.5), //exponent for effect of hydraulic risk (unitless)
     jmax_25(157.44), // maximum electron transport rate umol m^-2 s^-1
     hk_s(4),  // maximum hydraulic-dependent sapwood turnover rate yr ^ -1
@@ -122,8 +122,8 @@ void Leaf::setup_clean_leaf() {
 //sets various parameters which are constant for a given node at a given time
 
 void Leaf::set_physiology(double area_leaf, const std::vector<double>& mass_root_prop, double rho, double a_bio, double PPFD, const std::vector<double>& psi_soil, const std::vector<double>& soil_depth, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa) {
-    if (psi_soil.size() != soil_depth.size()) {
-    util::stop("soil_depth and psi_soil must have the same number of elements");
+    if (psi_soil.size() != soil_depth.size() || mass_root_prop.size() != soil_depth.size()) {
+    util::stop("soil_depth, psi_soil and mass_root_prop must have the same number of elements");
   }
   area_leaf_ = area_leaf;
   rho_ = rho;
@@ -223,7 +223,6 @@ void Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>& p
 
     // Find the least negative soil potential out of the given soil layer and the root collar
     double P_src_max = std::max(psi_soil[i], P_x_r);
-    
 
     if(P_src_min > P_src_max){
     util::stop("P_src_min must be more negative than P_src_max");
@@ -231,7 +230,7 @@ void Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>& p
 
 
      // If root collar soil water potential equals the soil water potential in a given layer
-    if(std::abs(P_x_r - psi_soil[i]) < 1e-20){
+    if(std::abs(P_x_r - psi_soil[i]) < 1e-8){
 
       // Fraction of conductance in roots in a given layer at most negative soil water potential (but actually is equal to root collar)
       // root_vuln_from_psi is a pre-built spline of exp(-(|psi|/b_root)^c_root)
@@ -250,8 +249,7 @@ void Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>& p
       E_up_ += E_i;
 
     }
-    else if((psi_soil[i] - P_x_r) == (gravity_head * z_soil_mid_[i])){
-
+    else if(std::abs((psi_soil[i] - P_x_r) - (gravity_head * z_soil_mid_[i])) < 1e-8){
       // If pressure difference perfectly balances gravity transpiration is equal to zero
       double E_i = 0.0; // [mol H2O / m^2 / s]
       
@@ -301,7 +299,6 @@ void Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>& p
 
 // This function is used to find root collar pressure which equilibrates the soil-root-stem water continuuum
 double Leaf::E_column(double x, const std::vector<double>& psi_soil, double psi_leaf) {
-
 
   E_from_Soil_to_Root_Collar(x, psi_soil);
   root_collar_psi_ = -x;
@@ -366,6 +363,13 @@ void Leaf::find_root_collar_psi(){
     // return profit_;
     return;
   }
+
+if(E_column(-psi_crit, psi_soil_inverted_, psi_crit) < 0){
+      root_collar_psi_ = root_psi_crit;
+      opt_psi_stem_ = psi_crit;
+      profit_ = - R_d_ - hydraulic_cost_TF(psi_crit);
+      return;
+}
 
   // Avoid loop if the wettest psi layer is drier than psi_crit in stem, transpiration not possible and so all variables set to 
   // shut down
