@@ -12,22 +12,133 @@ library(patchwork)
 ```
 
 ```{r}
-max_patch_lifetime <-1
-
+max_patch_lifetime <-105.32
 devtools::load_all("/Users/z3533545/Documents/GitHub/plant/")
 p0 <- scm_base_parameters("TF24", "TF24_Env")
 p0$max_patch_lifetime <- max_patch_lifetime
 traits <- trait_matrix(c(0.07), c("lma"))
 p1 <- expand_parameters(traits, p0)
+
 env <- Environment("TF24")
 env$set_soil_number_of_depths(15)
 env$set_soil_water_state(rep(c(0.2), times = 15))
-x = seq(0,max_patch_lifetime,length.out = 10000)
+x = seq(0,max_patch_lifetime,length.out = 100)
 y = 0.25*sin(2*pi*x) + 1
-## env$extrinsic_drivers_set_variable("rainfall", x=x, y=y)
-env$extrinsic_drivers_set_constant("rainfall", 1)
+env$extrinsic_drivers_set_variable("rainfall", x=x, y=y)
+# env$extrinsic_drivers_set_constant("rainfall", 1)
+ctrl <- scm_base_control()
+# ctrl$ode_tol_rel <- 1e-5
+# ctrl$ode_tol_abs <- 1e-5
+# ctrl$schedule_eps <- 0.001
 
-system.time(results <- run_scm_collect(p1, env = env))
+system.time(results <- run_scm_collect(p1, env = env, ctrl = ctrl))
+saveRDS(results, "results_high.RDS")
+```
+
+```{r}
+results %>%
+  expand_state() %>%
+  pluck("species") %>%
+  mutate(E_indiv = E_up_ * area_leaf * 60 * 60 * 12 * 365 / 1000) %>%
+  integrate_over_size_distribution() %>%
+  pull(E_indiv) -> stem_side
+
+results$env$soil_moist_cumulative_flux %>%
+  mutate(
+    root_side = (sum_resource_depletion - lag(sum_resource_depletion)) /
+                (time - lag(time))) -> root_side
+
+plot(stem_side ~ root_side$root_side[-1])
+abline(0, 1, col = "red")
+
+dt <- diff(root_side$time)
+stem_cumul <- cumsum(c(0, (stem_side[-length(stem_side)] + stem_side[-1]) / 2 * dt))
+
+# cumulative root-side (already cumulative)
+root_cumul <- root_side$sum_resource_depletion
+
+plot(stem_cumul ~ root_cumul)
+abline(0, 1, col = "red")
+```
+
+```{r}
+
+strategy_types <- get_list_of_strategy_types()
+environment_types <- get_list_of_environment_types()
+    x = "TF24"
+    ctrl <- Control()
+    e <- environment_types[[x]]
+    env <- Environment(x)
+    p2 <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
+                          patch_area= 2, max_patch_lifetime = 30)
+    p2$strategies[[1]]$birth_rate_y <- 1
+    scm2 <- run_scm(p2)
+
+```
+
+```{r}
+resultsroot_mass = c(0.5,0.8)
+r_R_H_min <- c()
+r_R_V <- c()
+vertical_resistance_sum <- 0 
+r_R_V_sum <- 0
+for(i in 1:2){
+
+c_r_v = root_mass[i] / 3.0;
+c_r_h = root_mass[i] * 2.0 / 3.0;
+beta_R_H = 3.4e2
+beta_R_V = 9.4e3 
+r_R_H_min[i] = beta_R_H / c_r_h;
+r_R_V[i] = beta_R_V * 0.01 / c_r_v;
+vertical_resistance_sum = r_R_V[i] + vertical_resistance_sum;
+r_R_V_sum[i] = vertical_resistance_sum;
+}
+r_R_H = r_R_H_min[i] / 0.5
+r_R = r_R_H + r_R_V_sum[i]
+
+r_R/0.05
+
+
+root_mass = c(0.5/0.05,0.8/0.05)
+r_R_H_min <- c()
+r_R_V <- c()
+vertical_resistance_sum <- 0 
+r_R_V_sum <- 0
+for(i in 1:2){
+
+leaf_area = 0.05
+
+c_r_v = root_mass[i]/ 3.0;
+c_r_h = root_mass[i]* 2.0 / 3.0;
+beta_R_H = 3.4e2
+beta_R_V = 9.4e3 
+r_R_H_min[i] = beta_R_H / c_r_h;
+r_R_V[i] = beta_R_V * 0.01 / c_r_v;
+vertical_resistance_sum = r_R_V[i] + vertical_resistance_sum;
+r_R_V_sum[i] = vertical_resistance_sum;
+}
+r_R_H = r_R_H_min[i] / 0.5
+r_R = r_R_H + r_R_V_sum[i]
+
+```
+
+```{r}
+results$env %>%
+pluck("soil_moist") %>%
+group_by(time,step) %>%
+summarise(soil_moist = sum(soil_moist*0.1)) -> asd
+
+results$env %>%
+pluck("soil_moist_cumulative_flux") %>%
+mutate(soil_moist = asd$soil_moist) %>%
+mutate(sum_rainfall = c(sum_rainfall - lag(sum_rainfall)),
+sum_infiltration = c(sum_infiltration - lag(sum_infiltration)),
+sum_drainage = c(sum_drainage - lag(sum_drainage)),
+sum_resource_depletion = c(sum_resource_depletion - lag(sum_resource_depletion)),
+sum_soil_moist = c(soil_moist - lag(soil_moist))) %>%
+mutate(balance = sum_drainage + sum_soil_moist + sum_resource_depletion - sum_infiltration) %>%
+ggplot(aes(x = time, y = balance)) + 
+geom_line()
 ```
 
 ```{r}
@@ -60,8 +171,19 @@ for (i in 1:15){
 
 ```{r}
 results %>%
-expand_state() %>% 
-pluck("species") %>% 
+expand_state() %>%
+pluck("species") %>%
+  integrate_over_size_distribution()%>% 
+  ggplot(aes(time, area_leaf)) +
+  geom_line(size = 2, colour = "forestgreen") +
+  theme_bw() +
+  theme(text = element_text(size = 20)) +
+  ylab(expression(paste(Patch~leaf~area, " (",m^2," ",m^{-2},")"))) +
+  xlab("Time (yr)") -> a
+
+  scm2%>%
+expand_state() %>%
+pluck("species") %>%
   integrate_over_size_distribution()%>% 
   ggplot(aes(time, area_leaf)) +
   geom_line(size = 2, colour = "forestgreen") +
@@ -107,6 +229,13 @@ results$species %>%
   theme_bw() +
   # theme(legend.position = "none")+
   theme(text = element_text(size = 20))-> c_plot
+
+  scm2$species %>%
+  drop_na() %>%
+  plot_size_distribution() +
+  theme_bw() +
+  # theme(legend.position = "none")+
+  theme(text = element_text(size = 20))-> c_plot
 ```
 
 ```{r}
@@ -114,6 +243,19 @@ results$env$soil_moist %>%
 mutate(soil_depth = results$env$soil_depth$soil_depth) %>%
 mutate(psi_soil = (1.78e3 * (soil_moist/0.428)^ -6.57)/1e6) %>%
 ggplot(aes(x = time, y = psi_soil, group = soil_depth, colour = soil_depth)) +
+geom_point() +
+geom_line() +
+  theme_bw() +
+  theme(text = element_text(size = 20)) +
+  ylab(expression(paste(psi[soil], " (",-Mpa,")"))) +
+  xlab("Time (years)") +
+  labs(colour = "Soil depth (m)") -> d
+
+  scm2$env$soil_moist %>%
+mutate(soil_depth = scm2$env$soil_depth$soil_depth) %>%
+mutate(psi_soil = (1.78e3 * (soil_moist/0.428)^ -6.57)/1e6) %>%
+ggplot(aes(x = time, y = psi_soil, group = soil_depth, colour = soil_depth)) +
+geom_point() +
 geom_line() +
   theme_bw() +
   theme(text = element_text(size = 20)) +
@@ -124,6 +266,16 @@ geom_line() +
 
 ```{r}
 results$species %>%
+ggplot(aes(x = time, y = opt_psi_stem)) +
+geom_line(aes(colour = height, group = node)) +
+  theme_bw() +
+  theme(text = element_text(size = 20)) +
+  ylab(expression(paste(psi[stem], " (",-Mpa,")"))) +
+  xlab("Time (years)") +
+  labs(colour = "Height (m)") -> e
+
+
+  scm2$species %>%
 ggplot(aes(x = time, y = opt_psi_stem)) +
 geom_line(aes(colour = height, group = node)) +
   theme_bw() +
@@ -142,10 +294,28 @@ geom_line(aes(colour = height, group = node)) +
   ylab(expression(paste(psi[root], " (",-Mpa,")"))) +
   xlab("Time (years)") +
   labs(colour = "Height (m)") -> f
+
+  scm2$species %>%
+ggplot(aes(x = time, y = opt_root_psi)) +
+geom_line(aes(colour = height, group = node)) +
+  theme_bw() +
+  theme(text = element_text(size = 20)) +
+  ylab(expression(paste(psi[root], " (",-Mpa,")"))) +
+  xlab("Time (years)") +
+  labs(colour = "Height (m)") -> f
 ```
 
 ```{r}
 results$species %>%
+ggplot(aes(x = time, y = profit)) +
+geom_line(aes(colour = height, group = node)) +
+  theme_bw() +
+  theme(text = element_text(size = 20)) +
+  ylab(expression(paste(Profit, " (",mu,mol~m^{-2}~s^{-1},")"))) +
+  xlab("Time (years)") +
+  labs(colour = "Height (m)") -> f2  
+
+  scm2$species %>%
 ggplot(aes(x = time, y = profit)) +
 geom_line(aes(colour = height, group = node)) +
   theme_bw() +
@@ -225,5 +395,5 @@ geom_line() +
 library(patchwork)
 (a+c_plot)/((d+f)/(e + f2))/(f3+h)/(i)
 
-ggsave("diagnostic_plot.png", height = 20, width = 15)
+ggsave("diagnostic_plot5_high.png", height = 20, width = 15)
 ```
