@@ -2,9 +2,6 @@
 % Please edit documentation in R/util_model.R
 \name{strategy_list}
 \alias{strategy_list}
-\alias{strategy_default}
-\alias{strategy}
-\alias{individual_list}
 \title{Create a list of Strategies}
 \usage{
 strategy_list(

@@ -10,7 +10,7 @@ test_that("Trapezium rule works", {
 })
 
 test_that("Trapezium local error estimate is correct", {
-  ## Here is the naive implementation of integration error...
+  ## Here is a naive implementation of integration error for comparison with C++ version
   local_error_integration_R <- function(x, y) {
     n <- length(x)
     i0 <- -c(n-1, n)

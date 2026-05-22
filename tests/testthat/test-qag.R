@@ -1,6 +1,9 @@
 context("QAG")
 
 ## First where no subdivisions are required:
+cbind_list <- function(x) {
+  do.call("cbind", as.list(x))
+}
 
 test_that("Integration agrees with R on simple problem", {
   f <- sin

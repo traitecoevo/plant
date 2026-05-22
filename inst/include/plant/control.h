@@ -3,7 +3,7 @@
 #define PLANT_PLANT_CONTROL_H_
 
 #include <plant/qag.h>
-#include <plant/ode_control.h>
+#include <plant/ode_solver/ode_control.h>
 #include <string>
 
 // The `Control` object holds all the non-biological control
@@ -18,19 +18,11 @@
 // Because Control is essentially a dumb set of parameters that has no
 // real functionality, we don't export it as a reference class, but
 // instead use RcppR6's "list" export ability.
-//
-// TODO: Eventually I need to make sure that the numbers here are
-// reasonable, and probably shepherd the translation from int to
-// size_t.
 namespace plant {
-
 struct Control {
   Control();
 
-  bool   assimilator_adaptive_integration;
-  double assimilator_integration_tol;
-  size_t assimilator_integration_iterations;
-  size_t assimilator_integration_rule;
+  size_t function_integration_rule;
 
   double offspring_production_tol;
   size_t offspring_production_iterations;
@@ -52,17 +44,13 @@ struct Control {
   double schedule_eps;
   bool   schedule_verbose;
 
-  size_t equilibrium_nsteps;
-  double equilibrium_eps;
-  double equilibrium_large_birth_rate_change;
-  bool   equilibrium_verbose;
-  std::string equilibrium_solver_name;
-  double equilibrium_extinct_birth_rate;
-  size_t equilibrium_nattempts;
-  bool   equilibrium_solver_logN;
-  bool   equilibrium_solver_try_keep;
-
   bool   save_RK45_cache;
+
+    //TF24 control parameters
+  double GSS_tol_abs;
+  double vulnerability_curve_ncontrol;
+  double ci_abs_tol;
+  double ci_niter;
 };
 
 inline ode::OdeControl make_ode_control(const Control& control) {

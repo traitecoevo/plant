@@ -1,44 +1,33 @@
 #' Turn `species` component of plant solver output into a tidy data object 
 #'
-#' @param data a list, the `species` component of plant solver output.
-#'
-#' @return a tibble whose columns provide metrics on each breakpoint in species size distribution
+#' @rdname tidy_patch
 #' @importFrom rlang .data
-tidy_species <- function(data) {
+tidy_species <- function(results) {
+
+  n_spp <- length(results[[1]]$species)
+
+   get_species_sdd <- function(i) {
+     purrr::imap_dfr(results, ~ .x$species[[i]] |>
+       t() |>
+       dplyr::as_tibble() |>
+       dplyr::mutate(step = .y, node = seq_len(dplyr::n()), species = i))
+   }
   
-  # get dimensions of data = number of steps * number of nodes
-  dimensions <- dim(data[1,,] )
-  
-  # establish data structure for results    
-  data_species <- 
-    tidyr::expand_grid(
-      step = seq_len(dimensions[1]), 
-      node = seq_len(dimensions[2])
-    )
-  
-  # retrieve bnames of all tracked variables
-  vars <- data[,1,1] %>% names()
-  
-  # bind each onto main data frame
-  for(v in vars) {
-    data_species[[v]] <- 
-      data[v, , ] %>% 
-      as.data.frame %>% tidyr::as_tibble() %>%
-      tidyr::pivot_longer(cols=dplyr::starts_with("V"), names_to = "node") %>%
-      dplyr::pull(.data$value)
-  }
-  
-  data_species %>% dplyr::mutate(density = exp(.data$log_density))
+  purrr::map_dfr(seq_len(n_spp), get_species_sdd) |>
+    dplyr::mutate(
+      density = exp(.data$log_density),
+      species = as.character(.data$species)
+    ) 
 }
 
 
 #' Turn `env` component of solver output into a tidy data object 
 #'
-#' @param env a list, the `env` component of solver output.
-#'
-#' @return a tibble describing the environment in a patch
+#' @rdname tidy_patch
 #' @importFrom rlang .data
-tidy_env <- function(env) {
+tidy_env <- function(results) {
+  env <- lapply(results, "[[", "env")
+
   # get list of variables
   env_variables = names(env[[1]])
   
@@ -50,13 +39,22 @@ tidy_env <- function(env) {
           function(v) purrr::map_dfr(env, 
             ~purrr::pluck(.x, v) %>% 
               data.frame, .id = "step") %>%
-              tibble::as_tibble() %>%
+              dplyr::as_tibble() %>%
               dplyr::mutate(dplyr::across(dplyr::any_of("step"), as.integer)) %>%
               dplyr::rename_with(~ gsub("\\.", v, .x)
+                                 
+                                 
           )
         )
 
   names(env_long) <- env_variables
+  if(any(env_variables == "soil_moist_cumulative_flux")){
+  cumulative_names <- c("sum_rainfall","sum_infiltration","sum_drainage")
+  
+  env_long$soil_moist_cumulative_flux <- env_long$soil_moist_cumulative_flux %>%
+    dplyr::mutate(cumulative_variables = rep(cumulative_names, times = dplyr::n()/length(cumulative_names))) %>%
+    tidyr::pivot_wider(names_from = "cumulative_variables", values_from = "soil_moist_cumulative_flux")
+  }
   return(env_long)
 }
 
@@ -66,30 +64,33 @@ tidy_env <- function(env) {
 #' @param results output of run_scm_collect
 #'
 #' @return a list, containing outputs of plant solver in tidy format
-#' @export
 #' @importFrom rlang .data
 tidy_patch <- function(results) {
+  time <- sapply(results, "[[", "time")
+  patch_density <- sapply(results, "[[", "patch_density")
 
-  out <- results
-  
-  data <- dplyr::tibble(
-    step = seq_len(length(results$time)),
-    time = results$time, 
-    patch_density = results$patch_density
+  out <- list()
+
+  out[["steps"]] <-
+    dplyr::tibble(
+      step = seq_len(length(time)),
+      time = time,
+      patch_density = patch_density
     )
-  
-  out[["species"]] <- 
-    dplyr::left_join(by = "step", data,
-      purrr::map_df(results$species, tidy_species, .id="species")
-    )
-  
+
+  out[["n_spp"]] <- length(results[[1]]$species)
+
+  out[["species"]] <-
+    results |>
+    tidy_species() |>
+    dplyr::left_join(by = "step", out[["steps"]]) |>
+    dplyr::select(dplyr::all_of(c("species", "time", "step", "patch_density", "node", "density", "log_density")), dplyr::everything())
+
   out[["env"]] <- 
-    tidy_env(results$env) %>%
-    purrr::map(dplyr::left_join, data, by = "step")
-  
-  out[["n_spp"]] <- length(results$species)
-  
-  out[["patch_density"]] <- NULL
+    results |>
+    tidy_env() |>
+    purrr::map(dplyr::left_join, out[["steps"]], by = "step") |>
+    purrr::map(~.x |> dplyr::select(dplyr::all_of(c("time", "step", "patch_density")), dplyr::everything()))
   
   out
 }
@@ -129,18 +130,20 @@ interpolate_to_times <- function(tidy_species_data, times, method="natural") {
 #' @param tidy_species_data output of either `tidy_patch` or `tidy_species`
 #' @param heights heights to interpolate to
 #' @param method Method for interpolation. For more info see help on stats::spline
-#'
+#' @param min_log_density Set minimum possible value of log_density
 #' @return Returns a tibble of similar format to input, but with all outputs interpolated to specified hieghts.
 #' @export
 #' @importFrom stats spline
 #' @importFrom rlang .data
-interpolate_to_heights <- function(tidy_species_data, heights, method="natural") {
+interpolate_to_heights <- function(tidy_species_data, heights, method="natural", min_log_density = -100) {
   
   # helper function - predicts to new values with spline
   # only needed to ensure predictions for xout outside the ange of x are set to NA
-  f <- function(x, y, xout) {
+  f <- function(x, y, xout, time) {
+
     y_pred <- stats::spline(x, y, xout=xout, method=method)$y
     y_pred[!dplyr::between(xout, min(x), max(x))] <- NA
+
     y_pred
   }
 
@@ -148,12 +151,20 @@ interpolate_to_heights <- function(tidy_species_data, heights, method="natural")
     tidy_species_data <- tidy_species_data %>%
       tibble::add_column(step = NA)
   }
-
+  
   tidy_species_data %>%
     tidyr::drop_na(-dplyr::any_of("step")) %>%
+    
+    # check for very negative values
+    dplyr::mutate(
+      log_density = ifelse(.data$log_density < min_log_density, min_log_density, .data$log_density)
+    ) %>%
     dplyr::group_by(.data$species, .data$time, .data$step) %>%
+    # remove any repated x values - these cuase warnings in the interpolation
+    dplyr::filter(!duplicated(.data$height)) %>%
+
     dplyr::reframe(
-      dplyr::across(tidyselect::where(is.double), ~ f(.data$height, .x, xout = heights))
+      dplyr::across(tidyselect::where(is.double), ~ f(.data$height, .x, xout = heights, .data$time[1]))
     ) %>%
     dplyr::mutate(density = exp(.data$log_density))
 }
@@ -196,7 +207,7 @@ tidy_individual <- function(results) {
 integrate_over_size_distribution <- function(tidy_species_data) {
   
   tidy_species_data  %>%
-    dplyr::select(-.data$node) %>% stats::na.omit() %>%
+    dplyr::select(-dplyr::any_of("node")) %>% stats::na.omit() %>%
     dplyr::filter(.data$step > 1) %>% 
     dplyr::group_by(.data$step, .data$time, .data$patch_density, .data$species) %>% 
     dplyr::reframe(

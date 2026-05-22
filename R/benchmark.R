@@ -7,8 +7,7 @@
 #' @export
 
 run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy,
-                                                       # FF16r = FF16r_Strategy,
-                                                       FF16w = FF16w_Strategy,
+                                                       TF24 = TF24_Strategy,
                                                        K93 = K93_Strategy),
                                  iterations = 1) {
   f_scm <- function(x) {
@@ -25,7 +24,8 @@ run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy,
   }
 
   message("Running benchmarks via `run_plant_benchmarks`")
-  bench::press(strategy = names(strategy_types),
+  strategy <- names(strategy_types)
+  bench::press(strategy = strategy,
                {
                  bench::mark(
                    check = FALSE,
@@ -37,28 +37,26 @@ run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy,
                })
 }
 
-# Evaluate overheads of having multiple soil layers in FF16w, to ensure that
+# Evaluate overheads of having multiple soil layers in TF24, to ensure that
 # our approach to computing individual resource consumption is scalable.
 run_resource_consumption_benchmarks <- function(its = 10) {
   
   f_scm <- function(layers) {
-    p0 <- scm_base_parameters("FF16w")
+    p0 <- scm_base_parameters("TF24")
     p0$max_patch_lifetime = 10
     
-    p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,FALSE)
+    p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0)
     
-    env <- make_environment("FF16w", 
-                            soil_number_of_depths = layers,
-                            soil_initial_state = rep(1, layers))
-    
+    env <- Environment("TF24")
+    env$set_soil_number_of_depths(layers)
+
     ctrl <- scm_base_control()
-    env$set_extrinsic_driver("rainfall", 0:10, 0:10)
-    
     out <- run_scm(p1, env, ctrl)
   }
   
   message("Running resource consumption benchmarks`")
-  bench::press(soil_layers = c(1, 10, 50, 100),
+  soil_layers <- c(1, 10, 50, 100)
+  bench::press(soil_layers = soil_layers,
                {
                  bench::mark(
                    check = FALSE,

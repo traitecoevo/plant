@@ -6,7 +6,7 @@
 \usage{
 run_stochastic_collect(
   p,
-  env = make_environment(parameters = p),
+  env = NULL,
   ctrl = scm_base_control(),
   random_schedule = TRUE
 )

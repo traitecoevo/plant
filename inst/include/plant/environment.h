@@ -5,7 +5,7 @@
 #include <plant/control.h>
 #include <plant/interpolator.h>
 #include <plant/adaptive_interpolator.h>
-#include <plant/ode_interface.h>
+#include <plant/ode_solver/ode_interface.h>
 #include <plant/internals.h>
 #include <plant/util.h>
 #include <unordered_map>
@@ -19,13 +19,10 @@ namespace plant {
 class Environment {
 public:
   template <typename Function>
-  void compute_environment(Function f, double height_max);
-  template <typename Function>
-  void rescale_environment(Function f, double height_max);
+  void compute_environment(Function f, double height_max, bool rescale);
 
   void set_fixed_environment(double value, double height_max);
   void set_fixed_environment(double value);
-  void init_interpolators(const std::vector<double>& state);
 
   // ODE interface: do nothing if the environment has no state.
   size_t ode_size() const { return vars.state_size; }
@@ -52,17 +49,22 @@ public:
     return it;
   }
 
-  // Reset the environment.
+  virtual Rcpp::List r_get_state() const
+  {
+    return Rcpp::List::create(_["time"] = time);
+  }
+
+  // Reset the environment
   void clear() {
     time = 0.0;
     clear_environment();
   }
 
-  void clear_environment() {}
+  virtual void clear_environment() {}
 
-  void r_init_interpolators(const std::vector<double>& state) {}
+  virtual void r_init_interpolators(const std::vector<double>& state) {}
 
-  double get_environment_at_height(double height) { return 0.0; };
+  double get_environment_at_height(double height) const { return 0.0; };
 
   virtual ~Environment() = default;
 
@@ -72,6 +74,33 @@ public:
 
   Internals vars;
   ExtrinsicDrivers extrinsic_drivers;
+
+  // The
+  std::vector<std::string> extrinsic_drivers_get_names() const
+  {
+    return  extrinsic_drivers.get_names();
+  }
+
+  void extrinsic_drivers_set_constant(std::string driver_name, double value)
+  {
+    extrinsic_drivers.set_constant(driver_name, value);
+  }
+
+  void extrinsic_drivers_set_variable(std::string driver_name, std::vector<double> const &x, std::vector<double> const &y)
+  {
+    extrinsic_drivers.set_variable(driver_name, x, y);
+  }
+
+  double extrinsic_drivers_evaluate(std::string driver_name, double x) const
+  {
+    return extrinsic_drivers.evaluate(driver_name, x);
+  }
+
+  std::vector<double> extrinsic_drivers_evaluate_range(std::string driver_name, std::vector<double> const &x) const
+  {
+    return extrinsic_drivers.evaluate_range(driver_name, x);
+  }
+  
 };
 }
 #endif

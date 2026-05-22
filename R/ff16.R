@@ -1,8 +1,8 @@
-##' Create a FF16 Plant or Node
-##' @title Create a FF16 Plant or Node
+##' Create a FF16 Individual
+##' @title Create a FF16 Individual
 ##' @param s A \code{\link{FF16_Strategy}} object
 ##' @export
-##' @rdname FF16
+##' @rdname FF16_individual
 ##' @examples
 ##' pl <- FF16_Individual()
 ##' pl$height
@@ -10,125 +10,29 @@ FF16_Individual <- function(s=FF16_Strategy()) {
   Individual("FF16", "FF16_Env")(s)
 }
 
-##' @export
-##' @rdname FF16
-FF16_Node <- function(s=FF16_Strategy()) {
-  Node("FF16", "FF16_Env")(s)
-}
-
-##' @export
-##' @rdname FF16
-FF16_Species <- function(s=FF16_Strategy()) {
-  Species("FF16", "FF16_Env")(s)
-}
-
-##' @export
-##' @rdname FF16
-FF16_Parameters <- function() {
-  Parameters("FF16","FF16_Env")()
-}
-
-##' @export
-##' @rdname FF16
-##' @param p A \code{Parameters<FF16,FF16_Env>} object
-FF16_Patch <- function(p) {
-  Patch("FF16", "FF16_Env")(p)
-}
-
-##' @export
-##' @rdname FF16
-FF16_SCM <- function(p) {
-  SCM("FF16", "FF16_Env")(p)
-}
-
-##' @export
-##' @rdname FF16
-FF16_StochasticSpecies <- function(s=FF16_Strategy()) {
-  StochasticSpecies("FF16", "FF16_Env")(s)
-}
-
-##' @export
-##' @rdname FF16
-FF16_StochasticPatch <- function(p) {
-  StochasticPatch("FF16", "FF16_Env")(p)
-}
-
-##' @export
-##' @rdname FF16
-FF16_StochasticPatchRunner <- function(p) {
-  StochasticPatchRunner("FF16", "FF16_Env")(p)
-}
-
-
-## Helper to create FF16_environment object. Useful for running individuals
-##' @title create FF16_environment object
-##' @param canopy_light_tol 
+##' @title Setup an a model system with default or specified parameters
 ##'
-##' @param canopy_light_nbase 
-##' @param canopy_light_max_depth 
-##' @param canopy_rescale_usually 
-##'
+##' @description Setup an a model system with default or specified parameters. 
+##' This function enables you initialize a model system. Use the model name to start different models. 
+##' @param ... Arguments to be passed to the model constructor. These include
+##' 
+##'   *`patch_area`: Area of idnividfual patch. Only relevant for stochastic model. Default is 1.0m2.
+##'   *`max_patch_lifetime`: The maximum time in years we want to simulate
+##'   *`strategies`: A list of stratgies to simulate. The default is an empty list.
+##'   *`strategy_default`: Values for the default startegy. The default values are those specified in the C++ code for the model.
+##'   *`node_schedule_times_default`: Default vector of times at which to introduce nodes. The default is chosen to have close spacing at the start of the simulation.
+##'   *`node_schedule_times`: A list with each element containing the vector of times we want to introduce nodes for each strategy. The default is an empty list.
+##'   *`ode_times`: A vector of patch ages we want the ode solver to stop at
 ##' @export
-##' @rdname FF16_make_environment
-FF16_make_environment <- function(canopy_light_tol = 1e-4, 
-                                  canopy_light_nbase = 17,
-                                  canopy_light_max_depth = 16, 
-                                  canopy_rescale_usually = TRUE) {
-  
-  e <- FF16_Environment(canopy_rescale_usually, 
-                        soil_number_of_depths = 0)
-  
-  # Canopy defaults have lower tolerance which are overwritten for speed
-  e$canopy <- Canopy(canopy_light_tol, 
-                     canopy_light_nbase, 
-                     canopy_light_max_depth)
-  
-  return(e)
-}
-
-##' Construct a fixed environment for FF16 strategy
-##'
-##' @param e Value of environment (deafult  = 1.0)
-##' @param height_max = 150.0 maximum possible height in environment
-##' @rdname FF16_Environment
-##'
-##' @export
-FF16_fixed_environment <- function(e=1.0, height_max = 150.0) {
-  env <- FF16_make_environment()
-  env$set_fixed_environment(e, height_max)
-  env
-}
-
-
-##' This makes a pretend light environment over the plant height,
-##' slightly concave up, whatever.
-##' @title Create a test environment for FF16 startegy
-##' @param height top height of environment object
-##' @param n number of points
-##' @param light_env function for light environment in test object
-##' @param n_strategies number of strategies for test environment
-##' @export
-##' @rdname FF16_test_environment
+##' @rdname FF16_Parameters
 ##' @examples
-##' environment <- FF16_test_environment(10)
-FF16_test_environment <- function(height, n=101, light_env=NULL,
-                                  n_strategies=1) {
-  
-  hh <- seq(0, height, length.out=n)
-  if (is.null(light_env)) {
-    light_env <- function(x) {
-      exp(x/(height*2)) - 1 + (1 - (exp(.5) - 1))/2
-    }
-  }
-  ee <- light_env(hh)
-  interpolator <- Interpolator()
-  interpolator$init(hh, ee)
-
-  ret <- FF16_make_environment()
-  ret$canopy$canopy_interpolator <- interpolator
-  attr(ret, "light_env") <- light_env
-  ret
+##' p1 <- FF16_Parameters()
+##' p2 <- FF16_Parameters(max_patch_lifetime = 10.0, patch_area = 1.0, strategies = list(FF16_Strategy()), strategy_default = FF16_Strategy(), node_schedule_times_default = node_schedule_times_default(10.0), node_schedule_times = list(node_schedule_times_default(10.0)), ode_times = c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
+FF16_Parameters <- function(...) {
+  Parameters("FF16","FF16_Env")(...)
 }
+
+# Todo -- generalise report generation
 
 ##' Generates a report on stand grown with FF16 strategy
 ##'
@@ -208,7 +112,7 @@ FF16_generate_stand_report <- function(results,
 ##' @param latitude degrees from equator (0-90), used in solar model [deg]
 ##' @importFrom stats coef nls
 ##' @export
-##' @rdname FF16_hyperpar
+##' @rdname make_FF16_hyperpar
 make_FF16_hyperpar <- function(
                                 lma_0=0.1978791,
                                 B_kl1=0.4565855,
@@ -314,7 +218,7 @@ make_FF16_hyperpar <- function(
       }
       if(all(diff(AA) < 1E-8)) {
         # line fitting will fail if all have are zero, or potentially same value
-        ret <- c(last(AA), 0)
+        ret <- c(dplyr::last(AA), 0)
         names(ret) <- c("p1","p2")
       } else {
         fit <- nls(AA ~ p1 * E/(p2 + E), data.frame(E = E, AA = AA), start = list(p1 = 100, p2 = 0.2))
@@ -392,51 +296,43 @@ make_FF16_hyperpar <- function(
 ##' @param s A strategy object
 ##' @param filter A flag indicating whether to filter columns. If TRUE, any numbers
 ##' that are within eps of the default strategy are not replaced.
+##' @rdname FF16_hyperpar
 ##' @export
 FF16_hyperpar <- make_FF16_hyperpar()
 
-#' Solves the maximum growth rate at a given height within the interval of the bounds of a given trait
-#'
-#' @param bounds
-#' @param log_scale
-#' @param tol
-#' @param height
-#' @param params
-#' @param env
-#' @param outcome 
-
 #' @export
+#' @importFrom rlang .data
+#' @rdname expand_state
+FF16_expand_state <- function(results) {
+  data <- split(results$species, results$species$species)
 
-#' @author Isaac Towers, Daniel Falster and Andrew O'Reilly-Nugent
+  for (i in seq_len(results$n_spp)) {
+    s <- results$p$strategies[[i]]
+    s$eta_c <- 1 - 2 / (1 + s$eta) + 1 / (1 + 2 * s$eta)
 
-FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, tol = 1e-3, height = 10, params, env = FF16_make_environment(), outcome = "height"){
-  
-  bounds <- check_bounds(bounds)
-  traits <- rownames(bounds)
-  
-  if (log_scale) {
-    bounds[bounds[,1] == -Inf, 1] <- 0
-    bounds <- log(bounds)
-    
-    ff <- exp
-  } else {
-    ff <- I
+    data[[i]] <-
+      data[[i]] %>%
+      dplyr::mutate(
+        # These are formulas from ff16_strategy.cpp
+        # ideally wouldn't have to copy them here
+        # could we expose them from startegy object
+        # and call them directly?
+        area_leaf = (.data$height / s$a_l1)^(1.0 / s$a_l2),
+        mass_leaf = .data$area_leaf * s$lma,
+        area_sapwood = .data$area_leaf * s$theta,
+        mass_sapwood = .data$area_sapwood * .data$height * s$eta_c * s$rho,
+        area_bark = s$a_b1 * .data$area_leaf * s$theta,
+        mass_bark = .data$area_bark * .data$height * s$eta_c * s$rho,
+        area_stem = .data$area_bark + .data$area_sapwood + .data$area_heartwood,
+        diameter_stem = sqrt(4 * .data$area_stem / pi),
+        mass_root = s$a_r1 * .data$area_leaf,
+        mass_live = .data$mass_leaf + .data$mass_sapwood + .data$mass_bark + .data$mass_root,
+        mass_total = .data$mass_leaf + .data$mass_bark + .data$mass_sapwood + .data$mass_heartwood + .data$mass_root,
+        mass_above_ground = .data$mass_leaf + .data$mass_bark + .data$mass_sapwood + .data$mass_heartwood
+      )
   }
-  
-  f <- function(x) {
-    
-    s <- strategy(ff(trait_matrix(x,  rownames(bounds))), params, birth_rate_list = 1)
-    indv <- FF16_Individual(s)
-    res <- grow_individual_to_height(indv, height, env,
-                                     time_max=100, warn=FALSE, filter=TRUE)
-    
-    res$individual[[1]]$ode_rates[res$individual[[1]]$ode_names == outcome]    
-  }
-  
-  ret <- solve_max_worker(bounds, f, tol = 1e-3, outcome = paste0(outcome, "_growth_rate"))
-  if (log_scale) {
-    ret <- exp(ret)
-  }
-  
-  return(ret)
+
+  results$species <- data %>% dplyr::bind_rows()
+
+  results
 }

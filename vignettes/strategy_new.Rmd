@@ -1,14 +1,12 @@
 ---
 title: "Implementing a new startegy"
 subtitle: "(Using Kohymama 1993 - forest architecture model)"
-author: Andrew O'Reilly-Nugent
-date: August 28, 2020
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{strategy_new}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+output: bookdown::html_document2
 ---
+
+**authors**: Andrew O'Reilly-Nugent
+**date**: 2020
+
 # 🚧 Under construction 🚧
 
 This vignette is still under active development. Some parts may appear incomplete or refer to a previous version of `plant`. We include it as reference material for advanced users looking to develop their own modules. Please raise issues or pull requests any time you encounter a mistake or area for improvement.
@@ -165,7 +163,6 @@ Dispersal and establishment are fixtures of the `plant` framework, but not used 
 
 *"As a naming convention, strategies are named using two initials (eg. the first two authors) followed by a year, e.g. FF16. A single letter suffix can be added to indicate a minor modification of an existing strategy, e.g. FF16r"*
 
-[Developer Notes](https://traitecoevo.github.io/plant/articles/developer_notes.html)
 
 ### 1. Use scaffolder to create template files
 
@@ -239,13 +236,13 @@ double K93_Strategy::compute_competition(double z, double size) const {
 This does a round-about-trip to `K93_environment.h`:
 
 ```{c++}
-void compute_environment(Function f_compute_competition, double height_max) {
+void compute_environment(Function f_compute_competition, double height_max, bool rescale) {
   const double lower_bound = 0.0;
   double upper_bound = height_max;
 
-  auto f_canopy_openness = [&] (double height) -> double {return exp(-k_I * f_compute_competition(height));};
+  auto f_light_availability = [&] (double height) -> double {return exp(-k_I * f_compute_competition(height));};
   environment_interpolator =
-    environment_generator.construct(f_canopy_openness, lower_bound, upper_bound);
+    environment_generator.construct(f_light_availability, lower_bound, upper_bound);
 }
 ```
 
@@ -257,9 +254,7 @@ Back transform environment interpolator so that smallest individual experience l
 
 ```{c++}
   // i.e. setting rates of ode vars from the state and updating aux vars
-  void K93_Strategy::compute_rates(const K93_Environment& environment,
-                                bool reuse_intervals,
-                                Internals& vars) {
+  void K93_Strategy::compute_rates(const K93_Environment& environment, Internals& vars) {
 
     double height = vars.state(HEIGHT_INDEX);
 
@@ -273,6 +268,8 @@ Back transform environment interpolator so that smallest individual experience l
     if (!util::is_finite(cumulative_basal_area)) {
       util::stop("Environmental interpolation out of bounds");
     }
+  ...
+  }
 ```
 
 Then calculate impact on growth:
@@ -312,7 +309,6 @@ There are two special methods that must be defined:
 
 ```{c++}
   void compute_rates(const K93_Environment& environment,
-                     bool reuse_intervals,
                      Internals& vars);
 
   double compute_competition(double z, double size) const;
@@ -496,7 +492,7 @@ p1$seed_rain <- 20
 data1 <- run_scm_collect(p1)
 
 matplot(data1$time, data1$species[[1]]["height", , ],
-        lty=1, col=make_transparent("black", 0.25), type="l",
+        lty=1, col=util_colour_set_opacity("black", 0.25), type="l",
         las=1, xlab="Time (years)", ylab="Height (m)")
 ```
 

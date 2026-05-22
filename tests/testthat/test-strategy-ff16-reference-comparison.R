@@ -1,4 +1,6 @@
+# Check C++ implemnetation againsyt indenpendent implementation in R
 context("Reference Comparison-FF16")
+
 
 test_that("FF16_Strategy parameters agree with reference model", {
   cmp <- make_reference_plant("FF16")
@@ -44,6 +46,7 @@ test_that("Reference comparison", {
   expect_identical(p$state("height"), h0)
   # testing set auxiliary state as well as area_leaf/competition_effect depends on height only
   expect_equal(p$aux("competition_effect"), cmp$LeafArea(h0))
+  # todo - renable. these?
   # expect_equal(p$state("mass_leaf"), cmp$LeafMass(cmp$traits$lma, cmp$LeafArea(h0)))
   # expect_equal(p$state("mass_sapwood"), cmp$SapwoodMass(cmp$traits$rho, cmp$LeafArea(h0), h0))
   # expect_equal(p$state("mass_bark"), cmp$BarkMass(cmp$traits$rho, cmp$LeafArea(h0), h0))
@@ -71,9 +74,12 @@ test_that("Reference comparison", {
   # set heartwood back at zero for subsequent tests
   p$set_state("area_heartwood", 0)
 
-  env <- test_environment("FF16", h0)
-  light_env <- attr(env, "light_env") # underlying function
-
+  env <- Environment("FF16")
+  light_env <- function(x) {
+    lapply(x, env$light_availability$get_value_at_height) |>
+     as.numeric()
+  }
+  
   ## The R model computes A_lf * area_leaf * a_y * a_bio, wheras we just
   ## compute A_lf; will have to correct some numbers.
   cmp_const <- s$a_y * s$a_bio

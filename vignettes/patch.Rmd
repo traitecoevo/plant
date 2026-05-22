@@ -1,15 +1,11 @@
 ---
 title: "Growing a patch of competiting individuals"
-author: 
-- Rich FitzJohn
-- Daniel Falster
-date: 2016
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{patch}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+output: bookdown::html_document2
+
 ---
+
+**authors**: DS Falster, RG FitzJohn
+**date**: 2016
 
 # Background
 
@@ -50,8 +46,9 @@ Entries are:
   * time: time of the step
   * species: a list with the state of each species (in this case there is only 1).  The contents is a 3D array of variable /
     time step / node
-  * env: a list containing 2D splines that describe the competitive environment of the patch at each step (e.g a matrix of canopy openness at a given height in the FF16 strategy)
-  * seed_rain: the seed rain output from the patch during it's development
+  * env: a list containing resource availability. This includes `light_availability`, which are 2D splines that describe the competitive environment of the patch at each step (e.g a matrix of canopy openness at a given height in the FF16 strategy)
+  * offspring_production: the offspring_production from the patch during it's development
+  * patch_density: the density of patches this age in the metapopulation
   * p: a copy of the input parameters
 
 First we explore patch state:
@@ -104,7 +101,7 @@ In the `FF16` strategy, Individuals increase in height with respect to time, but
 We can plot the trajectories of nodes developing within a patch over time:
 
 ```{r}
-matplot(t, h, lty=1, col=make_transparent("black", 0.25), type="l",
+matplot(t, h, lty=1, col=util_colour_set_opacity("black", 0.25), type="l",
         las=1, xlab="Time (years)", ylab="Height (m)")
 ```
 
@@ -113,12 +110,13 @@ The light environment is stored over each time step, meaning that we can also pl
 ```{r}
 # Set limits
 xlim <- c(0, 1.1)
-ylim <- range(result$env[[length(result$env)]][, "height"])
+ylim <- range(result$env[[length(result$env)]]$light_availability[, "height"])
 
 # Draw the spline at each step
 plot(NA, xlim=xlim, ylim=ylim, las=1, xlab="Canopy openness", ylab="Height (m)")
 for (i in result$env) {
-  lines(i[, "canopy_openness"], i[, "height"], col="grey")
+  x <- i$light_availability
+  lines(x[, "light_availability"], x[, "height"], col = "grey")
 }
 
 # Add labels at specific times
@@ -129,8 +127,8 @@ times <- c(5, 10, 20, 40, result$time[[length(result$time)]])
 cols <- colorRampPalette(blues[-(1:2)])(length(times))
 
 for (i in seq_along(times)) {
-  x <- result$env[[which.min(abs(times[[i]] - result$time))]]
-  lines(x[, "canopy_openness"], x[, "height"], col=cols[[i]])
+  x <- result$env[[which.min(abs(times[[i]] - result$time))]]$light_availability
+  lines(x[, "light_availability"], x[, "height"], col=cols[[i]])
 
   y <- x[nrow(x), "height"]
   points(1, y, pch=19, col=cols[[i]])
@@ -143,7 +141,7 @@ initally (bottom right) all nodes in the patch are short and the canopy is rathe
 This is best shown by plotting the canopy openness at ground level over time:
 
 ```{r}
-y <- sapply(result$env, function(x) x[1, "canopy_openness"])
+y <- sapply(result$env, function(x) x$light_availability[1, "light_availability"])
 plot(result$time, y, type="l", las=1,
      ylim=c(0, 1), xlab="Time (years)", ylab="Canopy openness")
 ```
@@ -189,22 +187,22 @@ h2 <- result_2sp$species[[2]]["height", , ]
 cols <- c("#e34a33", "#045a8d")
 
 # Species 1 - red
-matplot(t2, h1, lty=1, col=make_transparent(cols[[1]], .25), type="l",
+matplot(t2, h1, lty=1, col=util_colour_set_opacity(cols[[1]], .25), type="l",
         las=1, xlab="Time (years)", ylab="Height (m)")
 
 # Species 2 - blue
-matlines(t2, h2, lty=1, col=make_transparent(cols[[2]], .25))
+matlines(t2, h2, lty=1, col=util_colour_set_opacity(cols[[2]], .25))
 ```
 
 Alternatively we can compare the growth of the low LMA species (red) in a patch by itself or with another species:
 
 ```{r}
 # Monoculture patch (black)
-matplot(t, h, lty=1, col=make_transparent("black", .25), type="l",
+matplot(t, h, lty=1, col=util_colour_set_opacity("black", .25), type="l",
         las=1, xlab="Time (years)", ylab="Height (m)")
 
 # Two species patch (red)
-matlines(t2, h1, lty=1, col=make_transparent(cols[[1]], .25))
+matlines(t2, h1, lty=1, col=util_colour_set_opacity(cols[[1]], .25))
 ```
 
 This shows that the additional species does not significantly affect the growth of the *initial* wave of nodes (because the second species is growing more slowly and is shorter than the first species). However, once canopy closure has occurred (around year 5), subsequent waves of arriving nodes are competitively suppressed, slowed or eliminated.
@@ -229,8 +227,8 @@ rd2 <- rel(d2, -4)
 # the first part of the line segment:
 n <- length(t2)
 x <- matrix(rep(t2, ncol(h1)), nrow(h1))
-col1 <- matrix(make_transparent(cols[[1]], rd1), nrow(d1))
-col2 <- matrix(make_transparent(cols[[2]], rd2), nrow(d2))
+col1 <- matrix(util_colour_set_opacity(cols[[1]], rd1), nrow(d1))
+col2 <- matrix(util_colour_set_opacity(cols[[2]], rd2), nrow(d2))
 plot(NA, xlim=range(t2), ylim=range(h1, na.rm=TRUE),
      las=1, xlab="Time (years)", ylab="Node height (m)")
 segments(x[-1, ], h2[-1, ], x[-n, ], h2[-n, ], col=col2[-n, ], lend="butt")

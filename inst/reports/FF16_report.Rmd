@@ -44,8 +44,7 @@ options(
   # default for table format  
   knitr.table.format = "html", 
   # remove warnings from dplyr about "summarise"
-  dplyr.summarise.inform = FALSE,
-  readr.show_col_types = FALSE
+  dplyr.summarise.inform = FALSE
   )
 
 library(ggplot2)
@@ -147,7 +146,7 @@ pars <-
 
 pars_def <- 
  system.file("docs/FF16", "FF16-params-core.csv", package = "plant") %>% 
- read.csv(stringsAsFactors = FALSE, header = TRUE) %>%
+ read.csv(stringsAsFactors = FALSE, header = TRUE) %>% dplyr::as_tibble() %>%
  rename("parameter" = "Code")
 
 names(pars_def) <- tolower(names(pars_def))
@@ -190,7 +189,7 @@ extract_birthrates <- function(strategy, times) {
 
   df <- 
     p$strategies %>%
-    map_df(extract_birthrates, times = results$time, .id = "species") 
+    map_df(extract_birthrates, times = results$steps$time, .id = "species") 
 
   ggplot(df, aes(time, birth_rate, color = species)) +
     geom_line() +
@@ -237,23 +236,21 @@ This section provides plots on size-structured population dynamics. For the plot
 ```{r}
 results_tidy_expand <- 
   results %>% 
-  tidy_patch() %>% 
   FF16_expand_state()
 
 data_species <-
-  results_tidy_expand$species %>%
-  drop_na()
+  results_tidy_expand$species
 
 data_species_tot <-
   data_species %>%
   integrate_over_size_distribution()
 
-canopy <-
-  results_tidy_expand$env$canopy %>%
+light_availability <-
+  results_tidy_expand$env$light_availability %>%
   group_by(step) %>% 
   mutate(
     # LAI at height
-    LAI_above = -log(canopy_openness)/0.5,
+    LAI_above = -log(light_availability)/0.5,
     # Cumulative LAI from the rgound up
     LAI_below = max(LAI_above) - LAI_above
   ) %>% ungroup()
@@ -264,7 +261,7 @@ if(any(is.na(target_ages))) {
   target_ages <- c(0.1, 1, 2.5, 5, 10, 20, 40, 80, 160)
 }
 
-target_ages <- target_ages[target_ages <= max(results$time)]
+target_ages <- target_ages[target_ages <= max(results$steps$time)]
 
 ```
 
@@ -466,7 +463,7 @@ d2 <-
 d2_com <- 
   d2 %>%
   bind_rows(
-    canopy %>% mutate(species= "whole stand") %>%
+    light_availability %>% mutate(species= "whole stand") %>%
       filter(time %in% select_closest(time, target_ages))
    )
 
@@ -580,11 +577,11 @@ XXX
 
 ```{r}
 d2 <-
-    canopy %>% mutate(species = "canopy") %>%
+    light_availability %>% mutate(species = "light_availability") %>%
     filter(time %in% select_closest(time, target_ages)) %>% 
     mutate(
       time = round(time),
-      LAI = -log(canopy_openness)/ 0.5      
+      LAI = -log(light_availability)/ 0.5      
     )
 
 d2_max <- d2 %>%
@@ -593,7 +590,7 @@ d2_max <- d2 %>%
 
 p1 <- 
   d2 %>%
-  ggplot(aes(x = height, y = canopy_openness, label = time, group = time, col = time)) +
+  ggplot(aes(x = height, y = light_availability, label = time, group = time, col = time)) +
   geom_line() +
   geom_text(data = d2_max, nudge_y = 0.05) +
   labs(

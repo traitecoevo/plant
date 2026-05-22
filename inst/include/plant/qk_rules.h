@@ -47,6 +47,7 @@ struct QK51 {
   static const double wgk[26]; // weights of the 51-point kronrod rule
 };
 
+
 struct QK61 {
   static const size_t n = 31;
   static const size_t ng = 15;

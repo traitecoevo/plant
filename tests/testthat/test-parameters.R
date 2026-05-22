@@ -101,7 +101,7 @@ test_that("Validate", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)()
-    expect_equal(validate(p), p)
+    expect_equal(plant:::validate(p), p)
   }
 })
 
@@ -122,13 +122,13 @@ test_that("Patch runtime", {
 
     ## This is going to force us back through the validator
     p$max_patch_lifetime <- 35.10667
-    p2 <- validate(p)
-    expect_lt(last(p2$node_schedule_times_default), p2$max_patch_lifetime)
+    p2 <- plant:::validate(p)
+    expect_lt(dplyr::last(p2$node_schedule_times_default), p2$max_patch_lifetime)
     expect_equal(p2$node_schedule_times, list(p2$node_schedule_times_default))
 
     ## We will blow away any data that is stored in p$node_schedule*
     p$node_schedule_times_default <- 1:10
     p$node_schedule_time <- list(1:11)
-    expect_equal(validate(p), p2)
+    expect_equal(plant:::validate(p), p2)
   }
 })

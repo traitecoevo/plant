@@ -29,7 +29,7 @@ roxygen:
 	@mkdir -p man
 	Rscript -e "library(methods); devtools::document()"
 
-test:
+test: all
 	Rscript -e 'library(methods); devtools::test()'
 
 benchmark:
@@ -39,24 +39,17 @@ install:
 	R CMD INSTALL .
 
 build:
-	R CMD build --no-build-vignettes .
+	R CMD build .
 
 check: build
-	R CMD check --no-build-vignettes --no-manual `ls -1tr ${PACKAGE}*gz | tail -n1`
+	R CMD check --no-manual `ls -1tr ${PACKAGE}*gz | tail -n1`
 	@rm -f `ls -1tr ${PACKAGE}*gz | tail -n1`
 	@rm -rf ${PACKAGE}.Rcheck
 
 clean:
 	rm -f src/*.o src/*.so src/*.o.tmp
 
-slow_vignettes:
-	(cd inst/slow_vignettes; ln -sfn ../../vignettes vignettes; remake update_vignettes)
-
 vignettes:
 	Rscript -e "devtools::build_vignettes()"
 
-website: vignettes
-	Rscript -e "pkgdown::build_site()" /
-	open "inst/website/index.html"
-
-.PHONY: all compile doc clean test attributes roxygen install build check vignettes website push_website
+.PHONY: all compile doc clean test attributes roxygen install build check vignettes

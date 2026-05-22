@@ -1,0 +1,262 @@
+---
+title: "Solving system dynamics via the characeristic method"
+bibliography: ../assets/refs.bib
+csl: ../assets/methods-in-ecology-and-evolution.csl
+output: bookdown::html_document2
+---
+
+**authors**: DS Falster, Å Brännström, U Dieckmann
+**date**: 2016
+
+```{r setup, include=FALSE}
+library(plant)
+```
+
+Here we descibe the overall numerical approach used to solve dynamcis in the plant model. Make sure you've read the theory document descringing the system of equations to be solved before reading this document.
+
+Our approach to solving for the size-density distribution is based on the characteristic method [@Angulo-2004, @Angulo-2014, @Angulo-2016]. We initially started using the Escalator Boxcar Train technique [@Deroos-1988, @Deroos-1997, @Deroos-1992], but then switched to using the characteristic method.
+
+When simulating an individual plant, or the development of a
+patch, we need to solve for the size, survival, and seed
+output of individual plants. When solving for the size-density distribution
+in a large patch, we also need to estimate the average abundance of individuals.
+Each of these problems is formulated as an initial-value ODE problem
+(IVP), which can be solved using an ODE stepper.
+
+All of the IVPs outlined below must be stepped through time.
+For this, `plant` uses an embedded implementation of Runge-Kutta Cash-Karp 4-5 algorithm [@Cash-1990], adpative time step. The code is built into the model, based on 
+code ported directly from the [GNU Scientific Library](http://www.gnu.org/software/gsl/)
+[@Galassi-2009]. The accuracy of the solver is controlled by two control parameters for relative and absolute accuracy,
+`ode_tol_rel` and `ode_tol_abs`.
+
+Recast as set of ODEs, the equations to be solved are:
+
+## Approach for specific equations
+
+### Size {#size}
+
+The size of an individual is obtained via Eq. \@ref(eq:size) which is solved via the IVP
+\begin{equation}
+\frac{dy}{dt} = g(x, y, t) ,
+\end{equation}
+
+\begin{equation}
+ y(0) = H_0(x).
+\end{equation}
+
+### Survival {#survival}
+
+The probability of an individual surviving from patch age
+$a_0$ to patch age $a$ is obtained via Eq. \@ref(eq:survivalIndividual),
+which is solved via the IVP
+\begin{equation}
+\frac{dy}{dt} = d(x, H_i(t) , E_t),
+\end{equation}
+
+\begin{equation}
+ y(0) = - \ln\left(S_{\rm G} (x, H_0, E_{a0})\right) .
+\end{equation}
+
+Survival is then
+\begin{equation}
+ S_{\rm I} (x, a_0, a) = \exp\left( - y(a) \right).
+\end{equation}
+
+### Seed production {#seed-production}
+
+The lifetime seed production of individuals is
+obtained via Eq. \@ref(eq:tildeR1), which is solved via the IVP
+\begin{equation}
+\frac{dy}{dt} = S_{\rm D} \, f(x, H_i(t), E_t) \, S_{\rm I} (x, a_0,t) \, S_{\rm P} (a_0, t),
+\end{equation}
+
+\begin{equation}
+ y(0) = 0,
+\end{equation}
+where $S_{\rm I}$ is calculated as described
+above and $S_{\rm P}$ is calculated as in Eq. \@ref(eq:survivalPatch)$.
+
+### Size-density of individuals {#density-of-individuals}
+
+By integrating along the characteristics of Eq. \@ref(eq:PDE),
+the size-density of individuals born with height $H_0$ and traits $x$ at patch age $a_{0}$ is given by
+[@Deroos-1997, @Angulo-2004]
+\begin{equation}
+N(H | x, a) = N(H_0 | x, a_0)
+\exp \left( - \int _{a_0}^{a} \left[\frac{\partial g(x, H(x, a_0, a^\prime), E_{a^\prime})}{\partial H} + d(x, H(x, a_0, a^\prime), E_{a^\prime})\right] {\rm d} a^\prime \right).
+(\#eq:boundN)
+\end{equation}
+Eq. \@ref(eq:boundN) states that the size-density $N$ at a specific patch age $a$ is
+the product of the size-density at patch age $a_{0}$ adjusted for changes through
+growth and mortality. Size-density decreases through time because of
+mortality, as in a typical survival equation, but also changes
+because of growth. If growth is slowing with size, (i.e.,
+$\partial g / \partial H < 0$), size-density will increase since the
+characteristics compress. Conversely, size-density will increases if
+$\partial g / \partial H > 0$.
+
+Denoting by $\left[H_0, H_{ + } \right)$ the range of heights
+attainable by any individual, our algorithm for solving metacommunity dynamics proceeds by sub-dividing
+this interval into a series of nodes with heights
+$H_0 < H_1 < \ldots < H_k$ at the initial points of the characteristic curves. These nodes are then transported along
+the characteristics of Eq. \@ref(eq:PDE). The placement of nodes
+is controlled indirectly, via the schedule of patch ages at which
+new nodes are introduced into the metacommunity. We then track the
+demography of each such node.
+
+The integral in Eq. \@ref(eq:boundN) is solved via the IVP
+\begin{equation}
+\frac{dy}{dt} = \frac{\partial g(x, H_i(t), E_t)}{\partial H} + d(x, H_i(t), E_t),
+(\#eq:dy-N)
+\end{equation}
+
+\begin{equation}
+ y(0) = - \ln\left(N(H_0 | x, a_0) \, S_{\rm G} (x, H_0, E_{{\rm a}0}) \right),
+(\#eq:y0-N)
+\end{equation}
+from which we obtain the size-density
+\begin{equation}
+N(H_0 | x, a_0) = \exp( - y(a)).
+(\#eq:N-H0)
+\end{equation}
+
+## Controls on approximation error
+
+We now outline how to control the error of the approximate solutions
+to the system of equations described above. In our algorithm, numerical solutions are required to address a variety of problems:
+
+- To estimate the amount of light at a given height in a patch requires
+numerically integrating over the size-density distribution within that patch.
+- To calculate the
+assimilation of a plant requires numerically integrating
+photosynthesis over this light profile.
+- To simulate patch dynamics
+requires numerically identifying a vector of patch ages at which new nodes are
+introduced, and then numerically stepping the equations for each node forward in time to
+estimate their size, survival, and fecundity at different subsequent patch ages.
+- To solve for the initial height of a plant given
+its seed mass, and for the equilibrium birth rates across the
+metacommunity, requires numerical root finding.
+
+
+As with all numerical techniques, solutions to each of these problems are
+accurate only up to a specified level. These levels are controlled
+via parameters in the `plant` code. Below, we
+provide a brief overview of the different numerical techniques being
+applied and outline how error tolerance can be increased or decreased.
+We refer to various control parameters that can be found within the
+`control` object. For a worked example illustrating how to modify these control parameters,
+see the section `parameters` of Appendix S3.
+
+### Initial plant heights {#initial-height-of-plants}
+
+When a seed germinates, it produces a seedling of given height. The
+height of these seedlings is assumed to vary with the seed mass.
+Because there is no analytical solution relating seedling height to seed
+mass -- at least when using the default `FF16` physiological model -- we must solve
+for this height numerically. The calculation is performed by the function
+`height_seed` within the physiological model, using the Boost
+library's one-dimensional `bisect` routine
+[@Schaling-2014, @Eddelbuettel-2015]. The accuracy of the solution
+is controlled by the parameter `offspring_production_tol`.
+
+
+
+### Approximation of size-density distribution via the characteristic method  {#approximation-of-size-density-distribution-via-the-scm}
+
+Errors in the approximation of the size-density distribution arise from two sources:
+(i) coarse stepping of nodes through time and
+(ii) poor spacing of nodes across the attainable size range.
+
+As described above, the stepping of the ODE solver is controlled by two
+control parameters for relative and absolute accuracy,
+`ode_tol_rel` and `ode_tol_abs`.
+
+A second factor controlling the accuracy with which nodes are stepped
+through time is the accuracy of the derivative calculation according to Eq. \@ref(eq:boundN), calculated via standard finite differencing
+[@Abramowitz-2012]. When the parameter
+`node_gradient_richardson` is `TRUE` a Richardson extrapolation
+[@Stoer-2002] is used to refine the estimate, up to depth
+`node_gradient_richardson`. The overall accuracy of the
+derivative is controlled by `node_gradient_eps`.
+
+The primary factor controlling the spacing of nodes is the schedule of
+node introduction times. Because the system of equations to be integrated is deterministic, the
+schedule of node introduction times determines the spacing of nodes
+throughout the entire development of a patch. Poor node spacing
+introduces error because various emergent properties -- such as total
+leaf area, biomass, or seed output -- are estimated by integrating over
+the size-density distribution. The accuracy of these integrations declines
+directly with the inappropriate spacing of nodes. Thus, our algorithm aims to build an
+appropriately refined schedule, which allows the required integrations to be
+performed with the desired accuracy at every time point. At the same
+time, for reasons of computational efficiency, we want as few nodes as possible.
+The general idea of adaptively refining node spacing times was first applied
+by @Falster-2011, and was described further by @Falster-2015.
+
+For a worked example illustrating the `build_schedule` function,
+see the [node scheduling vignette](https://traitecoevo.github.io/plant/articles/node_spacing.html).
+
+### Calculation of light environment and influence on assimilation {#calculation-of-light-environment-and-influence-on-assimilation}
+
+To progress with solving the system of ODEs requires that we calculate the amount of
+shading on each of the nodes, from all other plants in the
+patch.
+
+Calculating the canopy openness $E_a(z)$ at a given height $z$ in a patch of age $a$ requires that
+we integrate over the size-density distribution (Eq. \@ref(eq:light). This
+integration is performed using the trapezium rule, within the function
+`area_leaf_above` in [species.h](https://github.com/traitecoevo/plant/blob/master/inst/include/plant/species.h). The main factor
+controlling the accuracy of the integration is the spacing of nodes.
+The node introduction times determining the
+spacing of nodes are adaptively refined as described above. This implies that also the trapezium integration
+within the `area_leaf_above` function is adaptively refined
+via the `build_schedule` function.
+
+The cost of calculating $E_a(z)$ linearly increases with the number of
+nodes in the metacommunity. Since the same calculation must be repeated
+for every node, the overall computational cost
+of a step increases as $O(k^2 )$, where $k$ is the
+total number of nodes across all species. This disproportionate
+increase in computational cost with the number of nodes is highly undesirable.
+
+We reduce the computational cost
+from $O(k^2)$ to $O(k)$ by approximating $E_a(z)$ with a
+spline. Eq. \@ref(eq:light) describes a function monotonically
+increasing with size. This function is easily
+approximated using a piecewise continuous spline fitted to a limited
+number of points. Once fitted, the spline can be used to estimate any
+additional evaluations of competitive effect. Since spline
+evaluations are computationally cheaper than integrating over the size-density distribution,
+this approach reduces the overall cost of stepping the resident
+population. A new spline is constructed for each time step.
+
+The accuracy of the spline interpolation depends on the number of points
+used in its construction and on their placement along the size axis. We
+select the number and locations of points via an adaptive algorithm.
+Starting with an initial set of 33 points, we assess how much each point
+contributes to the accuracy of the spline fit at the location of each
+node, first via exact calculation, and second by linearly interpolating
+from adjacent nodes. The absolute difference in these values is
+compared to the control parameter `light_availability_spline_tol`. If
+the error is greater than this tolerance, the interval is bisected and the is
+process repeated (see [adaptive_interpolator.h](https://github.com/traitecoevo/plant/blob/master/inst/include/plant/adaptive_interpolator.h) for details).
+
+### Integration over light environment {#integrating-over-light-environment}
+
+Plants have leaf area distributed over a range of heights. Estimating
+a plant's assimilation at each time step thus requires integrating
+leaf-level rates over the plant. The integration is performed using Gauss-Kronrod quadrature. A rule controls the level of detail in the integration.
+
+### Solving for offspring production {#solving-demographic-seed-rain}
+
+For a single species, solving for $Y_x$ is a straightforward
+one-dimensional root-finding problem, which can be solved via a simple bisection algorithm.
+
+Solving for offspring production in metacommunities with multiple species is significantly harder,
+because there is no generally applicable method for multi-dimensional root finding. In `plant`, we
+have therefore implemented several different approaches, which are available via the package [{plant.assembly}](https://github.com/traitecoevo/plant.assembly).
+
+# Appendices {#appendices}
+
+# References

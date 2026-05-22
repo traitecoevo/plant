@@ -9,7 +9,7 @@ test_that("empty", {
     set.seed(1)
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()))
     
-    env <- make_environment(x)
+    env <- Environment(x)
     ctrl <- scm_base_control()
 
     obj <- StochasticPatchRunner(x, e)(p, env, ctrl)
@@ -54,7 +54,7 @@ test_that("collect", {
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
                           patch_area=50)
     
-    env <- make_environment(x)
+    env <- Environment(x)
     ctrl <- Control()
     
     expect_silent(res <- run_stochastic_collect(p, env, ctrl))

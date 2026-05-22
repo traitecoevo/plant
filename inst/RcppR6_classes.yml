@@ -1,3 +1,169 @@
+Leaf:
+  name_cpp: "plant::Leaf"
+  constructor:
+    roxygen: |
+      Leaf model
+      @param vcmax_25 Maximum Carboxylation Rate (umol m^-2 s^-1)
+      @param c shape parameter of hydraulic vulnerability curve (unitless)
+      @param b sensitivity parameter of hydraulic vulnerability curve (MPa)
+      @param psi_crit critical psi stem (-MPa )
+      @param beta2 exponent for effect of hydraulic risk (unitless)
+      @param jmax_25  maximum rate of electron transport (umol m^-2 s^-1)
+      @param hk_s maximum hydraulic-dependent sapwood turnover rate yr ^ -1
+      @param a quantum yield of photosynthetic electron transport (mol mol^-1)
+      @param curv_fact_elec_trans curvature factor for the light response curve (unitless)
+      @param curv_fact_colim curvature factor for the colimited photosythnthesis equatiom
+      @param GSS_tol_abs tolereance parameter for golden section search
+      @param vulnerability_curve_ncontrol number of points for pre-calculating vulnerability curve
+      @param ci_abs_tol absolute tolerance value for root-solving ci
+      @param ci_niter maximum number of iterations for root-solving ci
+      @param g0 g0 parameter in the medlyn model umol m^-2 s^-1
+      @param g1 parameter in the medlyn model umol kPa^0.5
+      @param g1_TF24 cost parameter for TF24 profit model umol m^-2 s^-1
+
+      @export
+    args:
+      - vcmax_25: double
+      - c: double
+      - b: double
+      - psi_crit: double
+      - beta2: double
+      - jmax_25: double
+      - hk_s: double
+      - a: double
+      - curv_fact_elec_trans: double
+      - curv_fact_colim: double     
+      - GSS_tol_abs: double
+      - vulnerability_curve_ncontrol: double
+      - ci_abs_tol: double
+      - ci_niter: double
+      - g0: double
+      - g1: double 
+      - g1_TF24: double
+
+  active:
+    ci_: {type: double, access: field}
+    stom_cond_CO2_: {type: double, access: field}
+    medlyn_model_gs_: {type: double, access: field}
+    assim_colimited_: {type: double, access: field}
+    transpiration_: {type: double, access: field}
+    profit_: {type: double, access: field}
+    psi_stem: {type: double, access: field}
+    lambda_: {type: double, access: field}
+    lambda_analytical_: {type: double, access: field}
+    electron_transport_: {type: double, access: field}
+    gamma_: {type: double, access: field}
+    ko_: {type: double, access: field}
+    kc_: {type: double, access: field}
+    km_: {type: double, access: field}
+    R_d_: {type: double, access: field}
+    leaf_specific_conductance_max_: {type: double, access: field}
+    vcmax_: {type: double, access: field}
+    jmax_: {type: double, access: field}
+    rho_: {type: double, access: field}
+    a_bio_: {type: double, access: field}
+    PPFD_: {type: double, access: field}
+    atm_vpd_: {type: double, access: field}
+    ca_: {type: double, access: field}
+    psi_soil_: {type: double, access: field}
+    leaf_temp_: {type: double, access: field} 
+    atm_o2_kpa_: {type: double, access: field} 
+    atm_kpa_: {type: double, access: field} 
+    hydraulic_cost_: {type: double, access: field}
+    opt_psi_stem_: {type: double, access: field}
+    opt_ci_: {type: double, access: field}
+    count: {type: double, access: field}
+    theta_w_: {type: double, access: field}
+    theta_fc_: {type: double, access: field}
+    theta_: {type: double, access: field}
+
+
+  methods:
+    initialize_integrator:
+      return_type: void
+      args: [integration_rule: int, integration_tol: double]
+    set_physiology:
+      return_type: void 
+      args: [rho: double, a_bio: double, PPFD: double, psi_soil: double, leaf_specific_conductance_max: double, atm_vpd: double, ca: double, sapwood_volume_per_leaf_area: double, leaf_temp: double, atm_o2_kpa: double, atm_kpa: double, theta_w: double, theta_fc: double, theta: double]
+    #transpiration functions
+    proportion_of_conductivity:
+      return_type: double
+      args: [psi: double]
+    arrh_curve:
+      return_type: double
+      args: [Ea: double, ref_value: double, leaf_temp: double]
+    peak_arrh_curve:
+      return_type: double
+      args: [Ea: double, ref_value: double, leaf_temp: double, H_d: double, d_S: double] 
+    transpiration:
+      return_type: double
+      args: [psi_stem: double]
+    transpiration_full_integration:
+      return_type: double
+      args: [psi_stem: double]
+    stom_cond_CO2:
+      return_type: double
+      args: [psi_stem: double]
+    transpiration_to_psi_stem:
+      return_type: double
+      args: [transpiration_: double]
+    # assimilation functions 
+    assim_rubisco_limited:
+      return_type: double
+      args: [ci_: double]
+    assim_electron_limited:
+      return_type: double
+      args: [ci_: double]
+    assim_colimited:
+      return_type: double
+      args: [ci_: double]
+    assim_minus_stom_cond_CO2:
+      return_type: double
+      args: [x: double, psi_stem: double]
+    electron_transport:
+      return_type: double
+      args: []      
+    set_leaf_states_rates_from_psi_stem:
+      return_type: void
+      args: [psi_stem: double]
+    psi_stem_to_ci:
+      return_type: double
+      args: [psi_stem: double]
+    #leaf economics functions
+    hydraulic_cost_Sperry:
+      return_type: double
+      args: [psi_stem: double]
+    hydraulic_cost_TF:
+      return_type: double
+      args: [psi_stem: double]
+    profit_psi_stem_Sperry:
+      return_type: double
+      args: [psi_stem: double]
+    profit_psi_stem_TF:
+      return_type: double
+      args: [psi_stem: double]
+      # optimiser functions
+    optimise_psi_stem_Sperry:
+      return_type: void
+      args: []
+    optimise_psi_stem_TF:
+      return_type: void
+      args: []
+    solve_medlyn_ci_numerical:
+      return_type: void
+      args: []
+    solve_medlyn_ci_analytical:
+      return_type: void
+      args: []
+    medlyn_model_gs:
+      return_type: double
+      args: [assim_colimited_: double]
+    medlyn_stom_cond_minus_coupled_stom_cond:
+      return_type: double
+      args: [x: double]
+
+  
+      
 Lorenz:
   name_cpp: "plant::ode::test::Lorenz"
   constructor:
@@ -24,8 +190,7 @@ OdeRunner:
       - ["Lorenz": "plant::ode::test::Lorenz"]
       - ["OdeR":   "plant::ode::test::OdeR"]
       - ["FF16": "plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment>"]
-      - ["FF16w": "plant::tools::IndividualRunner<plant::FF16w_Strategy, plant::FF16_Environment>"]
-      - ["FF16r": "plant::tools::IndividualRunner<plant::FF16r_Strategy, plant::FF16_Environment>"]
+      - ["TF24": "plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment>"]
       - ["K93": "plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment>"]
   constructor:
     args: [obj: T, control: "plant::ode::OdeControl=OdeControl()"]
@@ -35,7 +200,7 @@ OdeRunner:
     times: {type: "std::vector<double>", access: member}
     object: {type: T, access: member}
   methods:
-    advance: {return_type: void, args: [time: double]}
+    advance_adaptive: {return_type: void, args: [time: double]}
     advance_fixed: {return_type: void, args: [time: "std::vector<double>"]}
     step: {return_type: void}
     step_to: {return_type: void, args: [time: double]}
@@ -105,10 +270,7 @@ Control:
     variadic arguments, or as a list, but not both).
     @export
   list:
-    - assimilator_adaptive_integration: bool
-    - assimilator_integration_tol: double
-    - assimilator_integration_iterations: size_t
-    - assimilator_integration_rule: size_t
+    - function_integration_rule: size_t
     - offspring_production_tol: double
     - offspring_production_iterations: int
     - node_gradient_eps: double
@@ -125,16 +287,11 @@ Control:
     - schedule_nsteps: size_t
     - schedule_eps: double
     - schedule_verbose: bool
-    - equilibrium_nsteps: size_t
-    - equilibrium_eps: double
-    - equilibrium_large_birth_rate_change: double
-    - equilibrium_verbose: bool
-    - equilibrium_solver_name: "std::string"
-    - equilibrium_extinct_birth_rate: double
-    - equilibrium_nattempts: int
-    - equilibrium_solver_logN: bool
-    - equilibrium_solver_try_keep: bool
     - save_RK45_cache: bool
+    - GSS_tol_abs: double
+    - vulnerability_curve_ncontrol: double
+    - ci_abs_tol: double
+    - ci_niter: double
 
 OdeControl:
   name_cpp: "plant::ode::OdeControl"
@@ -143,7 +300,6 @@ OdeControl:
     @title ODE Control parameters
     @param ...,values Values to initialise the struct with (either as
     variadic arguments, or as a list, but not both).
-    @export
   list:
     - tol_abs: double
     - tol_rel: double
@@ -201,7 +357,6 @@ QAG:
     last_intervals: {type: "plant::quadrature::intervals_type", access: member, name_cpp: get_last_intervals}
     is_adaptive: {type: bool, access: member}
 
-
 Interpolator:
   name_cpp: "plant::interpolator::Interpolator"
   constructor:
@@ -233,8 +388,7 @@ Individual:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [s: T]
@@ -292,8 +446,7 @@ IndividualRunner:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     name_cpp: "plant::tools::IndividualRunner<T,E>"
@@ -311,7 +464,6 @@ Internals:
       @title Extract Internals from plant object
       @param s_size ???
       @param a_size ???
-      @export
   active:
     state_size: {type: size_t, access: field}
     aux_size: {type: size_t, access: field}
@@ -341,15 +493,13 @@ Internals:
       args: [new_size: size_t, new_aux_size: size_t]
       return_type: void
 
-
 Parameters:
   name_cpp: "plant::Parameters<T,E>"
   templates:
     parameters: [T, E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   validator:
     name_cpp: validate
@@ -362,7 +512,7 @@ Parameters:
     - strategy_default: "T"
     - node_schedule_times_default: "std::vector<double>"
     - node_schedule_times: "std::vector<std::vector<double> >"
-    - node_schedule_ode_times: "std::vector<double>"
+    - ode_times: "std::vector<double>"
 
 Node:
   name_cpp: "plant::Node<T,E>"
@@ -370,8 +520,7 @@ Node:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     name_cpp: "plant::make_node<T,E>"
@@ -380,7 +529,6 @@ Node:
     individual: {type: "plant::Individual<T,E>", access: field, readonly: true}
     height: {type: double, access: member}
     log_density: {type: double, access: member, name_cpp: get_log_density}
-    competition_effect: {type: double, access: member}
     fecundity: {type: double, access: member}
     ode_size: {type: size_t, access: member}
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
@@ -401,15 +549,13 @@ Node:
       return_type: void
       args: [environment: E, pr_patch_survival: double, birth_rate: double]
 
-# For now, also not templated
 Species:
   name_cpp: "plant::Species<T,E>"
   templates:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [strategy: T]
@@ -421,7 +567,7 @@ Species:
     log_densities: {type: "std::vector<double>", access: member, name_cpp: r_log_densities}
     nodes: {type: "std::vector<plant::Node<T,E> >", access: member, name_cpp: r_nodes}
     net_reproduction_ratio_by_node: {type: "std::vector<double>", access: member}
-    competition_effects: {type: "std::vector<double>", access: member, name_cpp: r_competition_effects}
+    compute_competition_effect_by_nodes: {type: "std::vector<double>", access: member, name_cpp: r_compute_competition_effect_by_nodes}
     extrinsic_drivers: {type: "plant::ExtrinsicDrivers", access: member, name_cpp: extrinsic_drivers}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
@@ -442,10 +588,10 @@ Species:
       return_type: "plant::Node<T,E>"
       args: [index: "plant::util::index"]
       name_cpp: r_node_at
-    competition_effects_error:
+    compute_competition_effect_by_nodes_error:
       return_type: "std::vector<double>"
       args: [scal: double=1]
-      name_cpp: r_competition_effects_error
+      name_cpp: r_compute_competition_effect_by_nodes_error
 
 Patch:
   name_cpp: "plant::Patch<T,E>"
@@ -453,8 +599,7 @@ Patch:
     parameters: [T, E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args:
@@ -464,6 +609,7 @@ Patch:
   active:
     time: {type: double, access: member}
     size: {type: size_t, access: member}
+    get_area: {type: double, access: member}
     height_max: {type: double, access: member}
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
     environment: {type: E, access: member, name_cpp: r_environment}
@@ -475,6 +621,7 @@ Patch:
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
     ode_aux: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_aux"}
     node_ode_size: {type: size_t, access: member}
+    state: {type: "Rcpp::List", access: member, name_cpp: r_get_state}
   methods:
     introduce_new_node:
       return_type: void
@@ -486,7 +633,6 @@ Patch:
     compute_rates:
       return_type: void
       name_cpp: r_compute_rates
-    # TODO: Not 100% sure this is needed from R:
     reset:
       return_type: void
     # Because we now care about time, we need to make sure that the
@@ -511,7 +657,7 @@ Patch:
       name_cpp: r_set_state
       return_type: void
     # Disturbance interface
-    density: {return_type: "std::vector<double>", args: [time: "std::vector<double>"], name_cpp: r_density}
+    density: {return_type: double, args: [time: double], name_cpp: r_density}
     pr_survival: {return_type: double, args: [time: double], name_cpp: r_pr_survival}
     disturbance_mean_interval: {return_type: double, name_cpp: r_disturbance_mean_interval}
     survival_weighting_cdf: {return_type: double, args: [time: double], name_cpp: r_survival_weighting_cdf}
@@ -524,8 +670,7 @@ SCM:
     parameters: [T, E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args:
@@ -547,10 +692,10 @@ SCM:
       args: [species_index: "plant::util::index"]
       return_type: double
       name_cpp: r_net_reproduction_ratio_for_species
-    competition_effect_error:
+    compute_competition_effect_error_by_node_for_species_i:
       args: [species_index: "plant::util::index"]
       return_type: "std::vector<double>"
-      name_cpp: r_competition_effect_error
+      name_cpp: r_compute_competition_effect_error_by_node_for_species_i
     set_node_schedule_times:
       args: [times: "std::vector<std::vector<double>>"]
       return_type: void
@@ -567,6 +712,10 @@ SCM:
       type: "plant::Patch<T,E>"
       access: member
       name_cpp: r_patch
+    history:
+      type: "std::vector<plant::Patch<T,E>>"
+      access: member
+      name_cpp: r_history
     node_schedule:
       type: "plant::NodeSchedule"
       access: member
@@ -576,24 +725,20 @@ SCM:
       type: "std::vector<double>"
       access: member
       name_cpp: r_ode_times
-    state:
-      type: "Rcpp::List"
-      access: function
-      name_cpp: "plant::get_state"
-    aux:
-      type: "Rcpp::List"
-      access: function
-      name_cpp: "plant::get_aux"
     use_ode_times:
       type: bool
       access: member
       name_cpp: r_use_ode_times
       name_cpp_set: r_set_use_ode_times
+    collect:
+      type: bool
+      access: member
+      name_cpp: r_get_collect
+      name_cpp_set: r_set_collect
     net_reproduction_ratio_errors:
       type: "std::vector<std::vector<double>>"
       access: member
       name_cpp: r_net_reproduction_ratio_errors
-
 
 StochasticSpecies:
   name_cpp: "plant::StochasticSpecies<T,E>"
@@ -601,8 +746,7 @@ StochasticSpecies:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [strategy: "T"]
@@ -646,8 +790,7 @@ StochasticPatch:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args:
@@ -658,6 +801,7 @@ StochasticPatch:
     time: {type: double, access: member}
     size: {type: size_t, access: member}
     height_max: {type: double, access: member}
+    get_area: {type: double, access: member}
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
     environment: {type: E, access: member, name_cpp: r_environment}
     species: {type: "std::vector<plant::StochasticSpecies<T,E> >", access: member, name_cpp: r_species}
@@ -711,8 +855,7 @@ StochasticPatchRunner:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args:
@@ -744,26 +887,23 @@ StochasticPatchRunner:
       access: member
       name_cpp: r_schedule
       name_cpp_set: r_set_schedule
-    state:
-      type: "Rcpp::List"
-      access: function
-      name_cpp: "plant::get_state"
 
-Canopy:
-  name_cpp: "plant::Canopy"
+ResourceSpline:
+  name_cpp: "plant::ResourceSpline"
   constructor:
     args:
       - tol: double
       - nbase: double
       - max_depth: double
+      - rescale_usually: bool
   methods:
-    canopy_openness:
+    get_value_at_height:
       args: [height: double]
       return_type: double
     clear:
       return_type: void
   active:
-    canopy_interpolator: {type: "plant::interpolator::Interpolator", access: field}
+    spline: {type: "plant::interpolator::Interpolator", access: field}
 
 Disturbance_Regime:
   name_cpp: "plant::Disturbance_Regime"
@@ -774,8 +914,8 @@ Disturbance_Regime:
       @export
   methods:
     density:
-      args: [time: "std::vector<double>"]
-      return_type: "std::vector<double>"
+      args: [time: double]
+      return_type: double
       name_cpp: r_density
     pr_survival:
       args: [time: double]
@@ -791,8 +931,8 @@ No_Disturbance:
       @export
   methods:
     density:
-      args: [time: "std::vector<double>"]
-      return_type: "std::vector<double>"
+      args: [time: double]
+      return_type: double
       name_cpp: r_density
     pr_survival:
       args: [time: double]
@@ -810,8 +950,8 @@ Weibull_Disturbance_Regime:
       @export
   methods:
     density:
-      args: [time: "std::vector<double>"]
-      return_type: "std::vector<double>"
+      args: [time: double]
+      return_type: double
       name_cpp: r_density
     pr_survival:
       args: [time: double]
@@ -876,16 +1016,12 @@ FF16_Strategy:
 FF16_Environment:
   name_cpp: "plant::FF16_Environment"
   constructor:
-    args:
-      - canopy_rescale_usually: bool
-      - soil_number_of_depths: int
     roxygen: |
-      FF16_Environment object
-      @param  canopy_rescale_usually whether to rescale intervals when estimating light environment
-      @param  soil_number_of_depths Number of soil layers to include
+      Create an FF16_Environment object.
+      @rdname FF16_Environment
       @export
   methods:
-    canopy_openness:
+    get_environment_at_height:
       args: [height: double]
       return_type: double
     clear:
@@ -893,25 +1029,14 @@ FF16_Environment:
     set_fixed_environment:
       args: [value: double, height_max: double]
       return_type: void
-    set_soil_water_state:
-      args: [state: "std::vector<double>"]
-      return_type: void
     compute_rates:
       args: [resource_depletion: "std::vector<double>"]
       return_type: void
   active:
     time: {type: double, access: field}
     ode_size: {type: size_t, access: member}
-    soil_number_of_depths: {type: size_t, access: member, name_cpp: ode_size}
-    canopy:
-      type: "plant::Canopy"
-      access: field
-    soil:
-      type: "plant::Internals"
-      access: member
-      name_cpp: "r_internals"
-    extrinsic_drivers: # this actually exists in the base class, not in the derived environment classes
-      type: "plant::ExtrinsicDrivers"
+    light_availability:
+      type: "plant::ResourceSpline"
       access: field
 
 # The following strategy was built from FF16 on Wed Aug 12 11:12:34 2020
@@ -992,15 +1117,15 @@ K93_Strategy:
     - birth_rate_y: std::vector<double>
     - is_variable_birth_rate: bool
 
-# The following environment was built from FF16r on Wed Aug 12 15:46:38 2020
 K93_Environment:
   name_cpp: "plant::K93_Environment"
   constructor:
     roxygen: |
-      K93_Environment object
+      @rdname FF16_Environment
       @export
+
   methods:
-    canopy_openness:
+    get_environment_at_height:
       args: [height: double]
       return_type: double
     clear:
@@ -1010,12 +1135,32 @@ K93_Environment:
       return_type: void
   active:
     time: {type: double, access: field}
-    canopy: {type: "plant::Canopy", access: field}
+    light_availability: {type: "plant::ResourceSpline", access: field}
     ode_size: {type: size_t, access: member}
 
-# The following strategy was built from FF16 on Mon Jul 19 11:01:04 2021
-FF16w_Strategy:
-  name_cpp: "plant::FF16w_Strategy"
+ExtrinsicDrivers:
+  name_cpp: "plant::ExtrinsicDrivers"
+  methods:
+    evaluate:
+      return_type: double
+      args: [driver_name: std::string, u: double]
+    evaluate_range:
+      return_type: std::vector<double>
+      args: [ driver_name: std::string, u: std::vector<double>]
+    get_names:
+      return_type: std::vector<std::string>
+    set_constant:
+      return_type: void
+      args: [ driver_name: std::string, k: double]
+    set_variable:
+      return_type: void
+      args: [ driver_name: std::string, x: std::vector<double>, y: std::vector<double> ]
+    set_extrapolate:
+      return_type: void
+      args: [ driver_name: std::string, extrapolate: bool]
+
+TF24_Strategy:
+  name_cpp: "plant::TF24_Strategy"
   roxygen: |
     Strategy parameters that tune various aspects of the biological model.
     @title Strategy parameters
@@ -1054,30 +1199,122 @@ FF16w_Strategy:
     - a_dG1: double
     - a_dG2: double
     - k_I: double
+    - vcmax_25: double
+    - p_50: double
+    - K_s: double
+    - c: double
+    - b: double
+    - psi_crit: double
+    - beta1: double
+    - beta2: double
+    - jmax_25: double
+    - hk_s: double
+    - a: double
+    - curv_fact_elec_trans: double
+    - curv_fact_colim: double
+    - var_sapwood_volume_cost: double
+    - nmass_l: double
+    - nmass_s: double
+    - nmass_b: double
+    - nmass_r: double
+    - dmass_dN: double
     - recruitment_decay: double
     - control: "plant::Control"
     - collect_all_auxiliary: bool
     - birth_rate_x: std::vector<double>
     - birth_rate_y: std::vector<double>
     - is_variable_birth_rate: bool
-    
-ExtrinsicDrivers:
-  name_cpp: "plant::ExtrinsicDrivers"
+
+TF24_Environment:
+  name_cpp: "plant::TF24_Environment"
+  constructor:
+    roxygen: |
+      @title Create an TF24_Environment object.
+      @description This environment is used for the TF24 strategy, which includes soil moisture and hydraulic
+      conductivity parameters.
+      @rdname TF24_Environment
+      @export
   methods:
-    evaluate:
+    get_environment_at_height:
+      args: [height: double]
       return_type: double
-      args: [driver_name: std::string, u: double]
-    evaluate_range:
-      return_type: std::vector<double>
-      args: [ driver_name: std::string, u: std::vector<double>]
-    get_names:
+    clear:
+      return_type: void
+    set_fixed_environment:
+      args: [value: double, height_max: double]
+      return_type: void
+    # methods for extinsic drivers are defined in the base class `environment.h`, not in the derived environment class    
+    extrinsic_drivers_get_names:
+      args: []
       return_type: std::vector<std::string>
-    set_constant:
+    extrinsic_drivers_set_constant:
+      args: [driver_name: std::string, value: double]
       return_type: void
-      args: [ driver_name: std::string, k: double]
-    set_variable:
+    extrinsic_drivers_set_variable:
+      args: [driver_name: std::string, x: std::vector<double>, y: std::vector<double>]
       return_type: void
-      args: [ driver_name: std::string, x: std::vector<double>, y: std::vector<double> ]
-    set_extrapolate:
+    extrinsic_drivers_evaluate:
+      args: [driver_name: std::string, x: double]
+      return_type: double
+    extrinsic_drivers_evaluate_range:
+      args: [driver_name: std::string, x: std::vector<double>]
+      return_type: std::vector<double>
+    psi_from_soil_moist:
+      args: [theta_: double]
+      return_type: double 
+    soil_moist_from_psi:
+      args: [psi_soil_: double]
+      return_type: double
+    set_soil_number_of_depths:
+      args: [soil_number_of_depths: int]
       return_type: void
-      args: [ driver_name: std::string, extrapolate: bool]
+    get_soil_number_of_depths:
+      args: []
+      return_type: int
+    set_soil_water_state:
+      args: [state: std::vector<double>]
+      return_type: void
+    get_soil_water_state:
+      args: []
+      return_type: std::vector<double>
+    get_soil_water_state_cumulative_flux:
+      args: []
+      return_type: std::vector<double>  
+    get_PPFD:
+      args: []
+      return_type: double
+    get_atm_vpd:
+      args: []
+      return_type: double
+    get_ca:
+      args: []
+      return_type: double
+    get_leaf_temp:
+      args: []
+      return_type: double
+    get_atm_o2_kpa:
+      args: []
+      return_type: double
+    get_atm_kpa:
+      args: []
+      return_type: double
+    compute_rates:
+      args: [resource_depletion: std::vector<double>]
+      return_type: void
+  active:
+    time: {type: double, access: field}
+    soil_moist_sat: {type: double, access: field}
+    K_sat: {type: double, access: field}
+    depth: {type: double, access: field}
+    a_psi: {type: double, access: field}
+    n_psi: {type: double, access: field}
+    a_infil: {type: double, access: field}
+    b_infil: {type: double, access: field}
+    ode_size: {type: size_t, access: member}
+    light_availability:
+      type: "plant::ResourceSpline"
+      access: field
+    soil:
+      type: "plant::Internals"
+      access: member
+      name_cpp: "r_internals"

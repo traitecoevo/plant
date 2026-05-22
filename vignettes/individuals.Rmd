@@ -1,15 +1,11 @@
 ---
 title: "Growing individuals"
-author:
-- Rich FitzJohn
-- Daniel Falster
-date: 2016
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Individuals}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+output: bookdown::html_document2
 ---
+
+**authors**: DS Falster, RG FitzJohn
+**date**: 2016
+
 
 # Background
 
@@ -235,21 +231,18 @@ First, we load the FF16 strategy pre-populated with a set of default parameters
 params <- scm_base_parameters("FF16")
 ```
 
-Then we can use the `params` object to set a low LMA ("fast growth") species:
+Then we can use the `params` object to set a low LMA ("fast growth") and a high LMA ("low growth") species:
 ```{r }
-s1 <- strategy(trait_matrix(0.0825,  "lma"), params)
-```
-
-and a high LMA ("low growth") species:
-```{r }
-s2 <- strategy(trait_matrix(0.2625, "lma"), params)
+s <- trait_matrix(c(0.0825, 0.2625), "lma") %>% 
+     strategy_list(params, birth_rate_list = 1)
+s1 <- s[[1]]
+s2 <- s[[2]]
 ```
 
 In the FF16 model, LMA is related to leaf turnover (`k_l`) and
 the ratio of dark respiration to leaf mass (`r_l`):
 ```{r }
-lapply(list(s1, s2), `[`, c("lma", "k_l", "r_l"))
-
+lapply(s, `[`, c("lma", "k_l", "r_l"))
 ```
 
 We use these specific strategies to create Individuals:

@@ -132,8 +132,6 @@ update_test_helper <- function(name, template_strategy) {
   templates <- c(
   '    {{name}}={{name}}_Strategy',
   '    {{name}}="{{name}}_Env"',
-  '    {{name}}={{name}}_fixed_environment(...)',
-  '    {{name}}={{name}}_test_environment(...)',
   '    {{name}}={{name}}_hyperpar'
   )
 
@@ -147,7 +145,7 @@ update_strategy_support <- function (name, template_strategy) {
   '         {{name}}={{name}}_hyperpar',
   '         {{name}}_Strategy={{name}}_hyperpar',
   '         {{name}}=sprintf("{{name}}_Env")',
-  '         {{name}}={{name}}_make_environment(...)',
+  '         {{name}}={{name}}_Environment()',
   '         "Parameters<{{name}},{{name}}_Env>"=`node_schedule_default__Parameters___{{name}}__{{name}}_Env`',
   '         "Parameters<{{name}},{{name}}_Env>"=`make_node_schedule__Parameters___{{name}}__{{name}}_Env`'
   )

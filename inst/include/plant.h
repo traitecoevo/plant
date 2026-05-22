@@ -9,13 +9,13 @@
 #include <plant/interpolator.h>
 #include <plant/adaptive_interpolator.h>
 
-#include <plant/ode_control.h>
-#include <plant/ode_step.h>
-#include <plant/ode_solver.h>
-#include <plant/ode_runner.h>
+#include <plant/ode_solver/ode_control.h>
+#include <plant/ode_solver/ode_step.h>
+#include <plant/ode_solver/ode_solver.h>
+#include <plant/ode_solver/ode_runner.h>
 
 #include <plant/environment.h>
-#include <plant/canopy.h>
+#include <plant/resource_spline.h>
 
 #include <plant/control.h>
 #include <plant/strategy.h>
@@ -29,9 +29,9 @@
 
 // Specific models
 #include <plant/models/ff16_strategy.h>
-#include <plant/models/ff16w_strategy.h>
-#include <plant/models/ff16r_strategy.h>
+#include <plant/models/tf24_strategy.h>
 #include <plant/models/k93_strategy.h>
+#include <plant/leaf_model.h>
 
 // Getting more serious down here.
 #include <plant/individual.h>
@@ -47,10 +47,10 @@
 #include <plant/stochastic_patch.h>
 #include <plant/stochastic_patch_runner.h>
 
-#include <plant/plant_runner.h>
+#include <plant/individual_runner.h>
 
 // Purely for testing
-#include <plant/lorenz.h>
+#include <plant/ode_solver/lorenz.h>
 
 // Include this early on.  It can be either after classes have been
 // declared (but before Rcpp has been loaded) or first.  This file will
@@ -64,14 +64,16 @@
 // them earlier up.
 
 #include <Rcpp.h>
-#include <plant/ode_r.h>
+#include <plant/ode_solver/ode_r.h>
 
 // This line can safely be the last line in the file, but may go any
 // point after RcppR6_pre.hpp is included.
 #include <plant/RcppR6_post.hpp>
 #include <plant/util_post_rcpp.h>
-#include <plant/get_state.h>
-#include <plant/get_aux.h>
-#include <plant/individual_tools.h>
+
+// gperftools profiler
+// Uncomment next line if you want to use the profiler.
+// For more info see https://traitecoevo.github.io/plant/articles/profiling_code.html
+// #include "gperftools/profiler.h"
 
 #endif

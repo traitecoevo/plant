@@ -1,0 +1,10 @@
+---
+title: "The `TF24` model"
+bibliography: ../assets/refs.bib
+csl: ../assets/methods-in-ecology-and-evolution.csl
+output: bookdown::html_document2
+
+---
+
+**authors**: I Towers, DS Falster
+**date**: 2024

@@ -3,7 +3,7 @@
 #define PLANT_PLANT_FF16_ENVIRONMENT_H_
 
 #include <plant/environment.h>
-#include <plant/canopy.h>
+#include <plant/resource_spline.h>
 #include <plant/interpolator.h>
 
 using namespace Rcpp;
@@ -13,27 +13,28 @@ namespace plant {
 class FF16_Environment : public Environment {
 public:
   // constructor for R interface - default settings can be modified
-  // except for soil_number_of_depths and canopy_rescale_usually
+  // except for light_availability_spline_rescale_usually
   // which are only updated on construction
-  FF16_Environment(bool canopy_rescale_usually = false,
-                   int soil_number_of_depths = 0)
-      : canopy_rescale_usually(canopy_rescale_usually) {
+  FF16_Environment() {
     time = 0.0;
-    canopy = Canopy();
-    vars = Internals(soil_number_of_depths);
-    set_soil_water_state(std::vector<double>(soil_number_of_depths, 0.0));
+
+    // Shading defaults have lower tolerance which are overwritten for speed
+    light_availability = ResourceSpline(
+        1e-4, // light_availability_spline_tol,
+        17,   // light_availability_spline_nbase,
+        16,   // light_availability_spline_max_depth,
+        true  // light_availability_spline_rescale_usually)
+    );
+
   };
 
+  // A ResourceSpline used for storing light availbility (0-1)
+  ResourceSpline light_availability;
 
-  // Light interface
-  bool canopy_rescale_usually;
-
-  // private?
-  Canopy canopy;
-
-  // Should this be here or in canopy?
+  // Ability to prescribe a fixed value
+  // TODO: add setting to set other variables like water
   void set_fixed_environment(double value, double height_max) {
-    canopy.set_fixed_canopy(value, height_max);
+    light_availability.set_fixed_value(value, height_max);
   }
 
   void set_fixed_environment(double value) {
@@ -42,81 +43,45 @@ public:
   }
 
   double get_environment_at_height(double height) const {
-    return canopy.get_canopy_at_height(height);
+    return light_availability.get_value_at_height(height);
   }
 
-  double canopy_openness(double height) const {
-    return canopy.canopy_openness(height);
-  }
-
-  void r_init_interpolators(const std::vector<double>& state) {
-    canopy.r_init_interpolators(state);
+  virtual void r_init_interpolators(const std::vector<double> &state)
+  {
+    light_availability.r_init_interpolators(state);
   }
 
   virtual void compute_rates(std::vector<double> const& resource_depletion) {
-    double infiltration;
-    double net_flux;
-
-    double drainage_multiplier = 0.1; // experimental only;
-
-    // treat each soil layer as a separate resource pool
-    for (size_t i = 0; i < vars.state_size; i++) {
-
-      // initial representation of drainage; to be improved
-      if(i == 0) {
-        infiltration = extrinsic_drivers.evaluate("rainfall", time);
-      } else {
-        infiltration = std::max(vars.state(i - 1), 0.0) * drainage_multiplier;
-      }
-
-      // ecologically, soil water shouldn't go below zero
-      // truncating at zero until such a model is implemented
-      double drainage_rate = std::max(vars.state(i), 0.0) * drainage_multiplier;
-
-      net_flux = infiltration - resource_depletion[i] - drainage_rate;
-      vars.set_rate(i, net_flux);
-    }
 
   }
 
-  std::vector<double> get_soil_water_state() const {
-    return vars.states;
+  virtual Rcpp::List r_get_state() const {
+    return Rcpp::List::create(
+              _["light_availability"] = light_availability.r_get_state()
+            );
   }
 
-  // I wonder if this needs a better name? See also environment.h
-  Internals r_internals() const { return vars; }
-
-  // R interface
-  void set_soil_water_state(std::vector<double> state) {
-    for (size_t i = 0; i < vars.state_size; i++) {
-      vars.set_state(i, state[i]);
-    }
-  }
-
-  // Core functions
+  // Pre-compute resources available in the environment, as a function of height
   template <typename Function>
-  void compute_environment(Function f_compute_competition, double height_max) {
-    canopy.compute_canopy(f_compute_competition, height_max);
+  void compute_environment(Function f_compute_competition, double height_max, bool rescale) {
+
+    // Define an anonymous function to use in creation of light_availability spline
+    // Note: extinction coefficient was already applied in strategy, so
+    // f_compute_competition gives sum of projected leaf area (k L) across species. Just need to apply Beer's law, E = exp(- (k L))
+    auto f_light_availability = [&](double height) -> double
+    { return exp(-f_compute_competition(height)); };
+
+    // Calculates the light_availability spline, by fitting to the function
+    // `f_compute_competition` as a function of height
+    light_availability.compute_environment(f_light_availability, height_max, rescale);
   }
 
-  template <typename Function>
-  void rescale_environment(Function f_compute_competition, double height_max) {
-    canopy.rescale_canopy(f_compute_competition, height_max);
-  }
-
-  void clear_environment() {
-    canopy.clear();
+  virtual void clear_environment() {
+    light_availability.clear();
   }
 };
 
-//inline Rcpp::NumericMatrix get_state(const FF16_Environment environment) {
-//  return get_state(environment.canopy);
-//}
-inline Rcpp::List get_state(const FF16_Environment environment, double time) {
-  auto ret = get_state(environment.extrinsic_drivers, time);
-  ret["canopy"] = get_state(environment.canopy); // does a full copy of ret, not efficient
-  return ret;
-}
+
 }
 
 #endif

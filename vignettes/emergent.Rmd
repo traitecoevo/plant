@@ -1,31 +1,28 @@
 ---
 title: "Patch-level emergent properties"
-author: 
-- Rich FitzJohn
-- Daniel Falster
-date: 2016
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{emergent}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+output: bookdown::html_document2
 ---
+
+**authors**: DS Falster, RG FitzJohn
+**date**: 2016
 
 # Background
 
 The aim here is to use the plant package to investigate dynamics
 within a patch of competing individuals, focusing on emergent patch-level
 properties, rather than properties of individuals within the patch.
-We'll work with a single species at demographic equilibrium:
+
+We'll work with a single species at birth rate close to demographic equilibrium:
 
 
 ```{r}
 library(plant)
 
-params <- scm_base_parameters("FF16")
-patch <- expand_parameters(trait_matrix(0.0825, "lma"), params)
-patch_eq <- equilibrium_seed_rain(patch)
-result <- run_scm_collect(patch_eq)
+p0 <- scm_base_parameters("FF16")
+p <- expand_parameters(trait_matrix(0.0825, "lma"), p0, birth_rate_list = 17.31)
+patch <- build_schedule(p)
+result <- run_scm_collect(patch)
+
 ```
 
 # Node densities
@@ -42,7 +39,7 @@ last <- function(x) {
   x[[length(x)]]
 }
 
-times <- c(5, 10, 20, 40, last(result$time))
+times <- c(5, 10, 20, 40, dplyr::last(result$time))
 i <- vapply(times, closest, integer(1), result$time)
 blues <- c("#DEEBF7", "#C6DBEF", "#9ECAE1", "#6BAED6",
            "#4292C6", "#2171B5", "#08519C", "#08306B")
@@ -61,7 +58,7 @@ to be the state of the system at a given time):
 ```{r}
 density <- exp(log_density)
 matplot(height, density, type="l", lty=1,
-        col=make_transparent("black", 0.15),
+        col=util_colour_set_opacity("black", 0.15),
         xlab="Height (m)", ylab="Density (1 / m / m2)", las=1,
         log="y")
 ```
@@ -78,7 +75,7 @@ highlighted.
 ```{r}
 xlim <- c(0, max(height, na.rm=TRUE) * 1.05)
 matplot(height, density, type="l", lty=1,
-        col=make_transparent("black", 0.15),
+        col=util_colour_set_opacity("black", 0.15),
         xlab="Height (m)", ylab="Density (1 / m / m2)", las=1,
         log="y", xlim=xlim)
 matlines(height[, i], density[, i], col=cols, lty=1, type="l")
@@ -159,6 +156,55 @@ We'll use a spline interpolation, on log-log-scaled data, clamped
 so that for x values outside the observed range are set to zero.
 
 ```{r}
+##' Spline interpolation in log-x space
+##' @title Spline interpolation in log-x space
+##' @param x,y Vectors giving coordinates of points to be
+##' interpolated.  The x points should be naturally on a log scale,
+##' and for \code{splinefun_loglog} both x and y should be on a log
+##' scale.
+##' @param ... Additional parameters passed to
+##' @rdname splinefun_log
+splinefun_loglog <- function(x, y, ...) {
+        f <- splinefun(log(x), log(y), ...)
+        function(x) {
+                exp(f(log(x)))
+        }
+}
+
+##' Clamp a function to particular values when outside of a given domain (r)
+##'
+##' Things like names on input and return vectors are not dealt with
+##' very well, and would differ if the function was better
+##' constructed.  Values falling outwide the domain are not evaluated
+##' (which is useful if these would cause crashes, warnings, etc).
+##'
+##' @title Clamp function to domain
+##' @param f A function that takes \code{x} as a first argument.
+##' @param r Range of values (vector of length 2)
+##' @param value (Single) value to use when out of domain.
+##' @return A new function
+##' @export
+clamp_domain <- function(f, r, value = NA_real_) {
+        f <- match.fun(f)
+        if (length(r) != 2L) {
+                stop("Expected length two range")
+        }
+        if (any(is.na(r)) || r[[2]] < r[[1]]) {
+                stop("Values for range must be finite and not decreasing")
+        }
+        if (length(value) != 1L) {
+                stop("value must be length 1")
+        }
+        function(x, ...) {
+                ret <- rep_len(value, length(x))
+                i <- x >= r[[1]] & x <= r[[2]]
+                if (any(i)) {
+                        ret[i] <- f(x[i])
+                }
+                ret
+        }
+}
+
 f <- function(height, density, hout) {
   r <- range(height, na.rm=TRUE)
   clamp_domain(splinefun_loglog(height, density), r, 0)(hout)
@@ -188,7 +234,7 @@ Add this average to the plot (red line):
 ```{r}
 xlim <- c(0, max(height, na.rm=TRUE) * 1.05)
 matplot(height, density, type="l", lty=1,
-        col=make_transparent("black", 0.15),
+        col=util_colour_set_opacity("black", 0.15),
         xlab="Height (m)", ylab="Density (1 / m / m2)", las=1,
         log="y", xlim=xlim)
 matlines(height[, i], density[, i], col=cols, lty=1, type="l")

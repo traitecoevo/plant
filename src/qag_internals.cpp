@@ -108,7 +108,7 @@ intervals_type rescale_intervals(intervals_type x,
 
 // This is useful in debugging, but never actually used.
 void print_intervals(intervals_type x) {
-  const size_t n = x[0].size();
+  const int n = x[0].size();
   Rprintf("%d intervals:", n);
   for (size_t i = 0; i < n; ++i) {
     Rprintf(" [%2.7f, %2.7f]", x[0][i], x[1][i]);

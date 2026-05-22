@@ -1,0 +1,149 @@
+
+---
+title: "Profiling the plant package"
+output: bookdown::html_document2
+---
+
+As a complex systems model, speed of code is important. The plant package is written in C++ using Rcpp, and so is already fast. However, there are always ways to improve speed. This document outlines some of the ways to profile the code to identify bottlenecks.
+
+The code is slightly awkawrd to profile, as the C++ code is called from R. So traditional R profilers give little  insight, as they don't 
+
+# Simply measuring execution time
+
+There are several ways to time the execution of some code. 
+
+## system.time
+
+R has a buitltin function `system.time`. Simply wrap it aorund some code to execute. E.g.
+```r
+system.time({
+  ind <- FF16_Individual()
+  env <- FF16_fixed_environment(1.0)
+  times <- seq(0, 50, length.out = 101)
+  result <- grow_individual_to_time(ind, times, env)  
+})
+```
+>    user  system elapsed 
+>   0.022   0.000   0.022 
+
+## tictoc
+
+For longer code, wrapping the code into `system.time` is awkward. The package [`tictoc`](http://jabiru.github.io/tictoc/) provides an alternative.
+
+```r
+library(tictoc)
+
+tic() # start counting
+
+# code to time
+ind <- FF16_Individual()
+env <- FF16_fixed_environment(1.0)
+times <- seq(0, 50, length.out = 101)
+result <- grow_individual_to_time(ind, times, env)
+
+toc() # end counting
+```
+> 0.049 sec elapsed
+
+
+# Profiling cpp code
+
+Proper profiling of code enables you to identify bottlenecks and optimise code. The profiler provides information on how long each function takes to run, how many times it is called, and how much memory it uses. 
+
+Below we document epxreience using different tools. For all of these the basic workflow is
+
+1. Determine code to profile
+2. Run code, recording activity with profiler
+3. Analyze the performance data. Look for hotspots, memory usage, and bottlenecks in your C++ code.
+3. Optimize and Iterate:
+  - Based on the profiling data, optimize your C++ code.
+  - Repeat the profiling process to verify the improvements.
+
+## Xcode Instruments (OSX)
+
+Apple's Xcode includes a tool called Instruments, which enables profiling of C++ code on a Mac. To use it
+
+1.	(optional) Compile with Debug Information:
+  - Compile your C++ code with debug symbols to ensure detailed profiling information. 
+  - compile and load code with `devtools::load_all()`. Make sure you haven't compiled code previously. By default the `load_all` function compiles the code without optimastaion and with debug symbols, which help with profiling.
+
+2. Open Instruments.app and Select a Template:
+  - Choose a profiling template(e.g., "Time Profiler").
+
+3. Attach Instruments to the R Process:
+  - Start the Instruments session and look for the R process running your script.
+
+4. Run Your R Script. Instruments will profile the execution.
+
+## Uprof (linux)
+
+Mitchell Henry used this on linux <https://www.amd.com/en/developer/uprof.html> which good success.
+
+## Google’s gperftools
+
+Google has a profiling tool [gperftools](https://github.com/gperftools/gperftools) which can be used to profile code with Rcpp. The following instructions use the package [Rgpertools](https://github.com/bnprks/Rgperftools) which is based on advice from this [blog post](http://minimallysufficient.github.io/r/programming/c++/2018/02/16/profiling-rcpp-packages.html) by Minimally Sufficient. 
+
+An alternative interface is the [jointprof package](https://github.com/r-prof/jointprof/), but on trying this had some issues with MacOS compatibility (https://github.com/r-prof/jointprof/issues).
+
+Both packages have two functions `start_profiler` and `stop_profiler`, to be used as follows:
+
+```R
+start_profiler("/tmp/profile.out")
+run_your_cpp_stuff()
+stop_profiler()
+```
+
+Using the profiler
+
+1. Install the gperftools package, e.g. via homebrew
+
+```bash
+brew install gperftools
+```
+
+2. Install the R package
+
+```R
+devtools::install_github("bnprks/Rgperftools")
+```
+
+3. Install the pprof package, which is used to analyse results. 
+  - While you can install via homebrew, in 2024 and on OSX, this produced errors. Better results were obtained by installing via Go
+  - Install go: https://go.dev/dl/
+  - Install pprof `bash  go install github.com/google/pprof@latest`
+  
+4. You maye need to set up paths for linking and include files.  E.g. in my terminal profile I included
+
+```bash
+# Path to search for include files in C++
+export CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH:/usr/local/include:/opt/homebrew/include/"
+# Path to link to library
+export LIBRARY_PATH="/opt/homebrew/lib/"
+```
+5. Compile code using gperftools
+  - Add `PKG_LIBS = -lprofiler` to `plant/src/Makevars`: e.g. `PKG_LIBS = -lprofiler`
+  -  Add to code `#include "gperftools/profiler.h"`
+  - run `devtools::load_all()` to compile code without optimisations and with debug flags
+
+6. Run code, e.g. 
+
+```R
+library("Rgperftools")
+start_profiler("/tmp/profile.out")
+p0 <- scm_base_parameters("FF16")
+p <- expand_parameters(trait_matrix(0.0825, "lma"), p0)
+res <- run_scm(p)
+stop_profiler()
+```
+
+6. Analyse results in terminal
+
+```
+$HOME/go/bin/pprof --web src/plant.so /tmp/profile.out
+```
+
+or 
+
+```
+$HOME/go/bin/pprof -top  src/plant.so /tmp/profile.out
+```

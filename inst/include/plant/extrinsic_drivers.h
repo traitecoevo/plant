@@ -50,31 +50,44 @@ private:
 };
 }
 
+// TODO cleanup scm untested
+
 class ExtrinsicDrivers {
-  using variable = interpolator::Interpolator;
+  
 public:
   // this will override any previously defined drivers with the same name
   void set_constant(std::string driver_name, double k) {
-    drivers[driver_name] = Function(k);
+   
+    if (drivers.find(driver_name) != drivers.end()) 
+    {
+      drivers.erase(driver_name);
+    }
+    drivers.insert({driver_name, Function(k)});
   }
 
   // initialise spline of driver with x, y control points
   void set_variable(std::string driver_name, std::vector<double> const &x, std::vector<double> const &y) {
-    drivers[driver_name] = Function(x, y);
+    if (drivers.find(driver_name) != drivers.end())
+    {
+      drivers.erase(driver_name);
+    }
+    drivers.insert({driver_name, Function(x, y)});
   }
 
   void set_extrapolate(std::string driver_name, bool extrapolate) {
     drivers.at(driver_name).set_extrapolate(extrapolate);
   }
 
-  // evaluate/query interpolated spline for driver at point u, return s(u), where s is interpolated function
-  double evaluate(std::string driver_name, double u) const {
-    return drivers.at(driver_name).evaluate(u);
+  // evaluate/query interpolated spline for driver at point u, return s(x), where s is interpolated function
+  double evaluate(std::string driver_name, double x) const {
+
+    return drivers.at(driver_name).evaluate(x);
   }
 
+
   // evaluate/query interpolated spline for driver at vector of points, return vector of values
-  std::vector<double> evaluate_range(std::string driver_name, std::vector<double> u) const {
-    return drivers.at(driver_name).evaluate_range(u);
+  std::vector<double> evaluate_range(std::string driver_name, std::vector<double> x) const {
+    return drivers.at(driver_name).evaluate_range(x);
   }
 
   // returns the name of each active driver - useful for R output
@@ -86,21 +99,14 @@ public:
     return ret;
   }
 
+  void clear() {
+    drivers.clear();
+  }
+  
+
 private:
   std::unordered_map <std::string, Function> drivers;
 };
-
-inline Rcpp::List get_state(const ExtrinsicDrivers& drivers, double time) {
-  auto const& names = drivers.get_names();
-  auto driver_names = Rcpp::StringVector(names.size());
-  auto ret = Rcpp::List(names.size());
-  for (auto i = 0; i < names.size(); i++) {
-    ret[i] = drivers.evaluate(names[i], time);
-    driver_names[i] = names[i];
-  }
-  ret.names() = driver_names;
-  return ret;
-}
 
 }
 

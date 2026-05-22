@@ -91,13 +91,12 @@ test_that("Reference comparison", {
   expect_identical(p$state("height"), vars$states[which(p$ode_names == "height")])
 })
 
-
-
 test_that("Critical Names", {
   s <- FF16_Strategy()
   my_names <- FF16_Individual(s)$ode_names
   expect_identical(my_names[1:3], c("height", "mortality", "fecundity"))
 })
+
 test_that("FF16_Strategy hyper-parameterisation", {
   s <- FF16_Strategy()
 
@@ -168,19 +167,18 @@ test_that("narea calculation", {
   x <- c(1.38, 3.07, 2.94)
   p0 <- FF16_Parameters()
   m <- trait_matrix(x, "hmat")
-  expect_silent(sl <- strategy_list(m, p0, FF16_hyperpar, birth_rate_list=1.0))
+  expect_silent(sl <- plant:::strategy_list(m, p0, FF16_hyperpar, birth_rate_list=1.0))
 
-  cmp <- lapply(x, function(xi) strategy(trait_matrix(xi, "hmat"), p0, FF16_hyperpar, birth_rate_list=1.0))
+  cmp <- lapply(x, function(xi) strategy_list(trait_matrix(xi, "hmat"), p0, FF16_hyperpar, birth_rate_list=1.0)[[1]])
   expect_equal(sl, cmp)
 })
 
 # integration test - runs a full patch meta-population
 # the offspring arrival produced integrates all demographic behaviours
-
 test_that("offspring arrival", {
 
   p0 <- scm_base_parameters("FF16")
-  env <- make_environment("FF16")
+  env <- Environment("FF16")
   ctrl <- scm_base_control()
   
   # one species
@@ -203,7 +201,7 @@ test_that("offspring arrival", {
 test_that("Report generation", {
 
   p0 <- scm_base_parameters("FF16")
-  env <- make_environment("FF16")
+  env <- Environment("FF16")
   ctrl <- scm_base_control()
   
   p2 <- expand_parameters(trait_matrix(c(0.0825, 0.2625), "lma"), p0,   FF16_hyperpar, 

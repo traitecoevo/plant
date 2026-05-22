@@ -1,0 +1,180 @@
+url: https://traitecoevo.github.io/plant/
+
+destination: gh-pages
+
+template:
+  bootstrap: 5
+  bootswatch: cosmo
+
+navbar:
+  title: "plant"
+  type: inverse
+  left:
+    - text: "Home"
+      icon: fa-home
+      href: index.html
+    - text: "Getting Started"
+      icon: fa-tree
+      href: articles/plant.html
+    - text: "Package functions"
+      icon: fa-list
+      href: reference/index.html
+    - text: "Articles"
+      icon: fa-book
+      menu:
+        - text: -------
+        - text: "Theory"
+        - text: "Demography of individuals, patches, and metacommunities"
+          href: articles/demography.html
+        - text: "Overview of numerical methods used in `plant`"
+          href: articles/methods/numerical_methods.html
+        - text: "Solving system dynamics via the characteristic method"
+          href: articles/methods/solving_dynamics.html
+        - text: "ODE stepping and control"
+          href: articles/methods/ode_solver.html
+        - text: "The node spacing algorithm"
+          href: articles/methods/node_spacing.html
+        - text: -------
+        - text: "Developer Notes"
+        - text: "Package Organisation and Management"
+          href: articles/package_organisation.html
+        - text: "Implementing a new strategy"
+          href: articles/strategy_new.html
+        - text: -------
+        - text: "Models"
+        - text: "The TF24 model"
+          href: articles/models/strategy_TF24.html
+        - text: "The FF16 model"
+          href: articles/models/strategy_FF16.html
+        - text: "The K93 model"
+          href: articles/models/strategy_K93.html
+        - text: -------
+        - text: "Examples"
+        - text: "Example analysis"
+          href: articles/example_analysis.html
+        - text: "Changing parameters"
+          href: articles/parameters.html
+        - text: "Self thinning"
+          href: articles/self_thinning.html
+        - text: "Individual plants"
+          href: articles/individuals.html
+        - text: "Patches of competing plants"
+          href: articles/patch.html
+        - text: "Emergent properties of patches"
+          href: articles/emergent.html
+        - text: "Utilising Extrinsic Drivers"
+          href: articles/extrinsic_drivers.html
+
+    - text: "Blog"
+      icon: fa-terminal
+      desc: >
+        These articles are used to record experiments, that are not expected to continue working into the future.
+      menu:
+        - text: "2021-water_bucket_model"
+          href: articles/blog/2021-water_bucket_model.html
+
+  right:
+    - text: "News"
+      icon: fa-newspaper-o
+      href: news/index.html
+    - text: "Github"
+      icon: fa-github fa-lg
+      href: https://github.com/traitecoevo/plant
+
+reference:
+
+- title: Setup
+  desc:  
+  contents:
+  - Control
+  - scm_base_control
+  - fast_control
+  - build_schedule
+  - plant_log_console
+  - scm_base_parameters
+  - trait_matrix
+  - expand_parameters
+  - strategy_list
+  - make_hyperpar
+  - Disturbance_Regime
+  - Weibull_Disturbance_Regime
+  - No_Disturbance
+
+- title: Growing individuals
+  contents:
+  - Individual
+  - grow_individual_to_size
+  - grow_individual_to_time
+  - optimise_individual_rate_at_size_by_trait
+  - resource_compensation_point
+
+- title: Running patches
+  desc:  
+  contents:
+  - run_scm
+  - run_scm_collect
+  - run_stochastic_collect
+
+- title: Manipulating outputs
+  contents:
+  - tidy_patch
+  - tidy_individual
+  - integrate_over_size_distribution
+  - interpolate_to_heights
+  - interpolate_to_times
+  - plot_size_distribution
+
+- title: FF16 model
+  desc:  Functions for runnign the FF16 model
+  contents:
+  - contains("FF16_")
+
+- title: FF16r model
+  desc:  Functions for runnign the FF16r model
+  contents:
+  - contains("FF16r_")
+
+- title: TF24 model
+  desc:  Functions for runnign the TF24 model
+  contents:
+  - contains("TF24_")
+
+- title: K93 model
+  desc:  Functions for runnign the K93 model
+  contents:
+  - contains("K93_")
+
+- title: TF24 model
+  desc:  Functions for runnign the TF24 model
+  contents:
+  - contains("TF24_")
+
+- title: Development & testing
+  contents:
+  - run_plant_benchmarks
+
+- title: Helpers
+  desc:  Small function used in vignettes. (Remove from package or make private?)
+  contents:
+  - seq_log
+  - util_colour_set_opacity
+
+- title: Numerical methods
+  desc: You're unlikely to run these unless you're diving deep into the code. (Do these need to be exposed? Should they be private?)
+  contents:
+  - environment_type
+  - Interpolator
+
+- title: Review if still needed
+  contents:
+  - node_schedule_times_default
+
+- title: Internal functions (for developers/advanced users only)
+  contents:
+  - NodeSchedule
+  - OdeControl
+  - QK
+  - validate
+  - Internals
+
+

@@ -25,7 +25,7 @@ NodeSchedule make_node_schedule(const Parameters& p) {
   NodeSchedule ret(p.size());
   ret.r_set_max_time(p.max_patch_lifetime);
   ret.set_times(p.node_schedule_times);
-  ret.r_set_ode_times(p.node_schedule_ode_times);
+  ret.r_set_ode_times(p.ode_times);
   return ret;
 }
 

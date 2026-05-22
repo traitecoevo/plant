@@ -57,6 +57,11 @@ void stop(const std::string& msg) {
   Rcpp::stop(msg);
 }
 
+void warning(const std::string& msg) {
+  Rcpp::warning(msg);
+}
+
+
 // The basic idea here is that we consider the three points
 //   {(x1, y1), (x2, y2), (x3, y3)}
 // and we want to know how much the middle point is contributing to
@@ -70,7 +75,7 @@ std::vector<double> local_error_integration(const std::vector<double>& x,
   std::vector<double> ret;
   check_length(x.size(), y.size());
 
-  if (x.size() < 3) {
+  if ((x.size() < 3) || (scal == 0)) {
     for (size_t i = 0; i < x.size(); ++i) {
       ret.push_back(NA_REAL);
     }

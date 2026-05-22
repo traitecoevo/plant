@@ -4,11 +4,7 @@
 \alias{build_schedule}
 \title{Build Node Schedule}
 \usage{
-build_schedule(
-  p,
-  env = make_environment(parameters = p),
-  ctrl = scm_base_control()
-)
+build_schedule(p, env = NULL, ctrl = scm_base_control())
 }
 \arguments{
 \item{p}{Parameters object}
@@ -23,7 +19,7 @@ output offspring produced is also available as an attribute
 \code{birth_rate}.
 }
 \description{
-Build an appropriately refined schedule.
+Build an appropriately refined schedule for node introduction.
 }
 \details{
 There are control options (within the \code{Parameters} object)

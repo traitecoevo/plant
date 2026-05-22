@@ -7,6 +7,15 @@
 namespace plant {
 namespace quadrature {
 
+QK::QK()
+  : last_result(NA_REAL),
+    last_result_abs(NA_REAL),
+    last_result_asc(NA_REAL),
+    last_error(NA_REAL) {
+  initialise(21);
+}
+
+
 QK::QK(size_t rule)
   : last_result(NA_REAL),
     last_result_abs(NA_REAL),

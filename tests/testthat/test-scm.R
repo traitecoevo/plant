@@ -12,18 +12,13 @@ test_that("Run SCM", {
     node <- Node(x, e)(s)
 
     p <- Parameters(x, e)(strategies=list(s),
-                          patch_area=10)
+                          patch_area=1)
     
-    env <- make_environment(x)
+    env <- Environment(x)
     ctrl <- Control()
-
-    expect_error(scm <- SCM(x, e)(p, env, ctrl), "Patch area must be exactly 1 for the SCM")
-
-    p$patch_area <- 1.0
     scm <- SCM(x, e)(p, env, ctrl)
     expect_is(scm, sprintf("SCM<%s,%s>", x, e))
 
-    ## NOTE: I'm not sure where these are only equal and not identical.
     expect_equal(scm$parameters, p)
 
     ## Check that the underlying Patch really is a Patch<NodeTop>:
@@ -40,7 +35,7 @@ test_that("Run SCM", {
 
     ## If the schedule is for the wrong number of species, it should cause
     ## an error...
-    sched2 <- NodeSchedule(sched$n_species + 1)
+    sched2 <- plant:::NodeSchedule(sched$n_species + 1)
     expect_error(scm$node_schedule <- sched2, "Incorrect length input; expected 1, received 2")
 
     ## Build a schedule for 14 introductions from t=0 to t=5
@@ -167,7 +162,7 @@ test_that("schedule setting", {
     p <- Parameters(x, e)(
       strategies=list(strategy_types[[x]]()),
       max_patch_lifetime=5.0)
-    env <- make_environment(x)
+    env <- Environment(x)
     ctrl <- scm_base_control()
     scm <- SCM(x, e)(p, env, ctrl)
 
@@ -196,52 +191,14 @@ test_that("schedule setting", {
   }
 })
 
-  ## ## TODO: This is a fairly inadequate set of tests; none of the failure
-  ## ## conditions are tested, and it's undefined what will happen if we
-  ## ## set a node schedule that leaves us between introduction points.
-  ## test_that("State get/set works", {
-  ##   ## Next, try and partly run the SCM, grab its state and push it into a
-  ##   ## second copy.
-  ##   scm$reset()
-  ##   tmp <- run_scm_test(scm, sched$max_time / 2)
-  ##   state <- scm$state
-
-  ##   scm2 <- new(SCM, scm$parameters)
-  ##   scm2$state <- state
-
-  ##   expect_equal(scm2$state, scm$state)
-  ##   ## Emergent things:
-  ##   expect_equal(scm2$patch$environment$environment_interpolator$xy,
-  ##                scm$patch$environment$environment_interpolator$xy)
-  ##   expect_equal(scm2$ode_state, scm$ode_state)
-  ##   expect_equal(scm2$ode_rates, scm$ode_rates)
-  ##   # TODO: This needs implementing; requires get/set of the ODE solver
-  ##   # state.
-  ##   # expect_equal(scm2$time, scm$time)
-  ## })
-
-  ## test_that("Can set times directly", {
-  ##   scm$reset()
-  ##   times <- scm$times(1)
-  ##   times2 <- sort(c(times, 0.5*(times[-1] + times[-length(times)])))
-  ##   scm$set_times(times2, 1)
-  ##   expect_identical(scm$times(1), times2)
-  ##   expect_identical(scm$node_schedule$times(1), times2)
-  ##   scm$run_next()
-  ##   expect_error(scm$set_times(times, 1))
-  ##   scm$reset()
-  ##   scm$set_times(times, 1)
-  ##   expect_identical(scm$times(1), times)
-  ## })
-
-test_that("Seed rain & error calculations correct", {
+test_that("Offspring production & error calculations correct", {
   for (x in c("FF16")) {
     context(sprintf("SCM-%s", x))
     e <- environment_types[[x]]
     p0 <- scm_base_parameters(x)
     p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, birth_rate_list=1.0)
     
-    env <- make_environment(x)
+    env <- Environment(x)
     ctrl <- scm_base_control()
 
     scm <- run_scm(p1, env, ctrl)
@@ -249,7 +206,8 @@ test_that("Seed rain & error calculations correct", {
 
     net_reproduction_ratio_R <- function(scm, error=FALSE) {
       a <- scm$node_schedule$times(1)
-      net_reproduction_ratio_by_node_weighted <- scm$patch$density(a) *
+      density <- purrr::map_dbl(a, ~ scm$patch$density(.x))
+      net_reproduction_ratio_by_node_weighted <- density *
         scm$patch$species[[1]]$net_reproduction_ratio_by_node *
         scm$parameters$strategies[[1]]$S_D
       total <- trapezium(a, net_reproduction_ratio_by_node_weighted)
@@ -263,20 +221,9 @@ test_that("Seed rain & error calculations correct", {
     expect_equal(scm$net_reproduction_ratio_errors[[1]], net_reproduction_ratio_R(scm, error=TRUE))
 
     lae_cmp <-
-      scm$patch$species[[1]]$competition_effects_error(scm$patch$compute_competition(0))
-    expect_identical(scm$competition_effect_error(1), lae_cmp)
+      scm$patch$species[[1]]$compute_competition_effect_by_nodes_error(scm$patch$compute_competition(0))
+    expect_identical(scm$compute_competition_effect_error_by_node_for_species_i(1), lae_cmp)
 
-    int <- make_scm_integrate(scm)
-    S_D <- scm$parameters$strategies[[1]]$S_D
-    expect_equal(int("offspring_produced_survival_weighted") * S_D, scm$net_reproduction_ratio_for_species(1))
-
-    res <- run_scm_collect(p1, env, ctrl)
-    int2 <- make_scm_integrate(res)
-
-    expect_equal(int2("offspring_produced_survival_weighted"), int("offspring_produced_survival_weighted"))
-    expect_equal(int2("height"), int("height"))
-    expect_equal(int2("mortality"), int("mortality"))
-    expect_equal(int2("fecundity"), int("fecundity"))
   }
 })
 
@@ -285,7 +232,7 @@ test_that("Can create empty SCM", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)()
-    env <- make_environment(x)
+    env <- Environment(x)
     ctrl <- scm_base_control()
     scm <- SCM(x, e)(p, env, ctrl)
 
@@ -293,9 +240,8 @@ test_that("Can create empty SCM", {
     env <- scm$patch$environment
     patch <- scm$patch
 
-    # This is no longer zero:
-    expect_gt(env$canopy$canopy_interpolator$size, 30)
-    expect_equal(env$canopy_openness(0), 1.0)
+    expect_equal(env$light_availability$spline$size, 0)
+    expect_equal(env$get_environment_at_height(0), 1.0)
   }
 })
 

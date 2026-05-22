@@ -3,7 +3,7 @@ context("Internals")
 test_that("internals getters and setters", {
   n = 3
   a_n = 2
-  ints = Internals(s_size = n, a_size = 2)
+  ints = plant:::Internals(s_size = n, a_size = 2)
   for ( i in 0:(n-1)) {
     ints$set_state(i,10)
     expect_equal(ints$state(i), 10)
@@ -17,18 +17,18 @@ test_that("internals getters and setters", {
 })
 
 test_that("Creation and defaults", {
-  internals = Internals(s_size = 0, a_size = 0)
+  internals = plant:::Internals(s_size = 0, a_size = 0)
   expect_is(internals, "Internals")
   expect_equal(internals$state_size, 0)
   expect_equal(internals$aux_size, 0)
   n = 10
-  ints = Internals(s_size = n, a_size = n)
+  ints = plant:::Internals(s_size = n, a_size = n)
   expect_equal(all(is.na(ints$rates)),TRUE)
   expect_identical(ints$states, rep(0.0, n))
 })
 
 test_that("Resize", {
-  internals = Internals(s_size = 0, a_size = 0)
+  internals = plant:::Internals(s_size = 0, a_size = 0)
   expect_equal(internals$state_size, 0)
   expect_equal(internals$aux_size, 0)
   internals$resize(new_size = 20, new_aux_size = 10)

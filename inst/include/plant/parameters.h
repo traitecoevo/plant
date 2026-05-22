@@ -52,7 +52,7 @@ struct Parameters {
   // Node information.
   std::vector<double> node_schedule_times_default;
   std::vector<std::vector<double> > node_schedule_times;
-  std::vector<double> node_schedule_ode_times;
+  std::vector<double> ode_times;
 
   // Some little query functions for use on the C side:
   size_t size() const;

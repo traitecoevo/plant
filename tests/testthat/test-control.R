@@ -15,10 +15,7 @@ test_that("Defaults", {
     ode_tol_abs = 1e-6,
     ode_tol_rel = 1e-6,
 
-    assimilator_adaptive_integration = TRUE,
-    assimilator_integration_iterations = 1000, # size_t so not int
-    assimilator_integration_rule = 21, # size_t so not int
-    assimilator_integration_tol = 1e-6,
+    function_integration_rule = 21, # size_t so not int
 
     offspring_production_iterations = 1000, # size_t
     offspring_production_tol = 1e-8, # 1e-6, Had to change this...
@@ -28,16 +25,12 @@ test_that("Defaults", {
     schedule_nsteps   = 20, # size_t
     schedule_eps      = 1e-3,
     schedule_verbose  = FALSE,
-
-    equilibrium_nsteps   = 20, # size_t
-    equilibrium_eps      = 1e-5,
-    equilibrium_large_birth_rate_change = 10.0,
-    equilibrium_verbose  = TRUE,
-    equilibrium_solver_name = "iteration",
-    equilibrium_extinct_birth_rate = 1e-3,
-    equilibrium_nattempts   = 5, # size_t
-    equilibrium_solver_logN = TRUE,
-    equilibrium_solver_try_keep = TRUE)
+    
+    GSS_tol_abs = 1e-3,
+    vulnerability_curve_ncontrol = 1e2,
+    ci_abs_tol = 1e-3,
+    ci_niter = 1000
+  )
 
   keys <- sort(names(expected))
 

@@ -39,7 +39,7 @@ test_that("Construction", {
     expect_is(par, sprintf("Parameters<%s,%s>", x, e))
     expect_equal(par$strategies[[1]], s)
     
-    env <- make_environment(x)
+    env <- Environment(x)
 
     ctrl <- Control()
     

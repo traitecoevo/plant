@@ -26,6 +26,7 @@ public:
 
   size_t size() const {return species.size();}
   double time() const {return environment.time;}
+  double get_area() const { return area;}
 
   double height_max() const;
 
@@ -37,13 +38,15 @@ public:
 
   std::vector<size_t> deaths();
 
-  const species_type& at(size_t species_index) const {
+  const species_type& at_species(size_t species_index) const {
     return species[species_index];
   }
 
   // * ODE interface
   size_t ode_size() const;
   double ode_time() const;
+  double area;
+
   ode::const_iterator set_ode_state(ode::const_iterator it, double time);
   ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
@@ -56,6 +59,7 @@ public:
   void r_set_state(double time,
                    const std::vector<double>& state,
                    const std::vector<size_t>& n);
+  Rcpp::List r_get_state() const;
   // TODO: No support here for setting *vectors* of species.  Might
   // want to supoprt that?
   bool r_introduce_new_node(util::index species_index) {
@@ -69,11 +73,10 @@ public:
     at(species_index.check_bounds(size()));
   }
   // These are only here because they wrap private functions.
-  void r_compute_environment() {compute_environment();}
+  void r_compute_environment() {compute_environment(false);}
   void r_compute_rates() {compute_rates();}
 private:
-  void compute_environment();
-  void rescale_environment();
+  void compute_environment(bool rescale);
   void compute_rates();
 
   parameters_type parameters;
@@ -86,7 +89,7 @@ private:
 template <typename T, typename E>
 StochasticPatch<T,E>::StochasticPatch(parameters_type p, environment_type e, Control c)
   : parameters(p),
-
+    area(p.patch_area),
     environment(e),
     control(c) {
   parameters.validate();
@@ -103,7 +106,7 @@ void StochasticPatch<T,E>::reset() {
     s.clear();
   }
   environment.clear();
-  compute_environment();
+  compute_environment(false);
   compute_rates();
 }
 
@@ -120,28 +123,21 @@ template <typename T, typename E>
 double StochasticPatch<T,E>::compute_competition(double height) const {
   double tot = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
-      tot += species[i].compute_competition(height);
+    tot += species[i].compute_competition(height) / area;
   }
   return tot;
 }
 
 template <typename T, typename E>
-void StochasticPatch<T,E>::compute_environment() {
+void StochasticPatch<T,E>::compute_environment(bool rescale) {
   if (height_max() > 0.0) {
     auto f = [&] (double x) -> double {return compute_competition(x);};
-    environment.compute_environment(f, height_max());
+    environment.compute_environment(f, height_max(), rescale);
   } else {
     environment.clear_environment();
   }
 }
 
-template <typename T, typename E>
-void StochasticPatch<T,E>::rescale_environment() {
-  if (height_max() > 0.0) {
-    auto f = [&] (double x) -> double {return compute_competition(x);};
-    environment.rescale_environment(f, height_max());
-  }
-}
 
 template <typename T, typename E>
 void StochasticPatch<T,E>::compute_rates() {
@@ -159,7 +155,7 @@ void StochasticPatch<T,E>::introduce_new_node_and_update(size_t species_index) {
   // Add a offspring, setting ODE variables based on the *current* light environment
   species[species_index].introduce_new_node(environment);
   // Then we update the light environment.
-  compute_environment();
+  compute_environment(false);
 }
 
 template <typename T, typename E>
@@ -184,7 +180,7 @@ std::vector<size_t> StochasticPatch<T,E>::deaths() {
     recompute = recompute || n_deaths > 0;
   }
   if (recompute) {
-    compute_environment();
+    compute_environment(false);
     compute_rates();
   }
   return ret;
@@ -210,6 +206,22 @@ void StochasticPatch<T,E>::r_set_state(double time,
   set_ode_state(state.begin(), time);
 }
 
+template <typename T, typename E>
+Rcpp::List StochasticPatch<T, E>::r_get_state() const
+{
+
+  // Aseemble commkunity state, icnluding auxiallry variables
+  Rcpp::List community_state;
+  for (size_t i = 0; i < species.size(); ++i)
+  {
+    community_state.push_back(species[i].r_get_state());
+  }
+
+  return Rcpp::List::create(_["time"] = time(),
+                            _["species"] = community_state);
+                            // _["env"] = environment.r_get_state());
+}
+
 // ODE interface
 template <typename T, typename E>
 size_t StochasticPatch<T,E>::ode_size() const {
@@ -224,13 +236,15 @@ double StochasticPatch<T,E>::ode_time() const {
 template <typename T, typename E>
 ode::const_iterator StochasticPatch<T,E>::set_ode_state(ode::const_iterator it,
                                                       double time) {
+  
+  // set ode sates
   it = ode::set_ode_state(species.begin(), species.end(), it);
   environment.time = time;
-  if (environment.canopy_rescale_usually) {
-    rescale_environment();
-  } else {
-    compute_environment();
-  }
+
+  // pre-compute resources avaialability and competion, as defined by residents
+  compute_environment(true);
+
+  // compute rates of changes
   compute_rates();
   return it;
 }

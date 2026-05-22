@@ -3,7 +3,7 @@
 #define PLANT_PLANT_SCM_H_
 
 #include <plant/node_schedule.h>
-#include <plant/ode_solver.h>
+#include <plant/ode_solver/ode_solver.h>
 #include <plant/patch.h>
 #include <plant/scm_utils.h>
 
@@ -41,23 +41,29 @@ public:
   std::vector<util::index> r_run_next();
   parameters_type r_parameters() const { return parameters; }
   const patch_type &r_patch() const { return patch; }
+  const std::vector <patch_type> &r_history() const { return history; }
 
-  // TODO: These are liable to change to return all species at once by
-  // default.  The pluralisation difference between
-  // SCM::r_competition_effect_error and Species::r_competition_effects_error
-  // will get dealt with then.
   double r_net_reproduction_ratio_for_species(util::index species_index) const;
   std::vector<std::vector<double>> r_net_reproduction_ratio_errors() const;
   std::vector<double>
-  r_competition_effect_error(util::index species_index) const;
+  r_compute_competition_effect_error_by_node_for_species_i(util::index species_index) const;
   std::vector<double> r_ode_times() const;
+  
   bool r_use_ode_times() const;
   void r_set_use_ode_times(bool x);
+
+  bool r_get_collect() const;
+  void r_set_collect(bool x);
 
   NodeSchedule r_node_schedule() const { return node_schedule; }
   void r_set_node_schedule(NodeSchedule x);
   void r_set_node_schedule_times(std::vector<std::vector<double>> x);
   
+  bool collect;
+  std::vector<patch_type> history;
+
+  Rcpp::List r_get_state() const { return patch.r_get_state(); };
+
 private:
   double total_offspring_production() const;
 
@@ -74,15 +80,28 @@ SCM<T, E>::SCM(parameters_type p, environment_type e, Control c)
       solver(patch, make_ode_control(c)) {
 
   parameters.validate();
+
+  collect = false;
+
   if (!util::identical(parameters.patch_area, 1.0)) {
-    util::stop("Patch area must be exactly 1 for the SCM");
+    util::warning("We recommened keeping patch_area = 1 for the SCM, as need to check units for all other sizes");
   }
 }
 
 template <typename T, typename E> void SCM<T, E>::run() {
   reset();
+  if (collect)
+  {
+    history.push_back(patch);
+  }
+
   while (!complete()) {
     run_next();
+    // store
+    if(collect) 
+    {
+      history.push_back(patch);
+    }
   }
 }
 
@@ -112,7 +131,7 @@ template <typename T, typename E> std::vector<size_t> SCM<T, E>::run_next() {
   if (use_ode_times) {
     solver.advance_fixed(patch, e.times);
   } else {
-    solver.advance(patch, e.time_end());
+    solver.advance_adaptive(patch, e.time_end());
   }
 
   return ret;
@@ -156,6 +175,7 @@ template <typename T, typename E> void SCM<T, E>::reset() {
   patch.reset();
   node_schedule.reset();
   solver.reset(patch);
+  history.clear();
 }
 
 template <typename T, typename E> bool SCM<T, E>::complete() const {
@@ -169,12 +189,12 @@ std::vector<util::index> SCM<T, E>::r_run_next() {
 
 template <typename T, typename E>
 std::vector<double>
-SCM<T, E>::r_competition_effect_error(util::index species_index) const {
+SCM<T, E>::r_compute_competition_effect_error_by_node_for_species_i(util::index species_index) const {
   // TODO: I think we need to scale this by total area; that should be
   // computed for everything so will get passed in as an argument.
   // const double tot_competition_effect  = patch.compute_competition(0.0);
   const size_t idx = species_index.check_bounds(patch.size());
-  return patch.r_competition_effect_error(idx);
+  return patch.r_compute_competition_effect_error_by_node_for_species_i(idx);
 }
 
 template <typename T, typename E>
@@ -189,6 +209,17 @@ template <typename T, typename E> bool SCM<T, E>::r_use_ode_times() const {
 template <typename T, typename E> void SCM<T, E>::r_set_use_ode_times(bool x) {
   node_schedule.r_set_use_ode_times(x);
 }
+
+
+template <typename T, typename E> bool SCM<T, E>::r_get_collect() const {
+  return collect;
+}
+
+template <typename T, typename E> void SCM<T, E>::r_set_collect(bool x) {
+    collect = x;
+}
+
+
 
 template <typename T, typename E>
 void SCM<T, E>::r_set_node_schedule(NodeSchedule x) {
@@ -213,6 +244,7 @@ void SCM<T, E>::r_set_node_schedule_times(
   parameters.node_schedule_times = x;
 }
 
+
 // Offspring production, equal to overall fitness scaled by the birth rate
 template <typename T, typename E>
 std::vector<double> SCM<T, E>::offspring_production() const {
@@ -222,7 +254,7 @@ std::vector<double> SCM<T, E>::offspring_production() const {
 		auto const& times = node_schedule.times(i);
 		auto scalars = std::vector<double>(times.size());
 		for (size_t j = 0; j < times.size(); ++j) {
-			scalars[j] = patch.at(i).extrinsic_drivers().evaluate("birth_rate", times[j]);
+			scalars[j] = patch.at_species(i).extrinsic_drivers().evaluate("birth_rate", times[j]);
 		}
 		ret[i] = net_reproduction_ratio_for_species(i, scalars);
   }
@@ -278,7 +310,7 @@ std::vector<double> SCM<T, E>::net_reproduction_ratio_by_node_weighted(
 
   // retrieve lifetime fitness for each node
   std::vector<double> net_reproduction_ratio_by_node_weighted =
-      patch.at(species_index).net_reproduction_ratio_by_node();
+      patch.at_species(species_index).net_reproduction_ratio_by_node();
 
   // weight by probabilty of reproduction
   for (size_t i = 0; i < net_reproduction_ratio_by_node_weighted.size();

@@ -3,10 +3,10 @@
 namespace plant {
 
 Control::Control() {
-  assimilator_adaptive_integration = true;
-  assimilator_integration_tol = 1e-6;
-  assimilator_integration_iterations = 1000;
-  assimilator_integration_rule = 21;
+
+  // Number of points used when numerically intergrating a function
+  // using Gauss-Kronrod quadrature. Rules defined in qk_rules.cpp
+  function_integration_rule = 21;
 
   offspring_production_tol= 1e-8;
   offspring_production_iterations = 1000;
@@ -28,17 +28,12 @@ Control::Control() {
   schedule_eps      = 1e-3;
   schedule_verbose  = false;
 
-  equilibrium_nsteps   = 20;
-  equilibrium_eps      = 1e-5;
-  equilibrium_large_birth_rate_change = 10;
-  equilibrium_verbose  = true;
-  equilibrium_solver_name = "iteration";
-  equilibrium_extinct_birth_rate = 1e-3;
-  equilibrium_nattempts = 5;
-  equilibrium_solver_logN = true;
-  equilibrium_solver_try_keep = true;
-
   save_RK45_cache = false;
+
+  GSS_tol_abs = 1e-3;
+  vulnerability_curve_ncontrol = 1e2;
+  ci_abs_tol = 1e-3;
+  ci_niter = 1e3;
 }
 
 }

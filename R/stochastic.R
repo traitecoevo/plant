@@ -3,7 +3,7 @@
 ## Generate a vector of arrival times.
 ##
 ## This will be slow, but fairly easy to get right.
-##' @importFrom stats rexp rpois runif
+##' @importFrom stats rexp rpois runif splinefun
 stochastic_arrival_times <- function(max_time, species, delta_t = 0.1, patch_area = 1) {
   ret <- numeric(0)
   t0 <- 0.0
@@ -71,9 +71,16 @@ stochastic_schedule <- function(p) {
 ##' a random schedule based on offspring arrival and area.
 ##' @author Rich FitzJohn
 ##' @export
-run_stochastic_collect <- function(p, env = make_environment(parameters = p), 
+run_stochastic_collect <- function(p, env = NULL, 
                                    ctrl = scm_base_control(), 
                                    random_schedule=TRUE) {
+  
+  types <- extract_RcppR6_template_types(p, "Parameters")
+
+  if (is.null(env)) {
+    env <- Environment(types[[1]])
+  }
+  
   collect <- function(obj) {
     obj$state
   }

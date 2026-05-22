@@ -1,19 +1,18 @@
 ---
 title: "Getting started with the plant model"
-author:
-- Daniel Falster
-- Andrew O'Reilly-Nugent
-- Isaac Towers
-- Fiona Robinson
-- Phil Zylstra
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{plant}
+  %\VignetteIndexEntry{Getting started with the plant model}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
-editor_options: 
-  chunk_output_type: console
 ---
+
+```{r setup, include=FALSE}
+options(rmarkdown.html_vignette.check_title = FALSE)
+```
+
+**authors**: DS Falster, A O'Reilly-Nugent, I Towers, F Robinson
+**date**: 2022
 
 # Background
 
@@ -96,16 +95,17 @@ str(ind)
 First we set a fixed environment (here `1.0` represents full light exposure in an open canopy) then use the `grow_individual_to_time` function to grow our individual for a range of time steps. 
 
 ```{r}
-env <- FF16_fixed_environment(1.0)
+env <- Environment("FF16")
+env$set_fixed_environment(1.0, 100)
 times <- seq(0, 50, length.out = 101)
-result <- grow_individual_to_time(ind, times, env) %>%
+result <- grow_individual_to_time(ind, times, env) |>
   tidy_individual()
 ```
 
 The tidy_indivdual function puts the outputs from grow_individual_to_time into `tidy format`, as defined in the tidyverse. Examining our result, we see a matrix of our state variables at each timestep
 
 ```{r}
-result %>%
+result |>
   head()
 ```
 
@@ -114,9 +114,9 @@ Which we can plot against time
 ```{r}
 #need to create a function to convert individual results to tidy-format
 #just do ggplot for now
-result %>%
+result |>
   ggplot() +
-  geom_line(aes(x=time, y=height), size=1.5) +
+  geom_line(aes(x=time, y=height), linewidth =1.5) +
   theme_classic()
 ```
 
@@ -158,7 +158,7 @@ Then start by specifying the model rules and load some basic controls. Here we'l
 params <- scm_base_parameters("FF16")
 ```
 
-We can then need to specify the particular species by specifying their traits and seed rains. Here we use `lma` but other traits are possible (see Examples -> XXX).
+We can then need to specify the particular species by specifying their traits and birth rates. Here we use `lma` but other traits are possible (see Examples -> XXX).
 
 ```{r}
 species_parameters <- expand_parameters(trait_matrix(0.0825, "lma"), params)
@@ -172,8 +172,7 @@ species_parameters <- build_schedule(species_parameters)
 
 # 2. Rerun, gathering outputs at each time step
 result <- 
-  run_scm_collect(species_parameters) %>% 
-  tidy_patch()
+  run_scm_collect(species_parameters)
 ```
 
 If you're working through this yourself, the SCM solver should be blazingly fast. This is quite cool, given that this  model has hundreds of coupled differential equations veing stepped through time, wtih complex compeititve interactions at each step. 
@@ -192,39 +191,37 @@ str(result, max.level = 1)
 For easy usage, the `tidy_patch` function puts the `species` and `env` outputs into `tidy format`, as defined in the tidyverse. The species object looks like this:
 
 ```{r}
-result %>% 
-  pluck("species") %>%
-  drop_na()
+result |> 
+  pluck("species")
 ```
 
 Let's look at height. Each line represents the height of an example individual growing along a characteristic curve over time, beginning from the point at which the example individual recruited into the patch. Notably, the first example individuals follow much the same growth curve as our individual above, but subsequent individuals have a bumpier ride, with growth slowing as the canopy closes over. Another variable in the species output is the log density of the example individual, which we can use to weight the growth trajectories to show thinning. For example, by following the growth of an example individual we can see that the relative density of these individuals is initially high after recruitment into the patch and declines progressively through time. 
 
 
 ```{r}
-result%>%
-  pluck("species") %>%
-  drop_na() %>%
+result|>
+  pluck("species") |>
   plot_size_distribution()
 ```
 
 To see the change in canopy openness over time we can explore the patch Environment. Lets look at year 20 first, which corresponds to the 99th timestep in our model (not all timesteps are equal!) Our FF16 environment is described in terms of canopy openness, with 1.0 being completely open and 0.0 being completely shaded. We see that the shortest individuals experience intense shading while taller individuals enjoy full sunlight:
 
 ```{r}
-result %>%
-  pluck("env", "canopy") %>%
-  filter(step == "99") %>%
+result |>
+  pluck("env", "light_availability") |>
+  filter(step == "99") |>
   ggplot() +
-  geom_line(aes(x=height, y = canopy_openness), size=1.5) +
+  geom_line(aes(x=height, y = light_availability), linewidth =1.5) +
   theme_classic()
 ```
 If we look at the light environment at the forest floor (height = 0.0) we can see that it varies through time as older individuals thin out and gaps form
 
 ```{r}
-result%>%
-  pluck("env", "canopy") %>%
-  filter(height == 0) %>%
+result |>
+  pluck("env", "light_availability") |>
+  filter(height == 0) |>
   ggplot() +
-  geom_line(aes(x= time, y=canopy_openness), size=1.5) +
+  geom_line(aes(x= time, y=light_availability), linewidth=1.5) +
   theme_classic()
 ```
 
@@ -240,18 +237,15 @@ As above in the single-species patch, we then determine the appropriate number o
 species_parameters_2sp <- build_schedule(species_parameters_2sp)
 
 result <- 
-  run_scm_collect(species_parameters_2sp) %>% 
-  tidy_patch()
+  run_scm_collect(species_parameters_2sp)
 ```
 
 We can now plot the size distributions of these two species through time
 
 ```{r}
-result$species %>%
-  drop_na() %>%
+result$species |>
 plot_size_distribution()
 ```
-
 
 # Meta-populations
 

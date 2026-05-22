@@ -13,7 +13,7 @@ drain_schedule <- function(sched) {
     if (!all(sapply(cmp, length) == 5)) {
       stop("Expected exactly five elements for each schedule")
     }
-    cmp <- rbind_list(cmp)
+    cmp <- do.call("rbind", as.list(cmp))
   }
   cmp
 }
@@ -37,7 +37,7 @@ test_that("NodeScheduleEvent", {
 
 test_that("Empty NodeSchedule", {
   n_species <- 2
-  sched <- NodeSchedule(n_species)
+  sched <- plant:::NodeSchedule(n_species)
 
   expect_is(sched, "NodeSchedule")
   expect_equal(sched$size, 0)
@@ -52,7 +52,7 @@ test_that("Empty NodeSchedule", {
 
 test_that("Corner cases", {
   n_species <- 2
-  sched <- NodeSchedule(n_species)
+  sched <- plant:::NodeSchedule(n_species)
 
   set.seed(1)
   t1 <- c(0.0, runif(10))
@@ -74,7 +74,7 @@ test_that("Set times (one species)", {
   t2 <- sort(c(0.0, runif(12)))
 
   n_species <- 2
-  sched <- NodeSchedule(n_species)
+  sched <- plant:::NodeSchedule(n_species)
   sched$set_times(t1, 1L)
 
   expect_equal(sched$size, length(t1))
@@ -104,7 +104,7 @@ test_that("Set times (two species)", {
   t2 <- sort(c(0.0, runif(12)))
 
   n_species <- 2
-  sched <- NodeSchedule(n_species)
+  sched <- plant:::NodeSchedule(n_species)
   sched$set_times(t1, 1L)
   sched$set_times(t2, 2L)
 
@@ -142,7 +142,7 @@ test_that("Resetting times replaces them", {
   t2 <- sort(c(0.0, runif(12)))
 
   n_species <- 2
-  sched <- NodeSchedule(n_species)
+  sched <- plant:::NodeSchedule(n_species)
   sched$set_times(t1, 1L)
   sched$set_times(t2, 2L)
 
@@ -158,7 +158,7 @@ test_that("Setting max time behaves sensibly", {
   t1 <- sort(c(0.0, runif(10)))
   t2 <- sort(c(0.0, runif(12)))
 
-  sched <- NodeSchedule(2)
+  sched <- plant:::NodeSchedule(2)
   sched$set_times(t1, 1)
 
   last_event <- function(x) {
@@ -171,7 +171,7 @@ test_that("Setting max time behaves sensibly", {
 
   ## Before setting max_time, the finishing time will be Inf:
   e <- last_event(sched)
-  expect_equal(e$time_introduction, last(t1))
+  expect_equal(e$time_introduction, dplyr::last(t1))
   expect_equal(e$time_end, Inf)
 
   ## Set max_time to something stupid:
@@ -184,7 +184,7 @@ test_that("Setting max time behaves sensibly", {
 
   ## Make sure that the last event has been modified:
   e <- last_event(sched)
-  expect_equal(e$time_introduction, last(t1))
+  expect_equal(e$time_introduction, dplyr::last(t1))
   expect_equal(e$time_end, max_t)
 
   ## Now this will fail
@@ -193,7 +193,7 @@ test_that("Setting max time behaves sensibly", {
 
 test_that("Bulk get/set of times works", {
   n <- 3
-  sched <- NodeSchedule(n)
+  sched <- plant:::NodeSchedule(n)
 
   set.seed(1)
   t_new <- lapply(seq_len(n), function(...) sort(runif(rpois(1, 10))))
@@ -215,7 +215,7 @@ test_that("ode_times", {
   n_species <- 2
   max_t <- max(c(t1, t2)) + mean(diff(sort(c(t1, t2))))
 
-  sched <- NodeSchedule(n_species)
+  sched <- plant:::NodeSchedule(n_species)
   sched$set_times(t1, 1L)
   sched$set_times(t2, 2L)
   sched$max_time <- max_t
@@ -254,7 +254,7 @@ test_that("ode_times", {
 
   ## New schedule because setting and resetting may have changed node
   ## order.
-  sched <- NodeSchedule(n_species)
+  sched <- plant:::NodeSchedule(n_species)
   sched$set_times(t1, 1L)
   sched$set_times(t2, 2L)
   sched$max_time <- max_t
@@ -267,9 +267,9 @@ test_that("ode_times", {
 
   cmp <- drain_schedule(sched)
 
-  expect_equal(sapply(cmp, first), expected$species_index)
-  expect_equal(sapply(cmp, second), expected$start)
-  expect_equal(sapply(cmp, last), expected$end)
+  expect_equal(sapply(cmp, dplyr::first), expected$species_index)
+  expect_equal(sapply(cmp, dplyr::nth, n=2), expected$start)
+  expect_equal(sapply(cmp, dplyr::last), expected$end)
 
   expect_equal(lapply(cmp, function(x) x[3:(length(x) - 1)]), expected_ode)
 
@@ -286,7 +286,7 @@ test_that("ode_times", {
 })
 
 test_that("Can expand NodeSchedule", {
-  sched <- NodeSchedule(1)
+  sched <- plant:::NodeSchedule(1)
   max_t <- 10
   times1 <- sort(runif(10))
   sched$max_time <- max_t

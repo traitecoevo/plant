@@ -1,0 +1,233 @@
+---
+title: "ODE stepping and control"
+output: bookdown::html_document2
+---
+
+**authors**: DS Falster
+**date**: 2023
+
+This document describes the approach used to step the system through time, and control behaviour of the solver. Importantly, the entire system is cast as a set of ordinary differential equations (ODEs). (For details on these see <demography.html> and <solving_dynamics.html>.) This enables us to use classic methods for stepping ODE systems.
+
+# The Runge–Kutta 45 ODE stepper
+
+The `plant` model uses an explicit Runge-Kutta ODE stepper to integrate the ordinary differential equations that describe the system. (For details on these see <demography.html> and <solving_dynamics.html>.) Specifically, we use the Runge-Kutta Cash-Karp 4-5 (RK45) algorithm, with adpative time step. 
+
+In brief, this means that the solver takes a step through time, and then evaluates the error in the step. Error is estimated by comparing two possible steps: one using 4 sub-intervals, and one using 5 sub-intervals. By comparing the step made with more sub-intervals, the algorithm can estimate the non-linearity in the system and error in the step. If the error is too high, the solver will attempt to take a smaller step. If the error is well below a target value, the solver will attempt to take a larger step. Importantly, the 5 step reuses information from the 4 step and thereby only requires a single extra call on rates of change, so the RK45 algorithm is much more efficient than alternatives like the RK48. The math of RK45 stepping has long been established, and the method is available in most solvers for ODE systems. You can read more about Runge-Kutta methods and adpative time steps on [Wikipedia](https://en.wikipedia.org/wiki/Runge-Kutta_methods).
+
+The RK45 is an explicit method, as opposed to an implicit method. As [wikipedia explains](https://en.wikipedia.org/wiki/Explicit_and_implicit_methods) _"Explicit methods calculate the state of a system at a later time from the state of the system at the current time, while implicit methods find a solution by solving an equation involving both the current state of the system and the later one"_.  The advantage of explicit methods are that are that they are simple to implement and fast, particulalry when allowing adaptive time steps. The disadvantage is that they are less stable than implicit methods when they encounter stiff systems. As described in wikipedia
+
+* _"[Implicit methods](https://en.wikipedia.org/wiki/Explicit_and_implicit_methods) require an extra computation, and they can be much harder to implement. Implicit methods are used because many problems arising in practice are stiff, for which the use of an explicit method requires impractically small time steps $\Delta t$ to keep the error in the result bounded"_. 
+*  _"[Explicit Runge Kutta methods](https://en.wikipedia.org/wiki/Runge–Kutta_methods) are generally unsuitable for the solution of stiff equations because their region of absolute stability is small; in particular, it is bounded. This issue is especially important in the solution of partial differential equations..... The advantage of implicit Runge–Kutta methods over explicit ones is their greater stability, especially when applied to stiff equations."_
+
+In practice, we've found the RK45 to be extremely stable and fast for solving the size-density distribution. However, there are circumstances where the system becomes stiff and the solver struggles. E.g.
+
+- When implemtning soil water into plant via the Richards Equation, Isaac Towers found the system became stiff.
+- When implemtning the FF16 model in another solver, Joshi et al 2023 <https://doi.org/10.1101/2023.08.04.551683> reported that the system became stiff when enabling a continuous feedback of seeds into germination.
+
+Any extensions should therefore be wary of stiff behaviours.
+
+# Setup of templated ODE solver in C++
+
+The characteristic method used to solve density requires regular introduction of new nodes, which entails a resizing of the ODE system as the system progresses. To make this play nicely with the ODE stepping, Rich FitzJohn deisgned a custom ODE solver class based on the RK45 method. The code is built into the model, with some details ported from the [GNU Scientific Library](http://www.gnu.org/software/gsl/) [@Galassi-2009]. 
+
+The main interface is described in the class `plant::ode::Solver` described in the file `ode_solver.h`. (See folder `inst/include/plant/ode_solver` where this and related class are impleemnted.) The class is established using a template `System` class, meaning you can effectively cast any variety of classes as an ODE Solver. (In a similar way, you can create a vector of any variety of data types.) 
+
+From `ode_solver.h`:
+
+```cpp
+template <class System>
+class Solver {
+public:
+  Solver(const System& system, OdeControl control_);
+  ...
+};
+```
+
+## Solving an entire patch
+
+The main solver for the our system is the class `SCM`, (in the file `sch.h`). This creates an ode solver based on patch type. Simultaenously, the class `SCM` owns an actual instance of the patch, which contains species and envrionment.
+
+```cpp
+patch_type patch;                 # Instance of patch
+ode::Solver<patch_type> solver;   # ODE solver
+```
+
+All we need to do to advance the system is make calls like the following. These advance the system, using the patch to estimate rates of change. Moreoever, we can take steps of a specified fixed size, or an adapative step where the solver determines the spacing .
+
+```cpp
+solver.advance_fixed(patch, e.times);  
+solver.advance_adaptive(patch, e.time_end());
+```
+
+In the background, the solver then passes information (rates of change, states) between the actual patch (which contains all the biological information informing rates of change) and ode solver (which uses the RK45 math to caluclate future states from rates of change).
+
+Additonally, we have the following function, which resizes the ODE system after a node has been introduced.
+
+```cpp
+solver.set_state_from_system(patch)
+```
+
+For the above to work, the patch class (see `patch.h`) must has some essential functions used by the ODE system. 
+
+```cpp
+// * ODE interface
+// Caluclate size of ode system (number of equations).
+size_t ode_size() const;
+// How many auxiallary variables are we tracking. These are being collected but
+// are not part of core ode system
+size_t aux_size() const;
+double ode_time() const;
+
+// Retrieve ode state from patch and save into the ode solver
+ode::iterator ode_state(ode::iterator it) const;
+// Retrieve ode rates from patch and save into the ode solver
+ode::iterator ode_rates(ode::iterator it) const;
+// Retrieve auxillary variables and save into the ode solver
+ode::iterator ode_aux(ode::iterator it) const;
+
+// Set state of patch, based on estimate of future state estimated by the solver
+ode::const_iterator set_ode_state(ode::const_iterator it, double time);
+```
+
+Note the use of iterators. These enable state from a complicated data structure like a patch, to be converted into a vector, as needed by ode solver. And vice versa. 
+
+## Solving individuals and other systems
+
+As templated C++, we can use the `ode::Solver` class to step any "system" that has the rwquisite functions. In addition to patches, we also use the ode solevr to run individual plants, given an environment. This is acheived by introducing a wrapper classs `ode::Runner` (in `ode_runner.h`), which according to it's author simplifies _" the difficuly of ownership semantics around the solver and object."_ 
+
+Like the `Solver` class, the `Runner` class is templated, meaning we can setup a variety of systems. 
+
+```cpp
+template <typename T>
+class Runner {
+public:
+  Runner(T obj_, OdeControl control) : obj(obj_), solver(obj, control) {}
+};
+```
+
+The class `plant::tools::IndividualRunner` uses this approach to create a system for stepping individual plants to a given size. This is available via the R functions `grow_individual_...`, which in turn uses the `OdeRunner`.
+
+The test suite also shows how to use the OdeRunner to step the classic Lorenz system.
+
+# Controls on ODE stepping
+
+The RK45 ode solver is controlled by a set of parameters that determine how the solver steps through time. 
+
+As a simple example, we can step a system using the default values for ODE stepping:
+
+```{r}
+library(plant)
+
+# configure a patch containing a single species
+p0 <- scm_base_parameters("FF16")
+p0$max_patch_lifetime <- 5
+
+p <- expand_parameters(trait_matrix(0.0825, "lma"), p0)
+
+# Controls on numerical methods
+ctrl <- fast_control()
+
+# run
+out <- run_scm(p, ctrl = ctrl)
+
+# number of steps
+length(out$ode_times)
+```
+
+The precise times used by the solver are stored in `out$ode_times`, so the length of this object indicates the numebr of times used. 
+
+The number and timing of steps taken by the solver will vary with the controls on the ode solver.  Looking at the ctrl object, we can extract the items beginning with `ode_`, which control the ODE solver:
+
+```{r}
+ctrl %>% subset(grepl("(?<!n)ode_", names(.), perl = TRUE))
+```
+
+These have the following effect
+
+- `ode_step_size_initial`: The initial step size used by the solver in the first step.
+- `ode_step_size_min`, `ode_step_size_max`: The minimum step size permitted. Any attempt by the solver to use a smaller value will be curtialed at this value. 
+- `ode_tol_abs`, `ode_tol_rel`: When taking a step, the absolute and relative error for any single equation that is allowed. If the error is too high, the solver will attempt to take a smaller step. If the error is well below this value, the solver attempts to expand the step size in the next step. 
+- `ode_a_y`, `ode_a_dydt`: Weightings on y and dy/dt, in calculation of allowable relative error (see `OdeControl::errlevel`).
+
+Varying these will potentially change the number of steps taken by the solver. 
+
+However, note that unlike a regular ode solver, the number of steps taken is also influenced by the timing of node introduction. The ode stepper will only expand the time step up until the next node introduction event, for any species. So the node scheduling sets an upper limit on the size of time steps. In the default setup, the node schedule primiarly determines the timesteps in the first months of the simulation. After that, the ode stepper takes a bigger control.
+
+## Limiting the Minimum and Maximum step size
+
+Let's alter the maximum step size and compare to what we had above.
+
+```{r, eval = FALSE}
+ctrl2 <- ctrl
+ctrl2$ode_step_size_max <- 0.1
+
+# run
+out2 <- run_scm(p, ctrl = ctrl2)
+
+# compare
+length(out$ode_times)
+length(out2$ode_times)
+
+# maximum
+f <- function(ode_times, title = "
+") {
+diff(ode_times) %>% hist(main = title, xlim = c(0,2), breaks  =seq(0, 2, length.out=20), freq = FALSE)}
+
+f(out$ode_times, "original")
+f(out2$ode_times, "max 0.1")
+```
+
+Now let's alter the minimum step size and compare to what we had above.
+
+```{r, eval = FALSE}
+ctrl3 <- ctrl
+ctrl3$ode_step_size_min <- 0.01
+ctrl3$ode_step_size_initial <- 0.01
+
+# run
+out3 <- run_scm(p, ctrl = ctrl3)
+
+# compare
+length(out$ode_times)
+length(out3$ode_times)
+
+f(out$ode_times, "original")
+f(out3$ode_times, "min 0.01")
+```
+
+## Fixing the step sizes (option 1)
+
+We set exact step sizes by specifying max and min step sizes. But this could result in other times, dpeending on the cohort schedule.
+
+```{r, eval = FALSE}
+ctrl <- scm_base_control()
+ctrl$ode_step_size_min <- 0.1
+ctrl$ode_step_size_max <- 0.1
+ctrl$ode_step_size_initial <- 0.1
+```
+
+## Fixing the step sizes (option 2)
+
+We can also specifiy some exact steps, by passing in a vector of ode_times. 
+
+```{r}
+pc <- p
+pc$node_schedule_times[[1]] <- c(0, 0.1, 0.4, 0.8, 1.2)
+pc$ode_times <- seq(0, p$max_patch_lifetime, by=0.1)
+
+result2 <- run_scm(pc, ctrl = ctrl, use_ode_times = TRUE)
+
+result2$ode_times
+```
+
+
+## Future changes
+
+Would it help to have option to pass in ode_times, use if supplied?
+
+- But, current system in NodeSchedule interweaves ode_times and node_schedule_times. It's complex code, poorly documented, low value to emss with. Suggests leaving as is
+- could have option to pass in ode_times, add to pars inside function, use if supplied?
+- if supplied, do we always want to use ode_times?
+- what's the advantage of using previous ode_times?
+  - suggest always using them if present?
+

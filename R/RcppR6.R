@@ -21,6 +21,357 @@ check_type <- function(type, valid) {
   names(valid)[[i]]
 }
 
+##' Leaf model
+##' @param vcmax_25 Maximum Carboxylation Rate (umol m^-2 s^-1)
+##' @param c shape parameter of hydraulic vulnerability curve (unitless)
+##' @param b sensitivity parameter of hydraulic vulnerability curve (MPa)
+##' @param psi_crit critical psi stem (-MPa )
+##' @param beta2 exponent for effect of hydraulic risk (unitless)
+##' @param jmax_25  maximum rate of electron transport (umol m^-2 s^-1)
+##' @param hk_s maximum hydraulic-dependent sapwood turnover rate yr ^ -1
+##' @param a quantum yield of photosynthetic electron transport (mol mol^-1)
+##' @param curv_fact_elec_trans curvature factor for the light response curve (unitless)
+##' @param curv_fact_colim curvature factor for the colimited photosythnthesis equatiom
+##' @param GSS_tol_abs tolereance parameter for golden section search
+##' @param vulnerability_curve_ncontrol number of points for pre-calculating vulnerability curve
+##' @param ci_abs_tol absolute tolerance value for root-solving ci
+##' @param ci_niter maximum number of iterations for root-solving ci
+##' @param g0 g0 parameter in the medlyn model umol m^-2 s^-1
+##' @param g1 parameter in the medlyn model umol kPa^0.5
+##' @param g1_TF24 cost parameter for TF24 profit model umol m^-2 s^-1
+##' 
+##' @export
+`Leaf` <- function(vcmax_25, c, b, psi_crit, beta2, jmax_25, hk_s, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, g0, g1, g1_TF24) {
+  Leaf__ctor(vcmax_25, c, b, psi_crit, beta2, jmax_25, hk_s, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, g0, g1, g1_TF24)
+}
+.R6_Leaf <-
+  R6::R6Class(
+    "Leaf",
+    inherit=,
+    portable=TRUE,
+    public=list(
+      .ptr=NULL,
+      initialize = function(ptr) {
+        self$.ptr <- ptr
+      },
+      initialize_integrator = function(integration_rule, integration_tol) {
+        Leaf__initialize_integrator(self, integration_rule, integration_tol)
+      },
+      set_physiology = function(rho, a_bio, PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area, leaf_temp, atm_o2_kpa, atm_kpa, theta_w, theta_fc, theta) {
+        Leaf__set_physiology(self, rho, a_bio, PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area, leaf_temp, atm_o2_kpa, atm_kpa, theta_w, theta_fc, theta)
+      },
+      proportion_of_conductivity = function(psi) {
+        Leaf__proportion_of_conductivity(self, psi)
+      },
+      arrh_curve = function(Ea, ref_value, leaf_temp) {
+        Leaf__arrh_curve(self, Ea, ref_value, leaf_temp)
+      },
+      peak_arrh_curve = function(Ea, ref_value, leaf_temp, H_d, d_S) {
+        Leaf__peak_arrh_curve(self, Ea, ref_value, leaf_temp, H_d, d_S)
+      },
+      transpiration = function(psi_stem) {
+        Leaf__transpiration(self, psi_stem)
+      },
+      transpiration_full_integration = function(psi_stem) {
+        Leaf__transpiration_full_integration(self, psi_stem)
+      },
+      stom_cond_CO2 = function(psi_stem) {
+        Leaf__stom_cond_CO2(self, psi_stem)
+      },
+      transpiration_to_psi_stem = function(transpiration_) {
+        Leaf__transpiration_to_psi_stem(self, transpiration_)
+      },
+      assim_rubisco_limited = function(ci_) {
+        Leaf__assim_rubisco_limited(self, ci_)
+      },
+      assim_electron_limited = function(ci_) {
+        Leaf__assim_electron_limited(self, ci_)
+      },
+      assim_colimited = function(ci_) {
+        Leaf__assim_colimited(self, ci_)
+      },
+      assim_minus_stom_cond_CO2 = function(x, psi_stem) {
+        Leaf__assim_minus_stom_cond_CO2(self, x, psi_stem)
+      },
+      electron_transport = function() {
+        Leaf__electron_transport(self)
+      },
+      set_leaf_states_rates_from_psi_stem = function(psi_stem) {
+        Leaf__set_leaf_states_rates_from_psi_stem(self, psi_stem)
+      },
+      psi_stem_to_ci = function(psi_stem) {
+        Leaf__psi_stem_to_ci(self, psi_stem)
+      },
+      hydraulic_cost_Sperry = function(psi_stem) {
+        Leaf__hydraulic_cost_Sperry(self, psi_stem)
+      },
+      hydraulic_cost_TF = function(psi_stem) {
+        Leaf__hydraulic_cost_TF(self, psi_stem)
+      },
+      profit_psi_stem_Sperry = function(psi_stem) {
+        Leaf__profit_psi_stem_Sperry(self, psi_stem)
+      },
+      profit_psi_stem_TF = function(psi_stem) {
+        Leaf__profit_psi_stem_TF(self, psi_stem)
+      },
+      optimise_psi_stem_Sperry = function() {
+        Leaf__optimise_psi_stem_Sperry(self)
+      },
+      optimise_psi_stem_TF = function() {
+        Leaf__optimise_psi_stem_TF(self)
+      },
+      solve_medlyn_ci_numerical = function() {
+        Leaf__solve_medlyn_ci_numerical(self)
+      },
+      solve_medlyn_ci_analytical = function() {
+        Leaf__solve_medlyn_ci_analytical(self)
+      },
+      medlyn_model_gs = function(assim_colimited_) {
+        Leaf__medlyn_model_gs(self, assim_colimited_)
+      },
+      medlyn_stom_cond_minus_coupled_stom_cond = function(x) {
+        Leaf__medlyn_stom_cond_minus_coupled_stom_cond(self, x)
+      }),
+    active=list(
+      ci_ = function(value) {
+        if (missing(value)) {
+          Leaf__ci___get(self)
+        } else {
+          Leaf__ci___set(self, value)
+        }
+      },
+      stom_cond_CO2_ = function(value) {
+        if (missing(value)) {
+          Leaf__stom_cond_CO2___get(self)
+        } else {
+          Leaf__stom_cond_CO2___set(self, value)
+        }
+      },
+      medlyn_model_gs_ = function(value) {
+        if (missing(value)) {
+          Leaf__medlyn_model_gs___get(self)
+        } else {
+          Leaf__medlyn_model_gs___set(self, value)
+        }
+      },
+      assim_colimited_ = function(value) {
+        if (missing(value)) {
+          Leaf__assim_colimited___get(self)
+        } else {
+          Leaf__assim_colimited___set(self, value)
+        }
+      },
+      transpiration_ = function(value) {
+        if (missing(value)) {
+          Leaf__transpiration___get(self)
+        } else {
+          Leaf__transpiration___set(self, value)
+        }
+      },
+      profit_ = function(value) {
+        if (missing(value)) {
+          Leaf__profit___get(self)
+        } else {
+          Leaf__profit___set(self, value)
+        }
+      },
+      psi_stem = function(value) {
+        if (missing(value)) {
+          Leaf__psi_stem__get(self)
+        } else {
+          Leaf__psi_stem__set(self, value)
+        }
+      },
+      lambda_ = function(value) {
+        if (missing(value)) {
+          Leaf__lambda___get(self)
+        } else {
+          Leaf__lambda___set(self, value)
+        }
+      },
+      lambda_analytical_ = function(value) {
+        if (missing(value)) {
+          Leaf__lambda_analytical___get(self)
+        } else {
+          Leaf__lambda_analytical___set(self, value)
+        }
+      },
+      electron_transport_ = function(value) {
+        if (missing(value)) {
+          Leaf__electron_transport___get(self)
+        } else {
+          Leaf__electron_transport___set(self, value)
+        }
+      },
+      gamma_ = function(value) {
+        if (missing(value)) {
+          Leaf__gamma___get(self)
+        } else {
+          Leaf__gamma___set(self, value)
+        }
+      },
+      ko_ = function(value) {
+        if (missing(value)) {
+          Leaf__ko___get(self)
+        } else {
+          Leaf__ko___set(self, value)
+        }
+      },
+      kc_ = function(value) {
+        if (missing(value)) {
+          Leaf__kc___get(self)
+        } else {
+          Leaf__kc___set(self, value)
+        }
+      },
+      km_ = function(value) {
+        if (missing(value)) {
+          Leaf__km___get(self)
+        } else {
+          Leaf__km___set(self, value)
+        }
+      },
+      R_d_ = function(value) {
+        if (missing(value)) {
+          Leaf__R_d___get(self)
+        } else {
+          Leaf__R_d___set(self, value)
+        }
+      },
+      leaf_specific_conductance_max_ = function(value) {
+        if (missing(value)) {
+          Leaf__leaf_specific_conductance_max___get(self)
+        } else {
+          Leaf__leaf_specific_conductance_max___set(self, value)
+        }
+      },
+      vcmax_ = function(value) {
+        if (missing(value)) {
+          Leaf__vcmax___get(self)
+        } else {
+          Leaf__vcmax___set(self, value)
+        }
+      },
+      jmax_ = function(value) {
+        if (missing(value)) {
+          Leaf__jmax___get(self)
+        } else {
+          Leaf__jmax___set(self, value)
+        }
+      },
+      rho_ = function(value) {
+        if (missing(value)) {
+          Leaf__rho___get(self)
+        } else {
+          Leaf__rho___set(self, value)
+        }
+      },
+      a_bio_ = function(value) {
+        if (missing(value)) {
+          Leaf__a_bio___get(self)
+        } else {
+          Leaf__a_bio___set(self, value)
+        }
+      },
+      PPFD_ = function(value) {
+        if (missing(value)) {
+          Leaf__PPFD___get(self)
+        } else {
+          Leaf__PPFD___set(self, value)
+        }
+      },
+      atm_vpd_ = function(value) {
+        if (missing(value)) {
+          Leaf__atm_vpd___get(self)
+        } else {
+          Leaf__atm_vpd___set(self, value)
+        }
+      },
+      ca_ = function(value) {
+        if (missing(value)) {
+          Leaf__ca___get(self)
+        } else {
+          Leaf__ca___set(self, value)
+        }
+      },
+      psi_soil_ = function(value) {
+        if (missing(value)) {
+          Leaf__psi_soil___get(self)
+        } else {
+          Leaf__psi_soil___set(self, value)
+        }
+      },
+      leaf_temp_ = function(value) {
+        if (missing(value)) {
+          Leaf__leaf_temp___get(self)
+        } else {
+          Leaf__leaf_temp___set(self, value)
+        }
+      },
+      atm_o2_kpa_ = function(value) {
+        if (missing(value)) {
+          Leaf__atm_o2_kpa___get(self)
+        } else {
+          Leaf__atm_o2_kpa___set(self, value)
+        }
+      },
+      atm_kpa_ = function(value) {
+        if (missing(value)) {
+          Leaf__atm_kpa___get(self)
+        } else {
+          Leaf__atm_kpa___set(self, value)
+        }
+      },
+      hydraulic_cost_ = function(value) {
+        if (missing(value)) {
+          Leaf__hydraulic_cost___get(self)
+        } else {
+          Leaf__hydraulic_cost___set(self, value)
+        }
+      },
+      opt_psi_stem_ = function(value) {
+        if (missing(value)) {
+          Leaf__opt_psi_stem___get(self)
+        } else {
+          Leaf__opt_psi_stem___set(self, value)
+        }
+      },
+      opt_ci_ = function(value) {
+        if (missing(value)) {
+          Leaf__opt_ci___get(self)
+        } else {
+          Leaf__opt_ci___set(self, value)
+        }
+      },
+      count = function(value) {
+        if (missing(value)) {
+          Leaf__count__get(self)
+        } else {
+          Leaf__count__set(self, value)
+        }
+      },
+      theta_w_ = function(value) {
+        if (missing(value)) {
+          Leaf__theta_w___get(self)
+        } else {
+          Leaf__theta_w___set(self, value)
+        }
+      },
+      theta_fc_ = function(value) {
+        if (missing(value)) {
+          Leaf__theta_fc___get(self)
+        } else {
+          Leaf__theta_fc___set(self, value)
+        }
+      },
+      theta_ = function(value) {
+        if (missing(value)) {
+          Leaf__theta___get(self)
+        } else {
+          Leaf__theta___set(self, value)
+        }
+      }))
+
 
 `Lorenz` <- function(sigma, R, b) {
   Lorenz__ctor(sigma, R, b)
@@ -86,8 +437,8 @@ check_type <- function(type, valid) {
 
 OdeRunner <- function(T) {
   type <- c(T)
-  valid <- list("OdeRunner<Lorenz>"="Lorenz", "OdeRunner<OdeR>"="OdeR", "OdeRunner<FF16>"="FF16", "OdeRunner<FF16w>"="FF16w", "OdeRunner<FF16r>"="FF16r", "OdeRunner<K93>"="K93")
-  constructors <- list("OdeRunner<Lorenz>"=`OdeRunner<Lorenz>`, "OdeRunner<OdeR>"=`OdeRunner<OdeR>`, "OdeRunner<FF16>"=`OdeRunner<FF16>`, "OdeRunner<FF16w>"=`OdeRunner<FF16w>`, "OdeRunner<FF16r>"=`OdeRunner<FF16r>`, "OdeRunner<K93>"=`OdeRunner<K93>`)
+  valid <- list("OdeRunner<Lorenz>"="Lorenz", "OdeRunner<OdeR>"="OdeR", "OdeRunner<FF16>"="FF16", "OdeRunner<TF24>"="TF24", "OdeRunner<K93>"="K93")
+  constructors <- list("OdeRunner<Lorenz>"=`OdeRunner<Lorenz>`, "OdeRunner<OdeR>"=`OdeRunner<OdeR>`, "OdeRunner<FF16>"=`OdeRunner<FF16>`, "OdeRunner<TF24>"=`OdeRunner<TF24>`, "OdeRunner<K93>"=`OdeRunner<K93>`)
   constructors[[check_type(type, valid)]]
 }
 .R6_OdeRunner <- R6::R6Class("OdeRunner")
@@ -107,8 +458,8 @@ OdeRunner <- function(T) {
       initialize = function(ptr) {
         self$.ptr <- ptr
       },
-      advance = function(time) {
-        OdeRunner___Lorenz__advance(self, time)
+      advance_adaptive = function(time) {
+        OdeRunner___Lorenz__advance_adaptive(self, time)
       },
       advance_fixed = function(time) {
         OdeRunner___Lorenz__advance_fixed(self, time)
@@ -169,8 +520,8 @@ OdeRunner <- function(T) {
       initialize = function(ptr) {
         self$.ptr <- ptr
       },
-      advance = function(time) {
-        OdeRunner___OdeR__advance(self, time)
+      advance_adaptive = function(time) {
+        OdeRunner___OdeR__advance_adaptive(self, time)
       },
       advance_fixed = function(time) {
         OdeRunner___OdeR__advance_fixed(self, time)
@@ -231,8 +582,8 @@ OdeRunner <- function(T) {
       initialize = function(ptr) {
         self$.ptr <- ptr
       },
-      advance = function(time) {
-        OdeRunner___FF16__advance(self, time)
+      advance_adaptive = function(time) {
+        OdeRunner___FF16__advance_adaptive(self, time)
       },
       advance_fixed = function(time) {
         OdeRunner___FF16__advance_fixed(self, time)
@@ -280,12 +631,12 @@ OdeRunner <- function(T) {
       }))
 
 
-`OdeRunner<FF16w>` <- function(obj, control=OdeControl()) {
-  OdeRunner___FF16w__ctor(obj, control)
+`OdeRunner<TF24>` <- function(obj, control=OdeControl()) {
+  OdeRunner___TF24__ctor(obj, control)
 }
-.R6_OdeRunner___FF16w <-
+.R6_OdeRunner___TF24 <-
   R6::R6Class(
-    "OdeRunner<FF16w>",
+    "OdeRunner<TF24>",
     inherit=.R6_OdeRunner,
     portable=TRUE,
     public=list(
@@ -293,113 +644,51 @@ OdeRunner <- function(T) {
       initialize = function(ptr) {
         self$.ptr <- ptr
       },
-      advance = function(time) {
-        OdeRunner___FF16w__advance(self, time)
+      advance_adaptive = function(time) {
+        OdeRunner___TF24__advance_adaptive(self, time)
       },
       advance_fixed = function(time) {
-        OdeRunner___FF16w__advance_fixed(self, time)
+        OdeRunner___TF24__advance_fixed(self, time)
       },
       step = function() {
-        OdeRunner___FF16w__step(self)
+        OdeRunner___TF24__step(self)
       },
       step_to = function(time) {
-        OdeRunner___FF16w__step_to(self, time)
+        OdeRunner___TF24__step_to(self, time)
       },
       set_state = function(y, time) {
-        OdeRunner___FF16w__set_state(self, y, time)
+        OdeRunner___TF24__set_state(self, y, time)
       },
       set_state_from_system = function() {
-        OdeRunner___FF16w__set_state_from_system(self)
+        OdeRunner___TF24__set_state_from_system(self)
       }),
     active=list(
       time = function(value) {
         if (missing(value)) {
-          OdeRunner___FF16w__time__get(self)
+          OdeRunner___TF24__time__get(self)
         } else {
-          stop("OdeRunner<FF16w>$time is read-only")
+          stop("OdeRunner<TF24>$time is read-only")
         }
       },
       state = function(value) {
         if (missing(value)) {
-          OdeRunner___FF16w__state__get(self)
+          OdeRunner___TF24__state__get(self)
         } else {
-          stop("OdeRunner<FF16w>$state is read-only")
+          stop("OdeRunner<TF24>$state is read-only")
         }
       },
       times = function(value) {
         if (missing(value)) {
-          OdeRunner___FF16w__times__get(self)
+          OdeRunner___TF24__times__get(self)
         } else {
-          stop("OdeRunner<FF16w>$times is read-only")
+          stop("OdeRunner<TF24>$times is read-only")
         }
       },
       object = function(value) {
         if (missing(value)) {
-          OdeRunner___FF16w__object__get(self)
+          OdeRunner___TF24__object__get(self)
         } else {
-          stop("OdeRunner<FF16w>$object is read-only")
-        }
-      }))
-
-
-`OdeRunner<FF16r>` <- function(obj, control=OdeControl()) {
-  OdeRunner___FF16r__ctor(obj, control)
-}
-.R6_OdeRunner___FF16r <-
-  R6::R6Class(
-    "OdeRunner<FF16r>",
-    inherit=.R6_OdeRunner,
-    portable=TRUE,
-    public=list(
-      .ptr=NULL,
-      initialize = function(ptr) {
-        self$.ptr <- ptr
-      },
-      advance = function(time) {
-        OdeRunner___FF16r__advance(self, time)
-      },
-      advance_fixed = function(time) {
-        OdeRunner___FF16r__advance_fixed(self, time)
-      },
-      step = function() {
-        OdeRunner___FF16r__step(self)
-      },
-      step_to = function(time) {
-        OdeRunner___FF16r__step_to(self, time)
-      },
-      set_state = function(y, time) {
-        OdeRunner___FF16r__set_state(self, y, time)
-      },
-      set_state_from_system = function() {
-        OdeRunner___FF16r__set_state_from_system(self)
-      }),
-    active=list(
-      time = function(value) {
-        if (missing(value)) {
-          OdeRunner___FF16r__time__get(self)
-        } else {
-          stop("OdeRunner<FF16r>$time is read-only")
-        }
-      },
-      state = function(value) {
-        if (missing(value)) {
-          OdeRunner___FF16r__state__get(self)
-        } else {
-          stop("OdeRunner<FF16r>$state is read-only")
-        }
-      },
-      times = function(value) {
-        if (missing(value)) {
-          OdeRunner___FF16r__times__get(self)
-        } else {
-          stop("OdeRunner<FF16r>$times is read-only")
-        }
-      },
-      object = function(value) {
-        if (missing(value)) {
-          OdeRunner___FF16r__object__get(self)
-        } else {
-          stop("OdeRunner<FF16r>$object is read-only")
+          stop("OdeRunner<TF24>$object is read-only")
         }
       }))
 
@@ -417,8 +706,8 @@ OdeRunner <- function(T) {
       initialize = function(ptr) {
         self$.ptr <- ptr
       },
-      advance = function(time) {
-        OdeRunner___K93__advance(self, time)
+      advance_adaptive = function(time) {
+        OdeRunner___K93__advance_adaptive(self, time)
       },
       advance_fixed = function(time) {
         OdeRunner___K93__advance_fixed(self, time)
@@ -638,7 +927,6 @@ OdeRunner <- function(T) {
 ##' @title ODE Control parameters
 ##' @param ...,values Values to initialise the struct with (either as
 ##' variadic arguments, or as a list, but not both).
-##' @export
 `OdeControl` <- function(..., values=list(...)) {
   ret <- OdeControl__ctor()
   if (length(values) > 0L) {
@@ -842,8 +1130,8 @@ OdeRunner <- function(T) {
 ##' @export
 Individual <- function(T, E) {
   type <- c(T, E)
-  valid <- list("Individual<FF16,FF16_Env>"=c("FF16", "FF16_Env"), "Individual<FF16w,FF16_Env>"=c("FF16w", "FF16_Env"), "Individual<FF16r,FF16_Env>"=c("FF16r", "FF16_Env"), "Individual<K93,K93_Env>"=c("K93", "K93_Env"))
-  constructors <- list("Individual<FF16,FF16_Env>"=`Individual<FF16,FF16_Env>`, "Individual<FF16w,FF16_Env>"=`Individual<FF16w,FF16_Env>`, "Individual<FF16r,FF16_Env>"=`Individual<FF16r,FF16_Env>`, "Individual<K93,K93_Env>"=`Individual<K93,K93_Env>`)
+  valid <- list("Individual<FF16,FF16_Env>"=c("FF16", "FF16_Env"), "Individual<TF24,TF24_Env>"=c("TF24", "TF24_Env"), "Individual<K93,K93_Env>"=c("K93", "K93_Env"))
+  constructors <- list("Individual<FF16,FF16_Env>"=`Individual<FF16,FF16_Env>`, "Individual<TF24,TF24_Env>"=`Individual<TF24,TF24_Env>`, "Individual<K93,K93_Env>"=`Individual<K93,K93_Env>`)
   constructors[[check_type(type, valid)]]
 }
 .R6_Individual <- R6::R6Class("Individual")
@@ -966,12 +1254,12 @@ Individual <- function(T, E) {
       }))
 
 
-`Individual<FF16w,FF16_Env>` <- function(s) {
-  Individual___FF16w__FF16_Env__ctor(s)
+`Individual<TF24,TF24_Env>` <- function(s) {
+  Individual___TF24__TF24_Env__ctor(s)
 }
-.R6_Individual___FF16w__FF16_Env <-
+.R6_Individual___TF24__TF24_Env <-
   R6::R6Class(
-    "Individual<FF16w,FF16_Env>",
+    "Individual<TF24,TF24_Env>",
     inherit=.R6_Individual,
     portable=TRUE,
     public=list(
@@ -980,220 +1268,104 @@ Individual <- function(T, E) {
         self$.ptr <- ptr
       },
       state = function(name) {
-        Individual___FF16w__FF16_Env__state(self, name)
+        Individual___TF24__TF24_Env__state(self, name)
       },
       rate = function(name) {
-        Individual___FF16w__FF16_Env__rate(self, name)
+        Individual___TF24__TF24_Env__rate(self, name)
       },
       aux = function(name) {
-        Individual___FF16w__FF16_Env__aux(self, name)
+        Individual___TF24__TF24_Env__aux(self, name)
       },
       set_state = function(name, v) {
-        Individual___FF16w__FF16_Env__set_state(self, name, v)
+        Individual___TF24__TF24_Env__set_state(self, name, v)
       },
       compute_competition = function(h) {
-        Individual___FF16w__FF16_Env__compute_competition(self, h)
+        Individual___TF24__TF24_Env__compute_competition(self, h)
       },
       compute_rates = function(environment) {
-        Individual___FF16w__FF16_Env__compute_rates(self, environment)
+        Individual___TF24__TF24_Env__compute_rates(self, environment)
       },
       establishment_probability = function(environment) {
-        Individual___FF16w__FF16_Env__establishment_probability(self, environment)
+        Individual___TF24__TF24_Env__establishment_probability(self, environment)
       },
       net_mass_production_dt = function(environment) {
-        Individual___FF16w__FF16_Env__net_mass_production_dt(self, environment)
+        Individual___TF24__TF24_Env__net_mass_production_dt(self, environment)
       },
       reset_mortality = function() {
-        Individual___FF16w__FF16_Env__reset_mortality(self)
+        Individual___TF24__TF24_Env__reset_mortality(self)
       },
       resource_compensation_point = function() {
-        Individual___FF16w__FF16_Env__resource_compensation_point(self)
+        Individual___TF24__TF24_Env__resource_compensation_point(self)
       }),
     active=list(
       strategy = function(value) {
         if (missing(value)) {
-          Individual___FF16w__FF16_Env__strategy__get(self)
+          Individual___TF24__TF24_Env__strategy__get(self)
         } else {
-          stop("Individual<FF16w,FF16_Env>$strategy is read-only")
+          stop("Individual<TF24,TF24_Env>$strategy is read-only")
         }
       },
       internals = function(value) {
         if (missing(value)) {
-          Individual___FF16w__FF16_Env__internals__get(self)
+          Individual___TF24__TF24_Env__internals__get(self)
         } else {
-          stop("Individual<FF16w,FF16_Env>$internals is read-only")
+          stop("Individual<TF24,TF24_Env>$internals is read-only")
         }
       },
       aux_size = function(value) {
         if (missing(value)) {
-          Individual___FF16w__FF16_Env__aux_size__get(self)
+          Individual___TF24__TF24_Env__aux_size__get(self)
         } else {
-          stop("Individual<FF16w,FF16_Env>$aux_size is read-only")
+          stop("Individual<TF24,TF24_Env>$aux_size is read-only")
         }
       },
       ode_size = function(value) {
         if (missing(value)) {
-          Individual___FF16w__FF16_Env__ode_size__get(self)
+          Individual___TF24__TF24_Env__ode_size__get(self)
         } else {
-          stop("Individual<FF16w,FF16_Env>$ode_size is read-only")
+          stop("Individual<TF24,TF24_Env>$ode_size is read-only")
         }
       },
       ode_names = function(value) {
         if (missing(value)) {
-          Individual___FF16w__FF16_Env__ode_names__get(self)
+          Individual___TF24__TF24_Env__ode_names__get(self)
         } else {
-          stop("Individual<FF16w,FF16_Env>$ode_names is read-only")
+          stop("Individual<TF24,TF24_Env>$ode_names is read-only")
         }
       },
       aux_names = function(value) {
         if (missing(value)) {
-          Individual___FF16w__FF16_Env__aux_names__get(self)
+          Individual___TF24__TF24_Env__aux_names__get(self)
         } else {
-          stop("Individual<FF16w,FF16_Env>$aux_names is read-only")
+          stop("Individual<TF24,TF24_Env>$aux_names is read-only")
         }
       },
       ode_state = function(value) {
         if (missing(value)) {
-          Individual___FF16w__FF16_Env__ode_state__get(self)
+          Individual___TF24__TF24_Env__ode_state__get(self)
         } else {
-          Individual___FF16w__FF16_Env__ode_state__set(self, value)
+          Individual___TF24__TF24_Env__ode_state__set(self, value)
         }
       },
       ode_rates = function(value) {
         if (missing(value)) {
-          Individual___FF16w__FF16_Env__ode_rates__get(self)
+          Individual___TF24__TF24_Env__ode_rates__get(self)
         } else {
-          stop("Individual<FF16w,FF16_Env>$ode_rates is read-only")
+          stop("Individual<TF24,TF24_Env>$ode_rates is read-only")
         }
       },
       mortality_probability = function(value) {
         if (missing(value)) {
-          Individual___FF16w__FF16_Env__mortality_probability__get(self)
+          Individual___TF24__TF24_Env__mortality_probability__get(self)
         } else {
-          stop("Individual<FF16w,FF16_Env>$mortality_probability is read-only")
+          stop("Individual<TF24,TF24_Env>$mortality_probability is read-only")
         }
       },
       strategy_name = function(value) {
         if (missing(value)) {
-          Individual___FF16w__FF16_Env__strategy_name__get(self)
+          Individual___TF24__TF24_Env__strategy_name__get(self)
         } else {
-          stop("Individual<FF16w,FF16_Env>$strategy_name is read-only")
-        }
-      }))
-
-
-`Individual<FF16r,FF16_Env>` <- function(s) {
-  Individual___FF16r__FF16_Env__ctor(s)
-}
-.R6_Individual___FF16r__FF16_Env <-
-  R6::R6Class(
-    "Individual<FF16r,FF16_Env>",
-    inherit=.R6_Individual,
-    portable=TRUE,
-    public=list(
-      .ptr=NULL,
-      initialize = function(ptr) {
-        self$.ptr <- ptr
-      },
-      state = function(name) {
-        Individual___FF16r__FF16_Env__state(self, name)
-      },
-      rate = function(name) {
-        Individual___FF16r__FF16_Env__rate(self, name)
-      },
-      aux = function(name) {
-        Individual___FF16r__FF16_Env__aux(self, name)
-      },
-      set_state = function(name, v) {
-        Individual___FF16r__FF16_Env__set_state(self, name, v)
-      },
-      compute_competition = function(h) {
-        Individual___FF16r__FF16_Env__compute_competition(self, h)
-      },
-      compute_rates = function(environment) {
-        Individual___FF16r__FF16_Env__compute_rates(self, environment)
-      },
-      establishment_probability = function(environment) {
-        Individual___FF16r__FF16_Env__establishment_probability(self, environment)
-      },
-      net_mass_production_dt = function(environment) {
-        Individual___FF16r__FF16_Env__net_mass_production_dt(self, environment)
-      },
-      reset_mortality = function() {
-        Individual___FF16r__FF16_Env__reset_mortality(self)
-      },
-      resource_compensation_point = function() {
-        Individual___FF16r__FF16_Env__resource_compensation_point(self)
-      }),
-    active=list(
-      strategy = function(value) {
-        if (missing(value)) {
-          Individual___FF16r__FF16_Env__strategy__get(self)
-        } else {
-          stop("Individual<FF16r,FF16_Env>$strategy is read-only")
-        }
-      },
-      internals = function(value) {
-        if (missing(value)) {
-          Individual___FF16r__FF16_Env__internals__get(self)
-        } else {
-          stop("Individual<FF16r,FF16_Env>$internals is read-only")
-        }
-      },
-      aux_size = function(value) {
-        if (missing(value)) {
-          Individual___FF16r__FF16_Env__aux_size__get(self)
-        } else {
-          stop("Individual<FF16r,FF16_Env>$aux_size is read-only")
-        }
-      },
-      ode_size = function(value) {
-        if (missing(value)) {
-          Individual___FF16r__FF16_Env__ode_size__get(self)
-        } else {
-          stop("Individual<FF16r,FF16_Env>$ode_size is read-only")
-        }
-      },
-      ode_names = function(value) {
-        if (missing(value)) {
-          Individual___FF16r__FF16_Env__ode_names__get(self)
-        } else {
-          stop("Individual<FF16r,FF16_Env>$ode_names is read-only")
-        }
-      },
-      aux_names = function(value) {
-        if (missing(value)) {
-          Individual___FF16r__FF16_Env__aux_names__get(self)
-        } else {
-          stop("Individual<FF16r,FF16_Env>$aux_names is read-only")
-        }
-      },
-      ode_state = function(value) {
-        if (missing(value)) {
-          Individual___FF16r__FF16_Env__ode_state__get(self)
-        } else {
-          Individual___FF16r__FF16_Env__ode_state__set(self, value)
-        }
-      },
-      ode_rates = function(value) {
-        if (missing(value)) {
-          Individual___FF16r__FF16_Env__ode_rates__get(self)
-        } else {
-          stop("Individual<FF16r,FF16_Env>$ode_rates is read-only")
-        }
-      },
-      mortality_probability = function(value) {
-        if (missing(value)) {
-          Individual___FF16r__FF16_Env__mortality_probability__get(self)
-        } else {
-          stop("Individual<FF16r,FF16_Env>$mortality_probability is read-only")
-        }
-      },
-      strategy_name = function(value) {
-        if (missing(value)) {
-          Individual___FF16r__FF16_Env__strategy_name__get(self)
-        } else {
-          stop("Individual<FF16r,FF16_Env>$strategy_name is read-only")
+          stop("Individual<TF24,TF24_Env>$strategy_name is read-only")
         }
       }))
 
@@ -1315,8 +1487,8 @@ Individual <- function(T, E) {
 
 IndividualRunner <- function(T, E) {
   type <- c(T, E)
-  valid <- list("IndividualRunner<FF16,FF16_Env>"=c("FF16", "FF16_Env"), "IndividualRunner<FF16w,FF16_Env>"=c("FF16w", "FF16_Env"), "IndividualRunner<FF16r,FF16_Env>"=c("FF16r", "FF16_Env"), "IndividualRunner<K93,K93_Env>"=c("K93", "K93_Env"))
-  constructors <- list("IndividualRunner<FF16,FF16_Env>"=`IndividualRunner<FF16,FF16_Env>`, "IndividualRunner<FF16w,FF16_Env>"=`IndividualRunner<FF16w,FF16_Env>`, "IndividualRunner<FF16r,FF16_Env>"=`IndividualRunner<FF16r,FF16_Env>`, "IndividualRunner<K93,K93_Env>"=`IndividualRunner<K93,K93_Env>`)
+  valid <- list("IndividualRunner<FF16,FF16_Env>"=c("FF16", "FF16_Env"), "IndividualRunner<TF24,TF24_Env>"=c("TF24", "TF24_Env"), "IndividualRunner<K93,K93_Env>"=c("K93", "K93_Env"))
+  constructors <- list("IndividualRunner<FF16,FF16_Env>"=`IndividualRunner<FF16,FF16_Env>`, "IndividualRunner<TF24,TF24_Env>"=`IndividualRunner<TF24,TF24_Env>`, "IndividualRunner<K93,K93_Env>"=`IndividualRunner<K93,K93_Env>`)
   constructors[[check_type(type, valid)]]
 }
 .R6_IndividualRunner <- R6::R6Class("IndividualRunner")
@@ -1346,12 +1518,12 @@ IndividualRunner <- function(T, E) {
       }))
 
 
-`IndividualRunner<FF16w,FF16_Env>` <- function(individual, environment) {
-  IndividualRunner___FF16w__FF16_Env__ctor(individual, environment)
+`IndividualRunner<TF24,TF24_Env>` <- function(individual, environment) {
+  IndividualRunner___TF24__TF24_Env__ctor(individual, environment)
 }
-.R6_IndividualRunner___FF16w__FF16_Env <-
+.R6_IndividualRunner___TF24__TF24_Env <-
   R6::R6Class(
-    "IndividualRunner<FF16w,FF16_Env>",
+    "IndividualRunner<TF24,TF24_Env>",
     inherit=.R6_IndividualRunner,
     portable=TRUE,
     public=list(
@@ -1362,32 +1534,9 @@ IndividualRunner <- function(T, E) {
     active=list(
       individual = function(value) {
         if (missing(value)) {
-          IndividualRunner___FF16w__FF16_Env__individual__get(self)
+          IndividualRunner___TF24__TF24_Env__individual__get(self)
         } else {
-          IndividualRunner___FF16w__FF16_Env__individual__set(self, value)
-        }
-      }))
-
-
-`IndividualRunner<FF16r,FF16_Env>` <- function(individual, environment) {
-  IndividualRunner___FF16r__FF16_Env__ctor(individual, environment)
-}
-.R6_IndividualRunner___FF16r__FF16_Env <-
-  R6::R6Class(
-    "IndividualRunner<FF16r,FF16_Env>",
-    inherit=.R6_IndividualRunner,
-    portable=TRUE,
-    public=list(
-      .ptr=NULL,
-      initialize = function(ptr) {
-        self$.ptr <- ptr
-      }),
-    active=list(
-      individual = function(value) {
-        if (missing(value)) {
-          IndividualRunner___FF16r__FF16_Env__individual__get(self)
-        } else {
-          IndividualRunner___FF16r__FF16_Env__individual__set(self, value)
+          IndividualRunner___TF24__TF24_Env__individual__set(self, value)
         }
       }))
 
@@ -1419,7 +1568,6 @@ IndividualRunner <- function(T, E) {
 ##' @title Extract Internals from plant object
 ##' @param s_size ???
 ##' @param a_size ???
-##' @export
 `Internals` <- function(s_size, a_size) {
   Internals__ctor(s_size, a_size)
 }
@@ -1493,8 +1641,8 @@ IndividualRunner <- function(T, E) {
 
 Parameters <- function(T, E) {
   type <- c(T, E)
-  valid <- list("Parameters<FF16,FF16_Env>"=c("FF16", "FF16_Env"), "Parameters<FF16w,FF16_Env>"=c("FF16w", "FF16_Env"), "Parameters<FF16r,FF16_Env>"=c("FF16r", "FF16_Env"), "Parameters<K93,K93_Env>"=c("K93", "K93_Env"))
-  constructors <- list("Parameters<FF16,FF16_Env>"=`Parameters<FF16,FF16_Env>`, "Parameters<FF16w,FF16_Env>"=`Parameters<FF16w,FF16_Env>`, "Parameters<FF16r,FF16_Env>"=`Parameters<FF16r,FF16_Env>`, "Parameters<K93,K93_Env>"=`Parameters<K93,K93_Env>`)
+  valid <- list("Parameters<FF16,FF16_Env>"=c("FF16", "FF16_Env"), "Parameters<TF24,TF24_Env>"=c("TF24", "TF24_Env"), "Parameters<K93,K93_Env>"=c("K93", "K93_Env"))
+  constructors <- list("Parameters<FF16,FF16_Env>"=`Parameters<FF16,FF16_Env>`, "Parameters<TF24,TF24_Env>"=`Parameters<TF24,TF24_Env>`, "Parameters<K93,K93_Env>"=`Parameters<K93,K93_Env>`)
   constructors[[check_type(type, valid)]]
 }
 
@@ -1514,8 +1662,8 @@ Parameters <- function(T, E) {
   Parameters___FF16__FF16_Env__vdor(ret)
 }
 
-`Parameters<FF16w,FF16_Env>` <- function(..., values=list(...)) {
-  ret <- Parameters___FF16w__FF16_Env__ctor()
+`Parameters<TF24,TF24_Env>` <- function(..., values=list(...)) {
+  ret <- Parameters___TF24__TF24_Env__ctor()
   if (length(values) > 0L) {
     if (is.null(names(values)) || any(names(values) == "")) {
       stop("All values must be named")
@@ -1526,22 +1674,7 @@ Parameters <- function(T, E) {
     to_set <- intersect(names(values), names(ret))
     ret[to_set] <- values[to_set]
   }
-  Parameters___FF16w__FF16_Env__vdor(ret)
-}
-
-`Parameters<FF16r,FF16_Env>` <- function(..., values=list(...)) {
-  ret <- Parameters___FF16r__FF16_Env__ctor()
-  if (length(values) > 0L) {
-    if (is.null(names(values)) || any(names(values) == "")) {
-      stop("All values must be named")
-    }
-    if (length(err <- setdiff(names(values), names(ret))) > 0L) {
-      stop(sprintf("Unknown fields: %s", paste(err, collapse=", ")))
-    }
-    to_set <- intersect(names(values), names(ret))
-    ret[to_set] <- values[to_set]
-  }
-  Parameters___FF16r__FF16_Env__vdor(ret)
+  Parameters___TF24__TF24_Env__vdor(ret)
 }
 
 `Parameters<K93,K93_Env>` <- function(..., values=list(...)) {
@@ -1561,8 +1694,8 @@ Parameters <- function(T, E) {
 
 Node <- function(T, E) {
   type <- c(T, E)
-  valid <- list("Node<FF16,FF16_Env>"=c("FF16", "FF16_Env"), "Node<FF16w,FF16_Env>"=c("FF16w", "FF16_Env"), "Node<FF16r,FF16_Env>"=c("FF16r", "FF16_Env"), "Node<K93,K93_Env>"=c("K93", "K93_Env"))
-  constructors <- list("Node<FF16,FF16_Env>"=`Node<FF16,FF16_Env>`, "Node<FF16w,FF16_Env>"=`Node<FF16w,FF16_Env>`, "Node<FF16r,FF16_Env>"=`Node<FF16r,FF16_Env>`, "Node<K93,K93_Env>"=`Node<K93,K93_Env>`)
+  valid <- list("Node<FF16,FF16_Env>"=c("FF16", "FF16_Env"), "Node<TF24,TF24_Env>"=c("TF24", "TF24_Env"), "Node<K93,K93_Env>"=c("K93", "K93_Env"))
+  constructors <- list("Node<FF16,FF16_Env>"=`Node<FF16,FF16_Env>`, "Node<TF24,TF24_Env>"=`Node<TF24,TF24_Env>`, "Node<K93,K93_Env>"=`Node<K93,K93_Env>`)
   constructors[[check_type(type, valid)]]
 }
 .R6_Node <- R6::R6Class("Node")
@@ -1616,13 +1749,6 @@ Node <- function(T, E) {
           stop("Node<FF16,FF16_Env>$log_density is read-only")
         }
       },
-      competition_effect = function(value) {
-        if (missing(value)) {
-          Node___FF16__FF16_Env__competition_effect__get(self)
-        } else {
-          stop("Node<FF16,FF16_Env>$competition_effect is read-only")
-        }
-      },
       fecundity = function(value) {
         if (missing(value)) {
           Node___FF16__FF16_Env__fecundity__get(self)
@@ -1660,12 +1786,12 @@ Node <- function(T, E) {
       }))
 
 
-`Node<FF16w,FF16_Env>` <- function(strategy) {
-  Node___FF16w__FF16_Env__ctor(strategy)
+`Node<TF24,TF24_Env>` <- function(strategy) {
+  Node___TF24__TF24_Env__ctor(strategy)
 }
-.R6_Node___FF16w__FF16_Env <-
+.R6_Node___TF24__TF24_Env <-
   R6::R6Class(
-    "Node<FF16w,FF16_Env>",
+    "Node<TF24,TF24_Env>",
     inherit=.R6_Node,
     portable=TRUE,
     public=list(
@@ -1674,170 +1800,72 @@ Node <- function(T, E) {
         self$.ptr <- ptr
       },
       compute_competition = function(height) {
-        Node___FF16w__FF16_Env__compute_competition(self, height)
+        Node___TF24__TF24_Env__compute_competition(self, height)
       },
       growth_rate_gradient = function(environment) {
-        Node___FF16w__FF16_Env__growth_rate_gradient(self, environment)
+        Node___TF24__TF24_Env__growth_rate_gradient(self, environment)
       },
       compute_rates = function(environment, pr_patch_survival) {
-        Node___FF16w__FF16_Env__compute_rates(self, environment, pr_patch_survival)
+        Node___TF24__TF24_Env__compute_rates(self, environment, pr_patch_survival)
       },
       compute_initial_conditions = function(environment, pr_patch_survival, birth_rate) {
-        Node___FF16w__FF16_Env__compute_initial_conditions(self, environment, pr_patch_survival, birth_rate)
+        Node___TF24__TF24_Env__compute_initial_conditions(self, environment, pr_patch_survival, birth_rate)
       }),
     active=list(
       individual = function(value) {
         if (missing(value)) {
-          Node___FF16w__FF16_Env__individual__get(self)
+          Node___TF24__TF24_Env__individual__get(self)
         } else {
-          stop("Node<FF16w,FF16_Env>$individual is read-only")
+          stop("Node<TF24,TF24_Env>$individual is read-only")
         }
       },
       height = function(value) {
         if (missing(value)) {
-          Node___FF16w__FF16_Env__height__get(self)
+          Node___TF24__TF24_Env__height__get(self)
         } else {
-          stop("Node<FF16w,FF16_Env>$height is read-only")
+          stop("Node<TF24,TF24_Env>$height is read-only")
         }
       },
       log_density = function(value) {
         if (missing(value)) {
-          Node___FF16w__FF16_Env__log_density__get(self)
+          Node___TF24__TF24_Env__log_density__get(self)
         } else {
-          stop("Node<FF16w,FF16_Env>$log_density is read-only")
-        }
-      },
-      competition_effect = function(value) {
-        if (missing(value)) {
-          Node___FF16w__FF16_Env__competition_effect__get(self)
-        } else {
-          stop("Node<FF16w,FF16_Env>$competition_effect is read-only")
+          stop("Node<TF24,TF24_Env>$log_density is read-only")
         }
       },
       fecundity = function(value) {
         if (missing(value)) {
-          Node___FF16w__FF16_Env__fecundity__get(self)
+          Node___TF24__TF24_Env__fecundity__get(self)
         } else {
-          stop("Node<FF16w,FF16_Env>$fecundity is read-only")
+          stop("Node<TF24,TF24_Env>$fecundity is read-only")
         }
       },
       ode_size = function(value) {
         if (missing(value)) {
-          Node___FF16w__FF16_Env__ode_size__get(self)
+          Node___TF24__TF24_Env__ode_size__get(self)
         } else {
-          stop("Node<FF16w,FF16_Env>$ode_size is read-only")
+          stop("Node<TF24,TF24_Env>$ode_size is read-only")
         }
       },
       ode_state = function(value) {
         if (missing(value)) {
-          Node___FF16w__FF16_Env__ode_state__get(self)
+          Node___TF24__TF24_Env__ode_state__get(self)
         } else {
-          Node___FF16w__FF16_Env__ode_state__set(self, value)
+          Node___TF24__TF24_Env__ode_state__set(self, value)
         }
       },
       ode_rates = function(value) {
         if (missing(value)) {
-          Node___FF16w__FF16_Env__ode_rates__get(self)
+          Node___TF24__TF24_Env__ode_rates__get(self)
         } else {
-          stop("Node<FF16w,FF16_Env>$ode_rates is read-only")
+          stop("Node<TF24,TF24_Env>$ode_rates is read-only")
         }
       },
       ode_names = function(value) {
         if (missing(value)) {
-          Node___FF16w__FF16_Env__ode_names__get(self)
+          Node___TF24__TF24_Env__ode_names__get(self)
         } else {
-          stop("Node<FF16w,FF16_Env>$ode_names is read-only")
-        }
-      }))
-
-
-`Node<FF16r,FF16_Env>` <- function(strategy) {
-  Node___FF16r__FF16_Env__ctor(strategy)
-}
-.R6_Node___FF16r__FF16_Env <-
-  R6::R6Class(
-    "Node<FF16r,FF16_Env>",
-    inherit=.R6_Node,
-    portable=TRUE,
-    public=list(
-      .ptr=NULL,
-      initialize = function(ptr) {
-        self$.ptr <- ptr
-      },
-      compute_competition = function(height) {
-        Node___FF16r__FF16_Env__compute_competition(self, height)
-      },
-      growth_rate_gradient = function(environment) {
-        Node___FF16r__FF16_Env__growth_rate_gradient(self, environment)
-      },
-      compute_rates = function(environment, pr_patch_survival) {
-        Node___FF16r__FF16_Env__compute_rates(self, environment, pr_patch_survival)
-      },
-      compute_initial_conditions = function(environment, pr_patch_survival, birth_rate) {
-        Node___FF16r__FF16_Env__compute_initial_conditions(self, environment, pr_patch_survival, birth_rate)
-      }),
-    active=list(
-      individual = function(value) {
-        if (missing(value)) {
-          Node___FF16r__FF16_Env__individual__get(self)
-        } else {
-          stop("Node<FF16r,FF16_Env>$individual is read-only")
-        }
-      },
-      height = function(value) {
-        if (missing(value)) {
-          Node___FF16r__FF16_Env__height__get(self)
-        } else {
-          stop("Node<FF16r,FF16_Env>$height is read-only")
-        }
-      },
-      log_density = function(value) {
-        if (missing(value)) {
-          Node___FF16r__FF16_Env__log_density__get(self)
-        } else {
-          stop("Node<FF16r,FF16_Env>$log_density is read-only")
-        }
-      },
-      competition_effect = function(value) {
-        if (missing(value)) {
-          Node___FF16r__FF16_Env__competition_effect__get(self)
-        } else {
-          stop("Node<FF16r,FF16_Env>$competition_effect is read-only")
-        }
-      },
-      fecundity = function(value) {
-        if (missing(value)) {
-          Node___FF16r__FF16_Env__fecundity__get(self)
-        } else {
-          stop("Node<FF16r,FF16_Env>$fecundity is read-only")
-        }
-      },
-      ode_size = function(value) {
-        if (missing(value)) {
-          Node___FF16r__FF16_Env__ode_size__get(self)
-        } else {
-          stop("Node<FF16r,FF16_Env>$ode_size is read-only")
-        }
-      },
-      ode_state = function(value) {
-        if (missing(value)) {
-          Node___FF16r__FF16_Env__ode_state__get(self)
-        } else {
-          Node___FF16r__FF16_Env__ode_state__set(self, value)
-        }
-      },
-      ode_rates = function(value) {
-        if (missing(value)) {
-          Node___FF16r__FF16_Env__ode_rates__get(self)
-        } else {
-          stop("Node<FF16r,FF16_Env>$ode_rates is read-only")
-        }
-      },
-      ode_names = function(value) {
-        if (missing(value)) {
-          Node___FF16r__FF16_Env__ode_names__get(self)
-        } else {
-          stop("Node<FF16r,FF16_Env>$ode_names is read-only")
+          stop("Node<TF24,TF24_Env>$ode_names is read-only")
         }
       }))
 
@@ -1889,13 +1917,6 @@ Node <- function(T, E) {
           stop("Node<K93,K93_Env>$log_density is read-only")
         }
       },
-      competition_effect = function(value) {
-        if (missing(value)) {
-          Node___K93__K93_Env__competition_effect__get(self)
-        } else {
-          stop("Node<K93,K93_Env>$competition_effect is read-only")
-        }
-      },
       fecundity = function(value) {
         if (missing(value)) {
           Node___K93__K93_Env__fecundity__get(self)
@@ -1934,8 +1955,8 @@ Node <- function(T, E) {
 
 Species <- function(T, E) {
   type <- c(T, E)
-  valid <- list("Species<FF16,FF16_Env>"=c("FF16", "FF16_Env"), "Species<FF16w,FF16_Env>"=c("FF16w", "FF16_Env"), "Species<FF16r,FF16_Env>"=c("FF16r", "FF16_Env"), "Species<K93,K93_Env>"=c("K93", "K93_Env"))
-  constructors <- list("Species<FF16,FF16_Env>"=`Species<FF16,FF16_Env>`, "Species<FF16w,FF16_Env>"=`Species<FF16w,FF16_Env>`, "Species<FF16r,FF16_Env>"=`Species<FF16r,FF16_Env>`, "Species<K93,K93_Env>"=`Species<K93,K93_Env>`)
+  valid <- list("Species<FF16,FF16_Env>"=c("FF16", "FF16_Env"), "Species<TF24,TF24_Env>"=c("TF24", "TF24_Env"), "Species<K93,K93_Env>"=c("K93", "K93_Env"))
+  constructors <- list("Species<FF16,FF16_Env>"=`Species<FF16,FF16_Env>`, "Species<TF24,TF24_Env>"=`Species<TF24,TF24_Env>`, "Species<K93,K93_Env>"=`Species<K93,K93_Env>`)
   constructors[[check_type(type, valid)]]
 }
 .R6_Species <- R6::R6Class("Species")
@@ -1970,8 +1991,8 @@ Species <- function(T, E) {
       node_at = function(index) {
         Species___FF16__FF16_Env__node_at(self, index)
       },
-      competition_effects_error = function(scal=1) {
-        Species___FF16__FF16_Env__competition_effects_error(self, scal)
+      compute_competition_effect_by_nodes_error = function(scal=1) {
+        Species___FF16__FF16_Env__compute_competition_effect_by_nodes_error(self, scal)
       }),
     active=list(
       size = function(value) {
@@ -2023,11 +2044,11 @@ Species <- function(T, E) {
           stop("Species<FF16,FF16_Env>$net_reproduction_ratio_by_node is read-only")
         }
       },
-      competition_effects = function(value) {
+      compute_competition_effect_by_nodes = function(value) {
         if (missing(value)) {
-          Species___FF16__FF16_Env__competition_effects__get(self)
+          Species___FF16__FF16_Env__compute_competition_effect_by_nodes__get(self)
         } else {
-          stop("Species<FF16,FF16_Env>$competition_effects is read-only")
+          stop("Species<FF16,FF16_Env>$compute_competition_effect_by_nodes is read-only")
         }
       },
       extrinsic_drivers = function(value) {
@@ -2060,12 +2081,12 @@ Species <- function(T, E) {
       }))
 
 
-`Species<FF16w,FF16_Env>` <- function(strategy) {
-  Species___FF16w__FF16_Env__ctor(strategy)
+`Species<TF24,TF24_Env>` <- function(strategy) {
+  Species___TF24__TF24_Env__ctor(strategy)
 }
-.R6_Species___FF16w__FF16_Env <-
+.R6_Species___TF24__TF24_Env <-
   R6::R6Class(
-    "Species<FF16w,FF16_Env>",
+    "Species<TF24,TF24_Env>",
     inherit=.R6_Species,
     portable=TRUE,
     public=list(
@@ -2074,224 +2095,106 @@ Species <- function(T, E) {
         self$.ptr <- ptr
       },
       clear = function() {
-        Species___FF16w__FF16_Env__clear(self)
+        Species___TF24__TF24_Env__clear(self)
       },
       compute_rates = function(environment, pr_patch_survival, birth_rate) {
-        Species___FF16w__FF16_Env__compute_rates(self, environment, pr_patch_survival, birth_rate)
+        Species___TF24__TF24_Env__compute_rates(self, environment, pr_patch_survival, birth_rate)
       },
       compute_competition = function(height) {
-        Species___FF16w__FF16_Env__compute_competition(self, height)
+        Species___TF24__TF24_Env__compute_competition(self, height)
       },
       introduce_new_node = function() {
-        Species___FF16w__FF16_Env__introduce_new_node(self)
+        Species___TF24__TF24_Env__introduce_new_node(self)
       },
       node_at = function(index) {
-        Species___FF16w__FF16_Env__node_at(self, index)
+        Species___TF24__TF24_Env__node_at(self, index)
       },
-      competition_effects_error = function(scal=1) {
-        Species___FF16w__FF16_Env__competition_effects_error(self, scal)
+      compute_competition_effect_by_nodes_error = function(scal=1) {
+        Species___TF24__TF24_Env__compute_competition_effect_by_nodes_error(self, scal)
       }),
     active=list(
       size = function(value) {
         if (missing(value)) {
-          Species___FF16w__FF16_Env__size__get(self)
+          Species___TF24__TF24_Env__size__get(self)
         } else {
-          stop("Species<FF16w,FF16_Env>$size is read-only")
+          stop("Species<TF24,TF24_Env>$size is read-only")
         }
       },
       new_node = function(value) {
         if (missing(value)) {
-          Species___FF16w__FF16_Env__new_node__get(self)
+          Species___TF24__TF24_Env__new_node__get(self)
         } else {
-          stop("Species<FF16w,FF16_Env>$new_node is read-only")
+          stop("Species<TF24,TF24_Env>$new_node is read-only")
         }
       },
       height_max = function(value) {
         if (missing(value)) {
-          Species___FF16w__FF16_Env__height_max__get(self)
+          Species___TF24__TF24_Env__height_max__get(self)
         } else {
-          stop("Species<FF16w,FF16_Env>$height_max is read-only")
+          stop("Species<TF24,TF24_Env>$height_max is read-only")
         }
       },
       heights = function(value) {
         if (missing(value)) {
-          Species___FF16w__FF16_Env__heights__get(self)
+          Species___TF24__TF24_Env__heights__get(self)
         } else {
-          Species___FF16w__FF16_Env__heights__set(self, value)
+          Species___TF24__TF24_Env__heights__set(self, value)
         }
       },
       log_densities = function(value) {
         if (missing(value)) {
-          Species___FF16w__FF16_Env__log_densities__get(self)
+          Species___TF24__TF24_Env__log_densities__get(self)
         } else {
-          stop("Species<FF16w,FF16_Env>$log_densities is read-only")
+          stop("Species<TF24,TF24_Env>$log_densities is read-only")
         }
       },
       nodes = function(value) {
         if (missing(value)) {
-          Species___FF16w__FF16_Env__nodes__get(self)
+          Species___TF24__TF24_Env__nodes__get(self)
         } else {
-          stop("Species<FF16w,FF16_Env>$nodes is read-only")
+          stop("Species<TF24,TF24_Env>$nodes is read-only")
         }
       },
       net_reproduction_ratio_by_node = function(value) {
         if (missing(value)) {
-          Species___FF16w__FF16_Env__net_reproduction_ratio_by_node__get(self)
+          Species___TF24__TF24_Env__net_reproduction_ratio_by_node__get(self)
         } else {
-          stop("Species<FF16w,FF16_Env>$net_reproduction_ratio_by_node is read-only")
+          stop("Species<TF24,TF24_Env>$net_reproduction_ratio_by_node is read-only")
         }
       },
-      competition_effects = function(value) {
+      compute_competition_effect_by_nodes = function(value) {
         if (missing(value)) {
-          Species___FF16w__FF16_Env__competition_effects__get(self)
+          Species___TF24__TF24_Env__compute_competition_effect_by_nodes__get(self)
         } else {
-          stop("Species<FF16w,FF16_Env>$competition_effects is read-only")
-        }
-      },
-      extrinsic_drivers = function(value) {
-        if (missing(value)) {
-          Species___FF16w__FF16_Env__extrinsic_drivers__get(self)
-        } else {
-          stop("Species<FF16w,FF16_Env>$extrinsic_drivers is read-only")
-        }
-      },
-      ode_size = function(value) {
-        if (missing(value)) {
-          Species___FF16w__FF16_Env__ode_size__get(self)
-        } else {
-          stop("Species<FF16w,FF16_Env>$ode_size is read-only")
-        }
-      },
-      ode_state = function(value) {
-        if (missing(value)) {
-          Species___FF16w__FF16_Env__ode_state__get(self)
-        } else {
-          Species___FF16w__FF16_Env__ode_state__set(self, value)
-        }
-      },
-      ode_rates = function(value) {
-        if (missing(value)) {
-          Species___FF16w__FF16_Env__ode_rates__get(self)
-        } else {
-          stop("Species<FF16w,FF16_Env>$ode_rates is read-only")
-        }
-      }))
-
-
-`Species<FF16r,FF16_Env>` <- function(strategy) {
-  Species___FF16r__FF16_Env__ctor(strategy)
-}
-.R6_Species___FF16r__FF16_Env <-
-  R6::R6Class(
-    "Species<FF16r,FF16_Env>",
-    inherit=.R6_Species,
-    portable=TRUE,
-    public=list(
-      .ptr=NULL,
-      initialize = function(ptr) {
-        self$.ptr <- ptr
-      },
-      clear = function() {
-        Species___FF16r__FF16_Env__clear(self)
-      },
-      compute_rates = function(environment, pr_patch_survival, birth_rate) {
-        Species___FF16r__FF16_Env__compute_rates(self, environment, pr_patch_survival, birth_rate)
-      },
-      compute_competition = function(height) {
-        Species___FF16r__FF16_Env__compute_competition(self, height)
-      },
-      introduce_new_node = function() {
-        Species___FF16r__FF16_Env__introduce_new_node(self)
-      },
-      node_at = function(index) {
-        Species___FF16r__FF16_Env__node_at(self, index)
-      },
-      competition_effects_error = function(scal=1) {
-        Species___FF16r__FF16_Env__competition_effects_error(self, scal)
-      }),
-    active=list(
-      size = function(value) {
-        if (missing(value)) {
-          Species___FF16r__FF16_Env__size__get(self)
-        } else {
-          stop("Species<FF16r,FF16_Env>$size is read-only")
-        }
-      },
-      new_node = function(value) {
-        if (missing(value)) {
-          Species___FF16r__FF16_Env__new_node__get(self)
-        } else {
-          stop("Species<FF16r,FF16_Env>$new_node is read-only")
-        }
-      },
-      height_max = function(value) {
-        if (missing(value)) {
-          Species___FF16r__FF16_Env__height_max__get(self)
-        } else {
-          stop("Species<FF16r,FF16_Env>$height_max is read-only")
-        }
-      },
-      heights = function(value) {
-        if (missing(value)) {
-          Species___FF16r__FF16_Env__heights__get(self)
-        } else {
-          Species___FF16r__FF16_Env__heights__set(self, value)
-        }
-      },
-      log_densities = function(value) {
-        if (missing(value)) {
-          Species___FF16r__FF16_Env__log_densities__get(self)
-        } else {
-          stop("Species<FF16r,FF16_Env>$log_densities is read-only")
-        }
-      },
-      nodes = function(value) {
-        if (missing(value)) {
-          Species___FF16r__FF16_Env__nodes__get(self)
-        } else {
-          stop("Species<FF16r,FF16_Env>$nodes is read-only")
-        }
-      },
-      net_reproduction_ratio_by_node = function(value) {
-        if (missing(value)) {
-          Species___FF16r__FF16_Env__net_reproduction_ratio_by_node__get(self)
-        } else {
-          stop("Species<FF16r,FF16_Env>$net_reproduction_ratio_by_node is read-only")
-        }
-      },
-      competition_effects = function(value) {
-        if (missing(value)) {
-          Species___FF16r__FF16_Env__competition_effects__get(self)
-        } else {
-          stop("Species<FF16r,FF16_Env>$competition_effects is read-only")
+          stop("Species<TF24,TF24_Env>$compute_competition_effect_by_nodes is read-only")
         }
       },
       extrinsic_drivers = function(value) {
         if (missing(value)) {
-          Species___FF16r__FF16_Env__extrinsic_drivers__get(self)
+          Species___TF24__TF24_Env__extrinsic_drivers__get(self)
         } else {
-          stop("Species<FF16r,FF16_Env>$extrinsic_drivers is read-only")
+          stop("Species<TF24,TF24_Env>$extrinsic_drivers is read-only")
         }
       },
       ode_size = function(value) {
         if (missing(value)) {
-          Species___FF16r__FF16_Env__ode_size__get(self)
+          Species___TF24__TF24_Env__ode_size__get(self)
         } else {
-          stop("Species<FF16r,FF16_Env>$ode_size is read-only")
+          stop("Species<TF24,TF24_Env>$ode_size is read-only")
         }
       },
       ode_state = function(value) {
         if (missing(value)) {
-          Species___FF16r__FF16_Env__ode_state__get(self)
+          Species___TF24__TF24_Env__ode_state__get(self)
         } else {
-          Species___FF16r__FF16_Env__ode_state__set(self, value)
+          Species___TF24__TF24_Env__ode_state__set(self, value)
         }
       },
       ode_rates = function(value) {
         if (missing(value)) {
-          Species___FF16r__FF16_Env__ode_rates__get(self)
+          Species___TF24__TF24_Env__ode_rates__get(self)
         } else {
-          stop("Species<FF16r,FF16_Env>$ode_rates is read-only")
+          stop("Species<TF24,TF24_Env>$ode_rates is read-only")
         }
       }))
 
@@ -2324,8 +2227,8 @@ Species <- function(T, E) {
       node_at = function(index) {
         Species___K93__K93_Env__node_at(self, index)
       },
-      competition_effects_error = function(scal=1) {
-        Species___K93__K93_Env__competition_effects_error(self, scal)
+      compute_competition_effect_by_nodes_error = function(scal=1) {
+        Species___K93__K93_Env__compute_competition_effect_by_nodes_error(self, scal)
       }),
     active=list(
       size = function(value) {
@@ -2377,11 +2280,11 @@ Species <- function(T, E) {
           stop("Species<K93,K93_Env>$net_reproduction_ratio_by_node is read-only")
         }
       },
-      competition_effects = function(value) {
+      compute_competition_effect_by_nodes = function(value) {
         if (missing(value)) {
-          Species___K93__K93_Env__competition_effects__get(self)
+          Species___K93__K93_Env__compute_competition_effect_by_nodes__get(self)
         } else {
-          stop("Species<K93,K93_Env>$competition_effects is read-only")
+          stop("Species<K93,K93_Env>$compute_competition_effect_by_nodes is read-only")
         }
       },
       extrinsic_drivers = function(value) {
@@ -2415,8 +2318,8 @@ Species <- function(T, E) {
 
 Patch <- function(T, E) {
   type <- c(T, E)
-  valid <- list("Patch<FF16,FF16_Env>"=c("FF16", "FF16_Env"), "Patch<FF16w,FF16_Env>"=c("FF16w", "FF16_Env"), "Patch<FF16r,FF16_Env>"=c("FF16r", "FF16_Env"), "Patch<K93,K93_Env>"=c("K93", "K93_Env"))
-  constructors <- list("Patch<FF16,FF16_Env>"=`Patch<FF16,FF16_Env>`, "Patch<FF16w,FF16_Env>"=`Patch<FF16w,FF16_Env>`, "Patch<FF16r,FF16_Env>"=`Patch<FF16r,FF16_Env>`, "Patch<K93,K93_Env>"=`Patch<K93,K93_Env>`)
+  valid <- list("Patch<FF16,FF16_Env>"=c("FF16", "FF16_Env"), "Patch<TF24,TF24_Env>"=c("TF24", "TF24_Env"), "Patch<K93,K93_Env>"=c("K93", "K93_Env"))
+  constructors <- list("Patch<FF16,FF16_Env>"=`Patch<FF16,FF16_Env>`, "Patch<TF24,TF24_Env>"=`Patch<TF24,TF24_Env>`, "Patch<K93,K93_Env>"=`Patch<K93,K93_Env>`)
   constructors[[check_type(type, valid)]]
 }
 .R6_Patch <- R6::R6Class("Patch")
@@ -2493,6 +2396,13 @@ Patch <- function(T, E) {
           stop("Patch<FF16,FF16_Env>$size is read-only")
         }
       },
+      get_area = function(value) {
+        if (missing(value)) {
+          Patch___FF16__FF16_Env__get_area__get(self)
+        } else {
+          stop("Patch<FF16,FF16_Env>$get_area is read-only")
+        }
+      },
       height_max = function(value) {
         if (missing(value)) {
           Patch___FF16__FF16_Env__height_max__get(self)
@@ -2562,15 +2472,22 @@ Patch <- function(T, E) {
         } else {
           stop("Patch<FF16,FF16_Env>$node_ode_size is read-only")
         }
+      },
+      state = function(value) {
+        if (missing(value)) {
+          Patch___FF16__FF16_Env__state__get(self)
+        } else {
+          stop("Patch<FF16,FF16_Env>$state is read-only")
+        }
       }))
 
 
-`Patch<FF16w,FF16_Env>` <- function(parameters, environment, control) {
-  Patch___FF16w__FF16_Env__ctor(parameters, environment, control)
+`Patch<TF24,TF24_Env>` <- function(parameters, environment, control) {
+  Patch___TF24__TF24_Env__ctor(parameters, environment, control)
 }
-.R6_Patch___FF16w__FF16_Env <-
+.R6_Patch___TF24__TF24_Env <-
   R6::R6Class(
-    "Patch<FF16w,FF16_Env>",
+    "Patch<TF24,TF24_Env>",
     inherit=.R6_Patch,
     portable=TRUE,
     public=list(
@@ -2579,272 +2496,144 @@ Patch <- function(T, E) {
         self$.ptr <- ptr
       },
       introduce_new_node = function(species_index) {
-        Patch___FF16w__FF16_Env__introduce_new_node(self, species_index)
+        Patch___TF24__TF24_Env__introduce_new_node(self, species_index)
       },
       compute_environment = function() {
-        Patch___FF16w__FF16_Env__compute_environment(self)
+        Patch___TF24__TF24_Env__compute_environment(self)
       },
       compute_rates = function() {
-        Patch___FF16w__FF16_Env__compute_rates(self)
+        Patch___TF24__TF24_Env__compute_rates(self)
       },
       reset = function() {
-        Patch___FF16w__FF16_Env__reset(self)
+        Patch___TF24__TF24_Env__reset(self)
       },
       set_ode_state = function(values, time) {
-        Patch___FF16w__FF16_Env__set_ode_state(self, values, time)
+        Patch___TF24__TF24_Env__set_ode_state(self, values, time)
       },
       derivs = function(y, time) {
-        Patch___FF16w__FF16_Env__derivs(self, y, time)
+        Patch___TF24__TF24_Env__derivs(self, y, time)
       },
       set_time = function(time) {
-        Patch___FF16w__FF16_Env__set_time(self, time)
+        Patch___TF24__TF24_Env__set_time(self, time)
       },
       set_state = function(time, state, n, env) {
-        Patch___FF16w__FF16_Env__set_state(self, time, state, n, env)
+        Patch___TF24__TF24_Env__set_state(self, time, state, n, env)
       },
       density = function(time) {
-        Patch___FF16w__FF16_Env__density(self, time)
+        Patch___TF24__TF24_Env__density(self, time)
       },
       pr_survival = function(time) {
-        Patch___FF16w__FF16_Env__pr_survival(self, time)
+        Patch___TF24__TF24_Env__pr_survival(self, time)
       },
       disturbance_mean_interval = function() {
-        Patch___FF16w__FF16_Env__disturbance_mean_interval(self)
+        Patch___TF24__TF24_Env__disturbance_mean_interval(self)
       },
       survival_weighting_cdf = function(time) {
-        Patch___FF16w__FF16_Env__survival_weighting_cdf(self, time)
+        Patch___TF24__TF24_Env__survival_weighting_cdf(self, time)
       },
       survival_weighting_icdf = function(prob) {
-        Patch___FF16w__FF16_Env__survival_weighting_icdf(self, prob)
+        Patch___TF24__TF24_Env__survival_weighting_icdf(self, prob)
       },
       compute_competition = function(height) {
-        Patch___FF16w__FF16_Env__compute_competition(self, height)
+        Patch___TF24__TF24_Env__compute_competition(self, height)
       }),
     active=list(
       time = function(value) {
         if (missing(value)) {
-          Patch___FF16w__FF16_Env__time__get(self)
+          Patch___TF24__TF24_Env__time__get(self)
         } else {
-          stop("Patch<FF16w,FF16_Env>$time is read-only")
+          stop("Patch<TF24,TF24_Env>$time is read-only")
         }
       },
       size = function(value) {
         if (missing(value)) {
-          Patch___FF16w__FF16_Env__size__get(self)
+          Patch___TF24__TF24_Env__size__get(self)
         } else {
-          stop("Patch<FF16w,FF16_Env>$size is read-only")
+          stop("Patch<TF24,TF24_Env>$size is read-only")
+        }
+      },
+      get_area = function(value) {
+        if (missing(value)) {
+          Patch___TF24__TF24_Env__get_area__get(self)
+        } else {
+          stop("Patch<TF24,TF24_Env>$get_area is read-only")
         }
       },
       height_max = function(value) {
         if (missing(value)) {
-          Patch___FF16w__FF16_Env__height_max__get(self)
+          Patch___TF24__TF24_Env__height_max__get(self)
         } else {
-          stop("Patch<FF16w,FF16_Env>$height_max is read-only")
+          stop("Patch<TF24,TF24_Env>$height_max is read-only")
         }
       },
       parameters = function(value) {
         if (missing(value)) {
-          Patch___FF16w__FF16_Env__parameters__get(self)
+          Patch___TF24__TF24_Env__parameters__get(self)
         } else {
-          stop("Patch<FF16w,FF16_Env>$parameters is read-only")
+          stop("Patch<TF24,TF24_Env>$parameters is read-only")
         }
       },
       environment = function(value) {
         if (missing(value)) {
-          Patch___FF16w__FF16_Env__environment__get(self)
+          Patch___TF24__TF24_Env__environment__get(self)
         } else {
-          stop("Patch<FF16w,FF16_Env>$environment is read-only")
+          stop("Patch<TF24,TF24_Env>$environment is read-only")
         }
       },
       species = function(value) {
         if (missing(value)) {
-          Patch___FF16w__FF16_Env__species__get(self)
+          Patch___TF24__TF24_Env__species__get(self)
         } else {
-          stop("Patch<FF16w,FF16_Env>$species is read-only")
+          stop("Patch<TF24,TF24_Env>$species is read-only")
         }
       },
       ode_size = function(value) {
         if (missing(value)) {
-          Patch___FF16w__FF16_Env__ode_size__get(self)
+          Patch___TF24__TF24_Env__ode_size__get(self)
         } else {
-          stop("Patch<FF16w,FF16_Env>$ode_size is read-only")
+          stop("Patch<TF24,TF24_Env>$ode_size is read-only")
         }
       },
       ode_time = function(value) {
         if (missing(value)) {
-          Patch___FF16w__FF16_Env__ode_time__get(self)
+          Patch___TF24__TF24_Env__ode_time__get(self)
         } else {
-          stop("Patch<FF16w,FF16_Env>$ode_time is read-only")
+          stop("Patch<TF24,TF24_Env>$ode_time is read-only")
         }
       },
       ode_state = function(value) {
         if (missing(value)) {
-          Patch___FF16w__FF16_Env__ode_state__get(self)
+          Patch___TF24__TF24_Env__ode_state__get(self)
         } else {
-          stop("Patch<FF16w,FF16_Env>$ode_state is read-only")
+          stop("Patch<TF24,TF24_Env>$ode_state is read-only")
         }
       },
       ode_rates = function(value) {
         if (missing(value)) {
-          Patch___FF16w__FF16_Env__ode_rates__get(self)
+          Patch___TF24__TF24_Env__ode_rates__get(self)
         } else {
-          stop("Patch<FF16w,FF16_Env>$ode_rates is read-only")
+          stop("Patch<TF24,TF24_Env>$ode_rates is read-only")
         }
       },
       ode_aux = function(value) {
         if (missing(value)) {
-          Patch___FF16w__FF16_Env__ode_aux__get(self)
+          Patch___TF24__TF24_Env__ode_aux__get(self)
         } else {
-          stop("Patch<FF16w,FF16_Env>$ode_aux is read-only")
+          stop("Patch<TF24,TF24_Env>$ode_aux is read-only")
         }
       },
       node_ode_size = function(value) {
         if (missing(value)) {
-          Patch___FF16w__FF16_Env__node_ode_size__get(self)
+          Patch___TF24__TF24_Env__node_ode_size__get(self)
         } else {
-          stop("Patch<FF16w,FF16_Env>$node_ode_size is read-only")
-        }
-      }))
-
-
-`Patch<FF16r,FF16_Env>` <- function(parameters, environment, control) {
-  Patch___FF16r__FF16_Env__ctor(parameters, environment, control)
-}
-.R6_Patch___FF16r__FF16_Env <-
-  R6::R6Class(
-    "Patch<FF16r,FF16_Env>",
-    inherit=.R6_Patch,
-    portable=TRUE,
-    public=list(
-      .ptr=NULL,
-      initialize = function(ptr) {
-        self$.ptr <- ptr
-      },
-      introduce_new_node = function(species_index) {
-        Patch___FF16r__FF16_Env__introduce_new_node(self, species_index)
-      },
-      compute_environment = function() {
-        Patch___FF16r__FF16_Env__compute_environment(self)
-      },
-      compute_rates = function() {
-        Patch___FF16r__FF16_Env__compute_rates(self)
-      },
-      reset = function() {
-        Patch___FF16r__FF16_Env__reset(self)
-      },
-      set_ode_state = function(values, time) {
-        Patch___FF16r__FF16_Env__set_ode_state(self, values, time)
-      },
-      derivs = function(y, time) {
-        Patch___FF16r__FF16_Env__derivs(self, y, time)
-      },
-      set_time = function(time) {
-        Patch___FF16r__FF16_Env__set_time(self, time)
-      },
-      set_state = function(time, state, n, env) {
-        Patch___FF16r__FF16_Env__set_state(self, time, state, n, env)
-      },
-      density = function(time) {
-        Patch___FF16r__FF16_Env__density(self, time)
-      },
-      pr_survival = function(time) {
-        Patch___FF16r__FF16_Env__pr_survival(self, time)
-      },
-      disturbance_mean_interval = function() {
-        Patch___FF16r__FF16_Env__disturbance_mean_interval(self)
-      },
-      survival_weighting_cdf = function(time) {
-        Patch___FF16r__FF16_Env__survival_weighting_cdf(self, time)
-      },
-      survival_weighting_icdf = function(prob) {
-        Patch___FF16r__FF16_Env__survival_weighting_icdf(self, prob)
-      },
-      compute_competition = function(height) {
-        Patch___FF16r__FF16_Env__compute_competition(self, height)
-      }),
-    active=list(
-      time = function(value) {
-        if (missing(value)) {
-          Patch___FF16r__FF16_Env__time__get(self)
-        } else {
-          stop("Patch<FF16r,FF16_Env>$time is read-only")
+          stop("Patch<TF24,TF24_Env>$node_ode_size is read-only")
         }
       },
-      size = function(value) {
+      state = function(value) {
         if (missing(value)) {
-          Patch___FF16r__FF16_Env__size__get(self)
+          Patch___TF24__TF24_Env__state__get(self)
         } else {
-          stop("Patch<FF16r,FF16_Env>$size is read-only")
-        }
-      },
-      height_max = function(value) {
-        if (missing(value)) {
-          Patch___FF16r__FF16_Env__height_max__get(self)
-        } else {
-          stop("Patch<FF16r,FF16_Env>$height_max is read-only")
-        }
-      },
-      parameters = function(value) {
-        if (missing(value)) {
-          Patch___FF16r__FF16_Env__parameters__get(self)
-        } else {
-          stop("Patch<FF16r,FF16_Env>$parameters is read-only")
-        }
-      },
-      environment = function(value) {
-        if (missing(value)) {
-          Patch___FF16r__FF16_Env__environment__get(self)
-        } else {
-          stop("Patch<FF16r,FF16_Env>$environment is read-only")
-        }
-      },
-      species = function(value) {
-        if (missing(value)) {
-          Patch___FF16r__FF16_Env__species__get(self)
-        } else {
-          stop("Patch<FF16r,FF16_Env>$species is read-only")
-        }
-      },
-      ode_size = function(value) {
-        if (missing(value)) {
-          Patch___FF16r__FF16_Env__ode_size__get(self)
-        } else {
-          stop("Patch<FF16r,FF16_Env>$ode_size is read-only")
-        }
-      },
-      ode_time = function(value) {
-        if (missing(value)) {
-          Patch___FF16r__FF16_Env__ode_time__get(self)
-        } else {
-          stop("Patch<FF16r,FF16_Env>$ode_time is read-only")
-        }
-      },
-      ode_state = function(value) {
-        if (missing(value)) {
-          Patch___FF16r__FF16_Env__ode_state__get(self)
-        } else {
-          stop("Patch<FF16r,FF16_Env>$ode_state is read-only")
-        }
-      },
-      ode_rates = function(value) {
-        if (missing(value)) {
-          Patch___FF16r__FF16_Env__ode_rates__get(self)
-        } else {
-          stop("Patch<FF16r,FF16_Env>$ode_rates is read-only")
-        }
-      },
-      ode_aux = function(value) {
-        if (missing(value)) {
-          Patch___FF16r__FF16_Env__ode_aux__get(self)
-        } else {
-          stop("Patch<FF16r,FF16_Env>$ode_aux is read-only")
-        }
-      },
-      node_ode_size = function(value) {
-        if (missing(value)) {
-          Patch___FF16r__FF16_Env__node_ode_size__get(self)
-        } else {
-          stop("Patch<FF16r,FF16_Env>$node_ode_size is read-only")
+          stop("Patch<TF24,TF24_Env>$state is read-only")
         }
       }))
 
@@ -2919,6 +2708,13 @@ Patch <- function(T, E) {
           stop("Patch<K93,K93_Env>$size is read-only")
         }
       },
+      get_area = function(value) {
+        if (missing(value)) {
+          Patch___K93__K93_Env__get_area__get(self)
+        } else {
+          stop("Patch<K93,K93_Env>$get_area is read-only")
+        }
+      },
       height_max = function(value) {
         if (missing(value)) {
           Patch___K93__K93_Env__height_max__get(self)
@@ -2988,12 +2784,19 @@ Patch <- function(T, E) {
         } else {
           stop("Patch<K93,K93_Env>$node_ode_size is read-only")
         }
+      },
+      state = function(value) {
+        if (missing(value)) {
+          Patch___K93__K93_Env__state__get(self)
+        } else {
+          stop("Patch<K93,K93_Env>$state is read-only")
+        }
       }))
 
 SCM <- function(T, E) {
   type <- c(T, E)
-  valid <- list("SCM<FF16,FF16_Env>"=c("FF16", "FF16_Env"), "SCM<FF16w,FF16_Env>"=c("FF16w", "FF16_Env"), "SCM<FF16r,FF16_Env>"=c("FF16r", "FF16_Env"), "SCM<K93,K93_Env>"=c("K93", "K93_Env"))
-  constructors <- list("SCM<FF16,FF16_Env>"=`SCM<FF16,FF16_Env>`, "SCM<FF16w,FF16_Env>"=`SCM<FF16w,FF16_Env>`, "SCM<FF16r,FF16_Env>"=`SCM<FF16r,FF16_Env>`, "SCM<K93,K93_Env>"=`SCM<K93,K93_Env>`)
+  valid <- list("SCM<FF16,FF16_Env>"=c("FF16", "FF16_Env"), "SCM<TF24,TF24_Env>"=c("TF24", "TF24_Env"), "SCM<K93,K93_Env>"=c("K93", "K93_Env"))
+  constructors <- list("SCM<FF16,FF16_Env>"=`SCM<FF16,FF16_Env>`, "SCM<TF24,TF24_Env>"=`SCM<TF24,TF24_Env>`, "SCM<K93,K93_Env>"=`SCM<K93,K93_Env>`)
   constructors[[check_type(type, valid)]]
 }
 .R6_SCM <- R6::R6Class("SCM")
@@ -3028,8 +2831,8 @@ SCM <- function(T, E) {
       net_reproduction_ratio_for_species = function(species_index) {
         SCM___FF16__FF16_Env__net_reproduction_ratio_for_species(self, species_index)
       },
-      competition_effect_error = function(species_index) {
-        SCM___FF16__FF16_Env__competition_effect_error(self, species_index)
+      compute_competition_effect_error_by_node_for_species_i = function(species_index) {
+        SCM___FF16__FF16_Env__compute_competition_effect_error_by_node_for_species_i(self, species_index)
       },
       set_node_schedule_times = function(times) {
         SCM___FF16__FF16_Env__set_node_schedule_times(self, times)
@@ -3077,6 +2880,13 @@ SCM <- function(T, E) {
           stop("SCM<FF16,FF16_Env>$patch is read-only")
         }
       },
+      history = function(value) {
+        if (missing(value)) {
+          SCM___FF16__FF16_Env__history__get(self)
+        } else {
+          stop("SCM<FF16,FF16_Env>$history is read-only")
+        }
+      },
       node_schedule = function(value) {
         if (missing(value)) {
           SCM___FF16__FF16_Env__node_schedule__get(self)
@@ -3091,25 +2901,18 @@ SCM <- function(T, E) {
           stop("SCM<FF16,FF16_Env>$ode_times is read-only")
         }
       },
-      state = function(value) {
-        if (missing(value)) {
-          SCM___FF16__FF16_Env__state__get(self)
-        } else {
-          stop("SCM<FF16,FF16_Env>$state is read-only")
-        }
-      },
-      aux = function(value) {
-        if (missing(value)) {
-          SCM___FF16__FF16_Env__aux__get(self)
-        } else {
-          stop("SCM<FF16,FF16_Env>$aux is read-only")
-        }
-      },
       use_ode_times = function(value) {
         if (missing(value)) {
           SCM___FF16__FF16_Env__use_ode_times__get(self)
         } else {
           SCM___FF16__FF16_Env__use_ode_times__set(self, value)
+        }
+      },
+      collect = function(value) {
+        if (missing(value)) {
+          SCM___FF16__FF16_Env__collect__get(self)
+        } else {
+          SCM___FF16__FF16_Env__collect__set(self, value)
         }
       },
       net_reproduction_ratio_errors = function(value) {
@@ -3121,12 +2924,12 @@ SCM <- function(T, E) {
       }))
 
 
-`SCM<FF16w,FF16_Env>` <- function(parameters, environment, control) {
-  SCM___FF16w__FF16_Env__ctor(parameters, environment, control)
+`SCM<TF24,TF24_Env>` <- function(parameters, environment, control) {
+  SCM___TF24__TF24_Env__ctor(parameters, environment, control)
 }
-.R6_SCM___FF16w__FF16_Env <-
+.R6_SCM___TF24__TF24_Env <-
   R6::R6Class(
-    "SCM<FF16w,FF16_Env>",
+    "SCM<TF24,TF24_Env>",
     inherit=.R6_SCM,
     portable=TRUE,
     public=list(
@@ -3135,230 +2938,109 @@ SCM <- function(T, E) {
         self$.ptr <- ptr
       },
       run = function() {
-        SCM___FF16w__FF16_Env__run(self)
+        SCM___TF24__TF24_Env__run(self)
       },
       run_mutant = function(p) {
-        SCM___FF16w__FF16_Env__run_mutant(self, p)
+        SCM___TF24__TF24_Env__run_mutant(self, p)
       },
       run_next = function() {
-        SCM___FF16w__FF16_Env__run_next(self)
+        SCM___TF24__TF24_Env__run_next(self)
       },
       reset = function() {
-        SCM___FF16w__FF16_Env__reset(self)
+        SCM___TF24__TF24_Env__reset(self)
       },
       net_reproduction_ratio_for_species = function(species_index) {
-        SCM___FF16w__FF16_Env__net_reproduction_ratio_for_species(self, species_index)
+        SCM___TF24__TF24_Env__net_reproduction_ratio_for_species(self, species_index)
       },
-      competition_effect_error = function(species_index) {
-        SCM___FF16w__FF16_Env__competition_effect_error(self, species_index)
+      compute_competition_effect_error_by_node_for_species_i = function(species_index) {
+        SCM___TF24__TF24_Env__compute_competition_effect_error_by_node_for_species_i(self, species_index)
       },
       set_node_schedule_times = function(times) {
-        SCM___FF16w__FF16_Env__set_node_schedule_times(self, times)
+        SCM___TF24__TF24_Env__set_node_schedule_times(self, times)
       }),
     active=list(
       complete = function(value) {
         if (missing(value)) {
-          SCM___FF16w__FF16_Env__complete__get(self)
+          SCM___TF24__TF24_Env__complete__get(self)
         } else {
-          stop("SCM<FF16w,FF16_Env>$complete is read-only")
+          stop("SCM<TF24,TF24_Env>$complete is read-only")
         }
       },
       time = function(value) {
         if (missing(value)) {
-          SCM___FF16w__FF16_Env__time__get(self)
+          SCM___TF24__TF24_Env__time__get(self)
         } else {
-          stop("SCM<FF16w,FF16_Env>$time is read-only")
+          stop("SCM<TF24,TF24_Env>$time is read-only")
         }
       },
       net_reproduction_ratios = function(value) {
         if (missing(value)) {
-          SCM___FF16w__FF16_Env__net_reproduction_ratios__get(self)
+          SCM___TF24__TF24_Env__net_reproduction_ratios__get(self)
         } else {
-          stop("SCM<FF16w,FF16_Env>$net_reproduction_ratios is read-only")
+          stop("SCM<TF24,TF24_Env>$net_reproduction_ratios is read-only")
         }
       },
       offspring_production = function(value) {
         if (missing(value)) {
-          SCM___FF16w__FF16_Env__offspring_production__get(self)
+          SCM___TF24__TF24_Env__offspring_production__get(self)
         } else {
-          stop("SCM<FF16w,FF16_Env>$offspring_production is read-only")
+          stop("SCM<TF24,TF24_Env>$offspring_production is read-only")
         }
       },
       parameters = function(value) {
         if (missing(value)) {
-          SCM___FF16w__FF16_Env__parameters__get(self)
+          SCM___TF24__TF24_Env__parameters__get(self)
         } else {
-          stop("SCM<FF16w,FF16_Env>$parameters is read-only")
+          stop("SCM<TF24,TF24_Env>$parameters is read-only")
         }
       },
       patch = function(value) {
         if (missing(value)) {
-          SCM___FF16w__FF16_Env__patch__get(self)
+          SCM___TF24__TF24_Env__patch__get(self)
         } else {
-          stop("SCM<FF16w,FF16_Env>$patch is read-only")
+          stop("SCM<TF24,TF24_Env>$patch is read-only")
+        }
+      },
+      history = function(value) {
+        if (missing(value)) {
+          SCM___TF24__TF24_Env__history__get(self)
+        } else {
+          stop("SCM<TF24,TF24_Env>$history is read-only")
         }
       },
       node_schedule = function(value) {
         if (missing(value)) {
-          SCM___FF16w__FF16_Env__node_schedule__get(self)
+          SCM___TF24__TF24_Env__node_schedule__get(self)
         } else {
-          SCM___FF16w__FF16_Env__node_schedule__set(self, value)
+          SCM___TF24__TF24_Env__node_schedule__set(self, value)
         }
       },
       ode_times = function(value) {
         if (missing(value)) {
-          SCM___FF16w__FF16_Env__ode_times__get(self)
+          SCM___TF24__TF24_Env__ode_times__get(self)
         } else {
-          stop("SCM<FF16w,FF16_Env>$ode_times is read-only")
-        }
-      },
-      state = function(value) {
-        if (missing(value)) {
-          SCM___FF16w__FF16_Env__state__get(self)
-        } else {
-          stop("SCM<FF16w,FF16_Env>$state is read-only")
-        }
-      },
-      aux = function(value) {
-        if (missing(value)) {
-          SCM___FF16w__FF16_Env__aux__get(self)
-        } else {
-          stop("SCM<FF16w,FF16_Env>$aux is read-only")
+          stop("SCM<TF24,TF24_Env>$ode_times is read-only")
         }
       },
       use_ode_times = function(value) {
         if (missing(value)) {
-          SCM___FF16w__FF16_Env__use_ode_times__get(self)
+          SCM___TF24__TF24_Env__use_ode_times__get(self)
         } else {
-          SCM___FF16w__FF16_Env__use_ode_times__set(self, value)
+          SCM___TF24__TF24_Env__use_ode_times__set(self, value)
+        }
+      },
+      collect = function(value) {
+        if (missing(value)) {
+          SCM___TF24__TF24_Env__collect__get(self)
+        } else {
+          SCM___TF24__TF24_Env__collect__set(self, value)
         }
       },
       net_reproduction_ratio_errors = function(value) {
         if (missing(value)) {
-          SCM___FF16w__FF16_Env__net_reproduction_ratio_errors__get(self)
+          SCM___TF24__TF24_Env__net_reproduction_ratio_errors__get(self)
         } else {
-          stop("SCM<FF16w,FF16_Env>$net_reproduction_ratio_errors is read-only")
-        }
-      }))
-
-
-`SCM<FF16r,FF16_Env>` <- function(parameters, environment, control) {
-  SCM___FF16r__FF16_Env__ctor(parameters, environment, control)
-}
-.R6_SCM___FF16r__FF16_Env <-
-  R6::R6Class(
-    "SCM<FF16r,FF16_Env>",
-    inherit=.R6_SCM,
-    portable=TRUE,
-    public=list(
-      .ptr=NULL,
-      initialize = function(ptr) {
-        self$.ptr <- ptr
-      },
-      run = function() {
-        SCM___FF16r__FF16_Env__run(self)
-      },
-      run_mutant = function(p) {
-        SCM___FF16r__FF16_Env__run_mutant(self, p)
-      },
-      run_next = function() {
-        SCM___FF16r__FF16_Env__run_next(self)
-      },
-      reset = function() {
-        SCM___FF16r__FF16_Env__reset(self)
-      },
-      net_reproduction_ratio_for_species = function(species_index) {
-        SCM___FF16r__FF16_Env__net_reproduction_ratio_for_species(self, species_index)
-      },
-      competition_effect_error = function(species_index) {
-        SCM___FF16r__FF16_Env__competition_effect_error(self, species_index)
-      },
-      set_node_schedule_times = function(times) {
-        SCM___FF16r__FF16_Env__set_node_schedule_times(self, times)
-      }),
-    active=list(
-      complete = function(value) {
-        if (missing(value)) {
-          SCM___FF16r__FF16_Env__complete__get(self)
-        } else {
-          stop("SCM<FF16r,FF16_Env>$complete is read-only")
-        }
-      },
-      time = function(value) {
-        if (missing(value)) {
-          SCM___FF16r__FF16_Env__time__get(self)
-        } else {
-          stop("SCM<FF16r,FF16_Env>$time is read-only")
-        }
-      },
-      net_reproduction_ratios = function(value) {
-        if (missing(value)) {
-          SCM___FF16r__FF16_Env__net_reproduction_ratios__get(self)
-        } else {
-          stop("SCM<FF16r,FF16_Env>$net_reproduction_ratios is read-only")
-        }
-      },
-      offspring_production = function(value) {
-        if (missing(value)) {
-          SCM___FF16r__FF16_Env__offspring_production__get(self)
-        } else {
-          stop("SCM<FF16r,FF16_Env>$offspring_production is read-only")
-        }
-      },
-      parameters = function(value) {
-        if (missing(value)) {
-          SCM___FF16r__FF16_Env__parameters__get(self)
-        } else {
-          stop("SCM<FF16r,FF16_Env>$parameters is read-only")
-        }
-      },
-      patch = function(value) {
-        if (missing(value)) {
-          SCM___FF16r__FF16_Env__patch__get(self)
-        } else {
-          stop("SCM<FF16r,FF16_Env>$patch is read-only")
-        }
-      },
-      node_schedule = function(value) {
-        if (missing(value)) {
-          SCM___FF16r__FF16_Env__node_schedule__get(self)
-        } else {
-          SCM___FF16r__FF16_Env__node_schedule__set(self, value)
-        }
-      },
-      ode_times = function(value) {
-        if (missing(value)) {
-          SCM___FF16r__FF16_Env__ode_times__get(self)
-        } else {
-          stop("SCM<FF16r,FF16_Env>$ode_times is read-only")
-        }
-      },
-      state = function(value) {
-        if (missing(value)) {
-          SCM___FF16r__FF16_Env__state__get(self)
-        } else {
-          stop("SCM<FF16r,FF16_Env>$state is read-only")
-        }
-      },
-      aux = function(value) {
-        if (missing(value)) {
-          SCM___FF16r__FF16_Env__aux__get(self)
-        } else {
-          stop("SCM<FF16r,FF16_Env>$aux is read-only")
-        }
-      },
-      use_ode_times = function(value) {
-        if (missing(value)) {
-          SCM___FF16r__FF16_Env__use_ode_times__get(self)
-        } else {
-          SCM___FF16r__FF16_Env__use_ode_times__set(self, value)
-        }
-      },
-      net_reproduction_ratio_errors = function(value) {
-        if (missing(value)) {
-          SCM___FF16r__FF16_Env__net_reproduction_ratio_errors__get(self)
-        } else {
-          stop("SCM<FF16r,FF16_Env>$net_reproduction_ratio_errors is read-only")
+          stop("SCM<TF24,TF24_Env>$net_reproduction_ratio_errors is read-only")
         }
       }))
 
@@ -3391,8 +3073,8 @@ SCM <- function(T, E) {
       net_reproduction_ratio_for_species = function(species_index) {
         SCM___K93__K93_Env__net_reproduction_ratio_for_species(self, species_index)
       },
-      competition_effect_error = function(species_index) {
-        SCM___K93__K93_Env__competition_effect_error(self, species_index)
+      compute_competition_effect_error_by_node_for_species_i = function(species_index) {
+        SCM___K93__K93_Env__compute_competition_effect_error_by_node_for_species_i(self, species_index)
       },
       set_node_schedule_times = function(times) {
         SCM___K93__K93_Env__set_node_schedule_times(self, times)
@@ -3440,6 +3122,13 @@ SCM <- function(T, E) {
           stop("SCM<K93,K93_Env>$patch is read-only")
         }
       },
+      history = function(value) {
+        if (missing(value)) {
+          SCM___K93__K93_Env__history__get(self)
+        } else {
+          stop("SCM<K93,K93_Env>$history is read-only")
+        }
+      },
       node_schedule = function(value) {
         if (missing(value)) {
           SCM___K93__K93_Env__node_schedule__get(self)
@@ -3454,25 +3143,18 @@ SCM <- function(T, E) {
           stop("SCM<K93,K93_Env>$ode_times is read-only")
         }
       },
-      state = function(value) {
-        if (missing(value)) {
-          SCM___K93__K93_Env__state__get(self)
-        } else {
-          stop("SCM<K93,K93_Env>$state is read-only")
-        }
-      },
-      aux = function(value) {
-        if (missing(value)) {
-          SCM___K93__K93_Env__aux__get(self)
-        } else {
-          stop("SCM<K93,K93_Env>$aux is read-only")
-        }
-      },
       use_ode_times = function(value) {
         if (missing(value)) {
           SCM___K93__K93_Env__use_ode_times__get(self)
         } else {
           SCM___K93__K93_Env__use_ode_times__set(self, value)
+        }
+      },
+      collect = function(value) {
+        if (missing(value)) {
+          SCM___K93__K93_Env__collect__get(self)
+        } else {
+          SCM___K93__K93_Env__collect__set(self, value)
         }
       },
       net_reproduction_ratio_errors = function(value) {
@@ -3485,8 +3167,8 @@ SCM <- function(T, E) {
 
 StochasticSpecies <- function(T, E) {
   type <- c(T, E)
-  valid <- list("StochasticSpecies<FF16,FF16_Env>"=c("FF16", "FF16_Env"), "StochasticSpecies<FF16w,FF16_Env>"=c("FF16w", "FF16_Env"), "StochasticSpecies<FF16r,FF16_Env>"=c("FF16r", "FF16_Env"), "StochasticSpecies<K93,K93_Env>"=c("K93", "K93_Env"))
-  constructors <- list("StochasticSpecies<FF16,FF16_Env>"=`StochasticSpecies<FF16,FF16_Env>`, "StochasticSpecies<FF16w,FF16_Env>"=`StochasticSpecies<FF16w,FF16_Env>`, "StochasticSpecies<FF16r,FF16_Env>"=`StochasticSpecies<FF16r,FF16_Env>`, "StochasticSpecies<K93,K93_Env>"=`StochasticSpecies<K93,K93_Env>`)
+  valid <- list("StochasticSpecies<FF16,FF16_Env>"=c("FF16", "FF16_Env"), "StochasticSpecies<TF24,TF24_Env>"=c("TF24", "TF24_Env"), "StochasticSpecies<K93,K93_Env>"=c("K93", "K93_Env"))
+  constructors <- list("StochasticSpecies<FF16,FF16_Env>"=`StochasticSpecies<FF16,FF16_Env>`, "StochasticSpecies<TF24,TF24_Env>"=`StochasticSpecies<TF24,TF24_Env>`, "StochasticSpecies<K93,K93_Env>"=`StochasticSpecies<K93,K93_Env>`)
   constructors[[check_type(type, valid)]]
 }
 .R6_StochasticSpecies <- R6::R6Class("StochasticSpecies")
@@ -3607,12 +3289,12 @@ StochasticSpecies <- function(T, E) {
       }))
 
 
-`StochasticSpecies<FF16w,FF16_Env>` <- function(strategy) {
-  StochasticSpecies___FF16w__FF16_Env__ctor(strategy)
+`StochasticSpecies<TF24,TF24_Env>` <- function(strategy) {
+  StochasticSpecies___TF24__TF24_Env__ctor(strategy)
 }
-.R6_StochasticSpecies___FF16w__FF16_Env <-
+.R6_StochasticSpecies___TF24__TF24_Env <-
   R6::R6Class(
-    "StochasticSpecies<FF16w,FF16_Env>",
+    "StochasticSpecies<TF24,TF24_Env>",
     inherit=.R6_StochasticSpecies,
     portable=TRUE,
     public=list(
@@ -3621,216 +3303,102 @@ StochasticSpecies <- function(T, E) {
         self$.ptr <- ptr
       },
       clear = function() {
-        StochasticSpecies___FF16w__FF16_Env__clear(self)
+        StochasticSpecies___TF24__TF24_Env__clear(self)
       },
       compute_rates = function(environment) {
-        StochasticSpecies___FF16w__FF16_Env__compute_rates(self, environment)
+        StochasticSpecies___TF24__TF24_Env__compute_rates(self, environment)
       },
       compute_competition = function(height) {
-        StochasticSpecies___FF16w__FF16_Env__compute_competition(self, height)
+        StochasticSpecies___TF24__TF24_Env__compute_competition(self, height)
       },
       introduce_new_node = function() {
-        StochasticSpecies___FF16w__FF16_Env__introduce_new_node(self)
+        StochasticSpecies___TF24__TF24_Env__introduce_new_node(self)
       },
       individual_at = function(index) {
-        StochasticSpecies___FF16w__FF16_Env__individual_at(self, index)
+        StochasticSpecies___TF24__TF24_Env__individual_at(self, index)
       },
       deaths = function() {
-        StochasticSpecies___FF16w__FF16_Env__deaths(self)
+        StochasticSpecies___TF24__TF24_Env__deaths(self)
       },
       establishment_probability = function(environment) {
-        StochasticSpecies___FF16w__FF16_Env__establishment_probability(self, environment)
+        StochasticSpecies___TF24__TF24_Env__establishment_probability(self, environment)
       }),
     active=list(
       size = function(value) {
         if (missing(value)) {
-          StochasticSpecies___FF16w__FF16_Env__size__get(self)
+          StochasticSpecies___TF24__TF24_Env__size__get(self)
         } else {
-          stop("StochasticSpecies<FF16w,FF16_Env>$size is read-only")
+          stop("StochasticSpecies<TF24,TF24_Env>$size is read-only")
         }
       },
       size_individuals = function(value) {
         if (missing(value)) {
-          StochasticSpecies___FF16w__FF16_Env__size_individuals__get(self)
+          StochasticSpecies___TF24__TF24_Env__size_individuals__get(self)
         } else {
-          stop("StochasticSpecies<FF16w,FF16_Env>$size_individuals is read-only")
+          stop("StochasticSpecies<TF24,TF24_Env>$size_individuals is read-only")
         }
       },
       new_node = function(value) {
         if (missing(value)) {
-          StochasticSpecies___FF16w__FF16_Env__new_node__get(self)
+          StochasticSpecies___TF24__TF24_Env__new_node__get(self)
         } else {
-          stop("StochasticSpecies<FF16w,FF16_Env>$new_node is read-only")
+          stop("StochasticSpecies<TF24,TF24_Env>$new_node is read-only")
         }
       },
       height_max = function(value) {
         if (missing(value)) {
-          StochasticSpecies___FF16w__FF16_Env__height_max__get(self)
+          StochasticSpecies___TF24__TF24_Env__height_max__get(self)
         } else {
-          stop("StochasticSpecies<FF16w,FF16_Env>$height_max is read-only")
+          stop("StochasticSpecies<TF24,TF24_Env>$height_max is read-only")
         }
       },
       heights = function(value) {
         if (missing(value)) {
-          StochasticSpecies___FF16w__FF16_Env__heights__get(self)
+          StochasticSpecies___TF24__TF24_Env__heights__get(self)
         } else {
-          StochasticSpecies___FF16w__FF16_Env__heights__set(self, value)
+          StochasticSpecies___TF24__TF24_Env__heights__set(self, value)
         }
       },
       individuals = function(value) {
         if (missing(value)) {
-          StochasticSpecies___FF16w__FF16_Env__individuals__get(self)
+          StochasticSpecies___TF24__TF24_Env__individuals__get(self)
         } else {
-          stop("StochasticSpecies<FF16w,FF16_Env>$individuals is read-only")
+          stop("StochasticSpecies<TF24,TF24_Env>$individuals is read-only")
         }
       },
       is_alive = function(value) {
         if (missing(value)) {
-          StochasticSpecies___FF16w__FF16_Env__is_alive__get(self)
+          StochasticSpecies___TF24__TF24_Env__is_alive__get(self)
         } else {
-          stop("StochasticSpecies<FF16w,FF16_Env>$is_alive is read-only")
+          stop("StochasticSpecies<TF24,TF24_Env>$is_alive is read-only")
         }
       },
       net_reproduction_ratio_by_node = function(value) {
         if (missing(value)) {
-          StochasticSpecies___FF16w__FF16_Env__net_reproduction_ratio_by_node__get(self)
+          StochasticSpecies___TF24__TF24_Env__net_reproduction_ratio_by_node__get(self)
         } else {
-          stop("StochasticSpecies<FF16w,FF16_Env>$net_reproduction_ratio_by_node is read-only")
+          stop("StochasticSpecies<TF24,TF24_Env>$net_reproduction_ratio_by_node is read-only")
         }
       },
       ode_size = function(value) {
         if (missing(value)) {
-          StochasticSpecies___FF16w__FF16_Env__ode_size__get(self)
+          StochasticSpecies___TF24__TF24_Env__ode_size__get(self)
         } else {
-          stop("StochasticSpecies<FF16w,FF16_Env>$ode_size is read-only")
+          stop("StochasticSpecies<TF24,TF24_Env>$ode_size is read-only")
         }
       },
       ode_state = function(value) {
         if (missing(value)) {
-          StochasticSpecies___FF16w__FF16_Env__ode_state__get(self)
+          StochasticSpecies___TF24__TF24_Env__ode_state__get(self)
         } else {
-          StochasticSpecies___FF16w__FF16_Env__ode_state__set(self, value)
+          StochasticSpecies___TF24__TF24_Env__ode_state__set(self, value)
         }
       },
       ode_rates = function(value) {
         if (missing(value)) {
-          StochasticSpecies___FF16w__FF16_Env__ode_rates__get(self)
+          StochasticSpecies___TF24__TF24_Env__ode_rates__get(self)
         } else {
-          stop("StochasticSpecies<FF16w,FF16_Env>$ode_rates is read-only")
-        }
-      }))
-
-
-`StochasticSpecies<FF16r,FF16_Env>` <- function(strategy) {
-  StochasticSpecies___FF16r__FF16_Env__ctor(strategy)
-}
-.R6_StochasticSpecies___FF16r__FF16_Env <-
-  R6::R6Class(
-    "StochasticSpecies<FF16r,FF16_Env>",
-    inherit=.R6_StochasticSpecies,
-    portable=TRUE,
-    public=list(
-      .ptr=NULL,
-      initialize = function(ptr) {
-        self$.ptr <- ptr
-      },
-      clear = function() {
-        StochasticSpecies___FF16r__FF16_Env__clear(self)
-      },
-      compute_rates = function(environment) {
-        StochasticSpecies___FF16r__FF16_Env__compute_rates(self, environment)
-      },
-      compute_competition = function(height) {
-        StochasticSpecies___FF16r__FF16_Env__compute_competition(self, height)
-      },
-      introduce_new_node = function() {
-        StochasticSpecies___FF16r__FF16_Env__introduce_new_node(self)
-      },
-      individual_at = function(index) {
-        StochasticSpecies___FF16r__FF16_Env__individual_at(self, index)
-      },
-      deaths = function() {
-        StochasticSpecies___FF16r__FF16_Env__deaths(self)
-      },
-      establishment_probability = function(environment) {
-        StochasticSpecies___FF16r__FF16_Env__establishment_probability(self, environment)
-      }),
-    active=list(
-      size = function(value) {
-        if (missing(value)) {
-          StochasticSpecies___FF16r__FF16_Env__size__get(self)
-        } else {
-          stop("StochasticSpecies<FF16r,FF16_Env>$size is read-only")
-        }
-      },
-      size_individuals = function(value) {
-        if (missing(value)) {
-          StochasticSpecies___FF16r__FF16_Env__size_individuals__get(self)
-        } else {
-          stop("StochasticSpecies<FF16r,FF16_Env>$size_individuals is read-only")
-        }
-      },
-      new_node = function(value) {
-        if (missing(value)) {
-          StochasticSpecies___FF16r__FF16_Env__new_node__get(self)
-        } else {
-          stop("StochasticSpecies<FF16r,FF16_Env>$new_node is read-only")
-        }
-      },
-      height_max = function(value) {
-        if (missing(value)) {
-          StochasticSpecies___FF16r__FF16_Env__height_max__get(self)
-        } else {
-          stop("StochasticSpecies<FF16r,FF16_Env>$height_max is read-only")
-        }
-      },
-      heights = function(value) {
-        if (missing(value)) {
-          StochasticSpecies___FF16r__FF16_Env__heights__get(self)
-        } else {
-          StochasticSpecies___FF16r__FF16_Env__heights__set(self, value)
-        }
-      },
-      individuals = function(value) {
-        if (missing(value)) {
-          StochasticSpecies___FF16r__FF16_Env__individuals__get(self)
-        } else {
-          stop("StochasticSpecies<FF16r,FF16_Env>$individuals is read-only")
-        }
-      },
-      is_alive = function(value) {
-        if (missing(value)) {
-          StochasticSpecies___FF16r__FF16_Env__is_alive__get(self)
-        } else {
-          stop("StochasticSpecies<FF16r,FF16_Env>$is_alive is read-only")
-        }
-      },
-      net_reproduction_ratio_by_node = function(value) {
-        if (missing(value)) {
-          StochasticSpecies___FF16r__FF16_Env__net_reproduction_ratio_by_node__get(self)
-        } else {
-          stop("StochasticSpecies<FF16r,FF16_Env>$net_reproduction_ratio_by_node is read-only")
-        }
-      },
-      ode_size = function(value) {
-        if (missing(value)) {
-          StochasticSpecies___FF16r__FF16_Env__ode_size__get(self)
-        } else {
-          stop("StochasticSpecies<FF16r,FF16_Env>$ode_size is read-only")
-        }
-      },
-      ode_state = function(value) {
-        if (missing(value)) {
-          StochasticSpecies___FF16r__FF16_Env__ode_state__get(self)
-        } else {
-          StochasticSpecies___FF16r__FF16_Env__ode_state__set(self, value)
-        }
-      },
-      ode_rates = function(value) {
-        if (missing(value)) {
-          StochasticSpecies___FF16r__FF16_Env__ode_rates__get(self)
-        } else {
-          stop("StochasticSpecies<FF16r,FF16_Env>$ode_rates is read-only")
+          stop("StochasticSpecies<TF24,TF24_Env>$ode_rates is read-only")
         }
       }))
 
@@ -3950,8 +3518,8 @@ StochasticSpecies <- function(T, E) {
 
 StochasticPatch <- function(T, E) {
   type <- c(T, E)
-  valid <- list("StochasticPatch<FF16,FF16_Env>"=c("FF16", "FF16_Env"), "StochasticPatch<FF16w,FF16_Env>"=c("FF16w", "FF16_Env"), "StochasticPatch<FF16r,FF16_Env>"=c("FF16r", "FF16_Env"), "StochasticPatch<K93,K93_Env>"=c("K93", "K93_Env"))
-  constructors <- list("StochasticPatch<FF16,FF16_Env>"=`StochasticPatch<FF16,FF16_Env>`, "StochasticPatch<FF16w,FF16_Env>"=`StochasticPatch<FF16w,FF16_Env>`, "StochasticPatch<FF16r,FF16_Env>"=`StochasticPatch<FF16r,FF16_Env>`, "StochasticPatch<K93,K93_Env>"=`StochasticPatch<K93,K93_Env>`)
+  valid <- list("StochasticPatch<FF16,FF16_Env>"=c("FF16", "FF16_Env"), "StochasticPatch<TF24,TF24_Env>"=c("TF24", "TF24_Env"), "StochasticPatch<K93,K93_Env>"=c("K93", "K93_Env"))
+  constructors <- list("StochasticPatch<FF16,FF16_Env>"=`StochasticPatch<FF16,FF16_Env>`, "StochasticPatch<TF24,TF24_Env>"=`StochasticPatch<TF24,TF24_Env>`, "StochasticPatch<K93,K93_Env>"=`StochasticPatch<K93,K93_Env>`)
   constructors[[check_type(type, valid)]]
 }
 .R6_StochasticPatch <- R6::R6Class("StochasticPatch")
@@ -4023,6 +3591,13 @@ StochasticPatch <- function(T, E) {
           stop("StochasticPatch<FF16,FF16_Env>$height_max is read-only")
         }
       },
+      get_area = function(value) {
+        if (missing(value)) {
+          StochasticPatch___FF16__FF16_Env__get_area__get(self)
+        } else {
+          stop("StochasticPatch<FF16,FF16_Env>$get_area is read-only")
+        }
+      },
       parameters = function(value) {
         if (missing(value)) {
           StochasticPatch___FF16__FF16_Env__parameters__get(self)
@@ -4074,12 +3649,12 @@ StochasticPatch <- function(T, E) {
       }))
 
 
-`StochasticPatch<FF16w,FF16_Env>` <- function(parameters, environment, control) {
-  StochasticPatch___FF16w__FF16_Env__ctor(parameters, environment, control)
+`StochasticPatch<TF24,TF24_Env>` <- function(parameters, environment, control) {
+  StochasticPatch___TF24__TF24_Env__ctor(parameters, environment, control)
 }
-.R6_StochasticPatch___FF16w__FF16_Env <-
+.R6_StochasticPatch___TF24__TF24_Env <-
   R6::R6Class(
-    "StochasticPatch<FF16w,FF16_Env>",
+    "StochasticPatch<TF24,TF24_Env>",
     inherit=.R6_StochasticPatch,
     portable=TRUE,
     public=list(
@@ -4088,220 +3663,111 @@ StochasticPatch <- function(T, E) {
         self$.ptr <- ptr
       },
       compute_competition = function(height) {
-        StochasticPatch___FF16w__FF16_Env__compute_competition(self, height)
+        StochasticPatch___TF24__TF24_Env__compute_competition(self, height)
       },
       introduce_new_node = function(species_index) {
-        StochasticPatch___FF16w__FF16_Env__introduce_new_node(self, species_index)
+        StochasticPatch___TF24__TF24_Env__introduce_new_node(self, species_index)
       },
       introduce_new_node_and_update = function(species_index) {
-        StochasticPatch___FF16w__FF16_Env__introduce_new_node_and_update(self, species_index)
+        StochasticPatch___TF24__TF24_Env__introduce_new_node_and_update(self, species_index)
       },
       compute_environment = function() {
-        StochasticPatch___FF16w__FF16_Env__compute_environment(self)
+        StochasticPatch___TF24__TF24_Env__compute_environment(self)
       },
       compute_rates = function() {
-        StochasticPatch___FF16w__FF16_Env__compute_rates(self)
+        StochasticPatch___TF24__TF24_Env__compute_rates(self)
       },
       reset = function() {
-        StochasticPatch___FF16w__FF16_Env__reset(self)
+        StochasticPatch___TF24__TF24_Env__reset(self)
       },
       set_ode_state = function(values, time) {
-        StochasticPatch___FF16w__FF16_Env__set_ode_state(self, values, time)
+        StochasticPatch___TF24__TF24_Env__set_ode_state(self, values, time)
       },
       derivs = function(y, time) {
-        StochasticPatch___FF16w__FF16_Env__derivs(self, y, time)
+        StochasticPatch___TF24__TF24_Env__derivs(self, y, time)
       },
       set_state = function(time, state, n) {
-        StochasticPatch___FF16w__FF16_Env__set_state(self, time, state, n)
+        StochasticPatch___TF24__TF24_Env__set_state(self, time, state, n)
       },
       deaths = function() {
-        StochasticPatch___FF16w__FF16_Env__deaths(self)
+        StochasticPatch___TF24__TF24_Env__deaths(self)
       }),
     active=list(
       time = function(value) {
         if (missing(value)) {
-          StochasticPatch___FF16w__FF16_Env__time__get(self)
+          StochasticPatch___TF24__TF24_Env__time__get(self)
         } else {
-          stop("StochasticPatch<FF16w,FF16_Env>$time is read-only")
+          stop("StochasticPatch<TF24,TF24_Env>$time is read-only")
         }
       },
       size = function(value) {
         if (missing(value)) {
-          StochasticPatch___FF16w__FF16_Env__size__get(self)
+          StochasticPatch___TF24__TF24_Env__size__get(self)
         } else {
-          stop("StochasticPatch<FF16w,FF16_Env>$size is read-only")
+          stop("StochasticPatch<TF24,TF24_Env>$size is read-only")
         }
       },
       height_max = function(value) {
         if (missing(value)) {
-          StochasticPatch___FF16w__FF16_Env__height_max__get(self)
+          StochasticPatch___TF24__TF24_Env__height_max__get(self)
         } else {
-          stop("StochasticPatch<FF16w,FF16_Env>$height_max is read-only")
+          stop("StochasticPatch<TF24,TF24_Env>$height_max is read-only")
+        }
+      },
+      get_area = function(value) {
+        if (missing(value)) {
+          StochasticPatch___TF24__TF24_Env__get_area__get(self)
+        } else {
+          stop("StochasticPatch<TF24,TF24_Env>$get_area is read-only")
         }
       },
       parameters = function(value) {
         if (missing(value)) {
-          StochasticPatch___FF16w__FF16_Env__parameters__get(self)
+          StochasticPatch___TF24__TF24_Env__parameters__get(self)
         } else {
-          stop("StochasticPatch<FF16w,FF16_Env>$parameters is read-only")
+          stop("StochasticPatch<TF24,TF24_Env>$parameters is read-only")
         }
       },
       environment = function(value) {
         if (missing(value)) {
-          StochasticPatch___FF16w__FF16_Env__environment__get(self)
+          StochasticPatch___TF24__TF24_Env__environment__get(self)
         } else {
-          stop("StochasticPatch<FF16w,FF16_Env>$environment is read-only")
+          stop("StochasticPatch<TF24,TF24_Env>$environment is read-only")
         }
       },
       species = function(value) {
         if (missing(value)) {
-          StochasticPatch___FF16w__FF16_Env__species__get(self)
+          StochasticPatch___TF24__TF24_Env__species__get(self)
         } else {
-          stop("StochasticPatch<FF16w,FF16_Env>$species is read-only")
+          stop("StochasticPatch<TF24,TF24_Env>$species is read-only")
         }
       },
       ode_size = function(value) {
         if (missing(value)) {
-          StochasticPatch___FF16w__FF16_Env__ode_size__get(self)
+          StochasticPatch___TF24__TF24_Env__ode_size__get(self)
         } else {
-          stop("StochasticPatch<FF16w,FF16_Env>$ode_size is read-only")
+          stop("StochasticPatch<TF24,TF24_Env>$ode_size is read-only")
         }
       },
       ode_time = function(value) {
         if (missing(value)) {
-          StochasticPatch___FF16w__FF16_Env__ode_time__get(self)
+          StochasticPatch___TF24__TF24_Env__ode_time__get(self)
         } else {
-          stop("StochasticPatch<FF16w,FF16_Env>$ode_time is read-only")
+          stop("StochasticPatch<TF24,TF24_Env>$ode_time is read-only")
         }
       },
       ode_state = function(value) {
         if (missing(value)) {
-          StochasticPatch___FF16w__FF16_Env__ode_state__get(self)
+          StochasticPatch___TF24__TF24_Env__ode_state__get(self)
         } else {
-          stop("StochasticPatch<FF16w,FF16_Env>$ode_state is read-only")
+          stop("StochasticPatch<TF24,TF24_Env>$ode_state is read-only")
         }
       },
       ode_rates = function(value) {
         if (missing(value)) {
-          StochasticPatch___FF16w__FF16_Env__ode_rates__get(self)
+          StochasticPatch___TF24__TF24_Env__ode_rates__get(self)
         } else {
-          stop("StochasticPatch<FF16w,FF16_Env>$ode_rates is read-only")
-        }
-      }))
-
-
-`StochasticPatch<FF16r,FF16_Env>` <- function(parameters, environment, control) {
-  StochasticPatch___FF16r__FF16_Env__ctor(parameters, environment, control)
-}
-.R6_StochasticPatch___FF16r__FF16_Env <-
-  R6::R6Class(
-    "StochasticPatch<FF16r,FF16_Env>",
-    inherit=.R6_StochasticPatch,
-    portable=TRUE,
-    public=list(
-      .ptr=NULL,
-      initialize = function(ptr) {
-        self$.ptr <- ptr
-      },
-      compute_competition = function(height) {
-        StochasticPatch___FF16r__FF16_Env__compute_competition(self, height)
-      },
-      introduce_new_node = function(species_index) {
-        StochasticPatch___FF16r__FF16_Env__introduce_new_node(self, species_index)
-      },
-      introduce_new_node_and_update = function(species_index) {
-        StochasticPatch___FF16r__FF16_Env__introduce_new_node_and_update(self, species_index)
-      },
-      compute_environment = function() {
-        StochasticPatch___FF16r__FF16_Env__compute_environment(self)
-      },
-      compute_rates = function() {
-        StochasticPatch___FF16r__FF16_Env__compute_rates(self)
-      },
-      reset = function() {
-        StochasticPatch___FF16r__FF16_Env__reset(self)
-      },
-      set_ode_state = function(values, time) {
-        StochasticPatch___FF16r__FF16_Env__set_ode_state(self, values, time)
-      },
-      derivs = function(y, time) {
-        StochasticPatch___FF16r__FF16_Env__derivs(self, y, time)
-      },
-      set_state = function(time, state, n) {
-        StochasticPatch___FF16r__FF16_Env__set_state(self, time, state, n)
-      },
-      deaths = function() {
-        StochasticPatch___FF16r__FF16_Env__deaths(self)
-      }),
-    active=list(
-      time = function(value) {
-        if (missing(value)) {
-          StochasticPatch___FF16r__FF16_Env__time__get(self)
-        } else {
-          stop("StochasticPatch<FF16r,FF16_Env>$time is read-only")
-        }
-      },
-      size = function(value) {
-        if (missing(value)) {
-          StochasticPatch___FF16r__FF16_Env__size__get(self)
-        } else {
-          stop("StochasticPatch<FF16r,FF16_Env>$size is read-only")
-        }
-      },
-      height_max = function(value) {
-        if (missing(value)) {
-          StochasticPatch___FF16r__FF16_Env__height_max__get(self)
-        } else {
-          stop("StochasticPatch<FF16r,FF16_Env>$height_max is read-only")
-        }
-      },
-      parameters = function(value) {
-        if (missing(value)) {
-          StochasticPatch___FF16r__FF16_Env__parameters__get(self)
-        } else {
-          stop("StochasticPatch<FF16r,FF16_Env>$parameters is read-only")
-        }
-      },
-      environment = function(value) {
-        if (missing(value)) {
-          StochasticPatch___FF16r__FF16_Env__environment__get(self)
-        } else {
-          stop("StochasticPatch<FF16r,FF16_Env>$environment is read-only")
-        }
-      },
-      species = function(value) {
-        if (missing(value)) {
-          StochasticPatch___FF16r__FF16_Env__species__get(self)
-        } else {
-          stop("StochasticPatch<FF16r,FF16_Env>$species is read-only")
-        }
-      },
-      ode_size = function(value) {
-        if (missing(value)) {
-          StochasticPatch___FF16r__FF16_Env__ode_size__get(self)
-        } else {
-          stop("StochasticPatch<FF16r,FF16_Env>$ode_size is read-only")
-        }
-      },
-      ode_time = function(value) {
-        if (missing(value)) {
-          StochasticPatch___FF16r__FF16_Env__ode_time__get(self)
-        } else {
-          stop("StochasticPatch<FF16r,FF16_Env>$ode_time is read-only")
-        }
-      },
-      ode_state = function(value) {
-        if (missing(value)) {
-          StochasticPatch___FF16r__FF16_Env__ode_state__get(self)
-        } else {
-          stop("StochasticPatch<FF16r,FF16_Env>$ode_state is read-only")
-        }
-      },
-      ode_rates = function(value) {
-        if (missing(value)) {
-          StochasticPatch___FF16r__FF16_Env__ode_rates__get(self)
-        } else {
-          stop("StochasticPatch<FF16r,FF16_Env>$ode_rates is read-only")
+          stop("StochasticPatch<TF24,TF24_Env>$ode_rates is read-only")
         }
       }))
 
@@ -4371,6 +3837,13 @@ StochasticPatch <- function(T, E) {
           stop("StochasticPatch<K93,K93_Env>$height_max is read-only")
         }
       },
+      get_area = function(value) {
+        if (missing(value)) {
+          StochasticPatch___K93__K93_Env__get_area__get(self)
+        } else {
+          stop("StochasticPatch<K93,K93_Env>$get_area is read-only")
+        }
+      },
       parameters = function(value) {
         if (missing(value)) {
           StochasticPatch___K93__K93_Env__parameters__get(self)
@@ -4423,8 +3896,8 @@ StochasticPatch <- function(T, E) {
 
 StochasticPatchRunner <- function(T, E) {
   type <- c(T, E)
-  valid <- list("StochasticPatchRunner<FF16,FF16_Env>"=c("FF16", "FF16_Env"), "StochasticPatchRunner<FF16w,FF16_Env>"=c("FF16w", "FF16_Env"), "StochasticPatchRunner<FF16r,FF16_Env>"=c("FF16r", "FF16_Env"), "StochasticPatchRunner<K93,K93_Env>"=c("K93", "K93_Env"))
-  constructors <- list("StochasticPatchRunner<FF16,FF16_Env>"=`StochasticPatchRunner<FF16,FF16_Env>`, "StochasticPatchRunner<FF16w,FF16_Env>"=`StochasticPatchRunner<FF16w,FF16_Env>`, "StochasticPatchRunner<FF16r,FF16_Env>"=`StochasticPatchRunner<FF16r,FF16_Env>`, "StochasticPatchRunner<K93,K93_Env>"=`StochasticPatchRunner<K93,K93_Env>`)
+  valid <- list("StochasticPatchRunner<FF16,FF16_Env>"=c("FF16", "FF16_Env"), "StochasticPatchRunner<TF24,TF24_Env>"=c("TF24", "TF24_Env"), "StochasticPatchRunner<K93,K93_Env>"=c("K93", "K93_Env"))
+  constructors <- list("StochasticPatchRunner<FF16,FF16_Env>"=`StochasticPatchRunner<FF16,FF16_Env>`, "StochasticPatchRunner<TF24,TF24_Env>"=`StochasticPatchRunner<TF24,TF24_Env>`, "StochasticPatchRunner<K93,K93_Env>"=`StochasticPatchRunner<K93,K93_Env>`)
   constructors[[check_type(type, valid)]]
 }
 .R6_StochasticPatchRunner <- R6::R6Class("StochasticPatchRunner")
@@ -4491,22 +3964,15 @@ StochasticPatchRunner <- function(T, E) {
         } else {
           StochasticPatchRunner___FF16__FF16_Env__schedule__set(self, value)
         }
-      },
-      state = function(value) {
-        if (missing(value)) {
-          StochasticPatchRunner___FF16__FF16_Env__state__get(self)
-        } else {
-          stop("StochasticPatchRunner<FF16,FF16_Env>$state is read-only")
-        }
       }))
 
 
-`StochasticPatchRunner<FF16w,FF16_Env>` <- function(parameters, environment, control) {
-  StochasticPatchRunner___FF16w__FF16_Env__ctor(parameters, environment, control)
+`StochasticPatchRunner<TF24,TF24_Env>` <- function(parameters, environment, control) {
+  StochasticPatchRunner___TF24__TF24_Env__ctor(parameters, environment, control)
 }
-.R6_StochasticPatchRunner___FF16w__FF16_Env <-
+.R6_StochasticPatchRunner___TF24__TF24_Env <-
   R6::R6Class(
-    "StochasticPatchRunner<FF16w,FF16_Env>",
+    "StochasticPatchRunner<TF24,TF24_Env>",
     inherit=.R6_StochasticPatchRunner,
     portable=TRUE,
     public=list(
@@ -4515,128 +3981,51 @@ StochasticPatchRunner <- function(T, E) {
         self$.ptr <- ptr
       },
       run = function() {
-        StochasticPatchRunner___FF16w__FF16_Env__run(self)
+        StochasticPatchRunner___TF24__TF24_Env__run(self)
       },
       run_next = function() {
-        StochasticPatchRunner___FF16w__FF16_Env__run_next(self)
+        StochasticPatchRunner___TF24__TF24_Env__run_next(self)
       },
       reset = function() {
-        StochasticPatchRunner___FF16w__FF16_Env__reset(self)
+        StochasticPatchRunner___TF24__TF24_Env__reset(self)
       },
       set_schedule_times = function(times) {
-        StochasticPatchRunner___FF16w__FF16_Env__set_schedule_times(self, times)
+        StochasticPatchRunner___TF24__TF24_Env__set_schedule_times(self, times)
       }),
     active=list(
       complete = function(value) {
         if (missing(value)) {
-          StochasticPatchRunner___FF16w__FF16_Env__complete__get(self)
+          StochasticPatchRunner___TF24__TF24_Env__complete__get(self)
         } else {
-          stop("StochasticPatchRunner<FF16w,FF16_Env>$complete is read-only")
+          stop("StochasticPatchRunner<TF24,TF24_Env>$complete is read-only")
         }
       },
       time = function(value) {
         if (missing(value)) {
-          StochasticPatchRunner___FF16w__FF16_Env__time__get(self)
+          StochasticPatchRunner___TF24__TF24_Env__time__get(self)
         } else {
-          stop("StochasticPatchRunner<FF16w,FF16_Env>$time is read-only")
+          stop("StochasticPatchRunner<TF24,TF24_Env>$time is read-only")
         }
       },
       parameters = function(value) {
         if (missing(value)) {
-          StochasticPatchRunner___FF16w__FF16_Env__parameters__get(self)
+          StochasticPatchRunner___TF24__TF24_Env__parameters__get(self)
         } else {
-          stop("StochasticPatchRunner<FF16w,FF16_Env>$parameters is read-only")
+          stop("StochasticPatchRunner<TF24,TF24_Env>$parameters is read-only")
         }
       },
       patch = function(value) {
         if (missing(value)) {
-          StochasticPatchRunner___FF16w__FF16_Env__patch__get(self)
+          StochasticPatchRunner___TF24__TF24_Env__patch__get(self)
         } else {
-          stop("StochasticPatchRunner<FF16w,FF16_Env>$patch is read-only")
+          stop("StochasticPatchRunner<TF24,TF24_Env>$patch is read-only")
         }
       },
       schedule = function(value) {
         if (missing(value)) {
-          StochasticPatchRunner___FF16w__FF16_Env__schedule__get(self)
+          StochasticPatchRunner___TF24__TF24_Env__schedule__get(self)
         } else {
-          StochasticPatchRunner___FF16w__FF16_Env__schedule__set(self, value)
-        }
-      },
-      state = function(value) {
-        if (missing(value)) {
-          StochasticPatchRunner___FF16w__FF16_Env__state__get(self)
-        } else {
-          stop("StochasticPatchRunner<FF16w,FF16_Env>$state is read-only")
-        }
-      }))
-
-
-`StochasticPatchRunner<FF16r,FF16_Env>` <- function(parameters, environment, control) {
-  StochasticPatchRunner___FF16r__FF16_Env__ctor(parameters, environment, control)
-}
-.R6_StochasticPatchRunner___FF16r__FF16_Env <-
-  R6::R6Class(
-    "StochasticPatchRunner<FF16r,FF16_Env>",
-    inherit=.R6_StochasticPatchRunner,
-    portable=TRUE,
-    public=list(
-      .ptr=NULL,
-      initialize = function(ptr) {
-        self$.ptr <- ptr
-      },
-      run = function() {
-        StochasticPatchRunner___FF16r__FF16_Env__run(self)
-      },
-      run_next = function() {
-        StochasticPatchRunner___FF16r__FF16_Env__run_next(self)
-      },
-      reset = function() {
-        StochasticPatchRunner___FF16r__FF16_Env__reset(self)
-      },
-      set_schedule_times = function(times) {
-        StochasticPatchRunner___FF16r__FF16_Env__set_schedule_times(self, times)
-      }),
-    active=list(
-      complete = function(value) {
-        if (missing(value)) {
-          StochasticPatchRunner___FF16r__FF16_Env__complete__get(self)
-        } else {
-          stop("StochasticPatchRunner<FF16r,FF16_Env>$complete is read-only")
-        }
-      },
-      time = function(value) {
-        if (missing(value)) {
-          StochasticPatchRunner___FF16r__FF16_Env__time__get(self)
-        } else {
-          stop("StochasticPatchRunner<FF16r,FF16_Env>$time is read-only")
-        }
-      },
-      parameters = function(value) {
-        if (missing(value)) {
-          StochasticPatchRunner___FF16r__FF16_Env__parameters__get(self)
-        } else {
-          stop("StochasticPatchRunner<FF16r,FF16_Env>$parameters is read-only")
-        }
-      },
-      patch = function(value) {
-        if (missing(value)) {
-          StochasticPatchRunner___FF16r__FF16_Env__patch__get(self)
-        } else {
-          stop("StochasticPatchRunner<FF16r,FF16_Env>$patch is read-only")
-        }
-      },
-      schedule = function(value) {
-        if (missing(value)) {
-          StochasticPatchRunner___FF16r__FF16_Env__schedule__get(self)
-        } else {
-          StochasticPatchRunner___FF16r__FF16_Env__schedule__set(self, value)
-        }
-      },
-      state = function(value) {
-        if (missing(value)) {
-          StochasticPatchRunner___FF16r__FF16_Env__state__get(self)
-        } else {
-          stop("StochasticPatchRunner<FF16r,FF16_Env>$state is read-only")
+          StochasticPatchRunner___TF24__TF24_Env__schedule__set(self, value)
         }
       }))
 
@@ -4701,22 +4090,15 @@ StochasticPatchRunner <- function(T, E) {
         } else {
           StochasticPatchRunner___K93__K93_Env__schedule__set(self, value)
         }
-      },
-      state = function(value) {
-        if (missing(value)) {
-          StochasticPatchRunner___K93__K93_Env__state__get(self)
-        } else {
-          stop("StochasticPatchRunner<K93,K93_Env>$state is read-only")
-        }
       }))
 
 
-`Canopy` <- function(tol, nbase, max_depth) {
-  Canopy__ctor(tol, nbase, max_depth)
+`ResourceSpline` <- function(tol, nbase, max_depth, rescale_usually) {
+  ResourceSpline__ctor(tol, nbase, max_depth, rescale_usually)
 }
-.R6_Canopy <-
+.R6_ResourceSpline <-
   R6::R6Class(
-    "Canopy",
+    "ResourceSpline",
     inherit=,
     portable=TRUE,
     public=list(
@@ -4724,18 +4106,18 @@ StochasticPatchRunner <- function(T, E) {
       initialize = function(ptr) {
         self$.ptr <- ptr
       },
-      canopy_openness = function(height) {
-        Canopy__canopy_openness(self, height)
+      get_value_at_height = function(height) {
+        ResourceSpline__get_value_at_height(self, height)
       },
       clear = function() {
-        Canopy__clear(self)
+        ResourceSpline__clear(self)
       }),
     active=list(
-      canopy_interpolator = function(value) {
+      spline = function(value) {
         if (missing(value)) {
-          Canopy__canopy_interpolator__get(self)
+          ResourceSpline__spline__get(self)
         } else {
-          Canopy__canopy_interpolator__set(self, value)
+          ResourceSpline__spline__set(self, value)
         }
       }))
 
@@ -4847,8 +4229,8 @@ StochasticPatchRunner <- function(T, E) {
 ##' @param  canopy_rescale_usually whether to rescale intervals when estimating light environment
 ##' @param  soil_number_of_depths Number of soil layers to include
 ##' @export
-`FF16_Environment` <- function(canopy_rescale_usually, soil_number_of_depths) {
-  FF16_Environment__ctor(canopy_rescale_usually, soil_number_of_depths)
+`FF16_Environment` <- function() {
+  FF16_Environment__ctor()
 }
 .R6_FF16_Environment <-
   R6::R6Class(
@@ -4860,17 +4242,14 @@ StochasticPatchRunner <- function(T, E) {
       initialize = function(ptr) {
         self$.ptr <- ptr
       },
-      canopy_openness = function(height) {
-        FF16_Environment__canopy_openness(self, height)
+      get_environment_at_height = function(height) {
+        FF16_Environment__get_environment_at_height(self, height)
       },
       clear = function() {
         FF16_Environment__clear(self)
       },
       set_fixed_environment = function(value, height_max) {
         FF16_Environment__set_fixed_environment(self, value, height_max)
-      },
-      set_soil_water_state = function(state) {
-        FF16_Environment__set_soil_water_state(self, state)
       },
       compute_rates = function(resource_depletion) {
         FF16_Environment__compute_rates(self, resource_depletion)
@@ -4890,54 +4269,13 @@ StochasticPatchRunner <- function(T, E) {
           stop("FF16_Environment$ode_size is read-only")
         }
       },
-      soil_number_of_depths = function(value) {
+      light_availability = function(value) {
         if (missing(value)) {
-          FF16_Environment__soil_number_of_depths__get(self)
+          FF16_Environment__light_availability__get(self)
         } else {
-          stop("FF16_Environment$soil_number_of_depths is read-only")
-        }
-      },
-      canopy = function(value) {
-        if (missing(value)) {
-          FF16_Environment__canopy__get(self)
-        } else {
-          FF16_Environment__canopy__set(self, value)
-        }
-      },
-      soil = function(value) {
-        if (missing(value)) {
-          FF16_Environment__soil__get(self)
-        } else {
-          stop("FF16_Environment$soil is read-only")
-        }
-      },
-      extrinsic_drivers = function(value) {
-        if (missing(value)) {
-          FF16_Environment__extrinsic_drivers__get(self)
-        } else {
-          FF16_Environment__extrinsic_drivers__set(self, value)
+          FF16_Environment__light_availability__set(self, value)
         }
       }))
-
-##' Strategy parameters that tune various aspects of the biological model.
-##' @title Strategy parameters
-##' @param ...,values Values to initialise the struct with (either as
-##' variadic arguments, or as a list, but not both).
-##' @export
-`FF16r_Strategy` <- function(..., values=list(...)) {
-  ret <- FF16r_Strategy__ctor()
-  if (length(values) > 0L) {
-    if (is.null(names(values)) || any(names(values) == "")) {
-      stop("All values must be named")
-    }
-    if (length(err <- setdiff(names(values), names(ret))) > 0L) {
-      stop(sprintf("Unknown fields: %s", paste(err, collapse=", ")))
-    }
-    to_set <- intersect(names(values), names(ret))
-    ret[to_set] <- values[to_set]
-  }
-  ret
-}
 
 ##' Strategy parameters that tune various aspects of the biological model.
 ##' @title Strategy parameters
@@ -4959,7 +4297,7 @@ StochasticPatchRunner <- function(T, E) {
   ret
 }
 
-##' K93_Environment object
+##' @rdname FF16_Environment
 ##' @export
 `K93_Environment` <- function() {
   K93_Environment__ctor()
@@ -4974,8 +4312,8 @@ StochasticPatchRunner <- function(T, E) {
       initialize = function(ptr) {
         self$.ptr <- ptr
       },
-      canopy_openness = function(height) {
-        K93_Environment__canopy_openness(self, height)
+      get_environment_at_height = function(height) {
+        K93_Environment__get_environment_at_height(self, height)
       },
       clear = function() {
         K93_Environment__clear(self)
@@ -4991,11 +4329,11 @@ StochasticPatchRunner <- function(T, E) {
           K93_Environment__time__set(self, value)
         }
       },
-      canopy = function(value) {
+      light_availability = function(value) {
         if (missing(value)) {
-          K93_Environment__canopy__get(self)
+          K93_Environment__light_availability__get(self)
         } else {
-          K93_Environment__canopy__set(self, value)
+          K93_Environment__light_availability__set(self, value)
         }
       },
       ode_size = function(value) {
@@ -5005,26 +4343,6 @@ StochasticPatchRunner <- function(T, E) {
           stop("K93_Environment$ode_size is read-only")
         }
       }))
-
-##' Strategy parameters that tune various aspects of the biological model.
-##' @title Strategy parameters
-##' @param ...,values Values to initialise the struct with (either as
-##' variadic arguments, or as a list, but not both).
-##' @export
-`FF16w_Strategy` <- function(..., values=list(...)) {
-  ret <- FF16w_Strategy__ctor()
-  if (length(values) > 0L) {
-    if (is.null(names(values)) || any(names(values) == "")) {
-      stop("All values must be named")
-    }
-    if (length(err <- setdiff(names(values), names(ret))) > 0L) {
-      stop(sprintf("Unknown fields: %s", paste(err, collapse=", ")))
-    }
-    to_set <- intersect(names(values), names(ret))
-    ret[to_set] <- values[to_set]
-  }
-  ret
-}
 
 
 `ExtrinsicDrivers` <- function() {
@@ -5059,5 +4377,188 @@ StochasticPatchRunner <- function(T, E) {
         ExtrinsicDrivers__set_extrapolate(self, driver_name, extrapolate)
       }),
     active=list())
+
+##' Strategy parameters that tune various aspects of the biological model.
+##' @title Strategy parameters
+##' @param ...,values Values to initialise the struct with (either as
+##' variadic arguments, or as a list, but not both).
+##' @export
+`TF24_Strategy` <- function(..., values=list(...)) {
+  ret <- TF24_Strategy__ctor()
+  if (length(values) > 0L) {
+    if (is.null(names(values)) || any(names(values) == "")) {
+      stop("All values must be named")
+    }
+    if (length(err <- setdiff(names(values), names(ret))) > 0L) {
+      stop(sprintf("Unknown fields: %s", paste(err, collapse=", ")))
+    }
+    to_set <- intersect(names(values), names(ret))
+    ret[to_set] <- values[to_set]
+  }
+  ret
+}
+
+##' @title Create an TF24_Environment object.
+##' @description This environment is used for the TF24 strategy, which includes soil moisture and hydraulic
+##' conductivity parameters.
+##' @rdname TF24_Environment
+##' @export
+`TF24_Environment` <- function() {
+  TF24_Environment__ctor()
+}
+.R6_TF24_Environment <-
+  R6::R6Class(
+    "TF24_Environment",
+    inherit=,
+    portable=TRUE,
+    public=list(
+      .ptr=NULL,
+      initialize = function(ptr) {
+        self$.ptr <- ptr
+      },
+      get_environment_at_height = function(height) {
+        TF24_Environment__get_environment_at_height(self, height)
+      },
+      clear = function() {
+        TF24_Environment__clear(self)
+      },
+      set_fixed_environment = function(value, height_max) {
+        TF24_Environment__set_fixed_environment(self, value, height_max)
+      },
+      extrinsic_drivers_get_names = function() {
+        TF24_Environment__extrinsic_drivers_get_names(self)
+      },
+      extrinsic_drivers_set_constant = function(driver_name, value) {
+        TF24_Environment__extrinsic_drivers_set_constant(self, driver_name, value)
+      },
+      extrinsic_drivers_set_variable = function(driver_name, x, y) {
+        TF24_Environment__extrinsic_drivers_set_variable(self, driver_name, x, y)
+      },
+      extrinsic_drivers_evaluate = function(driver_name, x) {
+        TF24_Environment__extrinsic_drivers_evaluate(self, driver_name, x)
+      },
+      extrinsic_drivers_evaluate_range = function(driver_name, x) {
+        TF24_Environment__extrinsic_drivers_evaluate_range(self, driver_name, x)
+      },
+      psi_from_soil_moist = function(theta_) {
+        TF24_Environment__psi_from_soil_moist(self, theta_)
+      },
+      soil_moist_from_psi = function(psi_soil_) {
+        TF24_Environment__soil_moist_from_psi(self, psi_soil_)
+      },
+      set_soil_number_of_depths = function(soil_number_of_depths) {
+        TF24_Environment__set_soil_number_of_depths(self, soil_number_of_depths)
+      },
+      get_soil_number_of_depths = function() {
+        TF24_Environment__get_soil_number_of_depths(self)
+      },
+      set_soil_water_state = function(state) {
+        TF24_Environment__set_soil_water_state(self, state)
+      },
+      get_soil_water_state = function() {
+        TF24_Environment__get_soil_water_state(self)
+      },
+      get_soil_water_state_cumulative_flux = function() {
+        TF24_Environment__get_soil_water_state_cumulative_flux(self)
+      },
+      get_PPFD = function() {
+        TF24_Environment__get_PPFD(self)
+      },
+      get_atm_vpd = function() {
+        TF24_Environment__get_atm_vpd(self)
+      },
+      get_ca = function() {
+        TF24_Environment__get_ca(self)
+      },
+      get_leaf_temp = function() {
+        TF24_Environment__get_leaf_temp(self)
+      },
+      get_atm_o2_kpa = function() {
+        TF24_Environment__get_atm_o2_kpa(self)
+      },
+      get_atm_kpa = function() {
+        TF24_Environment__get_atm_kpa(self)
+      },
+      compute_rates = function(resource_depletion) {
+        TF24_Environment__compute_rates(self, resource_depletion)
+      }),
+    active=list(
+      time = function(value) {
+        if (missing(value)) {
+          TF24_Environment__time__get(self)
+        } else {
+          TF24_Environment__time__set(self, value)
+        }
+      },
+      soil_moist_sat = function(value) {
+        if (missing(value)) {
+          TF24_Environment__soil_moist_sat__get(self)
+        } else {
+          TF24_Environment__soil_moist_sat__set(self, value)
+        }
+      },
+      K_sat = function(value) {
+        if (missing(value)) {
+          TF24_Environment__K_sat__get(self)
+        } else {
+          TF24_Environment__K_sat__set(self, value)
+        }
+      },
+      depth = function(value) {
+        if (missing(value)) {
+          TF24_Environment__depth__get(self)
+        } else {
+          TF24_Environment__depth__set(self, value)
+        }
+      },
+      a_psi = function(value) {
+        if (missing(value)) {
+          TF24_Environment__a_psi__get(self)
+        } else {
+          TF24_Environment__a_psi__set(self, value)
+        }
+      },
+      n_psi = function(value) {
+        if (missing(value)) {
+          TF24_Environment__n_psi__get(self)
+        } else {
+          TF24_Environment__n_psi__set(self, value)
+        }
+      },
+      a_infil = function(value) {
+        if (missing(value)) {
+          TF24_Environment__a_infil__get(self)
+        } else {
+          TF24_Environment__a_infil__set(self, value)
+        }
+      },
+      b_infil = function(value) {
+        if (missing(value)) {
+          TF24_Environment__b_infil__get(self)
+        } else {
+          TF24_Environment__b_infil__set(self, value)
+        }
+      },
+      ode_size = function(value) {
+        if (missing(value)) {
+          TF24_Environment__ode_size__get(self)
+        } else {
+          stop("TF24_Environment$ode_size is read-only")
+        }
+      },
+      light_availability = function(value) {
+        if (missing(value)) {
+          TF24_Environment__light_availability__get(self)
+        } else {
+          TF24_Environment__light_availability__set(self, value)
+        }
+      },
+      soil = function(value) {
+        if (missing(value)) {
+          TF24_Environment__soil__get(self)
+        } else {
+          stop("TF24_Environment$soil is read-only")
+        }
+      }))
 
 

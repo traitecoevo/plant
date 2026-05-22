@@ -47,6 +47,7 @@ public:
   NodeSchedule r_schedule() const { return schedule; }
   void r_set_schedule(NodeSchedule x);
   void r_set_schedule_times(std::vector<std::vector<double>> x);
+  Rcpp::List r_get_state() const { return patch.r_get_state(); };
 
 private:
   bool deaths();

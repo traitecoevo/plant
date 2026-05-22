@@ -18,7 +18,7 @@ for (x in names(strategy_types)) {
   p <- Parameters(x, e)(strategies=list(s),
                         patch_type = 'meta-population')
   
-  env <- make_environment(x)
+  env <- Environment(x)
   
   ctrl <- Control()
   patch <- Patch(x, e)(p, env, ctrl)
@@ -29,7 +29,7 @@ for (x in names(strategy_types)) {
     expect_equal(patch$size, 1)
     expect_identical(patch$height_max, cmp$height)
     expect_equal(patch$parameters, p)
-    
+    expect_equal(patch$get_area, 1.0)
     expect_is(patch$environment, c(paste0(x, "_Environment"), "R6"))
     expect_identical(patch$environment$time, 0.0)
 
@@ -44,10 +44,17 @@ for (x in names(strategy_types)) {
     expect_equal(patch$ode_size, env_size)
     
     # either 0 or numeric(0)
-    if(x %in% c("FF16", "FF16r", "K93")) {
+    if(x %in% c("FF16", "K93")) {
       expect_equal(patch$ode_state, numeric(0))
       expect_equal(patch$ode_rates, numeric(0))
     }
+    if(x %in% c("TF24")) {
+      length_odes <- env$get_soil_number_of_depths()
+      soil_moist_inits <- c(rep(env$soil_moist_sat, length_odes)/2, rep(0,3))
+      expect_equal(patch$ode_state, soil_moist_inits)
+      expect_equal(patch$ode_rates, c(-363.8567, rep(0,4), rep(1,2), 110.1570), tol = 1e-4)
+    }
+    
     expect_identical(patch$ode_state, env_state)
     expect_identical(patch$ode_rates, env_rates)
     
@@ -121,7 +128,7 @@ for (x in names(strategy_types)) {
     ## tt <- seq(0, 25, length.out=26)
     ## hh <- patch$state("height")[[1]]
     ## for (ti in tt[-1]) {
-    ##   solver$advance(ti)
+    ##   solver$advance_adaptive(ti)
     ##   hh <- c(hh, patch$state("height")[[1]])
     ## }
     
@@ -134,9 +141,9 @@ for (x in names(strategy_types)) {
     
     ## test_that("OK at end of sequence", {
     ##   expect_identical(patch$time, tt[[length(tt)]])
-    ##   solver$advance(tt[[length(tt)]])
+    ##   solver$advance_adaptive(tt[[length(tt)]])
     ##   expect_identical(patch$time, tt[[length(tt)]])
-    ##   expect_error(solver$advance(tt[[length(tt)]] - 1e-8))
+    ##   expect_error(solver$advance_adaptive(tt[[length(tt)]] - 1e-8))
     ## })
     
     ## test_that("State get/set works", {
@@ -168,6 +175,65 @@ for (x in names(strategy_types)) {
     ##   expect_identical(patch2$ode_rates, patch$ode_rates)
     ## })
   })
+
+  test_that("change patch size", {
+  
+    ctrl <- Control()
+    e <- environment_types[[x]]
+    env <- Environment(x)
+    p2 <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
+                          patch_area= 2, max_patch_lifetime = 30)
+    patch2 <- Patch(x, e)(p2, env, ctrl)
+    expect_equal(p2$patch_area, 2)
+    expect_equal(patch2$get_area, 2)
+
+    p10 <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
+                          patch_area= 10, max_patch_lifetime = 30)
+    patch10 <- Patch(x, e)(p10, env, ctrl)
+    expect_equal(p10$patch_area, 10)
+    expect_equal(patch10$get_area, 10)
+
+    # check changes in patch_area propgates through to scm outputs
+
+    # Because of different sizes, we expect pacthes with 
+    # greater area 10 to have higher reproductive ratios 
+    # when seed input is the same
+
+    # check with same birth rate. Expect pacth with larger 
+    # area to have greater reproductive ratio, as less competition
+    p2$strategies[[1]]$birth_rate_y <- 1
+    p10$strategies[[1]]$birth_rate_y <- 1
+
+    expect_warning(scm2 <- run_scm(p2))
+    expect_warning(scm10a <- run_scm(p10))
+
+    expect_gt(
+      scm10a$net_reproduction_ratios,
+      scm2$net_reproduction_ratios
+    )
+
+    # Now change birth rate so that same per unit area
+    # make p10 5 times p2
+    p10b <- p10
+    p10b$strategies[[1]]$birth_rate_y <- 5
+    
+    expect_warning(scm2 <- run_scm(p2))
+    expect_warning(scm10b <- run_scm(p10b))
+
+    # we expect pacthes with area 2 and 10 to same
+    # reproductive ratios when seed input differs by same multiple
+    expect_equal(
+      scm2$net_reproduction_ratios,
+      scm10b$net_reproduction_ratios,
+      tol = 1e-4
+    )
+
+    expect_gt(
+      scm10a$net_reproduction_ratios,
+      scm10b$net_reproduction_ratios
+    )
+
+  })
   
   test_that("Weibull Disturbance as default", {
     expect_equal(patch$time, 0.0)
@@ -188,7 +254,7 @@ for (x in names(strategy_types)) {
   
   test_that("No Disturbance for fixed-time patches", {
     p$patch_type <- "fixed"
-    env <- make_environment(x)
+    env <- Environment(x)
     ctrl <- scm_base_control()
 
     patch <- Patch(x, e)(p, env, ctrl)

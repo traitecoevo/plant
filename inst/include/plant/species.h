@@ -5,7 +5,7 @@
 #include <vector>
 #include <plant/util.h>
 #include <plant/environment.h>
-#include <plant/ode_interface.h>
+#include <plant/ode_solver/ode_interface.h>
 #include <plant/node.h>
 #include <plant/extrinsic_drivers.h>
 
@@ -38,8 +38,6 @@ public:
   // care of by Environment for us.
   size_t ode_size() const;
   size_t aux_size() const;
-  size_t strategy_aux_size() const;
-  std::vector<std::string> aux_names() const;
 
   void resize_consumption_rates(int i);
   double consumption_rate(int i) const;
@@ -49,6 +47,12 @@ public:
   ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
   ode::iterator       ode_aux(ode::iterator it) const;
+
+  Rcpp::NumericMatrix r_get_state() const;
+
+  //TODO ideally move this down to node but i can't get it to work
+  Rcpp::NumericMatrix::iterator get_node_state(const Node<T, E> &node, Rcpp::NumericMatrix::iterator it) const;
+  Rcpp::NumericMatrix::iterator get_node_aux(const Node<T, E> &node, Rcpp::NumericMatrix::iterator it) const;
 
   // * R interface
   std::vector<double> r_heights() const;
@@ -71,8 +75,8 @@ public:
 
 
   // These are used to determine the degree of node refinement.
-  std::vector<double> r_competition_effects() const;
-  std::vector<double> r_competition_effects_error(double scal) const;
+  std::vector<double> r_compute_competition_effect_by_nodes() const;
+  std::vector<double> r_compute_competition_effect_by_nodes_error(double scal) const;
 
   // This is just kind of useful
   std::vector<double> r_log_densities() const;
@@ -233,18 +237,7 @@ size_t Species<T,E>::ode_size() const {
 // bit clunky...
 template <typename T, typename E>
 size_t Species<T,E>::aux_size() const {
-  return size() * strategy_aux_size();
-}
-
-// these 2 only really used in get_aux.h
-template <typename T, typename E>
-size_t Species<T,E>::strategy_aux_size() const {
-  return strategy->aux_size();
-}
-
-template <typename T, typename E>
-std::vector<std::string> Species<T,E>::aux_names() const {
-  return strategy->aux_names();
+  return size() * strategy->aux_size();
 }
 
 template <typename T, typename E>
@@ -266,6 +259,49 @@ ode::iterator Species<T,E>::ode_rates(ode::iterator it) const {
 template <typename T, typename E>
 ode::iterator Species<T,E>::ode_aux(ode::iterator it) const {
   return ode::ode_aux(nodes.begin(), nodes.end(), it);
+}
+
+template <typename T, typename E>
+Rcpp::NumericMatrix Species<T, E>::r_get_state() const {
+
+  size_t ode_size = node_type::ode_size(), n_nodes = size();
+  size_t aux_size = strategy->aux_size();
+
+  // Set output size. // +1 is seed
+  Rcpp::NumericMatrix ret(static_cast<int>(ode_size + aux_size), n_nodes + 1); 
+  Rcpp::NumericMatrix::iterator it = ret.begin();
+  
+  for (size_t i = 0; i < n_nodes; ++i)
+  {
+    it = get_node_state(nodes[i], it);
+    it = get_node_aux(nodes[i], it);
+  }
+
+  it = get_node_state(new_node, it);
+  it = get_node_aux(new_node, it);
+
+  // Combine ode_names and aux_names into a single vector for dimnames
+  std::vector<std::string> names = node_type::ode_names();
+  std::vector<std::string> aux = strategy->aux_names();
+  names.insert(names.end(), aux.begin(), aux.end());
+
+  ret.attr("dimnames") = Rcpp::List::create(names, R_NilValue);
+
+  return ret;
+}
+
+template <typename T, typename E>
+Rcpp::NumericMatrix::iterator Species<T, E>::get_node_state(const Node<T, E> &node, Rcpp::NumericMatrix::iterator it) const
+{
+  std::vector<double> tmp = ode::r_ode_state(node);
+  return std::copy(tmp.begin(), tmp.end(), it);
+}
+
+template <typename T, typename E>
+Rcpp::NumericMatrix::iterator Species<T, E>::get_node_aux(const Node<T, E> &node, Rcpp::NumericMatrix::iterator it) const
+{
+  std::vector<double> tmp = ode::r_ode_aux(node);
+  return std::copy(tmp.begin(), tmp.end(), it);
 }
 
 template <typename T, typename E>
@@ -304,18 +340,18 @@ void Species<T,E>::r_set_heights(std::vector<double> heights) {
 }
 
 template <typename T, typename E>
-std::vector<double> Species<T,E>::r_competition_effects() const {
+std::vector<double> Species<T,E>::r_compute_competition_effect_by_nodes() const {
   std::vector<double> ret;
   ret.reserve(size());
   for (auto& c : nodes) {
-    ret.push_back(c.competition_effect());
+    ret.push_back(c.compute_competition(0.0));
   }
   return ret;
 }
 
 template <typename T, typename E>
-std::vector<double> Species<T,E>::r_competition_effects_error(double scal) const {
-  return util::local_error_integration(r_heights(), r_competition_effects(), scal);
+std::vector<double> Species<T,E>::r_compute_competition_effect_by_nodes_error(double scal) const {
+  return util::local_error_integration(r_heights(), r_compute_competition_effect_by_nodes(), scal);
 }
 
 template <typename T, typename E>

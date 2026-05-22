@@ -19,7 +19,7 @@ test_that("No disturbance", {
 
   # integration test to show constant density  
   time <- seq(0, 100, len = 1e3)
-  d <- obj$density(time)
+  d <- purrr::map_dbl(time, ~obj$density(.x))
   expect_equal(trapezium(time, d), 100)
 })
 
@@ -48,7 +48,7 @@ test_that("Weibull disturbance regime", {
   
   # integration test to show normalised density  
   time <- seq(0, 100, len = 1e3)
-  d <- obj$density(time)
+  d <- purrr::map_dbl(time, ~ obj$density(.x))
   expect_equal(trapezium(time, d), 0.9999, tolerance = 0.0001)
   
   # check cdf

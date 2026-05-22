@@ -73,13 +73,13 @@ test_that("K93_Strategy hyper-parameterisation", {
 })
 
 ## Number of ODE steps is unstable - needs review
-test_that("K93 seed rain is unchanged", {
+test_that("K93 offspring production is unchanged", {
 
   # Generic parameters
   p0 <- scm_base_parameters("K93")
   p0$max_patch_lifetime <- 35.10667
   
-  env <- make_environment("K93")
+  env <- Environment("K93")
   ctrl <- scm_base_control()
 
   # Use single sp. defaults

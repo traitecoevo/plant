@@ -1,4 +1,4 @@
-#include <plant/ode_control.h>
+#include <plant/ode_solver/ode_control.h>
 #include <plant/util.h>
 
 namespace plant {
@@ -42,11 +42,14 @@ double OdeControl::adjust_step_size(size_t dim, size_t ord,
     if (r < 0.2) {
       r = 0.2;
     }
-    step_size *= r;
-    last_step_size_shrank = true;
-    if (step_size < step_size_min) {
-      step_size = step_size_min;
-      util::stop("Step size became too small");
+    double new_step = step_size * r;
+    if (new_step < step_size_min) {
+      new_step = step_size_min;
+    }
+
+    if(new_step < step_size) {
+      step_size = new_step;
+      last_step_size_shrank = true;
     }
   } else if (rmax < 0.5) {
     // increase step, no more than factor of 5

@@ -1,4 +1,16 @@
-// -*-c++-*-
+// The class `QAG` provides methods to use Gauss-Kronrod quadrature to numerically integrate a function,
+// e.g. `double QAG::integrate(Function f, double a, double b)`. 
+//
+// There are adaptive and non-adaptive methods. In the adaptive method, the difference between a Gauss quadrature rule and its Kronrod extension is used as an estimate of the approximation error, from which the need for more points is determined.
+//
+// The QAG routine is adapted from the "QAG" algorithm in QUADPACK
+// The `QAG` class call class `QK`, which does the actual integration. This is code is ported from GSL.
+// - The integration has several "rules", defined in qk_rules.cpp. These include QK15, QK21, QK31, QK41, QK51. These allow for different numbers of points in the integration.
+
+// General background on the method is available at: https://en.wikipedia.org/wiki/ or
+// or https://www.gnu.org/software/gsl/doc/html/integration.html
+// Implemented by Rich FitzJohn
+
 #ifndef PLANT_PLANT_QAG_H_
 #define PLANT_PLANT_QAG_H_
 
@@ -10,8 +22,6 @@
 namespace plant {
 namespace quadrature {
 
-// This is the "QAG" algorithm from QUADPACK -- quadrature, adaptive,
-// Gaussian.  Does not handle infinite intervals or singularities.
 class QAG {
 public:
   QAG(); // need a default constructor.
@@ -36,12 +46,12 @@ public:
   double r_integrate(SEXP f, double a, double b);
   double r_integrate_with_intervals(SEXP f, SEXP intervals);
   double r_integrate_with_last_intervals(SEXP f, double a, double b);
-
-private:
   template <typename Function>
   double integrate_adaptive(Function f, double a, double b);
   template <typename Function>
   double integrate_fixed(Function f, double a, double b);
+
+private:
   template <typename Function>
   internal::workspace::point do_integrate(Function f, double a, double b);
   template <typename Function>

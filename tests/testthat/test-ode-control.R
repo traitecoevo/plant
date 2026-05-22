@@ -11,7 +11,7 @@ test_that("Defaults", {
     step_size_initial=1e-6)
   keys <- sort(names(expected))
 
-  ctrl <- OdeControl()
+  ctrl <- plant:::OdeControl()
   expect_is(ctrl, "OdeControl")
 
   expect_identical(sort(names(ctrl)), keys)

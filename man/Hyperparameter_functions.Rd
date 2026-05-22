@@ -4,7 +4,7 @@
 \alias{make_hyperpar}
 \alias{param_hyperpar}
 \alias{hyperpar}
-\title{Hyperparameters for FF16 physiological model}
+\title{Hyperparameters for physiological model}
 \usage{
 make_hyperpar(type)
 

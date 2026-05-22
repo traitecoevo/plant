@@ -112,6 +112,8 @@ bool is_decreasing(ForwardIterator first, ForwardIterator last) {
 
 void stop(const std::string&);
 
+void warning(const std::string &);
+
 template<typename T>
 std::string to_string(T x) {
   return std::to_string(x);

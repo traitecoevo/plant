@@ -19,7 +19,8 @@ test_that("Default times", {
         times <- c(times, time)
       }
       # Trucate last time to max_time; it may have overshot.
-      last(times) <- max_time
+      times[length(times)] <- max_time
+
       times
     }
 
@@ -27,7 +28,6 @@ test_that("Default times", {
     tt <- node_schedule_times_default(t1)
     expect_identical(tt[[1]], 0.0)
 
-    expect_lt(last(tt), t1)
     expect_equal(c(tt, t1), cmp_node_introduction_times(t1))
   }
 })
@@ -54,25 +54,12 @@ test_that("Default schedule", {
 })
 
 test_that("strategy_list", {
-  for (x in c("FF16", "FF16r")) {
+  for (x in c("FF16")) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)()
-    s <- strategy_list(trait_matrix(1, "lma"), p, make_hyperpar(x)(), 1.0)
+    s <- plant:::strategy_list(trait_matrix(1, "lma"), p, make_hyperpar(x)(), 1.0)
     expect_equal(length(s), 1)
     expect_is(s, "list")
     expect_is(s[[1]], sprintf("%s_Strategy", x))
-  }
-})
-
-test_that("individual_list", {
-  for (x in names(strategy_types)) {
-    e <- environment_types[[x]]
-    p <- Parameters(x, e)()
-    
-    obj <- individual_list(trait_matrix(1, "lma"), p, make_hyperpar(x)(), 1.0)
-    expect_equal(length(obj), 1)
-    expect_is(obj, "list")
-    expect_is(obj[[1]], "Individual")
-    expect_is(obj[[1]], sprintf("Individual<%s,%s>", x, e))
   }
 })
