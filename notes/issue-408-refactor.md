@@ -128,9 +128,24 @@ Implemented:
 - **Verify**: `make compile` + `devtools::test()`; the regression in
   `test-scm.R` and the FF16 reference baselines must stay green.
 
-### Phase 2 — Error collection inside `SCM::run()`
+### Phase 2 — Error collection inside `SCM::run()` — ✅ DONE
 
 A single run yields the refinement signal; delete the R-side step loop.
+
+Implemented:
+- `scm.h`: added `collect_errors` flag and `competition_error_by_node`
+  (per-species running max, init `-Inf`, NA-skipping → mirrors
+  `apply(., 2, max, na.rm=TRUE)`). `run()` folds in
+  `collect_competition_errors(added)` after each `run_next()`.
+  `combined_node_errors()` returns the per-node `max(competition, reproduction)`
+  error — the exact signal `run_scm_error()$err$total` assembled in R.
+- `RcppR6_classes.yml`: exposed `collect_errors` (field) and
+  `combined_node_errors` (getter); `make RcppR6 && make full_compile`.
+- Verified `combined_node_errors` == old `run_scm_error()$err$total` for FF16
+  single / two-species / refined schedules (exact). Added durable regression
+  `test-scm.R::"combined_node_errors collected in C++ matches per-step
+  assembly"` (inlines the assembly so it survives Phase 4).
+- `run_scm_error` is now redundant; removed in Phase 4.
 
 - **`scm.h`**: add a `collect_errors` flag and per-species running state:
   `competition_error[species][node]` updated as an element-wise max after each

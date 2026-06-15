@@ -735,10 +735,18 @@ SCM:
       access: member
       name_cpp: r_get_collect
       name_cpp_set: r_set_collect
+    collect_errors:
+      type: bool
+      access: member
+      name_cpp: r_get_collect_errors
+      name_cpp_set: r_set_collect_errors
     net_reproduction_ratio_errors:
       type: "std::vector<std::vector<double>>"
       access: member
       name_cpp: r_net_reproduction_ratio_errors
+    combined_node_errors:
+      type: "std::vector<std::vector<double>>"
+      access: member
 
 StochasticSpecies:
   name_cpp: "plant::StochasticSpecies<T,E>"

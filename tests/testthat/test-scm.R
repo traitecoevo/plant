@@ -227,6 +227,47 @@ test_that("Offspring production & error calculations correct", {
   }
 })
 
+test_that("combined_node_errors collected in C++ matches per-step assembly", {
+  for (x in c("FF16")) {
+    context(sprintf("SCM-%s", x))
+    e <- environment_types[[x]]
+    p0 <- scm_base_parameters(x)
+    p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, birth_rate_list = 1.0)
+    env <- Environment(x)
+    ctrl <- scm_base_control()
+    n_spp <- length(p1$strategies)
+
+    ## New path: a single run with error collection enabled.
+    scm <- SCM(x, e)(p1, env, ctrl)
+    scm$collect_errors <- TRUE
+    scm$run()
+    new_total <- scm$combined_node_errors
+
+    ## Reference: sample the competition error per introduction step and take
+    ## the column-wise max with the reproduction error (the logic the R-side
+    ## refinement loop used to perform).
+    scm_ref <- SCM(x, e)(p1, env, ctrl)
+    lai_error <- rep(list(NULL), n_spp)
+    while (!scm_ref$complete) {
+      added <- scm_ref$run_next()
+      for (idx in added) {
+        lai_error[[idx]] <- c(
+          lai_error[[idx]],
+          list(scm_ref$compute_competition_effect_error_by_node_for_species_i(idx))
+        )
+      }
+    }
+    rbind_list <- function(z) do.call("rbind", as.list(z))
+    lai_error <- lapply(lai_error, function(z) rbind_list(pad_matrix(z)))
+    repro <- scm_ref$net_reproduction_ratio_errors
+    f <- function(m) suppressWarnings(apply(m, 2, max, na.rm = TRUE))
+    ref_total <- lapply(seq_len(n_spp), function(idx)
+      f(rbind(lai_error[[idx]], repro[[idx]])))
+
+    expect_equal(new_total, ref_total)
+  }
+})
+
 test_that("Can create empty SCM", {
   context("SCM-empty")
   for (x in names(strategy_types)) {

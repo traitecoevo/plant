@@ -7,6 +7,9 @@
 #include <plant/patch.h>
 #include <plant/scm_utils.h>
 
+#include <algorithm>
+#include <limits>
+
 using namespace Rcpp;
 
 namespace plant {
@@ -45,6 +48,13 @@ public:
 
   double r_net_reproduction_ratio_for_species(util::index species_index) const;
   std::vector<std::vector<double>> r_net_reproduction_ratio_errors() const;
+
+  // Per-node refinement error: element-wise max of the competition error
+  // (sampled during the run) and the reproduction error (computed at the end).
+  // This is the signal that drives schedule refinement.
+  std::vector<std::vector<double>> combined_node_errors() const;
+  bool r_get_collect_errors() const { return collect_errors; }
+  void r_set_collect_errors(bool x) { collect_errors = x; }
   std::vector<double>
   r_compute_competition_effect_error_by_node_for_species_i(util::index species_index) const;
   std::vector<double> r_ode_times() const;
@@ -60,17 +70,26 @@ public:
   void r_set_node_schedule_times(std::vector<std::vector<double>> x);
   
   bool collect;
+  bool collect_errors;
   std::vector<patch_type> history;
 
   Rcpp::List r_get_state() const { return patch.r_get_state(); };
 
 private:
   double total_offspring_production() const;
+  // Update the running per-node competition error for the species introduced
+  // this step (mirrors the per-step sampling the R refinement loop did).
+  void collect_competition_errors(const std::vector<size_t>& added);
 
   parameters_type parameters;
   patch_type patch;
   NodeSchedule node_schedule;
   ode::Solver<patch_type> solver;
+
+  // Per-species running max of the competition error per node, accumulated
+  // across the run when collect_errors is set. Entries start at -Inf and
+  // ignore NA contributions, matching apply(., 2, max, na.rm=TRUE) in R.
+  std::vector<std::vector<double>> competition_error_by_node;
 };
 
 template <typename T, typename E>
@@ -82,6 +101,7 @@ SCM<T, E>::SCM(parameters_type p, environment_type e, Control c)
   parameters.validate();
 
   collect = false;
+  collect_errors = false;
 
   if (!util::identical(parameters.patch_area, 1.0)) {
     util::warning("We recommened keeping patch_area = 1 for the SCM, as need to check units for all other sizes");
@@ -96,9 +116,12 @@ template <typename T, typename E> void SCM<T, E>::run() {
   }
 
   while (!complete()) {
-    run_next();
+    std::vector<size_t> added = run_next();
+    if (collect_errors) {
+      collect_competition_errors(added);
+    }
     // store
-    if(collect) 
+    if(collect)
     {
       history.push_back(patch);
     }
@@ -176,6 +199,7 @@ template <typename T, typename E> void SCM<T, E>::reset() {
   node_schedule.reset();
   solver.reset(patch);
   history.clear();
+  competition_error_by_node.assign(patch.size(), {});
 }
 
 template <typename T, typename E> bool SCM<T, E>::complete() const {
@@ -316,6 +340,50 @@ double SCM<T, E>::total_offspring_production() const {
     total += offspring[i];
   }
   return total;
+}
+
+// Sample the competition error for each species introduced this step and fold
+// it into the running per-node max (ignoring NA, matching na.rm=TRUE in R).
+template <typename T, typename E>
+void SCM<T, E>::collect_competition_errors(const std::vector<size_t>& added) {
+  for (size_t idx : added) {
+    std::vector<double> v =
+        patch.r_compute_competition_effect_error_by_node_for_species_i(idx);
+    std::vector<double>& acc = competition_error_by_node[idx];
+    if (acc.size() < v.size()) {
+      acc.resize(v.size(), -std::numeric_limits<double>::infinity());
+    }
+    for (size_t j = 0; j < v.size(); ++j) {
+      if (!ISNAN(v[j])) {
+        acc[j] = std::max(acc[j], v[j]);
+      }
+    }
+  }
+}
+
+// Combine the competition error (sampled during the run) with the reproduction
+// error (computed now) into a single per-node error vector per species. An
+// all-NA node yields -Inf, matching apply(rbind(...), 2, max, na.rm=TRUE) in R.
+template <typename T, typename E>
+std::vector<std::vector<double>> SCM<T, E>::combined_node_errors() const {
+  std::vector<std::vector<double>> repro = r_net_reproduction_ratio_errors();
+  std::vector<std::vector<double>> ret(patch.size());
+  for (size_t i = 0; i < patch.size(); ++i) {
+    const std::vector<double>& comp = competition_error_by_node[i];
+    const std::vector<double>& rep = repro[i];
+    const size_t n = patch.at_species(i).size();
+    std::vector<double> tot(n, -std::numeric_limits<double>::infinity());
+    for (size_t j = 0; j < n; ++j) {
+      if (j < comp.size() && !ISNAN(comp[j])) {
+        tot[j] = std::max(tot[j], comp[j]);
+      }
+      if (j < rep.size() && !ISNAN(rep[j])) {
+        tot[j] = std::max(tot[j], rep[j]);
+      }
+    }
+    ret[i] = tot;
+  }
+  return ret;
 }
 
 // Check integration errors
