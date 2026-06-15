@@ -683,6 +683,8 @@ SCM:
     run_mutant:
       args: [p: "plant::Parameters<T,E>"]
       return_type: void
+    refine_schedule:
+      return_type: void
     run_next:
       return_type: "std::vector<plant::util::index>"
       name_cpp: r_run_next

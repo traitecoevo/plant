@@ -157,9 +157,22 @@ Implemented:
 - **Verify**: temporary R test asserting `combined_node_errors()` matches the
   old `run_scm_error()$err$total` for an FF16 case.
 
-### Phase 3 — Refinement loop + `split_times` in C++
+### Phase 3 — Refinement loop + `split_times` in C++ — ✅ DONE
 
 `SCM::refine_schedule()` owns the adaptive loop.
+
+Implemented:
+- `scm.h`: added `Control control` member (for `schedule_eps` /
+  `schedule_nsteps`), a static `split_times(times, split)` (upwind bisection:
+  insert `0.5*(t[j]+t[j-1])` for each flagged node), and `refine_schedule()`
+  which loops `run()` (with `collect_errors`) → flag `combined_node_errors > eps`
+  → bisect → `node_schedule.set_times`, up to `schedule_nsteps`, then records
+  the refined `node_schedule_times` + `ode_times` back into `parameters`.
+- `RcppR6_classes.yml`: exposed `refine_schedule`; `make RcppR6 && full_compile`.
+- Verified C++ `refine_schedule` reproduces R `build_schedule` exactly (refined
+  times, ode_times, offspring_production) for FF16 single / two-species /
+  regression-case (186 nodes) and K93. Added durable test
+  `test-schedule-build.R::"C++ refine_schedule matches R build_schedule"`.
 
 - **`scm.h`**: add `refine_schedule()` looping up to `control.schedule_nsteps`:
   `reset()` → `run()` with `collect_errors` → break if all

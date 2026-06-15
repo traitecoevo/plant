@@ -30,6 +30,12 @@ public:
   void run_mutant(parameters_type p);
   std::vector<size_t> run_next();
 
+  // Adaptively refine the node-introduction schedule entirely in C++:
+  // repeatedly run, flag nodes whose combined error exceeds schedule_eps,
+  // and bisect the interval below each flagged node (upwind scheme), up to
+  // schedule_nsteps times. Replaces the R build_schedule loop.
+  void refine_schedule();
+
   double time() const;
   void reset();
   bool complete() const;
@@ -80,8 +86,13 @@ private:
   // Update the running per-node competition error for the species introduced
   // this step (mirrors the per-step sampling the R refinement loop did).
   void collect_competition_errors(const std::vector<size_t>& added);
+  // Upwind bisection: insert the midpoint of the interval below each flagged
+  // node. Mirrors split_times() in build_schedule.R.
+  static std::vector<double> split_times(const std::vector<double>& times,
+                                         const std::vector<bool>& split);
 
   parameters_type parameters;
+  Control control;
   patch_type patch;
   NodeSchedule node_schedule;
   ode::Solver<patch_type> solver;
@@ -94,7 +105,7 @@ private:
 
 template <typename T, typename E>
 SCM<T, E>::SCM(parameters_type p, environment_type e, Control c)
-    : parameters(p), patch(parameters, e, c),
+    : parameters(p), control(c), patch(parameters, e, c),
       node_schedule(make_node_schedule(parameters)),
       solver(patch, make_ode_control(c)) {
 
@@ -160,7 +171,63 @@ template <typename T, typename E> std::vector<size_t> SCM<T, E>::run_next() {
   return ret;
 }
 
-template <typename T, typename E> 
+// Upwind bisection of flagged intervals. For each flagged node j (j >= 1; the
+// first and last nodes are never flagged), insert the midpoint of the interval
+// (t[j-1], t[j]). Equivalent to sort(c(times, times[i] - dt[i-1]/2)) in R.
+template <typename T, typename E>
+std::vector<double> SCM<T, E>::split_times(const std::vector<double>& times,
+                                           const std::vector<bool>& split) {
+  std::vector<double> ret = times;
+  for (size_t j = 1; j < split.size(); ++j) {
+    if (split[j]) {
+      ret.push_back(0.5 * (times[j] + times[j - 1]));
+    }
+  }
+  std::sort(ret.begin(), ret.end());
+  return ret;
+}
+
+template <typename T, typename E>
+void SCM<T, E>::refine_schedule() {
+  collect_errors = true;
+  const double eps = control.schedule_eps;
+
+  for (size_t step = 0; step < control.schedule_nsteps; ++step) {
+    run(); // resets, then runs with collect_errors set
+
+    std::vector<std::vector<double>> total = combined_node_errors();
+
+    // Flag nodes whose combined error exceeds the threshold.
+    std::vector<std::vector<bool>> split(total.size());
+    bool any = false;
+    for (size_t i = 0; i < total.size(); ++i) {
+      split[i].assign(total[i].size(), false);
+      for (size_t j = 0; j < total[i].size(); ++j) {
+        if (total[i][j] > eps) {
+          split[i][j] = true;
+          any = true;
+        }
+      }
+    }
+    if (!any) {
+      break;
+    }
+
+    // Bisect flagged intervals and install the denser schedule.
+    std::vector<std::vector<double>> times = node_schedule.get_times();
+    for (size_t i = 0; i < times.size(); ++i) {
+      times[i] = split_times(times[i], split[i]);
+    }
+    node_schedule.set_times(times);
+  }
+
+  // Leave Parameters self-describing: record the refined schedule and the
+  // ode times from the final run (mirrors build_schedule.R).
+  parameters.node_schedule_times = node_schedule.get_times();
+  parameters.ode_times = r_ode_times();
+}
+
+template <typename T, typename E>
 void SCM<T, E>::run_mutant(parameters_type p) {
   
   // switch to cached environment
