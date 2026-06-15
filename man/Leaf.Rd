@@ -9,6 +9,9 @@ Leaf(
   c,
   b,
   psi_crit,
+  root_c,
+  root_b,
+  root_psi_crit,
   beta2,
   jmax_25,
   hk_s,
@@ -32,6 +35,12 @@ Leaf(
 \item{b}{sensitivity parameter of hydraulic vulnerability curve (MPa)}
 
 \item{psi_crit}{critical psi stem (-MPa )}
+
+\item{root_c}{shape parameter of hydraulic vulnerability curve for roots(unitless)}
+
+\item{root_b}{sensitivity parameter of hydraulic vulnerability curve for roots (MPa)}
+
+\item{root_psi_crit}{critical psi stem for roots (-MPa )}
 
 \item{beta2}{exponent for effect of hydraulic risk (unitless)}
 

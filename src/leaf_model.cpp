@@ -1,5 +1,6 @@
 #include <plant/leaf_model.h>
 #include <cmath>
+#include <exception>
 #include <plant/models/tf24_environment.h>
 
 namespace plant {
@@ -125,6 +126,27 @@ void Leaf::set_physiology(double area_leaf, const std::vector<double>& mass_root
     if (psi_soil.size() != soil_depth.size() || mass_root_prop.size() != soil_depth.size()) {
     util::stop("soil_depth, psi_soil and mass_root_prop must have the same number of elements");
   }
+  if (!std::isfinite(area_leaf) || !std::isfinite(rho) || !std::isfinite(a_bio) ||
+      !std::isfinite(PPFD) || !std::isfinite(leaf_specific_conductance_max) ||
+      !std::isfinite(atm_vpd) || !std::isfinite(ca) ||
+      !std::isfinite(sapwood_volume_per_leaf_area) || !std::isfinite(leaf_temp) ||
+      !std::isfinite(atm_o2_kpa) || !std::isfinite(atm_kpa)) {
+    util::stop("set_physiology received non-finite scalar input");
+  }
+  for (size_t i = 0; i < psi_soil.size(); ++i) {
+    if (!std::isfinite(psi_soil[i])) {
+      util::stop("set_physiology received non-finite psi_soil at layer=" + std::to_string(i) +
+                 "; psi_soil=" + util::to_string(psi_soil[i]));
+    }
+    if (!std::isfinite(soil_depth[i])) {
+      util::stop("set_physiology received non-finite soil_depth at layer=" + std::to_string(i) +
+                 "; soil_depth=" + util::to_string(soil_depth[i]));
+    }
+    if (!std::isfinite(mass_root_prop[i])) {
+      util::stop("set_physiology received non-finite mass_root_prop at layer=" + std::to_string(i) +
+                 "; mass_root_prop=" + util::to_string(mass_root_prop[i]));
+    }
+  }
   area_leaf_ = area_leaf;
   rho_ = rho;
    a_bio_ = a_bio;
@@ -183,6 +205,9 @@ void Leaf::set_physiology(double area_leaf, const std::vector<double>& mass_root
   const double dz_sq = dz_ * dz_;
   double vertical_resistance_sum = 0.0;
   for (size_t i = 0; i < max_soil_layer; ++i) {
+    if(mass_root_prop[i] < 0){
+            util::stop("Root mass lower than 0");
+    }
     const double root_mass = mass_root_prop[i];
     if (root_mass == 0.0) {
       r_R_H_min[i] = 0.0;
@@ -214,9 +239,20 @@ void Leaf::set_physiology(double area_leaf, const std::vector<double>& mass_root
 // This function calculates the total transpiration from the soil based on the root collar pressure and the respective soil layer pressures
 void Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>& psi_soil){
 
+    if (!std::isfinite(P_x_r) || !std::isfinite(area_leaf_)) {
+      util::stop("E_from_Soil_to_Root_Collar invalid input; P_x_r=" + util::to_string(P_x_r) +
+                 "; area_leaf_=" + util::to_string(area_leaf_));
+    }
+
     E_up_ = 0;
 
     for(size_t i = 0; i < max_soil_layer; i++){
+
+    if (!std::isfinite(psi_soil[i])) {
+      util::stop("E_from_Soil_to_Root_Collar non-finite psi_soil; layer=" + std::to_string(i) +
+                 "; psi_soil=" + util::to_string(psi_soil[i]) +
+                 "; P_x_r=" + util::to_string(P_x_r));
+    }
 
     // Find the most negative soil potential out of the given soil layer and the root collar
     double P_src_min = std::min(psi_soil[i], P_x_r);
@@ -235,15 +271,34 @@ void Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>& p
       // Fraction of conductance in roots in a given layer at most negative soil water potential (but actually is equal to root collar)
       // root_vuln_from_psi is a pre-built spline of exp(-(|psi|/b_root)^c_root)
       double f_ri = root_vuln_from_psi.eval(-P_src_min);
+      if (!std::isfinite(f_ri) || f_ri <= 0.0) {
+        util::stop("E_from_Soil_to_Root_Collar invalid f_ri; layer=" + std::to_string(i) +
+                   "; f_ri=" + util::to_string(f_ri) +
+                   "; P_src_min=" + util::to_string(P_src_min) +
+                   "; P_x_r=" + util::to_string(P_x_r));
+      }
 
       // Fraction of conductance in roots in a given layer at most negative soil water potential
       double r_R_H = r_R_H_min[i] / f_ri; // [MPa * s * (mol H2O)^-1]
 
       // Total root resistance (horizantal plus vertical)
       double r_R = r_R_H + r_R_V_sum[i];
+      if (!std::isfinite(r_R) || r_R == 0.0) {
+        util::stop("E_from_Soil_to_Root_Collar invalid r_R (equal-potentials branch); layer=" + std::to_string(i) +
+                   "; r_R=" + util::to_string(r_R) +
+                   "; r_R_H=" + util::to_string(r_R_H) +
+                   "; r_R_V_sum=" + util::to_string(r_R_V_sum[i]));
+      }
 
       // Transpiration is equivalent to gravitational water loss (i.e. layer gains water)
       double E_i = -(gravity_head * z_soil_mid_[i]) / r_R / area_leaf_ ;
+      if (!std::isfinite(E_i)) {
+        util::stop("E_from_Soil_to_Root_Collar non-finite E_i (equal-potentials branch); layer=" + std::to_string(i) +
+                   "; E_i=" + util::to_string(E_i) +
+                   "; z_soil_mid=" + util::to_string(z_soil_mid_[i]) +
+                   "; r_R=" + util::to_string(r_R) +
+                   "; area_leaf_=" + util::to_string(area_leaf_));
+      }
 
       soil_consumption_[i] = E_i;
       E_up_ += E_i;
@@ -273,8 +328,20 @@ void Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>& p
         f_r_average += 1.0 / (n + 1);
       } else{
         // look up pre-computed root vulnerability spline instead of exp(pow(...))
-        f_r_average += root_vuln_from_psi.eval(-P_src_step) / (n + 1);
+        double f_r_point_ = root_vuln_from_psi.eval(-P_src_step);
+        if(f_r_point_ < 0){
+          f_r_point_ = 0;
+        }
+        f_r_average += f_r_point_ / (n + 1);
       }
+    }
+
+    if (!std::isfinite(f_r_average) || f_r_average <= 0.0) {
+      util::stop("E_from_Soil_to_Root_Collar invalid f_r_average; layer=" + std::to_string(i) +
+                 "; f_r_average=" + util::to_string(f_r_average) +
+                 "; P_src_min=" + util::to_string(P_src_min) +
+                 "; P_src_max=" + util::to_string(P_src_max) +
+                 "; step=" + util::to_string(step));
     }
 
     // Find the horizantal resistance in a given layer by dividing the minimum resistance (i.e. maximum conductivity) by the fractional loss of conductivity
@@ -282,9 +349,25 @@ void Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>& p
 
     // Find the total resistance in a given layer by adding the vertical resistance in that layer
     double r_R = r_R_H + r_R_V_sum[i]; // [MPa * s * (mol H2O)^-1]
+    if (!std::isfinite(r_R) || r_R == 0.0) {
+      util::stop("E_from_Soil_to_Root_Collar invalid r_R; layer=" + std::to_string(i) +
+                 "; r_R=" + util::to_string(r_R) +
+                 "; r_R_H=" + util::to_string(r_R_H) +
+                 "; r_R_V_sum=" + util::to_string(r_R_V_sum[i]) +
+                 "; f_r_average=" + util::to_string(f_r_average));
+    }
 
     // Transpiration is equal to the potentail gradient between the root collar and the soil, accounting for gravitational potential
     double E_i = (psi_soil[i] - P_x_r - gravity_head * z_soil_mid_[i]) / r_R / area_leaf_; // [mol H2O / m^2 / s]
+    if (!std::isfinite(E_i)) {
+      util::stop("E_from_Soil_to_Root_Collar non-finite E_i; layer=" + std::to_string(i) +
+                 "; E_i=" + util::to_string(E_i) +
+                 "; psi_soil=" + util::to_string(psi_soil[i]) +
+                 "; P_x_r=" + util::to_string(P_x_r) +
+                 "; z_soil_mid=" + util::to_string(z_soil_mid_[i]) +
+                 "; r_R=" + util::to_string(r_R) +
+                 "; area_leaf_=" + util::to_string(area_leaf_));
+    }
 
     soil_consumption_[i] = E_i;
     E_up_ += E_i;
@@ -293,6 +376,11 @@ void Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>& p
   }
   // convert to kg h20 m-2 s-1 consistent with rest of leaf model and environment TODO: possibly change this
   E_up_ = E_up_*0.018015;
+  if (!std::isfinite(E_up_)) {
+    util::stop("E_from_Soil_to_Root_Collar non-finite E_up_; P_x_r=" + util::to_string(P_x_r) +
+               "; max_soil_layer=" + std::to_string(max_soil_layer) +
+               "; area_leaf_=" + util::to_string(area_leaf_));
+  }
 }
 
 
@@ -321,13 +409,25 @@ double Leaf::find_root_psi(double wettest_soil_layer, const std::vector<double>&
     auto target = [&](double x) -> double {
       return E_column(x, psi_soil, psi_crit);
     };
-    return util::uniroot(target, -psi_crit, wettest_soil_layer, 1e-4, ci_niter);
+    try {
+      return util::uniroot(target, -psi_crit, wettest_soil_layer, 1e-4, ci_niter);
+    } catch (const std::exception& e) {
+      util::stop("find_root_psi(find_root_crit=1) failed: " + std::string(e.what()) +
+                 "; min=" + util::to_string(-psi_crit) +
+                 "; max=" + util::to_string(wettest_soil_layer));
+    }
   }
 
   auto target = [&](double x) -> double {
     return E_column_zero(x, psi_soil);
   };
-  return util::uniroot(target, -psi_crit, wettest_soil_layer, 1e-4, ci_niter);
+  try {
+    return util::uniroot(target, -psi_crit, wettest_soil_layer, 1e-4, ci_niter);
+  } catch (const std::exception& e) {
+    util::stop("find_root_psi(find_root_crit=0) failed: " + std::string(e.what()) +
+               "; min=" + util::to_string(-psi_crit) +
+               "; max=" + util::to_string(wettest_soil_layer));
+  }
 
 }
 
@@ -382,8 +482,7 @@ double root_crit = find_root_psi(wettest_soil_layer, psi_soil_inverted_, 1);
     root_collar_psi_ = root_crit;
     opt_psi_stem_ = psi_crit;
     profit_ = - R_d_ - hydraulic_cost_TF(psi_crit);
-       return;
-
+    return;
   }
 
 // Find root collar where transpiration from soil is 0
@@ -409,6 +508,42 @@ if(assim_max_ < 0){
   // optimise for stem water potential
     double bound_a = -root_zero_E;
     double bound_b = std::max(-root_crit,-root_psi_crit);
+
+    // If no interval exists (single feasible root-collar value), use that
+    // point directly as the alternative solution instead of running GSS.
+    if (std::abs(bound_b - bound_a) <= GSS_tol_abs) {
+      const double opt_root_psi = 0.5 * (bound_a + bound_b);
+      const double psi_stem_single = find_psi_stem_from_psi_root(-opt_root_psi, psi_soil_inverted_);
+
+      if (!std::isfinite(psi_stem_single)) {
+        util::stop("Error: non-finite psi_stem_single in collapsed-root interval; "
+                   "opt_root_psi=" + util::to_string(opt_root_psi) +
+                   "; bound_a=" + util::to_string(bound_a) +
+                   "; bound_b=" + util::to_string(bound_b) +
+                   "; root_crit=" + util::to_string(root_crit) +
+                   "; root_zero_E=" + util::to_string(root_zero_E) +
+                   "; E_up_=" + util::to_string(E_up_));
+      }
+
+      opt_psi_stem_ = psi_stem_single;
+      root_collar_psi_ = opt_root_psi;
+      profit_ = profit_psi_stem_TF(opt_psi_stem_, root_collar_psi_);
+
+      if (!std::isfinite(profit_)) {
+        util::stop("Error: non-finite profit in collapsed-root interval; "
+                   "opt_psi_stem_=" + util::to_string(opt_psi_stem_) +
+                   "; root_collar_psi_=" + util::to_string(root_collar_psi_) +
+                   "; bound_a=" + util::to_string(bound_a) +
+                   "; bound_b=" + util::to_string(bound_b) +
+                   "; root_crit=" + util::to_string(root_crit) +
+                   "; root_zero_E=" + util::to_string(root_zero_E) +
+                   "; E_up_=" + util::to_string(E_up_) +
+                   "; assim_colimited_=" + util::to_string(assim_colimited_) +
+                   "; hydraulic_cost_=" + util::to_string(hydraulic_cost_));
+      }
+      return;
+    }
+
     double bound_c = bound_b - (bound_b - bound_a) / gr;
     double bound_d = bound_a + (bound_b - bound_a) / gr;
 
@@ -445,8 +580,16 @@ while (std::abs(bound_b - bound_a) > GSS_tol_abs) {
     root_collar_psi_ = opt_root_psi;
     profit_ = profit_psi_stem_TF(opt_psi_stem_, root_collar_psi_);
 
-    if(std::isnan(profit_)){
-          util::stop("Error: nan");
+    if(!std::isfinite(profit_)){
+        util::stop("Error: non-finite profit; opt_psi_stem_=" + util::to_string(opt_psi_stem_) +
+             "; root_collar_psi_=" + util::to_string(root_collar_psi_) +
+             "; bound_a=" + util::to_string(bound_a) +
+             "; bound_b=" + util::to_string(bound_b) +
+             "; root_crit=" + util::to_string(root_crit) +
+             "; root_zero_E=" + util::to_string(root_zero_E) +
+             "; E_up_=" + util::to_string(E_up_) +
+             "; assim_colimited_=" + util::to_string(assim_colimited_) +
+             "; hydraulic_cost_=" + util::to_string(hydraulic_cost_));
     }
 }
 
@@ -616,7 +759,15 @@ double Leaf::psi_stem_to_ci(double psi_stem, double psi_upstream) {
   };
 
   // tol and iterations copied from control defaults (for now) - changed recently to 1e-6
-  return ci_ = util::uniroot(target, gamma_ * umol_per_mol_to_Pa, ca_, 1e-7, ci_niter);
+  try {
+    return ci_ = util::uniroot(target, gamma_ * umol_per_mol_to_Pa, ca_, 1e-7, ci_niter);
+  } catch (const std::exception& e) {
+    util::stop("psi_stem_to_ci failed: " + std::string(e.what()) +
+               "; min=" + util::to_string(gamma_ * umol_per_mol_to_Pa) +
+               "; max=" + util::to_string(ca_) +
+               "; psi_stem=" + util::to_string(psi_stem) +
+               "; psi_upstream=" + util::to_string(psi_upstream));
+  }
 }
 
 // given psi_stem, find assimilation, transpiration and stomal conductance to c02

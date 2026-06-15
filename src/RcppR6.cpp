@@ -2,16 +2,16 @@
 #include <plant.h>
 
 // [[Rcpp::export]]
-plant::Leaf Leaf__ctor(double vcmax_25, double c, double b, double psi_crit, double beta2, double jmax_25, double hk_s, double a, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter, double g1_TF24, double beta_R_H, double beta_R_V) {
-  return plant::Leaf(vcmax_25, c, b, psi_crit, beta2, jmax_25, hk_s, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, g1_TF24, beta_R_H, beta_R_V);
+plant::Leaf Leaf__ctor(double vcmax_25, double c, double b, double psi_crit, double root_c, double root_b, double root_psi_crit, double beta2, double jmax_25, double hk_s, double a, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter, double g1_TF24, double beta_R_H, double beta_R_V) {
+  return plant::Leaf(vcmax_25, c, b, psi_crit, root_c, root_b, root_psi_crit, beta2, jmax_25, hk_s, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, g1_TF24, beta_R_H, beta_R_V);
 }
 // [[Rcpp::export]]
 void Leaf__initialize_integrator(plant::RcppR6::RcppR6<plant::Leaf> obj_, int integration_rule, double integration_tol) {
   obj_->initialize_integrator(integration_rule, integration_tol);
 }
 // [[Rcpp::export]]
-void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> mass_root_prop, double rho, double a_bio, double PPFD, std::vector<double> psi_soil, std::vector<double> soil_depth, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa) {
-  obj_->set_physiology(mass_root_prop, rho, a_bio, PPFD, psi_soil, soil_depth, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area, leaf_temp, atm_o2_kpa, atm_kpa);
+void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double area_leaf, const std::vector<double>& mass_root_prop, double rho, double a_bio, double PPFD, const std::vector<double>& psi_soil, const std::vector<double>& soil_depth, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa) {
+  obj_->set_physiology(area_leaf, mass_root_prop, rho, a_bio, PPFD, psi_soil, soil_depth, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area, leaf_temp, atm_o2_kpa, atm_kpa);
 }
 // [[Rcpp::export]]
 double Leaf__proportion_of_conductivity(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi) {
@@ -66,8 +66,8 @@ void Leaf__set_leaf_states_rates_from_psi_stem(plant::RcppR6::RcppR6<plant::Leaf
   obj_->set_leaf_states_rates_from_psi_stem(psi_stem, psi_upstream);
 }
 // [[Rcpp::export]]
-double Leaf__E_from_Soil_to_Root_Collar(plant::RcppR6::RcppR6<plant::Leaf> obj_, double P_x_r, std::vector<double> P_soil) {
-  return obj_->E_from_Soil_to_Root_Collar(P_x_r, P_soil);
+void Leaf__E_from_Soil_to_Root_Collar(plant::RcppR6::RcppR6<plant::Leaf> obj_, double P_x_r, std::vector<double> psi_soil) {
+  obj_->E_from_Soil_to_Root_Collar(P_x_r, psi_soil);
 }
 // [[Rcpp::export]]
 void Leaf__find_root_collar_psi(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
@@ -245,6 +245,15 @@ void Leaf__R_d___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
 }
 
 // [[Rcpp::export]]
+double Leaf__sapwood_volume_per_leaf_area___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->sapwood_volume_per_leaf_area_;
+}
+// [[Rcpp::export]]
+void Leaf__sapwood_volume_per_leaf_area___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->sapwood_volume_per_leaf_area_ = value;
+}
+
+// [[Rcpp::export]]
 double Leaf__leaf_specific_conductance_max___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   return obj_->leaf_specific_conductance_max_;
 }
@@ -269,6 +278,15 @@ double Leaf__jmax___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
 // [[Rcpp::export]]
 void Leaf__jmax___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
   obj_->jmax_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__area_leaf___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->area_leaf_;
+}
+// [[Rcpp::export]]
+void Leaf__area_leaf___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->area_leaf_ = value;
 }
 
 // [[Rcpp::export]]
@@ -353,6 +371,15 @@ void Leaf__z_soil_mid___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector
 }
 
 // [[Rcpp::export]]
+double Leaf__dz___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->dz_;
+}
+// [[Rcpp::export]]
+void Leaf__dz___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->dz_ = value;
+}
+
+// [[Rcpp::export]]
 int Leaf__soil_number_of_depths___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   return obj_->soil_number_of_depths_;
 }
@@ -362,12 +389,57 @@ void Leaf__soil_number_of_depths___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, 
 }
 
 // [[Rcpp::export]]
+int Leaf__max_soil_layer__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->max_soil_layer;
+}
+// [[Rcpp::export]]
+void Leaf__max_soil_layer__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, int value) {
+  obj_->max_soil_layer = value;
+}
+
+// [[Rcpp::export]]
 std::vector<double> Leaf__psi_soil___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   return obj_->psi_soil_;
 }
 // [[Rcpp::export]]
 void Leaf__psi_soil___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
   obj_->psi_soil_ = value;
+}
+
+// [[Rcpp::export]]
+std::vector<double> Leaf__r_R_H_min__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->r_R_H_min;
+}
+// [[Rcpp::export]]
+void Leaf__r_R_H_min__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
+  obj_->r_R_H_min = value;
+}
+
+// [[Rcpp::export]]
+std::vector<double> Leaf__r_R_V__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->r_R_V;
+}
+// [[Rcpp::export]]
+void Leaf__r_R_V__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
+  obj_->r_R_V = value;
+}
+
+// [[Rcpp::export]]
+std::vector<double> Leaf__r_R_V_sum__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->r_R_V_sum;
+}
+// [[Rcpp::export]]
+void Leaf__r_R_V_sum__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
+  obj_->r_R_V_sum = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__assim_max___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->assim_max_;
+}
+// [[Rcpp::export]]
+void Leaf__assim_max___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->assim_max_ = value;
 }
 
 // [[Rcpp::export]]
