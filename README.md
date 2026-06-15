@@ -7,6 +7,10 @@
 
 The plant package for R is an extensible framework for modelling size- and trait-structured demography, ecology and evolution in simulated forests. At its core, plant is an individual-based model where plant physiology and demography are mediated by traits. Individual plants from multiple species can be grown in isolation, in patches of competing plants or in metapopulations under a disturbance regime. These dynamics can be integrated into metapopulation-level estimates of invasion fitness and vegetation structure. Accessed from R, the core routines in plant are written in C++. The package provides for alternative physiology models and for capturing trade-offs among parameters. A detailed test suite is provided to ensure correct behaviour of the code.
 
+> **Development status.** Active development happens on the `develop` branch, which is currently well ahead of the most recent tagged release. Notably, `develop` includes a new physiological model, **TF24**, which we plan to document and ship in an upcoming release. If you want the latest features (including TF24), install from `develop` (see [Installation](#installation)); for a stable, citable version, install a tagged [release](https://github.com/traitecoevo/plant/releases).
+>
+> Current development is tracked on our [project board](https://github.com/orgs/traitecoevo/projects/5) and in the [issue tracker](https://github.com/traitecoevo/plant/issues) — that's the best place to see what's planned, report bugs, or pick up something to contribute.
+
 ## Citation
 
 Falster DS, FitzJohn RG, Brännström Å, Dieckmann U, Westoby M (2016) plant: A package for modelling forest trait ecology & evolution. *Methods in Ecology and Evolution* 7: 136-146. doi: [10.1111/2041-210X.12525](http://doi.org/10.1111/2041-210X.12525)
@@ -19,17 +23,17 @@ An overview of the plant package is given by the above publication. Further back
 
 ## Package structure
 
-Plant is a complex package, using [c++14](https://en.wikipedia.org/wiki/C%2B%2B14) behind the scenes for speed with [R6 classes](https://cran.r-project.org/web/packages/R6/vignettes/Introduction.html) (via the [Rcpp](https://cran.r-project.org/web/packages/Rcpp/index.html) and [RcppR6](https://github.com/richfitz/RcppR6) packages).  In this blog post, Rich FitzJohn and I describe the [key technologies used to build the plant package](https://methodsblog.wordpress.com/2016/02/23/plant/). 
+Plant is a complex package, using [C++20](https://en.wikipedia.org/wiki/C%2B%2B20) behind the scenes for speed with [R6 classes](https://cran.r-project.org/web/packages/R6/vignettes/Introduction.html) (via the [Rcpp](https://cran.r-project.org/web/packages/Rcpp/index.html) and [RcppR6](https://github.com/richfitz/RcppR6) packages).  In this blog post, Rich FitzJohn and I describe the [key technologies used to build the plant package](https://methodsblog.wordpress.com/2016/02/23/plant/). 
 
-If you are interested in developing plant you should read the Developer Notes.
+If you are interested in developing or extending plant, start with [agents.md](agents.md), which documents the package architecture, the C++/R interface, the build workflow, and how to add a new model. The [`strategy_new`](vignettes/strategy_new.Rmd) vignette walks through adding a new strategy.
 
 ## Installation
 
 **Requirements**
 
-- You must be using R 4.1.0 or newer. At this stage the package is not on CRAN. You're options for installing are described below.
+- You must be using R 4.5.0 or newer. At this stage the package is not on CRAN. Your options for installing are described below.
 
-- Installation requires a [c++14](https://en.wikipedia.org/wiki/C%2B%2B14) compatible C compiler (OSX >= 10.10/Yosemite satisfies this, as do standard linux Ubuntu 12.04 and 14.04). On Windows machines you will need to install [Rtools](http://cran.r-project.org/bin/windows/Rtools/). When I tried this in [Rstudio](https://www.rstudio.com/), the program [automagically](https://en.oxforddictionaries.com/definition/automagically) sensed the absence of a compiler and asked if I wanted to install Rtools. Click `Yes`!
+- Installation requires a [C++20](https://en.wikipedia.org/wiki/C%2B%2B20) compatible compiler (recent versions of clang/gcc on macOS and Linux satisfy this). On Windows machines you will need to install [Rtools](http://cran.r-project.org/bin/windows/Rtools/). When I tried this in [Rstudio](https://www.rstudio.com/), the program [automagically](https://en.oxforddictionaries.com/definition/automagically) sensed the absence of a compiler and asked if I wanted to install Rtools. Click `Yes`!
 
 **Option 1, using `remotes::install_github`**
 
@@ -74,7 +78,34 @@ or
 devtools::load_all()
 ```
 
-## Usage
+## Getting started
+
+The best place to start is the [package website](https://traitecoevo.github.io/plant/), which hosts the full documentation and a set of tutorial articles. In particular:
+
+- [Get started with plant](https://traitecoevo.github.io/plant/articles/plant.html) — an overview of the package and a minimal worked example.
+- [Individuals](https://traitecoevo.github.io/plant/articles/individuals.html), [Patch dynamics](https://traitecoevo.github.io/plant/articles/patch.html) and [Demography](https://traitecoevo.github.io/plant/articles/demography.html) — the core simulation workflows.
+- [Parameters](https://traitecoevo.github.io/plant/articles/parameters.html) — configuring strategies, traits and control settings.
+
+A minimal example, growing a patch of competing plants with the default `FF16` model:
+
+```r
+library(plant)
+
+# Set up parameters for the default FF16 model
+p <- scm_base_parameters("FF16")
+p <- expand_parameters(trait_matrix(0.0825, "lma"), p)
+
+# Run the deterministic (method-of-characteristics) solver and collect output
+results <- run_scm_collect(p)
+```
+
+If you want to develop or extend `plant` (e.g. add a new strategy/model), see [agents.md](agents.md) and the [`strategy_new`](vignettes/strategy_new.Rmd) vignette.
+
+## Getting help
+
+Questions, bug reports and feature requests are welcome via the [GitHub issue tracker](https://github.com/traitecoevo/plant/issues).
+
+## Publications using plant
 
 Here are some example publications using plant:
 
