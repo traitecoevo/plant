@@ -355,21 +355,22 @@ Nodes whose combined error exceeds the threshold `schedule_eps` (red line) are
 the ones the refinement step will split.
 
 To see how the competition error builds up over the development of the patch we
-can reconstruct the per-step matrix that the solver accumulates internally,
-using the still-exposed per-step accessor. Each row is one introduction step;
-each column is a node:
+can reconstruct the per-step matrix that the solver accumulates internally. We
+run the SCM once collecting a patch snapshot after each introduction, then
+recompute the competition error from each snapshot. Each row is one introduction
+step; each column is a node:
 
 ```{r competition-error-matrix}
 competition_error_matrix <- function(p, env = NULL, ctrl = scm_base_control()) {
   scm <- run_scm(p, env, ctrl)   # build + run, returns the SCM object
-  scm$reset()                    # rewind so we can step through it ourselves
+  scm$reset()                    # rewind so we can re-run while collecting
+  scm$collect <- TRUE
+  scm$run()
 
-  rows <- list()
-  while (!scm$complete) {
-    scm$run_next()
-    rows[[length(rows) + 1]] <-
-      scm$compute_competition_effect_error_by_node_for_species_i(1)
-  }
+  ## history[[1]] is the initial (empty) patch; the rest are the state after
+  ## each introduction. Recompute species 1's per-node competition error.
+  rows <- lapply(scm$history[-1], function(h)
+    h$species[[1]]$compute_competition_effect_by_nodes_error(h$compute_competition(0)))
   ncol <- max(lengths(rows))
   do.call(rbind, lapply(rows, function(r) c(r, rep(NA, ncol - length(r)))))
 }

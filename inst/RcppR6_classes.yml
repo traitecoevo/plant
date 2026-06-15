@@ -682,9 +682,6 @@ SCM:
     # Simulation lifecycle
     run:
       return_type: void
-    run_next:
-      return_type: "std::vector<plant::util::index>"
-      name_cpp: r_run_next
     run_mutant:
       args: [p: "plant::Parameters<T,E>"]
       return_type: void
@@ -709,7 +706,6 @@ SCM:
       name_cpp: r_set_node_schedule_times
   active:
     # Lifecycle / state
-    complete: {type: bool, access: member}
     time: {type: double, access: member}
     # Outputs (totals)
     net_reproduction_ratios: {type: "std::vector<double>", access: member}

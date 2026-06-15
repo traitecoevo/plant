@@ -54,41 +54,36 @@ test_that("Run SCM", {
     ## Before starting, check that the SCM is actually empty
     expect_equal(scm$time, 0.0)
     expect_equal(scm$patch$node_ode_size, 0)
-    expect_false(scm$complete)
-
-    ## TODO: The unlist here is annoying...
-    ## Can be resolved by passing off to another utility function I
-    ## think, but probably better done via traits (but I don't see how
-    ## to make those work).
-    i <- scm$run_next()
+    expect_equal(scm$node_schedule$remaining, length(t))
 
     ode_size <- Node(x, e)(strategy_types[[x]]())$ode_size
 
-    expect_equal(scm$node_schedule$remaining, length(t) - 1)
-    expect_false(scm$complete)
-    expect_equal(i, 1)
-    ## Note that this is the *second* time; the time of the next
-    ## introduction, and the end time of the first introduction.
-    expect_identical(scm$time, times$end[1])
-    expect_identical(scm$time, times$start[2])
-    expect_equal(scm$patch$node_ode_size, ode_size)
+    ## Run the whole schedule, collecting a patch snapshot after each
+    ## introduction so we can check per-step progression.
+    scm$collect <- TRUE
+    scm$run()
+    expect_equal(scm$node_schedule$remaining, 0)
 
-    ## Trying to set schedule for partly run scm fails
+    ## history[[1]] is the initial (empty) patch; the remaining snapshots are
+    ## the state after each of the scheduled introductions.
+    hist <- scm$history
+    expect_equal(length(hist), length(t) + 1)
+    expect_equal(hist[[1]]$time, 0.0)
+    expect_equal(hist[[1]]$node_ode_size, 0)
+
+    ## Each snapshot lands on the corresponding introduction end-time
+    ## (= the next introduction's start time) ...
+    expect_equal(sapply(hist[-1], function(h) h$time), times$end)
+    ## ... and adds one node's worth of ODE state per introduction.
+    expect_equal(sapply(hist[-1], function(h) h$node_ode_size),
+                 ode_size * seq_along(t))
+
+    ## Trying to set a schedule without resetting first fails
     expect_error(scm$node_schedule <- sched, "Cannot set schedule without resetting first")
-
-    i <- unlist(scm$run_next())
-    expect_equal(i, 1)
-    ## SCM ran successfully:
-    expect_equal(scm$node_schedule$remaining, length(t) - 2)
-    expect_false(scm$complete)
-    expect_identical(scm$time, times$end[2])
-    expect_identical(scm$time, times$start[3])
-    expect_equal(scm$patch$node_ode_size, ode_size * 2)
 
     ## Reset everything
     ## "SCM reset successful"
     scm$reset()
-    expect_equal(scm$time, 0.0)
     expect_equal(scm$time, 0.0)
     expect_equal(scm$patch$node_ode_size, 0)
     expect_equal(scm$node_schedule$remaining, length(t))
@@ -110,14 +105,14 @@ test_that("Run SCM", {
       t(sapply(x, function(i) c(i, rep(NA, n-length(i)))))
     }
     run_scm_test <- function(scm, t_max=Inf) {
-      tt <- hh <- NULL
       species_index <- 1L
       scm$reset()
-      while (!scm$complete > 0 && scm$time < t_max) {
-        scm$run_next()
-        tt <- c(tt, scm$time)
-        hh <- c(hh, list(scm$patch$species[[species_index]]$height))
-      }
+      scm$collect <- TRUE
+      scm$run()
+      ## Drop the initial empty-patch snapshot; keep one per introduction.
+      snaps <- Filter(function(h) h$time < t_max, scm$history[-1])
+      tt <- sapply(snaps, function(h) h$time)
+      hh <- lapply(snaps, function(h) h$species[[species_index]]$height)
       hh <- list_to_matrix(hh)
       list(t=tt, h=hh)
     }
@@ -245,17 +240,25 @@ test_that("refinement_error_by_node collected in C++ matches per-step assembly",
 
     ## Reference: sample the competition error per introduction step and take
     ## the column-wise max with the reproduction error (the logic the R-side
-    ## refinement loop used to perform).
+    ## refinement loop used to perform). Rather than stepping the SCM, we run it
+    ## once collecting a patch snapshot after each introduction, then recompute
+    ## each step's competition error from the snapshot. A species counts as
+    ## "added" at a step when its node count grew from the previous snapshot.
     scm_ref <- SCM(x, e)(p1, env, ctrl)
+    scm_ref$collect <- TRUE
+    scm_ref$run()
     lai_error <- rep(list(NULL), n_spp)
-    while (!scm_ref$complete) {
-      added <- scm_ref$run_next()
-      for (idx in added) {
+    sizes_prev <- rep(0, n_spp)
+    for (h in scm_ref$history) {
+      sizes_now <- sapply(seq_len(n_spp), function(i) h$species[[i]]$size)
+      for (idx in which(sizes_now > sizes_prev)) {
         lai_error[[idx]] <- c(
           lai_error[[idx]],
-          list(scm_ref$compute_competition_effect_error_by_node_for_species_i(idx))
+          list(h$species[[idx]]$compute_competition_effect_by_nodes_error(
+            h$compute_competition(0)))
         )
       }
+      sizes_prev <- sizes_now
     }
     rbind_list <- function(z) do.call("rbind", as.list(z))
     lai_error <- lapply(lai_error, function(z) rbind_list(pad_matrix(z)))

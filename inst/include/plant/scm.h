@@ -76,7 +76,6 @@ public:
   // ---- R interface -------------------------------------------------------
 
   // Run / parameters / state access
-  std::vector<util::index> r_run_next();
   parameters_type r_parameters() const { return parameters; }
   const patch_type &r_patch() const { return patch; }
   const std::vector<patch_type> &r_history() const { return history; }
@@ -303,14 +302,6 @@ template <typename T, typename E> double SCM<T, E>::time() const {
 // Several of these are diagnostic/inspection hooks rather than part of the
 // production run path: outside the C++ refinement loop they are only called
 // from the test suite and the node_spacing vignette (noted per method below).
-
-// Step-by-step driver: advance one introduction and return the species added.
-// The normal entry point is run(); this lower-level primitive exists so callers
-// can inspect patch state between introductions (used by tests / the vignette).
-template <typename T, typename E>
-std::vector<util::index> SCM<T, E>::r_run_next() {
-  return util::index_vector(run_next());
-}
 
 // Per-species fitness: the net reproduction ratio (expected offspring per seed)
 // for one species. A genuine biological quantity, not just a diagnostic.

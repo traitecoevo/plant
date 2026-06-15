@@ -164,14 +164,20 @@ We can then need to specify the particular species by specifying their traits an
 species_parameters <- expand_parameters(trait_matrix(0.0825, "lma"), params)
 ```
 
-Then we run `plant` solver (SCM) to solve the size distribution over time. There are two steps
+Then we run the `plant` solver (the SCM) to solve the size distribution over time, using the `run_scm` function. `run_scm` has two modes, controlled by its arguments, and we use both in turn:
+
+- `refine_schedule = TRUE` adaptively refines the *node-introduction schedule* — the set of times at which new individuals (characteristics) are introduced into the patch. The solver adds nodes until the result meets the accuracy set by `schedule_eps` in the control object, so the resulting schedule is tuned to this particular set of species. In this mode `run_scm` returns the `SCM` object itself, from which we pull the refined `parameters`.
+- `collect = TRUE` runs the solver again with that refined schedule and gathers tidied output at every ODE step, returning a list rather than the `SCM` object.
+
+We refine first and then collect because the refined schedule is what makes the second run both accurate and efficient — there is no point gathering output until the schedule has settled.
 
 ```{r}
-# 1. Resolve number of characteristics needed for specified accuracy
+# 1. Refine the node-introduction schedule for the required accuracy,
+#    then keep the refined parameters
 species_parameters <- run_scm(species_parameters, refine_schedule = TRUE)$parameters
 
-# 2. Rerun, gathering outputs at each time step
-result <- 
+# 2. Rerun with that schedule, gathering tidied output at each time step
+result <-
   run_scm(species_parameters, collect = TRUE)
 ```
 
