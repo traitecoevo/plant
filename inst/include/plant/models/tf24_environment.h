@@ -149,6 +149,30 @@ public:
     light_availability.r_init_interpolators(state);
   }
   
+  // ------------------------------------------------------------------
+  // SOIL WATER BALANCE (multi-layer bucket model)
+  // ------------------------------------------------------------------
+  // Each soil layer i is a bucket holding volumetric moisture vars.state(i)
+  // (m3 water m^-3 soil). The rate of change is a simple mass balance:
+  //
+  //   d(theta_i)/dt = (water_in_i - water_out_i - root_uptake_i) / dz[i]
+  //
+  // where:
+  //   * water_in_0   = infiltration (rainfall reduced by a saturation-excess
+  //                    runoff term controlled by a_infil/b_infil);
+  //   * water_in_i>0 = drainage out of the layer above (water_flux[i-1]);
+  //   * water_out_i  = gravitational drainage = soil_K_from_soil_theta(theta_i),
+  //                    a Clapp & Hornberger (1978) / Zeng & Decker (2009)
+  //                    unsaturated hydraulic conductivity;
+  //   * root_uptake_i= resource_depletion[i], supplied by the plants via the
+  //                    strategy's evapotranspiration_dt (m yr^-1).
+  //
+  // The final `aux_num` state slots accumulate diagnostic cumulative fluxes
+  // (rainfall, infiltration, deep drainage, total root uptake).
+  //
+  // This is an explicit, first-order representation; drainage is instantaneous
+  // single-direction (no upward capillary flux between layers - that is handled
+  // hydraulically inside the plant via E_from_Soil_to_Root_Collar).
   virtual void compute_rates(std::vector<double> const &resource_depletion)
   {
 

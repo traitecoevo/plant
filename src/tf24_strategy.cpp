@@ -307,15 +307,22 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
 
   const double sapwood_volume_per_leaf_area = theta * (height * eta_c);
   
-  // root mass (kg in each layer)
-  //TODO: move to a higher level? allocate system memory
-  // initialise mass_root_prop with 0 mass
-  // calcualte plant height
-  // calculate root mass
-  // calculate nroot depth proportion to plant height (should be trait but hard-coded for now)
-  // shape function like leaf area
-  // easily integratable, like leaf area captial Q 
-
+  // ----------------------------------------------------------------------
+  // ROOT MASS DISTRIBUTION ACROSS SOIL LAYERS
+  // ----------------------------------------------------------------------
+  // Total fine-root mass (mass_root_) is distributed over depth using the same
+  // cumulative shape function Q() used for the leaf canopy, but parameterised
+  // over soil depth instead of crown height. Q(z, rooting_depth, 0.2) gives the
+  // fraction of roots *below* depth z, so the mass in layer a is
+  //   root_mass_scale * (Q(z_{a-1}) - Q(z_a)).
+  // rooting_depth is capped at 1.5 m (the soil column depth). The constant
+  // 83.26 * 0.5 rescales mass_root_ into the per-layer carbon units expected by
+  // the root hydraulic network (set_physiology). The loop breaks early once Q
+  // reaches 0 (below the rooting depth) to avoid touching empty deep layers.
+  //
+  // TODO (perf): mass_root_prop_ is heap-allocated every call; the rooting
+  // depth fraction (0.2), depth cap (1.5) and scale (83.26) are hard-coded and
+  // should become traits. See optimisation notes re: reusing a member buffer.
   std::vector<double> mass_root_prop_(soil_number_of_depths_, 0.0);
   // set number of root divisions to number of layers
   // mass_root_prop_.reserve(environment.get_soil_number_of_depths());

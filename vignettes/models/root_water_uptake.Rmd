@@ -9,6 +9,29 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+<!--
+PURPOSE: This document is the standalone R *prototype* of the soil->root->stem->
+leaf hydraulic model that has since been ported to C++ (src/leaf_model.cpp:
+E_from_Soil_to_Root_Collar, find_root_collar_psi) and wired into the TF24
+strategy. It follows Potkay et al. (2021) and is kept as the reference
+implementation / sanity check for the compiled model.
+
+Structure of the prototype:
+  1. Geometry & conductances: derive stem (k_sw_max) and leaf (k_l) hydraulic
+     conductances from height/diameter allometry.
+  2. Root collar pressure at E=0: bisection search for the collar potential
+     (P_x_r) where net soil exchange is zero (the wettest feasible point).
+  3. Critical root collar pressure: bisection for the collar potential at which
+     the leaf reaches its critical water potential (P_x_l_crit), integrating
+     the pressure drop down the stem and through the leaf in `n` numerical steps.
+  4. Profit curve: sweep P_x_r from the E=0 point to critical, compute
+     assimilation (Farquhar/Cowan-Farquhar marginal cost) vs hydraulic cost,
+     and pick the profit-maximising operating point.
+The "### Test" section below cross-checks the compiled `Leaf` object against
+this prototype.
+NOTE: the source() paths point at a different machine and must be edited to run.
+-->
+
 ```{r}
 rm(list=ls())
 ```

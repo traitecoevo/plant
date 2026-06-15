@@ -7,11 +7,24 @@ editor_options:
 
 To run this vignette, make and rebuild plant using root_water_uptake branch. Then, run below.
 
+This vignette exercises the TF24 strategy with the new multi-layer root water
+uptake model. A single cohort of one species (`lma = 0.07`) is grown over a
+patch lifetime in a soil column discretised into 15 layers, driven by a
+seasonal (sinusoidal) rainfall series. `run_scm_collect` integrates the size-
+structured population *and* the per-layer soil water balance simultaneously.
+
+PERFORMANCE NOTE: runtime is dominated by the plant hydraulic solver
+(`Leaf::find_root_collar_psi`). To profile, drop `max_patch_lifetime` to ~5
+(≈40 s) rather than 75 (≈8 min); the per-step cost is unchanged, only the number
+of steps differs. See **Implementation & performance notes** at the end of this
+document for the model overview, a profile, and an optimisation roadmap.
+
 ```{r}
 library(tidyverse)
 library(ggplot2)
 library(patchwork)
-devtools::load_all("/Users/z3533545/Documents/GitHub/plant/")
+library(plant)
+# devtools::load_all("/Users/z3533545/Documents/GitHub/plant/")
 ```
 
 ```{r}
@@ -115,3 +128,101 @@ results %>%
 
 root_mass_plot
 ```
+
+# Implementation & performance notes
+
+This section documents the multi-layer root water-uptake model added on the
+`root_water_uptake` branch: what it does, where the runtime goes, and which
+optimisations have been tried or are worth trying. (The corresponding R
+prototype lives in `vignettes/models/root_water_uptake.Rmd`; per-function
+scientific commentary lives in the C++ sources referenced below.)
+
+## Model overview
+
+The branch couples three pieces, integrated together by `run_scm_collect`:
+
+- **Soil water (bucket model)** — `inst/include/plant/models/tf24_environment.h`.
+  The soil column is discretised into `soil_number_of_depths` layers, each a
+  water bucket with its own moisture state. `compute_rates` does a per-layer
+  mass balance: infiltration (rainfall with saturation-excess runoff) →
+  gravitational drainage (Clapp–Hornberger / Zeng–Decker unsaturated
+  conductivity) → root uptake. Moisture↔potential uses a retention curve, with
+  a `psi_soil` cache keyed on the moisture state.
+- **Root distribution** — `src/tf24_strategy.cpp` (`net_mass_production_dt`).
+  Total fine-root mass is spread over depth with the same `Q()` cumulative
+  shape function used for the canopy, then passed to the leaf.
+- **Plant hydraulics** — `src/leaf_model.cpp` (the core new science, after
+  Potkay et al. 2021):
+  - `set_physiology` builds a per-layer root resistance network — horizontal
+    (intra-layer) plus cumulative vertical (inter-layer) resistances, scaled by
+    root carbon and modulated by a root vulnerability curve.
+  - `E_from_Soil_to_Root_Collar` sums water drawn from each layer for a given
+    root-collar potential (including hydraulic redistribution into wetter
+    layers).
+  - `find_root_collar_psi` is the master solver, with **two nested levels**:
+    (1) a continuity root-find (soil supply = stem transpiration), and (2) a
+    golden-section search for the profit-maximising (assimilation − hydraulic
+    cost) operating point — plus several early-exit short-circuits for plant
+    shut-down conditions.
+
+## Where the runtime goes (profile)
+
+Profiled with `max_patch_lifetime = 5` (≈40 s, a faithful proxy for the full
+≈8-min run — only the number of ODE steps differs). Runtime is ~entirely in
+`net_mass_production_dt → find_root_collar_psi`. The flat profile:
+
+| Hot spot | Why |
+|---|---|
+| **Spline evaluation** (`tk::spline::operator()` via `Interpolator::eval`) — the single hottest leaf | `root_vuln_from_psi.eval` is called `(n+1)=6 × n_layers` times per `E_from_Soil_to_Root_Collar` call |
+| **`E_from_Soil_to_Root_Collar`** | called inside **two bisection root-finds** (`find_root_psi`, ~16 iters each) |
+| **`psi_stem_to_ci`** bisection | called inside every golden-section profit evaluation |
+
+The cost is **algorithmic structure — nested root-finds × spline evals — not
+memory allocation.** The per-call `mass_root_prop_` / `psi_soil_inverted_`
+allocations and the vector copies in `set_physiology` are <0.1% of runtime;
+preallocating them will not move the needle (profile-confirmed). This whole
+optimum is recomputed for every individual at every ODE sub-step.
+
+## Tried and REJECTED: super-linear root-finder (TOMS748)
+
+Replacing the bisection in `util::uniroot` with a Brent-like super-linear
+solver (TOMS748) is the obvious "biggest lever" — it normally needs ~5–8
+evaluations where bisection needs ~16–30. It was implemented and **reverted**:
+in this code path it produced **NaN soil potentials and ran *slower*** (the
+coupled soil-water ODE destabilised). The hydraulic functions have kinks/clamps
+and use splines with extrapolation disabled, so the interpolation steps probe
+bad points; **bisection's robustness is load-bearing here.** A documented but
+unused `util::uniroot_smooth` helper remains in `inst/include/plant/uniroot.h`
+with this caveat, so the experiment is not silently repeated.
+
+## Optimisation roadmap (ranked)
+
+All of these change numerics and should be validated against the science before
+adoption (capture a baseline trajectory, re-run, compare):
+
+1. **Cumulative root-vulnerability integral spline** *(highest value).* Replace
+   the 6-point average in `E_from_Soil_to_Root_Collar` with 2 evaluations of a
+   pre-integrated curve — exactly the technique already used for stem
+   transpiration in `setup_transpiration`. ~3× fewer spline evals in the
+   hottest function. Slightly changes the quadrature.
+2. **Memoise redundant `transpiration_from_psi` evals** within a single profit
+   evaluation (currently `eval(psi_stem)` / `eval(psi_upstream)` are recomputed
+   with identical arguments several times). **Numerically identical → safe**,
+   modest gain.
+3. **O(1) spline index.** `tk::spline` does a binary search on every eval;
+   the grids are ~uniform so the index can be computed directly, or the last
+   index cached (queries are clustered/monotonic in the layer loop).
+   Numerically identical but invasive into the vendored spline.
+4. **Brent for the golden-section profit max** (~17 → ~10 iters). Moderate
+   risk; the profit objective is smooth near the optimum.
+
+## Build note: use `make`, not `load_all`
+
+Build the package with **`make compile`** (`pkgbuild::compile_dll(debug=FALSE)`,
+`-O3 -march=native`). `devtools::load_all()` recompiles at `-g -O2`, which is
+both **slower at runtime** and produces **slightly different floating-point
+results** (FMA/reassociation differ from `-O3 -march=native`); under the
+adaptive ODE solver those tiny differences amplify, so trajectories from a
+`load_all` build will not match a `make` build bit-for-bit even when the source
+is identical. For benchmarking/profiling, load the `make`-built `.so` without
+recompiling, e.g. `pkgload::load_all(".", recompile = FALSE)`.

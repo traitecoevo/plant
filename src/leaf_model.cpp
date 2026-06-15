@@ -120,8 +120,31 @@ void Leaf::setup_clean_leaf() {
   max_soil_layer = NA_INTEGER; // number of soil layers with root mass greater than 0;
 }
 
+// Set the per-individual, per-timestep physiology that stays constant during
+// the subsequent root-collar/stem optimisation.
+//
+// Two groups of quantities are computed here:
+//   1. Temperature-dependent photosynthetic parameters (vcmax_, jmax_,
+//      electron_transport_, gamma_, ko_, kc_, km_, R_d_) via Arrhenius/peaked
+//      Arrhenius functions, plus assim_max_ (assimilation at ci = ca).
+//   2. The root hydraulic-resistance network across soil layers. Each layer's
+//      root carbon (mass_root_prop[i], kg) is split 1/3 vertical : 2/3
+//      horizontal (c_r_V_, c_r_H_). From these:
+//        r_R_H_min[i] = beta_R_H / c_r_h      (min horizontal resistance,
+//                                              i.e. reciprocal of max conductance)
+//        r_R_V[i]     = beta_R_V * dz^2 / c_r_v (vertical resistance; dz^2 because
+//                                              vertical conductivity scales with
+//                                              root cross-sectional area)
+//        r_R_V_sum[i] = cumulative vertical resistance from surface to layer i.
+//      max_soil_layer is the deepest layer with non-zero root mass; all
+//      resistance vectors are sized to it so the hot E_from_Soil loop only
+//      iterates over layers that actually contain roots.
+//
+// NOTE: the temperature-dependent block (group 1) depends only on leaf_temp_
+// (constant across the run in the current driver setup) yet is recomputed on
+// every call; see the optimisation notes / caching opportunity.
+//
 //sets various parameters which are constant for a given node at a given time
-
 void Leaf::set_physiology(double area_leaf, const std::vector<double>& mass_root_prop, double rho, double a_bio, double PPFD, const std::vector<double>& psi_soil, const std::vector<double>& soil_depth, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa) {
     if (psi_soil.size() != soil_depth.size() || mass_root_prop.size() != soil_depth.size()) {
     util::stop("soil_depth, psi_soil and mass_root_prop must have the same number of elements");
@@ -236,7 +259,51 @@ void Leaf::set_physiology(double area_leaf, const std::vector<double>& mass_root
   assim_max_ = assim_colimited(ca_);
 }
 
-// This function calculates the total transpiration from the soil based on the root collar pressure and the respective soil layer pressures
+// ---------------------------------------------------------------------------
+// SOIL -> ROOT-COLLAR WATER TRANSPORT
+// ---------------------------------------------------------------------------
+// Scientific model (after Potkay et al. 2021; prototyped in
+// vignettes/models/root_water_uptake.Rmd as E_from_Soil_to_Root_Collar):
+//
+// The root system is represented as a set of parallel soil layers, each
+// connected to a single root collar (the point where roots join the stem).
+// Within each layer i, water flows from soil to collar driven by the water
+// potential gradient (psi_soil[i] - P_x_r), corrected for the gravitational
+// head needed to lift water to the layer midpoint (gravity_head * z_soil_mid).
+//
+// The hydraulic resistance of each layer is the sum of two terms:
+//   * r_R_H : horizontal (intra-layer, soil->root) resistance. Set during
+//             set_physiology as r_R_H_min[i] / f_r, where r_R_H_min scales
+//             with the carbon invested in horizontal roots and f_r is the
+//             fractional loss of conductivity from the root vulnerability
+//             curve at the operating potential.
+//   * r_R_V : vertical (inter-layer, along the root axis to the collar)
+//             resistance, accumulated from the surface down to layer i
+//             (r_R_V_sum). It scales with dz^2 / carbon-in-vertical-roots.
+//
+// Because the root vulnerability curve f_r is non-linear in psi, the
+// horizontal resistance is evaluated using the *average* fractional
+// conductivity over the potential interval spanned between the soil and the
+// collar (P_src_min..P_src_max), approximated here by an (n+1)-point
+// trapezoid-like average of the pre-built root vulnerability spline.
+//
+// Output: E_up_ = total water drawn from all layers to the collar
+//                 (converted to kg H2O m^-2 leaf s^-1), and soil_consumption_[i]
+//                 = per-layer uptake (mol H2O m^-2 leaf s^-1). Negative E_i in a
+//                 layer means that layer is *gaining* water (hydraulic redistribution).
+//
+// Implementation decisions:
+//   * f_r is read from a pre-computed spline (root_vuln_from_psi) instead of
+//     repeatedly evaluating exp(-(psi/b)^c); see setup_root_vulnerability.
+//   * Two special cases are handled exactly to avoid division/round-off issues:
+//     (a) collar potential equals layer potential, and (b) the gradient
+//     exactly balances gravity (E_i = 0).
+//   * Extensive isfinite() guards are present because this function is called
+//     from within nested root-finders where bad brackets can produce NaNs;
+//     they fail fast with diagnostic context rather than propagating NaN.
+//
+// This function calculates the total transpiration from the soil based on the
+// root collar pressure and the respective soil layer pressures
 void Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>& psi_soil){
 
     if (!std::isfinite(P_x_r) || !std::isfinite(area_leaf_)) {
@@ -439,9 +506,43 @@ double Leaf::find_psi_stem_from_psi_root(double psi_root, const std::vector<doub
   return psi_stem;
 }
 
+// ---------------------------------------------------------------------------
+// MASTER SOLVER: optimal root-collar (and stem) water potential
+// ---------------------------------------------------------------------------
+// This is the entry point called once per individual per environment update
+// (from TF24_Strategy::net_mass_production_dt). It solves the whole
+// soil -> root -> stem -> leaf hydraulic continuum and stores the optimal
+// operating point in opt_psi_stem_, root_collar_psi_ and profit_.
+//
+// The solve has two nested levels:
+//
+//   1. CONTINUITY (find_root_psi / E_column): for any candidate root-collar
+//      potential, water supplied from the soil (E_from_Soil_to_Root_Collar)
+//      must equal water transpired through the stem (transpiration()). This is
+//      a 1-D root-find on the collar potential.
+//
+//   2. OPTIMISATION (Golden-Section Search): among feasible collar potentials,
+//      choose the one that maximises carbon profit = assimilation - hydraulic
+//      cost (profit_psi_stem_TF). The collar potential is bracketed between
+//      `root_zero_E` (collar where soil uptake is zero, the wettest feasible
+//      point) and `root_crit` (collar at which the stem reaches psi_crit, the
+//      driest feasible point), clamped to root_psi_crit.
+//
+// Several early-exit short-circuits avoid the (expensive) GSS loop when no
+// meaningful optimisation is possible. In each case the plant is effectively
+// shut down (operating at psi_crit, paying only respiration + hydraulic cost):
+//   * wettest soil layer is already drier than psi_crit -> no transpiration;
+//   * even at psi_crit the soil cannot supply the demanded flux (E_column<0);
+//   * the continuity root would require the collar drier than psi_crit;
+//   * maximum possible assimilation (at ci = ca) is negative.
+//
+// Implementation note: psi_soil arrives as positive magnitudes and is used
+// here as negative potentials, hence psi_soil_inverted_. The GSS reuses one
+// profit evaluation per iteration (golden ratio) to halve function calls, and
+// a collapsed-interval branch handles the degenerate single-feasible-point case.
 void Leaf::find_root_collar_psi(){
 
-  
+
   // Psi soil comes in as positive values but is utilised as negative so need to flip TODO: change thi s around
   psi_soil_inverted_.resize(max_soil_layer);
   double wettest_soil_layer = -std::numeric_limits<double>::infinity();
