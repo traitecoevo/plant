@@ -5,6 +5,8 @@ editor_options:
   chunk_output_type: console
 ---
 
+To run this vignette, make and rebuild plant using root_water_uptake branch. Then, run below.
+
 ```{r}
 library(tidyverse)
 library(ggplot2)
@@ -13,18 +15,27 @@ devtools::load_all("/Users/z3533545/Documents/GitHub/plant/")
 ```
 
 ```{r}
-max_patch_lifetime <-105.32
+# Patch lifetime
+max_patch_lifetime <-75
+# Basic parameters
 p0 <- scm_base_parameters("TF24", "TF24_Env")
 p0$max_patch_lifetime <- max_patch_lifetime
 traits <- trait_matrix(c(0.07), c("lma"))
 p1 <- expand_parameters(traits, p0)
 
 env <- Environment("TF24")
+
+# fifteen soil layers
 env$set_soil_number_of_depths(15)
+# set soil moisture 0.2 (sat is 0.428)
 env$set_soil_water_state(rep(c(0.2), times = 15))
-x = seq(0,max_patch_lifetime,length.out = 100)
+
+# create rainfall vector across patch lifetime
+x = seq(0,max_patch_lifetime,length.out = 1000)
 y = 0.25*sin(2*pi*x) + 1
 env$extrinsic_drivers_set_variable("rainfall", x=x, y=y)
+
+# no change to ctrl at this point
 ctrl <- scm_base_control()
 # ctrl$ode_tol_rel <- 1e-4
 # ctrl$ode_tol_abs <- 1e-4
@@ -34,162 +45,14 @@ saveRDS(results, "results_high.RDS")
 results <- readRDS("results_high.RDS")
 ```
 
+Create diagnostic plots 
 
 ```{r}
-max_patch_lifetime <-10
-devtools::load_all("/Users/z3533545/Documents/GitHub/plant/")
-p0 <- scm_base_parameters("TF24", "TF24_Env")
-p0$max_patch_lifetime <- max_patch_lifetime
-traits <- trait_matrix(c(0.07), c("lma"))
-p1 <- expand_parameters(traits, p0)
-
-env <- Environment("TF24")
-env$set_soil_number_of_depths(15)
-env$set_soil_water_state(rep(c(0.15), times = 15))
-x = seq(0,max_patch_lifetime,length.out = 12*max_patch_lifetime)
-y = 0.125*sin(2*pi*x) + 0.5
-env$extrinsic_drivers_set_variable("rainfall", x=x, y=y)
-ctrl <- scm_base_control()
-# ctrl$ode_tol_rel <- 1e-4
-# ctrl$ode_tol_abs <- 1e-4
-
-system.time(results <- run_scm_collect(p1, env = env, ctrl = ctrl))
-saveRDS(results, "results_high.RDS")
-results <- readRDS("results_high.RDS")
-```
-
-```{r}
-results %>%
-expand_state() %>%
-pluck("species") %>%
-  integrate_over_size_distribution()%>% 
-  ggplot(aes(time, area_leaf)) +
-  geom_line(size = 2, colour = "forestgreen") +
-  theme_bw() +
-  theme(text = element_text(size = 20)) +
-  ylab(expression(paste(Patch~leaf~area, " (",m^2," ",m^{-2},")"))) +
-  xlab("Time (yr)") -> patch_leaf_area
-```
-
-```{r}
-results$species %>%
-  drop_na() %>%
-  plot_size_distribution() +
-  theme_bw() +
-  # theme(legend.position = "none")+
-  theme(text = element_text(size = 20))-> size_distribution
-```
-
-```{r}
-results$env$soil_moist %>%
-mutate(soil_depth = results$env$soil_depth$soil_depth) %>%
-mutate(psi_soil = (1.78e3 * (soil_moist/0.428)^ -6.57)/1e6) %>%
-ggplot(aes(x = time, y = psi_soil, group = soil_depth, colour = soil_depth)) +
-geom_point() +
-geom_line() +
-  theme_bw() +
-  theme(text = element_text(size = 20)) +
-  ylab(expression(paste(psi[soil], " (",-Mpa,")"))) +
-  xlab("Time (years)") +
-  labs(colour = "Soil depth (m)") -> soil_water_potential
-
-results$env$soil_moist %>%
-mutate(soil_depth = results$env$soil_depth$soil_depth) %>%
-mutate(psi_soil = (1.78e3 * (soil_moist/0.428)^ -6.57)/1e6) %>%
-ggplot(aes(x = time, y = soil_moist, group = soil_depth, colour = soil_depth)) +
-geom_point() +
-geom_line() +
-  theme_bw() +
-  theme(text = element_text(size = 20)) +
-  ylab(expression(paste(psi[soil], " (",-Mpa,")"))) +
-  xlab("Time (years)") +
-  labs(colour = "Soil depth (m)") -> soil_moisture
-```
-
-```{r}
-results$species %>%
-ggplot(aes(x = time, y = opt_psi_stem)) +
-geom_line(aes(colour = height, group = node)) +
-  theme_bw() +
-  theme(text = element_text(size = 20)) +
-  ylab(expression(paste(psi[stem], " (",-Mpa,")"))) +
-  xlab("Time (years)") +
-  labs(colour = "Height (m)") -> stem_water_potential
-```
-
-```{r}
-results$species %>%
-ggplot(aes(x = time, y = opt_root_psi)) +
-geom_line(aes(colour = height, group = node)) +
-  theme_bw() +
-  theme(text = element_text(size = 20)) +
-  ylab(expression(paste(psi[root], " (",-Mpa,")"))) +
-  xlab("Time (years)") +
-  labs(colour = "Height (m)") -> root_water_potential
-```
-
-```{r}
-results$species %>%
-ggplot(aes(x = time, y = profit)) +
-geom_line(aes(colour = height, group = node)) +
-  theme_bw() +
-  theme(text = element_text(size = 20)) +
-  ylab(expression(paste(Profit, " (",mu,mol~m^{-2}~s^{-1},")"))) +
-  xlab("Time (years)") +
-  labs(colour = "Height (m)") -> profit  
-```
-
-```{r}
-results$species %>%
-ggplot(aes(x = time, y = stom_cond_CO2)) +
-geom_line(aes(colour = height, group = node, alpha = density)) +
-  theme_bw() +
-  theme(text = element_text(size = 20)) +
-  ylab(expression(paste(g[s], " (",mol~m^{-2}~s^{-1},")"))) +
-  xlab("Time (years)") +
-  labs(colour = "Height (m)") -> stomatal_conductance  
-```
-
-```{r}
-tibble(x = x, y= y) %>%
-ggplot(aes(x = x, y = y)) +
-geom_line() +
-  theme_bw() +
-  theme(text = element_text(size = 20)) +
-  ylab(expression(paste(Rainfall, " (",m,")"))) +
-  # scale_x_continuous(limits =c(0,10)) +
-  xlab("Time (years)") -> rainfall
-```
-
-```{r}
-tibble(deplet = results$env$soil_moist_cumulative_flux$sum_resource_depletion,
-time =results$env$soil_moist_cumulative_flux$time) %>%
-mutate(deplet = deplet - lag(deplet)) %>%
-ggplot(aes(x = time, y = deplet)) +
-geom_line() +
-  theme_bw() +
-  theme(text = element_text(size = 20)) +
-  ylab(expression(paste(Transpiration, " (",m~yr^{-1},")"))) +
-  xlab("Time (years)") -> transpiration
-```
-
-```{r}
-tibble(deplet = results$env$soil_moist_cumulative_flux$sum_resource_depletion,
-time =results$env$soil_moist_cumulative_flux$time) %>%
-mutate(deplet = deplet - lag(deplet)) %>%
-mutate(deplet_per_area = deplet/c(NA,total_area_leaf)) %>%
-ggplot(aes(x = time, y = deplet_per_area)) +
-geom_line() +
-  theme_bw() +
-  theme(text = element_text(size = 20)) +
-  ylab(expression(paste(Transpiration~per~leaf~area, " (",m~m^{-2}~yr^{-1},")"))) +
-  xlab("Time (years)") -> transpiration_per_leaf_area
-```
-
-```{r}
-source("plot_diagnostics.R")
+source("vignettes/models/plot_diagnostics.R")
 plot_diagnostics(results, x, y, filename = "diagnostic_plot5_high.png")
 ```
+
+Plot the root distribution across soil depths (TODO: I think this is broken at the moment)
 
 ```{r}
 # Replicate the C++ root mass distribution from tf24_strategy.cpp:
@@ -244,6 +107,7 @@ results %>%
   ggplot(aes(x = time, y = mass_root_layer, colour = soil_depth, group = soil_depth)) +
   geom_line() +
   scale_colour_viridis_c(name = "Soil depth (m)") +
+  scale_y_log10() +
   theme_bw() +
   theme(text = element_text(size = 16)) +
   ylab(expression(paste(Root~mass~per~layer, " (kg ", m^{-2}, ")"))) +
