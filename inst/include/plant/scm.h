@@ -41,10 +41,9 @@ public:
   bool complete() const;
 
   // * Output total offspring calculation (not per capita)
-  std::vector<double> net_reproduction_ratio_by_node_weighted(size_t species_index) const;
-  double net_reproduction_ratio_for_species(size_t species_index, std::vector<double> const& scalars) const;
-  std::vector<double> net_reproduction_ratios() const;
-  std::vector<double> offspring_production() const;
+  // These delegate to the patch, which owns the fitness/offspring computations.
+  std::vector<double> net_reproduction_ratios() const { return patch.net_reproduction_ratios(); }
+  std::vector<double> offspring_production() const { return patch.offspring_production(); }
 
   // * R interface
   std::vector<util::index> r_run_next();
@@ -82,10 +81,6 @@ public:
   Rcpp::List r_get_state() const { return patch.r_get_state(); };
 
 private:
-  double total_offspring_production() const;
-  // Update the running per-node competition error for the species introduced
-  // this step (mirrors the per-step sampling the R refinement loop did).
-  void collect_competition_errors(const std::vector<size_t>& added);
   // Upwind bisection: insert the midpoint of the interval below each flagged
   // node. Mirrors split_times() in build_schedule.R.
   static std::vector<double> split_times(const std::vector<double>& times,
@@ -96,11 +91,6 @@ private:
   patch_type patch;
   NodeSchedule node_schedule;
   ode::Solver<patch_type> solver;
-
-  // Per-species running max of the competition error per node, accumulated
-  // across the run when collect_errors is set. Entries start at -Inf and
-  // ignore NA contributions, matching apply(., 2, max, na.rm=TRUE) in R.
-  std::vector<std::vector<double>> competition_error_by_node;
 };
 
 template <typename T, typename E>
@@ -129,7 +119,7 @@ template <typename T, typename E> void SCM<T, E>::run() {
   while (!complete()) {
     std::vector<size_t> added = run_next();
     if (collect_errors) {
-      collect_competition_errors(added);
+      patch.collect_competition_errors(added);
     }
     // store
     if(collect)
@@ -266,7 +256,6 @@ template <typename T, typename E> void SCM<T, E>::reset() {
   node_schedule.reset();
   solver.reset(patch);
   history.clear();
-  competition_error_by_node.assign(patch.size(), {});
 }
 
 template <typename T, typename E> bool SCM<T, E>::complete() const {
@@ -336,135 +325,26 @@ void SCM<T, E>::r_set_node_schedule_times(
 }
 
 
-// Offspring production, equal to overall fitness scaled by the birth rate
-template <typename T, typename E>
-std::vector<double> SCM<T, E>::offspring_production() const {
-	auto ret = std::vector<double>(patch.size());
-  for (size_t i = 0; i < patch.size(); ++i) {
-		// scale by birth rate function over time
-		auto const times = patch.at_species(i).node_times();
-		auto scalars = std::vector<double>(times.size());
-		for (size_t j = 0; j < times.size(); ++j) {
-			scalars[j] = patch.at_species(i).extrinsic_drivers().evaluate("birth_rate", times[j]);
-		}
-		ret[i] = net_reproduction_ratio_for_species(i, scalars);
-  }
-  return ret;
-}
+// The fitness/offspring and per-node error computations live on the patch
+// (patch.h); the SCM methods below are thin facades that preserve the R API.
 
-// Overall fitness
-template <typename T, typename E>
-std::vector<double> SCM<T, E>::net_reproduction_ratios() const {
-	auto ret = std::vector<double>(patch.size());
-  for (size_t i = 0; i < patch.size(); ++i) {
-		// no scaling, ie set scalars to 1.0
-		auto scalars = std::vector<double>(patch.at_species(i).size(), 1.0);
-		ret[i] = net_reproduction_ratio_for_species(i, scalars);
-  }
-  return ret;
-}
-
-// Integrate over lifetime fitness of individual nodes
-template <typename T, typename E>
-double
-SCM<T, E>::net_reproduction_ratio_for_species(size_t species_index, std::vector<double> const& scalars) const {
-	auto net_prod = net_reproduction_ratio_by_node_weighted(species_index);
-	auto const times = patch.at_species(species_index).node_times();
-	auto net_prod_scaled = std::vector<double>(times.size());
-	for (size_t i = 0; i < times.size(); ++i) {
-			net_prod_scaled[i] = net_prod[i] * scalars[i];
-	}
-  return util::trapezium(
-      times,
-      net_prod_scaled
-	);
-}
-
-// R interface method
 template <typename T, typename E>
 double SCM<T, E>::r_net_reproduction_ratio_for_species(
     util::index species_index) const {
-	const size_t idx = species_index.check_bounds(patch.size());
-	auto scalars = std::vector<double>(patch.at_species(idx).size(), 1.0);
-  return net_reproduction_ratio_for_species(idx, scalars);
+  const size_t idx = species_index.check_bounds(patch.size());
+  auto scalars = std::vector<double>(patch.at_species(idx).size(), 1.0);
+  return patch.net_reproduction_ratio_for_species(idx, scalars);
 }
 
-// Node fitness within a meta-population of patches.
-// The patch-age density weighting and S_D are now recorded on each node at
-// introduction, so this is just a passthrough to the species.
-template <typename T, typename E>
-std::vector<double> SCM<T, E>::net_reproduction_ratio_by_node_weighted(
-    size_t species_index) const {
-  return patch.at_species(species_index).net_reproduction_ratio_by_node_weighted();
-}
-
-// Sum up all offspring produced
-template <typename T, typename E>
-double SCM<T, E>::total_offspring_production() const {
-  double total = 0.0;
-  std::vector<double> offspring = offspring_production();
-  for (size_t i = 0; i < patch.size(); ++i) {
-    total += offspring[i];
-  }
-  return total;
-}
-
-// Sample the competition error for each species introduced this step and fold
-// it into the running per-node max (ignoring NA, matching na.rm=TRUE in R).
-template <typename T, typename E>
-void SCM<T, E>::collect_competition_errors(const std::vector<size_t>& added) {
-  for (size_t idx : added) {
-    std::vector<double> v =
-        patch.r_compute_competition_effect_error_by_node_for_species_i(idx);
-    std::vector<double>& acc = competition_error_by_node[idx];
-    if (acc.size() < v.size()) {
-      acc.resize(v.size(), -std::numeric_limits<double>::infinity());
-    }
-    for (size_t j = 0; j < v.size(); ++j) {
-      if (!ISNAN(v[j])) {
-        acc[j] = std::max(acc[j], v[j]);
-      }
-    }
-  }
-}
-
-// Combine the competition error (sampled during the run) with the reproduction
-// error (computed now) into a single per-node error vector per species. An
-// all-NA node yields -Inf, matching apply(rbind(...), 2, max, na.rm=TRUE) in R.
 template <typename T, typename E>
 std::vector<std::vector<double>> SCM<T, E>::combined_node_errors() const {
-  std::vector<std::vector<double>> repro = r_net_reproduction_ratio_errors();
-  std::vector<std::vector<double>> ret(patch.size());
-  for (size_t i = 0; i < patch.size(); ++i) {
-    const std::vector<double>& comp = competition_error_by_node[i];
-    const std::vector<double>& rep = repro[i];
-    const size_t n = patch.at_species(i).size();
-    std::vector<double> tot(n, -std::numeric_limits<double>::infinity());
-    for (size_t j = 0; j < n; ++j) {
-      if (j < comp.size() && !ISNAN(comp[j])) {
-        tot[j] = std::max(tot[j], comp[j]);
-      }
-      if (j < rep.size() && !ISNAN(rep[j])) {
-        tot[j] = std::max(tot[j], rep[j]);
-      }
-    }
-    ret[i] = tot;
-  }
-  return ret;
+  return patch.combined_node_errors();
 }
 
-// Check integration errors
 template <typename T, typename E>
 std::vector<std::vector<double>>
 SCM<T, E>::r_net_reproduction_ratio_errors() const {
-  std::vector<std::vector<double>> ret;
-  double total_offspring = total_offspring_production();
-  for (size_t i = 0; i < patch.size(); ++i) {
-    ret.push_back(util::local_error_integration(
-        patch.at_species(i).node_times(), net_reproduction_ratio_by_node_weighted(i),
-        total_offspring));
-  }
-  return ret;
+  return patch.net_reproduction_ratio_errors();
 }
 
 } // namespace plant

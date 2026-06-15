@@ -26,9 +26,9 @@ public:
   size_t size() const;
   void clear();
   void introduce_new_node();
-  // Record introduction time and patch-age density on the most recently
-  // introduced node (called by Patch, which knows the time and disturbance).
-  void stamp_new_node(double time, double patch_density);
+  // Introduce a node, stamping it with the introduction time and patch-age
+  // density at birth (called by Patch, which knows the time and disturbance).
+  void introduce_new_node(double time, double patch_density);
 
   double height_max() const;
   double compute_competition(double height) const;
@@ -201,10 +201,11 @@ void Species<T,E>::compute_rates(const E& environment, double pr_patch_survival,
 }
 
 template <typename T, typename E>
-void Species<T,E>::stamp_new_node(double time, double patch_density) {
-  if (!nodes.empty()) {
-    nodes.back().set_introduction(time, patch_density);
-  }
+void Species<T,E>::introduce_new_node(double time, double patch_density) {
+  // Stamp the pushed copy (not new_node) so the member stays pristine for
+  // the no-arg introduction paths.
+  nodes.push_back(new_node);
+  nodes.back().set_introduction(time, patch_density);
 }
 
 template <typename T, typename E>
