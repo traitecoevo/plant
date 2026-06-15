@@ -114,3 +114,8 @@ Here are some example publications using plant:
 - Falster DS, Kunstler GK, FitzJohn RG, Westoby M (2021) Emergent shapes of trait-based competition functions from resource-based models: a Gaussian is not normal in plant communities. *The American Naturalist* 198: 256–267. DOI: [10.1086/714868](http://doi.org/10.1086/714868)&nbsp; code: [github](https://github.com/traitecoevo/competition_kernels)
 
 
+
+## Contributing
+
+Contributions are welcome. By submitting a pull request or code to this repository, you agree to the terms of the [Contributor License Agreement](CLA.md).
+
