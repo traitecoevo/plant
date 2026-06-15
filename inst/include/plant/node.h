@@ -27,6 +27,23 @@ public:
   double compute_competition(double z) const;
   double fecundity() const {return offspring_produced_survival_weighted;}
 
+  // Bookkeeping recorded at the moment the node is introduced, so that
+  // lifetime-fitness calculations need not look these up after the run.
+  // patch_density_at_birth is the (unnormalised) probability density of a
+  // patch having the node's introduction age, i.e. survival_weighting->density.
+  void set_introduction(double time, double patch_density) {
+    node_introduction_time = time;
+    patch_density_at_birth = patch_density;
+  }
+  double introduction_time() const {return node_introduction_time;}
+  double patch_density() const {return patch_density_at_birth;}
+
+  // Lifetime offspring of this node, weighted by the probability of
+  // landing in a patch of the node's age and by survival during dispersal.
+  double weighted_fecundity(double S_D) const {
+    return offspring_produced_survival_weighted * patch_density_at_birth * S_D;
+  }
+
   // Unfortunate, but need a get_ here because of name shadowing...
   double get_log_density() const {return log_density;}
   void set_log_density(double x) {
@@ -74,6 +91,10 @@ private:
   double offspring_produced_survival_weighted;
   double offspring_produced_survival_weighted_dt;
   double pr_patch_survival_at_birth;
+
+  // Recorded at introduction (see set_introduction).
+  double node_introduction_time;
+  double patch_density_at_birth;
 };
 
 template <typename T, typename E>
@@ -83,7 +104,9 @@ Node<T,E>::Node(strategy_type_ptr s)
     log_density_dt(0),
     density(0),
     offspring_produced_survival_weighted(0),
-    offspring_produced_survival_weighted_dt(0) {
+    offspring_produced_survival_weighted_dt(0),
+    node_introduction_time(0),
+    patch_density_at_birth(0) {
 }
 
 template <typename T, typename E>

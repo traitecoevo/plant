@@ -1,0 +1,185 @@
+# Issue #408 — Move cohort refining into C++ and simplify the SCM
+
+Tracking doc for the refactor described in
+[traitecoevo/plant#408](https://github.com/traitecoevo/plant/issues/408).
+
+**Goal:** the SCM should be as simple as possible and no longer rely on R-side
+calculations for any cohort refining. Move the cohort-splitting / schedule
+refinement algorithm into C++, and collect reproduction/error information at the
+node level (as it is produced) rather than reconstructing it after the run.
+
+**Agreed approach:** phased PRs; the refinement loop lives as a method on
+`SCM` (`SCM::refine_schedule()`); the final R API is a breaking cleanup that
+consolidates onto a single `run_scm()` entry point.
+
+---
+
+## 1. What is being calculated today
+
+Two intertwined machines are smeared across R and C++.
+
+### 1a. The cohort-refinement loop (mostly R today)
+
+[`build_schedule()`](../R/build_schedule.R) drives the loop. Each of up to
+`schedule_nsteps` iterations:
+
+1. Calls [`run_scm_error()`](../R/scm_support.R), which constructs a fresh `SCM`
+   and **manually single-steps** it via `scm$run_next()`. After each step it
+   records, *per species that got a node this step*, the vector
+   `compute_competition_effect_error_by_node_for_species_i(idx)`.
+2. Those per-step vectors are padded into a matrix and reduced with `max` per
+   column → a **per-node competition (LAI) error**.
+3. At the end it reads `scm$net_reproduction_ratio_errors` → a **per-node
+   reproduction error**.
+4. `total[node] = max(competition_error, reproduction_error)`.
+5. `build_schedule` flags `split = total > schedule_eps`, then
+   [`split_times()`](../R/build_schedule.R) bisects the interval *below* each
+   flagged node (upwind scheme), re-sorts, and the loop repeats.
+
+Both error signals use [`local_error_integration`](../src/util.cpp) (estimates
+how much the middle point contributes to a trapezium integral):
+
+- **Competition error** over node *heights*:
+  `Species::r_compute_competition_effect_by_nodes_error`, scaled by total patch
+  competition. Must be sampled *during* the run (running max across steps) —
+  this is the only reason `run_scm_error` re-implements the step loop in R.
+- **Reproduction error** over node *introduction times*:
+  `SCM::r_net_reproduction_ratio_errors`, computed once at the end, scaled by
+  total offspring.
+
+### 1b. The reproduction accounting (C++, but with post-hoc lookups)
+
+Per-node lifetime fitness is already integrated inside the ODE:
+[`Node`](../inst/include/plant/node.h) accumulates
+`offspring_produced_survival_weighted_dt = fecundity · survival_individual ·
+pr_patch_survival / pr_patch_survival_at_birth`, surfaced as `node.fecundity()`.
+
+[`SCM::net_reproduction_ratio_by_node_weighted`](../inst/include/plant/scm.h)
+then weights post-hoc:
+
+```cpp
+... *= patch.survival_weighting->density(times[i]) * parameters.strategies[species_index].S_D;
+```
+
+It re-derives `times[i]` from `node_schedule.times(species)` and re-queries
+`survival_weighting->density(t)` — **both knowable at node birth**. The node
+already stores `pr_patch_survival_at_birth`, and for the Weibull regime
+`density(t) = p0 · pr_survival(t)`, so `density(t_birth) =
+p0 · pr_patch_survival_at_birth`. Only `p0` and `S_D` (constants) are missing,
+and the introduction time isn't stored on the node at all.
+
+`offspring_production` and `net_reproduction_ratios` are the same
+trapezium-over-introduction-times integral, differing only in `scalars`
+(birth-rate vs 1.0).
+
+### 1c. Key insight
+
+Every "look it up later" path (introduction time, patch-density weight) can be
+replaced by **recording the value on the `Node` at introduction**. Once a node
+owns `introduction_time` and `density_at_birth`, `Species` can produce both the
+weighted-fitness vector and the integration x-axis itself, and `SCM` no longer
+needs `node_schedule` or `survival_weighting` for any reproduction calc. The
+refinement loop can then run entirely in C++, because the only thing forcing it
+into R (per-step competition-error sampling) is just a running max that
+`SCM::run()` can maintain directly.
+
+---
+
+## 2. Phased plan
+
+### Phase 1 — Node-level bookkeeping (behaviour-preserving) — ✅ DONE
+
+Nodes own their introduction time and disturbance weight; SCM stops reaching
+back into `node_schedule` / `survival_weighting`.
+
+Implemented:
+- `node.h`: added `node_introduction_time` + `patch_density_at_birth` members,
+  `set_introduction(time, patch_density)`, `introduction_time()`,
+  `patch_density()`, and `weighted_fecundity(S_D)`.
+- `patch.h` `introduce_new_nodes`: stamps each new node with `time()` and
+  `survival_weighting->density(time())` via `Species::stamp_new_node`.
+- `species.h`: added `stamp_new_node`, `net_reproduction_ratio_by_node_weighted`
+  (applies `density_at_birth · S_D`), and `node_times`.
+- `scm.h`: reproduction methods (`net_reproduction_ratio_by_node_weighted`,
+  `net_reproduction_ratio_for_species`, `offspring_production`,
+  `net_reproduction_ratios`, `r_net_reproduction_ratio_for_species`,
+  `r_net_reproduction_ratio_errors`) now use `species.node_times()` and the
+  species-weighted vector; all `node_schedule.times()` /
+  `patch.survival_weighting->density()` lookups removed.
+- No `RcppR6_classes.yml` change needed (no R-exposed signatures changed);
+  `make compile` only.
+- Verified green: test-scm, test-scm-support, test-schedule-build (141/186),
+  test-strategy-ff16 + ff16-reference-comparison, k93, tf24, mutant,
+  tidy-outputs, patch, species, all stochastic, environment-TF24.
+
+- **`node.h`**: add `introduction_time` and `density_at_birth`; set them at
+  introduction (e.g. `set_introduction(t, density)`). Add
+  `weighted_fecundity(double S_D)` = `fecundity() · density_at_birth · S_D` and
+  an `introduction_time` getter.
+- **`patch.h`** `introduce_new_nodes`: pass `time()` and
+  `survival_weighting->density(time())` into each new node.
+- **`species.h`**: add `node_times()`; apply the `density_at_birth · S_D`
+  weighting at node level (`S_D` reachable via `strategy`).
+- **`scm.h`**: rewrite `net_reproduction_ratio_by_node_weighted`,
+  `net_reproduction_ratio_for_species`, `offspring_production`,
+  `net_reproduction_ratios` to use `species.node_times()` + the species-weighted
+  vector. Drop the `patch.survival_weighting->density(...)` /
+  `node_schedule.times(...)` dependencies.
+- **Verify**: `make compile` + `devtools::test()`; the regression in
+  `test-scm.R` and the FF16 reference baselines must stay green.
+
+### Phase 2 — Error collection inside `SCM::run()`
+
+A single run yields the refinement signal; delete the R-side step loop.
+
+- **`scm.h`**: add a `collect_errors` flag and per-species running state:
+  `competition_error[species][node]` updated as an element-wise max after each
+  `run_next()` (pad for newly added nodes). At `complete()`, compute the
+  per-node reproduction error. Add `combined_node_errors()` → per-species
+  `max(competition_error, reproduction_error)`, replacing what `run_scm_error`
+  assembled in R.
+- Makes `run_scm_error` redundant.
+- **Verify**: temporary R test asserting `combined_node_errors()` matches the
+  old `run_scm_error()$err$total` for an FF16 case.
+
+### Phase 3 — Refinement loop + `split_times` in C++
+
+`SCM::refine_schedule()` owns the adaptive loop.
+
+- **`scm.h`**: add `refine_schedule()` looping up to `control.schedule_nsteps`:
+  `reset()` → `run()` with `collect_errors` → break if all
+  `combined_node_errors ≤ schedule_eps`, else bisect flagged intervals and
+  `node_schedule.set_times(...)`. Port `split_times` as a C++ helper (upwind
+  bisection: insert `t[i] - dt[i-1]/2`, keep sorted, never split the last
+  interval). Reuse the single SCM instance rather than reconstructing.
+- Keep `parameters.node_schedule_times` / `ode_times` in sync so the refined
+  `Parameters` stays self-describing.
+- Expose `refine_schedule` (+ accessors) in `RcppR6_classes.yml`;
+  `make rebuild`.
+- **Verify**: the `build_schedule` regression in `test-schedule-build.R`
+  (141 / 186 length expectations) must reproduce before deleting the R loop.
+
+### Phase 4 — Breaking R-API cleanup
+
+One entry point; old names removed.
+
+- Consolidate onto
+  `run_scm(p, env, ctrl, collect = FALSE, refine_schedule = FALSE)` in
+  `scm_support.R`: `refine_schedule` delegates to `scm$refine_schedule()`;
+  `collect` returns tidied history + reproduction outputs.
+- **Remove** `run_scm_collect`, `run_scm_error`, and R `build_schedule` /
+  `split_times`.
+- Update all callers/tests: `test-scm-support.R`, `test-schedule-build.R`,
+  `test-tidy-outputs.R`, `test-mutant.R`, the strategy tests, `benchmark.R`,
+  and doc refs in `tidy_outputs.R`. **Check downstream `plant.assembly`**, which
+  likely calls these.
+- `make rebuild` + `make roxygen` + full `devtools::test()`.
+
+### Cross-cutting notes
+
+- The stochastic path also exposes `offspring_production`
+  (`R/stochastic.R`) — Phase 1 touches shared classes, so re-run stochastic
+  tests.
+- FF16 reference baselines in `tests/testthat/FF16_reference/` are the safety
+  net; if any phase shifts numerics beyond tolerance, that's a bug, not an
+  expected regen.

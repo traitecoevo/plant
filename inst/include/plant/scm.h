@@ -251,7 +251,7 @@ std::vector<double> SCM<T, E>::offspring_production() const {
 	auto ret = std::vector<double>(patch.size());
   for (size_t i = 0; i < patch.size(); ++i) {
 		// scale by birth rate function over time
-		auto const& times = node_schedule.times(i);
+		auto const times = patch.at_species(i).node_times();
 		auto scalars = std::vector<double>(times.size());
 		for (size_t j = 0; j < times.size(); ++j) {
 			scalars[j] = patch.at_species(i).extrinsic_drivers().evaluate("birth_rate", times[j]);
@@ -267,8 +267,7 @@ std::vector<double> SCM<T, E>::net_reproduction_ratios() const {
 	auto ret = std::vector<double>(patch.size());
   for (size_t i = 0; i < patch.size(); ++i) {
 		// no scaling, ie set scalars to 1.0
-		auto const& times = node_schedule.times(i);
-		auto scalars = std::vector<double>(times.size(), 1.0);
+		auto scalars = std::vector<double>(patch.at_species(i).size(), 1.0);
 		ret[i] = net_reproduction_ratio_for_species(i, scalars);
   }
   return ret;
@@ -279,10 +278,9 @@ template <typename T, typename E>
 double
 SCM<T, E>::net_reproduction_ratio_for_species(size_t species_index, std::vector<double> const& scalars) const {
 	auto net_prod = net_reproduction_ratio_by_node_weighted(species_index);
-	auto const& times = node_schedule.times(species_index);
+	auto const times = patch.at_species(species_index).node_times();
 	auto net_prod_scaled = std::vector<double>(times.size());
-	// should be showing compiler warning for int (auto) comparison, but isn't anymore...
-	for (auto i = 0; i < times.size(); ++i) {
+	for (size_t i = 0; i < times.size(); ++i) {
 			net_prod_scaled[i] = net_prod[i] * scalars[i];
 	}
   return util::trapezium(
@@ -295,34 +293,18 @@ SCM<T, E>::net_reproduction_ratio_for_species(size_t species_index, std::vector<
 template <typename T, typename E>
 double SCM<T, E>::r_net_reproduction_ratio_for_species(
     util::index species_index) const {
-	auto const& times = node_schedule.times(species_index.check_bounds(patch.size()));
-	auto scalars = std::vector<double>(times.size(), 1.0);
-  return net_reproduction_ratio_for_species(
-      species_index.x, scalars);
+	const size_t idx = species_index.check_bounds(patch.size());
+	auto scalars = std::vector<double>(patch.at_species(idx).size(), 1.0);
+  return net_reproduction_ratio_for_species(idx, scalars);
 }
 
-// Node fitness within a meta-population of patches
+// Node fitness within a meta-population of patches.
+// The patch-age density weighting and S_D are now recorded on each node at
+// introduction, so this is just a passthrough to the species.
 template <typename T, typename E>
 std::vector<double> SCM<T, E>::net_reproduction_ratio_by_node_weighted(
     size_t species_index) const {
-  // node introduction times
-  const std::vector<double> times = node_schedule.times(species_index);
-
-  // retrieve lifetime fitness for each node
-  std::vector<double> net_reproduction_ratio_by_node_weighted =
-      patch.at_species(species_index).net_reproduction_ratio_by_node();
-
-  // weight by probabilty of reproduction
-  for (size_t i = 0; i < net_reproduction_ratio_by_node_weighted.size();
-       ++i) {
-    net_reproduction_ratio_by_node_weighted[i] *=
-        patch.survival_weighting->density(
-            times[i]) * // probability of landing in patch of a given age
-        parameters.strategies[species_index]
-            .S_D; // probability of survival during dispersal (assumed constant)
-  }
-
-  return net_reproduction_ratio_by_node_weighted;
+  return patch.at_species(species_index).net_reproduction_ratio_by_node_weighted();
 }
 
 // Sum up all offspring produced
@@ -344,7 +326,7 @@ SCM<T, E>::r_net_reproduction_ratio_errors() const {
   double total_offspring = total_offspring_production();
   for (size_t i = 0; i < patch.size(); ++i) {
     ret.push_back(util::local_error_integration(
-        node_schedule.times(i), net_reproduction_ratio_by_node_weighted(i),
+        patch.at_species(i).node_times(), net_reproduction_ratio_by_node_weighted(i),
         total_offspring));
   }
   return ret;

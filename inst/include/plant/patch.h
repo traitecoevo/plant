@@ -303,8 +303,13 @@ void Patch<T,E>::introduce_new_node(size_t species_index) {
 
 template <typename T, typename E>
 void Patch<T,E>::introduce_new_nodes(const std::vector<size_t>& species_index) {
+  // Record introduction time and patch-age density on each node as it is
+  // introduced, so lifetime-fitness calcs need not look these up later.
+  const double t = time();
+  const double patch_density = survival_weighting->density(t);
   for (size_t i : species_index) {
     species[i].introduce_new_node();
+    species[i].stamp_new_node(t, patch_density);
   }
 
   compute_environment(false);
