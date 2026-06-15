@@ -60,7 +60,7 @@ public:
   // Combine the competition error (sampled during the run) with the
   // reproduction error (computed now) into a single per-node error vector per
   // species. An all-NA node yields -Inf. Drives schedule refinement.
-  std::vector<std::vector<double>> combined_node_errors() const;
+  std::vector<std::vector<double>> refinement_error_by_node() const;
 
   void introduce_new_node(size_t species_index);
   void introduce_new_nodes(const std::vector<size_t>& species_index);
@@ -366,7 +366,7 @@ void Patch<T,E>::collect_competition_errors(const std::vector<size_t>& added) {
 // error (computed now) into a single per-node error vector per species. An
 // all-NA node yields -Inf, matching apply(rbind(...), 2, max, na.rm=TRUE) in R.
 template <typename T, typename E>
-std::vector<std::vector<double>> Patch<T,E>::combined_node_errors() const {
+std::vector<std::vector<double>> Patch<T,E>::refinement_error_by_node() const {
   std::vector<std::vector<double>> repro = net_reproduction_ratio_errors();
   std::vector<std::vector<double>> ret(species.size());
   for (size_t i = 0; i < species.size(); ++i) {

@@ -227,7 +227,7 @@ test_that("Offspring production & error calculations correct", {
   }
 })
 
-test_that("combined_node_errors collected in C++ matches per-step assembly", {
+test_that("refinement_error_by_node collected in C++ matches per-step assembly", {
   for (x in c("FF16")) {
     context(sprintf("SCM-%s", x))
     e <- environment_types[[x]]
@@ -239,9 +239,9 @@ test_that("combined_node_errors collected in C++ matches per-step assembly", {
 
     ## New path: a single run with error collection enabled.
     scm <- SCM(x, e)(p1, env, ctrl)
-    scm$collect_errors <- TRUE
+    scm$collect_refinement_errors <- TRUE
     scm$run()
-    new_total <- scm$combined_node_errors
+    new_total <- scm$refinement_error_by_node
 
     ## Reference: sample the competition error per introduction step and take
     ## the column-wise max with the reproduction error (the logic the R-side

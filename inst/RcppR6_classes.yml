@@ -677,38 +677,44 @@ SCM:
       - parameters: "plant::Parameters<T,E>"
       - environment: "E"
       - control: "plant::Control"
+  # Order mirrors the public API grouping in inst/include/plant/scm.h.
   methods:
+    # Simulation lifecycle
     run:
       return_type: void
+    run_next:
+      return_type: "std::vector<plant::util::index>"
+      name_cpp: r_run_next
     run_mutant:
       args: [p: "plant::Parameters<T,E>"]
       return_type: void
     refine_schedule:
       return_type: void
-    run_next:
-      return_type: "std::vector<plant::util::index>"
-      name_cpp: r_run_next
     reset:
       return_type: void
+    # Fitness / reproduction
     net_reproduction_ratio_for_species:
       args: [species_index: "plant::util::index"]
       return_type: double
       name_cpp: r_net_reproduction_ratio_for_species
+    # Schedule-refinement error signals
     compute_competition_effect_error_by_node_for_species_i:
       args: [species_index: "plant::util::index"]
       return_type: "std::vector<double>"
       name_cpp: r_compute_competition_effect_error_by_node_for_species_i
+    # Node schedule
     set_node_schedule_times:
       args: [times: "std::vector<std::vector<double>>"]
       return_type: void
       name_cpp: r_set_node_schedule_times
-    # times
-    # set_times
   active:
+    # Lifecycle / state
     complete: {type: bool, access: member}
     time: {type: double, access: member}
+    # Outputs (totals)
     net_reproduction_ratios: {type: "std::vector<double>", access: member}
     offspring_production: {type: "std::vector<double>", access: member}
+    # Run / parameters / state access
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
     patch:
       type: "plant::Patch<T,E>"
@@ -718,11 +724,21 @@ SCM:
       type: "std::vector<plant::Patch<T,E>>"
       access: member
       name_cpp: r_history
+    # Fitness / reproduction error signals
+    net_reproduction_ratio_errors:
+      type: "std::vector<std::vector<double>>"
+      access: member
+      name_cpp: r_net_reproduction_ratio_errors
+    refinement_error_by_node:
+      type: "std::vector<std::vector<double>>"
+      access: member
+    # Node schedule
     node_schedule:
       type: "plant::NodeSchedule"
       access: member
       name_cpp: r_node_schedule
       name_cpp_set: r_set_node_schedule
+    # ODE times
     ode_times:
       type: "std::vector<double>"
       access: member
@@ -732,23 +748,9 @@ SCM:
       access: member
       name_cpp: r_use_ode_times
       name_cpp_set: r_set_use_ode_times
-    collect:
-      type: bool
-      access: member
-      name_cpp: r_get_collect
-      name_cpp_set: r_set_collect
-    collect_errors:
-      type: bool
-      access: member
-      name_cpp: r_get_collect_errors
-      name_cpp_set: r_set_collect_errors
-    net_reproduction_ratio_errors:
-      type: "std::vector<std::vector<double>>"
-      access: member
-      name_cpp: r_net_reproduction_ratio_errors
-    combined_node_errors:
-      type: "std::vector<std::vector<double>>"
-      access: member
+    # Collection toggles (bound directly to the public members)
+    collect: {type: bool, access: field}
+    collect_refinement_errors: {type: bool, access: field}
 
 StochasticSpecies:
   name_cpp: "plant::StochasticSpecies<T,E>"

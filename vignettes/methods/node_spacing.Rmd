@@ -380,15 +380,15 @@ The relative error of each integration is computed with the
 introduction step as the patch develops, while the offspring-production error is
 computed once at the end of the run. Both are now accumulated *inside*
 `SCM::run()` when error collection is enabled, and the per-node maximum of the
-two is exposed as `combined_node_errors` -- the signal that drives refinement:
+two is exposed as `refinement_error_by_node` -- the signal that drives refinement:
 
 
 ``` r
 scm <- run_scm(p)            # SCM object
-scm$collect_errors <- TRUE
+scm$collect_refinement_errors <- TRUE
 scm$run()                    # rerun, now accumulating the error signal
 
-combined <- scm$combined_node_errors[[1]]
+combined <- scm$refinement_error_by_node[[1]]
 
 plot(times_default, combined, type = "h",
      xlab = "Introduction time (years)", ylab = "Combined per-node error", las = 1)
