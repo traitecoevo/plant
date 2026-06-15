@@ -179,7 +179,7 @@ test_that("offspring arrival", {
 
   p0 <- scm_base_parameters("FF16")
   env <- Environment("FF16")
-  ctrl <- scm_base_control()
+  ctrl <- Control()
   
   # one species
   p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar, 
@@ -202,7 +202,7 @@ test_that("Report generation", {
 
   p0 <- scm_base_parameters("FF16")
   env <- Environment("FF16")
-  ctrl <- scm_base_control()
+  ctrl <- Control()
   
   p2 <- expand_parameters(trait_matrix(c(0.0825, 0.2625), "lma"), p0,   FF16_hyperpar, 
                            birth_rate_list = list(11.99177, 16.51006))

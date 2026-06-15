@@ -10,7 +10,7 @@ for (x in c("FF16", "K93")) {
     p1 <- expand_parameters(trait_matrix(0.059, "b_0"), p0,  birth_rate_list=1.0)
 
   env <- Environment(x)
-  ctrl <- scm_base_control()
+  ctrl <- Control()
 
   expect_silent(
     results <- run_scm(p1, env, ctrl, collect = TRUE)

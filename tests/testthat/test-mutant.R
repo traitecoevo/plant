@@ -6,7 +6,7 @@ test_that("mutant method works", {
   p0$max_patch_lifetime <- 50
   
   e <- Environment("FF16")
-  ctrl <- scm_base_control()
+  ctrl <- Control()
   ctrl$save_RK45_cache = TRUE
     
   tol <- 1e-4
@@ -110,7 +110,7 @@ test_that("mutant method densities", {
   # Now test with different resident densities
     
   # 1 resident strategies
-  ctrl <- scm_base_control()
+  ctrl <- Control()
   ctrl$save_RK45_cache = TRUE
 
   lma_attr <- 0.0825

@@ -4,7 +4,7 @@ context("SCM support")
 test_that("collect", {
   
   env <- Environment("FF16")
-  ctrl <- scm_base_control()
+  ctrl <- Control()
   p0 <- scm_base_parameters("FF16")
   p0$disturbance_mean_interval <- 30.0
   p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, birth_rate_list = 1.0)
@@ -51,7 +51,7 @@ test_that("expand_parameters & mutant_parameters", {
 test_that("collect_auxiliary_variables", {
   
   env <- Environment("FF16")
-  ctrl <- scm_base_control()
+  ctrl <- Control()
   p0 <- scm_base_parameters("FF16")
   p0$disturbance_mean_interval <- 30.0
   # two species

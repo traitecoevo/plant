@@ -46,7 +46,7 @@ test_that("offspring arrival", {
                             soil_number_of_depths = 3,
                             soil_initial_state = rep(1, 3))
     
-    ctrl <- scm_base_control()
+    ctrl <- Control()
     env$set_extrinsic_driver("rainfall", 0:10, 0:10)
   for (i in 1:1000) {
     out <- run_scm(p1, env, ctrl) 

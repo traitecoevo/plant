@@ -1,33 +1,26 @@
-##' Sets reasonable defaults for fast numerical calculations
-##' @title Fast Control Defaults
-##' @return A Control object with parameters set.
-##' @author Rich FitzJohn
+##' Construct a \code{Control} object. \code{control()} is a lowercase alias for
+##' the \code{Control()} constructor, whose defaults are the pragmatic,
+##' fast-ish settings used for essentially all of plant's runs (see
+##' \code{control.cpp}). \code{control_accurate()} tightens the ODE and schedule
+##' tolerances for high-accuracy runs at the cost of speed.
+##'
+##' @title Control presets
+##' @param ... Named control fields, passed to \code{Control()}.
+##' @param base An optional \code{Control} object to tighten; defaults are used
+##'   if omitted.
+##' @return A \code{Control} object.
+##' @rdname control_presets
 ##' @export
-##' @param base An optional \code{Control} object.  If omitted, the
-##' defaults are used.
-fast_control <- function(base=Control()) {
-  base$function_integration_rule <- 21
+control <- function(...) Control(...)
 
-  base$ode_tol_rel <- 1e-4
-  base$ode_tol_abs <- 1e-4
-  base$ode_step_size_max <- 5
-
-  base$node_gradient_direction <- -1
-  base$node_gradient_richardson <- FALSE
-
+##' @rdname control_presets
+##' @export
+control_accurate <- function(base = Control()) {
+  base$ode_tol_rel       <- 1e-6
+  base$ode_tol_abs       <- 1e-6
+  base$ode_step_size_max <- 1e-1
+  base$schedule_eps      <- 1e-3
   base
-}
-
-##' Hopefully sensible set of parameters for use with the SCM.  Turns
-##' accuracy down a bunch, makes it noisy, sets up the
-##' hyperparameterisation that we most often use.
-##' @title Sensible, fast (ish) SCM control settings
-##' @author Rich FitzJohn
-##' @export
-scm_base_control <- function() {
-  ctrl <- fast_control()
-  ctrl$schedule_eps <- 0.005
-  return(ctrl)
 }
 
 
@@ -41,8 +34,7 @@ scm_base_control <- function() {
 ##' @param env And environment object
 ##' @export
 scm_base_parameters <- function(type = NA, env = environment_type(type)) {
-  
-   Parameters(type, env)(patch_area=1.0)
+  Parameters(type, env)()
 }
 
 
@@ -72,7 +64,7 @@ scm_base_parameters <- function(type = NA, env = environment_type(type)) {
 ##' @rdname run_scm
 ##' @export
 run_scm <- function(p, env = NULL,
-                    ctrl = scm_base_control(),
+                    ctrl = control(),
                     refine_schedule = FALSE, collect = FALSE,
                     use_ode_times = FALSE) {
 

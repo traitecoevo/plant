@@ -255,7 +255,7 @@ for (x in names(strategy_types)) {
   test_that("No Disturbance for fixed-time patches", {
     p$patch_type <- "fixed"
     env <- Environment(x)
-    ctrl <- scm_base_control()
+    ctrl <- Control()
 
     patch <- Patch(x, e)(p, env, ctrl)
     

@@ -157,6 +157,28 @@ Migration map for callers (other repos/scripts must be updated):
 FALSE)` returns the `SCM` object by default, or — when `collect = TRUE` — the
 tidied results list (whose `p` element holds the possibly-refined parameters).
 
+### 3.2 Control defaults folded into C++ — API change (2026-06)
+
+The pragmatic "fast-ish" numeric settings that essentially every plant run uses
+previously lived in two R helpers (`fast_control()`, `scm_base_control()`) that
+layered them on top of a tight-tolerance `Control()` constructor. Those values
+are **now the defaults in the C++ `Control()` constructor itself**
+([src/control.cpp](src/control.cpp)) — a single source of truth — and the two R
+helpers are **removed**. `Control()` (lowercase alias `control()`) is therefore
+the fast default; `control_accurate()` opts back into tight ODE/schedule
+tolerances for high-accuracy runs.
+
+Migration map for callers (other repos/scripts must be updated):
+
+| Removed (R)            | Replacement                                              |
+|------------------------|---------------------------------------------------------|
+| `fast_control()`       | `Control()` / `control()` (these defaults are now built in) |
+| `scm_base_control()`   | `Control()` / `control()`                                |
+| *(high-accuracy run)*  | `control_accurate()` (tightens `ode_tol_rel/abs`, `ode_step_size_max`, `schedule_eps`) |
+
+`scm_base_parameters()` is **unaffected** — it builds a `Parameters` object, not
+a `Control`.
+
 What moved into C++ (all on `Node`/`Species`/`SCM` in
 [node.h](inst/include/plant/node.h), [species.h](inst/include/plant/species.h),
 [scm.h](inst/include/plant/scm.h)):
@@ -186,7 +208,7 @@ R files in [R/](R/) (ignore the two large generated files `RcppR6.R`,
 |---|---|
 | [ff16.R](R/ff16.R), [tf24.R](R/tf24.R), [k93.R](R/k93.R) | Per-model constructors (`FF16_Individual`, `FF16_Parameters`, …), hyperpar functions, expand_state, stand reports |
 | [strategy_support.R](R/strategy_support.R) | **Dispatch tables** mapping a model name → its functions (`hyperpar`, `make_hyperpar`, `param_hyperpar`, `environment_type`, `Environment`, `expand_state`, node-schedule helpers). These are `switch()` statements that must list every model. |
-| [scm_support.R](R/scm_support.R) | `run_scm` (with `collect` / `refine_schedule` flags), `scm_base_parameters`, `scm_base_control`, `fast_control`. Adaptive schedule refinement now lives in C++ (`SCM::refine_schedule`, §3.1) — there is no longer an R `build_schedule.R` |
+| [scm_support.R](R/scm_support.R) | `run_scm` (with `collect` / `refine_schedule` flags), `scm_base_parameters`, and the `Control` presets `control` (alias) / `control_accurate`. Fast settings are now C++ `Control()` defaults (§3.2); adaptive schedule refinement lives in C++ (`SCM::refine_schedule`, §3.1) — there is no longer an R `build_schedule.R` |
 | [stochastic.R](R/stochastic.R) | Stochastic simulation driver |
 | [individual.R](R/individual.R) | `grow_individual_to_{size,height,time}`, `optimise_individual_rate_*`, compensation points |
 | [util_model.R](R/util_model.R) | `strategy_list`, `trait_matrix`, `expand_parameters`, `mutant_parameters` |

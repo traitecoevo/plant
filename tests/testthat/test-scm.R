@@ -15,7 +15,11 @@ test_that("Run SCM", {
                           patch_area=1)
     
     env <- Environment(x)
-    ctrl <- Control()
+    ## This test hand-builds a fine uniform schedule and checks the solver
+    ## lands exactly on each introduction time, which needs the small
+    ## ode_step_size_max of the accurate preset (the fast Control() default
+    ## permits steps that overshoot these closely-spaced introductions).
+    ctrl <- control_accurate()
     scm <- SCM(x, e)(p, env, ctrl)
     expect_is(scm, sprintf("SCM<%s,%s>", x, e))
 
@@ -158,7 +162,7 @@ test_that("schedule setting", {
       strategies=list(strategy_types[[x]]()),
       max_patch_lifetime=5.0)
     env <- Environment(x)
-    ctrl <- scm_base_control()
+    ctrl <- Control()
     scm <- SCM(x, e)(p, env, ctrl)
 
     ## Then set a node schedule:
@@ -194,7 +198,7 @@ test_that("Offspring production & error calculations correct", {
     p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, birth_rate_list=1.0)
     
     env <- Environment(x)
-    ctrl <- scm_base_control()
+    ctrl <- Control()
 
     scm <- run_scm(p1, env, ctrl)
     expect_is(scm, sprintf("SCM<%s,%s>", x, e))
@@ -229,7 +233,7 @@ test_that("refinement_error_by_node collected in C++ matches per-step assembly",
     p0 <- scm_base_parameters(x)
     p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, birth_rate_list = 1.0)
     env <- Environment(x)
-    ctrl <- scm_base_control()
+    ctrl <- Control()
     n_spp <- length(p1$strategies)
 
     ## New path: a single run with error collection enabled.
@@ -277,7 +281,7 @@ test_that("Can create empty SCM", {
     e <- environment_types[[x]]
     p <- Parameters(x, e)()
     env <- Environment(x)
-    ctrl <- scm_base_control()
+    ctrl <- Control()
     scm <- SCM(x, e)(p, env, ctrl)
 
     ## Check light environment is empty:

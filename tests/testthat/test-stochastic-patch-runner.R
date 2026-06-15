@@ -10,7 +10,7 @@ test_that("empty", {
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()))
     
     env <- Environment(x)
-    ctrl <- scm_base_control()
+    ctrl <- Control()
 
     obj <- StochasticPatchRunner(x, e)(p, env, ctrl)
     expect_identical(obj$time, 0.0)

@@ -21,7 +21,7 @@ test_that("Schedule building", {
     p$strategies[[1]]$birth_rate_y <- 0.1
 
     env <- Environment(x)
-    ctrl <- scm_base_control()
+    ctrl <- Control()
 
     scm <- run_scm(p, env, ctrl, refine_schedule = TRUE)
     p2 <- scm$parameters

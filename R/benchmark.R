@@ -50,7 +50,7 @@ run_resource_consumption_benchmarks <- function(its = 10) {
     env <- Environment("TF24")
     env$set_soil_number_of_depths(layers)
 
-    ctrl <- scm_base_control()
+    ctrl <- Control()
     out <- run_scm(p1, env, ctrl)
   }
   

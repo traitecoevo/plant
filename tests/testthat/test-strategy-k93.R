@@ -80,7 +80,7 @@ test_that("K93 offspring production is unchanged", {
   p0$max_patch_lifetime <- 35.10667
   
   env <- Environment("K93")
-  ctrl <- scm_base_control()
+  ctrl <- Control()
 
   # Use single sp. defaults
   p1 <- expand_parameters(trait_matrix(0.059, "b_0"), p0,  birth_rate_list=20)

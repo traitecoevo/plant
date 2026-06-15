@@ -3,17 +3,17 @@ context("Control")
 test_that("Defaults", {
   expected <- list(
     node_gradient_eps = 1e-6,
-    node_gradient_direction = 1L,
+    node_gradient_direction = -1L,
     node_gradient_richardson = FALSE,
     node_gradient_richardson_depth = 4, # size_t, so not int
-    
+
     ode_a_dydt = 0.0,
     ode_a_y = 1.0,
     ode_step_size_initial = 1e-6,
-    ode_step_size_max = 1e-1,
+    ode_step_size_max = 5,
     ode_step_size_min = 1e-6,
-    ode_tol_abs = 1e-6,
-    ode_tol_rel = 1e-6,
+    ode_tol_abs = 1e-4,
+    ode_tol_rel = 1e-4,
 
     function_integration_rule = 21, # size_t so not int
 
@@ -23,7 +23,7 @@ test_that("Defaults", {
     save_RK45_cache = FALSE,
 
     schedule_nsteps   = 20, # size_t
-    schedule_eps      = 1e-3,
+    schedule_eps      = 5e-3,
     schedule_verbose  = FALSE,
     
     GSS_tol_abs = 1e-3,
