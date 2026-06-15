@@ -20,7 +20,7 @@ run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy,
     p <- scm_base_parameters(x)
     p$strategies <- list(strategy_types[[x]]())
     p$birth_rate <- 0.1
-    p <- build_schedule(p)
+    scm <- run_scm(p, refine_schedule = TRUE)
   }
 
   message("Running benchmarks via `run_plant_benchmarks`")

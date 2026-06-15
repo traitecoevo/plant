@@ -13,7 +13,7 @@ tidy_env(results)
 tidy_patch(results)
 }
 \arguments{
-\item{results}{output of run_scm_collect}
+\item{results}{output of run_scm(..., collect = TRUE)}
 }
 \value{
 a list, containing outputs of plant solver in tidy format

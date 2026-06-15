@@ -23,7 +23,7 @@ Reference: Falster et al. (2016) *Methods in Ecology and Evolution* 7:136–146,
 ┌─────────────────────────────────────────────────────────────┐
 │  R layer  (R/*.R)                                            │
 │  - user-facing constructors, dispatch, hyperparameters       │
-│  - run_scm / run_stochastic / build_schedule                 │
+│  - run_scm (collect/refine_schedule) / run_stochastic        │
 │  - tidy outputs, plotting, utilities                         │
 └───────────────────────────▲─────────────────────────────────┘
                             │   RcppR6 + Rcpp generated bindings
@@ -121,9 +121,11 @@ Every Strategy carries a `Control` and an `ExtrinsicDrivers` object.
 
 1. **Deterministic — SCM (Solver via method of Characteristics).**
    Cohorts (`Node`s) are introduced on a schedule and integrated as
-   characteristic curves of the size-density PDE. Entry points:
-   `SCM<T,E>` in C++, [run_scm()](R/scm_support.R) / `run_scm_collect()` in R.
-   The node schedule is refined adaptively by [build_schedule()](R/build_schedule.R).
+   characteristic curves of the size-density PDE. Entry point:
+   `SCM<T,E>` in C++, [run_scm()](R/scm_support.R) in R. Tidied-output
+   collection and adaptive schedule refinement are now *options* on `run_scm()`
+   (`collect = TRUE`, `refine_schedule = TRUE`); the refinement loop itself
+   lives in `SCM::refine_schedule()` in C++ (see §3.1).
 
 2. **Stochastic — finite-size population.**
    Individuals arrive and die as discrete events.
@@ -131,6 +133,47 @@ Every Strategy carries a `Control` and an `ExtrinsicDrivers` object.
    `stochastic_schedule()`, `run_stochastic_collect()`.
 
 Both share the same `Strategy`, `Environment`, `Individual`, and `Parameters`.
+
+### 3.1 Schedule refinement moved into C++ — API change (2026-06)
+
+The deterministic solver previously split its work across R and C++: R drove the
+adaptive node-schedule refinement (`build_schedule()`, internal
+`run_scm_error()`) and a separate function returned tidied output
+(`run_scm_collect()`). **This all now lives in C++ on `SCM<T,E>`, and the R
+surface is a single `run_scm()`.** See
+[issue #408](https://github.com/traitecoevo/plant/issues/408) and
+`notes/issue-408-refactor.md` for background.
+
+Migration map for callers (other repos/scripts must be updated):
+
+| Removed (R)             | Replacement                                                              |
+|-------------------------|-------------------------------------------------------------------------|
+| `build_schedule(p, …)`  | `run_scm(p, …, refine_schedule = TRUE)$parameters`                      |
+| `run_scm_collect(p, …)` | `run_scm(p, …, collect = TRUE)`                                          |
+| `run_scm_error(p, …)`   | run with `scm$collect_errors <- TRUE`, then read `scm$combined_node_errors` |
+| `split_times()`         | internal to `SCM::refine_schedule()` (no R equivalent)                  |
+
+`run_scm(p, env, ctrl, refine_schedule = FALSE, collect = FALSE, use_ode_times =
+FALSE)` returns the `SCM` object by default, or — when `collect = TRUE` — the
+tidied results list (whose `p` element holds the possibly-refined parameters).
+
+What moved into C++ (all on `Node`/`Species`/`SCM` in
+[node.h](inst/include/plant/node.h), [species.h](inst/include/plant/species.h),
+[scm.h](inst/include/plant/scm.h)):
+
+- `Node` records its `introduction_time` and patch-age density **at
+  introduction**, so fitness/error calcs no longer re-derive these from
+  `node_schedule` or the disturbance regime after the run.
+- `SCM::run()` accumulates the per-node refinement error when `collect_errors`
+  is set; the combined competition + reproduction error is exposed as
+  `combined_node_errors`.
+- `SCM::refine_schedule()` runs the adaptive loop (flag nodes whose error
+  exceeds `schedule_eps`, bisect the interval below each, repeat up to
+  `schedule_nsteps`) and writes the refined schedule + ode times back into its
+  `parameters` so the `Parameters` object stays self-describing.
+
+**Known downstream breakage:** `plant.assembly` calls the removed functions in
+`R/community_plant.R` and `scripts/example/ESA.Rmd`; update per the table above.
 
 ---
 
@@ -143,8 +186,7 @@ R files in [R/](R/) (ignore the two large generated files `RcppR6.R`,
 |---|---|
 | [ff16.R](R/ff16.R), [tf24.R](R/tf24.R), [k93.R](R/k93.R) | Per-model constructors (`FF16_Individual`, `FF16_Parameters`, …), hyperpar functions, expand_state, stand reports |
 | [strategy_support.R](R/strategy_support.R) | **Dispatch tables** mapping a model name → its functions (`hyperpar`, `make_hyperpar`, `param_hyperpar`, `environment_type`, `Environment`, `expand_state`, node-schedule helpers). These are `switch()` statements that must list every model. |
-| [scm_support.R](R/scm_support.R) | `run_scm`, `run_scm_collect`, `scm_base_parameters`, `scm_base_control`, `fast_control` |
-| [build_schedule.R](R/build_schedule.R) | Adaptive cohort-introduction schedule refinement |
+| [scm_support.R](R/scm_support.R) | `run_scm` (with `collect` / `refine_schedule` flags), `scm_base_parameters`, `scm_base_control`, `fast_control`. Adaptive schedule refinement now lives in C++ (`SCM::refine_schedule`, §3.1) — there is no longer an R `build_schedule.R` |
 | [stochastic.R](R/stochastic.R) | Stochastic simulation driver |
 | [individual.R](R/individual.R) | `grow_individual_to_{size,height,time}`, `optimise_individual_rate_*`, compensation points |
 | [util_model.R](R/util_model.R) | `strategy_list`, `trait_matrix`, `expand_parameters`, `mutant_parameters` |

@@ -194,7 +194,8 @@ time, for reasons of computational efficiency, we want as few nodes as possible.
 The general idea of adaptively refining node spacing times was first applied
 by @Falster-2011, and was described further by @Falster-2015.
 
-For a worked example illustrating the `build_schedule` function,
+For a worked example illustrating schedule refinement
+(`run_scm(refine_schedule = TRUE)`, backed by `SCM::refine_schedule()`),
 see the [node scheduling vignette](https://traitecoevo.github.io/plant/articles/node_spacing.html).
 
 ### Calculation of light environment and influence on assimilation {#calculation-of-light-environment-and-influence-on-assimilation}
@@ -211,7 +212,7 @@ controlling the accuracy of the integration is the spacing of nodes.
 The node introduction times determining the
 spacing of nodes are adaptively refined as described above. This implies that also the trapezium integration
 within the `area_leaf_above` function is adaptively refined
-via the `build_schedule` function.
+via `SCM::refine_schedule()` (exposed in R as `run_scm(refine_schedule = TRUE)`).
 
 The cost of calculating $E_a(z)$ linearly increases with the number of
 nodes in the metacommunity. Since the same calculation must be repeated

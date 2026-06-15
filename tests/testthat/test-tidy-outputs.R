@@ -13,7 +13,7 @@ for (x in c("FF16", "K93")) {
   ctrl <- scm_base_control()
 
   expect_silent(
-    results <- run_scm_collect(p1, env, ctrl)
+    results <- run_scm(p1, env, ctrl, collect = TRUE)
   )
 
   expect_contains(names(results), c("steps",  "n_spp", "species", "env", "offspring_production",   "net_reproduction_ratios", "p"))

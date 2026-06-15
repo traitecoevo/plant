@@ -35,8 +35,8 @@ traits <- trait_matrix(c(0.07), c("lma"))
 
 p1 <- expand_parameters(traits, p0)
 
-results <- build_schedule(p1)
-results <- run_scm_collect(results)
+results <- run_scm(p1, refine_schedule = TRUE)$parameters
+results <- run_scm(results, collect = TRUE)
 ```
 
 This uses the default parameters in plant. But you may want alter some of the defaults. For that we recommend setting up some functions to set `base_parameters`.
@@ -70,12 +70,12 @@ run_mypatch <- function(
   p1 <- expand_parameters(traits, p0, hyper_par_fn,  birth_rate_list = birth_rate_list)
   
   if(optimise_schedule)
-    result <- build_schedule(p1)
+    result <- run_scm(p1, refine_schedule = TRUE)$parameters
   else
     result <- p1
   
   # gather outputs at each time step
-  run_scm_collect(result)
+  run_scm(result, collect = TRUE)
 }
 ```
 

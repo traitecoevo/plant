@@ -2,35 +2,48 @@
 % Please edit documentation in R/scm_support.R
 \name{run_scm}
 \alias{run_scm}
-\alias{run_scm_collect}
 \title{Run SCM}
 \usage{
 run_scm(
   p,
   env = NULL,
   ctrl = scm_base_control(),
-  use_ode_times = FALSE,
-  collect = FALSE
+  refine_schedule = FALSE,
+  collect = FALSE,
+  use_ode_times = FALSE
 )
-
-run_scm_collect(p, env = NULL, ctrl = scm_base_control())
 }
 \arguments{
 \item{p}{Parameters object}
 
-\item{env}{Environment object (defaults to FF16_Environment)}
+\item{env}{Environment object (defaults to the strategy's environment)}
 
 \item{ctrl}{Control object}
 
-\item{use_ode_times}{Should ODE times be used?}
+\item{refine_schedule}{Should the node-introduction schedule be adaptively
+refined before/while running (using \code{schedule_eps} and
+\code{schedule_nsteps} from \code{ctrl})?}
 
-\item{collect}{Should results be collected?}
+\item{collect}{Should tidied results be collected at every step and
+returned (instead of the \code{SCM} object)?}
+
+\item{use_ode_times}{Should ODE times be used?}
 }
 \value{
-A \code{SCM} object.
+When \code{collect = FALSE}, an \code{SCM} object. When
+  \code{collect = TRUE}, a list of tidied patch output with
+  \code{offspring_production}, \code{net_reproduction_ratios} and the
+  (possibly refined) parameters \code{p}.
 }
 \description{
-Run the SCM, returning the SCM object for interrogation
+Run the SCM.
+}
+\details{
+The node-introduction schedule can be adaptively refined in C++ by setting
+\code{refine_schedule = TRUE} (this replaces the former \code{build_schedule}
+function). Setting \code{collect = TRUE} returns tidied output collected at
+every ODE step (replacing the former \code{run_scm_collect}); otherwise the
+\code{SCM} object itself is returned for interrogation.
 }
 \author{
 Rich FitzJohn

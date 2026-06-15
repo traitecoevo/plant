@@ -20,8 +20,8 @@ library(plant)
 
 p0 <- scm_base_parameters("FF16")
 p <- expand_parameters(trait_matrix(0.0825, "lma"), p0, birth_rate_list = 17.31)
-patch <- build_schedule(p)
-result <- run_scm_collect(patch)
+patch <- run_scm(p, refine_schedule = TRUE)$parameters
+result <- run_scm(patch, collect = TRUE)
 
 ```
 

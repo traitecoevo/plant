@@ -61,7 +61,7 @@ tidy_env <- function(results) {
 
 #' Turns output of plant solver into a tidy data object 
 #'
-#' @param results output of run_scm_collect
+#' @param results output of run_scm(..., collect = TRUE)
 #'
 #' @return a list, containing outputs of plant solver in tidy format
 #' @importFrom rlang .data

@@ -187,9 +187,43 @@ Implemented:
 - **Verify**: the `build_schedule` regression in `test-schedule-build.R`
   (141 / 186 length expectations) must reproduce before deleting the R loop.
 
-### Phase 4 — Breaking R-API cleanup
+### Phase 4 — Breaking R-API cleanup — ⏳ DONE (uncommitted, awaiting review)
 
 One entry point; old names removed.
+
+Implemented (left uncommitted for review):
+- `R/scm_support.R`: `run_scm(p, env, ctrl, refine_schedule = FALSE,
+  collect = FALSE, use_ode_times = FALSE)`. Returns the tidied results list when
+  `collect = TRUE` (with refined `parameters` as `p`), otherwise the `SCM`
+  object. `refine_schedule = TRUE` calls `scm$refine_schedule()`.
+- Removed `run_scm_collect`, `run_scm_error`, and `R/build_schedule.R`
+  (`build_schedule` + `split_times`). NAMESPACE now exports only `run_scm`;
+  `man/build_schedule.Rd` deleted, `man/run_scm.Rd` updated.
+- Updated callers/tests: `R/benchmark.R`, doc refs in `R/ff16.R` /
+  `R/tidy_outputs.R`; tests `test-schedule-build.R` (rewritten for new API),
+  `test-strategy-ff16.R`, `test-tidy-outputs.R`, `test-environment-TF24.R`,
+  `test-scm-support.R`, `test-mutant.R`, `test-strategy-tf24.R` (comment).
+- Full suite: 0 failures, 1832 pass, 1 pre-existing skip.
+
+Vignettes:
+- Mechanically updated (no `.orig`, edited directly): `example_analysis`,
+  `plant`, `strategy_new`, `emergent`, `self_thinning`, `patch`,
+  `models/strategy_K93`, `models/AWRA_soil_water_model`.
+- `methods/node_spacing.Rmd.orig` rewritten to describe the new C++ approach
+  (`run_scm(refine_schedule=TRUE)` / `SCM::refine_schedule()` /
+  `combined_node_errors`), fixed the previously-broken chunks, and verified the
+  runnable chunks execute. **`methods/node_spacing.Rmd` (generated) must be
+  re-knit from the `.orig`** (do not hand-edit it).
+- `methods/solving_dynamics.Rmd`: prose references updated.
+
+Follow-ups for the user:
+- Re-knit `methods/node_spacing.Rmd` from its `.orig`.
+- Downstream **`plant.assembly`** uses `build_schedule()` and
+  `run_scm_collect()` (`R/community_plant.R`, `scripts/example/ESA.Rmd`) — these
+  break and need updating in that repo:
+  `build_schedule(p, ctrl=ctrl)` -> `run_scm(p, ctrl=ctrl,
+  refine_schedule=TRUE)$parameters`; `run_scm_collect(x)` ->
+  `run_scm(x, collect=TRUE)`.
 
 - Consolidate onto
   `run_scm(p, env, ctrl, collect = FALSE, refine_schedule = FALSE)` in

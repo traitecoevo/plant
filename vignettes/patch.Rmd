@@ -31,7 +31,7 @@ patch <- expand_parameters(trait_matrix(0.0825, "lma"), params)
 and run the `plant` characteristic solver to step the equations defining nodes of individuals forward in time:
 
 ```{r}
-result <- run_scm_collect(patch)
+result <- run_scm(patch, collect = TRUE)
 ```
 
 #
@@ -175,7 +175,7 @@ patch_2sp <- expand_parameters(trait_matrix(0.2625, "lma"), patch)
 Then collect the patch-level dynamics:
 
 ```{r}
-result_2sp <- run_scm_collect(patch_2sp)
+result_2sp <- run_scm(patch_2sp, collect = TRUE)
 ```
 
 We can plot the development of each species within the patch:

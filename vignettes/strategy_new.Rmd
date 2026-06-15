@@ -489,7 +489,7 @@ p0 <- scm_base_parameters("K93")
 p1 <- expand_parameters(trait_matrix(0.0825, "b_0"), p = p0)
 p1$seed_rain <- 20
 
-data1 <- run_scm_collect(p1)
+data1 <- run_scm(p1, collect = TRUE)
 
 matplot(data1$time, data1$species[[1]]["height", , ],
         lty=1, col=util_colour_set_opacity("black", 0.25), type="l",

@@ -208,7 +208,7 @@ test_that("Report generation", {
                            birth_rate_list = list(11.99177, 16.51006))
 
   # test report generation
-  out <- run_scm_collect(p2, env, ctrl)
+  out <- run_scm(p2, env, ctrl, collect = TRUE)
 
   unlink("tmp", recursive = TRUE)
   expect_message(FF16_generate_stand_report(out, "tmp/tmp.html", overwrite = TRUE), "Report for FF16 stand saved at tmp/tmp.html")

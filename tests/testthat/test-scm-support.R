@@ -59,7 +59,7 @@ test_that("collect_auxiliary_variables", {
     birth_rate_list = list(11.99177)
   )
 
-  results <- run_scm_collect(p1, env, ctrl)
+  results <- run_scm(p1, env, ctrl, collect = TRUE)
   
   # check columns,should contain auxillary variables
   expect_equal(ncol(results$species), 15)

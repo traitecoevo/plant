@@ -125,7 +125,7 @@ test_that("mutant method densities", {
     p1 <- p
     p1$strategies[[1]]$birth_rate_y <- x
 
-    p2 <- build_schedule(p1, ctrl = ctrl)
+    p2 <- run_scm(p1, ctrl = ctrl, refine_schedule = TRUE)$parameters
     scm <- run_scm(p2, ctrl = ctrl)
     r_rr <- scm$net_reproduction_ratios
 

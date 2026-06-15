@@ -168,11 +168,11 @@ Then we run `plant` solver (SCM) to solve the size distribution over time. There
 
 ```{r}
 # 1. Resolve number of characteristics needed for specified accuracy
-species_parameters <- build_schedule(species_parameters)
+species_parameters <- run_scm(species_parameters, refine_schedule = TRUE)$parameters
 
 # 2. Rerun, gathering outputs at each time step
 result <- 
-  run_scm_collect(species_parameters)
+  run_scm(species_parameters, collect = TRUE)
 ```
 
 If you're working through this yourself, the SCM solver should be blazingly fast. This is quite cool, given that this  model has hundreds of coupled differential equations veing stepped through time, wtih complex compeititve interactions at each step. 
@@ -234,10 +234,10 @@ species_parameters_2sp <- expand_parameters(trait_matrix(0.2625, "lma"), species
 As above in the single-species patch, we then determine the appropriate number of characteristics and rerun the solver, collecting the output from the patch-level dynamics.
 
 ```{r}
-species_parameters_2sp <- build_schedule(species_parameters_2sp)
+species_parameters_2sp <- run_scm(species_parameters_2sp, refine_schedule = TRUE)$parameters
 
 result <- 
-  run_scm_collect(species_parameters_2sp)
+  run_scm(species_parameters_2sp, collect = TRUE)
 ```
 
 We can now plot the size distributions of these two species through time
