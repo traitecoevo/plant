@@ -83,7 +83,10 @@ run_scm <- function(p, env = NULL,
 
   scm <- do.call('SCM', types)(p, env, ctrl)
   if (use_ode_times) {
-    scm$use_ode_times <- TRUE
+    # Pin integration to the schedule's ode_times (loaded from p$ode_times).
+    sched <- scm$node_schedule
+    sched$use_ode_times <- TRUE
+    scm$node_schedule <- sched
   }
   if (collect) {
     scm$collect <- TRUE

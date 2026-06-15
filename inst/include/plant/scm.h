@@ -98,10 +98,10 @@ public:
   void r_set_node_schedule(NodeSchedule x);
   void r_set_node_schedule_times(std::vector<std::vector<double>> x);
 
-  // ODE times
+  // ODE times: the step times the solver actually used on the last run.
+  // (Whether to *pin* integration to a fixed set of times is controlled on the
+  // NodeSchedule via its own use_ode_times flag.)
   std::vector<double> r_ode_times() const;
-  bool r_use_ode_times() const;
-  void r_set_use_ode_times(bool x);
 
   // ---- Public state ------------------------------------------------------
   // The two toggles are exposed to R directly (access: field), so they need
@@ -369,14 +369,6 @@ void SCM<T, E>::r_set_node_schedule_times(
 template <typename T, typename E>
 std::vector<double> SCM<T, E>::r_ode_times() const {
   return solver.get_times();
-}
-
-template <typename T, typename E> bool SCM<T, E>::r_use_ode_times() const {
-  return node_schedule.using_ode_times();
-}
-
-template <typename T, typename E> void SCM<T, E>::r_set_use_ode_times(bool x) {
-  node_schedule.r_set_use_ode_times(x);
 }
 
 } // namespace plant

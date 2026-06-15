@@ -734,16 +734,12 @@ SCM:
       access: member
       name_cpp: r_node_schedule
       name_cpp_set: r_set_node_schedule
-    # ODE times
+    # ODE times: read-only view of the step times the solver actually used.
+    # Pinning integration to fixed times is toggled on the NodeSchedule.
     ode_times:
       type: "std::vector<double>"
       access: member
       name_cpp: r_ode_times
-    use_ode_times:
-      type: bool
-      access: member
-      name_cpp: r_use_ode_times
-      name_cpp_set: r_set_use_ode_times
     # Collection toggles (bound directly to the public members)
     collect: {type: bool, access: field}
     collect_refinement_errors: {type: bool, access: field}
