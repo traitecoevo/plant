@@ -16,7 +16,7 @@ Description: Solves trait, size and patch structured model
     from (Falster et al. 2016) using either method of
     characteristics or as stochastic, finite-sized population.
 Depends:
-    R (>= 4.1.0)
+    R (>= 4.5.0)
 Encoding: UTF-8
 License: GPL-2
 LinkingTo: Rcpp, BH
