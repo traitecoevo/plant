@@ -90,7 +90,7 @@ double FF16_Strategy::mass_above_ground(double mass_leaf, double mass_bark,
 void FF16_Strategy::update_dependent_aux(const int index, Internals& vars) {
   if (index == HEIGHT_INDEX) {
     double height = vars.state(HEIGHT_INDEX);
-    vars.set_aux(aux_index.at("competition_effect"), area_leaf(height));
+    vars.set_aux(COMPETITION_EFFECT_AUX_INDEX, area_leaf(height));
   }
 }
 
@@ -100,13 +100,13 @@ void FF16_Strategy::update_dependent_aux(const int index, Internals& vars) {
 void FF16_Strategy::compute_rates(const FF16_Environment& environment,  Internals& vars) {
 
   double height = vars.state(HEIGHT_INDEX);
-  double area_leaf_ = vars.aux(aux_index.at("competition_effect"));
+  double area_leaf_ = vars.aux(COMPETITION_EFFECT_AUX_INDEX);
 
   const double net_mass_production_dt_ =
     net_mass_production_dt(environment, height, area_leaf_);
 
   // store the aux sate
-  vars.set_aux(aux_index.at("net_mass_production_dt"), net_mass_production_dt_);
+  vars.set_aux(NET_MASS_PRODUCTION_DT_AUX_INDEX, net_mass_production_dt_);
 
   if (net_mass_production_dt_ > 0) {
 
@@ -119,19 +119,19 @@ void FF16_Strategy::compute_rates(const FF16_Environment& environment,  Internal
     vars.set_rate(FECUNDITY_INDEX,
       fecundity_dt(net_mass_production_dt_, fraction_allocation_reproduction_));
 
-    vars.set_rate(state_index.at("area_heartwood"), area_heartwood_dt(area_leaf_));
+    vars.set_rate(AREA_HEARTWOOD_INDEX, area_heartwood_dt(area_leaf_));
     const double area_sapwood_ = area_sapwood(area_leaf_);
     const double mass_sapwood_ = mass_sapwood(area_sapwood_, height);
-    vars.set_rate(state_index.at("mass_heartwood"), mass_heartwood_dt(mass_sapwood_));
+    vars.set_rate(MASS_HEARTWOOD_INDEX, mass_heartwood_dt(mass_sapwood_));
 
     if (collect_all_auxiliary) {
-      vars.set_aux(aux_index.at("area_sapwood"), area_sapwood_);
+      vars.set_aux(AREA_SAPWOOD_AUX_INDEX, area_sapwood_);
     }
   } else {
     vars.set_rate(HEIGHT_INDEX, 0.0);
     vars.set_rate(FECUNDITY_INDEX, 0.0);
-    vars.set_rate(state_index.at("area_heartwood"), 0.0);
-    vars.set_rate(state_index.at("mass_heartwood"), 0.0);
+    vars.set_rate(AREA_HEARTWOOD_INDEX, 0.0);
+    vars.set_rate(MASS_HEARTWOOD_INDEX, 0.0);
   }
   // [eqn 21] - Instantaneous mortality rate
   vars.set_rate(MORTALITY_INDEX,

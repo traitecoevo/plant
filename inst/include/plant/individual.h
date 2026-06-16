@@ -124,9 +124,9 @@ public:
   void reset_mortality() { set_state("mortality", 0.0); }
 
   double growth_rate_given_height(double height, const environment_type& environment) {
-    set_state("height", height);
+    set_state(HEIGHT_INDEX, height);
     compute_rates(environment);
-    return rate("height");
+    return rate(HEIGHT_INDEX);
   }
 
   double resource_compensation_point() {

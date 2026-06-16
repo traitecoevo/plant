@@ -14,6 +14,12 @@ public:
   typedef std::shared_ptr<FF16_Strategy> ptr;
   FF16_Strategy();
 
+  static constexpr int AREA_HEARTWOOD_INDEX = 3;
+  static constexpr int MASS_HEARTWOOD_INDEX = 4;
+  static constexpr int COMPETITION_EFFECT_AUX_INDEX = 0;
+  static constexpr int NET_MASS_PRODUCTION_DT_AUX_INDEX = 1;
+  static constexpr int AREA_SAPWOOD_AUX_INDEX = 2;
+
   // Overrides ----------------------------------------------
 
   // update this when the length of state_names changes
