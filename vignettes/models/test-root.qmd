@@ -340,6 +340,54 @@ unchanged in shape.
   bounded-Brent treatment, or memoising it the way #2 did for `transpiration()`,
   is the obvious biggest remaining target.
 
+### DONE (#5): `E_from_Soil` integral-spline cache — and why `psi_stem_to_ci` was a red herring
+
+The roadmap-#5 premise above **does not reproduce on the current binary.**
+Re-profiling HEAD (macOS `sample`) on *both* the 15-layer root-water scenario at
+the top of this document (MPL=5) and the `bench_tf24.R` default-`Environment` run
+(MPL=10), `psi_stem_to_ci` is only **~2–3 %** — its symbol appears in 127 / 4012
+stacks, and since self-time ⊆ inclusive that bounds it at **≤3.2 %**, not 31 %.
+(The 31.4 % figure was measured at `b6ec6045`; it no longer holds.) The actual
+hot path in *both* scenarios is **`E_from_Soil_to_Root_Collar` (~22–24 %) plus
+the spline evals it drives** (`tk::spline` + `Interpolator::eval`, ~30 %
+combined). `psi_stem_to_ci` is also a poor target on its own terms: it can't be
+sped **bit-identically** (its bisection *result* is load-bearing for FP
+reproducibility — the same reason TOMS748 is rejected above — and Brent probes
+distinct points each call, so there is nothing to memoise).
+
+So #5 instead caches the **cumulative root-vulnerability integral** lookups in the
+`E_from_Soil` layer loop. That loop did **two `root_vuln_integral_from_psi.eval`
+per soil layer**; the two arguments are always `{−ψ_soil[i], −P_x_r, 0}`. `−P_x_r`
+is constant across layers (hoisted to **one eval per call**) and `−ψ_soil[i]` is
+constant for the whole solve (precomputed once per `find_root_collar_psi` into the
+new member `root_vuln_integral_soil_`). A memoised accessor keyed on
+exact-`double` equality returns the cached values, engaging only when `psi_soil`
+aliases `psi_soil_inverted_`, so the R-exposed by-value method keeps the unchanged
+direct-eval fallback. **~30 spline evals/call → ~1.**
+
+**Bit-identical** (this one really is, unlike #1/#4): `identical()` on the full
+MPL=5 `run_scm_collect` trajectory vs HEAD; `offspring_production` unchanged at
+4.797128277e−06 on the bench run; existing leaf/TF24 tests pass. Because the
+change is a value cache rather than new index logic, it was also checked with a
+standalone cached-vs-uncached C++ diff over a 27 113-point `P_x_r` sweep (exact
+layer knots, `nextafter` neighbours, negative interior, and the ψ>0 /
+`hi_neg→0` extrapolation tail the sim never exercises) — **0 mismatches,
+max|ΔE| = 0**.
+
+**Measured speed-up** (clean `make compile` builds, `pkgload::load_all(recompile
+= FALSE)`, median of 5–7 timed runs):
+
+| Scenario | Build | Median | Speed-up |
+|---|---|---|---|
+| 15-layer root-water, MPL=5 | pre-#5 → #5 | 8.84 s → 6.72 s | **≈1.32× (−24 %)** |
+| bench default-`Environment`, MPL=10 | pre-#5 → #5 | 8.67 s → 7.82 s | **≈1.11× (−10 %)** |
+
+The gain is larger in the 15-layer scenario because the root-vuln integral spline
+is a bigger share of total spline time there (it scales with soil-layer count ×
+collar-solve evals); the default-`Environment` run has fewer layers, so the
+xylem/transpiration splines — which #5 doesn't touch — dominate the spline budget.
+(Commit `Cache soil-side root-vuln integral lookups in E_from_Soil`.)
+
 ## Build note: use `make`, not `load_all`
 
 Build the package with **`make compile`** (`pkgbuild::compile_dll(debug=FALSE)`,
