@@ -6,6 +6,7 @@
 #include <plant/environment.h>
 #include <plant/resource_spline.h>
 #include <plant/interpolator.h>
+#include <limits>
 
 using namespace Rcpp;
 
@@ -109,6 +110,23 @@ public:
   mutable std::vector<double> psi_soil_cache_;
   mutable std::vector<double> psi_soil_cache_state_;
   mutable bool psi_soil_cache_valid_ = false;
+
+  // Per-driver memo for the time-varying extrinsic drivers (see get_* above).
+  // cache_time NaN-initialised so the first call always misses (NaN != time).
+  double cached_driver_(const std::string &name, double &cache_val,
+                        double &cache_time) const {
+    if (cache_time != time) {
+      cache_val = extrinsic_drivers.evaluate(name, time);
+      cache_time = time;
+    }
+    return cache_val;
+  }
+  static constexpr double NAN_TIME_ = std::numeric_limits<double>::quiet_NaN();
+  mutable double ppfd_cache_ = 0, atm_vpd_cache_ = 0, ca_cache_ = 0,
+                 leaf_temp_cache_ = 0, atm_o2_kpa_cache_ = 0, atm_kpa_cache_ = 0;
+  mutable double ppfd_cache_time_ = NAN_TIME_, atm_vpd_cache_time_ = NAN_TIME_,
+                 ca_cache_time_ = NAN_TIME_, leaf_temp_cache_time_ = NAN_TIME_,
+                 atm_o2_kpa_cache_time_ = NAN_TIME_, atm_kpa_cache_time_ = NAN_TIME_;
 
   // A ResourceSpline used for storing light availbility (0-1)
   ResourceSpline light_availability;
@@ -228,13 +246,20 @@ public:
   }
 
   // Easy wrappers. Cn also use `extrinsic_drivers_evaluate("PPFD", time)
-
-  double get_PPFD()      const { return extrinsic_drivers.evaluate("PPFD", time); }
-  double get_atm_vpd()   const { return extrinsic_drivers.evaluate("atm_vpd", time); }
-  double get_ca()        const { return extrinsic_drivers.evaluate("ca", time); }
-  double get_leaf_temp() const { return extrinsic_drivers.evaluate("leaf_temp", time); }
-  double get_atm_o2_kpa()const { return extrinsic_drivers.evaluate("atm_o2_kpa", time); } 
-  double get_atm_kpa()   const { return extrinsic_drivers.evaluate("atm_kpa", time); } 
+  //
+  // Each is read once per individual per ODE derivs evaluation (in the leaf
+  // physiology setup), always at the current `time`. Memoise per driver keyed
+  // on `time` so the repeated unordered_map<string,...> lookups across
+  // individuals at the same time collapse to one lookup per distinct time.
+  // The memo is per-driver (not eager-refresh-all) so an unset driver is only
+  // looked up if it is actually requested — preserving the existing throw-if-
+  // absent behaviour. The returned value is bit-identical to a direct evaluate.
+  double get_PPFD()       const { return cached_driver_("PPFD", ppfd_cache_, ppfd_cache_time_); }
+  double get_atm_vpd()    const { return cached_driver_("atm_vpd", atm_vpd_cache_, atm_vpd_cache_time_); }
+  double get_ca()         const { return cached_driver_("ca", ca_cache_, ca_cache_time_); }
+  double get_leaf_temp()  const { return cached_driver_("leaf_temp", leaf_temp_cache_, leaf_temp_cache_time_); }
+  double get_atm_o2_kpa() const { return cached_driver_("atm_o2_kpa", atm_o2_kpa_cache_, atm_o2_kpa_cache_time_); }
+  double get_atm_kpa()    const { return cached_driver_("atm_kpa", atm_kpa_cache_, atm_kpa_cache_time_); }
 
 
   std::vector<double> get_soil_water_state() const { return {vars.states.begin(), vars.states.end() - aux_num}; }
