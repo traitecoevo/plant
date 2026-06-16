@@ -260,6 +260,33 @@ files after header/branch changes, yielding an inconsistent binary. Use
 
 No remaining items on the ranked roadmap.
 
+## Cumulative result (all 4, baseline → HEAD)
+
+The per-item figures above were each measured against the build immediately
+before them, so they don't compound cleanly. Here is the **end-to-end** result,
+both binaries built clean from the same toolchain (`make clean && make compile`,
+`-g -O2`) and loaded with `pkgload::load_all(".", recompile = FALSE)`, on the
+**single-species MPL=10** SCM run (`birth_rate = 20`, default `Environment`,
+median of 5 timed runs after a warm-up):
+
+| Build | Commit | Median run | offspring_production |
+|---|---|---|---|
+| Baseline (roadmap, pre-optimisation) | `ff75ad22` | **39.78 s** | 4.712317419e−06 |
+| HEAD (all 4 done) | `b6ec6045` | **9.05 s** | 4.797128277e−06 |
+
+- **≈4.40× faster** (39.8 s → 9.0 s, −77 % wall-time; min-of-5 ratio 4.38×).
+  This slightly beats the product of the individual claims (1.9 × 1.25 × 1.7 ≈
+  4.0×) because removing the hottest spline evals also shrinks every inner
+  root-find the later items still call.
+- **Numerics:** offspring_production shifts **+1.80 %** (+8.5e−08), the net of
+  the two accuracy-improving items (#1 interval-mean, #4 Brent) — #2/#3 are
+  bit-identical. Direction is *toward* the fine-grained reference; magnitude is
+  within the system's intrinsic build-to-build sensitivity. Existing
+  leaf/TF24/environment tests pass unchanged.
+
+(Reproduce with `scripts/bench_tf24.R`; absolute seconds are machine-specific
+but the ratio is stable.)
+
 ## Build note: use `make`, not `load_all`
 
 Build the package with **`make compile`** (`pkgbuild::compile_dll(debug=FALSE)`,
