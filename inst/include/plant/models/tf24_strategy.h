@@ -337,6 +337,22 @@ public:
 
   std::string name;
 
+  // Cached aux/state indices, resolved once in refresh_indices(), so the hot
+  // compute_rates path does not do a std::map<string,int>::at (string compare)
+  // lookup per ODE derivs evaluation per individual (profile hot spot).
+  int aux_idx_competition_effect = -1;
+  int aux_idx_net_mass_production_dt = -1;
+  int aux_idx_root_mass = -1;
+  int aux_idx_opt_psi_stem = -1;
+  int aux_idx_opt_root_psi = -1;
+  int aux_idx_transpiration = -1;
+  int aux_idx_E_up = -1;
+  int aux_idx_profit = -1;
+  int aux_idx_stom_cond_CO2 = -1;
+  int aux_idx_area_sapwood = -1;       // only present when collect_all_auxiliary
+  int state_idx_area_heartwood = -1;
+  int state_idx_mass_heartwood = -1;
+
   // For integrating functions with using Gauss-Kronrod quadrature
   quadrature::QK function_integrator;
 };

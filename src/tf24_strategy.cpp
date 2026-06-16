@@ -39,6 +39,22 @@ void TF24_Strategy::refresh_indices () {
   for (size_t i = 0; i < aux_names_vec.size(); i++) {
     aux_index[aux_names_vec[i]] = i;
   }
+
+  // Cache integer indices for the keys used in the hot compute_rates path, so
+  // it no longer does a std::map<string,int> lookup per derivs evaluation.
+  aux_idx_competition_effect    = aux_index.at("competition_effect");
+  aux_idx_net_mass_production_dt = aux_index.at("net_mass_production_dt");
+  aux_idx_root_mass             = aux_index.at("root_mass");
+  aux_idx_opt_psi_stem          = aux_index.at("opt_psi_stem");
+  aux_idx_opt_root_psi          = aux_index.at("opt_root_psi");
+  aux_idx_transpiration         = aux_index.at("transpiration");
+  aux_idx_E_up                  = aux_index.at("E_up_");
+  aux_idx_profit                = aux_index.at("profit");
+  aux_idx_stom_cond_CO2         = aux_index.at("stom_cond_CO2");
+  // area_sapwood is only registered when collect_all_auxiliary is set.
+  aux_idx_area_sapwood = aux_index.count("area_sapwood") ? aux_index.at("area_sapwood") : -1;
+  state_idx_area_heartwood      = state_index.at("area_heartwood");
+  state_idx_mass_heartwood      = state_index.at("mass_heartwood");
 }
 
 // [eqn 2] area_leaf (inverse of [eqn 3])
@@ -104,7 +120,7 @@ double TF24_Strategy::mass_above_ground(double mass_leaf, double mass_bark,
 void TF24_Strategy::update_dependent_aux(const int index, Internals& vars) {
   if (index == HEIGHT_INDEX) {
     double height = vars.state(HEIGHT_INDEX);
-    vars.set_aux(aux_index.at("competition_effect"), area_leaf(height));
+    vars.set_aux(aux_idx_competition_effect, area_leaf(height));
   }
 }
 
@@ -113,20 +129,20 @@ void TF24_Strategy::update_dependent_aux(const int index, Internals& vars) {
 // i.e. setting rates of ode vars from the state and updating aux vars
 void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internals& vars) {
   double height = vars.state(HEIGHT_INDEX);
-  double area_leaf_ = vars.aux(aux_index.at("competition_effect"));
+  double area_leaf_ = vars.aux(aux_idx_competition_effect);
 
   const double net_mass_production_dt_ =
     net_mass_production_dt(environment, height, area_leaf_);
 
   // store the aux sate
-  vars.set_aux(aux_index.at("net_mass_production_dt"), net_mass_production_dt_);
-  vars.set_aux(aux_index.at("root_mass"), mass_root(area_leaf_));
-  vars.set_aux(aux_index.at("opt_psi_stem"), leaf.opt_psi_stem_);
-  vars.set_aux(aux_index.at("opt_root_psi"), leaf.root_collar_psi_);
-  vars.set_aux(aux_index.at("transpiration"), leaf.transpiration_);
-  vars.set_aux(aux_index.at("E_up_"), leaf.E_up_);
-  vars.set_aux(aux_index.at("profit"), leaf.profit_);
-  vars.set_aux(aux_index.at("stom_cond_CO2"), leaf.stom_cond_CO2_);
+  vars.set_aux(aux_idx_net_mass_production_dt, net_mass_production_dt_);
+  vars.set_aux(aux_idx_root_mass, mass_root(area_leaf_));
+  vars.set_aux(aux_idx_opt_psi_stem, leaf.opt_psi_stem_);
+  vars.set_aux(aux_idx_opt_root_psi, leaf.root_collar_psi_);
+  vars.set_aux(aux_idx_transpiration, leaf.transpiration_);
+  vars.set_aux(aux_idx_E_up, leaf.E_up_);
+  vars.set_aux(aux_idx_profit, leaf.profit_);
+  vars.set_aux(aux_idx_stom_cond_CO2, leaf.stom_cond_CO2_);
 
 
 
@@ -156,19 +172,19 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
     vars.set_rate(FECUNDITY_INDEX,
       fecundity_dt(net_mass_production_dt_, fraction_allocation_reproduction_));
 
-    vars.set_rate(state_index.at("area_heartwood"), area_heartwood_dt(area_leaf_));
+    vars.set_rate(state_idx_area_heartwood, area_heartwood_dt(area_leaf_));
     const double area_sapwood_ = area_sapwood(area_leaf_);
     const double mass_sapwood_ = mass_sapwood(area_sapwood_, height);
-    vars.set_rate(state_index.at("mass_heartwood"), mass_heartwood_dt(mass_sapwood_));
+    vars.set_rate(state_idx_mass_heartwood, mass_heartwood_dt(mass_sapwood_));
 
     if (collect_all_auxiliary) {
-      vars.set_aux(aux_index.at("area_sapwood"), area_sapwood_);
+      vars.set_aux(aux_idx_area_sapwood, area_sapwood_);
     }
   } else {
     vars.set_rate(HEIGHT_INDEX, 0.0);
     vars.set_rate(FECUNDITY_INDEX, 0.0);
-    vars.set_rate(state_index.at("area_heartwood"), 0.0);
-    vars.set_rate(state_index.at("mass_heartwood"), 0.0);
+    vars.set_rate(state_idx_area_heartwood, 0.0);
+    vars.set_rate(state_idx_mass_heartwood, 0.0);
   }
   // [eqn 21] - Instantaneous mortality rate
   vars.set_rate(MORTALITY_INDEX,
