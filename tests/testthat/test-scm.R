@@ -4,7 +4,13 @@ strategy_types <- get_list_of_strategy_types()
 environment_types <- get_list_of_environment_types()
 
 test_that("Run SCM", {
-  for (x in names(strategy_types)) {
+  ## TF24 is excluded here: this test covers strategy-agnostic SCM machinery
+  ## (run_next/reset/scheduling/ode_times reproducibility), already exercised
+  ## by FF16 & K93. TF24's full-SCM behaviour is covered in
+  ## test-strategy-tf24.R, and a full TF24 run here costs ~4 min (its
+  ## hydraulics make each schedule run ~59s, and this test runs four) for no
+  ## unique coverage.
+  for (x in setdiff(names(strategy_types), "TF24")) {
 
     s <- strategy_types[[x]]()
     e <- environment_types[[x]]
