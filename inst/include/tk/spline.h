@@ -81,6 +81,13 @@ private:
    // interpolation parameters
    // f(x) = a*(x-x_i)^3 + b*(x-x_i)^2 + c*(x-x_i) + y_i
    std::vector<double> m_a,m_b,m_c,m_d;
+   // Fast O(1) index lookup for (near-)equidistant x-grids. When the knots are
+   // evenly spaced the std::lower_bound() binary search in operator() can be
+   // replaced by direct arithmetic, which profiling showed to be a large share
+   // of runtime in the TF24 hydraulics. See traitecoevo/plant#435.
+   bool   m_uniform = false;  // set in set_points() if the x-grid is equidistant
+   double m_x0 = 0.0;         // first knot (m_x[0])
+   double m_inv_dx = 0.0;     // 1 / mean knot spacing
 public:
    void set_points(const std::vector<double>& x,
                    const std::vector<double>& y, bool cubic_spline=true);
