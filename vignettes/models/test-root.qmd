@@ -304,21 +304,41 @@ Self-time over ~31.6 k active samples (idle wait excluded):
 | `pow` (+ stub) | ~7 % | transcendentals in hydraulic / vulnerability curves |
 | `Leaf::find_root_collar_psi` | 6.0 % | master solver (Brent'd by #4) |
 | `Leaf::find_root_psi` | 1.7 % | |
-| `std::map<string,int>::at` + `memcmp` | ~3 % | string-keyed name→index lookups in the hot path |
+| `std::map<string,int>::at` + `memcmp` | ~3 % | string-keyed name→index lookups in the hot path — **now resolved, see below** |
 
 The picture has shifted: spline evaluation was *the* hottest leaf before and is
 still ~30 % combined (`tk::spline` + `Interpolator::eval`), but it's no longer
 dominant — work is now spread across the solver structure.
 
-**Next levers (a possible roadmap #5+):**
+### DONE: string-keyed lookups (~3 % → ~0.5 %)
 
-- **`psi_stem_to_ci` (31 %)** is the inner Cᵢ bisection that #4's Brent did
+The two string-lookup hot spots flagged above were both removed (numerically
+bit-identical, `offspring_production` unchanged at 4.797128277e−06):
+
+- **aux/state index cache** — `compute_rates` did ~10 `aux_index.at("…")` /
+  `state_index.at("…")` (`std::map<string,int>`, i.e. red-black-tree string
+  compares) per derivs evaluation per individual. The keys are now resolved to
+  ints once in `refresh_indices()` and cached as members (`src/tf24_strategy.cpp`).
+- **extrinsic-driver memo** — the 6 time-varying drivers (PPFD, atm_vpd, ca,
+  leaf_temp, atm_o2_kpa, atm_kpa) were each an `unordered_map<string,…>::at`
+  (plus a by-value key copy) per individual per derivs evaluation. The `get_*`
+  accessors now memoise per driver keyed on `time`, so repeated same-time reads
+  across individuals collapse to one lookup per distinct time
+  (`inst/include/plant/models/tf24_environment.h`); `evaluate` also takes the
+  name by `const&` now (`inst/include/plant/extrinsic_drivers.h`).
+
+Re-profiled afterwards: `std::map<…>::at` 1.7 %→0.3 %, `memcmp` 1.6 %→0.2 %,
+`ExtrinsicDrivers::evaluate` dropped off entirely (the residual is the expected
+one-lookup-per-distinct-time cache misses). Measured ~2 % + ~3 % wall-time
+(controlled same-session A/B, 10 reps each); the rest of the profile is
+unchanged in shape.
+
+**Remaining lever (a possible roadmap #5):**
+
+- **`psi_stem_to_ci` (~32 %)** is the inner Cᵢ bisection that #4's Brent did
   *not* touch (Brent went on the *outer* GSS profit-max). Giving it the same
   bounded-Brent treatment, or memoising it the way #2 did for `transpiration()`,
   is the obvious biggest remaining target.
-- **`std::map<string,int>::at` + `memcmp` (~3 %)** — string-keyed name→index
-  lookups (e.g. `ExtrinsicDrivers::evaluate("rainfall", …)`) on the hot path.
-  Resolving the index once and reusing it reclaims this nearly for free.
 
 ## Build note: use `make`, not `load_all`
 
