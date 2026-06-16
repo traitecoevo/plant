@@ -33,10 +33,11 @@ test_that("K93 collect_all_auxiliary option", {
 
   s <- K93_Strategy()
   p <- K93_Individual(s)
-  expect_equal(p$aux_size, 1)
-  expect_equal(length(p$internals$auxs), 1)
+  expect_equal(p$aux_size, 2)
+  expect_equal(length(p$internals$auxs), 2)
   expect_equal(p$aux_names, c(
-    "competition_effect"
+    "competition_effect",
+    "height_inverse"
   ))
 })
 

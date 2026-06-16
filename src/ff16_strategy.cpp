@@ -91,6 +91,7 @@ void FF16_Strategy::update_dependent_aux(const int index, Internals& vars) {
   if (index == HEIGHT_INDEX) {
     double height = vars.state(HEIGHT_INDEX);
     vars.set_aux(COMPETITION_EFFECT_AUX_INDEX, area_leaf(height));
+    vars.set_aux(HEIGHT_INVERSE_AUX_INDEX, 1.0 / height);
   }
 }
 
@@ -101,9 +102,10 @@ void FF16_Strategy::compute_rates(const FF16_Environment& environment,  Internal
 
   double height = vars.state(HEIGHT_INDEX);
   double area_leaf_ = vars.aux(COMPETITION_EFFECT_AUX_INDEX);
+  double height_inverse = vars.aux(HEIGHT_INVERSE_AUX_INDEX);
 
   const double net_mass_production_dt_ =
-    net_mass_production_dt(environment, height, area_leaf_);
+    net_mass_production_dt(environment, height, area_leaf_, height_inverse);
 
   // store the aux sate
   vars.set_aux(NET_MASS_PRODUCTION_DT_AUX_INDEX, net_mass_production_dt_);
@@ -141,8 +143,8 @@ void FF16_Strategy::compute_rates(const FF16_Environment& environment,  Internal
 // [eqn 12] Gross annual CO2 assimilation
 double FF16_Strategy::assimilation(const FF16_Environment& environment,
                                     double height,
-                                    double area_leaf) {
-
+                                    double area_leaf,
+                                    double height_inverse) {
 
   double A = 0.0;
 
@@ -150,7 +152,8 @@ double FF16_Strategy::assimilation(const FF16_Environment& environment,
   // For given height in crown, take photosynthesis at depth multipled by 
   //   amount of leaf at that depth
   std::function<double(double)> f = [&](double z) -> double {
-    return assimilation_leaf(environment.get_environment_at_height(z)) * q(z, height);
+    return assimilation_leaf(environment.get_environment_at_height(z)) *
+      canopy_shape.q(z * height_inverse, z);
   };
 
   // Integrate over crown depth using using Gauss-Kronrod quadrature.
@@ -231,13 +234,21 @@ double FF16_Strategy::net_mass_production_dt_A(double assimilation, double respi
 // Used by establishment_probability() and compute_rates().
 double FF16_Strategy::net_mass_production_dt(const FF16_Environment& environment,
                                 double height, double area_leaf_) {
+  return net_mass_production_dt(environment, height, area_leaf_,
+                                1.0 / height);
+}
+
+double FF16_Strategy::net_mass_production_dt(const FF16_Environment& environment,
+                                double height, double area_leaf_,
+                                double height_inverse) {
   const double mass_leaf_    = mass_leaf(area_leaf_);
   const double area_sapwood_ = area_sapwood(area_leaf_);
   const double mass_sapwood_ = mass_sapwood(area_sapwood_, height);
   const double area_bark_    = area_bark(area_leaf_);
   const double mass_bark_    = mass_bark(area_bark_, height);
   const double mass_root_    = mass_root(area_leaf_);
-  const double assimilation_ = assimilation(environment, height, area_leaf_);
+  const double assimilation_ =
+    assimilation(environment, height, area_leaf_, height_inverse);
   const double respiration_ =
     respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
   const double turnover_ =
@@ -413,7 +424,8 @@ double FF16_Strategy::establishment_probability(const FF16_Environment& environm
   double decay_over_time = exp(-recruitment_decay * environment.time);
   
   const double net_mass_production_dt_ =
-    net_mass_production_dt(environment, height_0, area_leaf_0);
+    net_mass_production_dt(environment, height_0, area_leaf_0,
+                           height_0_inverse);
   if (net_mass_production_dt_ > 0) {
     const double tmp = a_d0 * area_leaf_0 / net_mass_production_dt_;
     return 1.0 / (tmp * tmp + 1.0) * decay_over_time;
@@ -423,18 +435,17 @@ double FF16_Strategy::establishment_probability(const FF16_Environment& environm
 }
 
 double FF16_Strategy::compute_competition(double z, double height) const {
-  return k_I * area_leaf(height) * Q(z, height);
+  return compute_competition(z, area_leaf(height), 1.0 / height);
 }
 
-// [eqn  9] Probability density of leaf area at height `z`
-double FF16_Strategy::q(double z, double height) const {
-  return canopy_shape.q(z, height);
+double FF16_Strategy::compute_competition(double z, double area_leaf_,
+                                          double height_inverse) const {
+  return compute_competition_by_ratio(z * height_inverse, area_leaf_);
 }
 
-// [eqn 10] ... Fraction of leaf area above height 'z' for an
-//              individual of height 'height'
-double FF16_Strategy::Q(double z, double height) const {
-  return canopy_shape.Q(z, height);
+double FF16_Strategy::compute_competition_by_ratio(double z_over_height,
+                                                   double area_leaf_) const {
+  return k_I * area_leaf_ * canopy_shape.Q(z_over_height);
 }
 
 // (inverse of [eqn 10]; return the height above which fraction 'x' of
@@ -479,6 +490,7 @@ void FF16_Strategy::prepare_strategy() {
   eta_c = 1 - 2/(1 + eta) + 1/(1 + 2*eta);
   // NOTE: Also pre-computing, though less trivial
   height_0 = height_seed();
+  height_0_inverse = 1.0 / height_0;
   area_leaf_0 = area_leaf(height_0);
 
   if (is_variable_birth_rate) {

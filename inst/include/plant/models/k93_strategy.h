@@ -28,7 +28,7 @@ public:
   }
 
   std::vector<std::string> aux_names() {
-    return std::vector<std::string>({"competition_effect"});
+    return std::vector<std::string>({"competition_effect", "height_inverse"});
   }
 
   void compute_rates(const K93_Environment& environment, Internals& vars);
@@ -39,10 +39,15 @@ public:
   double establishment_probability(const K93_Environment& environment);
   double net_mass_production_dt(const K93_Environment& environment,
                                 double size, double cumulative_basal_area);
-
-  double Q(double z, double size) const;
+  double net_mass_production_dt(const K93_Environment& environment,
+                                double size, double cumulative_basal_area,
+                                double height_inverse);
 
   double compute_competition(double z, double size) const;
+  double compute_competition(double z, double whole_plant_competition,
+                             double height_inverse) const;
+  double compute_competition_by_ratio(double z_over_size,
+                                      double whole_plant_competition) const;
 
   void update_dependent_aux(const int index, Internals& vars);
 

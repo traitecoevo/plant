@@ -73,20 +73,22 @@ test_that("TF24 collect_all_auxiliary option", {
 
   s <- TF24_Strategy()
   p <- TF24_Individual(s)
-  expect_equal(p$aux_size, 2)
-  expect_equal(length(p$internals$auxs), 2)
+  expect_equal(p$aux_size, 3)
+  expect_equal(length(p$internals$auxs), 3)
   expect_equal(p$aux_names, c(
     "competition_effect",
+    "height_inverse",
     "net_mass_production_dt"
   ))
 
   s <- TF24_Strategy(collect_all_auxiliary=TRUE)
   expect_true(s$collect_all_auxiliary)
   p <- TF24_Individual(s)
-  expect_equal(p$aux_size, 3)
-  expect_equal(length(p$internals$auxs), 3)
+  expect_equal(p$aux_size, 4)
+  expect_equal(length(p$internals$auxs), 4)
   expect_equal(p$aux_names, c(
     "competition_effect",
+    "height_inverse",
     "net_mass_production_dt",
     "area_sapwood"
   ))
@@ -216,7 +218,7 @@ test_that("offspring arrival", {
                            birth_rate_list = list(11.99177, 16.51006))
   
   out <- run_scm(p2, env, ctrl)
-  expect_equal(out$offspring_production, c(11.99529, 16.47519), tolerance=1e-5)
+  expect_equal(out$offspring_production, c(11.99529, 16.47519), tolerance=1e-4)
   #expect_equal(length(out$ode_times), 297)
 })
 

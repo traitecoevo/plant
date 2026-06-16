@@ -17,6 +17,7 @@ public:
   TF24_Strategy();
 
   double compute_average_light_environment(double z, double height,
+                                           double height_inverse,
                                            const TF24_Environment &environment);
 
   // calculate the amount of water transpired relativised by leaf area index.
@@ -25,6 +26,11 @@ public:
 
 
   // Overrides ----------------------------------------------
+
+  static constexpr int COMPETITION_EFFECT_AUX_INDEX = 0;
+  static constexpr int HEIGHT_INVERSE_AUX_INDEX = 1;
+  static constexpr int NET_MASS_PRODUCTION_DT_AUX_INDEX = 2;
+  static constexpr int AREA_SAPWOOD_AUX_INDEX = 3;
 
   // update this when the length of state_names changes
   static size_t state_size () { return 5; }
@@ -44,6 +50,7 @@ public:
   std::vector<std::string> aux_names() {
     std::vector<std::string> ret({
       "competition_effect",
+      "height_inverse",
       "net_mass_production_dt"
     });
     // add the associated computation to compute_rates and compute there
@@ -103,7 +110,7 @@ public:
   // * Mass production
   // [eqn 12] Gross annual CO2 assimilation
   double assimilation(const TF24_Environment& environment, double height,
-                      double area_leaf);
+                      double area_leaf, double height_inverse);
   // [Appendix S6] Per-leaf photosynthetic rate.
   double assimilation_leaf(double x) const;
 
@@ -130,6 +137,9 @@ public:
 
   virtual double net_mass_production_dt(const TF24_Environment& environment,
                                 double height, double area_leaf_);
+  double net_mass_production_dt(const TF24_Environment& environment,
+                                double height, double area_leaf_,
+                                double height_inverse);
 
   // [eqn 16] Fraction of whole plan growth that is leaf
   virtual double fraction_allocation_reproduction(double height) const;
@@ -188,11 +198,11 @@ public:
   // * Competitive environment
   // [eqn 11] total projected leaf area above height above height `z` for given plant
   double compute_competition(double z, double height) const;
+  double compute_competition(double z, double area_leaf,
+                             double height_inverse) const;
+  double compute_competition_by_ratio(double z_over_height,
+                                      double area_leaf) const;
 
-  // [eqn  9] Probability density of leaf area at height `z`
-  double q(double z, double height) const;
-  // [eqn 10] Fraction of leaf area above height `z`
-  double Q(double z, double height) const;
   // [      ] Inverse of Q: height above which fraction 'x' of leaf found
   double Qp(double x, double height) const;
 
@@ -287,6 +297,7 @@ public:
 
   // Height and leaf area of a (germinated) seed
   double height_0  = NA_REAL;
+  double height_0_inverse = NA_REAL;
   double area_leaf_0;
 
 

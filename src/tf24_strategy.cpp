@@ -16,10 +16,12 @@ TF24_Strategy::TF24_Strategy() {
 
 // not sure 'average' is the right term here..
 double TF24_Strategy::compute_average_light_environment(
-    double z, double height, const TF24_Environment &environment) {
+    double z, double height, double height_inverse,
+    const TF24_Environment &environment) {
 //NOTE: this function is currently being constrained at 0 because 
 
-     return std::max(environment.get_environment_at_height(z), 0.0001) * q(z, height);
+     return std::max(environment.get_environment_at_height(z), 0.0001) *
+       canopy_shape.q(z * height_inverse, z);
 }
 
 // assumes optimise_psi_stem_TF has been run for optimal psi_stem
@@ -104,7 +106,8 @@ double TF24_Strategy::mass_above_ground(double mass_leaf, double mass_bark,
 void TF24_Strategy::update_dependent_aux(const int index, Internals& vars) {
   if (index == HEIGHT_INDEX) {
     double height = vars.state(HEIGHT_INDEX);
-    vars.set_aux(aux_index.at("competition_effect"), area_leaf(height));
+    vars.set_aux(COMPETITION_EFFECT_AUX_INDEX, area_leaf(height));
+    vars.set_aux(HEIGHT_INVERSE_AUX_INDEX, 1.0 / height);
   }
 }
 
@@ -114,13 +117,14 @@ void TF24_Strategy::update_dependent_aux(const int index, Internals& vars) {
 void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internals& vars) {
 
   double height = vars.state(HEIGHT_INDEX);
-  double area_leaf_ = vars.aux(aux_index.at("competition_effect"));
+  double area_leaf_ = vars.aux(COMPETITION_EFFECT_AUX_INDEX);
+  double height_inverse = vars.aux(HEIGHT_INVERSE_AUX_INDEX);
 
   const double net_mass_production_dt_ =
-    net_mass_production_dt(environment, height, area_leaf_);
+    net_mass_production_dt(environment, height, area_leaf_, height_inverse);
 
   // store the aux sate
-  vars.set_aux(aux_index.at("net_mass_production_dt"), net_mass_production_dt_);
+  vars.set_aux(NET_MASS_PRODUCTION_DT_AUX_INDEX, net_mass_production_dt_);
 
     // convert evapotranspiration per leaf area (kg H20 m^-2 s^-1) to canopy-level total yearly assimilation (m yr^-1)
   // stubbing out E_p for integration
@@ -147,7 +151,7 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
     vars.set_rate(state_index.at("mass_heartwood"), mass_heartwood_dt(mass_sapwood_));
 
     if (collect_all_auxiliary) {
-      vars.set_aux(aux_index.at("area_sapwood"), area_sapwood_);
+      vars.set_aux(AREA_SAPWOOD_AUX_INDEX, area_sapwood_);
     }
   } else {
     vars.set_rate(HEIGHT_INDEX, 0.0);
@@ -163,8 +167,8 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
 // [eqn 12] Gross annual CO2 assimilation
 double TF24_Strategy::assimilation(const TF24_Environment& environment,
                                     double height,
-                                    double area_leaf) {
-
+                                    double area_leaf,
+                                    double height_inverse) {
 
   double A = 0.0;
 
@@ -172,7 +176,8 @@ double TF24_Strategy::assimilation(const TF24_Environment& environment,
   // For given height in crown, take photosynthesis at depth multipled by 
   //   amount of leaf at that depth
   std::function<double(double)> f = [&](double z) -> double {
-    return assimilation_leaf(environment.get_environment_at_height(z)) * q(z, height);
+    return assimilation_leaf(environment.get_environment_at_height(z)) *
+      canopy_shape.q(z * height_inverse, z);
   };
 
   // Integrate over crown depth using using Gauss-Kronrod quadrature.
@@ -253,6 +258,13 @@ double TF24_Strategy::net_mass_production_dt_A(double assimilation, double respi
 // Used by establishment_probability() and compute_rates().
 double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment,
                                 double height, double area_leaf_) {
+  return net_mass_production_dt(environment, height, area_leaf_,
+                                1.0 / height);
+}
+
+double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment,
+                                double height, double area_leaf_,
+                                double height_inverse) {
   const double mass_leaf_    = mass_leaf(area_leaf_);
   const double area_sapwood_ = area_sapwood(area_leaf_);
   const double mass_sapwood_ = mass_sapwood(area_sapwood_, height);
@@ -262,7 +274,8 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
 
   // integrate over x from zero to `height`, with fixed canopy openness
   auto f = [&](double x) -> double {
-    return compute_average_light_environment(x, height, environment);
+    return compute_average_light_environment(x, height, height_inverse,
+                                             environment);
  
   };
 
@@ -334,7 +347,8 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   //vars.set_aux(aux_index.at("respiration_"), respiration_);
   //vars.set_aux(aux_index.at("turnover_"), turnover_);
 
-  const double assimilation_ = assimilation(environment, height, area_leaf_);
+  const double assimilation_ =
+    assimilation(environment, height, area_leaf_, height_inverse);
   const double respiration_ =
     respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
   const double turnover_ =
@@ -510,7 +524,8 @@ double TF24_Strategy::establishment_probability(const TF24_Environment& environm
   double decay_over_time = exp(-recruitment_decay * environment.time);
   
   const double net_mass_production_dt_ =
-    net_mass_production_dt(environment, height_0, area_leaf_0);
+    net_mass_production_dt(environment, height_0, area_leaf_0,
+                           height_0_inverse);
   if (net_mass_production_dt_ > 0) {
     const double tmp = a_d0 * area_leaf_0 / net_mass_production_dt_;
     return 1.0 / (tmp * tmp + 1.0) * decay_over_time;
@@ -520,18 +535,17 @@ double TF24_Strategy::establishment_probability(const TF24_Environment& environm
 }
 
 double TF24_Strategy::compute_competition(double z, double height) const {
-  return k_I * area_leaf(height) * Q(z, height);
+  return compute_competition(z, area_leaf(height), 1.0 / height);
 }
 
-// [eqn  9] Probability density of leaf area at height `z`
-double TF24_Strategy::q(double z, double height) const {
-  return canopy_shape.q(z, height);
+double TF24_Strategy::compute_competition(double z, double area_leaf_,
+                                          double height_inverse) const {
+  return compute_competition_by_ratio(z * height_inverse, area_leaf_);
 }
 
-// [eqn 10] ... Fraction of leaf area above height 'z' for an
-//              individual of height 'height'
-double TF24_Strategy::Q(double z, double height) const {
-  return canopy_shape.Q(z, height);
+double TF24_Strategy::compute_competition_by_ratio(double z_over_height,
+                                                   double area_leaf_) const {
+  return k_I * area_leaf_ * canopy_shape.Q(z_over_height);
 }
 
 // (inverse of [eqn 10]; return the height above which fraction 'x' of
@@ -576,6 +590,7 @@ void TF24_Strategy::prepare_strategy() {
   eta_c = 1 - 2/(1 + eta) + 1/(1 + 2*eta);
   // NOTE: Also pre-computing, though less trivial
   height_0 = height_seed();
+  height_0_inverse = 1.0 / height_0;
   area_leaf_0 = area_leaf(height_0);
 
   if (is_variable_birth_rate) {

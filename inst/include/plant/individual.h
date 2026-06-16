@@ -21,6 +21,8 @@ public:
     if (strategy->aux_index.size() != s->aux_size()) {
       strategy->refresh_indices();
     }
+    competition_effect_aux_index = strategy->aux_index.at("competition_effect");
+    height_inverse_aux_index = strategy->aux_index.at("height_inverse");
     vars.resize(strategy_type::state_size(), s->aux_size()); // = Internals(strategy_type::state_size());
     set_state("height", strategy->height_0);
   }
@@ -61,7 +63,10 @@ public:
   double consumption_rate(int i) const { return vars.consumption_rate(i); }
 
   double compute_competition(double z) const {
-    return strategy->compute_competition(z, state(HEIGHT_INDEX)); // aux("competition_effect"));
+    return strategy->compute_competition(
+      z,
+      vars.aux(competition_effect_aux_index),
+      vars.aux(height_inverse_aux_index));
   }
 
   void compute_rates(const environment_type& environment) {
@@ -78,7 +83,11 @@ public:
 
   double net_mass_production_dt(const environment_type &environment) {
     // TODO:  maybe reuse intervals? default false 
-    return strategy->net_mass_production_dt(environment, state(HEIGHT_INDEX), aux("competition_effect"));
+    return strategy->net_mass_production_dt(
+      environment,
+      state(HEIGHT_INDEX),
+      vars.aux(competition_effect_aux_index),
+      vars.aux(height_inverse_aux_index));
   }
 
   // * ODE interface
@@ -163,6 +172,8 @@ public:
 private:
   strategy_type_ptr strategy;
   Internals vars;
+  int competition_effect_aux_index;
+  int height_inverse_aux_index;
 };
 
 template <typename T, typename E> Individual<T,E> make_individual(T s) {
