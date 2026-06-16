@@ -287,6 +287,39 @@ median of 5 timed runs after a warm-up):
 (Reproduce with `scripts/bench_tf24.R`; absolute seconds are machine-specific
 but the ratio is stable.)
 
+## Post-optimisation profile (HEAD)
+
+Re-profiled after all four items, on the same single-species MPL=10 run. macOS
+`sample` was used (the `jointprof`/`pprof` path documented above is unavailable
+here; `Rprof`/`profvis` can't see into the `.so` — it's a single Rcpp call).
+The `-g` build keeps C++ symbols; a few small functions inline under `-O2`.
+Self-time over ~31.6 k active samples (idle wait excluded):
+
+| Function | Self % | Note |
+|---|---|---|
+| `Leaf::psi_stem_to_ci` | **31.4 %** | inner Cᵢ bisection — **not touched by the roadmap** |
+| `tk::spline::operator()` | 22.4 % | spline eval (already O(1)-indexed by #3) |
+| `Leaf::E_from_Soil_to_Root_Collar` | 10.5 % | already 6→2 spline evals by #1 |
+| `Interpolator::eval` | 7.6 % | spline wrapper |
+| `pow` (+ stub) | ~7 % | transcendentals in hydraulic / vulnerability curves |
+| `Leaf::find_root_collar_psi` | 6.0 % | master solver (Brent'd by #4) |
+| `Leaf::find_root_psi` | 1.7 % | |
+| `std::map<string,int>::at` + `memcmp` | ~3 % | string-keyed name→index lookups in the hot path |
+
+The picture has shifted: spline evaluation was *the* hottest leaf before and is
+still ~30 % combined (`tk::spline` + `Interpolator::eval`), but it's no longer
+dominant — work is now spread across the solver structure.
+
+**Next levers (a possible roadmap #5+):**
+
+- **`psi_stem_to_ci` (31 %)** is the inner Cᵢ bisection that #4's Brent did
+  *not* touch (Brent went on the *outer* GSS profit-max). Giving it the same
+  bounded-Brent treatment, or memoising it the way #2 did for `transpiration()`,
+  is the obvious biggest remaining target.
+- **`std::map<string,int>::at` + `memcmp` (~3 %)** — string-keyed name→index
+  lookups (e.g. `ExtrinsicDrivers::evaluate("rainfall", …)`) on the hot path.
+  Resolving the index once and reusing it reclaims this nearly for free.
+
 ## Build note: use `make`, not `load_all`
 
 Build the package with **`make compile`** (`pkgbuild::compile_dll(debug=FALSE)`,
