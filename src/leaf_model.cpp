@@ -118,6 +118,8 @@ void Leaf::setup_clean_leaf() {
 
   soil_number_of_depths_ = NA_INTEGER;
   max_soil_layer = NA_INTEGER; // number of soil layers with root mass greater than 0;
+
+  transpiration_cached_ = false; // invalidate transpiration() memo
 }
 
 // Set the per-individual, per-timestep physiology that stays constant during
@@ -198,6 +200,8 @@ void Leaf::set_physiology(double area_leaf, const std::vector<double>& mass_root
    use_precomputed_z_soil_mid_ = false;
    
    leaf_specific_conductance_max_ = leaf_specific_conductance_max;
+   // conductance changed -> invalidate the transpiration() memo
+   transpiration_cached_ = false;
    sapwood_volume_per_leaf_area_ = sapwood_volume_per_leaf_area;
    ca_ = ca;
    vcmax_ = peak_arrh_curve(vcmax_ha, vcmax_25, leaf_temp_, vcmax_H_d, vcmax_d_S);
@@ -768,12 +772,25 @@ double Leaf::transpiration_full_integration(double psi_stem, double psi_upstream
 //calculates supply-side transpiration from psi_stem and root_collar_psi_, returns kg h20 s^-1 m^-2 LA
 double Leaf::transpiration(double psi_stem, double psi_upstream) {
 
-  
+  // 1-entry memo: identical (psi_stem, psi_upstream) is requested several times
+  // per profit evaluation; return the cached value (bit-identical) to skip the
+  // redundant spline lookups. Cache invalidated in set_physiology.
+  if (transpiration_cached_ &&
+      psi_stem == transpiration_cache_psi_stem_ &&
+      psi_upstream == transpiration_cache_psi_upstream_) {
+    return transpiration_cache_value_;
+  }
+
   // integration of proportion_of_conductivity over [root_collar_psi_, psi_stem]
-  return leaf_specific_conductance_max_ * (transpiration_from_psi.eval(psi_stem) - transpiration_from_psi.eval(psi_upstream));
+  const double E = leaf_specific_conductance_max_ *
+    (transpiration_from_psi.eval(psi_stem) - transpiration_from_psi.eval(psi_upstream));
   // return (transpiration_full_integration(psi_stem));
 
-  
+  transpiration_cache_psi_stem_ = psi_stem;
+  transpiration_cache_psi_upstream_ = psi_upstream;
+  transpiration_cache_value_ = E;
+  transpiration_cached_ = true;
+  return E;
 }
 
 // converts a known transpiration to its corresponding psi_stem, returns -MPa

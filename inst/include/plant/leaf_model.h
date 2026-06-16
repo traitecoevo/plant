@@ -193,6 +193,18 @@ public:
   double opt_ci_;
   double count;
   double E_up_;
+
+  // 1-entry memo for transpiration(). Within a single root-collar/profit solve
+  // leaf_specific_conductance_max_ and the transpiration spline are fixed, so
+  // supply-side transpiration depends only on (psi_stem, psi_upstream). That
+  // pair is queried repeatedly with identical values per profit evaluation
+  // (psi_stem_to_ci -> stom_cond_CO2 -> transpiration, then transpiration again
+  // for transpiration_). Caching the last result avoids the redundant spline
+  // lookups; it is invalidated in set_physiology when conductance/soil change.
+  bool   transpiration_cached_ = false;
+  double transpiration_cache_psi_stem_ = 0.0;
+  double transpiration_cache_psi_upstream_ = 0.0;
+  double transpiration_cache_value_ = 0.0;
   std::vector<double> f_r;
   // TODO: move into environment?
 

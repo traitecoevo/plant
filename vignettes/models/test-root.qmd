@@ -197,22 +197,28 @@ with this caveat, so the experiment is not silently repeated.
 
 ## Optimisation roadmap (ranked)
 
-All of these change numerics and should be validated against the science before
-adoption (capture a baseline trajectory, re-run, compare):
+**DONE (#2 + #3): ~1.9× speed-up, bit-identical output** (MPL=5: ≈41 s → ≈21 s;
+`all.equal` vs baseline TRUE). Both are numerically identical so the science is
+unchanged. Implemented:
 
-1. **Cumulative root-vulnerability integral spline** *(highest value).* Replace
-   the 6-point average in `E_from_Soil_to_Root_Collar` with 2 evaluations of a
-   pre-integrated curve — exactly the technique already used for stem
-   transpiration in `setup_transpiration`. ~3× fewer spline evals in the
-   hottest function. Slightly changes the quadrature.
-2. **Memoise redundant `transpiration_from_psi` evals** within a single profit
-   evaluation (currently `eval(psi_stem)` / `eval(psi_upstream)` are recomputed
-   with identical arguments several times). **Numerically identical → safe**,
-   modest gain.
-3. **O(1) spline index.** `tk::spline` does a binary search on every eval;
-   the grids are ~uniform so the index can be computed directly, or the last
-   index cached (queries are clustered/monotonic in the layer loop).
-   Numerically identical but invasive into the vendored spline.
+- **#3 O(1) spline index** — `tk::spline::operator()` now detects an
+  equidistant x-grid in `set_points` and replaces the `std::lower_bound` binary
+  search with direct arithmetic plus a ±1 correction that reproduces the
+  binary-search index exactly (see `src/tk_spline.cpp`, `m_uniform`). This was
+  the single hottest leaf in the profile; the same fix was reported externally
+  in traitecoevo/plant#435 (~18% there).
+- **#2 Memoised `transpiration()`** — a 1-entry cache on `(psi_stem,
+  psi_upstream)` skips the repeated identical spline lookups within each profit
+  evaluation; invalidated in `set_physiology` (see `src/leaf_model.cpp`).
+
+Remaining (these **change numerics** — validate against the science before
+adoption: capture a baseline trajectory, re-run, compare):
+
+1. **Cumulative root-vulnerability integral spline** *(highest remaining value).*
+   Replace the 6-point average in `E_from_Soil_to_Root_Collar` with 2
+   evaluations of a pre-integrated curve — exactly the technique already used
+   for stem transpiration in `setup_transpiration`. ~3× fewer spline evals in
+   the hottest function. Slightly changes the quadrature.
 4. **Brent for the golden-section profit max** (~17 → ~10 iters). Moderate
    risk; the profit objective is smooth near the optimum.
 
