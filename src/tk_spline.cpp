@@ -229,11 +229,13 @@ double spline::operator() (double x) const {
       // rounding from grid construction and the exact-knot edge case).
       // (traitecoevo/plant#435)
       idx=static_cast<int>((x-m_x0)*m_inv_dx);
-      const int idx_max=static_cast<int>(n)-2;
+      // clamp to [0, n-1]: idx == n-1 is the right-extrapolation case, where
+      // lower_bound() also returns n-1 (so h = x - m_x[n-1]).
+      const int last=static_cast<int>(n)-1;
       if(idx<0) idx=0;
-      else if(idx>idx_max) idx=idx_max;
+      else if(idx>last) idx=last;
       while(idx>0 && m_x[idx]>=x) --idx;
-      while(idx<idx_max && m_x[idx+1]<x) ++idx;
+      while(idx<last && m_x[idx+1]<x) ++idx;
    } else {
       std::vector<double>::const_iterator it;
       it=std::lower_bound(m_x.begin(),m_x.end(),x);
