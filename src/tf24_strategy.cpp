@@ -525,24 +525,19 @@ double TF24_Strategy::compute_competition(double z, double height) const {
 
 // [eqn  9] Probability density of leaf area at height `z`
 double TF24_Strategy::q(double z, double height) const {
-  const double tmp = pow(z / height, eta);
-  return 2 * eta * (1 - tmp) * tmp / z;
+  return canopy_shape.q(z, height);
 }
 
 // [eqn 10] ... Fraction of leaf area above height 'z' for an
 //              individual of height 'height'
 double TF24_Strategy::Q(double z, double height) const {
-  if (z > height) {
-    return 0.0;
-  }
-  const double tmp = 1.0-pow(z / height, eta);
-  return tmp * tmp;
+  return canopy_shape.Q(z, height);
 }
 
 // (inverse of [eqn 10]; return the height above which fraction 'x' of
 // the leaf mass would be found).
 double TF24_Strategy::Qp(double x, double height) const { // x in [0,1], unchecked.
-  return pow(1 - sqrt(x), (1/eta)) * height;
+  return canopy_shape.Qp(x, height);
 }
 
 // The aim is to find a plant height that gives the correct seed mass.
@@ -574,6 +569,8 @@ void TF24_Strategy::prepare_strategy() {
   function_integrator = quadrature::QK(
       // Gauss-Kronrod quadrature integeration rule (see qkrules)
       control.function_integration_rule);
+
+  canopy_shape.initialise(eta);
 
   // NOTE: this pre-computes something to save a very small amount of time
   eta_c = 1 - 2/(1 + eta) + 1/(1 + 2*eta);

@@ -37,12 +37,7 @@ void K93_Strategy::update_dependent_aux(const int index, Internals& vars) {
 
 // Smoothing function for competition effect
 double K93_Strategy::Q(double z, double size) const {
-  if (z > size) {
-    return 0.0;
-  }
-  const double tmp = 1.0 - pow(z / size, eta);
-
-  return tmp * tmp;
+  return canopy_shape.Q(z, size);
 }
 
 double K93_Strategy::compute_competition(double z, double size) const {
@@ -142,6 +137,8 @@ double K93_Strategy::mortality_dt(double cumulative_basal_area,
 
 // useful for pre-computing expensive objects
 void K93_Strategy::prepare_strategy() {
+  canopy_shape.initialise(eta);
+
   if (is_variable_birth_rate) {
     extrinsic_drivers.set_variable("birth_rate", birth_rate_x, birth_rate_y);
   } else {

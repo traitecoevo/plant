@@ -5,6 +5,7 @@
 
 #include <plant/strategy.h>
 #include <plant/models/k93_environment.h>
+#include <plant/canopy_shape.h>
 
 namespace plant {
 
@@ -84,6 +85,7 @@ public:
 
   // Smoothing parameter
   double eta;
+  CanopyShape canopy_shape;
 
   // Light capture parameters
   double k_I;

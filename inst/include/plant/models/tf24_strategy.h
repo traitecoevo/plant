@@ -6,6 +6,7 @@
 #include <plant/strategy.h>
 #include <plant/models/tf24_environment.h>
 #include <plant/qag.h>
+#include <plant/canopy_shape.h>
 #include <plant/leaf_model.h>
 
 namespace plant {
@@ -210,6 +211,7 @@ public:
   // Canopy shape parameters
   double eta       = 12.0; // [dimensionless]
   double eta_c     = NA_REAL; // [dimensionless]
+  CanopyShape canopy_shape;
   // Sapwood area per leaf area
   // Ratio sapwood area area to leaf area
   double theta     = 1.0/4669; // [dimensionless]
