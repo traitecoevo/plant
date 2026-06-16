@@ -109,6 +109,11 @@ public:
   interpolator::Interpolator psi_from_transpiration;
   // pre-computed root vulnerability curve (same role as transpiration_from_psi for xylem)
   interpolator::Interpolator root_vuln_from_psi;
+  // cumulative integral of the root vulnerability curve, G(m) = int_0^m f_r(s) ds,
+  // indexed by magnitude m = -psi. Lets E_from_Soil_to_Root_Collar obtain the
+  // mean conductivity over a potential interval from 2 evals instead of (n+1)
+  // (same pre-integrated-curve trick as transpiration_from_psi for the xylem).
+  interpolator::Interpolator root_vuln_integral_from_psi;
 
   // psi_from_E
 

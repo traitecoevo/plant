@@ -288,8 +288,10 @@ void Leaf::set_physiology(double area_leaf, const std::vector<double>& mass_root
 // Because the root vulnerability curve f_r is non-linear in psi, the
 // horizontal resistance is evaluated using the *average* fractional
 // conductivity over the potential interval spanned between the soil and the
-// collar (P_src_min..P_src_max), approximated here by an (n+1)-point
-// trapezoid-like average of the pre-built root vulnerability spline.
+// collar (P_src_min..P_src_max). This mean is obtained as
+// (1/(b-a)) * integral_a^b f_r dpsi from a pre-integrated curve
+// (root_vuln_integral_from_psi) with two spline evals, the same technique used
+// for stem transpiration in setup_transpiration.
 //
 // Output: E_up_ = total water drawn from all layers to the collar
 //                 (converted to kg H2O m^-2 leaf s^-1), and soil_consumption_[i]
@@ -297,8 +299,9 @@ void Leaf::set_physiology(double area_leaf, const std::vector<double>& mass_root
 //                 layer means that layer is *gaining* water (hydraulic redistribution).
 //
 // Implementation decisions:
-//   * f_r is read from a pre-computed spline (root_vuln_from_psi) instead of
-//     repeatedly evaluating exp(-(psi/b)^c); see setup_root_vulnerability.
+//   * f_r and its running integral are read from pre-computed splines
+//     (root_vuln_from_psi, root_vuln_integral_from_psi) instead of repeatedly
+//     evaluating exp(-(psi/b)^c); see setup_root_vulnerability.
 //   * Two special cases are handled exactly to avoid division/round-off issues:
 //     (a) collar potential equals layer potential, and (b) the gradient
 //     exactly balances gravity (E_i = 0).
@@ -385,34 +388,34 @@ void Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>& p
 
     } else{
 
-      // Sequence through the least negative to most negative soil water potential
-      // step will be negative
-      double step = (P_src_max - P_src_min)/n;
+      // Mean fractional root conductivity over the potential interval
+      // [P_src_min, P_src_max], i.e. (1/(b-a)) * integral_a^b f_r dpsi.
+      // Computed from the pre-integrated curve G(m) = integral_0^m f_r(s) ds
+      // (root_vuln_integral_from_psi, indexed by magnitude m = -psi) with 2
+      // evals instead of the old (n+1)-point sample mean. The interval is split
+      // at psi = 0: for psi > 0 (above-atmospheric) vulnerability is 1.
+      double hi_neg = std::min(P_src_max, 0.0); // boundary of the psi<=0 part
+      double lo_pos = std::max(P_src_min, 0.0); // boundary of the psi>0 part
 
-      double f_r_average = 0;
-
-      for (size_t j = 0; j < (n + 1); j++) {
-        double stepper = j;
-        double P_src_step = P_src_min + step * stepper;
-       if(P_src_step > 0){
-        // psi > 0 means above-atmospheric pressure; vulnerability = 1 (no loss)
-        f_r_average += 1.0 / (n + 1);
-      } else{
-        // look up pre-computed root vulnerability spline instead of exp(pow(...))
-        double f_r_point_ = root_vuln_from_psi.eval(-P_src_step);
-        if(f_r_point_ < 0){
-          f_r_point_ = 0;
-        }
-        f_r_average += f_r_point_ / (n + 1);
+      double integral = 0.0;
+      if (hi_neg > P_src_min) {
+        // psi<=0 part: magnitude m runs from -hi_neg up to -P_src_min
+        integral += root_vuln_integral_from_psi.eval(-P_src_min) -
+                    root_vuln_integral_from_psi.eval(-hi_neg);
       }
-    }
+      if (P_src_max > lo_pos) {
+        // psi>0 part: f_r == 1 over its length
+        integral += (P_src_max - lo_pos);
+      }
+
+      double f_r_average = integral / (P_src_max - P_src_min);
 
     if (!std::isfinite(f_r_average) || f_r_average <= 0.0) {
       util::stop("E_from_Soil_to_Root_Collar invalid f_r_average; layer=" + std::to_string(i) +
                  "; f_r_average=" + util::to_string(f_r_average) +
                  "; P_src_min=" + util::to_string(P_src_min) +
                  "; P_src_max=" + util::to_string(P_src_max) +
-                 "; step=" + util::to_string(step));
+                 "; integral=" + util::to_string(integral));
     }
 
     // Find the horizantal resistance in a given layer by dividing the minimum resistance (i.e. maximum conductivity) by the fractional loss of conductivity
@@ -728,15 +731,25 @@ double Leaf::proportion_of_conductivity(double psi) const {
 void Leaf::setup_root_vulnerability(double resolution) {
   auto x_psi_root = std::vector<double>{0.0};
   auto y_f_r       = std::vector<double>{1.0}; // f(0) = exp(0) = 1
+  // G(m) = int_0^m f_r(s) ds, accumulated by the trapezoid rule on the same grid
+  auto y_integral  = std::vector<double>{0.0}; // G(0) = 0
   // upper limit: psi where conductivity = 1%
   double psi_max_root = root_b * pow(log(1.0 / 0.01), 1.0 / root_c);
   double step = psi_max_root / resolution;
   for (double psi = step; psi <= psi_max_root; psi += step) {
+    double f_r = exp(-pow(psi/root_b, root_c));
     x_psi_root.push_back(psi);
-    y_f_r.push_back(exp(-pow(psi/root_b, root_c)));
+    y_f_r.push_back(f_r);
+    y_integral.push_back(y_integral.back() +
+                         step * 0.5 * (y_f_r[y_f_r.size() - 2] + f_r));
   }
   root_vuln_from_psi.init(x_psi_root, y_f_r);
   root_vuln_from_psi.set_extrapolate(true); // clamp to last value beyond range
+
+  root_vuln_integral_from_psi.init(x_psi_root, y_integral);
+  // linear extrapolation beyond range: slope ~= f_r at the tail (~1%), so the
+  // integral keeps growing consistently with the clamped-conductivity tail.
+  root_vuln_integral_from_psi.set_extrapolate(true);
 }
 
 // set spline for proportion of conductivity

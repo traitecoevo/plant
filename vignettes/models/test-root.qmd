@@ -211,14 +211,28 @@ unchanged. Implemented:
   psi_upstream)` skips the repeated identical spline lookups within each profit
   evaluation; invalidated in `set_physiology` (see `src/leaf_model.cpp`).
 
+**DONE (#1): ~1.25× speed-up, numerics changed (toward more accurate).** The
+6-point (`n+1`) sample-mean of root conductivity in `E_from_Soil_to_Root_Collar`
+is replaced by the *exact* interval mean `(1/(b−a))·∫ₐᵇ f_r dψ`, obtained from a
+pre-integrated curve `root_vuln_integral_from_psi` (`G(m)=∫₀ᵐ f_r ds`, built in
+`setup_root_vulnerability`) with **2 spline evals instead of 6** — the same
+pre-integrated-curve trick as `setup_transpiration` for the xylem. The interval
+is split at ψ=0 (ψ>0 ⇒ vulnerability 1).
+
+This is **more accurate**: vs a fine-grained reference the new interval mean errs
+~1e−3 where the old sample-mean erred up to ~5e−2. It therefore **changes the
+trajectory** slightly — on a single-species MPL=10 run, `offspring_production`
+shifts 4.712e−06 → 4.789e−06 (+1.6% rel, 7.6e−8 abs; toward the more accurate
+value). Existing leaf/TF24 tests pass unchanged (their tolerances are absolute at
+this magnitude). **Measured speed-up** (identical `-g -O2` build, old vs new,
+median of 3 runs each on the same MPL=10 single-species run): **26.2 s → 21.0 s,
+≈1.25× (~20%)**. The hot function gets the predicted ~3× fewer spline evals; the
+whole-run gain is smaller because that function is one stage inside two nested
+root-finds plus the golden-section search.
+
 Remaining (these **change numerics** — validate against the science before
 adoption: capture a baseline trajectory, re-run, compare):
 
-1. **Cumulative root-vulnerability integral spline** *(highest remaining value).*
-   Replace the 6-point average in `E_from_Soil_to_Root_Collar` with 2
-   evaluations of a pre-integrated curve — exactly the technique already used
-   for stem transpiration in `setup_transpiration`. ~3× fewer spline evals in
-   the hottest function. Slightly changes the quadrature.
 4. **Brent for the golden-section profit max** (~17 → ~10 iters). Moderate
    risk; the profit objective is smooth near the optimum.
 
