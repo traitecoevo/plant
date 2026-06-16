@@ -11,6 +11,7 @@
 #include <plant/models/tf24_environment.h>
 #include <plant/qag.h>
 #include <plant/uniroot.h>
+#include <plant/optimize.h>
 
 namespace plant {
 

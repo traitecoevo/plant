@@ -230,11 +230,35 @@ median of 3 runs each on the same MPL=10 single-species run): **26.2 s → 21.0 
 whole-run gain is smaller because that function is one stage inside two nested
 root-finds plus the golden-section search.
 
-Remaining (these **change numerics** — validate against the science before
-adoption: capture a baseline trajectory, re-run, compare):
+**DONE (#4): ~1.7× speed-up, numerics changed (tolerance-level shift).** The
+golden-section search (GSS) over the feasible collar-potential interval in
+`find_root_collar_psi` is replaced by **Brent's method** (golden-section +
+parabolic interpolation — R's `Brent_fmin`, new `util::brent_fmin` in
+`inst/include/plant/optimize.h`). On the smooth profit objective the parabolic
+step converges super-linearly, while the golden-section fallback preserves GSS's
+robustness. It is a **bounded** minimiser: it uses the same `[bound_a, bound_b]`
+bracket and only ever evaluates *strictly interior* points, so it never probes
+the clamped vulnerability-curve endpoints — this is why it is safe here where the
+TOMS748 root-finder was not (it stays stable at the production tol `1e-3`; only
+an absurdly tight tol `1e-9` over-resolves into the documented NaN instability).
 
-4. **Brent for the golden-section profit max** (~17 → ~10 iters). Moderate
-   risk; the profit objective is smooth near the optimum.
+**Measured** (clean `-g -O2` builds, MPL=10 single-species run): **24.7 s →
+14.6 s, ≈1.70×**. The gain beats the ~17→~10 iteration estimate because each GSS
+iteration also carries an inner `find_psi_stem_from_psi_root` root-find, so
+fewer iterations pays double. **Numerics change at the tolerance level**:
+`offspring_production` shifts 0.39954 → 0.39637 (−0.79% rel); `height_sum` /
+`height_max` move <0.01%. Both optimisers stop at a ψ-tolerance of `1e-3`;
+Brent locates the smooth optimum more precisely than GSS's bracket-midpoint at
+the same tolerance. The shift is the same order as this system's *intrinsic*
+chaotic build-to-build sensitivity (a stale-object incremental build of identical
+source moved offspring +0.4% on its own — see build note below). Existing
+leaf/TF24/environment tests pass unchanged.
+
+**Build caveat (observed):** incremental `make compile` can leave stale `.o`
+files after header/branch changes, yielding an inconsistent binary. Use
+`make clean` (or `touch` the changed sources) before benchmarking.
+
+No remaining items on the ranked roadmap.
 
 ## Build note: use `make`, not `load_all`
 

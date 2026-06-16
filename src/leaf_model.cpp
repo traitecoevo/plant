@@ -652,41 +652,29 @@ if(assim_max_ < 0){
       return;
     }
 
-    double bound_c = bound_b - (bound_b - bound_a) / gr;
-    double bound_d = bound_a + (bound_b - bound_a) / gr;
+    // Maximise carbon profit over the feasible collar-potential interval.
+    // Brent's method (golden-section + parabolic interpolation) converges
+    // super-linearly on this smooth objective while keeping the golden-section
+    // fallback's robustness; it only ever probes points strictly interior to
+    // [bound_a, bound_b], so the vulnerability-curve clamps at the endpoints are
+    // never evaluated. We minimise -profit. opt_profit holds the maximum profit
+    // at the returned argmin, so no extra evaluation is needed afterwards.
+    const double lo = std::min(bound_a, bound_b);
+    const double hi = std::max(bound_a, bound_b);
 
-    double psi_stem_c    = find_psi_stem_from_psi_root(-bound_c, psi_soil_inverted_);
-    double profit_at_c   = profit_psi_stem_TF(psi_stem_c, bound_c);
-
-    double psi_stem_d    = find_psi_stem_from_psi_root(-bound_d, psi_soil_inverted_);
-    double profit_at_d   = profit_psi_stem_TF(psi_stem_d, bound_d);
-
-while (std::abs(bound_b - bound_a) > GSS_tol_abs) {
-  if (profit_at_c > profit_at_d) {
-    bound_b    = bound_d;
-    bound_d    = bound_c;  
-    profit_at_d = profit_at_c;  // reuse
-    bound_c    = bound_b - (bound_b - bound_a) / gr;
-    psi_stem_c = find_psi_stem_from_psi_root(-bound_c, psi_soil_inverted_);
-    profit_at_c = profit_psi_stem_TF(psi_stem_c, bound_c);  // 1 new eval
-  } else {
-    bound_a    = bound_c;
-    bound_c    = bound_d;  
-    profit_at_c = profit_at_d;  // reuse
-    bound_d    = bound_a + (bound_b - bound_a) / gr;
-    psi_stem_d = find_psi_stem_from_psi_root(-bound_d, psi_soil_inverted_);
-    profit_at_d = profit_psi_stem_TF(psi_stem_d, bound_d);  // 1 new eval
-  }
-}
-
-
-    double opt_root_psi = ((bound_b + bound_a) / 2);
+    double neg_profit_opt = 0.0;
+    double opt_root_psi = util::brent_fmin(
+        [&](double bound) {
+          const double psi_stem =
+              find_psi_stem_from_psi_root(-bound, psi_soil_inverted_);
+          return -profit_psi_stem_TF(psi_stem, bound);
+        },
+        lo, hi, GSS_tol_abs, &neg_profit_opt);
 
     opt_psi_stem_ = find_psi_stem_from_psi_root(-opt_root_psi, psi_soil_inverted_);
 
-
     root_collar_psi_ = opt_root_psi;
-    profit_ = profit_psi_stem_TF(opt_psi_stem_, root_collar_psi_);
+    profit_ = -neg_profit_opt;
 
     if(!std::isfinite(profit_)){
         util::stop("Error: non-finite profit; opt_psi_stem_=" + util::to_string(opt_psi_stem_) +
