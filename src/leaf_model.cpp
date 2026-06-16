@@ -320,6 +320,20 @@ void Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>& p
 
     E_up_ = 0;
 
+    // Cumulative-integral spline caching (bit-identical fast path). The only two
+    // arguments ever passed to root_vuln_integral_from_psi in the loop below are
+    // -P_src_min and -hi_neg, each of which resolves to exactly one of
+    // {-psi_soil[i], -P_x_r, 0}. -P_x_r is constant across all layers (compute
+    // once), and -psi_soil[i] is constant across the whole solve (precomputed in
+    // find_root_collar_psi). We only take this path when psi_soil is the cached
+    // psi_soil_inverted_ vector; any other caller falls back to direct evals.
+    const bool use_integral_cache =
+        (&psi_soil == &psi_soil_inverted_) &&
+        root_vuln_integral_soil_.size() == static_cast<size_t>(max_soil_layer);
+    const double neg_P_x_r = -P_x_r;
+    const double G_at_P_x_r =
+        use_integral_cache ? root_vuln_integral_from_psi.eval(neg_P_x_r) : 0.0;
+
     for(size_t i = 0; i < max_soil_layer; i++){
 
     if (!std::isfinite(psi_soil[i])) {
@@ -397,11 +411,23 @@ void Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>& p
       double hi_neg = std::min(P_src_max, 0.0); // boundary of the psi<=0 part
       double lo_pos = std::max(P_src_min, 0.0); // boundary of the psi>0 part
 
+      // Memoised cumulative-integral lookup. Returns the exact same double the
+      // spline would (same input -> same output); the comparisons select the
+      // precomputed value because -P_src_min / -hi_neg are bit-for-bit equal to
+      // one of the cached arguments in the common (psi<=0) case.
+      const double neg_psi_soil_i = -psi_soil[i];
+      auto G_integral = [&](double arg) -> double {
+        if (use_integral_cache) {
+          if (arg == neg_P_x_r) return G_at_P_x_r;
+          if (arg == neg_psi_soil_i) return root_vuln_integral_soil_[i];
+        }
+        return root_vuln_integral_from_psi.eval(arg);
+      };
+
       double integral = 0.0;
       if (hi_neg > P_src_min) {
         // psi<=0 part: magnitude m runs from -hi_neg up to -P_src_min
-        integral += root_vuln_integral_from_psi.eval(-P_src_min) -
-                    root_vuln_integral_from_psi.eval(-hi_neg);
+        integral += G_integral(-P_src_min) - G_integral(-hi_neg);
       }
       if (P_src_max > lo_pos) {
         // psi>0 part: f_r == 1 over its length
@@ -552,10 +578,16 @@ void Leaf::find_root_collar_psi(){
 
   // Psi soil comes in as positive values but is utilised as negative so need to flip TODO: change thi s around
   psi_soil_inverted_.resize(max_soil_layer);
+  // Precompute the soil-side cumulative-integral lookups once per solve; the
+  // argument fed to the spline in E_from_Soil_to_Root_Collar when the soil layer
+  // is the selected endpoint is exactly -psi_soil_inverted_[i].
+  root_vuln_integral_soil_.resize(max_soil_layer);
   double wettest_soil_layer = -std::numeric_limits<double>::infinity();
   for (size_t i = 0; i < max_soil_layer; ++i) {
     const double psi_inverted = -psi_soil_[i];
     psi_soil_inverted_[i] = psi_inverted;
+    root_vuln_integral_soil_[i] =
+        root_vuln_integral_from_psi.eval(-psi_inverted);
     wettest_soil_layer = std::max(wettest_soil_layer, psi_inverted);
   }
 

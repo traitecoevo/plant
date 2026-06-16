@@ -173,6 +173,14 @@ public:
   
   std::vector<double> psi_soil_;
   std::vector<double> psi_soil_inverted_;
+  // Per-layer cache of root_vuln_integral_from_psi.eval(-psi_soil_inverted_[i]).
+  // psi_soil_inverted_ is fixed for the whole find_root_collar_psi solve, so the
+  // soil-side endpoint of the cumulative-integral lookup in
+  // E_from_Soil_to_Root_Collar is constant across every (re)evaluation of the
+  // nested root-finders. Precomputing it once per solve (alongside the
+  // P_x_r-side eval, hoisted out of the layer loop) collapses ~2 spline evals
+  // per layer to ~1 per call. Rebuilt in find_root_collar_psi.
+  std::vector<double> root_vuln_integral_soil_;
   std::vector<double> soil_depth_;
   std::vector<double> z_soil_mid_;
   bool use_precomputed_z_soil_mid_;
