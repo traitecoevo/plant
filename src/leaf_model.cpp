@@ -1010,11 +1010,14 @@ void Leaf::optimise_psi_stem_Sperry() {
     return;
   }
 
-  // optimise for stem water potential
-    opt_psi_stem_ = util::golden_section_max(
-        [&](double psi_stem) { return profit_psi_stem_Sperry(psi_stem, psi_soil_[0]); },
-        psi_soil_[0], psi_crit, GSS_tol_abs);
-    profit_ = profit_psi_stem_Sperry(opt_psi_stem_, psi_soil_[0]);
+  // Maximise carbon profit over [psi_soil, psi_crit]. Brent's method (golden-
+  // section + parabolic interpolation) converges super-linearly on this smooth
+  // objective; we minimise -profit and recover the maximum from neg_profit_opt.
+    double neg_profit_opt = 0.0;
+    opt_psi_stem_ = util::brent_fmin(
+        [&](double psi_stem) { return -profit_psi_stem_Sperry(psi_stem, psi_soil_[0]); },
+        psi_soil_[0], psi_crit, GSS_tol_abs, &neg_profit_opt);
+    profit_ = -neg_profit_opt;
 
   }
   
@@ -1032,11 +1035,13 @@ void Leaf::optimise_psi_stem_TF() {
     return;
   }
 
-  // optimise for stem water potential
-    opt_psi_stem_ = util::golden_section_max(
-        [&](double psi_stem) { return profit_psi_stem_TF(psi_stem, psi_soil_[0]); },
-        psi_soil_[0], psi_crit, GSS_tol_abs);
-    profit_ = profit_psi_stem_TF(opt_psi_stem_, psi_soil_[0]);
+  // Maximise carbon profit over [psi_soil, psi_crit] via Brent's method
+  // (minimise -profit), matching find_root_collar_psi's multi-layer solver.
+    double neg_profit_opt = 0.0;
+    opt_psi_stem_ = util::brent_fmin(
+        [&](double psi_stem) { return -profit_psi_stem_TF(psi_stem, psi_soil_[0]); },
+        psi_soil_[0], psi_crit, GSS_tol_abs, &neg_profit_opt);
+    profit_ = -neg_profit_opt;
 
     return;
   }

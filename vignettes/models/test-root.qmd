@@ -467,6 +467,45 @@ where micro-optimising the transcendentals no longer pays (spline eval ≈ the c
 of the math it would replace). Absent appetite for tolerance-level numerics
 shifts, Phase 2 stops here.
 
+### Code-consistency follow-up: Brent for the single-layer optimisers (OFF the hot path)
+
+A unification cleanup, **not** a production speed-up. The two R-exposed
+single-layer profit optimisers — `optimise_psi_stem_Sperry` /
+`optimise_psi_stem_TF` (`src/leaf_model.cpp`) — were the last hand-rolled
+golden-section loops in the tree (they shared a loose file-global `gr`). They
+were first factored into a shared `util::golden_section_max` in
+`inst/include/plant/optimize.h`, then switched to **`util::brent_fmin`** — the
+same bounded minimiser #4 put on the *outer* collar solve — so the codebase now
+does 1-D profit maximisation through one routine everywhere.
+
+**This does not touch `run_scm_collect`.** These two functions have **no caller
+on the production path**: `TF24_Strategy::refresh_indices` calls
+`find_root_collar_psi` and the `optimise_psi_stem_TF` line is commented out
+(`src/tf24_strategy.cpp:381`). Their only callers are the RcppR6 bindings /
+`tests/testthat/test-leaf.r`. So the SCM trajectory is **bit-identical** and the
+whole-run profile is unchanged — profiling the scenario at the top of this
+document would only measure build noise. The change is therefore profiled in
+**isolation**, by calling `optimise_psi_stem_TF` directly.
+
+**Measured** (`make compile` builds, `pkgload::load_all(recompile = FALSE)`;
+46-point `psi_soil` sweep × 200 reps, median of 7; same Leaf params as
+`test-leaf.r`):
+
+| `GSS_tol_abs` | GSS | Brent | Speed-up |
+|---|---|---|---|
+| `1e-3` (production default) | 0.143 s | 0.063 s | **≈2.27×** |
+| `1e-8` (test setting) | 0.327 s | 0.127 s | **≈2.57×** |
+
+**Numerics change at the tolerance level** (same character as #4 — Brent locates
+the smooth optimum more precisely than GSS's bracket-midpoint at the same tol).
+At the production tol `1e-3`: max |Δ `opt_psi_stem`| ≈ 3.4e−4, max rel
+|Δ `profit`| ≈ 5.7e−5; profit *at* the optimum is essentially unchanged because
+the objective is flat near the max. Note the argmax still differs ~3.8e−4 even
+at tol `1e-8` (while rel |Δ profit| < 6e−7): the inner Cᵢ bisection
+(`ci_abs_tol`) caps how precisely the outer argmax is defined, so tightening the
+outer tol below ~1e−4 does not sharpen it. Existing leaf tests pass 151/151
+(their assertions are qualitative).
+
 ### Cumulative progress (baseline → end of Phase 1)
 
 The per-item figures above were each measured against the build immediately
