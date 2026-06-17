@@ -27,10 +27,7 @@ void FF16_Strategy::refresh_indices () {
   }
 }
 
-// [eqn 2] area_leaf (inverse of [eqn 3])
-double FF16_Strategy::area_leaf(double height) const {
-  return pow(height / a_l1, 1.0 / a_l2);
-}
+// area_leaf() is defined inline in ff16_strategy.h (hot path).
 
 // [eqn 1] mass_leaf (inverse of [eqn 2])
 double FF16_Strategy::mass_leaf(double area_leaf) const {
@@ -445,19 +442,8 @@ double FF16_Strategy::establishment_probability(const FF16_Environment& environm
   }
 }
 
-double FF16_Strategy::compute_competition(double z, double height) const {
-  return compute_competition(z, area_leaf(height), 1.0 / height);
-}
-
-double FF16_Strategy::compute_competition(double z, double area_leaf_,
-                                          double height_inverse) const {
-  return compute_competition_by_ratio(z * height_inverse, area_leaf_);
-}
-
-double FF16_Strategy::compute_competition_by_ratio(double z_over_height,
-                                                   double area_leaf_) const {
-  return k_I * area_leaf_ * canopy_shape.Q(z_over_height);
-}
+// compute_competition() overloads and compute_competition_by_ratio() are
+// defined inline in ff16_strategy.h (per-node hot path).
 
 // (inverse of [eqn 10]; return the height above which fraction 'x' of
 // the leaf mass would be found).

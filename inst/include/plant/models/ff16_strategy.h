@@ -63,7 +63,11 @@ public:
   // FF16 Methods  ----------------------------------------------
 
   // [eqn 2] area_leaf (inverse of [eqn 3])
-  double area_leaf(double height) const;
+  // Inline (header) so it can inline into the hot competition/assimilation
+  // paths that reach it from templated Individual<FF16> code (no LTO build).
+  double area_leaf(double height) const {
+    return std::pow(height / a_l1, 1.0 / a_l2);
+  }
 
   // [eqn 1] mass_leaf (inverse of [eqn 2])
   double mass_leaf(double area_leaf) const;
@@ -188,11 +192,20 @@ public:
 
   // * Competitive environment
   // [eqn 11] total projected leaf area above height above height `z` for given plant
-  double compute_competition(double z, double height) const;
-  double compute_competition(double z, double area_leaf,
-                             double height_inverse) const;
+  // Inline (header) so the per-node hot competition path called from
+  // Individual<FF16>::compute_competition can inline these tiny helpers
+  // instead of paying a cross-TU call each iteration (no LTO build).
+  double compute_competition(double z, double height) const {
+    return compute_competition(z, area_leaf(height), 1.0 / height);
+  }
+  double compute_competition(double z, double area_leaf_,
+                             double height_inverse) const {
+    return compute_competition_by_ratio(z * height_inverse, area_leaf_);
+  }
   double compute_competition_by_ratio(double z_over_height,
-                                      double area_leaf) const;
+                                      double area_leaf_) const {
+    return k_I * area_leaf_ * canopy_shape.Q(z_over_height);
+  }
 
   // [      ] Inverse of Q: height above which fraction 'x' of leaf found
   double Qp(double x, double height) const;
