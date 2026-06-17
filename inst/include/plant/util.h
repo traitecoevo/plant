@@ -4,6 +4,7 @@
 
 #include <stddef.h> // size_t
 #include <RcppCommon.h> // as/wrap/SEXP
+#include <R_ext/Arith.h> // R_FINITE
 
 namespace plant {
 namespace util {
@@ -24,7 +25,11 @@ inline std::vector<index> index_vector(const std::vector<size_t> x) {
   return ret;
 }
 
-bool is_finite(double x);
+// Inline so the hot per-node competition loop (Species::compute_competition)
+// does not pay a cross-TU call for this trivial check (no LTO in this build).
+inline bool is_finite(double x) {
+  return R_FINITE(x);
+}
 
 void check_length(size_t received, size_t expected);
 size_t check_bounds_r(size_t idx, size_t size);
