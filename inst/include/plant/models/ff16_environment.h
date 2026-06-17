@@ -46,6 +46,16 @@ public:
     return light_availability.get_value_at_height(height);
   }
 
+  // Highest height covered by the light spline; hoist out of hot per-point
+  // loops and feed back into the capped get_environment_at_height() overload.
+  double max_environment_height() const {
+    return light_availability.max_height();
+  }
+
+  double get_environment_at_height(double height, double cap) const {
+    return light_availability.get_value_at_height(height, cap);
+  }
+
   virtual void r_init_interpolators(const std::vector<double> &state)
   {
     light_availability.r_init_interpolators(state);
