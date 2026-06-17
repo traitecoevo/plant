@@ -277,9 +277,12 @@ double FF16_Strategy::fecundity_dt(double net_mass_production_dt,
 }
 
 double FF16_Strategy::darea_leaf_dmass_live(double area_leaf) const {
+  // dmass_bark_darea_leaf(area_leaf) == a_b1 * dmass_sapwood_darea_leaf(area_leaf),
+  // so compute the shared pow(area_leaf, a_l2) term once rather than twice.
+  const double dmass_sapwood_darea_leaf_ = dmass_sapwood_darea_leaf(area_leaf);
   return 1.0/(  dmass_leaf_darea_leaf(area_leaf)
-              + dmass_sapwood_darea_leaf(area_leaf)
-              + dmass_bark_darea_leaf(area_leaf)
+              + dmass_sapwood_darea_leaf_
+              + a_b1 * dmass_sapwood_darea_leaf_
               + dmass_root_darea_leaf(area_leaf));
 }
 
