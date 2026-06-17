@@ -165,7 +165,12 @@ The branch couples three pieces, integrated together by `run_scm_collect`:
     cost) operating point — plus several early-exit short-circuits for plant
     shut-down conditions.
 
-## Where the runtime goes (profile)
+## Phase 1 — initial optimisation roadmap (#1–#5)
+
+This phase is the original record: it took the new root-water model from its
+first working version to roughly 4–6× faster through five ranked items.
+
+### Where the runtime goes (initial profile)
 
 Profiled with `max_patch_lifetime = 5` (≈40 s, a faithful proxy for the full
 ≈8-min run — only the number of ODE steps differs). Runtime is ~entirely in
@@ -183,7 +188,7 @@ allocations and the vector copies in `set_physiology` are <0.1% of runtime;
 preallocating them will not move the needle (profile-confirmed). This whole
 optimum is recomputed for every individual at every ODE sub-step.
 
-## Tried and REJECTED: super-linear root-finder (TOMS748)
+### Tried and REJECTED: super-linear root-finder (TOMS748)
 
 Replacing the bisection in `util::uniroot` with a Brent-like super-linear
 solver (TOMS748) is the obvious "biggest lever" — it normally needs ~5–8
@@ -195,7 +200,7 @@ bad points; **bisection's robustness is load-bearing here.** A documented but
 unused `util::uniroot_smooth` helper remains in `inst/include/plant/uniroot.h`
 with this caveat, so the experiment is not silently repeated.
 
-## Optimisation roadmap (ranked)
+### Optimisation roadmap (ranked)
 
 **DONE (#2 + #3): ~1.9× speed-up, bit-identical output** (MPL=5: ≈41 s → ≈21 s;
 `all.equal` vs baseline TRUE). Both are numerically identical so the science is
@@ -260,34 +265,7 @@ files after header/branch changes, yielding an inconsistent binary. Use
 
 No remaining items on the ranked roadmap.
 
-## Cumulative result (all 4, baseline → HEAD)
-
-The per-item figures above were each measured against the build immediately
-before them, so they don't compound cleanly. Here is the **end-to-end** result,
-both binaries built clean from the same toolchain (`make clean && make compile`,
-`-g -O2`) and loaded with `pkgload::load_all(".", recompile = FALSE)`, on the
-**single-species MPL=10** SCM run (`birth_rate = 20`, default `Environment`,
-median of 5 timed runs after a warm-up):
-
-| Build | Commit | Median run | offspring_production |
-|---|---|---|---|
-| Baseline (roadmap, pre-optimisation) | `ff75ad22` | **39.78 s** | 4.712317419e−06 |
-| HEAD (all 4 done) | `b6ec6045` | **9.05 s** | 4.797128277e−06 |
-
-- **≈4.40× faster** (39.8 s → 9.0 s, −77 % wall-time; min-of-5 ratio 4.38×).
-  This slightly beats the product of the individual claims (1.9 × 1.25 × 1.7 ≈
-  4.0×) because removing the hottest spline evals also shrinks every inner
-  root-find the later items still call.
-- **Numerics:** offspring_production shifts **+1.80 %** (+8.5e−08), the net of
-  the two accuracy-improving items (#1 interval-mean, #4 Brent) — #2/#3 are
-  bit-identical. Direction is *toward* the fine-grained reference; magnitude is
-  within the system's intrinsic build-to-build sensitivity. Existing
-  leaf/TF24/environment tests pass unchanged.
-
-(Reproduce with `scripts/bench_tf24.R`; absolute seconds are machine-specific
-but the ratio is stable.)
-
-## Post-optimisation profile (HEAD)
+### Post-optimisation profile (after #1–#4)
 
 Re-profiled after all four items, on the same single-species MPL=10 run. macOS
 `sample` was used (the `jointprof`/`pprof` path documented above is unavailable
@@ -310,7 +288,7 @@ The picture has shifted: spline evaluation was *the* hottest leaf before and is
 still ~30 % combined (`tk::spline` + `Interpolator::eval`), but it's no longer
 dominant — work is now spread across the solver structure.
 
-### DONE: string-keyed lookups (~3 % → ~0.5 %)
+#### DONE: string-keyed lookups (~3 % → ~0.5 %)
 
 The two string-lookup hot spots flagged above were both removed (numerically
 bit-identical, `offspring_production` unchanged at 4.797128277e−06):
@@ -340,7 +318,7 @@ unchanged in shape.
   bounded-Brent treatment, or memoising it the way #2 did for `transpiration()`,
   is the obvious biggest remaining target.
 
-### DONE (#5): `E_from_Soil` integral-spline cache — and why `psi_stem_to_ci` was a red herring
+#### DONE (#5): `E_from_Soil` integral-spline cache — and why `psi_stem_to_ci` was a red herring
 
 The roadmap-#5 premise above **does not reproduce on the current binary.**
 Re-profiling HEAD (macOS `sample`) on *both* the 15-layer root-water scenario at
@@ -387,6 +365,109 @@ is a bigger share of total spline time there (it scales with soil-layer count ×
 collar-solve evals); the default-`Environment` run has fewer layers, so the
 xylem/transpiration splines — which #5 doesn't touch — dominate the spline budget.
 (Commit `Cache soil-side root-vuln integral lookups in E_from_Soil`.)
+
+## Phase 2 — reprofile & reassessment (2026-06-18)
+
+After Phase 1 the model was re-profiled from scratch on the 15-layer root-water
+scenario at the top of this document (MPL = 5), to check whether the documented
+hot-spot ranking still held and whether any cheap levers remained. It produced
+one significant correction and one rejected experiment — but no new speed-up.
+
+### Corrected profile (15-layer root-water, MPL = 5)
+
+macOS `sample`, 50 326 active samples; self-time computed as
+`count − Σ(child counts)` and cross-checked by a leaf-frame sum (both agree):
+
+| Function | Self % | Note |
+|---|---|---|
+| `Leaf::E_from_Soil_to_Root_Collar` | **39.0 %** | lean arithmetic over 15 layers × nested root-finds (spline evals counted separately) |
+| `Leaf::psi_stem_to_ci` | **35.7 %** | inner Cᵢ bisection (`leaf_model.cpp:914`); almost all self-time is the inlined `util::uniroot` + `assim_colimited` |
+| `tk::spline::operator()` | 8.1 % | already O(1)-indexed (#3) |
+| `pow` | 8.0 % | **fractional-exponent only** (see below) |
+| `Leaf::find_root_collar_psi` | 7.0 % | master solver (Brent'd by #4) |
+| `Interpolator::eval` | 3.2 % | spline wrapper |
+
+### Correction: `psi_stem_to_ci` was mis-ranked in Phase 1
+
+The Phase-1 #5 note claimed `psi_stem_to_ci` was "only ~2–3 %". **That was a
+measurement error.** It counted the number of distinct stack *contexts* the
+symbol appears in (~127–147 tree nodes) and treated that as an inclusive-time
+bound. But a deep bisection loop appears in *few* stack contexts while each
+carries *many* samples — the correct metric is sample weight, which here is
+18 079 samples ≈ **35.7 %**. So `psi_stem_to_ci` is in fact **co-dominant with
+`E_from_Soil_to_Root_Collar`, not negligible.**
+
+It still cannot be sped **bit-identically**, for the reasons given in Phase 1:
+its bisection *result* is load-bearing for FP reproducibility (same reason
+TOMS748 is rejected), and there is no closed form for `A(cᵢ) = gc·(ca − cᵢ)`.
+
+### Tried and REJECTED: `pow(x, 2) → x*x`
+
+The 8 % `pow` self-time looked like an easy win, so the integer `pow(z, 2)` in
+`assim_colimited` / `electron_transport` was replaced with `z*z`. **Rejected:**
+
+- **No speed-up** — MPL = 5 median 6.83 s (baseline) vs 7.12 s (candidate); if
+  anything slightly slower, i.e. within noise.
+- **Not bit-identical** — `offspring_production` 1.64825e−06 → 1.65255e−06
+  (+0.26 %); `pow(x, 2.0) ≠ x*x` on Apple libm, and the ODE amplifies the
+  difference.
+
+Profiling the `pow` *callers* explains why it was a wash: the 8 % is **entirely
+fractional-exponent** pows, not the integer one — `find_root_collar_psi` (xylem
+vulnerability `exp(-pow(ψ/b, c))` and hydraulic cost `pow(1 − vuln, beta2)`),
+and `compute_competition` / `net_mass_production_dt` (the
+`Q() = (1 − (z/h)^eta)²` canopy/root shape function). The integer `pow(z, 2)` in
+`assim_colimited` was a non-bottleneck. Reverted.
+
+### Remaining levers (all numerics-changing, ranked)
+
+The two dominant blocks (≈75 % combined) are the **nested root-find structure**;
+their algorithmic wins are already taken (Brent on the outer GSS, integral-spline
+caches, transpiration memo, O(1) splines), and neither can be sped
+bit-identically. The remaining levers all shift numerics at the tolerance level
+(joining #1/#4), so each would need bit-for-bit validation of its magnitude:
+
+1. **Spline the xylem hydraulic cost** `g1·(1 − vuln(ψ))^beta2` — it depends only
+   on ψ (b, c, g1, beta2 all constant across the run), so it can be pre-built once
+   like the other vulnerability splines, removing an `exp + pow + pow` per profit
+   evaluation. Best bit-for-effort of what is left.
+2. **Spline / cache `Q()`'s `pow(z/h, eta)`** in `compute_competition` (~4.5 % of
+   the pow time; canopy-side, independent of hydraulics).
+3. **Loosen the Cᵢ-bisection tolerance** (currently `1e-7`, nested inside an outer
+   `1e-3` solve — over-resolved). Cheapest potential win on the 35.7 % block, but
+   explicitly changes results.
+
+**Assessment:** the code is now structurally well-optimised; absent appetite for
+further tolerance-level numerics shifts, Phase 2 stops at the reprofile.
+
+### Cumulative progress (baseline → end of Phase 1)
+
+The per-item figures above were each measured against the build immediately
+before them, so they don't compound cleanly. Here is the **end-to-end** result,
+both binaries built clean from the same toolchain (`make clean && make compile`,
+`-g -O2`) and loaded with `pkgload::load_all(".", recompile = FALSE)`, on the
+**single-species MPL=10** SCM run (`birth_rate = 20`, default `Environment`,
+median of 5 timed runs after a warm-up):
+
+| Build | Commit | Median run | offspring_production |
+|---|---|---|---|
+| Baseline (roadmap, pre-optimisation) | `ff75ad22` | **39.78 s** | 4.712317419e−06 |
+| HEAD (#1–#4 done) | `b6ec6045` | **9.05 s** | 4.797128277e−06 |
+
+- **≈4.40× faster** (39.8 s → 9.0 s, −77 % wall-time; min-of-5 ratio 4.38×).
+  This slightly beats the product of the individual claims (1.9 × 1.25 × 1.7 ≈
+  4.0×) because removing the hottest spline evals also shrinks every inner
+  root-find the later items still call.
+- **#5 adds a further ≈1.32×** on top (15-layer, MPL = 5; see the #5 entry in
+  Phase 1), so the full Phase-1 stack is ≈5–6× over baseline.
+- **Numerics:** offspring_production shifts **+1.80 %** (+8.5e−08), the net of
+  the two accuracy-improving items (#1 interval-mean, #4 Brent) — #2/#3/#5 are
+  bit-identical. Direction is *toward* the fine-grained reference; magnitude is
+  within the system's intrinsic build-to-build sensitivity. Existing
+  leaf/TF24/environment tests pass unchanged.
+
+(Reproduce with `scripts/bench_tf24.R`; absolute seconds are machine-specific
+but the ratio is stable.)
 
 ## Build note: use `make`, not `load_all`
 
