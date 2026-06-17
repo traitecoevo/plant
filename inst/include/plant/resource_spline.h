@@ -62,7 +62,11 @@ public:
   double get_value_at_height(double height) const {
     const bool within = height <= spline.max();
     // TODO: change maximum - here hard-coded to 1.0
-    return within ? spline.eval(height) : 1.0;
+    // `within` already guards the upper bound and the crown integral keeps
+    // height >= 0 = spline.min(), so use the unchecked operator() rather than
+    // eval() to avoid re-running check_active()/bound checks per quadrature
+    // point. Same underlying tk_spline(height) call, so bit-identical.
+    return within ? spline(height) : 1.0;
   }
 
   virtual void r_init_interpolators(const std::vector<double>& state) {
