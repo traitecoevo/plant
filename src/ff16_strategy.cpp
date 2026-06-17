@@ -83,15 +83,7 @@ double FF16_Strategy::mass_above_ground(double mass_leaf, double mass_bark,
   return mass_leaf + mass_bark + mass_sapwood + mass_root;
 }
 
-// for updating auxiliary state
-void FF16_Strategy::update_dependent_aux(const int index, Internals& vars) {
-  if (index == HEIGHT_INDEX) {
-    double height = vars.state(HEIGHT_INDEX);
-    vars.set_aux(COMPETITION_EFFECT_AUX_INDEX, area_leaf(height));
-    vars.set_aux(HEIGHT_INVERSE_AUX_INDEX, 1.0 / height);
-  }
-}
-
+// update_dependent_aux() is defined inline in ff16_strategy.h (hot path).
 
 // one-shot update of the scm variables
 // i.e. setting rates of ode vars from the state and updating aux vars

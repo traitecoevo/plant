@@ -100,7 +100,16 @@ public:
   void compute_rates(const FF16_Environment& environment,
                 Internals& vars);
 
-  void update_dependent_aux(const int index, Internals& vars);
+  // Inline (header): called per state-set / ODE-state update from templated
+  // Individual<FF16> code, so inlining avoids a cross-TU call (no LTO build)
+  // and lets the now-inline area_leaf fold in.
+  void update_dependent_aux(const int index, Internals& vars) {
+    if (index == HEIGHT_INDEX) {
+      double height = vars.state(HEIGHT_INDEX);
+      vars.set_aux(COMPETITION_EFFECT_AUX_INDEX, area_leaf(height));
+      vars.set_aux(HEIGHT_INVERSE_AUX_INDEX, 1.0 / height);
+    }
+  }
 
   // * Mass production
   // [eqn 12] Gross annual CO2 assimilation

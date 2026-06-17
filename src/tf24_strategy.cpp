@@ -43,10 +43,7 @@ void TF24_Strategy::refresh_indices () {
   }
 }
 
-// [eqn 2] area_leaf (inverse of [eqn 3])
-double TF24_Strategy::area_leaf(double height) const {
-  return pow(height / a_l1, 1.0 / a_l2);
-}
+// area_leaf() is defined inline in tf24_strategy.h (hot path).
 
 // [eqn 1] mass_leaf (inverse of [eqn 2])
 double TF24_Strategy::mass_leaf(double area_leaf) const {
@@ -102,15 +99,7 @@ double TF24_Strategy::mass_above_ground(double mass_leaf, double mass_bark,
   return mass_leaf + mass_bark + mass_sapwood + mass_root;
 }
 
-// for updating auxiliary state
-void TF24_Strategy::update_dependent_aux(const int index, Internals& vars) {
-  if (index == HEIGHT_INDEX) {
-    double height = vars.state(HEIGHT_INDEX);
-    vars.set_aux(COMPETITION_EFFECT_AUX_INDEX, area_leaf(height));
-    vars.set_aux(HEIGHT_INVERSE_AUX_INDEX, 1.0 / height);
-  }
-}
-
+// update_dependent_aux() is defined inline in tf24_strategy.h (hot path).
 
 // one-shot update of the scm variables
 // i.e. setting rates of ode vars from the state and updating aux vars
@@ -545,19 +534,8 @@ double TF24_Strategy::establishment_probability(const TF24_Environment& environm
   }
 }
 
-double TF24_Strategy::compute_competition(double z, double height) const {
-  return compute_competition(z, area_leaf(height), 1.0 / height);
-}
-
-double TF24_Strategy::compute_competition(double z, double area_leaf_,
-                                          double height_inverse) const {
-  return compute_competition_by_ratio(z * height_inverse, area_leaf_);
-}
-
-double TF24_Strategy::compute_competition_by_ratio(double z_over_height,
-                                                   double area_leaf_) const {
-  return k_I * area_leaf_ * canopy_shape.Q(z_over_height);
-}
+// compute_competition() overloads and compute_competition_by_ratio() are
+// defined inline in tf24_strategy.h (per-node hot path).
 
 // (inverse of [eqn 10]; return the height above which fraction 'x' of
 // the leaf mass would be found).

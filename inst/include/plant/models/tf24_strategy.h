@@ -72,7 +72,11 @@ public:
   // TF24 Methods  ----------------------------------------------
 
   // [eqn 2] area_leaf (inverse of [eqn 3])
-  double area_leaf(double height) const;
+  // Inline (header) so it folds into the hot competition path reached from
+  // templated Individual<TF24> code (no LTO build).
+  double area_leaf(double height) const {
+    return std::pow(height / a_l1, 1.0 / a_l2);
+  }
 
   // [eqn 1] mass_leaf (inverse of [eqn 2])
   double mass_leaf(double area_leaf) const;
@@ -105,7 +109,15 @@ public:
   void compute_rates(const TF24_Environment& environment,
                 Internals& vars);
 
-  void update_dependent_aux(const int index, Internals& vars);
+  // Inline (header): per state-set / ODE-state update from templated
+  // Individual<TF24> code, avoids a cross-TU call (no LTO build).
+  void update_dependent_aux(const int index, Internals& vars) {
+    if (index == HEIGHT_INDEX) {
+      double height = vars.state(HEIGHT_INDEX);
+      vars.set_aux(COMPETITION_EFFECT_AUX_INDEX, area_leaf(height));
+      vars.set_aux(HEIGHT_INVERSE_AUX_INDEX, 1.0 / height);
+    }
+  }
 
   // * Mass production
   // [eqn 12] Gross annual CO2 assimilation
@@ -197,11 +209,20 @@ public:
 
   // * Competitive environment
   // [eqn 11] total projected leaf area above height above height `z` for given plant
-  double compute_competition(double z, double height) const;
-  double compute_competition(double z, double area_leaf,
-                             double height_inverse) const;
+  // Inline (header) so the per-node hot competition path called from
+  // Individual<TF24>::compute_competition inlines these helpers instead of
+  // paying a cross-TU call each iteration (no LTO build).
+  double compute_competition(double z, double height) const {
+    return compute_competition(z, area_leaf(height), 1.0 / height);
+  }
+  double compute_competition(double z, double area_leaf_,
+                             double height_inverse) const {
+    return compute_competition_by_ratio(z * height_inverse, area_leaf_);
+  }
   double compute_competition_by_ratio(double z_over_height,
-                                      double area_leaf) const;
+                                      double area_leaf_) const {
+    return k_I * area_leaf_ * canopy_shape.Q(z_over_height);
+  }
 
   // [      ] Inverse of Q: height above which fraction 'x' of leaf found
   double Qp(double x, double height) const;
