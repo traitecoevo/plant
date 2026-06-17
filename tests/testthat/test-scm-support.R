@@ -62,6 +62,6 @@ test_that("collect_auxiliary_variables", {
   results <- run_scm(p1, env, ctrl, collect = TRUE)
   
   # check columns,should contain auxillary variables
-  expect_equal(ncol(results$species), 15)
-  expect_contains(names(results$species), c("competition_effect", "net_mass_production_dt"))
+  expect_equal(ncol(results$species), 16)
+  expect_contains(names(results$species), c("competition_effect", "height_inverse", "net_mass_production_dt"))
 })
