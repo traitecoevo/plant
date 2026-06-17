@@ -419,26 +419,53 @@ and `compute_competition` / `net_mass_production_dt` (the
 `Q() = (1 − (z/h)^eta)²` canopy/root shape function). The integer `pow(z, 2)` in
 `assim_colimited` was a non-bottleneck. Reverted.
 
-### Remaining levers (all numerics-changing, ranked)
+### Tried and REJECTED: spline the xylem hydraulic cost
+
+`hydraulic_cost_TF(ψ) = g1·(1 − vuln(ψ))^beta2` (where `vuln = exp(-pow(ψ/b, c))`)
+is a pure function of ψ — `b, c, g1, beta2` are all constant for the run — so it
+looked like the best remaining lever: pre-build it once as a spline
+(`setup_hydraulic_cost`, same domain as the transpiration supply curve) and
+replace the per-profit-evaluation `exp + pow + pow` with one spline eval. It was
+implemented (member `hydraulic_cost_from_psi`, built in both constructors) and
+**reverted**:
+
+- **Slower, not faster** — a tightly interleaved A/B (swap pre-built `.so`,
+  fresh R per run, 6 alternating pairs to cancel thermal drift) gave baseline
+  median **6.91 s** vs candidate **7.26 s** — the candidate was ~5 % *slower* in
+  5 / 6 pairs.
+- **Also numerics-changing** — at the supply-curve resolution (100 pts)
+  `offspring_production` shifted +0.56 %; a 10× finer grid cut that to −0.062 %
+  (within build-to-build noise) but did **not** recover the speed.
+
+Why it loses: `Leaf` is constructed once per *strategy* (not per call), so the
+build cost is irrelevant — the regression is the **eval**. On this Apple-ARM
+machine the `Interpolator::eval → tk::spline::operator()` path (wrapper call +
+bounds/extrapolate check + index arithmetic + cubic eval) is *more* expensive
+than the inlined `exp + pow + pow` it replaced. Spline eval is already ~11 % of
+runtime; adding one more per profit evaluation costs more than the cheap,
+well-optimised hardware transcendentals saved. **The spline-everything strategy
+has hit diminishing returns against fast hardware transcendentals.**
+
+### Remaining levers (all numerics-changing)
 
 The two dominant blocks (≈75 % combined) are the **nested root-find structure**;
 their algorithmic wins are already taken (Brent on the outer GSS, integral-spline
 caches, transpiration memo, O(1) splines), and neither can be sped
-bit-identically. The remaining levers all shift numerics at the tolerance level
-(joining #1/#4), so each would need bit-for-bit validation of its magnitude:
+bit-identically. With the hydraulic-cost spline now rejected, the only untried
+levers left both shift numerics at the tolerance level and are speculative:
 
-1. **Spline the xylem hydraulic cost** `g1·(1 − vuln(ψ))^beta2` — it depends only
-   on ψ (b, c, g1, beta2 all constant across the run), so it can be pre-built once
-   like the other vulnerability splines, removing an `exp + pow + pow` per profit
-   evaluation. Best bit-for-effort of what is left.
-2. **Spline / cache `Q()`'s `pow(z/h, eta)`** in `compute_competition` (~4.5 % of
-   the pow time; canopy-side, independent of hydraulics).
-3. **Loosen the Cᵢ-bisection tolerance** (currently `1e-7`, nested inside an outer
+1. **Spline / cache `Q()`'s `pow(z/h, eta)`** in `compute_competition` (~4.5 % of
+   the pow time; canopy-side, independent of hydraulics). Caveat: by the same
+   logic as the rejected hydraulic-cost spline, a spline eval may not beat the
+   `pow` it replaces — would need the same interleaved A/B to confirm.
+2. **Loosen the Cᵢ-bisection tolerance** (currently `1e-7`, nested inside an outer
    `1e-3` solve — over-resolved). Cheapest potential win on the 35.7 % block, but
    explicitly changes results.
 
-**Assessment:** the code is now structurally well-optimised; absent appetite for
-further tolerance-level numerics shifts, Phase 2 stops at the reprofile.
+**Assessment:** the code is structurally well-optimised and has reached the point
+where micro-optimising the transcendentals no longer pays (spline eval ≈ the cost
+of the math it would replace). Absent appetite for tolerance-level numerics
+shifts, Phase 2 stops here.
 
 ### Cumulative progress (baseline → end of Phase 1)
 
