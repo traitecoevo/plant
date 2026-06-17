@@ -107,6 +107,29 @@ double brent_fmin(Function f, double ax, double bx, double tol,
   return x;
 }
 
+// Golden-section search for the maximum of a unimodal f over [ax, bx].
+// Returns the argmax (midpoint of the final bracket). Evaluates f at the two
+// interior golden points each iteration; terminates when the bracket width
+// falls to `tol`. Unlike brent_fmin this keeps the plain golden-ratio
+// arithmetic the legacy single-layer leaf solvers were validated against.
+template <typename Function>
+double golden_section_max(Function f, double ax, double bx, double tol) {
+  const double gr = (std::sqrt(5.0) + 1.0) / 2.0;  // ~1.6180339...
+  double a = ax, b = bx;
+  double c = b - (b - a) / gr;
+  double d = a + (b - a) / gr;
+  while (std::abs(b - a) > tol) {
+    if (f(c) > f(d)) {
+      b = d;
+    } else {
+      a = c;
+    }
+    c = b - (b - a) / gr;
+    d = a + (b - a) / gr;
+  }
+  return (a + b) / 2.0;
+}
+
 }
 }
 

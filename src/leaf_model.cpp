@@ -1011,31 +1011,9 @@ void Leaf::optimise_psi_stem_Sperry() {
   }
 
   // optimise for stem water potential
-    double bound_a = psi_soil_[0];
-    double bound_b = psi_crit;
-
-    double bound_c = bound_b - (bound_b - bound_a) / gr;
-    double bound_d = bound_a + (bound_b - bound_a) / gr;
-
-    while (abs(bound_b - bound_a) > GSS_tol_abs) {
-
-      double profit_at_c =
-          profit_psi_stem_Sperry(bound_c, psi_soil_[0]);
-
-      double profit_at_d =
-          profit_psi_stem_Sperry(bound_d, psi_soil_[0]);
-
-      if (profit_at_c > profit_at_d) {
-        bound_b = bound_d;
-      } else {
-        bound_a = bound_c;
-      }
-
-      bound_c = bound_b - (bound_b - bound_a) / gr;
-      bound_d = bound_a + (bound_b - bound_a) / gr;
-    }
-
-    opt_psi_stem_ = ((bound_b + bound_a) / 2);
+    opt_psi_stem_ = util::golden_section_max(
+        [&](double psi_stem) { return profit_psi_stem_Sperry(psi_stem, psi_soil_[0]); },
+        psi_soil_[0], psi_crit, GSS_tol_abs);
     profit_ = profit_psi_stem_Sperry(opt_psi_stem_, psi_soil_[0]);
 
   }
@@ -1055,30 +1033,9 @@ void Leaf::optimise_psi_stem_TF() {
   }
 
   // optimise for stem water potential
-    double bound_a = psi_soil_[0];
-    double bound_b = psi_crit;
-
-    double bound_c = bound_b - (bound_b - bound_a) / gr;
-    double bound_d = bound_a + (bound_b - bound_a) / gr;
-    while (abs(bound_b - bound_a) > GSS_tol_abs) {
-
-      double profit_at_c =
-          profit_psi_stem_TF(bound_c, psi_soil_[0]);
-
-      double profit_at_d =
-          profit_psi_stem_TF(bound_d, psi_soil_[0]);
-
-      if (profit_at_c > profit_at_d) {
-        bound_b = bound_d;
-      } else {
-        bound_a = bound_c;
-      }
-
-      bound_c = bound_b - (bound_b - bound_a) / gr;
-      bound_d = bound_a + (bound_b - bound_a) / gr;
-    }
-
-    opt_psi_stem_ = ((bound_b + bound_a) / 2);
+    opt_psi_stem_ = util::golden_section_max(
+        [&](double psi_stem) { return profit_psi_stem_TF(psi_stem, psi_soil_[0]); },
+        psi_soil_[0], psi_crit, GSS_tol_abs);
     profit_ = profit_psi_stem_TF(opt_psi_stem_, psi_soil_[0]);
 
     return;
