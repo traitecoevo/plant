@@ -173,9 +173,12 @@ double TF24_Strategy::assimilation(const TF24_Environment& environment,
   double A = 0.0;
 
   // Define an anonymous function to integrate
-  // For given height in crown, take photosynthesis at depth multipled by 
+  // For given height in crown, take photosynthesis at depth multipled by
   //   amount of leaf at that depth
-  std::function<double(double)> f = [&](double z) -> double {
+  // Keep the lambda's own closure type (do not wrap in std::function) so the
+  // templated QK::integrate inlines the integrand at each quadrature point
+  // instead of making a type-erased indirect call.
+  auto f = [&](double z) -> double {
     return assimilation_leaf(environment.get_environment_at_height(z)) *
       canopy_shape.q(z * height_inverse, z);
   };
