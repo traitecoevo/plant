@@ -245,6 +245,13 @@ public:
   void set_physiology(double area_leaf, const std::vector<double>& mass_root_prop, double rho, double a_bio, double PPFD, const std::vector<double>& psi_soil, const std::vector<double>& soil_depth, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa);
   void setup_transpiration(double resolution);
   void setup_root_vulnerability(double resolution);
+  // Shared builder for the knot grid {0, step, .., <= psi_max} and the
+  // cumulative vulnerability integral G(m) = int_0^m exp(-(s/b)^c) ds, seeded
+  // from its gamma closed form. Used by both setup_* functions (see #468).
+  void build_cumulative_vulnerability_integral(double b, double c,
+                                               double resolution,
+                                               std::vector<double>& x,
+                                               std::vector<double>& y_integral);
   void setup_clean_leaf();
   // std::vector<double> root_collar_psi(std::vector<double> soil_moist_);
 

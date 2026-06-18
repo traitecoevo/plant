@@ -336,14 +336,13 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   // the root hydraulic network (set_physiology). The loop breaks early once Q
   // reaches 0 (below the rooting depth) to avoid touching empty deep layers.
   //
-  // TODO (perf): mass_root_prop_ is heap-allocated every call; the rooting
-  // depth fraction (0.2), depth cap (1.5) and scale (83.26) are hard-coded and
-  // should become traits. See optimisation notes re: reusing a member buffer.
-  std::vector<double> mass_root_prop_(soil_number_of_depths_, 0.0);
-  // set number of root divisions to number of layers
-  // mass_root_prop_.reserve(environment.get_soil_number_of_depths());
-  // mass_root_prop_.resize(environment.get_soil_number_of_depths());
-  
+  // Reuse the member buffer (assign refills + zeroes without reallocating when
+  // the layer count is unchanged); zeroing matters because the loop below breaks
+  // early below the rooting depth, leaving deep layers that must read as 0.
+  // TODO (perf): the rooting depth fraction (0.2), depth cap (1.5) and scale
+  // (83.26) are hard-coded and should become traits.
+  mass_root_prop_.assign(soil_number_of_depths_, 0.0);
+
 
 
   // Use Q function with new arghument

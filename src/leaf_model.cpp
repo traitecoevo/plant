@@ -746,29 +746,44 @@ double Leaf::proportion_of_conductivity(double psi) const {
   return exp(-pow((psi / b), c));
 }
 
+// Build the knot grid {0, step, 2*step, .., <= psi_max} (psi_max = the potential
+// magnitude at which conductivity drops to 1%, step = psi_max/resolution) and
+// the cumulative vulnerability integral
+//   G(m) = int_0^m exp(-(s/b)^c) ds = (b/c) * gamma_lower(1/c, (m/b)^c)
+// (lower incomplete gamma) seeded from this closed form. Seeding knots with the
+// closed form instead of a running trapezoid sum removes the dominant quadrature
+// bias at no hot-path cost -- same knots, same tk::spline, same O(1) eval. See
+// issue #468 and scripts/validate_gamma_transform.R.
+//
+// Shared by setup_transpiration (xylem) and setup_root_vulnerability (roots);
+// each caller wires the resulting knots into its own interpolator(s).
+void Leaf::build_cumulative_vulnerability_integral(double b, double c,
+                                                   double resolution,
+                                                   std::vector<double>& x,
+                                                   std::vector<double>& y_integral) {
+  x = std::vector<double>{0.0};
+  y_integral = std::vector<double>{0.0}; // G(0) = 0
+  double psi_max = b * pow(log(1.0 / 0.01), 1.0 / c);
+  double step = psi_max / resolution;
+  for (double psi = step; psi <= psi_max; psi += step) {
+    x.push_back(psi);
+    y_integral.push_back((b / c) *
+                         boost::math::tgamma_lower(1.0 / c, pow(psi / b, c)));
+  }
+}
+
 // pre-compute root vulnerability curve f(psi) = exp(-(|psi|/b_root)^c_root) as a spline,
 // evaluated over the range [0, psi_max_root] where conductivity drops to 1%.
 // This avoids repeated exp(pow(...)) calls inside E_from_Soil_to_Root_Collar.
 void Leaf::setup_root_vulnerability(double resolution) {
-  auto x_psi_root = std::vector<double>{0.0};
-  auto y_f_r       = std::vector<double>{1.0}; // f(0) = exp(0) = 1
-  // G(m) = int_0^m f_r(s) ds, accumulated by the trapezoid rule on the same grid
-  auto y_integral  = std::vector<double>{0.0}; // G(0) = 0
-  // upper limit: psi where conductivity = 1%
-  double psi_max_root = root_b * pow(log(1.0 / 0.01), 1.0 / root_c);
-  double step = psi_max_root / resolution;
-  for (double psi = step; psi <= psi_max_root; psi += step) {
-    double f_r = exp(-pow(psi/root_b, root_c));
-    x_psi_root.push_back(psi);
-    y_f_r.push_back(f_r);
-    // G(m) = int_0^m exp(-(s/root_b)^root_c) ds has the closed form
-    //   G(m) = (root_b/root_c) * gamma_lower(1/root_c, (m/root_b)^root_c)
-    // (lower incomplete gamma). Seeding the knots analytically instead of with a
-    // running trapezoid sum removes the dominant quadrature bias at no eval cost;
-    // see issue #468 and scripts/validate_gamma_transform.R.
-    y_integral.push_back((root_b / root_c) *
-                         boost::math::tgamma_lower(1.0 / root_c,
-                                                   pow(psi / root_b, root_c)));
+  std::vector<double> x_psi_root, y_integral;
+  build_cumulative_vulnerability_integral(root_b, root_c, resolution,
+                                          x_psi_root, y_integral);
+
+  // f_r conductivity knots on the same grid. f_r(0) = exp(-pow(0,root_c)) = 1.
+  std::vector<double> y_f_r(x_psi_root.size());
+  for (size_t i = 0; i < x_psi_root.size(); ++i) {
+    y_f_r[i] = exp(-pow(x_psi_root[i] / root_b, root_c));
   }
   root_vuln_from_psi.init(x_psi_root, y_f_r);
   root_vuln_from_psi.set_extrapolate(true); // clamp to last value beyond range
@@ -781,32 +796,16 @@ void Leaf::setup_root_vulnerability(double resolution) {
 
 // set spline for proportion of conductivity
 void Leaf::setup_transpiration(double resolution) {
-  // integrate and accumulate results
-  auto x_psi_ = std::vector<double>{0.0};  // {0.0}
-  auto y_cumulative_transpiration_ = std::vector<double>{0.0}; // {0.0}
-  // psi_max kept as the original expression so the knot grid is bit-identical;
-  // only the y (cumulative-integral) values change below.
-  double psi_max = b*pow((log(1/0.01)),(1/c));
-  double step = psi_max/resolution;
+  std::vector<double> x_psi_, y_cumulative_transpiration_;
+  build_cumulative_vulnerability_integral(b, c, resolution, x_psi_,
+                                          y_cumulative_transpiration_);
 
-  for (double psi_spline = 0.0 + step; psi_spline <= psi_max; psi_spline += step) {
+  // setup interpolator
+  transpiration_from_psi.init(x_psi_, y_cumulative_transpiration_);
+  transpiration_from_psi.set_extrapolate(false);
 
-    // F(m) = int_0^m exp(-(s/b)^c) ds = (b/c) * gamma_lower(1/c, (m/b)^c)
-    // (lower incomplete gamma). Seeding knots with this closed form instead of a
-    // running trapezoid sum removes the dominant quadrature bias (~99.7% of the
-    // spline's error vs truth) at no hot-path cost -- same knots, same tk::spline,
-    // same O(1) eval. See issue #468 and scripts/validate_gamma_transform.R.
-    double E_psi = (b / c) * boost::math::tgamma_lower(1.0 / c,
-                                                       pow(psi_spline / b, c));
-    x_psi_.push_back(psi_spline); // x values for spline
-    y_cumulative_transpiration_.push_back(E_psi); // y values for spline
-}
-// setup interpolator
-transpiration_from_psi.init(x_psi_, y_cumulative_transpiration_);
-transpiration_from_psi.set_extrapolate(false);
-
-psi_from_transpiration.init(y_cumulative_transpiration_, x_psi_);
-psi_from_transpiration.set_extrapolate(false);
+  psi_from_transpiration.init(y_cumulative_transpiration_, x_psi_);
+  psi_from_transpiration.set_extrapolate(false);
 }
 
 // replace f with some other function, returns E kg m^-2 s^-1
@@ -990,9 +989,9 @@ double Leaf::profit_psi_stem_Sperry(double psi_stem, double psi_upstream) {
 set_leaf_states_rates_from_psi_stem(psi_stem, psi_upstream);
 
   double benefit_ = assim_colimited_;
-  double hydraulic_cost_ = hydraulic_cost_Sperry(psi_stem, psi_upstream);
+  double cost = hydraulic_cost_Sperry(psi_stem, psi_upstream);
 
-  return benefit_ - lambda_ * hydraulic_cost_;
+  return benefit_ - lambda_ * cost;
 }
 
 
@@ -1000,9 +999,9 @@ double Leaf::profit_psi_stem_TF(double psi_stem, double psi_upstream) {
 set_leaf_states_rates_from_psi_stem(psi_stem, psi_upstream);
 
 double benefit_ = assim_colimited_;
-  double hydraulic_cost_ = hydraulic_cost_TF(psi_stem);
+  double cost = hydraulic_cost_TF(psi_stem);
 
-  return benefit_ - hydraulic_cost_;
+  return benefit_ - cost;
 }
 
 

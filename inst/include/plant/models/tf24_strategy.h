@@ -355,6 +355,10 @@ public:
 
   // For integrating functions with using Gauss-Kronrod quadrature
   quadrature::QK function_integrator;
+
+  // Reusable per-layer root-mass buffer, refilled (not reallocated) each
+  // net_mass_production_dt call to avoid a heap allocation per derivs eval.
+  std::vector<double> mass_root_prop_;
 };
 
 TF24_Strategy::ptr make_strategy_ptr(TF24_Strategy s);

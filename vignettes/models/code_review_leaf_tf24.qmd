@@ -1,0 +1,91 @@
+---
+title: "Code review: leaf_model.cpp & tf24_strategy.cpp"
+format: html
+editor_options:
+  chunk_output_type: console
+---
+
+This document tracks a structural code review of the two core TF24 hydraulics
+sources — `src/leaf_model.cpp` (the plant hydraulic solver) and
+`src/tf24_strategy.cpp` (the strategy/allocation layer that drives it). It is a
+companion to the performance log in
+[`test-root.qmd`](test-root.qmd) (*Implementation & performance notes*); where a
+finding overlaps with that log, it is cross-referenced.
+
+The focus is **structure, clarity and maintainability**, with speed called out
+only where the existing profiling supports it. Several of these touch the
+numerically sensitive hot path; per the workflow in `test-root.qmd`, any change
+to spline construction or the solver must be validated **bit-identically** (or
+its trajectory shift quantified) before it is considered done.
+
+## Status legend
+
+- **TODO** — identified, not started
+- **WIP** — in progress
+- **DONE** — implemented and validated
+- **REJECTED** — tried or considered, not worth it (with reason)
+
+## Findings
+
+| # | File / location | Issue | Class | Status |
+|---|---|---|---|---|
+| 1 | `leaf_model.cpp:208-215` | `set_physiology` recomputes all temperature-dependent photosynthesis params every call though they depend only on `leaf_temp_`, `atm_o2_kpa_` | Performance | TODO |
+| 2 | `tf24_strategy.cpp:342` | `mass_root_prop_` heap-allocated every `net_mass_production_dt` call | Hygiene (not speed — see note) | **DONE** |
+| 3 | `leaf_model.cpp:981` | `hydraulic_cost_TF` does `exp(-pow(...))` per profit eval on the Brent inner loop | Performance | REJECTED (see test-root.qmd Phase 2) |
+| 4 | `leaf_model.cpp:338-477` | pervasive `isfinite` guards inside the `E_from_Soil_to_Root_Collar` hot loop | Performance / clarity | TODO |
+| 5 | `leaf_model.cpp:752-810` | `setup_transpiration` / `setup_root_vulnerability` duplicate the knot-grid + gamma-closed-form integral build | DRY / clarity | **DONE** |
+| 6 | `leaf_model.cpp:601-626` | triple-duplicated "plant shut down at psi_crit" early-exit block in `find_root_collar_psi` | Clarity | TODO |
+| 7 | `leaf_model.cpp:835` vs `850` | sign-convention inconsistency between `transpiration` (`eval(psi_upstream)`) and `transpiration_to_psi_stem` (`eval(-psi_upstream)`); module-wide positive-vs-negative psi confusion | Correctness risk / clarity | TODO |
+| 8 | `leaf_model.cpp:993,1003` | local `double hydraulic_cost_` shadows the member of the same name in `profit_psi_stem_*` | Clarity | **DONE** |
+| 9 | `tf24_strategy.cpp:161,356,388` | magic constants (`83.26*0.5`, `0.2`, `1.5`) and a duplicated `60*60*12*365` unit factor | Maintainability | TODO |
+| 10 | `leaf_model.cpp:479` / `tf24_strategy.cpp:161` | `E_up_` stored in kg but `soil_consumption_[i]` in mol; kg conversion re-applied downstream | Clarity / trap | TODO |
+| 11 | `tf24_strategy.cpp:26,157,361` | `evapotranspiration_dt(int soil_depth)` is really a layer index; signed/unsigned loop comparisons; unfinished comment at L20 | Naming / hygiene | TODO |
+
+## Notes on individual items
+
+### #2 — reusable `mass_root_prop_` buffer (DONE)
+
+Promoted the per-call `std::vector<double> mass_root_prop_` to a member of
+`TF24_Strategy` and reuse it with `assign(n, 0.0)` each call (the same pattern
+`Leaf::set_physiology` uses for `c_r_V_` etc.).
+
+**This is a code-hygiene change, not a speed win.** The performance log in
+`test-root.qmd` explicitly profile-confirms that "the per-call `mass_root_prop_`
+/ `psi_soil_inverted_` allocations … are <0.1% of runtime; preallocating them
+will not move the needle." Implemented anyway because removing a per-call heap
+allocation is cheap, low-risk, and consistent with the rest of the code. Output
+is bit-identical by construction (no arithmetic changed).
+
+### #5 — shared cumulative-integral spline builder (DONE)
+
+`setup_transpiration` and `setup_root_vulnerability` both built `{0, step, …}`
+knot grids and seeded a cumulative vulnerability integral
+`G(m) = ∫₀ᵐ exp(-(s/b)^c) ds` from the gamma closed form
+`(b/c)·tgamma_lower(1/c, (m/b)^c)` (issue #468). Factored that shared build into
+a private helper `build_cumulative_vulnerability_integral(b, c, resolution, …)`.
+The differing parts stay in each caller: roots also build the `f_r`
+conductivity spline (extrapolate **on**, no inverse); transpiration also builds
+the inverse `psi_from_transpiration` (extrapolate **off**, no `f_r`).
+
+**Bit-identical by construction** — the helper reproduces each original loop
+exactly (`0.0 + step == step`; same `pow`/`tgamma_lower` expressions; same
+accumulation order). `f_r[0]` is now computed as `exp(-pow(0/b, c)) = 1.0`
+rather than hard-coded `1.0` — identical in IEEE. Validate with the
+`run_scm_collect` self-comparison from `test-root.qmd` before final sign-off.
+
+### #8 — member-shadowing local (DONE)
+
+`profit_psi_stem_Sperry` / `profit_psi_stem_TF` declared a local
+`double hydraulic_cost_` shadowing the `Leaf::hydraulic_cost_` member (which the
+`hydraulic_cost_*` callees already write). Renamed the locals to `cost` to
+remove the shadow. No behaviour change.
+
+## Suggested ordering for the rest
+
+1. **#6** (shutdown helper) and **#11** (naming) — zero-risk clarity, no numerics.
+2. **#1** (temp-param cache) — real speed win; numerics must stay bit-identical
+   (cache the exact same `exp`/`pow` outputs keyed on `leaf_temp_`,`atm_o2_kpa_`).
+3. **#9 / #10** — promote magic constants to traits and unify the unit factors;
+   touches the soil-water coupling, so re-run the 15-layer scenario.
+4. **#7** — the sign-convention cleanup is the highest-value correctness work but
+   also the riskiest; do it last, with the full validation sweep.
