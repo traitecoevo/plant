@@ -219,42 +219,7 @@ void spline::set_points(const std::vector<double>& x,
    }
 }
 
-double spline::operator() (double x) const {
-   size_t n=m_x.size();
-   // find the closest point m_x[idx] < x, idx=0 even if x<m_x[0]
-   int idx;
-   if(m_uniform) {
-      // O(1) index from the uniform spacing, then nudge by at most a step or
-      // two so the result is bit-identical to std::lower_bound (covers knot
-      // rounding from grid construction and the exact-knot edge case).
-      // (traitecoevo/plant#435)
-      idx=static_cast<int>((x-m_x0)*m_inv_dx);
-      // clamp to [0, n-1]: idx == n-1 is the right-extrapolation case, where
-      // lower_bound() also returns n-1 (so h = x - m_x[n-1]).
-      const int last=static_cast<int>(n)-1;
-      if(idx<0) idx=0;
-      else if(idx>last) idx=last;
-      while(idx>0 && m_x[idx]>=x) --idx;
-      while(idx<last && m_x[idx+1]<x) ++idx;
-   } else {
-      std::vector<double>::const_iterator it;
-      it=std::lower_bound(m_x.begin(),m_x.end(),x);
-      idx=std::max( int(it-m_x.begin())-1, 0);
-   }
-
-   double h=x-m_x[idx];
-   double interpol;
-   if(x<m_x[0]) {
-      // extrapolation to the left
-      interpol=((m_b[0])*h + m_c[0])*h + m_y[0];
-   } else if(x>m_x[n-1]) {
-      // extrapolation to the right
-      interpol=((m_b[n-1])*h + m_c[n-1])*h + m_y[n-1];
-   } else {
-      // interpolation
-      interpol=((m_a[idx]*h + m_b[idx])*h + m_c[idx])*h + m_y[idx];
-   }
-   return interpol;
-}
+// spline::operator() is now defined inline in inst/include/tk/spline.h so it can
+// inline into the hot assimilation quadrature loop (no LTO in this build).
 
 }
