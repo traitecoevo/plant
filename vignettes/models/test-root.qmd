@@ -30,7 +30,7 @@ library(plant)
 
 ```{r}
 # Patch lifetime
-max_patch_lifetime <- 40
+max_patch_lifetime <- 75
 # Basic parameters
 p0 <- scm_base_parameters("TF24", "TF24_Env")
 p0$max_patch_lifetime <- max_patch_lifetime
@@ -48,7 +48,7 @@ fine_times <- sort(unique(c(
   node_schedule_times_default(max_patch_lifetime),
   seq(0, max_patch_lifetime, by = 0.125)
 )))
-p1$node_schedule_times <- list(fine_times)
+# p1$node_schedule_times <- list(fine_times)
 
 env <- Environment("TF24")
 
@@ -59,10 +59,15 @@ env$set_soil_water_state(rep(c(0.2), times = 15))
 
 # create rainfall vector across patch lifetime
 x = seq(0,max_patch_lifetime,length.out = 1000)
-y = 0.25*sin(2*pi*x) + 0.5
+# NOTE: mean rainfall 1.0 (not 0.5). A mean of 0.5 dries the soil column faster
+# than it is replenished; a layer reaches ~0 moisture where the retention curve
+# psi_from_soil_moist (pow with negative exponent) goes non-finite, and run_scm
+# aborts with "set_physiology received non-finite psi_soil". See
+# traitecoevo/plant#485. Keep mean >= ~1.0 until the soil model floors moisture.
+y = 0.25*sin(2*pi*x) + 1.0
 env$extrinsic_drivers_set_variable("rainfall", x=x, y=y)
 
-ctrl <- scm_base_control()
+ctrl <- control()
 # NOTE: ode_step_size_max only bounds the *internal* adaptive step between node
 # introductions; it does NOT add collected output points and does NOT smooth the
 # jaggedness (that's the node schedule above). Left commented out to avoid a
@@ -72,7 +77,7 @@ ctrl <- scm_base_control()
 # ctrl$ode_tol_rel <- 1e-5
 # ctrl$ode_tol_abs <- 1e-5
 
-system.time(results <- run_scm_collect(p1, env = env, ctrl = ctrl))
+system.time(results <- run_scm(p1, env = env, ctrl = ctrl, collect = TRUE))
 saveRDS(results, "results_high.RDS")
 results <- readRDS("results_high.RDS")
 ```
@@ -756,6 +761,66 @@ run once per `net_mass_production_dt`, while the nested collar solver it precede
 does hundreds of `E_from_Soil`/`psi_stem_to_ci` evals per call. **Kept anyway**
 as a clarity change (it removes a genuine redundant recompute and is exact), but
 recorded here so the negative speed result is not silently re-litigated.
+
+## Phase 4 — develop merge (2026-06-19)
+
+`develop` was merged into `root_water_uptake` (merge `2f9d5337`), bringing in
+**#471 "Optimise FF16/TF24 hot paths (~2.7-3.5× FF16, ~1.3× TF24)"** plus the
+SCM/patch/control refactors (#408, #459, #462, #463). The merge also renamed the
+R API this vignette used: `scm_base_control()` → `control()` and
+`run_scm_collect()` → `run_scm(..., collect = TRUE)`.
+
+### Speed: negligible gain on this branch (≈1.03×)
+
+A/B on the canonical `scripts/bench_tf24.R` benchmark (single-species MPL=10,
+default `Environment`, `birth_rate = 20`, `lma = 0.0825`). Both sides built clean
+(`make clean && make compile`, `-O2 -g`), loaded with
+`pkgload::load_all(recompile = FALSE)`, **identical control values pinned
+explicitly** (the merge's `scm_base_control` → `control` rename otherwise risks a
+silent default drift; the documented fast defaults are the same on both sides),
+median of 10 timed reps after a warm-up:
+
+| Build | Commit | median | min | offspring_production |
+|---|---|---|---|---|
+| before develop | `5cf6694e` | 20.06 s | 20.02 s | 4.758172414e-06 |
+| after develop  | `2f9d5337` | 19.45 s | 18.44 s | 4.730799193e-06 |
+
+**≈1.03× (median, ~3 %) — essentially within run-to-run/thermal noise**, NOT the
+~1.3× that #471 reports for TF24 in isolation (the post-merge build was timed
+first/cooler each round, so even the 3 % likely overstates it). Two compounding
+reasons:
+
+1. **This branch's runtime is dominated by the *new* multi-layer root-water
+   hydraulic solver** — `find_root_collar_psi` and its nested root-finds in
+   `leaf_model.cpp` (Phase 2: `E_from_Soil_to_Root_Collar` ≈39 %, `psi_stem_to_ci`
+   ≈36 % self-time). That code exists only on this branch; #471 on `develop` never
+   saw it. #471's wins land on FF16-canopy / general TF24 paths that are a small
+   share of per-step cost here.
+2. **The branch already independently carries the Phase-1 hot-path optimisations**
+   (#1-#5: O(1) spline index, transpiration memo, integral-spline caches), which
+   overlap with the spline/transcendental work in #471 — so there is little left
+   for #471 to win on the parts it *does* touch.
+
+Net: the develop merge is **speed-neutral for the root-water model**; its value
+here is API/refactor alignment, not throughput.
+
+### Numerics: −0.58 % offspring shift (tolerance-level)
+
+`offspring_production` moves 4.758172414e-06 → 4.730799193e-06 (−0.58 %), a
+tolerance-level shift from #471's edits to `leaf_model.cpp` / `tk_spline.cpp` /
+`interpolator.h`. Same character as the #1/#4 shifts — smooth, not structural.
+
+### Unrelated finding: drought NaN in the vignette scenario (issue #485)
+
+While setting up the benchmark, the 15-layer scenario at the top of this document
+was found to abort with `set_physiology received non-finite psi_soil` whenever
+the rainfall mean was 0.5 (`y = 0.25*sin(2*pi*x) + 0.5`). This is **not** caused
+by the merge — pre-merge `5cf6694e` and post-merge `2f9d5337` fail identically,
+and the current build runs the scenario fine at the original mean of 1.0
+(offspring 0.39 at MPL=10). Under sustained low rainfall a soil layer dries to ~0
+moisture, where `psi_from_soil_moist` (a `pow` with negative exponent) goes
+non-finite; the bucket model has no residual-moisture floor. Filed as
+traitecoevo/plant#485; the vignette rainfall has been reverted to mean 1.0.
 
 ## Analytical hydraulic transform (issue #468)
 
