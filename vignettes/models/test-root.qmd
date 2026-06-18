@@ -635,6 +635,92 @@ Measured effect (table above):
   home: it is a smooth expression in `(p_50, c, K_max)` with no spline-build
   graph to differentiate through. Out of scope here.
 
+## Logistic vulnerability curve (issue #467)
+
+[Issue #467](https://github.com/traitecoevo/plant/issues/467) asks whether a
+**logistic** vulnerability curve could replace the Weibull — the argument being
+that it is "slightly less accurate biologically but substantially easier
+computationally": an elementary integral (no incomplete gamma), an explicit
+inverse, and smooth, AD-friendly derivatives. This section evaluates that for
+*plant* specifically. Reproduce with `scripts/compare_logistic_weibull.R` (pure
+R — both curves are closed form, no build needed).
+
+### The two curves
+
+With magnitude $m=-\psi\ge0$ (matching the `+ve psi` argument of
+`proportion_of_conductivity`),
+
+$$\underbrace{f(m)=\exp\!\big[-(m/b)^c\big]}_{\text{Weibull (current)}}
+  \qquad
+  \underbrace{g(m)=\frac{1}{1+\exp[a\,(m-m_{50})]}}_{\text{logistic (proposed)}}.$$
+
+The logistic forward transform $F(m)=\int_0^m g\,ds$ **is** elementary,
+
+$$F(m)=m-\tfrac1a\ln\!\big(1+e^{a(m-m_{50})}\big)
+        +\tfrac1a\ln\!\big(1+e^{-a\,m_{50}}\big),$$
+
+so it needs no incomplete gamma. **But the issue's "explicit inverse" claim does
+not hold**: $m$ appears both linearly and inside the log, so $F^{-1}$ is
+transcendental (and ill-conditioned near saturation, where $F$ flattens). $F$ and
+$F'$ are cheap, so the inverse would still be a Newton iterate or a spline-seed —
+exactly the machinery the Weibull path already has (issue #468). The logistic
+removes the incomplete gamma at *build* time and one fractional `pow` from the
+hot `proportion_of_conductivity`; it does **not** remove the need to invert.
+
+### How well does a logistic match plant's Weibull?
+
+Fitting a logistic to each production curve two ways — slope-matched at the 50%
+point ($m_{50}=p_{50}$, $a=2c\ln2/p_{50}$) and least-squares over the working
+domain $[0,\psi_\text{crit}]$ — and measuring both the conductivity deviation and
+the deviation of the model-relevant transform $F$ (relative to the full integral
+$F(\psi_\text{crit})$):
+
+| Curve | fit | $a$ | $m_{50}$ | cond max-dev | cond RMS | **$F$ rel-dev** |
+|---|---|---|---|---|---|---|
+| Stem ($c=1.09$) | slope-match | 0.817 | 1.85 | 0.181 | 0.056 | **0.135** |
+| Stem ($c=1.09$) | best-fit LS | 0.782 | 2.10 | 0.162 | 0.045 | **0.042** |
+| Root ($c=2.68$) | slope-match | 1.093 | 3.40 | 0.042 | 0.022 | **0.024** |
+| Root ($c=2.68$) | best-fit LS | 1.191 | 3.43 | 0.028 | 0.015 | **0.012** |
+
+**The fit quality is entirely controlled by the Weibull shape $c$.** The root
+curve ($c=2.68$) is itself sigmoidal — its inflection sits away from the origin —
+so a logistic tracks it to ~1–2% in $F$. The production *stem* curve
+($c\approx1.09$) is not: for $c<2$ the Weibull is concave-down from the origin
+(heavy conductivity loss at low stress) with a fat tail, a shape a symmetric
+sigmoid cannot reproduce. The best a logistic manages is a **4% bias in the
+transpiration integral** (13% if you also insist on preserving $p_{50}$ and the
+50%-point slope) — and it buys that only by displacing $m_{50}$ to 2.10, i.e. by
+**abandoning the interpretable $P_{50}$** that was the logistic's main selling
+point. The tails diverge in the obvious way: at $m=5$ MPa the slope-matched
+logistic gives half the Weibull conductivity (0.071 vs 0.129).
+
+### Recommendation: not worth adopting for plant's core
+
+- **Accuracy.** For the production parameterisation the logistic biases the
+  transpiration integral by 4–13% — one to two orders of magnitude larger than
+  the spline/quadrature errors quantified for #468 (≤1.5e−4). This is a model
+  change, not a numerical refinement, and not bit-identical by construction.
+- **Performance.** The win is small and already largely banked elsewhere. The
+  forward and inverse transforms are O(1) spline lookups (#468), and *Tried and
+  REJECTED: spline the xylem hydraulic cost* showed a spline eval already costs
+  ~the transcendental it replaces on Apple-ARM. The logistic's only hot-path
+  saving is one fractional `pow` inside `proportion_of_conductivity`/
+  `hydraulic_cost_TF` — a slice of the ~8% `pow` budget that is *shared* with the
+  unrelated $Q(z,h)$ canopy-shape `pow`. Net: a few percent at most, against a
+  4–13% biology shift.
+- **Where it does belong.** The issue's real motivation — smooth, special-
+  function-free, AD-friendly curves for Bayesian calibration and gradient-based
+  fitting — is genuine, and there the logistic is attractive. But that is an
+  *external fitting/inference* concern, the same niche flagged for the closed-form
+  Weibull transform (#468 *Consequences*), not the SCM forward-simulation core
+  this branch optimises.
+
+**Verdict.** Keep the Weibull for the stem. A logistic is a defensible surrogate
+only for steep curves ($c\gtrsim2$, e.g. the root), and even there the payoff is
+marginal given the transforms are already splined. Revisit only if *plant* grows
+an AD/calibration path where special-function-free curves matter more than the
+near-origin fit.
+
 ## Build note: use `make`, not `load_all`
 
 Build the package with **`make compile`** (`pkgbuild::compile_dll(debug=FALSE)`,
