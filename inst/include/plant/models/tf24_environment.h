@@ -7,6 +7,7 @@
 #include <plant/resource_spline.h>
 #include <plant/interpolator.h>
 #include <limits>
+#include <cmath>
 
 using namespace Rcpp;
 
@@ -147,6 +148,14 @@ public:
   double a_infil;
   double b_infil;
 
+  // Residual soil moisture floor (m3 m^-3). The water balance cannot dry a
+  // layer below this (see the positivity guard in compute_rates), and
+  // psi_from_soil_moist is evaluated at this floor so the retention curve
+  // (which diverges as theta->0) stays finite. Well below any realistic
+  // operating moisture, so it does not perturb non-drought runs. See issue
+  // #485.
+  double soil_moist_residual = 1e-2;
+
   // Ability to prescribe a fixed value
   // TODO: add setting to set other variables like water
   void set_fixed_environment(double value, double height_max) {
@@ -176,7 +185,7 @@ public:
   {
     light_availability.r_init_interpolators(state);
   }
-  
+
   // ------------------------------------------------------------------
   // SOIL WATER BALANCE (multi-layer bucket model)
   // ------------------------------------------------------------------
@@ -228,7 +237,18 @@ public:
       water_flux[i] = soil_K_from_soil_theta(vars.state(i));
       // this function does runoff
 
-      vars.set_rate(i, (water_input - water_flux[i] - resource_depletion[i])/dz[i]); 
+      // Positivity guard (issue #485): a layer at or below the residual
+      // moisture theta_r is not dried further (only rewetting is allowed). This
+      // keeps the explicit fixed-step solver from driving a drought-stressed
+      // layer to theta <= 0, where the retention curve psi_from_soil_moist and
+      // the conductivity curve soil_K_from_soil_theta go non-finite. Wetter
+      // layers are unaffected, so non-drought runs are unchanged.
+      const double theta = vars.state(i);
+      double rate = (water_input - water_flux[i] - resource_depletion[i]) / dz[i];
+      if (theta <= soil_moist_residual && rate < 0.0) {
+        rate = 0.0;
+      }
+      vars.set_rate(i, rate);
       total_resource_depletion += resource_depletion[i];
     }
       vars.set_rate(soil_number_of_depths, rainfall);
@@ -241,13 +261,21 @@ public:
   // calculate K from K_sat based on theta
   double soil_K_from_soil_theta(double theta) {
     //Eq. 5 Zeng and Decker (2009), ref Clapp and Hornberger (1978)
-  return K_sat * std::pow(theta/soil_moist_sat, 2*n_psi + 3);
+    // Floor at 0: an intermediate explicit-RK stage can probe theta < 0, and
+    // std::pow(negative, non-integer) is NaN. A non-positive layer simply
+    // drains nothing (K = 0). See issue #485.
+  return K_sat * std::pow(std::max(theta, 0.0)/soil_moist_sat, 2*n_psi + 3);
   }
 
 
   // convert soil moisture to soil water potential
   double psi_from_soil_moist(double soil_moist_) const {
-    return a_psi * std::pow(soil_moist_/soil_moist_sat, -n_psi)/1e6; // convert from Pa to MPa
+    // Floor at the residual moisture: the retention curve (negative exponent)
+    // diverges to +inf as theta->0, so an empty layer would otherwise yield a
+    // non-finite potential. At/below theta_r the potential is large but finite
+    // and the plant's root vulnerability curve has already shut uptake to ~0.
+    const double t = std::max(soil_moist_, soil_moist_residual);
+    return a_psi * std::pow(t/soil_moist_sat, -n_psi)/1e6; // convert from Pa to MPa
   }
 
   // convert soil water potential to soil moisture

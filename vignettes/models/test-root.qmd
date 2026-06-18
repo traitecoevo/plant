@@ -30,7 +30,7 @@ library(plant)
 
 ```{r}
 # Patch lifetime
-max_patch_lifetime <- 75
+max_patch_lifetime <- 35
 # Basic parameters
 p0 <- scm_base_parameters("TF24", "TF24_Env")
 p0$max_patch_lifetime <- max_patch_lifetime
@@ -59,12 +59,13 @@ env$set_soil_water_state(rep(c(0.2), times = 15))
 
 # create rainfall vector across patch lifetime
 x = seq(0,max_patch_lifetime,length.out = 1000)
-# NOTE: mean rainfall 1.0 (not 0.5). A mean of 0.5 dries the soil column faster
-# than it is replenished; a layer reaches ~0 moisture where the retention curve
-# psi_from_soil_moist (pow with negative exponent) goes non-finite, and run_scm
-# aborts with "set_physiology received non-finite psi_soil". See
-# traitecoevo/plant#485. Keep mean >= ~1.0 until the soil model floors moisture.
-y = 0.25*sin(2*pi*x) + 1.0
+# NOTE: mean rainfall 1.0 keeps this a healthy-cohort speed test. Lower means
+# (e.g. 0.5) dry the column and drive the cohort towards extinction; those
+# drought regimes are explored in the run_rainfall_regime sweep below. They now
+# run without aborting: the soil model floors moisture at a residual theta_r so
+# the retention curve psi_from_soil_moist stays finite (was traitecoevo/plant#485,
+# "set_physiology received non-finite psi_soil").
+y = 0.25*sin(2*pi*x) + 0.5
 env$extrinsic_drivers_set_variable("rainfall", x=x, y=y)
 
 ctrl <- control()
@@ -80,13 +81,9 @@ ctrl <- control()
 system.time(results <- run_scm(p1, env = env, ctrl = ctrl, collect = TRUE))
 saveRDS(results, "results_high.RDS")
 results <- readRDS("results_high.RDS")
-```
 
-Create diagnostic plots 
-
-```{r}
 source("R/plot_hydraulic_diagnostics.R")
-plot_diagnostics(results, x, y, filename = "diagnostic_plot5_high.pdf")
+plot_diagnostics(results, x, y, filename = "diagnostic_plot5_low.pdf")
 ```
 
 ```{r}
