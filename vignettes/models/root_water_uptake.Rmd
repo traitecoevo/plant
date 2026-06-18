@@ -782,7 +782,6 @@ psi_r_l_E %>%
 
 ```{r}
 a/b
-ggsave("leaf_root_psi.png")
 ```
 
 ```{r}
@@ -880,5 +879,4 @@ psi_r_l_E %>%
 
 ```{r}
 a/b
-ggsave("leaf_root_psi.png")
 ```
