@@ -25,11 +25,12 @@ library(ggplot2)
 library(patchwork)
 library(plant)
 # devtools::load_all("/Users/z3533545/Documents/GitHub/plant/")
+# devtools::install(".")
 ```
 
 ```{r}
 # Patch lifetime
-max_patch_lifetime <-75
+max_patch_lifetime <-5
 # Basic parameters
 p0 <- scm_base_parameters("TF24", "TF24_Env")
 p0$max_patch_lifetime <- max_patch_lifetime
@@ -45,15 +46,17 @@ env$set_soil_water_state(rep(c(0.2), times = 15))
 
 # create rainfall vector across patch lifetime
 x = seq(0,max_patch_lifetime,length.out = 1000)
-y = 0.25*sin(2*pi*x) + 1
+y = 0.25*sin(2*pi*x) + 0.5
 env$extrinsic_drivers_set_variable("rainfall", x=x, y=y)
 
 # no change to ctrl at this point
 ctrl <- scm_base_control()
-# ctrl$ode_tol_rel <- 1e-4
-# ctrl$ode_tol_abs <- 1e-4
+ctrl$ode_step_size_max <- 1e-03
 
-system.time(results <- run_scm_collect(p1, env = env, ctrl = ctrl))
+# ctrl$ode_tol_rel <- 1e-5
+# ctrl$ode_tol_abs <- 1e-5
+
+system.time(results1 <- run_scm_collect(p1, env = env, ctrl = ctrl))
 saveRDS(results, "results_high.RDS")
 results <- readRDS("results_high.RDS")
 ```
@@ -61,8 +64,98 @@ results <- readRDS("results_high.RDS")
 Create diagnostic plots 
 
 ```{r}
-source("vignettes/models/plot_diagnostics.R")
-plot_diagnostics(results, x, y, filename = "diagnostic_plot5_high.png")
+source("R/plot_hydraulic_diagnostics.R")
+plot_diagnostics(results1, x, y, filename = "diagnostic_plot5_high.png")
+```
+
+```{r}
+run_rainfall_regime <- function(mean_rainfall = mean_rainfall, amplitude_rainfall = amplitude_rainfall){
+max_patch_lifetime <-20
+# Basic parameters
+p0 <- scm_base_parameters("TF24", "TF24_Env")
+p0$max_patch_lifetime <- max_patch_lifetime
+traits <- trait_matrix(c(0.07), c("lma"))
+p1 <- expand_parameters(traits, p0)
+
+env <- Environment("TF24")
+
+# fifteen soil layers
+env$set_soil_number_of_depths(15)
+# set soil moisture 0.2 (sat is 0.428)
+env$set_soil_water_state(rep(c(0.2), times = 15))
+
+# create rainfall vector across patch lifetime
+x = seq(0,max_patch_lifetime,length.out = 1000)
+y = amplitude_rainfall*sin(2*pi*x) + mean_rainfall
+env$extrinsic_drivers_set_variable("rainfall", x=x, y=y)
+
+# no change to ctrl at this point
+ctrl <- scm_base_control()
+
+# ctrl$ode_tol_rel <- 1e-5
+# ctrl$ode_tol_abs <- 1e-5
+print(paste0("mean_rainfall = ", mean_rainfall, "amplitude_rainfall = ", amplitude_rainfall))
+system.time(results1 <- run_scm_collect(p1, env = env, ctrl = ctrl))
+results1
+}
+
+tibble(mean_rainfall = rep(seq(0.5,2,length.out = 10))) %>%
+expand_grid(amplitude_rainfall = c(0,0.5)) %>%
+mutate(amplitude_rainfall = amplitude_rainfall * mean_rainfall) -> env_drivers
+
+future::plan("multisession", workers = 2)
+
+
+result_list <- furrr::future_map2(
+  env_drivers$mean_rainfall,
+  env_drivers$amplitude_rainfall,
+  ~ tryCatch(
+    run_rainfall_regime(.x, .y),
+    error = function(e) {
+      structure(
+        list(
+          error = conditionMessage(e),
+          mean_rainfall = .x,
+          amplitude_rainfall = .y
+        ),
+        class = "run_rainfall_error"
+      )
+    }
+  )
+)
+```
+
+```{r}
+find_total_community <- function(results, mean_rainfall, amplitude_rainfall){
+  results %>%
+    expand_state() %>%
+    pluck("species") %>%
+    integrate_over_size_distribution() %>%
+    mutate(
+      mean_rainfall = mean_rainfall,
+      amplitude_rainfall = amplitude_rainfall
+    )
+}
+
+combined_results <- pmap_df(
+  list(
+    result = result_list,
+    mean_rainfall = rep(seq(0.5, 2, length.out = 10), each = 2),
+    amplitude_rainfall = rep(c(0, 0.25), 10)
+  ),
+  ~ {
+    if (inherits(..1, "run_rainfall_error")) {
+      tibble()
+    } else {
+      find_total_community(..1, ..2, ..3)
+    }
+  }
+)
+
+combined_results %>%
+ggplot(aes(x = time, y = area_leaf)) +
+geom_line(aes(colour = as.factor(amplitude_rainfall), group = as.factor(amplitude_rainfall))) +
+facet_wrap(~mean_rainfall)
 ```
 
 Plot the root distribution across soil depths (TODO: I think this is broken at the moment)
@@ -114,13 +207,17 @@ results %>%
   # Community-level: integrate over size distribution per layer
   group_by(time, step, soil_depth) %>%
   summarise(
-    mass_root_layer = sum(mass_root_layer * density * patch_density),
+    density_layer = sum(density),
+    patch_density_layer = sum(patch_density),
+    mass_root_layer = sum(mass_root_layer),
+    mass_root_int_layer = sum(mass_root_layer * density * patch_density),
     .groups = "drop"
   ) %>%
-  ggplot(aes(x = time, y = mass_root_layer, colour = soil_depth, group = soil_depth)) +
+  pivot_longer(cols = c(density_layer, patch_density_layer, mass_root_layer, mass_root_int_layer)) %>%
+  ggplot(aes(x = time, y = value, colour = soil_depth, group = soil_depth)) +
   geom_line() +
+  facet_wrap(~name, scales = "free") +
   scale_colour_viridis_c(name = "Soil depth (m)") +
-  scale_y_log10() +
   theme_bw() +
   theme(text = element_text(size = 16)) +
   ylab(expression(paste(Root~mass~per~layer, " (kg ", m^{-2}, ")"))) +
@@ -128,6 +225,47 @@ results %>%
 
 root_mass_plot
 ```
+
+```{r}
+
+results %>%
+  expand_state() %>%
+  pluck("species") %>%
+  select(species, time, node, step, density, patch_density, height, area_leaf) %>%
+  mutate(
+    mass_root       = s$a_r1 * area_leaf,
+    rooting_depth   = pmin(height, 1.5),
+    root_mass_scale = 83.26 * 0.5 * mass_root
+  ) %>%
+  # Expand to one row per soil layer WITHOUT deduplication.
+  # tidyr::crossing() de-dupes its inputs, which merges nodes with identical
+  # state values and corrupts the rooting_depth/layer_idx alignment.
+  # mutate + unnest preserves every original row.
+  mutate(layer_idx = list(seq_along(soil_depths))) %>%
+  tidyr::unnest(layer_idx) %>%
+  mutate(soil_depth = soil_depths[layer_idx],
+         q_curr     = Q_fn(soil_depth, rooting_depth)) %>%
+  # Mirror C++ exactly: prev_q starts at 1.0, then is the previous layer's q.
+  # Using lag() within each plant avoids recomputing Q(0, height) which can
+  # have floating-point inconsistency vs Q(prev_depth, height).
+  group_by(species, step, node, time) %>%
+  arrange(layer_idx, .by_group = TRUE) %>%
+  mutate(
+    q_prev          = lag(q_curr, default = 1.0),
+    mass_root_layer = root_mass_scale * pmax(0.0, q_prev - q_curr)
+  ) %>%
+  ungroup() %>%
+  # Community-level: integrate over size distribution per layer
+  group_by(time, step) %>%
+  summarise(mass_root = sum(mass_root),
+            area_leaf = sum(area_leaf)) %>%
+            ungroup() %>%
+            pivot_longer(cols = c(mass_root, area_leaf)) %>%
+            ggplot(aes(x = time, y = value)) +
+            geom_line() +
+            facet_wrap(~name, scales= "free")
+```
+
 
 # Implementation & performance notes
 
