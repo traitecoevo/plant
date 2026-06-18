@@ -108,7 +108,6 @@ FF16_generate_stand_report <- function(results,
 ##' @param B_lf3 Quantum yield of leaf photosynthetic light response curve [dimensionless]
 ##' @param B_lf4 CO_2 respiration per unit leaf nitrogen [mol / yr / kg]
 ##' @param B_lf5 Scaling exponent for leaf nitrogen in maximum leaf photosynthesis [dimensionless]
-##' @param k_I light extinction coefficient [dimensionless]
 ##' @param latitude degrees from equator (0-90), used in solar model [deg]
 ##' @importFrom stats coef nls
 ##' @export
@@ -132,7 +131,6 @@ make_FF16_hyperpar <- function(
                                 B_lf3=0.04,
                                 B_lf4=21000,
                                 B_lf5=1,
-                                k_I=0.5,
                                 latitude=0) {
   assert_scalar <- function(x, name=deparse(substitute(x))) {
     if (length(x) != 1L) {
@@ -157,7 +155,6 @@ make_FF16_hyperpar <- function(
   assert_scalar(B_lf3)
   assert_scalar(B_lf4)
   assert_scalar(B_lf5)
-  assert_scalar(k_I)
   assert_scalar(latitude)
 
   function(m, s, filter=TRUE) {
@@ -169,6 +166,11 @@ make_FF16_hyperpar <- function(
     rho       <- with_default("rho")
     omega     <- with_default("omega")
     narea     <- with_default("narea", narea)
+
+    ## Light extinction coefficient: source from the strategy so the
+    ## assimilation integral below stays consistent with the canopy
+    ## model, rather than carrying a separate hard-coded default here.
+    k_I       <- s$k_I
 
     ## lma / leaf turnover relationship:
     k_l   <- B_kl1 * (lma / lma_0) ^ (-B_kl2)
@@ -228,8 +230,7 @@ make_FF16_hyperpar <- function(
     }
 
     # Guard against narea having length zero (e.g. an empty trait matrix),
-    # in which case trapezium() fails. k_I always feeds into
-    # approximate_annual_assimilation() below, so no extra check is needed.
+    # in which case trapezium() fails.
     a_p1 <- a_p2 <- 0 * narea
     if (length(narea) > 0) {
       i <- match(narea, unique(narea))
