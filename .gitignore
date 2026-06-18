@@ -20,3 +20,5 @@ doc
 Meta
 *.knit.md
 *.wiki
+*.pdf
+*.RDS

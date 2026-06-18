@@ -24,18 +24,31 @@ library(tidyverse)
 library(ggplot2)
 library(patchwork)
 library(plant)
-# devtools::load_all("/Users/z3533545/Documents/GitHub/plant/")
-# devtools::install(".")
+# devtools::load_all(".")
+
 ```
 
 ```{r}
 # Patch lifetime
-max_patch_lifetime <-5
+max_patch_lifetime <- 40
 # Basic parameters
 p0 <- scm_base_parameters("TF24", "TF24_Env")
 p0$max_patch_lifetime <- max_patch_lifetime
 traits <- trait_matrix(c(0.07), c("lma"))
 p1 <- expand_parameters(traits, p0)
+
+# Force finer node-introduction spacing so the *collected* output is sampled at
+# <=0.25 yr everywhere. run_scm_collect saves state once per node introduction
+# (NOT per ODE step), and the default schedule coarsens to ~0.5-1 yr late, which
+# under-samples the 1-yr seasonal rainfall signal -> jagged aggregate trajectories.
+# The node schedule is the lever for output smoothness here, NOT ode_* controls.
+# See traitecoevo/plant#474. We keep the dense early default spacing and add a
+# regular <=0.25 yr grid on top.
+fine_times <- sort(unique(c(
+  node_schedule_times_default(max_patch_lifetime),
+  seq(0, max_patch_lifetime, by = 0.125)
+)))
+p1$node_schedule_times <- list(fine_times)
 
 env <- Environment("TF24")
 
@@ -49,14 +62,17 @@ x = seq(0,max_patch_lifetime,length.out = 1000)
 y = 0.25*sin(2*pi*x) + 0.5
 env$extrinsic_drivers_set_variable("rainfall", x=x, y=y)
 
-# no change to ctrl at this point
 ctrl <- scm_base_control()
-ctrl$ode_step_size_max <- 1e-03
+# NOTE: ode_step_size_max only bounds the *internal* adaptive step between node
+# introductions; it does NOT add collected output points and does NOT smooth the
+# jaggedness (that's the node schedule above). Left commented out to avoid a
+# needlessly slow run. See traitecoevo/plant#474.
+# ctrl$ode_step_size_max <- 1e-03
 
 # ctrl$ode_tol_rel <- 1e-5
 # ctrl$ode_tol_abs <- 1e-5
 
-system.time(results1 <- run_scm_collect(p1, env = env, ctrl = ctrl))
+system.time(results <- run_scm_collect(p1, env = env, ctrl = ctrl))
 saveRDS(results, "results_high.RDS")
 results <- readRDS("results_high.RDS")
 ```
@@ -65,7 +81,7 @@ Create diagnostic plots
 
 ```{r}
 source("R/plot_hydraulic_diagnostics.R")
-plot_diagnostics(results1, x, y, filename = "diagnostic_plot5_high.png")
+plot_diagnostics(results, x, y, filename = "diagnostic_plot5_high.pdf")
 ```
 
 ```{r}

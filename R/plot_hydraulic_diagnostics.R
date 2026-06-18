@@ -20,7 +20,7 @@ plot_diagnostics <- function(results, x, y,
     pluck("species") %>%
     integrate_over_size_distribution() %>%
     ggplot(aes(time, area_leaf)) +
-    geom_line(size = 2, colour = "forestgreen") +
+    geom_line(linewidth = 2, colour = "forestgreen", na.rm = TRUE) +
     theme_bw() +
     theme(text = element_text(size = 20)) +
     ylab(expression(paste(Patch ~ leaf ~ area, " (", m^2, " ", m^{-2}, ")"))) +
@@ -38,8 +38,8 @@ plot_diagnostics <- function(results, x, y,
     mutate(soil_depth = results$env$soil_depth$soil_depth) %>%
     mutate(psi_soil = (1.78e3 * (soil_moist / 0.428)^-6.57) / 1e6) %>%
     ggplot(aes(x = time, y = psi_soil, group = soil_depth, colour = soil_depth)) +
-    geom_point() +
-    geom_line() +
+    geom_point(na.rm = TRUE) +
+    geom_line(na.rm = TRUE) +
     theme_bw() +
     theme(text = element_text(size = 20)) +
     ylab(expression(paste(psi[soil], " (", -Mpa, ")"))) +
@@ -51,8 +51,8 @@ plot_diagnostics <- function(results, x, y,
     mutate(soil_depth = results$env$soil_depth$soil_depth) %>%
     mutate(psi_soil = (1.78e3 * (soil_moist / 0.428)^-6.57) / 1e6) %>%
     ggplot(aes(x = time, y = soil_moist, group = soil_depth, colour = soil_depth)) +
-    geom_point() +
-    geom_line() +
+    geom_point(na.rm = TRUE) +
+    geom_line(na.rm = TRUE) +
     theme_bw() +
     theme(text = element_text(size = 20)) +
     ylab(expression(paste(psi[soil], " (", -Mpa, ")"))) +
@@ -62,7 +62,7 @@ plot_diagnostics <- function(results, x, y,
   # Stem water potential by height over time
   results$species %>%
     ggplot(aes(x = time, y = opt_psi_stem)) +
-    geom_line(aes(colour = height, group = node)) +
+    geom_line(aes(colour = height, group = node), na.rm = TRUE) +
     theme_bw() +
     theme(text = element_text(size = 20)) +
     ylab(expression(paste(psi[stem], " (", -Mpa, ")"))) +
@@ -72,7 +72,7 @@ plot_diagnostics <- function(results, x, y,
   # Root water potential by height over time
   results$species %>%
     ggplot(aes(x = time, y = opt_root_psi)) +
-    geom_line(aes(colour = height, group = node)) +
+    geom_line(aes(colour = height, group = node), na.rm = TRUE) +
     theme_bw() +
     theme(text = element_text(size = 20)) +
     ylab(expression(paste(psi[root], " (", -Mpa, ")"))) +
@@ -82,7 +82,7 @@ plot_diagnostics <- function(results, x, y,
   # Profit by height over time
   results$species %>%
     ggplot(aes(x = time, y = profit)) +
-    geom_line(aes(colour = height, group = node)) +
+    geom_line(aes(colour = height, group = node), na.rm = TRUE) +
     theme_bw() +
     theme(text = element_text(size = 20)) +
     ylab(expression(paste(Profit, " (", mu, mol ~ m^{-2} ~ s^{-1}, ")"))) +
@@ -92,7 +92,7 @@ plot_diagnostics <- function(results, x, y,
   # Stomatal conductance by height over time
   results$species %>%
     ggplot(aes(x = time, y = stom_cond_CO2)) +
-    geom_line(aes(colour = height, group = node, alpha = density)) +
+    geom_line(aes(colour = height, group = node, alpha = density), na.rm = TRUE) +
     theme_bw() +
     theme(text = element_text(size = 20)) +
     ylab(expression(paste(g[s], " (", mol ~ m^{-2} ~ s^{-1}, ")"))) +
@@ -102,7 +102,7 @@ plot_diagnostics <- function(results, x, y,
   # Rainfall time series
   tibble(x = x, y = y) %>%
     ggplot(aes(x = x, y = y)) +
-    geom_line() +
+    geom_line(na.rm = TRUE) +
     theme_bw() +
     theme(text = element_text(size = 20)) +
     ylab(expression(paste(Rainfall, " (", m, ")"))) +
@@ -115,7 +115,7 @@ plot_diagnostics <- function(results, x, y,
   ) %>%
     mutate(deplet = deplet - lag(deplet)) %>%
     ggplot(aes(x = time, y = deplet)) +
-    geom_line() +
+    geom_line(na.rm = TRUE) +
     theme_bw() +
     theme(text = element_text(size = 20)) +
     ylab(expression(paste(Transpiration, " (", m ~ yr^{-1}, ")"))) +
@@ -129,7 +129,7 @@ plot_diagnostics <- function(results, x, y,
     mutate(deplet = deplet - lag(deplet)) %>%
     mutate(deplet_per_area = deplet / c(NA, total_area_leaf)) %>%
     ggplot(aes(x = time, y = deplet_per_area)) +
-    geom_line() +
+    geom_line(na.rm = TRUE) +
     theme_bw() +
     theme(text = element_text(size = 20)) +
     ylab(expression(paste(Transpiration ~ per ~ leaf ~ area, " (", m ~ m^{-2} ~ yr^{-1}, ")"))) +
