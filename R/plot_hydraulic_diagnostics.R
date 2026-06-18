@@ -105,7 +105,7 @@ plot_diagnostics <- function(results, x, y,
     geom_line(na.rm = TRUE) +
     theme_bw() +
     theme(text = element_text(size = 20)) +
-    ylab(expression(paste(Rainfall, " (", m, ")"))) +
+    ylab(expression(paste(Rainfall, " (", m ~ yr^{-1}, ")"))) +
     xlab("Time (years)") -> rainfall
 
   # Transpiration over time
@@ -113,7 +113,11 @@ plot_diagnostics <- function(results, x, y,
     deplet = results$env$soil_moist_cumulative_flux$sum_resource_depletion,
     time   = results$env$soil_moist_cumulative_flux$time
   ) %>%
-    mutate(deplet = deplet - lag(deplet)) %>%
+    # Increment of the *cumulative* depletion divided by the interval width:
+    # without /dt this is "depletion per output interval", which scales with the
+    # (non-uniform) node spacing and looks janky. Dividing by dt gives the true
+    # rate the y-axis claims (m yr^-1). See traitecoevo/plant#474.
+    mutate(deplet = (deplet - lag(deplet)) / (time - lag(time))) %>%
     ggplot(aes(x = time, y = deplet)) +
     geom_line(na.rm = TRUE) +
     theme_bw() +
@@ -126,7 +130,11 @@ plot_diagnostics <- function(results, x, y,
     deplet = results$env$soil_moist_cumulative_flux$sum_resource_depletion,
     time   = results$env$soil_moist_cumulative_flux$time
   ) %>%
-    mutate(deplet = deplet - lag(deplet)) %>%
+    # Increment of the *cumulative* depletion divided by the interval width:
+    # without /dt this is "depletion per output interval", which scales with the
+    # (non-uniform) node spacing and looks janky. Dividing by dt gives the true
+    # rate the y-axis claims (m yr^-1). See traitecoevo/plant#474.
+    mutate(deplet = (deplet - lag(deplet)) / (time - lag(time))) %>%
     mutate(deplet_per_area = deplet / c(NA, total_area_leaf)) %>%
     ggplot(aes(x = time, y = deplet_per_area)) +
     geom_line(na.rm = TRUE) +
