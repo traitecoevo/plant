@@ -65,6 +65,29 @@ test_that("Critical Names", {
   expect_identical(my_names[1:3], c("height", "mortality", "fecundity"))
 })
 
+test_that("K93 establishment_probability and net_mass_production_dt stubs", {
+  s <- K93_Strategy()
+  p <- K93_Individual(s)
+
+  env <- Environment("K93")
+  env$set_fixed_environment(1.0, 100)
+
+  p$set_state("height", 10)
+  p$compute_rates(env)
+
+  ## K93 has no carbon-budget establishment filter: establishment is
+  ## deterministic, so every dispersed seed establishes (pr = 1).
+  expect_identical(p$establishment_probability(env), 1.0)
+
+  ## Establishment is independent of the environment (unlike FF16/TF24).
+  env$set_fixed_environment(0.1, 100)
+  expect_identical(p$establishment_probability(env), 1.0)
+
+  ## K93 models growth directly (size_dt); it has no net carbon mass-production
+  ## budget, so net_mass_production_dt is undefined and returns NA.
+  expect_true(is.na(p$net_mass_production_dt(env)))
+})
+
 test_that("K93_Strategy hyper-parameterisation", {
   s <- K93_Strategy()
 
