@@ -535,6 +535,44 @@ median of 5 timed runs after a warm-up):
 (Reproduce with `scripts/bench_tf24.R`; absolute seconds are machine-specific
 but the ratio is stable.)
 
+## Phase 3 — structural code review (2026-06-18)
+
+A clarity/maintainability pass over `src/leaf_model.cpp` and
+`src/tf24_strategy.cpp`, tracked in
+[`code_review_leaf_tf24.qmd`](code_review_leaf_tf24.qmd). **Numbering there is a
+separate namespace from the performance roadmap above** (its #1–#11 are review
+findings, not the Phase-1 perf items).
+
+**Speed outcome: no gain — and none expected.** Phase 2 already concluded the
+hot path is structurally optimised; this round was deliberately clarity-first,
+not a performance pass. The changes that landed (review #2 reusable root-mass
+buffer, #5 shared spline builder, #6 shut-down-state helper, #8 de-shadowed
+locals, #11 naming) are all **bit-identical and runtime-neutral by
+construction** — they dedupe code or rename, they do not touch the arithmetic or
+the number of evals.
+
+### Tried: cache the temperature/O₂ photosynthesis params (review #1)
+
+The one item with a speed *hypothesis*: `set_physiology` recomputed ~8 Arrhenius
+transcendentals (`vcmax_, jmax_, gamma_, ko_, kc_, R_d_, km_`) every call though
+they depend only on `(leaf_temp_, atm_o2_kpa_)`. Cached them on that key
+(`electron_transport_` excluded — it also depends on per-call `PPFD_`).
+
+A/B on the 15-layer MPL=5 scenario (median of 5, `pkgload::load_all(recompile =
+FALSE)`):
+
+| Build | Median | offspring_production | trajectory digest |
+|---|---|---|---|
+| baseline (`4541acbf`) | **6.98 s** | 1.64927177539e−06 | 164392.960996 |
+| + temp-param cache | **7.07 s** | 1.64927177539e−06 | 164392.960996 |
+
+**Bit-identical, but a speed wash** (within run-to-run noise). This confirms the
+Phase 2 profile: `set_physiology` is not on the hot path — those transcendentals
+run once per `net_mass_production_dt`, while the nested collar solver it precedes
+does hundreds of `E_from_Soil`/`psi_stem_to_ci` evals per call. **Kept anyway**
+as a clarity change (it removes a genuine redundant recompute and is exact), but
+recorded here so the negative speed result is not silently re-litigated.
+
 ## Analytical hydraulic transform (issue #468)
 
 [Issue #468](https://github.com/traitecoevo/plant/issues/468) noted that the

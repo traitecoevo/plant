@@ -121,6 +121,7 @@ void Leaf::setup_clean_leaf() {
   max_soil_layer = NA_INTEGER; // number of soil layers with root mass greater than 0;
 
   transpiration_cached_ = false; // invalidate transpiration() memo
+  photo_temp_cached_ = false;    // members above set to NA; force recompute
 }
 
 // Set the per-individual, per-timestep physiology that stays constant during
@@ -205,14 +206,25 @@ void Leaf::set_physiology(double area_leaf, const std::vector<double>& mass_root
    transpiration_cached_ = false;
    sapwood_volume_per_leaf_area_ = sapwood_volume_per_leaf_area;
    ca_ = ca;
-   vcmax_ = peak_arrh_curve(vcmax_ha, vcmax_25, leaf_temp_, vcmax_H_d, vcmax_d_S);
-   jmax_ = peak_arrh_curve(jmax_ha, jmax_25, leaf_temp_, jmax_H_d, jmax_d_S);
+   // Temperature/O2-dependent block: recomputed only when (leaf_temp_,
+   // atm_o2_kpa_) changes from the previous call (see photo_temp_cache_ in the
+   // header). Same inputs -> bit-identical outputs, so reusing is exact.
+   if (!(photo_temp_cached_ &&
+         leaf_temp_ == photo_temp_cache_leaf_temp_ &&
+         atm_o2_kpa_ == photo_temp_cache_atm_o2_kpa_)) {
+     vcmax_ = peak_arrh_curve(vcmax_ha, vcmax_25, leaf_temp_, vcmax_H_d, vcmax_d_S);
+     jmax_ = peak_arrh_curve(jmax_ha, jmax_25, leaf_temp_, jmax_H_d, jmax_d_S);
+     gamma_ = arrh_curve(gamma_ha, gamma_25, leaf_temp_);
+     ko_ = arrh_curve(ko_ha, ko_25, leaf_temp_);
+     kc_ = arrh_curve(kc_ha, kc_25, leaf_temp_);
+     R_d_ = vcmax_*0.015;
+     km_ = (kc_*umol_per_mol_to_Pa)*(1 + (atm_o2_kpa_*kPa_to_Pa)/(ko_*umol_per_mol_to_Pa));
+     photo_temp_cache_leaf_temp_ = leaf_temp_;
+     photo_temp_cache_atm_o2_kpa_ = atm_o2_kpa_;
+     photo_temp_cached_ = true;
+   }
+   // depends on the per-call PPFD_ (and cached jmax_), so always recomputed
    electron_transport_ = electron_transport();
-   gamma_ = arrh_curve(gamma_ha, gamma_25, leaf_temp_);
-   ko_ = arrh_curve(ko_ha, ko_25, leaf_temp_);
-   kc_ = arrh_curve(kc_ha, kc_25, leaf_temp_);
-   R_d_ = vcmax_*0.015;
-   km_ = (kc_*umol_per_mol_to_Pa)*(1 + (atm_o2_kpa_*kPa_to_Pa)/(ko_*umol_per_mol_to_Pa));
 
    dz_ = soil_depth_.back()/soil_number_of_depths_;
 

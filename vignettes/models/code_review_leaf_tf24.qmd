@@ -29,7 +29,7 @@ its trajectory shift quantified) before it is considered done.
 
 | # | File / location | Issue | Class | Status |
 |---|---|---|---|---|
-| 1 | `leaf_model.cpp:208-215` | `set_physiology` recomputes all temperature-dependent photosynthesis params every call though they depend only on `leaf_temp_`, `atm_o2_kpa_` | Performance | TODO |
+| 1 | `leaf_model.cpp:208-215` | `set_physiology` recomputes all temperature-dependent photosynthesis params every call though they depend only on `leaf_temp_`, `atm_o2_kpa_` | Performance → hygiene | **DONE** |
 | 2 | `tf24_strategy.cpp:342` | `mass_root_prop_` heap-allocated every `net_mass_production_dt` call | Hygiene (not speed — see note) | **DONE** |
 | 3 | `leaf_model.cpp:981` | `hydraulic_cost_TF` does `exp(-pow(...))` per profit eval on the Brent inner loop | Performance | REJECTED (see test-root.qmd Phase 2) |
 | 4 | `leaf_model.cpp:338-477` | pervasive `isfinite` guards inside the `E_from_Soil_to_Root_Collar` hot loop | Performance / clarity | TODO |
@@ -100,11 +100,28 @@ different operating point and was left as-is.)
   the value is clamped to a small positive floor (1e-4); the original rationale
   was never recorded, so that is noted rather than invented.
 
+### #1 — temperature/O2-param cache (DONE — clarity, NOT a speed win)
+
+`set_physiology` recomputed `vcmax_, jmax_, gamma_, ko_, kc_, R_d_, km_` (≈8
+Arrhenius transcendentals) every call, though they are pure functions of
+`(leaf_temp_, atm_o2_kpa_)`. Now cached on that key (`photo_temp_cached_`),
+recomputed only when the key changes, invalidated in `setup_clean_leaf`.
+`electron_transport_` is deliberately **excluded** — it also depends on the
+per-call `PPFD_`, so it is still computed every call.
+
+**Bit-identical, but measured as a speed wash** (A/B on the 15-layer MPL=5
+scenario, median of 5): baseline 6.98 s vs cached 7.07 s — no gain, within noise.
+This matches the Phase 2 profile in `test-root.qmd`: `set_physiology` is not on
+the hot path (the nested solver dominates), so caching ~8 transcendentals that
+run once per `net_mass_production_dt` saves noise-level work. `offspring_production`
+and the full-trajectory digest are identical (1.64927177539e-06 / 164392.960996).
+
+**Kept anyway** — it removes a genuinely redundant recomputation and is exact;
+the value is code clarity, not speed. (See the Phase-3 note in `test-root.qmd`.)
+
 ## Suggested ordering for the rest
 
-1. **#1** (temp-param cache) — real speed win; numerics must stay bit-identical
-   (cache the exact same `exp`/`pow` outputs keyed on `leaf_temp_`,`atm_o2_kpa_`).
-3. **#9 / #10** — promote magic constants to traits and unify the unit factors;
+1. **#9 / #10** — promote magic constants to traits and unify the unit factors;
    touches the soil-water coupling, so re-run the 15-layer scenario.
-4. **#7** — the sign-convention cleanup is the highest-value correctness work but
+2. **#7** — the sign-convention cleanup is the highest-value correctness work but
    also the riskiest; do it last, with the full validation sweep.

@@ -218,6 +218,18 @@ public:
   double transpiration_cache_psi_stem_ = 0.0;
   double transpiration_cache_psi_upstream_ = 0.0;
   double transpiration_cache_value_ = 0.0;
+
+  // Cache for the temperature/O2-dependent photosynthesis parameters set in
+  // set_physiology (vcmax_, jmax_, gamma_, ko_, kc_, R_d_, km_). They are pure
+  // functions of (leaf_temp_, atm_o2_kpa_) and constants, so when the key is
+  // unchanged the Arrhenius transcendentals are skipped and the members reused
+  // (bit-identical: same inputs -> same outputs). In the current driver
+  // leaf_temp_/atm_o2_kpa_ are constant across the run, so this fires once.
+  // NOTE: electron_transport_ is deliberately NOT cached here -- it also depends
+  // on the per-call PPFD_ and is recomputed every call.
+  bool   photo_temp_cached_ = false;
+  double photo_temp_cache_leaf_temp_ = 0.0;
+  double photo_temp_cache_atm_o2_kpa_ = 0.0;
   std::vector<double> f_r;
   // TODO: move into environment?
 
