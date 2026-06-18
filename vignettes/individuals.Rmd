@@ -438,10 +438,9 @@ indv$rate("height")
 The light level at which carbon gain becomes zero is the "whole
 plant light compensation point".
 
-<!-- TODO: Remove below once lcp works -->
 ```{r}
 openness <- seq(0, 1, length.out=51)
-lcp <- 0.299
+lcp <- indv$resource_compensation_point()
 ```
 
 Height growth rate increases in a saturating fashion with

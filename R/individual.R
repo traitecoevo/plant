@@ -231,19 +231,14 @@ grow_individual_bisect <- function(runner, size, size_name, t0, t1, y0) {
 }
 
 #' Compute the whole plant light compensation point for a single
-#' plant.
+#' plant: the light level at which whole-plant carbon gain is zero.
 #' @title Whole plant light compensation point
-#' @param p A \code{PlantPlus}, with strategy, height, etc set.
+#' @param p An \code{Individual}, with strategy, height, etc set.
 #' @param ... Additional arguments that are ignored
 #' @export
 #' @author Rich FitzJohn
 resource_compensation_point <- function(p, ...) {
-  UseMethod("resource_compensation_point")
-}
-
-##' @export
-resource_compensation_point.Plant <- function(p, ...) {
-  resource_compensation_point(p, ...)
+  p$resource_compensation_point()
 }
 
 #' The function `optimise_individual_rate_at_height_by_trait` and `optimise_individual_rate_at_size_by_trait` solve for the maximum of

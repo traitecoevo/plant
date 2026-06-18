@@ -227,11 +227,11 @@ make_FF16_hyperpar <- function(
       ret
     }
 
-    # This needed in case narea has length zero, in which case trapezium fails
+    # Guard against narea having length zero (e.g. an empty trait matrix),
+    # in which case trapezium() fails. k_I always feeds into
+    # approximate_annual_assimilation() below, so no extra check is needed.
     a_p1 <- a_p2 <- 0 * narea
-    ## TODO: Remove the 0.5 hardcoded default for k_I here, and deal
-    ## with this more nicely.
-    if (length(narea) > 0 || k_I != 0.5) {
+    if (length(narea) > 0) {
       i <- match(narea, unique(narea))
       y <- vapply(unique(narea), approximate_annual_assimilation,
                   numeric(2), latitude)
