@@ -4,10 +4,6 @@
 
 namespace plant {
 
-// TODO: Document consistent argument order: l, b, s, h, r
-// TODO: Document ordering of different types of variables (size
-// before physiology, before compound things?)
-// TODO: Consider moving to activating as an initialisation list?
 K93_Strategy::K93_Strategy() {
    // * Empirical parameters - Table 1.
    height_0 = 2.0; // Height at birth
