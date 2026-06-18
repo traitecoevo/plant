@@ -109,8 +109,12 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   double area_leaf_ = vars.aux(COMPETITION_EFFECT_AUX_INDEX);
   double height_inverse = vars.aux(HEIGHT_INVERSE_AUX_INDEX);
 
+  // Reuse the sapwood intermediates the worker already computes (for
+  // respiration/turnover) rather than recomputing them below; bit-identical.
+  double area_sapwood_, mass_sapwood_;
   const double net_mass_production_dt_ =
-    net_mass_production_dt(environment, height, area_leaf_, height_inverse);
+    net_mass_production_dt(environment, height, area_leaf_, height_inverse,
+                           area_sapwood_, mass_sapwood_);
 
   // store the aux sate
   vars.set_aux(NET_MASS_PRODUCTION_DT_AUX_INDEX, net_mass_production_dt_);
@@ -135,8 +139,6 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
       fecundity_dt(net_mass_production_dt_, fraction_allocation_reproduction_));
 
     vars.set_rate(state_index.at("area_heartwood"), area_heartwood_dt(area_leaf_));
-    const double area_sapwood_ = area_sapwood(area_leaf_);
-    const double mass_sapwood_ = mass_sapwood(area_sapwood_, height);
     vars.set_rate(state_index.at("mass_heartwood"), mass_heartwood_dt(mass_sapwood_));
 
     if (collect_all_auxiliary) {
@@ -262,9 +264,18 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
 double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment,
                                 double height, double area_leaf_,
                                 double height_inverse) {
+  double area_sapwood_, mass_sapwood_;
+  return net_mass_production_dt(environment, height, area_leaf_, height_inverse,
+                                area_sapwood_, mass_sapwood_);
+}
+
+double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment,
+                                double height, double area_leaf_,
+                                double height_inverse,
+                                double& area_sapwood_, double& mass_sapwood_) {
   const double mass_leaf_    = mass_leaf(area_leaf_);
-  const double area_sapwood_ = area_sapwood(area_leaf_);
-  const double mass_sapwood_ = mass_sapwood(area_sapwood_, height);
+  area_sapwood_ = area_sapwood(area_leaf_);
+  mass_sapwood_ = mass_sapwood(area_sapwood_, height);
   const double area_bark_    = area_bark(area_leaf_);
   const double mass_bark_    = mass_bark(area_bark_, height);
   const double mass_root_    = mass_root(area_leaf_);

@@ -161,6 +161,13 @@ public:
   double net_mass_production_dt(const TF24_Environment& environment,
                                 double height, double area_leaf_,
                                 double height_inverse);
+  // Worker overload that also reports the sapwood intermediates so callers
+  // (compute_rates) can reuse them instead of recomputing. Bit-identical: the
+  // out-refs receive exactly the values the body already computed.
+  double net_mass_production_dt(const TF24_Environment& environment,
+                                double height, double area_leaf_,
+                                double height_inverse,
+                                double& area_sapwood_, double& mass_sapwood_);
 
   // [eqn 16] Fraction of whole plan growth that is leaf
   virtual double fraction_allocation_reproduction(double height) const;
