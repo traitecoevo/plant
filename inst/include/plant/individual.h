@@ -21,6 +21,10 @@ public:
     if (strategy->aux_index.size() != s->aux_size()) {
       strategy->refresh_indices();
     }
+    // Resolve the named aux slots once at construction so the hot
+    // compute_competition() / net_mass_production_dt() paths read them by
+    // integer index instead of a std::map<string,int>::at lookup per call
+    // (those lookups were visible in profiling, see #466).
     competition_effect_aux_index = strategy->aux_index.at("competition_effect");
     height_inverse_aux_index = strategy->aux_index.at("height_inverse");
     vars.resize(strategy_type::state_size(), s->aux_size()); // = Internals(strategy_type::state_size());
@@ -133,6 +137,9 @@ public:
   void reset_mortality() { set_state("mortality", 0.0); }
 
   double growth_rate_given_height(double height, const environment_type& environment) {
+    // Called repeatedly from the finite-difference gradient (Node::
+    // growth_rate_gradient), so address height by integer slot rather than the
+    // "height" string-map lookup (see #466).
     set_state(HEIGHT_INDEX, height);
     compute_rates(environment);
     return rate(HEIGHT_INDEX);
@@ -172,6 +179,7 @@ public:
 private:
   strategy_type_ptr strategy;
   Internals vars;
+  // Cached aux slot indices (see constructor) for hot-path access.
   int competition_effect_aux_index;
   int height_inverse_aux_index;
 };

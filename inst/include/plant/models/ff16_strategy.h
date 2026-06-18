@@ -14,6 +14,13 @@ public:
   typedef std::shared_ptr<FF16_Strategy> ptr;
   FF16_Strategy();
 
+  // Fixed integer slots for the hot ODE rate path, used instead of
+  // state_index.at("...") / aux_index.at("...") string-map lookups (those map
+  // lookups showed up in profiling, see #466). These MUST stay in sync with
+  // the order of state_names() and aux_names() below: *_INDEX is the position
+  // of that name in state_names(), *_AUX_INDEX the position in aux_names(). If
+  // you add/reorder a name there, update these constants (refresh_indices()
+  // still validates the named maps used by the R-facing paths).
   static constexpr int AREA_HEARTWOOD_INDEX = 3;
   static constexpr int MASS_HEARTWOOD_INDEX = 4;
   static constexpr int COMPETITION_EFFECT_AUX_INDEX = 0;

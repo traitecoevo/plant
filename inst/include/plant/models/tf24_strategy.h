@@ -27,6 +27,10 @@ public:
 
   // Overrides ----------------------------------------------
 
+  // Fixed aux slots for the hot ODE rate path, used instead of
+  // aux_index.at("...") string-map lookups (see #466). These MUST stay in sync
+  // with the order of aux_names() below. If you add/reorder an aux name,
+  // update these constants.
   static constexpr int COMPETITION_EFFECT_AUX_INDEX = 0;
   static constexpr int HEIGHT_INVERSE_AUX_INDEX = 1;
   static constexpr int NET_MASS_PRODUCTION_DT_AUX_INDEX = 2;
