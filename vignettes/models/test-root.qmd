@@ -547,9 +547,17 @@ findings, not the Phase-1 perf items).
 hot path is structurally optimised; this round was deliberately clarity-first,
 not a performance pass. The changes that landed (review #2 reusable root-mass
 buffer, #5 shared spline builder, #6 shut-down-state helper, #8 de-shadowed
-locals, #11 naming) are all **bit-identical and runtime-neutral by
-construction** — they dedupe code or rename, they do not touch the arithmetic or
-the number of evals.
+locals, #9/#10 named constants, #11 naming) are all **bit-identical and
+runtime-neutral by construction** — they dedupe code or rename, they do not touch
+the arithmetic or the number of evals.
+
+**One intentional output change (review #7).** The psi sign-convention cleanup
+made `root_collar_psi_` (the `opt_root_psi` aux) sign-consistent across all
+`find_root_collar_psi` branches. A per-column A/B confirms every *driver* (height,
+profit, transpiration, `E_up_`, soil consumption, `offspring_production`) is
+bit-identical; the **only** change is the `opt_root_psi` diagnostic, which becomes
+a pure sign flip. So a full-trajectory digest will differ from pre-#7 builds *in
+that aux alone* — by design, not a science change.
 
 ### Tried: cache the temperature/O₂ photosynthesis params (review #1)
 

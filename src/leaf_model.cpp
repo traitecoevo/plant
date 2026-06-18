@@ -276,6 +276,39 @@ void Leaf::set_physiology(double area_leaf, const std::vector<double>& mass_root
   assim_max_ = assim_colimited(ca_);
 }
 
+// ===========================================================================
+// SIGN CONVENTIONS FOR WATER POTENTIAL (psi)  [review #7]
+// ---------------------------------------------------------------------------
+// This file deliberately uses TWO psi conventions, each natural to its domain.
+// They meet at a few clearly-marked "bridge" points that flip with a leading
+// minus sign; read those flips with this map in hand:
+//
+//   * SIGNED (negative) potentials -- the soil -> root-collar transport.
+//     psi_soil arrives as positive magnitudes and is flipped once into
+//     psi_soil_inverted_ (<= 0). From there P_x_r, the find_root_psi / E_column
+//     root variable `x`, find_psi_stem_from_psi_root's psi_root, and
+//     transpiration_to_psi_stem's psi_upstream are all SIGNED (<= 0). The
+//     physics here uses real signed gradients (psi_soil - P_x_r - gravity*z).
+//     The vulnerability splines take a magnitude, so these sites flip back with
+//     a leading `-` (e.g. root_vuln_from_psi.eval(-P_src_min)).
+//
+//   * POSITIVE magnitudes -- the root-collar -> leaf supply. transpiration(),
+//     proportion_of_conductivity, hydraulic_cost_TF, psi_stem_to_ci,
+//     profit_psi_stem_TF, opt_psi_stem_, psi_crit and the four splines all take
+//     a positive magnitude. NB: transpiration() reads eval(psi_upstream)
+//     directly while its inverse transpiration_to_psi_stem() reads
+//     eval(-psi_upstream): NOT a bug -- they are called with psi_upstream of
+//     OPPOSITE sign (positive vs signed), so each is internally consistent.
+//
+//   * root_collar_psi_ (exported as the opt_root_psi aux) is stored as a SIGNED
+//     (negative) potential in ALL branches of find_root_collar_psi (#7 made the
+//     Brent / collapsed / root_psi_crit exits agree with the shut-down exits).
+//
+// Known remaining wart (out of #7 scope): opt_psi_stem_ is a positive magnitude
+// everywhere except the assim_max_ < 0 early-exit, where it is set to the signed
+// root_zero_E. Left as-is to keep this change scoped to root_collar_psi_.
+// ===========================================================================
+//
 // ---------------------------------------------------------------------------
 // SOIL -> ROOT-COLLAR WATER TRANSPORT
 // ---------------------------------------------------------------------------
@@ -603,7 +636,9 @@ void Leaf::set_shutdown_state(double root_collar) {
 void Leaf::find_root_collar_psi(){
 
 
-  // Psi soil comes in as positive values but is utilised as negative so need to flip TODO: change thi s around
+  // psi_soil_ arrives as positive magnitudes; flip once to the signed (negative)
+  // potential convention used throughout the soil->collar transport (see the
+  // sign-conventions block above E_from_Soil_to_Root_Collar).
   psi_soil_inverted_.resize(max_soil_layer);
   // Precompute the soil-side cumulative-integral lookups once per solve; the
   // argument fed to the spline in E_from_Soil_to_Root_Collar when the soil layer
@@ -627,7 +662,9 @@ void Leaf::find_root_collar_psi(){
   }
 
 if(E_column(-psi_crit, psi_soil_inverted_, psi_crit) < 0){
-      set_shutdown_state(root_psi_crit);
+      // root_collar_psi_ is reported as a signed (negative) potential, so store
+      // -root_psi_crit rather than the positive magnitude root_psi_crit.
+      set_shutdown_state(-root_psi_crit);
       return;
 }
 
@@ -683,8 +720,11 @@ if(assim_max_ < 0){
       }
 
       opt_psi_stem_ = psi_stem_single;
-      root_collar_psi_ = opt_root_psi;
-      profit_ = profit_psi_stem_TF(opt_psi_stem_, root_collar_psi_);
+      // profit_psi_stem_TF takes psi_upstream as a positive magnitude, so feed
+      // it opt_root_psi; root_collar_psi_ is stored as the signed (negative)
+      // potential for a sign-consistent aux output.
+      profit_ = profit_psi_stem_TF(opt_psi_stem_, opt_root_psi);
+      root_collar_psi_ = -opt_root_psi;
 
       if (!std::isfinite(profit_)) {
         util::stop("Error: non-finite profit in collapsed-root interval; "
@@ -722,7 +762,9 @@ if(assim_max_ < 0){
 
     opt_psi_stem_ = find_psi_stem_from_psi_root(-opt_root_psi, psi_soil_inverted_);
 
-    root_collar_psi_ = opt_root_psi;
+    // store as the signed (negative) potential for a sign-consistent aux output;
+    // profit_ was already computed by Brent from the positive-magnitude bound.
+    root_collar_psi_ = -opt_root_psi;
     profit_ = -neg_profit_opt;
 
     if(!std::isfinite(profit_)){
@@ -834,6 +876,9 @@ double Leaf::transpiration_full_integration(double psi_stem, double psi_upstream
  }
 
 //calculates supply-side transpiration from psi_stem and root_collar_psi_, returns kg h20 s^-1 m^-2 LA
+// SIGN: psi_stem and psi_upstream are POSITIVE magnitudes here (passed straight
+// to the spline). Contrast transpiration_to_psi_stem below. See the sign-
+// conventions block above E_from_Soil_to_Root_Collar.
 double Leaf::transpiration(double psi_stem, double psi_upstream) {
 
   // 1-entry memo: identical (psi_stem, psi_upstream) is requested several times
@@ -858,6 +903,9 @@ double Leaf::transpiration(double psi_stem, double psi_upstream) {
 }
 
 // converts a known transpiration to its corresponding psi_stem, returns -MPa
+// SIGN: unlike transpiration() above, psi_upstream here is a SIGNED (negative)
+// potential, so it is flipped with a leading `-` before the spline lookup. The
+// two functions are inverses called with opposite-sign psi_upstream.
 double Leaf::transpiration_to_psi_stem(double transpiration_, double psi_upstream) {
   // integration of proportion_of_conductivity over [root_collar_psi_, psi_stem]
 
