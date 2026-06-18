@@ -573,4 +573,28 @@ l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root_prop, rho = 
 l$find_root_collar_psi()
 expect_equal(l$profit_, -vcmax_25*0.015-l$hydraulic_cost_TF(psi_crit))
 l$root_collar_psi_
+
+# assim_max_ < 0 early-exit: wet soil (so the upstream shut-down exits are NOT
+# taken) but zero light, so maximum assimilation at ci = ca is below dark
+# respiration. The plant operates at root_zero_E (collar where soil uptake is
+# zero); at zero transpiration the stem equilibrates with the collar.
+  soil_depth = c(0.5, 1)
+  psi_soil = c(0, 0)
+  mass_root_prop = c(1, 1)
+l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root_prop, rho = 608, a_bio = 0.0245, PPFD = 0, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+
+# confirm we exercise the assim_max_ < 0 branch
+expect_true(l$assim_max_ < 0)
+
+l$find_root_collar_psi()
+
+# opt_psi_stem_ is reported as a POSITIVE magnitude in every branch of
+# find_root_collar_psi (the assim_max_ < 0 exit used to leak the signed
+# root_zero_E here -- the sign wart fixed alongside review #7).
+expect_true(l$opt_psi_stem_ > 0)
+# root_collar_psi_ is the signed (negative) potential (review #7).
+expect_true(l$root_collar_psi_ < 0)
+# at zero transpiration the stem equilibrates with the collar: same potential,
+# so the magnitudes match and the two auxes are exact negatives of each other.
+expect_equal(l$opt_psi_stem_, -l$root_collar_psi_)
 })

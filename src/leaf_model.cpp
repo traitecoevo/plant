@@ -304,9 +304,10 @@ void Leaf::set_physiology(double area_leaf, const std::vector<double>& mass_root
 //     (negative) potential in ALL branches of find_root_collar_psi (#7 made the
 //     Brent / collapsed / root_psi_crit exits agree with the shut-down exits).
 //
-// Known remaining wart (out of #7 scope): opt_psi_stem_ is a positive magnitude
-// everywhere except the assim_max_ < 0 early-exit, where it is set to the signed
-// root_zero_E. Left as-is to keep this change scoped to root_collar_psi_.
+//   * opt_psi_stem_ (exported as the opt_psi_stem aux) is a POSITIVE magnitude in
+//     ALL branches. The assim_max_ < 0 early-exit previously stored the signed
+//     root_zero_E here (the lone exception, out of #7 scope); it now stores
+//     -root_zero_E so the aux never flips sign by code path.
 // ===========================================================================
 //
 // ---------------------------------------------------------------------------
@@ -684,7 +685,12 @@ double root_zero_E = find_root_psi(wettest_soil_layer, psi_soil_inverted_, 0);
 
 // If assimilation would be less than 0 even at Ca, also end loop
 if(assim_max_ < 0){
-    opt_psi_stem_ = root_zero_E;
+    // At zero transpiration the stem equilibrates with the collar (no flux, no
+    // gradient), so the operating point is root_zero_E for both. root_collar_psi_
+    // is the signed (negative) potential (#7); opt_psi_stem_ is the matching
+    // positive magnitude (-root_zero_E), keeping it sign-consistent with every
+    // other branch of this solver.
+    opt_psi_stem_ = -root_zero_E;
     root_collar_psi_ = root_zero_E;
     E_from_Soil_to_Root_Collar(root_collar_psi_, psi_soil_inverted_);
 
