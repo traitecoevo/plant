@@ -21,6 +21,7 @@ Meta
 *.knit.md
 *.wiki
 *.pdf
+*.png
 *.RDS
 
 # Claude Code personal settings
