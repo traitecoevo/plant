@@ -59,10 +59,24 @@ public:
     spline.clear();
   }
 
+  // Highest height covered by the spline; above this get_value_at_height()
+  // returns the hard-coded open value (1.0). Hoist this out of hot per-point
+  // loops with get_value_at_height(height, cap).
+  double max_height() const { return spline.max(); }
+
   double get_value_at_height(double height) const {
-    const bool within = height <= spline.max();
+    return get_value_at_height(height, spline.max());
+  }
+
+  // Variant taking a pre-fetched cap (= max_height()) so callers integrating
+  // over many points pay the spline.max() lookup once rather than per point.
+  double get_value_at_height(double height, double cap) const {
     // TODO: change maximum - here hard-coded to 1.0
-    return within ? spline.eval(height) : 1.0;
+    // `cap` already guards the upper bound and the crown integral keeps
+    // height >= 0 = spline.min(), so use the unchecked operator() rather than
+    // eval() to avoid re-running check_active()/bound checks per quadrature
+    // point. Same underlying tk_spline(height) call, so bit-identical.
+    return height <= cap ? spline(height) : 1.0;
   }
 
   virtual void r_init_interpolators(const std::vector<double>& state) {

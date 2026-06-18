@@ -52,7 +52,7 @@ tidy_env <- function(results) {
   cumulative_names <- c("sum_rainfall","sum_infiltration","sum_drainage","sum_resource_depletion")
   
   env_long$soil_moist_cumulative_flux <- env_long$soil_moist_cumulative_flux %>%
-    dplyr::mutate(cumulative_variables = rep(cumulative_names, times = nrow(.)/length(cumulative_names))) %>%
+    dplyr::mutate(cumulative_variables = rep(cumulative_names, times = dplyr::n()/length(cumulative_names))) %>%
     tidyr::pivot_wider(names_from = "cumulative_variables", values_from = "soil_moist_cumulative_flux")
   }
   return(env_long)
@@ -61,7 +61,7 @@ tidy_env <- function(results) {
 
 #' Turns output of plant solver into a tidy data object 
 #'
-#' @param results output of run_scm_collect
+#' @param results output of run_scm(..., collect = TRUE)
 #'
 #' @return a list, containing outputs of plant solver in tidy format
 #' @importFrom rlang .data

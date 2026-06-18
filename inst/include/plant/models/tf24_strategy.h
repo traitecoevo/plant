@@ -43,6 +43,7 @@ public:
   std::vector<std::string> aux_names() {
     std::vector<std::string> ret({
       "competition_effect",
+      "height_inverse",
       "net_mass_production_dt",
       "root_mass",
       "opt_psi_stem",
@@ -139,7 +140,8 @@ public:
                                   double turnover) const;
 
   virtual double net_mass_production_dt(const TF24_Environment& environment,
-                                double height, double area_leaf_);
+                                double height, double area_leaf_,
+                                double height_inverse);
 
   // [eqn 16] Fraction of whole plan growth that is leaf
   virtual double fraction_allocation_reproduction(double height) const;
@@ -198,6 +200,11 @@ public:
   // * Competitive environment
   // [eqn 11] total projected leaf area above height above height `z` for given plant
   double compute_competition(double z, double height) const;
+  // Optimised overload called from Individual<TF24>::compute_competition with the
+  // cached competition_effect (= area_leaf(height)) and height_inverse (= 1/height)
+  // aux values, matching the shared individual.h interface (no recompute per call).
+  double compute_competition(double z, double area_leaf_,
+                             double height_inverse) const;
 
   // [eqn  9] Probability density of leaf area at height `z`
   double q(double z, double height) const;
@@ -341,6 +348,7 @@ public:
   // compute_rates path does not do a std::map<string,int>::at (string compare)
   // lookup per ODE derivs evaluation per individual (profile hot spot).
   int aux_idx_competition_effect = -1;
+  int aux_idx_height_inverse = -1;
   int aux_idx_net_mass_production_dt = -1;
   int aux_idx_root_mass = -1;
   int aux_idx_opt_psi_stem = -1;

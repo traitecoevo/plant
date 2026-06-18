@@ -64,6 +64,7 @@ void TF24_Strategy::refresh_indices () {
   // Cache integer indices for the keys used in the hot compute_rates path, so
   // it no longer does a std::map<string,int> lookup per derivs evaluation.
   aux_idx_competition_effect    = aux_index.at("competition_effect");
+  aux_idx_height_inverse        = aux_index.at("height_inverse");
   aux_idx_net_mass_production_dt = aux_index.at("net_mass_production_dt");
   aux_idx_root_mass             = aux_index.at("root_mass");
   aux_idx_opt_psi_stem          = aux_index.at("opt_psi_stem");
@@ -142,6 +143,7 @@ void TF24_Strategy::update_dependent_aux(const int index, Internals& vars) {
   if (index == HEIGHT_INDEX) {
     double height = vars.state(HEIGHT_INDEX);
     vars.set_aux(aux_idx_competition_effect, area_leaf(height));
+    vars.set_aux(aux_idx_height_inverse, 1.0 / height);
   }
 }
 
@@ -153,7 +155,8 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   double area_leaf_ = vars.aux(aux_idx_competition_effect);
 
   const double net_mass_production_dt_ =
-    net_mass_production_dt(environment, height, area_leaf_);
+    net_mass_production_dt(environment, height, area_leaf_,
+                           vars.aux(aux_idx_height_inverse));
 
   // store the aux sate
   vars.set_aux(aux_idx_net_mass_production_dt, net_mass_production_dt_);
@@ -305,7 +308,11 @@ double TF24_Strategy::net_mass_production_dt_A(double assimilation, double respi
 // One shot calculation of net_mass_production_dt
 // Used by establishment_probability() and compute_rates().
 double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment,
-                                double height, double area_leaf_) {
+                                double height, double area_leaf_,
+                                double height_inverse) {
+  // height_inverse (= 1/height) is supplied by the shared individual.h interface
+  // (cached aux); unused here as the TF24 root-water path works in height directly.
+  (void)height_inverse;
   const double mass_leaf_    = mass_leaf(area_leaf_);
   const double area_sapwood_ = area_sapwood(area_leaf_);
   const double mass_sapwood_ = mass_sapwood(area_sapwood_, height);
@@ -582,7 +589,7 @@ double TF24_Strategy::establishment_probability(const TF24_Environment& environm
   double decay_over_time = exp(-recruitment_decay * environment.time);
   
   const double net_mass_production_dt_ =
-    net_mass_production_dt(environment, height_0, area_leaf_0);
+    net_mass_production_dt(environment, height_0, area_leaf_0, 1.0 / height_0);
   if (net_mass_production_dt_ > 0) {
     const double tmp = a_d0 * area_leaf_0 / net_mass_production_dt_;
     return 1.0 / (tmp * tmp + 1.0) * decay_over_time;
@@ -593,6 +600,20 @@ double TF24_Strategy::establishment_probability(const TF24_Environment& environm
 
 double TF24_Strategy::compute_competition(double z, double height) const {
   return k_I * area_leaf(height) * Q(z, height, eta);
+}
+
+// Ratio-first hot-path overload (see header): receives the cached
+// competition_effect (= area_leaf(height)) and height_inverse (= 1/height), so the
+// per-call area_leaf() evaluation and z/height division are hoisted out of the
+// inner competition loop. Reproduces k_I * area_leaf(height) * Q(z, height, eta).
+double TF24_Strategy::compute_competition(double z, double area_leaf_,
+                                          double height_inverse) const {
+  const double u = z * height_inverse;  // z / height
+  if (u > 1.0) {
+    return 0.0;
+  }
+  const double tmp = 1.0 - pow(u, eta);
+  return k_I * area_leaf_ * tmp * tmp;
 }
 
 // [eqn  9] Probability density of leaf area at height `z`

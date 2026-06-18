@@ -598,3 +598,110 @@ expect_true(l$root_collar_psi_ < 0)
 # so the magnitudes match and the two auxes are exact negatives of each other.
 expect_equal(l$opt_psi_stem_, -l$root_collar_psi_)
 })
+
+# Medlyn stomatal-conductance model (ported/adapted from develop #450). The
+# Medlyn solvers are a standalone, R-callable alternative to the root-collar
+# profit optimisation and are not on the TF24 compute path; g0/g1 are exposed as
+# settable fields rather than constructor args in this branch.
+test_that("Medlyn stomatal model", {
+  vcmax_25 = 100
+  jmax_25 = vcmax_25 * 167
+  c = 2.04
+  b = 3
+  psi_crit = 5
+  theta = 0.000157
+  K_s = 1
+  h = 5
+  beta2 = 1
+  hk_s = 75
+  curv_fact_elec_trans = 0.7
+  a = 0.3
+  curv_fact_colim = 0.99
+  g1_TF24 = 46.32995
+  GSS_tol_abs = 1e-8
+  vulnerability_curve_ncontrol = 100
+  ci_abs_tol = 1e-6
+  ci_niter = 1000
+  beta_R_H = 3.4e3
+  beta_R_V = 9.4e4
+  root_c = 2.65
+  root_b = 1.29
+  root_psi_crit = root_b * (log(1.0 / 0.05))^(1.0 / root_c)
+
+  PPFD = 900
+  sapwood_volume_per_leaf_area = theta * h
+  leaf_specific_conductance_max = K_s * theta / h
+  atm_vpd = 2
+  ca = 40
+  atm_o2_kpa_ = 21
+  leaf_temp_ = 25
+  atm_kpa_ = 101.3
+  area_leaf_ = 0.05
+
+  make_leaf <- function() {
+    Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit,
+         root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, beta2 = beta2,
+         hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans,
+         curv_fact_colim = curv_fact_colim, GSS_tol_abs = GSS_tol_abs,
+         vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol,
+         ci_niter = ci_niter, g1_TF24 = g1_TF24, beta_R_H = beta_R_H, beta_R_V = beta_R_V)
+  }
+  set_phys <- function(l, psi_soil = 2, atm_vpd = 2) {
+    l$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245,
+                     PPFD = PPFD, psi_soil = psi_soil, soil_depth = 0.5,
+                     leaf_specific_conductance_max = leaf_specific_conductance_max,
+                     atm_vpd = atm_vpd, ca = ca,
+                     sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area,
+                     leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+    l
+  }
+
+  # g0/g1 default to the published Medlyn (2011) values (settable fields here)
+  l <- make_leaf()
+  expect_equal(l$g0, 0.022)
+  expect_equal(l$g1, 2.57)
+
+  # numerical solver: reference values for this branch's build (regression guard)
+  l <- set_phys(make_leaf())
+  l$solve_medlyn_ci_numerical()
+  expect_equal(l$ci_, 19.636480, tolerance = 1e-5)
+  expect_equal(l$stom_cond_CO2_, 0.1205285, tolerance = 1e-6)
+  expect_equal(l$assim_colimited_, 15.143049, tolerance = 1e-5)
+  # operating point is physically sane: gamma* < ci < ca, positive gs and assim
+  expect_true(l$ci_ > 0 && l$ci_ < ca)
+  expect_true(l$stom_cond_CO2_ > 0)
+  expect_true(l$assim_colimited_ > 0)
+
+  # psi_soil has no effect on the Medlyn solution (it is a soil-water, not a
+  # supply-side, model): same ci/gs/assim for a different soil potential
+  l2 <- set_phys(make_leaf(), psi_soil = 3)
+  l2$solve_medlyn_ci_numerical()
+  expect_equal(l2$ci_, l$ci_, tolerance = 1e-5)
+  expect_equal(l2$stom_cond_CO2_, l$stom_cond_CO2_, tolerance = 1e-6)
+
+  # analytical version: stomatal conductance decreases with rising vapour-pressure
+  # deficit (Medlyn 2011 1/sqrt(D) sensitivity)
+  D <- seq(0.5, 5, 0.25)
+  gs <- vapply(D, function(d) {
+    li <- set_phys(make_leaf(), atm_vpd = d)
+    li$g1 <- 3.3
+    li$solve_medlyn_ci_analytical()
+    li$stom_cond_CO2_
+  }, numeric(1))
+  expect_true(coef(stats::lm(gs ~ D))[[2]] < 0)
+
+  # at field-capacity soil moisture (beta_ == 1) with zero residual conductance
+  # (g0 == 0), the numerical optimisation and the analytical Medlyn solution must
+  # coincide -- a core correctness check of the coupled solver.
+  ln <- set_phys(make_leaf())
+  ln$g0 <- 0; ln$g1 <- 3.3; ln$theta_ <- ln$theta_fc_
+  ln$solve_medlyn_ci_numerical()
+  numerical_ci <- ln$ci_
+
+  la <- set_phys(make_leaf())
+  la$g0 <- 0; la$g1 <- 3.3; la$theta_ <- la$theta_fc_
+  la$solve_medlyn_ci_analytical()
+  analytical_ci <- la$ci_
+
+  expect_equal(numerical_ci, analytical_ci, tolerance = 1e-5)
+})

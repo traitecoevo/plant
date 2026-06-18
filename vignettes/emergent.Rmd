@@ -20,9 +20,29 @@ library(plant)
 
 p0 <- scm_base_parameters("FF16")
 p <- expand_parameters(trait_matrix(0.0825, "lma"), p0, birth_rate_list = 17.31)
-patch <- build_schedule(p)
-result <- run_scm_collect(patch)
+patch <- run_scm(p, refine_schedule = TRUE)$parameters
+result <- run_scm(patch, collect = TRUE)
 
+```
+
+```{r, include = FALSE}
+library(dplyr)
+library(tidyr)
+
+# The tidy `species` table returned by `run_scm(collect = TRUE)` has one row
+# per node per step. This helper reshapes a single variable into a matrix with
+# one row per node and one column per step, padding with `NA` for nodes that
+# had not yet been introduced.
+sdd_matrix <- function(species_data, var) {
+  m <- species_data |>
+    dplyr::select(node, step, dplyr::all_of(var)) |>
+    tidyr::pivot_wider(names_from = step, values_from = dplyr::all_of(var)) |>
+    dplyr::arrange(node)
+  as.matrix(m[, -1])
+}
+
+# Light extinction coefficient used when weighting leaf area into competition.
+k_I <- patch$strategies[[1]]$k_I
 ```
 
 # Node densities
@@ -39,21 +59,22 @@ last <- function(x) {
   x[[length(x)]]
 }
 
-times <- c(5, 10, 20, 40, dplyr::last(result$time))
-i <- vapply(times, closest, integer(1), result$time)
+times <- c(5, 10, 20, 40, dplyr::last(result$steps$time))
+i <- vapply(times, closest, integer(1), result$steps$time)
 blues <- c("#DEEBF7", "#C6DBEF", "#9ECAE1", "#6BAED6",
            "#4292C6", "#2171B5", "#08519C", "#08306B")
 cols <- colorRampPalette(blues[-(1:2)])(length(i))
 
-height      <- t(result$species[[1]]["height", , ])
-log_density <- t(result$species[[1]]["log_density", , ])
+species_1   <- dplyr::filter(result$species, species == "1")
+height      <- sdd_matrix(species_1, "height")
+log_density <- sdd_matrix(species_1, "log_density")
 ```
 
 As with height in the [Patches vignette](https://traitecoevo.github.io/plant/articles/patch.html),
 node density is a matrix of time and node identity.  However, to show the
-profiles for a given time slice using `matplot` it is convenient to transpose 
-this matrix (`matplot` works column-by-column so we want each column to
-to be the state of the system at a given time):
+profiles for a given time slice using `matplot` it is convenient to have each
+column be the state of the system at a given time, so here each row is a node
+and each column is a time step:
 
 ```{r}
 density <- exp(log_density)
@@ -99,14 +120,16 @@ the top of the canopy.
 # Leaf area
 
 It's also possible see where the leaf area in the patch is coming
-from; a profile of leaf area with respect to height.  Again, this
-requires reconstructing the patches, and using an unexported
-function from `plant` to put this into a matrix:
+from; a profile of leaf area with respect to height.  The collected
+output records the leaf area (`competition_effect`) of an individual
+in each node, which we weight by node density and the light
+extinction coefficient `k_I` to get each node's contribution to
+patch competition:
 
 ```{r}
-patches <- lapply(seq_along(result$time), scm_patch, result)
-leaf_area <- lapply(patches, function(x) x$species[[1]]$competition_effects)
-leaf_area <- plant:::pad_list_to_array(leaf_area)
+species_1 <- species_1 |>
+  dplyr::mutate(leaf_area = k_I * density * competition_effect)
+leaf_area <- sdd_matrix(species_1, "leaf_area")
 
 matplot(height, leaf_area, type="l", lty=1, col="lightgrey",
         xlim=xlim, xlab="Height (m)",
@@ -124,12 +147,14 @@ population.  This differs from the profile in the [Individuals vignette](https:/
 because it is reduced depending on the light environment, but that
 environment is the one constructed by the individual itself.
 
-```{r}
-ode_size <- patches[[1]]$ode_size
+The collected output records node state rather than instantaneous
+rates, so here we approximate each node's height growth rate by finite
+differences along its trajectory (the change in height between
+successive time steps):
 
-growth_rate <- lapply(patches, function(x)
-                      matrix(x$species[[1]]$ode_rates, ode_size)[1, ])
-growth_rate <- plant:::pad_list_to_array(growth_rate)
+```{r}
+time <- result$steps$time
+growth_rate <- t(apply(height, 1, function(hh) c(NA, diff(hh) / diff(time))))
 
 matplot(height, growth_rate, type="l", lty=1, col="lightgrey",
         xlim=xlim, xlab="Height (m)",
@@ -215,7 +240,7 @@ Now interpolate the height-density relationship in each patch to
 the series of  specified heights
 
 ```{r}
-xx <- lapply(seq_along(result$time),
+xx <- lapply(seq_along(result$steps$time),
              function(i) f(height[, i], density[, i], hh))
 n_hh <- plant:::pad_list_to_array(xx)
 ```
@@ -226,7 +251,7 @@ For each of these heights, we can now integrate across patches
 ```{r}
 trapezium <- plant:::trapezium
 n_av <- apply(n_hh, 1,
-              function(x) trapezium(result$time, x * result$patch_density))
+              function(x) trapezium(result$steps$time, x * result$steps$patch_density))
 ```
 
 Add this average to the plot (red line):

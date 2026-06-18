@@ -125,7 +125,7 @@ p0$max_patch_lifetime <- 5
 p <- expand_parameters(trait_matrix(0.0825, "lma"), p0)
 
 # Controls on numerical methods
-ctrl <- fast_control()
+ctrl <- Control()
 
 # run
 out <- run_scm(p, ctrl = ctrl)
@@ -200,7 +200,7 @@ f(out3$ode_times, "min 0.01")
 We set exact step sizes by specifying max and min step sizes. But this could result in other times, dpeending on the cohort schedule.
 
 ```{r, eval = FALSE}
-ctrl <- scm_base_control()
+ctrl <- Control()
 ctrl$ode_step_size_min <- 0.1
 ctrl$ode_step_size_max <- 0.1
 ctrl$ode_step_size_initial <- 0.1

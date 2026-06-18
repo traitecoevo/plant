@@ -5,6 +5,7 @@
 #include <plant/strategy.h>
 #include <plant/models/ff16_environment.h>
 #include <plant/qag.h>
+#include <plant/canopy_shape.h>
 
 namespace plant {
 
@@ -12,6 +13,20 @@ class FF16_Strategy: public Strategy<FF16_Environment> {
 public:
   typedef std::shared_ptr<FF16_Strategy> ptr;
   FF16_Strategy();
+
+  // Fixed integer slots for the hot ODE rate path, used instead of
+  // state_index.at("...") / aux_index.at("...") string-map lookups (those map
+  // lookups showed up in profiling, see #466). These MUST stay in sync with
+  // the order of state_names() and aux_names() below: *_INDEX is the position
+  // of that name in state_names(), *_AUX_INDEX the position in aux_names(). If
+  // you add/reorder a name there, update these constants (refresh_indices()
+  // still validates the named maps used by the R-facing paths).
+  static constexpr int AREA_HEARTWOOD_INDEX = 3;
+  static constexpr int MASS_HEARTWOOD_INDEX = 4;
+  static constexpr int COMPETITION_EFFECT_AUX_INDEX = 0;
+  static constexpr int HEIGHT_INVERSE_AUX_INDEX = 1;
+  static constexpr int NET_MASS_PRODUCTION_DT_AUX_INDEX = 2;
+  static constexpr int AREA_SAPWOOD_AUX_INDEX = 3;
 
   // Overrides ----------------------------------------------
 
@@ -33,6 +48,7 @@ public:
   std::vector<std::string> aux_names() {
     std::vector<std::string> ret({
       "competition_effect",
+      "height_inverse",
       "net_mass_production_dt"
     });
     // add the associated computation to compute_rates and compute there
@@ -54,7 +70,11 @@ public:
   // FF16 Methods  ----------------------------------------------
 
   // [eqn 2] area_leaf (inverse of [eqn 3])
-  double area_leaf(double height) const;
+  // Inline (header) so it can inline into the hot competition/assimilation
+  // paths that reach it from templated Individual<FF16> code (no LTO build).
+  double area_leaf(double height) const {
+    return std::pow(height / a_l1, 1.0 / a_l2);
+  }
 
   // [eqn 1] mass_leaf (inverse of [eqn 2])
   double mass_leaf(double area_leaf) const;
@@ -87,12 +107,21 @@ public:
   void compute_rates(const FF16_Environment& environment,
                 Internals& vars);
 
-  void update_dependent_aux(const int index, Internals& vars);
+  // Inline (header): called per state-set / ODE-state update from templated
+  // Individual<FF16> code, so inlining avoids a cross-TU call (no LTO build)
+  // and lets the now-inline area_leaf fold in.
+  void update_dependent_aux(const int index, Internals& vars) {
+    if (index == HEIGHT_INDEX) {
+      double height = vars.state(HEIGHT_INDEX);
+      vars.set_aux(COMPETITION_EFFECT_AUX_INDEX, area_leaf(height));
+      vars.set_aux(HEIGHT_INVERSE_AUX_INDEX, 1.0 / height);
+    }
+  }
 
   // * Mass production
   // [eqn 12] Gross annual CO2 assimilation
   double assimilation(const FF16_Environment& environment, double height,
-                      double area_leaf);
+                      double area_leaf, double height_inverse);
   // [Appendix S6] Per-leaf photosynthetic rate.
   double assimilation_leaf(double x) const;
 
@@ -119,6 +148,16 @@ public:
 
   virtual double net_mass_production_dt(const FF16_Environment& environment,
                                 double height, double area_leaf_);
+  double net_mass_production_dt(const FF16_Environment& environment,
+                                double height, double area_leaf_,
+                                double height_inverse);
+  // Worker overload that also reports the sapwood intermediates so callers
+  // (compute_rates) can reuse them instead of recomputing. Bit-identical: the
+  // out-refs receive exactly the values the body already computed.
+  double net_mass_production_dt(const FF16_Environment& environment,
+                                double height, double area_leaf_,
+                                double height_inverse,
+                                double& area_sapwood_, double& mass_sapwood_);
 
   // [eqn 16] Fraction of whole plan growth that is leaf
   virtual double fraction_allocation_reproduction(double height) const;
@@ -176,12 +215,21 @@ public:
 
   // * Competitive environment
   // [eqn 11] total projected leaf area above height above height `z` for given plant
-  double compute_competition(double z, double height) const;
+  // Inline (header) so the per-node hot competition path called from
+  // Individual<FF16>::compute_competition can inline these tiny helpers
+  // instead of paying a cross-TU call each iteration (no LTO build).
+  double compute_competition(double z, double height) const {
+    return compute_competition(z, area_leaf(height), 1.0 / height);
+  }
+  double compute_competition(double z, double area_leaf_,
+                             double height_inverse) const {
+    return compute_competition_by_ratio(z * height_inverse, area_leaf_);
+  }
+  double compute_competition_by_ratio(double z_over_height,
+                                      double area_leaf_) const {
+    return k_I * area_leaf_ * canopy_shape.Q(z_over_height);
+  }
 
-  // [eqn  9] Probability density of leaf area at height `z`
-  double q(double z, double height) const;
-  // [eqn 10] Fraction of leaf area above height `z`
-  double Q(double z, double height) const;
   // [      ] Inverse of Q: height above which fraction 'x' of leaf found
   double Qp(double x, double height) const;
 
@@ -200,6 +248,7 @@ public:
   // Canopy shape parameters
   double eta       = 12.0; // [dimensionless]
   double eta_c     = NA_REAL; // [dimensionless]
+  CanopyShape canopy_shape;
   // Sapwood area per leaf area
   // Ratio sapwood area area to leaf area
   double theta     = 1.0/4669; // [dimensionless]
@@ -275,6 +324,7 @@ public:
 
   // Height and leaf area of a (germinated) seed
   double height_0  = NA_REAL;
+  double height_0_inverse = NA_REAL;
   double area_leaf_0;
 
   std::string name;

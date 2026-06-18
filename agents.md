@@ -23,7 +23,7 @@ Reference: Falster et al. (2016) *Methods in Ecology and Evolution* 7:136–146,
 ┌─────────────────────────────────────────────────────────────┐
 │  R layer  (R/*.R)                                            │
 │  - user-facing constructors, dispatch, hyperparameters       │
-│  - run_scm / run_stochastic / build_schedule                 │
+│  - run_scm (collect/refine_schedule) / run_stochastic        │
 │  - tidy outputs, plotting, utilities                         │
 └───────────────────────────▲─────────────────────────────────┘
                             │   RcppR6 + Rcpp generated bindings
@@ -121,9 +121,11 @@ Every Strategy carries a `Control` and an `ExtrinsicDrivers` object.
 
 1. **Deterministic — SCM (Solver via method of Characteristics).**
    Cohorts (`Node`s) are introduced on a schedule and integrated as
-   characteristic curves of the size-density PDE. Entry points:
-   `SCM<T,E>` in C++, [run_scm()](R/scm_support.R) / `run_scm_collect()` in R.
-   The node schedule is refined adaptively by [build_schedule()](R/build_schedule.R).
+   characteristic curves of the size-density PDE. Entry point:
+   `SCM<T,E>` in C++, [run_scm()](R/scm_support.R) in R. Tidied-output
+   collection and adaptive schedule refinement are now *options* on `run_scm()`
+   (`collect = TRUE`, `refine_schedule = TRUE`); the refinement loop itself
+   lives in `SCM::refine_schedule()` in C++ (see §3.1).
 
 2. **Stochastic — finite-size population.**
    Individuals arrive and die as discrete events.
@@ -131,6 +133,69 @@ Every Strategy carries a `Control` and an `ExtrinsicDrivers` object.
    `stochastic_schedule()`, `run_stochastic_collect()`.
 
 Both share the same `Strategy`, `Environment`, `Individual`, and `Parameters`.
+
+### 3.1 Schedule refinement moved into C++ — API change (2026-06)
+
+The deterministic solver previously split its work across R and C++: R drove the
+adaptive node-schedule refinement (`build_schedule()`, internal
+`run_scm_error()`) and a separate function returned tidied output
+(`run_scm_collect()`). **This all now lives in C++ on `SCM<T,E>`, and the R
+surface is a single `run_scm()`.** See
+[issue #408](https://github.com/traitecoevo/plant/issues/408) and
+`notes/issue-408-refactor.md` for background.
+
+Migration map for callers (other repos/scripts must be updated):
+
+| Removed (R)             | Replacement                                                              |
+|-------------------------|-------------------------------------------------------------------------|
+| `build_schedule(p, …)`  | `run_scm(p, …, refine_schedule = TRUE)$parameters`                      |
+| `run_scm_collect(p, …)` | `run_scm(p, …, collect = TRUE)`                                          |
+| `run_scm_error(p, …)`   | run with `scm$collect_errors <- TRUE`, then read `scm$combined_node_errors` |
+| `split_times()`         | internal to `SCM::refine_schedule()` (no R equivalent)                  |
+
+`run_scm(p, env, ctrl, refine_schedule = FALSE, collect = FALSE, use_ode_times =
+FALSE)` returns the `SCM` object by default, or — when `collect = TRUE` — the
+tidied results list (whose `p` element holds the possibly-refined parameters).
+
+### 3.2 Control defaults folded into C++ — API change (2026-06)
+
+The pragmatic "fast-ish" numeric settings that essentially every plant run uses
+previously lived in two R helpers (`fast_control()`, `scm_base_control()`) that
+layered them on top of a tight-tolerance `Control()` constructor. Those values
+are **now the defaults in the C++ `Control()` constructor itself**
+([src/control.cpp](src/control.cpp)) — a single source of truth — and the two R
+helpers are **removed**. `Control()` (lowercase alias `control()`) is therefore
+the fast default; `control_accurate()` opts back into tight ODE/schedule
+tolerances for high-accuracy runs.
+
+Migration map for callers (other repos/scripts must be updated):
+
+| Removed (R)            | Replacement                                              |
+|------------------------|---------------------------------------------------------|
+| `fast_control()`       | `Control()` / `control()` (these defaults are now built in) |
+| `scm_base_control()`   | `Control()` / `control()`                                |
+| *(high-accuracy run)*  | `control_accurate()` (tightens `ode_tol_rel/abs`, `ode_step_size_max`, `schedule_eps`) |
+
+`scm_base_parameters()` is **unaffected** — it builds a `Parameters` object, not
+a `Control`.
+
+What moved into C++ (all on `Node`/`Species`/`SCM` in
+[node.h](inst/include/plant/node.h), [species.h](inst/include/plant/species.h),
+[scm.h](inst/include/plant/scm.h)):
+
+- `Node` records its `introduction_time` and patch-age density **at
+  introduction**, so fitness/error calcs no longer re-derive these from
+  `node_schedule` or the disturbance regime after the run.
+- `SCM::run()` accumulates the per-node refinement error when `collect_errors`
+  is set; the combined competition + reproduction error is exposed as
+  `combined_node_errors`.
+- `SCM::refine_schedule()` runs the adaptive loop (flag nodes whose error
+  exceeds `schedule_eps`, bisect the interval below each, repeat up to
+  `schedule_nsteps`) and writes the refined schedule + ode times back into its
+  `parameters` so the `Parameters` object stays self-describing.
+
+**Known downstream breakage:** `plant.assembly` calls the removed functions in
+`R/community_plant.R` and `scripts/example/ESA.Rmd`; update per the table above.
 
 ---
 
@@ -143,8 +208,7 @@ R files in [R/](R/) (ignore the two large generated files `RcppR6.R`,
 |---|---|
 | [ff16.R](R/ff16.R), [tf24.R](R/tf24.R), [k93.R](R/k93.R) | Per-model constructors (`FF16_Individual`, `FF16_Parameters`, …), hyperpar functions, expand_state, stand reports |
 | [strategy_support.R](R/strategy_support.R) | **Dispatch tables** mapping a model name → its functions (`hyperpar`, `make_hyperpar`, `param_hyperpar`, `environment_type`, `Environment`, `expand_state`, node-schedule helpers). These are `switch()` statements that must list every model. |
-| [scm_support.R](R/scm_support.R) | `run_scm`, `run_scm_collect`, `scm_base_parameters`, `scm_base_control`, `fast_control` |
-| [build_schedule.R](R/build_schedule.R) | Adaptive cohort-introduction schedule refinement |
+| [scm_support.R](R/scm_support.R) | `run_scm` (with `collect` / `refine_schedule` flags), `scm_base_parameters`, and the `Control` presets `control` (alias) / `control_accurate`. Fast settings are now C++ `Control()` defaults (§3.2); adaptive schedule refinement lives in C++ (`SCM::refine_schedule`, §3.1) — there is no longer an R `build_schedule.R` |
 | [stochastic.R](R/stochastic.R) | Stochastic simulation driver |
 | [individual.R](R/individual.R) | `grow_individual_to_{size,height,time}`, `optimise_individual_rate_*`, compensation points |
 | [util_model.R](R/util_model.R) | `strategy_list`, `trait_matrix`, `expand_parameters`, `mutant_parameters` |
@@ -323,3 +387,117 @@ prompt for confirmation.
   inspection/testing, not part of the stable user API.
 - ℹ️ Two solvers (deterministic SCM, stochastic) share the same model classes —
   changes to a Strategy affect both.
+- ⚠️ Several hot-path constructs look "wrong" but are deliberate performance
+  choices — see §12 before "tidying" them (inline helpers in headers, integer
+  index constants, ratio-first signatures, scratch buffers).
+
+---
+
+## 12. Performance & optimisation strategies
+
+The deterministic SCM solver spends almost all of its time in one nested loop
+(`SCM::run` → `ode::derivs` → `Patch::compute_rates` → `Species::compute_rates`
+→ `Node::compute_rates`/`growth_rate_gradient` → `Strategy::compute_rates` →
+`assimilation`/competition). Because that loop runs for every node, every
+quadrature point, every timestep, small per-call costs dominate. The codebase
+uses a consistent set of techniques to keep it fast. **Many of these make the
+code look more complicated than the underlying maths — do not "simplify" them
+back without re-profiling.** Detailed before/after benchmarks live in
+[notes/profile-ff16-2026-06-16.md](notes/profile-ff16-2026-06-16.md); the
+umbrella issue is [#466], with follow-up [#470] (LTO).
+
+**Algorithmic (the big wins):**
+
+- **Spline-based competition environment — turns O(n²) into ~O(n).** Naively,
+  computing the light each plant experiences means summing the shading of every
+  other plant, i.e. O(n²) per timestep for n individuals. Instead
+  `Patch::compute_environment()` builds a *resource spline*
+  ([resource_spline.h](inst/include/plant/resource_spline.h)) **once** per
+  timestep by evaluating cumulative competition at a fixed set of heights; each
+  individual then queries the environment with an O(1) spline lookup
+  (`get_environment_at_height`). Cost becomes O(n) to build + O(1) per query.
+- **Uniform-grid O(1) spline index.** `tk::spline::operator()`
+  ([tk/spline.h](inst/include/tk/spline.h), [src/tk_spline.cpp](src/tk_spline.cpp))
+  detects an equidistant knot grid in `set_points()` and replaces the
+  `std::lower_bound` binary search with direct index arithmetic. Falls back to
+  binary search for adaptive/non-uniform grids. ([#435])
+- **Finite-difference gradient without reallocation.**
+  `Node::growth_rate_gradient()` ([node.h](inst/include/plant/node.h)) needs a
+  mutable `Individual` to perturb height on; it reuses a `thread_local` scratch
+  (copy-*assigned* each call, reusing vector storage) instead of
+  copy-constructing fresh `Internals` every call.
+
+**Templated headers & inlining (this build has _no_ LTO).** `src/Makevars` uses
+`CXX_STD = CXX20` with no `-flto` and `DESCRIPTION` has no `UseLTO`, so a
+function defined in a `.cpp` translation unit **cannot** be inlined into the
+templated `Individual<T>`/`Node`/`Species` code instantiated in another TU.
+Every such call is a real, non-inlinable call on the hot path. Consequences you
+will see in the code:
+
+- Small, hot strategy helpers are **defined inline in the header**, not in the
+  `.cpp`: `area_leaf`, `update_dependent_aux`, the `compute_competition`
+  overloads, and `compute_competition_by_ratio` live in
+  [ff16_strategy.h](inst/include/plant/models/ff16_strategy.h) /
+  [tf24_strategy.h](inst/include/plant/models/tf24_strategy.h); `util::is_finite`
+  and the `Interpolator` accessors are inline in their headers. Moving them back
+  into a `.cpp` re-introduces a cross-TU call and measurably slows the loop.
+- The cleanest fix for the remaining large cross-TU calls (`assimilation`,
+  `compute_rates`) is enabling LTO — tracked separately in [#470] because it is
+  a build-config change with toolchain/portability trade-offs.
+
+**Avoiding repeated per-call overhead:**
+
+- **Integer index slots instead of string-map lookups.** State/aux/rate access
+  in the hot path uses fixed integer constants (`HEIGHT_INDEX`,
+  `MORTALITY_INDEX`, `*_AUX_INDEX` `constexpr`s in the strategy headers, and the
+  cached `*_aux_index` members in [individual.h](inst/include/plant/individual.h))
+  rather than `std::map<std::string,int>::at("name")`. **These constants must
+  stay in sync with the order of `state_names()`/`aux_names()`** — there are
+  comments saying so at each declaration. Named string access is kept for the
+  R-facing/diagnostic paths.
+- **Cached dependent auxiliary state.** Values that depend only on height are
+  computed once when height is set (`update_dependent_aux`) and stored in aux
+  slots: `competition_effect` (= `area_leaf(height)`) and `height_inverse`
+  (= `1/height`). The competition and assimilation paths read these instead of
+  recomputing `area_leaf` and the division every call.
+- **Eta-specialised canopy shape.** [canopy_shape.h](inst/include/plant/canopy_shape.h)
+  (`CanopyShape`, shared by FF16/TF24/K93) selects a multiplication-chain
+  implementation of `u^eta` *once* in `prepare_strategy()` for common integer
+  `eta` (1,2,4,8,10,12), avoiding the libm `pow()` slow path per quadrature
+  point; also caches `1/eta`. ([#465], libm `pow` cost from [#361])
+- **Ratio-first signatures.** `q()`/`Q()` and the competition helpers take the
+  height-normalised ratio `u = z/H` (plus a cached `1/height`) directly, so the
+  `z/H` division is hoisted out of inner loops rather than repeated per point.
+- **No `std::function` in quadrature.** `assimilation()` passes its integrand
+  lambda to the templated `QK::integrate` by its own closure type, **not**
+  wrapped in `std::function`, so the integrand inlines at each quadrature point
+  instead of making a type-erased indirect call.
+- **Hoisting loop invariants.** The light-spline upper bound (`canopy top`) is
+  fetched once per `assimilation()` call and passed into the capped
+  `get_environment_at_height(z, cap)` overload, instead of re-reading
+  `spline.max()` per quadrature point; within the crown integral the bounds are
+  already guaranteed, so the *unchecked* `spline(height)` is used in place of
+  `spline.eval()`.
+- **De-duplicated math kernels.** Where two allocation-derivative terms share a
+  `pow(area_leaf, a_l2)`, it is computed once (see
+  `FF16_Strategy::darea_leaf_dmass_live`).
+
+**Measuring.** Always benchmark with `make compile` (matches release flags) —
+`devtools::load_all()` alone is not representative. Use
+[scripts/profile-benchmarks.R](scripts/profile-benchmarks.R):
+
+```sh
+make compile
+PLANT_PROFILE_REPEATS=20 Rscript scripts/profile-benchmarks.R FF16
+```
+
+Record results in [notes/profile-ff16-2026-06-16.md](notes/profile-ff16-2026-06-16.md).
+Bit-identical changes are strongly preferred; where a reciprocal-multiply
+reorders floating-point ops, the affected reference tests were relaxed to an
+explicit tolerance (noted in that file).
+
+[#361]: https://github.com/traitecoevo/plant/issues/361
+[#435]: https://github.com/traitecoevo/plant/issues/435
+[#465]: https://github.com/traitecoevo/plant/issues/465
+[#466]: https://github.com/traitecoevo/plant/issues/466
+[#470]: https://github.com/traitecoevo/plant/issues/470

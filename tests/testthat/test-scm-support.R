@@ -4,7 +4,7 @@ context("SCM support")
 test_that("collect", {
   
   env <- Environment("FF16")
-  ctrl <- scm_base_control()
+  ctrl <- Control()
   p0 <- scm_base_parameters("FF16")
   p0$disturbance_mean_interval <- 30.0
   p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, birth_rate_list = 1.0)
@@ -12,7 +12,7 @@ test_that("collect", {
   expect_silent(res <- run_scm(p1, env, ctrl))
 
   expect_contains(
-    names(res), c("clone", "collect", "compute_competition_effect_error_by_node_for_species_i", "complete", "history", "initialize", "net_reproduction_ratio_errors", "net_reproduction_ratio_for_species", "net_reproduction_ratios", "node_schedule", "ode_times", "offspring_production", "parameters", "patch", "reset", "run", "run_mutant", "run_next", "set_node_schedule_times", "time", "use_ode_times")
+    names(res), c("clone", "collect", "compute_competition_effect_error_by_node_for_species_i", "history", "initialize", "net_reproduction_ratio_errors", "net_reproduction_ratio_for_species", "net_reproduction_ratios", "node_schedule", "ode_times", "offspring_production", "parameters", "patch", "reset", "run", "run_mutant", "set_node_schedule_times", "time")
   )
 
 })
@@ -51,7 +51,7 @@ test_that("expand_parameters & mutant_parameters", {
 test_that("collect_auxiliary_variables", {
   
   env <- Environment("FF16")
-  ctrl <- scm_base_control()
+  ctrl <- Control()
   p0 <- scm_base_parameters("FF16")
   p0$disturbance_mean_interval <- 30.0
   # two species
@@ -59,9 +59,9 @@ test_that("collect_auxiliary_variables", {
     birth_rate_list = list(11.99177)
   )
 
-  results <- run_scm_collect(p1, env, ctrl)
+  results <- run_scm(p1, env, ctrl, collect = TRUE)
   
   # check columns,should contain auxillary variables
-  expect_equal(ncol(results$species), 15)
-  expect_contains(names(results$species), c("competition_effect", "net_mass_production_dt"))
+  expect_equal(ncol(results$species), 16)
+  expect_contains(names(results$species), c("competition_effect", "height_inverse", "net_mass_production_dt"))
 })

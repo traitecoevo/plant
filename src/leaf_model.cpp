@@ -104,8 +104,12 @@ void Leaf::setup_clean_leaf() {
   atm_kpa_= NA_REAL; // kPa
   ca_= NA_REAL; //Pa
   opt_psi_stem_= NA_REAL; //-MPa 
-  opt_ci_= NA_REAL; //Pa 
+  opt_ci_= NA_REAL; //Pa
   E_up_ = NA_REAL;
+  medlyn_model_gs_ = NA_REAL; // mol CO2 m^-2 s^-1 (Medlyn model, develop #450)
+  theta_w_ = NA_REAL;
+  theta_fc_ = NA_REAL;
+  theta_ = NA_REAL;
   psi_soil_.clear();
   soil_depth_.clear();
   z_soil_mid_.clear();  // ADD THIS LINE
@@ -271,6 +275,13 @@ void Leaf::set_physiology(double area_leaf, const std::vector<double>& mass_root
 
   // Set up vector of root water uptake from layer
   soil_consumption_.resize(soil_number_of_depths_, 0.0);
+
+  // Soil-moisture state for the Medlyn beta_ stress factor (develop #450). The
+  // root-water compute path does not use these; they make the standalone,
+  // R-callable Medlyn methods well-defined with the default soil-moisture values.
+  theta_w_ = theta_w;
+  theta_fc_ = theta_fc;
+  theta_ = theta;
 
   // Find maximum assimilation assuming ci = ca
   assim_max_ = assim_colimited(ca_);
@@ -1125,5 +1136,94 @@ void Leaf::optimise_psi_stem_TF() {
 
     return;
   }
+
+// ===========================================================================
+// MEDLYN STOMATAL-CONDUCTANCE MODEL (from develop #450)
+// ---------------------------------------------------------------------------
+// Standalone, R-callable coupling of the Medlyn (2011) optimal stomatal model
+// to colimited photosynthesis. NOT invoked by the TF24 compute path, which
+// optimises psi_stem directly via find_root_collar_psi; provided so the model
+// remains available for R-level experimentation/comparison. beta_ is a soil-
+// moisture stress factor in [0,1] from theta_/theta_w_/theta_fc_ (set in
+// set_physiology from the default soil-moisture values).
+// ===========================================================================
+double Leaf::medlyn_model_gs(double assim_colimited_){
+
+  double beta_ = (theta_ - theta_w_)/(theta_fc_ - theta_w_);
+
+  if(atm_vpd == 0){
+     medlyn_model_gs_ = g0;
+  } else{
+     medlyn_model_gs_ = g0 + 1.6*(1 + (g1*beta_)/sqrt(atm_vpd_))*(assim_colimited_/(ca_*(1/umol_per_mol_to_Pa)));
+  }
+  return medlyn_model_gs_;
+}
+
+// Supply==demand residual for the Medlyn solver, as a function of ci (x, Pa).
+// It is the difference between the Medlyn optimal stomatal conductance and the
+// diffusion-implied conductance, *multiplied through by (ca_ - x)* so it stays
+// finite across the whole [gamma*, ca_] bracket -- the raw gs difference has a
+// 1/(ca_-x) singularity at the upper end. The root (zero crossing) is identical
+// to that of the raw difference for x < ca_:
+//   gs_medlyn*(ca_-x) - gs_coupled*(ca_-x),  where
+//   gs_coupled*(ca_-x) = assim * (atm_kpa_*kPa_to_Pa) * 1.6 / 1e6.
+double Leaf::medlyn_stom_cond_minus_coupled_stom_cond(double x) {
+  const double assim_colimited_x_ = assim_colimited(x);
+  medlyn_model_gs_ = medlyn_model_gs(assim_colimited_x_);
+  return medlyn_model_gs_ * (ca_ - x)
+         - assim_colimited_x_ * (atm_kpa_ * kPa_to_Pa) * 1.6 / 1e6;
+}
+
+// Solve for the leaf-internal CO2 (ci) at which the Medlyn optimal stomatal
+// conductance balances the diffusion-implied conductance, with Brent's method
+// (util::uniroot). This replaces an earlier golden-section search on
+// 1/|gs difference|, which could lock onto a spurious interior maximum
+// (observed at high VPD).
+//
+// The residual is not monotone on [gamma*, ca_]: it has a hump and is negative
+// at BOTH ends (near gamma* assimilation is below the compensation point;
+// near ca_ the diffusion conductance diverges), so the interval can contain a
+// spurious sub-compensation root as well as the meaningful Medlyn root. We
+// therefore first locate the residual's maximum (Brent minimiser on -residual),
+// then root-find on [argmax, ca_], which isolates the physically meaningful
+// high-ci operating point in every case (including g0 == 0).
+void Leaf::solve_medlyn_ci_numerical(){
+  auto target = [&](double x) -> double {
+    return medlyn_stom_cond_minus_coupled_stom_cond(x);
+  };
+  const double lo = gamma_ * umol_per_mol_to_Pa;
+  const double hi = ca_;
+
+  double neg_peak = 0.0;
+  const double ci_peak =
+      util::brent_fmin([&](double x) { return -target(x); }, lo, hi, ci_abs_tol,
+                       &neg_peak);
+  const double residual_peak = -neg_peak;
+
+  if (residual_peak <= 0.0) {
+    // Supply never reaches demand: no feasible Medlyn operating point. Report
+    // the closest approach (the residual maximum) rather than failing.
+    ci_ = ci_peak;
+  } else {
+    try {
+      ci_ = util::uniroot(target, ci_peak, hi, ci_abs_tol, ci_niter);
+    } catch (const std::exception& e) {
+      util::stop("solve_medlyn_ci_numerical failed: " + std::string(e.what()) +
+                 "; ci_peak=" + util::to_string(ci_peak) +
+                 "; max=" + util::to_string(hi));
+    }
+  }
+  assim_colimited_ = assim_colimited(ci_);
+  stom_cond_CO2_ = medlyn_model_gs(assim_colimited_);
+  return;
+}
+
+void Leaf::solve_medlyn_ci_analytical(){
+
+  ci_ = ca_ * (g1/(g1 + sqrt(atm_vpd_)));
+  assim_colimited_ = assim_colimited(ci_);
+  stom_cond_CO2_ = medlyn_model_gs(assim_colimited_);
+  return;
+}
 
 } // namespace plant

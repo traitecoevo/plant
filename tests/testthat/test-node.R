@@ -29,6 +29,10 @@ for (x in names(strategy_types)) {
       (f(x + dx, ...) - f(x, ...)) / dx
     }
 
+    grad_backward <- function(f, x, dx, ...) {
+      (f(x, ...) - f(x - dx, ...)) / dx
+    }
+
     plant$compute_rates(env)
     p2 <- Individual(x, e)(s)
 
@@ -46,17 +50,21 @@ for (x in names(strategy_types)) {
     dgdh_richardson <- numDeriv::grad(growth_rate_given_height, plant$state("height"),
                                       plant=p2, env=env,
                                       method.args=method_args)
-    ## And also using plain forward differencing:
+    ## And also using plain forward and backward differencing:
     dgdh_forward <- grad_forward(growth_rate_given_height, plant$state("height"),
                                  method_args$eps, plant=p2, env=env)
+    dgdh_backward <- grad_backward(growth_rate_given_height, plant$state("height"),
+                                   method_args$eps, plant=p2, env=env)
 
     ## These agree, but not that much:
     expect_equal(dgdh_forward, dgdh_richardson, tolerance=1e-6)
 
-    ## Now, do this with the node:
+    ## Now, do this with the node. The default control uses backward
+    ## differencing (node_gradient_direction = -1), so it matches the
+    ## backward difference exactly.
     dgdh <- node$growth_rate_gradient(env)
 
-    expect_equal(dgdh, dgdh_forward)
+    expect_equal(dgdh, dgdh_backward)
 
     ## Again with Richardson extrapolation:
         node <- Node(x, e)(s)

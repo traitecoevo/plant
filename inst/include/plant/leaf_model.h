@@ -211,6 +211,19 @@ public:
   double count;
   double E_up_;
 
+  // --- Medlyn stomatal-conductance model (from develop #450) ------------------
+  // Standalone, R-callable alternative to the root-collar profit optimisation
+  // (solve_medlyn_ci_*); NOT used by the TF24 compute path, which optimises
+  // psi_stem directly. g0/g1 default to the published values and are exposed as
+  // settable fields. beta_ (soil-moisture stress) uses theta_/theta_w_/theta_fc_,
+  // set from the default soil-moisture members in set_physiology.
+  double g0 = 0.022;        // residual stomatal conductance (umol m^-2 s^-1)
+  double g1 = 2.57;         // sensitivity to vpd (kPa^0.5)
+  double medlyn_model_gs_;  // mol CO2 m^-2 s^-1
+  double theta_w_;          // current soil water content at wilting point (m^3 m^-3)
+  double theta_fc_;         // current soil water content at field capacity (m^3 m^-3)
+  double theta_;            // current soil water content (m^3 m^-3)
+
   // 1-entry memo for transpiration(). Within a single root-collar/profit solve
   // leaf_specific_conductance_max_ and the transpiration spline are fixed, so
   // supply-side transpiration depends only on (psi_stem, psi_upstream). That
@@ -245,7 +258,12 @@ public:
   double atm_o2_kpa = 21;
   //leaf temperature (deg C)
   double leaf_temp = 25;
-  // density of water 
+  // default soil-moisture content used by the Medlyn beta_ stress factor
+  // (matches the fixed values develop's TF24 caller passed to set_physiology)
+  double theta_w = 0.2;  //m^3 m^-3
+  double theta_fc = 0.5; //m^3 m^-3
+  double theta = 0.3;    //m^3 m^-3
+  // density of water
 
 
   // this might end up hard-coded
@@ -269,6 +287,12 @@ public:
                                                std::vector<double>& x,
                                                std::vector<double>& y_integral);
   void setup_clean_leaf();
+
+  // Medlyn stomatal-conductance model (from develop #450); R-callable, standalone.
+  double medlyn_model_gs(double assim_colimited_);
+  double medlyn_stom_cond_minus_coupled_stom_cond(double x);
+  void solve_medlyn_ci_numerical();
+  void solve_medlyn_ci_analytical();
   // std::vector<double> root_collar_psi(std::vector<double> soil_moist_);
 
   void E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>& psi_soil);

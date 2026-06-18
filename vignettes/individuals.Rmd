@@ -63,11 +63,17 @@ While we can get and set variable state for a single individual,
 computing the rates of change requires information about the environment an
 individual inhabits. In the FF16 model, individuals compete through a shared
 light environment, described in terms of canopy openness.
-The function `fixed_environment` creates an
+The helper `fixed_environment` defined below creates an
 environment that has the same canopy openness (here 100%) at all
 heights. *Note: The `indv` individual does not affect this light environment*.
 ```{r }
-env <- FF16_fixed_environment(1.0)
+fixed_environment <- function(e = 1.0, height_max = 150.0) {
+  env <- Environment("FF16")
+  env$set_fixed_environment(e, height_max)
+  env
+}
+
+env <- fixed_environment(1.0)
 ```
 
 In the FF16 model, the `compute_rates` method computes net mass production for
@@ -277,7 +283,7 @@ legend("bottomright", c("Low LMA", "High LMA"), lty=1:2, bty="n")
 We cam see each species fares under lower light:
 
 ```{r }
-env_low <- FF16_fixed_environment(0.5)
+env_low <- fixed_environment(0.5)
 dat1_low <- grow_individual_to_height(indv1, heights1, env_low,
                                  time_max=100, warn=FALSE, filter=TRUE)
 dat2_low <- grow_individual_to_height(indv2, heights2, env_low,
@@ -415,17 +421,17 @@ above).
 ```{r }
 indv <- FF16_Individual()
 indv$set_state("height", 10)
-indv$compute_rates(FF16_fixed_environment(1.0))
+indv$compute_rates(fixed_environment(1.0))
 indv$rate("height") # in full light
 
-indv$compute_rates(FF16_fixed_environment(0.5))
+indv$compute_rates(fixed_environment(0.5))
 indv$rate("height") # in 1/2 light
 ```
 
 At some point the individual cannot maintain positive carbon balance and
 therefore cannot grow; for example at 25% canopy openness
 ```{r }
-indv$compute_rates(FF16_fixed_environment(0.25))
+indv$compute_rates(fixed_environment(0.25))
 indv$rate("height")
 ```
 
@@ -442,7 +448,7 @@ Height growth rate increases in a saturating fashion with
 increasing canopy openness from the light compensation point.
 ```{r }
 f <- function(x, indv) {
-  env <- FF16_fixed_environment(x)
+  env <- fixed_environment(x)
   indv$compute_rates(env)
   indv$rate("height")
 }

@@ -4,12 +4,7 @@
 \alias{run_stochastic_collect}
 \title{Run a stochastic patch, Collecting Output}
 \usage{
-run_stochastic_collect(
-  p,
-  env = NULL,
-  ctrl = scm_base_control(),
-  random_schedule = TRUE
-)
+run_stochastic_collect(p, env = NULL, ctrl = Control(), random_schedule = TRUE)
 }
 \arguments{
 \item{p}{A \code{\link{FF16_Parameters}} object}

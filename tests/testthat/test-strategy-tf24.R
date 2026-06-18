@@ -73,10 +73,11 @@ test_that("TF24 collect_all_auxiliary option", {
 
   s <- TF24_Strategy()
   p <- TF24_Individual(s)
-  expect_equal(p$aux_size, 10)
-  expect_equal(length(p$internals$auxs), 10)
+  expect_equal(p$aux_size, 11)
+  expect_equal(length(p$internals$auxs), 11)
 expect_equal(p$aux_names, c(
     "competition_effect",
+    "height_inverse",
     "net_mass_production_dt",
     "root_mass",
     "opt_psi_stem",
@@ -91,10 +92,11 @@ expect_equal(p$aux_names, c(
   s <- TF24_Strategy(collect_all_auxiliary=TRUE)
   expect_true(s$collect_all_auxiliary)
   p <- TF24_Individual(s)
-  expect_equal(p$aux_size, 11)
-  expect_equal(length(p$internals$auxs), 11)
+  expect_equal(p$aux_size, 12)
+  expect_equal(length(p$internals$auxs), 12)
   expect_equal(p$aux_names, c(
     "competition_effect",
+    "height_inverse",
     "net_mass_production_dt",
     "root_mass",
     "opt_psi_stem",
@@ -217,7 +219,7 @@ test_that("offspring arrival", {
 
   p0 <- scm_base_parameters("TF24")
   env <- Environment("TF24")
-  ctrl <- scm_base_control()
+  ctrl <- Control()
   max_patch_lifetime <-10
   p0$max_patch_lifetime <- max_patch_lifetime
 
@@ -254,10 +256,10 @@ env$set_soil_water_state(rep(c(0.2), times = 15))
 x = seq(0,max_patch_lifetime,length.out = 100)
 y = 0.25*sin(2*pi*x) + 1
 env$extrinsic_drivers_set_variable("rainfall", x=x, y=y)
-ctrl <- scm_base_control()
+ctrl <- Control()
 
 
-results <- run_scm_collect(p1, env = env, ctrl = ctrl)
+results <- run_scm(p1, env = env, ctrl = ctrl, collect = TRUE)
 
 results %>%
   expand_state() %>%
@@ -278,7 +280,7 @@ test_that("Report generation", {
 
   p0 <- scm_base_parameters("TF24")
   env <- Environment("TF24")
-  ctrl <- scm_base_control()
+  ctrl <- Control()
   
   p2 <- expand_parameters(trait_matrix(c(0.0825, 0.2625), "lma"), p0,   TF24_hyperpar, 
                            birth_rate_list = list(11.99177, 16.51006))

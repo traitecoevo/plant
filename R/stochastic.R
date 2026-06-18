@@ -72,7 +72,7 @@ stochastic_schedule <- function(p) {
 ##' @author Rich FitzJohn
 ##' @export
 run_stochastic_collect <- function(p, env = NULL, 
-                                   ctrl = scm_base_control(), 
+                                   ctrl = Control(), 
                                    random_schedule=TRUE) {
   
   types <- extract_RcppR6_template_types(p, "Parameters")

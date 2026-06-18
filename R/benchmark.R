@@ -20,7 +20,7 @@ run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy,
     p <- scm_base_parameters(x)
     p$strategies <- list(strategy_types[[x]]())
     p$birth_rate <- 0.1
-    p <- build_schedule(p)
+    scm <- run_scm(p, refine_schedule = TRUE)
   }
 
   message("Running benchmarks via `run_plant_benchmarks`")
@@ -50,7 +50,7 @@ run_resource_consumption_benchmarks <- function(its = 10) {
     env <- Environment("TF24")
     env$set_soil_number_of_depths(layers)
 
-    ctrl <- scm_base_control()
+    ctrl <- Control()
     out <- run_scm(p1, env, ctrl)
   }
   

@@ -35,8 +35,8 @@ traits <- trait_matrix(c(0.07), c("lma"))
 
 p1 <- expand_parameters(traits, p0)
 
-results <- build_schedule(p1)
-results <- run_scm_collect(results)
+results <- run_scm(p1, refine_schedule = TRUE)$parameters
+results <- run_scm(results, collect = TRUE)
 ```
 
 This uses the default parameters in plant. But you may want alter some of the defaults. For that we recommend setting up some functions to set `base_parameters`.
@@ -70,12 +70,12 @@ run_mypatch <- function(
   p1 <- expand_parameters(traits, p0, hyper_par_fn,  birth_rate_list = birth_rate_list)
   
   if(optimise_schedule)
-    result <- build_schedule(p1)
+    result <- run_scm(p1, refine_schedule = TRUE)$parameters
   else
     result <- p1
   
   # gather outputs at each time step
-  run_scm_collect(result)
+  run_scm(result, collect = TRUE)
 }
 ```
 
@@ -87,12 +87,10 @@ results <-
   run_mypatch(traits=trait_matrix(c(0.07, 0.24), c("lma")))
 ```
 
-The results from `run_scm_collect` in run_mypatch are in a 3D matrix state To convert this output to a more interpretable format, we can use tidy_patch to convert the results output into a tidy state.
+`run_scm(..., collect = TRUE)` in run_mypatch already returns the results in a tidy format (collecting and tidying the patch state at every step), so we can use the output directly.
 
 ```{r}
-results_tidy <- 
-  results %>% 
-  tidy_patch()
+results_tidy <- results
 
 results_tidy
 ```
@@ -181,8 +179,7 @@ The node spacing algorithim determines the optimum introduction times for charac
 ```{r}
 results <- run_mypatch(traits =  trait_matrix(c(0.07, 0.24), c("lma")))
 
-results_tidy <- results %>%
-  tidy_patch()
+results_tidy <- results
 ```
 
 

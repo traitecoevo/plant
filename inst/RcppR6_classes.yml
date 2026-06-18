@@ -93,8 +93,15 @@ Leaf:
     opt_psi_stem_: {type: double, access: field}
     opt_ci_: {type: double, access: field}
     E_up_: {type: double, access: field}
-    f_r: {type: "std::vector<double>", access: field} 
+    f_r: {type: "std::vector<double>", access: field}
     count: {type: double, access: field}
+    # Medlyn stomatal-conductance model (from develop #450)
+    medlyn_model_gs_: {type: double, access: field}
+    g0: {type: double, access: field}
+    g1: {type: double, access: field}
+    theta_w_: {type: double, access: field}
+    theta_fc_: {type: double, access: field}
+    theta_: {type: double, access: field}
 
   methods:
     initialize_integrator:
@@ -180,7 +187,17 @@ Leaf:
     optimise_psi_stem_TF:
       return_type: void
       args: []
-      
+    # Medlyn stomatal-conductance model (from develop #450)
+    medlyn_model_gs:
+      return_type: double
+      args: [assim_colimited_: double]
+    solve_medlyn_ci_numerical:
+      return_type: void
+      args: []
+    solve_medlyn_ci_analytical:
+      return_type: void
+      args: []
+
 Lorenz:
   name_cpp: "plant::ode::test::Lorenz"
   constructor:
@@ -694,36 +711,40 @@ SCM:
       - parameters: "plant::Parameters<T,E>"
       - environment: "E"
       - control: "plant::Control"
+  # Order mirrors the public API grouping in inst/include/plant/scm.h.
   methods:
+    # Simulation lifecycle
     run:
       return_type: void
     run_mutant:
       args: [p: "plant::Parameters<T,E>"]
       return_type: void
-    run_next:
-      return_type: "std::vector<plant::util::index>"
-      name_cpp: r_run_next
+    refine_schedule:
+      return_type: void
     reset:
       return_type: void
+    # Fitness / reproduction
     net_reproduction_ratio_for_species:
       args: [species_index: "plant::util::index"]
       return_type: double
       name_cpp: r_net_reproduction_ratio_for_species
+    # Schedule-refinement error signals
     compute_competition_effect_error_by_node_for_species_i:
       args: [species_index: "plant::util::index"]
       return_type: "std::vector<double>"
       name_cpp: r_compute_competition_effect_error_by_node_for_species_i
+    # Node schedule
     set_node_schedule_times:
       args: [times: "std::vector<std::vector<double>>"]
       return_type: void
       name_cpp: r_set_node_schedule_times
-    # times
-    # set_times
   active:
-    complete: {type: bool, access: member}
+    # Lifecycle / state
     time: {type: double, access: member}
+    # Outputs (totals)
     net_reproduction_ratios: {type: "std::vector<double>", access: member}
     offspring_production: {type: "std::vector<double>", access: member}
+    # Run / parameters / state access
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
     patch:
       type: "plant::Patch<T,E>"
@@ -733,29 +754,29 @@ SCM:
       type: "std::vector<plant::Patch<T,E>>"
       access: member
       name_cpp: r_history
+    # Fitness / reproduction error signals
+    net_reproduction_ratio_errors:
+      type: "std::vector<std::vector<double>>"
+      access: member
+      name_cpp: r_net_reproduction_ratio_errors
+    refinement_error_by_node:
+      type: "std::vector<std::vector<double>>"
+      access: member
+    # Node schedule
     node_schedule:
       type: "plant::NodeSchedule"
       access: member
       name_cpp: r_node_schedule
       name_cpp_set: r_set_node_schedule
+    # ODE times: read-only view of the step times the solver actually used.
+    # Pinning integration to fixed times is toggled on the NodeSchedule.
     ode_times:
       type: "std::vector<double>"
       access: member
       name_cpp: r_ode_times
-    use_ode_times:
-      type: bool
-      access: member
-      name_cpp: r_use_ode_times
-      name_cpp_set: r_set_use_ode_times
-    collect:
-      type: bool
-      access: member
-      name_cpp: r_get_collect
-      name_cpp_set: r_set_collect
-    net_reproduction_ratio_errors:
-      type: "std::vector<std::vector<double>>"
-      access: member
-      name_cpp: r_net_reproduction_ratio_errors
+    # Collection toggles (bound directly to the public members)
+    collect: {type: bool, access: field}
+    collect_refinement_errors: {type: bool, access: field}
 
 StochasticSpecies:
   name_cpp: "plant::StochasticSpecies<T,E>"

@@ -26,11 +26,18 @@ public:
   size_t size() const;
   void clear();
   void introduce_new_node();
+  // Introduce a node, stamping it with the introduction time and patch-age
+  // density at birth (called by Patch, which knows the time and disturbance).
+  void introduce_new_node(double time, double patch_density);
 
   double height_max() const;
   double compute_competition(double height) const;
   void compute_rates(const environment_type& environment, double pr_patch_survival, double birth_rate);
   std::vector<double> net_reproduction_ratio_by_node() const;
+  // Per-node lifetime offspring, weighted by patch-age density and S_D.
+  std::vector<double> net_reproduction_ratio_by_node_weighted() const;
+  // Introduction times of each node (the integration x-axis for fitness).
+  std::vector<double> node_times() const;
 
   // * ODE interface
   // NOTE: We are a time-independent model here so no need to pass
@@ -194,11 +201,39 @@ void Species<T,E>::compute_rates(const E& environment, double pr_patch_survival,
 }
 
 template <typename T, typename E>
+void Species<T,E>::introduce_new_node(double time, double patch_density) {
+  // Stamp the pushed copy (not new_node) so the member stays pristine for
+  // the no-arg introduction paths.
+  nodes.push_back(new_node);
+  nodes.back().set_introduction(time, patch_density);
+}
+
+template <typename T, typename E>
 std::vector<double> Species<T,E>::net_reproduction_ratio_by_node() const {
   std::vector<double> ret;
   ret.reserve(size());
   for (auto& c : nodes) {
     ret.push_back(c.fecundity());
+  }
+  return ret;
+}
+
+template <typename T, typename E>
+std::vector<double> Species<T,E>::net_reproduction_ratio_by_node_weighted() const {
+  std::vector<double> ret;
+  ret.reserve(size());
+  for (auto& c : nodes) {
+    ret.push_back(c.weighted_fecundity(strategy->S_D));
+  }
+  return ret;
+}
+
+template <typename T, typename E>
+std::vector<double> Species<T,E>::node_times() const {
+  std::vector<double> ret;
+  ret.reserve(size());
+  for (auto& c : nodes) {
+    ret.push_back(c.introduction_time());
   }
   return ret;
 }

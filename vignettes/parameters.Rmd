@@ -155,11 +155,12 @@ physiological parameters these have a variety of types)
 p$control
 ```
 
-The defaults are rather too slow for many uses, so
-`scm_base_parameters` provides a faster set by using `fast_control`
-to set many of these to less accurate values.
+The `Control()` defaults are the pragmatic, fast-ish settings used for
+essentially all of plant's runs (`control()` is a lowercase alias for the same
+constructor). When you need a high-accuracy run, `control_accurate()` tightens
+the ODE and schedule tolerances. We can see which fields it changes:
 
 ```{r}
-p2 <- scm_base_parameters("FF16")
-p2$control[unlist(p$control) != unlist(p2$control)]
+ctrl_accurate <- control_accurate()
+ctrl_accurate[unlist(control()) != unlist(ctrl_accurate)]
 ```

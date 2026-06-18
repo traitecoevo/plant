@@ -2,7 +2,7 @@ inst/website
 gh-pages
 *Rproj*
 *.Rhistory*
-^plant.Rcheck$
+*plant.Rcheck
 check/*
 src/symbols.rds
 .Rproj.user
@@ -22,3 +22,6 @@ Meta
 *.wiki
 *.pdf
 *.RDS
+
+# Claude Code personal settings
+.claude/settings.local.json

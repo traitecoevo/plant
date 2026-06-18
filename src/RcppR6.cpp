@@ -110,6 +110,18 @@ void Leaf__optimise_psi_stem_TF(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   obj_->optimise_psi_stem_TF();
 }
 // [[Rcpp::export]]
+double Leaf__medlyn_model_gs(plant::RcppR6::RcppR6<plant::Leaf> obj_, double assim_colimited_) {
+  return obj_->medlyn_model_gs(assim_colimited_);
+}
+// [[Rcpp::export]]
+void Leaf__solve_medlyn_ci_numerical(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  obj_->solve_medlyn_ci_numerical();
+}
+// [[Rcpp::export]]
+void Leaf__solve_medlyn_ci_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  obj_->solve_medlyn_ci_analytical();
+}
+// [[Rcpp::export]]
 double Leaf__ci___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   return obj_->ci_;
 }
@@ -530,6 +542,60 @@ double Leaf__count__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
 // [[Rcpp::export]]
 void Leaf__count__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
   obj_->count = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__medlyn_model_gs___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->medlyn_model_gs_;
+}
+// [[Rcpp::export]]
+void Leaf__medlyn_model_gs___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->medlyn_model_gs_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__g0__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->g0;
+}
+// [[Rcpp::export]]
+void Leaf__g0__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->g0 = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__g1__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->g1;
+}
+// [[Rcpp::export]]
+void Leaf__g1__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->g1 = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__theta_w___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->theta_w_;
+}
+// [[Rcpp::export]]
+void Leaf__theta_w___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->theta_w_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__theta_fc___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->theta_fc_;
+}
+// [[Rcpp::export]]
+void Leaf__theta_fc___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->theta_fc_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__theta___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->theta_;
+}
+// [[Rcpp::export]]
+void Leaf__theta___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->theta_ = value;
 }
 
 
@@ -2420,8 +2486,8 @@ void SCM___FF16__FF16_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::FF
   obj_->run_mutant(p);
 }
 // [[Rcpp::export]]
-std::vector<plant::util::index> SCM___FF16__FF16_Env__run_next(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->r_run_next();
+void SCM___FF16__FF16_Env__refine_schedule(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  obj_->refine_schedule();
 }
 // [[Rcpp::export]]
 void SCM___FF16__FF16_Env__reset(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
@@ -2439,11 +2505,6 @@ std::vector<double> SCM___FF16__FF16_Env__compute_competition_effect_error_by_no
 void SCM___FF16__FF16_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, std::vector<std::vector<double>> times) {
   obj_->r_set_node_schedule_times(times);
 }
-// [[Rcpp::export]]
-bool SCM___FF16__FF16_Env__complete__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->complete();
-}
-
 // [[Rcpp::export]]
 double SCM___FF16__FF16_Env__time__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->time();
@@ -2475,6 +2536,16 @@ std::vector<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment>> SCM___FF
 }
 
 // [[Rcpp::export]]
+std::vector<std::vector<double>> SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->r_net_reproduction_ratio_errors();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double>> SCM___FF16__FF16_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->refinement_error_by_node();
+}
+
+// [[Rcpp::export]]
 plant::NodeSchedule SCM___FF16__FF16_Env__node_schedule__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->r_node_schedule();
 }
@@ -2489,26 +2560,21 @@ std::vector<double> SCM___FF16__FF16_Env__ode_times__get(plant::RcppR6::RcppR6<p
 }
 
 // [[Rcpp::export]]
-bool SCM___FF16__FF16_Env__use_ode_times__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->r_use_ode_times();
-}
-// [[Rcpp::export]]
-void SCM___FF16__FF16_Env__use_ode_times__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, bool value) {
-  obj_->r_set_use_ode_times(value);
-}
-
-// [[Rcpp::export]]
 bool SCM___FF16__FF16_Env__collect__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->r_get_collect();
+  return obj_->collect;
 }
 // [[Rcpp::export]]
 void SCM___FF16__FF16_Env__collect__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, bool value) {
-  obj_->r_set_collect(value);
+  obj_->collect = value;
 }
 
 // [[Rcpp::export]]
-std::vector<std::vector<double>> SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->r_net_reproduction_ratio_errors();
+bool SCM___FF16__FF16_Env__collect_refinement_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->collect_refinement_errors;
+}
+// [[Rcpp::export]]
+void SCM___FF16__FF16_Env__collect_refinement_errors__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, bool value) {
+  obj_->collect_refinement_errors = value;
 }
 
 
@@ -2525,8 +2591,8 @@ void SCM___TF24__TF24_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::TF
   obj_->run_mutant(p);
 }
 // [[Rcpp::export]]
-std::vector<plant::util::index> SCM___TF24__TF24_Env__run_next(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
-  return obj_->r_run_next();
+void SCM___TF24__TF24_Env__refine_schedule(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
+  obj_->refine_schedule();
 }
 // [[Rcpp::export]]
 void SCM___TF24__TF24_Env__reset(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
@@ -2544,11 +2610,6 @@ std::vector<double> SCM___TF24__TF24_Env__compute_competition_effect_error_by_no
 void SCM___TF24__TF24_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_, std::vector<std::vector<double>> times) {
   obj_->r_set_node_schedule_times(times);
 }
-// [[Rcpp::export]]
-bool SCM___TF24__TF24_Env__complete__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
-  return obj_->complete();
-}
-
 // [[Rcpp::export]]
 double SCM___TF24__TF24_Env__time__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
   return obj_->time();
@@ -2580,6 +2641,16 @@ std::vector<plant::Patch<plant::TF24_Strategy,plant::TF24_Environment>> SCM___TF
 }
 
 // [[Rcpp::export]]
+std::vector<std::vector<double>> SCM___TF24__TF24_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->r_net_reproduction_ratio_errors();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double>> SCM___TF24__TF24_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->refinement_error_by_node();
+}
+
+// [[Rcpp::export]]
 plant::NodeSchedule SCM___TF24__TF24_Env__node_schedule__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
   return obj_->r_node_schedule();
 }
@@ -2594,26 +2665,21 @@ std::vector<double> SCM___TF24__TF24_Env__ode_times__get(plant::RcppR6::RcppR6<p
 }
 
 // [[Rcpp::export]]
-bool SCM___TF24__TF24_Env__use_ode_times__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
-  return obj_->r_use_ode_times();
-}
-// [[Rcpp::export]]
-void SCM___TF24__TF24_Env__use_ode_times__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_, bool value) {
-  obj_->r_set_use_ode_times(value);
-}
-
-// [[Rcpp::export]]
 bool SCM___TF24__TF24_Env__collect__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
-  return obj_->r_get_collect();
+  return obj_->collect;
 }
 // [[Rcpp::export]]
 void SCM___TF24__TF24_Env__collect__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_, bool value) {
-  obj_->r_set_collect(value);
+  obj_->collect = value;
 }
 
 // [[Rcpp::export]]
-std::vector<std::vector<double>> SCM___TF24__TF24_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
-  return obj_->r_net_reproduction_ratio_errors();
+bool SCM___TF24__TF24_Env__collect_refinement_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->collect_refinement_errors;
+}
+// [[Rcpp::export]]
+void SCM___TF24__TF24_Env__collect_refinement_errors__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_, bool value) {
+  obj_->collect_refinement_errors = value;
 }
 
 
@@ -2630,8 +2696,8 @@ void SCM___K93__K93_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::K93_
   obj_->run_mutant(p);
 }
 // [[Rcpp::export]]
-std::vector<plant::util::index> SCM___K93__K93_Env__run_next(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  return obj_->r_run_next();
+void SCM___K93__K93_Env__refine_schedule(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  obj_->refine_schedule();
 }
 // [[Rcpp::export]]
 void SCM___K93__K93_Env__reset(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
@@ -2649,11 +2715,6 @@ std::vector<double> SCM___K93__K93_Env__compute_competition_effect_error_by_node
 void SCM___K93__K93_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, std::vector<std::vector<double>> times) {
   obj_->r_set_node_schedule_times(times);
 }
-// [[Rcpp::export]]
-bool SCM___K93__K93_Env__complete__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  return obj_->complete();
-}
-
 // [[Rcpp::export]]
 double SCM___K93__K93_Env__time__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
   return obj_->time();
@@ -2685,6 +2746,16 @@ std::vector<plant::Patch<plant::K93_Strategy,plant::K93_Environment>> SCM___K93_
 }
 
 // [[Rcpp::export]]
+std::vector<std::vector<double>> SCM___K93__K93_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->r_net_reproduction_ratio_errors();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double>> SCM___K93__K93_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->refinement_error_by_node();
+}
+
+// [[Rcpp::export]]
 plant::NodeSchedule SCM___K93__K93_Env__node_schedule__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
   return obj_->r_node_schedule();
 }
@@ -2699,26 +2770,21 @@ std::vector<double> SCM___K93__K93_Env__ode_times__get(plant::RcppR6::RcppR6<pla
 }
 
 // [[Rcpp::export]]
-bool SCM___K93__K93_Env__use_ode_times__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  return obj_->r_use_ode_times();
-}
-// [[Rcpp::export]]
-void SCM___K93__K93_Env__use_ode_times__set(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, bool value) {
-  obj_->r_set_use_ode_times(value);
-}
-
-// [[Rcpp::export]]
 bool SCM___K93__K93_Env__collect__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  return obj_->r_get_collect();
+  return obj_->collect;
 }
 // [[Rcpp::export]]
 void SCM___K93__K93_Env__collect__set(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, bool value) {
-  obj_->r_set_collect(value);
+  obj_->collect = value;
 }
 
 // [[Rcpp::export]]
-std::vector<std::vector<double>> SCM___K93__K93_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  return obj_->r_net_reproduction_ratio_errors();
+bool SCM___K93__K93_Env__collect_refinement_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->collect_refinement_errors;
+}
+// [[Rcpp::export]]
+void SCM___K93__K93_Env__collect_refinement_errors__set(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, bool value) {
+  obj_->collect_refinement_errors = value;
 }
 
 

@@ -149,7 +149,7 @@ test_that("Environment-TF24 running soil moisture profile", {
   env$set_soil_number_of_depths(1)
   env$set_soil_water_state(0.1)
   p0 <- scm_base_parameters("TF24")
-  out <- run_scm_collect(p1, env)
+  out <- run_scm(p1, env, collect = TRUE)
   expect_equal(length(unique(out$env$soil_depth$soil_depth)), 1)
 
   

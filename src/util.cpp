@@ -25,10 +25,6 @@ void check_length(size_t received, size_t expected) {
   }
 }
 
-bool is_finite(double x) {
-  return R_FINITE(x);
-}
-
 size_t check_bounds_r(size_t idx, size_t size) {
   // We don't check size < 0 or idx < 0, as not possible with size_t
   if (size == 0) {

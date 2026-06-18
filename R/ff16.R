@@ -39,7 +39,7 @@ FF16_Parameters <- function(...) {
 ##' Builds a detailed report on stand grown with FF16 strategy, based on the template Rmd file provided.  The reports are
 ##' rendered as html files and saved in the specified output folder.
 ##'
-##' @param results results of runnning \code{run_scm_collect}
+##' @param results results of running \code{run_scm(..., collect = TRUE)}
 ##' @param output_file name of output file
 ##' @param overwrite logical value to determine whether to overwrite existing report
 ##' @param target_ages Patches ages at which to make plots
