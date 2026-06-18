@@ -535,6 +535,88 @@ median of 5 timed runs after a warm-up):
 (Reproduce with `scripts/bench_tf24.R`; absolute seconds are machine-specific
 but the ratio is stable.)
 
+## Analytical hydraulic transform (issue #468)
+
+[Issue #468](https://github.com/traitecoevo/plant/issues/468) noted that the
+Weibull hydraulic transform has a closed form involving the incomplete gamma
+function, and asked (1) whether it matches the current numerical implementation,
+(2) how large the spline interpolation error is, and (3) whether a monotone
+interpolator (PCHIP) would help. This section answers (1) and (2) and resolves
+(3); the runtime question was already settled in Phase 2 (the spline path is the
+right choice for forward simulation — see *Tried and REJECTED: spline the xylem
+hydraulic cost*).
+
+### The closed form
+
+The supply-side transpiration integrates the xylem vulnerability curve
+`proportion_of_conductivity(m) = exp(-(m/b)^c)` (where `m = -psi` is the
+potential magnitude in MPa), giving the hydraulic transform
+
+$$F(m)=\int_0^m \exp\!\big[-(s/b)^c\big]\,ds .$$
+
+Substituting $u=(s/b)^c$ yields a **lower** incomplete gamma:
+
+$$F(m)=\frac{b}{c}\,\gamma\!\left(\tfrac1c,\,(m/b)^c\right)
+      =\frac{b}{c}\,\Gamma\!\left(\tfrac1c\right)\,
+       P\!\left(\tfrac1c,\,(m/b)^c\right),$$
+
+i.e. in R, `F = (b/c) * gamma(1/c) * pgamma((m/b)^c, 1/c)`. This is identical to
+the issue's $P_{50}$-parameterised, *upper*-incomplete-gamma form: the code sets
+`b = p_50 / (ln 2)^(1/c)`, so `ln2·(−ψ/p_50)^c = (m/b)^c`, and lower-vs-upper
+differ only by the additive constant $(b/c)\Gamma(1/c)$, which cancels in
+$F(\psi_2)-F(\psi_1)$.
+
+### Verification and error (reproduce with `scripts/validate_gamma_transform.R`)
+
+The script builds the real C++ `Leaf` and compares the closed form against both
+numerical paths — `transpiration()` (the production `tk::spline` of $F$) and
+`transpiration_full_integration()` (QAG adaptive quadrature) — plus the inverse
+spline. Over a 2001-point sweep across the spline domain:
+
+| Parameter set (`ncontrol`) | QAG vs analytic (rel) | spline $F$ vs analytic (abs / rel) | inverse spline (abs) |
+|---|---|---|---|
+| TF24 default `p_50=1.85` (100) | 1.4e−6 | 2.2e−4 / 7.3e−3 | 2.0e−2 MPa |
+| test-leaf `c=2.04,b=3` (100)   | 1.7e−10 | 9.7e−5 / 7.0e−5 | 8.1e−4 MPa |
+| TF24 default (1000)            | 1.4e−6 | 1.8e−6 / 6.0e−4 | 1.8e−4 MPa |
+| TF24 default (30)              | 1.3e−6 | 2.7e−3 / 2.7e−2 | 2.1e−1 MPa |
+
+**(1) The closed form is correct.** QAG quadrature — an independent numerical
+method — agrees with it to ~1e−6 relative (its own tolerance floor), and to
+~1e−10 for the steeper test curve. The analytical transform can stand as a
+validation reference.
+
+**(2) The spline error is *quadrature* bias, not interpolation.** Decomposing the
+spline's deviation from truth: at the knots the cubic reproduces the
+construction values exactly, so knot-error = the trapezoid quadrature bias used
+to build them. For the production default (`ncontrol=100`) the total error is
+2.18e−4, of which **trapezoid bias is 2.174e−4 (99.7%) and cubic interpolation
+between knots adds only ~6e−7 (0.3%)**. The same holds at every resolution, and
+the error scales as $1/\text{ncontrol}^2$ (the trapezoid rate: 30 → 100 → 1000
+gives 2.7e−3 → 2.2e−4 → 1.8e−6), confirming the spline is essentially a perfect
+interpolant of imperfect knots.
+
+### Consequences
+
+- **(3) PCHIP would not help.** The cubic spline already nails the knots to
+  ~1e−6; swapping it for a monotone interpolator targets the 0.3% that isn't the
+  problem. Not worth pursuing for accuracy. (Monotonicity/overshoot is a
+  non-issue here anyway — $F$ and $F^{-1}$ are smooth and the cubic does not
+  overshoot on this data.)
+- **The actual payoff of the closed form for forward simulation** is not to
+  replace the spline but to **seed its knots exactly**: filling
+  `y_cumulative_transpiration_` in `setup_transpiration` (and the analogous
+  `y_integral` in `setup_root_vulnerability`) with $F$(knot) from the gamma form
+  instead of the running trapezoid sum removes the dominant 99.7% error term at
+  **zero hot-path cost** — same knots, same `tk::spline`, same O(1) eval. At the
+  production `ncontrol=100` this would cut $F$ error ~350× (2.2e−4 → ~6e−7)
+  without changing the runtime structure analysed above. (Would need `boost`'s
+  `tgamma_lower` in C++; the Boost licence is AGPL-compatible. Deferred — it
+  shifts numerics, so it needs the usual bit-identical-trajectory assessment
+  before adoption.)
+- **Calibration / AD (issue step 5)** remains the closed form's other natural
+  home: it is a smooth expression in `(p_50, c, K_max)` with no spline-build
+  graph to differentiate through. Out of scope here.
+
 ## Build note: use `make`, not `load_all`
 
 Build the package with **`make compile`** (`pkgbuild::compile_dll(debug=FALSE)`,
