@@ -741,31 +741,26 @@ if(assim_max_ < 0){
       return;
     }
 
-    // Maximise carbon profit over the feasible collar-potential interval.
-    // Brent's method (golden-section + parabolic interpolation) converges
-    // super-linearly on this smooth objective while keeping the golden-section
-    // fallback's robustness; it only ever probes points strictly interior to
-    // [bound_a, bound_b], so the vulnerability-curve clamps at the endpoints are
-    // never evaluated. We minimise -profit. opt_profit holds the maximum profit
-    // at the returned argmin, so no extra evaluation is needed afterwards.
-    const double lo = std::min(bound_a, bound_b);
-    const double hi = std::max(bound_a, bound_b);
-
-    double neg_profit_opt = 0.0;
-    double opt_root_psi = util::brent_fmin(
+    // Maximise carbon profit over the feasible collar-potential interval via
+    // golden-section search (util::golden_section_max). Unlike Brent, its argmax
+    // is a smooth (fixed-iteration) function of the inputs, so the operating
+    // point varies smoothly with plant height -- the demographic growth-rate
+    // gradient relies on this. The objective maps a candidate collar potential
+    // `bound` to its profit (find the stem psi it implies, then evaluate profit).
+    const double opt_root_psi = util::golden_section_max(
         [&](double bound) {
           const double psi_stem =
               find_psi_stem_from_psi_root(-bound, psi_soil_inverted_);
-          return -profit_psi_stem_TF(psi_stem, bound);
+          return profit_psi_stem_TF(psi_stem, bound);
         },
-        lo, hi, GSS_tol_abs, &neg_profit_opt);
+        bound_a, bound_b, GSS_tol_abs);
 
     opt_psi_stem_ = find_psi_stem_from_psi_root(-opt_root_psi, psi_soil_inverted_);
 
     // store as the signed (negative) potential for a sign-consistent aux output;
-    // profit_ was already computed by Brent from the positive-magnitude bound.
+    // profit_psi_stem_TF takes psi_upstream as a positive magnitude.
     root_collar_psi_ = -opt_root_psi;
-    profit_ = -neg_profit_opt;
+    profit_ = profit_psi_stem_TF(opt_psi_stem_, opt_root_psi);
 
     if(!std::isfinite(profit_)){
         util::stop("Error: non-finite profit; opt_psi_stem_=" + util::to_string(opt_psi_stem_) +

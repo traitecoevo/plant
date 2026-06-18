@@ -385,6 +385,21 @@ the clamped vulnerability-curve endpoints — this is why it is safe here where 
 TOMS748 root-finder was not (it stays stable at the production tol `1e-3`; only
 an absurdly tight tol `1e-9` over-resolves into the documented NaN instability).
 
+> **LATER REVERTED for `find_root_collar_psi` (gradient smoothness).** Brent's
+> parabolic step makes its argmax a *non-smooth* function of the inputs. Because
+> this solver's argmax feeds the demographic growth-rate gradient (which needs
+> the operating point to vary smoothly with plant state), the **outer** collar
+> optimisation was switched **back to golden-section search** — now via the
+> shared `util::golden_section_max` in `optimize.h` (the efficient one-eval-per-
+> iteration reuse variant), alongside `util::brent_fmin`. The #4 ~1.7× figure no
+> longer applies to this solver; GSS is accepted as the slower-but-smoother
+> choice here. **Brent is retained** for the off-path single-layer
+> `optimise_psi_stem_*` optimisers, whose argmax feeds no gradient and where it
+> measured ~2.3–2.6× faster. Output shifts vs the Brent build at the
+> tolerance level (offspring 1.64927e−06 → 1.63974e−06 on the 15-layer MPL=5
+> scenario) — same character as #4, the smooth optimum located slightly
+> differently.
+
 **Measured** (clean `-g -O2` builds, MPL=10 single-species run): **24.7 s →
 14.6 s, ≈1.70×**. The gain beats the ~17→~10 iteration estimate because each GSS
 iteration also carries an inner `find_psi_stem_from_psi_root` root-find, so
@@ -615,6 +630,13 @@ were first factored into a shared `util::golden_section_max` in
 `inst/include/plant/optimize.h`, then switched to **`util::brent_fmin`** — the
 same bounded minimiser #4 put on the *outer* collar solve — so the codebase now
 does 1-D profit maximisation through one routine everywhere.
+
+> **Update:** `util::golden_section_max` was later restored to `optimize.h` (the
+> efficient reuse variant) when `find_root_collar_psi` reverted to GSS for
+> gradient smoothness (see the LATER REVERTED note under #4). So the codebase now
+> offers *both* `brent_fmin` and `golden_section_max`: the production collar solve
+> uses GSS; these off-path single-layer optimisers keep `brent_fmin` for its
+> speed, since their argmax feeds no gradient.
 
 **This does not touch `run_scm_collect`.** These two functions have **no caller
 on the production path**: `TF24_Strategy::refresh_indices` calls

@@ -107,6 +107,44 @@ double brent_fmin(Function f, double ax, double bx, double tol,
   return x;
 }
 
+// Golden-section search for the MAXIMUM of a unimodal f over [ax, bx]. Returns
+// the argmax (midpoint of the final bracket); terminates when the bracket width
+// falls to `tol`. Reuses one interior golden point per iteration, so it costs a
+// single new f() evaluation per step after the initial two.
+//
+// Why this exists alongside brent_fmin: brent_fmin converges faster but its
+// parabolic step makes the argmax a *non-smooth* function of the inputs. The
+// production collar solver (Leaf::find_root_collar_psi) feeds its argmax into the
+// demographic growth-rate gradient, which needs that argmax to vary smoothly
+// with plant state -- so it uses this fixed-iteration golden-section search.
+// Where the argmax does not feed a gradient (the single-layer leaf optimisers),
+// prefer brent_fmin, which was measured ~2.3-2.6x faster there.
+template <typename Function>
+double golden_section_max(Function f, double ax, double bx, double tol) {
+  const double gr = (std::sqrt(5.0) + 1.0) / 2.0;  // ~1.6180339...
+  double a = ax, b = bx;
+  double c = b - (b - a) / gr;
+  double d = a + (b - a) / gr;
+  double fc = f(c);
+  double fd = f(d);
+  while (std::abs(b - a) > tol) {
+    if (fc > fd) {
+      b  = d;
+      d  = c;
+      fd = fc;                 // reuse
+      c  = b - (b - a) / gr;
+      fc = f(c);               // 1 new eval
+    } else {
+      a  = c;
+      c  = d;
+      fc = fd;                 // reuse
+      d  = a + (b - a) / gr;
+      fd = f(d);               // 1 new eval
+    }
+  }
+  return (a + b) / 2.0;
+}
+
 }
 }
 
