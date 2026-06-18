@@ -59,6 +59,10 @@ static const double umol_per_mol_to_Pa = 0.1013;
 
 // mol H2o kg ^-1
 static const double kg_to_mol_h2o = 55.4939;
+// kg mol^-1: molar mass of water, for converting molar water flux back to kg.
+// (Intentionally distinct from 1/kg_to_mol_h2o, which it does not exactly equal;
+// kept at the historical 0.018015 to preserve results.)
+static const double kg_per_mol_h2o = 0.018015;
 // mol mol ^-1 / (umol mol ^-1)
 static const double umol_to_mol = 1e-6;
 // Pa kPa^-1

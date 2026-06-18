@@ -487,8 +487,12 @@ void Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>& p
 
     }
   }
-  // convert to kg h20 m-2 s-1 consistent with rest of leaf model and environment TODO: possibly change this
-  E_up_ = E_up_*0.018015;
+  // Convert the summed uptake to kg H2O m^-2 s^-1, consistent with the rest of
+  // the leaf model and environment. NOTE (review #10): only the aggregate E_up_
+  // is converted to kg here; the per-layer soil_consumption_[i] above is left in
+  // mol H2O m^-2 s^-1 and converted downstream in TF24_Strategy::compute_rates.
+  // The two siblings therefore carry different units by design.
+  E_up_ = E_up_ * kg_per_mol_h2o;
   if (!std::isfinite(E_up_)) {
     util::stop("E_from_Soil_to_Root_Collar non-finite E_up_; P_x_r=" + util::to_string(P_x_r) +
                "; max_soil_layer=" + std::to_string(max_soil_layer) +

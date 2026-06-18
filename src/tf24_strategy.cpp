@@ -3,6 +3,25 @@
 
 namespace plant {
 
+// --- Hard-coded root-distribution constants (review #9) ---------------------
+// Named here for clarity; promotion to user-tunable traits (RcppR6) is a
+// deliberate follow-up (see vignettes/models/code_review_leaf_tf24.qmd #9).
+// rescales total fine-root mass into the per-layer carbon units expected by the
+// root hydraulic network in Leaf::set_physiology.
+static const double root_mass_carbon_scale = 83.26 * 0.5;
+// shape exponent for the Q() root-fraction-with-depth profile.
+static const double root_depth_shape_eta = 0.2;
+// rooting depth cap (m), i.e. the depth of the soil column.
+static const double rooting_depth_max = 1.5;
+
+// NOTE (review #9): the per-second -> annual factor 60*60*12*365 (seconds of
+// daylight per year, 12 h day x 365 d) recurs in compute_rates and
+// net_mass_production_dt below. It is deliberately left inline rather than
+// hoisted to a constant: collapsing the 4-step integer product into one double
+// changes the floating-point rounding, and the adaptive ODE amplifies it
+// (offspring_production shifts ~0.2%). Kept inline to preserve bit-identical
+// results.
+
 // TODO: Document consistent argument order: l, b, s, h, r
 // TODO: Document ordering of different types of variables (size
 // before physiology, before compound things?)
@@ -160,7 +179,7 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
 
     // evapotranspiration (mol H20 m^-2 s^-1 layer^-1)
     // consumption rate (m yr^-1 layer ^-1)
-    vars.set_consumption_rate(i, evapotranspiration_dt(area_leaf_, i)*60*60*12*365/1000*0.018015);
+    vars.set_consumption_rate(i, evapotranspiration_dt(area_leaf_, i)*60*60*12*365/1000*kg_per_mol_h2o);
   }
 
   if (net_mass_production_dt_ > 0) {
@@ -353,8 +372,8 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
 // change to while?
 // environment.get_soil_depths() should ask for the ath element to save calling for a new vector each time
 // change environment.get_soil_number_of_depths() change to n or soemtyhing
-    double rooting_depth = std::min(height, 1.5);
-  const double root_mass_scale = 83.26 * 0.5 * mass_root_;
+    double rooting_depth = std::min(height, rooting_depth_max);
+  const double root_mass_scale = root_mass_carbon_scale * mass_root_;
     // std::vector<double> Q_root;
     // Q_root.reserve(soil_number_of_depths_);
 
@@ -363,7 +382,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
       if(prev_q == 0){
         break;
       }
-      const double q = Q(soil_depths_[a], rooting_depth, 0.2);
+      const double q = Q(soil_depths_[a], rooting_depth, root_depth_shape_eta);
 
       mass_root_prop_[a] = root_mass_scale * (prev_q - q);
       prev_q = q;

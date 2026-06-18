@@ -37,8 +37,8 @@ its trajectory shift quantified) before it is considered done.
 | 6 | `leaf_model.cpp:601-626` | triple-duplicated "plant shut down at psi_crit" early-exit block in `find_root_collar_psi` | Clarity | **DONE** |
 | 7 | `leaf_model.cpp:835` vs `850` | sign-convention inconsistency between `transpiration` (`eval(psi_upstream)`) and `transpiration_to_psi_stem` (`eval(-psi_upstream)`); module-wide positive-vs-negative psi confusion | Correctness risk / clarity | TODO |
 | 8 | `leaf_model.cpp:993,1003` | local `double hydraulic_cost_` shadows the member of the same name in `profit_psi_stem_*` | Clarity | **DONE** |
-| 9 | `tf24_strategy.cpp:161,356,388` | magic constants (`83.26*0.5`, `0.2`, `1.5`) and a duplicated `60*60*12*365` unit factor | Maintainability | TODO |
-| 10 | `leaf_model.cpp:479` / `tf24_strategy.cpp:161` | `E_up_` stored in kg but `soil_consumption_[i]` in mol; kg conversion re-applied downstream | Clarity / trap | TODO |
+| 9 | `tf24_strategy.cpp:161,356,388` | magic constants (`83.26*0.5`, `0.2`, `1.5`) and a duplicated `60*60*12*365` unit factor | Maintainability | **DONE** (named constants; traits deferred) |
+| 10 | `leaf_model.cpp:479` / `tf24_strategy.cpp:161` | `E_up_` stored in kg but `soil_consumption_[i]` in mol; kg conversion re-applied downstream | Clarity / trap | **DONE** (named + documented) |
 | 11 | `tf24_strategy.cpp:26,157,361` | `evapotranspiration_dt(int soil_depth)` is really a layer index; signed/unsigned loop comparisons; unfinished comment at L20 | Naming / hygiene | **DONE** |
 
 ## Notes on individual items
@@ -119,9 +119,36 @@ and the full-trajectory digest are identical (1.64927177539e-06 / 164392.960996)
 **Kept anyway** — it removes a genuinely redundant recomputation and is exact;
 the value is code clarity, not speed. (See the Phase-3 note in `test-root.qmd`.)
 
+### #9 / #10 — named constants + unit-divergence documentation (DONE, bit-identical)
+
+**#9** — replaced the hard-coded root-distribution magic numbers in
+`net_mass_production_dt` with named file-scope constants:
+`root_mass_carbon_scale = 83.26 * 0.5`, `root_depth_shape_eta = 0.2`,
+`rooting_depth_max = 1.5`. Per the scope decision, these stay C++ constants;
+promotion to user-tunable RcppR6 traits is a deliberate **follow-up**, not done.
+
+**#10** — introduced `kg_per_mol_h2o = 0.018015` (in `leaf_model.h`, next to
+`kg_to_mol_h2o`) and used it at both conversion sites (`E_up_` in
+`E_from_Soil_to_Root_Collar`; the per-layer consumption rate in `compute_rates`).
+Added a comment at each site spelling out the **intentional** unit divergence:
+aggregate `E_up_` is kg, per-layer `soil_consumption_[i]` is mol (converted
+downstream). Units were *not* unified, because moving the kg conversion inside
+the per-layer loop would reorder the `E_up_` summation and break bit-identicality.
+
+**The `60*60*12*365` unit factor was deliberately left inline.** Collapsing the
+4-step integer product into a single `double` constant changes the FP rounding,
+and the adaptive ODE amplifies it (`offspring_production` shifted +0.18%,
+1.64927e−06 → 1.65220e−06 in the A/B). A comment documents the duplication and
+why it stays inline. With the factor kept inline and the value-preserving renames
+above, the final build is **bit-identical** (offspring_production and the full
+15-layer MPL=5 trajectory digest match HEAD exactly: 1.64927177539e−06 /
+164392.960996).
+
 ## Suggested ordering for the rest
 
-1. **#9 / #10** — promote magic constants to traits and unify the unit factors;
-   touches the soil-water coupling, so re-run the 15-layer scenario.
-2. **#7** — the sign-convention cleanup is the highest-value correctness work but
+1. **#7** — the sign-convention cleanup is the highest-value correctness work but
    also the riskiest; do it last, with the full validation sweep.
+2. **#9 follow-up** — promote `root_mass_carbon_scale` / `root_depth_shape_eta` /
+   `rooting_depth_max` to RcppR6 traits if user-tunability is wanted (interface
+   change + `make rebuild`).
+3. **#3 / #4** — already resolved/rejected; see the performance log.
