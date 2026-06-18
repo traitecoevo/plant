@@ -80,14 +80,11 @@ for (x in c("FF16", "K93")) {
   expect_equal(Hav_analytical, Hav_plant, tolerance = 0.001)
 
 
-  # TODO: test tidy individual
-  
   times <- c(1, 5, 10)
   expect_silent(
     tidy_species_new <- interpolate_to_times(results$species, times)
   )
   expect_true(all(names(tidy_species_new) %in% setdiff(names(results$species), c("step"))))
-  # TODO: test interpolation actually works, also failures
 
   if(x == "FF16") {
     heights <- c(1, 5, 10)
@@ -95,6 +92,69 @@ for (x in c("FF16", "K93")) {
       tidy_species_new <- interpolate_to_heights(results$species, heights)
     )
     expect_true(all(names(tidy_species_new) %in% setdiff(names(results$species), c("node"))))
-    # TODO: test interpolation actually works, also failures
   }
 }
+
+test_that("tidy_individual returns a tidy table of individual states over time", {
+  ind <- FF16_Individual()
+  env <- Environment("FF16")
+  env$set_fixed_environment(1.0, 100)
+  times <- seq(0, 50, length.out = 11)
+
+  res <- grow_individual_to_time(ind, times, env)
+  tidy <- tidy_individual(res)
+
+  expect_s3_class(tidy, "tbl_df")
+  expect_equal(nrow(tidy), length(times))
+  expect_named(tidy, c("step", "time", "height", "mortality",
+                       "fecundity", "area_heartwood", "mass_heartwood"))
+  expect_equal(tidy$step, seq_along(times))
+  expect_equal(tidy$time, times)
+  # values match the raw solver output ...
+  expect_equal(tidy$height, res$state[, "height"])
+  # ... and the individual grows monotonically in full light
+  expect_true(all(diff(tidy$height) > 0))
+})
+
+test_that("interpolate_to_times recovers known values and NAs out-of-range", {
+  # two nodes with height exactly linear in time: node 1 -> 2t, node 2 -> 3t.
+  # A natural spline through collinear points is the line itself, so the
+  # interpolated values are exact.
+  df <- tibble::tibble(
+    species = 1,
+    node    = rep(c(1, 2), each = 3),
+    time    = rep(c(0, 1, 2), 2),
+    height  = c(0, 2, 4, 0, 3, 6),
+    density = 1
+  )
+
+  out <- interpolate_to_times(df, times = c(0.5, 1.5))
+  expect_equal(out$height[out$node == 1], c(1.0, 3.0))
+  expect_equal(out$height[out$node == 2], c(1.5, 4.5))
+  expect_equal(out$time[out$node == 1], c(0.5, 1.5))
+
+  # times outside the observed range return NA
+  out_oor <- interpolate_to_times(df, times = c(-1, 3))
+  expect_true(all(is.na(out_oor$height)))
+})
+
+test_that("interpolate_to_heights recovers known values, rebuilds density, NAs out-of-range", {
+  # leaf_area linear in height (10*h) and log_density linear (-(h-1)).
+  df <- tibble::tibble(
+    species     = 1,
+    time        = 1,
+    height      = c(1, 2, 3),
+    log_density = c(0, -1, -2),
+    leaf_area   = c(10, 20, 30)
+  )
+
+  out <- interpolate_to_heights(df, heights = c(1.5, 2.5))
+  expect_equal(out$leaf_area, c(15, 25))
+  expect_equal(out$log_density, c(-0.5, -1.5))
+  # density is rebuilt as exp(log_density)
+  expect_equal(out$density, exp(c(-0.5, -1.5)))
+
+  # heights outside the observed range return NA
+  out_oor <- interpolate_to_heights(df, heights = c(0, 5))
+  expect_true(all(is.na(out_oor$leaf_area)))
+})
