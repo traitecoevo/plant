@@ -5,6 +5,7 @@
 #include <plant/environment.h>
 #include <plant/gradient.h>
 #include <plant/ode_solver/ode_interface.h>
+#include <optional>
 
 namespace plant {
 
@@ -168,8 +169,21 @@ void Node<T,E>::compute_initial_conditions(const environment_type& environment,
 
 template <typename T, typename E>
 double Node<T,E>::growth_rate_gradient(const environment_type& environment) const {
-  individual_type p = individual;
-  auto fun = [&] (double h) mutable -> double {
+  // Finite-differencing the growth rate needs a mutable Individual to perturb
+  // height on, but it must not disturb this node's already-computed state and
+  // rates. Rather than copy-construct a fresh Individual (and its four
+  // Internals vectors) on every call, reuse a thread-local scratch: copy
+  // assignment reuses the existing vector storage, so steady-state calls do
+  // not allocate. The scratch is per (strategy, environment) instantiation and
+  // is never used re-entrantly, so a single thread-local is sufficient.
+  thread_local std::optional<individual_type> scratch;
+  if (scratch.has_value()) {
+    *scratch = individual;
+  } else {
+    scratch.emplace(individual);
+  }
+  individual_type& p = *scratch;
+  auto fun = [&] (double h) -> double {
     return p.growth_rate_given_height(h, environment);
   };
 

@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <RcppCommon.h> // SEXP
+#include <R_ext/Arith.h> // R_PosInf, R_NegInf
 #include <tk/spline.h>
 
 namespace plant {
@@ -20,11 +21,16 @@ public:
   void clear();
 
   double eval(double u) const;
-  double operator()(double u) const;
-  size_t size() const;
+  // faster, unchecked evaluation (no check_active / bound checks): safe only
+  // when the caller has already guaranteed the point lies in the domain.
+  double operator()(double u) const { return tk_spline(u); }
+  size_t size() const { return x.size(); }
 
-  double min() const;
-  double max() const;
+  // These are chosen so that if a Interpolator is empty, functions looking to
+  // see if they will fall outside of the covered range will always find they
+  // do.  This is the same principle as R's range(numeric(0)) -> c(Inf, -Inf).
+  double min() const { return size() > 0 ? x.front() : R_PosInf; }
+  double max() const { return size() > 0 ? x.back() : R_NegInf; }
   void set_extrapolate(bool e);
 
   std::vector<double> get_x() const;

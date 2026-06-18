@@ -180,9 +180,11 @@ psi_from_transpiration.set_extrapolate(false);
 // replace f with some other function, returns E kg m^-2 s^-1
 
 double Leaf::transpiration_full_integration(double psi_stem) {
-  std::function<double(double)> f;
-  f = [&](double psi) -> double { return proportion_of_conductivity(psi); };
-  
+  // Keep the lambda's own closure type (do not wrap in std::function) so the
+  // templated QAG::integrate inlines the integrand instead of making a
+  // type-erased indirect call.
+  auto f = [&](double psi) -> double { return proportion_of_conductivity(psi); };
+
   return leaf_specific_conductance_max_ * integrator.integrate(f, psi_soil_, psi_stem);
  }
 

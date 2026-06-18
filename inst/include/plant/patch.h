@@ -414,7 +414,6 @@ void Patch<T,E>::compute_rates() {
   double pr_patch_survival = survival_weighting->pr_survival(time_);
 
   for (size_t i = 0; i < size(); ++i) {
-    double pr_patch_survival = survival_weighting->pr_survival(time_);
     double birth_rate = species[i].extrinsic_drivers().evaluate("birth_rate", time_);
 
     // Pass the environment that pointer is tracking into compute rates.

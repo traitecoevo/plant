@@ -387,3 +387,117 @@ prompt for confirmation.
   inspection/testing, not part of the stable user API.
 - ℹ️ Two solvers (deterministic SCM, stochastic) share the same model classes —
   changes to a Strategy affect both.
+- ⚠️ Several hot-path constructs look "wrong" but are deliberate performance
+  choices — see §12 before "tidying" them (inline helpers in headers, integer
+  index constants, ratio-first signatures, scratch buffers).
+
+---
+
+## 12. Performance & optimisation strategies
+
+The deterministic SCM solver spends almost all of its time in one nested loop
+(`SCM::run` → `ode::derivs` → `Patch::compute_rates` → `Species::compute_rates`
+→ `Node::compute_rates`/`growth_rate_gradient` → `Strategy::compute_rates` →
+`assimilation`/competition). Because that loop runs for every node, every
+quadrature point, every timestep, small per-call costs dominate. The codebase
+uses a consistent set of techniques to keep it fast. **Many of these make the
+code look more complicated than the underlying maths — do not "simplify" them
+back without re-profiling.** Detailed before/after benchmarks live in
+[notes/profile-ff16-2026-06-16.md](notes/profile-ff16-2026-06-16.md); the
+umbrella issue is [#466], with follow-up [#470] (LTO).
+
+**Algorithmic (the big wins):**
+
+- **Spline-based competition environment — turns O(n²) into ~O(n).** Naively,
+  computing the light each plant experiences means summing the shading of every
+  other plant, i.e. O(n²) per timestep for n individuals. Instead
+  `Patch::compute_environment()` builds a *resource spline*
+  ([resource_spline.h](inst/include/plant/resource_spline.h)) **once** per
+  timestep by evaluating cumulative competition at a fixed set of heights; each
+  individual then queries the environment with an O(1) spline lookup
+  (`get_environment_at_height`). Cost becomes O(n) to build + O(1) per query.
+- **Uniform-grid O(1) spline index.** `tk::spline::operator()`
+  ([tk/spline.h](inst/include/tk/spline.h), [src/tk_spline.cpp](src/tk_spline.cpp))
+  detects an equidistant knot grid in `set_points()` and replaces the
+  `std::lower_bound` binary search with direct index arithmetic. Falls back to
+  binary search for adaptive/non-uniform grids. ([#435])
+- **Finite-difference gradient without reallocation.**
+  `Node::growth_rate_gradient()` ([node.h](inst/include/plant/node.h)) needs a
+  mutable `Individual` to perturb height on; it reuses a `thread_local` scratch
+  (copy-*assigned* each call, reusing vector storage) instead of
+  copy-constructing fresh `Internals` every call.
+
+**Templated headers & inlining (this build has _no_ LTO).** `src/Makevars` uses
+`CXX_STD = CXX20` with no `-flto` and `DESCRIPTION` has no `UseLTO`, so a
+function defined in a `.cpp` translation unit **cannot** be inlined into the
+templated `Individual<T>`/`Node`/`Species` code instantiated in another TU.
+Every such call is a real, non-inlinable call on the hot path. Consequences you
+will see in the code:
+
+- Small, hot strategy helpers are **defined inline in the header**, not in the
+  `.cpp`: `area_leaf`, `update_dependent_aux`, the `compute_competition`
+  overloads, and `compute_competition_by_ratio` live in
+  [ff16_strategy.h](inst/include/plant/models/ff16_strategy.h) /
+  [tf24_strategy.h](inst/include/plant/models/tf24_strategy.h); `util::is_finite`
+  and the `Interpolator` accessors are inline in their headers. Moving them back
+  into a `.cpp` re-introduces a cross-TU call and measurably slows the loop.
+- The cleanest fix for the remaining large cross-TU calls (`assimilation`,
+  `compute_rates`) is enabling LTO — tracked separately in [#470] because it is
+  a build-config change with toolchain/portability trade-offs.
+
+**Avoiding repeated per-call overhead:**
+
+- **Integer index slots instead of string-map lookups.** State/aux/rate access
+  in the hot path uses fixed integer constants (`HEIGHT_INDEX`,
+  `MORTALITY_INDEX`, `*_AUX_INDEX` `constexpr`s in the strategy headers, and the
+  cached `*_aux_index` members in [individual.h](inst/include/plant/individual.h))
+  rather than `std::map<std::string,int>::at("name")`. **These constants must
+  stay in sync with the order of `state_names()`/`aux_names()`** — there are
+  comments saying so at each declaration. Named string access is kept for the
+  R-facing/diagnostic paths.
+- **Cached dependent auxiliary state.** Values that depend only on height are
+  computed once when height is set (`update_dependent_aux`) and stored in aux
+  slots: `competition_effect` (= `area_leaf(height)`) and `height_inverse`
+  (= `1/height`). The competition and assimilation paths read these instead of
+  recomputing `area_leaf` and the division every call.
+- **Eta-specialised canopy shape.** [canopy_shape.h](inst/include/plant/canopy_shape.h)
+  (`CanopyShape`, shared by FF16/TF24/K93) selects a multiplication-chain
+  implementation of `u^eta` *once* in `prepare_strategy()` for common integer
+  `eta` (1,2,4,8,10,12), avoiding the libm `pow()` slow path per quadrature
+  point; also caches `1/eta`. ([#465], libm `pow` cost from [#361])
+- **Ratio-first signatures.** `q()`/`Q()` and the competition helpers take the
+  height-normalised ratio `u = z/H` (plus a cached `1/height`) directly, so the
+  `z/H` division is hoisted out of inner loops rather than repeated per point.
+- **No `std::function` in quadrature.** `assimilation()` passes its integrand
+  lambda to the templated `QK::integrate` by its own closure type, **not**
+  wrapped in `std::function`, so the integrand inlines at each quadrature point
+  instead of making a type-erased indirect call.
+- **Hoisting loop invariants.** The light-spline upper bound (`canopy top`) is
+  fetched once per `assimilation()` call and passed into the capped
+  `get_environment_at_height(z, cap)` overload, instead of re-reading
+  `spline.max()` per quadrature point; within the crown integral the bounds are
+  already guaranteed, so the *unchecked* `spline(height)` is used in place of
+  `spline.eval()`.
+- **De-duplicated math kernels.** Where two allocation-derivative terms share a
+  `pow(area_leaf, a_l2)`, it is computed once (see
+  `FF16_Strategy::darea_leaf_dmass_live`).
+
+**Measuring.** Always benchmark with `make compile` (matches release flags) —
+`devtools::load_all()` alone is not representative. Use
+[scripts/profile-benchmarks.R](scripts/profile-benchmarks.R):
+
+```sh
+make compile
+PLANT_PROFILE_REPEATS=20 Rscript scripts/profile-benchmarks.R FF16
+```
+
+Record results in [notes/profile-ff16-2026-06-16.md](notes/profile-ff16-2026-06-16.md).
+Bit-identical changes are strongly preferred; where a reciprocal-multiply
+reorders floating-point ops, the affected reference tests were relaxed to an
+explicit tolerance (noted in that file).
+
+[#361]: https://github.com/traitecoevo/plant/issues/361
+[#435]: https://github.com/traitecoevo/plant/issues/435
+[#465]: https://github.com/traitecoevo/plant/issues/465
+[#466]: https://github.com/traitecoevo/plant/issues/466
+[#470]: https://github.com/traitecoevo/plant/issues/470

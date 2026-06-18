@@ -113,6 +113,29 @@ for (x in names(strategy_types)) {
     expect_equal(p$mortality_probability, 0.0)
   })
 
+  test_that("competition profile matches eta formula", {
+    height <- 10
+    z <- 3.5
+    etas <- c(1, 2, 4, 8, 10, 12, 3.5)
+
+    for (eta in etas) {
+      s <- strategy_types[[x]](eta = eta)
+      e <- environment_types[[x]]
+      p <- Individual(x, e)(s)
+      p$set_state("height", height)
+
+      Q <- (1 - (z / height)^eta)^2
+      if (grepl("K93", x)) {
+        multiplier <- s$k_I * pi / 4 * height^2
+      } else {
+        multiplier <- s$k_I * (height / s$a_l1)^(1 / s$a_l2)
+      }
+
+      expect_equal(p$compute_competition(z), multiplier * Q)
+      expect_equal(p$compute_competition(height * 1.1), 0)
+    }
+  })
+
   test_that("resource_compensation_point", {
   if(x == "FF16") {
     ## R implementation:

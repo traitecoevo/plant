@@ -61,26 +61,8 @@ double Interpolator::eval(double u) const {
   return tk_spline(u);
 }
 
-// faster version of above
-double Interpolator::operator()(double u) const {
-  return tk_spline(u);
-}
-
-// Return the number of (x,y) pairs contained in the Interpolator.
-size_t Interpolator::size() const {
-  return x.size();
-}
-
-// These are chosen so that if a Interpolator is empty, functions
-// looking to see if they will fall outside of the covered range will
-// always find they do.  This is the same principle as R's
-// range(numeric(0)) -> c(Inf, -Inf)
-double Interpolator::min() const {
-  return size() > 0 ? x.front() : R_PosInf;
-}
-double Interpolator::max() const {
-  return size() > 0 ? x.back() : R_NegInf;
-}
+// NOTE: operator(), size(), min() and max() are now defined inline in
+// interpolator.h so they can be inlined into hot per-quadrature-point loops.
 
 void Interpolator::set_extrapolate(bool e) {
   extrapolate = e;

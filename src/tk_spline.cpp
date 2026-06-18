@@ -198,28 +198,28 @@ void spline::set_points(const std::vector<double>& x,
    // m_b[n-1] is determined by the boundary condition
    m_a[n-1]=0.0;
    m_c[n-1]=3.0*m_a[n-2]*h*h+2.0*m_b[n-2]*h+m_c[n-2];   // = f'_{n-2}(x_{n-1})
-}
 
-double spline::operator() (double x) const {
-   size_t n=m_x.size();
-   // find the closest point m_x[idx] < x, idx=0 even if x<m_x[0]
-   std::vector<double>::const_iterator it;
-   it=std::lower_bound(m_x.begin(),m_x.end(),x);
-   int idx=std::max( int(it-m_x.begin())-1, 0);
-
-   double h=x-m_x[idx];
-   double interpol;
-   if(x<m_x[0]) {
-      // extrapolation to the left
-      interpol=((m_b[0])*h + m_c[0])*h + m_y[0];
-   } else if(x>m_x[n-1]) {
-      // extrapolation to the right
-      interpol=((m_b[n-1])*h + m_c[n-1])*h + m_y[n-1];
-   } else {
-      // interpolation
-      interpol=((m_a[idx]*h + m_b[idx])*h + m_c[idx])*h + m_y[idx];
+   // Detect a (near-)equidistant x-grid so operator() can skip the
+   // std::lower_bound binary search. (traitecoevo/plant#435)
+   m_uniform = false;
+   if(n>=2) {
+      const double dx=(m_x[n-1]-m_x[0])/(n-1);
+      if(dx>0.0) {
+         const double tol=1e-6*dx;
+         bool uniform=true;
+         for(int i=0; i<n-1; i++) {
+            double gap=(m_x[i+1]-m_x[i])-dx;
+            if(gap<0.0) gap=-gap;
+            if(gap>tol) { uniform=false; break; }
+         }
+         m_uniform=uniform;
+         m_x0=m_x[0];
+         m_inv_dx=1.0/dx;
+      }
    }
-   return interpol;
 }
+
+// spline::operator() is now defined inline in inst/include/tk/spline.h so it can
+// inline into the hot assimilation quadrature loop (no LTO in this build).
 
 }
