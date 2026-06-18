@@ -34,12 +34,12 @@ its trajectory shift quantified) before it is considered done.
 | 3 | `leaf_model.cpp:981` | `hydraulic_cost_TF` does `exp(-pow(...))` per profit eval on the Brent inner loop | Performance | REJECTED (see test-root.qmd Phase 2) |
 | 4 | `leaf_model.cpp:338-477` | pervasive `isfinite` guards inside the `E_from_Soil_to_Root_Collar` hot loop | Performance / clarity | TODO |
 | 5 | `leaf_model.cpp:752-810` | `setup_transpiration` / `setup_root_vulnerability` duplicate the knot-grid + gamma-closed-form integral build | DRY / clarity | **DONE** |
-| 6 | `leaf_model.cpp:601-626` | triple-duplicated "plant shut down at psi_crit" early-exit block in `find_root_collar_psi` | Clarity | TODO |
+| 6 | `leaf_model.cpp:601-626` | triple-duplicated "plant shut down at psi_crit" early-exit block in `find_root_collar_psi` | Clarity | **DONE** |
 | 7 | `leaf_model.cpp:835` vs `850` | sign-convention inconsistency between `transpiration` (`eval(psi_upstream)`) and `transpiration_to_psi_stem` (`eval(-psi_upstream)`); module-wide positive-vs-negative psi confusion | Correctness risk / clarity | TODO |
 | 8 | `leaf_model.cpp:993,1003` | local `double hydraulic_cost_` shadows the member of the same name in `profit_psi_stem_*` | Clarity | **DONE** |
 | 9 | `tf24_strategy.cpp:161,356,388` | magic constants (`83.26*0.5`, `0.2`, `1.5`) and a duplicated `60*60*12*365` unit factor | Maintainability | TODO |
 | 10 | `leaf_model.cpp:479` / `tf24_strategy.cpp:161` | `E_up_` stored in kg but `soil_consumption_[i]` in mol; kg conversion re-applied downstream | Clarity / trap | TODO |
-| 11 | `tf24_strategy.cpp:26,157,361` | `evapotranspiration_dt(int soil_depth)` is really a layer index; signed/unsigned loop comparisons; unfinished comment at L20 | Naming / hygiene | TODO |
+| 11 | `tf24_strategy.cpp:26,157,361` | `evapotranspiration_dt(int soil_depth)` is really a layer index; signed/unsigned loop comparisons; unfinished comment at L20 | Naming / hygiene | **DONE** |
 
 ## Notes on individual items
 
@@ -80,10 +80,29 @@ rather than hard-coded `1.0` — identical in IEEE. Validate with the
 `hydraulic_cost_*` callees already write). Renamed the locals to `cost` to
 remove the shadow. No behaviour change.
 
+### #6 — shared shut-down-state helper (DONE)
+
+`find_root_collar_psi` had the same three-line "shut down at psi_crit" block
+(`root_collar_psi_ = …; opt_psi_stem_ = psi_crit; profit_ = -R_d_ -
+hydraulic_cost_TF(psi_crit)`) inlined at three early-exits, differing only in the
+recorded collar potential. Extracted `Leaf::set_shutdown_state(double
+root_collar)`; the three sites become `set_shutdown_state(...); return;`.
+Bit-identical by construction. (The fourth, `assim_max_ < 0`, exit is a genuinely
+different operating point and was left as-is.)
+
+### #11 — naming / hygiene (DONE)
+
+- `evapotranspiration_dt(double, int soil_depth)` → `soil_layer` (it is a layer
+  index, not a depth), header + definition.
+- `compute_rates` soil loop changed from `size_t i` to `int i` to match the
+  `int soil_number_of_depths_` bound (removes a signed/unsigned comparison).
+- Completed the truncated `compute_average_light_environment` comment: it states
+  the value is clamped to a small positive floor (1e-4); the original rationale
+  was never recorded, so that is noted rather than invented.
+
 ## Suggested ordering for the rest
 
-1. **#6** (shutdown helper) and **#11** (naming) — zero-risk clarity, no numerics.
-2. **#1** (temp-param cache) — real speed win; numerics must stay bit-identical
+1. **#1** (temp-param cache) — real speed win; numerics must stay bit-identical
    (cache the exact same `exp`/`pow` outputs keyed on `leaf_temp_`,`atm_o2_kpa_`).
 3. **#9 / #10** — promote magic constants to traits and unify the unit factors;
    touches the soil-water coupling, so re-run the 15-layer scenario.

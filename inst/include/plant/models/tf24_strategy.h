@@ -20,7 +20,7 @@ public:
 
   // calculate the amount of water transpired relativised by leaf area index.
 
-  double evapotranspiration_dt(double area_leaf_, int soil_depth);
+  double evapotranspiration_dt(double area_leaf_, int soil_layer);
 
 
   // Overrides ----------------------------------------------

@@ -257,6 +257,10 @@ public:
 
   void E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>& psi_soil);
   void find_root_collar_psi();
+  // Shut-down operating point used by the find_root_collar_psi early-exits: stem
+  // held at psi_crit (no transpiration), paying only respiration + hydraulic
+  // cost. Only root_collar_psi_ differs between the cases, so it is the argument.
+  void set_shutdown_state(double root_collar);
   double find_root_psi(double wettest_soil_layer, const std::vector<double>& psi_soil, int find_root_crit);
   double find_psi_stem_from_psi_root(double psi_root, const std::vector<double>& psi_soil);
   double E_column(double x, const std::vector<double>& psi_soil, double psi_leaf);

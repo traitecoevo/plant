@@ -574,6 +574,16 @@ double Leaf::find_psi_stem_from_psi_root(double psi_root, const std::vector<doub
 // here as negative potentials, hence psi_soil_inverted_. The GSS reuses one
 // profit evaluation per iteration (golden ratio) to halve function calls, and
 // a collapsed-interval branch handles the degenerate single-feasible-point case.
+// Shut-down operating point shared by find_root_collar_psi's early-exits: the
+// stem is held at psi_crit (transpiration not possible), so the plant pays only
+// respiration (R_d_) plus the hydraulic cost at psi_crit. Only the recorded
+// root-collar potential differs between the calling cases.
+void Leaf::set_shutdown_state(double root_collar) {
+  root_collar_psi_ = root_collar;
+  opt_psi_stem_ = psi_crit;
+  profit_ = -R_d_ - hydraulic_cost_TF(psi_crit);
+}
+
 void Leaf::find_root_collar_psi(){
 
 
@@ -596,19 +606,12 @@ void Leaf::find_root_collar_psi(){
   // shut down
 
   if (-wettest_soil_layer >= psi_crit){
-
-    // profit_ = 0;
-    root_collar_psi_ = -psi_crit;
-    opt_psi_stem_ = psi_crit;
-    profit_ = - R_d_ - hydraulic_cost_TF(psi_crit);
-    // return profit_;
+    set_shutdown_state(-psi_crit);
     return;
   }
 
 if(E_column(-psi_crit, psi_soil_inverted_, psi_crit) < 0){
-      root_collar_psi_ = root_psi_crit;
-      opt_psi_stem_ = psi_crit;
-      profit_ = - R_d_ - hydraulic_cost_TF(psi_crit);
+      set_shutdown_state(root_psi_crit);
       return;
 }
 
@@ -619,10 +622,7 @@ double root_crit = find_root_psi(wettest_soil_layer, psi_soil_inverted_, 1);
 // If root crit would have to be larger than psi crit, also avoid loop as above
 
     if (-root_crit >= psi_crit){
-    // profit_ = 0;
-    root_collar_psi_ = root_crit;
-    opt_psi_stem_ = psi_crit;
-    profit_ = - R_d_ - hydraulic_cost_TF(psi_crit);
+    set_shutdown_state(root_crit);
     return;
   }
 

@@ -17,14 +17,16 @@ TF24_Strategy::TF24_Strategy() {
 // not sure 'average' is the right term here..
 double TF24_Strategy::compute_average_light_environment(
     double z, double height, const TF24_Environment &environment) {
-//NOTE: this function is currently being constrained at 0 because 
+// NOTE: the light environment is clamped to a small positive floor (1e-4)
+// rather than allowed to reach 0 (original rationale was never recorded;
+// preserved as-is).
 
      return std::max(environment.get_environment_at_height(z), 0.0001) * q(z, height);
 }
 
 // assumes optimise_psi_stem_TF has been run for optimal psi_stem
-double TF24_Strategy::evapotranspiration_dt(double area_leaf_, int soil_depth) {
-  return leaf.soil_consumption_[soil_depth] * area_leaf_;
+double TF24_Strategy::evapotranspiration_dt(double area_leaf_, int soil_layer) {
+  return leaf.soil_consumption_[soil_layer] * area_leaf_;
 }
 
 void TF24_Strategy::refresh_indices () {
@@ -154,7 +156,7 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   int soil_number_of_depths_ = environment.get_soil_number_of_depths();
 
 
-  for (size_t i = 0; i < soil_number_of_depths_; i++) {
+  for (int i = 0; i < soil_number_of_depths_; i++) {
 
     // evapotranspiration (mol H20 m^-2 s^-1 layer^-1)
     // consumption rate (m yr^-1 layer ^-1)
