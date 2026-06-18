@@ -7,7 +7,7 @@
 run_scm(
   p,
   env = NULL,
-  ctrl = Control(),
+  ctrl = control(),
   refine_schedule = FALSE,
   collect = FALSE,
   use_ode_times = FALSE

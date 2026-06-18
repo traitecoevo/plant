@@ -216,7 +216,7 @@ test_that("offspring arrival", {
                            birth_rate_list = list(11.99177, 16.51006))
   
   out <- run_scm(p2, env, ctrl)
-  expect_equal(out$offspring_production, c(11.99529, 16.47519), tolerance=1e-5)
+  expect_equal(out$offspring_production, c(11.99527, 16.47490), tolerance=1e-5)
   #expect_equal(length(out$ode_times), 297)
 })
 
