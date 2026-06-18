@@ -705,3 +705,129 @@ test_that("Medlyn stomatal model", {
 
   expect_equal(numerical_ci, analytical_ci, tolerance = 1e-5)
 })
+
+# psi_stem_to_ci is the TF24 compute-path inner solve and the single hottest
+# function in the root-water profiling (#486): given a stem water potential it
+# fixes the supply-side stomatal conductance gc and returns the ci at which
+# CO2 demand equals supply, i.e. the root of
+#   assim_colimited(ci) * umol_to_mol  -  gc * (ca - ci) / (atm_kpa * kPa_to_Pa) = 0
+# over ci in (gamma*, ca]. It is currently solved by bisection (util::uniroot)
+# to an absolute tolerance of 1e-7 Pa. These tests pin the *contract* (what ci
+# must satisfy) independently of the *method*, so they remain a valid safety net
+# if the solver is later refactored for speed.
+test_that("psi_stem_to_ci supply=demand solve", {
+  vcmax_25 = 100
+  jmax_25 = vcmax_25 * 167
+  c = 2.04
+  b = 3
+  psi_crit = 5
+  theta = 0.000157
+  K_s = 1
+  h = 5
+  beta2 = 1
+  hk_s = 75
+  curv_fact_elec_trans = 0.7
+  a = 0.3
+  curv_fact_colim = 0.99
+  g1_TF24 = 46.32995
+  GSS_tol_abs = 1e-8
+  vulnerability_curve_ncontrol = 100
+  ci_abs_tol = 1e-6
+  ci_niter = 1000
+  beta_R_H = 3.4e3
+  beta_R_V = 9.4e4
+  root_c = 2.65
+  root_b = 1.29
+  root_psi_crit = root_b * (log(1.0 / 0.05))^(1.0 / root_c)
+
+  PPFD = 900
+  sapwood_volume_per_leaf_area = theta * h
+  leaf_specific_conductance_max = K_s * theta / h
+  atm_vpd = 2
+  ca = 40
+  atm_o2_kpa_ = 21
+  leaf_temp_ = 25
+  atm_kpa_ = 101.3
+  area_leaf_ = 0.05
+
+  # unit conversions used inside psi_stem_to_ci (see leaf_model.cpp)
+  umol_to_mol = 1e-6
+  kPa_to_Pa = 1e3
+  umol_per_mol_to_Pa = 0.1013
+
+  make_leaf <- function() {
+    Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit,
+         root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, beta2 = beta2,
+         hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans,
+         curv_fact_colim = curv_fact_colim, GSS_tol_abs = GSS_tol_abs,
+         vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol,
+         ci_niter = ci_niter, g1_TF24 = g1_TF24, beta_R_H = beta_R_H, beta_R_V = beta_R_V)
+  }
+  set_phys <- function(l, psi_soil = 2, atm_vpd = 2) {
+    l$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245,
+                     PPFD = PPFD, psi_soil = psi_soil, soil_depth = 0.5,
+                     leaf_specific_conductance_max = leaf_specific_conductance_max,
+                     atm_vpd = atm_vpd, ca = ca,
+                     sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area,
+                     leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+    l
+  }
+
+  psi_soil <- 2
+
+  # --- 1. the returned ci is the root of the supply=demand residual ----------
+  # assim_minus_stom_cond_CO2 recomputes gc from (psi_stem, psi_upstream) using
+  # exactly the same expression psi_stem_to_ci solves, so the residual at the
+  # returned ci must be ~0. The bisection tol is 1e-7 Pa in ci and the residual
+  # slope is O(1e-6) per Pa, so the residual is well below 1e-9.
+  l <- set_phys(make_leaf(), psi_soil = psi_soil)
+  psi_stem <- psi_soil + 1
+  ci <- l$psi_stem_to_ci(psi_stem, psi_soil)
+  expect_true(abs(l$assim_minus_stom_cond_CO2(ci, psi_stem, psi_soil)) < 1e-9)
+
+  # --- 2. ci lies strictly inside the bracket (gamma*, ca) -------------------
+  gamma_star <- l$gamma_ * umol_per_mol_to_Pa
+  expect_true(ci > gamma_star && ci < ca)
+
+  # --- 3. the call writes the ci_ member (used by the compute path) ----------
+  expect_equal(l$ci_, ci)
+
+  # --- 4. method-independent reference: re-solve the identical target in pure
+  # R with a high-accuracy root finder. This decouples "the correct ci" from
+  # "the C++ solver", so a future method swap (Newton, Brent, analytic, ...)
+  # still passes as long as it converges to the same root.
+  gc_fixed <- l$stom_cond_CO2(psi_stem, psi_soil)
+  target <- function(x) {
+    l$assim_colimited(x) * umol_to_mol - gc_fixed * (ca - x) / (atm_kpa_ * kPa_to_Pa)
+  }
+  ci_ref <- stats::uniroot(target, lower = gamma_star, upper = ca, tol = 1e-10)$root
+  expect_equal(ci, ci_ref, tolerance = 1e-6)
+
+  # --- 5. monotonicity: a higher (more negative-gradient) psi_stem raises gc,
+  # steepening the supply line, so the supply=demand ci increases toward ca.
+  psi_stem_seq <- seq(psi_soil + 0.1, psi_crit, length.out = 25)
+  ci_seq <- vapply(psi_stem_seq, function(p) l$psi_stem_to_ci(p, psi_soil), numeric(1))
+  expect_true(all(diff(ci_seq) > 0))
+  expect_true(all(ci_seq > gamma_star & ci_seq < ca))
+
+  # --- 6. the identity holds across a range of soil potentials ---------------
+  for (ps in c(0, 0.5, 1, 3)) {
+    lp <- set_phys(make_leaf(), psi_soil = ps)
+    pstem <- ps + 0.75
+    ci_p <- lp$psi_stem_to_ci(pstem, ps)
+    expect_true(ci_p > lp$gamma_ * umol_per_mol_to_Pa && ci_p < ca)
+    expect_true(abs(lp$assim_minus_stom_cond_CO2(ci_p, pstem, ps)) < 1e-9)
+  }
+
+  # --- 7. degenerate gc=0 limit (psi_stem == psi_upstream): supply term
+  # vanishes and the solve collapses to the light-compensation point where
+  # net assimilation is zero (assim_colimited(ci) == 0).
+  l0 <- set_phys(make_leaf(), psi_soil = psi_soil)
+  ci0 <- l0$psi_stem_to_ci(psi_soil, psi_soil)
+  expect_true(abs(l0$assim_colimited(ci0)) < 1e-5)
+
+  # --- 8. regression guard: reference ci for the standard scenario on this
+  # build. A solver change that alters the converged value beyond rounding is
+  # expected to update this number (it is NOT bit-identical across methods).
+  expect_equal(ci, 11.7990174439, tolerance = 1e-6)
+})
