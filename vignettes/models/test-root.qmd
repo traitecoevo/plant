@@ -571,48 +571,66 @@ $F(\psi_2)-F(\psi_1)$.
 The script builds the real C++ `Leaf` and compares the closed form against both
 numerical paths — `transpiration()` (the production `tk::spline` of $F$) and
 `transpiration_full_integration()` (QAG adaptive quadrature) — plus the inverse
-spline. Over a 2001-point sweep across the spline domain:
+spline `psi_from_transpiration`. The table shows the trapezoid-knot build
+(*before*) and the analytic-knot build now in the code (*after*, see
+*Implemented* below); QAG is build-independent. Over a 2001-point sweep:
 
-| Parameter set (`ncontrol`) | QAG vs analytic (rel) | spline $F$ vs analytic (abs / rel) | inverse spline (abs) |
-|---|---|---|---|
-| TF24 default `p_50=1.85` (100) | 1.4e−6 | 2.2e−4 / 7.3e−3 | 2.0e−2 MPa |
-| test-leaf `c=2.04,b=3` (100)   | 1.7e−10 | 9.7e−5 / 7.0e−5 | 8.1e−4 MPa |
-| TF24 default (1000)            | 1.4e−6 | 1.8e−6 / 6.0e−4 | 1.8e−4 MPa |
-| TF24 default (30)              | 1.3e−6 | 2.7e−3 / 2.7e−2 | 2.1e−1 MPa |
+| Parameter set (`ncontrol`) | QAG (rel) | spline $F$ before (abs) | spline $F$ after (abs) | inverse before | inverse after |
+|---|---|---|---|---|---|
+| TF24 default `p_50=1.85` (100) | 1.4e−6 | 2.2e−4 | 1.5e−4 | 2.0e−2 MPa | 2.7e−4 MPa |
+| test-leaf `c=2.04,b=3` (100)   | 1.7e−10 | 9.7e−5 | 3.2e−6 | 8.1e−4 MPa | 3.2e−4 MPa |
+| TF24 default (1000)            | 1.4e−6 | 1.8e−6 | 9.5e−7 | 1.8e−4 MPa | 2.4e−6 MPa |
+| TF24 default (30)              | 1.3e−6 | 2.7e−3 | 1.8e−3 | 2.1e−1 MPa | 3.4e−3 MPa |
 
 **(1) The closed form is correct.** QAG quadrature — an independent numerical
 method — agrees with it to ~1e−6 relative (its own tolerance floor), and to
 ~1e−10 for the steeper test curve. The analytical transform can stand as a
 validation reference.
 
-**(2) The spline error is *quadrature* bias, not interpolation.** Decomposing the
-spline's deviation from truth: at the knots the cubic reproduces the
-construction values exactly, so knot-error = the trapezoid quadrature bias used
-to build them. For the production default (`ncontrol=100`) the total error is
-2.18e−4, of which **trapezoid bias is 2.174e−4 (99.7%) and cubic interpolation
-between knots adds only ~6e−7 (0.3%)**. The same holds at every resolution, and
-the error scales as $1/\text{ncontrol}^2$ (the trapezoid rate: 30 → 100 → 1000
-gives 2.7e−3 → 2.2e−4 → 1.8e−6), confirming the spline is essentially a perfect
-interpolant of imperfect knots.
+**(2) The spline error has *two* parts; only one is quadrature bias.** The build
+splits into (a) knot error — the trapezoid quadrature bias baked into the
+construction values — and (b) cubic interpolation error *between* knots. Seeding
+the knots analytically (below) drives (a) to machine epsilon (knot error
+2.2e−4 → 3e−15) and isolates (b). The earlier read of this section — "99.7%
+trapezoid, 0.3% cubic" — was **wrong**: it subtracted the max knot error from the
+max total error, but the two maxima occur at *different* potentials. For the
+production curve ($c=1.09$) the residual after exact seeding is **1.46e−4, all of
+it in the first inter-knot cell** ($\psi\approx0.04$, before the first knot at
+0.105). There $F$ has unbounded higher derivatives at the origin
+($F'''\sim m^{c-2}$ diverges for $c<2$), so a single cubic cell cannot track it —
+this is genuine interpolation error, not quadrature. The trapezoid bias, large at
+*high* $\psi$, dominated the *before* total and masked it. For the steeper
+test-leaf curve ($c=2.04$, no origin singularity) seeding does help in full:
+9.7e−5 → 3.2e−6 (~30×).
+
+### Implemented
+
+`setup_transpiration` and `setup_root_vulnerability` now seed their cumulative-
+integral knots from the gamma closed form (`boost::math::tgamma_lower`) instead of
+a running trapezoid sum — same knots, same `tk::spline`, same O(1) hot-path eval.
+Measured effect (table above):
+
+- **Inverse transform (used in simulation): ~60–75× more accurate.** `p_50=1.85`,
+  `ncontrol=100`: 2.0e−2 → 2.7e−4 MPa. The inverse's error *was* bias-dominated,
+  so removing the bias is almost the whole story — this is the real payoff.
+- **Forward $F$: modest for the production curve (~1.5×, 2.2e−4 → 1.5e−4)** because
+  its error is the near-origin interpolation term (b), not bias; large (~30×) for
+  steep curves with no origin singularity.
+- **Trajectory shift** (MPL=5 self-comparison, `run_scm_collect`): not
+  bit-identical — by design. Hydraulics-driven states move ~0.2–0.3%
+  (`transpiration`/`E_up_`/`opt_psi_stem`/`height` rel ≤3e−3), `offspring_production`
+  ~1e−3; the shift is smooth (large relative diffs appear only at near-zero-density
+  cohort boundaries and sign crossings), with identical cohort/step structure. The
+  move is toward the more accurate integral.
 
 ### Consequences
 
-- **(3) PCHIP would not help.** The cubic spline already nails the knots to
-  ~1e−6; swapping it for a monotone interpolator targets the 0.3% that isn't the
-  problem. Not worth pursuing for accuracy. (Monotonicity/overshoot is a
-  non-issue here anyway — $F$ and $F^{-1}$ are smooth and the cubic does not
-  overshoot on this data.)
-- **The actual payoff of the closed form for forward simulation** is not to
-  replace the spline but to **seed its knots exactly**: filling
-  `y_cumulative_transpiration_` in `setup_transpiration` (and the analogous
-  `y_integral` in `setup_root_vulnerability`) with $F$(knot) from the gamma form
-  instead of the running trapezoid sum removes the dominant 99.7% error term at
-  **zero hot-path cost** — same knots, same `tk::spline`, same O(1) eval. At the
-  production `ncontrol=100` this would cut $F$ error ~350× (2.2e−4 → ~6e−7)
-  without changing the runtime structure analysed above. (Would need `boost`'s
-  `tgamma_lower` in C++; the Boost licence is AGPL-compatible. Deferred — it
-  shifts numerics, so it needs the usual bit-identical-trajectory assessment
-  before adoption.)
+- **(3) PCHIP would not help.** The production residual is the first-cell origin
+  singularity in $F$ ($F'''$ diverges for $c<2$) — a *lower*-order monotone
+  interpolator would do worse there, not better, and monotonicity/overshoot was
+  never the issue ($F$, $F^{-1}$ are smooth and the cubic does not overshoot). To
+  shave the residual further the lever is a non-uniform knot grid (denser near
+  $\psi=0$), not a different interpolator. Out of scope.
 - **Calibration / AD (issue step 5)** remains the closed form's other natural
   home: it is a smooth expression in `(p_50, c, K_max)` with no spline-build
   graph to differentiate through. Out of scope here.

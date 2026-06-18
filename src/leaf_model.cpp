@@ -1,6 +1,7 @@
 #include <plant/leaf_model.h>
 #include <cmath>
 #include <exception>
+#include <boost/math/special_functions/gamma.hpp>
 #include <plant/models/tf24_environment.h>
 
 namespace plant {
@@ -760,8 +761,14 @@ void Leaf::setup_root_vulnerability(double resolution) {
     double f_r = exp(-pow(psi/root_b, root_c));
     x_psi_root.push_back(psi);
     y_f_r.push_back(f_r);
-    y_integral.push_back(y_integral.back() +
-                         step * 0.5 * (y_f_r[y_f_r.size() - 2] + f_r));
+    // G(m) = int_0^m exp(-(s/root_b)^root_c) ds has the closed form
+    //   G(m) = (root_b/root_c) * gamma_lower(1/root_c, (m/root_b)^root_c)
+    // (lower incomplete gamma). Seeding the knots analytically instead of with a
+    // running trapezoid sum removes the dominant quadrature bias at no eval cost;
+    // see issue #468 and scripts/validate_gamma_transform.R.
+    y_integral.push_back((root_b / root_c) *
+                         boost::math::tgamma_lower(1.0 / root_c,
+                                                   pow(psi / root_b, root_c)));
   }
   root_vuln_from_psi.init(x_psi_root, y_f_r);
   root_vuln_from_psi.set_extrapolate(true); // clamp to last value beyond range
@@ -777,11 +784,20 @@ void Leaf::setup_transpiration(double resolution) {
   // integrate and accumulate results
   auto x_psi_ = std::vector<double>{0.0};  // {0.0}
   auto y_cumulative_transpiration_ = std::vector<double>{0.0}; // {0.0}
-  double step = (b*pow((log(1/0.01)),(1/c)))/resolution;
-  
-  for (double psi_spline = 0.0 + step; psi_spline <= (b*pow((log(1/0.01)),(1/c))); psi_spline += step) {
+  // psi_max kept as the original expression so the knot grid is bit-identical;
+  // only the y (cumulative-integral) values change below.
+  double psi_max = b*pow((log(1/0.01)),(1/c));
+  double step = psi_max/resolution;
 
-    double E_psi = step * ((proportion_of_conductivity(psi_spline-step) + proportion_of_conductivity(psi_spline))/2) + y_cumulative_transpiration_.back();
+  for (double psi_spline = 0.0 + step; psi_spline <= psi_max; psi_spline += step) {
+
+    // F(m) = int_0^m exp(-(s/b)^c) ds = (b/c) * gamma_lower(1/c, (m/b)^c)
+    // (lower incomplete gamma). Seeding knots with this closed form instead of a
+    // running trapezoid sum removes the dominant quadrature bias (~99.7% of the
+    // spline's error vs truth) at no hot-path cost -- same knots, same tk::spline,
+    // same O(1) eval. See issue #468 and scripts/validate_gamma_transform.R.
+    double E_psi = (b / c) * boost::math::tgamma_lower(1.0 / c,
+                                                       pow(psi_spline / b, c));
     x_psi_.push_back(psi_spline); // x values for spline
     y_cumulative_transpiration_.push_back(E_psi); // y values for spline
 }
