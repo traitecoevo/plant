@@ -172,7 +172,9 @@ test_that("Reference comparison", {
   cmp_diameter_stem_dt <- cmp$diameter_stem_dt(cmp$traits, h0, light_env)
   # expect_equal(p$rate("diameter_stem"), cmp_diameter_stem_dt, tolerance=1e-7)
 
-  ## TODO: add lcp_whole_plant test to refference comparison
+  ## 19. whole-plant light compensation point
+  cmp_lcp <- cmp$WPLCP(cmp$traits, h0)
+  expect_equal(p$resource_compensation_point(), cmp_lcp, tolerance=1e-6)
 
   ## Check that height decomposition multiplies out to give right
   ## answer
