@@ -84,7 +84,7 @@ indv$compute_rates(env)
 indv$ode_rates
 ```
 
-<!-- TODO: next bit is a bit vague -->
+<!-- TODO(#481): next bit is a bit vague -->
 While we have focused on three key variables, height, mortality and fecundity,
 the FF16 model describes variable for five characteristics.
 The name vector of these variables is available via
@@ -377,7 +377,7 @@ legend("topright",
 ```
 
 <!--
-TODO: Remove Plant Plus
+TODO(#481): Remove Plant Plus
 Over a plant's life, allocation to different structures varies.
 This is captured by a set of variables stored within the internals:
 e.g., `mass_leaf` `mass_sapwood`.

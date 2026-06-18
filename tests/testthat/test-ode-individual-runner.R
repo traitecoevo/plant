@@ -144,7 +144,7 @@ test_that("grow_individual_to_size", {
   }
 })
 
-## TODO: another useful function could be to construct splines for
+## TODO(#482): another useful function could be to construct splines for
 ## arbitrary variables during a run; we end up with all the state here
 ## so that should be fairly straightforward.
 test_that("grow_individual_to_size", {

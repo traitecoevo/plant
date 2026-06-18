@@ -169,7 +169,7 @@ private:
   environment_type environment;
   std::vector<species_type> species;
 
-  //TODO: Move into environment?
+  //TODO(#476): Move into environment?
   std::vector<double> resource_depletion;
 
   environment_type* environment_ptr;
@@ -435,7 +435,7 @@ void Patch<T,E>::compute_rates() {
   resource_depletion.clear();
 }
 
-// TODO: We should only be recomputing the light environment for the
+// TODO(#478): We should only be recomputing the light environment for the
 // points that are below the height of the seedling -- not the entire
 // light environment; probably worth just doing a rescale there?
 template <typename T, typename E>
@@ -494,7 +494,7 @@ size_t Patch<T,E>::ode_size() const {
 
 template <typename T, typename E>
 size_t Patch<T,E>::aux_size() const {
-  // TODO: Is this useful for environment vectors?
+  // TODO(#478): Is this useful for environment vectors?
   // no use for auxiliary environment variables (yet)
   return ode::aux_size(species.begin(), species.end());// + environment.ode_size();
 }

@@ -80,7 +80,7 @@ validate <- function(x, ...) {
 ##' @export
 `validate.Parameters` <- function(x, ...) {
   plant <- parent.env(environment())
-  ## TODO: This uses an implementation detail of RcppR6 that is not
+  ## TODO(#483): This uses an implementation detail of RcppR6 that is not
   ## really OK to use; this could change at any moment.  Probably I'll
   ## expose this in some RcppR6 generated code eventually.
   types <- extract_RcppR6_template_types(x, "Parameters")

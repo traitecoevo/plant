@@ -336,7 +336,7 @@ std::vector<std::vector<double>> SCM<T, E>::refinement_error_by_node() const {
 template <typename T, typename E>
 std::vector<double>
 SCM<T, E>::r_compute_competition_effect_error_by_node_for_species_i(util::index species_index) const {
-  // TODO: I think we need to scale this by total area; that should be
+  // TODO(#478): I think we need to scale this by total area; that should be
   // computed for everything so will get passed in as an argument.
   // const double tot_competition_effect  = patch.compute_competition(0.0);
   const size_t idx = species_index.check_bounds(patch.size());

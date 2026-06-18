@@ -21,7 +21,7 @@ This page contains a brief introduction to get you started with `plant`.
 At a high level, `plant` has two key use cases - modelling individuals or modelling patches. Modelling either is dependent on the species parameters, the environment and the intial conditions. 
 By modifying these inputs you can grow different individuals or patches of species.
 
-<!-- TODO: add an overview diagram contrasting plant's individual vs patch use cases -->
+<!-- TODO(#481): add an overview diagram contrasting plant's individual vs patch use cases -->
 
 More extensive information and tutorials are available, such as:
 
@@ -131,7 +131,7 @@ The most important feature of `plant` is enabling easy modeling of size-distribu
 
 A patch is simply an area in which a collection of individuals grow and compete for resources (see [Concepts: patches](https://traitecoevo.github.io/plant/articles/demography.html#patches-of-competing-plants-size-structured-populations)). By size distribution we mean the relationship between the density of individuals and their size (see [Concepts: demography](https://traitecoevo.github.io/plant/articles/demography.html)). By default, `plant` starts with a bare/empty patch, but you can also start with an existing size distribution.
 
-<!-- TODO: add figure — example size distribution (stylised) -->
+<!-- TODO(#481): add figure — example size distribution (stylised) -->
 
 Modelling a patch involves
 

@@ -60,7 +60,7 @@ test_that("Weibull disturbance regime", {
   expect_equal(obj$icdf(6.25302620663814e-05), m)  
   })
 
-# TODO: check what this is for
+# TODO(#482): check what this is for
 # test_that("Reference survival eps gives correct running time", {
 #   ## From falster-traitdiversity: src/base/ebt/site.cpp,
 #   ## site::solve_patchage_dist():

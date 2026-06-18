@@ -67,7 +67,7 @@ a lot of `plant:::` prefixes.
 
 # Node introduction times
 
-<!-- TODO: elaborate on why concentrating concentrating early helps -->
+<!-- TODO(#481): elaborate on why concentrating concentrating early helps -->
 
 The default node introduction times are designed to concentrate
 node introductions onto earlier times, based on empirical
@@ -87,7 +87,7 @@ plot(times_default, cex=.2, pch=19, ylab="Time (years)", las=1)
 ```
 
 ![plot of chunk default-times](figures/node_spacing_default-times-1.png)
-<!-- TODO: explain how introducing two species together reduces work -->
+<!-- TODO(#481): explain how introducing two species together reduces work -->
 
 The actual differences are stepped in order to increase the chance
 that nodes from different species will be introduced at the same
@@ -268,7 +268,7 @@ abline(v=times_interpolated[top_5], col=c("red", rep("grey", 4)))
 ```
 
 ![plot of chunk node-contributions](figures/node_spacing_node-contributions-1.png)
-<!-- TODO: there might be a clearer way to summarise this point -->
+<!-- TODO(#481): there might be a clearer way to summarise this point -->
 
 In this case almost all the contribution comes from early nodes
 (this is essentially a single-age stand of pioneers).
@@ -365,7 +365,7 @@ may be driving differences in Offspring production.
 
 # Monitoring integration accuracy
 
-<!-- TODO: find more general terms for 'leaf-area error' -->
+<!-- TODO(#481): find more general terms for 'leaf-area error' -->
 
 The SCM monitors two integrations over the size-density distribution as the
 patch develops and uses the larger of the two errors to decide where to refine:

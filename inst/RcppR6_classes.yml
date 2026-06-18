@@ -830,7 +830,7 @@ StochasticPatch:
     compute_rates:
       return_type: void
       name_cpp: r_compute_rates
-    # TODO: Not 100% sure this is needed from R:
+    # TODO(#483): Not 100% sure this is needed from R:
     reset:
       return_type: void
     # Because we now care about time, we need to make sure that the

@@ -363,7 +363,7 @@ double FF16_Strategy::mass_total_dt(double fraction_allocation_reproduction,
     mass_heartwood_dt;
 }
 
-// TODO: Do we not track root mass change?
+// TODO(#480): Do we not track root mass change?
 double FF16_Strategy::mass_above_ground_dt(double area_leaf,
                                        double fraction_allocation_reproduction,
                                        double net_mass_production_dt,

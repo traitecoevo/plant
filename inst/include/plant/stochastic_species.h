@@ -160,7 +160,7 @@ double StochasticSpecies<T,E>::compute_competition(double height) const {
     return 0.0;
   }
   double tot = 0.0;
-  // TODO: Here, and elsewhere, consider using a
+  // TODO(#479): Here, and elsewhere, consider using a
   // boost::filter_iterator, which is in BH
   for (size_t i = 0; i < size_individuals(); ++i) {
     if (is_alive[i]) {
@@ -185,7 +185,7 @@ void StochasticSpecies<T,E>::compute_rates(const E& environment) {
   }
 }
 
-// TODO: This is going to change...
+// TODO(#479): This is going to change...
 template <typename T, typename E>
 std::vector<double> StochasticSpecies<T,E>::net_reproduction_ratio_by_node() const {
   std::vector<double> ret;
@@ -259,7 +259,7 @@ template <typename T, typename E>
 std::vector<double> StochasticSpecies<T,E>::r_heights() const {
   std::vector<double> ret;
   ret.reserve(size());
-  // TODO: also simplify r_heights for Species?
+  // TODO(#479): also simplify r_heights for Species?
   for (size_t i = 0; i < size_individuals(); ++i) {
     if (is_alive[i]) {
       ret.push_back(individuals[i].state(HEIGHT_INDEX));

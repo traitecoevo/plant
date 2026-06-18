@@ -96,7 +96,7 @@ grow_individual_to_time <- function(individual, times, env) {
   runner <- OdeRunner(strategy_name)(ir1)
   runner_detail <- OdeRunner(strategy_name)(ir2)
 
-  ## TODO: This could also be done by better configuring the
+  ## TODO(#483): This could also be done by better configuring the
   ## underlying ODE runner, but this seems a reasonable way of getting
   ## things run for now.
   state <- matrix(NA, n, length(y0))
@@ -138,7 +138,7 @@ grow_individual_bracket <- function(individual, sizes, size_name, env,
   }
   strategy_name <- individual$strategy_name
 
-  # TODO: size index uses index from 0
+  # TODO(#483): size index uses index from 0
   # can we clarify?
   size_index <- (which(individual$ode_names == size_name) - 1)
 
@@ -162,7 +162,7 @@ grow_individual_bracket <- function(individual, sizes, size_name, env,
       if (warn) {
         warning(paste(msg, collapse="\n"), immediate.=TRUE)
       }
-      ## TODO: Consider making this an error, or making the test a bit better.
+      ## TODO(#483): Consider making this an error, or making the test a bit better.
       if (runner$object$individual$ode_rates[[2]] < 1e-10) {
         warning("Integration may have failed for reasons other than mortality",
                 immediate.=TRUE)
@@ -209,7 +209,7 @@ grow_individual_bracket <- function(individual, sizes, size_name, env,
 grow_individual_bisect <- function(runner, size, size_name, t0, t1, y0) {
 
   
-  # TODO: size index uses index from 0
+  # TODO(#483): size index uses index from 0
   # can we clarify?
   size_index <- (which(runner$object$individual$ode_names == size_name) - 1)
 

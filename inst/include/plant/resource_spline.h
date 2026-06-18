@@ -71,7 +71,7 @@ public:
   // Variant taking a pre-fetched cap (= max_height()) so callers integrating
   // over many points pay the spline.max() lookup once rather than per point.
   double get_value_at_height(double height, double cap) const {
-    // TODO: change maximum - here hard-coded to 1.0
+    // TODO(#385): change maximum - here hard-coded to 1.0
     // `cap` already guards the upper bound and the crown integral keeps
     // height >= 0 = spline.min(), so use the unchecked operator() rather than
     // eval() to avoid re-running check_active()/bound checks per quadrature

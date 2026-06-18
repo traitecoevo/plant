@@ -60,7 +60,7 @@ public:
                    const std::vector<double>& state,
                    const std::vector<size_t>& n);
   Rcpp::List r_get_state() const;
-  // TODO: No support here for setting *vectors* of species.  Might
+  // TODO(#479): No support here for setting *vectors* of species.  Might
   // want to supoprt that?
   bool r_introduce_new_node(util::index species_index) {
     return introduce_new_node(species_index.check_bounds(size()));

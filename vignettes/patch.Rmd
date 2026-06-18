@@ -125,7 +125,7 @@ introduction for *either* species, each of which will be refined to different sc
 
 In the `FF16` strategy, Individuals increase in height with respect to time, but because they are competing the growth rate depends on the state of the environment (e.g. the amount of shading above an Individual's canopy), in addition to size dependent growth.
 
-<!-- TODO: Dead link- "(see vignette:plant)" -->
+<!-- TODO(#481): Dead link- "(see vignette:plant)" -->
 
 We can plot the trajectories of nodes developing within a patch over time:
 
@@ -302,7 +302,7 @@ lines(lai2$time, lai2$sp1, col=cols[[1]])
 lines(lai2$time, lai2$sp2, col=cols[[2]])
 ```
 
-<!-- TODO: Introduce meta populations:
+<!-- TODO(#481): Introduce meta populations:
 
 To find the average value over the metapopulation we weight by patch abundance:
 

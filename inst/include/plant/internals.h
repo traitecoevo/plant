@@ -11,7 +11,7 @@
 #include <vector>
 // #include <plant/plant_internals.h>
 
-// TODO: extra_state bounds, upper and lower limits
+// TODO(#483): extra_state bounds, upper and lower limits
 namespace plant {
 
 class Internals {

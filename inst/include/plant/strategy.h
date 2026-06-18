@@ -28,7 +28,7 @@ public:
 
   std::vector<std::string> aux_names();
 
-  // TODO : expose this so can access state_names directly
+  // TODO(#483) : expose this so can access state_names directly
   // In previous attempt couldn't get it to run
   // static std::vector<std::string> state_names() { return strategy_type::state_names(); }
   // the index of variables in the internals extra vector
