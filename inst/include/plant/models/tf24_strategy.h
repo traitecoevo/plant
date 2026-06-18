@@ -151,6 +151,11 @@ public:
   double net_mass_production_dt_A(double assimilation, double respiration,
                                   double turnover) const;
 
+  // Two overloads: the 3-arg form is the public, virtual entry point used by
+  // callers that only have `height` (e.g. establishment_probability); it just
+  // computes height_inverse = 1/height and delegates. The 4-arg form is the
+  // real (non-virtual) implementation, taking a pre-computed height_inverse so
+  // the hot path (compute_rates) can skip the redundant division.
   virtual double net_mass_production_dt(const TF24_Environment& environment,
                                 double height, double area_leaf_);
   double net_mass_production_dt(const TF24_Environment& environment,
