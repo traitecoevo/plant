@@ -303,7 +303,12 @@ The branch couples three pieces, integrated together by `run_scm_collect`:
     cost) operating point — plus several early-exit short-circuits for plant
     shut-down conditions.
 
-## Where the runtime goes (profile)
+## Phase 1 — initial optimisation roadmap (#1–#5)
+
+This phase is the original record: it took the new root-water model from its
+first working version to roughly 4–6× faster through five ranked items.
+
+### Where the runtime goes (initial profile)
 
 Profiled with `max_patch_lifetime = 5` (≈40 s, a faithful proxy for the full
 ≈8-min run — only the number of ODE steps differs). Runtime is ~entirely in
@@ -321,7 +326,7 @@ allocations and the vector copies in `set_physiology` are <0.1% of runtime;
 preallocating them will not move the needle (profile-confirmed). This whole
 optimum is recomputed for every individual at every ODE sub-step.
 
-## Tried and REJECTED: super-linear root-finder (TOMS748)
+### Tried and REJECTED: super-linear root-finder (TOMS748)
 
 Replacing the bisection in `util::uniroot` with a Brent-like super-linear
 solver (TOMS748) is the obvious "biggest lever" — it normally needs ~5–8
@@ -333,7 +338,7 @@ bad points; **bisection's robustness is load-bearing here.** A documented but
 unused `util::uniroot_smooth` helper remains in `inst/include/plant/uniroot.h`
 with this caveat, so the experiment is not silently repeated.
 
-## Optimisation roadmap (ranked)
+### Optimisation roadmap (ranked)
 
 **DONE (#2 + #3): ~1.9× speed-up, bit-identical output** (MPL=5: ≈41 s → ≈21 s;
 `all.equal` vs baseline TRUE). Both are numerically identical so the science is
@@ -398,34 +403,7 @@ files after header/branch changes, yielding an inconsistent binary. Use
 
 No remaining items on the ranked roadmap.
 
-## Cumulative result (all 4, baseline → HEAD)
-
-The per-item figures above were each measured against the build immediately
-before them, so they don't compound cleanly. Here is the **end-to-end** result,
-both binaries built clean from the same toolchain (`make clean && make compile`,
-`-g -O2`) and loaded with `pkgload::load_all(".", recompile = FALSE)`, on the
-**single-species MPL=10** SCM run (`birth_rate = 20`, default `Environment`,
-median of 5 timed runs after a warm-up):
-
-| Build | Commit | Median run | offspring_production |
-|---|---|---|---|
-| Baseline (roadmap, pre-optimisation) | `ff75ad22` | **39.78 s** | 4.712317419e−06 |
-| HEAD (all 4 done) | `b6ec6045` | **9.05 s** | 4.797128277e−06 |
-
-- **≈4.40× faster** (39.8 s → 9.0 s, −77 % wall-time; min-of-5 ratio 4.38×).
-  This slightly beats the product of the individual claims (1.9 × 1.25 × 1.7 ≈
-  4.0×) because removing the hottest spline evals also shrinks every inner
-  root-find the later items still call.
-- **Numerics:** offspring_production shifts **+1.80 %** (+8.5e−08), the net of
-  the two accuracy-improving items (#1 interval-mean, #4 Brent) — #2/#3 are
-  bit-identical. Direction is *toward* the fine-grained reference; magnitude is
-  within the system's intrinsic build-to-build sensitivity. Existing
-  leaf/TF24/environment tests pass unchanged.
-
-(Reproduce with `scripts/bench_tf24.R`; absolute seconds are machine-specific
-but the ratio is stable.)
-
-## Post-optimisation profile (HEAD)
+### Post-optimisation profile (after #1–#4)
 
 Re-profiled after all four items, on the same single-species MPL=10 run. macOS
 `sample` was used (the `jointprof`/`pprof` path documented above is unavailable
@@ -448,7 +426,7 @@ The picture has shifted: spline evaluation was *the* hottest leaf before and is
 still ~30 % combined (`tk::spline` + `Interpolator::eval`), but it's no longer
 dominant — work is now spread across the solver structure.
 
-### DONE: string-keyed lookups (~3 % → ~0.5 %)
+#### DONE: string-keyed lookups (~3 % → ~0.5 %)
 
 The two string-lookup hot spots flagged above were both removed (numerically
 bit-identical, `offspring_production` unchanged at 4.797128277e−06):
@@ -478,7 +456,7 @@ unchanged in shape.
   bounded-Brent treatment, or memoising it the way #2 did for `transpiration()`,
   is the obvious biggest remaining target.
 
-### DONE (#5): `E_from_Soil` integral-spline cache — and why `psi_stem_to_ci` was a red herring
+#### DONE (#5): `E_from_Soil` integral-spline cache — and why `psi_stem_to_ci` was a red herring
 
 The roadmap-#5 premise above **does not reproduce on the current binary.**
 Re-profiling HEAD (macOS `sample`) on *both* the 15-layer root-water scenario at
@@ -525,6 +503,407 @@ is a bigger share of total spline time there (it scales with soil-layer count ×
 collar-solve evals); the default-`Environment` run has fewer layers, so the
 xylem/transpiration splines — which #5 doesn't touch — dominate the spline budget.
 (Commit `Cache soil-side root-vuln integral lookups in E_from_Soil`.)
+
+## Phase 2 — reprofile & reassessment (2026-06-18)
+
+After Phase 1 the model was re-profiled from scratch on the 15-layer root-water
+scenario at the top of this document (MPL = 5), to check whether the documented
+hot-spot ranking still held and whether any cheap levers remained. It produced
+one significant correction and one rejected experiment — but no new speed-up.
+
+### Corrected profile (15-layer root-water, MPL = 5)
+
+macOS `sample`, 50 326 active samples; self-time computed as
+`count − Σ(child counts)` and cross-checked by a leaf-frame sum (both agree):
+
+| Function | Self % | Note |
+|---|---|---|
+| `Leaf::E_from_Soil_to_Root_Collar` | **39.0 %** | lean arithmetic over 15 layers × nested root-finds (spline evals counted separately) |
+| `Leaf::psi_stem_to_ci` | **35.7 %** | inner Cᵢ bisection (`leaf_model.cpp:914`); almost all self-time is the inlined `util::uniroot` + `assim_colimited` |
+| `tk::spline::operator()` | 8.1 % | already O(1)-indexed (#3) |
+| `pow` | 8.0 % | **fractional-exponent only** (see below) |
+| `Leaf::find_root_collar_psi` | 7.0 % | master solver (Brent'd by #4) |
+| `Interpolator::eval` | 3.2 % | spline wrapper |
+
+### Correction: `psi_stem_to_ci` was mis-ranked in Phase 1
+
+The Phase-1 #5 note claimed `psi_stem_to_ci` was "only ~2–3 %". **That was a
+measurement error.** It counted the number of distinct stack *contexts* the
+symbol appears in (~127–147 tree nodes) and treated that as an inclusive-time
+bound. But a deep bisection loop appears in *few* stack contexts while each
+carries *many* samples — the correct metric is sample weight, which here is
+18 079 samples ≈ **35.7 %**. So `psi_stem_to_ci` is in fact **co-dominant with
+`E_from_Soil_to_Root_Collar`, not negligible.**
+
+It still cannot be sped **bit-identically**, for the reasons given in Phase 1:
+its bisection *result* is load-bearing for FP reproducibility (same reason
+TOMS748 is rejected), and there is no closed form for `A(cᵢ) = gc·(ca − cᵢ)`.
+
+### Tried and REJECTED: `pow(x, 2) → x*x`
+
+The 8 % `pow` self-time looked like an easy win, so the integer `pow(z, 2)` in
+`assim_colimited` / `electron_transport` was replaced with `z*z`. **Rejected:**
+
+- **No speed-up** — MPL = 5 median 6.83 s (baseline) vs 7.12 s (candidate); if
+  anything slightly slower, i.e. within noise.
+- **Not bit-identical** — `offspring_production` 1.64825e−06 → 1.65255e−06
+  (+0.26 %); `pow(x, 2.0) ≠ x*x` on Apple libm, and the ODE amplifies the
+  difference.
+
+Profiling the `pow` *callers* explains why it was a wash: the 8 % is **entirely
+fractional-exponent** pows, not the integer one — `find_root_collar_psi` (xylem
+vulnerability `exp(-pow(ψ/b, c))` and hydraulic cost `pow(1 − vuln, beta2)`),
+and `compute_competition` / `net_mass_production_dt` (the
+`Q() = (1 − (z/h)^eta)²` canopy/root shape function). The integer `pow(z, 2)` in
+`assim_colimited` was a non-bottleneck. Reverted.
+
+### Tried and REJECTED: spline the xylem hydraulic cost
+
+`hydraulic_cost_TF(ψ) = g1·(1 − vuln(ψ))^beta2` (where `vuln = exp(-pow(ψ/b, c))`)
+is a pure function of ψ — `b, c, g1, beta2` are all constant for the run — so it
+looked like the best remaining lever: pre-build it once as a spline
+(`setup_hydraulic_cost`, same domain as the transpiration supply curve) and
+replace the per-profit-evaluation `exp + pow + pow` with one spline eval. It was
+implemented (member `hydraulic_cost_from_psi`, built in both constructors) and
+**reverted**:
+
+- **Slower, not faster** — a tightly interleaved A/B (swap pre-built `.so`,
+  fresh R per run, 6 alternating pairs to cancel thermal drift) gave baseline
+  median **6.91 s** vs candidate **7.26 s** — the candidate was ~5 % *slower* in
+  5 / 6 pairs.
+- **Also numerics-changing** — at the supply-curve resolution (100 pts)
+  `offspring_production` shifted +0.56 %; a 10× finer grid cut that to −0.062 %
+  (within build-to-build noise) but did **not** recover the speed.
+
+Why it loses: `Leaf` is constructed once per *strategy* (not per call), so the
+build cost is irrelevant — the regression is the **eval**. On this Apple-ARM
+machine the `Interpolator::eval → tk::spline::operator()` path (wrapper call +
+bounds/extrapolate check + index arithmetic + cubic eval) is *more* expensive
+than the inlined `exp + pow + pow` it replaced. Spline eval is already ~11 % of
+runtime; adding one more per profit evaluation costs more than the cheap,
+well-optimised hardware transcendentals saved. **The spline-everything strategy
+has hit diminishing returns against fast hardware transcendentals.**
+
+### Remaining levers (all numerics-changing)
+
+The two dominant blocks (≈75 % combined) are the **nested root-find structure**;
+their algorithmic wins are already taken (Brent on the outer GSS, integral-spline
+caches, transpiration memo, O(1) splines), and neither can be sped
+bit-identically. With the hydraulic-cost spline now rejected, the only untried
+levers left both shift numerics at the tolerance level and are speculative:
+
+1. **Spline / cache `Q()`'s `pow(z/h, eta)`** in `compute_competition` (~4.5 % of
+   the pow time; canopy-side, independent of hydraulics). Caveat: by the same
+   logic as the rejected hydraulic-cost spline, a spline eval may not beat the
+   `pow` it replaces — would need the same interleaved A/B to confirm.
+2. **Loosen the Cᵢ-bisection tolerance** (currently `1e-7`, nested inside an outer
+   `1e-3` solve — over-resolved). Cheapest potential win on the 35.7 % block, but
+   explicitly changes results.
+
+**Assessment:** the code is structurally well-optimised and has reached the point
+where micro-optimising the transcendentals no longer pays (spline eval ≈ the cost
+of the math it would replace). Absent appetite for tolerance-level numerics
+shifts, Phase 2 stops here.
+
+### Code-consistency follow-up: Brent for the single-layer optimisers (OFF the hot path)
+
+A unification cleanup, **not** a production speed-up. The two R-exposed
+single-layer profit optimisers — `optimise_psi_stem_Sperry` /
+`optimise_psi_stem_TF` (`src/leaf_model.cpp`) — were the last hand-rolled
+golden-section loops in the tree (they shared a loose file-global `gr`). They
+were first factored into a shared `util::golden_section_max` in
+`inst/include/plant/optimize.h`, then switched to **`util::brent_fmin`** — the
+same bounded minimiser #4 put on the *outer* collar solve — so the codebase now
+does 1-D profit maximisation through one routine everywhere.
+
+**This does not touch `run_scm_collect`.** These two functions have **no caller
+on the production path**: `TF24_Strategy::refresh_indices` calls
+`find_root_collar_psi` and the `optimise_psi_stem_TF` line is commented out
+(`src/tf24_strategy.cpp:381`). Their only callers are the RcppR6 bindings /
+`tests/testthat/test-leaf.r`. So the SCM trajectory is **bit-identical** and the
+whole-run profile is unchanged — profiling the scenario at the top of this
+document would only measure build noise. The change is therefore profiled in
+**isolation**, by calling `optimise_psi_stem_TF` directly.
+
+**Measured** (`make compile` builds, `pkgload::load_all(recompile = FALSE)`;
+46-point `psi_soil` sweep × 200 reps, median of 7; same Leaf params as
+`test-leaf.r`):
+
+| `GSS_tol_abs` | GSS | Brent | Speed-up |
+|---|---|---|---|
+| `1e-3` (production default) | 0.143 s | 0.063 s | **≈2.27×** |
+| `1e-8` (test setting) | 0.327 s | 0.127 s | **≈2.57×** |
+
+**Numerics change at the tolerance level** (same character as #4 — Brent locates
+the smooth optimum more precisely than GSS's bracket-midpoint at the same tol).
+At the production tol `1e-3`: max |Δ `opt_psi_stem`| ≈ 3.4e−4, max rel
+|Δ `profit`| ≈ 5.7e−5; profit *at* the optimum is essentially unchanged because
+the objective is flat near the max. Note the argmax still differs ~3.8e−4 even
+at tol `1e-8` (while rel |Δ profit| < 6e−7): the inner Cᵢ bisection
+(`ci_abs_tol`) caps how precisely the outer argmax is defined, so tightening the
+outer tol below ~1e−4 does not sharpen it. Existing leaf tests pass 151/151
+(their assertions are qualitative).
+
+### Cumulative progress (baseline → end of Phase 1)
+
+The per-item figures above were each measured against the build immediately
+before them, so they don't compound cleanly. Here is the **end-to-end** result,
+both binaries built clean from the same toolchain (`make clean && make compile`,
+`-g -O2`) and loaded with `pkgload::load_all(".", recompile = FALSE)`, on the
+**single-species MPL=10** SCM run (`birth_rate = 20`, default `Environment`,
+median of 5 timed runs after a warm-up):
+
+| Build | Commit | Median run | offspring_production |
+|---|---|---|---|
+| Baseline (roadmap, pre-optimisation) | `ff75ad22` | **39.78 s** | 4.712317419e−06 |
+| HEAD (#1–#4 done) | `b6ec6045` | **9.05 s** | 4.797128277e−06 |
+
+- **≈4.40× faster** (39.8 s → 9.0 s, −77 % wall-time; min-of-5 ratio 4.38×).
+  This slightly beats the product of the individual claims (1.9 × 1.25 × 1.7 ≈
+  4.0×) because removing the hottest spline evals also shrinks every inner
+  root-find the later items still call.
+- **#5 adds a further ≈1.32×** on top (15-layer, MPL = 5; see the #5 entry in
+  Phase 1), so the full Phase-1 stack is ≈5–6× over baseline.
+- **Numerics:** offspring_production shifts **+1.80 %** (+8.5e−08), the net of
+  the two accuracy-improving items (#1 interval-mean, #4 Brent) — #2/#3/#5 are
+  bit-identical. Direction is *toward* the fine-grained reference; magnitude is
+  within the system's intrinsic build-to-build sensitivity. Existing
+  leaf/TF24/environment tests pass unchanged.
+
+(Reproduce with `scripts/bench_tf24.R`; absolute seconds are machine-specific
+but the ratio is stable.)
+
+## Phase 3 — structural code review (2026-06-18)
+
+A clarity/maintainability pass over `src/leaf_model.cpp` and
+`src/tf24_strategy.cpp`, tracked in
+[`code_review_leaf_tf24.qmd`](code_review_leaf_tf24.qmd). **Numbering there is a
+separate namespace from the performance roadmap above** (its #1–#11 are review
+findings, not the Phase-1 perf items).
+
+**Speed outcome: no gain — and none expected.** Phase 2 already concluded the
+hot path is structurally optimised; this round was deliberately clarity-first,
+not a performance pass. The changes that landed (review #2 reusable root-mass
+buffer, #5 shared spline builder, #6 shut-down-state helper, #8 de-shadowed
+locals, #9/#10 named constants, #11 naming) are all **bit-identical and
+runtime-neutral by construction** — they dedupe code or rename, they do not touch
+the arithmetic or the number of evals.
+
+**One intentional output change (review #7).** The psi sign-convention cleanup
+made `root_collar_psi_` (the `opt_root_psi` aux) sign-consistent across all
+`find_root_collar_psi` branches. A per-column A/B confirms every *driver* (height,
+profit, transpiration, `E_up_`, soil consumption, `offspring_production`) is
+bit-identical; the **only** change is the `opt_root_psi` diagnostic, which becomes
+a pure sign flip. So a full-trajectory digest will differ from pre-#7 builds *in
+that aux alone* — by design, not a science change.
+
+### Tried: cache the temperature/O₂ photosynthesis params (review #1)
+
+The one item with a speed *hypothesis*: `set_physiology` recomputed ~8 Arrhenius
+transcendentals (`vcmax_, jmax_, gamma_, ko_, kc_, R_d_, km_`) every call though
+they depend only on `(leaf_temp_, atm_o2_kpa_)`. Cached them on that key
+(`electron_transport_` excluded — it also depends on per-call `PPFD_`).
+
+A/B on the 15-layer MPL=5 scenario (median of 5, `pkgload::load_all(recompile =
+FALSE)`):
+
+| Build | Median | offspring_production | trajectory digest |
+|---|---|---|---|
+| baseline (`4541acbf`) | **6.98 s** | 1.64927177539e−06 | 164392.960996 |
+| + temp-param cache | **7.07 s** | 1.64927177539e−06 | 164392.960996 |
+
+**Bit-identical, but a speed wash** (within run-to-run noise). This confirms the
+Phase 2 profile: `set_physiology` is not on the hot path — those transcendentals
+run once per `net_mass_production_dt`, while the nested collar solver it precedes
+does hundreds of `E_from_Soil`/`psi_stem_to_ci` evals per call. **Kept anyway**
+as a clarity change (it removes a genuine redundant recompute and is exact), but
+recorded here so the negative speed result is not silently re-litigated.
+
+## Analytical hydraulic transform (issue #468)
+
+[Issue #468](https://github.com/traitecoevo/plant/issues/468) noted that the
+Weibull hydraulic transform has a closed form involving the incomplete gamma
+function, and asked (1) whether it matches the current numerical implementation,
+(2) how large the spline interpolation error is, and (3) whether a monotone
+interpolator (PCHIP) would help. This section answers (1) and (2) and resolves
+(3); the runtime question was already settled in Phase 2 (the spline path is the
+right choice for forward simulation — see *Tried and REJECTED: spline the xylem
+hydraulic cost*).
+
+### The closed form
+
+The supply-side transpiration integrates the xylem vulnerability curve
+`proportion_of_conductivity(m) = exp(-(m/b)^c)` (where `m = -psi` is the
+potential magnitude in MPa), giving the hydraulic transform
+
+$$F(m)=\int_0^m \exp\!\big[-(s/b)^c\big]\,ds .$$
+
+Substituting $u=(s/b)^c$ yields a **lower** incomplete gamma:
+
+$$F(m)=\frac{b}{c}\,\gamma\!\left(\tfrac1c,\,(m/b)^c\right)
+      =\frac{b}{c}\,\Gamma\!\left(\tfrac1c\right)\,
+       P\!\left(\tfrac1c,\,(m/b)^c\right),$$
+
+i.e. in R, `F = (b/c) * gamma(1/c) * pgamma((m/b)^c, 1/c)`. This is identical to
+the issue's $P_{50}$-parameterised, *upper*-incomplete-gamma form: the code sets
+`b = p_50 / (ln 2)^(1/c)`, so `ln2·(−ψ/p_50)^c = (m/b)^c`, and lower-vs-upper
+differ only by the additive constant $(b/c)\Gamma(1/c)$, which cancels in
+$F(\psi_2)-F(\psi_1)$.
+
+### Verification and error (reproduce with `scripts/validate_gamma_transform.R`)
+
+The script builds the real C++ `Leaf` and compares the closed form against both
+numerical paths — `transpiration()` (the production `tk::spline` of $F$) and
+`transpiration_full_integration()` (QAG adaptive quadrature) — plus the inverse
+spline `psi_from_transpiration`. The table shows the trapezoid-knot build
+(*before*) and the analytic-knot build now in the code (*after*, see
+*Implemented* below); QAG is build-independent. Over a 2001-point sweep:
+
+| Parameter set (`ncontrol`) | QAG (rel) | spline $F$ before (abs) | spline $F$ after (abs) | inverse before | inverse after |
+|---|---|---|---|---|---|
+| TF24 default `p_50=1.85` (100) | 1.4e−6 | 2.2e−4 | 1.5e−4 | 2.0e−2 MPa | 2.7e−4 MPa |
+| test-leaf `c=2.04,b=3` (100)   | 1.7e−10 | 9.7e−5 | 3.2e−6 | 8.1e−4 MPa | 3.2e−4 MPa |
+| TF24 default (1000)            | 1.4e−6 | 1.8e−6 | 9.5e−7 | 1.8e−4 MPa | 2.4e−6 MPa |
+| TF24 default (30)              | 1.3e−6 | 2.7e−3 | 1.8e−3 | 2.1e−1 MPa | 3.4e−3 MPa |
+
+**(1) The closed form is correct.** QAG quadrature — an independent numerical
+method — agrees with it to ~1e−6 relative (its own tolerance floor), and to
+~1e−10 for the steeper test curve. The analytical transform can stand as a
+validation reference.
+
+**(2) The spline error has *two* parts; only one is quadrature bias.** The build
+splits into (a) knot error — the trapezoid quadrature bias baked into the
+construction values — and (b) cubic interpolation error *between* knots. Seeding
+the knots analytically (below) drives (a) to machine epsilon (knot error
+2.2e−4 → 3e−15) and isolates (b). The earlier read of this section — "99.7%
+trapezoid, 0.3% cubic" — was **wrong**: it subtracted the max knot error from the
+max total error, but the two maxima occur at *different* potentials. For the
+production curve ($c=1.09$) the residual after exact seeding is **1.46e−4, all of
+it in the first inter-knot cell** ($\psi\approx0.04$, before the first knot at
+0.105). There $F$ has unbounded higher derivatives at the origin
+($F'''\sim m^{c-2}$ diverges for $c<2$), so a single cubic cell cannot track it —
+this is genuine interpolation error, not quadrature. The trapezoid bias, large at
+*high* $\psi$, dominated the *before* total and masked it. For the steeper
+test-leaf curve ($c=2.04$, no origin singularity) seeding does help in full:
+9.7e−5 → 3.2e−6 (~30×).
+
+### Implemented
+
+`setup_transpiration` and `setup_root_vulnerability` now seed their cumulative-
+integral knots from the gamma closed form (`boost::math::tgamma_lower`) instead of
+a running trapezoid sum — same knots, same `tk::spline`, same O(1) hot-path eval.
+Measured effect (table above):
+
+- **Inverse transform (used in simulation): ~60–75× more accurate.** `p_50=1.85`,
+  `ncontrol=100`: 2.0e−2 → 2.7e−4 MPa. The inverse's error *was* bias-dominated,
+  so removing the bias is almost the whole story — this is the real payoff.
+- **Forward $F$: modest for the production curve (~1.5×, 2.2e−4 → 1.5e−4)** because
+  its error is the near-origin interpolation term (b), not bias; large (~30×) for
+  steep curves with no origin singularity.
+- **Trajectory shift** (MPL=5 self-comparison, `run_scm_collect`): not
+  bit-identical — by design. Hydraulics-driven states move ~0.2–0.3%
+  (`transpiration`/`E_up_`/`opt_psi_stem`/`height` rel ≤3e−3), `offspring_production`
+  ~1e−3; the shift is smooth (large relative diffs appear only at near-zero-density
+  cohort boundaries and sign crossings), with identical cohort/step structure. The
+  move is toward the more accurate integral.
+
+### Consequences
+
+- **(3) PCHIP would not help.** The production residual is the first-cell origin
+  singularity in $F$ ($F'''$ diverges for $c<2$) — a *lower*-order monotone
+  interpolator would do worse there, not better, and monotonicity/overshoot was
+  never the issue ($F$, $F^{-1}$ are smooth and the cubic does not overshoot). To
+  shave the residual further the lever is a non-uniform knot grid (denser near
+  $\psi=0$), not a different interpolator. Out of scope.
+- **Calibration / AD (issue step 5)** remains the closed form's other natural
+  home: it is a smooth expression in `(p_50, c, K_max)` with no spline-build
+  graph to differentiate through. Out of scope here.
+
+## Logistic vulnerability curve (issue #467)
+
+[Issue #467](https://github.com/traitecoevo/plant/issues/467) asks whether a
+**logistic** vulnerability curve could replace the Weibull — the argument being
+that it is "slightly less accurate biologically but substantially easier
+computationally": an elementary integral (no incomplete gamma), an explicit
+inverse, and smooth, AD-friendly derivatives. This section evaluates that for
+*plant* specifically. Reproduce with `scripts/compare_logistic_weibull.R` (pure
+R — both curves are closed form, no build needed).
+
+### The two curves
+
+With magnitude $m=-\psi\ge0$ (matching the `+ve psi` argument of
+`proportion_of_conductivity`),
+
+$$\underbrace{f(m)=\exp\!\big[-(m/b)^c\big]}_{\text{Weibull (current)}}
+  \qquad
+  \underbrace{g(m)=\frac{1}{1+\exp[a\,(m-m_{50})]}}_{\text{logistic (proposed)}}.$$
+
+The logistic forward transform $F(m)=\int_0^m g\,ds$ **is** elementary,
+
+$$F(m)=m-\tfrac1a\ln\!\big(1+e^{a(m-m_{50})}\big)
+        +\tfrac1a\ln\!\big(1+e^{-a\,m_{50}}\big),$$
+
+so it needs no incomplete gamma. **But the issue's "explicit inverse" claim does
+not hold**: $m$ appears both linearly and inside the log, so $F^{-1}$ is
+transcendental (and ill-conditioned near saturation, where $F$ flattens). $F$ and
+$F'$ are cheap, so the inverse would still be a Newton iterate or a spline-seed —
+exactly the machinery the Weibull path already has (issue #468). The logistic
+removes the incomplete gamma at *build* time and one fractional `pow` from the
+hot `proportion_of_conductivity`; it does **not** remove the need to invert.
+
+### How well does a logistic match plant's Weibull?
+
+Fitting a logistic to each production curve two ways — slope-matched at the 50%
+point ($m_{50}=p_{50}$, $a=2c\ln2/p_{50}$) and least-squares over the working
+domain $[0,\psi_\text{crit}]$ — and measuring both the conductivity deviation and
+the deviation of the model-relevant transform $F$ (relative to the full integral
+$F(\psi_\text{crit})$):
+
+| Curve | fit | $a$ | $m_{50}$ | cond max-dev | cond RMS | **$F$ rel-dev** |
+|---|---|---|---|---|---|---|
+| Stem ($c=1.09$) | slope-match | 0.817 | 1.85 | 0.181 | 0.056 | **0.135** |
+| Stem ($c=1.09$) | best-fit LS | 0.782 | 2.10 | 0.162 | 0.045 | **0.042** |
+| Root ($c=2.68$) | slope-match | 1.093 | 3.40 | 0.042 | 0.022 | **0.024** |
+| Root ($c=2.68$) | best-fit LS | 1.191 | 3.43 | 0.028 | 0.015 | **0.012** |
+
+**The fit quality is entirely controlled by the Weibull shape $c$.** The root
+curve ($c=2.68$) is itself sigmoidal — its inflection sits away from the origin —
+so a logistic tracks it to ~1–2% in $F$. The production *stem* curve
+($c\approx1.09$) is not: for $c<2$ the Weibull is concave-down from the origin
+(heavy conductivity loss at low stress) with a fat tail, a shape a symmetric
+sigmoid cannot reproduce. The best a logistic manages is a **4% bias in the
+transpiration integral** (13% if you also insist on preserving $p_{50}$ and the
+50%-point slope) — and it buys that only by displacing $m_{50}$ to 2.10, i.e. by
+**abandoning the interpretable $P_{50}$** that was the logistic's main selling
+point. The tails diverge in the obvious way: at $m=5$ MPa the slope-matched
+logistic gives half the Weibull conductivity (0.071 vs 0.129).
+
+### Recommendation: not worth adopting for plant's core
+
+- **Accuracy.** For the production parameterisation the logistic biases the
+  transpiration integral by 4–13% — one to two orders of magnitude larger than
+  the spline/quadrature errors quantified for #468 (≤1.5e−4). This is a model
+  change, not a numerical refinement, and not bit-identical by construction.
+- **Performance.** The win is small and already largely banked elsewhere. The
+  forward and inverse transforms are O(1) spline lookups (#468), and *Tried and
+  REJECTED: spline the xylem hydraulic cost* showed a spline eval already costs
+  ~the transcendental it replaces on Apple-ARM. The logistic's only hot-path
+  saving is one fractional `pow` inside `proportion_of_conductivity`/
+  `hydraulic_cost_TF` — a slice of the ~8% `pow` budget that is *shared* with the
+  unrelated $Q(z,h)$ canopy-shape `pow`. Net: a few percent at most, against a
+  4–13% biology shift.
+- **Where it does belong.** The issue's real motivation — smooth, special-
+  function-free, AD-friendly curves for Bayesian calibration and gradient-based
+  fitting — is genuine, and there the logistic is attractive. But that is an
+  *external fitting/inference* concern, the same niche flagged for the closed-form
+  Weibull transform (#468 *Consequences*), not the SCM forward-simulation core
+  this branch optimises.
+
+**Verdict.** Keep the Weibull for the stem. A logistic is a defensible surrogate
+only for steep curves ($c\gtrsim2$, e.g. the root), and even there the payoff is
+marginal given the transforms are already splined. Revisit only if *plant* grows
+an AD/calibration path where special-function-free curves matter more than the
+near-origin fit.
 
 ## Build note: use `make`, not `load_all`
 

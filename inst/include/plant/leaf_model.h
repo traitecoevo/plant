@@ -59,6 +59,10 @@ static const double umol_per_mol_to_Pa = 0.1013;
 
 // mol H2o kg ^-1
 static const double kg_to_mol_h2o = 55.4939;
+// kg mol^-1: molar mass of water, for converting molar water flux back to kg.
+// (Intentionally distinct from 1/kg_to_mol_h2o, which it does not exactly equal;
+// kept at the historical 0.018015 to preserve results.)
+static const double kg_per_mol_h2o = 0.018015;
 // mol mol ^-1 / (umol mol ^-1)
 static const double umol_to_mol = 1e-6;
 // Pa kPa^-1
@@ -74,7 +78,6 @@ static const double C_to_K = 273.15;
 static const double H2O_CO2_stom_diff_ratio = 1.67;
 
 const double gravity_head = 9.8e-3; // MPa / m
-const double gr = (sqrt(5.0) + 1.0) / 2.0;  // ~1.6180339...
 
 // number of intergration steps
 const double n = 5;
@@ -219,6 +222,18 @@ public:
   double transpiration_cache_psi_stem_ = 0.0;
   double transpiration_cache_psi_upstream_ = 0.0;
   double transpiration_cache_value_ = 0.0;
+
+  // Cache for the temperature/O2-dependent photosynthesis parameters set in
+  // set_physiology (vcmax_, jmax_, gamma_, ko_, kc_, R_d_, km_). They are pure
+  // functions of (leaf_temp_, atm_o2_kpa_) and constants, so when the key is
+  // unchanged the Arrhenius transcendentals are skipped and the members reused
+  // (bit-identical: same inputs -> same outputs). In the current driver
+  // leaf_temp_/atm_o2_kpa_ are constant across the run, so this fires once.
+  // NOTE: electron_transport_ is deliberately NOT cached here -- it also depends
+  // on the per-call PPFD_ and is recomputed every call.
+  bool   photo_temp_cached_ = false;
+  double photo_temp_cache_leaf_temp_ = 0.0;
+  double photo_temp_cache_atm_o2_kpa_ = 0.0;
   std::vector<double> f_r;
   // TODO: move into environment?
 
@@ -246,11 +261,22 @@ public:
   void set_physiology(double area_leaf, const std::vector<double>& mass_root_prop, double rho, double a_bio, double PPFD, const std::vector<double>& psi_soil, const std::vector<double>& soil_depth, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa);
   void setup_transpiration(double resolution);
   void setup_root_vulnerability(double resolution);
+  // Shared builder for the knot grid {0, step, .., <= psi_max} and the
+  // cumulative vulnerability integral G(m) = int_0^m exp(-(s/b)^c) ds, seeded
+  // from its gamma closed form. Used by both setup_* functions (see #468).
+  void build_cumulative_vulnerability_integral(double b, double c,
+                                               double resolution,
+                                               std::vector<double>& x,
+                                               std::vector<double>& y_integral);
   void setup_clean_leaf();
   // std::vector<double> root_collar_psi(std::vector<double> soil_moist_);
 
   void E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>& psi_soil);
   void find_root_collar_psi();
+  // Shut-down operating point used by the find_root_collar_psi early-exits: stem
+  // held at psi_crit (no transpiration), paying only respiration + hydraulic
+  // cost. Only root_collar_psi_ differs between the cases, so it is the argument.
+  void set_shutdown_state(double root_collar);
   double find_root_psi(double wettest_soil_layer, const std::vector<double>& psi_soil, int find_root_crit);
   double find_psi_stem_from_psi_root(double psi_root, const std::vector<double>& psi_soil);
   double E_column(double x, const std::vector<double>& psi_soil, double psi_leaf);
