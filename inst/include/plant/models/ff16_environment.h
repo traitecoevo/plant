@@ -40,13 +40,17 @@ public:
   bool light_profile_stepped = false;
   // Thickness of one canopy layer in optical-depth units (Control::ppa_layer_optical_depth).
   double layer_optical_depth = 0.5;
+  // Smoothing fraction of each layer boundary (Control::ppa_layer_smoothing).
+  double layer_smoothing = 0.3;
 
   // Called once from the Patch constructor. Selects the stepped profile for PPA;
   // deep-crown and flat-top keep the smooth profile.
   void set_shading_model(const std::string& model,
-                         double layer_optical_depth_) override {
+                         double layer_optical_depth_,
+                         double layer_smoothing_) override {
     light_profile_stepped = (shading_model_from_string(model) == ShadingModel::PPA);
     layer_optical_depth = layer_optical_depth_;
+    layer_smoothing = layer_smoothing_;
   }
 
   // Ability to prescribe a fixed value
@@ -76,9 +80,10 @@ public:
 
   // Discretise a smooth light value into PPA canopy layers. For the smooth
   // models this is a single predicted branch returning the input unchanged, so
-  // it adds no measurable cost to deep-crown/flat-top. For PPA it floors the
-  // optical depth tau = -log(E) to an integer number of layers of thickness
-  // layer_optical_depth and back-transforms: E_step = exp(-d * floor(tau / d)).
+  // it adds no measurable cost to deep-crown/flat-top. For PPA it maps the
+  // optical depth tau = -log(E) onto a smoothed integer number of layers of
+  // thickness layer_optical_depth and back-transforms:
+  //   E_step = exp(-d * smooth_floor(tau / d)).
   double step_light(double E) const {
     if (!light_profile_stepped || E >= 1.0) {
       return E;
@@ -89,7 +94,27 @@ public:
       return 0.0;
     }
     const double tau = -std::log(E);
-    return std::exp(-layer_optical_depth * std::floor(tau / layer_optical_depth));
+    return std::exp(-layer_optical_depth * smooth_floor(tau / layer_optical_depth));
+  }
+
+  // Monotone, C1-continuous smooth staircase. Each layer is flat over its lower
+  // (1 - layer_smoothing) and ramps to the next integer via a cubic smoothstep
+  // over its top layer_smoothing fraction. C1 at the joins because smoothstep
+  // has zero slope at both ends, so the resulting light profile is smooth enough
+  // for the adaptive ODE solver. With layer_smoothing -> 0 this recovers the
+  // hard floor (and its instability).
+  double smooth_floor(double u) const {
+    const double n = std::floor(u);
+    const double w = layer_smoothing;
+    if (w <= 0.0) {
+      return n; // hard step
+    }
+    const double f = u - n; // fractional position within the layer, [0, 1)
+    if (f <= 1.0 - w) {
+      return n; // flat lower part of the layer
+    }
+    const double t = (f - (1.0 - w)) / w; // [0, 1] across the transition
+    return n + t * t * (3.0 - 2.0 * t);    // cubic smoothstep
   }
 
   virtual void r_init_interpolators(const std::vector<double> &state)

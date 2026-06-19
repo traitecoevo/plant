@@ -20,6 +20,8 @@ Control::Control() {
 
   // PPA canopy layer thickness in optical-depth units (see Control header).
   ppa_layer_optical_depth = 0.5;
+  // PPA layer-boundary smoothing fraction (see Control header).
+  ppa_layer_smoothing = 0.3;
 
   offspring_production_tol= 1e-8;
   offspring_production_iterations = 1000;

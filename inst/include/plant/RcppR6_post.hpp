@@ -293,6 +293,7 @@ template <> inline SEXP wrap(const plant::Control& x) {
   ret["function_integration_rule"] = Rcpp::wrap(x.function_integration_rule);
   ret["shading_model"] = Rcpp::wrap(x.shading_model);
   ret["ppa_layer_optical_depth"] = Rcpp::wrap(x.ppa_layer_optical_depth);
+  ret["ppa_layer_smoothing"] = Rcpp::wrap(x.ppa_layer_smoothing);
   ret["offspring_production_tol"] = Rcpp::wrap(x.offspring_production_tol);
   ret["offspring_production_iterations"] = Rcpp::wrap(x.offspring_production_iterations);
   ret["node_gradient_eps"] = Rcpp::wrap(x.node_gradient_eps);
@@ -332,6 +333,8 @@ template <> inline plant::Control as(SEXP x) {
   ret.shading_model = Rcpp::as<std::string >(xl["shading_model"]);
   // ret.ppa_layer_optical_depth = Rcpp::as<decltype(retppa_layer_optical_depth) >(xl["ppa_layer_optical_depth"]);
   ret.ppa_layer_optical_depth = Rcpp::as<double >(xl["ppa_layer_optical_depth"]);
+  // ret.ppa_layer_smoothing = Rcpp::as<decltype(retppa_layer_smoothing) >(xl["ppa_layer_smoothing"]);
+  ret.ppa_layer_smoothing = Rcpp::as<double >(xl["ppa_layer_smoothing"]);
   // ret.offspring_production_tol = Rcpp::as<decltype(retoffspring_production_tol) >(xl["offspring_production_tol"]);
   ret.offspring_production_tol = Rcpp::as<double >(xl["offspring_production_tol"]);
   // ret.offspring_production_iterations = Rcpp::as<decltype(retoffspring_production_iterations) >(xl["offspring_production_iterations"]);

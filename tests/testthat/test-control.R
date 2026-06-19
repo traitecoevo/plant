@@ -18,6 +18,7 @@ test_that("Defaults", {
     function_integration_rule = 21, # size_t so not int
     shading_model = "deep-crown",
     ppa_layer_optical_depth = 0.5,
+    ppa_layer_smoothing = 0.3,
 
     offspring_production_iterations = 1000, # size_t
     offspring_production_tol = 1e-8, # 1e-6, Had to change this...

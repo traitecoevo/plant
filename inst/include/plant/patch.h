@@ -199,7 +199,8 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
   // compute_environment() in reset(). No-op for environments without a light
   // profile (only FF16 implements alternative shading models).
   environment.set_shading_model(control.shading_model,
-                                control.ppa_layer_optical_depth);
+                                control.ppa_layer_optical_depth,
+                                control.ppa_layer_smoothing);
 
   add_strategies(parameters.strategies);
 

@@ -30,6 +30,7 @@ models <- c("deep-crown", "flat-top", "ppa")
 test_that("control defaults", {
   expect_equal(Control()$shading_model, "deep-crown")
   expect_equal(Control()$ppa_layer_optical_depth, 0.5)
+  expect_equal(Control()$ppa_layer_smoothing, 0.3)
 })
 
 test_that("unknown shading model is rejected at strategy preparation", {
@@ -104,39 +105,76 @@ test_that("flat-top runs through the SCM and changes the outcome", {
 
 test_that("PPA discretises the light profile into optical-depth layers", {
   # Directly exercise the stepped-profile transform (the PPA-specific machinery)
-  # via set_shading_model(), independent of the unstable long-time dynamics.
-  # With a smooth light value E, PPA returns exp(-d * floor(-log(E) / d)).
+  # via set_shading_model(). With a hard step (smoothing -> 0) and a smooth light
+  # value E, PPA returns exp(-d * floor(-log(E) / d)).
+  hard <- 0.0 # layer_smoothing -> hard floor, for exact layer values
   env <- Environment("FF16")
   env$set_fixed_environment(0.3, 100)
   expect_equal(env$get_environment_at_height(10), 0.3) # smooth by default
 
   d <- 0.5
-  env$set_shading_model("ppa", d)
+  env$set_shading_model("ppa", d, hard)
   # -log(0.3) = 1.20397; floor(1.20397 / 0.5) = 2; exp(-0.5 * 2) = exp(-1)
   expect_equal(env$get_environment_at_height(10), exp(-1.0), tolerance = 1e-9)
 
   # full light is unchanged (top of canopy: zero optical depth, zero layers)
   env$set_fixed_environment(1.0, 100)
-  env$set_shading_model("ppa", d)
+  env$set_shading_model("ppa", d, hard)
   expect_equal(env$get_environment_at_height(10), 1.0)
 
   # coarser layers -> different step value: floor(1.20397 / 1.0) = 1 -> exp(-1)
   env$set_fixed_environment(0.3, 100)
-  env$set_shading_model("ppa", 1.0)
+  env$set_shading_model("ppa", 1.0, hard)
   expect_equal(env$get_environment_at_height(10), exp(-1.0), tolerance = 1e-9)
 
   # flat-top and deep-crown leave the profile smooth
   for (m in c("flat-top", "deep-crown")) {
     env$set_fixed_environment(0.3, 100)
-    env$set_shading_model(m, d)
+    env$set_shading_model(m, d, hard)
     expect_equal(env$get_environment_at_height(10), 0.3)
   }
 })
 
-# NOTE: a full PPA SCM run is intentionally NOT asserted here. The stepped light
-# profile is discontinuous, which (a) defeats the adaptive ODE solver's error
-# control and (b) is numerically unstable even on a fixed schedule -- near-canopy
-# crowns see full light (tau < layer thickness), self-shade too little, and
-# growth can run away to non-finite values depending on grid placement. Making
-# PPA dynamics robustly solvable is a separate piece of work (e.g. layer-boundary
-# event detection, or revisiting the rounding direction of the discretisation).
+test_that("PPA layer smoothing keeps the profile monotone and bounded", {
+  # The smoothed staircase must be monotone in height and stay within (0, 1].
+  env <- Environment("FF16")
+  env$set_fixed_environment(0.3, 100)
+  env$set_shading_model("ppa", 0.5, 0.3) # default-style smoothing
+  # set_fixed_environment is uniform, so vary E by sweeping the *value*
+  Es <- seq(0.01, 1.0, length.out = 50)
+  stepped <- sapply(Es, function(e) {
+    env$set_fixed_environment(e, 100)
+    env$set_shading_model("ppa", 0.5, 0.3)
+    env$get_environment_at_height(10)
+  })
+  expect_true(all(stepped > 0 & stepped <= 1 + 1e-12))
+  expect_true(all(diff(stepped) >= -1e-9)) # monotone increasing in E
+})
+
+test_that("PPA runs through the SCM (smoothed) and changes the outcome", {
+  # With the default C1 smoothing (ppa_layer_smoothing = 0.3) the stepped profile
+  # is differentiable, so the normal adaptive solver integrates PPA without a
+  # fixed schedule. The layered light reduces self-shading, so production differs
+  # markedly from deep-crown.
+  p0 <- scm_base_parameters("FF16")
+  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar,
+                          birth_rate_list = list(20))
+  ctrl_deep <- Control(); ctrl_deep$shading_model <- "deep-crown"
+  ctrl_ppa  <- Control(); ctrl_ppa$shading_model  <- "ppa"
+  out_deep <- run_scm(p1, Environment("FF16"), ctrl_deep)
+  out_ppa  <- run_scm(p1, Environment("FF16"), ctrl_ppa)
+  expect_true(is.finite(out_ppa$offspring_production))
+  expect_gt(out_ppa$offspring_production, out_deep$offspring_production)
+})
+
+test_that("adaptive and fixed-schedule PPA agree (well-behaved integration)", {
+  p0 <- scm_base_parameters("FF16")
+  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar,
+                          birth_rate_list = list(20))
+  ctrl <- Control(); ctrl$shading_model <- "ppa"
+  adaptive <- run_scm(p1, Environment("FF16"), ctrl)$offspring_production
+  pf <- p1; pf$ode_times <- seq(0, p0$max_patch_lifetime, length.out = 2000)
+  fixed <- run_scm(pf, Environment("FF16"), ctrl,
+                   use_ode_times = TRUE)$offspring_production
+  expect_equal(adaptive, fixed, tolerance = 1e-2)
+})

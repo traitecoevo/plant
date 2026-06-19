@@ -39,6 +39,14 @@ struct Control {
   // light-extinction coefficient k_I = 0.5. Ignored by the other models.
   double ppa_layer_optical_depth;
 
+  // PPA only: smoothing width of each layer boundary, as a fraction (0, 1] of
+  // the layer thickness. The stepped profile is flat over the lower part of
+  // each layer and ramps smoothly (cubic smoothstep) over the top `fraction` of
+  // it, so the profile is C1-continuous and can be integrated by the adaptive
+  // ODE solver. -> 0 approaches a hard step (and its numerical instability);
+  // = 1 removes the flat region (approaches the smooth deep-crown profile).
+  double ppa_layer_smoothing;
+
   double offspring_production_tol;
   size_t offspring_production_iterations;
 

@@ -3622,8 +3622,8 @@ void FF16_Environment__set_fixed_environment(plant::RcppR6::RcppR6<plant::FF16_E
   obj_->set_fixed_environment(value, height_max);
 }
 // [[Rcpp::export]]
-void FF16_Environment__set_shading_model(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::string model, double layer_optical_depth) {
-  obj_->set_shading_model(model, layer_optical_depth);
+void FF16_Environment__set_shading_model(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::string model, double layer_optical_depth, double layer_smoothing) {
+  obj_->set_shading_model(model, layer_optical_depth, layer_smoothing);
 }
 // [[Rcpp::export]]
 void FF16_Environment__compute_rates(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::vector<double> resource_depletion) {
