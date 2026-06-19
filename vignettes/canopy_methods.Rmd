@@ -28,12 +28,19 @@ The `FF16` strategy offers four shading models, selected with
 * **`"average-light"`** -- partway between deep-crown and flat-top. Rather than
   integrating the *photosynthetic rate* over depth, it integrates the *light*
   over depth (weighted by leaf-area density) to a single leaf-area-weighted mean
-  light, then takes one photosynthesis evaluation of that mean. It captures the
-  mean light a crown experiences exactly, but -- because photosynthesis
-  saturates with light -- evaluating the rate at the mean light overestimates
-  the depth-averaged rate (Jensen's inequality). So `"average-light"` always
-  gives at least as much assimilation as `"deep-crown"`, the two agreeing only
-  when the within-crown light is uniform.
+  light, then takes one photosynthesis evaluation of that mean. It therefore
+  still feels the within-crown light environment -- and how that environment
+  shifts as the canopy develops -- but collapses the expensive photosynthesis
+  calculation to a *single* call per plant rather than one per crown depth. For
+  FF16 that saving is modest (its leaf photosynthesis is a cheap saturating
+  function), but it becomes important for models with an expensive leaf
+  submodel: the `TF24` strategy's coupled stomatal/hydraulic optimisation is far
+  more costly to evaluate, so integrating the light and optimising once is the
+  natural choice there. The cost is bias: because photosynthesis saturates with
+  light, evaluating the rate at the mean light overestimates the depth-averaged
+  rate (Jensen's inequality). So `"average-light"` always gives at least as much
+  assimilation as `"deep-crown"`, the two agreeing only when the within-crown
+  light is uniform.
 
 * **`"flat-top"`** -- the light profile is built exactly as for `"deep-crown"`,
   but a plant's assimilation is approximated by a *single evaluation* of the
@@ -373,3 +380,74 @@ Two parameters control the discretisation:
   `"deep-crown"`-style profile. There is a tension here: smaller values are
   closer to a true PPA step but stiffer (slower, per the speed table above),
   while larger values integrate faster but blur the layer structure.
+
+# Mutant fitness
+
+So far the models have looked broadly interchangeable for *stand dynamics*: the
+size distribution and LAI trajectories differ in detail but not in character,
+and the simpler, cheaper models reproduce the overall behaviour reasonably well.
+Invasion fitness is a far more demanding test. The fitness of a rare mutant is
+its lifetime reproductive output while it grows through the light environment
+cast by an established resident -- so it depends not just on the light at one
+size, but on how the light a plant experiences *changes smoothly as it grows*. A
+fitness landscape (fitness versus a mutant trait) is the basis for evolutionary
+analysis, and it is only useful if it is smooth: kinks and jumps make optima,
+gradients and evolutionary endpoints ill-defined.
+
+We compute the invasion fitness of mutants spanning a range of leaf mass per
+area (LMA) against a single resident, at fine trait resolution to expose any
+roughness. The resident is run once with `save_RK45_cache = TRUE` so its
+competitive light environment is cached; mutants are then introduced into that
+fixed landscape with `run_mutant()`, and fitness is `log(R0)`, the log net
+reproductive output.
+
+```{r fitness, fig.width = 10, fig.height = 3.4}
+p_fit <- scm_base_parameters("FF16")
+p_fit$max_patch_lifetime <- 50
+lma_resident <- 0.0825
+mutant_lma   <- seq(0.07, 0.11, length.out = 60)
+
+fitness_landscape <- function(model) {
+  ctrl <- Control()
+  ctrl$shading_model <- model
+  ctrl$save_RK45_cache <- TRUE                       # required by run_mutant()
+  resident <- expand_parameters(trait_matrix(lma_resident, "lma"), p_fit,
+                                birth_rate_list = 1)
+  scm <- run_scm(resident, ctrl = ctrl)              # caches the light environment
+  mutants <- expand_parameters(trait_matrix(mutant_lma, "lma"), resident,
+                               birth_rate_list = rep(1, length(mutant_lma)))
+  scm$run_mutant(mutants)
+  r0 <- scm$net_reproduction_ratios                  # resident first, then mutants
+  data.frame(method = model, lma = mutant_lma,
+             fitness = log(tail(r0, length(mutant_lma))))
+}
+
+fit_all <- dplyr::bind_rows(lapply(models, fitness_landscape))
+fit_all$method <- factor(fit_all$method, levels = models)
+
+ggplot(fit_all, aes(lma, fitness)) +
+  geom_line() +
+  geom_point(size = 0.5) +
+  facet_wrap(~method, nrow = 1) +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey60") +
+  labs(x = "Mutant LMA", y = "Invasion fitness, log(R0)") +
+  theme_classic()
+```
+
+`"deep-crown"`, `"average-light"` and `"flat-top"` all yield smooth fitness
+landscapes, and the two cheap approximations stay close to the deep-crown
+reference -- so for fitness, as for stand dynamics, they are perfectly usable.
+`"ppa"` is the exception: its landscape is jagged, with a sharp discontinuity
+where a small change in the mutant trait flips which canopy layer the mutant
+ends up in.
+
+The lesson is about *continuity of the light profile*, not the cost of the
+assimilation calculation. Invasion fitness needs the shading a plant experiences
+to vary continuously with its size; deep-crown, average-light and flat-top all
+build a continuous (smooth) light profile and differ only in how they summarise
+assimilation, so all three give smooth fitness. PPA breaks this: its light
+profile is a discretised step function of height, so as a mutant grows its light
+-- and hence its fitness -- jumps. The layer smoothing (`ppa_layer_smoothing`)
+that makes PPA's *dynamics* solvable softens but does not remove this: a mutant
+still crosses layer boundaries as it grows, so PPA remains the wrong tool for
+evolutionary analysis even when it is fine for a single stand simulation.
