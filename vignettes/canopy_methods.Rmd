@@ -222,42 +222,75 @@ and jumping at each layer boundary.
 
 # Speed comparison
 
-Two effects compete here. Per ODE step, `"deep-crown"` is the most expensive
-because it performs a Gauss-Kronrod quadrature over crown depth for every
-individual, whereas `"flat-top"` and `"ppa"` replace this with a single light
-evaluation. But the *number* of steps also matters: PPA's layered light profile
-is much stiffer, so the adaptive solver takes many more, smaller steps. The
-timings below are for the normal adaptive solver, i.e. real end-to-end cost.
+Two effects compete. Per ODE step, `"deep-crown"` is the most expensive because
+it performs a Gauss-Kronrod quadrature over crown depth for every individual,
+whereas `"flat-top"` and `"ppa"` replace this with a single light evaluation. But
+the *number* of steps also matters: PPA's layered light profile is much stiffer,
+so the adaptive solver takes many more, smaller steps. Which effect dominates
+depends on how the system is stepped.
 
-```{r speed}
-time_model <- function(model, reps = 5) {
+```{r speed-helper}
+# Median wall-clock over a few repeats. `times = NULL` uses the adaptive solver;
+# supplying a fixed schedule pins every model to the same steps.
+time_model <- function(model, times = NULL, reps = 5) {
+  p <- patch
+  use_fixed <- !is.null(times)
+  if (use_fixed) p$ode_times <- times
   ctrl <- Control()
   ctrl$shading_model <- model
-  run_scm(patch, ctrl = ctrl)            # warm up
-  t <- replicate(reps, system.time(run_scm(patch, ctrl = ctrl))[["elapsed"]])
-  median(t)
+  run1 <- function() run_scm(p, ctrl = ctrl, use_ode_times = use_fixed)
+  run1()                                   # warm up
+  median(replicate(reps, system.time(run1())[["elapsed"]]))
 }
 
-timings <- vapply(models, time_model, numeric(1))
-
-speed <- data.frame(
-  model = models,
-  `median time (s)` = round(timings, 4),
-  `relative to deep-crown` = round(timings / timings[["deep-crown"]], 2),
-  check.names = FALSE,
-  row.names = NULL
-)
-knitr::kable(speed)
+speed_table <- function(timings) {
+  data.frame(
+    model = names(timings),
+    `median time (s)` = round(unname(timings), 4),
+    `relative to deep-crown` = round(unname(timings / timings[["deep-crown"]]), 2),
+    check.names = FALSE,
+    row.names = NULL
+  )
+}
 ```
 
-`"flat-top"` is the fastest -- it shares deep-crown's smooth light profile (so
-the same number of solver steps) but skips the per-plant crown-depth integral.
+## Adaptive solver (real-world cost)
+
+This is how the models run by default, and is the cost you actually pay.
+
+```{r speed-adaptive}
+timings_adaptive <- vapply(models, time_model, numeric(1))
+knitr::kable(speed_table(timings_adaptive))
+```
+
+`"flat-top"` is fastest -- it shares deep-crown's smooth light profile (so the
+same number of solver steps) but skips the per-plant crown-depth integral.
 `"ppa"` is *slower* overall despite the cheaper per-plant assimilation, because
 its near-stepped profile forces the adaptive solver to take many more steps;
 finer layers (smaller `ppa_layer_optical_depth`) or sharper boundaries (smaller
-`ppa_layer_smoothing`) make this worse. `"deep-crown"` remains the default: it is
-the most faithful representation of within-crown light capture and carries no
-speed penalty relative to earlier versions of `plant`.
+`ppa_layer_smoothing`) make this worse.
+
+## Fixed ODE schedule (per-step cost)
+
+If instead every model is pinned to the *same* fixed schedule
+(`run_scm(..., use_ode_times = TRUE)`), the step-count effect is removed and only
+the per-step cost remains. Now PPA's advantage shows: like `"flat-top"`, it
+skips the crown-depth quadrature, so both are markedly faster than
+`"deep-crown"`.
+
+```{r speed-fixed}
+times <- seq(0, params$max_patch_lifetime, length.out = 4000)
+timings_fixed <- vapply(models, time_model, numeric(1), times = times)
+knitr::kable(speed_table(timings_fixed))
+```
+
+So PPA is not inherently slow -- on a fixed schedule it is *faster* than
+`"deep-crown"`. Its apparent cost under the adaptive solver comes entirely from
+the extra steps the stiff profile demands. Where a fixed schedule is acceptable
+(or where the layering is coarse and lightly smoothed), PPA can be the cheaper
+choice. `"deep-crown"` nonetheless remains the default: it is the most faithful
+representation of within-crown light capture and carries no speed penalty
+relative to earlier versions of `plant`.
 
 # Why PPA needs smoothing
 
