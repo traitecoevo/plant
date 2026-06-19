@@ -57,12 +57,12 @@ test_that("Reference comparison", {
   # expect_equal(p$state("area_stem"), cmp$area_stem(h0))
 
   ## Heartwood function
-  ## TODO: Check with Daniel here -- might need updating.
+  ## TODO(#482): Check with Daniel here -- might need updating.
   ## Expect zero unless it has been set otherwise
   expect_identical(p$state("area_heartwood"), 0.0)
   HA0 <- 1e-3
   p$set_state("area_heartwood", HA0)
-  ## TODO: This is due to issues with how we think about size; see notes
+  ## TODO(#482): This is due to issues with how we think about size; see notes
   ## in plant.cpp around set_height and set_mass_heartwood.  Note that
   ## when running as an ODE, this gives the *wrong answer*.
   h <- p$state("height")
@@ -84,7 +84,7 @@ test_that("Reference comparison", {
   ## compute A_lf; will have to correct some numbers.
   cmp_const <- s$a_y * s$a_bio
 
-  ## TODO: Check what growth variables look like before running
+  ## TODO(#482): Check what growth variables look like before running
   ## through with environment.  Most are NA_real_, but some are not
 
   ## Compute the physiological variables and retrieve them.
@@ -172,7 +172,9 @@ test_that("Reference comparison", {
   cmp_diameter_stem_dt <- cmp$diameter_stem_dt(cmp$traits, h0, light_env)
   # expect_equal(p$rate("diameter_stem"), cmp_diameter_stem_dt, tolerance=1e-7)
 
-  ## TODO: add lcp_whole_plant test to refference comparison
+  ## 19. whole-plant light compensation point
+  cmp_lcp <- cmp$WPLCP(cmp$traits, h0)
+  expect_equal(p$resource_compensation_point(), cmp_lcp, tolerance=1e-6)
 
   ## Check that height decomposition multiplies out to give right
   ## answer

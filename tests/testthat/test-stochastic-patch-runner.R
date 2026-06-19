@@ -58,7 +58,7 @@ test_that("collect", {
     ctrl <- Control()
     
     expect_silent(res <- run_stochastic_collect(p, env, ctrl))
-    ## TODO: more tests on collect output
+    ## TODO(#482): more tests on collect output
 
     ## This shows that we're probably over-aggressively killing plants.
     ## Not sure why, but might be mostly due to the patch area being far

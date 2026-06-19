@@ -43,7 +43,7 @@ public:
   parameters_type r_parameters() const { return parameters; }
   const patch_type &r_patch() const { return patch; }
 
-  // TODO: consider renaming NodeSchedule -> Schedule
+  // TODO(#479): consider renaming NodeSchedule -> Schedule
   NodeSchedule r_schedule() const { return schedule; }
   void r_set_schedule(NodeSchedule x);
   void r_set_schedule_times(std::vector<std::vector<double>> x);

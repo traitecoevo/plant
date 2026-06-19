@@ -50,8 +50,6 @@ private:
 };
 }
 
-// TODO cleanup scm untested
-
 class ExtrinsicDrivers {
   
 public:

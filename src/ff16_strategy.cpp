@@ -2,10 +2,6 @@
 
 namespace plant {
 
-// TODO: Document consistent argument order: l, b, s, h, r
-// TODO: Document ordering of different types of variables (size
-// before physiology, before compound things?)
-// TODO: Consider moving to activating as an initialisation list?
 FF16_Strategy::FF16_Strategy() {
   collect_all_auxiliary = false;
   // build the string state/aux name to index map
@@ -291,8 +287,6 @@ double FF16_Strategy::darea_leaf_dmass_live(double area_leaf) const {
               + dmass_root_darea_leaf(area_leaf));
 }
 
-// TODO: Ordering below here needs working on, probably as @dfalster
-// does equation documentation?
 double FF16_Strategy::dheight_darea_leaf(double area_leaf) const {
   return a_l1 * a_l2 * pow(area_leaf, a_l2 - 1);
 }
@@ -362,7 +356,6 @@ double FF16_Strategy::mass_live_dt(double fraction_allocation_reproduction,
   return (1 - fraction_allocation_reproduction) * net_mass_production_dt;
 }
 
-// TODO: Change top two to use mass_live_dt
 double FF16_Strategy::mass_total_dt(double fraction_allocation_reproduction,
                                      double net_mass_production_dt,
                                      double mass_heartwood_dt) const {
@@ -370,7 +363,7 @@ double FF16_Strategy::mass_total_dt(double fraction_allocation_reproduction,
     mass_heartwood_dt;
 }
 
-// TODO: Do we not track root mass change?
+// TODO(#480): Do we not track root mass change?
 double FF16_Strategy::mass_above_ground_dt(double area_leaf,
                                        double fraction_allocation_reproduction,
                                        double net_mass_production_dt,

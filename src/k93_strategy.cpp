@@ -4,10 +4,6 @@
 
 namespace plant {
 
-// TODO: Document consistent argument order: l, b, s, h, r
-// TODO: Document ordering of different types of variables (size
-// before physiology, before compound things?)
-// TODO: Consider moving to activating as an initialisation list?
 K93_Strategy::K93_Strategy() {
    // * Empirical parameters - Table 1.
    height_0 = 2.0; // Height at birth
@@ -54,7 +50,14 @@ double K93_Strategy::compute_competition_by_ratio(
 }
 
 double K93_Strategy::establishment_probability(const K93_Environment& environment){
-  //TODO: may want to make this dependent on achieving positive growth rate
+  (void) environment;
+  // K93 (Kohyama 1993) has no carbon-budget establishment filter:
+  // establishment is deterministic, so every dispersed seed establishes.
+  // Demographic filtering instead happens via growth suppression (size_dt is
+  // clamped to >= 0 under competition) and the g > 0 density guard in
+  // Node::compute_initial_conditions. This value is consumed by the SCM
+  // (initial mortality / density) and the stochastic germination test.
+  // TODO(#480): may want to make this dependent on achieving positive growth rate.
   return 1.0;
 }
 
@@ -63,8 +66,12 @@ double K93_Strategy::net_mass_production_dt(const K93_Environment& environment,
   (void) environment;
   (void) height;
   (void) area_leaf_;
-  // TODO: there was no return value here - added 0.0
-  return 1.0;
+  // K93 models growth directly (size_dt); it has no carbon mass-production
+  // budget, so net mass production is undefined for this strategy. The value
+  // is never consumed by compute_rates -- it is reachable only via the R
+  // diagnostic accessor and resource_compensation_point(). Return NA to make
+  // "not applicable" explicit rather than returning a misleading number.
+  return NA_REAL;
 }
 
 double K93_Strategy::net_mass_production_dt(const K93_Environment& environment,

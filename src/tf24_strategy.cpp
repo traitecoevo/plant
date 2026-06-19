@@ -445,8 +445,6 @@ double TF24_Strategy::darea_leaf_dmass_live(double area_leaf) const {
               + dmass_root_darea_leaf(area_leaf));
 }
 
-// TODO: Ordering below here needs working on, probably as @dfalster
-// does equation documentation?
 double TF24_Strategy::dheight_darea_leaf(double area_leaf) const {
   return a_l1 * a_l2 * pow(area_leaf, a_l2 - 1);
 }
@@ -516,7 +514,6 @@ double TF24_Strategy::mass_live_dt(double fraction_allocation_reproduction,
   return (1 - fraction_allocation_reproduction) * net_mass_production_dt;
 }
 
-// TODO: Change top two to use mass_live_dt
 double TF24_Strategy::mass_total_dt(double fraction_allocation_reproduction,
                                      double net_mass_production_dt,
                                      double mass_heartwood_dt) const {

@@ -32,7 +32,7 @@ public:
   ResourceSpline light_availability;
 
   // Ability to prescribe a fixed value
-  // TODO: add setting to set other variables like water
+  // TODO(#476): add setting to set other variables like water
   void set_fixed_environment(double value, double height_max) {
     light_availability.set_fixed_value(value, height_max);
   }

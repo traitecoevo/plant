@@ -14,11 +14,11 @@
 #include <plant/disturbances/no_disturbance.h>
 #include <plant/disturbances/weibull_disturbance.h>
 
-// TODO: I will possibly move out the "Patch" parameters out into
+// TODO(#483): I will possibly move out the "Patch" parameters out into
 // their own simple list class at some point, to make this a bit more
 // coherent.
 //
-// TODO: Will require some free functions on the R side:
+// TODO(#483): Will require some free functions on the R side:
 //   * add_strategy (with flag for mutant/non mutant)
 
 namespace plant {
@@ -91,7 +91,7 @@ void Parameters<T,E>::validate() {
 }
 
 // Separating this out just because it's a bit crap:
-// TODO: Consider adding this to scm_utils.h perhaps?
+// TODO(#483): Consider adding this to scm_utils.h perhaps?
 template <typename T, typename E>
 void Parameters<T,E>::setup_node_schedule() {
   node_schedule_times_default =

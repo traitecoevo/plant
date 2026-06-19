@@ -176,7 +176,7 @@ mortality.dt <- function(traits, h, env) {
 }
 
 height.at.birth <- function(traits) {
-  ## TODO: These are hard-coded for now, but the upper limit could be
+  ## TODO(#482): These are hard-coded for now, but the upper limit could be
   ## got at directly if we had a couple of extra functions to compute
   ## height from total area.
   hmin <- 1e-16

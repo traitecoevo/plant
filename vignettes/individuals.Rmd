@@ -84,7 +84,7 @@ indv$compute_rates(env)
 indv$ode_rates
 ```
 
-<!-- TODO: next bit is a bit vague -->
+<!-- TODO(#481): next bit is a bit vague -->
 While we have focused on three key variables, height, mortality and fecundity,
 the FF16 model describes variable for five characteristics.
 The name vector of these variables is available via
@@ -377,7 +377,7 @@ legend("topright",
 ```
 
 <!--
-TODO: Remove Plant Plus
+TODO(#481): Remove Plant Plus
 Over a plant's life, allocation to different structures varies.
 This is captured by a set of variables stored within the internals:
 e.g., `mass_leaf` `mass_sapwood`.
@@ -438,10 +438,9 @@ indv$rate("height")
 The light level at which carbon gain becomes zero is the "whole
 plant light compensation point".
 
-<!-- TODO: Remove below once lcp works -->
 ```{r}
 openness <- seq(0, 1, length.out=51)
-lcp <- 0.299
+lcp <- indv$resource_compensation_point()
 ```
 
 Height growth rate increases in a saturating fashion with
@@ -459,47 +458,51 @@ points(lcp, 0.0, pch=19)
 
 ```
 
-<!-- TODO: refactor once lcp works
+The compensation point and growth curve also vary with plant size.
+Compare a seedling with a plant at half its maximum height (`hmat / 2`),
+using a small helper `g()` that evaluates `f()` across the openness
+sequence:
 
-Now, consider this for a seedling and for a plant at half its
-maximum size
-size:
-```{ }
+```{r }
+g <- function(openness, indv) cbind(openness, sapply(openness, f, indv))
+
 indv_seed <- FF16_Individual(s1)
 y_seed <- g(openness, indv_seed)
-indv_adult <- FF16_Individual(s1)
-indv_adult$state("height", indv_adult$strategy$hmat / 2)
-y_adult <- g(openness, indv_adult)
-cols_height <- c("#31a354", "black")
 
+indv_adult <- FF16_Individual(s1)
+indv_adult$set_state("height", indv_adult$strategy$hmat / 2)
+y_adult <- g(openness, indv_adult)
+
+cols_height <- c("#31a354", "black")
 ymax <- max(y_seed[, 2], y_adult[, 2])
 plot(y_seed, type="l", col=cols_height[[1]],
      xlim=c(0, 1), ylim=c(0, ymax), las=1,
-     xlab="Canopy openness", ylab="Height growth year (m / yr)")
+     xlab="Canopy openness", ylab="Height growth rate (m / yr)")
 lines(y_adult, col=cols_height[[2]])
 legend("bottomright", c("Seedling", "Adult"), lty=1, col=cols_height, bty="n")
 ```
 
-The light compensation point and curve varies with traits, too:
-```{ }
-pl2_seed <- FF16_IndividualPlus(s2)
-pl2_adult <- FF16_IndividualPlus(s2)
-pl2_adult$height <- pl2_adult$strategy$hmat / 2
-y2_seed <- g(openness, pl2_seed)
-y2_adult <- g(openness, pl2_adult)
+The compensation point and curve also vary with traits. Here we overlay
+the high-LMA species `s2` (dotted) on the low-LMA species `s1` (solid):
+
+```{r }
+indv2_seed <- FF16_Individual(s2)
+y2_seed <- g(openness, indv2_seed)
+
+indv2_adult <- FF16_Individual(s2)
+indv2_adult$set_state("height", indv2_adult$strategy$hmat / 2)
+y2_adult <- g(openness, indv2_adult)
 
 ymax <- max(ymax, y2_seed[, 2], y2_adult[, 2])
 plot(y_seed, type="l", col=cols_height[[1]],
      xlim=c(0, 1), ylim=c(0, ymax), las=1,
-     xlab="Canopy openness", ylab="Height growth year (m / yr)")
+     xlab="Canopy openness", ylab="Height growth rate (m / yr)")
 lines(y_adult, col=cols_height[[2]])
 lines(y2_seed, col=cols_height[[1]], lty=2)
 lines(y2_adult, col=cols_height[[2]], lty=2)
 legend("bottomright", c("Seedling", "Adult"), lty=1, col=cols_height, bty="n")
 ```
 
-Note that the traits with the lowest growth rate in most lights
-while a seedling (dotted lines) has the highest growth rate in all
-lights as an adult.
-
--->
+Note that the high-LMA species (dotted), which has the lower growth
+rate at most light levels as a seedling, achieves the higher growth
+rate across all light levels as an adult.

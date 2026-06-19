@@ -24,7 +24,6 @@ make_FF16_hyperpar(
   B_lf3 = 0.04,
   B_lf4 = 21000,
   B_lf5 = 1,
-  k_I = 0.5,
   latitude = 0
 )
 
@@ -47,7 +46,6 @@ make_TF24_hyperpar(
   B_lf3 = 0.04,
   B_lf4 = 21000,
   B_lf5 = 1,
-  k_I = 0.5,
   latitude = 0
 )
 }
@@ -87,8 +85,6 @@ make_TF24_hyperpar(
 \item{B_lf4}{CO_2 respiration per unit leaf nitrogen [mol / yr / kg]}
 
 \item{B_lf5}{Scaling exponent for leaf nitrogen in maximum leaf photosynthesis [dimensionless]}
-
-\item{k_I}{light extinction coefficient [dimensionless]}
 
 \item{latitude}{degrees from equator (0-90), used in solar model [deg]}
 }

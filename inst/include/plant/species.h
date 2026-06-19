@@ -57,7 +57,7 @@ public:
 
   Rcpp::NumericMatrix r_get_state() const;
 
-  //TODO ideally move this down to node but i can't get it to work
+  //TODO(#478) ideally move this down to node but i can't get it to work
   Rcpp::NumericMatrix::iterator get_node_state(const Node<T, E> &node, Rcpp::NumericMatrix::iterator it) const;
   Rcpp::NumericMatrix::iterator get_node_aux(const Node<T, E> &node, Rcpp::NumericMatrix::iterator it) const;
 
@@ -120,7 +120,7 @@ void Species<T,E>::clear() {
 template <typename T, typename E>
 void Species<T,E>::introduce_new_node() {
   nodes.push_back(new_node);
-  // TODO: Should the new_node be recomputed here?
+  // TODO(#478): Should the new_node be recomputed here?
 }
 
 // If a species contains no individuals, we return the height of a

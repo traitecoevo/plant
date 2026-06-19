@@ -73,7 +73,7 @@ for (x in names(strategy_types)) {
 
   })
 
-  ## TODO: Not done yet:
+  ## TODO(#482): Not done yet:
   ##   * Check that the initial conditions are actually correct
   ##   * Check that the rates computed are actually correct
   test_that("ODE interface", {

@@ -165,6 +165,26 @@ test_that("FF16_Strategy hyper-parameterisation", {
   expect_equal(ret, trait_matrix(numeric(0), "lma"))
 })
 
+test_that("FF16_hyperpar sources k_I from the strategy", {
+  narea <- c(2E-3, 2.3E-3)
+  m <- trait_matrix(narea, "narea")
+
+  ## Default strategy: assimilation matches the existing reference values.
+  s <- FF16_Strategy()
+  expect_equal(s$k_I, 0.5)
+  ret <- FF16_hyperpar(m, s)
+  expect_equal(ret[, "a_p1"], c(162.2592, 188.1549), tolerance=1e-5)
+
+  ## Varying the strategy's k_I must change the derived assimilation
+  ## parameters -- previously the hard-coded 0.5 default in the maker
+  ## silently ignored the strategy value.
+  s2 <- FF16_Strategy()
+  s2$k_I <- 0.8
+  ret2 <- FF16_hyperpar(m, s2)
+  expect_false(isTRUE(all.equal(ret[, "a_p1"], ret2[, "a_p1"])))
+  expect_false(isTRUE(all.equal(ret[, "a_p2"], ret2[, "a_p2"])))
+})
+
 test_that("narea calculation", {
   x <- c(1.38, 3.07, 2.94)
   p0 <- FF16_Parameters()

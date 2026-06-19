@@ -11,15 +11,15 @@ output: bookdown::html_document2
 
 System of ODEs, IVPs
 
-See more detail in in XXXX
+See more detail in [Solving system dynamics via the characteristic method](solving_dynamics.html).
 
 # ODE stepping
 
-See more detail in in XXXX
+See more detail in [ODE stepping and control](ode_solver.html).
 
 # Adapative node spacing
 
-See more details in XXXX
+See more details in [The node spacing algorithm](node_spacing.html).
 
 # tk splines
 
