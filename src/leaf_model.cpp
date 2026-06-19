@@ -994,15 +994,33 @@ double Leaf::assim_minus_stom_cond_CO2(double x, double psi_stem, double psi_ups
 double Leaf::psi_stem_to_ci(double psi_stem, double psi_upstream) {
   const double stom_cond_CO2_fixed = stom_cond_CO2(psi_stem, psi_upstream);
 
+  // Propagate non-finite inputs as NA rather than entering the solver. A
+  // non-finite psi_stem (e.g. NA from profit_psi_stem_TF(NA, .)) makes gc and
+  // hence the whole target non-finite. The previous bisection returned NaN
+  // silently in this case; the bracketing TOMS748 solver below instead throws
+  // ("a and b do not bracket the root"), so guard explicitly to preserve the
+  // NA-in -> NA-out contract (see test-leaf.r "Basic functions").
+  if (!std::isfinite(stom_cond_CO2_fixed)) {
+    return ci_ = NA_REAL;
+  }
+
   auto target = [&](double x) mutable -> double {
     const double assim_colimited_x_ = assim_colimited(x);
     return assim_colimited_x_ * umol_to_mol -
       (stom_cond_CO2_fixed * (ca_ - x) / (atm_kpa_ * kPa_to_Pa));
   };
 
-  // tol and iterations copied from control defaults (for now) - changed recently to 1e-6
+  // #486: this target (assim_colimited demand minus the linear gc supply) is
+  // smooth and strictly monotone over (gamma*, ca] -- no singularity at the
+  // bracket ends (Ar,Ae vanish linearly at gamma* so sqrt(disc) is linear, not
+  // singular) and its only sharp feature is the colimitation elbow far below the
+  // operating root. So it is a well-behaved case for a superlinear bracketing
+  // solver: TOMS748 reaches the same root in ~9 evals vs bisection's ~29 at the
+  // same 1e-7 tol. This is deliberately scoped to psi_stem_to_ci ONLY; the
+  // hydraulic find_root_psi path keeps bisection (its target is not smooth -- see
+  // the warning on util::uniroot_smooth).
   try {
-    return ci_ = util::uniroot(target, gamma_ * umol_per_mol_to_Pa, ca_, 1e-7, ci_niter);
+    return ci_ = util::uniroot_smooth(target, gamma_ * umol_per_mol_to_Pa, ca_, 1e-7, ci_niter);
   } catch (const std::exception& e) {
     util::stop("psi_stem_to_ci failed: " + std::string(e.what()) +
                "; min=" + util::to_string(gamma_ * umol_per_mol_to_Pa) +

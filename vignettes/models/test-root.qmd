@@ -903,6 +903,70 @@ and profile and closes the last flagged target; it finds no new speed-up,
 consistent with the Phase 2–3 conclusion that the hot path is structurally
 optimised.
 
+## Phase 6 — Brent on `psi_stem_to_ci` only (2026-06-19)
+
+Phases 1–5 concluded "no safe remaining lever". **That was too pessimistic for
+`psi_stem_to_ci`** — it conflated two different things the earlier rejections
+lumped together:
+
+- **Loosening the Cᵢ tolerance** (Phase 2 lever, Phase 5 rejected) changes the
+  *answer*: a looser solve returns a different, less-accurate Cᵢ, which perturbs
+  the coupled ODE into the #485 drought singularity. Unsafe.
+- **Swapping the solver** (TOMS748 for bisection) at the *same* `1e-7` tolerance
+  returns the *same root in fewer evaluations*. It does not loosen anything.
+
+The Phase-1 TOMS748 rejection was a **global** swap across *both* nested
+root-finds, and it failed on the hydraulic `find_root_psi` path — whose target is
+genuinely non-smooth (vulnerability-curve clamps, splines with extrapolation
+disabled, near-flat regions). But the `psi_stem_to_ci` target is different:
+
+$$f(c_i) = A_\text{colim}(c_i)\,\kappa_1 - g_c\,(c_a - c_i)\,\kappa_2$$
+
+is **smooth and strictly monotone** over $(\Gamma^*, c_a]$. There is *no*
+singularity at the lower bracket: near $\Gamma^*$ both Rubisco- and
+electron-limited rates vanish *linearly*, so the colimitation discriminant
+$\sim(c_i-\Gamma^*)^2$ and $\sqrt{\cdot}$ is linear (finite derivative). Its only
+sharp feature is the colimitation elbow ($c_i\approx4.3$), far below the
+operating root ($c_i\approx12$). This is a textbook case for a superlinear
+*bracketing* solver. Measured eval counts: bisection needs **~29**
+`assim_colimited` evaluations to reach `1e-7` over the 35.7 Pa bracket; TOMS748
+reaches the same root in **~9**.
+
+**Change.** `util::uniroot → util::uniroot_smooth` (boost TOMS748) in
+`Leaf::psi_stem_to_ci` *only*; `find_root_psi` keeps bisection. One guard was
+required: TOMS748 validates its bracket and *throws* on non-finite endpoints,
+whereas `bisect` silently returned NaN. So a `psi_stem = NA` call (e.g.
+`profit_psi_stem_TF(NA, ·)`) now needs an explicit
+`if (!std::isfinite(gc)) return ci_ = NA_REAL;` to preserve the NA-in→NA-out
+contract (a unit test in `test-leaf.r` caught this).
+
+**Result (clean sequential A/B, both `make compile` `-g -O2`, deterministic,
+15-layer MPL = 5, mean-1.0 rainfall):**
+
+| build | median time | offspring |
+|---|---|---|
+| bisection (baseline) | 19.08 s | 1.647796754e-06 |
+| TOMS748 (`psi_stem_to_ci`) | **10.75 s** | 1.649221246e-06 |
+
+**≈1.78× faster, +0.086 % offspring shift.** The speed-up *exceeds* the naive
+44%-self-time Amdahl bound (1.43×) because that 44% was psi_stem_to_ci
+*self*-time only: cutting ~29→~9 evals also removes ~20 `assim_colimited` /
+`sqrt` / `pow` calls per solve whose cost was attributed to *those* symbols, so
+the inclusive saving is larger.
+
+**Numerics — safe, unlike the rejected levers.** It is *not* bit-identical (no
+solver swap can be — bisection returns an interval midpoint, TOMS748 the
+interpolated root), but it converges to the *same* `1e-7` tolerance, so the shift
+is tolerance-level and smooth (same cohort/step structure). Critically, the
+**drought stability gate passes**: the mean-0.5 regime completes with finite
+output (offspring 2.11e-10), **no NaN** — the failure mode that killed the
+tolerance-loosening lever does not appear, because the answer is the same, just
+reached faster. Full test suite: 1912 pass / 0 fail.
+
+The Cᵢ tolerance is still load-bearing (Phase 5 stands — don't *loosen* it); the
+lever Phases 1–5 missed is converging to it *faster*. This is the first
+post-Phase-1 hot-path speed-up.
+
 ## Analytical hydraulic transform (issue #468)
 
 [Issue #468](https://github.com/traitecoevo/plant/issues/468) noted that the
