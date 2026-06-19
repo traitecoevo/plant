@@ -378,6 +378,10 @@ void Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>& p
 
     E_up_ = 0;
 
+    // area_leaf_ is constant across the whole solve; fold its reciprocal into a
+    // per-layer multiply instead of a per-layer division (1 fdiv/call vs 15).
+    const double inv_area_leaf = 1.0 / area_leaf_;
+
     // Cumulative-integral spline caching (bit-identical fast path). The only two
     // arguments ever passed to root_vuln_integral_from_psi in the loop below are
     // -P_src_min and -hi_neg, each of which resolves to exactly one of
@@ -437,7 +441,7 @@ void Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>& p
       }
 
       // Transpiration is equivalent to gravitational water loss (i.e. layer gains water)
-      double E_i = -(gravity_head * z_soil_mid_[i]) / r_R / area_leaf_ ;
+      double E_i = -(gravity_head * z_soil_mid_[i]) * inv_area_leaf / r_R ;
       if (!std::isfinite(E_i)) {
         util::stop("E_from_Soil_to_Root_Collar non-finite E_i (equal-potentials branch); layer=" + std::to_string(i) +
                    "; E_i=" + util::to_string(E_i) +
@@ -492,9 +496,15 @@ void Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>& p
         integral += (P_src_max - lo_pos);
       }
 
-      double f_r_average = integral / (P_src_max - P_src_min);
-
-    if (!std::isfinite(f_r_average) || f_r_average <= 0.0) {
+    // span = P_src_max - P_src_min > 0 here (the equal-potentials case is
+    // handled in the branch above). f_r_average = integral / span, so with
+    // span > 0 the guard (f_r_average finite & > 0) is exactly (integral finite
+    // & > 0); checking integral directly lets r_R_H be formed with a single
+    // division (r_R_H_min * span / integral) instead of two (/ f_r_average then
+    // the implicit / above), which removes one fdiv per layer on the hot path.
+    const double span = P_src_max - P_src_min;
+    if (!std::isfinite(integral) || integral <= 0.0) {
+      const double f_r_average = integral / span;
       util::stop("E_from_Soil_to_Root_Collar invalid f_r_average; layer=" + std::to_string(i) +
                  "; f_r_average=" + util::to_string(f_r_average) +
                  "; P_src_min=" + util::to_string(P_src_min) +
@@ -503,7 +513,7 @@ void Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>& p
     }
 
     // Find the horizantal resistance in a given layer by dividing the minimum resistance (i.e. maximum conductivity) by the fractional loss of conductivity
-    double r_R_H = r_R_H_min[i] / f_r_average; // [MPa * s * (mol H2O)^-1]
+    double r_R_H = r_R_H_min[i] * span / integral; // [MPa * s * (mol H2O)^-1]
 
     // Find the total resistance in a given layer by adding the vertical resistance in that layer
     double r_R = r_R_H + r_R_V_sum[i]; // [MPa * s * (mol H2O)^-1]
@@ -512,11 +522,11 @@ void Leaf::E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>& p
                  "; r_R=" + util::to_string(r_R) +
                  "; r_R_H=" + util::to_string(r_R_H) +
                  "; r_R_V_sum=" + util::to_string(r_R_V_sum[i]) +
-                 "; f_r_average=" + util::to_string(f_r_average));
+                 "; integral=" + util::to_string(integral));
     }
 
     // Transpiration is equal to the potentail gradient between the root collar and the soil, accounting for gravitational potential
-    double E_i = (psi_soil[i] - P_x_r - gravity_head * z_soil_mid_[i]) / r_R / area_leaf_; // [mol H2O / m^2 / s]
+    double E_i = (psi_soil[i] - P_x_r - gravity_head * z_soil_mid_[i]) * inv_area_leaf / r_R; // [mol H2O / m^2 / s]
     if (!std::isfinite(E_i)) {
       util::stop("E_from_Soil_to_Root_Collar non-finite E_i; layer=" + std::to_string(i) +
                  "; E_i=" + util::to_string(E_i) +
