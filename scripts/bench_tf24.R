@@ -10,7 +10,7 @@ suppressMessages(pkgload::load_all(".", recompile = FALSE, quiet = TRUE))
 p0 <- scm_base_parameters("TF24")
 p0$max_patch_lifetime <- 10
 env  <- Environment("TF24")
-ctrl <- scm_base_control()
+ctrl <- control()
 p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, TF24_hyperpar,
                         birth_rate_list = list(20))
 

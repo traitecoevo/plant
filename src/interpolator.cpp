@@ -52,17 +52,9 @@ void Interpolator::clear() {
   active = false;
 }
 
-// Compute the value of the interpolated function at point `x=u`
-double Interpolator::eval(double u) const {
-  check_active();
-  if (not extrapolate and (u < min() or u > max())) {
-    util::stop("Extrapolation disabled and evaluation point outside of interpolated domain.");
-  }
-  return tk_spline(u);
-}
-
-// NOTE: operator(), size(), min() and max() are now defined inline in
-// interpolator.h so they can be inlined into hot per-quadrature-point loops.
+// NOTE: eval(), check_active(), operator(), size(), min() and max() are now
+// defined inline in interpolator.h so they can be inlined into hot
+// per-quadrature-point and per-root-finder-iteration loops (see eval comment).
 
 void Interpolator::set_extrapolate(bool e) {
   extrapolate = e;
@@ -94,12 +86,6 @@ std::vector<double> Interpolator::r_eval(std::vector<double> u) const {
     ret.push_back(eval(x));
   }
   return ret;
-}
-
-void Interpolator::check_active() const {
-  if (!active) {
-    util::stop("Interpolator not initialised -- cannot evaluate");
-  }
 }
 
 }
