@@ -1010,6 +1010,69 @@ Phase 5/6 figures.** This A/B ran the same scenario+build at ~5.2 s where Phases
 seconds are machine-specific, comparisons are valid only within one session built
 both-sides the same way.
 
+## Phase 8 — Brent on `find_root_psi` too (2026-06-19)
+
+Phase 6 swapped the *inner* `psi_stem_to_ci` solve to TOMS748 and explicitly
+kept bisection on the hydraulic `find_root_psi` path, on the Phase-1 belief that
+*that* target is "genuinely non-smooth (vulnerability-curve clamps, splines with
+extrapolation disabled, near-flat regions)". A refreshed self-time profile then
+made `Leaf::E_from_Soil_to_Root_Collar` **the** dominant hot-spot (~46 %, up from
+30.8 %; `psi_stem_to_ci` fell to ~14 %). `E_from_Soil` is per-layer arithmetic
+over the 15 soil layers, evaluated inside `find_root_psi` (bisection, ~16 iters)
+which is itself inside the golden-section collar optimisation — **~270
+`E_from_Soil` calls per collar solve**. Cutting `find_root_psi`'s iteration count
+attacks that 46 % directly.
+
+The Phase-1 rejection turns out to have been the same over-broad call it was for
+`psi_stem_to_ci`: it conflated the two nested root-finds in *one* global swap. So
+the `find_root_psi` target was characterised on its own (densely sampled in R,
+both `find_root_crit` modes, six soil scenarios):
+
+- **Smooth and strictly monotone** over the bracket `[-psi_crit,
+  wettest_soil_layer]` in the normal operating regime: a clean single
+  sign-change, and derivatives **continuous across every `x == psi_soil[i]`
+  layer crossing** — the per-layer branch switches in `E_from_Soil` are bit-level
+  kinks (relative slope jump ~1e-6), not real corners.
+- **Eval counts** (to the existing `1e-4` tol): bisection **15–16** vs TOMS748
+  **6–8** `E_from_Soil` evals per solve — a ~2× cut.
+- The genuine non-smoothness *is* real but lives **in `E_from_Soil` itself**: for
+  soil drier than the root vulnerability spline domain (~`root_psi_crit`) the
+  spline extrapolates to a *negative* conductivity and `E_from_Soil` `util::stop`s
+  — identically under *both* solvers. Crucially it does **not** arise on the
+  brackets `find_root_collar_psi` actually hands `find_root_psi`: the crit=1 lower
+  endpoint is exactly the `E_column(-psi_crit) < 0` shut-down test, and crit=0 is
+  only reached when soil is wetter than `psi_crit`. Both brackets are therefore
+  guaranteed opposite-sign and finite.
+
+**Change.** `util::uniroot → util::uniroot_smooth` in `Leaf::find_root_psi` for
+*both* `find_root_crit` modes, at the *same* `1e-4` tolerance (same root, fewer
+evals — a method swap, not a tolerance loosening). No NaN-bracket guard was
+needed (unlike `psi_stem_to_ci` Phase 6): the brackets are non-degenerate by the
+early-exits above, and `E_from_Soil` `util::stop`s rather than returning a silent
+NaN, so the existing `try/catch` already surfaces any genuine failure.
+
+**Result (clean sequential A/B, both `make compile` `-g -O2`, deterministic,
+15-layer MPL = 5, mean-1.0 rainfall, median of timed reps):**
+
+| Build | Median | offspring_production | Speed-up |
+|---|---|---|---|
+| bisection `find_root_psi` (Phase 6/7) | 5.037 s | 1.6510529588e-06 | — |
+| TOMS748 `find_root_psi` (this) | **4.148 s** | 1.64950903698e-06 | **≈1.21× (~18 %)** |
+
+**Numerics — safe.** Not bit-identical (no solver swap can be), but converges to
+the same `1e-4` tolerance, so the shift is tolerance-level and smooth:
+**−0.094 %** offspring. The **drought-stability gate passes**: the mean-0.5
+regime completes with finite output (offspring 2.068e-10 vs the bisection
+baseline's 2.114e-10, a −2.1 % shift on a near-knife-edge value), **no NaN** —
+the failure mode that killed the tolerance-loosening lever (#485) does not
+appear, because the answer is the same, just reached faster. Full test suite:
+**1943 pass / 0 fail** (incl. a new method-independent `find_root_psi` contract
+block in `test-leaf.r`).
+
+This is the second post-Phase-1 hot-path speed-up, and it confirms that the
+remaining lever on `E_from_Soil` is its **per-layer arithmetic** (lever 2), not
+the root-finder — both nested solvers are now superlinear.
+
 ## Analytical hydraulic transform (issue #468)
 
 [Issue #468](https://github.com/traitecoevo/plant/issues/468) noted that the

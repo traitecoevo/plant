@@ -44,14 +44,28 @@ double uniroot(Function f, double min, double max, double tol,
 // TOMS748 converges super-linearly (~5-8 evals) versus bisection's ~one bit per
 // iteration, so it is attractive for deeply nested, expensive-per-eval solvers.
 //
-// WARNING (empirical, root_water_uptake branch): substituting this for
-// util::uniroot in the leaf hydraulic solvers (find_root_psi / psi_stem_to_ci)
-// DESTABILISED the coupled soil-water ODE - it produced NaN soil potentials and
-// ran *slower* overall. The continuum functions there are not smooth enough
-// (vulnerability-curve clamps, splines with extrapolation disabled, near-flat
-// regions), so the interpolation steps stall or probe bad points. Bisection's
-// robustness is load-bearing in that code path. Use this only where the target
-// function is known to be smooth and well-behaved across the whole bracket.
+// HISTORY (empirical, root_water_uptake branch, #486): an early *blanket* swap
+// of this for util::uniroot across BOTH nested leaf hydraulic root-finds at once
+// destabilised the coupled soil-water ODE (NaN soil potentials, slower overall),
+// which was first read as "the hydraulic path is too non-smooth for a
+// superlinear solver". That conclusion was too broad. Re-examined target by
+// target, both leaf solvers are in fact smooth and strictly monotone over the
+// brackets they are actually handed, and both now use this solver at their
+// existing tolerances (same root, fewer evals):
+//   * psi_stem_to_ci (Phase 6): A_colim demand minus the linear gc supply over
+//     (gamma*, ca]; ~29 -> ~9 evals at 1e-7.
+//   * find_root_psi (Phase 8): the soil->collar continuity residual over
+//     [-psi_crit, wettest_soil_layer]; ~15-16 -> ~6-8 evals at 1e-4. Its
+//     brackets are guaranteed opposite-sign/finite by find_root_collar_psi's
+//     early-exits.
+// The genuine non-smoothness (vulnerability-curve clamps, the root vulnerability
+// spline extrapolating negative beyond its domain, near-flat regions) lives in
+// E_from_Soil_to_Root_Collar itself, NOT in the root-finders, and would break
+// bisection too. So: use this where the target is smooth and well-behaved across
+// the whole bracket -- which the leaf solvers are, on their operating brackets.
+// One gotcha vs bisect: this validates its bracket and THROWS on non-finite or
+// same-sign endpoints where boost::bisect returned NaN silently (guard upstream
+// if a finite-but-degenerate bracket can occur; see psi_stem_to_ci's NA guard).
 template <typename Function>
 double uniroot_smooth(Function f, double min, double max, double tol,
                       size_t max_iterations) {
