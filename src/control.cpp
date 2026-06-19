@@ -14,6 +14,13 @@ Control::Control() {
   // using Gauss-Kronrod quadrature. Rules defined in qk_rules.cpp
   function_integration_rule = 21;
 
+  // Crown shading model (see Control header). Default reproduces the original
+  // Yokozawa deep-crown behaviour exactly.
+  shading_model = "deep-crown";
+
+  // PPA canopy layer thickness in optical-depth units (see Control header).
+  ppa_layer_optical_depth = 0.5;
+
   offspring_production_tol= 1e-8;
   offspring_production_iterations = 1000;
 

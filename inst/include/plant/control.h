@@ -24,6 +24,21 @@ struct Control {
 
   size_t function_integration_rule;
 
+  // Crown shading model used by the FF16 assimilation and competition paths.
+  // One of "deep-crown" (Yokozawa foliage profile, integrated over crown
+  // depth), "flat-top" (all leaf area in a thin layer at the crown centre), or
+  // "ppa" (perfect-plasticity-approximation: discrete light layers). Resolved
+  // once in FF16_Strategy::prepare_strategy(), so it never costs a string
+  // comparison on the hot path.
+  std::string shading_model;
+
+  // PPA only: thickness of one discrete canopy layer, in optical-depth units
+  // (tau = sum of k * leaf-area-index above a height). The stepped light
+  // profile floors tau to integer multiples of this value. The default 0.5
+  // corresponds to one unit of leaf area index per layer at the FF16 default
+  // light-extinction coefficient k_I = 0.5. Ignored by the other models.
+  double ppa_layer_optical_depth;
+
   double offspring_production_tol;
   size_t offspring_production_iterations;
 

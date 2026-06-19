@@ -3,8 +3,39 @@
 #define PLANT_PLANT_CANOPY_SHAPE_H_
 
 #include <cmath>
+#include <string>
+#include <stdexcept>
 
 namespace plant {
+
+// How the crown intercepts light. Resolved once per strategy in
+// prepare_strategy() (string -> enum), never compared on the hot path.
+//
+// All three share the same per-plant competition contribution (the smooth
+// Yokozawa leaf-area profile Q); they differ in how a plant's own assimilation
+// is computed and how the patch light profile is built:
+//   DeepCrown - assimilation integrated over crown depth against the smooth
+//               light profile (the original plant behaviour).
+//   FlatTop   - identical light profile to DeepCrown, but assimilation is a
+//               single evaluation of the light at the crown centre (z = H*eta_c)
+//               rather than an integral over depth.
+//   PPA       - perfect-plasticity approximation: the patch light profile is
+//               built as a *stepped* function (cumulative leaf area floored into
+//               discrete canopy layers); assimilation then reads that stepped
+//               profile at the crown centre, as FlatTop does. See
+//               FF16_Environment::compute_environment.
+enum class ShadingModel { DeepCrown, FlatTop, PPA };
+
+inline ShadingModel shading_model_from_string(const std::string& name) {
+  if (name == "deep-crown") {
+    return ShadingModel::DeepCrown;
+  } else if (name == "flat-top") {
+    return ShadingModel::FlatTop;
+  } else if (name == "ppa") {
+    return ShadingModel::PPA;
+  }
+  throw std::invalid_argument("Unknown shading model: " + name);
+}
 
 // Canopy profile used by the FF16/TF24/K93 strategies. The equations follow
 // the Yokozawa (1995) foliage-profile model, written in terms of the

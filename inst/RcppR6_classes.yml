@@ -305,6 +305,8 @@ Control:
     @export
   list:
     - function_integration_rule: size_t
+    - shading_model: std::string
+    - ppa_layer_optical_depth: double
     - offspring_production_tol: double
     - offspring_production_iterations: int
     - node_gradient_eps: double
@@ -1066,6 +1068,9 @@ FF16_Environment:
       return_type: void
     set_fixed_environment:
       args: [value: double, height_max: double]
+      return_type: void
+    set_shading_model:
+      args: [model: "std::string", layer_optical_depth: double]
       return_type: void
     compute_rates:
       args: [resource_depletion: "std::vector<double>"]

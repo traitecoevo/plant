@@ -119,7 +119,7 @@ public:
     Rcpp::Environment base("package:base");
     Rcpp::Function getNamespace = base["getNamespace"];
     Rcpp::Environment pkg = getNamespace(packagename);
-    // TODO(#483): need to deal with failure here (i.e. R_NilValue), or we
+    // TODO: need to deal with failure here (i.e. R_NilValue), or we
     // get a really hard to diagnose error message.
     Rcpp::Environment Generator = pkg[generatorname];
     Rcpp::Function Generator_new = Generator["new"];

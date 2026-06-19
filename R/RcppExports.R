@@ -3201,6 +3201,10 @@ FF16_Environment__set_fixed_environment <- function(obj_, value, height_max) {
     invisible(.Call('_plant_FF16_Environment__set_fixed_environment', PACKAGE = 'plant', obj_, value, height_max))
 }
 
+FF16_Environment__set_shading_model <- function(obj_, model, layer_optical_depth) {
+    invisible(.Call('_plant_FF16_Environment__set_shading_model', PACKAGE = 'plant', obj_, model, layer_optical_depth))
+}
+
 FF16_Environment__compute_rates <- function(obj_, resource_depletion) {
     invisible(.Call('_plant_FF16_Environment__compute_rates', PACKAGE = 'plant', obj_, resource_depletion))
 }

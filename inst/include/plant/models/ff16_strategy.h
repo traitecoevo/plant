@@ -119,9 +119,34 @@ public:
   }
 
   // * Mass production
-  // [eqn 12] Gross annual CO2 assimilation
+  // [eqn 12] Gross annual CO2 assimilation. Thin dispatcher: forwards to the
+  // shading-model implementation bound once in prepare_strategy(), so the
+  // choice of crown model costs a single predicted indirect call per
+  // derivative evaluation and never a string comparison.
   double assimilation(const FF16_Environment& environment, double height,
-                      double area_leaf, double height_inverse);
+                      double area_leaf, double height_inverse) {
+    return (this->*assimilation_fn)(environment, height, area_leaf,
+                                    height_inverse);
+  }
+  // Shading-model implementations of assimilation (selected in
+  // prepare_strategy via assimilation_fn).
+  //  - deep crown: integrate photosynthesis over crown depth (Yokozawa q).
+  //  - crown top:  single evaluation of the light at the crown centre. Used by
+  //                both flat-top and PPA; they differ only in how the patch
+  //                light profile is built (smooth vs stepped), which this read
+  //                picks up transparently through the environment.
+  double assimilation_deep_crown(const FF16_Environment& environment,
+                                 double height, double area_leaf,
+                                 double height_inverse);
+  double assimilation_crown_top(const FF16_Environment& environment,
+                                double height, double area_leaf,
+                                double height_inverse);
+
+  typedef double (FF16_Strategy::*assimilation_fn_t)(const FF16_Environment&,
+                                                     double, double, double);
+  // Bound once in prepare_strategy(); defaults to the deep-crown integral.
+  assimilation_fn_t assimilation_fn = &FF16_Strategy::assimilation_deep_crown;
+
   // [Appendix S6] Per-leaf photosynthetic rate.
   double assimilation_leaf(double x) const;
 

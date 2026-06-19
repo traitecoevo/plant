@@ -127,17 +127,17 @@ void FF16_Strategy::compute_rates(const FF16_Environment& environment,  Internal
       mortality_dt(net_mass_production_dt_ / area_leaf_, vars.state(MORTALITY_INDEX)));
 }
 
-// [eqn 12] Gross annual CO2 assimilation
-double FF16_Strategy::assimilation(const FF16_Environment& environment,
-                                    double height,
-                                    double area_leaf,
-                                    double height_inverse) {
+// [eqn 12] Gross annual CO2 assimilation -- deep-crown model.
+// Integrate photosynthesis over crown depth: for a given height in the crown,
+// take photosynthesis at that depth multiplied by the amount of leaf there.
+double FF16_Strategy::assimilation_deep_crown(const FF16_Environment& environment,
+                                              double height,
+                                              double area_leaf,
+                                              double height_inverse) {
 
   double A = 0.0;
 
-  // Define an anonymous function to integrate
-  // For given height in crown, take photosynthesis at depth multipled by
-  //   amount of leaf at that depth
+  // Define an anonymous function to integrate.
   // Keep the lambda's own closure type (do not wrap in std::function) so the
   // templated QK::integrate inlines the integrand at each quadrature point
   // instead of making a type-erased indirect call.
@@ -157,6 +157,21 @@ double FF16_Strategy::assimilation(const FF16_Environment& environment,
   A = function_integrator.integrate(f, 0.0, height);
 
   return area_leaf * A;
+}
+
+// [eqn 12] Gross annual CO2 assimilation -- crown-top model (flat-top and PPA).
+// Leaf area is treated as a thin layer at the crown centre, so a single
+// evaluation of the light environment there replaces the crown-depth integral.
+// The flat-top and PPA models share this code: under flat-top the environment
+// returns the smooth light profile, under PPA it returns the stepped (layered)
+// profile, so the only difference between them lives in the environment build.
+// (height_inverse is unused but kept for a common dispatch signature.)
+double FF16_Strategy::assimilation_crown_top(const FF16_Environment& environment,
+                                             double height,
+                                             double area_leaf,
+                                             double /* height_inverse */) {
+  const double E = environment.get_environment_at_height(height * eta_c);
+  return area_leaf * assimilation_leaf(E);
 }
 
 // Photosynthetic rate per leaf area
@@ -477,7 +492,23 @@ void FF16_Strategy::prepare_strategy() {
       // Gauss-Kronrod quadrature integeration rule (see qkrules)
       control.function_integration_rule);
 
+  // Resolve the crown shading model once (string -> enum), then bind both hot
+  // paths to it: canopy_shape handles competition (leaf_area_above), and
+  // assimilation_fn selects the matching assimilation implementation. After
+  // this, neither path compares the model string per call.
+  const ShadingModel shading_model = shading_model_from_string(control.shading_model);
   canopy_shape.initialise(eta);
+  switch (shading_model) {
+  case ShadingModel::DeepCrown:
+    assimilation_fn = &FF16_Strategy::assimilation_deep_crown;
+    break;
+  case ShadingModel::FlatTop:
+  case ShadingModel::PPA:
+    // Both evaluate at the crown centre; PPA differs only in that the patch
+    // light profile it reads is built stepped (see FF16_Environment).
+    assimilation_fn = &FF16_Strategy::assimilation_crown_top;
+    break;
+  }
 
   // NOTE: this pre-computes something to save a very small amount of time
   eta_c = 1 - 2/(1 + eta) + 1/(1 + 2*eta);

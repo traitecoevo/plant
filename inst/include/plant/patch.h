@@ -195,6 +195,12 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
   save_RK45_cache = control.save_RK45_cache;
   survival_weighting = p.disturbance;
 
+  // Configure the light profile's shading model before the first
+  // compute_environment() in reset(). No-op for environments without a light
+  // profile (only FF16 implements alternative shading models).
+  environment.set_shading_model(control.shading_model,
+                                control.ppa_layer_optical_depth);
+
   add_strategies(parameters.strategies);
 
   reset();
