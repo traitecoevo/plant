@@ -186,6 +186,11 @@ public:
   std::vector<double> root_vuln_integral_soil_;
   std::vector<double> soil_depth_;
   std::vector<double> z_soil_mid_;
+  // Per-layer gravitational head gravity_head * z_soil_mid_[i], precomputed once
+  // per solve in set_physiology (z_soil_mid_ is fixed across find_root_collar_psi).
+  // Used three times per layer in E_from_Soil_to_Root_Collar's hot loop; caching
+  // it removes a redundant multiply per layer per (re)evaluation.
+  std::vector<double> grav_head_z_;
   bool use_precomputed_z_soil_mid_;
   double dz_;
   std::vector<double> r_R_H_min;
