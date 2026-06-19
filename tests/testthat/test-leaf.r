@@ -831,3 +831,165 @@ test_that("psi_stem_to_ci supply=demand solve", {
   # expected to update this number (it is NOT bit-identical across methods).
   expect_equal(ci, 11.7990174439, tolerance = 1e-6)
 })
+
+# find_root_psi is the inner soil->root-collar continuity solve (#486). Given a
+# bracket of candidate (signed, negative) root-collar potentials it returns the
+# collar potential x where one of two hydraulic targets vanishes:
+#   find_root_crit == 0 (root_zero_E): total soil uptake E_up_(x) == 0
+#   find_root_crit == 1 (root_crit)  : E_up_(x) == stem demand at psi_crit, i.e.
+#                                       E_column(x) = E_up_(x) - transpiration(psi_crit, -x) == 0
+# over x in [-psi_crit, wettest_soil_layer]. It is currently solved by bisection
+# (util::uniroot) to an absolute tolerance of 1e-4 in x, and sits inside the
+# golden-section collar optimisation -- so it dominates the per-layer
+# E_from_Soil_to_Root_Collar arithmetic that is the top hot-spot in the
+# 15-layer driver. These tests pin the *contract* (what x must satisfy)
+# independently of the *method*, so they remain a valid safety net if the solver
+# is later swapped for a faster root finder (Brent/TOMS748, ...).
+test_that("find_root_psi soil->collar continuity solve", {
+  vcmax_25 = 100
+  jmax_25 = vcmax_25 * 167
+  c = 2.04
+  b = 3
+  psi_crit = 5
+  theta = 0.000157
+  K_s = 1
+  h = 5
+  beta2 = 1
+  hk_s = 75
+  curv_fact_elec_trans = 0.7
+  a = 0.3
+  curv_fact_colim = 0.99
+  g1_TF24 = 46.32995
+  GSS_tol_abs = 1e-8
+  vulnerability_curve_ncontrol = 100
+  ci_abs_tol = 1e-6
+  ci_niter = 1000
+  beta_R_H = 3.4e3
+  beta_R_V = 9.4e4
+  root_c = 2.65
+  root_b = 1.29
+  root_psi_crit = root_b * (log(1.0 / 0.05))^(1.0 / root_c)
+
+  PPFD = 900
+  sapwood_volume_per_leaf_area = theta * h
+  leaf_specific_conductance_max = K_s * theta / h
+  atm_vpd = 2
+  ca = 40
+  atm_o2_kpa_ = 21
+  leaf_temp_ = 25
+  atm_kpa_ = 101.3
+  area_leaf_ = 0.05
+
+  make_leaf <- function() {
+    Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit,
+         root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, beta2 = beta2,
+         hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans,
+         curv_fact_colim = curv_fact_colim, GSS_tol_abs = GSS_tol_abs,
+         vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol,
+         ci_niter = ci_niter, g1_TF24 = g1_TF24, beta_R_H = beta_R_H, beta_R_V = beta_R_V)
+  }
+
+  # 15-layer soil column with a mild moisture gradient (wettest at the surface),
+  # mirroring the validation driver (env$set_soil_number_of_depths(15)). Distinct
+  # per-layer psi_soil exercises the layer-by-layer branch switches in
+  # E_from_Soil_to_Root_Collar (each x == psi_soil[i] crossing is a candidate
+  # kink in the target -- the smoothness question the solver-swap hinges on).
+  n_layer <- 15
+  psi_soil <- seq(0.3, 0.7, length.out = n_layer)     # positive magnitudes
+  soil_depth <- seq(0.1, 1.5, length.out = n_layer)   # cumulative layer depths (m)
+  mass_root_prop <- rep(1, n_layer)
+
+  set_phys <- function(l) {
+    l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root_prop, rho = 608,
+                     a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth,
+                     leaf_specific_conductance_max = leaf_specific_conductance_max,
+                     atm_vpd = atm_vpd, ca = ca,
+                     sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area,
+                     leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+    l
+  }
+
+  l <- set_phys(make_leaf())
+
+  # Reconstruct the bracket exactly as find_root_collar_psi does: psi_soil is
+  # flipped once to the signed (negative) convention used through the
+  # soil->collar transport, and the bracket runs from the driest feasible collar
+  # (-psi_crit) to the wettest soil layer (least-negative signed potential).
+  psi_inv <- -psi_soil
+  wettest <- max(psi_inv)
+  lower <- -psi_crit
+  upper <- wettest
+
+  # Method-independent scalar targets, rebuilt in pure R from the R-exposed
+  # primitives (E_from_Soil_to_Root_Collar sets E_up_; transpiration is direct).
+  # These are bit-for-bit the C++ E_column_zero / E_column the solver drives.
+  target0 <- function(x) {           # find_root_crit == 0
+    l$E_from_Soil_to_Root_Collar(x, psi_inv)
+    l$E_up_
+  }
+  target1 <- function(x) {           # find_root_crit == 1
+    l$E_from_Soil_to_Root_Collar(x, psi_inv)
+    E_up <- l$E_up_
+    # E_column sets root_collar_psi_ = -x and demands transpiration(psi_crit, -x)
+    E_up - l$transpiration(psi_crit, -x)
+  }
+
+  # --- 1. both targets are bracketed (opposite signs at the endpoints) --------
+  expect_true(target0(lower) > 0 && target0(upper) < 0)
+  expect_true(target1(lower) > 0 && target1(upper) < 0)
+
+  # --- 2. both targets are strictly monotone over the bracket -----------------
+  # (a clean single sign-change, the necessary condition for ANY bracketing
+  # solver -- bisection or superlinear -- to be safe here.)
+  xs <- seq(lower, upper, length.out = 400)
+  t0 <- vapply(xs, target0, numeric(1))
+  t1 <- vapply(xs, target1, numeric(1))
+  expect_true(all(is.finite(t0)) && all(is.finite(t1)))
+  expect_true(all(diff(t0) < 0))   # E_up_ decreases as collar gets less negative
+  expect_true(all(diff(t1) < 0))
+
+  # --- 3. C++ root matches a tight method-independent R reference -------------
+  # stats::uniroot solves the identical target to 1e-12; the C++ solver works to
+  # 1e-4 in x, so agreement to ~1e-3 pins "the correct collar potential"
+  # independently of the C++ method (a future Brent/TOMS748 swap still passes).
+  root0 <- l$find_root_psi(wettest, psi_inv, 0L)
+  root1 <- l$find_root_psi(wettest, psi_inv, 1L)
+  ref0 <- stats::uniroot(target0, lower = lower, upper = upper, tol = 1e-12)$root
+  ref1 <- stats::uniroot(target1, lower = lower, upper = upper, tol = 1e-12)$root
+  expect_equal(root0, ref0, tolerance = 1e-3)
+  expect_equal(root1, ref1, tolerance = 1e-3)
+
+  # --- 4. residual at the returned root is ~0 ---------------------------------
+  # The target slope is O(1e-4 kg/MPa); at a 1e-4 root tol the residual is well
+  # below 1e-7. Also confirm the root is strictly interior to the bracket.
+  expect_true(abs(target0(root0)) < 1e-7)
+  expect_true(abs(target1(root1)) < 1e-7)
+  expect_true(root0 > lower && root0 < upper)
+  expect_true(root1 > lower && root1 < upper)
+
+  # --- 5. ordering: the zero-uptake collar is wetter (less negative) than the
+  # critical-demand collar (more water is drawn at psi_crit than at zero flux).
+  expect_true(root0 > root1)
+
+  # --- 6. find_psi_stem_from_psi_root contract --------------------------------
+  # Given a collar potential it returns a finite stem potential >= the collar
+  # magnitude (the stem is downstream, hence at least as negative), and the
+  # mapping is monotone increasing in collar dryness.
+  roots <- seq(root1, root0, length.out = 8)
+  psi_stems <- vapply(roots, function(r) l$find_psi_stem_from_psi_root(r, psi_inv), numeric(1))
+  expect_true(all(is.finite(psi_stems)))
+  expect_true(all(psi_stems >= -roots - 1e-8))   # |stem| >= |collar|
+  expect_true(all(diff(psi_stems) < 0))          # drier collar (more -ve) -> larger |stem|
+
+  # --- 7. NaN-input propagation: a non-finite soil potential must fail fast
+  # (util::stop in E_from_Soil_to_Root_Collar), NOT return a silent NaN root.
+  psi_inv_bad <- psi_inv
+  psi_inv_bad[5] <- NA_real_
+  expect_error(l$find_root_psi(wettest, psi_inv_bad, 0L))
+
+  # --- 8. regression guard: reference roots for the standard scenario on this
+  # build. A solver method change is expected to keep these within rounding of
+  # the R reference above (NOT necessarily bit-identical across methods).
+  expect_equal(root0, ref0, tolerance = 1e-4)
+  expect_equal(root1, ref1, tolerance = 1e-4)
+})
