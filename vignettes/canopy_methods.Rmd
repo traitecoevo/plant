@@ -178,7 +178,7 @@ ppa_step_light <- function(E, d, w) {
          exp(-d * smooth_floor(-log(E) / d, w)))
 }
 
-target_ages <- c(5, 20, 60)
+target_ages <- c(5, 10, 20, 60)
 
 profile_all <- dplyr::bind_rows(
   lapply(models, function(m) {
@@ -259,21 +259,69 @@ finer layers (smaller `ppa_layer_optical_depth`) or sharper boundaries (smaller
 the most faithful representation of within-crown light capture and carries no
 speed penalty relative to earlier versions of `plant`.
 
-# Notes on the PPA model
+# Why PPA needs smoothing
 
-The PPA light profile is a step function, which is not differentiable. A literal
-hard step makes a plant's light jump as it grows across a layer boundary, which
-both defeats the adaptive ODE solver's error control and can send growth to
-non-finite values. The `control$ppa_layer_smoothing` parameter therefore
-replaces each hard boundary with a C^1^-continuous cubic ramp over the top
-fraction of each layer. With the default (`0.3`) the profile is smooth enough to
-integrate with the normal adaptive solver, and adaptive and fixed-step solutions
-agree. Two parameters control the discretisation:
+A literal PPA discretisation is a *hard* step function: as a plant grows and its
+crown centre crosses a layer boundary, the light it experiences jumps
+discontinuously, and so does its growth rate. This is what `ppa_layer_smoothing`
+exists to tame, and it is worth being explicit about *why* -- because the
+problem is specifically one of **adaptive ODE stepping**, not of the model
+itself.
+
+## Adaptive stepping cannot integrate a discontinuity
+
+`plant` solves the patch dynamics with an adaptive, error-controlled solver
+(an embedded Runge-Kutta scheme). At each step it forms two estimates of the
+state at different orders, and uses their difference as an estimate of the local
+truncation error. If that error exceeds the requested tolerance, the step is
+*rejected* and retried with a smaller size; the method assumes the solution is
+smooth, so halving the step should roughly quarter the error.
+
+Across a discontinuity that assumption breaks. No matter how small the step, a
+step that straddles the jump carries an O(jump) error that never falls below
+tolerance, so the solver rejects and shrinks the step indefinitely until it
+gives up. With a hard step (`ppa_layer_smoothing = 0`) this is exactly what
+happens:
+
+```{r ppa-hard}
+ctrl_hard <- Control()
+ctrl_hard$shading_model <- "ppa"
+ctrl_hard$ppa_layer_smoothing <- 0      # hard step, no smoothing
+
+tryCatch(
+  run_scm(patch, ctrl = ctrl_hard),
+  error = function(e) conditionMessage(e)
+)
+```
+
+A *fixed* schedule (`run_scm(..., use_ode_times = TRUE)`) sidesteps the
+error-control loop -- it simply takes the prescribed steps without rejecting any
+-- but then nothing protects against a large explicit step overshooting the jump,
+which sends growth to non-finite values unless the schedule is very fine. Either
+way, a hard step is not something the solver can handle robustly.
+
+Switching the rounding direction (light at the top vs the bottom of a layer)
+does not help: the difficulty is the discontinuity itself, not where the step
+sits.
+
+## The smoothed profile
+
+`ppa_layer_smoothing` replaces each hard boundary with a C^1^-continuous cubic
+ramp over the top fraction of the layer (see `FF16_Environment::smooth_floor`).
+The light profile -- and hence each plant's growth rate -- is now continuous with
+a continuous first derivative, so the adaptive error estimate behaves as the
+solver assumes and steps are accepted normally. Even a small amount of smoothing
+is enough to recover a well-behaved integration, and with the default the
+adaptive and fixed-step solutions agree.
+
+Two parameters control the discretisation:
 
 * `ppa_layer_optical_depth` -- the optical-depth thickness of one layer
   (default `0.5`, i.e. one unit of leaf area index per layer at the default
   extinction coefficient `k_I = 0.5`). Smaller values give finer layering.
 * `ppa_layer_smoothing` -- the fraction of each layer over which the boundary is
-  smoothed (default `0.3`). Values approaching `0` recover a hard step (and its
-  numerical instability); `1` removes the flat region and approaches the smooth
-  `"deep-crown"`-style profile.
+  smoothed (default `0.3`). Values approaching `0` recover a hard step (and the
+  instability above); `1` removes the flat region and approaches the smooth
+  `"deep-crown"`-style profile. There is a tension here: smaller values are
+  closer to a true PPA step but stiffer (slower, per the speed table above),
+  while larger values integrate faster but blur the layer structure.
