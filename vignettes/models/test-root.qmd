@@ -967,6 +967,49 @@ The Cᵢ tolerance is still load-bearing (Phase 5 stands — don't *loosen* it);
 lever Phases 1–5 missed is converging to it *faster*. This is the first
 post-Phase-1 hot-path speed-up.
 
+## Phase 7 — inline `Interpolator::eval` into the header (2026-06-19)
+
+A portable, **bit-identical** code-move on top of Phase 6 (commit `3593929c`,
+"Inline `Interpolator::eval` into header"). The leaf root-finders call the spline
+once per iteration (`Leaf::transpiration` / `E_from_Soil_to_Root_Collar` →
+`.eval()`), but `Interpolator::eval` (and `check_active`) were defined
+out-of-line in `src/interpolator.cpp`, so the cross-TU call barred the
+already-header-inline `tk_spline(u)` from folding into those hot loops. Moving
+`eval`/`check_active` into `inst/include/plant/interpolator.h` as `inline` (the
+cold `util::stop` error paths still reach the out-of-line symbol) lets them
+inline. This was the win an LTO investigation (#470) was chasing — LTO is a
+no-op via `UseLTO` on a stock R toolchain and gave only ~3 % even when forced
+with `-flto`; the code-move captures it portably.
+
+### Cumulative timing (15-layer root-water, MPL = 5)
+
+Same-session A/B, clean `make clean && make compile` (`-g -O2`) on each side,
+`pkgload::load_all(".", recompile = FALSE)`, median of 7 timed reps. The "before"
+side is the commit's parent `3f8e17f3` — a docs-only change, so its binary is the
+**Phase 6 TOMS748 build** (the C++ diff vs HEAD is *only* `interpolator.h` /
+`interpolator.cpp`):
+
+| Build | Commit | Median | offspring_production | Speed-up |
+|---|---|---|---|---|
+| Phase 6 (TOMS748 `psi_stem_to_ci`) | `3f8e17f3` | 5.225 s | 1.651052959e-06 | — |
+| + `Interpolator::eval` inline | `3593929c` (HEAD) | 5.161 s | 1.651052959e-06 | **≈1.01× (~1.2 %)** |
+
+**Bit-identical** (offspring unchanged to 10 sig-figs; min-of-7 5.195 s → 5.115 s,
+~1.6 %). The gain is smaller here than the ~5.5 % the commit measures on
+`bench_tf24.R` (default `Environment`, MPL=10): on this hydraulics-dominated
+scenario the spline path is only ~8–10 % of runtime (Phase 5 profile:
+`tk::spline` 8.4 % + `Interpolator::eval` 1.3 %), whereas the default-`Environment`
+bench is dominated by the xylem/transpiration splines the inline most helps. The
+change removes a call barrier around the spline eval; it does not touch the
+nested-root-find structure that is ~75 % of cost here.
+
+**Note on absolute seconds — different session, not a regression of the ~11 s
+Phase 5/6 figures.** This A/B ran the same scenario+build at ~5.2 s where Phases
+5–6 measured ~11 s (a ~2× cross-session/machine-state difference). Only the
+**same-session ratio** is quoted, exactly as the build note below warns: absolute
+seconds are machine-specific, comparisons are valid only within one session built
+both-sides the same way.
+
 ## Analytical hydraulic transform (issue #468)
 
 [Issue #468](https://github.com/traitecoevo/plant/issues/468) noted that the
