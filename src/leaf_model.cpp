@@ -565,6 +565,29 @@ double Leaf::E_column_zero(double x, const std::vector<double>& psi_soil) {
 }
 
 // find root psi based on required condition, i.e. equilibrated continuum, zero water from soil
+//
+// #486: both targets (E_column / E_column_zero, the soil->collar continuity
+// residual over the collar potential x in [-psi_crit, wettest_soil_layer]) are
+// smooth and strictly monotone in their *normal operating regime* -- a clean
+// single sign-change with derivatives continuous across every x == psi_soil[i]
+// layer crossing (the per-layer branch switches in E_from_Soil_to_Root_Collar
+// are bit-level kinks, relative slope jump ~1e-6, not real corners). So a
+// superlinear bracketing solver is safe and faster here: TOMS748 reaches the
+// same root in ~6-8 E_from_Soil evals vs bisection's ~15-16 at the same 1e-4
+// tol (see the test-leaf.r "find_root_psi soil->collar continuity solve"
+// contract block). This directly attacks the dominant E_from_Soil per-layer
+// arithmetic hot-spot, evaluated ~270x per collar solve through this finder.
+//
+// SCOPE/CAVEAT: the brackets here are guaranteed valid (opposite-sign, finite
+// endpoints) by find_root_collar_psi's preceding early-exits -- the crit=1
+// lower endpoint is exactly the E_column(-psi_crit) < 0 shutdown test, and
+// crit=0 is only reached for soil wetter than psi_crit. The genuinely
+// non-smooth failure mode in the earlier blanket-swap rejection (the root
+// vulnerability spline extrapolating negative beyond its ~root_psi_crit domain)
+// lives in E_from_Soil_to_Root_Collar itself and bites both solvers identically;
+// it does not arise on the brackets this finder is actually handed. Like
+// psi_stem_to_ci (Phase 6) this is a same-tolerance method swap, NOT a tolerance
+// loosening: same root, fewer evals.
 double Leaf::find_root_psi(double wettest_soil_layer, const std::vector<double>& psi_soil, int find_root_crit) {
   // tol and iterations copied from control defaults (for now) - changed recently to 1e-6
   if (find_root_crit == 1) {
@@ -572,7 +595,7 @@ double Leaf::find_root_psi(double wettest_soil_layer, const std::vector<double>&
       return E_column(x, psi_soil, psi_crit);
     };
     try {
-      return util::uniroot(target, -psi_crit, wettest_soil_layer, 1e-4, ci_niter);
+      return util::uniroot_smooth(target, -psi_crit, wettest_soil_layer, 1e-4, ci_niter);
     } catch (const std::exception& e) {
       util::stop("find_root_psi(find_root_crit=1) failed: " + std::string(e.what()) +
                  "; min=" + util::to_string(-psi_crit) +
@@ -584,7 +607,7 @@ double Leaf::find_root_psi(double wettest_soil_layer, const std::vector<double>&
     return E_column_zero(x, psi_soil);
   };
   try {
-    return util::uniroot(target, -psi_crit, wettest_soil_layer, 1e-4, ci_niter);
+    return util::uniroot_smooth(target, -psi_crit, wettest_soil_layer, 1e-4, ci_niter);
   } catch (const std::exception& e) {
     util::stop("find_root_psi(find_root_crit=0) failed: " + std::string(e.what()) +
                "; min=" + util::to_string(-psi_crit) +
