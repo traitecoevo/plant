@@ -30,7 +30,7 @@ library(plant)
 
 ```{r}
 # Patch lifetime
-max_patch_lifetime <- 35
+max_patch_lifetime <- 70
 # Basic parameters
 p0 <- scm_base_parameters("TF24", "TF24_Env")
 p0$max_patch_lifetime <- max_patch_lifetime
@@ -65,7 +65,7 @@ x = seq(0,max_patch_lifetime,length.out = 1000)
 # run without aborting: the soil model floors moisture at a residual theta_r so
 # the retention curve psi_from_soil_moist stays finite (was traitecoevo/plant#485,
 # "set_physiology received non-finite psi_soil").
-y = 0.25*sin(2*pi*x) + 0.5
+y = 0.25*sin(2*pi*x) + 1.0
 env$extrinsic_drivers_set_variable("rainfall", x=x, y=y)
 
 ctrl <- control()
@@ -1153,13 +1153,22 @@ marginal given the transforms are already splined. Revisit only if *plant* grows
 an AD/calibration path where special-function-free curves matter more than the
 near-origin fit.
 
-## Build note: use `make`, not `load_all`
+## Build note: build once with `make`, load with `recompile = FALSE`
 
-Build the package with **`make compile`** (`pkgbuild::compile_dll(debug=FALSE)`,
-`-O3 -march=native`). `devtools::load_all()` recompiles at `-g -O2`, which is
-both **slower at runtime** and produces **slightly different floating-point
-results** (FMA/reassociation differ from `-O3 -march=native`); under the
-adaptive ODE solver those tiny differences amplify, so trajectories from a
-`load_all` build will not match a `make` build bit-for-bit even when the source
-is identical. For benchmarking/profiling, load the `make`-built `.so` without
-recompiling, e.g. `pkgload::load_all(".", recompile = FALSE)`.
+Build the package with **`make compile`** (`pkgbuild::compile_dll(debug = FALSE)`),
+then load the built binary without recompiling:
+`pkgload::load_all(".", recompile = FALSE)`.
+
+**On the flags (correcting an earlier claim here that `make` is
+`-O3 -march=native`).** It is not. Because the package sets `CXX_STD = CXX20`,
+C++ sources compile with R's **`CXX20FLAGS`** — here `-g -O2` — and *not* with
+`CXXFLAGS`, so a `~/.R/Makevars` `CXXFLAGS = -O3 -march=native` line does **not**
+apply to this package. `make compile` and a plain `devtools::load_all()`
+therefore use the *same* `-g -O2`; with identical flags and compiler the two
+builds are deterministic and match bit-for-bit.
+
+The reason to prefer `make compile` + `recompile = FALSE` is thus **not**
+different optimisation — it is **iteration speed and consistency**: you build the
+`.so` once and benchmark the exact same binary across A/B runs, instead of
+`load_all()` recompiling on every load (and risking accidental flag drift). For a
+valid speed/numerics comparison, always build *both* sides the same way.
