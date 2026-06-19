@@ -1073,6 +1073,60 @@ This is the second post-Phase-1 hot-path speed-up, and it confirms that the
 remaining lever on `E_from_Soil` is its **per-layer arithmetic** (lever 2), not
 the root-finder — both nested solvers are now superlinear.
 
+## Phase 9 — `E_from_Soil` per-layer arithmetic (2026-06-19)
+
+With both nested solvers superlinear (Phases 6, 8), `E_from_Soil_to_Root_Collar`
+is the lone dominant hot-spot: a fresh `sample` profile (idle threads excluded)
+puts it at **~31 % of compute self-time**, ahead of `tk::spline` (11.6 %), the
+`psi_stem_to_ci` TOMS748 brackets (9.9 %) and `pow` (7.4 %). It is called ~33×
+per collar solve, each looping all 15 soil layers.
+
+**Diagnosis — divisions, not guards.** The line-level self-time pointed at the
+`std::isfinite` guard lines, but the disassembly showed `isfinite` is **inlined
+as integer bit-ops** (the `R_finite` libcall stubs come from `set_physiology`,
+not the loop). The guard lines are hot because each *consumes a freshly-divided
+value*, and `fdiv` (~10–15-cycle latency on Apple Silicon) smears its stall onto
+the dependent instruction. The loop did **4 divisions per layer**
+(`f_r_average`, `r_R_H`, `/r_R`, `/area_leaf_`).
+
+**Change 1 — halve the divisions (the speed win, commit `dfc9e723`).** 4 → 2
+div/layer: fold the call-constant `1/area_leaf_` into a multiply, and merge
+`f_r_average = integral/span` + `r_R_H = r_R_H_min/f_r_average` into
+`r_R_H = r_R_H_min·span/integral` (one division; since `span>0`, the
+`f_r_average>0` guard is exactly `integral>0`).
+
+**Change 2 — precompute grav head + prune drought-era guards (cleanup, commit
+`8074c536`).** Cache `gravity_head·z_soil_mid_[i]` in `grav_head_z_` (fixed
+across the solve, used 3×/layer), and remove 6 per-layer defensive guards left
+over from the #485 drought-NaN debugging (now fixed at source by the soil
+residual-moisture floor). Two guards are **kept** because the post-loop
+`isfinite(E_up_)` net cannot replace them: the equal-branch `f_ri ≤ 0` check
+(`root_vuln_from_psi` extrapolates *negative* beyond its domain → negative-but-
+*finite* `r_R`) and the post-loop aggregate `isfinite(E_up_)` itself. The
+removed ones are provably finite on the valid path (`psi_soil` validated in
+`set_physiology`; `P_src_min ≤ P_src_max` by construction; the integral comes
+from a monotone-increasing spline so `integral > 0`, giving `r_R > 0`) and any
+stray NaN/Inf still reaches the post-loop net.
+
+**Result (clean sequential A/B, both `make compile` `-g -O2`, 15-layer MPL = 5,
+mean-1.0 rainfall):**
+
+| Build | Median | offspring_production | E_from_Soil self-time |
+|---|---|---|---|
+| Phase 8 (bisection→Brent both solvers) | 4.41 s | 1.64950903698e-06 | 30.8 % |
+| + division reduction | 4.08 s | 1.64884081609e-06 | — |
+| + grav head + guard cleanup | **4.08 s** | 1.64840041329e-06 | **25.2 %** |
+
+**≈1.08× (~7.4 %)**, E_from_Soil self-time **30.8 % → 25.2 %**. Two honest
+findings: (1) the **guard removal added ~0.1 %** — confirming the hot guard lines
+were division-latency smear, so it is a maintainability change, not a speed one;
+the division reduction is essentially the entire gain. (2) **Not bit-identical**
+(tolerance-level, like #468 / Phases 6, 8): folding `/area → ·inv_area` and
+`/f_avg → ·span/integral` shifts the last ULP, and the precomputed grav head is
+rounded before the subtraction where the old inline product was FMA-contracted
+into it. Offspring shift **−0.067 %**, smooth. **Drought gate (mean-0.5)** finite
+(2.069e-10), **no NaN**. Full suite **1943 pass / 0 fail**.
+
 ## Analytical hydraulic transform (issue #468)
 
 [Issue #468](https://github.com/traitecoevo/plant/issues/468) noted that the
