@@ -11,24 +11,32 @@ namespace plant {
 // How the crown intercepts light. Resolved once per strategy in
 // prepare_strategy() (string -> enum), never compared on the hot path.
 //
-// All three share the same per-plant competition contribution (the smooth
-// Yokozawa leaf-area profile Q); they differ in how a plant's own assimilation
-// is computed and how the patch light profile is built:
-//   DeepCrown - assimilation integrated over crown depth against the smooth
-//               light profile (the original plant behaviour).
-//   FlatTop   - identical light profile to DeepCrown, but assimilation is a
-//               single evaluation of the light at the crown centre (z = H*eta_c)
-//               rather than an integral over depth.
-//   PPA       - perfect-plasticity approximation: the patch light profile is
-//               built as a *stepped* function (cumulative leaf area floored into
-//               discrete canopy layers); assimilation then reads that stepped
-//               profile at the crown centre, as FlatTop does. See
-//               FF16_Environment::compute_environment.
-enum class ShadingModel { DeepCrown, FlatTop, PPA };
+// All share the same per-plant competition contribution (the smooth Yokozawa
+// leaf-area profile Q); they differ in how a plant's own assimilation is
+// computed and how the patch light profile is built:
+//   DeepCrown    - assimilation integrated over crown depth against the smooth
+//                  light profile: the leaf-area-weighted mean of the (concave)
+//                  photosynthetic rate. The original plant behaviour.
+//   AverageLight - integrate the *light* over crown depth to a leaf-area-
+//                  weighted mean, then a single photosynthesis evaluation on
+//                  that mean light. Partway between DeepCrown and FlatTop: it
+//                  captures the mean light exactly but ignores the curvature of
+//                  photosynthesis across the within-crown light distribution.
+//   FlatTop      - identical light profile to DeepCrown, but assimilation is a
+//                  single evaluation of the light at the crown centre
+//                  (z = H*eta_c) rather than any integral over depth.
+//   PPA          - perfect-plasticity approximation: the patch light profile is
+//                  built as a *stepped* function (cumulative leaf area floored
+//                  into discrete canopy layers); assimilation then reads that
+//                  stepped profile at the crown centre, as FlatTop does. See
+//                  FF16_Environment::compute_environment.
+enum class ShadingModel { DeepCrown, AverageLight, FlatTop, PPA };
 
 inline ShadingModel shading_model_from_string(const std::string& name) {
   if (name == "deep-crown") {
     return ShadingModel::DeepCrown;
+  } else if (name == "average-light") {
+    return ShadingModel::AverageLight;
   } else if (name == "flat-top") {
     return ShadingModel::FlatTop;
   } else if (name == "ppa") {

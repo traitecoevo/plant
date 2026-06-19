@@ -25,7 +25,7 @@ make_ind <- function(model, height = 10) {
   ind
 }
 
-models <- c("deep-crown", "flat-top", "ppa")
+models <- c("deep-crown", "average-light", "flat-top", "ppa")
 
 test_that("control defaults", {
   expect_equal(Control()$shading_model, "deep-crown")
@@ -53,7 +53,7 @@ test_that("per-plant competition is identical across models (all use smooth Q)",
   h <- 10
   zs <- seq(0, h, length.out = 21)
   ref <- sapply(zs, function(z) make_ind("deep-crown", h)$compute_competition(z))
-  for (m in c("flat-top", "ppa")) {
+  for (m in c("average-light", "flat-top", "ppa")) {
     other <- sapply(zs, function(z) make_ind(m, h)$compute_competition(z))
     expect_equal(other, ref, tolerance = 1e-12)
   }
@@ -62,22 +62,41 @@ test_that("per-plant competition is identical across models (all use smooth Q)",
   expect_equal(tail(ref, 1), 0)
 })
 
-test_that("under uniform light, deep-crown and flat-top assimilate identically", {
-  # With light constant in height, integrating photosynthesis * leaf density over
-  # crown depth (deep-crown) reduces exactly to a single evaluation at the crown
-  # centre (flat-top), because the crown leaf-density profile integrates to one.
-  for (E in c(1.0, 0.5, 0.2)) {
-    deep <- make_ind("deep-crown")
-    flat <- make_ind("flat-top")
-    for (ind in list(deep, flat)) {
-      env <- Environment("FF16")
-      env$set_fixed_environment(E, 100)
-      ind$compute_rates(env)
-    }
-    expect_equal(deep$aux("net_mass_production_dt"),
-                 flat$aux("net_mass_production_dt"),
-                 tolerance = 1e-10)
+test_that("under uniform light, the integrate-based models all agree", {
+  # With light constant in height, the leaf-area-weighted mean light equals the
+  # light everywhere, and the crown leaf-density profile integrates to one. So
+  # integrating photosynthesis over depth (deep-crown), integrating light then
+  # evaluating once (average-light), and a single evaluation at the crown centre
+  # (flat-top) all collapse to the same value.
+  prod <- function(model, E) {
+    ind <- make_ind(model)
+    env <- Environment("FF16")
+    env$set_fixed_environment(E, 100)
+    ind$compute_rates(env)
+    ind$aux("net_mass_production_dt")
   }
+  for (E in c(1.0, 0.5, 0.2)) {
+    ref <- prod("deep-crown", E)
+    expect_equal(prod("average-light", E), ref, tolerance = 1e-10)
+    expect_equal(prod("flat-top", E), ref, tolerance = 1e-10)
+  }
+})
+
+test_that("average-light assimilation >= deep-crown (Jensen, concave photosynthesis)", {
+  # Photosynthesis saturates (is concave) in light, so evaluating it at the mean
+  # light (average-light) is >= the mean of the rate over the light distribution
+  # (deep-crown). The two are equal only under uniform light.
+  p0 <- scm_base_parameters("FF16")
+  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar,
+                          birth_rate_list = list(20))
+  run_op <- function(m) {
+    ctrl <- Control(); ctrl$shading_model <- m
+    run_scm(p1, Environment("FF16"), ctrl)$offspring_production
+  }
+  op_deep <- run_op("deep-crown")
+  op_avg  <- run_op("average-light")
+  expect_true(is.finite(op_avg))
+  expect_gt(op_avg, op_deep)
 })
 
 test_that("deep-crown reproduces the baseline SCM result", {

@@ -138,6 +138,11 @@ public:
   double assimilation_deep_crown(const FF16_Environment& environment,
                                  double height, double area_leaf,
                                  double height_inverse);
+  //  - average light: integrate the light over crown depth to a leaf-area-
+  //                weighted mean, then a single photosynthesis evaluation.
+  double assimilation_average_light(const FF16_Environment& environment,
+                                    double height, double area_leaf,
+                                    double height_inverse);
   double assimilation_crown_top(const FF16_Environment& environment,
                                 double height, double area_leaf,
                                 double height_inverse);

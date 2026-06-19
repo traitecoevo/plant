@@ -16,7 +16,7 @@ photosynthesis), and how that leaf area shades everything below it (which sets
 the patch-level light profile). Both can be modelled at different levels of
 realism, trading detail for speed.
 
-The `FF16` strategy offers three shading models, selected with
+The `FF16` strategy offers four shading models, selected with
 `control$shading_model`:
 
 * **`"deep-crown"`** (the default) -- the original `plant` behaviour. Leaf area
@@ -24,6 +24,16 @@ The `FF16` strategy offers three shading models, selected with
   foliage profile, and a plant's gross assimilation is computed by *integrating*
   photosynthesis over crown depth against the light profile. The patch light
   profile is a smooth function of height.
+
+* **`"average-light"`** -- partway between deep-crown and flat-top. Rather than
+  integrating the *photosynthetic rate* over depth, it integrates the *light*
+  over depth (weighted by leaf-area density) to a single leaf-area-weighted mean
+  light, then takes one photosynthesis evaluation of that mean. It captures the
+  mean light a crown experiences exactly, but -- because photosynthesis
+  saturates with light -- evaluating the rate at the mean light overestimates
+  the depth-averaged rate (Jensen's inequality). So `"average-light"` always
+  gives at least as much assimilation as `"deep-crown"`, the two agreeing only
+  when the within-crown light is uniform.
 
 * **`"flat-top"`** -- the light profile is built exactly as for `"deep-crown"`,
   but a plant's assimilation is approximated by a *single evaluation* of the
@@ -38,7 +48,7 @@ The `FF16` strategy offers three shading models, selected with
   makes the ODE solver fail), the layer boundaries are smoothed with a
   C^1^-continuous ramp whose width is set by `control$ppa_layer_smoothing`.
 
-All three share the *same* per-plant competition contribution (the smooth
+All four share the *same* per-plant competition contribution (the smooth
 Yokozawa leaf-area profile); they differ only in how assimilation is evaluated
 and, for PPA, how the light profile is assembled. The model is resolved once
 when a strategy is prepared, so there is no per-call cost to having the choice
@@ -54,14 +64,14 @@ library(patchwork)
 # Simulating a patch under each model
 
 We grow a single `FF16` species in a patch, and run the same patch under each
-of the three shading models. Everything except `control$shading_model` is held
+of the four shading models. Everything except `control$shading_model` is held
 fixed, so any differences are due to the shading model alone.
 
 ```{r}
 params <- scm_base_parameters("FF16")
 patch  <- expand_parameters(trait_matrix(0.0825, "lma"), params)
 
-models <- c("deep-crown", "flat-top", "ppa")
+models <- c("deep-crown", "average-light", "flat-top", "ppa")
 
 run_model <- function(model) {
   ctrl <- Control()
@@ -77,7 +87,7 @@ Each run returns the full collected state (`run_scm(collect = TRUE)`): a tidy
 `species` table (one row per node per step) and the light environment
 (`env$light_availability`). We tag each run's `species` table with its shading
 model and bind them together so we can use `plant`'s tidy helpers across all
-three.
+four.
 
 ```{r}
 species_all <- dplyr::bind_rows(
@@ -95,10 +105,10 @@ k_I <- results[[1]]$p$strategies[[1]]$k_I
 The size distribution is the set of node height trajectories: each line is a
 cohort introduced at a given patch age, growing (and being shaded) over time,
 shaded by node density. `plant`'s `plot_size_distribution()` builds this
-directly from the tidy `species` table; faceting by `method` compares the three
+directly from the tidy `species` table; faceting by `method` compares the
 shading models.
 
-```{r sizedist, fig.width = 9, fig.height = 3.8}
+```{r sizedist, fig.width = 10, fig.height = 3.4}
 p_size <- plot_size_distribution(species_all) +
   facet_wrap(~method) +
   theme(legend.position = "bottom")
@@ -117,7 +127,7 @@ light profile: with Beer's law $E = \exp(-k_I\,\mathrm{LAI})$, the patch LAI is
 just $-\log E(0) / k_I$, where $E(0)$ is canopy openness at ground level. This
 reads straight off `env$light_availability` and needs no integration over the
 size distribution. (LAI is real leaf area, so the smooth recorded profile gives
-the true value for all three models -- the PPA layering only affects the light
+the true value for all four models -- the PPA layering only affects the light
 plants *experience*, not the leaf area present.)
 
 ```{r}
@@ -141,13 +151,14 @@ p_lai <- ggplot(lai_all, aes(time, lai, colour = method)) +
 p_lai
 ```
 
-`"deep-crown"` and `"flat-top"` track each other closely and settle to a steady
-LAI: under a near-uniform light profile, integrating photosynthesis over the
-crown and evaluating it once at the crown centre give similar carbon gain. The
-`"ppa"` model instead shows large, sustained oscillations -- successive waves of
-recruitment and self-thinning -- because the discrete light layers create sharp
-thresholds for cohort success (visible as the pulses of emerging cohorts in the
-size-distribution panel above).
+`"deep-crown"`, `"average-light"` and `"flat-top"` track each other closely and
+settle to a steady LAI: under a near-uniform light profile, all three ways of
+summarising within-crown light give similar carbon gain (with
+`"average-light"` and `"flat-top"` running slightly richer, since they do not
+fully resolve self-shading). The `"ppa"` model instead shows large, sustained
+oscillations -- successive waves of recruitment and self-thinning -- because the
+discrete light layers create sharp thresholds for cohort success (visible as the
+pulses of emerging cohorts in the size-distribution panel above).
 
 # Vertical light profile
 
@@ -199,7 +210,7 @@ profile_all <- dplyr::bind_rows(
 profile_all$method <- factor(profile_all$method, levels = models)
 ```
 
-```{r vprofile, fig.width = 9, fig.height = 4}
+```{r vprofile, fig.width = 10, fig.height = 3.6}
 p_profile <- ggplot(profile_all,
                     aes(lai_above, height, colour = factor(age), group = age)) +
   geom_path() +
@@ -210,14 +221,16 @@ p_profile <- ggplot(profile_all,
 p_profile
 ```
 
-`"deep-crown"` and `"flat-top"` share a smooth profile; `"ppa"` shows the
-characteristic staircase, with cumulative leaf area held constant within a layer
-and jumping at each layer boundary.
+`"deep-crown"`, `"average-light"` and `"flat-top"` share an identical smooth
+profile (they build the light environment the same way and differ only in how
+assimilation is evaluated); `"ppa"` shows the characteristic staircase, with
+cumulative leaf area held constant within a layer and jumping at each layer
+boundary.
 
 # Comparison panel
 
 ```{r panel, fig.width = 9, fig.height = 10}
-(p_lai / p_size / p_profile) + patchwork::plot_annotation(tag_levels = "A")
+(p_size / p_lai  / p_profile) + patchwork::plot_annotation(tag_levels = "A")
 ```
 
 # Speed comparison
@@ -265,10 +278,12 @@ knitr::kable(speed_table(timings_adaptive))
 
 `"flat-top"` is fastest -- it shares deep-crown's smooth light profile (so the
 same number of solver steps) but skips the per-plant crown-depth integral.
-`"ppa"` is *slower* overall despite the cheaper per-plant assimilation, because
-its near-stepped profile forces the adaptive solver to take many more steps;
-finer layers (smaller `ppa_layer_optical_depth`) or sharper boundaries (smaller
-`ppa_layer_smoothing`) make this worse.
+`"average-light"` costs about the same as `"deep-crown"`: it also integrates over
+crown depth (just the light rather than the rate), so the per-step work and the
+step count are both similar. `"ppa"` is *slower* overall despite the cheaper
+per-plant assimilation, because its near-stepped profile forces the adaptive
+solver to take many more steps; finer layers (smaller `ppa_layer_optical_depth`)
+or sharper boundaries (smaller `ppa_layer_smoothing`) make this worse.
 
 ## Fixed ODE schedule (per-step cost)
 

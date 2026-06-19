@@ -159,6 +159,27 @@ double FF16_Strategy::assimilation_deep_crown(const FF16_Environment& environmen
   return area_leaf * A;
 }
 
+// [eqn 12] Gross annual CO2 assimilation -- average-light model.
+// Integrate the *light* over crown depth, weighted by the leaf-area density q
+// (which integrates to one over the crown), to get the leaf-area-weighted mean
+// light the crown experiences, then take a single photosynthesis evaluation of
+// that mean. This sits between deep-crown (which integrates the concave
+// photosynthetic rate itself) and flat-top (a single point evaluation): it
+// captures the mean light exactly but ignores the curvature of photosynthesis
+// across the within-crown light distribution.
+double FF16_Strategy::assimilation_average_light(const FF16_Environment& environment,
+                                                 double height,
+                                                 double area_leaf,
+                                                 double height_inverse) {
+  const double canopy_top = environment.max_environment_height();
+  auto f = [&](double z) -> double {
+    return environment.get_environment_at_height(z, canopy_top) *
+      canopy_shape.q(z * height_inverse, z);
+  };
+  const double mean_light = function_integrator.integrate(f, 0.0, height);
+  return area_leaf * assimilation_leaf(mean_light);
+}
+
 // [eqn 12] Gross annual CO2 assimilation -- crown-top model (flat-top and PPA).
 // Leaf area is treated as a thin layer at the crown centre, so a single
 // evaluation of the light environment there replaces the crown-depth integral.
@@ -501,6 +522,9 @@ void FF16_Strategy::prepare_strategy() {
   switch (shading_model) {
   case ShadingModel::DeepCrown:
     assimilation_fn = &FF16_Strategy::assimilation_deep_crown;
+    break;
+  case ShadingModel::AverageLight:
+    assimilation_fn = &FF16_Strategy::assimilation_average_light;
     break;
   case ShadingModel::FlatTop:
   case ShadingModel::PPA:
