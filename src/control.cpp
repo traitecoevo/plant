@@ -14,9 +14,10 @@ Control::Control() {
   // using Gauss-Kronrod quadrature. Rules defined in qk_rules.cpp
   function_integration_rule = 21;
 
-  // Crown shading model (see Control header). Default reproduces the original
-  // Yokozawa deep-crown behaviour exactly.
-  shading_model = "deep-crown";
+  // Crown shading model (see Control header). Empty = each strategy's own
+  // default (FF16 -> deep-crown, TF24 -> average-light), so default behaviour is
+  // unchanged for both.
+  shading_model = "";
 
   // PPA canopy layer thickness in optical-depth units (see Control header).
   ppa_layer_optical_depth = 0.5;

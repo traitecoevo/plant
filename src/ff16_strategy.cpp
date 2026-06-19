@@ -517,7 +517,8 @@ void FF16_Strategy::prepare_strategy() {
   // paths to it: canopy_shape handles competition (leaf_area_above), and
   // assimilation_fn selects the matching assimilation implementation. After
   // this, neither path compares the model string per call.
-  const ShadingModel shading_model = shading_model_from_string(control.shading_model);
+  const ShadingModel shading_model =
+    shading_model_from_string(control.shading_model, ShadingModel::DeepCrown);
   canopy_shape.initialise(eta);
   switch (shading_model) {
   case ShadingModel::DeepCrown:

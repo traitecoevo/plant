@@ -28,7 +28,9 @@ make_ind <- function(model, height = 10) {
 models <- c("deep-crown", "average-light", "flat-top", "ppa")
 
 test_that("control defaults", {
-  expect_equal(Control()$shading_model, "deep-crown")
+  # "" means "use the strategy's own default" (FF16 -> deep-crown,
+  # TF24 -> average-light).
+  expect_equal(Control()$shading_model, "")
   expect_equal(Control()$ppa_layer_optical_depth, 0.5)
   expect_equal(Control()$ppa_layer_smoothing, 0.3)
 })
@@ -196,4 +198,48 @@ test_that("adaptive and fixed-schedule PPA agree (well-behaved integration)", {
   fixed <- run_scm(pf, Environment("FF16"), ctrl,
                    use_ode_times = TRUE)$offspring_production
   expect_equal(adaptive, fixed, tolerance = 1e-2)
+})
+
+# ---------------------------------------------------------------------------
+# TF24 supports deep-crown, average-light (its default) and flat-top, but not
+# PPA. The shading model controls how the (expensive) hydraulic leaf
+# optimisation is aggregated over the crown: one evaluation at the mean light
+# (average-light) or crown-centre light (flat-top), or one per crown-depth
+# quadrature point with all leaf outputs integrated (deep-crown).
+# ---------------------------------------------------------------------------
+
+tf24_ind <- function(model, height = 5) {
+  s <- TF24_Strategy()
+  if (nzchar(model)) s$control$shading_model <- model
+  ind <- TF24_Individual(s)
+  ind$set_state("height", height)
+  ind
+}
+
+tf24_prod <- function(model, E = 0.6) {
+  ind <- tf24_ind(model)
+  env <- Environment("TF24")
+  env$set_fixed_environment(E, 50)
+  ind$compute_rates(env)
+  ind$aux("net_mass_production_dt")
+}
+
+test_that("TF24 defaults to average-light and rejects PPA", {
+  # The empty Control default maps to TF24's own default, average-light, so
+  # default behaviour is unchanged.
+  expect_equal(tf24_prod(""), tf24_prod("average-light"), tolerance = 1e-12)
+
+  s <- TF24_Strategy()
+  s$control$shading_model <- "ppa"
+  expect_error(TF24_Individual(s), "not supported for the TF24 strategy")
+})
+
+test_that("TF24 shading models agree under uniform light", {
+  # With light constant in height, the crown-centre light, the leaf-area-weighted
+  # mean light, and the depth integral of the leaf optimisation all coincide.
+  for (E in c(0.4, 0.7, 1.0)) {
+    ref <- tf24_prod("average-light", E)
+    expect_equal(tf24_prod("flat-top", E), ref, tolerance = 1e-8)
+    expect_equal(tf24_prod("deep-crown", E), ref, tolerance = 1e-8)
+  }
 })

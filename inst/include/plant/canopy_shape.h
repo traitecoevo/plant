@@ -45,6 +45,16 @@ inline ShadingModel shading_model_from_string(const std::string& name) {
   throw std::invalid_argument("Unknown shading model: " + name);
 }
 
+// As above, but an empty string selects the supplied per-strategy default
+// (the shared Control default is "" so each strategy picks its own).
+inline ShadingModel shading_model_from_string(const std::string& name,
+                                              ShadingModel fallback) {
+  if (name.empty()) {
+    return fallback;
+  }
+  return shading_model_from_string(name);
+}
+
 // Canopy profile used by the FF16/TF24/K93 strategies. The equations follow
 // the Yokozawa (1995) foliage-profile model, written in terms of the
 // height-normalised coordinate u = z / H:

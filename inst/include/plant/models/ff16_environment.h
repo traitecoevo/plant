@@ -48,7 +48,10 @@ public:
   void set_shading_model(const std::string& model,
                          double layer_optical_depth_,
                          double layer_smoothing_) override {
-    light_profile_stepped = (shading_model_from_string(model) == ShadingModel::PPA);
+    // Only PPA builds a stepped profile; every other model (including the ""
+    // default and average-light) keeps the smooth profile. Compare the string
+    // directly so the "" default does not hit the throwing parser.
+    light_profile_stepped = (model == "ppa");
     layer_optical_depth = layer_optical_depth_;
     layer_smoothing = layer_smoothing_;
   }

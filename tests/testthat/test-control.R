@@ -16,7 +16,7 @@ test_that("Defaults", {
     ode_tol_rel = 1e-4,
 
     function_integration_rule = 21, # size_t so not int
-    shading_model = "deep-crown",
+    shading_model = "", # empty = each strategy's own default
     ppa_layer_optical_depth = 0.5,
     ppa_layer_smoothing = 0.3,
 

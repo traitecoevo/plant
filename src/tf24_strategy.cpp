@@ -325,15 +325,9 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
 
 
 
-  // integrate over x from zero to `height`, with fixed canopy openness
-  auto f = [&](double x) -> double {
-    return compute_average_light_environment(x, height, environment);
-  };
-
-  double average_light_environment = function_integrator.integrate(f, 0.0, height);
-
-  // calculate average radiation by multipling average canopy openness by PPFD and accounting for self-shading k_I.
-  const double average_radiation = k_I * average_light_environment * environment.get_PPFD();
+  // The radiation that drives the leaf optimisation depends on the shading
+  // model and is computed below (just before the optimisation), once the
+  // depth-independent inputs are ready.
 
   // psi_soil (-MPa), computed once per soil state and cached in environment.
   const std::vector<double>& psi_soil = environment.get_soil_water_potential_state();
@@ -399,14 +393,78 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   leaf.z_soil_mid_ = environment.get_soil_mid_depths();
   leaf.use_precomputed_z_soil_mid_ = true;
 
-  // update physiology instead of set_physiology
-  // set vs update
+  // Optimise the leaf at a given absorbed radiation: rebuilds physiology and
+  // solves the root-collar water potential, leaving the leaf.* outputs
+  // (profit_, transpiration_, soil_consumption_, opt_psi_stem_, ...) set. Only
+  // the radiation argument varies between calls; every other input is
+  // depth-independent and already computed above.
+  auto optimise_at = [&](double radiation) {
+    leaf.set_physiology(area_leaf_, mass_root_prop_, rho, a_bio, radiation, psi_soil, soil_depths_, leaf_specific_conductance_max, environment.get_atm_vpd(), environment.get_ca(), sapwood_volume_per_leaf_area, environment.get_leaf_temp(), environment.get_atm_o2_kpa(), environment.get_atm_kpa());
+    leaf.find_root_collar_psi();
+  };
 
-  leaf.set_physiology(area_leaf_, mass_root_prop_, rho, a_bio, average_radiation, psi_soil, soil_depths_, leaf_specific_conductance_max, environment.get_atm_vpd(), environment.get_ca(), sapwood_volume_per_leaf_area, environment.get_leaf_temp(), environment.get_atm_o2_kpa(), environment.get_atm_kpa());
+  // Convert canopy openness (0-1) into absorbed radiation: PPFD attenuated by
+  // the self-shading coefficient k_I. The light floor (1e-4) matches
+  // compute_average_light_environment().
+  const double PPFD = environment.get_PPFD();
+  auto radiation_at = [&](double light) {
+    return k_I * std::max(light, 0.0001) * PPFD;
+  };
 
-  // optimise psi_stem, setting opt_psi_stem_, profit_, hydraulic_cost_, assim_colimited_ etc.
-  //leaf.optimise_psi_stem_TF();
-  leaf.find_root_collar_psi();
+  // Aggregate the leaf submodel over the crown according to the shading model.
+  // The expensive hydraulic optimisation is the unit of work here, so the model
+  // choice is about how many times it runs and on what light:
+  //  - flat-top:      one optimisation at the crown-centre light.
+  //  - average-light: one optimisation at the leaf-area-weighted mean light
+  //                   (TF24's established default).
+  //  - deep-crown:    one optimisation per crown-depth quadrature point, with
+  //                   every leaf output integrated to a leaf-area-weighted mean.
+  if (shading_model_ == ShadingModel::FlatTop) {
+    optimise_at(radiation_at(environment.get_environment_at_height(height * eta_c)));
+  } else if (shading_model_ == ShadingModel::AverageLight) {
+    // Leaf-area-weighted mean canopy openness = integral of (light * q) over the
+    // crown (q integrates to one). radiation_at then applies k_I * PPFD, exactly
+    // reproducing TF24's established average_radiation.
+    auto f = [&](double x) -> double {
+      return compute_average_light_environment(x, height, environment);
+    };
+    optimise_at(radiation_at(function_integrator.integrate(f, 0.0, height)));
+  } else { // DeepCrown
+    const std::vector<double> nodes =
+      function_integrator.integrate_vector_x(0.0, height);
+    const size_t nn = nodes.size();
+    std::vector<double> profit_y(nn), trans_y(nn), eup_y(nn), psi_y(nn),
+      root_psi_y(nn), gco2_y(nn);
+    std::vector<std::vector<double>> soil_y(
+      soil_number_of_depths_, std::vector<double>(nn));
+    for (size_t i = 0; i < nn; ++i) {
+      const double qi = q(nodes[i], height);
+      optimise_at(radiation_at(environment.get_environment_at_height(nodes[i])));
+      profit_y[i]   = leaf.profit_ * qi;
+      trans_y[i]    = leaf.transpiration_ * qi;
+      eup_y[i]      = leaf.E_up_ * qi;
+      psi_y[i]      = leaf.opt_psi_stem_ * qi;
+      root_psi_y[i] = leaf.root_collar_psi_ * qi;
+      gco2_y[i]     = leaf.stom_cond_CO2_ * qi;
+      for (int a = 0; a < soil_number_of_depths_; ++a) {
+        soil_y[a][i] = leaf.soil_consumption_[a] * qi;
+      }
+    }
+    // Integrate each leaf output to its leaf-area-weighted crown mean (q
+    // integrates to one over the crown). soil_consumption_ feeds the patch
+    // water balance, so it must be the depth-integrated total; the rest are
+    // diagnostics reported through compute_rates.
+    leaf.profit_          = function_integrator.integrate_vector(profit_y, 0.0, height);
+    leaf.transpiration_   = function_integrator.integrate_vector(trans_y, 0.0, height);
+    leaf.E_up_            = function_integrator.integrate_vector(eup_y, 0.0, height);
+    leaf.opt_psi_stem_    = function_integrator.integrate_vector(psi_y, 0.0, height);
+    leaf.root_collar_psi_ = function_integrator.integrate_vector(root_psi_y, 0.0, height);
+    leaf.stom_cond_CO2_   = function_integrator.integrate_vector(gco2_y, 0.0, height);
+    for (int a = 0; a < soil_number_of_depths_; ++a) {
+      leaf.soil_consumption_[a] =
+        function_integrator.integrate_vector(soil_y[a], 0.0, height);
+    }
+  }
 
 
   //TODO: one point constant ratio and integral width for daylength
@@ -664,6 +722,16 @@ void TF24_Strategy::prepare_strategy() {
   function_integrator = quadrature::QK(
       // Gauss-Kronrod quadrature integeration rule (see qkrules)
       control.function_integration_rule);
+
+  // Resolve the crown shading model once. The empty Control default maps to
+  // TF24's own default (average-light, its established behaviour); PPA is an
+  // FF16-only stepped-light model and is rejected here.
+  shading_model_ =
+    shading_model_from_string(control.shading_model, ShadingModel::AverageLight);
+  if (shading_model_ == ShadingModel::PPA) {
+    throw std::invalid_argument(
+      "shading_model 'ppa' is not supported for the TF24 strategy");
+  }
 
   // NOTE: this pre-computes something to save a very small amount of time
   eta_c = 1 - 2/(1 + eta) + 1/(1 + 2*eta);

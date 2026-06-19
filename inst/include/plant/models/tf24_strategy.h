@@ -7,6 +7,7 @@
 #include <plant/models/tf24_environment.h>
 #include <plant/qag.h>
 #include <plant/leaf_model.h>
+#include <plant/canopy_shape.h> // ShadingModel
 
 namespace plant {
 
@@ -218,6 +219,11 @@ public:
 
   // Set constants within TF24_Strategy
   void prepare_strategy();
+
+  // Crown shading model, resolved once from control.shading_model in
+  // prepare_strategy(). TF24 supports deep-crown, average-light (its default)
+  // and flat-top; PPA is not available for TF24.
+  ShadingModel shading_model_ = ShadingModel::AverageLight;
 
   // * Core traits
   double lma       = 0.1978791;  // Leaf mass per area [kg / m2]
