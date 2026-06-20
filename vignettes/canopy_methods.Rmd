@@ -40,8 +40,10 @@ for another.
 
 ## The models
 
-The `FF16` strategy offers four shading models, selected with
-`control$shading_model`:
+The `FF16` strategy offers six shading models, selected with
+`control$shading_model`. Four of them share the *same* per-plant competition --
+the smooth Yokozawa leaf-area profile -- and differ only in how a plant's own
+assimilation is computed (and, for PPA, how the light profile is assembled):
 
 * **`"deep-crown"`** (the default) -- the original `plant` behaviour. Leaf area
   is distributed continuously through the crown following the Yokozawa (1995)
@@ -49,11 +51,16 @@ The `FF16` strategy offers four shading models, selected with
   photosynthesis over crown depth against the light profile. The patch light
   profile is a smooth function of height.
 
+* **`"flat-top"`** -- the light profile is built exactly as for `"deep-crown"`,
+  but a plant's assimilation is approximated by a *single evaluation* of the
+  light at its crown centre rather than an integral over depth. This skips the
+  per-plant quadrature, so it is faster, and removes within-crown self-shading.
+
 * **`"average-light"`** -- partway between deep-crown and flat-top. Rather than
   integrating the *photosynthetic rate* over depth, it integrates the *light*
   over depth (weighted by leaf-area density) to a single leaf-area-weighted mean
   light, then takes one photosynthesis evaluation of that mean. It therefore
-  still feels the within-crown light environment -- and how that environment
+  still feels the within-crown change in light environment -- and how that environment
   shifts as the canopy develops -- but collapses the expensive photosynthesis
   calculation to a *single* call per plant rather than one per crown depth. For
   FF16 that saving is modest (its leaf photosynthesis is a cheap saturating
@@ -66,30 +73,33 @@ The `FF16` strategy offers four shading models, selected with
   assimilation as `"deep-crown"`, the two agreeing only when the within-crown
   light is uniform.
 
-* **`"flat-top"`** -- the light profile is built exactly as for `"deep-crown"`,
-  but a plant's assimilation is approximated by a *single evaluation* of the
-  light at its crown centre rather than an integral over depth. This skips the
-  per-plant quadrature, so it is faster, and removes within-crown self-shading.
-
-* **`"ppa"`** -- a perfect-plasticity-style approximation. The patch light
-  profile is discretised into discrete canopy *layers*: light steps down by a
-  fixed amount of optical depth (`control$ppa_layer_optical_depth`) per layer.
+* **`"ppa"`** -- the perfect-plasticity approximation, the scheme that underlies
+  large models such as FATES. The patch light profile is discretised into
+  discrete canopy *layers*: light steps down by a fixed amount of optical depth
+  (`control$ppa_layer_optical_depth`) per layer.
   Assimilation is evaluated at the crown centre as in `"flat-top"`, but now
   reads this stepped profile. Because a hard step is not differentiable (and
   makes the ODE solver fail), the layer boundaries are smoothed with a
   C^1^-continuous ramp whose width is set by `control$ppa_layer_smoothing`.
 
-All four share the *same* per-plant competition contribution (the smooth
-Yokozawa leaf-area profile); they differ only in how assimilation is evaluated
-and, for PPA, how the light profile is assembled. The model is resolved once
-when a strategy is prepared, so there is no per-call cost to having the choice
-available.
+Two further models instead change the *competition* itself -- the shade a plant
+casts -- collapsing its leaf area towards a thin crown-centre layer rather than
+spreading it through the crown. This discrete-layer view is close to how many
+large vegetation models (e.g. LPJ-GUESS) represent canopy competition, so it is
+worth taking seriously rather than dismissing:
 
-Two further FF16 variants, `"flat-top-box"` and `"flat-top-soft-box"`,
-deliberately get the *competition* profile wrong; we introduce them in the
-[mutant-fitness](#mutant-fitness) section to show why that matters. The `TF24`
-strategy supports `"deep-crown"`, `"average-light"` (its default) and
-`"flat-top"`, but not the PPA or box variants.
+* **`"flat-top-box"`** -- the shade cast is a hard *step*: full below the crown
+  centre, none above. Summed over cohorts this makes the patch light profile
+  discontinuous, and in `plant` the stand then cannot be solved at all (see
+  [mutant fitness](#mutant-fitness)).
+* **`"flat-top-soft-box"`** -- the same box competition with the step smoothed to
+  a continuous drop, so the light environment can be built. It runs, but the
+  mis-shaped shade biases its predictions.
+
+The model is resolved once when a strategy is prepared, so there is no per-call
+cost to having the choice available. The `TF24` strategy supports `"deep-crown"`,
+`"average-light"` (its default) and `"flat-top"`, but not the PPA or box
+variants.
 
 ## How we evaluate a shading model
 
@@ -108,9 +118,10 @@ Each rung asks more of the light profile than the last:
 
 The recurring finding is that the cheap models are often fine for stand dynamics
 and acceptable for equilibrium, but invasion fitness is unforgiving: it exposes
-exactly which simplifications break -- PPA's stepped profile, and a naive "box"
-competition profile -- and shows that the key requirement is **continuity of the
-shade each plant casts as a function of height**.
+which simplifications break -- PPA's stepped profile, and the discrete-layer
+("box") competition that large vegetation models rely on -- and shows that the
+key requirement is **continuity of the shade each plant casts as a function of
+height**.
 
 ```{r, message = FALSE}
 library(plant)
@@ -121,9 +132,10 @@ library(patchwork)
 
 # Simulating a patch under each model
 
-We grow a single `FF16` species in a patch, and run the same patch under each
-of the four shading models. Everything except `control$shading_model` is held
-fixed, so any differences are due to the shading model alone.
+We grow a single `FF16` species in a patch, and run the same patch under each of
+the four smooth-competition models (the box variants are revisited later, once
+we reach the question they bear on). Everything except `control$shading_model`
+is held fixed, so any differences are due to the shading model alone.
 
 ```{r}
 params <- scm_base_parameters("FF16")
@@ -291,20 +303,31 @@ assimilation is evaluated); `"ppa"` shows the characteristic staircase, with
 cumulative leaf area held constant within a layer and jumping at each layer
 boundary.
 
-## Comparison panel
-
-```{r panel, fig.width = 9, fig.height = 10}
-(p_size / p_lai  / p_profile) + patchwork::plot_annotation(tag_levels = "A")
-```
-
 # Computational cost
 
-Two effects compete. Per ODE step, `"deep-crown"` is the most expensive because
-it performs a Gauss-Kronrod quadrature over crown depth for every individual,
-whereas `"flat-top"` and `"ppa"` replace this with a single light evaluation. But
-the *number* of steps also matters: PPA's layered light profile is much stiffer,
-so the adaptive solver takes many more, smaller steps. Which effect dominates
-depends on how the system is stepped.
+Speed is the whole reason the simpler models exist. A single patch is cheap, but
+`plant` is usually run thousands of times over -- sweeping traits, fitting to
+data, or computing the fitness landscapes below -- so the per-run cost compounds,
+and shaving the most expensive inner calculation is worthwhile. This is the
+payoff side of the realism-versus-speed trade.
+
+How much you save depends on two competing effects, and on a feature that is
+relatively unusual in vegetation models: `plant` integrates the patch with an
+**adaptive** ODE solver, which chooses its own step sizes (large where the
+dynamics are smooth, small only where they are not) to hit a requested accuracy
+cheaply. So the cost of a model is set both by the work *per step* and by the
+*number of steps* the solver decides to take:
+
+* **Per step**, `"deep-crown"` is the most expensive -- it performs a
+  Gauss-Kronrod quadrature over crown depth for every individual -- while
+  `"flat-top"` and `"ppa"` replace that with a single light evaluation.
+* **Number of steps**: a model whose light profile is smooth lets the solver
+  stride; PPA's near-stepped profile is much stiffer, forcing many more, smaller
+  steps.
+
+Which effect dominates depends on how the system is stepped, so we report both
+the adaptive cost (what you actually pay) and the per-step cost on a fixed
+schedule.
 
 ```{r speed-helper}
 # Median wall-clock over a few repeats. `times = NULL` uses the adaptive solver;
@@ -333,7 +356,12 @@ speed_table <- function(timings) {
 
 ## Adaptive solver (real-world cost)
 
-This is how the models run by default, and is the cost you actually pay.
+This is how `plant` runs by default, and the cost you actually pay. The adaptive
+solver is part of what makes `plant` efficient: it spends steps only where the
+dynamics demand them. But it also means a model's cost is not just its per-step
+work -- a model that makes the dynamics harder to integrate pays for it in extra
+steps. (Most large vegetation models instead march on a *fixed* timestep, where
+this consideration simply does not arise; we return to that below.)
 
 ```{r speed-adaptive}
 timings_adaptive <- vapply(models, time_model, numeric(1))
@@ -365,11 +393,14 @@ knitr::kable(speed_table(timings_fixed))
 
 So PPA is not inherently slow -- on a fixed schedule it is *faster* than
 `"deep-crown"`. Its apparent cost under the adaptive solver comes entirely from
-the extra steps the stiff profile demands. Where a fixed schedule is acceptable
-(or where the layering is coarse and lightly smoothed), PPA can be the cheaper
-choice. `"deep-crown"` nonetheless remains the default: it is the most faithful
-representation of within-crown light capture and carries no speed penalty
-relative to earlier versions of `plant`.
+the extra steps the stiff profile demands. This is also why discrete-layer
+schemes are unproblematic in the large models that use them: those models march
+on a fixed timestep, so a stepped, stiff light profile costs nothing extra and
+the difficulty never surfaces. It is `plant`'s adaptive solver that makes the
+stiffness visible -- and, as the next section shows, a *hard* step visible as
+outright failure. `"deep-crown"` nonetheless remains the default here: it is the
+most faithful representation of within-crown light capture and carries no speed
+penalty relative to earlier versions of `plant`.
 
 # Why PPA needs smoothing
 
@@ -597,13 +628,18 @@ still computes the shade a plant *casts* from the full smooth Yokozawa crown.
 The continuity that fitness needs comes from that competition profile, not from
 the assimilation calculation.
 
-To show this is what matters, two further variants keep flat-top's crown-centre
-assimilation but get the *competition* wrong, collapsing each plant's leaf area
-towards the thin crown-centre layer instead of spreading it through the crown:
+This is exactly what the box models change, and -- as noted earlier -- the way
+they change it mirrors the discrete-layer competition of large vegetation
+models. They keep flat-top's crown-centre assimilation but collapse the shade a
+plant casts towards that same thin layer:
 
 * `"flat-top-box"` -- a hard step: full shade below the crown centre, none above.
 * `"flat-top-soft-box"` -- the same idea but smoothed into a continuous drop, so
   the light environment can still be built.
+
+So the question is not whether these are crude -- they are the workhorse
+representation in many large models -- but whether that crudeness is safe for the
+evolutionary question we are now asking.
 
 ```{r compbox, fig.width = 7, fig.height = 3.6}
 comp_profile <- function(model, height = 10) {
@@ -672,3 +708,23 @@ both dynamics and fitness, but the shade each plant *casts* as a function of
 height must be both continuous (or the light environment is ill-defined, as with
 the hard box) and the right shape (or evolutionary predictions are biased, as
 with the soft box).
+
+None of this means the large models are wrong to use discrete layers: for
+stand-level simulation on a fixed timestep, the representation is fast, robust,
+and entirely adequate. The caution is specific to the question `plant` is built
+for. Resolving how traits evolve needs invasion fitness, invasion fitness needs
+continuous responses to size, and that is exactly what a layered competition
+profile does not provide.
+
+This is worth flagging as trait-based DGVMs (FATES and the like) are
+increasingly pushed towards eco-evolutionary questions -- many strategies
+competing, and selection on their traits. For strategies that differ *markedly*
+the discretisation is harmless: the fitness differences between them dwarf the
+layer-boundary noise, so coexistence or exclusion of distinct types is captured
+fine. The trouble is confined to the opposite, and most delicate, case --
+discriminating mutants that differ only slightly. Two near-identical strategies
+can fall on opposite sides of a layer boundary and receive incomparable
+fitnesses, so the selection gradient between them -- the very quantity that
+decides which way a trait evolves -- becomes erratic. A model can give
+sensible-looking community simulations, and resolve clearly distinct strategies,
+yet still be unable to say which of two similar strategies wins.
