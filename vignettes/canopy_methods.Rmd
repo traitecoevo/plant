@@ -396,23 +396,52 @@ gradients and evolutionary endpoints ill-defined.
 
 We compute the invasion fitness of mutants spanning a range of leaf mass per
 area (LMA) against a single resident, at fine trait resolution to expose any
-roughness. The resident is run once with `save_RK45_cache = TRUE` so its
-competitive light environment is cached; mutants are then introduced into that
-fixed landscape with `run_mutant()`, and fitness is `log(R0)`, the log net
-reproductive output.
+roughness. The resident's seed rain matters: it sets how dense the stand is and
+hence the competitive light environment a mutant must grow through. We run
+**two** comparisons:
 
-```{r fitness, fig.width = 10, fig.height = 3.4}
+1. **Same seed rain** -- every model is given the same resident seed input, so
+   any difference in the fitness landscape is due purely to the shading model.
+2. **Each at its own equilibrium** -- each model's resident is set to its
+   *demographic equilibrium*, the seed rain at which it exactly replaces itself
+   (R0 = 1), so each casts a realistic, self-consistent stand.
+
+We find each equilibrium by iterating the patch's seed rain back on itself,
+`birth_rate <- run_scm(...)$offspring_production`, which converges in about five
+runs. The equilibria differ markedly by model -- PPA's brighter layered light
+supports a far higher seed rain:
+
+```{r equil-table}
+equilibrium_birth_rate <- c(
+  "deep-crown"        = 1.662,
+  "average-light"     = 2.178,
+  "flat-top"          = 2.185,
+  "ppa"               = 18.835,
+  "flat-top-soft-box" = 3.101
+)
+knitr::kable(data.frame(
+  model = names(equilibrium_birth_rate),
+  `equilibrium seed rain` = unname(equilibrium_birth_rate),
+  check.names = FALSE
+))
+```
+
+The resident is run once with `save_RK45_cache = TRUE` to cache its light
+environment, mutants are introduced into that fixed landscape with
+`run_mutant()`, and fitness is `log(R0)`.
+
+```{r fitness, fig.width = 10, fig.height = 3.6}
 p_fit <- scm_base_parameters("FF16")
 p_fit$max_patch_lifetime <- 50
 lma_resident <- 0.0825
 mutant_lma   <- seq(0.07, 0.11, length.out = 60)
 
-fitness_landscape <- function(model) {
+fitness_landscape <- function(model, birth_rate) {
   ctrl <- Control()
   ctrl$shading_model <- model
   ctrl$save_RK45_cache <- TRUE                       # required by run_mutant()
   resident <- expand_parameters(trait_matrix(lma_resident, "lma"), p_fit,
-                                birth_rate_list = 1)
+                                birth_rate_list = birth_rate)
   scm <- run_scm(resident, ctrl = ctrl)              # caches the light environment
   mutants <- expand_parameters(trait_matrix(mutant_lma, "lma"), resident,
                                birth_rate_list = rep(1, length(mutant_lma)))
@@ -422,35 +451,54 @@ fitness_landscape <- function(model) {
              fitness = log(tail(r0, length(mutant_lma))))
 }
 
-fit_all <- dplyr::bind_rows(lapply(models, fitness_landscape))
-fit_all$method <- factor(fit_all$method, levels = models)
+# (1) all models at a common seed rain (the deep-crown equilibrium), and
+# (2) each model at its own equilibrium seed rain.
+common_rain <- equilibrium_birth_rate[["deep-crown"]]
+fit_same  <- dplyr::bind_rows(lapply(models, fitness_landscape, birth_rate = common_rain))
+fit_equil <- dplyr::bind_rows(lapply(models, function(m)
+  fitness_landscape(m, equilibrium_birth_rate[[m]])))
 
-ggplot(fit_all, aes(lma, fitness)) +
-  geom_line() +
-  geom_point(size = 0.5) +
+fit_two <- dplyr::bind_rows(
+  dplyr::mutate(fit_same,  seeding = "same seed rain"),
+  dplyr::mutate(fit_equil, seeding = "each at its own equilibrium")
+)
+fit_two$method  <- factor(fit_two$method, levels = models)
+fit_two$seeding <- factor(fit_two$seeding,
+                          levels = c("same seed rain", "each at its own equilibrium"))
+
+ggplot(fit_two, aes(lma, fitness, colour = seeding)) +
+  geom_line(linewidth = 0.8) +
   facet_wrap(~method, nrow = 1) +
-  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey60") +
-  labs(x = "Mutant LMA", y = "Invasion fitness, log(R0)") +
-  theme_classic()
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey70") +
+  labs(x = "Mutant LMA", y = "Invasion fitness, log(R0)", colour = NULL) +
+  theme_classic() +
+  theme(legend.position = "bottom")
 ```
 
-`"deep-crown"`, `"average-light"` and `"flat-top"` all yield smooth fitness
-landscapes, and the two cheap approximations stay close to the deep-crown
-reference -- so for fitness, as for stand dynamics, they are perfectly usable.
-`"ppa"` is the exception: its landscape is jagged, with a sharp discontinuity
-where a small change in the mutant trait flips which canopy layer the mutant
-ends up in.
+Two things stand out. First, **`"deep-crown"`, `"average-light"` and
+`"flat-top"` yield smooth landscapes under both seedings, while `"ppa"` is
+jagged** -- and at its own (much denser) equilibrium, wildly so, with a
+non-monotonic dip where small trait changes flip which layer the mutant ends in.
+For the deep-crown panel the two lines coincide, because "same seed rain" *is*
+its own equilibrium -- a useful check.
 
-The lesson is about *continuity of the light profile*, not the cost of the
-assimilation calculation. Invasion fitness needs the shading a plant experiences
-to vary continuously with its size; deep-crown, average-light and flat-top all
-build a continuous (smooth) light profile and differ only in how they summarise
-assimilation, so all three give smooth fitness. PPA breaks this: its light
-profile is a discretised step function of height, so as a mutant grows its light
--- and hence its fitness -- jumps. The layer smoothing (`ppa_layer_smoothing`)
-that makes PPA's *dynamics* solvable softens but does not remove this: a mutant
-still crosses layer boundaries as it grows, so PPA remains the wrong tool for
-evolutionary analysis even when it is fine for a single stand simulation.
+Second, **the seeding assumption matters**: because the models reach different
+equilibrium stands (the table above), their fitness landscapes diverge more when
+each sits at its own equilibrium than when all are seeded alike. So a cheap
+shading model can mislead in two compounding ways -- a different fitness gradient
+in a given stand, *and* a different equilibrium stand to begin with.
+
+The deeper lesson is about *continuity of the light profile*, not the cost of
+the assimilation calculation. Invasion fitness needs the shading a plant
+experiences to vary continuously with its size; deep-crown, average-light and
+flat-top all build a continuous (smooth) light profile and differ only in how
+they summarise assimilation, so all three give smooth fitness. PPA breaks this:
+its light profile is a discretised step function of height, so as a mutant grows
+its light -- and hence its fitness -- jumps. The layer smoothing
+(`ppa_layer_smoothing`) that makes PPA's *dynamics* solvable softens but does not
+remove this: a mutant still crosses layer boundaries as it grows, so PPA remains
+the wrong tool for evolutionary analysis even when it is fine for a single stand
+simulation.
 
 ## Getting the competition profile right
 
@@ -516,15 +564,10 @@ landscape is biased relative to the deep-crown reference. The *correct* flat-top
 tracks deep-crown; the soft box does not.
 
 ```{r softbox-fitness, fig.width = 7, fig.height = 4}
-fit_compare <- dplyr::bind_rows(
-  fitness_landscape("deep-crown"),
-  fitness_landscape("flat-top"),
-  fitness_landscape("flat-top-soft-box")
-)
-fit_compare$method <- factor(
-  fit_compare$method,
-  levels = c("deep-crown", "flat-top", "flat-top-soft-box")
-)
+box_models <- c("deep-crown", "flat-top", "flat-top-soft-box")
+fit_compare <- dplyr::bind_rows(lapply(box_models, function(m)
+  fitness_landscape(m, equilibrium_birth_rate[[m]])))  # each at its own equilibrium
+fit_compare$method <- factor(fit_compare$method, levels = box_models)
 
 ggplot(fit_compare, aes(lma, fitness, colour = method)) +
   geom_line(linewidth = 1) +
