@@ -304,6 +304,7 @@ template <> inline SEXP wrap(const plant::Control& x) {
   ret["ode_tol_abs"] = Rcpp::wrap(x.ode_tol_abs);
   ret["ode_a_y"] = Rcpp::wrap(x.ode_a_y);
   ret["ode_a_dydt"] = Rcpp::wrap(x.ode_a_dydt);
+  ret["fixed_time_step"] = Rcpp::wrap(x.fixed_time_step);
   ret["schedule_nsteps"] = Rcpp::wrap(x.schedule_nsteps);
   ret["schedule_eps"] = Rcpp::wrap(x.schedule_eps);
   ret["schedule_verbose"] = Rcpp::wrap(x.schedule_verbose);
@@ -352,6 +353,8 @@ template <> inline plant::Control as(SEXP x) {
   ret.ode_a_y = Rcpp::as<double >(xl["ode_a_y"]);
   // ret.ode_a_dydt = Rcpp::as<decltype(retode_a_dydt) >(xl["ode_a_dydt"]);
   ret.ode_a_dydt = Rcpp::as<double >(xl["ode_a_dydt"]);
+  // ret.fixed_time_step = Rcpp::as<decltype(retfixed_time_step) >(xl["fixed_time_step"]);
+  ret.fixed_time_step = Rcpp::as<double >(xl["fixed_time_step"]);
   // ret.schedule_nsteps = Rcpp::as<decltype(retschedule_nsteps) >(xl["schedule_nsteps"]);
   ret.schedule_nsteps = Rcpp::as<size_t >(xl["schedule_nsteps"]);
   // ret.schedule_eps = Rcpp::as<decltype(retschedule_eps) >(xl["schedule_eps"]);

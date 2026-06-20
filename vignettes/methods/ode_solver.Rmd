@@ -221,6 +221,26 @@ result2$ode_times
 ```
 
 
+## Fixing the step sizes (option 3): forward Euler
+
+The options above still drive the full adaptive RK45 machinery at each step. For
+operational-realism comparisons with daily-step DGVMs, `plant` can instead use
+plain **forward (explicit) Euler** on a uniform grid — one derivative evaluation
+per step, no error estimate — by setting `fixed_time_step` (units: years) on the
+`Control`:
+
+```{r, eval = FALSE}
+ctrl <- Control(fixed_time_step = 1 / 365)  # daily step; 0 = adaptive (default)
+run_scm(p, ctrl = ctrl)
+```
+
+This is not the way to get an accurate or cheap solution: forward Euler is
+first-order, and matching the adaptive solver's accuracy needs far more
+evaluations. The [Adaptive vs fixed-step integration](time_stepping.html) article
+works this trade-off through with a work–precision diagram. Note that
+`fixed_time_step` is incompatible with the mutant-fitness replay path
+(`save_RK45_cache` / `use_ode_times`) and errors clearly if combined.
+
 ## Future changes
 
 Would it help to have option to pass in ode_times, use if supplied?

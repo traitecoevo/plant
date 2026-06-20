@@ -40,6 +40,15 @@ struct Control {
   double ode_a_y;
   double ode_a_dydt;
 
+  // Fixed-step ODE integration (forward Euler).  Units: years.  When 0 (the
+  // default) the SCM integrates residents with the adaptive, error-controlled
+  // Cash-Karp RKCK solver.  When > 0 it instead uses plain forward Euler on a
+  // uniform grid of this spacing (e.g. 1/365 for a daily step), the way
+  // industry-standard DGVMs are run.  Note: forward Euler is incompatible with
+  // the mutant-fitness replay path and with save_RK45_cache (the RK sub-step
+  // cache has no Euler analogue); the SCM errors clearly if combined.
+  double fixed_time_step;
+
   size_t schedule_nsteps;
   double schedule_eps;
   bool   schedule_verbose;

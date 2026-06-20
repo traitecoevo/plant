@@ -236,6 +236,7 @@ OdeRunner:
   methods:
     advance_adaptive: {return_type: void, args: [time: double]}
     advance_fixed: {return_type: void, args: [time: "std::vector<double>"]}
+    advance_euler: {return_type: void, args: [time: "std::vector<double>"]}
     step: {return_type: void}
     step_to: {return_type: void, args: [time: double]}
     set_state: {return_type: void, args: [y: "plant::ode::state_type", time: double]}
@@ -318,6 +319,7 @@ Control:
     - ode_tol_abs: double
     - ode_a_y: double
     - ode_a_dydt: double
+    - fixed_time_step: double
     - schedule_nsteps: size_t
     - schedule_eps: double
     - schedule_verbose: bool

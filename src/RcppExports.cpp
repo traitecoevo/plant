@@ -1700,6 +1700,17 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// OdeRunner___Lorenz__advance_euler
+void OdeRunner___Lorenz__advance_euler(plant::RcppR6::RcppR6<plant::ode::Runner<plant::ode::test::Lorenz> > obj_, std::vector<double> time);
+RcppExport SEXP _plant_OdeRunner___Lorenz__advance_euler(SEXP obj_SEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::Runner<plant::ode::test::Lorenz> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type time(timeSEXP);
+    OdeRunner___Lorenz__advance_euler(obj_, time);
+    return R_NilValue;
+END_RCPP
+}
 // OdeRunner___Lorenz__step
 void OdeRunner___Lorenz__step(plant::RcppR6::RcppR6<plant::ode::Runner<plant::ode::test::Lorenz> > obj_);
 RcppExport SEXP _plant_OdeRunner___Lorenz__step(SEXP obj_SEXP) {
@@ -1818,6 +1829,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::Runner<plant::ode::test::OdeR> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type time(timeSEXP);
     OdeRunner___OdeR__advance_fixed(obj_, time);
+    return R_NilValue;
+END_RCPP
+}
+// OdeRunner___OdeR__advance_euler
+void OdeRunner___OdeR__advance_euler(plant::RcppR6::RcppR6<plant::ode::Runner<plant::ode::test::OdeR> > obj_, std::vector<double> time);
+RcppExport SEXP _plant_OdeRunner___OdeR__advance_euler(SEXP obj_SEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::Runner<plant::ode::test::OdeR> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type time(timeSEXP);
+    OdeRunner___OdeR__advance_euler(obj_, time);
     return R_NilValue;
 END_RCPP
 }
@@ -1942,6 +1964,17 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// OdeRunner___FF16__advance_euler
+void OdeRunner___FF16__advance_euler(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_, std::vector<double> time);
+RcppExport SEXP _plant_OdeRunner___FF16__advance_euler(SEXP obj_SEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type time(timeSEXP);
+    OdeRunner___FF16__advance_euler(obj_, time);
+    return R_NilValue;
+END_RCPP
+}
 // OdeRunner___FF16__step
 void OdeRunner___FF16__step(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_);
 RcppExport SEXP _plant_OdeRunner___FF16__step(SEXP obj_SEXP) {
@@ -2063,6 +2096,17 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// OdeRunner___TF24__advance_euler
+void OdeRunner___TF24__advance_euler(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_, std::vector<double> time);
+RcppExport SEXP _plant_OdeRunner___TF24__advance_euler(SEXP obj_SEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type time(timeSEXP);
+    OdeRunner___TF24__advance_euler(obj_, time);
+    return R_NilValue;
+END_RCPP
+}
 // OdeRunner___TF24__step
 void OdeRunner___TF24__step(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_);
 RcppExport SEXP _plant_OdeRunner___TF24__step(SEXP obj_SEXP) {
@@ -2181,6 +2225,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type time(timeSEXP);
     OdeRunner___K93__advance_fixed(obj_, time);
+    return R_NilValue;
+END_RCPP
+}
+// OdeRunner___K93__advance_euler
+void OdeRunner___K93__advance_euler(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_, std::vector<double> time);
+RcppExport SEXP _plant_OdeRunner___K93__advance_euler(SEXP obj_SEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type time(timeSEXP);
+    OdeRunner___K93__advance_euler(obj_, time);
     return R_NilValue;
 END_RCPP
 }
@@ -10127,6 +10182,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_OdeRunner___Lorenz__ctor", (DL_FUNC) &_plant_OdeRunner___Lorenz__ctor, 2},
     {"_plant_OdeRunner___Lorenz__advance_adaptive", (DL_FUNC) &_plant_OdeRunner___Lorenz__advance_adaptive, 2},
     {"_plant_OdeRunner___Lorenz__advance_fixed", (DL_FUNC) &_plant_OdeRunner___Lorenz__advance_fixed, 2},
+    {"_plant_OdeRunner___Lorenz__advance_euler", (DL_FUNC) &_plant_OdeRunner___Lorenz__advance_euler, 2},
     {"_plant_OdeRunner___Lorenz__step", (DL_FUNC) &_plant_OdeRunner___Lorenz__step, 1},
     {"_plant_OdeRunner___Lorenz__step_to", (DL_FUNC) &_plant_OdeRunner___Lorenz__step_to, 2},
     {"_plant_OdeRunner___Lorenz__set_state", (DL_FUNC) &_plant_OdeRunner___Lorenz__set_state, 3},
@@ -10138,6 +10194,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_OdeRunner___OdeR__ctor", (DL_FUNC) &_plant_OdeRunner___OdeR__ctor, 2},
     {"_plant_OdeRunner___OdeR__advance_adaptive", (DL_FUNC) &_plant_OdeRunner___OdeR__advance_adaptive, 2},
     {"_plant_OdeRunner___OdeR__advance_fixed", (DL_FUNC) &_plant_OdeRunner___OdeR__advance_fixed, 2},
+    {"_plant_OdeRunner___OdeR__advance_euler", (DL_FUNC) &_plant_OdeRunner___OdeR__advance_euler, 2},
     {"_plant_OdeRunner___OdeR__step", (DL_FUNC) &_plant_OdeRunner___OdeR__step, 1},
     {"_plant_OdeRunner___OdeR__step_to", (DL_FUNC) &_plant_OdeRunner___OdeR__step_to, 2},
     {"_plant_OdeRunner___OdeR__set_state", (DL_FUNC) &_plant_OdeRunner___OdeR__set_state, 3},
@@ -10149,6 +10206,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_OdeRunner___FF16__ctor", (DL_FUNC) &_plant_OdeRunner___FF16__ctor, 2},
     {"_plant_OdeRunner___FF16__advance_adaptive", (DL_FUNC) &_plant_OdeRunner___FF16__advance_adaptive, 2},
     {"_plant_OdeRunner___FF16__advance_fixed", (DL_FUNC) &_plant_OdeRunner___FF16__advance_fixed, 2},
+    {"_plant_OdeRunner___FF16__advance_euler", (DL_FUNC) &_plant_OdeRunner___FF16__advance_euler, 2},
     {"_plant_OdeRunner___FF16__step", (DL_FUNC) &_plant_OdeRunner___FF16__step, 1},
     {"_plant_OdeRunner___FF16__step_to", (DL_FUNC) &_plant_OdeRunner___FF16__step_to, 2},
     {"_plant_OdeRunner___FF16__set_state", (DL_FUNC) &_plant_OdeRunner___FF16__set_state, 3},
@@ -10160,6 +10218,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_OdeRunner___TF24__ctor", (DL_FUNC) &_plant_OdeRunner___TF24__ctor, 2},
     {"_plant_OdeRunner___TF24__advance_adaptive", (DL_FUNC) &_plant_OdeRunner___TF24__advance_adaptive, 2},
     {"_plant_OdeRunner___TF24__advance_fixed", (DL_FUNC) &_plant_OdeRunner___TF24__advance_fixed, 2},
+    {"_plant_OdeRunner___TF24__advance_euler", (DL_FUNC) &_plant_OdeRunner___TF24__advance_euler, 2},
     {"_plant_OdeRunner___TF24__step", (DL_FUNC) &_plant_OdeRunner___TF24__step, 1},
     {"_plant_OdeRunner___TF24__step_to", (DL_FUNC) &_plant_OdeRunner___TF24__step_to, 2},
     {"_plant_OdeRunner___TF24__set_state", (DL_FUNC) &_plant_OdeRunner___TF24__set_state, 3},
@@ -10171,6 +10230,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_OdeRunner___K93__ctor", (DL_FUNC) &_plant_OdeRunner___K93__ctor, 2},
     {"_plant_OdeRunner___K93__advance_adaptive", (DL_FUNC) &_plant_OdeRunner___K93__advance_adaptive, 2},
     {"_plant_OdeRunner___K93__advance_fixed", (DL_FUNC) &_plant_OdeRunner___K93__advance_fixed, 2},
+    {"_plant_OdeRunner___K93__advance_euler", (DL_FUNC) &_plant_OdeRunner___K93__advance_euler, 2},
     {"_plant_OdeRunner___K93__step", (DL_FUNC) &_plant_OdeRunner___K93__step, 1},
     {"_plant_OdeRunner___K93__step_to", (DL_FUNC) &_plant_OdeRunner___K93__step_to, 2},
     {"_plant_OdeRunner___K93__set_state", (DL_FUNC) &_plant_OdeRunner___K93__set_state, 3},

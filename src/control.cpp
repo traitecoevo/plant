@@ -30,6 +30,10 @@ Control::Control() {
   ode_a_y           = 1.0;
   ode_a_dydt        = 0.0;
 
+  // 0 = adaptive RKCK (default); > 0 selects fixed-step forward Euler with this
+  // spacing in years (see control.h).
+  fixed_time_step   = 0.0;
+
   schedule_nsteps   = 20;
   schedule_eps      = 5e-3;
   schedule_verbose  = false;

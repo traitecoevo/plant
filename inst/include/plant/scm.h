@@ -8,6 +8,7 @@
 #include <plant/scm_utils.h>
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 
 using namespace Rcpp;
@@ -116,6 +117,9 @@ private:
   static std::vector<double> bisect_flagged_intervals(const std::vector<double>& times,
                                                       const std::vector<bool>& split);
 
+  // Uniform grid for fixed-step forward-Euler integration (control.fixed_time_step).
+  static std::vector<double> uniform_euler_times(double t0, double t1, double dt);
+
   parameters_type parameters;
   Control control;
   patch_type patch;
@@ -139,6 +143,36 @@ SCM<T, E>::SCM(parameters_type p, environment_type e, Control c)
   if (!util::identical(parameters.patch_area, 1.0)) {
     util::warning("We recommened keeping patch_area = 1 for the SCM, as need to check units for all other sizes");
   }
+
+  // Forward-Euler integration (control.fixed_time_step > 0) has no analogue for
+  // the RK sub-step environment cache used to replay residents for mutants, so
+  // refuse the combination up front rather than produce a wrong fitness.
+  if (control.fixed_time_step > 0.0 && control.save_RK45_cache) {
+    util::stop("fixed_time_step (forward Euler) is incompatible with "
+               "save_RK45_cache / the mutant-fitness replay path");
+  }
+}
+
+// Build a uniform grid {t0, t0 + dt, ..., t1} with spacing dt, starting exactly
+// at t0 and ending exactly at t1 (the final interval may be shorter than dt).
+// Used to drive forward-Euler integration between schedule events.
+template <typename T, typename E>
+std::vector<double> SCM<T, E>::uniform_euler_times(double t0, double t1,
+                                                   double dt) {
+  std::vector<double> times;
+  times.push_back(t0);
+  if (t1 <= t0) {
+    return times;
+  }
+  // Number of (mostly dt-sized) intervals; the small tolerance avoids spawning
+  // a spurious tiny final interval when (t1 - t0) is an FP-near multiple of dt.
+  const size_t n =
+      static_cast<size_t>(std::ceil((t1 - t0) / dt - 1e-10));
+  for (size_t i = 1; i < n; ++i) {
+    times.push_back(t0 + static_cast<double>(i) * dt);
+  }
+  times.push_back(t1); // exact endpoint
+  return times;
 }
 
 // ---- Simulation lifecycle ------------------------------------------------
@@ -184,10 +218,23 @@ template <typename T, typename E> std::vector<size_t> SCM<T, E>::run_next() {
   patch.introduce_new_nodes(ret);
   solver.set_state_from_system(patch);
 
-  // Some schedules pin the integration points (e.g. when replaying a resident
-  // run for a mutant); otherwise integrate adaptively to the next event time.
+  // Three integration modes:
+  //  - pinned ode times (resident replay for a mutant): step exactly to the
+  //    cached times via the full RKCK stepper (advance_fixed);
+  //  - fixed-step forward Euler (control.fixed_time_step > 0): walk a uniform
+  //    sub-grid between this event and the next introduction;
+  //  - otherwise: adaptive, error-controlled RKCK to the next event time.
   if (node_schedule.using_ode_times()) {
+    if (control.fixed_time_step > 0.0) {
+      // The mutant replay path relies on the RK sub-step environment cache,
+      // which forward Euler does not populate. Refuse rather than mis-integrate.
+      util::stop("fixed_time_step (forward Euler) is not supported for "
+                 "ode-time replay / mutant runs");
+    }
     solver.advance_fixed(patch, e.times);
+  } else if (control.fixed_time_step > 0.0) {
+    solver.advance_euler(
+        patch, uniform_euler_times(t0, e.time_end(), control.fixed_time_step));
   } else {
     solver.advance_adaptive(patch, e.time_end());
   }

@@ -650,6 +650,10 @@ void OdeRunner___Lorenz__advance_fixed(plant::RcppR6::RcppR6<plant::ode::Runner<
   obj_->advance_fixed(time);
 }
 // [[Rcpp::export]]
+void OdeRunner___Lorenz__advance_euler(plant::RcppR6::RcppR6<plant::ode::Runner<plant::ode::test::Lorenz> > obj_, std::vector<double> time) {
+  obj_->advance_euler(time);
+}
+// [[Rcpp::export]]
 void OdeRunner___Lorenz__step(plant::RcppR6::RcppR6<plant::ode::Runner<plant::ode::test::Lorenz> > obj_) {
   obj_->step();
 }
@@ -697,6 +701,10 @@ void OdeRunner___OdeR__advance_adaptive(plant::RcppR6::RcppR6<plant::ode::Runner
 // [[Rcpp::export]]
 void OdeRunner___OdeR__advance_fixed(plant::RcppR6::RcppR6<plant::ode::Runner<plant::ode::test::OdeR> > obj_, std::vector<double> time) {
   obj_->advance_fixed(time);
+}
+// [[Rcpp::export]]
+void OdeRunner___OdeR__advance_euler(plant::RcppR6::RcppR6<plant::ode::Runner<plant::ode::test::OdeR> > obj_, std::vector<double> time) {
+  obj_->advance_euler(time);
 }
 // [[Rcpp::export]]
 void OdeRunner___OdeR__step(plant::RcppR6::RcppR6<plant::ode::Runner<plant::ode::test::OdeR> > obj_) {
@@ -748,6 +756,10 @@ void OdeRunner___FF16__advance_fixed(plant::RcppR6::RcppR6<plant::ode::Runner<pl
   obj_->advance_fixed(time);
 }
 // [[Rcpp::export]]
+void OdeRunner___FF16__advance_euler(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_, std::vector<double> time) {
+  obj_->advance_euler(time);
+}
+// [[Rcpp::export]]
 void OdeRunner___FF16__step(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_) {
   obj_->step();
 }
@@ -797,6 +809,10 @@ void OdeRunner___TF24__advance_fixed(plant::RcppR6::RcppR6<plant::ode::Runner<pl
   obj_->advance_fixed(time);
 }
 // [[Rcpp::export]]
+void OdeRunner___TF24__advance_euler(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_, std::vector<double> time) {
+  obj_->advance_euler(time);
+}
+// [[Rcpp::export]]
 void OdeRunner___TF24__step(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_) {
   obj_->step();
 }
@@ -844,6 +860,10 @@ void OdeRunner___K93__advance_adaptive(plant::RcppR6::RcppR6<plant::ode::Runner<
 // [[Rcpp::export]]
 void OdeRunner___K93__advance_fixed(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_, std::vector<double> time) {
   obj_->advance_fixed(time);
+}
+// [[Rcpp::export]]
+void OdeRunner___K93__advance_euler(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_, std::vector<double> time) {
+  obj_->advance_euler(time);
 }
 // [[Rcpp::export]]
 void OdeRunner___K93__step(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_) {
