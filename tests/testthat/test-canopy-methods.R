@@ -41,8 +41,10 @@ test_that("unknown shading model is rejected at strategy preparation", {
   expect_error(FF16_Individual(s), "Unknown shading model: not-a-model")
 })
 
-test_that("all three models prepare and compute without error", {
-  for (m in models) {
+test_that("every FF16 shading model prepares and computes at the individual level", {
+  # All six models, including the box variants (whose competition differs but
+  # which still compute a finite individual carbon balance).
+  for (m in c(models, "flat-top-box", "flat-top-soft-box")) {
     ind <- make_ind(m)
     env <- Environment("FF16")
     env$set_fixed_environment(0.5, 100)
@@ -99,6 +101,14 @@ test_that("flat-top-soft-box has a continuous competition profile and runs", {
   ctrl <- Control(); ctrl$shading_model <- "flat-top-soft-box"
   out <- run_scm(p1, Environment("FF16"), ctrl)
   expect_true(is.finite(out$offspring_production))
+
+  # The mis-shaped competition propagates to the dynamics: a soft-box stand
+  # differs from the correct flat-top stand (same crown-centre assimilation, but
+  # a different shade profile).
+  ctrl_flat <- Control(); ctrl_flat$shading_model <- "flat-top"
+  out_flat <- run_scm(p1, Environment("FF16"), ctrl_flat)
+  expect_false(isTRUE(all.equal(out$offspring_production,
+                                out_flat$offspring_production, tolerance = 1e-2)))
 })
 
 test_that("flat-top-box cannot build a light environment (discontinuous competition)", {
@@ -237,6 +247,17 @@ test_that("PPA runs through the SCM (smoothed) and changes the outcome", {
   expect_gt(out_ppa$offspring_production, out_deep$offspring_production)
 })
 
+test_that("a hard PPA step (no smoothing) defeats the adaptive solver", {
+  # ppa_layer_smoothing = 0 is a genuine discontinuity, which the error-controlled
+  # solver cannot integrate (it shrinks the step indefinitely). This is why the
+  # default smoothing exists.
+  p0 <- scm_base_parameters("FF16")
+  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar,
+                          birth_rate_list = list(20))
+  ctrl <- Control(); ctrl$shading_model <- "ppa"; ctrl$ppa_layer_smoothing <- 0
+  expect_error(run_scm(p1, Environment("FF16"), ctrl))
+})
+
 test_that("adaptive and fixed-schedule PPA agree (well-behaved integration)", {
   p0 <- scm_base_parameters("FF16")
   p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar,
@@ -278,7 +299,7 @@ test_that("TF24 defaults to average-light and rejects PPA", {
   # default behaviour is unchanged.
   expect_equal(tf24_prod(""), tf24_prod("average-light"), tolerance = 1e-12)
 
-  for (m in c("ppa", "flat-top-box")) {
+  for (m in c("ppa", "flat-top-box", "flat-top-soft-box")) {
     s <- TF24_Strategy()
     s$control$shading_model <- m
     expect_error(TF24_Individual(s), "not supported for the TF24 strategy")
