@@ -64,6 +64,34 @@ test_that("per-plant competition is identical across models (all use smooth Q)",
   expect_equal(tail(ref, 1), 0)
 })
 
+test_that("flat-top-box casts a step competition profile, unlike flat-top", {
+  h <- 10
+  eta_c <- local({ eta <- FF16_Strategy()$eta; 1 - 2 / (1 + eta) + 1 / (1 + 2 * eta) })
+  zs <- seq(0, h, length.out = 41)
+
+  smooth <- sapply(zs, function(z) make_ind("flat-top", h)$compute_competition(z))
+  box    <- sapply(zs, function(z) make_ind("flat-top-box", h)$compute_competition(z))
+
+  # flat-top is the smooth Yokozawa profile (many distinct interior values)
+  expect_gt(length(unique(round(smooth[zs > 0 & zs < h], 6))), 2)
+  # flat-top-box is a step: a single full value below the crown centre, 0 above
+  full <- box[[1]]
+  expect_equal(box[zs < h * eta_c], rep(full, sum(zs < h * eta_c)))
+  expect_equal(box[zs > h * eta_c], rep(0, sum(zs > h * eta_c)))
+})
+
+test_that("flat-top-box cannot build a light environment (discontinuous competition)", {
+  # The step competition makes the patch light profile discontinuous, so the
+  # adaptive light-environment spline cannot represent it and the SCM fails.
+  # This is the point of the model: the competition profile must be continuous.
+  p0 <- scm_base_parameters("FF16")
+  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar,
+                          birth_rate_list = list(20))
+  ctrl <- Control(); ctrl$shading_model <- "flat-top-box"
+  expect_error(run_scm(p1, Environment("FF16"), ctrl),
+               "Interpolated function as refined as currently possible")
+})
+
 test_that("under uniform light, the integrate-based models all agree", {
   # With light constant in height, the leaf-area-weighted mean light equals the
   # light everywhere, and the crown leaf-density profile integrates to one. So
@@ -229,9 +257,11 @@ test_that("TF24 defaults to average-light and rejects PPA", {
   # default behaviour is unchanged.
   expect_equal(tf24_prod(""), tf24_prod("average-light"), tolerance = 1e-12)
 
-  s <- TF24_Strategy()
-  s$control$shading_model <- "ppa"
-  expect_error(TF24_Individual(s), "not supported for the TF24 strategy")
+  for (m in c("ppa", "flat-top-box")) {
+    s <- TF24_Strategy()
+    s$control$shading_model <- m
+    expect_error(TF24_Individual(s), "not supported for the TF24 strategy")
+  }
 })
 
 test_that("TF24 shading models agree under uniform light", {

@@ -519,7 +519,9 @@ void FF16_Strategy::prepare_strategy() {
   // this, neither path compares the model string per call.
   const ShadingModel shading_model =
     shading_model_from_string(control.shading_model, ShadingModel::DeepCrown);
-  canopy_shape.initialise(eta);
+  // canopy_shape also selects the competition contribution: smooth Q for every
+  // model except flat-top-box, which casts a step (see CanopyShape).
+  canopy_shape.initialise(eta, shading_model);
   switch (shading_model) {
   case ShadingModel::DeepCrown:
     assimilation_fn = &FF16_Strategy::assimilation_deep_crown;
@@ -528,9 +530,11 @@ void FF16_Strategy::prepare_strategy() {
     assimilation_fn = &FF16_Strategy::assimilation_average_light;
     break;
   case ShadingModel::FlatTop:
+  case ShadingModel::FlatTopBox:
   case ShadingModel::PPA:
-    // Both evaluate at the crown centre; PPA differs only in that the patch
-    // light profile it reads is built stepped (see FF16_Environment).
+    // All evaluate assimilation at the crown centre. They differ in the light
+    // profile they read: flat-top from the smooth profile, flat-top-box from a
+    // profile built with stepped competition, PPA from a stepped profile.
     assimilation_fn = &FF16_Strategy::assimilation_crown_top;
     break;
   }

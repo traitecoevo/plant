@@ -257,7 +257,7 @@ public:
   }
   double compute_competition_by_ratio(double z_over_height,
                                       double area_leaf_) const {
-    return k_I * area_leaf_ * canopy_shape.Q(z_over_height);
+    return k_I * area_leaf_ * canopy_shape.leaf_area_above(z_over_height);
   }
 
   // [      ] Inverse of Q: height above which fraction 'x' of leaf found

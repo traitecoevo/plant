@@ -11,9 +11,9 @@ namespace plant {
 // How the crown intercepts light. Resolved once per strategy in
 // prepare_strategy() (string -> enum), never compared on the hot path.
 //
-// All share the same per-plant competition contribution (the smooth Yokozawa
-// leaf-area profile Q); they differ in how a plant's own assimilation is
-// computed and how the patch light profile is built:
+// All except FlatTopBox share the same per-plant competition contribution (the
+// smooth Yokozawa leaf-area profile Q); they differ in how a plant's own
+// assimilation is computed and how the patch light profile is built:
 //   DeepCrown    - assimilation integrated over crown depth against the smooth
 //                  light profile: the leaf-area-weighted mean of the (concave)
 //                  photosynthetic rate. The original plant behaviour.
@@ -25,12 +25,20 @@ namespace plant {
 //   FlatTop      - identical light profile to DeepCrown, but assimilation is a
 //                  single evaluation of the light at the crown centre
 //                  (z = H*eta_c) rather than any integral over depth.
+//   FlatTopBox   - like FlatTop for assimilation, but the plant's *competition*
+//                  contribution is also collapsed into the thin crown-centre
+//                  layer (a step: full shade below z = H*eta_c, none above)
+//                  instead of the smooth Yokozawa profile. A deliberately naive
+//                  variant: it builds the shading a plant casts *incorrectly*,
+//                  so the patch light profile is no longer a smooth function of
+//                  height. Useful for showing that getting the competition
+//                  profile right matters (see the canopy-methods vignette).
 //   PPA          - perfect-plasticity approximation: the patch light profile is
 //                  built as a *stepped* function (cumulative leaf area floored
 //                  into discrete canopy layers); assimilation then reads that
 //                  stepped profile at the crown centre, as FlatTop does. See
 //                  FF16_Environment::compute_environment.
-enum class ShadingModel { DeepCrown, AverageLight, FlatTop, PPA };
+enum class ShadingModel { DeepCrown, AverageLight, FlatTop, FlatTopBox, PPA };
 
 inline ShadingModel shading_model_from_string(const std::string& name) {
   if (name == "deep-crown") {
@@ -39,6 +47,8 @@ inline ShadingModel shading_model_from_string(const std::string& name) {
     return ShadingModel::AverageLight;
   } else if (name == "flat-top") {
     return ShadingModel::FlatTop;
+  } else if (name == "flat-top-box") {
+    return ShadingModel::FlatTopBox;
   } else if (name == "ppa") {
     return ShadingModel::PPA;
   }
@@ -79,17 +89,32 @@ inline ShadingModel shading_model_from_string(const std::string& name,
 class CanopyShape {
 public:
   CanopyShape()
-    : eta_(12.0), eta_inverse_(1.0 / 12.0), pow_eta_(&pow_eta_12) {
+    : eta_(12.0), eta_inverse_(1.0 / 12.0), eta_c_(compute_eta_c(12.0)),
+      pow_eta_(&pow_eta_12), leaf_above_(&leaf_above_deep) {
   }
 
   explicit CanopyShape(double eta) {
     initialise(eta);
   }
 
-  void initialise(double eta) {
+  void initialise(double eta, ShadingModel shading_model = ShadingModel::DeepCrown) {
     eta_ = eta;
     eta_inverse_ = 1.0 / eta;
+    eta_c_ = compute_eta_c(eta);
     pow_eta_ = select_pow_eta(eta);
+    // Only FlatTopBox collapses the competition contribution to a step; every
+    // other model uses the smooth Yokozawa Q (so leaf_area_above == Q).
+    leaf_above_ = (shading_model == ShadingModel::FlatTopBox)
+      ? &leaf_above_box : &leaf_above_deep;
+  }
+
+  // [eqn 11] Fraction of projected leaf area above the height-normalised
+  // coordinate u = z / H -- the shading a plant casts at u. Smooth Yokozawa Q
+  // for every model except FlatTopBox, which uses a step at the crown centre.
+  // Bound once in initialise(), so the competition hot path makes one predicted
+  // indirect call with no branch.
+  double leaf_area_above(double z_over_height) const {
+    return leaf_above_(*this, z_over_height);
   }
 
   double q(double z_over_height, double z) const {
@@ -122,6 +147,22 @@ public:
 
 private:
   typedef double (*pow_eta_fn)(double, double);
+  typedef double (*leaf_above_fn)(const CanopyShape&, double);
+
+  static double compute_eta_c(double eta) {
+    return 1.0 - 2.0 / (1.0 + eta) + 1.0 / (1.0 + 2.0 * eta);
+  }
+
+  // Smooth Yokozawa profile -- the correct shading a crown casts.
+  static double leaf_above_deep(const CanopyShape& c, double z_over_height) {
+    return c.Q(z_over_height);
+  }
+
+  // FlatTopBox: all leaf area collapsed into the thin crown-centre layer, so the
+  // crown fully shades everything below z = H*eta_c and nothing above. A step.
+  static double leaf_above_box(const CanopyShape& c, double z_over_height) {
+    return z_over_height < c.eta_c_ ? 1.0 : 0.0;
+  }
 
   static pow_eta_fn select_pow_eta(double eta) {
     if (eta == 1.0) {
@@ -180,7 +221,9 @@ private:
 
   double eta_;
   double eta_inverse_;
+  double eta_c_;
   pow_eta_fn pow_eta_;
+  leaf_above_fn leaf_above_;
 };
 
 }

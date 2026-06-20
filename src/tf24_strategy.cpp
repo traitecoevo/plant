@@ -728,9 +728,13 @@ void TF24_Strategy::prepare_strategy() {
   // FF16-only stepped-light model and is rejected here.
   shading_model_ =
     shading_model_from_string(control.shading_model, ShadingModel::AverageLight);
-  if (shading_model_ == ShadingModel::PPA) {
+  // PPA and flat-top-box are FF16-only (they reshape the FF16 competition /
+  // light profile, which TF24 does not use).
+  if (shading_model_ == ShadingModel::PPA ||
+      shading_model_ == ShadingModel::FlatTopBox) {
     throw std::invalid_argument(
-      "shading_model 'ppa' is not supported for the TF24 strategy");
+      "shading_model '" + control.shading_model +
+      "' is not supported for the TF24 strategy");
   }
 
   // NOTE: this pre-computes something to save a very small amount of time

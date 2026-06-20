@@ -451,3 +451,58 @@ profile is a discretised step function of height, so as a mutant grows its light
 that makes PPA's *dynamics* solvable softens but does not remove this: a mutant
 still crosses layer boundaries as it grows, so PPA remains the wrong tool for
 evolutionary analysis even when it is fine for a single stand simulation.
+
+## Getting the competition profile right
+
+It is worth being clear about *why* flat-top survives this test. It approximates
+a plant's own assimilation crudely (a single crown-centre evaluation), but it
+still computes the shade a plant *casts* from the full smooth Yokozawa crown.
+The continuity that fitness needs comes from that competition profile, not from
+the assimilation calculation.
+
+To show this is what matters, `"flat-top-box"` keeps flat-top's crown-centre
+assimilation but is *also* crude about competition: it collapses each plant's
+leaf area into the same thin crown-centre layer, so the shade it casts is a step
+(full below the crown centre, none above) rather than the smooth profile.
+
+```{r compbox, fig.width = 7, fig.height = 3.6}
+comp_profile <- function(model, height = 10) {
+  s <- FF16_Strategy()
+  s$control$shading_model <- model
+  ind <- FF16_Individual(s)
+  ind$set_state("height", height)
+  z <- seq(0, height, length.out = 200)
+  data.frame(model = model, z = z,
+             competition = sapply(z, function(zz) ind$compute_competition(zz)))
+}
+comp <- dplyr::bind_rows(comp_profile("flat-top"), comp_profile("flat-top-box"))
+
+ggplot(comp, aes(competition, z, colour = model)) +
+  geom_path() +
+  labs(x = "Shade cast (competition) by a 10 m plant", y = "Height (m)",
+       colour = "Model") +
+  theme_classic()
+```
+
+The smooth profile (flat-top) tapers continuously to zero at the top of the
+crown; the box profile (flat-top-box) is a step. That step is fatal. Summed over
+a population of discrete cohorts, a step competition contribution makes the patch
+light profile a discontinuous, piecewise-constant function of height, which the
+adaptive light-environment spline cannot represent. The model fails before it
+can even develop a stand, so there is no fitness landscape to compute:
+
+```{r box-fail}
+ctrl_box <- Control()
+ctrl_box$shading_model <- "flat-top-box"
+tryCatch(
+  run_scm(patch, ctrl = ctrl_box),
+  error = function(e) conditionMessage(e)
+)
+```
+
+So getting the competition profile right is not a refinement but a prerequisite,
+and the result generalises the PPA story: a plant model can tolerate a crude
+*assimilation* approximation (flat-top, average-light) and still behave well for
+both dynamics and fitness, but the *competition* profile -- the shade each plant
+casts as a function of height -- must vary continuously with height, or the
+light environment itself is ill-defined.
