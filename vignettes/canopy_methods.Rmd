@@ -9,12 +9,36 @@ output: bookdown::html_document2
 
 # Background
 
-To grow a plant, `plant` needs to know how much light each individual
-intercepts. That depends on two things: how a plant's own leaf area is
-distributed through its crown (which sets the light it captures for
-photosynthesis), and how that leaf area shades everything below it (which sets
-the patch-level light profile). Both can be modelled at different levels of
-realism, trading detail for speed.
+## Light interception, and why it matters
+
+Light is the currency of competition in a forest. A plant's carbon gain depends
+on the light its leaves intercept, and that light has been filtered twice: by
+the crowns of taller neighbours above it, and by the plant's own leaves higher
+in its crown (self-shading). `plant` captures this through a single shared
+object -- the patch **light profile** $E(z)$, the fraction of open-sky light
+reaching height $z$. Every plant both *reads* this profile (to photosynthesise)
+and *contributes* to it (the shade its leaves cast lowers $E$ below them).
+
+Getting the light profile right is not a detail. It sets each plant's growth
+rate, which sets the size structure of the stand, which sets the competitive
+hierarchy, which ultimately decides which strategies persist and which traits
+selection favours. Errors here propagate all the way up to the ecological and
+evolutionary predictions the model exists to make.
+
+## Realism versus speed
+
+A fully realistic treatment would resolve the light field through each crown and
+integrate photosynthesis over it. That is expensive -- especially when the
+leaf-level photosynthesis model is itself costly (as in `TF24`, whose coupled
+stomatal/hydraulic optimisation is far heavier than a simple light-response
+curve). The classic response is to *simplify*: treat the crown as a single
+point, or the canopy as a few discrete layers -- trading fidelity for speed.
+`plant` lets you choose where to sit on that spectrum. The job of this vignette
+is to ask **which simplifications are safe, and for what purpose** -- because, as
+we will see, a model can be perfectly adequate for one question and badly wrong
+for another.
+
+## The models
 
 The `FF16` strategy offers four shading models, selected with
 `control$shading_model`:
@@ -60,6 +84,33 @@ Yokozawa leaf-area profile); they differ only in how assimilation is evaluated
 and, for PPA, how the light profile is assembled. The model is resolved once
 when a strategy is prepared, so there is no per-call cost to having the choice
 available.
+
+Two further FF16 variants, `"flat-top-box"` and `"flat-top-soft-box"`,
+deliberately get the *competition* profile wrong; we introduce them in the
+[mutant-fitness](#mutant-fitness) section to show why that matters. The `TF24`
+strategy supports `"deep-crown"`, `"average-light"` (its default) and
+`"flat-top"`, but not the PPA or box variants.
+
+## How we evaluate a shading model
+
+We put the models through a ladder of increasingly demanding tests of biological
+adequacy, noting their computational cost and numerical behaviour along the way.
+Each rung asks more of the light profile than the last:
+
+1. **Stand dynamics** -- does a stand develop sensibly? We compare the size
+   distribution, leaf area index, and vertical light profile as a patch grows
+   and self-thins.
+2. **Demographic equilibrium** -- does the population settle to a sensible,
+   self-replacing seed rain?
+3. **Invasion (mutant) fitness** -- can the model support evolutionary analysis?
+   This is the acid test, and it requires the light a plant experiences to vary
+   *continuously* with its size.
+
+The recurring finding is that the cheap models are often fine for stand dynamics
+and acceptable for equilibrium, but invasion fitness is unforgiving: it exposes
+exactly which simplifications break -- PPA's stepped profile, and a naive "box"
+competition profile -- and shows that the key requirement is **continuity of the
+shade each plant casts as a function of height**.
 
 ```{r, message = FALSE}
 library(plant)
@@ -107,13 +158,19 @@ species_all$method <- factor(species_all$method, levels = models)
 k_I <- results[[1]]$p$strategies[[1]]$k_I
 ```
 
-# Size-distribution dynamics
+# Stand dynamics
+
+The first and least demanding test is whether a stand develops sensibly. We look
+at three views of the same patch as it grows and self-thins: the size
+distribution, the leaf area index, and the vertical light profile.
+
+## Size distribution
 
 The size distribution is the set of node height trajectories: each line is a
-cohort introduced at a given patch age, growing (and being shaded) over time,
-shaded by node density. `plant`'s `plot_size_distribution()` builds this
-directly from the tidy `species` table; faceting by `method` compares the
-shading models.
+cohort introduced at a given patch age and followed as it grows, with line
+opacity scaled by the cohort's density (faint lines are sparse cohorts).
+`plant`'s `plot_size_distribution()` builds this directly from the tidy
+`species` table; faceting by `method` compares the shading models.
 
 ```{r sizedist, fig.width = 10, fig.height = 3.4}
 p_size <- plot_size_distribution(species_all) +
@@ -126,7 +183,7 @@ The discrete layering in `"ppa"` produces visibly different growth trajectories:
 cohorts grow at near-constant light within a layer, then accelerate as they
 emerge into a brighter layer.
 
-# Leaf area index dynamics
+## Leaf area index
 
 Leaf area index (LAI) -- the total one-sided leaf area per unit ground -- is the
 cumulative leaf area above the ground, which is already encoded in the recorded
@@ -167,7 +224,7 @@ oscillations -- successive waves of recruitment and self-thinning -- because the
 discrete light layers create sharp thresholds for cohort success (visible as the
 pulses of emerging cohorts in the size-distribution panel above).
 
-# Vertical light profile
+## Vertical light profile
 
 We can also look *within* the canopy at a few patch ages, at the vertical
 profile of cumulative leaf area above each height -- $\mathrm{LAI}_{above}(z) =
@@ -234,13 +291,13 @@ assimilation is evaluated); `"ppa"` shows the characteristic staircase, with
 cumulative leaf area held constant within a layer and jumping at each layer
 boundary.
 
-# Comparison panel
+## Comparison panel
 
 ```{r panel, fig.width = 9, fig.height = 10}
 (p_size / p_lai  / p_profile) + patchwork::plot_annotation(tag_levels = "A")
 ```
 
-# Speed comparison
+# Computational cost
 
 Two effects compete. Per ODE step, `"deep-crown"` is the most expensive because
 it performs a Gauss-Kronrod quadrature over crown depth for every individual,
@@ -381,35 +438,44 @@ Two parameters control the discretisation:
   closer to a true PPA step but stiffer (slower, per the speed table above),
   while larger values integrate faster but blur the layer structure.
 
-# Mutant fitness
+# Demographic equilibrium
 
-So far the models have looked broadly interchangeable for *stand dynamics*: the
-size distribution and LAI trajectories differ in detail but not in character,
-and the simpler, cheaper models reproduce the overall behaviour reasonably well.
-Invasion fitness is a far more demanding test. The fitness of a rare mutant is
-its lifetime reproductive output while it grows through the light environment
-cast by an established resident -- so it depends not just on the light at one
-size, but on how the light a plant experiences *changes smoothly as it grows*. A
-fitness landscape (fitness versus a mutant trait) is the basis for evolutionary
-analysis, and it is only useful if it is smooth: kinks and jumps make optima,
-gradients and evolutionary endpoints ill-defined.
+The next test asks whether the population closes its own loop sensibly, and it
+also supplies the resident we need for the fitness analysis that follows. Rather
+than seed a stand at an arbitrary rate, we put it at its **demographic
+equilibrium**: the seed rain at which the population exactly replaces itself
+(net reproductive ratio R0 = 1). A stand seeded above or below this is over- or
+under-crowded, and would cast an unrepresentative light environment.
 
-We compute the invasion fitness of mutants spanning a range of leaf mass per
-area (LMA) against a single resident, at fine trait resolution to expose any
-roughness. The resident's seed rain matters: it sets how dense the stand is and
-hence the competitive light environment a mutant must grow through. We run
-**two** comparisons:
+The equilibrium is a fixed point of the patch's own seed production: put a seed
+rain in, run the patch, read the seed rain out (`offspring_production`), and feed
+it back. It converges in a handful of iterations.
 
-1. **Same seed rain** -- every model is given the same resident seed input, so
-   any difference in the fitness landscape is due purely to the shading model.
-2. **Each at its own equilibrium** -- each model's resident is set to its
-   *demographic equilibrium*, the seed rain at which it exactly replaces itself
-   (R0 = 1), so each casts a realistic, self-consistent stand.
+```{r equil}
+p_fit <- scm_base_parameters("FF16")
+p_fit$max_patch_lifetime <- 50
+lma_resident <- 0.0825
 
-We find each equilibrium by iterating the patch's seed rain back on itself,
-`birth_rate <- run_scm(...)$offspring_production`, which converges in about five
-runs. The equilibria differ markedly by model -- PPA's brighter layered light
-supports a far higher seed rain:
+# Iterate seed-rain-out -> seed-rain-in until it stops moving (R0 = 1). Re-run
+# this for any model / trait / max_patch_lifetime to re-derive the table below.
+find_equilibrium_birth_rate <- function(model, n_iter = 6, birth_rate = 1) {
+  ctrl <- Control()
+  ctrl$shading_model <- model
+  for (i in seq_len(n_iter)) {
+    resident <- expand_parameters(trait_matrix(lma_resident, "lma"), p_fit,
+                                  birth_rate_list = birth_rate)
+    birth_rate <- run_scm(resident, ctrl = ctrl)$offspring_production
+  }
+  birth_rate
+}
+find_equilibrium_birth_rate("deep-crown")   # converges to ~1.66
+```
+
+Crucially, the equilibrium **depends on the shading model**: one that lets
+plants capture more light supports a denser, more productive stand. Running the
+same iteration for each model gives equilibria spanning an order of magnitude --
+PPA's brighter layered light supports more than ten times the seed rain of
+deep-crown. We hardcode them so the build does not re-run the slower models:
 
 ```{r equil-table}
 equilibrium_birth_rate <- c(
@@ -426,15 +492,38 @@ knitr::kable(data.frame(
 ))
 ```
 
+That an order-of-magnitude difference in predicted stand density follows from
+the shading assumption alone is the first sign that these models, so alike in
+their stand-development *trajectories*, are not interchangeable once the
+population has to sustain itself.
+
+# Mutant fitness
+
+Stand dynamics and equilibrium both tolerated the cheap models reasonably well.
+Invasion fitness is far more demanding. The fitness of a rare mutant is its
+lifetime reproductive output as it grows through the light environment cast by an
+established resident -- so it depends not on the light at one size, but on how
+the light a plant experiences *changes as it grows*. A fitness landscape (fitness
+versus a mutant trait) is the basis for evolutionary analysis, and is only useful
+if it is smooth: kinks and jumps leave optima, selection gradients and
+evolutionary endpoints ill-defined.
+
+We compute invasion fitness for mutants spanning a range of leaf mass per area
+(LMA), at fine trait resolution to expose any roughness, and run **two**
+comparisons that differ only in the resident's seed rain:
+
+1. **Same seed rain** -- every model uses the same resident seed input, so any
+   difference is due purely to the shading model.
+2. **Each at its own equilibrium** -- each resident uses its own equilibrium seed
+   rain (from the table above), so each casts a realistic, self-consistent stand.
+
 The resident is run once with `save_RK45_cache = TRUE` to cache its light
-environment, mutants are introduced into that fixed landscape with
+environment; mutants are introduced into that fixed landscape with
 `run_mutant()`, and fitness is `log(R0)`.
 
 ```{r fitness, fig.width = 10, fig.height = 3.6}
-p_fit <- scm_base_parameters("FF16")
-p_fit$max_patch_lifetime <- 50
-lma_resident <- 0.0825
-mutant_lma   <- seq(0.07, 0.11, length.out = 60)
+# p_fit, lma_resident and equilibrium_birth_rate come from the section above.
+mutant_lma <- seq(0.07, 0.11, length.out = 60)
 
 fitness_landscape <- function(model, birth_rate) {
   ctrl <- Control()
