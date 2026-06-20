@@ -531,10 +531,12 @@ void FF16_Strategy::prepare_strategy() {
     break;
   case ShadingModel::FlatTop:
   case ShadingModel::FlatTopBox:
+  case ShadingModel::FlatTopSoftBox:
   case ShadingModel::PPA:
     // All evaluate assimilation at the crown centre. They differ in the light
-    // profile they read: flat-top from the smooth profile, flat-top-box from a
-    // profile built with stepped competition, PPA from a stepped profile.
+    // profile they read: flat-top from the smooth profile, flat-top-box / -soft-
+    // box from a profile built with (hard / smoothed) box competition, PPA from
+    // a stepped profile.
     assimilation_fn = &FF16_Strategy::assimilation_crown_top;
     break;
   }

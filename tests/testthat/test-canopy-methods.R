@@ -80,6 +80,27 @@ test_that("flat-top-box casts a step competition profile, unlike flat-top", {
   expect_equal(box[zs > h * eta_c], rep(0, sum(zs > h * eta_c)))
 })
 
+test_that("flat-top-soft-box has a continuous competition profile and runs", {
+  h <- 10
+  zs <- seq(0, h, length.out = 200)
+  box  <- sapply(zs, function(z) make_ind("flat-top-box", h)$compute_competition(z))
+  soft <- sapply(zs, function(z) make_ind("flat-top-soft-box", h)$compute_competition(z))
+
+  # The soft box removes the jump: its largest step between adjacent points is
+  # far smaller than the hard box's (which drops the full value in one step).
+  expect_lt(max(abs(diff(soft))), 0.25 * max(abs(diff(box))))
+  expect_true(all(diff(soft) <= 1e-9))            # still monotone decreasing
+  expect_equal(tail(soft, 1), 0)                  # zero leaf above the crown top
+
+  # Being continuous, it builds a light environment and runs (unlike flat-top-box)
+  p0 <- scm_base_parameters("FF16")
+  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar,
+                          birth_rate_list = list(20))
+  ctrl <- Control(); ctrl$shading_model <- "flat-top-soft-box"
+  out <- run_scm(p1, Environment("FF16"), ctrl)
+  expect_true(is.finite(out$offspring_production))
+})
+
 test_that("flat-top-box cannot build a light environment (discontinuous competition)", {
   # The step competition makes the patch light profile discontinuous, so the
   # adaptive light-environment spline cannot represent it and the SCM fails.

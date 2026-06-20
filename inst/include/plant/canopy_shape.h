@@ -27,18 +27,26 @@ namespace plant {
 //                  (z = H*eta_c) rather than any integral over depth.
 //   FlatTopBox   - like FlatTop for assimilation, but the plant's *competition*
 //                  contribution is also collapsed into the thin crown-centre
-//                  layer (a step: full shade below z = H*eta_c, none above)
+//                  layer (a hard step: full shade below z = H*eta_c, none above)
 //                  instead of the smooth Yokozawa profile. A deliberately naive
-//                  variant: it builds the shading a plant casts *incorrectly*,
-//                  so the patch light profile is no longer a smooth function of
-//                  height. Useful for showing that getting the competition
-//                  profile right matters (see the canopy-methods vignette).
+//                  variant: it casts shade *incorrectly*, so the patch light
+//                  profile is discontinuous and the light-environment spline
+//                  cannot be built -- the model does not run. See the vignette.
+//   FlatTopSoftBox - a runnable version of FlatTopBox: the step competition is
+//                  smoothed into a continuous C1 drop concentrated near the
+//                  crown centre (so the light environment can be built), but the
+//                  shape is still wrong (box-like, not the gradual Yokozawa
+//                  taper). It runs but gives a biased fitness landscape -- the
+//                  point being that a *wrong* competition profile yields wrong
+//                  evolutionary predictions even when it is numerically fine.
 //   PPA          - perfect-plasticity approximation: the patch light profile is
 //                  built as a *stepped* function (cumulative leaf area floored
 //                  into discrete canopy layers); assimilation then reads that
 //                  stepped profile at the crown centre, as FlatTop does. See
 //                  FF16_Environment::compute_environment.
-enum class ShadingModel { DeepCrown, AverageLight, FlatTop, FlatTopBox, PPA };
+enum class ShadingModel {
+  DeepCrown, AverageLight, FlatTop, FlatTopBox, FlatTopSoftBox, PPA
+};
 
 inline ShadingModel shading_model_from_string(const std::string& name) {
   if (name == "deep-crown") {
@@ -49,6 +57,8 @@ inline ShadingModel shading_model_from_string(const std::string& name) {
     return ShadingModel::FlatTop;
   } else if (name == "flat-top-box") {
     return ShadingModel::FlatTopBox;
+  } else if (name == "flat-top-soft-box") {
+    return ShadingModel::FlatTopSoftBox;
   } else if (name == "ppa") {
     return ShadingModel::PPA;
   }
@@ -102,10 +112,13 @@ public:
     eta_inverse_ = 1.0 / eta;
     eta_c_ = compute_eta_c(eta);
     pow_eta_ = select_pow_eta(eta);
-    // Only FlatTopBox collapses the competition contribution to a step; every
-    // other model uses the smooth Yokozawa Q (so leaf_area_above == Q).
-    leaf_above_ = (shading_model == ShadingModel::FlatTopBox)
-      ? &leaf_above_box : &leaf_above_deep;
+    // Most models cast shade via the smooth Yokozawa Q (leaf_area_above == Q).
+    // FlatTopBox collapses it to a hard step; FlatTopSoftBox to a smoothed step.
+    switch (shading_model) {
+    case ShadingModel::FlatTopBox:     leaf_above_ = &leaf_above_box;     break;
+    case ShadingModel::FlatTopSoftBox: leaf_above_ = &leaf_above_softbox; break;
+    default:                           leaf_above_ = &leaf_above_deep;    break;
+    }
   }
 
   // [eqn 11] Fraction of projected leaf area above the height-normalised
@@ -162,6 +175,22 @@ private:
   // crown fully shades everything below z = H*eta_c and nothing above. A step.
   static double leaf_above_box(const CanopyShape& c, double z_over_height) {
     return z_over_height < c.eta_c_ ? 1.0 : 0.0;
+  }
+
+  // FlatTopSoftBox: the hard step softened into a monotone C1 drop, full shade up
+  // to lo = max(0, 2*eta_c - 1) then a cubic-smoothstep fall to zero at the crown
+  // top (so the transition is centred on the crown centre eta_c and the profile
+  // is continuous -- buildable -- but still box-like, not the Yokozawa taper).
+  static double leaf_above_softbox(const CanopyShape& c, double z_over_height) {
+    const double lo = c.eta_c_ > 0.5 ? 2.0 * c.eta_c_ - 1.0 : 0.0;
+    if (z_over_height <= lo) {
+      return 1.0;
+    }
+    if (z_over_height >= 1.0) {
+      return 0.0;
+    }
+    const double t = (z_over_height - lo) / (1.0 - lo);
+    return 1.0 - t * t * (3.0 - 2.0 * t);
   }
 
   static pow_eta_fn select_pow_eta(double eta) {

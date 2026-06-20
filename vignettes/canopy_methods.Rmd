@@ -460,10 +460,13 @@ still computes the shade a plant *casts* from the full smooth Yokozawa crown.
 The continuity that fitness needs comes from that competition profile, not from
 the assimilation calculation.
 
-To show this is what matters, `"flat-top-box"` keeps flat-top's crown-centre
-assimilation but is *also* crude about competition: it collapses each plant's
-leaf area into the same thin crown-centre layer, so the shade it casts is a step
-(full below the crown centre, none above) rather than the smooth profile.
+To show this is what matters, two further variants keep flat-top's crown-centre
+assimilation but get the *competition* wrong, collapsing each plant's leaf area
+towards the thin crown-centre layer instead of spreading it through the crown:
+
+* `"flat-top-box"` -- a hard step: full shade below the crown centre, none above.
+* `"flat-top-soft-box"` -- the same idea but smoothed into a continuous drop, so
+  the light environment can still be built.
 
 ```{r compbox, fig.width = 7, fig.height = 3.6}
 comp_profile <- function(model, height = 10) {
@@ -471,11 +474,15 @@ comp_profile <- function(model, height = 10) {
   s$control$shading_model <- model
   ind <- FF16_Individual(s)
   ind$set_state("height", height)
-  z <- seq(0, height, length.out = 200)
+  z <- seq(0, height, length.out = 400)
   data.frame(model = model, z = z,
              competition = sapply(z, function(zz) ind$compute_competition(zz)))
 }
-comp <- dplyr::bind_rows(comp_profile("flat-top"), comp_profile("flat-top-box"))
+comp <- dplyr::bind_rows(
+  comp_profile("flat-top"),
+  comp_profile("flat-top-box"),
+  comp_profile("flat-top-soft-box")
+)
 
 ggplot(comp, aes(competition, z, colour = model)) +
   geom_path() +
@@ -484,12 +491,14 @@ ggplot(comp, aes(competition, z, colour = model)) +
   theme_classic()
 ```
 
-The smooth profile (flat-top) tapers continuously to zero at the top of the
-crown; the box profile (flat-top-box) is a step. That step is fatal. Summed over
-a population of discrete cohorts, a step competition contribution makes the patch
-light profile a discontinuous, piecewise-constant function of height, which the
-adaptive light-environment spline cannot represent. The model fails before it
-can even develop a stand, so there is no fitness landscape to compute:
+The correct profile (flat-top) tapers continuously to zero through the crown;
+the box profile is a step, and the soft box a continuous-but-wrong drop
+concentrated near the crown centre.
+
+**The hard step does not even run.** Summed over a population of discrete
+cohorts, a step competition makes the patch light profile a discontinuous,
+piecewise-constant function of height, which the adaptive light-environment
+spline cannot represent -- the model fails before a stand can develop:
 
 ```{r box-fail}
 ctrl_box <- Control()
@@ -500,9 +509,34 @@ tryCatch(
 )
 ```
 
-So getting the competition profile right is not a refinement but a prerequisite,
-and the result generalises the PPA story: a plant model can tolerate a crude
+**The soft box runs, but gives the wrong answer.** Because its competition
+profile is continuous, the light environment builds and a fitness landscape can
+be computed -- but the shade is mis-distributed through the canopy, so the
+landscape is biased relative to the deep-crown reference. The *correct* flat-top
+tracks deep-crown; the soft box does not.
+
+```{r softbox-fitness, fig.width = 7, fig.height = 4}
+fit_compare <- dplyr::bind_rows(
+  fitness_landscape("deep-crown"),
+  fitness_landscape("flat-top"),
+  fitness_landscape("flat-top-soft-box")
+)
+fit_compare$method <- factor(
+  fit_compare$method,
+  levels = c("deep-crown", "flat-top", "flat-top-soft-box")
+)
+
+ggplot(fit_compare, aes(lma, fitness, colour = method)) +
+  geom_line(linewidth = 1) +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey60") +
+  labs(x = "Mutant LMA", y = "Invasion fitness, log(R0)", colour = "Model") +
+  theme_classic()
+```
+
+So getting the competition profile right is not a refinement but a prerequisite.
+The result generalises the PPA story: a plant model can tolerate a crude
 *assimilation* approximation (flat-top, average-light) and still behave well for
-both dynamics and fitness, but the *competition* profile -- the shade each plant
-casts as a function of height -- must vary continuously with height, or the
-light environment itself is ill-defined.
+both dynamics and fitness, but the shade each plant *casts* as a function of
+height must be both continuous (or the light environment is ill-defined, as with
+the hard box) and the right shape (or evolutionary predictions are biased, as
+with the soft box).
