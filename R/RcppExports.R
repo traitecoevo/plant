@@ -589,6 +589,10 @@ OdeRunner___Lorenz__advance_fixed <- function(obj_, time) {
     invisible(.Call('_plant_OdeRunner___Lorenz__advance_fixed', PACKAGE = 'plant', obj_, time))
 }
 
+OdeRunner___Lorenz__advance_euler <- function(obj_, time) {
+    invisible(.Call('_plant_OdeRunner___Lorenz__advance_euler', PACKAGE = 'plant', obj_, time))
+}
+
 OdeRunner___Lorenz__step <- function(obj_) {
     invisible(.Call('_plant_OdeRunner___Lorenz__step', PACKAGE = 'plant', obj_))
 }
@@ -631,6 +635,10 @@ OdeRunner___OdeR__advance_adaptive <- function(obj_, time) {
 
 OdeRunner___OdeR__advance_fixed <- function(obj_, time) {
     invisible(.Call('_plant_OdeRunner___OdeR__advance_fixed', PACKAGE = 'plant', obj_, time))
+}
+
+OdeRunner___OdeR__advance_euler <- function(obj_, time) {
+    invisible(.Call('_plant_OdeRunner___OdeR__advance_euler', PACKAGE = 'plant', obj_, time))
 }
 
 OdeRunner___OdeR__step <- function(obj_) {
@@ -677,6 +685,10 @@ OdeRunner___FF16__advance_fixed <- function(obj_, time) {
     invisible(.Call('_plant_OdeRunner___FF16__advance_fixed', PACKAGE = 'plant', obj_, time))
 }
 
+OdeRunner___FF16__advance_euler <- function(obj_, time) {
+    invisible(.Call('_plant_OdeRunner___FF16__advance_euler', PACKAGE = 'plant', obj_, time))
+}
+
 OdeRunner___FF16__step <- function(obj_) {
     invisible(.Call('_plant_OdeRunner___FF16__step', PACKAGE = 'plant', obj_))
 }
@@ -721,6 +733,10 @@ OdeRunner___TF24__advance_fixed <- function(obj_, time) {
     invisible(.Call('_plant_OdeRunner___TF24__advance_fixed', PACKAGE = 'plant', obj_, time))
 }
 
+OdeRunner___TF24__advance_euler <- function(obj_, time) {
+    invisible(.Call('_plant_OdeRunner___TF24__advance_euler', PACKAGE = 'plant', obj_, time))
+}
+
 OdeRunner___TF24__step <- function(obj_) {
     invisible(.Call('_plant_OdeRunner___TF24__step', PACKAGE = 'plant', obj_))
 }
@@ -763,6 +779,10 @@ OdeRunner___K93__advance_adaptive <- function(obj_, time) {
 
 OdeRunner___K93__advance_fixed <- function(obj_, time) {
     invisible(.Call('_plant_OdeRunner___K93__advance_fixed', PACKAGE = 'plant', obj_, time))
+}
+
+OdeRunner___K93__advance_euler <- function(obj_, time) {
+    invisible(.Call('_plant_OdeRunner___K93__advance_euler', PACKAGE = 'plant', obj_, time))
 }
 
 OdeRunner___K93__step <- function(obj_) {

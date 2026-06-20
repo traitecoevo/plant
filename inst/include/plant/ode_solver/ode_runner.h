@@ -28,6 +28,9 @@ public:
   void advance_fixed(std::vector<double> times) {
     solver.advance_fixed(obj, times);
   }
+  void advance_euler(std::vector<double> times) {
+    solver.advance_euler(obj, times);
+  }
   void step() {solver.step(obj);}
   void step_to(double time) {solver.step_to(obj, time);}
 

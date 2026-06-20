@@ -27,9 +27,11 @@ public:
 
   void advance_adaptive(System &system, double time_max_);
   void advance_fixed(System& system, const std::vector<double>& times);
+  void advance_euler(System& system, const std::vector<double>& times);
 
   void step(System& system);
   void step_to(System& system, double time_max_);
+  void step_euler(System& system, double time_max_);
 
   void set_time_max(double time_max_);
 
@@ -139,6 +141,58 @@ void Solver<System>::advance_fixed(System& system,
   while (t != times.end()) {
     step_to(system, *t++);
   }
+}
+
+// Plain forward (explicit) Euler integration over a supplied grid
+// {t_0, t_1, ...}.  Unlike advance_fixed (which still drives the full 6-stage
+// RKCK stepper at each interval), this does ONE derivative evaluation per
+// interval: at the current state, then y <- y + h * dydt, then advance the time
+// exactly to the next grid point.  The `Step` (RKCK) machinery is bypassed
+// entirely, so there is no error estimate and no step-size control.
+//
+// The grid must contain the current time as its first element and is otherwise
+// walked exactly (mirroring advance_fixed's exact-endpoint handling).  This is
+// used by the SCM when control.fixed_time_step > 0 to integrate residents the
+// way industry-standard DGVMs do (fixed daily step).
+template <class System>
+void Solver<System>::advance_euler(System& system,
+                                   const std::vector<double>& times) {
+  if (times.empty()) {
+    util::stop("'times' must be vector of at least length 1");
+  }
+  std::vector<double>::const_iterator t = times.begin();
+  if (!util::identical(*t++, time)) {
+    util::stop("First element in 'times' must be same as current time");
+  }
+  while (t != times.end()) {
+    step_euler(system, *t++);
+  }
+  // Each step_euler leaves the system at the *start* of the step it just took
+  // (its single derivs call sets the system to the pre-step state).  After the
+  // final interval, settle the system onto the final integrated state so that
+  // callers (e.g. the SCM, which re-reads patch state via set_state_from_system
+  // between schedule events, and any collected snapshot) see the right state.
+  // This mirrors the adaptive/fixed paths, whose last derivs call leaves the
+  // system at y.
+  ode::internal::set_ode_state(system, y, time);
+}
+
+// A single forward-Euler step from the current time up to time_max_.  One
+// derivative evaluation; no error estimate.  Used by advance_euler.
+template <class System>
+void Solver<System>::step_euler(System& system, double time_max_) {
+  set_time_max(time_max_);
+  const double h = time_max - time;
+  // Derivatives at the current state (this also sets the system to y at the
+  // current time).
+  ode::derivs(system, y, dydt_in, time);
+  const size_t size = y.size();
+  for (size_t i = 0; i < size; ++i) {
+    y[i] += h * dydt_in[i];
+  }
+  time = time_max;
+  prev_times.push_back(time);
+  dydt_in_is_clean = false;
 }
 
 // After `stepper.step()`, the GSL checks to see if the step succeeded
