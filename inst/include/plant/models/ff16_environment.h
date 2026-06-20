@@ -44,12 +44,12 @@ public:
   double layer_smoothing = 0.3;
 
   // Called once from the Patch constructor. Selects the stepped profile for PPA;
-  // deep-crown and flat-top keep the smooth profile.
+  // deep-crown and crown-centre keep the smooth profile.
   void set_shading_model(const std::string& model,
                          double layer_optical_depth_,
                          double layer_smoothing_) override {
     // Only PPA builds a stepped profile; every other model (including the ""
-    // default and average-light) keeps the smooth profile. Compare the string
+    // default and mean-light) keeps the smooth profile. Compare the string
     // directly so the "" default does not hit the throwing parser.
     light_profile_stepped = (model == "ppa");
     layer_optical_depth = layer_optical_depth_;
@@ -83,7 +83,7 @@ public:
 
   // Discretise a smooth light value into PPA canopy layers. For the smooth
   // models this is a single predicted branch returning the input unchanged, so
-  // it adds no measurable cost to deep-crown/flat-top. For PPA it maps the
+  // it adds no measurable cost to deep-crown/crown-centre. For PPA it maps the
   // optical depth tau = -log(E) onto a smoothed integer number of layers of
   // thickness layer_optical_depth and back-transforms:
   //   E_step = exp(-d * smooth_floor(tau / d)).

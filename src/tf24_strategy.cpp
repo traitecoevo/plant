@@ -414,14 +414,14 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   // Aggregate the leaf submodel over the crown according to the shading model.
   // The expensive hydraulic optimisation is the unit of work here, so the model
   // choice is about how many times it runs and on what light:
-  //  - flat-top:      one optimisation at the crown-centre light.
-  //  - average-light: one optimisation at the leaf-area-weighted mean light
+  //  - crown-centre:  one optimisation at the crown-centre light.
+  //  - mean-light:    one optimisation at the leaf-area-weighted mean light
   //                   (TF24's established default).
   //  - deep-crown:    one optimisation per crown-depth quadrature point, with
   //                   every leaf output integrated to a leaf-area-weighted mean.
-  if (shading_model_ == ShadingModel::FlatTop) {
+  if (shading_model_ == ShadingModel::CrownCentre) {
     optimise_at(radiation_at(environment.get_environment_at_height(height * eta_c)));
-  } else if (shading_model_ == ShadingModel::AverageLight) {
+  } else if (shading_model_ == ShadingModel::MeanLight) {
     // Leaf-area-weighted mean canopy openness = integral of (light * q) over the
     // crown (q integrates to one). radiation_at then applies k_I * PPFD, exactly
     // reproducing TF24's established average_radiation.
@@ -724,10 +724,10 @@ void TF24_Strategy::prepare_strategy() {
       control.function_integration_rule);
 
   // Resolve the crown shading model once. The empty Control default maps to
-  // TF24's own default (average-light, its established behaviour); PPA is an
+  // TF24's own default (mean-light, its established behaviour); PPA is an
   // FF16-only stepped-light model and is rejected here.
   shading_model_ =
-    shading_model_from_string(control.shading_model, ShadingModel::AverageLight);
+    shading_model_from_string(control.shading_model, ShadingModel::MeanLight);
   // PPA and the flat-top-box variants are FF16-only (they reshape the FF16
   // competition / light profile, which TF24 does not use).
   if (shading_model_ == ShadingModel::PPA ||

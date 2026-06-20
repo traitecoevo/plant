@@ -132,7 +132,7 @@ public:
   // prepare_strategy via assimilation_fn).
   //  - deep crown: integrate photosynthesis over crown depth (Yokozawa q).
   //  - crown top:  single evaluation of the light at the crown centre. Used by
-  //                both flat-top and PPA; they differ only in how the patch
+  //                both crown-centre and PPA; they differ only in how the patch
   //                light profile is built (smooth vs stepped), which this read
   //                picks up transparently through the environment.
   double assimilation_deep_crown(const FF16_Environment& environment,

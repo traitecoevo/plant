@@ -25,11 +25,11 @@ struct Control {
   size_t function_integration_rule;
 
   // Crown shading model. One of "deep-crown" (integrate photosynthesis over
-  // crown depth), "average-light" (integrate the light over depth, one
-  // photosynthesis evaluation of the mean), "flat-top" (single evaluation at
+  // crown depth), "mean-light" (integrate the light over depth, one
+  // photosynthesis evaluation of the mean), "crown-centre" (single evaluation at
   // the crown centre), or "ppa" (FF16 only: discrete stepped light layers). The
   // empty default "" means "use the strategy's own default": FF16 -> deep-crown,
-  // TF24 -> average-light. Resolved once in each strategy's prepare_strategy(),
+  // TF24 -> mean-light. Resolved once in each strategy's prepare_strategy(),
   // so it never costs a string comparison on the hot path.
   std::string shading_model;
 
@@ -46,6 +46,10 @@ struct Control {
   // it, so the profile is C1-continuous and can be integrated by the adaptive
   // ODE solver. -> 0 approaches a hard step (and its numerical instability);
   // = 1 removes the flat region (approaches the smooth deep-crown profile).
+  // This one setting distinguishes the two PPA variants: "PPA (hard step)"
+  // (= 0, the literal field discretisation; discontinuous, does not run in the
+  // adaptive solver) vs "PPA (smoothed)" (> 0, default 0.3; the runnable
+  // version). They are the same `ppa` shading model, not separate models.
   double ppa_layer_smoothing;
 
   double offspring_production_tol;

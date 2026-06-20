@@ -1,8 +1,8 @@
 # Tests for the FF16 crown shading models (control$shading_model):
 #   "deep-crown" - assimilation integrated over crown depth (default)
-#   "flat-top"   - assimilation a single evaluation at the crown centre; the
+#   "crown-centre"   - assimilation a single evaluation at the crown centre; the
 #                  light profile is built exactly as for deep-crown
-#   "ppa"        - as flat-top for assimilation, but the patch light profile is
+#   "ppa"        - as crown-centre for assimilation, but the patch light profile is
 #                  built as a stepped (layered) function of height
 #
 # All three share the same per-plant competition contribution (smooth Yokozawa
@@ -25,11 +25,11 @@ make_ind <- function(model, height = 10) {
   ind
 }
 
-models <- c("deep-crown", "average-light", "flat-top", "ppa")
+models <- c("deep-crown", "mean-light", "crown-centre", "ppa")
 
 test_that("control defaults", {
   # "" means "use the strategy's own default" (FF16 -> deep-crown,
-  # TF24 -> average-light).
+  # TF24 -> mean-light).
   expect_equal(Control()$shading_model, "")
   expect_equal(Control()$ppa_layer_optical_depth, 0.5)
   expect_equal(Control()$ppa_layer_smoothing, 0.3)
@@ -57,7 +57,7 @@ test_that("per-plant competition is identical across models (all use smooth Q)",
   h <- 10
   zs <- seq(0, h, length.out = 21)
   ref <- sapply(zs, function(z) make_ind("deep-crown", h)$compute_competition(z))
-  for (m in c("average-light", "flat-top", "ppa")) {
+  for (m in c("mean-light", "crown-centre", "ppa")) {
     other <- sapply(zs, function(z) make_ind(m, h)$compute_competition(z))
     expect_equal(other, ref, tolerance = 1e-12)
   }
@@ -66,15 +66,15 @@ test_that("per-plant competition is identical across models (all use smooth Q)",
   expect_equal(tail(ref, 1), 0)
 })
 
-test_that("flat-top-box casts a step competition profile, unlike flat-top", {
+test_that("flat-top-box casts a step competition profile, unlike crown-centre", {
   h <- 10
   eta_c <- local({ eta <- FF16_Strategy()$eta; 1 - 2 / (1 + eta) + 1 / (1 + 2 * eta) })
   zs <- seq(0, h, length.out = 41)
 
-  smooth <- sapply(zs, function(z) make_ind("flat-top", h)$compute_competition(z))
+  smooth <- sapply(zs, function(z) make_ind("crown-centre", h)$compute_competition(z))
   box    <- sapply(zs, function(z) make_ind("flat-top-box", h)$compute_competition(z))
 
-  # flat-top is the smooth Yokozawa profile (many distinct interior values)
+  # crown-centre is the smooth Yokozawa profile (many distinct interior values)
   expect_gt(length(unique(round(smooth[zs > 0 & zs < h], 6))), 2)
   # flat-top-box is a step: a single full value below the crown centre, 0 above
   full <- box[[1]]
@@ -103,9 +103,9 @@ test_that("flat-top-soft-box has a continuous competition profile and runs", {
   expect_true(is.finite(out$offspring_production))
 
   # The mis-shaped competition propagates to the dynamics: a soft-box stand
-  # differs from the correct flat-top stand (same crown-centre assimilation, but
+  # differs from the correct crown-centre stand (same crown-centre assimilation, but
   # a different shade profile).
-  ctrl_flat <- Control(); ctrl_flat$shading_model <- "flat-top"
+  ctrl_flat <- Control(); ctrl_flat$shading_model <- "crown-centre"
   out_flat <- run_scm(p1, Environment("FF16"), ctrl_flat)
   expect_false(isTRUE(all.equal(out$offspring_production,
                                 out_flat$offspring_production, tolerance = 1e-2)))
@@ -127,8 +127,8 @@ test_that("under uniform light, the integrate-based models all agree", {
   # With light constant in height, the leaf-area-weighted mean light equals the
   # light everywhere, and the crown leaf-density profile integrates to one. So
   # integrating photosynthesis over depth (deep-crown), integrating light then
-  # evaluating once (average-light), and a single evaluation at the crown centre
-  # (flat-top) all collapse to the same value.
+  # evaluating once (mean-light), and a single evaluation at the crown centre
+  # (crown-centre) all collapse to the same value.
   prod <- function(model, E) {
     ind <- make_ind(model)
     env <- Environment("FF16")
@@ -138,14 +138,14 @@ test_that("under uniform light, the integrate-based models all agree", {
   }
   for (E in c(1.0, 0.5, 0.2)) {
     ref <- prod("deep-crown", E)
-    expect_equal(prod("average-light", E), ref, tolerance = 1e-10)
-    expect_equal(prod("flat-top", E), ref, tolerance = 1e-10)
+    expect_equal(prod("mean-light", E), ref, tolerance = 1e-10)
+    expect_equal(prod("crown-centre", E), ref, tolerance = 1e-10)
   }
 })
 
-test_that("average-light assimilation >= deep-crown (Jensen, concave photosynthesis)", {
+test_that("mean-light assimilation >= deep-crown (Jensen, concave photosynthesis)", {
   # Photosynthesis saturates (is concave) in light, so evaluating it at the mean
-  # light (average-light) is >= the mean of the rate over the light distribution
+  # light (mean-light) is >= the mean of the rate over the light distribution
   # (deep-crown). The two are equal only under uniform light.
   p0 <- scm_base_parameters("FF16")
   p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar,
@@ -155,7 +155,7 @@ test_that("average-light assimilation >= deep-crown (Jensen, concave photosynthe
     run_scm(p1, Environment("FF16"), ctrl)$offspring_production
   }
   op_deep <- run_op("deep-crown")
-  op_avg  <- run_op("average-light")
+  op_avg  <- run_op("mean-light")
   expect_true(is.finite(op_avg))
   expect_gt(op_avg, op_deep)
 })
@@ -171,14 +171,14 @@ test_that("deep-crown reproduces the baseline SCM result", {
   expect_equal(out$offspring_production, 16.88946, tolerance = 1e-4)
 })
 
-test_that("flat-top runs through the SCM and changes the outcome", {
+test_that("crown-centre runs through the SCM and changes the outcome", {
   p0 <- scm_base_parameters("FF16")
   p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar,
                           birth_rate_list = list(20))
-  ctrl <- Control(); ctrl$shading_model <- "flat-top"
+  ctrl <- Control(); ctrl$shading_model <- "crown-centre"
   out <- run_scm(p1, Environment("FF16"), ctrl)
   expect_true(is.finite(out$offspring_production))
-  # flat-top removes self-shading within the crown, so production differs
+  # crown-centre removes self-shading within the crown, so production differs
   expect_false(isTRUE(all.equal(out$offspring_production, 16.88946,
                                 tolerance = 1e-3)))
 })
@@ -207,8 +207,8 @@ test_that("PPA discretises the light profile into optical-depth layers", {
   env$set_shading_model("ppa", 1.0, hard)
   expect_equal(env$get_environment_at_height(10), exp(-1.0), tolerance = 1e-9)
 
-  # flat-top and deep-crown leave the profile smooth
-  for (m in c("flat-top", "deep-crown")) {
+  # crown-centre and deep-crown leave the profile smooth
+  for (m in c("crown-centre", "deep-crown")) {
     env$set_fixed_environment(0.3, 100)
     env$set_shading_model(m, d, hard)
     expect_equal(env$get_environment_at_height(10), 0.3)
@@ -271,10 +271,10 @@ test_that("adaptive and fixed-schedule PPA agree (well-behaved integration)", {
 })
 
 # ---------------------------------------------------------------------------
-# TF24 supports deep-crown, average-light (its default) and flat-top, but not
+# TF24 supports deep-crown, mean-light (its default) and crown-centre, but not
 # PPA. The shading model controls how the (expensive) hydraulic leaf
 # optimisation is aggregated over the crown: one evaluation at the mean light
-# (average-light) or crown-centre light (flat-top), or one per crown-depth
+# (mean-light) or crown-centre light (crown-centre), or one per crown-depth
 # quadrature point with all leaf outputs integrated (deep-crown).
 # ---------------------------------------------------------------------------
 
@@ -294,10 +294,10 @@ tf24_prod <- function(model, E = 0.6) {
   ind$aux("net_mass_production_dt")
 }
 
-test_that("TF24 defaults to average-light and rejects PPA", {
-  # The empty Control default maps to TF24's own default, average-light, so
+test_that("TF24 defaults to mean-light and rejects PPA", {
+  # The empty Control default maps to TF24's own default, mean-light, so
   # default behaviour is unchanged.
-  expect_equal(tf24_prod(""), tf24_prod("average-light"), tolerance = 1e-12)
+  expect_equal(tf24_prod(""), tf24_prod("mean-light"), tolerance = 1e-12)
 
   for (m in c("ppa", "flat-top-box", "flat-top-soft-box")) {
     s <- TF24_Strategy()
@@ -310,8 +310,8 @@ test_that("TF24 shading models agree under uniform light", {
   # With light constant in height, the crown-centre light, the leaf-area-weighted
   # mean light, and the depth integral of the leaf optimisation all coincide.
   for (E in c(0.4, 0.7, 1.0)) {
-    ref <- tf24_prod("average-light", E)
-    expect_equal(tf24_prod("flat-top", E), ref, tolerance = 1e-8)
+    ref <- tf24_prod("mean-light", E)
+    expect_equal(tf24_prod("crown-centre", E), ref, tolerance = 1e-8)
     expect_equal(tf24_prod("deep-crown", E), ref, tolerance = 1e-8)
   }
 })

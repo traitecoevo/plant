@@ -17,15 +17,15 @@ namespace plant {
 //   DeepCrown    - assimilation integrated over crown depth against the smooth
 //                  light profile: the leaf-area-weighted mean of the (concave)
 //                  photosynthetic rate. The original plant behaviour.
-//   AverageLight - integrate the *light* over crown depth to a leaf-area-
+//   MeanLight    - integrate the *light* over crown depth to a leaf-area-
 //                  weighted mean, then a single photosynthesis evaluation on
-//                  that mean light. Partway between DeepCrown and FlatTop: it
+//                  that mean light. Partway between DeepCrown and CrownCentre: it
 //                  captures the mean light exactly but ignores the curvature of
 //                  photosynthesis across the within-crown light distribution.
-//   FlatTop      - identical light profile to DeepCrown, but assimilation is a
+//   CrownCentre  - identical light profile to DeepCrown, but assimilation is a
 //                  single evaluation of the light at the crown centre
 //                  (z = H*eta_c) rather than any integral over depth.
-//   FlatTopBox   - like FlatTop for assimilation, but the plant's *competition*
+//   FlatTopBox   - like CrownCentre for assimilation, but the plant's *competition*
 //                  contribution is also collapsed into the thin crown-centre
 //                  layer (a hard step: full shade below z = H*eta_c, none above)
 //                  instead of the smooth Yokozawa profile. A deliberately naive
@@ -42,19 +42,19 @@ namespace plant {
 //   PPA          - perfect-plasticity approximation: the patch light profile is
 //                  built as a *stepped* function (cumulative leaf area floored
 //                  into discrete canopy layers); assimilation then reads that
-//                  stepped profile at the crown centre, as FlatTop does. See
+//                  stepped profile at the crown centre, as CrownCentre does. See
 //                  FF16_Environment::compute_environment.
 enum class ShadingModel {
-  DeepCrown, AverageLight, FlatTop, FlatTopBox, FlatTopSoftBox, PPA
+  DeepCrown, MeanLight, CrownCentre, FlatTopBox, FlatTopSoftBox, PPA
 };
 
 inline ShadingModel shading_model_from_string(const std::string& name) {
   if (name == "deep-crown") {
     return ShadingModel::DeepCrown;
-  } else if (name == "average-light") {
-    return ShadingModel::AverageLight;
-  } else if (name == "flat-top") {
-    return ShadingModel::FlatTop;
+  } else if (name == "mean-light") {
+    return ShadingModel::MeanLight;
+  } else if (name == "crown-centre") {
+    return ShadingModel::CrownCentre;
   } else if (name == "flat-top-box") {
     return ShadingModel::FlatTopBox;
   } else if (name == "flat-top-soft-box") {
