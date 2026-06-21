@@ -618,7 +618,7 @@ double TF24_Strategy::mortality_dt(double productivity_area,
   // levels and the rate of change won't matter.  It is possible that
   // we will need to trim this to some large finite value, but for
   // now, just checking that the actual mortality rate is finite.
-  if (R_FINITE(cumulative_mortality)) {
+  if (util::is_finite(cumulative_mortality)) {
     return
       mortality_growth_independent_dt() +
       mortality_growth_dependent_dt(productivity_area);

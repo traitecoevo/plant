@@ -4,7 +4,8 @@
 
 #include <stddef.h> // size_t
 #include <RcppCommon.h> // as/wrap/SEXP
-#include <R_ext/Arith.h> // R_FINITE
+#include <R_ext/Arith.h> // NA_REAL etc. (kept; widely relied on transitively)
+#include <cmath> // std::isfinite
 
 namespace plant {
 namespace util {
@@ -27,8 +28,12 @@ inline std::vector<index> index_vector(const std::vector<size_t> x) {
 
 // Inline so the hot per-node competition loop (Species::compute_competition)
 // does not pay a cross-TU call for this trivial check (no LTO in this build).
+// std::isfinite inlines to a couple of FP instructions; R_FINITE() compiled to
+// a cross-library call into libR's R_finite() here, which dominated the K93
+// competition loop. Equivalent semantics (NaN/Inf/NA_real_ all -> false) under
+// the package's -O2 (no -ffast-math) build.
 inline bool is_finite(double x) {
-  return R_FINITE(x);
+  return std::isfinite(x);
 }
 
 void check_length(size_t received, size_t expected);

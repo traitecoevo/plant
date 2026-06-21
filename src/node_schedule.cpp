@@ -3,12 +3,13 @@
 #include <plant/util.h>
 #include <Rcpp.h>
 #include <cmath> // log2, exp2
+#include <limits> // std::numeric_limits
 
 namespace plant {
 
 NodeSchedule::NodeSchedule(size_t n_species_)
   : n_species(n_species_),
-    max_time(R_PosInf),
+    max_time(std::numeric_limits<double>::infinity()),
     use_ode_times(false) {
   reset();
 }

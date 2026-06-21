@@ -3,8 +3,8 @@
 #define PLANT_PLANT_INTERPOLATOR_H_
 
 #include <vector>
+#include <limits> // std::numeric_limits
 #include <RcppCommon.h> // SEXP
-#include <R_ext/Arith.h> // R_PosInf, R_NegInf
 #include <tk/spline.h>
 #include <plant/util.h> // util::stop (for inline eval/check_active)
 
@@ -40,8 +40,8 @@ public:
   // These are chosen so that if a Interpolator is empty, functions looking to
   // see if they will fall outside of the covered range will always find they
   // do.  This is the same principle as R's range(numeric(0)) -> c(Inf, -Inf).
-  double min() const { return size() > 0 ? x.front() : R_PosInf; }
-  double max() const { return size() > 0 ? x.back() : R_NegInf; }
+  double min() const { return size() > 0 ? x.front() : std::numeric_limits<double>::infinity(); }
+  double max() const { return size() > 0 ? x.back() : -std::numeric_limits<double>::infinity(); }
   void set_extrapolate(bool e);
 
   std::vector<double> get_x() const;

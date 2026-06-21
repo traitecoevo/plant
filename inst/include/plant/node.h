@@ -6,6 +6,7 @@
 #include <plant/gradient.h>
 #include <plant/ode_solver/ode_interface.h>
 #include <optional>
+#include <limits> // std::numeric_limits
 
 namespace plant {
 
@@ -101,7 +102,7 @@ private:
 template <typename T, typename E>
 Node<T,E>::Node(strategy_type_ptr s)
   : individual(s),
-    log_density(R_NegInf),
+    log_density(-std::numeric_limits<double>::infinity()),
     log_density_dt(0),
     density(0),
     offspring_produced_survival_weighted(0),
@@ -123,7 +124,7 @@ void Node<T,E>::compute_rates(const environment_type& environment,
   // survival_individual: converts from the mean of the poisson process (on
   // [0,Inf)) to a probability (on [0,1]).
   double survival_individual = exp(-individual.state(MORTALITY_INDEX));
-  if (!R_FINITE(survival_individual)) {
+  if (!util::is_finite(survival_individual)) {
     // This is caused by NaN values in plant.mortality and log
     // density; this should only be an issue when density is so low
     // that we can throw these away.  I think that with smaller step
@@ -157,7 +158,7 @@ void Node<T,E>::compute_initial_conditions(const environment_type& environment,
   // Need to check that the rates are valid after setting the
   // mortality value here (can go to -Inf and that requires squashing
   // the rate to zero).
-  if (!R_FINITE(log_density)) {
+  if (!util::is_finite(log_density)) {
     // Can do this at the same time that we do set_log_density, I think.
     log_density_dt = 0.0;
   }
