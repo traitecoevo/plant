@@ -2,10 +2,6 @@
 
 namespace plant {
 
-// TODO: Document consistent argument order: l, b, s, h, r
-// TODO: Document ordering of different types of variables (size
-// before physiology, before compound things?)
-// TODO: Consider moving to activating as an initialisation list?
 FF16_Strategy::FF16_Strategy() {
   collect_all_auxiliary = false;
   // build the string state/aux name to index map
@@ -27,10 +23,7 @@ void FF16_Strategy::refresh_indices () {
   }
 }
 
-// [eqn 2] area_leaf (inverse of [eqn 3])
-double FF16_Strategy::area_leaf(double height) const {
-  return pow(height / a_l1, 1.0 / a_l2);
-}
+// area_leaf() is defined inline in ff16_strategy.h (hot path).
 
 // [eqn 1] mass_leaf (inverse of [eqn 2])
 double FF16_Strategy::mass_leaf(double area_leaf) const {
@@ -86,27 +79,25 @@ double FF16_Strategy::mass_above_ground(double mass_leaf, double mass_bark,
   return mass_leaf + mass_bark + mass_sapwood + mass_root;
 }
 
-// for updating auxiliary state
-void FF16_Strategy::update_dependent_aux(const int index, Internals& vars) {
-  if (index == HEIGHT_INDEX) {
-    double height = vars.state(HEIGHT_INDEX);
-    vars.set_aux(aux_index.at("competition_effect"), area_leaf(height));
-  }
-}
-
+// update_dependent_aux() is defined inline in ff16_strategy.h (hot path).
 
 // one-shot update of the scm variables
 // i.e. setting rates of ode vars from the state and updating aux vars
 void FF16_Strategy::compute_rates(const FF16_Environment& environment,  Internals& vars) {
 
   double height = vars.state(HEIGHT_INDEX);
-  double area_leaf_ = vars.aux(aux_index.at("competition_effect"));
+  double area_leaf_ = vars.aux(COMPETITION_EFFECT_AUX_INDEX);
+  double height_inverse = vars.aux(HEIGHT_INVERSE_AUX_INDEX);
 
+  // Reuse the sapwood intermediates the worker already computes (for
+  // respiration/turnover) rather than recomputing them below; bit-identical.
+  double area_sapwood_, mass_sapwood_;
   const double net_mass_production_dt_ =
-    net_mass_production_dt(environment, height, area_leaf_);
+    net_mass_production_dt(environment, height, area_leaf_, height_inverse,
+                           area_sapwood_, mass_sapwood_);
 
   // store the aux sate
-  vars.set_aux(aux_index.at("net_mass_production_dt"), net_mass_production_dt_);
+  vars.set_aux(NET_MASS_PRODUCTION_DT_AUX_INDEX, net_mass_production_dt_);
 
   if (net_mass_production_dt_ > 0) {
 
@@ -119,38 +110,45 @@ void FF16_Strategy::compute_rates(const FF16_Environment& environment,  Internal
     vars.set_rate(FECUNDITY_INDEX,
       fecundity_dt(net_mass_production_dt_, fraction_allocation_reproduction_));
 
-    vars.set_rate(state_index.at("area_heartwood"), area_heartwood_dt(area_leaf_));
-    const double area_sapwood_ = area_sapwood(area_leaf_);
-    const double mass_sapwood_ = mass_sapwood(area_sapwood_, height);
-    vars.set_rate(state_index.at("mass_heartwood"), mass_heartwood_dt(mass_sapwood_));
+    vars.set_rate(AREA_HEARTWOOD_INDEX, area_heartwood_dt(area_leaf_));
+    vars.set_rate(MASS_HEARTWOOD_INDEX, mass_heartwood_dt(mass_sapwood_));
 
     if (collect_all_auxiliary) {
-      vars.set_aux(aux_index.at("area_sapwood"), area_sapwood_);
+      vars.set_aux(AREA_SAPWOOD_AUX_INDEX, area_sapwood_);
     }
   } else {
     vars.set_rate(HEIGHT_INDEX, 0.0);
     vars.set_rate(FECUNDITY_INDEX, 0.0);
-    vars.set_rate(state_index.at("area_heartwood"), 0.0);
-    vars.set_rate(state_index.at("mass_heartwood"), 0.0);
+    vars.set_rate(AREA_HEARTWOOD_INDEX, 0.0);
+    vars.set_rate(MASS_HEARTWOOD_INDEX, 0.0);
   }
   // [eqn 21] - Instantaneous mortality rate
   vars.set_rate(MORTALITY_INDEX,
       mortality_dt(net_mass_production_dt_ / area_leaf_, vars.state(MORTALITY_INDEX)));
 }
 
-// [eqn 12] Gross annual CO2 assimilation
-double FF16_Strategy::assimilation(const FF16_Environment& environment,
-                                    double height,
-                                    double area_leaf) {
-
+// [eqn 12] Gross annual CO2 assimilation -- deep-crown model.
+// Integrate photosynthesis over crown depth: for a given height in the crown,
+// take photosynthesis at that depth multiplied by the amount of leaf there.
+double FF16_Strategy::assimilation_deep_crown(const FF16_Environment& environment,
+                                              double height,
+                                              double area_leaf,
+                                              double height_inverse) {
 
   double A = 0.0;
 
-  // Define an anonymous function to integrate
-  // For given height in crown, take photosynthesis at depth multipled by 
-  //   amount of leaf at that depth
-  std::function<double(double)> f = [&](double z) -> double {
-    return assimilation_leaf(environment.get_environment_at_height(z)) * q(z, height);
+  // Define an anonymous function to integrate.
+  // Keep the lambda's own closure type (do not wrap in std::function) so the
+  // templated QK::integrate inlines the integrand at each quadrature point
+  // instead of making a type-erased indirect call.
+  // Hoist the light-spline upper bound (canopy top) out of the integrand: it
+  // is invariant across the quadrature, so fetch it once and pass it into the
+  // capped get_environment_at_height() overload rather than re-reading
+  // spline.max() at every quadrature point.
+  const double canopy_top = environment.max_environment_height();
+  auto f = [&](double z) -> double {
+    return assimilation_leaf(environment.get_environment_at_height(z, canopy_top)) *
+      canopy_shape.q(z * height_inverse, z);
   };
 
   // Integrate over crown depth using using Gauss-Kronrod quadrature.
@@ -159,6 +157,42 @@ double FF16_Strategy::assimilation(const FF16_Environment& environment,
   A = function_integrator.integrate(f, 0.0, height);
 
   return area_leaf * A;
+}
+
+// [eqn 12] Gross annual CO2 assimilation -- mean-light model.
+// Integrate the *light* over crown depth, weighted by the leaf-area density q
+// (which integrates to one over the crown), to get the leaf-area-weighted mean
+// light the crown experiences, then take a single photosynthesis evaluation of
+// that mean. This sits between deep-crown (which integrates the concave
+// photosynthetic rate itself) and crown-centre (a single point evaluation): it
+// captures the mean light exactly but ignores the curvature of photosynthesis
+// across the within-crown light distribution.
+double FF16_Strategy::assimilation_average_light(const FF16_Environment& environment,
+                                                 double height,
+                                                 double area_leaf,
+                                                 double height_inverse) {
+  const double canopy_top = environment.max_environment_height();
+  auto f = [&](double z) -> double {
+    return environment.get_environment_at_height(z, canopy_top) *
+      canopy_shape.q(z * height_inverse, z);
+  };
+  const double mean_light = function_integrator.integrate(f, 0.0, height);
+  return area_leaf * assimilation_leaf(mean_light);
+}
+
+// [eqn 12] Gross annual CO2 assimilation -- crown-top model (crown-centre and PPA).
+// Leaf area is treated as a thin layer at the crown centre, so a single
+// evaluation of the light environment there replaces the crown-depth integral.
+// The crown-centre and PPA models share this code: under crown-centre the environment
+// returns the smooth light profile, under PPA it returns the stepped (layered)
+// profile, so the only difference between them lives in the environment build.
+// (height_inverse is unused but kept for a common dispatch signature.)
+double FF16_Strategy::assimilation_crown_top(const FF16_Environment& environment,
+                                             double height,
+                                             double area_leaf,
+                                             double /* height_inverse */) {
+  const double E = environment.get_environment_at_height(height * eta_c);
+  return area_leaf * assimilation_leaf(E);
 }
 
 // Photosynthetic rate per leaf area
@@ -231,13 +265,30 @@ double FF16_Strategy::net_mass_production_dt_A(double assimilation, double respi
 // Used by establishment_probability() and compute_rates().
 double FF16_Strategy::net_mass_production_dt(const FF16_Environment& environment,
                                 double height, double area_leaf_) {
+  return net_mass_production_dt(environment, height, area_leaf_,
+                                1.0 / height);
+}
+
+double FF16_Strategy::net_mass_production_dt(const FF16_Environment& environment,
+                                double height, double area_leaf_,
+                                double height_inverse) {
+  double area_sapwood_, mass_sapwood_;
+  return net_mass_production_dt(environment, height, area_leaf_, height_inverse,
+                                area_sapwood_, mass_sapwood_);
+}
+
+double FF16_Strategy::net_mass_production_dt(const FF16_Environment& environment,
+                                double height, double area_leaf_,
+                                double height_inverse,
+                                double& area_sapwood_, double& mass_sapwood_) {
   const double mass_leaf_    = mass_leaf(area_leaf_);
-  const double area_sapwood_ = area_sapwood(area_leaf_);
-  const double mass_sapwood_ = mass_sapwood(area_sapwood_, height);
+  area_sapwood_ = area_sapwood(area_leaf_);
+  mass_sapwood_ = mass_sapwood(area_sapwood_, height);
   const double area_bark_    = area_bark(area_leaf_);
   const double mass_bark_    = mass_bark(area_bark_, height);
   const double mass_root_    = mass_root(area_leaf_);
-  const double assimilation_ = assimilation(environment, height, area_leaf_);
+  const double assimilation_ =
+    assimilation(environment, height, area_leaf_, height_inverse);
   const double respiration_ =
     respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
   const double turnover_ =
@@ -263,14 +314,15 @@ double FF16_Strategy::fecundity_dt(double net_mass_production_dt,
 }
 
 double FF16_Strategy::darea_leaf_dmass_live(double area_leaf) const {
+  // dmass_bark_darea_leaf(area_leaf) == a_b1 * dmass_sapwood_darea_leaf(area_leaf),
+  // so compute the shared pow(area_leaf, a_l2) term once rather than twice.
+  const double dmass_sapwood_darea_leaf_ = dmass_sapwood_darea_leaf(area_leaf);
   return 1.0/(  dmass_leaf_darea_leaf(area_leaf)
-              + dmass_sapwood_darea_leaf(area_leaf)
-              + dmass_bark_darea_leaf(area_leaf)
+              + dmass_sapwood_darea_leaf_
+              + a_b1 * dmass_sapwood_darea_leaf_
               + dmass_root_darea_leaf(area_leaf));
 }
 
-// TODO: Ordering below here needs working on, probably as @dfalster
-// does equation documentation?
 double FF16_Strategy::dheight_darea_leaf(double area_leaf) const {
   return a_l1 * a_l2 * pow(area_leaf, a_l2 - 1);
 }
@@ -340,7 +392,6 @@ double FF16_Strategy::mass_live_dt(double fraction_allocation_reproduction,
   return (1 - fraction_allocation_reproduction) * net_mass_production_dt;
 }
 
-// TODO: Change top two to use mass_live_dt
 double FF16_Strategy::mass_total_dt(double fraction_allocation_reproduction,
                                      double net_mass_production_dt,
                                      double mass_heartwood_dt) const {
@@ -348,7 +399,7 @@ double FF16_Strategy::mass_total_dt(double fraction_allocation_reproduction,
     mass_heartwood_dt;
 }
 
-// TODO: Do we not track root mass change?
+// TODO(#480): Do we not track root mass change?
 double FF16_Strategy::mass_above_ground_dt(double area_leaf,
                                        double fraction_allocation_reproduction,
                                        double net_mass_production_dt,
@@ -413,7 +464,8 @@ double FF16_Strategy::establishment_probability(const FF16_Environment& environm
   double decay_over_time = exp(-recruitment_decay * environment.time);
   
   const double net_mass_production_dt_ =
-    net_mass_production_dt(environment, height_0, area_leaf_0);
+    net_mass_production_dt(environment, height_0, area_leaf_0,
+                           height_0_inverse);
   if (net_mass_production_dt_ > 0) {
     const double tmp = a_d0 * area_leaf_0 / net_mass_production_dt_;
     return 1.0 / (tmp * tmp + 1.0) * decay_over_time;
@@ -422,30 +474,13 @@ double FF16_Strategy::establishment_probability(const FF16_Environment& environm
   }
 }
 
-double FF16_Strategy::compute_competition(double z, double height) const {
-  return k_I * area_leaf(height) * Q(z, height);
-}
-
-// [eqn  9] Probability density of leaf area at height `z`
-double FF16_Strategy::q(double z, double height) const {
-  const double tmp = pow(z / height, eta);
-  return 2 * eta * (1 - tmp) * tmp / z;
-}
-
-// [eqn 10] ... Fraction of leaf area above height 'z' for an
-//              individual of height 'height'
-double FF16_Strategy::Q(double z, double height) const {
-  if (z > height) {
-    return 0.0;
-  }
-  const double tmp = 1.0-pow(z / height, eta);
-  return tmp * tmp;
-}
+// compute_competition() overloads and compute_competition_by_ratio() are
+// defined inline in ff16_strategy.h (per-node hot path).
 
 // (inverse of [eqn 10]; return the height above which fraction 'x' of
 // the leaf mass would be found).
 double FF16_Strategy::Qp(double x, double height) const { // x in [0,1], unchecked.
-  return pow(1 - sqrt(x), (1/eta)) * height;
+  return canopy_shape.Qp(x, height);
 }
 
 // The aim is to find a plant height that gives the correct seed mass.
@@ -478,10 +513,39 @@ void FF16_Strategy::prepare_strategy() {
       // Gauss-Kronrod quadrature integeration rule (see qkrules)
       control.function_integration_rule);
 
+  // Resolve the crown shading model once (string -> enum), then bind both hot
+  // paths to it: canopy_shape handles competition (leaf_area_above), and
+  // assimilation_fn selects the matching assimilation implementation. After
+  // this, neither path compares the model string per call.
+  const ShadingModel shading_model =
+    shading_model_from_string(control.shading_model, ShadingModel::DeepCrown);
+  // canopy_shape also selects the competition contribution: smooth Q for every
+  // model except flat-top-box, which casts a step (see CanopyShape).
+  canopy_shape.initialise(eta, shading_model);
+  switch (shading_model) {
+  case ShadingModel::DeepCrown:
+    assimilation_fn = &FF16_Strategy::assimilation_deep_crown;
+    break;
+  case ShadingModel::MeanLight:
+    assimilation_fn = &FF16_Strategy::assimilation_average_light;
+    break;
+  case ShadingModel::CrownCentre:
+  case ShadingModel::FlatTopBox:
+  case ShadingModel::FlatTopSoftBox:
+  case ShadingModel::PPA:
+    // All evaluate assimilation at the crown centre. They differ in the light
+    // profile they read: crown-centre from the smooth profile, flat-top-box / -soft-
+    // box from a profile built with (hard / smoothed) box competition, PPA from
+    // a stepped profile.
+    assimilation_fn = &FF16_Strategy::assimilation_crown_top;
+    break;
+  }
+
   // NOTE: this pre-computes something to save a very small amount of time
   eta_c = 1 - 2/(1 + eta) + 1/(1 + 2*eta);
   // NOTE: Also pre-computing, though less trivial
   height_0 = height_seed();
+  height_0_inverse = 1.0 / height_0;
   area_leaf_0 = area_leaf(height_0);
 
   if (is_variable_birth_rate) {

@@ -1,5 +1,3 @@
-## TODO: Test introduce_new_nodes(vector<double>)
-
 strategy_types <- get_list_of_strategy_types()
 environment_types <- get_list_of_environment_types()
 
@@ -17,7 +15,6 @@ for (x in names(strategy_types)) {
   
   p <- Parameters(x, e)(strategies=list(s),
                         patch_type = 'meta-population')
-  
   env <- Environment(x)
   
   ctrl <- Control()
@@ -25,7 +22,12 @@ for (x in names(strategy_types)) {
   cmp <- Node(x, e)(p$strategies[[1]])
 
   test_that(sprintf("Basics %s", x), {
-    ## TODO: This is something that needs validating: the birth_rate and
+    ## Default birth rate (see #333): a fresh strategy should be a constant
+    ## rate of 1 with the variable-rate (spline) path switched off.
+    s_default <- strategy_types[[x]]()
+    expect_equal(s_default$birth_rate_y, 1)
+    expect_false(s_default$is_variable_birth_rate)
+
     expect_equal(patch$size, 1)
     expect_identical(patch$height_max, cmp$height)
     expect_equal(patch$parameters, p)
@@ -50,9 +52,9 @@ for (x in names(strategy_types)) {
     }
     if(x %in% c("TF24")) {
       length_odes <- env$get_soil_number_of_depths()
-      soil_moist_inits <- c(rep(env$soil_moist_sat, length_odes)/2, rep(0,3))
+      soil_moist_inits <- c(rep(env$soil_moist_sat, length_odes)/2, rep(0,4))
       expect_equal(patch$ode_state, soil_moist_inits)
-      expect_equal(patch$ode_rates, c(-363.8567, rep(0,4), rep(1,2), 110.1570), tol = 1e-4)
+      expect_equal(patch$ode_rates, c(3.312786717, rep(0,4), 1.000000000, 0.996093750, 0.002257735, 0.000000000), tol = 1e-4)
     }
     
     expect_identical(patch$ode_state, env_state)
@@ -93,87 +95,10 @@ for (x in names(strategy_types)) {
     
     ## NOTE: These should be identical, but are merely equal...
     expect_equal(patch$derivs(y, 0), ode_rates)
-    
-    ## solver <- solver_from_ode_target(patch, p$control$ode_control)
-    ## solver$step()
-    ## patch$introduce_new_node(1)
-    ## expect_equal(patch$ode_size,
-    ##             cmp$ode_size * patch$n_individuals)
-    
+
     patch$reset()
     expect_equal(patch$ode_size, env_size)
     expect_identical(patch$environment$time, 0.0)
-    
-    t <- patch$environment$time # do via environment only?
-    
-    ## patch$introduce_new_node(1)
-    ## h <- patch$state("height")[[1]]
-    ## while (patch$time < 25) {
-    ##   solver$step()
-    ##   t <- c(t, patch$time)
-    ##   h <- c(h, patch$state("height")[[1]])
-    ## }
-    
-    ## TODO: This is not really a test, but we need to look at this and
-    ## see if it makes any sense at all.
-    ## if (interactive()) {
-    ##   plot(t, h, type="l")
-    ##   plot(patch$environment$environment_interpolator$xy, type="l")
-    ## }
-    
-    ## patch$reset()
-    ## patch$introduce_new_node(1)
-    ## solver <- solver_from_ode_target(patch, p$control$ode_control)
-    
-    ## tt <- seq(0, 25, length.out=26)
-    ## hh <- patch$state("height")[[1]]
-    ## for (ti in tt[-1]) {
-    ##   solver$advance_adaptive(ti)
-    ##   hh <- c(hh, patch$state("height")[[1]])
-    ## }
-    
-    ## if (interactive()) {
-    ##   plot(t, h, type="l")
-    ##   points(tt, hh)
-    ## }
-    
-    ## expect_equal(hh, spline(t, h, xout=tt)$y, tolerance=1e-7)
-    
-    ## test_that("OK at end of sequence", {
-    ##   expect_identical(patch$time, tt[[length(tt)]])
-    ##   solver$advance_adaptive(tt[[length(tt)]])
-    ##   expect_identical(patch$time, tt[[length(tt)]])
-    ##   expect_error(solver$advance_adaptive(tt[[length(tt)]] - 1e-8))
-    ## })
-    
-    ## test_that("State get/set works", {
-    ##   patch$reset()
-    ##   patch$introduce_new_node(1)
-    ##   ode.control <- p$control$ode_control
-    ##   ode.control$set_parameters(list(step_size_min = 1e-4))
-    ##   solver <- solver_from_ode_target(patch, ode.control)
-    ##   while (patch$time < 5) {
-    ##     solver$step()
-    ##     if (patch$time > patch$n_individuals) {
-    ##       patch$introduce_new_node(1)
-    ##       solver <- solver_from_ode_target(patch, ode.control)
-    ##     }
-    ##   }
-    ##   patch$compute_rates() # require because we just added offspring
-    ##   state <- patch$state
-    
-    ##   patch2 <- new(PatchNodeTop, patch$parameters)
-    ##   expect_error(patch2$state <- state)
-    ##   patch2$force_state(state)
-    ##   expect_identical(patch2$state, state)
-    
-    ##   ## Check some things that depend on state make sense:
-    ##   expect_identical(patch2$environment$environment_interpolator$xy)
-    ##   expect_identical(patch2$time, patch$time)
-    ##   expect_identical(patch2$ode_state, patch$ode_state)
-    ##   expect_identical(patch2$height, patch$state("height"))
-    ##   expect_identical(patch2$ode_rates, patch$ode_rates)
-    ## })
   })
 
   test_that("change patch size", {
@@ -181,14 +106,21 @@ for (x in names(strategy_types)) {
     ctrl <- Control()
     e <- environment_types[[x]]
     env <- Environment(x)
+
+    if(x == "TF24"){
+      max_patch_lifetime = 3
+    } else{
+      max_patch_lifetime = 30
+    }
+
     p2 <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          patch_area= 2, max_patch_lifetime = 30)
+                          patch_area= 2, max_patch_lifetime = max_patch_lifetime)
     patch2 <- Patch(x, e)(p2, env, ctrl)
     expect_equal(p2$patch_area, 2)
     expect_equal(patch2$get_area, 2)
 
     p10 <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          patch_area= 10, max_patch_lifetime = 30)
+                          patch_area= 10, max_patch_lifetime = max_patch_lifetime)
     patch10 <- Patch(x, e)(p10, env, ctrl)
     expect_equal(p10$patch_area, 10)
     expect_equal(patch10$get_area, 10)
@@ -255,7 +187,7 @@ for (x in names(strategy_types)) {
   test_that("No Disturbance for fixed-time patches", {
     p$patch_type <- "fixed"
     env <- Environment(x)
-    ctrl <- scm_base_control()
+    ctrl <- Control()
 
     patch <- Patch(x, e)(p, env, ctrl)
     

@@ -1,0 +1,1065 @@
+---
+title: "Canopy shading methods"
+output: bookdown::html_document2
+
+---
+
+**authors**: DS Falster
+**date**: 2026
+
+# Background
+
+## Light interception, and why it matters
+
+Light is the currency of competition in a forest. A plant's carbon gain depends
+on the light its leaves intercept, and that light has been filtered twice: by
+the crowns of taller neighbours above it, and by the plant's own leaves higher
+in its crown (self-shading). `plant` captures this through a single shared
+object -- the patch **light profile** $E(z)$, the fraction of open-sky light
+reaching height $z$. Every plant both *reads* this profile (to photosynthesise)
+and *contributes* to it (the shade its leaves cast lowers $E$ below them).
+
+Getting the light profile right is not a detail. It sets each plant's growth
+rate, which sets the size structure of the stand, which sets the competitive
+hierarchy, which ultimately decides which strategies persist and which traits
+selection favours. Errors here propagate all the way up to the ecological and
+evolutionary predictions the model exists to make.
+
+## Realism versus speed
+
+A fully realistic treatment would resolve the light field through each crown and
+integrate photosynthesis over it. That is expensive -- especially when the
+leaf-level photosynthesis model is itself costly (as in `TF24`, whose coupled
+stomatal/hydraulic optimisation is far heavier than a simple light-response
+curve). The classic response is to *simplify*: treat the crown as a single
+point, or the canopy as a few discrete layers -- trading fidelity for speed.
+`plant` lets you choose where to sit on that spectrum. The job of this vignette
+is to ask **which simplifications are safe, and for what purpose** -- because, as
+we will see, a model can be perfectly adequate for one question and badly wrong
+for another.
+
+## The models
+
+The `FF16` strategy offers six shading models, selected with
+`control$shading_model`. Four of them share the *same* per-plant competition --
+the smooth Yokozawa leaf-area profile -- and differ only in how a plant's own
+assimilation is computed (and, for PPA, how the light profile is assembled):
+
+* **`"deep-crown"`** (the default) -- the original `plant` behaviour. Leaf area
+  is distributed continuously through the crown following the Yokozawa (1995)
+  foliage profile, and a plant's gross assimilation is computed by *integrating*
+  photosynthesis over crown depth against the light profile. The patch light
+  profile is a smooth function of height.
+
+* **`"crown-centre"`** -- the light profile is built exactly as for `"deep-crown"`,
+  but a plant's assimilation is approximated by a *single evaluation* of the
+  light at its crown centre rather than an integral over depth. This skips the
+  per-plant quadrature, so it is faster, and removes within-crown self-shading.
+
+* **`"mean-light"`** -- partway between deep-crown and crown-centre. Rather than
+  integrating the *photosynthetic rate* over depth, it integrates the *light*
+  over depth (weighted by leaf-area density) to a single leaf-area-weighted mean
+  light, then takes one photosynthesis evaluation of that mean. It therefore
+  still feels the within-crown change in light environment -- and how that environment
+  shifts as the canopy develops -- but collapses the expensive photosynthesis
+  calculation to a *single* call per plant rather than one per crown depth. For
+  FF16 that saving is modest (its leaf photosynthesis is a cheap saturating
+  function), but it becomes important for models with an expensive leaf
+  submodel: the `TF24` strategy's coupled stomatal/hydraulic optimisation is far
+  more costly to evaluate, so integrating the light and optimising once is the
+  natural choice there. The cost is bias: because photosynthesis saturates with
+  light, evaluating the rate at the mean light overestimates the depth-averaged
+  rate (Jensen's inequality). So `"mean-light"` always gives at least as much
+  assimilation as `"deep-crown"`, the two agreeing only when the within-crown
+  light is uniform.
+
+* **`"ppa"`** -- the perfect-plasticity approximation, the scheme that underlies
+  large models such as FATES. The patch light profile is discretised into
+  discrete canopy *layers*: light steps down by a fixed amount of optical depth
+  (`control$ppa_layer_optical_depth`) per layer.
+  Assimilation is evaluated at the crown centre as in `"crown-centre"`, but now
+  reads this stepped profile. Because a hard step is not differentiable (and
+  makes the ODE solver fail), the layer boundaries are smoothed with a
+  C^1^-continuous ramp whose width is set by `control$ppa_layer_smoothing`.
+  This gives two variants of the *one* `"ppa"` model, exactly paralleling the
+  Flat Top pair below: **PPA (hard step)** (`ppa_layer_smoothing = 0`) is the
+  literal field discretisation (e.g. Strigul 2008, FATES) -- discontinuous, and
+  it does not run in `plant`'s adaptive solver -- while **PPA (smoothed)**
+  (`ppa_layer_smoothing > 0`, default `0.3`) is the runnable version that every
+  PPA result reported here uses.
+
+Two further models instead change the *competition* itself -- the shade a plant
+casts -- collapsing its leaf area towards a thin crown-centre layer rather than
+spreading it through the crown. This discrete-layer view is close to how many
+large vegetation models (e.g. LPJ-GUESS) represent canopy competition, so it is
+worth taking seriously rather than dismissing:
+
+* **`"flat-top-box"`** -- the shade cast is a hard *step*: full below the crown
+  centre, none above. Summed over cohorts this makes the patch light profile
+  discontinuous, and in `plant` the stand then cannot be solved at all (see
+  [mutant fitness](#mutant-fitness)).
+* **`"flat-top-soft-box"`** -- the same box competition with the step smoothed to
+  a continuous drop, so the light environment can be built. It runs, but the
+  mis-shaped shade biases its predictions.
+
+The model is resolved once when a strategy is prepared, so there is no per-call
+cost to having the choice available. The `TF24` strategy supports `"deep-crown"`,
+`"mean-light"` (its default) and `"crown-centre"`, but not the PPA or box
+variants.
+
+## How we evaluate a shading model
+
+We put the models through a ladder of increasingly demanding tests of biological
+adequacy, noting their computational cost and numerical behaviour along the way.
+Each rung asks more of the light profile than the last:
+
+1. **Stand dynamics** -- does a stand develop sensibly? We compare the size
+   distribution, leaf area index, and vertical light profile as a patch grows
+   and self-thins.
+2. **Demographic equilibrium** -- does the population settle to a sensible,
+   self-replacing seed rain?
+3. **Invasion (mutant) fitness** -- can the model support evolutionary analysis?
+   This requires the light a plant experiences to vary *continuously* with its
+   size, so the fitness landscape is smooth.
+4. **Evolutionary endpoint** -- given a smooth landscape, *where does evolution
+   settle*, and do the methods agree on that singular strategy? This is the most
+   demanding rung. It compounds every earlier difference, because the endpoint
+   depends on the equilibrium stand each model builds -- so two models can pass
+   every rung below and still predict different optima.
+
+The recurring finding is that the cheap models are often fine for stand dynamics
+and acceptable for equilibrium, but invasion fitness is unforgiving: it exposes
+which simplifications break -- PPA's stepped profile, and the discrete-layer
+("box") competition that large vegetation models rely on -- and shows that the
+key requirement is **continuity of the shade each plant casts as a function of
+height**. The final rung sharpens the warning: even a model that clears the
+fitness-landscape bar can still settle evolution in the wrong place.
+
+```{r, message = FALSE}
+library(plant)
+library(dplyr)
+library(ggplot2)
+library(patchwork)
+```
+
+# Simulating a patch under each model
+
+We grow a single `FF16` species in a patch, and run the same patch under each of
+the four smooth-competition models (the box variants are revisited later, once
+we reach the question they bear on). Everything except `control$shading_model`
+is held fixed, so any differences are due to the shading model alone.
+
+```{r}
+params <- scm_base_parameters("FF16")
+patch  <- expand_parameters(trait_matrix(0.0825, "lma"), params)
+
+models <- c("deep-crown", "mean-light", "crown-centre", "ppa")
+
+run_model <- function(model) {
+  ctrl <- Control()
+  ctrl$shading_model <- model
+  run_scm(patch, ctrl = ctrl, collect = TRUE)
+}
+
+results <- lapply(models, run_model)
+names(results) <- models
+```
+
+Each run returns the full collected state (`run_scm(collect = TRUE)`): a tidy
+`species` table (one row per node per step) and the light environment
+(`env$light_availability`). We tag each run's `species` table with its shading
+model and bind them together so we can use `plant`'s tidy helpers across all
+four.
+
+```{r}
+species_all <- dplyr::bind_rows(
+  lapply(models, function(m) dplyr::mutate(results[[m]]$species, method = m))
+)
+species_all$method <- factor(species_all$method, levels = models)
+
+# Light-extinction coefficient, used throughout to convert canopy openness to
+# cumulative leaf area: E = exp(-k_I * LAI), so LAI_above = -log(E) / k_I.
+k_I <- results[[1]]$p$strategies[[1]]$k_I
+```
+
+# Stand dynamics
+
+The first and least demanding test is whether a stand develops sensibly. We look
+at three views of the same patch as it grows and self-thins: the size
+distribution, the leaf area index, and the vertical light profile.
+
+## Size distribution
+
+The size distribution is the set of node height trajectories: each line is a
+cohort introduced at a given patch age and followed as it grows, with line
+opacity scaled by the cohort's density (faint lines are sparse cohorts).
+`plant`'s `plot_size_distribution()` builds this directly from the tidy
+`species` table; faceting by `method` compares the shading models.
+
+```{r sizedist, fig.width = 10, fig.height = 3.4}
+p_size <- plot_size_distribution(species_all) +
+  facet_wrap(~method) +
+  theme(legend.position = "bottom")
+p_size
+```
+
+The discrete layering in `"ppa"` produces visibly different growth trajectories:
+cohorts grow at near-constant light within a layer, then accelerate as they
+emerge into a brighter layer.
+
+## Leaf area index
+
+Leaf area index (LAI) -- the total one-sided leaf area per unit ground -- is the
+cumulative leaf area above the ground, which is already encoded in the recorded
+light profile: with Beer's law $E = \exp(-k_I\,\mathrm{LAI})$, the patch LAI is
+just $-\log E(0) / k_I$, where $E(0)$ is canopy openness at ground level. This
+reads straight off `env$light_availability` and needs no integration over the
+size distribution. (LAI is real leaf area, so the smooth recorded profile gives
+the true value for all four models -- the PPA layering only affects the light
+plants *experience*, not the leaf area present.)
+
+```{r}
+lai_all <- dplyr::bind_rows(
+  lapply(models, function(m) {
+    results[[m]]$env$light_availability |>
+      dplyr::group_by(time) |>
+      dplyr::slice_min(height, n = 1, with_ties = FALSE) |>
+      dplyr::ungroup() |>
+      dplyr::transmute(method = m, time, lai = -log(light_availability) / k_I)
+  })
+)
+lai_all$method <- factor(lai_all$method, levels = models)
+```
+
+```{r lai, fig.width = 7, fig.height = 4}
+p_lai <- ggplot(lai_all, aes(time, lai, colour = method)) +
+  geom_line(linewidth = 1) +
+  labs(x = "Patch age (years)", y = "Leaf area index", colour = "Shading model") +
+  theme_classic()
+p_lai
+```
+
+`"deep-crown"`, `"mean-light"` and `"crown-centre"` track each other closely and
+settle to a steady LAI: under a near-uniform light profile, all three ways of
+summarising within-crown light give similar carbon gain (with
+`"mean-light"` and `"crown-centre"` running slightly richer, since they do not
+fully resolve self-shading). The `"ppa"` model instead shows large, sustained
+oscillations -- successive waves of recruitment and self-thinning -- because the
+discrete light layers create sharp thresholds for cohort success (visible as the
+pulses of emerging cohorts in the size-distribution panel above).
+
+## Vertical light profile
+
+We can also look *within* the canopy at a few patch ages, at the vertical
+profile of cumulative leaf area above each height -- $\mathrm{LAI}_{above}(z) =
+-\log E(z) / k_I$, where $E$ is canopy openness. This is the quantity that sets
+how much each individual is shaded.
+
+The recorded `env$light_availability` is the smooth underlying profile shared by
+all models. The light that plants actually *experience* under PPA is the stepped
+version, so for the `"ppa"` panel we apply the same layering transform used
+internally (see `FF16_Environment::step_light`).
+
+```{r}
+d <- Control()$ppa_layer_optical_depth   # layer thickness (optical depth)
+w <- Control()$ppa_layer_smoothing       # boundary smoothing fraction
+
+# C1-smoothed staircase: flat over the lower (1 - w) of each layer, cubic ramp
+# over the top w. Mirrors FF16_Environment::smooth_floor() / step_light().
+smooth_floor <- function(u, w) {
+  n <- floor(u)
+  f <- u - n
+  t <- pmax(0, f - (1 - w)) / w
+  n + ifelse(f <= 1 - w, 0, t^2 * (3 - 2 * t))
+}
+ppa_step_light <- function(E, d, w) {
+  ifelse(E >= 1 | E <= 0, E,
+         exp(-d * smooth_floor(-log(E) / d, w)))
+}
+
+target_ages <- c(5, 10, 20, 60)
+
+profile_all <- dplyr::bind_rows(
+  lapply(models, function(m) {
+    light <- results[[m]]$env$light_availability
+    if (m == "ppa") {
+      light$light_availability <- ppa_step_light(light$light_availability, d, w)
+    }
+    # nearest recorded step to each target age
+    steps <- results[[m]]$steps
+    keep <- sapply(target_ages, function(a) steps$step[which.min(abs(steps$time - a))])
+    light |>
+      dplyr::filter(step %in% keep) |>
+      dplyr::mutate(method = m,
+                    age = target_ages[match(step, keep)],
+                    lai_above = -log(light_availability) / k_I)
+  })
+)
+profile_all$method <- factor(profile_all$method, levels = models)
+```
+
+```{r vprofile, fig.width = 10, fig.height = 3.6}
+p_profile <- ggplot(profile_all,
+                    aes(lai_above, height, colour = factor(age), group = age)) +
+  geom_path() +
+  facet_wrap(~method) +
+  labs(x = expression(LAI[above]~(m^2/m^2)), y = "Height (m)",
+       colour = "Patch age\n(years)") +
+  theme_classic()
+p_profile
+```
+
+`"deep-crown"`, `"mean-light"` and `"crown-centre"` share an identical smooth
+profile (they build the light environment the same way and differ only in how
+assimilation is evaluated); `"ppa"` shows the characteristic staircase, with
+cumulative leaf area held constant within a layer and jumping at each layer
+boundary.
+
+# Computational cost
+
+Speed is the whole reason the simpler models exist. A single patch is cheap, but
+`plant` is usually run thousands of times over -- sweeping traits, fitting to
+data, or computing the fitness landscapes below -- so the per-run cost compounds,
+and shaving the most expensive inner calculation is worthwhile. This is the
+payoff side of the realism-versus-speed trade.
+
+How much you save depends on two competing effects, and on a feature that is
+relatively unusual in vegetation models: `plant` integrates the patch with an
+**adaptive** ODE solver, which chooses its own step sizes (large where the
+dynamics are smooth, small only where they are not) to hit a requested accuracy
+cheaply. So the cost of a model is set both by the work *per step* and by the
+*number of steps* the solver decides to take:
+
+* **Per step**, `"deep-crown"` is the most expensive -- it performs a
+  Gauss-Kronrod quadrature over crown depth for every individual -- while
+  `"crown-centre"` and `"ppa"` replace that with a single light evaluation.
+* **Number of steps**: a model whose light profile is smooth lets the solver
+  stride; PPA's near-stepped profile is much stiffer, forcing many more, smaller
+  steps.
+
+Which effect dominates depends on how the system is stepped, so we report both
+the adaptive cost (what you actually pay) and the per-step cost on a fixed
+schedule.
+
+```{r speed-helper}
+# Median wall-clock over a few repeats. `times = NULL` uses the adaptive solver;
+# supplying a fixed schedule pins every model to the same steps.
+time_model <- function(model, times = NULL, reps = 5) {
+  p <- patch
+  use_fixed <- !is.null(times)
+  if (use_fixed) p$ode_times <- times
+  ctrl <- Control()
+  ctrl$shading_model <- model
+  run1 <- function() run_scm(p, ctrl = ctrl, use_ode_times = use_fixed)
+  run1()                                   # warm up
+  median(replicate(reps, system.time(run1())[["elapsed"]]))
+}
+
+speed_table <- function(timings) {
+  data.frame(
+    model = names(timings),
+    `median time (s)` = round(unname(timings), 4),
+    `relative to deep-crown` = round(unname(timings / timings[["deep-crown"]]), 2),
+    check.names = FALSE,
+    row.names = NULL
+  )
+}
+```
+
+## Adaptive solver (real-world cost)
+
+This is how `plant` runs by default, and the cost you actually pay. The adaptive
+solver is part of what makes `plant` efficient: it spends steps only where the
+dynamics demand them. But it also means a model's cost is not just its per-step
+work -- a model that makes the dynamics harder to integrate pays for it in extra
+steps. (Most large vegetation models instead march on a *fixed* timestep, where
+this consideration simply does not arise; we return to that below.)
+
+```{r speed-adaptive}
+timings_adaptive <- vapply(models, time_model, numeric(1))
+knitr::kable(speed_table(timings_adaptive))
+```
+
+`"crown-centre"` is fastest -- it shares deep-crown's smooth light profile (so the
+same number of solver steps) but skips the per-plant crown-depth integral.
+`"mean-light"` costs about the same as `"deep-crown"`: it also integrates over
+crown depth (just the light rather than the rate), so the per-step work and the
+step count are both similar. `"ppa"` is *slower* overall despite the cheaper
+per-plant assimilation, because its near-stepped profile forces the adaptive
+solver to take many more steps; finer layers (smaller `ppa_layer_optical_depth`)
+or sharper boundaries (smaller `ppa_layer_smoothing`) make this worse.
+
+## Fixed ODE schedule (per-step cost)
+
+If instead every model is pinned to the *same* fixed schedule
+(`run_scm(..., use_ode_times = TRUE)`), the step-count effect is removed and only
+the per-step cost remains. Now PPA's advantage shows: like `"crown-centre"`, it
+skips the crown-depth quadrature, so both are markedly faster than
+`"deep-crown"`.
+
+```{r speed-fixed}
+times <- seq(0, params$max_patch_lifetime, length.out = 4000)
+timings_fixed <- vapply(models, time_model, numeric(1), times = times)
+knitr::kable(speed_table(timings_fixed))
+```
+
+So PPA is not inherently slow -- on a fixed schedule it is *faster* than
+`"deep-crown"`. Its apparent cost under the adaptive solver comes entirely from
+the extra steps the stiff profile demands. This is also why discrete-layer
+schemes are unproblematic in the large models that use them: those models march
+on a fixed timestep, so a stepped, stiff light profile costs nothing extra and
+the difficulty never surfaces. It is `plant`'s adaptive solver that makes the
+stiffness visible -- and, as the next section shows, a *hard* step visible as
+outright failure. `"deep-crown"` nonetheless remains the default here: it is the
+most faithful representation of within-crown light capture and carries no speed
+penalty relative to earlier versions of `plant`.
+
+# Why PPA needs smoothing
+
+A literal PPA discretisation is a *hard* step function: as a plant grows and its
+crown centre crosses a layer boundary, the light it experiences jumps
+discontinuously, and so does its growth rate. This is what `ppa_layer_smoothing`
+exists to tame, and it is worth being explicit about *why* -- because the
+problem is specifically one of **adaptive ODE stepping**, not of the model
+itself.
+
+## Adaptive stepping cannot integrate a discontinuity
+
+`plant` solves the patch dynamics with an adaptive, error-controlled solver
+(an embedded Runge-Kutta scheme). At each step it forms two estimates of the
+state at different orders, and uses their difference as an estimate of the local
+truncation error. If that error exceeds the requested tolerance, the step is
+*rejected* and retried with a smaller size; the method assumes the solution is
+smooth, so halving the step should roughly quarter the error.
+
+Across a discontinuity that assumption breaks. No matter how small the step, a
+step that straddles the jump carries an O(jump) error that never falls below
+tolerance, so the solver rejects and shrinks the step indefinitely until it
+gives up. With a hard step (`ppa_layer_smoothing = 0`) this is exactly what
+happens:
+
+```{r ppa-hard}
+ctrl_hard <- Control()
+ctrl_hard$shading_model <- "ppa"
+ctrl_hard$ppa_layer_smoothing <- 0      # hard step, no smoothing
+
+tryCatch(
+  run_scm(patch, ctrl = ctrl_hard),
+  error = function(e) conditionMessage(e)
+)
+```
+
+A *fixed* schedule (`run_scm(..., use_ode_times = TRUE)`) sidesteps the
+error-control loop -- it simply takes the prescribed steps without rejecting any
+-- but then nothing protects against a large explicit step overshooting the jump,
+which sends growth to non-finite values unless the schedule is very fine. Either
+way, a hard step is not something the solver can handle robustly.
+
+Switching the rounding direction (light at the top vs the bottom of a layer)
+does not help: the difficulty is the discontinuity itself, not where the step
+sits.
+
+## The smoothed profile
+
+`ppa_layer_smoothing` replaces each hard boundary with a C^1^-continuous cubic
+ramp over the top fraction of the layer (see `FF16_Environment::smooth_floor`).
+The light profile -- and hence each plant's growth rate -- is now continuous with
+a continuous first derivative, so the adaptive error estimate behaves as the
+solver assumes and steps are accepted normally. Even a small amount of smoothing
+is enough to recover a well-behaved integration, and with the default the
+adaptive and fixed-step solutions agree.
+
+Two parameters control the discretisation:
+
+* `ppa_layer_optical_depth` -- the optical-depth thickness of one layer
+  (default `0.5`, i.e. one unit of leaf area index per layer at the default
+  extinction coefficient `k_I = 0.5`). Smaller values give finer layering.
+* `ppa_layer_smoothing` -- the fraction of each layer over which the boundary is
+  smoothed (default `0.3`). Values approaching `0` recover a hard step (and the
+  instability above); `1` removes the flat region and approaches the smooth
+  `"deep-crown"`-style profile. There is a tension here: smaller values are
+  closer to a true PPA step but stiffer (slower, per the speed table above),
+  while larger values integrate faster but blur the layer structure.
+
+# Demographic equilibrium
+
+The next test asks whether the population closes its own loop sensibly, and it
+also supplies the resident we need for the fitness analysis that follows. Rather
+than seed a stand at an arbitrary rate, we put it at its **demographic
+equilibrium**: the seed rain at which the population exactly replaces itself
+(net reproductive ratio R0 = 1). A stand seeded above or below this is over- or
+under-crowded, and would cast an unrepresentative light environment.
+
+The equilibrium is a fixed point of the patch's own seed production: put a seed
+rain in, run the patch, read the seed rain out (`offspring_production`), and feed
+it back. It converges in a handful of iterations.
+
+```{r equil}
+p_fit <- scm_base_parameters("FF16")
+p_fit$max_patch_lifetime <- 50
+lma_resident <- 0.0825
+
+# Iterate seed-rain-out -> seed-rain-in until it stops moving (R0 = 1). Re-run
+# this for any model / trait / max_patch_lifetime to re-derive the table below.
+find_equilibrium_birth_rate <- function(model, n_iter = 6, birth_rate = 1) {
+  ctrl <- Control()
+  ctrl$shading_model <- model
+  for (i in seq_len(n_iter)) {
+    resident <- expand_parameters(trait_matrix(lma_resident, "lma"), p_fit,
+                                  birth_rate_list = birth_rate)
+    birth_rate <- run_scm(resident, ctrl = ctrl)$offspring_production
+  }
+  birth_rate
+}
+find_equilibrium_birth_rate("deep-crown")   # converges to ~1.66
+```
+
+Crucially, the equilibrium **depends on the shading model**: one that lets
+plants capture more light supports a denser, more productive stand. Running the
+same iteration for each model gives equilibria spanning an order of magnitude --
+PPA's brighter layered light supports more than ten times the seed rain of
+deep-crown. We hardcode them so the build does not re-run the slower models:
+
+```{r equil-table}
+equilibrium_birth_rate <- c(
+  "deep-crown"        = 1.662,
+  "mean-light"     = 2.178,
+  "crown-centre"          = 2.185,
+  "ppa"               = 18.835,
+  "flat-top-soft-box" = 3.101
+)
+knitr::kable(data.frame(
+  model = names(equilibrium_birth_rate),
+  `equilibrium seed rain` = unname(equilibrium_birth_rate),
+  check.names = FALSE
+))
+```
+
+That an order-of-magnitude difference in predicted stand density follows from
+the shading assumption alone is the first sign that these models, so alike in
+their stand-development *trajectories*, are not interchangeable once the
+population has to sustain itself.
+
+# Mutant fitness
+
+Stand dynamics and equilibrium both tolerated the cheap models reasonably well.
+Invasion fitness is far more demanding. The fitness of a rare mutant is its
+lifetime reproductive output as it grows through the light environment cast by an
+established resident -- so it depends not on the light at one size, but on how
+the light a plant experiences *changes as it grows*. A fitness landscape (fitness
+versus a mutant trait) is the basis for evolutionary analysis, and is only useful
+if it is smooth: kinks and jumps leave optima, selection gradients and
+evolutionary endpoints ill-defined.
+
+We compute invasion fitness for mutants spanning a range of leaf mass per area
+(LMA), at fine trait resolution to expose any roughness, and run **two**
+comparisons that differ only in the resident's seed rain:
+
+1. **Same seed rain** -- every model uses the same resident seed input, so any
+   difference is due purely to the shading model.
+2. **Each at its own equilibrium** -- each resident uses its own equilibrium seed
+   rain (from the table above), so each casts a realistic, self-consistent stand.
+
+The resident is run once with `save_RK45_cache = TRUE` to cache its light
+environment; mutants are introduced into that fixed landscape with
+`run_mutant()`, and fitness is `log(R0)`.
+
+```{r fitness, fig.width = 10, fig.height = 3.6}
+# p_fit, lma_resident and equilibrium_birth_rate come from the section above.
+mutant_lma <- seq(0.07, 0.11, length.out = 60)
+
+fitness_landscape <- function(model, birth_rate) {
+  ctrl <- Control()
+  ctrl$shading_model <- model
+  ctrl$save_RK45_cache <- TRUE                       # required by run_mutant()
+  resident <- expand_parameters(trait_matrix(lma_resident, "lma"), p_fit,
+                                birth_rate_list = birth_rate)
+  scm <- run_scm(resident, ctrl = ctrl)              # caches the light environment
+  mutants <- expand_parameters(trait_matrix(mutant_lma, "lma"), resident,
+                               birth_rate_list = rep(1, length(mutant_lma)))
+  scm$run_mutant(mutants)
+  r0 <- scm$net_reproduction_ratios                  # resident first, then mutants
+  data.frame(method = model, lma = mutant_lma,
+             fitness = log(tail(r0, length(mutant_lma))))
+}
+
+# (1) all models at a common seed rain (the deep-crown equilibrium), and
+# (2) each model at its own equilibrium seed rain.
+common_rain <- equilibrium_birth_rate[["deep-crown"]]
+fit_same  <- dplyr::bind_rows(lapply(models, fitness_landscape, birth_rate = common_rain))
+fit_equil <- dplyr::bind_rows(lapply(models, function(m)
+  fitness_landscape(m, equilibrium_birth_rate[[m]])))
+
+fit_two <- dplyr::bind_rows(
+  dplyr::mutate(fit_same,  seeding = "same seed rain"),
+  dplyr::mutate(fit_equil, seeding = "each at its own equilibrium")
+)
+fit_two$method  <- factor(fit_two$method, levels = models)
+fit_two$seeding <- factor(fit_two$seeding,
+                          levels = c("same seed rain", "each at its own equilibrium"))
+
+ggplot(fit_two, aes(lma, fitness, colour = seeding)) +
+  geom_line(linewidth = 0.8) +
+  facet_wrap(~method, nrow = 1) +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey70") +
+  labs(x = "Mutant LMA", y = "Invasion fitness, log(R0)", colour = NULL) +
+  theme_classic() +
+  theme(legend.position = "bottom")
+```
+
+Two things stand out. First, **`"deep-crown"`, `"mean-light"` and
+`"crown-centre"` yield smooth landscapes under both seedings, while `"ppa"` is
+jagged** -- and at its own (much denser) equilibrium, wildly so, with a
+non-monotonic dip where small trait changes flip which layer the mutant ends in.
+For the deep-crown panel the two lines coincide, because "same seed rain" *is*
+its own equilibrium -- a useful check.
+
+Second, **the seeding assumption matters**: because the models reach different
+equilibrium stands (the table above), their fitness landscapes diverge more when
+each sits at its own equilibrium than when all are seeded alike. So a cheap
+shading model can mislead in two compounding ways -- a different fitness gradient
+in a given stand, *and* a different equilibrium stand to begin with.
+
+The deeper lesson is about *continuity of the light profile*, not the cost of
+the assimilation calculation. Invasion fitness needs the shading a plant
+experiences to vary continuously with its size; deep-crown, mean-light and
+crown-centre all build a continuous (smooth) light profile and differ only in how
+they summarise assimilation, so all three give smooth fitness. PPA breaks this:
+its light profile is a discretised step function of height, so as a mutant grows
+its light -- and hence its fitness -- jumps. The layer smoothing
+(`ppa_layer_smoothing`) that makes PPA's *dynamics* solvable softens but does not
+remove this: a mutant still crosses layer boundaries as it grows, so PPA remains
+the wrong tool for evolutionary analysis even when it is fine for a single stand
+simulation.
+
+## Getting the competition profile right
+
+It is worth being clear about *why* crown-centre survives this test. It approximates
+a plant's own assimilation crudely (a single crown-centre evaluation), but it
+still computes the shade a plant *casts* from the full smooth Yokozawa crown.
+The continuity that fitness needs comes from that competition profile, not from
+the assimilation calculation.
+
+This is exactly what the box models change, and -- as noted earlier -- the way
+they change it mirrors the discrete-layer competition of large vegetation
+models. They keep crown-centre's crown-centre assimilation but collapse the shade a
+plant casts towards that same thin layer:
+
+* `"flat-top-box"` -- a hard step: full shade below the crown centre, none above.
+* `"flat-top-soft-box"` -- the same idea but smoothed into a continuous drop, so
+  the light environment can still be built.
+
+So the question is not whether these are crude -- they are the workhorse
+representation in many large models -- but whether that crudeness is safe for the
+evolutionary question we are now asking.
+
+```{r compbox, fig.width = 7, fig.height = 3.6}
+comp_profile <- function(model, height = 10) {
+  s <- FF16_Strategy()
+  s$control$shading_model <- model
+  ind <- FF16_Individual(s)
+  ind$set_state("height", height)
+  z <- seq(0, height, length.out = 400)
+  data.frame(model = model, z = z,
+             competition = sapply(z, function(zz) ind$compute_competition(zz)))
+}
+comp <- dplyr::bind_rows(
+  comp_profile("crown-centre"),
+  comp_profile("flat-top-box"),
+  comp_profile("flat-top-soft-box")
+)
+
+ggplot(comp, aes(competition, z, colour = model)) +
+  geom_path() +
+  labs(x = "Shade cast (competition) by a 10 m plant", y = "Height (m)",
+       colour = "Model") +
+  theme_classic()
+```
+
+The correct profile (crown-centre) tapers continuously to zero through the crown;
+the box profile is a step, and the soft box a continuous-but-wrong drop
+concentrated near the crown centre.
+
+**The hard step does not even run.** Summed over a population of discrete
+cohorts, a step competition makes the patch light profile a discontinuous,
+piecewise-constant function of height, which the adaptive light-environment
+spline cannot represent -- the model fails before a stand can develop:
+
+```{r box-fail}
+ctrl_box <- Control()
+ctrl_box$shading_model <- "flat-top-box"
+tryCatch(
+  run_scm(patch, ctrl = ctrl_box),
+  error = function(e) conditionMessage(e)
+)
+```
+
+**The soft box runs, but gives the wrong answer.** Because its competition
+profile is continuous, the light environment builds and a fitness landscape can
+be computed -- but the shade is mis-distributed through the canopy, so the
+landscape is biased relative to the deep-crown reference. The *correct* crown-centre
+tracks deep-crown; the soft box does not.
+
+```{r softbox-fitness, fig.width = 7, fig.height = 4}
+box_models <- c("deep-crown", "crown-centre", "flat-top-soft-box")
+fit_compare <- dplyr::bind_rows(lapply(box_models, function(m)
+  fitness_landscape(m, equilibrium_birth_rate[[m]])))  # each at its own equilibrium
+fit_compare$method <- factor(fit_compare$method, levels = box_models)
+
+ggplot(fit_compare, aes(lma, fitness, colour = method)) +
+  geom_line(linewidth = 1) +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey60") +
+  labs(x = "Mutant LMA", y = "Invasion fitness, log(R0)", colour = "Model") +
+  theme_classic()
+```
+
+So getting the competition profile right is not a refinement but a prerequisite.
+The result generalises the PPA story: a plant model can tolerate a crude
+*assimilation* approximation (crown-centre, mean-light) and still behave well for
+both dynamics and fitness, but the shade each plant *casts* as a function of
+height must be both continuous (or the light environment is ill-defined, as with
+the hard box) and the right shape (or evolutionary predictions are biased, as
+with the soft box).
+
+None of this means the large models are wrong to use discrete layers: for
+stand-level simulation on a fixed timestep, the representation is fast, robust,
+and entirely adequate. The caution is specific to the question `plant` is built
+for. Resolving how traits evolve needs invasion fitness, invasion fitness needs
+continuous responses to size, and that is exactly what a layered competition
+profile does not provide.
+
+This is worth flagging as trait-based DGVMs (FATES and the like) are
+increasingly pushed towards eco-evolutionary questions -- many strategies
+competing, and selection on their traits. For strategies that differ *markedly*
+the discretisation is harmless: the fitness differences between them dwarf the
+layer-boundary noise, so coexistence or exclusion of distinct types is captured
+fine. The trouble is confined to the opposite, and most delicate, case --
+discriminating mutants that differ only slightly. Two near-identical strategies
+can fall on opposite sides of a layer boundary and receive incomparable
+fitnesses, so the selection gradient between them -- the very quantity that
+decides which way a trait evolves -- becomes erratic. A model can give
+sensible-looking community simulations, and resolve clearly distinct strategies,
+yet still be unable to say which of two similar strategies wins.
+
+# The evolutionary attractor
+
+The invasion-fitness section asked whether each model gives a *smooth* fitness
+landscape -- essentially a yes/no question about whether evolutionary analysis is
+possible at all. The smooth-competition models passed. But a usable landscape is
+not the point in itself: the reason we want one is to ask **where evolution
+settles**, and whether the methods that agree a landscape is smooth also agree on
+its endpoint. They do not -- and the way they part company is the subtlest lesson
+in this vignette.
+
+## Finding the singular strategy
+
+The optimum of an invasion-fitness landscape is not a fixed target. As the
+resident trait shifts, the resident *stand* it builds shifts too, and with it the
+light environment every mutant grows through -- so the landscape itself moves. The
+evolutionary endpoint is the trait that is its own best reply: the **singular
+strategy** $s^\*$, where the selection gradient vanishes. We locate it by
+root-solving that gradient.
+
+1. **Equilibrium resident.** For a candidate resident LMA, find the
+   demographic-equilibrium seed rain (R0 = 1) -- the same fixed-point iteration as
+   the equilibrium section, but re-solved for whatever resident we are testing, so
+   the stand is always self-consistent.
+2. **Selection gradient.** Introduce mutants just either side of the resident; the
+   gradient is the slope of mutant $\log(R_0)$ at mutant = resident (a central
+   finite difference of the same `run_mutant()` fitness used above).
+3. **Root-find.** Move the resident along the gradient and repeat. The attractor
+   is where the gradient crosses zero. A *negative slope* at the crossing means
+   the gradient pushes the resident back toward $s^\*$ from either side, so
+   evolution actually arrives there -- the strategy is **convergence stable**. A
+   *negative fitness curvature* at $s^\*$ means no nearby mutant can invade -- it is
+   **uninvadable** (an ESS). Both together make it a **CSS**: a continuously
+   stable endpoint, where evolution both converges and stays. (A positive
+   curvature would instead be a *branching* point, where the population splits.)
+
+Mechanically this is just a one-dimensional root-find on the selection gradient --
+far cheaper than mapping the whole landscape, since each step needs only the local
+slope, not the full curve. We lift the machinery straight from the
+invasion-fitness section: `equilibrium_birth_rate_at()` is the equilibrium
+iteration re-parameterised by resident LMA, and `sel_gradient()` /
+`fitness_curvature()` are finite-difference first and second derivatives of the
+cached `run_mutant()` fitness.
+
+```{r attractor-machinery}
+# Demographic-equilibrium seed rain for a resident of given LMA (cf.
+# find_equilibrium_birth_rate above, now a function of the resident trait).
+equilibrium_birth_rate_at <- function(model, lma, n_iter = 6, birth_rate = 1) {
+  ctrl <- Control(); ctrl$shading_model <- model
+  for (i in seq_len(n_iter)) {
+    resident <- expand_parameters(trait_matrix(lma, "lma"), p_fit,
+                                  birth_rate_list = birth_rate)
+    birth_rate <- run_scm(resident, ctrl = ctrl)$offspring_production
+  }
+  birth_rate
+}
+
+# Selection gradient d log(R0)/d(LMA) at mutant = resident, with the resident at
+# its own demographic equilibrium. Central finite difference.
+sel_gradient <- function(model, lma, delta = 0.0015, n_iter = 6) {
+  ctrl <- Control(); ctrl$shading_model <- model; ctrl$save_RK45_cache <- TRUE
+  br <- equilibrium_birth_rate_at(model, lma, n_iter)
+  resident <- expand_parameters(trait_matrix(lma, "lma"), p_fit,
+                                birth_rate_list = br)
+  scm <- run_scm(resident, ctrl = ctrl)
+  mutants <- expand_parameters(trait_matrix(c(lma - delta, lma + delta), "lma"),
+                               resident, birth_rate_list = rep(1, 2))
+  scm$run_mutant(mutants)
+  f <- log(tail(scm$net_reproduction_ratios, 2))
+  (f[2] - f[1]) / (2 * delta)
+}
+
+# Curvature d2 log(R0)/d(LMA)^2 at s* (uninvadability test): < 0 => CSS.
+fitness_curvature <- function(model, s, delta = 0.0015, n_iter = 6) {
+  ctrl <- Control(); ctrl$shading_model <- model; ctrl$save_RK45_cache <- TRUE
+  br <- equilibrium_birth_rate_at(model, s, n_iter)
+  resident <- expand_parameters(trait_matrix(s, "lma"), p_fit,
+                                birth_rate_list = br)
+  scm <- run_scm(resident, ctrl = ctrl)
+  mutants <- expand_parameters(trait_matrix(c(s - delta, s, s + delta), "lma"),
+                               resident, birth_rate_list = rep(1, 3))
+  scm$run_mutant(mutants)
+  f <- log(tail(scm$net_reproduction_ratios, 3))
+  (f[3] - 2 * f[2] + f[1]) / delta^2
+}
+```
+
+As a live check, we root-find the default `"deep-crown"` attractor over the LMA
+interval where its gradient changes sign (read off the grid below). A single
+`uniroot()` converges in a handful of equilibrium solves:
+
+```{r attractor-live}
+deep_crown_star <- uniroot(function(x) sel_gradient("deep-crown", x),
+                           interval = c(0.100, 0.1025), tol = 1e-5)$root
+deep_crown_star                                   # ~0.1007
+```
+
+Mapping the gradient over a grid and root-solving + curvature-testing all five
+models is the expensive part -- a few minutes, since every grid point re-solves an
+equilibrium and PPA is slow. So, exactly as with the equilibrium table, we
+hardcode the precomputed results and plot from them. They were produced by
+`examples/DunFalster2026/make_figure_attractor.R`, which writes out the gradient
+grid and the singular-strategy table reproduced here.
+
+```{r attractor-data}
+attractor_gradients <- read.csv(strip.white = TRUE, blank.lines.skip = TRUE,
+  text = "method,lma,gradient
+deep-crown,0.0650,437.8
+deep-crown,0.0675,410.9
+deep-crown,0.0700,382.6
+deep-crown,0.0725,353.4
+deep-crown,0.0750,323.2
+deep-crown,0.0775,292.2
+deep-crown,0.0800,260.7
+deep-crown,0.0825,229.0
+deep-crown,0.0850,197.1
+deep-crown,0.0875,165.2
+deep-crown,0.0900,133.4
+deep-crown,0.0925,101.8
+deep-crown,0.0950,70.5
+deep-crown,0.0975,39.5
+deep-crown,0.1000,8.9
+deep-crown,0.1025,-21.2
+deep-crown,0.1050,-50.8
+deep-crown,0.1075,-79.8
+deep-crown,0.1100,-108.2
+deep-crown,0.1125,-136.0
+deep-crown,0.1150,-163.2
+deep-crown,0.1175,-189.8
+deep-crown,0.1200,-215.8
+deep-crown,0.1225,-241.3
+deep-crown,0.1250,-266.1
+mean-light,0.0650,496.5
+mean-light,0.0675,466.6
+mean-light,0.0700,434.0
+mean-light,0.0725,399.1
+mean-light,0.0750,362.5
+mean-light,0.0775,324.5
+mean-light,0.0800,285.4
+mean-light,0.0825,245.6
+mean-light,0.0850,205.1
+mean-light,0.0875,164.3
+mean-light,0.0900,123.4
+mean-light,0.0925,82.5
+mean-light,0.0950,41.8
+mean-light,0.0975,1.3
+mean-light,0.1000,-38.9
+mean-light,0.1025,-78.6
+mean-light,0.1050,-117.9
+mean-light,0.1075,-156.7
+mean-light,0.1100,-195.1
+mean-light,0.1125,-233.0
+mean-light,0.1150,-270.2
+mean-light,0.1175,-306.9
+mean-light,0.1200,-343.2
+mean-light,0.1225,-379.0
+mean-light,0.1250,-414.2
+crown-centre,0.0650,571.2
+crown-centre,0.0675,531.3
+crown-centre,0.0700,487.5
+crown-centre,0.0725,440.0
+crown-centre,0.0750,389.4
+crown-centre,0.0775,336.6
+crown-centre,0.0800,281.9
+crown-centre,0.0825,226.1
+crown-centre,0.0850,169.5
+crown-centre,0.0875,112.4
+crown-centre,0.0900,54.8
+crown-centre,0.0925,-2.5
+crown-centre,0.0950,-59.2
+crown-centre,0.0975,-115.4
+crown-centre,0.1000,-171.1
+crown-centre,0.1025,-225.7
+crown-centre,0.1050,-279.6
+crown-centre,0.1075,-332.4
+crown-centre,0.1100,-384.2
+crown-centre,0.1125,-434.7
+crown-centre,0.1150,-484.2
+crown-centre,0.1175,-532.7
+crown-centre,0.1200,-579.9
+crown-centre,0.1225,-626.2
+crown-centre,0.1250,-671.0
+flat-top-soft-box,0.0650,717.9
+flat-top-soft-box,0.0675,662.2
+flat-top-soft-box,0.0700,600.0
+flat-top-soft-box,0.0725,532.7
+flat-top-soft-box,0.0750,461.6
+flat-top-soft-box,0.0775,387.6
+flat-top-soft-box,0.0800,312.1
+flat-top-soft-box,0.0825,235.5
+flat-top-soft-box,0.0850,158.5
+flat-top-soft-box,0.0875,81.0
+flat-top-soft-box,0.0900,3.7
+flat-top-soft-box,0.0925,-73.5
+flat-top-soft-box,0.0950,-150.6
+flat-top-soft-box,0.0975,-227.7
+flat-top-soft-box,0.1000,-304.6
+flat-top-soft-box,0.1025,-381.6
+flat-top-soft-box,0.1050,-458.8
+flat-top-soft-box,0.1075,-536.6
+flat-top-soft-box,0.1100,-615.1
+flat-top-soft-box,0.1125,-694.2
+flat-top-soft-box,0.1150,-774.1
+flat-top-soft-box,0.1175,-854.8
+flat-top-soft-box,0.1200,-936.9
+flat-top-soft-box,0.1225,-1020.0
+flat-top-soft-box,0.1250,-1104.0
+ppa,0.0650,3461.1
+ppa,0.0675,2945.3
+ppa,0.0700,3120.4
+ppa,0.0725,2647.5
+ppa,0.0750,2729.6
+ppa,0.0775,2445.4
+ppa,0.0800,2650.1
+ppa,0.0825,1093.1
+ppa,0.0850,271.6
+ppa,0.0875,-310.5
+ppa,0.0900,-2335.3
+ppa,0.0925,-2840.7
+ppa,0.0950,-3062.7
+ppa,0.0975,-2961.9
+ppa,0.1000,-3913.1
+ppa,0.1025,-3968.6
+ppa,0.1050,-4075.2
+ppa,0.1075,-2792.7
+ppa,0.1100,-2631.3
+ppa,0.1125,-2557.8
+ppa,0.1150,-4407.0
+ppa,0.1175,-86.9
+ppa,0.1200,-4012.5
+ppa,0.1225,-461.9
+ppa,0.1250,-167.4")
+
+singular_strategies <- read.csv(strip.white = TRUE, blank.lines.skip = TRUE,
+  text = "method,lma_star,curvature,class,robust
+deep-crown,0.1007,-12477,CSS,TRUE
+mean-light,0.0976,-17176,CSS,TRUE
+crown-centre,0.0924,-20663,CSS,TRUE
+flat-top-soft-box,0.0901,-30828,CSS,TRUE
+ppa,0.0859,-250149,CSS,FALSE")
+
+model_order <- c("deep-crown", "mean-light", "crown-centre",
+                 "flat-top-soft-box", "ppa")
+attractor_gradients$method <- factor(attractor_gradients$method, levels = model_order)
+singular_strategies$method <- factor(singular_strategies$method, levels = model_order)
+```
+
+```{r attractor-table}
+knitr::kable(data.frame(
+  model                   = as.character(singular_strategies$method),
+  `attracted LMA`         = round(singular_strategies$lma_star, 4),
+  `equilibrium seed rain` = unname(equilibrium_birth_rate[as.character(singular_strategies$method)]),
+  `fitness curvature`     = singular_strategies$curvature,
+  classification          = ifelse(singular_strategies$robust,
+                                   singular_strategies$class,
+                                   paste0(singular_strategies$class, " (stepped)")),
+  check.names = FALSE, row.names = NULL))
+```
+
+```{r attractor-fig, fig.width = 8, fig.height = 7.5}
+shape_vals <- c(`TRUE` = 19, `FALSE` = 1)   # filled = robust; open = stepped (PPA)
+
+p_grad <- ggplot(attractor_gradients, aes(lma, gradient, colour = method)) +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey60") +
+  geom_line(linewidth = 0.9) +
+  geom_point(data = singular_strategies, aes(lma_star, 0, shape = robust),
+             size = 3) +
+  scale_shape_manual(values = shape_vals, guide = "none") +
+  coord_cartesian(ylim = c(-400, 400)) +     # PPA's spikes reach ~4000; clip them
+  labs(x = "Resident LMA", y = "Selection gradient,  d log(R0) / d(LMA)",
+       colour = "Shading model",
+       subtitle = "Zero crossing with negative slope = attractor (PPA clipped: |gradient| up to ~4000)") +
+  theme_classic()
+
+p_star <- ggplot(singular_strategies, aes(method, lma_star, colour = method)) +
+  geom_point(aes(shape = robust), size = 3.5, show.legend = FALSE) +
+  geom_text(aes(label = formatC(lma_star, format = "f", digits = 4)),
+            vjust = -1.2, size = 3, show.legend = FALSE) +
+  scale_shape_manual(values = shape_vals, guide = "none") +
+  scale_y_continuous(expand = expansion(mult = c(0.08, 0.15))) +
+  labs(x = NULL, y = "Attracted LMA  (singular strategy)",
+       subtitle = "Where evolution settles: the methods disagree (~15% spread)") +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 30, hjust = 1))
+
+(p_grad / p_star) + plot_layout(heights = c(1.2, 1))
+```
+
+## The methods disagree on where evolution settles
+
+Three things stand out.
+
+**Every method has a genuine endpoint -- but they are different endpoints.** All
+five gradients cross zero exactly once, each with a negative slope (convergence
+stable) and a negative fitness curvature (uninvadable), so each is a CSS: a real
+evolutionary stopping point, not a branching point. Yet the attracted LMA marches
+steadily across the methods -- deep-crown `0.1007`, mean-light `0.0976`,
+crown-centre `0.0924`, flat-top-soft-box `0.0901`, ppa `0.0859` -- a roughly 15%
+spread.
+
+**That disagreement is invisible at the rungs below.** This is the key new
+lesson. deep-crown, mean-light and crown-centre agreed on stand dynamics and gave
+fitness landscapes of the same *shape* (the previous section) -- yet they settle
+on visibly different LMA. The mechanism ties straight back to demographic
+equilibrium: each method supports a different equilibrium *density* (seed rains
+`1.66 / 2.18 / 2.18 / 3.10 / 18.8` for the table above), so the realised light
+environment a mutant grows through differs, which shifts the selection gradient
+and moves its zero. A shading model can therefore be perfectly "safe" for the
+*shape* of the fitness landscape and still relocate the predicted optimum --
+because it gets the stand density wrong. Smoothness is necessary for evolutionary
+analysis; it is not sufficient for the answer to be right.
+
+**PPA reaches an endpoint, but a fragile one.** PPA's gradient does cross zero (at
+the lowest LMA of all), but the crossing is buried in the staircase its discrete
+layers impose: the gradient is enormous (clipped in the figure -- `|gradient|` up
+to ~4000), takes a discontinuous jump just above the attractor, is erratic in the
+high-LMA tail, and its curvature is roughly an order of magnitude steeper than the
+smooth models'. So while a singular strategy formally exists, its location is set
+by where the layer boundaries happen to fall -- nudge `ppa_layer_optical_depth`
+and it moves. This is the same verdict as the invasion-fitness section, sharpened:
+PPA is the wrong tool for evolutionary questions, and the attractor it reports
+should not be trusted.

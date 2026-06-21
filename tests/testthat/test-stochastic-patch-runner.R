@@ -10,7 +10,7 @@ test_that("empty", {
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()))
     
     env <- Environment(x)
-    ctrl <- scm_base_control()
+    ctrl <- Control()
 
     obj <- StochasticPatchRunner(x, e)(p, env, ctrl)
     expect_identical(obj$time, 0.0)
@@ -58,7 +58,7 @@ test_that("collect", {
     ctrl <- Control()
     
     expect_silent(res <- run_stochastic_collect(p, env, ctrl))
-    ## TODO: more tests on collect output
+    ## TODO(#482): more tests on collect output
 
     ## This shows that we're probably over-aggressively killing plants.
     ## Not sure why, but might be mostly due to the patch area being far

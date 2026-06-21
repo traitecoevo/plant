@@ -1,3 +1,26 @@
+## Plant (development version)
+
+### Breaking changes
+
+* SCM cohort-refinement now happens entirely in C++, and the R interface is
+  consolidated onto a single `run_scm()`. `run_scm_collect()`, `run_scm_error()`
+  and `build_schedule()` have been removed (#408, #459). Migration:
+  * `build_schedule(p, …)` -> `run_scm(p, …, refine_schedule = TRUE)$parameters`
+  * `run_scm_collect(p, …)` -> `run_scm(p, …, collect = TRUE)`
+  * `run_scm_error(p, …)` -> set `scm$collect_errors <- TRUE` then read
+    `scm$combined_node_errors`
+* The argument order of `run_scm()` changed; `use_ode_times` is now the last
+  argument (after the new `refine_schedule` and `collect`).
+
+### Minor changes / internals
+
+* `Node` now records its introduction time and patch-age density at the moment
+  it is introduced, so reproduction and integration-error calculations no longer
+  re-derive these from the node schedule / disturbance regime after the run.
+* `SCM::run()` accumulates the per-node refinement error when `collect_errors`
+  is set, exposed as `combined_node_errors`; `SCM::refine_schedule()` runs the
+  adaptive node-introduction loop in C++.
+
 ## Plant 2.0.0 release notes
 
 v2.0.0 was released on 25/02/2021

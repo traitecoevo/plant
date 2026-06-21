@@ -7,6 +7,7 @@
 #include <plant/models/tf24_environment.h>
 #include <plant/qag.h>
 #include <plant/leaf_model.h>
+#include <plant/canopy_shape.h> // ShadingModel
 
 namespace plant {
 
@@ -20,7 +21,7 @@ public:
 
   // calculate the amount of water transpired relativised by leaf area index.
 
-  double evapotranspiration_dt(double area_leaf_);
+  double evapotranspiration_dt(double area_leaf_, int soil_layer);
 
 
   // Overrides ----------------------------------------------
@@ -43,7 +44,16 @@ public:
   std::vector<std::string> aux_names() {
     std::vector<std::string> ret({
       "competition_effect",
-      "net_mass_production_dt"
+      "height_inverse",
+      "net_mass_production_dt",
+      "root_mass",
+      "opt_psi_stem",
+      "opt_root_psi",
+      "transpiration",
+      "E_up_",
+      "profit",
+      "stom_cond_CO2",
+      "assimilation"
     });
     // add the associated computation to compute_rates and compute there
     if (collect_all_auxiliary) {
@@ -96,6 +106,9 @@ public:
 
   void compute_rates(const TF24_Environment& environment,
                 Internals& vars);
+  
+  void compute_roots(const TF24_Environment& environment,
+                Internals& vars);
 
   void update_dependent_aux(const int index, Internals& vars);
 
@@ -128,7 +141,8 @@ public:
                                   double turnover) const;
 
   virtual double net_mass_production_dt(const TF24_Environment& environment,
-                                double height, double area_leaf_);
+                                double height, double area_leaf_,
+                                double height_inverse);
 
   // [eqn 16] Fraction of whole plan growth that is leaf
   virtual double fraction_allocation_reproduction(double height) const;
@@ -187,11 +201,16 @@ public:
   // * Competitive environment
   // [eqn 11] total projected leaf area above height above height `z` for given plant
   double compute_competition(double z, double height) const;
+  // Optimised overload called from Individual<TF24>::compute_competition with the
+  // cached competition_effect (= area_leaf(height)) and height_inverse (= 1/height)
+  // aux values, matching the shared individual.h interface (no recompute per call).
+  double compute_competition(double z, double area_leaf_,
+                             double height_inverse) const;
 
   // [eqn  9] Probability density of leaf area at height `z`
   double q(double z, double height) const;
   // [eqn 10] Fraction of leaf area above height `z`
-  double Q(double z, double height) const;
+  double Q(double z, double height, double eta_x) const;
   // [      ] Inverse of Q: height above which fraction 'x' of leaf found
   double Qp(double x, double height) const;
 
@@ -200,6 +219,11 @@ public:
 
   // Set constants within TF24_Strategy
   void prepare_strategy();
+
+  // Crown shading model, resolved once from control.shading_model in
+  // prepare_strategy(). TF24 supports deep-crown, mean-light (its default)
+  // and crown-centre; PPA is not available for TF24.
+  ShadingModel shading_model_ = ShadingModel::MeanLight;
 
   // * Core traits
   double lma       = 0.1978791;  // Leaf mass per area [kg / m2]
@@ -297,6 +321,9 @@ public:
   double c = log(log(1-0.5)/log(1-0.88))/(log(p_50) - log(5.16));
   double b = p_50 / std::pow(-log(1 - 50.0 / 100.0), 1 / c);
   double psi_crit = b*std::pow(log(1/0.05),1/c); // derived from b and c
+  double root_c = 2.680147;
+  double root_b = 3.898245;
+  double root_psi_crit = root_b*std::pow(log(1/0.05),1/root_c); // derived from b and c
   double beta1 = 20000;
   double beta2 = 1.5;
   double jmax_25 = vcmax_25*1.64;
@@ -306,13 +333,13 @@ public:
   double curv_fact_colim = 0.99; 
   double var_sapwood_volume_cost = 1; 
   double newton_tol_abs = 0.001;
-  double GSS_tol_abs = 1e-7;
+  double GSS_tol_abs = 1e-3;
   double vulnerability_curve_ncontrol = 100;
   double ci_abs_tol = 1e-6;
   double ci_niter = 1000;
-  double g0 = 0.022; //g0 parameter in the medlyn model umol m^-2 s^-1
-  double g1 = 2.57; //g1 parameter in the medlyn model umol kPa^0.5
-  double g1_TF24 = 46.32995;
+  double g1_TF24 = 7.5;
+  double beta_R_H = 3.4e2;
+  double beta_R_V = 9.4e3;
 
   //nitrogen allocation traits (parameterised from Austraits 4.1.0)
   double nmass_l = 13e-3; // kg N kg^-1 mass
@@ -323,8 +350,29 @@ public:
 
   std::string name;
 
+  // Cached aux/state indices, resolved once in refresh_indices(), so the hot
+  // compute_rates path does not do a std::map<string,int>::at (string compare)
+  // lookup per ODE derivs evaluation per individual (profile hot spot).
+  int aux_idx_competition_effect = -1;
+  int aux_idx_height_inverse = -1;
+  int aux_idx_net_mass_production_dt = -1;
+  int aux_idx_root_mass = -1;
+  int aux_idx_opt_psi_stem = -1;
+  int aux_idx_opt_root_psi = -1;
+  int aux_idx_transpiration = -1;
+  int aux_idx_E_up = -1;
+  int aux_idx_profit = -1;
+  int aux_idx_stom_cond_CO2 = -1;
+  int aux_idx_area_sapwood = -1;       // only present when collect_all_auxiliary
+  int state_idx_area_heartwood = -1;
+  int state_idx_mass_heartwood = -1;
+
   // For integrating functions with using Gauss-Kronrod quadrature
   quadrature::QK function_integrator;
+
+  // Reusable per-layer root-mass buffer, refilled (not reallocated) each
+  // net_mass_production_dt call to avoid a heap allocation per derivs eval.
+  std::vector<double> mass_root_prop_;
 };
 
 TF24_Strategy::ptr make_strategy_ptr(TF24_Strategy s);

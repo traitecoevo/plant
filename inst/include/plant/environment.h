@@ -24,6 +24,13 @@ public:
   void set_fixed_environment(double value, double height_max);
   void set_fixed_environment(double value);
 
+  // Configure the crown shading model for the light profile. Default: no-op;
+  // only FF16_Environment builds an alternative (stepped) profile. Called once
+  // from the Patch constructor with the run's Control settings.
+  virtual void set_shading_model(const std::string& /*model*/,
+                                 double /*layer_optical_depth*/,
+                                 double /*layer_smoothing*/) {}
+
   // ODE interface: do nothing if the environment has no state.
   size_t ode_size() const { return vars.state_size; }
   virtual void compute_rates(std::vector<double> const& resource_depletion){};

@@ -351,7 +351,7 @@ soil_moist_obs %>%
 ```
 
 ```{r}
-out <- run_scm_collect(p1, env)
+out <- run_scm(p1, env, collect = TRUE)
 
 out$env$soil_moist %>%
   mutate(soil_depth = out$env$soil_depth$soil_depth) -> Sz_solve_cpp

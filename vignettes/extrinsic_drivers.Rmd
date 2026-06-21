@@ -76,7 +76,7 @@ p1 <- expand_parameters(lmas, p0, FF16_hyperpar,
           birth_rate_list = birth_rates)
 
 # set up env and ctrl...
-ctrl <- scm_base_control()
+ctrl <- Control()
 out <- run_scm(p1, env, ctrl)
 ```
 Evaluating the birth rate can be done with the scm

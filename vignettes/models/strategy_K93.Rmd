@@ -173,7 +173,7 @@ First we need to add a species to the model parameters, then we run the characte
 class(s)
 par$strategies[[1]] <- s
 
-results <- run_scm_collect(par)
+results <- run_scm(par, collect = TRUE)
 
 t <- results$time
 h <- results$species[[1]]["height", , ]
@@ -188,7 +188,7 @@ I'm not quite sure why the model runs out for 100-ish years, but we can see that
 
 ```{r}
 par$disturbance_mean_interval <- 200
-results <- run_scm_collect(par)
+results <- run_scm(par, collect = TRUE)
 
 h <- results$species[[1]]["height", , ]
 t <- results$time
@@ -207,7 +207,7 @@ fast_par$strategies[[1]] <- s
 fast_par$disturbance_mean_interval <- 200
 fast_par$k_I <- 1e-6
 
-results <- run_scm_collect(fast_par)
+results <- run_scm(fast_par, collect = TRUE)
 
 h <- results$species[[1]]["height", , ]
 t <- results$time
@@ -265,7 +265,7 @@ fast_par2$k_I <- 1e-6
 
 sp_par <- expand_parameters(sp, fast_par2, birth_rate_list = rep(1,3))
 
-sp_results <- run_scm_collect(sp_par)
+sp_results <- run_scm(sp_par, collect = TRUE)
 
 sp_h <- lapply(sp_results$species, function(x) x["height",,])
 sp_d <- lapply(sp_results$species, function(x) x["log_density",,])

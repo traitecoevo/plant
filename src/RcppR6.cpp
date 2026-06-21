@@ -2,16 +2,16 @@
 #include <plant.h>
 
 // [[Rcpp::export]]
-plant::Leaf Leaf__ctor(double vcmax_25, double c, double b, double psi_crit, double beta2, double jmax_25, double hk_s, double a, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter, double g0, double g1, double g1_TF24) {
-  return plant::Leaf(vcmax_25, c, b, psi_crit, beta2, jmax_25, hk_s, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, g0, g1, g1_TF24);
+plant::Leaf Leaf__ctor(double vcmax_25, double c, double b, double psi_crit, double root_c, double root_b, double root_psi_crit, double beta2, double jmax_25, double hk_s, double a, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter, double g1_TF24, double beta_R_H, double beta_R_V) {
+  return plant::Leaf(vcmax_25, c, b, psi_crit, root_c, root_b, root_psi_crit, beta2, jmax_25, hk_s, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, g1_TF24, beta_R_H, beta_R_V);
 }
 // [[Rcpp::export]]
 void Leaf__initialize_integrator(plant::RcppR6::RcppR6<plant::Leaf> obj_, int integration_rule, double integration_tol) {
   obj_->initialize_integrator(integration_rule, integration_tol);
 }
 // [[Rcpp::export]]
-void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double rho, double a_bio, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa, double theta_w, double theta_fc, double theta) {
-  obj_->set_physiology(rho, a_bio, PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area, leaf_temp, atm_o2_kpa, atm_kpa, theta_w, theta_fc, theta);
+void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double area_leaf, const std::vector<double>& mass_root_prop, double rho, double a_bio, double PPFD, const std::vector<double>& psi_soil, const std::vector<double>& soil_depth, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa) {
+  obj_->set_physiology(area_leaf, mass_root_prop, rho, a_bio, PPFD, psi_soil, soil_depth, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area, leaf_temp, atm_o2_kpa, atm_kpa);
 }
 // [[Rcpp::export]]
 double Leaf__proportion_of_conductivity(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi) {
@@ -26,20 +26,20 @@ double Leaf__peak_arrh_curve(plant::RcppR6::RcppR6<plant::Leaf> obj_, double Ea,
   return obj_->peak_arrh_curve(Ea, ref_value, leaf_temp, H_d, d_S);
 }
 // [[Rcpp::export]]
-double Leaf__transpiration(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
-  return obj_->transpiration(psi_stem);
+double Leaf__transpiration(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem, double psi_upstream) {
+  return obj_->transpiration(psi_stem, psi_upstream);
 }
 // [[Rcpp::export]]
-double Leaf__transpiration_full_integration(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
-  return obj_->transpiration_full_integration(psi_stem);
+double Leaf__transpiration_full_integration(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem, double psi_upstream) {
+  return obj_->transpiration_full_integration(psi_stem, psi_upstream);
 }
 // [[Rcpp::export]]
-double Leaf__stom_cond_CO2(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
-  return obj_->stom_cond_CO2(psi_stem);
+double Leaf__stom_cond_CO2(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem, double psi_upstream) {
+  return obj_->stom_cond_CO2(psi_stem, psi_upstream);
 }
 // [[Rcpp::export]]
-double Leaf__transpiration_to_psi_stem(plant::RcppR6::RcppR6<plant::Leaf> obj_, double transpiration_) {
-  return obj_->transpiration_to_psi_stem(transpiration_);
+double Leaf__transpiration_to_psi_stem(plant::RcppR6::RcppR6<plant::Leaf> obj_, double transpiration_, double psi_upstream) {
+  return obj_->transpiration_to_psi_stem(transpiration_, psi_upstream);
 }
 // [[Rcpp::export]]
 double Leaf__assim_rubisco_limited(plant::RcppR6::RcppR6<plant::Leaf> obj_, double ci_) {
@@ -54,36 +54,52 @@ double Leaf__assim_colimited(plant::RcppR6::RcppR6<plant::Leaf> obj_, double ci_
   return obj_->assim_colimited(ci_);
 }
 // [[Rcpp::export]]
-double Leaf__assim_minus_stom_cond_CO2(plant::RcppR6::RcppR6<plant::Leaf> obj_, double x, double psi_stem) {
-  return obj_->assim_minus_stom_cond_CO2(x, psi_stem);
+double Leaf__assim_minus_stom_cond_CO2(plant::RcppR6::RcppR6<plant::Leaf> obj_, double x, double psi_stem, double psi_upstream) {
+  return obj_->assim_minus_stom_cond_CO2(x, psi_stem, psi_upstream);
 }
 // [[Rcpp::export]]
 double Leaf__electron_transport(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   return obj_->electron_transport();
 }
 // [[Rcpp::export]]
-void Leaf__set_leaf_states_rates_from_psi_stem(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
-  obj_->set_leaf_states_rates_from_psi_stem(psi_stem);
+void Leaf__set_leaf_states_rates_from_psi_stem(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem, double psi_upstream) {
+  obj_->set_leaf_states_rates_from_psi_stem(psi_stem, psi_upstream);
 }
 // [[Rcpp::export]]
-double Leaf__psi_stem_to_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
-  return obj_->psi_stem_to_ci(psi_stem);
+void Leaf__E_from_Soil_to_Root_Collar(plant::RcppR6::RcppR6<plant::Leaf> obj_, double P_x_r, std::vector<double> psi_soil) {
+  obj_->E_from_Soil_to_Root_Collar(P_x_r, psi_soil);
 }
 // [[Rcpp::export]]
-double Leaf__hydraulic_cost_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
-  return obj_->hydraulic_cost_Sperry(psi_stem);
+void Leaf__find_root_collar_psi(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  obj_->find_root_collar_psi();
+}
+// [[Rcpp::export]]
+double Leaf__find_root_psi(plant::RcppR6::RcppR6<plant::Leaf> obj_, double wettest_soil_layer, std::vector<double> psi_soil, int find_root_crit) {
+  return obj_->find_root_psi(wettest_soil_layer, psi_soil, find_root_crit);
+}
+// [[Rcpp::export]]
+double Leaf__find_psi_stem_from_psi_root(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_root, std::vector<double> psi_soil) {
+  return obj_->find_psi_stem_from_psi_root(psi_root, psi_soil);
+}
+// [[Rcpp::export]]
+double Leaf__psi_stem_to_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem, double psi_upstream) {
+  return obj_->psi_stem_to_ci(psi_stem, psi_upstream);
+}
+// [[Rcpp::export]]
+double Leaf__hydraulic_cost_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem, double psi_upstream) {
+  return obj_->hydraulic_cost_Sperry(psi_stem, psi_upstream);
 }
 // [[Rcpp::export]]
 double Leaf__hydraulic_cost_TF(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
   return obj_->hydraulic_cost_TF(psi_stem);
 }
 // [[Rcpp::export]]
-double Leaf__profit_psi_stem_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
-  return obj_->profit_psi_stem_Sperry(psi_stem);
+double Leaf__profit_psi_stem_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem, double psi_upstream) {
+  return obj_->profit_psi_stem_Sperry(psi_stem, psi_upstream);
 }
 // [[Rcpp::export]]
-double Leaf__profit_psi_stem_TF(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
-  return obj_->profit_psi_stem_TF(psi_stem);
+double Leaf__profit_psi_stem_TF(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem, double psi_upstream) {
+  return obj_->profit_psi_stem_TF(psi_stem, psi_upstream);
 }
 // [[Rcpp::export]]
 void Leaf__optimise_psi_stem_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
@@ -94,20 +110,16 @@ void Leaf__optimise_psi_stem_TF(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   obj_->optimise_psi_stem_TF();
 }
 // [[Rcpp::export]]
+double Leaf__medlyn_model_gs(plant::RcppR6::RcppR6<plant::Leaf> obj_, double assim_colimited_) {
+  return obj_->medlyn_model_gs(assim_colimited_);
+}
+// [[Rcpp::export]]
 void Leaf__solve_medlyn_ci_numerical(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   obj_->solve_medlyn_ci_numerical();
 }
 // [[Rcpp::export]]
 void Leaf__solve_medlyn_ci_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   obj_->solve_medlyn_ci_analytical();
-}
-// [[Rcpp::export]]
-double Leaf__medlyn_model_gs(plant::RcppR6::RcppR6<plant::Leaf> obj_, double assim_colimited_) {
-  return obj_->medlyn_model_gs(assim_colimited_);
-}
-// [[Rcpp::export]]
-double Leaf__medlyn_stom_cond_minus_coupled_stom_cond(plant::RcppR6::RcppR6<plant::Leaf> obj_, double x) {
-  return obj_->medlyn_stom_cond_minus_coupled_stom_cond(x);
 }
 // [[Rcpp::export]]
 double Leaf__ci___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
@@ -128,15 +140,6 @@ void Leaf__stom_cond_CO2___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double v
 }
 
 // [[Rcpp::export]]
-double Leaf__medlyn_model_gs___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->medlyn_model_gs_;
-}
-// [[Rcpp::export]]
-void Leaf__medlyn_model_gs___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
-  obj_->medlyn_model_gs_ = value;
-}
-
-// [[Rcpp::export]]
 double Leaf__assim_colimited___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   return obj_->assim_colimited_;
 }
@@ -152,6 +155,15 @@ double Leaf__transpiration___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
 // [[Rcpp::export]]
 void Leaf__transpiration___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
   obj_->transpiration_ = value;
+}
+
+// [[Rcpp::export]]
+std::vector<double> Leaf__soil_consumption___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->soil_consumption_;
+}
+// [[Rcpp::export]]
+void Leaf__soil_consumption___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
+  obj_->soil_consumption_ = value;
 }
 
 // [[Rcpp::export]]
@@ -245,6 +257,15 @@ void Leaf__R_d___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
 }
 
 // [[Rcpp::export]]
+double Leaf__sapwood_volume_per_leaf_area___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->sapwood_volume_per_leaf_area_;
+}
+// [[Rcpp::export]]
+void Leaf__sapwood_volume_per_leaf_area___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->sapwood_volume_per_leaf_area_ = value;
+}
+
+// [[Rcpp::export]]
 double Leaf__leaf_specific_conductance_max___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   return obj_->leaf_specific_conductance_max_;
 }
@@ -272,12 +293,39 @@ void Leaf__jmax___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
 }
 
 // [[Rcpp::export]]
+double Leaf__area_leaf___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->area_leaf_;
+}
+// [[Rcpp::export]]
+void Leaf__area_leaf___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->area_leaf_ = value;
+}
+
+// [[Rcpp::export]]
 double Leaf__rho___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   return obj_->rho_;
 }
 // [[Rcpp::export]]
 void Leaf__rho___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
   obj_->rho_ = value;
+}
+
+// [[Rcpp::export]]
+std::vector<double> Leaf__c_r_V___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->c_r_V_;
+}
+// [[Rcpp::export]]
+void Leaf__c_r_V___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
+  obj_->c_r_V_ = value;
+}
+
+// [[Rcpp::export]]
+std::vector<double> Leaf__c_r_H___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->c_r_H_;
+}
+// [[Rcpp::export]]
+void Leaf__c_r_H___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
+  obj_->c_r_H_ = value;
 }
 
 // [[Rcpp::export]]
@@ -317,12 +365,102 @@ void Leaf__ca___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
 }
 
 // [[Rcpp::export]]
-double Leaf__psi_soil___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+std::vector<double> Leaf__soil_depth___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->soil_depth_;
+}
+// [[Rcpp::export]]
+void Leaf__soil_depth___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
+  obj_->soil_depth_ = value;
+}
+
+// [[Rcpp::export]]
+std::vector<double> Leaf__z_soil_mid___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->z_soil_mid_;
+}
+// [[Rcpp::export]]
+void Leaf__z_soil_mid___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
+  obj_->z_soil_mid_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__dz___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->dz_;
+}
+// [[Rcpp::export]]
+void Leaf__dz___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->dz_ = value;
+}
+
+// [[Rcpp::export]]
+int Leaf__soil_number_of_depths___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->soil_number_of_depths_;
+}
+// [[Rcpp::export]]
+void Leaf__soil_number_of_depths___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, int value) {
+  obj_->soil_number_of_depths_ = value;
+}
+
+// [[Rcpp::export]]
+int Leaf__max_soil_layer__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->max_soil_layer;
+}
+// [[Rcpp::export]]
+void Leaf__max_soil_layer__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, int value) {
+  obj_->max_soil_layer = value;
+}
+
+// [[Rcpp::export]]
+std::vector<double> Leaf__psi_soil___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   return obj_->psi_soil_;
 }
 // [[Rcpp::export]]
-void Leaf__psi_soil___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+void Leaf__psi_soil___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
   obj_->psi_soil_ = value;
+}
+
+// [[Rcpp::export]]
+std::vector<double> Leaf__r_R_H_min__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->r_R_H_min;
+}
+// [[Rcpp::export]]
+void Leaf__r_R_H_min__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
+  obj_->r_R_H_min = value;
+}
+
+// [[Rcpp::export]]
+std::vector<double> Leaf__r_R_V__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->r_R_V;
+}
+// [[Rcpp::export]]
+void Leaf__r_R_V__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
+  obj_->r_R_V = value;
+}
+
+// [[Rcpp::export]]
+std::vector<double> Leaf__r_R_V_sum__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->r_R_V_sum;
+}
+// [[Rcpp::export]]
+void Leaf__r_R_V_sum__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
+  obj_->r_R_V_sum = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__assim_max___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->assim_max_;
+}
+// [[Rcpp::export]]
+void Leaf__assim_max___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->assim_max_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__root_collar_psi___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->root_collar_psi_;
+}
+// [[Rcpp::export]]
+void Leaf__root_collar_psi___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->root_collar_psi_ = value;
 }
 
 // [[Rcpp::export]]
@@ -380,12 +518,57 @@ void Leaf__opt_ci___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
 }
 
 // [[Rcpp::export]]
+double Leaf__E_up___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->E_up_;
+}
+// [[Rcpp::export]]
+void Leaf__E_up___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->E_up_ = value;
+}
+
+// [[Rcpp::export]]
+std::vector<double> Leaf__f_r__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->f_r;
+}
+// [[Rcpp::export]]
+void Leaf__f_r__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
+  obj_->f_r = value;
+}
+
+// [[Rcpp::export]]
 double Leaf__count__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   return obj_->count;
 }
 // [[Rcpp::export]]
 void Leaf__count__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
   obj_->count = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__medlyn_model_gs___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->medlyn_model_gs_;
+}
+// [[Rcpp::export]]
+void Leaf__medlyn_model_gs___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->medlyn_model_gs_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__g0__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->g0;
+}
+// [[Rcpp::export]]
+void Leaf__g0__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->g0 = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__g1__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->g1;
+}
+// [[Rcpp::export]]
+void Leaf__g1__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->g1 = value;
 }
 
 // [[Rcpp::export]]
@@ -418,25 +601,23 @@ void Leaf__theta___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
 
 // [[Rcpp::export]]
 odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > OdeRunner___FF16__ctor(plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> obj, odelia::ode::OdeControl control) {
-  auto ret = odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> >(obj, control);
-  ret.set_collect(false);
-  return ret;
+  return odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> >(obj, control);
 }
 // [[Rcpp::export]]
-void OdeRunner___FF16__advance_adaptive(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_, double time) {
-  obj_->advance_adaptive({obj_->time(), time});
+void OdeRunner___FF16__advance_adaptive(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_, std::vector<double> time) {
+  obj_->advance_adaptive(time);
 }
 // [[Rcpp::export]]
 void OdeRunner___FF16__advance_fixed(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_, std::vector<double> time) {
   obj_->advance_fixed(time);
 }
 // [[Rcpp::export]]
-void OdeRunner___FF16__step(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_) {
-  obj_->step();
+void OdeRunner___FF16__advance_euler(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_, std::vector<double> time) {
+  obj_->advance_euler(time);
 }
 // [[Rcpp::export]]
-void OdeRunner___FF16__step_to(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_, double time) {
-  obj_->advance_fixed({obj_->time(), time});
+void OdeRunner___FF16__step(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_) {
+  obj_->step();
 }
 // [[Rcpp::export]]
 void OdeRunner___FF16__set_state(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > > obj_, std::vector<double> y, double time) {
@@ -469,25 +650,23 @@ plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> Od
 
 // [[Rcpp::export]]
 odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > OdeRunner___TF24__ctor(plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> obj, odelia::ode::OdeControl control) {
-  auto ret = odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> >(obj, control);
-  ret.set_collect(false);
-  return ret;
+  return odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> >(obj, control);
 }
 // [[Rcpp::export]]
-void OdeRunner___TF24__advance_adaptive(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_, double time) {
-  obj_->advance_adaptive({obj_->time(), time});
+void OdeRunner___TF24__advance_adaptive(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_, std::vector<double> time) {
+  obj_->advance_adaptive(time);
 }
 // [[Rcpp::export]]
 void OdeRunner___TF24__advance_fixed(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_, std::vector<double> time) {
   obj_->advance_fixed(time);
 }
 // [[Rcpp::export]]
-void OdeRunner___TF24__step(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_) {
-  obj_->step();
+void OdeRunner___TF24__advance_euler(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_, std::vector<double> time) {
+  obj_->advance_euler(time);
 }
 // [[Rcpp::export]]
-void OdeRunner___TF24__step_to(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_, double time) {
-  obj_->advance_fixed({obj_->time(), time});
+void OdeRunner___TF24__step(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_) {
+  obj_->step();
 }
 // [[Rcpp::export]]
 void OdeRunner___TF24__set_state(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > > obj_, std::vector<double> y, double time) {
@@ -520,25 +699,23 @@ plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> Od
 
 // [[Rcpp::export]]
 odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > OdeRunner___K93__ctor(plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> obj, odelia::ode::OdeControl control) {
-  auto ret = odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> >(obj, control);
-  ret.set_collect(false);
-  return ret;
+  return odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> >(obj, control);
 }
 // [[Rcpp::export]]
-void OdeRunner___K93__advance_adaptive(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_, double time) {
-  obj_->advance_adaptive({obj_->time(), time});
+void OdeRunner___K93__advance_adaptive(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_, std::vector<double> time) {
+  obj_->advance_adaptive(time);
 }
 // [[Rcpp::export]]
 void OdeRunner___K93__advance_fixed(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_, std::vector<double> time) {
   obj_->advance_fixed(time);
 }
 // [[Rcpp::export]]
-void OdeRunner___K93__step(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_) {
-  obj_->step();
+void OdeRunner___K93__advance_euler(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_, std::vector<double> time) {
+  obj_->advance_euler(time);
 }
 // [[Rcpp::export]]
-void OdeRunner___K93__step_to(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_, double time) {
-  obj_->advance_fixed({obj_->time(), time});
+void OdeRunner___K93__step(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_) {
+  obj_->step();
 }
 // [[Rcpp::export]]
 void OdeRunner___K93__set_state(plant::RcppR6::RcppR6<odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > > obj_, std::vector<double> y, double time) {
@@ -2126,8 +2303,8 @@ void SCM___FF16__FF16_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::FF
   obj_->run_mutant(p);
 }
 // [[Rcpp::export]]
-std::vector<plant::util::index> SCM___FF16__FF16_Env__run_next(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->r_run_next();
+void SCM___FF16__FF16_Env__refine_schedule(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  obj_->refine_schedule();
 }
 // [[Rcpp::export]]
 void SCM___FF16__FF16_Env__reset(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
@@ -2145,11 +2322,6 @@ std::vector<double> SCM___FF16__FF16_Env__compute_competition_effect_error_by_no
 void SCM___FF16__FF16_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, std::vector<std::vector<double>> times) {
   obj_->r_set_node_schedule_times(times);
 }
-// [[Rcpp::export]]
-bool SCM___FF16__FF16_Env__complete__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->complete();
-}
-
 // [[Rcpp::export]]
 double SCM___FF16__FF16_Env__time__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->time();
@@ -2181,6 +2353,16 @@ std::vector<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment>> SCM___FF
 }
 
 // [[Rcpp::export]]
+std::vector<std::vector<double>> SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->r_net_reproduction_ratio_errors();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double>> SCM___FF16__FF16_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->refinement_error_by_node();
+}
+
+// [[Rcpp::export]]
 plant::NodeSchedule SCM___FF16__FF16_Env__node_schedule__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->r_node_schedule();
 }
@@ -2195,26 +2377,21 @@ std::vector<double> SCM___FF16__FF16_Env__ode_times__get(plant::RcppR6::RcppR6<p
 }
 
 // [[Rcpp::export]]
-bool SCM___FF16__FF16_Env__use_ode_times__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->r_use_ode_times();
-}
-// [[Rcpp::export]]
-void SCM___FF16__FF16_Env__use_ode_times__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, bool value) {
-  obj_->r_set_use_ode_times(value);
-}
-
-// [[Rcpp::export]]
 bool SCM___FF16__FF16_Env__collect__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->r_get_collect();
+  return obj_->collect;
 }
 // [[Rcpp::export]]
 void SCM___FF16__FF16_Env__collect__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, bool value) {
-  obj_->r_set_collect(value);
+  obj_->collect = value;
 }
 
 // [[Rcpp::export]]
-std::vector<std::vector<double>> SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->r_net_reproduction_ratio_errors();
+bool SCM___FF16__FF16_Env__collect_refinement_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->collect_refinement_errors;
+}
+// [[Rcpp::export]]
+void SCM___FF16__FF16_Env__collect_refinement_errors__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, bool value) {
+  obj_->collect_refinement_errors = value;
 }
 
 
@@ -2231,8 +2408,8 @@ void SCM___TF24__TF24_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::TF
   obj_->run_mutant(p);
 }
 // [[Rcpp::export]]
-std::vector<plant::util::index> SCM___TF24__TF24_Env__run_next(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
-  return obj_->r_run_next();
+void SCM___TF24__TF24_Env__refine_schedule(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
+  obj_->refine_schedule();
 }
 // [[Rcpp::export]]
 void SCM___TF24__TF24_Env__reset(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
@@ -2250,11 +2427,6 @@ std::vector<double> SCM___TF24__TF24_Env__compute_competition_effect_error_by_no
 void SCM___TF24__TF24_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_, std::vector<std::vector<double>> times) {
   obj_->r_set_node_schedule_times(times);
 }
-// [[Rcpp::export]]
-bool SCM___TF24__TF24_Env__complete__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
-  return obj_->complete();
-}
-
 // [[Rcpp::export]]
 double SCM___TF24__TF24_Env__time__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
   return obj_->time();
@@ -2286,6 +2458,16 @@ std::vector<plant::Patch<plant::TF24_Strategy,plant::TF24_Environment>> SCM___TF
 }
 
 // [[Rcpp::export]]
+std::vector<std::vector<double>> SCM___TF24__TF24_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->r_net_reproduction_ratio_errors();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double>> SCM___TF24__TF24_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->refinement_error_by_node();
+}
+
+// [[Rcpp::export]]
 plant::NodeSchedule SCM___TF24__TF24_Env__node_schedule__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
   return obj_->r_node_schedule();
 }
@@ -2300,26 +2482,21 @@ std::vector<double> SCM___TF24__TF24_Env__ode_times__get(plant::RcppR6::RcppR6<p
 }
 
 // [[Rcpp::export]]
-bool SCM___TF24__TF24_Env__use_ode_times__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
-  return obj_->r_use_ode_times();
-}
-// [[Rcpp::export]]
-void SCM___TF24__TF24_Env__use_ode_times__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_, bool value) {
-  obj_->r_set_use_ode_times(value);
-}
-
-// [[Rcpp::export]]
 bool SCM___TF24__TF24_Env__collect__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
-  return obj_->r_get_collect();
+  return obj_->collect;
 }
 // [[Rcpp::export]]
 void SCM___TF24__TF24_Env__collect__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_, bool value) {
-  obj_->r_set_collect(value);
+  obj_->collect = value;
 }
 
 // [[Rcpp::export]]
-std::vector<std::vector<double>> SCM___TF24__TF24_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
-  return obj_->r_net_reproduction_ratio_errors();
+bool SCM___TF24__TF24_Env__collect_refinement_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->collect_refinement_errors;
+}
+// [[Rcpp::export]]
+void SCM___TF24__TF24_Env__collect_refinement_errors__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_, bool value) {
+  obj_->collect_refinement_errors = value;
 }
 
 
@@ -2336,8 +2513,8 @@ void SCM___K93__K93_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::K93_
   obj_->run_mutant(p);
 }
 // [[Rcpp::export]]
-std::vector<plant::util::index> SCM___K93__K93_Env__run_next(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  return obj_->r_run_next();
+void SCM___K93__K93_Env__refine_schedule(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  obj_->refine_schedule();
 }
 // [[Rcpp::export]]
 void SCM___K93__K93_Env__reset(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
@@ -2355,11 +2532,6 @@ std::vector<double> SCM___K93__K93_Env__compute_competition_effect_error_by_node
 void SCM___K93__K93_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, std::vector<std::vector<double>> times) {
   obj_->r_set_node_schedule_times(times);
 }
-// [[Rcpp::export]]
-bool SCM___K93__K93_Env__complete__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  return obj_->complete();
-}
-
 // [[Rcpp::export]]
 double SCM___K93__K93_Env__time__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
   return obj_->time();
@@ -2391,6 +2563,16 @@ std::vector<plant::Patch<plant::K93_Strategy,plant::K93_Environment>> SCM___K93_
 }
 
 // [[Rcpp::export]]
+std::vector<std::vector<double>> SCM___K93__K93_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->r_net_reproduction_ratio_errors();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double>> SCM___K93__K93_Env__refinement_error_by_node__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->refinement_error_by_node();
+}
+
+// [[Rcpp::export]]
 plant::NodeSchedule SCM___K93__K93_Env__node_schedule__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
   return obj_->r_node_schedule();
 }
@@ -2405,26 +2587,21 @@ std::vector<double> SCM___K93__K93_Env__ode_times__get(plant::RcppR6::RcppR6<pla
 }
 
 // [[Rcpp::export]]
-bool SCM___K93__K93_Env__use_ode_times__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  return obj_->r_use_ode_times();
-}
-// [[Rcpp::export]]
-void SCM___K93__K93_Env__use_ode_times__set(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, bool value) {
-  obj_->r_set_use_ode_times(value);
-}
-
-// [[Rcpp::export]]
 bool SCM___K93__K93_Env__collect__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  return obj_->r_get_collect();
+  return obj_->collect;
 }
 // [[Rcpp::export]]
 void SCM___K93__K93_Env__collect__set(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, bool value) {
-  obj_->r_set_collect(value);
+  obj_->collect = value;
 }
 
 // [[Rcpp::export]]
-std::vector<std::vector<double>> SCM___K93__K93_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  return obj_->r_net_reproduction_ratio_errors();
+bool SCM___K93__K93_Env__collect_refinement_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->collect_refinement_errors;
+}
+// [[Rcpp::export]]
+void SCM___K93__K93_Env__collect_refinement_errors__set(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, bool value) {
+  obj_->collect_refinement_errors = value;
 }
 
 
@@ -3302,6 +3479,10 @@ void FF16_Environment__clear(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_
 // [[Rcpp::export]]
 void FF16_Environment__set_fixed_environment(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double value, double height_max) {
   obj_->set_fixed_environment(value, height_max);
+}
+// [[Rcpp::export]]
+void FF16_Environment__set_shading_model(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::string model, double layer_optical_depth, double layer_smoothing) {
+  obj_->set_shading_model(model, layer_optical_depth, layer_smoothing);
 }
 // [[Rcpp::export]]
 void FF16_Environment__compute_rates(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::vector<double> resource_depletion) {

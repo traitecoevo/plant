@@ -251,6 +251,9 @@ template <> inline plant::NodeSchedule as(SEXP x) {
 template <> inline SEXP wrap(const plant::Control& x) {
   Rcpp::List ret;
   ret["function_integration_rule"] = Rcpp::wrap(x.function_integration_rule);
+  ret["shading_model"] = Rcpp::wrap(x.shading_model);
+  ret["ppa_layer_optical_depth"] = Rcpp::wrap(x.ppa_layer_optical_depth);
+  ret["ppa_layer_smoothing"] = Rcpp::wrap(x.ppa_layer_smoothing);
   ret["offspring_production_tol"] = Rcpp::wrap(x.offspring_production_tol);
   ret["offspring_production_iterations"] = Rcpp::wrap(x.offspring_production_iterations);
   ret["node_gradient_eps"] = Rcpp::wrap(x.node_gradient_eps);
@@ -264,6 +267,7 @@ template <> inline SEXP wrap(const plant::Control& x) {
   ret["ode_tol_abs"] = Rcpp::wrap(x.ode_tol_abs);
   ret["ode_a_y"] = Rcpp::wrap(x.ode_a_y);
   ret["ode_a_dydt"] = Rcpp::wrap(x.ode_a_dydt);
+  ret["fixed_time_step"] = Rcpp::wrap(x.fixed_time_step);
   ret["schedule_nsteps"] = Rcpp::wrap(x.schedule_nsteps);
   ret["schedule_eps"] = Rcpp::wrap(x.schedule_eps);
   ret["schedule_verbose"] = Rcpp::wrap(x.schedule_verbose);
@@ -286,6 +290,12 @@ template <> inline plant::Control as(SEXP x) {
   Rcpp::List xl(x);
   // ret.function_integration_rule = Rcpp::as<decltype(retfunction_integration_rule) >(xl["function_integration_rule"]);
   ret.function_integration_rule = Rcpp::as<size_t >(xl["function_integration_rule"]);
+  // ret.shading_model = Rcpp::as<decltype(retshading_model) >(xl["shading_model"]);
+  ret.shading_model = Rcpp::as<std::string >(xl["shading_model"]);
+  // ret.ppa_layer_optical_depth = Rcpp::as<decltype(retppa_layer_optical_depth) >(xl["ppa_layer_optical_depth"]);
+  ret.ppa_layer_optical_depth = Rcpp::as<double >(xl["ppa_layer_optical_depth"]);
+  // ret.ppa_layer_smoothing = Rcpp::as<decltype(retppa_layer_smoothing) >(xl["ppa_layer_smoothing"]);
+  ret.ppa_layer_smoothing = Rcpp::as<double >(xl["ppa_layer_smoothing"]);
   // ret.offspring_production_tol = Rcpp::as<decltype(retoffspring_production_tol) >(xl["offspring_production_tol"]);
   ret.offspring_production_tol = Rcpp::as<double >(xl["offspring_production_tol"]);
   // ret.offspring_production_iterations = Rcpp::as<decltype(retoffspring_production_iterations) >(xl["offspring_production_iterations"]);
@@ -312,6 +322,8 @@ template <> inline plant::Control as(SEXP x) {
   ret.ode_a_y = Rcpp::as<double >(xl["ode_a_y"]);
   // ret.ode_a_dydt = Rcpp::as<decltype(retode_a_dydt) >(xl["ode_a_dydt"]);
   ret.ode_a_dydt = Rcpp::as<double >(xl["ode_a_dydt"]);
+  // ret.fixed_time_step = Rcpp::as<decltype(retfixed_time_step) >(xl["fixed_time_step"]);
+  ret.fixed_time_step = Rcpp::as<double >(xl["fixed_time_step"]);
   // ret.schedule_nsteps = Rcpp::as<decltype(retschedule_nsteps) >(xl["schedule_nsteps"]);
   ret.schedule_nsteps = Rcpp::as<size_t >(xl["schedule_nsteps"]);
   // ret.schedule_eps = Rcpp::as<decltype(retschedule_eps) >(xl["schedule_eps"]);

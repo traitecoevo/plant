@@ -14,7 +14,7 @@ FF16_generate_stand_report(
 )
 }
 \arguments{
-\item{results}{results of runnning \code{run_scm_collect}}
+\item{results}{results of running \code{run_scm(..., collect = TRUE)}}
 
 \item{output_file}{name of output file}
 

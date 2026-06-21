@@ -6,7 +6,24 @@ CXX_STD = CXX20
 ## Where to find headers
 PKG_CPPFLAGS = -isystem../inst/include/
 
+## plant links against the odelia package for its ODE solver / interpolator.
+## Some of those symbols (the XAD autodiff `Tape` runtime) live in odelia's
+## compiled shared library rather than its headers, so we link plant against
+## odelia's DLL to resolve them. odelia ships its library as `odelia.so` with a
+## bare install name; on macOS we rewrite plant's load command to odelia's
+## absolute path (below) so the dynamic loader finds it automatically.
+ODELIA_LIBDIR = $(shell "${R_HOME}/bin/Rscript" -e "cat(system.file('libs', package='odelia'))")
+PKG_LIBS = "$(ODELIA_LIBDIR)/odelia.so"
+
 ## Link to gperftools profiler
-## Uncomment next line if you want to use the profiler. 
+## Uncomment next line if you want to use the profiler.
 ## For more info see https://traitecoevo.github.io/plant/articles/profiling_code.html
-## PKG_LIBS = -lprofiler
+## PKG_LIBS += -lprofiler
+
+## macOS: point plant's load command at odelia's absolute library path, since
+## odelia.so's install name is bare and would not otherwise be found by dyld.
+all: odelia_install_name_fixup
+odelia_install_name_fixup: $(SHLIB)
+	@if [ "`uname`" = "Darwin" ]; then \
+	  install_name_tool -change odelia.so "$(ODELIA_LIBDIR)/odelia.so" "$(SHLIB)" 2>/dev/null || true; \
+	fi

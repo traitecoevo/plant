@@ -96,7 +96,7 @@ grow_individual_to_time <- function(individual, times, env) {
   runner <- OdeRunner(strategy_name)(ir1)
   runner_detail <- OdeRunner(strategy_name)(ir2)
 
-  ## TODO: This could also be done by better configuring the
+  ## TODO(#483): This could also be done by better configuring the
   ## underlying ODE runner, but this seems a reasonable way of getting
   ## things run for now.
   state <- matrix(NA, n, length(y0))
@@ -109,7 +109,9 @@ grow_individual_to_time <- function(individual, times, env) {
     y1 <- runner$state
     while (t_next < t1 && i <= n) {
       runner_detail$set_state(y0, t0)
-      runner_detail$step_to(t_next)
+      ## odelia's Solver advances adaptively over a vector of times whose first
+      ## element must be the current time; this steps from t0 to t_next.
+      runner_detail$advance_adaptive(c(t0, t_next))
       state[i, ] <- runner_detail$state
       individual[[i]] <- runner_detail$object$individual
       i <- i + 1L
@@ -138,7 +140,7 @@ grow_individual_bracket <- function(individual, sizes, size_name, env,
   }
   strategy_name <- individual$strategy_name
 
-  # TODO: size index uses index from 0
+  # TODO(#483): size index uses index from 0
   # can we clarify?
   size_index <- (which(individual$ode_names == size_name) - 1)
 
@@ -162,7 +164,7 @@ grow_individual_bracket <- function(individual, sizes, size_name, env,
       if (warn) {
         warning(paste(msg, collapse="\n"), immediate.=TRUE)
       }
-      ## TODO: Consider making this an error, or making the test a bit better.
+      ## TODO(#483): Consider making this an error, or making the test a bit better.
       if (runner$object$individual$ode_rates[[2]] < 1e-10) {
         warning("Integration may have failed for reasons other than mortality",
                 immediate.=TRUE)
@@ -209,14 +211,16 @@ grow_individual_bracket <- function(individual, sizes, size_name, env,
 grow_individual_bisect <- function(runner, size, size_name, t0, t1, y0) {
 
   
-  # TODO: size index uses index from 0
+  # TODO(#483): size index uses index from 0
   # can we clarify?
   size_index <- (which(runner$object$individual$ode_names == size_name) - 1)
 
   internals <- get_individual_internals_fun(runner$object$individual)
   f <- function(t1) {
     runner$set_state(y0, t0)
-    runner$step_to(t1)
+    ## odelia's Solver steps adaptively over a vector of times whose first
+    ## element must be the current time (t0 after set_state); advance to t1.
+    runner$advance_adaptive(c(t0, t1))
     internals(runner)$state(size_index) - size
   }
 
@@ -231,19 +235,14 @@ grow_individual_bisect <- function(runner, size, size_name, t0, t1, y0) {
 }
 
 #' Compute the whole plant light compensation point for a single
-#' plant.
+#' plant: the light level at which whole-plant carbon gain is zero.
 #' @title Whole plant light compensation point
-#' @param p A \code{PlantPlus}, with strategy, height, etc set.
+#' @param p An \code{Individual}, with strategy, height, etc set.
 #' @param ... Additional arguments that are ignored
 #' @export
 #' @author Rich FitzJohn
 resource_compensation_point <- function(p, ...) {
-  UseMethod("resource_compensation_point")
-}
-
-##' @export
-resource_compensation_point.Plant <- function(p, ...) {
-  resource_compensation_point(p, ...)
+  p$resource_compensation_point()
 }
 
 #' The function `optimise_individual_rate_at_height_by_trait` and `optimise_individual_rate_at_size_by_trait` solve for the maximum of

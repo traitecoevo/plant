@@ -9,6 +9,9 @@ Leaf(
   c,
   b,
   psi_crit,
+  root_c,
+  root_b,
+  root_psi_crit,
   beta2,
   jmax_25,
   hk_s,
@@ -19,9 +22,9 @@ Leaf(
   vulnerability_curve_ncontrol,
   ci_abs_tol,
   ci_niter,
-  g0,
-  g1,
-  g1_TF24
+  g1_TF24,
+  beta_R_H,
+  beta_R_V
 )
 }
 \arguments{
@@ -32,6 +35,12 @@ Leaf(
 \item{b}{sensitivity parameter of hydraulic vulnerability curve (MPa)}
 
 \item{psi_crit}{critical psi stem (-MPa )}
+
+\item{root_c}{shape parameter of hydraulic vulnerability curve for roots(unitless)}
+
+\item{root_b}{sensitivity parameter of hydraulic vulnerability curve for roots (MPa)}
+
+\item{root_psi_crit}{critical psi stem for roots (-MPa )}
 
 \item{beta2}{exponent for effect of hydraulic risk (unitless)}
 
@@ -52,10 +61,6 @@ Leaf(
 \item{ci_abs_tol}{absolute tolerance value for root-solving ci}
 
 \item{ci_niter}{maximum number of iterations for root-solving ci}
-
-\item{g0}{g0 parameter in the medlyn model umol m^-2 s^-1}
-
-\item{g1}{parameter in the medlyn model umol kPa^0.5}
 
 \item{g1_TF24}{cost parameter for TF24 profit model umol m^-2 s^-1}
 }

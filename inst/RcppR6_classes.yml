@@ -7,6 +7,9 @@ Leaf:
       @param c shape parameter of hydraulic vulnerability curve (unitless)
       @param b sensitivity parameter of hydraulic vulnerability curve (MPa)
       @param psi_crit critical psi stem (-MPa )
+      @param root_c shape parameter of hydraulic vulnerability curve for roots(unitless)
+      @param root_b sensitivity parameter of hydraulic vulnerability curve for roots (MPa)
+      @param root_psi_crit critical psi stem for roots (-MPa )
       @param beta2 exponent for effect of hydraulic risk (unitless)
       @param jmax_25  maximum rate of electron transport (umol m^-2 s^-1)
       @param hk_s maximum hydraulic-dependent sapwood turnover rate yr ^ -1
@@ -17,8 +20,6 @@ Leaf:
       @param vulnerability_curve_ncontrol number of points for pre-calculating vulnerability curve
       @param ci_abs_tol absolute tolerance value for root-solving ci
       @param ci_niter maximum number of iterations for root-solving ci
-      @param g0 g0 parameter in the medlyn model umol m^-2 s^-1
-      @param g1 parameter in the medlyn model umol kPa^0.5
       @param g1_TF24 cost parameter for TF24 profit model umol m^-2 s^-1
 
       @export
@@ -27,6 +28,9 @@ Leaf:
       - c: double
       - b: double
       - psi_crit: double
+      - root_c: double
+      - root_b: double
+      - root_psi_crit: double
       - beta2: double
       - jmax_25: double
       - hk_s: double
@@ -37,16 +41,16 @@ Leaf:
       - vulnerability_curve_ncontrol: double
       - ci_abs_tol: double
       - ci_niter: double
-      - g0: double
-      - g1: double 
       - g1_TF24: double
+      - beta_R_H: double
+      - beta_R_V: double
 
   active:
     ci_: {type: double, access: field}
     stom_cond_CO2_: {type: double, access: field}
-    medlyn_model_gs_: {type: double, access: field}
     assim_colimited_: {type: double, access: field}
     transpiration_: {type: double, access: field}
+    soil_consumption_: {type: "std::vector<double>", access: field}
     profit_: {type: double, access: field}
     psi_stem: {type: double, access: field}
     lambda_: {type: double, access: field}
@@ -57,26 +61,47 @@ Leaf:
     kc_: {type: double, access: field}
     km_: {type: double, access: field}
     R_d_: {type: double, access: field}
+    sapwood_volume_per_leaf_area_: {type: double, access: field}
     leaf_specific_conductance_max_: {type: double, access: field}
     vcmax_: {type: double, access: field}
     jmax_: {type: double, access: field}
+    area_leaf_: {type: double, access: field}
     rho_: {type: double, access: field}
+    c_r_V_: {type: "std::vector<double>", access: field}
+    c_r_H_: {type: "std::vector<double>", access: field}
+
     a_bio_: {type: double, access: field}
     PPFD_: {type: double, access: field}
     atm_vpd_: {type: double, access: field}
     ca_: {type: double, access: field}
-    psi_soil_: {type: double, access: field}
+    soil_depth_: {type: "std::vector<double>", access: field}
+    z_soil_mid_: {type: "std::vector<double>", access: field}
+    dz_: {type: double, access: field}
+
+    soil_number_of_depths_: {type: int, access: field}
+    max_soil_layer: {type: int, access: field}
+    psi_soil_: {type: "std::vector<double>", access: field}
+    r_R_H_min: {type: "std::vector<double>", access: field}
+    r_R_V: {type: "std::vector<double>", access: field}
+    r_R_V_sum: {type: "std::vector<double>", access: field}
+    assim_max_: {type: double, access: field}
+    root_collar_psi_: {type: double, access: field}
     leaf_temp_: {type: double, access: field} 
     atm_o2_kpa_: {type: double, access: field} 
     atm_kpa_: {type: double, access: field} 
     hydraulic_cost_: {type: double, access: field}
     opt_psi_stem_: {type: double, access: field}
     opt_ci_: {type: double, access: field}
+    E_up_: {type: double, access: field}
+    f_r: {type: "std::vector<double>", access: field}
     count: {type: double, access: field}
+    # Medlyn stomatal-conductance model (from develop #450)
+    medlyn_model_gs_: {type: double, access: field}
+    g0: {type: double, access: field}
+    g1: {type: double, access: field}
     theta_w_: {type: double, access: field}
     theta_fc_: {type: double, access: field}
     theta_: {type: double, access: field}
-
 
   methods:
     initialize_integrator:
@@ -84,7 +109,7 @@ Leaf:
       args: [integration_rule: int, integration_tol: double]
     set_physiology:
       return_type: void 
-      args: [rho: double, a_bio: double, PPFD: double, psi_soil: double, leaf_specific_conductance_max: double, atm_vpd: double, ca: double, sapwood_volume_per_leaf_area: double, leaf_temp: double, atm_o2_kpa: double, atm_kpa: double, theta_w: double, theta_fc: double, theta: double]
+      args: [area_leaf: double, mass_root_prop: "const std::vector<double>&", rho: double, a_bio: double, PPFD: double, psi_soil: "const std::vector<double>&", soil_depth: "const std::vector<double>&", leaf_specific_conductance_max: double, atm_vpd: double, ca: double, sapwood_volume_per_leaf_area: double, leaf_temp: double, atm_o2_kpa: double, atm_kpa: double]
     #transpiration functions
     proportion_of_conductivity:
       return_type: double
@@ -97,16 +122,16 @@ Leaf:
       args: [Ea: double, ref_value: double, leaf_temp: double, H_d: double, d_S: double] 
     transpiration:
       return_type: double
-      args: [psi_stem: double]
+      args: [psi_stem: double, psi_upstream: double]
     transpiration_full_integration:
       return_type: double
-      args: [psi_stem: double]
+      args: [psi_stem: double, psi_upstream: double]
     stom_cond_CO2:
       return_type: double
-      args: [psi_stem: double]
+      args: [psi_stem: double, psi_upstream: double]
     transpiration_to_psi_stem:
       return_type: double
-      args: [transpiration_: double]
+      args: [transpiration_: double, psi_upstream: double]
     # assimilation functions 
     assim_rubisco_limited:
       return_type: double
@@ -119,29 +144,42 @@ Leaf:
       args: [ci_: double]
     assim_minus_stom_cond_CO2:
       return_type: double
-      args: [x: double, psi_stem: double]
+      args: [x: double, psi_stem: double, psi_upstream: double]
     electron_transport:
       return_type: double
       args: []      
     set_leaf_states_rates_from_psi_stem:
       return_type: void
-      args: [psi_stem: double]
+      args: [psi_stem: double, psi_upstream: double]
+    E_from_Soil_to_Root_Collar:
+      return_type: void
+      args: [P_x_r: double, psi_soil: "std::vector<double>"]
+    find_root_collar_psi:
+      return_type: void
+      args: []
+    find_root_psi:
+      return_type: double
+      args: [wettest_soil_layer: double, psi_soil: "std::vector<double>", find_root_crit: int]
+    find_psi_stem_from_psi_root:
+      return_type: double
+      args: [psi_root: double, psi_soil: "std::vector<double>"]
+
     psi_stem_to_ci:
       return_type: double
-      args: [psi_stem: double]
+      args: [psi_stem: double, psi_upstream: double]
     #leaf economics functions
     hydraulic_cost_Sperry:
       return_type: double
-      args: [psi_stem: double]
+      args: [psi_stem: double, psi_upstream: double]
     hydraulic_cost_TF:
       return_type: double
       args: [psi_stem: double]
     profit_psi_stem_Sperry:
       return_type: double
-      args: [psi_stem: double]
+      args: [psi_stem: double, psi_upstream: double]
     profit_psi_stem_TF:
       return_type: double
-      args: [psi_stem: double]
+      args: [psi_stem: double, psi_upstream: double]
       # optimiser functions
     optimise_psi_stem_Sperry:
       return_type: void
@@ -149,19 +187,16 @@ Leaf:
     optimise_psi_stem_TF:
       return_type: void
       args: []
+    # Medlyn stomatal-conductance model (from develop #450)
+    medlyn_model_gs:
+      return_type: double
+      args: [assim_colimited_: double]
     solve_medlyn_ci_numerical:
       return_type: void
       args: []
     solve_medlyn_ci_analytical:
       return_type: void
       args: []
-    medlyn_model_gs:
-      return_type: double
-      args: [assim_colimited_: double]
-    medlyn_stom_cond_minus_coupled_stom_cond:
-      return_type: double
-      args: [x: double]
-
 
 OdeRunner:
   name_cpp: "odelia::ode::Solver<T>"
@@ -181,6 +216,7 @@ OdeRunner:
   methods:
     advance_adaptive: {return_type: void, args: [time: "std::vector<double>"]}
     advance_fixed: {return_type: void, args: [time: "std::vector<double>"]}
+    advance_euler: {return_type: void, args: [time: "std::vector<double>"]}
     step: {return_type: void}
     set_state: {return_type: void, args: [y: "std::vector<double>", time: double]}
     set_state_from_system: {return_type: void}
@@ -249,6 +285,9 @@ Control:
     @export
   list:
     - function_integration_rule: size_t
+    - shading_model: std::string
+    - ppa_layer_optical_depth: double
+    - ppa_layer_smoothing: double
     - offspring_production_tol: double
     - offspring_production_iterations: int
     - node_gradient_eps: double
@@ -262,6 +301,7 @@ Control:
     - ode_tol_abs: double
     - ode_a_y: double
     - ode_a_dydt: double
+    - fixed_time_step: double
     - schedule_nsteps: size_t
     - schedule_eps: double
     - schedule_verbose: bool
@@ -630,36 +670,40 @@ SCM:
       - parameters: "plant::Parameters<T,E>"
       - environment: "E"
       - control: "plant::Control"
+  # Order mirrors the public API grouping in inst/include/plant/scm.h.
   methods:
+    # Simulation lifecycle
     run:
       return_type: void
     run_mutant:
       args: [p: "plant::Parameters<T,E>"]
       return_type: void
-    run_next:
-      return_type: "std::vector<plant::util::index>"
-      name_cpp: r_run_next
+    refine_schedule:
+      return_type: void
     reset:
       return_type: void
+    # Fitness / reproduction
     net_reproduction_ratio_for_species:
       args: [species_index: "plant::util::index"]
       return_type: double
       name_cpp: r_net_reproduction_ratio_for_species
+    # Schedule-refinement error signals
     compute_competition_effect_error_by_node_for_species_i:
       args: [species_index: "plant::util::index"]
       return_type: "std::vector<double>"
       name_cpp: r_compute_competition_effect_error_by_node_for_species_i
+    # Node schedule
     set_node_schedule_times:
       args: [times: "std::vector<std::vector<double>>"]
       return_type: void
       name_cpp: r_set_node_schedule_times
-    # times
-    # set_times
   active:
-    complete: {type: bool, access: member}
+    # Lifecycle / state
     time: {type: double, access: member}
+    # Outputs (totals)
     net_reproduction_ratios: {type: "std::vector<double>", access: member}
     offspring_production: {type: "std::vector<double>", access: member}
+    # Run / parameters / state access
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
     patch:
       type: "plant::Patch<T,E>"
@@ -669,29 +713,29 @@ SCM:
       type: "std::vector<plant::Patch<T,E>>"
       access: member
       name_cpp: r_history
+    # Fitness / reproduction error signals
+    net_reproduction_ratio_errors:
+      type: "std::vector<std::vector<double>>"
+      access: member
+      name_cpp: r_net_reproduction_ratio_errors
+    refinement_error_by_node:
+      type: "std::vector<std::vector<double>>"
+      access: member
+    # Node schedule
     node_schedule:
       type: "plant::NodeSchedule"
       access: member
       name_cpp: r_node_schedule
       name_cpp_set: r_set_node_schedule
+    # ODE times: read-only view of the step times the solver actually used.
+    # Pinning integration to fixed times is toggled on the NodeSchedule.
     ode_times:
       type: "std::vector<double>"
       access: member
       name_cpp: r_ode_times
-    use_ode_times:
-      type: bool
-      access: member
-      name_cpp: r_use_ode_times
-      name_cpp_set: r_set_use_ode_times
-    collect:
-      type: bool
-      access: member
-      name_cpp: r_get_collect
-      name_cpp_set: r_set_collect
-    net_reproduction_ratio_errors:
-      type: "std::vector<std::vector<double>>"
-      access: member
-      name_cpp: r_net_reproduction_ratio_errors
+    # Collection toggles (bound directly to the public members)
+    collect: {type: bool, access: field}
+    collect_refinement_errors: {type: bool, access: field}
 
 StochasticSpecies:
   name_cpp: "plant::StochasticSpecies<T,E>"
@@ -779,7 +823,7 @@ StochasticPatch:
     compute_rates:
       return_type: void
       name_cpp: r_compute_rates
-    # TODO: Not 100% sure this is needed from R:
+    # TODO(#483): Not 100% sure this is needed from R:
     reset:
       return_type: void
     # Because we now care about time, we need to make sure that the
@@ -1005,6 +1049,9 @@ FF16_Environment:
       return_type: void
     set_fixed_environment:
       args: [value: double, height_max: double]
+      return_type: void
+    set_shading_model:
+      args: [model: "std::string", layer_optical_depth: double, layer_smoothing: double]
       return_type: void
     compute_rates:
       args: [resource_depletion: "std::vector<double>"]

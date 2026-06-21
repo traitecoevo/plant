@@ -1,0 +1,882 @@
+---
+title: "root_water_uptake"
+author: "Isaac Towers"
+date: "2025-08-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<!--
+PURPOSE: This document is the standalone R *prototype* of the soil->root->stem->
+leaf hydraulic model that has since been ported to C++ (src/leaf_model.cpp:
+E_from_Soil_to_Root_Collar, find_root_collar_psi) and wired into the TF24
+strategy. It follows Potkay et al. (2021) and is kept as the reference
+implementation / sanity check for the compiled model.
+
+Structure of the prototype:
+  1. Geometry & conductances: derive stem (k_sw_max) and leaf (k_l) hydraulic
+     conductances from height/diameter allometry.
+  2. Root collar pressure at E=0: bisection search for the collar potential
+     (P_x_r) where net soil exchange is zero (the wettest feasible point).
+  3. Critical root collar pressure: bisection for the collar potential at which
+     the leaf reaches its critical water potential (P_x_l_crit), integrating
+     the pressure drop down the stem and through the leaf in `n` numerical steps.
+  4. Profit curve: sweep P_x_r from the E=0 point to critical, compute
+     assimilation (Farquhar/Cowan-Farquhar marginal cost) vs hydraulic cost,
+     and pick the profit-maximising operating point.
+The "### Test" section below cross-checks the compiled `Leaf` object against
+this prototype.
+NOTE: the source() paths point at a different machine and must be edited to run.
+-->
+
+```{r}
+rm(list=ls())
+```
+
+```{r}
+source("/Users/z3533545/Documents/GitHub/plant/R/leaf.R")
+source("/Users/z3533545/Documents/GitHub/plant/R/root_uptake.R")
+```
+
+```{r}
+H = 5.44 # Height (m)
+LA = 1 # Leaf area (m^2)
+n = 20 # n steps for numerical integration
+```
+
+```{r}
+b2 = 9.3e-1 # Power-law scaling coefficient for stem xylem conductance (mol H2o s^-1 MPa^-1)
+c2 = 0.93 # Exponent for power-law scaling of stem conductance
+D_ref = 1 # Reference diameter (m)?
+b0 = 64.6; # Power-law scaling coefficient for height (m)
+c0 = 0.6411 # Exponent for power-law scaling of height (unitless)
+D = D_ref * (H/b0)^(1/c0) # Diameter (m)?
+D_hw = D*0.5 # Heartwood diameter (m)?
+```
+
+```{r}
+# got from supps in Potkay et al. (2021)
+k_sw_max = b2 * (D / D_ref) ^ c2 * (1 - (D_hw / D) ^ (c2/c0 + 1))
+```
+
+```{r}
+# Psi soil for layers starting from the top
+P_soil = c(-0.06,-0.12) # MPa
+```
+
+```{r}
+# Depth of middle of layer
+z_soil_mid = c(0.05,0.15) # m
+```
+
+```{r}
+# Find the minimum (driest soil layer)
+P_s_min = min(P_soil)
+```
+
+```{r}
+# Find the depth of the driest soil layer
+z_P_s_min = z_soil_mid[P_soil == P_s_min]
+
+# If the are multiple layers which are equally driest, define it as the deepest one
+z_P_s_min = max(z_P_s_min)
+```
+
+```{r}
+# Find the depth of the driest soil layer
+P_s_max = max(P_soil)
+```
+
+```{r}
+# Find the depth of the wettest soil layer
+z_P_s_max = z_soil_mid[P_soil == P_s_max]
+
+# If the are multiple layers which are equally wettest, define it as the deepest one
+z_P_s_max = max(z_P_s_max)
+```
+
+```{r}
+# Start defining the boundary conditions for the bisection search for the optimum root collar pressure (P_x_r)
+
+# The upper value (i.e. least negative value) is equal to the wettest soil layer
+P_x_r_UB_0 = P_s_max
+```
+
+```{r}
+# Density of water
+rho = 1e3 #kg m^-3
+
+# Acceleration due to gravity
+g = 9.8 # m s^-2
+```
+
+```{r}
+# The lower boundary value of root collar pressure (i.e most negative) which is equivalent to the driest soil layer minus the gravitational potential
+P_x_r_LB_0 = P_s_min - rho * g * z_P_s_min / 1e6
+```
+
+```{r}
+# If the intial boundary values too narrow (diff < 1), make the difference equal to one
+
+if(abs(P_x_r_LB_0 - P_x_r_UB_0) < 1){
+    P_x_r_LB_0 = P_x_r_UB_0 - 1
+}
+```
+
+```{r}
+# Find the middle root collar pressure between the two boundaries
+
+P_x_r_M_0 = (P_x_r_UB_0 + P_x_r_LB_0) / 2
+```
+
+```{r}
+# Set up a vector of root collar pressure
+
+P_x_r_3_0 = c(P_x_r_UB_0, P_x_r_M_0, P_x_r_LB_0)
+```
+
+```{r}
+# Create a vector of transpiration values
+
+E_3_0 = rep(0,3)
+```
+
+```{r}
+# While loop continues until transpiration vector includes a negative and a positive value
+
+while((length(E_3_0[E_3_0 < 0]) == 0) +
+      (length(E_3_0[E_3_0 > 0]) == 0) > 0){
+  
+  # iterate across the three root collar values
+  for(i in 1:length(P_x_r_3_0)){
+    
+    # start with upper boundary first, through to lower
+    
+    P_x_r_i = P_x_r_3_0[i]
+    
+    # calculate soil to root transpiration value for a given root collar psi
+    E_3_0[i] <- E_from_Soil_to_Root_Collar(P_x_r_i, P_soil = P_soil, rho = rho, g = g)[[1]]
+  }
+  
+  # If no negative transpiration values then increase upper boundary root collar psi by an increment
+  if(length(E_3_0[E_3_0 <0]) == 0){
+    P_x_r_3_0[1] = P_x_r_3_0[1] + 0.1;
+  }
+  
+  # If no postive transpiration values then decrease lower boundary root collar psi by an increment
+  if(length(E_3_0[E_3_0 >0]) == 0){
+    P_x_r_3_0[3] = P_x_r_3_0[3] - 0.1;
+  }
+  
+  # Define new midsection root collar value
+  P_x_r_3_0[2] = (P_x_r_3_0[1] + P_x_r_3_0[3]) / 2;
+}
+```
+
+```{r}
+# Set i at 0 (iterator for bisection search below)
+i = 0
+
+# Iterate until dP_x_r_3_0 brought within tolerance (1e-3)
+
+# This bisection is to find the root collar pressure when transpiration equals zero
+while(abs(range(P_x_r_3_0)[1]-range(P_x_r_3_0)[2]) > 1e-3){
+  
+  i = i + 1;
+  
+  # Stop if iteration goes too long
+  if(i > 100){
+    print("error")
+    stop()
+  }
+  
+  # Must have a negative and positive value, if not stop
+  if(length(E_3_0[E_3_0 < 0]) == 0){
+        stop()
+  } else if(length(E_3_0[E_3_0 > 0]) == 0){
+        stop()
+  }
+  
+  
+
+  # Find the upper bound of transpiration in iteration, i.e. highest positive value
+  E_UB_0 = max(E_3_0[E_3_0 < 0]);
+  
+  # Find the lower bound of transpiration in iteration, i.e. lowest negative value
+  E_LB_0 = min(E_3_0[E_3_0 > 0]);
+  
+ # Root collar xylem pressures that correspond to ZERO transpiration rates
+    P_x_r_UB_0 = P_x_r_3_0[E_3_0 == E_UB_0];
+    P_x_r_UB_0 = max(P_x_r_UB_0);
+    P_x_r_LB_0 = P_x_r_3_0[E_3_0 == E_LB_0];
+    P_x_r_LB_0 = min(P_x_r_LB_0);
+    # Mid-point for bisection
+    P_x_r_M_0 = (P_x_r_UB_0 + P_x_r_LB_0) / 2;
+  
+  # Reconstruct range
+
+    P_x_r_3_0_new = c(P_x_r_UB_0, P_x_r_M_0, P_x_r_LB_0);
+  
+  # If reconstructed range is same as original, stop
+
+  if(sum(P_x_r_3_0_new == P_x_r_3_0) == 3){
+    stop()
+  }
+  
+  # Find E based on middle of root collar psi range
+  
+  P_x_r_3_0 = P_x_r_3_0_new; 
+    
+  E_3_0 = c(E_UB_0, NA, E_LB_0)
+  
+  P_x_r_i = P_x_r_3_0[2];
+  
+  E_i = E_from_Soil_to_Root_Collar(P_x_r_i, P_soil = P_soil, rho = rho, g = g)[[1]]
+  
+  E_3_0[2] = E_i
+  
+  }
+```
+
+```{r}
+# Numerical soluution means that E_0 may not be perfectly zero, find the smallest postive E value
+E_0 = min(E_3_0[E_3_0 > 0])
+```
+
+```{r}
+# Find the root collar pressure associated with the smallest positive E value
+P_x_r_0 = P_x_r_3_0[E_3_0 == E_0];
+# If multiple root collar associated with that E, choose the most negative
+P_x_r_0 = min(P_x_r_0); 
+```
+
+```{r}
+# Initialise a critical leaf water potential value, it will become more negative by iterating the vulnerarbility curve below
+P_x_l_crit = -1
+```
+
+```{r}
+# Iterate P_x_l_crit increasingly negative until the fraction of conductance is 0.001, very low fracution
+while(VC_l(P_x_l_crit) > (1 - 0.999)){
+    P_x_l_crit = P_x_l_crit - 0.1;
+}
+```
+
+```{r}
+# inital guesses for upper and lower bounds of critical root collar pressure for bisection method
+
+# the upper bound is the value at which transpiration is = 0
+
+# the lower bound is the critical leaf water potential 
+P_x_r_UB_crit = P_x_r_0; 
+P_x_r_LB_crit = P_x_l_crit;
+P_x_r_M_crit = (P_x_r_LB_crit + P_x_r_UB_crit) / 2;
+```
+
+```{r}
+P_x_r_3_crit = c(P_x_r_UB_crit, P_x_r_M_crit, P_x_r_LB_crit);
+P_x_l_3_crit = rep(NA,3); 
+```
+
+```{r}
+k_l = 1.6e-2
+
+for(i in 1:3){
+  P_x_r_i = P_x_r_3_crit[i];
+  E_i = E_from_Soil_to_Root_Collar(P_x_r_i, P_soil = P_soil, rho = rho, g = g)[[1]]
+  
+  P_x_l_i = P_x_r_i;
+  
+  for(j in 1:n){
+    P_x_l_i = P_x_l_i - rho * g * (H / n) / 1e6 - (E_i * LA) / (n * k_sw_max * VC_sw(min(0, P_x_l_i))); 
+  }
+  
+    for(j in 1:n){
+    P_x_l_i = P_x_l_i - E_i/(n*k_l*VC_l(min(0, P_x_l_i))); 
+  }
+  
+  P_x_l_3_crit[i] = P_x_l_i
+  
+  }
+```
+
+```{r}
+i = 0;
+
+while(abs(range(P_x_r_3_crit)[1]-range(P_x_r_3_crit)[2]) > 1e-3){
+  
+  i = i + 1;
+
+    if(i > 100){
+    print("error")
+    stop()
+    }
+  
+  F_value = P_x_l_crit - P_x_l_3_crit; #objective function, F -- we seek to find that P_x_r that makes F equal to zero
+    
+  
+    F_UB = max(F_value[F_value < 0]);
+    F_UB = F_UB[1]; 
+    F_LB = min(F_value[F_value > 0]);
+    F_LB = F_LB[1];
+
+  P_x_r_UB_crit = P_x_r_3_crit[F_value == F_UB];
+  P_x_r_UB_crit = P_x_r_UB_crit[1];
+
+  P_x_r_LB_crit = P_x_r_3_crit[F_value == F_LB];
+  P_x_r_LB_crit = P_x_r_LB_crit[1];
+  
+P_x_r_M_crit = (P_x_r_LB_crit + P_x_r_UB_crit) / 2; 
+  
+P_l_UB_crit = P_x_l_3_crit[P_x_r_3_crit == P_x_r_UB_crit];
+P_l_LB_crit = P_x_l_3_crit[P_x_r_3_crit == P_x_r_LB_crit];
+
+  
+  P_x_r_3_crit = c(P_x_r_UB_crit, P_x_r_M_crit, P_x_r_LB_crit);
+    P_x_l_3_crit = c(P_l_UB_crit, NA, P_l_LB_crit);
+    
+  P_x_r_i = P_x_r_3_crit[2];
+
+    E_i = E_from_Soil_to_Root_Collar(P_x_r_i, P_soil = P_soil, rho = rho, g = g)[[1]]
+  
+      P_x_l_i = P_x_r_i; 
+      
+      for(j in 1:n){
+        P_x_l_i = P_x_l_i - rho * g * (H / n) / 1e6 - (E_i * LA) / (n * k_sw_max * VC_sw(min(0, P_x_l_i))); 
+      }
+      
+      
+      for(j in 1:n){
+              P_x_l_i = P_x_l_i - E_i / (n * k_l * VC_l(min(0, P_x_l_i))); 
+
+      }
+      
+      P_x_l_3_crit[2] = P_x_l_i;
+
+}
+```
+
+```{r}
+P_x_r_crit = min(P_x_r_3_crit[P_x_l_3_crit > -Inf]);
+```
+
+```{r}
+P_x_r = seq(P_x_r_0, P_x_r_crit, length.out = 50);
+P_x_s = rep(NA, length(P_x_r))
+P_x_l = rep(NA, length(P_x_r))
+E = rep(NA, length(P_x_r))
+E_soil = matrix(NA, nrow = 2, ncol = length(P_x_r));
+r_R_H = matrix(NA, nrow = 2, ncol = length(P_x_r));
+r_R_V = matrix(NA, nrow = 2, ncol = length(P_x_r));
+f_r = matrix(NA, nrow = 2, ncol = length(P_x_r));
+```
+
+```{r}
+for(i in 1:length(P_x_r)){
+  P_x_r_i = P_x_r[i];
+  
+  res = E_from_Soil_to_Root_Collar(P_x_r_i, P_soil = P_soil, rho = rho, g = g)
+  
+  E[i] = res[[1]]
+  E_soil[1:2, i] = res[[2]];
+  r_R_H[1:2, i] = res[[3]];
+  r_R_V[1:2, i] = res[[4]];
+  f_r[1:2, i] = res[[5]]; 
+  
+  P_x_s_i = P_x_r_i; 
+  
+   for(j in 1:n){
+        P_x_s_i = P_x_s_i - rho * g * (H / n) / 1e6 - (E_i * LA) / (n * k_sw_max * VC_sw(min(0, P_x_l_i))); 
+   }
+
+  P_x_s[i] = P_x_s_i;
+
+  P_x_l_i = P_x_s_i;
+
+    for(j in 1:n){
+        P_x_l_i = P_x_l_i - E_i / (n * k_l * VC_l(min(0, P_x_l_i))); 
+    }
+  
+  P_x_l[i] = P_x_l_i;
+}
+```
+
+```{r}
+T_a = 25
+
+T_l = T_a * rep(1, length(P_x_l)); #in [C] -- assuming leaf temperature equals air temperature
+```
+
+```{r}
+satur_mol_fract_air = (-0.0043 + 0.01 * exp(0.0511 * T_a)); #saturated mole fraction of vapor in air [kPa]
+satur_mol_fract_leaf = (-0.0043 + 0.01 * exp(0.0511 * T_l)); #saturated mole fraction of vapor in leaf [kPa]
+RH = min(0.5, 0.99); 
+VPD_air = (1 - RH) * 0.61094 * exp(17.625* T_a / (T_a + 243.04)); #air-to-air vapor pressure deficit [kPa]
+VPD_l = satur_mol_fract_leaf - satur_mol_fract_air + VPD_air; #leaf-to-air vapor pressure deficit in kPa
+VPD_l = pmax(0, VPD_l);
+```
+
+```{r}
+atm_kpa = 101.3
+
+# Interpreting stomatal conductances, G_w and G_c
+G_w = abs(E*atm_kpa / VPD_l); #stomatal conductance to vapor [mol H2O * m^-2 * s^-1]
+G_w[E == 0] = 0; 
+G_w = pmax(0, G_w); 
+G_c = G_w / 1.6; #stomatal conductance to CO2 [mol CO2 * m^-2 * s^-1]
+```
+
+<!-- ```{r} -->
+<!-- solve_ci(100, 1000,G_c, 40) -->
+<!-- ``` -->
+
+
+```{r}
+# Interpreting stomatal conductances, G_w and G_c
+G_w = abs(E / VPD_l); #stomatal conductance to vapor [mol H2O * m^-2 * s^-1 * kPa^-1]
+G_w[E == 0] = 0; 
+G_w = pmax(0, G_w); 
+G_c = G_w / 1.6; #stomatal conductance to CO2 [mol CO2 * m^-2 * s^-1 * kPa^-1]
+```
+
+```{r}
+V_cmax = 100*1e-6
+J_max = 167*1e-6
+R_abs = 1000
+var_kappa = 6.9e-7
+J_phi = var_kappa * R_abs; #var_kappa is proportionality constant between J and R_abs in [mol CO2 * J^-1]
+c_prime2 = 0.97
+J = (J_max + J_phi - ((J_max + J_phi)^ 2 - 4 * c_prime2 * J_max * J_phi)^ 0.5) / (2 * c_prime2); #hyperbolic minimum of J_max and J_phi with curvature of 0.9
+Gamma_star = 36e-6 * 101.325; #in [kPa]
+K_c = 275e-6 * 101.325; #in [kPa]
+K_o = 420000e-6 * 101.325; #in [kPa]
+R_d = 0.01 * V_cmax; #leaf dark respiration in [mol CO2 * m^-2 * s^-1]
+
+```
+
+```{r}
+#Eller et al. (2019; SOX appendix)
+o_a = 21
+# Gamma_star = 42.75
+c_a = 410e-6 * 101.325
+
+a_c = V_cmax; 
+a_j = J / 4;
+b_c = K_c * (1 + o_a / K_o);
+b_j = 2 * Gamma_star;
+beta_c = (R_d - a_c) - G_c * (c_a + b_c);
+beta_j = (R_d - a_j) - G_c * (c_a + b_j);
+gamma_c = a_c * (c_a - Gamma_star) - R_d * (c_a + b_c); 
+gamma_j = a_j * (c_a - Gamma_star) - R_d * (c_a + b_j); 
+```
+
+```{r}
+A_c = -beta_c / 2 - ((beta_c / 2)^2 - gamma_c * G_c)^0.5;
+A_j = -beta_j / 2 - ((beta_j / 2)^2 - gamma_j * G_c)^ 0.5;
+# A_j = real(A_j);
+```
+
+```{r}
+# correct for if G_c == inf, in which case c_i = c_a
+A_c[G_c == Inf] = a_c[G_c == Inf]* (c_a - Gamma_star[G_c == Inf]) / (c_a + b_c[G_c == Inf]) - R_d[G_c == Inf];  
+A_j[G_c == Inf] = a_j[G_c == Inf] * (c_a - Gamma_star[G_c == Inf]) / (c_a + b_j[G_c == Inf]) - R_d[G_c == Inf];  
+```
+
+```{r}
+#calculate photosynthesis by hyperbolic-minimum
+
+c_prime1 = 0.97
+
+A_n = (A_c + A_j - ((A_c + A_j)^2 - 4 * c_prime1 * A_c * A_j)^ 0.5) / (2 * c_prime1); #net carbon assimilation rate [mol CO2 * m^-2 * s^-1] 
+```
+
+```{r}
+# determine dA_n/dR_abs by chain-rule, assuming negligle effect of 
+# electron-transport rate, J, on stomatal conductance, G_c (derrived 
+# assuming dG_c/dJ = 0)
+dA_n_dA_c = (1 - ((A_c + (1 - 2 * c_prime1) * A_j) / ((A_c + A_j)^ 2 - 4 * c_prime1 * A_c * A_j)^ 0.5)) / (2 * c_prime1);
+dA_n_dA_j = (1 - ((A_j + (1 - 2 * c_prime1) * A_c) / ((A_c + A_j)^ 2 - 4 * c_prime1 * A_c * A_j)^ 0.5)) / (2 * c_prime1);
+var_H = (J/4 + G_c * (c_a + 2 * Gamma_star) - R_d) / 2; 
+#inv_Ohm = J/4 .* (c_a - Gamma_star) - R_d .* (c_a + 2 * Gamma_star);
+dA_j_dJ = (1 / 8) * (G_c * (c_a - Gamma_star)) / (var_H - A_j);
+dA_j_dJ[G_c == Inf] = 1/4 * (c_a - Gamma_star[G_c == Inf]) / (c_a + b_j[G_c == Inf]); 
+dJ_dJ_phi = (1 - ((J_phi + (1 - 2 * c_prime2) * J_max) / ((J_max + J_phi)^ 2 - 4 * c_prime2 * J_max * J_phi)^ 0.5)) / (2 * c_prime2);
+dJ_phi_dR_abs = var_kappa; 
+dA_n_dR_abs = dA_n_dA_j * dA_j_dJ * dJ_dJ_phi * dJ_phi_dR_abs; 
+
+```
+
+```{r}
+#determine Cowan & Farquhar's (1977) marginal cost (lambda), dA_n/dE, by finite-difference
+c_i = c_a - A_n / G_c; 
+# dA_c_dc_i = a_c .* (Gamma_star + b_c) ./ (c_i + b_c).^2;
+# dA_j_dc_i = a_j .* (Gamma_star + b_j) ./ (c_i + b_j).^2;
+# x = dA_n_dA_c .* dA_c_dc_i + dA_n_dA_j .* dA_j_dc_i; %%% dA_n_dc_i
+# dA_n_dE = A_n ./ E .* x ./ (x + G_c); %%%Eq. 4 in Buckley et al. (2016) "Optimal Plant Water Economy"
+
+```
+
+```{r}
+f_sw = LA * E / (P_x_r - P_x_s - rho * g * H / 10^6) / k_sw_max; #%[unitless]
+f_sw[1] = mean(pmin(1, VC_sw(seq(P_x_r[1], P_x_s[1], length.out = 10)))); #different defintion since first value represents where E = 0
+f_l =  E / (P_x_s - P_x_l) / k_l; #[unitless]
+f_l[1] = min(1, VC_l(min(0, P_x_s[1]))); #different defintion since first value represents where E = 0
+```
+
+```{r}
+dP = 1e-2; 
+dVC_r_dP_x_r = (VC_r(pmin(0, P_x_r + dP)) - VC_r(pmin(0, P_x_r))) / dP;
+dVC_r_dP_soil = (VC_r(pmin(0, P_soil + dP)) - VC_r(pmin(0, P_soil))) / dP;
+dVC_r_dP_soil = matrix(dVC_r_dP_soil, 1, length(P_x_l)*length(dVC_r_dP_soil));
+d2VC_r_dP_soil2 = (VC_r(pmin(0, P_soil + dP)) + VC_r(pmin(0, P_soil - dP)) - 2 * VC_r(min(0, P_soil))) / dP^2;
+d2VC_r_dP_soil2 = matrix(d2VC_r_dP_soil2, 1, length(P_x_l)*length(d2VC_r_dP_soil2));
+```
+
+```{r}
+df_r_dP_x_r = (f_r - VC_r(pmin(0, P_x_r))) / (P_soil - P_x_r); #in [MPa^-1]
+df_r_dP_x_r[abs(P_x_r - P_soil) < 1e-2] = (1/2) * dVC_r_dP_soil[abs(P_x_r - P_soil) < 1e-2]; #needs to be corrected where P_x_r = P_soil
+d2f_r_dP_x_r2 = (2*df_r_dP_x_r - dVC_r_dP_x_r) / (P_soil - P_x_r); #in [MPa^-2]
+d2f_r_dP_x_r2[abs(P_x_r - P_soil) < 1e-1] = (1/3) * d2VC_r_dP_soil2[abs(P_x_r - P_soil) < 1e-1]; #needs to be corrected where P_x_r = P_soil
+```
+
+```{r}
+df_sw_dP_x_s = (f_sw - VC_sw(pmin(0, P_x_s))) / (P_x_r - P_x_s); #in [MPa^-1]
+df_sw_dP_x_r = (VC_sw(pmin(0, P_x_r)) - f_sw) / (P_x_r - P_x_s); #in [MPa^-1]
+```
+
+```{r}
+r_R_V_sum = r_R_V
+
+for(i in 1:ncol(r_R_V)){
+  r_R_V_sum[,i] = cumsum(r_R_V[,i])
+}
+
+r_R = r_R_H + r_R_V_sum; 
+
+a_var = 1 - LA * E / (f_sw^2) / k_sw_max * df_sw_dP_x_s;
+b_var = 1 + LA * E / (f_sw^2) / k_sw_max * df_sw_dP_x_r;
+c_var = apply((1/LA - E_soil * r_R_H / f_r * df_r_dP_x_r) / r_R, MARGIN = 2, FUN = sum);
+d_var = VC_l(pmin(0, P_x_s)) / f_l; 
+e_var = VC_l(pmin(0, P_x_l)) / f_l;
+```
+
+```{r}
+k_c = e_var / (1/f_l/k_l + d_var/a_var*(b_var/c_var + LA/f_sw/k_sw_max)); 
+```
+
+```{r}
+c0 = c_var[1]; 
+i = (1:length(c_var))[(c_var - c0) == min(abs(c_var - c0))]
+
+P_x_r0 = P_x_r[i];
+f_sw0 = f_sw[i];
+f_r0 = f_r[,i];
+df_r0_dP_x_r0 = df_r_dP_x_r[,i];
+d2f_r0_dP_x_r0 = d2f_r_dP_x_r2[,i];
+```
+
+```{r}
+P_x_l0 = P_x_r0 - rho*g*H/1e6;
+f_l0 = VC_l(pmin(0, P_x_l0));
+```
+
+```{r}
+E_soil0 = E_soil[,i];
+r_R0 = r_R[,i];
+r_R_H0 = r_R_H[,i];
+r_R_V0 = r_R_V[,i];
+```
+
+```{r}
+c_r_H = c(20,30)
+c_r_V = c(20,30)
+## CHECK
+dP_x_r0_dc_r_H = 1 / c0 / c_r_H * E_soil0 *r_R_H0 / r_R0;
+dP_x_r0_dc_r_V = 1 / c0 / c_r_V * cumsum((E_soil0* r_R_V0 / r_R0)[length(E_soil0* r_R_V0 / r_R0):1]);
+```
+
+```{r}
+k_cmax = 1 / (1/k_l/f_l0 + 1/c0 + LA/f_sw0/k_sw_max)
+```
+
+```{r}
+df_l0_dP_x_r0 = (VC_l(min(0, P_x_l0 + dP)) - VC_l(min(0, P_x_l0))) / dP; #calculated in a finite-difference approach
+df_l0_dH = - rho*g/1e6 * df_l0_dP_x_r0; 
+df_sw0_dP_x_r0 = (VC_sw(min(0, P_x_r0)) - VC_sw(min(0, P_x_l0))) / (rho*g*H/1e6);
+df_sw0_dH = (VC_sw(min(0, P_x_l0)) - f_sw0) / H; 
+```
+
+```{r}
+c0 = 0.64
+c1 = 0.63
+dH_dD = c0 * H / D; 
+dW_dD = c1 * W / D;
+W = 1
+D_hw = 0.08
+dk_sw_max_dD = k_sw_max / D * (c2 + (c2/c0 + 1 - c2) * (D_hw / D) ^ (c2/c0 + 1)) / (1 - (D_hw / D) ^ (c2/c0 + 1));
+
+dk_cmax_dD = k_cmax^2 * ((df_l0_dH/k_l/(f_l0^2) + LA*df_sw0_dH/k_sw_max/(f_sw0^2))*dH_dD + 
+             LA/(k_sw_max^2)/f_sw0*dk_sw_max_dD);
+dk_cmax_dLA = k_cmax^2 * (1/k_sw_max/f_sw0 - 1/(c0^2*LA^2)*sum(1/r_R0));
+```
+
+
+```{r}
+# at E = E_max
+P_x_lcrit = min(P_x_l[P_x_l > -Inf]);
+A_nmax = A_n[P_x_l == P_x_lcrit];
+E_max = E[P_x_l == P_x_lcrit];
+dA_n_dE_crit = dA_n_dE[P_x_l == P_x_lcrit];
+dA_n_dR_abs_crit = dA_n_dR_abs[P_x_l == P_x_lcrit];
+```
+
+```{r}
+G_wmin = 0
+
+if(A_nmax > 0){
+    F_value = A_n / A_nmax + k_c / k_cmax;
+    dF_dP_l = diff(F_value) / diff(P_x_l);
+    i = 0
+    while(i < length(dF_dP_l)){
+      
+      i = i + 1;
+
+        if(i >= length(dF_dP_l)){
+            error('ERROR')
+        }
+      
+      if(dF_dP_l[i] >= 0){
+        if(G_w[i] >= G_wmin){
+          break
+        }
+      }
+      
+    }
+}
+```
+
+```{r}
+P_x_l = P_x_l[i];
+P_x_s = P_x_s[i]; 
+P_x_r = P_x_r[i];
+```
+
+### Test
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(plant)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(patchwork)
+```
+
+```{r}
+devtools::load_all(".")
+```
+
+
+```{r}
+sw <- list(
+  vcmax_25 = 100,                  #  umol m^-2 s^-1 
+  c = 2.680147,                  # unitless
+  b = 3.898245,                  # -MPa
+  psi_crit = 5.870283,           # -MPa 
+  beta1 = 20000,                 # hydraulic cost for Bartlett method umol m^-3 s^-1
+  beta2 = 1.5,                   # exponent for effect of hydraulic risk  (unitless)
+  jmax_25 = 157.44,              #  maximum electron transport rate umol m^-2 s^-1
+  hk_s = 4,                      # maximum hydraulic-dependent sapwood turnover rate yr ^ -1
+  a = 0.30,                      # quantum yield of photosynthetic electron transport  (mol mol^-1)
+  curv_fact_elec_trans = 0.7,    # curvature factor for the light response curve  (unitless)
+  curv_fact_colim = 0.99,        # curvature factor for the colimited photosythnthesis equatiom
+  GSS_tol_abs = 1e-3,            #  ???
+  vulnerability_curve_ncontrol = 100,  # ????
+  ci_abs_tol = 1e-3,             # ???
+  ci_niter = 1000
+)
+
+leaf <- Leaf(vcmax= sw$vcmax_25, b = sw$b, c = sw$c, psi_crit = sw$psi_crit,
+             beta2 = sw$beta2, jmax_25 = sw$jmax_25, hk_s = sw$hk_s, a = sw$a, curv_fact_elec_trans = sw$curv_fact_elec_trans, curv_fact_colim = sw$curv_fact_colim, GSS_tol_abs = sw$GSS_tol_abs, vulnerability_curve_ncontrol = sw$vulnerability_curve_ncontrol, ci_abs_tol = sw$ci_abs_tol, ci_niter = sw$ci_niter, g1_TF24 = 46.32995)
+```
+
+```{r}
+tibble(psi_r = seq(-0.06,-3.30,-0.01)) %>%
+mutate(E = purrr::map_dbl(psi_r,
+    ~E_from_Soil_to_Root_Collar(.x, P_soil = P_soil, rho = rho, g = g)[[1]])) -> psi_r_E
+
+psi_r_E %>%
+  ggplot(aes(x = psi_r, y = E)) +
+  geom_point()
+```
+
+```{r}
+find_psi_leaf_from_root <- function(psi_root, E){
+  leaf$set_physiology(PPFD = 1000, psi_soil = psi_root, soil_moist = 0.01, leaf_specific_conductance_max = k_sw_max, atm_vpd = 2, ca = 40, sapwood_volume_per_leaf_area = 1.8e-04, rho = 608, a_bio = 0.0245, leaf_temp = 25, atm_o2_kpa = 21, atm_kpa = 101.3)
+  psi_stem = leaf$transpiration_to_psi_stem(E/kg_2_mol_h20)
+  psi_stem = leaf$transpiration_to_psi_stem(E)
+  leaf$set_leaf_states_rates_from_psi_stem(psi_stem)
+  ci_ = leaf$ci_
+  assim_colimited_ = leaf$assim_colimited_
+  hydraulic_cost_TF = leaf$hydraulic_cost_TF(psi_stem)
+  
+  
+    P_x_l_i = -psi_root;
+  
+  n_i = 50
+    for(j in 1:n_i){
+    # P_x_l_i = P_x_l_i - E/(n_i*k_sw_max*((leaf$proportion_of_conductivity(psi = -P_x_l_i) +
+    #                                        leaf$proportion_of_conductivity(psi = -(P_x_l_i- E/(n_i*k_sw_max*(leaf$proportion_of_conductivity(psi = -P_x_l_i)))))/2))); 
+    # 
+        P_x_l_i = P_x_l_i - E/(n_i*k_sw_max*((leaf$proportion_of_conductivity(psi = -P_x_l_i)))); 
+  }
+  
+  
+  
+  
+  
+  return(list(P_x_l_i= P_x_l_i,
+              psi_stem = psi_stem,
+              assim_colimited_ = assim_colimited_,
+              hydraulic_cost_TF = hydraulic_cost_TF))
+}
+```
+
+
+```{r}
+psi_r_E %>%
+  slice(1:324) %>%
+  mutate(psi_l = map2(psi_r, E, ~find_psi_leaf_from_root(-.x, .y)))%>%
+  unnest_wider(psi_l) -> psi_r_l_E
+
+psi_r_l_E %>%
+  mutate(psi_stem = -psi_stem) %>%
+  mutate(P_x_l_i = P_x_l_i) %>%
+  mutate(psi_root_collar = psi_r) %>%
+  mutate(psi_soil_1 = -0.06) %>%
+  mutate(psi_soil_2 = -0.12) %>%
+  pivot_longer(cols = c(psi_soil_1, psi_soil_2, psi_root_collar, psi_stem, P_x_l_i)) %>%
+  ggplot(aes(y = value, x = E)) +
+  geom_point(aes(colour = name, group = name)) +
+  # geom_vline(xintercept = 0.00320) +
+  ylab("psi") +
+  theme_bw()-> a
+```
+
+```{r}
+psi_r_l_E %>%
+  mutate(profit = assim_colimited_ - hydraulic_cost_TF) %>%
+  mutate(E_max_profit = ifelse(profit == max(profit), E, NA)) %>%
+  pivot_longer(cols = c(profit,hydraulic_cost_TF, assim_colimited_)) %>%
+  ggplot(aes(y = value, x = E)) +
+  geom_point(aes(colour = name, group = name))+
+  geom_vline(aes(xintercept = E_max_profit)) +
+  ylab("Carbon inputs and outputs") +
+  theme_bw()-> b
+```
+
+```{r}
+a/b
+```
+
+```{r}
+find_psi_leaf_from_root <- function(psi_root, E){
+  leaf$set_physiology(PPFD = 1000, psi_soil = psi_root, leaf_specific_conductance_max = 4.8e-05, atm_vpd = 2, ca = 40, sapwood_volume_per_leaf_area = 1.8e-04, rho = 608, a_bio = 0.0245, leaf_temp = 25, atm_o2_kpa = 21, atm_kpa = 101.3)
+  
+   P_x_l_i = psi_root; 
+    
+    for(j in 1:n){
+        P_x_l_i = P_x_l_i - rho * g * (H / n) / 1e6 - (E * LA) / (n * k_sw_max * VC_sw(min(0, P_x_l_i)))
+    }
+    
+    for(j in 1:n){
+        P_x_l_i = P_x_l_i - E / (n * k_l * VC_l(min(0, P_x_l_i)))
+    }
+}
+```
+
+```{r}
+solve_root_crit <- function(){
+  tibble(psi_r = seq(P_x_r_UB_crit,-sw$psi_crit,length.out = n)) %>%
+  mutate(root_E = map_dbl(psi_r, ~E_from_Soil_to_Root_Collar(.x, P_soil = P_soil, rho = rho, g = g)[[1]])) -> res
+  
+  res$transpiration_leaf <- c()
+  
+  for(i in 1:n){
+      leaf$set_physiology(PPFD = 1000, psi_soil = -res$psi_r[i], leaf_specific_conductance_max = k_sw_max, atm_vpd = 2, ca = 40, sapwood_volume_per_leaf_area = 1.8e-04, rho = 608, a_bio = 0.0245, leaf_temp = 25, atm_o2_kpa = 21, atm_kpa = 101.3)
+    
+    res$transpiration_leaf[i] <- leaf$transpiration(psi_stem = sw$psi_crit)
+
+  }
+      return(res)
+}
+
+
+```
+
+```{r}
+# Solve the critical root pressure (i.e. the root pressure at which leaf crit is reached and E = E)
+
+solve_root_crit() %>%
+  mutate(diff = root_E - transpiration_leaf) %>% 
+  filter(abs(diff) == min(abs(diff))) %>%
+  pull(psi_r) -> root_crit
+```
+
+
+
+```{r}
+psi_r_E %>%
+  mutate(psi_l = map2_dbl(psi_r, E, ~find_psi_leaf_from_root(-.x, .y)))
+```
+
+
+```{r}
+tibble(psi_r = seq(P_x_r_UB_crit,root_crit,-0.01)) %>%
+mutate(E = purrr::map_dbl(psi_r,
+    ~E_from_Soil_to_Root_Collar(.x, P_soil = P_soil, rho = rho, g = g)[[1]])) -> psi_r_E
+
+psi_r_E %>%
+  ggplot(aes(x = psi_r, y = E)) +
+  geom_point()
+```
+
+```{r}
+psi_r_E %>%
+  # slice(1:76) %>%
+  mutate(psi_l = map2(psi_r, E, ~find_psi_leaf_from_root(-.x, .y)))%>%
+  unnest_wider(psi_l) -> psi_r_l_E
+
+psi_r_l_E %>%
+  mutate(psi_stem = -psi_stem) %>%
+  mutate(P_x_l_i = P_x_l_i) %>%
+  mutate(psi_root_collar = psi_r) %>%
+  mutate(psi_soil_1 = -0.06) %>%
+  mutate(psi_soil_2 = -0.12) %>%
+  pivot_longer(cols = c(psi_soil_1, psi_soil_2, psi_root_collar, psi_stem, P_x_l_i)) %>%
+  ggplot(aes(y = value, x = E)) +
+  geom_point(aes(colour = name, group = name)) +
+  # geom_vline(xintercept = 0.00320) +
+  ylab("psi") +
+  theme_bw()-> a
+```
+
+```{r}
+psi_r_l_E %>%
+  mutate(profit = assim_colimited_ - hydraulic_cost_TF) %>%
+  pivot_longer(cols = c(profit,hydraulic_cost_TF, assim_colimited_)) %>%
+  ggplot(aes(y = value, x = E)) +
+  geom_point(aes(colour = name, group = name))+
+  # geom_vline(xintercept = 0.00320) +
+  ylab("Carbon inputs and outputs") +
+  theme_bw()-> b
+```
+
+```{r}
+a/b
+```

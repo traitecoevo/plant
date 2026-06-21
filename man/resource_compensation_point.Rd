@@ -7,13 +7,13 @@
 resource_compensation_point(p, ...)
 }
 \arguments{
-\item{p}{A \code{PlantPlus}, with strategy, height, etc set.}
+\item{p}{An \code{Individual}, with strategy, height, etc set.}
 
 \item{...}{Additional arguments that are ignored}
 }
 \description{
 Compute the whole plant light compensation point for a single
-plant.
+plant: the light level at which whole-plant carbon gain is zero.
 }
 \author{
 Rich FitzJohn

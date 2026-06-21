@@ -60,6 +60,8 @@ navbar:
           href: articles/individuals.html
         - text: "Patches of competing plants"
           href: articles/patch.html
+        - text: "Canopy shading methods"
+          href: articles/canopy_methods.html
         - text: "Emergent properties of patches"
           href: articles/emergent.html
         - text: "Utilising Extrinsic Drivers"

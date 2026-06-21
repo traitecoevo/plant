@@ -5,6 +5,7 @@
 #include <plant/environment.h>
 #include <plant/gradient.h>
 #include <odelia/ode_interface.hpp>
+#include <optional>
 
 namespace plant {
 
@@ -26,6 +27,23 @@ public:
   double height() const {return individual.state(HEIGHT_INDEX);}
   double compute_competition(double z) const;
   double fecundity() const {return offspring_produced_survival_weighted;}
+
+  // Bookkeeping recorded at the moment the node is introduced, so that
+  // lifetime-fitness calculations need not look these up after the run.
+  // patch_density_at_birth is the (unnormalised) probability density of a
+  // patch having the node's introduction age, i.e. survival_weighting->density.
+  void set_introduction(double time, double patch_density) {
+    node_introduction_time = time;
+    patch_density_at_birth = patch_density;
+  }
+  double introduction_time() const {return node_introduction_time;}
+  double patch_density() const {return patch_density_at_birth;}
+
+  // Lifetime offspring of this node, weighted by the probability of
+  // landing in a patch of the node's age and by survival during dispersal.
+  double weighted_fecundity(double S_D) const {
+    return offspring_produced_survival_weighted * patch_density_at_birth * S_D;
+  }
 
   // Unfortunate, but need a get_ here because of name shadowing...
   double get_log_density() const {return log_density;}
@@ -74,6 +92,10 @@ private:
   double offspring_produced_survival_weighted;
   double offspring_produced_survival_weighted_dt;
   double pr_patch_survival_at_birth;
+
+  // Recorded at introduction (see set_introduction).
+  double node_introduction_time;
+  double patch_density_at_birth;
 };
 
 template <typename T, typename E>
@@ -83,7 +105,9 @@ Node<T,E>::Node(strategy_type_ptr s)
     log_density_dt(0),
     density(0),
     offspring_produced_survival_weighted(0),
-    offspring_produced_survival_weighted_dt(0) {
+    offspring_produced_survival_weighted_dt(0),
+    node_introduction_time(0),
+    patch_density_at_birth(0) {
 }
 
 template <typename T, typename E>
@@ -96,7 +120,6 @@ void Node<T,E>::compute_rates(const environment_type& environment,
   log_density_dt =
     - growth_rate_gradient(environment)
     - individual.rate("mortality");
-
   // survival_individual: converts from the mean of the poisson process (on
   // [0,Inf)) to a probability (on [0,1]).
   double survival_individual = exp(-individual.state(MORTALITY_INDEX));
@@ -145,8 +168,21 @@ void Node<T,E>::compute_initial_conditions(const environment_type& environment,
 
 template <typename T, typename E>
 double Node<T,E>::growth_rate_gradient(const environment_type& environment) const {
-  individual_type p = individual;
-  auto fun = [&] (double h) mutable -> double {
+  // Finite-differencing the growth rate needs a mutable Individual to perturb
+  // height on, but it must not disturb this node's already-computed state and
+  // rates. Rather than copy-construct a fresh Individual (and its four
+  // Internals vectors) on every call, reuse a thread-local scratch: copy
+  // assignment reuses the existing vector storage, so steady-state calls do
+  // not allocate. The scratch is per (strategy, environment) instantiation and
+  // is never used re-entrantly, so a single thread-local is sufficient.
+  thread_local std::optional<individual_type> scratch;
+  if (scratch.has_value()) {
+    *scratch = individual;
+  } else {
+    scratch.emplace(individual);
+  }
+  individual_type& p = *scratch;
+  auto fun = [&] (double h) -> double {
     return p.growth_rate_given_height(h, environment);
   };
 

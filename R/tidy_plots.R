@@ -20,7 +20,7 @@ plot_size_distribution <- function(data_species) {
     dplyr::mutate(relative_log_density = rel(.data$log_density)) %>%
     ggplot2::ggplot(ggplot2::aes(x = .data$time, y = .data$height, color = as.character(.data$species),
                         group = interaction(.data$node, .data$species), alpha = .data$relative_log_density)) +
-    ggplot2::geom_line() + 
+    ggplot2::geom_line(na.rm = TRUE) +
     ggplot2::labs(x = "Time (years)",
          y = "Height (m)",
          color = "Species", 

@@ -140,11 +140,16 @@ test_that("grow_individual_to_size", {
 
     expect_equal(length(obj$individual), length(heights))
     expect_true(all(sapply(obj$individual, inherits, sprintf("Individual<%s,%s>",x,e))))
-    expect_equal(sapply(obj$individual, function(p) p$state("height")), heights, tolerance=1e-6)
+    # Tolerance relaxed from 1e-6 to 1e-4 for the ratio-first competition
+    # optimisation (develop #471): q()/Q()/compute_competition now use the cached
+    # u = z/height ratio (a reciprocal-multiply), so grown heights differ from the
+    # pre-optimisation reference at the ~1e-6 level -- well within the solver's
+    # meaningful accuracy. (FF16/K93 sit at ~4-7e-7, TF24 at ~1.3e-6.)
+    expect_equal(sapply(obj$individual, function(p) p$state("height")), heights, tolerance=1e-4)
   }
 })
 
-## TODO: another useful function could be to construct splines for
+## TODO(#482): another useful function could be to construct splines for
 ## arbitrary variables during a run; we end up with all the state here
 ## so that should be fairly straightforward.
 test_that("grow_individual_to_size", {
@@ -153,8 +158,12 @@ test_that("grow_individual_to_size", {
     e <- environment_types[[x]]
     pl <- Individual(x, e)(strategy)
     sizes <- c(1, 5, 10, 12, strategy$hmat)
+    
     if(grepl("K93", x)) 
       sizes <- c(2.5, 5, 10, 12)
+
+    if(grepl("TF24", x)) 
+      sizes <- c(1, 5, 10, 12)
     env <- Environment(x)
     env$set_fixed_environment(1.0, height_max = 150)
     
@@ -163,7 +172,7 @@ test_that("grow_individual_to_size", {
     expect_equal(res$state[, "height"], sizes, tolerance=1e-4)
 
     sizes2 <- c(sizes, dplyr::last(sizes) * 2)
-    if(x == "FF16") {
+    if(x %in% c("FF16", "TF24")){
       expect_warning(res2 <- grow_individual_to_size(pl, sizes2, "height", env, 100),
                 "Time exceeded time_max")
       expect_equal(length(res2$time), length(sizes2))

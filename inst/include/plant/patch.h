@@ -4,9 +4,13 @@
 
 #include <plant/parameters.h>
 #include <plant/species.h>
+#include <plant/util.h>
 #include <odelia/ode_interface.hpp>
 
 #include <plant/disturbance_regime.h>
+
+#include <algorithm>
+#include <limits>
 
 using namespace Rcpp;
 
@@ -34,6 +38,31 @@ public:
   double height_max() const;
 
   double compute_competition(double height) const;
+
+  // * Lifetime fitness / offspring production
+  // These are patch-level quantities: each integrates the per-node weighted
+  // net reproduction over a species' node-introduction times.
+  // Integrate lifetime fitness of a species' nodes, scaled per node.
+  double net_reproduction_ratio_for_species(size_t species_index,
+                                            std::vector<double> const& scalars) const;
+  // Offspring production: fitness scaled by the birth rate over time.
+  std::vector<double> offspring_production() const;
+  // Overall fitness (unscaled, scalars == 1).
+  std::vector<double> net_reproduction_ratios() const;
+  // Sum of offspring produced across all species.
+  double total_offspring_production() const;
+  // Per-node reproduction integration error for each species.
+  std::vector<std::vector<double>> net_reproduction_ratio_errors() const;
+
+  // * Schedule-refinement error collection
+  // Sample the competition error for each species introduced this step and
+  // fold it into the running per-node max (ignoring NA, matching na.rm=TRUE in
+  // R). Accumulated across the run; cleared by reset().
+  void collect_competition_errors(const std::vector<size_t>& added);
+  // Combine the competition error (sampled during the run) with the
+  // reproduction error (computed now) into a single per-node error vector per
+  // species. An all-NA node yields -Inf. Drives schedule refinement.
+  std::vector<std::vector<double>> refinement_error_by_node() const;
 
   void introduce_new_node(size_t species_index);
   void introduce_new_nodes(const std::vector<size_t>& species_index);
@@ -142,12 +171,17 @@ private:
   environment_type environment;
   std::vector<species_type> species;
 
-  //TODO: Move into environment?
+  //TODO(#476): Move into environment?
   std::vector<double> resource_depletion;
 
   environment_type* environment_ptr;
 
   Control control;
+
+  // Per-species running max of the competition error per node, accumulated
+  // across the run via collect_competition_errors(). Entries start at -Inf and
+  // ignore NA contributions, matching apply(., 2, max, na.rm=TRUE) in R.
+  std::vector<std::vector<double>> competition_error_by_node;
 };
 
 template <typename T, typename E>
@@ -162,6 +196,13 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
 
   save_RK45_cache = control.save_RK45_cache;
   survival_weighting = p.disturbance;
+
+  // Configure the light profile's shading model before the first
+  // compute_environment() in reset(). No-op for environments without a light
+  // profile (only FF16 implements alternative shading models).
+  environment.set_shading_model(control.shading_model,
+                                control.ppa_layer_optical_depth,
+                                control.ppa_layer_smoothing);
 
   add_strategies(parameters.strategies);
 
@@ -214,6 +255,9 @@ void Patch<T,E>::reset() {
   // compute effects of resource consumption
   environment_ptr = &environment;
   compute_rates();
+
+  // clear accumulated per-node competition error
+  competition_error_by_node.assign(species.size(), {});
 }
 
 template <typename T, typename E>
@@ -244,6 +288,115 @@ std::vector<double> Patch<T,E>::r_compute_competition_effect_error_by_node_for_s
   return species[species_index].r_compute_competition_effect_by_nodes_error(tot_competition_effect);
 }
 
+// Integrate over lifetime fitness of individual nodes, scaled per node.
+template <typename T, typename E>
+double Patch<T,E>::net_reproduction_ratio_for_species(
+    size_t species_index, std::vector<double> const& scalars) const {
+  auto net_prod = species[species_index].net_reproduction_ratio_by_node_weighted();
+  auto const times = species[species_index].node_times();
+  auto net_prod_scaled = std::vector<double>(times.size());
+  for (size_t i = 0; i < times.size(); ++i) {
+    net_prod_scaled[i] = net_prod[i] * scalars[i];
+  }
+  return util::trapezium(times, net_prod_scaled);
+}
+
+// Offspring production, equal to overall fitness scaled by the birth rate.
+template <typename T, typename E>
+std::vector<double> Patch<T,E>::offspring_production() const {
+  auto ret = std::vector<double>(species.size());
+  for (size_t i = 0; i < species.size(); ++i) {
+    // scale by birth rate function over time
+    auto const times = species[i].node_times();
+    auto scalars = std::vector<double>(times.size());
+    for (size_t j = 0; j < times.size(); ++j) {
+      scalars[j] = species[i].extrinsic_drivers().evaluate("birth_rate", times[j]);
+    }
+    ret[i] = net_reproduction_ratio_for_species(i, scalars);
+  }
+  return ret;
+}
+
+// Overall fitness (no scaling, ie scalars set to 1.0).
+template <typename T, typename E>
+std::vector<double> Patch<T,E>::net_reproduction_ratios() const {
+  auto ret = std::vector<double>(species.size());
+  for (size_t i = 0; i < species.size(); ++i) {
+    auto scalars = std::vector<double>(species[i].size(), 1.0);
+    ret[i] = net_reproduction_ratio_for_species(i, scalars);
+  }
+  return ret;
+}
+
+// Sum up all offspring produced.
+template <typename T, typename E>
+double Patch<T,E>::total_offspring_production() const {
+  double total = 0.0;
+  std::vector<double> offspring = offspring_production();
+  for (size_t i = 0; i < species.size(); ++i) {
+    total += offspring[i];
+  }
+  return total;
+}
+
+// Check integration errors for each species' reproduction integral.
+template <typename T, typename E>
+std::vector<std::vector<double>> Patch<T,E>::net_reproduction_ratio_errors() const {
+  std::vector<std::vector<double>> ret;
+  double total_offspring = total_offspring_production();
+  for (size_t i = 0; i < species.size(); ++i) {
+    ret.push_back(util::local_error_integration(
+        species[i].node_times(),
+        species[i].net_reproduction_ratio_by_node_weighted(),
+        total_offspring));
+  }
+  return ret;
+}
+
+// Sample the competition error for each species introduced this step and fold
+// it into the running per-node max (ignoring NA, matching na.rm=TRUE in R).
+template <typename T, typename E>
+void Patch<T,E>::collect_competition_errors(const std::vector<size_t>& added) {
+  for (size_t idx : added) {
+    std::vector<double> v =
+        r_compute_competition_effect_error_by_node_for_species_i(idx);
+    std::vector<double>& acc = competition_error_by_node[idx];
+    if (acc.size() < v.size()) {
+      acc.resize(v.size(), -std::numeric_limits<double>::infinity());
+    }
+    for (size_t j = 0; j < v.size(); ++j) {
+      if (!ISNAN(v[j])) {
+        acc[j] = std::max(acc[j], v[j]);
+      }
+    }
+  }
+}
+
+// Combine the competition error (sampled during the run) with the reproduction
+// error (computed now) into a single per-node error vector per species. An
+// all-NA node yields -Inf, matching apply(rbind(...), 2, max, na.rm=TRUE) in R.
+template <typename T, typename E>
+std::vector<std::vector<double>> Patch<T,E>::refinement_error_by_node() const {
+  std::vector<std::vector<double>> repro = net_reproduction_ratio_errors();
+  std::vector<std::vector<double>> ret(species.size());
+  for (size_t i = 0; i < species.size(); ++i) {
+    const std::vector<double>& comp = competition_error_by_node[i];
+    const std::vector<double>& rep = repro[i];
+    const size_t n = species[i].size();
+    std::vector<double> tot(n, -std::numeric_limits<double>::infinity());
+    for (size_t j = 0; j < n; ++j) {
+      if (j < comp.size() && !ISNAN(comp[j])) {
+        tot[j] = std::max(tot[j], comp[j]);
+      }
+      if (j < rep.size() && !ISNAN(rep[j])) {
+        tot[j] = std::max(tot[j], rep[j]);
+      }
+    }
+    ret[i] = tot;
+  }
+  return ret;
+}
+
 // Pre-compute environment, as shaped by residents
 // Creates splines of resource availability
 template <typename T, typename E>
@@ -269,9 +422,7 @@ void Patch<T,E>::compute_rates() {
   double time_ = environment_ptr->time;
 
   double pr_patch_survival = survival_weighting->pr_survival(time_);
-
   for (size_t i = 0; i < size(); ++i) {
-    double pr_patch_survival = survival_weighting->pr_survival(time_);
     double birth_rate = species[i].extrinsic_drivers().evaluate("birth_rate", time_);
 
     // Pass the environment that pointer is tracking into compute rates.
@@ -284,16 +435,18 @@ void Patch<T,E>::compute_rates() {
       return r + s.consumption_rate(i); // accumulates r from zero
     });
 
-    resource_depletion.push_back(resource_consumed);
+    resource_depletion.push_back(resource_consumed/area);
   }
+  
 
   environment_ptr->compute_rates(resource_depletion);
 
   //todo do we need to clear this every step?
   resource_depletion.clear();
+
 }
 
-// TODO: We should only be recomputing the light environment for the
+// TODO(#478): We should only be recomputing the light environment for the
 // points that are below the height of the seedling -- not the entire
 // light environment; probably worth just doing a rescale there?
 template <typename T, typename E>
@@ -306,8 +459,12 @@ void Patch<T,E>::introduce_new_node(size_t species_index) {
 
 template <typename T, typename E>
 void Patch<T,E>::introduce_new_nodes(const std::vector<size_t>& species_index) {
+  // Record introduction time and patch-age density on each node as it is
+  // introduced, so lifetime-fitness calcs need not look these up later.
+  const double t = time();
+  const double patch_density = survival_weighting->density(t);
   for (size_t i : species_index) {
-    species[i].introduce_new_node();
+    species[i].introduce_new_node(t, patch_density);
   }
 
   compute_environment(false);
@@ -348,7 +505,7 @@ size_t Patch<T,E>::ode_size() const {
 
 template <typename T, typename E>
 size_t Patch<T,E>::aux_size() const {
-  // TODO: Is this useful for environment vectors?
+  // TODO(#478): Is this useful for environment vectors?
   // no use for auxiliary environment variables (yet)
   return odelia::ode::aux_size(species.begin(), species.end());// + environment.ode_size();
 }

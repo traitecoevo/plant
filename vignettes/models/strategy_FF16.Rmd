@@ -454,7 +454,7 @@ extract_strategy_parameter_values <- function(vars){
 ```{r definitions, echo=FALSE, results='asis'}
 system.file("docs", "demography-vars.csv", package = "plant") %>%
 read.csv() %>% dplyr::as_tibble() %>%
-# TODO: can we get groups as headers spanning multiple columns?
+# TODO(#481): can we get groups as headers spanning multiple columns?
 knitr::kable(align = "l",
   caption = 'Key variables of the `FF16` physiological model. For mass ($M$), respiration ($r$), and turnover ($k$) variables, subscripts refer to any of the following tissues: ${\\rm l}$ = leaves, ${\\rm b}$ = bark, ${\\rm s}$ = sapwood,${\\rm r}$ = roots, ${\\rm a}$ = all living tissue. For area $A$ variables, subscripts refer to any of the following: ${\\rm l}$ = leaves, ${\\rm st}$ = total stem cross-section, ${\\rm s}$ = sapwood cross-section, ${\\rm b}$ = bark cross-section, ${\\rm h}$ = heartwood cross-section'
 )

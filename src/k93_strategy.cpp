@@ -4,10 +4,6 @@
 
 namespace plant {
 
-// TODO: Document consistent argument order: l, b, s, h, r
-// TODO: Document ordering of different types of variables (size
-// before physiology, before compound things?)
-// TODO: Consider moving to activating as an initialisation list?
 K93_Strategy::K93_Strategy() {
    // * Empirical parameters - Table 1.
    height_0 = 2.0; // Height at birth
@@ -31,35 +27,58 @@ void K93_Strategy::update_dependent_aux(const int index, Internals& vars) {
   if (index == HEIGHT_INDEX) {
     double height = vars.state(HEIGHT_INDEX);
     vars.set_aux(aux_index.at("competition_effect"),
-                 compute_competition(0.0, height));
+                 compute_competition_by_ratio(
+                   0.0, k_I * size_to_basal_area(height)));
+    vars.set_aux(aux_index.at("height_inverse"), 1.0 / height);
   }
-}
-
-// Smoothing function for competition effect
-double K93_Strategy::Q(double z, double size) const {
-  if (z > size) {
-    return 0.0;
-  }
-  const double tmp = 1.0 - pow(z / size, eta);
-
-  return tmp * tmp;
 }
 
 double K93_Strategy::compute_competition(double z, double size) const {
+  return compute_competition(z, k_I * size_to_basal_area(size), 1.0 / size);
+}
 
-  // Competition only felt if plant bigger than target size z
-  return k_I * size_to_basal_area(size) * Q(z, size);
- }
+double K93_Strategy::compute_competition(
+    double z, double whole_plant_competition, double height_inverse) const {
+  return compute_competition_by_ratio(
+    z * height_inverse, whole_plant_competition);
+}
+
+double K93_Strategy::compute_competition_by_ratio(
+    double z_over_size, double whole_plant_competition) const {
+  // Competition only felt if plant bigger than target size z.
+  return whole_plant_competition * canopy_shape.Q(z_over_size);
+}
 
 double K93_Strategy::establishment_probability(const K93_Environment& environment){
-  //TODO: may want to make this dependent on achieving positive growth rate
+  (void) environment;
+  // K93 (Kohyama 1993) has no carbon-budget establishment filter:
+  // establishment is deterministic, so every dispersed seed establishes.
+  // Demographic filtering instead happens via growth suppression (size_dt is
+  // clamped to >= 0 under competition) and the g > 0 density guard in
+  // Node::compute_initial_conditions. This value is consumed by the SCM
+  // (initial mortality / density) and the stochastic germination test.
+  // TODO(#480): may want to make this dependent on achieving positive growth rate.
   return 1.0;
 }
 
 double K93_Strategy::net_mass_production_dt(const K93_Environment& environment,
                                             double height, double area_leaf_) {
-  // TODO: there was no return value here - added 0.0
-  return 1.0;
+  (void) environment;
+  (void) height;
+  (void) area_leaf_;
+  // K93 models growth directly (size_dt); it has no carbon mass-production
+  // budget, so net mass production is undefined for this strategy. The value
+  // is never consumed by compute_rates -- it is reachable only via the R
+  // diagnostic accessor and resource_compensation_point(). Return NA to make
+  // "not applicable" explicit rather than returning a misleading number.
+  return NA_REAL;
+}
+
+double K93_Strategy::net_mass_production_dt(const K93_Environment& environment,
+                                            double height, double area_leaf_,
+                                            double height_inverse) {
+  (void) height_inverse;
+  return net_mass_production_dt(environment, height, area_leaf_);
 }
 
 void K93_Strategy::refresh_indices () {
@@ -142,6 +161,8 @@ double K93_Strategy::mortality_dt(double cumulative_basal_area,
 
 // useful for pre-computing expensive objects
 void K93_Strategy::prepare_strategy() {
+  canopy_shape.initialise(eta);
+
   if (is_variable_birth_rate) {
     extrinsic_drivers.set_variable("birth_rate", birth_rate_x, birth_rate_y);
   } else {

@@ -22,7 +22,7 @@ run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy),
     p <- scm_base_parameters(x)
     p$strategies <- list(strategy_types[[x]]())
     p$birth_rate <- 0.1
-    build_schedule(p)
+    run_scm(p, refine_schedule = TRUE)
     invisible(NULL)
   }
 
@@ -30,7 +30,7 @@ run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy),
     p0 <- scm_base_parameters(x)
     p_resident <- expand_parameters(trait_matrix(0.0825, "lma"), p0)
 
-    ctrl <- scm_base_control()
+    ctrl <- Control()
     ctrl$save_RK45_cache <- TRUE
 
     scm <- run_scm(p_resident, ctrl = ctrl)
@@ -83,8 +83,8 @@ run_resource_consumption_benchmarks <- function(its = 10) {
     env <- Environment("TF24")
     env$set_soil_number_of_depths(layers)
 
-    ctrl <- scm_base_control()
-    run_scm(p1, env, ctrl)
+    ctrl <- Control()
+    out <- run_scm(p1, env, ctrl)
     invisible(NULL)
   }
   

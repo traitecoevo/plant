@@ -43,19 +43,18 @@ lma_trait <- trait_matrix(0.1457419, "lma")
 
 p1 <- expand_parameters(p0, trait_matrix = lma_trait)
 
-stand_results <- build_schedule(p1)
+stand_results <- run_scm(p1, refine_schedule = TRUE)$parameters
 # creates a schedule for time steps when running the model, with many "steps" early on and fewer as the stand ages and doesn't change as rapidly
 
-out <- run_scm_collect(stand_results)
+out <- run_scm(stand_results, collect = TRUE)
 # run the SCM model
 ```
 
 
-We convert this output into a more manageable format to manipulate, and calculate totals and mean values for the properties of the stand.
+`run_scm(..., collect = TRUE)` already returns the output in a tidy format (a list whose `species` element is a tibble with all state variables as separate columns), so we can use it directly to calculate totals and mean values for the properties of the stand.
 
 ```{r}
-tidy_stand <- tidy_patch(out)
-# function converts "out" object into a more manageable format, a tibble with all state variables as separate columns
+tidy_stand <- out
 
 stand_expand <- FF16_expand_state(tidy_stand)
 # adds in more state variables from our stand output (leaf, bark, sapwood, stem properties to name a few)

@@ -1,5 +1,7 @@
 ^.git$
 ^.github$
+^\.claude$
+^agents\.md$
 ^.vscode$
 ^.*\.code-workspace$
 (^|/)\\.DS_Store$
@@ -40,3 +42,5 @@
 ^vignettes/profiling_code.Rmd$
 ^vignettes/self_thinning.Rmd$
 ^vignettes/strategy_new.Rmd$
+^LICENSE\.md$
+^CLA\.md$

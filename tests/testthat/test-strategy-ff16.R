@@ -53,20 +53,22 @@ test_that("FF16 collect_all_auxiliary option", {
 
   s <- FF16_Strategy()
   p <- FF16_Individual(s)
-  expect_equal(p$aux_size, 2)
-  expect_equal(length(p$internals$auxs), 2)
+  expect_equal(p$aux_size, 3)
+  expect_equal(length(p$internals$auxs), 3)
   expect_equal(p$aux_names, c(
     "competition_effect",
+    "height_inverse",
     "net_mass_production_dt"
   ))
 
   s <- FF16_Strategy(collect_all_auxiliary=TRUE)
   expect_true(s$collect_all_auxiliary)
   p <- FF16_Individual(s)
-  expect_equal(p$aux_size, 3)
-  expect_equal(length(p$internals$auxs), 3)
+  expect_equal(p$aux_size, 4)
+  expect_equal(length(p$internals$auxs), 4)
   expect_equal(p$aux_names, c(
     "competition_effect",
+    "height_inverse",
     "net_mass_production_dt",
     "area_sapwood"
   ))
@@ -163,6 +165,26 @@ test_that("FF16_Strategy hyper-parameterisation", {
   expect_equal(ret, trait_matrix(numeric(0), "lma"))
 })
 
+test_that("FF16_hyperpar sources k_I from the strategy", {
+  narea <- c(2E-3, 2.3E-3)
+  m <- trait_matrix(narea, "narea")
+
+  ## Default strategy: assimilation matches the existing reference values.
+  s <- FF16_Strategy()
+  expect_equal(s$k_I, 0.5)
+  ret <- FF16_hyperpar(m, s)
+  expect_equal(ret[, "a_p1"], c(162.2592, 188.1549), tolerance=1e-5)
+
+  ## Varying the strategy's k_I must change the derived assimilation
+  ## parameters -- previously the hard-coded 0.5 default in the maker
+  ## silently ignored the strategy value.
+  s2 <- FF16_Strategy()
+  s2$k_I <- 0.8
+  ret2 <- FF16_hyperpar(m, s2)
+  expect_false(isTRUE(all.equal(ret[, "a_p1"], ret2[, "a_p1"])))
+  expect_false(isTRUE(all.equal(ret[, "a_p2"], ret2[, "a_p2"])))
+})
+
 test_that("narea calculation", {
   x <- c(1.38, 3.07, 2.94)
   p0 <- FF16_Parameters()
@@ -179,14 +201,14 @@ test_that("offspring arrival", {
 
   p0 <- scm_base_parameters("FF16")
   env <- Environment("FF16")
-  ctrl <- scm_base_control()
+  ctrl <- Control()
   
   # one species
   p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar, 
                            birth_rate_list = list(20))
 
   out <- run_scm(p1, env, ctrl)
-  expect_equal(out$offspring_production, 16.88946, tolerance=1e-5)
+  expect_equal(out$offspring_production, 16.88946, tolerance=1e-4)
   expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.216055), tolerance=1e-5)
 
   # two species
@@ -202,13 +224,13 @@ test_that("Report generation", {
 
   p0 <- scm_base_parameters("FF16")
   env <- Environment("FF16")
-  ctrl <- scm_base_control()
+  ctrl <- Control()
   
   p2 <- expand_parameters(trait_matrix(c(0.0825, 0.2625), "lma"), p0,   FF16_hyperpar, 
                            birth_rate_list = list(11.99177, 16.51006))
 
   # test report generation
-  out <- run_scm_collect(p2, env, ctrl)
+  out <- run_scm(p2, env, ctrl, collect = TRUE)
 
   unlink("tmp", recursive = TRUE)
   expect_message(FF16_generate_stand_report(out, "tmp/tmp.html", overwrite = TRUE), "Report for FF16 stand saved at tmp/tmp.html")

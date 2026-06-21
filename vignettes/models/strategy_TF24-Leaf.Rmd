@@ -133,6 +133,8 @@ C_i = seq(0,40,1)
 
 Plot $A_j$ and $A_c$ against $C_i$
 
+Note that the leaf object has functions and objects with similar names. For example, `leaf$assim_electron_limited` is a function which takes C_i as an input, and `leaf$assim_electron_limited_` is the output object.
+
 ```{r}
 tibble(C_i = C_i) %>%
   mutate(A_j = map_dbl(C_i, leaf$assim_electron_limited),

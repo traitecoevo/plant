@@ -19,6 +19,35 @@ params <- scm_base_parameters("FF16")
 params$disturbance_mean_interval <- 30.0
 ```
 
+```{r, include = FALSE}
+library(dplyr)
+library(tidyr)
+
+# The tidy `species` table returned by `run_scm(collect = TRUE)` has one row
+# per node per step. This helper reshapes a single variable into a matrix with
+# one row per node and one column per step, padding with `NA` for nodes that
+# had not yet been introduced.
+sdd_matrix <- function(species_data, var) {
+  m <- species_data |>
+    dplyr::select(node, step, dplyr::all_of(var)) |>
+    tidyr::pivot_wider(names_from = step, values_from = dplyr::all_of(var)) |>
+    dplyr::arrange(node)
+  as.matrix(m[, -1])
+}
+
+# Patch-level competition at ground level (`compute_competition(0)`), integrated
+# across the size distribution with the trapezium rule. `competition_effect` is
+# the leaf area of an individual; the patch effect weights this by node density
+# and the light extinction coefficient `k_I`.
+patch_competition <- function(height, density, competition_effect, k_I) {
+  fc <- k_I * density * competition_effect
+  o  <- order(height, decreasing = TRUE)
+  h  <- height[o]
+  f  <- fc[o]
+  sum(diff(-h) * (head(f, -1) + tail(f, -1))) / 2
+}
+```
+
 # One patch
 
 Next, we configure a patch containing a single species:
@@ -31,34 +60,34 @@ patch <- expand_parameters(trait_matrix(0.0825, "lma"), params)
 and run the `plant` characteristic solver to step the equations defining nodes of individuals forward in time:
 
 ```{r}
-result <- run_scm_collect(patch)
+result <- run_scm(patch, collect = TRUE)
 ```
 
 #
 
-`run_scm_collect` collects information about the state of the system at every ODE step:
+`run_scm(collect = TRUE)` collects information about the state of the system at every ODE step:
 
 ```{r}
 names(result)
 ```
 
 Entries are:
-  * time: time of the step
-  * species: a list with the state of each species (in this case there is only 1).  The contents is a 3D array of variable /
-    time step / node
-  * env: a list containing resource availability. This includes `light_availability`, which are 2D splines that describe the competitive environment of the patch at each step (e.g a matrix of canopy openness at a given height in the FF16 strategy)
-  * offspring_production: the offspring_production from the patch during it's development
-  * patch_density: the density of patches this age in the metapopulation
+  * steps: a table with one row per ODE step, recording the `time` of the step and the `patch_density` (the density of patches of this age in the metapopulation)
+  * n_spp: the number of species in the patch
+  * species: a tidy table with one row per node per step. Alongside `time`, `step` and `node` identifiers it records each node's state, including `height`, `log_density` / `density` and `competition_effect` (the leaf area of an individual in that node)
+  * env: a list describing resource availability. This includes `light_availability`, a table giving canopy openness at a series of heights for each step (the competitive environment of the patch, e.g. canopy openness at a given height in the FF16 strategy)
+  * offspring_production: the offspring production from the patch during its development
+  * net_reproduction_ratios: the net reproduction ratio for each species
   * p: a copy of the input parameters
 
 First we explore patch state:
 
 ```{r}
-t <- result$time
-h <- result$species[[1]]["height", , ]
+t <- result$steps$time
+h <- t(sdd_matrix(dplyr::filter(result$species, species == "1"), "height"))
 ```
 
-here `h` is two of the three dimensions of the state array; each row is a *time* and each column is a *node*:
+here `h` is the height of every node, arranged so that each row is a *time* and each column is a *node*:
 
 ```{r}
 dim(h)
@@ -96,7 +125,7 @@ introduction for *either* species, each of which will be refined to different sc
 
 In the `FF16` strategy, Individuals increase in height with respect to time, but because they are competing the growth rate depends on the state of the environment (e.g. the amount of shading above an Individual's canopy), in addition to size dependent growth.
 
-<!-- TODO: Dead link- "(see vignette:plant)" -->
+<!-- TODO(#481): Dead link- "(see vignette:plant)" -->
 
 We can plot the trajectories of nodes developing within a patch over time:
 
@@ -108,29 +137,32 @@ matplot(t, h, lty=1, col=util_colour_set_opacity("black", 0.25), type="l",
 The light environment is stored over each time step, meaning that we can also plot how it changes during patch development:
 
 ```{r}
+light <- result$env$light_availability
+
 # Set limits
 xlim <- c(0, 1.1)
-ylim <- range(result$env[[length(result$env)]]$light_availability[, "height"])
+ylim <- range(light$height)
 
 # Draw the spline at each step
 plot(NA, xlim=xlim, ylim=ylim, las=1, xlab="Canopy openness", ylab="Height (m)")
-for (i in result$env) {
-  x <- i$light_availability
-  lines(x[, "light_availability"], x[, "height"], col = "grey")
+for (s in unique(light$step)) {
+  x <- dplyr::filter(light, step == s)
+  lines(x$light_availability, x$height, col = "grey")
 }
 
 # Add labels at specific times
 blues <- c("#DEEBF7", "#C6DBEF", "#9ECAE1", "#6BAED6",
            "#4292C6", "#2171B5", "#08519C", "#08306B")
 
-times <- c(5, 10, 20, 40, result$time[[length(result$time)]])
+times <- c(5, 10, 20, 40, max(result$steps$time))
 cols <- colorRampPalette(blues[-(1:2)])(length(times))
 
 for (i in seq_along(times)) {
-  x <- result$env[[which.min(abs(times[[i]] - result$time))]]$light_availability
-  lines(x[, "light_availability"], x[, "height"], col=cols[[i]])
+  s <- result$steps$step[which.min(abs(times[[i]] - result$steps$time))]
+  x <- dplyr::filter(light, step == s)
+  lines(x$light_availability, x$height, col=cols[[i]])
 
-  y <- x[nrow(x), "height"]
+  y <- max(x$height)
   points(1, y, pch=19, col=cols[[i]])
   text(1 + strwidth("x"), y, paste(round(times[[i]]), "years"),
        adj=c(0, 0))
@@ -141,8 +173,11 @@ initally (bottom right) all nodes in the patch are short and the canopy is rathe
 This is best shown by plotting the canopy openness at ground level over time:
 
 ```{r}
-y <- sapply(result$env, function(x) x$light_availability[1, "light_availability"])
-plot(result$time, y, type="l", las=1,
+ground <- light |>
+  dplyr::group_by(time) |>
+  dplyr::slice_min(height, n = 1, with_ties = FALSE) |>
+  dplyr::ungroup()
+plot(ground$time, ground$light_availability, type="l", las=1,
      ylim=c(0, 1), xlab="Time (years)", ylab="Canopy openness")
 ```
 
@@ -150,18 +185,20 @@ Again, the waves here are show rounds of recruitment and self thinning. Mortalit
 
 # Multiple patches
 
-In the `FF16` strategy, leaf area index (LAI) is the driver that controls the canopy openness (via the light extinction coefficient `params$k_I`, following exponential extinction).  This is not returned by `run_scm_collect` so instead we need to rebuild patches using
-`scm_patch`.
+In the `FF16` strategy, leaf area index (LAI) is the driver that controls the canopy openness (via the light extinction coefficient `params$k_I`, following exponential extinction). The collected output records the leaf area (`competition_effect`) of an individual in each node, so we can integrate across the size distribution to recover the patch-level competition experienced at ground level (height = 0) in terms of LAI:
 
 ```{r}
-patches <- lapply(seq_along(result$time), scm_patch, result)
-length(patches)
-```
-Each element of the resulting list is a Patch object, the same as was observed when running the model, but at each time step. This allows us to interrogate (via the internal functions of the Patch), rather than exploring summary results. Here we calculate the competition experienced at ground level (height = 0) in terms of LAI:
+# Light extinction coefficient, used to weight leaf area into competition.
+k_I <- result$p$strategies[[1]]$k_I
 
-```{r}
-lai <- sapply(patches, function(x) x$compute_competition(0.0))
-plot(result$time, lai, type="l", las=1, xlab="Time (years)", ylab="Leaf area index")
+lai <- result$species |>
+  dplyr::filter(species == "1") |>
+  dplyr::group_by(time) |>
+  dplyr::summarise(
+    lai = patch_competition(height, density, competition_effect, k_I),
+    .groups = "drop"
+  )
+plot(lai$time, lai$lai, type="l", las=1, xlab="Time (years)", ylab="Leaf area index")
 ```
 
 # Multi-species patches
@@ -175,14 +212,14 @@ patch_2sp <- expand_parameters(trait_matrix(0.2625, "lma"), patch)
 Then collect the patch-level dynamics:
 
 ```{r}
-result_2sp <- run_scm_collect(patch_2sp)
+result_2sp <- run_scm(patch_2sp, collect = TRUE)
 ```
 
 We can plot the development of each species within the patch:
 ```{r}
-t2 <- result_2sp$time
-h1 <- result_2sp$species[[1]]["height", , ]
-h2 <- result_2sp$species[[2]]["height", , ]
+t2 <- result_2sp$steps$time
+h1 <- t(sdd_matrix(dplyr::filter(result_2sp$species, species == "1"), "height"))
+h2 <- t(sdd_matrix(dplyr::filter(result_2sp$species, species == "2"), "height"))
 
 cols <- c("#e34a33", "#045a8d")
 
@@ -212,8 +249,8 @@ The dynamics are easier to see when node trajectories are weighted by node densi
 
 ```{r}
 # Relativise the log densities onto (-4, max)
-d1 <- result_2sp$species[[1]]["log_density", , ]
-d2 <- result_2sp$species[[2]]["log_density", , ]
+d1 <- t(sdd_matrix(dplyr::filter(result_2sp$species, species == "1"), "log_density"))
+d2 <- t(sdd_matrix(dplyr::filter(result_2sp$species, species == "2"), "log_density"))
 rel <- function(x, xmin) {
   x[x < xmin] <- xmin
   xmax <- max(x, na.rm=TRUE)
@@ -241,40 +278,47 @@ The changing intensity of competition can be shown as the total leaf area of eac
 
 
 ```{r}
-patches2 <- lapply(seq_along(result_2sp$time), scm_patch, result_2sp)
-lai2 <- sapply(patches2, function(x) x$compute_competition(0.0))
-
-lai2_1 <- sapply(patches2, function(x) x$species[[1]]$compute_competition(0.0))
-lai2_2 <- sapply(patches2, function(x) x$species[[2]]$compute_competition(0.0))
+lai2 <- result_2sp$species |>
+  dplyr::group_by(species, step) |>
+  dplyr::summarise(
+    lai = patch_competition(height, density, competition_effect, k_I),
+    .groups = "drop"
+  ) |>
+  tidyr::pivot_wider(names_from = species, values_from = lai,
+                     names_prefix = "sp", values_fill = 0) |>
+  dplyr::right_join(result_2sp$steps, by = "step") |>
+  dplyr::arrange(step) |>
+  dplyr::mutate(dplyr::across(c(sp1, sp2), ~tidyr::replace_na(.x, 0)),
+                total = sp1 + sp2)
 
 # Patch total LAI (dashed)
-plot(t2, lai2, type="l", las=1, lty=2,
+plot(lai2$time, lai2$total, type="l", las=1, lty=2,
      xlab="Time (years)", ylab="Leaf area index")
 
 # Species 1 LAI (red)
-lines(t2, lai2_1, col=cols[[1]])
+lines(lai2$time, lai2$sp1, col=cols[[1]])
 
 # Species 2 LAI (blue)
-lines(t2, lai2_2, col=cols[[2]])
+lines(lai2$time, lai2$sp2, col=cols[[2]])
 ```
 
-<!-- TODO: Introduce meta populations:
+<!-- TODO(#481): Introduce meta populations:
 
 To find the average value over the metapopulation we weight by patch abundance:
 
 ```{r}
 metapopulation <- function(x){
-  plant:::trapezium(t2, x*result_2sp$patch_density)
+  plant:::trapezium(t2, x*result_2sp$steps$patch_density)
 }
 
-lai2_av <- metapopulation(lai2)
-lai2_1_av <- metapopulation(lai2_1)
-lai2_2_av <- metapopulation(lai2_2)
+lai2_av <- metapopulation(lai2$total)
+lai2_1_av <- metapopulation(lai2$sp1)
+lai2_2_av <- metapopulation(lai2$sp2)
 
-plot(t2, lai2, type="l", las=1, lty=2,
+plot(lai2$time, lai2$total, type="l", las=1, lty=2,
      xlab="Time (years)", ylab="Leaf area index")
-lines(t2, lai2_1, col=cols[[1]])
-lines(t2, lai2_2, col=cols[[2]])
+lines(lai2$time, lai2$sp1, col=cols[[1]])
+lines(lai2$time, lai2$sp2, col=cols[[2]])
 
 axis(4, at=lai2_av,   tck=0.1, lty = 2, labels=NA)
 axis(4, at=lai2_1_av, tck=0.1, col.ticks=cols[[1]], labels=NA)
@@ -289,33 +333,24 @@ axis(1, at=108, labels="Av")
 #' A standard plot for density weighted node trajectories
 #'
 #' Parameters:
-#'  - result: the output of `run_scm_collect`
+#'  - result: the output of `run_scm(..., collect = TRUE)`
 #'  - threshold: lower bound on density
-#' 
+#'
 #' Requires:
 #'  - ggplot2
 #'  - dplyr
 
 patch <- function(result, threshold = 1e-3) {
 
-  # Unpack state and density
-  t <- result$time
-  h <- result$species[[1]]["height", , ]
-  d <- result$species[[1]]["log_density", , ]
-  n <- ncol(d)
-  
-  # Convert to long format
-  df <- data.frame(node = rep(1:n, each = length(t)),
-                   time = rep(t, times = n),
-                   height = as.vector(h),
-                   log_density = as.vector(d)) %>%
-    mutate(density = exp(log_density)) 
-    filter(!is.na(density))
-  
+  # The `species` table is already in long format, with one row per node
+  # per step, so we can filter and plot it directly.
+  df <- result$species |>
+    dplyr::filter(species == "1", density > threshold)
+
   # Plot with densities
   ggplot(df, aes(x = time, y = height,
                  group = node, alpha = density)) +
-    geom_line() + 
+    geom_line() +
     labs(x = "Time (years)",
          y = "Height (m)",
          alpha = "Density") +
