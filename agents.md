@@ -293,22 +293,29 @@ class and every R dispatch table must learn the new `<Strategy, Environment>`
 pair. **Use the scaffolder** rather than doing it by hand:
 
 ```r
-source("inst/scripts/new_strategy_scaffolder.R")
+source("scripts/new_strategy_scaffolder.R")
 create_strategy_scaffold("MyModel", "FF16")   # copy FF16 as the template
+
+# variant that reuses an existing environment (issue #274):
+create_strategy_scaffold("FF16r", "FF16", environment = "FF16")
 ```
 
-The scaffolder ([inst/scripts/new_strategy_scaffolder.R](inst/scripts/new_strategy_scaffolder.R)):
+The scaffolder ([scripts/new_strategy_scaffolder.R](scripts/new_strategy_scaffolder.R)):
 
 - adds the new pair to the `templates:` blocks in `RcppR6_classes.yml`,
-- copies and renames the strategy/environment header + source files,
-- extends the R dispatch `switch()` tables.
+- copies and renames the strategy (and, in own-environment mode, the
+  environment) header + source files,
+- extends the R dispatch `switch()` tables and `helper-plant.R` lists,
+- with `environment = "<model>"`, reuses an existing environment instead of
+  generating a new one (no `<name>_Environment` files/bindings/tests).
 
 After scaffolding, implement the biology: growth/mortality/reproduction in the
 new strategy, map `competition_effect` to the environment, wire rates into
 `compute_rates`, and update `state_names()`/`state_size()`. Then run
-`make rebuild` and add tests. The full walkthrough (implementing Kohyama 1993 as
-K93) is the *Implementing a new strategy* guide on
-[Overstorey](https://traitecoevo.github.io/overstorey/).
+`make rebuild` and add tests. The **`new-strategy` skill**
+(`.claude/skills/new-strategy/`) captures the full workflow, including a worked
+walkthrough implementing Kohyama 1993 as K93
+(`.claude/skills/new-strategy/worked-example-k93.md`).
 
 The three shipped models:
 
@@ -364,12 +371,13 @@ prompt for confirmation.
 
 ### Where each kind of information lives
 
-Documentation is split across three homes — put new content in the right one:
+Documentation is split across several homes — put new content in the right one:
 
 | Content | Home | Source |
 |---|---|---|
-| **Narrative docs** — task-oriented guides, theory/maths, worked examples (the former `vignettes/`: `plant` overview, `individuals`, `patch`, `demography`, `parameters`, `strategy_new`, `extrinsic_drivers`, `emergent`, `self_thinning`) | **[Overstorey](https://traitecoevo.github.io/overstorey/)** | <https://github.com/traitecoevo/overstorey> (Quarto) |
+| **Narrative docs** — task-oriented guides, theory/maths, worked examples (the former `vignettes/`: `plant` overview, `individuals`, `patch`, `demography`, `parameters`, `extrinsic_drivers`, `emergent`, `self_thinning`) | **[Overstorey](https://traitecoevo.github.io/overstorey/)** | <https://github.com/traitecoevo/overstorey> (Quarto) |
 | **Blog / dated experiments** — posts pinned to the `plant` version they were built against (was `vignettes/blog/`) | Overstorey's **"Adaptively"** notebook | same repo |
+| **Extending the model** — adding a new strategy/environment | **`new-strategy` skill** (see §7) | this repo (`.claude/skills/new-strategy/`) |
 | **Function/API reference** — per-function docs generated from roxygen | **pkgdown site** <https://traitecoevo.github.io/plant/> | this repo (`man/`, `pkgdown/_pkgdown.yml`) |
 | **Architecture / contributor guide** | this file ([agents.md](agents.md)) | this repo |
 | Installation & citation | [README.md](README.md) | this repo |
