@@ -27,7 +27,7 @@ test_that("Defaults", {
     save_RK45_cache = FALSE,
 
     schedule_nsteps   = 20, # size_t
-    schedule_eps      = 5e-3,
+    schedule_eps      = 2e-2,
     schedule_verbose  = FALSE,
     
     GSS_tol_abs = 1e-3,

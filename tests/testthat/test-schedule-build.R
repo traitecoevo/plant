@@ -27,7 +27,7 @@ test_that("Schedule building", {
     p2 <- scm$parameters
 
     expect_equal(length(p2$node_schedule_times_default), 141)
-    expect_equal(length(p2$node_schedule_times[[1]]), 186)
+    expect_equal(length(p2$node_schedule_times[[1]]), 148)
 
     ## Refinement leaves the Parameters self-describing (schedule + ode times).
     expect_equal(length(p2$ode_times), length(scm$ode_times))
