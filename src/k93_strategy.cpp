@@ -26,10 +26,10 @@ K93_Strategy::K93_Strategy() {
 void K93_Strategy::update_dependent_aux(const int index, Internals& vars) {
   if (index == HEIGHT_INDEX) {
     double height = vars.state(HEIGHT_INDEX);
-    vars.set_aux(aux_index.at("competition_effect"),
+    vars.set_aux(COMPETITION_EFFECT_AUX_INDEX,
                  compute_competition_by_ratio(
                    0.0, k_I * size_to_basal_area(height)));
-    vars.set_aux(aux_index.at("height_inverse"), 1.0 / height);
+    vars.set_aux(HEIGHT_INVERSE_AUX_INDEX, 1.0 / height);
   }
 }
 

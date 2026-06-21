@@ -14,6 +14,13 @@ public:
   typedef std::shared_ptr<K93_Strategy> ptr;
   K93_Strategy();
 
+  // Direct aux indices for the hot path, avoiding aux_index.at("...") string-map
+  // lookups (these showed up in profiling; see #466). MUST stay in sync with the
+  // order of aux_names() below. refresh_indices() still fills the named maps used
+  // by the R-facing paths.
+  static constexpr int COMPETITION_EFFECT_AUX_INDEX = 0;
+  static constexpr int HEIGHT_INVERSE_AUX_INDEX = 1;
+
   // update this when the length of state_names changes
   static size_t state_size () { return 3; }
   // update this when the length of aux_names changes
