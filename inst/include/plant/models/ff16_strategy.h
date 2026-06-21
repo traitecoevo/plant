@@ -205,6 +205,14 @@ public:
   double dmass_leaf_darea_leaf(double area_leaf) const;
   // Mass of stem needed for new unit area leaf, d m_s / d a_l
   double dmass_sapwood_darea_leaf(double area_leaf) const;
+  // Overloads taking a precomputed pow(area_leaf, a_l2): compute_rates needs
+  // this term for both the height rate and the live-mass partition, so it
+  // evaluates the (non-integer, libm) pow once and shares it -- see issue #361.
+  double darea_leaf_dmass_live(double area_leaf,
+                               double area_leaf_pow_a_l2) const;
+  double dheight_darea_leaf(double area_leaf, double area_leaf_pow_a_l2) const;
+  double dmass_sapwood_darea_leaf(double area_leaf,
+                                  double area_leaf_pow_a_l2) const;
   // Mass of bark needed for new unit area leaf, d m_b / d a_l
   double dmass_bark_darea_leaf(double area_leaf) const;
   // Mass of root needed for new unit area leaf, d m_r / d a_l

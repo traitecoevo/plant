@@ -102,11 +102,15 @@ void FF16_Strategy::compute_rates(const FF16_Environment& environment,  Internal
   if (net_mass_production_dt_ > 0) {
 
     const double fraction_allocation_reproduction_ = fraction_allocation_reproduction(height);
-    const double darea_leaf_dmass_live_ = darea_leaf_dmass_live(area_leaf_);
+    // dheight_darea_leaf and the sapwood/bark terms in darea_leaf_dmass_live all
+    // share pow(area_leaf, a_l2); evaluate this libm pow once and reuse it for
+    // both rates rather than paying it twice per node per step (issue #361).
+    const double area_leaf_pow_a_l2 = pow(area_leaf_, a_l2);
+    const double darea_leaf_dmass_live_ = darea_leaf_dmass_live(area_leaf_, area_leaf_pow_a_l2);
     const double fraction_allocation_growth_ = fraction_allocation_growth(height);
     const double area_leaf_dt = net_mass_production_dt_ * fraction_allocation_growth_ * darea_leaf_dmass_live_;
 
-    vars.set_rate(HEIGHT_INDEX, dheight_darea_leaf(area_leaf_) * area_leaf_dt);
+    vars.set_rate(HEIGHT_INDEX, dheight_darea_leaf(area_leaf_, area_leaf_pow_a_l2) * area_leaf_dt);
     vars.set_rate(FECUNDITY_INDEX,
       fecundity_dt(net_mass_production_dt_, fraction_allocation_reproduction_));
 
@@ -314,9 +318,15 @@ double FF16_Strategy::fecundity_dt(double net_mass_production_dt,
 }
 
 double FF16_Strategy::darea_leaf_dmass_live(double area_leaf) const {
+  return darea_leaf_dmass_live(area_leaf, pow(area_leaf, a_l2));
+}
+
+double FF16_Strategy::darea_leaf_dmass_live(double area_leaf,
+                                            double area_leaf_pow_a_l2) const {
   // dmass_bark_darea_leaf(area_leaf) == a_b1 * dmass_sapwood_darea_leaf(area_leaf),
   // so compute the shared pow(area_leaf, a_l2) term once rather than twice.
-  const double dmass_sapwood_darea_leaf_ = dmass_sapwood_darea_leaf(area_leaf);
+  const double dmass_sapwood_darea_leaf_ =
+    dmass_sapwood_darea_leaf(area_leaf, area_leaf_pow_a_l2);
   return 1.0/(  dmass_leaf_darea_leaf(area_leaf)
               + dmass_sapwood_darea_leaf_
               + a_b1 * dmass_sapwood_darea_leaf_
@@ -327,6 +337,14 @@ double FF16_Strategy::dheight_darea_leaf(double area_leaf) const {
   return a_l1 * a_l2 * pow(area_leaf, a_l2 - 1);
 }
 
+double FF16_Strategy::dheight_darea_leaf(double area_leaf,
+                                         double area_leaf_pow_a_l2) const {
+  // pow(area_leaf, a_l2 - 1) == pow(area_leaf, a_l2) / area_leaf, so reuse the
+  // shared power instead of a second libm pow (a reciprocal-multiply reorder,
+  // so not bit-identical to the single-argument form).
+  return a_l1 * a_l2 * area_leaf_pow_a_l2 / area_leaf;
+}
+
 // Mass of leaf needed for new unit area leaf, d m_s / d a_l
 double FF16_Strategy::dmass_leaf_darea_leaf(double /* area_leaf */) const {
   return lma;
@@ -334,7 +352,12 @@ double FF16_Strategy::dmass_leaf_darea_leaf(double /* area_leaf */) const {
 
 // Mass of stem needed for new unit area leaf, d m_s / d a_l
 double FF16_Strategy::dmass_sapwood_darea_leaf(double area_leaf) const {
-  return rho * eta_c * a_l1 * theta * (a_l2 + 1.0) * pow(area_leaf, a_l2);
+  return dmass_sapwood_darea_leaf(area_leaf, pow(area_leaf, a_l2));
+}
+
+double FF16_Strategy::dmass_sapwood_darea_leaf(double /* area_leaf */,
+                                               double area_leaf_pow_a_l2) const {
+  return rho * eta_c * a_l1 * theta * (a_l2 + 1.0) * area_leaf_pow_a_l2;
 }
 
 // Mass of bark needed for new unit area leaf, d m_b / d a_l
