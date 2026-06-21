@@ -295,21 +295,29 @@ class and every R dispatch table must learn the new `<Strategy, Environment>`
 pair. **Use the scaffolder** rather than doing it by hand:
 
 ```r
-source("inst/scripts/new_strategy_scaffolder.R")
+source("scripts/new_strategy_scaffolder.R")
 create_strategy_scaffold("MyModel", "FF16")   # copy FF16 as the template
+
+# variant that reuses an existing environment (issue #274):
+create_strategy_scaffold("FF16r", "FF16", environment = "FF16")
 ```
 
-The scaffolder ([inst/scripts/new_strategy_scaffolder.R](inst/scripts/new_strategy_scaffolder.R)):
+The scaffolder ([scripts/new_strategy_scaffolder.R](scripts/new_strategy_scaffolder.R)):
 
 - adds the new pair to the `templates:` blocks in `RcppR6_classes.yml`,
-- copies and renames the strategy/environment header + source files,
-- extends the R dispatch `switch()` tables.
+- copies and renames the strategy (and, in own-environment mode, the
+  environment) header + source files,
+- extends the R dispatch `switch()` tables and `helper-plant.R` lists,
+- with `environment = "<model>"`, reuses an existing environment instead of
+  generating a new one (no `<name>_Environment` files/bindings/tests).
 
 After scaffolding, implement the biology: growth/mortality/reproduction in the
 new strategy, map `competition_effect` to the environment, wire rates into
 `compute_rates`, and update `state_names()`/`state_size()`. Then run
-`make rebuild` and add tests. The full walkthrough (implementing Kohyama 1993 as
-K93) is in [vignettes/strategy_new.Rmd](vignettes/strategy_new.Rmd).
+`make rebuild` and add tests. The **`new-strategy` skill**
+(`.claude/skills/new-strategy/`) captures the full workflow, including a worked
+walkthrough implementing Kohyama 1993 as K93
+(`.claude/skills/new-strategy/worked-example-k93.md`).
 
 The three shipped models:
 
@@ -365,9 +373,11 @@ prompt for confirmation.
 
 - User-facing docs / pkgdown site: <https://traitecoevo.github.io/plant/>
 - Vignettes in [vignettes/](vignettes/): `plant.Rmd` (overview), `individuals.Rmd`,
-  `patch.Rmd`, `demography.Rmd`, `parameters.Rmd`, `strategy_new.Rmd`
-  (extending the model), `extrinsic_drivers.Rmd`, `emergent.Rmd`,
-  `self_thinning.Rmd`.
+  `patch.Rmd`, `demography.Rmd`, `parameters.Rmd`, `extrinsic_drivers.Rmd`,
+  `emergent.Rmd`, `self_thinning.Rmd`.
+- Extending the model (adding a strategy/environment): the **`new-strategy`
+  skill** (`.claude/skills/new-strategy/`), see §7. (This replaces the former
+  `strategy_new.Rmd` vignette.)
 - [README.md](README.md) — installation and citation.
 - [NEWS.md](NEWS.md) — changelog.
 

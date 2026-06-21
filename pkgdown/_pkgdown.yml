@@ -38,8 +38,6 @@ navbar:
         - text: "Developer Notes"
         - text: "Package Organisation and Management"
           href: articles/package_organisation.html
-        - text: "Implementing a new strategy"
-          href: articles/strategy_new.html
         - text: -------
         - text: "Models"
         - text: "The TF24 model"

@@ -40,6 +40,5 @@
 ^vignettes/parameters.Rmd$
 ^vignettes/patch.Rmd$
 ^vignettes/self_thinning.Rmd$
-^vignettes/strategy_new.Rmd$
 ^LICENSE\.md$
 ^CLA\.md$
