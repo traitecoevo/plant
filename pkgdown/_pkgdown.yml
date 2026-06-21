@@ -13,67 +13,12 @@ navbar:
     - text: "Home"
       icon: fa-home
       href: index.html
-    - text: "Getting Started"
-      icon: fa-tree
-      href: articles/plant.html
+    - text: "Documentation"
+      icon: fa-book
+      href: https://traitecoevo.github.io/overstorey/
     - text: "Package functions"
       icon: fa-list
       href: reference/index.html
-    - text: "Articles"
-      icon: fa-book
-      menu:
-        - text: -------
-        - text: "Theory"
-        - text: "Demography of individuals, patches, and metacommunities"
-          href: articles/demography.html
-        - text: "Overview of numerical methods used in `plant`"
-          href: articles/methods/numerical_methods.html
-        - text: "Solving system dynamics via the characteristic method"
-          href: articles/methods/solving_dynamics.html
-        - text: "ODE stepping and control"
-          href: articles/methods/ode_solver.html
-        - text: "The node spacing algorithm"
-          href: articles/methods/node_spacing.html
-        - text: -------
-        - text: "Developer Notes"
-        - text: "Package Organisation and Management"
-          href: articles/package_organisation.html
-        - text: "Implementing a new strategy"
-          href: articles/strategy_new.html
-        - text: -------
-        - text: "Models"
-        - text: "The TF24 model"
-          href: articles/models/strategy_TF24.html
-        - text: "The FF16 model"
-          href: articles/models/strategy_FF16.html
-        - text: "The K93 model"
-          href: articles/models/strategy_K93.html
-        - text: -------
-        - text: "Examples"
-        - text: "Example analysis"
-          href: articles/example_analysis.html
-        - text: "Changing parameters"
-          href: articles/parameters.html
-        - text: "Self thinning"
-          href: articles/self_thinning.html
-        - text: "Individual plants"
-          href: articles/individuals.html
-        - text: "Patches of competing plants"
-          href: articles/patch.html
-        - text: "Canopy shading methods"
-          href: articles/canopy_methods.html
-        - text: "Emergent properties of patches"
-          href: articles/emergent.html
-        - text: "Utilising Extrinsic Drivers"
-          href: articles/extrinsic_drivers.html
-
-    - text: "Blog"
-      icon: fa-terminal
-      desc: >
-        These articles are used to record experiments, that are not expected to continue working into the future.
-      menu:
-        - text: "2021-water_bucket_model"
-          href: articles/blog/2021-water_bucket_model.html
 
   right:
     - text: "News"

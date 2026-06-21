@@ -141,8 +141,7 @@ adaptive node-schedule refinement (`build_schedule()`, internal
 `run_scm_error()`) and a separate function returned tidied output
 (`run_scm_collect()`). **This all now lives in C++ on `SCM<T,E>`, and the R
 surface is a single `run_scm()`.** See
-[issue #408](https://github.com/traitecoevo/plant/issues/408) and
-`notes/issue-408-refactor.md` for background.
+[issue #408](https://github.com/traitecoevo/plant/issues/408) for background.
 
 Migration map for callers (other repos/scripts must be updated):
 
@@ -273,7 +272,6 @@ Use the [Makefile](Makefile) targets. The dependency you must internalise:
 | `make test` | `make all` then `devtools::test()` |
 | `make check` / `make build` / `make install` | `R CMD check` / `build` / `INSTALL` |
 | `make benchmark` | run `scripts/benchmark.R` |
-| `make vignettes` | `devtools::build_vignettes()` |
 
 Practical rules:
 
@@ -309,7 +307,8 @@ After scaffolding, implement the biology: growth/mortality/reproduction in the
 new strategy, map `competition_effect` to the environment, wire rates into
 `compute_rates`, and update `state_names()`/`state_size()`. Then run
 `make rebuild` and add tests. The full walkthrough (implementing Kohyama 1993 as
-K93) is in [vignettes/strategy_new.Rmd](vignettes/strategy_new.Rmd).
+K93) is the *Implementing a new strategy* guide on
+[Overstorey](https://traitecoevo.github.io/overstorey/).
 
 The three shipped models:
 
@@ -361,15 +360,48 @@ the `project` scope**, which is not granted by default — add it with
 (create, comment, edit, move) is intentionally *not* in the allowlist and will
 prompt for confirmation.
 
-## 10. Documentation sources
+## 10. Documentation & website
 
-- User-facing docs / pkgdown site: <https://traitecoevo.github.io/plant/>
-- Vignettes in [vignettes/](vignettes/): `plant.Rmd` (overview), `individuals.Rmd`,
-  `patch.Rmd`, `demography.Rmd`, `parameters.Rmd`, `strategy_new.Rmd`
-  (extending the model), `extrinsic_drivers.Rmd`, `emergent.Rmd`,
-  `self_thinning.Rmd`.
-- [README.md](README.md) — installation and citation.
-- [NEWS.md](NEWS.md) — changelog.
+### Where each kind of information lives
+
+Documentation is split across three homes — put new content in the right one:
+
+| Content | Home | Source |
+|---|---|---|
+| **Narrative docs** — task-oriented guides, theory/maths, worked examples (the former `vignettes/`: `plant` overview, `individuals`, `patch`, `demography`, `parameters`, `strategy_new`, `extrinsic_drivers`, `emergent`, `self_thinning`) | **[Overstorey](https://traitecoevo.github.io/overstorey/)** | <https://github.com/traitecoevo/overstorey> (Quarto) |
+| **Blog / dated experiments** — posts pinned to the `plant` version they were built against (was `vignettes/blog/`) | Overstorey's **"Adaptively"** notebook | same repo |
+| **Function/API reference** — per-function docs generated from roxygen | **pkgdown site** <https://traitecoevo.github.io/plant/> | this repo (`man/`, `pkgdown/_pkgdown.yml`) |
+| **Architecture / contributor guide** | this file ([agents.md](agents.md)) | this repo |
+| Installation & citation | [README.md](README.md) | this repo |
+| Changelog | [NEWS.md](NEWS.md) | this repo |
+| Roadmap / planning | GitHub Projects board (see §9) | — |
+
+Rule of thumb: prose that a *user* reads → Overstorey; the docstring for a
+*function* → roxygen comment in `R/` (rebuilt into the pkgdown reference);
+guidance for someone *changing the code* → this file.
+
+The vignette content was migrated into Overstorey in
+[`799a668`](https://github.com/traitecoevo/overstorey/commit/799a668380e2679f3ca6a339f53796f83d1c4b0f)
+(guides, theory, and the dated posts, with committed Quarto freezes).
+
+### Generating the website (pkgdown reference)
+
+The pkgdown site is the **function reference only** (narrative articles now live
+on Overstorey, §above). It is built from roxygen output and config in
+[pkgdown/](pkgdown/) (`_pkgdown.yml` defines the navbar + `reference:` layout).
+There is **no CI workflow** for it — build and deploy manually:
+
+```r
+devtools::document()          # refresh man/ first (or: make roxygen)
+pkgdown::build_site()         # renders into the gh-pages destination
+```
+
+`_pkgdown.yml` sets `destination: gh-pages`; the rendered site is published from
+the repo's `gh-pages` branch (`pkgdown::deploy_to_branch()` does the build +
+push in one step). The navbar links out to Overstorey for the guides.
+
+Overstorey itself is a Quarto site with its own CI (`publish.yml`) — see that
+repo's README for how it renders, freezes (`_freeze/`), and version-pins posts.
 
 ---
 

@@ -51,7 +51,6 @@ Suggests:
 Remotes:
     smbache/loggr,
     richfitz/RcppR6
-VignetteBuilder: knitr
 URL: https://github.com/traitecoevo/plant
 BugReports: https://github.com/traitecoevo/plant/issues
 Config/roxygen2/version: 8.0.0
