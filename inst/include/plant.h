@@ -73,7 +73,6 @@
 
 // gperftools profiler
 // Uncomment next line if you want to use the profiler.
-// For more info see https://traitecoevo.github.io/plant/articles/profiling_code.html
 // #include "gperftools/profiler.h"
 
 #endif

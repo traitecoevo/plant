@@ -7,6 +7,5 @@ CXX_STD = CXX20
 PKG_CPPFLAGS = -isystem../inst/include/
 
 ## Link to gperftools profiler
-## Uncomment next line if you want to use the profiler. 
-## For more info see https://traitecoevo.github.io/plant/articles/profiling_code.html
+## Uncomment next line if you want to use the profiler.
 ## PKG_LIBS = -lprofiler

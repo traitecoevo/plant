@@ -367,7 +367,7 @@ prompt for confirmation.
 - Vignettes in [vignettes/](vignettes/): `plant.Rmd` (overview), `individuals.Rmd`,
   `patch.Rmd`, `demography.Rmd`, `parameters.Rmd`, `strategy_new.Rmd`
   (extending the model), `extrinsic_drivers.Rmd`, `emergent.Rmd`,
-  `self_thinning.Rmd`, `profiling_code.Rmd`.
+  `self_thinning.Rmd`.
 - [README.md](README.md) — installation and citation.
 - [NEWS.md](NEWS.md) — changelog.
 
@@ -402,9 +402,10 @@ The deterministic SCM solver spends almost all of its time in one nested loop
 quadrature point, every timestep, small per-call costs dominate. The codebase
 uses a consistent set of techniques to keep it fast. **Many of these make the
 code look more complicated than the underlying maths — do not "simplify" them
-back without re-profiling.** Detailed before/after benchmarks live in
-[notes/profile-ff16-2026-06-16.md](notes/profile-ff16-2026-06-16.md); the
-umbrella issue is [#466], with follow-up [#470] (LTO).
+back without re-profiling.** The profiling workflow and the catalogue of
+techniques that paid off are captured in the `profile-plant` skill
+(`.claude/skills/profile-plant/`); the umbrella issue is [#466], with
+follow-up [#470] (LTO).
 
 **Algorithmic (the big wins):**
 
@@ -491,7 +492,7 @@ make compile
 PLANT_PROFILE_REPEATS=20 Rscript scripts/profile-benchmarks.R FF16
 ```
 
-Record results in [notes/profile-ff16-2026-06-16.md](notes/profile-ff16-2026-06-16.md).
+Record results following the `profile-plant` skill (`.claude/skills/profile-plant/`).
 Bit-identical changes are strongly preferred; where a reciprocal-multiply
 reorders floating-point ops, the affected reference tests were relaxed to an
 explicit tolerance (noted in that file).
