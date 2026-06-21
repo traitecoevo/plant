@@ -13,8 +13,16 @@ class K93_Environment : public Environment {
 public:
   K93_Environment() {
     time = 0.0;
-    light_availability = ResourceSpline();
-    light_availability.spline_rescale_usually = true;
+    // Match FF16: loosen the light-availability spline tolerance from the
+    // ResourceSpline default (1e-6) to 1e-4 for speed. The spline is rebuilt
+    // every ODE step, so its construction dominates K93 runtime; 1e-6 was 100x
+    // tighter than FF16 for no comparable accuracy need.
+    light_availability = ResourceSpline(
+        1e-4, // light_availability_spline_tol
+        17,   // light_availability_spline_nbase
+        16,   // light_availability_spline_max_depth
+        true  // light_availability_spline_rescale_usually
+    );
   };
 
   // Light interface
