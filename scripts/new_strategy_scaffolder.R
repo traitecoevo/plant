@@ -206,8 +206,8 @@ update_individual_runner <- function(name, template_strategy, env) {
 "
 // [[Rcpp::export]]
 plant::Internals {{name}}_oderunner_individual_internals(
-  const plant::ode::Runner<plant::tools::IndividualRunner<plant::{{name}}_Strategy, plant::{{env_class}}>>& obj) {
-  return obj.obj.individual.r_internals();
+  const odelia::ode::Solver<plant::tools::IndividualRunner<plant::{{name}}_Strategy, plant::{{env_class}}>>& obj) {
+  return obj.get_system().individual.r_internals();
 }
 ", list(name = name, env_class = env$class))
   lines <- read_lines(file)
