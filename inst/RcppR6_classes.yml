@@ -818,6 +818,9 @@ StochasticPatch:
     ode_time: {type: double, access: function, name_cpp: "odelia::ode::r_ode_time"}
     ode_state: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_state"}
     ode_rates: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_rates"}
+    # Structured per-species state (mirrors Patch::state); read by
+    # run_stochastic_collect each step. See issue #498.
+    state: {type: "Rcpp::List", access: member, name_cpp: r_get_state}
   methods:
     compute_competition: {return_type: double, args: [height: double]}
     introduce_new_node:

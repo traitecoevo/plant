@@ -81,8 +81,11 @@ run_stochastic_collect <- function(p, env = NULL,
     env <- Environment(types[[1]])
   }
   
+  ## Per-step snapshot of the patch: a list(time, species) where each species is
+  ## a state matrix carrying an `is_alive` attribute. Read from obj$patch$state
+  ## (the runner has no `state` accessor of its own; see issue #498).
   collect <- function(obj) {
-    obj$state
+    obj$patch$state
   }
   types <- extract_RcppR6_template_types(p, "Parameters")
   obj <- do.call('StochasticPatchRunner', types)(p, env, ctrl)
@@ -121,8 +124,9 @@ run_stochastic_collect <- function(p, env = NULL,
   ret <- list(time=time,
               species=species,
               light_env=light_env,
-              offspring_production=obj$offspring_production,
-              # patch_density=patch_density,
+              # offspring_production is not defined for the finite-population
+              # model (no patch-density integral); omitted. patch_density
+              # likewise (see note above).
               p=p)
 
   ret

@@ -47,26 +47,69 @@ test_that("empty", {
   }
 })
 
-test_that("collect", {
+test_that("collect returns a well-formed, non-empty trajectory (#498)", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     set.seed(1)
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
                           patch_area=50)
-    
-    env <- Environment(x)
-    ctrl <- Control()
-    
-    expect_silent(res <- run_stochastic_collect(p, env, ctrl))
-    ## TODO(#482): more tests on collect output
+    res <- run_stochastic_collect(p, Environment(x), Control())
 
-    ## This shows that we're probably over-aggressively killing plants.
-    ## Not sure why, but might be mostly due to the patch area being far
-    ## too low.
-    if (FALSE) {
-      image(attr(res$species, "is_alive")[[1]])
-      matplot(res$time, res$species[[1]]["height", , ], type="l",
-              lty=1, col="#00000055")
+    ## Regression guard for #498: the collector used to read a removed `state`
+    ## accessor and silently returned empty output, which `expect_silent` could
+    ## not catch. Assert the trajectory is actually populated.
+    expect_setequal(names(res), c("time", "species", "light_env", "p"))
+    expect_gt(length(res$time), 1)
+    expect_false(is.unsorted(res$time))          # patch age is non-decreasing
+    expect_length(res$species, 1)
+
+    sp <- res$species[[1]]
+    expect_equal(length(dim(sp)), 3)             # [variable, time, plant]
+    expect_equal(dim(sp)[2], length(res$time))
+    expect_true("height" %in% dimnames(sp)[[1]])
+
+    ia <- attr(res$species, "is_alive")[[1]]
+    expect_equal(dim(ia), c(length(res$time), dim(sp)[3]))  # [time, plant]
+
+    ## At least one individual was introduced and some survive to the end.
+    expect_gt(dim(sp)[3], 0)
+    expect_gt(sum(ia[nrow(ia), ], na.rm = TRUE), 0)
+
+    ## Heights are finite wherever an individual is alive. Padded (not-yet-born)
+    ## cells are NA in `is_alive`, so select with which() to drop them.
+    heights <- sp["height", , ]
+    expect_true(all(is.finite(heights[which(ia == 1)])))
+  }
+})
+
+test_that("collect output is reproducible and matches a seeded baseline (#482)", {
+  ## With set.seed(1) and patch_area = 50 the arrival schedule (R RNG) and the
+  ## deaths (R::unif_rand, in C++) are fully reproducible, so the number of
+  ## individuals introduced and the number alive at the final step are fixed.
+  ## These golden values guard against trajectory-changing regressions in the
+  ## stochastic tower; update them deliberately if the model/RNG use changes.
+  baseline <- list(
+    FF16 = list(n_total = 103L, n_alive_final = 25L),
+    TF24 = list(n_total = 105L, n_alive_final = 15L),
+    K93  = list(n_total = 105L, n_alive_final = 42L)
+  )
+  for (x in names(strategy_types)) {
+    e <- environment_types[[x]]
+    run_once <- function() {
+      set.seed(1)
+      p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
+                            patch_area=50)
+      run_stochastic_collect(p, Environment(x), Control())
     }
+    res <- run_once()
+    sp <- res$species[[1]]
+    ia <- attr(res$species, "is_alive")[[1]]
+    expect_equal(dim(sp)[3], baseline[[x]]$n_total)
+    expect_equal(sum(ia[nrow(ia), ], na.rm = TRUE), baseline[[x]]$n_alive_final)
+
+    ## Determinism: same seed -> identical trajectory.
+    res2 <- run_once()
+    expect_equal(res$time, res2$time)
+    expect_equal(res$species, res2$species)
   }
 })

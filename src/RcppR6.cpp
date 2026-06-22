@@ -3037,6 +3037,11 @@ std::vector<double> StochasticPatch___FF16__FF16_Env__ode_rates__get(plant::Rcpp
   return odelia::ode::r_ode_rates(*obj_);
 }
 
+// [[Rcpp::export]]
+Rcpp::List StochasticPatch___FF16__FF16_Env__state__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->r_get_state();
+}
+
 
 // [[Rcpp::export]]
 plant::StochasticPatch<plant::TF24_Strategy,plant::TF24_Environment> StochasticPatch___TF24__TF24_Env__ctor(plant::Parameters<plant::TF24_Strategy,plant::TF24_Environment> parameters, plant::TF24_Environment environment, plant::Control control) {
@@ -3137,6 +3142,11 @@ std::vector<double> StochasticPatch___TF24__TF24_Env__ode_rates__get(plant::Rcpp
   return odelia::ode::r_ode_rates(*obj_);
 }
 
+// [[Rcpp::export]]
+Rcpp::List StochasticPatch___TF24__TF24_Env__state__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->r_get_state();
+}
+
 
 // [[Rcpp::export]]
 plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> StochasticPatch___K93__K93_Env__ctor(plant::Parameters<plant::K93_Strategy,plant::K93_Environment> parameters, plant::K93_Environment environment, plant::Control control) {
@@ -3235,6 +3245,11 @@ std::vector<double> StochasticPatch___K93__K93_Env__ode_state__get(plant::RcppR6
 // [[Rcpp::export]]
 std::vector<double> StochasticPatch___K93__K93_Env__ode_rates__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
   return odelia::ode::r_ode_rates(*obj_);
+}
+
+// [[Rcpp::export]]
+Rcpp::List StochasticPatch___K93__K93_Env__state__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->r_get_state();
 }
 
 

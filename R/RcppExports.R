@@ -2681,6 +2681,10 @@ StochasticPatch___FF16__FF16_Env__ode_rates__get <- function(obj_) {
     .Call('_plant_StochasticPatch___FF16__FF16_Env__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
+StochasticPatch___FF16__FF16_Env__state__get <- function(obj_) {
+    .Call('_plant_StochasticPatch___FF16__FF16_Env__state__get', PACKAGE = 'plant', obj_)
+}
+
 StochasticPatch___TF24__TF24_Env__ctor <- function(parameters, environment, control) {
     .Call('_plant_StochasticPatch___TF24__TF24_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
 }
@@ -2769,6 +2773,10 @@ StochasticPatch___TF24__TF24_Env__ode_rates__get <- function(obj_) {
     .Call('_plant_StochasticPatch___TF24__TF24_Env__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
+StochasticPatch___TF24__TF24_Env__state__get <- function(obj_) {
+    .Call('_plant_StochasticPatch___TF24__TF24_Env__state__get', PACKAGE = 'plant', obj_)
+}
+
 StochasticPatch___K93__K93_Env__ctor <- function(parameters, environment, control) {
     .Call('_plant_StochasticPatch___K93__K93_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
 }
@@ -2855,6 +2863,10 @@ StochasticPatch___K93__K93_Env__ode_state__get <- function(obj_) {
 
 StochasticPatch___K93__K93_Env__ode_rates__get <- function(obj_) {
     .Call('_plant_StochasticPatch___K93__K93_Env__ode_rates__get', PACKAGE = 'plant', obj_)
+}
+
+StochasticPatch___K93__K93_Env__state__get <- function(obj_) {
+    .Call('_plant_StochasticPatch___K93__K93_Env__state__get', PACKAGE = 'plant', obj_)
 }
 
 StochasticPatchRunner___FF16__FF16_Env__ctor <- function(parameters, environment, control) {
