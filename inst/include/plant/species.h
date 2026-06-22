@@ -7,14 +7,20 @@
 #include <plant/environment.h>
 #include <odelia/ode_interface.hpp>
 #include <plant/node.h>
+#include <plant/species_base.h>
 #include <odelia/drivers.hpp>
 
 namespace plant {
 
-// This is purely for running the deterministic model.
+// This is purely for running the deterministic model. It shares its storage and
+// ODE plumbing with the stochastic species through SpeciesBase (species_base.h);
+// the size-density-specific machinery below (density-weighted competition,
+// survival-weighted rates, lifetime fitness, schedule-refinement error) stays
+// here.
 
 template <typename T, typename E>
-class Species {
+class Species : public SpeciesBase<Species<T, E>, T, E, Node<T, E>> {
+  typedef SpeciesBase<Species<T, E>, T, E, Node<T, E>> base_type;
 public:
   typedef T         strategy_type;
   typedef E         environment_type;
@@ -22,6 +28,19 @@ public:
   typedef Node<T,E> node_type;
   typedef typename strategy_type::ptr strategy_type_ptr;
   Species(strategy_type s);
+
+  // ODE plumbing and the per-element serialisers are inherited from SpeciesBase
+  // and iterate all nodes (the deterministic model has no notion of "dead").
+  using base_type::ode_size;
+  using base_type::set_ode_state;
+  using base_type::ode_state;
+  using base_type::ode_rates;
+  using base_type::get_node_state;
+  using base_type::get_node_aux;
+  typename std::vector<node_type>::iterator node_begin() { return nodes.begin(); }
+  typename std::vector<node_type>::iterator node_end() { return nodes.end(); }
+  typename std::vector<node_type>::const_iterator node_begin() const { return nodes.begin(); }
+  typename std::vector<node_type>::const_iterator node_end() const { return nodes.end(); }
 
   size_t size() const;
   void clear();
@@ -43,23 +62,16 @@ public:
   // NOTE: We are a time-independent model here so no need to pass
   // time in as an argument.  All the bits involving time are taken
   // care of by Environment for us.
-  size_t ode_size() const;
+  // (ode_size/set_ode_state/ode_state/ode_rates come from SpeciesBase.)
   size_t aux_size() const;
 
   void resize_consumption_rates(int i);
   double consumption_rate(int i) const;
   std::vector<double> consumption_rate_by_node_rev(int i) const;
 
-  odelia::ode::const_iterator set_ode_state(odelia::ode::const_iterator it);
-  odelia::ode::iterator       ode_state(odelia::ode::iterator it) const;
-  odelia::ode::iterator       ode_rates(odelia::ode::iterator it) const;
   odelia::ode::iterator       ode_aux(odelia::ode::iterator it) const;
 
   Rcpp::NumericMatrix r_get_state() const;
-
-  //TODO(#478) ideally move this down to node but i can't get it to work
-  Rcpp::NumericMatrix::iterator get_node_state(const Node<T, E> &node, Rcpp::NumericMatrix::iterator it) const;
-  Rcpp::NumericMatrix::iterator get_node_aux(const Node<T, E> &node, Rcpp::NumericMatrix::iterator it) const;
 
   // * R interface
   std::vector<double> r_heights() const;
@@ -105,10 +117,13 @@ public:
   ExtrinsicDrivers extrinsic_drivers() const {return strategy->extrinsic_drivers;}
 
 private:
-  const Control& control() const {return strategy->get_control();}
-  strategy_type_ptr strategy;
+  // Storage (strategy, nodes) and control() live in SpeciesBase; the
+  // using-declarations let the unqualified references below resolve through the
+  // dependent base.
+  using base_type::nodes;
+  using base_type::strategy;
+  using base_type::control;
   node_type new_node;
-  std::vector<node_type> nodes;
 
   typedef typename std::vector<node_type>::iterator nodes_iterator;
   typedef typename std::vector<node_type>::const_iterator nodes_const_iterator;
@@ -116,8 +131,8 @@ private:
 
 template <typename T, typename E>
 Species<T,E>::Species(strategy_type s)
-  : strategy(make_strategy_ptr(s)),
-    new_node(strategy) {
+  : base_type(s),
+    new_node(this->strategy) {
 }
 
 template <typename T, typename E>
@@ -279,32 +294,11 @@ std::vector<double> Species<T,E>::consumption_rate_by_node_rev(int i) const {
   return ret;
 }
 
-template <typename T, typename E>
-size_t Species<T,E>::ode_size() const {
-  return size() * node_type::ode_size();
-}
-
 // bit clunky...
 template <typename T, typename E>
 size_t Species<T,E>::aux_size() const {
   return size() * strategy->aux_size();
 }
-
-template <typename T, typename E>
-odelia::ode::const_iterator Species<T,E>::set_ode_state(odelia::ode::const_iterator it) {
-  return odelia::ode::set_ode_state(nodes.begin(), nodes.end(), it);
-}
-
-template <typename T, typename E>
-odelia::ode::iterator Species<T,E>::ode_state(odelia::ode::iterator it) const {
-  return odelia::ode::ode_state(nodes.begin(), nodes.end(), it);
-}
-
-template <typename T, typename E>
-odelia::ode::iterator Species<T,E>::ode_rates(odelia::ode::iterator it) const {
-  return odelia::ode::ode_rates(nodes.begin(), nodes.end(), it);
-}
-//double sum_aux(int index) {}
 
 template <typename T, typename E>
 odelia::ode::iterator Species<T,E>::ode_aux(odelia::ode::iterator it) const {
@@ -338,20 +332,6 @@ Rcpp::NumericMatrix Species<T, E>::r_get_state() const {
   ret.attr("dimnames") = Rcpp::List::create(names, R_NilValue);
 
   return ret;
-}
-
-template <typename T, typename E>
-Rcpp::NumericMatrix::iterator Species<T, E>::get_node_state(const Node<T, E> &node, Rcpp::NumericMatrix::iterator it) const
-{
-  std::vector<double> tmp = odelia::ode::r_ode_state(node);
-  return std::copy(tmp.begin(), tmp.end(), it);
-}
-
-template <typename T, typename E>
-Rcpp::NumericMatrix::iterator Species<T, E>::get_node_aux(const Node<T, E> &node, Rcpp::NumericMatrix::iterator it) const
-{
-  std::vector<double> tmp = odelia::ode::r_ode_aux(node);
-  return std::copy(tmp.begin(), tmp.end(), it);
 }
 
 template <typename T, typename E>

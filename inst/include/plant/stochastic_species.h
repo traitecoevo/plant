@@ -7,6 +7,7 @@
 #include <boost/iterator/filter_iterator.hpp>
 #include <plant/util.h>
 #include <plant/environment.h>
+#include <plant/species_base.h>
 #include <plant/stochastic_node.h>
 #include <odelia/ode_interface.hpp>
 
@@ -17,24 +18,33 @@ namespace plant {
 // size-density distribution discretised into cohorts (that is the deterministic
 // Species, in species.h).
 //
-// The two share structure deliberately. Each stores a vector of an element type
-// (Node there, StochasticNode here) and presents the same ODE-object interface
-// to the patch above it. The per-element ODE plumbing is *not* duplicated: it is
-// the same set of odelia free functions in both, applied here to the living
-// subset of the individuals via a filter_iterator (StochasticNode carries its
-// own `alive` flag, so the predicate needs only the element). See
-// stochastic_node.h.
+// The two share their common structure through SpeciesBase (storage + the ODE
+// state plumbing + per-element serialisation); see species_base.h. The ODE
+// plumbing iterates the *living* individuals here, via the node_begin()/
+// node_end() hooks below, which return a filter_iterator over the alive nodes
+// (StochasticNode carries its own `alive` flag).
 //
-// What genuinely differs from the deterministic model, and so stays explicit
-// here: there is no density weighting (compute_competition is a plain sum over
-// individuals, not a trapezium over a density), and mortality is realised as
-// discrete deaths() that remove individuals -- shrinking the ODE system in
-// integer steps -- rather than as a continuous mortality state.
+// What stays here, because it genuinely differs from the deterministic model:
+// competition is a plain sum over individuals (no density weighting, no
+// trapezium), and mortality is realised as discrete deaths() that remove
+// individuals -- shrinking the ODE system in integer steps -- rather than as a
+// continuous mortality state.
 //
 // Future per-individual tracking (stable ids, birth times) belongs on
 // StochasticNode; see the note there and issue #217.
 template <typename T, typename E>
-class StochasticSpecies {
+class StochasticSpecies
+    : public SpeciesBase<StochasticSpecies<T, E>, T, E, StochasticNode<T, E>> {
+  typedef SpeciesBase<StochasticSpecies<T, E>, T, E, StochasticNode<T, E>> base_type;
+  // Iterators over the living individuals only -- the predicate reads each
+  // element's own `alive` flag, so the same odelia free functions the base
+  // applies to (always-live) deterministic nodes work here over the subset.
+  typedef std::vector<StochasticNode<T, E>> nodes_type;
+  typedef boost::filter_iterator<bool (*)(const StochasticNode<T, E>&),
+                                  typename nodes_type::iterator> alive_iterator;
+  typedef boost::filter_iterator<bool (*)(const StochasticNode<T, E>&),
+                                  typename nodes_type::const_iterator> alive_const_iterator;
+
 public:
   typedef T         strategy_type;
   typedef E         environment_type;
@@ -44,7 +54,7 @@ public:
   StochasticSpecies(strategy_type s);
 
   size_t size() const;
-  size_t size_individuals() const {return nodes.size();}
+  using base_type::size_individuals;
   void clear();
   void introduce_new_node();
   void introduce_new_node(const E& environment);
@@ -55,8 +65,6 @@ public:
   std::vector<double> net_reproduction_ratio_by_node() const;
 
   Rcpp::NumericMatrix r_get_state() const;
-  Rcpp::NumericMatrix::iterator get_node_state(const individual_type &individual, Rcpp::NumericMatrix::iterator it) const;
-  Rcpp::NumericMatrix::iterator get_node_aux(const individual_type &individual, Rcpp::NumericMatrix::iterator it) const;
 
   // This is totally new, relative to the deterministic model; this
   // will destructively modify the species by killing individuals.
@@ -65,18 +73,16 @@ public:
     return offspring.establishment_probability(environment);
   }
 
-  // * ODE interface
-  // NOTE: We are a time-independent model here so no need to pass
-  // time in as an argument.  All the bits involving time are taken
-  // care of by Environment for us.
-  //
-  // These delegate to the shared odelia free functions over the *living*
-  // individuals, exactly as Species does over its nodes.
-  size_t ode_size() const;
-
-  odelia::ode::const_iterator set_ode_state(odelia::ode::const_iterator it);
-  odelia::ode::iterator       ode_state(odelia::ode::iterator it) const;
-  odelia::ode::iterator       ode_rates(odelia::ode::iterator it) const;
+  // ODE plumbing is inherited from SpeciesBase; it iterates the living subset
+  // through these hooks. (The base resolves them at compile time via CRTP.)
+  using base_type::ode_size;
+  using base_type::set_ode_state;
+  using base_type::ode_state;
+  using base_type::ode_rates;
+  alive_iterator       node_begin()       { return make_alive(nodes.begin()); }
+  alive_iterator       node_end()         { return make_alive(nodes.end()); }
+  alive_const_iterator node_begin() const { return make_alive(nodes.begin()); }
+  alive_const_iterator node_end()   const { return make_alive(nodes.end()); }
 
   // * R interface
   std::vector<bool> r_is_alive() const;
@@ -89,37 +95,25 @@ public:
   }
 
 private:
-  // Iterators over the living individuals only. The same odelia free functions
-  // that Species applies to its (always-live) nodes are applied here to this
-  // filtered range, so the ODE plumbing is shared rather than re-implemented.
-  typedef std::vector<node_type> nodes_type;
-  typedef boost::filter_iterator<bool (*)(const node_type&),
-                                  typename nodes_type::iterator> alive_iterator;
-  typedef boost::filter_iterator<bool (*)(const node_type&),
-                                  typename nodes_type::const_iterator> alive_const_iterator;
-  alive_iterator alive_begin() {
-    return alive_iterator(&node_type::is_alive, nodes.begin(), nodes.end());
+  // Storage lives in the base; bring the members into scope so the many
+  // unqualified `nodes` / `strategy` references below resolve.
+  using base_type::nodes;
+  using base_type::strategy;
+
+  alive_iterator make_alive(typename nodes_type::iterator it) {
+    return alive_iterator(&node_type::is_alive, it, nodes.end());
   }
-  alive_iterator alive_end() {
-    return alive_iterator(&node_type::is_alive, nodes.end(), nodes.end());
-  }
-  alive_const_iterator alive_begin() const {
-    return alive_const_iterator(&node_type::is_alive, nodes.begin(), nodes.end());
-  }
-  alive_const_iterator alive_end() const {
-    return alive_const_iterator(&node_type::is_alive, nodes.end(), nodes.end());
+  alive_const_iterator make_alive(typename nodes_type::const_iterator it) const {
+    return alive_const_iterator(&node_type::is_alive, it, nodes.end());
   }
 
-  const Control& control() const {return strategy->get_control();}
-  strategy_type_ptr strategy;
   individual_type offspring;
-  nodes_type nodes;
 };
 
 template <typename T, typename E>
 StochasticSpecies<T,E>::StochasticSpecies(strategy_type s)
-  : strategy(make_strategy_ptr(s)),
-    offspring(strategy) {
+  : base_type(s),
+    offspring(this->strategy) {
 }
 
 template <typename T, typename E>
@@ -239,28 +233,6 @@ size_t StochasticSpecies<T,E>::deaths() {
   return died;
 }
 
-
-template <typename T, typename E>
-size_t StochasticSpecies<T,E>::ode_size() const {
-  return odelia::ode::ode_size(alive_begin(), alive_end());
-}
-
-template <typename T, typename E>
-odelia::ode::const_iterator StochasticSpecies<T,E>::set_ode_state(odelia::ode::const_iterator it) {
-  return odelia::ode::set_ode_state(alive_begin(), alive_end(), it);
-}
-
-template <typename T, typename E>
-odelia::ode::iterator StochasticSpecies<T,E>::ode_state(odelia::ode::iterator it) const {
-  return odelia::ode::ode_state(alive_begin(), alive_end(), it);
-}
-
-template <typename T, typename E>
-odelia::ode::iterator StochasticSpecies<T,E>::ode_rates(odelia::ode::iterator it) const {
-  return odelia::ode::ode_rates(alive_begin(), alive_end(), it);
-}
-
-
 template <typename T, typename E>
 std::vector<bool> StochasticSpecies<T,E>::r_is_alive() const {
   std::vector<bool> ret;
@@ -319,8 +291,8 @@ Rcpp::NumericMatrix StochasticSpecies<T,E>::r_get_state() const
 
   for (size_t i = 0; i < n_individuals; ++i)
   {
-    it = get_node_state(nodes[i].individual, it);
-    it = get_node_aux(nodes[i].individual, it);
+    it = this->get_node_state(nodes[i], it);
+    it = this->get_node_aux(nodes[i], it);
   }
 
   // Combine ode_names and aux_names into a single vector for dimnames
@@ -333,19 +305,6 @@ Rcpp::NumericMatrix StochasticSpecies<T,E>::r_get_state() const
   return ret;
 }
 
-template <typename T, typename E>
-Rcpp::NumericMatrix::iterator StochasticSpecies<T, E>::get_node_state(const individual_type &individual, Rcpp::NumericMatrix::iterator it) const
-{
-  std::vector<double> tmp = odelia::ode::r_ode_state(individual);
-  return std::copy(tmp.begin(), tmp.end(), it);
-}
-
-template <typename T, typename E>
-Rcpp::NumericMatrix::iterator StochasticSpecies<T, E>::get_node_aux(const individual_type &individual, Rcpp::NumericMatrix::iterator it) const
-{
-  std::vector<double> tmp = odelia::ode::r_ode_aux(individual);
-  return std::copy(tmp.begin(), tmp.end(), it);
-}
 }
 
 #endif /* STOCHASTIC_SPECIES */

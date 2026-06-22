@@ -62,6 +62,12 @@ public:
   odelia::ode::iterator ode_rates(odelia::ode::iterator it) const {
     return individual.ode_rates(it);
   }
+  odelia::ode::iterator ode_aux(odelia::ode::iterator it) const {
+    for (size_t i = 0; i < individual.aux_size(); ++i) {
+      *it++ = individual.aux(i);
+    }
+    return it;
+  }
 
   // Predicate for filtering the living subset (see StochasticSpecies). A free
   // function on the element keeps the filter usable by boost::filter_iterator.
