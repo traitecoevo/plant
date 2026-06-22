@@ -13,6 +13,7 @@
 ^Makefile$
 ^ignore$
 ^WIP$
+^overstorey-staging$
 ^plant_.+\.tar\.gz$
 ^.*\.Rproj$
 ^\.Rproj\.user$
