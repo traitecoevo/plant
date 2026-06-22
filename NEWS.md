@@ -99,6 +99,14 @@ were not previously recorded here:
   disturbance configuration moved from `Environment` to `Patch` (#290); the
   light-extinction coefficient `k_I` moved from `Parameters` onto the strategy
   (#293, #302).
+* The stochastic runner's node-schedule interface was renamed to mirror `SCM`
+  (#217, #506). Migration:
+  * `StochasticPatchRunner$schedule`              -> `StochasticPatchRunner$node_schedule` (get and `<-` assignment)
+  * `StochasticPatchRunner$set_schedule_times(x)` -> `StochasticPatchRunner$set_node_schedule_times(x)`
+* `run_stochastic_collect()` no longer returns an `offspring_production` element
+  in its result list — it is not defined for the finite-population model and was
+  never populated (#498, #506). Migration:
+  * `run_stochastic_collect(...)$offspring_production` -> removed (no equivalent)
 
 ### New features
 
@@ -167,12 +175,24 @@ were not previously recorded here:
   and guard the zero-offspring case (#447).
 * The ODE solver now continues when the minimum step size is reached (#413);
   refined the `interpolate_to_heights()` error check (#437).
+* `run_stochastic_collect()` returned empty output: it read a `state` accessor
+  that `StochasticPatchRunner` no longer exposed, so every step silently
+  collected `NULL` (#498, #506). It now reads `StochasticPatch$state` (a new
+  accessor mirroring `Patch$state`), and each species' per-step state matrix
+  carries an `is_alive` attribute, so the height/survival trajectory is
+  populated again.
 
 ### Internals & performance
 
 * Hot-path optimisation of FF16/TF24 (~2.7–3.5× FF16, ~1.3× TF24) (#471), K93
   SCM perf (#493), and shared `pow(area_leaf, a_l2)` in FF16 `compute_rates`
   (#361, #494). See the `profile-plant` skill for the methodology.
+* `Species` and `StochasticSpecies` now share storage, the ODE state plumbing,
+  and per-element serialisation through a compile-time `SpeciesBase`; the
+  stochastic species stores a `StochasticNode` element (Individual + `alive`) in
+  place of a parallel `is_alive` vector, and stochastic deaths are applied to the
+  solver's live system in place (#217, #506). Internal only — FF16 is
+  bit-identical and shows no timing change.
 * Earlier internals (since 2.0.0): default compilation set to `-O2` (#365);
   assimilation decoupled into a per-strategy `Assimilator` (#313); extrinsic
   drivers refactored into an `ExtrinsicDrivers` class (#334, #340); test-only
