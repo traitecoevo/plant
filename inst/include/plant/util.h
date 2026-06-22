@@ -43,19 +43,14 @@ void check_dimensions(size_t recieved_rows, size_t recieved_cols,
 
 std::vector<double> seq_len(double from, double to, size_t len);
 
-// Use this to be explicit when a potentially unsafe floating point
-// equality test is being made.  I've disabled the clang warnings
-// around this use, while other places warnings will still occur.
+// Use this to be explicit when a deliberate floating point equality test is
+// being made (e.g. checking a value is exactly the one we set). Named so the
+// intent is clear at the call site; the package's compile flags (-Wall
+// -pedantic) do not enable -Wfloat-equal, so no diagnostic suppression is
+// needed here.
 inline
 bool identical(double a, double b) {
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfloat-equal"
-#endif
   return a == b;
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
 }
 
 // http://en.cppreference.com/w/cpp/types/numeric_limits/epsilon
