@@ -24,5 +24,9 @@ Meta
 *.png
 *.RDS
 
+# Overstorey guide preview figures — regenerated when the guide builds in the
+# Overstorey repo; not version-controlled here.
+overstorey-staging/figures/
+
 # Claude Code personal settings
 .claude/settings.local.json
