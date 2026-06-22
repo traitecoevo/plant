@@ -137,3 +137,24 @@ test_that("implausibly dense initial conditions are rejected", {
   expect_error(SCM(x, e)(set_initial_state(p1, state), env, ctrl),
                "non-finite densities")
 })
+
+test_that("seeded runs work with tidy outputs and plot_size_distribution", {
+  x <- "FF16"
+  p0 <- scm_base_parameters(x)
+  p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, birth_rate_list = 1.0)
+
+  st  <- make_initial_state(p1, heights = seq(1, 8, length.out = 10),
+                            densities = rep(0.2, 10))
+  res <- run_scm(set_initial_state(p1, st), collect = TRUE)
+
+  # the standard tidy `species` table, with the seeded nodes present at t = 0
+  expect_true(all(c("time", "height", "density", "log_density", "node",
+                    "species") %in% names(res$species)))
+  expect_true(any(res$species$time == 0 & !is.na(res$species$density)))
+
+  # the standard plotting and aggregation helpers consume it unchanged
+  expect_s3_class(plot_size_distribution(res$species), "ggplot")
+  totals <- integrate_over_size_distribution(FF16_expand_state(res)$species)
+  expect_true(all(is.finite(totals$area_leaf)))
+  expect_true(all(is.finite(totals$density)))
+})
