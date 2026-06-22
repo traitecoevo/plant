@@ -2,7 +2,6 @@
 #ifndef PLANT_PLANT_STOCHASTIC_PATCH_RUNNER_H_
 #define PLANT_PLANT_STOCHASTIC_PATCH_RUNNER_H_
 
-#include <plant/runner.h>
 #include <plant/stochastic_patch.h>
 #include <plant/stochastic_utils.h>
 
@@ -20,9 +19,7 @@ namespace plant {
 // One option is to make "StochasticNode<T,E>" that would include an
 // ID.  Another option is to track required bits of data that within
 // the patch somehow?
-template <typename T, typename E>
-class StochasticPatchRunner
-    : public ScheduleDrivenRunner<StochasticPatchRunner<T, E>> {
+template <typename T, typename E> class StochasticPatchRunner {
 public:
   typedef T                       strategy_type;
   typedef E                       environment_type;
@@ -33,17 +30,13 @@ public:
 
   StochasticPatchRunner(parameters_type p, environment_type e, Control c);
 
-  // run() (reset, then step to completion) and complete() are inherited from
-  // ScheduleDrivenRunner -- the stochastic runner needs no per-step bookkeeping,
-  // so the base defaults apply unchanged. node_schedule also lives in the base;
-  // the using-declaration lets the unqualified references below resolve.
-  using ScheduleDrivenRunner<StochasticPatchRunner<T, E>>::node_schedule;
-
+  void run();
   size_t run_next();
   void advance(double time_);
 
   double time() const { return patch.time(); }
   void reset();
+  bool complete() const;
 
   // * R interface
   util::index r_run_next();
@@ -61,6 +54,7 @@ private:
 
   parameters_type parameters;
   patch_type patch;
+  NodeSchedule node_schedule;
   odelia::ode::Solver<patch_type> solver;
 };
 
@@ -68,12 +62,18 @@ template <typename T, typename E>
 StochasticPatchRunner<T, E>::StochasticPatchRunner(parameters_type p,
                                                    environment_type e,
                                                    Control c)
-    : ScheduleDrivenRunner<StochasticPatchRunner<T, E>>(
-          make_empty_stochastic_schedule(p)),
-      parameters(p), patch(parameters, e, c),
+    : parameters(p), patch(parameters, e, c),
+      node_schedule(make_empty_stochastic_schedule(parameters)),
       solver(patch, make_ode_control(c)) {
   parameters.validate();
   solver.set_collect(false);
+}
+
+template <typename T, typename E> void StochasticPatchRunner<T, E>::run() {
+  reset();
+  while (!complete()) {
+    run_next();
+  }
 }
 
 template <typename T, typename E>
@@ -121,8 +121,10 @@ template <typename T, typename E> bool StochasticPatchRunner<T, E>::deaths() {
   return std::any_of(ret.begin(), ret.end(), [](size_t i) { return i > 0; });
 }
 
-// complete() is inherited from ScheduleDrivenRunner (node_schedule.remaining()
-// == 0); the stochastic runner adds no completion condition of its own.
+template <typename T, typename E>
+bool StochasticPatchRunner<T, E>::complete() const {
+  return node_schedule.remaining() == 0;
+}
 
 // NOTE: solver.reset() will set time within the solver to zero.
 // However, there is no other current way of setting the time within
