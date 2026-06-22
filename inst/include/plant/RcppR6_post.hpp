@@ -448,6 +448,12 @@ template <> inline SEXP wrap(const plant::Parameters<plant::FF16_Strategy,plant:
   ret["node_schedule_times_default"] = Rcpp::wrap(x.node_schedule_times_default);
   ret["node_schedule_times"] = Rcpp::wrap(x.node_schedule_times);
   ret["ode_times"] = Rcpp::wrap(x.ode_times);
+  ret["initial_state"] = Rcpp::wrap(x.initial_state);
+  ret["n_initial_cohorts"] = Rcpp::wrap(x.n_initial_cohorts);
+  ret["initial_node_times"] = Rcpp::wrap(x.initial_node_times);
+  ret["initial_patch_density"] = Rcpp::wrap(x.initial_patch_density);
+  ret["initial_pr_patch_survival"] = Rcpp::wrap(x.initial_pr_patch_survival);
+  ret["initial_time"] = Rcpp::wrap(x.initial_time);
   ret.attr("class") = Rcpp::CharacterVector::create("Parameters<FF16,FF16_Env>", "Parameters");
   return ret;
 }
@@ -478,6 +484,18 @@ template <> inline plant::Parameters<plant::FF16_Strategy,plant::FF16_Environmen
   ret.node_schedule_times = Rcpp::as<std::vector<std::vector<double> > >(xl["node_schedule_times"]);
   // ret.ode_times = Rcpp::as<decltype(retode_times) >(xl["ode_times"]);
   ret.ode_times = Rcpp::as<std::vector<double> >(xl["ode_times"]);
+  // ret.initial_state = Rcpp::as<decltype(retinitial_state) >(xl["initial_state"]);
+  ret.initial_state = Rcpp::as<std::vector<double> >(xl["initial_state"]);
+  // ret.n_initial_cohorts = Rcpp::as<decltype(retn_initial_cohorts) >(xl["n_initial_cohorts"]);
+  ret.n_initial_cohorts = Rcpp::as<std::vector<size_t> >(xl["n_initial_cohorts"]);
+  // ret.initial_node_times = Rcpp::as<decltype(retinitial_node_times) >(xl["initial_node_times"]);
+  ret.initial_node_times = Rcpp::as<std::vector<double> >(xl["initial_node_times"]);
+  // ret.initial_patch_density = Rcpp::as<decltype(retinitial_patch_density) >(xl["initial_patch_density"]);
+  ret.initial_patch_density = Rcpp::as<std::vector<double> >(xl["initial_patch_density"]);
+  // ret.initial_pr_patch_survival = Rcpp::as<decltype(retinitial_pr_patch_survival) >(xl["initial_pr_patch_survival"]);
+  ret.initial_pr_patch_survival = Rcpp::as<std::vector<double> >(xl["initial_pr_patch_survival"]);
+  // ret.initial_time = Rcpp::as<decltype(retinitial_time) >(xl["initial_time"]);
+  ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
   ret.validate();
   return ret;
 }
@@ -493,6 +511,12 @@ template <> inline SEXP wrap(const plant::Parameters<plant::TF24_Strategy,plant:
   ret["node_schedule_times_default"] = Rcpp::wrap(x.node_schedule_times_default);
   ret["node_schedule_times"] = Rcpp::wrap(x.node_schedule_times);
   ret["ode_times"] = Rcpp::wrap(x.ode_times);
+  ret["initial_state"] = Rcpp::wrap(x.initial_state);
+  ret["n_initial_cohorts"] = Rcpp::wrap(x.n_initial_cohorts);
+  ret["initial_node_times"] = Rcpp::wrap(x.initial_node_times);
+  ret["initial_patch_density"] = Rcpp::wrap(x.initial_patch_density);
+  ret["initial_pr_patch_survival"] = Rcpp::wrap(x.initial_pr_patch_survival);
+  ret["initial_time"] = Rcpp::wrap(x.initial_time);
   ret.attr("class") = Rcpp::CharacterVector::create("Parameters<TF24,TF24_Env>", "Parameters");
   return ret;
 }
@@ -523,6 +547,18 @@ template <> inline plant::Parameters<plant::TF24_Strategy,plant::TF24_Environmen
   ret.node_schedule_times = Rcpp::as<std::vector<std::vector<double> > >(xl["node_schedule_times"]);
   // ret.ode_times = Rcpp::as<decltype(retode_times) >(xl["ode_times"]);
   ret.ode_times = Rcpp::as<std::vector<double> >(xl["ode_times"]);
+  // ret.initial_state = Rcpp::as<decltype(retinitial_state) >(xl["initial_state"]);
+  ret.initial_state = Rcpp::as<std::vector<double> >(xl["initial_state"]);
+  // ret.n_initial_cohorts = Rcpp::as<decltype(retn_initial_cohorts) >(xl["n_initial_cohorts"]);
+  ret.n_initial_cohorts = Rcpp::as<std::vector<size_t> >(xl["n_initial_cohorts"]);
+  // ret.initial_node_times = Rcpp::as<decltype(retinitial_node_times) >(xl["initial_node_times"]);
+  ret.initial_node_times = Rcpp::as<std::vector<double> >(xl["initial_node_times"]);
+  // ret.initial_patch_density = Rcpp::as<decltype(retinitial_patch_density) >(xl["initial_patch_density"]);
+  ret.initial_patch_density = Rcpp::as<std::vector<double> >(xl["initial_patch_density"]);
+  // ret.initial_pr_patch_survival = Rcpp::as<decltype(retinitial_pr_patch_survival) >(xl["initial_pr_patch_survival"]);
+  ret.initial_pr_patch_survival = Rcpp::as<std::vector<double> >(xl["initial_pr_patch_survival"]);
+  // ret.initial_time = Rcpp::as<decltype(retinitial_time) >(xl["initial_time"]);
+  ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
   ret.validate();
   return ret;
 }
@@ -538,6 +574,12 @@ template <> inline SEXP wrap(const plant::Parameters<plant::K93_Strategy,plant::
   ret["node_schedule_times_default"] = Rcpp::wrap(x.node_schedule_times_default);
   ret["node_schedule_times"] = Rcpp::wrap(x.node_schedule_times);
   ret["ode_times"] = Rcpp::wrap(x.ode_times);
+  ret["initial_state"] = Rcpp::wrap(x.initial_state);
+  ret["n_initial_cohorts"] = Rcpp::wrap(x.n_initial_cohorts);
+  ret["initial_node_times"] = Rcpp::wrap(x.initial_node_times);
+  ret["initial_patch_density"] = Rcpp::wrap(x.initial_patch_density);
+  ret["initial_pr_patch_survival"] = Rcpp::wrap(x.initial_pr_patch_survival);
+  ret["initial_time"] = Rcpp::wrap(x.initial_time);
   ret.attr("class") = Rcpp::CharacterVector::create("Parameters<K93,K93_Env>", "Parameters");
   return ret;
 }
@@ -568,6 +610,18 @@ template <> inline plant::Parameters<plant::K93_Strategy,plant::K93_Environment>
   ret.node_schedule_times = Rcpp::as<std::vector<std::vector<double> > >(xl["node_schedule_times"]);
   // ret.ode_times = Rcpp::as<decltype(retode_times) >(xl["ode_times"]);
   ret.ode_times = Rcpp::as<std::vector<double> >(xl["ode_times"]);
+  // ret.initial_state = Rcpp::as<decltype(retinitial_state) >(xl["initial_state"]);
+  ret.initial_state = Rcpp::as<std::vector<double> >(xl["initial_state"]);
+  // ret.n_initial_cohorts = Rcpp::as<decltype(retn_initial_cohorts) >(xl["n_initial_cohorts"]);
+  ret.n_initial_cohorts = Rcpp::as<std::vector<size_t> >(xl["n_initial_cohorts"]);
+  // ret.initial_node_times = Rcpp::as<decltype(retinitial_node_times) >(xl["initial_node_times"]);
+  ret.initial_node_times = Rcpp::as<std::vector<double> >(xl["initial_node_times"]);
+  // ret.initial_patch_density = Rcpp::as<decltype(retinitial_patch_density) >(xl["initial_patch_density"]);
+  ret.initial_patch_density = Rcpp::as<std::vector<double> >(xl["initial_patch_density"]);
+  // ret.initial_pr_patch_survival = Rcpp::as<decltype(retinitial_pr_patch_survival) >(xl["initial_pr_patch_survival"]);
+  ret.initial_pr_patch_survival = Rcpp::as<std::vector<double> >(xl["initial_pr_patch_survival"]);
+  // ret.initial_time = Rcpp::as<decltype(retinitial_time) >(xl["initial_time"]);
+  ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
   ret.validate();
   return ret;
 }

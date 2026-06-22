@@ -32,7 +32,8 @@ struct Parameters {
     patch_area(1.0),
     n_patches(1),
     patch_type("meta-population"),
-    max_patch_lifetime(105.32) // designed to agree with Daniel's implementation
+    max_patch_lifetime(105.32), // designed to agree with Daniel's implementation
+    initial_time(0.0)
   {
     validate();
   }
@@ -53,6 +54,28 @@ struct Parameters {
   std::vector<double> node_schedule_times_default;
   std::vector<std::vector<double> > node_schedule_times;
   std::vector<double> ode_times;
+
+  // Initial patch state. When initial_state is non-empty the patch is seeded
+  // with these nodes at reset() instead of starting empty -- used to resume an
+  // exported patch run or to seed an arbitrary initial size distribution.
+  // Carried here so a run stays fully self-describing/serialisable (see
+  // agents.md), and so the seeding survives the reset() at the start of every
+  // SCM::run()/refine_schedule().
+  //   initial_state             flat ODE state (all nodes, then environment),
+  //                             in the order Patch::set_ode_state expects.
+  //   n_initial_cohorts         number of nodes per species.
+  //   initial_node_times        per-node introduction time (flat across species).
+  //   initial_patch_density     per-node patch-age density at birth (flat).
+  //   initial_pr_patch_survival per-node pr_patch_survival at birth (flat).
+  //   initial_time              patch age to resume at (0 for a fresh seed).
+  // Length consistency is checked in Patch::set_initial_state(), where the
+  // node/ode sizes are known.
+  std::vector<double> initial_state;
+  std::vector<size_t> n_initial_cohorts;
+  std::vector<double> initial_node_times;
+  std::vector<double> initial_patch_density;
+  std::vector<double> initial_pr_patch_survival;
+  double initial_time;
 
   // Some little query functions for use on the C side:
   size_t size() const;

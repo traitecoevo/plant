@@ -87,6 +87,21 @@ public:
 
   // This is just kind of useful
   std::vector<double> r_log_densities() const;
+  // Per-node rate of change of log density; used to guard against initial
+  // conditions whose densities would explode to non-finite values.
+  std::vector<double> r_log_density_rates() const;
+
+  // Per-node birth bookkeeping, exposed so an exported patch state can be
+  // re-imported faithfully (see node.h::set_birth_state). node_times() above
+  // already returns the per-node introduction times.
+  std::vector<double> r_patch_densities() const;
+  std::vector<double> r_pr_patch_survival_at_birth() const;
+  // Restore birth bookkeeping for imported nodes (resume); the argument lengths
+  // must each match the current node count.
+  void set_birth_state(const std::vector<double>& times,
+                       const std::vector<double>& patch_density,
+                       const std::vector<double>& pr_patch_survival);
+
   ExtrinsicDrivers extrinsic_drivers() const {return strategy->extrinsic_drivers;}
 
 private:
@@ -398,6 +413,48 @@ std::vector<double> Species<T,E>::r_log_densities() const {
     ret.push_back(it->get_log_density());
   }
   return ret;
+}
+
+template <typename T, typename E>
+std::vector<double> Species<T,E>::r_log_density_rates() const {
+  std::vector<double> ret;
+  ret.reserve(size());
+  for (nodes_const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
+    ret.push_back(it->get_log_density_rate());
+  }
+  return ret;
+}
+
+template <typename T, typename E>
+std::vector<double> Species<T,E>::r_patch_densities() const {
+  std::vector<double> ret;
+  ret.reserve(size());
+  for (nodes_const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
+    ret.push_back(it->patch_density());
+  }
+  return ret;
+}
+
+template <typename T, typename E>
+std::vector<double> Species<T,E>::r_pr_patch_survival_at_birth() const {
+  std::vector<double> ret;
+  ret.reserve(size());
+  for (nodes_const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
+    ret.push_back(it->get_pr_patch_survival_at_birth());
+  }
+  return ret;
+}
+
+template <typename T, typename E>
+void Species<T,E>::set_birth_state(const std::vector<double>& times,
+                                   const std::vector<double>& patch_density,
+                                   const std::vector<double>& pr_patch_survival) {
+  util::check_length(times.size(), size());
+  util::check_length(patch_density.size(), size());
+  util::check_length(pr_patch_survival.size(), size());
+  for (size_t i = 0; i < size(); ++i) {
+    nodes[i].set_birth_state(times[i], patch_density[i], pr_patch_survival[i]);
+  }
 }
 
 }

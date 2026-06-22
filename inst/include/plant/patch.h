@@ -165,6 +165,13 @@ private:
   void compute_environment(bool rescale);
   void compute_rates();
 
+  // Seed the patch from parameters.initial_state (nodes + birth bookkeeping)
+  // when present; called from reset(). Sets environment.time = initial_time.
+  void set_initial_state();
+  // Guard against initial conditions whose per-node log-density rates are so
+  // large they would drive densities to non-finite values within a few steps.
+  void check_initial_density_rates() const;
+
   parameters_type parameters;
 
   double area;
@@ -250,14 +257,92 @@ void Patch<T,E>::reset() {
 
   // compute ephemeral effects like light_availability
   environment.clear();
-  compute_environment(false);
 
-  // compute effects of resource consumption
-  environment_ptr = &environment;
-  compute_rates();
+  if (!parameters.initial_state.empty()) {
+    // Seed the patch from an exported state / initial size distribution.
+    // set_initial_state() does its own compute_environment(false)/compute_rates
+    // (with the real node heights, no rescale), so skip the empty-patch path.
+    set_initial_state();
+    check_initial_density_rates();
+  } else {
+    compute_environment(false);
+
+    // compute effects of resource consumption
+    environment_ptr = &environment;
+    compute_rates();
+  }
 
   // clear accumulated per-node competition error
   competition_error_by_node.assign(species.size(), {});
+}
+
+// Seed the patch from parameters.initial_state. Introduces the requested number
+// of nodes per species, loads the flat ODE state (nodes + environment) at the
+// resume time, restores per-node birth bookkeeping (not part of the ODE state
+// but feeds the rates and lifetime-fitness integrals), then computes the
+// environment and rates. We load the state directly (rather than via the
+// double-arg set_ode_state) so the first environment build is a full
+// compute_environment(false): a rescale of the not-yet-built light spline would
+// read uninitialised grid state.
+template <typename T, typename E>
+void Patch<T,E>::set_initial_state() {
+  const size_t n_species = species.size();
+  util::check_length(parameters.n_initial_cohorts.size(), n_species);
+
+  size_t total_nodes = 0;
+  for (size_t i = 0; i < n_species; ++i) {
+    for (size_t j = 0; j < parameters.n_initial_cohorts[i]; ++j) {
+      species[i].introduce_new_node();
+    }
+    total_nodes += parameters.n_initial_cohorts[i];
+  }
+
+  // Load the flat ODE state (all nodes, then environment).
+  util::check_length(parameters.initial_state.size(), ode_size());
+  odelia::ode::const_iterator it = parameters.initial_state.begin();
+  it = odelia::ode::set_ode_state(species.begin(), species.end(), it);
+  it = environment.set_ode_state(it);
+  environment.time = parameters.initial_time;
+
+  // Restore birth bookkeeping per node, sliced per species from the flat
+  // parameter vectors. Skipped (left at defaults) when not supplied, e.g. a
+  // from-scratch distribution seeded at patch age 0.
+  if (!parameters.initial_node_times.empty()) {
+    util::check_length(parameters.initial_node_times.size(), total_nodes);
+    util::check_length(parameters.initial_patch_density.size(), total_nodes);
+    util::check_length(parameters.initial_pr_patch_survival.size(), total_nodes);
+    auto t_it = parameters.initial_node_times.begin();
+    auto d_it = parameters.initial_patch_density.begin();
+    auto s_it = parameters.initial_pr_patch_survival.begin();
+    for (size_t i = 0; i < n_species; ++i) {
+      const size_t n = parameters.n_initial_cohorts[i];
+      species[i].set_birth_state(std::vector<double>(t_it, t_it + n),
+                                 std::vector<double>(d_it, d_it + n),
+                                 std::vector<double>(s_it, s_it + n));
+      t_it += n;
+      d_it += n;
+      s_it += n;
+    }
+  }
+
+  // Build the environment from the real node heights (full recompute, no
+  // rescale) and compute rates for the seeded population.
+  compute_environment(false);
+  environment_ptr = &environment;
+  compute_rates();
+}
+
+template <typename T, typename E>
+void Patch<T,E>::check_initial_density_rates() const {
+  for (const auto& s : species) {
+    std::vector<double> rates = s.r_log_density_rates();
+    if (std::any_of(rates.begin(), rates.end(),
+                    [](double v) { return v < -100; })) {
+      util::stop("Rates of initial node densities exceed ~1e43 and will likely "
+                 "produce non-finite densities; provide more plausible initial "
+                 "conditions (smaller sizes and/or lower densities).");
+    }
+  }
 }
 
 template <typename T, typename E>

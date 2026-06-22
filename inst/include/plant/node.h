@@ -38,6 +38,20 @@ public:
   }
   double introduction_time() const {return node_introduction_time;}
   double patch_density() const {return patch_density_at_birth;}
+  double get_pr_patch_survival_at_birth() const {return pr_patch_survival_at_birth;}
+  double get_log_density_rate() const {return log_density_dt;}
+
+  // Restore birth bookkeeping for a node imported from an exported patch state,
+  // without re-running compute_initial_conditions (which would overwrite the
+  // loaded ODE state). pr_patch_survival_at_birth feeds the fecundity rate;
+  // node_introduction_time and patch_density_at_birth feed lifetime-fitness
+  // integrals. Required for a resumed run to reproduce the original trajectory.
+  void set_birth_state(double time, double patch_density_in,
+                       double pr_patch_survival) {
+    node_introduction_time = time;
+    patch_density_at_birth = patch_density_in;
+    pr_patch_survival_at_birth = pr_patch_survival;
+  }
 
   // Lifetime offspring of this node, weighted by the probability of
   // landing in a patch of the node's age and by survival during dispersal.

@@ -217,10 +217,35 @@ std::vector<size_t> SCM<T, E>::run_next_impl(bool sync_patch) {
   // The live patch system is owned by the solver; mutate it in place.
   auto &sys = solver.get_system_ref();
 
+  NodeSchedule::Event e = node_schedule.next_event();
+
+  // Resume support: if the next scheduled introduction is in the future,
+  // integrate the gap up to it without introducing any node. This happens on
+  // the first step of a run resumed from an exported state -- the patch is
+  // already populated (in reset()) and starts at parameters.initial_time, which
+  // falls before the first residual schedule entry. It never happens for an
+  // empty patch, whose schedule always starts at t0 = 0, so the normal path
+  // below is unchanged. The next call will then introduce at e's time.
+  if (e.time_introduction() > t0) {
+    solver.set_state_from_system();
+    if (node_schedule.using_ode_times()) {
+      util::stop("Resuming from an initial state is not supported for "
+                 "ode-time replay / mutant runs");
+    } else if (control.fixed_time_step > 0.0) {
+      solver.advance_euler(
+          uniform_euler_times(t0, e.time_introduction(), control.fixed_time_step));
+    } else {
+      solver.advance_adaptive({solver.time(), e.time_introduction()});
+    }
+    if (sync_patch) {
+      patch = sys;
+    }
+    return ret; // empty: nothing introduced this step
+  }
+
   // Consume every event scheduled at the current time t0: each contributes a
   // species to introduce. Stop once the next event ends later than t0 (i.e. it
   // belongs to a later introduction) or the schedule is exhausted.
-  NodeSchedule::Event e = node_schedule.next_event();
   while (true) {
     if (!util::identical(t0, e.time_introduction())) {
       util::stop("Start time not what was expected");

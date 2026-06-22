@@ -506,6 +506,12 @@ Parameters:
     - node_schedule_times_default: "std::vector<double>"
     - node_schedule_times: "std::vector<std::vector<double> >"
     - ode_times: "std::vector<double>"
+    - initial_state: "std::vector<double>"
+    - n_initial_cohorts: "std::vector<size_t>"
+    - initial_node_times: "std::vector<double>"
+    - initial_patch_density: "std::vector<double>"
+    - initial_pr_patch_survival: "std::vector<double>"
+    - initial_time: double
 
 Node:
   name_cpp: "plant::Node<T,E>"
@@ -558,6 +564,9 @@ Species:
     height_max: {type: double, access: member, readonly: true}
     heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
     log_densities: {type: "std::vector<double>", access: member, name_cpp: r_log_densities}
+    node_times: {type: "std::vector<double>", access: member}
+    patch_densities: {type: "std::vector<double>", access: member, name_cpp: r_patch_densities}
+    pr_patch_survival_at_birth: {type: "std::vector<double>", access: member, name_cpp: r_pr_patch_survival_at_birth}
     nodes: {type: "std::vector<plant::Node<T,E> >", access: member, name_cpp: r_nodes}
     net_reproduction_ratio_by_node: {type: "std::vector<double>", access: member}
     compute_competition_effect_by_nodes: {type: "std::vector<double>", access: member, name_cpp: r_compute_competition_effect_by_nodes}
