@@ -7,6 +7,7 @@
 #include <plant/adaptive_interpolator.h>
 #include <plant/ode_solver/ode_interface.h>
 #include <plant/util.h>
+#include <algorithm> // std::max, for the resource-availability floor (#253)
 
 using namespace Rcpp;
 
@@ -75,8 +76,16 @@ public:
     // `cap` already guards the upper bound and the crown integral keeps
     // height >= 0 = spline.min(), so use the unchecked operator() rather than
     // eval() to avoid re-running check_active()/bound checks per quadrature
-    // point. Same underlying tk_spline(height) call, so bit-identical.
-    return height <= cap ? spline(height) : 1.0;
+    // point. Same underlying tk_spline(height) call.
+    //
+    // Floor the result at 0 (#253): the cubic spline can undershoot below
+    // zero between knots (notably the K93 light spline at high k_I), which is
+    // non-physical for a resource availability. The clamp is a no-op for the
+    // usual positive case (so values stay bit-identical there) and only bites
+    // on the spurious negative undershoot. This is the single chokepoint for
+    // FF16/K93/TF24, and belongs here in plant rather than in the
+    // general-purpose interpolator (which is migrating to odelia).
+    return height <= cap ? std::max(0.0, spline(height)) : 1.0;
   }
 
   virtual void r_init_interpolators(const std::vector<double>& state) {

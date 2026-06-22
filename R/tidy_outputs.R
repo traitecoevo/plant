@@ -136,14 +136,12 @@ interpolate_to_times <- function(tidy_species_data, times, method="natural") {
 #' @importFrom stats spline
 #' @importFrom rlang .data
 interpolate_to_heights <- function(tidy_species_data, heights, method="natural", min_log_density = -100) {
-  
-  # helper function - predicts to new values with spline
-  # only needed to ensure predictions for xout outside the ange of x are set to NA
-  f <- function(x, y, xout, time) {
 
+  # helper function - predicts to new values with spline
+  # values for xout outside the range of x are set to NA (and dropped below)
+  f <- function(x, y, xout) {
     y_pred <- stats::spline(x, y, xout=xout, method=method)$y
     y_pred[!dplyr::between(xout, min(x), max(x))] <- NA
-
     y_pred
   }
 
@@ -151,21 +149,36 @@ interpolate_to_heights <- function(tidy_species_data, heights, method="natural",
     tidy_species_data <- tidy_species_data %>%
       tibble::add_column(step = NA)
   }
-  
-  tidy_species_data %>%
+
+  prepared <- tidy_species_data %>%
     tidyr::drop_na(-dplyr::any_of("step")) %>%
-    
     # check for very negative values
     dplyr::mutate(
       log_density = ifelse(.data$log_density < min_log_density, min_log_density, .data$log_density)
     ) %>%
     dplyr::group_by(.data$species, .data$time, .data$step) %>%
-    # remove any repated x values - these cuase warnings in the interpolation
-    dplyr::filter(!duplicated(.data$height)) %>%
+    # remove any repeated x values - these cause warnings in the interpolation
+    dplyr::filter(!duplicated(.data$height))
 
+  # interpolate each state onto the requested heights; grid points outside the
+  # observed range interpolate to NA and are dropped
+  interpolated <- prepared %>%
     dplyr::reframe(
-      dplyr::across(tidyselect::where(is.double), ~ f(.data$height, .x, xout = heights, .data$time[1]))
+      dplyr::across(tidyselect::where(is.double), ~ f(.data$height, .x, xout = heights))
     ) %>%
+    tidyr::drop_na(dplyr::any_of("height"))
+
+  # On a coarse grid the tallest node usually sits above the highest in-range
+  # grid point, so it would be dropped and the largest size bracket lost.
+  # Append the actual largest individual in each time step instead, rather than
+  # misrepresenting its density at the highest interpolation point (#352).
+  largest <- prepared %>%
+    dplyr::filter(.data$height == max(.data$height)) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(dplyr::any_of(names(interpolated)))
+
+  dplyr::bind_rows(interpolated, largest) %>%
+    dplyr::arrange(.data$species, .data$time, .data$step, .data$height) %>%
     dplyr::mutate(density = exp(.data$log_density))
 }
 
