@@ -115,7 +115,10 @@ bool is_decreasing(ForwardIterator first, ForwardIterator last) {
   return true;
 }
 
-void stop(const std::string&);
+// Wraps Rcpp::stop, which throws and never returns; the attribute lets the
+// compiler see that callers (e.g. catch blocks ending in util::stop) do not
+// fall through, avoiding spurious -Wreturn-type warnings.
+[[noreturn]] void stop(const std::string&);
 
 void warning(const std::string &);
 

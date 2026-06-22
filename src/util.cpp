@@ -49,7 +49,7 @@ std::vector<double> seq_len(double from, double to, size_t len) {
   return ret;
 }
 
-void stop(const std::string& msg) {
+[[noreturn]] void stop(const std::string& msg) {
   Rcpp::stop(msg);
 }
 
