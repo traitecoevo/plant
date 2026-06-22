@@ -15,7 +15,7 @@ test_that("empty", {
     obj <- StochasticPatchRunner(x, e)(p, env, ctrl)
     expect_identical(obj$time, 0.0)
 
-    sched <- obj$schedule
+    sched <- obj$node_schedule
     expect_equal(sched$size, 0)
     expect_equal(sched$max_time, p$max_patch_lifetime)
 
@@ -24,8 +24,8 @@ test_that("empty", {
     expect_gt(sched2$size, 0)
 
     ## Does this need to happen twice?
-    obj$schedule <- sched2
-    expect_equal(obj$schedule$size, sched2$size)
+    obj$node_schedule <- sched2
+    expect_equal(obj$node_schedule$size, sched2$size)
 
     ## Importantly, this moves time forward to where the first
     ## introduction will be!

@@ -50,10 +50,10 @@ public:
   parameters_type r_parameters() const { return parameters; }
   const patch_type &r_patch() const { return patch; }
 
-  // TODO(#479): consider renaming NodeSchedule -> Schedule
-  NodeSchedule r_schedule() const { return node_schedule; }
-  void r_set_schedule(NodeSchedule x);
-  void r_set_schedule_times(std::vector<std::vector<double>> x);
+  // R-facing names mirror SCM (node_schedule / set_node_schedule[_times]).
+  NodeSchedule r_node_schedule() const { return node_schedule; }
+  void r_set_node_schedule(NodeSchedule x);
+  void r_set_node_schedule_times(std::vector<std::vector<double>> x);
   Rcpp::List r_get_state() const { return patch.r_get_state(); };
 
 private:
@@ -148,7 +148,7 @@ util::index StochasticPatchRunner<T, E>::r_run_next() {
 }
 
 template <typename T, typename E>
-void StochasticPatchRunner<T, E>::r_set_schedule(NodeSchedule x) {
+void StochasticPatchRunner<T, E>::r_set_node_schedule(NodeSchedule x) {
   if (patch.ode_size() > 0) {
     util::stop("Cannot set schedule without resetting first");
   }
@@ -162,7 +162,7 @@ void StochasticPatchRunner<T, E>::r_set_schedule(NodeSchedule x) {
 }
 
 template <typename T, typename E>
-void StochasticPatchRunner<T, E>::r_set_schedule_times(
+void StochasticPatchRunner<T, E>::r_set_node_schedule_times(
     std::vector<std::vector<double>> x) {
   if (patch.ode_size() > 0) {
     util::stop("Cannot set schedule without resetting first");

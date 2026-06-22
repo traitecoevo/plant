@@ -70,7 +70,7 @@ public:
   // will destructively modify the species by killing individuals.
   size_t deaths();
   double establishment_probability(const E& environment) {
-    return offspring.establishment_probability(environment);
+    return new_node.establishment_probability(environment);
   }
 
   // ODE plumbing is inherited from SpeciesBase; it iterates the living subset
@@ -88,7 +88,7 @@ public:
   std::vector<bool> r_is_alive() const;
   std::vector<double> r_heights() const;
   void r_set_heights(std::vector<double> heights);
-  const individual_type& r_new_node() const {return offspring;}
+  const individual_type& r_new_node() const {return new_node;}
   std::vector<individual_type> r_individuals() const;
   const individual_type& r_individual_at(util::index idx) const {
     return nodes[idx.check_bounds(size_individuals())].individual;
@@ -107,13 +107,15 @@ private:
     return alive_const_iterator(&node_type::is_alive, it, nodes.end());
   }
 
-  individual_type offspring;
+  // The template individual for the next introduction; named to mirror
+  // Species::new_node (which plays the same role as the next cohort).
+  individual_type new_node;
 };
 
 template <typename T, typename E>
 StochasticSpecies<T,E>::StochasticSpecies(strategy_type s)
   : base_type(s),
-    offspring(this->strategy) {
+    new_node(this->strategy) {
 }
 
 template <typename T, typename E>
@@ -125,15 +127,15 @@ size_t StochasticSpecies<T,E>::size() const {
 template <typename T, typename E>
 void StochasticSpecies<T,E>::clear() {
   nodes.clear();
-  // Reset the offspring to a blank offspring, too.
-  offspring = individual_type(strategy);
+  // Reset new_node to a blank individual, too.
+  new_node = individual_type(strategy);
 }
 
 // Note that this does not do establishment probability; suggest that
 // this is best to do in the StochasticPatch perhaps?
 template <typename T, typename E>
 void StochasticSpecies<T,E>::introduce_new_node() {
-  nodes.push_back(node_type(offspring));
+  nodes.push_back(node_type(new_node));
 }
 
 template <typename T, typename E>

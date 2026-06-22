@@ -3255,8 +3255,8 @@ void StochasticPatchRunner___FF16__FF16_Env__reset(plant::RcppR6::RcppR6<plant::
   obj_->reset();
 }
 // [[Rcpp::export]]
-void StochasticPatchRunner___FF16__FF16_Env__set_schedule_times(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> > obj_, std::vector<std::vector<double> > times) {
-  obj_->r_set_schedule_times(times);
+void StochasticPatchRunner___FF16__FF16_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> > obj_, std::vector<std::vector<double> > times) {
+  obj_->r_set_node_schedule_times(times);
 }
 // [[Rcpp::export]]
 bool StochasticPatchRunner___FF16__FF16_Env__complete__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
@@ -3279,12 +3279,12 @@ plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> StochasticP
 }
 
 // [[Rcpp::export]]
-plant::NodeSchedule StochasticPatchRunner___FF16__FF16_Env__schedule__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->r_schedule();
+plant::NodeSchedule StochasticPatchRunner___FF16__FF16_Env__node_schedule__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->r_node_schedule();
 }
 // [[Rcpp::export]]
-void StochasticPatchRunner___FF16__FF16_Env__schedule__set(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::NodeSchedule value) {
-  obj_->r_set_schedule(value);
+void StochasticPatchRunner___FF16__FF16_Env__node_schedule__set(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::NodeSchedule value) {
+  obj_->r_set_node_schedule(value);
 }
 
 
@@ -3305,8 +3305,8 @@ void StochasticPatchRunner___TF24__TF24_Env__reset(plant::RcppR6::RcppR6<plant::
   obj_->reset();
 }
 // [[Rcpp::export]]
-void StochasticPatchRunner___TF24__TF24_Env__set_schedule_times(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24_Strategy,plant::TF24_Environment> > obj_, std::vector<std::vector<double> > times) {
-  obj_->r_set_schedule_times(times);
+void StochasticPatchRunner___TF24__TF24_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24_Strategy,plant::TF24_Environment> > obj_, std::vector<std::vector<double> > times) {
+  obj_->r_set_node_schedule_times(times);
 }
 // [[Rcpp::export]]
 bool StochasticPatchRunner___TF24__TF24_Env__complete__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
@@ -3329,12 +3329,12 @@ plant::StochasticPatch<plant::TF24_Strategy,plant::TF24_Environment> StochasticP
 }
 
 // [[Rcpp::export]]
-plant::NodeSchedule StochasticPatchRunner___TF24__TF24_Env__schedule__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
-  return obj_->r_schedule();
+plant::NodeSchedule StochasticPatchRunner___TF24__TF24_Env__node_schedule__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->r_node_schedule();
 }
 // [[Rcpp::export]]
-void StochasticPatchRunner___TF24__TF24_Env__schedule__set(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24_Strategy,plant::TF24_Environment> > obj_, plant::NodeSchedule value) {
-  obj_->r_set_schedule(value);
+void StochasticPatchRunner___TF24__TF24_Env__node_schedule__set(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24_Strategy,plant::TF24_Environment> > obj_, plant::NodeSchedule value) {
+  obj_->r_set_node_schedule(value);
 }
 
 
@@ -3355,8 +3355,8 @@ void StochasticPatchRunner___K93__K93_Env__reset(plant::RcppR6::RcppR6<plant::St
   obj_->reset();
 }
 // [[Rcpp::export]]
-void StochasticPatchRunner___K93__K93_Env__set_schedule_times(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> > obj_, std::vector<std::vector<double> > times) {
-  obj_->r_set_schedule_times(times);
+void StochasticPatchRunner___K93__K93_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> > obj_, std::vector<std::vector<double> > times) {
+  obj_->r_set_node_schedule_times(times);
 }
 // [[Rcpp::export]]
 bool StochasticPatchRunner___K93__K93_Env__complete__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> > obj_) {
@@ -3379,12 +3379,12 @@ plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> StochasticPat
 }
 
 // [[Rcpp::export]]
-plant::NodeSchedule StochasticPatchRunner___K93__K93_Env__schedule__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  return obj_->r_schedule();
+plant::NodeSchedule StochasticPatchRunner___K93__K93_Env__node_schedule__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->r_node_schedule();
 }
 // [[Rcpp::export]]
-void StochasticPatchRunner___K93__K93_Env__schedule__set(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::NodeSchedule value) {
-  obj_->r_set_schedule(value);
+void StochasticPatchRunner___K93__K93_Env__node_schedule__set(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::NodeSchedule value) {
+  obj_->r_set_node_schedule(value);
 }
 
 

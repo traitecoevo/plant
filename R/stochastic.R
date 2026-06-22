@@ -87,7 +87,7 @@ run_stochastic_collect <- function(p, env = NULL,
   types <- extract_RcppR6_template_types(p, "Parameters")
   obj <- do.call('StochasticPatchRunner', types)(p, env, ctrl)
   if (random_schedule) {
-    obj$schedule <- stochastic_schedule(p)
+    obj$node_schedule <- stochastic_schedule(p)
   }
 
   res <- list(collect(obj))
