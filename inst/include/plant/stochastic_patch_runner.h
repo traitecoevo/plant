@@ -104,15 +104,20 @@ size_t StochasticPatchRunner<T, E>::run_next() {
 template <typename T, typename E>
 void StochasticPatchRunner<T, E>::advance(double time_) {
   solver.advance_adaptive({solver.time(), time_});
-  patch = solver.get_system_ref();
+  // deaths() acts on the solver's live system in place (see below). If any
+  // individual died the ODE system shrank, so re-pull its now-smaller state
+  // into the solver. The `patch` member snapshot is refreshed once, by the
+  // caller (run_next), rather than copied in and back out around the deaths.
   if (deaths()) {
-    solver.get_system_ref() = patch;
     solver.set_state_from_system();
   }
 }
 
+// Apply stochastic deaths to the solver's owned system in place. Mirrors the way
+// SCM operates on solver.get_system_ref() directly instead of round-tripping
+// through the `patch` member -- avoids two full Patch copies per step.
 template <typename T, typename E> bool StochasticPatchRunner<T, E>::deaths() {
-  const auto ret = patch.deaths();
+  const auto ret = solver.get_system_ref().deaths();
   return std::any_of(ret.begin(), ret.end(), [](size_t i) { return i > 0; });
 }
 
