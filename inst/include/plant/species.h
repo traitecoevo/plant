@@ -149,8 +149,14 @@ void Species<T,E>::clear() {
 
 template <typename T, typename E>
 void Species<T,E>::introduce_new_node() {
+  // new_node already holds the initial conditions computed against the current
+  // environment by the most recent compute_rates() call (see compute_rates ->
+  // new_node.compute_initial_conditions above), and the member is refreshed
+  // again on the next compute_rates() ready for the following introduction.
+  // Recomputing it here would be redundant, and would (wrongly) re-seed against
+  // the post-introduction environment rather than the environment at the
+  // node's introduction time (resolves the recompute question in #478).
   nodes.push_back(new_node);
-  // TODO(#478): Should the new_node be recomputed here?
 }
 
 // If a species contains no individuals, we return the height of a

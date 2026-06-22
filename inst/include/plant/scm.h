@@ -435,9 +435,13 @@ std::vector<std::vector<double>> SCM<T, E>::refinement_error_by_node() const {
 template <typename T, typename E>
 std::vector<double>
 SCM<T, E>::r_compute_competition_effect_error_by_node_for_species_i(util::index species_index) const {
-  // TODO(#478): I think we need to scale this by total area; that should be
-  // computed for everything so will get passed in as an argument.
-  // const double tot_competition_effect  = patch.compute_competition(0.0);
+  // The per-node error is scaled by the total competition effect inside the
+  // patch-level call below: it computes compute_competition(0.0) -- which
+  // already divides by patch area -- and passes it through as the scaling
+  // argument. The live schedule-refinement collector
+  // (Patch::collect_competition_errors) reconstructs the signal via this same
+  // path, so no extra area scaling is needed here to keep them consistent
+  // (resolves the scaling question in #478).
   const size_t idx = species_index.check_bounds(patch.size());
   return patch.r_compute_competition_effect_error_by_node_for_species_i(idx);
 }
