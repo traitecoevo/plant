@@ -26,10 +26,10 @@ K93_Strategy::K93_Strategy() {
 void K93_Strategy::update_dependent_aux(const int index, Internals& vars) {
   if (index == HEIGHT_INDEX) {
     double height = vars.state(HEIGHT_INDEX);
-    vars.set_aux(aux_index.at("competition_effect"),
+    vars.set_aux(COMPETITION_EFFECT_AUX_INDEX,
                  compute_competition_by_ratio(
                    0.0, k_I * size_to_basal_area(height)));
-    vars.set_aux(aux_index.at("height_inverse"), 1.0 / height);
+    vars.set_aux(HEIGHT_INVERSE_AUX_INDEX, 1.0 / height);
   }
 }
 
@@ -37,17 +37,9 @@ double K93_Strategy::compute_competition(double z, double size) const {
   return compute_competition(z, k_I * size_to_basal_area(size), 1.0 / size);
 }
 
-double K93_Strategy::compute_competition(
-    double z, double whole_plant_competition, double height_inverse) const {
-  return compute_competition_by_ratio(
-    z * height_inverse, whole_plant_competition);
-}
-
-double K93_Strategy::compute_competition_by_ratio(
-    double z_over_size, double whole_plant_competition) const {
-  // Competition only felt if plant bigger than target size z.
-  return whole_plant_competition * canopy_shape.Q(z_over_size);
-}
+// compute_competition(z, whole_plant_competition, height_inverse) and
+// compute_competition_by_ratio() are defined inline in k93_strategy.h so the
+// per-node hot loop folds them in (no cross-TU call in this no-LTO build).
 
 double K93_Strategy::establishment_probability(const K93_Environment& environment){
   (void) environment;
@@ -151,7 +143,7 @@ double K93_Strategy::mortality_dt(double cumulative_basal_area,
   // If mortality probability is 1 (latency = Inf) then the rate
   // calculations break.  Setting them to zero gives the correct
   // behaviour.
-  if (R_FINITE(cumulative_mortality)) {
+  if (util::is_finite(cumulative_mortality)) {
     double mu = -c_0 + c_1 * cumulative_basal_area;
     return (mu > 0)? mu:0.0;
  } else {

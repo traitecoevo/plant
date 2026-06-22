@@ -19,13 +19,13 @@ Falster DS, FitzJohn RG, Brännström Å, Dieckmann U, Westoby M (2016) plant: A
 
 An overview of the plant package is given by the above publication. Further background on the default `FF16` growth model is available in Falster *et al* 2011 ([10.1111/j.1365-2745.2010.01735.x](http://doi.org/10.1111/j.1365-2745.2010.01735.x)) and Falster *et al* 2017 ([10.1101/083451](http://doi.org/10.1101/083451)).
 
-`plant` comes with a lot of documentation, available at [https://traitecoevo.github.io/plant/](https://traitecoevo.github.io/plant/). Initial versions for some of the material there was also  included as supplementary material with the publication about plant, which can be accessed [here](http://onlinelibrary.wiley.com/doi/10.1111/2041-210X.12525/abstract#footer-support-info). 
+The narrative documentation — user guides, theory, and worked examples — now lives at **[Overstorey](https://traitecoevo.github.io/overstorey/)**, a dedicated field guide to the `plant` model ([source](https://github.com/traitecoevo/overstorey)). The package's own [pkgdown site](https://traitecoevo.github.io/plant/) hosts the API/function reference. Initial versions of some of this material were also included as supplementary material with the publication about plant, which can be accessed [here](http://onlinelibrary.wiley.com/doi/10.1111/2041-210X.12525/abstract#footer-support-info). 
 
 ## Package structure
 
 Plant is a complex package, using [C++20](https://en.wikipedia.org/wiki/C%2B%2B20) behind the scenes for speed with [R6 classes](https://cran.r-project.org/web/packages/R6/vignettes/Introduction.html) (via the [Rcpp](https://cran.r-project.org/web/packages/Rcpp/index.html) and [RcppR6](https://github.com/richfitz/RcppR6) packages).  In this blog post, Rich FitzJohn and I describe the [key technologies used to build the plant package](https://methodsblog.wordpress.com/2016/02/23/plant/). 
 
-If you are interested in developing or extending plant, start with [agents.md](agents.md), which documents the package architecture, the C++/R interface, the build workflow, and how to add a new model. The [`strategy_new`](vignettes/strategy_new.Rmd) vignette walks through adding a new strategy.
+If you are interested in developing or extending plant, start with [agents.md](agents.md), which documents the package architecture, the C++/R interface, the build workflow, and how to add a new model. The `new-strategy` skill (`.claude/skills/new-strategy/`) walks through scaffolding and implementing a new strategy.
 
 ## Installation
 
@@ -80,11 +80,13 @@ devtools::load_all()
 
 ## Getting started
 
-The best place to start is the [package website](https://traitecoevo.github.io/plant/), which hosts the full documentation and a set of tutorial articles. In particular:
+The best place to start is **[Overstorey](https://traitecoevo.github.io/overstorey/)**, which hosts the full narrative documentation and a set of tutorial guides. In particular:
 
-- [Get started with plant](https://traitecoevo.github.io/plant/articles/plant.html) — an overview of the package and a minimal worked example.
-- [Individuals](https://traitecoevo.github.io/plant/articles/individuals.html), [Patch dynamics](https://traitecoevo.github.io/plant/articles/patch.html) and [Demography](https://traitecoevo.github.io/plant/articles/demography.html) — the core simulation workflows.
-- [Parameters](https://traitecoevo.github.io/plant/articles/parameters.html) — configuring strategies, traits and control settings.
+- *Get started with plant* — an overview of the package and a minimal worked example.
+- *Individuals*, *Patch dynamics* and *Demography* — the core simulation workflows.
+- *Parameters* — configuring strategies, traits and control settings.
+
+The package's [pkgdown site](https://traitecoevo.github.io/plant/) hosts the function reference.
 
 A minimal example, growing a patch of competing plants with the default `FF16` model:
 
@@ -99,7 +101,7 @@ p <- expand_parameters(trait_matrix(0.0825, "lma"), p)
 results <- run_scm_collect(p)
 ```
 
-If you want to develop or extend `plant` (e.g. add a new strategy/model), see [agents.md](agents.md) and the [`strategy_new`](vignettes/strategy_new.Rmd) vignette.
+If you want to develop or extend `plant` (e.g. add a new strategy/model), see [agents.md](agents.md) and the `new-strategy` skill (`.claude/skills/new-strategy/`).
 
 ## Benchmarking
 

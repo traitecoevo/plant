@@ -22,7 +22,6 @@
 ^NEWS.md
 ^plant.Rcheck$
 ^check$
-^inst/slow_vignettes$
 ^inst/docs/figures$
 ^inst/scripts$
 ^inst/website$
@@ -30,17 +29,5 @@
 ^gh-pages$
 ^Meta$
 ^water_bucket_submodel$
-^vignettes/articles$
-^vignettes/demography.Rmd$
-^vignettes/emergent.Rmd$
-^vignettes/example_analysis.Rmd$
-^vignettes/extrinsic_drivers.Rmd$
-^vignettes/individuals.Rmd$
-^vignettes/package_organisation.Rmd$
-^vignettes/parameters.Rmd$
-^vignettes/patch.Rmd$
-^vignettes/profiling_code.Rmd$
-^vignettes/self_thinning.Rmd$
-^vignettes/strategy_new.Rmd$
 ^LICENSE\.md$
 ^CLA\.md$

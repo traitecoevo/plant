@@ -138,7 +138,7 @@ test_that("interpolate_to_times recovers known values and NAs out-of-range", {
   expect_true(all(is.na(out_oor$height)))
 })
 
-test_that("interpolate_to_heights recovers known values, rebuilds density, NAs out-of-range", {
+test_that("interpolate_to_heights recovers known values, rebuilds density, appends largest node", {
   # leaf_area linear in height (10*h) and log_density linear (-(h-1)).
   df <- tibble::tibble(
     species     = 1,
@@ -148,13 +148,38 @@ test_that("interpolate_to_heights recovers known values, rebuilds density, NAs o
     leaf_area   = c(10, 20, 30)
   )
 
+  # interpolated grid points, plus the largest individual (height 3) appended
+  # rather than dropped (#352)
   out <- interpolate_to_heights(df, heights = c(1.5, 2.5))
-  expect_equal(out$leaf_area, c(15, 25))
-  expect_equal(out$log_density, c(-0.5, -1.5))
+  expect_equal(out$height, c(1.5, 2.5, 3))
+  expect_equal(out$leaf_area, c(15, 25, 30))
+  expect_equal(out$log_density, c(-0.5, -1.5, -2))
   # density is rebuilt as exp(log_density)
-  expect_equal(out$density, exp(c(-0.5, -1.5)))
+  expect_equal(out$density, exp(c(-0.5, -1.5, -2)))
 
-  # heights outside the observed range return NA
+  # grid points outside the observed range are dropped, but the largest
+  # individual is still retained rather than discarded (#352)
   out_oor <- interpolate_to_heights(df, heights = c(0, 5))
-  expect_true(all(is.na(out_oor$leaf_area)))
+  expect_equal(out_oor$height, 3)
+  expect_equal(out_oor$leaf_area, 30)
+})
+
+test_that("interpolate_to_heights retains the largest size bracket on a coarse grid (#352)", {
+  # reprex from the issue: tallest node (3.3) sits above the highest in-range
+  # grid point (3), so the coarse grid would otherwise drop the largest class.
+  data <- tibble::tibble(
+    step        = 1,
+    species     = 1,
+    time        = 10,
+    height      = c(0.1, 1.2, 2.3, 3.3),
+    log_density = log(c(0.1, 0.1, 0.1, 0.2))
+  )
+
+  out <- interpolate_to_heights(data, heights = 1:4)
+  # the actual largest individual is kept ...
+  expect_true(3.3 %in% out$height)
+  # ... the out-of-range grid point (4, above 3.3) is dropped ...
+  expect_false(any(out$height == 4))
+  # ... and no node is silently lost to NA
+  expect_false(anyNA(out$height))
 })

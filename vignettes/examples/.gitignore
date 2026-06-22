@@ -1,9 +1,0 @@
-# These are paper-example source files, not knitr outputs. Re-include them:
-# the parent vignettes/.gitignore ignores *.R/*.md to keep generated vignette
-# artefacts out of the repo, but here those extensions are hand-written sources.
-!*.R
-!*.md
-
-# ...but never track generated figure outputs (also covered by the repo-root
-# *.png/*.pdf rules; kept explicit so the whole folder is clearly ignored).
-figures/
