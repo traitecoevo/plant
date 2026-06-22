@@ -196,6 +196,62 @@ What moved into C++ (all on `Node`/`Species`/`SCM` in
 **Known downstream breakage:** `plant.assembly` calls the removed functions in
 `R/community_plant.R` and `scripts/example/ESA.Rmd`; update per the table above.
 
+### 3.3 When you change the R-facing interface — record it for downstream migration
+
+Renaming, removing, or changing the meaning of anything a user calls (functions,
+arguments, argument order, `Control`/`Parameters` fields, R6 types) breaks
+downstream products (analysis repos, `plant.assembly`, notebooks). Two
+obligations whenever you make such a change:
+
+1. **Record an `old -> new` mapping in [NEWS.md](NEWS.md)** under the development
+   version's **"Breaking changes"** subsection. Write it to be *machine-actionable*
+   — explicit `old(...)` -> `new(...)` lines, one per affected symbol, the way
+   §3.1/§3.2's tables and the existing NEWS entries are. This section is the
+   single source of truth for migration; agents.md narrates the *why*, NEWS
+   carries the *exactly what changed*. Pure-internal/perf changes go under
+   "Internals & performance" instead and need no migration line.
+2. **Downstream migration is a skill, not a manual chase.** The
+   **`plant-update-interface` skill** (`.claude/skills/plant-update-interface/`)
+   reads NEWS's "Breaking changes" entries and applies them to a product repo
+   (locate call sites, propose per-site fixes, rebuild + test, record a baseline
+   marker). It does *not* memorise the API — it re-reads NEWS each run — so the
+   only thing that keeps it working is keeping NEWS disciplined per (1). To bring
+   a product up to date, run that skill *in the product repo*. If you find a
+   breaking change with no NEWS mapping, that's a NEWS bug — fix it at the source.
+
+#### How to write a Breaking-changes entry (format the skill can act on)
+
+The migration skill reads these entries mechanically, so the format matters as
+much as the prose. Rules:
+
+- **One bullet per change; PR number(s) at the end** in parens, e.g. `(#463)`.
+- **State the `old -> new` mapping explicitly**, with the call form, not just the
+  name. `run_scm_collect(p, …) -> run_scm(p, …, collect = TRUE)` is actionable;
+  "consolidated the SCM interface" is not.
+- **One sub-bullet per affected symbol** when a change touches several:
+  ```markdown
+  * <one-line what-and-why> (#NNN). Migration:
+    * `old_fn(a, b)`            -> `new_fn(a, b, flag = TRUE)`
+    * `old_field`               -> `obj$new_field`
+    * `helper()` (removed)      -> `<replacement, or "no equivalent">`
+  ```
+- **Capture side-channels, not just the renamed call.** If callers read a result
+  via an attribute, a returned list element, or a follow-up getter, map *that*
+  too — a name-only mapping silently drops it. (Real example: `build_schedule()`
+  returned its result with `attr(., "offspring_production")`; the faithful
+  migration is `scm <- run_scm(p, refine_schedule = TRUE); scm$parameters;
+  scm$offspring_production` — the `$parameters`-only mapping loses the
+  offspring count.)
+- **Flag semantic (not mechanical) changes loudly.** A symbol whose *meaning* or
+  *default* changed while its name stayed the same (e.g. raw `Control()` now
+  means *fast*, not accurate) must say so in words — the skill cannot infer it
+  from a grep and will (correctly) escalate it for human review.
+- **Argument-order / signature changes** get their own bullet; advise callers to
+  switch to named arguments.
+- For larger reorganisations, also add a narrative subsection here in §3 (as
+  §3.1/§3.2 do) and link it from the NEWS bullet — NEWS carries the *exact what*,
+  agents.md the *why*.
+
 ---
 
 ## 4. The R interface layer
@@ -312,10 +368,10 @@ The scaffolder ([scripts/new_strategy_scaffolder.R](scripts/new_strategy_scaffol
 After scaffolding, implement the biology: growth/mortality/reproduction in the
 new strategy, map `competition_effect` to the environment, wire rates into
 `compute_rates`, and update `state_names()`/`state_size()`. Then run
-`make rebuild` and add tests. The **`new-strategy` skill**
-(`.claude/skills/new-strategy/`) captures the full workflow, including a worked
+`make rebuild` and add tests. The **`plant-new-strategy` skill**
+(`.claude/skills/plant-new-strategy/`) captures the full workflow, including a worked
 walkthrough implementing Kohyama 1993 as K93
-(`.claude/skills/new-strategy/worked-example-k93.md`).
+(`.claude/skills/plant-new-strategy/worked-example-k93.md`).
 
 The three shipped models:
 
@@ -377,7 +433,8 @@ Documentation is split across several homes — put new content in the right one
 |---|---|---|
 | **Narrative docs** — task-oriented guides, theory/maths, worked examples (the former `vignettes/`: `plant` overview, `individuals`, `patch`, `demography`, `parameters`, `extrinsic_drivers`, `emergent`, `self_thinning`) | **[Overstorey](https://traitecoevo.github.io/overstorey/)** | <https://github.com/traitecoevo/overstorey> (Quarto) |
 | **Blog / dated experiments** — posts pinned to the `plant` version they were built against (was `vignettes/blog/`) | Overstorey's **"Adaptively"** notebook | same repo |
-| **Extending the model** — adding a new strategy/environment | **`new-strategy` skill** (see §7) | this repo (`.claude/skills/new-strategy/`) |
+| **Extending the model** — adding a new strategy/environment | **`plant-new-strategy` skill** (see §7) | this repo (`.claude/skills/plant-new-strategy/`) |
+| **Migrating downstream code** to a newer plant interface | **`plant-update-interface` skill** (see §3.3) | this repo (`.claude/skills/plant-update-interface/`) |
 | **Function/API reference** — per-function docs generated from roxygen | **pkgdown site** <https://traitecoevo.github.io/plant/> | this repo (`man/`, `pkgdown/_pkgdown.yml`) |
 | **Architecture / contributor guide** | this file ([agents.md](agents.md)) | this repo |
 | Installation & citation | [README.md](README.md) | this repo |

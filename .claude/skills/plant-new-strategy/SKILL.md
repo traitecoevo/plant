@@ -1,5 +1,5 @@
 ---
-name: new-strategy
+name: plant-new-strategy
 description: >-
   Scaffold a new strategy (and optionally environment) model in the plant
   C++/R package, then wire it through the build. Use when asked to add a new

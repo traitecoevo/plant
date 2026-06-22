@@ -2,17 +2,149 @@
 
 ### Breaking changes
 
+These change the R-facing interface and require updating downstream code. Each
+entry gives the `old -> new` migration; the `plant-update-interface` skill
+(`.claude/skills/plant-update-interface/`) reads this section to migrate
+products using plant.
+
 * SCM cohort-refinement now happens entirely in C++, and the R interface is
   consolidated onto a single `run_scm()`. `run_scm_collect()`, `run_scm_error()`
-  and `build_schedule()` have been removed (#408, #459). Migration:
-  * `build_schedule(p, …)` -> `run_scm(p, …, refine_schedule = TRUE)$parameters`
+  and `build_schedule()` have been removed (#408, #459, #462). Migration:
+  * `build_schedule(p, …)` -> `scm <- run_scm(p, …, refine_schedule = TRUE)`,
+    then read the refined parameters as `scm$parameters`. The former
+    `attr(p_new, "offspring_production")` side-channel is now
+    `scm$offspring_production`.
   * `run_scm_collect(p, …)` -> `run_scm(p, …, collect = TRUE)`
   * `run_scm_error(p, …)` -> set `scm$collect_errors <- TRUE` then read
     `scm$combined_node_errors`
 * The argument order of `run_scm()` changed; `use_ode_times` is now the last
   argument (after the new `refine_schedule` and `collect`).
+* Numeric `Control` defaults are now set in the C++ `Control()` constructor
+  (the pragmatic "fast" settings), and the two R preset helpers were removed
+  (#463). Raw `Control()` now means **fast**, not accurate. Migration:
+  * `fast_control()` -> `Control()` (or its lowercase alias `control()`)
+  * `scm_base_control()` -> `Control()` / `control()`
+  * for the old tight-tolerance behaviour -> `control_accurate()`
+  * `scm_base_parameters()` is unaffected (it builds a `Parameters`, not a
+    `Control`).
+* The ODE solver and interpolator core were spun out into the standalone
+  [odelia](https://github.com/traitecoevo/odelia) package, which plant now
+  depends on (#456, #464). Plant's internal solver/interpolator headers
+  (`inst/include/plant/ode_solver/*`, `interpolator.*`, `tk_spline.*`) were
+  removed in favour of `odelia::ode::Solver` / `odelia/interpolator.hpp`.
+  Migration: code that linked against plant's C++ numerics headers, or used the
+  old `OdeRunner`/interpolator R6 types directly, must switch to odelia. Pure-R
+  callers of `run_scm()` / `run_stochastic()` are unaffected.
 
-### Minor changes / internals
+The following earlier changes (since the 2.0.0 release) are also breaking and
+were not previously recorded here:
+
+* All fitness/equilibrium functionality was removed from plant; it now lives in
+  the separate `plant.assembly` package (#388). Removed `fitness_landscape()`,
+  `solve_max_fitness()`, `viable_fitness()`, `fundamental_fitness()`,
+  `assembly_parameters()`, `equilibrium_birth_rate()` and the `equilibrium_*`
+  parameters/controls.
+* The `Environment` object was removed from `Parameters`; pass it directly as
+  the `env` argument to run functions, e.g.
+  `run_scm(p, env = Environment("FF16"))` (#315). Likewise `Control` was removed
+  from `Parameters` and is passed as the `ctrl` argument (#314).
+* SCM & environment interface simplified (#446): environment construction is now
+  the single `Environment("FF16")` constructor — removed `make_environment()`,
+  `FF16_make_environment()`, `FF16_fixed_environment()`, `test_environment()`,
+  and the helpers `scm_patch()`, `make_scm_integrate()`, `scm_state()`,
+  `patch_to_internals()`, `scm_to_internals()`, `species_to_internals()`,
+  `first()`, `last()`, `modify_list()`. State collection moved to C++ and
+  `tidy_patch` runs by default.
+* Node/Species/SCM competition methods renamed (#448):
+  * `Species$competition_effects` -> `Species$compute_competition_effect_by_nodes`
+  * `Species$competition_effects_error` -> `Species$compute_competition_effect_by_nodes_error`
+  * `SCM$competition_effect_error` -> `SCM$compute_competition_effect_error_by_node_for_species_i`
+  * the `Node$competition_effect` getter was removed.
+* The exported-function surface was reduced (#420): the per-model R6 generators
+  (`FF16_*`, `K93_*`, `TF24_*` `Node`/`Patch`/`SCM`/`Species`/`Stochastic*`) and
+  many utilities (`Internals`, `OdeControl`, `bounds`, `check_bounds`,
+  `clamp_domain`, `nlsolve`, `splinefun_log`/`splinefun_loglog`, `strategy`,
+  `strategy_default`, `validate`, …) are no longer exported. Rename:
+  `make_transparent()` -> `util_colour_set_opacity()`.
+* The `Cohort` class/concept was renamed `Node` throughout — classes, methods,
+  filenames, and R-side `coh` variables (#335).
+* "Seed rain" terminology renamed for clarity (#297):
+  * `seed_rain[_in]` -> `birth_rate`
+  * `seed_rain[_out]` -> `net_reproduction_ratio` / `offspring_production`
+  * `add_seeds()` -> `introduce_new_cohort()`
+* Canopy/light renamed and generalised (#384): the `canopy` class became
+  `Resource_spline` (`canopy.h` -> `resource_spline.h`); `compute_canopy` ->
+  `light_availability$compute_environment`; `canopy_light_*` controls ->
+  `light_availability_spline_*`; `get_canopy_at_height()` / `canopy_openness()`
+  -> `get_value_at_height()`. The standalone `assimilation` class and its
+  adaptive-integration options were removed.
+* Extrinsic-driver API reworked (#340): per-driver `Environment` methods replaced
+  by an `ExtrinsicDrivers` object at `env$extrinsic_drivers`, with
+  `evaluate("rainfall", t)` / `evaluate_range("rainfall", c(...))`.
+* ODE-stepper methods renamed (#413): `advance()` -> `advance_adaptive()`;
+  `node_schedule_ode_times()` -> `ode_times()`. The corresponding `Parameters`
+  field was also renamed: `p$node_schedule_ode_times` -> `p$ode_times`.
+* Growth-optimisation routine generalised (#382):
+  `FF16_solve_max_size_growth_rate_at_height()` ->
+  `optimise_individual_rate_at_size_by_trait()` (new `size` / `size_name` args),
+  with a height wrapper `optimise_individual_rate_at_height_by_trait()`.
+* Removed the `FF16w` strategy, superseded by TF24 (`FF16w` -> `TF24`) (#438),
+  and the `FF16r` strategy (#439); removed the experimental soil component from
+  `FF16` (#441).
+* Replaced the Leaf cost parameter `g1_TF24` with the Medlyn stomatal-conductance
+  parameters `g0` (default 0.022) and `g1` (default 2.57) on the TF24 `Leaf`
+  (#450, #451).
+* `Disturbance` refactored into a `Disturbance_Regime` base with
+  `No_Disturbance_Regime` / `Weibull_Disturbance_Regime` subclasses (#301);
+  disturbance configuration moved from `Environment` to `Patch` (#290); the
+  light-extinction coefficient `k_I` moved from `Parameters` onto the strategy
+  (#293, #302).
+
+### New features
+
+* `run_scm()` can start a patch from **pre-existing nodes** rather than always
+  growing from empty — to resume an exported run or to seed an arbitrary initial
+  size distribution at patch age 0 (#499, revives #304). New
+  `export_patch_state(scm, step)` captures a patch's full state; the initial
+  condition rides on the `Parameters` object (`initial_state`,
+  `n_initial_cohorts`, …) so `run_scm(p)` just works and stays serialisable.
+* Selectable **canopy shading models** for FF16/TF24 via `control$shading_model`
+  (#490, #417): `""` (each strategy's own default), `deep-crown`, `mean-light`,
+  `crown-centre`, `flat-top-soft-box`, `flat-top-box`, `ppa` (with
+  `ppa_layer_optical_depth` / `ppa_layer_smoothing`). Dispatch is bound once in
+  `prepare_strategy()`; deep-crown is bit-for-bit unchanged.
+* Alternative **fixed-step forward-Euler** ODE integration alongside the
+  adaptive Cash-Karp solver, selected with `control$fixed_time_step` (years;
+  `0` = adaptive RKCK, the default) (#489). Combining `fixed_time_step > 0`
+  with a mutant run / `save_RK45_cache` / `use_ode_times` errors clearly.
+* Multi-layer **root water uptake** for the TF24 strategy (soil→root→stem→leaf
+  hydraulic pathway following Potkay et al. 2021), replacing the previous
+  single-value soil-water treatment (#488).
+* Added the **TF24 strategy** — a leaf-level water-use/hydraulics model with a
+  `TF24_Environment` whose soil-layer count and parameters can be set after
+  construction (#445), including a Medlyn stomatal-conductance model on the leaf
+  (`solve_medlyn_ci_*`, `medlyn_model_gs`) (#450).
+* New **mutant-fitness method**: caches resident environments at each ODE step so
+  mutant fitness reuses the residents' resource shadow. Adds a `save_history` /
+  `save_RK45_cache` control, `environment_history` / `patch_step_history` on the
+  SCM, and a `mutant_parameters()` method (#362, #379).
+* Per-species **time-varying birth rates** via the extrinsic-driver mechanism:
+  `set_constant_birth_rate(p, i, k)`, `set_interpolated_birth_rate(p, i, x, y)`,
+  and `Parameters` fields `birth_rate_x` / `birth_rate_y` /
+  `is_constant_birth_rate` (#334).
+* `run_scm()` collected output now exports the extrinsic environment drivers per
+  timestep (`out$env[[t]]$canopy`, `…$rainfall`); new drivers export
+  automatically (#347).
+* `expand_state()` generalised to apply to any strategy (#443).
+* New strategy parameter `recruitment_decay` — exponential decline of
+  establishment probability with patch age (#330).
+* Per-individual `consumption_rates` (water extraction across cohorts/soil
+  layers) feeding the water-enabled environment's soil balance (#329); FF16
+  rainfall getters/setters + spline exposed to R (#324); environment auxiliary
+  variables (#323) and environment state variables (#305) exposed/added.
+* Added an HTML report (plots + analyses) for the FF16 strategy (#350).
+
+### Minor changes & bug fixes
 
 * `Node` now records its introduction time and patch-age density at the moment
   it is introduced, so reproduction and integration-error calculations no longer
@@ -20,6 +152,44 @@
 * `SCM::run()` accumulates the per-node refinement error when `collect_errors`
   is set, exposed as `combined_node_errors`; `SCM::refine_schedule()` runs the
   adaptive node-introduction loop in C++.
+* The resource spline is now floored at 0, fixing spurious negative light
+  values (notably the K93 light spline at high `k_I`) (#253, #497).
+* `interpolate_to_heights()` no longer silently drops individuals in the largest
+  size class on a coarse grid; it appends the actual largest individual per time
+  step instead (#352, #497).
+* Fixed `tidyselect` deprecation warnings from `integrate_over_size_distribution()`
+  by using string column names in `across()`/`rename()` selection contexts
+  (#375, #501).
+* Account for variable patch size in light/competition calculations (#422).
+* Fixed the argument order in `net_mass_production_dt()` (#389).
+* Fixed integration of density (#345).
+* Fixed `scm_support` to use the correct error name `net_reproduction_ratio_errors`
+  and guard the zero-offspring case (#447).
+* The ODE solver now continues when the minimum step size is reached (#413);
+  refined the `interpolate_to_heights()` error check (#437).
+
+### Internals & performance
+
+* Hot-path optimisation of FF16/TF24 (~2.7–3.5× FF16, ~1.3× TF24) (#471), K93
+  SCM perf (#493), and shared `pow(area_leaf, a_l2)` in FF16 `compute_rates`
+  (#361, #494). See the `profile-plant` skill for the methodology.
+* Earlier internals (since 2.0.0): default compilation set to `-O2` (#365);
+  assimilation decoupled into a per-strategy `Assimilator` (#313); extrinsic
+  drivers refactored into an `ExtrinsicDrivers` class (#334, #340); test-only
+  reference plant relocated into the tests (#418); unused logging removed (#436);
+  Makefile dev-loop speedups (#319); general `R CMD check` cleanup (#440).
+
+### Documentation & tooling
+
+* Narrative docs (former `vignettes/`, theory, dated posts) migrated to the
+  [Overstorey](https://traitecoevo.github.io/overstorey/) site; the pkgdown
+  site is now the function reference only (#496).
+* The strategy-scaffolder workflow and a profiling workflow are now captured
+  as the `plant-new-strategy` and `profile-plant` skills (#495, #492).
+* Relicensed from GPL-2 to **AGPL-3** (#457).
+* Upgraded the minimum C++ standard from C++14 — currently C++20 (#442).
+* Expanded the K93 (#421) and self-thinning (#369) vignettes; added a draft
+  `extrinsic_drivers` vignette (#340).
 
 ## Plant 2.0.0 release notes
 
