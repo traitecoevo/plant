@@ -1,6 +1,6 @@
 # Worked example: implementing Kohyama 1993 (K93) as a new strategy
 
-This is the reference walkthrough for the **biology** step of `new-strategy`
+This is the reference walkthrough for the **biology** step of `plant-new-strategy`
 (originally `vignettes/strategy_new.Rmd`). It shows how the shipped K93 model was
 built by scaffolding from FF16 and then filling in a simple size-structured
 model. K93 already exists in the package — read its files

@@ -25,7 +25,7 @@ The narrative documentation — user guides, theory, and worked examples — now
 
 Plant is a complex package, using [C++20](https://en.wikipedia.org/wiki/C%2B%2B20) behind the scenes for speed with [R6 classes](https://cran.r-project.org/web/packages/R6/vignettes/Introduction.html) (via the [Rcpp](https://cran.r-project.org/web/packages/Rcpp/index.html) and [RcppR6](https://github.com/richfitz/RcppR6) packages).  In this blog post, Rich FitzJohn and I describe the [key technologies used to build the plant package](https://methodsblog.wordpress.com/2016/02/23/plant/). 
 
-If you are interested in developing or extending plant, start with [agents.md](agents.md), which documents the package architecture, the C++/R interface, the build workflow, and how to add a new model. The `new-strategy` skill (`.claude/skills/new-strategy/`) walks through scaffolding and implementing a new strategy.
+If you are interested in developing or extending plant, start with [agents.md](agents.md), which documents the package architecture, the C++/R interface, the build workflow, and how to add a new model. The `plant-new-strategy` skill (`.claude/skills/plant-new-strategy/`) walks through scaffolding and implementing a new strategy.
 
 ## Installation
 
@@ -101,7 +101,7 @@ p <- expand_parameters(trait_matrix(0.0825, "lma"), p)
 results <- run_scm_collect(p)
 ```
 
-If you want to develop or extend `plant` (e.g. add a new strategy/model), see [agents.md](agents.md) and the `new-strategy` skill (`.claude/skills/new-strategy/`).
+If you want to develop or extend `plant` (e.g. add a new strategy/model), see [agents.md](agents.md) and the `plant-new-strategy` skill (`.claude/skills/plant-new-strategy/`).
 
 ## Benchmarking
 

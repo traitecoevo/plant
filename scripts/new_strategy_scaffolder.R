@@ -4,7 +4,7 @@
 # existing model. This generates the boilerplate C++/R files and wires the new
 # `<Strategy, Environment>` pair into every place the templated core and the R
 # dispatch tables need to learn about it. You still implement the biology by
-# hand afterwards (see the `new-strategy` skill, .claude/skills/new-strategy/).
+# hand afterwards (see the `plant-new-strategy` skill, .claude/skills/plant-new-strategy/).
 #
 # Usage (from the package root):
 #
