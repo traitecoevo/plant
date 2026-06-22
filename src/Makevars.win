@@ -14,9 +14,12 @@
 CXX_STD = CXX20
 PKG_CPPFLAGS = -isystem../inst/include/
 
-## odelia's compiled DLL lives under its installed, arch-specific libs dir.
-ODELIA_LIBS = $(shell "${R_HOME}/bin/Rscript" -e "cat(system.file('libs', .Platform$$r_arch, package='odelia'))")
-PKG_LIBS = "$(ODELIA_LIBS)/odelia.dll"
+## odelia's compiled DLL lives under its installed, arch-specific libs dir
+## (.../odelia/libs/x64). Resolve the base libs dir in R, then append R's
+## $(R_ARCH) make-variable (e.g. /x64) here -- doing the arch in make avoids the
+## shell expanding `$r_arch` out of the Rscript expression.
+ODELIA_LIBDIR = $(shell "${R_HOME}/bin/Rscript" -e "cat(system.file('libs', package='odelia'))")
+PKG_LIBS = "$(ODELIA_LIBDIR)$(R_ARCH)/odelia.dll"
 
 ## Link to gperftools profiler
 ## Uncomment next line if you want to use the profiler.
