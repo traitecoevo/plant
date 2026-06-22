@@ -5,6 +5,7 @@
 #include <plant/node_schedule.h>
 #include <odelia/ode_solver.hpp>
 #include <plant/patch.h>
+#include <plant/runner.h>
 #include <plant/scm_utils.h>
 
 #include <algorithm>
@@ -25,7 +26,8 @@ namespace plant {
 // The patch owns all of the ecology (fitness, offspring, competition, error
 // computations); the SCM is the time-stepping/scheduling layer on top of it.
 // Most r_* members are thin facades that expose the C++ API to R via RcppR6.
-template <typename T, typename E> class SCM {
+template <typename T, typename E>
+class SCM : public ScheduleDrivenRunner<SCM<T, E>> {
 public:
   // ---- Type aliases ------------------------------------------------------
   typedef T                strategy_type;
@@ -62,8 +64,12 @@ public:
   // Return patch, schedule and solver to their t = 0 state; clear history.
   void reset();
 
-  // True once every scheduled node introduction has been consumed.
-  bool complete() const;
+  // complete() (true once every scheduled introduction is consumed) and the
+  // `node_schedule` member are provided by ScheduleDrivenRunner. Pull them into
+  // this scope so the existing unqualified references resolve through the
+  // dependent base. SCM keeps its own run() (below), which collects history and
+  // refinement errors per step, so it does not use the base default.
+  using ScheduleDrivenRunner<SCM<T, E>>::complete;
 
   // Current patch time.
   double time() const;
@@ -126,10 +132,13 @@ private:
   // it on return (skipped inside the run() loop to avoid per-step copies).
   std::vector<size_t> run_next_impl(bool sync_patch);
 
+  // node_schedule lives in the base; this using-declaration lets the many
+  // unqualified `node_schedule` references in the methods below resolve.
+  using ScheduleDrivenRunner<SCM<T, E>>::node_schedule;
+
   parameters_type parameters;
   Control control;
   patch_type patch;
-  NodeSchedule node_schedule;
   odelia::ode::Solver<patch_type> solver;
 };
 
@@ -137,8 +146,8 @@ private:
 
 template <typename T, typename E>
 SCM<T, E>::SCM(parameters_type p, environment_type e, Control c)
-    : parameters(p), control(c), patch(parameters, e, c),
-      node_schedule(make_node_schedule(parameters)),
+    : ScheduleDrivenRunner<SCM<T, E>>(make_node_schedule(p)),
+      parameters(p), control(c), patch(parameters, e, c),
       solver(patch, make_ode_control(c)) {
 
   parameters.validate();
@@ -383,10 +392,6 @@ template <typename T, typename E> void SCM<T, E>::reset() {
   solver.reset();
   patch = solver.get_system_ref();
   history.clear();
-}
-
-template <typename T, typename E> bool SCM<T, E>::complete() const {
-  return node_schedule.remaining() == 0;
 }
 
 template <typename T, typename E> double SCM<T, E>::time() const {
