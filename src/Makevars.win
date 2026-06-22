@@ -1,0 +1,26 @@
+## Windows build flags for plant.
+##
+## On macOS/Linux, plant's undefined XAD `Tape` symbols (from odelia's compiled
+## ODE Solver) are resolved at *load* time against odelia's globally-loaded DLL
+## (see odelia's `.onLoad` / odelia#28 and odelia's ARCHITECTURE.md), so the
+## plain src/Makevars needs no odelia on the link line.
+##
+## Windows mingw `ld` forbids undefined symbols in a DLL, so that runtime trick
+## cannot apply here: plant.dll must resolve odelia's `Tape` symbols at *link*
+## time. We link directly against odelia's single compiled DLL (which exports
+## the XAD Tape runtime), keeping one shared copy of `Tape`/`active_tape_` in the
+## process. Tracked upstream in traitecoevo/odelia#29.
+
+CXX_STD = CXX20
+PKG_CPPFLAGS = -isystem../inst/include/
+
+## odelia's compiled DLL lives under its installed, arch-specific libs dir
+## (.../odelia/libs/x64). Resolve the base libs dir in R, then append R's
+## $(R_ARCH) make-variable (e.g. /x64) here -- doing the arch in make avoids the
+## shell expanding `$r_arch` out of the Rscript expression.
+ODELIA_LIBDIR = $(shell "${R_HOME}/bin/Rscript" -e "cat(system.file('libs', package='odelia'))")
+PKG_LIBS = "$(ODELIA_LIBDIR)$(R_ARCH)/odelia.dll"
+
+## Link to gperftools profiler
+## Uncomment next line if you want to use the profiler.
+## PKG_LIBS += -lprofiler

@@ -141,8 +141,7 @@ adaptive node-schedule refinement (`build_schedule()`, internal
 `run_scm_error()`) and a separate function returned tidied output
 (`run_scm_collect()`). **This all now lives in C++ on `SCM<T,E>`, and the R
 surface is a single `run_scm()`.** See
-[issue #408](https://github.com/traitecoevo/plant/issues/408) and
-`notes/issue-408-refactor.md` for background.
+[issue #408](https://github.com/traitecoevo/plant/issues/408) for background.
 
 Migration map for callers (other repos/scripts must be updated):
 
@@ -273,7 +272,6 @@ Use the [Makefile](Makefile) targets. The dependency you must internalise:
 | `make test` | `make all` then `devtools::test()` |
 | `make check` / `make build` / `make install` | `R CMD check` / `build` / `INSTALL` |
 | `make benchmark` | run `scripts/benchmark.R` |
-| `make vignettes` | `devtools::build_vignettes()` |
 
 Practical rules:
 
@@ -295,21 +293,29 @@ class and every R dispatch table must learn the new `<Strategy, Environment>`
 pair. **Use the scaffolder** rather than doing it by hand:
 
 ```r
-source("inst/scripts/new_strategy_scaffolder.R")
+source("scripts/new_strategy_scaffolder.R")
 create_strategy_scaffold("MyModel", "FF16")   # copy FF16 as the template
+
+# variant that reuses an existing environment (issue #274):
+create_strategy_scaffold("FF16r", "FF16", environment = "FF16")
 ```
 
-The scaffolder ([inst/scripts/new_strategy_scaffolder.R](inst/scripts/new_strategy_scaffolder.R)):
+The scaffolder ([scripts/new_strategy_scaffolder.R](scripts/new_strategy_scaffolder.R)):
 
 - adds the new pair to the `templates:` blocks in `RcppR6_classes.yml`,
-- copies and renames the strategy/environment header + source files,
-- extends the R dispatch `switch()` tables.
+- copies and renames the strategy (and, in own-environment mode, the
+  environment) header + source files,
+- extends the R dispatch `switch()` tables and `helper-plant.R` lists,
+- with `environment = "<model>"`, reuses an existing environment instead of
+  generating a new one (no `<name>_Environment` files/bindings/tests).
 
 After scaffolding, implement the biology: growth/mortality/reproduction in the
 new strategy, map `competition_effect` to the environment, wire rates into
 `compute_rates`, and update `state_names()`/`state_size()`. Then run
-`make rebuild` and add tests. The full walkthrough (implementing Kohyama 1993 as
-K93) is in [vignettes/strategy_new.Rmd](vignettes/strategy_new.Rmd).
+`make rebuild` and add tests. The **`new-strategy` skill**
+(`.claude/skills/new-strategy/`) captures the full workflow, including a worked
+walkthrough implementing Kohyama 1993 as K93
+(`.claude/skills/new-strategy/worked-example-k93.md`).
 
 The three shipped models:
 
@@ -361,15 +367,49 @@ the `project` scope**, which is not granted by default — add it with
 (create, comment, edit, move) is intentionally *not* in the allowlist and will
 prompt for confirmation.
 
-## 10. Documentation sources
+## 10. Documentation & website
 
-- User-facing docs / pkgdown site: <https://traitecoevo.github.io/plant/>
-- Vignettes in [vignettes/](vignettes/): `plant.Rmd` (overview), `individuals.Rmd`,
-  `patch.Rmd`, `demography.Rmd`, `parameters.Rmd`, `strategy_new.Rmd`
-  (extending the model), `extrinsic_drivers.Rmd`, `emergent.Rmd`,
-  `self_thinning.Rmd`, `profiling_code.Rmd`.
-- [README.md](README.md) — installation and citation.
-- [NEWS.md](NEWS.md) — changelog.
+### Where each kind of information lives
+
+Documentation is split across several homes — put new content in the right one:
+
+| Content | Home | Source |
+|---|---|---|
+| **Narrative docs** — task-oriented guides, theory/maths, worked examples (the former `vignettes/`: `plant` overview, `individuals`, `patch`, `demography`, `parameters`, `extrinsic_drivers`, `emergent`, `self_thinning`) | **[Overstorey](https://traitecoevo.github.io/overstorey/)** | <https://github.com/traitecoevo/overstorey> (Quarto) |
+| **Blog / dated experiments** — posts pinned to the `plant` version they were built against (was `vignettes/blog/`) | Overstorey's **"Adaptively"** notebook | same repo |
+| **Extending the model** — adding a new strategy/environment | **`new-strategy` skill** (see §7) | this repo (`.claude/skills/new-strategy/`) |
+| **Function/API reference** — per-function docs generated from roxygen | **pkgdown site** <https://traitecoevo.github.io/plant/> | this repo (`man/`, `pkgdown/_pkgdown.yml`) |
+| **Architecture / contributor guide** | this file ([agents.md](agents.md)) | this repo |
+| Installation & citation | [README.md](README.md) | this repo |
+| Changelog | [NEWS.md](NEWS.md) | this repo |
+| Roadmap / planning | GitHub Projects board (see §9) | — |
+
+Rule of thumb: prose that a *user* reads → Overstorey; the docstring for a
+*function* → roxygen comment in `R/` (rebuilt into the pkgdown reference);
+guidance for someone *changing the code* → this file.
+
+The vignette content was migrated into Overstorey in
+[`799a668`](https://github.com/traitecoevo/overstorey/commit/799a668380e2679f3ca6a339f53796f83d1c4b0f)
+(guides, theory, and the dated posts, with committed Quarto freezes).
+
+### Generating the website (pkgdown reference)
+
+The pkgdown site is the **function reference only** (narrative articles now live
+on Overstorey, §above). It is built from roxygen output and config in
+[pkgdown/](pkgdown/) (`_pkgdown.yml` defines the navbar + `reference:` layout).
+There is **no CI workflow** for it — build and deploy manually:
+
+```r
+devtools::document()          # refresh man/ first (or: make roxygen)
+pkgdown::build_site()         # renders into the gh-pages destination
+```
+
+`_pkgdown.yml` sets `destination: gh-pages`; the rendered site is published from
+the repo's `gh-pages` branch (`pkgdown::deploy_to_branch()` does the build +
+push in one step). The navbar links out to Overstorey for the guides.
+
+Overstorey itself is a Quarto site with its own CI (`publish.yml`) — see that
+repo's README for how it renders, freezes (`_freeze/`), and version-pins posts.
 
 ---
 
@@ -402,9 +442,10 @@ The deterministic SCM solver spends almost all of its time in one nested loop
 quadrature point, every timestep, small per-call costs dominate. The codebase
 uses a consistent set of techniques to keep it fast. **Many of these make the
 code look more complicated than the underlying maths — do not "simplify" them
-back without re-profiling.** Detailed before/after benchmarks live in
-[notes/profile-ff16-2026-06-16.md](notes/profile-ff16-2026-06-16.md); the
-umbrella issue is [#466], with follow-up [#470] (LTO).
+back without re-profiling.** The profiling workflow and the catalogue of
+techniques that paid off are captured in the `profile-plant` skill
+(`.claude/skills/profile-plant/`); the umbrella issue is [#466], with
+follow-up [#470] (LTO).
 
 **Algorithmic (the big wins):**
 
@@ -491,7 +532,7 @@ make compile
 PLANT_PROFILE_REPEATS=20 Rscript scripts/profile-benchmarks.R FF16
 ```
 
-Record results in [notes/profile-ff16-2026-06-16.md](notes/profile-ff16-2026-06-16.md).
+Record results following the `profile-plant` skill (`.claude/skills/profile-plant/`).
 Bit-identical changes are strongly preferred; where a reciprocal-multiply
 reorders floating-point ops, the affected reference tests were relaxed to an
 explicit tolerance (noted in that file).

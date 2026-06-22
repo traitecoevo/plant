@@ -49,7 +49,4 @@ check: build
 clean:
 	rm -f src/*.o src/*.so src/*.o.tmp
 
-vignettes:
-	Rscript -e "devtools::build_vignettes()"
-
-.PHONY: all compile doc clean test attributes roxygen install build check vignettes
+.PHONY: all compile doc clean test attributes roxygen install build check

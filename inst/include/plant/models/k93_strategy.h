@@ -14,6 +14,13 @@ public:
   typedef std::shared_ptr<K93_Strategy> ptr;
   K93_Strategy();
 
+  // Direct aux indices for the hot path, avoiding aux_index.at("...") string-map
+  // lookups (these showed up in profiling; see #466). MUST stay in sync with the
+  // order of aux_names() below. refresh_indices() still fills the named maps used
+  // by the R-facing paths.
+  static constexpr int COMPETITION_EFFECT_AUX_INDEX = 0;
+  static constexpr int HEIGHT_INVERSE_AUX_INDEX = 1;
+
   // update this when the length of state_names changes
   static size_t state_size () { return 3; }
   // update this when the length of aux_names changes
@@ -44,10 +51,18 @@ public:
                                 double height_inverse);
 
   double compute_competition(double z, double size) const;
+  // Hot path (called per node from Species::compute_competition): defined inline
+  // here so the no-LTO build folds it into the loop instead of paying a cross-TU
+  // call (mirrors FF16_Strategy; see the profile-plant skill).
   double compute_competition(double z, double whole_plant_competition,
-                             double height_inverse) const;
+                             double height_inverse) const {
+    return compute_competition_by_ratio(z * height_inverse, whole_plant_competition);
+  }
   double compute_competition_by_ratio(double z_over_size,
-                                      double whole_plant_competition) const;
+                                      double whole_plant_competition) const {
+    // Competition only felt if plant bigger than target size z.
+    return whole_plant_competition * canopy_shape.Q(z_over_size);
+  }
 
   void update_dependent_aux(const int index, Internals& vars);
 

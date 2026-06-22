@@ -45,7 +45,7 @@ Control::Control() {
   fixed_time_step   = 0.0;
 
   schedule_nsteps   = 20;
-  schedule_eps      = 5e-3;
+  schedule_eps      = 2e-2;
   schedule_verbose  = false;
 
   save_RK45_cache = false;

@@ -6,6 +6,7 @@
 #include <plant/gradient.h>
 #include <odelia/ode_interface.hpp>
 #include <optional>
+#include <limits> // std::numeric_limits
 
 namespace plant {
 
@@ -115,7 +116,7 @@ private:
 template <typename T, typename E>
 Node<T,E>::Node(strategy_type_ptr s)
   : individual(s),
-    log_density(R_NegInf),
+    log_density(-std::numeric_limits<double>::infinity()),
     log_density_dt(0),
     density(0),
     offspring_produced_survival_weighted(0),
@@ -133,11 +134,11 @@ void Node<T,E>::compute_rates(const environment_type& environment,
   // need mortality_dt() that's always going to be the case.
   log_density_dt =
     - growth_rate_gradient(environment)
-    - individual.rate("mortality");
+    - individual.rate(MORTALITY_INDEX);
   // survival_individual: converts from the mean of the poisson process (on
   // [0,Inf)) to a probability (on [0,1]).
   double survival_individual = exp(-individual.state(MORTALITY_INDEX));
-  if (!R_FINITE(survival_individual)) {
+  if (!util::is_finite(survival_individual)) {
     // This is caused by NaN values in plant.mortality and log
     // density; this should only be an issue when density is so low
     // that we can throw these away.  I think that with smaller step
@@ -146,7 +147,7 @@ void Node<T,E>::compute_rates(const environment_type& environment,
   }
 
   offspring_produced_survival_weighted_dt =
-    individual.rate("fecundity") * survival_individual *
+    individual.rate(FECUNDITY_INDEX) * survival_individual *
     pr_patch_survival / pr_patch_survival_at_birth;
 }
 
@@ -164,14 +165,14 @@ void Node<T,E>::compute_initial_conditions(const environment_type& environment,
 
   const double pr_estab = individual.establishment_probability(environment);
   individual.set_state("mortality", -log(pr_estab));
-  const double g = individual.rate("height");
+  const double g = individual.rate(HEIGHT_INDEX);
   // NOTE: log(0.0) -> -Inf, which should behave fine.
   set_log_density(g > 0 ? log(birth_rate * pr_estab / g) : log(0.0));
 
   // Need to check that the rates are valid after setting the
   // mortality value here (can go to -Inf and that requires squashing
   // the rate to zero).
-  if (!R_FINITE(log_density)) {
+  if (!util::is_finite(log_density)) {
     // Can do this at the same time that we do set_log_density, I think.
     log_density_dt = 0.0;
   }
@@ -206,7 +207,7 @@ double Node<T,E>::growth_rate_gradient(const environment_type& environment) cons
     return util::gradient_richardson(fun,  individual.state(HEIGHT_INDEX), eps,
                                      control.node_gradient_richardson_depth);
   } else {
-    return util::gradient_fd(fun, individual.state(HEIGHT_INDEX), eps, individual.rate("height"),
+    return util::gradient_fd(fun, individual.state(HEIGHT_INDEX), eps, individual.rate(HEIGHT_INDEX),
                              control.node_gradient_direction);
   }
 }
