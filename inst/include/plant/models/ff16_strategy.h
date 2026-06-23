@@ -278,6 +278,15 @@ public:
                                 double height, double area_leaf_,
                                 double height_inverse,
                                 double& area_sapwood_, double& mass_sapwood_);
+  // Strategy-agnostic entry point used by Individual<FF16> (#266): reads the
+  // height state and the cached aux slots itself, so the generic Individual
+  // does not need to know FF16's state/aux layout.
+  double net_mass_production_dt(const FF16_Environment& environment,
+                                const Internals& vars) {
+    return net_mass_production_dt(environment, vars.state(HEIGHT_INDEX),
+                                  vars.aux(COMPETITION_EFFECT_AUX_INDEX),
+                                  vars.aux(HEIGHT_INVERSE_AUX_INDEX));
+  }
 
   // [eqn 16] Fraction of whole plan growth that is leaf
   virtual double fraction_allocation_reproduction(double height) const;
@@ -356,6 +365,14 @@ public:
   double compute_competition_by_ratio(double z_over_height,
                                       double area_leaf_) const {
     return pars.k_I * area_leaf_ * canopy_shape.leaf_area_above(z_over_height);
+  }
+  // Strategy-agnostic entry point used by Individual<FF16> (#266): reads the
+  // cached competition_effect (= area_leaf) and height_inverse aux slots
+  // itself. Inline (header) to keep the per-node hot competition path free of
+  // a cross-TU call (no LTO build).
+  double compute_competition(double z, const Internals& vars) const {
+    return compute_competition(z, vars.aux(COMPETITION_EFFECT_AUX_INDEX),
+                               vars.aux(HEIGHT_INVERSE_AUX_INDEX));
   }
 
   // [      ] Inverse of Q: height above which fraction 'x' of leaf found

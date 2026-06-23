@@ -21,12 +21,12 @@ public:
     if (strategy->aux_index.size() != s->aux_size()) {
       strategy->refresh_indices();
     }
-    // Resolve the named aux slots once at construction so the hot
-    // compute_competition() / net_mass_production_dt() paths read them by
-    // integer index instead of a std::map<string,int>::at lookup per call
-    // (those lookups were visible in profiling, see #466).
-    competition_effect_aux_index = strategy->aux_index.at("competition_effect");
-    height_inverse_aux_index = strategy->aux_index.at("height_inverse");
+    // The strategy owns the knowledge of which state/aux slots its rate
+    // functions need: Individual passes the whole Internals to the strategy
+    // (see compute_competition / net_mass_production_dt below) rather than
+    // resolving strategy-specific aux slots here (#266). The strategy still
+    // reads them by cached integer index, so the #466 hot-path optimisation is
+    // preserved.
     vars.resize(strategy_type::state_size(), s->aux_size()); // = Internals(strategy_type::state_size());
     set_state("height", strategy->initial_height());
   }
@@ -67,10 +67,7 @@ public:
   double consumption_rate(int i) const { return vars.consumption_rate(i); }
 
   double compute_competition(double z) const {
-    return strategy->compute_competition(
-      z,
-      vars.aux(competition_effect_aux_index),
-      vars.aux(height_inverse_aux_index));
+    return strategy->compute_competition(z, vars);
   }
 
   void compute_rates(const environment_type& environment) {
@@ -86,12 +83,8 @@ public:
   }
 
   double net_mass_production_dt(const environment_type &environment) {
-    // TODO(#483):  maybe reuse intervals? default false 
-    return strategy->net_mass_production_dt(
-      environment,
-      state(HEIGHT_INDEX),
-      vars.aux(competition_effect_aux_index),
-      vars.aux(height_inverse_aux_index));
+    // TODO(#483):  maybe reuse intervals? default false
+    return strategy->net_mass_production_dt(environment, vars);
   }
 
   // * ODE interface
@@ -179,9 +172,6 @@ public:
 private:
   strategy_type_ptr strategy;
   Internals vars;
-  // Cached aux slot indices (see constructor) for hot-path access.
-  int competition_effect_aux_index;
-  int height_inverse_aux_index;
 };
 
 template <typename T, typename E> Individual<T,E> make_individual(T s) {

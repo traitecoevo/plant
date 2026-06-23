@@ -67,13 +67,21 @@ public:
 
   void refresh_indices();
 
-  // These are stuck in plant.h
   double establishment_probability(const K93_Environment& environment);
   double net_mass_production_dt(const K93_Environment& environment,
                                 double size, double cumulative_basal_area);
   double net_mass_production_dt(const K93_Environment& environment,
                                 double size, double cumulative_basal_area,
                                 double height_inverse);
+  // Strategy-agnostic entry point used by Individual<K93> (#266). K93 has no
+  // carbon budget, so the worker ignores these arguments and returns NA; the
+  // wrapper exists to keep Individual's interface uniform across strategies.
+  double net_mass_production_dt(const K93_Environment& environment,
+                                const Internals& vars) {
+    return net_mass_production_dt(environment, vars.state(HEIGHT_INDEX),
+                                  vars.aux(COMPETITION_EFFECT_AUX_INDEX),
+                                  vars.aux(HEIGHT_INVERSE_AUX_INDEX));
+  }
 
   double compute_competition(double z, double size) const;
   // Hot path (called per node from Species::compute_competition): defined inline
@@ -87,6 +95,12 @@ public:
                                       double whole_plant_competition) const {
     // Competition only felt if plant bigger than target size z.
     return whole_plant_competition * canopy_shape.Q(z_over_size);
+  }
+  // Strategy-agnostic entry point used by Individual<K93> (#266): reads the
+  // cached competition_effect and height_inverse aux slots itself.
+  double compute_competition(double z, const Internals& vars) const {
+    return compute_competition(z, vars.aux(COMPETITION_EFFECT_AUX_INDEX),
+                               vars.aux(HEIGHT_INVERSE_AUX_INDEX));
   }
 
   void update_dependent_aux(const int index, Internals& vars);

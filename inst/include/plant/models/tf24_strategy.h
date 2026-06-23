@@ -214,6 +214,15 @@ public:
   virtual double net_mass_production_dt(const TF24_Environment& environment,
                                 double height, double area_leaf_,
                                 double height_inverse);
+  // Strategy-agnostic entry point used by Individual<TF24> (#266): reads the
+  // height state and the cached aux slots itself, so the generic Individual
+  // does not need to know TF24's state/aux layout.
+  double net_mass_production_dt(const TF24_Environment& environment,
+                                const Internals& vars) {
+    return net_mass_production_dt(environment, vars.state(HEIGHT_INDEX),
+                                  vars.aux(aux_idx_competition_effect),
+                                  vars.aux(aux_idx_height_inverse));
+  }
 
   // [eqn 16] Fraction of whole plan growth that is leaf
   virtual double fraction_allocation_reproduction(double height) const;
@@ -277,6 +286,12 @@ public:
   // aux values, matching the shared individual.h interface (no recompute per call).
   double compute_competition(double z, double area_leaf_,
                              double height_inverse) const;
+  // Strategy-agnostic entry point used by Individual<TF24> (#266): reads the
+  // cached competition_effect and height_inverse aux slots itself.
+  double compute_competition(double z, const Internals& vars) const {
+    return compute_competition(z, vars.aux(aux_idx_competition_effect),
+                               vars.aux(aux_idx_height_inverse));
+  }
 
   // [eqn  9] Probability density of leaf area at height `z`
   double q(double z, double height) const;
