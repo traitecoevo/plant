@@ -232,9 +232,9 @@ test_that("narea calculation", {
   x <- c(1.38, 3.07, 2.94)
   p0 <- TF24_Parameters()
   m <- trait_matrix(x, "hmat")
-  expect_silent(sl <- plant:::strategy_list(m, p0, TF24_hyperpar, birth_rate_list=1.0))
+  expect_silent(sl <- plant:::generate_strategy(p0, m, hyperpar = TF24_hyperpar, birth_rate = 1.0))
 
-  cmp <- lapply(x, function(xi) strategy_list(trait_matrix(xi, "hmat"), p0, TF24_hyperpar, birth_rate_list=1.0)[[1]])
+  cmp <- lapply(x, function(xi) generate_strategy(p0, trait_matrix(xi, "hmat"), hyperpar = TF24_hyperpar, birth_rate = 1.0)[[1]])
   expect_equal(sl, cmp)
 })
 
@@ -250,16 +250,14 @@ test_that("offspring arrival", {
   p0$max_patch_lifetime <- max_patch_lifetime
 
   # one species
-  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, TF24_hyperpar, 
-                           birth_rate_list = list(20))
+  p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = TF24_hyperpar, birth_rate = list(20))
 
   out <- run_scm(p1, env, ctrl)
   expect_equal(out$offspring_production, 4.71e-06, tolerance=1e-5)
   #expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.216055), tolerance=1e-5)
 
   # two species
-  p2 <- expand_parameters(trait_matrix(c(0.0825, 0.2625), "lma"), p0, TF24_hyperpar, 
-                           birth_rate_list = list(11.99177, 16.51006))
+  p2 <- add_strategies(p0, trait_matrix(c(0.0825, 0.2625), "lma"), hyperpar = TF24_hyperpar, birth_rate = list(11.99177, 16.51006))
   
   out <- run_scm(p2, env, ctrl)
   expect_equal(out$offspring_production, c(5.64e-06, 3.49e-17), tolerance=1e-5)
@@ -274,7 +272,7 @@ max_patch_lifetime <-2
 p0 <- scm_base_parameters("TF24", "TF24_Env")
 p0$max_patch_lifetime <- max_patch_lifetime
 traits <- trait_matrix(c(0.07), c("lma"))
-p1 <- expand_parameters(traits, p0)
+p1 <- add_strategies(p0, traits)
 
 env <- Environment("TF24")
 env$set_soil_number_of_depths(15)
@@ -308,8 +306,7 @@ test_that("Report generation", {
   env <- Environment("TF24")
   ctrl <- Control()
   
-  p2 <- expand_parameters(trait_matrix(c(0.0825, 0.2625), "lma"), p0,   TF24_hyperpar, 
-                           birth_rate_list = list(11.99177, 16.51006))
+  p2 <- add_strategies(p0, trait_matrix(c(0.0825, 0.2625), "lma"), hyperpar = TF24_hyperpar, birth_rate = list(11.99177, 16.51006))
 
   # test report generation
   # out <- run_scm_collect(p2, env, ctrl)

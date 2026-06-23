@@ -32,7 +32,7 @@ run_and_resume <- function(p, x, e, frac = 0.5) {
 test_that("FF16 single-species round-trip reproduces the run", {
   x <- "FF16"; e <- "FF16_Env"
   p0 <- scm_base_parameters(x)
-  p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, birth_rate_list = 1.0)
+  p1 <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
 
   r <- run_and_resume(p1, x, e)
   state <- r$state
@@ -61,7 +61,7 @@ test_that("FF16 single-species round-trip reproduces the run", {
 test_that("Resumed schedule excludes already-imported introductions", {
   x <- "FF16"; e <- "FF16_Env"
   p0 <- scm_base_parameters(x)
-  p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, birth_rate_list = 1.0)
+  p1 <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
 
   r <- run_and_resume(p1, x, e)
   # nodes seeded + future introductions == all of the original nodes
@@ -86,7 +86,7 @@ test_that("K93 multi-species round-trip reproduces the run", {
 
   # three species varying b_0 (growth scaling); other K93 traits at defaults
   sp <- trait_matrix(c(0.059, 0.063, 0.052), "b_0")
-  p2 <- expand_parameters(sp, p0, birth_rate_list = list(20, 20, 20))
+  p2 <- add_strategies(p0, sp, birth_rate = list(20, 20, 20))
 
   r <- run_and_resume(p2, x, e, frac = 0.5)
 
@@ -98,7 +98,7 @@ test_that("K93 multi-species round-trip reproduces the run", {
 test_that("make_initial_state seeds a patch from a size distribution", {
   x <- "FF16"; e <- "FF16_Env"
   p0 <- scm_base_parameters(x)
-  p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, birth_rate_list = 1.0)
+  p1 <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
   env <- Environment(x); ctrl <- Control()
 
   heights <- seq(1, 8, length.out = 10)
@@ -128,7 +128,7 @@ test_that("make_initial_state seeds a patch from a size distribution", {
 test_that("implausibly dense initial conditions are rejected", {
   x <- "FF16"; e <- "FF16_Env"
   p0 <- scm_base_parameters(x)
-  p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, birth_rate_list = 1.0)
+  p1 <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
   env <- Environment(x); ctrl <- Control()
 
   # many large plants at very high density -> exploding density rates
@@ -141,7 +141,7 @@ test_that("implausibly dense initial conditions are rejected", {
 test_that("seeded runs work with tidy outputs and plot_size_distribution", {
   x <- "FF16"
   p0 <- scm_base_parameters(x)
-  p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, birth_rate_list = 1.0)
+  p1 <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
 
   st  <- make_initial_state(p1, heights = seq(1, 8, length.out = 10),
                             densities = rep(0.2, 10))

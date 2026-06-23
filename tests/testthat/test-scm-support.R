@@ -7,7 +7,7 @@ test_that("collect", {
   ctrl <- Control()
   p0 <- scm_base_parameters("FF16")
   p0$disturbance_mean_interval <- 30.0
-  p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, birth_rate_list = 1.0)
+  p1 <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
 
   expect_silent(res <- run_scm(p1, env, ctrl))
 
@@ -24,25 +24,25 @@ test_that("expand_parameters & mutant_parameters", {
 
   expect_equal(p0$strategies |> length(), 0)
 
-  p1 <- expand_parameters(trait_matrix(0.1, "lma"), p0, birth_rate_list = 1.0)
+  p1 <- add_strategies(p0, trait_matrix(0.1, "lma"), birth_rate = 1.0)
   
   expect_equal(p1$strategies |> length(), 1)
   expect_equal(p1$strategies[[1]]$pars$lma, 0.1)
 
   p1$max_patch_lifetime <- 100
-  expect_silent(p2 <- expand_parameters(trait_matrix(0.2, "lma"), p1, birth_rate_list = 1.0))
+  expect_silent(p2 <- add_strategies(p1, trait_matrix(0.2, "lma"), birth_rate = 1.0))
   expect_equal(p2$max_patch_lifetime, p1$max_patch_lifetime)
 
   expect_equal(p2$strategies |> length(), 2)
   expect_equal(p2$strategies[[1]]$pars$lma, 0.1)
   expect_equal(p2$strategies[[2]]$pars$lma, 0.2)
 
-  expect_silent(p3 <- expand_parameters(trait_matrix(0.3, "lma"), p1, birth_rate_list = 1.0, keep_existing_strategies = FALSE))
+  expect_silent(p3 <- add_strategies(p1, trait_matrix(0.3, "lma"), birth_rate = 1.0, keep_existing = FALSE))
 
   expect_equal(p3$strategies |> length(), 1)
   expect_equal(p3$strategies[[1]]$pars$lma, 0.3)
 
-  expect_silent(p4 <- mutant_parameters(trait_matrix(0.3, "lma"), p1, birth_rate_list = 1.0))
+  expect_silent(p4 <- add_mutant(p1, trait_matrix(0.3, "lma"), birth_rate = 1.0))
 
   expect_equal(p3, p4)
 
@@ -55,9 +55,7 @@ test_that("collect_auxiliary_variables", {
   p0 <- scm_base_parameters("FF16")
   p0$disturbance_mean_interval <- 30.0
   # two species
-  p1 <- expand_parameters(trait_matrix(0.082, "lma"), p0, FF16_hyperpar,
-    birth_rate_list = list(11.99177)
-  )
+  p1 <- add_strategies(p0, trait_matrix(0.082, "lma"), hyperpar = FF16_hyperpar, birth_rate = list(11.99177))
 
   results <- run_scm(p1, env, ctrl, collect = TRUE)
   

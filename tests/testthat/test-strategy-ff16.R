@@ -195,9 +195,9 @@ test_that("narea calculation", {
   x <- c(1.38, 3.07, 2.94)
   p0 <- FF16_Parameters()
   m <- trait_matrix(x, "hmat")
-  expect_silent(sl <- plant:::strategy_list(m, p0, FF16_hyperpar, birth_rate_list=1.0))
+  expect_silent(sl <- plant:::generate_strategy(p0, m, hyperpar = FF16_hyperpar, birth_rate = 1.0))
 
-  cmp <- lapply(x, function(xi) strategy_list(trait_matrix(xi, "hmat"), p0, FF16_hyperpar, birth_rate_list=1.0)[[1]])
+  cmp <- lapply(x, function(xi) generate_strategy(p0, trait_matrix(xi, "hmat"), hyperpar = FF16_hyperpar, birth_rate = 1.0)[[1]])
   expect_equal(sl, cmp)
 })
 
@@ -210,16 +210,14 @@ test_that("offspring arrival", {
   ctrl <- Control()
   
   # one species
-  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar, 
-                           birth_rate_list = list(20))
+  p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = FF16_hyperpar, birth_rate = list(20))
 
   out <- run_scm(p1, env, ctrl)
   expect_equal(out$offspring_production, 16.88946, tolerance=1e-4)
   expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.216055), tolerance=1e-5)
 
   # two species
-  p2 <- expand_parameters(trait_matrix(c(0.0825, 0.2625), "lma"), p0, FF16_hyperpar, 
-                           birth_rate_list = list(11.99177, 16.51006))
+  p2 <- add_strategies(p0, trait_matrix(c(0.0825, 0.2625), "lma"), hyperpar = FF16_hyperpar, birth_rate = list(11.99177, 16.51006))
   
   out <- run_scm(p2, env, ctrl)
   expect_equal(out$offspring_production, c(11.99529, 16.47519), tolerance=1e-5)
@@ -232,8 +230,7 @@ test_that("Report generation", {
   env <- Environment("FF16")
   ctrl <- Control()
   
-  p2 <- expand_parameters(trait_matrix(c(0.0825, 0.2625), "lma"), p0,   FF16_hyperpar, 
-                           birth_rate_list = list(11.99177, 16.51006))
+  p2 <- add_strategies(p0, trait_matrix(c(0.0825, 0.2625), "lma"), hyperpar = FF16_hyperpar, birth_rate = list(11.99177, 16.51006))
 
   # test report generation
   out <- run_scm(p2, env, ctrl, collect = TRUE)

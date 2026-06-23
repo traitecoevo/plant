@@ -13,7 +13,7 @@ run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy),
                                  iterations = 1) {
   f_scm <- function(x) {
     p0 <- scm_base_parameters(x)
-    p <- expand_parameters(trait_matrix(0.0825, "lma"), p0)
+    p <- add_strategies(p0, trait_matrix(0.0825, "lma"))
     run_scm(p)
     invisible(NULL)
   }
@@ -28,7 +28,7 @@ run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy),
 
   f_mutant <- function(x) {
     p0 <- scm_base_parameters(x)
-    p_resident <- expand_parameters(trait_matrix(0.0825, "lma"), p0)
+    p_resident <- add_strategies(p0, trait_matrix(0.0825, "lma"))
 
     ctrl <- Control()
     ctrl$save_RK45_cache <- TRUE
@@ -36,11 +36,7 @@ run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy),
     scm <- run_scm(p_resident, ctrl = ctrl)
 
     # One additional mutant strategy around the resident trait value.
-    p_mutant <- expand_parameters(
-      trait_matrix(0.09, "lma"),
-      p_resident,
-      birth_rate_list = 1
-    )
+    p_mutant <- add_strategies(p_resident, trait_matrix(0.09, "lma"), birth_rate = 1)
     scm$run_mutant(p_mutant)
     invisible(NULL)
   }
@@ -78,7 +74,7 @@ run_resource_consumption_benchmarks <- function(its = 10) {
     p0 <- scm_base_parameters("TF24")
     p0$max_patch_lifetime = 10
     
-    p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0)
+    p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"))
     
     env <- Environment("TF24")
     env$set_soil_number_of_depths(layers)

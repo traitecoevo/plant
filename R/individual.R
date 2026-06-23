@@ -289,7 +289,7 @@ optimise_individual_rate_at_size_by_trait <- function(
   ## Define function to optimise
   f <- function(x) {
     # create a strategy object
-    s <- strategy_list(ff(trait_matrix(x, rownames(bounds))), parameters = params, hyperpar = hyperpars, birth_rate_list = 1)[[1]]
+    s <- generate_strategy(params, ff(trait_matrix(x, rownames(bounds))), hyperpar = hyperpars, birth_rate = 1)[[1]]
 
     # Create an individual object
     types <- extract_RcppR6_template_types(params, "Parameters")

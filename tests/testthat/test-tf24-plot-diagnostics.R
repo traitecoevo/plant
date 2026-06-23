@@ -9,7 +9,7 @@ test_that("TF24_plot_diagnostics assembles a TF24 stand diagnostic figure", {
   max_patch_lifetime <- 2
   p0 <- scm_base_parameters("TF24", "TF24_Env")
   p0$max_patch_lifetime <- max_patch_lifetime
-  p1 <- expand_parameters(trait_matrix(0.07, "lma"), p0)
+  p1 <- add_strategies(p0, trait_matrix(0.07, "lma"))
 
   env <- Environment("TF24")
   env$set_soil_number_of_depths(15)

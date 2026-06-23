@@ -40,7 +40,7 @@ if (length(unknown)) {
 profile_cases <- list(
   scm = function(strategy) {
     p0 <- scm_base_parameters(strategy)
-    p <- expand_parameters(trait_matrix(0.0825, "lma"), p0)
+    p <- add_strategies(p0, trait_matrix(0.0825, "lma"))
     run_scm(p)
     invisible(NULL)
   },

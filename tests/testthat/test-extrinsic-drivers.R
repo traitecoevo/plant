@@ -83,9 +83,7 @@ test_that("Variable birth rate is driven through the SCM", {
   x_pts <- seq(0, 200)
   birth_rates <- list(sp1 = list(x = x_pts, y = 1 + 0.5 * sin(x_pts / 10)))
 
-  p1 <- expand_parameters(lma, p0, FF16_hyperpar,
-                          keep_existing_strategies = FALSE,
-                          birth_rate_list = birth_rates)
+  p1 <- add_strategies(p0, lma, hyperpar = FF16_hyperpar, birth_rate = birth_rates, keep_existing = FALSE)
 
   expect_true(p1$strategies[[1]]$is_variable_birth_rate)
 

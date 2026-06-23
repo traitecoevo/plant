@@ -114,11 +114,11 @@ Then:
 
 ```r
 pkgload::load_all(".", compile = FALSE, quiet = TRUE)
-p <- scm_base_parameters("XX24")
-p <- expand_parameters(trait_matrix(0.0825, "lma"), p)
-p$birth_rate <- 20
+p <- scm_base_parameters("XX24") |>
+  add_strategies(trait_matrix(0.0825, "lma"), birth_rate = 20)
 res <- run_scm(p, collect = TRUE, refine_schedule = TRUE)
 # res$species is a tidy tibble (time, node, height, mortality, fecundity, …)
+# Strategy parameters live under $pars, e.g. p$strategies[[1]]$pars$lma
 ```
 
 A freshly scaffolded clone should reproduce its template exactly until you

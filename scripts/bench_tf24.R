@@ -11,8 +11,7 @@ p0 <- scm_base_parameters("TF24")
 p0$max_patch_lifetime <- 10
 env  <- Environment("TF24")
 ctrl <- control()
-p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, TF24_hyperpar,
-                        birth_rate_list = list(20))
+p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = TF24_hyperpar, birth_rate = list(20))
 
 # warm-up (JIT/allocator/caches)
 invisible(run_scm(p1, env, ctrl))

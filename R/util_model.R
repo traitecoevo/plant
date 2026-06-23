@@ -1,30 +1,35 @@
-##' Create a list of Strategies or Plants by varying a single trait.
+##' Convert a matrix of trait values into a list of \code{Strategy} objects,
+##' one per row, by applying the hyperparameter function and inserting the
+##' resulting parameters into a copy of the default strategy.
 ##'
-##' @title Create a list of Strategies
-##' @param x Values for the trait.  This must be a \emph{matrix}, with
-##'   column names corresponding to entries in \code{Strategy} and
-##'   rows representing different values.
-##' @param hyperpar Hyperparameter function to use. By default links
-##' to standard function for this strategy type.
-##' @param parameters \code{Parameters} object containing a
-##'   default strategy to modify.  Any hyperparameterisation included
-##'   will be applied.
-##' @param birth_rate_list List object with birth rates for each species in
-##' x. Birth rates can take the form of a scalar (constant) or a vector.
-##' In either case birth rates are set as \code{strategy$birth_rate_y}, however
-##' varying birth rates will also have \code{strategy$birth_rate_x} and
-##  \code{`is_variable_bithrate = TRUE`}
+##' @title Generate strategies from traits
+##' @param p A \code{Parameters} object containing a default strategy to
+##'   modify.  Any hyperparameterisation included will be applied.
+##' @param traits Trait values as a \emph{matrix}, with column names
+##'   corresponding to traits (see \code{\link{trait_matrix}}); one row per
+##'   strategy.
+##' @param hyperpar Hyperparameter function to use. By default links to the
+##'   standard function for this strategy type. It translates ecological traits
+##'   (e.g. \code{lma}, wood density) into the low-level strategy parameters,
+##'   encoding the model's trade-offs.
+##' @param birth_rate Birth rate(s) for each row of \code{traits}: a scalar or
+##'   vector (constant birth rate, set as \code{strategy$birth_rate_y}) or a
+##'   list with \code{x}, \code{y} control points (a varying birth rate, which
+##'   also sets \code{strategy$birth_rate_x} and
+##'   \code{is_variable_birth_rate = TRUE}).
 ##'
 ##' @export
-strategy_list <- function(x, parameters, hyperpar=param_hyperpar(parameters), birth_rate_list) {
-  if (!is.matrix(x)) {
-    stop("Invalid type x -- expected a matrix")
+##' @rdname generate_strategy
+generate_strategy <- function(p, traits, hyperpar = param_hyperpar(p),
+                              birth_rate = 1) {
+  if (!is.matrix(traits)) {
+    stop("Invalid type traits -- expected a matrix")
   }
 
-  strategy <- parameters$strategy_default
-  x <- hyperpar(x, strategy)
+  strategy <- p$strategy_default
+  traits <- hyperpar(traits, strategy)
 
-  trait_names <- colnames(x)
+  trait_names <- colnames(traits)
   f <- function(xi, br) {
     # Every column produced by hyperpar() is a biological parameter, which now
     # lives in the nested `pars` sub-object. Copy-back form: active/nested list
@@ -40,18 +45,17 @@ strategy_list <- function(x, parameters, hyperpar=param_hyperpar(parameters), bi
       strategy$birth_rate_y <- br
       strategy$is_variable_birth_rate <- FALSE
     } else {
-      stop("Invalid type in birth_rate_list - need either a list with x, y control points or a numeric")
+      stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
     }
     strategy
   }
-  
+
   # insert custom traits and birth values into default strategy template
-  strategies <- mapply(f, matrix_to_list(x), birth_rate_list, SIMPLIFY = FALSE)
-  return(strategies)
+  mapply(f, matrix_to_list(traits), birth_rate, SIMPLIFY = FALSE)
 }
 
 ##' Helper function to create trait matrices suitable for
-##' \code{\link{strategy_list}}.
+##' \code{\link{generate_strategy}} and \code{\link{add_strategies}}.
 ##'
 ##' @title Create trait matrix
 ##' @param x Values
@@ -64,29 +68,31 @@ trait_matrix <- function(x, trait_name) {
   m
 }
 
-##' The functions expand_parameters and mutant_parameters convert trait values into parametr objects for the model. By default, expand_parameters adds an extra strategy to existing.
+##' Add strategies to a \code{Parameters} object. \code{add_strategies} appends
+##' the new strategies to any existing residents (controlled by
+##' \code{keep_existing}); \code{add_mutant} introduces strategies as mutants
+##' (i.e. replacing the resident set). Both translate trait values into
+##' strategies via \code{\link{generate_strategy}} and are pipe-friendly
+##' (the \code{Parameters} object is the first argument).
 ##'
-##' @title Setup parameters to run resindets or mutants
-##' @param trait_matrix A matrix of traits corresponding to the
-##' new types to introduce.
+##' @title Add strategies (or a mutant) to Parameters
 ##' @param p A \code{Parameters} object.
-##' @param hyperpar Hyperparameter function to use. By default links
-##' to standard function for this strategy type.
-##' @param birth_rate_list List object with birth rates for each species in
-##' @param keep_existing_strategies Should existing residents be retained
-##' x. Birth rates can take the form of a scalar (constant) or a vector.
-##' In either case birth rates are set as \code{strategy$birth_rate_y}, however
-##' varying birth rates will also have \code{strategy$birth_rate_x} and
-##  \code{`is_variable_bithrate = TRUE`}
-##' @author Rich FitzJohn
+##' @param traits A matrix of traits corresponding to the new strategies to
+##'   introduce (see \code{\link{trait_matrix}}).
+##' @param hyperpar Hyperparameter function to use. By default links to the
+##'   standard function for this strategy type.
+##' @param birth_rate Birth rate(s), one per row of \code{traits}. See
+##'   \code{\link{generate_strategy}}.
+##' @param keep_existing Should existing resident strategies be retained?
 ##' @export
-##' @rdname expand_parameters
-expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), birth_rate_list = 1, keep_existing_strategies = TRUE) {
+##' @rdname add_strategies
+add_strategies <- function(p, traits, hyperpar = param_hyperpar(p),
+                           birth_rate = 1, keep_existing = TRUE) {
 
-  if(nrow(trait_matrix) != length(birth_rate_list)) {
+  if (nrow(traits) != length(birth_rate)) {
     stop("Must provide exactly one birth rate input for each species")
   }
-  extra <- strategy_list(trait_matrix, p, hyperpar, birth_rate_list)
+  extra <- generate_strategy(p, traits, hyperpar, birth_rate)
   n_extra <- length(extra)
 
   ret <- p <- validate(p) # Ensure times are set up correctly.
@@ -98,10 +104,10 @@ expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), birth
     ## if residnets are present, use all unique times of all residents
     times_new <- unique(sort(unlist(p$node_schedule_times)))
   }
-  
-  if (keep_existing_strategies) {
+
+  if (keep_existing) {
     ret$strategies <- c(p$strategies, extra)
-    ret$node_schedule_times <- c(p$node_schedule_times, 
+    ret$node_schedule_times <- c(p$node_schedule_times,
                                   rep(list(times_new), n_extra))
   } else {
     ret$strategies <- extra
@@ -115,10 +121,42 @@ expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), birth
 }
 
 ##' @export
-##' @param ... Arguments to \code{\link{expand_parameters}}
-##' @rdname expand_parameters
-mutant_parameters <- function(..., keep_existing_strategies = FALSE) {
-  expand_parameters(..., keep_existing_strategies = keep_existing_strategies)
+##' @rdname add_strategies
+add_mutant <- function(p, traits, hyperpar = param_hyperpar(p),
+                       birth_rate = 1) {
+  add_strategies(p, traits, hyperpar = hyperpar, birth_rate = birth_rate,
+                 keep_existing = FALSE)
+}
+
+##' @export
+##' @rdname generate_strategy
+strategy_list <- function(x, parameters, hyperpar = param_hyperpar(parameters),
+                          birth_rate_list = 1) {
+  .Deprecated("generate_strategy")
+  generate_strategy(parameters, x, hyperpar = hyperpar,
+                    birth_rate = birth_rate_list)
+}
+
+##' @export
+##' @rdname add_strategies
+expand_parameters <- function(trait_matrix, p, hyperpar = param_hyperpar(p),
+                              birth_rate_list = 1,
+                              keep_existing_strategies = TRUE) {
+  .Deprecated("add_strategies")
+  add_strategies(p, trait_matrix, hyperpar = hyperpar,
+                 birth_rate = birth_rate_list,
+                 keep_existing = keep_existing_strategies)
+}
+
+##' @export
+##' @rdname add_strategies
+mutant_parameters <- function(trait_matrix, p, hyperpar = param_hyperpar(p),
+                              birth_rate_list = 1,
+                              keep_existing_strategies = FALSE) {
+  .Deprecated("add_mutant")
+  add_strategies(p, trait_matrix, hyperpar = hyperpar,
+                 birth_rate = birth_rate_list,
+                 keep_existing = keep_existing_strategies)
 }
 
 remove_residents <- function(p) {

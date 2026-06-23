@@ -166,9 +166,15 @@ update_classes_yml <- function(name, template_strategy, env) {
   }
 
   updating_message(file)
+  # The strategy's biological parameters live in a nested `<name>_Pars` list
+  # class referenced from the `<name>_Strategy` block, so copy that block too
+  # (defined before the strategy block, mirroring the template).
   appendix <- c(
     "",
     paste("# The following strategy was built from", template_strategy, "on", date()),
+    copy_block(lines, paste0(template_strategy, "_Pars"),
+               paste0(name, "_Pars")),
+    "",
     copy_block(lines, paste0(template_strategy, "_Strategy"),
                paste0(name, "_Strategy")))
 
@@ -280,6 +286,26 @@ update_strategy_support <- function(name, template_strategy, env) {
   write_lines(lines, file)
 }
 
+# ---- src/strategy_expand.cpp ------------------------------------------------
+
+# The R-side <name>_expand_state() calls a C++ function
+# <name>_strategy_expand_allometry() that computes the derived size/mass
+# columns via the strategy's own allometry. Clone the template's exported
+# wrapper. Strategies without FF16-style allometry (e.g. K93) have no such
+# wrapper in the template, in which case there is nothing to clone.
+update_strategy_expand <- function(name, template_strategy) {
+  file  <- "src/strategy_expand.cpp"
+  lines <- read_lines(file)
+  fn <- sprintf("%s_strategy_expand_allometry(", template_strategy)
+  hit <- which(grepl(fn, lines, fixed = TRUE))[1]
+  if (is.na(hit)) return(invisible())   # template has no allometry expander
+  start <- hit - 1L                      # the "// [[Rcpp::export]]" line
+  end   <- start + which(grepl("^}", lines[start:length(lines)]))[1] - 1L
+  block <- gsub(template_strategy, name, lines[start:end])
+  updating_message(file)
+  write_lines(c(lines, "", block), file)
+}
+
 # ---- driver -----------------------------------------------------------------
 
 create_strategy_scaffold <- function(name, template_strategy = "FF16",
@@ -307,6 +333,7 @@ create_strategy_scaffold <- function(name, template_strategy = "FF16",
   update_individual_runner(name, template_strategy, env)
   update_test_helper(name, template_strategy, env)
   update_strategy_support(name, template_strategy, env)
+  update_strategy_expand(name, template_strategy)
 
   message("\nDone. Next steps:")
   message("  1. Implement the biology in the generated strategy files.")

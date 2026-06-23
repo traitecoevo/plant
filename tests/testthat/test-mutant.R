@@ -17,21 +17,13 @@ test_that("mutant method works", {
   birth_rate <- 1
 
   # 1 resident strategies
-  pr1 <- expand_parameters(trait_matrix(lma[2], "lma"), p0,
-    birth_rate_list = rep(birth_rate, 1)
-  )
+  pr1 <- add_strategies(p0, trait_matrix(lma[2], "lma"), birth_rate = rep(birth_rate, 1))
 
-  pr1m1 <- expand_parameters(trait_matrix(lma[3], "lma"), pr1,
-    birth_rate_list = rep(birth_rate, 1)
-  )
+  pr1m1 <- add_strategies(pr1, trait_matrix(lma[3], "lma"), birth_rate = rep(birth_rate, 1))
 
-  pr1m3 <- expand_parameters(trait_matrix(lma, "lma"), pr1,
-    birth_rate_list = rep(birth_rate, 3)
-  )
+  pr1m3 <- add_strategies(pr1, trait_matrix(lma, "lma"), birth_rate = rep(birth_rate, 3))
 
-  pr1m10 <- expand_parameters(trait_matrix(seq(lma[1], lma[3], length.out=10), "lma"), pr1,
-    birth_rate_list = rep(birth_rate, 10)
-  )
+  pr1m10 <- add_strategies(pr1, trait_matrix(seq(lma[1], lma[3], length.out=10), "lma"), birth_rate = rep(birth_rate, 10))
 
   # test error handling
   # scm object but not yet run
@@ -65,21 +57,13 @@ test_that("mutant method works", {
   expect_equal(pr1m10_rr[1], pr1_rr, tol = tol)
 
   # 3 resident strategies
-  pr3 <- expand_parameters(trait_matrix(lma, "lma"), p0,
-    birth_rate_list = rep(birth_rate, 3)
-  )
+  pr3 <- add_strategies(p0, trait_matrix(lma, "lma"), birth_rate = rep(birth_rate, 3))
   
-  pr3m1 <- expand_parameters(trait_matrix(lma[3], "lma"), pr3,
-    birth_rate_list = rep(birth_rate, 1)
-  )
+  pr3m1 <- add_strategies(pr3, trait_matrix(lma[3], "lma"), birth_rate = rep(birth_rate, 1))
 
-  pr3m3 <- expand_parameters(trait_matrix(lma, "lma"), pr3,
-    birth_rate_list = rep(birth_rate, 3)
-  )
+  pr3m3 <- add_strategies(pr3, trait_matrix(lma, "lma"), birth_rate = rep(birth_rate, 3))
 
-  pr3m10 <- expand_parameters(trait_matrix(seq(lma[1], lma[3], length.out = 10), "lma"), pr3,
-    birth_rate_list = rep(birth_rate, 10)
-  )
+  pr3m10 <- add_strategies(pr3, trait_matrix(seq(lma[1], lma[3], length.out = 10), "lma"), birth_rate = rep(birth_rate, 10))
 
   scm <- run_scm(pr3, e, ctrl)
   pr3_rr <- scm$net_reproduction_ratios
@@ -136,7 +120,7 @@ test_that("mutant method densities", {
   }
 
   p0$max_patch_lifetime <- 105.32 # default
-  pr1 <- expand_parameters(traits, p0, birth_rate_list = 1)
+  pr1 <- add_strategies(p0, traits, birth_rate = 1)
 
   expected_eq <- 17.31739
   birth_rates <- c(0, 10, expected_eq * c(0.995, 1, 1.005), 25)
@@ -151,7 +135,7 @@ test_that("mutant method densities", {
   expected_eq <- 1.662159
   birth_rates <- c(0, 1, expected_eq * c(0.995, 1, 1.005), 1.1)
 
-  pr1 <- expand_parameters(traits, p0, birth_rate_list = 1)
+  pr1 <- add_strategies(p0, traits, birth_rate = 1)
 
   outputs <- purrr::map_df(birth_rates, ~ f_test(pr1, .x, traits))
 

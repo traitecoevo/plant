@@ -57,7 +57,7 @@ test_that("strategy_list", {
   for (x in c("FF16")) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)()
-    s <- plant:::strategy_list(trait_matrix(1, "lma"), p, make_hyperpar(x)(), 1.0)
+    s <- plant:::generate_strategy(p, trait_matrix(1, "lma"), hyperpar = make_hyperpar(x)(), birth_rate = 1.0)
     expect_equal(length(s), 1)
     expect_is(s, "list")
     expect_is(s[[1]], sprintf("%s_Strategy", x))

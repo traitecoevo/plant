@@ -7,6 +7,36 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* Strategy biological parameters are now stored in a nested `pars` sub-object
+  rather than as flat fields on the strategy (#410). This applies to every
+  strategy type (`FF16_Strategy`, `K93_Strategy`, `TF24_Strategy`). Migration —
+  read/write any biological parameter through `$pars`:
+  * `s$lma`    -> `s$pars$lma`
+  * `s$rho`    -> `s$pars$rho`
+  * `s$hmat`   -> `s$pars$hmat`
+  * `s$eta`    -> `s$pars$eta`
+  * `s$k_I`    -> `s$pars$k_I`
+  * `s$S_D`    -> `s$pars$S_D`
+  * …and likewise for every other strategy parameter (all FF16/TF24 allometry,
+    production, mortality and hydraulic parameters; all K93 `b_*`/`c_*`/`d_*`
+    and `height_0`). Construction by flat field also moves under `pars`:
+    `FF16_Strategy(lma = 0.1)` -> `s <- FF16_Strategy(); s$pars$lma <- 0.1`
+    (or build from traits via `add_strategies()`).
+  * Top-level strategy fields are unchanged: `control`, `birth_rate_x`,
+    `birth_rate_y`, `is_variable_birth_rate`, `collect_all_auxiliary`.
+  * A `<Strategy>_Pars` constructor is exported per strategy (`FF16_Pars()`,
+    `K93_Pars()`, `TF24_Pars()`).
+* The trait -> strategy interface was renamed to be clearer and pipe-friendly,
+  with the `Parameters` object now the first argument (#410). The old names
+  remain as deprecated shims for one release. Migration:
+  * `expand_parameters(traits, p, hyperpar, birth_rate_list =, keep_existing_strategies =)`
+    -> `add_strategies(p, traits, hyperpar =, birth_rate =, keep_existing =)`
+  * `mutant_parameters(traits, p, …)` -> `add_mutant(p, traits, …)`
+  * `strategy_list(traits, p, hyperpar, birth_rate_list)`
+    -> `generate_strategy(p, traits, hyperpar =, birth_rate =)`
+  * argument `birth_rate_list` -> `birth_rate`; `keep_existing_strategies` ->
+    `keep_existing`.
+
 * SCM cohort-refinement now happens entirely in C++, and the R interface is
   consolidated onto a single `run_scm()`. `run_scm_collect()`, `run_scm_error()`
   and `build_schedule()` have been removed (#408, #459, #462). Migration:
@@ -184,6 +214,23 @@ were not previously recorded here:
 
 ### Internals & performance
 
+* Each strategy now keeps its biological parameters in a value-member struct
+  (`FF16_Pars`/`K93_Pars`/`TF24_Pars`) exposed to R as a nested `pars` list;
+  derived/computed members (eta_c, height_0, the TF24 Leaf model, solver
+  tolerances) stay plain. Hot-path access stays inlined and FF16 output is
+  bit-identical (#410).
+* `FF16_expand_state`/`TF24_expand_state` no longer duplicate the C++ allometry
+  formulas; they call the strategy's own functions via
+  `FF16/TF24_strategy_expand_allometry` (`src/strategy_expand.cpp`). Output
+  columns are unchanged; `K93_expand_state` remains a no-op. Fixed a latent bug
+  in the (previously dead) `mass_above_ground` (it summed root and omitted
+  heartwood); it now returns leaf+bark+sapwood+heartwood, matching the rate
+  version and the expand_state output (#254).
+* `Individual` no longer knows any strategy's state/aux layout: it passes the
+  whole `Internals` to `strategy->compute_competition(z, vars)` /
+  `net_mass_production_dt(env, vars)`, and each strategy reads its own slots
+  (#266, #254). A new strategy with a different layout can reuse the generic
+  `Individual` unchanged.
 * Hot-path optimisation of FF16/TF24 (~2.7–3.5× FF16, ~1.3× TF24) (#471), K93
   SCM perf (#493), and shared `pow(area_leaf, a_l2)` in FF16 `compute_rates`
   (#361, #494). See the `profile-plant` skill for the methodology.

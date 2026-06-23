@@ -13,28 +13,28 @@ test_that("Can set birth rate splines correctly", {
   birth_rates <- list(
     species1 = list(x = x, y = 1 + sin(x))
   )
-  expect_error(expand_parameters(lmas, p0, birth_rate_list = birth_rates), "Must provide exactly one birth rate input for each species")
+  expect_error(add_strategies(p0, lmas, birth_rate = birth_rates), "Must provide exactly one birth rate input for each species")
   
   birth_rates <- list(
     species1 = list(x = x, y = 1 + sin(x)),
     species2 = list(x = x, y = 1 + sin(x)),
     species3 = list(x = x, y = 1 + sin(x))
   )
-  expect_error(expand_parameters(lmas, p0, birth_rate_list = birth_rates), "Must provide exactly one birth rate input for each species")
+  expect_error(add_strategies(p0, lmas, birth_rate = birth_rates), "Must provide exactly one birth rate input for each species")
   
   # cannot have types other than numeric/list
   birth_rates <- list(
     species1 = list(x = x, y = 1 + sin(x)),
     species2 = "hello"
   )
-  expect_error(expand_parameters(lmas, p0, birth_rate_list = birth_rates), "Invalid type in birth_rate_list - need either a list with x, y control points or a numeric")
+  expect_error(add_strategies(p0, lmas, birth_rate = birth_rates), "Invalid type in birth_rate - need either a list with x, y control points or a numeric")
   
   birth_rates <- list(
     species1 = list(x = x, y = 1 + sin(x)),
     species2 = 2
   )
   
-  p1 <- expand_parameters(lmas, p0, birth_rate_list = birth_rates)
+  p1 <- add_strategies(p0, lmas, birth_rate = birth_rates)
   
   # no longer stored in parameters
   expect_null(p1$birth_rate)

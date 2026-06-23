@@ -5,9 +5,9 @@ for (x in c("FF16", "K93")) {
   p0 <- scm_base_parameters(x)
 
   if(x == "FF16")
-    p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0,  birth_rate_list=1.0)
+    p1 <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
   if (x == "K93")
-    p1 <- expand_parameters(trait_matrix(0.059, "b_0"), p0,  birth_rate_list=1.0)
+    p1 <- add_strategies(p0, trait_matrix(0.059, "b_0"), birth_rate = 1.0)
 
   env <- Environment(x)
   ctrl <- Control()

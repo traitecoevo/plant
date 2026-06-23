@@ -140,7 +140,7 @@ test_that("Environment-TF24 running soil moisture profile", {
   # check values from above are inherited when apssed into scm
   p0 <- scm_base_parameters("TF24")
   p0$max_patch_lifetime <- 0.01  
-  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0)
+  p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"))
   out <- run_scm(p1, env)
   expect_equal(out$patch$environment$n_psi, 4)
   expect_equal(out$patch$environment$b_infil, 5)

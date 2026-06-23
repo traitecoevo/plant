@@ -266,7 +266,7 @@ R files in [R/](R/) (ignore the two large generated files `RcppR6.R`,
 | [scm_support.R](R/scm_support.R) | `run_scm` (with `collect` / `refine_schedule` flags), `scm_base_parameters`, and the `Control` presets `control` (alias) / `control_accurate`. Fast settings are now C++ `Control()` defaults (§3.2); adaptive schedule refinement lives in C++ (`SCM::refine_schedule`, §3.1) — there is no longer an R `build_schedule.R` |
 | [stochastic.R](R/stochastic.R) | Stochastic simulation driver |
 | [individual.R](R/individual.R) | `grow_individual_to_{size,height,time}`, `optimise_individual_rate_*`, compensation points |
-| [util_model.R](R/util_model.R) | `strategy_list`, `trait_matrix`, `expand_parameters`, `mutant_parameters` |
+| [util_model.R](R/util_model.R) | `trait_matrix`, `generate_strategy`, `add_strategies`, `add_mutant` (and deprecated `strategy_list`/`expand_parameters`/`mutant_parameters` shims) |
 | [tidy_outputs.R](R/tidy_outputs.R) | `tidy_patch`, `tidy_species`, `tidy_env`, `interpolate_to_{times,heights}`, `integrate_over_size_distribution` |
 | [tidy_plots.R](R/tidy_plots.R) | Plotting helpers (`plot_size_distribution`) |
 | [logging.R](R/logging.R) | `plant_log_console` and logging via `loggr` |
@@ -291,13 +291,29 @@ constructor. Generic code recovers the type with
 
 ### Hyperparameters vs. raw strategy parameters
 
-A `Strategy` exposes many low-level C++ parameters. Users normally set a smaller
-set of ecologically meaningful **traits** (e.g. LMA, wood density). The
-**hyperpar** functions (`FF16_hyperpar`, etc.) translate traits → strategy
-parameters and encode trade-offs. `trait_matrix()` + `strategy_list()` build a
-list of strategies by varying traits. Keep hyperpar functions and the
+A `Strategy` exposes many low-level C++ parameters, held in a nested **`pars`**
+sub-object (`FF16_Pars`/`K93_Pars`/`TF24_Pars`) and accessed from R as
+`s$pars$lma`, `s$pars$rho`, … (the strategy's top level only carries `control`,
+`birth_rate_*`, `is_variable_birth_rate`, `collect_all_auxiliary`). In C++ these
+are read as `pars.<name>`; derived/precomputed quantities (e.g. `eta_c`,
+`height_0`, `canopy_shape`, the TF24 `Leaf`) stay as plain strategy members set
+in `prepare_strategy()`, not in `pars`.
+
+Users normally set a smaller set of ecologically meaningful **traits** (e.g.
+LMA, wood density). The **hyperpar** functions (`FF16_hyperpar`, etc.) translate
+traits → strategy parameters and encode trade-offs. The pipe-friendly,
+object-first entry points are `generate_strategy(p, traits)` (→ a list of
+strategies) and `add_strategies(p, traits, …)` / `add_mutant(p, traits, …)` (→ a
+`Parameters` object); `trait_matrix()` builds the `traits` matrix. The former
+`strategy_list()` / `expand_parameters()` / `mutant_parameters()` are deprecated
+shims (see NEWS). Keep hyperpar functions and the
 [strategy_support.R](R/strategy_support.R) switch tables consistent — a comment
 there flags that the scaffolder also depends on these.
+
+Allometric/size functions (`area_leaf`, `diameter_stem`, the mass cascade) live
+only in C++; the R `*_expand_state()` helpers call them via the exported
+`FF16/TF24_strategy_expand_allometry()` (`src/strategy_expand.cpp`) rather than
+re-deriving the formulas.
 
 ---
 

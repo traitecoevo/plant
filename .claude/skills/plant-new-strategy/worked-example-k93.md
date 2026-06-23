@@ -196,8 +196,7 @@ make_K93_hyperpar <- function(
 ```r
 # make rebuild   # at the shell, after editing the interface
 p0 <- scm_base_parameters("K93")
-p1 <- expand_parameters(trait_matrix(0.0825, "b_0"), p = p0)
-p1$birth_rate <- 20
+p1 <- add_strategies(p0, trait_matrix(0.0825, "b_0"), birth_rate = 20)
 res <- run_scm(p1, collect = TRUE, refine_schedule = TRUE)
 # res$species is a tidy tibble: time, node, height, mortality, fecundity, ...
 ```

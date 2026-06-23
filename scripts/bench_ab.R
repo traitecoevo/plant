@@ -25,8 +25,7 @@ path  <- if (length(args))     args[[1]] else "."
 label <- if (length(args) > 1) args[[2]] else path
 suppressMessages(pkgload::load_all(path, compile = FALSE, quiet = TRUE))
 
-mk_scm <- function() expand_parameters(trait_matrix(0.0825, "lma"),
-                                       scm_base_parameters("FF16"))
+mk_scm <- function() add_strategies(scm_base_parameters("FF16"), trait_matrix(0.0825, "lma"))
 mk_bs  <- function() {
   p <- scm_base_parameters("FF16")
   p$strategies <- list(FF16_Strategy())

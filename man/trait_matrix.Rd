@@ -13,7 +13,7 @@ trait_matrix(x, trait_name)
 }
 \description{
 Helper function to create trait matrices suitable for
-\code{\link{strategy_list}}.
+\code{\link{generate_strategy}} and \code{\link{add_strategies}}.
 }
 \author{
 Rich FitzJohn

@@ -10,8 +10,7 @@ context("ODE fixed-step (forward Euler)")
 
 test_that("SCM fixed-step Euler converges on the adaptive result", {
   x <- "FF16"
-  p <- expand_parameters(trait_matrix(0.08, "lma"),
-                         scm_base_parameters(x), birth_rate_list = 1.0)
+  p <- add_strategies(scm_base_parameters(x), trait_matrix(0.08, "lma"), birth_rate = 1.0)
   env <- Environment(x)
 
   ref <- run_scm(p, env, control_accurate())$net_reproduction_ratios
@@ -35,8 +34,7 @@ test_that("SCM fixed-step Euler converges on the adaptive result", {
 
 test_that("SCM fixed-step walks the expected uniform grid", {
   x <- "FF16"
-  p <- expand_parameters(trait_matrix(0.08, "lma"),
-                         scm_base_parameters(x), birth_rate_list = 1.0)
+  p <- add_strategies(scm_base_parameters(x), trait_matrix(0.08, "lma"), birth_rate = 1.0)
   env <- Environment(x)
 
   dt <- 0.25
@@ -57,8 +55,7 @@ test_that("SCM fixed-step walks the expected uniform grid", {
 
 test_that("fixed_time_step is rejected on the mutant-replay paths", {
   x <- "FF16"
-  p <- expand_parameters(trait_matrix(0.08, "lma"),
-                         scm_base_parameters(x), birth_rate_list = 1.0)
+  p <- add_strategies(scm_base_parameters(x), trait_matrix(0.08, "lma"), birth_rate = 1.0)
   env <- Environment(x)
 
   ## save_RK45_cache (the resident pass that feeds mutant fitness) has no Euler
