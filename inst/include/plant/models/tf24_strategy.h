@@ -170,8 +170,10 @@ public:
   double mass_total(double mass_leaf, double mass_bark, double mass_sapwood,
                     double mass_heartwood, double mass_root) const;
 
+  // Above-ground mass = leaf + all stem components (bark + sapwood +
+  // heartwood); excludes roots.
   double mass_above_ground(double mass_leaf, double mass_bark,
-                           double mass_sapwood, double mass_root) const;
+                           double mass_sapwood, double mass_heartwood) const;
 
   void compute_rates(const TF24_Environment& environment,
                 Internals& vars);

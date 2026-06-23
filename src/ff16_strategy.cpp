@@ -75,8 +75,8 @@ double FF16_Strategy::mass_total(double mass_leaf, double mass_bark,
 }
 
 double FF16_Strategy::mass_above_ground(double mass_leaf, double mass_bark,
-                            double mass_sapwood, double mass_root) const {
-  return mass_leaf + mass_bark + mass_sapwood + mass_root;
+                            double mass_sapwood, double mass_heartwood) const {
+  return mass_leaf + mass_bark + mass_sapwood + mass_heartwood;
 }
 
 // update_dependent_aux() is defined inline in ff16_strategy.h (hot path).

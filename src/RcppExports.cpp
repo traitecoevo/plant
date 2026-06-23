@@ -9713,6 +9713,34 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// FF16_strategy_expand_allometry
+Rcpp::List FF16_strategy_expand_allometry(plant::FF16_Strategy s, Rcpp::NumericVector height, Rcpp::NumericVector area_heartwood, Rcpp::NumericVector mass_heartwood);
+RcppExport SEXP _plant_FF16_strategy_expand_allometry(SEXP sSEXP, SEXP heightSEXP, SEXP area_heartwoodSEXP, SEXP mass_heartwoodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::FF16_Strategy >::type s(sSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type height(heightSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type area_heartwood(area_heartwoodSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type mass_heartwood(mass_heartwoodSEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_strategy_expand_allometry(s, height, area_heartwood, mass_heartwood));
+    return rcpp_result_gen;
+END_RCPP
+}
+// TF24_strategy_expand_allometry
+Rcpp::List TF24_strategy_expand_allometry(plant::TF24_Strategy s, Rcpp::NumericVector height, Rcpp::NumericVector area_heartwood, Rcpp::NumericVector mass_heartwood);
+RcppExport SEXP _plant_TF24_strategy_expand_allometry(SEXP sSEXP, SEXP heightSEXP, SEXP area_heartwoodSEXP, SEXP mass_heartwoodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::TF24_Strategy >::type s(sSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type height(heightSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type area_heartwood(area_heartwoodSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type mass_heartwood(mass_heartwoodSEXP);
+    rcpp_result_gen = Rcpp::wrap(TF24_strategy_expand_allometry(s, height, area_heartwood, mass_heartwood));
+    return rcpp_result_gen;
+END_RCPP
+}
 // node_schedule_default__Parameters___TF24__TF24_Env
 plant::NodeSchedule node_schedule_default__Parameters___TF24__TF24_Env(const plant::Parameters<plant::TF24_Strategy,plant::TF24_Environment>& p);
 RcppExport SEXP _plant_node_schedule_default__Parameters___TF24__TF24_Env(SEXP pSEXP) {
@@ -10660,6 +10688,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_node_schedule_default__Parameters___K93__K93_Env", (DL_FUNC) &_plant_node_schedule_default__Parameters___K93__K93_Env, 1},
     {"_plant_make_node_schedule__Parameters___K93__K93_Env", (DL_FUNC) &_plant_make_node_schedule__Parameters___K93__K93_Env, 1},
     {"_plant_node_schedule_times_default", (DL_FUNC) &_plant_node_schedule_times_default, 1},
+    {"_plant_FF16_strategy_expand_allometry", (DL_FUNC) &_plant_FF16_strategy_expand_allometry, 4},
+    {"_plant_TF24_strategy_expand_allometry", (DL_FUNC) &_plant_TF24_strategy_expand_allometry, 4},
     {"_plant_node_schedule_default__Parameters___TF24__TF24_Env", (DL_FUNC) &_plant_node_schedule_default__Parameters___TF24__TF24_Env, 1},
     {"_plant_make_node_schedule__Parameters___TF24__TF24_Env", (DL_FUNC) &_plant_make_node_schedule__Parameters___TF24__TF24_Env, 1},
     {"_plant_test_uniroot", (DL_FUNC) &_plant_test_uniroot, 3},

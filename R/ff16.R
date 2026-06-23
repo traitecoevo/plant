@@ -309,28 +309,13 @@ FF16_expand_state <- function(results) {
 
   for (i in seq_len(results$n_spp)) {
     s <- results$p$strategies[[i]]
-    eta_c <- 1 - 2 / (1 + s$pars$eta) + 1 / (1 + 2 * s$pars$eta)
-
-    data[[i]] <-
-      data[[i]] %>%
-      dplyr::mutate(
-        # These are formulas from ff16_strategy.cpp
-        # ideally wouldn't have to copy them here
-        # could we expose them from startegy object
-        # and call them directly?
-        area_leaf = (.data$height / s$pars$a_l1)^(1.0 / s$pars$a_l2),
-        mass_leaf = .data$area_leaf * s$pars$lma,
-        area_sapwood = .data$area_leaf * s$pars$theta,
-        mass_sapwood = .data$area_sapwood * .data$height * eta_c * s$pars$rho,
-        area_bark = s$pars$a_b1 * .data$area_leaf * s$pars$theta,
-        mass_bark = .data$area_bark * .data$height * eta_c * s$pars$rho,
-        area_stem = .data$area_bark + .data$area_sapwood + .data$area_heartwood,
-        diameter_stem = sqrt(4 * .data$area_stem / pi),
-        mass_root = s$pars$a_r1 * .data$area_leaf,
-        mass_live = .data$mass_leaf + .data$mass_sapwood + .data$mass_bark + .data$mass_root,
-        mass_total = .data$mass_leaf + .data$mass_bark + .data$mass_sapwood + .data$mass_heartwood + .data$mass_root,
-        mass_above_ground = .data$mass_leaf + .data$mass_bark + .data$mass_sapwood + .data$mass_heartwood
-      )
+    d <- data[[i]]
+    # Derived size/mass columns are computed by the strategy's own C++
+    # allometry functions (see src/strategy_expand.cpp) rather than being
+    # re-derived here, so the formulas live in exactly one place.
+    allom <- FF16_strategy_expand_allometry(s, d$height, d$area_heartwood,
+                                            d$mass_heartwood)
+    data[[i]] <- dplyr::bind_cols(d, allom)
   }
 
   results$species <- data %>% dplyr::bind_rows()

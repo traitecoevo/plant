@@ -3472,6 +3472,14 @@ node_schedule_times_default <- function(max_time) {
     .Call('_plant_node_schedule_times_default', PACKAGE = 'plant', max_time)
 }
 
+FF16_strategy_expand_allometry <- function(s, height, area_heartwood, mass_heartwood) {
+    .Call('_plant_FF16_strategy_expand_allometry', PACKAGE = 'plant', s, height, area_heartwood, mass_heartwood)
+}
+
+TF24_strategy_expand_allometry <- function(s, height, area_heartwood, mass_heartwood) {
+    .Call('_plant_TF24_strategy_expand_allometry', PACKAGE = 'plant', s, height, area_heartwood, mass_heartwood)
+}
+
 node_schedule_default__Parameters___TF24__TF24_Env <- function(p) {
     .Call('_plant_node_schedule_default__Parameters___TF24__TF24_Env', PACKAGE = 'plant', p)
 }
