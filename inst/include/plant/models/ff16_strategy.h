@@ -9,6 +9,94 @@
 
 namespace plant {
 
+// Biological (user-settable) parameters for the FF16 strategy. Held as a value
+// member `pars` on FF16_Strategy and exposed to R as a nested RcppR6 list class
+// (so R access is `s$pars$lma`). Derived/precomputed quantities (eta_c,
+// height_0, canopy_shape, ...) are NOT here -- they are outputs of
+// prepare_strategy() and stay as plain members on the strategy.
+struct FF16_Pars {
+  // * Core traits
+  double lma       = 0.1978791;  // Leaf mass per area [kg / m2]
+  double rho       = 608.0;      // Wood density [kg/m3]
+  double hmat      = 16.5958691; // Height at maturation [m]
+  double omega     = 3.8e-5;     // Seed mass [kg]
+  // * Individual allometry
+  // Canopy shape parameter
+  double eta       = 12.0; // [dimensionless]
+  // Sapwood area per leaf area
+  // Ratio sapwood area area to leaf area
+  double theta     = 1.0/4669; // [dimensionless]
+  // Height - leaf mass scaling
+  double a_l1        = 5.44; // height with 1m2 leaf [m]
+  double a_l2        = 0.306; // dimensionless scaling of height with leaf area
+  // Root mass per leaf area
+  double a_r1        = 0.07;  //[kg / m]
+  // Ratio of bark area : sapwood area
+  double a_b1         = 0.17; // [dimensionless]
+
+  // * Production
+  // Ratio of leaf dark respiration to leaf mass [mol CO2 / yr  / kg]
+  // =  [mol CO2 / m2 / yr]  |  (39.27 = 2100 * 0.00187)  | narea * photosynthesis_per_nitrogen
+  //    / [kg(leaf) / m2 ]   |    / (0.1978791)           | lma
+  // Hard coded in value of lma here so that this value doesn't change
+  // if that trait changes above.
+  double r_l    = 39.27 / 0.1978791;
+  // Root respiration per mass [mol CO2 / yr / kg]
+  double r_r    = 217.0;
+  // Sapwood respiration per stem mass  [mol CO2 / yr / kg]
+  // = respiration per volume [mol CO2 / m3 / yr]
+  // /  wood density [kg/m3]
+  double r_s    = 4012.0 / 608.0;
+  // Bark respiration per stem mass
+  // assumed to be twice rate of sapwood
+  // (NOTE that there is a re-parametrisation here relative to the paper
+  // -- r_b is defined (new) as 2*r_s, whereas the paper assumes a
+  // fixed multiplication by 2)
+  double r_b    = 2.0 * r_s;
+  // Carbon conversion parameter
+  double a_y    = 0.7;
+  // Constant converting assimilated CO2 to dry mass [kg / mol]
+  // (12E-3 / 0.49)
+  double a_bio  = 2.45e-2;
+  // Leaf turnover [/yr]
+  double k_l    =  0.4565855;
+  // Bark turnover [/yr]
+  double k_b    = 0.2;
+  // Sapwood turnover [/yr]
+  double k_s           = 0.2;
+  // Root turnover [/yr]
+  double k_r    = 1.0;
+  // Parameters of the hyperbola for annual LRC
+  double a_p1   = 151.177775377968; // [mol CO2 / yr / m2]
+  double a_p2   = 0.204716166503633; // [dimensionless]
+
+  // * Seed production
+  // Accessory cost of reproduction
+  double a_f3  = 3.0 *  3.8e-5; // [kg per seed]
+  // Maximum allocation to reproduction
+  double a_f1   = 1.0; //[dimensionless]
+  // Size range across which individuals mature
+  double a_f2   = 50; // [dimensionless]
+
+  // * Mortality parameters
+  // Probability of survival during dispersal
+  double S_D   = 0.25; // [dimensionless]
+  // Parameter for seedling survival
+  double a_d0    = 0.1; //[kg / yr / m2]
+  // Baseline for intrinsic mortality
+  double d_I    = 0.01; // [ / yr]
+  // Baseline rate for growth-related mortality
+  double a_dG1    = 5.5; // [ / yr]
+  // Risk coefficient for dry mass production (per area)
+  double a_dG2    = 20.0;// [yr m2 / kg ]
+
+  // Germination
+  double recruitment_decay = 0.0;
+
+  // * Light capture parameters
+  double k_I = 0.5;
+};
+
 class FF16_Strategy: public Strategy<FF16_Environment> {
 public:
   typedef std::shared_ptr<FF16_Strategy> ptr;
@@ -73,7 +161,7 @@ public:
   // Inline (header) so it can inline into the hot competition/assimilation
   // paths that reach it from templated Individual<FF16> code (no LTO build).
   double area_leaf(double height) const {
-    return std::pow(height / a_l1, 1.0 / a_l2);
+    return std::pow(height / pars.a_l1, 1.0 / pars.a_l2);
   }
 
   // [eqn 1] mass_leaf (inverse of [eqn 2])
@@ -265,7 +353,7 @@ public:
   }
   double compute_competition_by_ratio(double z_over_height,
                                       double area_leaf_) const {
-    return k_I * area_leaf_ * canopy_shape.leaf_area_above(z_over_height);
+    return pars.k_I * area_leaf_ * canopy_shape.leaf_area_above(z_over_height);
   }
 
   // [      ] Inverse of Q: height above which fraction 'x' of leaf found
@@ -277,95 +365,21 @@ public:
   // Set constants within FF16_Strategy
   void prepare_strategy();
 
-  // * Core traits
-  double lma       = 0.1978791;  // Leaf mass per area [kg / m2]
-  double rho       = 608.0;      // Wood density [kg/m3]
-  double hmat      = 16.5958691; // Height at maturation [m]
-  double omega     = 3.8e-5;     // Seed mass [kg]
-  // * Individual allometry
-  // Canopy shape parameters
-  double eta       = 12.0; // [dimensionless]
+  // Birth height of a (germinated) seed. Strategy-agnostic accessor used by
+  // the templated Individual; here height_0 is derived in prepare_strategy().
+  double initial_height() const { return height_0; }
+
+  // Biological (user-settable) parameters; see FF16_Pars above.
+  FF16_Pars pars;
+
+  // Derived / precomputed in prepare_strategy() (NOT user-set) -------------
+  // Crown shape factor, precomputed from pars.eta
   double eta_c     = NA_REAL; // [dimensionless]
   CanopyShape canopy_shape;
-  // Sapwood area per leaf area
-  // Ratio sapwood area area to leaf area
-  double theta     = 1.0/4669; // [dimensionless]
-  // Height - leaf mass scaling
-  double a_l1        = 5.44; // height with 1m2 leaf [m]
-  double a_l2        = 0.306; // dimensionless scaling of height with leaf area
-  // Root mass per leaf area
-  double a_r1        = 0.07;  //[kg / m]
-  // Ratio of bark area : sapwood area
-  double a_b1         = 0.17; // [dimensionless]
-
-  // * Production
-  // Ratio of leaf dark respiration to leaf mass [mol CO2 / yr  / kg]
-  // =  [mol CO2 / m2 / yr]  |  (39.27 = 2100 * 0.00187)  | narea * photosynthesis_per_nitrogen
-  //    / [kg(leaf) / m2 ]   |    / (0.1978791)           | lma
-  // Hard coded in value of lma here so that this value doesn't change
-  // if that trait changes above.
-  double r_l    = 39.27 / 0.1978791;
-  // Root respiration per mass [mol CO2 / yr / kg]
-  double r_r    = 217.0;
-  // Sapwood respiration per stem mass  [mol CO2 / yr / kg]
-  // = respiration per volume [mol CO2 / m3 / yr]
-  // /  wood density [kg/m3]
-  double r_s    = 4012.0 / 608.0;
-  // Bark respiration per stem mass
-  // assumed to be twice rate of sapwood
-  // (NOTE that there is a re-parametrisation here relative to the paper
-  // -- r_b is defined (new) as 2*r_s, whereas the paper assumes a
-  // fixed multiplication by 2)
-  double r_b    = 2.0 * r_s;
-  // Carbon conversion parameter
-  double a_y    = 0.7;
-  // Constant converting assimilated CO2 to dry mass [kg / mol]
-  // (12E-3 / 0.49)
-  double a_bio  = 2.45e-2;
-  // Leaf turnover [/yr]
-  double k_l    =  0.4565855;
-  // Bark turnover [/yr]
-  double k_b    = 0.2;
-  // Sapwood turnover [/yr]
-  double k_s           = 0.2;
-  // Root turnover [/yr]
-  double k_r    = 1.0;
-  // Parameters of the hyperbola for annual LRC
-  double a_p1   = 151.177775377968; // [mol CO2 / yr / m2]
-  double a_p2   = 0.204716166503633; // [dimensionless]
-
-  // * Seed production
-  // Accessory cost of reproduction
-  double a_f3  = 3.0 *  3.8e-5; // [kg per seed]
-  // Maximum allocation to reproduction
-  double a_f1   = 1.0; //[dimensionless]
-  // Size range across which individuals mature
-  double a_f2   = 50; // [dimensionless]
-
-  // * Mortality parameters
-  // Probability of survival during dispersal
-  double S_D   = 0.25; // [dimensionless]
-  // Parameter for seedling survival
-  double a_d0    = 0.1; //[kg / yr / m2]
-  // Baseline for intrinsic mortality
-  double d_I    = 0.01; // [ / yr]
-  // Baseline rate for growth-related mortality
-  double a_dG1    = 5.5; // [ / yr]
-  // Risk coefficient for dry mass production (per area)
-  double a_dG2    = 20.0;// [yr m2 / kg ]
-
-  // Germination
-  double recruitment_decay = 0.0;
-  
-  // * Light capture parameters
-  double k_I = 0.5;
-
   // Height and leaf area of a (germinated) seed
   double height_0  = NA_REAL;
   double height_0_inverse = NA_REAL;
   double area_leaf_0;
-
-  std::string name;
 
   // For integrating functions with using Gauss-Kronrod quadrature
   quadrature::QK function_integrator;

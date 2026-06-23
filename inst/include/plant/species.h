@@ -259,7 +259,7 @@ std::vector<double> Species<T,E>::net_reproduction_ratio_by_node_weighted() cons
   std::vector<double> ret;
   ret.reserve(size());
   for (auto& c : nodes) {
-    ret.push_back(c.weighted_fecundity(strategy->S_D));
+    ret.push_back(c.weighted_fecundity(strategy->pars.S_D));
   }
   return ret;
 }

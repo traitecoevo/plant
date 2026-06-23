@@ -28,7 +28,7 @@ public:
     competition_effect_aux_index = strategy->aux_index.at("competition_effect");
     height_inverse_aux_index = strategy->aux_index.at("height_inverse");
     vars.resize(strategy_type::state_size(), s->aux_size()); // = Internals(strategy_type::state_size());
-    set_state("height", strategy->height_0);
+    set_state("height", strategy->initial_height());
   }
   
   // useage: state(HEIGHT_INDEX)

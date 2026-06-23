@@ -3519,6 +3519,12 @@ double Weibull_Disturbance_Regime__icdf(plant::RcppR6::RcppR6<plant::Weibull_Dis
 }
 
 // [[Rcpp::export]]
+SEXP FF16_Pars__ctor() {
+  return Rcpp::wrap(plant::FF16_Pars());
+}
+
+
+// [[Rcpp::export]]
 SEXP FF16_Strategy__ctor() {
   return Rcpp::wrap(plant::FF16_Strategy());
 }
@@ -3569,6 +3575,12 @@ plant::ResourceSpline FF16_Environment__light_availability__get(plant::RcppR6::R
 // [[Rcpp::export]]
 void FF16_Environment__light_availability__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::ResourceSpline value) {
   obj_->light_availability = value;
+}
+
+
+// [[Rcpp::export]]
+SEXP K93_Pars__ctor() {
+  return Rcpp::wrap(plant::K93_Pars());
 }
 
 
@@ -3646,6 +3658,12 @@ void ExtrinsicDrivers__set_variable(plant::RcppR6::RcppR6<plant::ExtrinsicDriver
 void ExtrinsicDrivers__set_extrapolate(plant::RcppR6::RcppR6<plant::ExtrinsicDrivers> obj_, std::string driver_name, bool extrapolate) {
   obj_->set_extrapolate(driver_name, extrapolate);
 }
+
+// [[Rcpp::export]]
+SEXP TF24_Pars__ctor() {
+  return Rcpp::wrap(plant::TF24_Pars());
+}
+
 
 // [[Rcpp::export]]
 SEXP TF24_Strategy__ctor() {

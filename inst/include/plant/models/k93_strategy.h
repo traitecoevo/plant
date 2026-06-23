@@ -9,6 +9,31 @@
 
 namespace plant {
 
+// Biological (user-settable) parameters for the K93 strategy. Held as a value
+// member `pars` on K93_Strategy and exposed to R as a nested RcppR6 list class
+// (access as `s$pars$b_0`). Derived quantities (canopy_shape) stay as plain
+// members on the strategy.
+struct K93_Pars {
+  // Initial seedling size (dbh cm)
+  double height_0 = 2.0;
+  // * Growth
+  double b_0 = 0.059;    // Growth intercept (yr-1)
+  double b_1 = 0.012;    // Growth asymptote (yr-1.(ln cm)-1)
+  double b_2 = 0.00041;  // Growth suppression rate (m2.cm-2.yr-1)
+  // * Mortality
+  double c_0 = 0.008;    // Intercept (yr-1)
+  double c_1 = 0.00044;  // Suppression rate (m2.cm-2.yr-1)
+  // * Reproduction
+  double d_0 = 0.00073;  // Recruitment rate (cm2.yr-1)
+  double d_1 = 0.044;    // Reduction from suppression (m2.cm-2.yr-1)
+  // Probability of survival during dispersal (required by scm.h)
+  double S_D = 1.0;
+  // Smoothing / canopy shape parameter
+  double eta = 12;
+  // Light capture parameter
+  double k_I = 0.01;
+};
+
 class K93_Strategy: public Strategy<K93_Environment> {
 public:
   typedef std::shared_ptr<K93_Strategy> ptr;
@@ -70,45 +95,11 @@ public:
   // K93 Methods  ----------------------------------------------
   double size_to_basal_area(double size) const;
 
-  // Initial seedling size (dbh cm)
-  double height_0;
-
-  // * Growth
-  // Growth intercept (yr-1)
-  double b_0;
-  // Growth asymptote (yr-1.(ln cm)-1)
-  double b_1;
-  // Growth suppression rate (m2.cm-2.yr-1)
-  double b_2;
-
   // Growth rate of a plant per unit time:
   double size_dt(double size, double cumulative_basal_area) const;
 
-  // * Reproduction
-  // Recruitment rate (cm2.yr-1)
-  double d_0;
-  // Reduction from suppression (m2.cm-2.yr-1)
-  double d_1;
-
   // Rate of offspring production
   double fecundity_dt(double size, double cumulative_basal_area) const;
-
-  // * Mortality
-  // Intercept (yr-1)
-  double c_0;
-  // Suppression rate (m2.cm-2.yr-1)
-  double c_1;
-
-  // Probability of survival during dispersal
-  // required by scm.h
-  double S_D = 1.0;
-
-  // Smoothing parameter
-  double eta;
-  CanopyShape canopy_shape;
-
-  // Light capture parameters
-  double k_I;
 
   // Rate of mortality over time
   double mortality_dt(double cumulative_basal_area,
@@ -117,7 +108,15 @@ public:
   // Set constants within K93_Strategy
   void prepare_strategy();
 
-  std::string name;
+  // Birth height (dbh, cm) of a seedling. Strategy-agnostic accessor used by
+  // the templated Individual; for K93 this is the user-set pars.height_0.
+  double initial_height() const { return pars.height_0; }
+
+  // Biological (user-settable) parameters; see K93_Pars above.
+  K93_Pars pars;
+
+  // Derived / precomputed in prepare_strategy() (NOT user-set)
+  CanopyShape canopy_shape;
 };
 
 K93_Strategy::ptr make_strategy_ptr(K93_Strategy s);

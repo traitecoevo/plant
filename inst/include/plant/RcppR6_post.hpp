@@ -168,12 +168,18 @@ template <> inline std::string generator_name<plant::No_Disturbance >() {return 
 template <> inline std::string   class_name_r<plant::Weibull_Disturbance_Regime >() {return "Weibull_Disturbance_Regime";}
 template <> inline std::string   package_name<plant::Weibull_Disturbance_Regime >() {return "plant";}
 template <> inline std::string generator_name<plant::Weibull_Disturbance_Regime >() {return ".R6_Weibull_Disturbance_Regime";}
+template <> inline std::string   class_name_r<plant::FF16_Pars >() {return "FF16_Pars";}
+template <> inline std::string   package_name<plant::FF16_Pars >() {return "plant";}
+template <> inline std::string generator_name<plant::FF16_Pars >() {return "";}
 template <> inline std::string   class_name_r<plant::FF16_Strategy >() {return "FF16_Strategy";}
 template <> inline std::string   package_name<plant::FF16_Strategy >() {return "plant";}
 template <> inline std::string generator_name<plant::FF16_Strategy >() {return "";}
 template <> inline std::string   class_name_r<plant::FF16_Environment >() {return "FF16_Environment";}
 template <> inline std::string   package_name<plant::FF16_Environment >() {return "plant";}
 template <> inline std::string generator_name<plant::FF16_Environment >() {return ".R6_FF16_Environment";}
+template <> inline std::string   class_name_r<plant::K93_Pars >() {return "K93_Pars";}
+template <> inline std::string   package_name<plant::K93_Pars >() {return "plant";}
+template <> inline std::string generator_name<plant::K93_Pars >() {return "";}
 template <> inline std::string   class_name_r<plant::K93_Strategy >() {return "K93_Strategy";}
 template <> inline std::string   package_name<plant::K93_Strategy >() {return "plant";}
 template <> inline std::string generator_name<plant::K93_Strategy >() {return "";}
@@ -183,6 +189,9 @@ template <> inline std::string generator_name<plant::K93_Environment >() {return
 template <> inline std::string   class_name_r<plant::ExtrinsicDrivers >() {return "ExtrinsicDrivers";}
 template <> inline std::string   package_name<plant::ExtrinsicDrivers >() {return "plant";}
 template <> inline std::string generator_name<plant::ExtrinsicDrivers >() {return ".R6_ExtrinsicDrivers";}
+template <> inline std::string   class_name_r<plant::TF24_Pars >() {return "TF24_Pars";}
+template <> inline std::string   package_name<plant::TF24_Pars >() {return "plant";}
+template <> inline std::string generator_name<plant::TF24_Pars >() {return "";}
 template <> inline std::string   class_name_r<plant::TF24_Strategy >() {return "TF24_Strategy";}
 template <> inline std::string   package_name<plant::TF24_Strategy >() {return "plant";}
 template <> inline std::string generator_name<plant::TF24_Strategy >() {return "";}
@@ -795,7 +804,7 @@ template <> inline SEXP wrap(const plant::Weibull_Disturbance_Regime& x) {
 template <> inline plant::Weibull_Disturbance_Regime as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::Weibull_Disturbance_Regime>(x));
 }
-template <> inline SEXP wrap(const plant::FF16_Strategy& x) {
+template <> inline SEXP wrap(const plant::FF16_Pars& x) {
   Rcpp::List ret;
   ret["lma"] = Rcpp::wrap(x.lma);
   ret["rho"] = Rcpp::wrap(x.rho);
@@ -829,22 +838,17 @@ template <> inline SEXP wrap(const plant::FF16_Strategy& x) {
   ret["a_dG2"] = Rcpp::wrap(x.a_dG2);
   ret["k_I"] = Rcpp::wrap(x.k_I);
   ret["recruitment_decay"] = Rcpp::wrap(x.recruitment_decay);
-  ret["control"] = Rcpp::wrap(x.control);
-  ret["collect_all_auxiliary"] = Rcpp::wrap(x.collect_all_auxiliary);
-  ret["birth_rate_x"] = Rcpp::wrap(x.birth_rate_x);
-  ret["birth_rate_y"] = Rcpp::wrap(x.birth_rate_y);
-  ret["is_variable_birth_rate"] = Rcpp::wrap(x.is_variable_birth_rate);
-  ret.attr("class") = "FF16_Strategy";
+  ret.attr("class") = "FF16_Pars";
   return ret;
 }
-template <> inline plant::FF16_Strategy as(SEXP x) {
-  if (!plant::RcppR6::is<plant::FF16_Strategy >(x)) {
-    Rcpp::stop("Expected an object of type FF16_Strategy");
+template <> inline plant::FF16_Pars as(SEXP x) {
+  if (!plant::RcppR6::is<plant::FF16_Pars >(x)) {
+    Rcpp::stop("Expected an object of type FF16_Pars");
     // NOTE: Won't drop through or return anything.
   }
   // NOTE: assumes default constructable, and will assign *every*
   // field twice.  No current support for a hook.
-  plant::FF16_Strategy ret;
+  plant::FF16_Pars ret;
   Rcpp::List xl(x);
   // ret.lma = Rcpp::as<decltype(retlma) >(xl["lma"]);
   ret.lma = Rcpp::as<double >(xl["lma"]);
@@ -910,6 +914,30 @@ template <> inline plant::FF16_Strategy as(SEXP x) {
   ret.k_I = Rcpp::as<double >(xl["k_I"]);
   // ret.recruitment_decay = Rcpp::as<decltype(retrecruitment_decay) >(xl["recruitment_decay"]);
   ret.recruitment_decay = Rcpp::as<double >(xl["recruitment_decay"]);
+  return ret;
+}
+template <> inline SEXP wrap(const plant::FF16_Strategy& x) {
+  Rcpp::List ret;
+  ret["pars"] = Rcpp::wrap(x.pars);
+  ret["control"] = Rcpp::wrap(x.control);
+  ret["collect_all_auxiliary"] = Rcpp::wrap(x.collect_all_auxiliary);
+  ret["birth_rate_x"] = Rcpp::wrap(x.birth_rate_x);
+  ret["birth_rate_y"] = Rcpp::wrap(x.birth_rate_y);
+  ret["is_variable_birth_rate"] = Rcpp::wrap(x.is_variable_birth_rate);
+  ret.attr("class") = "FF16_Strategy";
+  return ret;
+}
+template <> inline plant::FF16_Strategy as(SEXP x) {
+  if (!plant::RcppR6::is<plant::FF16_Strategy >(x)) {
+    Rcpp::stop("Expected an object of type FF16_Strategy");
+    // NOTE: Won't drop through or return anything.
+  }
+  // NOTE: assumes default constructable, and will assign *every*
+  // field twice.  No current support for a hook.
+  plant::FF16_Strategy ret;
+  Rcpp::List xl(x);
+  // ret.pars = Rcpp::as<decltype(retpars) >(xl["pars"]);
+  ret.pars = Rcpp::as<plant::FF16_Pars >(xl["pars"]);
   // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
   ret.control = Rcpp::as<plant::Control >(xl["control"]);
   // ret.collect_all_auxiliary = Rcpp::as<decltype(retcollect_all_auxiliary) >(xl["collect_all_auxiliary"]);
@@ -928,7 +956,7 @@ template <> inline SEXP wrap(const plant::FF16_Environment& x) {
 template <> inline plant::FF16_Environment as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::FF16_Environment>(x));
 }
-template <> inline SEXP wrap(const plant::K93_Strategy& x) {
+template <> inline SEXP wrap(const plant::K93_Pars& x) {
   Rcpp::List ret;
   ret["height_0"] = Rcpp::wrap(x.height_0);
   ret["b_0"] = Rcpp::wrap(x.b_0);
@@ -941,21 +969,17 @@ template <> inline SEXP wrap(const plant::K93_Strategy& x) {
   ret["S_D"] = Rcpp::wrap(x.S_D);
   ret["eta"] = Rcpp::wrap(x.eta);
   ret["k_I"] = Rcpp::wrap(x.k_I);
-  ret["control"] = Rcpp::wrap(x.control);
-  ret["birth_rate_x"] = Rcpp::wrap(x.birth_rate_x);
-  ret["birth_rate_y"] = Rcpp::wrap(x.birth_rate_y);
-  ret["is_variable_birth_rate"] = Rcpp::wrap(x.is_variable_birth_rate);
-  ret.attr("class") = "K93_Strategy";
+  ret.attr("class") = "K93_Pars";
   return ret;
 }
-template <> inline plant::K93_Strategy as(SEXP x) {
-  if (!plant::RcppR6::is<plant::K93_Strategy >(x)) {
-    Rcpp::stop("Expected an object of type K93_Strategy");
+template <> inline plant::K93_Pars as(SEXP x) {
+  if (!plant::RcppR6::is<plant::K93_Pars >(x)) {
+    Rcpp::stop("Expected an object of type K93_Pars");
     // NOTE: Won't drop through or return anything.
   }
   // NOTE: assumes default constructable, and will assign *every*
   // field twice.  No current support for a hook.
-  plant::K93_Strategy ret;
+  plant::K93_Pars ret;
   Rcpp::List xl(x);
   // ret.height_0 = Rcpp::as<decltype(retheight_0) >(xl["height_0"]);
   ret.height_0 = Rcpp::as<double >(xl["height_0"]);
@@ -979,6 +1003,29 @@ template <> inline plant::K93_Strategy as(SEXP x) {
   ret.eta = Rcpp::as<double >(xl["eta"]);
   // ret.k_I = Rcpp::as<decltype(retk_I) >(xl["k_I"]);
   ret.k_I = Rcpp::as<double >(xl["k_I"]);
+  return ret;
+}
+template <> inline SEXP wrap(const plant::K93_Strategy& x) {
+  Rcpp::List ret;
+  ret["pars"] = Rcpp::wrap(x.pars);
+  ret["control"] = Rcpp::wrap(x.control);
+  ret["birth_rate_x"] = Rcpp::wrap(x.birth_rate_x);
+  ret["birth_rate_y"] = Rcpp::wrap(x.birth_rate_y);
+  ret["is_variable_birth_rate"] = Rcpp::wrap(x.is_variable_birth_rate);
+  ret.attr("class") = "K93_Strategy";
+  return ret;
+}
+template <> inline plant::K93_Strategy as(SEXP x) {
+  if (!plant::RcppR6::is<plant::K93_Strategy >(x)) {
+    Rcpp::stop("Expected an object of type K93_Strategy");
+    // NOTE: Won't drop through or return anything.
+  }
+  // NOTE: assumes default constructable, and will assign *every*
+  // field twice.  No current support for a hook.
+  plant::K93_Strategy ret;
+  Rcpp::List xl(x);
+  // ret.pars = Rcpp::as<decltype(retpars) >(xl["pars"]);
+  ret.pars = Rcpp::as<plant::K93_Pars >(xl["pars"]);
   // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
   ret.control = Rcpp::as<plant::Control >(xl["control"]);
   // ret.birth_rate_x = Rcpp::as<decltype(retbirth_rate_x) >(xl["birth_rate_x"]);
@@ -1001,7 +1048,7 @@ template <> inline SEXP wrap(const plant::ExtrinsicDrivers& x) {
 template <> inline plant::ExtrinsicDrivers as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::ExtrinsicDrivers>(x));
 }
-template <> inline SEXP wrap(const plant::TF24_Strategy& x) {
+template <> inline SEXP wrap(const plant::TF24_Pars& x) {
   Rcpp::List ret;
   ret["lma"] = Rcpp::wrap(x.lma);
   ret["rho"] = Rcpp::wrap(x.rho);
@@ -1054,22 +1101,17 @@ template <> inline SEXP wrap(const plant::TF24_Strategy& x) {
   ret["nmass_r"] = Rcpp::wrap(x.nmass_r);
   ret["dmass_dN"] = Rcpp::wrap(x.dmass_dN);
   ret["recruitment_decay"] = Rcpp::wrap(x.recruitment_decay);
-  ret["control"] = Rcpp::wrap(x.control);
-  ret["collect_all_auxiliary"] = Rcpp::wrap(x.collect_all_auxiliary);
-  ret["birth_rate_x"] = Rcpp::wrap(x.birth_rate_x);
-  ret["birth_rate_y"] = Rcpp::wrap(x.birth_rate_y);
-  ret["is_variable_birth_rate"] = Rcpp::wrap(x.is_variable_birth_rate);
-  ret.attr("class") = "TF24_Strategy";
+  ret.attr("class") = "TF24_Pars";
   return ret;
 }
-template <> inline plant::TF24_Strategy as(SEXP x) {
-  if (!plant::RcppR6::is<plant::TF24_Strategy >(x)) {
-    Rcpp::stop("Expected an object of type TF24_Strategy");
+template <> inline plant::TF24_Pars as(SEXP x) {
+  if (!plant::RcppR6::is<plant::TF24_Pars >(x)) {
+    Rcpp::stop("Expected an object of type TF24_Pars");
     // NOTE: Won't drop through or return anything.
   }
   // NOTE: assumes default constructable, and will assign *every*
   // field twice.  No current support for a hook.
-  plant::TF24_Strategy ret;
+  plant::TF24_Pars ret;
   Rcpp::List xl(x);
   // ret.lma = Rcpp::as<decltype(retlma) >(xl["lma"]);
   ret.lma = Rcpp::as<double >(xl["lma"]);
@@ -1173,6 +1215,30 @@ template <> inline plant::TF24_Strategy as(SEXP x) {
   ret.dmass_dN = Rcpp::as<double >(xl["dmass_dN"]);
   // ret.recruitment_decay = Rcpp::as<decltype(retrecruitment_decay) >(xl["recruitment_decay"]);
   ret.recruitment_decay = Rcpp::as<double >(xl["recruitment_decay"]);
+  return ret;
+}
+template <> inline SEXP wrap(const plant::TF24_Strategy& x) {
+  Rcpp::List ret;
+  ret["pars"] = Rcpp::wrap(x.pars);
+  ret["control"] = Rcpp::wrap(x.control);
+  ret["collect_all_auxiliary"] = Rcpp::wrap(x.collect_all_auxiliary);
+  ret["birth_rate_x"] = Rcpp::wrap(x.birth_rate_x);
+  ret["birth_rate_y"] = Rcpp::wrap(x.birth_rate_y);
+  ret["is_variable_birth_rate"] = Rcpp::wrap(x.is_variable_birth_rate);
+  ret.attr("class") = "TF24_Strategy";
+  return ret;
+}
+template <> inline plant::TF24_Strategy as(SEXP x) {
+  if (!plant::RcppR6::is<plant::TF24_Strategy >(x)) {
+    Rcpp::stop("Expected an object of type TF24_Strategy");
+    // NOTE: Won't drop through or return anything.
+  }
+  // NOTE: assumes default constructable, and will assign *every*
+  // field twice.  No current support for a hook.
+  plant::TF24_Strategy ret;
+  Rcpp::List xl(x);
+  // ret.pars = Rcpp::as<decltype(retpars) >(xl["pars"]);
+  ret.pars = Rcpp::as<plant::TF24_Pars >(xl["pars"]);
   // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
   ret.control = Rcpp::as<plant::Control >(xl["control"]);
   // ret.collect_all_auxiliary = Rcpp::as<decltype(retcollect_all_auxiliary) >(xl["collect_all_auxiliary"]);

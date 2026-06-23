@@ -119,16 +119,17 @@ for (x in names(strategy_types)) {
     etas <- c(1, 2, 4, 8, 10, 12, 3.5)
 
     for (eta in etas) {
-      s <- strategy_types[[x]](eta = eta)
+      s <- strategy_types[[x]]()
+      s$pars$eta <- eta
       e <- environment_types[[x]]
       p <- Individual(x, e)(s)
       p$set_state("height", height)
 
       Q <- (1 - (z / height)^eta)^2
       if (grepl("K93", x)) {
-        multiplier <- s$k_I * pi / 4 * height^2
+        multiplier <- s$pars$k_I * pi / 4 * height^2
       } else {
-        multiplier <- s$k_I * (height / s$a_l1)^(1 / s$a_l2)
+        multiplier <- s$pars$k_I * (height / s$pars$a_l1)^(1 / s$pars$a_l2)
       }
 
       expect_equal(p$compute_competition(z), multiplier * Q)

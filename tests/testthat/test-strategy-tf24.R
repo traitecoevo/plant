@@ -2,7 +2,8 @@
 context("Strategy-TF24")
 
 test_that("Defaults", {
-  expected <- list(
+  # Biological parameters now live in the nested `pars` sub-object.
+  expected_pars <- list(
     a_l2     = 0.306,
     S_D   = 0.25,
     a_y      = 0.7,
@@ -53,20 +54,25 @@ test_that("Defaults", {
     nmass_b = 0.0034,
     nmass_r = 0.00335,
     dmass_dN = 0,
-    recruitment_decay = 0,
-    control = Control(),
-    collect_all_auxiliary = FALSE,
-    birth_rate_x = numeric(0), # empty
-    birth_rate_y = c(1.0), 
-    is_variable_birth_rate = FALSE)
+    recruitment_decay = 0)
 
-  keys <- sort(names(expected))
+  # Top-level strategy fields: the pars sub-object plus infrastructure.
+  expected_top <- c("pars", "control", "collect_all_auxiliary",
+                    "birth_rate_x", "birth_rate_y", "is_variable_birth_rate")
 
   s <- TF24_Strategy()
   expect_is(s, "TF24_Strategy")
 
-  expect_identical(sort(names(s)), keys)
-  expect_identical(unclass(s)[keys], expected[keys])
+  expect_identical(sort(names(s)), sort(expected_top))
+  expect_identical(s$control, Control())
+  expect_identical(s$collect_all_auxiliary, FALSE)
+  expect_identical(s$birth_rate_x, numeric(0))
+  expect_identical(s$birth_rate_y, c(1.0))
+  expect_identical(s$is_variable_birth_rate, FALSE)
+
+  pars_keys <- sort(names(expected_pars))
+  expect_identical(sort(names(s$pars)), pars_keys)
+  expect_identical(unclass(s$pars)[pars_keys], expected_pars[pars_keys])
 })
 
 test_that("TF24 collect_all_auxiliary option", {
@@ -153,7 +159,7 @@ test_that("TF24_Strategy hyper-parameterisation", {
   if ("a_p1" %in% colnames(ret)) {
     a_p1 <- ret[, "a_p1"]
     expect_equal(length(unique(a_p1)), 1L)
-    expect_equal(a_p1[[1]], s$a_p1, tolerance=1e-7)
+    expect_equal(a_p1[[1]], s$pars$a_p1, tolerance=1e-7)
   }
 
   # wood density
@@ -169,7 +175,7 @@ test_that("TF24_Strategy hyper-parameterisation", {
   if ("a_p1" %in% colnames(ret)) {
     a_p1 <- ret[, "a_p1"]
     expect_equal(length(unique(a_p1)), 1L)
-    expect_equal(a_p1[[1]], s$a_p1, tolerance=1e-7)
+    expect_equal(a_p1[[1]], s$pars$a_p1, tolerance=1e-7)
   }
 
   # narea
@@ -193,7 +199,7 @@ test_that("TF24_Strategy hyper-parameterisation", {
   if ("a_p1" %in% colnames(ret)) {
     a_p1 <- ret[, "a_p1"]
     expect_equal(length(unique(a_p1)), 1L)
-    expect_equal(a_p1[[1]], s$a_p1, tolerance=1e-7)
+    expect_equal(a_p1[[1]], s$pars$a_p1, tolerance=1e-7)
   }
 
 
@@ -208,7 +214,7 @@ test_that("TF24_hyperpar sources k_I from the strategy", {
 
   ## Default strategy: assimilation matches the existing reference values.
   s <- TF24_Strategy()
-  expect_equal(s$k_I, 0.5)
+  expect_equal(s$pars$k_I, 0.5)
   ret <- TF24_hyperpar(m, s)
   expect_equal(ret[, "a_p1"], c(162.2592, 188.1549), tolerance=1e-5)
 
@@ -216,7 +222,7 @@ test_that("TF24_hyperpar sources k_I from the strategy", {
   ## parameters -- previously the hard-coded 0.5 default in the maker
   ## silently ignored the strategy value.
   s2 <- TF24_Strategy()
-  s2$k_I <- 0.8
+  s2$pars$k_I <- 0.8
   ret2 <- TF24_hyperpar(m, s2)
   expect_false(isTRUE(all.equal(ret[, "a_p1"], ret2[, "a_p1"])))
   expect_false(isTRUE(all.equal(ret[, "a_p2"], ret2[, "a_p2"])))

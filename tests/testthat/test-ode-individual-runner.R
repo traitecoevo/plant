@@ -81,7 +81,7 @@ test_that("grow_individual_to_size", {
     pp <- Individual(x, e)(s)
 
     if(grepl("K93", x))
-      heights <- subset(heights, heights >  pp$strategy$height_0)
+      heights <- subset(heights, heights >  pp$strategy$pars$height_0)
 
     res <- grow_individual_bracket(pp, heights, "height", env)
 
@@ -157,7 +157,7 @@ test_that("grow_individual_to_size", {
     strategy <- strategy_types[[x]]()
     e <- environment_types[[x]]
     pl <- Individual(x, e)(strategy)
-    sizes <- c(1, 5, 10, 12, strategy$hmat)
+    sizes <- c(1, 5, 10, 12, strategy$pars$hmat)
     
     if(grepl("K93", x)) 
       sizes <- c(2.5, 5, 10, 12)

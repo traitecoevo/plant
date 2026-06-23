@@ -214,7 +214,7 @@ test_that("Offspring production & error calculations correct", {
       density <- purrr::map_dbl(a, ~ scm$patch$density(.x))
       net_reproduction_ratio_by_node_weighted <- density *
         scm$patch$species[[1]]$net_reproduction_ratio_by_node *
-        scm$parameters$strategies[[1]]$S_D
+        scm$parameters$strategies[[1]]$pars$S_D
       total <- trapezium(a, net_reproduction_ratio_by_node_weighted)
       if (error)
         local_error_integration(a, net_reproduction_ratio_by_node_weighted, total)

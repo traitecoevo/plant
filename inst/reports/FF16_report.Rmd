@@ -121,10 +121,8 @@ The following parameters were included in the model. Note, values for species ar
 p <- results$p
 
 extract_strategy <- function(strat) {
-  ex <- c("control" , "collect_all_auxiliary",   "birth_rate_x", "birth_rate_y", "is_variable_birth_rate")
-
-  x <- strat[!(names(strat) %in% ex)]
-  
+  # Biological parameters live in the nested `pars` sub-object.
+  x <- strat$pars
   tibble(parameter = names(x), value = unlist(x))
 }
 
@@ -209,7 +207,7 @@ Species had the following potential leaf photosynthetic rates, calculated by int
 E <- seq(0,1, by=0.01)
 
 leaf_rates <- 
-  p$strategies %>% purrr::map_df(~tibble(E, A = .x$a_p1 * E / (E+ .x$a_p2)),.id = "species") %>% 
+  p$strategies %>% purrr::map_df(~tibble(E, A = .x$pars$a_p1 * E / (E+ .x$pars$a_p2)),.id = "species") %>%
 mutate(
   species = paste("sp", species)
   ) 

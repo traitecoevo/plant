@@ -27,25 +27,25 @@ void FF16_Strategy::refresh_indices () {
 
 // [eqn 1] mass_leaf (inverse of [eqn 2])
 double FF16_Strategy::mass_leaf(double area_leaf) const {
-  return area_leaf * lma;
+  return area_leaf * pars.lma;
 }
 
 // [eqn 4] area and mass of sapwood
 double FF16_Strategy::area_sapwood(double area_leaf) const {
-  return area_leaf * theta;
+  return area_leaf * pars.theta;
 }
 
 double FF16_Strategy::mass_sapwood(double area_sapwood, double height) const {
-  return area_sapwood * height * eta_c * rho;
+  return area_sapwood * height * eta_c * pars.rho;
 }
 
 // [eqn 5] area and mass of bark
 double FF16_Strategy::area_bark(double area_leaf) const {
-  return a_b1 * area_leaf * theta;
+  return pars.a_b1 * area_leaf * pars.theta;
 }
 
 double FF16_Strategy::mass_bark(double area_bark, double height) const {
-  return area_bark * height * eta_c * rho;
+  return area_bark * height * eta_c * pars.rho;
 }
 
 double FF16_Strategy::area_stem(double area_bark, double area_sapwood,
@@ -59,7 +59,7 @@ double FF16_Strategy::diameter_stem(double area_stem) const {
 
 // [eqn 7] Mass of (fine) roots
 double FF16_Strategy::mass_root(double area_leaf) const {
-  return a_r1 * area_leaf;
+  return pars.a_r1 * area_leaf;
 }
 
 // [eqn 8] Total mass
@@ -103,9 +103,9 @@ void FF16_Strategy::compute_rates(const FF16_Environment& environment,  Internal
 
     const double fraction_allocation_reproduction_ = fraction_allocation_reproduction(height);
     // dheight_darea_leaf and the sapwood/bark terms in darea_leaf_dmass_live all
-    // share pow(area_leaf, a_l2); evaluate this libm pow once and reuse it for
+    // share pow(area_leaf, pars.a_l2); evaluate this libm pow once and reuse it for
     // both rates rather than paying it twice per node per step (issue #361).
-    const double area_leaf_pow_a_l2 = pow(area_leaf_, a_l2);
+    const double area_leaf_pow_a_l2 = pow(area_leaf_, pars.a_l2);
     const double darea_leaf_dmass_live_ = darea_leaf_dmass_live(area_leaf_, area_leaf_pow_a_l2);
     const double fraction_allocation_growth_ = fraction_allocation_growth(height);
     const double area_leaf_dt = net_mass_production_dt_ * fraction_allocation_growth_ * darea_leaf_dmass_live_;
@@ -202,11 +202,11 @@ double FF16_Strategy::assimilation_crown_top(const FF16_Environment& environment
 // Photosynthetic rate per leaf area
 // `x` is openness, ranging from 0 to 1.
 double FF16_Strategy::assimilation_leaf(double x) const {
-  return a_p1 * x / (x + a_p2);
+  return pars.a_p1 * x / (x + pars.a_p2);
 }
 
 // [eqn 13] Total maintenance respiration
-// NOTE: In contrast with Falster ref model, we do not normalise by a_y*a_bio.
+// NOTE: In contrast with Falster ref model, we do not normalise by pars.a_y*pars.a_bio.
 double FF16_Strategy::respiration(double mass_leaf, double mass_sapwood,
                              double mass_bark, double mass_root) const {
   return respiration_leaf(mass_leaf) +
@@ -216,19 +216,19 @@ double FF16_Strategy::respiration(double mass_leaf, double mass_sapwood,
 }
 
 double FF16_Strategy::respiration_leaf(double mass) const {
-  return r_l * mass;
+  return pars.r_l * mass;
 }
 
 double FF16_Strategy::respiration_bark(double mass) const {
-  return r_b * mass;
+  return pars.r_b * mass;
 }
 
 double FF16_Strategy::respiration_sapwood(double mass) const {
-  return r_s * mass;
+  return pars.r_s * mass;
 }
 
 double FF16_Strategy::respiration_root(double mass) const {
-  return r_r * mass;
+  return pars.r_r * mass;
 }
 
 // [eqn 14] Total turnover
@@ -241,19 +241,19 @@ double FF16_Strategy::turnover(double mass_leaf, double mass_bark,
 }
 
 double FF16_Strategy::turnover_leaf(double mass) const {
-  return k_l * mass;
+  return pars.k_l * mass;
 }
 
 double FF16_Strategy::turnover_bark(double mass) const {
-  return k_b * mass;
+  return pars.k_b * mass;
 }
 
 double FF16_Strategy::turnover_sapwood(double mass) const {
-  return k_s * mass;
+  return pars.k_s * mass;
 }
 
 double FF16_Strategy::turnover_root(double mass) const {
-  return k_r * mass;
+  return pars.k_r * mass;
 }
 
 // [eqn 15] Net production
@@ -262,7 +262,7 @@ double FF16_Strategy::turnover_root(double mass) const {
 // before the minus sign is SCM's N, our `net_mass_production_dt` is SCM's P.
 double FF16_Strategy::net_mass_production_dt_A(double assimilation, double respiration,
                                 double turnover) const {
-  return a_bio * a_y * (assimilation - respiration) - turnover;
+  return pars.a_bio * pars.a_y * (assimilation - respiration) - turnover;
 }
 
 // One shot calculation of net_mass_production_dt
@@ -302,7 +302,7 @@ double FF16_Strategy::net_mass_production_dt(const FF16_Environment& environment
 
 // [eqn 16] Fraction of production allocated to reproduction
 double FF16_Strategy::fraction_allocation_reproduction(double height) const {
-  return a_f1 / (1.0 + exp(a_f2 * (1.0 - height / hmat)));
+  return pars.a_f1 / (1.0 + exp(pars.a_f2 * (1.0 - height / pars.hmat)));
 }
 
 // Fraction of production allocated to growth
@@ -314,60 +314,60 @@ double FF16_Strategy::fraction_allocation_growth(double height) const {
 double FF16_Strategy::fecundity_dt(double net_mass_production_dt,
                                double fraction_allocation_reproduction) const {
   return net_mass_production_dt * fraction_allocation_reproduction /
-    (omega + a_f3);
+    (pars.omega + pars.a_f3);
 }
 
 double FF16_Strategy::darea_leaf_dmass_live(double area_leaf) const {
-  return darea_leaf_dmass_live(area_leaf, pow(area_leaf, a_l2));
+  return darea_leaf_dmass_live(area_leaf, pow(area_leaf, pars.a_l2));
 }
 
 double FF16_Strategy::darea_leaf_dmass_live(double area_leaf,
                                             double area_leaf_pow_a_l2) const {
-  // dmass_bark_darea_leaf(area_leaf) == a_b1 * dmass_sapwood_darea_leaf(area_leaf),
-  // so compute the shared pow(area_leaf, a_l2) term once rather than twice.
+  // dmass_bark_darea_leaf(area_leaf) == pars.a_b1 * dmass_sapwood_darea_leaf(area_leaf),
+  // so compute the shared pow(area_leaf, pars.a_l2) term once rather than twice.
   const double dmass_sapwood_darea_leaf_ =
     dmass_sapwood_darea_leaf(area_leaf, area_leaf_pow_a_l2);
   return 1.0/(  dmass_leaf_darea_leaf(area_leaf)
               + dmass_sapwood_darea_leaf_
-              + a_b1 * dmass_sapwood_darea_leaf_
+              + pars.a_b1 * dmass_sapwood_darea_leaf_
               + dmass_root_darea_leaf(area_leaf));
 }
 
 double FF16_Strategy::dheight_darea_leaf(double area_leaf) const {
-  return a_l1 * a_l2 * pow(area_leaf, a_l2 - 1);
+  return pars.a_l1 * pars.a_l2 * pow(area_leaf, pars.a_l2 - 1);
 }
 
 double FF16_Strategy::dheight_darea_leaf(double area_leaf,
                                          double area_leaf_pow_a_l2) const {
-  // pow(area_leaf, a_l2 - 1) == pow(area_leaf, a_l2) / area_leaf, so reuse the
+  // pow(area_leaf, pars.a_l2 - 1) == pow(area_leaf, pars.a_l2) / area_leaf, so reuse the
   // shared power instead of a second libm pow (a reciprocal-multiply reorder,
   // so not bit-identical to the single-argument form).
-  return a_l1 * a_l2 * area_leaf_pow_a_l2 / area_leaf;
+  return pars.a_l1 * pars.a_l2 * area_leaf_pow_a_l2 / area_leaf;
 }
 
 // Mass of leaf needed for new unit area leaf, d m_s / d a_l
 double FF16_Strategy::dmass_leaf_darea_leaf(double /* area_leaf */) const {
-  return lma;
+  return pars.lma;
 }
 
 // Mass of stem needed for new unit area leaf, d m_s / d a_l
 double FF16_Strategy::dmass_sapwood_darea_leaf(double area_leaf) const {
-  return dmass_sapwood_darea_leaf(area_leaf, pow(area_leaf, a_l2));
+  return dmass_sapwood_darea_leaf(area_leaf, pow(area_leaf, pars.a_l2));
 }
 
 double FF16_Strategy::dmass_sapwood_darea_leaf(double /* area_leaf */,
                                                double area_leaf_pow_a_l2) const {
-  return rho * eta_c * a_l1 * theta * (a_l2 + 1.0) * area_leaf_pow_a_l2;
+  return pars.rho * eta_c * pars.a_l1 * pars.theta * (pars.a_l2 + 1.0) * area_leaf_pow_a_l2;
 }
 
 // Mass of bark needed for new unit area leaf, d m_b / d a_l
 double FF16_Strategy::dmass_bark_darea_leaf(double area_leaf) const {
-  return a_b1 * dmass_sapwood_darea_leaf(area_leaf);
+  return pars.a_b1 * dmass_sapwood_darea_leaf(area_leaf);
 }
 
 // Mass of root needed for new unit area leaf, d m_r / d a_l
 double FF16_Strategy::dmass_root_darea_leaf(double /* area_leaf */) const {
-  return a_r1;
+  return pars.a_r1;
 }
 
 // Growth rate of basal diameter_stem per unit time
@@ -377,18 +377,18 @@ double FF16_Strategy::ddiameter_stem_darea_stem(double area_stem) const {
 
 // Growth rate of sapwood area at base per unit time
 double FF16_Strategy::area_sapwood_dt(double area_leaf_dt) const {
-  return area_leaf_dt * theta;
+  return area_leaf_dt * pars.theta;
 }
 
 // Note, unlike others, heartwood growth does not depend on leaf area growth, but
 // rather existing sapwood
 double FF16_Strategy::area_heartwood_dt(double area_leaf) const {
-  return k_s * area_sapwood(area_leaf);
+  return pars.k_s * area_sapwood(area_leaf);
 }
 
 // Growth rate of bark area at base per unit time
 double FF16_Strategy::area_bark_dt(double area_leaf_dt) const {
-  return a_b1 * area_leaf_dt * theta;
+  return pars.a_b1 * area_leaf_dt * pars.theta;
 }
 
 // Growth rate of stem basal area per unit time
@@ -448,7 +448,7 @@ double FF16_Strategy::mass_live_given_height(double height) const {
 }
 
 double FF16_Strategy::height_given_mass_leaf(double mass_leaf) const {
-  return a_l1 * pow(mass_leaf / lma, a_l2);
+  return pars.a_l1 * pow(mass_leaf / pars.lma, pars.a_l2);
 }
 
 double FF16_Strategy::mortality_dt(double productivity_area,
@@ -474,23 +474,23 @@ double FF16_Strategy::mortality_dt(double productivity_area,
 }
 
 double FF16_Strategy::mortality_growth_independent_dt() const {
-  return d_I;
+  return pars.d_I;
 }
 
 double FF16_Strategy::mortality_growth_dependent_dt(double productivity_area) const {
-  return a_dG1 * exp(-a_dG2 * productivity_area);
+  return pars.a_dG1 * exp(-pars.a_dG2 * productivity_area);
 }
 
 // [eqn 20] Survival of seedlings during establishment
 double FF16_Strategy::establishment_probability(const FF16_Environment& environment) {
   
-  double decay_over_time = exp(-recruitment_decay * environment.time);
+  double decay_over_time = exp(-pars.recruitment_decay * environment.time);
   
   const double net_mass_production_dt_ =
     net_mass_production_dt(environment, height_0, area_leaf_0,
                            height_0_inverse);
   if (net_mass_production_dt_ > 0) {
-    const double tmp = a_d0 * area_leaf_0 / net_mass_production_dt_;
+    const double tmp = pars.a_d0 * area_leaf_0 / net_mass_production_dt_;
     return 1.0 / (tmp * tmp + 1.0) * decay_over_time;
   } else {
     return 0.0;
@@ -517,13 +517,13 @@ double FF16_Strategy::height_seed(void) const {
   // absolute maximum height for new seedling, e.g. 1m?
   const double
     h0 = height_given_mass_leaf(std::numeric_limits<double>::min()),
-    h1 = height_given_mass_leaf(omega);
+    h1 = height_given_mass_leaf(pars.omega);
 
   const double tol = control.offspring_production_tol;
   const size_t max_iterations = control.offspring_production_iterations;
 
   auto target = [&] (double x) mutable -> double {
-    return mass_live_given_height(x) - omega;
+    return mass_live_given_height(x) - pars.omega;
   };
 
   return util::uniroot(target, h0, h1, tol, max_iterations);
@@ -544,7 +544,7 @@ void FF16_Strategy::prepare_strategy() {
     shading_model_from_string(control.shading_model, ShadingModel::DeepCrown);
   // canopy_shape also selects the competition contribution: smooth Q for every
   // model except flat-top-box, which casts a step (see CanopyShape).
-  canopy_shape.initialise(eta, shading_model);
+  canopy_shape.initialise(pars.eta, shading_model);
   switch (shading_model) {
   case ShadingModel::DeepCrown:
     assimilation_fn = &FF16_Strategy::assimilation_deep_crown;
@@ -565,7 +565,7 @@ void FF16_Strategy::prepare_strategy() {
   }
 
   // NOTE: this pre-computes something to save a very small amount of time
-  eta_c = 1 - 2/(1 + eta) + 1/(1 + 2*eta);
+  eta_c = 1 - 2/(1 + pars.eta) + 1/(1 + 2*pars.eta);
   // NOTE: Also pre-computing, though less trivial
   height_0 = height_seed();
   height_0_inverse = 1.0 / height_0;

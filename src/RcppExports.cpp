@@ -8748,6 +8748,16 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// FF16_Pars__ctor
+SEXP FF16_Pars__ctor();
+RcppExport SEXP _plant_FF16_Pars__ctor() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(FF16_Pars__ctor());
+    return rcpp_result_gen;
+END_RCPP
+}
 // FF16_Strategy__ctor
 SEXP FF16_Strategy__ctor();
 RcppExport SEXP _plant_FF16_Strategy__ctor() {
@@ -8879,6 +8889,16 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::ResourceSpline >::type value(valueSEXP);
     FF16_Environment__light_availability__set(obj_, value);
     return R_NilValue;
+END_RCPP
+}
+// K93_Pars__ctor
+SEXP K93_Pars__ctor();
+RcppExport SEXP _plant_K93_Pars__ctor() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(K93_Pars__ctor());
+    return rcpp_result_gen;
 END_RCPP
 }
 // K93_Strategy__ctor
@@ -9072,6 +9092,16 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type extrapolate(extrapolateSEXP);
     ExtrinsicDrivers__set_extrapolate(obj_, driver_name, extrapolate);
     return R_NilValue;
+END_RCPP
+}
+// TF24_Pars__ctor
+SEXP TF24_Pars__ctor();
+RcppExport SEXP _plant_TF24_Pars__ctor() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(TF24_Pars__ctor());
+    return rcpp_result_gen;
 END_RCPP
 }
 // TF24_Strategy__ctor
@@ -10544,6 +10574,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Weibull_Disturbance_Regime__mean_interval", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__mean_interval, 1},
     {"_plant_Weibull_Disturbance_Regime__cdf", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__cdf, 2},
     {"_plant_Weibull_Disturbance_Regime__icdf", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__icdf, 2},
+    {"_plant_FF16_Pars__ctor", (DL_FUNC) &_plant_FF16_Pars__ctor, 0},
     {"_plant_FF16_Strategy__ctor", (DL_FUNC) &_plant_FF16_Strategy__ctor, 0},
     {"_plant_FF16_Environment__ctor", (DL_FUNC) &_plant_FF16_Environment__ctor, 0},
     {"_plant_FF16_Environment__get_environment_at_height", (DL_FUNC) &_plant_FF16_Environment__get_environment_at_height, 2},
@@ -10556,6 +10587,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_FF16_Environment__ode_size__get", (DL_FUNC) &_plant_FF16_Environment__ode_size__get, 1},
     {"_plant_FF16_Environment__light_availability__get", (DL_FUNC) &_plant_FF16_Environment__light_availability__get, 1},
     {"_plant_FF16_Environment__light_availability__set", (DL_FUNC) &_plant_FF16_Environment__light_availability__set, 2},
+    {"_plant_K93_Pars__ctor", (DL_FUNC) &_plant_K93_Pars__ctor, 0},
     {"_plant_K93_Strategy__ctor", (DL_FUNC) &_plant_K93_Strategy__ctor, 0},
     {"_plant_K93_Environment__ctor", (DL_FUNC) &_plant_K93_Environment__ctor, 0},
     {"_plant_K93_Environment__get_environment_at_height", (DL_FUNC) &_plant_K93_Environment__get_environment_at_height, 2},
@@ -10573,6 +10605,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_ExtrinsicDrivers__set_constant", (DL_FUNC) &_plant_ExtrinsicDrivers__set_constant, 3},
     {"_plant_ExtrinsicDrivers__set_variable", (DL_FUNC) &_plant_ExtrinsicDrivers__set_variable, 4},
     {"_plant_ExtrinsicDrivers__set_extrapolate", (DL_FUNC) &_plant_ExtrinsicDrivers__set_extrapolate, 3},
+    {"_plant_TF24_Pars__ctor", (DL_FUNC) &_plant_TF24_Pars__ctor, 0},
     {"_plant_TF24_Strategy__ctor", (DL_FUNC) &_plant_TF24_Strategy__ctor, 0},
     {"_plant_TF24_Environment__ctor", (DL_FUNC) &_plant_TF24_Environment__ctor, 0},
     {"_plant_TF24_Environment__get_environment_at_height", (DL_FUNC) &_plant_TF24_Environment__get_environment_at_height, 2},

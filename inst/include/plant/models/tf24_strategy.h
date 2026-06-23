@@ -11,6 +11,75 @@
 
 namespace plant {
 
+// Biological (user-settable) parameters for the TF24 strategy. Held as a value
+// member `pars` on TF24_Strategy and exposed to R as a nested RcppR6 list class
+// (access as `s$pars$lma`). Only parameters that were previously exposed to R
+// live here; derived quantities (eta_c, height_0, ...), the embedded Leaf
+// model, solver tolerances and hard-coded hydraulic-root constants stay as
+// plain members on the strategy.
+struct TF24_Pars {
+  // * Core traits
+  double lma       = 0.1978791;  // Leaf mass per area [kg / m2]
+  double rho       = 608.0;      // Wood density [kg/m3]
+  double hmat      = 16.5958691; // Height at maturation [m]
+  double omega     = 3.8e-5;     // Seed mass [kg]
+  // * Individual allometry
+  double eta       = 12.0;       // Canopy shape parameter [dimensionless]
+  double theta     = 1.0/4669;   // Sapwood area per leaf area [dimensionless]
+  double a_l1      = 5.44;       // height with 1m2 leaf [m]
+  double a_l2      = 0.306;      // scaling of height with leaf area
+  double a_r1      = 0.07;       // Root mass per leaf area [kg / m]
+  double a_b1      = 0.17;       // Ratio of bark area : sapwood area
+  // * Production
+  double r_s    = 4012.0 / 608.0; // Sapwood respiration per stem mass
+  double r_b    = 2.0 * r_s;      // Bark respiration (assumed 2 x sapwood)
+  double r_r    = 217.0;          // Root respiration per mass
+  double r_l    = 39.27 / 0.1978791; // Leaf dark respiration per leaf mass
+  double a_y    = 0.7;            // Carbon conversion parameter
+  double a_bio  = 2.45e-2;        // CO2 -> dry mass [kg / mol]
+  double k_l    = 0.4565855;      // Leaf turnover [/yr]
+  double k_b    = 0.2;            // Bark turnover [/yr]
+  double k_s    = 0.2;            // Sapwood turnover [/yr]
+  double k_r    = 1.0;            // Root turnover [/yr]
+  double a_p1   = 151.177775377968;   // LRC hyperbola [mol CO2 / yr / m2]
+  double a_p2   = 0.204716166503633;  // LRC hyperbola shape
+  // * Seed production
+  double a_f3   = 3.0 *  3.8e-5;  // Accessory cost of reproduction [kg/seed]
+  double a_f1   = 1.0;            // Maximum allocation to reproduction
+  double a_f2   = 50;             // Size range across which individuals mature
+  // * Mortality parameters
+  double S_D    = 0.25;           // Probability of survival during dispersal
+  double a_d0   = 0.1;            // Parameter for seedling survival
+  double d_I    = 0.01;           // Baseline intrinsic mortality [/yr]
+  double a_dG1  = 5.5;            // Baseline growth-related mortality [/yr]
+  double a_dG2  = 20.0;           // Risk coefficient for dry mass production
+  // * Light capture
+  double k_I = 0.5;
+  // * Leaf hydraulic / photosynthesis traits (default Eucalyptus saligna)
+  double vcmax_25 = 96;
+  double p_50 = 1.85;
+  double K_s = 1;
+  double c = log(log(1-0.5)/log(1-0.88))/(log(p_50) - log(5.16));
+  double b = p_50 / std::pow(-log(1 - 50.0 / 100.0), 1 / c);
+  double psi_crit = b*std::pow(log(1/0.05),1/c); // derived from b and c
+  double beta1 = 20000;
+  double beta2 = 1.5;
+  double jmax_25 = vcmax_25*1.64;
+  double hk_s = 4;
+  double a = 0.30; // effective quantum yield of electron transport
+  double curv_fact_elec_trans = 0.7;
+  double curv_fact_colim = 0.99;
+  double var_sapwood_volume_cost = 1;
+  // nitrogen allocation traits (parameterised from Austraits 4.1.0)
+  double nmass_l = 13e-3; // kg N kg^-1 mass
+  double nmass_s = 1.98e-3; // kg N kg^-1 mass
+  double nmass_b = 3.40e-3; // kg N kg^-1 mass
+  double nmass_r = 3.35e-3; // kg N kg^-1 mass
+  double dmass_dN = 0; // change in mass per change in kg kg^-1 N
+  // Germination
+  double recruitment_decay = 0.0;
+};
+
 class TF24_Strategy: public Strategy<TF24_Environment> {
 public:
   typedef std::shared_ptr<TF24_Strategy> ptr;
@@ -220,118 +289,33 @@ public:
   // Set constants within TF24_Strategy
   void prepare_strategy();
 
+  // Birth height of a (germinated) seed. Strategy-agnostic accessor used by
+  // the templated Individual; here height_0 is derived in prepare_strategy().
+  double initial_height() const { return height_0; }
+
   // Crown shading model, resolved once from control.shading_model in
   // prepare_strategy(). TF24 supports deep-crown, mean-light (its default)
   // and crown-centre; PPA is not available for TF24.
   ShadingModel shading_model_ = ShadingModel::MeanLight;
 
-  // * Core traits
-  double lma       = 0.1978791;  // Leaf mass per area [kg / m2]
-  double rho       = 608.0;      // Wood density [kg/m3]
-  double hmat      = 16.5958691; // Height at maturation [m]
-  double omega     = 3.8e-5;     // Seed mass [kg]
-  // * Individual allometry
-  // Canopy shape parameters
-  double eta       = 12.0; // [dimensionless]
-  double eta_c     = NA_REAL; // [dimensionless]
-  // Sapwood area per leaf area
-  // Ratio sapwood area area to leaf area
-  double theta     = 1.0/4669; // [dimensionless]
-  // Height - leaf mass scaling
-  double a_l1        = 5.44; // height with 1m2 leaf [m]
-  double a_l2        = 0.306; // dimensionless scaling of height with leaf area
-  // Root mass per leaf area
-  double a_r1        = 0.07;  //[kg / m]
-  // Ratio of bark area : sapwood area
-  double a_b1         = 0.17; // [dimensionless]
+  // Biological (user-settable) parameters; see TF24_Pars above.
+  TF24_Pars pars;
 
-  // * Production
-  // Ratio of leaf dark respiration to leaf mass [mol CO2 / yr  / kg]
-  // =  [mol CO2 / m2 / yr]  |  (39.27 = 2100 * 0.00187)  | narea * photosynthesis_per_nitrogen
-  //    / [kg(leaf) / m2 ]   |    / (0.1978791)           | lma
-  // Hard coded in value of lma here so that this value doesn't change
-  // if that trait changes above.
-  double r_l    = 39.27 / 0.1978791;
-  // Root respiration per mass [mol CO2 / yr / kg]
-  double r_r    = 217.0;
-  // Sapwood respiration per stem mass  [mol CO2 / yr / kg]
-  // = respiration per volume [mol CO2 / m3 / yr]
-  // /  wood density [kg/m3]
-  double r_s    = 4012.0 / 608.0;
-  // Bark respiration per stem mass
-  // assumed to be twice rate of sapwood
-  // (NOTE that there is a re-parametrisation here relative to the paper
-  // -- r_b is defined (new) as 2*r_s, whereas the paper assumes a
-  // fixed multiplication by 2)
-  double r_b    = 2.0 * r_s;
-  // Carbon conversion parameter
-  double a_y    = 0.7;
-  // Constant converting assimilated CO2 to dry mass [kg / mol]
-  // (12E-3 / 0.49)
-  double a_bio  = 2.45e-2;
-  // Leaf turnover [/yr]
-  double k_l    =  0.4565855;
-  // Bark turnover [/yr]
-  double k_b    = 0.2;
-  // Sapwood turnover [/yr]
-  double k_s           = 0.2;
-  // Root turnover [/yr]
-  double k_r    = 1.0;
-  // Parameters of the hyperbola for annual LRC
-  double a_p1   = 151.177775377968; // [mol CO2 / yr / m2]
-  double a_p2   = 0.204716166503633; // [dimensionless]
-
-  // * Seed production
-  // Accessory cost of reproduction
-  double a_f3  = 3.0 *  3.8e-5; // [kg per seed]
-  // Maximum allocation to reproduction
-  double a_f1   = 1.0; //[dimensionless]
-  // Size range across which individuals mature
-  double a_f2   = 50; // [dimensionless]
-
-  // * Mortality parameters
-  // Probability of survival during dispersal
-  double S_D   = 0.25; // [dimensionless]
-  // Parameter for seedling survival
-  double a_d0    = 0.1; //[kg / yr / m2]
-  // Baseline for intrinsic mortality
-  double d_I    = 0.01; // [ / yr]
-  // Baseline rate for growth-related mortality
-  double a_dG1    = 5.5; // [ / yr]
-  // Risk coefficient for dry mass production (per area)
-  double a_dG2    = 20.0;// [yr m2 / kg ]
-
-  // Germination
-  double recruitment_decay = 0.0;
-  
-  // * Light capture parameters
-  double k_I = 0.5;
-
+  // Derived / precomputed in prepare_strategy() (NOT user-set) -------------
+  double eta_c     = NA_REAL; // crown shape factor, precomputed from pars.eta
   // Height and leaf area of a (germinated) seed
   double height_0  = NA_REAL;
   double area_leaf_0;
 
-
+  // Embedded leaf hydraulic/photosynthesis sub-model, built in prepare_strategy()
   Leaf leaf;
 
-  // leaf traits - default values Eucalyptus saligna
-  double vcmax_25 = 96;
-  double p_50 = 1.85;
-  double K_s = 1;
-  double c = log(log(1-0.5)/log(1-0.88))/(log(p_50) - log(5.16));
-  double b = p_50 / std::pow(-log(1 - 50.0 / 100.0), 1 / c);
-  double psi_crit = b*std::pow(log(1/0.05),1/c); // derived from b and c
+  // Hydraulic root parameters (not currently exposed to R; see review #9)
   double root_c = 2.680147;
   double root_b = 3.898245;
-  double root_psi_crit = root_b*std::pow(log(1/0.05),1/root_c); // derived from b and c
-  double beta1 = 20000;
-  double beta2 = 1.5;
-  double jmax_25 = vcmax_25*1.64;
-  double hk_s = 4;
-  double a = 0.30; // effective quantum yield of electron transport  (mol photon mol ^-1 electron)  Sabot et al. 2020
-  double curv_fact_elec_trans = 0.7; 
-  double curv_fact_colim = 0.99; 
-  double var_sapwood_volume_cost = 1; 
+  double root_psi_crit = root_b*std::pow(log(1/0.05),1/root_c); // derived from root_b and root_c
+
+  // Solver tolerances and other constants not currently exposed to R
   double newton_tol_abs = 0.001;
   double GSS_tol_abs = 1e-3;
   double vulnerability_curve_ncontrol = 100;
@@ -340,15 +324,6 @@ public:
   double g1_TF24 = 7.5;
   double beta_R_H = 3.4e2;
   double beta_R_V = 9.4e3;
-
-  //nitrogen allocation traits (parameterised from Austraits 4.1.0)
-  double nmass_l = 13e-3; // kg N kg^-1 mass
-  double nmass_s = 1.98e-3; // kg N kg^-1 mass
-  double nmass_b = 3.40e-3; // kg N kg^-1 mass
-  double nmass_r = 3.35e-3; // kg N kg^-1 mass
-  double dmass_dN = 0; //change in mass per change in kg kg^-1 N
-
-  std::string name;
 
   // Cached aux/state indices, resolved once in refresh_indices(), so the hot
   // compute_rates path does not do a std::map<string,int>::at (string compare)

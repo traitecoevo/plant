@@ -1003,11 +1003,13 @@ Weibull_Disturbance_Regime:
       args: [prob: double]
       return_type: double
 
-FF16_Strategy:
-  name_cpp: "plant::FF16_Strategy"
+FF16_Pars:
+  name_cpp: "plant::FF16_Pars"
   roxygen: |
-    Strategy parameters that tune various aspects of the biological model.
-    @title Strategy parameters
+    Biological trait/parameters for the FF16 strategy. Held as the nested
+    \code{pars} element of an \code{\link{FF16_Strategy}} (access as
+    \code{s$pars$lma}).
+    @title FF16 strategy parameters
     @param ...,values Values to initialise the struct with (either as
     variadic arguments, or as a list, but not both).
     @export
@@ -1044,6 +1046,17 @@ FF16_Strategy:
     - a_dG2: double
     - k_I: double
     - recruitment_decay: double
+
+FF16_Strategy:
+  name_cpp: "plant::FF16_Strategy"
+  roxygen: |
+    Strategy parameters that tune various aspects of the biological model.
+    @title Strategy parameters
+    @param ...,values Values to initialise the struct with (either as
+    variadic arguments, or as a list, but not both).
+    @export
+  list:
+    - pars: "plant::FF16_Pars"
     - control: "plant::Control"
     - collect_all_auxiliary: bool
     - birth_rate_x: std::vector<double>
@@ -1079,11 +1092,13 @@ FF16_Environment:
       type: "plant::ResourceSpline"
       access: field
 
-K93_Strategy:
-  name_cpp: "plant::K93_Strategy"
+K93_Pars:
+  name_cpp: "plant::K93_Pars"
   roxygen: |
-    Strategy parameters that tune various aspects of the biological model.
-    @title Strategy parameters
+    Biological trait/parameters for the K93 strategy. Held as the nested
+    \code{pars} element of a \code{\link{K93_Strategy}} (access as
+    \code{s$pars$b_0}).
+    @title K93 strategy parameters
     @param ...,values Values to initialise the struct with (either as
     variadic arguments, or as a list, but not both).
     @export
@@ -1099,6 +1114,17 @@ K93_Strategy:
     - S_D: double
     - eta: double
     - k_I: double
+
+K93_Strategy:
+  name_cpp: "plant::K93_Strategy"
+  roxygen: |
+    Strategy parameters that tune various aspects of the biological model.
+    @title Strategy parameters
+    @param ...,values Values to initialise the struct with (either as
+    variadic arguments, or as a list, but not both).
+    @export
+  list:
+    - pars: "plant::K93_Pars"
     - control: "plant::Control"
     - birth_rate_x: std::vector<double>
     - birth_rate_y: std::vector<double>
@@ -1146,11 +1172,13 @@ ExtrinsicDrivers:
       return_type: void
       args: [ driver_name: std::string, extrapolate: bool]
 
-TF24_Strategy:
-  name_cpp: "plant::TF24_Strategy"
+TF24_Pars:
+  name_cpp: "plant::TF24_Pars"
   roxygen: |
-    Strategy parameters that tune various aspects of the biological model.
-    @title Strategy parameters
+    Biological trait/parameters for the TF24 strategy. Held as the nested
+    \code{pars} element of a \code{\link{TF24_Strategy}} (access as
+    \code{s$pars$lma}).
+    @title TF24 strategy parameters
     @param ...,values Values to initialise the struct with (either as
     variadic arguments, or as a list, but not both).
     @export
@@ -1206,6 +1234,17 @@ TF24_Strategy:
     - nmass_r: double
     - dmass_dN: double
     - recruitment_decay: double
+
+TF24_Strategy:
+  name_cpp: "plant::TF24_Strategy"
+  roxygen: |
+    Strategy parameters that tune various aspects of the biological model.
+    @title Strategy parameters
+    @param ...,values Values to initialise the struct with (either as
+    variadic arguments, or as a list, but not both).
+    @export
+  list:
+    - pars: "plant::TF24_Pars"
     - control: "plant::Control"
     - collect_all_auxiliary: bool
     - birth_rate_x: std::vector<double>

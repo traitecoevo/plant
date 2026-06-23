@@ -81,30 +81,30 @@ void TF24_Strategy::refresh_indices () {
 
 // [eqn 2] area_leaf (inverse of [eqn 3])
 double TF24_Strategy::area_leaf(double height) const {
-  return pow(height / a_l1, 1.0 / a_l2);
+  return pow(height / pars.a_l1, 1.0 / pars.a_l2);
 }
 
 // [eqn 1] mass_leaf (inverse of [eqn 2])
 double TF24_Strategy::mass_leaf(double area_leaf) const {
-  return area_leaf * lma;
+  return area_leaf * pars.lma;
 }
 
 // [eqn 4] area and mass of sapwood
 double TF24_Strategy::area_sapwood(double area_leaf) const {
-  return area_leaf * theta;
+  return area_leaf * pars.theta;
 }
 
 double TF24_Strategy::mass_sapwood(double area_sapwood, double height) const {
-  return area_sapwood * height * eta_c * rho;
+  return area_sapwood * height * eta_c * pars.rho;
 }
 
 // [eqn 5] area and mass of bark
 double TF24_Strategy::area_bark(double area_leaf) const {
-  return a_b1 * area_leaf * theta;
+  return pars.a_b1 * area_leaf * pars.theta;
 }
 
 double TF24_Strategy::mass_bark(double area_bark, double height) const {
-  return area_bark * height * eta_c * rho;
+  return area_bark * height * eta_c * pars.rho;
 }
 
 double TF24_Strategy::area_stem(double area_bark, double area_sapwood,
@@ -118,7 +118,7 @@ double TF24_Strategy::diameter_stem(double area_stem) const {
 
 // [eqn 7] Mass of (fine) roots
 double TF24_Strategy::mass_root(double area_leaf) const {
-  return a_r1 * area_leaf;
+  return pars.a_r1 * area_leaf;
 }
 
 // [eqn 8] Total mass
@@ -242,11 +242,11 @@ double TF24_Strategy::assimilation(const TF24_Environment& environment,
 // Photosynthetic rate per leaf area
 // `x` is openness, ranging from 0 to 1.
 double TF24_Strategy::assimilation_leaf(double x) const {
-  return a_p1 * x / (x + a_p2);
+  return pars.a_p1 * x / (x + pars.a_p2);
 }
 
 // [eqn 13] Total maintenance respiration
-// NOTE: In contrast with Falster ref model, we do not normalise by a_y*a_bio.
+// NOTE: In contrast with Falster ref model, we do not normalise by pars.a_y*pars.a_bio.
 double TF24_Strategy::respiration(double mass_leaf, double mass_sapwood,
                              double mass_bark, double mass_root) const {
   return respiration_leaf(mass_leaf) +
@@ -256,19 +256,19 @@ double TF24_Strategy::respiration(double mass_leaf, double mass_sapwood,
 }
 
 double TF24_Strategy::respiration_leaf(double mass) const {
-  return r_l * mass;
+  return pars.r_l * mass;
 }
 
 double TF24_Strategy::respiration_bark(double mass) const {
-  return r_b * mass;
+  return pars.r_b * mass;
 }
 
 double TF24_Strategy::respiration_sapwood(double mass) const {
-  return r_s * mass;
+  return pars.r_s * mass;
 }
 
 double TF24_Strategy::respiration_root(double mass) const {
-  return r_r * mass;
+  return pars.r_r * mass;
 }
 
 // [eqn 14] Total turnover
@@ -281,19 +281,19 @@ double TF24_Strategy::turnover(double mass_leaf, double mass_bark,
 }
 
 double TF24_Strategy::turnover_leaf(double mass) const {
-  return k_l * mass;
+  return pars.k_l * mass;
 }
 
 double TF24_Strategy::turnover_bark(double mass) const {
-  return k_b * mass;
+  return pars.k_b * mass;
 }
 
 double TF24_Strategy::turnover_sapwood(double mass) const {
-  return k_s * mass;
+  return pars.k_s * mass;
 }
 
 double TF24_Strategy::turnover_root(double mass) const {
-  return k_r * mass;
+  return pars.k_r * mass;
 }
 
 // [eqn 15] Net production
@@ -302,7 +302,7 @@ double TF24_Strategy::turnover_root(double mass) const {
 // before the minus sign is SCM's N, our `net_mass_production_dt` is SCM's P.
 double TF24_Strategy::net_mass_production_dt_A(double assimilation, double respiration,
                                 double turnover) const {
-  return a_bio * a_y * (assimilation - respiration) - turnover;
+  return pars.a_bio * pars.a_y * (assimilation - respiration) - turnover;
 }
 
 // One shot calculation of net_mass_production_dt
@@ -333,17 +333,17 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   const std::vector<double>& psi_soil = environment.get_soil_water_potential_state();
   
 // find leaf specific max hydraulic conductance (kg m^-2 LA s^-1 MPa ^-1)
-  // K_s: max hydraulic conductivity (kg m^-2 s^-1 MPa^-1),
-  // theta: huber value
+  // pars.K_s: max hydraulic conductivity (kg m^-2 s^-1 MPa^-1),
+  // pars.theta: huber value
   // eta_c: accounts for average position of leaf mass
   // height: maximum plant height
-  const double leaf_specific_conductance_max = K_s * theta / (height * eta_c);
+  const double leaf_specific_conductance_max = pars.K_s * pars.theta / (height * eta_c);
 
   // find sapwood volume per leaf area
-  // theta: huber value
+  // pars.theta: huber value
   // eta_c: accounts for average position of leaf mass
 
-  const double sapwood_volume_per_leaf_area = theta * (height * eta_c);
+  const double sapwood_volume_per_leaf_area = pars.theta * (height * eta_c);
   
   // ----------------------------------------------------------------------
   // ROOT MASS DISTRIBUTION ACROSS SOIL LAYERS
@@ -399,16 +399,16 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   // the radiation argument varies between calls; every other input is
   // depth-independent and already computed above.
   auto optimise_at = [&](double radiation) {
-    leaf.set_physiology(area_leaf_, mass_root_prop_, rho, a_bio, radiation, psi_soil, soil_depths_, leaf_specific_conductance_max, environment.get_atm_vpd(), environment.get_ca(), sapwood_volume_per_leaf_area, environment.get_leaf_temp(), environment.get_atm_o2_kpa(), environment.get_atm_kpa());
+    leaf.set_physiology(area_leaf_, mass_root_prop_, pars.rho, pars.a_bio, radiation, psi_soil, soil_depths_, leaf_specific_conductance_max, environment.get_atm_vpd(), environment.get_ca(), sapwood_volume_per_leaf_area, environment.get_leaf_temp(), environment.get_atm_o2_kpa(), environment.get_atm_kpa());
     leaf.find_root_collar_psi();
   };
 
   // Convert canopy openness (0-1) into absorbed radiation: PPFD attenuated by
-  // the self-shading coefficient k_I. The light floor (1e-4) matches
+  // the self-shading coefficient pars.k_I. The light floor (1e-4) matches
   // compute_average_light_environment().
   const double PPFD = environment.get_PPFD();
   auto radiation_at = [&](double light) {
-    return k_I * std::max(light, 0.0001) * PPFD;
+    return pars.k_I * std::max(light, 0.0001) * PPFD;
   };
 
   // Aggregate the leaf submodel over the crown according to the shading model.
@@ -423,7 +423,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
     optimise_at(radiation_at(environment.get_environment_at_height(height * eta_c)));
   } else if (shading_model_ == ShadingModel::MeanLight) {
     // Leaf-area-weighted mean canopy openness = integral of (light * q) over the
-    // crown (q integrates to one). radiation_at then applies k_I * PPFD, exactly
+    // crown (q integrates to one). radiation_at then applies pars.k_I * PPFD, exactly
     // reproducing TF24's established average_radiation.
     auto f = [&](double x) -> double {
       return compute_average_light_environment(x, height, environment);
@@ -481,7 +481,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
 
 // [eqn 16] Fraction of production allocated to reproduction
 double TF24_Strategy::fraction_allocation_reproduction(double height) const {
-  return a_f1 / (1.0 + exp(a_f2 * (1.0 - height / hmat)));
+  return pars.a_f1 / (1.0 + exp(pars.a_f2 * (1.0 - height / pars.hmat)));
 }
 
 // Fraction of production allocated to growth
@@ -493,7 +493,7 @@ double TF24_Strategy::fraction_allocation_growth(double height) const {
 double TF24_Strategy::fecundity_dt(double net_mass_production_dt,
                                double fraction_allocation_reproduction) const {
   return net_mass_production_dt * fraction_allocation_reproduction /
-    (omega + a_f3);
+    (pars.omega + pars.a_f3);
 }
 
 double TF24_Strategy::darea_leaf_dmass_live(double area_leaf) const {
@@ -504,27 +504,27 @@ double TF24_Strategy::darea_leaf_dmass_live(double area_leaf) const {
 }
 
 double TF24_Strategy::dheight_darea_leaf(double area_leaf) const {
-  return a_l1 * a_l2 * pow(area_leaf, a_l2 - 1);
+  return pars.a_l1 * pars.a_l2 * pow(area_leaf, pars.a_l2 - 1);
 }
 
 // Mass of leaf needed for new unit area leaf, d m_s / d a_l
 double TF24_Strategy::dmass_leaf_darea_leaf(double /* area_leaf */) const {
-  return lma;
+  return pars.lma;
 }
 
 // Mass of stem needed for new unit area leaf, d m_s / d a_l
 double TF24_Strategy::dmass_sapwood_darea_leaf(double area_leaf) const {
-  return rho * eta_c * a_l1 * theta * (a_l2 + 1.0) * pow(area_leaf, a_l2);
+  return pars.rho * eta_c * pars.a_l1 * pars.theta * (pars.a_l2 + 1.0) * pow(area_leaf, pars.a_l2);
 }
 
 // Mass of bark needed for new unit area leaf, d m_b / d a_l
 double TF24_Strategy::dmass_bark_darea_leaf(double area_leaf) const {
-  return a_b1 * dmass_sapwood_darea_leaf(area_leaf);
+  return pars.a_b1 * dmass_sapwood_darea_leaf(area_leaf);
 }
 
 // Mass of root needed for new unit area leaf, d m_r / d a_l
 double TF24_Strategy::dmass_root_darea_leaf(double /* area_leaf */) const {
-  return a_r1;
+  return pars.a_r1;
 }
 
 // Growth rate of basal diameter_stem per unit time
@@ -534,18 +534,18 @@ double TF24_Strategy::ddiameter_stem_darea_stem(double area_stem) const {
 
 // Growth rate of sapwood area at base per unit time
 double TF24_Strategy::area_sapwood_dt(double area_leaf_dt) const {
-  return area_leaf_dt * theta;
+  return area_leaf_dt * pars.theta;
 }
 
 // Note, unlike others, heartwood growth does not depend on leaf area growth, but
 // rather existing sapwood
 double TF24_Strategy::area_heartwood_dt(double area_leaf) const {
-  return k_s * area_sapwood(area_leaf);
+  return pars.k_s * area_sapwood(area_leaf);
 }
 
 // Growth rate of bark area at base per unit time
 double TF24_Strategy::area_bark_dt(double area_leaf_dt) const {
-  return a_b1 * area_leaf_dt * theta;
+  return pars.a_b1 * area_leaf_dt * pars.theta;
 }
 
 // Growth rate of stem basal area per unit time
@@ -605,7 +605,7 @@ double TF24_Strategy::mass_live_given_height(double height) const {
 }
 
 double TF24_Strategy::height_given_mass_leaf(double mass_leaf) const {
-  return a_l1 * pow(mass_leaf / lma, a_l2);
+  return pars.a_l1 * pow(mass_leaf / pars.lma, pars.a_l2);
 }
 
 double TF24_Strategy::mortality_dt(double productivity_area,
@@ -631,22 +631,22 @@ double TF24_Strategy::mortality_dt(double productivity_area,
 }
 
 double TF24_Strategy::mortality_growth_independent_dt() const {
-  return d_I;
+  return pars.d_I;
 }
 
 double TF24_Strategy::mortality_growth_dependent_dt(double productivity_area) const {
-  return a_dG1 * exp(-a_dG2 * productivity_area);
+  return pars.a_dG1 * exp(-pars.a_dG2 * productivity_area);
 }
 
 // [eqn 20] Survival of seedlings during establishment
 double TF24_Strategy::establishment_probability(const TF24_Environment& environment) {
   
-  double decay_over_time = exp(-recruitment_decay * environment.time);
+  double decay_over_time = exp(-pars.recruitment_decay * environment.time);
   
   const double net_mass_production_dt_ =
     net_mass_production_dt(environment, height_0, area_leaf_0, 1.0 / height_0);
   if (net_mass_production_dt_ > 0) {
-    const double tmp = a_d0 * area_leaf_0 / net_mass_production_dt_;
+    const double tmp = pars.a_d0 * area_leaf_0 / net_mass_production_dt_;
     return 1.0 / (tmp * tmp + 1.0) * decay_over_time;
   } else {
     return 0.0;
@@ -654,27 +654,27 @@ double TF24_Strategy::establishment_probability(const TF24_Environment& environm
 }
 
 double TF24_Strategy::compute_competition(double z, double height) const {
-  return k_I * area_leaf(height) * Q(z, height, eta);
+  return pars.k_I * area_leaf(height) * Q(z, height, pars.eta);
 }
 
 // Ratio-first hot-path overload (see header): receives the cached
 // competition_effect (= area_leaf(height)) and height_inverse (= 1/height), so the
 // per-call area_leaf() evaluation and z/height division are hoisted out of the
-// inner competition loop. Reproduces k_I * area_leaf(height) * Q(z, height, eta).
+// inner competition loop. Reproduces pars.k_I * area_leaf(height) * Q(z, height, pars.eta).
 double TF24_Strategy::compute_competition(double z, double area_leaf_,
                                           double height_inverse) const {
   const double u = z * height_inverse;  // z / height
   if (u > 1.0) {
     return 0.0;
   }
-  const double tmp = 1.0 - pow(u, eta);
-  return k_I * area_leaf_ * tmp * tmp;
+  const double tmp = 1.0 - pow(u, pars.eta);
+  return pars.k_I * area_leaf_ * tmp * tmp;
 }
 
 // [eqn  9] Probability density of leaf area at height `z`
 double TF24_Strategy::q(double z, double height) const {
-  const double tmp = pow(z / height, eta);
-  return 2 * eta * (1 - tmp) * tmp / z;
+  const double tmp = pow(z / height, pars.eta);
+  return 2 * pars.eta * (1 - tmp) * tmp / z;
 }
 
 // [eqn 10] ... Fraction of leaf area above height 'z' for an
@@ -690,7 +690,7 @@ double TF24_Strategy::Q(double z, double height, double eta_x) const {
 // (inverse of [eqn 10]; return the height above which fraction 'x' of
 // the leaf mass would be found).
 double TF24_Strategy::Qp(double x, double height) const { // x in [0,1], unchecked.
-  return pow(1 - sqrt(x), (1/eta)) * height;
+  return pow(1 - sqrt(x), (1/pars.eta)) * height;
 }
 
 // The aim is to find a plant height that gives the correct seed mass.
@@ -704,13 +704,13 @@ double TF24_Strategy::height_seed(void) const {
   // absolute maximum height for new seedling, e.g. 1m?
   const double
     h0 = height_given_mass_leaf(std::numeric_limits<double>::min()),
-    h1 = height_given_mass_leaf(omega);
+    h1 = height_given_mass_leaf(pars.omega);
 
   const double tol = control.offspring_production_tol;
   const size_t max_iterations = control.offspring_production_iterations;
 
   auto target = [&] (double x) mutable -> double {
-    return mass_live_given_height(x) - omega;
+    return mass_live_given_height(x) - pars.omega;
   };
 
   return util::uniroot(target, h0, h1, tol, max_iterations);
@@ -739,7 +739,7 @@ void TF24_Strategy::prepare_strategy() {
   }
 
   // NOTE: this pre-computes something to save a very small amount of time
-  eta_c = 1 - 2/(1 + eta) + 1/(1 + 2*eta);
+  eta_c = 1 - 2/(1 + pars.eta) + 1/(1 + 2*pars.eta);
   // NOTE: Also pre-computing, though less trivial
   height_0 = height_seed();
   area_leaf_0 = area_leaf(height_0);
@@ -749,7 +749,7 @@ void TF24_Strategy::prepare_strategy() {
   } else {
     extrinsic_drivers.set_constant("birth_rate", birth_rate_y[0]);
   }
-    leaf = Leaf(vcmax_25,  c,  b, psi_crit, root_c, root_b, root_psi_crit, beta2, jmax_25, hk_s, a, curv_fact_elec_trans,curv_fact_colim, control.GSS_tol_abs,
+    leaf = Leaf(pars.vcmax_25,  pars.c,  pars.b, pars.psi_crit, root_c, root_b, root_psi_crit, pars.beta2, pars.jmax_25, pars.hk_s, pars.a, pars.curv_fact_elec_trans,pars.curv_fact_colim, control.GSS_tol_abs,
            control.vulnerability_curve_ncontrol,
            control.ci_abs_tol,
            control.ci_niter,g1_TF24, beta_R_H, beta_R_V);

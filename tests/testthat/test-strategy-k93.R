@@ -3,7 +3,8 @@
 context("Strategy-K93")
 
 test_that("Defaults", {
-  expected <- list(
+  # Biological parameters now live in the nested `pars` sub-object.
+  expected_pars <- list(
    height_0 = 2.0,
    b_0 = 0.059,
    b_1 = 0.012,
@@ -14,19 +15,24 @@ test_that("Defaults", {
    d_1 = 0.044,
    S_D = 1,
    eta = 12,
-   k_I = 0.01,
-   control = Control(),
-   birth_rate_x = numeric(0), # empty
-   birth_rate_y = c(1.0), 
-   is_variable_birth_rate = FALSE)
+   k_I = 0.01)
 
-  keys <- sort(names(expected))
+  # Top-level strategy fields: the pars sub-object plus infrastructure.
+  expected_top <- c("pars", "control",
+                    "birth_rate_x", "birth_rate_y", "is_variable_birth_rate")
 
   s <- K93_Strategy()
   expect_is(s, "K93_Strategy")
 
-  expect_identical(sort(names(s)), keys)
-  expect_identical(unclass(s)[keys], expected[keys])
+  expect_identical(sort(names(s)), sort(expected_top))
+  expect_identical(s$control, Control())
+  expect_identical(s$birth_rate_x, numeric(0))
+  expect_identical(s$birth_rate_y, c(1.0))
+  expect_identical(s$is_variable_birth_rate, FALSE)
+
+  pars_keys <- sort(names(expected_pars))
+  expect_identical(sort(names(s$pars)), pars_keys)
+  expect_identical(unclass(s$pars)[pars_keys], expected_pars[pars_keys])
 })
 
 test_that("K93 collect_all_auxiliary option", {

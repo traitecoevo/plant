@@ -148,7 +148,7 @@ make_TF24_hyperpar <- function(
   assert_scalar(latitude)
 
   function(m, s, filter=TRUE) {
-    with_default <- function(name, default_value=s[[name]]) {
+    with_default <- function(name, default_value=s$pars[[name]]) {
       rep_len(if (name %in% colnames(m)) m[, name] else default_value,
               nrow(m))
     }
@@ -160,7 +160,7 @@ make_TF24_hyperpar <- function(
     ## Light extinction coefficient: source from the strategy so the
     ## assimilation integral below stays consistent with the canopy
     ## model, rather than carrying a separate hard-coded default here.
-    k_I       <- s$k_I
+    k_I       <- s$pars$k_I
 
     ## lma / leaf turnover relationship:
     k_l   <- B_kl1 * (lma / lma_0) ^ (-B_kl2)
@@ -264,7 +264,7 @@ make_TF24_hyperpar <- function(
         if (any(pos)) {
           eps <- sqrt(.Machine$double.eps)
           x1 <- extra[1, pos]
-          x2 <- unlist(s[names(x1)])
+          x2 <- unlist(s$pars[names(x1)])
           drop <- abs(x1 - x2) < eps & abs(1 - x1/x2) < eps
           if (any(drop)) {
             keep <- setdiff(colnames(extra), names(drop)[drop])
@@ -299,7 +299,7 @@ TF24_expand_state <- function(results) {
 
   for (i in seq_len(results$n_spp)) {
     s <- results$p$strategies[[i]]
-    s$eta_c <- 1 - 2 / (1 + s$eta) + 1 / (1 + 2 * s$eta)
+    eta_c <- 1 - 2 / (1 + s$pars$eta) + 1 / (1 + 2 * s$pars$eta)
 
     data[[i]] <-
       data[[i]] %>%
@@ -308,15 +308,15 @@ TF24_expand_state <- function(results) {
         # ideally wouldn't have to copy them here
         # could we expose them from startegy object
         # and call them directly?
-        area_leaf = (.data$height / s$a_l1)^(1.0 / s$a_l2),
-        mass_leaf = .data$area_leaf * s$lma,
-        area_sapwood = .data$area_leaf * s$theta,
-        mass_sapwood = .data$area_sapwood * .data$height * s$eta_c * s$rho,
-        area_bark = s$a_b1 * .data$area_leaf * s$theta,
-        mass_bark = .data$area_bark * .data$height * s$eta_c * s$rho,
+        area_leaf = (.data$height / s$pars$a_l1)^(1.0 / s$pars$a_l2),
+        mass_leaf = .data$area_leaf * s$pars$lma,
+        area_sapwood = .data$area_leaf * s$pars$theta,
+        mass_sapwood = .data$area_sapwood * .data$height * eta_c * s$pars$rho,
+        area_bark = s$pars$a_b1 * .data$area_leaf * s$pars$theta,
+        mass_bark = .data$area_bark * .data$height * eta_c * s$pars$rho,
         area_stem = .data$area_bark + .data$area_sapwood + .data$area_heartwood,
         diameter_stem = sqrt(4 * .data$area_stem / pi),
-        mass_root = s$a_r1 * .data$area_leaf,
+        mass_root = s$pars$a_r1 * .data$area_leaf,
         mass_live = .data$mass_leaf + .data$mass_sapwood + .data$mass_bark + .data$mass_root,
         mass_total = .data$mass_leaf + .data$mass_bark + .data$mass_sapwood + .data$mass_heartwood + .data$mass_root,
         mass_above_ground = .data$mass_leaf + .data$mass_bark + .data$mass_sapwood + .data$mass_heartwood

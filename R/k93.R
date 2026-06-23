@@ -59,7 +59,7 @@ make_K93_hyperpar <- function(
   assert_scalar(k_I)
 
   function(m, s, filter=TRUE) {
-    with_default <- function(name, default_value=s[[name]]) {
+    with_default <- function(name, default_value=s$pars[[name]]) {
       rep_len(if (name %in% colnames(m)) m[, name] else default_value,
               nrow(m))
     }

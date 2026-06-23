@@ -3105,6 +3105,10 @@ Weibull_Disturbance_Regime__icdf <- function(obj_, prob) {
     .Call('_plant_Weibull_Disturbance_Regime__icdf', PACKAGE = 'plant', obj_, prob)
 }
 
+FF16_Pars__ctor <- function() {
+    .Call('_plant_FF16_Pars__ctor', PACKAGE = 'plant')
+}
+
 FF16_Strategy__ctor <- function() {
     .Call('_plant_FF16_Strategy__ctor', PACKAGE = 'plant')
 }
@@ -3151,6 +3155,10 @@ FF16_Environment__light_availability__get <- function(obj_) {
 
 FF16_Environment__light_availability__set <- function(obj_, value) {
     invisible(.Call('_plant_FF16_Environment__light_availability__set', PACKAGE = 'plant', obj_, value))
+}
+
+K93_Pars__ctor <- function() {
+    .Call('_plant_K93_Pars__ctor', PACKAGE = 'plant')
 }
 
 K93_Strategy__ctor <- function() {
@@ -3219,6 +3227,10 @@ ExtrinsicDrivers__set_variable <- function(obj_, driver_name, x, y) {
 
 ExtrinsicDrivers__set_extrapolate <- function(obj_, driver_name, extrapolate) {
     invisible(.Call('_plant_ExtrinsicDrivers__set_extrapolate', PACKAGE = 'plant', obj_, driver_name, extrapolate))
+}
+
+TF24_Pars__ctor <- function() {
+    .Call('_plant_TF24_Pars__ctor', PACKAGE = 'plant')
 }
 
 TF24_Strategy__ctor <- function() {

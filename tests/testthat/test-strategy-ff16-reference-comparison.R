@@ -7,27 +7,29 @@ test_that("FF16_Strategy parameters agree with reference model", {
   cmp_pars <- cmp$get_parameters()
 
   s <- FF16_Strategy()
+  ## Biological parameters now live in the nested `pars` sub-object.
+  sp <- s$pars
 
   ## Expect that all parameters in the R version are found in the C++
   ## version, *except* for n_area
   v <- setdiff(names(cmp_pars), c("n_area"))
-  expect_true(all(v %in% names(s)))
+  expect_true(all(v %in% names(sp)))
 
-  ## And v.v., except for a few additions:
-  extra <- c("control", "S_D", "collect_all_auxiliary", "recruitment_decay", "birth_rate_x", "birth_rate_y", "is_variable_birth_rate")
-  common <- setdiff(names(s), extra)
-  expect_true(all(extra %in% names(s)))
+  ## And v.v., except for a few additions present in pars but not the reference:
+  extra <- c("S_D", "recruitment_decay")
+  common <- setdiff(names(sp), extra)
+  expect_true(all(extra %in% names(sp)))
   expect_true(all(common %in% names(cmp_pars)))
 
   ## The C++ version should have no NA values by this point.
-  expect_false(any(sapply(s[common], is.na)))
+  expect_false(any(sapply(sp[common], is.na)))
 
   ## And neither should the R version.
   expect_false(any(sapply(cmp_pars, is.na)))
 
 
   ## And demand that all parameters agree.
-  expect_equal(s[v], cmp_pars[v], tolerance=1e-13)
+  expect_equal(sp[v], cmp_pars[v], tolerance=1e-13)
 })
 
 test_that("Reference comparison", {
@@ -82,7 +84,7 @@ test_that("Reference comparison", {
   
   ## The R model computes A_lf * area_leaf * a_y * a_bio, wheras we just
   ## compute A_lf; will have to correct some numbers.
-  cmp_const <- s$a_y * s$a_bio
+  cmp_const <- s$pars$a_y * s$pars$a_bio
 
   ## TODO(#482): Check what growth variables look like before running
   ## through with environment.  Most are NA_real_, but some are not

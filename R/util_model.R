@@ -26,7 +26,12 @@ strategy_list <- function(x, parameters, hyperpar=param_hyperpar(parameters), bi
 
   trait_names <- colnames(x)
   f <- function(xi, br) {
-    strategy[trait_names] <- xi
+    # Every column produced by hyperpar() is a biological parameter, which now
+    # lives in the nested `pars` sub-object. Copy-back form: active/nested list
+    # access returns a copy, so modify it then assign it back.
+    pars <- strategy$pars
+    pars[trait_names] <- xi
+    strategy$pars <- pars
     if (is.list(br)) {
       strategy$birth_rate_x <- br$x
       strategy$birth_rate_y <- br$y

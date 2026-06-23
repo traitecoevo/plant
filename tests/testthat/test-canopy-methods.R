@@ -68,7 +68,7 @@ test_that("per-plant competition is identical across models (all use smooth Q)",
 
 test_that("flat-top-box casts a step competition profile, unlike crown-centre", {
   h <- 10
-  eta_c <- local({ eta <- FF16_Strategy()$eta; 1 - 2 / (1 + eta) + 1 / (1 + 2 * eta) })
+  eta_c <- local({ eta <- FF16_Strategy()$pars$eta; 1 - 2 / (1 + eta) + 1 / (1 + 2 * eta) })
   zs <- seq(0, h, length.out = 41)
 
   smooth <- sapply(zs, function(z) make_ind("crown-centre", h)$compute_competition(z))

@@ -5,17 +5,8 @@
 namespace plant {
 
 K93_Strategy::K93_Strategy() {
-   // * Empirical parameters - Table 1.
-   height_0 = 2.0; // Height at birth
-   b_0 = 0.059;    // Growth intercept year-1
-   b_1 = 0.012;    // Growth asymptote year-1.(ln cm)-1
-   b_2 = 0.00041;  // Growth suppression rate m2.cm-2.year-1
-   c_0 = 0.008;    // Mortality intercept year-1
-   c_1 = 0.00044;  // Mortality suppression rate m2.cm-2.year-1
-   d_0 = 0.00073;  // Recruitment rate (cm2.year-1)
-   d_1 = 0.044;    // Recruitment suppression rate (m2.cm-2)
-   eta = 12;       // Canopy shape parameter
-   k_I = 0.01;     // Scaling factor for competition
+   // Empirical parameter defaults (Table 1) live in the K93_Pars struct
+   // member initialisers.
 
    // build the string state/aux name to index map
    refresh_indices();
@@ -28,13 +19,13 @@ void K93_Strategy::update_dependent_aux(const int index, Internals& vars) {
     double height = vars.state(HEIGHT_INDEX);
     vars.set_aux(COMPETITION_EFFECT_AUX_INDEX,
                  compute_competition_by_ratio(
-                   0.0, k_I * size_to_basal_area(height)));
+                   0.0, pars.k_I * size_to_basal_area(height)));
     vars.set_aux(HEIGHT_INVERSE_AUX_INDEX, 1.0 / height);
   }
 }
 
 double K93_Strategy::compute_competition(double z, double size) const {
-  return compute_competition(z, k_I * size_to_basal_area(size), 1.0 / size);
+  return compute_competition(z, pars.k_I * size_to_basal_area(size), 1.0 / size);
 }
 
 // compute_competition(z, whole_plant_competition, height_inverse) and
@@ -96,7 +87,7 @@ void K93_Strategy::compute_rates(const K93_Environment& environment, Internals& 
   // back transform to basal area and add suppression from self
   double competition = environment.get_environment_at_height(height);
 
-  double cumulative_basal_area = -log(competition) / k_I;
+  double cumulative_basal_area = -log(competition) / pars.k_I;
 
   if (!util::is_finite(cumulative_basal_area))
   {
@@ -121,7 +112,7 @@ double K93_Strategy::size_to_basal_area(double size) const {
 double K93_Strategy::size_dt(double size,
                              double cumulative_basal_area) const {
 
-  double growth = size * (b_0 - b_1 * log(size) - b_2 * cumulative_basal_area);
+  double growth = size * (pars.b_0 - pars.b_1 * log(size) - pars.b_2 * cumulative_basal_area);
 
   if(growth < 0.0) {
     growth = 0.0;
@@ -134,7 +125,7 @@ double K93_Strategy::size_dt(double size,
 double K93_Strategy::fecundity_dt(double size,
                                   double cumulative_basal_area) const {
   double basal_area = size_to_basal_area(size);
-  return d_0 * basal_area * exp(-d_1 * cumulative_basal_area);
+  return pars.d_0 * basal_area * exp(-pars.d_1 * cumulative_basal_area);
 }
 
 // [eqn 11] Mortality
@@ -144,7 +135,7 @@ double K93_Strategy::mortality_dt(double cumulative_basal_area,
   // calculations break.  Setting them to zero gives the correct
   // behaviour.
   if (util::is_finite(cumulative_mortality)) {
-    double mu = -c_0 + c_1 * cumulative_basal_area;
+    double mu = -pars.c_0 + pars.c_1 * cumulative_basal_area;
     return (mu > 0)? mu:0.0;
  } else {
     return 0.0;
@@ -153,7 +144,7 @@ double K93_Strategy::mortality_dt(double cumulative_basal_area,
 
 // useful for pre-computing expensive objects
 void K93_Strategy::prepare_strategy() {
-  canopy_shape.initialise(eta);
+  canopy_shape.initialise(pars.eta);
 
   if (is_variable_birth_rate) {
     extrinsic_drivers.set_variable("birth_rate", birth_rate_x, birth_rate_y);
