@@ -46,6 +46,13 @@ standard function for this strategy type.}
 \code{\link{generate_strategy}}.}
 
 \item{keep_existing}{Should existing resident strategies be retained?}
+
+\item{trait_matrix}{Deprecated (\code{expand_parameters}/\code{mutant_parameters});
+use \code{traits}.}
+
+\item{birth_rate_list}{Deprecated; use \code{birth_rate}.}
+
+\item{keep_existing_strategies}{Deprecated; use \code{keep_existing}.}
 }
 \description{
 Add strategies to a \code{Parameters} object. \code{add_strategies} appends

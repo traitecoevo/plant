@@ -32,6 +32,12 @@ vector (constant birth rate, set as \code{strategy$birth_rate_y}) or a
 list with \code{x}, \code{y} control points (a varying birth rate, which
 also sets \code{strategy$birth_rate_x} and
 \code{is_variable_birth_rate = TRUE}).}
+
+\item{x}{Deprecated (\code{strategy_list}); use \code{traits}.}
+
+\item{parameters}{Deprecated (\code{strategy_list}); use \code{p}.}
+
+\item{birth_rate_list}{Deprecated; use \code{birth_rate}.}
 }
 \description{
 Convert a matrix of trait values into a list of \code{Strategy} objects,

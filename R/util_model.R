@@ -17,6 +17,9 @@
 ##'   list with \code{x}, \code{y} control points (a varying birth rate, which
 ##'   also sets \code{strategy$birth_rate_x} and
 ##'   \code{is_variable_birth_rate = TRUE}).
+##' @param x Deprecated (\code{strategy_list}); use \code{traits}.
+##' @param parameters Deprecated (\code{strategy_list}); use \code{p}.
+##' @param birth_rate_list Deprecated; use \code{birth_rate}.
 ##'
 ##' @export
 ##' @rdname generate_strategy
@@ -84,6 +87,10 @@ trait_matrix <- function(x, trait_name) {
 ##' @param birth_rate Birth rate(s), one per row of \code{traits}. See
 ##'   \code{\link{generate_strategy}}.
 ##' @param keep_existing Should existing resident strategies be retained?
+##' @param trait_matrix Deprecated (\code{expand_parameters}/\code{mutant_parameters});
+##'   use \code{traits}.
+##' @param birth_rate_list Deprecated; use \code{birth_rate}.
+##' @param keep_existing_strategies Deprecated; use \code{keep_existing}.
 ##' @export
 ##' @rdname add_strategies
 add_strategies <- function(p, traits, hyperpar = param_hyperpar(p),
