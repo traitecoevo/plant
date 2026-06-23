@@ -93,12 +93,12 @@ A minimal example, growing a patch of competing plants with the default `FF16` m
 ```r
 library(plant)
 
-# Set up parameters for the default FF16 model
+# Set up parameters for the default FF16 model and add a strategy
 p <- scm_base_parameters("FF16")
-p <- expand_parameters(trait_matrix(0.0825, "lma"), p)
+p <- add_strategies(p, trait_matrix(0.0825, "lma"))
 
 # Run the deterministic (method-of-characteristics) solver and collect output
-results <- run_scm_collect(p)
+results <- run_scm(p, collect = TRUE)
 ```
 
 If you want to develop or extend `plant` (e.g. add a new strategy/model), see [agents.md](agents.md) and the `plant-new-strategy` skill (`.claude/skills/plant-new-strategy/`).
