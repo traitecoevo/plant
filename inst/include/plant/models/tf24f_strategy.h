@@ -13,13 +13,34 @@ namespace plant {
 // TF24_Strategy and reuses TF24_Environment + TF24_Pars; only the leaf-solve
 // hook and the extra state are overridden.
 //
-// Phase A: pure inheritance skeleton — overrides nothing behaviourally, so a
-// TF24f run reproduces TF24 exactly. The acclimation biology is added in later
-// phases.
+// Phase B: adds one extra ODE state, opt_root_psi_state, that will track the
+// optimal root-collar water potential. For now it is inert (rate 0, no
+// feedback), so the five states shared with TF24 evolve identically; the
+// gradient-ascent dynamics are added in Phase C.
 class TF24f_Strategy : public TF24_Strategy {
 public:
   typedef std::shared_ptr<TF24f_Strategy> ptr;
   TF24f_Strategy();
+
+  // TF24's five states + the tracked root-collar psi (appended last so the
+  // inherited state indices 0..4 are unchanged). state_size()/state_names() are
+  // static and resolved on the concrete type by Individual<TF24f, ...>.
+  static size_t state_size() { return TF24_Strategy::state_size() + 1; }
+  static std::vector<std::string> state_names() {
+    std::vector<std::string> ret = TF24_Strategy::state_names();
+    ret.push_back("opt_root_psi_state");
+    return ret;
+  }
+
+  // Re-register indices including the new state slot. Base refresh_indices()
+  // calls the *static* (base) state_names(), so it would otherwise miss the
+  // appended state; we call it then add the extra slot.
+  void refresh_indices();
+
+  void compute_rates(const TF24_Environment& environment, Internals& vars);
+
+  // Cached slot for the tracked state, resolved in refresh_indices().
+  int state_idx_opt_root_psi_state = -1;
 };
 
 TF24f_Strategy::ptr make_strategy_ptr(TF24f_Strategy s);
