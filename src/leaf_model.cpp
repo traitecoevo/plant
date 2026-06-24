@@ -1067,6 +1067,13 @@ void Leaf::set_leaf_states_rates_from_psi_stem(double psi_stem, double psi_upstr
 // Sperry et al. 2017; Sabot et al. 2020 implementation
 
 double Leaf::hydraulic_cost_Sperry(double psi_stem, double psi_upstream) {
+  // Cost is definitionally zero when the potentials are equal. Returning it
+  // explicitly avoids a tiny non-zero residual from FMA contraction of the
+  // k_l_soil_ - k_l_stem_ subtraction (arch-dependent; see arm64 build, #468).
+  if (psi_stem == psi_upstream) {
+    hydraulic_cost_ = 0.0;
+    return hydraulic_cost_;
+  }
   double k_l_soil_ = leaf_specific_conductance_max_ * proportion_of_conductivity(psi_upstream);
   double k_l_stem_ = leaf_specific_conductance_max_ * proportion_of_conductivity(psi_stem);
   
