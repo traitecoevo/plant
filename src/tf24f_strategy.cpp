@@ -38,12 +38,30 @@ void TF24f_Strategy::compute_rates(const TF24_Environment& environment,
 // at 0), pulling it back inside. The final evaluate leaves the leaf outputs at
 // the operating point that compute_rates' aux reads expect.
 void TF24f_Strategy::solve_leaf() {
+  if (initializing_) {
+    // Birth initialisation: run the full optimiser so set_initial_states can
+    // read the optimum collar psi.
+    leaf.find_root_collar_psi();
+    return;
+  }
   const double h = psi_fd_step;
   const double p0 = leaf.evaluate_root_collar_psi(tracked_root_psi_);
   const double used = -leaf.root_collar_psi_;
   const double p1 = leaf.evaluate_root_collar_psi(used + h);
   dprofit_dpsi_ = (p1 - p0) / h;
   leaf.evaluate_root_collar_psi(used);
+}
+
+// Seed the tracked state at its optimum: run the base optimiser once (via the
+// initializing_ flag, which makes solve_leaf optimise rather than track) and
+// store the resulting collar psi as the initial state. leaf.root_collar_psi_ is
+// the signed (negative) potential; the tracked state is the positive magnitude.
+void TF24f_Strategy::set_initial_states(const TF24_Environment& environment,
+                                        Internals& vars) {
+  initializing_ = true;
+  net_mass_production_dt(environment, vars);
+  initializing_ = false;
+  vars.set_state(state_idx_opt_root_psi_state, -leaf.root_collar_psi_);
 }
 
 TF24f_Strategy::ptr make_strategy_ptr(TF24f_Strategy s) {

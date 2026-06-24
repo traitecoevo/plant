@@ -54,6 +54,17 @@ public:
 
   void update_dependent_aux(const int index, Internals& vars);
 
+  // Seed strategy-specific initial ODE states for a newly introduced individual,
+  // given its birth environment (called once from Node::compute_initial_conditions
+  // before the first compute_rates). Default no-op; strategies that carry an
+  // acclimating/tracked state (e.g. TF24f, #525) override this to initialise it at
+  // its optimum so there is no birth transient. Resolved on the concrete strategy
+  // type by Individual<T,E>, so overriding it here is not required to be virtual.
+  void set_initial_states(const environment_type& environment, Internals& vars) {
+    (void)environment;
+    (void)vars;
+  }
+
   double net_mass_production_dt(const environment_type& environment,
                                 double size, double competition_effect_);
 

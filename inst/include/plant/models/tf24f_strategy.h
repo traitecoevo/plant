@@ -44,6 +44,12 @@ public:
   // (left in dprofit_dpsi_ for compute_rates to turn into the state's rate).
   void solve_leaf();
 
+  // Seed the tracked state at its optimum for a newly introduced individual, so
+  // gradient ascent starts at the optimum (no birth transient / no climb from 0,
+  // which otherwise lets shaded recruits escape suppression). Runs the base
+  // optimiser once via the initializing_ flag below.
+  void set_initial_states(const TF24_Environment& environment, Internals& vars);
+
   // Acclimation gain k in  dpsi/dt = k * d(profit)/d(psi). Exposed to R so the
   // stiffness / accuracy-vs-speed k-sweep (#525) can be driven without a rebuild;
   // large k recovers the quasi-steady-state (TF24) optimum.
@@ -59,6 +65,9 @@ public:
   // establishment_probability), where the tracked state has not been read yet.
   double tracked_root_psi_ = 0.0;
   double dprofit_dpsi_ = 0.0;
+  // When true, solve_leaf() runs the base optimiser (find_root_collar_psi) rather
+  // than the tracked evaluation; used by set_initial_states to read the optimum.
+  bool initializing_ = false;
 };
 
 TF24f_Strategy::ptr make_strategy_ptr(TF24f_Strategy s);

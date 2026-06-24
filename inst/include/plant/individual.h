@@ -70,6 +70,12 @@ public:
     return strategy->compute_competition(z, vars);
   }
 
+  // Seed strategy-specific initial ODE states (e.g. an acclimating tracked
+  // state) given the birth environment. No-op for strategies that don't need it.
+  void set_initial_states(const environment_type& environment) {
+    strategy->set_initial_states(environment, vars);
+  }
+
   void compute_rates(const environment_type& environment) {
     if (vars.resource_size != environment.ode_size()) {
       // handles when Individual hasn't been instantiated in a Patch (ie with an environment)

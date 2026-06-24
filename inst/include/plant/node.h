@@ -161,6 +161,10 @@ template <typename T, typename E>
 void Node<T,E>::compute_initial_conditions(const environment_type& environment,
                                              double pr_patch_survival, double birth_rate) {
   pr_patch_survival_at_birth = pr_patch_survival;
+  // Seed strategy-specific initial states (e.g. TF24f's tracked psi at its
+  // optimum) before the first rates evaluation, so the birth growth rate uses
+  // the initialised operating point rather than a default.
+  individual.set_initial_states(environment);
   compute_rates(environment, pr_patch_survival);
 
   const double pr_estab = individual.establishment_probability(environment);
