@@ -207,6 +207,7 @@ OdeRunner:
     concrete:
       - ["FF16": "plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment>"]
       - ["TF24": "plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment>"]
+      - ["TF24f": "plant::tools::IndividualRunner<plant::TF24f_Strategy, plant::TF24_Environment>"]
       - ["K93": "plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment>"]
   constructor:
     args: [obj: T, control: "odelia::ode::OdeControl=OdeControl()"]
@@ -384,6 +385,7 @@ Individual:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
+      - ["TF24f": "plant::TF24f_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [s: T]
@@ -442,6 +444,7 @@ IndividualRunner:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
+      - ["TF24f": "plant::TF24f_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     name_cpp: "plant::tools::IndividualRunner<T,E>"
@@ -495,6 +498,7 @@ Parameters:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
+      - ["TF24f": "plant::TF24f_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   validator:
     name_cpp: validate
@@ -522,6 +526,7 @@ Node:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
+      - ["TF24f": "plant::TF24f_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     name_cpp: "plant::make_node<T,E>"
@@ -557,6 +562,7 @@ Species:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
+      - ["TF24f": "plant::TF24f_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [strategy: T]
@@ -604,6 +610,7 @@ Patch:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
+      - ["TF24f": "plant::TF24f_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args:
@@ -675,6 +682,7 @@ SCM:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
+      - ["TF24f": "plant::TF24f_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args:
@@ -755,6 +763,7 @@ StochasticSpecies:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
+      - ["TF24f": "plant::TF24f_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [strategy: "T"]
@@ -799,6 +808,7 @@ StochasticPatch:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
+      - ["TF24f": "plant::TF24f_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args:
@@ -867,6 +877,7 @@ StochasticPatchRunner:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
+      - ["TF24f": "plant::TF24f_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args:
@@ -1344,3 +1355,22 @@ TF24_Environment:
       type: "plant::Internals"
       access: member
       name_cpp: "r_internals"
+
+# The following strategy was built from TF24 on Thu Jun 25 06:01:09 2026.
+# TF24f inherits TF24_Strategy (see inst/include/plant/models/tf24f_strategy.h)
+# and reuses TF24_Pars, so no separate TF24f_Pars class is generated.
+TF24f_Strategy:
+  name_cpp: "plant::TF24f_Strategy"
+  roxygen: |
+    Strategy parameters that tune various aspects of the biological model.
+    @title Strategy parameters
+    @param ...,values Values to initialise the struct with (either as
+    variadic arguments, or as a list, but not both).
+    @export
+  list:
+    - pars: "plant::TF24_Pars"
+    - control: "plant::Control"
+    - collect_all_auxiliary: bool
+    - birth_rate_x: std::vector<double>
+    - birth_rate_y: std::vector<double>
+    - is_variable_birth_rate: bool

@@ -38,6 +38,7 @@ get_list_of_strategy_types <- function() {
   list(
     FF16=FF16_Strategy,
     TF24=TF24_Strategy,
+    TF24f=TF24f_Strategy,
     K93=K93_Strategy
     )
 }
@@ -46,6 +47,7 @@ get_list_of_environment_types <- function() {
   list(
     FF16="FF16_Env",
     TF24="TF24_Env",
+    TF24f="TF24_Env",
     K93="K93_Env"
     )
 }
@@ -55,6 +57,7 @@ get_list_of_hyperpar_functions <- function() {
   list(
     FF16=FF16_hyperpar,
     TF24=TF24_hyperpar,
+    TF24f=TF24f_hyperpar,
     K93=K93_hyperpar
     )
 }

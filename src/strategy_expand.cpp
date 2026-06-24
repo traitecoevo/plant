@@ -88,3 +88,12 @@ Rcpp::List TF24_strategy_expand_allometry(plant::TF24_Strategy s,
   return plant::strategy_expand_allometry_impl(s, height, area_heartwood,
                                                mass_heartwood);
 }
+
+// [[Rcpp::export]]
+Rcpp::List TF24f_strategy_expand_allometry(plant::TF24f_Strategy s,
+                                          Rcpp::NumericVector height,
+                                          Rcpp::NumericVector area_heartwood,
+                                          Rcpp::NumericVector mass_heartwood) {
+  return plant::strategy_expand_allometry_impl(s, height, area_heartwood,
+                                               mass_heartwood);
+}
