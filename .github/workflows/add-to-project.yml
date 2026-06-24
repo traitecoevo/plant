@@ -14,7 +14,8 @@ jobs:
           project-url: https://github.com/orgs/traitecoevo/projects/5
           github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
 
-      - name: Label issue as task
+      - name: Label issue as task (only if opened with no label)
+        if: ${{ github.event.issue.labels[0] == null }}
         uses: actions/github-script@v7
         with:
           script: |
