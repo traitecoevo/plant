@@ -108,7 +108,7 @@ add_strategies <- function(p, traits, hyperpar = param_hyperpar(p),
   if (length(p$strategies) == 0L) {
     times_new <- p$node_schedule_times_default
   } else {
-    ## if residnets are present, use all unique times of all residents
+    ## if residents are present, use all unique times of all residents
     times_new <- unique(sort(unlist(p$node_schedule_times)))
   }
 

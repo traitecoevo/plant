@@ -19,6 +19,9 @@ Rcpp::List strategy_expand_allometry_impl(S s,
   s.prepare_strategy();
 
   const R_xlen_t n = height.size();
+  if (area_heartwood.size() != n || mass_heartwood.size() != n) {
+    Rcpp::stop("height, area_heartwood and mass_heartwood must have equal length");
+  }
   Rcpp::NumericVector area_leaf(n), mass_leaf(n), area_sapwood(n),
     mass_sapwood(n), area_bark(n), mass_bark(n), area_stem(n),
     diameter_stem(n), mass_root(n), mass_live(n), mass_total(n),

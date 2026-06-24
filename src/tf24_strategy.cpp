@@ -749,11 +749,12 @@ void TF24_Strategy::prepare_strategy() {
   } else {
     extrinsic_drivers.set_constant("birth_rate", birth_rate_y[0]);
   }
-    leaf = Leaf(pars.vcmax_25,  pars.c,  pars.b, pars.psi_crit, root_c, root_b, root_psi_crit, pars.beta2, pars.jmax_25, pars.hk_s, pars.a, pars.curv_fact_elec_trans,pars.curv_fact_colim, control.GSS_tol_abs,
-           control.vulnerability_curve_ncontrol,
-           control.ci_abs_tol,
-           control.ci_niter,g1_TF24, beta_R_H, beta_R_V);
-   // set phsyiology possibly here?        
+  leaf = Leaf(pars.vcmax_25, pars.c, pars.b, pars.psi_crit, root_c, root_b,
+              root_psi_crit, pars.beta2, pars.jmax_25, pars.hk_s, pars.a,
+              pars.curv_fact_elec_trans, pars.curv_fact_colim,
+              control.GSS_tol_abs, control.vulnerability_curve_ncontrol,
+              control.ci_abs_tol, control.ci_niter, g1_TF24, beta_R_H,
+              beta_R_V);
 }
 
 TF24_Strategy::ptr make_strategy_ptr(TF24_Strategy s) {
