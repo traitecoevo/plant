@@ -39,8 +39,26 @@ public:
 
   void compute_rates(const TF24_Environment& environment, Internals& vars);
 
+  // Override the leaf solve: instead of optimising the root-collar psi, evaluate
+  // the leaf at the tracked state and finite-difference the profit gradient
+  // (left in dprofit_dpsi_ for compute_rates to turn into the state's rate).
+  void solve_leaf();
+
+  // Acclimation gain k in  dpsi/dt = k * d(profit)/d(psi). Exposed to R so the
+  // stiffness / accuracy-vs-speed k-sweep (#525) can be driven without a rebuild;
+  // large k recovers the quasi-steady-state (TF24) optimum.
+  double k_acclim = 1.0;
+  // Finite-difference step (positive magnitude, MPa) for d(profit)/d(psi).
+  double psi_fd_step = 1e-3;
+
   // Cached slot for the tracked state, resolved in refresh_indices().
   int state_idx_opt_root_psi_state = -1;
+
+  // Channel between solve_leaf() (writes) and compute_rates() (reads). Default is
+  // finite so solve_leaf is safe before the first compute_rates (e.g. during
+  // establishment_probability), where the tracked state has not been read yet.
+  double tracked_root_psi_ = 0.0;
+  double dprofit_dpsi_ = 0.0;
 };
 
 TF24f_Strategy::ptr make_strategy_ptr(TF24f_Strategy s);

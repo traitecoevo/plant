@@ -1374,3 +1374,5 @@ TF24f_Strategy:
     - birth_rate_x: std::vector<double>
     - birth_rate_y: std::vector<double>
     - is_variable_birth_rate: bool
+    - k_acclim: double
+    - psi_fd_step: double

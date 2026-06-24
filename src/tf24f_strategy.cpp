@@ -19,12 +19,31 @@ void TF24f_Strategy::refresh_indices() {
   state_idx_opt_root_psi_state = idx;
 }
 
-// Reuse TF24's rates for the five shared states, then set the tracked state's
-// rate. Phase B: inert (0) — no acclimation dynamics yet.
+// Reuse TF24's rates for the five shared states; the tracked-state value is fed
+// to solve_leaf() (called from the reused net_mass_production_dt) via
+// tracked_root_psi_, and the resulting profit gradient comes back in
+// dprofit_dpsi_, which becomes the tracked state's rate (gradient ascent).
 void TF24f_Strategy::compute_rates(const TF24_Environment& environment,
                                    Internals& vars) {
+  tracked_root_psi_ = vars.state(state_idx_opt_root_psi_state);
   TF24_Strategy::compute_rates(environment, vars);
-  vars.set_rate(state_idx_opt_root_psi_state, 0.0);
+  vars.set_rate(state_idx_opt_root_psi_state, k_acclim * dprofit_dpsi_);
+}
+
+// Track instead of optimise: evaluate the leaf at the tracked collar psi and
+// finite-difference the profit gradient. evaluate_root_collar_psi clamps to the
+// feasible interval, so we perturb from the *clamped* operating value (read back
+// as -root_collar_psi_); this keeps the gradient meaningful even when the
+// tracked state sits outside the feasible interval (e.g. an uninitialised state
+// at 0), pulling it back inside. The final evaluate leaves the leaf outputs at
+// the operating point that compute_rates' aux reads expect.
+void TF24f_Strategy::solve_leaf() {
+  const double h = psi_fd_step;
+  const double p0 = leaf.evaluate_root_collar_psi(tracked_root_psi_);
+  const double used = -leaf.root_collar_psi_;
+  const double p1 = leaf.evaluate_root_collar_psi(used + h);
+  dprofit_dpsi_ = (p1 - p0) / h;
+  leaf.evaluate_root_collar_psi(used);
 }
 
 TF24f_Strategy::ptr make_strategy_ptr(TF24f_Strategy s) {

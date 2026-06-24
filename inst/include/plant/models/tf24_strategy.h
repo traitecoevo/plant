@@ -214,6 +214,14 @@ public:
   virtual double net_mass_production_dt(const TF24_Environment& environment,
                                 double height, double area_leaf_,
                                 double height_inverse);
+
+  // Resolve the leaf operating point on the already-set-up `leaf` (i.e. after
+  // leaf.set_physiology(...)). Base TF24 optimises the root-collar psi via
+  // golden-section search; the TF24f variant overrides this to make the optimum
+  // chase a tracked ODE state (#525). Called per crown light point from
+  // net_mass_production_dt, so it must be virtual to dispatch to the override
+  // when net_mass_production_dt is reused unchanged by the subclass.
+  virtual void solve_leaf();
   // Strategy-agnostic entry point used by Individual<TF24> (#266): reads the
   // height state and the cached aux slots itself, so the generic Individual
   // does not need to know TF24's state/aux layout.

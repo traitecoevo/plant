@@ -1445,6 +1445,8 @@ template <> inline SEXP wrap(const plant::TF24f_Strategy& x) {
   ret["birth_rate_x"] = Rcpp::wrap(x.birth_rate_x);
   ret["birth_rate_y"] = Rcpp::wrap(x.birth_rate_y);
   ret["is_variable_birth_rate"] = Rcpp::wrap(x.is_variable_birth_rate);
+  ret["k_acclim"] = Rcpp::wrap(x.k_acclim);
+  ret["psi_fd_step"] = Rcpp::wrap(x.psi_fd_step);
   ret.attr("class") = "TF24f_Strategy";
   return ret;
 }
@@ -1469,6 +1471,10 @@ template <> inline plant::TF24f_Strategy as(SEXP x) {
   ret.birth_rate_y = Rcpp::as<std::vector<double> >(xl["birth_rate_y"]);
   // ret.is_variable_birth_rate = Rcpp::as<decltype(retis_variable_birth_rate) >(xl["is_variable_birth_rate"]);
   ret.is_variable_birth_rate = Rcpp::as<bool >(xl["is_variable_birth_rate"]);
+  // ret.k_acclim = Rcpp::as<decltype(retk_acclim) >(xl["k_acclim"]);
+  ret.k_acclim = Rcpp::as<double >(xl["k_acclim"]);
+  // ret.psi_fd_step = Rcpp::as<decltype(retpsi_fd_step) >(xl["psi_fd_step"]);
+  ret.psi_fd_step = Rcpp::as<double >(xl["psi_fd_step"]);
   return ret;
 }
 }

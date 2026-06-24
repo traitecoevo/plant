@@ -655,8 +655,14 @@ void Leaf::set_shutdown_state(double root_collar) {
   profit_ = -R_d_ - hydraulic_cost_TF(psi_crit);
 }
 
-void Leaf::find_root_collar_psi(){
-
+// Shared setup + feasibility handling for the root-collar solve. Extracted
+// verbatim from find_root_collar_psi (no reordering of floating-point ops, so
+// the TF24 optimisation path stays bit-identical) and reused by
+// evaluate_root_collar_psi. Returns false when the final operating point is
+// already determined here (shutdown / assim<0 / collapsed interval) and the
+// caller should stop; returns true with [bound_a, bound_b] set to the feasible
+// collar-potential interval (positive magnitudes) otherwise.
+bool Leaf::prepare_collar_solve(double& bound_a, double& bound_b){
 
   // psi_soil_ arrives as positive magnitudes; flip once to the signed (negative)
   // potential convention used throughout the soil->collar transport (see the
@@ -675,22 +681,22 @@ void Leaf::find_root_collar_psi(){
     wettest_soil_layer = std::max(wettest_soil_layer, psi_inverted);
   }
 
-  // Avoid loop if the wettest psi layer is drier than psi_crit in stem, transpiration not possible and so all variables set to 
+  // Avoid loop if the wettest psi layer is drier than psi_crit in stem, transpiration not possible and so all variables set to
   // shut down
 
   if (-wettest_soil_layer >= psi_crit){
     set_shutdown_state(-psi_crit);
-    return;
+    return false;
   }
 
 if(E_column(-psi_crit, psi_soil_inverted_, psi_crit) < 0){
       // root_collar_psi_ is reported as a signed (negative) potential, so store
       // -root_psi_crit rather than the positive magnitude root_psi_crit.
       set_shutdown_state(-root_psi_crit);
-      return;
+      return false;
 }
 
-  // Avoid loop if the wettest psi layer is drier than psi_crit in stem, transpiration not possible and so all variables set to 
+  // Avoid loop if the wettest psi layer is drier than psi_crit in stem, transpiration not possible and so all variables set to
   // shut down
 double root_crit = find_root_psi(wettest_soil_layer, psi_soil_inverted_, 1);
 
@@ -698,7 +704,7 @@ double root_crit = find_root_psi(wettest_soil_layer, psi_soil_inverted_, 1);
 
     if (-root_crit >= psi_crit){
     set_shutdown_state(root_crit);
-    return;
+    return false;
   }
 
 // Find root collar where transpiration from soil is 0
@@ -721,14 +727,14 @@ if(assim_max_ < 0){
           util::stop("Error: profit nan");
     }
 
-    return;
+    return false;
 }
 // opt_psi_stem_ = psi_soil_;
 
 
   // optimise for stem water potential
-    double bound_a = -root_zero_E;
-    double bound_b = std::max(-root_crit,-root_psi_crit);
+    bound_a = -root_zero_E;
+    bound_b = std::max(-root_crit,-root_psi_crit);
 
     // If no interval exists (single feasible root-collar value), use that
     // point directly as the alternative solution instead of running GSS.
@@ -765,8 +771,19 @@ if(assim_max_ < 0){
                    "; assim_colimited_=" + util::to_string(assim_colimited_) +
                    "; hydraulic_cost_=" + util::to_string(hydraulic_cost_));
       }
+      return false;
+    }
+
+    return true;
+}
+
+void Leaf::find_root_collar_psi(){
+    double bound_a, bound_b;
+    if (!prepare_collar_solve(bound_a, bound_b)) {
       return;
     }
+    // root_crit / root_zero_E were consumed inside prepare_collar_solve; recover
+    // them for the diagnostic message only if the profit check below fails.
 
     // Maximise carbon profit over the feasible collar-potential interval via
     // golden-section search (util::golden_section_max). Unlike Brent, its argmax
@@ -794,12 +811,39 @@ if(assim_max_ < 0){
              "; root_collar_psi_=" + util::to_string(root_collar_psi_) +
              "; bound_a=" + util::to_string(bound_a) +
              "; bound_b=" + util::to_string(bound_b) +
-             "; root_crit=" + util::to_string(root_crit) +
-             "; root_zero_E=" + util::to_string(root_zero_E) +
              "; E_up_=" + util::to_string(E_up_) +
              "; assim_colimited_=" + util::to_string(assim_colimited_) +
              "; hydraulic_cost_=" + util::to_string(hydraulic_cost_));
     }
+}
+
+// Evaluate the operating point at a given collar potential rather than
+// optimising it (see header). Clamps the target into the feasible interval so a
+// tracked state that has drifted outside it still yields a finite operating
+// point; the gradient computed by the caller then pulls it back inside.
+double Leaf::evaluate_root_collar_psi(double target_opt_root_psi){
+    double bound_a, bound_b;
+    if (!prepare_collar_solve(bound_a, bound_b)) {
+      // Operating point fully determined by feasibility handling (shutdown /
+      // assim<0 / collapsed interval); profit_ is already set.
+      return profit_;
+    }
+
+    const double opt_root_psi =
+        std::min(std::max(target_opt_root_psi, bound_a), bound_b);
+
+    opt_psi_stem_ = find_psi_stem_from_psi_root(-opt_root_psi, psi_soil_inverted_);
+    root_collar_psi_ = -opt_root_psi;
+    profit_ = profit_psi_stem_TF(opt_psi_stem_, opt_root_psi);
+
+    if(!std::isfinite(profit_)){
+        util::stop("Error: non-finite profit in evaluate_root_collar_psi; "
+             "target=" + util::to_string(target_opt_root_psi) +
+             "; opt_root_psi=" + util::to_string(opt_root_psi) +
+             "; bound_a=" + util::to_string(bound_a) +
+             "; bound_b=" + util::to_string(bound_b));
+    }
+    return profit_;
 }
 
 

@@ -400,7 +400,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   // depth-independent and already computed above.
   auto optimise_at = [&](double radiation) {
     leaf.set_physiology(area_leaf_, mass_root_prop_, pars.rho, pars.a_bio, radiation, psi_soil, soil_depths_, leaf_specific_conductance_max, environment.get_atm_vpd(), environment.get_ca(), sapwood_volume_per_leaf_area, environment.get_leaf_temp(), environment.get_atm_o2_kpa(), environment.get_atm_kpa());
-    leaf.find_root_collar_psi();
+    solve_leaf();
   };
 
   // Convert canopy openness (0-1) into absorbed radiation: PPFD attenuated by
@@ -477,6 +477,11 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   const double turnover_ =
     turnover(mass_leaf_, mass_bark_, mass_sapwood_, mass_root_);
   return net_mass_production_dt_A(assimilation_, respiration_, turnover_);
+}
+
+// Base TF24: optimise the root-collar water potential from scratch each call.
+void TF24_Strategy::solve_leaf() {
+  leaf.find_root_collar_psi();
 }
 
 // [eqn 16] Fraction of production allocated to reproduction
