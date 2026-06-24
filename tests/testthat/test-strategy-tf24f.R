@@ -57,9 +57,11 @@ test_that("Defaults", {
     dmass_dN = 0,
     recruitment_decay = 0)
 
-  # Top-level strategy fields: the pars sub-object plus infrastructure.
+  # Top-level strategy fields: the pars sub-object plus infrastructure, and the
+  # TF24f-specific acclimation knobs (gain + finite-difference step) (#525).
   expected_top <- c("pars", "control", "collect_all_auxiliary",
-                    "birth_rate_x", "birth_rate_y", "is_variable_birth_rate")
+                    "birth_rate_x", "birth_rate_y", "is_variable_birth_rate",
+                    "k_acclim", "psi_fd_step")
 
   s <- TF24f_Strategy()
   expect_is(s, "TF24f_Strategy")
