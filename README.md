@@ -11,6 +11,22 @@ The plant package for R is an extensible framework for modelling size- and trait
 >
 > Current development is tracked on our [project board](https://github.com/orgs/traitecoevo/projects/5) and in the [issue tracker](https://github.com/traitecoevo/plant/issues) — that's the best place to see what's planned, report bugs, or pick up something to contribute.
 
+## The plant model family
+
+The `plant` model is developed across three companion repositories, with work
+coordinated on a shared [project board](https://github.com/orgs/traitecoevo/projects/5)
+("Plant model development"):
+
+| Repository | Role |
+|---|---|
+| [**plant**](https://github.com/traitecoevo/plant) | Core C++/R model: size- and trait-structured demography, the SCM solver, and the physiological strategies (FF16, TF24, …). |
+| [**plant.assembly**](https://github.com/traitecoevo/plant.assembly) | Evolutionary community assembly on top of `plant` — invasion fitness, demographic equilibria, and selection gradients. |
+| [**overstorey**](https://github.com/traitecoevo/overstorey) | The narrative documentation / field guide site (user guides, theory, worked reproductions). |
+
+Issues from all three repositories feed into the
+[project board](https://github.com/orgs/traitecoevo/projects/5), which is the
+single place to see what is planned, in progress, or done across the family.
+
 ## Citation
 
 Falster DS, FitzJohn RG, Brännström Å, Dieckmann U, Westoby M (2016) plant: A package for modelling forest trait ecology & evolution. *Methods in Ecology and Evolution* 7: 136-146. doi: [10.1111/2041-210X.12525](http://doi.org/10.1111/2041-210X.12525)
@@ -116,22 +132,29 @@ Rscript -e "devtools::load_all(quiet=TRUE); run_plant_benchmarks()"
 Running benchmarks without a fresh `make` can compare stale binaries and give
 misleading timing differences.
 
-## Benchmarking
+## Reporting issues
 
-For fair performance comparisons across branches, rebuild compiled code before
-running benchmarks:
+Questions, bug reports and feature requests are welcome via the
+[GitHub issue tracker](https://github.com/traitecoevo/plant/issues). New issues are
+automatically added to the [project board](https://github.com/orgs/traitecoevo/projects/5)
+with status **Backlog**.
 
-```sh
-make
-Rscript -e "devtools::load_all(quiet=TRUE); run_plant_benchmarks()"
-```
+To keep the board sortable, please:
 
-Running benchmarks without a fresh `make` can compare stale binaries and give
-misleading timing differences.
+1. **Apply one type label** — the three repositories share the same set:
+   - `bug` — an existing feature not functioning as intended
+   - `task` — a discrete piece of work needed for a feature
+   - `epic` — a new feature or capability, usually an umbrella over several tasks
+2. **Prefix the title with a theme tag** in square brackets, e.g.
+   `[speed] Cache the light-environment spline`. Use an existing theme where it
+   fits; otherwise `[other]`:
 
-## Getting help
+   `[TF24 hydraulics]` · `[TF24 allometry]` · `[TF24 nsc]` · `[acclimation]` ·
+   `[simplify interface]` · `[evol assembly]` · `[Env drivers]` · `[speed]` ·
+   `[patch variations]` · `[documentation]` · `[other]`
 
-Questions, bug reports and feature requests are welcome via the [GitHub issue tracker](https://github.com/traitecoevo/plant/issues).
+A title may carry more than one tag when it genuinely spans themes
+(e.g. `[speed] [TF24 hydraulics] …`).
 
 ## Publications using plant
 
