@@ -11,12 +11,12 @@
 # environment by the Patch constructor -- so it costs no per-call string
 # comparison on the hot path.
 #
-# The SCM-level tests run on a shortened patch horizon (max_patch_lifetime = 40
-# vs the FF16 default ~105) for speed: the properties checked here are either
-# relational (one model > another, two models differ/agree) or a re-pinned
-# regression at this horizon, none of which need the full default lifetime. The
-# pinned deep-crown baseline below is therefore the value at this horizon, not
-# the canonical full-lifetime FF16 number.
+# Most SCM-level tests here run on a shortened patch horizon
+# (max_patch_lifetime = 40 vs the FF16 default ~105) for speed: their assertions
+# are relational (one model > another, or two models differ/agree at the same
+# horizon), which the shorter patch preserves. The single exception is the
+# "deep-crown reproduces the baseline SCM result" test, kept at the full default
+# horizon so it still anchors the canonical full-lifetime FF16 number.
 context("Canopy shading methods")
 
 # A prepared FF16 individual under a given shading model. Constructing the
@@ -168,26 +168,31 @@ test_that("mean-light assimilation >= deep-crown (Jensen, concave photosynthesis
 })
 
 test_that("deep-crown reproduces the baseline SCM result", {
-  # The default model must be the established FF16 behaviour.
+  # The default model must be the established FF16 behaviour. This is the one
+  # SCM test kept at the full default horizon: it is the canonical anchor, so it
+  # pins the established full-lifetime FF16 number rather than a shortened-horizon
+  # value.
   p0 <- scm_base_parameters("FF16")
-  p0$max_patch_lifetime <- 40
   env <- Environment("FF16")
   ctrl <- Control() # shading_model defaults to "deep-crown"
   p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = FF16_hyperpar, birth_rate = list(20))
   out <- run_scm(p1, env, ctrl)
-  expect_equal(out$offspring_production, 0.18976, tolerance = 1e-4)
+  expect_equal(out$offspring_production, 16.88946, tolerance = 1e-4)
 })
 
 test_that("crown-centre runs through the SCM and changes the outcome", {
   p0 <- scm_base_parameters("FF16")
   p0$max_patch_lifetime <- 40
   p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = FF16_hyperpar, birth_rate = list(20))
+  # Compare crown-centre against deep-crown at the *same* (shortened) horizon, so
+  # any difference is purely the model, not the horizon -- no dependence on the
+  # full-lifetime baseline constant.
+  deep <- run_scm(p1, Environment("FF16"), Control())$offspring_production
   ctrl <- Control(); ctrl$shading_model <- "crown-centre"
   out <- run_scm(p1, Environment("FF16"), ctrl)
   expect_true(is.finite(out$offspring_production))
   # crown-centre removes self-shading within the crown, so production differs
-  expect_false(isTRUE(all.equal(out$offspring_production, 0.18976,
-                                tolerance = 1e-3)))
+  expect_false(isTRUE(all.equal(out$offspring_production, deep, tolerance = 1e-3)))
 })
 
 test_that("PPA discretises the light profile into optical-depth layers", {

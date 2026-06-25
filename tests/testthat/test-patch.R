@@ -107,70 +107,51 @@ for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     env <- Environment(x)
 
-    # TF24 is much costlier per step, so use a shorter horizon. NOTE: at this
-    # horizon the default-hmat strategy barely reproduces, so the TF24
-    # reproductive ratios are ~1e-15 and the checks below exercise only the
-    # area/birth-rate *scaling* identity, not meaningful demography. Making them
-    # non-vacuous needs a lower hmat so plants reproduce within the patch (cf.
-    # the offspring-arrival test).
-    if(x == "TF24"){
-      max_patch_lifetime = 2
-    } else{
-      max_patch_lifetime = 30
+    # TF24 is much costlier per step, so use a shorter horizon -- but with a low
+    # height-at-maturity (hmat = 5) so plants actually reproduce within it. With
+    # the default hmat over so short a patch the TF24 reproductive ratios
+    # underflow to ~1e-15 and the checks below would merely compare zeros;
+    # hmat = 5 lifts them to O(10) so this is a genuine demographic check.
+    # FF16/K93 reproduce fine at their default hmat over the longer horizon.
+    if (x == "TF24") {
+      max_patch_lifetime <- 4
+      mk_strategy <- function()
+        add_strategies(scm_base_parameters("TF24"),
+                       trait_matrix(c(0.0825, 5), c("lma", "hmat")),
+                       hyperpar = TF24_hyperpar, birth_rate = 1)$strategies[[1]]
+    } else {
+      max_patch_lifetime <- 30
+      mk_strategy <- function() strategy_types[[x]]()
     }
 
-    p2 <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          patch_area= 2, max_patch_lifetime = max_patch_lifetime)
-    patch2 <- Patch(x, e)(p2, env, ctrl)
+    mk_pars <- function(area) Parameters(x, e)(strategies = list(mk_strategy()),
+                                               patch_area = area,
+                                               max_patch_lifetime = max_patch_lifetime)
+
+    p2  <- mk_pars(2)
+    p10 <- mk_pars(10)
     expect_equal(p2$patch_area, 2)
-    expect_equal(patch2$get_area, 2)
-
-    p10 <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          patch_area= 10, max_patch_lifetime = max_patch_lifetime)
-    patch10 <- Patch(x, e)(p10, env, ctrl)
+    expect_equal(Patch(x, e)(p2, env, ctrl)$get_area, 2)
     expect_equal(p10$patch_area, 10)
-    expect_equal(patch10$get_area, 10)
+    expect_equal(Patch(x, e)(p10, env, ctrl)$get_area, 10)
 
-    # check changes in patch_area propgates through to scm outputs
-
-    # Because of different sizes, we expect pacthes with 
-    # greater area 10 to have higher reproductive ratios 
-    # when seed input is the same
-
-    # check with same birth rate. Expect pacth with larger 
-    # area to have greater reproductive ratio, as less competition
+    # Same birth rate: the larger patch has less competition, so a higher
+    # net reproductive ratio.
     p2$strategies[[1]]$birth_rate_y <- 1
     p10$strategies[[1]]$birth_rate_y <- 1
-
-    expect_warning(scm2 <- run_scm(p2))
+    expect_warning(scm2   <- run_scm(p2))
     expect_warning(scm10a <- run_scm(p10))
+    expect_gt(scm10a$net_reproduction_ratios, scm2$net_reproduction_ratios)
 
-    expect_gt(
-      scm10a$net_reproduction_ratios,
-      scm2$net_reproduction_ratios
-    )
-
-    # Now change birth rate so that same per unit area
-    # make p10 5 times p2
+    # Birth rate scaled x5 with the x5 patch area gives the same seed input per
+    # unit area, hence the same reproductive ratio as the small patch. (p2 is
+    # unchanged from above, so it is not re-run.)
     p10b <- p10
     p10b$strategies[[1]]$birth_rate_y <- 5
-    
-    expect_warning(scm2 <- run_scm(p2))
     expect_warning(scm10b <- run_scm(p10b))
-
-    # we expect pacthes with area 2 and 10 to same
-    # reproductive ratios when seed input differs by same multiple
-    expect_equal(
-      scm2$net_reproduction_ratios,
-      scm10b$net_reproduction_ratios,
-      tol = 1e-4
-    )
-
-    expect_gt(
-      scm10a$net_reproduction_ratios,
-      scm10b$net_reproduction_ratios
-    )
-
+    expect_equal(scm2$net_reproduction_ratios,
+                 scm10b$net_reproduction_ratios, tol = 1e-4)
+    expect_gt(scm10a$net_reproduction_ratios, scm10b$net_reproduction_ratios)
   })
   
   test_that("Weibull Disturbance as default", {

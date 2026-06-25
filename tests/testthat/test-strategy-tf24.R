@@ -257,6 +257,12 @@ test_that("offspring arrival", {
   # roughly 7x (TF24 is costly per step -- each rate evaluation runs the
   # root-collar-psi leaf optimisation) while keeping the test a genuine
   # end-to-end check.
+  #
+  # Tolerance is 1e-3 (relative), not machine-epsilon: offspring_production is an
+  # integrated SCM output, so per-step FMA/rounding differences accumulate and it
+  # is only reproducible to ~1e-5 across architectures (cf. the arm64 FMA fix in
+  # #524). 1e-3 absorbs that while still catching any real regression, which
+  # moves these values by whole units or orders of magnitude.
   p0 <- scm_base_parameters("TF24")
   env <- Environment("TF24")
   ctrl <- Control()
@@ -267,7 +273,7 @@ test_that("offspring arrival", {
                        hyperpar = TF24_hyperpar, birth_rate = list(20))
 
   out <- run_scm(p1, env, ctrl)
-  expect_equal(out$offspring_production, 227.884969, tolerance = 1e-5)
+  expect_equal(out$offspring_production, 227.884969, tolerance = 1e-3)
 
   # two species: the second strategy has a moderately higher lma (0.10 vs
   # 0.0825), so it grows more slowly and is partly shaded, but still matures and
@@ -279,7 +285,7 @@ test_that("offspring arrival", {
                        hyperpar = TF24_hyperpar, birth_rate = list(20, 20))
 
   out <- run_scm(p2, env, ctrl)
-  expect_equal(out$offspring_production, c(145.332894, 58.317455), tolerance = 1e-5)
+  expect_equal(out$offspring_production, c(145.332894, 58.317455), tolerance = 1e-3)
 })
 
 # Water mass-balance: transpiration integrated up the stem side of every
