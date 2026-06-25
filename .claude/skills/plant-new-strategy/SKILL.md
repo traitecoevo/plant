@@ -60,6 +60,8 @@ The scaffolder edits/creates:
 - the `concrete:`/`templates:` pairs and yml blocks in `inst/RcppR6_classes.yml`;
 - the `#include` in `inst/include/plant.h`;
 - the export in `src/individual_runner.cpp`;
+- the templated `<name>_strategy_expand_allometry` export in
+  `src/strategy_expand.cpp`;
 - the dispatch `switch()`es in `R/strategy_support.R` (make_hyperpar,
   param_hyperpar, hyperpar, environment_type, Environment, expand_state,
   node_schedule_default, make_node_schedule);
@@ -92,16 +94,51 @@ things. Two are **handled by the scaffolder**:
    model generates **no** `<Name>_Environment` anywhere.
 
 The third ask — having the new strategy **inherit** an existing strategy's C++
-implementation (the old `FF16r : public FF16_Strategy` idea) rather than cloning
-it — is **not** automated, and the scaffolder does not generate an inheriting
-subclass. It clones the template's strategy code (renamed), which you then edit.
-This is deliberate: `FF16r` was removed from the codebase, no strategy currently
-subclasses another (all derive directly from `Strategy<E>`), and the base
-methods are mostly non-`virtual`, so genuine override-inheritance would first
-require making the relevant `*_Strategy` methods `virtual` in the C++ core. If
-you want that pattern, treat it as a C++ design change to the base strategy
-first, then hand-write the subclass — the scaffolder's job ends at wiring the
-`<Strategy, Environment>` pair through the build.
+implementation (`FF16r : public FF16_Strategy`) rather than cloning it — is **not**
+automated by the scaffolder, but it *is* a supported, validated pattern. The
+scaffolder always clones; you then **thin the clone down to a subclass by hand**.
+Use this when the new model is a variant that reuses most of an existing
+strategy's biology (e.g. `TF24f`, a fast/acclimating variant of `TF24`, issue
+\#525). The proven recipe:
+
+1. **Scaffold in reuse-environment mode** to get all the build wiring:
+   `create_strategy_scaffold("TF24f", template_strategy = "TF24", environment = "TF24")`.
+2. **Replace the cloned `*_strategy.h`/`.cpp` body with a minimal subclass** —
+   the FF16r idiom (`git show 99da4e1e^:inst/include/plant/models/ff16r_strategy.h`
+   for the canonical ~25-line example):
+   ```cpp
+   class TF24f_Strategy : public TF24_Strategy {
+   public:
+     typedef std::shared_ptr<TF24f_Strategy> ptr;
+     TF24f_Strategy();          // body: just set name = "TF24f";
+   };                           // the base ctor already does refresh_indices() etc.
+   TF24f_Strategy::ptr make_strategy_ptr(TF24f_Strategy s);  // body: s.prepare_strategy(); ...
+   ```
+3. **Reuse the parent's `_Pars`.** Delete the generated `<Name>_Pars` struct *and*
+   its yml block, and point the subclass's yml `pars:` entry at the **parent's**
+   class (`- pars: "plant::TF24_Pars"`). This is required, not just tidy: inherited
+   base methods read the inherited `pars` member, so a shadowing `<Name>_Pars`
+   would silently feed them the wrong values. RcppR6 accepts two strategy classes
+   referencing the same `_Pars` class.
+4. **`virtual` only where a *reused* base method calls something you override.**
+   Because `Individual<Sub, Env>` holds a `Sub::ptr` and calls through the concrete
+   type, inherited methods are reused for free, your overrides win, and even
+   `static state_size()/state_names()` resolve on the concrete type — so a subclass
+   that *changes state* just redefines those statics. Add `virtual` to a base
+   `*_Strategy` method (a behaviour-preserving edit to the parent) only when the
+   subclass needs to swap out a step that a reused base method invokes internally.
+   `TF24_Strategy::net_mass_production_dt` and `fraction_allocation_reproduction`
+   are already `virtual` for exactly this reason.
+
+The scaffolder's anchor-based edits also touch **`src/strategy_expand.cpp`** (a
+templated `*_strategy_expand_allometry` export) in addition to the files listed in
+Step 1 — it works for a subclass unchanged. The generated `R/<name>.R` hyperpar
+clone works as-is when the biology is unchanged; simplify it to delegate to the
+parent's hyperpar if you prefer.
+
+Caveat: `FF16r` itself was removed from the live codebase (#439), so it is history,
+not a current in-tree example — consult `TF24f` (the worked case for this recipe)
+or the `git show` reference above.
 
 ## Step 3 — build, then test
 

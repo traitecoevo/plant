@@ -302,6 +302,27 @@ public:
 
   void E_from_Soil_to_Root_Collar(double P_x_r, const std::vector<double>& psi_soil);
   void find_root_collar_psi();
+  // Shared setup for the root-collar solve: builds the soil-side caches, handles
+  // every feasibility early-exit (shutdown / assim<0 / collapsed interval) by
+  // setting the final operating point itself, and otherwise returns the feasible
+  // collar-potential interval [bound_a, bound_b] (positive magnitudes). Returns
+  // false when the operating point is already fully determined (caller is done),
+  // true when there is a real interval to choose a collar potential within.
+  bool prepare_collar_solve(double& bound_a, double& bound_b);
+  // Evaluate the leaf at a *given* root-collar potential (positive magnitude)
+  // rather than optimising it: reuses prepare_collar_solve, clamps the target to
+  // the feasible interval, and evaluates there (no golden-section search). Leaves
+  // exactly the same outputs as find_root_collar_psi and returns profit_. Used by
+  // TF24f's gradient-ascent acclimation (#525).
+  double evaluate_root_collar_psi(double target_opt_root_psi);
+  // Exact d(profit)/d(opt_root_psi) at a given root-collar potential (positive
+  // magnitude), for TF24f's acclimation tracking (#525/#527). Combines
+  // forward-mode AD for the analytic photosynthesis/cost algebra, the
+  // implicit-function theorem at the psi_stem_to_ci root-find, and analytic
+  // spline derivatives (Interpolator::deriv) for the smooth transport. Replaces
+  // the noisy finite-difference gradient. Assumes prepare_collar_solve setup has
+  // run (psi_soil_inverted_ etc.), as evaluate_root_collar_psi does.
+  double dprofit_droot_collar_psi(double opt_root_psi);
   // Shut-down operating point used by the find_root_collar_psi early-exits: stem
   // held at psi_crit (no transpiration), paying only respiration + hydraulic
   // cost. Only root_collar_psi_ differs between the cases, so it is the argument.

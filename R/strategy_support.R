@@ -10,6 +10,7 @@ make_hyperpar <- function(type) {
   switch(type,
          FF16=make_FF16_hyperpar,
          TF24=make_TF24_hyperpar,
+         TF24f=make_TF24f_hyperpar,
          K93=make_K93_hyperpar,
          stop("Unknown type ", type))
 }
@@ -21,6 +22,7 @@ param_hyperpar <- function(parameters) {
   switch(type,
          FF16_Strategy=FF16_hyperpar,
          TF24_Strategy=TF24_hyperpar,
+         TF24f_Strategy=TF24f_hyperpar,
          K93_Strategy=K93_hyperpar,
          stop("Unknown type ", type))
 }
@@ -33,6 +35,7 @@ hyperpar <- function(type) {
   switch(type,
          FF16=FF16_hyperpar,
          TF24=TF24_hyperpar,
+         TF24f=TF24f_hyperpar,
          K93=K93_hyperpar,
          stop("Unknown type ", type))
 }
@@ -43,6 +46,7 @@ environment_type <- function(type) {
   switch(type,
          FF16=sprintf("FF16_Env"),
          TF24=sprintf("TF24_Env"),
+         TF24f=sprintf("TF24_Env"),
          K93=sprintf("K93_Env"),
          stop("Unknown type ", type))
 }
@@ -57,6 +61,7 @@ Environment <- function(type = NULL) {
          FF16=FF16_Environment(),
          FF16_Env=FF16_Environment(),
          TF24=TF24_Environment(),
+         TF24f=TF24_Environment(),
          TF24_Env=TF24_Environment(),
          K93=K93_Environment(),
          K93_Env=K93_Environment(),
@@ -76,6 +81,7 @@ expand_state <- function(results) {
   switch(type,
     FF16 = FF16_expand_state(results),
     TF24 = TF24_expand_state(results),
+    TF24f = TF24f_expand_state(results),
     K93 = K93_expand_state(results),
     stop("Unknown type ", type)
   )
@@ -86,6 +92,7 @@ node_schedule_default <- function(p) {
   switch(cl,
          "Parameters<FF16,FF16_Env>"=`node_schedule_default__Parameters___FF16__FF16_Env`,
          "Parameters<TF24,TF24_Env>"=`node_schedule_default__Parameters___TF24__TF24_Env`,
+         "Parameters<TF24f,TF24_Env>"=`node_schedule_default__Parameters___TF24f__TF24_Env`,
          "Parameters<K93,K93_Env>"=`node_schedule_default__Parameters___K93__K93_Env`,
          stop("Unknown type: ", cl))(p)
 }
@@ -95,6 +102,7 @@ make_node_schedule <- function(p) {
   switch(cl,
          "Parameters<FF16,FF16_Env>"=`make_node_schedule__Parameters___FF16__FF16_Env`,
          "Parameters<TF24,TF24_Env>"=`make_node_schedule__Parameters___TF24__TF24_Env`,
+         "Parameters<TF24f,TF24_Env>"=`make_node_schedule__Parameters___TF24f__TF24_Env`,
          "Parameters<K93,K93_Env>"=`make_node_schedule__Parameters___K93__K93_Env`,
                   stop("Unknown type: ", cl))(p)
 }
