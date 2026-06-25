@@ -113,16 +113,18 @@ test_that("mutant method densities", {
   tol <- 1e-3
 
   # fitness at birth rate x computed two ways: as a resident, and as a mutant
-  # of the resident -- which must agree.
+  # of the resident -- which must agree. The identity holds against whatever
+  # competitive landscape the resident run produces, so we do NOT refine the
+  # cohort schedule first: refinement is irrelevant to the invariant but was the
+  # dominant cost (it roughly tripled this block's run time).
   f_test <- function(p, x) {
     p1 <- p
     p1$strategies[[1]]$birth_rate_y <- x
 
-    p2 <- run_scm(p1, ctrl = ctrl, refine_schedule = TRUE)$parameters
-    scm <- run_scm(p2, ctrl = ctrl)
+    scm <- run_scm(p1, ctrl = ctrl)
     r_rr <- scm$net_reproduction_ratios
 
-    scm$run_mutant(p2)
+    scm$run_mutant(p1)
     m_rr <- scm$net_reproduction_ratios
 
     dplyr::tibble(birth_rate = x, resident_f = log(r_rr), mutant_f = log(m_rr))
