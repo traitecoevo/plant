@@ -18,7 +18,6 @@ drain_schedule <- function(sched) {
   cmp
 }
 
-context("NodeSchedule")
 
 test_that("NodeScheduleEvent", {
   e <- NodeScheduleEvent(pi, 1)
@@ -39,7 +38,7 @@ test_that("Empty NodeSchedule", {
   n_species <- 2
   sched <- plant:::NodeSchedule(n_species)
 
-  expect_is(sched, "NodeSchedule")
+  expect_inherits(sched, "NodeSchedule")
   expect_equal(sched$size, 0)
   expect_equal(sched$n_species, n_species)
 

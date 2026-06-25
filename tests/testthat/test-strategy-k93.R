@@ -1,6 +1,5 @@
 # Built from  tests/testthat/test-strategy-ff16r.R on Wed Aug 12 15:33:08 2020 using the scaffolder, from the strategy:  FF16r
 # Built from  tests/testthat/test-strategy-ff16.R on Fri Jul  3 08:14:35 2020 using the scaffolder, from the strategy:  FF16
-context("Strategy-K93")
 
 test_that("Defaults", {
   # Biological parameters now live in the nested `pars` sub-object.
@@ -22,7 +21,7 @@ test_that("Defaults", {
                     "birth_rate_x", "birth_rate_y", "is_variable_birth_rate")
 
   s <- K93_Strategy()
-  expect_is(s, "K93_Strategy")
+  expect_inherits(s, "K93_Strategy")
 
   expect_identical(sort(names(s)), sort(expected_top))
   expect_identical(s$control, Control())
@@ -117,7 +116,7 @@ test_that("K93 offspring production is unchanged", {
   #p1$birth_rate <- 20
 
   out <- run_scm(p1, env, ctrl)
-  expect_equal(out$offspring_production, 0.0753, tolerance = 1e-4)
+  expect_equal(out$offspring_production, 0.0753261, tolerance = 1e-4)
 
   # Three species from paper
   sp <- trait_matrix(c(0.042, 0.063, 0.052,
@@ -134,5 +133,6 @@ test_that("K93 offspring production is unchanged", {
   #p2$birth_rate <- c(20, 20, 20)
   out <- run_scm(p2, env, ctrl)
 
-  expect_equal(out$offspring_production, c(0.0025, 0.2321, 0.2194), tolerance = 1e-4)
+  expect_equal(out$offspring_production, c(0.00253742, 0.23214643, 0.21944157),
+               tolerance = 1e-4)
 })

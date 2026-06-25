@@ -1,4 +1,3 @@
-context("Uniroot")
 
 test_that("Agrees with R", {
   quadratic_roots <- function(a, b, c) {

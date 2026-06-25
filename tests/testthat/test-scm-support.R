@@ -1,4 +1,3 @@
-context("SCM support")
 
 
 test_that("collect", {

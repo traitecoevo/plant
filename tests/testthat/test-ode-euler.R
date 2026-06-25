@@ -1,4 +1,3 @@
-context("ODE fixed-step (forward Euler)")
 
 ## Forward Euler is the alternative to the adaptive Cash-Karp RKCK solver: a
 ## single derivative evaluation per step on a uniform grid (the way many

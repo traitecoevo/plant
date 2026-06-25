@@ -6,7 +6,6 @@
 # state is not checkpointed) diverges, hence the tolerance on the resumed
 # fitness rather than exact equality.
 
-context("Initial patch state (export / re-import)")
 
 ## Run an SCM, export the patch at a mid-history step, and run a fresh SCM
 ## seeded from that export.

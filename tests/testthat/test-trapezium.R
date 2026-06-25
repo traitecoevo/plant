@@ -1,4 +1,3 @@
-context("Trapezium integration")
 
 test_that("Trapezium rule works", {
   n <- 20

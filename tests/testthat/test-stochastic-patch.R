@@ -1,10 +1,8 @@
-context("StochasticPatch")
 
 strategy_types <- get_list_of_strategy_types()
 environment_types <- get_list_of_environment_types()
 
 for (x in names(strategy_types)) {
-  context(sprintf("StochasticPatch-%s",x))
 
   test_that("empty", {
   
@@ -15,7 +13,7 @@ for (x in names(strategy_types)) {
     ctrl <- Control()
     patch <- StochasticPatch(x, e)(p, env, ctrl)
 
-    expect_is(patch, sprintf("StochasticPatch<%s,%s>",x,e))
+    expect_inherits(patch, sprintf("StochasticPatch<%s,%s>",x,e))
 
     expect_equal(patch$size, 1)
     expect_equal(patch$height_max, 0.0)
@@ -28,7 +26,7 @@ for (x in names(strategy_types)) {
     sp <- patch$species
     expect_true(is.list(sp))
     expect_equal(length(sp), 1)
-    expect_is(sp[[1]], sprintf("StochasticSpecies<%s,%s>",x,e))
+    expect_inherits(sp[[1]], sprintf("StochasticSpecies<%s,%s>",x,e))
     expect_equal(sp[[1]]$size, 0)
   })
 

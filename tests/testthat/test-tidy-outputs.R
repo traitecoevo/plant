@@ -1,6 +1,5 @@
 for (x in c("FF16", "K93")) {
   
-  context(sprintf("Tidy-patch-%s", x))
 
   p0 <- scm_base_parameters(x)
 
@@ -19,14 +18,14 @@ for (x in c("FF16", "K93")) {
   expect_contains(names(results), c("steps",  "n_spp", "species", "env", "offspring_production",   "net_reproduction_ratios", "p"))
 
 
-  expect_is(results, "list")
-  expect_is(results$steps, "data.frame")
-  expect_is(results$species, "data.frame")
-  expect_is(results$offspring_production, "numeric")
-  expect_is(results$net_reproduction_ratios, "numeric")
+  expect_inherits(results, "list")
+  expect_inherits(results$steps, "data.frame")
+  expect_inherits(results$species, "data.frame")
+  expect_inherits(results$offspring_production, "numeric")
+  expect_inherits(results$net_reproduction_ratios, "numeric")
 
-  expect_is(results$env, "list")
-  expect_is(results$env$light_availability, "data.frame")
+  expect_inherits(results$env, "list")
+  expect_inherits(results$env$light_availability, "data.frame")
 
   core_vars <- c("step", "time", "patch_density", "species", "node", "height", "mortality", "fecundity", "offspring_produced_survival_weighted", "log_density", "density")
   expect_contains(names(results$species), core_vars)

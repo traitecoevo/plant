@@ -1,5 +1,4 @@
 
-context("Extrinsic drivers")
 
 test_that("ExtrinsicDrivers can be instantiated", {
   

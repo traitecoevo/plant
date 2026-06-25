@@ -2,7 +2,6 @@ strategy_types <- get_list_of_strategy_types()
 environment_types <- get_list_of_environment_types()
 
 for (x in names(strategy_types)) {
-  context(sprintf("Patch-%s",x))
 
   # initialise birth rate per species
   s <- strategy_types[[x]]()
@@ -32,11 +31,11 @@ for (x in names(strategy_types)) {
     expect_identical(patch$height_max, cmp$height)
     expect_equal(patch$parameters, p)
     expect_equal(patch$get_area, 1.0)
-    expect_is(patch$environment, c(paste0(x, "_Environment"), "R6"))
+    expect_inherits(patch$environment, c(paste0(x, "_Environment"), "R6"))
     expect_identical(patch$environment$time, 0.0)
 
     expect_equal(length(patch$species), 1)
-    expect_is(patch$species[[1]], sprintf("Species<%s,%s>",x,e))
+    expect_inherits(patch$species[[1]], sprintf("Species<%s,%s>",x,e))
     
     # with no nodes, we only expect env vars
     env_size <- env$ode_size
@@ -54,7 +53,7 @@ for (x in names(strategy_types)) {
       length_odes <- env$get_soil_number_of_depths()
       soil_moist_inits <- c(rep(env$soil_moist_sat, length_odes)/2, rep(0,4))
       expect_equal(patch$ode_state, soil_moist_inits)
-      expect_equal(patch$ode_rates, c(3.312786717, rep(0,4), 1.000000000, 0.996093750, 0.002257735, 0.000000000), tol = 1e-4)
+      expect_equal(patch$ode_rates, c(3.312786717, rep(0,4), 1.000000000, 0.996093750, 0.002257735, 0.000000000), tolerance = 1e-4)
     }
     
     expect_identical(patch$ode_state, env_state)
@@ -150,7 +149,7 @@ for (x in names(strategy_types)) {
     p10b$strategies[[1]]$birth_rate_y <- 5
     expect_warning(scm10b <- run_scm(p10b))
     expect_equal(scm2$net_reproduction_ratios,
-                 scm10b$net_reproduction_ratios, tol = 1e-4)
+                 scm10b$net_reproduction_ratios, tolerance = 1e-4)
     expect_gt(scm10a$net_reproduction_ratios, scm10b$net_reproduction_ratios)
   })
   
@@ -168,7 +167,7 @@ for (x in names(strategy_types)) {
                      disturbance$pr_survival(10))
 
     # This is how we'd like it but Rcpp wouldn't handle a disturbance pointer
-    #expect_is(patch$disturbance_regime, "Disturbance")
+    #expect_inherits(patch$disturbance_regime, "Disturbance")
   })
   
   test_that("No Disturbance for fixed-time patches", {
@@ -193,6 +192,6 @@ for (x in names(strategy_types)) {
                      disturbance$pr_survival(10))
     
     # This is how we'd like it but Rcpp wouldn't handle a disturbance pointer
-    #expect_is(patch$disturbance_regime, "Disturbance")
+    #expect_inherits(patch$disturbance_regime, "Disturbance")
   })
 }

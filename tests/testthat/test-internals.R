@@ -1,4 +1,3 @@
-context("Internals")
 
 test_that("internals getters and setters", {
   n = 3
@@ -18,7 +17,7 @@ test_that("internals getters and setters", {
 
 test_that("Creation and defaults", {
   internals = plant:::Internals(s_size = 0, a_size = 0)
-  expect_is(internals, "Internals")
+  expect_inherits(internals, "Internals")
   expect_equal(internals$state_size, 0)
   expect_equal(internals$aux_size, 0)
   n = 10

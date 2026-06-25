@@ -5,7 +5,6 @@ environment_types <- get_list_of_environment_types()
 for (x in names(strategy_types)) {
   e <- environment_types[[x]]
 
-  context(sprintf("Environment-%s",x))
 
   test_that("Empty environment", {
     p <- Parameters(x, e)()

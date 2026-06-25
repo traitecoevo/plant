@@ -1,4 +1,3 @@
-context("StochasticPatchRunner")
 
 strategy_types <- get_list_of_strategy_types()
 environment_types <- get_list_of_environment_types()

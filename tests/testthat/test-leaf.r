@@ -1,4 +1,3 @@
-context("Leaf-phys")
 
 test_that("Basic functions", {
   #first set physiological parameters

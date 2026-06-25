@@ -1,4 +1,3 @@
-context("Control")
 
 test_that("Defaults", {
   expected <- list(
@@ -39,7 +38,7 @@ test_that("Defaults", {
   keys <- sort(names(expected))
 
   ctrl <- Control()
-  expect_is(ctrl, "Control")
+  expect_inherits(ctrl, "Control")
 
   expect_identical(sort(names(ctrl)), keys)
   expect_identical(unclass(ctrl)[keys], expected[keys])

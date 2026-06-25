@@ -2,11 +2,9 @@
 strategy_types <- get_list_of_strategy_types()
 environment_types <- get_list_of_environment_types()
 
-context("Environment-TF24")
 
 test_that("Environment-TF24 drivers", {
   
-  context("TF24-Env-ExtrinsicDrivers")
   
   env <- Environment("TF24")
   # get list of extrinsic drivers for the environment
@@ -79,7 +77,6 @@ test_that("Environment-TF24 drivers", {
 })
 
 test_that("Environment-TF24 soil layers", {
-  context("TF24-Env-Soil water")
 
   env <- Environment("TF24")
   theta_sat <- 0.428
@@ -109,7 +106,6 @@ test_that("Environment-TF24 soil layers", {
  })
 
 test_that("Environment-TF24 running soil moisture profile", {
-  context("TF24-Env-parameters")
 
   env <- Environment("TF24")
   # get list of extrinsic drivers for the environment

@@ -1,4 +1,3 @@
-context("Mutant-method") 
 
 test_that("mutant method works", {
   # basic setup 
@@ -36,25 +35,25 @@ test_that("mutant method works", {
   scm <- run_scm(pr1, e, ctrl)
   pr1_rr <- scm$net_reproduction_ratios
   expected <- 2.77322
-  expect_equal(pr1_rr, expected, tol = tol)
+  expect_equal(pr1_rr, expected, tolerance = tol)
 
   scm$run_mutant(pr1m1)
   pr1m1_rr <- scm$net_reproduction_ratios
   expected <- c(2.77322, 3.707605)
-  expect_equal(pr1m1_rr, expected, tol = tol)
-  expect_equal(pr1m1_rr[1], pr1_rr, tol = tol)
+  expect_equal(pr1m1_rr, expected, tolerance = tol)
+  expect_equal(pr1m1_rr[1], pr1_rr, tolerance = tol)
 
   scm$run_mutant(pr1m3)
   pr1m3_rr <- scm$net_reproduction_ratios
   expected <- c(2.77322, 3.7429e-10, 2.77322, 3.70753)
-  expect_equal(pr1m3_rr, expected, tol = tol)
-  expect_equal(pr1m3_rr[1], pr1_rr, tol = tol)
+  expect_equal(pr1m3_rr, expected, tolerance = tol)
+  expect_equal(pr1m3_rr[1], pr1_rr, tolerance = tol)
 
   scm$run_mutant(pr1m10)
   pr1m10_rr <- scm$net_reproduction_ratios
   expected <- c(2.773222, 3.742935e-10, 9.308944e-07, 0.1363641, 2.773222, 3.890554, 1.524582, 1.160212, 1.871261, 2.765328, 3.707372)
-  expect_equal(pr1m10_rr, expected, tol = tol)
-  expect_equal(pr1m10_rr[1], pr1_rr, tol = tol)
+  expect_equal(pr1m10_rr, expected, tolerance = tol)
+  expect_equal(pr1m10_rr[1], pr1_rr, tolerance = tol)
 
   # 3 resident strategies
   pr3 <- add_strategies(p0, trait_matrix(lma, "lma"), birth_rate = rep(birth_rate, 3))
@@ -68,26 +67,26 @@ test_that("mutant method works", {
   scm <- run_scm(pr3, e, ctrl)
   pr3_rr <- scm$net_reproduction_ratios
   expected <- c(4.265e-10, 2.831741, 0.09125339)
-  expect_equal(pr3_rr, expected, tol = tol)
+  expect_equal(pr3_rr, expected, tolerance = tol)
 
 
   scm$run_mutant(pr3m1)
   pr3m1_rr <- scm$net_reproduction_ratios
   expected <- c(4.265e-10, 2.831741, 0.09125339, 0.09125339)
-  expect_equal(pr3m1_rr, expected, tol = tol)
-  expect_equal(pr3m1_rr[1:3], pr3_rr, tol = tol)
+  expect_equal(pr3m1_rr, expected, tolerance = tol)
+  expect_equal(pr3m1_rr[1:3], pr3_rr, tolerance = tol)
 
   scm$run_mutant(pr3m3)
   pr3m3_rr <- scm$net_reproduction_ratios
   expected <- c(4.265e-10, 2.831741, 0.09125339, 4.265e-10, 2.831741, 0.09125339)
-  expect_equal(pr3m3_rr, expected, tol = tol)
-  expect_equal(pr3m3_rr[1:3], pr3_rr, tol = tol)
+  expect_equal(pr3m3_rr, expected, tolerance = tol)
+  expect_equal(pr3m3_rr[1:3], pr3_rr, tolerance = tol)
 
   scm$run_mutant(pr3m10)
   pr3m10_rr <- scm$net_reproduction_ratios
   expected <- c(4.265011e-10, 2.831741, 0.09125377, 4.265011e-10, 5.587752e-06, 0.266188, 2.831741, 2.690585, 0.3796333, 0.07098642, 0.07226859, 0.08342181, 0.09125377)
-  expect_equal(pr3m10_rr, expected, tol = tol)
-  expect_equal(pr3m3_rr[1:3], pr3_rr, tol = tol)
+  expect_equal(pr3m10_rr, expected, tolerance = tol)
+  expect_equal(pr3m3_rr[1:3], pr3_rr, tolerance = tol)
 })
 
 test_that("mutant method densities", {
@@ -137,8 +136,8 @@ test_that("mutant method densities", {
 
     outputs <- purrr::map_df(birth_rates, ~ f_test(pr1, .x))
 
-    expect_equal(birth_rates, outputs$birth_rate, tol = tol)
-    expect_equal(outputs$resident_f, outputs$mutant_f, tol = tol)
+    expect_equal(birth_rates, outputs$birth_rate, tolerance = tol)
+    expect_equal(outputs$resident_f, outputs$mutant_f, tolerance = tol)
   }
 
   run_case(30, c(0, 5, 10, 20))

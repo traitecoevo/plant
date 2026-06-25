@@ -1,9 +1,8 @@
-context("Disturbance")
 
 test_that("Base class", {
   obj <- Disturbance_Regime()
-  expect_is(obj, "Disturbance_Regime")
-  expect_is(obj, "R6")
+  expect_inherits(obj, "Disturbance_Regime")
+  expect_inherits(obj, "R6")
 
   expect_error(obj$density(), "argument \"time\" is missing, with no default")
   expect_true(is.na(obj$density(1)))
@@ -44,7 +43,10 @@ test_that("Weibull disturbance regime", {
   expect_false(obj$density(m) == dweibull(m, k, lambda))
   
   p0 <- k * (b^(1.0 / k) / gamma(1.0 / k))
-  expect_equal(obj$density(m), p0 * (1 - pweibull(m, k, lambda)))
+  # `lambda` above is a truncated literal, so the analytic density only matches
+  # to ~4 sig figs (the discrepancy is amplified in the far tail at m = 105.32);
+  # compare with a relative tolerance rather than to full machine precision.
+  expect_equal(obj$density(m), p0 * (1 - pweibull(m, k, lambda)), tolerance = 1e-4)
   
   # integration test to show normalised density  
   time <- seq(0, 100, len = 1e3)

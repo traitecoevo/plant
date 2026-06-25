@@ -1,4 +1,3 @@
-context("StochasticSpecies")
 
 strategy_types <- get_list_of_strategy_types()
 environment_types <- get_list_of_environment_types()
@@ -10,13 +9,13 @@ test_that("empty", {
     s <- strategy_types[[x]]()
     sp <- StochasticSpecies(x, e)(s)
 
-    expect_is(sp, sprintf("StochasticSpecies<%s,%s>",x,e))
+    expect_inherits(sp, sprintf("StochasticSpecies<%s,%s>",x,e))
     expect_equal(sp$size, 0)
     expect_equal(sp$size_individuals, 0)
 
     new_node <- sp$new_node
-    expect_is(new_node, "Individual")
-    expect_is(new_node, sprintf("Individual<%s,%s>",x,e))
+    expect_inherits(new_node, "Individual")
+    expect_inherits(new_node, sprintf("Individual<%s,%s>",x,e))
 
     expect_equal(sp$heights, numeric(0))
     expect_equal(sp$height_max, 0.0)

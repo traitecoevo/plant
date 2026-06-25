@@ -1,4 +1,3 @@
-context("Gradient")
 
 test_that("Gradients agree", {
   ## Test the simple finite differencing gradient function.

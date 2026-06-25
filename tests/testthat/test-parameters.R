@@ -1,4 +1,3 @@
-context("Parameters")
 
 strategy_types <- get_list_of_strategy_types()
 environment_types <- get_list_of_environment_types()
@@ -8,7 +7,7 @@ test_that("Creation & defaults", {
     s <- strategy_types[[x]]()
     e <- environment_types[[x]]
     p <- Parameters(x, e)()
-    expect_is(p, sprintf("Parameters<%s,%s>", x, e))
+    expect_inherits(p, sprintf("Parameters<%s,%s>", x, e))
 
     expect_equal(length(p$strategies), 0)
     expect_equal(length(p$is_resident), 0)
@@ -110,7 +109,7 @@ test_that("scm_base_parameters", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- scm_base_parameters(x)
-    expect_is(p, sprintf("Parameters<%s,%s>", x, e))
+    expect_inherits(p, sprintf("Parameters<%s,%s>", x, e))
   }
 })
 

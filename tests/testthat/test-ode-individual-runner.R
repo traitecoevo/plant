@@ -1,4 +1,3 @@
-context("IndividualRunner")
 
 strategy_types <- get_list_of_strategy_types()
 environment_types <- get_list_of_environment_types()
@@ -12,19 +11,19 @@ test_that("IndividualRunner", {
     p$compute_rates(env)
 
     pr <- IndividualRunner(x, e)(p, env)
-    expect_is(pr, sprintf("IndividualRunner<%s,%s>",x,e))
-    expect_is(pr$individual, sprintf("Individual<%s,%s>",x,e))
+    expect_inherits(pr, sprintf("IndividualRunner<%s,%s>",x,e))
+    expect_inherits(pr$individual, sprintf("Individual<%s,%s>",x,e))
 
-    expect_equal(pr$individual$internals, p$internals)
+    expect_equal_internals(pr$individual$internals, p$internals)
 
     ## This going to work with a *copy* of pr; so that won't propagate
     ## back.
     runner <- OdeRunner(x)(pr)
-    expect_is(runner, "OdeRunner")
-    expect_is(runner, sprintf("OdeRunner<%s>", x))
+    expect_inherits(runner, "OdeRunner")
+    expect_inherits(runner, sprintf("OdeRunner<%s>", x))
     expect_equal(runner$time, 0.0)
 
-    expect_equal((get_individual_internals_fun(p))(runner), p$internals)
+    expect_equal_internals((get_individual_internals_fun(p))(runner), p$internals)
     
     continue_if <- function(obj) {
       obj$state[[1]] < 15
@@ -92,7 +91,7 @@ test_that("grow_individual_to_size", {
     ## We really do bracket the size:
     expect_true(all(res$y0[,"height"] < heights))
     expect_true(all(res$y1[,"height"] > heights))
-    expect_is(res$runner, sprintf("OdeRunner<%s>", x))
+    expect_inherits(res$runner, sprintf("OdeRunner<%s>", x))
 
     ## Then, do the search for a single case:
     i <- 3L
@@ -129,7 +128,7 @@ test_that("grow_individual_to_size", {
     
     ## Do all plants using the proper function:
     obj <- grow_individual_to_size(Individual(x, e)(s), heights, "height", env)
-    expect_is(obj$time, "numeric")
+    expect_inherits(obj$time, "numeric")
     expect_true(all(obj$time >= res$t0))
     expect_true(all(obj$time <= res$t1))
 
@@ -181,7 +180,13 @@ test_that("grow_individual_to_size", {
 
       expect_silent(res3 <- grow_individual_to_size(pl, sizes2, "height", env,
                                            100, warn=FALSE))
-      expect_equal(res3, res2)
+      ## warn=FALSE must produce the same numeric result as the warning version.
+      ## Compare the value payload only: the `individual`/`env` entries are live
+      ## reference objects whose C++ `.ptr` always differs between two calls
+      ## (edition-3 waldo would flag those pointers; edition 2 ignored them).
+      expect_equal(res3$time, res2$time)
+      expect_equal(res3$state, res2$state)
+      expect_equal(res3$trajectory, res2$trajectory)
 
       expect_silent(res4 <- grow_individual_to_size(pl, sizes2, "height", env,
                                            100, warn=FALSE, filter=TRUE))
@@ -215,10 +220,10 @@ test_that("grow_individual_to_time", {
 
     times <- c(0, 10^(-4:3))
     res <- grow_individual_to_time(pl, times, env)
-    expect_is(res$individual, "list")
+    expect_inherits(res$individual, "list")
     expect_equal(length(res$individual), length(times))
 
-    expect_is(res$state, "matrix")
+    expect_inherits(res$state, "matrix")
     expect_equal(colnames(res$state), pl$ode_names)
     expect_equal(nrow(res$state), length(times))
 
@@ -238,9 +243,9 @@ test_that("Sensible behaviour on integration failure", {
   sizes <- seq_range(c(pl$state("height"), 50), 50)
   expect_warning(res <- grow_individual_to_size(pl, sizes, "height", env, 10, warn = TRUE, filter = TRUE),
                   "Time exceeded time_max")
-  expect_is(res$individual, "list")
+  expect_inherits(res$individual, "list")
   expect_equal(nrow(res$state), length(res$time))
-  expect_equal(res$state[,"height"], sizes[seq_len(length(res$time))], tol = 1E-5)
+  expect_equal(res$state[,"height"], sizes[seq_len(length(res$time))], tolerance = 1E-5)
 
   ## As reported in issue #174
   traits <- trait_matrix(

@@ -1,4 +1,3 @@
-context("QK")
 
 ## These will be used frequently:
 f <- sin

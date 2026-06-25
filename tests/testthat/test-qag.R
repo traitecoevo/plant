@@ -1,4 +1,3 @@
-context("QAG")
 
 ## First where no subdivisions are required:
 cbind_list <- function(x) {

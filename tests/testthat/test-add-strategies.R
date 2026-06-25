@@ -1,4 +1,3 @@
-context("add_strategies API (#410)")
 
 test_that("add_strategies matches the deprecated expand_parameters", {
   p0 <- scm_base_parameters("FF16")

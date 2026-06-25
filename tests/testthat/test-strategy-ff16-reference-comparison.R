@@ -1,5 +1,4 @@
 # Check C++ implemnetation againsyt indenpendent implementation in R
-context("Reference Comparison-FF16")
 
 
 test_that("FF16_Strategy parameters agree with reference model", {

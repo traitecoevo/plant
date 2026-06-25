@@ -1,4 +1,3 @@
-context("expand_state allometry")
 
 # Oracle: the historical hard-coded R allometry formulas that *_expand_state()
 # used before they were replaced by calls into the strategy's own C++ functions

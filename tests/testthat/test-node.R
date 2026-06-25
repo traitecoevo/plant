@@ -5,14 +5,13 @@ for (x in names(strategy_types)) {
   s <- strategy_types[[x]]()
   e <- environment_types[[x]]
 
-  context(sprintf("Node-%s",x))
   test_that("setup, growth rates", {
 
     plant <- Individual(x, e)(s)
     node <- Node(x, e)(s)
 
-    expect_is(node, sprintf("Node<%s,%s>", x, e))
-    expect_is(node$individual, sprintf("Individual<%s,%s>", x, e))
+    expect_inherits(node, sprintf("Node<%s,%s>", x, e))
+    expect_inherits(node$individual, sprintf("Individual<%s,%s>", x, e))
 
     env <- Environment(x)
     env$set_fixed_environment(1.0, 100)

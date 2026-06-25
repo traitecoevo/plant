@@ -1,6 +1,5 @@
 # Built from tests/testthat/test-strategy-tf24.R on Thu Jun 25 06:01:09 2026 using the scaffolder, from the strategy: TF24
 # Built from  tests/testthat/test-strategy-ff16.R on Mon Feb 12 09:52:27 2024 using the scaffolder, from the strategy:  FF16
-context("Strategy-TF24f")
 
 test_that("Defaults", {
   # Biological parameters now live in the nested `pars` sub-object.
@@ -65,7 +64,7 @@ test_that("Defaults", {
                     "k_acclim", "psi_fd_step", "use_ad_gradient")
 
   s <- TF24f_Strategy()
-  expect_is(s, "TF24f_Strategy")
+  expect_inherits(s, "TF24f_Strategy")
 
   expect_identical(sort(names(s)), sort(expected_top))
   expect_identical(s$control, Control())

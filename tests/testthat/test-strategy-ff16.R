@@ -1,4 +1,3 @@
-context("Strategy-FF16")
 
 test_that("Defaults", {
   # Biological parameters now live in the nested `pars` sub-object.
@@ -41,7 +40,7 @@ test_that("Defaults", {
                     "birth_rate_x", "birth_rate_y", "is_variable_birth_rate")
 
   s <- FF16_Strategy()
-  expect_is(s, "FF16_Strategy")
+  expect_inherits(s, "FF16_Strategy")
 
   expect_identical(sort(names(s)), sort(expected_top))
   expect_identical(s$control, Control())

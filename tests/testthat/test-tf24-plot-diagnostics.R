@@ -1,4 +1,3 @@
-context("TF24_plot_diagnostics")
 
 test_that("TF24_plot_diagnostics assembles a TF24 stand diagnostic figure", {
   skip_if_not_installed("ggplot2")

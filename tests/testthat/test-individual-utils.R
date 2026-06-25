@@ -1,4 +1,3 @@
-context("Individual utilities")
 
 strategy_types <- get_list_of_strategy_types()
 environment_types <- get_list_of_environment_types()
@@ -45,7 +44,7 @@ test_that("Default schedule", {
     e <- environment_types[[x]]
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]](), strategy_types[[x]]()))
     node_schedule <- node_schedule_default(p)
-    expect_is(node_schedule, "NodeSchedule")
+    expect_inherits(node_schedule, "NodeSchedule")
     expect_equal(node_schedule$n_species, length(p$strategies))
     tt <- node_schedule_times_default(p$max_patch_lifetime)
     expect_identical(node_schedule$times(1), tt)
@@ -59,7 +58,7 @@ test_that("strategy_list", {
     p <- Parameters(x, e)()
     s <- plant:::generate_strategy(p, trait_matrix(1, "lma"), hyperpar = make_hyperpar(x)(), birth_rate = 1.0)
     expect_equal(length(s), 1)
-    expect_is(s, "list")
-    expect_is(s[[1]], sprintf("%s_Strategy", x))
+    expect_inherits(s, "list")
+    expect_inherits(s[[1]], sprintf("%s_Strategy", x))
   }
 })

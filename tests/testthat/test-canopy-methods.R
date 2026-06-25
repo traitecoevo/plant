@@ -17,7 +17,6 @@
 # horizon), which the shorter patch preserves. The single exception is the
 # "deep-crown reproduces the baseline SCM result" test, kept at the full default
 # horizon so it still anchors the canonical full-lifetime FF16 number.
-context("Canopy shading methods")
 
 # A prepared FF16 individual under a given shading model. Constructing the
 # Individual triggers make_strategy_ptr() -> prepare_strategy(), which binds the

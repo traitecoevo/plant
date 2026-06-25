@@ -1,4 +1,3 @@
-context("Modular")
 
 test_that("Construction", {
 
@@ -13,30 +12,30 @@ test_that("Construction", {
   for (x in names(strategy_types)) {
     s <- strategy_types[[x]]()
     e <- environment_types[[x]]
-    expect_is(s, paste0(x, "_Strategy"))
+    expect_inherits(s, paste0(x, "_Strategy"))
 
     p <- Individual(x, e)(s)
 
-    expect_is(p, "Individual")
-    expect_is(p, sprintf("Individual<%s,%s>", x, e))
+    expect_inherits(p, "Individual")
+    expect_inherits(p, sprintf("Individual<%s,%s>", x, e))
     expect_equal(class(p$strategy), class(s))
     expect_equal(p$strategy, s)
 
     node <- Node(x, e)(s)
 
-    expect_is(node, "Node")
-    expect_is(node, sprintf("Node<%s,%s>", x, e))
+    expect_inherits(node, "Node")
+    expect_inherits(node, sprintf("Node<%s,%s>", x, e))
     expect_equal(class(node$individual), class(p))
 
     sp <- Species(x, e)(s)
 
-    expect_is(sp, "Species")
-    expect_is(sp, sprintf("Species<%s,%s>", x, e))
+    expect_inherits(sp, "Species")
+    expect_inherits(sp, sprintf("Species<%s,%s>", x, e))
     expect_equal(class(sp$new_node), class(node))
 
     par <- Parameters(x, e)(strategies=list(s))
-    expect_is(par, "Parameters")
-    expect_is(par, sprintf("Parameters<%s,%s>", x, e))
+    expect_inherits(par, "Parameters")
+    expect_inherits(par, sprintf("Parameters<%s,%s>", x, e))
     expect_equal(par$strategies[[1]], s)
     
     env <- Environment(x)
@@ -44,29 +43,29 @@ test_that("Construction", {
     ctrl <- Control()
     
     pat <- Patch(x, e)(par, env, ctrl)
-    expect_is(pat, "Patch")
-    expect_is(pat, sprintf("Patch<%s,%s>", x, e))
+    expect_inherits(pat, "Patch")
+    expect_inherits(pat, sprintf("Patch<%s,%s>", x, e))
     expect_equal(class(pat$species[[1]]), class(sp))
 
     scm <- SCM(x, e)(par, env, ctrl)
-    expect_is(scm, "SCM")
-    expect_is(scm, sprintf("SCM<%s,%s>", x, e))
+    expect_inherits(scm, "SCM")
+    expect_inherits(scm, sprintf("SCM<%s,%s>", x, e))
     expect_equal(class(scm$patch), class(pat))
 
     ## Stochastic model:
     s_sp <- StochasticSpecies(x, e)(s)
-    expect_is(s_sp, "StochasticSpecies")
-    expect_is(s_sp, sprintf("StochasticSpecies<%s,%s>", x, e))
+    expect_inherits(s_sp, "StochasticSpecies")
+    expect_inherits(s_sp, sprintf("StochasticSpecies<%s,%s>", x, e))
     expect_equal(class(s_sp$new_node), class(p))
 
     s_pat <- StochasticPatch(x, e)(par, env, ctrl)
-    expect_is(s_pat, "StochasticPatch")
-    expect_is(s_pat, sprintf("StochasticPatch<%s,%s>", x, e))
+    expect_inherits(s_pat, "StochasticPatch")
+    expect_inherits(s_pat, sprintf("StochasticPatch<%s,%s>", x, e))
     expect_equal(class(s_pat$species[[1]]), class(s_sp))
 
     s_pr <- StochasticPatchRunner(x, e)(par, env, ctrl)
-    expect_is(s_pr, "StochasticPatchRunner")
-    expect_is(s_pr, sprintf("StochasticPatchRunner<%s,%s>", x, e))
+    expect_inherits(s_pr, "StochasticPatchRunner")
+    expect_inherits(s_pr, sprintf("StochasticPatchRunner<%s,%s>", x, e))
     expect_equal(class(s_pr$patch), class(s_pat))
   }
 })

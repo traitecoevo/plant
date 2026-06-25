@@ -4,7 +4,6 @@ environment_types <- get_list_of_environment_types()
 for (x in names(strategy_types)) {
   e <- environment_types[[x]]
 
-  context(sprintf("Species-%s",x))
 
   test_that("Basics", {
     env <- Environment(x)
@@ -37,7 +36,7 @@ for (x in names(strategy_types)) {
     expect_equal(sp$size, 1)
 
     nodes <- sp$nodes
-    expect_is(nodes, "list")
+    expect_inherits(nodes, "list")
     expect_equal(length(nodes), 1)
     expect_identical(nodes[[1]]$rates, new_node$rates)
     expect_equal(sp$heights, new_node$height)
@@ -48,7 +47,7 @@ for (x in names(strategy_types)) {
     ## Internal and test new_node report same values:
     expect_identical(sp$new_node$rates, new_node$rates)
 
-    expect_is(sp$node_at(1), sprintf("Node<%s,%s>",x,e))
+    expect_inherits(sp$node_at(1), sprintf("Node<%s,%s>",x,e))
     expect_identical(sp$node_at(1)$rates, nodes[[1]]$rates)
 
     ## Not sure about this -- do we need more immediate access?

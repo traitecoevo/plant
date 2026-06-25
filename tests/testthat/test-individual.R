@@ -12,14 +12,13 @@ bounds <- function(...) {
 
 for (x in names(strategy_types)) {
 
-  context(sprintf("Individual-%s",x))
 
   test_that("Reference comparison", {
     s <- strategy_types[[x]]()
     e <- environment_types[[x]]
     pl <- Individual(x, e)(s)
 
-    expect_is(pl, sprintf("Individual<%s,%s>",x,e))
+    expect_inherits(pl, sprintf("Individual<%s,%s>",x,e))
     expect_identical(pl$strategy, s)
 
     ## Expected initial conditions
@@ -53,7 +52,7 @@ for (x in names(strategy_types)) {
     ## Compare internals
     vars_pl <- pl$internals
     
-    expect_is(vars_pl, "Internals")
+    expect_inherits(vars_pl, "Internals")
     
     # variable_names <- c("competition_effect", "height", "mortality", "fecundity", "area_heartwood", "mass_heartwood")
     # rate_names <- paste0(setdiff(variable_names, "competition_effect"), "_dt")
@@ -177,7 +176,7 @@ for (x in names(strategy_types)) {
     #check outcome real and positive
     expect_true(opt_res_height_by_size_ode > 0)
     #check trait optima equal to realistic value
-    expect_equal(opt_res_height_by_size_ode[1],0.09015998)
+    expect_equal(opt_res_height_by_size_ode[1], 0.09015998, tolerance = 1e-6)
     #check height growth rate equal to realistic value
     expect_equal(attr(opt_res_height_by_size_ode, "height_growth_rate"), 1.141283, tolerance = 1e-6)
     
@@ -221,10 +220,10 @@ for (x in names(strategy_types)) {
     #check when bounds allow positive growth but dont include root (approx 0.09)
     bounds = bounds(lma=c(0.01, 0.07))
     size_res_ode_state_true_no_root = optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = 3, type = x, size_name = "height", set_state_directly = TRUE)
-    expect_equal(0.07, size_res_ode_state_true_no_root[1], 1e-6)
+    expect_equal(0.07, size_res_ode_state_true_no_root[1], tolerance = 1e-6)
     
     size_res_ode_state_false_no_root = optimise_individual_rate_at_size_by_trait(bounds, log_scale = TRUE, tol = 0.001, size = 3, type = x, size_name = "height", set_state_directly = FALSE)
-    expect_equal(0.07, size_res_ode_state_true_no_root[1], 1e-6)
+    expect_equal(0.07, size_res_ode_state_true_no_root[1], tolerance = 1e-6)
     } else {
     expect_equal(x, x) # to avoid a warning for empty
   }

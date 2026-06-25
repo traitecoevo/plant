@@ -5,6 +5,32 @@ source(
     "FF16_reference", "make_reference_plant.R")
 )
 
+# Edition-3 replacement for the deprecated `expect_is()`. Preserves the exact
+# `inherits()` semantics expect_is relied on (works for S3/R6/RcppR6 classes as
+# well as base types such as "list"/"numeric"/"matrix"), while giving a useful
+# failure message. Using this avoids the per-call-site ambiguity of choosing
+# between expect_s3_class / expect_type / expect_s4_class across ~70 sites.
+expect_inherits <- function(object, class, info = NULL, label = NULL) {
+  act <- testthat::quasi_label(rlang::enquo(object), label, arg = "object")
+  testthat::expect(
+    inherits(act$val, class),
+    sprintf("%s does not inherit from `%s`; its class is `%s`.",
+            act$lab, paste(class, collapse = "/"),
+            paste(class(act$val), collapse = "/")),
+    info = info
+  )
+  invisible(act$val)
+}
+
+# Compare two `Internals` reference objects by value. Edition-3 waldo recurses
+# into the underlying C++ `.ptr`, which differs between two equivalent-but-distinct
+# objects; comparing the exposed numeric bindings instead asserts equality of the
+# *state* (which is what edition 2 effectively compared for these reference types).
+expect_equal_internals <- function(object, expected, ...) {
+  to_state <- function(x) list(states = x$states, rates = x$rates, auxs = x$auxs)
+  expect_equal(to_state(object), to_state(expected), ...)
+}
+
 test_ode_make_system <- function(obj) {
   make_derivs <- function(obj) {
     if (is.null(obj$set_ode_state)) {

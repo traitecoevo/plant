@@ -1,4 +1,3 @@
-context("SCM-general")
 
 strategy_types <- get_list_of_strategy_types()
 environment_types <- get_list_of_environment_types()
@@ -27,15 +26,15 @@ test_that("Run SCM", {
     ## permits steps that overshoot these closely-spaced introductions).
     ctrl <- control_accurate()
     scm <- SCM(x, e)(p, env, ctrl)
-    expect_is(scm, sprintf("SCM<%s,%s>", x, e))
+    expect_inherits(scm, sprintf("SCM<%s,%s>", x, e))
 
     expect_equal(scm$parameters, p)
 
     ## Check that the underlying Patch really is a Patch<NodeTop>:
-    expect_is(scm$patch, sprintf("Patch<%s,%s>", x, e))
+    expect_inherits(scm$patch, sprintf("Patch<%s,%s>", x, e))
     expect_equal(length(scm$patch$species), 1)
-    expect_is(scm$patch$species[[1]], sprintf("Species<%s,%s>",x,e))
-    expect_is(scm$patch$species[[1]]$new_node, sprintf("Node<%s,%s>",x,e))
+    expect_inherits(scm$patch$species[[1]], sprintf("Species<%s,%s>",x,e))
+    expect_inherits(scm$patch$species[[1]]$new_node, sprintf("Node<%s,%s>",x,e))
     expect_identical(scm$patch$time, 0.0)
 
     sched <- scm$node_schedule
@@ -198,7 +197,6 @@ test_that("schedule setting", {
 
 test_that("Offspring production & error calculations correct", {
   for (x in c("FF16")) {
-    context(sprintf("SCM-%s", x))
     e <- environment_types[[x]]
     p0 <- scm_base_parameters(x)
     p1 <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
@@ -207,7 +205,7 @@ test_that("Offspring production & error calculations correct", {
     ctrl <- Control()
 
     scm <- run_scm(p1, env, ctrl)
-    expect_is(scm, sprintf("SCM<%s,%s>", x, e))
+    expect_inherits(scm, sprintf("SCM<%s,%s>", x, e))
 
     net_reproduction_ratio_R <- function(scm, error=FALSE) {
       a <- scm$node_schedule$times(1)
@@ -234,7 +232,6 @@ test_that("Offspring production & error calculations correct", {
 
 test_that("refinement_error_by_node collected in C++ matches per-step assembly", {
   for (x in c("FF16")) {
-    context(sprintf("SCM-%s", x))
     e <- environment_types[[x]]
     p0 <- scm_base_parameters(x)
     p1 <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
@@ -282,7 +279,6 @@ test_that("refinement_error_by_node collected in C++ matches per-step assembly",
 })
 
 test_that("Can create empty SCM", {
-  context("SCM-empty")
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)()
