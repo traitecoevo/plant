@@ -411,6 +411,14 @@ numerics you may need to regenerate these.
 Run the suite with `make test` or `devtools::test()`; a single file with
 `devtools::test_active_file()` or `testthat::test_file(...)`.
 
+The suite runs under testthat **edition 3** and is parallelised by file
+(`Config/testthat/parallel: true` in `DESCRIPTION`). testthat takes the worker
+count from `getOption("Ncpus")` / the `TESTTHAT_CPUS` env var, defaulting to
+**2** — set e.g. `Sys.setenv(TESTTHAT_CPUS = "8")` in your `~/.Rprofile` to use
+more cores. Parallelism only pays off with an optimised build: run `make`
+(compiles with `-O2`) before timing, not a bare `devtools::load_all()`, which
+builds unoptimised and is much slower.
+
 CI: [.github/workflows/R-CMD-check.yaml](.github/workflows/R-CMD-check.yaml) and
 `benchmarks.yml`.
 
