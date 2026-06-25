@@ -4153,14 +4153,6 @@ TF24f_Strategy__ctor <- function() {
     .Call('_plant_TF24f_Strategy__ctor', PACKAGE = 'plant')
 }
 
-ad_ift_demo <- function(gc = 0.1) {
-    .Call('_plant_ad_ift_demo', PACKAGE = 'plant', gc)
-}
-
-ad_leaf_demo <- function(psi_stem, b = 3.898245, c = 2.680147, g1 = 7.5, beta2 = 1.5) {
-    .Call('_plant_ad_leaf_demo', PACKAGE = 'plant', psi_stem, b, c, g1, beta2)
-}
-
 node_schedule_default__Parameters___FF16__FF16_Env <- function(p) {
     .Call('_plant_node_schedule_default__Parameters___FF16__FF16_Env', PACKAGE = 'plant', p)
 }

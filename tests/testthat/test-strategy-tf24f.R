@@ -341,3 +341,24 @@ test_that("Report generation", {
   unlink("tmp", recursive = TRUE)
 
 })
+
+test_that("TF24f AD gradient tracks TF24 (#527)", {
+  # End-to-end regression: with the exact AD/IFT gradient, a TF24f patch tracks
+  # the TF24 (full-optimisation) patch closely at a moderate acclimation gain.
+  base <- function(type) {
+    scm_base_parameters(type) |>
+      add_strategies(trait_matrix(0.0825, "lma"), birth_rate = 20)
+  }
+  ref <- run_scm(base("TF24"), collect = TRUE, refine_schedule = FALSE)$species
+
+  p <- base("TF24f")
+  s <- p$strategies[[1]]
+  s$k_acclim <- 10; s$use_ad_gradient <- TRUE
+  p$strategies[[1]] <- s
+  res <- run_scm(p, collect = TRUE, refine_schedule = FALSE)$species
+
+  expect_equal(nrow(res), nrow(ref))
+  dh <- abs(res$height - ref$height)
+  expect_gt(mean(dh <= 0.01 * pmax(ref$height, 1e-3), na.rm = TRUE), 0.90)
+  expect_lt(median(dh, na.rm = TRUE), 0.05)
+})
