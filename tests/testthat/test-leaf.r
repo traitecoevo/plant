@@ -1038,15 +1038,26 @@ test_that("dprofit_droot_collar_psi matches a finite difference (AD/IFT gradient
   # finite difference of profit. evaluate_root_collar_psi clamps to the feasible
   # interval, so a clamped point would make the central FD straddle the boundary
   # -- skip those and test strictly-interior points.
+  #
+  # The points deliberately extend well past the optimum (out to opt + 0.6). The
+  # analytic dpsi_stem/dpsi term differentiates the cumulative root-vulnerability
+  # spline, which CLAMP-extrapolates beyond its knot domain; using the separate
+  # f_r spline as the integrand (rather than the integral spline's own .deriv)
+  # was correct on-domain but silently wrong in the extrapolation region (~0.2%
+  # at opt + 0.4). The near-optimum points alone (opt + 0.2) did not catch it, so
+  # the far points below are load-bearing -- keep them.
   tested <- 0
-  for (psi in c(opt + 0.02, opt + 0.1, opt + 0.2)) {
+  for (psi in c(opt + 0.02, opt + 0.1, opt + 0.2, opt + 0.4, opt + 0.6)) {
     l$evaluate_root_collar_psi(psi)
     used <- -l$root_collar_psi_
     if (abs(used - psi) > 1e-8) next            # clamped: not interior, skip
     ad <- l$dprofit_droot_collar_psi(psi)
     expect_true(is.finite(ad))
-    expect_equal(ad, fd_grad(psi), tolerance = 1e-4)
+    # 1e-5 step here: the exact gradient tracks a fine FD to ~1e-9 across the
+    # interior; 1e-6 tolerance leaves margin without admitting the 0.2%
+    # extrapolation-region bug above.
+    expect_equal(ad, fd_grad(psi), tolerance = 1e-6)
     tested <- tested + 1
   }
-  expect_gt(tested, 0)                          # at least one interior point hit
+  expect_gt(tested, 2)                          # several interior points, incl. far ones
 })

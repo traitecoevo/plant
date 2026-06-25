@@ -332,6 +332,18 @@ public:
   // the noisy finite-difference gradient. Assumes prepare_collar_solve setup has
   // run (psi_soil_inverted_ etc.), as evaluate_root_collar_psi does.
   double dprofit_droot_collar_psi(double opt_root_psi);
+  // Analytic d(E_up_)/d(collar potential) for the soil->root-collar uptake
+  // (kg H2O m^-2 s^-1 per MPa of signed collar potential P_x_r), mirroring the
+  // general branch of E_from_Soil_to_Root_Collar layer by layer. The integral's
+  // derivative collapses to +/- root_vuln_integral_from_psi.deriv (the analytic
+  // slope of the same pre-integrated vulnerability curve used for the value, so
+  // it stays consistent even where that spline extrapolates), so no finite
+  // difference is needed.
+  // Returns NaN when any layer sits on a branch kink (P_x_r == psi_soil[i], the
+  // gravity-balance point, or P_x_r == 0); the caller (dprofit_droot_collar_psi)
+  // then falls back to a central difference. Used only on the TF24f acclimation
+  // gradient path, not the base TF24 value path.
+  double dE_from_soil_dpsi_collar(double P_x_r, const std::vector<double>& psi_soil);
   // Shut-down operating point used by the find_root_collar_psi early-exits: stem
   // held at psi_crit (no transpiration), paying only respiration + hydraulic
   // cost. Only root_collar_psi_ differs between the cases, so it is the argument.

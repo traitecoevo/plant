@@ -1,5 +1,6 @@
 #include <plant/leaf_model.h>
 #include <cmath>
+#include <limits>
 #include <exception>
 #include <boost/math/special_functions/gamma.hpp>
 #include <plant/models/tf24_environment.h>
@@ -927,14 +928,103 @@ double Leaf::dprofit_droot_collar_psi(double opt_root_psi) {
   const double dci_dpsistem = -(-dgc_dpsistem * (ca_ - ci) * inv_atm) / g_ci;
   const double dci_dpsi_expl = -(-dgc_dpsi * (ca_ - ci) * inv_atm) / g_ci;
 
-  // dpsi_stem/dpsi by central difference on the smooth (C2 spline) transport.
-  const double h = 1e-6;
-  const double dpsistem_dpsi =
-      (find_psi_stem_from_psi_root(-(psi + h), psi_soil_inverted_) -
-       find_psi_stem_from_psi_root(-(psi - h), psi_soil_inverted_)) / (2.0 * h);
+  // dpsi_stem/dpsi: psi_stem = P(E_psi_stem) with
+  //   E_psi_stem = E_up_(r)/k_max + S(psi),   r = -psi,
+  // S = transpiration_from_psi, P = psi_from_transpiration (both C2 splines), and
+  // E_up_(r) the soil->collar uptake. Chain rule, with dr/dpsi = -1:
+  //   dE_psi_stem/dpsi = -E_up_'(r)/k_max + S'(psi)
+  //   dpsi_stem/dpsi   = P'(E_psi_stem) * dE_psi_stem/dpsi.
+  // E_up_'(r) is analytic (dE_from_soil_dpsi_collar); near a branch kink it
+  // returns NaN and we fall back to the central difference on the transport.
+  const double r = -psi;
+  const double dEup_dr = dE_from_soil_dpsi_collar(r, psi_soil_inverted_);
+  double dpsistem_dpsi;
+  if (std::isfinite(dEup_dr)) {
+    E_from_Soil_to_Root_Collar(r, psi_soil_inverted_);  // refresh E_up_ at r
+    const double E_psi_stem =
+        E_up_ / leaf_specific_conductance_max_ + transpiration_from_psi.eval(psi);
+    const double dEpsistem_dpsi =
+        -dEup_dr / leaf_specific_conductance_max_ + transpiration_from_psi.deriv(psi);
+    dpsistem_dpsi = psi_from_transpiration.deriv(E_psi_stem) * dEpsistem_dpsi;
+  } else {
+    const double h = 1e-6;
+    dpsistem_dpsi =
+        (find_psi_stem_from_psi_root(-(psi + h), psi_soil_inverted_) -
+         find_psi_stem_from_psi_root(-(psi - h), psi_soil_inverted_)) / (2.0 * h);
+  }
 
   const double dci_dpsi = dci_dpsistem * dpsistem_dpsi + dci_dpsi_expl;
   return A_prime * dci_dpsi - C_prime * dpsistem_dpsi;
+}
+
+// Analytic d(E_up_)/d(P_x_r): the signed-collar-potential derivative of the
+// soil->root-collar uptake, mirroring the general branch of
+// E_from_Soil_to_Root_Collar. Per layer, with span = |psi_soil[i] - P_x_r| and
+// integral = \int f_r over [P_src_min, P_src_max] (the cumulative-vulnerability
+// curve root_vuln_integral_from_psi, whose integrand is root_vuln_from_psi):
+//   E_i        = (psi_soil[i] - P_x_r - grav) / area_leaf / r_R,
+//   r_R        = r_R_H_min[i] * span / integral + r_R_V_sum[i],
+//   dspan/dP   = sign_var   (+1 if P_x_r is the upper bound, else -1),
+//   dinteg/dP  = sign_var * f_r(-P_x_r)  for P_x_r<0  (else sign_var, f_r==1),
+// and dE_i/dP follows by the quotient rule. Returns NaN on any branch kink so
+// the caller falls back to finite differences.
+double Leaf::dE_from_soil_dpsi_collar(double P_x_r, const std::vector<double>& psi_soil) {
+  const double inv_area_leaf = 1.0 / area_leaf_;
+  const double kink_tol = 1e-8;
+  double dEup_dr_mol = 0.0;
+
+  for (int i = 0; i < max_soil_layer; i++) {
+    // Branch kinks: equal potentials, gravity-balance, and the psi==0 split of
+    // the vulnerability integral. The analytic general-branch derivative is not
+    // valid across these, so signal a fallback.
+    if (std::abs(P_x_r - psi_soil[i]) < kink_tol ||
+        std::abs((psi_soil[i] - P_x_r) - grav_head_z_[i]) < kink_tol ||
+        std::abs(P_x_r) < kink_tol) {
+      return std::numeric_limits<double>::quiet_NaN();
+    }
+
+    const double P_src_min = std::min(psi_soil[i], P_x_r);
+    const double P_src_max = std::max(psi_soil[i], P_x_r);
+    const double span = P_src_max - P_src_min;
+    const double sign_var = (P_x_r > psi_soil[i]) ? 1.0 : -1.0;  // = dspan/dP_x_r
+
+    // integral, replicated bit-for-bit from E_from_Soil_to_Root_Collar.
+    const double hi_neg = std::min(P_src_max, 0.0);
+    const double lo_pos = std::max(P_src_min, 0.0);
+    double integral = 0.0;
+    if (hi_neg > P_src_min) {
+      integral += root_vuln_integral_from_psi.eval(-P_src_min) -
+                  root_vuln_integral_from_psi.eval(-hi_neg);
+    }
+    if (P_src_max > lo_pos) {
+      integral += (P_src_max - lo_pos);
+    }
+
+    // d(integral)/d(P_x_r): for P_x_r<0 the moving bound is in the vulnerable
+    // region. The integrand is the derivative of the *same* cumulative spline
+    // that produced `integral` (root_vuln_integral_from_psi.deriv), NOT the
+    // separate root_vuln_from_psi spline: the two agree on the knot domain but
+    // extrapolate independently (both clamp-to-last-value, #527), so beyond the
+    // domain only the integral spline's own derivative stays consistent with its
+    // value. For P_x_r>0 the moving bound is in the above-atmospheric part
+    // (f_r==1), contributed linearly, so the slope is 1.
+    const double fr_at =
+        (P_x_r < 0.0) ? root_vuln_integral_from_psi.deriv(-P_x_r) : 1.0;
+    const double dinteg_dr = sign_var * fr_at;
+
+    const double r_R_H = r_R_H_min[i] * span / integral;
+    const double r_R = r_R_H + r_R_V_sum[i];
+    const double dr_R_H_dr =
+        r_R_H_min[i] * (sign_var * integral - span * dinteg_dr) / (integral * integral);
+    const double dr_R_dr = dr_R_H_dr;
+
+    const double num = (psi_soil[i] - P_x_r - grav_head_z_[i]) * inv_area_leaf;
+    const double dnum_dr = -inv_area_leaf;
+    // E_i = num / r_R  ->  quotient rule.
+    dEup_dr_mol += (dnum_dr * r_R - num * dr_R_dr) / (r_R * r_R);
+  }
+
+  return dEup_dr_mol * kg_per_mol_h2o;  // match E_up_'s kg units
 }
 
 double Leaf::arrh_curve(double Ea, double ref_value, double leaf_temp) const {
