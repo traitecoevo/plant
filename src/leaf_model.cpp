@@ -3,8 +3,27 @@
 #include <exception>
 #include <boost/math/special_functions/gamma.hpp>
 #include <plant/models/tf24_environment.h>
+#include <XAD/XAD.hpp>
 
 namespace plant {
+
+namespace {
+// Templated replicas of the analytic profit algebra, so forward-mode AD gives
+// their exact derivatives (used by Leaf::dprofit_droot_collar_psi). They mirror
+// Leaf::assim_colimited and Leaf::hydraulic_cost_TF exactly.
+template <typename T>
+T assim_colimited_ad(T ci, double vcmax, double et, double gstar_Pa, double km,
+                     double R_d, double curv) {
+  T ar = vcmax * (ci - gstar_Pa) / (ci + km);
+  T ae = et / 4.0 * (ci - gstar_Pa) / (ci + 2.0 * gstar_Pa);
+  T s = ar + ae;
+  return (s - sqrt(s * s - 4.0 * curv * ar * ae)) / (2.0 * curv) - R_d;
+}
+template <typename T>
+T hydraulic_cost_ad(T psi_stem, double b, double c, double g1, double beta2) {
+  return g1 * pow(1.0 - exp(-pow(psi_stem / b, c)), beta2);
+}
+}  // namespace
 Leaf::Leaf()
     :
     vcmax_25(96), // umol m^-2 s^-1 
@@ -846,6 +865,65 @@ double Leaf::evaluate_root_collar_psi(double target_opt_root_psi){
     return profit_;
 }
 
+// Exact d(profit)/d(opt_root_psi). profit(psi) = assim_colimited(ci) -
+// hydraulic_cost_TF(psi_stem), with psi_stem = find_psi_stem_from_psi_root(-psi)
+// (smooth spline transport) and ci = psi_stem_to_ci(psi_stem, psi) (root-find).
+// Chain rule:
+//   dprofit/dpsi = A'(ci) dci/dpsi - C'(psi_stem) dpsi_stem/dpsi
+// where dci/dpsi = (dci/dpsi_stem) dpsi_stem/dpsi + (dci/dpsi)|_explicit, and the
+// dci/d* terms come from the implicit-function theorem on the residual
+//   g(ci; psi_stem, psi) = A(ci) umol_to_mol - gc(psi_stem,psi) (ca-ci)/(atm kPa)
+// with gc = const * transpiration(psi_stem,psi). A'/C' are obtained by forward
+// AD; the gc partials use the analytic spline derivative (transpiration_from_psi
+// .deriv); dpsi_stem/dpsi by a tight central difference on the smooth transport.
+double Leaf::dprofit_droot_collar_psi(double opt_root_psi) {
+  using AD = xad::fwd<double>::active_type;
+  const double psi = opt_root_psi;
+  const double gstar_Pa = gamma_ * umol_per_mol_to_Pa;
+
+  // Operating point in double.
+  const double psi_stem = find_psi_stem_from_psi_root(-psi, psi_soil_inverted_);
+  const double ci = psi_stem_to_ci(psi_stem, psi);
+  if (!std::isfinite(psi_stem) || !std::isfinite(ci)) {
+    return 0.0;  // shut-down / infeasible: no informative gradient
+  }
+
+  // A'(ci) and C'(psi_stem) via forward-mode AD of the analytic algebra.
+  AD ci_ad = ci;            xad::derivative(ci_ad) = 1.0;
+  const double A_prime = xad::derivative(
+      assim_colimited_ad(ci_ad, vcmax_, electron_transport_, gstar_Pa, km_,
+                         R_d_, curv_fact_colim));
+  AD ps_ad = psi_stem;      xad::derivative(ps_ad) = 1.0;
+  const double C_prime = xad::derivative(
+      hydraulic_cost_ad(ps_ad, b, c, g1_TF24, beta2));
+
+  // Stomatal-conductance supply coefficient gc and its partials. gc =
+  // gc_const * transpiration(psi_stem, psi); transpiration is conductance_max *
+  // (transp_from_psi(psi_stem) - transp_from_psi(psi)), so the partials use the
+  // analytic spline derivative.
+  const double gc_const =
+      atm_kpa_ * kg_to_mol_h2o / atm_vpd_ / H2O_CO2_stom_diff_ratio;
+  const double gc = gc_const * transpiration(psi_stem, psi);
+  const double dgc_dpsistem =
+      gc_const * leaf_specific_conductance_max_ * transpiration_from_psi.deriv(psi_stem);
+  const double dgc_dpsi =
+      gc_const * leaf_specific_conductance_max_ * (-transpiration_from_psi.deriv(psi));
+
+  // IFT on g(ci; psi_stem, psi): dci/dp = -(dg/dp)/(dg/dci).
+  const double inv_atm = 1.0 / (atm_kpa_ * kPa_to_Pa);
+  const double g_ci = A_prime * umol_to_mol + gc * inv_atm;      // dg/dci
+  const double dci_dpsistem = -(-dgc_dpsistem * (ca_ - ci) * inv_atm) / g_ci;
+  const double dci_dpsi_expl = -(-dgc_dpsi * (ca_ - ci) * inv_atm) / g_ci;
+
+  // dpsi_stem/dpsi by central difference on the smooth (C2 spline) transport.
+  const double h = 1e-6;
+  const double dpsistem_dpsi =
+      (find_psi_stem_from_psi_root(-(psi + h), psi_soil_inverted_) -
+       find_psi_stem_from_psi_root(-(psi - h), psi_soil_inverted_)) / (2.0 * h);
+
+  const double dci_dpsi = dci_dpsistem * dpsistem_dpsi + dci_dpsi_expl;
+  return A_prime * dci_dpsi - C_prime * dpsistem_dpsi;
+}
 
 double Leaf::arrh_curve(double Ea, double ref_value, double leaf_temp) const {
 

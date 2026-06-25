@@ -81,6 +81,14 @@ Leaf__find_psi_stem_from_psi_root <- function(obj_, psi_root, psi_soil) {
     .Call('_plant_Leaf__find_psi_stem_from_psi_root', PACKAGE = 'plant', obj_, psi_root, psi_soil)
 }
 
+Leaf__evaluate_root_collar_psi <- function(obj_, target_opt_root_psi) {
+    .Call('_plant_Leaf__evaluate_root_collar_psi', PACKAGE = 'plant', obj_, target_opt_root_psi)
+}
+
+Leaf__dprofit_droot_collar_psi <- function(obj_, opt_root_psi) {
+    .Call('_plant_Leaf__dprofit_droot_collar_psi', PACKAGE = 'plant', obj_, opt_root_psi)
+}
+
 Leaf__psi_stem_to_ci <- function(obj_, psi_stem, psi_upstream) {
     .Call('_plant_Leaf__psi_stem_to_ci', PACKAGE = 'plant', obj_, psi_stem, psi_upstream)
 }

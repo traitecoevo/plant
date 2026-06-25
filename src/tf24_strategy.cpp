@@ -9,8 +9,6 @@ namespace plant {
 // rescales total fine-root mass into the per-layer carbon units expected by the
 // root hydraulic network in Leaf::set_physiology.
 static const double root_mass_carbon_scale = 83.26 * 0.5;
-// shape exponent for the Q() root-fraction-with-depth profile.
-static const double root_depth_shape_eta = 0.2;
 // rooting depth cap (m), i.e. the depth of the soil column.
 static const double rooting_depth_max = 1.5;
 
@@ -361,8 +359,8 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   // Reuse the member buffer (assign refills + zeroes without reallocating when
   // the layer count is unchanged); zeroing matters because the loop below breaks
   // early below the rooting depth, leaving deep layers that must read as 0.
-  // TODO (perf): the rooting depth fraction (0.2), depth cap (1.5) and scale
-  // (83.26) are hard-coded and should become traits.
+  // TODO (perf): rooting depth cap (1.5) and scale (83.26) are hard-coded and
+  // should become traits.
   mass_root_prop_.assign(soil_number_of_depths_, 0.0);
 
 
@@ -383,7 +381,8 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
       if(prev_q == 0){
         break;
       }
-      const double q = Q(soil_depths_[a], rooting_depth, root_depth_shape_eta);
+      const double q = Q(soil_depths_[a], rooting_depth,
+             pars.root_depth_shape_eta);
 
       mass_root_prop_[a] = root_mass_scale * (prev_q - q);
       prev_q = q;

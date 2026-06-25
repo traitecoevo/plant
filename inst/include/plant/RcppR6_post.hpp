@@ -1280,6 +1280,7 @@ template <> inline SEXP wrap(const plant::TF24_Pars& x) {
   ret["nmass_b"] = Rcpp::wrap(x.nmass_b);
   ret["nmass_r"] = Rcpp::wrap(x.nmass_r);
   ret["dmass_dN"] = Rcpp::wrap(x.dmass_dN);
+  ret["root_depth_shape_eta"] = Rcpp::wrap(x.root_depth_shape_eta);
   ret["recruitment_decay"] = Rcpp::wrap(x.recruitment_decay);
   ret.attr("class") = "TF24_Pars";
   return ret;
@@ -1393,6 +1394,8 @@ template <> inline plant::TF24_Pars as(SEXP x) {
   ret.nmass_r = Rcpp::as<double >(xl["nmass_r"]);
   // ret.dmass_dN = Rcpp::as<decltype(retdmass_dN) >(xl["dmass_dN"]);
   ret.dmass_dN = Rcpp::as<double >(xl["dmass_dN"]);
+  // ret.root_depth_shape_eta = Rcpp::as<decltype(retroot_depth_shape_eta) >(xl["root_depth_shape_eta"]);
+  ret.root_depth_shape_eta = Rcpp::as<double >(xl["root_depth_shape_eta"]);
   // ret.recruitment_decay = Rcpp::as<decltype(retrecruitment_decay) >(xl["recruitment_decay"]);
   ret.recruitment_decay = Rcpp::as<double >(xl["recruitment_decay"]);
   return ret;
@@ -1447,6 +1450,7 @@ template <> inline SEXP wrap(const plant::TF24f_Strategy& x) {
   ret["is_variable_birth_rate"] = Rcpp::wrap(x.is_variable_birth_rate);
   ret["k_acclim"] = Rcpp::wrap(x.k_acclim);
   ret["psi_fd_step"] = Rcpp::wrap(x.psi_fd_step);
+  ret["use_ad_gradient"] = Rcpp::wrap(x.use_ad_gradient);
   ret.attr("class") = "TF24f_Strategy";
   return ret;
 }
@@ -1475,6 +1479,8 @@ template <> inline plant::TF24f_Strategy as(SEXP x) {
   ret.k_acclim = Rcpp::as<double >(xl["k_acclim"]);
   // ret.psi_fd_step = Rcpp::as<decltype(retpsi_fd_step) >(xl["psi_fd_step"]);
   ret.psi_fd_step = Rcpp::as<double >(xl["psi_fd_step"]);
+  // ret.use_ad_gradient = Rcpp::as<decltype(retuse_ad_gradient) >(xl["use_ad_gradient"]);
+  ret.use_ad_gradient = Rcpp::as<bool >(xl["use_ad_gradient"]);
   return ret;
 }
 }

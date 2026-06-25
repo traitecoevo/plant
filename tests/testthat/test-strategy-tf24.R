@@ -54,6 +54,7 @@ test_that("Defaults", {
     nmass_b = 0.0034,
     nmass_r = 0.00335,
     dmass_dN = 0,
+    root_depth_shape_eta = 0.2,
     recruitment_decay = 0)
 
   # Top-level strategy fields: the pars sub-object plus infrastructure.

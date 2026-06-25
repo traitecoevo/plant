@@ -999,3 +999,55 @@ test_that("find_root_psi soil->collar continuity solve", {
   expect_equal(root0, -0.4387473787, tolerance = 1e-3)
   expect_equal(root1, -0.6854590915, tolerance = 1e-3)
 })
+
+test_that("dprofit_droot_collar_psi matches a finite difference (AD/IFT gradient, #527)", {
+  # Reuse the standard single-layer leaf setup from "Basic functions".
+  vcmax_25 = 100; jmax_25 = vcmax_25 * 167; c = 2.04; b = 3; psi_crit = 5
+  theta = 0.000157; K_s = 1; h = 5; beta2 = 1; hk_s = 75
+  curv_fact_elec_trans = 0.7; a = 0.3; curv_fact_colim = 0.99; g1_TF24 = 46.32995
+  GSS_tol_abs = 1e-8; vulnerability_curve_ncontrol = 100; ci_abs_tol = 1e-6
+  ci_niter = 1000; beta_R_H = 3.4e3; beta_R_V = 9.4e4; root_c = 2.65; root_b = 1.29
+  root_psi_crit = root_b * (log(1.0 / 0.05))^(1.0 / root_c)
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit,
+            root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, beta2 = beta2,
+            hk_s = hk_s, a = a, curv_fact_elec_trans = curv_fact_elec_trans,
+            curv_fact_colim = curv_fact_colim, GSS_tol_abs = GSS_tol_abs,
+            vulnerability_curve_ncontrol = vulnerability_curve_ncontrol,
+            ci_abs_tol = ci_abs_tol, ci_niter = ci_niter, g1_TF24 = g1_TF24,
+            beta_R_H = beta_R_H, beta_R_V = beta_R_V)
+  PPFD = 900; sapwood_volume_per_leaf_area = theta * h
+  leaf_specific_conductance_max = K_s * theta / h
+  psi_soil = 2; atm_vpd = 2; ca = 40; atm_o2_kpa_ = 21; leaf_temp_ = 25
+  atm_kpa_ = 101.3; area_leaf_ = 0.05; mass_root_prop_ = 1
+  l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root_prop_, rho = 608,
+                   a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_soil, soil_depth = 1,
+                   leaf_specific_conductance_max = leaf_specific_conductance_max,
+                   atm_vpd = atm_vpd, ca = ca,
+                   sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area,
+                   leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+
+  # Optimise once (also sets up the soil-side caches the gradient needs).
+  l$find_root_collar_psi()
+  opt <- -l$root_collar_psi_   # operating collar potential (positive magnitude)
+
+  fd_grad <- function(psi, eps = 1e-5) {
+    (l$evaluate_root_collar_psi(psi + eps) -
+     l$evaluate_root_collar_psi(psi - eps)) / (2 * eps)
+  }
+
+  # On the feasible interior the exact AD/IFT gradient must match a fine central
+  # finite difference of profit. evaluate_root_collar_psi clamps to the feasible
+  # interval, so a clamped point would make the central FD straddle the boundary
+  # -- skip those and test strictly-interior points.
+  tested <- 0
+  for (psi in c(opt + 0.02, opt + 0.1, opt + 0.2)) {
+    l$evaluate_root_collar_psi(psi)
+    used <- -l$root_collar_psi_
+    if (abs(used - psi) > 1e-8) next            # clamped: not interior, skip
+    ad <- l$dprofit_droot_collar_psi(psi)
+    expect_true(is.finite(ad))
+    expect_equal(ad, fd_grad(psi), tolerance = 1e-4)
+    tested <- tested + 1
+  }
+  expect_gt(tested, 0)                          # at least one interior point hit
+})

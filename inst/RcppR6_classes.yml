@@ -166,6 +166,14 @@ Leaf:
       return_type: double
       args: [psi_root: double, psi_soil: "std::vector<double>"]
 
+    evaluate_root_collar_psi:
+      return_type: double
+      args: [target_opt_root_psi: double]
+
+    dprofit_droot_collar_psi:
+      return_type: double
+      args: [opt_root_psi: double]
+
     psi_stem_to_ci:
       return_type: double
       args: [psi_stem: double, psi_upstream: double]
@@ -1244,6 +1252,7 @@ TF24_Pars:
     - nmass_b: double
     - nmass_r: double
     - dmass_dN: double
+    - root_depth_shape_eta: double
     - recruitment_decay: double
 
 TF24_Strategy:
@@ -1376,3 +1385,4 @@ TF24f_Strategy:
     - is_variable_birth_rate: bool
     - k_acclim: double
     - psi_fd_step: double
+    - use_ad_gradient: bool

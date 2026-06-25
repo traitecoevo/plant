@@ -82,6 +82,14 @@ double Leaf__find_psi_stem_from_psi_root(plant::RcppR6::RcppR6<plant::Leaf> obj_
   return obj_->find_psi_stem_from_psi_root(psi_root, psi_soil);
 }
 // [[Rcpp::export]]
+double Leaf__evaluate_root_collar_psi(plant::RcppR6::RcppR6<plant::Leaf> obj_, double target_opt_root_psi) {
+  return obj_->evaluate_root_collar_psi(target_opt_root_psi);
+}
+// [[Rcpp::export]]
+double Leaf__dprofit_droot_collar_psi(plant::RcppR6::RcppR6<plant::Leaf> obj_, double opt_root_psi) {
+  return obj_->dprofit_droot_collar_psi(opt_root_psi);
+}
+// [[Rcpp::export]]
 double Leaf__psi_stem_to_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem, double psi_upstream) {
   return obj_->psi_stem_to_ci(psi_stem, psi_upstream);
 }
