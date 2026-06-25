@@ -1233,6 +1233,7 @@ TF24_Pars:
     - nmass_b: double
     - nmass_r: double
     - dmass_dN: double
+    - root_depth_shape_eta: double
     - recruitment_decay: double
 
 TF24_Strategy:

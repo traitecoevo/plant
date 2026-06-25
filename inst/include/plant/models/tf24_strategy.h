@@ -76,6 +76,8 @@ struct TF24_Pars {
   double nmass_b = 3.40e-3; // kg N kg^-1 mass
   double nmass_r = 3.35e-3; // kg N kg^-1 mass
   double dmass_dN = 0; // change in mass per change in kg kg^-1 N
+  // shape exponent for the Q() root-fraction-with-depth profile
+  double root_depth_shape_eta = 0.2;
   // Germination
   double recruitment_decay = 0.0;
 };
