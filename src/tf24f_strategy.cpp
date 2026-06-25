@@ -44,6 +44,18 @@ void TF24f_Strategy::compute_rates(const TF24_Environment& environment,
 // tracked state sits outside the feasible interval (e.g. an uninitialised state
 // at 0), pulling it back inside. The final evaluate leaves the leaf outputs at
 // the operating point that compute_rates' aux reads expect.
+//
+// We use a *centred* difference, (P(psi+h) - P(psi-h)) / 2h. A one-sided
+// (forward) difference has an O(h) error term proportional to the profit
+// curvature P'', so its zero -- the fixed point the tracked state relaxes to --
+// sits at psi* - h/2 rather than the true optimum psi*. That bias is a constant
+// offset that does NOT shrink as the patch ages (#526): with h = 0.05 MPa the
+// tracked state settles ~0.025 MPa *below* TF24's optimum. The centred
+// difference cancels the O(h) term, leaving an O(h^2) error, so the steady-state
+// match to TF24 tightens by ~h/2 for one extra leaf evaluation per step.
+// Near a feasible-interval boundary the clamp inside evaluate_root_collar_psi
+// collapses one arm onto `used`, degrading this gracefully to a one-sided
+// difference that still points back into the interior.
 void TF24f_Strategy::solve_leaf() {
   if (initializing_) {
     // Birth initialisation: run the full optimiser so set_initial_states can
@@ -58,10 +70,14 @@ void TF24f_Strategy::solve_leaf() {
     util::stop("TF24f: psi_fd_step must be finite and > 0 (got " +
                util::to_string(h) + ")");
   }
-  const double p0 = leaf.evaluate_root_collar_psi(tracked_root_psi_);
+  // Evaluate at the tracked state first to read back the clamped operating value
+  // (used); both perturbations are taken about it so the difference is centred
+  // on the point we actually operate at.
+  leaf.evaluate_root_collar_psi(tracked_root_psi_);
   const double used = -leaf.root_collar_psi_;
-  const double p1 = leaf.evaluate_root_collar_psi(used + h);
-  dprofit_dpsi_ = (p1 - p0) / h;
+  const double p_plus  = leaf.evaluate_root_collar_psi(used + h);
+  const double p_minus = leaf.evaluate_root_collar_psi(used - h);
+  dprofit_dpsi_ = (p_plus - p_minus) / (2.0 * h);
   leaf.evaluate_root_collar_psi(used);
 }
 
