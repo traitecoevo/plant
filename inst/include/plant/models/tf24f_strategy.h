@@ -58,8 +58,12 @@ public:
   // stiffness / accuracy-vs-speed k-sweep (#525) can be driven without a rebuild;
   // large k recovers the quasi-steady-state (TF24) optimum.
   double k_acclim = 1.0;
-  // Finite-difference step (positive magnitude, MPa) for d(profit)/d(psi).
+  // Finite-difference step (positive magnitude, MPa) for d(profit)/d(psi); used
+  // only when use_ad_gradient is false.
   double psi_fd_step = 1e-3;
+  // Use the exact AD/IFT gradient (Leaf::dprofit_droot_collar_psi) instead of the
+  // finite difference. Exposed to R for A/B comparison (#527).
+  bool use_ad_gradient = true;
 
   // Cached slot for the tracked state, resolved in refresh_indices().
   int state_idx_opt_root_psi_state = -1;

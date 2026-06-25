@@ -315,6 +315,14 @@ public:
   // exactly the same outputs as find_root_collar_psi and returns profit_. Used by
   // TF24f's gradient-ascent acclimation (#525).
   double evaluate_root_collar_psi(double target_opt_root_psi);
+  // Exact d(profit)/d(opt_root_psi) at a given root-collar potential (positive
+  // magnitude), for TF24f's acclimation tracking (#525/#527). Combines
+  // forward-mode AD for the analytic photosynthesis/cost algebra, the
+  // implicit-function theorem at the psi_stem_to_ci root-find, and analytic
+  // spline derivatives (Interpolator::deriv) for the smooth transport. Replaces
+  // the noisy finite-difference gradient. Assumes prepare_collar_solve setup has
+  // run (psi_soil_inverted_ etc.), as evaluate_root_collar_psi does.
+  double dprofit_droot_collar_psi(double opt_root_psi);
   // Shut-down operating point used by the find_root_collar_psi early-exits: stem
   // held at psi_crit (no transpiration), paying only respiration + hydraulic
   // cost. Only root_collar_psi_ differs between the cases, so it is the argument.

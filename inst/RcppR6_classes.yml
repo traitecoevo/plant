@@ -1376,3 +1376,4 @@ TF24f_Strategy:
     - is_variable_birth_rate: bool
     - k_acclim: double
     - psi_fd_step: double
+    - use_ad_gradient: bool

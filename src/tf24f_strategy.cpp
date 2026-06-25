@@ -51,18 +51,27 @@ void TF24f_Strategy::solve_leaf() {
     leaf.find_root_collar_psi();
     return;
   }
-  const double h = psi_fd_step;
-  // psi_fd_step is the user-settable finite-difference step; a zero or
-  // non-finite value would divide by zero and propagate NaNs into the gradient.
-  if (!util::is_finite(h) || h <= 0.0) {
-    util::stop("TF24f: psi_fd_step must be finite and > 0 (got " +
-               util::to_string(h) + ")");
-  }
-  const double p0 = leaf.evaluate_root_collar_psi(tracked_root_psi_);
+  // Establish the operating point (and the clamped collar psi `used`) and leave
+  // the leaf outputs there for compute_rates' aux reads.
+  leaf.evaluate_root_collar_psi(tracked_root_psi_);
   const double used = -leaf.root_collar_psi_;
-  const double p1 = leaf.evaluate_root_collar_psi(used + h);
-  dprofit_dpsi_ = (p1 - p0) / h;
-  leaf.evaluate_root_collar_psi(used);
+
+  if (use_ad_gradient) {
+    // Exact gradient: AD over the analytic algebra + IFT at the ci root-find +
+    // analytic spline derivatives for the transport.
+    dprofit_dpsi_ = leaf.dprofit_droot_collar_psi(used);
+    leaf.evaluate_root_collar_psi(used);  // restore operating-point outputs
+  } else {
+    const double h = psi_fd_step;
+    if (!util::is_finite(h) || h <= 0.0) {
+      util::stop("TF24f: psi_fd_step must be finite and > 0 (got " +
+                 util::to_string(h) + ")");
+    }
+    const double p0 = leaf.evaluate_root_collar_psi(used);
+    const double p1 = leaf.evaluate_root_collar_psi(used + h);
+    dprofit_dpsi_ = (p1 - p0) / h;
+    leaf.evaluate_root_collar_psi(used);
+  }
 }
 
 // Seed the tracked state at its optimum: run the base optimiser once (via the

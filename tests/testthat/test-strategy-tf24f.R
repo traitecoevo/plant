@@ -61,7 +61,7 @@ test_that("Defaults", {
   # TF24f-specific acclimation knobs (gain + finite-difference step) (#525).
   expected_top <- c("pars", "control", "collect_all_auxiliary",
                     "birth_rate_x", "birth_rate_y", "is_variable_birth_rate",
-                    "k_acclim", "psi_fd_step")
+                    "k_acclim", "psi_fd_step", "use_ad_gradient")
 
   s <- TF24f_Strategy()
   expect_is(s, "TF24f_Strategy")
@@ -85,9 +85,12 @@ test_that("TF24f validates acclimation knobs", {
   s1 <- p1$strategies[[1]]; s1$k_acclim <- -1; p1$strategies[[1]] <- s1
   expect_error(run_scm(p1, collect = FALSE, refine_schedule = FALSE), "k_acclim")
 
+  # psi_fd_step is only used on the finite-difference path, so exercise it with
+  # the AD gradient disabled.
   p2 <- scm_base_parameters("TF24f") |>
     add_strategies(trait_matrix(0.0825, "lma"), birth_rate = 20)
-  s2 <- p2$strategies[[1]]; s2$psi_fd_step <- 0; p2$strategies[[1]] <- s2
+  s2 <- p2$strategies[[1]]; s2$psi_fd_step <- 0; s2$use_ad_gradient <- FALSE
+  p2$strategies[[1]] <- s2
   expect_error(run_scm(p2, collect = FALSE, refine_schedule = FALSE), "psi_fd_step")
 })
 
