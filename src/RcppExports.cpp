@@ -11651,6 +11651,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// ad_ift_demo
+Rcpp::NumericVector ad_ift_demo(double gc);
+RcppExport SEXP _plant_ad_ift_demo(SEXP gcSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type gc(gcSEXP);
+    rcpp_result_gen = Rcpp::wrap(ad_ift_demo(gc));
+    return rcpp_result_gen;
+END_RCPP
+}
 // ad_leaf_demo
 Rcpp::NumericVector ad_leaf_demo(double psi_stem, double b, double c, double g1, double beta2);
 RcppExport SEXP _plant_ad_leaf_demo(SEXP psi_stemSEXP, SEXP bSEXP, SEXP cSEXP, SEXP g1SEXP, SEXP beta2SEXP) {
@@ -12979,6 +12990,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_TF24_Environment__light_availability__set", (DL_FUNC) &_plant_TF24_Environment__light_availability__set, 2},
     {"_plant_TF24_Environment__soil__get", (DL_FUNC) &_plant_TF24_Environment__soil__get, 1},
     {"_plant_TF24f_Strategy__ctor", (DL_FUNC) &_plant_TF24f_Strategy__ctor, 0},
+    {"_plant_ad_ift_demo", (DL_FUNC) &_plant_ad_ift_demo, 1},
     {"_plant_ad_leaf_demo", (DL_FUNC) &_plant_ad_leaf_demo, 5},
     {"_plant_node_schedule_default__Parameters___FF16__FF16_Env", (DL_FUNC) &_plant_node_schedule_default__Parameters___FF16__FF16_Env, 1},
     {"_plant_make_node_schedule__Parameters___FF16__FF16_Env", (DL_FUNC) &_plant_make_node_schedule__Parameters___FF16__FF16_Env, 1},

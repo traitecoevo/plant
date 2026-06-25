@@ -49,7 +49,69 @@ T hydraulic_cost_via_spline(T psi_stem, const std::vector<double>& xs,
   return g1 * pow(1.0 - spline_eval(xs, ys, psi_stem), beta2);
 }
 
+// --- IFT-through-root-find demo (psi_stem_to_ci) ----------------------------
+// Mirrors Leaf::psi_stem_to_ci's residual: colimited assimilation demand minus
+// the linear gc supply, solved for ci. The dependence on psi_stem enters via the
+// stomatal-conductance coefficient gc, so we differentiate ci w.r.t. gc here
+// (dci/dpsi_stem then follows by chain rule with dgc/dpsi_stem, which is the
+// spline-based, already-AD-able transport side).
+struct CiParams {
+  double vcmax = 100.0, et = 120.0, gstar = 4.0, km = 70.0, R_d = 1.0,
+         curv = 0.99, ca = 40.0, atm_kPa = 101325.0, umol_to_mol = 1e-6;
+};
+
+template <typename T>
+T assim_colimited_demo(T ci, const CiParams& p) {
+  T ar = p.vcmax * (ci - p.gstar) / (ci + p.km);
+  T ae = p.et / 4.0 * (ci - p.gstar) / (ci + 2.0 * p.gstar);
+  T s = ar + ae;
+  return (s - sqrt(s * s - 4.0 * p.curv * ar * ae)) / (2.0 * p.curv) - p.R_d;
+}
+
+// Residual g(ci; gc) whose root defines ci(gc). Templated so AD gives partials.
+template <typename T>
+T ci_residual(T ci, T gc, const CiParams& p) {
+  return assim_colimited_demo(ci, p) * p.umol_to_mol - gc * (p.ca - ci) / p.atm_kPa;
+}
+
+// Plain-double bisection solver for ci over (gstar, ca).
+double solve_ci(double gc, const CiParams& p) {
+  double lo = p.gstar * 1.0001, hi = p.ca * 0.9999;
+  for (int it = 0; it < 200; ++it) {
+    double mid = 0.5 * (lo + hi);
+    if (ci_residual<double>(mid, gc, p) < 0.0) lo = mid; else hi = mid;
+  }
+  return 0.5 * (lo + hi);
+}
+
 }  // namespace
+
+// [[Rcpp::export]]
+Rcpp::NumericVector ad_ift_demo(double gc = 0.1) {
+  CiParams p;
+  const double ci_star = solve_ci(gc, p);   // converged root in double
+
+  using AD = xad::fwd<double>::active_type;
+  // IFT: dci/dgc = -(dg/dgc)/(dg/dci), partials by forward AD at (ci_star, gc).
+  AD ci_a = ci_star; xad::derivative(ci_a) = 1.0;            // seed d/dci
+  AD gc_a = gc;
+  const double g_ci = xad::derivative(ci_residual(ci_a, gc_a, p));
+
+  AD ci_b = ci_star;
+  AD gc_b = gc; xad::derivative(gc_b) = 1.0;                 // seed d/dgc
+  const double g_gc = xad::derivative(ci_residual(ci_b, gc_b, p));
+
+  const double dci_dgc_ift = -g_gc / g_ci;
+
+  // Finite-difference check: re-solve the root at gc +/- h.
+  const double h = 1e-6 * gc;
+  const double dci_dgc_fd = (solve_ci(gc + h, p) - solve_ci(gc - h, p)) / (2 * h);
+
+  return Rcpp::NumericVector::create(
+      Rcpp::_["ci_star"] = ci_star,
+      Rcpp::_["dci_dgc_ift"] = dci_dgc_ift,
+      Rcpp::_["dci_dgc_fd"] = dci_dgc_fd);
+}
 
 // [[Rcpp::export]]
 Rcpp::NumericVector ad_leaf_demo(double psi_stem, double b = 3.898245,
