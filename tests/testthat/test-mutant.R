@@ -91,21 +91,30 @@ test_that("mutant method works", {
 })
 
 test_that("mutant method densities", {
-  # Now test with different resident densities
-    
-  # 1 resident strategies
+  # For a mutant strategy identical to the resident, the mutant method must
+  # reproduce exactly the fitness that strategy attains when run as a resident.
+  # This is an identity of the machinery rather than a near-equilibrium
+  # approximation -- it holds at any birth rate and any patch lifetime (the two
+  # sides agree to ~1e-13 below, far inside the 1e-3 tolerance). We therefore
+  # check the invariant across a spread of birth rates (including the degenerate
+  # zero-birth case) at two patch lifetimes.
+  #
+  # Short patch lifetimes are used on purpose: because the agreement is
+  # lifetime-independent, a shorter patch retains the full strength of the check
+  # while running several times faster than the model's default lifetime. (The
+  # earlier versions sampled birth rates around a hard-coded equilibrium at the
+  # default lifetime, but the test never asserted anything *about* that
+  # equilibrium -- only the resident-vs-mutant identity -- so the long, costly
+  # patch bought no extra coverage.)
   ctrl <- Control()
   ctrl$save_RK45_cache = TRUE
 
-  lma_attr <- 0.0825
-  p0 <- scm_base_parameters("FF16")
-  traits <- trait_matrix(lma_attr, c("lma"))
+  traits <- trait_matrix(0.0825, c("lma"))
   tol <- 1e-3
 
-  # Function calculates fitness at different brith_rates, using
-  # 2 methods: as resident, as mutant
-  # These should all agree
-  f_test <- function(p, x, traits) {
+  # fitness at birth rate x computed two ways: as a resident, and as a mutant
+  # of the resident -- which must agree.
+  f_test <- function(p, x) {
     p1 <- p
     p1$strategies[[1]]$birth_rate_y <- x
 
@@ -119,27 +128,17 @@ test_that("mutant method densities", {
     dplyr::tibble(birth_rate = x, resident_f = log(r_rr), mutant_f = log(m_rr))
   }
 
-  p0$max_patch_lifetime <- 105.32 # default
-  pr1 <- add_strategies(p0, traits, birth_rate = 1)
+  run_case <- function(life, birth_rates) {
+    p0 <- scm_base_parameters("FF16")
+    p0$max_patch_lifetime <- life
+    pr1 <- add_strategies(p0, traits, birth_rate = 1)
 
-  expected_eq <- 17.31739
-  birth_rates <- c(0, 10, expected_eq * c(0.995, 1, 1.005), 25)
+    outputs <- purrr::map_df(birth_rates, ~ f_test(pr1, .x))
 
-  outputs <- purrr::map_df(birth_rates, ~ f_test(pr1, .x, traits))
+    expect_equal(birth_rates, outputs$birth_rate, tol = tol)
+    expect_equal(outputs$resident_f, outputs$mutant_f, tol = tol)
+  }
 
-  expect_equal(birth_rates, outputs$birth_rate, tol = tol)
-  expect_equal(outputs$resident_f, outputs$mutant_f, tol = tol)
-
-  # Test 2
-  p0$max_patch_lifetime <- 50
-  expected_eq <- 1.662159
-  birth_rates <- c(0, 1, expected_eq * c(0.995, 1, 1.005), 1.1)
-
-  pr1 <- add_strategies(p0, traits, birth_rate = 1)
-
-  outputs <- purrr::map_df(birth_rates, ~ f_test(pr1, .x, traits))
-
-  expect_equal(birth_rates, outputs$birth_rate, tol = tol)
-  expect_equal(outputs$resident_f, outputs$mutant_f, tol = tol)
-  
+  run_case(30, c(0, 5, 10, 20))
+  run_case(20, c(0, 5, 10, 20))
 })

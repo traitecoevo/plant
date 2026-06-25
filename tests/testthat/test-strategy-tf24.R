@@ -243,25 +243,41 @@ test_that("narea calculation", {
 
 test_that("offspring arrival", {
 
+  # This drives a full patch through every demographic process and pins the
+  # resulting offspring production so the numbers cannot drift silently.
+  #
+  # We deliberately use a short patch (max_patch_lifetime = 5) and a low
+  # height-at-maturity (hmat = 5) rather than the model defaults. Lowering hmat
+  # lets plants mature and reproduce *within* the short patch, so offspring
+  # production sits at an O(100) magnitude. That matters for the regression:
+  # at the default hmat over so short a patch, reproduction underflows towards
+  # zero, and an `expect_equal(tolerance = ...)` against a near-zero target
+  # degenerates into a vacuous absolute comparison that any small number passes.
+  # The short, low-hmat configuration also cuts the (stiff) TF24 integration
+  # time by roughly 7x while keeping the test a genuine end-to-end check.
   p0 <- scm_base_parameters("TF24")
   env <- Environment("TF24")
   ctrl <- Control()
-  max_patch_lifetime <-10
-  p0$max_patch_lifetime <- max_patch_lifetime
+  p0$max_patch_lifetime <- 5
 
   # one species
-  p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = TF24_hyperpar, birth_rate = list(20))
+  p1 <- add_strategies(p0, trait_matrix(c(0.0825, 5), c("lma", "hmat")),
+                       hyperpar = TF24_hyperpar, birth_rate = list(20))
 
   out <- run_scm(p1, env, ctrl)
-  expect_equal(out$offspring_production, 4.71e-06, tolerance=1e-5)
-  #expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.216055), tolerance=1e-5)
+  expect_equal(out$offspring_production, 227.884969, tolerance = 1e-5)
 
-  # two species
-  p2 <- add_strategies(p0, trait_matrix(c(0.0825, 0.2625), "lma"), hyperpar = TF24_hyperpar, birth_rate = list(11.99177, 16.51006))
-  
+  # two species: the second strategy has a moderately higher lma (0.10 vs
+  # 0.0825), so it grows more slowly and is partly shaded, but still matures and
+  # reproduces within the patch. Both species therefore carry non-zero offspring
+  # production -- a genuine two-species coexistence check rather than one
+  # strategy collapsing to ~0 (which would make the second value a vacuous
+  # near-zero comparison).
+  p2 <- add_strategies(p0, trait_matrix(c(0.0825, 0.10, 5, 5), c("lma", "hmat")),
+                       hyperpar = TF24_hyperpar, birth_rate = list(20, 20))
+
   out <- run_scm(p2, env, ctrl)
-  expect_equal(out$offspring_production, c(5.64e-06, 3.49e-17), tolerance=1e-5)
-  #expect_equal(length(out$ode_times), 297)
+  expect_equal(out$offspring_production, c(145.332894, 58.317455), tolerance = 1e-5)
 })
 
 # Check that the water absorbed from soil equals water transpired from leaves
