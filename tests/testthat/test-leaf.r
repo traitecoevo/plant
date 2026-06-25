@@ -243,7 +243,7 @@ expect_error(l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root
   expect_equal(l$transpiration_, 0)
   
   #costs 0 when psi_stem == psi_soil == 0
-  expect_equal(l$hydraulic_cost_Sperry(psi_stem = psi_soil, psi_upstream = psi_soil) == 0, TRUE)
+  expect_equal(l$hydraulic_cost_Sperry(psi_stem = psi_soil, psi_upstream = psi_soil), 0)
   #costs positive even when transpiration stream is 0 in hydraulic cost tf
   expect_equal(l$hydraulic_cost_TF(psi_soil) > 0, TRUE)
   
@@ -279,7 +279,7 @@ expect_error(l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root
   
   
   #calculate the hydraulic cost usign the sperry method, should be 0 when psi_soil is equivalent to psi_stem
-  expect_equal(l$hydraulic_cost_Sperry(psi_soil, psi_soil) == 0, TRUE)
+  expect_equal(l$hydraulic_cost_Sperry(psi_soil, psi_soil), 0)
   #calculate hydraulic cost using TF method, should be greater than 0 when psi_soil is greater than 0
   expect_equal(l$hydraulic_cost_TF(psi_soil) > 0, TRUE)
   
@@ -295,8 +295,8 @@ expect_error(l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root
   l$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
    
   l$set_leaf_states_rates_from_psi_stem(0, 0)
-  expect_equal(l$hydraulic_cost_TF(psi_soil) == 0, TRUE)
-  expect_equal(l$hydraulic_cost_Sperry(psi_soil, psi_soil) == 0, TRUE)
+  expect_equal(l$hydraulic_cost_TF(psi_soil), 0)
+  expect_equal(l$hydraulic_cost_Sperry(psi_soil, psi_soil), 0)
   
   #psi_soil == psi_stem means A == -R_d_
   expect_equal(l$assim_colimited_, -l$R_d_)
