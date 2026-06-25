@@ -354,9 +354,16 @@ test_that("E conservation", {
 test_that("TF24f AD gradient tracks TF24 (#527)", {
   # End-to-end regression: with the exact AD/IFT gradient, a TF24f patch tracks
   # the TF24 (full-optimisation) patch closely at a moderate acclimation gain.
+  #
+  # Short patch + low hmat (matching the offspring-arrival / acclimation tests):
+  # the tracking property is about per-step optimisation accuracy, not patch
+  # length, so a 5-year patch reproduces it (cohorts agree to <1% at every step)
+  # while running ~35x faster than the default horizon.
   base <- function(type) {
-    scm_base_parameters(type) |>
-      add_strategies(trait_matrix(0.0825, "lma"), birth_rate = 20)
+    p0 <- scm_base_parameters(type)
+    p0$max_patch_lifetime <- 5
+    add_strategies(p0, trait_matrix(c(0.0825, 5), c("lma", "hmat")),
+                   hyperpar = get(paste0(type, "_hyperpar")), birth_rate = 20)
   }
   ref <- run_scm(base("TF24"), collect = TRUE, refine_schedule = FALSE)$species
 
