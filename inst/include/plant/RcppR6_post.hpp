@@ -1280,6 +1280,7 @@ template <> inline SEXP wrap(const plant::TF24_Pars& x) {
   ret["nmass_b"] = Rcpp::wrap(x.nmass_b);
   ret["nmass_r"] = Rcpp::wrap(x.nmass_r);
   ret["dmass_dN"] = Rcpp::wrap(x.dmass_dN);
+  ret["root_depth_shape_eta"] = Rcpp::wrap(x.root_depth_shape_eta);
   ret["recruitment_decay"] = Rcpp::wrap(x.recruitment_decay);
   ret.attr("class") = "TF24_Pars";
   return ret;
@@ -1393,6 +1394,8 @@ template <> inline plant::TF24_Pars as(SEXP x) {
   ret.nmass_r = Rcpp::as<double >(xl["nmass_r"]);
   // ret.dmass_dN = Rcpp::as<decltype(retdmass_dN) >(xl["dmass_dN"]);
   ret.dmass_dN = Rcpp::as<double >(xl["dmass_dN"]);
+  // ret.root_depth_shape_eta = Rcpp::as<decltype(retroot_depth_shape_eta) >(xl["root_depth_shape_eta"]);
+  ret.root_depth_shape_eta = Rcpp::as<double >(xl["root_depth_shape_eta"]);
   // ret.recruitment_decay = Rcpp::as<decltype(retrecruitment_decay) >(xl["recruitment_decay"]);
   ret.recruitment_decay = Rcpp::as<double >(xl["recruitment_decay"]);
   return ret;
