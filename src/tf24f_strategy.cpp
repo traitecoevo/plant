@@ -25,6 +25,13 @@ void TF24f_Strategy::refresh_indices() {
 // dprofit_dpsi_, which becomes the tracked state's rate (gradient ascent).
 void TF24f_Strategy::compute_rates(const TF24_Environment& environment,
                                    Internals& vars) {
+  // k_acclim is a user-settable gain; a negative value would silently turn the
+  // gradient ascent into descent (away from the optimum) and a non-finite value
+  // would poison the state rate, so fail fast on misconfiguration.
+  if (!util::is_finite(k_acclim) || k_acclim < 0.0) {
+    util::stop("TF24f: k_acclim must be finite and >= 0 (got " +
+               util::to_string(k_acclim) + ")");
+  }
   tracked_root_psi_ = vars.state(state_idx_opt_root_psi_state);
   TF24_Strategy::compute_rates(environment, vars);
   vars.set_rate(state_idx_opt_root_psi_state, k_acclim * dprofit_dpsi_);
@@ -45,6 +52,12 @@ void TF24f_Strategy::solve_leaf() {
     return;
   }
   const double h = psi_fd_step;
+  // psi_fd_step is the user-settable finite-difference step; a zero or
+  // non-finite value would divide by zero and propagate NaNs into the gradient.
+  if (!util::is_finite(h) || h <= 0.0) {
+    util::stop("TF24f: psi_fd_step must be finite and > 0 (got " +
+               util::to_string(h) + ")");
+  }
   const double p0 = leaf.evaluate_root_collar_psi(tracked_root_psi_);
   const double used = -leaf.root_collar_psi_;
   const double p1 = leaf.evaluate_root_collar_psi(used + h);

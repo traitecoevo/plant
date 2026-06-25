@@ -13,10 +13,14 @@ namespace plant {
 // TF24_Strategy and reuses TF24_Environment + TF24_Pars; only the leaf-solve
 // hook and the extra state are overridden.
 //
-// Phase B: adds one extra ODE state, opt_root_psi_state, that will track the
-// optimal root-collar water potential. For now it is inert (rate 0, no
-// feedback), so the five states shared with TF24 evolve identically; the
-// gradient-ascent dynamics are added in Phase C.
+// Adds one extra ODE state, opt_root_psi_state, holding the tracked optimal
+// root-collar water potential. Instead of TF24's per-step golden-section
+// optimisation, solve_leaf() evaluates the leaf at the tracked state and the
+// state relaxes toward its optimum by gradient ascent on carbon profit
+// (dpsi/dt = k_acclim * d(profit)/d(psi)); the state is seeded at its optimum at
+// birth. The five states shared with TF24 are computed by the inherited
+// compute_rates, so TF24f does NOT reproduce TF24 bit-for-bit -- it tracks the
+// optimum with a (gain-dependent) lag and is faster.
 class TF24f_Strategy : public TF24_Strategy {
 public:
   typedef std::shared_ptr<TF24f_Strategy> ptr;

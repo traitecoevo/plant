@@ -78,6 +78,19 @@ test_that("Defaults", {
   expect_identical(unclass(s$pars)[pars_keys], expected_pars[pars_keys])
 })
 
+test_that("TF24f validates acclimation knobs", {
+  # k_acclim must be finite and >= 0; psi_fd_step must be finite and > 0.
+  p1 <- scm_base_parameters("TF24f") |>
+    add_strategies(trait_matrix(0.0825, "lma"), birth_rate = 20)
+  s1 <- p1$strategies[[1]]; s1$k_acclim <- -1; p1$strategies[[1]] <- s1
+  expect_error(run_scm(p1, collect = FALSE, refine_schedule = FALSE), "k_acclim")
+
+  p2 <- scm_base_parameters("TF24f") |>
+    add_strategies(trait_matrix(0.0825, "lma"), birth_rate = 20)
+  s2 <- p2$strategies[[1]]; s2$psi_fd_step <- 0; p2$strategies[[1]] <- s2
+  expect_error(run_scm(p2, collect = FALSE, refine_schedule = FALSE), "psi_fd_step")
+})
+
 test_that("TF24f collect_all_auxiliary option", {
 
   s <- TF24f_Strategy()
@@ -132,8 +145,8 @@ test_that("Reference comparison", {
 
   expect_identical(p$state("height"), h0)
 
-  ## Check: Is this redundant now
-  ## We now use 
+  ## The state() accessor and the raw ODE state vector agree: state("height")
+  ## must equal the entry of internals$states at the height slot.
   vars <- p$internals
   expect_identical(p$state("height"), vars$states[which(p$ode_names == "height")])
 })

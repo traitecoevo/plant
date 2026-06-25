@@ -11,14 +11,14 @@ TF24f_Individual <- function(s=TF24f_Strategy()) {
   Individual("TF24f", "TF24_Env")(s)
 }
 
-##' @title Setup an a TF24f system with  default or specified parameters
-##' @description Setup an a model system with default or specified parameters.
+##' @title Set up a TF24f system with default or specified parameters
+##' @description Set up a model system with default or specified parameters.
 ##' @param ... Arguments to be passed to the model constructor. These include
 ##'
-##'   *`patch_area`: Area of idnividfual patch. Only relevant for stochastic model. Default is 1.0m2.
+##'   *`patch_area`: Area of an individual patch. Only relevant for the stochastic model. Default is 1.0m2.
 ##'   *`max_patch_lifetime`: The maximum time in years we want to simulate
-##'   *`strategies`: A list of stratgies to simulate. The default is an empty list.
-##'   *`strategy_default`: Values for the default startegy. The default values are those specified in the C++ code for the model.
+##'   *`strategies`: A list of strategies to simulate. The default is an empty list.
+##'   *`strategy_default`: Values for the default strategy. The default values are those specified in the C++ code for the model.
 ##'   *`node_schedule_times_default`: Default vector of times at which to introduce nodes. The default is chosen to have close spacing at the start of the simulation.
 ##'   *`node_schedule_times`: A list with each element containing the vector of times we want to introduce nodes for each strategy. The default is an empty list.
 ##'   *`ode_times`: A vector of patch ages we want the ode solver to stop at
