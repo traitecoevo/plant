@@ -253,8 +253,10 @@ test_that("offspring arrival", {
   # at the default hmat over so short a patch, reproduction underflows towards
   # zero, and an `expect_equal(tolerance = ...)` against a near-zero target
   # degenerates into a vacuous absolute comparison that any small number passes.
-  # The short, low-hmat configuration also cuts the (stiff) TF24 integration
-  # time by roughly 7x while keeping the test a genuine end-to-end check.
+  # The short, low-hmat configuration also cuts TF24's integration time by
+  # roughly 7x (TF24 is costly per step -- each rate evaluation runs the
+  # root-collar-psi leaf optimisation) while keeping the test a genuine
+  # end-to-end check.
   p0 <- scm_base_parameters("TF24")
   env <- Environment("TF24")
   ctrl <- Control()
