@@ -50,8 +50,8 @@ base <- function(type) {
 
 ## The idea: let the optimum chase a moving target
 
-The optimal operating point changes only slowly as a plant grows and its light
-environment shifts. So instead of re-optimising it from scratch, `TF24f` carries
+The optimal operating point changes only slowly as a plant grows, its light
+environment shifts and the water environment changes. So instead of re-optimising it from scratch, `TF24f` carries
 the optimal root-collar potential as an **extra ODE state** that *relaxes toward*
 its optimum — gradient ascent on the carbon profit:
 
