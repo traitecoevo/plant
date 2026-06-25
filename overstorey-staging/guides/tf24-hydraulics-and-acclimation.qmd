@@ -50,8 +50,8 @@ base <- function(type) {
 
 ## The idea: let the optimum chase a moving target
 
-The optimal operating point changes only slowly as a plant grows and its light
-environment shifts. So instead of re-optimising it from scratch, `TF24f` carries
+The optimal operating point changes only slowly as a plant grows, its light
+environment shifts and the water environment changes. So instead of re-optimising it from scratch, `TF24f` carries
 the optimal root-collar potential as an **extra ODE state** that *relaxes toward*
 its optimum — gradient ascent on the carbon profit:
 
@@ -59,8 +59,8 @@ $$\frac{\mathrm{d}\psi}{\mathrm{d}t} = k \,\frac{\partial\,\text{profit}}{\parti
 
 The fixed point of this ODE is exactly the optimum (where the profit gradient is
 zero), so $\psi$ tracks the moving optimum *without ever solving for it*. Each
-step then needs only the profit at the current $\psi$ plus one perturbed
-evaluation for the gradient — no golden-section search. The gain $k$ sets how
+step then needs only a pair of perturbed evaluations either side of the current
+$\psi$ for a centred finite-difference gradient — no golden-section search. The gain $k$ sets how
 tightly the state tracks: this is both a performance lever and, at finite $k$, a
 genuine model of **acclimation** with a finite adjustment lag (issues #405/#406).
 
@@ -102,8 +102,10 @@ bind_rows(
 
 `TF24f` adds one diagnostic column, `opt_root_psi_state` — the tracked collar
 potential — which we can compare against TF24's per-step optimum (`opt_root_psi`,
-reported as a signed potential). They sit close throughout, the small gap being
-the acclimation lag:
+reported as a signed potential). They sit close throughout. The visible gap is
+the **acclimation lag** early in life, when the optimum drops quickly as the
+seedling grows and the finite-$k$ state cannot descend quite as fast; once growth
+slows the two converge to within a fraction of a millivolt:
 
 ```{r}
 #| label: tracking
@@ -136,9 +138,14 @@ The result is a *low* optimal gain. On the standard single-species patch above,
 millimetres, ~93% of the population within 1% — while running `run_scm` in
 roughly **half the time** of `TF24`. Larger `k` is both slower and less accurate.
 
-The remaining mismatch is a floor set by the finite-difference gradient, not by
-the tracking idea itself; a smooth/analytic gradient (automatic differentiation)
-is the route to tightening it further.
+The gradient is a *centred* finite difference, so its fixed point sits at the
+true optimum to $O(h^2)$ rather than the $O(h)$ of a one-sided difference — at
+`psi_fd_step = 0.05` the steady-state offset from `TF24` is well under a
+millivolt. (An earlier one-sided difference left a constant `psi_fd_step`/2 ≈
+0.025 MPa offset that did not shrink as the patch aged.) The remaining mismatch
+is a floor set by the finite-difference gradient, not by the tracking idea
+itself; a smooth/analytic gradient (automatic differentiation) is the route to
+tightening it further.
 
 ## A note on initialisation
 
