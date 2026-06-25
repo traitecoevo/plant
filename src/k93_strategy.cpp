@@ -108,17 +108,13 @@ double K93_Strategy::size_to_basal_area(double size) const {
   return M_PI / 4 * pow(size, 2);
 }
 
-// [eqn 10] Growth
+// [eqn 10] Growth. Delegates to the scalar-templated core (single source of
+// truth shared with the AD probe path, #472 scope B); the double instantiation
+// is bit-identical to the previous inline arithmetic.
 double K93_Strategy::size_dt(double size,
                              double cumulative_basal_area) const {
-
-  double growth = size * (pars.b_0 - pars.b_1 * log(size) - pars.b_2 * cumulative_basal_area);
-
-  if(growth < 0.0) {
-    growth = 0.0;
-  }
-
-  return growth;
+  return k93_size_rate_core<double>(size, cumulative_basal_area,
+                                    pars.b_0, pars.b_1, pars.b_2);
 }
 
 // [eqn 12] Reproduction

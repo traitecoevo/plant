@@ -34,6 +34,21 @@ struct K93_Pars {
   double k_I = 0.01;
 };
 
+// SPIKE (#472 scope B / #537): scalar-templated core of the K93 per-plant
+// growth RHS, the single source of truth for both the production double path
+// (K93_Strategy::size_dt delegates to it) and reverse-mode AD probes that pass
+// an AD active type for T. Mirrors [eqn 10] exactly. cba is the cumulative
+// basal area term (= -log(competition)/k_I, formed in compute_rates). Elementary
+// (log, multiply, a max(0,.) clamp) -> AD-traceable with no root-find or spline,
+// which is why K93 is the right first templating target.
+template <typename T>
+T k93_size_rate_core(T size, T cba, T b_0, T b_1, T b_2) {
+  using std::log;
+  T growth = size * (b_0 - b_1 * log(size) - b_2 * cba);
+  if (growth < T(0.0)) growth = T(0.0);   // suppression clamp; kink at growth==0
+  return growth;
+}
+
 class K93_Strategy: public Strategy<K93_Environment> {
 public:
   typedef std::shared_ptr<K93_Strategy> ptr;
