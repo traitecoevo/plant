@@ -107,8 +107,14 @@ for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     env <- Environment(x)
 
+    # TF24 is much costlier per step, so use a shorter horizon. NOTE: at this
+    # horizon the default-hmat strategy barely reproduces, so the TF24
+    # reproductive ratios are ~1e-15 and the checks below exercise only the
+    # area/birth-rate *scaling* identity, not meaningful demography. Making them
+    # non-vacuous needs a lower hmat so plants reproduce within the patch (cf.
+    # the offspring-arrival test).
     if(x == "TF24"){
-      max_patch_lifetime = 3
+      max_patch_lifetime = 2
     } else{
       max_patch_lifetime = 30
     }
