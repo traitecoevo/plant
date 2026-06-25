@@ -315,6 +315,15 @@ public:
   // exactly the same outputs as find_root_collar_psi and returns profit_. Used by
   // TF24f's gradient-ascent acclimation (#525).
   double evaluate_root_collar_psi(double target_opt_root_psi);
+  // Evaluate profit at a given root-collar potential (positive magnitude)
+  // *assuming prepare_collar_solve has already run this step* (soil-side caches
+  // built, feasible interval [bound_a, bound_b] known). Clamps the target into
+  // the interval and sets the operating point (opt_psi_stem_, root_collar_psi_,
+  // profit_), returning profit_. This is the post-prepare body of
+  // evaluate_root_collar_psi, factored out so the centred finite-difference leaf
+  // solve can share one prepare_collar_solve across its three profit evals (#530).
+  double profit_at_collar_psi(double target_opt_root_psi,
+                              double bound_a, double bound_b);
   // Exact d(profit)/d(opt_root_psi) at a given root-collar potential (positive
   // magnitude), for TF24f's acclimation tracking (#525/#527). Combines
   // forward-mode AD for the analytic photosynthesis/cost algebra, the

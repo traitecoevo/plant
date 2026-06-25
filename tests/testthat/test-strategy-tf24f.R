@@ -312,14 +312,21 @@ test_that("acclimation runs, is active, and converges to TF24", {
 # time-varying rainfall driver.
 #
 # Reduced to 5 soil depths (from 15) purely for speed -- ~5x faster with no
-# material change to the closure. The check is deliberately one-sided
-# (1 - ratio < tol, i.e. ratio > 1 - tol): over so short a transient patch the
-# cumulative-flux closure does not settle to a tight two-sided tolerance, but
-# the stem side must not fall materially *below* the root side.
+# material change to the closure.
+#
+# Two-sided check (#533): the original assertion was one-sided (1 - ratio < tol),
+# which could only catch the stem side falling *below* the root side, not an
+# overshoot. The overshoot it would otherwise have masked is a short-patch
+# transient, not a conservation gap: the end-of-patch closure converges to 1.0 as
+# the patch lengthens (ratio ~1.25 at lifetime 2 -> ~1.01 at lifetime 10 -> ~1.00
+# at lifetime 40), because the size distribution and the tracked leaf states are
+# still equilibrating early in a short patch. We therefore run a longer patch
+# (lifetime 10, ~2.4s) where instantaneous flux balance has settled and assert a
+# genuine two-sided closure |1 - ratio| < tol.
 
 test_that("E conservation", {
 
-  max_patch_lifetime <- 2
+  max_patch_lifetime <- 10
   p0 <- scm_base_parameters("TF24f", "TF24_Env")
   p0$max_patch_lifetime <- max_patch_lifetime
   traits <- trait_matrix(c(0.07), c("lma"))
@@ -347,7 +354,8 @@ test_that("E conservation", {
       root_side = (sum_resource_depletion - dplyr::lag(sum_resource_depletion)) /
                   (time - dplyr::lag(time))) -> root_side
 
-  expect_true(1 - (stem_side / root_side$root_side[-1])[length(stem_side)] < 5e-2)
+  closure <- (stem_side / root_side$root_side[-1])[length(stem_side)]
+  expect_equal(closure, 1, tolerance = 5e-2)
 })
 
 test_that("TF24f AD gradient tracks TF24 (#527)", {

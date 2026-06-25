@@ -848,6 +848,18 @@ double Leaf::evaluate_root_collar_psi(double target_opt_root_psi){
       return profit_;
     }
 
+    return profit_at_collar_psi(target_opt_root_psi, bound_a, bound_b);
+}
+
+// Post-prepare body of evaluate_root_collar_psi (see header). Kept as a separate
+// entry point so callers that evaluate several collar potentials within one step
+// (the centred finite difference, #530) can run prepare_collar_solve once and
+// reuse the soil-side caches across every profit eval. The clamp into
+// [bound_a, bound_b] is identical to evaluate_root_collar_psi's, so near a
+// boundary a perturbed potential collapses onto the boundary -- which is exactly
+// how the FD path degrades gracefully to a one-sided difference.
+double Leaf::profit_at_collar_psi(double target_opt_root_psi,
+                                  double bound_a, double bound_b){
     const double opt_root_psi =
         std::min(std::max(target_opt_root_psi, bound_a), bound_b);
 

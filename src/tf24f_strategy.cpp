@@ -54,33 +54,50 @@ void TF24f_Strategy::solve_leaf() {
     leaf.find_root_collar_psi();
     return;
   }
-  // Establish the operating point (and the clamped collar psi `used`) and leave
-  // the leaf outputs there for compute_rates' aux reads.
-  leaf.evaluate_root_collar_psi(tracked_root_psi_);
-  const double used = -leaf.root_collar_psi_;
-
   if (use_ad_gradient) {
     // Exact gradient (default, #527): forward-mode AD over the analytic algebra
     // + IFT at the ci root-find + analytic spline derivatives for the transport.
     // No O(h) bias and no finite-difference step to tune.
+    // Establish the operating point (and the clamped collar psi `used`) and leave
+    // the leaf outputs there for compute_rates' aux reads.
+    leaf.evaluate_root_collar_psi(tracked_root_psi_);
+    const double used = -leaf.root_collar_psi_;
     dprofit_dpsi_ = leaf.dprofit_droot_collar_psi(used);
     leaf.evaluate_root_collar_psi(used);  // restore operating-point outputs
   } else {
     // Centred finite-difference fallback (#526), perturbing about the clamped
     // operating value `used`. A one-sided difference biases the fixed point to
     // psi* - h/2 (O(h)); the centred form cancels that term (O(h^2)) for one
-    // extra leaf evaluation. Near a boundary the clamp inside
-    // evaluate_root_collar_psi collapses one arm, degrading it gracefully to a
-    // one-sided difference that still points back into the interior.
+    // extra leaf evaluation. Near a boundary the clamp collapses one arm,
+    // degrading it gracefully to a one-sided difference that still points back
+    // into the interior.
     const double h = psi_fd_step;
     if (!util::is_finite(h) || h <= 0.0) {
       util::stop("TF24f: psi_fd_step must be finite and > 0 (got " +
                  util::to_string(h) + ")");
     }
-    const double p_plus  = leaf.evaluate_root_collar_psi(used + h);
-    const double p_minus = leaf.evaluate_root_collar_psi(used - h);
+    // Share one prepare_collar_solve across the three profit evals (#530): the
+    // plant/environment state is fixed within this solve, so the soil-side caches
+    // and feasible interval are identical at `used` and `used ± h`. Re-deriving
+    // them per eval (the old four-evaluate_root_collar_psi form) was the ~29%
+    // cost over the forward difference.
+    double bound_a, bound_b;
+    if (!leaf.prepare_collar_solve(bound_a, bound_b)) {
+      // Operating point fully determined by feasibility handling (shutdown /
+      // assim<0 / collapsed interval); no interior interval to perturb in, so the
+      // gradient is zero (matching the old form, where every clamped eval
+      // returned the same fixed profit_). Leaf outputs are already at the
+      // operating point.
+      dprofit_dpsi_ = 0.0;
+      return;
+    }
+    // `used` is the tracked state clamped into the feasible interval -- the same
+    // value the old leading evaluate_root_collar_psi(tracked_root_psi_) produced.
+    const double used = std::min(std::max(tracked_root_psi_, bound_a), bound_b);
+    const double p_plus  = leaf.profit_at_collar_psi(used + h, bound_a, bound_b);
+    const double p_minus = leaf.profit_at_collar_psi(used - h, bound_a, bound_b);
     dprofit_dpsi_ = (p_plus - p_minus) / (2.0 * h);
-    leaf.evaluate_root_collar_psi(used);
+    leaf.profit_at_collar_psi(used, bound_a, bound_b);  // restore operating point
   }
 }
 
