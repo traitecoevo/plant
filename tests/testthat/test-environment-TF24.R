@@ -159,7 +159,8 @@ test_that("Environment-TF24 running soil moisture profile", {
     dplyr::mutate(soil_moist_mm = soil_moist*depth) -> water_storage
   
   cumulative_fluxes %>%
-    dplyr::left_join(water_storage) %>%
+    dplyr::left_join(water_storage,
+                     by = c("time", "step", "patch_density")) %>%
     dplyr::slice(c(1,nrow(.))) %>%
     dplyr::mutate(init_soil_moist_mm = soil_moist_mm[1]) %>%
     dplyr::slice_tail(n = 1) %>%

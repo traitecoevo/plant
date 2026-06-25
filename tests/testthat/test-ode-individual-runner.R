@@ -35,7 +35,6 @@ test_that("IndividualRunner", {
     runner <- OdeRunner(x)(pr)
     ret <- list(observer(runner))
     while (continue_if(runner)) {
-      message(runner$time)
       runner$step()
       ret <- c(ret, list(observer(runner)))
     }
