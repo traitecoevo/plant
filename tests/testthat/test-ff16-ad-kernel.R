@@ -17,12 +17,16 @@ is_pkgload_dll_plant <- function() {
 }
 
 compile_ff16_ad_kernel <- function() {
-  plant_inc <- system.file("include", package = "plant")
-  if (!nzchar(plant_inc)) plant_inc <- here::here("inst/include")
+  # Prefer the source tree (has the header in dev/load_all) then the installed
+  # package (CI on the built branch); skip if neither carries the kernel header.
+  cand <- c(tryCatch(here::here("inst/include"), error = function(e) ""),
+            system.file("include", package = "plant"))
+  has_hdr <- file.exists(file.path(cand, "plant/models/ff16_production_kernel.h"))
+  testthat::skip_if(!any(has_hdr),
+                    "FF16 AD kernel header not found on include path.")
+  plant_inc <- cand[has_hdr][1]
   odelia_inc <- system.file("include", package = "odelia")
   odelia_so <- system.file("libs", "odelia.so", package = "odelia")
-  testthat::skip_if(!file.exists(file.path(plant_inc, "plant/models/ff16_production_kernel.h")),
-                    "FF16 AD kernel header not found on include path.")
   testthat::skip_if(!nzchar(odelia_so) || !file.exists(odelia_so),
                     "odelia shared library not found for tape linking.")
   withr::local_envvar(
