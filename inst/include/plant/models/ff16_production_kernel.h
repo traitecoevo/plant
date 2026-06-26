@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <cstddef>
+#include <cmath>   // std::pow; XAD provides pow for active types via ADL
 
 // Scalar-templated core of the FF16 single-plant net-mass-production chain
 // (#472 scope B / traitecoevo/plant#537, Milestone A). The pieces below [eqn
@@ -14,6 +15,15 @@
 // the AD calibration path instantiates them with an active scalar.
 
 namespace plant {
+
+// [eqn 2] Leaf area as a function of height (inverse of [eqn 3]). Carries the
+// allometric traits a_l1, a_l2, so it is the entry point through which a trait
+// reaches both the mass cascade and the resident competition / light spline.
+template <typename S>
+S ff16_area_leaf(S a_l1, S a_l2, S height) {
+  using std::pow;
+  return pow(height / a_l1, 1.0 / a_l2);
+}
 
 // [eqn 12] Photosynthetic rate per leaf area; x is openness in [0,1].
 template <typename S>
@@ -60,9 +70,12 @@ struct FF16ProdPars {
 // Mirrors FF16_Strategy's mass cascade + assimilation_crown_top + the pieces
 // above exactly. light_E is the (fixed, double on the resident path) light
 // fraction at the crown.
+// Mass cascade -> respiration/turnover -> net production, GIVEN the assimilation
+// rate. Shared by every assimilation variant (crown-top, deep-crown, ...), so
+// the variants differ only in how they compute `assimilation`.
 template <typename S>
-S ff16_net_mass_production_crown_top(const FF16ProdPars<S>& p,
-                                     S height, S area_leaf, S light_E) {
+S ff16_net_from_components(const FF16ProdPars<S>& p, S height, S area_leaf,
+                           S assimilation) {
   const S mass_leaf    = area_leaf * p.lma;
   const S area_sapwood = area_leaf * p.theta;
   const S mass_sapwood = area_sapwood * height * p.eta_c * p.rho;
@@ -70,12 +83,18 @@ S ff16_net_mass_production_crown_top(const FF16ProdPars<S>& p,
   const S mass_bark    = area_bark * height * p.eta_c * p.rho;
   const S mass_root    = p.a_r1 * area_leaf;
 
-  const S assimilation = area_leaf * ff16_assimilation_leaf(p.a_p1, p.a_p2, light_E);
-  const S respiration  = ff16_respiration(mass_leaf, mass_sapwood, mass_bark, mass_root,
-                                          p.r_l, p.r_s, p.r_b, p.r_r);
-  const S turnover     = ff16_turnover(mass_leaf, mass_bark, mass_sapwood, mass_root,
-                                       p.k_l, p.k_b, p.k_s, p.k_r);
+  const S respiration = ff16_respiration(mass_leaf, mass_sapwood, mass_bark, mass_root,
+                                         p.r_l, p.r_s, p.r_b, p.r_r);
+  const S turnover    = ff16_turnover(mass_leaf, mass_bark, mass_sapwood, mass_root,
+                                      p.k_l, p.k_b, p.k_s, p.k_r);
   return ff16_net_production_A(p.a_bio, p.a_y, assimilation, respiration, turnover);
+}
+
+template <typename S>
+S ff16_net_mass_production_crown_top(const FF16ProdPars<S>& p,
+                                     S height, S area_leaf, S light_E) {
+  const S assimilation = area_leaf * ff16_assimilation_leaf(p.a_p1, p.a_p2, light_E);
+  return ff16_net_from_components(p, height, area_leaf, assimilation);
 }
 
 // Deep-crown assimilation as a FROZEN-REPLAY weighted sum (#472 scope B,
