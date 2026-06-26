@@ -2,6 +2,9 @@
 #ifndef PLANT_PLANT_FF16_PRODUCTION_KERNEL_H_
 #define PLANT_PLANT_FF16_PRODUCTION_KERNEL_H_
 
+#include <vector>
+#include <cstddef>
+
 // Scalar-templated core of the FF16 single-plant net-mass-production chain
 // (#472 scope B / traitecoevo/plant#537, Milestone A). The pieces below [eqn
 // 12-15] are elementary arithmetic, so templating them on the scalar S makes net
@@ -73,6 +76,29 @@ S ff16_net_mass_production_crown_top(const FF16ProdPars<S>& p,
   const S turnover     = ff16_turnover(mass_leaf, mass_bark, mass_sapwood, mass_root,
                                        p.k_l, p.k_b, p.k_s, p.k_r);
   return ff16_net_production_A(p.a_bio, p.a_y, assimilation, respiration, turnover);
+}
+
+// Deep-crown assimilation as a FROZEN-REPLAY weighted sum (#472 scope B,
+// Milestone B). The production model's default assimilation integrates
+// assimilation_leaf(light(z)) * q(z/height, z) over crown depth with adaptive
+// Gauss-Kronrod. Per the two-pass plan we do NOT differentiate the adaptive
+// controller: pass 1 (double) discovers the nodes z_j and the COMBINED weights
+// wq_j = w_j * q(z_j/height, z_j) (the leaf-area density q is constant in the
+// physiology traits, so it folds into the frozen weight); pass 2 replays
+//   A = area_leaf * sum_j wq_j * assimilation_leaf(a_p1, a_p2, light(z_j)).
+// `light` is any callable z -> S (e.g. an AD-capable resident light spline,
+// odelia::interpolator::basic_interpolator<S>), so A is differentiable w.r.t.
+// a_p1/a_p2 and w.r.t. light's knot values (the resident self-shading coupling).
+template <typename S, typename LightFn>
+S ff16_assimilation_deep_crown_replay(S a_p1, S a_p2, S area_leaf,
+                                      const std::vector<double>& z,
+                                      const std::vector<double>& wq,
+                                      LightFn&& light) {
+  S A = S(0.0);
+  for (std::size_t j = 0; j < z.size(); ++j) {
+    A += wq[j] * ff16_assimilation_leaf(a_p1, a_p2, S(light(z[j])));
+  }
+  return area_leaf * A;
 }
 
 }  // namespace plant
