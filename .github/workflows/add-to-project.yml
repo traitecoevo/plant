@@ -1,83 +1,12 @@
-name: Add issues to project
-
+name: Add new issues to plant board #5
 on:
   issues:
     types: [opened]
-
 jobs:
   add-to-project:
     runs-on: ubuntu-latest
     steps:
-      - name: Add issue to project
-        uses: actions/add-to-project@v1.0.2
+      - uses: actions/add-to-project@v1.0.2
         with:
           project-url: https://github.com/orgs/traitecoevo/projects/5
           github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
-
-      - name: Label issue as task (only if opened with no label)
-        if: ${{ github.event.issue.labels[0] == null }}
-        uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              labels: ['task'],
-            });
-
-      - name: Set project status to Backlog
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
-          script: |
-            const issueNodeId = context.payload.issue.node_id;
-
-            // Find the project item for this issue
-            const itemResult = await github.graphql(`
-              query($nodeId: ID!) {
-                node(id: $nodeId) {
-                  ... on Issue {
-                    projectItems(first: 10) {
-                      nodes { id project { id number } }
-                    }
-                  }
-                }
-              }`, { nodeId: issueNodeId });
-
-            const item = itemResult.node.projectItems.nodes.find(n => n.project.number === 5);
-            if (!item) return;
-
-            // Get Status field and Backlog option IDs
-            const projectResult = await github.graphql(`
-              query {
-                organization(login: "traitecoevo") {
-                  projectV2(number: 5) {
-                    fields(first: 20) {
-                      nodes {
-                        ... on ProjectV2SingleSelectField {
-                          id name options { id name }
-                        }
-                      }
-                    }
-                  }
-                }
-              }`);
-
-            const fields = projectResult.organization.projectV2.fields.nodes;
-            const statusField = fields.find(f => f.name === 'Status');
-            const backlogOption = statusField?.options.find(o => o.name.toLowerCase() === 'backlog');
-            if (!statusField || !backlogOption) return;
-
-            await github.graphql(`
-              mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
-                updateProjectV2ItemFieldValue(input: {
-                  projectId: $projectId itemId: $itemId fieldId: $fieldId
-                  value: { singleSelectOptionId: $optionId }
-                }) { projectV2Item { id } }
-              }`, {
-              projectId: item.project.id,
-              itemId: item.id,
-              fieldId: statusField.id,
-              optionId: backlogOption.id,
-            });
