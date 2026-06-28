@@ -170,3 +170,16 @@ Here are some example publications using plant:
 
 Contributions are welcome. By submitting a pull request or code to this repository, you agree to the terms of the [Contributor License Agreement](CLA.md).
 
+
+## Plant family
+
+`plant` is part of the **plant family** of packages in the
+[`traitecoevo`](https://github.com/traitecoevo) org, built around the
+[`plant`](https://github.com/traitecoevo/plant) forest model. Docs hub:
+<https://traitecoevo.github.io/overstorey/>.
+
+**Contributing:** please skim the family
+[issue guide](https://github.com/traitecoevo/plant-meta/blob/main/governance/issue-guide.md)
+before filing — issues across the family are triaged on
+[board #5](https://github.com/orgs/traitecoevo/projects/5), and cross-package context lives in
+[`plant-meta`](https://github.com/traitecoevo/plant-meta).
