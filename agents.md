@@ -628,8 +628,8 @@ explicit tolerance (noted in that file).
 
 Development across `plant`, `plant.assembly`, and `overstorey` is tracked on a
 shared [project board](https://github.com/orgs/traitecoevo/projects/5). New issues
-are auto-added to the board with status **Backlog** by a workflow, so you do not
-need to set status manually.
+are auto-added to the board with **no Status** — that's the triage queue. A maintainer
+sets Status (e.g. Backlog) during triage, so you don't need to set it yourself.
 
 When opening an issue (including whenever the user asks you to create one), always:
 
