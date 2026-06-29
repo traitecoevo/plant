@@ -1061,3 +1061,28 @@ test_that("dprofit_droot_collar_psi matches a finite difference (AD/IFT gradient
   }
   expect_gt(tested, 2)                          # several interior points, incl. far ones
 })
+
+test_that("Leaf() errors on misspelled argument names (issue #377)", {
+  # R's partial matching silently accepts abbreviations; the wrapper should
+  # catch any name that does not exactly match a declared parameter.
+  vcmax_25 <- 100; jmax_25 <- 100 * 167; c <- 2.04; b <- 3; psi_crit <- 5
+  root_c <- 2.65; root_b <- 1.29
+  root_psi_crit <- root_b * (log(1 / 0.05))^(1 / root_c)
+  common_args <- list(
+    c = c, b = b, psi_crit = psi_crit, root_c = root_c, root_b = root_b,
+    root_psi_crit = root_psi_crit, beta2 = 1, jmax_25 = jmax_25, hk_s = 75,
+    a = 0.3, curv_fact_elec_trans = 0.7, curv_fact_colim = 0.99,
+    GSS_tol_abs = 1e-8, vulnerability_curve_ncontrol = 100,
+    ci_abs_tol = 1e-6, ci_niter = 1000, g1_TF24 = 46.33,
+    beta_R_H = 3.4e3, beta_R_V = 9.4e4
+  )
+
+  # exact name is accepted
+  expect_silent(do.call(Leaf, c(list(vcmax_25 = vcmax_25), common_args)))
+
+  # misspelled name should error
+  expect_error(
+    do.call(Leaf, c(list(vcma = vcmax_25), common_args)),
+    regexp = "vcma"
+  )
+})

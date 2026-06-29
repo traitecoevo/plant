@@ -41,6 +41,23 @@ generate_strategy <- function(p, traits, hyperpar = param_hyperpar(p),
     pars[trait_names] <- xi
     strategy$pars <- pars
     if (is.list(br)) {
+      if (!is.numeric(br$x) || length(br$x) < 2) {
+        stop("birth_rate$x must be a numeric vector of at least length 2")
+      }
+      if (br$x[[1]] != 0) {
+        stop(sprintf(
+          "birth_rate$x must start at 0, not %g.\n",
+          br$x[[1]]
+        ))
+      }
+      max_lifetime <- p$max_patch_lifetime
+      if (!is.null(max_lifetime) && max(br$x) < max_lifetime) {
+        stop(sprintf(paste0(
+          "birth_rate$x must extend to at least max_patch_lifetime (%g), ",
+          "but ends at %g.\n",
+          "Extend birth_rate$x (and birth_rate$y) to cover the full simulation duration."
+        ), max_lifetime, max(br$x)))
+      }
       strategy$birth_rate_x <- br$x
       strategy$birth_rate_y <- br$y
       strategy$is_variable_birth_rate <- TRUE

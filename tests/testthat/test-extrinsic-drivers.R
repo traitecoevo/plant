@@ -73,6 +73,28 @@ test_that("ExtrinsicDrivers extrapolation can be toggled", {
   expect_equal(drv$evaluate("line", 20), 20)
 })
 
+test_that("generate_strategy() gives a clear error when birth_rate$x is mis-specified (issue #381)", {
+  p0 <- scm_base_parameters("FF16")
+  lma <- trait_matrix(0.0825, "lma")
+  max_life <- p0$max_patch_lifetime
+
+  # x not starting at 0 → clear error
+  expect_error(
+    add_strategies(p0, lma, hyperpar = FF16_hyperpar,
+                   birth_rate = list(list(x = seq(1, max_life + 10), y = rep(1, max_life + 10))),
+                   keep_existing = FALSE),
+    regexp = "start at 0"
+  )
+
+  # x not extending past max_patch_lifetime → clear error
+  expect_error(
+    add_strategies(p0, lma, hyperpar = FF16_hyperpar,
+                   birth_rate = list(list(x = seq(0, max_life - 1), y = rep(1, max_life))),
+                   keep_existing = FALSE),
+    regexp = "max_patch_lifetime"
+  )
+})
+
 test_that("Variable birth rate is driven through the SCM", {
   # Closes the "scm untested" TODO on the variable extrinsic-driver path:
   # set a time-varying birth rate and confirm it flows through a full run.
