@@ -166,6 +166,14 @@ test_that("Remembering intervals works", {
   expect_equal(tmp_scal, tmp * b1 / b)
 })
 
+test_that("NaN-returning integrand errors immediately, not 'Maximum subdivisions'", {
+  f_nan <- function(x) NaN
+  int <- QAG(15, 100, 1e-8, 1e-8)
+  msg <- tryCatch(int$integrate(f_nan, 0, 1), error = function(e) conditionMessage(e))
+  expect_match(msg, "NaN")
+  expect_false(grepl("Maximum number of subdivisions", msg))
+})
+
 test_that("Non-adaptive integration works", {
   f <- function(x) 2^sin(sqrt(x))
   a <- 0

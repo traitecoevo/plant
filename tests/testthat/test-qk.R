@@ -48,6 +48,12 @@ test_that("Cannot make non-existent rules", {
   expect_error(QK(NA), "Unknown rule")
 })
 
+test_that("NaN-returning integrand errors immediately", {
+  f_nan <- function(x) NaN
+  int <- QK(15)
+  expect_error(int$integrate(f_nan, 0, 1), "NaN")
+})
+
 test_that("Vectorised interface to integration works", {
   int_15 <- QK(15)
   x <- int_15$integrate_vector_x(a, b)
