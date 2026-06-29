@@ -47,7 +47,8 @@ Suggests:
     ggplot2,
     ggridges,
     patchwork,
-    kableExtra
+    kableExtra,
+    withr
 Remotes:
     richfitz/RcppR6,
     traitecoevo/odelia
