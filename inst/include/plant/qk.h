@@ -12,8 +12,9 @@
 #define PLANT_PLANT_QK_H_
 
 #include <vector>
-#include <cmath> // std::abs
+#include <cmath> // std::abs, std::isnan
 #include <RcppCommon.h> // SEXP
+#include <plant/util.h> // util::stop
 
 namespace plant {
 namespace quadrature {
@@ -63,6 +64,9 @@ double QK::integrate(Function f, double a, double b) {
   const double half_length     = 0.5 * (b - a);
   const double abs_half_length = std::abs(half_length);
   const double f_center        = f(center);
+  if (std::isnan(f_center)) {
+    util::stop("Integrand returned NaN at x=" + std::to_string(center));
+  }
 
   double result_gauss = 0;
   double result_kronrod = f_center * wgk[n - 1];
@@ -117,6 +121,11 @@ double QK::integrate(Function f, double a, double b) {
   last_result_abs = result_abs;
   last_result_asc = result_asc;
   last_error      = rescale_error(err, result_abs, result_asc);
+
+  if (std::isnan(last_result)) {
+    util::stop("Integrand produced NaN result over [" +
+               std::to_string(a) + ", " + std::to_string(b) + "]");
+  }
 
   return last_result;
 }
