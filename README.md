@@ -33,12 +33,11 @@ If you are interested in developing plant you should read the [Developer Notes](
 
 - Installation requires a C++11 compatible C compiler (OSX >= 10.10/Yosemite satisfies this, as do standard linux Ubuntu 12.04 and 14.04). On Windows machines you will need to install [Rtools](http://cran.r-project.org/bin/windows/Rtools/). When I tried this in [Rstudio](https://www.rstudio.com/), the program [automagically](https://en.oxforddictionaries.com/definition/automagically) sensed the absence of a compiler and asked if I wanted to install Rtools. Click `Yes`!
 
-- The `plant` package can be installed direct from github using the [`remotes`](https://cran.r-project.org/web/packages/remotes/index.html) package. `plant` also requires the packages `loggr` and `RcppR6` packages. Install those with
+- The `plant` package can be installed direct from github using the [`remotes`](https://cran.r-project.org/web/packages/remotes/index.html) package. `plant` also requires the `RcppR6` package. Install it with
 
 ```r
 install.packages("remotes")
 
-remotes::install_github("smbache/loggr", dependencies=TRUE)
 remotes::install_github("richfitz/RcppR6", dependencies=TRUE)
 ```
 
@@ -63,10 +62,9 @@ remotes::install_github("traitecoevo/plant")
 
 **Option 2, download and install locally**
 
-If installing locally you will still need to install the `loggr` and `RcppR6` packages. Install using `remotes::install_github` as above or, alternatively, download a zip file from github:
+If installing locally you will still need to install the `RcppR6` package. Install using `remotes::install_github` as above or, alternatively, download a zip file from github:
 
 - [RcppR6](https://github.com/richfitz/RcppR6/archive/master.zip)
-- [loggr](https://github.com/smbache/loggr/archive/master.zip) (if needed)
 - [plant](https://github.com/traitecoevo/plant/archive/master.zip). 
 
 Unzip these archives and then for each package run the command
