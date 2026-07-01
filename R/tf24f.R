@@ -191,11 +191,13 @@ make_TF24f_hyperpar <- function(
     ## TODO: Convert the p50 ks function back to a mean centred function using K_s_0
 
     ## p_50 sapwood specific conductivity turnover:
-    p_50 = 10^(B_Hv1 + B_Hv2*log10(K_s))
+    if (any(K_s <= 0, na.rm = TRUE)) {
+      stop("K_s must be > 0 for p_50 derivation", call. = FALSE)
+    }
+    p_50 <- 10^(B_Hv1 + B_Hv2 * log10(K_s))
 
     ## p_50 shape parameter trade off
-    c = B_c1*exp(-B_c2*p_50)
-
+    c <- B_c1 * exp(-B_c2 * p_50)
     ## sensitivity parameter hydraulic vulnerability curve, water potential at 37% conductivity remaining (return unitless):
     b <- p_50/((-log(1-50/100))^(1/c))
 
