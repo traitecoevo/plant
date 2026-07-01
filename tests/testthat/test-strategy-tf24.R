@@ -209,24 +209,22 @@ test_that("TF24_Strategy hyper-parameterisation", {
   expect_equal(ret, trait_matrix(numeric(0), "lma"))
 })
 
-test_that("TF24_hyperpar sources k_I from the strategy", {
-  narea <- c(2E-3, 2.3E-3)
-  m <- trait_matrix(narea, "narea")
-
-  ## Default strategy: assimilation matches the existing reference values.
+test_that("TF24_hyperpar no longer produces a_p1/a_p2 and k_I does not affect output", {
+  m <- trait_matrix(c(0.1, 0.2), "lma")
   s <- TF24_Strategy()
-  expect_equal(s$pars$k_I, 0.5)
   ret <- TF24_hyperpar(m, s)
-  # expect_equal(ret[, "a_p1"], c(162.2592, 188.1549), tolerance=1e-5)
 
-  ## Varying the strategy's k_I must change the derived assimilation
-  ## parameters -- previously the hard-coded 0.5 default in the maker
-  ## silently ignored the strategy value.
-  # s2 <- TF24_Strategy()
-  # s2$pars$k_I <- 0.8
-  # ret2 <- TF24_hyperpar(m, s2)
-  # expect_false(isTRUE(all.equal(ret[, "a_p1"], ret2[, "a_p1"])))
-  # expect_false(isTRUE(all.equal(ret[, "a_p2"], ret2[, "a_p2"])))
+  ## Legacy assimilation parameters a_p1/a_p2 are no longer derived by the
+  ## hyperpar function (they remain strategy-level constants, not traits).
+  expect_false("a_p1" %in% colnames(ret))
+  expect_false("a_p2" %in% colnames(ret))
+
+  ## k_I is no longer used inside the hyperpar function, so varying it in the
+  ## strategy does not change the hyperpar output.
+  s2 <- TF24_Strategy()
+  s2$pars$k_I <- 0.8
+  ret2 <- TF24_hyperpar(m, s2)
+  expect_equal(ret, ret2)
 })
 
 test_that("narea calculation", {
