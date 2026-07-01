@@ -92,14 +92,15 @@ TF24f_generate_stand_report <- function(results,
 ##' @param B_rs1 CO_2 respiration per unit sapwood volume [mol / yr / m3 ]
 ##' @param B_rb1 CO_2 respiration per unit sapwood volume [mol / yr / m3 ]
 ##' @param B_f1 Cost of seed accessories per unit seed mass [dimensionless]
-##' @param narea nitrogen per leaf area [kg / m2]
-##' @param narea_0 central (mean) value for nitrogen per leaf area [kg / m2]
-##' @param B_lf1 Potential CO_2 photosynthesis at average leaf nitrogen [mol / d / m2]
-##' @param B_lf2 Curvature of leaf photosynthetic light response curve [dimensionless]
-##' @param B_lf3 Quantum yield of leaf photosynthetic light response curve [dimensionless]
+##' @param B_lf1 Beta coefficient for empirical relationship between narea ~ lma [g/m2] (Dong et al. 2022)
+##' @param B_lf2 Beta coefficient for empirical relationship between narea ~ vcmax [umol / m2 / s] (Dong et al. 2022)
 ##' @param B_lf4 CO_2 respiration per unit leaf nitrogen [mol / yr / kg]
-##' @param B_lf5 Scaling exponent for leaf nitrogen in maximum leaf photosynthesis [dimensionless]
+##' @param k_I light extinction coefficient [dimensionless]
+##' @param a_lf1 intercept for empirical relationship between narea and vcmax, lma (Dong et al. 2022)
+##' @param B_Hv1 p50 at K_s_0 [-MPa]
+##' @param B_Hv2 Scaling slope for K_s in p50 [dimensionless]
 ##' @param latitude degrees from equator (0-90), used in solar model [deg]
+##' @param K_s_0 Central (mean) value for maximum sapwood conductivity [kg /m2 / s / MPA]
 ##' @importFrom stats coef nls
 ##' @export
 ##' @rdname make_FF16_hyperpar
@@ -111,18 +112,25 @@ make_TF24f_hyperpar <- function(
                                 B_dI1=0.01,
                                 B_dI2=0.0,
                                 B_ks1=0.2,
+                                B_hks1 = 25,
+                                B_hks2 = 0.0,
                                 B_ks2=0.0,
                                 B_rs1=4012.0,
                                 B_rb1=2.0*4012.0,
                                 B_f1 =3.0,
-                                narea=1.87e-3,
-                                narea_0=1.87e-3,
-                                B_lf1=5120.738 * 1.87e-3 * 24 * 3600 / 1e+06,
-                                B_lf2=0.5,
-                                B_lf3=0.04,
+                                a_lf1=0.535,
+                                B_lf1=0.009,
+                                B_lf2=0.004,
+                                B_lf3=0.0008,
                                 B_lf4=21000,
-                                B_lf5=1,
-                                latitude=0) {
+                                B_lf5=40000,
+                                k_I=0.5,
+                                latitude=0,
+                                B_Hv1 = 0.4607063,
+                                B_Hv2 = -0.2,
+                                B_c1 = 2.04,
+                                B_c2 = 0,
+                                K_s_0 = 2) {
   assert_scalar <- function(x, name=deparse(substitute(x))) {
     if (length(x) != 1L) {
       stop(sprintf("%s must be a scalar", name), call. = FALSE)
@@ -135,17 +143,24 @@ make_TF24f_hyperpar <- function(
   assert_scalar(B_dI1)
   assert_scalar(B_dI2)
   assert_scalar(B_ks1)
+  assert_scalar(B_hks1)
+  assert_scalar(B_hks2)
   assert_scalar(B_ks2)
   assert_scalar(B_rs1)
   assert_scalar(B_rb1)
   assert_scalar(B_f1)
-  assert_scalar(narea)
-  assert_scalar(narea_0)
+  assert_scalar(a_lf1)
   assert_scalar(B_lf1)
   assert_scalar(B_lf2)
   assert_scalar(B_lf3)
   assert_scalar(B_lf4)
   assert_scalar(B_lf5)
+  assert_scalar(B_Hv1)
+  assert_scalar(B_Hv2)
+  assert_scalar(B_c1)
+  assert_scalar(B_c2)
+  assert_scalar(K_s_0)
+  assert_scalar(k_I)
   assert_scalar(latitude)
 
   function(m, s, filter=TRUE) {
@@ -156,7 +171,9 @@ make_TF24f_hyperpar <- function(
     lma       <- with_default("lma")
     rho       <- with_default("rho")
     omega     <- with_default("omega")
-    narea     <- with_default("narea", narea)
+    K_s       <- with_default("K_s")
+    vcmax_25  <- with_default("vcmax_25")
+    jmax_25   <- with_default("jmax_25")
 
     ## Light extinction coefficient: source from the strategy so the
     ## assimilation integral below stays consistent with the canopy
@@ -171,6 +188,21 @@ make_TF24f_hyperpar <- function(
 
     ## rho / wood turnover relationship:
     k_s  <- B_ks1 *  (rho / rho_0) ^ (-B_ks2)
+
+    ## rho / moisture-wood turnover relationship:
+    hk_s  <- B_hks1 *  (rho / rho_0) ^ (-B_hks2)
+
+    ## p_50 sapwood specific conductivity turnover:
+    p_50 = 10^(B_Hv1 + B_Hv2*log10(K_s))
+
+    ## p_50 shape parameter trade off
+    c = B_c1*exp(-B_c2*p_50)
+
+    ## sensitivity parameter hydraulic vulnerability curve, water potential at 37% conductivity remaining (return unitless):
+    b <- p_50/((-log(1-50/100))^(1/c))
+
+    ## water potential at critical xylem failure (95%) (return -MPa):
+    psi_crit <- b*(log(1/0.05))^(1/c)
 
     ## rho / sapwood respiration relationship:
 
@@ -187,61 +219,27 @@ make_TF24f_hyperpar <- function(
 
     ## Narea, photosynthesis, respiration
 
-    assimilation_rectangular_hyperbolae <- function(I, Amax, theta, QY) {
-      x <- QY * I + Amax
-      (x - sqrt(x^2 - 4 * theta * QY * I * Amax)) / (2 * theta)
-    }
+    ## n_area from structural (lma) and metabolic (vcmax) N (Dong et al. 2022)
+    narea_ls <- (a_lf1 + B_lf1*lma*1000)/1000
+    narea_lp <- (B_lf2*vcmax_25 + B_lf3*jmax_25)/1000
 
-    ## Photosynthesis  [mol CO2 / m2 / yr]
-    approximate_annual_assimilation <- function(narea, latitude) {
-      E <- seq(0, 1, by=0.02)
-      ## Only integrate over half year, as solar path is symmetrical
-      D <- seq(0, 365/2, length.out = 10000)
-      I <- PAR_given_solar_angle(solar_angle(D, latitude = abs(latitude)))
-
-      Amax <- B_lf1 * (narea/narea_0) ^  B_lf5
-      theta <- B_lf2
-      QY <- B_lf3
-
-      AA <- NA * E
-
-      for (i in seq_len(length(E))) {
-        AA[i] <- 2 * trapezium(D, assimilation_rectangular_hyperbolae(
-                                    k_I * I * E[i], Amax, theta, QY))
-      }
-      if(all(diff(AA) < 1E-8)) {
-        # line fitting will fail if all have are zero, or potentially same value
-        ret <- c(dplyr::last(AA), 0)
-        names(ret) <- c("p1","p2")
-      } else {
-        fit <- nls(AA ~ p1 * E/(p2 + E), data.frame(E = E, AA = AA), start = list(p1 = 100, p2 = 0.2))
-        ret <- coef(fit)
-      }
-      ret
-    }
-
-    # Guard against narea having length zero (e.g. an empty trait matrix),
-    # in which case trapezium() fails.
-    a_p1 <- a_p2 <- 0 * narea
-    if (length(narea) > 0) {
-      i <- match(narea, unique(narea))
-      y <- vapply(unique(narea), approximate_annual_assimilation,
-                  numeric(2), latitude)
-      a_p1  <- y["p1", i]
-      a_p2  <- y["p2", i]
-    }
+    nmass_ls <- narea_ls / lma
+    nmass_lp <- narea_lp / lma
+    nmass_l <- nmass_ls + nmass_lp
 
     ## Respiration rates are per unit mass, so convert to mass-based
     ## rate by dividing with lma
     ## So respiration rates per unit mass vary with lma, while
     ## respiration rates per unit area don't.
-    r_l  <- B_lf4 * narea / lma
+    r_ls  <- B_lf4 * nmass_ls
+    r_lp  <- B_lf5 * nmass_lp
+    r_l <- r_ls + r_lp
 
     extra <- cbind(k_l,                # lma
-                   d_I, k_s, r_s, r_b, # rho
+             d_I, k_s, r_s, r_b, hk_s, # rho
                    a_f3,               # omega
-                   a_p1, a_p2,         # narea
-                   r_l)                # lma, narea
+             r_l, nmass_l,       # lma, narea
+             c, p_50, b, psi_crit) # K_s
 
     overlap <- intersect(colnames(m), colnames(extra))
     if (length(overlap) > 0L) {
