@@ -62,8 +62,8 @@ products using plant.
   the vulnerability curve terms only. Migration:
   * `TF24_Strategy()$pars$hk_s` -> removed (no equivalent)
   * `TF24f_Strategy()$pars$hk_s` -> removed (no equivalent)
-  * `TF24_hyperpar(..., B_hks1 =, B_hks2 =)` -> remove `B_hks1` / `B_hks2`
-  * `TF24f_hyperpar(..., B_hks1 =, B_hks2 =)` -> remove `B_hks1` / `B_hks2`
+  * `make_TF24_hyperpar(..., B_hks1 =, B_hks2 =)` -> adjust `g1_TF24` ~ `rho` scaling (new; no `hk_s` equivalent)
+  * `make_TF24f_hyperpar(..., B_hks1 =, B_hks2 =)` -> adjust `g1_TF24` ~ `rho` scaling (new; no `hk_s` equivalent)
   * `Leaf(..., hk_s =)` -> remove `hk_s` argument
 * The ODE solver and interpolator core were spun out into the standalone
   [odelia](https://github.com/traitecoevo/odelia) package, which plant now
