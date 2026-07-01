@@ -1,0 +1,936 @@
+---
+title: "Automatic differentiation: trait gradients of FF16 and TF24 outputs"
+---
+
+<!--
+STAGING COPY. Written for the Overstorey site
+(https://github.com/traitecoevo/overstorey) but kept in the plant repo for now
+because it documents AD work (#472 scope B / #537) that is not yet merged: the
+scalar-templated kernels + `<T,E,S>` hierarchy of `spike-ff16-hierarchy` (PR #541)
+and the live-SCM emergent gradient + calibration API built on top of it on
+`spike-ff16-scm-emergent`. When those land, move this file to
+`overstorey/guides/autodiff-trait-gradients.qmd`, add it to the Guides sidebar in
+`_quarto.yml`, and delete the `overstorey-staging/` directory here. The guide is
+deliberately narrative + self-contained runnable chunks (each calls the compiled
+package API); it builds no figures, so nothing static needs to move with it.
+-->
+
+::: {.eyebrow}
+guide
+:::
+
+This guide documents *how* `plant` was made to compute exact derivatives of its
+outputs with respect to traits — and the path the implementation took to get
+there. It is a record of the milestone as much as a how-to, because the route
+mattered: the work landed as a long series of additive, individually-verified
+steps rather than one big change.
+
+## Why gradients
+
+Calibrating `plant` — or doing gradient-based evolutionary analysis — means
+asking *how does an output change when I change a trait?* Finite differences
+answer this by re-running the model with a perturbed trait, once per trait, and
+they lose precision to step-size and cancellation. **Reverse-mode automatic
+differentiation** instead threads the chain rule backwards through the exact
+computation: one backward sweep returns the derivative of one scalar output
+w.r.t. *all* inputs at once, to machine precision. That "many inputs → one
+scalar" shape is exactly a calibration objective (e.g. whole-plant growth, or an
+emergent community output), which is why reverse mode is the right tool.
+
+`plant` gets this through [XAD](https://github.com/auto-differentiation/xad)
+(the reverse-mode tape lives in the `odelia` package) without disturbing the
+ordinary `double` model: every differentiable piece is templated on a scalar
+type `S` that defaults to `double`.
+
+## The core idea: a third template axis
+
+`plant`'s C++ core is already templated on the strategy and environment types
+(`<T, E>`). The AD work adds a **third axis**, the scalar type `S`:
+
+```cpp
+template <typename T, typename E, typename S = double> class Node;     // was <T,E>
+template <typename T, typename E, typename S = double> class Species;  //  "
+template <typename T, typename E, typename S = double> class Patch;    //  "
+```
+
+Because `S` *defaults* to `double`, every existing use — and every line of the
+RcppR6 / R interface — still names `Node<T,E>`, which is now `Node<T,E,double>`
+and bit-for-bit the same code. AD only ever happens in C++, by instantiating a
+class or kernel with `S = xad::adj<double>::active_type`. The R-facing package
+never sees an active type.
+
+This is the discipline that made the milestone tractable: **additive and
+bit-identical at every step**. The full test suite (2363 tests) passed unchanged
+after each increment, so a regression would surface immediately, and the change
+could land incrementally instead of as one reviewer-hostile rewrite.
+
+## Groundwork: three pieces that landed first
+
+The hierarchy templating below was the *last* part of the journey. Three earlier,
+already-merged pieces built the techniques and primitives it leans on.
+
+**The leaf-level precedent — forward mode and the implicit function theorem
+([#531](https://github.com/traitecoevo/plant/pull/531) /
+[#539](https://github.com/traitecoevo/plant/pull/539)).** TF24's leaf hydraulics
+were differentiated first. `Leaf::dprofit_droot_collar_psi` computes the exact
+derivative of carbon profit w.r.t. root-collar water potential using **forward-mode**
+AD over the photosynthesis/cost algebra, the **implicit function theorem** at the
+stomatal `psi_stem -> ci` root-find — so the solver's iterations are never taped,
+only the converged point — and a spline's analytic derivative for the transport.
+That set the toolkit reused everywhere after: forward mode when there is one input
+and few outputs (here, the leaf's tracked potential); IFT to get a derivative
+*through* a root-find without differentiating the loop; and a spline's own
+`.deriv()` for built transforms. Making that gradient *fully* analytic (#539,
+removing its last finite difference over the soil-to-collar transport) also taught
+a sharp lesson the FF16 work then obeyed: **the derivative of a spline-built
+quantity must come from the same spline as the value** — a sibling spline (an
+integrand vs its integral) extrapolates differently and was ~0.2% wrong in the dry
+tail.
+
+**A differentiable spline
+([odelia #32](https://github.com/traitecoevo/odelia/pull/32)).** Both net
+production and the light field are built from cubic splines (odelia's
+`Interpolator`). A spline is differentiable w.r.t. its knot *values* but not its
+adaptively-chosen knot *positions*; #32 made exactly that split — scalar-templating
+the values, coefficients, and the band-matrix solve, while the positions stay
+`double` — again behind a `double` alias so every caller is unchanged. This is the
+primitive the self-shading step (7) stands on: a light spline filled at frozen knot
+positions with trait-active values.
+
+**The FF16 production kernel
+([#540](https://github.com/traitecoevo/plant/pull/540)).** Before any container
+templating, the per-plant physiology itself had to differentiate. #540 lifted
+FF16's net-production chain — allometry, assimilation, respiration, turnover — into
+a scalar-templated kernel (`inst/include/plant/models/ff16_production_kernel.h`);
+`FF16_Strategy`'s `double` methods *delegate* to it, so the ordinary model is
+bit-for-bit unchanged while the active instantiation differentiates. It also
+covers FF16's default deep-crown assimilation, whose Gauss–Kronrod crown integral
+is differentiated **through its moving nodes** (`QK::integrate_ad`): the bounds
+scale with height, so the abscissae carry a derivative too — a frozen-*rule* replay
+in which only the quadrature weights are constants.
+
+With those in hand — the leaf precedent's techniques, a differentiable spline, and
+a differentiable per-plant kernel — what remained was the plumbing.
+
+## The route, step by step
+
+The hard part was never the arithmetic — net production, mortality, fecundity are
+elementary functions. It was the *plumbing*: the ODE state boundary, the light
+environment, and the demographic bookkeeping all assume `double`. The work
+proceeded from the smallest blast radius outwards.
+
+**1. Template the container hierarchy.** `Node`, `Species`, `Patch` each gained
+the defaulted `S`. The element/storage types thread through
+(`Species` holds `Node<T,E,S>`, etc.). These commits do nothing observable on
+their own — they just make it *possible* to hold an active scalar.
+
+**2. Make a live plant constructible in AD.** A plant's height is set through
+`update_dependent_aux`, which derives the leaf area from height. Templating that
+(and `area_leaf`) on `S` is what first let a real `Node<FF16,FF16_Env,ad>` be
+*constructed* and carry a derivative: seed an active height, read back the leaf
+area, and one reverse sweep gives `d(area_leaf)/d(height)` — matching the
+analytic value to ~1e-10.
+
+**3. The demographic rates.** The five FF16 ODE rates (`height_dt`,
+`mortality_dt`, `fecundity_dt`, and the two heartwood rates) were lifted into a
+scalar-templated kernel, `ff16_compute_rates_crown_top<S>`, mirroring
+`FF16_Strategy::compute_rates` exactly. The double instantiation matches the live
+strategy **bit-for-bit**; the active instantiation differentiates the whole rate
+vector w.r.t. a trait. Control-flow decisions (the net-production growth clamp,
+the mortality finiteness guard) are passed in as frozen booleans so the taped
+computation is straight-line arithmetic.
+
+**4. Integrate through time.** `ff16_grow_demography<S>` integrates that rate
+kernel over fixed steps, so a single plant's *time-integrated* outputs — e.g.
+lifetime fecundity at a given age — differentiate w.r.t. traits.
+
+**5. From one plant to a stand (the emergent output).** `ff16_replay_cohort<S>`
+replays a cohort over a **frozen schedule** discovered by a first (double) pass.
+A weighted sum over staggered cohorts gives an emergent stand quantity — e.g.
+leaf-area index — and one reverse sweep gives its trait gradient. This is the
+two-pass idea: a first pass (double, adaptive) *discovers* the schedule and the
+resident light; a second pass *replays* it with the trait active, so the taped
+computation never has to differentiate the adaptive step controller.
+
+**6. The light feedback.** A taller plant reads higher in the canopy and gets
+more light. `ff16_replay_cohort_active_light<S>` lets each cohort read its crown
+light from the resident profile *actively*, so `d(light)/d(height)` flows
+(seeded from the profile's value and slope) — capturing that feedback.
+
+**7. Self-shading: the resident light responds to the trait.** The deepest
+coupling: a trait reshapes *every* plant's leaf area, hence the whole light
+profile. `ff16_resident_light_at<S>` computes the resident light at a height as
+`exp(−Σ competition)` with each cohort's leaf area active in the trait. Filling
+an `odelia` interpolator at frozen knot *positions* with these active *values*
+makes the light spline itself differentiable, and a focal plant's net production
+then differentiates **through the self-shaded light field** — matching finite
+differences to ~1e-11.
+
+## Closing the loop: the live SCM
+
+Steps 1–7 built and verified every kernel against finite differences; the last
+piece — driving the discovery pass from a real `run_scm()` — has since landed,
+turning the building blocks into an end-to-end gradient of a genuine SCM output.
+
+**The two-pass driver, faithfully.** Pass one runs the ordinary adaptive SCM with
+its per-sub-step environment cache on; the node-introduction schedule and the
+per-RK-stage resident light are then harvested from the patch (now exposed as
+`Patch$step_history` / `environment_history`). Pass two replays each cohort with
+**the same integrator the SCM used** — the adaptive Cash–Karp RKCK stepper
+(`ff16_replay_cohort_rkck`), *not* a forward-Euler stand-in (forward Euler only
+mirrors the non-default fixed-step path; the real solver is adaptive RKCK, so the
+faithful replay has to be too). Each cohort reads the frozen per-RK-stage resident
+light. The check that matters: the double replay reproduces the live SCM's cohort
+heights to ~1e-14. Bit-faithful — so the gradient is of the real model, not a
+lookalike.
+
+**The emergent output, for real.** The SCM's own `offspring_production` is a
+node-spacing trapezium, over the introduction times, of (survival-weighted lifetime
+fecundity × birth rate). The replay therefore carries a sixth, survival-weighted
+offspring state —
+`d/dt = fecundity_dt · exp(−mortality) · pr_patch_survival(t) / pr_patch_survival_at_birth`
+— seeded with the establishment initial condition. Reconstructed from the replay it
+matches the SCM's `offspring_production` to ~1e-13, and **one reverse sweep returns
+its gradient w.r.t. all 28 production traits at once**, each matching a two-pass
+finite difference (~1e-8). This covers both crown-top and FF16's default deep-crown
+assimilation (the deep-crown net is differentiated through the same moving-node
+crown integral as in #540).
+
+**Differentiating the filters.** Two quantities were frozen at first and then made
+active, on the same principle: if the *value* the gradient targets responds to a
+quantity, the gradient must differentiate it too, or it is internally inconsistent.
+The recruitment filter — establishment probability, a function of the seedling's net
+production in its birth light — and the seedling size `height_0`, which *solves*
+`mass_live(height_0) = seed mass` (a root-find, so its trait sensitivity comes from
+the implicit function theorem, the #539 pattern once more), are both now part of the
+gradient. With them included the 28-trait vector matches finite differences across
+the board.
+
+**Two gradients, not one.** Holding the resident light frozen gives the rare-mutant
+invasion-fitness gradient — the selection gradient of adaptive dynamics, and the
+right object for finding evolutionary singular strategies. Letting the resident
+light *respond* to the trait (the active-knot self-shading of step 7, now applied
+over the whole live stand step by step) gives the distinct *resident-reshaping*
+gradient; for an allometric trait the self-shading term can dominate and even flip
+the sign of the frozen-resident value — a reminder the two are genuinely different
+questions.
+
+## The access points at a glance
+
+The capability is exposed as a small set of R calls. Each is "the gradient as an
+optional output of the call you already make": you run the model (or grow a plant),
+then ask for a derivative of what it produced. The four **trait**-facing functions are
+the core public API — they **dispatch on strategy**, so the same calls cover FF16, TF24
+and TF24f; there is no per-strategy entry point to learn. A fifth call,
+`birth_rate_gradient()`, differentiates a distinct *axis* — the per-species birth-rate
+driver, not a trait (see "The birth-rate axis" below); it is FF16 so far.
+
+| Call | Differentiates | Strategies | Key arguments |
+|---|---|---|---|
+| `stand_gradient(scm, metrics, traits, species, birth_rate, feedback)` | a **metrics × traits Jacobian** of emergent stand outputs, from one resident baseline. **This is the canonical entry — it dispatches on strategy.** | **FF16 & TF24f: all metrics**, `frozen` + `resident`. **TF24: `offspring_production` only**, `frozen` (TF24 resident is the unfinished R2). | `metrics ∈ {offspring_production, LAI, biomass, size_moment}`; `feedback ∈ {"frozen", "resident"}` |
+| `offspring_production_gradient(scm, traits, species, birth_rate)` | `d(offspring_production)/d(trait)` — the rare-mutant **invasion / selection gradient** | FF16, TF24, TF24f | a thin **strategy-agnostic** wrapper over `stand_gradient` (selects the `offspring_production` metric; returns a named vector + attribute) |
+| `stand_state_jacobian(scm, traits, species, birth_rate)` | the per-cohort **state × trait Jacobian** (the escape hatch for any downstream metric) | FF16, TF24 | returns `$states` and `$jacobian` (cohort × component × trait) |
+| `grow_individual_to_size_gradient(individual, sizes, size_name, env, traits, …)` | `d(t*)/dθ` and the total `d(state at t*)/dθ` for one plant grown to target size(s) | FF16, TF24f | fixed *given* environment — no resident feedback |
+| `birth_rate_gradient(scm, metrics, species)` | the **birth-rate axis**: `d(census metric)/d(birth_rate_s)` (resident total) and `d(net_reproduction_ratio)/d(birth_rate)` = `dR0/db` (the demographic-equilibrium axis) | FF16 | `metrics ∈ {LAI, biomass, size_moment, net_reproduction_ratio}`; `net_reproduction_ratio` is single-species |
+
+**The `feedback` axis (the two distinct questions).** `"frozen"` (default) holds the
+resident canopy fixed: the rare-mutant invasion-fitness gradient — the selection
+gradient of adaptive dynamics, and the correct reading for `offspring_production`.
+`"resident"` lets the canopy co-vary with the trait (the coupled whole-stand replay):
+the resident-total gradient for the census metrics, which routinely dominates and flips
+the sign of the frozen reading. On a multi-species stand `"resident"` returns the
+cross-species total `d(total-stand metric)/d(θ of species s)`.
+
+**All SCM-driven entries are C++-native.** Every gradient of an emergent output now
+builds its harvest — the per-RK-stage resident environment, the step schedule, cohort
+birth steps, trapezoid weights and survival — *inside* `plant.so` directly from the live
+`SCM`'s `Patch`, rather than marshalling it through R. There is no on-the-fly
+compilation (the XAD adjoint tape is resolved at *load* against `odelia`) and no
+`Rcpp::as<>` environment round-trip, so the replay drives the native environments and
+the calls are covered by the test suite in plain R. `grow_individual_to_size_gradient()`
+is the one exception to the Patch-harvest: its environment is supplied as an argument,
+so it replays over that fixed env instead.
+
+## The calibration interface
+
+The headline is a single R call. Given an SCM run with the sub-step cache on,
+`offspring_production_gradient()` returns the derivative of the emergent
+`offspring_production` w.r.t. all 28 production traits in one reverse sweep:
+
+```{r}
+library(plant)
+p <- scm_base_parameters("FF16")
+p <- add_strategies(p, trait_matrix(0.0825, "lma"),
+                    hyperpar = FF16_hyperpar, birth_rate = list(20))
+# Two passes are required (they cannot be combined): pass 1 refines and FIXES the
+# adaptive node schedule; pass 2 re-runs on that frozen schedule with the sub-step
+# cache on -- the resident baseline the gradient harvests. (A single
+# refine + save_RK45_cache run leaves the cache inconsistent with the replay.)
+p <- run_scm(p, Environment("FF16"), control(), refine_schedule = TRUE)$parameters
+scm <- run_scm(p, Environment("FF16"), control(save_RK45_cache = TRUE),
+               refine_schedule = FALSE)
+
+g <- offspring_production_gradient(scm)   # named vector: d(offspring_production)/d(trait)
+g
+```
+
+This is the "many traits in, one scalar out" shape of a calibration objective,
+delivered at the cost of a single extra model evaluation rather than one re-run per
+trait. There is no on-the-fly compilation: the reverse-mode replay is compiled into
+`plant.so` (the XAD adjoint tape resolved at *load* against `odelia`'s single
+compiled copy), so it is an ordinary package call — and is covered by the test suite
+in plain R, not only by the sourceCpp scripts below.
+
+For a **multi-species** stand `offspring_production` is a per-species vector, and the
+call takes a `species` index — `offspring_production_gradient(scm, species = s)`
+returns the gradient of species `s`'s emergent output against the *shared* frozen
+canopy of all species (the rare-mutant / invasion reading; each species' cohorts read
+the same frozen field). It is validated per species against finite differences for
+both strategies.
+
+## The generic stand-gradient engine
+
+`offspring_production_gradient()` differentiates one output. The calibration-facing
+design generalises it to a metric-*symmetric* engine that lives **outside** the SCM
+object: it consumes a `ResidentHarvest` that any
+SCM variant (single-patch, multi-patch, stochastic, …) can emit, and differentiates a
+*supplied* set of stand metrics over **one** replay — `offspring_production`, `LAI`,
+`biomass`, a size-distribution moment are all equal entries, **none privileged**. It
+returns a metrics × traits **Jacobian** from one resident baseline: one forward replay
+records a single adjoint tape, then a *cheap reverse sweep per metric*, so M metrics
+cost a replay plus M sweeps, not M replays.
+
+```{r}
+g <- stand_gradient(scm,
+                    metrics = c("offspring_production", "LAI", "biomass", "size_moment"))
+g$values     # reconstructed stand metrics (LAI == scm$patch$compute_competition(0))
+g$jacobian   # a metrics x traits matrix: d(metric_m)/d(theta_k)
+```
+
+Each metric is a weighted reduction over the replayed cohorts. `offspring_production`
+is the seed-rain integral `Σ_i w_i·offspring_i` (frozen birth weights). `LAI`,
+`biomass` and `size_moment` are size-distribution integrals at the final census — the
+height-trapezium of `density_i·f(state_i)`, matching the SCM's own `compute_competition`
+arithmetic (down to the pending-seed tail term). The per-cohort census number density
+is the replayed `log_density`, evolved with the SCM's own growth-rate-gradient scheme,
+so the reconstruction reproduces the SCM's stored density and AD differentiates it
+exactly (validated against frozen-resident finite differences).
+
+For a metric that is **not** a simple reduction — a quantile, a ratio, a bespoke
+statistic a downstream package invents — there is an escape hatch: the per-cohort
+**state × trait Jacobian**.
+
+```{r}
+J <- stand_state_jacobian(scm)
+J$states     # cohort x {height, mortality, fecundity, area_heartwood, mass_heartwood, offspring}
+J$jacobian   # cohort x component x trait: d(state_i,c)/d(theta_k)
+```
+
+Any smooth metric over the cohort states then has its gradient by the chain rule, with
+`plant` never needing to know the metric — the same boundary as "likelihoods live
+downstream" (data never enters `plant`, which is what lets many likelihood terms share
+one stand baseline). The same "gradient as an optional output of the call you already
+make" pattern also reaches the single-plant `grow_individual_to_size` (growth-rate /
+time-to-size optimisation — landed, see the next section) and `Leaf` (standalone leaf
+calibration — still to come), and the engine mirrors onto TF24 (its `offspring_production`
+is reached through the same `stand_gradient()` / `offspring_production_gradient()` calls;
+the census metrics are the TF24 follow-up).
+
+## The same pattern on a single plant: `grow_individual_to_size`
+
+The stand engine differentiates an emergent output of a whole resident; the *simplest*
+member of the family differentiates one plant. `grow_individual_to_size(individual,
+sizes, size_name, env, ...)` grows a single plant in a **fixed** environment up to a
+target size and returns the ODE state there — the per-plant, fixed-environment problem
+behind a growth-rate or time-to-size calibration (e.g.
+`optimise_individual_rate_at_size_by_trait`). Because the environment is *given*, there
+is no resident feedback at all, so this is the lightest of the FF16 gradients —
+the two-pass replay with **one** extra idea, the stopping-time implicit-function step.
+
+```{r}
+individual <- Individual("FF16", "FF16_Env")(FF16_Strategy())  # a single FF16 plant
+env <- Environment("FF16")                                     # the fixed environment
+g <- grow_individual_to_size_gradient(individual, sizes = c(2, 5, 10), "height", env)
+g$time      # t* per size; g$d_time = d(t*)/d(theta), a sizes x trait matrix
+g$state     # the ODE state at t*; g$d_state = TOTAL d(state)/d(theta), sizes x comp x trait
+```
+
+Pass one is the ordinary `grow_individual_to_size`: its adaptive Cash–Karp schedule and
+per-node trajectory are harvested (via `grow_individual_bracket`). Pass two replays the
+demographic ODE over that frozen schedule with the trait active, reading the fixed env
+with the default deep-crown assimilation, to a **single partial final step** that lands
+on `t*`. One reverse sweep per state component gives the *partial* `∂state/∂θ` at fixed
+`t*`. The stopping time responds to the trait too, through the **implicit function
+theorem** on the stopping condition `size(t*, θ) = target` (the #539 pattern once more —
+differentiate the converged condition, never the bisection loop):
+
+$$ \frac{dt^*}{d\theta} = -\,\frac{\partial\,\text{size}/\partial\theta\,|_{t^*}}{\dot{\text{size}}(t^*)},
+\qquad \frac{dy_c}{d\theta} = \frac{\partial y_c}{\partial\theta}\Big|_{t^*} + \dot y_c(t^*)\,\frac{dt^*}{d\theta}. $$
+
+For the size component itself the two terms cancel (it is pinned to the target) — the
+clean self-check the validation lands on: `d(height)/dθ` comes back at ~1.7 × 10⁻¹², the
+IFT term wired correctly. The seedling size `h₀` (which solves `mass(h₀) = seed mass`)
+carries its own `dh₀/dθ` by the same implicit step, so `lma`/`a_l1`/`ρ` — which shift
+where the plant *starts* — are differentiated correctly (omitting that channel made
+their gradient a near-constant offset wrong, the tell that it was the initial condition).
+
+**A subtlety worth recording — why a *single* partial step, not a sub-stepped one.** The
+schedule interval that contains `t*` is integrated as exactly **one** RKCK step whether
+it is "the partial step" or, after the trait nudges `t*` past a node, "a full step". That
+keeps the frozen-schedule function **C1-smooth across node boundaries**, so its
+finite-difference reference matches AD to the integrator floor. Sub-dividing the final
+step would improve fidelity to the live *adaptive* solver but introduce a granularity
+kink at each node crossing that a small-step FD then reads as noise — the same
+"differentiate the function you actually compute" discipline as everywhere else.
+
+**Validation.** R0: the double replay reproduces `grow_individual_to_size`'s `t*`/state
+up to the live `uniroot` tolerance (its `t*` is itself only resolved to ~1e-4; the C++
+bisection is tighter, so the match is uniroot-limited, not a fidelity statement). R1: the
+AD total gradient — `d(t*)/dθ` and `d(state at t*)/dθ` for all 28 traits — matches a
+central FD over the *same* frozen-schedule function (per-trait plateau-picked step, since
+a trajectory-flowing trait like `a_b1` wants a ~1e-3 step while the bisection noise floor
+swamps a smaller one — the recurring lesson). The honest-scope gap to a FD over the
+fully-*adaptive* `grow_individual_to_size` (which lets the step schedule re-respond to
+the trait) is the grid response: ~1e-5 at small targets, growing to a few–30 % for
+geometry traits at the largest target — exactly the frozen-grid caveat of the SCM
+resident gradient, one plant instead of a stand. The compiled path is covered in plain
+R by `test-ff16-grow-individual-gradient.R`, which also pins the AD gradient against a
+finite-difference reference.
+
+## The resident total gradient: the coupled replay (FF16)
+
+The engine above holds the canopy **frozen** — the rare-mutant / invasion gradient,
+the right object for `offspring_production`. But for `LAI` / `biomass` / `size_moment`
+as *resident ecosystem outcomes*, the canopy co-varies with the trait: change a trait
+and every resident grows and dies differently, re-shading the whole stand.
+`stand_gradient(scm, feedback = "resident")` now computes that **resident total**
+gradient for the census metrics via a **coupled whole-stand replay**.
+
+```{r}
+gr <- stand_gradient(scm, metrics = c("LAI", "biomass", "size_moment"),
+                     feedback = "resident")           # every trait re-shades the canopy
+gf <- stand_gradient(scm, metrics = c("LAI", "biomass", "size_moment"),
+                     feedback = "frozen")             # the rare-mutant reading
+```
+
+The mechanism is "freeze the **grid**, not the stand": the ODE step schedule, the
+cohort-introduction schedule, and the light spline's **knot x-positions** are frozen
+from the resident run, but the stand state is **re-evolved** — all alive cohorts
+stepped together over the frozen schedule, and at each Cash-Karp stage the canopy
+light is reconstructed from the *current active stand* (cohort heights **and**
+log-densities responding to the trait) by refilling an odelia `basic_interpolator<S>`
+at the frozen knots (the active-knot differentiable spline). The interpolator is built
+**once per stage** and shared across cohorts, so the coupled adjoint tape is
+~`O(N·steps·stages)` — comparable to the monolithic offspring tape, not the
+`O(N²)` per-GK-point trap. One recording, one reverse sweep per metric.
+
+**The result the frozen reading misses.** Under frozen geometry only the two
+allometric traits (`a_l1`, `a_l2`) touch the canopy. Under the coupled replay
+**27 of 28 traits carry a resident feedback**, and it routinely *dominates and flips
+the sign* of the census reading:
+
+| `d(LAI)/dθ` | frozen (mutant) | resident (total) |
+|---|---|---|
+| `theta` | −2.3 × 10⁵ | −351 |
+| `lma`   | −2.7 × 10³ | −14.9 |
+| `a_p1`  | +2.6        | +0.013 |
+
+(`d(biomass)/d(lma)`: −2.07 × 10⁴ → −348; `d(size_moment)/d(lma)` flips sign.)
+`offspring_production` stays the frozen invasion gradient even under `"resident"` —
+the canopy a rare mutant invades is the resident's, not its own.
+
+**Validation (the two-pass story).** A static check confirmed the env-from-stand map
+is **bit-exact**: reconstructing competition from the harvested per-stage stand at the
+frozen knots reproduces the SCM's stored light spline to **4.4 × 10⁻¹⁶** across all
+~145k knots — once the boundary `new_node` is harvested per stage (it is the trapezium
+tail term `compute_competition` adds beyond the `nodes` loop) and snapshotted *inside*
+`compute_environment`, before `compute_rates` mutates it. R0: the double-precision
+coupled re-evolution reproduces the SCM emergent metrics to **1e-8…1e-10** (matching
+the frozen per-cohort engine's own SCM fidelity), with the per-stage env reconstructed
+to ~7e-6 worst-knot (at z = 0, the most sensitive ground level). R1: AD matches a
+central FD over the *same coupled reconstruction* to **~1e-4** at the noise-optimal
+step — the reconstruction carries ~1e-8 value noise (cohort-height-crossing sort
+discontinuities + the re-evolution drift), so a too-small FD step is noise-dominated;
+AD is the exact derivative, FD the noise-limited reference.
+
+**Cost — why reverse-mode AD, not finite differences.** All 28 traits × 3 metrics come
+from **one** resident run plus a single coupled tape (3 reverse sweeps) in **~3.9 s** on
+a representative FF16 stand (~290 steps, ~160 cohorts). A finite-difference Jacobian of
+the same quantities re-runs the whole SCM *per trait* (`run_scm` ≈ 0.20 s/run on the
+frozen schedule, 0.65 s/run with schedule refinement):
+
+| Method (28 traits × 3 metrics) | Cost | Scales with #traits? | Exact? |
+|---|---|---|---|
+| **Coupled reverse sweep** | **~3.9 s** | **no** (replay + 1 sweep/metric) | yes |
+| FD, forward, frozen schedule (29 runs) | ~6 s | yes | no (step-tuned) |
+| FD, central, frozen schedule (56 runs) | ~11 s | yes | no |
+| FD, central, with refinement (56 runs) | ~36 s | yes | no |
+
+The reverse sweep's cost is independent of the trait count (it is per-*metric*), so the
+advantage compounds: comparable here at 28 traits, decisive at 100+, and exact either
+way (no step-size lottery, no per-metric noise floor).
+
+**Honest scope: it is the frozen-*grid* resident total.** The coupled gradient freezes
+the grid (step schedule, knot positions, cohort-introduction schedule), recomputing the
+stand state, the active light, **and** — as of the R1 round-out — the seedling
+establishment env (reconstructed from the already-alive cohorts at each birth step;
+exact at θ₀, non-circular). Against a *full* `run_scm` finite difference (which also lets
+the adaptive step sizes and knot positions re-respond) the coupled `d(LAI)/dθ` differs
+by ~**16–29 % for geometry traits** (`lma` 29 %, `a_l1` 16 %) and a few % for rate-only
+traits. Decomposing that residual with an ODE-tolerance sweep
+(`scripts/coupled_gap_decompose.R`) attributes roughly **half to the grid response**
+(frozen adaptive step sizes + knot positions — a quantity that vanishes as tol→0 and is
+arguably *not* the wanted derivative, since it tracks where the solver places its grid
+rather than the biology) and **half to the birth-env + boundary channels**. Turning
+birth-env active (`scripts/coupled_birthenv_channel.R`) closes the birth-env part —
+`lma` 33→29 %, `a_l1` 20→16 %; the **boundary new_node** is the lowest, ground-level
+node (~0.4 % of the canopy, derivative channel far smaller) and is left frozen as
+negligible. The remaining gap is the grid response. The coupled R0 reconstruction and
+R1 AD-vs-FD checks are now CI tests in
+`tests/testthat/test-ff16-stand-gradient.R` (single- and multi-species coupled
+cases); the development decomposition scripts that produced the grid-vs-birth-env
+breakdown have been retired now that the behaviour is pinned by those tests.
+
+**Multi-species: the cross-species total gradient (working).** On a stand with more
+than one species, `feedback = "resident"` returns the cross-species total
+`d(total-stand metric)/d(θ of species s)` — the genuinely new object (the mutant
+cross-term was zero):
+
+```{r}
+# A 2-species stand on a FIXED node schedule (the cross-species coupled replay is
+# well-conditioned on a fixed schedule; an adaptively-refined one can go stiff).
+pms <- scm_base_parameters("FF16")
+pms <- add_strategies(pms, trait_matrix(c(0.0825, 0.2), "lma"),
+                      hyperpar = FF16_hyperpar, birth_rate = list(20, 20))
+pms$node_schedule_times <- list(seq(0, 70, length.out = 16),
+                                seq(0, 70, length.out = 16))
+pms$max_patch_lifetime <- 70
+scm_ms <- run_scm(pms, Environment("FF16"), control(save_RK45_cache = TRUE),
+                  refine_schedule = FALSE)
+
+gr <- stand_gradient(scm_ms, metrics = c("LAI", "size_moment"),
+                     traits = c("lma", "a_p1"),             # a small, validated trait set
+                     species = 1L, feedback = "resident")   # d(total stand)/d(θ_species1)
+gr$jacobian
+```
+
+The joint canopy is reconstructed from *every* species' re-evolved cohorts as a **sum
+of per-species trapeziums** — `competition(z) = (1/area)·Σ_species [trapezium over
+species s's active cohorts + its boundary node, with species s's η]`, matching
+`Patch::compute_competition = Σ_s Species_s::compute_competition / area` (it is *not*
+one merged-and-sorted trapezium). The census metrics are TOTAL-stand sums over species,
+and the differentiated species' traits feed back through the canopy *every* species
+reads, so the other species' contributions respond too — the cross term `"frozen"` sets
+to zero (e.g. `d(LAI)/d(lma₁)`: total resident −0.47 vs target-frozen −1.03). All
+species' cohorts are lifted to one adjoint tape; only the differentiated species' traits
+(plus its `height_0` IFT channel) are registered, so one reverse sweep per metric gives
+the cross-species column. It is exposed through the same `stand_gradient()` call (the
+implementation harvests every species via the all-species per-RK-stage history
+`stand_*_stage_history_all`, RcppR6-exposed). Validation: the all-species harvest
+reconstructs the joint canopy to ~1e-6 and AD matches a finite difference over the same
+reconstruction (the multi-species coupled R0/R1 cases in
+`tests/testthat/test-ff16-stand-gradient.R`), with the mass/size-weighted metrics
+noise-limited exactly as in the single-species case.
+
+**The instability, and why it is a replay artifact (not a model behaviour).** On a
+**fixed** node schedule the joint re-evolution is well-conditioned (env drift ≤1e-4). On
+a strongly clustered *adaptively-refined* schedule it can go stiff: the env drift stays
+below ~1e-3 for ~100 steps and then **jumps to ~0.8 at a single step** when one cohort's
+`log_density` runs away to ±∞. The mechanism is the method-of-characteristics density
+rate `d(log_density)/dt = −g′ − mortality`, where `g′ = ∂(height_dt)/∂height` is a
+backward finite difference (the SCM's own scheme, abs step 1e-6). Where a cohort sits
+just under a sharp light gradient, `g′` is large and negative, so `log_density` is
+stiff there — and a normal `run_scm` handles it by **stepping adaptively** (those
+clustered ~1e-5 steps *are* the solver controlling exactly this stiffness, against its
+own exact canopy). The replay, however, reuses the *frozen* step sizes while re-evolving
+the stand, so it integrates that stiff term against a canopy that has drifted ~1e-3 from
+the SCM's; with two species the joint canopy couples both species' density dynamics, and
+that small canopy difference tips the one cohort past the runaway threshold. So the
+blow-up is purely an artifact of replaying frozen step sizes on a re-evolved canopy:
+`run_scm` itself never diverges, and single-species replays are robust even on the
+refined schedule (their drift is ~7e-6 and they never tip). The shipped resolution
+(adequate for fixed-schedule calibration, which is the use case): a cheap double-precision
+R0 pass gates the public path and raises a clear error asking for a fixed/uniform node
+schedule whenever the joint env drift exceeds 1e-2, rather than returning a diverged
+gradient. Possible future hardening, if a refined-schedule resident gradient is ever
+wanted, is a `log_density`-rate cap mirroring the SCM's own `check_initial_density_rates`
+guard, or sub-stepping the clustered early steps in the replay.
+
+## The birth-rate axis: `birth_rate_gradient` (FF16)
+
+Everything above differentiates w.r.t. **traits**. `birth_rate_gradient()` differentiates
+a distinct axis — the per-species **birth-rate driver** `b`, the constant seed-rain input.
+It is not a trait; it enters the model only through the *density* of each cohort at
+establishment (`log_density₀ = log(b · pr_estab / g₀)`) and the offspring weighting
+(`tw ∝ b`). The use case is **demographic equilibrium**: evolving a community to
+self-replacement, where the resident's realised net reproduction returns exactly one
+offspring per seed.
+
+**Only the resident-coupled reading needs a tape.** Hold the canopy frozen and every
+cohort's density is *exactly linear* in `b`, so the rare-mutant derivative is the trivial
+identity `∂(metric)/∂b = metric/b` — no tape earns its keep, and `offspring_production`
+keeps that frozen invasion reading even under `feedback = "resident"` (the canopy a rare
+mutant invades is the resident's). So `birth_rate_gradient()` returns the **resident
+total**: `b` is registered as an input on the *same* coupled whole-stand replay the
+resident trait gradient uses (§"the coupled replay"), and one reverse sweep per metric
+gives `d(metric)/db` with the full canopy feedback.
+
+```{r}
+gb <- birth_rate_gradient(scm, metrics = c("LAI", "biomass", "size_moment"))
+gb$d_birth_rate   # d(metric)/d(birth_rate), resident total
+```
+
+The feedback is the whole point: a higher `b` means denser recruitment, more
+self-shading, slower growth — which partly (or more than) offsets the naive density
+scaling. It routinely *flips the sign* of the trivial reading. For a representative FF16
+stand `d(biomass)/db` comes back **negative** (≈ −6 × 10⁻⁴) where the frozen identity
+`biomass/b` is strongly **positive** (≈ +0.46): past some birth rate, extra seeds *lower*
+standing biomass because the added shade costs more than the added stems. On a
+multi-species stand the call takes a `species` index and returns the **cross-species
+total** `d(total-stand metric)/d(b_s)` — species `s`'s recruitment re-shades the joint
+canopy every species reads (the cross term the frozen reading sets to zero).
+
+### `net_reproduction_ratio`: the `R0 = 1` gradient via the mutant
+
+The demographic equilibrium is `R0 = 1` (`net_reproduction_ratio → 1`), and its Newton
+step needs `dR0/db`. The clean way to define that object is the **mutant** reading: set a
+rare mutant's traits equal to the resident's and ask how the mutant's fitness changes as
+the *resident's* density moves. Since `b` is not a trait, changing it moves only the
+resident **canopy**, so `d(mutant fitness)/d(resident density)` at mutant = resident *is*
+`dR0/db` — and using **unit per-seed weights** (`net_reproduction_ratio`, not the
+`b`-scaled `offspring_production`) means `b` enters *only* through the canopy: the pure
+density feedback, with no trivial `tw ∝ b` term to subtract.
+
+```{r}
+gR0 <- birth_rate_gradient(scm, metrics = "net_reproduction_ratio")
+gR0$values         # reconstructs the SCM's own net_reproduction_ratio exactly
+gR0$d_birth_rate   # dR0/db  (< 0: density-dependent, so R0 = 1 is well-posed)
+```
+
+Mechanically, the coupled replay carries a **survival-weighted offspring** accumulator
+per cohort (`d/dt = fecundity_dt · exp(−mortality) · pr_survival/pr_survival_at_birth`,
+the same rate as the frozen offspring tape), fully decoupled from the demographic and
+density rates — so the census trajectories stay bit-identical and only `R0` reads it. The
+per-seed weight is pinned to the *harvest* `b` (a fixed constant), so activating `b`
+rescales the resident density, never the weight — the mutant reading, exactly. `dR0/db`
+comes back **negative** (the density dependence that makes an `R0 = 1` equilibrium
+well-posed and unique), reconstructs the SCM's own `net_reproduction_ratio`, and matches
+a finite difference over the same coupled reconstruction (weight held, canopy perturbed)
+to ~0.2%.
+
+**Honest scope.** As for every resident-coupled gradient here, this is the frozen-*grid*
+total: against a *full* `run_scm` finite difference over `b` (which lets the adaptive
+schedule and knot positions re-respond) it differs by the same ~20–30% grid response
+described above — arguably not the wanted derivative, since that part tracks where the
+solver places its grid rather than the biology. The **solver itself lives downstream**
+(`regnans` and the other plant-family packages own the equilibrium/adaptive-dynamics
+loops); `plant`'s job is only to expose `dR0/db` cleanly. It is FF16 only so far — TF24f's
+coupled replay is stiffness-gated (next section and "What's next").
+
+## How the kernels are validated
+
+The lower-level kernels all live in
+`inst/include/plant/models/ff16_production_kernel.h` (the templated net-production,
+allometry and rate fills) and are compiled into `plant.so`. They were brought up
+against finite differences during development and are now pinned in CI: the
+`test-ff16-*-ad.R` files exercise the leaf precedent (forward-mode AD + IFT via the
+exposed `Leaf` class), the kernel-level FF16 gradients, the deep-crown assimilation and
+the resident-reshaping (self-shading) gradient against an FD reference, and the
+correctness-regression fixture (`tests/testthat/fixtures/gradient-baseline.rds`, driven
+by `scripts/gradient_fixture.R`) pins every compiled gradient engine to its validated
+value at machine precision. So the public calls in the chunks above (`stand_gradient`,
+`offspring_production_gradient`, `grow_individual_to_size_gradient`) are the same
+reverse-mode tape the tests cover — no on-the-fly `sourceCpp` compilation is needed.
+
+## Beyond FF16: TF24
+
+Everything above is FF16, where net production is a *closed-form* function of light
+and traits — which is exactly why the whole cohort trajectory can be recorded on the
+tape and reverse-swept directly. **TF24** breaks that assumption: its net production
+comes from an *optimised* leaf — a maximisation of carbon profit over the root-collar
+water potential, nesting a stomatal `psi_stem -> ci` root-find. An iterative
+optimiser/solver cannot be recorded on the adjoint tape and played backward. So the
+TF24 story is really the story of *how to keep using AD when the core quantity is the
+output of a solver* — and the answer, throughout, is the same: **never tape the
+solver; inject its converged sensitivities.**
+
+### The leaf gradients: envelope theorem + IFT
+
+At the leaf's interior optimum the profit is stationary in the collar potential
+(`dprofit/dcollar ≈ 0`), so the **envelope theorem** lets us hold the optimal collar
+*fixed* and differentiate only the explicit trait dependence — no optimiser
+differentiation. The internal `psi_stem -> ci` root-find is handled by the **implicit
+function theorem** (the #539 pattern: differentiate the converged residual, not the
+loop). On that basis each of TF24's ten leaf traits got an exact, FD-validated
+`Leaf::dprofit_d*`:
+
+- **photosynthesis** (`vcmax_25`, `jmax_25`, `a`, the two curvatures) behave like
+  `vcmax` — assimilation only. The lesson that cost a long debug: `vcmax` carries the
+  dark-respiration coupling `R_d = 0.015·vcmax`, so its derivative must seed `R_d`
+  active too; holding it constant made the gradient ~1.85× too big;
+- **hydraulic** (`g1_TF24`, `beta2`) enter only the cost — pure envelope-theorem
+  terms; **`K_s`** scales the supply conductance, moving `psi_stem` and `ci`
+  (transport + IFT); the **vulnerability shape** `b`, `c` reshape the transpiration
+  spline *and* the cost, with the benefit frozen because at the operating point
+  transpiration equals the soil→collar uptake (which uses the *root* vulnerability,
+  not the stem `b`/`c`).
+
+A recurring gotcha: validate the envelope-theorem gradient at a **healthy interior
+optimum** (the real strategy sits there at all light levels), and tighten the collar
+golden-section (`GSS_tol_abs = 1e-9`) — at the default `1e-3` the optimum is
+under-converged and a transport trait's collar moves enough to show a ~1e-4 AD-vs-FD
+gap whose size tracks `|dprofit/dcollar|`.
+
+### A committed, bit-identical TF24 kernel
+
+The rates *downstream* of net production are, pleasingly, **algebraically identical to
+FF16** — only `assimilation = profit · area_leaf · conv` differs. So
+`inst/include/plant/models/tf24_production_kernel.h` mirrors the FF16 kernel
+(`tf24_net_from_components`, `tf24_compute_rates_from_net<S>`, `TF24ProdPars<S>`), and
+`TF24_Strategy`'s `double` rate methods *delegate* to it — keeping the reference test
+suite bit-for-bit unchanged (FAIL 0) while the active instantiation differentiates.
+The kernel is covered in plain R on CI (`test-tf24-rate-kernel-gradient.R`).
+
+### Reverse mode at the net-production level
+
+With the leaf sensitivities in hand, `d(net)/d(trait)` for **all 27 production
+traits** comes from a single reverse sweep over `tf24_net_mass_production`: the leaf
+optimiser is not taped — its `dprofit_d*` are *injected* into an active `profit` (the
+same first-order injection used for FF16's `height_0`), allometry traits drive
+`area_leaf`, and `theta` / `a_r1` carry *both* a cascade pathway and a leaf-coupling
+(`theta` via `k_max`, `a_r1` via `E_up`) on the same tape variable. The reverse
+27-vector matches the per-trait **forward**-mode values to machine precision — the
+real contract — and matches a live finite difference for all 27.
+
+Getting that FD *reference* right taught the sharpest TF24 lesson. The optimal FD step
+spans **orders of magnitude across traits**: leaf-coupled traits go through the
+root-find, whose noise floor swamps a too-small step, while a trait like `jmax` is
+truncation-limited and wants a *small* step. No single step works, so the FD uses a
+**robust plateau picker** (evaluate a ladder of steps, report the most
+self-consistent rung). This per-trait step-tuning is precisely the asymmetry
+reverse-mode AD sidesteps — the AD needs no tuning at all. (The one genuinely
+FD-limited trait is the vulnerability shape `c`: the AD computes the exact *continuous*
+`dS/dt` while the FD rebuilds a discretised spline, so the residual is spline
+interpolation error that shrinks with `vulnerability_curve_ncontrol` — itself the
+proof the AD is exact.)
+
+### Through the whole SCM
+
+The emergent gradient cannot tape the live trajectory (the leaf opt runs at every RK
+stage of every cohort). The resolution is a **two-pass tangent-linear replay**: pass
+one is the real adaptive crown-centre SCM with the cache on; pass two replays each
+cohort with the *same* Cash–Karp stepper (the generic `ff16_cashkarp_replay`),
+**running the real leaf optimisation at each stage** so the double trajectory stays
+faithful, and propagating the trait sensitivity alongside —
+`d(net)/d(trait)` injected from the leaf gradient, the within-trajectory
+`d(net)/d(height)` from a small central FD of the leaf opt, and the rate-fill
+sensitivities from forward-mode XAD over the kernel.
+
+Faithfulness here is **~5e-7**, not FF16's ~1e-14 — and the difference is instructive:
+FF16's closed-form net is exact, whereas TF24's replay re-solves the leaf opt, so the
+floor is the *optimiser's own tolerance*, not the integrator. With it, `offspring_production`
+is reconstructed to ~3e-8 and `d(offspring_production)/d(vcmax_25)` matches a two-pass
+FD converging `O(h²)` to ~7e-6.
+
+Two finite-difference gotchas were worth their debugging time, both the same shape —
+**a too-small step is corrupted by a hidden solver's noise floor**:
+
+- the within-trajectory `d(net)/d(height)` needs a step of `1e-5·h`; at `1e-6·h` the
+  leaf root-find noise dominated and the emergent gradient was ~1.6e-4 off (`1e-5` → ~1e-5);
+- `d(height_0)/d(lma)` (the seedling-size shift, an IFT quantity) needs a `1e-4` step;
+  at `1e-6` the seedling root-find noise made it **9 % wrong**, which then biased the
+  whole `lma` gradient. (`ci_abs_tol`, by contrast, turned out irrelevant — the noise
+  is the collar golden-section, not the `ci` solve.)
+
+### Reverse mode through the SCM, too
+
+The forward replay does one pass *per trait*. But the expensive per-RK-stage harvest —
+the optimised profit, the ten `dprofit_d*`, `k_max`, `E_up`, and the `d(profit)/d(height)`
+Jacobian — is **trait-independent**. Recording it once per cohort turns the propagation
+into a *leaf-opt-free, fully tapeable* expression:
+
+```
+profit(h, θ) = profit₀ + dprofit_dh·(h − h₀_stage)
+                       + Σ_k  dprofit_dθ_k · (θ_k − θ_k0)
+```
+
+with the cascade/area traits entering the kernel directly and `height_0` IFT-injected.
+So TF24 *does* get a **reverse-mode emergent gradient through the live SCM** after all:
+one backward sweep per cohort returns all 27 trait derivatives, summed over cohorts for
+the full gradient. It matches the forward 27-vector (to ~3e-6, the leaf-opt noise
+between independent SCM runs) and a two-pass FD for representatives of every trait
+class.
+
+That closes the apparent gap between the strategies. The leaf root-find is **never**
+taped in any path — for FF16 there is none; for TF24 it is harvested at one operating
+point (net production) or per stage (emergent), and its envelope/IFT sensitivities are
+injected. FF16's only real advantage is that its closed-form net needs no harvest step.
+
+### Validating the TF24 path
+
+The same staged build-up was used for TF24 — the per-class leaf and cascade
+`d(net)/d(trait)` gradients, all 27 `d(net)/d(trait)` in one reverse sweep
+(reverse == forward to machine precision), the live-SCM emergent gradient for a leaf
+trait *and* a cascade trait (`vcmax_25`, `lma` with its `height_0` shift), the real
+survival-weighted `offspring_production`, and the full 27-trait vector by one reverse
+sweep per cohort. As for FF16, the reverse-per-cohort path is compiled into `plant.so`
+and reached through the strategy-agnostic `offspring_production_gradient(scm)` (or
+`stand_gradient(scm, metrics = "offspring_production")`) — given a crown-centre
+`save_RK45_cache` SCM it returns the named 27-trait gradient (plus the reconstructed
+`offspring_production`) with no on-the-fly compilation. The `test-tf24-*-gradient.R`
+and `test-tf24f-*-gradient.R` files pin each of those stages against a finite-difference
+reference; because TF24 is stiff (every rate evaluation re-solves the leaf
+optimisation), they run on deliberately small stands.
+
+## Where it works, and where it breaks: the operational envelope
+
+Beyond the per-section validation, it is worth stating plainly *where each access point
+holds up* — swept empirically across patch lifetime and species count (single
+same-machine session; times are the full call, run + gradient).
+
+Shorthand used in the table:
+
+- **`H`** — the **patch lifetime** (`max_patch_lifetime`, the time in years the SCM
+  integrates a patch over). Larger `H` means more ODE steps and more cohorts, so it is the
+  main "horizon" axis.
+- **`nsp`** — the **number of species** in the stand (competing strategies sharing the
+  canopy). `nsp = 1` is a monoculture resident.
+- **census** (metric) — the **size-distribution reductions at the final census**:
+  `LAI`, `biomass`, `size_moment`. These are integrals over the standing stand, as opposed
+  to `offspring_production` / `net_reproduction_ratio` (lifetime seed-output quantities).
+
+The multi-species rows (`nsp = 2→5`) are the **resident** reading on a stand with more
+than one species: `feedback = "resident"` there returns the total-stand
+`d(total-stand metric)/d(θ_s)` for one species `s` — its change re-shades the joint canopy
+every species reads (the cross-species feedback the single-species / frozen reading zeroes;
+see "Multi-species" under the coupled replay).
+
+| Access point | Strategy | Swept | Result |
+|---|---|---|---|
+| `offspring_production_gradient` (frozen) | FF16 | H = 30→200, nsp = 2→5 | all OK, recon/SCM = 1.0000, ≤ 0.25 s |
+| `stand_gradient` resident census | FF16 | H = 30→200 | all OK, LAI recon err ~1e-9…1e-8, ≤ 1.2 s |
+| `stand_gradient` resident census | FF16 | nsp = 2→5 | all OK, recon err 6e-10 → 1.1e-6 (grows with nsp) |
+| `birth_rate_gradient` (census + `dR0/db`) | FF16 | H = 30→200 | all OK, `dR0/db` < 0, R0 recon err 1e-8 → 1.7e-4 (rel ~1e-6) |
+| `birth_rate_gradient` census | FF16 | nsp = 2→5 | all OK |
+| `stand_state_jacobian` | FF16 | H = 60, 150 | all OK |
+| `grow_individual_to_size_gradient` | FF16 | to = 10, 25 | OK to 10; to = 25 hits `time_max` (the plant cannot reach 25 m — not a gradient limit) |
+| `offspring_production_gradient` (frozen) | TF24f | H = 4, 6, 8 | all OK |
+| `stand_gradient` frozen census | TF24f | H = 4, 6, 8 | all OK |
+| `stand_gradient` **resident** census | TF24f | H = 4, **5, 6, 8** | **OK at H = 4; GATED at H ≥ 5** |
+| `stand_gradient` resident census | TF24f | nsp = 2, 3 (H = 4) | all OK |
+| `offspring_production_gradient` (frozen) | TF24 | H = 6, 8 | all OK |
+
+**FF16 has no hard break in the tested envelope** — every entry point stays finite and
+accurate to patch lifetime 200 and to 5 species. Two *soft* limits, both gentle: cost
+grows with cohort count (∝ steps × cohorts; the reverse sweep is trait-count-free by
+design, so #traits is free), and the frozen-*grid* reconstruction fidelity drifts slowly
+with horizon and species (FF16 birth-rate R0 recon 1e-8 → 1.7e-4 over H = 30→200, still
+~1e-6 *relative*; cross-species LAI recon 6e-10 → 1e-6 over 2→5 species). The *gradient*
+stays finite throughout — it is the value it differentiates that drifts, gently.
+
+**TF24f is envelope-limited, and the sweep pins where.** Frozen (offspring, census) and
+multi-species resident on short fixed schedules are robust; the single-species **resident
+census gates cleanly at H ≥ 5** (the coupled `log_density ↔ canopy` replay instability of
+the previous section — now a clear error, not a NaN). TF24f is also simply *slower* (a
+leaf optimisation per stage), so practical stands are smaller regardless. **TF24 is
+offspring-only** by design.
+
+**The property that matters for a downstream consumer.** The envelope is a clean binary
+everywhere: a call either returns a finite, validated gradient across its whole range, or
+it *gates with an explicit error* at a sharp, reproducible boundary. No access point
+silently returns a plausible-but-wrong finite value. The one place a *value* quietly (and
+never catastrophically) degrades is the frozen-grid reconstruction at long FF16 horizons —
+~1e-6 relative at H = 200 — which is the same frozen-grid caveat as everywhere, not a new
+failure mode. So a caller such as `regnans` can trust a returned number and gets a clear
+signal, not garbage, at the edge.
+
+**The single common cause of every hard limit** is the frozen-schedule replay meeting
+stiffness: wherever the live SCM relies on *adaptive* stepping to control a
+`log_density`/`g′` feedback, the frozen-step replay cannot follow it (the TF24f H ≥ 5
+gate; the refined-schedule multi-species gate). Adaptive sub-stepping in the replay is the
+one change that would retire most of the gated cases at once.
+
+## Lessons, distilled
+
+Three principles recur across both strategies and are the real transferable content:
+
+1. **Never differentiate a solver — differentiate its converged point.** Root-finds
+   via the implicit function theorem, optimisations via the envelope theorem,
+   adaptive integrators via a frozen-schedule replay. The iteration is always a
+   `double` discovery pass; only the converged result is taped or injected.
+2. **The derivative of a built quantity must come from the same construction as the
+   value** — the same spline (#539), the same harvested operating point (TF24's
+   replay), or the value and gradient drift apart and the result is internally
+   inconsistent.
+3. **A finite-difference *reference* is only as good as its step, and the right step
+   is governed by the hidden solver's noise floor.** Where a quantity flows through a
+   root-find, a too-small step is worse than useless; per-trait plateau-picking or a
+   deliberately larger step is required. That fragility is itself the argument for AD,
+   which has no step to tune.
+
+## What's next
+
+Three things on the earlier roadmap are now done. TF24's establishment filter is
+**differentiated** in the emergent path (the seedling-net channel, validated active in
+both AD and FD); the TF24 emergent 27-vector is **fully FD-validated** — every trait
+against a two-pass live finite difference (the 27 independent replays run across cores;
+all match to ≤2e-4, with the photosynthesis curvatures needing a finer FD step their AD
+does not); and the reverse-per-cohort replay is **committed and compiled into `plant.so`**
+on a par with FF16's (both covered by plain-R CI tests), reached through the same
+strategy-agnostic `offspring_production_gradient()` / `stand_gradient()` calls (there is
+no longer a separate `tf24_offspring_production_gradient()` — `stand_gradient` dispatches
+on strategy). And **multi-species stands** are now supported: the APIs take a `species`
+index and return the per-species invasion gradient against the shared frozen canopy,
+validated per species against finite differences. What remains:
+
+- **The calibration-facing generalisation has landed for FF16**: the generic,
+  metric-symmetric `stand_gradient()`
+  engine *outside* the SCM object, differentiating a supplied set of stand metrics
+  (`offspring_production`, `LAI`, `biomass`, `size_moment` — none privileged) over one
+  replay → a metrics × traits Jacobian, plus the `stand_state_jacobian()` escape hatch
+  for downstream-defined metrics. It reproduces `offspring_production_gradient()` exactly
+  as one symmetric entry; the census metrics reconstruct the SCM's own outputs (LAI ==
+  `compute_competition(0)`) and validate against frozen-resident finite differences; all
+  covered by plain-R CI tests. **TF24 is mirrored** too: `stand_gradient()` and
+  `stand_state_jacobian()` dispatch on the strategy, with TF24's `offspring_production`
+  and the escape hatch both available. Still to come: TF24's **census** metrics (their census number
+  density needs a leaf-optimisation cross-sensitivity — the SCM's growth-rate gradient
+  re-solves the leaf opt, which the linearised harvest does not differentiate
+  faithfully); the `ResidentHarvest` seam formalised for multi-patch/stochastic
+  variants; and the same pattern on `Leaf` (standalone leaf calibration —
+  `grow_individual_to_size` has since landed, see below). Likelihoods / calibration /
+  adaptive-dynamics stay downstream (other packages).
+- **The cross-species resident Jacobian has landed for FF16** (see the coupled-replay
+  section above): `stand_gradient(feedback = "resident", species = s)` on a multi-species
+  stand returns `d(total-stand census metric)/d(θ_s)` via a joint whole-stand replay, the
+  genuinely new object the frozen/mutant reading sets to zero. It is well-conditioned on a
+  fixed node schedule and guards (with a clear error) against the refined-schedule replay
+  stiffness described there.
+- **`grow_individual_to_size` / `grow_individual_to_height` has landed** (see "The same
+  pattern on a single plant" above): `grow_individual_to_size_gradient()` returns
+  `d(t*)/dθ` and the total `d(state at t*)/dθ` for all 28 traits, via the demographic-rate
+  kernel replayed over the harvested schedule + the IFT stopping-time step, compiled into
+  `plant.so` and covered by a plain-R CI test. **With it, every FF16 entry point — per-plant
+  rates, time-integrated growth, emergent `offspring_production`, the census metrics (frozen
+  and resident, single- and multi-species), and individual growth-to-size — is
+  gradient-enabled**, and the branch is a complete PR boundary for the FF16 AD surface.
+- **The birth-rate axis has landed for FF16** (see "The birth-rate axis" above):
+  `birth_rate_gradient()` returns the resident-total `d(census metric)/d(birth_rate)`
+  (single- and cross-species) and the demographic-equilibrium `d(net_reproduction_ratio)/
+  d(birth_rate)` = `dR0/db`, the plant-side access point an `R0 = 1` self-replacement
+  solve consumes. Still to come: the TF24f resident birth-rate axis (gated as below), a
+  cross-species `net_reproduction_ratio`, and folding `birth_rate` into the generic
+  `stand_gradient` metric loop.
+- **TF24f's resident (coupled) census gradient is horizon-limited.** Its single-species
+  coupled gradient is reliable only on a short, finely-resolved fixed schedule (patch
+  lifetime ≈ 4); past that the frozen-step replay drifts and the coupled
+  `log_density ↔ canopy` sensitivity runs away — TF24f's deeply-shaded leaf has a large
+  `dprofit/dL`, so high-density shaded cohorts amplify a feedback the live SCM only tames
+  by stepping *adaptively*. The path **gates** this (a clear error, not a NaN); FF16 stays
+  robust to long horizons because its closed-form net has a bounded light response.
+  Genuinely lifting the horizon needs adaptive sub-stepping in the replay.
+- Calibration, likelihoods, and adaptive-dynamics analyses themselves live in
+  *downstream packages*; `plant`'s job is to expose the gradient capability cleanly —
+  the frozen-resident gradient *is* the invasion-fitness selection gradient those
+  analyses consume, and `dR0/db` the density-dependence a demographic-equilibrium solve
+  consumes.

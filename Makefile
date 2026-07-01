@@ -32,6 +32,13 @@ roxygen:
 test: all
 	Rscript -e 'library(methods); devtools::test()'
 
+# AD tests self-skip under load_all (pkgload DLL). Run against the INSTALLED
+# package: library(plant) loads the installed .so so the skip-gate passes;
+# test_dir (not test_local) avoids re-loading via load_all; the namespace-parented
+# env exposes unexported internals; parallel off so callr workers inherit the load.
+test-ad: install
+	TESTTHAT_PARALLEL=false Rscript -e 'library(plant); e <- new.env(parent = asNamespace("plant")); testthat::test_dir("tests/testthat", filter = "ad", env = e)'
+
 benchmark:
 	Rscript scripts/benchmark.R
 
@@ -49,4 +56,4 @@ check: build
 clean:
 	rm -f src/*.o src/*.so src/*.o.tmp
 
-.PHONY: all compile doc clean test attributes roxygen install build check
+.PHONY: all compile doc clean test test-ad attributes roxygen install build check

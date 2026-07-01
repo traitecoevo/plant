@@ -332,6 +332,50 @@ public:
   // the noisy finite-difference gradient. Assumes prepare_collar_solve setup has
   // run (psi_soil_inverted_ etc.), as evaluate_root_collar_psi does.
   double dprofit_droot_collar_psi(double opt_root_psi);
+  // Exact d(profit*)/d(vcmax_25) at the optimised operating point (#472 scope B /
+  // Phase F): the envelope theorem fixes the optimal collar potential, the IFT
+  // handles the psi_stem->ci root-find. The first TF24 trait gradient; the pattern
+  // the TF24 net-production kernel reuses for every leaf trait.
+  double dprofit_dvcmax25(double opt_root_psi);
+  // Exact d(profit*)/d(hydraulic trait) at the optimised operating point (#472
+  // scope B / Phase F1-full). g1_TF24 and beta2 enter only the hydraulic cost
+  // (no transport / assimilation change), so the envelope theorem reduces each
+  // to minus the explicit cost derivative (forward-mode AD of the templated
+  // cost). The harder hydraulic traits (b, c, K_s) -- which also move psi_stem
+  // and ci -- follow the dprofit_droot_collar_psi transport+IFT pattern.
+  double dprofit_dg1_TF24(double opt_root_psi);
+  double dprofit_dbeta2(double opt_root_psi);
+  // d(profit*)/d(leaf_specific_conductance_max_): a TRANSPORT trait (moves
+  // psi_stem and ci, not the cost explicitly). The TF24 trait K_s scales k_max
+  // linearly (k_max = K_s*theta/(h*eta_c)), so the strategy chains by k_max/K_s.
+  double dprofit_dkmax(double opt_root_psi);
+  // d(profit*)/d(E_up_): sensitivity to the soil->collar water uptake. Used by
+  // the mass-cascade trait a_r1 (root mass per leaf area), which scales every
+  // root resistance by 1/a_r1 hence E_up_ linearly (d E_up_/d a_r1 = E_up_/a_r1).
+  double dprofit_dEup(double opt_root_psi);
+  // d(profit*)/d(b) and d(profit*)/d(c): the xylem vulnerability shape traits
+  // (prop_cond = exp(-(psi/b)^c)). They reshape the transpiration spline (so
+  // psi_stem moves) and enter the cost explicitly; ci/benefit are frozen because
+  // the operating-point transpiration equals the (root-vulnerability) uptake
+  // E_up_. dprofit_dbc(.., wrt_b) is the shared core. dtranspiration_integral_
+  // dtrait is dS/d(trait) for the cumulative transpiration curve S.
+  double dprofit_db(double opt_root_psi);
+  double dprofit_dc(double opt_root_psi);
+  double dprofit_dbc(double opt_root_psi, bool wrt_b);
+  double dtranspiration_integral_dtrait(double x, bool wrt_b);
+  // d(profit*)/d(photosynthesis trait): jmax_25, a (quantum yield) and the two
+  // curvature factors affect only assimilation (vcmax-like), so the envelope +
+  // IFT pattern of dprofit_dvcmax25 applies. dprofit_dphoto(.., which) is the
+  // shared core (which: 0=jmax_25, 1=a, 2=curv_elec, 3=curv_colim, 4=PPFD).
+  double dprofit_djmax25(double opt_root_psi);
+  double dprofit_da(double opt_root_psi);
+  double dprofit_dcurv_elec(double opt_root_psi);
+  double dprofit_dcurv_colim(double opt_root_psi);
+  // d(profit*)/d(absorbed radiation PPFD) -- the light channel of d(profit)/
+  // d(height) for the exact-AD growth-rate gradient (#472 scope B). PPFD enters
+  // only through electron_transport, so it reuses the dprofit_dphoto core.
+  double dprofit_dPPFD(double opt_root_psi);
+  double dprofit_dphoto(double opt_root_psi, int which);
   // Analytic d(E_up_)/d(collar potential) for the soil->root-collar uptake
   // (kg H2O m^-2 s^-1 per MPa of signed collar potential P_x_r), mirroring the
   // general branch of E_from_Soil_to_Root_Collar layer by layer. The integral's

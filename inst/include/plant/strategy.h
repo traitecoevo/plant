@@ -52,6 +52,15 @@ public:
 
   void compute_rates(const environment_type& environment, Internals& vars);
 
+  // Exact d(growth rate)/d(height) via AD, if this strategy provides one
+  // (#537 A1). The default signals "unavailable" (NA), so
+  // Node::growth_rate_gradient falls back to its finite difference; FF16
+  // overrides this. Non-virtual: Node calls it on the concrete strategy type.
+  double growth_rate_gradient_height_ad(double /*height*/,
+                                        const environment_type& /*environment*/) {
+    return NA_REAL;
+  }
+
   void update_dependent_aux(const int index, Internals& vars);
 
   // Seed strategy-specific initial ODE states for a newly introduced individual,

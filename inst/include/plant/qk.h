@@ -26,6 +26,30 @@ public:
   template <typename Function>
   double integrate(Function f, double a, double b);
 
+  // Scalar-templated Kronrod estimate for AD (#472 scope B / #537): the same
+  // fixed Gauss-Kronrod rule (xgk/wgk constants), but the bounds, abscissae and
+  // accumulator are the integrand's scalar type S, so an AD active bound (e.g. a
+  // plant height) propagates through the MOVING nodes -- which a frozen-node
+  // replay would miss. Returns only the Kronrod result (no error/abs/asc
+  // estimate, which the gradient does not need). Stateless (no last_* writes).
+  template <typename S, typename Function>
+  S integrate_ad(Function f, S a, S b) const {
+    const S center      = 0.5 * (a + b);
+    const S half_length = 0.5 * (b - a);
+    S result_kronrod = f(center) * wgk[n - 1];
+    for (size_t j = 0; j < (n - 1) / 2; j++) {
+      const size_t jtw = j * 2 + 1;
+      const S abscissa = half_length * xgk[jtw];
+      result_kronrod += wgk[jtw] * (f(center - abscissa) + f(center + abscissa));
+    }
+    for (size_t j = 0; j < n / 2; j++) {
+      const size_t jtwm1 = j * 2;
+      const S abscissa = half_length * xgk[jtwm1];
+      result_kronrod += wgk[jtwm1] * (f(center - abscissa) + f(center + abscissa));
+    }
+    return result_kronrod * half_length;
+  }
+
   // These two provide very low level access to the integration
   // routines.
   std::vector<double> integrate_vector_x(double a, double b) const;

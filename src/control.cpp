@@ -31,6 +31,7 @@ Control::Control() {
   node_gradient_direction = -1;
   node_gradient_richardson = false;
   node_gradient_richardson_depth = 4;
+  node_gradient_exact_ad = false;
 
   ode_step_size_initial = 1e-6;
   ode_step_size_min = 1e-6;

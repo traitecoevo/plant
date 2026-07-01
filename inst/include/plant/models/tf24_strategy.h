@@ -8,6 +8,7 @@
 #include <plant/qag.h>
 #include <plant/leaf_model.h>
 #include <plant/canopy_shape.h> // ShadingModel
+#include <plant/models/tf24_production_kernel.h> // scalar-templated net + rate kernel
 
 namespace plant {
 
@@ -319,6 +320,25 @@ public:
   // Birth height of a (germinated) seed. Strategy-agnostic accessor used by
   // the templated Individual; here height_0 is derived in prepare_strategy().
   double initial_height() const { return height_0; }
+
+  // Gather the net-production + demographic-rate kernel parameters from the live
+  // strategy configuration (pars + the prepare_strategy()-derived eta_c). The
+  // double path uses the per-piece kernel functions directly; this is the AD
+  // calibration entry point (lift to <ad> -> the demographic rates differentiate
+  // w.r.t. traits). Mirrors FF16_Strategy::prod_pars (#472 scope B, Phase F1).
+  TF24ProdPars<double> prod_pars() const {
+    TF24ProdPars<double> p;
+    p.lma = pars.lma; p.rho = pars.rho; p.theta = pars.theta;
+    p.a_b1 = pars.a_b1; p.a_r1 = pars.a_r1; p.eta_c = eta_c;
+    p.r_l = pars.r_l; p.r_s = pars.r_s; p.r_b = pars.r_b; p.r_r = pars.r_r;
+    p.k_l = pars.k_l; p.k_b = pars.k_b; p.k_s = pars.k_s; p.k_r = pars.k_r;
+    p.a_bio = pars.a_bio; p.a_y = pars.a_y;
+    p.a_l1 = pars.a_l1; p.a_l2 = pars.a_l2;
+    p.a_f1 = pars.a_f1; p.a_f2 = pars.a_f2; p.hmat = pars.hmat;
+    p.omega = pars.omega; p.a_f3 = pars.a_f3;
+    p.d_I = pars.d_I; p.a_dG1 = pars.a_dG1; p.a_dG2 = pars.a_dG2;
+    return p;
+  }
 
   // Crown shading model, resolved once from control.shading_model in
   // prepare_strategy(). TF24 supports deep-crown, mean-light (its default)

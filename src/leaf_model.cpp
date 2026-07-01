@@ -24,6 +24,33 @@ template <typename T>
 T hydraulic_cost_ad(T psi_stem, double b, double c, double g1, double beta2) {
   return g1 * pow(1.0 - exp(-pow(psi_stem / b, c)), beta2);
 }
+// As hydraulic_cost_ad but with EVERY hydraulic trait templated, so forward-mode
+// AD can seed any one of psi_stem / b / c / g1 / beta2 (the others passed as AD
+// constants). Mirrors Leaf::hydraulic_cost_TF exactly. Used by the hydraulic
+// leaf-trait gradients d(profit*)/d{g1,beta2,b,c} (#472 scope B / Phase F1-full).
+template <typename T>
+T hydraulic_cost_full(T psi_stem, T b, T c, T g1, T beta2) {
+  return g1 * pow(1.0 - exp(-pow(psi_stem / b, c)), beta2);
+}
+// As assim_colimited_ad but with vcmax also templated, so forward-mode AD can seed
+// EITHER ci OR vcmax (the others passed as AD constants). Used for the trait gradient
+// d(profit)/d(vcmax) where vcmax is the active input (#472 scope B / Phase F).
+template <typename T>
+T assim_colimited_full(T ci, T vcmax, T et, T gstar_Pa, T km, T R_d, T curv) {
+  T ar = vcmax * (ci - gstar_Pa) / (ci + km);
+  T ae = et / 4.0 * (ci - gstar_Pa) / (ci + 2.0 * gstar_Pa);
+  T s = ar + ae;
+  return (s - sqrt(s * s - 4.0 * curv * ar * ae)) / (2.0 * curv) - R_d;
+}
+// Templated electron-transport rate (Smith & Keenan colimitation of light and
+// jmax), so forward-mode AD can seed the quantum yield a, jmax, or the electron-
+// transport curvature. Mirrors Leaf::electron_transport exactly. PPFD is a fixed
+// driver (not a trait). Used by the photosynthesis leaf-trait gradients.
+template <typename T>
+T electron_transport_full(T PPFD, T a, T jmax, T curv_elec) {
+  T x = a * PPFD + jmax;
+  return (x - sqrt(x * x - 4.0 * curv_elec * a * PPFD * jmax)) / (2.0 * curv_elec);
+}
 }  // namespace
 Leaf::Leaf()
     :
@@ -956,6 +983,327 @@ double Leaf::dprofit_droot_collar_psi(double opt_root_psi) {
   const double dci_dpsi = dci_dpsistem * dpsistem_dpsi + dci_dpsi_expl;
   return A_prime * dci_dpsi - C_prime * dpsistem_dpsi;
 }
+
+// Exact d(profit*)/d(vcmax_25) at the OPTIMISED operating point opt_root_psi
+// (#472 scope B / Phase F -- the first TF24 trait gradient). By the envelope
+// theorem the optimal collar potential is held fixed (dprofit/dcollar = 0 at the
+// optimum), so psi_stem is fixed and the hydraulic cost (independent of vcmax) does
+// not move; only assimilation responds, through ci. With g(ci) = A(ci) umol_to_mol
+// - gc (ca-ci)/(atm kPa) the only vcmax-dependent term is A, so by the IFT
+//   dci/dvcmax = -(dA/dvcmax umol_to_mol) / (A'(ci) umol_to_mol + gc/(atm kPa)),
+//   dprofit/dvcmax = dA/dvcmax + A'(ci) dci/dvcmax,
+// and vcmax_ scales linearly with vcmax_25 (peak_arrh_curve), d vcmax_/d vcmax_25 =
+// vcmax_/vcmax_25. A'/dA-dvcmax are forward-AD of the colimitation algebra. This
+// extends #539 (d/d collar) to a trait, the pattern the TF24 net-production kernel
+// reuses for every leaf trait.
+double Leaf::dprofit_dvcmax25(double opt_root_psi) {
+  using AD = xad::fwd<double>::active_type;
+  const double psi = opt_root_psi;
+  const double gstar_Pa = gamma_ * umol_per_mol_to_Pa;
+  const double psi_stem = find_psi_stem_from_psi_root(-psi, psi_soil_inverted_);
+  const double ci = psi_stem_to_ci(psi_stem, psi);
+  if (!std::isfinite(psi_stem) || !std::isfinite(ci)) {
+    return 0.0;  // shut-down / infeasible
+  }
+  // A'(ci) and dA/dvcmax via forward AD of the colimitation algebra.
+  AD ci_ad = ci; xad::derivative(ci_ad) = 1.0;
+  const double A_prime = xad::derivative(assim_colimited_full<AD>(
+      ci_ad, AD(vcmax_), AD(electron_transport_), AD(gstar_Pa), AD(km_),
+      AD(R_d_), AD(curv_fact_colim)));
+  // dark respiration R_d = 0.015 * vcmax (set_physiology), so seed R_d as a function
+  // of vcmax too -- omitting d(R_d)/d(vcmax) = 0.015 was a real bug (A_vcmax too
+  // large, the gradient ~1.85x off).
+  AD vc_ad = vcmax_; xad::derivative(vc_ad) = 1.0;
+  const double A_vcmax = xad::derivative(assim_colimited_full<AD>(
+      AD(ci), vc_ad, AD(electron_transport_), AD(gstar_Pa), AD(km_),
+      0.015 * vc_ad, AD(curv_fact_colim)));
+  // IFT on the stomatal-conductance residual (gc fixed: psi_stem frozen).
+  const double gc_const =
+      atm_kpa_ * kg_to_mol_h2o / atm_vpd_ / H2O_CO2_stom_diff_ratio;
+  const double gc = gc_const * transpiration(psi_stem, psi);
+  const double inv_atm = 1.0 / (atm_kpa_ * kPa_to_Pa);
+  const double g_ci = A_prime * umol_to_mol + gc * inv_atm;
+  const double dci_dvcmax = -(A_vcmax * umol_to_mol) / g_ci;
+  const double dprofit_dvcmax = A_vcmax + A_prime * dci_dvcmax;
+  return dprofit_dvcmax * (vcmax_ / vcmax_25);  // chain vcmax_ -> vcmax_25 (linear)
+}
+
+// Exact d(profit*)/d(g1_TF24) at the optimised operating point (#472 scope B /
+// Phase F1-full). g1_TF24 is the linear scale of the hydraulic cost
+//   C = g1_TF24 * (1 - exp(-(psi_stem/b)^c))^beta2,
+// and enters NEITHER the transport (psi_stem) NOR assimilation (ci) -- it only
+// scales the cost. So by the envelope theorem (optimal collar frozen)
+//   dprofit/dg1 = -dC/dg1 = -(1 - exp(-(psi_stem/b)^c))^beta2 = -C/g1_TF24.
+// The simplest hydraulic trait: no IFT, no transport derivative. Computed by
+// forward-AD of the templated cost for symmetry with the harder traits.
+double Leaf::dprofit_dg1_TF24(double opt_root_psi) {
+  using AD = xad::fwd<double>::active_type;
+  const double psi = opt_root_psi;
+  const double psi_stem = find_psi_stem_from_psi_root(-psi, psi_soil_inverted_);
+  if (!std::isfinite(psi_stem)) return 0.0;
+  AD g1_ad = g1_TF24; xad::derivative(g1_ad) = 1.0;
+  const double dC_dg1 = xad::derivative(hydraulic_cost_full<AD>(
+      AD(psi_stem), AD(b), AD(c), g1_ad, AD(beta2)));
+  return -dC_dg1;  // profit = A(ci) - C; only C moves
+}
+
+// Exact d(profit*)/d(beta2) at the optimised operating point (#472 scope B /
+// Phase F1-full). beta2 is the hydraulic-risk exponent of the cost
+//   C = g1_TF24 * base^beta2,   base = 1 - exp(-(psi_stem/b)^c),
+// and (like g1) enters neither transport nor assimilation, so
+//   dprofit/dbeta2 = -dC/dbeta2 = -g1_TF24 * base^beta2 * ln(base).
+double Leaf::dprofit_dbeta2(double opt_root_psi) {
+  using AD = xad::fwd<double>::active_type;
+  const double psi = opt_root_psi;
+  const double psi_stem = find_psi_stem_from_psi_root(-psi, psi_soil_inverted_);
+  if (!std::isfinite(psi_stem)) return 0.0;
+  AD beta2_ad = beta2; xad::derivative(beta2_ad) = 1.0;
+  const double dC_dbeta2 = xad::derivative(hydraulic_cost_full<AD>(
+      AD(psi_stem), AD(b), AD(c), AD(g1_TF24), beta2_ad));
+  return -dC_dbeta2;
+}
+
+// Exact d(profit*)/d(leaf_specific_conductance_max_) at the optimised operating
+// point (#472 scope B / Phase F1-full). k_max (= leaf_specific_conductance_max_)
+// scales the supply-side transpiration linearly; the TF24 trait K_s sets it via
+// k_max = K_s * theta / (height * eta_c), so the strategy chains this by
+// k_max / K_s. Unlike g1/beta2 this is a TRANSPORT trait: it does NOT enter the
+// cost explicitly, but it moves psi_stem (the soil->collar uptake E_up_ is
+// k_max-independent, so E_psi_stem = E_up_/k_max + S(psi) shifts) and hence ci.
+//
+// At the frozen optimal collar psi (envelope theorem, dprofit/dcollar = 0):
+//   psi_stem  = P(E_psi_stem),  E_psi_stem = E_up_/k_max + S(psi),  r = -psi,
+//   dpsi_stem/dkmax = P'(E_psi_stem) * (-E_up_/k_max^2).
+// The stomatal supply gc = gc_const * k_max * (S(psi_stem) - S(psi)) so its TOTAL
+// k_max derivative carries both the explicit scale and the psi_stem motion:
+//   dgc/dkmax = gc_const*[(S(psi_stem)-S(psi)) + k_max*S'(psi_stem)*dpsi_stem/dkmax].
+// IFT on the conductance residual g(ci) = A(ci) umol_to_mol - gc (ca-ci) inv_atm:
+//   dci/dkmax = (dgc/dkmax)(ca-ci) inv_atm / g_ci,  g_ci = A'(ci) umol_to_mol + gc inv_atm,
+// and  dprofit/dkmax = A'(ci) dci/dkmax - C'(psi_stem) dpsi_stem/dkmax.
+// Mirrors dprofit_droot_collar_psi's transport+IFT machinery (the #539 pattern).
+double Leaf::dprofit_dkmax(double opt_root_psi) {
+  using AD = xad::fwd<double>::active_type;
+  const double psi = opt_root_psi;
+  const double gstar_Pa = gamma_ * umol_per_mol_to_Pa;
+  const double k_max = leaf_specific_conductance_max_;
+
+  const double psi_stem = find_psi_stem_from_psi_root(-psi, psi_soil_inverted_);
+  const double ci = psi_stem_to_ci(psi_stem, psi);
+  if (!std::isfinite(psi_stem) || !std::isfinite(ci)) return 0.0;
+
+  // A'(ci) and C'(psi_stem) by forward-mode AD of the analytic algebra.
+  AD ci_ad = ci; xad::derivative(ci_ad) = 1.0;
+  const double A_prime = xad::derivative(assim_colimited_ad(
+      ci_ad, vcmax_, electron_transport_, gstar_Pa, km_, R_d_, curv_fact_colim));
+  AD ps_ad = psi_stem; xad::derivative(ps_ad) = 1.0;
+  const double C_prime = xad::derivative(hydraulic_cost_ad(ps_ad, b, c, g1_TF24, beta2));
+
+  // dpsi_stem/dkmax through the transport spline (E_up_ is k_max-independent).
+  E_from_Soil_to_Root_Collar(-psi, psi_soil_inverted_);  // refresh E_up_ at r=-psi
+  const double E_up = E_up_;
+  const double S_psi = transpiration_from_psi.eval(psi);
+  const double E_psi_stem = E_up / k_max + S_psi;
+  const double dpsistem_dkmax =
+      psi_from_transpiration.deriv(E_psi_stem) * (-E_up / (k_max * k_max));
+
+  // gc and its TOTAL k_max derivative (explicit scale + psi_stem motion).
+  const double gc_const =
+      atm_kpa_ * kg_to_mol_h2o / atm_vpd_ / H2O_CO2_stom_diff_ratio;
+  const double S_pstem = transpiration_from_psi.eval(psi_stem);
+  const double gc = gc_const * k_max * (S_pstem - S_psi);
+  const double dgc_dkmax =
+      gc_const * ((S_pstem - S_psi) +
+                  k_max * transpiration_from_psi.deriv(psi_stem) * dpsistem_dkmax);
+
+  // IFT for dci/dkmax, then assemble dprofit/dkmax.
+  const double inv_atm = 1.0 / (atm_kpa_ * kPa_to_Pa);
+  const double g_ci = A_prime * umol_to_mol + gc * inv_atm;
+  const double dci_dkmax = (dgc_dkmax * (ca_ - ci) * inv_atm) / g_ci;
+  return A_prime * dci_dkmax - C_prime * dpsistem_dkmax;
+}
+
+// Exact d(profit*)/d(E_up_) at the optimised operating point: the sensitivity of
+// the leaf profit to the soil->root-collar water uptake E_up_ (kg H2O m^-2 LA
+// s^-1). Used by the mass-cascade trait a_r1 (root mass per leaf area), which
+// scales every root hydraulic resistance by 1/a_r1, hence E_up_ linearly
+// (d E_up_/d a_r1 = E_up_/a_r1); the strategy chains that factor.
+//
+// Unlike k_max, perturbing E_up_ DOES change the supply-side transpiration
+// (= E_up_ at the operating point), so gc -- hence ci -- moves:
+//   E_psi_stem = E_up_/k_max + S(psi)  =>  dpsi_stem/dE_up_ = 1/(prop_cond(psi_stem)*k_max),
+//   gc = gc_const * E_up_  =>  dgc/dE_up_ = gc_const,
+//   dci/dE_up_ = gc_const (ca-ci) inv_atm / g_ci,  g_ci = A'(ci) umol_to_mol + gc inv_atm,
+//   dprofit/dE_up_ = A'(ci) dci/dE_up_ - C'(psi_stem) dpsi_stem/dE_up_.
+double Leaf::dprofit_dEup(double opt_root_psi) {
+  using AD = xad::fwd<double>::active_type;
+  const double psi = opt_root_psi;
+  const double gstar_Pa = gamma_ * umol_per_mol_to_Pa;
+  const double k_max = leaf_specific_conductance_max_;
+  const double psi_stem = find_psi_stem_from_psi_root(-psi, psi_soil_inverted_);
+  const double ci = psi_stem_to_ci(psi_stem, psi);
+  if (!std::isfinite(psi_stem) || !std::isfinite(ci)) return 0.0;
+
+  AD ci_ad = ci; xad::derivative(ci_ad) = 1.0;
+  const double A_prime = xad::derivative(assim_colimited_ad(
+      ci_ad, vcmax_, electron_transport_, gstar_Pa, km_, R_d_, curv_fact_colim));
+  AD ps_ad = psi_stem; xad::derivative(ps_ad) = 1.0;
+  const double C_prime = xad::derivative(hydraulic_cost_ad(ps_ad, b, c, g1_TF24, beta2));
+
+  const double dpsistem_dEup =
+      1.0 / (proportion_of_conductivity(psi_stem) * k_max);
+  const double gc_const =
+      atm_kpa_ * kg_to_mol_h2o / atm_vpd_ / H2O_CO2_stom_diff_ratio;
+  const double gc = gc_const * transpiration(psi_stem, psi);  // = gc_const * E_up_
+  const double inv_atm = 1.0 / (atm_kpa_ * kPa_to_Pa);
+  const double g_ci = A_prime * umol_to_mol + gc * inv_atm;
+  const double dci_dEup = (gc_const * (ca_ - ci) * inv_atm) / g_ci;
+  return A_prime * dci_dEup - C_prime * dpsistem_dEup;
+}
+
+// dS/d(trait) at a fixed potential x, where S(x) = int_0^x exp(-(s/b)^c) ds is
+// the cumulative transpiration curve (transpiration_from_psi). Used by the
+// b/c hydraulic gradients.
+//   wrt_b: EXACT closed form. Integration by parts of the analytic integrand
+//          exp(-(s/b)^c)*c*(s/b)^c/b gives dS/db = [S(x) - x*prop_cond(x)] / b
+//          (S(x) read from the same spline, so consistent with the value path).
+//   wrt_c: dS/dc = -int_0^x exp(-(s/b)^c)*(s/b)^c*ln(s/b) ds, which has no
+//          elementary closed form, by a local high-accuracy Gauss-Kronrod
+//          quadrature (the leaf's own `integrator` is never initialised).
+double Leaf::dtranspiration_integral_dtrait(double x, bool wrt_b) {
+  if (x <= 0.0) return 0.0;
+  if (wrt_b) {
+    const double S = transpiration_from_psi.eval(x);
+    const double pc = proportion_of_conductivity(x);
+    return (S - x * pc) / b;
+  }
+  const double bb = b, cc = c;
+  std::function<double(double)> f = [bb, cc](double s) -> double {
+    if (s <= 0.0) return 0.0;  // (s/b)^c -> 0 dominates ln(s/b) -> -inf
+    const double u = std::pow(s / bb, cc);
+    return -std::exp(-u) * u * std::log(s / bb);
+  };
+  quadrature::QAG q(21, 100, 1e-10, 1e-10);
+  return q.integrate(f, 0.0, x);
+}
+
+// Exact d(profit*)/d(b) or d(profit*)/d(c) at the optimised operating point
+// (#472 scope B / Phase F1-full -- the HARDEST hydraulic traits). b and c set
+// the xylem vulnerability prop_cond(psi) = exp(-(psi/b)^c), so they reshape the
+// transpiration spline S (hence psi_stem) AND enter the cost explicitly.
+//
+// KEY SIMPLIFICATION: at the operating point the supply-side transpiration
+// equals the soil->collar uptake E_up_ (S(psi_stem) = E_up_/k_max + S(psi) by
+// construction of find_psi_stem_from_psi_root), and E_up_ depends on the ROOT
+// vulnerability (root_b/root_c), NOT the stem b/c. So gc -- hence ci and the
+// assimilation benefit -- are FROZEN w.r.t. stem b/c at fixed collar. Only
+// psi_stem and the hydraulic cost move, so
+//   dprofit/dt = -(C'(psi_stem) dpsi_stem/dt + dC/dt|_explicit).
+// With psi_stem = P(E_psi_stem; t), E_psi_stem = E_up_/k_max + S(psi; t),
+// P = S^{-1} (so P_E = 1/prop_cond(psi_stem)) and dE_psi_stem/dt = dS/dt(psi):
+//   dpsi_stem/dt = [dS/dt(psi) - dS/dt(psi_stem)] / prop_cond(psi_stem).
+// C'(psi_stem) and dC/dt|_explicit are forward-AD of the templated cost.
+double Leaf::dprofit_dbc(double opt_root_psi, bool wrt_b) {
+  using AD = xad::fwd<double>::active_type;
+  const double psi = opt_root_psi;
+  const double psi_stem = find_psi_stem_from_psi_root(-psi, psi_soil_inverted_);
+  const double ci = psi_stem_to_ci(psi_stem, psi);
+  if (!std::isfinite(psi_stem) || !std::isfinite(ci)) return 0.0;
+
+  // dpsi_stem/dt through the trait-reshaped transport (ci frozen -- see above).
+  const double pc_stem = proportion_of_conductivity(psi_stem);
+  const double dS_psi     = dtranspiration_integral_dtrait(psi, wrt_b);
+  const double dS_psistem = dtranspiration_integral_dtrait(psi_stem, wrt_b);
+  const double dpsistem_dt = (dS_psi - dS_psistem) / pc_stem;
+
+  // C'(psi_stem) and the explicit trait derivative of the cost, by forward AD.
+  AD ps_ad = psi_stem; xad::derivative(ps_ad) = 1.0;
+  const double C_prime = xad::derivative(
+      hydraulic_cost_full<AD>(ps_ad, AD(b), AD(c), AD(g1_TF24), AD(beta2)));
+  AD t_ad = wrt_b ? b : c; xad::derivative(t_ad) = 1.0;
+  const double dC_dt_expl = xad::derivative(hydraulic_cost_full<AD>(
+      AD(psi_stem), wrt_b ? t_ad : AD(b), wrt_b ? AD(c) : t_ad,
+      AD(g1_TF24), AD(beta2)));
+
+  return -(C_prime * dpsistem_dt + dC_dt_expl);
+}
+double Leaf::dprofit_db(double opt_root_psi) { return dprofit_dbc(opt_root_psi, true); }
+double Leaf::dprofit_dc(double opt_root_psi) { return dprofit_dbc(opt_root_psi, false); }
+
+// Photosynthesis leaf-trait gradients (#472 scope B / Phase F1-full). Like
+// vcmax_25, the traits jmax_25 / a / curv_fact_elec_trans / curv_fact_colim
+// affect ONLY assimilation (not the transport or the hydraulic cost), so by the
+// envelope theorem (optimal collar frozen, psi_stem and gc fixed)
+//   dprofit/dt = A_t + A'(ci) * dci/dt,   dci/dt = -(A_t * umol_to_mol) / g_ci,
+// where A_t = d(assim_colimited)/dt holding ci. jmax_25, a and the electron-
+// transport curvature enter through the electron-transport rate et (chain
+// A_t = A_et * det/dt); the colimitation curvature enters the colimitation min
+// directly. which: 0=jmax_25, 1=a, 2=curv_fact_elec_trans, 3=curv_fact_colim.
+// (R_d = 0.015*vcmax is vcmax-only, so unlike dprofit_dvcmax25 these hold it.)
+double Leaf::dprofit_dphoto(double opt_root_psi, int which) {
+  using AD = xad::fwd<double>::active_type;
+  const double psi = opt_root_psi;
+  const double gstar_Pa = gamma_ * umol_per_mol_to_Pa;
+  const double psi_stem = find_psi_stem_from_psi_root(-psi, psi_soil_inverted_);
+  const double ci = psi_stem_to_ci(psi_stem, psi);
+  if (!std::isfinite(psi_stem) || !std::isfinite(ci)) return 0.0;
+
+  // A'(ci): seed ci.
+  AD ci_ad = ci; xad::derivative(ci_ad) = 1.0;
+  const double A_prime = xad::derivative(assim_colimited_full<AD>(
+      ci_ad, AD(vcmax_), AD(electron_transport_), AD(gstar_Pa), AD(km_),
+      AD(R_d_), AD(curv_fact_colim)));
+
+  // A_t = d(assim)/d(trait) holding ci.
+  double A_t;
+  if (which == 3) {  // curv_fact_colim: seed the colimitation curvature directly
+    AD cv = curv_fact_colim; xad::derivative(cv) = 1.0;
+    A_t = xad::derivative(assim_colimited_full<AD>(
+        AD(ci), AD(vcmax_), AD(electron_transport_), AD(gstar_Pa), AD(km_),
+        AD(R_d_), cv));
+  } else {           // chain through the electron-transport rate et
+    AD et_ad = electron_transport_; xad::derivative(et_ad) = 1.0;
+    const double A_et = xad::derivative(assim_colimited_full<AD>(
+        AD(ci), AD(vcmax_), et_ad, AD(gstar_Pa), AD(km_),
+        AD(R_d_), AD(curv_fact_colim)));
+    double det_dt;
+    if (which == 0) {        // jmax_25 -> jmax_ (linear, d jmax_/d jmax_25 = jmax_/jmax_25)
+      AD jm = jmax_; xad::derivative(jm) = 1.0;
+      det_dt = xad::derivative(electron_transport_full<AD>(
+                   PPFD_, AD(a), jm, AD(curv_fact_elec_trans))) * (jmax_ / jmax_25);
+    } else if (which == 1) { // a (quantum yield)
+      AD a_ad = a; xad::derivative(a_ad) = 1.0;
+      det_dt = xad::derivative(electron_transport_full<AD>(
+                   AD(PPFD_), a_ad, AD(jmax_), AD(curv_fact_elec_trans)));
+    } else if (which == 2) { // curv_fact_elec_trans
+      AD cv = curv_fact_elec_trans; xad::derivative(cv) = 1.0;
+      det_dt = xad::derivative(electron_transport_full<AD>(
+                   AD(PPFD_), AD(a), AD(jmax_), cv));
+    } else {                 // which == 4: absorbed radiation PPFD (the light
+      // channel of d(profit)/d(height) -- height moves the crown-centre light).
+      AD ppfd_ad = PPFD_; xad::derivative(ppfd_ad) = 1.0;
+      det_dt = xad::derivative(electron_transport_full<AD>(
+                   ppfd_ad, AD(a), AD(jmax_), AD(curv_fact_elec_trans)));
+    }
+    A_t = A_et * det_dt;
+  }
+
+  const double gc_const =
+      atm_kpa_ * kg_to_mol_h2o / atm_vpd_ / H2O_CO2_stom_diff_ratio;
+  const double gc = gc_const * transpiration(psi_stem, psi);
+  const double inv_atm = 1.0 / (atm_kpa_ * kPa_to_Pa);
+  const double g_ci = A_prime * umol_to_mol + gc * inv_atm;
+  const double dci_dt = -(A_t * umol_to_mol) / g_ci;
+  return A_t + A_prime * dci_dt;
+}
+double Leaf::dprofit_djmax25(double o)     { return dprofit_dphoto(o, 0); }
+double Leaf::dprofit_da(double o)          { return dprofit_dphoto(o, 1); }
+double Leaf::dprofit_dcurv_elec(double o)  { return dprofit_dphoto(o, 2); }
+double Leaf::dprofit_dcurv_colim(double o) { return dprofit_dphoto(o, 3); }
+// d(profit)/d(absorbed radiation PPFD), holding the collar -- the dominant
+// channel of d(profit)/d(height) (height moves the crown-centre light through
+// the resident canopy). PPFD enters only via electron_transport_full, so this is
+// the photosynthesis-chain derivative with PPFD seeded (which == 4).
+double Leaf::dprofit_dPPFD(double o)       { return dprofit_dphoto(o, 4); }
 
 // Analytic d(E_up_)/d(P_x_r): the signed-collar-potential derivative of the
 // soil->root-collar uptake, mirroring the general branch of

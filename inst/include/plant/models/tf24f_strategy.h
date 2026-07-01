@@ -43,6 +43,18 @@ public:
 
   void compute_rates(const TF24_Environment& environment, Internals& vars);
 
+  // Exact d(dheight/dt)/d(height) at the tracked collar (#472 scope B / #537 A1),
+  // so run_scm's log_density (and the census stand gradients) use an analytic
+  // growth-rate gradient instead of Node::growth_rate_gradient's 1e-6 backward FD
+  // -- which, on TF24's hydraulic-leaf height_dt, amplifies leaf-solve noise. At
+  // the fixed tracked collar, height enters profit through kmax (= K_s*theta/
+  // (h*eta_c)), the crown-centre light PPFD = k_I*L(h*eta_c)*PPFD_top, and (weakly,
+  // below the rooting-depth clamp) the soil uptake E_up; the demographic kernel
+  // adds the explicit-height allometry/cascade terms. Returns NA_REAL on an
+  // infeasible leaf / non-smooth light so Node falls back to the finite difference.
+  double growth_rate_gradient_height_ad(double height,
+                                        const TF24_Environment& environment);
+
   // Override the leaf solve: instead of optimising the root-collar psi, evaluate
   // the leaf at the tracked state and finite-difference the profit gradient
   // (left in dprofit_dpsi_ for compute_rates to turn into the state's rate).

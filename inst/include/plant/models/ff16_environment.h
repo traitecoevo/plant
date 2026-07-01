@@ -7,6 +7,7 @@
 #include <odelia/interpolator.hpp>
 #include <plant/canopy_shape.h> // ShadingModel, shading_model_from_string
 #include <cmath>                // std::log, std::exp, std::floor (PPA stepping)
+#include <limits>               // std::numeric_limits (AD-deriv NaN signal)
 
 using namespace Rcpp;
 
@@ -79,6 +80,16 @@ public:
 
   double get_environment_at_height(double height, double cap) const {
     return step_light(light_availability.get_value_at_height(height, cap));
+  }
+
+  // Analytic d(light)/d(height) for the SMOOTH models (deep-crown/crown-centre),
+  // where step_light is the identity so the derivative is just the resource
+  // spline's. Returns NaN for the PPA stepped profile (non-smooth) so AD callers
+  // fall back. Enables exact AD gradients through the light environment
+  // (#472 scope B / #537).
+  double get_environment_deriv_at_height(double height) const {
+    if (light_profile_stepped) return std::numeric_limits<double>::quiet_NaN();
+    return light_availability.get_value_deriv_at_height(height);
   }
 
   // Discretise a smooth light value into PPA canopy layers. For the smooth

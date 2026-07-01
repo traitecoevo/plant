@@ -59,6 +59,11 @@ struct Control {
   int    node_gradient_direction;
   bool   node_gradient_richardson;
   size_t node_gradient_richardson_depth;
+  // Use the strategy's exact AD growth-rate gradient in Node::growth_rate_gradient
+  // when it provides one (#537 A1), instead of the finite difference. Default
+  // false (the FD path is unchanged); strategies without an AD gradient fall
+  // back to FD regardless.
+  bool   node_gradient_exact_ad;
 
   double ode_step_size_initial;
   double ode_step_size_min;

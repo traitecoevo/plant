@@ -18,14 +18,22 @@ namespace plant {
 // survival-weighted rates, lifetime fitness, schedule-refinement error) stays
 // here.
 
-template <typename T, typename E>
-class Species : public SpeciesBase<Species<T, E>, T, E, Node<T, E>> {
-  typedef SpeciesBase<Species<T, E>, T, E, Node<T, E>> base_type;
+// Templated on the scalar type S (#472 scope B / #537, Milestone C) to mirror
+// Node<T,E,S> / Individual<T,E,S>: S defaults to double so every existing
+// Species<T,E> is Species<T,E,double> and bit-identical. The node storage is
+// Node<T,E,S> (the element passed to SpeciesBase), so a Species<...,ad> holds
+// ad-typed individual state. The R-facing accessors (r_heights, r_get_state,
+// the std::vector<double> reductions) stay double-returning and, like the rest
+// of the hierarchy, compile per-member-on-use -- for the ad instantiation they
+// stay uncompiled, only the trait-carrying compute_rates/competition path is.
+template <typename T, typename E, typename S = double>
+class Species : public SpeciesBase<Species<T, E, S>, T, E, Node<T, E, S>> {
+  typedef SpeciesBase<Species<T, E, S>, T, E, Node<T, E, S>> base_type;
 public:
   typedef T         strategy_type;
   typedef E         environment_type;
-  typedef Individual<T,E>  individual_type;
-  typedef Node<T,E> node_type;
+  typedef Individual<T,E,S>  individual_type;
+  typedef Node<T,E,S> node_type;
   typedef typename strategy_type::ptr strategy_type_ptr;
   Species(strategy_type s);
 
@@ -129,26 +137,26 @@ private:
   typedef typename std::vector<node_type>::const_iterator nodes_const_iterator;
 };
 
-template <typename T, typename E>
-Species<T,E>::Species(strategy_type s)
+template <typename T, typename E, typename S>
+Species<T,E,S>::Species(strategy_type s)
   : base_type(s),
     new_node(this->strategy) {
 }
 
-template <typename T, typename E>
-size_t Species<T,E>::size() const {
+template <typename T, typename E, typename S>
+size_t Species<T,E,S>::size() const {
   return nodes.size();
 }
 
-template <typename T, typename E>
-void Species<T,E>::clear() {
+template <typename T, typename E, typename S>
+void Species<T,E,S>::clear() {
   nodes.clear();
   // Reset the new_node to a blank new_node, too.
   new_node = node_type(strategy);
 }
 
-template <typename T, typename E>
-void Species<T,E>::introduce_new_node() {
+template <typename T, typename E, typename S>
+void Species<T,E,S>::introduce_new_node() {
   // new_node already holds the initial conditions computed against the current
   // environment by the most recent compute_rates() call (see compute_rates ->
   // new_node.compute_initial_conditions above), and the member is refreshed
@@ -163,8 +171,8 @@ void Species<T,E>::introduce_new_node() {
 // seed of the species.  Otherwise we return the height of the largest
 // individual (always the first in the list) which will be at least
 // tall as a seed.
-template <typename T, typename E>
-double Species<T,E>::height_max() const {
+template <typename T, typename E, typename S>
+double Species<T,E,S>::height_max() const {
   return nodes.empty() ? new_node.height() : nodes.front().height();
 }
 
@@ -193,8 +201,8 @@ double Species<T,E>::height_max() const {
 // single node (needed to be the second half of the trapezium) and
 // also needed if the last looked at plant was still contributing to
 // the integral).
-template <typename T, typename E>
-double Species<T,E>::compute_competition(double height) const {
+template <typename T, typename E, typename S>
+double Species<T,E,S>::compute_competition(double height) const {
   if (size() == 0 || height_max() < height) {
     return 0.0;
   }
@@ -228,24 +236,24 @@ double Species<T,E>::compute_competition(double height) const {
 
 // NOTE: We should probably prefer to rescale when this is called
 // through the ode stepper.
-template <typename T, typename E>
-void Species<T,E>::compute_rates(const E& environment, double pr_patch_survival, double birth_rate) {
+template <typename T, typename E, typename S>
+void Species<T,E,S>::compute_rates(const E& environment, double pr_patch_survival, double birth_rate) {
   for (auto& c : nodes) {
     c.compute_rates(environment, pr_patch_survival);
   }
   new_node.compute_initial_conditions(environment, pr_patch_survival, birth_rate);
 }
 
-template <typename T, typename E>
-void Species<T,E>::introduce_new_node(double time, double patch_density) {
+template <typename T, typename E, typename S>
+void Species<T,E,S>::introduce_new_node(double time, double patch_density) {
   // Stamp the pushed copy (not new_node) so the member stays pristine for
   // the no-arg introduction paths.
   nodes.push_back(new_node);
   nodes.back().set_introduction(time, patch_density);
 }
 
-template <typename T, typename E>
-std::vector<double> Species<T,E>::net_reproduction_ratio_by_node() const {
+template <typename T, typename E, typename S>
+std::vector<double> Species<T,E,S>::net_reproduction_ratio_by_node() const {
   std::vector<double> ret;
   ret.reserve(size());
   for (auto& c : nodes) {
@@ -254,8 +262,8 @@ std::vector<double> Species<T,E>::net_reproduction_ratio_by_node() const {
   return ret;
 }
 
-template <typename T, typename E>
-std::vector<double> Species<T,E>::net_reproduction_ratio_by_node_weighted() const {
+template <typename T, typename E, typename S>
+std::vector<double> Species<T,E,S>::net_reproduction_ratio_by_node_weighted() const {
   std::vector<double> ret;
   ret.reserve(size());
   for (auto& c : nodes) {
@@ -264,8 +272,8 @@ std::vector<double> Species<T,E>::net_reproduction_ratio_by_node_weighted() cons
   return ret;
 }
 
-template <typename T, typename E>
-std::vector<double> Species<T,E>::node_times() const {
+template <typename T, typename E, typename S>
+std::vector<double> Species<T,E,S>::node_times() const {
   std::vector<double> ret;
   ret.reserve(size());
   for (auto& c : nodes) {
@@ -274,13 +282,13 @@ std::vector<double> Species<T,E>::node_times() const {
   return ret;
 }
 
-template <typename T, typename E>
-void Species<T,E>::resize_consumption_rates(int r) {
+template <typename T, typename E, typename S>
+void Species<T,E,S>::resize_consumption_rates(int r) {
   new_node.resize_consumption_rates(r);
 }
 
-template <typename T, typename E>
-double Species<T,E>::consumption_rate(int i) const {
+template <typename T, typename E, typename S>
+double Species<T,E,S>::consumption_rate(int i) const {
   // can't determine density for one node
   if(size() < 2) {
     return 0.0;
@@ -290,8 +298,8 @@ double Species<T,E>::consumption_rate(int i) const {
   }
 }
 
-template <typename T, typename E>
-std::vector<double> Species<T,E>::consumption_rate_by_node_rev(int i) const {
+template <typename T, typename E, typename S>
+std::vector<double> Species<T,E,S>::consumption_rate_by_node_rev(int i) const {
   std::vector<double> ret;
   ret.reserve(size());
   for(auto it = nodes.rbegin(); it != nodes.rend(); ++it) {
@@ -301,18 +309,18 @@ std::vector<double> Species<T,E>::consumption_rate_by_node_rev(int i) const {
 }
 
 // bit clunky...
-template <typename T, typename E>
-size_t Species<T,E>::aux_size() const {
+template <typename T, typename E, typename S>
+size_t Species<T,E,S>::aux_size() const {
   return size() * strategy->aux_size();
 }
 
-template <typename T, typename E>
-odelia::ode::iterator Species<T,E>::ode_aux(odelia::ode::iterator it) const {
+template <typename T, typename E, typename S>
+odelia::ode::iterator Species<T,E,S>::ode_aux(odelia::ode::iterator it) const {
   return odelia::ode::ode_aux(nodes.begin(), nodes.end(), it);
 }
 
-template <typename T, typename E>
-Rcpp::NumericMatrix Species<T, E>::r_get_state() const {
+template <typename T, typename E, typename S>
+Rcpp::NumericMatrix Species<T,E,S>::r_get_state() const {
 
   size_t ode_size = node_type::ode_size(), n_nodes = size();
   size_t aux_size = strategy->aux_size();
@@ -340,8 +348,8 @@ Rcpp::NumericMatrix Species<T, E>::r_get_state() const {
   return ret;
 }
 
-template <typename T, typename E>
-std::vector<double> Species<T,E>::r_heights() const {
+template <typename T, typename E, typename S>
+std::vector<double> Species<T,E,S>::r_heights() const {
   std::vector<double> ret;
   ret.reserve(size());
   for (nodes_const_iterator it = nodes.begin();
@@ -351,8 +359,8 @@ std::vector<double> Species<T,E>::r_heights() const {
   return ret;
 }
 
-template <typename T, typename E>
-std::vector<double> Species<T,E>::r_heights_rev() const {
+template <typename T, typename E, typename S>
+std::vector<double> Species<T,E,S>::r_heights_rev() const {
   std::vector<double> ret;
   ret.reserve(size());
   for (nodes_const_iterator it = nodes.begin();
@@ -363,8 +371,8 @@ std::vector<double> Species<T,E>::r_heights_rev() const {
   return ret;
 }
 
-template <typename T, typename E>
-void Species<T,E>::r_set_heights(std::vector<double> heights) {
+template <typename T, typename E, typename S>
+void Species<T,E,S>::r_set_heights(std::vector<double> heights) {
   util::check_length(heights.size(), size());
   if (!util::is_decreasing(heights.begin(), heights.end())) {
     util::stop("height must be decreasing (ties allowed)");
@@ -375,8 +383,8 @@ void Species<T,E>::r_set_heights(std::vector<double> heights) {
   }
 }
 
-template <typename T, typename E>
-std::vector<double> Species<T,E>::r_compute_competition_effect_by_nodes() const {
+template <typename T, typename E, typename S>
+std::vector<double> Species<T,E,S>::r_compute_competition_effect_by_nodes() const {
   std::vector<double> ret;
   ret.reserve(size());
   for (auto& c : nodes) {
@@ -385,13 +393,13 @@ std::vector<double> Species<T,E>::r_compute_competition_effect_by_nodes() const 
   return ret;
 }
 
-template <typename T, typename E>
-std::vector<double> Species<T,E>::r_compute_competition_effect_by_nodes_error(double scal) const {
+template <typename T, typename E, typename S>
+std::vector<double> Species<T,E,S>::r_compute_competition_effect_by_nodes_error(double scal) const {
   return util::local_error_integration(r_heights(), r_compute_competition_effect_by_nodes(), scal);
 }
 
-template <typename T, typename E>
-std::vector<double> Species<T,E>::r_log_densities() const {
+template <typename T, typename E, typename S>
+std::vector<double> Species<T,E,S>::r_log_densities() const {
   std::vector<double> ret;
   ret.reserve(size());
   for (nodes_const_iterator it = nodes.begin();
@@ -401,8 +409,8 @@ std::vector<double> Species<T,E>::r_log_densities() const {
   return ret;
 }
 
-template <typename T, typename E>
-std::vector<double> Species<T,E>::r_log_density_rates() const {
+template <typename T, typename E, typename S>
+std::vector<double> Species<T,E,S>::r_log_density_rates() const {
   std::vector<double> ret;
   ret.reserve(size());
   for (nodes_const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
@@ -411,8 +419,8 @@ std::vector<double> Species<T,E>::r_log_density_rates() const {
   return ret;
 }
 
-template <typename T, typename E>
-std::vector<double> Species<T,E>::r_patch_densities() const {
+template <typename T, typename E, typename S>
+std::vector<double> Species<T,E,S>::r_patch_densities() const {
   std::vector<double> ret;
   ret.reserve(size());
   for (nodes_const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
@@ -421,8 +429,8 @@ std::vector<double> Species<T,E>::r_patch_densities() const {
   return ret;
 }
 
-template <typename T, typename E>
-std::vector<double> Species<T,E>::r_pr_patch_survival_at_birth() const {
+template <typename T, typename E, typename S>
+std::vector<double> Species<T,E,S>::r_pr_patch_survival_at_birth() const {
   std::vector<double> ret;
   ret.reserve(size());
   for (nodes_const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
@@ -431,8 +439,8 @@ std::vector<double> Species<T,E>::r_pr_patch_survival_at_birth() const {
   return ret;
 }
 
-template <typename T, typename E>
-void Species<T,E>::set_birth_state(const std::vector<double>& times,
+template <typename T, typename E, typename S>
+void Species<T,E,S>::set_birth_state(const std::vector<double>& times,
                                    const std::vector<double>& patch_density,
                                    const std::vector<double>& pr_patch_survival) {
   util::check_length(times.size(), size());

@@ -15,25 +15,29 @@ namespace plant {
 // (so R access is `s$pars$lma`). Derived/precomputed quantities (eta_c,
 // height_0, canopy_shape, ...) are NOT here -- they are outputs of
 // prepare_strategy() and stay as plain members on the strategy.
-struct FF16_Pars {
+// Templated on the scalar S (#472 scope B / #537, Milestone C) so traits can be
+// AD active types for reverse-mode calibration. `FF16_Pars` (alias below) pins
+// S = double, leaving the R/RcppR6 interface and every existing use unchanged.
+template <typename S>
+struct basic_FF16_Pars {
   // * Core traits
-  double lma       = 0.1978791;  // Leaf mass per area [kg / m2]
-  double rho       = 608.0;      // Wood density [kg/m3]
-  double hmat      = 16.5958691; // Height at maturation [m]
-  double omega     = 3.8e-5;     // Seed mass [kg]
+  S lma       = 0.1978791;  // Leaf mass per area [kg / m2]
+  S rho       = 608.0;      // Wood density [kg/m3]
+  S hmat      = 16.5958691; // Height at maturation [m]
+  S omega     = 3.8e-5;     // Seed mass [kg]
   // * Individual allometry
   // Canopy shape parameter
-  double eta       = 12.0; // [dimensionless]
+  S eta       = 12.0; // [dimensionless]
   // Sapwood area per leaf area
   // Ratio sapwood area area to leaf area
-  double theta     = 1.0/4669; // [dimensionless]
+  S theta     = 1.0/4669; // [dimensionless]
   // Height - leaf mass scaling
-  double a_l1        = 5.44; // height with 1m2 leaf [m]
-  double a_l2        = 0.306; // dimensionless scaling of height with leaf area
+  S a_l1        = 5.44; // height with 1m2 leaf [m]
+  S a_l2        = 0.306; // dimensionless scaling of height with leaf area
   // Root mass per leaf area
-  double a_r1        = 0.07;  //[kg / m]
+  S a_r1        = 0.07;  //[kg / m]
   // Ratio of bark area : sapwood area
-  double a_b1         = 0.17; // [dimensionless]
+  S a_b1         = 0.17; // [dimensionless]
 
   // * Production
   // Ratio of leaf dark respiration to leaf mass [mol CO2 / yr  / kg]
@@ -41,62 +45,65 @@ struct FF16_Pars {
   //    / [kg(leaf) / m2 ]   |    / (0.1978791)           | lma
   // Hard coded in value of lma here so that this value doesn't change
   // if that trait changes above.
-  double r_l    = 39.27 / 0.1978791;
+  S r_l    = 39.27 / 0.1978791;
   // Root respiration per mass [mol CO2 / yr / kg]
-  double r_r    = 217.0;
+  S r_r    = 217.0;
   // Sapwood respiration per stem mass  [mol CO2 / yr / kg]
   // = respiration per volume [mol CO2 / m3 / yr]
   // /  wood density [kg/m3]
-  double r_s    = 4012.0 / 608.0;
+  S r_s    = 4012.0 / 608.0;
   // Bark respiration per stem mass
   // assumed to be twice rate of sapwood
   // (NOTE that there is a re-parametrisation here relative to the paper
   // -- r_b is defined (new) as 2*r_s, whereas the paper assumes a
   // fixed multiplication by 2)
-  double r_b    = 2.0 * r_s;
+  S r_b    = 2.0 * r_s;
   // Carbon conversion parameter
-  double a_y    = 0.7;
+  S a_y    = 0.7;
   // Constant converting assimilated CO2 to dry mass [kg / mol]
   // (12E-3 / 0.49)
-  double a_bio  = 2.45e-2;
+  S a_bio  = 2.45e-2;
   // Leaf turnover [/yr]
-  double k_l    =  0.4565855;
+  S k_l    =  0.4565855;
   // Bark turnover [/yr]
-  double k_b    = 0.2;
+  S k_b    = 0.2;
   // Sapwood turnover [/yr]
-  double k_s           = 0.2;
+  S k_s           = 0.2;
   // Root turnover [/yr]
-  double k_r    = 1.0;
+  S k_r    = 1.0;
   // Parameters of the hyperbola for annual LRC
-  double a_p1   = 151.177775377968; // [mol CO2 / yr / m2]
-  double a_p2   = 0.204716166503633; // [dimensionless]
+  S a_p1   = 151.177775377968; // [mol CO2 / yr / m2]
+  S a_p2   = 0.204716166503633; // [dimensionless]
 
   // * Seed production
   // Accessory cost of reproduction
-  double a_f3  = 3.0 *  3.8e-5; // [kg per seed]
+  S a_f3  = 3.0 *  3.8e-5; // [kg per seed]
   // Maximum allocation to reproduction
-  double a_f1   = 1.0; //[dimensionless]
+  S a_f1   = 1.0; //[dimensionless]
   // Size range across which individuals mature
-  double a_f2   = 50; // [dimensionless]
+  S a_f2   = 50; // [dimensionless]
 
   // * Mortality parameters
   // Probability of survival during dispersal
-  double S_D   = 0.25; // [dimensionless]
+  S S_D   = 0.25; // [dimensionless]
   // Parameter for seedling survival
-  double a_d0    = 0.1; //[kg / yr / m2]
+  S a_d0    = 0.1; //[kg / yr / m2]
   // Baseline for intrinsic mortality
-  double d_I    = 0.01; // [ / yr]
+  S d_I    = 0.01; // [ / yr]
   // Baseline rate for growth-related mortality
-  double a_dG1    = 5.5; // [ / yr]
+  S a_dG1    = 5.5; // [ / yr]
   // Risk coefficient for dry mass production (per area)
-  double a_dG2    = 20.0;// [yr m2 / kg ]
+  S a_dG2    = 20.0;// [yr m2 / kg ]
 
   // Germination
-  double recruitment_decay = 0.0;
+  S recruitment_decay = 0.0;
 
   // * Light capture parameters
-  double k_I = 0.5;
+  S k_I = 0.5;
 };
+
+// Default parameter set used by FF16_Strategy and the R/RcppR6 interface.
+using FF16_Pars = basic_FF16_Pars<double>;
 
 class FF16_Strategy: public Strategy<FF16_Environment> {
 public:
@@ -167,6 +174,15 @@ public:
     // reference-comparison test.
     return ff16_area_leaf(pars.a_l1, pars.a_l2, height);
   }
+  // Scalar-templated overload (#472 scope B / #537, Milestone C): area_leaf with
+  // an AD-active height (the live ODE state), keeping the allometry pars double
+  // (S(pars.*) lifts them). The non-template double overload above still wins for
+  // a double argument, so the existing hot path is unchanged; only ad heights
+  // (e.g. update_dependent_aux on Individual<...,ad>) select this.
+  template <typename S>
+  S area_leaf(S height) const {
+    return ff16_area_leaf(S(pars.a_l1), S(pars.a_l2), height);
+  }
 
   // [eqn 1] mass_leaf (inverse of [eqn 2])
   double mass_leaf(double area_leaf) const;
@@ -204,11 +220,18 @@ public:
   // Inline (header): called per state-set / ODE-state update from templated
   // Individual<FF16> code, so inlining avoids a cross-TU call (no LTO build)
   // and lets the now-inline area_leaf fold in.
-  void update_dependent_aux(const int index, Internals& vars) {
+  // Scalar-templated on the Internals' value type S (#472 scope B / #537,
+  // Milestone C) so a Individual<...,ad> can be constructed and have its height
+  // state set: the dependent aux (competition_effect = area_leaf, height_inverse)
+  // then carry the active scalar. The non-template path is gone, but S is
+  // deduced as double for every existing caller (Individual<...,double>), so the
+  // double codegen and the FF16 reference test are unchanged.
+  template <typename S>
+  void update_dependent_aux(const int index, basic_internals<S>& vars) {
     if (index == HEIGHT_INDEX) {
-      double height = vars.state(HEIGHT_INDEX);
+      S height = vars.state(HEIGHT_INDEX);
       vars.set_aux(COMPETITION_EFFECT_AUX_INDEX, area_leaf(height));
-      vars.set_aux(HEIGHT_INVERSE_AUX_INDEX, 1.0 / height);
+      vars.set_aux(HEIGHT_INVERSE_AUX_INDEX, S(1.0) / height);
     }
   }
 
@@ -387,6 +410,37 @@ public:
 
   // Set constants within FF16_Strategy
   void prepare_strategy();
+
+  // The net-production kernel's parameter set, gathered from this (prepared)
+  // strategy's pars + derived eta_c (#472 scope B, Milestone C). Bridges a live,
+  // prepared FF16_Strategy to the scalar-templated AD kernel: lift the result to
+  // FF16ProdPars<ad_type> (registering the trait of interest as a tape input) to
+  // get reverse-mode trait gradients of net production from the real model
+  // configuration rather than hand-supplied numbers.
+  FF16ProdPars<double> prod_pars() const {
+    FF16ProdPars<double> p;
+    p.lma = pars.lma; p.rho = pars.rho; p.theta = pars.theta;
+    p.a_b1 = pars.a_b1; p.a_r1 = pars.a_r1; p.eta_c = eta_c;
+    p.a_p1 = pars.a_p1; p.a_p2 = pars.a_p2;
+    p.r_l = pars.r_l; p.r_s = pars.r_s; p.r_b = pars.r_b; p.r_r = pars.r_r;
+    p.k_l = pars.k_l; p.k_b = pars.k_b; p.k_s = pars.k_s; p.k_r = pars.k_r;
+    p.a_bio = pars.a_bio; p.a_y = pars.a_y;
+    p.a_l1 = pars.a_l1; p.a_l2 = pars.a_l2;
+    p.a_f1 = pars.a_f1; p.a_f2 = pars.a_f2; p.hmat = pars.hmat;
+    // Demographic rate params for the full ff16_compute_rates_* fill (Milestone C).
+    p.omega = pars.omega; p.a_f3 = pars.a_f3;
+    p.d_I = pars.d_I; p.a_dG1 = pars.a_dG1; p.a_dG2 = pars.a_dG2;
+    return p;
+  }
+
+  // Exact d(dheight/dt)/d(height) at the given height in environment `env`, via
+  // forward-mode AD over the scalar-templated growth kernel (#537 A1; the
+  // gradient Node::growth_rate_gradient currently obtains by finite difference).
+  // Crown-top assimilation: the light the crown reads is taken at the operating
+  // height, so in a fixed environment it is exact. Defined in the .cpp (XAD
+  // include), mirroring Leaf::dprofit_droot_collar_psi.
+  double growth_rate_gradient_height_ad(double height,
+                                        const FF16_Environment& env);
 
   // Birth height of a (germinated) seed. Strategy-agnostic accessor used by
   // the templated Individual; here height_0 is derived in prepare_strategy().

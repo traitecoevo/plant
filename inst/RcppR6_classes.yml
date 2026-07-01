@@ -174,6 +174,50 @@ Leaf:
       return_type: double
       args: [opt_root_psi: double]
 
+    dprofit_dvcmax25:
+      return_type: double
+      args: [opt_root_psi: double]
+
+    dprofit_dg1_TF24:
+      return_type: double
+      args: [opt_root_psi: double]
+
+    dprofit_dbeta2:
+      return_type: double
+      args: [opt_root_psi: double]
+
+    dprofit_dkmax:
+      return_type: double
+      args: [opt_root_psi: double]
+
+    dprofit_dEup:
+      return_type: double
+      args: [opt_root_psi: double]
+
+    dprofit_db:
+      return_type: double
+      args: [opt_root_psi: double]
+
+    dprofit_dc:
+      return_type: double
+      args: [opt_root_psi: double]
+
+    dprofit_djmax25:
+      return_type: double
+      args: [opt_root_psi: double]
+
+    dprofit_da:
+      return_type: double
+      args: [opt_root_psi: double]
+
+    dprofit_dcurv_elec:
+      return_type: double
+      args: [opt_root_psi: double]
+
+    dprofit_dcurv_colim:
+      return_type: double
+      args: [opt_root_psi: double]
+
     psi_stem_to_ci:
       return_type: double
       args: [psi_stem: double, psi_upstream: double]
@@ -305,6 +349,7 @@ Control:
     - node_gradient_direction: int
     - node_gradient_richardson: bool
     - node_gradient_richardson_depth: size_t
+    - node_gradient_exact_ad: bool
     - ode_step_size_initial: double
     - ode_step_size_min: double
     - ode_step_size_max: double
@@ -437,6 +482,9 @@ Individual:
       args: [environment: E]
       return_type: double
     net_mass_production_dt:
+      args: [environment: E]
+      return_type: double
+    growth_rate_gradient_exact:
       args: [environment: E]
       return_type: double
     reset_mortality:
@@ -641,6 +689,33 @@ Patch:
     ode_aux: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_aux"}
     node_ode_size: {type: size_t, access: member}
     state: {type: "Rcpp::List", access: member, name_cpp: r_get_state}
+    # Resident environment trajectory cached during a save_RK45_cache run (the
+    # mutant-replay landscape). step_history holds the ODE step times
+    # {0, t_1, ...}; environment_history[n] holds the 6 frozen per-RK-stage
+    # environments for the step advancing step_history[n] -> step_history[n+1].
+    # Exposed so the two-pass AD emergent-gradient driver (#472 scope B) can
+    # harvest the frozen resident light schedule without re-running in C++.
+    step_history: {type: "std::vector<double>", access: field}
+    environment_history: {type: "std::vector<std::vector<E> >", access: field}
+    # Per-ODE-step resident stand (species 0) for the active-knot self-shading
+    # reconstruction: node heights and per-node competition effects per step.
+    stand_height_history: {type: "std::vector<std::vector<double> >", access: field}
+    stand_competition_history: {type: "std::vector<std::vector<double> >", access: field}
+    # Per-RK-STAGE resident stand (species 0): [step][stage 0..5][cohort], aligned
+    # 1:1 with environment_history's 6 per-stage environments. Faithful harvest for
+    # the RESIDENT total-gradient reconstruction (#472 scope B, R0).
+    stand_height_stage_history: {type: "std::vector<std::vector<std::vector<double> > >", access: field}
+    stand_competition_stage_history: {type: "std::vector<std::vector<std::vector<double> > >", access: field}
+    # Boundary (new_node) per-RK-stage state (species 0): height + competition effect,
+    # the tail term Species::compute_competition adds beyond the `nodes` loop. [step][stage].
+    stand_newnode_height_stage_history: {type: "std::vector<std::vector<double> >", access: field}
+    stand_newnode_competition_stage_history: {type: "std::vector<std::vector<double> >", access: field}
+    # ALL-SPECIES per-RK-stage harvest (#472 scope B, R2 cross-species coupled): the
+    # stand is [step][stage][species][cohort], the boundary node [step][stage][species].
+    stand_height_stage_history_all: {type: "std::vector<std::vector<std::vector<std::vector<double> > > > ", access: field}
+    stand_competition_stage_history_all: {type: "std::vector<std::vector<std::vector<std::vector<double> > > > ", access: field}
+    stand_newnode_height_stage_history_all: {type: "std::vector<std::vector<std::vector<double> > >", access: field}
+    stand_newnode_competition_stage_history_all: {type: "std::vector<std::vector<std::vector<double> > >", access: field}
   methods:
     introduce_new_node:
       return_type: void

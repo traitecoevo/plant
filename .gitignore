@@ -23,6 +23,8 @@ Meta
 *.pdf
 *.png
 *.RDS
+# ...except committed test fixtures (the AD-gradient regression baseline).
+!tests/testthat/fixtures/gradient-baseline.rds
 
 # Overstorey guide preview figures — regenerated when the guide builds in the
 # Overstorey repo; not version-controlled here.

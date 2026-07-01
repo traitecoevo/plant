@@ -10,12 +10,20 @@
 
 namespace plant {
 
-template <typename T, typename E>
+// Templated on the scalar type S (#472 scope B / #537, Milestone C) to mirror
+// Individual<T,E,S>: S defaults to double so every existing `Node<T,E>` is
+// `Node<T,E,double>` and bit-identical. The *demographic* bookkeeping
+// (log_density, density, fecundity, offspring) stays double -- a Node<...,ad>
+// is intentionally MIXED: only the individual's physiological state carries the
+// active scalar, and (like Individual) members are compiled per-member-on-use,
+// so the double-bound ODE-iterator / demographic methods stay uncompiled for ad
+// until the ODE-state boundary is wired.
+template <typename T, typename E, typename S = double>
 class Node {
 public:
   typedef T        strategy_type;
   typedef E        environment_type;
-  typedef Individual<T,E> individual_type;
+  typedef Individual<T,E,S> individual_type;
   typedef typename strategy_type::ptr strategy_type_ptr;
   Node(strategy_type_ptr s);
 
@@ -25,8 +33,8 @@ public:
   // Wrapper to growth_rate_gradient for testing
   double r_growth_rate_gradient(const environment_type& environment);
 
-  double height() const {return individual.state(HEIGHT_INDEX);}
-  double compute_competition(double z) const;
+  S height() const {return individual.state(HEIGHT_INDEX);}
+  S compute_competition(double z) const;
   double fecundity() const {return offspring_produced_survival_weighted;}
 
   // Bookkeeping recorded at the moment the node is introduced, so that
@@ -91,7 +99,7 @@ public:
     individual.resize_consumption_rates(i);
   }
 
-  double consumption_rate(int i) const {
+  S consumption_rate(int i) const {
     return individual.consumption_rate(i) * density;
   }
 
@@ -113,8 +121,8 @@ private:
   double patch_density_at_birth;
 };
 
-template <typename T, typename E>
-Node<T,E>::Node(strategy_type_ptr s)
+template <typename T, typename E, typename S>
+Node<T,E,S>::Node(strategy_type_ptr s)
   : individual(s),
     log_density(-std::numeric_limits<double>::infinity()),
     log_density_dt(0),
@@ -125,8 +133,8 @@ Node<T,E>::Node(strategy_type_ptr s)
     patch_density_at_birth(0) {
 }
 
-template <typename T, typename E>
-void Node<T,E>::compute_rates(const environment_type& environment,
+template <typename T, typename E, typename S>
+void Node<T,E,S>::compute_rates(const environment_type& environment,
                                 double pr_patch_survival) {
   individual.compute_rates(environment);
 
@@ -157,8 +165,8 @@ void Node<T,E>::compute_rates(const environment_type& environment,
 //
 // NOTE: The initial condition for log_density is also a bit tricky, and
 // defined on p 7 at the moment.
-template <typename T, typename E>
-void Node<T,E>::compute_initial_conditions(const environment_type& environment,
+template <typename T, typename E, typename S>
+void Node<T,E,S>::compute_initial_conditions(const environment_type& environment,
                                              double pr_patch_survival, double birth_rate) {
   pr_patch_survival_at_birth = pr_patch_survival;
   // Seed strategy-specific initial states (e.g. TF24f's tracked psi at its
@@ -185,8 +193,16 @@ void Node<T,E>::compute_initial_conditions(const environment_type& environment,
   // likely.
 }
 
-template <typename T, typename E>
-double Node<T,E>::growth_rate_gradient(const environment_type& environment) const {
+template <typename T, typename E, typename S>
+double Node<T,E,S>::growth_rate_gradient(const environment_type& environment) const {
+  // Exact AD growth-rate gradient when enabled and the strategy provides one
+  // (#537 A1). Returns NA otherwise, falling through to the finite difference.
+  if (individual.control().node_gradient_exact_ad) {
+    const double g = individual.growth_rate_gradient_exact(environment);
+    if (util::is_finite(g)) {
+      return g;
+    }
+  }
   // Finite-differencing the growth rate needs a mutable Individual to perturb
   // height on, but it must not disturb this node's already-computed state and
   // rates. Rather than copy-construct a fresh Individual (and its four
@@ -217,8 +233,8 @@ double Node<T,E>::growth_rate_gradient(const environment_type& environment) cons
 }
 
 // Wrapper to growth_rate_gradient for testing
-template <typename T, typename E>
-double Node<T,E>::r_growth_rate_gradient(const environment_type& environment) {
+template <typename T, typename E, typename S>
+double Node<T,E,S>::r_growth_rate_gradient(const environment_type& environment) {
   // We need to compute the physiological variables here, first, so
   // that reusing intervals works as expected.  This would ordinarily
   // be taken care of because of the calling order of
@@ -227,15 +243,15 @@ double Node<T,E>::r_growth_rate_gradient(const environment_type& environment) {
   return growth_rate_gradient(environment);
 }
 
-template <typename T, typename E>
-double Node<T,E>::compute_competition(double height_) const {
+template <typename T, typename E, typename S>
+S Node<T,E,S>::compute_competition(double height_) const {
   return density * individual.compute_competition(height_);
 }
 
 // ODE interface -- note that the don't care about time in the node;
 // only Patch and above does.
-template <typename T, typename E>
-odelia::ode::const_iterator Node<T,E>::set_ode_state(odelia::ode::const_iterator it) {
+template <typename T, typename E, typename S>
+odelia::ode::const_iterator Node<T,E,S>::set_ode_state(odelia::ode::const_iterator it) {
   for (size_t i = 0; i < individual.ode_size(); i++) {
     individual.set_state(i, *it++);
   }
@@ -243,8 +259,8 @@ odelia::ode::const_iterator Node<T,E>::set_ode_state(odelia::ode::const_iterator
   set_log_density(*it++);
   return it;
 }
-template <typename T, typename E>
-odelia::ode::iterator Node<T,E>::ode_state(odelia::ode::iterator it) const {
+template <typename T, typename E, typename S>
+odelia::ode::iterator Node<T,E,S>::ode_state(odelia::ode::iterator it) const {
   for (size_t i = 0; i < individual.ode_size(); i++) {
     *it++ = individual.state(i);
   }
@@ -252,8 +268,8 @@ odelia::ode::iterator Node<T,E>::ode_state(odelia::ode::iterator it) const {
   *it++ = log_density;
   return it;
 }
-template <typename T, typename E>
-odelia::ode::iterator Node<T,E>::ode_rates(odelia::ode::iterator it) const {
+template <typename T, typename E, typename S>
+odelia::ode::iterator Node<T,E,S>::ode_rates(odelia::ode::iterator it) const {
   for (size_t i = 0; i < individual.ode_size(); i++) {
     *it++ = individual.rate(i);
   }
@@ -262,8 +278,8 @@ odelia::ode::iterator Node<T,E>::ode_rates(odelia::ode::iterator it) const {
   return it;
 }
 
-template <typename T, typename E>
-odelia::ode::iterator Node<T,E>::ode_aux(odelia::ode::iterator it) const {
+template <typename T, typename E, typename S>
+odelia::ode::iterator Node<T,E,S>::ode_aux(odelia::ode::iterator it) const {
   for (size_t i = 0; i < individual.aux_size(); i++) {
     *it++ = individual.aux(i);
   }

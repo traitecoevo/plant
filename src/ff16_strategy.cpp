@@ -1,7 +1,67 @@
 #include <plant/models/ff16_strategy.h>
 #include <plant/models/ff16_production_kernel.h>
+#include <XAD/XAD.hpp>
 
 namespace plant {
+
+// Exact d(dheight/dt)/d(height) via forward-mode AD over the growth kernel
+// (#537 A1). Single input -> forward mode (header-only XAD, no tape), as in
+// Leaf::dprofit_droot_collar_psi. Lifts the strategy's (double) parameters to
+// the AD type as constants and seeds only height, so the derivative flows
+// through area_leaf -> mass cascade -> assimilation -> allocation -> dheight/dt.
+double FF16_Strategy::growth_rate_gradient_height_ad(double height,
+                                                     const FF16_Environment& env) {
+  using AD = xad::fwd<double>::active_type;
+  // Crown-top light at the crown. As height changes the crown sampling point
+  // height*eta_c moves through the (fixed-during-this-gradient) light profile,
+  // so seed light_E's derivative with d(light)/d(height) = light'(z)*eta_c;
+  // forward mode then composes the light-movement term with the rest. In a
+  // fixed environment this derivative is 0 (exact either way).
+  const double z_crown = height * eta_c;
+  const double light_E0 = env.get_environment_at_height(z_crown);
+  const double dlight_dheight = env.get_environment_deriv_at_height(z_crown) * eta_c;
+  const FF16ProdPars<double> p0 = prod_pars();
+  FF16ProdPars<AD> p;
+  p.lma=p0.lma; p.rho=p0.rho; p.theta=p0.theta; p.a_b1=p0.a_b1; p.a_r1=p0.a_r1;
+  p.eta_c=p0.eta_c; p.a_p1=p0.a_p1; p.a_p2=p0.a_p2;
+  p.r_l=p0.r_l; p.r_s=p0.r_s; p.r_b=p0.r_b; p.r_r=p0.r_r;
+  p.k_l=p0.k_l; p.k_b=p0.k_b; p.k_s=p0.k_s; p.k_r=p0.k_r;
+  p.a_bio=p0.a_bio; p.a_y=p0.a_y; p.a_l1=p0.a_l1; p.a_l2=p0.a_l2;
+  p.a_f1=p0.a_f1; p.a_f2=p0.a_f2; p.hmat=p0.hmat;
+  AD h = height;
+  xad::derivative(h) = 1.0;
+
+  if (assimilation_fn == &FF16_Strategy::assimilation_deep_crown) {
+    // DEFAULT model: differentiate the Gauss-Kronrod crown integral through its
+    // MOVING nodes (bounds [0,h] scale with height) and the leaf-area density q.
+    // The light at each (moving) node z carries its own d(light)/dz via the
+    // environment's analytic spline derivative (value + slope injection); the
+    // GK rule constants are reused via QK::integrate_ad.
+    const double eta = pars.eta;
+    const double canopy_top = env.max_environment_height();
+    auto integrand = [&](AD z) -> AD {
+      const double zv = xad::value(z);
+      const double lv = env.get_environment_at_height(zv, canopy_top);
+      const double ld = env.get_environment_deriv_at_height(zv);
+      AD light = lv + (std::isfinite(ld) ? ld : 0.0) * (z - zv);
+      AD u = z / h;
+      return ff16_assimilation_leaf<AD>(p.a_p1, p.a_p2, light) *
+             ff16_canopy_q<AD>(eta, u, z);
+    };
+    AD area_leaf = ff16_area_leaf<AD>(p.a_l1, p.a_l2, h);
+    AD assim = area_leaf * function_integrator.integrate_ad<AD>(integrand, AD(0.0), h);
+    AD net = ff16_net_from_components<AD>(p, h, area_leaf, assim);
+    AD dt = ff16_height_dt_from_net<AD>(p, h, area_leaf, net);
+    return xad::derivative(dt);
+  }
+
+  // CROWN-TOP / crown-centre: single light evaluation that moves with height.
+  AD light_E = light_E0;
+  // PPA (stepped) profile reports a NaN derivative -> treat as locally flat.
+  xad::derivative(light_E) = std::isfinite(dlight_dheight) ? dlight_dheight : 0.0;
+  AD dt = ff16_height_dt_crown_top<AD>(p, h, light_E);
+  return xad::derivative(dt);
+}
 
 FF16_Strategy::FF16_Strategy() {
   collect_all_auxiliary = false;
@@ -583,4 +643,61 @@ FF16_Strategy::ptr make_strategy_ptr(FF16_Strategy s) {
   s.prepare_strategy();
   return std::make_shared<FF16_Strategy>(s);
 }
+}
+
+// ---------------------------------------------------------------------------
+// CI-runnable AD validation entry points for the scalar-templated FF16
+// demographic rate kernel (#472 scope B / #537, Milestone C). These are
+// [[Rcpp::export]] free functions compiled into plant.so, so the AD path is
+// exercised on CI WITHOUT on-the-fly Rcpp::sourceCpp. Forward mode (a single
+// trait input -> header-only XAD, no reverse-mode tape, no extra link/DLL-order
+// dependency), exactly as FF16_Strategy::growth_rate_gradient_height_ad. They
+// use the crown-top assimilation variant so they match a crown-centre strategy.
+// The broader reverse-mode / multi-output demonstrations are in
+// scripts/ad_gradient_examples.R.
+
+// Lift a (double) prod-pars set to the forward-AD type as constants.
+static plant::FF16ProdPars<xad::fwd<double>::active_type>
+ff16_prod_pars_to_fwd(const plant::FF16ProdPars<double>& d) {
+  plant::FF16ProdPars<xad::fwd<double>::active_type> p;
+  p.lma=d.lma; p.rho=d.rho; p.theta=d.theta; p.a_b1=d.a_b1; p.a_r1=d.a_r1;
+  p.eta_c=d.eta_c; p.a_p1=d.a_p1; p.a_p2=d.a_p2;
+  p.r_l=d.r_l; p.r_s=d.r_s; p.r_b=d.r_b; p.r_r=d.r_r;
+  p.k_l=d.k_l; p.k_b=d.k_b; p.k_s=d.k_s; p.k_r=d.k_r;
+  p.a_bio=d.a_bio; p.a_y=d.a_y; p.a_l1=d.a_l1; p.a_l2=d.a_l2;
+  p.a_f1=d.a_f1; p.a_f2=d.a_f2; p.hmat=d.hmat;
+  p.omega=d.omega; p.a_f3=d.a_f3; p.d_I=d.d_I; p.a_dG1=d.a_dG1; p.a_dG2=d.a_dG2;
+  return p;
+}
+
+// Exact d(fecundity_dt)/d(a_p1) of the demographic rate fill at a crown-top
+// operating point (height, crown light light_E), via forward-mode AD over
+// ff16_compute_rates_crown_top. a_p1 (the light-response slope) flows through
+// assimilation -> net production -> reproductive allocation.
+// [[Rcpp::export]]
+double ff16_fecundity_dt_grad_ap1(double height, double light_E) {
+  using AD = xad::fwd<double>::active_type;
+  plant::FF16_Strategy s;
+  s.control.shading_model = "crown-centre";
+  s.prepare_strategy();
+  plant::FF16ProdPars<AD> p = ff16_prod_pars_to_fwd(s.prod_pars());
+  AD a_p1 = xad::value(p.a_p1);
+  xad::derivative(a_p1) = 1.0;
+  p.a_p1 = a_p1;
+  AD fec = plant::ff16_compute_rates_crown_top<AD>(p, AD(height), AD(light_E),
+                                                   true).fecundity_dt;
+  return xad::derivative(fec);
+}
+
+// fecundity_dt from the same kernel with a_p1 overridden (double) -- the
+// finite-difference reference the test differentiates in R.
+// [[Rcpp::export]]
+double ff16_crown_top_fecundity_dt(double height, double light_E, double a_p1) {
+  plant::FF16_Strategy s;
+  s.control.shading_model = "crown-centre";
+  s.prepare_strategy();
+  plant::FF16ProdPars<double> p = s.prod_pars();
+  p.a_p1 = a_p1;
+  return plant::ff16_compute_rates_crown_top<double>(p, height, light_E, true)
+      .fecundity_dt;
 }

@@ -1,4 +1,6 @@
 #include <plant/models/tf24f_strategy.h>
+#include <plant/models/tf24_production_kernel.h>
+#include <XAD/XAD.hpp>
 
 namespace plant {
 
@@ -37,6 +39,84 @@ void TF24f_Strategy::compute_rates(const TF24_Environment& environment,
   vars.set_rate(state_idx_opt_root_psi_state, k_acclim * dprofit_dpsi_);
 }
 
+// Exact d(dheight/dt)/d(height) at the tracked collar (#472 scope B / #537 A1).
+// Two parts compose: (1) d(profit)/d(height) at the FIXED tracked collar, summed
+// over the leaf input channels height moves -- kmax and the crown-centre light
+// (both exact analytic via the leaf's forward-AD+IFT sensitivities), plus a weak
+// E_up term (zero above the rooting-depth clamp, otherwise a stable central FD of
+// the smooth closed-form soil uptake -- NOT the amplifying height_dt FD); and (2)
+// forward-mode AD of the demographic growth kernel, seeding height and injecting
+// profit with derivative dprofit_dh, so the explicit-height allometry/cascade
+// terms compose with the profit coupling. Returns NA_REAL on an infeasible leaf or
+// non-smooth light so Node::growth_rate_gradient falls back to its finite difference.
+double TF24f_Strategy::growth_rate_gradient_height_ad(double height,
+                                                      const TF24_Environment& environment) {
+  using AD = xad::fwd<double>::active_type;
+  // (1a) Operating point at (height, tracked collar): leaves leaf.* at the point
+  // and supplies profit, the clamped collar `used`, kmax and E_up.
+  net_mass_production_dt(environment, height, area_leaf(height), 1.0 / height);
+  const double profit0 = leaf.profit_;
+  if (!util::is_finite(profit0)) return NA_REAL;
+  const double used  = -leaf.root_collar_psi_;
+  const double kmax0 = leaf.leaf_specific_conductance_max_;
+  const double dprofit_dkmax = leaf.dprofit_dkmax(used);
+  const double dprofit_dPPFD = leaf.dprofit_dPPFD(used);
+  const double dprofit_dEup  = leaf.dprofit_dEup(used);
+
+  // (1b) Channel derivatives d(input)/d(height).
+  const double dkmax_dh = -kmax0 / height;                     // kmax = K_s*theta/(h*eta_c)
+  const double PPFD_top = environment.get_PPFD();
+  const double z = height * eta_c;
+  const double light = environment.get_environment_at_height(z);
+  // d(light)/d(z): use a central FD of the light VALUES the crown-centre model
+  // actually reads (get_environment_at_height), not the interpolator's analytic
+  // get_environment_deriv_at_height -- the resident canopy spline's value and its
+  // analytic derivative are not mutually consistent (knots at cohort heights), and
+  // the model's light response is value-based, so a value-consistent slope is the
+  // correct one. This FD is over the smooth light spline (a first derivative), NOT
+  // the amplifying height_dt FD it replaces.
+  const double dz = 1e-5 * z;
+  const double dlight_dz =
+      (environment.get_environment_at_height(z + dz) -
+       environment.get_environment_at_height(z - dz)) / (2.0 * dz);
+  const double dPPFD_dh = (light > 1e-4) ? pars.k_I * PPFD_top * dlight_dz * eta_c : 0.0;
+
+  // E_up channel: zero above the 1.5 m rooting clamp; otherwise a benign central FD
+  // of the smooth E_up (the leaf optimiser is never re-run -- evaluation at the
+  // tracked collar only). Restore the operating point afterwards so the node's aux
+  // reads (already taken) are not disturbed by a stale leaf state.
+  double dEup_dh = 0.0;
+  {
+    const double d = 1e-5 * height;
+    net_mass_production_dt(environment, height + d, area_leaf(height + d), 1.0 / (height + d));
+    const double eup_p = leaf.E_up_;
+    net_mass_production_dt(environment, height - d, area_leaf(height - d), 1.0 / (height - d));
+    const double eup_m = leaf.E_up_;
+    dEup_dh = (eup_p - eup_m) / (2.0 * d);
+    net_mass_production_dt(environment, height, area_leaf(height), 1.0 / height);  // restore
+  }
+
+  const double dprofit_dh = dprofit_dkmax * dkmax_dh + dprofit_dPPFD * dPPFD_dh +
+                            dprofit_dEup * dEup_dh;
+
+  // (2) Forward-AD the growth kernel: lift the (double) prod-pars to AD constants,
+  // seed height, inject profit carrying its total height derivative.
+  const TF24ProdPars<double> p0 = prod_pars();
+  TF24ProdPars<AD> p;
+  p.lma=p0.lma; p.rho=p0.rho; p.theta=p0.theta; p.a_b1=p0.a_b1; p.a_r1=p0.a_r1;
+  p.eta_c=p0.eta_c; p.r_l=p0.r_l; p.r_s=p0.r_s; p.r_b=p0.r_b; p.r_r=p0.r_r;
+  p.k_l=p0.k_l; p.k_b=p0.k_b; p.k_s=p0.k_s; p.k_r=p0.k_r; p.a_bio=p0.a_bio; p.a_y=p0.a_y;
+  p.a_l1=p0.a_l1; p.a_l2=p0.a_l2; p.a_f1=p0.a_f1; p.a_f2=p0.a_f2; p.hmat=p0.hmat;
+  p.omega=p0.omega; p.a_f3=p0.a_f3; p.d_I=p0.d_I; p.a_dG1=p0.a_dG1; p.a_dG2=p0.a_dG2;
+
+  AD h = height;       xad::derivative(h) = 1.0;
+  AD profit = profit0; xad::derivative(profit) = dprofit_dh;
+  AD area_leaf_ad = tf24_area_leaf<AD>(p.a_l1, p.a_l2, h);
+  AD net = tf24_net_mass_production<AD>(p, h, area_leaf_ad, profit);
+  AD dt = tf24_height_dt_from_net<AD>(p, h, area_leaf_ad, net);
+  return xad::derivative(dt);
+}
+
 // Track instead of optimise: evaluate the leaf at the tracked collar psi and
 // supply d(profit)/d(psi) for the gradient-ascent rate. evaluate_root_collar_psi
 // clamps to the feasible interval, so we read back the *clamped* operating value
@@ -58,6 +138,20 @@ void TF24f_Strategy::solve_leaf() {
     // Exact gradient (default, #527): forward-mode AD over the analytic algebra
     // + IFT at the ci root-find + analytic spline derivatives for the transport.
     // No O(h) bias and no finite-difference step to tune.
+    // Feasibility gate (mirrors the #526 FD branch below): when the collar solve
+    // is infeasible -- drought shutdown (wettest soil drier than psi_crit) or a
+    // collapsed interval -- prepare_collar_solve sets the shutdown operating point
+    // (collar = -psi_crit) and there is no informative gradient. Crucially, the AD
+    // transport-spline derivative would EXTRAPOLATE at that shutdown psi_crit (the
+    // transpiration splines are non-extrapolating), a hard "Extrapolation disabled"
+    // abort that bit long / dry patches (e.g. TF24f lifetime >= 8). Return 0 there,
+    // exactly as the finite-difference path does; the leaf outputs are already at
+    // the shutdown operating point. (#527 robustness / #472 scope B.)
+    double bound_a, bound_b;
+    if (!leaf.prepare_collar_solve(bound_a, bound_b)) {
+      dprofit_dpsi_ = 0.0;
+      return;
+    }
     // Establish the operating point (and the clamped collar psi `used`) and leave
     // the leaf outputs there for compute_rates' aux reads.
     leaf.evaluate_root_collar_psi(tracked_root_psi_);

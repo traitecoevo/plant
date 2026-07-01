@@ -88,6 +88,18 @@ public:
     return height <= cap ? std::max(0.0, spline(height)) : 1.0;
   }
 
+  // Analytic d(value)/d(height), consistent with get_value_at_height: 0 above
+  // the cap (constant open value) and where the #253 floor clamps a negative
+  // undershoot, else the spline's analytic derivative. Enables exact AD
+  // gradients through the resource environment (#472 scope B / #537).
+  double get_value_deriv_at_height(double height) const {
+    return get_value_deriv_at_height(height, spline.max());
+  }
+  double get_value_deriv_at_height(double height, double cap) const {
+    if (height > cap) return 0.0;
+    return spline(height) > 0.0 ? spline.deriv(height) : 0.0;
+  }
+
   virtual void r_init_interpolators(const std::vector<double>& state) {
     // See issue #144; this is important as we have to at least refine
     // the light environment, but doing this is better because it means

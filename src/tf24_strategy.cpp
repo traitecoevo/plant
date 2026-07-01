@@ -1,5 +1,6 @@
 // Built from  src/ff16_strategy.cpp on Mon Feb 12 09:52:27 2024 using the scaffolder, from the strategy:  FF16
 #include <plant/models/tf24_strategy.h>
+#include <XAD/XAD.hpp>
 
 namespace plant {
 
@@ -247,10 +248,9 @@ double TF24_Strategy::assimilation_leaf(double x) const {
 // NOTE: In contrast with Falster ref model, we do not normalise by pars.a_y*pars.a_bio.
 double TF24_Strategy::respiration(double mass_leaf, double mass_sapwood,
                              double mass_bark, double mass_root) const {
-  return respiration_leaf(mass_leaf) +
-         respiration_bark(mass_bark) +
-         respiration_sapwood(mass_sapwood) +
-         respiration_root(mass_root);
+  // Single source: scalar-templated kernel (#472 scope B, Phase F1-full).
+  return tf24_respiration(mass_leaf, mass_sapwood, mass_bark, mass_root,
+                          pars.r_l, pars.r_s, pars.r_b, pars.r_r);
 }
 
 double TF24_Strategy::respiration_leaf(double mass) const {
@@ -272,10 +272,9 @@ double TF24_Strategy::respiration_root(double mass) const {
 // [eqn 14] Total turnover
 double TF24_Strategy::turnover(double mass_leaf, double mass_bark,
                           double mass_sapwood, double mass_root) const {
-   return turnover_leaf(mass_leaf) +
-          turnover_bark(mass_bark) +
-          turnover_sapwood(mass_sapwood) +
-          turnover_root(mass_root);
+   // Single source: scalar-templated kernel (#472 scope B, Phase F1-full).
+   return tf24_turnover(mass_leaf, mass_bark, mass_sapwood, mass_root,
+                        pars.k_l, pars.k_b, pars.k_s, pars.k_r);
 }
 
 double TF24_Strategy::turnover_leaf(double mass) const {
@@ -300,7 +299,8 @@ double TF24_Strategy::turnover_root(double mass) const {
 // before the minus sign is SCM's N, our `net_mass_production_dt` is SCM's P.
 double TF24_Strategy::net_mass_production_dt_A(double assimilation, double respiration,
                                 double turnover) const {
-  return pars.a_bio * pars.a_y * (assimilation - respiration) - turnover;
+  // Single source: scalar-templated kernel (#472 scope B, Phase F1-full).
+  return tf24_net_production_A(pars.a_bio, pars.a_y, assimilation, respiration, turnover);
 }
 
 // One shot calculation of net_mass_production_dt
@@ -485,19 +485,21 @@ void TF24_Strategy::solve_leaf() {
 
 // [eqn 16] Fraction of production allocated to reproduction
 double TF24_Strategy::fraction_allocation_reproduction(double height) const {
-  return pars.a_f1 / (1.0 + exp(pars.a_f2 * (1.0 - height / pars.hmat)));
+  // Single source: scalar-templated kernel (#472 scope B, Phase F1-full).
+  return tf24_fraction_allocation_reproduction(pars.a_f1, pars.a_f2, pars.hmat, height);
 }
 
 // Fraction of production allocated to growth
 double TF24_Strategy::fraction_allocation_growth(double height) const {
-  return 1.0 - fraction_allocation_reproduction(height);
+  return tf24_fraction_allocation_growth(pars.a_f1, pars.a_f2, pars.hmat, height);
 }
 
 // [eqn 17] Rate of offspring production
 double TF24_Strategy::fecundity_dt(double net_mass_production_dt,
                                double fraction_allocation_reproduction) const {
-  return net_mass_production_dt * fraction_allocation_reproduction /
-    (pars.omega + pars.a_f3);
+  // Single source: scalar-templated kernel (#472 scope B, Phase F1-full).
+  return tf24_fecundity_dt(net_mass_production_dt, fraction_allocation_reproduction,
+                           pars.omega, pars.a_f3);
 }
 
 double TF24_Strategy::darea_leaf_dmass_live(double area_leaf) const {
@@ -508,7 +510,8 @@ double TF24_Strategy::darea_leaf_dmass_live(double area_leaf) const {
 }
 
 double TF24_Strategy::dheight_darea_leaf(double area_leaf) const {
-  return pars.a_l1 * pars.a_l2 * pow(area_leaf, pars.a_l2 - 1);
+  // Single source: scalar-templated kernel (#472 scope B, Phase F1-full).
+  return tf24_dheight_darea_leaf(pars.a_l1, pars.a_l2, area_leaf);
 }
 
 // Mass of leaf needed for new unit area leaf, d m_s / d a_l
@@ -635,11 +638,13 @@ double TF24_Strategy::mortality_dt(double productivity_area,
 }
 
 double TF24_Strategy::mortality_growth_independent_dt() const {
-  return pars.d_I;
+  // Single source: scalar-templated kernel (#472 scope B, Phase F1-full).
+  return tf24_mortality_growth_independent_dt(pars.d_I);
 }
 
 double TF24_Strategy::mortality_growth_dependent_dt(double productivity_area) const {
-  return pars.a_dG1 * exp(-pars.a_dG2 * productivity_area);
+  // Single source: scalar-templated kernel (#472 scope B, Phase F1-full).
+  return tf24_mortality_growth_dependent_dt(pars.a_dG1, pars.a_dG2, productivity_area);
 }
 
 // [eqn 20] Survival of seedlings during establishment
@@ -765,4 +770,84 @@ TF24_Strategy::ptr make_strategy_ptr(TF24_Strategy s) {
   s.prepare_strategy();
   return std::make_shared<TF24_Strategy>(s);
 }
+}
+
+// ---------------------------------------------------------------------------
+// CI-runnable AD validation entry points for the scalar-templated TF24
+// demographic rate kernel (#472 scope B, Phase F1-full). [[Rcpp::export]] free
+// functions compiled into plant.so, so the AD path is exercised on CI WITHOUT
+// on-the-fly Rcpp::sourceCpp (forward mode = header-only XAD, no reverse-mode
+// tape, no extra link/DLL-order dependency). Crown-centre assimilation (a single
+// leaf optimisation at the crown-centre light), so they match a crown-centre
+// strategy. The broader reverse-mode 27-trait sweep + the emergent SCM gradient
+// are in scripts/ad_tf24_*.R. The leaf optimisation (profit*) is the real leaf
+// submodel; its trait sensitivity (Leaf::dprofit_dvcmax25) is injected first-order
+// into an active `net` (the #539 IFT / FF16 height_0 injection pattern), then the
+// kernel carries it through to the fecundity rate.
+
+// Run the real crown-centre leaf optimisation and return net production at the
+// operating point (height, crown light light_E), with vcmax_25 overridden. The
+// shared setup for the faithfulness check and the FD reference.
+static double tf24_net_at(double height, double light_E, double vcmax_25) {
+  plant::TF24_Strategy s;
+  s.control.shading_model = "crown-centre";
+  s.pars.vcmax_25 = vcmax_25;
+  s.prepare_strategy();
+  plant::TF24_Environment env; env.set_fixed_environment(light_E, 1e4);
+  return s.net_mass_production_dt(env, height, s.area_leaf(height), 1.0 / height);
+}
+
+// fecundity_dt from the kernel rate fill, given the live crown-centre net (vcmax
+// overridden) -- the single source the live compute_rates delegates to, and the
+// finite-difference reference the test differentiates in R.
+// [[Rcpp::export]]
+double tf24_crown_centre_fecundity_dt(double height, double light_E, double vcmax_25) {
+  plant::TF24_Strategy s;
+  s.control.shading_model = "crown-centre";
+  s.control.GSS_tol_abs = 1e-9;     // tight collar optimum (matches the grad fn)
+  s.pars.vcmax_25 = vcmax_25;
+  s.prepare_strategy();
+  plant::TF24_Environment env; env.set_fixed_environment(light_E, 1e4);
+  const double al  = s.area_leaf(height);
+  const double net = s.net_mass_production_dt(env, height, al, 1.0 / height);
+  plant::TF24ProdPars<double> p = s.prod_pars();
+  return plant::tf24_compute_rates_from_net<double>(p, height, al, net, true).fecundity_dt;
+}
+
+// Exact d(fecundity_dt)/d(vcmax_25) at a crown-centre operating point, via
+// forward-mode AD over tf24_compute_rates_from_net. vcmax_25 enters net ONLY
+// through the optimised leaf profit, so its net sensitivity
+//   d(net)/d(vcmax_25) = a_bio * a_y * area_leaf * conv * dprofit_dvcmax25(opt)
+// is injected first-order into an active `net`; the kernel then carries it through
+// the reproductive-allocation chain to d(fecundity_dt)/d(vcmax_25).
+// [[Rcpp::export]]
+double tf24_fecundity_dt_grad_vcmax(double height, double light_E) {
+  using AD = xad::fwd<double>::active_type;
+  plant::TF24_Strategy s;
+  s.control.shading_model = "crown-centre";
+  s.control.GSS_tol_abs = 1e-9;     // tight collar optimum -> envelope theorem exact
+  s.prepare_strategy();
+  plant::TF24_Environment env; env.set_fixed_environment(light_E, 1e4);
+  const double al  = s.area_leaf(height);
+  const double net = s.net_mass_production_dt(env, height, al, 1.0 / height);
+  const double opt = -s.leaf.root_collar_psi_;   // optimised collar potential
+  const double conv = plant::tf24_assimilation_conv;
+  const double dnet_dvcmax =
+    s.pars.a_bio * s.pars.a_y * al * conv * s.leaf.dprofit_dvcmax25(opt);
+
+  // Active net: value = live net, derivative = the injected leaf sensitivity.
+  AD net_ad = net;
+  xad::derivative(net_ad) = dnet_dvcmax;
+
+  plant::TF24ProdPars<AD> p;
+  const plant::TF24ProdPars<double> pd = s.prod_pars();
+  p.lma=pd.lma; p.rho=pd.rho; p.theta=pd.theta; p.a_b1=pd.a_b1; p.a_r1=pd.a_r1;
+  p.eta_c=pd.eta_c; p.r_l=pd.r_l; p.r_s=pd.r_s; p.r_b=pd.r_b; p.r_r=pd.r_r;
+  p.k_l=pd.k_l; p.k_b=pd.k_b; p.k_s=pd.k_s; p.k_r=pd.k_r; p.a_bio=pd.a_bio; p.a_y=pd.a_y;
+  p.a_l1=pd.a_l1; p.a_l2=pd.a_l2; p.a_f1=pd.a_f1; p.a_f2=pd.a_f2; p.hmat=pd.hmat;
+  p.omega=pd.omega; p.a_f3=pd.a_f3; p.d_I=pd.d_I; p.a_dG1=pd.a_dG1; p.a_dG2=pd.a_dG2;
+
+  AD fec = plant::tf24_compute_rates_from_net<AD>(p, AD(height), AD(al), net_ad, true)
+             .fecundity_dt;
+  return xad::derivative(fec);
 }

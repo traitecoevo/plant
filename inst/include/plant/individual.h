@@ -11,7 +11,13 @@
 
 namespace plant {
 
-template <typename T, typename E> class Individual {
+// Templated on the scalar type S (#472 scope B / #537, Milestone C) so a plant's
+// ODE state can be an AD active type for reverse-mode gradients. S defaults to
+// double, so every existing `Individual<T,E>` is unchanged and bit-identical;
+// only AD paths instantiate Individual<T,E,ad_type> (and then only the members
+// they use are compiled -- the double-only ODE-iterator methods stay uncompiled
+// for the AD instantiation until the ODE-state boundary is wired).
+template <typename T, typename E, typename S = double> class Individual {
 public:
   typedef T strategy_type;
   typedef E environment_type;
@@ -32,39 +38,39 @@ public:
   }
   
   // useage: state(HEIGHT_INDEX)
-  double state(std::string name) const {
+  S state(std::string name) const {
     return vars.state(strategy->state_index.at(name));
   }
-  double state(int i) const { return vars.state(i); }
-  
+  S state(int i) const { return vars.state(i); }
+
   // useage:_rate("area_heartwood")
-  double rate(std::string name) const {
+  S rate(std::string name) const {
     return vars.rate(strategy->state_index.at(name));
   }
-  double rate(int i) const { return vars.rate(i); }
+  S rate(int i) const { return vars.rate(i); }
 
   // useage: set_state("height", 2.0)
-  void set_state(std::string name, double v) {
+  void set_state(std::string name, S v) {
     int i = strategy->state_index.at(name);
     vars.set_state(i, v);
     strategy->update_dependent_aux(i, vars);
   }
-  void set_state(int i, double v) {
+  void set_state(int i, S v) {
     vars.set_state(i, v);
     strategy->update_dependent_aux(i, vars);
   }
 
   // aux vars by name and index
-  double aux(std::string name) const {
+  S aux(std::string name) const {
     return vars.aux(strategy->aux_index.at(name));
   }
-  double aux(int i) const { return vars.aux(i); }
+  S aux(int i) const { return vars.aux(i); }
 
   // set # consumable resources based on env. variables
   void resize_consumption_rates(int i) {
     vars.resize_consumption_rates(i);
   }
-  double consumption_rate(int i) const { return vars.consumption_rate(i); }
+  S consumption_rate(int i) const { return vars.consumption_rate(i); }
 
   double compute_competition(double z) const {
     return strategy->compute_competition(z, vars);
@@ -135,6 +141,14 @@ public:
   
   void reset_mortality() { set_state("mortality", 0.0); }
 
+  // Exact d(growth rate)/d(height) at the current height, delegated to the
+  // strategy's AD gradient (#537 A1); returns NA if the strategy provides none,
+  // so Node::growth_rate_gradient can fall back to finite differences.
+  double growth_rate_gradient_exact(const environment_type& environment) const {
+    return strategy->growth_rate_gradient_height_ad(vars.state(HEIGHT_INDEX),
+                                                    environment);
+  }
+
   double growth_rate_given_height(double height, const environment_type& environment) {
     // Called repeatedly from the finite-difference gradient (Node::
     // growth_rate_gradient), so address height by integer slot rather than the
@@ -172,12 +186,12 @@ public:
 
   // ! External R code depends on knowing r internals for like growing plant to
   // ! height or something
-  Internals r_internals() const { return vars; }
+  basic_internals<S> r_internals() const { return vars; }
   const Control &control() const { return strategy->control; }
 
 private:
   strategy_type_ptr strategy;
-  Internals vars;
+  basic_internals<S> vars;
 };
 
 template <typename T, typename E> Individual<T,E> make_individual(T s) {

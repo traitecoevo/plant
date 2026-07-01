@@ -26,6 +26,11 @@ dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 message("Loading plant from existing compiled DLL")
 pkgload::load_all(compile = FALSE, debug = FALSE, quiet = TRUE)
 
+# Deterministic gradient stands, shared with the regression fixture.
+if (file.exists("tests/testthat/helper-gradient-fixture.R")) {
+  source("tests/testthat/helper-gradient-fixture.R")
+}
+
 strategy_constructors <- list(
   FF16 = FF16_Strategy,
   TF24 = TF24_Strategy,
@@ -51,6 +56,29 @@ profile_cases <- list(
     run_scm(p, refine_schedule = TRUE)
     invisible(NULL)
   }
+)
+
+# Gradient (AD) profile cases (#472 scope B, refactor+optimize phase). Opt-in via
+# PLANT_PROFILE_GRADIENT=1 since they are independent of the `strategies` args
+# (each case names its own strategy). The cached SCM is built ONCE outside the
+# timed repeat (its `prep`), so the profile captures the harvest + C++ replay/sweep,
+# not the resident solve. Reuses the fixture helper's deterministic stands so the
+# profiled scenario == the regression fixture. The native /usr/bin/sample section is
+# where the real signal is (the impls are C++; Rprof alone just shows `.Call`).
+gradient_profile_cases <- list(
+  grad_ff16_frozen = list(
+    prep = function() .gf_ff16_basic(),
+    run = function(scm) stand_gradient(scm, metrics = c("offspring_production", "LAI",
+            "biomass", "size_moment"), traits = ff16_default_traits())),
+  grad_ff16_resident = list(
+    prep = function() .gf_ff16_resident(),
+    run = function(scm) stand_gradient(scm, metrics = c("LAI", "biomass", "size_moment"),
+            traits = c("a_p1", "lma", "a_l1"), feedback = "resident")),
+  grad_tf24f_census = list(
+    prep = function() .gf_tf24f(),
+    run = function(scm) tf24f_census_gradient_ad(scm,
+            metrics = c("LAI", "biomass", "size_moment"),
+            traits = c("vcmax_25", "lma", "a_l1", "K_s")))
 )
 
 write_benchmark_summary <- function(x, path) {
@@ -157,6 +185,26 @@ for (strategy in strategies) {
     )
     Rprof(NULL)
 
+    write_rprof_summary(profile_file, prefix)
+  }
+}
+
+if (nzchar(Sys.getenv("PLANT_PROFILE_GRADIENT", "")) &&
+    exists(".gf_ff16_basic")) {
+  for (case_name in names(gradient_profile_cases)) {
+    gcase <- gradient_profile_cases[[case_name]]
+    message("Profiling gradient / ", case_name)
+    scm <- gcase$prep()                      # build the cached SCM once (untimed)
+    prefix <- file.path(out_dir, paste0("grad-", case_name))
+    profile_file <- paste0(prefix, ".Rprof")
+    sample_file <- paste0(prefix, ".sample.txt")
+    gc()
+    Rprof(profile_file, interval = rprof_interval, memory.profiling = TRUE)
+    run_with_optional_sample(
+      for (i in seq_len(profile_repeats)) gcase$run(scm),
+      sample_file
+    )
+    Rprof(NULL)
     write_rprof_summary(profile_file, prefix)
   }
 }
