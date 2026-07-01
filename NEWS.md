@@ -184,6 +184,13 @@ were not previously recorded here:
 
 ### Minor changes & bug fixes
 
+* `run_scm()` now fails with an actionable message when the SCM size-density
+  (characteristic) equations run away under extreme forcing (e.g. severe
+  seasonal drought in TF24): a cohort density overflowing to `+Inf`, or the
+  density-weighted resource uptake driving a soil-water state non-finite. The
+  guard fires each ODE step, before the non-finite value propagates into the
+  competition integral or physiology, replacing the previous opaque
+  `Detected non-finite contribution` / `non-finite psi_soil` errors (#550).
 * `Node` now records its introduction time and patch-age density at the moment
   it is introduced, so reproduction and integration-error calculations no longer
   re-derive these from the node schedule / disturbance regime after the run.

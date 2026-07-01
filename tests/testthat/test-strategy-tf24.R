@@ -330,3 +330,27 @@ results$env$soil_moist_cumulative_flux %>%
 expect_true(1 - (stem_side/root_side$root_side[-1])[length(stem_side)] < 5e-2)
 })
 
+test_that("SCM cohort-density blow-up fails gracefully (#550)", {
+  # Extreme seasonal drought drives the SCM size-density (characteristic)
+  # equations to run away: a cohort density overflows to +Inf, or the
+  # density-weighted resource uptake drives a soil-water state non-finite.
+  # Either way run_scm must abort with an actionable message naming the SCM
+  # size-density equations / environment state, not an opaque downstream error
+  # ("Detected non-finite contribution", "non-finite psi_soil"). This blows up
+  # early in the run, so it is cheap despite being a full TF24 run.
+  mpl <- 30
+  p0 <- scm_base_parameters("TF24", "TF24_Env")
+  p0$max_patch_lifetime <- mpl
+  p1 <- add_strategies(p0, trait_matrix(0.07, "lma"))
+
+  env <- Environment("TF24")
+  env$set_soil_number_of_depths(5)
+  env$set_soil_water_state(rep(0.2, 5))
+  x <- seq(0, mpl, length.out = mpl * 6)
+  y <- 0.4 * sin(2 * pi * x) + 0.5   # rainfall sweeps [0.1, 0.9]
+  env$extrinsic_drivers_set_variable("rainfall", x = x, y = y)
+
+  expect_error(run_scm(p1, env),
+               "SCM size-density|Non-finite environment state")
+})
+

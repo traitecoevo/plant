@@ -62,6 +62,9 @@ public:
 
   // Unfortunate, but need a get_ here because of name shadowing...
   double get_log_density() const {return log_density;}
+  // exp(log_density); can overflow to +Inf when the SCM density equation runs
+  // away (see Patch::check_finite_node_densities).
+  double get_density() const {return density;}
   void set_log_density(double x) {
     log_density = x;
     density = exp(log_density);

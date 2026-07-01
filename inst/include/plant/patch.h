@@ -171,6 +171,12 @@ private:
   // Guard against initial conditions whose per-node log-density rates are so
   // large they would drive densities to non-finite values within a few steps.
   void check_initial_density_rates() const;
+  // Guard against the SCM equations running away mid-integration: a cohort
+  // density (exp(log_density)) or an environment state (e.g. TF24 soil water)
+  // going non-finite. Called each derivs evaluation, before the non-finite
+  // value can propagate into competition, resource uptake, or physiology and
+  // surface as an opaque downstream error.
+  void check_finite_ode_state() const;
 
   parameters_type parameters;
 
@@ -341,6 +347,75 @@ void Patch<T,E>::check_initial_density_rates() const {
       util::stop("Rates of initial node densities exceed ~1e43 and will likely "
                  "produce non-finite densities; provide more plausible initial "
                  "conditions (smaller sizes and/or lower densities).");
+    }
+  }
+}
+
+template <typename T, typename E>
+void Patch<T,E>::check_finite_ode_state() const {
+  // The two failure modes of the same runaway (issue #550), caught here so they
+  // fail with an actionable message instead of an opaque downstream one:
+  //
+  //  (1) A cohort density overflowing to +Inf, which then poisons the
+  //      competition integral ("Detected non-finite contribution").
+  //  (2) The coupled environment state (TF24 soil water) going non-finite,
+  //      because the density-weighted resource uptake diverges as density
+  //      grows; the RK stage arithmetic can produce a non-finite soil state a
+  //      step before density itself overflows, surfacing as a non-finite soil
+  //      potential ("non-finite psi_soil").
+  //
+  // Density ceiling (~1e43): the same "already unphysical, will drive
+  // non-finite values" bar used by check_initial_density_rates. Catching the
+  // runaway at this magnitude -- before density reaches a literal +Inf --
+  // widens coverage of mode (1) and heads off some instances of mode (2).
+  const double log_density_ceiling = 50.0;
+  for (size_t i = 0; i < species.size(); ++i) {
+    for (auto it = species[i].node_begin(); it != species[i].node_end(); ++it) {
+      if (!util::is_finite(it->get_density()) ||
+          it->get_log_density() > log_density_ceiling) {
+        // The size-density characteristic equation integrates
+        //   d(log density)/dt = -d(growth)/d(height) - mortality
+        // (see Node::compute_rates). When growth rate falls steeply with size
+        // -- e.g. a cohort hitting an extreme drought trough -- the gradient
+        // term can spike sharply positive, so log_density integrates upward
+        // until density = exp(log_density) overflows to +Inf. The individual's
+        // physiology (height, leaf area, per-individual competition) stays
+        // finite; it is the cohort *density* that blows up. Smaller ODE steps
+        // do not help (the divergence is in the equations, not the stepper), so
+        // fail here with an actionable message rather than letting the +Inf
+        // propagate into the competition integral or density-weighted resource
+        // uptake, where it surfaces as an opaque downstream error.
+        util::stop("Non-finite cohort density in the SCM size-density "
+                   "(characteristic) equations: species " +
+                   util::to_string(i + 1) + " has a node with density=" +
+                   util::to_string(it->get_density()) + " (log_density=" +
+                   util::to_string(it->get_log_density()) + ", height=" +
+                   util::to_string(it->height()) + ") at time=" +
+                   util::to_string(environment.time) +
+                   ". The density derivative -d(growth)/d(height) - mortality "
+                   "can grow without bound when growth rate falls steeply with "
+                   "size under rapidly changing or extreme environmental "
+                   "forcing, driving density to overflow. Try a shorter "
+                   "max_patch_lifetime or less extreme environmental drivers.");
+      }
+    }
+  }
+
+  // Mode (2): a non-finite environment state. `vars.states` is generic across
+  // environments (size 0 for light-only environments like FF16, so this loop is
+  // a no-op there and cannot false-positive). For TF24 these are the per-depth
+  // soil-water states.
+  const Internals& env_vars = environment.vars;
+  for (size_t i = 0; i < env_vars.state_size; ++i) {
+    if (!util::is_finite(env_vars.states[i])) {
+      util::stop("Non-finite environment state (index " + util::to_string(i) +
+                 " = " + util::to_string(env_vars.states[i]) + ") at time=" +
+                 util::to_string(environment.time) +
+                 ". For TF24 this is a soil-water state driven non-finite by the "
+                 "density-weighted resource uptake as a cohort density runs away "
+                 "in the SCM size-density equations (the same failure that "
+                 "otherwise overflows density to +Inf; see #550). Try a shorter "
+                 "max_patch_lifetime or less extreme environmental drivers.");
     }
   }
 }
@@ -611,6 +686,11 @@ odelia::ode::const_iterator Patch<T,E>::set_ode_state(odelia::ode::const_iterato
 
   // update time
   environment.time = time;
+
+  // Catch a runaway size-density equation (non-finite cohort density or
+  // environment state) before it feeds into competition, resource uptake, or
+  // physiology below and surfaces as an opaque downstream error (issue #550).
+  check_finite_ode_state();
 
   // Pre-compute environment, as shaped by residents
   compute_environment(true);
