@@ -42,8 +42,8 @@ test_that("Defaults", {
     psi_crit = (1.85 /((-log(1 - 50.0 / 100.0))^(1 / (log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16))))))*log(1/0.05)^(1/(log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16)))),
     beta1 = 20000,
     beta2 = 1.5,
+    g1_TF24 = 7.5,
     jmax_25 = 157.44,
-    hk_s = 4,
     a = 0.3,
     curv_fact_elec_trans = 0.7,
     curv_fact_colim = 0.99,
@@ -164,9 +164,11 @@ test_that("TF24_Strategy hyper-parameterisation", {
 
   # wood density
   rho <- c(200,300)
-  ret <- TF24_hyperpar(trait_matrix(rho, "rho"), s)
-  expect_true(all(c("rho", "r_s", "r_b") %in% colnames(ret)))
+  tf24_hyperpar_rho <- make_TF24_hyperpar(B_hks2 = 1)
+  ret <- tf24_hyperpar_rho(trait_matrix(rho, "rho"), s)
+  expect_true(all(c("rho", "g1_TF24", "r_s", "r_b") %in% colnames(ret)))
   expect_equal(ret[, "rho"], rho)
+  expect_equal(ret[, "g1_TF24"], 7.5 * (rho / 608)^(-1), tolerance = 1e-8)
   expect_equal(ret[, "r_s"], c(20.06000,13.37333), tolerance=1e-5)
   expect_equal(ret[, "r_b"], 2*ret[, "r_s"])
 

@@ -14,7 +14,6 @@ Leaf(
   root_psi_crit,
   beta2,
   jmax_25,
-  hk_s,
   a,
   curv_fact_elec_trans,
   curv_fact_colim,
@@ -45,8 +44,6 @@ Leaf(
 \item{beta2}{exponent for effect of hydraulic risk (unitless)}
 
 \item{jmax_25}{maximum rate of electron transport (umol m^-2 s^-1)}
-
-\item{hk_s}{maximum hydraulic-dependent sapwood turnover rate yr ^ -1}
 
 \item{a}{quantum yield of photosynthetic electron transport (mol mol^-1)}
 

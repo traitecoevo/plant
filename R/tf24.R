@@ -86,21 +86,23 @@ TF24_generate_stand_report <- function(results,
 ##' @param rho_0 Central (mean) value for wood density [kg /m3]
 ##' @param B_dI1 Rate of instantaneous mortality at rho_0 [/yr]
 ##' @param B_dI2 Scaling slope for wood density in intrinsic mortality [dimensionless]
+##' @param B_hks1 Intercept for the g1_TF24 ~ rho relationship at rho_0 [dimensionless]
+##' @param B_hks2 Scaling slope for rho in the g1_TF24 relationship [dimensionless]
 ##' @param B_ks1 Rate of sapwood turnover at rho_0 [/yr]
 ##' @param B_ks2 Scaling slope for rho in sapwood turnover [dimensionless]
 ##' @param B_rs1 CO_2 respiration per unit sapwood volume [mol / yr / m3 ]
 ##' @param B_rb1 CO_2 respiration per unit sapwood volume [mol / yr / m3 ]
 ##' @param B_f1 Cost of seed accessories per unit seed mass [dimensionless]
-##' @param B_lf1 Beta coefficient for empirical relationship between narea ~ lma [g/m2] (Dong et al. 2022)
-##' @param B_lf2 Beta coefficient for empirical relationship between narea ~ vcmax [umol / m2 / s] (Dong et al. 2022)
-##' @param B_lf4 CO_2 respiration per unit leaf nitrogen [mol / yr / kg]
+##' @param B_lf1 Beta coefficient for empirical relationship between narea_ls ~ lma [g/m2] (Dong et al. 2022)
+##' @param B_lf2 Beta coefficient for empirical relationship between narea_lp ~ vcmax [g/m2] (Dong et al. 2022)
+##' @param B_lf3 Beta coefficient for empirical relationship between narea_lp ~ jmax [umol / m2 / s] (Dong et al. 2022)
+##' @param B_lf4 CO_2 respiration per unit structural leaf nitrogen [mol / yr / kg]
+##' @param B_lf5 CO_2 respiration per unit photosynthetic leaf nitrogen [mol / yr / kg]
 ##' @param k_I light extinction coefficient [dimensionless]
 ##' @param a_lf1 intercept for empirical relationship between narea and vcmax, lma (Dong et al. 2022)
-##' @param B_Hv1 p50 at K_s_0 [-MPa]
+##' @param B_Hv1 p50 at K_s = 0 [-MPa]
 ##' @param B_Hv2 Scaling slope for K_s in p50 [dimensionless]
 ##' @param latitude degrees from equator (0-90), used in solar model [deg]
-##' @param K_s_0 Central (mean) value for maximum sapwood conductivity [kg /m2 / s / MPA]
-##' @importFrom stats coef nls
 ##' @export
 ##' @rdname make_FF16_hyperpar
 make_TF24_hyperpar <- function(lma_0=0.1978791,
@@ -109,9 +111,9 @@ make_TF24_hyperpar <- function(lma_0=0.1978791,
                                 rho_0=608.0,
                                 B_dI1=0.01,
                                 B_dI2=0.0,
+                                B_hks1=7.5,
+                                B_hks2=0.0,
                                 B_ks1=0.2,
-                                B_hks1 = 25,
-                                B_hks2 = 0.0,
                                 B_ks2=0.0,
                                 B_rs1=4012.0,
                                 B_rb1=2.0*4012.0,
@@ -127,8 +129,7 @@ make_TF24_hyperpar <- function(lma_0=0.1978791,
                                 B_Hv1 = 0.4607063,
                                 B_Hv2 = -0.2,
                                 B_c1 = 2.04,
-                                B_c2 = 0,
-                                K_s_0 = 2) {
+                                B_c2 = 0) {
 
 
   assert_scalar <- function(x, name=deparse(substitute(x))) {
@@ -142,9 +143,9 @@ make_TF24_hyperpar <- function(lma_0=0.1978791,
   assert_scalar(rho_0)
   assert_scalar(B_dI1)
   assert_scalar(B_dI2)
-  assert_scalar(B_ks1)
   assert_scalar(B_hks1)
   assert_scalar(B_hks2)
+  assert_scalar(B_ks1)
   assert_scalar(B_ks2)
   assert_scalar(B_rs1)
   assert_scalar(B_rb1)
@@ -159,7 +160,6 @@ make_TF24_hyperpar <- function(lma_0=0.1978791,
   assert_scalar(B_Hv2)
   assert_scalar(B_c1)
   assert_scalar(B_c2)
-  assert_scalar(K_s_0)
   assert_scalar(k_I)
   assert_scalar(latitude)
 
@@ -175,10 +175,6 @@ make_TF24_hyperpar <- function(lma_0=0.1978791,
     vcmax_25     <- with_default("vcmax_25")
     jmax_25     <- with_default("jmax_25")
 
-    ## Light extinction coefficient: source from the strategy so the
-    ## assimilation integral below stays consistent with the canopy
-    ## model, rather than carrying a separate hard-coded default here.
-    k_I       <- s$pars$k_I
 
     ## lma / leaf turnover relationship:
     k_l   <- B_kl1 * (lma / lma_0) ^ (-B_kl2)
@@ -186,12 +182,13 @@ make_TF24_hyperpar <- function(lma_0=0.1978791,
     ## rho / mortality relationship:
     d_I  <- B_dI1 * (rho / rho_0) ^ (-B_dI2)
 
+    ## Reuse the legacy hk_s parameterisation to derive g1_TF24:
+    g1_TF24 <- B_hks1 * (rho / rho_0) ^ (-B_hks2)
+
     ## rho / wood turnover relationship:
     k_s  <- B_ks1 *  (rho / rho_0) ^ (-B_ks2)
 
-    ## rho / moisture-wood turnover relationship:
-    hk_s  <- B_hks1 *  (rho / rho_0) ^ (-B_hks2)
-
+    ## TODO: Convert the p50 ks function back to a mean centred function using K_s_0
 
     ## p_50 sapwood specific conductivity turnover:
     p_50 = 10^(B_Hv1 + B_Hv2*log10(K_s)) 
@@ -239,7 +236,7 @@ make_TF24_hyperpar <- function(lma_0=0.1978791,
     r_l <- r_ls + r_lp
 
     extra <- cbind(k_l,                 # lma
-                   d_I, k_s, r_s, r_b, hk_s,  # rho
+             d_I, g1_TF24, k_s, r_s, r_b,  # rho
                    a_f3,               # omega
                    r_l,nmass_l,        # lma, narea
                    c, p_50, b, psi_crit)  # K_s  

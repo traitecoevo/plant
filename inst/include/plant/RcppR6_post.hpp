@@ -1269,8 +1269,8 @@ template <> inline SEXP wrap(const plant::TF24_Pars& x) {
   ret["psi_crit"] = Rcpp::wrap(x.psi_crit);
   ret["beta1"] = Rcpp::wrap(x.beta1);
   ret["beta2"] = Rcpp::wrap(x.beta2);
+  ret["g1_TF24"] = Rcpp::wrap(x.g1_TF24);
   ret["jmax_25"] = Rcpp::wrap(x.jmax_25);
-  ret["hk_s"] = Rcpp::wrap(x.hk_s);
   ret["a"] = Rcpp::wrap(x.a);
   ret["curv_fact_elec_trans"] = Rcpp::wrap(x.curv_fact_elec_trans);
   ret["curv_fact_colim"] = Rcpp::wrap(x.curv_fact_colim);
@@ -1372,10 +1372,10 @@ template <> inline plant::TF24_Pars as(SEXP x) {
   ret.beta1 = Rcpp::as<double >(xl["beta1"]);
   // ret.beta2 = Rcpp::as<decltype(retbeta2) >(xl["beta2"]);
   ret.beta2 = Rcpp::as<double >(xl["beta2"]);
+  // ret.g1_TF24 = Rcpp::as<decltype(retg1_TF24) >(xl["g1_TF24"]);
+  ret.g1_TF24 = Rcpp::as<double >(xl["g1_TF24"]);
   // ret.jmax_25 = Rcpp::as<decltype(retjmax_25) >(xl["jmax_25"]);
   ret.jmax_25 = Rcpp::as<double >(xl["jmax_25"]);
-  // ret.hk_s = Rcpp::as<decltype(rethk_s) >(xl["hk_s"]);
-  ret.hk_s = Rcpp::as<double >(xl["hk_s"]);
   // ret.a = Rcpp::as<decltype(reta) >(xl["a"]);
   ret.a = Rcpp::as<double >(xl["a"]);
   // ret.curv_fact_elec_trans = Rcpp::as<decltype(retcurv_fact_elec_trans) >(xl["curv_fact_elec_trans"]);

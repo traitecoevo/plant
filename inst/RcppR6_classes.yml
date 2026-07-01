@@ -12,7 +12,6 @@ Leaf:
       @param root_psi_crit critical psi stem for roots (-MPa )
       @param beta2 exponent for effect of hydraulic risk (unitless)
       @param jmax_25  maximum rate of electron transport (umol m^-2 s^-1)
-      @param hk_s maximum hydraulic-dependent sapwood turnover rate yr ^ -1
       @param a quantum yield of photosynthetic electron transport (mol mol^-1)
       @param curv_fact_elec_trans curvature factor for the light response curve (unitless)
       @param curv_fact_colim curvature factor for the colimited photosythnthesis equatiom
@@ -35,7 +34,6 @@ Leaf:
       - root_psi_crit: double
       - beta2: double
       - jmax_25: double
-      - hk_s: double
       - a: double
       - curv_fact_elec_trans: double
       - curv_fact_colim: double     
@@ -1241,8 +1239,8 @@ TF24_Pars:
     - psi_crit: double
     - beta1: double
     - beta2: double
+    - g1_TF24: double
     - jmax_25: double
-    - hk_s: double
     - a: double
     - curv_fact_elec_trans: double
     - curv_fact_colim: double

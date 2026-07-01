@@ -35,19 +35,25 @@ make_TF24_hyperpar(
   rho_0 = 608,
   B_dI1 = 0.01,
   B_dI2 = 0,
+  B_hks1 = 7.5,
+  B_hks2 = 0,
   B_ks1 = 0.2,
   B_ks2 = 0,
   B_rs1 = 4012,
   B_rb1 = 2 * 4012,
   B_f1 = 3,
-  narea = 0.00187,
-  narea_0 = 0.00187,
-  B_lf1 = 5120.738 * 0.00187 * 24 * 3600/1e+06,
-  B_lf2 = 0.5,
-  B_lf3 = 0.04,
+  a_lf1 = 0.535,
+  B_lf1 = 0.009,
+  B_lf2 = 0.004,
+  B_lf3 = 8e-04,
   B_lf4 = 21000,
-  B_lf5 = 1,
-  latitude = 0
+  B_lf5 = 40000,
+  k_I = 0.5,
+  latitude = 0,
+  B_Hv1 = 0.4607063,
+  B_Hv2 = -0.2,
+  B_c1 = 2.04,
+  B_c2 = 0
 )
 
 make_TF24f_hyperpar(
@@ -57,19 +63,25 @@ make_TF24f_hyperpar(
   rho_0 = 608,
   B_dI1 = 0.01,
   B_dI2 = 0,
+  B_hks1 = 7.5,
+  B_hks2 = 0,
   B_ks1 = 0.2,
   B_ks2 = 0,
   B_rs1 = 4012,
   B_rb1 = 2 * 4012,
   B_f1 = 3,
-  narea = 0.00187,
-  narea_0 = 0.00187,
-  B_lf1 = 5120.738 * 0.00187 * 24 * 3600/1e+06,
-  B_lf2 = 0.5,
-  B_lf3 = 0.04,
+  a_lf1 = 0.535,
+  B_lf1 = 0.009,
+  B_lf2 = 0.004,
+  B_lf3 = 8e-04,
   B_lf4 = 21000,
-  B_lf5 = 1,
-  latitude = 0
+  B_lf5 = 40000,
+  k_I = 0.5,
+  latitude = 0,
+  B_Hv1 = 0.4607063,
+  B_Hv2 = -0.2,
+  B_c1 = 2.04,
+  B_c2 = 0
 )
 }
 \arguments{
@@ -99,17 +111,29 @@ make_TF24f_hyperpar(
 
 \item{narea_0}{central (mean) value for nitrogen per leaf area [kg / m2]}
 
-\item{B_lf1}{Potential CO_2 photosynthesis at average leaf nitrogen [mol / d / m2]}
+\item{B_lf1}{Beta coefficient for empirical relationship between narea_ls ~ lma [g/m2] (Dong et al. 2022)}
 
-\item{B_lf2}{Curvature of leaf photosynthetic light response curve [dimensionless]}
+\item{B_lf2}{Beta coefficient for empirical relationship between narea_lp ~ vcmax [g/m2] (Dong et al. 2022)}
 
-\item{B_lf3}{Quantum yield of leaf photosynthetic light response curve [dimensionless]}
+\item{B_lf3}{Beta coefficient for empirical relationship between narea_lp ~ jmax [umol / m2 / s] (Dong et al. 2022)}
 
-\item{B_lf4}{CO_2 respiration per unit leaf nitrogen [mol / yr / kg]}
+\item{B_lf4}{CO_2 respiration per unit structural leaf nitrogen [mol / yr / kg]}
 
-\item{B_lf5}{Scaling exponent for leaf nitrogen in maximum leaf photosynthesis [dimensionless]}
+\item{B_lf5}{CO_2 respiration per unit photosynthetic leaf nitrogen [mol / yr / kg]}
 
 \item{latitude}{degrees from equator (0-90), used in solar model [deg]}
+
+\item{B_hks1}{Intercept for the g1_TF24 ~ rho relationship at rho_0 [dimensionless]}
+
+\item{B_hks2}{Scaling slope for rho in the g1_TF24 relationship [dimensionless]}
+
+\item{a_lf1}{intercept for empirical relationship between narea and vcmax, lma (Dong et al. 2022)}
+
+\item{k_I}{light extinction coefficient [dimensionless]}
+
+\item{B_Hv1}{p50 at K_s = 0 [-MPa]}
+
+\item{B_Hv2}{Scaling slope for K_s in p50 [dimensionless]}
 }
 \description{
 Hyperparameters for FF16 physiological model
