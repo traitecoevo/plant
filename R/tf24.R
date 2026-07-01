@@ -100,7 +100,7 @@ TF24_generate_stand_report <- function(results,
 ##' @param B_lf5 CO_2 respiration per unit photosynthetic leaf nitrogen [mol / yr / kg]
 ##' @param k_I light extinction coefficient [dimensionless]
 ##' @param a_lf1 intercept for empirical relationship between narea and vcmax, lma (Dong et al. 2022)
-##' @param B_Hv1 p50 at K_s = 0 [-MPa]
+##' @param B_Hv1 p50 at K_s = 1 [-MPa]
 ##' @param B_Hv2 Scaling slope for K_s in p50 [dimensionless]
 ##' @param latitude degrees from equator (0-90), used in solar model [deg]
 ##' @export
