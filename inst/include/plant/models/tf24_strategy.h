@@ -51,8 +51,22 @@ struct TF24_Pars {
   double S_D    = 0.25;           // Probability of survival during dispersal
   double a_d0   = 0.1;            // Parameter for seedling survival
   double d_I    = 0.01;           // Baseline intrinsic mortality [/yr]
-  double a_dG1  = 5.5;            // Baseline growth-related mortality [/yr]
-  double a_dG2  = 20.0;           // Risk coefficient for dry mass production
+  // a_dG1 / a_dG2 now shape the *storage-dependent* growth mortality (#517):
+  //   mortality_storage_dependent_dt(r) = a_dG1 * exp(-a_dG2 * r),  r = S/S_max.
+  // Previously these fed the instantaneous productivity mortality
+  // a_dG1*exp(-a_dG2*productivity_area), which overflowed to ~1e32 under deep
+  // carbon deficit (the #550 blow-up). Buffering through the NSC pool bounds the
+  // argument to r in [0,1], so this term is now bounded in [a_dG1*e^-a_dG2, a_dG1].
+  double a_dG1  = 5.5;            // Max growth-related (low-reserve) mortality [/yr]
+  double a_dG2  = 20.0;           // Sensitivity of mortality to relative reserves
+  // * NSC storage pool (#517) -- buffers growth & mortality against short-term
+  //   productivity swings. See Stefaniak et al. 2026 (plantNSC) for the design.
+  //   Carbon first charges storage; growth/reproduction are mobilised from it,
+  //   but gated so growth only proceeds when reserves are ample (a plant should
+  //   not grow down its stores). Reserves-based mortality rises as they deplete.
+  double a_st1  = 0.10;           // Storage capacity per unit sapwood mass [kg NSC / kg]
+  double a_st2  = 0.1;            // Reserve fraction at which growth is half-on [0-1]
+  double a_st3  = 0.8;            // Initial storage at birth [fraction of capacity]
   // * Light capture
   double k_I = 0.5;
   // * Leaf hydraulic / photosynthesis traits (default Eucalyptus saligna)
@@ -98,7 +112,7 @@ public:
   // Overrides ----------------------------------------------
 
   // update this when the length of state_names changes
-  static size_t state_size () { return 5; }
+  static size_t state_size () { return 6; }
   // update this when the length of aux_names changes
   size_t aux_size () { return aux_names().size(); }
 
@@ -108,7 +122,8 @@ public:
       "mortality",
       "fecundity",
       "area_heartwood",
-      "mass_heartwood"
+      "mass_heartwood",
+      "storage"
       });
   }
 
@@ -282,9 +297,15 @@ public:
   double height_given_mass_leaf(double mass_leaf_) const;
 
 
-  double mortality_dt(double productivity_area, double cumulative_mortality) const;
+  double mortality_dt(double relative_reserves, double cumulative_mortality) const;
   double mortality_growth_independent_dt()const ;
-  double mortality_growth_dependent_dt(double productivity_area) const;
+  // Storage-dependent growth mortality (#517): rises smoothly as relative
+  // reserves r = S/S_max deplete, bounded in [a_dG1*e^-a_dG2, a_dG1].
+  double mortality_storage_dependent_dt(double relative_reserves) const;
+  // NSC storage capacity S_max = a_st1 * mass_sapwood [kg NSC].
+  double storage_capacity(double area_leaf, double height) const;
+  // Seed the storage state for a newly germinated individual (#517).
+  void set_initial_states(const TF24_Environment& environment, Internals& vars);
   // [eqn 20] Survival of seedlings during establishment
   double establishment_probability(const TF24_Environment& environment);
 
@@ -342,6 +363,13 @@ public:
   double root_b = 3.898245;
   double root_psi_crit = root_b*std::pow(log(1/0.05),1/root_c); // derived from root_b and root_c
 
+  // Width of the smooth reserve gate G(r) on growth (#517); small relative to
+  // [0,1] so the switch about the growth threshold a_st2 is fairly sharp but
+  // differentiable. storage_prod_eps smooths the positive-part of net production
+  // (replacing the old hard net>0 growth cutoff) for AD-readiness.
+  double storage_gate_width = 0.1;
+  double storage_prod_eps   = 1e-4;
+
   // Solver tolerances and other constants not currently exposed to R
   double newton_tol_abs = 0.001;
   double GSS_tol_abs = 1e-3;
@@ -368,6 +396,7 @@ public:
   int aux_idx_area_sapwood = -1;       // only present when collect_all_auxiliary
   int state_idx_area_heartwood = -1;
   int state_idx_mass_heartwood = -1;
+  int state_idx_storage        = -1;
 
   // For integrating functions with using Gauss-Kronrod quadrature
   quadrature::QK function_integrator;

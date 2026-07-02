@@ -75,6 +75,7 @@ void TF24_Strategy::refresh_indices () {
   aux_idx_area_sapwood = aux_index.count("area_sapwood") ? aux_index.at("area_sapwood") : -1;
   state_idx_area_heartwood      = state_index.at("area_heartwood");
   state_idx_mass_heartwood      = state_index.at("mass_heartwood");
+  state_idx_storage             = state_index.at("storage");
 }
 
 // [eqn 2] area_leaf (inverse of [eqn 3])
@@ -183,34 +184,72 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
     vars.set_consumption_rate(i, evapotranspiration_dt(area_leaf_, i)*60*60*12*365/1000*kg_per_mol_h2o);
   }
 
-  if (net_mass_production_dt_ > 0) {
+  // --- NSC storage pool (#517) ---------------------------------------------
+  // A storage pool buffers demography against short-term productivity swings:
+  // growth is gated on having ample reserves, and mortality reads the buffered
+  // relative reserves rather than instantaneous net production -- so a trough
+  // draws reserves down and death is gradual, instead of the growth cutoff and
+  // ~1e32 mortality spike that caused the #550 blow-up.
+  const double S     = std::max(vars.state(state_idx_storage), 0.0);
+  const double S_max = storage_capacity(area_leaf_, height);
+  const double r     = S_max > 0.0 ? std::min(S / S_max, 1.0) : 0.0;
+  // Reserve-gated growth (#517), following Daniel's intuition that a plant
+  // should not grow unless it has ample carbon in storage. Growth and
+  // reproduction proceed at the *production* rate, but scaled by a smooth gate
+  // G(r) that is ~0 at low relative reserves and ~1 near capacity (logistic
+  // centred on the growth threshold a_st2). Carbon not spent on growth refills
+  // storage (dS/dt below), so: full reserves -> grow at production rate (healthy
+  // dynamics preserved); low reserves -> redirect carbon to refill, growth
+  // pauses; drought (net<0) -> reserves drain, growth halts and only resumes
+  // once they refill (buffered growth AND mortality). Note growth is gated at
+  // the production rate rather than metered out of the pool as a_st2*S: with
+  // sapwood-scaled capacity, storage is tiny relative to seedling productivity,
+  // so a discharge-rate limit would choke establishment.
+  const double G = 1.0 / (1.0 + std::exp(-(r - pars.a_st2) / storage_gate_width));
+  // Smooth positive part of net production (replaces the old hard net>0 cutoff).
+  const double P = net_mass_production_dt_;
+  const double Ppos =
+    0.5 * (P + std::sqrt(P * P + storage_prod_eps * storage_prod_eps));
+  const double growth_flux = Ppos * G;
 
-    const double fraction_allocation_reproduction_ = fraction_allocation_reproduction(height);
-    const double darea_leaf_dmass_live_ = darea_leaf_dmass_live(area_leaf_);
-    const double fraction_allocation_growth_ = fraction_allocation_growth(height);
-    const double area_leaf_dt = net_mass_production_dt_ * fraction_allocation_growth_ * darea_leaf_dmass_live_;
+  const double fraction_allocation_reproduction_ = fraction_allocation_reproduction(height);
+  const double darea_leaf_dmass_live_ = darea_leaf_dmass_live(area_leaf_);
+  const double fraction_allocation_growth_ = fraction_allocation_growth(height);
+  const double area_leaf_dt = growth_flux * fraction_allocation_growth_ * darea_leaf_dmass_live_;
 
-    vars.set_rate(HEIGHT_INDEX, dheight_darea_leaf(area_leaf_) * area_leaf_dt);
-    vars.set_rate(FECUNDITY_INDEX,
-      fecundity_dt(net_mass_production_dt_, fraction_allocation_reproduction_));
+  vars.set_rate(HEIGHT_INDEX, dheight_darea_leaf(area_leaf_) * area_leaf_dt);
+  vars.set_rate(FECUNDITY_INDEX,
+    fecundity_dt(growth_flux, fraction_allocation_reproduction_));
 
-    vars.set_rate(state_idx_area_heartwood, area_heartwood_dt(area_leaf_));
-    const double area_sapwood_ = area_sapwood(area_leaf_);
-    const double mass_sapwood_ = mass_sapwood(area_sapwood_, height);
-    vars.set_rate(state_idx_mass_heartwood, mass_heartwood_dt(mass_sapwood_));
+  // Sapwood -> heartwood conversion is turnover-driven, so it proceeds
+  // regardless of carbon status (previously gated behind net>0).
+  vars.set_rate(state_idx_area_heartwood, area_heartwood_dt(area_leaf_));
+  const double area_sapwood_ = area_sapwood(area_leaf_);
+  const double mass_sapwood_ = mass_sapwood(area_sapwood_, height);
+  vars.set_rate(state_idx_mass_heartwood, mass_heartwood_dt(mass_sapwood_));
 
-    if (collect_all_auxiliary) {
-      vars.set_aux(aux_idx_area_sapwood, area_sapwood_);
-    }
-  } else {
-    vars.set_rate(HEIGHT_INDEX, 0.0);
-    vars.set_rate(FECUNDITY_INDEX, 0.0);
-    vars.set_rate(state_idx_area_heartwood, 0.0);
-    vars.set_rate(state_idx_mass_heartwood, 0.0);
+  if (collect_all_auxiliary) {
+    vars.set_aux(aux_idx_area_sapwood, area_sapwood_);
   }
-  // [eqn 21] - Instantaneous mortality rate
+
+  // Storage dynamics: dS/dt = net production - carbon spent on growth. When
+  // production exceeds what the reserve gate lets through to growth, the surplus
+  // charges storage; when it falls short (or net production is negative) storage
+  // is drawn down. The net outflow is gated to vanish as S -> 0, flooring
+  // storage at zero so relative reserves r stay in [0,1] and the storage-based
+  // mortality stays bounded (the structural fix for #550). At the S~0 starvation
+  // boundary the ungated part of the deficit is untracked (no worse than the
+  // original model, which retained structure under net<0); by then the plant is
+  // dying at the bounded maximum mortality anyway.
+  const double net_flux = P - growth_flux;
+  const double gate_ref = 1e-3 * S_max;                 // ~0.1% of capacity
+  const double floor_gate = (S + gate_ref) > 0.0 ? S / (S + gate_ref) : 0.0;
+  vars.set_rate(state_idx_storage,
+                net_flux > 0.0 ? net_flux : floor_gate * net_flux);
+
+  // [eqn 21] - Instantaneous mortality rate, now driven by relative reserves r.
   vars.set_rate(MORTALITY_INDEX,
-      mortality_dt(net_mass_production_dt_ / area_leaf_, vars.state(MORTALITY_INDEX)));
+      mortality_dt(r, vars.state(MORTALITY_INDEX)));
 
 }
 
@@ -612,20 +651,17 @@ double TF24_Strategy::height_given_mass_leaf(double mass_leaf) const {
   return pars.a_l1 * pow(mass_leaf / pars.lma, pars.a_l2);
 }
 
-double TF24_Strategy::mortality_dt(double productivity_area,
+double TF24_Strategy::mortality_dt(double relative_reserves,
                               double cumulative_mortality) const {
 
-  // NOTE: When plants are extremely inviable, the rate of change in
-  // mortality can be Inf, because net production is negative, leaf
-  // area is small and so we get exp(big number).  However, most of
-  // the time that happens we should get infinite mortality variable
-  // levels and the rate of change won't matter.  It is possible that
-  // we will need to trim this to some large finite value, but for
-  // now, just checking that the actual mortality rate is finite.
+  // Growth-dependent mortality is now driven by relative NSC reserves
+  // r = S/S_max (in [0,1]) rather than instantaneous productivity, so the rate
+  // is bounded (see mortality_storage_dependent_dt): death becomes gradual as
+  // reserves deplete instead of spiking to ~1e32 under carbon deficit (#550).
   if (util::is_finite(cumulative_mortality)) {
     return
       mortality_growth_independent_dt() +
-      mortality_growth_dependent_dt(productivity_area);
+      mortality_storage_dependent_dt(relative_reserves);
  } else {
     // If mortality probability is 1 (latency = Inf) then the rate
     // calculations break.  Setting them to zero gives the correct
@@ -638,8 +674,30 @@ double TF24_Strategy::mortality_growth_independent_dt() const {
   return pars.d_I;
 }
 
-double TF24_Strategy::mortality_growth_dependent_dt(double productivity_area) const {
-  return pars.a_dG1 * exp(-pars.a_dG2 * productivity_area);
+// Storage-dependent growth mortality (#517), following Stefaniak et al. 2026
+// (Eq 6). Bounded in [a_dG1*exp(-a_dG2), a_dG1] for r in [0,1]: full reserves
+// (r=1) give near-zero excess mortality; empty reserves (r=0) give the finite
+// maximum a_dG1. This boundedness is what removes the #550 ODE overflow.
+double TF24_Strategy::mortality_storage_dependent_dt(double relative_reserves) const {
+  return pars.a_dG1 * exp(-pars.a_dG2 * relative_reserves);
+}
+
+// NSC storage capacity: scales with sapwood mass (per Daniel, #517). mass_sapwood
+// = area_sapwood(area_leaf) * height * eta_c * rho.
+double TF24_Strategy::storage_capacity(double area_leaf_, double height) const {
+  return pars.a_st1 * mass_sapwood(area_sapwood(area_leaf_), height);
+}
+
+// Seed the storage state for a newly germinated individual at a_st3 fraction of
+// its capacity (Stefaniak et al. 2026, Eq 8), so seedlings are born with
+// reserves rather than starting empty (which would kill them immediately).
+void TF24_Strategy::set_initial_states(const TF24_Environment& environment,
+                                       Internals& vars) {
+  (void)environment;
+  const double height = vars.state(HEIGHT_INDEX);
+  const double area_leaf_ = area_leaf(height);
+  vars.set_state(state_idx_storage,
+                 pars.a_st3 * storage_capacity(area_leaf_, height));
 }
 
 // [eqn 20] Survival of seedlings during establishment

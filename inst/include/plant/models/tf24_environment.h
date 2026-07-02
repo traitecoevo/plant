@@ -156,6 +156,13 @@ public:
   // #485.
   double soil_moist_residual = 1e-2;
 
+  // Ceiling on soil water potential (MPa), issue #549. Near the residual floor
+  // the retention curve returns psi ~ 1e8 MPa, which drives the leaf hydraulic
+  // solve non-finite and blows up the soil feedback. Root conductance has
+  // already fallen to ~0 by a few MPa, so clamping here changes nothing
+  // physically while keeping the numerics finite under extreme drought.
+  double soil_psi_max_ = 1e3;
+
   // Ability to prescribe a fixed value
   // TODO: add setting to set other variables like water
   void set_fixed_environment(double value, double height_max) {
@@ -245,7 +252,14 @@ public:
       // layers are unaffected, so non-drought runs are unchanged.
       const double theta = vars.state(i);
       double rate = (water_input - water_flux[i] - resource_depletion[i]) / dz[i];
-      if (theta <= soil_moist_residual && rate < 0.0) {
+      // Positivity guard (issue #485), hardened for #549: at/below the residual
+      // moisture a layer must not be dried further. The original `rate < 0.0`
+      // test let a *non-finite* rate through, because `NaN < 0.0` is false in
+      // IEEE 754 -- a NaN soil_consumption_ (from the retention curve's enormous
+      // psi_soil near theta_r) then wrote straight into the soil state. `!(rate
+      // > 0.0)` is true for NaN and for rate <= 0, so only genuine rewetting is
+      // allowed and NaN/negative rates are clamped to 0.
+      if (theta <= soil_moist_residual && !(rate > 0.0)) {
         rate = 0.0;
       }
       vars.set_rate(i, rate);
@@ -261,10 +275,15 @@ public:
   // calculate K from K_sat based on theta
   double soil_K_from_soil_theta(double theta) {
     //Eq. 5 Zeng and Decker (2009), ref Clapp and Hornberger (1978)
-    // Floor at 0: an intermediate explicit-RK stage can probe theta < 0, and
-    // std::pow(negative, non-integer) is NaN. A non-positive layer simply
-    // drains nothing (K = 0). See issue #485.
-  return K_sat * std::pow(std::max(theta, 0.0)/soil_moist_sat, 2*n_psi + 3);
+    // Clamp theta to [0, soil_moist_sat] (issue #485/#549): an intermediate
+    // explicit-RK stage can probe theta < 0 (std::pow(negative, non-integer) is
+    // NaN -> a non-positive layer drains nothing, K = 0) or, once the soil
+    // feedback is perturbed, a theta far above saturation, whose large positive
+    // exponent would otherwise make the inter-layer water_flux astronomically
+    // large and cascade the blow-up across layers. Physically K saturates at
+    // K_sat, so clamp there.
+  const double t = std::min(std::max(theta, 0.0), soil_moist_sat);
+  return K_sat * std::pow(t/soil_moist_sat, 2*n_psi + 3);
   }
 
 
@@ -275,7 +294,13 @@ public:
     // non-finite potential. At/below theta_r the potential is large but finite
     // and the plant's root vulnerability curve has already shut uptake to ~0.
     const double t = std::max(soil_moist_, soil_moist_residual);
-    return a_psi * std::pow(t/soil_moist_sat, -n_psi)/1e6; // convert from Pa to MPa
+    const double psi = a_psi * std::pow(t/soil_moist_sat, -n_psi)/1e6; // Pa -> MPa
+    // Cap at a large-but-finite ceiling (#549): near theta_r the retention curve
+    // gives psi ~ 1e8 MPa, which pushes the leaf hydraulic solve non-finite and
+    // corrupts the soil feedback. Root conductance is already ~0 far below this
+    // (psi_crit ~ few MPa), so clamping to soil_psi_max_ leaves uptake at ~0
+    // while keeping every downstream calculation finite.
+    return std::min(psi, soil_psi_max_);
   }
 
   // convert soil water potential to soil moisture
