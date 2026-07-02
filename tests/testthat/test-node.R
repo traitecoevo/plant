@@ -55,8 +55,12 @@ for (x in names(strategy_types)) {
     dgdh_backward <- grad_backward(growth_rate_given_height, plant$state("height"),
                                    method_args$eps, plant=p2, env=env)
 
-    ## These agree, but not that much:
-    expect_equal(dgdh_forward, dgdh_richardson, tolerance=1e-6)
+    ## These agree, but not that much. TF24's growth rate is a smooth-positive
+    ## part of net production times the reserve gate (#517), so it carries more
+    ## curvature than FF16/K93 and the O(h) forward difference departs from the
+    ## Richardson estimate a little more -- allow a looser tolerance there.
+    tol_grad <- if (grepl("TF24", x)) 1e-5 else 1e-6
+    expect_equal(dgdh_forward, dgdh_richardson, tolerance = tol_grad)
 
     ## Now, do this with the node. The default control uses backward
     ## differencing (node_gradient_direction = -1), so it matches the
@@ -83,6 +87,10 @@ for (x in names(strategy_types)) {
     env$set_fixed_environment(1.0, 100)
 
     node$compute_initial_conditions(env, pr_patch_survival = 1, birth_rate = 1)
+    ## Seed the reference plant's strategy-specific initial states the same way
+    ## the node does (via compute_initial_conditions), so the two agree for
+    ## strategies that carry seeded states -- e.g. TF24's NSC storage pool (#517).
+    plant$set_initial_states(env)
     plant$compute_rates(env)
 
     nms <- c(plant$ode_names,

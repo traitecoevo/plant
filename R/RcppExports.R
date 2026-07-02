@@ -945,6 +945,10 @@ Individual___FF16__FF16_Env__compute_rates <- function(obj_, environment) {
     invisible(.Call('_plant_Individual___FF16__FF16_Env__compute_rates', PACKAGE = 'plant', obj_, environment))
 }
 
+Individual___FF16__FF16_Env__set_initial_states <- function(obj_, environment) {
+    invisible(.Call('_plant_Individual___FF16__FF16_Env__set_initial_states', PACKAGE = 'plant', obj_, environment))
+}
+
 Individual___FF16__FF16_Env__establishment_probability <- function(obj_, environment) {
     .Call('_plant_Individual___FF16__FF16_Env__establishment_probability', PACKAGE = 'plant', obj_, environment)
 }
@@ -1031,6 +1035,10 @@ Individual___TF24__TF24_Env__compute_competition <- function(obj_, h) {
 
 Individual___TF24__TF24_Env__compute_rates <- function(obj_, environment) {
     invisible(.Call('_plant_Individual___TF24__TF24_Env__compute_rates', PACKAGE = 'plant', obj_, environment))
+}
+
+Individual___TF24__TF24_Env__set_initial_states <- function(obj_, environment) {
+    invisible(.Call('_plant_Individual___TF24__TF24_Env__set_initial_states', PACKAGE = 'plant', obj_, environment))
 }
 
 Individual___TF24__TF24_Env__establishment_probability <- function(obj_, environment) {
@@ -1121,6 +1129,10 @@ Individual___TF24f__TF24_Env__compute_rates <- function(obj_, environment) {
     invisible(.Call('_plant_Individual___TF24f__TF24_Env__compute_rates', PACKAGE = 'plant', obj_, environment))
 }
 
+Individual___TF24f__TF24_Env__set_initial_states <- function(obj_, environment) {
+    invisible(.Call('_plant_Individual___TF24f__TF24_Env__set_initial_states', PACKAGE = 'plant', obj_, environment))
+}
+
 Individual___TF24f__TF24_Env__establishment_probability <- function(obj_, environment) {
     .Call('_plant_Individual___TF24f__TF24_Env__establishment_probability', PACKAGE = 'plant', obj_, environment)
 }
@@ -1207,6 +1219,10 @@ Individual___K93__K93_Env__compute_competition <- function(obj_, h) {
 
 Individual___K93__K93_Env__compute_rates <- function(obj_, environment) {
     invisible(.Call('_plant_Individual___K93__K93_Env__compute_rates', PACKAGE = 'plant', obj_, environment))
+}
+
+Individual___K93__K93_Env__set_initial_states <- function(obj_, environment) {
+    invisible(.Call('_plant_Individual___K93__K93_Env__set_initial_states', PACKAGE = 'plant', obj_, environment))
 }
 
 Individual___K93__K93_Env__establishment_probability <- function(obj_, environment) {

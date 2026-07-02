@@ -433,6 +433,9 @@ Individual:
     compute_rates:
       args: [environment: E]
       return_type: void
+    set_initial_states:
+      args: [environment: E]
+      return_type: void
     establishment_probability:
       args: [environment: E]
       return_type: double

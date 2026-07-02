@@ -89,7 +89,7 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
   ## stochastic tower; update them deliberately if the model/RNG use changes.
   baseline <- list(
     FF16 = list(n_total = 103L, n_alive_final = 25L),
-    TF24 = list(n_total = 105L, n_alive_final = 15L),
+    TF24 = list(n_total = 103L, n_alive_final = 28L),
     K93  = list(n_total = 105L, n_alive_final = 42L)
   )
   for (x in names(strategy_types)) {

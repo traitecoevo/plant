@@ -1050,6 +1050,10 @@ void Individual___FF16__FF16_Env__compute_rates(plant::RcppR6::RcppR6<plant::Ind
   obj_->compute_rates(environment);
 }
 // [[Rcpp::export]]
+void Individual___FF16__FF16_Env__set_initial_states(plant::RcppR6::RcppR6<plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment) {
+  obj_->set_initial_states(environment);
+}
+// [[Rcpp::export]]
 double Individual___FF16__FF16_Env__establishment_probability(plant::RcppR6::RcppR6<plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment) {
   return obj_->establishment_probability(environment);
 }
@@ -1147,6 +1151,10 @@ double Individual___TF24__TF24_Env__compute_competition(plant::RcppR6::RcppR6<pl
 // [[Rcpp::export]]
 void Individual___TF24__TF24_Env__compute_rates(plant::RcppR6::RcppR6<plant::Individual<plant::TF24_Strategy,plant::TF24_Environment> > obj_, plant::TF24_Environment environment) {
   obj_->compute_rates(environment);
+}
+// [[Rcpp::export]]
+void Individual___TF24__TF24_Env__set_initial_states(plant::RcppR6::RcppR6<plant::Individual<plant::TF24_Strategy,plant::TF24_Environment> > obj_, plant::TF24_Environment environment) {
+  obj_->set_initial_states(environment);
 }
 // [[Rcpp::export]]
 double Individual___TF24__TF24_Env__establishment_probability(plant::RcppR6::RcppR6<plant::Individual<plant::TF24_Strategy,plant::TF24_Environment> > obj_, plant::TF24_Environment environment) {
@@ -1248,6 +1256,10 @@ void Individual___TF24f__TF24_Env__compute_rates(plant::RcppR6::RcppR6<plant::In
   obj_->compute_rates(environment);
 }
 // [[Rcpp::export]]
+void Individual___TF24f__TF24_Env__set_initial_states(plant::RcppR6::RcppR6<plant::Individual<plant::TF24f_Strategy,plant::TF24_Environment> > obj_, plant::TF24_Environment environment) {
+  obj_->set_initial_states(environment);
+}
+// [[Rcpp::export]]
 double Individual___TF24f__TF24_Env__establishment_probability(plant::RcppR6::RcppR6<plant::Individual<plant::TF24f_Strategy,plant::TF24_Environment> > obj_, plant::TF24_Environment environment) {
   return obj_->establishment_probability(environment);
 }
@@ -1345,6 +1357,10 @@ double Individual___K93__K93_Env__compute_competition(plant::RcppR6::RcppR6<plan
 // [[Rcpp::export]]
 void Individual___K93__K93_Env__compute_rates(plant::RcppR6::RcppR6<plant::Individual<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::K93_Environment environment) {
   obj_->compute_rates(environment);
+}
+// [[Rcpp::export]]
+void Individual___K93__K93_Env__set_initial_states(plant::RcppR6::RcppR6<plant::Individual<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::K93_Environment environment) {
+  obj_->set_initial_states(environment);
 }
 // [[Rcpp::export]]
 double Individual___K93__K93_Env__establishment_probability(plant::RcppR6::RcppR6<plant::Individual<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::K93_Environment environment) {

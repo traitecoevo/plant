@@ -2701,6 +2701,17 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// Individual___FF16__FF16_Env__set_initial_states
+void Individual___FF16__FF16_Env__set_initial_states(plant::RcppR6::RcppR6<plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment);
+RcppExport SEXP _plant_Individual___FF16__FF16_Env__set_initial_states(SEXP obj_SEXP, SEXP environmentSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
+    Individual___FF16__FF16_Env__set_initial_states(obj_, environment);
+    return R_NilValue;
+END_RCPP
+}
 // Individual___FF16__FF16_Env__establishment_probability
 double Individual___FF16__FF16_Env__establishment_probability(plant::RcppR6::RcppR6<plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment);
 RcppExport SEXP _plant_Individual___FF16__FF16_Env__establishment_probability(SEXP obj_SEXP, SEXP environmentSEXP) {
@@ -2946,6 +2957,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Individual<plant::TF24_Strategy,plant::TF24_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::TF24_Environment >::type environment(environmentSEXP);
     Individual___TF24__TF24_Env__compute_rates(obj_, environment);
+    return R_NilValue;
+END_RCPP
+}
+// Individual___TF24__TF24_Env__set_initial_states
+void Individual___TF24__TF24_Env__set_initial_states(plant::RcppR6::RcppR6<plant::Individual<plant::TF24_Strategy,plant::TF24_Environment> > obj_, plant::TF24_Environment environment);
+RcppExport SEXP _plant_Individual___TF24__TF24_Env__set_initial_states(SEXP obj_SEXP, SEXP environmentSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Individual<plant::TF24_Strategy,plant::TF24_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::TF24_Environment >::type environment(environmentSEXP);
+    Individual___TF24__TF24_Env__set_initial_states(obj_, environment);
     return R_NilValue;
 END_RCPP
 }
@@ -3197,6 +3219,17 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// Individual___TF24f__TF24_Env__set_initial_states
+void Individual___TF24f__TF24_Env__set_initial_states(plant::RcppR6::RcppR6<plant::Individual<plant::TF24f_Strategy,plant::TF24_Environment> > obj_, plant::TF24_Environment environment);
+RcppExport SEXP _plant_Individual___TF24f__TF24_Env__set_initial_states(SEXP obj_SEXP, SEXP environmentSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Individual<plant::TF24f_Strategy,plant::TF24_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::TF24_Environment >::type environment(environmentSEXP);
+    Individual___TF24f__TF24_Env__set_initial_states(obj_, environment);
+    return R_NilValue;
+END_RCPP
+}
 // Individual___TF24f__TF24_Env__establishment_probability
 double Individual___TF24f__TF24_Env__establishment_probability(plant::RcppR6::RcppR6<plant::Individual<plant::TF24f_Strategy,plant::TF24_Environment> > obj_, plant::TF24_Environment environment);
 RcppExport SEXP _plant_Individual___TF24f__TF24_Env__establishment_probability(SEXP obj_SEXP, SEXP environmentSEXP) {
@@ -3442,6 +3475,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Individual<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::K93_Environment >::type environment(environmentSEXP);
     Individual___K93__K93_Env__compute_rates(obj_, environment);
+    return R_NilValue;
+END_RCPP
+}
+// Individual___K93__K93_Env__set_initial_states
+void Individual___K93__K93_Env__set_initial_states(plant::RcppR6::RcppR6<plant::Individual<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::K93_Environment environment);
+RcppExport SEXP _plant_Individual___K93__K93_Env__set_initial_states(SEXP obj_SEXP, SEXP environmentSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Individual<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::K93_Environment >::type environment(environmentSEXP);
+    Individual___K93__K93_Env__set_initial_states(obj_, environment);
     return R_NilValue;
 END_RCPP
 }
@@ -12188,6 +12232,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Individual___FF16__FF16_Env__set_state", (DL_FUNC) &_plant_Individual___FF16__FF16_Env__set_state, 3},
     {"_plant_Individual___FF16__FF16_Env__compute_competition", (DL_FUNC) &_plant_Individual___FF16__FF16_Env__compute_competition, 2},
     {"_plant_Individual___FF16__FF16_Env__compute_rates", (DL_FUNC) &_plant_Individual___FF16__FF16_Env__compute_rates, 2},
+    {"_plant_Individual___FF16__FF16_Env__set_initial_states", (DL_FUNC) &_plant_Individual___FF16__FF16_Env__set_initial_states, 2},
     {"_plant_Individual___FF16__FF16_Env__establishment_probability", (DL_FUNC) &_plant_Individual___FF16__FF16_Env__establishment_probability, 2},
     {"_plant_Individual___FF16__FF16_Env__net_mass_production_dt", (DL_FUNC) &_plant_Individual___FF16__FF16_Env__net_mass_production_dt, 2},
     {"_plant_Individual___FF16__FF16_Env__reset_mortality", (DL_FUNC) &_plant_Individual___FF16__FF16_Env__reset_mortality, 1},
@@ -12210,6 +12255,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Individual___TF24__TF24_Env__set_state", (DL_FUNC) &_plant_Individual___TF24__TF24_Env__set_state, 3},
     {"_plant_Individual___TF24__TF24_Env__compute_competition", (DL_FUNC) &_plant_Individual___TF24__TF24_Env__compute_competition, 2},
     {"_plant_Individual___TF24__TF24_Env__compute_rates", (DL_FUNC) &_plant_Individual___TF24__TF24_Env__compute_rates, 2},
+    {"_plant_Individual___TF24__TF24_Env__set_initial_states", (DL_FUNC) &_plant_Individual___TF24__TF24_Env__set_initial_states, 2},
     {"_plant_Individual___TF24__TF24_Env__establishment_probability", (DL_FUNC) &_plant_Individual___TF24__TF24_Env__establishment_probability, 2},
     {"_plant_Individual___TF24__TF24_Env__net_mass_production_dt", (DL_FUNC) &_plant_Individual___TF24__TF24_Env__net_mass_production_dt, 2},
     {"_plant_Individual___TF24__TF24_Env__reset_mortality", (DL_FUNC) &_plant_Individual___TF24__TF24_Env__reset_mortality, 1},
@@ -12232,6 +12278,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Individual___TF24f__TF24_Env__set_state", (DL_FUNC) &_plant_Individual___TF24f__TF24_Env__set_state, 3},
     {"_plant_Individual___TF24f__TF24_Env__compute_competition", (DL_FUNC) &_plant_Individual___TF24f__TF24_Env__compute_competition, 2},
     {"_plant_Individual___TF24f__TF24_Env__compute_rates", (DL_FUNC) &_plant_Individual___TF24f__TF24_Env__compute_rates, 2},
+    {"_plant_Individual___TF24f__TF24_Env__set_initial_states", (DL_FUNC) &_plant_Individual___TF24f__TF24_Env__set_initial_states, 2},
     {"_plant_Individual___TF24f__TF24_Env__establishment_probability", (DL_FUNC) &_plant_Individual___TF24f__TF24_Env__establishment_probability, 2},
     {"_plant_Individual___TF24f__TF24_Env__net_mass_production_dt", (DL_FUNC) &_plant_Individual___TF24f__TF24_Env__net_mass_production_dt, 2},
     {"_plant_Individual___TF24f__TF24_Env__reset_mortality", (DL_FUNC) &_plant_Individual___TF24f__TF24_Env__reset_mortality, 1},
@@ -12254,6 +12301,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Individual___K93__K93_Env__set_state", (DL_FUNC) &_plant_Individual___K93__K93_Env__set_state, 3},
     {"_plant_Individual___K93__K93_Env__compute_competition", (DL_FUNC) &_plant_Individual___K93__K93_Env__compute_competition, 2},
     {"_plant_Individual___K93__K93_Env__compute_rates", (DL_FUNC) &_plant_Individual___K93__K93_Env__compute_rates, 2},
+    {"_plant_Individual___K93__K93_Env__set_initial_states", (DL_FUNC) &_plant_Individual___K93__K93_Env__set_initial_states, 2},
     {"_plant_Individual___K93__K93_Env__establishment_probability", (DL_FUNC) &_plant_Individual___K93__K93_Env__establishment_probability, 2},
     {"_plant_Individual___K93__K93_Env__net_mass_production_dt", (DL_FUNC) &_plant_Individual___K93__K93_Env__net_mass_production_dt, 2},
     {"_plant_Individual___K93__K93_Env__reset_mortality", (DL_FUNC) &_plant_Individual___K93__K93_Env__reset_mortality, 1},

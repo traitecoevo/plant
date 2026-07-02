@@ -86,7 +86,10 @@ for (x in names(strategy_types)) {
     ## ode_state
     if(grepl("K93", x))
       expect_equal(pl$ode_state, c(h0, m0, f0))
-    else 
+    else if(grepl("TF24", x))
+      # TF24 adds area_heartwood, mass_heartwood and the NSC storage pool (#517)
+      expect_equal(pl$ode_state, c(h0, m0, f0, 0, 0, 0))
+    else
       expect_equal(pl$ode_state, c(h0, m0, f0, 0, 0))
     
     expect_equal(pl$strategy_name, x)
