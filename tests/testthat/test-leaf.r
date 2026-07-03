@@ -13,7 +13,7 @@ test_that("Basic functions", {
   K_s = 1 #stem-specific conductivity (kg h2o m^-1 stem s^-1 MPa^-1)
   h = 5 #height or path length (m)
   beta2 = 1
-    curv_fact_elec_trans = 0.7
+  curv_fact_elec_trans = 0.7
   a = 0.3
   curv_fact_colim = 0.99
   g1_TF24 = 46.32995
@@ -611,7 +611,7 @@ test_that("Medlyn stomatal model", {
   K_s = 1
   h = 5
   beta2 = 1
-    curv_fact_elec_trans = 0.7
+  curv_fact_elec_trans = 0.7
   a = 0.3
   curv_fact_colim = 0.99
   g1_TF24 = 46.32995
@@ -722,7 +722,7 @@ test_that("psi_stem_to_ci supply=demand solve", {
   K_s = 1
   h = 5
   beta2 = 1
-    curv_fact_elec_trans = 0.7
+  curv_fact_elec_trans = 0.7
   a = 0.3
   curv_fact_colim = 0.99
   g1_TF24 = 46.32995
@@ -851,7 +851,7 @@ test_that("find_root_psi soil->collar continuity solve", {
   K_s = 1
   h = 5
   beta2 = 1
-    curv_fact_elec_trans = 0.7
+  curv_fact_elec_trans = 0.7
   a = 0.3
   curv_fact_colim = 0.99
   g1_TF24 = 46.32995

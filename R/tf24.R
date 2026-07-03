@@ -98,13 +98,14 @@ TF24_generate_stand_report <- function(results,
 ##' @param B_lf3 Beta coefficient for empirical relationship between narea_lp ~ jmax [umol / m2 / s] (Dong et al. 2022)
 ##' @param B_lf4 CO_2 respiration per unit structural leaf nitrogen [mol / yr / kg]
 ##' @param B_lf5 CO_2 respiration per unit photosynthetic leaf nitrogen [mol / yr / kg]
-##' @param k_I light extinction coefficient [dimensionless]
 ##' @param a_lf1 intercept for empirical relationship between narea and vcmax, lma (Dong et al. 2022)
 ##' @param B_Hv1 p50 at K_s = 1 [-MPa]
 ##' @param B_Hv2 Scaling slope for K_s in p50 [dimensionless]
+##' @param B_c1 Shape parameter c of the vulnerability curve at p_50 = 0 [dimensionless]
+##' @param B_c2 Scaling slope for p_50 in the vulnerability-curve shape parameter c [dimensionless]
 ##' @param latitude degrees from equator (0-90), used in solar model [deg]
 ##' @export
-##' @rdname make_FF16_hyperpar
+##' @rdname make_TF24_hyperpar
 make_TF24_hyperpar <- function(lma_0=0.1978791,
                                 B_kl1=0.4565855,
                                 B_kl2=1.71,
@@ -124,7 +125,6 @@ make_TF24_hyperpar <- function(lma_0=0.1978791,
                                 B_lf3=0.0008,
                                 B_lf4=21000,
                                 B_lf5= 40000,
-                                k_I=0.5,
                                 latitude=0,
                                 B_Hv1 = 0.4607063,
                                 B_Hv2 = -0.2,
@@ -160,7 +160,6 @@ make_TF24_hyperpar <- function(lma_0=0.1978791,
   assert_scalar(B_Hv2)
   assert_scalar(B_c1)
   assert_scalar(B_c2)
-  assert_scalar(k_I)
   assert_scalar(latitude)
 
   function(m, s, filter=TRUE) {
@@ -198,7 +197,9 @@ make_TF24_hyperpar <- function(lma_0=0.1978791,
 
     ## p_50 shape parameter trade off
     c <- B_c1 * exp(-B_c2 * p_50)
-    ## sensitivity parameter hydraulic vulnerability curve, water potential at 37% conductivity remaining (return unitless):
+    ## scale parameter b of the vulnerability curve exp(-(psi/b)^c): the water
+    ## potential at 1/e (~37%) conductivity remaining, solved here from the 50%
+    ## loss-of-conductivity point p_50 [-MPa]:
     b <- p_50/((-log(1-50/100))^(1/c))
 
     ## water potential at critical xylem failure (95%) (return -MPa):
@@ -237,11 +238,11 @@ make_TF24_hyperpar <- function(lma_0=0.1978791,
     
     r_l <- r_ls + r_lp
 
-    extra <- cbind(k_l,                 # lma
-             d_I, g1_TF24, k_s, r_s, r_b,  # rho
-                   a_f3,               # omega
-                   r_l,nmass_l,        # lma, narea
-                   c, p_50, b, psi_crit)  # K_s  
+    extra <- cbind(k_l,                        # lma
+                   d_I, g1_TF24, k_s, r_s, r_b, # rho
+                   a_f3,                        # omega
+                   r_l, nmass_l,                # lma, narea
+                   c, p_50, b, psi_crit)        # K_s
 
     overlap <- intersect(colnames(m), colnames(extra))
     if (length(overlap) > 0L) {
