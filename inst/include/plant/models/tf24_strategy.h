@@ -64,9 +64,8 @@ struct TF24_Pars {
   double psi_crit = b*std::pow(log(1/0.05),1/c); // derived from b and c
   double beta1 = 20000;
   double beta2 = 1.5;
+  double g1_TF24 = 7.5;
   double jmax_25 = vcmax_25*1.64;
-  double hk_s = 4;
-  double g1_TF24 = 7.5;           // stomatal cost parameter for TF24 profit model [umol m^-2 s^-1]
   double a = 0.30; // effective quantum yield of electron transport
   double curv_fact_elec_trans = 0.7;
   double curv_fact_colim = 0.99;

@@ -16,24 +16,18 @@ test_that("scenario table and mapping load with expected structure", {
   expect_true(all(map$target %in% c("trait", "env", "driver")))
 })
 
-test_that("derive_vulnerability_curve reproduces the TF24 C++ defaults", {
-  ## The default TF24_Pars sets c/b/psi_crit from p_50 = 1.85 using the same
-  ## formula; the R derivation must match to numerical precision.
-  pars <- TF24_Strategy()$pars
-  vc <- derive_vulnerability_curve(pars$p_50)
-  expect_equal(unname(vc[["c"]]), pars$c, tolerance = 1e-10)
-  expect_equal(unname(vc[["b"]]), pars$b, tolerance = 1e-10)
-  expect_equal(unname(vc[["psi_crit"]]), pars$psi_crit, tolerance = 1e-10)
-})
-
 test_that("scenario_to_config translates a row into concrete settings", {
   tbl <- read_scenario_table()
   map <- read_scenario_mapping()
   cfg <- scenario_to_config(tbl[1, ], map)
 
   expect_true(cfg$expected %in% c("failure", "success"))
-  ## p_50 present implies the derived vulnerability-curve constants are added.
-  expect_true(all(c("p_50", "c", "b", "psi_crit") %in% names(cfg$traits)))
+  ## K_s and lma are input traits; p_50/g1_TF24 are derived by TF24_hyperpar
+  ## (#548) and must NOT be passed as input traits.
+  expect_true(all(c("K_s", "lma", "rho", "vcmax_25", "theta",
+                    "root_depth_shape_eta") %in% names(cfg$traits)))
+  expect_false(any(c("p_50", "c", "b", "psi_crit", "g1_TF24") %in%
+                     names(cfg$traits)))
   expect_true(is.numeric(cfg$traits) && all(is.finite(cfg$traits)))
   expect_true(!is.null(cfg$env$K_sat))
   expect_true(!is.null(cfg$driver$rainfall_mean))
@@ -54,8 +48,11 @@ test_that("build_scenario applies traits and environment fields", {
   built <- build_scenario(cfg, max_patch_lifetime = 5)
 
   pars <- built$p$strategies[[1]]$pars
-  expect_equal(pars$g1_TF24, unname(cfg$traits[["g1_TF24"]]))
   expect_equal(pars$lma, unname(cfg$traits[["lma"]]))
+  expect_equal(pars$K_s, unname(cfg$traits[["K_s"]]))
+  ## p_50 is derived from K_s by the hyperpar, so it must differ from the
+  ## default once K_s is changed.
+  expect_false(isTRUE(all.equal(pars$p_50, TF24_Strategy()$pars$p_50)))
   expect_equal(built$env$K_sat, cfg$env$K_sat)
 })
 

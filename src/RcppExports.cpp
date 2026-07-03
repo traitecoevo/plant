@@ -12,8 +12,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // Leaf__ctor
-plant::Leaf Leaf__ctor(double vcmax_25, double c, double b, double psi_crit, double root_c, double root_b, double root_psi_crit, double beta2, double jmax_25, double hk_s, double a, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter, double g1_TF24, double beta_R_H, double beta_R_V);
-RcppExport SEXP _plant_Leaf__ctor(SEXP vcmax_25SEXP, SEXP cSEXP, SEXP bSEXP, SEXP psi_critSEXP, SEXP root_cSEXP, SEXP root_bSEXP, SEXP root_psi_critSEXP, SEXP beta2SEXP, SEXP jmax_25SEXP, SEXP hk_sSEXP, SEXP aSEXP, SEXP curv_fact_elec_transSEXP, SEXP curv_fact_colimSEXP, SEXP GSS_tol_absSEXP, SEXP vulnerability_curve_ncontrolSEXP, SEXP ci_abs_tolSEXP, SEXP ci_niterSEXP, SEXP g1_TF24SEXP, SEXP beta_R_HSEXP, SEXP beta_R_VSEXP) {
+plant::Leaf Leaf__ctor(double vcmax_25, double c, double b, double psi_crit, double root_c, double root_b, double root_psi_crit, double beta2, double jmax_25, double a, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter, double g1_TF24, double beta_R_H, double beta_R_V);
+RcppExport SEXP _plant_Leaf__ctor(SEXP vcmax_25SEXP, SEXP cSEXP, SEXP bSEXP, SEXP psi_critSEXP, SEXP root_cSEXP, SEXP root_bSEXP, SEXP root_psi_critSEXP, SEXP beta2SEXP, SEXP jmax_25SEXP, SEXP aSEXP, SEXP curv_fact_elec_transSEXP, SEXP curv_fact_colimSEXP, SEXP GSS_tol_absSEXP, SEXP vulnerability_curve_ncontrolSEXP, SEXP ci_abs_tolSEXP, SEXP ci_niterSEXP, SEXP g1_TF24SEXP, SEXP beta_R_HSEXP, SEXP beta_R_VSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -26,7 +26,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type root_psi_crit(root_psi_critSEXP);
     Rcpp::traits::input_parameter< double >::type beta2(beta2SEXP);
     Rcpp::traits::input_parameter< double >::type jmax_25(jmax_25SEXP);
-    Rcpp::traits::input_parameter< double >::type hk_s(hk_sSEXP);
     Rcpp::traits::input_parameter< double >::type a(aSEXP);
     Rcpp::traits::input_parameter< double >::type curv_fact_elec_trans(curv_fact_elec_transSEXP);
     Rcpp::traits::input_parameter< double >::type curv_fact_colim(curv_fact_colimSEXP);
@@ -37,7 +36,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type g1_TF24(g1_TF24SEXP);
     Rcpp::traits::input_parameter< double >::type beta_R_H(beta_R_HSEXP);
     Rcpp::traits::input_parameter< double >::type beta_R_V(beta_R_VSEXP);
-    rcpp_result_gen = Rcpp::wrap(Leaf__ctor(vcmax_25, c, b, psi_crit, root_c, root_b, root_psi_crit, beta2, jmax_25, hk_s, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, g1_TF24, beta_R_H, beta_R_V));
+    rcpp_result_gen = Rcpp::wrap(Leaf__ctor(vcmax_25, c, b, psi_crit, root_c, root_b, root_psi_crit, beta2, jmax_25, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, g1_TF24, beta_R_H, beta_R_V));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -11952,7 +11951,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_plant_Leaf__ctor", (DL_FUNC) &_plant_Leaf__ctor, 20},
+    {"_plant_Leaf__ctor", (DL_FUNC) &_plant_Leaf__ctor, 19},
     {"_plant_Leaf__initialize_integrator", (DL_FUNC) &_plant_Leaf__initialize_integrator, 3},
     {"_plant_Leaf__set_physiology", (DL_FUNC) &_plant_Leaf__set_physiology, 15},
     {"_plant_Leaf__proportion_of_conductivity", (DL_FUNC) &_plant_Leaf__proportion_of_conductivity, 2},

@@ -29,7 +29,7 @@ make_leaf <- function(c, b, ncontrol = 100) {
   Leaf(vcmax_25 = 100, jmax_25 = 167 * 100, c = c, b = b,
        psi_crit = 5, root_c = 2.65, root_b = 1.29,
        root_psi_crit = 1.29 * (log(1 / 0.05))^(1 / 2.65),
-       beta2 = 1, hk_s = 75, a = 0.3, curv_fact_elec_trans = 0.7,
+      beta2 = 1, a = 0.3, curv_fact_elec_trans = 0.7,
        curv_fact_colim = 0.99, GSS_tol_abs = 1e-8,
        vulnerability_curve_ncontrol = ncontrol, ci_abs_tol = 1e-6,
        ci_niter = 1000, g1_TF24 = 46.33, beta_R_H = 3.4e3, beta_R_V = 9.4e4)

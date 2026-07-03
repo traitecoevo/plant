@@ -56,16 +56,6 @@ read_scenario_mapping <- function(
   tibble::as_tibble(raw)
 }
 
-## Derive the vulnerability-curve constants from p_50, using the same formulas
-## as the TF24_Pars C++ defaults (tf24_strategy.h). INTERIM: once PR #548 moves
-## this derivation into TF24_hyperpar, drop this block and pass p_50 alone.
-derive_vulnerability_curve <- function(p_50) {
-  c_val <- log(log(1 - 0.5) / log(1 - 0.88)) / (log(p_50) - log(5.16))
-  b_val <- p_50 / (-log(1 - 50.0 / 100.0))^(1 / c_val)
-  psi_crit <- b_val * log(1 / 0.05)^(1 / c_val)
-  c(c = c_val, b = b_val, psi_crit = psi_crit)
-}
-
 ##' @param row A one-row data frame / tibble from \code{read_scenario_table}.
 ##' @param mapping A mapping tibble from \code{read_scenario_mapping}.
 ##' @return \code{scenario_to_config} returns a list with \code{traits} (named
@@ -104,13 +94,10 @@ scenario_to_config <- function(row, mapping) {
                 call. = FALSE))
   }
 
-  ## INTERIM (pre-#548): keep the vulnerability curve consistent with p_50.
-  if (!is.null(traits[["p_50"]])) {
-    vc <- derive_vulnerability_curve(traits[["p_50"]])
-    traits[["c"]]        <- vc[["c"]]
-    traits[["b"]]        <- vc[["b"]]
-    traits[["psi_crit"]] <- vc[["psi_crit"]]
-  }
+  ## Note: the vulnerability curve (c/b/psi_crit) is derived from K_s, and
+  ## g1_TF24 from rho, inside TF24_hyperpar (#548). Those descriptor columns are
+  ## therefore intentionally absent from scenario_mapping.csv and left to the
+  ## hyperpar; passing them as input traits would trip its overwrite guard.
 
   expected <- switch(as.character(row$Expectation),
                      "Model failure"           = "failure",

@@ -96,7 +96,6 @@ public:
        double root_psi_crit,
        double beta2, 
        double jmax_25, 
-       double hk_s,
        double a, 
        double curv_fact_elec_trans, 
        double curv_fact_colim,
@@ -130,7 +129,6 @@ public:
   double root_psi_crit;
   double beta2;
   double jmax_25;
-  double hk_s;
   double a;
   double curv_fact_elec_trans; // unitless - obtained from Smith and Keenan (2020)
   double curv_fact_colim;

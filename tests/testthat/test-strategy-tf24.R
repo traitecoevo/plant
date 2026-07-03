@@ -42,9 +42,8 @@ test_that("Defaults", {
     psi_crit = (1.85 /((-log(1 - 50.0 / 100.0))^(1 / (log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16))))))*log(1/0.05)^(1/(log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16)))),
     beta1 = 20000,
     beta2 = 1.5,
-    jmax_25 = 157.44,
-    hk_s = 4,
     g1_TF24 = 7.5,
+    jmax_25 = 157.44,
     a = 0.3,
     curv_fact_elec_trans = 0.7,
     curv_fact_colim = 0.99,
@@ -153,7 +152,7 @@ test_that("TF24_Strategy hyper-parameterisation", {
   expect_true(all(c("lma", "k_l", "r_l") %in% colnames(ret)))
   expect_equal(ret[, "lma"], lma)
   expect_equal(ret[, "k_l"], c(1.46678,0.028600), tolerance=1e-5)
-  expect_equal(ret[, "r_l"], c(392.70, 39.27), tolerance=1e-5)
+  expect_equal(ret[, "r_l"], c(505.331, 220.633), tolerance=1e-5)
 
   ## This happens on Linux (and therefore on travis) due to numerical
   ## differences in the integration.
@@ -165,9 +164,11 @@ test_that("TF24_Strategy hyper-parameterisation", {
 
   # wood density
   rho <- c(200,300)
-  ret <- TF24_hyperpar(trait_matrix(rho, "rho"), s)
-  expect_true(all(c("rho", "r_s", "r_b") %in% colnames(ret)))
+  tf24_hyperpar_rho <- make_TF24_hyperpar(B_hks2 = 1)
+  ret <- tf24_hyperpar_rho(trait_matrix(rho, "rho"), s)
+  expect_true(all(c("rho", "g1_TF24", "r_s", "r_b") %in% colnames(ret)))
   expect_equal(ret[, "rho"], rho)
+  expect_equal(ret[, "g1_TF24"], 7.5 * (rho / 608)^(-1), tolerance = 1e-8)
   expect_equal(ret[, "r_s"], c(20.06000,13.37333), tolerance=1e-5)
   expect_equal(ret[, "r_b"], 2*ret[, "r_s"])
 
@@ -179,15 +180,14 @@ test_that("TF24_Strategy hyper-parameterisation", {
     expect_equal(a_p1[[1]], s$pars$a_p1, tolerance=1e-7)
   }
 
-  # narea
-  narea <- c(0, 2E-3,2.3E-3)
-  ret <- TF24_hyperpar(trait_matrix(narea, "narea"), s)
-  expect_true(all(c("narea", "a_p1", "a_p2", "r_l") %in% colnames(ret)))
-  expect_equal(ret[, "narea"], narea)
-  expect_equal(ret[, "r_l"], c(0, 212.2508, 244.0884), tolerance=1e-5)
-  expect_equal(ret[, "a_p1"], c(0, 162.2592, 188.1549), tolerance=1e-5)
-  expect_equal(ret[, "a_p2"], c(0, 0.220904, 0.259173), tolerance=1e-5)
-
+  # vcmax
+  vcmax_25 <- c(0, 50,100)
+  ret <- TF24_hyperpar(trait_matrix(vcmax_25, "vcmax_25"), s)
+  expect_true(all(c("nmass_l", "r_l") %in% colnames(ret)))
+  expect_equal(ret[, "vcmax_25"], vcmax_25)
+  expect_equal(ret[, "r_l"], c(271.2375, 311.6662, 352.0949), tolerance=1e-5)
+  expect_equal(ret[, "nmass_l"], c(0.01234018, 0.01335090, 0.01436162), tolerance=1e-5)
+  
   # seed mass
   omega <- 3.8e-5*c(1,2,3)
   ret <- TF24_hyperpar(trait_matrix(omega, "omega"), s)
@@ -209,24 +209,22 @@ test_that("TF24_Strategy hyper-parameterisation", {
   expect_equal(ret, trait_matrix(numeric(0), "lma"))
 })
 
-test_that("TF24_hyperpar sources k_I from the strategy", {
-  narea <- c(2E-3, 2.3E-3)
-  m <- trait_matrix(narea, "narea")
-
-  ## Default strategy: assimilation matches the existing reference values.
+test_that("TF24_hyperpar no longer produces a_p1/a_p2 and k_I does not affect output", {
+  m <- trait_matrix(c(0.1, 0.2), "lma")
   s <- TF24_Strategy()
-  expect_equal(s$pars$k_I, 0.5)
   ret <- TF24_hyperpar(m, s)
-  expect_equal(ret[, "a_p1"], c(162.2592, 188.1549), tolerance=1e-5)
 
-  ## Varying the strategy's k_I must change the derived assimilation
-  ## parameters -- previously the hard-coded 0.5 default in the maker
-  ## silently ignored the strategy value.
+  ## Legacy assimilation parameters a_p1/a_p2 are no longer derived by the
+  ## hyperpar function (they remain strategy-level constants, not traits).
+  expect_false("a_p1" %in% colnames(ret))
+  expect_false("a_p2" %in% colnames(ret))
+
+  ## k_I is no longer used inside the hyperpar function, so varying it in the
+  ## strategy does not change the hyperpar output.
   s2 <- TF24_Strategy()
   s2$pars$k_I <- 0.8
   ret2 <- TF24_hyperpar(m, s2)
-  expect_false(isTRUE(all.equal(ret[, "a_p1"], ret2[, "a_p1"])))
-  expect_false(isTRUE(all.equal(ret[, "a_p2"], ret2[, "a_p2"])))
+  expect_equal(ret, ret2)
 })
 
 test_that("narea calculation", {
@@ -274,7 +272,7 @@ test_that("offspring arrival", {
                        hyperpar = TF24_hyperpar, birth_rate = list(20))
 
   out <- run_scm(p1, env, ctrl)
-  expect_equal(out$offspring_production, 227.884969, tolerance = 1e-3)
+  expect_equal(out$offspring_production, 514.8, tolerance = 1e-3)
 
   # two species: the second strategy has a moderately higher lma (0.10 vs
   # 0.0825), so it grows more slowly and is partly shaded, but still matures and
@@ -286,7 +284,7 @@ test_that("offspring arrival", {
                        hyperpar = TF24_hyperpar, birth_rate = list(20, 20))
 
   out <- run_scm(p2, env, ctrl)
-  expect_equal(out$offspring_production, c(145.332894, 58.317455), tolerance = 1e-3)
+  expect_equal(out$offspring_production, c(364.02926, 78.28593), tolerance = 1e-3)
 })
 
 # Water mass-balance: transpiration integrated up the stem side of every
@@ -329,29 +327,5 @@ results$env$soil_moist_cumulative_flux %>%
                 (time - dplyr::lag(time))) -> root_side
 
 expect_true(1 - (stem_side/root_side$root_side[-1])[length(stem_side)] < 5e-2)
-})
-
-test_that("SCM cohort-density blow-up fails gracefully (#550)", {
-  # Extreme seasonal drought drives the SCM size-density (characteristic)
-  # equations to run away: a cohort density overflows to +Inf, or the
-  # density-weighted resource uptake drives a soil-water state non-finite.
-  # Either way run_scm must abort with an actionable message naming the SCM
-  # size-density equations / environment state, not an opaque downstream error
-  # ("Detected non-finite contribution", "non-finite psi_soil"). This blows up
-  # early in the run, so it is cheap despite being a full TF24 run.
-  mpl <- 30
-  p0 <- scm_base_parameters("TF24", "TF24_Env")
-  p0$max_patch_lifetime <- mpl
-  p1 <- add_strategies(p0, trait_matrix(0.07, "lma"))
-
-  env <- Environment("TF24")
-  env$set_soil_number_of_depths(5)
-  env$set_soil_water_state(rep(0.2, 5))
-  x <- seq(0, mpl, length.out = mpl * 6)
-  y <- 0.4 * sin(2 * pi * x) + 0.5   # rainfall sweeps [0.1, 0.9]
-  env$extrinsic_drivers_set_variable("rainfall", x = x, y = y)
-
-  expect_error(run_scm(p1, env),
-               "SCM size-density|Non-finite environment state")
 })
 

@@ -57,6 +57,14 @@ products using plant.
   * for the old tight-tolerance behaviour -> `control_accurate()`
   * `scm_base_parameters()` is unaffected (it builds a `Parameters`, not a
     `Control`).
+* Removed the TF24/TF24f parameter `hk_s` from the public interface and from
+  the `Leaf` constructor; hydraulic cost now depends on `g1_TF24`, `beta2`, and
+  the vulnerability curve terms only. Migration:
+  * `TF24_Strategy()$pars$hk_s` -> removed (no equivalent)
+  * `TF24f_Strategy()$pars$hk_s` -> removed (no equivalent)
+  * `make_TF24_hyperpar(..., B_hks1 =, B_hks2 =)` -> adjust `g1_TF24` ~ `rho` scaling (new; no `hk_s` equivalent)
+  * `make_TF24f_hyperpar(..., B_hks1 =, B_hks2 =)` -> adjust `g1_TF24` ~ `rho` scaling (new; no `hk_s` equivalent)
+  * `Leaf(..., hk_s =)` -> remove `hk_s` argument
 * The ODE solver and interpolator core were spun out into the standalone
   [odelia](https://github.com/traitecoevo/odelia) package, which plant now
   depends on (#456, #464). Plant's internal solver/interpolator headers

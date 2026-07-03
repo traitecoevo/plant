@@ -43,9 +43,8 @@ test_that("Defaults", {
     psi_crit = (1.85 /((-log(1 - 50.0 / 100.0))^(1 / (log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16))))))*log(1/0.05)^(1/(log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16)))),
     beta1 = 20000,
     beta2 = 1.5,
-    jmax_25 = 157.44,
-    hk_s = 4,
     g1_TF24 = 7.5,
+    jmax_25 = 157.44,
     a = 0.3,
     curv_fact_elec_trans = 0.7,
     curv_fact_colim = 0.99,
@@ -169,43 +168,36 @@ test_that("TF24f_Strategy hyper-parameterisation", {
   lma <- c(0.1,1)
   ret <- TF24f_hyperpar(trait_matrix(lma, "lma"), s)
 
-  expect_true(all(c("lma", "k_l", "r_l") %in% colnames(ret)))
+  expect_true(all(c("lma", "k_l", "r_l", "nmass_l") %in% colnames(ret)))
   expect_equal(ret[, "lma"], lma)
   expect_equal(ret[, "k_l"], c(1.46678,0.028600), tolerance=1e-5)
-  expect_equal(ret[, "r_l"], c(392.70, 39.27), tolerance=1e-5)
-
-  ## This happens on Linux (and therefore on travis) due to numerical
-  ## differences in the integration.
-  if ("a_p1" %in% colnames(ret)) {
-    a_p1 <- ret[, "a_p1"]
-    expect_equal(length(unique(a_p1)), 1L)
-    expect_equal(a_p1[[1]], s$pars$a_p1, tolerance=1e-7)
-  }
+  expect_equal(ret[, "r_l"], c(505.33080, 220.63308), tolerance=1e-5)
+  expect_equal(ret[, "nmass_l"], c(0.01944952, 0.010044952), tolerance=1e-8)
 
   # wood density
   rho <- c(200,300)
-  ret <- TF24f_hyperpar(trait_matrix(rho, "rho"), s)
-  expect_true(all(c("rho", "r_s", "r_b") %in% colnames(ret)))
+  tf24f_hyperpar_rho <- make_TF24f_hyperpar(B_hks2 = 1)
+  ret <- tf24f_hyperpar_rho(trait_matrix(rho, "rho"), s)
+  expect_true(all(c("rho", "g1_TF24", "r_s", "r_b") %in% colnames(ret)))
   expect_equal(ret[, "rho"], rho)
+  expect_equal(ret[, "g1_TF24"], 7.5 * (rho / 608)^(-1), tolerance = 1e-8)
   expect_equal(ret[, "r_s"], c(20.06000,13.37333), tolerance=1e-5)
   expect_equal(ret[, "r_b"], 2*ret[, "r_s"])
 
-  ## This happens on Linux (and therefore on travis) due to numerical
-  ## differences in the integration.
-  if ("a_p1" %in% colnames(ret)) {
-    a_p1 <- ret[, "a_p1"]
-    expect_equal(length(unique(a_p1)), 1L)
-    expect_equal(a_p1[[1]], s$pars$a_p1, tolerance=1e-7)
-  }
+  # sapwood conductivity and hydraulic traits
+  K_s <- c(1, 2, 3)
+  ret <- TF24f_hyperpar(trait_matrix(K_s, "K_s"), s)
+  expect_true(all(c("K_s", "p_50", "c", "b", "psi_crit") %in% colnames(ret)))
+  expect_equal(ret[, "K_s"], K_s)
+  expect_true(all(diff(ret[, "p_50"]) < 0))
 
-  # narea
-  narea <- c(0, 2E-3,2.3E-3)
-  ret <- TF24f_hyperpar(trait_matrix(narea, "narea"), s)
-  expect_true(all(c("narea", "a_p1", "a_p2", "r_l") %in% colnames(ret)))
-  expect_equal(ret[, "narea"], narea)
-  expect_equal(ret[, "r_l"], c(0, 212.2508, 244.0884), tolerance=1e-5)
-  expect_equal(ret[, "a_p1"], c(0, 162.2592, 188.1549), tolerance=1e-5)
-  expect_equal(ret[, "a_p2"], c(0, 0.220904, 0.259173), tolerance=1e-5)
+  # vcmax_25 contributes to leaf N and therefore respiration
+  vcmax_25 <- c(0, 96, 160)
+  ret <- TF24f_hyperpar(trait_matrix(vcmax_25, "vcmax_25"), s)
+  expect_true(all(c("vcmax_25", "r_l", "nmass_l") %in% colnames(ret)))
+  expect_equal(ret[, "vcmax_25"], vcmax_25)
+  expect_true(all(diff(ret[, "r_l"]) > 0))
+  expect_true(all(diff(ret[, "nmass_l"]) > 0))
 
   # seed mass
   omega <- 3.8e-5*c(1,2,3)
@@ -214,13 +206,7 @@ test_that("TF24f_Strategy hyper-parameterisation", {
   expect_equal(ret[, "omega"], omega)
   expect_equal(ret[, "a_f3"], 3*omega)
 
-  ## This happens on Linux (and therefore on travis) due to numerical
-  ## differences in the integration.
-  if ("a_p1" %in% colnames(ret)) {
-    a_p1 <- ret[, "a_p1"]
-    expect_equal(length(unique(a_p1)), 1L)
-    expect_equal(a_p1[[1]], s$pars$a_p1, tolerance=1e-7)
-  }
+  expect_false(any(c("a_p1", "a_p2") %in% colnames(ret)))
 
 
   ## Empty trait matrix:
@@ -229,23 +215,19 @@ test_that("TF24f_Strategy hyper-parameterisation", {
 })
 
 test_that("TF24f_hyperpar sources k_I from the strategy", {
-  narea <- c(2E-3, 2.3E-3)
-  m <- trait_matrix(narea, "narea")
+  m <- trait_matrix(c(96, 120), "vcmax_25")
 
-  ## Default strategy: assimilation matches the existing reference values.
   s <- TF24f_Strategy()
   expect_equal(s$pars$k_I, 0.5)
   ret <- TF24f_hyperpar(m, s)
-  expect_equal(ret[, "a_p1"], c(162.2592, 188.1549), tolerance=1e-5)
 
-  ## Varying the strategy's k_I must change the derived assimilation
-  ## parameters -- previously the hard-coded 0.5 default in the maker
-  ## silently ignored the strategy value.
   s2 <- TF24f_Strategy()
   s2$pars$k_I <- 0.8
   ret2 <- TF24f_hyperpar(m, s2)
-  expect_false(isTRUE(all.equal(ret[, "a_p1"], ret2[, "a_p1"])))
-  expect_false(isTRUE(all.equal(ret[, "a_p2"], ret2[, "a_p2"])))
+
+  # TF24f now follows TF24's updated hyperparameterisation, which no longer
+  # computes the legacy assimilation-fit columns a_p1/a_p2 from k_I.
+  expect_equal(ret, ret2, tolerance = 1e-12)
 })
 
 test_that("narea calculation", {

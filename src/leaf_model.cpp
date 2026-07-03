@@ -36,7 +36,6 @@ Leaf::Leaf()
     root_psi_crit(5.870283), //-MPa 
     beta2(1.5), //exponent for effect of hydraulic risk (unitless)
     jmax_25(157.44), // maximum electron transport rate umol m^-2 s^-1
-    hk_s(4),  // maximum hydraulic-dependent sapwood turnover rate yr ^ -1
     a(0.30), //quantum yield of photosynthetic electron transport (mol mol^-1)
     curv_fact_elec_trans(0.7), //curvature factor for the light response curve (unitless)
     curv_fact_colim(0.99), //curvature factor for the colimited photosythnthesis equatiom
@@ -58,7 +57,7 @@ Leaf::Leaf(double vcmax_25, double c, double b,
            double root_c,
            double root_b,
            double root_psi_crit,
-           double beta2, double jmax_25, double hk_s,
+           double beta2, double jmax_25,
            double a, double curv_fact_elec_trans, double curv_fact_colim, 
            double GSS_tol_abs,
            double vulnerability_curve_ncontrol,
@@ -76,7 +75,6 @@ Leaf::Leaf(double vcmax_25, double c, double b,
     root_psi_crit(root_psi_crit), //-MPa 
     beta2(beta2), //exponent for effect of hydraulic risk (unitless)
     jmax_25(jmax_25), // maximum electron transport rate umol m^-2 s^-1
-    hk_s(hk_s),  // maximum hydraulic-dependent sapwood turnover rate yr ^ -1
     a(a), //quantum yield of photosynthetic electron transport (mol mol^-1)
     curv_fact_elec_trans(curv_fact_elec_trans), //curvature factor for the light response curve (unitless)
     curv_fact_colim(curv_fact_colim), //curvature factor for the colimited photosythnthesis equation
@@ -1307,10 +1305,6 @@ double Leaf::hydraulic_cost_Sperry(double psi_stem, double psi_upstream) {
 }
 
 double Leaf::hydraulic_cost_TF(double psi_stem) {
-//hydraulic_cost_ = 1e6 * 
-  //  hk_s /(365*24*60*60)* 
-    //(1/a_bio_) * 
-    //rho_ * sapwood_volume_per_leaf_area_ * pow((1 - proportion_of_conductivity(psi_stem)), beta2);
 
   hydraulic_cost_ = g1_TF24 * pow((1 - proportion_of_conductivity(psi_stem)), beta2);
 
