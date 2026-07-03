@@ -35,6 +35,10 @@ test: all
 benchmark:
 	Rscript scripts/benchmark.R
 
+# Run the TF24 hydraulic scenario gateway and write a scorecard RDS.
+scenarios:
+	Rscript scripts/run_scenario_gateway.R
+
 install:
 	R CMD INSTALL .
 
@@ -49,4 +53,4 @@ check: build
 clean:
 	rm -f src/*.o src/*.so src/*.o.tmp
 
-.PHONY: all compile doc clean test attributes roxygen install build check
+.PHONY: all compile doc clean test attributes roxygen install build check benchmark scenarios

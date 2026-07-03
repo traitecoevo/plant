@@ -66,6 +66,7 @@ struct TF24_Pars {
   double beta2 = 1.5;
   double jmax_25 = vcmax_25*1.64;
   double hk_s = 4;
+  double g1_TF24 = 7.5;           // stomatal cost parameter for TF24 profit model [umol m^-2 s^-1]
   double a = 0.30; // effective quantum yield of electron transport
   double curv_fact_elec_trans = 0.7;
   double curv_fact_colim = 0.99;
@@ -348,7 +349,6 @@ public:
   double vulnerability_curve_ncontrol = 100;
   double ci_abs_tol = 1e-6;
   double ci_niter = 1000;
-  double g1_TF24 = 7.5;
   double beta_R_H = 3.4e2;
   double beta_R_V = 9.4e3;
 

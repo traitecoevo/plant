@@ -1243,6 +1243,7 @@ TF24_Pars:
     - beta2: double
     - jmax_25: double
     - hk_s: double
+    - g1_TF24: double
     - a: double
     - curv_fact_elec_trans: double
     - curv_fact_colim: double

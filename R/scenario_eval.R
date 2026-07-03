@@ -1,0 +1,391 @@
+##' Scenario evaluation framework for the TF24 / TF24f hydraulic models.
+##'
+##' These functions turn a table of qualitatively-described model scenarios
+##' (e.g. \code{inst/scenarios/model_scenarios_hydraulic.csv}, added in PR #555)
+##' into concrete TF24 parameterisations, run each through the SCM, classify the
+##' run as a success or a failure, and score the observed outcome against the
+##' expected outcome recorded in the table. The result is a provenance-stamped
+##' scorecard that can be re-run across branches as a gateway check: many
+##' scenarios are expected to fail on the current model and become targets to
+##' fix as new features (e.g. NSC storage, #554) land.
+##'
+##' The qualitative-to-quantitative translation is data-driven: every
+##' \code{High}/\code{Low}/descriptor cell is looked up in an editable mapping
+##' table (\code{inst/scenarios/scenario_mapping.csv}) so the biology can be
+##' recalibrated without touching code.
+##'
+##' @name scenario_eval
+##' @family scenario_eval
+NULL
+
+## Path to a packaged scenario data file. Falls back to the source tree when
+## the package is loaded via devtools/pkgload (system.file() then returns "").
+scenario_file <- function(name) {
+  path <- system.file("scenarios", name, package = "plant")
+  if (!nzchar(path)) {
+    path <- file.path("inst", "scenarios", name)
+  }
+  path
+}
+
+##' @param path Path to the CSV file.
+##' @return \code{read_scenario_table} returns a tibble of scenarios with an
+##'   added \code{scenario_id} and \code{is_duplicate} flag; the raw descriptor
+##'   columns are kept verbatim.
+##' @rdname scenario_eval
+##' @export
+read_scenario_table <- function(
+    path = scenario_file("model_scenarios_hydraulic.csv")) {
+  ## fileEncoding = "UTF-8-BOM" transparently strips a leading BOM if present.
+  raw <- utils::read.csv(path, check.names = FALSE, stringsAsFactors = FALSE,
+                         fileEncoding = "UTF-8-BOM")
+  descriptor_cols <- setdiff(names(raw), "Scenario")
+  tbl <- tibble::as_tibble(raw)
+  tbl$scenario_id <- sprintf("S%02d", seq_len(nrow(tbl)))
+  tbl$is_duplicate <- duplicated(raw[descriptor_cols])
+  ## Put the id first for readability.
+  tbl[c("scenario_id", setdiff(names(tbl), "scenario_id"))]
+}
+
+##' @rdname scenario_eval
+##' @export
+read_scenario_mapping <- function(
+    path = scenario_file("scenario_mapping.csv")) {
+  raw <- utils::read.csv(path, check.names = FALSE, stringsAsFactors = FALSE,
+                         fileEncoding = "UTF-8-BOM")
+  tibble::as_tibble(raw)
+}
+
+## Derive the vulnerability-curve constants from p_50, using the same formulas
+## as the TF24_Pars C++ defaults (tf24_strategy.h). INTERIM: once PR #548 moves
+## this derivation into TF24_hyperpar, drop this block and pass p_50 alone.
+derive_vulnerability_curve <- function(p_50) {
+  c_val <- log(log(1 - 0.5) / log(1 - 0.88)) / (log(p_50) - log(5.16))
+  b_val <- p_50 / (-log(1 - 50.0 / 100.0))^(1 / c_val)
+  psi_crit <- b_val * log(1 / 0.05)^(1 / c_val)
+  c(c = c_val, b = b_val, psi_crit = psi_crit)
+}
+
+##' @param row A one-row data frame / tibble from \code{read_scenario_table}.
+##' @param mapping A mapping tibble from \code{read_scenario_mapping}.
+##' @return \code{scenario_to_config} returns a list with \code{traits} (named
+##'   numeric), \code{env} (named list of Environment fields), \code{driver}
+##'   (named list of extrinsic-driver settings) and \code{expected}
+##'   (\code{"failure"} or \code{"success"}).
+##' @rdname scenario_eval
+##' @export
+scenario_to_config <- function(row, mapping) {
+  row <- as.list(row)
+  traits <- list()
+  env <- list()
+  driver <- list()
+
+  for (col in unique(mapping$csv_column)) {
+    if (!col %in% names(row)) {
+      next
+    }
+    level <- as.character(row[[col]])
+    hit <- mapping[mapping$csv_column == col & mapping$level == level, ]
+    if (nrow(hit) == 0L) {
+      stop(sprintf(
+        "No mapping for column '%s' level '%s' (scenario '%s'). Add a row to scenario_mapping.csv.",
+        col, level, row$Scenario), call. = FALSE)
+    }
+    if (nrow(hit) > 1L) {
+      stop(sprintf("Ambiguous mapping for column '%s' level '%s' (%d matches).",
+                   col, level, nrow(hit)), call. = FALSE)
+    }
+    value <- as.numeric(hit$value)
+    switch(hit$target,
+           trait  = traits[[hit$param]]  <- value,
+           env    = env[[hit$param]]     <- value,
+           driver = driver[[hit$param]]  <- value,
+           stop(sprintf("Unknown target '%s' in scenario_mapping.csv.", hit$target),
+                call. = FALSE))
+  }
+
+  ## INTERIM (pre-#548): keep the vulnerability curve consistent with p_50.
+  if (!is.null(traits[["p_50"]])) {
+    vc <- derive_vulnerability_curve(traits[["p_50"]])
+    traits[["c"]]        <- vc[["c"]]
+    traits[["b"]]        <- vc[["b"]]
+    traits[["psi_crit"]] <- vc[["psi_crit"]]
+  }
+
+  expected <- switch(as.character(row$Expectation),
+                     "Model failure"           = "failure",
+                     "Model runs successfully" = "success",
+                     stop(sprintf("Unrecognised Expectation '%s' (scenario '%s').",
+                                  row$Expectation, row$Scenario), call. = FALSE))
+
+  list(traits = unlist(traits), env = env, driver = driver, expected = expected)
+}
+
+##' @param config A config list from \code{scenario_to_config}.
+##' @param max_patch_lifetime Patch lifetime (years) for the SCM run.
+##' @param ctrl A \code{Control} object.
+##' @param birth_rate Birth rate passed to \code{add_strategies}.
+##' @return \code{build_scenario} returns a list with the \code{Parameters}
+##'   (\code{p}), configured \code{Environment} (\code{env}) and \code{Control}
+##'   (\code{ctrl}) ready for \code{run_scm}.
+##' @rdname scenario_eval
+##' @export
+build_scenario <- function(config, max_patch_lifetime = 100,
+                           ctrl = control(), birth_rate = 1) {
+  p <- scm_base_parameters("TF24")
+  p$max_patch_lifetime <- max_patch_lifetime
+
+  tr <- config$traits
+  traits <- trait_matrix(unname(tr), names(tr))
+  p <- add_strategies(p, traits, hyperpar = TF24_hyperpar, birth_rate = birth_rate)
+
+  env <- Environment("TF24")
+  n_depths <- env$get_soil_number_of_depths()
+  for (nm in names(config$env)) {
+    env[[nm]] <- config$env[[nm]]
+  }
+  ## Start each layer at half saturation for a reproducible initial condition.
+  env$set_soil_water_state(rep(0.428 * 0.5, n_depths))
+
+  mean_rain <- config$driver[["rainfall_mean"]]
+  amp_frac  <- config$driver[["rainfall_amp_frac"]]
+  if (is.null(amp_frac)) {
+    amp_frac <- 0
+  }
+  if (!is.null(mean_rain)) {
+    if (amp_frac == 0) {
+      env$extrinsic_drivers_set_constant("rainfall", mean_rain)
+    } else {
+      ## Sinusoidal annual rainfall; trough clamped to zero (a trough of exactly
+      ## zero is the "amplitude = mean" extreme-seasonality case).
+      t <- seq(0, max_patch_lifetime,
+               length.out = max(200L, as.integer(ceiling(max_patch_lifetime * 6))))
+      y <- mean_rain * (1 + amp_frac * sin(2 * pi * t))
+      y <- pmax(y, 0)
+      env$extrinsic_drivers_set_variable("rainfall", t, y)
+    }
+  }
+
+  list(p = p, env = env, ctrl = ctrl)
+}
+
+##' @return \code{classify_scm_run} returns a list describing the run:
+##'   \code{status} (\code{"success"}/\code{"failure"}),
+##'   \code{offspring_production}, \code{finite}, \code{error_message},
+##'   \code{warnings} and \code{run_seconds}. A run is a success when it
+##'   completes with finite, positive total offspring production; any thrown
+##'   error or non-finite output is a failure. The C++ layer already fails fast
+##'   on non-finite state, so classification does not depend on error wording.
+##' @rdname scenario_eval
+##' @export
+classify_scm_run <- function(p, env, ctrl = control()) {
+  ## The test suite sets options(warn = 2); make sure warnings raised during a
+  ## scenario run are recorded, not escalated to errors.
+  withr::local_options(warn = 1)
+
+  warns <- character(0)
+  t0 <- proc.time()[["elapsed"]]
+  res <- tryCatch(
+    withCallingHandlers(
+      {
+        scm <- run_scm(p, env = env, ctrl = ctrl)
+        list(ok = TRUE, offspring_production = scm$offspring_production)
+      },
+      warning = function(w) {
+        warns <<- c(warns, conditionMessage(w))
+        invokeRestart("muffleWarning")
+      }),
+    error = function(e) list(ok = FALSE, error_message = conditionMessage(e)))
+  elapsed <- proc.time()[["elapsed"]] - t0
+
+  warn_str <- if (length(warns)) paste(unique(warns), collapse = " | ") else NA_character_
+
+  if (isTRUE(res$ok)) {
+    op <- res$offspring_production
+    finite <- length(op) > 0L && all(is.finite(op))
+    total <- if (finite) sum(op) else NA_real_
+    status <- if (finite && isTRUE(total > 0)) "success" else "failure"
+    ## outcome distinguishes a numerical failure (crash / non-finite) from a
+    ## finite run in which the strategy simply fails to persist (extinct).
+    outcome <- if (!finite) "crashed" else if (total > 0) "persisted" else "extinct"
+    list(status = status, outcome = outcome, crashed = !finite,
+         offspring_production = total, finite = finite,
+         error_message = NA_character_, warnings = warn_str, run_seconds = elapsed)
+  } else {
+    list(status = "failure", outcome = "crashed", crashed = TRUE,
+         offspring_production = NA_real_, finite = FALSE,
+         error_message = res$error_message, warnings = warn_str,
+         run_seconds = elapsed)
+  }
+}
+
+##' @return \code{evaluate_scenario} returns a one-row scorecard tibble.
+##' @rdname scenario_eval
+##' @export
+evaluate_scenario <- function(row, mapping, ctrl = control(),
+                              max_patch_lifetime = 100) {
+  config <- scenario_to_config(row, mapping)
+  built <- build_scenario(config, max_patch_lifetime = max_patch_lifetime,
+                          ctrl = ctrl)
+  run <- classify_scm_run(built$p, built$env, built$ctrl)
+
+  tibble::tibble(
+    scenario_id          = row$scenario_id %||% NA_character_,
+    scenario             = row$Scenario,
+    expected             = config$expected,
+    observed             = run$status,
+    match                = identical(run$status, config$expected),
+    outcome              = run$outcome,
+    crashed              = run$crashed,
+    offspring_production = run$offspring_production,
+    finite               = run$finite,
+    error_message        = run$error_message,
+    warnings             = run$warnings,
+    run_seconds          = run$run_seconds,
+    config               = list(config))
+}
+
+##' @param scenarios A scenario tibble from \code{read_scenario_table}.
+##' @param workers Number of parallel workers. \code{> 1} uses **fork-based**
+##'   parallelism (\code{parallel::mclapply}). Forking is deliberate: it inherits
+##'   the currently-loaded namespace and compiled library, so it works when
+##'   \code{plant} is loaded for development via \code{pkgload::load_all} /
+##'   \code{devtools::load_all}. A PSOCK / \code{future::multisession} cluster
+##'   would spawn fresh R sessions that see only the *installed* package, not the
+##'   dev build, and would silently run stale (or missing) code — so it is not
+##'   used here. Forking is unavailable on Windows, where the run falls back to
+##'   sequential regardless of \code{workers}.
+##' @return \code{run_scenarios} returns a scorecard tibble (one row per
+##'   scenario) with a \code{"metadata"} attribute recording provenance. A crash
+##'   in one scenario never aborts the batch. Scenario runs are deterministic
+##'   (no RNG), so parallel and sequential runs produce identical scorecards.
+##' @rdname scenario_eval
+##' @export
+run_scenarios <- function(scenarios = read_scenario_table(),
+                          mapping = read_scenario_mapping(),
+                          ctrl = control(), max_patch_lifetime = 100,
+                          workers = 1L) {
+  eval_one <- function(i) {
+    row <- scenarios[i, , drop = FALSE]
+    tryCatch(
+      evaluate_scenario(row, mapping, ctrl = ctrl,
+                        max_patch_lifetime = max_patch_lifetime),
+      error = function(e) tibble::tibble(
+        scenario_id = row$scenario_id %||% NA_character_,
+        scenario = row$Scenario, expected = NA_character_,
+        observed = "error", match = NA, outcome = "error", crashed = TRUE,
+        offspring_production = NA_real_, finite = FALSE,
+        error_message = conditionMessage(e), warnings = NA_character_,
+        run_seconds = NA_real_, config = list(NULL)))
+  }
+
+  idx <- seq_len(nrow(scenarios))
+  use_fork <- workers > 1L && .Platform$OS.type != "windows"
+  if (use_fork) {
+    ## mc.preschedule = FALSE load-balances the uneven per-scenario runtimes.
+    rows <- parallel::mclapply(idx, eval_one, mc.cores = workers,
+                               mc.preschedule = FALSE)
+    ## A worker that died (rather than returning a row) surfaces as a
+    ## try-error; turn it into a visible error row rather than dropping it.
+    rows <- Map(function(res, i) {
+      if (inherits(res, "try-error") || !tibble::is_tibble(res)) {
+        row <- scenarios[i, , drop = FALSE]
+        tibble::tibble(
+          scenario_id = row$scenario_id %||% NA_character_,
+          scenario = row$Scenario, expected = NA_character_,
+          observed = "error", match = NA, outcome = "error", crashed = TRUE,
+          offspring_production = NA_real_, finite = FALSE,
+          error_message = paste("worker failed:", as.character(res)),
+          warnings = NA_character_, run_seconds = NA_real_, config = list(NULL))
+      } else {
+        res
+      }
+    }, rows, idx)
+  } else {
+    rows <- lapply(idx, eval_one)
+  }
+
+  scorecard <- dplyr::bind_rows(rows)
+  meta <- scenario_run_metadata()
+  meta$workers <- if (use_fork) workers else 1L
+  attr(scorecard, "metadata") <- meta
+  scorecard
+}
+
+##' @return \code{scenario_run_metadata} returns a list of provenance fields
+##'   (git commit / branch / dirty flag, package version, R version, platform,
+##'   timestamp) so a scorecard records the exact build it came from.
+##' @rdname scenario_eval
+##' @export
+scenario_run_metadata <- function() {
+  git <- function(args) {
+    tryCatch(
+      {
+        out <- suppressWarnings(system2("git", args, stdout = TRUE, stderr = FALSE))
+        if (length(out)) trimws(paste(out, collapse = "\n")) else NA_character_
+      },
+      error = function(e) NA_character_)
+  }
+  dirty <- tryCatch(
+    length(suppressWarnings(system2("git", c("status", "--porcelain"),
+                                    stdout = TRUE, stderr = FALSE))) > 0L,
+    error = function(e) NA)
+  list(
+    git_commit      = git(c("rev-parse", "HEAD")),
+    git_branch      = git(c("rev-parse", "--abbrev-ref", "HEAD")),
+    git_dirty       = dirty,
+    package_version = as.character(utils::packageVersion("plant")),
+    r_version       = R.version.string,
+    platform        = R.version$platform,
+    timestamp       = format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z"))
+}
+
+##' @param scorecard A scorecard tibble from \code{run_scenarios}.
+##' @return \code{scenario_summary} returns a one-row tibble with the headline
+##'   counts: total scenarios, matches, match rate, and the expected-failure vs
+##'   expected-success breakdown.
+##' @rdname scenario_eval
+##' @export
+scenario_summary <- function(scorecard) {
+  exp_fail <- scorecard$expected == "failure"
+  exp_succ <- scorecard$expected == "success"
+  tibble::tibble(
+    n                  = nrow(scorecard),
+    n_match            = sum(scorecard$match, na.rm = TRUE),
+    match_rate         = mean(scorecard$match, na.rm = TRUE),
+    n_expected_fail    = sum(exp_fail, na.rm = TRUE),
+    n_expected_fail_met = sum(exp_fail & scorecard$match, na.rm = TRUE),
+    n_expected_success = sum(exp_succ, na.rm = TRUE),
+    n_expected_success_met = sum(exp_succ & scorecard$match, na.rm = TRUE))
+}
+
+##' @param output_file Output HTML path for the rendered report.
+##' @param input_file The report template (\code{.Rmd}).
+##' @param overwrite Overwrite an existing \code{output_file}?
+##' @param quiet Passed to \code{rmarkdown::render}.
+##' @return \code{scenario_generate_report} renders the scorecard report and
+##'   returns the output path (invisibly).
+##' @rdname scenario_eval
+##' @export
+scenario_generate_report <- function(scorecard,
+                                     output_file = "scenario_scorecard.html",
+                                     input_file = system.file(
+                                       "reports", "scenario_scorecard.Rmd",
+                                       package = "plant"),
+                                     overwrite = FALSE, quiet = TRUE) {
+  if (!nzchar(input_file) || !file.exists(input_file)) {
+    stop("Could not find the scorecard report template.", call. = FALSE)
+  }
+  if (file.exists(output_file) && !overwrite) {
+    stop(sprintf("'%s' exists; pass overwrite = TRUE to replace it.", output_file),
+         call. = FALSE)
+  }
+  output_file <- normalizePath(output_file, mustWork = FALSE)
+  rmarkdown::render(input_file, output_file = output_file,
+                    params = list(scorecard = scorecard), quiet = quiet,
+                    envir = new.env(parent = globalenv()))
+  invisible(output_file)
+}
+
+## Local null-coalescing helper (avoids taking a hard rlang dependency here).
+`%||%` <- function(a, b) if (is.null(a)) b else a
