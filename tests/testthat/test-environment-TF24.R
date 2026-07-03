@@ -172,3 +172,58 @@ test_that("Environment-TF24 running soil moisture profile", {
   expect_equal(water_conservation$total_moisture_start, water_conservation$total_moisture_end)
   
 })
+
+test_that("Environment-TF24 allows per-layer soil parameters", {
+  env <- TF24_Environment()
+
+  expect_silent(env$set_soil_parameters(3, NULL, NULL, NULL, NULL))
+  expect_equal(env$get_soil_number_of_depths(), 3)
+  expect_silent(env$set_soil_water_state(rep(0.2, 3)))
+
+  # Provided parameter vectors must match number of soil layers.
+  expect_error(
+    env$set_soil_parameters(3, c(0.4, 0.5), c(10, 20, 30), c(1000, 2000, 3000), c(1, 1, 1)),
+    "soil_moist_sat"
+  )
+
+  expect_silent(
+    env$set_soil_parameters(3, c(0.4, 0.5, 0.6), c(10, 20, 30), c(1000, 2000, 3000), c(1, 1, 1))
+  )
+  expect_silent(env$set_soil_water_state(rep(0.2, 3)))
+
+  # The per-layer parameterised environment should run rate calculations
+  # without errors for the configured number of soil layers.
+  expect_silent(env$compute_rates(rep(0, 3)))
+
+  # If parameter vectors are not provided (NULL), defaults are replicated
+  # from the scalar environment parameters across layers.
+  env2 <- TF24_Environment()
+  env2$soil_moist_sat <- 0.5
+  env2$a_psi <- 1e3
+  env2$n_psi <- 1
+  expect_silent(env2$set_soil_parameters(2, NULL, NULL, NULL, NULL))
+  expect_silent(env2$set_soil_water_state(rep(0.2, 2)))
+  expect_silent(env2$compute_rates(rep(0, 2)))
+  expect_equal(length(env2$get_soil_water_state()), 2)
+})
+
+test_that("Environment-TF24 set_soil_parameters validates each parameter length", {
+  env <- TF24_Environment()
+
+  expect_error(
+    env$set_soil_parameters(3, c(0.4, 0.5), NULL, NULL, NULL),
+    "soil_moist_sat"
+  )
+  expect_error(
+    env$set_soil_parameters(3, NULL, c(10, 20), NULL, NULL),
+    "K_sat"
+  )
+  expect_error(
+    env$set_soil_parameters(3, NULL, NULL, c(1000, 2000), NULL),
+    "a_psi"
+  )
+  expect_error(
+    env$set_soil_parameters(3, NULL, NULL, NULL, c(1, 1)),
+    "n_psi"
+  )
+})

@@ -1312,6 +1312,14 @@ TF24_Environment:
     set_soil_number_of_depths:
       args: [soil_number_of_depths: int]
       return_type: void
+    set_soil_parameters:
+      args:
+        - soil_number_of_depths: int
+        - soil_moist_sat_values: SEXP
+        - K_sat_values: SEXP
+        - a_psi_values: SEXP
+        - n_psi_values: SEXP
+      return_type: void
     get_soil_number_of_depths:
       args: []
       return_type: int

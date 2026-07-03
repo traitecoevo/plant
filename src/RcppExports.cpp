@@ -11323,6 +11323,21 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// TF24_Environment__set_soil_parameters
+void TF24_Environment__set_soil_parameters(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, int soil_number_of_depths, SEXP soil_moist_sat_values, SEXP K_sat_values, SEXP a_psi_values, SEXP n_psi_values);
+RcppExport SEXP _plant_TF24_Environment__set_soil_parameters(SEXP obj_SEXP, SEXP soil_number_of_depthsSEXP, SEXP soil_moist_sat_valuesSEXP, SEXP K_sat_valuesSEXP, SEXP a_psi_valuesSEXP, SEXP n_psi_valuesSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< int >::type soil_number_of_depths(soil_number_of_depthsSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type soil_moist_sat_values(soil_moist_sat_valuesSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type K_sat_values(K_sat_valuesSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type a_psi_values(a_psi_valuesSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type n_psi_values(n_psi_valuesSEXP);
+    TF24_Environment__set_soil_parameters(obj_, soil_number_of_depths, soil_moist_sat_values, K_sat_values, a_psi_values, n_psi_values);
+    return R_NilValue;
+END_RCPP
+}
 // TF24_Environment__get_soil_number_of_depths
 int TF24_Environment__get_soil_number_of_depths(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_);
 RcppExport SEXP _plant_TF24_Environment__get_soil_number_of_depths(SEXP obj_SEXP) {
@@ -12957,6 +12972,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_TF24_Environment__psi_from_soil_moist", (DL_FUNC) &_plant_TF24_Environment__psi_from_soil_moist, 2},
     {"_plant_TF24_Environment__soil_moist_from_psi", (DL_FUNC) &_plant_TF24_Environment__soil_moist_from_psi, 2},
     {"_plant_TF24_Environment__set_soil_number_of_depths", (DL_FUNC) &_plant_TF24_Environment__set_soil_number_of_depths, 2},
+    {"_plant_TF24_Environment__set_soil_parameters", (DL_FUNC) &_plant_TF24_Environment__set_soil_parameters, 6},
     {"_plant_TF24_Environment__get_soil_number_of_depths", (DL_FUNC) &_plant_TF24_Environment__get_soil_number_of_depths, 1},
     {"_plant_TF24_Environment__set_soil_water_state", (DL_FUNC) &_plant_TF24_Environment__set_soil_water_state, 2},
     {"_plant_TF24_Environment__get_soil_water_state", (DL_FUNC) &_plant_TF24_Environment__get_soil_water_state, 1},

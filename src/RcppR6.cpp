@@ -4564,6 +4564,10 @@ void TF24_Environment__set_soil_number_of_depths(plant::RcppR6::RcppR6<plant::TF
   obj_->set_soil_number_of_depths(soil_number_of_depths);
 }
 // [[Rcpp::export]]
+void TF24_Environment__set_soil_parameters(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, int soil_number_of_depths, SEXP soil_moist_sat_values, SEXP K_sat_values, SEXP a_psi_values, SEXP n_psi_values) {
+  obj_->set_soil_parameters(soil_number_of_depths, soil_moist_sat_values, K_sat_values, a_psi_values, n_psi_values);
+}
+// [[Rcpp::export]]
 int TF24_Environment__get_soil_number_of_depths(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_) {
   return obj_->get_soil_number_of_depths();
 }

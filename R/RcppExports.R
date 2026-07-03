@@ -4025,6 +4025,10 @@ TF24_Environment__set_soil_number_of_depths <- function(obj_, soil_number_of_dep
     invisible(.Call('_plant_TF24_Environment__set_soil_number_of_depths', PACKAGE = 'plant', obj_, soil_number_of_depths))
 }
 
+TF24_Environment__set_soil_parameters <- function(obj_, soil_number_of_depths, soil_moist_sat_values, K_sat_values, a_psi_values, n_psi_values) {
+    invisible(.Call('_plant_TF24_Environment__set_soil_parameters', PACKAGE = 'plant', obj_, soil_number_of_depths, soil_moist_sat_values, K_sat_values, a_psi_values, n_psi_values))
+}
+
 TF24_Environment__get_soil_number_of_depths <- function(obj_) {
     .Call('_plant_TF24_Environment__get_soil_number_of_depths', PACKAGE = 'plant', obj_)
 }
