@@ -1,0 +1,9 @@
+﻿Scenario,Expectation,Rainfall,Drainage rate,Root distribution,Annual rainfall amplitude of variation,g1_TF24,Ks,Vcmax_25,LMA,Wood density,"Psi_crit,b,c",Huber value
+High rainfall plants in arid and extremely seasonal environment,Model failure,Lower than 0.5m,High,Extremely top heavy,Equal to mean rainfall,High,High,Low,Low,Low,Less negative psi,Low
+Low rainfall plants in wet and seasonal environment,Model runs successfully,Higher than 1m,Low,Extremely top heavy,Half of mean rainfall,Low,Low,High,High,High,More negative psi,High
+Low rainfall plants in wet and extremely seasonal environment,Model failure,Higher than 1m,Low,Extremely top heavy,Equal to mean rainfall,Low,Low,High,High,High,More negative psi,High
+High rainfall plants in arid and extremely seasonal environment,Model failure,Lower than 0.5m,High,Extremely top heavy,Equal to mean rainfall,High,High,Low,Low,Low,Less negative psi,Low
+High rainfall plants in arid and extremely seasonal environment,Model failure,Lower than 0.5m,High,Extremely bottom heavy,Equal to mean rainfall,High,High,Low,Low,Low,Less negative psi,Low
+Low rainfall plants in wet and seasonal environment,Model failure,Higher than 1m,Low,Extremely bottom heavy,Half of mean rainfall,Low,Low,High,High,High,More negative psi,High
+Low rainfall plants in wet and extremely seasonal environment,Model failure,Higher than 1m,Low,Extremely bottom heavy,Equal to mean rainfall,Low,Low,High,High,High,More negative psi,High
+High rainfall plants in arid and extremely seasonal environment,Model failure,Lower than 0.5m,High,Extremely bottom heavy,Equal to mean rainfall,High,High,Low,Low,Low,Less negative psi,Low
