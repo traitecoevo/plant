@@ -9,6 +9,7 @@
 \alias{classify_scm_run}
 \alias{evaluate_scenario}
 \alias{run_scenarios}
+\alias{scenario_model_fingerprint}
 \alias{scenario_run_metadata}
 \alias{scenario_summary}
 \alias{scenario_generate_report}
@@ -36,8 +37,11 @@ run_scenarios(
   mapping = read_scenario_mapping(),
   ctrl = control(),
   max_patch_lifetime = 100,
-  workers = 1L
+  workers = 1L,
+  cache = NULL
 )
+
+scenario_model_fingerprint()
 
 scenario_run_metadata()
 
@@ -78,6 +82,16 @@ dev build, and would silently run stale (or missing) code — so it is not
 used here. Forking is unavailable on Windows, where the run falls back to
 sequential regardless of \code{workers}.}
 
+\item{cache}{Optional path to an \code{.rds} cache. When supplied, each
+scenario's result is keyed by a content hash of its resolved config,
+\code{max_patch_lifetime} and the model fingerprint
+(\code{\link{scenario_model_fingerprint}}); a scenario is rerun only when
+that key changes. So a model recompile / R-source edit reruns everything
+(the fingerprint moves), while editing one mapping cell reruns only the
+scenarios it touches. The cache deliberately errs toward rerunning. Note
+it does not fingerprint a non-default \code{ctrl} passed at runtime — use a
+distinct cache path when sweeping \code{ctrl}.}
+
 \item{scorecard}{A scorecard tibble from \code{run_scenarios}.}
 
 \item{output_file}{Output HTML path for the rendered report.}
@@ -116,6 +130,12 @@ sequential regardless of \code{workers}.}
   scenario) with a \code{"metadata"} attribute recording provenance. A crash
   in one scenario never aborts the batch. Scenario runs are deterministic
   (no RNG), so parallel and sequential runs produce identical scorecards.
+
+\code{scenario_model_fingerprint} returns a hash string that changes
+  whenever the model that produces scenario results could change: the
+  package version, the compiled shared library, and all package R source
+  plus the scenario data files. It is intentionally broad — the cache should
+  rerun rather than risk a stale result.
 
 \code{scenario_run_metadata} returns a list of provenance fields
   (git commit / branch / dirty flag, package version, R version, platform,

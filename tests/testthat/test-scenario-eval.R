@@ -71,6 +71,36 @@ test_that("classify_scm_run returns a well-formed classification", {
   expect_true(is.numeric(run$run_seconds))
 })
 
+test_that("scenario_model_fingerprint is a stable, non-empty hash", {
+  fp <- scenario_model_fingerprint()
+  expect_type(fp, "character")
+  expect_true(nzchar(fp))
+  expect_identical(fp, scenario_model_fingerprint())  # stable across calls
+})
+
+test_that("run_scenarios cache reuses unchanged scenarios", {
+  ## Row 1 is mesic (LMA Low), row 3 is xeric (LMA High).
+  scen <- read_scenario_table()[c(1, 3), ]
+  map <- read_scenario_mapping()
+  cache <- withr::local_tempfile(fileext = ".rds")
+
+  cold <- run_scenarios(scen, map, max_patch_lifetime = 2, cache = cache)
+  expect_true(file.exists(cache))
+
+  ## A second identical run reuses everything and returns the same outcomes.
+  expect_message(
+    warm <- run_scenarios(scen, map, max_patch_lifetime = 2, cache = cache),
+    "2 reused, 0 to run")
+  expect_equal(warm$observed, cold$observed)
+
+  ## Editing a mapping value used by one scenario invalidates only that one.
+  map2 <- map
+  map2$value[map2$csv_column == "LMA" & map2$level == "Low"] <- 0.05
+  expect_message(
+    run_scenarios(scen, map2, max_patch_lifetime = 2, cache = cache),
+    "1 reused, 1 to run")
+})
+
 test_that("scenario_summary tallies matches", {
   sc <- tibble::tibble(
     expected = c("failure", "success", "failure"),

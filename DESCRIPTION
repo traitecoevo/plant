@@ -34,7 +34,8 @@ Imports:
     purrr,
     odelia,
     withr,
-    parallel
+    parallel,
+    tools
 Suggests:
     testthat,
     rprojroot,

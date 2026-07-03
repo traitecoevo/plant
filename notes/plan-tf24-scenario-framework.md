@@ -180,36 +180,55 @@ sequential scorecards are identical (verified).
 5. `PLANT_RUN_SCENARIOS=1 devtools::test(filter="scenario")` green.
 6. Record baseline scorecard; note match_rate as the pre-NSC target to beat.
 
-## Baseline results (this build: pre-NSC, `max_patch_lifetime = 100`)
+## PR #548 integration (merged into this branch)
 
-Match rate **4/8 (50%)**. Recorded in
-`tests/testthat/test_data/scenario_baseline.rds`.
+PR #548 (`tf24_hyperparameterisation`) has been merged in. It moves the
+hydraulic derivations into `TF24_hyperpar`, which changes how the CSV columns
+map:
 
-| id | scenario | expected | observed | outcome | match |
-|---|---|---|---|---|---|
-| S01 | mesic / arid / shallow | failure | failure | extinct | ✓ |
-| S02 | mesic / arid / deep | failure | failure | extinct | ✓ |
-| S03 | xeric / wet-seasonal / shallow | success | failure | **crashed** | ✗ |
-| S04 | xeric / wet-seasonal / deep | failure | success | persisted | ✗ |
-| S05 | xeric / wet-extreme-seasonal / shallow | failure | failure | crashed | ✓ |
-| S06 | xeric / wet-extreme-seasonal / deep | failure | success | persisted | ✗ |
-| S07 | mesic / matched wet (control) | success | failure | extinct | ✗ |
-| S08 | xeric / matched arid (control) | success | success | persisted | ✓ |
+- The interim R-side `p_50 → c/b/psi_crit` derivation has been **removed** from
+  `scenario_eval.R`; the hyperpar owns it.
+- `p_50/c/b/psi_crit` are now derived from **`K_s`**, and **`g1_TF24`** from
+  **`rho`** (`R/tf24.R` `extra` block). Both are therefore **removed as input
+  traits** from `scenario_mapping.csv` — passing them would trip the hyperpar's
+  overwrite guard. The CSV's pairings stay consistent (low `K_s` → more-negative
+  `p_50`; high `rho` → lower `g1_TF24`), so the intended physiology is preserved
+  via the `K_s` and `rho` mappings. Under #548's default the `g1_TF24` scaling
+  exponent is 0, so `g1_TF24` is effectively constant unless recalibrated.
+- Conflicts (all in the shared `g1_TF24`/`hk_s`/pars region) were resolved in
+  favour of #548, which also exposes `g1_TF24` in `TF24_Pars` (superseding the
+  standalone exposure this branch had added) and drops `hk_s` as a parameter.
 
-Targets surfaced by the framework:
+## Caching: when to rerun
 
-- **S03 is the priority:** a *crash* (numerical failure) in a scenario expected
-  to *succeed*. This is exactly the #549/#554 failure class and should be gone
-  once NSC lands — re-run to confirm.
-- **S07:** a matched mesic control goes extinct (finite run, no offspring).
-  Likely a parameter/birth-rate tuning issue rather than a numerical bug; worth
-  checking the mesic trait bundle and `birth_rate`.
-- **S04, S06:** the model runs where the CSV expected failure — either it is
-  more robust than the authors assumed, or the `k = 2` mapping is not extreme
-  enough. Revisit the mapping magnitudes, or confirm the expectations.
+Scenario runs are deterministic, so a result is a pure function of
+`(resolved config, max_patch_lifetime, model)`. `run_scenarios(cache = path)`
+keys each row by a content hash of those and reruns only what changed:
 
-## Open dependency
+- **Model change** (any C++ recompile or package R-source edit) moves
+  `scenario_model_fingerprint()` → **all** rerun.
+- **Mapping / scenario edit** changes only the affected rows' config hash → only
+  those rerun.
+- **Unrelated edits** (report, runner) → full reuse.
 
-PR #548 (`tf24_hyperparameterisation`, open) is the proper home for the
-`p_50 → c/b/psi_crit` derivation. When it merges, delete the interim R-side
-block and pass `p_50` alone.
+The fingerprint is intentionally broad (package version + compiled `.so` md5 +
+md5 of all `R/*.R` + the scenario CSVs): the cache errs toward rerunning, since
+a stale gateway result is worse than a redundant run. It does **not** fingerprint
+a non-default `ctrl` passed at runtime — use a distinct cache path when sweeping
+`ctrl`.
+
+## Baseline results (post-#548, `max_patch_lifetime = 100`): 5/8
+
+| id | expected | observed | outcome | note |
+|---|---|---|---|---|
+| S01 | failure | failure | crashed | ✓ |
+| S02 | failure | failure | crashed | ✓ |
+| S03 | success | success | persisted | ✓ (**#548 fixed the earlier crash**) |
+| S04 | failure | success | persisted | ✗ (runs where failure expected) |
+| S05 | failure | failure | crashed | ✓ |
+| S06 | failure | failure | crashed | ✓ |
+| S07 | success | failure | crashed | ✗ (matched mesic control crashes — target) |
+| S08 | success | failure | crashed | ✗ (matched xeric control crashes — target) |
+
+#548 raised the match rate (4/8 → 5/8) and, notably, fixed S03. The two matched
+controls (S07, S08) now crash — the clearest remaining targets, alongside S04.

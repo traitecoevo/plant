@@ -246,57 +246,136 @@ evaluate_scenario <- function(row, mapping, ctrl = control(),
 ##'   scenario) with a \code{"metadata"} attribute recording provenance. A crash
 ##'   in one scenario never aborts the batch. Scenario runs are deterministic
 ##'   (no RNG), so parallel and sequential runs produce identical scorecards.
+##' @param cache Optional path to an \code{.rds} cache. When supplied, each
+##'   scenario's result is keyed by a content hash of its resolved config,
+##'   \code{max_patch_lifetime} and the model fingerprint
+##'   (\code{\link{scenario_model_fingerprint}}); a scenario is rerun only when
+##'   that key changes. So a model recompile / R-source edit reruns everything
+##'   (the fingerprint moves), while editing one mapping cell reruns only the
+##'   scenarios it touches. The cache deliberately errs toward rerunning. Note
+##'   it does not fingerprint a non-default \code{ctrl} passed at runtime — use a
+##'   distinct cache path when sweeping \code{ctrl}.
 ##' @rdname scenario_eval
 ##' @export
 run_scenarios <- function(scenarios = read_scenario_table(),
                           mapping = read_scenario_mapping(),
                           ctrl = control(), max_patch_lifetime = 100,
-                          workers = 1L) {
+                          workers = 1L, cache = NULL) {
+  eval_error_row <- function(row, msg) tibble::tibble(
+    scenario_id = row$scenario_id %||% NA_character_,
+    scenario = row$Scenario, expected = NA_character_,
+    observed = "error", match = NA, outcome = "error", crashed = TRUE,
+    offspring_production = NA_real_, finite = FALSE,
+    error_message = msg, warnings = NA_character_,
+    run_seconds = NA_real_, config = list(NULL))
+
   eval_one <- function(i) {
     row <- scenarios[i, , drop = FALSE]
     tryCatch(
       evaluate_scenario(row, mapping, ctrl = ctrl,
                         max_patch_lifetime = max_patch_lifetime),
-      error = function(e) tibble::tibble(
-        scenario_id = row$scenario_id %||% NA_character_,
-        scenario = row$Scenario, expected = NA_character_,
-        observed = "error", match = NA, outcome = "error", crashed = TRUE,
-        offspring_production = NA_real_, finite = FALSE,
-        error_message = conditionMessage(e), warnings = NA_character_,
-        run_seconds = NA_real_, config = list(NULL)))
+      error = function(e) eval_error_row(row, conditionMessage(e)))
   }
 
-  idx <- seq_len(nrow(scenarios))
+  n <- nrow(scenarios)
+  idx <- seq_len(n)
+
+  ## Content-addressed key per scenario: config + lifetime + model fingerprint.
+  keys <- NULL
+  cached <- NULL
+  if (!is.null(cache)) {
+    fp <- scenario_model_fingerprint()
+    keys <- vapply(idx, function(i) {
+      cfg <- tryCatch(scenario_to_config(scenarios[i, , drop = FALSE], mapping),
+                      error = function(e) NULL)
+      rlang::hash(list(config = cfg, mpl = max_patch_lifetime, fingerprint = fp))
+    }, character(1))
+    if (file.exists(cache)) {
+      cached <- tryCatch(readRDS(cache), error = function(e) NULL)
+    }
+  }
+
+  ## Which scenarios can be reused from the cache (matching key)?
+  reuse_row <- vector("list", n)
+  cached_keys <- if (!is.null(cached)) attr(cached, "keys") else NULL
+  if (!is.null(keys) && !is.null(cached_keys)) {
+    hit <- match(keys, cached_keys)
+    for (i in idx[!is.na(hit)]) {
+      row <- cached[hit[i], , drop = FALSE]
+      ## Refresh identity columns in case scenario order/names changed.
+      row$scenario_id <- scenarios$scenario_id[i] %||% row$scenario_id
+      row$scenario <- scenarios$Scenario[i]
+      reuse_row[[i]] <- row
+    }
+  }
+  run_idx <- idx[vapply(reuse_row, is.null, logical(1))]
+  if (!is.null(cache)) {
+    message(sprintf("Scenario cache: %d reused, %d to run.",
+                    n - length(run_idx), length(run_idx)))
+  }
+
   use_fork <- workers > 1L && .Platform$OS.type != "windows"
-  if (use_fork) {
+  if (length(run_idx) && use_fork) {
     ## mc.preschedule = FALSE load-balances the uneven per-scenario runtimes.
-    rows <- parallel::mclapply(idx, eval_one, mc.cores = workers,
-                               mc.preschedule = FALSE)
+    fresh <- parallel::mclapply(run_idx, eval_one, mc.cores = workers,
+                                mc.preschedule = FALSE)
     ## A worker that died (rather than returning a row) surfaces as a
     ## try-error; turn it into a visible error row rather than dropping it.
-    rows <- Map(function(res, i) {
+    fresh <- Map(function(res, i) {
       if (inherits(res, "try-error") || !tibble::is_tibble(res)) {
-        row <- scenarios[i, , drop = FALSE]
-        tibble::tibble(
-          scenario_id = row$scenario_id %||% NA_character_,
-          scenario = row$Scenario, expected = NA_character_,
-          observed = "error", match = NA, outcome = "error", crashed = TRUE,
-          offspring_production = NA_real_, finite = FALSE,
-          error_message = paste("worker failed:", as.character(res)),
-          warnings = NA_character_, run_seconds = NA_real_, config = list(NULL))
+        eval_error_row(scenarios[i, , drop = FALSE],
+                       paste("worker failed:", as.character(res)))
       } else {
         res
       }
-    }, rows, idx)
+    }, fresh, run_idx)
   } else {
-    rows <- lapply(idx, eval_one)
+    fresh <- lapply(run_idx, eval_one)
   }
 
+  rows <- reuse_row
+  rows[run_idx] <- fresh
   scorecard <- dplyr::bind_rows(rows)
+
   meta <- scenario_run_metadata()
   meta$workers <- if (use_fork) workers else 1L
   attr(scorecard, "metadata") <- meta
+  if (!is.null(keys)) {
+    attr(scorecard, "keys") <- keys
+    if (!is.null(cache)) {
+      saveRDS(scorecard, cache)
+    }
+  }
   scorecard
+}
+
+##' @return \code{scenario_model_fingerprint} returns a hash string that changes
+##'   whenever the model that produces scenario results could change: the
+##'   package version, the compiled shared library, and all package R source
+##'   plus the scenario data files. It is intentionally broad — the cache should
+##'   rerun rather than risk a stale result.
+##' @rdname scenario_eval
+##' @export
+scenario_model_fingerprint <- function() {
+  ## Compiled C++ (covers every strategy/environment/solver change).
+  dll <- tryCatch(getLoadedDLLs()[["plant"]][["path"]],
+                  error = function(e) NA_character_)
+  dll_hash <- if (!is.na(dll) && file.exists(dll))
+    unname(tools::md5sum(dll)) else NA_character_
+
+  ## Package R source (covers hyperpar / run_scm / engine changes) and the
+  ## scenario data files. Best-effort: only hashes what is findable on disk
+  ## (present in a load_all dev tree; absent for an installed package).
+  src <- c(list.files("R", pattern = "\\.[Rr]$", full.names = TRUE),
+           scenario_file("model_scenarios_hydraulic.csv"),
+           scenario_file("scenario_mapping.csv"))
+  src <- src[file.exists(src)]
+  src_hashes <- if (length(src)) unname(tools::md5sum(src)) else character(0)
+
+  rlang::hash(list(
+    package_version = as.character(utils::packageVersion("plant")),
+    dll = dll_hash,
+    src = sort(src_hashes)))
 }
 
 ##' @return \code{scenario_run_metadata} returns a list of provenance fields
