@@ -211,11 +211,11 @@ keys each row by a content hash of those and reruns only what changed:
   those rerun.
 - **Unrelated edits** (report, runner) → full reuse.
 
-The fingerprint is intentionally broad (package version + compiled `.so` md5 +
-md5 of all `R/*.R` + the scenario CSVs): the cache errs toward rerunning, since
-a stale gateway result is worse than a redundant run. It does **not** fingerprint
-a non-default `ctrl` passed at runtime — use a distinct cache path when sweeping
-`ctrl`.
+The key covers **all** inputs that affect a result: resolved config,
+`max_patch_lifetime`, every `ctrl` field, and the model fingerprint. The
+fingerprint is intentionally broad (package version + compiled `.so` md5 + md5
+of all `R/*.R` + the scenario CSVs): the cache errs toward rerunning, since a
+stale gateway result is worse than a redundant run.
 
 ## Baseline results (post-#548, `max_patch_lifetime = 100`): 5/8
 

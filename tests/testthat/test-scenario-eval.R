@@ -99,6 +99,12 @@ test_that("run_scenarios cache reuses unchanged scenarios", {
   expect_message(
     run_scenarios(scen, map2, max_patch_lifetime = 2, cache = cache),
     "1 reused, 1 to run")
+
+  ## A changed Control setting invalidates every scenario.
+  expect_message(
+    run_scenarios(scen, map, max_patch_lifetime = 2,
+                  ctrl = control(ode_tol_rel = 1e-9), cache = cache),
+    "0 reused, 2 to run")
 })
 
 test_that("scenario_summary tallies matches", {

@@ -86,11 +86,12 @@ sequential regardless of \code{workers}.}
 scenario's result is keyed by a content hash of its resolved config,
 \code{max_patch_lifetime} and the model fingerprint
 (\code{\link{scenario_model_fingerprint}}); a scenario is rerun only when
-that key changes. So a model recompile / R-source edit reruns everything
-(the fingerprint moves), while editing one mapping cell reruns only the
-scenarios it touches. The cache deliberately errs toward rerunning. Note
-it does not fingerprint a non-default \code{ctrl} passed at runtime — use a
-distinct cache path when sweeping \code{ctrl}.}
+that key changes. The key covers every input that affects a result: the
+resolved config, \code{max_patch_lifetime}, all \code{ctrl} settings, and
+the model fingerprint. So a model recompile / R-source edit reruns
+everything (the fingerprint moves), a \code{ctrl} change reruns everything,
+and editing one mapping cell reruns only the scenarios it touches. The
+cache deliberately errs toward rerunning.}
 
 \item{scorecard}{A scorecard tibble from \code{run_scenarios}.}
 

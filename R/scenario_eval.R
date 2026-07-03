@@ -250,11 +250,12 @@ evaluate_scenario <- function(row, mapping, ctrl = control(),
 ##'   scenario's result is keyed by a content hash of its resolved config,
 ##'   \code{max_patch_lifetime} and the model fingerprint
 ##'   (\code{\link{scenario_model_fingerprint}}); a scenario is rerun only when
-##'   that key changes. So a model recompile / R-source edit reruns everything
-##'   (the fingerprint moves), while editing one mapping cell reruns only the
-##'   scenarios it touches. The cache deliberately errs toward rerunning. Note
-##'   it does not fingerprint a non-default \code{ctrl} passed at runtime — use a
-##'   distinct cache path when sweeping \code{ctrl}.
+##'   that key changes. The key covers every input that affects a result: the
+##'   resolved config, \code{max_patch_lifetime}, all \code{ctrl} settings, and
+##'   the model fingerprint. So a model recompile / R-source edit reruns
+##'   everything (the fingerprint moves), a \code{ctrl} change reruns everything,
+##'   and editing one mapping cell reruns only the scenarios it touches. The
+##'   cache deliberately errs toward rerunning.
 ##' @rdname scenario_eval
 ##' @export
 run_scenarios <- function(scenarios = read_scenario_table(),
@@ -280,15 +281,18 @@ run_scenarios <- function(scenarios = read_scenario_table(),
   n <- nrow(scenarios)
   idx <- seq_len(n)
 
-  ## Content-addressed key per scenario: config + lifetime + model fingerprint.
+  ## Content-addressed key per scenario: every input that affects the result —
+  ## resolved config, lifetime, the Control settings, and the model fingerprint.
   keys <- NULL
   cached <- NULL
   if (!is.null(cache)) {
     fp <- scenario_model_fingerprint()
+    ctrl_vals <- control_values(ctrl)
     keys <- vapply(idx, function(i) {
       cfg <- tryCatch(scenario_to_config(scenarios[i, , drop = FALSE], mapping),
                       error = function(e) NULL)
-      rlang::hash(list(config = cfg, mpl = max_patch_lifetime, fingerprint = fp))
+      rlang::hash(list(config = cfg, mpl = max_patch_lifetime,
+                       ctrl = ctrl_vals, fingerprint = fp))
     }, character(1))
     if (file.exists(cache)) {
       cached <- tryCatch(readRDS(cache), error = function(e) NULL)
@@ -376,6 +380,18 @@ scenario_model_fingerprint <- function() {
     package_version = as.character(utils::packageVersion("plant")),
     dll = dll_hash,
     src = sort(src_hashes)))
+}
+
+## Stable snapshot of a Control object's data fields, for cache keying. Reads
+## every (non-function) field by name so any control change alters the key.
+control_values <- function(ctrl) {
+  nm <- sort(names(ctrl))
+  vals <- lapply(nm, function(n) {
+    v <- tryCatch(ctrl[[n]], error = function(e) NULL)
+    if (is.function(v)) NULL else v
+  })
+  names(vals) <- nm
+  vals[!vapply(vals, is.null, logical(1))]
 }
 
 ##' @return \code{scenario_run_metadata} returns a list of provenance fields
