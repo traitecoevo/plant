@@ -195,7 +195,8 @@ for (i in seq_along(rows)) {
     height    = h,
     dheight   = pl$rate("height"),
     reserves  = pmax(pl$state("storage"), 0) / storage_capacity(s, h),
-    mortality = pl$rate("mortality")
+    mortality = pl$rate("mortality"),
+    soil_water_state = env$get_soil_water_state()[1]
   )
   pl$set_state("height",  h + dt * pl$rate("height"))
   pl$set_state("storage", pl$state("storage") + dt * pl$rate("storage"))
@@ -203,11 +204,12 @@ for (i in seq_along(rows)) {
 traj <- bind_rows(rows)
 
 traj |>
-  pivot_longer(c(dheight, reserves, mortality)) |>
+  pivot_longer(c(dheight, reserves, mortality,soil_water_state)) |>
   mutate(name = recode(name,
     dheight   = "Height growth (m/yr)",
     reserves  = "Relative reserves r",
-    mortality = "Mortality rate (/yr)")) |>
+    mortality = "Mortality rate (/yr)",
+    soil_water_state = "Soil moisture (m3/m3)")) |>
   ggplot(aes(time, value)) +
   annotate("rect", xmin = 3, xmax = 4.5, ymin = -Inf, ymax = Inf,
            alpha = 0.12, fill = "brown") +
@@ -217,6 +219,9 @@ traj |>
        title = "Storage buffers the drought (shaded)",
        subtitle = "Growth pauses and reserves draw down; mortality rises to a bounded rate; growth resumes once reserves refill") +
   theme_classic()
+
+ggsave("harsh_soil_moist.png")
+
 ```
 
 Three things happen when the drought hits (shaded band) and none of them are the
@@ -269,3 +274,57 @@ automatically.
 Reaching this regime also required fixing an independent soil-water singularity
 (issue #549), where a layer at the residual moisture floor produced a non-finite
 soil water potential; that is documented in PR #554.
+
+## Smoother soil moisture variation
+
+```{r}
+#| label: drought-probe
+#| fig-alt: "Height growth pauses during drought while reserves deplete and mortality rises to a bounded level; growth resumes after reserves refill."
+s   <- TF24_Strategy()
+wet <- fixed_env(0.30)
+dry <- fixed_env(0.08)
+
+pl <- TF24_Individual(s)
+h0 <- pl$state("height")
+pl$set_state("storage", s$pars$a_st3 * storage_capacity(s, h0))
+
+dt   <- 0.02
+tmax <- 6
+rows <- vector("list", round(tmax / dt) + 1)
+for (i in seq_along(rows)) {
+  t <- (i - 1) * dt
+  env <- if (t >= 3 && t < 4.5) fixed_env(0.3 + 0.22*(16/9)*(t - 3)*(t - 4.5)) else wet
+  pl$compute_rates(env)
+  h <- pl$state("height")
+  rows[[i]] <- tibble(
+    time      = t,
+    height    = h,
+    dheight   = pl$rate("height"),
+    reserves  = pmax(pl$state("storage"), 0) / storage_capacity(s, h),
+    mortality = pl$rate("mortality"),
+    soil_water_state = env$get_soil_water_state()[1]
+  )
+  pl$set_state("height",  h + dt * pl$rate("height"))
+  pl$set_state("storage", pl$state("storage") + dt * pl$rate("storage"))
+}
+traj <- bind_rows(rows)
+
+traj |>
+  pivot_longer(c(dheight, reserves, mortality,soil_water_state)) |>
+  mutate(name = recode(name,
+    dheight   = "Height growth (m/yr)",
+    reserves  = "Relative reserves r",
+    mortality = "Mortality rate (/yr)",
+    soil_water_state = "Soil moisture (m3/m3)")) |>
+  ggplot(aes(time, value)) +
+  annotate("rect", xmin = 3, xmax = 4.5, ymin = -Inf, ymax = Inf,
+           alpha = 0.12, fill = "brown") +
+  geom_line(linewidth = 0.8) +
+  facet_wrap(~name, ncol = 1, scales = "free_y") +
+  labs(x = "Time (years)", y = NULL,
+       title = "Storage buffers the drought (shaded)",
+       subtitle = "Growth pauses and reserves draw down; mortality rises to a bounded rate; growth resumes once reserves refill") +
+  theme_classic()
+
+  ggsave("smooth_soil_moist.png")
+```
