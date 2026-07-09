@@ -3,19 +3,28 @@
 
 models <- c("FF16", "K93", "TF24", "TF24f")
 
-test_that("model_version() returns a positive integer for every model", {
+test_that("model_version() returns a valid version string for every model", {
   for (type in models) {
     v <- model_version(type)
-    expect_type(v, "integer")
+    expect_type(v, "character")
     expect_length(v, 1L)
-    expect_true(v >= 1L)
+    # one or more dot-separated integers, major component >= 1
+    expect_match(v, "^[1-9][0-9]*(\\.[0-9]+)*$")
   }
+})
+
+test_that("TF24f carries a compound version that tracks TF24", {
+  expect_match(model_version("TF24f"), "\\.")
+  expect_identical(
+    sub("\\..*$", "", model_version("TF24f")),
+    model_version("TF24")
+  )
 })
 
 test_that("model_id() is 'Model@vN' and agrees with model_version()", {
   for (type in models) {
     expect_identical(model_id(type),
-                     sprintf("%s@v%d", type, model_version(type)))
+                     sprintf("%s@v%s", type, model_version(type)))
   }
 })
 

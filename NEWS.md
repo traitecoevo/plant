@@ -159,8 +159,12 @@ were not previously recorded here:
   Downstream tools (e.g. `logpile`) use it to decide when archived simulations
   must be re-run: reruns follow scientific changes, not every software release.
   A drift-guard test (`tests/testthat/test-model-version.R`) fails when a
-  model's default parameters change without a version bump. FF16, K93, TF24 and
-  TF24f all start at version `1`.
+  model's default parameters change without a version bump. Starting versions:
+  `FF16@v1`, `K93@v1`, `TF24@v2` (a published result used the pre-versioning
+  "v1" science). `TF24f`, being a fast *approximation* of TF24, carries a
+  compound version `"<TF24 version>.<approximation revision>"` (`TF24f@v2.1`):
+  the major component auto-tracks TF24 so a TF24 change also invalidates TF24f,
+  and the minor tracks changes to the approximation itself.
 * `run_scm()` can start a patch from **pre-existing nodes** rather than always
   growing from empty — to resume an exported run or to seed an arbitrary initial
   size distribution at patch age 0 (#499, revives #304). New

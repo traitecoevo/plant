@@ -53,22 +53,30 @@ environment_type <- function(type) {
 
 ##' Scientific version of a physiological model
 ##'
-##' The scientific version is a per-model integer that increments only when a
-##' model's equations or default parameters change the simulation output for
-##' identical inputs. It is independent of the package \code{Version} (which
-##' also moves for refactors, performance and interface changes). Downstream
-##' tools such as \pkg{logpile} use it to decide when archived simulations must
-##' be re-run: reruns happen when the scientific version changes, not on every
-##' software release.
+##' The scientific version increments only when a model's equations or default
+##' parameters change the simulation output for identical inputs. It is
+##' independent of the package \code{Version} (which also moves for refactors,
+##' performance and interface changes). Downstream tools such as \pkg{logpile}
+##' use it to decide when archived simulations must be re-run: reruns happen
+##' when the scientific version changes, not on every software release.
 ##'
-##' The number is authored in C++ as the \code{scientific_version} constant on
-##' each strategy class (see \code{inst/include/plant/models/*_strategy.h}) and
-##' read here through the compiled \code{strategy_scientific_version()}; there
-##' is no duplicated copy in R.
+##' The version is returned as a string. It is usually a single integer
+##' (\code{"1"}), but may be compound for a model defined relative to another:
+##' \code{TF24f} is a fast approximation of \code{TF24}, so its version is
+##' \code{"<TF24 version>.<approximation revision>"} (e.g. \code{"2.1"}); the
+##' major component auto-tracks \code{TF24}, so a \code{TF24} scientific change
+##' also invalidates \code{TF24f}.
+##'
+##' The number is authored in C++ (the \code{scientific_version} /
+##' \code{approximation_revision} constants on each strategy class, see
+##' \code{inst/include/plant/models/*_strategy.h}) and read here through the
+##' compiled \code{strategy_scientific_version()}; there is no duplicated copy
+##' in R.
 ##'
 ##' @param type Any strategy name as a string, e.g.: \code{"FF16"}.
-##' @return For \code{model_version}, an integer. For \code{model_id}, a string
-##'   of the form \code{"FF16@v1"} (model name and scientific version).
+##' @return For \code{model_version}, a version string (e.g. \code{"1"} or
+##'   \code{"2.1"}). For \code{model_id}, a string of the form \code{"FF16@v1"}
+##'   (model name and scientific version).
 ##' @rdname model_version
 ##' @export
 # if you add a new strategy, add its `scientific_version` constant to the model
@@ -80,7 +88,7 @@ model_version <- function(type) {
 ##' @rdname model_version
 ##' @export
 model_id <- function(type) {
-  sprintf("%s@v%d", type, model_version(type))
+  sprintf("%s@v%s", type, model_version(type))
 }
 
 ##' Creates an environment object of specified type

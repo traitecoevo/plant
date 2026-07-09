@@ -91,7 +91,8 @@ public:
   // the simulation output for identical inputs. Do NOT bump for refactors,
   // performance, interface, or serialisation changes. Bumping invalidates
   // logpile's cache for this model (see plant::model_version() / model_id()).
-  static constexpr int scientific_version = 1;
+  // Starts at 2: a published result exists using pre-versioning "v1" science.
+  static constexpr int scientific_version = 2;
 
   double compute_average_light_environment(double z, double height,
                                            const TF24_Environment &environment);

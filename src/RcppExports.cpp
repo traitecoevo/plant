@@ -11845,7 +11845,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // strategy_scientific_version
-int strategy_scientific_version(std::string type);
+std::string strategy_scientific_version(std::string type);
 RcppExport SEXP _plant_strategy_scientific_version(SEXP typeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
