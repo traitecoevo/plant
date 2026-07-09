@@ -330,6 +330,14 @@ expect_true(1 - (stem_side/root_side$root_side[-1])[length(stem_side)] < 5e-2)
 })
 
 test_that("SCM cohort-density blow-up fails gracefully (#550)", {
+  # This test relies on the TF24 numerics actually running away to a non-finite
+  # state so we can assert the guard aborts with an actionable message. Whether
+  # the run-away is reached depends on the platform's floating-point path: on
+  # Windows the same setup completes instead of blowing up, so run_scm does not
+  # throw and the expectation fails. The graceful-failure guard itself is
+  # platform-independent and stays exercised on Linux/macOS, so skip on Windows
+  # rather than assert a non-portable numerical blow-up.
+  skip_on_os("windows")
   # Extreme seasonal drought drives the SCM size-density (characteristic)
   # equations to run away: a cohort density overflows to +Inf, or the
   # density-weighted resource uptake drives a soil-water state non-finite.
