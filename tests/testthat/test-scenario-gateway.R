@@ -2,8 +2,8 @@
 ## per-scenario outcomes? This is a *baseline diff*, not an "all pass" assertion
 ## — many scenarios are expected to fail by design. A changed outcome (a
 ## regression, or an improvement once NSC/#548 land) fails the test so it can be
-## consciously re-blessed by regenerating tests/testthat/test_data via
-## scripts/run_scenario_gateway.R.
+## consciously re-blessed by regenerating the recorded baseline with
+## `make bless-scenarios` (writes tests/testthat/test_data/scenario_baseline.rds).
 ##
 ## Slow (runs the full SCM for every scenario); gated behind an env var.
 
