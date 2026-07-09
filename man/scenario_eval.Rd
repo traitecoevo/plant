@@ -70,6 +70,10 @@ scenario_generate_report(
 
 \item{birth_rate}{Birth rate passed to \code{add_strategies}.}
 
+\item{p}{A built \code{Parameters} object (e.g. \code{build_scenario()$p}).}
+
+\item{env}{An \code{Environment} object (e.g. \code{build_scenario()$env}).}
+
 \item{scenarios}{A scenario tibble from \code{read_scenario_table}.}
 
 \item{workers}{Number of parallel workers. \code{> 1} uses **fork-based**

@@ -14,7 +14,6 @@
 ^ignore$
 ^WIP$
 ^notes$
-^model_scenarious_hydraulic\.csv$
 ^overstorey-staging$
 ^plant_.+\.tar\.gz$
 ^.*\.Rproj$
