@@ -1,0 +1,9 @@
+Scenario,Expectation,Rainfall,Drainage rate,Root distribution,Annual rainfall amplitude of variation,g1_TF24,Ks,Vcmax_25,LMA,Wood density,"Psi_crit,b,c",Huber value
+Mesic-adapted traits in arid extremely-seasonal environment; shallow roots,Model failure,Lower than 0.5m,High,Extremely top heavy,Equal to mean rainfall,High,High,Low,Low,Low,Less negative psi,Low
+Mesic-adapted traits in arid extremely-seasonal environment; deep roots,Model failure,Lower than 0.5m,High,Extremely bottom heavy,Equal to mean rainfall,High,High,Low,Low,Low,Less negative psi,Low
+Xeric-adapted traits in wet seasonal environment; shallow roots,Model runs successfully,Higher than 1m,Low,Extremely top heavy,Half of mean rainfall,Low,Low,High,High,High,More negative psi,High
+Xeric-adapted traits in wet seasonal environment; deep roots,Model failure,Higher than 1m,Low,Extremely bottom heavy,Half of mean rainfall,Low,Low,High,High,High,More negative psi,High
+Xeric-adapted traits in wet extremely-seasonal environment; shallow roots,Model failure,Higher than 1m,Low,Extremely top heavy,Equal to mean rainfall,Low,Low,High,High,High,More negative psi,High
+Xeric-adapted traits in wet extremely-seasonal environment; deep roots,Model failure,Higher than 1m,Low,Extremely bottom heavy,Equal to mean rainfall,Low,Low,High,High,High,More negative psi,High
+Mesic-adapted traits in matched wet seasonal environment (control),Model runs successfully,Higher than 1m,Low,Extremely top heavy,Half of mean rainfall,High,High,Low,Low,Low,Less negative psi,Low
+Xeric-adapted traits in matched arid seasonal environment (control),Model runs successfully,Lower than 0.5m,High,Extremely bottom heavy,Half of mean rainfall,Low,Low,High,High,High,More negative psi,High
