@@ -344,6 +344,8 @@ Use the [Makefile](Makefile) targets. The dependency you must internalise:
 | `make test` | `make all` then `devtools::test()` |
 | `make check` / `make build` / `make install` | `R CMD check` / `build` / `INSTALL` |
 | `make benchmark` | run `scripts/benchmark.R` |
+| `make scenarios` | run the TF24 hydraulic scenario gateway → writes a scorecard RDS (`scripts/run_scenario_gateway.R`) |
+| `make bless-scenarios` | regenerate the gateway test baseline (`tests/testthat/test_data/scenario_baseline.rds`) — only when a changed outcome is intended |
 
 Practical rules:
 
@@ -418,6 +420,16 @@ count from `getOption("Ncpus")` / the `TESTTHAT_CPUS` env var, defaulting to
 more cores. Parallelism only pays off with an optimised build: run `make`
 (compiles with `-O2`) before timing, not a bare `devtools::load_all()`, which
 builds unoptimised and is much slower.
+
+There is also an opt-in **scenario gateway** test
+([test-scenario-gateway.R](tests/testthat/test-scenario-gateway.R)), skipped by
+default and enabled with `PLANT_RUN_SCENARIOS=1`. It runs the full SCM for every
+TF24 hydraulic scenario in `inst/scenarios/` and diffs the per-scenario
+outcomes against a recorded baseline — a *baseline diff*, not an "all pass"
+assertion, so it catches both regressions and improvements (many scenarios are
+expected to fail by design). When a changed outcome is intended, re-bless the
+baseline with `make bless-scenarios`. See
+[notes/plan-tf24-scenario-framework.md](notes/plan-tf24-scenario-framework.md).
 
 CI: [.github/workflows/R-CMD-check.yaml](.github/workflows/R-CMD-check.yaml) and
 `benchmarks.yml`.
