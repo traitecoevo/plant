@@ -156,6 +156,8 @@ build_scenario <- function(config, max_patch_lifetime = 100,
   list(p = p, env = env, ctrl = ctrl)
 }
 
+##' @param p A built \code{Parameters} object (e.g. \code{build_scenario()$p}).
+##' @param env An \code{Environment} object (e.g. \code{build_scenario()$env}).
 ##' @return \code{classify_scm_run} returns a list describing the run:
 ##'   \code{status} (\code{"success"}/\code{"failure"}),
 ##'   \code{offspring_production}, \code{finite}, \code{error_message},
