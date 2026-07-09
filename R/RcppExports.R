@@ -4232,6 +4232,10 @@ TF24f_strategy_expand_allometry <- function(s, height, area_heartwood, mass_hear
     .Call('_plant_TF24f_strategy_expand_allometry', PACKAGE = 'plant', s, height, area_heartwood, mass_heartwood)
 }
 
+strategy_scientific_version <- function(type) {
+    .Call('_plant_strategy_scientific_version', PACKAGE = 'plant', type)
+}
+
 node_schedule_default__Parameters___TF24__TF24_Env <- function(p) {
     .Call('_plant_node_schedule_default__Parameters___TF24__TF24_Env', PACKAGE = 'plant', p)
 }

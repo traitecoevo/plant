@@ -148,6 +148,19 @@ were not previously recorded here:
 
 ### New features
 
+* **Per-model scientific versioning.** Each model now carries a scientific
+  version — an integer that is independent of the package `Version` and is
+  bumped only when the model's equations or default parameters change the
+  simulation output for identical inputs (not for refactors, performance, or
+  interface changes). Read it with `model_version("FF16")` (an integer) or
+  `model_id("FF16")` (`"FF16@v1"`). The number is authored as the
+  `scientific_version` constant on each strategy class in
+  `inst/include/plant/models/*_strategy.h`, next to the equations it versions.
+  Downstream tools (e.g. `logpile`) use it to decide when archived simulations
+  must be re-run: reruns follow scientific changes, not every software release.
+  A drift-guard test (`tests/testthat/test-model-version.R`) fails when a
+  model's default parameters change without a version bump. FF16, K93, TF24 and
+  TF24f all start at version `1`.
 * `run_scm()` can start a patch from **pre-existing nodes** rather than always
   growing from empty — to resume an exported run or to seed an arbitrary initial
   size distribution at patch age 0 (#499, revives #304). New

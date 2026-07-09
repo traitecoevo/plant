@@ -11844,6 +11844,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// strategy_scientific_version
+int strategy_scientific_version(std::string type);
+RcppExport SEXP _plant_strategy_scientific_version(SEXP typeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type type(typeSEXP);
+    rcpp_result_gen = Rcpp::wrap(strategy_scientific_version(type));
+    return rcpp_result_gen;
+END_RCPP
+}
 // node_schedule_default__Parameters___TF24__TF24_Env
 plant::NodeSchedule node_schedule_default__Parameters___TF24__TF24_Env(const plant::Parameters<plant::TF24_Strategy,plant::TF24_Environment>& p);
 RcppExport SEXP _plant_node_schedule_default__Parameters___TF24__TF24_Env(SEXP pSEXP) {
@@ -13003,6 +13014,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_FF16_strategy_expand_allometry", (DL_FUNC) &_plant_FF16_strategy_expand_allometry, 4},
     {"_plant_TF24_strategy_expand_allometry", (DL_FUNC) &_plant_TF24_strategy_expand_allometry, 4},
     {"_plant_TF24f_strategy_expand_allometry", (DL_FUNC) &_plant_TF24f_strategy_expand_allometry, 4},
+    {"_plant_strategy_scientific_version", (DL_FUNC) &_plant_strategy_scientific_version, 1},
     {"_plant_node_schedule_default__Parameters___TF24__TF24_Env", (DL_FUNC) &_plant_node_schedule_default__Parameters___TF24__TF24_Env, 1},
     {"_plant_make_node_schedule__Parameters___TF24__TF24_Env", (DL_FUNC) &_plant_make_node_schedule__Parameters___TF24__TF24_Env, 1},
     {"_plant_node_schedule_default__Parameters___TF24f__TF24_Env", (DL_FUNC) &_plant_node_schedule_default__Parameters___TF24f__TF24_Env, 1},

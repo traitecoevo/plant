@@ -397,6 +397,33 @@ The three shipped models:
 - **TF24** — newer model using the leaf-level [Leaf](inst/include/plant/leaf_model.h)
   photosynthesis/hydraulics submodel (incl. the recently added Medlyn stomatal model).
 
+### Scientific versioning — bump when the science changes
+
+Each model carries a **scientific version** separate from the package `Version`:
+a `static constexpr int scientific_version` on the strategy class in
+[inst/include/plant/models/](inst/include/plant/models/), surfaced to R as
+`model_version(type)` / `model_id(type)` (`"FF16@v1"`) via
+[src/strategy_version.cpp](src/strategy_version.cpp) and
+[R/strategy_support.R](R/strategy_support.R). Downstream tools (notably
+`logpile`, which content-addresses archived simulations) read it to decide when
+to re-run: **reruns follow scientific changes, not software releases.**
+
+Rules:
+
+- **Bump `scientific_version`** (in the model header, in the same commit) when
+  you change equations or default parameters such that the simulation output
+  changes for identical inputs.
+- **Do NOT bump** for refactors, performance work, interface renames, or
+  serialisation-format changes — the science is unchanged.
+- FF16/K93 are scientifically frozen and should rarely move; TF24/TF24f change
+  often and will bump frequently.
+- A bump is deliberate: it invalidates that model's `logpile` cache and forces
+  reruns. The drift-guard test [tests/testthat/test-model-version.R](tests/testthat/test-model-version.R)
+  fails when a default changes without a bump (snapshot of each model's default
+  `pars`/`control`); pure equation changes are not auto-detected and rely on
+  review. Adding a new model → add its constant and a dispatch arm in
+  `src/strategy_version.cpp` (the scaffolder should do this).
+
 ---
 
 ## 8. Testing
@@ -502,7 +529,10 @@ repo's README for how it renders, freezes (`_freeze/`), and version-pins posts.
 - ✅ Adding/removing strategy state → update `state_size()` **and** `state_names()`.
 - ✅ Exposing a new C++ method/field to R → add it to `RcppR6_classes.yml`, then `make RcppR6`.
 - ✅ Adding a model → use the scaffolder; remember the R `switch()` tables in
-  [strategy_support.R](R/strategy_support.R) and the hyperpar functions.
+  [strategy_support.R](R/strategy_support.R) and the hyperpar functions, and add
+  a `scientific_version` constant + dispatch arm in `src/strategy_version.cpp`.
+- ✅ Changing a model's equations/default parameters (output changes for the
+  same inputs) → bump its `scientific_version` in the model header (see §7).
 - ✅ After interface changes run the full `make rebuild`; after C++-only changes `make compile`.
 - ℹ️ Active bindings ending in `_` generally expose internal C++ fields for
   inspection/testing, not part of the stable user API.

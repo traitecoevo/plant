@@ -87,6 +87,12 @@ public:
   typedef std::shared_ptr<TF24_Strategy> ptr;
   TF24_Strategy();
 
+  // Scientific version. Bump ONLY when equations or default parameters change
+  // the simulation output for identical inputs. Do NOT bump for refactors,
+  // performance, interface, or serialisation changes. Bumping invalidates
+  // logpile's cache for this model (see plant::model_version() / model_id()).
+  static constexpr int scientific_version = 1;
+
   double compute_average_light_environment(double z, double height,
                                            const TF24_Environment &environment);
 

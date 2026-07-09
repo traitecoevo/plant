@@ -103,6 +103,12 @@ public:
   typedef std::shared_ptr<FF16_Strategy> ptr;
   FF16_Strategy();
 
+  // Scientific version. Bump ONLY when equations or default parameters change
+  // the simulation output for identical inputs. Do NOT bump for refactors,
+  // performance, interface, or serialisation changes. Bumping invalidates
+  // logpile's cache for this model (see plant::model_version() / model_id()).
+  static constexpr int scientific_version = 1;
+
   // Fixed integer slots for the hot ODE rate path, used instead of
   // state_index.at("...") / aux_index.at("...") string-map lookups (those map
   // lookups showed up in profiling, see #466). These MUST stay in sync with

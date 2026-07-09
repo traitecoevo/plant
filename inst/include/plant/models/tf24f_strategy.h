@@ -26,6 +26,13 @@ public:
   typedef std::shared_ptr<TF24f_Strategy> ptr;
   TF24f_Strategy();
 
+  // Scientific version, independent of the TF24 base it inherits. Bump ONLY
+  // when equations or default parameters change the simulation output for
+  // identical inputs. Do NOT bump for refactors, performance, interface, or
+  // serialisation changes. Bumping invalidates logpile's cache for this model
+  // (see plant::model_version() / model_id()).
+  static constexpr int scientific_version = 1;
+
   // TF24's five states + the tracked root-collar psi (appended last so the
   // inherited state indices 0..4 are unchanged). state_size()/state_names() are
   // static and resolved on the concrete type by Individual<TF24f, ...>.

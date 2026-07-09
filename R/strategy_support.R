@@ -51,6 +51,38 @@ environment_type <- function(type) {
          stop("Unknown type ", type))
 }
 
+##' Scientific version of a physiological model
+##'
+##' The scientific version is a per-model integer that increments only when a
+##' model's equations or default parameters change the simulation output for
+##' identical inputs. It is independent of the package \code{Version} (which
+##' also moves for refactors, performance and interface changes). Downstream
+##' tools such as \pkg{logpile} use it to decide when archived simulations must
+##' be re-run: reruns happen when the scientific version changes, not on every
+##' software release.
+##'
+##' The number is authored in C++ as the \code{scientific_version} constant on
+##' each strategy class (see \code{inst/include/plant/models/*_strategy.h}) and
+##' read here through the compiled \code{strategy_scientific_version()}; there
+##' is no duplicated copy in R.
+##'
+##' @param type Any strategy name as a string, e.g.: \code{"FF16"}.
+##' @return For \code{model_version}, an integer. For \code{model_id}, a string
+##'   of the form \code{"FF16@v1"} (model name and scientific version).
+##' @rdname model_version
+##' @export
+# if you add a new strategy, add its `scientific_version` constant to the model
+# header and a dispatch arm to strategy_scientific_version() in src/strategy_version.cpp
+model_version <- function(type) {
+  strategy_scientific_version(type)
+}
+
+##' @rdname model_version
+##' @export
+model_id <- function(type) {
+  sprintf("%s@v%d", type, model_version(type))
+}
+
 ##' Creates an environment object of specified type
 ##' @param type Any environment name as a string, e.g.: \code{"FF16_Env"}.
 ##' @rdname Environment
