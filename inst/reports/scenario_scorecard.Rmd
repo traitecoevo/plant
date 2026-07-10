@@ -1,0 +1,78 @@
+---
+title: "TF24 hydraulic scenario scorecard"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    df_print: paged
+params:
+  scorecard: NULL
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+scorecard <- params$scorecard
+meta <- attr(scorecard, "metadata")
+```
+
+This scorecard evaluates how well the current TF24 build reproduces the
+**expected** behaviours in `model_scenarios_hydraulic.csv` (issue
+[#549](https://github.com/traitecoevo/plant/issues/549), epic
+[#424](https://github.com/traitecoevo/plant/issues/424)). Each scenario's
+qualitative descriptors are translated into concrete parameters via
+`scenario_mapping.csv`, run through the SCM, and classified. A scenario
+**matches** when the observed outcome equals the expected one — including an
+*expected failure* that does fail.
+
+## Provenance
+
+```{r provenance}
+if (!is.null(meta)) {
+  knitr::kable(data.frame(
+    field = names(meta),
+    value = vapply(meta, function(x) paste(as.character(x), collapse = ", "),
+                   character(1)),
+    row.names = NULL))
+}
+```
+
+## Summary
+
+```{r summary}
+s <- plant::scenario_summary(scorecard)
+knitr::kable(s, digits = 3)
+```
+
+```{r headline, results = "asis"}
+cat(sprintf("\n**Match rate: %d / %d (%.0f%%)**\n",
+            s$n_match, s$n, 100 * s$match_rate))
+```
+
+## Scorecard
+
+`observed` is *success* when the run completes with finite, positive offspring
+production, else *failure*. `outcome` refines this into `persisted`
+(finite, offspring > 0), `extinct` (finite run, no offspring) or `crashed`
+(a numerical failure — thrown error or non-finite state). The distinction
+matters: the hydraulic/NSC work (#549, #554) targets *crashes*, whereas
+*extinct* is often correct model behaviour.
+
+```{r scorecard}
+cols <- c("scenario_id", "scenario", "expected", "observed", "match",
+          "outcome", "offspring_production", "run_seconds", "error_message")
+knitr::kable(as.data.frame(scorecard)[, cols], digits = 4)
+```
+
+## Known caveats in the scenario design
+
+- **Confounded traits.** Within each named scenario the trait bundle moves
+  together (acquisitive/mesic vs conservative/xeric), so a failure cannot be
+  attributed to any single trait — these are paired archetypes, not a factorial.
+- **Binary expectations.** The table records only pass/fail, with no graduated
+  target or tolerance.
+- **Derived hydraulic traits (#548).** `p_50`, `c`, `b` and `psi_crit` are
+  derived from `K_s`, and `g1_TF24` from `rho`, inside `TF24_hyperpar`. The CSV's
+  `Ks`/`Psi_crit,b,c` and `Wood density`/`g1_TF24` columns are consistent with
+  those relationships, so the mapping sets `K_s` and `rho` and lets the hyperpar
+  derive the rest.
+```

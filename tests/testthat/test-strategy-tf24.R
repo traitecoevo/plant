@@ -18,6 +18,9 @@ test_that("Defaults", {
     d_I   = 0.01,
     a_dG1   = 5.5,
     a_dG2   = 20,
+    a_st1 = 0.10,
+    a_st2 = 0.10,
+    a_st3 = 0.8,
     a_p1   = 151.177775377968,
     a_p2   = 0.204716166503633,
     a_f1   = 1,
@@ -248,7 +251,9 @@ test_that("offspring arrival", {
   # We deliberately use a short patch (max_patch_lifetime = 5) and a low
   # height-at-maturity (hmat = 5) rather than the model defaults. Lowering hmat
   # lets plants mature and reproduce *within* the short patch, so offspring
-  # production sits at an O(100) magnitude. That matters for the regression:
+  # production sits at an O(10) magnitude (it was O(100) before the NSC storage
+  # pool of #517 gated growth on reserves, which slows maturation). That matters
+  # for the regression:
   # at the default hmat over so short a patch, reproduction underflows towards
   # zero, and an `expect_equal(tolerance = ...)` against a near-zero target
   # degenerates into a vacuous absolute comparison that any small number passes.
@@ -257,11 +262,15 @@ test_that("offspring arrival", {
   # root-collar-psi leaf optimisation) while keeping the test a genuine
   # end-to-end check.
   #
-  # Tolerance is 1e-3 (relative), not machine-epsilon: offspring_production is an
-  # integrated SCM output, so per-step FMA/rounding differences accumulate and it
-  # is only reproducible to ~1e-5 across architectures (cf. the arm64 FMA fix in
-  # #524). 1e-3 absorbs that while still catching any real regression, which
-  # moves these values by whole units or orders of magnitude.
+  # Tolerance is 2e-2 (relative), not machine-epsilon: offspring_production is an
+  # integrated SCM output, so per-step FMA/rounding differences accumulate across
+  # architectures. Under the NSC reserve-gated growth of #517 the growth rate
+  # passes through exp/sqrt/logistic terms (the reserve gate and smooth
+  # positive-part of net production), which are more platform-sensitive than the
+  # old linear growth -- the observed macOS/Windows spread here is ~1e-3, up from
+  # ~1e-5 for the pre-#517 model. 2e-2 absorbs that with margin while still
+  # catching any real regression, which moves these values by whole units or
+  # orders of magnitude.
   p0 <- scm_base_parameters("TF24")
   env <- Environment("TF24")
   ctrl <- Control()
@@ -272,19 +281,22 @@ test_that("offspring arrival", {
                        hyperpar = TF24_hyperpar, birth_rate = list(20))
 
   out <- run_scm(p1, env, ctrl)
-  expect_equal(out$offspring_production, 514.8, tolerance = 1e-3)
+  expect_equal(out$offspring_production, 82.09077702, tolerance = 2e-2)
 
   # two species: the second strategy has a moderately higher lma (0.10 vs
-  # 0.0825), so it grows more slowly and is partly shaded, but still matures and
-  # reproduces within the patch. Both species therefore carry non-zero offspring
-  # production -- a genuine two-species coexistence check rather than one
-  # strategy collapsing to ~0 (which would make the second value a vacuous
-  # near-zero comparison).
+  # 0.0825), so it grows more slowly and is more heavily shaded. Under the NSC
+  # reserve-gated growth of #517 the slower species is now largely competitively
+  # excluded -- its offspring production is several orders of magnitude below the
+  # faster species. We pin the dominant species
+  # (loosely, for the cross-platform reasons above) and assert the excluded
+  # species stays negligible, rather than pinning its tiny value, which is too
+  # platform-fragile to compare at a fixed relative tolerance.
   p2 <- add_strategies(p0, trait_matrix(c(0.0825, 0.10, 5, 5), c("lma", "hmat")),
                        hyperpar = TF24_hyperpar, birth_rate = list(20, 20))
 
   out <- run_scm(p2, env, ctrl)
-  expect_equal(out$offspring_production, c(364.02926, 78.28593), tolerance = 1e-3)
+  expect_equal(out$offspring_production[[1]], 67.54060383, tolerance = 2e-2)
+  expect_lt(out$offspring_production[[2]], 0.5)
 })
 
 # Water mass-balance: transpiration integrated up the stem side of every
@@ -329,14 +341,20 @@ results$env$soil_moist_cumulative_flux %>%
 expect_true(1 - (stem_side/root_side$root_side[-1])[length(stem_side)] < 5e-2)
 })
 
-test_that("SCM cohort-density blow-up fails gracefully (#550)", {
-  # Extreme seasonal drought drives the SCM size-density (characteristic)
-  # equations to run away: a cohort density overflows to +Inf, or the
-  # density-weighted resource uptake drives a soil-water state non-finite.
-  # Either way run_scm must abort with an actionable message naming the SCM
-  # size-density equations / environment state, not an opaque downstream error
-  # ("Detected non-finite contribution", "non-finite psi_soil"). This blows up
-  # early in the run, so it is cheap despite being a full TF24 run.
+test_that("SCM completes under extreme seasonal drought (#517, #550)", {
+  # This regime used to blow up (#550): under extreme seasonal drought the
+  # instantaneous growth-dependent mortality a_dG1*exp(-a_dG2*productivity_area)
+  # overflowed to ~1e32, running the coupled (log_density, mortality) ODE away
+  # (and, separately, a soil layer at the residual floor drove psi_soil ~1e8 MPa
+  # -> non-finite leaf consumption, #549). Both are now fixed: the NSC storage
+  # pool (#517) makes mortality depend on *buffered* relative reserves r=S/S_max,
+  # so it is bounded in [a_dG1*e^-a_dG2, a_dG1]; and the soil retention/uptake
+  # numerics are clamped (#549). The run must now COMPLETE with finite,
+  # non-negative offspring production rather than aborting. Robust across a range
+  # of patch lifetimes and drought amplitudes (the mortality cap this replaced
+  # was chaotic across exactly this sweep); one representative point is checked
+  # here to keep the test cheap. NSC makes completion platform-independent, so
+  # this is no longer skipped on Windows (contrast the pre-#517 blow-up test).
   mpl <- 30
   p0 <- scm_base_parameters("TF24", "TF24_Env")
   p0$max_patch_lifetime <- mpl
@@ -349,7 +367,8 @@ test_that("SCM cohort-density blow-up fails gracefully (#550)", {
   y <- 0.4 * sin(2 * pi * x) + 0.5   # rainfall sweeps [0.1, 0.9]
   env$extrinsic_drivers_set_variable("rainfall", x = x, y = y)
 
-  expect_error(run_scm(p1, env),
-               "SCM size-density|Non-finite environment state")
+  out <- run_scm(p1, env)
+  expect_true(is.finite(out$offspring_production))
+  expect_gte(out$offspring_production, 0)
 })
 

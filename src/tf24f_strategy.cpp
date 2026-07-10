@@ -107,6 +107,10 @@ void TF24f_Strategy::solve_leaf() {
 // the signed (negative) potential; the tracked state is the positive magnitude.
 void TF24f_Strategy::set_initial_states(const TF24_Environment& environment,
                                         Internals& vars) {
+  // Seed the shared TF24 states first (notably the NSC storage pool, #517) --
+  // set_initial_states is non-virtual, so without this call TF24f seedlings
+  // would be born with empty reserves and die immediately.
+  TF24_Strategy::set_initial_states(environment, vars);
   initializing_ = true;
   net_mass_production_dt(environment, vars);
   initializing_ = false;

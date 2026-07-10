@@ -431,6 +431,9 @@ Individual:
     compute_rates:
       args: [environment: E]
       return_type: void
+    set_initial_states:
+      args: [environment: E]
+      return_type: void
     establishment_probability:
       args: [environment: E]
       return_type: double
@@ -1230,6 +1233,9 @@ TF24_Pars:
     - d_I: double
     - a_dG1: double
     - a_dG2: double
+    - a_st1: double
+    - a_st2: double
+    - a_st3: double
     - k_I: double
     - vcmax_25: double
     - p_50: double

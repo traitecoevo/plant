@@ -35,6 +35,17 @@ test: all
 benchmark:
 	Rscript scripts/benchmark.R
 
+# Run the TF24 hydraulic scenario gateway and write a scorecard RDS.
+scenarios:
+	Rscript scripts/run_scenario_gateway.R
+
+# Re-bless the gateway baseline: regenerate the scorecard the opt-in gateway
+# test (tests/testthat/test-scenario-gateway.R) diffs against. Run only when a
+# changed outcome is intended.
+bless-scenarios:
+	SCENARIO_OUT=tests/testthat/test_data/scenario_baseline.rds \
+		Rscript scripts/run_scenario_gateway.R
+
 install:
 	R CMD INSTALL .
 
@@ -49,4 +60,4 @@ check: build
 clean:
 	rm -f src/*.o src/*.so src/*.o.tmp
 
-.PHONY: all compile doc clean test attributes roxygen install build check
+.PHONY: all compile doc clean test attributes roxygen install build check benchmark scenarios bless-scenarios
