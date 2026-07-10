@@ -20,33 +20,42 @@ encapsulated "frozen input" fallback. Blocks committing to the full-scalar Patch
 
 ### PROTO-2 — TF24 census cross-sensitivity · repo: plant · gates TF24 census, decision 7
 One TF24 cohort; gradient a density-dependent census metric with the leaf-optimizer
-IFT delivered as an on-tape `AnalyticEdge`; check against finite differences.
+IFT delivered as an on-tape `SuppliedDerivative`; check against finite differences.
 **Output:** confirmation (or refutation) that the full-scalar `run_mutant` replay
 captures the density→optimum cross-term. **Highest risk in the whole design** — run
 early; a refutation rescopes TF24 census out of v1.
 
-### PROTO-3 — `AnalyticEdge` / `CheckpointCallback` ergonomics · repo: odelia → plant · feeds ODELIA-3
+### PROTO-3 — `SuppliedDerivative` / `CheckpointCallback` ergonomics · repo: odelia → plant · feeds ODELIA-3
 Minimal `CheckpointCallback` that injects a known d(out)/d(in) into a reverse tape;
 reproduce one leaf-optimizer sensitivity from the spike bit-for-bit. **Output:** the
-`AnalyticEdge` API shape. Prerequisite for the clean version of PROTO-2.
+`SuppliedDerivative` API shape. Prerequisite for the clean version of PROTO-2.
 
 ---
 
 ## odelia layer (generic, plant-agnostic)
 
+> **Status: this whole layer is implemented** (ODELIA-1..6, RIF-1..3, PROTO-3), on a
+> stack of PRs on the odelia fork. The items below are kept for the dependency map and
+> build order; the settled names are `DifferentiationTargets` (was `Independents`),
+> `SuppliedDerivative` (was `AnalyticEdge`), `record_stage`/`record_ode_step`/`replay_step`
+> + `has_recorded_field()` (was `cache_*`/`has_cache`), and the `Replayable` concept.
+> Follow-ups live in the odelia tracker: **#22** (interpolator unification), **#23**
+> (history rows), **#27** (functional = pure reduction; driver owns the replay), **#28**
+> (pare the demonstrator, retire `live|frozen`), **#25/#26** (comments, tests).
+
 ### ODELIA-1 — Generalize `compute_gradient` to an arbitrary functional · CP
 Replace the hard-coded `sum_of_squares` with a caller-supplied functional
-`std::vector<S> f(const System& solved)`. Keep `sum_of_squares`/`advance_target` as
-a prebuilt instance. **Depends on:** —. **Blocks:** ODELIA-2, PLANT-4.
+`std::vector<S> f(const System& replayed)`. Keep `sum_of_squares` as the prebuilt
+`least_squares` functional instance. **Depends on:** —. **Blocks:** ODELIA-2, PLANT-4.
 
 ### ODELIA-2 — `compute_jacobian` (reverse, row-sweep) · CP
 Record once, one adjoint sweep per output row (adjoint `XAD::computeJacobian`
 pattern), reusing the Solver-owned tape. **Depends on:** ODELIA-1. **Blocks:**
 PLANT-4, UX-1.
 
-### ODELIA-3 — `Independents` + `AnalyticEdge` · CP
-The "differentiate w.r.t. what" bundle (renamed from `Seeds`) and the analytic-edge
-injection built on `CheckpointCallback`. **Depends on:** PROTO-3. **Blocks:**
+### ODELIA-3 — `DifferentiationTargets` + `SuppliedDerivative` · CP
+The "differentiate w.r.t. what" bundle (`DifferentiationTargets`) and the
+`SuppliedDerivative` injection built on `CheckpointCallback`. **Depends on:** PROTO-3. **Blocks:**
 PLANT-2 (traits), PLANT-6 (leaf edge).
 
 ### ODELIA-4 — odelia-native test harness for the AD surface · CP-support
@@ -57,11 +66,11 @@ are release-gating):
 - **`compute_gradient` / `compute_jacobian`** — value + gradient against finite
   differences on a closed-form system; Jacobian shape/row-sweep on a multi-output
   functional; tape reuse across repeated calls. **Depends on:** ODELIA-1, ODELIA-2.
-- **`AnalyticEdge` (ODELIA-4b)** — an off-tape root-find whose IFT edge is injected
+- **`SuppliedDerivative` (ODELIA-4b)** — an off-tape root-find whose IFT edge is injected
   via `CheckpointCallback`, checked against the analytic derivative and against
   differentiating the solve directly. **Depends on:** ODELIA-3.
 - **Functional shape (ODELIA-4b)** — a custom functional (not `sum_of_squares`) plus
-  the `sum_of_squares`/`advance_target` instance, to prove the seam is functional-
+  the `least_squares` functional instance, to prove the seam is functional-
   agnostic. **Depends on:** ODELIA-1.
 - **Record/replay-fixed (ODELIA-4a)** — a system with an adaptive interpolator and a
   quadrature: assert the fixed-node replay reproduces the adaptive run's value and
@@ -72,18 +81,21 @@ AD-vs-AD oracle (UX-2) still gates the plant ports separately.
 
 ### ODELIA-5 — Document the AD API contract in `ARCHITECTURE.md` · CP-support
 Extend the existing Tape-linking contract to cover the AD *API* (functional shape,
-`Independents`, edges) so plant depends on a versioned odelia surface. **Depends
+`DifferentiationTargets`, supplied derivatives) so plant depends on a versioned odelia surface. **Depends
 on:** ODELIA-1..3.
 
 ### ODELIA-6 — Record-adaptive / replay-fixed numerics (the one replay primitive) · CP
 Make odelia's adaptive numerics support "record node placement on the double pass,
-replay on fixed nodes with the active scalar" uniformly (design §7.5–7.6). Two
-mechanisms, both partly present:
-- **Record via opt-in System hooks.** The stepper already calls `cache_RK45_step` /
-  `cache_ode_step` when a System provides them (`has_cache` trait; zero-cost no-op
-  otherwise). Reuse these hook points; shrink the payload to knot positions (not
-  `stand_stage_history`). Express any *new* hooks with C++20 concepts + `if
-  constexpr` rather than more `enable_if` SFINAE (design §7.6).
+replay on fixed nodes with the active scalar" uniformly (design §7.5–7.6). **Detailed
+design: [`ad-record-replay.md`](./ad-record-replay.md)** — positions-vs-values, one
+`Replayable` concept (runtime frozen/live mode, not a type split), no `Recording` noun,
+and the RIF-3 anchor settled on the `Solver` member. Two mechanisms, both partly
+present:
+- **Record via opt-in System hooks.** The stepper calls `record_stage` /
+  `record_ode_step` / `replay_step` when a System provides them (the `Replayable`
+  concept, C++20 `requires` + `if constexpr`; zero-cost no-op otherwise). The payload
+  is knot positions (per step) and frozen field values (per stage), not
+  `stand_stage_history`.
 - **Replay-fixed components.** `advance_fixed` (stepper) and `basic_interpolator<S>`
   (frozen knots, active values) exist; the **gap** is a scalar-templated fixed-rule
   `QK<S>` that consumes a recorded QAG subdivision — or a prototype showing a single
@@ -134,7 +146,7 @@ through the *moving* quadrature nodes; reconstruct the resident light on odelia'
 frozen-knot differentiable spline (design §7, L2). This is the level a frozen-node
 replay misses. **Depends on:** PLANT-5. **Blocks:** census gradients (UX-3 metrics).
 
-### PLANT-6 — Leaf-optimizer `AnalyticEdge` for TF24/TF24f · CP
+### PLANT-6 — Leaf-optimizer `SuppliedDerivative` for TF24/TF24f · CP
 Route the forward-mode leaf sensitivity through the odelia edge. **Depends on:**
 ODELIA-3, PROTO-2. **Blocks:** PLANT-7 (TF24/TF24f).
 
@@ -206,8 +218,9 @@ Removes the type-confusion hazard in `Solver_fit_impl`.
 A System contract so the driver constructs the active system generically instead of
 per-example hand-construction. **Depends on:** —. **Blocks:** RIF-1.
 
-### RIF-3 — odelia opaque tape/active-scratch cache on the double Solver · CP-support
-Tape reuse within a Jacobian and across optimizer calls, without R seeing it.
+### RIF-3 — odelia tape/active-solver cache on the double Solver · CP-support
+Tape reuse within a Jacobian and across optimizer calls, without R seeing it. The
+cached active solver is typed via the System's `rebind` (no `void*`/`static_cast`).
 **Depends on:** RIF-1.
 
 ### RIF-4 — odelia policy: no `wrap`/`as` for active types · NTH

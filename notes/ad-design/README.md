@@ -1,4 +1,4 @@
-# AD infrastructure roadmap (plant × odelia)
+# AD infrastructure design (plant × odelia)
 
 **What.** A design for computing exact **trait gradients** of the `plant` SCM's
 emergent outputs — how stand properties (LAI, biomass, basal area, offspring
@@ -7,28 +7,27 @@ production) respond to plant traits — by **automatic differentiation (AD)**, b
 
 **Why.** A validated prototype exists
 ([traitecoevo/plant#553](https://github.com/traitecoevo/plant/pull/553), tracking
-issue [#472](https://github.com/traitecoevo/plant/issues/472)) but rebuilt inside
-plant machinery that odelia already provides. This roadmap reaches the same gradients
-with **surgical changes** to the existing plant components and a **small generic
-surface** added to odelia — smaller, more maintainable, lower technical debt.
-
-**Status.** Design phase — no code changes yet. Branches
-`claude/ad-infrastructure-design` are prepared on the plant and odelia forks for the
-eventual implementation.
+issue [#472](https://github.com/traitecoevo/plant/issues/472)). The design reaches the
+same gradients with **surgical changes** to the plant components that already exist and
+a **small generic surface** on odelia — because the Patch is already the odelia System
+and `run_mutant` is already the frozen-schedule replay.
 
 ---
 
 ## Read in this order
 
 1. **[`ad-infrastructure-design.md`](./ad-infrastructure-design.md)** — the design.
-   The thesis, the settled decisions, the three layers (odelia / plant / UX), the
-   surgical changes, the two workflows, and the four replay levels. Start here.
-2. **[`ad-r-interface.md`](./ad-r-interface.md)** — the R/C++ boundary: why XAD types
+   The thesis, the decisions, the three layers (odelia / plant / UX), the surgical
+   changes, the two workflows, and the four replay levels. Start here.
+2. **[`ad-record-replay.md`](./ad-record-replay.md)** — the one adaptive-numerics
+   primitive under the replay levels: record where the adaptive pass placed its nodes,
+   replay pinned to them with the active scalar.
+3. **[`ad-r-interface.md`](./ad-r-interface.md)** — the R/C++ boundary: why XAD types
    are awkward through Rcpp, the "only doubles cross" invariant, and **user stories**
-   for each persona. Read after the design.
-3. **[`ad-issues.md`](./ad-issues.md)** — the work breakdown: scoped items
-   (odelia / plant / R-boundary / prototypes), dependencies, and a critical-path
-   build order. Read when planning implementation.
+   for each persona.
+
+[`ad-issues.md`](./ad-issues.md) is the separate work breakdown — scoped items,
+dependencies, and build order — not part of the design proper.
 
 ---
 
@@ -63,13 +62,13 @@ For a reader new to the model or to AD. Fuller treatment is in the design doc.
 - **Replay levels (L0–L3)** — the SCM has several *adaptive* constructions (the node
   schedule, the ODE step sizes, the light interpolator, the crown quadrature). AD
   needs each frozen to its recorded placement so the result is differentiable. The
-  key idea (design §7.5): run once adaptively, **record where the nodes landed, replay
-  on them fixed** with the active scalar.
+  key idea (see [`ad-record-replay.md`](./ad-record-replay.md)): run once adaptively,
+  **record where the nodes landed, replay on them fixed** with the active scalar.
 - **odelia** — the family's AD-aware ODE runtime: compiles XAD once, ships a
   scalar-templated `Solver`, a reverse-mode gradient driver, and a differentiable
   spline. plant already `LinkingTo: odelia`.
-- **The spike** — PR #553, the validated prototype. In this roadmap it is the
-  **specification and the regression oracle**, not the code that ships.
+- **The prototype** — plant PR #553, the validated spike. It is the **specification and
+  the regression oracle**, not the code that ships.
 
 ---
 
