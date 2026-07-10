@@ -57,6 +57,14 @@ products using plant.
   * for the old tight-tolerance behaviour -> `control_accurate()`
   * `scm_base_parameters()` is unaffected (it builds a `Parameters`, not a
     `Control`).
+* Removed the TF24/TF24f parameter `hk_s` from the public interface and from
+  the `Leaf` constructor; hydraulic cost now depends on `g1_TF24`, `beta2`, and
+  the vulnerability curve terms only. Migration:
+  * `TF24_Strategy()$pars$hk_s` -> removed (no equivalent)
+  * `TF24f_Strategy()$pars$hk_s` -> removed (no equivalent)
+  * `make_TF24_hyperpar(..., B_hks1 =, B_hks2 =)` -> adjust `g1_TF24` ~ `rho` scaling (new; no `hk_s` equivalent)
+  * `make_TF24f_hyperpar(..., B_hks1 =, B_hks2 =)` -> adjust `g1_TF24` ~ `rho` scaling (new; no `hk_s` equivalent)
+  * `Leaf(..., hk_s =)` -> remove `hk_s` argument
 * The ODE solver and interpolator core were spun out into the standalone
   [odelia](https://github.com/traitecoevo/odelia) package, which plant now
   depends on (#456, #464). Plant's internal solver/interpolator headers
@@ -140,6 +148,35 @@ were not previously recorded here:
 
 ### New features
 
+* **NSC storage pool for TF24 (`TF24@v3`, `TF24f@v3.1`).** TF24 now carries a
+  non-structural-carbohydrate storage state so growth and mortality respond to
+  *buffered* carbon rather than instantaneous net production (#517, #554).
+  Growth/reproduction are reserve-gated (a smooth logistic on relative reserves
+  `r = S/S_max`), and mortality is now `a_dG1·exp(-a_dG2·r)` — bounded in
+  `[a_dG1·e⁻ᵃ_dG2, a_dG1]` — which is the root-cause fix for the SCM
+  cohort-density blow-up (#550). New parameters `a_st1`/`a_st2`/`a_st3` (storage
+  capacity per unit sapwood, growth half-on reserve fraction, birth fill).
+  Because this changes the simulation output for identical inputs, the TF24
+  scientific version is bumped **2 → 3**; `TF24f` inherits the state and its
+  compound version auto-tracks to **3.1**. This invalidates the `logpile` cache
+  for both models. See the staging guide in `overstorey-staging/guides/`.
+* **Per-model scientific versioning.** Each model now carries a scientific
+  version — an integer that is independent of the package `Version` and is
+  bumped only when the model's equations or default parameters change the
+  simulation output for identical inputs (not for refactors, performance, or
+  interface changes). Read it with `model_version("FF16")` (an integer) or
+  `model_id("FF16")` (`"FF16@v1"`). The number is authored as the
+  `scientific_version` constant on each strategy class in
+  `inst/include/plant/models/*_strategy.h`, next to the equations it versions.
+  Downstream tools (e.g. `logpile`) use it to decide when archived simulations
+  must be re-run: reruns follow scientific changes, not every software release.
+  A drift-guard test (`tests/testthat/test-model-version.R`) fails when a
+  model's default parameters change without a version bump. Starting versions:
+  `FF16@v1`, `K93@v1`, `TF24@v2` (a published result used the pre-versioning
+  "v1" science). `TF24f`, being a fast *approximation* of TF24, carries a
+  compound version `"<TF24 version>.<approximation revision>"` (`TF24f@v2.1`):
+  the major component auto-tracks TF24 so a TF24 change also invalidates TF24f,
+  and the minor tracks changes to the approximation itself.
 * `run_scm()` can start a patch from **pre-existing nodes** rather than always
   growing from empty — to resume an exported run or to seed an arbitrary initial
   size distribution at patch age 0 (#499, revives #304). New

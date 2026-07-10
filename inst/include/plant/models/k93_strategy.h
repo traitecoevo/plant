@@ -39,6 +39,12 @@ public:
   typedef std::shared_ptr<K93_Strategy> ptr;
   K93_Strategy();
 
+  // Scientific version. Bump ONLY when equations or default parameters change
+  // the simulation output for identical inputs. Do NOT bump for refactors,
+  // performance, interface, or serialisation changes. Bumping invalidates
+  // logpile's cache for this model (see plant::model_version() / model_id()).
+  static constexpr int scientific_version = 1;
+
   // Direct aux indices for the hot path, avoiding aux_index.at("...") string-map
   // lookups (these showed up in profiling; see #466). MUST stay in sync with the
   // order of aux_names() below. refresh_indices() still fills the named maps used

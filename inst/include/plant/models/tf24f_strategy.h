@@ -26,6 +26,17 @@ public:
   typedef std::shared_ptr<TF24f_Strategy> ptr;
   TF24f_Strategy();
 
+  // Scientific version — compound, because TF24f is a fast *approximation* of
+  // TF24 and inherits its equations/parameters. The version is reported as
+  // "<TF24 version>.<approximation_revision>" (e.g. "2.1"), so:
+  //   * the major component auto-tracks TF24_Strategy::scientific_version, so a
+  //     TF24 scientific change also invalidates TF24f (the safe direction);
+  //   * bump `approximation_revision` for changes specific to the fast
+  //     approximation itself.
+  // See plant::model_version() / model_id() and src/strategy_version.cpp. Bump
+  // rules match the other models (output-changing science only, not refactors).
+  static constexpr int approximation_revision = 1;
+
   // TF24's five states + the tracked root-collar psi (appended last so the
   // inherited state indices 0..4 are unchanged). state_size()/state_names() are
   // static and resolved on the concrete type by Individual<TF24f, ...>.

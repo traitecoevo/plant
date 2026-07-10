@@ -344,6 +344,8 @@ Use the [Makefile](Makefile) targets. The dependency you must internalise:
 | `make test` | `make all` then `devtools::test()` |
 | `make check` / `make build` / `make install` | `R CMD check` / `build` / `INSTALL` |
 | `make benchmark` | run `scripts/benchmark.R` |
+| `make scenarios` | run the TF24 hydraulic scenario gateway → writes a scorecard RDS (`scripts/run_scenario_gateway.R`) |
+| `make bless-scenarios` | regenerate the gateway test baseline (`tests/testthat/test_data/scenario_baseline.rds`) — only when a changed outcome is intended |
 
 Practical rules:
 
@@ -397,6 +399,41 @@ The three shipped models:
 - **TF24** — newer model using the leaf-level [Leaf](inst/include/plant/leaf_model.h)
   photosynthesis/hydraulics submodel (incl. the recently added Medlyn stomatal model).
 
+### Scientific versioning — bump when the science changes
+
+Each model carries a **scientific version** separate from the package `Version`:
+a `static constexpr int scientific_version` on the strategy class in
+[inst/include/plant/models/](inst/include/plant/models/), surfaced to R as
+`model_version(type)` / `model_id(type)` (`"FF16@v1"`) via
+[src/strategy_version.cpp](src/strategy_version.cpp) and
+[R/strategy_support.R](R/strategy_support.R). Downstream tools (notably
+`logpile`, which content-addresses archived simulations) read it to decide when
+to re-run: **reruns follow scientific changes, not software releases.**
+
+Rules:
+
+- **Bump `scientific_version`** (in the model header, in the same commit) when
+  you change equations or default parameters such that the simulation output
+  changes for identical inputs.
+- **Do NOT bump** for refactors, performance work, interface renames, or
+  serialisation-format changes — the science is unchanged.
+- FF16/K93 are scientifically frozen and should rarely move; TF24/TF24f change
+  often and will bump frequently. Current: `FF16@v1`, `K93@v1`, `TF24@v2`.
+- **TF24f is a compound version.** It is a fast *approximation* of TF24 that
+  inherits TF24's equations/parameters, so its version is
+  `"<TF24 version>.<approximation revision>"` (`TF24f@v2.1`). The major
+  component auto-tracks `TF24_Strategy::scientific_version` (a TF24 change
+  invalidates TF24f too — the safe direction); bump `approximation_revision`
+  (in `tf24f_strategy.h`) only for changes specific to the fast approximation.
+  `model_version()` therefore returns a **string** (`"1"`, `"2.1"`), not an
+  integer.
+- A bump is deliberate: it invalidates that model's `logpile` cache and forces
+  reruns. The drift-guard test [tests/testthat/test-model-version.R](tests/testthat/test-model-version.R)
+  fails when a default changes without a bump (snapshot of each model's default
+  `pars`/`control`); pure equation changes are not auto-detected and rely on
+  review. Adding a new model → add its constant and a dispatch arm in
+  `src/strategy_version.cpp` (the scaffolder should do this).
+
 ---
 
 ## 8. Testing
@@ -418,6 +455,16 @@ count from `getOption("Ncpus")` / the `TESTTHAT_CPUS` env var, defaulting to
 more cores. Parallelism only pays off with an optimised build: run `make`
 (compiles with `-O2`) before timing, not a bare `devtools::load_all()`, which
 builds unoptimised and is much slower.
+
+There is also an opt-in **scenario gateway** test
+([test-scenario-gateway.R](tests/testthat/test-scenario-gateway.R)), skipped by
+default and enabled with `PLANT_RUN_SCENARIOS=1`. It runs the full SCM for every
+TF24 hydraulic scenario in `inst/scenarios/` and diffs the per-scenario
+outcomes against a recorded baseline — a *baseline diff*, not an "all pass"
+assertion, so it catches both regressions and improvements (many scenarios are
+expected to fail by design). When a changed outcome is intended, re-bless the
+baseline with `make bless-scenarios`. See
+[notes/plan-tf24-scenario-framework.md](notes/plan-tf24-scenario-framework.md).
 
 CI: [.github/workflows/R-CMD-check.yaml](.github/workflows/R-CMD-check.yaml) and
 `benchmarks.yml`.
@@ -502,7 +549,10 @@ repo's README for how it renders, freezes (`_freeze/`), and version-pins posts.
 - ✅ Adding/removing strategy state → update `state_size()` **and** `state_names()`.
 - ✅ Exposing a new C++ method/field to R → add it to `RcppR6_classes.yml`, then `make RcppR6`.
 - ✅ Adding a model → use the scaffolder; remember the R `switch()` tables in
-  [strategy_support.R](R/strategy_support.R) and the hyperpar functions.
+  [strategy_support.R](R/strategy_support.R) and the hyperpar functions, and add
+  a `scientific_version` constant + dispatch arm in `src/strategy_version.cpp`.
+- ✅ Changing a model's equations/default parameters (output changes for the
+  same inputs) → bump its `scientific_version` in the model header (see §7).
 - ✅ After interface changes run the full `make rebuild`; after C++-only changes `make compile`.
 - ℹ️ Active bindings ending in `_` generally expose internal C++ fields for
   inspection/testing, not part of the stable user API.

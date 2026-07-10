@@ -78,8 +78,8 @@ struct TF24_Pars {
   double psi_crit = b*std::pow(log(1/0.05),1/c); // derived from b and c
   double beta1 = 20000;
   double beta2 = 1.5;
+  double g1_TF24 = 7.5;
   double jmax_25 = vcmax_25*1.64;
-  double hk_s = 4;
   double a = 0.30; // effective quantum yield of electron transport
   double curv_fact_elec_trans = 0.7;
   double curv_fact_colim = 0.99;
@@ -100,6 +100,16 @@ class TF24_Strategy: public Strategy<TF24_Environment> {
 public:
   typedef std::shared_ptr<TF24_Strategy> ptr;
   TF24_Strategy();
+
+  // Scientific version. Bump ONLY when equations or default parameters change
+  // the simulation output for identical inputs. Do NOT bump for refactors,
+  // performance, interface, or serialisation changes. Bumping invalidates
+  // logpile's cache for this model (see plant::model_version() / model_id()).
+  // Starts at 2: a published result exists using pre-versioning "v1" science.
+  // v3 (#517/#554): NSC storage pool + reserve-gated growth and reserves-based
+  // mortality change the simulation output for identical inputs; TF24f's
+  // compound version auto-tracks this to 3.1.
+  static constexpr int scientific_version = 3;
 
   double compute_average_light_environment(double z, double height,
                                            const TF24_Environment &environment);
@@ -376,7 +386,6 @@ public:
   double vulnerability_curve_ncontrol = 100;
   double ci_abs_tol = 1e-6;
   double ci_niter = 1000;
-  double g1_TF24 = 7.5;
   double beta_R_H = 3.4e2;
   double beta_R_V = 9.4e3;
 

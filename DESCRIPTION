@@ -32,7 +32,10 @@ Imports:
     tidyselect (>= 1.2.0),
     tidyr,
     purrr,
-    odelia
+    odelia,
+    withr,
+    parallel,
+    tools
 Suggests:
     testthat,
     rprojroot,
@@ -47,8 +50,7 @@ Suggests:
     ggplot2,
     ggridges,
     patchwork,
-    kableExtra,
-    withr
+    kableExtra
 Remotes:
     richfitz/RcppR6,
     traitecoevo/odelia
