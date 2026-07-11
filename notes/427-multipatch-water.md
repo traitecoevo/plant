@@ -18,7 +18,7 @@ epic's "## Issues" list (currently "to be linked").
 ## Motivation
 
 `develop` now carries a per-patch N-layer vertical soil-water store (currently
-N = 15) with a Sperry-style hydraulic link to carbon gain (FF16w line). The
+N = 15) with a Sperry-style hydraulic link to carbon gain (TF24 line). The
 natural next step is letting patches exchange water so we can model spatially
 structured water limitation — the semi-arid, event-pulsed regime (Mulga
 banding, run-on/run-off) being the primary target, with a design that
@@ -240,7 +240,7 @@ only, per-patch independent steppers). 3–4 are the generalisation and can wait
   competition kernel — a genuine point of novelty worth being explicit about.
 - Steep terrain: spatial trait sorting along the fixed upslope→downslope fitness
   gradient.
-- Semi-arid limit recovers current single-patch FF16w behaviour when N = 1.
+- Semi-arid limit recovers current single-patch TF24 behaviour when N = 1.
 
 ## Open questions
 
@@ -248,7 +248,7 @@ only, per-patch independent steppers). 3–4 are the generalisation and can wait
   build decision. Two ends of the spectrum:
   - *Extend in place* — teach the current `run_scm` / `Patch` / `SCM` machinery
     to hold `N` patches (single-patch = the N = 1 special case). Pro: one code
-    path, so the semi-arid N = 1 limit recovers current FF16w behaviour *by
+    path, so the semi-arid N = 1 limit recovers current TF24 behaviour *by
     construction* rather than as a validation target, and no duplicated
     demography/fitness logic to keep in sync. Con: risks entangling the
     landscape-coupling concerns into hot single-patch paths (the `[speed]` work,
@@ -320,7 +320,7 @@ only, per-patch independent steppers). 3–4 are the generalisation and can wait
     algebraic reallocation. First and cheapest check. (This is the landscape-scale
     analogue of the single-patch conservation check already tracked in
     [#454](https://github.com/traitecoevo/plant/issues/454).)
-  - *Analytic limits:* N = 1 recovers single-patch FF16w exactly; τ → ∞ recovers
+  - *Analytic limits:* N = 1 recovers single-patch TF24 exactly; τ → ∞ recovers
     fully-decoupled patches; τ → 0 recovers the steady-state topographic-index
     (TOPMODEL) water-table shape. Each is a known target.
   - *Idealised hillslope:* a monotonic slope should produce a monotonic
