@@ -7,6 +7,27 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* Penman-Monteith leaf energy balance added to TF24/TF24f behind an
+  opt-in gate, **default off** (#523). With the gate off, runtime behaviour and
+  outputs are bit-identical to before (verified against leaf-level and SCM
+  baselines) and `scientific_version` is unchanged — but the change adds fields
+  to the R-facing `TF24_Pars` and a new environment driver, so any snapshot /
+  round-trip test that encodes the full TF24 parameter set or driver list will
+  see new entries. Migration:
+  * `TF24_Pars` gains two fields (default off / inert): `pars$use_energy_balance`
+    (0 = off = today's `Tleaf = Tair`; non-zero = on) and `pars$d` (characteristic
+    leaf dimension, m, for the aerodynamic resistance). No action needed unless
+    you assert the exact `pars` field set.
+  * `TF24_Environment` gains a `wind_speed` extrinsic driver (default `2.0`
+    m s⁻¹), set like any other driver:
+    `env$extrinsic_drivers_set_constant("wind_speed", U0)` /
+    `env$extrinsic_drivers_set_variable("wind_speed", x =, y =)`.
+  * The `Leaf` submodel exposes `use_energy_balance_`, `d_`, `wind_speed_`
+    (settable) and `Tair_`/`Rn_`/`ra_` (readable) for leaf-level experimentation.
+  * To enable: set `pars$use_energy_balance <- 1` (and optionally `pars$d`,
+    the `wind_speed` driver) before running; leaf temperature is then solved from
+    the energy balance and fed to the Farquhar temperature scaling.
+
 * Strategy biological parameters are now stored in a nested `pars` sub-object
   rather than as flat fields on the strategy (#410). This applies to every
   strategy type (`FF16_Strategy`, `K93_Strategy`, `TF24_Strategy`). Migration —

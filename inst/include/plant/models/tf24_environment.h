@@ -86,6 +86,7 @@ public:
     extrinsic_drivers_set_constant("leaf_temp",25);
     extrinsic_drivers_set_constant("atm_o2_kpa",21);
     extrinsic_drivers_set_constant("atm_kpa",100.5);
+    extrinsic_drivers_set_constant("wind_speed",2.0); // U0, m s^-1 (Penman-Monteith, #523)
 
     set_soil_number_of_depths(soil_number_of_depths);
     set_soil_water_state(std::vector<double>(soil_number_of_depths, soil_moist_sat*0.5));
@@ -178,10 +179,12 @@ public:
   }
   static constexpr double NAN_TIME_ = std::numeric_limits<double>::quiet_NaN();
   mutable double ppfd_cache_ = 0, atm_vpd_cache_ = 0, ca_cache_ = 0,
-                 leaf_temp_cache_ = 0, atm_o2_kpa_cache_ = 0, atm_kpa_cache_ = 0;
+                 leaf_temp_cache_ = 0, atm_o2_kpa_cache_ = 0, atm_kpa_cache_ = 0,
+                 wind_speed_cache_ = 0;
   mutable double ppfd_cache_time_ = NAN_TIME_, atm_vpd_cache_time_ = NAN_TIME_,
                  ca_cache_time_ = NAN_TIME_, leaf_temp_cache_time_ = NAN_TIME_,
-                 atm_o2_kpa_cache_time_ = NAN_TIME_, atm_kpa_cache_time_ = NAN_TIME_;
+                 atm_o2_kpa_cache_time_ = NAN_TIME_, atm_kpa_cache_time_ = NAN_TIME_,
+                 wind_speed_cache_time_ = NAN_TIME_;
 
   // A ResourceSpline used for storing light availbility (0-1)
   ResourceSpline light_availability;
@@ -412,6 +415,8 @@ public:
   double get_leaf_temp()  const { return cached_driver_("leaf_temp", leaf_temp_cache_, leaf_temp_cache_time_); }
   double get_atm_o2_kpa() const { return cached_driver_("atm_o2_kpa", atm_o2_kpa_cache_, atm_o2_kpa_cache_time_); }
   double get_atm_kpa()    const { return cached_driver_("atm_kpa", atm_kpa_cache_, atm_kpa_cache_time_); }
+  // Above-canopy wind speed U0 (m s^-1), Penman-Monteith aerodynamic resistance (#523)
+  double get_wind_speed() const { return cached_driver_("wind_speed", wind_speed_cache_, wind_speed_cache_time_); }
 
 
   std::vector<double> get_soil_water_state() const { return {vars.states.begin(), vars.states.end() - aux_num}; }

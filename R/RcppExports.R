@@ -457,6 +457,54 @@ Leaf__atm_kpa___set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__atm_kpa___set', PACKAGE = 'plant', obj_, value))
 }
 
+Leaf__use_energy_balance___get <- function(obj_) {
+    .Call('_plant_Leaf__use_energy_balance___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__use_energy_balance___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__use_energy_balance___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__d___get <- function(obj_) {
+    .Call('_plant_Leaf__d___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__d___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__d___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__wind_speed___get <- function(obj_) {
+    .Call('_plant_Leaf__wind_speed___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__wind_speed___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__wind_speed___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__Tair___get <- function(obj_) {
+    .Call('_plant_Leaf__Tair___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__Tair___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__Tair___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__Rn___get <- function(obj_) {
+    .Call('_plant_Leaf__Rn___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__Rn___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__Rn___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__ra___get <- function(obj_) {
+    .Call('_plant_Leaf__ra___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__ra___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__ra___set', PACKAGE = 'plant', obj_, value))
+}
+
 Leaf__hydraulic_cost___get <- function(obj_) {
     .Call('_plant_Leaf__hydraulic_cost___get', PACKAGE = 'plant', obj_)
 }

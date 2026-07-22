@@ -86,9 +86,15 @@ Leaf:
     r_R_V_sum: {type: "std::vector<double>", access: field}
     assim_max_: {type: double, access: field}
     root_collar_psi_: {type: double, access: field}
-    leaf_temp_: {type: double, access: field} 
-    atm_o2_kpa_: {type: double, access: field} 
-    atm_kpa_: {type: double, access: field} 
+    leaf_temp_: {type: double, access: field}
+    atm_o2_kpa_: {type: double, access: field}
+    atm_kpa_: {type: double, access: field}
+    use_energy_balance_: {type: bool, access: field}
+    d_: {type: double, access: field}
+    wind_speed_: {type: double, access: field}
+    Tair_: {type: double, access: field}
+    Rn_: {type: double, access: field}
+    ra_: {type: double, access: field}
     hydraulic_cost_: {type: double, access: field}
     opt_psi_stem_: {type: double, access: field}
     opt_ci_: {type: double, access: field}
@@ -1258,6 +1264,8 @@ TF24_Pars:
     - dmass_dN: double
     - root_depth_shape_eta: double
     - recruitment_decay: double
+    - use_energy_balance: double
+    - d: double
 
 TF24_Strategy:
   name_cpp: "plant::TF24_Strategy"

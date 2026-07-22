@@ -57,7 +57,9 @@ test_that("Defaults", {
     nmass_r = 0.00335,
     dmass_dN = 0,
     root_depth_shape_eta = 0.2,
-    recruitment_decay = 0)
+    recruitment_decay = 0,
+    use_energy_balance = 0,
+    d = 0.05)
 
   # Top-level strategy fields: the pars sub-object plus infrastructure.
   expected_top <- c("pars", "control", "collect_all_auxiliary",

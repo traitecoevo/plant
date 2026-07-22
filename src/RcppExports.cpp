@@ -1334,6 +1334,138 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// Leaf__use_energy_balance___get
+bool Leaf__use_energy_balance___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__use_energy_balance___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__use_energy_balance___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__use_energy_balance___set
+void Leaf__use_energy_balance___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, bool value);
+RcppExport SEXP _plant_Leaf__use_energy_balance___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< bool >::type value(valueSEXP);
+    Leaf__use_energy_balance___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__d___get
+double Leaf__d___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__d___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__d___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__d___set
+void Leaf__d___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__d___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__d___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__wind_speed___get
+double Leaf__wind_speed___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__wind_speed___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__wind_speed___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__wind_speed___set
+void Leaf__wind_speed___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__wind_speed___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__wind_speed___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__Tair___get
+double Leaf__Tair___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__Tair___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__Tair___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__Tair___set
+void Leaf__Tair___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__Tair___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__Tair___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__Rn___get
+double Leaf__Rn___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__Rn___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__Rn___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__Rn___set
+void Leaf__Rn___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__Rn___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__Rn___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__ra___get
+double Leaf__ra___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__ra___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__ra___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__ra___set
+void Leaf__ra___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__ra___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__ra___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
 // Leaf__hydraulic_cost___get
 double Leaf__hydraulic_cost___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
 RcppExport SEXP _plant_Leaf__hydraulic_cost___get(SEXP obj_SEXP) {
@@ -12135,6 +12267,18 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__atm_o2_kpa___set", (DL_FUNC) &_plant_Leaf__atm_o2_kpa___set, 2},
     {"_plant_Leaf__atm_kpa___get", (DL_FUNC) &_plant_Leaf__atm_kpa___get, 1},
     {"_plant_Leaf__atm_kpa___set", (DL_FUNC) &_plant_Leaf__atm_kpa___set, 2},
+    {"_plant_Leaf__use_energy_balance___get", (DL_FUNC) &_plant_Leaf__use_energy_balance___get, 1},
+    {"_plant_Leaf__use_energy_balance___set", (DL_FUNC) &_plant_Leaf__use_energy_balance___set, 2},
+    {"_plant_Leaf__d___get", (DL_FUNC) &_plant_Leaf__d___get, 1},
+    {"_plant_Leaf__d___set", (DL_FUNC) &_plant_Leaf__d___set, 2},
+    {"_plant_Leaf__wind_speed___get", (DL_FUNC) &_plant_Leaf__wind_speed___get, 1},
+    {"_plant_Leaf__wind_speed___set", (DL_FUNC) &_plant_Leaf__wind_speed___set, 2},
+    {"_plant_Leaf__Tair___get", (DL_FUNC) &_plant_Leaf__Tair___get, 1},
+    {"_plant_Leaf__Tair___set", (DL_FUNC) &_plant_Leaf__Tair___set, 2},
+    {"_plant_Leaf__Rn___get", (DL_FUNC) &_plant_Leaf__Rn___get, 1},
+    {"_plant_Leaf__Rn___set", (DL_FUNC) &_plant_Leaf__Rn___set, 2},
+    {"_plant_Leaf__ra___get", (DL_FUNC) &_plant_Leaf__ra___get, 1},
+    {"_plant_Leaf__ra___set", (DL_FUNC) &_plant_Leaf__ra___set, 2},
     {"_plant_Leaf__hydraulic_cost___get", (DL_FUNC) &_plant_Leaf__hydraulic_cost___get, 1},
     {"_plant_Leaf__hydraulic_cost___set", (DL_FUNC) &_plant_Leaf__hydraulic_cost___set, 2},
     {"_plant_Leaf__opt_psi_stem___get", (DL_FUNC) &_plant_Leaf__opt_psi_stem___get, 1},

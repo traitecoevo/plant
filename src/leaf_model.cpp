@@ -116,6 +116,9 @@ void Leaf::setup_clean_leaf() {
   a_bio_= NA_REAL; //kg mol^-1
   root_collar_psi_ = NA_REAL; //-MPa
   leaf_temp_= NA_REAL; // deg C
+  Tair_= NA_REAL; // deg C
+  Rn_= NA_REAL; // W m^-2
+  ra_= NA_REAL; // s m^-1
   PPFD_= NA_REAL; //umol m^-2 s^-1
   atm_vpd_= NA_REAL; //kPa 
   atm_o2_kpa_= NA_REAL; // kPa
@@ -237,25 +240,43 @@ void Leaf::set_physiology(double area_leaf, const std::vector<double>& mass_root
    transpiration_cached_ = false;
    sapwood_volume_per_leaf_area_ = sapwood_volume_per_leaf_area;
    ca_ = ca;
-   // Temperature/O2-dependent block: recomputed only when (leaf_temp_,
-   // atm_o2_kpa_) changes from the previous call (see photo_temp_cache_ in the
-   // header). Same inputs -> bit-identical outputs, so reusing is exact.
-   if (!(photo_temp_cached_ &&
-         leaf_temp_ == photo_temp_cache_leaf_temp_ &&
-         atm_o2_kpa_ == photo_temp_cache_atm_o2_kpa_)) {
-     vcmax_ = peak_arrh_curve(vcmax_ha, vcmax_25, leaf_temp_, vcmax_H_d, vcmax_d_S);
-     jmax_ = peak_arrh_curve(jmax_ha, jmax_25, leaf_temp_, jmax_H_d, jmax_d_S);
-     gamma_ = arrh_curve(gamma_ha, gamma_25, leaf_temp_);
-     ko_ = arrh_curve(ko_ha, ko_25, leaf_temp_);
-     kc_ = arrh_curve(kc_ha, kc_25, leaf_temp_);
-     R_d_ = vcmax_*0.015;
-     km_ = (kc_*umol_per_mol_to_Pa)*(1 + (atm_o2_kpa_*kPa_to_Pa)/(ko_*umol_per_mol_to_Pa));
+   // Penman-Monteith leaf energy-balance inputs (#523). Reinterpret the incoming
+   // leaf_temp driver as air temperature; derive net radiation from the absorbed
+   // PAR (PPFD_, umol m^-2 s^-1): shortwave ~= 2*PAR converted to W m^-2, plus a
+   // fixed clear-sky longwave cooling offset (doc 3.3). ra fixed for the minimal
+   // cut (doc fallback). Only read on the use_energy_balance_ path.
+   Tair_ = leaf_temp_;
+   Rn_ = sw_abs_per_par * PPFD_ / umol_par_per_joule + longwave_net_offset;
+   // Aerodynamic resistance from leaf boundary-layer theory: ra = C_ra*sqrt(d/U)
+   // (doc 4.1), with the per-strategy leaf dimension d_ and the above-canopy wind
+   // wind_speed_. Fall back to the fixed value when the wind model is unusable
+   // (non-finite / non-positive inputs), e.g. a bare Leaf that set neither.
+   ra_ = (std::isfinite(d_) && std::isfinite(wind_speed_) &&
+          d_ > 0.0 && wind_speed_ > 0.0)
+             ? aerodynamic_resistance_coef * std::sqrt(d_ / wind_speed_)
+             : aerodynamic_resistance_fixed;
+
+   // Temperature/O2-dependent block. Off the PM path this is recomputed only
+   // when (leaf_temp_, atm_o2_kpa_) changes from the previous call (see
+   // photo_temp_cache_ in the header); same inputs -> bit-identical outputs, so
+   // reusing is exact. On the PM path the cache is bypassed: leaf_temp_ here is
+   // only Tair, and the operating-point Tleaf (hence these params) is set per
+   // candidate psi in set_leaf_states_rates_from_psi_stem, so we always recompute
+   // the Tair baseline (used for assim_max_ / feasibility) and let the solve
+   // override it.
+   if (!use_energy_balance_ &&
+       photo_temp_cached_ &&
+       leaf_temp_ == photo_temp_cache_leaf_temp_ &&
+       atm_o2_kpa_ == photo_temp_cache_atm_o2_kpa_) {
+     // Cache hit (non-PM): temperature params unchanged; only electron_transport_
+     // depends on the per-call PPFD_, so refresh just that (as before).
+     electron_transport_ = electron_transport();
+   } else {
+     update_temperature_dependent_params(leaf_temp_);
      photo_temp_cache_leaf_temp_ = leaf_temp_;
      photo_temp_cache_atm_o2_kpa_ = atm_o2_kpa_;
      photo_temp_cached_ = true;
    }
-   // depends on the per-call PPFD_ (and cached jmax_), so always recomputed
-   electron_transport_ = electron_transport();
 
    dz_ = soil_depth_.back()/soil_number_of_depths_;
 
@@ -1039,6 +1060,43 @@ double Leaf::peak_arrh_curve(double Ea, double ref_value, double leaf_temp, doub
   return arrh * arg2/arg3;
 }
 
+// Recompute the temperature-dependent photosynthetic parameters at a given leaf
+// temperature. The arithmetic (and order) is exactly the inline block that used
+// to live in set_physiology, so the non-PM path is bit-identical; extracting it
+// lets the PM path recompute per operating-point Tleaf. electron_transport_ also
+// depends on the per-call PPFD_ and is (re)computed here from the just-updated
+// jmax_ -- on the non-PM cache-hit path set_physiology refreshes it separately.
+void Leaf::update_temperature_dependent_params(double leaf_temp) {
+  vcmax_ = peak_arrh_curve(vcmax_ha, vcmax_25, leaf_temp, vcmax_H_d, vcmax_d_S);
+  jmax_ = peak_arrh_curve(jmax_ha, jmax_25, leaf_temp, jmax_H_d, jmax_d_S);
+  gamma_ = arrh_curve(gamma_ha, gamma_25, leaf_temp);
+  ko_ = arrh_curve(ko_ha, ko_25, leaf_temp);
+  kc_ = arrh_curve(kc_ha, kc_25, leaf_temp);
+  R_d_ = vcmax_*0.015;
+  km_ = (kc_*umol_per_mol_to_Pa)*(1 + (atm_o2_kpa_*kPa_to_Pa)/(ko_*umol_per_mol_to_Pa));
+  electron_transport_ = electron_transport();
+}
+
+// Saturation vapour pressure es(T) in kPa (Tetens), T in deg C.
+double Leaf::saturation_vapour_pressure(double temp) const {
+  return 0.6108 * exp(17.27 * temp / (temp + 237.3));
+}
+
+// Slope of the saturation vapour pressure curve Delta(T) in kPa K^-1, T in deg C.
+double Leaf::saturation_vapour_pressure_slope(double temp) const {
+  return 4098.0 * saturation_vapour_pressure(temp) / ((temp + 237.3) * (temp + 237.3));
+}
+
+// Explicit leaf energy balance (#523): Tleaf = Tair + (Rn - lambda*E)*ra/(rho*cp).
+// E is the hydraulically-pinned transpiration (kg H2O m^-2 s^-1), so lambda*E is
+// the latent heat flux (W m^-2) and (Rn - lambda*E) the sensible heat flux H.
+double Leaf::leaf_temp_from_E(double E) const {
+  const double Tleaf = Tair_ + (Rn_ - latent_heat_vap * E) * ra_ / vol_heat_cap_air;
+  // Clamp to a physical range so an extreme (non-equilibrium) E cannot drive the
+  // Arrhenius block non-finite; see leaf_temp_min/max in the header.
+  return std::min(std::max(Tleaf, leaf_temp_min), leaf_temp_max);
+}
+
 
 // transpiration supply functions
 
@@ -1254,6 +1312,18 @@ double Leaf::psi_stem_to_ci(double psi_stem, double psi_upstream) {
   try {
     return ci_ = util::uniroot_smooth(target, gamma_ * umol_per_mol_to_Pa, ca_, 1e-7, ci_niter);
   } catch (const std::exception& e) {
+    // Penman-Monteith path (#523): extreme energy-balance leaf heating raises the
+    // CO2 compensation point (gamma*) so far that assimilation is negative across
+    // the whole [gamma*, ca] bracket, so there is no supply==demand root and
+    // TOMS748 cannot bracket. That is a physically-meaningful shut-down (the leaf
+    // is too hot to gain carbon), not a solver failure, so operate at the
+    // compensation point (ci = gamma*, gross A = 0, net A = -R_d) and let the
+    // profit optimiser move away from it. Gated on use_energy_balance_ so the
+    // non-PM path keeps its original fail-fast contract (it never reaches here
+    // under prescribed leaf_temp).
+    if (use_energy_balance_) {
+      return ci_ = gamma_ * umol_per_mol_to_Pa;
+    }
     util::stop("psi_stem_to_ci failed: " + std::string(e.what()) +
                "; min=" + util::to_string(gamma_ * umol_per_mol_to_Pa) +
                "; max=" + util::to_string(ca_) +
@@ -1275,8 +1345,20 @@ void Leaf::set_leaf_states_rates_from_psi_stem(double psi_stem, double psi_upstr
         transpiration_ = 0;
         stom_cond_CO2_ = 0;
         } else{
-      ci_ = psi_stem_to_ci(psi_stem, psi_upstream);
+      // Transpiration is the hydraulic supply, independent of ci; compute it
+      // first so the PM path can derive the operating-point leaf temperature.
+      // Off the PM path this is a memoised no-op reorder (psi_stem_to_ci ->
+      // stom_cond_CO2 requests the same (psi_stem, psi_upstream), returning the
+      // bit-identical cached value), so the non-PM result is unchanged.
       transpiration_ = transpiration(psi_stem, psi_upstream);
+      if (use_energy_balance_) {
+        // Tleaf = f(E) is explicit (no PM inversion, no A->E feedback), so this
+        // is a single forward pass: recompute the Farquhar temperature params at
+        // this candidate's Tleaf before solving for ci. Defeats the photo_temp
+        // cache by design -- Tleaf varies per operating point.
+        update_temperature_dependent_params(leaf_temp_from_E(transpiration_));
+      }
+      ci_ = psi_stem_to_ci(psi_stem, psi_upstream);
       stom_cond_CO2_ = atm_kpa_ * transpiration_ * kg_to_mol_h2o / atm_vpd_ / H2O_CO2_stom_diff_ratio;
       }
     }
