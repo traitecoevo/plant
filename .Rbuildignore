@@ -15,6 +15,7 @@
 ^WIP$
 ^notes$
 ^overstorey-staging$
+^overstorey_staging$
 ^plant_.+\.tar\.gz$
 ^.*\.Rproj$
 ^\.Rproj\.user$
