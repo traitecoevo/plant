@@ -114,6 +114,33 @@ test_that("a single TF24t plant grows through the ODE runner, and costs slow it"
   expect_lt(costly$h1, base$h1)
 })
 
+# Phase 4: midday evaluation wiring. TF24t forces the Penman-Monteith energy
+# balance on (regardless of pars$use_energy_balance) so the damage factor N is
+# evaluated at the midday operating-point Tleaf. A hotter midday leaf_temp driver
+# therefore feeds through to lower net carbon production via the damage feedback.
+test_that("TF24t forces PM on: a hot midday driver cuts net production via damage", {
+  net_at_temp <- function(Tmid, thermal = TRUE) {
+    env <- Environment("TF24t")
+    env$extrinsic_drivers_set_constant("leaf_temp", Tmid)
+    s <- TF24t_Strategy()
+    if (!thermal) s$k_d1_0 <- 0   # no unfolding -> N == 1 (damage feedback off)
+    # pars default use_energy_balance = 0; prepare_strategy must force PM on.
+    expect_identical(s$pars$use_energy_balance, 0.0)
+    p <- TF24t_Individual(s)
+    p$set_state("height", 5)
+    p$compute_rates(env)
+    p$net_mass_production_dt(env)
+  }
+  # With the damage layer live, a hot midday operating point reduces net carbon.
+  expect_lt(net_at_temp(45, thermal = TRUE), net_at_temp(25, thermal = TRUE))
+  # Kill the damage feedback (k_d1_0 = 0 -> N == 1): the hot-vs-mild gap shrinks
+  # markedly, confirming the reduction above is the thermal-damage feedback and
+  # not merely the ambient Arrhenius response both paths share.
+  drop_dmg <- net_at_temp(25, thermal = FALSE) - net_at_temp(45, thermal = FALSE)
+  drop_on  <- net_at_temp(25, thermal = TRUE)  - net_at_temp(45, thermal = TRUE)
+  expect_gt(drop_on, drop_dmg)
+})
+
 test_that("with zero gain the acclimation states stay put (no drift)", {
   p <- scm_base_parameters("TF24t") |>
     add_strategies(trait_matrix(0.0825, "lma"), birth_rate = 20)

@@ -39,6 +39,17 @@ void check_kinetics(double alpha, double beta, double s) {
 // base's use_energy_balance_ / d_ handling.
 void TF24t_Strategy::prepare_strategy() {
   TF24_Strategy::prepare_strategy();
+  // Phase 4 (midday evaluation wiring, #566): the Lumry-Eyring damage factor N is
+  // a single quasi-steady evaluation at the *midday operating-point* leaf
+  // temperature, and that operating point only exists on the Penman-Monteith
+  // energy-balance path (set_leaf_states_rates_from_psi_stem recomputes the temp
+  // params -- and N -- at Tleaf = f(E) per candidate psi; base off-PM path leaves
+  // N at the prescribed-Tair baseline with no cooling/avoidance response). The
+  // model hierarchy is TF24 subset TF24+PM subset TF24t (+PM+ATLS), so force PM on
+  // here regardless of pars.use_energy_balance -- thermal damage is not physically
+  // meaningful without a real midday Tleaf. This mirrors the unconditional
+  // use_thermal_damage_ = true below.
+  leaf.use_energy_balance_ = true;
   leaf.use_thermal_damage_ = true;
   leaf.topt_offset_ = topt_offset;
   leaf.tcrit_0_ = tcrit_0;

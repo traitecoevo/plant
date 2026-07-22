@@ -79,6 +79,36 @@ test_that("outlandish traits and environment still give finite output", {
   expect_true(is.finite(l$jmax_) && is.finite(l$N_) && is.finite(l$electron_transport_))
 })
 
+# Phase 4: midday evaluation. On the Penman-Monteith path the damage factor N is
+# recomputed at the operating-point leaf temperature Tleaf = f(E) inside
+# set_leaf_states_rates_from_psi_stem, so transpirational cooling raises N. This
+# is the "avoidance" axis: investing in transpiration lowers midday Tleaf and buys
+# back photosynthetic capacity, self-selecting inside the psi_stem optimiser.
+test_that("on the PM path N is evaluated at the operating-point Tleaf (avoidance)", {
+  mk_pm <- function() {
+    l <- mk_leaf()
+    l$use_energy_balance_ <- TRUE
+    l$use_thermal_damage_ <- TRUE
+    l$d_ <- 0.05; l$wind_speed_ <- 2.0
+    # Hot, bright midday: air above T_crit so damage is active and sensitive to
+    # how much the leaf cools itself.
+    set_phys(l, 42)
+    l
+  }
+  # More transpiration => cooler operating-point leaf => less damage => higher N.
+  # (leaf_temp_ holds the Tair driver; the operating-point Tleaf = f(E) is used
+  # transiently to recompute N, so we read avoidance off N vs transpiration.)
+  lo <- mk_pm(); lo$set_leaf_states_rates_from_psi_stem(1.0, 0.2)
+  hi <- mk_pm(); hi$set_leaf_states_rates_from_psi_stem(3.5, 0.2)
+  expect_gt(hi$transpiration_, lo$transpiration_) # bigger psi_stem draw -> more E
+  expect_gt(hi$N_, lo$N_)                          # ... which cools & raises N
+  expect_true(hi$N_ > 0 && hi$N_ <= 1 && is.finite(hi$N_))
+  # Sanity: with damage off, N stays 1 regardless of the operating point.
+  off <- mk_leaf(); off$use_energy_balance_ <- TRUE; set_phys(off, 42)
+  off$set_leaf_states_rates_from_psi_stem(3.5, 0.2)
+  expect_equal(off$N_, 1.0)
+})
+
 # Phase 3: the thermal maintenance/activity respiration costs added to R_d_.
 # Coefficients default 0, so a bare Leaf pays nothing (R_d_ = vcmax_*0.015);
 # TF24t sets them. Each term maps to one axis of the plan's cost table.
