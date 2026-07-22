@@ -269,3 +269,58 @@ Design rules:
   not a feature branch — odelia is currently on `pr-41`. The new states flow through
   the standard `set_ode_state`/`ode_rates` path, so `run_mutant` replay works
   automatically (the `Replayable` hooks are compile-time-optional).
+
+---
+
+## Implementation progress & handoff
+
+Branch: **`feature/tf24-atls-thermal-damage`** (based on
+`feature/penman-monteith-leaf-energy-balance`). Built against the
+**currently-installed odelia (`pr-41`)** for now (user decision; the odelia-master
+note above still applies before landing).
+
+**Phase 1 — leaf damage core — DONE, committed `b2cbd5f7`.**
+- `leaf_model.{h,cpp}`: `use_thermal_damage_` gate (default off ⇒ bit-identical);
+  switch-dominated quasi-steady `N = k_r/(k_r+k_d)` (`thermal_damage_factor`),
+  `t_crit(A_crit)`, `d_S_shifted` (T_opt shift via Medlyn d_S inversion), guarded
+  `logistic_`/`softplus_`; gated temp block applies `jmax → jmax·N`.
+- New Leaf fields exposed via RcppR6. Tests: `test-leaf-thermal.R` (14 checks).
+
+**Phase 2 — TF24t strategy + acclimation ODE states — DONE, committed `7aa008ff`.**
+- `TF24t_Strategy : TF24_Strategy` (`tf24t_strategy.{h,cpp}`): appends
+  `acclim_topt`, `acclim_tcrit`; `dA/dt = alpha·softplus(T−T_accl) − beta·A`,
+  seeded at environmental equilibrium; `prepare_strategy` turns on the leaf layer
+  and copies thermal traits; `compute_rates` feeds live states into the leaf.
+- Reuses parent `TF24_Pars`; thermal/acclimation knobs are TF24t strategy scalars.
+  `strategy_version.cpp` has a TF24t compound-version case. Leaf temp-cache guard
+  extended so varying `A_opt`/`A_crit` isn't masked. Scaffolded build wiring
+  (reuse-environment mode); fixed the scaffolder's `g1_TF24` rename; TF24t excluded
+  from generic cross-strategy helper lists. Tests: `test-strategy-tf24t.R` (15).
+- Regression: 437 shared checks pass (leaf, leaf-thermal, tf24, environment,
+  model-version, tf24f).
+
+**Phase 3 — cost structure — NEXT. Decisions locked with user:**
+- **Tolerance construction cost → via the leaf mass / turnover path** in TF24
+  `net_mass_production` (a true one-off build cost per leaf, not an R_d_ term).
+- **Cost coefficients ship with modest nonzero, documented defaults** (real
+  trade-off out of the box; R-settable; marked as calibration targets).
+- Acclimation → maintenance respiration on `R_d_` ∝ `(A_opt+A_crit)` + induction
+  cost ∝ positive `dA/dt`. Repair → standing maintenance ∝ `k_r1_0` + activity
+  cost ∝ realized repair flux `k_r1·(1−N)`. Add coefficients as TF24t strategy
+  scalars copied into the leaf (or applied in the strategy for construction).
+
+**Phase 4 — midday evaluation wiring:** make `N` evaluate at the midday operating
+point (add a midday `Tair` driver / use the midday operating point), rather than
+whatever `leaf_temp`/PM `Tleaf` is currently supplied.
+
+**Phase 5 — leftover:** add `TF24t` to the `test-model-version.R` `models` vector
++ accept the new `_snaps/model-version.md` entry (registration + R interface are
+already done via the scaffolder).
+
+**Verification gate (#566):** does the damage feedback materially change annual
+carbon gain / competitive outcome vs PM-only under representative Australian
+heatwaves (mirror the #523 step-5 factorial).
+
+**Build/test loop:** `make rebuild` then, per-file,
+`Rscript -e 'pkgload::load_all(".", compile=FALSE); testthat::test_file("tests/testthat/<f>")'`.
+Use `run_scm(..., refine_schedule = FALSE)` for fast smoke tests.
