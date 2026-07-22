@@ -61,6 +61,12 @@ sharply through `T_crit = 38 °C`. Because `jmax` is scaled by `N`, assimilation
 follows it down. Here the leaf temperature is *prescribed* (Fick path), so this
 is the pure mechanism with no optimiser in the loop.
 
+In the right-hand panel, **damage off** vs **on** is the *same* leaf at the same
+temperature, differing only in whether the damage kinetics run: "off" zeroes the
+unfolding rate (`k_d1_0 = 0`), forcing `N = k_r/(k_r + k_d) = 1` at every
+temperature (no `jmax` penalty); "on" uses the ATLS defaults, so `N < 1` once hot.
+The gap between the curves is the carbon lost to thermal damage.
+
 ```{r damage-curve}
 Tleaf <- seq(20, 50, by = 0.5)
 N_gen <- atls_N_curve(Tleaf, atls_traits())
@@ -164,7 +170,7 @@ avoid_cfgs <- list(
     atls_leaf_config(d = 0.02, leaf_specific_conductance_max = 1e-2))
 
 avoid <- bind_rows(lapply(names(avoid_cfgs), function(nm) {
-  bind_rows(lapply(seq(24, 40, by = 2), function(Tair) {
+  bind_rows(lapply(seq(24, 40, by = 0.5), function(Tair) {
     r <- atls_solve_cell(1500, Tair, 2, atls_traits(), pm = TRUE,
                          cfg = avoid_cfgs[[nm]])
     data.frame(coupling = nm, Tair = Tair, Tleaf = r$Tleaf, N = r$N, A = r$A)
@@ -196,11 +202,85 @@ p_av_N <- ggplot(avoid, aes(Tair, N, colour = coupling)) +
 > under high radiation, #523 caveats), so the *absolute* temperatures here are an
 > upper bound; the **contrast** between couplings is the robust signal.
 
-## 5. Summary
+## 5. From one leaf to a community: persistence under warming (SCM)
+
+Everything above is a single isolated leaf. The real question is demographic:
+does the damage feedback change whether a *population* persists? Here we run the
+full size-structured community model (SCM) — a single-species patch to
+equilibrium under a constant climate (the `leaf_temp` driver is the midday air
+temperature) — and read the net reproduction ratio **R0** (a resident persists
+iff R0 ≥ 1) across a warming gradient, TF24t (PM + ATLS) vs a PM-only TF24.
+
+Each SCM run takes ~30 s, so the grid is deliberately small and the chunk is
+cached.
+
+```{r scm-climate, cache=TRUE}
+climate <- atls_scm_climate(seq(24, 30, by = 1))
+lab_type <- c(TF24 = "PM only", TF24t = "PM + ATLS")
+climate$model <- lab_type[climate$type]
+
+ggplot(climate, aes(leaf_temp, R0, colour = model)) +
+  geom_hline(yintercept = 1, linetype = "dashed", colour = "grey50") +
+  geom_line(linewidth = 0.9) + geom_point(size = 2) +
+  annotate("text", x = 24, y = 1.04, label = "persistence (R0 = 1)",
+           hjust = 0, size = 3, colour = "grey40") +
+  scale_colour_manual(values = c("PM only" = "#1b9e77",
+                                 "PM + ATLS" = "#d95f02"), name = NULL) +
+  labs(x = "midday climate temperature (°C)", y = "net reproduction ratio R0",
+       title = "Population persistence collapses as the climate warms",
+       subtitle = "single-species SCM to equilibrium; R0 ≥ 1 required to persist") +
+  theme(legend.position = "top")
+```
+
+Two things stand out. First, persistence collapses steeply between ~26 and 28 °C
+for **both** models — the constant-climate community is fragile, and (as at the
+leaf level) that collapse is driven by the minimal-cut PM overheating the canopy,
+not by ATLS. Second, within the persistence band ATLS is **not** a pure penalty:
+TF24t actually clears R0 = 1 at a slightly *hotter* climate than PM-only, because
+its acclimation raises the photosynthetic optimum (a capacity *gain*) while
+leaves are not yet hot enough for the damage term to bite hard. Damage and
+acclimation are two sides of the same layer; which wins depends on the climate.
+
+## 6. Which thermal strategy persists hottest? (SCM tournament)
+
+Now hold the climate at the warm edge and vary the *strategy* — each a heritable
+single-axis move off the generalist (tolerance = constitutive `tcrit_0` +
+`topt_offset`; repair = higher `k_r1_0`; acclimator = faster acclimation
+kinetics). Higher R0 = more able to persist.
+
+```{r scm-tournament, cache=TRUE}
+tourney <- atls_scm_tournament(c(26, 28))
+tourney$strategy <- factor(tourney$strategy,
+  levels = c("Generalist", "Tolerant", "Repairer", "Acclimator"))
+
+ggplot(tourney, aes(strategy, R0, fill = strategy)) +
+  geom_col() +
+  geom_hline(yintercept = 1, linetype = "dashed", colour = "grey40") +
+  facet_wrap(~ sprintf("climate = %d °C", leaf_temp)) +
+  scale_fill_manual(values = strat_pal, guide = "none") +
+  labs(x = NULL, y = "net reproduction ratio R0",
+       title = "Tolerance persists hottest; repair does not pay here",
+       subtitle = "TF24t residents at the warm edge; dashed = persistence R0 = 1") +
+  theme(axis.text.x = element_text(angle = 20, hjust = 1))
+```
+
+The ranking is consistent across the warm edge: **Tolerant > Acclimator >
+Generalist > Repairer**. Constitutive tolerance wins decisively (at 26 °C it lifts
+R0 from ~1.0 to ~1.8 and is the only strategy still viable at 28 °C); dynamic
+acclimation is a solid second; and **repair actually underperforms the
+generalist** here — its standing maintenance cost (`∝ k_r1_0`, paid even when
+cool) is not repaid at these moderate temperatures. That cost/benefit reversal is
+exactly the kind of trade-off the cost structure (Phase 3) was built to expose.
+
+## 7. Summary
 
 `N(Tleaf)` is the single lever: strategies win carbon by moving *where* it turns
 off (tolerance, acclimation), *how high the floor sits* when hot (repair), or
 *where the leaf actually operates* (avoidance). All four plug into the same
-Lumry–Eyring kinetics and Penman–Monteith energy balance. See
-`notes/atls/gate-atls-vs-pm-evaluation.md` for the whole-plant materiality gate
-(verdict: keep) and the caveats.
+Lumry–Eyring kinetics and Penman–Monteith energy balance. At the community scale
+the same layer sets *where a population can persist* under warming, and — because
+tolerance and acclimation carry benefits while repair and construction carry
+costs — *which strategy* persists hottest is a genuine trade-off, not a given.
+See `notes/atls/gate-atls-vs-pm-evaluation.md` for the whole-plant materiality
+gate (verdict: keep) and the caveats (notably the minimal-cut PM overheating,
+which makes the constant-climate collapse temperatures an upper bound).

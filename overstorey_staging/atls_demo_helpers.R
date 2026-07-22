@@ -160,3 +160,68 @@ atls_solve_strategies <- function(Tenv_seq, strategies = atls_strategies(),
   }
   do.call(rbind, rows)
 }
+
+## --- Community scale (SCM) --------------------------------------------------
+## The leaf sections above are a single isolated leaf. These drive the full
+## size-structured community model: a single-species patch under a *constant*
+## climate (the leaf_temp driver = the midday air temperature; other drivers at
+## their defaults) run to demographic equilibrium, returning community-fitness
+## scalars -- the net reproduction ratio R0 (a resident persists iff R0 >= 1) and
+## lifetime offspring production. SCM runs are ~30 s each, so callers keep the
+## grids small; the .qmd caches its chunks.
+
+## One SCM run. `type` is "TF24t" (PM + ATLS) or "TF24" (a PM-only comparator,
+## with use_energy_balance forced on to match TF24t's forced PM). `mutate` tweaks
+## the resident strategy -- the thermal axes are TF24t *strategy* fields
+## (topt_offset / tcrit_0 / k_r1_0 for the constitutive axes; alpha_opt /
+## alpha_crit for the acclimation kinetics), so an SCM strategy is a heritable
+## trait set, unlike the fixed-A_crit leaf snapshots in atls_strategies().
+atls_scm_fitness <- function(leaf_temp, type = "TF24t", mutate = identity,
+                             lma = 0.0825, birth_rate = 20, PPFD = NULL) {
+  p <- scm_base_parameters(type) |>
+    add_strategies(trait_matrix(lma, "lma"), birth_rate = birth_rate)
+  s <- p$strategies[[1]]
+  if (identical(type, "TF24")) s$pars$use_energy_balance <- 1  # PM-only comparator
+  s <- mutate(s)
+  p$strategies[[1]] <- s
+  env <- Environment(type)
+  env$extrinsic_drivers_set_constant("leaf_temp", leaf_temp)
+  if (!is.null(PPFD)) env$extrinsic_drivers_set_constant("PPFD", PPFD)
+  res <- run_scm(p, env = env, collect = FALSE, refine_schedule = FALSE)
+  data.frame(type = type, leaf_temp = leaf_temp,
+             R0 = res$net_reproduction_ratios,
+             offspring = res$offspring_production)
+}
+
+## Heritable thermal-strategy archetypes for the SCM tournament (each a
+## single-axis move off the generalist; acclimation is a *kinetics* change since
+## it is a dynamic state, not a fixed trait).
+atls_scm_strategies <- function() {
+  list(
+    "Generalist" = identity,
+    "Tolerant"   = function(s) { s$tcrit_0 <- 44; s$topt_offset <- 6; s },
+    "Repairer"   = function(s) { s$k_r1_0 <- 5000; s },
+    "Acclimator" = function(s) { s$alpha_opt <- 0.06; s$alpha_crit <- 0.06; s })
+}
+
+## R0 across a climate gradient for TF24t vs the PM-only TF24 comparator.
+atls_scm_climate <- function(leaf_temp_seq, types = c("TF24", "TF24t")) {
+  rows <- list(); k <- 0L
+  for (ty in types) for (lt in leaf_temp_seq) {
+    k <- k + 1L
+    rows[[k]] <- atls_scm_fitness(lt, type = ty)
+  }
+  do.call(rbind, rows)
+}
+
+## R0 across a climate gradient for every heritable strategy archetype (TF24t).
+atls_scm_tournament <- function(leaf_temp_seq, strategies = atls_scm_strategies()) {
+  rows <- list(); k <- 0L
+  for (nm in names(strategies)) for (lt in leaf_temp_seq) {
+    k <- k + 1L
+    r <- atls_scm_fitness(lt, type = "TF24t", mutate = strategies[[nm]])
+    r$strategy <- nm
+    rows[[k]] <- r
+  }
+  do.call(rbind, rows)
+}

@@ -51,3 +51,26 @@ test_that("ATLS leaf demo helpers run end-to-end (damage, strategies, avoidance)
   expect_lt(good$Tleaf, poor$Tleaf)   # cooler
   expect_gt(good$N, poor$N)           # -> higher N
 })
+
+test_that("ATLS demo SCM helpers run and rank strategies (community scale)", {
+  skip_on_cran()
+  helpers <- test_path("..", "..", "overstorey_staging", "atls_demo_helpers.R")
+  skip_if_not(file.exists(helpers), "overstorey_staging/ not present (built package)")
+  source(helpers, local = TRUE)
+
+  # A single SCM run returns finite, sane community-fitness scalars.
+  f <- atls_scm_fitness(25, type = "TF24t")
+  expect_true(is.finite(f$R0) && f$R0 >= 0)
+  expect_true(is.finite(f$offspring) && f$offspring >= 0)
+  expect_identical(f$type, "TF24t")
+
+  # Strategy tournament at the warm edge: tolerance persists best, and it beats
+  # the generalist (the headline of the SCM section). One climate keeps it cheap.
+  trn <- atls_scm_tournament(26)
+  expect_setequal(trn$strategy,
+                  c("Generalist", "Tolerant", "Repairer", "Acclimator"))
+  expect_true(all(is.finite(trn$R0)))
+  tol <- trn$R0[trn$strategy == "Tolerant"]
+  gen <- trn$R0[trn$strategy == "Generalist"]
+  expect_gt(tol, gen)
+})
