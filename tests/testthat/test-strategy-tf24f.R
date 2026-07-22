@@ -62,7 +62,9 @@ test_that("Defaults", {
     root_b = 3.898245,
     root_psi_crit = 3.898245 * log(1 / 0.05)^(1 / 2.680147),
     rooting_depth_max = 1.5,
-    recruitment_decay = 0)
+    recruitment_decay = 0,
+    use_energy_balance = 0,
+    d = 0.05)
 
   # Top-level strategy fields: the pars sub-object plus infrastructure, and the
   # TF24f-specific acclimation knobs (gain + finite-difference step) (#525).

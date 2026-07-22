@@ -435,6 +435,10 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   leaf.z_soil_mid_ = environment.get_soil_mid_depths();
   leaf.use_precomputed_z_soil_mid_ = true;
 
+  // Per-timestep above-canopy wind for the PM aerodynamic resistance (#523);
+  // read only on the energy-balance path in set_physiology.
+  leaf.wind_speed_ = environment.get_wind_speed();
+
   // Optimise the leaf at a given absorbed radiation: rebuilds physiology and
   // solves the root-collar water potential, leaving the leaf.* outputs
   // (profit_, transpiration_, soil_consumption_, opt_psi_stem_, ...) set. Only
@@ -813,6 +817,11 @@ void TF24_Strategy::prepare_strategy() {
               control.GSS_tol_abs, control.vulnerability_curve_ncontrol,
               control.ci_abs_tol, control.ci_niter, pars.g1_TF24, beta_R_H,
               beta_R_V);
+  // Penman-Monteith leaf energy balance (#523): enable per pars (default off,
+  // backward-compatible) and pass the leaf-dimension trait. Wind speed is a
+  // per-timestep driver, set from the environment before each set_physiology.
+  leaf.use_energy_balance_ = (pars.use_energy_balance != 0.0);
+  leaf.d_ = pars.d;
 }
 
 TF24_Strategy::ptr make_strategy_ptr(TF24_Strategy s) {

@@ -82,6 +82,33 @@ const double gravity_head = 9.8e-3; // MPa / m
 // number of intergration steps
 const double n = 5;
 
+// --- Penman-Monteith leaf energy balance (minimal core; #523) -----------------
+// See notes/penman-monteith/. These back Leaf::leaf_temp_from_E and the es/Delta
+// helpers. Only used on the (default-off) use_energy_balance_ path.
+// latent heat of vaporisation of water, J kg^-1 (fixed at 25 deg C)
+static const double latent_heat_vap = 2.45e6;
+// volumetric heat capacity of air, J m^-3 K^-1
+static const double vol_heat_cap_air = 1200.0;
+// PAR energy conversion: ~4.57 umol photons per J of PAR (shortwave)
+static const double umol_par_per_joule = 4.57;
+// shortwave absorbed ~= 2 * absorbed PAR (PAR ~= 50% of shortwave; doc 3.3)
+static const double sw_abs_per_par = 2.0;
+// fixed net longwave (cooling) offset, W m^-2 (clear-sky approximation; doc 3.3)
+static const double longwave_net_offset = -40.0;
+// fixed aerodynamic resistance fallback, s m^-1 (doc 6/7.4; used when the wind
+// model is unavailable, e.g. a bare Leaf with no wind/d set)
+static const double aerodynamic_resistance_fixed = 50.0;
+// leaf boundary-layer coefficient C_ra, s^0.5 m^-1, in ra = C_ra*sqrt(d/U) (doc 4.1)
+static const double aerodynamic_resistance_coef = 200.0;
+// Physical clamp on the energy-balance leaf temperature (deg C). The linear
+// balance can return absurd temperatures at non-equilibrium operating points an
+// optimiser may probe (a large transpiration driving Tleaf below absolute zero,
+// making the Arrhenius block non-finite). Real leaves operate far inside this
+// range; clamping keeps A(Tleaf) finite so such points get a finite (poor)
+// profit and are simply rejected.
+static const double leaf_temp_min = -40.0;
+static const double leaf_temp_max = 70.0;
+
 class Leaf {
 public:
   //anonymous Leaf function as in canopy.h
@@ -200,6 +227,24 @@ public:
     
 
   double leaf_temp_;
+  // Penman-Monteith leaf energy balance state (#523), only meaningful on the
+  // use_energy_balance_ path. Set once per set_physiology; Tleaf itself is a
+  // per-operating-point quantity computed in set_leaf_states_rates_from_psi_stem.
+  double Tair_;  // air temperature, deg C (reinterprets the leaf_temp driver)
+  double Rn_;    // net radiation at the leaf, W m^-2
+  double ra_;    // aerodynamic (boundary-layer) resistance, s m^-1
+  // Gate for the PM leaf energy balance. Default OFF: today's path runs
+  // (prescribed leaf_temp, single-shot cached Arrhenius). R-settable (#523 full
+  // cut) so TF24 (via pars.use_energy_balance) and the leaf-level demo can
+  // turn PM on; default preserves backward compatibility.
+  bool use_energy_balance_ = false;
+  // Boundary-layer inputs for ra = C_ra*sqrt(d/U0) (doc 4.1). d is a per-strategy
+  // trait (set from pars.d in prepare_strategy); wind_speed_ is the per-timestep
+  // above-canopy driver (set from the environment before set_physiology). Both
+  // R-settable so a bare Leaf can exercise the wind model; if either is unusable
+  // set_physiology falls back to the fixed ra. Only read on the PM path.
+  double d_ = 0.05;          // characteristic leaf dimension, m
+  double wind_speed_ = 2.0;  // above-canopy wind speed U0, m s^-1
   double PPFD_;
   double atm_vpd_;
   double atm_o2_kpa_;
@@ -356,6 +401,24 @@ public:
   
   double arrh_curve(double Ea, double ref_value, double leaf_temp) const;
   double peak_arrh_curve(double Ea, double ref_value, double leaf_temp, double H_d, double d_S) const;
+
+  // --- Penman-Monteith leaf energy balance (minimal core; #523) ---------------
+  // Recompute the temperature-dependent photosynthetic parameters (vcmax_,
+  // jmax_, gamma_, ko_, kc_, R_d_, km_, electron_transport_) at a given leaf
+  // temperature. Extracted verbatim from the inline block in set_physiology so
+  // the non-PM path is bit-identical; on the PM path it is called per
+  // operating point with the energy-balance Tleaf (defeating the photo_temp
+  // cache, as intended).
+  void update_temperature_dependent_params(double leaf_temp);
+  // Saturation vapour pressure es(T) (kPa) and its slope Delta(T) (kPa K^-1),
+  // Tetens formula. Not wired into the minimal-cut solve (prescribed atm_vpd is
+  // kept); provided and unit-tested for the leaf-to-air VPD in the full cut.
+  double saturation_vapour_pressure(double temp) const;
+  double saturation_vapour_pressure_slope(double temp) const;
+  // Explicit leaf energy balance: Tleaf = Tair + (Rn - lambda*E) * ra / (rho*cp).
+  // E is the hydraulically-pinned transpiration (kg H2O m^-2 s^-1); no PM
+  // inversion and no A->E feedback, so this is a single algebraic forward pass.
+  double leaf_temp_from_E(double E) const;
 
   // transpiration functions
 

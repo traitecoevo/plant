@@ -1289,6 +1289,8 @@ template <> inline SEXP wrap(const plant::TF24_Pars& x) {
   ret["root_psi_crit"] = Rcpp::wrap(x.root_psi_crit);
   ret["rooting_depth_max"] = Rcpp::wrap(x.rooting_depth_max);
   ret["recruitment_decay"] = Rcpp::wrap(x.recruitment_decay);
+  ret["use_energy_balance"] = Rcpp::wrap(x.use_energy_balance);
+  ret["d"] = Rcpp::wrap(x.d);
   ret.attr("class") = "TF24_Pars";
   return ret;
 }
@@ -1419,6 +1421,10 @@ template <> inline plant::TF24_Pars as(SEXP x) {
   ret.rooting_depth_max = Rcpp::as<double >(xl["rooting_depth_max"]);
   // ret.recruitment_decay = Rcpp::as<decltype(retrecruitment_decay) >(xl["recruitment_decay"]);
   ret.recruitment_decay = Rcpp::as<double >(xl["recruitment_decay"]);
+  // ret.use_energy_balance = Rcpp::as<decltype(retuse_energy_balance) >(xl["use_energy_balance"]);
+  ret.use_energy_balance = Rcpp::as<double >(xl["use_energy_balance"]);
+  // ret.d = Rcpp::as<decltype(retd) >(xl["d"]);
+  ret.d = Rcpp::as<double >(xl["d"]);
   return ret;
 }
 template <> inline SEXP wrap(const plant::TF24_Strategy& x) {

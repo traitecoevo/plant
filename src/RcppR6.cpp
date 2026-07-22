@@ -499,6 +499,60 @@ void Leaf__atm_kpa___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) 
 }
 
 // [[Rcpp::export]]
+bool Leaf__use_energy_balance___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->use_energy_balance_;
+}
+// [[Rcpp::export]]
+void Leaf__use_energy_balance___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, bool value) {
+  obj_->use_energy_balance_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__d___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->d_;
+}
+// [[Rcpp::export]]
+void Leaf__d___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->d_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__wind_speed___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->wind_speed_;
+}
+// [[Rcpp::export]]
+void Leaf__wind_speed___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->wind_speed_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__Tair___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->Tair_;
+}
+// [[Rcpp::export]]
+void Leaf__Tair___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->Tair_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__Rn___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->Rn_;
+}
+// [[Rcpp::export]]
+void Leaf__Rn___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->Rn_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__ra___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->ra_;
+}
+// [[Rcpp::export]]
+void Leaf__ra___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->ra_ = value;
+}
+
+// [[Rcpp::export]]
 double Leaf__hydraulic_cost___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   return obj_->hydraulic_cost_;
 }

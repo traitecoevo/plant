@@ -112,6 +112,12 @@ struct TF24_Pars {
   double rooting_depth_max = 1.5;
   // Germination
   double recruitment_decay = 0.0;
+  // Penman-Monteith leaf energy balance (#523). use_energy_balance gates PM
+  // (0 = off, today's Tleaf=Tair behaviour; != 0 = on); default off preserves
+  // backward compatibility. d is the characteristic leaf dimension (m) for the
+  // aerodynamic resistance ra = C_ra*sqrt(d/U0); inert while PM is off.
+  double use_energy_balance = 0.0;
+  double d = 0.05;
 };
 
 class TF24_Strategy: public Strategy<TF24_Environment> {
