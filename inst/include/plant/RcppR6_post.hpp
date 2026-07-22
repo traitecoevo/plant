@@ -1703,6 +1703,13 @@ template <> inline SEXP wrap(const plant::TF24t_Strategy& x) {
   ret["beta_crit"] = Rcpp::wrap(x.beta_crit);
   ret["t_accl_crit"] = Rcpp::wrap(x.t_accl_crit);
   ret["softplus_s"] = Rcpp::wrap(x.softplus_s);
+  ret["c_acclim_maint"] = Rcpp::wrap(x.c_acclim_maint);
+  ret["c_repair_maint"] = Rcpp::wrap(x.c_repair_maint);
+  ret["c_repair_flux"] = Rcpp::wrap(x.c_repair_flux);
+  ret["c_build_topt"] = Rcpp::wrap(x.c_build_topt);
+  ret["c_build_tcrit"] = Rcpp::wrap(x.c_build_tcrit);
+  ret["c_accl_induct"] = Rcpp::wrap(x.c_accl_induct);
+  ret["induct_eps"] = Rcpp::wrap(x.induct_eps);
   ret.attr("class") = "TF24t_Strategy";
   return ret;
 }
@@ -1761,6 +1768,20 @@ template <> inline plant::TF24t_Strategy as(SEXP x) {
   ret.t_accl_crit = Rcpp::as<double >(xl["t_accl_crit"]);
   // ret.softplus_s = Rcpp::as<decltype(retsoftplus_s) >(xl["softplus_s"]);
   ret.softplus_s = Rcpp::as<double >(xl["softplus_s"]);
+  // ret.c_acclim_maint = Rcpp::as<decltype(retc_acclim_maint) >(xl["c_acclim_maint"]);
+  ret.c_acclim_maint = Rcpp::as<double >(xl["c_acclim_maint"]);
+  // ret.c_repair_maint = Rcpp::as<decltype(retc_repair_maint) >(xl["c_repair_maint"]);
+  ret.c_repair_maint = Rcpp::as<double >(xl["c_repair_maint"]);
+  // ret.c_repair_flux = Rcpp::as<decltype(retc_repair_flux) >(xl["c_repair_flux"]);
+  ret.c_repair_flux = Rcpp::as<double >(xl["c_repair_flux"]);
+  // ret.c_build_topt = Rcpp::as<decltype(retc_build_topt) >(xl["c_build_topt"]);
+  ret.c_build_topt = Rcpp::as<double >(xl["c_build_topt"]);
+  // ret.c_build_tcrit = Rcpp::as<decltype(retc_build_tcrit) >(xl["c_build_tcrit"]);
+  ret.c_build_tcrit = Rcpp::as<double >(xl["c_build_tcrit"]);
+  // ret.c_accl_induct = Rcpp::as<decltype(retc_accl_induct) >(xl["c_accl_induct"]);
+  ret.c_accl_induct = Rcpp::as<double >(xl["c_accl_induct"]);
+  // ret.induct_eps = Rcpp::as<decltype(retinduct_eps) >(xl["induct_eps"]);
+  ret.induct_eps = Rcpp::as<double >(xl["induct_eps"]);
   return ret;
 }
 }

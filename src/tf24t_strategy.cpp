@@ -50,6 +50,60 @@ void TF24t_Strategy::prepare_strategy() {
   leaf.dTcrit_max_ = dTcrit_max;
   leaf.dTopt_max_ = dTopt_max;
   leaf.K_A_ = K_A;
+  // Leaf-side thermal-cost coefficients (Phase 3): acclimation maintenance,
+  // repair standing maintenance, repair activity. Added to leaf.R_d_.
+  leaf.c_acclim_maint_ = c_acclim_maint;
+  leaf.c_repair_maint_ = c_repair_maint;
+  leaf.c_repair_flux_  = c_repair_flux;
+  // Start the leaf's acclimation inputs at 0 (compute_rates overwrites them with
+  // the live states each step; this only defines what establishment_probability
+  // reads before any rates run).
+  leaf.A_opt_ = 0.0;
+  leaf.A_crit_ = 0.0;
+}
+
+// Smooth (C-infinity) positive part 0.5*(x + sqrt(x^2 + eps^2)) -> max(0,x),
+// matching the form TF24 uses for the positive part of net production. Used for
+// the induction cost so the ODE-integrated carbon balance is smooth in the
+// acclimation build rate.
+namespace {
+double positive_part(double x, double eps) {
+  return 0.5 * (x + std::sqrt(x * x + eps * eps));
+}
+}
+
+// Whole-plant carbon balance = base TF24 net production, minus the thermal costs
+// that are not leaf-local respiration (those already sit in leaf.R_d_):
+//  - tolerance construction cost: a one-off build cost per leaf, amortised
+//    through leaf turnover, charged for constitutive tolerance bought above the
+//    intrinsic optimum (topt_offset > 0, tcrit_0 > tcrit_ref).
+//  - acclimation induction cost: proportional to the smoothed positive build
+//    rate of each acclimation state (paying to synthesise the proteins).
+// leaf.A_opt_/A_crit_ hold the current acclimation states (compute_rates set
+// them before the inherited compute_rates called this); at establishment they
+// read 0, a negligible build-from-zero snapshot at default temperatures.
+double TF24t_Strategy::net_mass_production_dt(const TF24_Environment& environment,
+                                             double height, double area_leaf_,
+                                             double height_inverse) {
+  const double base =
+    TF24_Strategy::net_mass_production_dt(environment, height, area_leaf_,
+                                          height_inverse);
+
+  const double turnover_leaf_ = turnover_leaf(mass_leaf(area_leaf_));
+  const double construction =
+    (c_build_topt * std::max(0.0, topt_offset) +
+     c_build_tcrit * std::max(0.0, tcrit_0 - tcrit_ref)) * turnover_leaf_;
+
+  const double T = environment.get_leaf_temp();
+  const double dA_opt =
+    alpha_opt * Leaf::softplus_(T - t_accl_opt, softplus_s) - beta_opt * leaf.A_opt_;
+  const double dA_crit =
+    alpha_crit * Leaf::softplus_(T - t_accl_crit, softplus_s) - beta_crit * leaf.A_crit_;
+  const double induction =
+    c_accl_induct * (positive_part(dA_opt, induct_eps) +
+                     positive_part(dA_crit, induct_eps));
+
+  return base - construction - induction;
 }
 
 // Feed the current acclimation states into the leaf (so this step's damage

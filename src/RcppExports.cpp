@@ -1686,6 +1686,72 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// Leaf__c_acclim_maint___get
+double Leaf__c_acclim_maint___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__c_acclim_maint___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__c_acclim_maint___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__c_acclim_maint___set
+void Leaf__c_acclim_maint___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__c_acclim_maint___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__c_acclim_maint___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__c_repair_maint___get
+double Leaf__c_repair_maint___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__c_repair_maint___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__c_repair_maint___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__c_repair_maint___set
+void Leaf__c_repair_maint___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__c_repair_maint___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__c_repair_maint___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__c_repair_flux___get
+double Leaf__c_repair_flux___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__c_repair_flux___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__c_repair_flux___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__c_repair_flux___set
+void Leaf__c_repair_flux___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__c_repair_flux___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__c_repair_flux___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
 // Leaf__N___get
 double Leaf__N___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
 RcppExport SEXP _plant_Leaf__N___get(SEXP obj_SEXP) {
@@ -14720,6 +14786,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__A_opt___set", (DL_FUNC) &_plant_Leaf__A_opt___set, 2},
     {"_plant_Leaf__A_crit___get", (DL_FUNC) &_plant_Leaf__A_crit___get, 1},
     {"_plant_Leaf__A_crit___set", (DL_FUNC) &_plant_Leaf__A_crit___set, 2},
+    {"_plant_Leaf__c_acclim_maint___get", (DL_FUNC) &_plant_Leaf__c_acclim_maint___get, 1},
+    {"_plant_Leaf__c_acclim_maint___set", (DL_FUNC) &_plant_Leaf__c_acclim_maint___set, 2},
+    {"_plant_Leaf__c_repair_maint___get", (DL_FUNC) &_plant_Leaf__c_repair_maint___get, 1},
+    {"_plant_Leaf__c_repair_maint___set", (DL_FUNC) &_plant_Leaf__c_repair_maint___set, 2},
+    {"_plant_Leaf__c_repair_flux___get", (DL_FUNC) &_plant_Leaf__c_repair_flux___get, 1},
+    {"_plant_Leaf__c_repair_flux___set", (DL_FUNC) &_plant_Leaf__c_repair_flux___set, 2},
     {"_plant_Leaf__N___get", (DL_FUNC) &_plant_Leaf__N___get, 1},
     {"_plant_Leaf__N___set", (DL_FUNC) &_plant_Leaf__N___set, 2},
     {"_plant_Leaf__Tair___get", (DL_FUNC) &_plant_Leaf__Tair___get, 1},

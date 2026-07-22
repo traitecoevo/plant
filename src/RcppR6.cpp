@@ -643,6 +643,33 @@ void Leaf__A_crit___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
 }
 
 // [[Rcpp::export]]
+double Leaf__c_acclim_maint___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->c_acclim_maint_;
+}
+// [[Rcpp::export]]
+void Leaf__c_acclim_maint___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->c_acclim_maint_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__c_repair_maint___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->c_repair_maint_;
+}
+// [[Rcpp::export]]
+void Leaf__c_repair_maint___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->c_repair_maint_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__c_repair_flux___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->c_repair_flux_;
+}
+// [[Rcpp::export]]
+void Leaf__c_repair_flux___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->c_repair_flux_ = value;
+}
+
+// [[Rcpp::export]]
 double Leaf__N___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   return obj_->N_;
 }

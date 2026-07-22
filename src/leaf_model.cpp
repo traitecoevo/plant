@@ -1142,6 +1142,22 @@ void Leaf::update_temperature_dependent_params(double leaf_temp) {
   ko_ = arrh_curve(ko_ha, ko_25, leaf_temp);
   kc_ = arrh_curve(kc_ha, kc_25, leaf_temp);
   R_d_ = vcmax_*0.015;
+  if (use_thermal_damage_) {
+    // Thermal maintenance/activity respiration (ATLS costs; #566), added to the
+    // dark-respiration term (umol CO2 m^-2 s^-1). Coefficients default 0, so a
+    // bare Leaf pays nothing; TF24t sets them. Split follows the plan:
+    //  - acclimation maintenance ~ held acclimation load (A_opt + A_crit)
+    //  - repair standing maintenance ~ repair *capacity* k_r1_0 (paid even cold)
+    //  - repair activity ~ realized refold flux k_r1 * (1 - N)  (D ~ 1 - N at
+    //    the quasi-steady N<->D balance). N_ was set just above.
+    const double S_repair = logistic_(-m_rep_ * (leaf_temp - t_rep_cut_));
+    const double k_r1 = k_r1_0_ * S_repair;
+    const double repair_flux = k_r1 * (1.0 - N_);
+    const double acclim_load = std::max(A_opt_, 0.0) + std::max(A_crit_, 0.0);
+    R_d_ += c_acclim_maint_ * acclim_load
+          + c_repair_maint_ * k_r1_0_
+          + c_repair_flux_  * repair_flux;
+  }
   km_ = (kc_*umol_per_mol_to_Pa)*(1 + (atm_o2_kpa_*kPa_to_Pa)/(ko_*umol_per_mol_to_Pa));
   electron_transport_ = electron_transport();
 }

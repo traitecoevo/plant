@@ -299,15 +299,50 @@ note above still applies before landing).
 - Regression: 437 shared checks pass (leaf, leaf-thermal, tf24, environment,
   model-version, tf24f).
 
-**Phase 3 — cost structure — NEXT. Decisions locked with user:**
-- **Tolerance construction cost → via the leaf mass / turnover path** in TF24
-  `net_mass_production` (a true one-off build cost per leaf, not an R_d_ term).
-- **Cost coefficients ship with modest nonzero, documented defaults** (real
-  trade-off out of the box; R-settable; marked as calibration targets).
-- Acclimation → maintenance respiration on `R_d_` ∝ `(A_opt+A_crit)` + induction
-  cost ∝ positive `dA/dt`. Repair → standing maintenance ∝ `k_r1_0` + activity
-  cost ∝ realized repair flux `k_r1·(1−N)`. Add coefficients as TF24t strategy
-  scalars copied into the leaf (or applied in the strategy for construction).
+**Phase 3 — cost structure — IN PROGRESS. Locked design + as-built map:**
+
+Two homes for the costs, mirroring the physics:
+- **Leaf-level respiration (`R_d_`)** in `update_temperature_dependent_params`,
+  gated by `use_thermal_damage_`, coefficients default 0 (a bare Leaf pays
+  nothing — Phase 1 leaf tests untouched), set nonzero by TF24t:
+  - acclimation **maintenance** ∝ held load `(A_opt+A_crit)` → `c_acclim_maint_`
+  - repair **standing maintenance** ∝ repair *capacity* `k_r1_0` (paid even when
+    cold) → `c_repair_maint_`
+  - repair **activity** ∝ realized refold flux `k_r1·(1−N)` (D≈1−N) →
+    `c_repair_flux_`
+- **Whole-plant carbon balance** via a virtual override
+  `TF24t_Strategy::net_mass_production_dt` (base `net_mass_production_dt` is
+  already `virtual`, dispatches correctly even when the base `compute_rates`
+  calls it — so no base-class edit and base TF24 stays bit-identical):
+  - tolerance **construction cost** — a one-off build cost per leaf amortised
+    through leaf turnover: `(c_build_topt·max(0,topt_offset) +
+    c_build_tcrit·max(0,tcrit_0−38))·turnover_leaf(mass_leaf)`. Applies at
+    establishment too (establishment_probability shares the virtual). Uses the
+    ATLS baseline `T_crit_0=38` as the intrinsic reference.
+  - acclimation **induction cost** ∝ smoothed positive build rate of each
+    acclimation state: `c_accl_induct·(pos(dA_opt/dt)+pos(dA_crit/dt))`, with
+    `pos(x)=½(x+√(x²+ε²))` (the same C∞ positive-part used for net production).
+    Read from `leaf.A_opt_`/`leaf.A_crit_` + env temp — which `compute_rates`
+    sets before base `compute_rates` calls the override, so they are the current
+    states. (At establishment the leaf states read 0, giving a negligible
+    build-from-zero snapshot cost at default temps — documented, not fixed.)
+
+- **Cost coefficients ship modest nonzero, documented, R-settable, flagged as
+  CALIBRATION TARGETS** (real trade-off out of the box). Defaults chosen so a
+  *default* TF24t (no extra tolerance offset) pays no construction cost — you
+  only pay for tolerance you buy — while acclimation/repair costs bite whenever
+  those axes are engaged.
+
+- **Single-plant check (user request):** confirm an individual TF24t plant runs
+  through the Individual/OdeRunner path (build `Individual("TF24t", env)`, step
+  the `OdeRunner`), grows, stays finite, and that raising the cost coefficients
+  measurably reduces growth (costs debit carbon). Added as a test in
+  `test-strategy-tf24t.R`.
+
+Units note (flagged, not a Phase-3 fix): acclimation kinetics are labelled day⁻¹
+but integrated on the SCM's yearly clock, so `dA/dt` magnitude — and hence the
+induction-cost scale — is uncertain; the calibration-target coefficients absorb
+this until the timescale is reconciled (Phase 2 follow-up).
 
 **Phase 4 — midday evaluation wiring:** make `N` evaluate at the midday operating
 point (add a midday `Tair` driver / use the midday operating point), rather than

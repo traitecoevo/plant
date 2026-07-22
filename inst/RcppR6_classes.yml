@@ -105,6 +105,9 @@ Leaf:
     K_A_: {type: double, access: field}
     A_opt_: {type: double, access: field}
     A_crit_: {type: double, access: field}
+    c_acclim_maint_: {type: double, access: field}
+    c_repair_maint_: {type: double, access: field}
+    c_repair_flux_: {type: double, access: field}
     N_: {type: double, access: field}
     Tair_: {type: double, access: field}
     Rn_: {type: double, access: field}
@@ -1467,3 +1470,11 @@ TF24t_Strategy:
     - beta_crit: double
     - t_accl_crit: double
     - softplus_s: double
+    # Thermal-cost coefficients (Phase 3; calibration targets):
+    - c_acclim_maint: double
+    - c_repair_maint: double
+    - c_repair_flux: double
+    - c_build_topt: double
+    - c_build_tcrit: double
+    - c_accl_induct: double
+    - induct_eps: double

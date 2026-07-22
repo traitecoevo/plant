@@ -57,6 +57,21 @@ public:
   // the leaf, then set the two acclimation-state rates.
   void compute_rates(const TF24_Environment& environment, Internals& vars);
 
+  // Whole-plant carbon balance with the thermal costs the leaf R_d_ cannot
+  // carry (Phase 3, #566): the tolerance *construction* cost (a one-off build
+  // cost per leaf, amortised through leaf turnover) and the acclimation
+  // *induction* cost (proportional to the smoothed positive build rate of the
+  // acclimation states). Base net_mass_production_dt is virtual, so this
+  // override is reached even from the inherited compute_rates and from
+  // establishment_probability. The leaf maintenance/activity costs live in
+  // Leaf::R_d_ and flow through leaf.profit_, so they are NOT re-applied here.
+  // The using-declaration keeps the base's (env, Internals&) convenience
+  // overload visible (this 4-arg declaration would otherwise hide it).
+  using TF24_Strategy::net_mass_production_dt;
+  double net_mass_production_dt(const TF24_Environment& environment,
+                                double height, double area_leaf_,
+                                double height_inverse) override;
+
   // Seed the acclimation states at their environmental equilibrium (no birth
   // transient), after seeding the shared TF24 states.
   void set_initial_states(const TF24_Environment& environment, Internals& vars);
@@ -83,6 +98,22 @@ public:
   double beta_crit = 0.01;    // decay rate of the T_crit acclimation state, day^-1
   double t_accl_crit = 30.0;  // forcing threshold for T_crit acclimation, deg C
   double softplus_s = 1.0;    // softplus sharpness for the acclimation forcing
+
+  // --- Thermal-cost coefficients (Phase 3, #566) -----------------------------
+  // Ship modest nonzero so the trade-offs bite out of the box; R-settable;
+  // CALIBRATION TARGETS, not measured values. Leaf-side coefficients are copied
+  // into the leaf in prepare_strategy; the construction/induction coefficients
+  // are used directly in net_mass_production_dt.
+  double c_acclim_maint = 0.02;  // -> leaf.c_acclim_maint_ (R_d_, per unit A)
+  double c_repair_maint = 1e-5;  // -> leaf.c_repair_maint_ (R_d_, per day^-1 of k_r1_0)
+  double c_repair_flux  = 1e-4;  // -> leaf.c_repair_flux_  (R_d_, per day^-1 refold flux)
+  double c_build_topt   = 0.02;  // construction premium on leaf turnover, per deg C T_opt offset
+  double c_build_tcrit  = 0.02;  // construction premium on leaf turnover, per deg C T_crit raise
+  double c_accl_induct  = 0.01;  // induction cost, biomass per unit positive dA/dt
+  double induct_eps     = 1e-4;  // smoothing of the positive-part of dA/dt (C-infinity)
+  // Intrinsic (unbuilt) critical temperature: construction cost is charged only
+  // for raising tcrit_0 above this ATLS baseline.
+  static constexpr double tcrit_ref = 38.0;
 
   // Cached slots for the appended states, resolved in refresh_indices().
   int state_idx_acclim_topt = -1;

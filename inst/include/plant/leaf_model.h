@@ -268,6 +268,13 @@ public:
   double K_A_ = 1.0;          // half-saturation of the acclimation response
   double A_opt_ = 0.0;        // T_opt acclimation state
   double A_crit_ = 0.0;       // T_crit acclimation state
+  // Thermal-cost coefficients (Phase 3, #566), added to the dark respiration
+  // R_d_ (umol CO2 m^-2 s^-1) on the use_thermal_damage_ path. Default 0 so a
+  // bare Leaf (and every Phase 1 leaf test) pays nothing; TF24t copies its
+  // nonzero, calibration-target defaults in here in prepare_strategy.
+  double c_acclim_maint_ = 0.0;  // acclimation maintenance, per unit (A_opt+A_crit)
+  double c_repair_maint_ = 0.0;  // repair standing maintenance, per day^-1 of k_r1_0
+  double c_repair_flux_  = 0.0;  // repair activity, per day^-1 of realized refold flux
   // Output: functional (undamaged) fraction N, the jmax multiplier, in (0,1].
   double N_ = 1.0;
   double PPFD_;

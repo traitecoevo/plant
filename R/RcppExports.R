@@ -585,6 +585,30 @@ Leaf__A_crit___set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__A_crit___set', PACKAGE = 'plant', obj_, value))
 }
 
+Leaf__c_acclim_maint___get <- function(obj_) {
+    .Call('_plant_Leaf__c_acclim_maint___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__c_acclim_maint___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__c_acclim_maint___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__c_repair_maint___get <- function(obj_) {
+    .Call('_plant_Leaf__c_repair_maint___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__c_repair_maint___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__c_repair_maint___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__c_repair_flux___get <- function(obj_) {
+    .Call('_plant_Leaf__c_repair_flux___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__c_repair_flux___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__c_repair_flux___set', PACKAGE = 'plant', obj_, value))
+}
+
 Leaf__N___get <- function(obj_) {
     .Call('_plant_Leaf__N___get', PACKAGE = 'plant', obj_)
 }

@@ -78,3 +78,33 @@ test_that("outlandish traits and environment still give finite output", {
   set_phys(l, 99)
   expect_true(is.finite(l$jmax_) && is.finite(l$N_) && is.finite(l$electron_transport_))
 })
+
+# Phase 3: the thermal maintenance/activity respiration costs added to R_d_.
+# Coefficients default 0, so a bare Leaf pays nothing (R_d_ = vcmax_*0.015);
+# TF24t sets them. Each term maps to one axis of the plan's cost table.
+test_that("thermal maintenance/activity costs raise R_d_ (and default to inert)", {
+  # Default coefficients (0) -> R_d_ is exactly the base dark respiration.
+  base <- mk_leaf(); base$use_thermal_damage_ <- TRUE; set_phys(base, 30)
+  expect_equal(base$R_d_, base$vcmax_ * 0.015, tolerance = 1e-9)
+
+  # Acclimation maintenance ~ held load (A_opt + A_crit).
+  acc <- mk_leaf(); acc$use_thermal_damage_ <- TRUE
+  acc$A_opt_ <- 1; acc$A_crit_ <- 2; acc$c_acclim_maint_ <- 0.1
+  set_phys(acc, 30)  # moderate: no damage/repair activity, isolate maintenance
+  expect_equal(acc$R_d_ - acc$vcmax_ * 0.015, 0.1 * (1 + 2), tolerance = 1e-9)
+
+  # Repair standing maintenance ~ capacity k_r1_0, paid even when cold.
+  rm <- mk_leaf(); rm$use_thermal_damage_ <- TRUE
+  rm$c_repair_maint_ <- 1e-4
+  set_phys(rm, 10)
+  expect_equal(rm$R_d_ - rm$vcmax_ * 0.015, 1e-4 * rm$k_r1_0_, tolerance = 1e-9)
+
+  # Repair activity ~ realized refold flux k_r1*(1-N), only when hot/damaged.
+  ra <- mk_leaf(); ra$use_thermal_damage_ <- TRUE
+  ra$c_repair_flux_ <- 1e-3
+  set_phys(ra, 45)
+  Sr <- 1 / (1 + exp(-(-ra$m_rep_) * (45 - ra$t_rep_cut_)))
+  k_r1 <- ra$k_r1_0_ * Sr
+  expect_equal(ra$R_d_ - ra$vcmax_ * 0.015, 1e-3 * k_r1 * (1 - ra$N_), tolerance = 1e-9)
+  expect_gt(ra$R_d_, ra$vcmax_ * 0.015)  # activity cost is genuinely nonzero when hot
+})
