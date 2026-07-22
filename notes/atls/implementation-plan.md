@@ -299,7 +299,7 @@ note above still applies before landing).
 - Regression: 437 shared checks pass (leaf, leaf-thermal, tf24, environment,
   model-version, tf24f).
 
-**Phase 3 — cost structure — IN PROGRESS. Locked design + as-built map:**
+**Phase 3 — cost structure — DONE, committed `5d88700b`. As-built map:**
 
 Two homes for the costs, mirroring the physics:
 - **Leaf-level respiration (`R_d_`)** in `update_temperature_dependent_params`,
@@ -344,17 +344,48 @@ but integrated on the SCM's yearly clock, so `dA/dt` magnitude — and hence the
 induction-cost scale — is uncertain; the calibration-target coefficients absorb
 this until the timescale is reconciled (Phase 2 follow-up).
 
-**Phase 4 — midday evaluation wiring:** make `N` evaluate at the midday operating
-point (add a midday `Tair` driver / use the midday operating point), rather than
-whatever `leaf_temp`/PM `Tleaf` is currently supplied.
+**Phase 4 — midday evaluation wiring — DONE.** As-built: `TF24t_Strategy::`
+`prepare_strategy` now **forces `leaf.use_energy_balance_ = true`** (unconditional,
+like `use_thermal_damage_`), regardless of `pars.use_energy_balance`. That is the
+whole wiring: the damage factor `N` is a single quasi-steady evaluation at the
+midday **operating-point** `Tleaf = f(E)`, which only exists on the PM path
+(`set_leaf_states_rates_from_psi_stem` recomputes the temp params — and `N` — per
+candidate psi; the real SCM `find_root_collar_psi` re-evaluates once at the
+optimum, so the stored `N_`/`assim_colimited_` reflect the operating point). No
+new "midday driver" was needed — the existing `leaf_temp` driver already
+represents peak/midday conditions (plan §Environment). Avoidance is now
+self-selecting: a cooler (more-transpiring) candidate raises `N`, raises A, and
+the profit optimiser values it. Tests: leaf-level avoidance (N rises with
+transpiration on the PM path) in `test-leaf-thermal.R`; strategy-level (a hot
+midday driver cuts net production via the damage feedback, PM confirmed forced on)
+in `test-strategy-tf24t.R`.
 
-**Phase 5 — leftover:** add `TF24t` to the `test-model-version.R` `models` vector
-+ accept the new `_snaps/model-version.md` entry (registration + R interface are
-already done via the scaffolder).
+**Phase 5 — model-version snapshot — DONE.** `TF24t` added to the
+`test-model-version.R` `models` vector; `model_id = "TF24t@v3.1"` (compound
+version tracks TF24 v3 + `thermal_revision = 1`); added a TF24t compound-version
+assertion mirroring TF24f's; blessed the new `_snaps/model-version.md` entry.
+Note (as with TF24f): the snapshot captures only the shared `pars`/`control`
+surface, so the TF24t top-level thermal knobs are guarded by the
+`scientific_version` bump discipline, not the drift snapshot.
 
-**Verification gate (#566):** does the damage feedback materially change annual
-carbon gain / competitive outcome vs PM-only under representative Australian
-heatwaves (mirror the #523 step-5 factorial).
+**Verification gate (#566) — DONE, verdict KEEP.** Script
+`notes/atls/gate_atls_vs_pm.R`; write-up `notes/atls/gate-atls-vs-pm-evaluation.md`
+(committed data `gate_atls_vs_pm_{A,B}.csv`). Four measurements separating the
+mechanism from the minimal-cut-PM overheating and from the TF24t costs:
+(A) clean prescribed-`Tleaf` sweep — ΔA up to **−46 %** in the 38–44 °C damage
+band, inert (<1 %) below ~34 °C; (B) PM operating point — the minimal-cut PM
+overheats the leaf 5–22 °C above air, so damage engages at moderate air temps
+(−52 % A at `Tair=32`, leaf at 42 °C); (C) whole-plant net production —
+**damage-only** TF24t (costs zeroed) differs from TF24-PM by −5…−21 % at
+`Tair` 32–42 °C, and the full-cost arm barely moves it, so the signal is the
+`jmax·N` feedback not the costs; (D) `A_crit` acclimation recovers N 0.44→0.74 at
+42 °C. KEEP: material, localised where predicted, acclimation-buffered.
+Caveats (in the write-up): isolated leaf / fixed-size plant; entangled with the
+PM leaf-overheating bias (re-measure once PM gains leaf-to-air VPD); a full SCM
+competitive-outcome run is the next evaluation.
+
+**Full regression:** 2436 pass / 0 fail (4 expected skips) after `make rebuild`;
+base TF24 and TF24+PM remain bit-identical.
 
 **Build/test loop:** `make rebuild` then, per-file,
 `Rscript -e 'pkgload::load_all(".", compile=FALSE); testthat::test_file("tests/testthat/<f>")'`.
