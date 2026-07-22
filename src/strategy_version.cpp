@@ -21,5 +21,8 @@ std::string strategy_scientific_version(std::string type) {
   if (type == "TF24f")
     return std::to_string(plant::TF24_Strategy::scientific_version) + "." +
            std::to_string(plant::TF24f_Strategy::approximation_revision);
+  if (type == "TF24t")
+    return std::to_string(plant::TF24_Strategy::scientific_version) + "." +
+           std::to_string(plant::TF24t_Strategy::thermal_revision);
   Rcpp::stop("Unknown type " + type);
 }

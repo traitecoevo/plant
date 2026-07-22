@@ -265,6 +265,7 @@ void Leaf::set_physiology(double area_leaf, const std::vector<double>& mass_root
    // the Tair baseline (used for assim_max_ / feasibility) and let the solve
    // override it.
    if (!use_energy_balance_ &&
+       !use_thermal_damage_ &&
        photo_temp_cached_ &&
        leaf_temp_ == photo_temp_cache_leaf_temp_ &&
        atm_o2_kpa_ == photo_temp_cache_atm_o2_kpa_) {

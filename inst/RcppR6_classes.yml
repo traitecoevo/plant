@@ -233,6 +233,7 @@ OdeRunner:
     concrete:
       - ["FF16": "plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment>"]
       - ["TF24": "plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment>"]
+      - ["TF24t": "plant::tools::IndividualRunner<plant::TF24t_Strategy, plant::TF24_Environment>"]
       - ["TF24f": "plant::tools::IndividualRunner<plant::TF24f_Strategy, plant::TF24_Environment>"]
       - ["K93": "plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment>"]
   constructor:
@@ -411,6 +412,7 @@ Individual:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
+      - ["TF24t": "plant::TF24t_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["TF24f": "plant::TF24f_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -473,6 +475,7 @@ IndividualRunner:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
+      - ["TF24t": "plant::TF24t_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["TF24f": "plant::TF24f_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -527,6 +530,7 @@ Parameters:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
+      - ["TF24t": "plant::TF24t_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["TF24f": "plant::TF24f_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   validator:
@@ -555,6 +559,7 @@ Node:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
+      - ["TF24t": "plant::TF24t_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["TF24f": "plant::TF24f_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -591,6 +596,7 @@ Species:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
+      - ["TF24t": "plant::TF24t_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["TF24f": "plant::TF24f_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -639,6 +645,7 @@ Patch:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
+      - ["TF24t": "plant::TF24t_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["TF24f": "plant::TF24f_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -711,6 +718,7 @@ SCM:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
+      - ["TF24t": "plant::TF24t_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["TF24f": "plant::TF24f_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -792,6 +800,7 @@ StochasticSpecies:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
+      - ["TF24t": "plant::TF24t_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["TF24f": "plant::TF24f_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -837,6 +846,7 @@ StochasticPatch:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
+      - ["TF24t": "plant::TF24t_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["TF24f": "plant::TF24f_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -906,6 +916,7 @@ StochasticPatchRunner:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["TF24": "plant::TF24_Strategy", "TF24_Env": "plant::TF24_Environment"]
+      - ["TF24t": "plant::TF24t_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["TF24f": "plant::TF24f_Strategy", "TF24_Env": "plant::TF24_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -1420,3 +1431,39 @@ TF24f_Strategy:
     - k_acclim: double
     - psi_fd_step: double
     - use_ad_gradient: bool
+
+
+TF24t_Strategy:
+  name_cpp: "plant::TF24t_Strategy"
+  roxygen: |
+    Strategy parameters that tune various aspects of the biological model.
+    @title Strategy parameters
+    @param ...,values Values to initialise the struct with (either as
+    variadic arguments, or as a list, but not both).
+    @export
+  list:
+    - pars: "plant::TF24_Pars"
+    - control: "plant::Control"
+    - collect_all_auxiliary: bool
+    - birth_rate_x: std::vector<double>
+    - birth_rate_y: std::vector<double>
+    - is_variable_birth_rate: bool
+    # Thermal-damage leaf traits (copied into the Leaf in prepare_strategy):
+    - topt_offset: double
+    - tcrit_0: double
+    - k_d1_0: double
+    - k_r1_0: double
+    - m_switch: double
+    - m_rep: double
+    - t_rep_cut: double
+    - dTcrit_max: double
+    - dTopt_max: double
+    - K_A: double
+    # Acclimation ODE kinetics (used by the strategy's compute_rates):
+    - alpha_opt: double
+    - beta_opt: double
+    - t_accl_opt: double
+    - alpha_crit: double
+    - beta_crit: double
+    - t_accl_crit: double
+    - softplus_s: double
