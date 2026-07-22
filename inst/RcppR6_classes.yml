@@ -92,6 +92,20 @@ Leaf:
     use_energy_balance_: {type: bool, access: field}
     d_: {type: double, access: field}
     wind_speed_: {type: double, access: field}
+    use_thermal_damage_: {type: bool, access: field}
+    topt_offset_: {type: double, access: field}
+    tcrit_0_: {type: double, access: field}
+    k_d1_0_: {type: double, access: field}
+    k_r1_0_: {type: double, access: field}
+    m_switch_: {type: double, access: field}
+    m_rep_: {type: double, access: field}
+    t_rep_cut_: {type: double, access: field}
+    dTcrit_max_: {type: double, access: field}
+    dTopt_max_: {type: double, access: field}
+    K_A_: {type: double, access: field}
+    A_opt_: {type: double, access: field}
+    A_crit_: {type: double, access: field}
+    N_: {type: double, access: field}
     Tair_: {type: double, access: field}
     Rn_: {type: double, access: field}
     ra_: {type: double, access: field}

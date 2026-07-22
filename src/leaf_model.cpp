@@ -1060,6 +1060,59 @@ double Leaf::peak_arrh_curve(double Ea, double ref_value, double leaf_temp, doub
   return arrh * arg2/arg3;
 }
 
+// --- Thermal damage / acclimation (ATLS, Lumry-Eyring; issue #566) ------------
+// All responses are smooth and argument-guarded so extreme drivers/traits cannot
+// drive the ODE integrator non-finite (numerical-stability requirement).
+
+// Numerically-guarded logistic 1/(1+exp(-x)); the argument is clamped so an
+// extreme temperature or switch slope cannot overflow exp().
+double Leaf::logistic_(double x) {
+  const double z = std::min(std::max(x, -30.0), 30.0);
+  return 1.0 / (1.0 + std::exp(-z));
+}
+
+// Smooth (C1) replacement for max(0,x): (1/s)*log1p(exp(s*x)), argument-clamped.
+double Leaf::softplus_(double x, double s) {
+  const double z = std::min(std::max(s * x, -30.0), 30.0);
+  return std::log1p(std::exp(z)) / s;
+}
+
+// Acclimated critical temperature: T_crit(A) = T_crit_0 + dTcrit_max*A/(A+K_A),
+// saturating and bounded by dTcrit_max. A_crit_ defaults to 0 (no acclimation)
+// until the strategy sets it (Phase 2).
+double Leaf::t_crit() const {
+  const double A = std::max(A_crit_, 0.0);
+  return tcrit_0_ + dTcrit_max_ * A / (A + K_A_);
+}
+
+// Invert the Medlyn peaked-Arrhenius optimum to the d_S that shifts T_opt by
+// delta_topt (deg C). Exact optimum: Topt_K = H_d/(d_S - R*ln(Ea/(H_d-Ea))).
+// The shifted optimum is clamped to a strictly-positive, sane range so an
+// outlandish offset cannot invert or blow up the response curve.
+double Leaf::d_S_shifted(double Ea, double H_d, double d_S_base, double delta_topt) const {
+  const double corr = R * std::log(Ea / (H_d - Ea));   // H_d > Ea for vcmax/jmax
+  const double Topt0_K = H_d / (d_S_base - corr);
+  const double Topt_K = std::min(std::max(Topt0_K + delta_topt, 250.0), 350.0);
+  return H_d / Topt_K + corr;
+}
+
+// Quasi-steady functional (undamaged) fraction N at a given (midday) leaf
+// temperature. The Lumry-Eyring N<->D balance is switch-dominated (ATLS E_d ~ 0),
+// so at the fast N<->D quasi-steady N = k_r/(k_r + k_d), with a smooth damage
+// switch turning on above T_crit and repair shutting off above t_rep_cut. Bounded
+// in (0,1]: N->1 when cold (no damage), N->0+ when hot with no repair.
+double Leaf::thermal_damage_factor(double leaf_temp) const {
+  const double S_damage = logistic_(m_switch_ * (leaf_temp - t_crit()));
+  const double S_repair = logistic_(-m_rep_ * (leaf_temp - t_rep_cut_));
+  const double k_d = k_d1_0_ * S_damage;
+  const double k_r = k_r1_0_ * S_repair;
+  const double denom = k_r + k_d;
+  if (denom <= 0.0) {
+    return 1.0;  // neither damage nor repair active -> fully functional
+  }
+  return k_r / denom;
+}
+
 // Recompute the temperature-dependent photosynthetic parameters at a given leaf
 // temperature. The arithmetic (and order) is exactly the inline block that used
 // to live in set_physiology, so the non-PM path is bit-identical; extracting it
@@ -1067,8 +1120,23 @@ double Leaf::peak_arrh_curve(double Ea, double ref_value, double leaf_temp, doub
 // depends on the per-call PPFD_ and is (re)computed here from the just-updated
 // jmax_ -- on the non-PM cache-hit path set_physiology refreshes it separately.
 void Leaf::update_temperature_dependent_params(double leaf_temp) {
-  vcmax_ = peak_arrh_curve(vcmax_ha, vcmax_25, leaf_temp, vcmax_H_d, vcmax_d_S);
-  jmax_ = peak_arrh_curve(jmax_ha, jmax_25, leaf_temp, jmax_H_d, jmax_d_S);
+  if (use_thermal_damage_) {
+    // Tolerance + acclimation shift of the photosynthetic optimum, applied via d_S
+    // (A_opt_ defaults to 0 until the strategy sets it in Phase 2).
+    const double A = std::max(A_opt_, 0.0);
+    const double delta_topt = topt_offset_ + dTopt_max_ * A / (A + K_A_);
+    const double vcmax_dS = d_S_shifted(vcmax_ha, vcmax_H_d, vcmax_d_S, delta_topt);
+    const double jmax_dS  = d_S_shifted(jmax_ha,  jmax_H_d,  jmax_d_S,  delta_topt);
+    vcmax_ = peak_arrh_curve(vcmax_ha, vcmax_25, leaf_temp, vcmax_H_d, vcmax_dS);
+    jmax_  = peak_arrh_curve(jmax_ha,  jmax_25,  leaf_temp, jmax_H_d, jmax_dS);
+    // Lumry-Eyring damage downscales electron transport: jmax -> jmax*N.
+    N_ = thermal_damage_factor(leaf_temp);
+    jmax_ *= N_;
+  } else {
+    vcmax_ = peak_arrh_curve(vcmax_ha, vcmax_25, leaf_temp, vcmax_H_d, vcmax_d_S);
+    jmax_ = peak_arrh_curve(jmax_ha, jmax_25, leaf_temp, jmax_H_d, jmax_d_S);
+    N_ = 1.0;
+  }
   gamma_ = arrh_curve(gamma_ha, gamma_25, leaf_temp);
   ko_ = arrh_curve(ko_ha, ko_25, leaf_temp);
   kc_ = arrh_curve(kc_ha, kc_25, leaf_temp);

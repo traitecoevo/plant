@@ -526,6 +526,132 @@ void Leaf__wind_speed___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double valu
 }
 
 // [[Rcpp::export]]
+bool Leaf__use_thermal_damage___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->use_thermal_damage_;
+}
+// [[Rcpp::export]]
+void Leaf__use_thermal_damage___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, bool value) {
+  obj_->use_thermal_damage_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__topt_offset___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->topt_offset_;
+}
+// [[Rcpp::export]]
+void Leaf__topt_offset___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->topt_offset_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__tcrit_0___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->tcrit_0_;
+}
+// [[Rcpp::export]]
+void Leaf__tcrit_0___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->tcrit_0_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__k_d1_0___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->k_d1_0_;
+}
+// [[Rcpp::export]]
+void Leaf__k_d1_0___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->k_d1_0_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__k_r1_0___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->k_r1_0_;
+}
+// [[Rcpp::export]]
+void Leaf__k_r1_0___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->k_r1_0_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__m_switch___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->m_switch_;
+}
+// [[Rcpp::export]]
+void Leaf__m_switch___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->m_switch_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__m_rep___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->m_rep_;
+}
+// [[Rcpp::export]]
+void Leaf__m_rep___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->m_rep_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__t_rep_cut___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->t_rep_cut_;
+}
+// [[Rcpp::export]]
+void Leaf__t_rep_cut___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->t_rep_cut_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__dTcrit_max___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->dTcrit_max_;
+}
+// [[Rcpp::export]]
+void Leaf__dTcrit_max___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->dTcrit_max_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__dTopt_max___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->dTopt_max_;
+}
+// [[Rcpp::export]]
+void Leaf__dTopt_max___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->dTopt_max_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__K_A___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->K_A_;
+}
+// [[Rcpp::export]]
+void Leaf__K_A___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->K_A_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__A_opt___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->A_opt_;
+}
+// [[Rcpp::export]]
+void Leaf__A_opt___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->A_opt_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__A_crit___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->A_crit_;
+}
+// [[Rcpp::export]]
+void Leaf__A_crit___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->A_crit_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__N___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->N_;
+}
+// [[Rcpp::export]]
+void Leaf__N___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->N_ = value;
+}
+
+// [[Rcpp::export]]
 double Leaf__Tair___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   return obj_->Tair_;
 }

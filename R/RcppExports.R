@@ -481,6 +481,118 @@ Leaf__wind_speed___set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__wind_speed___set', PACKAGE = 'plant', obj_, value))
 }
 
+Leaf__use_thermal_damage___get <- function(obj_) {
+    .Call('_plant_Leaf__use_thermal_damage___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__use_thermal_damage___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__use_thermal_damage___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__topt_offset___get <- function(obj_) {
+    .Call('_plant_Leaf__topt_offset___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__topt_offset___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__topt_offset___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__tcrit_0___get <- function(obj_) {
+    .Call('_plant_Leaf__tcrit_0___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__tcrit_0___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__tcrit_0___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__k_d1_0___get <- function(obj_) {
+    .Call('_plant_Leaf__k_d1_0___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__k_d1_0___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__k_d1_0___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__k_r1_0___get <- function(obj_) {
+    .Call('_plant_Leaf__k_r1_0___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__k_r1_0___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__k_r1_0___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__m_switch___get <- function(obj_) {
+    .Call('_plant_Leaf__m_switch___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__m_switch___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__m_switch___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__m_rep___get <- function(obj_) {
+    .Call('_plant_Leaf__m_rep___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__m_rep___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__m_rep___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__t_rep_cut___get <- function(obj_) {
+    .Call('_plant_Leaf__t_rep_cut___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__t_rep_cut___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__t_rep_cut___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__dTcrit_max___get <- function(obj_) {
+    .Call('_plant_Leaf__dTcrit_max___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__dTcrit_max___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__dTcrit_max___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__dTopt_max___get <- function(obj_) {
+    .Call('_plant_Leaf__dTopt_max___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__dTopt_max___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__dTopt_max___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__K_A___get <- function(obj_) {
+    .Call('_plant_Leaf__K_A___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__K_A___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__K_A___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__A_opt___get <- function(obj_) {
+    .Call('_plant_Leaf__A_opt___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__A_opt___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__A_opt___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__A_crit___get <- function(obj_) {
+    .Call('_plant_Leaf__A_crit___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__A_crit___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__A_crit___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__N___get <- function(obj_) {
+    .Call('_plant_Leaf__N___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__N___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__N___set', PACKAGE = 'plant', obj_, value))
+}
+
 Leaf__Tair___get <- function(obj_) {
     .Call('_plant_Leaf__Tair___get', PACKAGE = 'plant', obj_)
 }

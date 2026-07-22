@@ -245,6 +245,31 @@ public:
   // set_physiology falls back to the fixed ra. Only read on the PM path.
   double d_ = 0.05;          // characteristic leaf dimension, m
   double wind_speed_ = 2.0;  // above-canopy wind speed U0, m s^-1
+
+  // --- Thermal damage / acclimation (ATLS, Lumry-Eyring; issue #566) ----------
+  // Gate for the leaf thermal-damage layer. Default OFF: bit-identical to the
+  // non-ATLS path. Meaningful only with a real midday Tleaf, i.e. alongside the PM
+  // energy balance (use_energy_balance_). R-settable so a bare Leaf/demo can
+  // exercise it; default preserves backward compatibility.
+  bool use_thermal_damage_ = false;
+  // Constitutive tolerance offsets ("tolerance" strategy axis):
+  double topt_offset_ = 0.0;  // shift of photosynthetic T_opt, deg C (applied via d_S)
+  double tcrit_0_ = 38.0;     // baseline critical temperature, deg C (ATLS default)
+  // Lumry-Eyring quasi-steady damage kinetics (switch-dominated; ATLS E_d ~ 0 so
+  // the logistic switches, not Arrhenius, control the response).
+  double k_d1_0_ = 864.0;     // unfolding rate scale, day^-1 (N->D)
+  double k_r1_0_ = 864.0;     // refold/repair rate scale, day^-1 (D->N) -- "repair" axis
+  double m_switch_ = 1.0;     // damage switch slope, deg C^-1
+  double m_rep_ = 0.4;        // repair-suppression switch slope, deg C^-1
+  double t_rep_cut_ = 45.0;   // temperature above which repair shuts off, deg C
+  // Acclimation inputs (set by the strategy in Phase 2; 0 => no acclimation):
+  double dTcrit_max_ = 6.0;   // max acclimation rise in T_crit, deg C (ATLS dTmax)
+  double dTopt_max_ = 6.0;    // max acclimation rise in T_opt, deg C
+  double K_A_ = 1.0;          // half-saturation of the acclimation response
+  double A_opt_ = 0.0;        // T_opt acclimation state
+  double A_crit_ = 0.0;       // T_crit acclimation state
+  // Output: functional (undamaged) fraction N, the jmax multiplier, in (0,1].
+  double N_ = 1.0;
   double PPFD_;
   double atm_vpd_;
   double atm_o2_kpa_;
@@ -398,6 +423,13 @@ public:
   
   double arrh_curve(double Ea, double ref_value, double leaf_temp) const;
   double peak_arrh_curve(double Ea, double ref_value, double leaf_temp, double H_d, double d_S) const;
+
+  // Thermal damage / acclimation (ATLS, #566).
+  double t_crit() const;                                 // acclimated critical temperature, deg C
+  double thermal_damage_factor(double leaf_temp) const;  // functional fraction N in (0,1]
+  double d_S_shifted(double Ea, double H_d, double d_S_base, double delta_topt) const;
+  static double logistic_(double x);          // numerically-guarded 1/(1+exp(-x))
+  static double softplus_(double x, double s); // smooth (C1) max(0,x)
 
   // --- Penman-Monteith leaf energy balance (minimal core; #523) ---------------
   // Recompute the temperature-dependent photosynthetic parameters (vcmax_,

@@ -1400,6 +1400,314 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// Leaf__use_thermal_damage___get
+bool Leaf__use_thermal_damage___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__use_thermal_damage___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__use_thermal_damage___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__use_thermal_damage___set
+void Leaf__use_thermal_damage___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, bool value);
+RcppExport SEXP _plant_Leaf__use_thermal_damage___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< bool >::type value(valueSEXP);
+    Leaf__use_thermal_damage___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__topt_offset___get
+double Leaf__topt_offset___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__topt_offset___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__topt_offset___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__topt_offset___set
+void Leaf__topt_offset___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__topt_offset___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__topt_offset___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__tcrit_0___get
+double Leaf__tcrit_0___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__tcrit_0___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__tcrit_0___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__tcrit_0___set
+void Leaf__tcrit_0___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__tcrit_0___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__tcrit_0___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__k_d1_0___get
+double Leaf__k_d1_0___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__k_d1_0___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__k_d1_0___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__k_d1_0___set
+void Leaf__k_d1_0___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__k_d1_0___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__k_d1_0___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__k_r1_0___get
+double Leaf__k_r1_0___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__k_r1_0___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__k_r1_0___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__k_r1_0___set
+void Leaf__k_r1_0___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__k_r1_0___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__k_r1_0___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__m_switch___get
+double Leaf__m_switch___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__m_switch___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__m_switch___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__m_switch___set
+void Leaf__m_switch___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__m_switch___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__m_switch___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__m_rep___get
+double Leaf__m_rep___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__m_rep___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__m_rep___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__m_rep___set
+void Leaf__m_rep___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__m_rep___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__m_rep___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__t_rep_cut___get
+double Leaf__t_rep_cut___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__t_rep_cut___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__t_rep_cut___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__t_rep_cut___set
+void Leaf__t_rep_cut___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__t_rep_cut___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__t_rep_cut___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__dTcrit_max___get
+double Leaf__dTcrit_max___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__dTcrit_max___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__dTcrit_max___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__dTcrit_max___set
+void Leaf__dTcrit_max___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__dTcrit_max___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__dTcrit_max___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__dTopt_max___get
+double Leaf__dTopt_max___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__dTopt_max___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__dTopt_max___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__dTopt_max___set
+void Leaf__dTopt_max___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__dTopt_max___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__dTopt_max___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__K_A___get
+double Leaf__K_A___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__K_A___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__K_A___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__K_A___set
+void Leaf__K_A___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__K_A___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__K_A___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__A_opt___get
+double Leaf__A_opt___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__A_opt___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__A_opt___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__A_opt___set
+void Leaf__A_opt___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__A_opt___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__A_opt___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__A_crit___get
+double Leaf__A_crit___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__A_crit___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__A_crit___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__A_crit___set
+void Leaf__A_crit___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__A_crit___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__A_crit___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__N___get
+double Leaf__N___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__N___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__N___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__N___set
+void Leaf__N___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__N___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__N___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
 // Leaf__Tair___get
 double Leaf__Tair___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
 RcppExport SEXP _plant_Leaf__Tair___get(SEXP obj_SEXP) {
@@ -12273,6 +12581,34 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__d___set", (DL_FUNC) &_plant_Leaf__d___set, 2},
     {"_plant_Leaf__wind_speed___get", (DL_FUNC) &_plant_Leaf__wind_speed___get, 1},
     {"_plant_Leaf__wind_speed___set", (DL_FUNC) &_plant_Leaf__wind_speed___set, 2},
+    {"_plant_Leaf__use_thermal_damage___get", (DL_FUNC) &_plant_Leaf__use_thermal_damage___get, 1},
+    {"_plant_Leaf__use_thermal_damage___set", (DL_FUNC) &_plant_Leaf__use_thermal_damage___set, 2},
+    {"_plant_Leaf__topt_offset___get", (DL_FUNC) &_plant_Leaf__topt_offset___get, 1},
+    {"_plant_Leaf__topt_offset___set", (DL_FUNC) &_plant_Leaf__topt_offset___set, 2},
+    {"_plant_Leaf__tcrit_0___get", (DL_FUNC) &_plant_Leaf__tcrit_0___get, 1},
+    {"_plant_Leaf__tcrit_0___set", (DL_FUNC) &_plant_Leaf__tcrit_0___set, 2},
+    {"_plant_Leaf__k_d1_0___get", (DL_FUNC) &_plant_Leaf__k_d1_0___get, 1},
+    {"_plant_Leaf__k_d1_0___set", (DL_FUNC) &_plant_Leaf__k_d1_0___set, 2},
+    {"_plant_Leaf__k_r1_0___get", (DL_FUNC) &_plant_Leaf__k_r1_0___get, 1},
+    {"_plant_Leaf__k_r1_0___set", (DL_FUNC) &_plant_Leaf__k_r1_0___set, 2},
+    {"_plant_Leaf__m_switch___get", (DL_FUNC) &_plant_Leaf__m_switch___get, 1},
+    {"_plant_Leaf__m_switch___set", (DL_FUNC) &_plant_Leaf__m_switch___set, 2},
+    {"_plant_Leaf__m_rep___get", (DL_FUNC) &_plant_Leaf__m_rep___get, 1},
+    {"_plant_Leaf__m_rep___set", (DL_FUNC) &_plant_Leaf__m_rep___set, 2},
+    {"_plant_Leaf__t_rep_cut___get", (DL_FUNC) &_plant_Leaf__t_rep_cut___get, 1},
+    {"_plant_Leaf__t_rep_cut___set", (DL_FUNC) &_plant_Leaf__t_rep_cut___set, 2},
+    {"_plant_Leaf__dTcrit_max___get", (DL_FUNC) &_plant_Leaf__dTcrit_max___get, 1},
+    {"_plant_Leaf__dTcrit_max___set", (DL_FUNC) &_plant_Leaf__dTcrit_max___set, 2},
+    {"_plant_Leaf__dTopt_max___get", (DL_FUNC) &_plant_Leaf__dTopt_max___get, 1},
+    {"_plant_Leaf__dTopt_max___set", (DL_FUNC) &_plant_Leaf__dTopt_max___set, 2},
+    {"_plant_Leaf__K_A___get", (DL_FUNC) &_plant_Leaf__K_A___get, 1},
+    {"_plant_Leaf__K_A___set", (DL_FUNC) &_plant_Leaf__K_A___set, 2},
+    {"_plant_Leaf__A_opt___get", (DL_FUNC) &_plant_Leaf__A_opt___get, 1},
+    {"_plant_Leaf__A_opt___set", (DL_FUNC) &_plant_Leaf__A_opt___set, 2},
+    {"_plant_Leaf__A_crit___get", (DL_FUNC) &_plant_Leaf__A_crit___get, 1},
+    {"_plant_Leaf__A_crit___set", (DL_FUNC) &_plant_Leaf__A_crit___set, 2},
+    {"_plant_Leaf__N___get", (DL_FUNC) &_plant_Leaf__N___get, 1},
+    {"_plant_Leaf__N___set", (DL_FUNC) &_plant_Leaf__N___set, 2},
     {"_plant_Leaf__Tair___get", (DL_FUNC) &_plant_Leaf__Tair___get, 1},
     {"_plant_Leaf__Tair___set", (DL_FUNC) &_plant_Leaf__Tair___set, 2},
     {"_plant_Leaf__Rn___get", (DL_FUNC) &_plant_Leaf__Rn___get, 1},
