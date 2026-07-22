@@ -4089,6 +4089,18 @@ TF24_Environment__compute_rates <- function(obj_, resource_depletion) {
     invisible(.Call('_plant_TF24_Environment__compute_rates', PACKAGE = 'plant', obj_, resource_depletion))
 }
 
+TF24_Environment__r_analytic_partial_flow <- function(obj_, theta, dt) {
+    .Call('_plant_TF24_Environment__r_analytic_partial_flow', PACKAGE = 'plant', obj_, theta, dt)
+}
+
+TF24_Environment__r_residual_rhs <- function(obj_, theta, resource_depletion) {
+    .Call('_plant_TF24_Environment__r_residual_rhs', PACKAGE = 'plant', obj_, theta, resource_depletion)
+}
+
+TF24_Environment__r_drainage_touchdown_time <- function(obj_, theta, layer) {
+    .Call('_plant_TF24_Environment__r_drainage_touchdown_time', PACKAGE = 'plant', obj_, theta, layer)
+}
+
 TF24_Environment__time__get <- function(obj_) {
     .Call('_plant_TF24_Environment__time__get', PACKAGE = 'plant', obj_)
 }
@@ -4211,6 +4223,22 @@ node_schedule_default__Parameters___K93__K93_Env <- function(p) {
 
 make_node_schedule__Parameters___K93__K93_Env <- function(p) {
     .Call('_plant_make_node_schedule__Parameters___K93__K93_Env', PACKAGE = 'plant', p)
+}
+
+mri_fast_rate_calls_get <- function() {
+    .Call('_plant_mri_fast_rate_calls_get', PACKAGE = 'plant')
+}
+
+mri_fast_rate_calls_reset <- function() {
+    invisible(.Call('_plant_mri_fast_rate_calls_reset', PACKAGE = 'plant'))
+}
+
+patch_rhs_calls_get <- function() {
+    .Call('_plant_patch_rhs_calls_get', PACKAGE = 'plant')
+}
+
+patch_rhs_calls_reset <- function() {
+    invisible(.Call('_plant_patch_rhs_calls_reset', PACKAGE = 'plant'))
 }
 
 #' Generate a suitable set of default node introduction times,

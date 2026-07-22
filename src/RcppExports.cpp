@@ -11503,6 +11503,45 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// TF24_Environment__r_analytic_partial_flow
+std::vector<double> TF24_Environment__r_analytic_partial_flow(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, std::vector<double> theta, double dt);
+RcppExport SEXP _plant_TF24_Environment__r_analytic_partial_flow(SEXP obj_SEXP, SEXP thetaSEXP, SEXP dtSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< double >::type dt(dtSEXP);
+    rcpp_result_gen = Rcpp::wrap(TF24_Environment__r_analytic_partial_flow(obj_, theta, dt));
+    return rcpp_result_gen;
+END_RCPP
+}
+// TF24_Environment__r_residual_rhs
+std::vector<double> TF24_Environment__r_residual_rhs(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, std::vector<double> theta, std::vector<double> resource_depletion);
+RcppExport SEXP _plant_TF24_Environment__r_residual_rhs(SEXP obj_SEXP, SEXP thetaSEXP, SEXP resource_depletionSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type resource_depletion(resource_depletionSEXP);
+    rcpp_result_gen = Rcpp::wrap(TF24_Environment__r_residual_rhs(obj_, theta, resource_depletion));
+    return rcpp_result_gen;
+END_RCPP
+}
+// TF24_Environment__r_drainage_touchdown_time
+double TF24_Environment__r_drainage_touchdown_time(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, double theta, int layer);
+RcppExport SEXP _plant_TF24_Environment__r_drainage_touchdown_time(SEXP obj_SEXP, SEXP thetaSEXP, SEXP layerSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< int >::type layer(layerSEXP);
+    rcpp_result_gen = Rcpp::wrap(TF24_Environment__r_drainage_touchdown_time(obj_, theta, layer));
+    return rcpp_result_gen;
+END_RCPP
+}
 // TF24_Environment__time__get
 double TF24_Environment__time__get(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_);
 RcppExport SEXP _plant_TF24_Environment__time__get(SEXP obj_SEXP) {
@@ -11848,6 +11887,44 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const plant::Parameters<plant::K93_Strategy,plant::K93_Environment>& >::type p(pSEXP);
     rcpp_result_gen = Rcpp::wrap(make_node_schedule__Parameters___K93__K93_Env(p));
     return rcpp_result_gen;
+END_RCPP
+}
+// mri_fast_rate_calls_get
+double mri_fast_rate_calls_get();
+RcppExport SEXP _plant_mri_fast_rate_calls_get() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(mri_fast_rate_calls_get());
+    return rcpp_result_gen;
+END_RCPP
+}
+// mri_fast_rate_calls_reset
+void mri_fast_rate_calls_reset();
+RcppExport SEXP _plant_mri_fast_rate_calls_reset() {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    mri_fast_rate_calls_reset();
+    return R_NilValue;
+END_RCPP
+}
+// patch_rhs_calls_get
+double patch_rhs_calls_get();
+RcppExport SEXP _plant_patch_rhs_calls_get() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(patch_rhs_calls_get());
+    return rcpp_result_gen;
+END_RCPP
+}
+// patch_rhs_calls_reset
+void patch_rhs_calls_reset();
+RcppExport SEXP _plant_patch_rhs_calls_reset() {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    patch_rhs_calls_reset();
+    return R_NilValue;
 END_RCPP
 }
 // node_schedule_times_default
@@ -13043,6 +13120,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_TF24_Environment__get_atm_o2_kpa", (DL_FUNC) &_plant_TF24_Environment__get_atm_o2_kpa, 1},
     {"_plant_TF24_Environment__get_atm_kpa", (DL_FUNC) &_plant_TF24_Environment__get_atm_kpa, 1},
     {"_plant_TF24_Environment__compute_rates", (DL_FUNC) &_plant_TF24_Environment__compute_rates, 2},
+    {"_plant_TF24_Environment__r_analytic_partial_flow", (DL_FUNC) &_plant_TF24_Environment__r_analytic_partial_flow, 3},
+    {"_plant_TF24_Environment__r_residual_rhs", (DL_FUNC) &_plant_TF24_Environment__r_residual_rhs, 3},
+    {"_plant_TF24_Environment__r_drainage_touchdown_time", (DL_FUNC) &_plant_TF24_Environment__r_drainage_touchdown_time, 3},
     {"_plant_TF24_Environment__time__get", (DL_FUNC) &_plant_TF24_Environment__time__get, 1},
     {"_plant_TF24_Environment__time__set", (DL_FUNC) &_plant_TF24_Environment__time__set, 2},
     {"_plant_TF24_Environment__soil_moist_sat__get", (DL_FUNC) &_plant_TF24_Environment__soil_moist_sat__get, 1},
@@ -13074,6 +13154,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_TF24f_oderunner_individual_internals", (DL_FUNC) &_plant_TF24f_oderunner_individual_internals, 1},
     {"_plant_node_schedule_default__Parameters___K93__K93_Env", (DL_FUNC) &_plant_node_schedule_default__Parameters___K93__K93_Env, 1},
     {"_plant_make_node_schedule__Parameters___K93__K93_Env", (DL_FUNC) &_plant_make_node_schedule__Parameters___K93__K93_Env, 1},
+    {"_plant_mri_fast_rate_calls_get", (DL_FUNC) &_plant_mri_fast_rate_calls_get, 0},
+    {"_plant_mri_fast_rate_calls_reset", (DL_FUNC) &_plant_mri_fast_rate_calls_reset, 0},
+    {"_plant_patch_rhs_calls_get", (DL_FUNC) &_plant_patch_rhs_calls_get, 0},
+    {"_plant_patch_rhs_calls_reset", (DL_FUNC) &_plant_patch_rhs_calls_reset, 0},
     {"_plant_node_schedule_times_default", (DL_FUNC) &_plant_node_schedule_times_default, 1},
     {"_plant_FF16_strategy_expand_allometry", (DL_FUNC) &_plant_FF16_strategy_expand_allometry, 4},
     {"_plant_TF24_strategy_expand_allometry", (DL_FUNC) &_plant_TF24_strategy_expand_allometry, 4},

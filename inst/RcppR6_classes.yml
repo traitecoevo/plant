@@ -295,6 +295,9 @@ Control:
   list:
     - function_integration_rule: size_t
     - shading_model: std::string
+    - ode_method: std::string
+    - n_collocation_nodes: size_t
+    - mri_use_split: bool
     - ppa_layer_optical_depth: double
     - ppa_layer_smoothing: double
     - offspring_production_tol: double
@@ -1359,6 +1362,15 @@ TF24_Environment:
     compute_rates:
       args: [resource_depletion: std::vector<double>]
       return_type: void
+    r_analytic_partial_flow:
+      args: [theta: std::vector<double>, dt: double]
+      return_type: std::vector<double>
+    r_residual_rhs:
+      args: [theta: std::vector<double>, resource_depletion: std::vector<double>]
+      return_type: std::vector<double>
+    r_drainage_touchdown_time:
+      args: [theta: double, layer: int]
+      return_type: double
   active:
     time: {type: double, access: field}
     soil_moist_sat: {type: double, access: field}

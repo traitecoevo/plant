@@ -33,6 +33,34 @@ struct Control {
   // so it never costs a string comparison on the hot path.
   std::string shading_model;
 
+  // Number of collocation nodes for the multirate (method="mri") fast sub-cycle.
+  // The soil sub-cycle needs the per-layer root uptake at each micro-step; that
+  // uptake is a density-weighted integral of per-cohort consumption over the
+  // size distribution. 0 (the default) evaluates it over all N cohorts (exact);
+  // m > 0 quadratures it at m of the N frozen cohorts instead, so the sub-cycle
+  // costs m physiology solves, not N. Converges ~O(m^-2), but the accuracy at a
+  // given m depends strongly on the distribution: young stands reach the sub-1%
+  // range by m≈20, mature (skewed) stands need m close to N for the same
+  // accuracy under the current even-index node placement (a smarter,
+  // importance-weighted placement is the open item -- plant#53 §6/§4.4). Only
+  // consulted on the method="mri" path; ignored otherwise.
+  size_t n_collocation_nodes;
+
+  // Multirate (method="mri") fast-block inner stepper. false (default) sub-cycles
+  // the soil block with the adaptive black-box RK; true uses the exact-flow split
+  // (R1 analytic drainage recession + ROS34PW2 on the gentle remainder), which
+  // removes the drainage stiffness so the sub-cycle takes far fewer micro steps
+  // (Lever 1). Only consulted on the method="mri" path.
+  bool mri_use_split;
+
+  // ODE integration method for the SCM resident solver. One of "rkck" (the
+  // default adaptive Cash-Karp explicit RK), "rodas" (the stiff Rosenbrock
+  // stepper), or "mri" (the multirate MRI-GARK stepper: a fixed macro grid that
+  // sub-cycles the fast soil column, for TF24). Empty is treated as "rkck", so
+  // default behaviour is unchanged. Selected once when the SCM builds its
+  // Solver; every other integration path is untouched.
+  std::string ode_method;
+
   // PPA only: thickness of one discrete canopy layer, in optical-depth units
   // (tau = sum of k * leaf-area-index above a height). The stepped light
   // profile floors tau to integer multiples of this value. The default 0.5

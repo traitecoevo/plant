@@ -6,6 +6,11 @@
 #include <plant/species.h>
 #include <plant/util.h>
 #include <odelia/ode_interface.hpp>
+// Patch declares an MRI fast/slow partition (below), so it is a multirate
+// System: pull in the multirate stepper's out-of-line definition here, so every
+// TU that builds a Solver<Patch> has MriStep<Patch>::step defined and not just
+// declared. Harmless for method != "mri" (the stepper is never invoked).
+#include <odelia/mri.hpp>
 
 #include <plant/disturbance_regime.h>
 
@@ -15,6 +20,21 @@
 using namespace Rcpp;
 
 namespace plant {
+
+// Diagnostic counter (defined in src/mri_diag.cpp): number of fast-block
+// coupling evaluations across a run, the multirate cost driver. Incremented in
+// fast_rates; read/reset from R via mri_fast_rate_calls_get/reset.
+extern long mri_fast_rate_calls;
+extern long patch_rhs_calls;
+
+// Does the environment expose the R1 operator split (exact drainage recession +
+// residual)? Only TF24 does; the multirate split inner (Lever 1) is gated on it
+// so a patch over an environment without it (e.g. FF16) still compiles.
+template <class, class = void>
+struct env_has_split : std::false_type {};
+template <class En>
+struct env_has_split<En, std::void_t<decltype(std::declval<En&>().analytic_partial_flow(
+    std::declval<std::vector<double>&>(), 0.0))>> : std::true_type {};
 
 template <typename T, typename E>
 class Patch {
@@ -96,6 +116,118 @@ public:
   // Retrieve auxillary variables and save into the ode solver
   odelia::ode::iterator ode_aux(odelia::ode::iterator it) const;
 
+  // * Multirate (MRI) partition interface
+  // Additive hooks that let odelia's method="mri" stepper treat the patch as a
+  // fast/slow system. They are only touched by MriStep; every other integration
+  // path is untouched, so production runs are bit-identical when method != "mri".
+  //
+  // The ODE state is already laid out [cohorts | environment] (see ode_state),
+  // which is exactly MRI's [slow | fast] layout: the cohorts are the slow block
+  // and the soil column is the fast block, contiguous at the tail. No coupling
+  // aggregate is used -- the fast block reads its slow context from the frozen
+  // light field captured once per leg by freeze_slow -- so coupling_size is 0.
+  size_t slow_size() const { return ode_size() - environment.ode_size(); }
+  size_t fast_size() const { return environment.ode_size(); }
+  size_t coupling_size() const { return 0; }
+  void aggregate(const std::vector<double>&, std::vector<double>&) const {}
+
+  // Freeze the slow (cohort) context for one MRI leg: set the cohort states and
+  // rebuild the light field they cast, so the ensuing fast sub-cycle varies only
+  // the soil column against a fixed canopy.
+  void freeze_slow(const std::vector<double>& x) {
+    odelia::ode::set_ode_state(species.begin(), species.end(), x.begin());
+    compute_environment(true);
+    environment_ptr = &environment;
+    // Freeze the collocation nodes against this leg's distribution (see
+    // fast_rates); a no-op when collocation is off.
+    if (control.n_collocation_nodes > 0) {
+      for (auto& s : species) {
+        s.set_collocation_nodes(control.n_collocation_nodes);
+      }
+    }
+  }
+
+  // Per-layer root uptake at the current (soil-θ) environment: the density-
+  // weighted cohort consumption / area. Full-N re-solves every cohort's
+  // physiology; collocation quadratures it over m frozen cohorts. Shared by the
+  // adaptive and split fast-block hooks.
+  std::vector<double> fast_block_uptake() {
+    if (control.n_collocation_nodes > 0) {
+      std::vector<double> depletion(environment.ode_size(), 0.0);
+      for (auto& s : species) {
+        s.add_collocated_consumption(environment, depletion);
+      }
+      for (auto& d : depletion) {
+        d /= area;
+      }
+      return depletion;
+    }
+    compute_species_rates();
+    return assemble_resource_depletion();
+  }
+
+  // Fast tendency: the soil (environment) rates at soil state u, with the canopy
+  // frozen by the preceding freeze_slow. Uptake is re-evaluated at this soil
+  // moisture (it depends on θ), then the environment rates are read out. g is
+  // unused (coupling_size == 0).
+  void fast_rates(const std::vector<double>& u, const std::vector<double>& /*g*/,
+                  std::vector<double>& du) {
+    ++mri_fast_rate_calls;
+    environment.set_ode_state(u.begin());
+    environment_ptr = &environment;
+    environment.compute_rates(fast_block_uptake());
+    environment.ode_rates(du.begin());
+  }
+
+  // Multirate split inner (Lever 1): opt in via control when the environment
+  // provides the R1 exact-flow hooks. Off (adaptive inner) otherwise.
+  bool mri_split() const {
+    return env_has_split<E>::value && control.mri_use_split;
+  }
+
+  // Exact stiff-drainage flow on the soil layers of the fast block (aux slots --
+  // the cumulative-flux diagnostics -- are advanced by the residual, not here).
+  void analytic_flow(std::vector<double>& u, double dt) {
+    if constexpr (env_has_split<E>::value) {
+      const size_t ns = static_cast<size_t>(environment.get_soil_number_of_depths());
+      std::vector<double> theta(u.begin(), u.begin() + ns);
+      environment.analytic_partial_flow(theta, dt);
+      std::copy(theta.begin(), theta.end(), u.begin());
+    }
+  }
+
+  // Gentle remainder the split inner steps: infiltration + inter-layer cascade −
+  // uptake on the soil layers (drainage is handled exactly by analytic_flow). g
+  // is unused (coupling_size == 0); uptake is re-evaluated at this soil state.
+  // The trailing aux (cumulative-flux) slots are left at zero rate here -- they
+  // are diagnostics decoupled from the dynamics.
+  void residual_rhs(const std::vector<double>& u, const std::vector<double>& /*g*/,
+                    std::vector<double>& du) {
+    ++mri_fast_rate_calls;
+    std::fill(du.begin(), du.end(), 0.0);
+    if constexpr (env_has_split<E>::value) {
+      environment.set_ode_state(u.begin());
+      environment_ptr = &environment;
+      const std::vector<double> depletion = fast_block_uptake();
+      const size_t ns = static_cast<size_t>(environment.get_soil_number_of_depths());
+      std::vector<double> theta(u.begin(), u.begin() + ns), drate(ns);
+      environment.residual_rhs(theta, depletion, drate);
+      std::copy(drate.begin(), drate.end(), du.begin());
+    }
+  }
+
+  // Slow tendency: the cohort rates at cohort state x and soil state u. The
+  // canopy has moved, so the light field is rebuilt before the rates are read.
+  void slow_rates(const std::vector<double>& x, const std::vector<double>& u,
+                  std::vector<double>& dx) {
+    odelia::ode::set_ode_state(species.begin(), species.end(), x.begin());
+    environment.set_ode_state(u.begin());
+    compute_environment(true);
+    environment_ptr = &environment;
+    compute_rates();
+    odelia::ode::ode_rates(species.begin(), species.end(), dx.begin());
+  }
+
   // Returns state in structure format as opposed to single 
   // vector as given by ode_state
   Rcpp::List r_get_state() const;
@@ -164,6 +296,9 @@ private:
   int idx = 0; // used to access environment cache for mutant runs
   void compute_environment(bool rescale);
   void compute_rates();
+  // Reusable pieces of compute_rates (shared with the multirate split hooks).
+  void compute_species_rates();
+  std::vector<double> assemble_resource_depletion() const;
 
   // Seed the patch from parameters.initial_state (nodes + birth bookkeeping)
   // when present; called from reset(). Sets environment.time = initial_time.
@@ -183,9 +318,6 @@ private:
   double area;
   environment_type environment;
   std::vector<species_type> species;
-
-  //TODO(#476): Move into environment?
-  std::vector<double> resource_depletion;
 
   environment_type* environment_ptr;
 
@@ -257,9 +389,6 @@ void Patch<T,E>::reset() {
     // allocate variables for tracking resource consumption
     s.resize_consumption_rates(environment.ode_size());
   }
-
-  // resize to species count
-  resource_depletion.reserve(environment.ode_size());
 
   // compute ephemeral effects like light_availability
   environment.clear();
@@ -573,37 +702,43 @@ void Patch<T,E>::compute_environment(bool rescale) {
 
 template <typename T, typename E>
 void Patch<T,E>::compute_rates() {
-
-  // Computes rates of change for the patch, including all the component species
+  ++patch_rhs_calls;
+  // Computes rates of change for the patch, including all the component species.
   // While the patch has an `environment`, the rates here are calculated from
-  // the env_ptr, which is a pointer to an environment object
-  //  -- for the resident the pointer points to the internal environment object
-  //  -- for a mutant, the pointer points to a cached environment object
-  double time_ = environment_ptr->time;
+  // environment_ptr:
+  //  -- for the resident it points to the internal environment object
+  //  -- for a mutant it points to a cached environment object
+  compute_species_rates();
+  environment_ptr->compute_rates(assemble_resource_depletion());
+}
 
+// The per-species rate evaluation (growth, mortality, fecundity, and the
+// per-cohort resource consumption read back below). Split out of compute_rates
+// so the multirate fast-block hooks can reuse it without the monolithic soil
+// rate assembly.
+template <typename T, typename E>
+void Patch<T,E>::compute_species_rates() {
+  double time_ = environment_ptr->time;
   double pr_patch_survival = survival_weighting->pr_survival(time_);
   for (size_t i = 0; i < size(); ++i) {
     double birth_rate = species[i].extrinsic_drivers().evaluate("birth_rate", time_);
-
-    // Pass the environment that pointer is tracking into compute rates.
     species[i].compute_rates(*environment_ptr, pr_patch_survival, birth_rate);
   }
+}
 
-  resource_depletion.reserve(environment_ptr->ode_size());
-  for(size_t i = 0; i < environment_ptr->ode_size(); i++) {
-    double resource_consumed = std::accumulate(species.begin(), species.end(), 0.0, [i](double r, const species_type& s) {
-      return r + s.consumption_rate(i); // accumulates r from zero
-    });
-
-    resource_depletion.push_back(resource_consumed/area);
+// Per-resource depletion = density-weighted cohort consumption / area, one entry
+// per environment ODE slot (soil layers used by the environment rates; the
+// trailing aux slots carry no consumption). Requires compute_species_rates first.
+template <typename T, typename E>
+std::vector<double> Patch<T,E>::assemble_resource_depletion() const {
+  std::vector<double> depletion;
+  depletion.reserve(environment_ptr->ode_size());
+  for (size_t i = 0; i < environment_ptr->ode_size(); i++) {
+    double resource_consumed = std::accumulate(species.begin(), species.end(), 0.0,
+      [i](double r, const species_type& s) { return r + s.consumption_rate(i); });
+    depletion.push_back(resource_consumed / area);
   }
-  
-
-  environment_ptr->compute_rates(resource_depletion);
-
-  //todo do we need to clear this every step?
-  resource_depletion.clear();
-
+  return depletion;
 }
 
 // TODO(#478): We should only be recomputing the light environment for the

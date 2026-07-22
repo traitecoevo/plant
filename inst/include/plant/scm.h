@@ -15,6 +15,20 @@ using namespace Rcpp;
 
 namespace plant {
 
+// Map the Control's ode_method string onto the odelia Solver's Method enum.
+// Empty is treated as "rkck" so the default is unchanged; an unknown value is
+// an error rather than a silent fall-through to the default.
+inline odelia::ode::Method scm_ode_method(const Control& control) {
+  const std::string& m = control.ode_method;
+  if (m.empty() || m == "rkck") return odelia::ode::Method::rkck;
+  if (m == "rodas")             return odelia::ode::Method::rodas;
+  if (m == "imex")              return odelia::ode::Method::imex;
+  if (m == "mri")               return odelia::ode::Method::mri;
+  util::stop("Unknown control$ode_method '" + m +
+             "'; use 'rkck', 'rodas' or 'mri'.");
+  return odelia::ode::Method::rkck;  // unreachable; silences the return warning
+}
+
 // SCM: the "Solver for Characteristics Method" driver.
 //
 // Owns a Patch (the population being integrated), a NodeSchedule (when each
@@ -139,7 +153,7 @@ template <typename T, typename E>
 SCM<T, E>::SCM(parameters_type p, environment_type e, Control c)
     : parameters(p), control(c), patch(parameters, e, c),
       node_schedule(make_node_schedule(parameters)),
-      solver(patch, make_ode_control(c)) {
+      solver(patch, make_ode_control(c), scm_ode_method(c)) {
 
   parameters.validate();
 

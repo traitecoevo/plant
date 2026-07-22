@@ -17,6 +17,9 @@ test_that("Defaults", {
 
     function_integration_rule = 21, # size_t so not int
     shading_model = "", # empty = each strategy's own default
+    ode_method = "", # empty = "rkck" (the SCM resident solver default)
+    n_collocation_nodes = 0, # size_t; 0 = exact full-N multirate uptake
+    mri_use_split = FALSE, # multirate split inner off by default
     ppa_layer_optical_depth = 0.5,
     ppa_layer_smoothing = 0.3,
 

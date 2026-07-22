@@ -4628,6 +4628,18 @@ void TF24_Environment__compute_rates(plant::RcppR6::RcppR6<plant::TF24_Environme
   obj_->compute_rates(resource_depletion);
 }
 // [[Rcpp::export]]
+std::vector<double> TF24_Environment__r_analytic_partial_flow(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, std::vector<double> theta, double dt) {
+  return obj_->r_analytic_partial_flow(theta, dt);
+}
+// [[Rcpp::export]]
+std::vector<double> TF24_Environment__r_residual_rhs(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, std::vector<double> theta, std::vector<double> resource_depletion) {
+  return obj_->r_residual_rhs(theta, resource_depletion);
+}
+// [[Rcpp::export]]
+double TF24_Environment__r_drainage_touchdown_time(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, double theta, int layer) {
+  return obj_->r_drainage_touchdown_time(theta, layer);
+}
+// [[Rcpp::export]]
 double TF24_Environment__time__get(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_) {
   return obj_->time;
 }

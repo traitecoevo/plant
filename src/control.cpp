@@ -19,6 +19,18 @@ Control::Control() {
   // unchanged for both.
   shading_model = "";
 
+  // ODE method for the SCM resident solver (see Control header). Empty = "rkck",
+  // so default behaviour is unchanged.
+  ode_method = "";
+
+  // Multirate fast sub-cycle collocation nodes (see Control header). 0 = exact
+  // full-N uptake; only used on the method="mri" path.
+  n_collocation_nodes = 0;
+
+  // Multirate fast-block inner stepper (see Control header). false = adaptive
+  // black-box RK; true = exact-flow split. Only used on the method="mri" path.
+  mri_use_split = false;
+
   // PPA canopy layer thickness in optical-depth units (see Control header).
   ppa_layer_optical_depth = 0.5;
   // PPA layer-boundary smoothing fraction (see Control header).

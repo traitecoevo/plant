@@ -281,11 +281,7 @@ public:
 
     double water_input;
     double rainfall = extrinsic_drivers.evaluate("rainfall", time);
-    const double soil_moist_sat_0 =
-      soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, 0);
-    double infiltration = rainfall * std::max(
-      0.0,
-      1 - a_infil * std::pow(vars.state(0) / soil_moist_sat_0, b_infil));
+    double infiltration = infiltration_rate(vars.state(0));
     double total_resource_depletion = 0;
 
 
@@ -333,6 +329,103 @@ public:
       vars.set_rate(soil_number_of_depths + 2, water_flux[soil_number_of_depths - 1]);
       vars.set_rate(soil_number_of_depths + 3, total_resource_depletion);
 
+  }
+
+  // ------------------------------------------------------------------
+  // R1 operator split of the soil water balance
+  // ------------------------------------------------------------------
+  // The single-layer gravitational drainage is a power-law loss with a
+  // closed-form recession, so it is integrated exactly; infiltration, the
+  // inter-layer cascade inflow and root uptake are the gentle remainder the
+  // caller steps. Composed (flow, remainder, flow) they reproduce compute_rates.
+  // This removes the wet-end drainage stiffness (and its positivity clamp) from
+  // any soil integration, single-rate included, and is the exact-flow half an
+  // operator-splitting stepper needs. These operate on the soil moisture only;
+  // the cumulative-flux diagnostics stay with compute_rates.
+
+  // Infiltration into the top layer: rainfall reduced by saturation-excess
+  // runoff. One source of truth for compute_rates and residual_rhs.
+  double infiltration_rate(double theta0) const {
+    const double rainfall = extrinsic_drivers.evaluate("rainfall", time);
+    const double sat0 = soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, 0);
+    return rainfall * std::max(0.0, 1 - a_infil * std::pow(theta0 / sat0, b_infil));
+  }
+
+  // Advance the per-layer drainage theta' = -K(theta)/dz exactly over dt, in
+  // place. K(theta) = K_sat (theta/theta_sat)^p, p = 2 n_psi + 3, so
+  // theta' = -c theta^p with c = K_sat/(dz theta_sat^p) and the recession
+  //   theta(dt) = [theta^{1-p} + (p-1) c dt]^{-1/(p-1)}
+  // is positivity-preserving. Above saturation K caps at K_sat (a linear decline)
+  // until theta reaches theta_sat, matching soil_K_from_soil_theta's clamp.
+  void analytic_partial_flow(std::vector<double>& theta, double dt) const {
+    for (size_t i = 0; i < soil_number_of_depths; i++) {
+      const double k_sat = soil_parameter_value(K_sat_layers, K_sat, i);
+      const double sat = soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, i);
+      const double p = 2 * soil_parameter_value(n_psi_layers, n_psi, i) + 3;
+      double th = theta[i], rem = dt;
+      // Drainage stops at the residual floor (issue #485): a layer is not drained
+      // below theta_r. This is the exact-flow form of the monolithic positivity
+      // guard, and matches drainage_touchdown_time.
+      if (th <= soil_moist_residual) continue;
+      if (th > sat) {                                // capped drainage: linear decline
+        const double t_to_sat = (th - sat) * dz[i] / k_sat;
+        if (rem <= t_to_sat) { theta[i] = th - k_sat * rem / dz[i]; continue; }
+        th = sat; rem -= t_to_sat;
+      }
+      const double c = k_sat / (dz[i] * std::pow(sat, p));
+      const double drained =
+        std::pow(std::pow(th, 1 - p) + (p - 1) * c * rem, -1.0 / (p - 1));
+      theta[i] = std::max(drained, soil_moist_residual);
+    }
+  }
+
+  // The non-drainage remainder: infiltration into layer 0, the drainage cascade
+  // inflow K(theta_{i-1}) into deeper layers, and root uptake. drate[i] is the
+  // rate the caller steps between exact-flow half-steps. The uptake floor (issue
+  // #485) keeps a layer at the residual moisture from being dried further by
+  // uptake; drainage positivity is already guaranteed by analytic_partial_flow.
+  void residual_rhs(const std::vector<double>& theta,
+                    const std::vector<double>& resource_depletion,
+                    std::vector<double>& drate) const {
+    const double infiltration = infiltration_rate(theta[0]);
+    for (size_t i = 0; i < soil_number_of_depths; i++) {
+      const double water_in =
+        (i == 0) ? infiltration : soil_K_from_soil_theta(theta[i - 1], i - 1);
+      double rate = (water_in - resource_depletion[i]) / dz[i];
+      if (theta[i] <= soil_moist_residual && !(rate > 0.0)) rate = 0.0;
+      drate[i] = rate;
+    }
+  }
+
+  // Time for the drainage recession to bring a layer from theta down to the
+  // residual floor -- a closed-form contact event for a splitting micro-stepper,
+  // rather than a dense-output root-find. Infinity if already at/below the floor.
+  double drainage_touchdown_time(double theta, size_t layer) const {
+    if (theta <= soil_moist_residual) return std::numeric_limits<double>::infinity();
+    const double sat = soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, layer);
+    const double k_sat = soil_parameter_value(K_sat_layers, K_sat, layer);
+    const double p = 2 * soil_parameter_value(n_psi_layers, n_psi, layer) + 3;
+    double t = 0.0, th = theta;
+    if (th > sat) { t += (th - sat) * dz[layer] / k_sat; th = sat; }
+    const double c = k_sat / (dz[layer] * std::pow(sat, p));
+    t += (std::pow(soil_moist_residual, 1 - p) - std::pow(th, 1 - p)) / ((p - 1) * c);
+    return t;
+  }
+
+  // Value-in/value-out wrappers so the split can be exercised and checked against
+  // the monolithic solve from R (which cannot observe an in-place update).
+  std::vector<double> r_analytic_partial_flow(std::vector<double> theta, double dt) const {
+    analytic_partial_flow(theta, dt);
+    return theta;
+  }
+  std::vector<double> r_residual_rhs(std::vector<double> theta,
+                                     std::vector<double> resource_depletion) const {
+    std::vector<double> drate(soil_number_of_depths);
+    residual_rhs(theta, resource_depletion, drate);
+    return drate;
+  }
+  double r_drainage_touchdown_time(double theta, int layer) const {
+    return drainage_touchdown_time(theta, static_cast<size_t>(layer));
   }
 
   // calculate K from K_sat based on theta

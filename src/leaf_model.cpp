@@ -671,6 +671,13 @@ void Leaf::set_shutdown_state(double root_collar) {
   root_collar_psi_ = root_collar;
   opt_psi_stem_ = psi_crit;
   profit_ = -R_d_ - hydraulic_cost_TF(psi_crit);
+  // The stem is held at psi_crit -- transpiration is not possible -- so the
+  // plant draws no water. Without this the reused leaf keeps whatever
+  // soil_consumption_/E_up_ the previous (responsive) cohort left, feeding a
+  // stale, soil-moisture-independent phantom uptake into the soil balance and
+  // zeroing the reverse-mode gradient across the drought regime (R-C, #55).
+  soil_consumption_.assign(soil_number_of_depths_, 0.0);
+  E_up_ = 0.0;
 }
 
 // Shared setup + feasibility handling for the root-collar solve. Extracted

@@ -144,6 +144,23 @@ public:
     return rate(HEIGHT_INDEX);
   }
 
+  // Per-layer resource consumption of an individual grown to `height` under the
+  // given (frozen-light, soil-θ) environment. The factored coupling the
+  // multirate collocation consumes (plant#53 item 4): the stand's per-layer
+  // uptake is a density-weighted integral of this over the size distribution, so
+  // it can be quadratured at m << N heights instead of every cohort. Mirrors
+  // growth_rate_given_height: set the height, recompute, read the result.
+  std::vector<double> consumption_given_height(double height,
+                                               const environment_type& environment) {
+    set_state(HEIGHT_INDEX, height);
+    compute_rates(environment);
+    std::vector<double> ret(environment.ode_size());
+    for (size_t i = 0; i < ret.size(); ++i) {
+      ret[i] = consumption_rate(i);
+    }
+    return ret;
+  }
+
   double resource_compensation_point() {
     environment_type env = environment_type();
 
