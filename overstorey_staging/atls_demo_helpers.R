@@ -31,19 +31,22 @@ atls_make_leaf <- function() {
        g1_TF24 = p$g1_TF24, beta_R_H = 3.4e2, beta_R_V = 9.4e3)
 }
 
-## The four ATLS strategy axes as leaf traits. `atls_traits()` returns the ATLS
-## default ("generalist") trait set; override any knob via ....
-##   tolerance   -> tcrit_0 (baseline damage threshold), topt_offset (capacity T_opt)
-##   acclimation -> A_crit / A_opt (inducible states, here set to a standing value
-##                  to represent a fully-acclimated leaf), with the saturating
-##                  ceilings dTcrit_max / dTopt_max and half-saturation K_A
-##   repair      -> k_r1_0 (refold capacity D->N; keeps N high when hot)
+## The ATLS merged-revision strategy axes as leaf traits. `atls_traits()` returns
+## the default ("generalist") trait set; override any knob via ....
+##   tolerance   -> topt_offset (one thermostability offset shifting T_opt AND the
+##                  damage onset together), with ceiling dTopt_max / half-sat K_A
+##   acclimation -> A (inducible thermostability state; here set to a standing
+##                  value to represent a fully-acclimated leaf)
+##   repair      -> preventive k_i (leak phi_d->I_r) and restorative k_rec
+##                  (resynthesis of I_r); k_mat sets the permanent floor
+##   damage      -> I_r / I_p (the lasting-damage pools; a leaf snapshot sets them
+##                  directly to show the (1 - I_r - I_p) capacity discount)
 ##   (avoidance is not a leaf trait -- it is transpirational cooling on the PM
 ##    path; dial it via the leaf config: conductance / dimension d / wind.)
 atls_traits <- function(...) {
-  tr <- list(tcrit_0 = 38, topt_offset = 0, k_d1_0 = 864, k_r1_0 = 864,
-             m_switch = 1, m_rep = 0.4, t_rep_cut = 45,
-             dTcrit_max = 6, dTopt_max = 6, K_A = 1, A_crit = 0, A_opt = 0)
+  tr <- list(topt_offset = 0, k_i = 0.5, k_rec = 0.25, k_mat = 0.02,
+             m_rep = 0.4, t_rep_cut = 45, dTopt_max = 6, K_A = 1,
+             A = 0, I_r = 0, I_p = 0)
   utils::modifyList(tr, list(...))
 }
 
@@ -52,27 +55,26 @@ atls_traits <- function(...) {
 atls_strategies <- function() {
   list(
     "Generalist"  = atls_traits(),
-    "Tolerant"    = atls_traits(tcrit_0 = 44, topt_offset = 6),
-    "Repairer"    = atls_traits(k_r1_0 = 5000),
-    "Acclimated"  = atls_traits(A_crit = 5, A_opt = 5)
+    "Tolerant"    = atls_traits(topt_offset = 6),
+    "Repairer"    = atls_traits(k_rec = 2.0, k_i = 0.1),
+    "Acclimated"  = atls_traits(A = 5)
   )
 }
 
 ## Apply a trait set to a leaf and turn the damage layer on.
 atls_apply_traits <- function(l, tr = atls_traits()) {
   l$use_thermal_damage_ <- TRUE
-  l$tcrit_0_    <- tr$tcrit_0
-  l$topt_offset_<- tr$topt_offset
-  l$k_d1_0_     <- tr$k_d1_0
-  l$k_r1_0_     <- tr$k_r1_0
-  l$m_switch_   <- tr$m_switch
-  l$m_rep_      <- tr$m_rep
-  l$t_rep_cut_  <- tr$t_rep_cut
-  l$dTcrit_max_ <- tr$dTcrit_max
-  l$dTopt_max_  <- tr$dTopt_max
-  l$K_A_        <- tr$K_A
-  l$A_crit_     <- tr$A_crit
-  l$A_opt_      <- tr$A_opt
+  l$topt_offset_ <- tr$topt_offset
+  l$k_i_         <- tr$k_i
+  l$k_rec_       <- tr$k_rec
+  l$k_mat_       <- tr$k_mat
+  l$m_rep_       <- tr$m_rep
+  l$t_rep_cut_   <- tr$t_rep_cut
+  l$dTopt_max_   <- tr$dTopt_max
+  l$K_A_         <- tr$K_A
+  l$A_           <- tr$A
+  l$I_r_         <- tr$I_r
+  l$I_p_         <- tr$I_p
   invisible(l)
 }
 
@@ -117,16 +119,34 @@ atls_leaf_temp <- function(l, Tenv) {
   }
 }
 
-## The raw damage curve N(Tleaf) for a trait set: the functional (undamaged)
-## fraction the layer applies to jmax. Prescribed Tleaf (Fick path), so it is the
-## pure mechanism with no solver in the loop. N is computed inside set_physiology
-## (update_temperature_dependent_params) and read straight back.
-atls_N_curve <- function(Tleaf_seq, tr = atls_traits(), PAR = 1500, VPD = 2,
-                         cfg = atls_leaf_config()) {
+## The reversible deactivation curve phi_d(Tleaf) for a trait set: the
+## transiently-unfolded fraction, K/(1+K), from the SAME Medlyn K(T) inside the
+## peaked-Arrhenius curve. It is the substrate feeding the irreversible I_r leak;
+## its half-unfolding (onset) is emergent at T_K = H_d/d_S ~ 34.5 C. Prescribed
+## Tleaf (Fick path) so it is the pure mechanism, computed in set_physiology and
+## read straight back.
+atls_phi_d_curve <- function(Tleaf_seq, tr = atls_traits(), PAR = 1500, VPD = 2,
+                             cfg = atls_leaf_config()) {
   vapply(Tleaf_seq, function(T) {
     l <- atls_make_leaf()
     atls_set_physiology(l, PAR, T, VPD, tr, pm = FALSE, cfg)
-    l$N_
+    l$phi_d_
+  }, numeric(1))
+}
+
+## Illustrative quasi-steady recoverable-damage fraction I_r*(Tleaf): the balance
+## the I_r ODE relaxes toward at a held leaf temperature, with I_p = 0,
+##   I_r* = k_i * phi_d / (k_i * phi_d + k_rec_eff + k_mat),
+## using the leaf's own phi_d and gated k_rec_eff (day^-1; the DAYS_PER_YEAR
+## factor cancels). Shows how tolerance (lower phi_d) and repair (higher k_rec)
+## reduce standing recoverable damage.
+atls_Ir_star_curve <- function(Tleaf_seq, tr = atls_traits(), PAR = 1500,
+                               VPD = 2, cfg = atls_leaf_config()) {
+  vapply(Tleaf_seq, function(T) {
+    l <- atls_make_leaf()
+    atls_set_physiology(l, PAR, T, VPD, tr, pm = FALSE, cfg)
+    influx <- tr$k_i * l$phi_d_
+    influx / (influx + l$k_rec_eff_ + tr$k_mat)
   }, numeric(1))
 }
 
@@ -139,8 +159,10 @@ atls_solve_cell <- function(PAR, Tenv, VPD, tr = atls_traits(), pm = FALSE,
   l <- atls_make_leaf()
   atls_set_physiology(l, PAR, Tenv, VPD, tr, pm, cfg)
   l$find_root_collar_psi()
+  influx <- tr$k_i * l$phi_d_
   data.frame(strategy = label, PAR = PAR, Tenv = Tenv, VPD = VPD, pm = pm,
-             Tleaf = atls_leaf_temp(l, Tenv), N = l$N_,
+             Tleaf = atls_leaf_temp(l, Tenv), phi_d = l$phi_d_,
+             Ir_star = influx / (influx + l$k_rec_eff_ + tr$k_mat),
              A = l$assim_colimited_, gs = l$stom_cond_CO2_,
              E = l$transpiration_, profit = l$profit_)
 }
@@ -173,9 +195,9 @@ atls_solve_strategies <- function(Tenv_seq, strategies = atls_strategies(),
 ## One SCM run. `type` is "TF24t" (PM + ATLS) or "TF24" (a PM-only comparator,
 ## with use_energy_balance forced on to match TF24t's forced PM). `mutate` tweaks
 ## the resident strategy -- the thermal axes are TF24t *strategy* fields
-## (topt_offset / tcrit_0 / k_r1_0 for the constitutive axes; alpha_opt /
-## alpha_crit for the acclimation kinetics), so an SCM strategy is a heritable
-## trait set, unlike the fixed-A_crit leaf snapshots in atls_strategies().
+## (topt_offset for constitutive thermostability; k_i / k_rec for repair; alpha
+## for the acclimation kinetics), so an SCM strategy is a heritable trait set,
+## unlike the fixed-A leaf snapshots in atls_strategies().
 atls_scm_fitness <- function(leaf_temp, type = "TF24t", mutate = identity,
                              lma = 0.0825, birth_rate = 20, PPFD = NULL) {
   p <- scm_base_parameters(type) |>
@@ -199,9 +221,9 @@ atls_scm_fitness <- function(leaf_temp, type = "TF24t", mutate = identity,
 atls_scm_strategies <- function() {
   list(
     "Generalist" = identity,
-    "Tolerant"   = function(s) { s$tcrit_0 <- 44; s$topt_offset <- 6; s },
-    "Repairer"   = function(s) { s$k_r1_0 <- 5000; s },
-    "Acclimator" = function(s) { s$alpha_opt <- 0.06; s$alpha_crit <- 0.06; s })
+    "Tolerant"   = function(s) { s$topt_offset <- 6; s },
+    "Repairer"   = function(s) { s$k_rec <- 2.0; s$k_i <- 0.1; s },
+    "Acclimator" = function(s) { s$alpha <- 0.06; s })
 }
 
 ## R0 across a climate gradient for TF24t vs the PM-only TF24 comparator.

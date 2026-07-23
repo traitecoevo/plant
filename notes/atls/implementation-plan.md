@@ -390,3 +390,61 @@ base TF24 and TF24+PM remain bit-identical.
 **Build/test loop:** `make rebuild` then, per-file,
 `Rscript -e 'pkgload::load_all(".", compile=FALSE); testthat::test_file("tests/testthat/<f>")'`.
 Use `run_scm(..., refine_schedule = FALSE)` for fast smoke tests.
+
+---
+
+## Merged revision (2026-07) — IMPLEMENTED
+
+The agreed merged revision (spec: `overstorey_staging/TF24t_leaf_ATLS_model.qmd`
+§sec-merged; plan-mode file `~/.claude/plans/implement-the-atls-merged-async-eagle.md`)
+is now implemented on the branch, superseding the as-built N-switch layer.
+
+**What changed:**
+- **Unified reversible curve.** The instantaneous factor `N = k_r/(k_r+k_d)` and its
+  parameters (`tcrit_0`, `m_switch`, `dTcrit_max`, `k_d1_0`, `k_r1_0`) are removed.
+  The deactivated fraction `phi_d = K/(1+K)` is derived from the *same* Medlyn `K(T)`
+  in `peak_arrh_curve` (`Leaf::deactivated_fraction`), so the reversible decline is
+  counted once and damage onset is **emergent** at `H_d/dS ≈ 34.5 °C`
+  (`Leaf::d_S_damage_shifted`, Ea-independent → near-rigid shift).
+- **Lasting damage.** Two new slow ODE states `damage_recoverable` (I_r) and
+  `damage_permanent` (I_p) replace the instantaneous loss; **both** vcmax and jmax
+  carry `(1 - I_r - I_p)` (`update_temperature_dependent_params`, survival floored at
+  1e-6). Cascade (`TF24t_Strategy::compute_rates`): `dI_r/dt = D·[k_i·phi_d·(1-I_r-I_p)
+  − (k_rec_eff+k_mat)·I_r]`, `dI_p/dt = D·k_mat·I_r − (g/L)·I_p`, with `D = 365.25`
+  (day→year, timescale reconciled per user), `k_rec_eff` gated by the repurposed
+  `t_rep_cut`/`m_rep` (`Leaf::k_rec_eff`), and `g/L = pars.k_l + max(0,area_leaf_dt)/
+  area_leaf` (turnover + canopy expansion). Maturation coupling: permanent fraction
+  per insult ≈ `k_mat/(k_rec+k_mat)`.
+- **One acclimation state.** `acclim_topt`+`acclim_tcrit` → one `acclim_thermostab`
+  (A) shifting dS. Net ODE states 2 → 3.
+- **Merged costs.** Leaf R_d_: acclim maint ∝ A; repair standing ∝ k_rec + protection
+  (k_i_ref−k_i); activity ∝ k_rec_eff·I_r. Whole-plant: one construction cost
+  (`c_build`·topt_offset) + induction ∝ pos(dA/dt). New params `k_i`,`k_rec`,`k_mat`,
+  `c_protect_maint`; `c_build_tcrit` removed.
+- **Version:** `thermal_revision` 1 → 2; `model_id = "TF24t@v3.2"`; snapshot re-blessed.
+
+**Key decisions (user, this session):** build against installed odelia; `g/L` =
+turnover + expansion; **reconcile day→year now** (rates day⁻¹, ×D at ODE sites);
+keep the literal 3-ODE structure and **pay the integration cost** rather than
+collapse I_r to quasi-steady; `I_p → 1` under sustained lethal heat is intended.
+
+**Performance / numerical caveat (important).** Reconciling to per-year makes I_r a
+genuinely fast ODE mode (~180/yr) relative to the demographic clock; each step runs a
+PM psi-solve, so SCM runs are materially slower than the as-built quasi-steady layer.
+A leaf pinned at sustained lethal heat (never culled) drives I_r+I_p→1 and the adaptive
+step size very small — effectively a stall. Real SCM runs cull dying plants and
+complete (default leaf_temp=25 SCM ~47 s, all finite, I_p max ~0.60 via PM overheat).
+The survival floor (1e-6) keeps capacity>0 and the photosynthesis/psi solve
+well-conditioned. Tests exercise the physics via single-evaluation rate checks and
+moderate integrations, NOT pathological lethal-heat integrations. Open follow-up: if
+hot-climate SCM runs prove too slow in practice, revisit collapsing I_r to quasi-steady
+(recommended at decision time; performance-vs-fidelity trade recorded here).
+
+**Tests (all green):** `test-leaf-thermal.R` (33), `test-strategy-tf24t.R` (31),
+`test-model-version.R` (25 + skips), `test-atls-leaf-demo.R` (28); demo helpers +
+model.qmd/demo.qmd rewritten to the merged model.
+
+**Still open:** full-suite regression re-run on this branch; rebuild against odelia
+MASTER before landing/PR; re-run the materiality gate (`notes/atls/gate_atls_vs_pm.R`)
+under the lasting-damage feedback; the SCM competitive-outcome evaluation; rate/cost
+defaults remain calibration targets.

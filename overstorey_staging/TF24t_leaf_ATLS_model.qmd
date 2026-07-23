@@ -1,0 +1,530 @@
+---
+title: "TF24t leaf thermal-response model (ATLS): mathematical description"
+subtitle: "Lumry–Eyring damage, repair, and acclimation on the Penman–Monteith leaf (issue #566)"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    html-math-method: katex
+    fig-width: 9
+---
+
+## Scope and provenance
+
+This document is the mathematical specification of the **ATLS** thermal-response
+layer added to the TF24 leaf model (issue #566), building on the Penman–Monteith
+leaf energy balance (#523). It describes the equations *as implemented* on the
+branch `feature/tf24-atls-thermal-damage`, cross-referenced to the source:
+
+- Leaf-level physics and kinetics: [`src/leaf_model.cpp`](../src/leaf_model.cpp),
+  [`inst/include/plant/leaf_model.h`](../inst/include/plant/leaf_model.h).
+- Acclimation state dynamics and whole-plant costs:
+  [`src/tf24t_strategy.cpp`](../src/tf24t_strategy.cpp),
+  [`inst/include/plant/models/tf24t_strategy.h`](../inst/include/plant/models/tf24t_strategy.h).
+
+The layer is **gated** (`use_thermal_damage_`): with the gate off, every equation
+below collapses to its TF24 form (no lasting damage, no $T_\mathrm{opt}$ shift, no
+thermal cost), so base TF24 (and TF24+PM) remain bit-identical. The `TF24t` strategy
+turns the gate on unconditionally and, because the damage substrate is only
+physically meaningful at a real operating-point leaf temperature, also forces the PM
+energy balance on.
+
+This document describes the model **as implemented after the merged revision**
+(§[-@sec-merged]): the two reversible high-temperature declines are unified onto one
+Medlyn deactivation curve, and damage is given lasting memory through two slow pools
+$I_r$ (recoverable) and $I_p$ (permanent). The companion `TF24t_leaf_ATLS_demo.qmd`
+exercises these equations numerically; this document states them.
+
+Notation: temperatures are in °C unless written $T_K = T + T_0$ with
+$T_0 = 273.15$. $R = 8.314\ \mathrm{J\,mol^{-1}\,K^{-1}}$ is the gas constant.
+
+---
+
+## The model in one paragraph
+
+A leaf sits at an operating temperature $T_\ell$ set by its energy balance
+(§[-@sec-energy]). Photosynthetic *capacity* ($V_\mathrm{cmax}$, $J_\mathrm{max}$)
+follows a reversible peaked-Arrhenius response whose optimum $T_\mathrm{opt}$ can be
+shifted up by constitutive tolerance and by acclimation (§[-@sec-capacity]). The
+high-temperature deactivation term of that *same* curve defines a transiently
+**unfolded fraction** $\varphi_d(T_\ell)$ (§[-@sec-damage]); a fraction of that
+unfolded protein leaks into **lasting damage**, carried by two slow ODE pools — a
+recoverable pool $I_r$ (resynthesised over days) and a permanent pool $I_p$ (cleared
+only as the plant grows new leaf). Both capacities carry the lasting discount
+$(1-I_r-I_p)$. Damage onset is *emergent* at $\approx H_d/\Delta S \approx 34.5$ °C
+from the deactivation thermodynamics, not a separate parameter. Constitutive
+tolerance and a single inducible acclimation state $A$ shift $\Delta S$ (moving
+$T_\mathrm{opt}$ and the onset together; §[-@sec-accl]). Every axis carries a carbon
+cost (§[-@sec-cost]). Because $\varphi_d$ (and the capacity) are evaluated at the
+operating-point $T_\ell$, transpirational cooling (**avoidance**) reduces the damage
+flux and is self-selecting in the stomatal/hydraulic optimiser (§[-@sec-feedback]).
+
+The four strategy axes map onto the equations as:
+
+| Axis | Parameter(s) | Enters via |
+|---|---|---|
+| **Tolerance** (constitutive) | $\Delta T_\mathrm{opt,0}$ (`topt_offset`) | thermostability shift of $\Delta S$ → $T_\mathrm{opt}$ and onset (§[-@sec-topt-shift]) |
+| **Acclimation** (inducible) | $A$ (ODE state) | same $\Delta S$ shift, inducibly (§[-@sec-accl]) |
+| **Repair** | preventive $k_i$, restorative $k_\mathrm{rec}$ | the $I_r$ cascade (§[-@sec-damage]) |
+| **Avoidance** | transpiration $E$ via PM | $T_\ell$ → $\varphi_d$ (§[-@sec-energy], §[-@sec-feedback]) |
+
+---
+
+## Leaf temperature: Penman–Monteith energy balance {#sec-energy}
+
+The operating leaf temperature is the explicit (minimal-cut) energy balance from
+#523 ([`leaf_model.cpp:1178`](../src/leaf_model.cpp#L1178)):
+
+$$
+T_\ell \;=\; T_\mathrm{air} \;+\; \frac{\left(R_n - \lambda E\right)\, r_a}{\rho c_p},
+\qquad T_\ell \in [-40, 70]\ \text{°C (clamped)} .
+$$ {#eq-tleaf}
+
+The incoming `leaf_temp` driver is reinterpreted as air temperature,
+$T_\mathrm{air}$. The terms are:
+
+- **Net radiation** ([`leaf_model.cpp:249`](../src/leaf_model.cpp#L249)):
+  $$
+  R_n \;=\; \frac{a_\mathrm{sw}\,Q}{\eta_\mathrm{par}} \;+\; L_\mathrm{net},
+  $$
+  with absorbed PAR $Q$ (`PPFD_`, µmol m⁻² s⁻¹), shortwave-to-PAR factor
+  $a_\mathrm{sw}=2$, PAR photon conversion $\eta_\mathrm{par}=4.57$ µmol J⁻¹, and a
+  fixed clear-sky longwave cooling offset $L_\mathrm{net}=-40$ W m⁻².
+- **Aerodynamic resistance** from leaf boundary-layer theory
+  ([`leaf_model.cpp:254`](../src/leaf_model.cpp#L254)):
+  $$
+  r_a \;=\; C_{r_a}\sqrt{\frac{d}{U}} \quad (C_{r_a}=200),
+  $$
+  with leaf dimension $d$ and above-canopy wind speed $U$; a fixed
+  $r_a = 50$ s m⁻¹ is used when $d$ or $U$ is unusable. Smaller $d$ / higher $U$
+  ⇒ better coupling ⇒ $T_\ell$ closer to $T_\mathrm{air}$.
+- **Latent heat** $\lambda = 2.45\times10^{6}$ J kg⁻¹; **volumetric heat capacity of
+  air** $\rho c_p = 1200$ J m⁻³ K⁻¹.
+- **Transpiration** $E$ (kg H₂O m⁻² s⁻¹) is *not* free: it is pinned by the existing
+  Sperry hydraulic supply at the stem water potential $\psi_\mathrm{stem}$ chosen by
+  the profit optimiser (§[-@sec-feedback]).
+
+> **Caveat (minimal-cut PM).** With $r_a$ fixed and no leaf-to-air VPD feedback, an
+> isolated leaf under high radiation overheats several °C above air. Absolute $T_\ell$
+> is therefore an upper bound; the *contrast* between well- and poorly-coupled leaves
+> is the robust signal (see `notes/atls/gate-atls-vs-pm-evaluation.md`).
+
+---
+
+## Reversible photosynthetic capacity {#sec-capacity}
+
+### Arrhenius and peaked-Arrhenius forms
+
+Temperature-independent-optimum parameters ($\Gamma^*$, $K_o$, $K_c$) use a plain
+Arrhenius response ([`leaf_model.cpp:1050`](../src/leaf_model.cpp#L1050)):
+
+$$
+f_\mathrm{arrh}(T_\ell; E_a, f_{25})
+= f_{25}\,\exp\!\left[\frac{E_a\,(T_{\ell,K}-298.15)}{298.15\,R\,T_{\ell,K}}\right].
+$$
+
+$V_\mathrm{cmax}$ and $J_\mathrm{max}$ use the Medlyn (2002) **peaked**-Arrhenius form,
+which adds a high-temperature deactivation term
+([`leaf_model.cpp:1056`](../src/leaf_model.cpp#L1056)):
+
+$$
+f_\mathrm{peak}(T_\ell; E_a, f_{25}, H_d, \Delta S)
+= f_\mathrm{arrh}(T_\ell)\cdot
+\frac{1+\exp\!\big[(\Delta S\cdot 298.15 - H_d)/(298.15\,R)\big]}
+     {1+\exp\!\big[(\Delta S\cdot T_{\ell,K} - H_d)/(R\,T_{\ell,K})\big]}.
+$$ {#eq-peak}
+
+The peak location (capacity optimum) is
+
+$$
+T_{\mathrm{opt},K} \;=\; \frac{H_d}{\Delta S - R\ln\!\big(E_a/(H_d-E_a)\big)} .
+$$ {#eq-topt}
+
+Defaults ($V_\mathrm{cmax}$: $E_a=60000$, $H_d=200000$, $\Delta S=650$;
+$J_\mathrm{max}$: $E_a=30000$, $H_d=200000$, $\Delta S=650$ — all J mol⁻¹, J mol⁻¹,
+J mol⁻¹ K⁻¹) place $T_\mathrm{opt}\approx30$ °C. $\Delta S$ is the knob that moves it:
+lower $\Delta S$ ⇒ higher $T_\mathrm{opt}$.
+
+### Shifting the optimum: $T_\mathrm{opt}$ target → $\Delta S$ inversion {#sec-topt-shift}
+
+Rather than exposing $\Delta S$, the model exposes a **target optimum shift**
+$\Delta T_\mathrm{opt}$ (°C) and inverts @eq-topt for the $\Delta S$ that achieves it
+([`leaf_model.cpp:1093`](../src/leaf_model.cpp#L1093)). With
+$\mathrm{corr}=R\ln(E_a/(H_d-E_a))$ and baseline optimum
+$T_{\mathrm{opt},0,K}=H_d/(\Delta S_\mathrm{base}-\mathrm{corr})$:
+
+$$
+T_{\mathrm{opt},K}' = \mathrm{clamp}\!\big(T_{\mathrm{opt},0,K} + \Delta T_\mathrm{opt},\;250,\;350\big),
+\qquad
+\Delta S' = \frac{H_d}{T_{\mathrm{opt},K}'} + \mathrm{corr}.
+$$
+
+The clamp on $T_{\mathrm{opt},K}'$ keeps the curve peaked and finite for any offset.
+The total shift combines the constitutive (tolerance) offset and a *single*
+inducible thermostability state $A$ (§[-@sec-accl]):
+
+$$
+\Delta T_\mathrm{opt} \;=\; \underbrace{\Delta T_\mathrm{opt,0}}_{\text{tolerance}}
+\;+\; \underbrace{\Delta T_{\mathrm{opt,max}}\,\frac{A}{A+K_A}}_{\text{acclimation}} .
+$$ {#eq-dtopt}
+
+$\Delta S'$ (from $\Delta T_\mathrm{opt}$) is applied to *both* $V_\mathrm{cmax}$ and
+$J_\mathrm{max}$ in @eq-peak. The same shift moves the damage onset (§[-@sec-damage]),
+so raising thermostability translates the whole thermal response up in temperature —
+one knob, near-rigid (the small correction term of @eq-topt makes peak and onset move
+by *nearly*, not exactly, the same amount; see §[-@sec-merged-numerics]).
+
+---
+
+## Thermal damage: the unfolded fraction $\varphi_d$ and two lasting pools {#sec-damage}
+
+### The single reversible deactivation equilibrium {#sec-phid}
+
+The Medlyn denominator of @eq-peak already encodes a two-state
+active⇌deactivated equilibrium. Its constant $K(T_\ell)$ and the deactivated
+(unfolded) fraction are ([`leaf_model.cpp`](../src/leaf_model.cpp),
+`deactivated_fraction`):
+
+$$
+K(T_\ell)=\exp\!\left[\frac{\Delta S\,T_{\ell,K} - H_d}{R\,T_{\ell,K}}\right],
+\qquad
+\varphi_d(T_\ell)=\frac{K}{1+K},\qquad
+\varphi_a(T_\ell)=\frac{1}{1+K}=1-\varphi_d .
+$$ {#eq-phid}
+
+This is the *same* $K(T_\ell)$ that sits in `peak_arrh_curve`, so the reversible
+capacity curve is unchanged ($f_\mathrm{peak}=f_\mathrm{arrh}\,[1+K(25)]\,\varphi_a$);
+$\varphi_d$ is a byproduct of it, evaluated at the midday operating-point $T_\ell$.
+Two consequences follow for free:
+
+- **Damage onset is emergent, not a parameter.** Half-unfolding ($K=1$) sits at
+  $T_K=H_d/\Delta S = 200000/650 \approx 34.5$ °C, a few degrees above
+  $T_\mathrm{opt}$, both from the *same* $(H_d,\Delta S)$. The as-built `tcrit_0`,
+  `m_switch`, `dTcrit_max` are gone.
+- **One curve drives both capacities.** $\varphi_d$ depends only on $H_d,\Delta S$
+  (identical for $V_\mathrm{cmax}$ and $J_\mathrm{max}$); the implementation uses one
+  $\Delta S$, shifted by acclimation via the onset $H_d/\Delta S$
+  (`d_S_damage_shifted`, Ea-independent so the shift is a near-rigid translation).
+
+### The damage cascade: recoverable $I_r$ and permanent $I_p$ {#sec-cascade}
+
+Fractions of the original machinery sum to 1: active $(1-I_r-I_p)\varphi_a$,
+transiently unfolded $(1-I_r-I_p)\varphi_d$ (refolds on cooling; leaks to $I_r$),
+recoverable-inactivated $I_r$, permanent $I_p$. **Both** capacities carry the lasting
+discount ([`leaf_model.cpp`](../src/leaf_model.cpp),
+`update_temperature_dependent_params`):
+
+$$
+V_\mathrm{cmax}=f_\mathrm{peak}^{V}(T_\ell)\,(1-I_r-I_p),
+\qquad
+J_\mathrm{max}=f_\mathrm{peak}^{J}(T_\ell)\,(1-I_r-I_p).
+$$ {#eq-discount}
+
+(The reversible $\varphi_a$ is already inside $f_\mathrm{peak}$, so there is no double
+discount. The survival fraction $1-I_r-I_p$ is floored at a negligible
+$10^{-6}$ so capacity stays strictly positive and the photosynthesis / $\psi$-stem
+solve is well-conditioned as $I_r+I_p\to1$.) The two pools are **slow ODE states on
+the strategy** (§[-@sec-accl]); at a single fresh evaluation ($I_r=I_p=0$) a hot leaf
+loses nothing instantly beyond the reversible $\varphi_a$ — damage is a *memory* that
+accrues over time, unlike the as-built instantaneous factor.
+
+$J_\mathrm{max}$ (after the discount) sets the light-limited electron transport rate
+via the unchanged non-rectangular hyperbola, colimiting with the Rubisco-limited rate
+in the TF24 FvCB solver.
+
+### Repair: preventive $k_i$ and restorative $k_\mathrm{rec}$ {#sec-repair}
+
+Fast refolding is now the instantaneous equilibrium $\varphi_d$, so the single
+old refold knob splits into two mechanistically distinct axes:
+
+- **Preventive $k_i$** — the leak rate from the unfolded pool into $I_r$. Lowering it
+  is chaperone-like stabilisation of the intermediate.
+- **Restorative $k_\mathrm{rec}$** — resynthesis speed of $I_r$, calibrated by the
+  3–5 d rebound. It is gated off above $T_\mathrm{rep,cut}$ (repurposed `t_rep_cut`,
+  `m_rep`) because the synthesis machinery itself fails when too hot
+  ([`leaf_model.cpp`](../src/leaf_model.cpp), `k_rec_eff`):
+  $$
+  k_\mathrm{rec}^\mathrm{eff}(T_\ell)=k_\mathrm{rec}\,\sigma\!\big(-m_\mathrm{rep}(T_\ell-T_\mathrm{rep,cut})\big),
+  \qquad \sigma(x)=\tfrac{1}{1+e^{-x}} .
+  $$ {#eq-krec}
+
+Above $T_\mathrm{rep,cut}$, $\varphi_d\to1$ *and* recovery shuts off, so $I_r$ accrues
+unchecked and matures into $I_p$ — the runaway that yields heatwave lethality.
+
+---
+
+## Slow ODE states: acclimation $A$ and the damage pools $I_r,I_p$ {#sec-accl}
+
+Three slow ODE state variables are appended to the TF24t strategy state vector
+([`tf24t_strategy.cpp`](../src/tf24t_strategy.cpp), `compute_rates`):
+`acclim_thermostab` ($A$), `damage_recoverable` ($I_r$), `damage_permanent` ($I_p$).
+The current values are fed into the leaf each step ($I_r,I_p$ before the reused TF24
+rates run, so the capacity discount sees them); $\varphi_d$ and
+$k_\mathrm{rec}^\mathrm{eff}$ are read back at the operating-point $T_\ell$ to form
+the damage rates.
+
+**Acclimation.** A single thermostability state relaxes toward a heat-driven forcing:
+
+$$
+\frac{\mathrm{d}A}{\mathrm{d}t}
+ = D\,\big[\alpha\,\mathrm{sp}\!\big(T - T_\mathrm{accl}\big) - \beta A\big],
+\qquad
+\mathrm{sp}(x) = \tfrac{1}{s}\log\!\big(1 + e^{s x}\big),
+$$ {#eq-accl}
+
+where $T$ is the (midday) environmental leaf-temperature driver, $\mathrm{sp}$ is the
+softplus ($C^1$) replacement for $\max(0,x)$ (sharpness $s$), and
+$D=365.25\ \mathrm{d\,yr^{-1}}$ converts the day⁻¹ kinetics to the SCM's yearly clock
+(§[-@sec-merged-numerics]). $A$ feeds the $T_\mathrm{opt}$/onset shift (@eq-dtopt).
+
+**Damage cascade.** The two pools draw from the transiently-unfolded substrate
+$\varphi_d$ and mature/recover on separate timescales:
+
+$$
+\frac{\mathrm{d}I_r}{\mathrm{d}t}=D\,\Big[k_i\,\varphi_d(T_\ell)\,(1-I_r-I_p)
+ - \big(k_\mathrm{rec}^\mathrm{eff}+k_\mathrm{mat}\big)\,I_r\Big],
+\qquad
+\frac{\mathrm{d}I_p}{\mathrm{d}t}=D\,k_\mathrm{mat}\,I_r-\frac{g}{L}\,I_p .
+$$ {#eq-cascade}
+
+The $(1-I_r-I_p)$ factor confines fresh damage to not-yet-damaged protein, bounding
+$I_r+I_p\le1$ without a clamp. The **maturation coupling** is the central emergent
+behaviour: the permanent fraction of an insult is
+$\approx k_\mathrm{mat}/(k_\mathrm{rec}+k_\mathrm{mat})$, so prompt restorative repair
+both rebounds faster *and* leaves a lower permanent floor.
+
+**Permanent clearance by dilution.** $I_p$ is an intensive fraction; with unbiased
+senescence the shed-tissue terms cancel and only clean new leaf dilutes it, so
+$g/L$ is the **gross leaf-area production rate** over leaf area. The implementation
+uses $g/L = k_l + \max(0,\dot A_\ell)/A_\ell$ (leaf turnover rate $k_l$ in the mature
+limit, faster while the canopy expands; $\dot A_\ell$ recovered from the height rate).
+$g/L$ is already per-year, so it takes no $D$ factor.
+
+**Equilibrium and seeding.** $A$ is **seeded at its equilibrium**
+$A^\star=(\alpha/\beta)\,\mathrm{sp}(T-T_\mathrm{accl})$ (the $D$ cancels in the ratio)
+for the birth environment, with $I_r=I_p=0$ (fresh recruits have undamaged leaves), so
+there is no cold-start transient (`set_initial_states`).
+
+> **Timescale (reconciled).** Kinetics are stated in day⁻¹ and converted to the
+> yearly clock by $D$. This makes $I_r$ (~4 d) a genuinely fast mode relative to the
+> demographic clock; it is integrated faithfully as an ODE, at a real cost in
+> integration steps (§[-@sec-merged-numerics]). The rate constants and cost scales
+> remain calibration targets.
+
+---
+
+## Carbon costs of thermal strategy {#sec-cost}
+
+Costs live in two places, matching the physics.
+
+### Leaf-level respiration
+
+Added to dark respiration $R_d$ (µmol CO₂ m⁻² s⁻¹; base $R_d = 0.015\,V_\mathrm{cmax}$)
+on the damage path ([`leaf_model.cpp`](../src/leaf_model.cpp),
+`update_temperature_dependent_params`):
+
+$$
+R_d \;\mathrel{+}=\;
+\underbrace{c_\mathrm{acclim}\,A}_{\text{acclim. maintenance}}
+\;+\;
+\underbrace{c_\mathrm{rep,maint}\,k_\mathrm{rec}
+ + c_\mathrm{prot}\max(0,k_{i,\mathrm{ref}}-k_i)}_{\text{repair + protection maintenance}}
+\;+\;
+\underbrace{c_\mathrm{rep,flux}\,k_\mathrm{rec}^\mathrm{eff}\,I_r}_{\text{repair activity}} .
+$$ {#eq-Rd}
+
+Standing maintenance is paid whether or not used — for resynthesis *capacity*
+($k_\mathrm{rec}$) and for the *protection* level (chaperone-like stabilisation,
+i.e. lowering $k_i$ below a reference $k_{i,\mathrm{ref}}$). Repair *activity* is paid
+in proportion to protein actually rebuilt ($k_\mathrm{rec}^\mathrm{eff}\,I_r$,
+replacing the as-built $k_{r1}(1-N)$).
+
+### Whole-plant net production
+
+The TF24t strategy overrides net mass production to subtract two costs that are not
+leaf-local respiration ([`tf24t_strategy.cpp`](../src/tf24t_strategy.cpp),
+`net_mass_production_dt`):
+
+$$
+\dot m_\mathrm{net}^{\,\mathrm{TF24t}} = \dot m_\mathrm{net}^{\,\mathrm{TF24}}
+ - C_\mathrm{build} - C_\mathrm{induct}.
+$$
+
+- **Construction cost** (constitutive tolerance) collapses to *one* axis — the single
+  thermostability offset — amortised through leaf turnover $\tau_\ell(\text{mass}_\ell)$:
+  $$
+  C_\mathrm{build} = c_\mathrm{build}\,\max(0,\Delta T_\mathrm{opt,0})\,\tau_\ell .
+  $$
+  You only pay for thermostability bought *above* the intrinsic optimum, so a default
+  TF24t pays no construction cost.
+- **Induction cost** (acclimation), proportional to the smoothed positive build rate
+  of the single state:
+  $$
+  C_\mathrm{induct} = c_\mathrm{induct}\,\mathrm{pos}(\dot A),
+  \qquad \mathrm{pos}(x)=\tfrac12\big(x + \sqrt{x^2+\varepsilon^2}\big),
+  $$
+  a $C^\infty$ positive part matching the form TF24 uses for net production.
+
+Avoidance carries **no new cost term**: its water use is already priced by the Sperry
+hydraulic pathway.
+
+---
+
+## The optimiser feedback: why avoidance is self-selecting {#sec-feedback}
+
+The leaf chooses its stem water potential $\psi_\mathrm{stem}$ to maximise profit,
+
+$$
+\Pi(\psi_\mathrm{stem}) = A\big(T_\ell(E(\psi_\mathrm{stem}))\big) - (\text{hydraulic risk cost}),
+$$
+
+solved by `find_root_collar_psi`. The coupling chain closes the loop:
+
+$$
+\psi_\mathrm{stem} \;\to\; E \;\xrightarrow{\text{@eq-tleaf}}\; T_\ell
+\;\xrightarrow{\text{@eq-phid}}\; \varphi_d \;\to\; \dot I_r \;\to\; (1-I_r-I_p)J_\mathrm{max} \;\to\; A \;\to\; \Pi .
+$$
+
+A more-transpiring (or better-coupled, smaller-$d$) candidate runs a cooler midday
+$T_\ell$, lowering $\varphi_d$ and hence the damage flux into $I_r$ — so over time it
+carries less lasting damage, keeps more capacity, and the optimiser *values* cooling
+directly, with no separate avoidance machinery. Forcing the PM energy balance on gives
+a real operating-point $T_\ell$, and $\varphi_d$ evaluated there makes avoidance a
+self-selecting outcome of the existing profit maximisation.
+
+---
+
+## Parameters and defaults {#sec-params}
+
+Thermal / acclimation / cost parameters exposed on the `TF24t` strategy
+([`tf24t_strategy.h`](../inst/include/plant/models/tf24t_strategy.h)); leaf-side
+mirrors carry a trailing underscore.
+
+| Symbol | Code | Default | Units | Role |
+|---|---|---|---|---|
+| $\Delta T_\mathrm{opt,0}$ | `topt_offset` | 0 | °C | constitutive thermostability shift ($T_\mathrm{opt}$ + onset) |
+| $k_i$ | `k_i` | 0.5 | day⁻¹ | preventive leak $\varphi_d\to I_r$ |
+| $k_\mathrm{rec}$ | `k_rec` | 0.25 | day⁻¹ | restorative resynthesis of $I_r$ (3–5 d rebound) |
+| $k_\mathrm{mat}$ | `k_mat` | 0.02 | day⁻¹ | maturation $I_r\to I_p$ |
+| $m_\mathrm{rep}$ | `m_rep` | 0.4 | °C⁻¹ | repair-collapse switch slope |
+| $T_\mathrm{rep,cut}$ | `t_rep_cut` | 45 | °C | resynthesis shut-off temperature |
+| $\Delta T_\mathrm{opt,max}$ | `dTopt_max` | 6 | °C | max acclimation rise in $T_\mathrm{opt}$ |
+| $K_A$ | `K_A` | 1.0 | — | half-saturation of acclimation response |
+| $\alpha$ | `alpha` | 0.02 | — | acclimation forcing gain |
+| $\beta$ | `beta` | 0.01 | day⁻¹ | acclimation decay rate |
+| $T_\mathrm{accl}$ | `t_accl` | 30 | °C | acclimation forcing threshold |
+| $s$ | `softplus_s` | 1.0 | °C⁻¹ | softplus sharpness |
+| $c_\mathrm{acclim}$ | `c_acclim_maint` | 0.02 | — | acclimation maintenance ($R_d$, per unit $A$) |
+| $c_\mathrm{rep,maint}$ | `c_repair_maint` | $10^{-5}$ | — | repair maintenance ($R_d$, per day⁻¹ of $k_\mathrm{rec}$) |
+| $c_\mathrm{prot}$ | `c_protect_maint` | $10^{-5}$ | — | protection maintenance ($R_d$, per day⁻¹ of $k_{i,\mathrm{ref}}-k_i$) |
+| $c_\mathrm{rep,flux}$ | `c_repair_flux` | $10^{-4}$ | — | repair activity ($R_d$, per day⁻¹ of resynthesis flux) |
+| $c_\mathrm{build}$ | `c_build` | 0.02 | °C⁻¹ | construction premium on leaf turnover, per °C thermostability |
+| $c_\mathrm{induct}$ | `c_accl_induct` | 0.01 | — | induction cost, biomass per unit positive $\dot A$ |
+| $\varepsilon$ | `induct_eps` | $10^{-4}$ | — | smoothing of the positive-part of $\dot A$ |
+
+Fixed leaf-side constants (not R-settable): $k_{i,\mathrm{ref}}=0.5$ day⁻¹
+(no-extra-protection reference), survival floor $10^{-6}$, $D=365.25$ day yr⁻¹.
+
+Fixed leaf physical constants ([`leaf_model.h`](../inst/include/plant/leaf_model.h)):
+$R=8.314$, $T_0=273.15$, $\lambda=2.45\times10^6$ J kg⁻¹, $\rho c_p=1200$ J m⁻³ K⁻¹,
+$a_\mathrm{sw}=2$, $\eta_\mathrm{par}=4.57$ µmol J⁻¹, $L_\mathrm{net}=-40$ W m⁻²,
+$C_{r_a}=200$ (fixed fallback $r_a=50$ s m⁻¹), $T_\ell\in[-40,70]$ °C.
+Peaked-Arrhenius: $V_\mathrm{cmax}$ $(E_a,H_d,\Delta S)=(60000,200000,650)$;
+$J_\mathrm{max}$ $(30000,200000,650)$.
+
+---
+
+## Numerical-stability contract {#sec-numerics}
+
+The layer feeds the ODE integrator and the `run_mutant` replay cache, where a single
+non-finite value poisons the whole SCM run. The equations are therefore built to a
+finite-output contract:
+
+- **$C^1$ everywhere.** All temperature/threshold responses are smooth in drivers and
+  traits: the deactivation fraction $\varphi_d$ and the repair gate
+  $k_\mathrm{rec}^\mathrm{eff}$ (logistic), softplus forcing, smooth positive part
+  $\mathrm{pos}(\cdot)$. No `if`-branch on a driver/trait *value* inside a response.
+- **Bounded / saturating forms.** $\Delta T_\mathrm{opt}(A)$ saturates;
+  $\varphi_d\in[0,1]$; the $(1-I_r-I_p)$ factor bounds the pools without a clamp;
+  acclimation self-limits via $-\beta A$ decay. Every expression has a finite limit as
+  any input $\to\pm\infty$.
+- **Guarded transcendentals.** Logistic, $\varphi_d$'s $K$, and softplus arguments are
+  clamped to $|{\cdot}|\le30$ before `exp`; `log1p` used near 0.
+- **Protected domains.** $K_A>0$ guards @eq-dtopt; the $\Delta S$ shifts (capacity and
+  damage-onset) are clamped via $T_K\in[250,350]$ so the curves stay peaked; $T_\ell$
+  is clamped to $[-40,70]$ °C.
+- **Survival floor.** The discount $1-I_r-I_p$ is floored at $10^{-6}$, so a fully
+  damaged leaf keeps a negligible-but-positive capacity and the FvCB colimitation /
+  $\psi$-stem solve stay well-conditioned as $I_r+I_p\to1$.
+- **A genuine fast mode (documented cost).** Reconciling the day⁻¹ kinetics to the
+  yearly clock makes $I_r$ (~4 d) a fast ODE mode relative to the demographic clock.
+  It is integrated faithfully, but forces small adaptive steps — each running a PM
+  $\psi$-stem solve — so SCM runs are materially slower than the as-built quasi-steady
+  layer, and a leaf pinned at sustained lethal heat (never culled) drives $I_r+I_p\to1$
+  and the step size very small. Real SCM runs cull dying plants and complete; tests
+  exercise the physics with single-evaluation rate checks and moderate integrations
+  rather than pathological lethal-heat integrations.
+
+---
+
+## Revision history: from the as-built layer to this model {#sec-merged}
+
+::: {.callout-note}
+## Status: implemented
+This section is a design-history note. The body above (§[-@sec-capacity]–§[-@sec-numerics])
+now describes the model **as implemented** on `feature/tf24-atls-thermal-damage` after
+the *merged revision*. The **as-built** layer it superseded used an instantaneous,
+reversible Lumry–Eyring factor $N=k_r/(k_r+k_d)$ (a second high-$T$ discount on top of
+the peaked-Arrhenius deactivation) and two independent acclimation states
+(`acclim_topt`, `acclim_tcrit`). Full phase-by-phase history lives in
+`notes/atls/implementation-plan.md`.
+:::
+
+The revision made two structural changes:
+
+1. **Merged the two reversible declines into one.** The high-$T$ decline was
+   represented twice — once by the peaked-Arrhenius deactivation and again by the
+   $N\rightleftharpoons D$ switch, both discounting $J_\mathrm{max}$. The revision derives
+   the deactivated fraction $\varphi_d=K/(1+K)$ from the *same* Medlyn $K(T)$
+   (§[-@sec-phid]), so the reversible response is counted once and the damage onset
+   becomes **emergent** at $\approx H_d/\Delta S\approx34.5$ °C. Removed: `tcrit_0`,
+   `m_switch`, `dTcrit_max`, `k_d1_0`, `k_r1_0`.
+
+2. **Gave damage lasting memory.** $N$ was memoryless (a cooled leaf rebounded
+   instantly), whereas heat-shock recovery takes 3–5 days and a fraction never repairs.
+   The revision adds two slow pools (§[-@sec-cascade]): recoverable $I_r$ (resynthesised
+   over ~4 d) and permanent $I_p$ (cleared only by new-leaf dilution). Both capacities
+   carry the $(1-I_r-I_p)$ discount. Added: $k_i$, $k_\mathrm{rec}$, $k_\mathrm{mat}$;
+   the old repair-shutoff (`t_rep_cut`, `m_rep`) is repurposed to gate $k_\mathrm{rec}$.
+
+The **maturation coupling** (permanent fraction of an insult
+$\approx k_\mathrm{mat}/(k_\mathrm{rec}+k_\mathrm{mat})$; §[-@sec-cascade]) is the central
+emergent behaviour: prompt restorative repair prevents permanent scarring. The two
+acclimation states merged into one thermostability state $A$ shifting $\Delta S$
+(moving $T_\mathrm{opt}$ and onset together, near-rigid). Net ODE state change: the two
+as-built states (`acclim_topt`, `acclim_tcrit`) became three
+(`acclim_thermostab`, `damage_recoverable`, `damage_permanent`), and the model version
+advanced to `TF24t@v3.2`.
+
+### Timescales, calibration, and the near-rigid caveat {#sec-merged-numerics}
+
+Mode timescales after the day→year reconciliation (§[-@sec-accl]): $\varphi_d(T_\ell)$
+is algebraic (the fast equilibrium), $I_r\sim$ 4 d, $A\sim$ 100 d, $I_p\sim$ turnover
+(months). $I_r$ is thus a genuinely fast ODE mode on the yearly demographic clock — see
+the performance note in §[-@sec-numerics]. Calibration anchors are largely independent:
+$k_\mathrm{rec}$ from the 3–5 d rebound; $k_\mathrm{mat}$ from the permanent residue per
+event; $k_i$ from damage magnitude after a known heat dose; thermostability from the
+observed $T_\mathrm{opt}$ shift. All ship as modest nonzero **calibration targets**.
+
+**Near-rigid, not exact.** $T_\mathrm{opt,K}=H_d/(\Delta S-\mathrm{corr})$ carries the
+extra $\mathrm{corr}=R\ln(E_a/(H_d-E_a))$ term while the onset $H_d/\Delta S$ does not,
+so shifting $\Delta S$ translates peak and onset by *nearly* — not exactly — the same
+amount. Thermostability is a near-rigid translation of the whole curve.
+
+## Cross-references
+
+- Design and phase history: `notes/atls/implementation-plan.md`.
+- Materiality gate (verdict: KEEP): `notes/atls/gate-atls-vs-pm-evaluation.md`.
+- Numerical demo of every equation above: `TF24t_leaf_ATLS_demo.qmd` (this folder).
+- Prerequisite energy balance: issue #523 (Penman–Monteith leaf); this layer: #566.

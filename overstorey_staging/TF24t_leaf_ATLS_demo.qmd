@@ -33,104 +33,102 @@ strat_pal <- c("Generalist" = "#7570b3", "Tolerant" = "#d95f02",
                "Repairer" = "#1b9e77", "Acclimated" = "#e7298a")
 ```
 
-The **ATLS** layer (Lumry–Eyring leaf thermal damage / repair / acclimation,
-issue #566) gives a TF24 leaf a mechanistic response to heat. At its core is a
-single quasi-steady **functional fraction** `N ∈ (0, 1]` — the share of the
-electron-transport machinery still working — which downscales `jmax → jmax·N`.
-`N` is a smooth turn-off centred just above the critical temperature `T_crit`:
-cold leaves are undamaged (`N ≈ 1`); hot leaves lose capacity (`N → 0`).
+The **ATLS** layer (leaf thermal damage / repair / acclimation, issue #566,
+*merged revision*) gives a TF24 leaf a mechanistic response to heat. Its core is
+the **deactivated fraction** `φ_d ∈ [0, 1]` — the transiently-unfolded share of
+the machinery, read straight off the *same* Medlyn peaked-Arrhenius curve that
+sets capacity. `φ_d` half-unfolds at an **emergent onset** `≈ H_d/ΔS ≈ 34.5 °C`
+(no separate `T_crit` parameter). Unfolded protein leaks into **lasting damage**:
+a recoverable pool `I_r` (resynthesised over ~4 days) and a permanent pool `I_p`
+(cleared only as the plant grows new leaf). Both capacities carry the lasting
+discount `(1 − I_r − I_p)`, so — unlike the memoryless as-built factor — a cooled
+leaf does *not* rebound instantly.
 
 A thermal *strategy* is a point in a four-axis trait space, all plugging into the
 same physics:
 
 | Axis | Knob | Moves |
 |---|---|---|
-| **Tolerance** (constitutive) | `tcrit_0`, `topt_offset` | shifts the damage curve and the capacity optimum to higher T |
-| **Acclimation** (inducible) | `A_crit`, `A_opt` states | *raises* `T_crit`/`T_opt` when the regime is hot |
-| **Repair** | `k_r1_0` (refold capacity) | lifts `N` at a given hot T (starves the damage pool) |
-| **Avoidance** | transpirational cooling (PM) | lowers the operating leaf temperature itself |
+| **Tolerance** (constitutive) | `topt_offset` | shifts the capacity optimum *and* the damage onset up together (one thermostability knob) |
+| **Acclimation** (inducible) | `A` state | the same shift, induced when the regime is hot |
+| **Repair** | preventive `k_i`, restorative `k_rec` | lower the leak into `I_r` / rebuild it faster (and cut the permanent floor) |
+| **Avoidance** | transpirational cooling (PM) | lowers the operating leaf temperature, hence `φ_d` |
 
 This demo drives a single well-watered leaf. It is a work-in-progress staging
 document, not a built vignette. See `notes/atls/implementation-plan.md` for the
 design and `notes/atls/gate-atls-vs-pm-evaluation.md` for the evaluation gate.
 
-## 1. The damage curve `N(Tleaf)` and its carbon cost
+## 1. The deactivation curve `φ_d(Tleaf)` and the damage it drives
 
-The generalist (ATLS-default) leaf: `N` holds at 1 until ~34 °C, then falls
-sharply through `T_crit = 38 °C`. Because `jmax` is scaled by `N`, assimilation
-follows it down. Here the leaf temperature is *prescribed* (Fick path), so this
-is the pure mechanism with no optimiser in the loop.
+The generalist (default) leaf: `φ_d` sits near 0 while cold, passes through
+**half-unfolding at the emergent onset ≈ 34.5 °C** (`H_d/ΔS`, marked), and
+saturates toward 1 when hot — all from the *same* `K(T)` inside the peaked-
+Arrhenius curve, with no separate `T_crit`. Leaf temperature is *prescribed*
+(Fick path), so this is the pure mechanism with no optimiser in the loop.
 
-In the right-hand panel, **damage off** vs **on** is the *same* leaf at the same
-temperature, differing only in whether the damage kinetics run: "off" zeroes the
-unfolding rate (`k_d1_0 = 0`), forcing `N = k_r/(k_r + k_d) = 1` at every
-temperature (no `jmax` penalty); "on" uses the ATLS defaults, so `N < 1` once hot.
-The gap between the curves is the carbon lost to thermal damage.
+The right-hand panel shows the standing recoverable damage this substrate would
+drive at equilibrium, `I_r* = k_i·φ_d / (k_i·φ_d + k_rec_eff + k_mat)` (with
+`I_p = 0`): the balance the `I_r` ODE relaxes toward at a held temperature. Fresh
+leaves lose no capacity instantly — damage is a *memory* that fills this pool over
+days, and each unit of `I_r`/`I_p` discounts **both** `vcmax` and `jmax`.
 
 ```{r damage-curve}
 Tleaf <- seq(20, 50, by = 0.5)
-N_gen <- atls_N_curve(Tleaf, atls_traits())
+phi_gen <- atls_phi_d_curve(Tleaf, atls_traits())
+Ir_gen  <- atls_Ir_star_curve(Tleaf, atls_traits())
+onset <- 200000 / 650 - 273.15   # H_d/dS in deg C ~ 34.5
 
-# Assimilation with the damage layer OFF vs ON, prescribed Tleaf, solved optimum.
-gradA <- bind_rows(lapply(seq(20, 50, by = 2), function(T) {
-  off <- atls_solve_cell(1500, T, 2, atls_traits(k_d1_0 = 0))  # k_d=0 -> N==1
-  on  <- atls_solve_cell(1500, T, 2, atls_traits())
-  data.frame(Tleaf = T, `damage off` = off$A, `damage on` = on$A,
-             check.names = FALSE)
-})) |>
-  pivot_longer(-Tleaf, names_to = "layer", values_to = "A")
-
-p_N <- ggplot(data.frame(Tleaf, N = N_gen), aes(Tleaf, N)) +
+p_phi <- ggplot(data.frame(Tleaf, phi = phi_gen), aes(Tleaf, phi)) +
   geom_line(colour = "#d95f02", linewidth = 0.9) +
-  geom_vline(xintercept = 38, linetype = "dashed", colour = "grey50") +
-  annotate("text", x = 38.4, y = 0.05, label = "T_crit", hjust = 0,
+  geom_vline(xintercept = onset, linetype = "dashed", colour = "grey50") +
+  annotate("text", x = onset + 0.4, y = 0.05, label = "onset H_d/ΔS", hjust = 0,
            size = 3, colour = "grey40") +
   ylim(0, 1) +
-  labs(x = "leaf temperature (°C)", y = "N (functional fraction)",
-       title = "Damage factor N(Tleaf)")
+  labs(x = "leaf temperature (°C)", y = "φ_d (unfolded fraction)",
+       title = "Deactivation φ_d(Tleaf)")
 
-p_A <- ggplot(gradA, aes(Tleaf, A, colour = layer)) +
-  geom_line(linewidth = 0.9) +
-  scale_colour_manual(values = c("damage off" = "grey55",
-                                 "damage on" = "#d95f02"), name = NULL) +
-  labs(x = "leaf temperature (°C)", y = "assimilation (µmol C m⁻² s⁻¹)",
-       title = "Carbon cost of damage") +
-  theme(legend.position = c(0.75, 0.85))
+p_Ir <- ggplot(data.frame(Tleaf, Ir = Ir_gen), aes(Tleaf, Ir)) +
+  geom_line(colour = "#7570b3", linewidth = 0.9) +
+  ylim(0, 1) +
+  labs(x = "leaf temperature (°C)", y = "I_r* (quasi-steady)",
+       title = "Standing recoverable damage")
 
-p_N | p_A
+p_phi | p_Ir
 ```
 
-## 2. Four thermal-response strategies move the curve differently
+## 2. Four thermal-response strategies move the damage differently
 
-Each archetype is a single-axis move off the generalist. **Tolerance** and
-**acclimation** slide the whole turn-off to higher temperature; **repair** lifts
-the floor without moving the threshold. (Avoidance is not a curve-shift — it
+Each archetype is a single-axis move off the generalist, shown as the standing
+recoverable damage `I_r*(Tleaf)`. **Tolerance** and **acclimation** shift the
+onset (and hence `I_r*`) to higher temperature; **repair** (higher `k_rec`, lower
+`k_i`) lowers `I_r*` at a given temperature. (Avoidance is not a curve-shift — it
 lowers the *operating* temperature, shown in §4.)
 
 ```{r strategy-curves}
 strategies <- atls_strategies()
-Ncurves <- bind_rows(lapply(names(strategies), function(nm) {
+Ir_curves <- bind_rows(lapply(names(strategies), function(nm) {
   data.frame(strategy = nm, Tleaf = Tleaf,
-             N = atls_N_curve(Tleaf, strategies[[nm]]))
+             Ir = atls_Ir_star_curve(Tleaf, strategies[[nm]]))
 }))
 
-ggplot(Ncurves, aes(Tleaf, N, colour = strategy)) +
+ggplot(Ir_curves, aes(Tleaf, Ir, colour = strategy)) +
   geom_line(linewidth = 0.9) +
-  geom_vline(xintercept = 38, linetype = "dashed", colour = "grey70") +
   scale_colour_manual(values = strat_pal, name = NULL) +
   ylim(0, 1) +
-  labs(x = "leaf temperature (°C)", y = "N (functional fraction)",
-       title = "N(Tleaf) by thermal strategy",
-       subtitle = "Tolerant/Acclimated shift T_crit right; Repairer lifts the hot-end floor") +
+  labs(x = "leaf temperature (°C)", y = "I_r* (quasi-steady recoverable damage)",
+       title = "Standing damage I_r*(Tleaf) by thermal strategy",
+       subtitle = "Tolerant/Acclimated shift the onset right; Repairer lowers the whole curve") +
   theme(legend.position = "top")
 ```
 
 ## 3. Who keeps carbon where? Assimilation across a heat gradient
 
-The payoff. Solving the optimum at each prescribed leaf temperature, tolerance
-and acclimation buy the most carbon in the 36–44 °C band (they also lift the cool
-end, because `topt_offset`/`A_opt` raise the capacity optimum); repair buffers the
-extreme hot end; the generalist collapses first.
+The payoff, on fresh leaves (`I_r = I_p = 0`, so the assimilation panel isolates
+the reversible-capacity effect). Tolerance and acclimation raise the capacity
+optimum (`topt_offset`/`A`), buying carbon at hot leaf temperatures; the standing-
+damage panel shows where lasting damage *would* accrue over days — repair (lower
+`k_i`, higher `k_rec`) and tolerance both suppress `I_r*`, while the generalist
+accrues the most.
 
 ```{r strategy-assim}
 grad <- atls_solve_strategies(seq(24, 48, by = 2), strategies,
@@ -142,13 +140,13 @@ p_grad_A <- ggplot(grad, aes(Tenv, A, colour = strategy)) +
   labs(x = "leaf temperature (°C)", y = "assimilation (µmol C m⁻² s⁻¹)",
        title = "Carbon gain by strategy")
 
-p_grad_N <- ggplot(grad, aes(Tenv, N, colour = strategy)) +
+p_grad_Ir <- ggplot(grad, aes(Tenv, Ir_star, colour = strategy)) +
   geom_line(linewidth = 0.9) +
   scale_colour_manual(values = strat_pal, name = NULL) +
-  labs(x = "leaf temperature (°C)", y = "N at the operating point",
-       title = "Retained capacity by strategy")
+  labs(x = "leaf temperature (°C)", y = "I_r* at the operating point",
+       title = "Standing damage by strategy")
 
-(p_grad_N | p_grad_A) +
+(p_grad_Ir | p_grad_A) +
   plot_layout(guides = "collect") &
   theme(legend.position = "top")
 ```
@@ -158,9 +156,10 @@ p_grad_N <- ggplot(grad, aes(Tenv, N, colour = strategy)) +
 Avoidance is not a damage trait — it is the leaf keeping itself cooler than the
 air by transpiring, through the Penman–Monteith energy balance (#523). A
 better-coupled leaf (smaller dimension `d`, higher conductance) runs closer to
-air temperature, so on a hot day it sits at a higher `N` and keeps assimilating —
-and because `N` feeds the carbon the psi-stem optimiser sees, cooling is
-*self-selecting*. Here both leaves are the generalist; only the coupling differs.
+air temperature, so on a hot day it sits at a lower `φ_d` and drives less lasting
+damage — and because `φ_d` (and capacity) feed the carbon the psi-stem optimiser
+sees, cooling is *self-selecting*. Here both leaves are the generalist; only the
+coupling differs.
 
 ```{r avoidance}
 avoid_cfgs <- list(
@@ -173,7 +172,8 @@ avoid <- bind_rows(lapply(names(avoid_cfgs), function(nm) {
   bind_rows(lapply(seq(24, 40, by = 0.5), function(Tair) {
     r <- atls_solve_cell(1500, Tair, 2, atls_traits(), pm = TRUE,
                          cfg = avoid_cfgs[[nm]])
-    data.frame(coupling = nm, Tair = Tair, Tleaf = r$Tleaf, N = r$N, A = r$A)
+    data.frame(coupling = nm, Tair = Tair, Tleaf = r$Tleaf,
+               phi_d = r$phi_d, A = r$A)
   }))
 }))
 
@@ -187,13 +187,13 @@ p_av_T <- ggplot(avoid, aes(Tair, Tleaf, colour = coupling)) +
   labs(x = "air temperature (°C)", y = "operating leaf temperature (°C)",
        title = "Cooling by coupling", subtitle = "dotted = Tleaf = Tair")
 
-p_av_N <- ggplot(avoid, aes(Tair, N, colour = coupling)) +
+p_av_phi <- ggplot(avoid, aes(Tair, phi_d, colour = coupling)) +
   geom_line(linewidth = 0.9) +
   scale_colour_manual(values = avoid_pal, name = NULL) +
-  labs(x = "air temperature (°C)", y = "N at the operating point",
-       title = "... buys retained capacity")
+  labs(x = "air temperature (°C)", y = "φ_d at the operating point",
+       title = "... lowers the deactivated fraction")
 
-(p_av_T | p_av_N) +
+(p_av_T | p_av_phi) +
   plot_layout(guides = "collect") &
   theme(legend.position = "top")
 ```
@@ -244,9 +244,9 @@ acclimation are two sides of the same layer; which wins depends on the climate.
 ## 6. Which thermal strategy persists hottest? (SCM tournament)
 
 Now hold the climate at the warm edge and vary the *strategy* — each a heritable
-single-axis move off the generalist (tolerance = constitutive `tcrit_0` +
-`topt_offset`; repair = higher `k_r1_0`; acclimator = faster acclimation
-kinetics). Higher R0 = more able to persist.
+single-axis move off the generalist (tolerance = constitutive `topt_offset`;
+repair = higher restorative `k_rec` + lower preventive-leak `k_i`; acclimator =
+faster acclimation kinetics). Higher R0 = more able to persist.
 
 ```{r scm-tournament, cache=TRUE}
 tourney <- atls_scm_tournament(c(26, 28))
@@ -264,23 +264,27 @@ ggplot(tourney, aes(strategy, R0, fill = strategy)) +
   theme(axis.text.x = element_text(angle = 20, hjust = 1))
 ```
 
-The ranking is consistent across the warm edge: **Tolerant > Acclimator >
-Generalist > Repairer**. Constitutive tolerance wins decisively (at 26 °C it lifts
-R0 from ~1.0 to ~1.8 and is the only strategy still viable at 28 °C); dynamic
-acclimation is a solid second; and **repair actually underperforms the
-generalist** here — its standing maintenance cost (`∝ k_r1_0`, paid even when
-cool) is not repaid at these moderate temperatures. That cost/benefit reversal is
-exactly the kind of trade-off the cost structure (Phase 3) was built to expose.
+Constitutive **tolerance** persists hottest — it raises the capacity optimum and
+the damage onset together and clears R0 = 1 at a warmer climate than the
+generalist. Dynamic **acclimation** buys a similar shift inducibly. **Repair**
+must earn back its standing maintenance (paid for resynthesis capacity `k_rec` and
+protection `k_i`, whether or not damage is present), so whether it pays depends on
+how hot the climate runs. That cost/benefit tension is exactly what the merged
+cost structure was built to expose. (Runs are cached; exact rankings depend on the
+calibration-target rate/cost defaults.)
 
 ## 7. Summary
 
-`N(Tleaf)` is the single lever: strategies win carbon by moving *where* it turns
-off (tolerance, acclimation), *how high the floor sits* when hot (repair), or
-*where the leaf actually operates* (avoidance). All four plug into the same
-Lumry–Eyring kinetics and Penman–Monteith energy balance. At the community scale
-the same layer sets *where a population can persist* under warming, and — because
-tolerance and acclimation carry benefits while repair and construction carry
-costs — *which strategy* persists hottest is a genuine trade-off, not a given.
-See `notes/atls/gate-atls-vs-pm-evaluation.md` for the whole-plant materiality
-gate (verdict: keep) and the caveats (notably the minimal-cut PM overheating,
-which makes the constant-climate collapse temperatures an upper bound).
+The deactivation curve `φ_d(Tleaf)` is the single substrate: strategies win by
+moving *where it turns on* (tolerance, acclimation shift the emergent onset),
+*how much unfolds leaks into lasting damage and how fast it is rebuilt* (preventive
+`k_i`, restorative `k_rec`), or *where the leaf actually operates* (avoidance).
+Damage is now a **memory** — the pools `I_r`/`I_p` discount both capacities and
+persist after cooling — so the same insult that a memoryless factor would forget is
+carried forward, and permanent damage clears only as the plant grows new leaf. All
+plug into the one Medlyn deactivation curve and the Penman–Monteith energy balance.
+At the community scale the same layer sets *where a population can persist* under
+warming, and *which strategy* persists hottest is a genuine trade-off. See
+`notes/atls/gate-atls-vs-pm-evaluation.md` for the whole-plant materiality gate
+(verdict: keep) and the caveats (notably the minimal-cut PM overheating, which
+makes the constant-climate collapse temperatures an upper bound).
