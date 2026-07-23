@@ -263,7 +263,10 @@ void Leaf::set_physiology(double area_leaf, const std::vector<double>& mass_root
    // only Tair, and the operating-point Tleaf (hence these params) is set per
    // candidate psi in set_leaf_states_rates_from_psi_stem, so we always recompute
    // the Tair baseline (used for assim_max_ / feasibility) and let the solve
-   // override it.
+   // override it. The thermal-damage path is likewise bypassed: the capacity
+   // discount and phi_d depend on the lasting-damage/acclimation state
+   // (I_r_/I_p_/A_), which the strategy varies each step and the (leaf_temp,O2)
+   // key does not capture.
    if (!use_energy_balance_ &&
        !use_thermal_damage_ &&
        photo_temp_cached_ &&
@@ -1078,14 +1081,6 @@ double Leaf::softplus_(double x, double s) {
   return std::log1p(std::exp(z)) / s;
 }
 
-// Acclimated critical temperature: T_crit(A) = T_crit_0 + dTcrit_max*A/(A+K_A),
-// saturating and bounded by dTcrit_max. A_crit_ defaults to 0 (no acclimation)
-// until the strategy sets it (Phase 2).
-double Leaf::t_crit() const {
-  const double A = std::max(A_crit_, 0.0);
-  return tcrit_0_ + dTcrit_max_ * A / (A + K_A_);
-}
-
 // Invert the Medlyn peaked-Arrhenius optimum to the d_S that shifts T_opt by
 // delta_topt (deg C). Exact optimum: Topt_K = H_d/(d_S - R*ln(Ea/(H_d-Ea))).
 // The shifted optimum is clamped to a strictly-positive, sane range so an
@@ -1097,21 +1092,35 @@ double Leaf::d_S_shifted(double Ea, double H_d, double d_S_base, double delta_to
   return H_d / Topt_K + corr;
 }
 
-// Quasi-steady functional (undamaged) fraction N at a given (midday) leaf
-// temperature. The Lumry-Eyring N<->D balance is switch-dominated (ATLS E_d ~ 0),
-// so at the fast N<->D quasi-steady N = k_r/(k_r + k_d), with a smooth damage
-// switch turning on above T_crit and repair shutting off above t_rep_cut. Bounded
-// in (0,1]: N->1 when cold (no damage), N->0+ when hot with no repair.
-double Leaf::thermal_damage_factor(double leaf_temp) const {
-  const double S_damage = logistic_(m_switch_ * (leaf_temp - t_crit()));
-  const double S_repair = logistic_(-m_rep_ * (leaf_temp - t_rep_cut_));
-  const double k_d = k_d1_0_ * S_damage;
-  const double k_r = k_r1_0_ * S_repair;
-  const double denom = k_r + k_d;
-  if (denom <= 0.0) {
-    return 1.0;  // neither damage nor repair active -> fully functional
-  }
-  return k_r / denom;
+// Deactivated (transiently-unfolded) fraction phi_d = K/(1+K) of the Medlyn
+// two-state active<->deactivated equilibrium, with the SAME K(T) that sits in the
+// peaked-Arrhenius denominator (peak_arrh_curve arg3 = 1+K). phi_d refolds
+// instantly on cooling; it is the substrate feeding the irreversible I_r leak.
+// K = exp((d_S*T_K - H_d)/(R*T_K)); the exp argument is guarded like the logistic
+// so extreme leaf temperatures cannot overflow. Bounded in [0,1].
+double Leaf::deactivated_fraction(double leaf_temp, double d_S) const {
+  const double T_K = leaf_temp + C_to_K;
+  const double arg = std::min(std::max((d_S * T_K - jmax_H_d) / (R * T_K), -30.0), 30.0);
+  const double K = std::exp(arg);
+  return K / (1.0 + K);
+}
+
+// Acclimation-shifted d_S for the DAMAGE curve. Shifts the emergent onset
+// T_K = H_d/d_S by delta_topt (deg C == deg K), Ea-independent (no corr term), so
+// the damage response is a single curve shared by both capacities and translates
+// near-rigidly with acclimation. Onset clamped to a sane, strictly-positive range.
+double Leaf::d_S_damage_shifted(double H_d, double d_S_base, double delta_topt) const {
+  const double onset0_K = H_d / d_S_base;
+  const double onset_K = std::min(std::max(onset0_K + delta_topt, 250.0), 350.0);
+  return H_d / onset_K;
+}
+
+// Extreme-heat repair collapse (repurposed t_rep_cut_/m_rep_): the restorative
+// resynthesis rate k_rec is gated to ~0 above t_rep_cut_, because the
+// protein-synthesis machinery itself fails when too hot. Below the cut it is the
+// background k_rec_. Bounded in [0, k_rec_].
+double Leaf::k_rec_eff(double leaf_temp) const {
+  return k_rec_ * logistic_(-m_rep_ * (leaf_temp - t_rep_cut_));
 }
 
 // Recompute the temperature-dependent photosynthetic parameters at a given leaf
@@ -1122,41 +1131,56 @@ double Leaf::thermal_damage_factor(double leaf_temp) const {
 // jmax_ -- on the non-PM cache-hit path set_physiology refreshes it separately.
 void Leaf::update_temperature_dependent_params(double leaf_temp) {
   if (use_thermal_damage_) {
-    // Tolerance + acclimation shift of the photosynthetic optimum, applied via d_S
-    // (A_opt_ defaults to 0 until the strategy sets it in Phase 2).
-    const double A = std::max(A_opt_, 0.0);
+    // Tolerance + acclimation shift of the photosynthetic optimum, applied via
+    // d_S (A_ defaults to 0 until the strategy sets it). One merged
+    // thermostability state moves T_opt and the damage onset together.
+    const double A = std::max(A_, 0.0);
     const double delta_topt = topt_offset_ + dTopt_max_ * A / (A + K_A_);
     const double vcmax_dS = d_S_shifted(vcmax_ha, vcmax_H_d, vcmax_d_S, delta_topt);
     const double jmax_dS  = d_S_shifted(jmax_ha,  jmax_H_d,  jmax_d_S,  delta_topt);
     vcmax_ = peak_arrh_curve(vcmax_ha, vcmax_25, leaf_temp, vcmax_H_d, vcmax_dS);
     jmax_  = peak_arrh_curve(jmax_ha,  jmax_25,  leaf_temp, jmax_H_d, jmax_dS);
-    // Lumry-Eyring damage downscales electron transport: jmax -> jmax*N.
-    N_ = thermal_damage_factor(leaf_temp);
-    jmax_ *= N_;
+    // Lasting damage: BOTH capacities carry the (1 - I_r - I_p) discount. The
+    // reversible part (phi_a) is already inside peak_arrh_curve, so there is no
+    // double discount. phi_d (same single Ea-independent curve, acclimation-
+    // shifted) is the substrate for the irreversible I_r leak; stored for the
+    // strategy to read at this operating-point Tleaf.
+    // Survival fraction of functional machinery. Floored at a tiny positive
+    // value (not 0) so vcmax_/jmax_ stay strictly positive: a fully-damaged leaf
+    // is carbon-starved (the SCM then kills it) but the FvCB colimitation and the
+    // psi-stem profit solve remain well-conditioned, so the ODE stepper does not
+    // stall as I_r+I_p -> 1 (numerical-stability contract).
+    const double surv = std::min(std::max(1.0 - I_r_ - I_p_, damage_surv_floor), 1.0);
+    vcmax_ *= surv;
+    jmax_  *= surv;
+    const double damage_dS = d_S_damage_shifted(jmax_H_d, jmax_d_S, delta_topt);
+    phi_d_ = deactivated_fraction(leaf_temp, damage_dS);
+    k_rec_eff_ = k_rec_eff(leaf_temp);
   } else {
     vcmax_ = peak_arrh_curve(vcmax_ha, vcmax_25, leaf_temp, vcmax_H_d, vcmax_d_S);
     jmax_ = peak_arrh_curve(jmax_ha, jmax_25, leaf_temp, jmax_H_d, jmax_d_S);
-    N_ = 1.0;
+    phi_d_ = 0.0;
+    k_rec_eff_ = 0.0;
   }
   gamma_ = arrh_curve(gamma_ha, gamma_25, leaf_temp);
   ko_ = arrh_curve(ko_ha, ko_25, leaf_temp);
   kc_ = arrh_curve(kc_ha, kc_25, leaf_temp);
   R_d_ = vcmax_*0.015;
   if (use_thermal_damage_) {
-    // Thermal maintenance/activity respiration (ATLS costs; #566), added to the
-    // dark-respiration term (umol CO2 m^-2 s^-1). Coefficients default 0, so a
-    // bare Leaf pays nothing; TF24t sets them. Split follows the plan:
-    //  - acclimation maintenance ~ held acclimation load (A_opt + A_crit)
-    //  - repair standing maintenance ~ repair *capacity* k_r1_0 (paid even cold)
-    //  - repair activity ~ realized refold flux k_r1 * (1 - N)  (D ~ 1 - N at
-    //    the quasi-steady N<->D balance). N_ was set just above.
-    const double S_repair = logistic_(-m_rep_ * (leaf_temp - t_rep_cut_));
-    const double k_r1 = k_r1_0_ * S_repair;
-    const double repair_flux = k_r1 * (1.0 - N_);
-    const double acclim_load = std::max(A_opt_, 0.0) + std::max(A_crit_, 0.0);
-    R_d_ += c_acclim_maint_ * acclim_load
-          + c_repair_maint_ * k_r1_0_
-          + c_repair_flux_  * repair_flux;
+    // Thermal maintenance/activity respiration (merged-revision costs; #566),
+    // added to the dark-respiration term (umol CO2 m^-2 s^-1). Coefficients
+    // default 0, so a bare Leaf pays nothing; TF24t sets them. Split:
+    //  - acclimation maintenance ~ held thermostability load A
+    //  - repair standing maintenance ~ resynthesis *capacity* k_rec (paid even
+    //    cold) + protection level (lowering k_i below k_i_ref, chaperone-like)
+    //  - repair activity ~ realized resynthesis flux k_rec_eff * I_r
+    const double acclim_load = std::max(A_, 0.0);
+    const double protection = std::max(0.0, k_i_ref_ - k_i_);
+    const double repair_flux = k_rec_eff_ * std::max(0.0, I_r_);
+    R_d_ += c_acclim_maint_  * acclim_load
+          + c_repair_maint_  * k_rec_
+          + c_protect_maint_ * protection
+          + c_repair_flux_   * repair_flux;
   }
   km_ = (kc_*umol_per_mol_to_Pa)*(1 + (atm_o2_kpa_*kPa_to_Pa)/(ko_*umol_per_mol_to_Pa));
   electron_transport_ = electron_transport();

@@ -252,31 +252,53 @@ public:
   // energy balance (use_energy_balance_). R-settable so a bare Leaf/demo can
   // exercise it; default preserves backward compatibility.
   bool use_thermal_damage_ = false;
-  // Constitutive tolerance offsets ("tolerance" strategy axis):
+  // Constitutive tolerance offset ("tolerance" strategy axis): raising thermal
+  // stability shifts the whole peaked-Arrhenius + damage response up in T, via
+  // d_S. One knob, moving T_opt and damage onset together (near-rigid).
   double topt_offset_ = 0.0;  // shift of photosynthetic T_opt, deg C (applied via d_S)
-  double tcrit_0_ = 38.0;     // baseline critical temperature, deg C (ATLS default)
-  // Lumry-Eyring quasi-steady damage kinetics (switch-dominated; ATLS E_d ~ 0 so
-  // the logistic switches, not Arrhenius, control the response).
-  double k_d1_0_ = 864.0;     // unfolding rate scale, day^-1 (N->D)
-  double k_r1_0_ = 864.0;     // refold/repair rate scale, day^-1 (D->N) -- "repair" axis
-  double m_switch_ = 1.0;     // damage switch slope, deg C^-1
+  // Repair-collapse gate (RETAINED from the as-built layer, REPURPOSED to gate
+  // the restorative resynthesis rate k_rec: protein synthesis itself fails when
+  // too hot, so recovery shuts off above t_rep_cut_).
   double m_rep_ = 0.4;        // repair-suppression switch slope, deg C^-1
-  double t_rep_cut_ = 45.0;   // temperature above which repair shuts off, deg C
-  // Acclimation inputs (set by the strategy in Phase 2; 0 => no acclimation):
-  double dTcrit_max_ = 6.0;   // max acclimation rise in T_crit, deg C (ATLS dTmax)
+  double t_rep_cut_ = 45.0;   // temperature above which repair (k_rec) shuts off, deg C
+  // Merged-revision damage-cascade rate constants (day^-1; the strategy converts
+  // to the yearly ODE clock). k_i: preventive leak from the transiently-unfolded
+  // pool phi_d into recoverable damage I_r (lowering it = chaperone-like
+  // stabilisation). k_rec: restorative resynthesis of I_r (~4 d rebound).
+  // k_mat: maturation of I_r into permanent I_p.
+  double k_i_ = 0.5;          // preventive leak rate phi_d -> I_r, day^-1
+  double k_rec_ = 0.25;       // restorative resynthesis of I_r, day^-1 (3-5 d rebound)
+  double k_mat_ = 0.02;       // maturation I_r -> I_p, day^-1
+  double k_i_ref_ = 0.5;      // no-extra-protection reference for the protection cost
+  // Acclimation inputs (set by the strategy; 0 => no acclimation). One merged
+  // thermostability state A_ shifts d_S (T_opt AND onset together).
   double dTopt_max_ = 6.0;    // max acclimation rise in T_opt, deg C
   double K_A_ = 1.0;          // half-saturation of the acclimation response
-  double A_opt_ = 0.0;        // T_opt acclimation state
-  double A_crit_ = 0.0;       // T_crit acclimation state
-  // Thermal-cost coefficients (Phase 3, #566), added to the dark respiration
-  // R_d_ (umol CO2 m^-2 s^-1) on the use_thermal_damage_ path. Default 0 so a
-  // bare Leaf (and every Phase 1 leaf test) pays nothing; TF24t copies its
-  // nonzero, calibration-target defaults in here in prepare_strategy.
-  double c_acclim_maint_ = 0.0;  // acclimation maintenance, per unit (A_opt+A_crit)
-  double c_repair_maint_ = 0.0;  // repair standing maintenance, per day^-1 of k_r1_0
-  double c_repair_flux_  = 0.0;  // repair activity, per day^-1 of realized refold flux
-  // Output: functional (undamaged) fraction N, the jmax multiplier, in (0,1].
-  double N_ = 1.0;
+  double A_ = 0.0;            // merged thermostability acclimation state
+  // Lasting-damage pools (set by the strategy from its ODE states; fractions of
+  // the original machinery, 0 => undamaged). Both capacities carry (1-I_r-I_p).
+  double I_r_ = 0.0;          // recoverable-inactivated fraction
+  double I_p_ = 0.0;          // permanent-inactivated fraction
+  // Thermal-cost coefficients (#566), added to the dark respiration R_d_
+  // (umol CO2 m^-2 s^-1) on the use_thermal_damage_ path. Default 0 so a bare
+  // Leaf pays nothing; TF24t copies its nonzero calibration-target defaults in
+  // prepare_strategy.
+  double c_acclim_maint_ = 0.0;  // acclimation maintenance, per unit A
+  double c_repair_maint_ = 0.0;  // repair standing maintenance, per day^-1 of k_rec
+  double c_protect_maint_ = 0.0; // protection standing maintenance, per day^-1 of (k_i_ref - k_i)
+  double c_repair_flux_  = 0.0;  // repair activity, per day^-1 of realized resynthesis flux
+  // Lower floor on the (1 - I_r - I_p) survival fraction, so a fully-damaged leaf
+  // keeps a negligible-but-strictly-positive capacity and the photosynthesis /
+  // psi-stem solve stays well-conditioned (prevents ODE-stepper stall at the
+  // survival->0 boundary).
+  static constexpr double damage_surv_floor = 1e-6;
+  // Output: deactivated (transiently-unfolded) fraction phi_d in [0,1], the
+  // substrate feeding the irreversible I_r leak; read by the strategy each step.
+  double phi_d_ = 0.0;
+  // Output: restorative resynthesis rate at the operating-point Tleaf (day^-1),
+  // gated to ~0 above t_rep_cut_. Stored so the strategy's I_r ODE and the leaf
+  // repair-activity cost read the same operating-point value.
+  double k_rec_eff_ = 0.0;
   double PPFD_;
   double atm_vpd_;
   double atm_o2_kpa_;
@@ -431,9 +453,19 @@ public:
   double arrh_curve(double Ea, double ref_value, double leaf_temp) const;
   double peak_arrh_curve(double Ea, double ref_value, double leaf_temp, double H_d, double d_S) const;
 
-  // Thermal damage / acclimation (ATLS, #566).
-  double t_crit() const;                                 // acclimated critical temperature, deg C
-  double thermal_damage_factor(double leaf_temp) const;  // functional fraction N in (0,1]
+  // Thermal damage / acclimation (ATLS merged revision, #566).
+  // Deactivated (unfolded) protein fraction phi_d = K/(1+K) of the Medlyn
+  // two-state equilibrium, using the same K(T) already inside peak_arrh_curve.
+  // Ea-independent: driven by (H_d, d_S) only, so one curve governs both
+  // capacities; onset (K=1) is emergent at T_K = H_d/d_S ~ 34.5 deg C.
+  double deactivated_fraction(double leaf_temp, double d_S) const;
+  // Acclimation-shifted d_S for the *damage* curve: shifts the onset H_d/d_S by
+  // delta_topt (deg C), Ea-independent (corr=0), so the whole response is a
+  // near-rigid translation in temperature (see model.qmd numerical caveat).
+  double d_S_damage_shifted(double H_d, double d_S_base, double delta_topt) const;
+  // Extreme-heat repair collapse: restorative resynthesis rate k_rec gated to 0
+  // above t_rep_cut_ (protein-synthesis machinery itself fails when too hot).
+  double k_rec_eff(double leaf_temp) const;
   double d_S_shifted(double Ea, double H_d, double d_S_base, double delta_topt) const;
   static double logistic_(double x);          // numerically-guarded 1/(1+exp(-x))
   static double softplus_(double x, double s); // smooth (C1) max(0,x)

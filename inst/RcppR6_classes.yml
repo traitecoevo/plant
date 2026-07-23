@@ -94,21 +94,23 @@ Leaf:
     wind_speed_: {type: double, access: field}
     use_thermal_damage_: {type: bool, access: field}
     topt_offset_: {type: double, access: field}
-    tcrit_0_: {type: double, access: field}
-    k_d1_0_: {type: double, access: field}
-    k_r1_0_: {type: double, access: field}
-    m_switch_: {type: double, access: field}
     m_rep_: {type: double, access: field}
     t_rep_cut_: {type: double, access: field}
-    dTcrit_max_: {type: double, access: field}
+    k_i_: {type: double, access: field}
+    k_rec_: {type: double, access: field}
+    k_mat_: {type: double, access: field}
+    k_i_ref_: {type: double, access: field}
     dTopt_max_: {type: double, access: field}
     K_A_: {type: double, access: field}
-    A_opt_: {type: double, access: field}
-    A_crit_: {type: double, access: field}
+    A_: {type: double, access: field}
+    I_r_: {type: double, access: field}
+    I_p_: {type: double, access: field}
     c_acclim_maint_: {type: double, access: field}
     c_repair_maint_: {type: double, access: field}
+    c_protect_maint_: {type: double, access: field}
     c_repair_flux_: {type: double, access: field}
-    N_: {type: double, access: field}
+    phi_d_: {type: double, access: field}
+    k_rec_eff_: {type: double, access: field}
     Tair_: {type: double, access: field}
     Rn_: {type: double, access: field}
     ra_: {type: double, access: field}
@@ -1453,28 +1455,23 @@ TF24t_Strategy:
     - is_variable_birth_rate: bool
     # Thermal-damage leaf traits (copied into the Leaf in prepare_strategy):
     - topt_offset: double
-    - tcrit_0: double
-    - k_d1_0: double
-    - k_r1_0: double
-    - m_switch: double
     - m_rep: double
     - t_rep_cut: double
-    - dTcrit_max: double
+    - k_i: double
+    - k_rec: double
+    - k_mat: double
     - dTopt_max: double
     - K_A: double
     # Acclimation ODE kinetics (used by the strategy's compute_rates):
-    - alpha_opt: double
-    - beta_opt: double
-    - t_accl_opt: double
-    - alpha_crit: double
-    - beta_crit: double
-    - t_accl_crit: double
+    - alpha: double
+    - beta: double
+    - t_accl: double
     - softplus_s: double
-    # Thermal-cost coefficients (Phase 3; calibration targets):
+    # Thermal-cost coefficients (calibration targets):
     - c_acclim_maint: double
     - c_repair_maint: double
+    - c_protect_maint: double
     - c_repair_flux: double
-    - c_build_topt: double
-    - c_build_tcrit: double
+    - c_build: double
     - c_accl_induct: double
     - induct_eps: double
