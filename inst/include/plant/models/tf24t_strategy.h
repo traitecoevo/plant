@@ -16,11 +16,13 @@ namespace plant {
 // the deactivated fraction phi_d from the unified Medlyn curve, the lasting-
 // damage pools I_r_/I_p_, and the tolerance/repair traits); TF24t (a) turns that
 // layer on and copies its traits into the leaf in prepare_strategy, and (b) adds
-// three slow ODE states -- acclim_thermostab (a single thermostability state A
+// four slow ODE states -- acclim_thermostab (a single thermostability state A
 // shifting d_S, moving T_opt AND the damage onset together), damage_recoverable
-// (I_r, resynthesised over ~4 d) and damage_permanent (I_p, cleared only by
-// new-leaf dilution) -- appended after TF24's states so the inherited indices
-// are unchanged. The states relax as
+// (I_r, resynthesised over ~4 d), damage_permanent (I_p, cleared only by
+// new-leaf dilution), and mean_leaf_temp (a diagnostic exponential moving average
+// of the PM operating-point leaf temperature, no feedback) -- appended after
+// TF24's states so the inherited indices are unchanged. The damage/acclimation
+// states relax as
 //   dA/dt   = alpha * softplus(T - t_accl) - beta * A
 //   dI_r/dt = k_i * phi_d * (1-I_r-I_p) - (k_rec_eff + k_mat) * I_r
 //   dI_p/dt = k_mat * I_r - (g/L) * I_p
@@ -41,22 +43,32 @@ public:
   // Compound scientific version: "<TF24 version>.<thermal_revision>", so a TF24
   // science change also invalidates TF24t (the safe direction); bump
   // thermal_revision for changes specific to the thermal layer. Revision 2 is
-  // the merged-revision rewrite (unified curve + lasting I_r/I_p pools).
-  static constexpr int thermal_revision = 2;
+  // the merged-revision rewrite (unified curve + lasting I_r/I_p pools);
+  // revision 3 adds the diagnostic running-mean leaf-temperature state.
+  static constexpr int thermal_revision = 3;
 
-  // TF24's states + the three appended thermal states (indices unchanged for
+  // TF24's states + the four appended thermal states (indices unchanged for
   // 0..base state_size()-1). Statics resolve on the concrete type in Individual<>.
-  static size_t state_size() { return TF24_Strategy::state_size() + 3; }
+  static size_t state_size() { return TF24_Strategy::state_size() + 4; }
   static std::vector<std::string> state_names() {
     std::vector<std::string> ret = TF24_Strategy::state_names();
     ret.push_back("acclim_thermostab");
     ret.push_back("damage_recoverable");
     ret.push_back("damage_permanent");
+    ret.push_back("mean_leaf_temp");
     return ret;
   }
 
+  // TF24's aux + one appended diagnostic: the PM operating-point leaf temperature
+  // (the temperature the running-mean state relaxes toward). aux_names()/aux_size()
+  // are non-virtual, so we hide the base versions; Individual<> holds a concrete
+  // TF24t_Strategy::ptr, so name lookup binds to these (and the appended aux is
+  // sized and copied out correctly).
+  std::vector<std::string> aux_names();
+  size_t aux_size() { return aux_names().size(); }
+
   // Base refresh_indices() uses the base (static) state_names(); re-run it then
-  // register the two appended slots.
+  // register the appended state and aux slots.
   void refresh_indices();
 
   // Enable the leaf thermal-damage layer and copy the thermal traits into the
@@ -112,6 +124,13 @@ public:
   double t_accl = 30.0;       // forcing threshold for acclimation, deg C
   double softplus_s = 1.0;    // softplus sharpness for the acclimation forcing
 
+  // --- Running-mean leaf temperature (diagnostic ODE state) -------------------
+  // Exponential moving average of the PM operating-point leaf temperature
+  // (mean_leaf_temp state): d(mean)/dt = DAYS_PER_YEAR * k_mean_leaf_temp *
+  // (T_op - mean). Purely diagnostic -- it does not feed back into any other
+  // state. Default gives a ~30-day memory (1/k). R-settable.
+  double k_mean_leaf_temp = 0.0333;  // running-mean decay rate, day^-1
+
   // --- Thermal-cost coefficients (#566) --------------------------------------
   // Ship modest nonzero so the trade-offs bite out of the box; R-settable;
   // CALIBRATION TARGETS, not measured values. Leaf-side coefficients are copied
@@ -129,6 +148,9 @@ public:
   int state_idx_acclim_A = -1;
   int state_idx_damage_r = -1;
   int state_idx_damage_p = -1;
+  int state_idx_mean_leaf_temp = -1;
+  // Cached slot for the appended aux (operating-point leaf temperature).
+  int aux_idx_operating_leaf_temp = -1;
 };
 
 TF24t_Strategy::ptr make_strategy_ptr(TF24t_Strategy s);

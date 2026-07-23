@@ -230,9 +230,15 @@ public:
   // Penman-Monteith leaf energy balance state (#523), only meaningful on the
   // use_energy_balance_ path. Set once per set_physiology; Tleaf itself is a
   // per-operating-point quantity computed in set_leaf_states_rates_from_psi_stem.
-  double Tair_;  // air temperature, deg C (reinterprets the leaf_temp driver)
+  double Tair_;  // air temperature, deg C (reinterprets the air_temp driver)
   double Rn_;    // net radiation at the leaf, W m^-2
   double ra_;    // aerodynamic (boundary-layer) resistance, s m^-1
+  // Operating-point leaf temperature, deg C: the temperature at which the last
+  // update_temperature_dependent_params ran. On the PM path this is the
+  // per-operating-point Tleaf = leaf_temp_from_E(E) solved in
+  // set_leaf_states_rates_from_psi_stem; off-PM it is the prescribed leaf_temp_.
+  // Read by TF24t to drive the running-mean leaf-temperature state.
+  double T_op_ = 25.0;
   // Gate for the PM leaf energy balance. Default OFF: today's path runs
   // (prescribed leaf_temp, single-shot cached Arrhenius). R-settable (#523 full
   // cut) so TF24 (via pars.use_energy_balance) and the leaf-level demo can

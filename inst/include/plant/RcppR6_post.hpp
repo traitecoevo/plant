@@ -1698,6 +1698,7 @@ template <> inline SEXP wrap(const plant::TF24t_Strategy& x) {
   ret["beta"] = Rcpp::wrap(x.beta);
   ret["t_accl"] = Rcpp::wrap(x.t_accl);
   ret["softplus_s"] = Rcpp::wrap(x.softplus_s);
+  ret["k_mean_leaf_temp"] = Rcpp::wrap(x.k_mean_leaf_temp);
   ret["c_acclim_maint"] = Rcpp::wrap(x.c_acclim_maint);
   ret["c_repair_maint"] = Rcpp::wrap(x.c_repair_maint);
   ret["c_protect_maint"] = Rcpp::wrap(x.c_protect_maint);
@@ -1753,6 +1754,8 @@ template <> inline plant::TF24t_Strategy as(SEXP x) {
   ret.t_accl = Rcpp::as<double >(xl["t_accl"]);
   // ret.softplus_s = Rcpp::as<decltype(retsoftplus_s) >(xl["softplus_s"]);
   ret.softplus_s = Rcpp::as<double >(xl["softplus_s"]);
+  // ret.k_mean_leaf_temp = Rcpp::as<decltype(retk_mean_leaf_temp) >(xl["k_mean_leaf_temp"]);
+  ret.k_mean_leaf_temp = Rcpp::as<double >(xl["k_mean_leaf_temp"]);
   // ret.c_acclim_maint = Rcpp::as<decltype(retc_acclim_maint) >(xl["c_acclim_maint"]);
   ret.c_acclim_maint = Rcpp::as<double >(xl["c_acclim_maint"]);
   // ret.c_repair_maint = Rcpp::as<decltype(retc_repair_maint) >(xl["c_repair_maint"]);

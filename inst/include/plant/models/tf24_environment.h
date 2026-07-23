@@ -83,7 +83,7 @@ public:
     extrinsic_drivers_set_constant("rainfall",1);
     extrinsic_drivers_set_constant("atm_vpd",1);
     extrinsic_drivers_set_constant("ca",40);
-    extrinsic_drivers_set_constant("leaf_temp",25);
+    extrinsic_drivers_set_constant("air_temp",25);
     extrinsic_drivers_set_constant("atm_o2_kpa",21);
     extrinsic_drivers_set_constant("atm_kpa",100.5);
     extrinsic_drivers_set_constant("wind_speed",2.0); // U0, m s^-1 (Penman-Monteith, #523)
@@ -179,10 +179,10 @@ public:
   }
   static constexpr double NAN_TIME_ = std::numeric_limits<double>::quiet_NaN();
   mutable double ppfd_cache_ = 0, atm_vpd_cache_ = 0, ca_cache_ = 0,
-                 leaf_temp_cache_ = 0, atm_o2_kpa_cache_ = 0, atm_kpa_cache_ = 0,
+                 air_temp_cache_ = 0, atm_o2_kpa_cache_ = 0, atm_kpa_cache_ = 0,
                  wind_speed_cache_ = 0;
   mutable double ppfd_cache_time_ = NAN_TIME_, atm_vpd_cache_time_ = NAN_TIME_,
-                 ca_cache_time_ = NAN_TIME_, leaf_temp_cache_time_ = NAN_TIME_,
+                 ca_cache_time_ = NAN_TIME_, air_temp_cache_time_ = NAN_TIME_,
                  atm_o2_kpa_cache_time_ = NAN_TIME_, atm_kpa_cache_time_ = NAN_TIME_,
                  wind_speed_cache_time_ = NAN_TIME_;
 
@@ -412,7 +412,9 @@ public:
   double get_PPFD()       const { return cached_driver_("PPFD", ppfd_cache_, ppfd_cache_time_); }
   double get_atm_vpd()    const { return cached_driver_("atm_vpd", atm_vpd_cache_, atm_vpd_cache_time_); }
   double get_ca()         const { return cached_driver_("ca", ca_cache_, ca_cache_time_); }
-  double get_leaf_temp()  const { return cached_driver_("leaf_temp", leaf_temp_cache_, leaf_temp_cache_time_); }
+  // The air-temperature driver (deg C). On the PM energy-balance path this is the
+  // air temperature; the leaf's operating temperature Tleaf is computed from it.
+  double get_air_temp()   const { return cached_driver_("air_temp", air_temp_cache_, air_temp_cache_time_); }
   double get_atm_o2_kpa() const { return cached_driver_("atm_o2_kpa", atm_o2_kpa_cache_, atm_o2_kpa_cache_time_); }
   double get_atm_kpa()    const { return cached_driver_("atm_kpa", atm_kpa_cache_, atm_kpa_cache_time_); }
   // Above-canopy wind speed U0 (m s^-1), Penman-Monteith aerodynamic resistance (#523)

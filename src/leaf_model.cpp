@@ -1184,6 +1184,9 @@ void Leaf::update_temperature_dependent_params(double leaf_temp) {
   }
   km_ = (kc_*umol_per_mol_to_Pa)*(1 + (atm_o2_kpa_*kPa_to_Pa)/(ko_*umol_per_mol_to_Pa));
   electron_transport_ = electron_transport();
+  // Record the operating-point leaf temperature this evaluation ran at, so the
+  // strategy can read the PM-solved Tleaf back after the profit/psi-stem solve.
+  T_op_ = leaf_temp;
 }
 
 // Saturation vapour pressure es(T) in kPa (Tetens), T in deg C.

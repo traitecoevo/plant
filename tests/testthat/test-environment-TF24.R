@@ -9,7 +9,7 @@ test_that("Environment-TF24 drivers", {
   env <- Environment("TF24")
   # get list of extrinsic drivers for the environment
 
-  expect_contains(env$extrinsic_drivers_get_names(), c("PPFD", "rainfall", "leaf_temp", "atm_o2_kpa", "atm_kpa", "ca", "atm_vpd"))
+  expect_contains(env$extrinsic_drivers_get_names(), c("PPFD", "rainfall", "air_temp", "atm_o2_kpa", "atm_kpa", "ca", "atm_vpd"))
   
   # test default values - check at two values of second argument (should give same result)
   expect_equal(env$extrinsic_drivers_evaluate("PPFD", 0), 1800)
@@ -69,7 +69,7 @@ test_that("Environment-TF24 drivers", {
   expect_equal(env$get_PPFD(), env$extrinsic_drivers_evaluate("PPFD", 1))
   expect_equal(env$get_atm_vpd(), env$extrinsic_drivers_evaluate("atm_vpd", 1))
   expect_equal(env$get_ca(), env$extrinsic_drivers_evaluate("ca", 1))
-  expect_equal(env$get_leaf_temp(), env$extrinsic_drivers_evaluate("leaf_temp", 1))
+  expect_equal(env$get_air_temp(), env$extrinsic_drivers_evaluate("air_temp", 1))
   expect_equal(env$get_atm_o2_kpa(), env$extrinsic_drivers_evaluate("atm_o2_kpa", 1))
   expect_equal(env$get_atm_kpa(), env$extrinsic_drivers_evaluate("atm_kpa", 1))
 

@@ -5677,8 +5677,8 @@ double TF24_Environment__get_ca(plant::RcppR6::RcppR6<plant::TF24_Environment> o
   return obj_->get_ca();
 }
 // [[Rcpp::export]]
-double TF24_Environment__get_leaf_temp(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_) {
-  return obj_->get_leaf_temp();
+double TF24_Environment__get_air_temp(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_) {
+  return obj_->get_air_temp();
 }
 // [[Rcpp::export]]
 double TF24_Environment__get_atm_o2_kpa(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_) {

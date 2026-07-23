@@ -1,8 +1,9 @@
 # TF24t: TF24 + the ATLS merged-revision leaf thermal layer (#566). TF24t is a
 # thin subclass of TF24 that reuses TF24_Pars/TF24_Environment, turns the leaf
-# thermal-damage layer on, and adds three slow ODE states: a single
-# thermostability acclimation state (acclim_thermostab) and the two lasting-
-# damage pools (damage_recoverable = I_r, damage_permanent = I_p).
+# thermal-damage layer on, and adds four slow ODE states: a single
+# thermostability acclimation state (acclim_thermostab), the two lasting-
+# damage pools (damage_recoverable = I_r, damage_permanent = I_p), and a
+# diagnostic running-mean leaf temperature (mean_leaf_temp; no feedback).
 #
 # Damage is now a MEMORY (state), not an instantaneous factor: a fresh hot leaf
 # loses nothing beyond the reversible peaked-Arrhenius response until I_r/I_p
@@ -34,14 +35,47 @@ test_that("TF24t reuses TF24_Pars and exposes the merged thermal/acclimation kno
                      "alpha_crit", "c_build_tcrit") %in% names(s)))
 })
 
-test_that("TF24t appends three thermal ODE states after TF24's states", {
+test_that("TF24t appends four thermal ODE states after TF24's states", {
   p <- TF24t_Individual()
   nm <- p$ode_names
-  appended <- c("acclim_thermostab", "damage_recoverable", "damage_permanent")
+  appended <- c("acclim_thermostab", "damage_recoverable", "damage_permanent",
+                "mean_leaf_temp")
   expect_true(all(appended %in% nm))
   # appended last, in order (inherited indices unchanged)
-  expect_identical(tail(nm, 3), appended)
-  expect_identical(length(nm), length(TF24_Individual()$ode_names) + 3L)
+  expect_identical(tail(nm, 4), appended)
+  expect_identical(length(nm), length(TF24_Individual()$ode_names) + 4L)
+})
+
+test_that("mean_leaf_temp is a diagnostic EMA of the operating leaf temperature", {
+  env <- Environment("TF24t")
+  env$extrinsic_drivers_set_constant("air_temp", 30)
+
+  # Seeded at the birth air temperature (the PM operating point is not solved
+  # until the first compute_rates, which runs after set_initial_states).
+  p0 <- TF24t_Individual(TF24t_Strategy())
+  p0$set_state("height", 5)
+  p0$set_initial_states(env)
+  expect_equal(p0$state("mean_leaf_temp"), env$get_air_temp())
+
+  # The state relaxes toward the PM operating-point leaf temperature, published
+  # as the operating_leaf_temp aux (heated above air by the radiation load).
+  rate_at <- function(mean0, k = 0.0333) {
+    s <- TF24t_Strategy(); s$k_mean_leaf_temp <- k
+    p <- TF24t_Individual(s); p$set_state("height", 5)
+    p$set_state("mean_leaf_temp", mean0)
+    p$compute_rates(env)
+    rt <- p$ode_rates; names(rt) <- p$ode_names
+    list(rate = rt[["mean_leaf_temp"]], T_op = p$aux("operating_leaf_temp"))
+  }
+  hot <- rate_at(10); cold <- rate_at(60)
+  expect_gt(hot$T_op, 30)         # PM heats the leaf above the 30 deg C air temp
+  expect_gt(hot$rate, 0)          # below T_op -> warming
+  expect_lt(cold$rate, 0)         # above T_op -> cooling
+  # rate = DAYS_PER_YEAR * k * (T_op - mean); zero exactly at mean == T_op, and
+  # the operating point is invariant to the (diagnostic) running-mean state.
+  expect_equal(rate_at(hot$T_op)$rate, 0, tolerance = 1e-6)
+  # k = 0 freezes the state (no drift), whatever the operating temperature.
+  expect_equal(rate_at(10, k = 0)$rate, 0)
 })
 
 test_that("TF24t validates acclimation and damage kinetics", {
@@ -72,7 +106,7 @@ test_that("TF24t runs end-to-end; acclimation sits at its env equilibrium; damag
     expect_true(all(sp[[col]] >= -1e-8 & sp[[col]] <= 1 + 1e-6))
   }
 
-  # Constant environment (default leaf_temp = 25) => the single thermostability
+  # Constant environment (default air_temp = 25) => the single thermostability
   # state sits at its seeded equilibrium A_eq = (alpha/beta)*softplus(T - t_accl).
   # (The forcing uses the environmental driver, not the operating-point Tleaf.)
   s <- p$strategies[[1]]
@@ -107,7 +141,7 @@ test_that("lasting damage state cuts net production (feedback needs PM, forced o
   # This is the damage feedback, evaluated at the operating-point Tleaf, which
   # only exists because prepare_strategy forces the PM energy balance on.
   env <- Environment("TF24t")
-  env$extrinsic_drivers_set_constant("leaf_temp", 30)
+  env$extrinsic_drivers_set_constant("air_temp", 30)
   net_at_Ir <- function(Ir) {
     s <- TF24t_Strategy()
     expect_identical(s$pars$use_energy_balance, 0.0)   # PM off in pars...
@@ -122,7 +156,7 @@ test_that("lasting damage state cuts net production (feedback needs PM, forced o
 
 test_that("recoverable-damage flux rises with heat and self-limits with I_r", {
   dI_r <- function(Tmid, Ir) {
-    env <- Environment("TF24t"); env$extrinsic_drivers_set_constant("leaf_temp", Tmid)
+    env <- Environment("TF24t"); env$extrinsic_drivers_set_constant("air_temp", Tmid)
     p <- TF24t_Individual(TF24t_Strategy()); p$set_state("height", 5)
     p$set_state("damage_recoverable", Ir); p$compute_rates(env)
     rt <- p$ode_rates; names(rt) <- p$ode_names; rt[["damage_recoverable"]]
@@ -136,7 +170,7 @@ test_that("maturation coupling: faster restorative repair lowers the permanent f
   # (higher k_rec) prevents scarring. Evaluate at a cool operating point where the
   # repair gate is open (k_rec_eff ~ k_rec).
   perm_frac <- function(krec) {
-    env <- Environment("TF24t"); env$extrinsic_drivers_set_constant("leaf_temp", 15)
+    env <- Environment("TF24t"); env$extrinsic_drivers_set_constant("air_temp", 15)
     s <- TF24t_Strategy(); s$k_rec <- krec
     # permanent fraction of the I_r outflow (repair gate open at a cool leaf)
     s$k_mat / (krec + s$k_mat)
@@ -146,7 +180,7 @@ test_that("maturation coupling: faster restorative repair lowers the permanent f
 
 test_that("a single TF24t plant grows through the ODE runner, and costs slow it", {
   e <- "TF24_Env"
-  env <- Environment("TF24t")   # default leaf_temp = 25: plant grows, damage stays sub-lethal
+  env <- Environment("TF24t")   # default air_temp = 25: plant grows, damage stays sub-lethal
   grow_to_time <- function(mutate = identity, t_end = 10) {
     s <- mutate(TF24t_Strategy())
     p <- Individual("TF24t", e)(s)

@@ -207,7 +207,7 @@ p_av_phi <- ggplot(avoid, aes(Tair, phi_d, colour = coupling)) +
 Everything above is a single isolated leaf. The real question is demographic:
 does the damage feedback change whether a *population* persists? Here we run the
 full size-structured community model (SCM) — a single-species patch to
-equilibrium under a constant climate (the `leaf_temp` driver is the midday air
+equilibrium under a constant climate (the `air_temp` driver is the midday air
 temperature) — and read the net reproduction ratio **R0** (a resident persists
 iff R0 ≥ 1) across a warming gradient, TF24t (PM + ATLS) vs a PM-only TF24.
 
@@ -219,7 +219,7 @@ climate <- atls_scm_climate(seq(24, 30, by = 1))
 lab_type <- c(TF24 = "PM only", TF24t = "PM + ATLS")
 climate$model <- lab_type[climate$type]
 
-ggplot(climate, aes(leaf_temp, R0, colour = model)) +
+ggplot(climate, aes(air_temp, R0, colour = model)) +
   geom_hline(yintercept = 1, linetype = "dashed", colour = "grey50") +
   geom_line(linewidth = 0.9) + geom_point(size = 2) +
   annotate("text", x = 24, y = 1.04, label = "persistence (R0 = 1)",
@@ -256,7 +256,7 @@ tourney$strategy <- factor(tourney$strategy,
 ggplot(tourney, aes(strategy, R0, fill = strategy)) +
   geom_col() +
   geom_hline(yintercept = 1, linetype = "dashed", colour = "grey40") +
-  facet_wrap(~ sprintf("climate = %d °C", leaf_temp)) +
+  facet_wrap(~ sprintf("climate = %d °C", air_temp)) +
   scale_fill_manual(values = strat_pal, guide = "none") +
   labs(x = NULL, y = "net reproduction ratio R0",
        title = "Tolerance persists hottest; repair does not pay here",
@@ -273,7 +273,75 @@ how hot the climate runs. That cost/benefit tension is exactly what the merged
 cost structure was built to expose. (Runs are cached; exact rankings depend on the
 calibration-target rate/cost defaults.)
 
-## 7. Summary
+## 7. Memory: the running-mean leaf temperature
+
+The sections above all read the *instantaneous* operating leaf temperature. TF24t
+also carries a diagnostic ODE state, **`mean_leaf_temp`**, an exponential moving
+average of that operating-point `Tleaf`:
+
+$$
+\frac{\mathrm{d}\,\overline{T_\ell}}{\mathrm{d}t}
+  = D\,k_{\overline{T}}\,\bigl(T_\mathrm{op} - \overline{T_\ell}\bigr),
+$$
+
+where `T_op` is the PM operating-point leaf temperature (published as the
+`operating_leaf_temp` aux), `k_mean_leaf_temp` is the memory decay rate (day⁻¹,
+`D = 365.25` puts it on the yearly ODE clock), and the time constant is
+`1/k_mean_leaf_temp`. It is **purely diagnostic** — it does not feed back into
+damage or acclimation — so it is a clean read-out of the temperature history a
+plant has actually experienced. Below, a single TF24t individual is driven with a
+sub-seasonally oscillating `air_temp`; the running mean lags and smooths the
+operating temperature (memory ≈ 20 d here).
+
+```{r running-mean, cache=TRUE, message=FALSE, warning=FALSE}
+e <- "TF24_Env"
+k_mem  <- 0.05                 # day^-1 -> ~20-day memory (1 / (k*365.25) yr)
+period <- 0.12                 # yr (~44 d) forcing, comparable to the memory
+t_end  <- 0.6                  # yr
+t_grid <- seq(0, t_end, length.out = 200)
+Tair   <- 27 + 6 * sin(2 * pi * t_grid / period)
+
+s <- TF24t_Strategy(); s$k_mean_leaf_temp <- k_mem
+p <- Individual("TF24t", e)(s)
+env <- Environment("TF24t")
+env$extrinsic_drivers_set_variable("air_temp", t_grid, Tair)
+
+runner <- OdeRunner("TF24t")(IndividualRunner("TF24t", e)(p, env))
+rec <- list()
+while (runner$time < t_end) {
+  runner$step()
+  ind <- runner$object$individual
+  rec[[length(rec) + 1L]] <- data.frame(
+    time      = runner$time,
+    air_temp  = env$extrinsic_drivers_evaluate("air_temp", min(runner$time, t_end)),
+    operating = ind$aux("operating_leaf_temp"),
+    running   = ind$state("mean_leaf_temp"))
+}
+traj <- do.call(rbind, rec) |>
+  pivot_longer(c(air_temp, operating, running), names_to = "series",
+               values_to = "temp")
+
+series_lab <- c(air_temp = "air temperature (driver)",
+                operating = "operating leaf temp (instantaneous)",
+                running = "mean_leaf_temp (running mean)")
+series_pal <- c(air_temp = "grey60", operating = "#d95f02", running = "#1b9e77")
+
+ggplot(traj, aes(time, temp, colour = series)) +
+  geom_line(linewidth = 0.8) +
+  scale_colour_manual(values = series_pal, labels = series_lab, name = NULL) +
+  labs(x = "time (years)", y = "temperature (°C)",
+       title = "mean_leaf_temp lags and smooths the operating leaf temperature",
+       subtitle = "single TF24t individual, oscillating air_temp; memory ≈ 20 d") +
+  theme(legend.position = "top")
+```
+
+The running mean (green) tracks the operating leaf temperature (orange) with a
+lag set by `k_mean_leaf_temp` and a reduced amplitude — the "average growing
+temperature" the plant carries. The operating temperature sits well above air
+because the minimal-cut PM overheats an isolated leaf (§4 caveat); `mean_leaf_temp`
+averages that operating signal, not the air-temperature driver.
+
+## 8. Summary
 
 The deactivation curve `φ_d(Tleaf)` is the single substrate: strategies win by
 moving *where it turns on* (tolerance, acclimation shift the emergent onset),

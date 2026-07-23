@@ -7,6 +7,27 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* `TF24_Environment` temperature driver/accessor renamed for accuracy: on the
+  Penman-Monteith path the driver holds **air** temperature (the leaf's operating
+  temperature is computed from it), so the misleading `leaf_temp` name is gone.
+  Migration:
+  * driver key `"leaf_temp" -> "air_temp"`:
+    `env$extrinsic_drivers_set_constant("leaf_temp", T)` ->
+    `env$extrinsic_drivers_set_constant("air_temp", T)` (and likewise
+    `extrinsic_drivers_set_variable` / `extrinsic_drivers_evaluate`).
+  * accessor `env$get_leaf_temp() -> env$get_air_temp()`.
+  * The leaf-level `leaf_temp` parameter of `Leaf$set_physiology()` /
+    `arrh_curve()` is unchanged — it genuinely means the leaf's evaluation
+    temperature.
+
+* `TF24t` gains a diagnostic ODE state `mean_leaf_temp` and a matching aux
+  `operating_leaf_temp` (#566). `mean_leaf_temp` is an exponential moving average
+  of the PM operating-point leaf temperature (decay rate `s$k_mean_leaf_temp`,
+  day⁻¹, ~30-day memory by default); it does not feed back into any other state.
+  This adds one ODE dimension (so `ode_names()`/`ode_size()` change) and one aux;
+  `thermal_revision` advances `2 -> 3`. Migration: no action unless you assert the
+  exact TF24t state/aux/parameter set. New settable parameter: `s$k_mean_leaf_temp`.
+
 * Penman-Monteith leaf energy balance added to TF24/TF24f behind an
   opt-in gate, **default off** (#523). With the gate off, runtime behaviour and
   outputs are bit-identical to before (verified against leaf-level and SCM

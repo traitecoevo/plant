@@ -14065,14 +14065,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// TF24_Environment__get_leaf_temp
-double TF24_Environment__get_leaf_temp(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_);
-RcppExport SEXP _plant_TF24_Environment__get_leaf_temp(SEXP obj_SEXP) {
+// TF24_Environment__get_air_temp
+double TF24_Environment__get_air_temp(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_);
+RcppExport SEXP _plant_TF24_Environment__get_air_temp(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(TF24_Environment__get_leaf_temp(obj_));
+    rcpp_result_gen = Rcpp::wrap(TF24_Environment__get_air_temp(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -15936,7 +15936,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_TF24_Environment__get_PPFD", (DL_FUNC) &_plant_TF24_Environment__get_PPFD, 1},
     {"_plant_TF24_Environment__get_atm_vpd", (DL_FUNC) &_plant_TF24_Environment__get_atm_vpd, 1},
     {"_plant_TF24_Environment__get_ca", (DL_FUNC) &_plant_TF24_Environment__get_ca, 1},
-    {"_plant_TF24_Environment__get_leaf_temp", (DL_FUNC) &_plant_TF24_Environment__get_leaf_temp, 1},
+    {"_plant_TF24_Environment__get_air_temp", (DL_FUNC) &_plant_TF24_Environment__get_air_temp, 1},
     {"_plant_TF24_Environment__get_atm_o2_kpa", (DL_FUNC) &_plant_TF24_Environment__get_atm_o2_kpa, 1},
     {"_plant_TF24_Environment__get_atm_kpa", (DL_FUNC) &_plant_TF24_Environment__get_atm_kpa, 1},
     {"_plant_TF24_Environment__compute_rates", (DL_FUNC) &_plant_TF24_Environment__compute_rates, 2},

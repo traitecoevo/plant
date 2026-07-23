@@ -81,8 +81,8 @@ T_\ell \;=\; T_\mathrm{air} \;+\; \frac{\left(R_n - \lambda E\right)\, r_a}{\rho
 \qquad T_\ell \in [-40, 70]\ \text{°C (clamped)} .
 $$ {#eq-tleaf}
 
-The incoming `leaf_temp` driver is reinterpreted as air temperature,
-$T_\mathrm{air}$. The terms are:
+The incoming `air_temp` driver (read via `TF24_Environment::get_air_temp()`) is
+the air temperature $T_\mathrm{air}$. The terms are:
 
 - **Net radiation** ([`leaf_model.cpp:249`](../src/leaf_model.cpp#L249)):
   $$
@@ -109,6 +109,11 @@ $T_\mathrm{air}$. The terms are:
 > isolated leaf under high radiation overheats several °C above air. Absolute $T_\ell$
 > is therefore an upper bound; the *contrast* between well- and poorly-coupled leaves
 > is the robust signal (see `notes/atls/gate-atls-vs-pm-evaluation.md`).
+
+The operating-point $T_\ell$ solved here is retained on the leaf as `Leaf::T_op_`
+and exported by TF24t as the aux `operating_leaf_temp`, so downstream states (the
+running mean, §[-@sec-accl]) and diagnostics can read the temperature the leaf
+actually ran at, not just the air-temperature driver.
 
 ---
 
@@ -256,11 +261,12 @@ unchecked and matures into $I_p$ — the runaway that yields heatwave lethality.
 
 ## Slow ODE states: acclimation $A$ and the damage pools $I_r,I_p$ {#sec-accl}
 
-Three slow ODE state variables are appended to the TF24t strategy state vector
+Four slow ODE state variables are appended to the TF24t strategy state vector
 ([`tf24t_strategy.cpp`](../src/tf24t_strategy.cpp), `compute_rates`):
-`acclim_thermostab` ($A$), `damage_recoverable` ($I_r$), `damage_permanent` ($I_p$).
-The current values are fed into the leaf each step ($I_r,I_p$ before the reused TF24
-rates run, so the capacity discount sees them); $\varphi_d$ and
+`acclim_thermostab` ($A$), `damage_recoverable` ($I_r$), `damage_permanent` ($I_p$),
+and the diagnostic `mean_leaf_temp` ($\overline{T_\ell}$, §[-@sec-meanT]). The first
+three values are fed into the leaf each step ($I_r,I_p$ before the reused TF24 rates
+run, so the capacity discount sees them); $\varphi_d$ and
 $k_\mathrm{rec}^\mathrm{eff}$ are read back at the operating-point $T_\ell$ to form
 the damage rates.
 
@@ -273,7 +279,7 @@ $$
 \mathrm{sp}(x) = \tfrac{1}{s}\log\!\big(1 + e^{s x}\big),
 $$ {#eq-accl}
 
-where $T$ is the (midday) environmental leaf-temperature driver, $\mathrm{sp}$ is the
+where $T$ is the (midday) `air_temp` driver, $\mathrm{sp}$ is the
 softplus ($C^1$) replacement for $\max(0,x)$ (sharpness $s$), and
 $D=365.25\ \mathrm{d\,yr^{-1}}$ converts the day⁻¹ kinetics to the SCM's yearly clock
 (§[-@sec-merged-numerics]). $A$ feeds the $T_\mathrm{opt}$/onset shift (@eq-dtopt).
@@ -311,6 +317,31 @@ there is no cold-start transient (`set_initial_states`).
 > demographic clock; it is integrated faithfully as an ODE, at a real cost in
 > integration steps (§[-@sec-merged-numerics]). The rate constants and cost scales
 > remain calibration targets.
+
+### Running-mean leaf temperature $\overline{T_\ell}$ {#sec-meanT}
+
+A fourth state, `mean_leaf_temp`, tracks the plant's average growing temperature as
+an exponential moving average of the **operating-point** leaf temperature
+$T_\mathrm{op}$ (the stored `Leaf::T_op_`, §[-@sec-energy], exported as the aux
+`operating_leaf_temp`):
+
+$$
+\frac{\mathrm{d}\,\overline{T_\ell}}{\mathrm{d}t}
+  = D\,k_{\overline{T}}\,\bigl(T_\mathrm{op} - \overline{T_\ell}\bigr),
+$$ {#eq-meanT}
+
+with decay rate $k_{\overline{T}}$ (`k_mean_leaf_temp`, day⁻¹; $D=365.25$ puts it on
+the yearly clock). Its steady state is $T_\mathrm{op}$ and its memory time constant
+is $1/k_{\overline{T}}$ (default $\approx 30$ d). It is seeded at the birth air
+temperature (the operating point is not solved until the first `compute_rates`).
+
+**This state is purely diagnostic**: it is read *from* $T_\mathrm{op}$ but is not
+read *by* the damage or acclimation machinery — it does not shift $\Delta S$, enter
+$\varphi_d$, or change any other rate. It exists so the temperature history a plant
+has actually experienced is available on the R side as an ODE output. (Driving
+acclimation off $\overline{T_\ell}$ instead of the instantaneous driver — a
+Knauer-style running-mean forcing — is a possible future change, noted in
+`notes/atls/knauer-2023-temperature-acclimation.md`.)
 
 ---
 
@@ -415,6 +446,7 @@ mirrors carry a trailing underscore.
 | $\beta$ | `beta` | 0.01 | day⁻¹ | acclimation decay rate |
 | $T_\mathrm{accl}$ | `t_accl` | 30 | °C | acclimation forcing threshold |
 | $s$ | `softplus_s` | 1.0 | °C⁻¹ | softplus sharpness |
+| $k_{\overline{T}}$ | `k_mean_leaf_temp` | 0.0333 | day⁻¹ | running-mean leaf-temp decay rate (~30 d memory; diagnostic, §[-@sec-meanT]) |
 | $c_\mathrm{acclim}$ | `c_acclim_maint` | 0.02 | — | acclimation maintenance ($R_d$, per unit $A$) |
 | $c_\mathrm{rep,maint}$ | `c_repair_maint` | $10^{-5}$ | — | repair maintenance ($R_d$, per day⁻¹ of $k_\mathrm{rec}$) |
 | $c_\mathrm{prot}$ | `c_protect_maint` | $10^{-5}$ | — | protection maintenance ($R_d$, per day⁻¹ of $k_{i,\mathrm{ref}}-k_i$) |
@@ -504,8 +536,9 @@ emergent behaviour: prompt restorative repair prevents permanent scarring. The t
 acclimation states merged into one thermostability state $A$ shifting $\Delta S$
 (moving $T_\mathrm{opt}$ and onset together, near-rigid). Net ODE state change: the two
 as-built states (`acclim_topt`, `acclim_tcrit`) became three
-(`acclim_thermostab`, `damage_recoverable`, `damage_permanent`), and the model version
-advanced to `TF24t@v3.2`.
+(`acclim_thermostab`, `damage_recoverable`, `damage_permanent`) at `TF24t@v3.2`, and a
+fourth diagnostic state (`mean_leaf_temp`, the running-mean leaf temperature,
+§[-@sec-meanT]) was subsequently added at `thermal_revision = 3` (`TF24t@v3.3`).
 
 ### Timescales, calibration, and the near-rigid caveat {#sec-merged-numerics}
 

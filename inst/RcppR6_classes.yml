@@ -1385,7 +1385,7 @@ TF24_Environment:
     get_ca:
       args: []
       return_type: double
-    get_leaf_temp:
+    get_air_temp:
       args: []
       return_type: double
     get_atm_o2_kpa:
@@ -1467,6 +1467,8 @@ TF24t_Strategy:
     - beta: double
     - t_accl: double
     - softplus_s: double
+    # Running-mean leaf temperature (diagnostic ODE state):
+    - k_mean_leaf_temp: double
     # Thermal-cost coefficients (calibration targets):
     - c_acclim_maint: double
     - c_repair_maint: double

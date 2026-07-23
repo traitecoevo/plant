@@ -186,7 +186,7 @@ atls_solve_strategies <- function(Tenv_seq, strategies = atls_strategies(),
 ## --- Community scale (SCM) --------------------------------------------------
 ## The leaf sections above are a single isolated leaf. These drive the full
 ## size-structured community model: a single-species patch under a *constant*
-## climate (the leaf_temp driver = the midday air temperature; other drivers at
+## climate (the air_temp driver = the midday air temperature; other drivers at
 ## their defaults) run to demographic equilibrium, returning community-fitness
 ## scalars -- the net reproduction ratio R0 (a resident persists iff R0 >= 1) and
 ## lifetime offspring production. SCM runs are ~30 s each, so callers keep the
@@ -198,7 +198,7 @@ atls_solve_strategies <- function(Tenv_seq, strategies = atls_strategies(),
 ## (topt_offset for constitutive thermostability; k_i / k_rec for repair; alpha
 ## for the acclimation kinetics), so an SCM strategy is a heritable trait set,
 ## unlike the fixed-A leaf snapshots in atls_strategies().
-atls_scm_fitness <- function(leaf_temp, type = "TF24t", mutate = identity,
+atls_scm_fitness <- function(air_temp, type = "TF24t", mutate = identity,
                              lma = 0.0825, birth_rate = 20, PPFD = NULL) {
   p <- scm_base_parameters(type) |>
     add_strategies(trait_matrix(lma, "lma"), birth_rate = birth_rate)
@@ -207,10 +207,10 @@ atls_scm_fitness <- function(leaf_temp, type = "TF24t", mutate = identity,
   s <- mutate(s)
   p$strategies[[1]] <- s
   env <- Environment(type)
-  env$extrinsic_drivers_set_constant("leaf_temp", leaf_temp)
+  env$extrinsic_drivers_set_constant("air_temp", air_temp)
   if (!is.null(PPFD)) env$extrinsic_drivers_set_constant("PPFD", PPFD)
   res <- run_scm(p, env = env, collect = FALSE, refine_schedule = FALSE)
-  data.frame(type = type, leaf_temp = leaf_temp,
+  data.frame(type = type, air_temp = air_temp,
              R0 = res$net_reproduction_ratios,
              offspring = res$offspring_production)
 }
@@ -227,9 +227,9 @@ atls_scm_strategies <- function() {
 }
 
 ## R0 across a climate gradient for TF24t vs the PM-only TF24 comparator.
-atls_scm_climate <- function(leaf_temp_seq, types = c("TF24", "TF24t")) {
+atls_scm_climate <- function(air_temp_seq, types = c("TF24", "TF24t")) {
   rows <- list(); k <- 0L
-  for (ty in types) for (lt in leaf_temp_seq) {
+  for (ty in types) for (lt in air_temp_seq) {
     k <- k + 1L
     rows[[k]] <- atls_scm_fitness(lt, type = ty)
   }
@@ -237,9 +237,9 @@ atls_scm_climate <- function(leaf_temp_seq, types = c("TF24", "TF24t")) {
 }
 
 ## R0 across a climate gradient for every heritable strategy archetype (TF24t).
-atls_scm_tournament <- function(leaf_temp_seq, strategies = atls_scm_strategies()) {
+atls_scm_tournament <- function(air_temp_seq, strategies = atls_scm_strategies()) {
   rows <- list(); k <- 0L
-  for (nm in names(strategies)) for (lt in leaf_temp_seq) {
+  for (nm in names(strategies)) for (lt in air_temp_seq) {
     k <- k + 1L
     r <- atls_scm_fitness(lt, type = "TF24t", mutate = strategies[[nm]])
     r$strategy <- nm

@@ -102,7 +102,7 @@ zero_costs <- function(st) {
 }
 net_at <- function(type, Tmid, damage_only = FALSE) {
   env <- Environment(type)
-  env$extrinsic_drivers_set_constant("leaf_temp", Tmid)
+  env$extrinsic_drivers_set_constant("air_temp", Tmid)
   if (type == "TF24") {
     st <- TF24_Strategy(); st$pars$use_energy_balance <- 1
     ind <- TF24_Individual(st)

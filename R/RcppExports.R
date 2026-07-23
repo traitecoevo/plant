@@ -5009,8 +5009,8 @@ TF24_Environment__get_ca <- function(obj_) {
     .Call('_plant_TF24_Environment__get_ca', PACKAGE = 'plant', obj_)
 }
 
-TF24_Environment__get_leaf_temp <- function(obj_) {
-    .Call('_plant_TF24_Environment__get_leaf_temp', PACKAGE = 'plant', obj_)
+TF24_Environment__get_air_temp <- function(obj_) {
+    .Call('_plant_TF24_Environment__get_air_temp', PACKAGE = 'plant', obj_)
 }
 
 TF24_Environment__get_atm_o2_kpa <- function(obj_) {

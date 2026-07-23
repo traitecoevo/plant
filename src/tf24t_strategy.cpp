@@ -10,27 +10,44 @@ TF24t_Strategy::TF24t_Strategy() {
   refresh_indices();
 }
 
-// Build on the base index maps, then register the three appended thermal states
-// after TF24's states (indices TF24 state_size(), +1, +2).
+// TF24's aux plus the one appended diagnostic (operating-point leaf temperature).
+std::vector<std::string> TF24t_Strategy::aux_names() {
+  std::vector<std::string> ret = TF24_Strategy::aux_names();
+  ret.push_back("operating_leaf_temp");
+  return ret;
+}
+
+// Build on the base index maps, then register the four appended thermal states
+// after TF24's states (indices TF24 state_size(), +1, +2, +3) and the appended
+// aux (registered by the base loop over aux_names(), read back here).
 void TF24t_Strategy::refresh_indices() {
   TF24_Strategy::refresh_indices();
   const int idx = static_cast<int>(TF24_Strategy::state_size());
   state_index["acclim_thermostab"] = idx;
   state_index["damage_recoverable"] = idx + 1;
   state_index["damage_permanent"] = idx + 2;
+  state_index["mean_leaf_temp"] = idx + 3;
   state_idx_acclim_A = idx;
   state_idx_damage_r = idx + 1;
   state_idx_damage_p = idx + 2;
+  state_idx_mean_leaf_temp = idx + 3;
+  // The base fill used TF24_Strategy::aux_names() (non-virtual), so the appended
+  // aux is not in aux_index yet; register it after the base aux (its count also
+  // gives the next free slot, matching the aux vector layout).
+  aux_index["operating_leaf_temp"] =
+    static_cast<int>(TF24_Strategy::aux_names().size());
+  aux_idx_operating_leaf_temp = aux_index.at("operating_leaf_temp");
 }
 
 // Fail fast on a misconfigured kinetic (a negative/non-finite gain or rate would
 // poison the state rates); shared guard for compute_rates and set_initial_states.
 namespace {
-void check_kinetics(double alpha, double beta, double s) {
+void check_kinetics(double alpha, double beta, double s, double k_mean_leaf_temp) {
   if (!util::is_finite(alpha) || alpha < 0.0 ||
       !util::is_finite(beta) || beta < 0.0 ||
-      !util::is_finite(s) || s <= 0.0) {
-    util::stop("TF24t: acclimation kinetics must be finite with alpha,beta>=0 and softplus_s>0");
+      !util::is_finite(s) || s <= 0.0 ||
+      !util::is_finite(k_mean_leaf_temp) || k_mean_leaf_temp < 0.0) {
+    util::stop("TF24t: acclimation kinetics must be finite with alpha,beta,k_mean_leaf_temp>=0 and softplus_s>0");
   }
 }
 void check_damage_rates(double k_i, double k_rec, double k_mat) {
@@ -121,7 +138,7 @@ double TF24t_Strategy::net_mass_production_dt(const TF24_Environment& environmen
   const double construction =
     c_build * std::max(0.0, topt_offset) * turnover_leaf_;
 
-  const double T = environment.get_leaf_temp();
+  const double T = environment.get_air_temp();
   const double dA = acclim_rate(T, leaf.A_);
   const double induction = c_accl_induct * positive_part(dA, induct_eps);
 
@@ -136,7 +153,7 @@ double TF24t_Strategy::net_mass_production_dt(const TF24_Environment& environmen
 // clock via DAYS_PER_YEAR (except g/L, which is already per-year).
 void TF24t_Strategy::compute_rates(const TF24_Environment& environment,
                                    Internals& vars) {
-  check_kinetics(alpha, beta, softplus_s);
+  check_kinetics(alpha, beta, softplus_s, k_mean_leaf_temp);
   check_damage_rates(k_i, k_rec, k_mat);
 
   const double A = vars.state(state_idx_acclim_A);
@@ -148,7 +165,7 @@ void TF24t_Strategy::compute_rates(const TF24_Environment& environment,
 
   TF24_Strategy::compute_rates(environment, vars);
 
-  const double T = environment.get_leaf_temp();
+  const double T = environment.get_air_temp();
 
   // Acclimation.
   vars.set_rate(state_idx_acclim_A, acclim_rate(T, A));
@@ -170,6 +187,17 @@ void TF24t_Strategy::compute_rates(const TF24_Environment& environment,
   const double dilution = pars.k_l + std::max(0.0, area_leaf_dt) / area_leaf_;
   const double dI_p = DAYS_PER_YEAR * k_mat * I_r - dilution * I_p;
   vars.set_rate(state_idx_damage_p, dI_p);
+
+  // Running-mean leaf temperature (diagnostic; no feedback). Exponential moving
+  // average of the PM operating-point leaf temperature T_op the base rates just
+  // solved (the same Tleaf phi_d/k_rec_eff were evaluated at), converted to the
+  // yearly ODE clock via DAYS_PER_YEAR. Also published as an aux so the
+  // instantaneous operating point is inspectable next to the running mean.
+  const double T_op = leaf.T_op_;
+  vars.set_aux(aux_idx_operating_leaf_temp, T_op);
+  const double mean_leaf_temp = vars.state(state_idx_mean_leaf_temp);
+  vars.set_rate(state_idx_mean_leaf_temp,
+                DAYS_PER_YEAR * k_mean_leaf_temp * (T_op - mean_leaf_temp));
 }
 
 // Seed the thermostability state at its environmental equilibrium
@@ -181,15 +209,21 @@ void TF24t_Strategy::compute_rates(const TF24_Environment& environment,
 void TF24t_Strategy::set_initial_states(const TF24_Environment& environment,
                                         Internals& vars) {
   TF24_Strategy::set_initial_states(environment, vars);
-  check_kinetics(alpha, beta, softplus_s);
+  check_kinetics(alpha, beta, softplus_s, k_mean_leaf_temp);
   check_damage_rates(k_i, k_rec, k_mat);
 
-  const double T = environment.get_leaf_temp();
+  const double T = environment.get_air_temp();
   const double A_eq =
     beta > 0.0 ? alpha / beta * Leaf::softplus_(T - t_accl, softplus_s) : 0.0;
   vars.set_state(state_idx_acclim_A, A_eq);
   vars.set_state(state_idx_damage_r, 0.0);
   vars.set_state(state_idx_damage_p, 0.0);
+  // Seed the running-mean leaf temperature at the birth air temperature: the PM
+  // operating point is not solved until the first compute_rates (which runs after
+  // set_initial_states, see Node::compute_initial_conditions). Being diagnostic-
+  // only with a short (~30-day) memory, it relaxes to the true operating Tleaf
+  // quickly, so this seed only avoids a cold start.
+  vars.set_state(state_idx_mean_leaf_temp, T);
 }
 
 TF24t_Strategy::ptr make_strategy_ptr(TF24t_Strategy s) {
