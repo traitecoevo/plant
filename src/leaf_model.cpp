@@ -924,9 +924,23 @@ double Leaf::dprofit_droot_collar_psi(double opt_root_psi) {
 
   // Operating point in double.
   const double psi_stem = find_psi_stem_from_psi_root(-psi, psi_soil_inverted_);
-  const double ci = psi_stem_to_ci(psi_stem, psi);
-  if (!std::isfinite(psi_stem) || !std::isfinite(ci)) {
+  // Shut down before the ci solve, not after. psi and psi_stem are positive
+  // magnitudes here, so psi >= psi_stem is the no-flow / reversed-gradient case
+  // -- the same condition set_leaf_states_rates_from_psi_stem() treats as zero
+  // transpiration. It has to be caught *here* because psi_stem_to_ci() does not
+  // return non-finite in that state, it throws: gc = const * transpiration goes
+  // negative, which flips the sign of the supply term so the residual no longer
+  // crosses zero over (gamma*, ca] and TOMS748 reports "a and b do not bracket
+  // the root". The isfinite check below was written to cover shut-down but
+  // cannot see a thrown exception, so a dry patch killed the whole run:
+  // reproduced on TF24f at 5 layers, theta = 0.005-0.03 with 1 m/yr rainfall,
+  // at psi_stem = 1.23 against psi_upstream = 5.92 MPa.
+  if (!std::isfinite(psi_stem) || psi >= psi_stem) {
     return 0.0;  // shut-down / infeasible: no informative gradient
+  }
+  const double ci = psi_stem_to_ci(psi_stem, psi);
+  if (!std::isfinite(ci)) {
+    return 0.0;
   }
 
   // A'(ci) and C'(psi_stem) via forward-mode AD of the analytic algebra.

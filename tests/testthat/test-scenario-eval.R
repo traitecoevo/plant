@@ -111,10 +111,36 @@ test_that("scenario_summary tallies matches", {
   sc <- tibble::tibble(
     expected = c("failure", "success", "failure"),
     observed = c("failure", "success", "success"),
-    match    = c(TRUE, TRUE, FALSE))
+    match    = c(TRUE, TRUE, FALSE),
+    persists = c(FALSE, TRUE, FALSE))
   s <- scenario_summary(sc)
   expect_equal(s$n, 3)
   expect_equal(s$n_match, 2)
   expect_equal(s$n_expected_fail_met, 1)
   expect_equal(s$n_expected_success_met, 1)
+  ## Persistence is a separate axis from the match: a run can be a numerical
+  ## success while the strategy dies out.
+  expect_equal(s$n_persists, 1)
+})
+
+test_that("scenario_summary handles a scorecard recorded without persists", {
+  ## The blessed baseline predates the column; summarising it must not error.
+  sc <- tibble::tibble(
+    expected = c("failure", "success"),
+    observed = c("failure", "success"),
+    match    = c(TRUE, TRUE))
+  s <- scenario_summary(sc)
+  expect_equal(s$n, 2)
+  expect_equal(s$n_persists, 0)
+})
+
+test_that("persistence is judged at R0 >= 1, not R0 > 0", {
+  ## The distinction the `persists` column exists to make: an offspring
+  ## production of 2e-15 is extinction, not persistence, and the existing
+  ## status/outcome pair calls it "persisted".
+  expect_false(plant:::persists_at(2.2e-15, finite = TRUE))
+  expect_false(plant:::persists_at(0.297, finite = TRUE))
+  expect_true(plant:::persists_at(1, finite = TRUE))
+  expect_true(plant:::persists_at(29.5, finite = TRUE))
+  expect_false(plant:::persists_at(NA_real_, finite = FALSE))
 })

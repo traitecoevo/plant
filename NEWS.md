@@ -148,6 +148,41 @@ were not previously recorded here:
 
 ### New features
 
+* **A dry TF24f patch no longer aborts the whole run on the ci root-find.**
+  `Leaf::dprofit_droot_collar_psi` — TF24f's exact AD/IFT gradient — called
+  `psi_stem_to_ci()` before testing for hydraulic shut-down. In shut-down,
+  `psi_upstream >= psi_stem` (both positive magnitudes), so
+  `gc = const · transpiration` goes negative, the residual stops crossing zero
+  over (Γ*, ca], and TOMS748 throws *"a and b do not bracket the root"* rather
+  than returning non-finite — which is what the existing `isfinite` guard on the
+  next line was written to catch, and cannot see. One dry patch therefore killed
+  the run. The condition is now tested *before* the solve, matching what
+  `set_leaf_states_rates_from_psi_stem()` has always done, and returns a zero
+  gradient. Reproduced at 5 soil layers, θ = 0.005–0.03 with 1 m yr⁻¹ rainfall
+  (ψ_stem = 1.23 against ψ_upstream = 5.92 MPa). Behaviour changes only in states
+  that previously threw, so no scientific version bump.
+* **Adaptive interpolation now names a non-finite target instead of blaming
+  resolution.** `AdaptiveInterpolator::check_err()` compares against NaN, and
+  every NaN comparison is false, so a single NaN or Inf from the target made its
+  interval permanently unacceptable: refinement halved the spacing to
+  `max_depth` and then reported *"Interpolated function as refined as currently
+  possible"*. That message cost real debugging time on a TF24 patch. A
+  non-finite value now fails immediately, naming the point and the value; the
+  resolution-limit message additionally reports the spacing reached, the limit,
+  and the tolerances missed. A new `test_adaptive_interpolator()` test hook
+  drives the refiner from R (the production caller passes a C++ lambda).
+* **The scenario scorecard now reports `persists`.** Whether a strategy replaces
+  itself, R0 >= 1, which is a different question from whether the run completed.
+  It matters because `status`/`outcome` test `total > 0`: at the current baseline
+  five of the eight hydraulic scenarios return R0 between 2e-15 and 6e-14 —
+  numerically extinct — and were all recorded as `"persisted"`. Only **1 of 8**
+  scenarios persists. That is the main reason the gateway discriminates so little
+  (3/8, with no expected failure failing). Reported alongside, not folded into,
+  the existing classification: the scenario CSV's "Model failure" means the model
+  *breaks numerically* (#549/#550), not that the strategy dies out, and the
+  blessed baseline diff is defined on the existing columns.
+  `scenario_summary()` gains `n_persists` and tolerates scorecards recorded
+  before the column existed.
 * **A hydraulically shut-down plant no longer draws water from the soil
   (`TF24@v4`, `TF24f@v4.1`).** Both shut-down exits in
   `Leaf::find_root_collar_psi` set `profit_` directly and bypass
@@ -341,6 +376,16 @@ were not previously recorded here:
 
 ### Internals & performance
 
+* The scenario gateway's seasonal rainfall driver places its spline knots **per
+  year** (48 yr⁻¹) rather than per run, so the realised seasonality no longer
+  depends on `max_patch_lifetime`. The previous `max(200, mpl × 6)` gave 6 knots
+  per annual cycle at the default `mpl = 100`. Measured, that was more accurate
+  than it looked — cubic interpolation of a sine at 6 points/cycle is accurate to
+  5.4e-3 on a peak of 3.0 (0.18%) and conserves the annual total to 1e-5 % — so
+  this is robustness, not a bug fix; the error is 4th-order in the spacing and
+  would degrade at larger `mpl`. Gateway effect: offspring production moves by up
+  to 6.2% relative (demography amplifies the 0.18% driver change), with every
+  success/failure classification unchanged, so the baseline needs no re-blessing.
 * Each strategy now keeps its biological parameters in a value-member struct
   (`FF16_Pars`/`K93_Pars`/`TF24_Pars`) exposed to R as a nested `pars` list;
   derived/computed members (eta_c, height_0, the TF24 Leaf model, solver

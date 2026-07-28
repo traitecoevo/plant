@@ -123,11 +123,14 @@ cache deliberately errs toward rerunning.}
 
 \code{classify_scm_run} returns a list describing the run:
   \code{status} (\code{"success"}/\code{"failure"}),
-  \code{offspring_production}, \code{finite}, \code{error_message},
-  \code{warnings} and \code{run_seconds}. A run is a success when it
-  completes with finite, positive total offspring production; any thrown
-  error or non-finite output is a failure. The C++ layer already fails fast
-  on non-finite state, so classification does not depend on error wording.
+  \code{offspring_production}, \code{persists}, \code{finite},
+  \code{error_message}, \code{warnings} and \code{run_seconds}. A run is a
+  success when it completes with finite, positive total offspring
+  production; any thrown error or non-finite output is a failure. The C++
+  layer already fails fast on non-finite state, so classification does not
+  depend on error wording. \code{persists} is the separate, stricter
+  ecological question — whether the strategy replaces itself, R0 >= 1 —
+  which a run can fail while still counting as a numerical success.
 
 \code{evaluate_scenario} returns a one-row scorecard tibble.
 
@@ -147,8 +150,11 @@ cache deliberately errs toward rerunning.}
   timestamp) so a scorecard records the exact build it came from.
 
 \code{scenario_summary} returns a one-row tibble with the headline
-  counts: total scenarios, matches, match rate, and the expected-failure vs
-  expected-success breakdown.
+  counts: total scenarios, matches, match rate, the expected-failure vs
+  expected-success breakdown, and \code{n_persists} — how many scenarios
+  clear R0 >= 1. Read \code{n_persists} against \code{n}: a scorecard where
+  every run "succeeds" but almost none persists is reporting that the model
+  no longer crashes, not that the strategies live.
 
 \code{scenario_generate_report} renders the scorecard report and
   returns the output path (invisibly).

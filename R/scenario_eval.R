@@ -145,8 +145,19 @@ build_scenario <- function(config, max_patch_lifetime = 100,
     } else {
       ## Sinusoidal annual rainfall; trough clamped to zero (a trough of exactly
       ## zero is the "amplitude = mean" extreme-seasonality case).
+      ##
+      ## Knots are placed per *year*, not per run, so the realised seasonality
+      ## does not depend on max_patch_lifetime. The previous
+      ## max(200, mpl * 6) gave 6 knots per annual cycle at the default
+      ## mpl = 100. Measured, that is better than it looks -- cubic
+      ## interpolation of a sine at 6 points/cycle is accurate to 5.4e-3 on a
+      ## peak of 3.0 (0.18%), and conserves the annual total to 1e-5 % -- but it
+      ## is 4th-order in the spacing and degrades with mpl, so pin the density
+      ## instead. At 48/yr the error is ~1e-6, i.e. numerically exact.
+      points_per_year <- 48L
       t <- seq(0, max_patch_lifetime,
-               length.out = max(200L, as.integer(ceiling(max_patch_lifetime * 6))))
+               length.out = max(200L, as.integer(ceiling(max_patch_lifetime *
+                                                           points_per_year))))
       y <- mean_rain * (1 + amp_frac * sin(2 * pi * t))
       y <- pmax(y, 0)
       env$extrinsic_drivers_set_variable("rainfall", t, y)
@@ -156,15 +167,37 @@ build_scenario <- function(config, max_patch_lifetime = 100,
   list(p = p, env = env, ctrl = ctrl)
 }
 
+## Demographic persistence, as distinct from the run completing.
+##
+## With birth_rate = 1 (build_scenario's default) offspring_production *is* the
+## net reproduction ratio R0 -- lifetime offspring per offspring introduced --
+## so a strategy replaces itself only at R0 >= 1. This matters because `status`
+## and `outcome` below test `total > 0`, which is a far weaker condition than it
+## looks: at the blessed baseline five of the eight hydraulic scenarios return
+## R0 between 2e-15 and 6e-14 -- numerically extinct -- and are nonetheless
+## recorded as "persisted". That is the main reason the gateway discriminates
+## so little (3/8, no expected failure failing).
+##
+## Reported alongside, not folded into, `status`/`outcome`: the scenario CSV's
+## "Model failure" means the model *breaks numerically* (#549/#550), not that
+## the strategy dies out, so the two axes are different questions and the
+## blessed baseline diff is defined on the existing ones.
+persists_at <- function(total, finite, threshold = 1) {
+  isTRUE(finite) && isTRUE(total >= threshold)
+}
+
 ##' @param p A built \code{Parameters} object (e.g. \code{build_scenario()$p}).
 ##' @param env An \code{Environment} object (e.g. \code{build_scenario()$env}).
 ##' @return \code{classify_scm_run} returns a list describing the run:
 ##'   \code{status} (\code{"success"}/\code{"failure"}),
-##'   \code{offspring_production}, \code{finite}, \code{error_message},
-##'   \code{warnings} and \code{run_seconds}. A run is a success when it
-##'   completes with finite, positive total offspring production; any thrown
-##'   error or non-finite output is a failure. The C++ layer already fails fast
-##'   on non-finite state, so classification does not depend on error wording.
+##'   \code{offspring_production}, \code{persists}, \code{finite},
+##'   \code{error_message}, \code{warnings} and \code{run_seconds}. A run is a
+##'   success when it completes with finite, positive total offspring
+##'   production; any thrown error or non-finite output is a failure. The C++
+##'   layer already fails fast on non-finite state, so classification does not
+##'   depend on error wording. \code{persists} is the separate, stricter
+##'   ecological question — whether the strategy replaces itself, R0 >= 1 —
+##'   which a run can fail while still counting as a numerical success.
 ##' @rdname scenario_eval
 ##' @export
 classify_scm_run <- function(p, env, ctrl = control()) {
@@ -198,11 +231,12 @@ classify_scm_run <- function(p, env, ctrl = control()) {
     ## finite run in which the strategy simply fails to persist (extinct).
     outcome <- if (!finite) "crashed" else if (total > 0) "persisted" else "extinct"
     list(status = status, outcome = outcome, crashed = !finite,
-         offspring_production = total, finite = finite,
+         offspring_production = total, persists = persists_at(total, finite),
+         finite = finite,
          error_message = NA_character_, warnings = warn_str, run_seconds = elapsed)
   } else {
     list(status = "failure", outcome = "crashed", crashed = TRUE,
-         offspring_production = NA_real_, finite = FALSE,
+         offspring_production = NA_real_, persists = FALSE, finite = FALSE,
          error_message = res$error_message, warnings = warn_str,
          run_seconds = elapsed)
   }
@@ -227,6 +261,7 @@ evaluate_scenario <- function(row, mapping, ctrl = control(),
     outcome              = run$outcome,
     crashed              = run$crashed,
     offspring_production = run$offspring_production,
+    persists             = run$persists,
     finite               = run$finite,
     error_message        = run$error_message,
     warnings             = run$warnings,
@@ -268,7 +303,7 @@ run_scenarios <- function(scenarios = read_scenario_table(),
     scenario_id = row$scenario_id %||% NA_character_,
     scenario = row$Scenario, expected = NA_character_,
     observed = "error", match = NA, outcome = "error", crashed = TRUE,
-    offspring_production = NA_real_, finite = FALSE,
+    offspring_production = NA_real_, persists = FALSE, finite = FALSE,
     error_message = msg, warnings = NA_character_,
     run_seconds = NA_real_, config = list(NULL))
 
@@ -426,13 +461,20 @@ scenario_run_metadata <- function() {
 
 ##' @param scorecard A scorecard tibble from \code{run_scenarios}.
 ##' @return \code{scenario_summary} returns a one-row tibble with the headline
-##'   counts: total scenarios, matches, match rate, and the expected-failure vs
-##'   expected-success breakdown.
+##'   counts: total scenarios, matches, match rate, the expected-failure vs
+##'   expected-success breakdown, and \code{n_persists} — how many scenarios
+##'   clear R0 >= 1. Read \code{n_persists} against \code{n}: a scorecard where
+##'   every run "succeeds" but almost none persists is reporting that the model
+##'   no longer crashes, not that the strategies live.
 ##' @rdname scenario_eval
 ##' @export
 scenario_summary <- function(scorecard) {
   exp_fail <- scorecard$expected == "failure"
   exp_succ <- scorecard$expected == "success"
+  ## Scorecards recorded before `persists` existed -- including the blessed
+  ## baseline in tests/testthat/test_data/ -- have no such column, and must
+  ## still summarise rather than error.
+  persists <- if ("persists" %in% names(scorecard)) scorecard$persists else NA
   tibble::tibble(
     n                  = nrow(scorecard),
     n_match            = sum(scorecard$match, na.rm = TRUE),
@@ -440,7 +482,8 @@ scenario_summary <- function(scorecard) {
     n_expected_fail    = sum(exp_fail, na.rm = TRUE),
     n_expected_fail_met = sum(exp_fail & scorecard$match, na.rm = TRUE),
     n_expected_success = sum(exp_succ, na.rm = TRUE),
-    n_expected_success_met = sum(exp_succ & scorecard$match, na.rm = TRUE))
+    n_expected_success_met = sum(exp_succ & scorecard$match, na.rm = TRUE),
+    n_persists         = sum(persists, na.rm = TRUE))
 }
 
 ##' @param output_file Output HTML path for the rendered report.

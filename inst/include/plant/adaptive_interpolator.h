@@ -42,6 +42,7 @@ private:
 
   bool check_err(double y_true, double y_pred) const;
   static void check_bounds(double a, double b);
+  static void check_target_value(double x, double y);
 
   // Control parameters:
   double atol, rtol;
@@ -74,8 +75,10 @@ odelia::interpolator::Interpolator AdaptiveInterpolator::construct(Function targ
   std::vector<double> tmp = util::seq_len(a, b, nbase);
   for (size_t i = 0; i < nbase; i++) {
     const double xi = tmp[i];
+    const double yi = target(xi);
+    check_target_value(xi, yi);
     xx.push_back(xi);
-    yy.push_back(target(xi));
+    yy.push_back(yi);
     zz.push_back(i > 0);
   }
 
@@ -98,7 +101,17 @@ bool AdaptiveInterpolator::refine(Function target) {
   dx /= 2;
 
   if (dx < dxmin) {
-    util::stop("Interpolated function as refined as currently possible");
+    // Say what was actually exhausted. The target is finite here (construct()
+    // and the loop below both check), so this is a genuine resolution limit:
+    // the function has a feature narrower than dxmin, i.e. is effectively
+    // discontinuous at this tolerance.
+    util::stop("Interpolated function as refined as currently possible: "
+               "spacing " + util::to_string(dx) + " is below the limit " +
+               util::to_string(dxmin) + " set by max_depth=" +
+               util::to_string(static_cast<int>(max_depth)) +
+               ", and the target still misses atol=" + util::to_string(atol) +
+               " / rtol=" + util::to_string(rtol) +
+               ". The target has a feature narrower than that spacing.");
   }
 
   bool flag = false;
@@ -109,6 +122,7 @@ bool AdaptiveInterpolator::refine(Function target) {
     if (*zi) {
       const double x_mid = *xi - dx;
       const double y_mid = target(x_mid);
+      check_target_value(x_mid, y_mid);
       const double p_mid = interpolator.eval(x_mid);
 
       // Always insert the new points.

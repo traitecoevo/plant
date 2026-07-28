@@ -4173,6 +4173,10 @@ TF24f_Strategy__ctor <- function() {
     .Call('_plant_TF24f_Strategy__ctor', PACKAGE = 'plant')
 }
 
+test_adaptive_interpolator <- function(f, a, b, atol = 1e-6, rtol = 1e-6, nbase = 17L, max_depth = 16L) {
+    .Call('_plant_test_adaptive_interpolator', PACKAGE = 'plant', f, a, b, atol, rtol, nbase, max_depth)
+}
+
 node_schedule_default__Parameters___FF16__FF16_Env <- function(p) {
     .Call('_plant_node_schedule_default__Parameters___FF16__FF16_Env', PACKAGE = 'plant', p)
 }

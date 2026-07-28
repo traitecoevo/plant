@@ -38,7 +38,8 @@ message(sprintf("Build: %s @ %s%s",
                 if (isTRUE(meta$git_dirty)) " (dirty)" else ""))
 
 print(as.data.frame(scorecard)[, c("scenario_id", "expected", "observed",
-                                   "match", "outcome", "offspring_production")],
+                                   "match", "outcome", "offspring_production",
+                                   "persists")],
       row.names = FALSE)
 
 cat("\nSummary:\n")
