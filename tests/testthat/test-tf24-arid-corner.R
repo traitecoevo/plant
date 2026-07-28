@@ -67,3 +67,51 @@ test_that("adaptive interpolation names a non-finite target", {
   # A smooth target is unaffected.
   expect_silent(test_adaptive_interpolator(function(x) sin(x), 0, 1))
 })
+
+test_that("a resolution limit says where refinement stalled", {
+  # Naming the x is the whole diagnosis: refinement stalls on a feature of the
+  # target, so the location points straight at whatever put the feature there.
+  # Without it the message says only that some feature somewhere is too narrow
+  # (#571 took an afternoon to localise by hand).
+  msg <- tryCatch(
+    test_adaptive_interpolator(function(x) as.numeric(x > 0.5), 0, 1),
+    error = conditionMessage)
+
+  expect_match(msg, "at x = ")
+  x <- as.numeric(sub(".*at x = ([0-9.e+-]+):.*", "\\1", msg))
+  expect_equal(x, 0.5, tolerance = 1e-3)
+  # And what the target does across the interval it could not resolve.
+  expect_match(msg, "jumps from 0 to 1")
+  expect_match(msg, "interval\\(s\\) still unresolved")
+})
+
+test_that("a failed light spline reports the patch state that caused it", {
+  # The #571 reproducer. The refiner can only report a narrow feature in a
+  # function; the patch knows that the function is a light profile over a set of
+  # cohort heights, and that here the node list has lost its decreasing-height
+  # ordering -- which is what puts the fictitious step in the profile, because
+  # Species::compute_competition() early-exits on the first node below the query
+  # height and so drops the taller, and only living, cohort beyond it.
+  env <- Environment("TF24")
+  env$set_soil_number_of_depths(5)
+  env$set_soil_water_state(rep(0.005, 5))
+  env$extrinsic_drivers_set_constant("rainfall", 1)
+
+  p <- scm_base_parameters("TF24")
+  p$max_patch_lifetime <- 10
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"))
+
+  msg <- tryCatch({
+    run_scm(p, env, collect = TRUE)
+    NA_character_
+  }, error = conditionMessage)
+
+  skip_if(is.na(msg), "dry-start TF24 now completes; see #571")
+
+  expect_match(msg, "Patch state at that height")
+  expect_match(msg, "cohorts within")
+  # The ordering violation is the actionable part, so it must be reported rather
+  # than left to be rediscovered.
+  expect_match(msg, "node heights are NOT decreasing")
+  expect_match(msg, "height_max\\(\\) reports")
+})

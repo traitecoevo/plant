@@ -1,5 +1,7 @@
 #include <plant/util.h>
 #include <Rcpp.h>
+#include <iomanip>
+#include <sstream>
 
 namespace plant {
 namespace util {
@@ -47,6 +49,12 @@ std::vector<double> seq_len(double from, double to, size_t len) {
     ret.push_back(x);
   ret.back() = to; // Protect against rounding errors.
   return ret;
+}
+
+std::string format_double(double x) {
+  std::ostringstream out;
+  out << std::setprecision(6) << x;
+  return out.str();
 }
 
 [[noreturn]] void stop(const std::string& msg) {

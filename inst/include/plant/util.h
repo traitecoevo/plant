@@ -127,6 +127,12 @@ std::string to_string(T x) {
   return std::to_string(x);
 }
 
+// to_string() always gives six decimal places, so quantities much smaller than
+// 1e-6 print as "0.000000" -- useless in an error message about spacings and
+// tolerances. This keeps six *significant* figures instead, so 15.7 and 1.5e-05
+// both read correctly.
+std::string format_double(double x);
+
 template <class ForwardIterator>
 void rescale(ForwardIterator first, ForwardIterator last,
              double min_old, double max_old,

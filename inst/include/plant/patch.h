@@ -5,12 +5,15 @@
 #include <plant/parameters.h>
 #include <plant/species.h>
 #include <plant/util.h>
+#include <plant/adaptive_interpolator.h> // interpolator::refinement_failure
 #include <odelia/ode_interface.hpp>
 
 #include <plant/disturbance_regime.h>
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
+#include <string>
 
 using namespace Rcpp;
 
@@ -38,6 +41,11 @@ public:
   double height_max() const;
 
   double compute_competition(double height) const;
+
+  // Describe the size distribution around `height`, for error messages. The
+  // light spline is built from the cohort heights, so when its refinement fails
+  // the useful thing to report is what the cohorts are doing there.
+  std::string describe_nodes_near(double height) const;
 
   // * Lifetime fitness / offspring production
   // These are patch-level quantities: each integrates the per-node weighted
@@ -561,13 +569,92 @@ std::vector<std::vector<double>> Patch<T,E>::refinement_error_by_node() const {
 // Creates splines of resource availability
 template <typename T, typename E>
 void Patch<T,E>::compute_environment(bool rescale) {
-  
+
   // Define an anonymous function to use in creation of environment
   auto f = [&](double x) -> double { return compute_competition(x); };
 
   if (size() > 0 & !is_mutant_run) {
-    environment.compute_environment(f, height_max(), rescale);
+    try {
+      environment.compute_environment(f, height_max(), rescale);
+    } catch (const interpolator::refinement_failure& e) {
+      // The refiner can only say that the profile has a feature it cannot
+      // resolve, at some height. We know what is at that height, and it is
+      // usually the actual problem: cohorts stacked at one size put a step in
+      // the competition profile (#571). Say so rather than making the reader
+      // reconstruct the patch state by hand.
+      util::stop(std::string(e.what()) + " " +
+                 describe_nodes_near(e.report.x_lo));
+    }
   }
+}
+
+// Report what the size distribution is doing around `height`: how many cohorts
+// sit within a narrow window of it, and -- the usual culprit -- whether the node
+// list is still ordered by decreasing height. Species::compute_competition() and
+// Species::height_max() both take that ordering as given (see the invariant noted
+// on both), so once it is violated the competition profile they build has
+// fictitious steps in it, and the refiner fails on one of them (#571).
+//
+// A window rather than a single point because the unresolved interval is ~1e-5 m
+// wide, while what matters is whether cohorts share effectively the same size.
+template <typename T, typename E>
+std::string Patch<T,E>::describe_nodes_near(double height) const {
+  const double window = 1e-3; // m
+
+  std::string ret = "Patch state at that height (time " +
+                    util::format_double(environment.time) + "):";
+
+  for (size_t i = 0; i < species.size(); ++i) {
+    size_t n_near = 0, n_inversions = 0;
+    double h_near_min = std::numeric_limits<double>::infinity(),
+           h_near_max = -std::numeric_limits<double>::infinity(),
+           h_max = -std::numeric_limits<double>::infinity(),
+           h_front = NA_REAL, h_prev = NA_REAL;
+
+    for (auto it = species[i].node_begin(); it != species[i].node_end(); ++it) {
+      const double h = it->height();
+      if (!util::is_finite(h_front)) {
+        h_front = h;
+      } else if (h > h_prev) {
+        n_inversions++;
+      }
+      h_prev = h;
+      h_max = std::max(h_max, h);
+      if (fabs(h - height) <= window) {
+        n_near++;
+        h_near_min = std::min(h_near_min, h);
+        h_near_max = std::max(h_near_max, h);
+      }
+    }
+
+    ret += " species " + util::to_string(i + 1) + ": " +
+           util::to_string(n_near) + " of " +
+           util::to_string(species[i].size()) + " cohorts within " +
+           util::format_double(window) + " m";
+    if (n_near > 0) {
+      ret += ", spanning [" + util::format_double(h_near_min) + ", " +
+             util::format_double(h_near_max) + "]";
+      // Several cohorts at one size means growth has stalled and the schedule is
+      // introducing new cohorts into a patch with nothing to separate them.
+      if (n_near > 1 && (h_near_max - h_near_min) < window / 100) {
+        ret += " -- effectively a single size, so the size distribution has"
+               " collapsed here";
+      }
+    }
+    if (n_inversions > 0) {
+      ret += "; node heights are NOT decreasing (" +
+             util::to_string(n_inversions) +
+             " inversions), which breaks the ordering that"
+             " Species::compute_competition() and height_max() assume: the"
+             " tallest cohort is " + util::format_double(h_max) +
+             " but height_max() reports " + util::format_double(h_front) +
+             " (the front node), so the competition profile is wrong and its"
+             " steps are an artefact rather than a feature of the model";
+    }
+    ret += ";";
+  }
+
+  return ret;
 }
 
 

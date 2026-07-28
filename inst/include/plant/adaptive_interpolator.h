@@ -5,11 +5,34 @@
 // This class creates an interpolator object, using adaptive refinement
 
 #include <list>
+#include <stdexcept>
+#include <string>
 #include <plant/util.h> // util::stop, util::seq_len
 #include <odelia/interpolator.hpp>
 
 namespace plant {
 namespace interpolator {
+
+// Where refinement gave up: the worst interval still failing the error test at
+// max_depth, and how many others are in the same state. Reported because the
+// location is the diagnosis -- refinement stalls on a feature of the target, and
+// naming the x it stalled at points straight at whatever put the feature there.
+struct StallReport {
+  double x_lo, x_hi;   // the unresolved interval
+  double y_lo, y_hi;   // target values at its ends
+  size_t n_unresolved; // intervals still failing, including this one
+};
+
+// Thrown when adaptive refinement exhausts max_depth. Carries the stall location
+// so a caller with model context can say what lives at that x before the error
+// reaches the user: the interpolator only sees a function with a narrow feature,
+// whereas Patch knows it is a light profile over a set of cohort heights.
+class refinement_failure : public std::runtime_error {
+public:
+  refinement_failure(const std::string& msg, const StallReport& report_)
+    : std::runtime_error(msg), report(report_) {}
+  StallReport report;
+};
 
 class AdaptiveInterpolator {
 public:
@@ -43,6 +66,11 @@ private:
   bool check_err(double y_true, double y_pred) const;
   static void check_bounds(double a, double b);
   static void check_target_value(double x, double y);
+
+  // Locate the interval refinement is stuck on, and throw refinement_failure
+  // naming it. Non-template members, so they live in the .cpp.
+  StallReport stall_report() const;
+  [[noreturn]] void stop_unresolvable() const;
 
   // Control parameters:
   double atol, rtol;
@@ -101,17 +129,11 @@ bool AdaptiveInterpolator::refine(Function target) {
   dx /= 2;
 
   if (dx < dxmin) {
-    // Say what was actually exhausted. The target is finite here (construct()
-    // and the loop below both check), so this is a genuine resolution limit:
-    // the function has a feature narrower than dxmin, i.e. is effectively
-    // discontinuous at this tolerance.
-    util::stop("Interpolated function as refined as currently possible: "
-               "spacing " + util::to_string(dx) + " is below the limit " +
-               util::to_string(dxmin) + " set by max_depth=" +
-               util::to_string(static_cast<int>(max_depth)) +
-               ", and the target still misses atol=" + util::to_string(atol) +
-               " / rtol=" + util::to_string(rtol) +
-               ". The target has a feature narrower than that spacing.");
+    // Say what was actually exhausted, and where. The target is finite here
+    // (construct() and the loop below both check), so this is a genuine
+    // resolution limit: the function has a feature narrower than dxmin, i.e. is
+    // effectively discontinuous at this tolerance.
+    stop_unresolvable();
   }
 
   bool flag = false;
