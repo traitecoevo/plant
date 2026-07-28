@@ -35,7 +35,6 @@ public:
   // ODE plumbing and the per-element serialisers are inherited from SpeciesBase
   // and iterate all nodes (the deterministic model has no notion of "dead").
   using base_type::ode_size;
-  using base_type::set_ode_state;
   using base_type::ode_state;
   using base_type::ode_rates;
   using base_type::get_node_state;
@@ -62,7 +61,17 @@ public:
   // twice was measurably slower on FF16 (~5% on the SCM benchmark) than the
   // O(1) nodes.front() it replaced.
   struct HeightScan { double h_max; bool decreasing; };
+  // Cached: heights change only when the ODE state is set or a node is
+  // introduced/cleared, whereas compute_competition() is called once per spline
+  // knot, so this is hundreds of calls per change. Every mutator invalidates.
   HeightScan scan_heights() const;
+
+  // Setting the ODE state rewrites every node's height, so the cached scan goes
+  // with it. Shadows (rather than uses) the SpeciesBase version for that reason.
+  odelia::ode::const_iterator set_ode_state(odelia::ode::const_iterator it) {
+    invalidate_height_scan();
+    return base_type::set_ode_state(it);
+  }
   void compute_rates(const environment_type& environment, double pr_patch_survival, double birth_rate);
   std::vector<double> net_reproduction_ratio_by_node() const;
   // Per-node lifetime offspring, weighted by patch-age density and S_D.
@@ -133,6 +142,16 @@ private:
   // ordered, so the node list cannot be used directly as the quadrature grid.
   double compute_competition_unordered(double height) const;
 
+  // Cache for scan_heights(). Every path that can change a node height must call
+  // invalidate_height_scan(); a stale cache here would silently reintroduce the
+  // wrong competition profile of #571, so the coverage of these calls was checked
+  // by asserting cache == freshly-computed on every call across the whole suite
+  // and the scenario gateway.
+  HeightScan compute_height_scan() const;
+  void invalidate_height_scan() { height_scan_valid = false; }
+  mutable HeightScan height_scan_cache{0.0, true};
+  mutable bool height_scan_valid = false;
+
   // Storage (strategy, nodes) and control() live in SpeciesBase; the
   // using-declarations let the unqualified references below resolve through the
   // dependent base.
@@ -158,6 +177,7 @@ size_t Species<T,E>::size() const {
 
 template <typename T, typename E>
 void Species<T,E>::clear() {
+  invalidate_height_scan();
   nodes.clear();
   // Reset the new_node to a blank new_node, too.
   new_node = node_type(strategy);
@@ -165,6 +185,7 @@ void Species<T,E>::clear() {
 
 template <typename T, typename E>
 void Species<T,E>::introduce_new_node() {
+  invalidate_height_scan();
   // new_node already holds the initial conditions computed against the current
   // environment by the most recent compute_rates() call (see compute_rates ->
   // new_node.compute_initial_conditions above), and the member is refreshed
@@ -209,9 +230,18 @@ bool Species<T,E>::heights_are_decreasing() const {
   return scan_heights().decreasing;
 }
 
-// Tallest height and orderedness in one pass over the heights.
 template <typename T, typename E>
 typename Species<T,E>::HeightScan Species<T,E>::scan_heights() const {
+  if (!height_scan_valid) {
+    height_scan_cache = compute_height_scan();
+    height_scan_valid = true;
+  }
+  return height_scan_cache;
+}
+
+// Tallest height and orderedness in one pass over the heights.
+template <typename T, typename E>
+typename Species<T,E>::HeightScan Species<T,E>::compute_height_scan() const {
   HeightScan ret{-std::numeric_limits<double>::infinity(), true};
   double h_prev = std::numeric_limits<double>::infinity();
   for (nodes_const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
@@ -362,6 +392,7 @@ void Species<T,E>::compute_rates(const E& environment, double pr_patch_survival,
 
 template <typename T, typename E>
 void Species<T,E>::introduce_new_node(double time, double patch_density) {
+  invalidate_height_scan();
   // Stamp the pushed copy (not new_node) so the member stays pristine for
   // the no-arg introduction paths.
   nodes.push_back(new_node);
@@ -489,6 +520,7 @@ std::vector<double> Species<T,E>::r_heights_rev() const {
 
 template <typename T, typename E>
 void Species<T,E>::r_set_heights(std::vector<double> heights) {
+  invalidate_height_scan();
   util::check_length(heights.size(), size());
   if (!util::is_decreasing(heights.begin(), heights.end())) {
     util::stop("height must be decreasing (ties allowed)");
