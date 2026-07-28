@@ -127,7 +127,15 @@ public:
   // v3 (#517/#554): NSC storage pool + reserve-gated growth and reserves-based
   // mortality change the simulation output for identical inputs; TF24f's
   // compound version auto-tracks this to 3.1.
-  static constexpr int scientific_version = 3;
+  // v4: the hydraulic shut-down exits no longer leave the previous step's
+  // transport state in place, so a shut-down plant stops drawing water from the
+  // soil (it used to keep extracting its last wet-step uptake, because `Leaf`
+  // is reused across steps and soil_consumption_ feeds the patch water
+  // balance). Water-limited runs therefore change: on the scenario gateway,
+  // offspring production moves by up to 5e-3 relative on 5 of 8 scenarios,
+  // while every success/failure classification is unchanged. TF24f's compound
+  // version auto-tracks this to 4.1.
+  static constexpr int scientific_version = 4;
 
   double compute_average_light_environment(double z, double height,
                                            const TF24_Environment &environment);

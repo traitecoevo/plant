@@ -148,6 +148,27 @@ were not previously recorded here:
 
 ### New features
 
+* **A hydraulically shut-down plant no longer draws water from the soil
+  (`TF24@v4`, `TF24f@v4.1`).** Both shut-down exits in
+  `Leaf::find_root_collar_psi` set `profit_` directly and bypass
+  `profit_psi_stem_TF`, and the first returns before any
+  `E_from_Soil_to_Root_Collar` call in that solve. Because `Leaf` is a value
+  member reused across every `compute_rates` call for an individual, every leaf
+  output they did not assign kept the **previous step's** value. That was not
+  just a reporting problem: `soil_consumption_` feeds
+  `TF24_Strategy::evapotranspiration_dt` and hence the patch water balance, so a
+  plant whose stomata had closed carried on extracting its last wet-step uptake.
+  Measured: an individual moved from θ = 0.30 to θ = 0.02 (past ψ_crit) reported
+  `E_up_` and `transpiration` *identical* to its wet step. Both exits now zero
+  the transport chain (`transpiration_`, `stom_cond_CO2_`, `E_up_`,
+  `soil_consumption_`), and recovery on rewetting is tested. Note the water
+  budget still *closed* in the buggy state — what was recorded as depleted was
+  what was removed — so the conservation tests could not catch this; only the
+  physics was wrong. Because water-limited runs change (scenario gateway:
+  offspring production moves by up to 5e-3 relative on 5 of 8 scenarios, with
+  every success/failure classification unchanged), the TF24 scientific version
+  is bumped **3 → 4** and `TF24f` tracks to **4.1**. This invalidates `logpile`
+  caches for water-limited TF24 runs, which is the intended, safe direction.
 * **Root hydraulic parameters are now settable from R.** `root_b`, `root_c`,
   `root_psi_crit` and `rooting_depth_max` move into `TF24_Pars` (they were fixed
   members of `TF24_Strategy` and a file-static constant in

@@ -677,6 +677,20 @@ void Leaf::set_shutdown_state(double root_collar) {
   // whatever the last probe wrote, and it is now reported as an aux variable.
   // Keeps profit_ == assim_colimited_ - hydraulic_cost_TF() in every branch.
   assim_colimited_ = -R_d_;
+  // Shut down means no water movement, so zero the whole transport chain.
+  // This matters beyond diagnostics: the first caller below returns before any
+  // E_from_Soil_to_Root_Collar call in this solve, and `Leaf` is a value member
+  // reused across every compute_rates call for an individual. Left alone,
+  // soil_consumption_ therefore keeps the *previous* step's values, and
+  // TF24_Strategy::evapotranspiration_dt feeds those straight into the patch
+  // water balance -- a plant that has closed its stomata carries on drawing its
+  // last wet-step uptake out of the soil. Note the water budget still *closes*
+  // in that state (what is recorded as depleted is what is removed), so the
+  // conservation tests cannot catch it; only the physics is wrong.
+  transpiration_ = 0.0;
+  stom_cond_CO2_ = 0.0;
+  E_up_ = 0.0;
+  std::fill(soil_consumption_.begin(), soil_consumption_.end(), 0.0);
 }
 
 // Shared setup + feasibility handling for the root-collar solve. Extracted
@@ -749,6 +763,13 @@ if(assim_max_ < 0){
     // As in set_shutdown_state: transpiration is zero here, so gross
     // assimilation is zero and the reported net rate is -R_d_.
     assim_colimited_ = -R_d_;
+    // E_up_ and soil_consumption_ are already correct: the
+    // E_from_Soil_to_Root_Collar call above evaluates them at root_zero_E, the
+    // collar potential at which uptake is zero. The leaf-side pair is not set
+    // anywhere on this path, though, so zero it here rather than leave the
+    // previous step's values (see set_shutdown_state for why that matters).
+    transpiration_ = 0.0;
+    stom_cond_CO2_ = 0.0;
 
         if(std::isnan(profit_)){
           util::stop("Error: profit nan");
