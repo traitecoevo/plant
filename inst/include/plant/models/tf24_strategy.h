@@ -92,6 +92,24 @@ struct TF24_Pars {
   double dmass_dN = 0; // change in mass per change in kg kg^-1 N
   // shape exponent for the Q() root-fraction-with-depth profile
   double root_depth_shape_eta = 0.2;
+  // * Root hydraulics
+  // Root vulnerability curve, proportion of conductivity =
+  // exp(-(psi/root_b)^root_c). Declared before root_psi_crit, which derives
+  // from them. Previously fixed members of TF24_Strategy and unreachable from
+  // R, which pinned root shutoff at ~5.87 MPa -- too conservative for taxa that
+  // operate below that (e.g. Acacia aneura), and unavailable for calibration.
+  double root_c = 2.680147;
+  double root_b = 3.898245;
+  // Potential at 5% remaining root conductivity [MPa]. Derived, exactly as
+  // psi_crit is from b and c: if you set root_b or root_c directly, set this
+  // too, or the vulnerability curve and the shutoff threshold disagree.
+  double root_psi_crit = root_b*std::pow(log(1/0.05),1/root_c);
+  // Maximum rooting depth [m]. Rooting depth is min(height, rooting_depth_max),
+  // so this also bounds the depth over which roots can draw water. Should not
+  // exceed the soil column depth (TF24_Environment `depth`, default 1.5 m):
+  // layers below the column do not exist, so deepening roots alone gains
+  // nothing without deepening the soil as well.
+  double rooting_depth_max = 1.5;
   // Germination
   double recruitment_decay = 0.0;
 };
@@ -149,6 +167,10 @@ public:
       "E_up_",
       "profit",
       "stom_cond_CO2",
+      // Net CO2 assimilation at the optimal operating point, per unit leaf
+      // area (umol CO2 m^-2 s^-1). Net, not gross: Leaf::assim_colimited()
+      // subtracts dark respiration R_d_, so gross = assimilation + R_d_ with
+      // R_d_ = 0.015 * vcmax_ at the acclimated vcmax_.
       "assimilation"
     });
     // add the associated computation to compute_rates and compute there
@@ -368,11 +390,6 @@ public:
   // Embedded leaf hydraulic/photosynthesis sub-model, built in prepare_strategy()
   Leaf leaf;
 
-  // Hydraulic root parameters (not currently exposed to R; see review #9)
-  double root_c = 2.680147;
-  double root_b = 3.898245;
-  double root_psi_crit = root_b*std::pow(log(1/0.05),1/root_c); // derived from root_b and root_c
-
   // Width of the smooth reserve gate G(r) on growth (#517); small relative to
   // [0,1] so the switch about the growth threshold a_st2 is fairly sharp but
   // differentiable. storage_prod_eps smooths the positive-part of net production
@@ -402,6 +419,7 @@ public:
   int aux_idx_E_up = -1;
   int aux_idx_profit = -1;
   int aux_idx_stom_cond_CO2 = -1;
+  int aux_idx_assimilation = -1;
   int aux_idx_area_sapwood = -1;       // only present when collect_all_auxiliary
   int state_idx_area_heartwood = -1;
   int state_idx_mass_heartwood = -1;

@@ -9,8 +9,8 @@ namespace plant {
 // rescales total fine-root mass into the per-layer carbon units expected by the
 // root hydraulic network in Leaf::set_physiology.
 static const double root_mass_carbon_scale = 83.26 * 0.5;
-// rooting depth cap (m), i.e. the depth of the soil column.
-static const double rooting_depth_max = 1.5;
+// The rooting depth cap moved to TF24_Pars::rooting_depth_max so it can be set
+// from R; it is no longer a file-static constant here.
 
 // NOTE (review #9): the per-second -> annual factor 60*60*12*365 (seconds of
 // daylight per year, 12 h day x 365 d) recurs in compute_rates and
@@ -71,6 +71,7 @@ void TF24_Strategy::refresh_indices () {
   aux_idx_E_up                  = aux_index.at("E_up_");
   aux_idx_profit                = aux_index.at("profit");
   aux_idx_stom_cond_CO2         = aux_index.at("stom_cond_CO2");
+  aux_idx_assimilation          = aux_index.at("assimilation");
   // area_sapwood is only registered when collect_all_auxiliary is set.
   aux_idx_area_sapwood = aux_index.count("area_sapwood") ? aux_index.at("area_sapwood") : -1;
   state_idx_area_heartwood      = state_index.at("area_heartwood");
@@ -166,6 +167,7 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   vars.set_aux(aux_idx_E_up, leaf.E_up_);
   vars.set_aux(aux_idx_profit, leaf.profit_);
   vars.set_aux(aux_idx_stom_cond_CO2, leaf.stom_cond_CO2_);
+  vars.set_aux(aux_idx_assimilation, leaf.assim_colimited_);
 
 
 
@@ -410,7 +412,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
 // change to while?
 // environment.get_soil_depths() should ask for the ath element to save calling for a new vector each time
 // change environment.get_soil_number_of_depths() change to n or soemtyhing
-    double rooting_depth = std::min(height, rooting_depth_max);
+    double rooting_depth = std::min(height, pars.rooting_depth_max);
   const double root_mass_scale = root_mass_carbon_scale * mass_root_;
     // std::vector<double> Q_root;
     // Q_root.reserve(soil_number_of_depths_);
@@ -472,7 +474,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
       function_integrator.integrate_vector_x(0.0, height);
     const size_t nn = nodes.size();
     std::vector<double> profit_y(nn), trans_y(nn), eup_y(nn), psi_y(nn),
-      root_psi_y(nn), gco2_y(nn);
+      root_psi_y(nn), gco2_y(nn), assim_y(nn);
     std::vector<std::vector<double>> soil_y(
       soil_number_of_depths_, std::vector<double>(nn));
     for (size_t i = 0; i < nn; ++i) {
@@ -484,6 +486,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
       psi_y[i]      = leaf.opt_psi_stem_ * qi;
       root_psi_y[i] = leaf.root_collar_psi_ * qi;
       gco2_y[i]     = leaf.stom_cond_CO2_ * qi;
+      assim_y[i]    = leaf.assim_colimited_ * qi;
       for (int a = 0; a < soil_number_of_depths_; ++a) {
         soil_y[a][i] = leaf.soil_consumption_[a] * qi;
       }
@@ -498,6 +501,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
     leaf.opt_psi_stem_    = function_integrator.integrate_vector(psi_y, 0.0, height);
     leaf.root_collar_psi_ = function_integrator.integrate_vector(root_psi_y, 0.0, height);
     leaf.stom_cond_CO2_   = function_integrator.integrate_vector(gco2_y, 0.0, height);
+    leaf.assim_colimited_ = function_integrator.integrate_vector(assim_y, 0.0, height);
     for (int a = 0; a < soil_number_of_depths_; ++a) {
       leaf.soil_consumption_[a] =
         function_integrator.integrate_vector(soil_y[a], 0.0, height);
@@ -811,8 +815,9 @@ void TF24_Strategy::prepare_strategy() {
   } else {
     extrinsic_drivers.set_constant("birth_rate", birth_rate_y[0]);
   }
-  leaf = Leaf(pars.vcmax_25, pars.c, pars.b, pars.psi_crit, root_c, root_b,
-              root_psi_crit, pars.beta2, pars.jmax_25, pars.a,
+  leaf = Leaf(pars.vcmax_25, pars.c, pars.b, pars.psi_crit,
+              pars.root_c, pars.root_b, pars.root_psi_crit,
+              pars.beta2, pars.jmax_25, pars.a,
               pars.curv_fact_elec_trans, pars.curv_fact_colim,
               control.GSS_tol_abs, control.vulnerability_curve_ncontrol,
               control.ci_abs_tol, control.ci_niter, pars.g1_TF24, beta_R_H,

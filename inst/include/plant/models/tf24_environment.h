@@ -280,7 +280,26 @@ public:
   {
 
     double water_input;
-    double rainfall = extrinsic_drivers.evaluate("rainfall", time);
+    // Rainfall is floored at zero. Drivers are interpolated with a cubic
+    // spline, which overshoots badly on intermittent forcing: a realistic daily
+    // series with a ~10% wet-day fraction evaluates negative at ~45% of points,
+    // reaching -5.7 m yr^-1. Unfloored, negative rainfall gives negative
+    // infiltration and a negative layer-0 rate, which is unphysical (rain
+    // drying the soil) and fails in two different ways depending on wetness:
+    // above residual moisture the water really is removed, while at/below
+    // residual the guard further down clamps the rate to zero, so the removal
+    // is recorded in `sum_rainfall` but never applied and the water budget
+    // stops closing. Drylands sit at residual for much of the year, so that
+    // second case is the common one in the intended application.
+    //
+    // Flooring removes both. It is a bound on the sign, NOT a correction to the
+    // interpolation: the spline conserves the integral exactly (undershoot is
+    // compensated by overshoot), so discarding the negative lobes raises total
+    // rainfall by the undershoot area -- ~7% for the series above. The real
+    // remedy is not to spline an intermittent series; run
+    // `check_driver_interpolation()` on any such driver, which reports the
+    // undershoot area and warns.
+    double rainfall = std::max(0.0, extrinsic_drivers.evaluate("rainfall", time));
     const double soil_moist_sat_0 =
       soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, 0);
     double infiltration = rainfall * std::max(

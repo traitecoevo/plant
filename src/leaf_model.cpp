@@ -671,6 +671,12 @@ void Leaf::set_shutdown_state(double root_collar) {
   root_collar_psi_ = root_collar;
   opt_psi_stem_ = psi_crit;
   profit_ = -R_d_ - hydraulic_cost_TF(psi_crit);
+  // Stomata are shut, so gross assimilation is zero and the reported net rate
+  // is -R_d_. Set explicitly: this branch does not go through
+  // profit_psi_stem_TF, so assim_colimited_ would otherwise be left at
+  // whatever the last probe wrote, and it is now reported as an aux variable.
+  // Keeps profit_ == assim_colimited_ - hydraulic_cost_TF() in every branch.
+  assim_colimited_ = -R_d_;
 }
 
 // Shared setup + feasibility handling for the root-collar solve. Extracted
@@ -740,6 +746,9 @@ if(assim_max_ < 0){
     E_from_Soil_to_Root_Collar(root_collar_psi_, psi_soil_inverted_);
 
     profit_ = - R_d_ - hydraulic_cost_TF(-root_collar_psi_);
+    // As in set_shutdown_state: transpiration is zero here, so gross
+    // assimilation is zero and the reported net rate is -R_d_.
+    assim_colimited_ = -R_d_;
 
         if(std::isnan(profit_)){
           util::stop("Error: profit nan");
@@ -1196,13 +1205,13 @@ double Leaf::assim_electron_limited(double ci_) {
   ((ci_ - gamma_ * umol_per_mol_to_Pa) / (ci_ + 2 * gamma_ * umol_per_mol_to_Pa));
 }
 
-// returns co-limited assimilation umol m^-2 s^-1
+// returns co-limited assimilation umol m^-2 s^-1, NET of dark respiration
+// (the trailing `- R_d_`), so gross assimilation is this value + R_d_.
 double Leaf::assim_colimited(double ci_) {
-  
+
   double assim_rubisco_limited_ = assim_rubisco_limited(ci_) ;
   double assim_electron_limited_ = assim_electron_limited(ci_);
 
-  // no dark respiration included at the moment
   return (assim_rubisco_limited_ + assim_electron_limited_ - sqrt(pow(assim_rubisco_limited_ + assim_electron_limited_, 2) - 4 * curv_fact_colim * assim_rubisco_limited_ * assim_electron_limited_)) /
              (2 * curv_fact_colim)- R_d_;
 

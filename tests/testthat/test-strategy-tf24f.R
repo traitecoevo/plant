@@ -58,6 +58,10 @@ test_that("Defaults", {
     nmass_r = 0.00335,
     dmass_dN = 0,
     root_depth_shape_eta = 0.2,
+    root_c = 2.680147,
+    root_b = 3.898245,
+    root_psi_crit = 3.898245 * log(1 / 0.05)^(1 / 2.680147),
+    rooting_depth_max = 1.5,
     recruitment_decay = 0)
 
   # Top-level strategy fields: the pars sub-object plus infrastructure, and the

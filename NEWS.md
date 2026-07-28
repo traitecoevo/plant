@@ -148,6 +148,38 @@ were not previously recorded here:
 
 ### New features
 
+* **Root hydraulic parameters are now settable from R.** `root_b`, `root_c`,
+  `root_psi_crit` and `rooting_depth_max` move into `TF24_Pars` (they were fixed
+  members of `TF24_Strategy` and a file-static constant in
+  `src/tf24_strategy.cpp`, so unreachable from R). Root shutoff was pinned at
+  ψ ≈ 5.87 MPa, too conservative for taxa that operate below it (e.g. *Acacia
+  aneura*), and rooting depth at 1.5 m. **Defaults are unchanged**, so this is
+  an interface change only and the TF24 scientific version does *not* move.
+  Two cautions: `root_psi_crit` is derived from `root_b` and `root_c` exactly as
+  `psi_crit` is from `b` and `c`, so set it whenever you set those; and
+  `rooting_depth_max` beyond the soil column depth (`TF24_Environment$depth`,
+  default 1.5 m) gains nothing, because the layers do not exist.
+* **`check_driver_interpolation()`** reports how a driver's control points
+  survive interpolation — evaluated range, fraction of the series that goes
+  negative, undershoot area, and the interpolated vs supplied integral — and
+  warns when a non-negative series interpolates negative. Extrinsic drivers use
+  a cubic spline, which is a poor fit for intermittent forcing: a realistic
+  daily rainfall series with a ~10% wet-day fraction evaluates negative at ~45%
+  of points, reaching −5.7 m yr⁻¹. Worth running on any site-forcing series
+  before committing to a long run.
+* **`assimilation` is now reported for TF24/TF24f.** The auxiliary variable was
+  listed in `aux_names()` but never written — no index was resolved and no
+  `set_aux` call referenced it — so the slot reported whatever `Internals`
+  happened to hold, and carbon uptake was unavailable as a model output. It now
+  carries net CO₂ assimilation at the optimal operating point, per unit leaf
+  area (µmol CO₂ m⁻² s⁻¹). **Net, not gross:** `Leaf::assim_colimited()`
+  subtracts dark respiration, so gross = `assimilation` + R_d with
+  R_d = 0.015·vcmax at the acclimated vcmax. It is integrated over the crown
+  under `deep-crown` shading alongside the other leaf outputs, and the two
+  hydraulic shut-down exits now set it explicitly (to −R_d) instead of leaving a
+  stale probe value, keeping `profit == assimilation − hydraulic cost` true in
+  every branch.
+
 * **NSC storage pool for TF24 (`TF24@v3`, `TF24f@v3.1`).** TF24 now carries a
   non-structural-carbohydrate storage state so growth and mortality respond to
   *buffered* carbon rather than instantaneous net production (#517, #554).
@@ -220,6 +252,36 @@ were not previously recorded here:
 * Added an HTML report (plots + analyses) for the FF16 strategy (#350).
 
 ### Minor changes & bug fixes
+
+* **The TF24 rainfall driver is floored at zero.** Because drivers are
+  interpolated with a cubic spline, an intermittent series undershoots below
+  every supplied value, and negative rainfall gave negative infiltration and an
+  unphysical drying rate. That failed two different ways depending on soil
+  wetness: above residual moisture the water really was removed, while at or
+  below residual the guard in `compute_rates` clamped the rate, so the removal
+  was recorded in `sum_rainfall` but never applied and the water budget stopped
+  closing. Drylands sit at residual for much of the year, so the second case is
+  the common one. Note the floor bounds the *sign* only and is not a correction
+  to the interpolation: the spline conserves the integral exactly (undershoot is
+  compensated by overshoot), so discarding the negative lobes raises total
+  rainfall by the undershoot area — ~7% for a realistic daily series. The remedy
+  is not to spline an intermittent series; see `check_driver_interpolation()`.
+  Runs with constant or smooth seasonal rainfall are unaffected (the scenario
+  gateway's sinusoidal driver never goes negative), so the TF24 scientific
+  version does not move.
+* Corrected the comment on `Leaf::assim_colimited()`, which claimed "no dark
+  respiration included at the moment" while the code subtracts `R_d_`. The
+  function returns a *net* rate; the comment now says so, along with how to
+  recover the gross rate.
+* Water-budget test coverage extended from a single layer to 1, 5 and 15 layers,
+  now including root uptake in the balance (the previous check ran for 0.01 yr,
+  where uptake was negligible), across the saturated-to-dry range and at and
+  below the residual-moisture floor. Closure holds to round-off (relative
+  residual < 1e-12) in every case. A companion test documents *why* the residual
+  clamp never leaks in practice: with `n_psi = 6.57` the conductivity exponent
+  is 2·n_psi+3 ≈ 16, so K(θ) collapses and ψ(θ) diverges far above θ_r —
+  transport has already stopped, making the clamp a safety net rather than an
+  active mass sink.
 
 * `run_scm()` now fails with an actionable message when the SCM size-density
   (characteristic) equations run away under extreme forcing (e.g. severe
