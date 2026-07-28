@@ -605,20 +605,35 @@ std::string Patch<T,E>::describe_nodes_near(double height) const {
                     util::format_double(environment.time) + "):";
 
   for (size_t i = 0; i < species.size(); ++i) {
-    size_t n_near = 0, n_inversions = 0;
+    size_t n_near = 0, n_inversions = 0, n_inversions_live = 0, n_zero_density = 0;
     double h_near_min = std::numeric_limits<double>::infinity(),
            h_near_max = -std::numeric_limits<double>::infinity(),
            h_max = -std::numeric_limits<double>::infinity(),
            h_front = NA_REAL, h_prev = NA_REAL;
+    bool prev_live = false;
 
     for (auto it = species[i].node_begin(); it != species[i].node_end(); ++it) {
       const double h = it->height();
+      const bool live = it->get_density() > 0.0;
+      if (!live) {
+        n_zero_density++;
+      }
       if (!util::is_finite(h_front)) {
         h_front = h;
       } else if (h > h_prev) {
         n_inversions++;
+        // Whether the *live* cohorts are still ordered is the question that
+        // matters: the method of characteristics guarantees it for them (growth
+        // trajectories sharing an environment cannot cross), so inversions among
+        // zero-density nodes are bookkeeping debris in the quadrature grid,
+        // whereas an inversion between two live cohorts would mean the
+        // characteristics themselves had crossed.
+        if (live && prev_live) {
+          n_inversions_live++;
+        }
       }
       h_prev = h;
+      prev_live = live;
       h_max = std::max(h_max, h);
       if (fabs(h - height) <= window) {
         n_near++;
@@ -643,13 +658,22 @@ std::string Patch<T,E>::describe_nodes_near(double height) const {
     }
     if (n_inversions > 0) {
       ret += "; node heights are NOT decreasing (" +
-             util::to_string(n_inversions) +
-             " inversions), which breaks the ordering that"
+             util::to_string(n_inversions) + " inversions, " +
+             util::to_string(n_inversions_live) +
+             " of them between two cohorts of non-zero density; " +
+             util::to_string(n_zero_density) + " of " +
+             util::to_string(species[i].size()) +
+             " nodes have zero density), which breaks the ordering that"
              " Species::compute_competition() and height_max() assume: the"
              " tallest cohort is " + util::format_double(h_max) +
              " but height_max() reports " + util::format_double(h_front) +
              " (the front node), so the competition profile is wrong and its"
              " steps are an artefact rather than a feature of the model";
+      if (n_inversions_live == 0) {
+        ret += " (the live cohorts are still correctly ordered, so this is the"
+               " quadrature grid being scrambled by zero-density nodes rather"
+               " than growth trajectories crossing)";
+      }
     }
     ret += ";";
   }

@@ -114,4 +114,11 @@ test_that("a failed light spline reports the patch state that caused it", {
   # than left to be rediscovered.
   expect_match(msg, "node heights are NOT decreasing")
   expect_match(msg, "height_max\\(\\) reports")
+  # And it must separate the two very different readings of that violation:
+  # zero-density nodes scrambling the quadrature grid (bookkeeping) versus live
+  # cohorts crossing (which would mean the characteristics themselves crossed,
+  # and the method of characteristics forbids that). Measured here it is the
+  # former, but assert that both counts are reported rather than pinning which.
+  expect_match(msg, "between two cohorts of non-zero density")
+  expect_match(msg, "nodes have zero density")
 })
