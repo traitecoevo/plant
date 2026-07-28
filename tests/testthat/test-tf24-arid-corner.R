@@ -85,13 +85,68 @@ test_that("a resolution limit says where refinement stalled", {
   expect_match(msg, "interval\\(s\\) still unresolved")
 })
 
+## Helper: the #571 dry start. Five layers held below the residual floor with
+## 1 m/yr rainfall, which is a normal dryland initial condition rather than an
+## edge case (Dahra is 416 mm MAP).
+tf24_dry_start <- function(model = "TF24", lifetime = 10) {
+  env <- Environment(model)
+  env$set_soil_number_of_depths(5)
+  env$set_soil_water_state(rep(0.005, 5))
+  env$extrinsic_drivers_set_constant("rainfall", 1)
+
+  p <- scm_base_parameters(model)
+  p$max_patch_lifetime <- lifetime
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"))
+  list(p = p, env = env)
+}
+
+test_that("height_max() is the tallest cohort, not the first node (#571)", {
+  # Under water limitation the top of the size distribution converges into a band
+  # narrower than the refiner's finest spacing, and cohorts in it cross: TF24's
+  # reserve-gated growth (#517) makes dh/dt depend on a cohort's own storage, so
+  # two cohorts born moments apart into a rapidly wetting soil need not stay in
+  # size order. That breaks the decreasing-height ordering that height_max() used
+  # to exploit by returning nodes.front(), which then reported a height *below*
+  # the tallest and only living cohort and truncated the light spline's domain.
+  x <- tf24_dry_start()
+  scm <- SCM("TF24", "TF24_Env")(x$p, x$env, Control())
+  scm$run()
+
+  sp <- scm$patch$species[[1]]
+  h <- sp$heights
+
+  # The premise of the test: this state really does violate the ordering. If a
+  # future change makes the size distribution well-behaved, this stops being the
+  # case that needs guarding and the assertions below become vacuous.
+  skip_if(all(diff(h) <= 0), "node heights no longer invert here; see #571")
+
+  expect_equal(sp$height_max, max(h))
+  expect_gt(max(h), h[1])       # i.e. the front node is *not* the tallest
+})
+
+test_that("a dry-start TF24 run completes (#571)", {
+  # Was: died in the light spline, because compute_competition()'s early exit
+  # dropped every node past the first one below the query height -- including the
+  # one cohort with appreciable density -- putting a fictitious step in the
+  # competition profile that the refiner could not resolve.
+  x <- tf24_dry_start()
+  out <- run_scm(x$p, x$env, collect = TRUE)
+  expect_true(is.finite(out$offspring_production))
+
+  # The whole non-monotone failure set recorded in #571, which ruled out any
+  # single threshold as the cause.
+  for (theta in c(0.005, 0.008, 0.0099, 0.010, 0.0101, 0.012, 0.015, 0.02, 0.03)) {
+    y <- tf24_dry_start()
+    y$env$set_soil_water_state(rep(theta, 5))
+    expect_no_error(run_scm(y$p, y$env, collect = FALSE))
+  }
+})
+
 test_that("a failed light spline reports the patch state that caused it", {
-  # The #571 reproducer. The refiner can only report a narrow feature in a
-  # function; the patch knows that the function is a light profile over a set of
-  # cohort heights, and that here the node list has lost its decreasing-height
-  # ordering -- which is what puts the fictitious step in the profile, because
-  # Species::compute_competition() early-exits on the first node below the query
-  # height and so drops the taller, and only living, cohort beyond it.
+  # The refiner can only report a narrow feature in a function; the patch knows
+  # that the function is a light profile over a set of cohort heights. Kept as a
+  # guard on the message: the reproducer no longer fails, so this asserts the
+  # diagnosis is present *if* a resolution failure ever comes back.
   env <- Environment("TF24")
   env$set_soil_number_of_depths(5)
   env$set_soil_water_state(rep(0.005, 5))
