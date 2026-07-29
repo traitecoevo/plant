@@ -732,3 +732,11 @@ org — a hub-and-spoke set of packages built around the
   work is tracked on [board #5](https://github.com/orgs/traitecoevo/projects/5) (new issues
   auto-add with no Status = the triage queue). Labels: `bug` / `task` / `epic` plus `blocked`,
   `needs-info`, `cross-package`, `breaking`, `question`.
+- **What should run vs. what should fail** — strategies and environments are expected to run
+  across a wide range of trait values and conditions and give sensible biological outputs
+  (including zero growth or reproduction) rather than crash; a *physically unrealistic* state
+  should fail, naming the quantity, its value and the constraint violated. Read
+  [`model-robustness.md`](https://github.com/traitecoevo/plant-meta/blob/main/governance/model-robustness.md)
+  before adding or removing a guard in a strategy, environment or numerical routine — it has the
+  decision rule, and the traps (a guard returning a plausible number is worse than a crash; a
+  state that can only be *inferred* from the outputs is not disclosed).
