@@ -28,9 +28,10 @@ test_that("PM leaf demo helpers run end-to-end for Fick and PM", {
   hot <- subset(pm, PAR == 2000 & Tair == 40)
   expect_true(all(hot$Tleaf > hot$Tair))          # net warming when hot + bright
 
-  # Profit-anatomy scan stays finite across a psi_stem range for both models.
+  # Profit-anatomy scan over root-collar potential (the actual solver decision
+  # variable, see pm_collar_curve) stays finite for both models.
   for (use_pm in c(FALSE, TRUE)) {
-    curve <- pm_profit_curve(1800, 38, 2.5, use_pm, seq(0.4, 4, length.out = 20))
+    curve <- pm_collar_curve(1800, 38, 2.5, use_pm, seq(0.31, 5.5, length.out = 20))
     expect_true(all(is.finite(curve$profit)))
     expect_true(all(is.finite(curve$assim)))
   }
