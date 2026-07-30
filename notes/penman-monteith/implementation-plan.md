@@ -372,8 +372,13 @@ out of the built package/vignette tree for now. Can be promoted to
   on the R interface, unlike the internal-only minimal cut.)
 - **Content:**
   1. *Profit anatomy* at a single environment — assimilation benefit, hydraulic
-     cost, and net profit as functions of `psi_stem` (the profit curve), non-PM vs
-     PM overlaid, with the optimum `opt_psi_stem` marked on each.
+     cost, and net profit as functions of the **root-collar potential**
+     (Answer 3's decision variable, not `psi_stem` — `psi_stem` is *derived*
+     from each candidate collar potential via `find_psi_stem_from_psi_root`,
+     the same transport the solver itself uses), non-PM vs PM overlaid, with
+     the solver's actual optimum marked on each via `evaluate_root_collar_psi`
+     (so it lands on the visible curve rather than a `psi_stem` scan that
+     assumes `psi_upstream == psi_soil`, i.e. negligible root resistance).
   2. *Optimal outcomes across environments* — sweep `Tair`, `VPD`, `PAR` (and
      optionally `psi_soil`); for each, plot `Tleaf − Tair`, `opt_psi_stem`, `gs`,
      `E`, `A`, and `profit`, non-PM vs PM.

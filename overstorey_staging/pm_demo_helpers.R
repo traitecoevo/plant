@@ -70,7 +70,9 @@ pm_solve_cell <- function(PAR, Tair, VPD, pm, cfg = pm_leaf_config()) {
   l$find_root_collar_psi()
   data.frame(PAR = PAR, Tair = Tair, VPD = VPD, pm = pm,
              Tleaf = pm_leaf_temp(l, Tair),
-             opt_psi_stem = l$opt_psi_stem_, A = l$assim_colimited_,
+             opt_psi_stem = l$opt_psi_stem_,
+             root_collar_psi = l$root_collar_psi_,
+             A = l$assim_colimited_,
              gs = l$stom_cond_CO2_, E = l$transpiration_, profit = l$profit_)
 }
 
@@ -87,17 +89,28 @@ pm_solve_grid <- function(grid, cfg = pm_leaf_config()) {
   do.call(rbind, out)
 }
 
-## Profit "anatomy": scan profit / assimilation / hydraulic cost across candidate
-## psi_stem at one environment, for Fick and PM. psi_upstream is fixed at the
-## configured soil potential (single-layer supply).
-pm_profit_curve <- function(PAR, Tair, VPD, pm, psi_stem_seq, cfg = pm_leaf_config()) {
+## Profit "anatomy" driven by root-collar water potential -- the actual GSS
+## search variable inside find_root_collar_psi(). evaluate_root_collar_psi()
+## derives psi_stem from each candidate collar potential via the same
+## hydraulic transport (find_psi_stem_from_psi_root) the solver itself uses,
+## then evaluates profit there -- this is how the model is actually driven.
+## (An earlier version of this helper, pm_profit_curve, scanned psi_stem
+## directly with psi_upstream fixed at psi_soil; that only agrees with the
+## solver when root resistance happens to be negligible, and was removed.)
+##
+## root_psi_seq is a POSITIVE magnitude (same convention as
+## evaluate_root_collar_psi's target_opt_root_psi / the solver's root_collar_psi
+## bounds); values outside the feasible interval for this leaf/environment are
+## clamped by evaluate_root_collar_psi rather than extrapolated.
+pm_collar_curve <- function(PAR, Tair, VPD, pm, root_psi_seq, cfg = pm_leaf_config()) {
   l <- pm_make_leaf()
   pm_set_physiology(l, PAR, Tair, VPD, pm, cfg)
-  psi_up <- cfg$psi_soil
-  rows <- lapply(psi_stem_seq, function(ps) {
-    profit <- l$profit_psi_stem_TF(ps, psi_up)  # sets leaf states + cost as a side effect
-    data.frame(pm = pm, psi_stem = ps, profit = profit,
-               assim = l$assim_colimited_, hydraulic_cost = l$hydraulic_cost_)
+  rows <- lapply(root_psi_seq, function(rp) {
+    profit <- l$evaluate_root_collar_psi(rp)
+    data.frame(pm = pm, root_psi = rp, psi_stem = l$opt_psi_stem_,
+               profit = profit, assim = l$assim_colimited_,
+               hydraulic_cost = l$hydraulic_cost_, E = l$transpiration_,
+               leaf_temp = pm_leaf_temp(l, Tair))
   })
   do.call(rbind, rows)
 }

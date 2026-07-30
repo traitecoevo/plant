@@ -40,42 +40,49 @@ vignette. See `notes/penman-monteith/` for the plan and the Step 5 evaluation.
 
 ## 1. Profit anatomy at a single hot environment
 
-The leaf chooses its stem water potential to maximise carbon **profit** =
-assimilation benefit − hydraulic cost. Under PM, the assimilation curve bends
-because a hotter leaf shifts the Farquhar temperature response. Here at a hot,
-high-radiation, high-VPD environment (Tair = 38 °C, PAR = 1800, VPD = 2.5 kPa).
+The leaf chooses its **root-collar** water potential to maximise carbon
+**profit** = assimilation benefit − hydraulic cost; `find_root_collar_psi()`
+searches over this variable directly, not ψ_stem — ψ_stem is *derived* from
+each candidate collar potential via the stem's hydraulic transport
+(`find_psi_stem_from_psi_root`). This scan drives the leaf the same way, via
+`evaluate_root_collar_psi()`, so the dashed real-solver optimum lands on the
+visible curve. Under PM, the assimilation curve bends because a hotter leaf
+shifts the Farquhar temperature response. Here at a hot, high-radiation,
+high-VPD environment (Tair = 38 °C, PAR = 1800, VPD = 2.5 kPa).
 
 ```{r profit-anatomy}
 env1 <- list(PAR = 1800, Tair = 38, VPD = 2.5)
-psi_seq <- seq(0.35, 4.5, length.out = 120)
+root_psi_seq <- seq(0.31, 5.5, length.out = 120)
 
-curve <- bind_rows(
-  pm_profit_curve(env1$PAR, env1$Tair, env1$VPD, FALSE, psi_seq),
-  pm_profit_curve(env1$PAR, env1$Tair, env1$VPD, TRUE,  psi_seq)
+collar_curve <- bind_rows(
+  pm_collar_curve(env1$PAR, env1$Tair, env1$VPD, FALSE, root_psi_seq),
+  pm_collar_curve(env1$PAR, env1$Tair, env1$VPD, TRUE,  root_psi_seq)
 ) |>
   mutate(model = lab_pm(pm)) |>
   filter(is.finite(profit))
 
-# Optima from the actual solver.
+# Optima from the actual solver, on the same (positive-magnitude) root-collar
+# potential axis as root_psi_seq.
 opt <- bind_rows(
   pm_solve_cell(env1$PAR, env1$Tair, env1$VPD, FALSE),
   pm_solve_cell(env1$PAR, env1$Tair, env1$VPD, TRUE)
-) |> mutate(model = lab_pm(pm))
+) |>
+  mutate(model = lab_pm(pm), root_psi = -root_collar_psi)
 
-curve_long <- curve |>
-  pivot_longer(c(profit, assim, hydraulic_cost),
+collar_curve_long <- collar_curve |>
+  pivot_longer(c(profit, assim, hydraulic_cost, leaf_temp),
                names_to = "component", values_to = "value") |>
   mutate(component = recode(component,
     profit = "net profit", assim = "assimilation benefit",
     hydraulic_cost = "hydraulic cost"))
 
-ggplot(curve_long, aes(psi_stem, value, colour = model)) +
+ggplot(collar_curve_long, aes(root_psi, value, colour = model)) +
   geom_line(linewidth = 0.8) +
-  geom_vline(data = opt, aes(xintercept = opt_psi_stem, colour = model),
+  geom_vline(data = opt, aes(xintercept = root_psi, colour = model),
              linetype = "dashed") +
   facet_wrap(~component, scales = "free_y") +
   scale_colour_manual(values = pal, name = NULL) +
-  labs(x = expression(psi[stem]~"(-MPa)"), y = "µmol C m⁻² s⁻¹",
+  labs(x = expression(psi[rc]~"(-MPa, root collar)"), y = "µmol C m⁻² s⁻¹",
        title = "Profit anatomy: Fick vs Penman-Monteith",
        subtitle = sprintf("Tair = %g °C, PAR = %g, VPD = %g kPa; dashed = optimum",
                           env1$Tair, env1$PAR, env1$VPD)) +
