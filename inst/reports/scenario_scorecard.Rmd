@@ -43,10 +43,29 @@ s <- plant::scenario_summary(scorecard)
 knitr::kable(s, digits = 3)
 ```
 
+The gateway reports **two separate axes** (issue
+[#572](https://github.com/traitecoevo/plant/issues/572)). They had been
+conflated, which is why the scorecard returned so little signal: a run that
+completes with R0 = 2e-15 was recorded as `persisted` and counted as a success.
+
 ```{r headline, results = "asis"}
-cat(sprintf("\n**Match rate: %d / %d (%.0f%%)**\n",
-            s$n_match, s$n, 100 * s$match_rate))
+cat(sprintf(paste0(
+  "\n| Axis | Question | Result |\n|---|---|---|\n",
+  "| **Numerical viability** | Did the model run? | **%d / %d ran (%.0f%%)**, %d crashed |\n",
+  "| **Ecological persistence** | Does the strategy replace itself (R0 >= 1)? | **%d / %d persist (%.0f%%)** |\n",
+  "| CSV agreement | Does the outcome match the CSV's expectation? | %d / %d (%.0f%%) |\n"),
+  s$n_ran, s$n, 100 * s$viability_rate, s$n_crashed,
+  s$n_persists, s$n, 100 * s$persistence_rate,
+  s$n_match, s$n, 100 * s$match_rate))
 ```
+
+*Numerical viability* is what the CSV's "Model failure" means
+([#549](https://github.com/traitecoevo/plant/issues/549),
+[#550](https://github.com/traitecoevo/plant/issues/550)) and what the
+hydraulic/NSC work targets. *Persistence* is the ecological question, and the one
+the gateway is actually useful for now that the crashes are fixed. **CSV
+agreement is deliberately not the headline**: with the crashes fixed it mostly
+measures how well the CSV's crash predictions have aged, not model quality.
 
 ## Scorecard
 
@@ -57,9 +76,15 @@ production, else *failure*. `outcome` refines this into `persisted`
 matters: the hydraulic/NSC work (#549, #554) targets *crashes*, whereas
 *extinct* is often correct model behaviour.
 
+`persists` is the separate, stricter ecological question — R0 >= 1 rather than
+R0 > 0. The gap between `outcome == "persisted"` and `persists == TRUE` is the
+whole point of #572: `persisted` only means the run produced *some* offspring.
+
 ```{r scorecard}
 cols <- c("scenario_id", "scenario", "expected", "observed", "match",
-          "outcome", "offspring_production", "run_seconds", "error_message")
+          "outcome", "offspring_production", "persists", "run_seconds",
+          "error_message")
+cols <- intersect(cols, names(scorecard))
 knitr::kable(as.data.frame(scorecard)[, cols], digits = 4)
 ```
 

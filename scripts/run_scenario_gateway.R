@@ -43,7 +43,23 @@ print(as.data.frame(scorecard)[, c("scenario_id", "expected", "observed",
       row.names = FALSE)
 
 cat("\nSummary:\n")
-print(as.data.frame(scenario_summary(scorecard)), row.names = FALSE)
+s <- scenario_summary(scorecard)
+print(as.data.frame(s), row.names = FALSE)
+
+## Two axes, reported separately and labelled (#572). Deliberately NOT a single
+## headline "match rate": that conflates "the model ran" with "the strategy
+## lives", and with the crashes fixed (#546/#552/#554) it mostly measures how
+## well the CSV's crash predictions have aged. Numerical viability is the gate the
+## hydraulic work targets; persistence (R0 >= 1) is the ecological result.
+cat("\n")
+cat(sprintf("  Numerical viability : %d / %d ran (%.0f%%), %d crashed\n",
+            s$n_ran, s$n, 100 * s$viability_rate, s$n_crashed))
+cat(sprintf("  Persistence (R0>=1) : %d / %d persist (%.0f%%)\n",
+            s$n_persists, s$n, 100 * s$persistence_rate))
+cat(sprintf(paste("  CSV agreement       : %d / %d (%.0f%%) — agreement with the",
+                  "crash-era\n                        expectations,",
+                  "not a quality score\n"),
+            s$n_match, s$n, 100 * s$match_rate))
 
 saveRDS(scorecard, out_path)
 message(sprintf("Wrote scorecard to %s", normalizePath(out_path, mustWork = FALSE)))

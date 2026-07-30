@@ -460,30 +460,64 @@ scenario_run_metadata <- function() {
 }
 
 ##' @param scorecard A scorecard tibble from \code{run_scenarios}.
-##' @return \code{scenario_summary} returns a one-row tibble with the headline
-##'   counts: total scenarios, matches, match rate, the expected-failure vs
-##'   expected-success breakdown, and \code{n_persists} — how many scenarios
-##'   clear R0 >= 1. Read \code{n_persists} against \code{n}: a scorecard where
-##'   every run "succeeds" but almost none persists is reporting that the model
-##'   no longer crashes, not that the strategies live.
+##' @return \code{scenario_summary} returns a one-row tibble reporting **two
+##'   separate axes** (#572), because the gateway conflated them and so returned
+##'   no signal:
+##'
+##'   \describe{
+##'     \item{Numerical viability — did the model run?}{\code{n},
+##'       \code{n_ran}, \code{n_crashed}, \code{viability_rate}. This is what the
+##'       scenario CSV's "Model failure" means (#549, #550) and what the
+##'       hydraulic/NSC work targets.}
+##'     \item{Ecological persistence — does the strategy replace itself?}{
+##'       \code{n_persists}, \code{persistence_rate}, judged at R0 >= 1 (see
+##'       \code{persists_at}). Now that the crashes are fixed this is the axis the
+##'       gateway is actually useful for.}
+##'   }
+##'
+##'   \code{n_match} / \code{match_rate} and the expected-failure vs
+##'   expected-success breakdown are still reported, but as **agreement with the
+##'   CSV's crash predictions**, not as a headline quality score: with the crashes
+##'   fixed, the match rate mostly measures how well those predictions have aged.
+##'   Read \code{n_persists} against \code{n} — a scorecard where every run
+##'   "succeeds" but almost none persists is reporting that the model no longer
+##'   crashes, not that the strategies live.
 ##' @rdname scenario_eval
 ##' @export
 scenario_summary <- function(scorecard) {
   exp_fail <- scorecard$expected == "failure"
   exp_succ <- scorecard$expected == "success"
-  ## Scorecards recorded before `persists` existed -- including the blessed
-  ## baseline in tests/testthat/test_data/ -- have no such column, and must
-  ## still summarise rather than error.
+  n <- nrow(scorecard)
+  ## Scorecards recorded before `persists` / `crashed` existed -- including the
+  ## blessed baseline in tests/testthat/test_data/ -- have no such column, and
+  ## must still summarise rather than error.
   persists <- if ("persists" %in% names(scorecard)) scorecard$persists else NA
+  ## Numerical viability. Prefer the recorded `crashed` flag; fall back to
+  ## `observed == "failure"` only for scorecards predating that column, where the
+  ## two coincide because `status` was the only axis.
+  crashed <- if ("crashed" %in% names(scorecard)) {
+    scorecard$crashed
+  } else {
+    scorecard$observed != "success"
+  }
+  n_crashed <- sum(crashed, na.rm = TRUE)
+  n_persists <- sum(persists, na.rm = TRUE)
   tibble::tibble(
-    n                  = nrow(scorecard),
-    n_match            = sum(scorecard$match, na.rm = TRUE),
-    match_rate         = mean(scorecard$match, na.rm = TRUE),
-    n_expected_fail    = sum(exp_fail, na.rm = TRUE),
-    n_expected_fail_met = sum(exp_fail & scorecard$match, na.rm = TRUE),
-    n_expected_success = sum(exp_succ, na.rm = TRUE),
-    n_expected_success_met = sum(exp_succ & scorecard$match, na.rm = TRUE),
-    n_persists         = sum(persists, na.rm = TRUE))
+    n                      = n,
+    ## --- axis 1: numerical viability (did it run?) ---
+    n_ran                  = n - n_crashed,
+    n_crashed              = n_crashed,
+    viability_rate         = if (n > 0) (n - n_crashed) / n else NA_real_,
+    ## --- axis 2: ecological persistence (does the strategy live?) ---
+    n_persists             = n_persists,
+    persistence_rate       = if (n > 0) n_persists / n else NA_real_,
+    ## --- agreement with the CSV's (crash-era) expectations ---
+    n_match                = sum(scorecard$match, na.rm = TRUE),
+    match_rate             = mean(scorecard$match, na.rm = TRUE),
+    n_expected_fail        = sum(exp_fail, na.rm = TRUE),
+    n_expected_fail_met    = sum(exp_fail & scorecard$match, na.rm = TRUE),
+    n_expected_success     = sum(exp_succ, na.rm = TRUE),
+    n_expected_success_met = sum(exp_succ & scorecard$match, na.rm = TRUE))
 }
 
 ##' @param output_file Output HTML path for the rendered report.

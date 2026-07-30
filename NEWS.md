@@ -309,6 +309,24 @@ were not previously recorded here:
 
 ### Minor changes & bug fixes
 
+* **The scenario gateway scores numerical viability and persistence as separate
+  axes, and no longer leads with a match rate** (#572). `scenario_summary()`
+  classified a run as a success on `finite && total > 0`; with `birth_rate = 1`
+  (what `build_scenario()` sets) `offspring_production` *is* R0, so five of the
+  eight hydraulic scenarios returned R0 between 2e-15 and 6e-14 — numerically
+  extinct — and were all recorded as `persisted`. All eight "succeeded", none of
+  the five expected failures failed, and only one replaced itself: the gateway
+  returned no signal. It now reports **numerical viability** (`n_ran`,
+  `n_crashed`, `viability_rate` — did the model run, which is what the CSV's
+  "Model failure" means) and **ecological persistence** (`n_persists`,
+  `persistence_rate`, at R0 >= 1) as separate, labelled axes, in the summary, in
+  `scripts/run_scenario_gateway.R` and in the scorecard report. `n_match` /
+  `match_rate` are still reported but demoted to *agreement with the CSV's
+  crash-era expectations*: with the crashes fixed (#546/#552/#554) the match rate
+  mostly measures how well those predictions have aged, not model quality — which
+  is why fixing the model *lowered* it from 5/8 to 3/8. `status` and `outcome` are
+  unchanged, so the blessed baseline is not re-blessed and the CSV is not
+  rewritten.
 * **The TF24 rainfall driver is floored at zero.** Because drivers are
   interpolated with a cubic spline, an intermittent series undershoots below
   every supplied value, and negative rainfall gave negative infiltration and an
