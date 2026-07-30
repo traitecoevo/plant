@@ -19,7 +19,7 @@ Depends:
     R (>= 4.5.0)
 Encoding: UTF-8
 License: AGPL (>= 3)
-LinkingTo: Rcpp, BH, odelia
+LinkingTo: Rcpp, BH, odelia, leaf
 Imports:
     Rcpp,
     R6,
@@ -53,7 +53,8 @@ Suggests:
     kableExtra
 Remotes:
     richfitz/RcppR6,
-    traitecoevo/odelia
+    traitecoevo/odelia,
+    traitecoevo/leaf
 URL: https://github.com/traitecoevo/plant
 BugReports: https://github.com/traitecoevo/plant/issues
 Config/roxygen2/version: 8.0.0
