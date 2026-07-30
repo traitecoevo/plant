@@ -93,7 +93,9 @@ static const double vol_heat_cap_air = 1200.0;
 static const double umol_par_per_joule = 4.57;
 // shortwave absorbed ~= 2 * absorbed PAR (PAR ~= 50% of shortwave; doc 3.3)
 static const double sw_abs_per_par = 2.0;
-// fixed net longwave (cooling) offset, W m^-2 (clear-sky approximation; doc 3.3)
+// fixed net longwave (cooling) offset, W m^-2 (clear-sky approximation; doc 3.3).
+// A faithful treatment makes outgoing longwave depend on Tleaf (would make Rn
+// implicit in Tleaf); staged for a sensitivity gate and tracked in #581.
 static const double longwave_net_offset = -40.0;
 // fixed aerodynamic resistance fallback, s m^-1 (doc 6/7.4; used when the wind
 // model is unavailable, e.g. a bare Leaf with no wind/d set)

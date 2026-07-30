@@ -250,8 +250,16 @@ void Leaf::set_physiology(double area_leaf, const std::vector<double>& mass_root
    Rn_ = sw_abs_per_par * PPFD_ / umol_par_per_joule + longwave_net_offset;
    // Aerodynamic resistance from leaf boundary-layer theory: ra = C_ra*sqrt(d/U)
    // (doc 4.1), with the per-strategy leaf dimension d_ and the above-canopy wind
-   // wind_speed_. Fall back to the fixed value when the wind model is unusable
-   // (non-finite / non-positive inputs), e.g. a bare Leaf that set neither.
+   // wind_speed_. On the PM path a non-finite wind_speed_/d_ is a broken driver /
+   // unset trait, not a modelling choice, so fail fast rather than silently using
+   // the fixed fallback (review: itowers1). Zero wind or zero d (physically
+   // ra -> infinity) is a legitimate case and falls back to the fixed ra.
+   if (use_energy_balance_ &&
+       (!std::isfinite(wind_speed_) || !std::isfinite(d_))) {
+     util::stop("set_physiology: non-finite wind_speed_/d_ on the energy-balance "
+                "path; wind_speed_=" + util::to_string(wind_speed_) +
+                "; d_=" + util::to_string(d_));
+   }
    ra_ = (std::isfinite(d_) && std::isfinite(wind_speed_) &&
           d_ > 0.0 && wind_speed_ > 0.0)
              ? aerodynamic_resistance_coef * std::sqrt(d_ / wind_speed_)
