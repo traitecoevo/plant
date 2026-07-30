@@ -28,5 +28,12 @@ Meta
 # Overstorey repo; not version-controlled here.
 overstorey-staging/figures/
 
+# ATLS demo file-based cache (expensive SCM runs); regenerated on render.
+overstorey_staging/cache/
+
+# Quarto figure/asset directories for the staging demos; regenerated on render
+# (the .html itself is already covered by *.html above).
+overstorey_staging/*_files/
+
 # Claude Code personal settings
 .claude/settings.local.json

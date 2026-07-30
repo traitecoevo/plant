@@ -56,7 +56,7 @@ test_that("ATLS leaf demo helpers run end-to-end (damage, strategies, avoidance)
   expect_lt(good$phi_d, poor$phi_d)   # -> less deactivation
 })
 
-test_that("ATLS demo SCM helpers run and rank strategies (community scale)", {
+test_that("ATLS demo SCM viability ranks strategies by persistence (community scale)", {
   skip_on_cran()
   helpers <- test_path("..", "..", "overstorey_staging", "atls_demo_helpers.R")
   skip_if_not(file.exists(helpers), "overstorey_staging/ not present (built package)")
@@ -68,13 +68,23 @@ test_that("ATLS demo SCM helpers run and rank strategies (community scale)", {
   expect_true(is.finite(f$offspring) && f$offspring >= 0)
   expect_identical(f$type, "TF24t")
 
-  # Strategy tournament at the warm edge: tolerance persists best, and it beats
-  # the generalist (the headline of the SCM section). One climate keeps it cheap.
-  trn <- atls_scm_tournament(26)
-  expect_setequal(trn$strategy,
-                  c("Generalist", "Tolerant", "Repairer", "Acclimator"))
-  expect_true(all(is.finite(trn$R0)))
-  tol <- trn$R0[trn$strategy == "Tolerant"]
-  gen <- trn$R0[trn$strategy == "Generalist"]
-  expect_gt(tol, gen)
+  # The demo's headline ranks strategies by VIABILITY -- low-density R0 crossing
+  # 1 (the persistence boundary) -- NOT R0 at a fixed birth rate, which conflates
+  # productivity with density-dependent recruitment. At a warm-edge climate that
+  # has pushed the generalist below replacement, constitutive tolerance (onset
+  # shift) still persists, so it clears R0 = 1 at a hotter climate. Both carry
+  # the demo's balanced k_mat so the default permanent-damage ratchet does not
+  # sink every strategy. Two SCM runs keep it cheap.
+  km <- 0.00125
+  scen <- list(
+    "Generalist" = list(type = "TF24t", mutate = function(s) { s$k_mat <- km; s }),
+    "Tolerant"   = list(type = "TF24t",
+                        mutate = function(s) { s$topt_offset <- 6; s$k_mat <- km; s }))
+  v <- atls_scm_viability(28, scen, birth_rate = 1)
+  expect_setequal(v$scenario, c("Generalist", "Tolerant"))
+  expect_true(all(is.finite(v$R0) & v$R0 >= 0))
+  gen <- v$R0[v$scenario == "Generalist"]
+  tol <- v$R0[v$scenario == "Tolerant"]
+  expect_lt(gen, 1)   # generalist has collapsed below replacement at 28 C
+  expect_gt(tol, 1)   # tolerance still persists -> hotter persistence boundary
 })

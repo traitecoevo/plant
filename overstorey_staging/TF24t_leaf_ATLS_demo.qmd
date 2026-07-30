@@ -31,6 +31,28 @@ theme_set(theme_bw(base_size = 12))
 # One colour per strategy archetype, reused across the document.
 strat_pal <- c("Generalist" = "#7570b3", "Tolerant" = "#d95f02",
                "Repairer" = "#1b9e77", "Acclimated" = "#e7298a")
+
+# File-based cache for the expensive (~30 s each) SCM runs: compute once, reuse
+# the .rds on re-render. Preferred over Quarto's `cache=TRUE` so the cached
+# *data* is a plain, inspectable artefact independent of the freezer/render
+# machinery. Keyed on the cache name AND the deparsed call, so editing a chunk's
+# call (e.g. widening the temperature grid) auto-invalidates that entry; the
+# expression is evaluated only on a miss. A model recompile is NOT tracked --
+# delete overstorey_staging/cache/ to force a full rerun after changing the model.
+
+cache_dir <- file.path(pkg_root, "overstorey_staging", "cache")
+dir.create(cache_dir, showWarnings = FALSE, recursive = TRUE)
+cached_rds <- function(name, expr) {
+  call_txt <- paste(deparse(substitute(expr)), collapse = " ")
+  path <- file.path(cache_dir, paste0(name, ".rds"))
+  if (file.exists(path)) {
+    hit <- readRDS(path)
+    if (identical(hit$call, call_txt)) return(hit$value)
+  }
+  value <- expr                       # evaluated only here (cache miss)
+  saveRDS(list(call = call_txt, value = value), path)
+  value
+}
 ```
 
 The **ATLS** layer (leaf thermal damage / repair / acclimation, issue #566,
@@ -205,73 +227,145 @@ p_av_phi <- ggplot(avoid, aes(Tair, phi_d, colour = coupling)) +
 ## 5. From one leaf to a community: persistence under warming (SCM)
 
 Everything above is a single isolated leaf. The real question is demographic:
-does the damage feedback change whether a *population* persists? Here we run the
-full size-structured community model (SCM) — a single-species patch to
-equilibrium under a constant climate (the `air_temp` driver is the midday air
-temperature) — and read the net reproduction ratio **R0** (a resident persists
-iff R0 ≥ 1) across a warming gradient, TF24t (PM + ATLS) vs a PM-only TF24.
+does the damage feedback change whether a *population* persists? We run the full
+size-structured community model (SCM) — a single-species patch under a constant
+climate (the `air_temp` driver = midday air temperature) — across a warming
+gradient, TF24t (PM + ATLS) vs a PM-only TF24.
 
-Each SCM run takes ~30 s, so the grid is deliberately small and the chunk is
-cached.
+**How we measure fitness matters.** The net reproduction ratio R0 at a *fixed*
+seed rain is **not** a valid cross-strategy comparison: it conflates a plant's
+per-capita productivity with density-dependent recruitment. A less-fecund
+resident shades the patch less, so at a shared seed rain each of its seeds does
+*better* — inflating its R0 even though it is the weaker plant. (R0 falls as seed
+rain rises for every strategy; the ranking at one shared rate is a density
+artifact, not fitness.)
 
-```{r scm-climate, cache=TRUE}
-climate <- atls_scm_climate(seq(24, 30, by = 1))
-lab_type <- c(TF24 = "PM only", TF24t = "PM + ATLS")
-climate$model <- lab_type[climate$type]
+The density-free measure is **viability**: when *rare*, does a resident more than
+replace itself? We evaluate R0 in the low-density limit (a small `birth_rate`, so
+competition is negligible where it matters). R0 ≥ 1 ⇒ the population grows from
+rare and persists; R0 < 1 ⇒ it dies out. The warmest climate with R0 ≥ 1 is the
+**persistence boundary**, and *that* is comparable across strategies — fecundity
+and density effects vanish as density → 0. We read the boundary, never the R0
+magnitude away from it.
 
-ggplot(climate, aes(air_temp, R0, colour = model)) +
-  geom_hline(yintercept = 1, linetype = "dashed", colour = "grey50") +
-  geom_line(linewidth = 0.9) + geom_point(size = 2) +
-  annotate("text", x = 24, y = 1.04, label = "persistence (R0 = 1)",
+Each SCM run takes ~30 s; the grid is cached to an `.rds` under
+`overstorey_staging/cache/` (delete that folder to force a rerun) and the runs
+are parallelised across cores.
+
+```{r scm-viability}
+# The lasting-damage maturation rate k_mat is a CALIBRATION TARGET. Its default
+# (0.02/day) makes permanent damage I_p ratchet to ~0.9 (maturation influx
+# DAYS_PER_YEAR*k_mat ~ 7.3/yr vs the only sink, leaf turnover k_l ~ 0.46/yr),
+# which renders TF24t inviable at EVERY climate. Here we use the balanced value
+# k_l/DAYS_PER_YEAR ~ 0.00125/day so the section is illustrative. PROVISIONAL,
+# pending the k_mat calibration decision -- set this to 0.02 to see the collapse.
+atls_scm_kmat <- 0.00125
+
+scen5 <- list(
+  "PM only (TF24)"    = list(type = "TF24"),
+  "PM + ATLS (TF24t)" = list(type = "TF24t",
+                             mutate = function(s) { s$k_mat <- atls_scm_kmat; s }))
+# Cache name carries k_mat: cached_rds keys on the call *text*, and the scenario
+# list (hence k_mat) hides behind the `scen5` symbol -- so encode k_mat in the
+# name to force a recompute when the knob changes.
+viab5  <- cached_rds(sprintf("scm-viability-k%.5g", atls_scm_kmat),
+                     atls_scm_viability(seq(23, 31, by = 1), scen5))
+bound5 <- atls_persistence_boundary(viab5)
+knitr::kable(bound5, digits = 1, col.names = c("scenario", "persistence °C"))
+
+ggplot(viab5, aes(air_temp, pmax(log10(R0), -8), colour = scenario)) +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey50") +
+  geom_vline(data = bound5, aes(xintercept = boundary, colour = scenario),
+             linetype = "dotted", show.legend = FALSE) +
+  geom_line(linewidth = 0.9) + geom_point(size = 1.8) +
+  annotate("text", x = 23, y = 0.35, label = "persistence (R0 = 1)",
            hjust = 0, size = 3, colour = "grey40") +
-  scale_colour_manual(values = c("PM only" = "#1b9e77",
-                                 "PM + ATLS" = "#d95f02"), name = NULL) +
-  labs(x = "midday climate temperature (°C)", y = "net reproduction ratio R0",
-       title = "Population persistence collapses as the climate warms",
-       subtitle = "single-species SCM to equilibrium; R0 ≥ 1 required to persist") +
+  scale_colour_manual(values = c("PM only (TF24)"    = "#1b9e77",
+                                 "PM + ATLS (TF24t)" = "#d95f02"), name = NULL) +
+  labs(x = "midday climate temperature (°C)",
+       y = expression(log[10] * " R0 (low density)"),
+       title = "Persistence boundary: warmest climate a rare population survives",
+       subtitle = "low-density R0; the R0 = 1 crossing (dotted) is the valid, density-free boundary") +
   theme(legend.position = "top")
 ```
 
-Two things stand out. First, persistence collapses steeply between ~26 and 28 °C
-for **both** models — the constant-climate community is fragile, and (as at the
-leaf level) that collapse is driven by the minimal-cut PM overheating the canopy,
-not by ATLS. Second, within the persistence band ATLS is **not** a pure penalty:
-TF24t actually clears R0 = 1 at a slightly *hotter* climate than PM-only, because
-its acclimation raises the photosynthetic optimum (a capacity *gain*) while
-leaves are not yet hot enough for the damage term to bite hard. Damage and
-acclimation are two sides of the same layer; which wins depends on the climate.
+The valid signal is the **persistence boundary** — the dotted crossings, not the
+curve heights (those still carry the density artifact and are shown only on a log
+scale to expose the crossing). Two honest readings, under the provisional `k_mat`:
+
+- **ATLS shifts persistence *cooler*, not hotter.** TF24t clears R0 = 1 only up to
+  a *lower* climate temperature than PM-only TF24 — adding lasting thermal damage
+  is a net persistence penalty here. (This corrects the earlier draft's claim that
+  TF24t persisted *hotter*; that was an artifact of comparing R0 at a fixed seed
+  rain.)
+- **The collapse is a near-cliff**, driven by the minimal-cut PM overheating the
+  canopy leaf 9–20 °C above air (the §4/#523 caveat) feeding the lasting-damage
+  loop. So the absolute boundary temperatures are an upper-bound artifact of the
+  minimal-cut PM, not a calibrated prediction.
+
+> Caveat stack: this section rests on (1) the PM-overheating artifact above and
+> (2) the `k_mat` permanent-damage ratchet — at the **default** `k_mat = 0.02`
+> TF24t is inviable at *every* climate; the balanced `0.00125` used here is
+> provisional. Both are open calibration items, not settled model behaviour.
 
 ## 6. Which thermal strategy persists hottest? (SCM tournament)
 
-Now hold the climate at the warm edge and vary the *strategy* — each a heritable
-single-axis move off the generalist (tolerance = constitutive `topt_offset`;
-repair = higher restorative `k_rec` + lower preventive-leak `k_i`; acclimator =
-faster acclimation kinetics). Higher R0 = more able to persist.
+Same valid measure, now varying the *strategy* — each a heritable single-axis
+move off the generalist (tolerance = constitutive `topt_offset`; repair = higher
+restorative `k_rec` + lower preventive-leak `k_i`; acclimator = faster
+acclimation kinetics). "Persists hottest" = the highest **persistence boundary**
+(warmest climate at which a rare resident still replaces itself), *not* the R0
+height at a shared seed rain.
 
-```{r scm-tournament, cache=TRUE}
-tourney <- atls_scm_tournament(c(26, 28))
-tourney$strategy <- factor(tourney$strategy,
-  levels = c("Generalist", "Tolerant", "Repairer", "Acclimator"))
+```{r scm-tournament}
+# Each strategy carries the provisional balanced k_mat from §5, so the ranking is
+# not swamped by the default permanent-damage ratchet (see the §5 caveat).
+scm_strats <- atls_scm_strategies()
+scen6 <- setNames(lapply(names(scm_strats), function(nm) {
+  base <- scm_strats[[nm]]
+  list(type = "TF24t",
+       mutate = function(s) { s <- base(s); s$k_mat <- atls_scm_kmat; s })
+}), names(scm_strats))
 
-ggplot(tourney, aes(strategy, R0, fill = strategy)) +
-  geom_col() +
-  geom_hline(yintercept = 1, linetype = "dashed", colour = "grey40") +
-  facet_wrap(~ sprintf("climate = %d °C", air_temp)) +
-  scale_fill_manual(values = strat_pal, guide = "none") +
-  labs(x = NULL, y = "net reproduction ratio R0",
-       title = "Tolerance persists hottest; repair does not pay here",
-       subtitle = "TF24t residents at the warm edge; dashed = persistence R0 = 1") +
-  theme(axis.text.x = element_text(angle = 20, hjust = 1))
+viab6  <- cached_rds(sprintf("scm-viability-strat-k%.5g", atls_scm_kmat),
+                     atls_scm_viability(seq(23, 33, by = 1), scen6))
+bound6 <- atls_persistence_boundary(viab6)
+bound6 <- bound6[order(-bound6$boundary), ]
+knitr::kable(bound6, digits = 1, row.names = FALSE,
+             col.names = c("strategy", "persistence °C"))
+
+strat_pal6 <- c("Generalist" = "#7570b3", "Tolerant" = "#d95f02",
+                "Repairer" = "#1b9e77", "Acclimator" = "#e7298a")
+ggplot(bound6, aes(reorder(scenario, boundary), boundary, fill = scenario)) +
+  geom_col(width = 0.7) +
+  geom_text(aes(label = sprintf("%.1f °C", boundary)), hjust = -0.15, size = 3) +
+  coord_flip() +
+  scale_fill_manual(values = strat_pal6, guide = "none") +
+  expand_limits(y = max(bound6$boundary, na.rm = TRUE) + 1.5) +
+  labs(x = NULL,
+       y = "persistence boundary (warmest climate with R0 ≥ 1, °C)",
+       title = "Which thermal strategy persists hottest?",
+       subtitle = "warmest climate at which a rare TF24t resident still replaces itself") +
+  theme(axis.text.y = element_text(size = 10))
 ```
 
-Constitutive **tolerance** persists hottest — it raises the capacity optimum and
-the damage onset together and clears R0 = 1 at a warmer climate than the
-generalist. Dynamic **acclimation** buys a similar shift inducibly. **Repair**
-must earn back its standing maintenance (paid for resynthesis capacity `k_rec` and
-protection `k_i`, whether or not damage is present), so whether it pays depends on
-how hot the climate runs. That cost/benefit tension is exactly what the merged
-cost structure was built to expose. (Runs are cached; exact rankings depend on the
-calibration-target rate/cost defaults.)
+Reading the ranking off the persistence boundaries (the bars), the order is
+**tolerance > repair > acclimation > generalist**. Constitutive **tolerance**
+(`topt_offset`) extends persistence furthest — it shifts the capacity optimum
+*and* the damage onset up together, so a rare resident still replaces itself at
+the warmest climate. **Repair** (higher `k_rec`, lower `k_i`) is a close second:
+in this damage-dominated regime, directly cutting the leak into `I_r`/`I_p` and
+rebuilding faster pays for its standing maintenance cost. Inducible
+**acclimation** helps less than constitutive tolerance (its onset shift is
+smaller and lags), and the **generalist** collapses coolest.
+
+Note the boundary — not R0 height — is doing the work: tolerance and repair are
+*less* fecund, so their low-density R0 at cool climates is actually **lower** than
+the generalist's (the density artifact §5 warned about), yet they persist to
+hotter climates. That inversion is exactly why we rank by the R0 = 1 crossing.
+The ordering is robust; the exact boundary temperatures are provisional (they
+inherit both §5 caveats — the PM-overheating artifact and the `k_mat`
+calibration).
 
 ## 7. Memory: the running-mean leaf temperature
 
@@ -293,31 +387,37 @@ plant has actually experienced. Below, a single TF24t individual is driven with 
 sub-seasonally oscillating `air_temp`; the running mean lags and smooths the
 operating temperature (memory ≈ 20 d here).
 
-```{r running-mean, cache=TRUE, message=FALSE, warning=FALSE}
-e <- "TF24_Env"
-k_mem  <- 0.05                 # day^-1 -> ~20-day memory (1 / (k*365.25) yr)
-period <- 0.12                 # yr (~44 d) forcing, comparable to the memory
-t_end  <- 0.6                  # yr
-t_grid <- seq(0, t_end, length.out = 200)
-Tair   <- 27 + 6 * sin(2 * pi * t_grid / period)
+```{r running-mean, message=FALSE, warning=FALSE}
+traj_wide <- cached_rds("running-mean", {
+  e <- "TF24_Env"
+  k_mem  <- 0.05               # day^-1 -> ~20-day memory (1 / (k*365.25) yr)
+  period <- 0.12               # yr (~44 d) forcing, comparable to the memory
+  t_end  <- 0.6                # yr
 
-s <- TF24t_Strategy(); s$k_mean_leaf_temp <- k_mem
-p <- Individual("TF24t", e)(s)
-env <- Environment("TF24t")
-env$extrinsic_drivers_set_variable("air_temp", t_grid, Tair)
+  s <- TF24t_Strategy(); s$k_mean_leaf_temp <- k_mem
+  p <- Individual("TF24t", e)(s)
+  env <- Environment("TF24t")
+  # The adaptive ODE stepper can probe the driver just past t_end, so set air_temp
+  # on a grid extending beyond the loop horizon (values on [0, t_end] unchanged) --
+  # otherwise the spline extrapolates and run halts.
+  t_drive <- seq(0, t_end * 1.15, length.out = 230)
+  env$extrinsic_drivers_set_variable("air_temp", t_drive,
+                                     27 + 6 * sin(2 * pi * t_drive / period))
 
-runner <- OdeRunner("TF24t")(IndividualRunner("TF24t", e)(p, env))
-rec <- list()
-while (runner$time < t_end) {
-  runner$step()
-  ind <- runner$object$individual
-  rec[[length(rec) + 1L]] <- data.frame(
-    time      = runner$time,
-    air_temp  = env$extrinsic_drivers_evaluate("air_temp", min(runner$time, t_end)),
-    operating = ind$aux("operating_leaf_temp"),
-    running   = ind$state("mean_leaf_temp"))
-}
-traj <- do.call(rbind, rec) |>
+  runner <- OdeRunner("TF24t")(IndividualRunner("TF24t", e)(p, env))
+  rec <- list()
+  while (runner$time < t_end) {
+    runner$step()
+    ind <- runner$object$individual
+    rec[[length(rec) + 1L]] <- data.frame(
+      time      = runner$time,
+      air_temp  = env$extrinsic_drivers_evaluate("air_temp", min(runner$time, t_end)),
+      operating = ind$aux("operating_leaf_temp"),
+      running   = ind$state("mean_leaf_temp"))
+  }
+  do.call(rbind, rec)
+})
+traj <- traj_wide |>
   pivot_longer(c(air_temp, operating, running), names_to = "series",
                values_to = "temp")
 
@@ -351,8 +451,13 @@ Damage is now a **memory** — the pools `I_r`/`I_p` discount both capacities an
 persist after cooling — so the same insult that a memoryless factor would forget is
 carried forward, and permanent damage clears only as the plant grows new leaf. All
 plug into the one Medlyn deactivation curve and the Penman–Monteith energy balance.
-At the community scale the same layer sets *where a population can persist* under
-warming, and *which strategy* persists hottest is a genuine trade-off. See
+At the community scale the same layer sets a **persistence boundary** — the
+warmest climate at which a rare population still replaces itself (the density-free
+viability measure, §5). Under the current calibration ATLS shifts that boundary
+*cooler* (a net damage penalty), and among strategies, onset-shifting tolerance
+and acclimation extend it furthest. Both community results are provisional: they
+rest on the minimal-cut PM overheating (which makes the absolute boundary
+temperatures an upper-bound artifact) and on the `k_mat` permanent-damage rate
+(whose default makes TF24t inviable everywhere — an open calibration item). See
 `notes/atls/gate-atls-vs-pm-evaluation.md` for the whole-plant materiality gate
-(verdict: keep) and the caveats (notably the minimal-cut PM overheating, which
-makes the constant-climate collapse temperatures an upper bound).
+(verdict: keep) and the caveats.

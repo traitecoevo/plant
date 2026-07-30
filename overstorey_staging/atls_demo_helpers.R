@@ -226,24 +226,128 @@ atls_scm_strategies <- function() {
     "Acclimator" = function(s) { s$alpha <- 0.06; s })
 }
 
-## R0 across a climate gradient for TF24t vs the PM-only TF24 comparator.
-atls_scm_climate <- function(air_temp_seq, types = c("TF24", "TF24t")) {
-  rows <- list(); k <- 0L
-  for (ty in types) for (lt in air_temp_seq) {
-    k <- k + 1L
-    rows[[k]] <- atls_scm_fitness(lt, type = ty)
+## Default worker count for the community grids: one per core, one held back for
+## the session. Guarded against detectCores() returning NA.
+atls_scm_default_workers <- function() {
+  n <- parallel::detectCores()
+  if (is.na(n)) n <- 1L
+  max(1L, n - 1L)
+}
+
+## Run a list of zero-arg SCM job thunks (each returning a 1-row data.frame) and
+## rbind the results in order. SCM runs are ~30 s each, so the grids are driven
+## in parallel. Fork-based (parallel::mclapply) for the same reason as
+## run_scenarios: forking inherits the currently-loaded plant namespace/compiled
+## library, so it works under devtools::load_all dev builds, whereas a PSOCK /
+## future::multisession cluster would spawn fresh sessions seeing only the
+## *installed* package. Falls back to sequential on Windows (no fork) or when
+## workers == 1. SCM runs are deterministic (no RNG) and mclapply preserves
+## order, so parallel and sequential produce identical frames.
+atls_scm_run_jobs <- function(jobs, workers = atls_scm_default_workers()) {
+  workers <- max(1L, min(workers, length(jobs)))
+  use_fork <- workers > 1L && .Platform$OS.type != "windows"
+  rows <- if (use_fork) {
+    ## mc.preschedule = FALSE load-balances the uneven per-run times.
+    parallel::mclapply(jobs, function(f) f(), mc.cores = workers,
+                       mc.preschedule = FALSE)
+  } else {
+    lapply(jobs, function(f) f())
   }
   do.call(rbind, rows)
 }
 
+## R0 across a climate gradient for TF24t vs the PM-only TF24 comparator.
+atls_scm_climate <- function(air_temp_seq, types = c("TF24", "TF24t"),
+                             workers = atls_scm_default_workers()) {
+  ## lt varies fastest, ty slowest -- matches the original ty-outer/lt-inner order.
+  grid <- expand.grid(lt = air_temp_seq, ty = types, stringsAsFactors = FALSE)
+  jobs <- lapply(seq_len(nrow(grid)), function(i) {
+    function() atls_scm_fitness(grid$lt[i], type = grid$ty[i])
+  })
+  atls_scm_run_jobs(jobs, workers)
+}
+
 ## R0 across a climate gradient for every heritable strategy archetype (TF24t).
-atls_scm_tournament <- function(air_temp_seq, strategies = atls_scm_strategies()) {
-  rows <- list(); k <- 0L
-  for (nm in names(strategies)) for (lt in air_temp_seq) {
-    k <- k + 1L
-    r <- atls_scm_fitness(lt, type = "TF24t", mutate = strategies[[nm]])
-    r$strategy <- nm
-    rows[[k]] <- r
-  }
-  do.call(rbind, rows)
+atls_scm_tournament <- function(air_temp_seq,
+                                strategies = atls_scm_strategies(),
+                                workers = atls_scm_default_workers()) {
+  ## lt varies fastest, nm slowest -- matches the original nm-outer/lt-inner order.
+  grid <- expand.grid(lt = air_temp_seq, nm = names(strategies),
+                      stringsAsFactors = FALSE)
+  jobs <- lapply(seq_len(nrow(grid)), function(i) {
+    nm <- grid$nm[i]
+    lt <- grid$lt[i]
+    function() {
+      r <- atls_scm_fitness(lt, type = "TF24t", mutate = strategies[[nm]])
+      r$strategy <- nm
+      r
+    }
+  })
+  atls_scm_run_jobs(jobs, workers)
+}
+
+## --- Valid community fitness: VIABILITY, not R0 at a fixed birth rate --------
+## R0 (net_reproduction_ratio) at a fixed non-trivial birth_rate is NOT a valid
+## cross-strategy fitness measure: it conflates per-capita productivity with
+## density-dependent recruitment. A less-fecund resident self-shades less, so at
+## a shared seed rain each of its seeds succeeds better -- inflating its R0 even
+## though it is the weaker plant. (Confirmed: R0 declines with birth_rate for
+## every strategy; the ranking at a shared rate is a density artifact.)
+##
+## The density-free measure is VIABILITY: when rare, does a resident more than
+## replace itself? Evaluate R0 in the low-density limit (a small birth_rate, so
+## competition is negligible where it matters). R0 >= 1 => the population can
+## grow from rare and persist; R0 < 1 => it dies out. The warmest climate with
+## R0 >= 1 is the PERSISTENCE BOUNDARY, and it *is* comparable across strategies
+## because fecundity/density effects vanish as density -> 0. We report the
+## boundary temperature, never the R0 magnitude away from it.
+
+## Small birth rate standing in for the low-density limit. At the boundary
+## offspring ~ birth_rate, so this is genuinely near-zero density there.
+atls_low_density_birth_rate <- 1
+
+atls_or <- function(a, b) if (is.null(a)) b else a
+
+## Low-density R0 across a climate gradient for a set of named scenarios (each a
+## list(type=, mutate=)); the `scenario` column labels them. Small birth_rate =>
+## R0 crossing 1 marks the persistence boundary.
+atls_scm_viability <- function(air_temp_seq, scenarios,
+                               birth_rate = atls_low_density_birth_rate,
+                               workers = atls_scm_default_workers()) {
+  grid <- expand.grid(lt = air_temp_seq, nm = names(scenarios),
+                      stringsAsFactors = FALSE)
+  jobs <- lapply(seq_len(nrow(grid)), function(i) {
+    nm <- grid$nm[i]; lt <- grid$lt[i]; sc <- scenarios[[nm]]
+    function() {
+      r <- atls_scm_fitness(lt, type = sc$type,
+                            mutate = atls_or(sc$mutate, identity),
+                            birth_rate = birth_rate)
+      r$scenario <- nm
+      r
+    }
+  })
+  atls_scm_run_jobs(jobs, workers)
+}
+
+## Persistence boundary per scenario: the warmest air_temp where low-density R0
+## >= 1, by log-linear interpolation of R0 vs air_temp across the viability
+## sweep. R0 collapses steeply (the PM-overheating + lasting-damage tipping
+## point), so the crossing is a near-cliff -- the returned boundary is an
+## interpolated bracket, good to ~half a grid step. NA if the scenario never
+## crosses 1 within the swept range (always- or never-viable there).
+atls_persistence_boundary <- function(viab) {
+  do.call(rbind, lapply(split(viab, viab$scenario), function(d) {
+    d <- d[order(d$air_temp), ]
+    lr <- log(pmax(d$R0, 1e-300))
+    above <- lr >= 0
+    b <- NA_real_
+    if (any(above) && any(!above)) {
+      i <- which(above[-length(above)] & !above[-1])[1]  # last-viable -> first-not
+      if (!is.na(i)) {
+        b <- d$air_temp[i] +
+          (0 - lr[i]) / (lr[i + 1] - lr[i]) * (d$air_temp[i + 1] - d$air_temp[i])
+      }
+    }
+    data.frame(scenario = d$scenario[1], boundary = b)
+  }))
 }
