@@ -196,7 +196,14 @@ expect_error(l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root
   
   upper_bound_int <- 3*((log(1/1e-5))^(1/2.04))
   #for situations where psi_stem exceeds tolerance of integrator
-  expect_error(l$transpiration(upper_bound_int, psi_stem[1]), "Extrapolation disabled and evaluation point outside of interpolated domain.")
+  # The message used to be odelia's bare "Extrapolation disabled and evaluation
+  # point outside of interpolated domain.", which named neither the spline, the
+  # point nor the domain; #576 was localised by bisecting the four call sites by
+  # hand because of it. Assert the parts that make it a diagnosis.
+  expect_error(l$transpiration(upper_bound_int, psi_stem[1]),
+               "transpiration_from_psi")
+  expect_error(l$transpiration(upper_bound_int, psi_stem[1]),
+               "outside its domain")
   
   #for situations where psi_soil exceeds psi_crit + tolerance
   
@@ -204,8 +211,11 @@ expect_error(l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root
   l$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   psi_stem = psi_soil 
   
-  expect_error(l$transpiration(psi_stem[1], psi_soil[1]), "Extrapolation disabled and evaluation point outside of interpolated domain.")
-  
+  expect_error(l$transpiration(psi_stem[1], psi_soil[1]),
+               "transpiration_from_psi")
+  expect_error(l$transpiration(psi_stem[1], psi_soil[1]),
+               "outside its domain")
+
   #test that fast E supply calculation is closely approximating full integration
   psi_soil = 0
   l$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)

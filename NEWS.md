@@ -309,6 +309,32 @@ were not previously recorded here:
 
 ### Minor changes & bug fixes
 
+* **TF24f no longer asks for an acclimation gradient in hydraulic shutdown**
+  (#576). In a narrow dry rainfall window (0.04–0.05 m/yr at θ = 0.005, five
+  layers) TF24f died with "Extrapolation disabled and evaluation point outside of
+  interpolated domain" while TF24 ran. The cause was an asymmetry between the two
+  gradient methods in `TF24f_Strategy::solve_leaf`, not a numerical limit: the
+  finite-difference branch checked `prepare_collar_solve()`'s return value and
+  took a zero gradient when the operating point had been *forced* by feasibility
+  handling, while the AD branch called `evaluate_root_collar_psi()` — which hides
+  that return value — and then asked for a gradient regardless. In shutdown the
+  collar potential is set to `-root_psi_crit`, where soil uptake is negative, so
+  the stem potential that would carry it is wetter than saturation and the
+  transport inverse genuinely has no solution. The out-of-domain error was
+  correct; the question was wrong. The AD branch now mirrors the FD branch, which
+  also drops a redundant re-derivation of the soil-side caches per step. Behaviour
+  changes only in states that previously threw, so the TF24f scientific version
+  does not move.
+* **The leaf hydraulic transport splines say which spline, point and domain
+  failed** (#576). `transpiration_from_psi` and `psi_from_transpiration` are the
+  only interpolators in `leaf_model.cpp` with extrapolation disabled, and odelia's
+  out-of-domain error names none of the three, so localising #576 meant bisecting
+  four call sites by hand. Lookups now report the spline, the evaluation point,
+  how far outside it fell and which call was asking; a non-finite point is
+  reported as such rather than as a too-narrow domain (the misdirection #573
+  removed from the adaptive interpolator). Failures inside the collar solve also
+  carry the bracket they were working within and which feasibility branch
+  `prepare_collar_solve()` exited through.
 * **The TF24 rainfall driver is floored at zero.** Because drivers are
   interpolated with a cubic spline, an intermittent series undershoots below
   every supplied value, and negative rainfall gave negative infiltration and an

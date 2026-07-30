@@ -24,6 +24,39 @@ template <typename T>
 T hydraulic_cost_ad(T psi_stem, double b, double c, double g1, double beta2) {
   return g1 * pow(1.0 - exp(-pow(psi_stem / b, c)), beta2);
 }
+
+// Domain-guarded lookup on the two xylem transport splines, which are the only
+// interpolators in this file built with extrapolation DISABLED (the root
+// vulnerability pair clamps instead -- see setup_root_vulnerability). odelia's
+// own out-of-domain error is a bare sentence naming neither the spline, the
+// point, nor the domain, which made #576 a bisect instead of a read. One
+// comparison on a path that already does a spline solve.
+double eval_in_domain(const odelia::interpolator::Interpolator& spline, double u,
+                      const char* spline_name, const char* arg_name,
+                      const std::string& context = std::string()) {
+  const double lo = spline.min();
+  const double hi = spline.max();
+  // Deliberately the SAME condition as odelia's own check, not the negation of
+  // an in-range test: every comparison against NaN is false, so a non-finite u
+  // falls through here exactly as it did before and reaches the spline. That is
+  // load-bearing rather than an oversight -- Leaf::profit_psi_stem_TF(NA, ...)
+  // is documented (test-leaf.r) to return NA, and the non-finite value is caught
+  // downstream by the isfinite(profit_) guards in the collar solve, which report
+  // far more context than this lookup could. Writing `!(u >= lo && u <= hi)`
+  // here instead turns that into a throw and is a behaviour change well beyond
+  // the reporting fix this function exists for.
+  if (u < lo || u > hi) {
+    const bool below = u < lo;
+    util::stop(std::string("Leaf hydraulics: ") + spline_name +
+               " evaluated outside its domain: " + arg_name + " = " +
+               util::format_double(u) + " lies " +
+               util::format_double(below ? lo - u : u - hi) + " beyond the " +
+               (below ? "lower" : "upper") + " end of [" +
+               util::format_double(lo) + ", " + util::format_double(hi) + "]" +
+               (context.empty() ? std::string() : "; " + context) + ".");
+  }
+  return spline.eval(u);
+}
 }  // namespace
 Leaf::Leaf()
     :
@@ -621,6 +654,37 @@ double Leaf::find_root_psi(double wettest_soil_layer, const std::vector<double>&
 
 }
 
+// Bracket and soil state the current collar solve is working inside. Appended to
+// failures raised beneath find_root_collar_psi, because those failures are
+// almost always a property of the bracket rather than of the point that tripped
+// them (#576): the collar potential handed to the transport is chosen from
+// [root_zero_E_, root_crit_], so an out-of-domain psi_stem is a statement about
+// where those two ended up.
+std::string Leaf::collar_solve_context() const {
+  std::string out =
+      std::string(collar_exit_ ? std::string("prepare_collar_solve exited via: ") +
+                                     collar_exit_ + "; "
+                               : std::string("prepare_collar_solve returned a real interval; ")) +
+      "collar bracket: root_zero_E=" + util::format_double(root_zero_E_) +
+      ", root_crit=" + util::format_double(root_crit_) +
+      " (signed potentials); psi_crit=" + util::format_double(psi_crit) +
+      ", root_psi_crit=" + util::format_double(root_psi_crit);
+  // root_crit pinned to the bracket's dry endpoint means find_root_psi never
+  // found an interior continuity root and returned the endpoint it was handed,
+  // so the "feasible" interval reaches a collar potential at which the stem
+  // cannot balance. Worth saying explicitly; it is the #576 signature.
+  if (std::isfinite(root_crit_) &&
+      std::abs(-root_crit_ - psi_crit) < 1e-4 * std::max(1.0, psi_crit)) {
+    out += "; root_crit is AT the dry endpoint -psi_crit (within 1e-4), i.e. the "
+           "continuity solve returned its bracket end rather than an interior root";
+  }
+  out += "; psi_soil (signed, by layer) =";
+  for (size_t i = 0; i < psi_soil_inverted_.size(); ++i) {
+    out += (i ? ", " : " ") + util::format_double(psi_soil_inverted_[i]);
+  }
+  return out;
+}
+
 // When root pressure is known, find E from soil, then use E from soil to find psi stem
 double Leaf::find_psi_stem_from_psi_root(double psi_root, const std::vector<double>& psi_soil){
   E_from_Soil_to_Root_Collar(psi_root, psi_soil);
@@ -702,6 +766,10 @@ void Leaf::set_shutdown_state(double root_collar) {
 // collar-potential interval (positive magnitudes) otherwise.
 bool Leaf::prepare_collar_solve(double& bound_a, double& bound_b){
 
+  collar_exit_ = nullptr;
+  root_crit_ = std::numeric_limits<double>::quiet_NaN();
+  root_zero_E_ = std::numeric_limits<double>::quiet_NaN();
+
   // psi_soil_ arrives as positive magnitudes; flip once to the signed (negative)
   // potential convention used throughout the soil->collar transport (see the
   // sign-conventions block above E_from_Soil_to_Root_Collar).
@@ -723,6 +791,7 @@ bool Leaf::prepare_collar_solve(double& bound_a, double& bound_b){
   // shut down
 
   if (-wettest_soil_layer >= psi_crit){
+    collar_exit_ = "shutdown: wettest soil layer is drier than psi_crit";
     set_shutdown_state(-psi_crit);
     return false;
   }
@@ -730,6 +799,8 @@ bool Leaf::prepare_collar_solve(double& bound_a, double& bound_b){
 if(E_column(-psi_crit, psi_soil_inverted_, psi_crit) < 0){
       // root_collar_psi_ is reported as a signed (negative) potential, so store
       // -root_psi_crit rather than the positive magnitude root_psi_crit.
+      collar_exit_ = "shutdown: E_column(-psi_crit) < 0, soil cannot supply the "
+                     "flux demanded even at psi_crit";
       set_shutdown_state(-root_psi_crit);
       return false;
 }
@@ -737,19 +808,23 @@ if(E_column(-psi_crit, psi_soil_inverted_, psi_crit) < 0){
   // Avoid loop if the wettest psi layer is drier than psi_crit in stem, transpiration not possible and so all variables set to
   // shut down
 double root_crit = find_root_psi(wettest_soil_layer, psi_soil_inverted_, 1);
+root_crit_ = root_crit;
 
 // If root crit would have to be larger than psi crit, also avoid loop as above
 
     if (-root_crit >= psi_crit){
+    collar_exit_ = "shutdown: continuity root would need the collar drier than psi_crit";
     set_shutdown_state(root_crit);
     return false;
   }
 
 // Find root collar where transpiration from soil is 0
 double root_zero_E = find_root_psi(wettest_soil_layer, psi_soil_inverted_, 0);
+root_zero_E_ = root_zero_E;
 
 // If assimilation would be less than 0 even at Ca, also end loop
 if(assim_max_ < 0){
+    collar_exit_ = "assimilation negative even at ci = ca";
     // At zero transpiration the stem equilibrates with the collar (no flux, no
     // gradient), so the operating point is root_zero_E for both. root_collar_psi_
     // is the signed (negative) potential (#7); opt_psi_stem_ is the matching
@@ -787,8 +862,21 @@ if(assim_max_ < 0){
     // If no interval exists (single feasible root-collar value), use that
     // point directly as the alternative solution instead of running GSS.
     if (std::abs(bound_b - bound_a) <= GSS_tol_abs) {
+      collar_exit_ = "collapsed feasible interval (single feasible collar potential)";
       const double opt_root_psi = 0.5 * (bound_a + bound_b);
-      const double psi_stem_single = find_psi_stem_from_psi_root(-opt_root_psi, psi_soil_inverted_);
+      double psi_stem_single;
+      try {
+        psi_stem_single = find_psi_stem_from_psi_root(-opt_root_psi, psi_soil_inverted_);
+      } catch (const std::exception& e) {
+        util::stop(std::string(e.what()) +
+                   " [collapsed collar interval: bound_a=" +
+                   util::format_double(bound_a) + ", bound_b=" +
+                   util::format_double(bound_b) + " differ by less than "
+                   "GSS_tol_abs=" + util::format_double(GSS_tol_abs) +
+                   ", so the single feasible collar potential " +
+                   util::format_double(opt_root_psi) + " was used directly; " +
+                   collar_solve_context() + "]");
+      }
 
       if (!std::isfinite(psi_stem_single)) {
         util::stop("Error: non-finite psi_stem_single in collapsed-root interval; "
@@ -830,29 +918,37 @@ void Leaf::find_root_collar_psi(){
     if (!prepare_collar_solve(bound_a, bound_b)) {
       return;
     }
-    // root_crit / root_zero_E were consumed inside prepare_collar_solve; recover
-    // them for the diagnostic message only if the profit check below fails.
-
     // Maximise carbon profit over the feasible collar-potential interval via
     // golden-section search (util::golden_section_max). Unlike Brent, its argmax
     // is a smooth (fixed-iteration) function of the inputs, so the operating
     // point varies smoothly with plant height -- the demographic growth-rate
     // gradient relies on this. The objective maps a candidate collar potential
     // `bound` to its profit (find the stem psi it implies, then evaluate profit).
-    const double opt_root_psi = util::golden_section_max(
-        [&](double bound) {
-          const double psi_stem =
-              find_psi_stem_from_psi_root(-bound, psi_soil_inverted_);
-          return profit_psi_stem_TF(psi_stem, bound);
-        },
-        bound_a, bound_b, GSS_tol_abs);
+    //
+    // Anything raised inside the search gets the bracket attached on the way out
+    // (#576): the collar potential is chosen from [bound_a, bound_b], so a
+    // failure at one candidate is a statement about the interval, and the
+    // interval is not visible from where the failure is thrown.
+    try {
+      const double opt_root_psi = util::golden_section_max(
+          [&](double bound) {
+            const double psi_stem =
+                find_psi_stem_from_psi_root(-bound, psi_soil_inverted_);
+            return profit_psi_stem_TF(psi_stem, bound);
+          },
+          bound_a, bound_b, GSS_tol_abs);
 
-    opt_psi_stem_ = find_psi_stem_from_psi_root(-opt_root_psi, psi_soil_inverted_);
+      opt_psi_stem_ = find_psi_stem_from_psi_root(-opt_root_psi, psi_soil_inverted_);
 
-    // store as the signed (negative) potential for a sign-consistent aux output;
-    // profit_psi_stem_TF takes psi_upstream as a positive magnitude.
-    root_collar_psi_ = -opt_root_psi;
-    profit_ = profit_psi_stem_TF(opt_psi_stem_, opt_root_psi);
+      // store as the signed (negative) potential for a sign-consistent aux output;
+      // profit_psi_stem_TF takes psi_upstream as a positive magnitude.
+      root_collar_psi_ = -opt_root_psi;
+      profit_ = profit_psi_stem_TF(opt_psi_stem_, opt_root_psi);
+    } catch (const std::exception& e) {
+      util::stop(std::string(e.what()) + " [collar solve over bound_a=" +
+                 util::format_double(bound_a) + ", bound_b=" +
+                 util::format_double(bound_b) + "; " + collar_solve_context() + "]");
+    }
 
     if(!std::isfinite(profit_)){
         util::stop("Error: non-finite profit; opt_psi_stem_=" + util::to_string(opt_psi_stem_) +
@@ -892,9 +988,21 @@ double Leaf::profit_at_collar_psi(double target_opt_root_psi,
     const double opt_root_psi =
         std::min(std::max(target_opt_root_psi, bound_a), bound_b);
 
-    opt_psi_stem_ = find_psi_stem_from_psi_root(-opt_root_psi, psi_soil_inverted_);
-    root_collar_psi_ = -opt_root_psi;
-    profit_ = profit_psi_stem_TF(opt_psi_stem_, opt_root_psi);
+    // As in find_root_collar_psi: attach the bracket the clamp drew from, since a
+    // failure here is a property of [bound_a, bound_b] and of where the tracked
+    // target sat relative to it, neither of which is visible downstream (#576).
+    try {
+      opt_psi_stem_ = find_psi_stem_from_psi_root(-opt_root_psi, psi_soil_inverted_);
+      root_collar_psi_ = -opt_root_psi;
+      profit_ = profit_psi_stem_TF(opt_psi_stem_, opt_root_psi);
+    } catch (const std::exception& e) {
+      util::stop(std::string(e.what()) +
+                 " [collar potential clamped to " +
+                 util::format_double(opt_root_psi) + " from tracked target " +
+                 util::format_double(target_opt_root_psi) + " over bound_a=" +
+                 util::format_double(bound_a) + ", bound_b=" +
+                 util::format_double(bound_b) + "; " + collar_solve_context() + "]");
+    }
 
     if(!std::isfinite(profit_)){
         util::stop("Error: non-finite profit in evaluate_root_collar_psi; "
@@ -923,7 +1031,14 @@ double Leaf::dprofit_droot_collar_psi(double opt_root_psi) {
   const double gstar_Pa = gamma_ * umol_per_mol_to_Pa;
 
   // Operating point in double.
-  const double psi_stem = find_psi_stem_from_psi_root(-psi, psi_soil_inverted_);
+  double psi_stem;
+  try {
+    psi_stem = find_psi_stem_from_psi_root(-psi, psi_soil_inverted_);
+  } catch (const std::exception& e) {
+    util::stop(std::string(e.what()) +
+               " [operating point in dprofit_droot_collar_psi(psi=" +
+               util::format_double(psi) + "); " + collar_solve_context() + "]");
+  }
   // Shut down before the ci solve, not after. psi and psi_stem are positive
   // magnitudes here, so psi >= psi_stem is the no-flow / reversed-gradient case
   // -- the same condition set_leaf_states_rates_from_psi_stem() treats as zero
@@ -984,15 +1099,29 @@ double Leaf::dprofit_droot_collar_psi(double opt_root_psi) {
   if (std::isfinite(dEup_dr)) {
     E_from_Soil_to_Root_Collar(r, psi_soil_inverted_);  // refresh E_up_ at r
     const double E_psi_stem =
-        E_up_ / leaf_specific_conductance_max_ + transpiration_from_psi.eval(psi);
+        E_up_ / leaf_specific_conductance_max_ +
+        eval_in_domain(transpiration_from_psi, psi,
+                       "transpiration_from_psi (cumulative xylem conductivity "
+                       "integral G(psi), psi in +MPa)",
+                       "psi", "in Leaf::dprofit_droot_collar_psi(psi=" +
+                                  util::format_double(psi) + ")");
     const double dEpsistem_dpsi =
         -dEup_dr / leaf_specific_conductance_max_ + transpiration_from_psi.deriv(psi);
     dpsistem_dpsi = psi_from_transpiration.deriv(E_psi_stem) * dEpsistem_dpsi;
   } else {
     const double h = 1e-6;
-    dpsistem_dpsi =
-        (find_psi_stem_from_psi_root(-(psi + h), psi_soil_inverted_) -
-         find_psi_stem_from_psi_root(-(psi - h), psi_soil_inverted_)) / (2.0 * h);
+    try {
+      dpsistem_dpsi =
+          (find_psi_stem_from_psi_root(-(psi + h), psi_soil_inverted_) -
+           find_psi_stem_from_psi_root(-(psi - h), psi_soil_inverted_)) / (2.0 * h);
+    } catch (const std::exception& e) {
+      util::stop(std::string(e.what()) +
+                 " [central difference on the transport in "
+                 "dprofit_droot_collar_psi, psi=" + util::format_double(psi) +
+                 " +/- h=" + util::format_double(h) +
+                 ", taken because dE_from_soil_dpsi_collar returned non-finite; " +
+                 collar_solve_context() + "]");
+    }
   }
 
   const double dci_dpsi = dci_dpsistem * dpsistem_dpsi + dci_dpsi_expl;
@@ -1179,8 +1308,16 @@ double Leaf::transpiration(double psi_stem, double psi_upstream) {
   }
 
   // integration of proportion_of_conductivity over [root_collar_psi_, psi_stem]
+  const std::string ctx = "in Leaf::transpiration(psi_stem=" +
+                          util::format_double(psi_stem) + ", psi_upstream=" +
+                          util::format_double(psi_upstream) + ")";
   const double E = leaf_specific_conductance_max_ *
-    (transpiration_from_psi.eval(psi_stem) - transpiration_from_psi.eval(psi_upstream));
+    (eval_in_domain(transpiration_from_psi, psi_stem,
+                    "transpiration_from_psi (cumulative xylem conductivity "
+                    "integral G(psi), psi in +MPa)", "psi_stem", ctx) -
+     eval_in_domain(transpiration_from_psi, psi_upstream,
+                    "transpiration_from_psi (cumulative xylem conductivity "
+                    "integral G(psi), psi in +MPa)", "psi_upstream", ctx));
   // return (transpiration_full_integration(psi_stem));
 
   transpiration_cache_psi_stem_ = psi_stem;
@@ -1198,10 +1335,23 @@ double Leaf::transpiration_to_psi_stem(double transpiration_, double psi_upstrea
   // integration of proportion_of_conductivity over [root_collar_psi_, psi_stem]
 
 
-  double E_psi_stem = transpiration_/leaf_specific_conductance_max_ +  transpiration_from_psi.eval(-psi_upstream);
+  const std::string ctx = "in Leaf::transpiration_to_psi_stem(transpiration=" +
+                          util::format_double(transpiration_) +
+                          ", psi_upstream=" + util::format_double(psi_upstream) +
+                          "); leaf_specific_conductance_max=" +
+                          util::format_double(leaf_specific_conductance_max_);
 
+  double E_psi_stem =
+      transpiration_ / leaf_specific_conductance_max_ +
+      eval_in_domain(transpiration_from_psi, -psi_upstream,
+                     "transpiration_from_psi (cumulative xylem conductivity "
+                     "integral G(psi), psi in +MPa)",
+                     "-psi_upstream", ctx);
 
-  return psi_from_transpiration.eval(E_psi_stem);
+  return eval_in_domain(psi_from_transpiration, E_psi_stem,
+                        "psi_from_transpiration (inverse of the cumulative "
+                        "xylem conductivity integral, G^-1)",
+                        "E/K_max + G(-psi_upstream)", ctx);
   }
 
 // returns stomatal conductance to CO2, mol C m^-2 LA s^-1

@@ -58,12 +58,31 @@ void TF24f_Strategy::solve_leaf() {
     // Exact gradient (default, #527): forward-mode AD over the analytic algebra
     // + IFT at the ci root-find + analytic spline derivatives for the transport.
     // No O(h) bias and no finite-difference step to tune.
+    //
+    // Run prepare_collar_solve explicitly rather than letting
+    // evaluate_root_collar_psi hide it, for the same reason the FD branch below
+    // does: its return value is the only way to see that the operating point was
+    // forced by feasibility handling rather than chosen from an interval. When it
+    // was, there is no interval to move within, so the acclimation gradient is
+    // zero -- and asking for one is not merely wasted work, it is a question with
+    // no answer. In shutdown, root_collar_psi_ is set to -root_psi_crit, a collar
+    // potential at which the soil cannot supply the demanded flux at all; the
+    // uptake there is NEGATIVE, so the stem potential that would carry it is
+    // wetter than saturation and the transport inverse has no solution. That is
+    // what killed TF24f in the dry rainfall window of #576.
+    double bound_a, bound_b;
+    if (!leaf.prepare_collar_solve(bound_a, bound_b)) {
+      dprofit_dpsi_ = 0.0;
+      return;
+    }
     // Establish the operating point (and the clamped collar psi `used`) and leave
-    // the leaf outputs there for compute_rates' aux reads.
-    leaf.evaluate_root_collar_psi(tracked_root_psi_);
+    // the leaf outputs there for compute_rates' aux reads. Sharing the one
+    // prepare across all three calls also drops a redundant re-derivation of the
+    // soil-side caches per step (#530 did the same for the FD branch).
+    leaf.profit_at_collar_psi(tracked_root_psi_, bound_a, bound_b);
     const double used = -leaf.root_collar_psi_;
     dprofit_dpsi_ = leaf.dprofit_droot_collar_psi(used);
-    leaf.evaluate_root_collar_psi(used);  // restore operating-point outputs
+    leaf.profit_at_collar_psi(used, bound_a, bound_b);  // restore operating-point outputs
   } else {
     // Centred finite-difference fallback (#526), perturbing about the clamped
     // operating value `used`. A one-sided difference biases the fixed point to

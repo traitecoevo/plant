@@ -13,6 +13,9 @@
 #include <plant/uniroot.h>
 #include <plant/optimize.h>
 
+#include <limits>
+#include <string>
+
 namespace plant {
 
 // double check best namespace for constants (private vs global)
@@ -307,6 +310,20 @@ public:
   // false when the operating point is already fully determined (caller is done),
   // true when there is a real interval to choose a collar potential within.
   bool prepare_collar_solve(double& bound_a, double& bound_b);
+  // The two collar potentials prepare_collar_solve derived the feasible interval
+  // from (signed, <= 0), kept so a failure anywhere downstream of it can say
+  // which bracket it was working inside -- see collar_solve_context(). Only
+  // meaningful for the step whose prepare_collar_solve most recently ran.
+  double root_crit_ = std::numeric_limits<double>::quiet_NaN();
+  double root_zero_E_ = std::numeric_limits<double>::quiet_NaN();
+  // Which feasibility branch prepare_collar_solve exited through, or nullptr if
+  // it returned a real interval. Reported by collar_solve_context(), and the
+  // reason a caller can tell "the operating point was chosen by the optimiser"
+  // from "the operating point was forced by shutdown".
+  const char* collar_exit_ = nullptr;
+  // Human-readable dump of the collar-solve bracket and the soil state it came
+  // from, appended to errors raised inside the solve (#576).
+  std::string collar_solve_context() const;
   // Evaluate the leaf at a *given* root-collar potential (positive magnitude)
   // rather than optimising it: reuses prepare_collar_solve, clamps the target to
   // the feasible interval, and evaluates there (no golden-section search). Leaves
