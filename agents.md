@@ -358,6 +358,35 @@ Practical rules:
 C++ standard is **C++20** (`CXX_STD = CXX20` in [src/Makevars](src/Makevars));
 note the README still mentions C++14. Requires R ≥ 4.5.0.
 
+### `R CMD INSTALL` does not clean, and a stale `.o` fails in a misleading way
+
+`R CMD INSTALL` recompiles only sources newer than their `.o`, so object files
+left in `src/` from an earlier tree get linked as-is. A header-only dependency
+changing underneath them — anything reached via `LinkingTo` — moves no `.cpp`
+timestamp at all, so *nothing* rebuilds.
+
+The failure this produces points nowhere near the cause. Consuming the
+standalone `leaf` package turned `plant::Leaf` from a class into a
+`using`-alias for `leaf::Leaf`. A stale `RcppExports.o` still carried the
+pre-alias mangling, and the load failed with:
+
+```
+symbol not found in flat namespace '__Z13Leaf__d___getN5plant6RcppR66RcppR6INS_4LeafEEE'
+```
+
+which names a *field accessor* that was never touched, and reads like a missing
+export. The tell is in the mangled names, not the message — compare the two
+objects and look at which namespace the template argument sits in:
+
+```sh
+nm src/RcppExports.o | grep Leaf__d___get   # ...RcppR6INS_4LeafEEE   -> plant::Leaf
+nm src/RcppR6.o      | grep Leaf__d___get   # ...RcppR6IN4leaf4LeafEE -> leaf::Leaf
+```
+
+Two objects disagreeing about what a type *is* means one of them is stale.
+`rm -f src/*.o src/*.so` (or `make rebuild`, which cleans) and build again. Worth
+doing unconditionally after any change to a `LinkingTo` dependency.
+
 ---
 
 ## 7. Adding a new model (strategy + environment)

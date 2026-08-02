@@ -432,8 +432,9 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
     }
 
   // Reuse geometry precomputed by environment; avoids rebuilding z midpoints each call.
-  leaf.z_soil_mid_ = environment.get_soil_mid_depths();
-  leaf.use_precomputed_z_soil_mid_ = true;
+  // The soil geometry moved into the leaf package's MultiLayerRoots (leaf_cpp #2).
+  leaf.roots_.z_soil_mid_ = environment.get_soil_mid_depths();
+  leaf.roots_.use_precomputed_z_soil_mid_ = true;
 
   // Per-timestep above-canopy wind for the PM aerodynamic resistance (#523);
   // read only on the energy-balance path in set_physiology.

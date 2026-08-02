@@ -320,20 +320,20 @@ void Leaf__rho___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
 
 // [[Rcpp::export]]
 std::vector<double> Leaf__c_r_V___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->c_r_V_;
+  return obj_->roots_.c_r_V_;
 }
 // [[Rcpp::export]]
 void Leaf__c_r_V___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
-  obj_->c_r_V_ = value;
+  obj_->roots_.c_r_V_ = value;
 }
 
 // [[Rcpp::export]]
 std::vector<double> Leaf__c_r_H___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->c_r_H_;
+  return obj_->roots_.c_r_H_;
 }
 // [[Rcpp::export]]
 void Leaf__c_r_H___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
-  obj_->c_r_H_ = value;
+  obj_->roots_.c_r_H_ = value;
 }
 
 // [[Rcpp::export]]
@@ -374,83 +374,83 @@ void Leaf__ca___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
 
 // [[Rcpp::export]]
 std::vector<double> Leaf__soil_depth___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->soil_depth_;
+  return obj_->roots_.soil_depth_;
 }
 // [[Rcpp::export]]
 void Leaf__soil_depth___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
-  obj_->soil_depth_ = value;
+  obj_->roots_.soil_depth_ = value;
 }
 
 // [[Rcpp::export]]
 std::vector<double> Leaf__z_soil_mid___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->z_soil_mid_;
+  return obj_->roots_.z_soil_mid_;
 }
 // [[Rcpp::export]]
 void Leaf__z_soil_mid___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
-  obj_->z_soil_mid_ = value;
+  obj_->roots_.z_soil_mid_ = value;
 }
 
 // [[Rcpp::export]]
 double Leaf__dz___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->dz_;
+  return obj_->roots_.dz_;
 }
 // [[Rcpp::export]]
 void Leaf__dz___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
-  obj_->dz_ = value;
+  obj_->roots_.dz_ = value;
 }
 
 // [[Rcpp::export]]
 int Leaf__soil_number_of_depths___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->soil_number_of_depths_;
+  return obj_->roots_.soil_number_of_depths_;
 }
 // [[Rcpp::export]]
 void Leaf__soil_number_of_depths___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, int value) {
-  obj_->soil_number_of_depths_ = value;
+  obj_->roots_.soil_number_of_depths_ = value;
 }
 
 // [[Rcpp::export]]
 int Leaf__max_soil_layer__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->max_soil_layer;
+  return obj_->roots_.max_soil_layer;
 }
 // [[Rcpp::export]]
 void Leaf__max_soil_layer__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, int value) {
-  obj_->max_soil_layer = value;
+  obj_->roots_.max_soil_layer = value;
 }
 
 // [[Rcpp::export]]
 std::vector<double> Leaf__psi_soil___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->psi_soil_;
+  return obj_->roots_.psi_soil_;
 }
 // [[Rcpp::export]]
 void Leaf__psi_soil___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
-  obj_->psi_soil_ = value;
+  obj_->roots_.psi_soil_ = value;
 }
 
 // [[Rcpp::export]]
 std::vector<double> Leaf__r_R_H_min__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->r_R_H_min;
+  return obj_->roots_.r_R_H_min;
 }
 // [[Rcpp::export]]
 void Leaf__r_R_H_min__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
-  obj_->r_R_H_min = value;
+  obj_->roots_.r_R_H_min = value;
 }
 
 // [[Rcpp::export]]
 std::vector<double> Leaf__r_R_V__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->r_R_V;
+  return obj_->roots_.r_R_V;
 }
 // [[Rcpp::export]]
 void Leaf__r_R_V__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
-  obj_->r_R_V = value;
+  obj_->roots_.r_R_V = value;
 }
 
 // [[Rcpp::export]]
 std::vector<double> Leaf__r_R_V_sum__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->r_R_V_sum;
+  return obj_->roots_.r_R_V_sum;
 }
 // [[Rcpp::export]]
 void Leaf__r_R_V_sum__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
-  obj_->r_R_V_sum = value;
+  obj_->roots_.r_R_V_sum = value;
 }
 
 // [[Rcpp::export]]
