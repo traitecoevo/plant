@@ -427,12 +427,12 @@ void Leaf__assim_max___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value
 }
 
 // [[Rcpp::export]]
-double Leaf__root_collar_psi___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->root_collar_psi_;
+double Leaf__opt_root_psi___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->opt_root_psi_;
 }
 // [[Rcpp::export]]
-void Leaf__root_collar_psi___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
-  obj_->root_collar_psi_ = value;
+void Leaf__opt_root_psi___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->opt_root_psi_ = value;
 }
 
 // [[Rcpp::export]]

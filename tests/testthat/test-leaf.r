@@ -69,7 +69,7 @@ test_that("Basic functions", {
   expect_true(is.na(l$R_d_))
   expect_true(is.na(l$vcmax_))
   expect_true(is.na(l$jmax_))
-  expect_true(is.na(l$root_collar_psi_))
+  expect_true(is.na(l$opt_root_psi_))
   expect_true(is.na(l$opt_psi_stem_))
   expect_true(is.na(l$opt_ci_))
   expect_true(is.na(l$E_up_))
@@ -170,7 +170,7 @@ expect_error(l$set_physiology(root_carbon_per_leaf_area = (root_carbon_) / area_
   expect_true(is.na(l$R_d_))
   expect_true(is.na(l$vcmax_))
   expect_true(is.na(l$jmax_))
-  expect_true(is.na(l$root_collar_psi_))
+  expect_true(is.na(l$opt_root_psi_))
   expect_true(is.na(l$opt_psi_stem_))
   expect_true(is.na(l$opt_ci_))
   expect_true(is.na(l$E_up_))
@@ -342,8 +342,10 @@ expect_error(l$set_physiology(root_carbon_per_leaf_area = (root_carbon_) / area_
   g_c_ci = ((benefit_)* umol_to_mol * l$atm_kpa_ * kPa_to_Pa)/(l$ca_ - l$ci_); 
   
   E_ci = g_c_ci * 1.67 * l$atm_vpd_ / kg_to_mol_h2o / l$atm_kpa_;
-  # need to invert psi_stem to get the same value as psi_crit, which is the value we set for psi_stem in this test
-  psi_stem = l$transpiration_to_psi_stem(E_ci, -psi_soil)
+  # psi_upstream is a positive magnitude, same as everywhere else (leaf_cpp #25):
+  # transpiration_to_psi_stem no longer negates it internally, so there is nothing
+  # to invert here either.
+  psi_stem = l$transpiration_to_psi_stem(E_ci, psi_soil)
   
   #conversion back and forth is not perfect
   expect_equal(psi_stem, psi_crit, tolerance = 1e-05)
@@ -535,8 +537,10 @@ soil_depth = 1
 expect_equal(length(l$c_r_H_), length(soil_depth))
 expect_equal(length(l$c_r_V_), length(soil_depth))
 
-# test what happens when psi_root is equal to psi_soil, E should be slightly negative
-l$E_from_Soil_to_Root_Collar(-psi_soil[1], -psi_soil)
+# test what happens when psi_root is equal to psi_soil, E should be slightly
+# negative (the layer gains, because gravity still has to be paid). Collar and
+# soil are both positive magnitudes now (leaf_cpp #25).
+l$E_from_Soil_to_Root_Collar(psi_soil[1], psi_soil)
 expect_true(l$E_up_ < 0)
 
   soil_depth = c(0.5)
@@ -545,19 +549,20 @@ expect_true(l$E_up_ < 0)
 
 # test what happens when psi_root is equal gravitational effect
 l$set_physiology(root_carbon_per_leaf_area = (root_carbon) / area_leaf_, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
-l$E_from_Soil_to_Root_Collar((-psi_soil - l$z_soil_mid_*9.8e-3),-psi_soil[1])
+# the collar pulls exactly hard enough to lift the water and no harder, so E == 0
+l$E_from_Soil_to_Root_Collar((psi_soil + l$z_soil_mid_*9.8e-3), psi_soil[1])
 expect_equal(l$E_up_, 0)
 
 # test what happens when psi_root is equal gravitational effect
 l$set_physiology(root_carbon_per_leaf_area = (root_carbon) / area_leaf_, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
-l$E_from_Soil_to_Root_Collar(-psi_soil[1] - 0.5,-psi_soil[1])
+l$E_from_Soil_to_Root_Collar(psi_soil[1] + 0.5, psi_soil[1])
 expect_true(l$E_up_ > 0)
 
   soil_depth = c(0.5,1)
   psi_soil = c(0.5, 0.5)
   root_carbon = c(1, 0)
 l$set_physiology(root_carbon_per_leaf_area = (root_carbon) / area_leaf_, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
-l$E_from_Soil_to_Root_Collar(-psi_soil[1] - 0.5,-psi_soil[1])
+l$E_from_Soil_to_Root_Collar(psi_soil[1] + 0.5, psi_soil[1])
 
 #confirm that soil_consumption is 0 when roots do not exist in that layer
 expect_equal(l$soil_consumption_[2], 0)
@@ -566,7 +571,7 @@ expect_equal(l$soil_consumption_[2], 0)
   psi_soil = c(0.5, 0.5)
   root_carbon = c(1, 1)
 l$set_physiology(root_carbon_per_leaf_area = (root_carbon) / area_leaf_, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
-l$E_from_Soil_to_Root_Collar(-psi_soil[1] - 0.5,-psi_soil[1])
+l$E_from_Soil_to_Root_Collar(psi_soil[1] + 0.5, psi_soil[1])
 
 #check that soil consumption adds to E_up
 expect_equal(l$E_up_, sum(l$soil_consumption_)*0.018015)
@@ -577,7 +582,7 @@ expect_equal(l$E_up_, sum(l$soil_consumption_)*0.018015)
 l$set_physiology(root_carbon_per_leaf_area = (root_carbon) / area_leaf_, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
 l$find_root_collar_psi()
 expect_equal(l$profit_, -vcmax_25*0.015-l$hydraulic_cost_TF(psi_crit))
-l$root_collar_psi_
+l$opt_root_psi_
 
 # assim_max_ < 0 early-exit: wet soil (so the upstream shut-down exits are NOT
 # taken) but zero light, so maximum assimilation at ci = ca is below dark
@@ -597,11 +602,11 @@ l$find_root_collar_psi()
 # find_root_collar_psi (the assim_max_ < 0 exit used to leak the signed
 # root_zero_E here -- the sign wart fixed alongside review #7).
 expect_true(l$opt_psi_stem_ > 0)
-# root_collar_psi_ is the signed (negative) potential (review #7).
-expect_true(l$root_collar_psi_ < 0)
-# at zero transpiration the stem equilibrates with the collar: same potential,
-# so the magnitudes match and the two auxes are exact negatives of each other.
-expect_equal(l$opt_psi_stem_, -l$root_collar_psi_)
+# opt_root_psi_ is a positive magnitude, like every other psi (leaf_cpp #25).
+expect_true(l$opt_root_psi_ > 0)
+# at zero transpiration the stem equilibrates with the collar: same potential, and
+# now literally the same number rather than a magnitude paired with its negation.
+expect_equal(l$opt_psi_stem_, l$opt_root_psi_)
 })
 
 # Medlyn stomatal-conductance model (ported/adapted from develop #450). The
@@ -911,32 +916,33 @@ test_that("find_root_psi soil->collar continuity solve", {
 
   l <- set_phys(make_leaf())
 
-  # Reconstruct the bracket exactly as find_root_collar_psi does: psi_soil is
-  # flipped once to the signed (negative) convention used through the
-  # soil->collar transport, and the bracket runs from the driest feasible collar
-  # (-psi_crit) to the wettest soil layer (least-negative signed potential).
-  psi_inv <- -psi_soil
-  wettest <- max(psi_inv)
-  lower <- -psi_crit
-  upper <- wettest
+  # Reconstruct the bracket exactly as find_root_collar_psi does. Every psi is a
+  # positive magnitude (leaf_cpp #25), so nothing is flipped and the wettest layer
+  # is the SMALLEST suction -- which makes it the LOWER bracket end, where the
+  # signed convention had it as the upper one. The bracket runs from there to
+  # psi_crit, the driest feasible collar.
+  wettest <- min(psi_soil)
+  lower <- wettest
+  upper <- psi_crit
 
   # Method-independent scalar targets, rebuilt in pure R from the R-exposed
   # primitives (E_from_Soil_to_Root_Collar sets E_up_; transpiration is direct).
   # These are bit-for-bit the C++ E_column_zero / E_column the solver drives.
   target0 <- function(x) {           # find_root_crit == 0
-    l$E_from_Soil_to_Root_Collar(x, psi_inv)
+    l$E_from_Soil_to_Root_Collar(x, psi_soil)
     l$E_up_
   }
   target1 <- function(x) {           # find_root_crit == 1
-    l$E_from_Soil_to_Root_Collar(x, psi_inv)
+    l$E_from_Soil_to_Root_Collar(x, psi_soil)
     E_up <- l$E_up_
-    # E_column sets root_collar_psi_ = -x and demands transpiration(psi_crit, -x)
-    E_up - l$transpiration(psi_crit, -x)
+    # E_column demands transpiration(psi_crit, x): x is the collar suction, the
+    # same kind of number as psi_crit (leaf_cpp #25), so nothing is flipped.
+    E_up - l$transpiration(psi_crit, x)
   }
 
   # --- 1. both targets are bracketed (opposite signs at the endpoints) --------
-  expect_true(target0(lower) > 0 && target0(upper) < 0)
-  expect_true(target1(lower) > 0 && target1(upper) < 0)
+  expect_true(target0(lower) < 0 && target0(upper) > 0)
+  expect_true(target1(lower) < 0 && target1(upper) > 0)
 
   # --- 2. both targets are strictly monotone over the bracket -----------------
   # (a clean single sign-change, the necessary condition for ANY bracketing
@@ -945,15 +951,19 @@ test_that("find_root_psi soil->collar continuity solve", {
   t0 <- vapply(xs, target0, numeric(1))
   t1 <- vapply(xs, target1, numeric(1))
   expect_true(all(is.finite(t0)) && all(is.finite(t1)))
-  expect_true(all(diff(t0) < 0))   # E_up_ decreases as collar gets less negative
-  expect_true(all(diff(t1) < 0))
+  # Both targets now INCREASE with x: a larger collar suction pulls more water up.
+  # The sign of the slope flipped with the variable, and so did the sign pattern at
+  # the endpoints -- a bracketing solver only needs them opposite, not in a
+  # particular order.
+  expect_true(all(diff(t0) > 0))
+  expect_true(all(diff(t1) > 0))
 
   # --- 3. C++ root matches a tight method-independent R reference -------------
   # stats::uniroot solves the identical target to 1e-12; the C++ solver works to
   # 1e-4 in x, so agreement to ~1e-3 pins "the correct collar potential"
   # independently of the C++ method (a future Brent/TOMS748 swap still passes).
-  root0 <- l$find_root_psi(wettest, psi_inv, 0L)
-  root1 <- l$find_root_psi(wettest, psi_inv, 1L)
+  root0 <- l$find_root_psi(wettest, psi_soil, 0L)
+  root1 <- l$find_root_psi(wettest, psi_soil, 1L)
   ref0 <- stats::uniroot(target0, lower = lower, upper = upper, tol = 1e-12)$root
   ref1 <- stats::uniroot(target1, lower = lower, upper = upper, tol = 1e-12)$root
   expect_equal(root0, ref0, tolerance = 1e-3)
@@ -967,37 +977,45 @@ test_that("find_root_psi soil->collar continuity solve", {
   expect_true(root0 > lower && root0 < upper)
   expect_true(root1 > lower && root1 < upper)
 
-  # --- 5. ordering: the zero-uptake collar is wetter (less negative) than the
-  # critical-demand collar (more water is drawn at psi_crit than at zero flux).
-  expect_true(root0 > root1)
+  # --- 5. ordering: the zero-uptake collar is wetter -- a SMALLER suction -- than
+  # the critical-demand collar (more water is drawn at psi_crit than at zero flux).
+  # The inequality reverses with the variable; the physics does not.
+  expect_true(root0 < root1)
 
   # --- 6. find_psi_stem_from_psi_root contract --------------------------------
-  # Given a collar potential it returns a finite stem potential >= the collar
-  # magnitude (the stem is downstream, hence at least as negative), and the
-  # mapping is monotone increasing in collar dryness.
-  roots <- seq(root1, root0, length.out = 8)
-  psi_stems <- vapply(roots, function(r) l$find_psi_stem_from_psi_root(r, psi_inv), numeric(1))
+  # Given a collar suction it returns a finite stem suction >= it (the stem is
+  # downstream, hence under at least as much tension), and the mapping is monotone
+  # increasing in collar dryness. Both sides are the same kind of number now, so
+  # the comparison needs no negation.
+  roots <- seq(root0, root1, length.out = 8)
+  psi_stems <- vapply(roots, function(r) l$find_psi_stem_from_psi_root(r, psi_soil), numeric(1))
   expect_true(all(is.finite(psi_stems)))
-  # |stem| >= |collar|: the stem is downstream so at least as negative as the
-  # collar. The tolerance is the continuity tol (1e-4 in x): at the zero-uptake
-  # collar (root0) the flux -> 0 so psi_stem -> collar and rounding can place it
+  # The tolerance is the continuity tol (1e-4 in x): at the zero-uptake collar
+  # (root0) the flux -> 0 so psi_stem -> collar and rounding can place it
   # microscopically either side -- a 1e-8 bound would be method-dependent there.
-  expect_true(all(psi_stems >= -roots - 1e-3))
-  expect_true(all(diff(psi_stems) < 0))          # drier collar (more -ve) -> larger |stem|
+  expect_true(all(psi_stems >= roots - 1e-3))
+  expect_true(all(diff(psi_stems) > 0))          # drier collar -> drier stem
 
   # --- 7. NaN-input propagation: a non-finite soil potential must fail fast
   # (util::stop in E_from_Soil_to_Root_Collar), NOT return a silent NaN root.
-  psi_inv_bad <- psi_inv
-  psi_inv_bad[5] <- NA_real_
-  expect_error(l$find_root_psi(wettest, psi_inv_bad, 0L))
+  psi_soil_bad <- psi_soil
+  psi_soil_bad[5] <- NA_real_
+  expect_error(l$find_root_psi(wettest, psi_soil_bad, 0L))
+
+  # --- 7b. and so must a SIGNED vector, which is what a pre-#25 caller has. It
+  # would otherwise compile, run, and return a wrong number in silence.
+  expect_error(l$find_root_psi(wettest, -psi_soil, 0L))
+  expect_error(l$E_from_Soil_to_Root_Collar(2.0, -psi_soil))
 
   # --- 8. regression guard: hardcoded reference roots for the standard scenario.
   # These pin the physical answer independently of the build/method; both the
   # bisection and a superlinear bracketing solver converge here to the same
   # collar potentials within the 1e-4 continuity tolerance (the value is NOT
   # bit-identical across methods, hence the loose tolerance).
-  expect_equal(root0, -0.4387473787, tolerance = 1e-3)
-  expect_equal(root1, -0.6854590915, tolerance = 1e-3)
+  # Sign flipped with the representation; the magnitudes are unchanged, which is
+  # the point of #25 being a representation change and not a model change.
+  expect_equal(root0, 0.4387473787, tolerance = 1e-3)
+  expect_equal(root1, 0.6854590915, tolerance = 1e-3)
 })
 
 test_that("dprofit_droot_collar_psi matches a finite difference (AD/IFT gradient, #527)", {
@@ -1025,7 +1043,7 @@ test_that("dprofit_droot_collar_psi matches a finite difference (AD/IFT gradient
 
   # Optimise once (also sets up the soil-side caches the gradient needs).
   l$find_root_collar_psi()
-  opt <- -l$root_collar_psi_   # operating collar potential (positive magnitude)
+  opt <- l$opt_root_psi_   # operating collar suction (positive magnitude)
 
   fd_grad <- function(psi, eps = 1e-5) {
     (l$evaluate_root_collar_psi(psi + eps) -
@@ -1047,7 +1065,7 @@ test_that("dprofit_droot_collar_psi matches a finite difference (AD/IFT gradient
   tested <- 0
   for (psi in c(opt + 0.02, opt + 0.1, opt + 0.2, opt + 0.4, opt + 0.6)) {
     l$evaluate_root_collar_psi(psi)
-    used <- -l$root_collar_psi_
+    used <- l$opt_root_psi_
     if (abs(used - psi) > 1e-8) next            # clamped: not interior, skip
     ad <- l$dprofit_droot_collar_psi(psi)
     expect_true(is.finite(ad))

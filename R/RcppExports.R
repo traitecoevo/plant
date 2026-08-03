@@ -393,12 +393,12 @@ Leaf__assim_max___set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__assim_max___set', PACKAGE = 'plant', obj_, value))
 }
 
-Leaf__root_collar_psi___get <- function(obj_) {
-    .Call('_plant_Leaf__root_collar_psi___get', PACKAGE = 'plant', obj_)
+Leaf__opt_root_psi___get <- function(obj_) {
+    .Call('_plant_Leaf__opt_root_psi___get', PACKAGE = 'plant', obj_)
 }
 
-Leaf__root_collar_psi___set <- function(obj_, value) {
-    invisible(.Call('_plant_Leaf__root_collar_psi___set', PACKAGE = 'plant', obj_, value))
+Leaf__opt_root_psi___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__opt_root_psi___set', PACKAGE = 'plant', obj_, value))
 }
 
 Leaf__leaf_temp___get <- function(obj_) {

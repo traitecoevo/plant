@@ -163,7 +163,11 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   vars.set_aux(aux_idx_net_mass_production_dt, net_mass_production_dt_);
   vars.set_aux(aux_idx_root_mass, mass_root(area_leaf_));
   vars.set_aux(aux_idx_opt_psi_stem, leaf.opt_psi_stem_);
-  vars.set_aux(aux_idx_opt_root_psi, leaf.root_collar_psi_);
+  // The aux and TF24f's state of the same name now agree in sign: both are the
+  // positive magnitude the leaf package stores (leaf_cpp #25). This line used to
+  // report the signed potential while tf24f_strategy.cpp negated it back for the
+  // state -- an inconsistency in plant's own reported outputs.
+  vars.set_aux(aux_idx_opt_root_psi, leaf.opt_root_psi_);
   vars.set_aux(aux_idx_transpiration, leaf.transpiration_);
   vars.set_aux(aux_idx_E_up, leaf.E_up_);
   vars.set_aux(aux_idx_profit, leaf.profit_);
@@ -497,7 +501,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
       trans_y[i]    = leaf.transpiration_ * qi;
       eup_y[i]      = leaf.E_up_ * qi;
       psi_y[i]      = leaf.opt_psi_stem_ * qi;
-      root_psi_y[i] = leaf.root_collar_psi_ * qi;
+      root_psi_y[i] = leaf.opt_root_psi_ * qi;
       gco2_y[i]     = leaf.stom_cond_CO2_ * qi;
       assim_y[i]    = leaf.assim_colimited_ * qi;
       for (int a = 0; a < soil_number_of_depths_; ++a) {
@@ -512,7 +516,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
     leaf.transpiration_   = function_integrator.integrate_vector(trans_y, 0.0, height);
     leaf.E_up_            = function_integrator.integrate_vector(eup_y, 0.0, height);
     leaf.opt_psi_stem_    = function_integrator.integrate_vector(psi_y, 0.0, height);
-    leaf.root_collar_psi_ = function_integrator.integrate_vector(root_psi_y, 0.0, height);
+    leaf.opt_root_psi_    = function_integrator.integrate_vector(root_psi_y, 0.0, height);
     leaf.stom_cond_CO2_   = function_integrator.integrate_vector(gco2_y, 0.0, height);
     leaf.assim_colimited_ = function_integrator.integrate_vector(assim_y, 0.0, height);
     for (int a = 0; a < soil_number_of_depths_; ++a) {

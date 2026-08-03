@@ -165,7 +165,27 @@ public:
   // The remaining +0.10% is the two further stale-state exits (leaf_cpp #26,
   // ported from #585) plus the supply-path extraction (leaf_cpp #2). TF24f's
   // compound version auto-tracks this to 5.1.
-  static constexpr int scientific_version = 5;
+  // v6: the leaf package moved to ONE representation for water potential --
+  // positive magnitudes throughout (leaf_cpp #25). Two consequences, and the first
+  // is why this is a version bump rather than a refactor:
+  //   * the **`opt_root_psi` aux changes sign**. It is now the positive magnitude,
+  //     which is what TF24f's `opt_root_psi_state` has always held. Before, the aux
+  //     reported the signed potential while tf24f_strategy.cpp negated it back for
+  //     the state -- an inconsistency in plant's own reported outputs, and the two
+  //     compensating negations are deleted here. Any stored output or cached
+  //     analysis reading that aux would silently change meaning, which is exactly
+  //     what model_version() exists to catch.
+  //   * outputs move slightly: one-species SCM offspring production 83.9026 ->
+  //     83.8761, i.e. **-3.2e-4 relative**. This is NOT an equation change. The
+  //     rewrite is exactly sign-symmetric in IEEE; what is not is boost's TOMS748,
+  //     whose iterates depend on the bracket's orientation, and #25 reverses it.
+  //     Measured there: 12 of 288 golden operating points differ by 1-3 ULP, the
+  //     rest exactly. The SCM's adaptive stepper and node schedule amplify that to
+  //     3e-4 -- within the ~GSS_tol_abs (1e-3) ceiling the leaf package documents,
+  //     and small enough that every pinned test value and the exact stochastic
+  //     TF24 counts (101/23) pass unchanged.
+  // TF24f's compound version auto-tracks this to 6.1.
+  static constexpr int scientific_version = 6;
 
   double compute_average_light_environment(double z, double height,
                                            const TF24_Environment &environment);

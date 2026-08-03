@@ -70,7 +70,7 @@ pm_solve_cell <- function(PAR, Tair, VPD, pm, cfg = pm_leaf_config()) {
   data.frame(PAR = PAR, Tair = Tair, VPD = VPD, pm = pm,
              Tleaf = pm_leaf_temp(l, Tair),
              opt_psi_stem = l$opt_psi_stem_,
-             root_collar_psi = l$root_collar_psi_,
+             opt_root_psi = l$opt_root_psi_,
              A = l$assim_colimited_,
              gs = l$stom_cond_CO2_, E = l$transpiration_, profit = l$profit_)
 }
@@ -97,9 +97,9 @@ pm_solve_grid <- function(grid, cfg = pm_leaf_config()) {
 ## directly with psi_upstream fixed at psi_soil; that only agrees with the
 ## solver when root resistance happens to be negligible, and was removed.)
 ##
-## root_psi_seq is a POSITIVE magnitude (same convention as
-## evaluate_root_collar_psi's target_opt_root_psi / the solver's root_collar_psi
-## bounds); values outside the feasible interval for this leaf/environment are
+## root_psi_seq is a POSITIVE magnitude -- as is every psi in the leaf package now
+## (leaf_cpp #25), including the reported opt_root_psi; values outside the feasible
+## interval for this leaf/environment are
 ## clamped by evaluate_root_collar_psi rather than extrapolated.
 pm_collar_curve <- function(PAR, Tair, VPD, pm, root_psi_seq, cfg = pm_leaf_config()) {
   l <- pm_make_leaf()

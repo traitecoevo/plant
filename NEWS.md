@@ -7,6 +7,29 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **Water potential now has one representation everywhere: positive magnitudes in
+  MPa** (leaf_cpp #25). `scientific_version` for TF24 goes 5 -> 6, TF24f 5.1 -> 6.1.
+  Migration:
+  * `leaf$root_collar_psi_` -> `leaf$opt_root_psi_`, **and its sign flips**: it is
+    now the positive magnitude. Renamed rather than reused deliberately, so an old
+    script gets an error instead of quietly reading the wrong sign.
+  * the **`opt_root_psi` aux changes sign** for the same reason, and now agrees with
+    TF24f's `opt_root_psi_state`, which always held the magnitude. Before, the aux
+    reported the signed potential while the state was negated back from it — an
+    inconsistency in plant's own outputs. Any stored output or plot that negated the
+    aux must stop doing so.
+  * `l$E_from_Soil_to_Root_Collar(collar, psi_soil)`, `l$find_root_psi(...)`,
+    `l$find_psi_stem_from_psi_root(...)`, `l$dE_from_soil_dpsi_collar(...)` and
+    `l$transpiration_to_psi_stem(E, psi_upstream)` keep their signatures but now
+    take **positive magnitudes**, and the bracket ends of `find_root_psi` swap
+    (wettest layer first, `psi_crit` second). Passing the old signed values raises
+    an error rather than returning a wrong number — the leaf package validates it.
+  * outputs move by about **-3.2e-4 relative** (one-species SCM offspring production
+    83.9026 -> 83.8761). Not an equation change: the rewrite is exactly
+    sign-symmetric, but boost's TOMS748 iterates depend on the bracket's
+    orientation, and the SCM amplifies the resulting 1-3 ULP. Every pinned test
+    value and the exact stochastic TF24 counts pass unchanged.
+
 * The TF24 leaf gas-exchange and hydraulics model now comes from the standalone
   header-only [`leaf`](https://github.com/traitecoevo/leaf_cpp) package instead of
   a copy in this repo (leaf_cpp #9). `plant::Leaf` is an alias for `leaf::Leaf`, so

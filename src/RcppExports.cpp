@@ -1154,25 +1154,25 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Leaf__root_collar_psi___get
-double Leaf__root_collar_psi___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
-RcppExport SEXP _plant_Leaf__root_collar_psi___get(SEXP obj_SEXP) {
+// Leaf__opt_root_psi___get
+double Leaf__opt_root_psi___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__opt_root_psi___get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Leaf__root_collar_psi___get(obj_));
+    rcpp_result_gen = Rcpp::wrap(Leaf__opt_root_psi___get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
-// Leaf__root_collar_psi___set
-void Leaf__root_collar_psi___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
-RcppExport SEXP _plant_Leaf__root_collar_psi___set(SEXP obj_SEXP, SEXP valueSEXP) {
+// Leaf__opt_root_psi___set
+void Leaf__opt_root_psi___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__opt_root_psi___set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type value(valueSEXP);
-    Leaf__root_collar_psi___set(obj_, value);
+    Leaf__opt_root_psi___set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -12136,8 +12136,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__r_R_V_sum__set", (DL_FUNC) &_plant_Leaf__r_R_V_sum__set, 2},
     {"_plant_Leaf__assim_max___get", (DL_FUNC) &_plant_Leaf__assim_max___get, 1},
     {"_plant_Leaf__assim_max___set", (DL_FUNC) &_plant_Leaf__assim_max___set, 2},
-    {"_plant_Leaf__root_collar_psi___get", (DL_FUNC) &_plant_Leaf__root_collar_psi___get, 1},
-    {"_plant_Leaf__root_collar_psi___set", (DL_FUNC) &_plant_Leaf__root_collar_psi___set, 2},
+    {"_plant_Leaf__opt_root_psi___get", (DL_FUNC) &_plant_Leaf__opt_root_psi___get, 1},
+    {"_plant_Leaf__opt_root_psi___set", (DL_FUNC) &_plant_Leaf__opt_root_psi___set, 2},
     {"_plant_Leaf__leaf_temp___get", (DL_FUNC) &_plant_Leaf__leaf_temp___get, 1},
     {"_plant_Leaf__leaf_temp___set", (DL_FUNC) &_plant_Leaf__leaf_temp___set, 2},
     {"_plant_Leaf__atm_o2_kpa___get", (DL_FUNC) &_plant_Leaf__atm_o2_kpa___get, 1},
