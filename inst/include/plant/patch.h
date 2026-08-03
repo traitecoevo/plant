@@ -143,7 +143,7 @@ public:
   // These are only here because they wrap private functions.
   void r_compute_environment() {compute_environment(false);}
   void r_compute_rates() {
-    environment_ptr = &environment;
+    environment_index = OWN_ENVIRONMENT;
     compute_rates();
   }
 
@@ -195,7 +195,19 @@ private:
   //TODO(#476): Move into environment?
   std::vector<double> resource_depletion;
 
-  environment_type* environment_ptr;
+  // Which environment compute_rates() works against: our own `environment`
+  // member for a resident run, or a cached one from environment_history for a
+  // mutant replay. Held as an index rather than a pointer because Patch is
+  // copied -- scm.h does `patch = sys`, and RcppR6 hands copies to R -- and a
+  // copied raw pointer would go on referring to the *source's* members, which
+  // dangles as soon as the source dies. An index survives a copy intact.
+  static const int OWN_ENVIRONMENT = -1;
+  int environment_index = OWN_ENVIRONMENT;
+  environment_type& active_environment() {
+    return environment_index == OWN_ENVIRONMENT
+      ? environment
+      : environment_history[idx][environment_index];
+  }
 
   Control control;
 
@@ -282,7 +294,7 @@ void Patch<T,E>::reset() {
     compute_environment(false);
 
     // compute effects of resource consumption
-    environment_ptr = &environment;
+    environment_index = OWN_ENVIRONMENT;
     compute_rates();
   }
 
@@ -342,7 +354,7 @@ void Patch<T,E>::set_initial_state() {
   // Build the environment from the real node heights (full recompute, no
   // rescale) and compute rates for the seeded population.
   compute_environment(false);
-  environment_ptr = &environment;
+  environment_index = OWN_ENVIRONMENT;
   compute_rates();
 }
 
@@ -690,18 +702,18 @@ void Patch<T,E>::compute_rates() {
   // the env_ptr, which is a pointer to an environment object
   //  -- for the resident the pointer points to the internal environment object
   //  -- for a mutant, the pointer points to a cached environment object
-  double time_ = environment_ptr->time;
+  double time_ = active_environment().time;
 
   double pr_patch_survival = survival_weighting->pr_survival(time_);
   for (size_t i = 0; i < size(); ++i) {
     double birth_rate = species[i].extrinsic_drivers().evaluate("birth_rate", time_);
 
     // Pass the environment that pointer is tracking into compute rates.
-    species[i].compute_rates(*environment_ptr, pr_patch_survival, birth_rate);
+    species[i].compute_rates(active_environment(), pr_patch_survival, birth_rate);
   }
 
-  resource_depletion.reserve(environment_ptr->n_resources());
-  for(size_t i = 0; i < environment_ptr->n_resources(); i++) {
+  resource_depletion.reserve(active_environment().n_resources());
+  for(size_t i = 0; i < active_environment().n_resources(); i++) {
     double resource_consumed = std::accumulate(species.begin(), species.end(), 0.0, [i](double r, const species_type& s) {
       return r + s.consumption_rate(i); // accumulates r from zero
     });
@@ -710,7 +722,7 @@ void Patch<T,E>::compute_rates() {
   }
   
 
-  environment_ptr->compute_rates(resource_depletion);
+  active_environment().compute_rates(resource_depletion);
 
   //todo do we need to clear this every step?
   resource_depletion.clear();
@@ -810,7 +822,7 @@ odelia::ode::const_iterator Patch<T,E>::set_ode_state(odelia::ode::const_iterato
 
   // Pre-compute environment, as shaped by residents
   compute_environment(true);
-  environment_ptr = &environment;
+  environment_index = OWN_ENVIRONMENT;
 
   // Compute rates of change
   compute_rates();
@@ -828,11 +840,11 @@ odelia::ode::const_iterator Patch<T,E>::set_ode_state(odelia::ode::const_iterato
 
   // using a pointer here to avoid copying environment object
   // just point the pointer, used inside compute rates to get env, to relevant env object
-  environment_ptr = &(environment_history[idx][index]);
-  environment.time = environment_ptr->time;
+  environment_index = index;
+  environment.time = active_environment().time;
 
   // increment the iterator by an appropriate amount, but don't actually do anything in the env
-  for (size_t i = 0; i < environment_ptr->ode_size(); i++) {*it++;}
+  for (size_t i = 0; i < active_environment().ode_size(); i++) {*it++;}
  
   compute_rates();
   return it;
