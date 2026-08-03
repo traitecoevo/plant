@@ -1,4 +1,15 @@
 
+# NOTE ON ROOT CARBON. The leaf model is purely intensive: `set_physiology` takes
+# root carbon **per unit leaf area**, and its soil->collar uptake is exactly
+# homogeneous in (root carbon / area_leaf) -- verified bit-identical. The tests
+# below therefore keep an absolute `root_carbon` and divide by `area_leaf_` at the
+# call, so every pinned value keeps the meaning it had when the leaf took the two
+# separately. Pass the absolute carbon by mistake and the root system is 20x too
+# weak at area_leaf_ = 0.05, which moves the critical-demand collar potential from
+# -0.685 to -2.57 MPa while leaving the zero-uptake collar untouched (that one is
+# scale-invariant) -- a failure mode worth recognising, because only one of the two
+# regression guards catches it.
+
 test_that("Basic functions", {
   #first set physiological parameters
   
@@ -56,11 +67,8 @@ test_that("Basic functions", {
   expect_true(is.na(l$kc_))
   expect_true(is.na(l$km_))
   expect_true(is.na(l$R_d_))
-  expect_true(is.na(l$area_leaf_))
-  expect_true(is.na(l$rho_))
   expect_true(is.na(l$vcmax_))
   expect_true(is.na(l$jmax_))
-  expect_true(is.na(l$a_bio_))
   expect_true(is.na(l$root_collar_psi_))
   expect_true(is.na(l$opt_psi_stem_))
   expect_true(is.na(l$opt_ci_))
@@ -78,7 +86,6 @@ test_that("Basic functions", {
   #now set physiology, PPFD_, k_l_max_, and psi_soil_, atm_vpd_ should be not NA
   
   PPFD = 900
-  sapwood_volume_per_leaf_area = theta*h
   leaf_specific_conductance_max = K_s*theta/h
   psi_soil = 2
   atm_vpd = 2
@@ -87,17 +94,23 @@ test_that("Basic functions", {
   leaf_temp_ = 25
   atm_kpa_ = 101.3
   area_leaf_ = 0.05
-  mass_root_prop_ = 1
+  root_carbon_ = 1
 
   # set physiology when inputting just a single soil layer (via soil depth and psi soil)
 
-  l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root_prop_, rho = 608, a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_soil, soil_depth = 1, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+  l$set_physiology(root_carbon_per_leaf_area = (root_carbon_) / area_leaf_, PPFD = PPFD, psi_soil = psi_soil, soil_depth = 1, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   
-  expect_equal(l$c_r_V_, 1*(1.0/3.0))
-  expect_equal(l$c_r_H_, 1*(2.0/3.0))
-  expect_equal(l$r_R_V, 282000)
-  expect_equal(l$r_R_V_sum, 282000)
-  expect_equal(l$r_R_H_min, 5100)
+  # The root network is built from the per-leaf-area carbon, so these diagnostics
+  # are per leaf area too: the split carbon scales up by 1/area_leaf_ and the two
+  # resistances (beta/c_r) scale down by area_leaf_. The physics is unchanged --
+  # uptake is exactly homogeneous in (carbon / area_leaf) -- so the old absolute
+  # numbers are written here times the factor rather than replaced, which keeps
+  # them checkable against the pre-package values.
+  expect_equal(l$c_r_V_, (root_carbon_ / area_leaf_) * (1.0/3.0))
+  expect_equal(l$c_r_H_, (root_carbon_ / area_leaf_) * (2.0/3.0))
+  expect_equal(l$r_R_V, 282000 * area_leaf_)
+  expect_equal(l$r_R_V_sum, 282000 * area_leaf_)
+  expect_equal(l$r_R_H_min, 5100 * area_leaf_)
   expect_equal(l$PPFD_, PPFD)
   expect_equal(l$leaf_specific_conductance_max_, leaf_specific_conductance_max)
   expect_equal(l$psi_soil_, psi_soil)
@@ -106,28 +119,25 @@ test_that("Basic functions", {
   expect_equal(l$atm_o2_kpa_, atm_o2_kpa_)
   expect_equal(l$leaf_temp_, leaf_temp_)
   expect_equal(l$atm_kpa_, atm_kpa_)
-  expect_equal(l$rho_, 608)
-  expect_equal(l$a_bio_, 0.0245)
-  expect_equal(l$sapwood_volume_per_leaf_area_, sapwood_volume_per_leaf_area)
   expect_equal(l$soil_depth_, 1)
   expect_equal(l$soil_number_of_depths_, length(psi_soil))
 
 # throw error when length of psi soil and soil depth do not match
 
-expect_error(l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root_prop_, rho = 608, a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_soil, soil_depth = c(1,2), leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_), "soil_depth, psi_soil and mass_root_prop must have the same number of elements")
+expect_error(l$set_physiology(root_carbon_per_leaf_area = (root_carbon_) / area_leaf_, PPFD = PPFD, psi_soil = psi_soil, soil_depth = c(1,2), leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_), "soil_depth, psi_soil and root_carbon_per_leaf_area must have the same number of elements")
 
   # test that the inputs to set_physiology which take multiple values are working correctly
 
   psi_soil = c(1,2)
   soil_depth = c(0.5, 1)
-  mass_root_prop_ = c(1,1)
+  root_carbon_ = c(1,1)
 
-  l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root_prop_, rho = 608, a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+  l$set_physiology(root_carbon_per_leaf_area = (root_carbon_) / area_leaf_, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
 
   expect_equal(l$psi_soil_, psi_soil)
   expect_equal(l$soil_number_of_depths_, length(psi_soil))
   expect_equal(l$soil_depth_, soil_depth)
-  expect_equal(l$c_r_V_, c(1/3,1/3))
+  expect_equal(l$c_r_V_, c(1/3,1/3) / area_leaf_)
 
 
   #generating a new leaf object should wipe the previously stored values
@@ -158,11 +168,8 @@ expect_error(l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root
   expect_true(is.na(l$kc_))
   expect_true(is.na(l$km_))
   expect_true(is.na(l$R_d_))
-  expect_true(is.na(l$area_leaf_))
-  expect_true(is.na(l$rho_))
   expect_true(is.na(l$vcmax_))
   expect_true(is.na(l$jmax_))
-  expect_true(is.na(l$a_bio_))
   expect_true(is.na(l$root_collar_psi_))
   expect_true(is.na(l$opt_psi_stem_))
   expect_true(is.na(l$opt_ci_))
@@ -173,7 +180,7 @@ expect_error(l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root
   #set physiology again for testing 
   psi_soil = 1
   soil_depth = 0.5
-  l$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+  l$set_physiology(root_carbon_per_leaf_area = (1) / area_leaf_, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   
   psi <- 1 #nominated value for water potential for testing vulnerability curve equations only (-MPa)
   
@@ -201,14 +208,14 @@ expect_error(l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root
   #for situations where psi_soil exceeds psi_crit + tolerance
   
   psi_soil = upper_bound_int
-  l$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+  l$set_physiology(root_carbon_per_leaf_area = (1) / area_leaf_, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   psi_stem = psi_soil 
   
   expect_error(l$transpiration(psi_stem[1], psi_soil[1]), "Extrapolation disabled and evaluation point outside of interpolated domain.")
   
   #test that fast E supply calculation is closely approximating full integration
   psi_soil = 0
-  l$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+  l$set_physiology(root_carbon_per_leaf_area = (1) / area_leaf_, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   psi_stem = psi_soil + 3
   
   expect_equal(l$transpiration(psi_stem[1], psi_soil[1]), l$transpiration_full_integration(psi_stem[1], psi_soil[1]))
@@ -228,7 +235,7 @@ expect_error(l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24, beta_R_H = beta_R_H, beta_R_V = beta_R_V)
-  l$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+  l$set_physiology(root_carbon_per_leaf_area = (1) / area_leaf_, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   
   #note that this scenario should not occur in model anyway
   l$set_leaf_states_rates_from_psi_stem(psi_soil - 1, psi_soil)
@@ -252,7 +259,7 @@ expect_error(l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24, beta_R_H = beta_R_H, beta_R_V = beta_R_V)
-  l$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+  l$set_physiology(root_carbon_per_leaf_area = (1) / area_leaf_, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   
   l$set_leaf_states_rates_from_psi_stem(psi_soil + 1, psi_soil)
   
@@ -271,7 +278,7 @@ expect_error(l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24, beta_R_H = beta_R_H, beta_R_V = beta_R_V)
-  l$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+  l$set_physiology(root_carbon_per_leaf_area = (1) / area_leaf_, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   
   l$set_leaf_states_rates_from_psi_stem(psi_soil, psi_soil)
   
@@ -290,7 +297,7 @@ expect_error(l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24, beta_R_H = beta_R_H, beta_R_V = beta_R_V)
-  l$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+  l$set_physiology(root_carbon_per_leaf_area = (1) / area_leaf_, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
    
   l$set_leaf_states_rates_from_psi_stem(0, 0)
   expect_equal(l$hydraulic_cost_TF(psi_soil), 0)
@@ -322,7 +329,7 @@ expect_error(l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24, beta_R_H = beta_R_H, beta_R_V = beta_R_V)
-  l$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+  l$set_physiology(root_carbon_per_leaf_area = (1) / area_leaf_, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
    
   l$set_leaf_states_rates_from_psi_stem(psi_crit, psi_soil)
   c_i = l$ci_  
@@ -354,7 +361,7 @@ expect_error(l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root
 
   #first off- what happens when we moving psi_soil around
   # start with one soil layer. For the TF method, it will fail when there is more than one layer
-  l$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_crit + 1, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+  l$set_physiology(root_carbon_per_leaf_area = (1) / area_leaf_, PPFD = PPFD, psi_soil = psi_crit + 1, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
     l$optimise_psi_stem_TF()
   
   expect_equal(l$transpiration_, 0)
@@ -365,7 +372,7 @@ expect_error(l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root
   
   # check a more standard case, wet soil
 
-  l$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245, PPFD = PPFD, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+  l$set_physiology(root_carbon_per_leaf_area = (1) / area_leaf_, PPFD = PPFD, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   l$optimise_psi_stem_TF()
   expect_true(l$profit_ > 0)
   expect_true(l$opt_psi_stem_ > 0)
@@ -379,9 +386,9 @@ expect_error(l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root
   #confirm different nubmer of layers fails for single layer methods
   psi_soil = c(0, 1)
   soil_depth = c(0.5, 1)
-  mass_root_prop = c(0.5, 1)
+  root_carbon = c(0.5, 1)
 
-  l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root_prop, rho = 608, a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+  l$set_physiology(root_carbon_per_leaf_area = (root_carbon) / area_leaf_, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   expect_error(l$optimise_psi_stem_TF(), "psi soil must have only one value to use non-root-based profit optimisation methods")
 
   #test various responses to environmental gradients to check that behaviour is being conserved
@@ -393,7 +400,7 @@ soil_depth = 1
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24, beta_R_H = beta_R_H, beta_R_V = beta_R_V)
-    l$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245, PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
+    l$set_physiology(root_carbon_per_leaf_area = (1) / area_leaf_, PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
   l$optimise_psi_stem_TF()
   
   high_light <- l$profit_
@@ -402,7 +409,7 @@ soil_depth = 1
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24, beta_R_H = beta_R_H, beta_R_V = beta_R_V)
-  l$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245, PPFD = 100, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+  l$set_physiology(root_carbon_per_leaf_area = (1) / area_leaf_, PPFD = 100, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   l$optimise_psi_stem_TF()
   
   low_light <- l$profit_
@@ -415,7 +422,7 @@ soil_depth = 1
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24, beta_R_H = beta_R_H, beta_R_V = beta_R_V)
-  l$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245, PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
+  l$set_physiology(root_carbon_per_leaf_area = (1) / area_leaf_, PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
   l$optimise_psi_stem_TF()
   
   high_moist <- l$profit_
@@ -424,7 +431,7 @@ soil_depth = 1
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24, beta_R_H = beta_R_H, beta_R_V = beta_R_V)
-  l$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245, PPFD = 1000, psi_soil = 2, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
+  l$set_physiology(root_carbon_per_leaf_area = (1) / area_leaf_, PPFD = 1000, psi_soil = 2, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
   l$optimise_psi_stem_TF()
   
   low_moist <- l$profit_
@@ -438,7 +445,7 @@ soil_depth = 1
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24, beta_R_H = beta_R_H, beta_R_V = beta_R_V)
-  l$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245, PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
+  l$set_physiology(root_carbon_per_leaf_area = (1) / area_leaf_, PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
   l$optimise_psi_stem_TF()
   
   low_vpd <- l$profit_
@@ -447,7 +454,7 @@ soil_depth = 1
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24, beta_R_H = beta_R_H, beta_R_V = beta_R_V)
-  l$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245, PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 2, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
+  l$set_physiology(root_carbon_per_leaf_area = (1) / area_leaf_, PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 2, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
   l$optimise_psi_stem_TF()
   
   high_vpd <- l$profit_
@@ -460,7 +467,7 @@ soil_depth = 1
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24, beta_R_H = beta_R_H, beta_R_V = beta_R_V)
-  l$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245, PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
+  l$set_physiology(root_carbon_per_leaf_area = (1) / area_leaf_, PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
   l$optimise_psi_stem_TF()
   
   low_vcmax <- l$profit_
@@ -469,7 +476,7 @@ soil_depth = 1
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24, beta_R_H = beta_R_H, beta_R_V = beta_R_V)
-  l$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245, PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
+  l$set_physiology(root_carbon_per_leaf_area = (1) / area_leaf_, PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
   l$optimise_psi_stem_TF()
   
   high_vcmax <- l$profit_
@@ -482,19 +489,19 @@ soil_depth = 1
                             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
                             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
                             ci_niter = ci_niter, g1_TF24 = g1_TF24, beta_R_H = beta_R_H, beta_R_V = beta_R_V)
-  l_low_temp$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245, PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = 20, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+  l_low_temp$set_physiology( root_carbon_per_leaf_area = (1) / area_leaf_, PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, leaf_temp = 20, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   
   l_ref_temp <- Leaf(vcmax_25 = 50, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, 
                              beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
                              GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
                              ci_niter = ci_niter, g1_TF24 = g1_TF24, beta_R_H = beta_R_H, beta_R_V = beta_R_V)
-  l_ref_temp$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245, PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = 25, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+  l_ref_temp$set_physiology( root_carbon_per_leaf_area = (1) / area_leaf_, PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, leaf_temp = 25, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   
   l_high_temp <- Leaf(vcmax_25 = 50, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, 
                               beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
                               GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
                               ci_niter = ci_niter, g1_TF24 = g1_TF24, beta_R_H = beta_R_H, beta_R_V = beta_R_V)
-  l_high_temp$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245, PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = 30, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+  l_high_temp$set_physiology( root_carbon_per_leaf_area = (1) / area_leaf_, PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, leaf_temp = 30, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   
   expect_true(l_low_temp$gamma_ < l_ref_temp$gamma_ &  l_ref_temp$gamma_ <  l_high_temp$gamma_)
   
@@ -502,7 +509,7 @@ soil_depth = 1
                              beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
                              GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
                              ci_niter = ci_niter, g1_TF24 = g1_TF24, beta_R_H = beta_R_H, beta_R_V = beta_R_V)
-    l_high_temp$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245, PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = 40, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+    l_high_temp$set_physiology( root_carbon_per_leaf_area = (1) / area_leaf_, PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, leaf_temp = 40, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   
   expect_equal(round(l_high_temp$ko_, 1), round(562314.4,1))
   expect_equal(round(l_high_temp$kc_, 1), round(1879.0751,1))
@@ -520,9 +527,9 @@ soil_depth = 1
 
   soil_depth = c(0.5,1)
   psi_soil = c(0.5, 0.5)
-  mass_root_prop = c(1,1)
+  root_carbon = c(1, 1)
 
-  l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root_prop, rho = 608, a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+  l$set_physiology(root_carbon_per_leaf_area = (root_carbon) / area_leaf_, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
 
 # root assignment should be equal to number of soil layers  
 expect_equal(length(l$c_r_H_), length(soil_depth))
@@ -534,22 +541,22 @@ expect_true(l$E_up_ < 0)
 
   soil_depth = c(0.5)
   psi_soil = c(0.5)
-  mass_root_prop = c(1)
+  root_carbon = c(1)
 
 # test what happens when psi_root is equal gravitational effect
-l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root_prop, rho = 608, a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+l$set_physiology(root_carbon_per_leaf_area = (root_carbon) / area_leaf_, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
 l$E_from_Soil_to_Root_Collar((-psi_soil - l$z_soil_mid_*9.8e-3),-psi_soil[1])
 expect_equal(l$E_up_, 0)
 
 # test what happens when psi_root is equal gravitational effect
-l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root_prop, rho = 608, a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+l$set_physiology(root_carbon_per_leaf_area = (root_carbon) / area_leaf_, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
 l$E_from_Soil_to_Root_Collar(-psi_soil[1] - 0.5,-psi_soil[1])
 expect_true(l$E_up_ > 0)
 
   soil_depth = c(0.5,1)
   psi_soil = c(0.5, 0.5)
-  mass_root_prop = c(1,0)
-l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root_prop, rho = 608, a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+  root_carbon = c(1, 0)
+l$set_physiology(root_carbon_per_leaf_area = (root_carbon) / area_leaf_, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
 l$E_from_Soil_to_Root_Collar(-psi_soil[1] - 0.5,-psi_soil[1])
 
 #confirm that soil_consumption is 0 when roots do not exist in that layer
@@ -557,8 +564,8 @@ expect_equal(l$soil_consumption_[2], 0)
 
   soil_depth = c(0.5,1)
   psi_soil = c(0.5, 0.5)
-  mass_root_prop = c(1,1)
-l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root_prop, rho = 608, a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+  root_carbon = c(1, 1)
+l$set_physiology(root_carbon_per_leaf_area = (root_carbon) / area_leaf_, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
 l$E_from_Soil_to_Root_Collar(-psi_soil[1] - 0.5,-psi_soil[1])
 
 #check that soil consumption adds to E_up
@@ -566,8 +573,8 @@ expect_equal(l$E_up_, sum(l$soil_consumption_)*0.018015)
 
   soil_depth = c(0.5,1)
   psi_soil = c(1e6, 1e6)
-  mass_root_prop = c(1,1)
-l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root_prop, rho = 608, a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+  root_carbon = c(1, 1)
+l$set_physiology(root_carbon_per_leaf_area = (root_carbon) / area_leaf_, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
 l$find_root_collar_psi()
 expect_equal(l$profit_, -vcmax_25*0.015-l$hydraulic_cost_TF(psi_crit))
 l$root_collar_psi_
@@ -578,8 +585,8 @@ l$root_collar_psi_
 # zero); at zero transpiration the stem equilibrates with the collar.
   soil_depth = c(0.5, 1)
   psi_soil = c(0, 0)
-  mass_root_prop = c(1, 1)
-l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root_prop, rho = 608, a_bio = 0.0245, PPFD = 0, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
+  root_carbon = c(1, 1)
+l$set_physiology(root_carbon_per_leaf_area = (root_carbon) / area_leaf_, PPFD = 0, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
 
 # confirm we exercise the assim_max_ < 0 branch
 expect_true(l$assim_max_ < 0)
@@ -626,7 +633,6 @@ test_that("Medlyn stomatal model", {
   root_psi_crit = root_b * (log(1.0 / 0.05))^(1.0 / root_c)
 
   PPFD = 900
-  sapwood_volume_per_leaf_area = theta * h
   leaf_specific_conductance_max = K_s * theta / h
   atm_vpd = 2
   ca = 40
@@ -644,11 +650,10 @@ test_that("Medlyn stomatal model", {
          ci_niter = ci_niter, g1_TF24 = g1_TF24, beta_R_H = beta_R_H, beta_R_V = beta_R_V)
   }
   set_phys <- function(l, psi_soil = 2, atm_vpd = 2) {
-    l$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245,
+    l$set_physiology(root_carbon_per_leaf_area = (1) / area_leaf_,
                      PPFD = PPFD, psi_soil = psi_soil, soil_depth = 0.5,
                      leaf_specific_conductance_max = leaf_specific_conductance_max,
                      atm_vpd = atm_vpd, ca = ca,
-                     sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area,
                      leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
     l
   }
@@ -737,7 +742,6 @@ test_that("psi_stem_to_ci supply=demand solve", {
   root_psi_crit = root_b * (log(1.0 / 0.05))^(1.0 / root_c)
 
   PPFD = 900
-  sapwood_volume_per_leaf_area = theta * h
   leaf_specific_conductance_max = K_s * theta / h
   atm_vpd = 2
   ca = 40
@@ -746,10 +750,15 @@ test_that("psi_stem_to_ci supply=demand solve", {
   atm_kpa_ = 101.3
   area_leaf_ = 0.05
 
-  # unit conversions used inside psi_stem_to_ci (see leaf_model.cpp)
+  # unit conversions used inside psi_stem_to_ci (see the leaf package's
+  # leaf_model.hpp). umol_per_mol_to_Pa is derived from the pressure, not a
+  # constant: the old hard-coded 0.1013 was 101.3 kPa in disguise, and the leaf
+  # package now computes it per call (leaf_cpp #15 item 10c). Deriving it here
+  # keeps the test honest if atm_kpa_ ever moves off 101.3 -- as it is on the
+  # TF24 driver default of 100.5.
   umol_to_mol = 1e-6
   kPa_to_Pa = 1e3
-  umol_per_mol_to_Pa = 0.1013
+  umol_per_mol_to_Pa = atm_kpa_ * kPa_to_Pa * umol_to_mol
 
   make_leaf <- function() {
     Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit,
@@ -760,11 +769,10 @@ test_that("psi_stem_to_ci supply=demand solve", {
          ci_niter = ci_niter, g1_TF24 = g1_TF24, beta_R_H = beta_R_H, beta_R_V = beta_R_V)
   }
   set_phys <- function(l, psi_soil = 2, atm_vpd = 2) {
-    l$set_physiology(area_leaf = area_leaf_, mass_root_prop = 1, rho = 608, a_bio = 0.0245,
+    l$set_physiology(root_carbon_per_leaf_area = (1) / area_leaf_,
                      PPFD = PPFD, psi_soil = psi_soil, soil_depth = 0.5,
                      leaf_specific_conductance_max = leaf_specific_conductance_max,
                      atm_vpd = atm_vpd, ca = ca,
-                     sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area,
                      leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
     l
   }
@@ -866,7 +874,6 @@ test_that("find_root_psi soil->collar continuity solve", {
   root_psi_crit = root_b * (log(1.0 / 0.05))^(1.0 / root_c)
 
   PPFD = 900
-  sapwood_volume_per_leaf_area = theta * h
   leaf_specific_conductance_max = K_s * theta / h
   atm_vpd = 2
   ca = 40
@@ -892,14 +899,12 @@ test_that("find_root_psi soil->collar continuity solve", {
   n_layer <- 15
   psi_soil <- seq(0.3, 0.7, length.out = n_layer)     # positive magnitudes
   soil_depth <- seq(0.1, 1.5, length.out = n_layer)   # cumulative layer depths (m)
-  mass_root_prop <- rep(1, n_layer)
+  root_carbon <- rep(1, n_layer)
 
   set_phys <- function(l) {
-    l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root_prop, rho = 608,
-                     a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth,
+    l$set_physiology(root_carbon_per_leaf_area = (root_carbon) / area_leaf_, PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth,
                      leaf_specific_conductance_max = leaf_specific_conductance_max,
                      atm_vpd = atm_vpd, ca = ca,
-                     sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area,
                      leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
     l
   }
@@ -1009,15 +1014,13 @@ test_that("dprofit_droot_collar_psi matches a finite difference (AD/IFT gradient
             vulnerability_curve_ncontrol = vulnerability_curve_ncontrol,
             ci_abs_tol = ci_abs_tol, ci_niter = ci_niter, g1_TF24 = g1_TF24,
             beta_R_H = beta_R_H, beta_R_V = beta_R_V)
-  PPFD = 900; sapwood_volume_per_leaf_area = theta * h
+  PPFD = 900
   leaf_specific_conductance_max = K_s * theta / h
   psi_soil = 2; atm_vpd = 2; ca = 40; atm_o2_kpa_ = 21; leaf_temp_ = 25
-  atm_kpa_ = 101.3; area_leaf_ = 0.05; mass_root_prop_ = 1
-  l$set_physiology(area_leaf = area_leaf_, mass_root_prop = mass_root_prop_, rho = 608,
-                   a_bio = 0.0245, PPFD = PPFD, psi_soil = psi_soil, soil_depth = 1,
+  atm_kpa_ = 101.3; area_leaf_ = 0.05; root_carbon_ = 1
+  l$set_physiology(root_carbon_per_leaf_area = (root_carbon_) / area_leaf_, PPFD = PPFD, psi_soil = psi_soil, soil_depth = 1,
                    leaf_specific_conductance_max = leaf_specific_conductance_max,
                    atm_vpd = atm_vpd, ca = ca,
-                   sapwood_volume_per_leaf_area = sapwood_volume_per_leaf_area,
                    leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
 
   # Optimise once (also sets up the soil-side caches the gradient needs).

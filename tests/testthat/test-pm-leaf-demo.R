@@ -44,10 +44,9 @@ test_that("PM path fails fast on a non-finite wind speed (review: itowers1)", {
   source(helpers, local = TRUE)
 
   set_phys <- function(l) {
-    l$set_physiology(area_leaf = 1, mass_root_prop = 20, rho = 608, a_bio = 0.0245,
+    l$set_physiology( root_carbon_per_leaf_area = 20,
                      PPFD = 1000, psi_soil = 0.3, soil_depth = 1,
-                     leaf_specific_conductance_max = 5e-3, atm_vpd = 2, ca = 40,
-                     sapwood_volume_per_leaf_area = 1e-3, leaf_temp = 30,
+                     leaf_specific_conductance_max = 5e-3, atm_vpd = 2, ca = 40, leaf_temp = 30,
                      atm_o2_kpa = 21, atm_kpa = 101.3)
   }
 

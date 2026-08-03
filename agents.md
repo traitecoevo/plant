@@ -196,6 +196,30 @@ What moved into C++ (all on `Node`/`Species`/`SCM` in
 **Known downstream breakage:** `regnans` calls the removed functions in
 `R/community_plant.R` and `scripts/example/ESA.Rmd`; update per the table above.
 
+### 3.4 The TF24 leaf model lives in another repo
+
+TF24's leaf gas-exchange and hydraulics sub-model is **not in this repository**. It
+is the standalone header-only [`leaf`](https://github.com/traitecoevo/leaf_cpp)
+package, reached through `LinkingTo` and a compatibility shim at
+[inst/include/plant/leaf_model.h](inst/include/plant/leaf_model.h) that aliases
+`plant::Leaf = leaf::Leaf`. `src/leaf_model.cpp` is gone. Consequences worth
+knowing before you go looking for a leaf bug here:
+
+- **Fix leaf physiology in `leaf_cpp`, not here.** It has its own golden-file
+  regression baseline over 288 operating points and its own hazard list; a change
+  made here would be invisible to both.
+- **The two repos move together.** plant tracks the package's `master` via
+  `Remotes:`, so a merge there is what changes results here. Any coupled change
+  lands as a pair of PRs, and the plant half is what re-baselines the SCM values.
+- **The leaf is purely intensive.** Every input is per unit leaf area or an
+  intensive driver — whole-plant allometry (`kmax(h)`, root carbon totals) is
+  reduced *here* and passed in already divided. `set_physiology` takes
+  `root_carbon_per_leaf_area`, not absolute root carbon; see the NEWS entry, since
+  passing the absolute value compiles fine and quietly weakens the root system.
+- **`nm` is how you diagnose a stale build.** See the `R CMD INSTALL` note in §6 —
+  a header-only dependency changing underneath a stale `.o` produces an error that
+  names an untouched field accessor.
+
 ### 3.3 When you change the R-facing interface — record it for downstream migration
 
 Renaming, removing, or changing the meaning of anything a user calls (functions,

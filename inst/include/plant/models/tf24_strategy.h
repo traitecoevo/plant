@@ -141,7 +141,31 @@ public:
   // offspring production moves by up to 5e-3 relative on 5 of 8 scenarios,
   // while every success/failure classification is unchanged. TF24f's compound
   // version auto-tracks this to 4.1.
-  static constexpr int scientific_version = 4;
+  // v5: the leaf gas-exchange and hydraulics model is now the standalone `leaf`
+  // package rather than a copy in this repo, and the swap carries four science
+  // changes. Measured on the one-species SCM scenario of test-strategy-tf24.R
+  // (max_patch_lifetime = 5), offspring production moves 81.9083 -> 83.9026,
+  // i.e. **+2.4%**. Attributed by re-running both arms with the atm_kpa driver
+  // forced to 101.3, which removes the pressure change and leaves the rest:
+  //
+  //     arm                  atm_kpa 100.5     atm_kpa 101.3
+  //     this repo's leaf        81.9083           81.8201
+  //     the leaf package        83.9026           81.8985
+  //
+  // So **the pressure fix is ~25x the rest of the swap put together** (+2.4%
+  // against +0.10%), which was not the expectation going in. The leaf package's
+  // ppm-to-Pa conversion is derived from atm_kpa (leaf_cpp #15 item 10c) instead
+  // of hard-coded at 0.1013 = 1e-6 * 101300 Pa; TF24_Environment's atm_kpa driver
+  // defaults to **100.5**, so Gamma*, Kc, Ko, Km and the ci root-find bounds all
+  // move. Before the fix the conductance side of the model responded to atm_kpa
+  // while the photosynthesis side silently assumed sea level -- visible in the
+  // table as this repo's leaf moving only -0.11% across the same 0.8 kPa that
+  // moves the package -2.4%.
+  //
+  // The remaining +0.10% is the two further stale-state exits (leaf_cpp #26,
+  // ported from #585) plus the supply-path extraction (leaf_cpp #2). TF24f's
+  // compound version auto-tracks this to 5.1.
+  static constexpr int scientific_version = 5;
 
   double compute_average_light_environment(double z, double height,
                                            const TF24_Environment &environment);
@@ -455,7 +479,7 @@ public:
 
   // Reusable per-layer root-mass buffer, refilled (not reallocated) each
   // net_mass_production_dt call to avoid a heap allocation per derivs eval.
-  std::vector<double> mass_root_prop_;
+  std::vector<double> root_carbon_per_leaf_area_;
 };
 
 TF24_Strategy::ptr make_strategy_ptr(TF24_Strategy s);

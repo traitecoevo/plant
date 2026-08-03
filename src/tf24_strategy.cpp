@@ -380,12 +380,11 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   // height: maximum plant height
   const double leaf_specific_conductance_max = pars.K_s * pars.theta / (height * eta_c);
 
-  // find sapwood volume per leaf area
-  // pars.theta: huber value
-  // eta_c: accounts for average position of leaf mass
+  // sapwood volume per leaf area (pars.theta * height * eta_c) used to be passed
+  // to the leaf, which stored it and never read it. Dropped with the other three
+  // dead set_physiology arguments (leaf_cpp #15, item 10b); recompute it here if a
+  // caller ever needs it.
 
-  const double sapwood_volume_per_leaf_area = pars.theta * (height * eta_c);
-  
   // ----------------------------------------------------------------------
   // ROOT MASS DISTRIBUTION ACROSS SOIL LAYERS
   // ----------------------------------------------------------------------
@@ -399,23 +398,30 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   // the root hydraulic network (set_physiology). The loop breaks early once Q
   // reaches 0 (below the rooting depth) to avoid touching empty deep layers.
   //
+  // The leaf package takes this **per unit leaf area** -- it is purely intensive,
+  // and nothing in it scales with plant size. That costs no arithmetic here rather
+  // than a division, because mass_root() is strictly linear in area_leaf
+  // (pars.a_r1 * area_leaf), so root_mass_carbon_scale * mass_root_ / area_leaf_
+  // is exactly root_mass_carbon_scale * pars.a_r1. Multiplying by area_leaf_ and
+  // dividing it back out would be algebraically identical but not bit-identical.
+  //
   // Reuse the member buffer (assign refills + zeroes without reallocating when
   // the layer count is unchanged); zeroing matters because the loop below breaks
   // early below the rooting depth, leaving deep layers that must read as 0.
   // TODO (perf): rooting depth cap (1.5) and scale (83.26) are hard-coded and
   // should become traits.
-  mass_root_prop_.assign(soil_number_of_depths_, 0.0);
+  root_carbon_per_leaf_area_.assign(soil_number_of_depths_, 0.0);
 
 
 
   // Use Q function with new arghument
-  // std::fill(mass_root_prop_.begin(), mass_root_prop_.end(), 0); 
+  // std::fill(root_carbon_per_leaf_area_.begin(), root_carbon_per_leaf_area_.end(), 0); 
   
 // change to while?
 // environment.get_soil_depths() should ask for the ath element to save calling for a new vector each time
 // change environment.get_soil_number_of_depths() change to n or soemtyhing
     double rooting_depth = std::min(height, pars.rooting_depth_max);
-  const double root_mass_scale = root_mass_carbon_scale * mass_root_;
+  const double root_mass_scale = root_mass_carbon_scale * pars.a_r1;
     // std::vector<double> Q_root;
     // Q_root.reserve(soil_number_of_depths_);
 
@@ -427,7 +433,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
       const double q = Q(soil_depths_[a], rooting_depth,
              pars.root_depth_shape_eta);
 
-      mass_root_prop_[a] = root_mass_scale * (prev_q - q);
+      root_carbon_per_leaf_area_[a] = root_mass_scale * (prev_q - q);
       prev_q = q;
     }
 
@@ -446,7 +452,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   // the radiation argument varies between calls; every other input is
   // depth-independent and already computed above.
   auto optimise_at = [&](double radiation) {
-    leaf.set_physiology(area_leaf_, mass_root_prop_, pars.rho, pars.a_bio, radiation, psi_soil, soil_depths_, leaf_specific_conductance_max, environment.get_atm_vpd(), environment.get_ca(), sapwood_volume_per_leaf_area, environment.get_leaf_temp(), environment.get_atm_o2_kpa(), environment.get_atm_kpa());
+    leaf.set_physiology(root_carbon_per_leaf_area_, radiation, psi_soil, soil_depths_, leaf_specific_conductance_max, environment.get_atm_vpd(), environment.get_ca(), environment.get_leaf_temp(), environment.get_atm_o2_kpa(), environment.get_atm_kpa());
     solve_leaf();
   };
 

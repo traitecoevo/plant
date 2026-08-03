@@ -53,26 +53,22 @@ BEGIN_RCPP
 END_RCPP
 }
 // Leaf__set_physiology
-void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double area_leaf, const std::vector<double>& mass_root_prop, double rho, double a_bio, double PPFD, const std::vector<double>& psi_soil, const std::vector<double>& soil_depth, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area, double leaf_temp, double atm_o2_kpa, double atm_kpa);
-RcppExport SEXP _plant_Leaf__set_physiology(SEXP obj_SEXP, SEXP area_leafSEXP, SEXP mass_root_propSEXP, SEXP rhoSEXP, SEXP a_bioSEXP, SEXP PPFDSEXP, SEXP psi_soilSEXP, SEXP soil_depthSEXP, SEXP leaf_specific_conductance_maxSEXP, SEXP atm_vpdSEXP, SEXP caSEXP, SEXP sapwood_volume_per_leaf_areaSEXP, SEXP leaf_tempSEXP, SEXP atm_o2_kpaSEXP, SEXP atm_kpaSEXP) {
+void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, const std::vector<double>& root_carbon_per_leaf_area, double PPFD, const std::vector<double>& psi_soil, const std::vector<double>& soil_depth, double leaf_specific_conductance_max, double atm_vpd, double ca, double leaf_temp, double atm_o2_kpa, double atm_kpa);
+RcppExport SEXP _plant_Leaf__set_physiology(SEXP obj_SEXP, SEXP root_carbon_per_leaf_areaSEXP, SEXP PPFDSEXP, SEXP psi_soilSEXP, SEXP soil_depthSEXP, SEXP leaf_specific_conductance_maxSEXP, SEXP atm_vpdSEXP, SEXP caSEXP, SEXP leaf_tempSEXP, SEXP atm_o2_kpaSEXP, SEXP atm_kpaSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type area_leaf(area_leafSEXP);
-    Rcpp::traits::input_parameter< const std::vector<double>& >::type mass_root_prop(mass_root_propSEXP);
-    Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
-    Rcpp::traits::input_parameter< double >::type a_bio(a_bioSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type root_carbon_per_leaf_area(root_carbon_per_leaf_areaSEXP);
     Rcpp::traits::input_parameter< double >::type PPFD(PPFDSEXP);
     Rcpp::traits::input_parameter< const std::vector<double>& >::type psi_soil(psi_soilSEXP);
     Rcpp::traits::input_parameter< const std::vector<double>& >::type soil_depth(soil_depthSEXP);
     Rcpp::traits::input_parameter< double >::type leaf_specific_conductance_max(leaf_specific_conductance_maxSEXP);
     Rcpp::traits::input_parameter< double >::type atm_vpd(atm_vpdSEXP);
     Rcpp::traits::input_parameter< double >::type ca(caSEXP);
-    Rcpp::traits::input_parameter< double >::type sapwood_volume_per_leaf_area(sapwood_volume_per_leaf_areaSEXP);
     Rcpp::traits::input_parameter< double >::type leaf_temp(leaf_tempSEXP);
     Rcpp::traits::input_parameter< double >::type atm_o2_kpa(atm_o2_kpaSEXP);
     Rcpp::traits::input_parameter< double >::type atm_kpa(atm_kpaSEXP);
-    Leaf__set_physiology(obj_, area_leaf, mass_root_prop, rho, a_bio, PPFD, psi_soil, soil_depth, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area, leaf_temp, atm_o2_kpa, atm_kpa);
+    Leaf__set_physiology(obj_, root_carbon_per_leaf_area, PPFD, psi_soil, soil_depth, leaf_specific_conductance_max, atm_vpd, ca, leaf_temp, atm_o2_kpa, atm_kpa);
     return R_NilValue;
 END_RCPP
 }
@@ -762,28 +758,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Leaf__sapwood_volume_per_leaf_area___get
-double Leaf__sapwood_volume_per_leaf_area___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
-RcppExport SEXP _plant_Leaf__sapwood_volume_per_leaf_area___get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Leaf__sapwood_volume_per_leaf_area___get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Leaf__sapwood_volume_per_leaf_area___set
-void Leaf__sapwood_volume_per_leaf_area___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
-RcppExport SEXP _plant_Leaf__sapwood_volume_per_leaf_area___set(SEXP obj_SEXP, SEXP valueSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
-    Leaf__sapwood_volume_per_leaf_area___set(obj_, value);
-    return R_NilValue;
-END_RCPP
-}
 // Leaf__leaf_specific_conductance_max___get
 double Leaf__leaf_specific_conductance_max___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
 RcppExport SEXP _plant_Leaf__leaf_specific_conductance_max___get(SEXP obj_SEXP) {
@@ -850,50 +824,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Leaf__area_leaf___get
-double Leaf__area_leaf___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
-RcppExport SEXP _plant_Leaf__area_leaf___get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Leaf__area_leaf___get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Leaf__area_leaf___set
-void Leaf__area_leaf___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
-RcppExport SEXP _plant_Leaf__area_leaf___set(SEXP obj_SEXP, SEXP valueSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
-    Leaf__area_leaf___set(obj_, value);
-    return R_NilValue;
-END_RCPP
-}
-// Leaf__rho___get
-double Leaf__rho___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
-RcppExport SEXP _plant_Leaf__rho___get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Leaf__rho___get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Leaf__rho___set
-void Leaf__rho___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
-RcppExport SEXP _plant_Leaf__rho___set(SEXP obj_SEXP, SEXP valueSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
-    Leaf__rho___set(obj_, value);
-    return R_NilValue;
-END_RCPP
-}
 // Leaf__c_r_V___get
 std::vector<double> Leaf__c_r_V___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
 RcppExport SEXP _plant_Leaf__c_r_V___get(SEXP obj_SEXP) {
@@ -935,28 +865,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type value(valueSEXP);
     Leaf__c_r_H___set(obj_, value);
-    return R_NilValue;
-END_RCPP
-}
-// Leaf__a_bio___get
-double Leaf__a_bio___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
-RcppExport SEXP _plant_Leaf__a_bio___get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Leaf__a_bio___get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Leaf__a_bio___set
-void Leaf__a_bio___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
-RcppExport SEXP _plant_Leaf__a_bio___set(SEXP obj_SEXP, SEXP valueSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
-    Leaf__a_bio___set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -12132,7 +12040,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__ctor", (DL_FUNC) &_plant_Leaf__ctor, 19},
     {"_plant_Leaf__initialize_integrator", (DL_FUNC) &_plant_Leaf__initialize_integrator, 3},
-    {"_plant_Leaf__set_physiology", (DL_FUNC) &_plant_Leaf__set_physiology, 15},
+    {"_plant_Leaf__set_physiology", (DL_FUNC) &_plant_Leaf__set_physiology, 11},
     {"_plant_Leaf__proportion_of_conductivity", (DL_FUNC) &_plant_Leaf__proportion_of_conductivity, 2},
     {"_plant_Leaf__arrh_curve", (DL_FUNC) &_plant_Leaf__arrh_curve, 4},
     {"_plant_Leaf__peak_arrh_curve", (DL_FUNC) &_plant_Leaf__peak_arrh_curve, 6},
@@ -12192,24 +12100,16 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__km___set", (DL_FUNC) &_plant_Leaf__km___set, 2},
     {"_plant_Leaf__R_d___get", (DL_FUNC) &_plant_Leaf__R_d___get, 1},
     {"_plant_Leaf__R_d___set", (DL_FUNC) &_plant_Leaf__R_d___set, 2},
-    {"_plant_Leaf__sapwood_volume_per_leaf_area___get", (DL_FUNC) &_plant_Leaf__sapwood_volume_per_leaf_area___get, 1},
-    {"_plant_Leaf__sapwood_volume_per_leaf_area___set", (DL_FUNC) &_plant_Leaf__sapwood_volume_per_leaf_area___set, 2},
     {"_plant_Leaf__leaf_specific_conductance_max___get", (DL_FUNC) &_plant_Leaf__leaf_specific_conductance_max___get, 1},
     {"_plant_Leaf__leaf_specific_conductance_max___set", (DL_FUNC) &_plant_Leaf__leaf_specific_conductance_max___set, 2},
     {"_plant_Leaf__vcmax___get", (DL_FUNC) &_plant_Leaf__vcmax___get, 1},
     {"_plant_Leaf__vcmax___set", (DL_FUNC) &_plant_Leaf__vcmax___set, 2},
     {"_plant_Leaf__jmax___get", (DL_FUNC) &_plant_Leaf__jmax___get, 1},
     {"_plant_Leaf__jmax___set", (DL_FUNC) &_plant_Leaf__jmax___set, 2},
-    {"_plant_Leaf__area_leaf___get", (DL_FUNC) &_plant_Leaf__area_leaf___get, 1},
-    {"_plant_Leaf__area_leaf___set", (DL_FUNC) &_plant_Leaf__area_leaf___set, 2},
-    {"_plant_Leaf__rho___get", (DL_FUNC) &_plant_Leaf__rho___get, 1},
-    {"_plant_Leaf__rho___set", (DL_FUNC) &_plant_Leaf__rho___set, 2},
     {"_plant_Leaf__c_r_V___get", (DL_FUNC) &_plant_Leaf__c_r_V___get, 1},
     {"_plant_Leaf__c_r_V___set", (DL_FUNC) &_plant_Leaf__c_r_V___set, 2},
     {"_plant_Leaf__c_r_H___get", (DL_FUNC) &_plant_Leaf__c_r_H___get, 1},
     {"_plant_Leaf__c_r_H___set", (DL_FUNC) &_plant_Leaf__c_r_H___set, 2},
-    {"_plant_Leaf__a_bio___get", (DL_FUNC) &_plant_Leaf__a_bio___get, 1},
-    {"_plant_Leaf__a_bio___set", (DL_FUNC) &_plant_Leaf__a_bio___set, 2},
     {"_plant_Leaf__PPFD___get", (DL_FUNC) &_plant_Leaf__PPFD___get, 1},
     {"_plant_Leaf__PPFD___set", (DL_FUNC) &_plant_Leaf__PPFD___set, 2},
     {"_plant_Leaf__atm_vpd___get", (DL_FUNC) &_plant_Leaf__atm_vpd___get, 1},

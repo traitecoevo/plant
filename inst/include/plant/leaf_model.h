@@ -38,8 +38,20 @@ using ::leaf::H2O_CO2_stom_diff_ratio;
 using ::leaf::kg_per_mol_h2o;
 using ::leaf::kg_to_mol_h2o;
 using ::leaf::kPa_to_Pa;
-using ::leaf::umol_per_mol_to_Pa;
 using ::leaf::umol_to_mol;
+
+// Deliberately NOT re-exported: `umol_per_mol_to_Pa`. It was a namespace-scope
+// constant 0.1013 = 1e-6 * 101300 Pa -- i.e. atmospheric pressure of 101.3 kPa in
+// disguise, sitting next to a live, settable `atm_kpa_`. The leaf package derives
+// it per-call as the member `Leaf::umol_per_mol_to_Pa_ = atm_kpa_ * kPa_to_Pa *
+// umol_to_mol` (leaf_cpp item 10c), so there is no longer a namespace-scope
+// constant to alias. Nothing in plant read it outside the leaf model.
+//
+// ⚠️ This is NOT inert for plant: TF24_Environment's `atm_kpa` driver defaults to
+// **100.5**, not 101.3 (tf24_environment.h). So Gamma*, Kc, Ko, Km and the ci
+// root-find's lower bound all move by ~0.8% relative on every TF24 run. See the
+// NEWS entry -- the leaf package's own golden grid could not see this because it
+// evaluates at 101.3.
 
 // Penman-Monteith leaf energy balance (#523).
 using ::leaf::leaf_temp_max;

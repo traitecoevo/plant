@@ -31,8 +31,8 @@ pm_make_leaf <- function() {
 ## the profit optimum opens the stomata; a shut-down leaf makes PM vs Fick
 ## degenerate). Override via ... to explore.
 pm_leaf_config <- function(...) {
-  cfg <- list(area_leaf = 1.0, mass_root_prop = 20.0, psi_soil = 0.3,
-              leaf_specific_conductance_max = 5e-3, sapwood_volume_per_leaf_area = 1e-3,
+  cfg <- list(root_carbon_per_leaf_area = 20.0, psi_soil = 0.3,
+              leaf_specific_conductance_max = 5e-3,
               ca = 40, atm_o2_kpa = 21, atm_kpa = 101.3, d = 0.05, wind_speed = 2.0)
   utils::modifyList(cfg, list(...))
 }
@@ -43,11 +43,10 @@ pm_set_physiology <- function(l, PAR, Tair, VPD, pm, cfg = pm_leaf_config()) {
   l$d_ <- cfg$d
   l$wind_speed_ <- cfg$wind_speed
   l$set_physiology(
-    area_leaf = cfg$area_leaf, mass_root_prop = cfg$mass_root_prop, rho = 608,
-    a_bio = 0.0245, PPFD = PAR, psi_soil = cfg$psi_soil, soil_depth = 1,
+    root_carbon_per_leaf_area = cfg$root_carbon_per_leaf_area,
+    PPFD = PAR, psi_soil = cfg$psi_soil, soil_depth = 1,
     leaf_specific_conductance_max = cfg$leaf_specific_conductance_max,
     atm_vpd = VPD, ca = cfg$ca,
-    sapwood_volume_per_leaf_area = cfg$sapwood_volume_per_leaf_area,
     leaf_temp = Tair, atm_o2_kpa = cfg$atm_o2_kpa, atm_kpa = cfg$atm_kpa)
   invisible(l)
 }

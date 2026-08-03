@@ -7,6 +7,38 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* The TF24 leaf gas-exchange and hydraulics model now comes from the standalone
+  header-only [`leaf`](https://github.com/traitecoevo/leaf_cpp) package instead of
+  a copy in this repo (leaf_cpp #9). `plant::Leaf` is an alias for `leaf::Leaf`, so
+  C++ consumers that `#include <plant/leaf_model.h>` and read public `Leaf` members
+  keep compiling unchanged. **`scientific_version` for TF24 goes 4 -> 5 and TF24f
+  4.1 -> 5.1: TF24 output moves by about +2.4%** — see `tf24_strategy.h` for the
+  measurement and its attribution. Migration:
+  * `l$set_physiology(area_leaf =, mass_root_prop =, rho =, a_bio =, PPFD =,
+    psi_soil =, soil_depth =, leaf_specific_conductance_max =, atm_vpd =, ca =,
+    sapwood_volume_per_leaf_area =, leaf_temp =, atm_o2_kpa =, atm_kpa =)`
+    -> `l$set_physiology(root_carbon_per_leaf_area =, PPFD =, psi_soil =,
+    soil_depth =, leaf_specific_conductance_max =, atm_vpd =, ca =, leaf_temp =,
+    atm_o2_kpa =, atm_kpa =)`. **This is a semantic change, not just a rename:**
+    `area_leaf`, `rho`, `a_bio` and `sapwood_volume_per_leaf_area` were dead
+    stores and are gone, and `root_carbon_per_leaf_area` is the old
+    `mass_root_prop` **divided by `area_leaf`**. The leaf is purely intensive now;
+    uptake is exactly homogeneous in that ratio, so passing the old absolute
+    carbon silently gives a root system too weak by a factor of `1/area_leaf`.
+  * `l$area_leaf_`, `l$rho_`, `l$a_bio_`, `l$sapwood_volume_per_leaf_area_`
+    (removed) -> no equivalent; all four were assigned and never read.
+  * `plant::umol_per_mol_to_Pa` (C++, removed) -> `Leaf::umol_per_mol_to_Pa_`, now
+    derived per call from `atm_kpa` rather than hard-coded at 0.1013.
+  * `l$initialize_integrator(rule, tol)` keeps its name but now sets the tolerance
+    of the leaf package's header-only adaptive Simpson quadrature rather than
+    configuring plant's compiled QAG; only `transpiration_full_integration`, a
+    spline-fidelity diagnostic, was ever affected.
+  * Requires **odelia at master** (commit `d8235d1` or later), not just the
+    `>= 0.2.0` in DESCRIPTION: `Patch::ode_rates` is non-const since #585 and
+    odelia 0.2.0's `r_ode_rates` takes the system by `const&`. plant's `develop`
+    does not compile against 0.2.0 either — this is not new here, but it will bite
+    anyone building from a released odelia.
+
 * Penman-Monteith leaf energy balance added to TF24/TF24f behind an
   opt-in gate, **default off** (#523). With the gate off, runtime behaviour and
   outputs are bit-identical to before (verified against leaf-level and SCM

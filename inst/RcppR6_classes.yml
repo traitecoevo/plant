@@ -61,16 +61,12 @@ Leaf:
     kc_: {type: double, access: field}
     km_: {type: double, access: field}
     R_d_: {type: double, access: field}
-    sapwood_volume_per_leaf_area_: {type: double, access: field}
     leaf_specific_conductance_max_: {type: double, access: field}
     vcmax_: {type: double, access: field}
     jmax_: {type: double, access: field}
-    area_leaf_: {type: double, access: field}
-    rho_: {type: double, access: field}
     c_r_V_: {type: "std::vector<double>", access: field, name_cpp: "roots_.network_.c_r_V"}
     c_r_H_: {type: "std::vector<double>", access: field, name_cpp: "roots_.network_.c_r_H"}
 
-    a_bio_: {type: double, access: field}
     PPFD_: {type: double, access: field}
     atm_vpd_: {type: double, access: field}
     ca_: {type: double, access: field}
@@ -115,7 +111,7 @@ Leaf:
       args: [integration_rule: int, integration_tol: double]
     set_physiology:
       return_type: void 
-      args: [area_leaf: double, mass_root_prop: "const std::vector<double>&", rho: double, a_bio: double, PPFD: double, psi_soil: "const std::vector<double>&", soil_depth: "const std::vector<double>&", leaf_specific_conductance_max: double, atm_vpd: double, ca: double, sapwood_volume_per_leaf_area: double, leaf_temp: double, atm_o2_kpa: double, atm_kpa: double]
+      args: [root_carbon_per_leaf_area: "const std::vector<double>&", PPFD: double, psi_soil: "const std::vector<double>&", soil_depth: "const std::vector<double>&", leaf_specific_conductance_max: double, atm_vpd: double, ca: double, leaf_temp: double, atm_o2_kpa: double, atm_kpa: double]
     #transpiration functions
     proportion_of_conductivity:
       return_type: double
