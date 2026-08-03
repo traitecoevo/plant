@@ -99,8 +99,11 @@ public:
 
   // Retrieve ode state from patch and save into the ode solver
   odelia::ode::iterator ode_state(odelia::ode::iterator it) const;
-  // Retrieve ode rates from patch and save into the ode solver
-  odelia::ode::iterator ode_rates(odelia::ode::iterator it) const;
+  // Compute the rates of the state the patch currently holds, then save them
+  // into the ode solver. Not const, and computing rather than reading back a
+  // stored vector, so that the rates cannot belong to a state other than the
+  // present one -- see the note above set_ode_state.
+  odelia::ode::iterator ode_rates(odelia::ode::iterator it);
   // Retrieve auxillary variables and save into the ode solver
   odelia::ode::iterator ode_aux(odelia::ode::iterator it) const;
 
@@ -108,7 +111,12 @@ public:
   // vector as given by ode_state
   Rcpp::List r_get_state() const;
 
-  // Set state of patch, based on estimate of future state estimated by the solver
+  // Set state of patch, based on estimate of future state estimated by the solver.
+  // Sets the state and builds the environment over it; it does *not* compute
+  // rates. Rates belong to `ode_rates`, which computes them for whatever state
+  // the patch holds at the moment it is called. Keeping the two apart is what
+  // makes a stale derivative unrepresentable: there is no state-setting path,
+  // present or future, that can leave rates describing a different state.
   // There are two implementations.
   //   - first function is for resident runs.
   //   - second is for mutant runs.
@@ -751,11 +759,6 @@ void Patch<T,E>::introduce_new_nodes(const std::vector<size_t>& species_index) {
   }
 
   compute_environment(false);
-
-  // New nodes have just changed the state and the light field, so the stored
-  // rates now describe neither. The solver reads them next without checking, so
-  // they have to be brought up to date here.
-  compute_rates();
 }
 
 template <typename T, typename E>
@@ -783,6 +786,11 @@ void Patch<T,E>::r_set_state(double time,
   util::check_length(state.size(), ode_size());
   set_ode_state(state.begin(), time);
   environment.r_init_interpolators(light_availability);
+  // set_ode_state no longer computes rates (ode_rates does). This is an R entry
+  // point that hands back a patch callers inspect directly -- including readers
+  // of the stored rates, like r_log_density_rates -- so leave it fully seeded,
+  // as reset() and set_initial_state() do.
+  compute_rates();
 }
 
 // ODE interface
@@ -824,8 +832,6 @@ odelia::ode::const_iterator Patch<T,E>::set_ode_state(odelia::ode::const_iterato
   compute_environment(true);
   environment_index = OWN_ENVIRONMENT;
 
-  // Compute rates of change
-  compute_rates();
   return it;
 }
 
@@ -845,8 +851,7 @@ odelia::ode::const_iterator Patch<T,E>::set_ode_state(odelia::ode::const_iterato
 
   // increment the iterator by an appropriate amount, but don't actually do anything in the env
   for (size_t i = 0; i < active_environment().ode_size(); i++) {*it++;}
- 
-  compute_rates();
+
   return it;
 }
 
@@ -927,7 +932,8 @@ Rcpp::List Patch<T, E>::r_get_state() const
 }
 
 template <typename T, typename E>
-odelia::ode::iterator Patch<T,E>::ode_rates(odelia::ode::iterator it) const {
+odelia::ode::iterator Patch<T,E>::ode_rates(odelia::ode::iterator it) {
+  compute_rates();
   it = odelia::ode::ode_rates(species.begin(), species.end(), it);
   it = environment.ode_rates(it);
   return it;
