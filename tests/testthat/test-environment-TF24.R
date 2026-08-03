@@ -22,8 +22,8 @@ test_that("Environment-TF24 drivers", {
   expect_equal(env$extrinsic_drivers_evaluate("ca", 10), 40)
   expect_equal(env$extrinsic_drivers_evaluate("PPFD", 0), 1800)
   expect_equal(env$extrinsic_drivers_evaluate("PPFD", 10), 1800)
-  expect_equal(env$extrinsic_drivers_evaluate("atm_kpa", 0), 100.5)
-  expect_equal(env$extrinsic_drivers_evaluate("atm_kpa", 10), 100.5)
+  expect_equal(env$extrinsic_drivers_evaluate("atm_kpa", 0), 101.3)
+  expect_equal(env$extrinsic_drivers_evaluate("atm_kpa", 10), 101.3)
 
   # test updating values
   v <- 200

@@ -201,7 +201,35 @@ public:
   // still a version bump -- a user running a dry scenario gets different (correct)
   // numbers for identical inputs, and logpile's cache has to know.
   // TF24f's compound version auto-tracks this to 7.1.
-  static constexpr int scientific_version = 7;
+  // v8: `TF24_Environment`'s `atm_kpa` driver default goes **100.5 -> 101.3**, and
+  // this is the entry to read if you only read one. It largely CANCELS v5.
+  //
+  // v5 recorded +2.4% from deriving the leaf's ppm -> Pa conversion from `atm_kpa`
+  // instead of hard-coding 0.1013. That constant *was* 101.3 kPa in disguise
+  // (1e-6 * 101300 Pa), so the shift was not the fix doing damage -- it was this
+  // driver disagreeing with the rest of the model. 100.5 arrived in `34d46ac2`
+  // ("Simplify scm & environment interface", #446), an interface refactor that does
+  // not mention atmospheric pressure, with no rationale recorded anywhere, while
+  // every leaf-level test used 101.3. An artefact, not a site elevation.
+  //
+  // Pinning it to the value the model already assumed collapses the whole branch's
+  // movement. Net effect of ALL of it (the swap, the #15 catch-up, the #26 ported
+  // fixes, #25 and #24) against `develop`:
+  //
+  //     one-species SCM offspring   81.9083 -> 81.7426     -0.20%
+  //     stochastic TF24 counts      103 / 28 -> 103 / 28   unchanged, exactly
+  //
+  // So **+2.43% became -0.20%**, and every pinned baseline reverts to develop's own
+  // values: the two SCM offspring figures pass at their original 82.09077702 /
+  // 67.54060383, and the seeded stochastic integers match bit for bit. That exact
+  // match on discrete counts is a sharper statement than any tolerance-based check
+  // that the swap preserves TF24's science.
+  //
+  // The fix itself is NOT undone -- an off-sea-level run still gets a self-consistent
+  // Gamma*/Kc/Ko/Km and conductance side, which is the whole point of item 10c. Set
+  // `atm_kpa` per site if you mean altitude; it just no longer defaults to an
+  // altitude nobody chose.
+  static constexpr int scientific_version = 8;
 
   double compute_average_light_environment(double z, double height,
                                            const TF24_Environment &environment);

@@ -287,7 +287,7 @@ test_that("offspring arrival", {
                        hyperpar = TF24_hyperpar, birth_rate = list(20))
 
   out <- run_scm(p1, env, ctrl)
-  expect_equal(out$offspring_production, 83.90256955, tolerance = 2e-2)
+  expect_equal(out$offspring_production, 82.09077702, tolerance = 2e-2)
 
   # two species: the second strategy has a moderately higher lma (0.10 vs
   # 0.0825), so it grows more slowly and is more heavily shaded. Under the NSC
@@ -301,7 +301,7 @@ test_that("offspring arrival", {
                        hyperpar = TF24_hyperpar, birth_rate = list(20, 20))
 
   out <- run_scm(p2, env, ctrl)
-  expect_equal(out$offspring_production[[1]], 69.17657323, tolerance = 2e-2)
+  expect_equal(out$offspring_production[[1]], 67.54060383, tolerance = 2e-2)
   expect_lt(out$offspring_production[[2]], 0.5)
 })
 

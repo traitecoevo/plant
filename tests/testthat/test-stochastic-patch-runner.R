@@ -87,13 +87,16 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
   ## individuals introduced and the number alive at the final step are fixed.
   ## These golden values guard against trajectory-changing regressions in the
   ## stochastic tower; update them deliberately if the model/RNG use changes.
-  ## TF24's pair was re-recorded at scientific_version 5, when the leaf model
-  ## became the standalone `leaf` package: 103/28 -> 101/23. FF16 and K93 are
-  ## unchanged, which is the check that the move came from the leaf and not from
-  ## the stochastic tower or the ODE solver.
+  ## TF24's pair survived the move to the standalone `leaf` package **unchanged**,
+  ## which is worth stating because it briefly did not. Deriving the leaf's ppm -> Pa
+  ## conversion from `atm_kpa` moved it to 101/23 while the TF24 driver still said
+  ## 100.5 kPa; pinning that driver to the 101.3 the conversion had always assumed
+  ## put it back to 103/28 exactly. These are discrete integers from a seeded run, so
+  ## the exact match is a sharper statement than any tolerance-based check that the
+  ## swap preserves TF24's behaviour.
   baseline <- list(
     FF16 = list(n_total = 103L, n_alive_final = 25L),
-    TF24 = list(n_total = 101L, n_alive_final = 23L),
+    TF24 = list(n_total = 103L, n_alive_final = 28L),
     K93  = list(n_total = 105L, n_alive_final = 42L)
   )
   for (x in names(strategy_types)) {

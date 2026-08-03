@@ -7,6 +7,24 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **`TF24_Environment`'s `atm_kpa` driver now defaults to 101.3 kPa, not 100.5.**
+  `scientific_version` for TF24 goes 7 -> 8, TF24f 7.1 -> 8.1. Migration: none
+  required, but read this if you have TF24 results on disk.
+  * The leaf model's ppm -> Pa conversion was the hard-coded constant `0.1013`, which
+    is 101.3 kPa in disguise (`1e-6 * 101300 Pa`). The driver said 100.5, so the
+    model's conductance side responded to 100.5 while Gamma*, Kc, Ko, Km and the ci
+    root-find bounds silently assumed 101.3. Deriving the conversion from `atm_kpa`
+    (leaf_cpp #15) made the model self-consistent and turned that disagreement into a
+    **+2.4%** shift in output.
+  * 100.5 came from `34d46ac2` (#446), an interface refactor that does not mention
+    atmospheric pressure, with no recorded rationale, while every leaf-level test used
+    101.3. Pinning the driver to the value the rest of the model already assumed
+    reduces the **net** movement of this whole branch to **-0.20%**, and restores
+    every pinned baseline to develop's own values -- including the seeded stochastic
+    TF24 counts, which match exactly.
+  * `atm_kpa` remains a driver: set it per site if you are modelling altitude.
+    `env$extrinsic_drivers_set_constant("atm_kpa", <kPa>)`.
+
 * **The collar bracket is now clamped to `root_psi_crit`** (leaf_cpp #24, #584).
   `scientific_version` for TF24 goes 6 -> 7, TF24f 6.1 -> 7.1. The clamp compared a
   magnitude against a signed potential, so it could never bind and the solver

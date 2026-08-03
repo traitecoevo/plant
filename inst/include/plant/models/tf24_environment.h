@@ -85,7 +85,23 @@ public:
     extrinsic_drivers_set_constant("ca",40);
     extrinsic_drivers_set_constant("leaf_temp",25);
     extrinsic_drivers_set_constant("atm_o2_kpa",21);
-    extrinsic_drivers_set_constant("atm_kpa",100.5);
+    // 101.3 kPa, standard sea-level pressure -- and, more to the point, the value
+    // the leaf model's photosynthesis side has always assumed. Its ppm -> Pa
+    // conversion was the hard-coded constant 0.1013 = 1e-6 * 101300 Pa, i.e. 101.3
+    // kPa in disguise, while this driver said 100.5. The two disagreed, so the
+    // conductance side of the model responded to 100.5 while Gamma*, Kc, Ko, Km and
+    // the ci root-find bounds silently assumed 101.3.
+    //
+    // The leaf package now derives the conversion from atm_kpa (leaf_cpp #15 item
+    // 10c), which makes the model self-consistent at any pressure -- and turns the
+    // disagreement into a 2.4% shift in TF24 output. **This line is why**: 100.5
+    // arrived in `34d46ac2` ("Simplify scm & environment interface", #446), a pure
+    // interface refactor that does not mention atmospheric pressure, and no
+    // rationale for it is recorded anywhere. Every leaf-level test uses 101.3.
+    // So it was an artefact, not a site elevation, and pinning it to the value the
+    // rest of the model already assumed keeps the published numbers instead of
+    // re-baselining them against an accident. Set it per-site if you mean altitude.
+    extrinsic_drivers_set_constant("atm_kpa",101.3);
     extrinsic_drivers_set_constant("wind_speed",2.0); // U0, m s^-1 (Penman-Monteith, #523)
 
     set_soil_number_of_depths(soil_number_of_depths);
