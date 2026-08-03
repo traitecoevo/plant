@@ -83,7 +83,13 @@ for (x in names(strategy_types)) {
     ode_state <- c(cmp$ode_state, env_state)
     ode_rates <- c(cmp$ode_rates, env_rates)
     expect_identical(patch$ode_state, ode_state)
-    expect_identical(patch$ode_rates, ode_rates)
+    ## Equal, not identical, in the near-zero heartwood slot. `cmp`'s rates come
+    ## from compute_initial_conditions, which computes them and *then* seeds the
+    ## mortality and log-density states, so they describe the state before that
+    ## seeding. patch$ode_rates now computes for the state the patch actually
+    ## holds, seeding included, and the two differ in the last bits of a
+    ## quantity that is ~1e-22. The patch is the one to believe.
+    expect_equal(patch$ode_rates, ode_rates)
     if (x == "FF16") {
       expect_equal(ode_state, c(0.3441947, 0.009159, 0, 0, 0, 0, 1.08695), tolerance = 1e-4)
       expect_equal(ode_rates, c(0.3341652, 0.01000000, 0, 5.1781e-09, 9.60270e-07, 0, -0.78726), tolerance = 1e-4)
@@ -92,8 +98,10 @@ for (x in names(strategy_types)) {
     patch$set_ode_state(y, 0)
     expect_identical(patch$ode_state, y)
     
-    ## NOTE: These should be identical, but are merely equal...
-    expect_equal(patch$derivs(y, 0), ode_rates)
+    ## Reading the rates and asking for the derivative of the same state now go
+    ## down one path, so these agree exactly. (They used to be "merely equal":
+    ## patch$ode_rates handed back a stored vector, derivs recomputed.)
+    expect_identical(patch$derivs(y, 0), patch$ode_rates)
 
     patch$reset()
     expect_equal(patch$ode_size, env_size)
