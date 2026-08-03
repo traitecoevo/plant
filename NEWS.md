@@ -7,6 +7,14 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **The collar bracket is now clamped to `root_psi_crit`** (leaf_cpp #24, #584).
+  `scientific_version` for TF24 goes 6 -> 7, TF24f 6.1 -> 7.1. The clamp compared a
+  magnitude against a signed potential, so it could never bind and the solver
+  optimised over a root-collar potential the root system cannot supply. The window is
+  **1.2 MPa wide at the defaults** (`psi_crit` 7.0855 vs `root_psi_crit` 5.8703), so
+  water-limited runs change; no mesic run does, and the standard SCM scenario is
+  bit-identical. No migration: no name or signature changes.
+
 * **Water potential now has one representation everywhere: positive magnitudes in
   MPa** (leaf_cpp #25). `scientific_version` for TF24 goes 5 -> 6, TF24f 5.1 -> 6.1.
   Migration:

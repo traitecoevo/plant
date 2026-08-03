@@ -185,7 +185,23 @@ public:
   //     and small enough that every pinned test value and the exact stochastic
   //     TF24 counts (101/23) pass unchanged.
   // TF24f's compound version auto-tracks this to 6.1.
-  static constexpr int scientific_version = 6;
+  // v7: the collar bracket is finally clamped to root_psi_crit, the potential at
+  // which root conductivity is down to 5% (leaf_cpp #24, plant #584). The clamp was
+  // written as a std::max against a *signed* root_psi_crit, so it could never bind
+  // and the solver optimised over a collar the root system cannot supply. **The
+  // window is 1.2 MPa wide at TF24's defaults** -- psi_crit = 7.085493 against
+  // root_psi_crit = 5.870283 -- so this is a dry-corner correction, not a rounding
+  // one. Two regimes inside it: the interval is tightened (the plant still
+  // transpires, at a wetter collar), or root_psi_crit lands below the zero-uptake
+  // collar and the plant shuts down because no operating point both moves water and
+  // stays inside the root limit.
+  //
+  // No tested scenario moves: the standard SCM run stays at 83.8761 offspring, bit
+  // for bit, because a mesic patch never drives the collar past 5.87 MPa. It is
+  // still a version bump -- a user running a dry scenario gets different (correct)
+  // numbers for identical inputs, and logpile's cache has to know.
+  // TF24f's compound version auto-tracks this to 7.1.
+  static constexpr int scientific_version = 7;
 
   double compute_average_light_environment(double z, double height,
                                            const TF24_Environment &environment);

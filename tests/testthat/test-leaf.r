@@ -1036,6 +1036,14 @@ test_that("dprofit_droot_collar_psi matches a finite difference (AD/IFT gradient
   leaf_specific_conductance_max = K_s * theta / h
   psi_soil = 2; atm_vpd = 2; ca = 40; atm_o2_kpa_ = 21; leaf_temp_ = 25
   atm_kpa_ = 101.3; area_leaf_ = 0.05; root_carbon_ = 1
+  # psi_soil was 2.0 until leaf_cpp #24. This leaf pairs a fragile root system
+  # (root_b = 1.29, so root_psi_crit = 1.952) with a tough stem (psi_crit = 5), and
+  # at psi_soil = 2.0 the soil is drier than the roots can tolerate: root_zero_E =
+  # 2.005 sits BELOW root_psi_crit, so there is no operating point that both moves
+  # water and stays inside the root limit, and the leaf now shuts down. The test was
+  # relying on the dead clamp to let it operate anyway. 1.25 leaves the interval
+  # [1.255, 1.952], which is genuinely feasible.
+  psi_soil = 1.25
   l$set_physiology(root_carbon_per_leaf_area = (root_carbon_) / area_leaf_, PPFD = PPFD, psi_soil = psi_soil, soil_depth = 1,
                    leaf_specific_conductance_max = leaf_specific_conductance_max,
                    atm_vpd = atm_vpd, ca = ca,
@@ -1055,13 +1063,7 @@ test_that("dprofit_droot_collar_psi matches a finite difference (AD/IFT gradient
   # interval, so a clamped point would make the central FD straddle the boundary
   # -- skip those and test strictly-interior points.
   #
-  # The points deliberately extend well past the optimum (out to opt + 0.6). The
-  # analytic dpsi_stem/dpsi term differentiates the cumulative root-vulnerability
-  # spline, which CLAMP-extrapolates beyond its knot domain; using the separate
-  # f_r spline as the integrand (rather than the integral spline's own .deriv)
-  # was correct on-domain but silently wrong in the extrapolation region (~0.2%
-  # at opt + 0.4). The near-optimum points alone (opt + 0.2) did not catch it, so
-  # the far points below are load-bearing -- keep them.
+  # The points deliberately extend well past the optimum (out to opt + 0.6).
   tested <- 0
   for (psi in c(opt + 0.02, opt + 0.1, opt + 0.2, opt + 0.4, opt + 0.6)) {
     l$evaluate_root_collar_psi(psi)
@@ -1075,7 +1077,41 @@ test_that("dprofit_droot_collar_psi matches a finite difference (AD/IFT gradient
     expect_equal(ad, fd_grad(psi), tolerance = 1e-6)
     tested <- tested + 1
   }
-  expect_gt(tested, 2)                          # several interior points, incl. far ones
+  expect_gt(tested, 2)                          # several interior points
+
+  # --- the extrapolation region, which the clamp now puts out of the solver's reach
+  #
+  # The analytic dpsi_stem/dpsi term differentiates the cumulative root-vulnerability
+  # spline, which CLAMP-extrapolates beyond its knot domain. Using the separate f_r
+  # spline as the integrand (rather than the integral spline's own .deriv) was correct
+  # on-domain and silently wrong beyond it (~0.2% at 0.4 MPa past the optimum), so
+  # this property is load-bearing and must keep being tested.
+  #
+  # It used to be tested by the far points above. It cannot be any more: the root
+  # spline's knots end at the 1%-conductivity potential (2.295 MPa here) while
+  # leaf_cpp #24 clamps the collar to root_psi_crit, the 5% point (1.952) -- which is
+  # ALWAYS the smaller. So the extrapolation region is now unreachable through
+  # evaluate_root_collar_psi by construction, and a test that goes through the clamp
+  # can only skip it.
+  #
+  # So difference the profit directly instead, on the unclamped path
+  # dprofit_droot_collar_psi itself uses: psi -> psi_stem -> profit. Same identity,
+  # no clamp, and it reaches past 2.295 where the two splines disagree.
+  profit_at <- function(psi) {
+    l$profit_psi_stem_TF(l$find_psi_stem_from_psi_root(psi, psi_soil), psi)
+  }
+  fd_unclamped <- function(psi, eps = 1e-5) {
+    (profit_at(psi + eps) - profit_at(psi - eps)) / (2 * eps)
+  }
+  root_spline_end <- root_b * log(1 / 0.01)^(1 / root_c)   # 1% conductivity, 2.295
+  extrapolated <- 0
+  for (psi in c(root_spline_end + 0.1, root_spline_end + 0.3, root_spline_end + 0.5)) {
+    ad <- l$dprofit_droot_collar_psi(psi)
+    expect_true(is.finite(ad))
+    expect_equal(ad, fd_unclamped(psi), tolerance = 1e-6)
+    extrapolated <- extrapolated + 1
+  }
+  expect_gt(extrapolated, 2)   # all three, beyond the root spline's knot domain
 })
 
 test_that("Leaf() errors on misspelled argument names (issue #377)", {
