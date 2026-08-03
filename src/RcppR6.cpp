@@ -320,20 +320,20 @@ void Leaf__rho___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
 
 // [[Rcpp::export]]
 std::vector<double> Leaf__c_r_V___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->roots_.c_r_V_;
+  return obj_->roots_.network_.c_r_V;
 }
 // [[Rcpp::export]]
 void Leaf__c_r_V___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
-  obj_->roots_.c_r_V_ = value;
+  obj_->roots_.network_.c_r_V = value;
 }
 
 // [[Rcpp::export]]
 std::vector<double> Leaf__c_r_H___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->roots_.c_r_H_;
+  return obj_->roots_.network_.c_r_H;
 }
 // [[Rcpp::export]]
 void Leaf__c_r_H___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
-  obj_->roots_.c_r_H_ = value;
+  obj_->roots_.network_.c_r_H = value;
 }
 
 // [[Rcpp::export]]
@@ -428,29 +428,29 @@ void Leaf__psi_soil___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<d
 
 // [[Rcpp::export]]
 std::vector<double> Leaf__r_R_H_min__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->roots_.r_R_H_min;
+  return obj_->roots_.network_.r_R_H_min;
 }
 // [[Rcpp::export]]
 void Leaf__r_R_H_min__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
-  obj_->roots_.r_R_H_min = value;
+  obj_->roots_.network_.r_R_H_min = value;
 }
 
 // [[Rcpp::export]]
 std::vector<double> Leaf__r_R_V__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->roots_.r_R_V;
+  return obj_->roots_.network_.r_R_V;
 }
 // [[Rcpp::export]]
 void Leaf__r_R_V__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
-  obj_->roots_.r_R_V = value;
+  obj_->roots_.network_.r_R_V = value;
 }
 
 // [[Rcpp::export]]
 std::vector<double> Leaf__r_R_V_sum__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->roots_.r_R_V_sum;
+  return obj_->roots_.network_.r_R_V_sum;
 }
 // [[Rcpp::export]]
 void Leaf__r_R_V_sum__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector<double> value) {
-  obj_->roots_.r_R_V_sum = value;
+  obj_->roots_.network_.r_R_V_sum = value;
 }
 
 // [[Rcpp::export]]

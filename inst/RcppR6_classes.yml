@@ -67,8 +67,8 @@ Leaf:
     jmax_: {type: double, access: field}
     area_leaf_: {type: double, access: field}
     rho_: {type: double, access: field}
-    c_r_V_: {type: "std::vector<double>", access: field, name_cpp: "roots_.c_r_V_"}
-    c_r_H_: {type: "std::vector<double>", access: field, name_cpp: "roots_.c_r_H_"}
+    c_r_V_: {type: "std::vector<double>", access: field, name_cpp: "roots_.network_.c_r_V"}
+    c_r_H_: {type: "std::vector<double>", access: field, name_cpp: "roots_.network_.c_r_H"}
 
     a_bio_: {type: double, access: field}
     PPFD_: {type: double, access: field}
@@ -81,9 +81,9 @@ Leaf:
     soil_number_of_depths_: {type: int, access: field, name_cpp: "roots_.soil_number_of_depths_"}
     max_soil_layer: {type: int, access: field, name_cpp: "roots_.max_soil_layer"}
     psi_soil_: {type: "std::vector<double>", access: field, name_cpp: "roots_.psi_soil_"}
-    r_R_H_min: {type: "std::vector<double>", access: field, name_cpp: "roots_.r_R_H_min"}
-    r_R_V: {type: "std::vector<double>", access: field, name_cpp: "roots_.r_R_V"}
-    r_R_V_sum: {type: "std::vector<double>", access: field, name_cpp: "roots_.r_R_V_sum"}
+    r_R_H_min: {type: "std::vector<double>", access: field, name_cpp: "roots_.network_.r_R_H_min"}
+    r_R_V: {type: "std::vector<double>", access: field, name_cpp: "roots_.network_.r_R_V"}
+    r_R_V_sum: {type: "std::vector<double>", access: field, name_cpp: "roots_.network_.r_R_V_sum"}
     assim_max_: {type: double, access: field}
     root_collar_psi_: {type: double, access: field}
     leaf_temp_: {type: double, access: field}
