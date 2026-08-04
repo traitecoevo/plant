@@ -62,7 +62,7 @@ void TF24f_Strategy::solve_leaf() {
     // the leaf outputs there for compute_rates' aux reads.
     leaf.evaluate_root_collar_psi(tracked_root_psi_);
     // No negation: the leaf package stores this as the positive magnitude the
-    // tracked state and the gradient both want (leaf_cpp #25).
+    // tracked state and the gradient both want (phylloptim #25).
     const double used = leaf.opt_root_psi_;
     dprofit_dpsi_ = leaf.dprofit_droot_collar_psi(used);
     leaf.evaluate_root_collar_psi(used);  // restore operating-point outputs
@@ -107,7 +107,7 @@ void TF24f_Strategy::solve_leaf() {
 // initializing_ flag, which makes solve_leaf optimise rather than track) and
 // store the resulting collar psi as the initial state. leaf.opt_root_psi_ and the
 // tracked state are both the positive magnitude now, so nothing is flipped
-// (leaf_cpp #25).
+// (phylloptim #25).
 void TF24f_Strategy::set_initial_states(const TF24_Environment& environment,
                                         Internals& vars) {
   // Seed the shared TF24 states first (notably the NSC storage pool, #517) --

@@ -342,7 +342,7 @@ expect_error(l$set_physiology(root_carbon_per_leaf_area = (root_carbon_) / area_
   g_c_ci = ((benefit_)* umol_to_mol * l$atm_kpa_ * kPa_to_Pa)/(l$ca_ - l$ci_); 
   
   E_ci = g_c_ci * 1.67 * l$atm_vpd_ / kg_to_mol_h2o / l$atm_kpa_;
-  # psi_upstream is a positive magnitude, same as everywhere else (leaf_cpp #25):
+  # psi_upstream is a positive magnitude, same as everywhere else (phylloptim #25):
   # transpiration_to_psi_stem no longer negates it internally, so there is nothing
   # to invert here either.
   psi_stem = l$transpiration_to_psi_stem(E_ci, psi_soil)
@@ -539,7 +539,7 @@ expect_equal(length(l$c_r_V_), length(soil_depth))
 
 # test what happens when psi_root is equal to psi_soil, E should be slightly
 # negative (the layer gains, because gravity still has to be paid). Collar and
-# soil are both positive magnitudes now (leaf_cpp #25).
+# soil are both positive magnitudes now (phylloptim #25).
 l$E_from_Soil_to_Root_Collar(psi_soil[1], psi_soil)
 expect_true(l$E_up_ < 0)
 
@@ -602,7 +602,7 @@ l$find_root_collar_psi()
 # find_root_collar_psi (the assim_max_ < 0 exit used to leak the signed
 # root_zero_E here -- the sign wart fixed alongside review #7).
 expect_true(l$opt_psi_stem_ > 0)
-# opt_root_psi_ is a positive magnitude, like every other psi (leaf_cpp #25).
+# opt_root_psi_ is a positive magnitude, like every other psi (phylloptim #25).
 expect_true(l$opt_root_psi_ > 0)
 # at zero transpiration the stem equilibrates with the collar: same potential, and
 # now literally the same number rather than a magnitude paired with its negation.
@@ -758,7 +758,7 @@ test_that("psi_stem_to_ci supply=demand solve", {
   # unit conversions used inside psi_stem_to_ci (see the leaf package's
   # leaf_model.hpp). umol_per_mol_to_Pa is derived from the pressure, not a
   # constant: the old hard-coded 0.1013 was 101.3 kPa in disguise, and the leaf
-  # package now computes it per call (leaf_cpp #15 item 10c). Deriving it here
+  # package now computes it per call (phylloptim #15 item 10c). Deriving it here
   # keeps the test honest if atm_kpa_ ever moves off 101.3 -- as it is on the
   # TF24 driver default of 100.5.
   umol_to_mol = 1e-6
@@ -917,7 +917,7 @@ test_that("find_root_psi soil->collar continuity solve", {
   l <- set_phys(make_leaf())
 
   # Reconstruct the bracket exactly as find_root_collar_psi does. Every psi is a
-  # positive magnitude (leaf_cpp #25), so nothing is flipped and the wettest layer
+  # positive magnitude (phylloptim #25), so nothing is flipped and the wettest layer
   # is the SMALLEST suction -- which makes it the LOWER bracket end, where the
   # signed convention had it as the upper one. The bracket runs from there to
   # psi_crit, the driest feasible collar.
@@ -936,7 +936,7 @@ test_that("find_root_psi soil->collar continuity solve", {
     l$E_from_Soil_to_Root_Collar(x, psi_soil)
     E_up <- l$E_up_
     # E_column demands transpiration(psi_crit, x): x is the collar suction, the
-    # same kind of number as psi_crit (leaf_cpp #25), so nothing is flipped.
+    # same kind of number as psi_crit (phylloptim #25), so nothing is flipped.
     E_up - l$transpiration(psi_crit, x)
   }
 
@@ -1036,7 +1036,7 @@ test_that("dprofit_droot_collar_psi matches a finite difference (AD/IFT gradient
   leaf_specific_conductance_max = K_s * theta / h
   psi_soil = 2; atm_vpd = 2; ca = 40; atm_o2_kpa_ = 21; leaf_temp_ = 25
   atm_kpa_ = 101.3; area_leaf_ = 0.05; root_carbon_ = 1
-  # psi_soil was 2.0 until leaf_cpp #24. This leaf pairs a fragile root system
+  # psi_soil was 2.0 until phylloptim #24. This leaf pairs a fragile root system
   # (root_b = 1.29, so root_psi_crit = 1.952) with a tough stem (psi_crit = 5), and
   # at psi_soil = 2.0 the soil is drier than the roots can tolerate: root_zero_E =
   # 2.005 sits BELOW root_psi_crit, so there is no operating point that both moves
@@ -1089,7 +1089,7 @@ test_that("dprofit_droot_collar_psi matches a finite difference (AD/IFT gradient
   #
   # It used to be tested by the far points above. It cannot be any more: the root
   # spline's knots end at the 1%-conductivity potential (2.295 MPa here) while
-  # leaf_cpp #24 clamps the collar to root_psi_crit, the 5% point (1.952) -- which is
+  # phylloptim #24 clamps the collar to root_psi_crit, the 5% point (1.952) -- which is
   # ALWAYS the smaller. So the extrapolation region is now unreachable through
   # evaluate_root_collar_psi by construction, and a test that goes through the clamp
   # can only skip it.

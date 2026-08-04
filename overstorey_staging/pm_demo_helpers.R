@@ -98,7 +98,7 @@ pm_solve_grid <- function(grid, cfg = pm_leaf_config()) {
 ## solver when root resistance happens to be negligible, and was removed.)
 ##
 ## root_psi_seq is a POSITIVE magnitude -- as is every psi in the leaf package now
-## (leaf_cpp #25), including the reported opt_root_psi; values outside the feasible
+## (phylloptim #25), including the reported opt_root_psi; values outside the feasible
 ## interval for this leaf/environment are
 ## clamped by evaluate_root_collar_psi rather than extrapolated.
 pm_collar_curve <- function(PAR, Tair, VPD, pm, root_psi_seq, cfg = pm_leaf_config()) {

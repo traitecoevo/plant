@@ -74,7 +74,7 @@ test_that("rooting_depth_max reaches the root network", {
   psi_deep    <- tf24_root_probe(deep, stratified)[["opt_root_psi"]]
 
   expect_true(is.finite(psi_shallow) && is.finite(psi_deep))
-  # The opt_root_psi aux is a positive magnitude (leaf_cpp #25), so the
+  # The opt_root_psi aux is a positive magnitude (phylloptim #25), so the
   # deeper-rooted plant -- reaching the wet layers -- sits at the SMALLER suction.
   # The inequality reversed with the representation; the physics did not.
   expect_lt(psi_deep, psi_shallow)

@@ -14,7 +14,7 @@ products using plant.
     is 101.3 kPa in disguise (`1e-6 * 101300 Pa`). The driver said 100.5, so the
     model's conductance side responded to 100.5 while Gamma*, Kc, Ko, Km and the ci
     root-find bounds silently assumed 101.3. Deriving the conversion from `atm_kpa`
-    (leaf_cpp #15) made the model self-consistent and turned that disagreement into a
+    (phylloptim #15) made the model self-consistent and turned that disagreement into a
     **+2.4%** shift in output.
   * 100.5 came from `34d46ac2` (#446), an interface refactor that does not mention
     atmospheric pressure, with no recorded rationale, while every leaf-level test used
@@ -25,7 +25,7 @@ products using plant.
   * `atm_kpa` remains a driver: set it per site if you are modelling altitude.
     `env$extrinsic_drivers_set_constant("atm_kpa", <kPa>)`.
 
-* **The collar bracket is now clamped to `root_psi_crit`** (leaf_cpp #24, #584).
+* **The collar bracket is now clamped to `root_psi_crit`** (phylloptim #24, #584).
   `scientific_version` for TF24 goes 6 -> 7, TF24f 6.1 -> 7.1. The clamp compared a
   magnitude against a signed potential, so it could never bind and the solver
   optimised over a root-collar potential the root system cannot supply. The window is
@@ -34,7 +34,7 @@ products using plant.
   bit-identical. No migration: no name or signature changes.
 
 * **Water potential now has one representation everywhere: positive magnitudes in
-  MPa** (leaf_cpp #25). `scientific_version` for TF24 goes 5 -> 6, TF24f 5.1 -> 6.1.
+  MPa** (phylloptim #25). `scientific_version` for TF24 goes 5 -> 6, TF24f 5.1 -> 6.1.
   Migration:
   * `leaf$root_collar_psi_` -> `leaf$opt_root_psi_`, **and its sign flips**: it is
     now the positive magnitude. Renamed rather than reused deliberately, so an old
@@ -57,8 +57,8 @@ products using plant.
     value and the exact stochastic TF24 counts pass unchanged.
 
 * The TF24 leaf gas-exchange and hydraulics model now comes from the standalone
-  header-only [`leaf`](https://github.com/traitecoevo/leaf_cpp) package instead of
-  a copy in this repo (leaf_cpp #9). `plant::Leaf` is an alias for `leaf::Leaf`, so
+  header-only [`leaf`](https://github.com/traitecoevo/phylloptim) package instead of
+  a copy in this repo (phylloptim #9). `plant::Leaf` is an alias for `leaf::Leaf`, so
   C++ consumers that `#include <plant/leaf_model.h>` and read public `Leaf` members
   keep compiling unchanged. **`scientific_version` for TF24 goes 4 -> 5 and TF24f
   4.1 -> 5.1: TF24 output moves by about +2.4%** — see `tf24_strategy.h` for the

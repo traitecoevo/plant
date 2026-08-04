@@ -164,7 +164,7 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   vars.set_aux(aux_idx_root_mass, mass_root(area_leaf_));
   vars.set_aux(aux_idx_opt_psi_stem, leaf.opt_psi_stem_);
   // The aux and TF24f's state of the same name now agree in sign: both are the
-  // positive magnitude the leaf package stores (leaf_cpp #25). This line used to
+  // positive magnitude the leaf package stores (phylloptim #25). This line used to
   // report the signed potential while tf24f_strategy.cpp negated it back for the
   // state -- an inconsistency in plant's own reported outputs.
   vars.set_aux(aux_idx_opt_root_psi, leaf.opt_root_psi_);
@@ -386,7 +386,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
 
   // sapwood volume per leaf area (pars.theta * height * eta_c) used to be passed
   // to the leaf, which stored it and never read it. Dropped with the other three
-  // dead set_physiology arguments (leaf_cpp #15, item 10b); recompute it here if a
+  // dead set_physiology arguments (phylloptim #15, item 10b); recompute it here if a
   // caller ever needs it.
 
   // ----------------------------------------------------------------------
@@ -442,7 +442,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
     }
 
   // Reuse geometry precomputed by environment; avoids rebuilding z midpoints each call.
-  // The soil geometry moved into the leaf package's MultiLayerRoots (leaf_cpp #2).
+  // The soil geometry moved into the leaf package's MultiLayerRoots (phylloptim #2).
   leaf.roots_.z_soil_mid_ = environment.get_soil_mid_depths();
   leaf.roots_.use_precomputed_z_soil_mid_ = true;
 

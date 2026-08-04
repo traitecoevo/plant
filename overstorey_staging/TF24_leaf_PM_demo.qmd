@@ -68,7 +68,7 @@ opt <- bind_rows(
   pm_solve_cell(env1$PAR, env1$Tair, env1$VPD, TRUE)
 ) |>
   # opt_root_psi is already the positive magnitude the plot's axis wants
-  # (leaf_cpp #25), so there is no negation here any more.
+  # (phylloptim #25), so there is no negation here any more.
   mutate(model = lab_pm(pm), root_psi = opt_root_psi)
 
 collar_curve_long <- collar_curve |>

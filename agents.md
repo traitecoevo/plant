@@ -199,13 +199,13 @@ What moved into C++ (all on `Node`/`Species`/`SCM` in
 ### 3.4 The TF24 leaf model lives in another repo
 
 TF24's leaf gas-exchange and hydraulics sub-model is **not in this repository**. It
-is the standalone header-only [`leaf`](https://github.com/traitecoevo/leaf_cpp)
+is the standalone header-only [`leaf`](https://github.com/traitecoevo/phylloptim)
 package, reached through `LinkingTo` and a compatibility shim at
 [inst/include/plant/leaf_model.h](inst/include/plant/leaf_model.h) that aliases
 `plant::Leaf = leaf::Leaf`. `src/leaf_model.cpp` is gone. Consequences worth
 knowing before you go looking for a leaf bug here:
 
-- **Fix leaf physiology in `leaf_cpp`, not here.** It has its own golden-file
+- **Fix leaf physiology in `phylloptim`, not here.** It has its own golden-file
   regression baseline over 288 operating points and its own hazard list; a change
   made here would be invisible to both.
 - **The two repos move together.** plant tracks the package's `master` via

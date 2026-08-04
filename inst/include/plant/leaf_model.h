@@ -15,12 +15,12 @@
 // its own DESCRIPTION even though it is `leaf` that includes them. It already
 // does.
 
-#include <leaf.hpp>
+#include <phylloptim.hpp>
 
 namespace plant {
 
 // The leaf model itself.
-using Leaf = ::leaf::Leaf;
+using Leaf = ::phylloptim::Leaf;
 
 // Constants that plant's own sources read out of the leaf model. Only one is
 // actually used today (kg_per_mol_h2o, in TF24_Strategy::compute_rates, for the
@@ -28,23 +28,23 @@ using Leaf = ::leaf::Leaf;
 // pulled in so that the constants remain reachable as `plant::<name>` for
 // anything that reaches for them later.
 //
-// Deliberately NOT re-exported: `leaf::gas_constant`, which was spelled `R` at
+// Deliberately NOT re-exported: `phylloptim::gas_constant`, which was spelled `R` at
 // plant namespace scope in the old header. A one-letter `R` in a public header
 // is a collision hazard in a project where R is also the language and R_ prefixes
 // its C API, and nothing outside the leaf model ever used it.
-using ::leaf::C_to_K;
-using ::leaf::gravity_head;
-using ::leaf::H2O_CO2_stom_diff_ratio;
-using ::leaf::kg_per_mol_h2o;
-using ::leaf::kg_to_mol_h2o;
-using ::leaf::kPa_to_Pa;
-using ::leaf::umol_to_mol;
+using ::phylloptim::C_to_K;
+using ::phylloptim::gravity_head;
+using ::phylloptim::H2O_CO2_stom_diff_ratio;
+using ::phylloptim::kg_per_mol_h2o;
+using ::phylloptim::kg_to_mol_h2o;
+using ::phylloptim::kPa_to_Pa;
+using ::phylloptim::umol_to_mol;
 
 // Deliberately NOT re-exported: `umol_per_mol_to_Pa`. It was a namespace-scope
 // constant 0.1013 = 1e-6 * 101300 Pa -- i.e. atmospheric pressure of 101.3 kPa in
 // disguise, sitting next to a live, settable `atm_kpa_`. The leaf package derives
 // it per-call as the member `Leaf::umol_per_mol_to_Pa_ = atm_kpa_ * kPa_to_Pa *
-// umol_to_mol` (leaf_cpp item 10c), so there is no longer a namespace-scope
+// umol_to_mol` (phylloptim item 10c), so there is no longer a namespace-scope
 // constant to alias. Nothing in plant read it outside the leaf model.
 //
 // ⚠️ This is NOT inert for plant: TF24_Environment's `atm_kpa` driver defaults to
@@ -54,8 +54,8 @@ using ::leaf::umol_to_mol;
 // evaluates at 101.3.
 
 // Penman-Monteith leaf energy balance (#523).
-using ::leaf::leaf_temp_max;
-using ::leaf::leaf_temp_min;
+using ::phylloptim::leaf_temp_max;
+using ::phylloptim::leaf_temp_min;
 
 } // namespace plant
 

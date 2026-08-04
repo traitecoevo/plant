@@ -154,7 +154,7 @@ public:
   //
   // So **the pressure fix is ~25x the rest of the swap put together** (+2.4%
   // against +0.10%), which was not the expectation going in. The leaf package's
-  // ppm-to-Pa conversion is derived from atm_kpa (leaf_cpp #15 item 10c) instead
+  // ppm-to-Pa conversion is derived from atm_kpa (phylloptim #15 item 10c) instead
   // of hard-coded at 0.1013 = 1e-6 * 101300 Pa; TF24_Environment's atm_kpa driver
   // defaults to **100.5**, so Gamma*, Kc, Ko, Km and the ci root-find bounds all
   // move. Before the fix the conductance side of the model responded to atm_kpa
@@ -162,11 +162,11 @@ public:
   // table as this repo's leaf moving only -0.11% across the same 0.8 kPa that
   // moves the package -2.4%.
   //
-  // The remaining +0.10% is the two further stale-state exits (leaf_cpp #26,
-  // ported from #585) plus the supply-path extraction (leaf_cpp #2). TF24f's
+  // The remaining +0.10% is the two further stale-state exits (phylloptim #26,
+  // ported from #585) plus the supply-path extraction (phylloptim #2). TF24f's
   // compound version auto-tracks this to 5.1.
   // v6: the leaf package moved to ONE representation for water potential --
-  // positive magnitudes throughout (leaf_cpp #25). Two consequences, and the first
+  // positive magnitudes throughout (phylloptim #25). Two consequences, and the first
   // is why this is a version bump rather than a refactor:
   //   * the **`opt_root_psi` aux changes sign**. It is now the positive magnitude,
   //     which is what TF24f's `opt_root_psi_state` has always held. Before, the aux
@@ -186,7 +186,7 @@ public:
   //     TF24 counts (101/23) pass unchanged.
   // TF24f's compound version auto-tracks this to 6.1.
   // v7: the collar bracket is finally clamped to root_psi_crit, the potential at
-  // which root conductivity is down to 5% (leaf_cpp #24, plant #584). The clamp was
+  // which root conductivity is down to 5% (phylloptim #24, plant #584). The clamp was
   // written as a std::max against a *signed* root_psi_crit, so it could never bind
   // and the solver optimised over a collar the root system cannot supply. **The
   // window is 1.2 MPa wide at TF24's defaults** -- psi_crit = 7.085493 against

@@ -92,7 +92,7 @@ public:
     // conductance side of the model responded to 100.5 while Gamma*, Kc, Ko, Km and
     // the ci root-find bounds silently assumed 101.3.
     //
-    // The leaf package now derives the conversion from atm_kpa (leaf_cpp #15 item
+    // The leaf package now derives the conversion from atm_kpa (phylloptim #15 item
     // 10c), which makes the model self-consistent at any pressure -- and turns the
     // disagreement into a 2.4% shift in TF24 output. **This line is why**: 100.5
     // arrived in `34d46ac2` ("Simplify scm & environment interface", #446), a pure
