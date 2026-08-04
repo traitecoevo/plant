@@ -54,7 +54,7 @@ Suggests:
 Remotes:
     richfitz/RcppR6,
     traitecoevo/odelia@806924e,
-    traitecoevo/leaf_cpp@0709eb1
+    leaf=traitecoevo/leaf_cpp@0709eb1
 URL: https://github.com/traitecoevo/plant
 BugReports: https://github.com/traitecoevo/plant/issues
 Config/roxygen2/version: 8.0.0
