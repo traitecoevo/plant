@@ -39,18 +39,18 @@ jobs:
         # private repo (Linux bills at 1x against Windows 2x and macOS 10x),
         # which is why it is worth having.
         #
-        # It is also the fastest, but ONLY once its dependency cache is warm, and
-        # the gap between those two states is large enough to mislead:
+        # Its dependency step is cache-sensitive in a way that will mislead anyone
+        # measuring it once: 205 s on the first ever run against 37 s warm, because
+        # odelia/phylloptim/RcppR6 are GitHub remotes with no Linux binaries and
+        # build from source. Expect the cold number on a fresh branch or after a
+        # dependency bump.
         #
-        #   Linux deps, first ever run (cold): 205 s   -> whole job 9.9 min
-        #   Linux deps, second run (warm):      37 s   -> whole job  5.5 min
-        #   macOS deps for comparison:          53 s   -> whole job  5.7 min
-        #
-        # Cold, Linux is the SLOWEST of the three, because odelia/phylloptim/RcppR6
-        # are GitHub remotes with no Linux binaries and build from source. Warm, it
-        # is the fastest leg we have. Anyone re-measuring this on a fresh branch or
-        # after a dependency bump will hit the cold number first -- do not conclude
-        # from it.
+        # Warm, Linux and macOS are within run-to-run noise of each other (~7.5 min
+        # total each); Windows is reliably the slowest by ~4 min. Do NOT try to rank
+        # Linux against macOS from single runs -- macOS's check step alone varies
+        # 314-465 s on unchanged code, which is wider than any effect worth
+        # measuring. Windows is the only leg tight enough to A/B on (668-674 s
+        # across three runs of the same commit).
         #
         # The follow-up this enables is making Linux the only per-PR job, with
         # Windows gated on src/** and inst/include/** rather than dropped: that is
