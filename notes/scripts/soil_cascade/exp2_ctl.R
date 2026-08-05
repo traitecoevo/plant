@@ -6,11 +6,18 @@ errlevel <- function(y, dydt, h, ctl = CTL) {
   ctl$tol_rel * (ctl$a_y * abs(y) + ctl$a_dydt * abs(h * dydt)) + ctl$tol_abs
 }
 
+# NB: `std::max(a, b)` is `(a < b) ? b : a`, which does NOT propagate NaN the way
+# R's max() does. With a = NaN it returns NaN, but on the next element a finite a
+# returns a and *wipes* the NaN. Replicating that faithfully matters: it is why
+# only a NaN surviving to the end of the loop ever reached the reject branch
+# (odelia#52 / odelia PR#54). Using R's max() here would overstate the bug.
+cxx_max <- function(a, b) if (isTRUE(a < b)) b else a
+
 adjust <- function(h, ord, y, yerr, dydt, ctl = CTL) {
   rmax <- .Machine$double.xmin
   for (i in seq_along(y)) {
     D0 <- errlevel(y[i], dydt[i], h, ctl)
-    rmax <- max(abs(yerr[i]) / abs(D0), rmax)
+    rmax <- cxx_max(abs(yerr[i]) / abs(D0), rmax)
   }
   S <- 0.9
   if (isTRUE(rmax > 1.1)) {

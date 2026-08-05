@@ -83,14 +83,36 @@ out-of-domain ψ probe:
 
 Two independent faults, and the trigger is the inherited step:
 
-**Fault 1 — odelia accepts a NaN error estimate and grows the step.** In
-`ode_control.hpp:75-84`, `rmax = std::max(r, rmax)` returns NaN for a NaN `r`; `if (rmax > 1.1)`
-is then false, so `last_step_size_shrank` stays false and
-[ode_solver_internal.hpp:302-327](../../odelia/inst/include/odelia/ode_solver_internal.hpp#L302-L327)
-takes the *accept* branch. Measured directly: `yerr = NaN` → accept, step held/grown, whereas
-`yerr = Inf` correctly rejects. Only NaN is broken, because NaN comparisons are unordered.
-Treating a non-finite error as a rejection makes this path fully recoverable — the same runs
-then complete in 14–15 steps with 9–12 rejections and `max θ = 0.428`.
+**Fault 1 — odelia's error reduction does not propagate non-finiteness, so a step carrying a
+NaN is accepted.** In `ode_control.hpp:75-84` the reduction is `rmax = std::max(r, rmax)`.
+`std::max(a, b)` is `(a < b) ? b : a`, and NaN comparisons are unordered, so it returns NaN for
+`a = NaN` — but on the *next* element a finite `a` returns that finite value and **wipes the
+NaN**. The NaN component is therefore never accounted for, and there are two ways this ends in
+an accepted step:
+
+- **(a) the NaN survives to the end of the loop** (last element, or all of them): `rmax` stays
+  NaN, both `rmax > 1.1` and `rmax < 0.5` are false, and control falls through to the branch
+  that reports no shrink. The caller
+  ([ode_solver_internal.hpp:302-327](../../odelia/inst/include/odelia/ode_solver_internal.hpp#L302-L327))
+  branches solely on `step_size_shrank()`, so the step is committed.
+- **(b) the NaN is wiped by finite elements whose own ratios are small**: `rmax` is finite and
+  passes, so the step is accepted *carrying* a NaN.
+
+Measured, both accept: `yerr = [1e-3, 1e-3, 1e-3, 1e-3, NaN]` and
+`yerr = [NaN, 1e-12, 1e-12, 1e-12, 1e-12]`. **(b) is the mode the coupled runs hit.** `Inf`
+rejects correctly in either position, via `> 1.1`.
+
+⚠️ Note this makes the fault *positional*, which is why it survived so long — and why it bites
+this caller in particular. `Patch` chains its ODE state **species first, environment last**, so a
+stiff soil block sits in the trailing indices, i.e. exactly mode (a)'s window; and a single
+poisoned soil layer among finite neighbours is mode (b). Fixed in **odelia PR #54** by breaking
+on the first non-finite ratio, which removes the positional dependence. With that, the same runs
+complete in 14–15 steps with 9–12 rejections and `max θ = 0.428`.
+
+⚠️ **R's `max()` propagates NaN; C++'s `std::max` does not.** The replica scripts model
+`std::max` explicitly (`cxx_max` in `exp2_ctl.R`). An earlier version of this note used R's
+semantics and consequently overstated the fault as "any NaN is accepted" — it is narrower and
+positional, per the above.
 
 **Fault 2 — a throw during a stage evaluation preempts rejection.** `Patch::set_ode_state`
 calls `check_finite_ode_state()`

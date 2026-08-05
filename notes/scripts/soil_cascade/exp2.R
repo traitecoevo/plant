@@ -1,35 +1,7 @@
 source("soil_cascade.R")
 options(digits = 6)
 
-# --- odelia's exact controller (ode_control.hpp) with plant's defaults ---
-CTL <- list(tol_rel = 1e-4, tol_abs = 1e-4, a_y = 1.0, a_dydt = 0.0,
-            h_min = 1e-6, h_max = 5, h_init = 1e-6)
-
-errlevel <- function(y, dydt, h, ctl = CTL) {
-  ctl$tol_rel * (ctl$a_y * abs(y) + ctl$a_dydt * abs(h * dydt)) + ctl$tol_abs
-}
-
-# returns list(step_next, shrank) -- mirrors adjust_step_size()
-adjust <- function(h, ord, y, yerr, dydt, ctl = CTL) {
-  rmax <- .Machine$double.xmin
-  for (i in seq_along(y)) {
-    D0 <- errlevel(y[i], dydt[i], h, ctl)
-    r  <- abs(yerr[i]) / abs(D0)
-    rmax <- max(r, rmax)          # NB: max(NaN, x) in R returns NaN, as in C++
-  }
-  S <- 0.9
-  if (isTRUE(rmax > 1.1)) {
-    rr <- S / rmax^(1 / ord); if (rr < 0.2) rr <- 0.2
-    hn <- h * rr; if (hn < ctl$h_min) hn <- ctl$h_min
-    list(h = hn, shrank = hn < h)
-  } else if (isTRUE(rmax < 0.5)) {
-    rr <- S / rmax^(1 / (ord + 1)); if (rr > 5) rr <- 5
-    hn <- h * rr; if (hn > ctl$h_max) hn <- ctl$h_max
-    list(h = hn, shrank = FALSE)
-  } else {
-    list(h = h, shrank = FALSE)
-  }
-}
+source("exp2_ctl.R")   # odelia OdeControl + C++ max semantics
 
 ck_stage <- function(y, h, rain, uptake, variant, p = P) {
   b  <- list(c(), 1/5, c(3/40, 9/40), c(3/10, -9/10, 6/5),
@@ -68,8 +40,23 @@ for (case in c("finite-large", "NaN", "Inf")) {
               if (a$shrank) "REJECT" else "ACCEPT", a$h,
               if (a$h > 1e-3) sprintf("step GREW %.1fx", a$h / 1e-3) else "step held/shrank"))
 }
-cat("\n  => a NaN error estimate is ACCEPTED and the step is GROWN. Confirms the\n")
-cat("     ode_control.hpp:75-84 bug: max(NaN, rmax) = NaN, and NaN > 1.1 is false.\n")
+cat("\n  => An INTERIOR NaN rejects -- but only incidentally: std::max wipes it\n")
+cat("     (see cxx_max in exp2_ctl.R) and the trailing finite element rejects on\n")
+cat("     its own magnitude. The NaN component itself is never accounted for.\n")
+cat("     Two ways that bites, both fixed by odelia PR#54:\n")
+cat("       (a) NaN in the LAST element (or all): rmax stays NaN, and since\n")
+cat("           NaN > 1.1 and NaN < 0.5 are both false, control falls through\n")
+cat("           to the 'no shrink' branch and the step is accepted.\n")
+cat("       (b) NaN wiped by finite elements whose ratios are SMALL: rmax is\n")
+cat("           finite and passes, so the step is accepted carrying a NaN.\n")
+cat("     (b) is what exp4 hits. Demonstrating both:\n")
+for (case in list(c(1e-3, 1e-3, 1e-3, 1e-3, NaN),
+                  c(NaN, 1e-12, 1e-12, 1e-12, 1e-12))) {
+  a <- adjust(1e-3, 5, rep(0.2, 5), case, rep(0, 5))
+  cat(sprintf("       yerr=[%s] -> %s\n",
+              paste(formatC(case, width = 6, format = "g"), collapse = ","),
+              if (a$shrank) "reject" else "ACCEPT (NaN committed)"))
+}
 
 cat("\n=== Q8. Full integration of the worst case with odelia's controller ===\n")
 run_odelia <- function(variant, t_end = 0.5, h_max = 5, throw_on_nonfinite = TRUE) {
