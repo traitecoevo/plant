@@ -39,21 +39,24 @@ jobs:
         # private repo (Linux bills at 1x against Windows 2x and macOS 10x),
         # which is why it is worth having.
         #
-        # It is NOT the fastest, contrary to the obvious guess -- measured 9.9 min
-        # against macOS 8.4 and Windows 10.8. It has the fastest *test* phase of
-        # the three (129 s vs 159/213) but pays ~205 s on dependency install
-        # against ~80 s elsewhere, because odelia/phylloptim/RcppR6 are GitHub
-        # remotes with no Linux binaries and build from source. That measurement
-        # was a cold cache on the first Linux run ever, so re-read it once warm
-        # before concluding.
+        # It is also the fastest, but ONLY once its dependency cache is warm, and
+        # the gap between those two states is large enough to mislead:
         #
-        # So the follow-up of making Linux the only per-PR job is on hold: it is
-        # justified on cost for a private repo, but not yet on latency for this
-        # public one, where minutes are free. If it does happen, Windows should be
-        # gated on src/** and inst/include/** rather than dropped -- that is where
-        # plant is most platform-fragile (src/Makevars.win must link odelia.dll at
-        # load time because mingw ld forbids undefined symbols in a DLL, see
-        # traitecoevo/odelia#29).
+        #   Linux deps, first ever run (cold): 205 s   -> whole job 9.9 min
+        #   Linux deps, second run (warm):      37 s   -> whole job  5.5 min
+        #   macOS deps for comparison:          53 s   -> whole job  5.7 min
+        #
+        # Cold, Linux is the SLOWEST of the three, because odelia/phylloptim/RcppR6
+        # are GitHub remotes with no Linux binaries and build from source. Warm, it
+        # is the fastest leg we have. Anyone re-measuring this on a fresh branch or
+        # after a dependency bump will hit the cold number first -- do not conclude
+        # from it.
+        #
+        # The follow-up this enables is making Linux the only per-PR job, with
+        # Windows gated on src/** and inst/include/** rather than dropped: that is
+        # where plant is most platform-fragile (src/Makevars.win must link
+        # odelia.dll at load time because mingw ld forbids undefined symbols in a
+        # DLL, see traitecoevo/odelia#29) and macOS on pushes to develop/master.
         config:
           - {os: ubuntu-latest, r: 'release'}
           - {os: windows-latest, r: 'release'}
