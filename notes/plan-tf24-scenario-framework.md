@@ -271,20 +271,26 @@ controls (S07, S08) now crash — the clearest remaining targets, alongside S04.
 
 ### Superseded by the two-axis scoring (#572)
 
-The 5/8 above is **stale**, and #557's body still quotes it. Measured at the head
-of #570 (also `max_patch_lifetime = 100`), the crash fixes in #546/#552/#554 had
-landed and *every* scenario ran:
+The 5/8 above is **stale**, and #557's body still quotes it. The crash fixes in
+#546/#552/#554 landed and *every* scenario now runs. Re-measured on this branch
+merged with `develop` at d16d1357 — i.e. after #574, #585, #590 and the
+phylloptim port (#591) — at `max_patch_lifetime = 100`, with the head-of-#570
+column kept alongside so the drift is visible:
 
-| id | expected | observed | R0 | persists (R0 >= 1) |
-|---|---|---|---|---|
-| S01 | failure | success | 2.95e-01 | ✗ |
-| S02 | failure | success | 4.98e-02 | ✗ |
-| S03 | success | success | 6.49e-13 | ✗ |
-| S04 | failure | success | 6.27e-14 | ✗ |
-| S05 | failure | success | 2.33e-14 | ✗ |
-| S06 | failure | success | 3.68e-14 | ✗ |
-| S07 | success | success | **2.93e+01** | ✓ |
-| S08 | success | success | 2.31e-15 | ✗ |
+| id | expected | observed | R0 (post-#591) | R0 (at #570) | persists (R0 >= 1) |
+|---|---|---|---|---|---|
+| S01 | failure | success | 2.59e-01 | 2.95e-01 | ✗ |
+| S02 | failure | success | 4.20e-02 | 4.98e-02 | ✗ |
+| S03 | success | success | 6.49e-13 | 6.49e-13 | ✗ |
+| S04 | failure | success | 6.27e-14 | 6.27e-14 | ✗ |
+| S05 | failure | success | 2.35e-14 | 2.33e-14 | ✗ |
+| S06 | failure | success | 3.68e-14 | 3.68e-14 | ✗ |
+| S07 | success | success | **3.02e+01** | **2.93e+01** | ✓ |
+| S08 | success | success | 2.17e-15 | 2.31e-15 | ✗ |
+
+The forward-model fixes in #585 moved the three scenarios that are not already
+at machine zero, by a few percent each. No `persists` verdict changed and no
+count changed, so the reading below is the same on both builds.
 
 So CSV agreement is **3/8**, not 5/8 — and the drop is *good news misreported*:
 the matched-control crashes that #557 called the clearest targets are gone. That
