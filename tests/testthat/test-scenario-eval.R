@@ -178,6 +178,24 @@ test_that("scenario_summary handles a scorecard recorded without persists", {
   expect_equal(s$n_persists, 0)
 })
 
+test_that("scenario_summary handles a scorecard recorded without crashed", {
+  ## Mirror of the above for the other fallback. Worth pinning explicitly: no
+  ## real scorecard exercises this path -- the blessed baseline lacks `persists`
+  ## but *has* `crashed` -- so without this test the branch is only reachable
+  ## from scorecards old enough that none are left in the repo.
+  sc <- tibble::tibble(
+    expected = c("failure", "success", "success"),
+    observed = c("failure", "success", "failure"),
+    match    = c(TRUE, TRUE, FALSE),
+    persists = c(FALSE, TRUE, FALSE))
+  s <- scenario_summary(sc)
+  ## Falls back to `observed != "success"`, so the two non-successes count as
+  ## crashes even though one of them was an expected failure.
+  expect_equal(s$n_crashed, 2)
+  expect_equal(s$n_ran, 1)
+  expect_equal(s$viability_rate, 1 / 3)
+})
+
 test_that("persistence is judged at R0 >= 1, not R0 > 0", {
   ## The distinction the `persists` column exists to make: an offspring
   ## production of 2e-15 is extinction, not persistence, and the existing

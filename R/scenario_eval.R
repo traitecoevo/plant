@@ -108,9 +108,35 @@ scenario_to_config <- function(row, mapping) {
   list(traits = unlist(traits), env = env, driver = driver, expected = expected)
 }
 
+##' @return \code{scenario_control} returns the \code{Control} the gateway runs
+##'   under: \code{control()} with \code{node_density_in_birth_date = TRUE}.
+##'
+##'   Every scenario here is TF24, and TF24 is the model the two density
+##'   coordinates genuinely disagree on (#590). The transport equation's
+##'   compression term is the total derivative of growth along a cohort's own
+##'   trajectory, which equals \code{dg/dh} only when growth is a function of
+##'   size; TF24's reserve gate (#517) breaks that, so in height coordinates the
+##'   solver carries an accurate derivative of a quantity the plant never
+##'   experiences. The tell is that refining the node schedule does not close the
+##'   height-vs-birth-date gap the way it does for FF16 and K93, where growth
+##'   *is* size-only and the two coordinates converge at ~2nd order.
+##'
+##'   Measured on this gateway at \code{max_patch_lifetime = 100}, the
+##'   coordinate change raises R0 on every scenario, by 2.4x (S02) to 47x (S07),
+##'   and moves S01 across R0 = 1. So the choice is not cosmetic, and running the
+##'   TF24 gateway in the package default coordinate would score the model on a
+##'   compression term that is wrong for it.
+##' @rdname scenario_eval
+##' @export
+scenario_control <- function() {
+  control(node_density_in_birth_date = TRUE)
+}
+
 ##' @param config A config list from \code{scenario_to_config}.
 ##' @param max_patch_lifetime Patch lifetime (years) for the SCM run.
-##' @param ctrl A \code{Control} object.
+##' @param ctrl A \code{Control} object. Defaults to \code{scenario_control()},
+##'   which integrates in birth date rather than height -- see there for why
+##'   that is the right coordinate for TF24.
 ##' @param birth_rate Birth rate passed to \code{add_strategies}.
 ##' @return \code{build_scenario} returns a list with the \code{Parameters}
 ##'   (\code{p}), configured \code{Environment} (\code{env}) and \code{Control}
@@ -118,7 +144,7 @@ scenario_to_config <- function(row, mapping) {
 ##' @rdname scenario_eval
 ##' @export
 build_scenario <- function(config, max_patch_lifetime = 100,
-                           ctrl = control(), birth_rate = 1) {
+                           ctrl = scenario_control(), birth_rate = 1) {
   p <- scm_base_parameters("TF24")
   p$max_patch_lifetime <- max_patch_lifetime
 
@@ -200,7 +226,7 @@ persists_at <- function(total, finite, threshold = 1) {
 ##'   which a run can fail while still counting as a numerical success.
 ##' @rdname scenario_eval
 ##' @export
-classify_scm_run <- function(p, env, ctrl = control()) {
+classify_scm_run <- function(p, env, ctrl = scenario_control()) {
   ## The test suite sets options(warn = 2); make sure warnings raised during a
   ## scenario run are recorded, not escalated to errors.
   withr::local_options(warn = 1)
@@ -245,7 +271,7 @@ classify_scm_run <- function(p, env, ctrl = control()) {
 ##' @return \code{evaluate_scenario} returns a one-row scorecard tibble.
 ##' @rdname scenario_eval
 ##' @export
-evaluate_scenario <- function(row, mapping, ctrl = control(),
+evaluate_scenario <- function(row, mapping, ctrl = scenario_control(),
                               max_patch_lifetime = 100) {
   config <- scenario_to_config(row, mapping)
   built <- build_scenario(config, max_patch_lifetime = max_patch_lifetime,
@@ -297,7 +323,7 @@ evaluate_scenario <- function(row, mapping, ctrl = control(),
 ##' @export
 run_scenarios <- function(scenarios = read_scenario_table(),
                           mapping = read_scenario_mapping(),
-                          ctrl = control(), max_patch_lifetime = 100,
+                          ctrl = scenario_control(), max_patch_lifetime = 100,
                           workers = 1L, cache = NULL) {
   eval_error_row <- function(row, msg) tibble::tibble(
     scenario_id = row$scenario_id %||% NA_character_,
@@ -380,7 +406,15 @@ run_scenarios <- function(scenarios = read_scenario_table(),
 
   meta <- scenario_run_metadata()
   meta$workers <- if (use_fork) workers else 1L
+  ## Record the density coordinate and the patch lifetime. Both change the
+  ## numbers -- the coordinate by up to 47x, enough to flip a persistence
+  ## verdict -- so a stored scorecard that does not say which produced it cannot
+  ## honestly be compared against another, and the blessed baseline is exactly
+  ## such a stored scorecard.
+  meta$node_density_in_birth_date <- ctrl$node_density_in_birth_date
+  meta$max_patch_lifetime <- max_patch_lifetime
   attr(scorecard, "metadata") <- meta
+  attr(scorecard, "max_patch_lifetime") <- max_patch_lifetime
   if (!is.null(keys)) {
     attr(scorecard, "keys") <- keys
     if (!is.null(cache)) {

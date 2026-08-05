@@ -5,6 +5,7 @@
 \alias{read_scenario_table}
 \alias{read_scenario_mapping}
 \alias{scenario_to_config}
+\alias{scenario_control}
 \alias{build_scenario}
 \alias{classify_scm_run}
 \alias{evaluate_scenario}
@@ -21,21 +22,28 @@ read_scenario_mapping(path = scenario_file("scenario_mapping.csv"))
 
 scenario_to_config(row, mapping)
 
+scenario_control()
+
 build_scenario(
   config,
   max_patch_lifetime = 100,
-  ctrl = control(),
+  ctrl = scenario_control(),
   birth_rate = 1
 )
 
-classify_scm_run(p, env, ctrl = control())
+classify_scm_run(p, env, ctrl = scenario_control())
 
-evaluate_scenario(row, mapping, ctrl = control(), max_patch_lifetime = 100)
+evaluate_scenario(
+  row,
+  mapping,
+  ctrl = scenario_control(),
+  max_patch_lifetime = 100
+)
 
 run_scenarios(
   scenarios = read_scenario_table(),
   mapping = read_scenario_mapping(),
-  ctrl = control(),
+  ctrl = scenario_control(),
   max_patch_lifetime = 100,
   workers = 1L,
   cache = NULL
@@ -66,7 +74,9 @@ scenario_generate_report(
 
 \item{max_patch_lifetime}{Patch lifetime (years) for the SCM run.}
 
-\item{ctrl}{A \code{Control} object.}
+\item{ctrl}{A \code{Control} object. Defaults to \code{scenario_control()},
+which integrates in birth date rather than height -- see there for why
+that is the right coordinate for TF24.}
 
 \item{birth_rate}{Birth rate passed to \code{add_strategies}.}
 
@@ -117,6 +127,25 @@ cache deliberately errs toward rerunning.}
   (named list of extrinsic-driver settings) and \code{expected}
   (\code{"failure"} or \code{"success"}).
 
+\code{scenario_control} returns the \code{Control} the gateway runs
+  under: \code{control()} with \code{node_density_in_birth_date = TRUE}.
+
+  Every scenario here is TF24, and TF24 is the model the two density
+  coordinates genuinely disagree on (#590). The transport equation's
+  compression term is the total derivative of growth along a cohort's own
+  trajectory, which equals \code{dg/dh} only when growth is a function of
+  size; TF24's reserve gate (#517) breaks that, so in height coordinates the
+  solver carries an accurate derivative of a quantity the plant never
+  experiences. The tell is that refining the node schedule does not close the
+  height-vs-birth-date gap the way it does for FF16 and K93, where growth
+  *is* size-only and the two coordinates converge at ~2nd order.
+
+  Measured on this gateway at \code{max_patch_lifetime = 100}, the
+  coordinate change raises R0 on every scenario, by 2.4x (S02) to 47x (S07),
+  and moves S01 across R0 = 1. So the choice is not cosmetic, and running the
+  TF24 gateway in the package default coordinate would score the model on a
+  compression term that is wrong for it.
+
 \code{build_scenario} returns a list with the \code{Parameters}
   (\code{p}), configured \code{Environment} (\code{env}) and \code{Control}
   (\code{ctrl}) ready for \code{run_scm}.
@@ -149,12 +178,28 @@ cache deliberately errs toward rerunning.}
   (git commit / branch / dirty flag, package version, R version, platform,
   timestamp) so a scorecard records the exact build it came from.
 
-\code{scenario_summary} returns a one-row tibble with the headline
-  counts: total scenarios, matches, match rate, the expected-failure vs
-  expected-success breakdown, and \code{n_persists} — how many scenarios
-  clear R0 >= 1. Read \code{n_persists} against \code{n}: a scorecard where
-  every run "succeeds" but almost none persists is reporting that the model
-  no longer crashes, not that the strategies live.
+\code{scenario_summary} returns a one-row tibble reporting **two
+  separate axes** (#572), because the gateway conflated them and so returned
+  no signal:
+
+  \describe{
+    \item{Numerical viability — did the model run?}{\code{n},
+      \code{n_ran}, \code{n_crashed}, \code{viability_rate}. This is what the
+      scenario CSV's "Model failure" means (#549, #550) and what the
+      hydraulic/NSC work targets.}
+    \item{Ecological persistence — does the strategy replace itself?}{
+      \code{n_persists}, \code{persistence_rate}, judged at R0 >= 1 (see
+      \code{persists_at}). Now that the crashes are fixed this is the axis the
+      gateway is actually useful for.}
+  }
+
+  \code{n_match} / \code{match_rate} and the expected-failure vs
+  expected-success breakdown are still reported, but as **agreement with the
+  CSV's crash predictions**, not as a headline quality score: with the crashes
+  fixed, the match rate mostly measures how well those predictions have aged.
+  Read \code{n_persists} against \code{n} — a scorecard where every run
+  "succeeds" but almost none persists is reporting that the model no longer
+  crashes, not that the strategies live.
 
 \code{scenario_generate_report} renders the scorecard report and
   returns the output path (invisibly).

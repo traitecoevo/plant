@@ -277,20 +277,26 @@ merged with `develop` at d16d1357 — i.e. after #574, #585, #590 and the
 phylloptim port (#591) — at `max_patch_lifetime = 100`, with the head-of-#570
 column kept alongside so the drift is visible:
 
-| id | expected | observed | R0 (post-#591) | R0 (at #570) | persists (R0 >= 1) |
-|---|---|---|---|---|---|
-| S01 | failure | success | 2.59e-01 | 2.95e-01 | ✗ |
-| S02 | failure | success | 4.20e-02 | 4.98e-02 | ✗ |
-| S03 | success | success | 6.49e-13 | 6.49e-13 | ✗ |
-| S04 | failure | success | 6.27e-14 | 6.27e-14 | ✗ |
-| S05 | failure | success | 2.35e-14 | 2.33e-14 | ✗ |
-| S06 | failure | success | 3.68e-14 | 3.68e-14 | ✗ |
-| S07 | success | success | **3.02e+01** | **2.93e+01** | ✓ |
-| S08 | success | success | 2.17e-15 | 2.31e-15 | ✗ |
+| id | expected | observed | R0 (at #570) | R0 height | R0 birth date | persists |
+|---|---|---|---|---|---|---|
+| S01 | failure | success | 2.95e-01 | 2.59e-01 | **1.49e+00** | ✓ |
+| S02 | failure | success | 4.98e-02 | 4.20e-02 | 9.96e-02 | ✗ |
+| S03 | success | success | 6.49e-13 | 6.49e-13 | 5.50e-12 | ✗ |
+| S04 | failure | success | 6.27e-14 | 6.27e-14 | 4.75e-13 | ✗ |
+| S05 | failure | success | 2.33e-14 | 2.35e-14 | 5.89e-13 | ✗ |
+| S06 | failure | success | 3.68e-14 | 3.68e-14 | 3.26e-13 | ✗ |
+| S07 | success | success | **2.93e+01** | **3.02e+01** | **1.42e+03** | ✓ |
+| S08 | success | success | 2.31e-15 | 2.17e-15 | 3.23e-14 | ✗ |
 
-The forward-model fixes in #585 moved the three scenarios that are not already
-at machine zero, by a few percent each. No `persists` verdict changed and no
-count changed, so the reading below is the same on both builds.
+Two separate movements are folded into that table.
+
+**#585's forward-model fixes** moved the three scenarios not already at machine
+zero by a few percent each (the `at #570` → `height` columns). No verdict
+changed.
+
+**The density coordinate** (`height` → `birth date`) moved everything, by 2.4x
+(S02) to 47x (S07), and moved S01 across R0 = 1. That is the change that
+matters, and it is a correctness fix rather than a tuning choice — see below.
 
 So CSV agreement is **3/8**, not 5/8 — and the drop is *good news misreported*:
 the matched-control crashes that #557 called the clearest targets are gone. That
@@ -298,4 +304,37 @@ inversion (fixing the model lowers the score) is what showed the metric was
 pointing the wrong way round and prompted #572.
 
 Read on the two axes the gateway now reports: **numerical viability 8/8**, and
-**persistence 1/8**. Both are informative, and neither is a "match rate".
+**persistence 2/8**. Both are informative, and neither is a "match rate".
+
+### Density coordinate: the gateway runs in birth date (#590, decided 2026-08-05)
+
+`scenario_control()` supplies `control(node_density_in_birth_date = TRUE)` and is
+the default `ctrl` for `build_scenario`, `classify_scm_run`, `evaluate_scenario`
+and `run_scenarios`. The package default (`FALSE`, height) is deliberately left
+alone; only the gateway opts in.
+
+Why the gateway and not the package: every scenario here is TF24, and TF24 is
+exactly the model #590 identifies as the one the coordinates disagree on. The
+compression term is the total derivative of growth along a cohort's own
+trajectory, which equals `dg/dh` only when growth is a function of size. TF24's
+reserve gate (#517) breaks that — the finite-difference probe moves height at
+fixed *absolute* carbon, shifting the reserve fraction, whereas a real cohort
+grows at roughly constant reserve fraction. So the height coordinate is not a
+coarser approximation of the right derivative; it is an accurate derivative of
+the wrong quantity. The diagnostic #590 gives is that refining the node schedule
+does not close the gap for TF24, where for FF16 and K93 (size-only growth) the
+two coordinates converge at ~2nd order.
+
+Running the hydraulic gateway in the coordinate that is wrong for hydraulics
+would score the model on an artefact, so the gateway opts in.
+
+**What this cost, and what it caught.** Birth date is also ~2x faster here (36 s
+against 70 s for the eight scenarios). And it exposed a hole in the baseline
+guard: across a 47x swing in R0 and a persistence flip, `observed` did not change
+on a *single* scenario, because it tests `finite && total > 0` and everything has
+satisfied that since the crash fixes landed. `test-scenario-gateway.R` now diffs
+`persists` alongside `observed`.
+
+**The baseline is re-blessed** under birth date — reversing the "not re-blessed"
+position taken earlier in this note, which was correct for a pure reporting
+change and is not correct for a coordinate change that moves a verdict.

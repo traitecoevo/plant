@@ -28,9 +28,16 @@ mpl <- if (length(args) >= 2) as.numeric(args[[2]]) else
 workers <- as.integer(Sys.getenv("SCENARIO_WORKERS",
                                  as.character(max(1L, parallel::detectCores() - 1L))))
 
-message(sprintf("Running scenarios (max_patch_lifetime = %g, workers = %d) ...",
-                mpl, workers))
-scorecard <- run_scenarios(max_patch_lifetime = mpl, workers = workers)
+## Report the density coordinate: the blessed baseline depends on it (switching
+## it moves R0 by up to 47x and flips S01's persistence), so a scorecard that
+## does not say which one produced it cannot be compared to another.
+ctrl <- scenario_control()
+message(sprintf("Running scenarios (max_patch_lifetime = %g, workers = %d, %s) ...",
+                mpl, workers,
+                if (ctrl$node_density_in_birth_date) "density in birth date"
+                else "density in height"))
+scorecard <- run_scenarios(ctrl = ctrl, max_patch_lifetime = mpl,
+                           workers = workers)
 
 meta <- attr(scorecard, "metadata")
 message(sprintf("Build: %s @ %s%s",

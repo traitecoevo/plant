@@ -576,9 +576,32 @@ were not previously recorded here:
   `match_rate` are still reported but demoted to *agreement with the CSV's
   crash-era expectations*: with the crashes fixed (#546/#552/#554) the match rate
   mostly measures how well those predictions have aged, not model quality — which
-  is why fixing the model *lowered* it from 5/8 to 3/8. `status` and `outcome` are
-  unchanged, so the blessed baseline is not re-blessed and the CSV is not
-  rewritten.
+  is why fixing the model *lowered* it from 5/8 to 3/8. `status` and `outcome`
+  are unchanged and the CSV is not rewritten.
+
+* **The scenario gateway integrates in birth date, not height** (#590), via a
+  new `scenario_control()` that supplies the `Control` every entry point in the
+  framework now defaults to. The package default is untouched.
+
+  Every scenario in the gateway is TF24, and TF24 is the model the two density
+  coordinates genuinely disagree on: the compression term is the total
+  derivative of growth along a cohort's trajectory, which equals `dg/dh` only
+  when growth is a function of size, and TF24's reserve gate (#517) breaks that.
+  So the gateway had been scoring the hydraulic model through a compression term
+  that is wrong for it.
+
+  Measured on the eight scenarios at `max_patch_lifetime = 100`, the coordinate
+  change raises R0 on every one — S02 2.4x, S06 8.9x, S08 15x, S05 25x, S07 47x
+  — and moves **S01 across R0 = 1** (2.59e-01 to 1.49e+00). Persistence goes
+  **1/8 to 2/8**. Numerical viability stays 8/8 and CSV agreement stays 3/8.
+  Birth date is also about twice as fast here (36 s against 70 s).
+
+  Note what that implies about the old guard: `observed` did not change on a
+  *single* scenario across a 47x swing in R0. It tests `finite && total > 0`,
+  which every scenario has satisfied since the crash fixes landed, so it was
+  pinned at 8/8 and could not move. The baseline diff in
+  `test-scenario-gateway.R` therefore now diffs `persists` as well as
+  `observed`, and **the baseline is re-blessed** under the new coordinate.
 * `SpeciesBase::control()` called `strategy->get_control()`, which does not
   exist on any strategy. The member had never been instantiated, so the error
   had never been compiled; it now reads `strategy->control`.
