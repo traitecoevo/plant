@@ -199,10 +199,10 @@ What moved into C++ (all on `Node`/`Species`/`SCM` in
 ### 3.4 The TF24 leaf model lives in another repo
 
 TF24's leaf gas-exchange and hydraulics sub-model is **not in this repository**. It
-is the standalone header-only [`leaf`](https://github.com/traitecoevo/phylloptim)
+is the standalone header-only [`phylloptim`](https://github.com/traitecoevo/phylloptim)
 package, reached through `LinkingTo` and a compatibility shim at
 [inst/include/plant/leaf_model.h](inst/include/plant/leaf_model.h) that aliases
-`plant::Leaf = leaf::Leaf`. `src/leaf_model.cpp` is gone. Consequences worth
+`plant::Leaf = phylloptim::Leaf`. `src/leaf_model.cpp` is gone. Consequences worth
 knowing before you go looking for a leaf bug here:
 
 - **Fix leaf physiology in `phylloptim`, not here.** It has its own golden-file
@@ -390,8 +390,8 @@ changing underneath them — anything reached via `LinkingTo` — moves no `.cpp
 timestamp at all, so *nothing* rebuilds.
 
 The failure this produces points nowhere near the cause. Consuming the
-standalone `leaf` package turned `plant::Leaf` from a class into a
-`using`-alias for `leaf::Leaf`. A stale `RcppExports.o` still carried the
+standalone `phylloptim` package turned `plant::Leaf` from a class into a
+`using`-alias for `phylloptim::Leaf`. A stale `RcppExports.o` still carried the
 pre-alias mangling, and the load failed with:
 
 ```
@@ -614,6 +614,11 @@ repo's README for how it renders, freezes (`_freeze/`), and version-pins posts.
 - ⚠️ Several hot-path constructs look "wrong" but are deliberate performance
   choices — see §12 before "tidying" them (inline helpers in headers, integer
   index constants, ratio-first signatures, scratch buffers).
+- ✅ Opening a PR → its title and body **become the squash commit message**, verbatim
+  and permanently. Subject ≤72 chars *including* the ` (#NNN)` GitHub appends, body
+  under 20 lines. Measurements, benchmark tables, suite counts, rejected alternatives,
+  disproved hypotheses and branch bookkeeping go in the **first PR comment** instead —
+  see [`commit-messages.md`](https://github.com/traitecoevo/plant-meta/blob/main/governance/commit-messages.md).
 
 ---
 
@@ -785,6 +790,10 @@ org — a hub-and-spoke set of packages built around the
   work is tracked on [board #5](https://github.com/orgs/traitecoevo/projects/5) (new issues
   auto-add with no Status = the triage queue). Labels: `bug` / `task` / `epic` plus `blocked`,
   `needs-info`, `cross-package`, `breaking`, `question`.
+- **Commit messages** — the repo squash-merges, so a PR's title and body are copied verbatim into
+  permanent history. Keep them short and durable and put the working detail in the first PR
+  comment; the split is set out in
+  [`commit-messages.md`](https://github.com/traitecoevo/plant-meta/blob/main/governance/commit-messages.md).
 - **What should run vs. what should fail** — strategies and environments are expected to run
   across a wide range of trait values and conditions and give sensible biological outputs
   (including zero growth or reproduction) rather than crash; a *physically unrealistic* state

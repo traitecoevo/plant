@@ -57,8 +57,8 @@ products using plant.
     value and the exact stochastic TF24 counts pass unchanged.
 
 * The TF24 leaf gas-exchange and hydraulics model now comes from the standalone
-  header-only [`leaf`](https://github.com/traitecoevo/phylloptim) package instead of
-  a copy in this repo (phylloptim #9). `plant::Leaf` is an alias for `leaf::Leaf`, so
+  header-only [`phylloptim`](https://github.com/traitecoevo/phylloptim) package instead of
+  a copy in this repo (phylloptim #9). `plant::Leaf` is an alias for `phylloptim::Leaf`, so
   C++ consumers that `#include <plant/leaf_model.h>` and read public `Leaf` members
   keep compiling unchanged. **`scientific_version` for TF24 goes 4 -> 5 and TF24f
   4.1 -> 5.1: TF24 output moves by about +2.4%** — see `tf24_strategy.h` for the
@@ -258,6 +258,123 @@ were not previously recorded here:
 
 ### New features
 
+* **`Control$node_density_in_birth_date`** (default `FALSE`) carries the SCM's
+  size distribution as a density in birth date instead of in height.
+
+  The transport equation's compression term is the total derivative of the growth
+  rate along a cohort's own trajectory, which equals `∂g/∂h` only when growth is
+  a function of size. TF24's reserve gate breaks that: the finite-difference
+  probe in `Node::growth_rate_gradient` moves height while holding *absolute*
+  carbon fixed, so it shifts the reserve fraction `r = S/S_max`, whereas a cohort
+  actually grows with `r` roughly constant. The probe is accurate about a
+  quantity the plant never experiences, so this is a different derivative rather
+  than a worse approximation of the right one.
+
+  In birth-date coordinates the density rate is mortality alone (nothing moves an
+  individual along the birth-date axis), the birth density is
+  `birth_rate·pr_estab` with no division by the growth rate, and both resource
+  integrals run over introduction times.
+
+  With the flag off the solver is bit-identical to before. With it on:
+
+  - FF16 and K93 have size-only growth, so both coordinates must converge to the
+    same answer, and do. Relative difference in offspring production over
+    successive halvings of the node spacing: FF16 `1.0e-2`, `4.2e-3`, `1.2e-3`,
+    `2.9e-4`; K93 `2.6e-3`, `5.9e-4`, `1.4e-4`, `3.5e-5`. That is the ~2nd order
+    of the trapezium rule, and confirms the coordinate change is a change of
+    coordinates.
+  - The gap is almost entirely the *height* coordinate's error. Across those same
+    four schedules FF16's birth-date answer moves 18.6956 → 18.6996 while its
+    height answer climbs 18.5071 → 18.6941 toward it. At the default schedule the
+    birth-date answer is already within `2e-4` of converged and the height answer
+    is `1.0e-2` away — roughly 50x more accurate for the same number of nodes.
+  - TF24, whose growth is not a function of size alone, is the case the two
+    coordinates genuinely disagree on, and the diagnostic is that refining the
+    schedule does *not* close the gap the way it does for FF16 and K93. At
+    `lma = 0.0825`, `hmat = 5`, `birth_rate = 20`,
+    `max_patch_lifetime = 30`, over the same three schedules: height
+    474 → 587 → 696, birth date 3495 → 3729 → 3840, a ratio of 7.4 → 6.3 → 5.5.
+    Both are still moving, so neither figure is a converged value; the point is
+    that they are not converging *to each other*, which is what a wrong
+    compression term looks like as against a coarse quadrature.
+
+  Multi-species runs behave the same way. The established two-species FF16 and
+  three-species K93 cases converge per species at the same ~2nd order (FF16
+  `4.4e-3`/`7.1e-3` → `2.8e-4`/`6.0e-4`; K93 all three species `3.1e-3`–`6.2e-3`
+  → `1.9e-4`–`3.7e-4`), and K93's competitively marginal first species — ~90x
+  below the dominant one — converges no worse in relative terms than the
+  dominant ones. So the shared competition profile does not disadvantage a
+  marginal species under the coordinate change.
+
+  **TF24 two-species changes the ecological outcome, not just the numbers.** On
+  the two-species case of `test-strategy-tf24.R` (`lma` 0.0825 / 0.10,
+  `max_patch_lifetime = 30`), the height coordinate excludes the slower species
+  (offspring production `1.4e-4` against `503` for the faster) while the
+  birth-date coordinate has them coexisting at comparable abundance (`1004`
+  against `2707`), and refining the schedule does not move either toward the
+  other. The conclusion recorded in that test — that reserve-gated growth
+  (#517) largely excludes the slower species — is therefore coordinate
+  dependent, and needs re-deriving before it is relied on.
+
+  `Node::growth_rate_gradient` is not called, which also removes one leaf solve
+  per cohort per Runge-Kutta stage.
+
+  **What R receives is unchanged in meaning.** The coordinate is an internal
+  choice, so `log_density` is converted back to a density in *height* before it
+  leaves C++ — `Species$log_densities`, `Patch$state`, and therefore
+  `run_scm(collect = TRUE)`, `tidy_outputs.R`'s `density = exp(log_density)`,
+  `interpolate_to_heights()` and the plots all keep their existing meaning. The
+  conversion is `N = ν / |dh/dτ|`, with the Jacobian formed by central
+  differences of adjacent node heights against their birth dates (the boundary
+  node supplies the extra point at the young end). Measured against an otherwise
+  identical height-coordinate run, the median node agrees to `1.7e-3` in log
+  space — 0.17% in density — improving to `4.4e-4` and `1.1e-4` over two
+  schedule refinements. See Known issues for where this is weakest.
+
+  The boundary node needs no differencing at all: `dh/dτ = −g(H₀)` at birth, so
+  `compute_initial_conditions()` now records the birth growth rate on every node
+  (`Node$growth_rate_at_birth`) and the Jacobian uses it there directly. It is
+  exact *and* current for that node, because the boundary node is re-evaluated
+  every step; for an introduced node the recorded rate is frozen at its own
+  birth and so cannot serve as its present-day Jacobian. This removes a 31%
+  error on the boundary node — it sits a whole introduction interval from its
+  neighbour, which is the worst case for a one-sided difference. Recording it
+  also lets the two coordinates' boundary conditions be checked against each
+  other: `exp(log_density) · g(H₀)` on the height path must equal
+  `birth_rate · pr_estab`, which the birth-date path carries directly, and that
+  is now a test.
+
+  The quantity actually integrated is reported alongside rather than lost:
+  `Species$log_densities_state` (and a `log_density_state` row in `Patch$state`,
+  present only on the birth-date path), plus `Species$height_jacobian` for the
+  conversion itself. `Node$log_density` stays unconverted, since forming
+  `|dh/dτ|` needs the neighbouring nodes and a `Node` does not have them.
+  `export_patch_state()` resumes from `patch$ode_state`, which is the raw state,
+  so resume is unaffected by any of this — pinned by a test.
+
+  Two invariants the birth-date axis needs, which the height axis did not:
+
+  - The boundary node's birth date is the current time, so
+    `Patch::compute_environment()` refreshes it before building the profile.
+    `compute_rates()` (which stamps it) runs *after* the `set_ode_state()` that
+    rebuilds the environment, so reading the stamp there would use the previous
+    derivs call's time. The measured effect on FF16 offspring production is below
+    `1e-6` — the boundary node carries almost no leaf area — but it made the
+    spatial quadrature a function of the ODE step size.
+  - Introduction times are the quadrature grid, so repeated ones span zero width
+    and drop out of the integrals. A scheduled run cannot produce them; a patch
+    seeded or resumed *without* per-node times gives every node the boundary
+    node's birth date, which would silently zero the competition profile.
+    `Patch::check_birth_dates_distinct()` now rejects that with an actionable
+    message. A faithful `export_patch_state()` / `set_initial_state()`
+    round-trip carries the times and is unaffected.
+
+  `Species::compute_competition()` keeps the sorted-grid fallback of #574 for the
+  height coordinate only: that path integrates in height, so sending the
+  birth-date coordinate down it would swap coordinates mid-run. The birth-date
+  abscissa cannot invert (introduction times are fixed at birth), but the
+  *height* early exit is skipped when the height ordering has broken, since a
+  node below the query height can then be followed by a taller one.
 * **A dry TF24f patch no longer aborts the whole run on the ci root-find.**
   `Leaf::dprofit_droot_collar_psi` — TF24f's exact AD/IFT gradient — called
   `psi_stem_to_ci()` before testing for hydraulic shut-down. In shut-down,
@@ -417,8 +534,36 @@ were not previously recorded here:
   variables (#323) and environment state variables (#305) exposed/added.
 * Added an HTML report (plots + analyses) for the FF16 strategy (#350).
 
+### Known issues
+
+* On the birth-date path, the *worst-case* node of the reported height density
+  does not improve with schedule refinement, even though the typical node does
+  (see the reporting note under New features). `|dh/dτ|` is a ratio of two
+  differences that both shrink as the schedule is refined, so cancellation error
+  sets a floor, and refinement adds nodes in the near-empty tail where that floor
+  is worst. Aggregate and plotting use is sound; individual node densities far
+  out in the tail are not. Note the exact `−g(H₀)` Jacobian does not help here:
+  it is exact only at a node's own birth, and the worst cases are interior nodes
+  in a compressed region of the size distribution (log density ~ −11), not the
+  boundary. Removing this properly means evolving `∂h/∂τ` along the
+  characteristic, whose rate is `∂g/∂h · ∂h/∂τ` — which is the compression term
+  this change exists to avoid, so it would have to be an opt-in extra state
+  wanted only for reporting.
+
+* `stochastic_schedule()` passes `patch_area` into
+  `stochastic_arrival_times()`'s third positional argument, which is `delta_t`.
+  Arrival rates therefore never scale with patch area, and the binning interval
+  is set to the area instead. Passing it by name is the fix, but
+  `test-stochastic-patch-runner.R` runs at `patch_area = 50` with seed-pinned
+  expectations, so correcting it makes that file ~50x heavier and needs its
+  parameters and baselines revisited. Probes that need a correct schedule build
+  their own (see `plant-dev` `probes/12-oracle.R`).
+
 ### Minor changes & bug fixes
 
+* `SpeciesBase::control()` called `strategy->get_control()`, which does not
+  exist on any strategy. The member had never been instantiated, so the error
+  had never been compiled; it now reads `strategy->control`.
 * **The TF24 rainfall driver is floored at zero.** Because drivers are
   interpolated with a cubic spline, an intermittent series undershoots below
   every supplied value, and negative rainfall gave negative infiltration and an

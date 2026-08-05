@@ -305,6 +305,7 @@ Control:
     - node_gradient_direction: int
     - node_gradient_richardson: bool
     - node_gradient_richardson_depth: size_t
+    - node_density_in_birth_date: bool
     - ode_step_size_initial: double
     - ode_step_size_min: double
     - ode_step_size_max: double
@@ -545,7 +546,18 @@ Node:
   active:
     individual: {type: "plant::Individual<T,E>", access: field, readonly: true}
     height: {type: double, access: member}
+    ## The quantity this node carries: the density in height on the height path,
+    ## the density in birth date on the birth-date one. Unlike
+    ## Species$log_densities this is *not* converted, because forming |dh/dtau|
+    ## needs the neighbouring nodes and a Node does not have them.
     log_density: {type: double, access: member, name_cpp: get_log_density}
+    ## The node's birth date. For the not-yet-introduced boundary node this is
+    ## the current patch time, refreshed on every environment build.
+    introduction_time: {type: double, access: member, readonly: true}
+    ## |dh/dtau| at birth, i.e. the height growth rate the node was born at.
+    ## Exact and current for the boundary node; frozen at its own birth for an
+    ## introduced one.
+    growth_rate_at_birth: {type: double, access: member, readonly: true}
     fecundity: {type: double, access: member}
     ode_size: {type: size_t, access: member}
     ode_state: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_state", name_cpp_set: "odelia::ode::r_set_ode_state"}
@@ -582,8 +594,17 @@ Species:
     new_node: {type: "plant::Node<T,E>", access: member, name_cpp: r_new_node}
     height_max: {type: double, access: member, readonly: true}
     heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
+    ## Always a density in height, whichever coordinate the solver carried it in.
     log_densities: {type: "std::vector<double>", access: member, name_cpp: r_log_densities}
+    ## The quantity actually integrated: the height density on the height path,
+    ## the birth-date density (nu) on the birth-date one.
+    log_densities_state: {type: "std::vector<double>", access: member, name_cpp: r_log_densities_state, readonly: true}
+    ## |dh/dtau| per node, boundary node last; the conversion between the two.
+    height_jacobian: {type: "std::vector<double>", access: member, readonly: true}
     node_times: {type: "std::vector<double>", access: member}
+    ## Which coordinate this species' size distribution is carried in. Set from
+    ## the patch's control, not the strategy's (Patch::add_strategies).
+    density_in_birth_date: {type: bool, access: member, readonly: true}
     patch_densities: {type: "std::vector<double>", access: member, name_cpp: r_patch_densities}
     pr_patch_survival_at_birth: {type: "std::vector<double>", access: member, name_cpp: r_pr_patch_survival_at_birth}
     nodes: {type: "std::vector<plant::Node<T,E> >", access: member, name_cpp: r_nodes}

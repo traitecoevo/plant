@@ -160,3 +160,42 @@ for (x in names(strategy_types)) {
     expect_equal(node$compute_competition(h / 2), plant$compute_competition(h / 2) * density)
   })
 }
+
+for (x in names(strategy_types)) {
+  e <- environment_types[[x]]
+
+  test_that(sprintf("density in birth date (%s)", x), {
+    ctrl <- Control()
+    ctrl$node_density_in_birth_date <- TRUE
+    s <- strategy_types[[x]]()
+    s$control <- ctrl
+
+    env <- Environment(x)
+    env$set_fixed_environment(1.0, 100)
+    env$time <- 3.5
+
+    node <- Node(x, e)(s)
+    node$compute_initial_conditions(env, pr_patch_survival = 1, birth_rate = 2)
+
+    ## No division by the growth rate at the boundary.
+    pr_estab <- node$individual$establishment_probability(env)
+    expect_equal(node$log_density, log(2 * pr_estab))
+
+    ## Nothing moves an individual along the birth-date axis, so the only
+    ## term left is mortality.
+    node$compute_rates(env, 1)
+    rates <- node$ode_rates
+    expect_equal(rates[[length(rates)]],
+                 -node$individual$rate("mortality"))
+
+    ## And the height coordinate keeps its compression term.
+    s2 <- strategy_types[[x]]()
+    node2 <- Node(x, e)(s2)
+    node2$compute_initial_conditions(env, pr_patch_survival = 1, birth_rate = 2)
+    node2$compute_rates(env, 1)
+    rates2 <- node2$ode_rates
+    expect_equal(rates2[[length(rates2)]],
+                 -node2$individual$rate("mortality") -
+                   node2$growth_rate_gradient(env))
+  })
+}

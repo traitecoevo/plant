@@ -4,7 +4,7 @@
 
 // Compatibility shim. The leaf gas-exchange and hydraulics model used to live
 // here (inst/include/plant/leaf_model.h + src/leaf_model.cpp); it now ships as
-// the standalone, header-only `leaf` package and plant consumes it via
+// the standalone, header-only `phylloptim` package and plant consumes it via
 // LinkingTo. See that package's README and PLAN.md.
 //
 // This header exists so that plant's own sources -- and in particular the ~17k
@@ -12,8 +12,8 @@
 // throughout -- keep compiling unchanged. Aliasing costs nothing at runtime.
 //
 // Note that LinkingTo is NOT transitive in R: plant must name BH and odelia in
-// its own DESCRIPTION even though it is `leaf` that includes them. It already
-// does.
+// its own DESCRIPTION even though it is `phylloptim` that includes them. It
+// already does.
 
 #include <phylloptim.hpp>
 
@@ -47,11 +47,12 @@ using ::phylloptim::umol_to_mol;
 // umol_to_mol` (phylloptim item 10c), so there is no longer a namespace-scope
 // constant to alias. Nothing in plant read it outside the leaf model.
 //
-// ⚠️ This is NOT inert for plant: TF24_Environment's `atm_kpa` driver defaults to
-// **100.5**, not 101.3 (tf24_environment.h). So Gamma*, Kc, Ko, Km and the ci
-// root-find's lower bound all move by ~0.8% relative on every TF24 run. See the
-// NEWS entry -- the leaf package's own golden grid could not see this because it
-// evaluates at 101.3.
+// ⚠️ Because the conversion is now derived rather than fixed, `atm_kpa` reaches
+// Gamma*, Kc, Ko, Km and the ci root-find's lower bound, which it did not before.
+// TF24_Environment's driver therefore defaults to 101.3 (tf24_environment.h),
+// the pressure the old constant encoded; it read 100.5 until this branch pinned
+// it, which was worth ~0.8% relative on every TF24 run. See the NEWS entry.
+// Setting the driver for altitude now moves those quantities too, as it should.
 
 // Penman-Monteith leaf energy balance (#523).
 using ::phylloptim::leaf_temp_max;

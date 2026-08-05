@@ -78,7 +78,7 @@ public:
 protected:
   explicit SpeciesBase(strategy_type s) : strategy(make_strategy_ptr(s)) {}
 
-  const Control& control() const { return strategy->get_control(); }
+  const Control& control() const { return strategy->control; }
 
   strategy_type_ptr strategy;
   std::vector<node_type> nodes;

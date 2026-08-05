@@ -193,6 +193,11 @@ private:
   // value can propagate into competition, resource uptake, or physiology and
   // surface as an opaque downstream error.
   void check_finite_ode_state() const;
+  // Guard the birth-date coordinate's quadrature grid: it is the per-node
+  // introduction times, so nodes sharing one give zero-width intervals that drop
+  // silently out of the integral. Only reachable for a patch whose nodes were
+  // created outside the schedule (seeded or imported without per-node times).
+  void check_birth_dates_distinct() const;
 
   parameters_type parameters;
 
@@ -348,6 +353,8 @@ void Patch<T,E>::set_initial_state() {
     }
   }
 
+  check_birth_dates_distinct();
+
   // Build the environment from the real node heights (full recompute, no
   // rescale) and compute rates for the seeded population.
   compute_environment(false);
@@ -363,6 +370,27 @@ void Patch<T,E>::check_initial_density_rates() const {
       util::stop("Rates of initial node densities exceed ~1e43 and will likely "
                  "produce non-finite densities; provide more plausible initial "
                  "conditions (smaller sizes and/or lower densities).");
+    }
+  }
+}
+
+template <typename T, typename E>
+void Patch<T,E>::check_birth_dates_distinct() const {
+  for (size_t i = 0; i < species.size(); ++i) {
+    // Only the birth-date coordinate integrates over these times. On the height
+    // path they feed the lifetime-fitness integral after the run, where a
+    // repeated time has always been tolerated.
+    if (!species[i].density_in_birth_date()) {
+      continue;
+    }
+    if (!species[i].birth_dates_are_distinct()) {
+      util::stop("Species " + util::to_string(i + 1) + " has nodes sharing an "
+                 "introduction time, which the birth-date size-density "
+                 "coordinate integrates over: the repeated nodes span zero width "
+                 "and drop out of the competition and resource integrals. Supply "
+                 "per-node introduction times (parameters$initial_node_times) "
+                 "with the initial state, or run with "
+                 "control$node_density_in_birth_date = FALSE.");
     }
   }
 }
@@ -578,6 +606,22 @@ std::vector<std::vector<double>> Patch<T,E>::refinement_error_by_node() const {
 template <typename T, typename E>
 void Patch<T,E>::compute_environment(bool rescale) {
 
+  // The boundary node is one end of the birth-date quadrature and its birth date
+  // is the current time, so refresh it before the profile is built. Its own
+  // stamp is set in compute_rates(), which the stepper calls *after* the
+  // set_ode_state() that brings us here, so reading that stamp would use the
+  // previous derivs call's time and shorten the boundary interval by a
+  // Runge-Kutta stage. Measured effect on FF16 offspring production is below
+  // 1e-6 -- the boundary node carries almost no leaf area, so the segment it
+  // ends contributes little -- but the interval is then a function of the step
+  // size, which the spatial quadrature has no business depending on, and the
+  // whole integral *is* that one segment while a species has a single node.
+  // No-op for the height coordinate, where this abscissa is the constant
+  // initial height.
+  for (auto& s : species) {
+    s.set_new_node_birth_date(environment.time);
+  }
+
   // Define an anonymous function to use in creation of environment
   auto f = [&](double x) -> double { return compute_competition(x); };
 
@@ -769,6 +813,11 @@ void Patch<T,E>::r_set_state(double time,
     }
   }
   util::check_length(state.size(), ode_size());
+  // Every node here is a copy of the boundary node, so they all carry the same
+  // birth date and the ODE state does not restore it (it is bookkeeping, not a
+  // state variable). Fine for the height coordinate; fatal for the birth-date
+  // one, which uses these times as its quadrature grid.
+  check_birth_dates_distinct();
   set_ode_state(state.begin(), time);
   environment.r_init_interpolators(light_availability);
 }

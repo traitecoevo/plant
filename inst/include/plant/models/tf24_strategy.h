@@ -141,8 +141,8 @@ public:
   // offspring production moves by up to 5e-3 relative on 5 of 8 scenarios,
   // while every success/failure classification is unchanged. TF24f's compound
   // version auto-tracks this to 4.1.
-  // v5: the leaf gas-exchange and hydraulics model is now the standalone `leaf`
-  // package rather than a copy in this repo, and the swap carries four science
+  // v5: the leaf gas-exchange and hydraulics model is now the standalone
+  // `phylloptim` package rather than a copy in this repo, and the swap carries four science
   // changes. Measured on the one-species SCM scenario of test-strategy-tf24.R
   // (max_patch_lifetime = 5), offspring production moves 81.9083 -> 83.9026,
   // i.e. **+2.4%**. Attributed by re-running both arms with the atm_kpa driver

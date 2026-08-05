@@ -87,7 +87,7 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
   ## individuals introduced and the number alive at the final step are fixed.
   ## These golden values guard against trajectory-changing regressions in the
   ## stochastic tower; update them deliberately if the model/RNG use changes.
-  ## TF24's pair survived the move to the standalone `leaf` package **unchanged**,
+  ## TF24's pair survived the move to standalone `phylloptim` **unchanged**,
   ## which is worth stating because it briefly did not. Deriving the leaf's ppm -> Pa
   ## conversion from `atm_kpa` moved it to 101/23 while the TF24 driver still said
   ## 100.5 kPa; pinning that driver to the 101.3 the conversion had always assumed

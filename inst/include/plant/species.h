@@ -79,6 +79,29 @@ public:
   // Introduction times of each node (the integration x-axis for fitness).
   std::vector<double> node_times() const;
 
+  // The boundary node's birth date is *now*, but compute_initial_conditions()
+  // (which stamps it) runs inside compute_rates(), which the ODE stepper calls
+  // after set_ode_state() has already rebuilt the environment. Reading the stamp
+  // during that rebuild would therefore pick up the previous derivs call's time
+  // and shorten the boundary trapezium by one Runge-Kutta stage. Patch refreshes
+  // it before building the profile. Harmless on the height path, where the
+  // boundary abscissa is the constant initial height.
+  void set_new_node_birth_date(double time) {
+    new_node.set_introduction_time(time);
+  }
+
+  // Two nodes sharing a birth date give a zero-width trapezium interval, so the
+  // birth-date quadrature silently loses them. Cannot happen for a scheduled
+  // run (introduction times are distinct by construction) but can for a patch
+  // seeded or imported without per-node times.
+  bool birth_dates_are_distinct() const;
+
+  // Which coordinate this species' size distribution is carried in. Exposed so
+  // Patch can check every species agrees before summing their contributions.
+  bool density_in_birth_date() const {
+    return control().node_density_in_birth_date;
+  }
+
   // * ODE interface
   // NOTE: We are a time-independent model here so no need to pass
   // time in as an argument.  All the bits involving time are taken
@@ -89,6 +112,7 @@ public:
   void resize_consumption_rates(int i);
   double consumption_rate(int i) const;
   std::vector<double> consumption_rate_by_node_rev(int i) const;
+  std::vector<double> consumption_rate_by_node(int i) const;
 
   odelia::ode::iterator       ode_aux(odelia::ode::iterator it) const;
 
@@ -118,11 +142,26 @@ public:
   std::vector<double> r_compute_competition_effect_by_nodes() const;
   std::vector<double> r_compute_competition_effect_by_nodes_error(double scal) const;
 
-  // This is just kind of useful
+  // Per-node size density, **always** as a density in height whichever
+  // coordinate the solver carried it in, so downstream code (tidy_outputs.R's
+  // `density`, interpolate_to_heights(), the plots) keeps its meaning. In
+  // birth-date coordinates that means dividing the carried quantity by the
+  // Jacobian; see height_jacobian(). NA for a node where the Jacobian vanishes,
+  // which is where the height density genuinely does not exist.
   std::vector<double> r_log_densities() const;
+  // The quantity actually integrated: the density in height on the height path,
+  // and the density in birth date (nu) on the birth-date one. Reported
+  // alongside r_log_densities() rather than instead of it, because it is the
+  // thing whose ODE the solver solves and the thing that cannot go non-finite.
+  std::vector<double> r_log_densities_state() const;
   // Per-node rate of change of log density; used to guard against initial
-  // conditions whose densities would explode to non-finite values.
+  // conditions whose densities would explode to non-finite values. This is the
+  // rate of the *carried* quantity, so on the birth-date path it is -mortality.
   std::vector<double> r_log_density_rates() const;
+
+  // |dh/dtau| per node, with the boundary node appended last: the Jacobian of
+  // the change of variables between the two coordinates, N = nu / |dh/dtau|.
+  std::vector<double> height_jacobian() const;
 
   // Per-node birth bookkeeping, exposed so an exported patch state can be
   // re-imported faithfully (see node.h::set_birth_state). node_times() above
@@ -140,6 +179,8 @@ public:
 private:
   // compute_competition() for the case where the node heights are no longer
   // ordered, so the node list cannot be used directly as the quadrature grid.
+  // Height coordinate only -- it integrates in height, and the birth-date
+  // abscissa cannot invert (see compute_competition).
   double compute_competition_unordered(double height) const;
 
   // Cache for scan_heights(). Every path that can change a node height must call
@@ -159,6 +200,27 @@ private:
   using base_type::strategy;
   using base_type::control;
   node_type new_node;
+
+  // The abscissa both resource integrals are taken over, increasing as the node
+  // list is walked from the tallest down. Heights are negated so that both
+  // coordinates increase in the same direction; negation is exact, so the height
+  // branch's trapezium widths are bit-identical to differencing the heights
+  // themselves. Callers in hot loops read the coordinate once and pass it in.
+  static double abscissa_of(const node_type& n, bool birth_date) {
+    return birth_date ? n.introduction_time() : -n.height();
+  }
+  double quadrature_abscissa(const node_type& n) const {
+    return abscissa_of(n, control().node_density_in_birth_date);
+  }
+  std::vector<double> quadrature_abscissae() const {
+    std::vector<double> ret;
+    ret.reserve(size());
+    const bool birth_date = control().node_density_in_birth_date;
+    for (auto& c : nodes) {
+      ret.push_back(abscissa_of(c, birth_date));
+    }
+    return ret;
+  }
 
   typedef typename std::vector<node_type>::iterator nodes_iterator;
   typedef typename std::vector<node_type>::const_iterator nodes_const_iterator;
@@ -291,6 +353,10 @@ double Species<T,E>::compute_competition(double height) const {
   if (scan.h_max < height) {
     return 0.0;
   }
+  // Read the coordinate once: this is the hottest loop in the solver (one pass
+  // per spline knot per Runge-Kutta stage), so the control lookup does not
+  // belong inside it.
+  const bool birth_date = control().node_density_in_birth_date;
   // The loop below uses the node list itself as the quadrature grid, and the
   // early exit is valid only if that grid is monotone. When it is not, the exit
   // fires at the first node below `height` and silently drops every node beyond
@@ -298,32 +364,50 @@ double Species<T,E>::compute_competition(double height) const {
   // fictitious step in the competition profile. Take the ordered path instead.
   // Heights only, so the usual (ordered) case keeps this loop and its results
   // exactly.
-  if (!scan.decreasing) {
+  //
+  // Only the height abscissa can invert. Introduction times are fixed at birth
+  // and nodes are appended in that order, so the birth-date grid is monotone
+  // whatever the heights do -- and compute_competition_unordered integrates in
+  // height, so sending the birth-date coordinate down it would silently swap
+  // coordinates mid-run.
+  if (!birth_date && !scan.decreasing) {
     return compute_competition_unordered(height);
   }
   double tot = 0.0;
   nodes_const_iterator it = nodes.begin();
-  double h1 = it->height(), f_h1 = it->compute_competition(height);
+  double x1 = abscissa_of(*it, birth_date), f1 = it->compute_competition(height);
 
   // Loop over nodes
   for (++it; it != nodes.end(); ++it) {
-    const double h0 = it->height(), f_h0 = it->compute_competition(height);
-    if (!util::is_finite(f_h0)) {
+    const double x0 = abscissa_of(*it, birth_date), h0 = it->height(),
+                 f0 = it->compute_competition(height);
+    if (!util::is_finite(f0)) {
       util::stop("Detected non-finite contribution");
     }
     // Integration
-    tot += (h1 - h0) * (f_h1 + f_h0);
+    tot += (x0 - x1) * (f1 + f0);
     // Upper point moves for next time:
-    h1   = h0;
-    f_h1 = f_h0;
-    if (h0 < height) {
+    x1 = x0;
+    f1 = f0;
+    // It is the decreasing height ordering, not the abscissa, that licenses
+    // stopping here: every later node is then shorter than `height` and
+    // contributes nothing. On the birth-date axis that ordering can break while
+    // the abscissa stays monotone, and a node below `height` may be followed by
+    // a taller one, so walk the whole list instead. Always true on the height
+    // path, which returned above otherwise.
+    if (scan.decreasing && h0 < height) {
       break;
     }
   }
 
-  if (size() == 1 || f_h1 > 0) {
-    const double h0 = new_node.height(), f_h0 = new_node.compute_competition(height);
-    tot += (h1 - h0) * (f_h1 + f_h0);
+  // On the birth-date axis this segment is zero-width at the moment of
+  // introduction and contributes nothing once the boundary node is below
+  // `height`, so it is always safe to include; f1 can legitimately be zero here
+  // when the walk ran to the end.
+  if (size() == 1 || birth_date || f1 > 0) {
+    const double x0 = abscissa_of(new_node, birth_date),
+                 f0 = new_node.compute_competition(height);
+    tot += (x0 - x1) * (f1 + f0);
   }
 
   return tot / 2;
@@ -430,6 +514,16 @@ std::vector<double> Species<T,E>::node_times() const {
 }
 
 template <typename T, typename E>
+bool Species<T,E>::birth_dates_are_distinct() const {
+  for (size_t i = 1; i < nodes.size(); ++i) {
+    if (nodes[i].introduction_time() == nodes[i - 1].introduction_time()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+template <typename T, typename E>
 void Species<T,E>::resize_consumption_rates(int r) {
   new_node.resize_consumption_rates(r);
 }
@@ -438,6 +532,17 @@ template <typename T, typename E>
 double Species<T,E>::consumption_rate(int i) const {
   if (size() == 0) {
     return 0.0;
+  }
+  if (control().node_density_in_birth_date) {
+    // Introduction times are fixed at birth and nodes are appended in that
+    // order, so this grid is ascending however the heights behave -- there is no
+    // inverted case to sort. new_node's birth date is the current time, which is
+    // the newest, so it goes on the end rather than the front.
+    std::vector<double> times = node_times();
+    times.push_back(new_node.introduction_time());
+    std::vector<double> rates = consumption_rate_by_node(i);
+    rates.push_back(new_node.consumption_rate(i));
+    return util::trapezium(times, rates);
   }
   // node heights are in descending order - we need ascending for integration,
   // starting at new_node, which is where the size distribution starts.
@@ -479,6 +584,16 @@ std::vector<double> Species<T,E>::consumption_rate_by_node_rev(int i) const {
   return ret;
 }
 
+template <typename T, typename E>
+std::vector<double> Species<T,E>::consumption_rate_by_node(int i) const {
+  std::vector<double> ret;
+  ret.reserve(size());
+  for(auto& c : nodes) {
+    ret.push_back(c.consumption_rate(i));
+  }
+  return ret;
+}
+
 // bit clunky...
 template <typename T, typename E>
 size_t Species<T,E>::aux_size() const {
@@ -496,23 +611,47 @@ Rcpp::NumericMatrix Species<T, E>::r_get_state() const {
   size_t ode_size = node_type::ode_size(), n_nodes = size();
   size_t aux_size = strategy->aux_size();
 
+  // On the birth-date path `log_density` is converted to the density in height
+  // before it leaves C++, so every downstream consumer of this matrix keeps its
+  // meaning, and the quantity actually integrated is reported alongside it as
+  // `log_density_state`. Note export_patch_state() resumes from patch$ode_state,
+  // not from here, so the raw state is what a resume reloads.
+  const size_t extra = control().node_density_in_birth_date ? 1 : 0;
+
   // Set output size. // +1 is seed
-  Rcpp::NumericMatrix ret(static_cast<int>(ode_size + aux_size), n_nodes + 1); 
+  Rcpp::NumericMatrix ret(static_cast<int>(ode_size + aux_size + extra), n_nodes + 1);
   Rcpp::NumericMatrix::iterator it = ret.begin();
-  
+
   for (size_t i = 0; i < n_nodes; ++i)
   {
     it = get_node_state(nodes[i], it);
     it = get_node_aux(nodes[i], it);
+    it += extra;
   }
 
   it = get_node_state(new_node, it);
   it = get_node_aux(new_node, it);
+  it += extra;
 
   // Combine ode_names and aux_names into a single vector for dimnames
   std::vector<std::string> names = node_type::ode_names();
   std::vector<std::string> aux = strategy->aux_names();
   names.insert(names.end(), aux.begin(), aux.end());
+
+  if (extra > 0) {
+    const int ld = static_cast<int>(
+      std::find(names.begin(), names.end(), "log_density") - names.begin());
+    const int st = static_cast<int>(ode_size + aux_size);
+    names.push_back("log_density_state");
+    // This matrix includes the boundary node as its last column, so the
+    // Jacobian's trailing entry is used here (unlike r_log_densities()).
+    const std::vector<double> jac = height_jacobian();
+    for (int col = 0; col <= static_cast<int>(n_nodes); ++col) {
+      const double nu = ret(ld, col);
+      ret(st, col) = nu;
+      ret(ld, col) = util::is_finite(jac[col]) ? nu - std::log(jac[col]) : NA_REAL;
+    }
+  }
 
   ret.attr("dimnames") = Rcpp::List::create(names, R_NilValue);
 
@@ -567,16 +706,86 @@ std::vector<double> Species<T,E>::r_compute_competition_effect_by_nodes() const 
 
 template <typename T, typename E>
 std::vector<double> Species<T,E>::r_compute_competition_effect_by_nodes_error(double scal) const {
-  return util::local_error_integration(r_heights(), r_compute_competition_effect_by_nodes(), scal);
+  // Over the same abscissa the competition integral uses, so schedule
+  // refinement measures the error of the quadrature actually being taken.
+  // local_error_integration takes absolute differences, so the height branch's
+  // sign flip leaves it unchanged.
+  return util::local_error_integration(quadrature_abscissae(),
+                                       r_compute_competition_effect_by_nodes(), scal);
+}
+
+// Central differences in the interior, one-sided at the two ends. The boundary
+// node supplies the extra point at the young end, so the youngest real node --
+// the one whose Jacobian a forward difference gets worst -- gets a genuine
+// central difference. NA where the Jacobian vanishes: two cohorts at the same
+// height is exactly where the height density is undefined (it is the multivalued
+// case), and reporting +Inf there would be worse than reporting nothing.
+template <typename T, typename E>
+std::vector<double> Species<T,E>::height_jacobian() const {
+  const size_t n = size();
+  std::vector<double> h(n + 1), t(n + 1);
+  for (size_t i = 0; i < n; ++i) {
+    h[i] = nodes[i].height();
+    t[i] = nodes[i].introduction_time();
+  }
+  h[n] = new_node.height();
+  t[n] = new_node.introduction_time();
+
+  std::vector<double> ret(n + 1, NA_REAL);
+
+  // The boundary node needs no difference at all: dh/dtau = -g(H_0) at birth,
+  // and compute_initial_conditions() re-evaluates that every step, so the value
+  // it recorded is both exact and current. Only for *this* node -- an introduced
+  // one has aged since, and its recorded rate is frozen at its own birth.
+  const double g0 = new_node.growth_rate_at_birth();
+  if (util::is_finite(g0) && g0 > 0.0) {
+    ret[n] = g0;
+  }
+
+  if (n < 1) {
+    return ret; // no interior to difference
+  }
+  for (size_t j = 0; j < n; ++j) {
+    const size_t lo = (j == 0) ? 0 : j - 1;
+    const size_t hi = j + 1;
+    const double jac = std::abs((h[hi] - h[lo]) / (t[hi] - t[lo]));
+    if (util::is_finite(jac) && jac > 0.0) {
+      ret[j] = jac;
+    }
+  }
+  if (!util::is_finite(ret[n])) {
+    // Fall back to a one-sided difference if the birth rate is unavailable
+    // (a node loaded from an exported state records zero).
+    const double jac = std::abs((h[n] - h[n - 1]) / (t[n] - t[n - 1]));
+    if (util::is_finite(jac) && jac > 0.0) {
+      ret[n] = jac;
+    }
+  }
+  return ret;
 }
 
 template <typename T, typename E>
-std::vector<double> Species<T,E>::r_log_densities() const {
+std::vector<double> Species<T,E>::r_log_densities_state() const {
   std::vector<double> ret;
   ret.reserve(size());
   for (nodes_const_iterator it = nodes.begin();
        it != nodes.end(); ++it) {
     ret.push_back(it->get_log_density());
+  }
+  return ret;
+}
+
+template <typename T, typename E>
+std::vector<double> Species<T,E>::r_log_densities() const {
+  std::vector<double> ret = r_log_densities_state();
+  if (!control().node_density_in_birth_date) {
+    return ret;
+  }
+  // N = nu / |dh/dtau|. jac carries one extra trailing entry for the boundary
+  // node, which this accessor does not report.
+  const std::vector<double> jac = height_jacobian();
+  for (size_t i = 0; i < ret.size(); ++i) {
+    ret[i] = util::is_finite(jac[i]) ? ret[i] - std::log(jac[i]) : NA_REAL;
   }
   return ret;
 }

@@ -1661,6 +1661,16 @@ double Node___FF16__FF16_Env__log_density__get(plant::RcppR6::RcppR6<plant::Node
 }
 
 // [[Rcpp::export]]
+double Node___FF16__FF16_Env__introduction_time__get(plant::RcppR6::RcppR6<plant::Node<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->introduction_time();
+}
+
+// [[Rcpp::export]]
+double Node___FF16__FF16_Env__growth_rate_at_birth__get(plant::RcppR6::RcppR6<plant::Node<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->growth_rate_at_birth();
+}
+
+// [[Rcpp::export]]
 double Node___FF16__FF16_Env__fecundity__get(plant::RcppR6::RcppR6<plant::Node<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->fecundity();
 }
@@ -1723,6 +1733,16 @@ double Node___TF24__TF24_Env__height__get(plant::RcppR6::RcppR6<plant::Node<plan
 // [[Rcpp::export]]
 double Node___TF24__TF24_Env__log_density__get(plant::RcppR6::RcppR6<plant::Node<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
   return obj_->get_log_density();
+}
+
+// [[Rcpp::export]]
+double Node___TF24__TF24_Env__introduction_time__get(plant::RcppR6::RcppR6<plant::Node<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->introduction_time();
+}
+
+// [[Rcpp::export]]
+double Node___TF24__TF24_Env__growth_rate_at_birth__get(plant::RcppR6::RcppR6<plant::Node<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->growth_rate_at_birth();
 }
 
 // [[Rcpp::export]]
@@ -1791,6 +1811,16 @@ double Node___TF24f__TF24_Env__log_density__get(plant::RcppR6::RcppR6<plant::Nod
 }
 
 // [[Rcpp::export]]
+double Node___TF24f__TF24_Env__introduction_time__get(plant::RcppR6::RcppR6<plant::Node<plant::TF24f_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->introduction_time();
+}
+
+// [[Rcpp::export]]
+double Node___TF24f__TF24_Env__growth_rate_at_birth__get(plant::RcppR6::RcppR6<plant::Node<plant::TF24f_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->growth_rate_at_birth();
+}
+
+// [[Rcpp::export]]
 double Node___TF24f__TF24_Env__fecundity__get(plant::RcppR6::RcppR6<plant::Node<plant::TF24f_Strategy,plant::TF24_Environment> > obj_) {
   return obj_->fecundity();
 }
@@ -1853,6 +1883,16 @@ double Node___K93__K93_Env__height__get(plant::RcppR6::RcppR6<plant::Node<plant:
 // [[Rcpp::export]]
 double Node___K93__K93_Env__log_density__get(plant::RcppR6::RcppR6<plant::Node<plant::K93_Strategy,plant::K93_Environment> > obj_) {
   return obj_->get_log_density();
+}
+
+// [[Rcpp::export]]
+double Node___K93__K93_Env__introduction_time__get(plant::RcppR6::RcppR6<plant::Node<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->introduction_time();
+}
+
+// [[Rcpp::export]]
+double Node___K93__K93_Env__growth_rate_at_birth__get(plant::RcppR6::RcppR6<plant::Node<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->growth_rate_at_birth();
 }
 
 // [[Rcpp::export]]
@@ -1943,8 +1983,23 @@ std::vector<double> Species___FF16__FF16_Env__log_densities__get(plant::RcppR6::
 }
 
 // [[Rcpp::export]]
+std::vector<double> Species___FF16__FF16_Env__log_densities_state__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->r_log_densities_state();
+}
+
+// [[Rcpp::export]]
+std::vector<double> Species___FF16__FF16_Env__height_jacobian__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->height_jacobian();
+}
+
+// [[Rcpp::export]]
 std::vector<double> Species___FF16__FF16_Env__node_times__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->node_times();
+}
+
+// [[Rcpp::export]]
+bool Species___FF16__FF16_Env__density_in_birth_date__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->density_in_birth_date();
 }
 
 // [[Rcpp::export]]
@@ -2055,8 +2110,23 @@ std::vector<double> Species___TF24__TF24_Env__log_densities__get(plant::RcppR6::
 }
 
 // [[Rcpp::export]]
+std::vector<double> Species___TF24__TF24_Env__log_densities_state__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->r_log_densities_state();
+}
+
+// [[Rcpp::export]]
+std::vector<double> Species___TF24__TF24_Env__height_jacobian__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->height_jacobian();
+}
+
+// [[Rcpp::export]]
 std::vector<double> Species___TF24__TF24_Env__node_times__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
   return obj_->node_times();
+}
+
+// [[Rcpp::export]]
+bool Species___TF24__TF24_Env__density_in_birth_date__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->density_in_birth_date();
 }
 
 // [[Rcpp::export]]
@@ -2167,8 +2237,23 @@ std::vector<double> Species___TF24f__TF24_Env__log_densities__get(plant::RcppR6:
 }
 
 // [[Rcpp::export]]
+std::vector<double> Species___TF24f__TF24_Env__log_densities_state__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24f_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->r_log_densities_state();
+}
+
+// [[Rcpp::export]]
+std::vector<double> Species___TF24f__TF24_Env__height_jacobian__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24f_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->height_jacobian();
+}
+
+// [[Rcpp::export]]
 std::vector<double> Species___TF24f__TF24_Env__node_times__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24f_Strategy,plant::TF24_Environment> > obj_) {
   return obj_->node_times();
+}
+
+// [[Rcpp::export]]
+bool Species___TF24f__TF24_Env__density_in_birth_date__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24f_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->density_in_birth_date();
 }
 
 // [[Rcpp::export]]
@@ -2279,8 +2364,23 @@ std::vector<double> Species___K93__K93_Env__log_densities__get(plant::RcppR6::Rc
 }
 
 // [[Rcpp::export]]
+std::vector<double> Species___K93__K93_Env__log_densities_state__get(plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->r_log_densities_state();
+}
+
+// [[Rcpp::export]]
+std::vector<double> Species___K93__K93_Env__height_jacobian__get(plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->height_jacobian();
+}
+
+// [[Rcpp::export]]
 std::vector<double> Species___K93__K93_Env__node_times__get(plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > obj_) {
   return obj_->node_times();
+}
+
+// [[Rcpp::export]]
+bool Species___K93__K93_Env__density_in_birth_date__get(plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->density_in_birth_date();
 }
 
 // [[Rcpp::export]]

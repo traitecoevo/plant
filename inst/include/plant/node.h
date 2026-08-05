@@ -37,6 +37,17 @@ public:
     node_introduction_time = time;
     patch_density_at_birth = patch_density;
   }
+  // The height growth rate this node was born at, i.e. |dh/dtau| exactly, at
+  // birth. Current only for the boundary node (re-evaluated every step); frozen
+  // at its own birth for an introduced one. Zero for a node loaded from an
+  // exported state, which never ran compute_initial_conditions().
+  double growth_rate_at_birth() const {return birth_growth_rate;}
+
+  // Refresh only the birth date, leaving the rest of the bookkeeping alone.
+  // Used for the not-yet-introduced boundary node, whose birth date is the
+  // current time and so moves with every step; see
+  // Species::set_new_node_birth_date().
+  void set_introduction_time(double time) {node_introduction_time = time;}
   double introduction_time() const {return node_introduction_time;}
   double patch_density() const {return patch_density_at_birth;}
   double get_pr_patch_survival_at_birth() const {return pr_patch_survival_at_birth;}
@@ -114,6 +125,8 @@ private:
   // Recorded at introduction (see set_introduction).
   double node_introduction_time;
   double patch_density_at_birth;
+  // |dh/dtau| at birth; see growth_rate_at_birth().
+  double birth_growth_rate;
 };
 
 template <typename T, typename E>
@@ -125,7 +138,8 @@ Node<T,E>::Node(strategy_type_ptr s)
     offspring_produced_survival_weighted(0),
     offspring_produced_survival_weighted_dt(0),
     node_introduction_time(0),
-    patch_density_at_birth(0) {
+    patch_density_at_birth(0),
+    birth_growth_rate(0) {
 }
 
 template <typename T, typename E>
@@ -135,9 +149,14 @@ void Node<T,E>::compute_rates(const environment_type& environment,
 
   // NOTE: This must be called *after* compute_rates, but given we
   // need mortality_dt() that's always going to be the case.
-  log_density_dt =
-    - growth_rate_gradient(environment)
-    - individual.rate(MORTALITY_INDEX);
+  //
+  // A density in birth date changes only by mortality: nothing moves an
+  // individual along the birth-date axis. A density in height additionally
+  // compresses as the spacing between neighbouring sizes changes.
+  log_density_dt = -individual.rate(MORTALITY_INDEX);
+  if (!individual.control().node_density_in_birth_date) {
+    log_density_dt -= growth_rate_gradient(environment);
+  }
   // survival_individual: converts from the mean of the poisson process (on
   // [0,Inf)) to a probability (on [0,1]).
   double survival_individual = exp(-individual.state(MORTALITY_INDEX));
@@ -173,9 +192,25 @@ void Node<T,E>::compute_initial_conditions(const environment_type& environment,
   const double pr_estab =
     individual.establishment_probability_of_newborn(environment);
   individual.set_state("mortality", -log(pr_estab));
+  // The birth-date axis of the node about to be introduced; Patch re-stamps
+  // this with the exact introduction time as the node is pushed.
+  node_introduction_time = environment.time;
+  // dh/dtau = -g(H_0) at birth, so this is |dh/dtau| exactly, with no
+  // differencing: characteristics are labelled by birth date, and a cohort born
+  // an instant later starts an instant's growth behind. Recorded for every node
+  // (a cheap read -- compute_rates() above has just set it, and the height
+  // branch below needs it anyway), but only current for the *boundary* node,
+  // which compute_initial_conditions() re-evaluates every step. For an
+  // introduced node it is frozen at its own birth and so cannot serve as its
+  // present-day Jacobian; see Species::height_jacobian().
   const double g = individual.rate(HEIGHT_INDEX);
-  // NOTE: log(0.0) -> -Inf, which should behave fine.
-  set_log_density(g > 0 ? log(birth_rate * pr_estab / g) : log(0.0));
+  birth_growth_rate = g;
+  if (individual.control().node_density_in_birth_date) {
+    set_log_density(log(birth_rate * pr_estab));
+  } else {
+    // NOTE: log(0.0) -> -Inf, which should behave fine.
+    set_log_density(g > 0 ? log(birth_rate * pr_estab / g) : log(0.0));
+  }
 
   // Need to check that the rates are valid after setting the
   // mortality value here (can go to -Inf and that requires squashing

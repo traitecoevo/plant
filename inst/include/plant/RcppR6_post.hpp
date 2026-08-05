@@ -323,6 +323,7 @@ template <> inline SEXP wrap(const plant::Control& x) {
   ret["node_gradient_direction"] = Rcpp::wrap(x.node_gradient_direction);
   ret["node_gradient_richardson"] = Rcpp::wrap(x.node_gradient_richardson);
   ret["node_gradient_richardson_depth"] = Rcpp::wrap(x.node_gradient_richardson_depth);
+  ret["node_density_in_birth_date"] = Rcpp::wrap(x.node_density_in_birth_date);
   ret["ode_step_size_initial"] = Rcpp::wrap(x.ode_step_size_initial);
   ret["ode_step_size_min"] = Rcpp::wrap(x.ode_step_size_min);
   ret["ode_step_size_max"] = Rcpp::wrap(x.ode_step_size_max);
@@ -371,6 +372,8 @@ template <> inline plant::Control as(SEXP x) {
   ret.node_gradient_richardson = Rcpp::as<bool >(xl["node_gradient_richardson"]);
   // ret.node_gradient_richardson_depth = Rcpp::as<decltype(retnode_gradient_richardson_depth) >(xl["node_gradient_richardson_depth"]);
   ret.node_gradient_richardson_depth = Rcpp::as<size_t >(xl["node_gradient_richardson_depth"]);
+  // ret.node_density_in_birth_date = Rcpp::as<decltype(retnode_density_in_birth_date) >(xl["node_density_in_birth_date"]);
+  ret.node_density_in_birth_date = Rcpp::as<bool >(xl["node_density_in_birth_date"]);
   // ret.ode_step_size_initial = Rcpp::as<decltype(retode_step_size_initial) >(xl["ode_step_size_initial"]);
   ret.ode_step_size_initial = Rcpp::as<double >(xl["ode_step_size_initial"]);
   // ret.ode_step_size_min = Rcpp::as<decltype(retode_step_size_min) >(xl["ode_step_size_min"]);
