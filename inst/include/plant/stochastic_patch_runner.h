@@ -138,7 +138,30 @@ template <typename T, typename E> void StochasticPatchRunner<T, E>::reset() {
   if (node_schedule.size() > 0) {
     const double t = node_schedule.next_event().time_introduction();
     if (t >= 0.0) {
-      solver.advance_fixed({solver.time(), t});
+      // One step of this length would be tens of years for a late first arrival,
+      // and the environment's own states are integrated over it, so this leg
+      // needs error control like every other advance in the runner.
+      //
+      // Only when there is something to integrate, though. On an empty patch
+      // whose environment carries no state the system is zero-width, and
+      // advance_adaptive still walks the step-size controller: with no elements
+      // to measure, every step is accepted and step_size_last ratchets up by 5x
+      // until it saturates at ode_step_size_max. That survives into the first
+      // real step, because only SolverInternal::step() writes step_size_last and
+      // step_to() -- which advance_fixed drives -- does not, and nothing between
+      // here and the first advance() restores it (set_state_from_system() resizes
+      // and re-reads state and rates, but not the step size). The first step
+      // after the first arrival would then begin from a rejected step of
+      // ode_step_size_max rather than ode_step_size_initial. Error control
+      // recovers, but the realised step sequence differs: FF16's collected
+      // trajectory moves by up to 1e-5 relative, inside ode_tol_rel but not
+      // identical. Taking the fixed step when the system is empty is what keeps
+      // FF16 and K93 bit-identical.
+      if (patch.ode_size() > 0) {
+        solver.advance_adaptive({solver.time(), t});
+      } else {
+        solver.advance_fixed({solver.time(), t});
+      }
       patch = solver.get_system();
     }
   }
@@ -151,7 +174,7 @@ util::index StochasticPatchRunner<T, E>::r_run_next() {
 
 template <typename T, typename E>
 void StochasticPatchRunner<T, E>::r_set_node_schedule(NodeSchedule x) {
-  if (patch.ode_size() > 0) {
+  if (patch.node_ode_size() > 0) {
     util::stop("Cannot set schedule without resetting first");
   }
   util::check_length(x.get_n_species(), patch.size());
@@ -166,7 +189,7 @@ void StochasticPatchRunner<T, E>::r_set_node_schedule(NodeSchedule x) {
 template <typename T, typename E>
 void StochasticPatchRunner<T, E>::r_set_node_schedule_times(
     std::vector<std::vector<double>> x) {
-  if (patch.ode_size() > 0) {
+  if (patch.node_ode_size() > 0) {
     util::stop("Cannot set schedule without resetting first");
   }
   node_schedule.set_times(x);

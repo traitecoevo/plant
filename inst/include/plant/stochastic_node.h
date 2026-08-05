@@ -44,10 +44,18 @@ public:
   void compute_rates(const E& environment) {
     individual.compute_rates(environment);
   }
+  void set_initial_states(const E& environment) {
+    individual.set_initial_states(environment);
+  }
   double mortality_probability() const {
     return individual.mortality_probability();
   }
   void reset_mortality() { individual.reset_mortality(); }
+  // One individual's uptake of resource `i`. The deterministic Node scales this
+  // by cohort density; here the individual is the unit.
+  double consumption_rate(int i) const {
+    return individual.consumption_rate(i);
+  }
 
   // --- odelia element ODE interface (state only; no density/offspring) ----
   static size_t ode_size() { return individual_type::ode_size(); }
