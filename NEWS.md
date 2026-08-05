@@ -314,7 +314,8 @@ were not previously recorded here:
   against `2707`), and refining the schedule does not move either toward the
   other. The conclusion recorded in that test — that reserve-gated growth
   (#517) largely excludes the slower species — is therefore coordinate
-  dependent, and needs re-deriving before it is relied on.
+  dependent, and needs re-deriving before it is relied on. *(Re-derived and
+  retracted; see the entry under Minor changes & bug fixes below.)*
 
   `Node::growth_rate_gradient` is not called, which also removes one leaf solve
   per cohort per Runge-Kutta stage.
@@ -602,6 +603,41 @@ were not previously recorded here:
   pinned at 8/8 and could not move. The baseline diff in
   `test-scenario-gateway.R` therefore now diffs `persists` as well as
   `observed`, and **the baseline is re-blessed** under the new coordinate.
+
+* **Retracted: "reserve-gated growth largely excludes the slower species".**
+  `test-strategy-tf24.R` recorded that as a finding about #517's NSC reserve
+  gate. It is a property of the density coordinate, and #590 flagged it as
+  needing re-deriving. Re-derived here, at the test's own configuration
+  (`lma` 0.0825 / 0.10, `max_patch_lifetime = 5`):
+
+  | coordinate | fast | slow | ratio |
+  |---|---|---|---|
+  | height | 67.32 | 2.775e-04 | 2.4e5 |
+  | birth date | 287.2 | 59.53 | 4.8 |
+
+  So the two species **coexist at comparable abundance**; they are not
+  separated by five orders of magnitude. At `max_patch_lifetime = 30` the ratio
+  is 2.7 (2707 against 1004, matching #590) — i.e. it *narrows* with patch
+  lifetime, where progressive exclusion would widen it.
+
+  What survives the retraction is the weaker claim: the faster species still
+  leads, by roughly 3-5x. Reserve-gated growth disadvantages the slower species
+  without excluding it. How much of even that gap is attributable to #517 as
+  against the trait difference itself is not measured here, and should not be
+  read into these numbers.
+
+  The evidence that this is a wrong derivative rather than an under-resolved
+  one is refinement. Over two halvings of the node spacing (88 → 175 → 349
+  nodes) the birth-date answers are already converged — fast
+  287.2/287.1/287.2, slow 59.53/59.66/59.69 — while the height answers are
+  still climbing (fast 67.32/73.18/74.98) and the exclusion ratio does not
+  shrink toward the birth-date one, it *grows*: 2.43e5/2.49e5/2.51e5.
+  Quadrature error closes under refinement; a different derivative does not.
+
+  The height-coordinate assertions are kept, since they pin what the package
+  default still does, and a birth-date case is added alongside so the
+  coordinate that is correct for TF24 is actually covered by a test rather than
+  only described in a comment.
 * `SpeciesBase::control()` called `strategy->get_control()`, which does not
   exist on any strategy. The member had never been instantiated, so the error
   had never been compiled; it now reads `strategy->control`.
