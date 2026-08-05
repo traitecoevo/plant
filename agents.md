@@ -213,9 +213,18 @@ knowing before you go looking for a leaf bug here:
   lands as a pair of PRs, and the plant half is what re-baselines the SCM values.
 - **The leaf is purely intensive.** Every input is per unit leaf area or an
   intensive driver — whole-plant allometry (`kmax(h)`, root carbon totals) is
-  reduced *here* and passed in already divided. `set_physiology` takes
-  `root_carbon_per_leaf_area`, not absolute root carbon; see the NEWS entry, since
-  passing the absolute value compiles fine and quietly weakens the root system.
+  reduced *here* and passed in already divided. Since phylloptim #33 that includes
+  the ROOT RESISTANCES: `set_physiology` takes a `RootNetwork`, and
+  `TF24_Strategy` runs `phylloptim::root_network_from_carbon` on
+  `root_carbon_per_leaf_area_` to build it. Passing a network built from absolute
+  carbon compiles fine, quietly weakens the root system by the leaf area, and
+  **the leaf can no longer detect it** — the division used to happen inside the
+  leaf and now happens here. See the NEWS entry.
+- **Do not open-code the layer thickness.** `root_network_from_carbon` scales the
+  vertical resistance by `dz^2`, and `phylloptim::layer_thickness()` is the shared
+  definition of `dz` that `MultiLayerRoots::set_soil_state` also uses. Two copies
+  drifting apart puts a silent squared factor on every vertical resistance, with
+  both halves internally consistent and neither package able to notice.
 - **`nm` is how you diagnose a stale build.** See the `R CMD INSTALL` note in §6 —
   a header-only dependency changing underneath a stale `.o` produces an error that
   names an untouched field accessor.

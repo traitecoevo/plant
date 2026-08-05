@@ -2,16 +2,22 @@
 #include <plant.h>
 
 // [[Rcpp::export]]
-plant::Leaf Leaf__ctor(double vcmax_25, double c, double b, double psi_crit, double root_c, double root_b, double root_psi_crit, double beta2, double jmax_25, double a, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter, double g1_TF24, double beta_R_H, double beta_R_V) {
-  return plant::Leaf(vcmax_25, c, b, psi_crit, root_c, root_b, root_psi_crit, beta2, jmax_25, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, g1_TF24, beta_R_H, beta_R_V);
+SEXP RootNetwork__ctor() {
+  return Rcpp::wrap(phylloptim::RootNetwork());
+}
+
+
+// [[Rcpp::export]]
+plant::Leaf Leaf__ctor(double vcmax_25, double c, double b, double psi_crit, double root_c, double root_b, double root_psi_crit, double beta2, double jmax_25, double a, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter, double g1_TF24) {
+  return plant::Leaf(vcmax_25, c, b, psi_crit, root_c, root_b, root_psi_crit, beta2, jmax_25, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, g1_TF24);
 }
 // [[Rcpp::export]]
 void Leaf__initialize_integrator(plant::RcppR6::RcppR6<plant::Leaf> obj_, int integration_rule, double integration_tol) {
   obj_->initialize_integrator(integration_rule, integration_tol);
 }
 // [[Rcpp::export]]
-void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, const std::vector<double>& root_carbon_per_leaf_area, double PPFD, const std::vector<double>& psi_soil, const std::vector<double>& soil_depth, double leaf_specific_conductance_max, double atm_vpd, double ca, double leaf_temp, double atm_o2_kpa, double atm_kpa) {
-  obj_->set_physiology(root_carbon_per_leaf_area, PPFD, psi_soil, soil_depth, leaf_specific_conductance_max, atm_vpd, ca, leaf_temp, atm_o2_kpa, atm_kpa);
+void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, const phylloptim::RootNetwork& root_network, double PPFD, const std::vector<double>& psi_soil, const std::vector<double>& soil_depth, double leaf_specific_conductance_max, double atm_vpd, double ca, double leaf_temp, double atm_o2_kpa, double atm_kpa) {
+  obj_->set_physiology(root_network, PPFD, psi_soil, soil_depth, leaf_specific_conductance_max, atm_vpd, ca, leaf_temp, atm_o2_kpa, atm_kpa);
 }
 // [[Rcpp::export]]
 double Leaf__proportion_of_conductivity(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi) {

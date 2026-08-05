@@ -11,9 +11,19 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// RootNetwork__ctor
+SEXP RootNetwork__ctor();
+RcppExport SEXP _plant_RootNetwork__ctor() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(RootNetwork__ctor());
+    return rcpp_result_gen;
+END_RCPP
+}
 // Leaf__ctor
-plant::Leaf Leaf__ctor(double vcmax_25, double c, double b, double psi_crit, double root_c, double root_b, double root_psi_crit, double beta2, double jmax_25, double a, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter, double g1_TF24, double beta_R_H, double beta_R_V);
-RcppExport SEXP _plant_Leaf__ctor(SEXP vcmax_25SEXP, SEXP cSEXP, SEXP bSEXP, SEXP psi_critSEXP, SEXP root_cSEXP, SEXP root_bSEXP, SEXP root_psi_critSEXP, SEXP beta2SEXP, SEXP jmax_25SEXP, SEXP aSEXP, SEXP curv_fact_elec_transSEXP, SEXP curv_fact_colimSEXP, SEXP GSS_tol_absSEXP, SEXP vulnerability_curve_ncontrolSEXP, SEXP ci_abs_tolSEXP, SEXP ci_niterSEXP, SEXP g1_TF24SEXP, SEXP beta_R_HSEXP, SEXP beta_R_VSEXP) {
+plant::Leaf Leaf__ctor(double vcmax_25, double c, double b, double psi_crit, double root_c, double root_b, double root_psi_crit, double beta2, double jmax_25, double a, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter, double g1_TF24);
+RcppExport SEXP _plant_Leaf__ctor(SEXP vcmax_25SEXP, SEXP cSEXP, SEXP bSEXP, SEXP psi_critSEXP, SEXP root_cSEXP, SEXP root_bSEXP, SEXP root_psi_critSEXP, SEXP beta2SEXP, SEXP jmax_25SEXP, SEXP aSEXP, SEXP curv_fact_elec_transSEXP, SEXP curv_fact_colimSEXP, SEXP GSS_tol_absSEXP, SEXP vulnerability_curve_ncontrolSEXP, SEXP ci_abs_tolSEXP, SEXP ci_niterSEXP, SEXP g1_TF24SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -34,9 +44,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type ci_abs_tol(ci_abs_tolSEXP);
     Rcpp::traits::input_parameter< double >::type ci_niter(ci_niterSEXP);
     Rcpp::traits::input_parameter< double >::type g1_TF24(g1_TF24SEXP);
-    Rcpp::traits::input_parameter< double >::type beta_R_H(beta_R_HSEXP);
-    Rcpp::traits::input_parameter< double >::type beta_R_V(beta_R_VSEXP);
-    rcpp_result_gen = Rcpp::wrap(Leaf__ctor(vcmax_25, c, b, psi_crit, root_c, root_b, root_psi_crit, beta2, jmax_25, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, g1_TF24, beta_R_H, beta_R_V));
+    rcpp_result_gen = Rcpp::wrap(Leaf__ctor(vcmax_25, c, b, psi_crit, root_c, root_b, root_psi_crit, beta2, jmax_25, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, g1_TF24));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -53,12 +61,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // Leaf__set_physiology
-void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, const std::vector<double>& root_carbon_per_leaf_area, double PPFD, const std::vector<double>& psi_soil, const std::vector<double>& soil_depth, double leaf_specific_conductance_max, double atm_vpd, double ca, double leaf_temp, double atm_o2_kpa, double atm_kpa);
-RcppExport SEXP _plant_Leaf__set_physiology(SEXP obj_SEXP, SEXP root_carbon_per_leaf_areaSEXP, SEXP PPFDSEXP, SEXP psi_soilSEXP, SEXP soil_depthSEXP, SEXP leaf_specific_conductance_maxSEXP, SEXP atm_vpdSEXP, SEXP caSEXP, SEXP leaf_tempSEXP, SEXP atm_o2_kpaSEXP, SEXP atm_kpaSEXP) {
+void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, const phylloptim::RootNetwork& root_network, double PPFD, const std::vector<double>& psi_soil, const std::vector<double>& soil_depth, double leaf_specific_conductance_max, double atm_vpd, double ca, double leaf_temp, double atm_o2_kpa, double atm_kpa);
+RcppExport SEXP _plant_Leaf__set_physiology(SEXP obj_SEXP, SEXP root_networkSEXP, SEXP PPFDSEXP, SEXP psi_soilSEXP, SEXP soil_depthSEXP, SEXP leaf_specific_conductance_maxSEXP, SEXP atm_vpdSEXP, SEXP caSEXP, SEXP leaf_tempSEXP, SEXP atm_o2_kpaSEXP, SEXP atm_kpaSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< const std::vector<double>& >::type root_carbon_per_leaf_area(root_carbon_per_leaf_areaSEXP);
+    Rcpp::traits::input_parameter< const phylloptim::RootNetwork& >::type root_network(root_networkSEXP);
     Rcpp::traits::input_parameter< double >::type PPFD(PPFDSEXP);
     Rcpp::traits::input_parameter< const std::vector<double>& >::type psi_soil(psi_soilSEXP);
     Rcpp::traits::input_parameter< const std::vector<double>& >::type soil_depth(soil_depthSEXP);
@@ -68,7 +76,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type leaf_temp(leaf_tempSEXP);
     Rcpp::traits::input_parameter< double >::type atm_o2_kpa(atm_o2_kpaSEXP);
     Rcpp::traits::input_parameter< double >::type atm_kpa(atm_kpaSEXP);
-    Leaf__set_physiology(obj_, root_carbon_per_leaf_area, PPFD, psi_soil, soil_depth, leaf_specific_conductance_max, atm_vpd, ca, leaf_temp, atm_o2_kpa, atm_kpa);
+    Leaf__set_physiology(obj_, root_network, PPFD, psi_soil, soil_depth, leaf_specific_conductance_max, atm_vpd, ca, leaf_temp, atm_o2_kpa, atm_kpa);
     return R_NilValue;
 END_RCPP
 }
@@ -12302,7 +12310,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_plant_Leaf__ctor", (DL_FUNC) &_plant_Leaf__ctor, 19},
+    {"_plant_RootNetwork__ctor", (DL_FUNC) &_plant_RootNetwork__ctor, 0},
+    {"_plant_Leaf__ctor", (DL_FUNC) &_plant_Leaf__ctor, 17},
     {"_plant_Leaf__initialize_integrator", (DL_FUNC) &_plant_Leaf__initialize_integrator, 3},
     {"_plant_Leaf__set_physiology", (DL_FUNC) &_plant_Leaf__set_physiology, 11},
     {"_plant_Leaf__proportion_of_conductivity", (DL_FUNC) &_plant_Leaf__proportion_of_conductivity, 2},

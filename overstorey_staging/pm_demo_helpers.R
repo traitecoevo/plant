@@ -24,7 +24,7 @@ pm_make_leaf <- function() {
        GSS_tol_abs = ctrl$GSS_tol_abs,
        vulnerability_curve_ncontrol = ctrl$vulnerability_curve_ncontrol,
        ci_abs_tol = ctrl$ci_abs_tol, ci_niter = ctrl$ci_niter,
-       g1_TF24 = p$g1_TF24, beta_R_H = 3.4e2, beta_R_V = 9.4e3)
+       g1_TF24 = p$g1_TF24)
 }
 
 ## Default well-watered, well-rooted, moderate-conductance operating point (so
@@ -42,8 +42,12 @@ pm_set_physiology <- function(l, PAR, Tair, VPD, pm, cfg = pm_leaf_config()) {
   l$use_energy_balance_ <- isTRUE(pm)
   l$d_ <- cfg$d
   l$wind_speed_ <- cfg$wind_speed
+  # phylloptim #33: the leaf takes the resistances, so the architecture model runs
+  # here. Same constants TF24_Strategy uses.
   l$set_physiology(
-    root_carbon_per_leaf_area = cfg$root_carbon_per_leaf_area,
+    root_network = phylloptim::root_network_from_carbon(
+      cfg$root_carbon_per_leaf_area, soil_depth = 1,
+      beta_R_H = 3.4e2, beta_R_V = 9.4e3),
     PPFD = PAR, psi_soil = cfg$psi_soil, soil_depth = 1,
     leaf_specific_conductance_max = cfg$leaf_specific_conductance_max,
     atm_vpd = VPD, ca = cfg$ca,

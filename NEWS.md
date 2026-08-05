@@ -7,6 +7,30 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **`Leaf$set_physiology()` takes `root_network`, not `root_carbon_per_leaf_area`,
+  and `Leaf()` no longer takes `beta_R_H` or `beta_R_V`.** Requires
+  phylloptim >= 0.2.0 (phylloptim #33). Migration:
+  `l$set_physiology(root_carbon_per_leaf_area = x, ..., soil_depth = d, ...)` ->
+  `l$set_physiology(root_network = phylloptim::root_network_from_carbon(x, soil_depth = d, beta_R_H = ..., beta_R_V = ...), ..., soil_depth = d, ...)`;
+  drop `beta_R_H`/`beta_R_V` from `Leaf()` calls. `RootNetwork()` builds a network
+  from resistances directly, for a caller who has those rather than a carbon
+  profile.
+
+  The leaf's supply solve reads two vectors -- `r_R_H_min` and `r_R_V_sum` -- and
+  nothing in it touches root carbon, the 1/3 : 2/3 root split, the layer thickness
+  or either `beta_R_*` constant. Those are a root-ARCHITECTURE model, which is now
+  `TF24_Strategy`'s: `beta_R_H` and `beta_R_V` are still TF24 parameters at the
+  same values, and `net_mass_production_dt` calls
+  `phylloptim::root_network_from_carbon` into a strategy member before each
+  `set_physiology`. Same move `leaf_specific_conductance_max` already made -- plant
+  computes `kmax` from height and passes a scalar, because which
+  conductance-versus-height model is in force is not the leaf's business.
+
+  **No TF24 results change.** Verified bit-identical over 18 operating points
+  (6 heights x 3 soil-moisture profiles) x 26 states, rates and auxiliaries,
+  against `develop`; phylloptim's own 288-point golden file is bit-identical too.
+  `scientific_version` is therefore unchanged.
+
 * **`run_stochastic_collect()`'s environment field is `env`, not `light_env`.**
   Migration: `out$light_env -> out$env`. The old name was never produced by
   anything — `StochasticPatch::r_get_state()` had its environment leg commented

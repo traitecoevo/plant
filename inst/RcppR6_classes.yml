@@ -1,3 +1,29 @@
+# The root resistances plant hands the leaf (phylloptim #33). A `list:` class,
+# because the generated Rcpp::as/wrap is what makes it usable as a set_physiology
+# ARGUMENT. This is a duplicate of phylloptim's own binding and it is temporary --
+# phylloptim #34 deletes plant's whole Leaf block, this included.
+RootNetwork:
+  name_cpp: "phylloptim::RootNetwork"
+  roxygen: |
+    Root hydraulic resistances, per layer and per unit leaf area
+    @title Root resistance network
+    @param ...,values Values to initialise the struct with (either as
+    variadic arguments, or as a list, but not both).
+
+    Deliberately NOT exported: phylloptim exports its own `RootNetwork()`, and two
+    exported constructors of the same name would mask each other on
+    `library(phylloptim); library(plant)`. plant needs the CLASS for the generated
+    Rcpp::as/wrap -- which recognises the class attribute, not the package, so a
+    phylloptim-built network passes straight through this binding.
+    @keywords internal
+    @noRd
+  list:
+    - r_R_H_min: "std::vector<double>"
+    - r_R_V_sum: "std::vector<double>"
+    - c_r_V: "std::vector<double>"
+    - c_r_H: "std::vector<double>"
+    - r_R_V: "std::vector<double>"
+
 Leaf:
   name_cpp: "plant::Leaf"
   constructor:
@@ -20,8 +46,6 @@ Leaf:
       @param ci_abs_tol absolute tolerance value for root-solving ci
       @param ci_niter maximum number of iterations for root-solving ci
       @param g1_TF24 cost parameter for TF24 profit model umol m^-2 s^-1
-      @param beta_R_H proportionality constant between minimum horizontal (intralayer) root hydraulic resistance and C_r^-1 (MPa s mol C / mol H2O)
-      @param beta_R_V proportionality constant between minimum vertical (interlayer) root hydraulic resistance and dz^2/C_r (MPa mol C s / mol H2O / m^2)
 
       @export
     args:
@@ -42,8 +66,6 @@ Leaf:
       - ci_abs_tol: double
       - ci_niter: double
       - g1_TF24: double
-      - beta_R_H: double
-      - beta_R_V: double
 
   active:
     ci_: {type: double, access: field}
@@ -111,7 +133,7 @@ Leaf:
       args: [integration_rule: int, integration_tol: double]
     set_physiology:
       return_type: void 
-      args: [root_carbon_per_leaf_area: "const std::vector<double>&", PPFD: double, psi_soil: "const std::vector<double>&", soil_depth: "const std::vector<double>&", leaf_specific_conductance_max: double, atm_vpd: double, ca: double, leaf_temp: double, atm_o2_kpa: double, atm_kpa: double]
+      args: [root_network: "const phylloptim::RootNetwork&", PPFD: double, psi_soil: "const std::vector<double>&", soil_depth: "const std::vector<double>&", leaf_specific_conductance_max: double, atm_vpd: double, ca: double, leaf_temp: double, atm_o2_kpa: double, atm_kpa: double]
     #transpiration functions
     proportion_of_conductivity:
       return_type: double

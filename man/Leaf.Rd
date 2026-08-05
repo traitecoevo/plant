@@ -21,9 +21,7 @@ Leaf(
   vulnerability_curve_ncontrol,
   ci_abs_tol,
   ci_niter,
-  g1_TF24,
-  beta_R_H,
-  beta_R_V
+  g1_TF24
 )
 }
 \arguments{
@@ -60,10 +58,6 @@ Leaf(
 \item{ci_niter}{maximum number of iterations for root-solving ci}
 
 \item{g1_TF24}{cost parameter for TF24 profit model umol m^-2 s^-1}
-
-\item{beta_R_H}{proportionality constant between minimum horizontal (intralayer) root hydraulic resistance and C_r^-1 (MPa s mol C / mol H2O)}
-
-\item{beta_R_V}{proportionality constant between minimum vertical (interlayer) root hydraulic resistance and dz^2/C_r (MPa mol C s / mol H2O / m^2)}
 }
 \description{
 Leaf model

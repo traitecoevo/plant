@@ -8,6 +8,9 @@
 namespace plant {
 namespace RcppR6 {
 namespace traits {
+template <> inline std::string   class_name_r<phylloptim::RootNetwork >() {return "RootNetwork";}
+template <> inline std::string   package_name<phylloptim::RootNetwork >() {return "plant";}
+template <> inline std::string generator_name<phylloptim::RootNetwork >() {return "";}
 template <> inline std::string   class_name_r<plant::Leaf >() {return "Leaf";}
 template <> inline std::string   package_name<plant::Leaf >() {return "plant";}
 template <> inline std::string generator_name<plant::Leaf >() {return ".R6_Leaf";}
@@ -266,6 +269,37 @@ private:
 };
 }
 
+template <> inline SEXP wrap(const phylloptim::RootNetwork& x) {
+  Rcpp::List ret;
+  ret["r_R_H_min"] = Rcpp::wrap(x.r_R_H_min);
+  ret["r_R_V_sum"] = Rcpp::wrap(x.r_R_V_sum);
+  ret["c_r_V"] = Rcpp::wrap(x.c_r_V);
+  ret["c_r_H"] = Rcpp::wrap(x.c_r_H);
+  ret["r_R_V"] = Rcpp::wrap(x.r_R_V);
+  ret.attr("class") = "RootNetwork";
+  return ret;
+}
+template <> inline phylloptim::RootNetwork as(SEXP x) {
+  if (!plant::RcppR6::is<phylloptim::RootNetwork >(x)) {
+    Rcpp::stop("Expected an object of type RootNetwork");
+    // NOTE: Won't drop through or return anything.
+  }
+  // NOTE: assumes default constructable, and will assign *every*
+  // field twice.  No current support for a hook.
+  phylloptim::RootNetwork ret;
+  Rcpp::List xl(x);
+  // ret.r_R_H_min = Rcpp::as<decltype(retr_R_H_min) >(xl["r_R_H_min"]);
+  ret.r_R_H_min = Rcpp::as<std::vector<double> >(xl["r_R_H_min"]);
+  // ret.r_R_V_sum = Rcpp::as<decltype(retr_R_V_sum) >(xl["r_R_V_sum"]);
+  ret.r_R_V_sum = Rcpp::as<std::vector<double> >(xl["r_R_V_sum"]);
+  // ret.c_r_V = Rcpp::as<decltype(retc_r_V) >(xl["c_r_V"]);
+  ret.c_r_V = Rcpp::as<std::vector<double> >(xl["c_r_V"]);
+  // ret.c_r_H = Rcpp::as<decltype(retc_r_H) >(xl["c_r_H"]);
+  ret.c_r_H = Rcpp::as<std::vector<double> >(xl["c_r_H"]);
+  // ret.r_R_V = Rcpp::as<decltype(retr_R_V) >(xl["r_R_V"]);
+  ret.r_R_V = Rcpp::as<std::vector<double> >(xl["r_R_V"]);
+  return ret;
+}
 template <> inline SEXP wrap(const plant::Leaf& x) {
   return wrap(plant::RcppR6::RcppR6<plant::Leaf>(x));
 }
