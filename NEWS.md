@@ -675,6 +675,27 @@ were not previously recorded here:
 
 ### Documentation & tooling
 
+* **CI is faster and the test suite is leaner.** The suite ran 147 s serially,
+  with one file (`test-tf24-arid-corner.R`) at 24% of it, and tests were ~65% of
+  each `R CMD check` job. Now 124 s (-16%), and no single file is over 19%.
+  * `test-tf24-arid-corner.R` 35.5 s -> 12.7 s. It computed the same dry-start
+    TF24 run four times; the completed run is now memoised and shared (the
+    `short_run()` pattern from `test-density-coordinate.R`). #571's nine-point
+    soil-moisture sweep is cut to the three values bracketing the
+    residual-moisture floor, the full set being recorded in #571.
+  * Dropped `"a failed light spline reports the patch state that caused it"`. Since
+    #574 fixed the cause its `skip_if()` fired every run, so it paid for a full
+    SCM run and asserted nothing. See the comment in the file for how to bring it
+    back as an unconditional test.
+  * Dropped `"TF24 water budget closes independently of layer count"`: it re-ran
+    the same three configurations as the test above it to re-assert a bound that
+    test already checks per layer.
+  * Benchmarks no longer run on every push and PR — `run_plant_benchmarks()` was
+    costing 3-5 min per trigger on a macOS runner while nothing compared its
+    output against a baseline. Now weekly plus `workflow_dispatch`, on Linux.
+  * Both workflows cancel superseded in-flight runs on the same ref, and
+    `R-CMD-check` gained a `ubuntu-latest` job — commented out since CI was first
+    set up (#295), so plant had never had a green Linux run.
 * Narrative docs (former `vignettes/`, theory, dated posts) migrated to the
   [Overstorey](https://traitecoevo.github.io/overstorey/) site; the pkgdown
   site is now the function reference only (#496).

@@ -17,6 +17,13 @@ on:
 
 name: R-CMD-check
 
+# Supersede in-flight runs on the same ref. Without this, every intermediate push
+# to a PR branch ran a full 13-20 min matrix to completion alongside its
+# successor.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   R-CMD-check:
     runs-on: ${{ matrix.config.os }}
@@ -26,16 +33,31 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # ubuntu-latest is new here: it had been commented out since CI was first
+        # set up (#295), so plant had never had a green Linux run despite nothing
+        # in DESCRIPTION restricting the platform. It is also the fastest and
+        # (on private repos) cheapest runner -- Linux bills at 1x against
+        # Windows 2x and macOS 10x. Once a few runs confirm it is reliable, the
+        # intended follow-up is to make Linux the only per-PR job and gate
+        # Windows on changes to src/** or inst/include/** (where plant is most
+        # platform-fragile: src/Makevars.win must link odelia.dll at load time
+        # because mingw ld forbids undefined symbols in a DLL, traitecoevo/odelia#29)
+        # and macOS on pushes to develop/master.
         config:
+          - {os: ubuntu-latest, r: 'release'}
           - {os: windows-latest, r: 'release'}
           - {os: macOS-latest, r: 'release'}
-#          - {os: ubuntu-20.04, r: 'release', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
-          
+
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
       RSPM: ${{ matrix.config.rspm }}
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
+      # DESCRIPTION sets Config/testthat/parallel, but both runners were only
+      # starting 2 test processes. Standard runners have 4 cores; check the
+      # "Starting N test processes" line in the log to confirm this takes effect
+      # rather than assuming it did.
+      TESTTHAT_CPUS: 4
 
     steps:
       - uses: actions/checkout@v5

@@ -55,21 +55,19 @@ tf24_water_budget <- function(n_layers = 5, theta_0 = 0.25, rainfall = 1.0,
 test_that("TF24 water budget closes across layer counts", {
   # 1 layer is the previously-covered case; 5 is the constructor default; 15
   # matches the layer count LPJ-GUESS and comparable land models use over 1.5 m.
+  #
+  # The per-layer `rel_residual` check is the discretisation-independence claim
+  # too: a change in discretisation must not create or destroy water, so the
+  # residual has to stay at round-off rather than grow with the layer count.
+  # Asserting it inside this loop covers that with one set of runs; a separate
+  # test re-running the same three configurations to re-assert the same bound
+  # cost ~2.8 s for no additional coverage.
   for (n in c(1, 5, 15)) {
     b <- tf24_water_budget(n_layers = n)
     expect_equal(b$supplied, b$accounted,
                  info = sprintf("n_layers = %d", n))
     expect_lt(abs(b$rel_residual), 1e-12)
   }
-})
-
-test_that("TF24 water budget closes independently of layer count", {
-  # A change in discretisation must not create or destroy water: the residual
-  # should stay at round-off, not grow with the number of layers.
-  residuals <- vapply(c(1, 5, 15),
-                      function(n) abs(tf24_water_budget(n_layers = n)$rel_residual),
-                      numeric(1))
-  expect_true(all(residuals < 1e-12))
 })
 
 test_that("TF24 water budget closes over the wet-to-dry range", {

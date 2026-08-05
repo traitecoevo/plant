@@ -1,24 +1,30 @@
+# Benchmarks are NOT a per-PR gate.
+#
+# `run_plant_benchmarks()` times the SCM, schedule refinement and mutant replay,
+# prints a bench::mark table, and returns. Nothing compares it against a
+# baseline, uploads it, or fails on a regression -- so running it on every push
+# and every PR bought no signal while costing 3-5 min per trigger on a macOS
+# runner (billed at 10x on private repos; free but slow here).
+#
+# It now runs weekly and on demand. If this should become a real regression gate,
+# the missing pieces are an artifact upload of the bench::mark output and a
+# comparison against the previous develop run -- do that before putting it back
+# on the PR path.
 on:
-  push:
-    branches:
-      - main
-      - master
-      - develop
-    paths-ignore:
-      - '**.md'
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
-    branches:
-      - main
-      - master
-      - develop
+  schedule:
+    # Mondays, 14:00 UTC.
+    - cron: '0 14 * * 1'
+  workflow_dispatch:
 
 name: bench
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  lint:
-    if: github.event.pull_request.draft == false
-    runs-on: macOS-latest
+  benchmark:
+    runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 

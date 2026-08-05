@@ -88,10 +88,10 @@ test_that("a resolution limit says where refinement stalled", {
 ## Helper: the #571 dry start. Five layers held below the residual floor with
 ## 1 m/yr rainfall, which is a normal dryland initial condition rather than an
 ## edge case (Dahra is 416 mm MAP).
-tf24_dry_start <- function(model = "TF24", lifetime = 10) {
+tf24_dry_start <- function(model = "TF24", lifetime = 10, theta = 0.005) {
   env <- Environment(model)
   env$set_soil_number_of_depths(5)
-  env$set_soil_water_state(rep(0.005, 5))
+  env$set_soil_water_state(rep(theta, 5))
   env$extrinsic_drivers_set_constant("rainfall", 1)
 
   p <- scm_base_parameters(model)
@@ -99,6 +99,28 @@ tf24_dry_start <- function(model = "TF24", lifetime = 10) {
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))
   list(p = p, env = env)
 }
+
+## The completed dry-start run, computed once and shared. Two tests below need
+## the same finished SCM -- the height ordering and the completion assertion --
+## and each used to commission its own at ~2.9 s. Memoising is safe because both
+## only read it; the pattern is the one used by short_run() in
+## test-density-coordinate.R. Only the default (theta = 0.005) start is shared:
+## the sweep below deliberately wants a fresh run per soil moisture, and must be
+## free to throw.
+tf24_dry_scm <- local({
+  cache <- list()
+  function(model = "TF24", lifetime = 10) {
+    key <- paste(model, lifetime, sep = "/")
+    if (is.null(cache[[key]])) {
+      x <- tf24_dry_start(model, lifetime)
+      scm <- SCM(model, environment_type(model))(x$p, x$env, Control())
+      scm$collect <- TRUE
+      scm$run()
+      cache[[key]] <<- scm
+    }
+    cache[[key]]
+  }
+})
 
 test_that("height_max() is the tallest cohort, not the first node (#571)", {
   # Under water limitation the top of the size distribution converges into a band
@@ -108,11 +130,7 @@ test_that("height_max() is the tallest cohort, not the first node (#571)", {
   # size order. That breaks the decreasing-height ordering that height_max() used
   # to exploit by returning nodes.front(), which then reported a height *below*
   # the tallest and only living cohort and truncated the light spline's domain.
-  x <- tf24_dry_start()
-  scm <- SCM("TF24", "TF24_Env")(x$p, x$env, Control())
-  scm$run()
-
-  sp <- scm$patch$species[[1]]
+  sp <- tf24_dry_scm()$patch$species[[1]]
   h <- sp$heights
 
   # The premise of the test: this state really does violate the ordering. If a
@@ -129,51 +147,37 @@ test_that("a dry-start TF24 run completes (#571)", {
   # dropped every node past the first one below the query height -- including the
   # one cohort with appreciable density -- putting a fictitious step in the
   # competition profile that the refiner could not resolve.
-  x <- tf24_dry_start()
-  out <- run_scm(x$p, x$env, collect = TRUE)
-  expect_true(is.finite(out$offspring_production))
+  expect_true(is.finite(tf24_dry_scm()$offspring_production))
 
-  # The whole non-monotone failure set recorded in #571, which ruled out any
-  # single threshold as the cause.
-  for (theta in c(0.005, 0.008, 0.0099, 0.010, 0.0101, 0.012, 0.015, 0.02, 0.03)) {
-    y <- tf24_dry_start()
-    y$env$set_soil_water_state(rep(theta, 5))
+  # #571 recorded a non-monotone failure set across nine soil moistures, which
+  # is what ruled out any single threshold as the cause. With the cause fixed
+  # (#574) the wide sweep is regression ballast: six extra runs (~17 s) to
+  # re-assert what the three values bracketing the residual-moisture floor
+  # already cover. The full set -- 0.005, 0.008, 0.0099, 0.010, 0.0101, 0.012,
+  # 0.015, 0.02, 0.03 -- is in #571 if this ever needs widening again. theta =
+  # 0.005 is the shared run asserted above.
+  for (theta in c(0.0099, 0.010, 0.0101)) {
+    y <- tf24_dry_start(theta = theta)
     expect_no_error(run_scm(y$p, y$env, collect = FALSE))
   }
 })
 
-test_that("a failed light spline reports the patch state that caused it", {
-  # The refiner can only report a narrow feature in a function; the patch knows
-  # that the function is a light profile over a set of cohort heights. Kept as a
-  # guard on the message: the reproducer no longer fails, so this asserts the
-  # diagnosis is present *if* a resolution failure ever comes back.
-  env <- Environment("TF24")
-  env$set_soil_number_of_depths(5)
-  env$set_soil_water_state(rep(0.005, 5))
-  env$extrinsic_drivers_set_constant("rainfall", 1)
-
-  p <- scm_base_parameters("TF24")
-  p$max_patch_lifetime <- 10
-  p <- add_strategies(p, trait_matrix(0.0825, "lma"))
-
-  msg <- tryCatch({
-    run_scm(p, env, collect = TRUE)
-    NA_character_
-  }, error = conditionMessage)
-
-  skip_if(is.na(msg), "dry-start TF24 now completes; see #571")
-
-  expect_match(msg, "Patch state at that height")
-  expect_match(msg, "cohorts within")
-  # The ordering violation is the actionable part, so it must be reported rather
-  # than left to be rediscovered.
-  expect_match(msg, "node heights are NOT decreasing")
-  expect_match(msg, "height_max\\(\\) reports")
-  # And it must separate the two very different readings of that violation:
-  # zero-density nodes scrambling the quadrature grid (bookkeeping) versus live
-  # cohorts crossing (which would mean the characteristics themselves crossed,
-  # and the method of characteristics forbids that). Measured here it is the
-  # former, but assert that both counts are reported rather than pinning which.
-  expect_match(msg, "between two cohorts of non-zero density")
-  expect_match(msg, "nodes have zero density")
-})
+## REMOVED: "a failed light spline reports the patch state that caused it".
+##
+## It asserted that a resolution failure names the patch state behind it -- the
+## "Patch state at that height" / "cohorts within" / "node heights are NOT
+## decreasing" / "height_max() reports" lines, and the split between
+## zero-density nodes scrambling the quadrature grid and cohorts genuinely
+## crossing.
+##
+## Since #574 fixed the cause, the reproducer completes, so its
+## `skip_if(is.na(msg), ...)` fired every run: it paid for a full 2.8 s SCM run
+## and then asserted nothing. A test that can only ever skip is not a guard, it
+## is a bill.
+##
+## The message-building code it covered is still live, and the assertions are in
+## git history on this file if the failure ever returns. To resurrect it as a
+## real test rather than a conditional one, drive the message builder from a
+## synthetic patch state (crossed heights, some zero-density nodes) instead of
+## trying to provoke a genuine spline failure -- that would assert
+## unconditionally and cost nothing.
