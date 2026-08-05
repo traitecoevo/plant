@@ -7,6 +7,15 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **`run_stochastic_collect()`'s environment field is `env`, not `light_env`.**
+  Migration: `out$light_env -> out$env`. The old name was never produced by
+  anything — `StochasticPatch::r_get_state()` had its environment leg commented
+  out and the collector asked for a name that did not exist — so every element of
+  that field was `NULL` and nothing can have depended on its contents. Code that
+  tests for the name, or indexes the collected list positionally, needs updating.
+  `env` is what the patch reports and what `run_scm()`'s collected output already
+  calls it. See the corresponding entry under Minor changes.
+
 * **`TF24_Environment`'s `atm_kpa` driver now defaults to 101.3 kPa, not 100.5.**
   `scientific_version` for TF24 goes 7 -> 8, TF24f 7.1 -> 8.1. Migration: none
   required, but read this if you have TF24 results on disk.
@@ -21,7 +30,10 @@ products using plant.
     101.3. Pinning the driver to the value the rest of the model already assumed
     reduces the **net** movement of this whole branch to **-0.20%**, and restores
     every pinned baseline to develop's own values -- including the seeded stochastic
-    TF24 counts, which match exactly.
+    TF24 counts, which match exactly. (Those counts were subsequently re-derived when
+    the stochastic arrival schedule started scaling with patch area — see Minor
+    changes — so the file no longer shows the matching values. The equivalence that
+    was established here still holds; it is just no longer the thing the test pins.)
   * `atm_kpa` remains a driver: set it per site if you are modelling altitude.
     `env$extrinsic_drivers_set_constant("atm_kpa", <kPa>)`.
 
@@ -536,6 +548,26 @@ were not previously recorded here:
 
 ### Known issues
 
+* **A dense TF24 stochastic run throws at the default ODE step cap** (#599). The
+  soil water balance is stiff — the conductivity curve's exponent is
+  `2*n_psi+3 ≈ 16`, so `K_sat/dz` is ~543/yr at the defaults — and at
+  `Control()`'s `ode_step_size_max` of 5 yr the explicit RKCK stepper diverges
+  rather than losing accuracy. A failing run reaches
+  `theta = [-51.4, 52.0, 0.146, nan, nan]`, and once the rates are non-finite the
+  step is not even rejected, because `adjust_step_size` derives its error ratio
+  from a NaN. Downstream, the leaf's collar root-find is handed a soil potential
+  no retention curve can produce and throws
+  (`find_root_psi ... do not bracket the root`). Measured over seeds 1–40 at
+  `patch_area = 1` (~105 individuals m⁻²): 17 of 40 runs throw on the code before
+  this release's stochastic-solver work, 5 of 40 after it. Setting
+  `ctrl$ode_step_size_max <- 0.05` gives 0 of 60; the relationship is not monotone
+  (0.2 fails *more* often than 5 does), so that value is measured rather than
+  derived. It is left as a user setting rather than clamped in the library,
+  because the right fix is a per-environment bound or odelia's stiff RODAS stepper
+  for environments carrying stiff state, not a global default that every model
+  pays for. `test-stochastic-patch-runner.R` sets it for its own TF24 runs so the
+  suite is deterministic; that is a test setting and changes nothing for callers.
+
 * On the birth-date path, the *worst-case* node of the reported height density
   does not improve with schedule refinement, even though the typical node does
   (see the reporting note under New features). `|dh/dτ|` is a ratio of two
@@ -550,16 +582,90 @@ were not previously recorded here:
   this change exists to avoid, so it would have to be an opt-in extra state
   wanted only for reporting.
 
-* `stochastic_schedule()` passes `patch_area` into
-  `stochastic_arrival_times()`'s third positional argument, which is `delta_t`.
-  Arrival rates therefore never scale with patch area, and the binning interval
-  is set to the area instead. Passing it by name is the fix, but
-  `test-stochastic-patch-runner.R` runs at `patch_area = 50` with seed-pinned
-  expectations, so correcting it makes that file ~50x heavier and needs its
-  parameters and baselines revisited. Probes that need a correct schedule build
-  their own (see `plant-dev` `probes/12-oracle.R`).
-
 ### Minor changes & bug fixes
+
+* **`run_stochastic_collect()` now reports the environment.**
+  `StochasticPatch::r_get_state()` had its environment leg commented out, so
+  unlike `Patch::r_get_state()` it returned only `time` and `species`. The R
+  collector then read `light_env`, a name nothing had ever produced, so every
+  element of that field came back `NULL`. The field is now `env`, matching what
+  the patch reports and what `run_scm()`'s collected output calls it, and it is
+  populated. This was inert while the stochastic solver held its environment at
+  the initial state; now that the environment is integrated, the soil trajectory
+  is real and worth reporting. **Breaking:** the returned list field is renamed
+  from `light_env` to `env`. Nothing could have depended on its contents, since
+  it was always `NULL`, but code testing for the name will need updating.
+
+* **The stochastic arrival schedule now scales with patch area.**
+  `stochastic_schedule()` passed `patch_area` into `stochastic_arrival_times()`'s
+  third positional argument, which is `delta_t`, leaving `patch_area` at its
+  default of 1. Two things followed. The arrival rate never scaled with area, so
+  the expected number of arrivals came out as `max_patch_lifetime × birth_rate`
+  whatever the patch size, and a 50 m² patch was seeded like a 1 m² one. The
+  binning interval was also silently set to the area, which for a large patch
+  left only a handful of intervals over which a variable birth rate was
+  averaged. Arrivals now scale linearly with `patch_area` as intended, and the
+  interval keeps its 0.1 yr default. `run_stochastic_collect()` is the only
+  caller; its runs change accordingly, and even at the default `patch_area = 1`
+  they are unchanged in expectation but not bit-identical, because the finer
+  binning draws from the RNG differently. The seeded baseline in
+  `test-stochastic-patch-runner.R` was re-derived and its `patch_area` reduced
+  from 50 to the default 1, which keeps the ~105-individual stand that test has
+  always actually run rather than the ~5300 that 50 m² now implies.
+* **An empty stochastic patch no longer discards the environment's integrated
+  state.** `StochasticPatch::compute_environment()` calls
+  `Environment::clear_environment()` when the patch holds no individuals, which
+  is right for the competition profile — nothing is casting shade — but TF24's
+  override also restored the soil states and cumulative-flux accumulators to the
+  values the run began with. Now that the environment is part of the ODE system
+  that discarded what the solver had integrated, on every derivatives evaluation
+  while the patch was empty. `clear_environment()` is now the competition
+  profile alone; restoring state moved to a new `clear_state()` that only
+  `Environment::clear()` calls, so resetting for a new run is unchanged. This
+  matters most for a schedule whose first arrival is some way into the run,
+  which is `run_stochastic_collect()`'s default.
+* **The stochastic solver now integrates the environment.** `StochasticPatch`'s
+  ODE system was the species alone: `ode_size()`, `set_ode_state()`,
+  `ode_state()` and `ode_rates()` did not chain through the environment as
+  `Patch`'s always have, and `compute_rates()` never accumulated resource
+  consumption, so `Environment::compute_rates()` was never called. An
+  environment carrying ODE state was therefore held at its initial value for a
+  whole run. TF24 carries nine such states — five soil-moisture layers and four
+  cumulative fluxes — while FF16 and K93 carry none, which is why this went
+  unnoticed. Stochastic TF24 runs change: soil water recharges from 0.214 to the
+  drainage equilibrium 0.3106 and is then drawn down as leaf area grows,
+  tracking the SCM's own trajectory on the same drivers to ~1e-4, and total leaf
+  area at patch ages 1–3 moves from 11–16% below the SCM to within 1.4% of it.
+  FF16 and K93 stochastic runs are bit-identical, given the guard described in
+  the next entry. The consumption vector is sized by the environment's
+  `n_resources()` rather than its ODE width, so TF24's four diagnostic flux slots
+  are not mistaken for resources.
+* **`StochasticPatchRunner::reset()` integrates to the first arrival with error
+  control.** `reset()` advanced from time zero to the first scheduled arrival in a
+  single `advance_fixed` step, which for `run_stochastic_collect()`'s default
+  first arrival — uniform on (0, 50) — is one step of up to fifty years. That was
+  harmless while nothing was integrated over it. Once the environment's own states
+  are, it drives soil water out of range and nothing establishes: fixing the state
+  handling alone produces nine failures and a runner that introduces no
+  individuals. The leg now uses `advance_adaptive`, as every other advance in the
+  runner already does — but only when there is state to integrate. An empty patch
+  whose environment carries none (FF16, K93) keeps the fixed step, and that guard
+  is what preserves bit-identity for those two. `advance_adaptive` walks the
+  step-size controller up to `ode_step_size_max` even on a zero-width system, and
+  `step_size_last` survives into the first real step, because only
+  `SolverInternal::step()` writes it and `step_to()` — which `advance_fixed`
+  drives — does not. Ungated, the first step after the first arrival therefore
+  begins from a rejected five-year attempt rather than
+  `ode_step_size_initial`, and FF16's collected trajectory moves by up to 1e-5
+  relative: inside `ode_tol_rel = 1e-4`, so a valid realisation either way, but
+  not identical.
+* **A stochastic recruit's strategy-specific initial states are seeded from its
+  birth environment.** `StochasticSpecies::introduce_new_node(environment)`
+  computed the new individual's rates without first calling
+  `Individual::set_initial_states()`, which the deterministic path calls from
+  `Node::compute_initial_conditions()`. A TF24 seedling was born with an empty
+  carbohydrate store rather than `a_st3` of its storage capacity. FF16 and K93
+  do not override `set_initial_states()`, so they are unaffected.
 
 * `SpeciesBase::control()` called `strategy->get_control()`, which does not
   exist on any strategy. The member had never been instantiated, so the error

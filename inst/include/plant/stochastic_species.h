@@ -62,6 +62,7 @@ public:
   double height_max() const;
   double compute_competition(double height) const;
   void compute_rates(const E& environment);
+  double consumption_rate(int i) const;
   std::vector<double> net_reproduction_ratio_by_node() const;
 
   Rcpp::NumericMatrix r_get_state() const;
@@ -141,6 +142,10 @@ void StochasticSpecies<T,E>::introduce_new_node() {
 template <typename T, typename E>
 void StochasticSpecies<T,E>::introduce_new_node(const E& environment) {
   introduce_new_node();
+  // Seed strategy-specific initial states (e.g. TF24's carbohydrate store) from
+  // the birth environment before the first rates evaluation, as the
+  // deterministic path does in Node::compute_initial_conditions.
+  nodes.back().set_initial_states(environment);
   nodes.back().compute_rates(environment);
 }
 
@@ -200,6 +205,20 @@ void StochasticSpecies<T,E>::compute_rates(const E& environment) {
       n.compute_rates(environment);
     }
   }
+}
+
+// Uptake of resource `i` summed over the living individuals, each counted once
+// (c.f. Species, which integrates the density-weighted rate over the size
+// distribution).
+template <typename T, typename E>
+double StochasticSpecies<T,E>::consumption_rate(int i) const {
+  double tot = 0.0;
+  for (auto& n : nodes) {
+    if (n.alive) {
+      tot += n.consumption_rate(i);
+    }
+  }
+  return tot;
 }
 
 // TODO(#479): This is going to change...

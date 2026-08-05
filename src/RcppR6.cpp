@@ -3845,6 +3845,11 @@ std::vector<double> StochasticPatch___FF16__FF16_Env__ode_rates__get(plant::Rcpp
 }
 
 // [[Rcpp::export]]
+size_t StochasticPatch___FF16__FF16_Env__node_ode_size__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->node_ode_size();
+}
+
+// [[Rcpp::export]]
 Rcpp::List StochasticPatch___FF16__FF16_Env__state__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->r_get_state();
 }
@@ -3947,6 +3952,11 @@ std::vector<double> StochasticPatch___TF24__TF24_Env__ode_state__get(plant::Rcpp
 // [[Rcpp::export]]
 std::vector<double> StochasticPatch___TF24__TF24_Env__ode_rates__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
   return odelia::ode::r_ode_rates(*obj_);
+}
+
+// [[Rcpp::export]]
+size_t StochasticPatch___TF24__TF24_Env__node_ode_size__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->node_ode_size();
 }
 
 // [[Rcpp::export]]
@@ -4055,6 +4065,11 @@ std::vector<double> StochasticPatch___TF24f__TF24_Env__ode_rates__get(plant::Rcp
 }
 
 // [[Rcpp::export]]
+size_t StochasticPatch___TF24f__TF24_Env__node_ode_size__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::TF24f_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->node_ode_size();
+}
+
+// [[Rcpp::export]]
 Rcpp::List StochasticPatch___TF24f__TF24_Env__state__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::TF24f_Strategy,plant::TF24_Environment> > obj_) {
   return obj_->r_get_state();
 }
@@ -4157,6 +4172,11 @@ std::vector<double> StochasticPatch___K93__K93_Env__ode_state__get(plant::RcppR6
 // [[Rcpp::export]]
 std::vector<double> StochasticPatch___K93__K93_Env__ode_rates__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
   return odelia::ode::r_ode_rates(*obj_);
+}
+
+// [[Rcpp::export]]
+size_t StochasticPatch___K93__K93_Env__node_ode_size__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->node_ode_size();
 }
 
 // [[Rcpp::export]]

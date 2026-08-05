@@ -211,7 +211,7 @@ public:
                  wind_speed_cache_time_ = NAN_TIME_;
 
   // The soil state a run begins from: whatever set_soil_water_state last set,
-  // which the R interface lets a caller choose. Restored by clear_environment.
+  // which the R interface lets a caller choose. Restored by clear_state().
   std::vector<double> initial_states;
 
   // A ResourceSpline used for storing light availbility (0-1)
@@ -533,12 +533,20 @@ public:
     light_availability.compute_environment(f_light_availability, height_max, rescale);
   }
 
-  // Clear the light profile and return the soil moisture and the cumulative
-  // flux accumulators to the state the run started from, so a second run on
-  // this patch starts where the first did. Restoring the state is what keeps a
-  // second run from silently continuing out of the first run's depleted soil.
+  // Clear the light profile, and nothing else. This runs whenever the patch
+  // empties (see StochasticPatch::compute_environment), not only between runs,
+  // and the soil states are part of the ODE system: restoring them here would
+  // discard what the solver had integrated, on every derivatives evaluation
+  // while the patch held no individuals.
   virtual void clear_environment() {
     light_availability.clear();
+  }
+
+  // Return the soil moisture and the cumulative flux accumulators to the state
+  // the run started from, so a second run on this patch starts where the first
+  // did rather than silently continuing out of the first run's depleted soil.
+  // Only Environment::clear() calls this.
+  virtual void clear_state() {
     vars.states = initial_states;
     psi_soil_cache_valid_ = false;
   }

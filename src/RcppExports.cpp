@@ -9512,6 +9512,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// StochasticPatch___FF16__FF16_Env__node_ode_size__get
+size_t StochasticPatch___FF16__FF16_Env__node_ode_size__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_StochasticPatch___FF16__FF16_Env__node_ode_size__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(StochasticPatch___FF16__FF16_Env__node_ode_size__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // StochasticPatch___FF16__FF16_Env__state__get
 Rcpp::List StochasticPatch___FF16__FF16_Env__state__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_StochasticPatch___FF16__FF16_Env__state__get(SEXP obj_SEXP) {
@@ -9768,6 +9779,17 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::TF24_Strategy,plant::TF24_Environment> > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(StochasticPatch___TF24__TF24_Env__ode_rates__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// StochasticPatch___TF24__TF24_Env__node_ode_size__get
+size_t StochasticPatch___TF24__TF24_Env__node_ode_size__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::TF24_Strategy,plant::TF24_Environment> > obj_);
+RcppExport SEXP _plant_StochasticPatch___TF24__TF24_Env__node_ode_size__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::TF24_Strategy,plant::TF24_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(StochasticPatch___TF24__TF24_Env__node_ode_size__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -10030,6 +10052,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// StochasticPatch___TF24f__TF24_Env__node_ode_size__get
+size_t StochasticPatch___TF24f__TF24_Env__node_ode_size__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::TF24f_Strategy,plant::TF24_Environment> > obj_);
+RcppExport SEXP _plant_StochasticPatch___TF24f__TF24_Env__node_ode_size__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::TF24f_Strategy,plant::TF24_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(StochasticPatch___TF24f__TF24_Env__node_ode_size__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // StochasticPatch___TF24f__TF24_Env__state__get
 Rcpp::List StochasticPatch___TF24f__TF24_Env__state__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::TF24f_Strategy,plant::TF24_Environment> > obj_);
 RcppExport SEXP _plant_StochasticPatch___TF24f__TF24_Env__state__get(SEXP obj_SEXP) {
@@ -10286,6 +10319,17 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(StochasticPatch___K93__K93_Env__ode_rates__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// StochasticPatch___K93__K93_Env__node_ode_size__get
+size_t StochasticPatch___K93__K93_Env__node_ode_size__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> > obj_);
+RcppExport SEXP _plant_StochasticPatch___K93__K93_Env__node_ode_size__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(StochasticPatch___K93__K93_Env__node_ode_size__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -13103,6 +13147,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatch___FF16__FF16_Env__ode_time__get", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__ode_time__get, 1},
     {"_plant_StochasticPatch___FF16__FF16_Env__ode_state__get", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__ode_state__get, 1},
     {"_plant_StochasticPatch___FF16__FF16_Env__ode_rates__get", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__ode_rates__get, 1},
+    {"_plant_StochasticPatch___FF16__FF16_Env__node_ode_size__get", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__node_ode_size__get, 1},
     {"_plant_StochasticPatch___FF16__FF16_Env__state__get", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__state__get, 1},
     {"_plant_StochasticPatch___TF24__TF24_Env__ctor", (DL_FUNC) &_plant_StochasticPatch___TF24__TF24_Env__ctor, 3},
     {"_plant_StochasticPatch___TF24__TF24_Env__compute_competition", (DL_FUNC) &_plant_StochasticPatch___TF24__TF24_Env__compute_competition, 2},
@@ -13126,6 +13171,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatch___TF24__TF24_Env__ode_time__get", (DL_FUNC) &_plant_StochasticPatch___TF24__TF24_Env__ode_time__get, 1},
     {"_plant_StochasticPatch___TF24__TF24_Env__ode_state__get", (DL_FUNC) &_plant_StochasticPatch___TF24__TF24_Env__ode_state__get, 1},
     {"_plant_StochasticPatch___TF24__TF24_Env__ode_rates__get", (DL_FUNC) &_plant_StochasticPatch___TF24__TF24_Env__ode_rates__get, 1},
+    {"_plant_StochasticPatch___TF24__TF24_Env__node_ode_size__get", (DL_FUNC) &_plant_StochasticPatch___TF24__TF24_Env__node_ode_size__get, 1},
     {"_plant_StochasticPatch___TF24__TF24_Env__state__get", (DL_FUNC) &_plant_StochasticPatch___TF24__TF24_Env__state__get, 1},
     {"_plant_StochasticPatch___TF24f__TF24_Env__ctor", (DL_FUNC) &_plant_StochasticPatch___TF24f__TF24_Env__ctor, 3},
     {"_plant_StochasticPatch___TF24f__TF24_Env__compute_competition", (DL_FUNC) &_plant_StochasticPatch___TF24f__TF24_Env__compute_competition, 2},
@@ -13149,6 +13195,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatch___TF24f__TF24_Env__ode_time__get", (DL_FUNC) &_plant_StochasticPatch___TF24f__TF24_Env__ode_time__get, 1},
     {"_plant_StochasticPatch___TF24f__TF24_Env__ode_state__get", (DL_FUNC) &_plant_StochasticPatch___TF24f__TF24_Env__ode_state__get, 1},
     {"_plant_StochasticPatch___TF24f__TF24_Env__ode_rates__get", (DL_FUNC) &_plant_StochasticPatch___TF24f__TF24_Env__ode_rates__get, 1},
+    {"_plant_StochasticPatch___TF24f__TF24_Env__node_ode_size__get", (DL_FUNC) &_plant_StochasticPatch___TF24f__TF24_Env__node_ode_size__get, 1},
     {"_plant_StochasticPatch___TF24f__TF24_Env__state__get", (DL_FUNC) &_plant_StochasticPatch___TF24f__TF24_Env__state__get, 1},
     {"_plant_StochasticPatch___K93__K93_Env__ctor", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__ctor, 3},
     {"_plant_StochasticPatch___K93__K93_Env__compute_competition", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__compute_competition, 2},
@@ -13172,6 +13219,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatch___K93__K93_Env__ode_time__get", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__ode_time__get, 1},
     {"_plant_StochasticPatch___K93__K93_Env__ode_state__get", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__ode_state__get, 1},
     {"_plant_StochasticPatch___K93__K93_Env__ode_rates__get", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__ode_rates__get, 1},
+    {"_plant_StochasticPatch___K93__K93_Env__node_ode_size__get", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__node_ode_size__get, 1},
     {"_plant_StochasticPatch___K93__K93_Env__state__get", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__state__get, 1},
     {"_plant_StochasticPatchRunner___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__FF16_Env__ctor, 3},
     {"_plant_StochasticPatchRunner___FF16__FF16_Env__run", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__FF16_Env__run, 1},

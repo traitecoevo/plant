@@ -49,7 +49,13 @@ stochastic_schedule <- function(p) {
 
   for (i in 1:n_species) {
     species <- p$strategies[[i]]
-    times <- stochastic_arrival_times(max_time, species, patch_area)
+    ## patch_area must be passed by name: it is the *fourth* argument of
+    ## stochastic_arrival_times(), and positionally it would land in `delta_t`.
+    ## That silently dropped area-scaling of the arrival rate (the expected
+    ## number of arrivals came out as max_time * birth_rate, whatever the area)
+    ## and set the binning interval to the area, which for a large patch left
+    ## only a handful of bins for a variable birth rate to be averaged over.
+    times <- stochastic_arrival_times(max_time, species, patch_area = patch_area)
     sched$set_times(times, i)
   }
 
@@ -101,7 +107,10 @@ run_stochastic_collect <- function(p, env = NULL,
   }
 
   time <- sapply(res, "[[", "time")
-  light_env <- lapply(res, "[[", "light_env")
+  ## `env` is what StochasticPatch reports it as, and what run_scm's collected
+  ## output calls it. This read used to ask for "light_env", a name nothing
+  ## produced, so every element came back NULL.
+  env <- lapply(res, "[[", "env")
   species <- lapply(res, "[[", "species")
 
   ## The aperm() here means that dimensions are
@@ -123,7 +132,7 @@ run_stochastic_collect <- function(p, env = NULL,
 
   ret <- list(time=time,
               species=species,
-              light_env=light_env,
+              env=env,
               # offspring_production is not defined for the finite-population
               # model (no patch-density integral); omitted. patch_density
               # likewise (see note above).
