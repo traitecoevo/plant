@@ -35,14 +35,25 @@ jobs:
       matrix:
         # ubuntu-latest is new here: it had been commented out since CI was first
         # set up (#295), so plant had never had a green Linux run despite nothing
-        # in DESCRIPTION restricting the platform. It is also the fastest and
-        # (on private repos) cheapest runner -- Linux bills at 1x against
-        # Windows 2x and macOS 10x. Once a few runs confirm it is reliable, the
-        # intended follow-up is to make Linux the only per-PR job and gate
-        # Windows on changes to src/** or inst/include/** (where plant is most
-        # platform-fragile: src/Makevars.win must link odelia.dll at load time
-        # because mingw ld forbids undefined symbols in a DLL, traitecoevo/odelia#29)
-        # and macOS on pushes to develop/master.
+        # in DESCRIPTION restricting the platform. It is the cheapest runner on a
+        # private repo (Linux bills at 1x against Windows 2x and macOS 10x),
+        # which is why it is worth having.
+        #
+        # It is NOT the fastest, contrary to the obvious guess -- measured 9.9 min
+        # against macOS 8.4 and Windows 10.8. It has the fastest *test* phase of
+        # the three (129 s vs 159/213) but pays ~205 s on dependency install
+        # against ~80 s elsewhere, because odelia/phylloptim/RcppR6 are GitHub
+        # remotes with no Linux binaries and build from source. That measurement
+        # was a cold cache on the first Linux run ever, so re-read it once warm
+        # before concluding.
+        #
+        # So the follow-up of making Linux the only per-PR job is on hold: it is
+        # justified on cost for a private repo, but not yet on latency for this
+        # public one, where minutes are free. If it does happen, Windows should be
+        # gated on src/** and inst/include/** rather than dropped -- that is where
+        # plant is most platform-fragile (src/Makevars.win must link odelia.dll at
+        # load time because mingw ld forbids undefined symbols in a DLL, see
+        # traitecoevo/odelia#29).
         config:
           - {os: ubuntu-latest, r: 'release'}
           - {os: windows-latest, r: 'release'}
