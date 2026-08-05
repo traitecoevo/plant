@@ -112,6 +112,7 @@ test_that("scenario_summary tallies matches", {
     expected = c("failure", "success", "failure"),
     observed = c("failure", "success", "success"),
     match    = c(TRUE, TRUE, FALSE),
+    crashed  = c(TRUE, FALSE, FALSE),
     persists = c(FALSE, TRUE, FALSE))
   s <- scenario_summary(sc)
   expect_equal(s$n, 3)
@@ -123,6 +124,49 @@ test_that("scenario_summary tallies matches", {
   expect_equal(s$n_persists, 1)
 })
 
+test_that("scenario_summary reports viability and persistence as separate axes (#572)", {
+  ## The case the gateway was actually in: everything runs, almost nothing
+  ## persists. One axis alone cannot say that, which is why the summary reports
+  ## both -- and why a single "match rate" headline was retired.
+  sc <- tibble::tibble(
+    expected = rep("success", 4),
+    observed = rep("success", 4),
+    match    = rep(TRUE, 4),
+    crashed  = rep(FALSE, 4),
+    ## R0 = 2e-15 is extinction; `observed == "success"` calls it a success
+    ## because it only tests total > 0.
+    persists = c(TRUE, FALSE, FALSE, FALSE))
+  s <- scenario_summary(sc)
+
+  expect_equal(s$n_ran, 4)
+  expect_equal(s$n_crashed, 0)
+  expect_equal(s$viability_rate, 1)
+
+  expect_equal(s$n_persists, 1)
+  expect_equal(s$persistence_rate, 0.25)
+
+  ## The two axes must be able to disagree; if they could not, there would be
+  ## nothing to separate.
+  expect_false(isTRUE(all.equal(s$viability_rate, s$persistence_rate)))
+})
+
+test_that("scenario_summary counts crashes from the crashed flag, not the match (#572)", {
+  ## Numerical viability is about whether the run completed, and is independent of
+  ## whether the CSV expected it to. An expected failure that crashes is a match
+  ## *and* a crash -- so it must count against viability while counting for
+  ## agreement.
+  sc <- tibble::tibble(
+    expected = c("failure", "failure"),
+    observed = c("failure", "success"),
+    match    = c(TRUE, FALSE),
+    crashed  = c(TRUE, FALSE),
+    persists = c(FALSE, FALSE))
+  s <- scenario_summary(sc)
+  expect_equal(s$n_crashed, 1)
+  expect_equal(s$n_ran, 1)
+  expect_equal(s$n_match, 1)   # the crash was expected, so it agrees
+})
+
 test_that("scenario_summary handles a scorecard recorded without persists", {
   ## The blessed baseline predates the column; summarising it must not error.
   sc <- tibble::tibble(
@@ -132,6 +176,24 @@ test_that("scenario_summary handles a scorecard recorded without persists", {
   s <- scenario_summary(sc)
   expect_equal(s$n, 2)
   expect_equal(s$n_persists, 0)
+})
+
+test_that("scenario_summary handles a scorecard recorded without crashed", {
+  ## Mirror of the above for the other fallback. Worth pinning explicitly: no
+  ## real scorecard exercises this path -- the blessed baseline lacks `persists`
+  ## but *has* `crashed` -- so without this test the branch is only reachable
+  ## from scorecards old enough that none are left in the repo.
+  sc <- tibble::tibble(
+    expected = c("failure", "success", "success"),
+    observed = c("failure", "success", "failure"),
+    match    = c(TRUE, TRUE, FALSE),
+    persists = c(FALSE, TRUE, FALSE))
+  s <- scenario_summary(sc)
+  ## Falls back to `observed != "success"`, so the two non-successes count as
+  ## crashes even though one of them was an expected failure.
+  expect_equal(s$n_crashed, 2)
+  expect_equal(s$n_ran, 1)
+  expect_equal(s$viability_rate, 1 / 3)
 })
 
 test_that("persistence is judged at R0 >= 1, not R0 > 0", {

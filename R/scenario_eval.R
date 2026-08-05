@@ -108,9 +108,35 @@ scenario_to_config <- function(row, mapping) {
   list(traits = unlist(traits), env = env, driver = driver, expected = expected)
 }
 
+##' @return \code{scenario_control} returns the \code{Control} the gateway runs
+##'   under: \code{control()} with \code{node_density_in_birth_date = TRUE}.
+##'
+##'   Every scenario here is TF24, and TF24 is the model the two density
+##'   coordinates genuinely disagree on (#590). The transport equation's
+##'   compression term is the total derivative of growth along a cohort's own
+##'   trajectory, which equals \code{dg/dh} only when growth is a function of
+##'   size; TF24's reserve gate (#517) breaks that, so in height coordinates the
+##'   solver carries an accurate derivative of a quantity the plant never
+##'   experiences. The tell is that refining the node schedule does not close the
+##'   height-vs-birth-date gap the way it does for FF16 and K93, where growth
+##'   *is* size-only and the two coordinates converge at ~2nd order.
+##'
+##'   Measured on this gateway at \code{max_patch_lifetime = 100}, the
+##'   coordinate change raises R0 on every scenario, by 2.4x (S02) to 47x (S07),
+##'   and moves S01 across R0 = 1. So the choice is not cosmetic, and running the
+##'   TF24 gateway in the package default coordinate would score the model on a
+##'   compression term that is wrong for it.
+##' @rdname scenario_eval
+##' @export
+scenario_control <- function() {
+  control(node_density_in_birth_date = TRUE)
+}
+
 ##' @param config A config list from \code{scenario_to_config}.
 ##' @param max_patch_lifetime Patch lifetime (years) for the SCM run.
-##' @param ctrl A \code{Control} object.
+##' @param ctrl A \code{Control} object. Defaults to \code{scenario_control()},
+##'   which integrates in birth date rather than height -- see there for why
+##'   that is the right coordinate for TF24.
 ##' @param birth_rate Birth rate passed to \code{add_strategies}.
 ##' @return \code{build_scenario} returns a list with the \code{Parameters}
 ##'   (\code{p}), configured \code{Environment} (\code{env}) and \code{Control}
@@ -118,7 +144,7 @@ scenario_to_config <- function(row, mapping) {
 ##' @rdname scenario_eval
 ##' @export
 build_scenario <- function(config, max_patch_lifetime = 100,
-                           ctrl = control(), birth_rate = 1) {
+                           ctrl = scenario_control(), birth_rate = 1) {
   p <- scm_base_parameters("TF24")
   p$max_patch_lifetime <- max_patch_lifetime
 
@@ -200,7 +226,7 @@ persists_at <- function(total, finite, threshold = 1) {
 ##'   which a run can fail while still counting as a numerical success.
 ##' @rdname scenario_eval
 ##' @export
-classify_scm_run <- function(p, env, ctrl = control()) {
+classify_scm_run <- function(p, env, ctrl = scenario_control()) {
   ## The test suite sets options(warn = 2); make sure warnings raised during a
   ## scenario run are recorded, not escalated to errors.
   withr::local_options(warn = 1)
@@ -245,7 +271,7 @@ classify_scm_run <- function(p, env, ctrl = control()) {
 ##' @return \code{evaluate_scenario} returns a one-row scorecard tibble.
 ##' @rdname scenario_eval
 ##' @export
-evaluate_scenario <- function(row, mapping, ctrl = control(),
+evaluate_scenario <- function(row, mapping, ctrl = scenario_control(),
                               max_patch_lifetime = 100) {
   config <- scenario_to_config(row, mapping)
   built <- build_scenario(config, max_patch_lifetime = max_patch_lifetime,
@@ -297,7 +323,7 @@ evaluate_scenario <- function(row, mapping, ctrl = control(),
 ##' @export
 run_scenarios <- function(scenarios = read_scenario_table(),
                           mapping = read_scenario_mapping(),
-                          ctrl = control(), max_patch_lifetime = 100,
+                          ctrl = scenario_control(), max_patch_lifetime = 100,
                           workers = 1L, cache = NULL) {
   eval_error_row <- function(row, msg) tibble::tibble(
     scenario_id = row$scenario_id %||% NA_character_,
@@ -380,7 +406,15 @@ run_scenarios <- function(scenarios = read_scenario_table(),
 
   meta <- scenario_run_metadata()
   meta$workers <- if (use_fork) workers else 1L
+  ## Record the density coordinate and the patch lifetime. Both change the
+  ## numbers -- the coordinate by up to 47x, enough to flip a persistence
+  ## verdict -- so a stored scorecard that does not say which produced it cannot
+  ## honestly be compared against another, and the blessed baseline is exactly
+  ## such a stored scorecard.
+  meta$node_density_in_birth_date <- ctrl$node_density_in_birth_date
+  meta$max_patch_lifetime <- max_patch_lifetime
   attr(scorecard, "metadata") <- meta
+  attr(scorecard, "max_patch_lifetime") <- max_patch_lifetime
   if (!is.null(keys)) {
     attr(scorecard, "keys") <- keys
     if (!is.null(cache)) {
@@ -460,30 +494,64 @@ scenario_run_metadata <- function() {
 }
 
 ##' @param scorecard A scorecard tibble from \code{run_scenarios}.
-##' @return \code{scenario_summary} returns a one-row tibble with the headline
-##'   counts: total scenarios, matches, match rate, the expected-failure vs
-##'   expected-success breakdown, and \code{n_persists} — how many scenarios
-##'   clear R0 >= 1. Read \code{n_persists} against \code{n}: a scorecard where
-##'   every run "succeeds" but almost none persists is reporting that the model
-##'   no longer crashes, not that the strategies live.
+##' @return \code{scenario_summary} returns a one-row tibble reporting **two
+##'   separate axes** (#572), because the gateway conflated them and so returned
+##'   no signal:
+##'
+##'   \describe{
+##'     \item{Numerical viability — did the model run?}{\code{n},
+##'       \code{n_ran}, \code{n_crashed}, \code{viability_rate}. This is what the
+##'       scenario CSV's "Model failure" means (#549, #550) and what the
+##'       hydraulic/NSC work targets.}
+##'     \item{Ecological persistence — does the strategy replace itself?}{
+##'       \code{n_persists}, \code{persistence_rate}, judged at R0 >= 1 (see
+##'       \code{persists_at}). Now that the crashes are fixed this is the axis the
+##'       gateway is actually useful for.}
+##'   }
+##'
+##'   \code{n_match} / \code{match_rate} and the expected-failure vs
+##'   expected-success breakdown are still reported, but as **agreement with the
+##'   CSV's crash predictions**, not as a headline quality score: with the crashes
+##'   fixed, the match rate mostly measures how well those predictions have aged.
+##'   Read \code{n_persists} against \code{n} — a scorecard where every run
+##'   "succeeds" but almost none persists is reporting that the model no longer
+##'   crashes, not that the strategies live.
 ##' @rdname scenario_eval
 ##' @export
 scenario_summary <- function(scorecard) {
   exp_fail <- scorecard$expected == "failure"
   exp_succ <- scorecard$expected == "success"
-  ## Scorecards recorded before `persists` existed -- including the blessed
-  ## baseline in tests/testthat/test_data/ -- have no such column, and must
-  ## still summarise rather than error.
+  n <- nrow(scorecard)
+  ## Scorecards recorded before `persists` / `crashed` existed -- including the
+  ## blessed baseline in tests/testthat/test_data/ -- have no such column, and
+  ## must still summarise rather than error.
   persists <- if ("persists" %in% names(scorecard)) scorecard$persists else NA
+  ## Numerical viability. Prefer the recorded `crashed` flag; fall back to
+  ## `observed == "failure"` only for scorecards predating that column, where the
+  ## two coincide because `status` was the only axis.
+  crashed <- if ("crashed" %in% names(scorecard)) {
+    scorecard$crashed
+  } else {
+    scorecard$observed != "success"
+  }
+  n_crashed <- sum(crashed, na.rm = TRUE)
+  n_persists <- sum(persists, na.rm = TRUE)
   tibble::tibble(
-    n                  = nrow(scorecard),
-    n_match            = sum(scorecard$match, na.rm = TRUE),
-    match_rate         = mean(scorecard$match, na.rm = TRUE),
-    n_expected_fail    = sum(exp_fail, na.rm = TRUE),
-    n_expected_fail_met = sum(exp_fail & scorecard$match, na.rm = TRUE),
-    n_expected_success = sum(exp_succ, na.rm = TRUE),
-    n_expected_success_met = sum(exp_succ & scorecard$match, na.rm = TRUE),
-    n_persists         = sum(persists, na.rm = TRUE))
+    n                      = n,
+    ## --- axis 1: numerical viability (did it run?) ---
+    n_ran                  = n - n_crashed,
+    n_crashed              = n_crashed,
+    viability_rate         = if (n > 0) (n - n_crashed) / n else NA_real_,
+    ## --- axis 2: ecological persistence (does the strategy live?) ---
+    n_persists             = n_persists,
+    persistence_rate       = if (n > 0) n_persists / n else NA_real_,
+    ## --- agreement with the CSV's (crash-era) expectations ---
+    n_match                = sum(scorecard$match, na.rm = TRUE),
+    match_rate             = mean(scorecard$match, na.rm = TRUE),
+    n_expected_fail        = sum(exp_fail, na.rm = TRUE),
+    n_expected_fail_met    = sum(exp_fail & scorecard$match, na.rm = TRUE),
+    n_expected_success     = sum(exp_succ, na.rm = TRUE),
+    n_expected_success_met = sum(exp_succ & scorecard$match, na.rm = TRUE))
 }
 
 ##' @param output_file Output HTML path for the rendered report.

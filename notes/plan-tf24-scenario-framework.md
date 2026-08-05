@@ -131,7 +131,7 @@ classify_scm_run(p, env, ctrl)     # tryCatch + warn=1; -> list(status, offsprin
 evaluate_scenario(row, mapping, ...)   # one-row scorecard tibble
 run_scenarios(scenarios=read_scenario_table(), mapping=read_scenario_mapping(), ...)  # scorecard + attr metadata
 scenario_run_metadata()            # git sha/branch/dirty, packageVersion, R, timestamp, platform
-scenario_summary(scorecard)        # n, n_match, match_rate, expected-fail/success met
+scenario_summary(scorecard)        # two axes: viability (n_ran/n_crashed) + persistence (n_persists); CSV agreement reported but not headline
 scenario_generate_report(scorecard, output_file=, ...)
 ```
 
@@ -146,6 +146,42 @@ thrown error or non-finite state). This matters because the hydraulic/NSC work
 (#549, #554) targets *crashes*, whereas `extinct` is often correct model
 behaviour. The scorecard surfaces both so a "failure" is never mistaken for a
 crash when it is really an extinction.
+
+### Scoring: two axes, no single headline (#572, decided 2026-07-30)
+
+`observed == "success"` tests `finite && total > 0`, which is far weaker than it
+looks: with `birth_rate = 1` (what `build_scenario` sets) `offspring_production`
+**is** R0, and at the blessed baseline five of the eight scenarios return R0
+between 2e-15 and 6e-14 — numerically extinct — and were all recorded as
+`persisted`. All eight "succeeded", none of the five expected failures failed,
+and only one actually replaced itself. The gateway was returning no signal.
+
+**Decision: options 3 + 1 of #572** — report both axes, and make persistence the
+primary *ecological* metric, without rewriting the CSV or re-blessing the
+baseline:
+
+- **Numerical viability** (`n_ran` / `n_crashed` / `viability_rate`) keeps
+  meaning what the CSV's "Model failure" means (#549, #550): did the model run.
+  This is the gate the hydraulic/NSC work targets, and `status` / `outcome` are
+  unchanged, so the blessed-baseline diff is still defined on the same columns.
+- **Ecological persistence** (`n_persists` / `persistence_rate`) is judged at
+  R0 >= 1 via `persists_at()`, added in #570.
+- **CSV agreement** (`n_match` / `match_rate`) is still reported but is no longer
+  the headline, in `scenario_summary()`, `scripts/run_scenario_gateway.R` and the
+  scorecard report. Rationale: with the crashes fixed it mostly measures how well
+  the CSV's crash predictions have aged, not model quality.
+
+Deliberately **not** done: option 2 (rewriting the CSV's `Expectation` column to
+be about persistence). That would discard the crash-prediction record and force a
+re-blessing. If it is ever taken, the old expectations are recoverable from git
+history and that should be said here.
+
+**Threshold caveat.** R0 >= 1 is the textbook criterion but is evaluated here at a
+*fixed* birth rate, so it carries the same density-dependence artefact that made
+TF24t-vs-TF24 R0 gaps look enormous in unrelated work. All scenarios use
+`birth_rate = 1`, so the comparison is internally consistent; if the gateway ever
+varies birth rate, `persists` needs revisiting. `persists_at(total, finite,
+threshold = 1)` takes the threshold as an argument for exactly that reason.
 
 **Parallelism.** `run_scenarios(..., workers = N)` uses **fork-based**
 parallelism (`parallel::mclapply`). This is deliberate: forked workers inherit
@@ -232,3 +268,73 @@ stale gateway result is worse than a redundant run.
 
 #548 raised the match rate (4/8 → 5/8) and, notably, fixed S03. The two matched
 controls (S07, S08) now crash — the clearest remaining targets, alongside S04.
+
+### Superseded by the two-axis scoring (#572)
+
+The 5/8 above is **stale**, and #557's body still quotes it. The crash fixes in
+#546/#552/#554 landed and *every* scenario now runs. Re-measured on this branch
+merged with `develop` at d16d1357 — i.e. after #574, #585, #590 and the
+phylloptim port (#591) — at `max_patch_lifetime = 100`, with the head-of-#570
+column kept alongside so the drift is visible:
+
+| id | expected | observed | R0 (at #570) | R0 height | R0 birth date | persists |
+|---|---|---|---|---|---|---|
+| S01 | failure | success | 2.95e-01 | 2.59e-01 | **1.49e+00** | ✓ |
+| S02 | failure | success | 4.98e-02 | 4.20e-02 | 9.96e-02 | ✗ |
+| S03 | success | success | 6.49e-13 | 6.49e-13 | 5.50e-12 | ✗ |
+| S04 | failure | success | 6.27e-14 | 6.27e-14 | 4.75e-13 | ✗ |
+| S05 | failure | success | 2.33e-14 | 2.35e-14 | 5.89e-13 | ✗ |
+| S06 | failure | success | 3.68e-14 | 3.68e-14 | 3.26e-13 | ✗ |
+| S07 | success | success | **2.93e+01** | **3.02e+01** | **1.42e+03** | ✓ |
+| S08 | success | success | 2.31e-15 | 2.17e-15 | 3.23e-14 | ✗ |
+
+Two separate movements are folded into that table.
+
+**#585's forward-model fixes** moved the three scenarios not already at machine
+zero by a few percent each (the `at #570` → `height` columns). No verdict
+changed.
+
+**The density coordinate** (`height` → `birth date`) moved everything, by 2.4x
+(S02) to 47x (S07), and moved S01 across R0 = 1. That is the change that
+matters, and it is a correctness fix rather than a tuning choice — see below.
+
+So CSV agreement is **3/8**, not 5/8 — and the drop is *good news misreported*:
+the matched-control crashes that #557 called the clearest targets are gone. That
+inversion (fixing the model lowers the score) is what showed the metric was
+pointing the wrong way round and prompted #572.
+
+Read on the two axes the gateway now reports: **numerical viability 8/8**, and
+**persistence 2/8**. Both are informative, and neither is a "match rate".
+
+### Density coordinate: the gateway runs in birth date (#590, decided 2026-08-05)
+
+`scenario_control()` supplies `control(node_density_in_birth_date = TRUE)` and is
+the default `ctrl` for `build_scenario`, `classify_scm_run`, `evaluate_scenario`
+and `run_scenarios`. The package default (`FALSE`, height) is deliberately left
+alone; only the gateway opts in.
+
+Why the gateway and not the package: every scenario here is TF24, and TF24 is
+exactly the model #590 identifies as the one the coordinates disagree on. The
+compression term is the total derivative of growth along a cohort's own
+trajectory, which equals `dg/dh` only when growth is a function of size. TF24's
+reserve gate (#517) breaks that — the finite-difference probe moves height at
+fixed *absolute* carbon, shifting the reserve fraction, whereas a real cohort
+grows at roughly constant reserve fraction. So the height coordinate is not a
+coarser approximation of the right derivative; it is an accurate derivative of
+the wrong quantity. The diagnostic #590 gives is that refining the node schedule
+does not close the gap for TF24, where for FF16 and K93 (size-only growth) the
+two coordinates converge at ~2nd order.
+
+Running the hydraulic gateway in the coordinate that is wrong for hydraulics
+would score the model on an artefact, so the gateway opts in.
+
+**What this cost, and what it caught.** Birth date is also ~2x faster here (36 s
+against 70 s for the eight scenarios). And it exposed a hole in the baseline
+guard: across a 47x swing in R0 and a persistence flip, `observed` did not change
+on a *single* scenario, because it tests `finite && total > 0` and everything has
+satisfied that since the crash fixes landed. `test-scenario-gateway.R` now diffs
+`persists` alongside `observed`.
+
+**The baseline is re-blessed** under birth date — reversing the "not re-blessed"
+position taken earlier in this note, which was correct for a pure reporting
+change and is not correct for a coordinate change that moves a verdict.

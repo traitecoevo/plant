@@ -25,15 +25,36 @@ test_that("scenario outcomes match the recorded baseline", {
   cur <- current[order(current$scenario_id), ]
   expect_equal(cur$scenario_id, b$scenario_id)
 
-  ## Compare the binary success/failure classification only: offspring
-  ## magnitudes can differ across platforms, but the classification is stable.
-  changed <- b$observed != cur$observed
-  if (any(changed)) {
-    msg <- paste(sprintf("%s: %s -> %s", b$scenario_id[changed],
-                         b$observed[changed], cur$observed[changed]),
-                 collapse = "; ")
+  ## Compare the two *classifications*, not the magnitudes: offspring production
+  ## differs across platforms, but which side of a threshold it falls on is
+  ## stable.
+  ##
+  ## `observed` alone is not enough. It tests `finite && total > 0`, which every
+  ## scenario has satisfied since the crash fixes landed, so it is pinned at
+  ## 8/8 "success" and cannot move. Measured: switching the density coordinate
+  ## (#590) multiplies R0 by 2.4x to 47x and moves S01 across R0 = 1, and
+  ## `observed` does not change on a single scenario. A guard that survives
+  ## that is not guarding the thing the gateway now reports, so `persists` --
+  ## the R0 >= 1 axis #572 made the headline -- is diffed as well.
+  report <- function(col, label) {
+    if (!col %in% names(b) || !col %in% names(cur)) {
+      return(NULL)
+    }
+    changed <- b[[col]] != cur[[col]]
+    if (!any(changed, na.rm = TRUE)) {
+      return(NULL)
+    }
+    sprintf("%s %s", label,
+            paste(sprintf("%s: %s -> %s", b$scenario_id[changed],
+                          b[[col]][changed], cur[[col]][changed]),
+                  collapse = "; "))
+  }
+
+  msgs <- c(report("observed", "observed"), report("persists", "persists"))
+  if (length(msgs)) {
     fail(paste0("Scenario outcomes changed vs baseline ",
-                "(re-bless via scripts/run_scenario_gateway.R if intended): ", msg))
+                "(re-bless via `make bless-scenarios` if intended): ",
+                paste(msgs, collapse = " | ")))
   } else {
     succeed()
   }

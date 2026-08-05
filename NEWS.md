@@ -326,7 +326,8 @@ were not previously recorded here:
   against `2707`), and refining the schedule does not move either toward the
   other. The conclusion recorded in that test — that reserve-gated growth
   (#517) largely excludes the slower species — is therefore coordinate
-  dependent, and needs re-deriving before it is relied on.
+  dependent, and needs re-deriving before it is relied on. *(Re-derived and
+  retracted; see the entry under Minor changes & bug fixes below.)*
 
   `Node::growth_rate_gradient` is not called, which also removes one leaf solve
   per cohort per Runge-Kutta stage.
@@ -583,6 +584,83 @@ were not previously recorded here:
   wanted only for reporting.
 
 ### Minor changes & bug fixes
+
+* **The scenario gateway scores numerical viability and persistence as separate
+  axes, and no longer leads with a match rate** (#572). `scenario_summary()`
+  classified a run as a success on `finite && total > 0`; with `birth_rate = 1`
+  (what `build_scenario()` sets) `offspring_production` *is* R0, so five of the
+  eight hydraulic scenarios returned R0 between 2e-15 and 6e-14 — numerically
+  extinct — and were all recorded as `persisted`. All eight "succeeded", none of
+  the five expected failures failed, and only one replaced itself: the gateway
+  returned no signal. It now reports **numerical viability** (`n_ran`,
+  `n_crashed`, `viability_rate` — did the model run, which is what the CSV's
+  "Model failure" means) and **ecological persistence** (`n_persists`,
+  `persistence_rate`, at R0 >= 1) as separate, labelled axes, in the summary, in
+  `scripts/run_scenario_gateway.R` and in the scorecard report. `n_match` /
+  `match_rate` are still reported but demoted to *agreement with the CSV's
+  crash-era expectations*: with the crashes fixed (#546/#552/#554) the match rate
+  mostly measures how well those predictions have aged, not model quality — which
+  is why fixing the model *lowered* it from 5/8 to 3/8. `status` and `outcome`
+  are unchanged and the CSV is not rewritten.
+
+* **The scenario gateway integrates in birth date, not height** (#590), via a
+  new `scenario_control()` that supplies the `Control` every entry point in the
+  framework now defaults to. The package default is untouched.
+
+  Every scenario in the gateway is TF24, and TF24 is the model the two density
+  coordinates genuinely disagree on: the compression term is the total
+  derivative of growth along a cohort's trajectory, which equals `dg/dh` only
+  when growth is a function of size, and TF24's reserve gate (#517) breaks that.
+  So the gateway had been scoring the hydraulic model through a compression term
+  that is wrong for it.
+
+  Measured on the eight scenarios at `max_patch_lifetime = 100`, the coordinate
+  change raises R0 on every one — S02 2.4x, S06 8.9x, S08 15x, S05 25x, S07 47x
+  — and moves **S01 across R0 = 1** (2.59e-01 to 1.49e+00). Persistence goes
+  **1/8 to 2/8**. Numerical viability stays 8/8 and CSV agreement stays 3/8.
+  Birth date is also about twice as fast here (36 s against 70 s).
+
+  Note what that implies about the old guard: `observed` did not change on a
+  *single* scenario across a 47x swing in R0. It tests `finite && total > 0`,
+  which every scenario has satisfied since the crash fixes landed, so it was
+  pinned at 8/8 and could not move. The baseline diff in
+  `test-scenario-gateway.R` therefore now diffs `persists` as well as
+  `observed`, and **the baseline is re-blessed** under the new coordinate.
+
+* **Retracted: "reserve-gated growth largely excludes the slower species".**
+  `test-strategy-tf24.R` recorded that as a finding about #517's NSC reserve
+  gate. It is a property of the density coordinate, and #590 flagged it as
+  needing re-deriving. Re-derived here, at the test's own configuration
+  (`lma` 0.0825 / 0.10, `max_patch_lifetime = 5`):
+
+  | coordinate | fast | slow | ratio |
+  |---|---|---|---|
+  | height | 67.32 | 2.775e-04 | 2.4e5 |
+  | birth date | 287.2 | 59.53 | 4.8 |
+
+  So the two species **coexist at comparable abundance**; they are not
+  separated by five orders of magnitude. At `max_patch_lifetime = 30` the ratio
+  is 2.7 (2707 against 1004, matching #590) — i.e. it *narrows* with patch
+  lifetime, where progressive exclusion would widen it.
+
+  What survives the retraction is the weaker claim: the faster species still
+  leads, by roughly 3-5x. Reserve-gated growth disadvantages the slower species
+  without excluding it. How much of even that gap is attributable to #517 as
+  against the trait difference itself is not measured here, and should not be
+  read into these numbers.
+
+  The evidence that this is a wrong derivative rather than an under-resolved
+  one is refinement. Over two halvings of the node spacing (88 → 175 → 349
+  nodes) the birth-date answers are already converged — fast
+  287.2/287.1/287.2, slow 59.53/59.66/59.69 — while the height answers are
+  still climbing (fast 67.32/73.18/74.98) and the exclusion ratio does not
+  shrink toward the birth-date one, it *grows*: 2.43e5/2.49e5/2.51e5.
+  Quadrature error closes under refinement; a different derivative does not.
+
+  The height-coordinate assertions are kept, since they pin what the package
+  default still does, and a birth-date case is added alongside so the
+  coordinate that is correct for TF24 is actually covered by a test rather than
+  only described in a comment.
 
 * **`run_stochastic_collect()` now reports the environment.**
   `StochasticPatch::r_get_state()` had its environment leg commented out, so

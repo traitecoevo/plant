@@ -290,19 +290,45 @@ test_that("offspring arrival", {
   expect_equal(out$offspring_production, 82.09077702, tolerance = 2e-2)
 
   # two species: the second strategy has a moderately higher lma (0.10 vs
-  # 0.0825), so it grows more slowly and is more heavily shaded. Under the NSC
-  # reserve-gated growth of #517 the slower species is now largely competitively
-  # excluded -- its offspring production is several orders of magnitude below the
-  # faster species. We pin the dominant species
-  # (loosely, for the cross-platform reasons above) and assert the excluded
-  # species stays negligible, rather than pinning its tiny value, which is too
-  # platform-fragile to compare at a fixed relative tolerance.
+  # 0.0825), so it grows more slowly and is more heavily shaded. In the height
+  # coordinate the slower species is excluded -- its offspring production is
+  # several orders of magnitude below the faster species. We pin the dominant
+  # species (loosely, for the cross-platform reasons above) and assert the
+  # excluded species stays negligible, rather than pinning its tiny value, which
+  # is too platform-fragile to compare at a fixed relative tolerance.
+  #
+  # This exclusion is a property of the *coordinate*, not of reserve-gated
+  # growth. See the birth-date case below: an earlier version of this comment
+  # recorded it as a finding about #517, which it is not.
   p2 <- add_strategies(p0, trait_matrix(c(0.0825, 0.10, 5, 5), c("lma", "hmat")),
                        hyperpar = TF24_hyperpar, birth_rate = list(20, 20))
 
   out <- run_scm(p2, env, ctrl)
   expect_equal(out$offspring_production[[1]], 67.54060383, tolerance = 2e-2)
   expect_lt(out$offspring_production[[2]], 0.5)
+
+  # Same two species, integrated in birth date (#590). They coexist at
+  # comparable abundance -- a ratio of ~4.8, against ~2.4e5 above. At
+  # max_patch_lifetime = 30 the ratio is 2.7, i.e. it narrows with patch
+  # lifetime, where progressive exclusion would widen it.
+  #
+  # Birth date is the right coordinate here. The compression term is the total
+  # derivative of growth along a cohort's trajectory, which equals dg/dh only
+  # when growth is a function of size, and #517's reserve gate breaks that: the
+  # finite-difference probe moves height at fixed *absolute* carbon, shifting
+  # the reserve fraction, whereas a real cohort grows at roughly constant
+  # reserve fraction.
+  #
+  # The evidence that this is a wrong derivative rather than a coarse one is
+  # refinement. Over two halvings of the node spacing (88 -> 175 -> 349 nodes)
+  # the birth-date answers are already converged -- fast 287.2/287.1/287.2, slow
+  # 59.53/59.66/59.69 -- while the height answers are still climbing (fast
+  # 67.32/73.18/74.98) and the exclusion ratio does not shrink toward the
+  # birth-date one, it grows: 2.43e5/2.49e5/2.51e5. Quadrature error would
+  # close; a different derivative does not.
+  out_bd <- run_scm(p2, env, Control(node_density_in_birth_date = TRUE))
+  expect_equal(out_bd$offspring_production[[1]], 287.16043704, tolerance = 2e-2)
+  expect_equal(out_bd$offspring_production[[2]], 59.53195639, tolerance = 2e-2)
 })
 
 # Water mass-balance: transpiration integrated up the stem side of every
