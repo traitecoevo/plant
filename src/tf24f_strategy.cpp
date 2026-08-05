@@ -40,7 +40,7 @@ void TF24f_Strategy::compute_rates(const TF24_Environment& environment,
 // Track instead of optimise: evaluate the leaf at the tracked collar psi and
 // supply d(profit)/d(psi) for the gradient-ascent rate. evaluate_root_collar_psi
 // clamps to the feasible interval, so we read back the *clamped* operating value
-// (`used` = -root_collar_psi_) and form the gradient about it; this keeps the
+// (`used` = opt_root_psi_) and form the gradient about it; this keeps the
 // gradient meaningful even when the tracked state has drifted outside the
 // interval (e.g. an uninitialised state at 0), pulling it back inside, and the
 // final evaluate leaves the leaf outputs at the operating point that
@@ -61,7 +61,9 @@ void TF24f_Strategy::solve_leaf() {
     // Establish the operating point (and the clamped collar psi `used`) and leave
     // the leaf outputs there for compute_rates' aux reads.
     leaf.evaluate_root_collar_psi(tracked_root_psi_);
-    const double used = -leaf.root_collar_psi_;
+    // No negation: the leaf package stores this as the positive magnitude the
+    // tracked state and the gradient both want (phylloptim #25).
+    const double used = leaf.opt_root_psi_;
     dprofit_dpsi_ = leaf.dprofit_droot_collar_psi(used);
     leaf.evaluate_root_collar_psi(used);  // restore operating-point outputs
   } else {
@@ -103,8 +105,9 @@ void TF24f_Strategy::solve_leaf() {
 
 // Seed the tracked state at its optimum: run the base optimiser once (via the
 // initializing_ flag, which makes solve_leaf optimise rather than track) and
-// store the resulting collar psi as the initial state. leaf.root_collar_psi_ is
-// the signed (negative) potential; the tracked state is the positive magnitude.
+// store the resulting collar psi as the initial state. leaf.opt_root_psi_ and the
+// tracked state are both the positive magnitude now, so nothing is flipped
+// (phylloptim #25).
 void TF24f_Strategy::set_initial_states(const TF24_Environment& environment,
                                         Internals& vars) {
   // Seed the shared TF24 states first (notably the NSC storage pool, #517) --
@@ -114,7 +117,7 @@ void TF24f_Strategy::set_initial_states(const TF24_Environment& environment,
   initializing_ = true;
   net_mass_production_dt(environment, vars);
   initializing_ = false;
-  vars.set_state(state_idx_opt_root_psi_state, -leaf.root_collar_psi_);
+  vars.set_state(state_idx_opt_root_psi_state, leaf.opt_root_psi_);
 }
 
 TF24f_Strategy::ptr make_strategy_ptr(TF24f_Strategy s) {

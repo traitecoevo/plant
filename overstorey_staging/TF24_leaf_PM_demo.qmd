@@ -1,0 +1,156 @@
+---
+title: "TF24 leaf-level Penman-Monteith energy balance: Fick vs PM"
+format:
+  html:
+    toc: true
+    code-fold: true
+    fig-width: 9
+    fig-height: 5
+---
+
+```{r setup, message=FALSE, warning=FALSE}
+# Staging demo: needs the in-tree dev build (PM, #523), not necessarily the
+# installed `plant`. Resolve the package root whether rendered from the repo root
+# or from overstorey_staging/.
+pkg_root <- if (file.exists("DESCRIPTION")) "." else ".."
+if (requireNamespace("pkgload", quietly = TRUE)) {
+  pkgload::load_all(pkg_root, quiet = TRUE)
+} else {
+  library(plant)
+}
+library(ggplot2)
+library(patchwork)
+library(dplyr)
+library(tidyr)
+
+# Shared leaf-driving code (also exercised by tests/testthat/test-pm-leaf-demo.R,
+# so this demo cannot silently rot).
+source(file.path(pkg_root, "overstorey_staging", "pm_demo_helpers.R"))
+
+theme_set(theme_bw(base_size = 12))
+pal <- c("Fick (Tleaf = Tair)" = "#1b9e77", "Penman-Monteith" = "#d95f02")
+lab_pm <- function(pm) ifelse(pm, "Penman-Monteith", "Fick (Tleaf = Tair)")
+```
+
+This document demonstrates the TF24 leaf submodel with the Penman-Monteith leaf
+energy balance (`use_energy_balance_`, issue #523) turned **on** vs the default
+**off** (Fick's law, `Tleaf = Tair`). It drives a single well-watered leaf across
+an environment grid; it is a work-in-progress staging document, not a built
+vignette. See `notes/penman-monteith/` for the plan and the Step 5 evaluation.
+
+## 1. Profit anatomy at a single hot environment
+
+The leaf chooses its **root-collar** water potential to maximise carbon
+**profit** = assimilation benefit − hydraulic cost; `find_root_collar_psi()`
+searches over this variable directly, not ψ_stem — ψ_stem is *derived* from
+each candidate collar potential via the stem's hydraulic transport
+(`find_psi_stem_from_psi_root`). This scan drives the leaf the same way, via
+`evaluate_root_collar_psi()`, so the dashed real-solver optimum lands on the
+visible curve. Under PM, the assimilation curve bends because a hotter leaf
+shifts the Farquhar temperature response. Here at a hot, high-radiation,
+high-VPD environment (Tair = 38 °C, PAR = 1800, VPD = 2.5 kPa).
+
+```{r profit-anatomy}
+env1 <- list(PAR = 1800, Tair = 38, VPD = 2.5)
+root_psi_seq <- seq(0.31, 5.5, length.out = 120)
+
+collar_curve <- bind_rows(
+  pm_collar_curve(env1$PAR, env1$Tair, env1$VPD, FALSE, root_psi_seq),
+  pm_collar_curve(env1$PAR, env1$Tair, env1$VPD, TRUE,  root_psi_seq)
+) |>
+  mutate(model = lab_pm(pm)) |>
+  filter(is.finite(profit))
+
+# Optima from the actual solver, on the same (positive-magnitude) root-collar
+# potential axis as root_psi_seq.
+opt <- bind_rows(
+  pm_solve_cell(env1$PAR, env1$Tair, env1$VPD, FALSE),
+  pm_solve_cell(env1$PAR, env1$Tair, env1$VPD, TRUE)
+) |>
+  # opt_root_psi is already the positive magnitude the plot's axis wants
+  # (phylloptim #25), so there is no negation here any more.
+  mutate(model = lab_pm(pm), root_psi = opt_root_psi)
+
+collar_curve_long <- collar_curve |>
+  pivot_longer(c(profit, assim, hydraulic_cost, leaf_temp),
+               names_to = "component", values_to = "value") |>
+  mutate(component = recode(component,
+    profit = "net profit", assim = "assimilation benefit",
+    hydraulic_cost = "hydraulic cost"))
+
+ggplot(collar_curve_long, aes(root_psi, value, colour = model)) +
+  geom_line(linewidth = 0.8) +
+  geom_vline(data = opt, aes(xintercept = root_psi, colour = model),
+             linetype = "dashed") +
+  facet_wrap(~component, scales = "free_y") +
+  scale_colour_manual(values = pal, name = NULL) +
+  labs(x = expression(psi[rc]~"(-MPa, root collar)"), y = "µmol C m⁻² s⁻¹",
+       title = "Profit anatomy: Fick vs Penman-Monteith",
+       subtitle = sprintf("Tair = %g °C, PAR = %g, VPD = %g kPa; dashed = optimum",
+                          env1$Tair, env1$PAR, env1$VPD)) +
+  theme(legend.position = "top")
+```
+
+## 2. Optimal outcomes across environments
+
+Sweep Tair × PAR at a fixed VPD, solving the optimum with Fick and with PM, and
+compare leaf temperature, the optimum stem potential, stomatal conductance,
+transpiration, assimilation, and profit.
+
+```{r sweep}
+grid <- expand.grid(PAR = c(400, 900, 1500, 2000),
+                    Tair = c(15, 25, 33, 40),
+                    VPD = 2.0)
+sweep <- pm_solve_grid(grid) |> mutate(model = lab_pm(pm))
+
+sweep_w <- sweep |>
+  select(PAR, Tair, model, Tleaf, opt_psi_stem, gs, E, A, profit) |>
+  mutate(dTleaf = Tleaf - Tair)
+
+p_tleaf <- ggplot(subset(sweep_w, model == "Penman-Monteith"),
+                  aes(PAR, dTleaf, colour = factor(Tair))) +
+  geom_line() + geom_point() +
+  labs(x = "PAR (µmol m⁻² s⁻¹)", y = "Tleaf − Tair (°C)",
+       colour = "Tair (°C)", title = "PM leaf warming")
+
+metric_plot <- function(var, ylab) {
+  ggplot(sweep_w, aes(PAR, .data[[var]], colour = model,
+                      linetype = factor(Tair))) +
+    geom_line() +
+    scale_colour_manual(values = pal, name = NULL) +
+    labs(x = "PAR", y = ylab, linetype = "Tair (°C)")
+}
+
+(p_tleaf | metric_plot("A", "assimilation (µmol C m⁻² s⁻¹)")) /
+  (metric_plot("gs", "gs (mol CO₂ m⁻² s⁻¹)") | metric_plot("profit", "profit")) +
+  plot_annotation(title = "Optimal leaf outcomes across environments (VPD = 2 kPa)")
+```
+
+## 3. Where PM matters
+
+The correction is negligible in cool/low-light conditions and large in the hot,
+high-radiation corner — where the overheated leaf loses most of its carbon gain.
+
+```{r where}
+grid2 <- expand.grid(PAR = c(200, 500, 1000, 2000),
+                     Tair = c(15, 25, 35, 40), VPD = 2.0)
+both <- pm_solve_grid(grid2)
+wide <- both |>
+  select(PAR, Tair, pm, A, Tleaf) |>
+  tidyr::pivot_wider(names_from = pm, values_from = c(A, Tleaf),
+                     names_glue = "{.value}_{ifelse(pm, 'pm', 'fick')}") |>
+  mutate(dTleaf = Tleaf_pm - Tair,
+         relA = ifelse(A_fick > 1, 100 * (A_pm - A_fick) / A_fick, NA_real_))
+
+ggplot(wide, aes(factor(PAR), factor(Tair), fill = relA)) +
+  geom_tile(colour = "white") +
+  geom_text(aes(label = ifelse(is.na(relA), "·", sprintf("%.0f", relA))), size = 3) +
+  scale_fill_gradient2(low = "#b2182b", mid = "#f7f7f7", high = "#2166ac",
+                       midpoint = 0, name = "ΔA %") +
+  labs(x = "PAR (µmol m⁻² s⁻¹)", y = "Tair (°C)",
+       title = "Relative change in assimilation, PM vs Fick",
+       subtitle = "VPD = 2 kPa; blue = PM raises A, red = PM lowers A, · = A≈0")
+```
+
+See `notes/penman-monteith/step5-fick-vs-pm-evaluation.md` for the full factorial
+gate and verdict.

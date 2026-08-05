@@ -60,6 +60,11 @@ struct Control {
   bool   node_gradient_richardson;
   size_t node_gradient_richardson_depth;
 
+  // Carry the size distribution as a density in birth date rather than in
+  // height. The two resource integrals then run over introduction times, and
+  // the density rate is mortality alone.
+  bool node_density_in_birth_date;
+
   double ode_step_size_initial;
   double ode_step_size_min;
   double ode_step_size_max;

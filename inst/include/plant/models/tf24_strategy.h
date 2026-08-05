@@ -7,7 +7,7 @@
 #include <plant/models/tf24_environment.h>
 #include <plant/qag.h>
 #include <plant/leaf_model.h>
-#include <plant/canopy_shape.h> // ShadingModel
+#include <plant/canopy_shape.h>
 
 namespace plant {
 
@@ -112,6 +112,12 @@ struct TF24_Pars {
   double rooting_depth_max = 1.5;
   // Germination
   double recruitment_decay = 0.0;
+  // Penman-Monteith leaf energy balance (#523). use_energy_balance gates PM
+  // (0 = off, today's Tleaf=Tair behaviour; != 0 = on); default off preserves
+  // backward compatibility. d is the characteristic leaf dimension (m) for the
+  // aerodynamic resistance ra = C_ra*sqrt(d/U0); inert while PM is off.
+  double use_energy_balance = 0.0;
+  double d = 0.05;
 };
 
 class TF24_Strategy: public Strategy<TF24_Environment> {
@@ -135,7 +141,95 @@ public:
   // offspring production moves by up to 5e-3 relative on 5 of 8 scenarios,
   // while every success/failure classification is unchanged. TF24f's compound
   // version auto-tracks this to 4.1.
-  static constexpr int scientific_version = 4;
+  // v5: the leaf gas-exchange and hydraulics model is now the standalone
+  // `phylloptim` package rather than a copy in this repo, and the swap carries four science
+  // changes. Measured on the one-species SCM scenario of test-strategy-tf24.R
+  // (max_patch_lifetime = 5), offspring production moves 81.9083 -> 83.9026,
+  // i.e. **+2.4%**. Attributed by re-running both arms with the atm_kpa driver
+  // forced to 101.3, which removes the pressure change and leaves the rest:
+  //
+  //     arm                  atm_kpa 100.5     atm_kpa 101.3
+  //     this repo's leaf        81.9083           81.8201
+  //     the leaf package        83.9026           81.8985
+  //
+  // So **the pressure fix is ~25x the rest of the swap put together** (+2.4%
+  // against +0.10%), which was not the expectation going in. The leaf package's
+  // ppm-to-Pa conversion is derived from atm_kpa (phylloptim #15 item 10c) instead
+  // of hard-coded at 0.1013 = 1e-6 * 101300 Pa; TF24_Environment's atm_kpa driver
+  // defaults to **100.5**, so Gamma*, Kc, Ko, Km and the ci root-find bounds all
+  // move. Before the fix the conductance side of the model responded to atm_kpa
+  // while the photosynthesis side silently assumed sea level -- visible in the
+  // table as this repo's leaf moving only -0.11% across the same 0.8 kPa that
+  // moves the package -2.4%.
+  //
+  // The remaining +0.10% is the two further stale-state exits (phylloptim #26,
+  // ported from #585) plus the supply-path extraction (phylloptim #2). TF24f's
+  // compound version auto-tracks this to 5.1.
+  // v6: the leaf package moved to ONE representation for water potential --
+  // positive magnitudes throughout (phylloptim #25). Two consequences, and the first
+  // is why this is a version bump rather than a refactor:
+  //   * the **`opt_root_psi` aux changes sign**. It is now the positive magnitude,
+  //     which is what TF24f's `opt_root_psi_state` has always held. Before, the aux
+  //     reported the signed potential while tf24f_strategy.cpp negated it back for
+  //     the state -- an inconsistency in plant's own reported outputs, and the two
+  //     compensating negations are deleted here. Any stored output or cached
+  //     analysis reading that aux would silently change meaning, which is exactly
+  //     what model_version() exists to catch.
+  //   * outputs move slightly: one-species SCM offspring production 83.9026 ->
+  //     83.8761, i.e. **-3.2e-4 relative**. This is NOT an equation change. The
+  //     rewrite is exactly sign-symmetric in IEEE; what is not is boost's TOMS748,
+  //     whose iterates depend on the bracket's orientation, and #25 reverses it.
+  //     Measured there: 12 of 288 golden operating points differ by 1-3 ULP, the
+  //     rest exactly. The SCM's adaptive stepper and node schedule amplify that to
+  //     3e-4 -- within the ~GSS_tol_abs (1e-3) ceiling the leaf package documents,
+  //     and small enough that every pinned test value and the exact stochastic
+  //     TF24 counts (101/23) pass unchanged.
+  // TF24f's compound version auto-tracks this to 6.1.
+  // v7: the collar bracket is finally clamped to root_psi_crit, the potential at
+  // which root conductivity is down to 5% (phylloptim #24, plant #584). The clamp was
+  // written as a std::max against a *signed* root_psi_crit, so it could never bind
+  // and the solver optimised over a collar the root system cannot supply. **The
+  // window is 1.2 MPa wide at TF24's defaults** -- psi_crit = 7.085493 against
+  // root_psi_crit = 5.870283 -- so this is a dry-corner correction, not a rounding
+  // one. Two regimes inside it: the interval is tightened (the plant still
+  // transpires, at a wetter collar), or root_psi_crit lands below the zero-uptake
+  // collar and the plant shuts down because no operating point both moves water and
+  // stays inside the root limit.
+  //
+  // No tested scenario moves: the standard SCM run stays at 83.8761 offspring, bit
+  // for bit, because a mesic patch never drives the collar past 5.87 MPa. It is
+  // still a version bump -- a user running a dry scenario gets different (correct)
+  // numbers for identical inputs, and logpile's cache has to know.
+  // TF24f's compound version auto-tracks this to 7.1.
+  // v8: `TF24_Environment`'s `atm_kpa` driver default goes **100.5 -> 101.3**, and
+  // this is the entry to read if you only read one. It largely CANCELS v5.
+  //
+  // v5 recorded +2.4% from deriving the leaf's ppm -> Pa conversion from `atm_kpa`
+  // instead of hard-coding 0.1013. That constant *was* 101.3 kPa in disguise
+  // (1e-6 * 101300 Pa), so the shift was not the fix doing damage -- it was this
+  // driver disagreeing with the rest of the model. 100.5 arrived in `34d46ac2`
+  // ("Simplify scm & environment interface", #446), an interface refactor that does
+  // not mention atmospheric pressure, with no rationale recorded anywhere, while
+  // every leaf-level test used 101.3. An artefact, not a site elevation.
+  //
+  // Pinning it to the value the model already assumed collapses the whole branch's
+  // movement. Net effect of ALL of it (the swap, the #15 catch-up, the #26 ported
+  // fixes, #25 and #24) against `develop`:
+  //
+  //     one-species SCM offspring   81.9083 -> 81.7426     -0.20%
+  //     stochastic TF24 counts      103 / 28 -> 103 / 28   unchanged, exactly
+  //
+  // So **+2.43% became -0.20%**, and every pinned baseline reverts to develop's own
+  // values: the two SCM offspring figures pass at their original 82.09077702 /
+  // 67.54060383, and the seeded stochastic integers match bit for bit. That exact
+  // match on discrete counts is a sharper statement than any tolerance-based check
+  // that the swap preserves TF24's science.
+  //
+  // The fix itself is NOT undone -- an off-sea-level run still gets a self-consistent
+  // Gamma*/Kc/Ko/Km and conductance side, which is the whole point of item 10c. Set
+  // `atm_kpa` per site if you mean altitude; it just no longer defaults to an
+  // altitude nobody chose.
+  static constexpr int scientific_version = 8;
 
   double compute_average_light_environment(double z, double height,
                                            const TF24_Environment &environment);
@@ -346,8 +440,20 @@ public:
   double storage_capacity(double area_leaf, double height) const;
   // Seed the storage state for a newly germinated individual (#517).
   void set_initial_states(const TF24_Environment& environment, Internals& vars);
-  // [eqn 20] Survival of seedlings during establishment
+  // [eqn 20] Survival of seedlings during establishment, from the carbon a
+  // seedling produces at birth size. This form works that carbon out.
   double establishment_probability(const TF24_Environment& environment);
+  // The same, for a newborn whose rates have just been computed. A newborn is
+  // already at birth size, so compute_rates has left that carbon in aux and the
+  // leaf need not be solved there twice.
+  double establishment_probability(const TF24_Environment& environment,
+                                   const Internals& vars) {
+    return establishment_probability(environment,
+                                     vars.aux(aux_idx_net_mass_production_dt));
+  }
+  // The equation the two above share.
+  double establishment_probability(const TF24_Environment& environment,
+                                   double net_mass_production_dt_);
 
   // * Competitive environment
   // [eqn 11] total projected leaf area above height above height `z` for given plant
@@ -364,12 +470,10 @@ public:
                                vars.aux(aux_idx_height_inverse));
   }
 
-  // [eqn  9] Probability density of leaf area at height `z`
-  double q(double z, double height) const;
-  // [eqn 10] Fraction of leaf area above height `z`
-  double Q(double z, double height, double eta_x) const;
-  // [      ] Inverse of Q: height above which fraction 'x' of leaf found
-  double Qp(double x, double height) const;
+  // The fraction of root mass below soil depth `z`, for a plant rooted to
+  // `rooting_depth` with shape exponent `eta_x` (pars.root_depth_shape_eta). The
+  // canopy's own cumulative form is CanopyShape::Q, at pars.eta.
+  double Q(double z, double rooting_depth, double eta_x) const;
 
   // The aim is to find a plant height that gives the correct seed mass.
   double height_seed(void) const;
@@ -391,6 +495,7 @@ public:
 
   // Derived / precomputed in prepare_strategy() (NOT user-set) -------------
   double eta_c     = NA_REAL; // crown shape factor, precomputed from pars.eta
+  CanopyShape canopy_shape;
   // Height and leaf area of a (germinated) seed
   double height_0  = NA_REAL;
   double area_leaf_0;
@@ -438,7 +543,7 @@ public:
 
   // Reusable per-layer root-mass buffer, refilled (not reallocated) each
   // net_mass_production_dt call to avoid a heap allocation per derivs eval.
-  std::vector<double> mass_root_prop_;
+  std::vector<double> root_carbon_per_leaf_area_;
 };
 
 TF24_Strategy::ptr make_strategy_ptr(TF24_Strategy s);

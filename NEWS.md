@@ -7,6 +7,108 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **`TF24_Environment`'s `atm_kpa` driver now defaults to 101.3 kPa, not 100.5.**
+  `scientific_version` for TF24 goes 7 -> 8, TF24f 7.1 -> 8.1. Migration: none
+  required, but read this if you have TF24 results on disk.
+  * The leaf model's ppm -> Pa conversion was the hard-coded constant `0.1013`, which
+    is 101.3 kPa in disguise (`1e-6 * 101300 Pa`). The driver said 100.5, so the
+    model's conductance side responded to 100.5 while Gamma*, Kc, Ko, Km and the ci
+    root-find bounds silently assumed 101.3. Deriving the conversion from `atm_kpa`
+    (phylloptim #15) made the model self-consistent and turned that disagreement into a
+    **+2.4%** shift in output.
+  * 100.5 came from `34d46ac2` (#446), an interface refactor that does not mention
+    atmospheric pressure, with no recorded rationale, while every leaf-level test used
+    101.3. Pinning the driver to the value the rest of the model already assumed
+    reduces the **net** movement of this whole branch to **-0.20%**, and restores
+    every pinned baseline to develop's own values -- including the seeded stochastic
+    TF24 counts, which match exactly.
+  * `atm_kpa` remains a driver: set it per site if you are modelling altitude.
+    `env$extrinsic_drivers_set_constant("atm_kpa", <kPa>)`.
+
+* **The collar bracket is now clamped to `root_psi_crit`** (phylloptim #24, #584).
+  `scientific_version` for TF24 goes 6 -> 7, TF24f 6.1 -> 7.1. The clamp compared a
+  magnitude against a signed potential, so it could never bind and the solver
+  optimised over a root-collar potential the root system cannot supply. The window is
+  **1.2 MPa wide at the defaults** (`psi_crit` 7.0855 vs `root_psi_crit` 5.8703), so
+  water-limited runs change; no mesic run does, and the standard SCM scenario is
+  bit-identical. No migration: no name or signature changes.
+
+* **Water potential now has one representation everywhere: positive magnitudes in
+  MPa** (phylloptim #25). `scientific_version` for TF24 goes 5 -> 6, TF24f 5.1 -> 6.1.
+  Migration:
+  * `leaf$root_collar_psi_` -> `leaf$opt_root_psi_`, **and its sign flips**: it is
+    now the positive magnitude. Renamed rather than reused deliberately, so an old
+    script gets an error instead of quietly reading the wrong sign.
+  * the **`opt_root_psi` aux changes sign** for the same reason, and now agrees with
+    TF24f's `opt_root_psi_state`, which always held the magnitude. Before, the aux
+    reported the signed potential while the state was negated back from it — an
+    inconsistency in plant's own outputs. Any stored output or plot that negated the
+    aux must stop doing so.
+  * `l$E_from_Soil_to_Root_Collar(collar, psi_soil)`, `l$find_root_psi(...)`,
+    `l$find_psi_stem_from_psi_root(...)`, `l$dE_from_soil_dpsi_collar(...)` and
+    `l$transpiration_to_psi_stem(E, psi_upstream)` keep their signatures but now
+    take **positive magnitudes**, and the bracket ends of `find_root_psi` swap
+    (wettest layer first, `psi_crit` second). Passing the old signed values raises
+    an error rather than returning a wrong number — the leaf package validates it.
+  * outputs move by about **-3.2e-4 relative** (one-species SCM offspring production
+    83.9026 -> 83.8761). Not an equation change: the rewrite is exactly
+    sign-symmetric, but boost's TOMS748 iterates depend on the bracket's
+    orientation, and the SCM amplifies the resulting 1-3 ULP. Every pinned test
+    value and the exact stochastic TF24 counts pass unchanged.
+
+* The TF24 leaf gas-exchange and hydraulics model now comes from the standalone
+  header-only [`phylloptim`](https://github.com/traitecoevo/phylloptim) package instead of
+  a copy in this repo (phylloptim #9). `plant::Leaf` is an alias for `phylloptim::Leaf`, so
+  C++ consumers that `#include <plant/leaf_model.h>` and read public `Leaf` members
+  keep compiling unchanged. **`scientific_version` for TF24 goes 4 -> 5 and TF24f
+  4.1 -> 5.1: TF24 output moves by about +2.4%** — see `tf24_strategy.h` for the
+  measurement and its attribution. Migration:
+  * `l$set_physiology(area_leaf =, mass_root_prop =, rho =, a_bio =, PPFD =,
+    psi_soil =, soil_depth =, leaf_specific_conductance_max =, atm_vpd =, ca =,
+    sapwood_volume_per_leaf_area =, leaf_temp =, atm_o2_kpa =, atm_kpa =)`
+    -> `l$set_physiology(root_carbon_per_leaf_area =, PPFD =, psi_soil =,
+    soil_depth =, leaf_specific_conductance_max =, atm_vpd =, ca =, leaf_temp =,
+    atm_o2_kpa =, atm_kpa =)`. **This is a semantic change, not just a rename:**
+    `area_leaf`, `rho`, `a_bio` and `sapwood_volume_per_leaf_area` were dead
+    stores and are gone, and `root_carbon_per_leaf_area` is the old
+    `mass_root_prop` **divided by `area_leaf`**. The leaf is purely intensive now;
+    uptake is exactly homogeneous in that ratio, so passing the old absolute
+    carbon silently gives a root system too weak by a factor of `1/area_leaf`.
+  * `l$area_leaf_`, `l$rho_`, `l$a_bio_`, `l$sapwood_volume_per_leaf_area_`
+    (removed) -> no equivalent; all four were assigned and never read.
+  * `plant::umol_per_mol_to_Pa` (C++, removed) -> `Leaf::umol_per_mol_to_Pa_`, now
+    derived per call from `atm_kpa` rather than hard-coded at 0.1013.
+  * `l$initialize_integrator(rule, tol)` keeps its name but now sets the tolerance
+    of the leaf package's header-only adaptive Simpson quadrature rather than
+    configuring plant's compiled QAG; only `transpiration_full_integration`, a
+    spline-fidelity diagnostic, was ever affected.
+  * Requires **odelia at master** (commit `d8235d1` or later), not just the
+    `>= 0.2.0` in DESCRIPTION: `Patch::ode_rates` is non-const since #585 and
+    odelia 0.2.0's `r_ode_rates` takes the system by `const&`. plant's `develop`
+    does not compile against 0.2.0 either — this is not new here, but it will bite
+    anyone building from a released odelia.
+
+* Penman-Monteith leaf energy balance added to TF24/TF24f behind an
+  opt-in gate, **default off** (#523). With the gate off, runtime behaviour and
+  outputs are bit-identical to before (verified against leaf-level and SCM
+  baselines) and `scientific_version` is unchanged — but the change adds fields
+  to the R-facing `TF24_Pars` and a new environment driver, so any snapshot /
+  round-trip test that encodes the full TF24 parameter set or driver list will
+  see new entries. Migration:
+  * `TF24_Pars` gains two fields (default off / inert): `pars$use_energy_balance`
+    (0 = off = today's `Tleaf = Tair`; non-zero = on) and `pars$d` (characteristic
+    leaf dimension, m, for the aerodynamic resistance). No action needed unless
+    you assert the exact `pars` field set.
+  * `TF24_Environment` gains a `wind_speed` extrinsic driver (default `2.0`
+    m s⁻¹), set like any other driver:
+    `env$extrinsic_drivers_set_constant("wind_speed", U0)` /
+    `env$extrinsic_drivers_set_variable("wind_speed", x =, y =)`.
+  * The `Leaf` submodel exposes `use_energy_balance_`, `d_`, `wind_speed_`
+    (settable) and `Tair_`/`Rn_`/`ra_` (readable) for leaf-level experimentation.
+  * To enable: set `pars$use_energy_balance <- 1` (and optionally `pars$d`,
+    the `wind_speed` driver) before running; leaf temperature is then solved from
+    the energy balance and fed to the Farquhar temperature scaling.
+
 * Strategy biological parameters are now stored in a nested `pars` sub-object
   rather than as flat fields on the strategy (#410). This applies to every
   strategy type (`FF16_Strategy`, `K93_Strategy`, `TF24_Strategy`). Migration —
@@ -145,9 +247,134 @@ were not previously recorded here:
   in its result list — it is not defined for the finite-population model and was
   never populated (#498, #506). Migration:
   * `run_stochastic_collect(...)$offspring_production` -> removed (no equivalent)
+* `Patch` computes its rates when they are read rather than when its state is
+  set, so reading `$ode_rates` now evaluates and the separate compute entry point
+  is gone (#585). Migration:
+  * `patch$compute_rates()` (removed) -> `patch$ode_rates`, which computes at the
+    state currently loaded and returns the result
+  * Semantic change: `patch$ode_rates` was a cheap read of stored values and is
+    now a full right-hand-side evaluation. `StochasticPatch$compute_rates()` is
+    unchanged.
 
 ### New features
 
+* **`Control$node_density_in_birth_date`** (default `FALSE`) carries the SCM's
+  size distribution as a density in birth date instead of in height.
+
+  The transport equation's compression term is the total derivative of the growth
+  rate along a cohort's own trajectory, which equals `∂g/∂h` only when growth is
+  a function of size. TF24's reserve gate breaks that: the finite-difference
+  probe in `Node::growth_rate_gradient` moves height while holding *absolute*
+  carbon fixed, so it shifts the reserve fraction `r = S/S_max`, whereas a cohort
+  actually grows with `r` roughly constant. The probe is accurate about a
+  quantity the plant never experiences, so this is a different derivative rather
+  than a worse approximation of the right one.
+
+  In birth-date coordinates the density rate is mortality alone (nothing moves an
+  individual along the birth-date axis), the birth density is
+  `birth_rate·pr_estab` with no division by the growth rate, and both resource
+  integrals run over introduction times.
+
+  With the flag off the solver is bit-identical to before. With it on:
+
+  - FF16 and K93 have size-only growth, so both coordinates must converge to the
+    same answer, and do. Relative difference in offspring production over
+    successive halvings of the node spacing: FF16 `1.0e-2`, `4.2e-3`, `1.2e-3`,
+    `2.9e-4`; K93 `2.6e-3`, `5.9e-4`, `1.4e-4`, `3.5e-5`. That is the ~2nd order
+    of the trapezium rule, and confirms the coordinate change is a change of
+    coordinates.
+  - The gap is almost entirely the *height* coordinate's error. Across those same
+    four schedules FF16's birth-date answer moves 18.6956 → 18.6996 while its
+    height answer climbs 18.5071 → 18.6941 toward it. At the default schedule the
+    birth-date answer is already within `2e-4` of converged and the height answer
+    is `1.0e-2` away — roughly 50x more accurate for the same number of nodes.
+  - TF24, whose growth is not a function of size alone, is the case the two
+    coordinates genuinely disagree on, and the diagnostic is that refining the
+    schedule does *not* close the gap the way it does for FF16 and K93. At
+    `lma = 0.0825`, `hmat = 5`, `birth_rate = 20`,
+    `max_patch_lifetime = 30`, over the same three schedules: height
+    474 → 587 → 696, birth date 3495 → 3729 → 3840, a ratio of 7.4 → 6.3 → 5.5.
+    Both are still moving, so neither figure is a converged value; the point is
+    that they are not converging *to each other*, which is what a wrong
+    compression term looks like as against a coarse quadrature.
+
+  Multi-species runs behave the same way. The established two-species FF16 and
+  three-species K93 cases converge per species at the same ~2nd order (FF16
+  `4.4e-3`/`7.1e-3` → `2.8e-4`/`6.0e-4`; K93 all three species `3.1e-3`–`6.2e-3`
+  → `1.9e-4`–`3.7e-4`), and K93's competitively marginal first species — ~90x
+  below the dominant one — converges no worse in relative terms than the
+  dominant ones. So the shared competition profile does not disadvantage a
+  marginal species under the coordinate change.
+
+  **TF24 two-species changes the ecological outcome, not just the numbers.** On
+  the two-species case of `test-strategy-tf24.R` (`lma` 0.0825 / 0.10,
+  `max_patch_lifetime = 30`), the height coordinate excludes the slower species
+  (offspring production `1.4e-4` against `503` for the faster) while the
+  birth-date coordinate has them coexisting at comparable abundance (`1004`
+  against `2707`), and refining the schedule does not move either toward the
+  other. The conclusion recorded in that test — that reserve-gated growth
+  (#517) largely excludes the slower species — is therefore coordinate
+  dependent, and needs re-deriving before it is relied on.
+
+  `Node::growth_rate_gradient` is not called, which also removes one leaf solve
+  per cohort per Runge-Kutta stage.
+
+  **What R receives is unchanged in meaning.** The coordinate is an internal
+  choice, so `log_density` is converted back to a density in *height* before it
+  leaves C++ — `Species$log_densities`, `Patch$state`, and therefore
+  `run_scm(collect = TRUE)`, `tidy_outputs.R`'s `density = exp(log_density)`,
+  `interpolate_to_heights()` and the plots all keep their existing meaning. The
+  conversion is `N = ν / |dh/dτ|`, with the Jacobian formed by central
+  differences of adjacent node heights against their birth dates (the boundary
+  node supplies the extra point at the young end). Measured against an otherwise
+  identical height-coordinate run, the median node agrees to `1.7e-3` in log
+  space — 0.17% in density — improving to `4.4e-4` and `1.1e-4` over two
+  schedule refinements. See Known issues for where this is weakest.
+
+  The boundary node needs no differencing at all: `dh/dτ = −g(H₀)` at birth, so
+  `compute_initial_conditions()` now records the birth growth rate on every node
+  (`Node$growth_rate_at_birth`) and the Jacobian uses it there directly. It is
+  exact *and* current for that node, because the boundary node is re-evaluated
+  every step; for an introduced node the recorded rate is frozen at its own
+  birth and so cannot serve as its present-day Jacobian. This removes a 31%
+  error on the boundary node — it sits a whole introduction interval from its
+  neighbour, which is the worst case for a one-sided difference. Recording it
+  also lets the two coordinates' boundary conditions be checked against each
+  other: `exp(log_density) · g(H₀)` on the height path must equal
+  `birth_rate · pr_estab`, which the birth-date path carries directly, and that
+  is now a test.
+
+  The quantity actually integrated is reported alongside rather than lost:
+  `Species$log_densities_state` (and a `log_density_state` row in `Patch$state`,
+  present only on the birth-date path), plus `Species$height_jacobian` for the
+  conversion itself. `Node$log_density` stays unconverted, since forming
+  `|dh/dτ|` needs the neighbouring nodes and a `Node` does not have them.
+  `export_patch_state()` resumes from `patch$ode_state`, which is the raw state,
+  so resume is unaffected by any of this — pinned by a test.
+
+  Two invariants the birth-date axis needs, which the height axis did not:
+
+  - The boundary node's birth date is the current time, so
+    `Patch::compute_environment()` refreshes it before building the profile.
+    `compute_rates()` (which stamps it) runs *after* the `set_ode_state()` that
+    rebuilds the environment, so reading the stamp there would use the previous
+    derivs call's time. The measured effect on FF16 offspring production is below
+    `1e-6` — the boundary node carries almost no leaf area — but it made the
+    spatial quadrature a function of the ODE step size.
+  - Introduction times are the quadrature grid, so repeated ones span zero width
+    and drop out of the integrals. A scheduled run cannot produce them; a patch
+    seeded or resumed *without* per-node times gives every node the boundary
+    node's birth date, which would silently zero the competition profile.
+    `Patch::check_birth_dates_distinct()` now rejects that with an actionable
+    message. A faithful `export_patch_state()` / `set_initial_state()`
+    round-trip carries the times and is unaffected.
+
+  `Species::compute_competition()` keeps the sorted-grid fallback of #574 for the
+  height coordinate only: that path integrates in height, so sending the
+  birth-date coordinate down it would swap coordinates mid-run. The birth-date
+  abscissa cannot invert (introduction times are fixed at birth), but the
+  *height* early exit is skipped when the height ordering has broken, since a
+  node below the query height can then be followed by a taller one.
 * **A dry TF24f patch no longer aborts the whole run on the ci root-find.**
   `Leaf::dprofit_droot_collar_psi` — TF24f's exact AD/IFT gradient — called
   `psi_stem_to_ci()` before testing for hydraulic shut-down. In shut-down,
@@ -307,6 +534,31 @@ were not previously recorded here:
   variables (#323) and environment state variables (#305) exposed/added.
 * Added an HTML report (plots + analyses) for the FF16 strategy (#350).
 
+### Known issues
+
+* On the birth-date path, the *worst-case* node of the reported height density
+  does not improve with schedule refinement, even though the typical node does
+  (see the reporting note under New features). `|dh/dτ|` is a ratio of two
+  differences that both shrink as the schedule is refined, so cancellation error
+  sets a floor, and refinement adds nodes in the near-empty tail where that floor
+  is worst. Aggregate and plotting use is sound; individual node densities far
+  out in the tail are not. Note the exact `−g(H₀)` Jacobian does not help here:
+  it is exact only at a node's own birth, and the worst cases are interior nodes
+  in a compressed region of the size distribution (log density ~ −11), not the
+  boundary. Removing this properly means evolving `∂h/∂τ` along the
+  characteristic, whose rate is `∂g/∂h · ∂h/∂τ` — which is the compression term
+  this change exists to avoid, so it would have to be an opt-in extra state
+  wanted only for reporting.
+
+* `stochastic_schedule()` passes `patch_area` into
+  `stochastic_arrival_times()`'s third positional argument, which is `delta_t`.
+  Arrival rates therefore never scale with patch area, and the binning interval
+  is set to the area instead. Passing it by name is the fix, but
+  `test-stochastic-patch-runner.R` runs at `patch_area = 50` with seed-pinned
+  expectations, so correcting it makes that file ~50x heavier and needs its
+  parameters and baselines revisited. Probes that need a correct schedule build
+  their own (see `plant-dev` `probes/12-oracle.R`).
+
 ### Minor changes & bug fixes
 
 * **The scenario gateway scores numerical viability and persistence as separate
@@ -327,6 +579,9 @@ were not previously recorded here:
   is why fixing the model *lowered* it from 5/8 to 3/8. `status` and `outcome` are
   unchanged, so the blessed baseline is not re-blessed and the CSV is not
   rewritten.
+* `SpeciesBase::control()` called `strategy->get_control()`, which does not
+  exist on any strategy. The member had never been instantiated, so the error
+  had never been compiled; it now reads `strategy->control`.
 * **The TF24 rainfall driver is floored at zero.** Because drivers are
   interpolated with a cubic spline, an intermittent series undershoots below
   every supplied value, and negative rainfall gave negative infiltration and an

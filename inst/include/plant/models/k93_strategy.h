@@ -74,6 +74,12 @@ public:
   void refresh_indices();
 
   double establishment_probability(const K93_Environment& environment);
+  // The rates-carrying entry point Individual calls for every strategy. K93's
+  // establishment reads no carbon budget, so the rates are unused here.
+  double establishment_probability(const K93_Environment& environment,
+                                   const Internals&) {
+    return establishment_probability(environment);
+  }
   double net_mass_production_dt(const K93_Environment& environment,
                                 double size, double cumulative_basal_area);
   double net_mass_production_dt(const K93_Environment& environment,

@@ -99,7 +99,7 @@ inline ShadingModel shading_model_from_string(const std::string& name,
 class CanopyShape {
 public:
   CanopyShape()
-    : eta_(12.0), eta_inverse_(1.0 / 12.0), eta_c_(compute_eta_c(12.0)),
+    : eta_(12.0), eta_inverse_(1.0 / 12.0), eta_c_(eta_c(12.0)),
       pow_eta_(&pow_eta_12), leaf_above_(&leaf_above_deep) {
   }
 
@@ -110,7 +110,7 @@ public:
   void initialise(double eta, ShadingModel shading_model = ShadingModel::DeepCrown) {
     eta_ = eta;
     eta_inverse_ = 1.0 / eta;
-    eta_c_ = compute_eta_c(eta);
+    eta_c_ = eta_c(eta);
     pow_eta_ = select_pow_eta(eta);
     // Most models cast shade via the smooth Yokozawa Q (leaf_area_above == Q).
     // FlatTopBox collapses it to a hard step; FlatTopSoftBox to a smoothed step.
@@ -130,12 +130,20 @@ public:
     return leaf_above_(*this, z_over_height);
   }
 
+  // Undefined at the crown base, where z is 0: use q_from_height, which carries
+  // the height the limit there needs.
   double q(double z_over_height, double z) const {
     const double u_eta = pow_eta_(z_over_height, eta_);
     return 2.0 * eta_ * (1.0 - u_eta) * u_eta / z;
   }
 
   double q_from_height(double z, double height) const {
+    // The 1 / z above is 0 / 0 at the crown base, so take the limit: 0 for every
+    // eta above 1, and 2 / height at eta = 1. The light field's lowest knot asks
+    // for exactly this, and the crown integral never does.
+    if (z <= 0.0) {
+      return eta_ == 1.0 ? 2.0 / height : 0.0;
+    }
     return q(z / height, z);
   }
 
@@ -158,13 +166,16 @@ public:
     return std::pow(1.0 - std::sqrt(x), eta_inverse_) * height;
   }
 
+  // [eqn 12] Crown-centre coordinate u = z / H. Static because the strategies
+  // need the same number for their sapwood and conductance terms, and one
+  // formula is better than three.
+  static double eta_c(double eta) {
+    return 1.0 - 2.0 / (1.0 + eta) + 1.0 / (1.0 + 2.0 * eta);
+  }
+
 private:
   typedef double (*pow_eta_fn)(double, double);
   typedef double (*leaf_above_fn)(const CanopyShape&, double);
-
-  static double compute_eta_c(double eta) {
-    return 1.0 - 2.0 / (1.0 + eta) + 1.0 / (1.0 + 2.0 * eta);
-  }
 
   // Smooth Yokozawa profile -- the correct shading a crown casts.
   static double leaf_above_deep(const CanopyShape& c, double z_over_height) {

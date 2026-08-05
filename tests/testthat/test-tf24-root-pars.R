@@ -74,9 +74,10 @@ test_that("rooting_depth_max reaches the root network", {
   psi_deep    <- tf24_root_probe(deep, stratified)[["opt_root_psi"]]
 
   expect_true(is.finite(psi_shallow) && is.finite(psi_deep))
-  # Potentials are reported as signed (negative) values, so the deeper-rooted
-  # plant sits at the less negative -- wetter -- collar potential.
-  expect_gt(psi_deep, psi_shallow)
+  # The opt_root_psi aux is a positive magnitude (phylloptim #25), so the
+  # deeper-rooted plant -- reaching the wet layers -- sits at the SMALLER suction.
+  # The inequality reversed with the representation; the physics did not.
+  expect_lt(psi_deep, psi_shallow)
 })
 
 test_that("exposing the root parameters left default behaviour unchanged", {

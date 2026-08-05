@@ -295,3 +295,29 @@ test_that("Can create empty SCM", {
   }
 })
 
+test_that("A second run on one SCM reproduces the first", {
+  ## TF24 is the only model with environment ODE state (FF16 and K93 report
+  ## ode_size 0), so it is the one that can carry state across a reset. Short
+  ## patch lifetime: this covers the reset, not the trajectory.
+  p0 <- scm_base_parameters("TF24", "TF24_Env")
+  p0$max_patch_lifetime <- 10
+  p <- add_strategies(p0, trait_matrix(0.1978791, "lma"))
+  new_scm <- function() SCM("TF24", "TF24_Env")(p, Environment("TF24"), Control())
+
+  scm <- new_scm()
+  scm$run()
+  first_offspring <- scm$offspring_production
+  first_state <- scm$patch$ode_state
+
+  ## The environment's states are the tail of the patch ODE state, and after a
+  ## reset they are all of it.
+  n_env <- scm$patch$environment$ode_size
+  scm$reset()
+  expect_identical(utils::tail(scm$patch$ode_state, n_env),
+                   utils::tail(new_scm()$patch$ode_state, n_env))
+
+  scm$run()
+  expect_identical(scm$offspring_production, first_offspring)
+  expect_identical(scm$patch$ode_state, first_state)
+})
+

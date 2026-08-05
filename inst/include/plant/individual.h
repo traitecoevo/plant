@@ -77,15 +77,21 @@ public:
   }
 
   void compute_rates(const environment_type& environment) {
-    if (vars.resource_size != environment.ode_size()) {
+    if (vars.resource_size != environment.n_resources()) {
       // handles when Individual hasn't been instantiated in a Patch (ie with an environment)
-      vars.resize_consumption_rates(environment.ode_size());
+      vars.resize_consumption_rates(environment.n_resources());
     }
     strategy->compute_rates(environment, vars);
   }
   
   double establishment_probability(const environment_type &environment) {
     return strategy->establishment_probability(environment);
+  }
+
+  // For a newborn, which sits at birth size: the strategy reads the carbon
+  // compute_rates has already left in aux rather than solving the leaf again.
+  double establishment_probability_of_newborn(const environment_type &environment) {
+    return strategy->establishment_probability(environment, vars);
   }
 
   double net_mass_production_dt(const environment_type &environment) {

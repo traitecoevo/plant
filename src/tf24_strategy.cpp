@@ -38,7 +38,8 @@ double TF24_Strategy::compute_average_light_environment(
 // rather than allowed to reach 0 (original rationale was never recorded;
 // preserved as-is).
 
-     return std::max(environment.get_environment_at_height(z), 0.0001) * q(z, height);
+     return std::max(environment.get_environment_at_height(z), 0.0001) *
+       canopy_shape.q_from_height(z, height);
 }
 
 // assumes optimise_psi_stem_TF has been run for optimal psi_stem
@@ -162,7 +163,11 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   vars.set_aux(aux_idx_net_mass_production_dt, net_mass_production_dt_);
   vars.set_aux(aux_idx_root_mass, mass_root(area_leaf_));
   vars.set_aux(aux_idx_opt_psi_stem, leaf.opt_psi_stem_);
-  vars.set_aux(aux_idx_opt_root_psi, leaf.root_collar_psi_);
+  // The aux and TF24f's state of the same name now agree in sign: both are the
+  // positive magnitude the leaf package stores (phylloptim #25). This line used to
+  // report the signed potential while tf24f_strategy.cpp negated it back for the
+  // state -- an inconsistency in plant's own reported outputs.
+  vars.set_aux(aux_idx_opt_root_psi, leaf.opt_root_psi_);
   vars.set_aux(aux_idx_transpiration, leaf.transpiration_);
   vars.set_aux(aux_idx_E_up, leaf.E_up_);
   vars.set_aux(aux_idx_profit, leaf.profit_);
@@ -267,7 +272,8 @@ double TF24_Strategy::assimilation(const TF24_Environment& environment,
   // For given height in crown, take photosynthesis at depth multipled by 
   //   amount of leaf at that depth
   std::function<double(double)> f = [&](double z) -> double {
-    return assimilation_leaf(environment.get_environment_at_height(z)) * q(z, height);
+    return assimilation_leaf(environment.get_environment_at_height(z)) *
+      canopy_shape.q_from_height(z, height);
   };
 
   // Integrate over crown depth using using Gauss-Kronrod quadrature.
@@ -378,12 +384,11 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   // height: maximum plant height
   const double leaf_specific_conductance_max = pars.K_s * pars.theta / (height * eta_c);
 
-  // find sapwood volume per leaf area
-  // pars.theta: huber value
-  // eta_c: accounts for average position of leaf mass
+  // sapwood volume per leaf area (pars.theta * height * eta_c) used to be passed
+  // to the leaf, which stored it and never read it. Dropped with the other three
+  // dead set_physiology arguments (phylloptim #15, item 10b); recompute it here if a
+  // caller ever needs it.
 
-  const double sapwood_volume_per_leaf_area = pars.theta * (height * eta_c);
-  
   // ----------------------------------------------------------------------
   // ROOT MASS DISTRIBUTION ACROSS SOIL LAYERS
   // ----------------------------------------------------------------------
@@ -397,23 +402,30 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   // the root hydraulic network (set_physiology). The loop breaks early once Q
   // reaches 0 (below the rooting depth) to avoid touching empty deep layers.
   //
+  // The leaf package takes this **per unit leaf area** -- it is purely intensive,
+  // and nothing in it scales with plant size. That costs no arithmetic here rather
+  // than a division, because mass_root() is strictly linear in area_leaf
+  // (pars.a_r1 * area_leaf), so root_mass_carbon_scale * mass_root_ / area_leaf_
+  // is exactly root_mass_carbon_scale * pars.a_r1. Multiplying by area_leaf_ and
+  // dividing it back out would be algebraically identical but not bit-identical.
+  //
   // Reuse the member buffer (assign refills + zeroes without reallocating when
   // the layer count is unchanged); zeroing matters because the loop below breaks
   // early below the rooting depth, leaving deep layers that must read as 0.
   // TODO (perf): rooting depth cap (1.5) and scale (83.26) are hard-coded and
   // should become traits.
-  mass_root_prop_.assign(soil_number_of_depths_, 0.0);
+  root_carbon_per_leaf_area_.assign(soil_number_of_depths_, 0.0);
 
 
 
   // Use Q function with new arghument
-  // std::fill(mass_root_prop_.begin(), mass_root_prop_.end(), 0); 
+  // std::fill(root_carbon_per_leaf_area_.begin(), root_carbon_per_leaf_area_.end(), 0); 
   
 // change to while?
 // environment.get_soil_depths() should ask for the ath element to save calling for a new vector each time
 // change environment.get_soil_number_of_depths() change to n or soemtyhing
     double rooting_depth = std::min(height, pars.rooting_depth_max);
-  const double root_mass_scale = root_mass_carbon_scale * mass_root_;
+  const double root_mass_scale = root_mass_carbon_scale * pars.a_r1;
     // std::vector<double> Q_root;
     // Q_root.reserve(soil_number_of_depths_);
 
@@ -425,13 +437,18 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
       const double q = Q(soil_depths_[a], rooting_depth,
              pars.root_depth_shape_eta);
 
-      mass_root_prop_[a] = root_mass_scale * (prev_q - q);
+      root_carbon_per_leaf_area_[a] = root_mass_scale * (prev_q - q);
       prev_q = q;
     }
 
   // Reuse geometry precomputed by environment; avoids rebuilding z midpoints each call.
-  leaf.z_soil_mid_ = environment.get_soil_mid_depths();
-  leaf.use_precomputed_z_soil_mid_ = true;
+  // The soil geometry moved into the leaf package's MultiLayerRoots (phylloptim #2).
+  leaf.roots_.z_soil_mid_ = environment.get_soil_mid_depths();
+  leaf.roots_.use_precomputed_z_soil_mid_ = true;
+
+  // Per-timestep above-canopy wind for the PM aerodynamic resistance (#523);
+  // read only on the energy-balance path in set_physiology.
+  leaf.wind_speed_ = environment.get_wind_speed();
 
   // Optimise the leaf at a given absorbed radiation: rebuilds physiology and
   // solves the root-collar water potential, leaving the leaf.* outputs
@@ -439,7 +456,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   // the radiation argument varies between calls; every other input is
   // depth-independent and already computed above.
   auto optimise_at = [&](double radiation) {
-    leaf.set_physiology(area_leaf_, mass_root_prop_, pars.rho, pars.a_bio, radiation, psi_soil, soil_depths_, leaf_specific_conductance_max, environment.get_atm_vpd(), environment.get_ca(), sapwood_volume_per_leaf_area, environment.get_leaf_temp(), environment.get_atm_o2_kpa(), environment.get_atm_kpa());
+    leaf.set_physiology(root_carbon_per_leaf_area_, radiation, psi_soil, soil_depths_, leaf_specific_conductance_max, environment.get_atm_vpd(), environment.get_ca(), environment.get_leaf_temp(), environment.get_atm_o2_kpa(), environment.get_atm_kpa());
     solve_leaf();
   };
 
@@ -478,13 +495,13 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
     std::vector<std::vector<double>> soil_y(
       soil_number_of_depths_, std::vector<double>(nn));
     for (size_t i = 0; i < nn; ++i) {
-      const double qi = q(nodes[i], height);
+      const double qi = canopy_shape.q_from_height(nodes[i], height);
       optimise_at(radiation_at(environment.get_environment_at_height(nodes[i])));
       profit_y[i]   = leaf.profit_ * qi;
       trans_y[i]    = leaf.transpiration_ * qi;
       eup_y[i]      = leaf.E_up_ * qi;
       psi_y[i]      = leaf.opt_psi_stem_ * qi;
-      root_psi_y[i] = leaf.root_collar_psi_ * qi;
+      root_psi_y[i] = leaf.opt_root_psi_ * qi;
       gco2_y[i]     = leaf.stom_cond_CO2_ * qi;
       assim_y[i]    = leaf.assim_colimited_ * qi;
       for (int a = 0; a < soil_number_of_depths_; ++a) {
@@ -499,7 +516,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
     leaf.transpiration_   = function_integrator.integrate_vector(trans_y, 0.0, height);
     leaf.E_up_            = function_integrator.integrate_vector(eup_y, 0.0, height);
     leaf.opt_psi_stem_    = function_integrator.integrate_vector(psi_y, 0.0, height);
-    leaf.root_collar_psi_ = function_integrator.integrate_vector(root_psi_y, 0.0, height);
+    leaf.opt_root_psi_    = function_integrator.integrate_vector(root_psi_y, 0.0, height);
     leaf.stom_cond_CO2_   = function_integrator.integrate_vector(gco2_y, 0.0, height);
     leaf.assim_colimited_ = function_integrator.integrate_vector(assim_y, 0.0, height);
     for (int a = 0; a < soil_number_of_depths_; ++a) {
@@ -706,11 +723,18 @@ void TF24_Strategy::set_initial_states(const TF24_Environment& environment,
 
 // [eqn 20] Survival of seedlings during establishment
 double TF24_Strategy::establishment_probability(const TF24_Environment& environment) {
-  
+  return establishment_probability(
+    environment,
+    net_mass_production_dt(environment, height_0, area_leaf_0, 1.0 / height_0));
+}
+
+// Both forms above end here. The carbon is birth-size carbon either way, whatever
+// height the caller's plant happens to be at.
+double TF24_Strategy::establishment_probability(const TF24_Environment& environment,
+                                               double net_mass_production_dt_) {
+
   double decay_over_time = exp(-pars.recruitment_decay * environment.time);
-  
-  const double net_mass_production_dt_ =
-    net_mass_production_dt(environment, height_0, area_leaf_0, 1.0 / height_0);
+
   if (net_mass_production_dt_ > 0) {
     const double tmp = pars.a_d0 * area_leaf_0 / net_mass_production_dt_;
     return 1.0 / (tmp * tmp + 1.0) * decay_over_time;
@@ -720,43 +744,24 @@ double TF24_Strategy::establishment_probability(const TF24_Environment& environm
 }
 
 double TF24_Strategy::compute_competition(double z, double height) const {
-  return pars.k_I * area_leaf(height) * Q(z, height, pars.eta);
+  return pars.k_I * area_leaf(height) * canopy_shape.Q_from_height(z, height);
 }
 
 // Ratio-first hot-path overload (see header): receives the cached
 // competition_effect (= area_leaf(height)) and height_inverse (= 1/height), so the
 // per-call area_leaf() evaluation and z/height division are hoisted out of the
-// inner competition loop. Reproduces pars.k_I * area_leaf(height) * Q(z, height, pars.eta).
+// inner competition loop.
 double TF24_Strategy::compute_competition(double z, double area_leaf_,
                                           double height_inverse) const {
-  const double u = z * height_inverse;  // z / height
-  if (u > 1.0) {
-    return 0.0;
-  }
-  const double tmp = 1.0 - pow(u, pars.eta);
-  return pars.k_I * area_leaf_ * tmp * tmp;
+  return pars.k_I * area_leaf_ * canopy_shape.Q(z * height_inverse);
 }
 
-// [eqn  9] Probability density of leaf area at height `z`
-double TF24_Strategy::q(double z, double height) const {
-  const double tmp = pow(z / height, pars.eta);
-  return 2 * pars.eta * (1 - tmp) * tmp / z;
-}
-
-// [eqn 10] ... Fraction of leaf area above height 'z' for an
-//              individual of height 'height'
-double TF24_Strategy::Q(double z, double height, double eta_x) const {
-  if (z > height) {
+double TF24_Strategy::Q(double z, double rooting_depth, double eta_x) const {
+  if (z > rooting_depth) {
     return 0.0;
   }
-  const double tmp = 1.0-pow(z / height, eta_x);
+  const double tmp = 1.0-pow(z / rooting_depth, eta_x);
   return tmp * tmp;
-}
-
-// (inverse of [eqn 10]; return the height above which fraction 'x' of
-// the leaf mass would be found).
-double TF24_Strategy::Qp(double x, double height) const { // x in [0,1], unchecked.
-  return pow(1 - sqrt(x), (1/pars.eta)) * height;
 }
 
 // The aim is to find a plant height that gives the correct seed mass.
@@ -804,8 +809,9 @@ void TF24_Strategy::prepare_strategy() {
       "' is not supported for the TF24 strategy");
   }
 
-  // NOTE: this pre-computes something to save a very small amount of time
-  eta_c = 1 - 2/(1 + pars.eta) + 1/(1 + 2*pars.eta);
+  canopy_shape.initialise(pars.eta, shading_model_);
+
+  eta_c = CanopyShape::eta_c(pars.eta);
   // NOTE: Also pre-computing, though less trivial
   height_0 = height_seed();
   area_leaf_0 = area_leaf(height_0);
@@ -822,6 +828,11 @@ void TF24_Strategy::prepare_strategy() {
               control.GSS_tol_abs, control.vulnerability_curve_ncontrol,
               control.ci_abs_tol, control.ci_niter, pars.g1_TF24, beta_R_H,
               beta_R_V);
+  // Penman-Monteith leaf energy balance (#523): enable per pars (default off,
+  // backward-compatible) and pass the leaf-dimension trait. Wind speed is a
+  // per-timestep driver, set from the environment before each set_physiology.
+  leaf.use_energy_balance_ = (pars.use_energy_balance != 0.0);
+  leaf.d_ = pars.d;
 }
 
 TF24_Strategy::ptr make_strategy_ptr(TF24_Strategy s) {

@@ -61,34 +61,36 @@ Leaf:
     kc_: {type: double, access: field}
     km_: {type: double, access: field}
     R_d_: {type: double, access: field}
-    sapwood_volume_per_leaf_area_: {type: double, access: field}
     leaf_specific_conductance_max_: {type: double, access: field}
     vcmax_: {type: double, access: field}
     jmax_: {type: double, access: field}
-    area_leaf_: {type: double, access: field}
-    rho_: {type: double, access: field}
-    c_r_V_: {type: "std::vector<double>", access: field}
-    c_r_H_: {type: "std::vector<double>", access: field}
+    c_r_V_: {type: "std::vector<double>", access: field, name_cpp: "roots_.network_.c_r_V"}
+    c_r_H_: {type: "std::vector<double>", access: field, name_cpp: "roots_.network_.c_r_H"}
 
-    a_bio_: {type: double, access: field}
     PPFD_: {type: double, access: field}
     atm_vpd_: {type: double, access: field}
     ca_: {type: double, access: field}
-    soil_depth_: {type: "std::vector<double>", access: field}
-    z_soil_mid_: {type: "std::vector<double>", access: field}
-    dz_: {type: double, access: field}
+    soil_depth_: {type: "std::vector<double>", access: field, name_cpp: "roots_.soil_depth_"}
+    z_soil_mid_: {type: "std::vector<double>", access: field, name_cpp: "roots_.z_soil_mid_"}
+    dz_: {type: double, access: field, name_cpp: "roots_.dz_"}
 
-    soil_number_of_depths_: {type: int, access: field}
-    max_soil_layer: {type: int, access: field}
-    psi_soil_: {type: "std::vector<double>", access: field}
-    r_R_H_min: {type: "std::vector<double>", access: field}
-    r_R_V: {type: "std::vector<double>", access: field}
-    r_R_V_sum: {type: "std::vector<double>", access: field}
+    soil_number_of_depths_: {type: int, access: field, name_cpp: "roots_.soil_number_of_depths_"}
+    max_soil_layer: {type: int, access: field, name_cpp: "roots_.max_soil_layer"}
+    psi_soil_: {type: "std::vector<double>", access: field, name_cpp: "roots_.psi_soil_"}
+    r_R_H_min: {type: "std::vector<double>", access: field, name_cpp: "roots_.network_.r_R_H_min"}
+    r_R_V: {type: "std::vector<double>", access: field, name_cpp: "roots_.network_.r_R_V"}
+    r_R_V_sum: {type: "std::vector<double>", access: field, name_cpp: "roots_.network_.r_R_V_sum"}
     assim_max_: {type: double, access: field}
-    root_collar_psi_: {type: double, access: field}
-    leaf_temp_: {type: double, access: field} 
-    atm_o2_kpa_: {type: double, access: field} 
-    atm_kpa_: {type: double, access: field} 
+    opt_root_psi_: {type: double, access: field}
+    leaf_temp_: {type: double, access: field}
+    atm_o2_kpa_: {type: double, access: field}
+    atm_kpa_: {type: double, access: field}
+    use_energy_balance_: {type: bool, access: field}
+    d_: {type: double, access: field}
+    wind_speed_: {type: double, access: field}
+    Tair_: {type: double, access: field}
+    Rn_: {type: double, access: field}
+    ra_: {type: double, access: field}
     hydraulic_cost_: {type: double, access: field}
     opt_psi_stem_: {type: double, access: field}
     opt_ci_: {type: double, access: field}
@@ -109,7 +111,7 @@ Leaf:
       args: [integration_rule: int, integration_tol: double]
     set_physiology:
       return_type: void 
-      args: [area_leaf: double, mass_root_prop: "const std::vector<double>&", rho: double, a_bio: double, PPFD: double, psi_soil: "const std::vector<double>&", soil_depth: "const std::vector<double>&", leaf_specific_conductance_max: double, atm_vpd: double, ca: double, sapwood_volume_per_leaf_area: double, leaf_temp: double, atm_o2_kpa: double, atm_kpa: double]
+      args: [root_carbon_per_leaf_area: "const std::vector<double>&", PPFD: double, psi_soil: "const std::vector<double>&", soil_depth: "const std::vector<double>&", leaf_specific_conductance_max: double, atm_vpd: double, ca: double, leaf_temp: double, atm_o2_kpa: double, atm_kpa: double]
     #transpiration functions
     proportion_of_conductivity:
       return_type: double
@@ -303,6 +305,7 @@ Control:
     - node_gradient_direction: int
     - node_gradient_richardson: bool
     - node_gradient_richardson_depth: size_t
+    - node_density_in_birth_date: bool
     - ode_step_size_initial: double
     - ode_step_size_min: double
     - ode_step_size_max: double
@@ -543,7 +546,18 @@ Node:
   active:
     individual: {type: "plant::Individual<T,E>", access: field, readonly: true}
     height: {type: double, access: member}
+    ## The quantity this node carries: the density in height on the height path,
+    ## the density in birth date on the birth-date one. Unlike
+    ## Species$log_densities this is *not* converted, because forming |dh/dtau|
+    ## needs the neighbouring nodes and a Node does not have them.
     log_density: {type: double, access: member, name_cpp: get_log_density}
+    ## The node's birth date. For the not-yet-introduced boundary node this is
+    ## the current patch time, refreshed on every environment build.
+    introduction_time: {type: double, access: member, readonly: true}
+    ## |dh/dtau| at birth, i.e. the height growth rate the node was born at.
+    ## Exact and current for the boundary node; frozen at its own birth for an
+    ## introduced one.
+    growth_rate_at_birth: {type: double, access: member, readonly: true}
     fecundity: {type: double, access: member}
     ode_size: {type: size_t, access: member}
     ode_state: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_state", name_cpp_set: "odelia::ode::r_set_ode_state"}
@@ -580,8 +594,17 @@ Species:
     new_node: {type: "plant::Node<T,E>", access: member, name_cpp: r_new_node}
     height_max: {type: double, access: member, readonly: true}
     heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
+    ## Always a density in height, whichever coordinate the solver carried it in.
     log_densities: {type: "std::vector<double>", access: member, name_cpp: r_log_densities}
+    ## The quantity actually integrated: the height density on the height path,
+    ## the birth-date density (nu) on the birth-date one.
+    log_densities_state: {type: "std::vector<double>", access: member, name_cpp: r_log_densities_state, readonly: true}
+    ## |dh/dtau| per node, boundary node last; the conversion between the two.
+    height_jacobian: {type: "std::vector<double>", access: member, readonly: true}
     node_times: {type: "std::vector<double>", access: member}
+    ## Which coordinate this species' size distribution is carried in. Set from
+    ## the patch's control, not the strategy's (Patch::add_strategies).
+    density_in_birth_date: {type: bool, access: member, readonly: true}
     patch_densities: {type: "std::vector<double>", access: member, name_cpp: r_patch_densities}
     pr_patch_survival_at_birth: {type: "std::vector<double>", access: member, name_cpp: r_pr_patch_survival_at_birth}
     nodes: {type: "std::vector<plant::Node<T,E> >", access: member, name_cpp: r_nodes}
@@ -650,9 +673,6 @@ Patch:
     compute_environment:
       return_type: void
       name_cpp: r_compute_environment
-    compute_rates:
-      return_type: void
-      name_cpp: r_compute_rates
     reset:
       return_type: void
     # Because we now care about time, we need to make sure that the
@@ -1262,6 +1282,8 @@ TF24_Pars:
     - root_psi_crit: double
     - rooting_depth_max: double
     - recruitment_decay: double
+    - use_energy_balance: double
+    - d: double
 
 TF24_Strategy:
   name_cpp: "plant::TF24_Strategy"

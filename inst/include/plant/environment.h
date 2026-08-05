@@ -33,6 +33,11 @@ public:
 
   // ODE interface: do nothing if the environment has no state.
   size_t ode_size() const { return vars.state_size; }
+
+  // How many entries of resource_depletion compute_rates reads, and so how
+  // long each individual's consumption vector must be.
+  virtual size_t n_resources() const { return 0; }
+
   virtual void compute_rates(std::vector<double> const& resource_depletion){};
 
   odelia::ode::const_iterator set_ode_state(odelia::ode::const_iterator it) {

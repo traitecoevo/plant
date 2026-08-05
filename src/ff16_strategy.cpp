@@ -484,12 +484,18 @@ double FF16_Strategy::mortality_growth_dependent_dt(double productivity_area) co
 
 // [eqn 20] Survival of seedlings during establishment
 double FF16_Strategy::establishment_probability(const FF16_Environment& environment) {
-  
+  return establishment_probability(
+    environment,
+    net_mass_production_dt(environment, height_0, area_leaf_0, height_0_inverse));
+}
+
+// Both forms above end here. The carbon is birth-size carbon either way, whatever
+// height the caller's plant happens to be at.
+double FF16_Strategy::establishment_probability(const FF16_Environment& environment,
+                                               double net_mass_production_dt_) {
+
   double decay_over_time = exp(-pars.recruitment_decay * environment.time);
-  
-  const double net_mass_production_dt_ =
-    net_mass_production_dt(environment, height_0, area_leaf_0,
-                           height_0_inverse);
+
   if (net_mass_production_dt_ > 0) {
     const double tmp = pars.a_d0 * area_leaf_0 / net_mass_production_dt_;
     return 1.0 / (tmp * tmp + 1.0) * decay_over_time;
@@ -565,8 +571,7 @@ void FF16_Strategy::prepare_strategy() {
     break;
   }
 
-  // NOTE: this pre-computes something to save a very small amount of time
-  eta_c = 1 - 2/(1 + pars.eta) + 1/(1 + 2*pars.eta);
+  eta_c = CanopyShape::eta_c(pars.eta);
   // NOTE: Also pre-computing, though less trivial
   height_0 = height_seed();
   height_0_inverse = 1.0 / height_0;

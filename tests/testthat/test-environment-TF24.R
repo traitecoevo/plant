@@ -22,8 +22,8 @@ test_that("Environment-TF24 drivers", {
   expect_equal(env$extrinsic_drivers_evaluate("ca", 10), 40)
   expect_equal(env$extrinsic_drivers_evaluate("PPFD", 0), 1800)
   expect_equal(env$extrinsic_drivers_evaluate("PPFD", 10), 1800)
-  expect_equal(env$extrinsic_drivers_evaluate("atm_kpa", 0), 100.5)
-  expect_equal(env$extrinsic_drivers_evaluate("atm_kpa", 10), 100.5)
+  expect_equal(env$extrinsic_drivers_evaluate("atm_kpa", 0), 101.3)
+  expect_equal(env$extrinsic_drivers_evaluate("atm_kpa", 10), 101.3)
 
   # test updating values
   v <- 200
@@ -104,6 +104,25 @@ test_that("Environment-TF24 soil layers", {
   # should error when passed a vector that is too long
   expect_error(env$set_soil_water_state(c(0.5, 0.4)))
  })
+
+test_that("Environment-TF24 soil moisture and potential invert each other", {
+
+  env <- Environment("TF24")
+  theta_sat <- 0.428
+  theta_residual <- 1e-2
+
+  theta <- seq(theta_residual, theta_sat, length.out = 200)[-1]
+  psi <- vapply(theta, env$psi_from_soil_moist, numeric(1))
+
+  # psi_from_soil_moist caps its output, so the inverse can only recover the
+  # moistures whose potential sits below that ceiling.
+  below_ceiling <- psi < max(psi)
+  expect_true(sum(below_ceiling) > 100)
+
+  theta_back <- vapply(psi[below_ceiling], env$soil_moist_from_psi, numeric(1))
+  expect_equal(theta_back, theta[below_ceiling], tolerance = 1e-12)
+  expect_true(all(theta_back <= theta_sat))
+})
 
 test_that("Environment-TF24 running soil moisture profile", {
 
@@ -205,6 +224,28 @@ test_that("Environment-TF24 allows per-layer soil parameters", {
   expect_silent(env2$set_soil_water_state(rep(0.2, 2)))
   expect_silent(env2$compute_rates(rep(0, 2)))
   expect_equal(length(env2$get_soil_water_state()), 2)
+})
+
+test_that("Environment-TF24 clear returns the soil to its starting state", {
+  env <- Environment("TF24")
+  n <- env$get_soil_number_of_depths()
+
+  expect_silent(env$clear())
+  expect_equal(env$get_soil_water_state(), rep(0.428 * 0.5, n))
+  expect_equal(env$get_soil_water_state_cumulative_flux(), rep(0, 4))
+
+  # clear() returns the state last set, not the constructed default.
+  start <- seq(0.30, by = 0.01, length.out = n)
+  env$set_soil_water_state(start)
+  env$clear()
+  expect_identical(env$get_soil_water_state(), start)
+  expect_equal(env$get_soil_water_state_cumulative_flux(), rep(0, 4))
+
+  # After a changed layer count, the starting state is the one set since.
+  env$set_soil_parameters(3, NULL, NULL, NULL, NULL)
+  env$set_soil_water_state(c(0.2, 0.25, 0.3))
+  env$clear()
+  expect_identical(env$get_soil_water_state(), c(0.2, 0.25, 0.3))
 })
 
 test_that("Environment-TF24 set_soil_parameters validates each parameter length", {
