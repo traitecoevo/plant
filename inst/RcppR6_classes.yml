@@ -1102,6 +1102,8 @@ FF16_Pars:
     - a_f3: double
     - a_f1: double
     - a_f2: double
+    - a_f4: double
+    - a_f5: double
     - S_D: double
     - a_d0: double
     - d_I: double

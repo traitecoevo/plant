@@ -46,6 +46,9 @@ p.k_r = 1.0;
 p.a_f1=1;
 p.a_f2=50;
 p.a_f3=3*3.8e-5;
+# reaction norm of allocation on light; 0 recovers the height-only logistic
+p.a_f4=0;  # shade delay
+p.a_f5=0;  # shade cap
 
 # light interception
 p.k_I=0.5;

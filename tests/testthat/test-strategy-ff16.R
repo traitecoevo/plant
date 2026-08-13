@@ -21,6 +21,8 @@ test_that("Defaults", {
     a_p2   = 0.204716166503633,
     a_f1   = 1,
     a_f2   = 50,
+    a_f4   = 0,
+    a_f5   = 0,
     a_d0   = 0.1,
     eta    = 12,
     hmat   = 16.5958691,
@@ -221,6 +223,175 @@ test_that("offspring arrival", {
   out <- run_scm(p2, env, ctrl)
   expect_equal(out$offspring_production, c(11.995204, 16.474988), tolerance=1e-5)
   expect_equal(length(out$ode_times), 293)
+})
+
+# ---------------------------------------------------------------------------
+# Reproductive allocation as a reaction norm on light (a_f4, a_f5)
+#
+#   RA(H, L) = a_f1 * L^a_f5 / (1 + exp(a_f2 * (1 - H / hmat_eff)))
+#   hmat_eff = hmat * (1 + a_f4 * (1 - L))
+#
+# with L = canopy openness at the top of the plant's own crown.
+
+## Analytic reaction norm, mirroring FF16_Strategy::fraction_allocation_reproduction.
+ff16_ra_expected <- function(pars, height, openness) {
+  hmat_eff <- pars$hmat * (1 + pars$a_f4 * (1 - openness))
+  pars$a_f1 * openness^pars$a_f5 /
+    (1 + exp(pars$a_f2 * (1 - height / hmat_eff)))
+}
+
+## Read RA back out of the C++ model. There is no direct R binding for
+## fraction_allocation_reproduction, but fecundity_dt = RA * dB/dt / (omega +
+## a_f3) is exactly invertible, and both terms are exposed.
+##
+## This only works where net mass production is positive; below the whole-plant
+## light compensation point compute_rates zeroes every rate and RA becomes
+## unobservable. That is why L = 0 is not tested directly here -- a plant in
+## the dark has no production to allocate. The L -> 0 limits (pow(0, 0) = 1
+## giving plain FF16 when a_f5 = 0, and RA -> 0 when a_f5 > 0) follow from the
+## closed form, which the parity test below pins down over the observable range.
+ff16_ra_observed <- function(s, height, openness) {
+  env <- Environment("FF16")
+  env$set_fixed_environment(openness, 100)
+  ind <- FF16_Individual(s)
+  ind$set_state("height", height)
+  ind$compute_rates(env)
+  net_mass_production_dt <- ind$aux("net_mass_production_dt")
+  expect_gt(net_mass_production_dt, 0)
+  ind$rate("fecundity") * (s$pars$omega + s$pars$a_f3) / net_mass_production_dt
+}
+
+## Copy-back idiom: nested list access returns a copy, so modify it and assign
+## it back. Assigning straight into `s$pars$a_f4` silently does nothing.
+ff16_strategy_with <- function(a_f4 = 0, a_f5 = 0, a_f1 = 1, a_f2 = 50) {
+  s <- FF16_Strategy()
+  pars <- s$pars
+  pars$a_f4 <- a_f4
+  pars$a_f5 <- a_f5
+  pars$a_f1 <- a_f1
+  pars$a_f2 <- a_f2
+  s$pars <- pars
+  s
+}
+
+test_that("the copy-back idiom actually reaches the strategy", {
+  s <- ff16_strategy_with(a_f4 = 0.5, a_f5 = 2, a_f1 = 0.6, a_f2 = 10)
+  expect_equal(s$pars$a_f4, 0.5)
+  expect_equal(s$pars$a_f5, 2)
+  expect_equal(s$pars$a_f1, 0.6)
+  expect_equal(s$pars$a_f2, 10)
+})
+
+test_that("a_f4 = a_f5 = 0 recovers FF16 bit-for-bit", {
+
+  p0 <- scm_base_parameters("FF16")
+  env <- Environment("FF16")
+  ctrl <- Control()
+
+  m_default <- trait_matrix(0.0825, "lma")
+  ## Setting the new parameters explicitly also exercises them as traits --
+  ## FF16_hyperpar passes through columns it does not generate, which is how
+  ## the ESS sweeps will vary them.
+  m_zero <- cbind(m_default, a_f4 = 0, a_f5 = 0)
+
+  p_default <- add_strategies(p0, m_default, hyperpar = FF16_hyperpar,
+                              birth_rate = list(20))
+  p_zero <- add_strategies(p0, m_zero, hyperpar = FF16_hyperpar,
+                           birth_rate = list(20))
+
+  out_default <- run_scm(p_default, env, ctrl)
+  out_zero <- run_scm(p_zero, env, ctrl)
+
+  ## Bit-for-bit, not merely close.
+  expect_identical(out_zero$offspring_production,
+                   out_default$offspring_production)
+  expect_identical(out_zero$ode_times, out_default$ode_times)
+
+  ## ... and still on the pinned regression target.
+  expect_equal(out_zero$offspring_production, 16.8895016, tolerance = 1e-4)
+  expect_equal(out_zero$ode_times[c(10, 100)], c(0.000070, 4.215899),
+               tolerance = 1e-5)
+})
+
+test_that("RA is independent of a_f4 and a_f5 in full sun", {
+  height <- 17
+  reference <- ff16_ra_observed(ff16_strategy_with(), height, 1.0)
+  expect_equal(reference,
+               ff16_ra_expected(FF16_Strategy()$pars, height, 1.0))
+
+  for (a_f4 in c(0, 0.5, 2)) {
+    for (a_f5 in c(0, 0.5, 2)) {
+      s <- ff16_strategy_with(a_f4, a_f5)
+      ## Exact: L = 1 makes L^a_f5 == 1 and hmat_eff == hmat for any values.
+      expect_identical(ff16_ra_observed(s, height, 1.0), reference)
+    }
+  }
+})
+
+test_that("shading lowers RA when a_f4 or a_f5 is positive", {
+  height <- 17
+  ## Above the whole-plant light compensation point at this height, so
+  ## production stays positive and RA remains readable.
+  openness <- c(1.0, 0.9, 0.8, 0.7, 0.6)
+
+  ra_of <- function(s) {
+    vapply(openness, function(l) ff16_ra_observed(s, height, l), numeric(1))
+  }
+
+  ## Neither parameter set: RA depends on height alone.
+  ra_flat <- ra_of(ff16_strategy_with())
+  expect_equal(ra_flat, rep(ra_flat[[1]], length(openness)))
+
+  ## Shade delay alone: RA falls monotonically as light falls.
+  ra_delay <- ra_of(ff16_strategy_with(a_f4 = 0.5))
+  expect_true(all(diff(ra_delay) < 0))
+  expect_identical(ra_delay[[1]], ra_flat[[1]])
+
+  ## Shade cap alone: likewise.
+  ra_cap <- ra_of(ff16_strategy_with(a_f5 = 2))
+  expect_true(all(diff(ra_cap) < 0))
+  expect_identical(ra_cap[[1]], ra_flat[[1]])
+
+  ## The shade cap acts as a pure multiplier L^a_f5 on the full-sun value.
+  expect_equal(ra_cap / ra_flat, openness^2)
+})
+
+test_that("RA matches the closed-form reaction norm", {
+  ## a_f1 and a_f2 are varied too: downstream code (regnans' fixed_RA) sets
+  ## them, so the reaction norm has to compose with non-default values rather
+  ## than only holding at FF16 defaults.
+  grid <- expand.grid(height = c(14, 17, 20),
+                      openness = c(1.0, 0.85, 0.7),
+                      a_f4 = c(0, 0.5),
+                      a_f5 = c(0, 1.5),
+                      a_f1 = c(1, 0.6),
+                      a_f2 = c(50, 10))
+  for (i in seq_len(nrow(grid))) {
+    g <- grid[i, ]
+    s <- ff16_strategy_with(g$a_f4, g$a_f5, g$a_f1, g$a_f2)
+    expect_equal(ff16_ra_observed(s, g$height, g$openness),
+                 ff16_ra_expected(s$pars, g$height, g$openness),
+                 tolerance = 1e-12,
+                 info = paste(names(g), unlist(g), collapse = " "))
+  }
+})
+
+test_that("shading still lowers RA when a_f1 and a_f2 are non-default", {
+  height <- 17
+  openness <- c(1.0, 0.9, 0.8, 0.7)
+  ## a_f1 caps allocation below 1, a_f2 makes maturation gradual: the shape
+  ## regnans' fixed_RA imposes.
+  s <- ff16_strategy_with(a_f4 = 0.5, a_f5 = 1.5, a_f1 = 0.6, a_f2 = 10)
+  ra <- vapply(openness, function(l) ff16_ra_observed(s, height, l), numeric(1))
+
+  expect_true(all(diff(ra) < 0))
+  ## Full sun is unaffected by the reaction norm, so it still sits at the
+  ## height-only logistic with these a_f1/a_f2.
+  expect_identical(ra[[1]],
+                   ff16_ra_observed(ff16_strategy_with(a_f1 = 0.6, a_f2 = 10),
+                                    height, 1.0))
+  ## Allocation never exceeds the a_f1 ceiling.
+  expect_true(all(ra <= 0.6))
 })
 
 test_that("Report generation", {

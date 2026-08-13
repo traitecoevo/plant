@@ -78,6 +78,17 @@ struct FF16_Pars {
   double a_f1   = 1.0; //[dimensionless]
   // Size range across which individuals mature
   double a_f2   = 50; // [dimensionless]
+  // Reproductive allocation as a reaction norm on light (see
+  // fraction_allocation_reproduction). Both default to 0, which recovers the
+  // original height-only FF16 logistic exactly; L = 1 (full sun) likewise
+  // recovers it for any values.
+  // Shade delay: shading raises the effective height at maturation,
+  //   hmat_eff = hmat * (1 + a_f4 * (1 - L)),
+  // so a suppressed plant defers reproduction to a greater height.
+  double a_f4   = 0.0; // [dimensionless]
+  // Shade cap: shading scales the maximum allocation by L^a_f5, so a
+  // suppressed plant caps reproductive allocation below a_f1.
+  double a_f5   = 0.0; // [dimensionless]
 
   // * Mortality parameters
   // Probability of survival during dispersal
@@ -299,7 +310,15 @@ public:
   }
 
   // [eqn 16] Fraction of whole plan growth that is leaf
+  //
+  // Two forms. The height-only form is the original FF16 logistic and is
+  // exactly the L = 1 (full sun) case of the environment-aware form; it is
+  // kept for callers with no environment in hand. The environment-aware form
+  // reads canopy openness at the top of the plant's own crown and is what
+  // compute_rates uses.
   virtual double fraction_allocation_reproduction(double height) const;
+  virtual double fraction_allocation_reproduction(
+      double height, const FF16_Environment& environment) const;
   double fraction_allocation_growth(double height) const;
   // [eqn 17] Rate of offspring production
   double fecundity_dt(double net_mass_production_dt,

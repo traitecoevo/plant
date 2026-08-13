@@ -42,8 +42,10 @@ net.production <- function(traits, h, env) {
       turnover.given.height(traits, h)
 }
 
+## `env` here is a function giving canopy openness at a height; allocation
+## reads it at the top of the plant's own crown (see ReproductiveAllocation).
 fecundity_dt <- function(traits, h, env) {
-  r <- ReproductiveAllocation(traits$hmat, h)
+  r <- ReproductiveAllocation(traits$hmat, h, env(h))
   p <- net.production(traits, h, env)
   f <- r * p / (p.a_f3 + traits$omega)
   f[p < 0] <- 0
@@ -79,7 +81,7 @@ root.per.leaf.area <- function(traits, h){
 
 
 area.leaf.growth.dt <- function(traits, h, env) {
-  r <- ReproductiveAllocation(traits$hmat, h)
+  r <- ReproductiveAllocation(traits$hmat, h, env(h))
   p <- net.production(traits, h, env)
   l <- leaf.area.deployment(traits, h)
   g <- (1 - r) * p * l
@@ -90,7 +92,7 @@ area.leaf.growth.dt <- function(traits, h, env) {
 ## Based on Daniel's code for computing dh/da.
 height.growth.dt <- function(traits, h, env) {
   a <- LeafArea(h)
-  r <- ReproductiveAllocation(traits$hmat, h)
+  r <- ReproductiveAllocation(traits$hmat, h, env(h))
   p <- net.production(traits, h, env)
   g <- dHdA(a) * dAdMt(traits, a) * p * (1-r)
   g[p < 0] <- 0
@@ -99,7 +101,7 @@ height.growth.dt <- function(traits, h, env) {
 
 competition_effect_dt <- function(traits, h, env){
   a <- LeafArea(h)
-  r <- ReproductiveAllocation(traits$hmat, h)
+  r <- ReproductiveAllocation(traits$hmat, h, env(h))
   p <- net.production(traits, h, env)
   g <- dAdMt(traits, a) * p * (1-r)
   g[p < 0] <- 0

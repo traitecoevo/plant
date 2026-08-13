@@ -1048,6 +1048,8 @@ template <> inline SEXP wrap(const plant::FF16_Pars& x) {
   ret["a_f3"] = Rcpp::wrap(x.a_f3);
   ret["a_f1"] = Rcpp::wrap(x.a_f1);
   ret["a_f2"] = Rcpp::wrap(x.a_f2);
+  ret["a_f4"] = Rcpp::wrap(x.a_f4);
+  ret["a_f5"] = Rcpp::wrap(x.a_f5);
   ret["S_D"] = Rcpp::wrap(x.S_D);
   ret["a_d0"] = Rcpp::wrap(x.a_d0);
   ret["d_I"] = Rcpp::wrap(x.d_I);
@@ -1117,6 +1119,10 @@ template <> inline plant::FF16_Pars as(SEXP x) {
   ret.a_f1 = Rcpp::as<double >(xl["a_f1"]);
   // ret.a_f2 = Rcpp::as<decltype(reta_f2) >(xl["a_f2"]);
   ret.a_f2 = Rcpp::as<double >(xl["a_f2"]);
+  // ret.a_f4 = Rcpp::as<decltype(reta_f4) >(xl["a_f4"]);
+  ret.a_f4 = Rcpp::as<double >(xl["a_f4"]);
+  // ret.a_f5 = Rcpp::as<decltype(reta_f5) >(xl["a_f5"]);
+  ret.a_f5 = Rcpp::as<double >(xl["a_f5"]);
   // ret.S_D = Rcpp::as<decltype(retS_D) >(xl["S_D"]);
   ret.S_D = Rcpp::as<double >(xl["S_D"]);
   // ret.a_d0 = Rcpp::as<decltype(reta_d0) >(xl["a_d0"]);

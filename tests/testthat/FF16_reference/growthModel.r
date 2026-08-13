@@ -56,7 +56,7 @@ WPLCP<-function(traits, h){
 }
 
 #HEIGHT GROWTH RATE
-dHdt<-function(traits, h, env){dHdA(LeafArea(h))*dAdMt(traits, LeafArea(h))*Production(traits, h, env)*(1-ReproductiveAllocation(traits$hmat,h))}
+dHdt<-function(traits, h, env){dHdA(LeafArea(h))*dAdMt(traits, LeafArea(h))*Production(traits, h, env)*(1-ReproductiveAllocation(traits$hmat,h,env))}
 
 #MARGINAL COST OF LEAF AREA GROWTH
 dMldA<-function(lma,A){A*0+lma}
@@ -73,11 +73,19 @@ dMbdH<-function(rho,h){ A=LeafArea(h); dMbdA(rho,A)/dHdA(A)}
 dMrdH<-function(h){ A=LeafArea(h); dMrdA(A)/dHdA(A)}
 
 #reproductive allocation
-ReproductiveAllocation <-function(hmat,h){p.a_f1/(1+exp(p.a_f2*(1-h/hmat)))}
+# Reaction norm on canopy openness L at the top of the plant's own crown:
+#   RA(h, L) = a_f1 * L^a_f5 / (1 + exp(a_f2 * (1 - h / hmat_eff)))
+#   hmat_eff = hmat * (1 + a_f4 * (1 - L))
+# L defaults to 1 (full sun), which -- like a_f4 = a_f5 = 0 -- gives back the
+# original height-only logistic exactly.
+ReproductiveAllocation <-function(hmat,h,L=1){
+  hmat_eff <- hmat*(1+p.a_f4*(1-L))
+  p.a_f1*L^p.a_f5/(1+exp(p.a_f2*(1-h/hmat_eff)))
+}
 
 #production functions
 dMtdt<-function(traits, h, env){
-  Production(traits, h, env)*(1-ReproductiveAllocation(traits$hmat,h))
+  Production(traits, h, env)*(1-ReproductiveAllocation(traits$hmat,h,env))
 }
 
 Production <-function(traits, h, env, print=0){

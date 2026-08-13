@@ -102,13 +102,18 @@ void FF16_Strategy::compute_rates(const FF16_Environment& environment,  Internal
 
   if (net_mass_production_dt_ > 0) {
 
-    const double fraction_allocation_reproduction_ = fraction_allocation_reproduction(height);
+    // Reproductive allocation reads the plant's own light environment (see
+    // fraction_allocation_reproduction). Evaluate it once and take the growth
+    // fraction as its complement -- fraction_allocation_growth is defined as
+    // exactly 1 - RA, so the previous separate call was redundant work.
+    const double fraction_allocation_reproduction_ =
+      fraction_allocation_reproduction(height, environment);
     // dheight_darea_leaf and the sapwood/bark terms in darea_leaf_dmass_live all
     // share pow(area_leaf, pars.a_l2); evaluate this libm pow once and reuse it for
     // both rates rather than paying it twice per node per step (issue #361).
     const double area_leaf_pow_a_l2 = pow(area_leaf_, pars.a_l2);
     const double darea_leaf_dmass_live_ = darea_leaf_dmass_live(area_leaf_, area_leaf_pow_a_l2);
-    const double fraction_allocation_growth_ = fraction_allocation_growth(height);
+    const double fraction_allocation_growth_ = 1.0 - fraction_allocation_reproduction_;
     const double area_leaf_dt = net_mass_production_dt_ * fraction_allocation_growth_ * darea_leaf_dmass_live_;
 
     vars.set_rate(HEIGHT_INDEX, dheight_darea_leaf(area_leaf_, area_leaf_pow_a_l2) * area_leaf_dt);
@@ -302,8 +307,42 @@ double FF16_Strategy::net_mass_production_dt(const FF16_Environment& environment
 }
 
 // [eqn 16] Fraction of production allocated to reproduction
+//
+// Height-only form: the original FF16 logistic. Identical to the
+// environment-aware form below evaluated at full sun (L = 1), so it is the
+// right thing for callers that have no environment in hand.
 double FF16_Strategy::fraction_allocation_reproduction(double height) const {
   return pars.a_f1 / (1.0 + exp(pars.a_f2 * (1.0 - height / pars.hmat)));
+}
+
+// [eqn 16, extended] Fraction of production allocated to reproduction, as a
+// reaction norm on the plant's own light environment:
+//
+//   RA(H, L) = a_f1 * L^a_f5 / (1 + exp(a_f2 * (1 - H / hmat_eff)))
+//   hmat_eff = hmat * (1 + a_f4 * (1 - L))
+//
+// L is canopy openness at the top of the focal plant's own crown -- a single
+// well-defined value that does not depend on which crown/shading model is in
+// force, and the closest match to what the apical meristem senses.
+//
+// a_f4 (shade delay) pushes maturation to a greater height under shade;
+// a_f5 (shade cap) scales the ceiling on allocation. Both default to 0.
+//
+// Nesting: the a_f4 = a_f5 = 0 case is short-circuited so the default FF16
+// model is recovered bit-for-bit and pays neither the spline read nor the
+// pow(). Were it not short-circuited the general expression would still
+// reduce exactly -- pow(L, 0) == 1 for every L (including L = 0), and
+// hmat * (1 + 0 * (1 - L)) == hmat -- and likewise at L = 1 for any a_f4,
+// a_f5, which is the path the full-sun invariance test exercises.
+double FF16_Strategy::fraction_allocation_reproduction(
+    double height, const FF16_Environment& environment) const {
+  if (pars.a_f4 == 0.0 && pars.a_f5 == 0.0) {
+    return fraction_allocation_reproduction(height);
+  }
+  const double L = environment.get_environment_at_height(height);
+  const double hmat_eff = pars.hmat * (1.0 + pars.a_f4 * (1.0 - L));
+  return pars.a_f1 * pow(L, pars.a_f5) /
+    (1.0 + exp(pars.a_f2 * (1.0 - height / hmat_eff)));
 }
 
 // Fraction of production allocated to growth
