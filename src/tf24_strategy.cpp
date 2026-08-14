@@ -862,6 +862,28 @@ void TF24_Strategy::prepare_strategy() {
   // matter how tall the plant grows. Larger beta therefore means a weaker height
   // penalty on carbon gain.
   stem_path_exponent_ = 2.0 * pars.D_c + pars.theta_c;
+
+  // theta_c is declared but NOT YET USABLE. It profiles theta along the flow
+  // path, and theta is not a hydraulics-only trait: it also sets area_sapwood,
+  // area_bark, their growth rates, mass_sapwood (hence construction cost,
+  // respiration, turnover and NSC capacity) and the hard-coded
+  // dmass_sapwood_darea_leaf derivative. Those all still read a flat pars.theta.
+  //
+  // Applying the profile to the hydraulic term alone would give a plant whose
+  // stem conducts as though theta varied while it is built and respired as
+  // though theta were constant -- two different plants sharing one trait. There
+  // is no staged version of this worth having, so it is refused rather than
+  // half-applied. Lift the guard in the same change that profiles theta
+  // everywhere.
+  if (pars.theta_c != 0.0) {
+    throw std::invalid_argument(
+      "theta_c is not implemented yet: theta also sets sapwood and bark area, "
+      "construction cost, respiration and storage capacity, and those still "
+      "use a constant theta. A hydraulics-only theta profile would be "
+      "physically inconsistent, so it is refused rather than half-applied. Use "
+      "D_c to vary the height dependence of resistance.");
+  }
+
   if (stem_path_exponent_ != 0.0) {
     // L_tip is the anchor of both profiles, so it cannot be zero once either is
     // active: k_s(L) = K_s*(L/L_tip)^(2*D_c) diverges everywhere as L_tip -> 0,

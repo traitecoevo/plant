@@ -344,6 +344,18 @@ were not previously recorded here:
   The `K_s` rows of `inst/scenarios/scenario_mapping.csv` were rescaled to the
   new baseline for the same reason.
 
+  **`theta_c` is declared but refused**: `prepare_strategy()` throws on any
+  non-zero value. `theta` is not a hydraulics-only trait — it also sets
+  `area_sapwood`, `area_bark`, `mass_sapwood` (hence construction cost,
+  respiration, turnover and NSC capacity) and the hard-coded
+  `dmass_sapwood_darea_leaf` derivative, all of which read a flat `theta`.
+  Profiling it on the hydraulic side alone would give a plant that conducts as
+  though `theta` varied along the stem and is built as though it did not, so the
+  half-model is refused rather than staged. When `theta(L)` lands it lands in
+  the hydraulic path and the allometry in the same change. `D_c` carries the
+  height dependence meanwhile and is unaffected — it enters through `k_s(L)`,
+  which has no structural counterpart.
+
   Design note: `notes/plan-tf24-height-hydraulics.md`. The diurnal closure that
   the cost and gain terms need is tracked separately as #618.
 

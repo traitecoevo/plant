@@ -114,12 +114,38 @@ test_that("the K_s reparameterisation leaves the vulnerability curve alone", {
 
 test_that("stem path parameters are settable", {
   s <- TF24_Strategy()
-  s$pars$D_c <- 0.2
+  s$pars$D_c <- 0.3
+  s$pars$L_tip <- 0.05
+  expect_equal(s$pars$D_c, 0.3)
+  expect_equal(s$pars$L_tip, 0.05)
+})
+
+test_that("a non-zero theta_c is refused rather than half-applied", {
+  # theta is not a hydraulics-only trait: it also sets area_sapwood, area_bark,
+  # mass_sapwood (hence construction cost, respiration, turnover and NSC
+  # capacity) and the hard-coded dmass_sapwood_darea_leaf derivative, all of
+  # which read a flat pars.theta. Profiling it on the hydraulic side alone would
+  # give a plant that conducts as though theta varied along the stem and is
+  # built as though it did not -- two different plants sharing one trait.
+  #
+  # The field is declared so the closed form can be exercised and swept in
+  # isolation, but a strategy carrying it must not build. Invariance criterion
+  # I13. Delete this test in the same change that profiles theta everywhere.
+  s <- TF24_Strategy()
   s$pars$theta_c <- 0.4
-  s$pars$L_tip <- 0.02
-  expect_equal(s$pars$D_c, 0.2)
-  expect_equal(s$pars$theta_c, 0.4)
-  expect_equal(s$pars$L_tip, 0.02)
+  expect_error(TF24_Individual(s), "theta_c is not implemented")
+
+  # ...including when it would exactly cancel the widening term, which is the
+  # case a beta-only guard would miss.
+  s2 <- TF24_Strategy()
+  s2$pars$D_c <- 0.2
+  s2$pars$theta_c <- -0.4
+  expect_identical(2 * s2$pars$D_c + s2$pars$theta_c, 0)
+  expect_error(TF24_Individual(s2), "theta_c is not implemented")
+
+  # Zero is fine, and widening on its own is unaffected -- it enters through
+  # k_s(L), which has no structural counterpart to keep in step.
+  expect_silent(TF24_Individual(TF24_Strategy()))
 })
 
 test_that("the closed form matches numerical quadrature of the integrand", {

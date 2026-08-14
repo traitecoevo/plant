@@ -142,11 +142,16 @@ struct TF24_Pars {
   // Huber-profile exponent: theta(L) = theta*(L/L_tip)^(-theta_c). NOTE THE
   // MINUS SIGN. theta falls basipetally while the Huber value 1/theta rises, so
   // a positive theta_c means less leaf area supported per unit sapwood towards
-  // the base -- that is the compensation mechanism. The derived default at
-  // Phase 2b is 2*D_c, but do NOT couple them here: member initialisers run
-  // once at default construction, so setting D_c from R would leave a derived
-  // theta_c stale (the trap psi_crit and root_psi_crit already document). The
-  // coupling belongs in make_TF24_hyperpar.
+  // the base -- that is the compensation mechanism.
+  //
+  // NOT YET IMPLEMENTED: prepare_strategy() throws on any non-zero value. theta
+  // is not a hydraulics-only trait -- it also sets area_sapwood, area_bark,
+  // mass_sapwood (hence construction cost, respiration, turnover and NSC
+  // capacity) and the hard-coded dmass_sapwood_darea_leaf derivative, all of
+  // which still read a flat pars.theta. Profiling it on the hydraulic side
+  // alone would give a plant that conducts as though theta varied and is built
+  // as though it did not. The two uses are the same trait and must move
+  // together, so the field is declared and refused rather than half-applied.
   //
   // Name clash to be aware of: phylloptim's Leaf spells soil water content
   // theta_, theta_w_ and theta_fc_ (m^3 m^-3), all R-visible, so s$pars$theta_c
@@ -324,6 +329,11 @@ public:
   // The hydraulic gateway runs longer patches at the default hmat and moves the
   // other way, up by 2.2x to 320x on every scenario, with S02 crossing R0 = 1 so
   // persistence goes 2/8 -> 3/8. 8/8 still run, 0 crash, no `observed` flips.
+  //
+  // theta_c is declared but REFUSED (prepare_strategy throws on any non-zero
+  // value). theta is read by the carbon budget as well as the hydraulic term,
+  // so a hydraulics-only profile would be an incoherent model rather than a
+  // staging step; it lands everywhere at once or not at all.
   //
   // p_50 is deliberately UNCHANGED (2.8887 MPa): make_TF24_hyperpar derives the
   // vulnerability curve from K_s, so B_Hv1 was re-anchored 0.4607063 ->

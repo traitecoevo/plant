@@ -235,34 +235,25 @@ For β = 0.8 the factor is ~50×, but that case also moves θ, so it is not dire
 
 #### The second leak, missed by this document
 
-`K_s` is not hydraulics-only either. `make_TF24_hyperpar` derives the entire vulnerability curve from it — $p_{50} = 10^{B_{Hv1} + B_{Hv2}\log_{10}K_s}$ with $B_{Hv2} = -0.2$, and then `c`, `b` and `psi_crit` from $p_{50}$. Dividing `K_s` by 8.56 to get a tip conductivity therefore multiplies $p_{50}$ by $8.56^{0.2}$ = 1.54, moving it from **2.889 to 4.438 MPa** and re-shaping the safety margin of a model whose whole subject is hydraulic limitation. The reparameterisation would have bought a height exponent and silently sold the vulnerability curve.
+`K_s` is not hydraulics-only either. `make_TF24_hyperpar` derives the entire vulnerability curve from it — $p_{50} = 10^{B_{Hv1} + B_{Hv2}\log_{10}K_s}$ with $B_{Hv2} = -0.2$, and then `c`, `b` and `psi_crit` from $p_{50}$. Dividing `K_s` by 2.98 to get a tip conductivity therefore moves $p_{50}$ from **2.889 to 3.593 MPa**, re-shaping the safety margin of a model whose whole subject is hydraulic limitation. The reparameterisation would have bought a height exponent and silently sold the vulnerability curve.
 
 (Note also that 2.889 MPa is the hyperparameterised $p_{50}$ at `K_s` = 1. `TF24_Pars` defaults `p_50` to 1.85, but `make_TF24_hyperpar` overrides it, so anything quoting 1.85 is quoting the un-hyperparameterised path.)
 
-**Fix: re-anchor the intercept**, $B_{Hv1}: 0.4607063 \rightarrow 0.2742044521276228$ (= $B_{Hv1} - 0.2\log_{10}8.5607$), holding $p_{50}$ at 2.8887256653 exactly at the new default. Two consequences to document rather than fix: the roxygen "p50 at `K_s` = 1" now describes a different physical quantity, and `inst/scenarios/scenario_mapping.csv`'s `K_s` High/Low rows (2 / 0.5) must be rescaled to the new baseline or those scenarios silently change meaning.
+**Fix: re-anchor the intercept**, $B_{Hv1}: 0.4607063 \rightarrow 0.36591565341924093$, holding $p_{50}$ at 2.8887256653 exactly at the new default. Two consequences to document rather than fix: the roxygen "p50 at `K_s` = 1" now describes a different physical quantity, and `inst/scenarios/scenario_mapping.csv`'s `K_s` High/Low rows must be rescaled to the new baseline or those scenarios silently change meaning.
 
-This is a *second* staged inconsistency, of the same species as the structural/hydraulic θ split below: the Ks–p50 relation's slope now acts on a tip quantity while having been fitted on whatever the original measurements were. Whether the relation should be keyed on tip conductivity at all is a real question — twig segments are what people actually measure — and it needs the same explicit closure date.
+Whether the Ks–p50 relation should be keyed on tip conductivity at all is a real question — twig segments are what people actually measure — and it needs an explicit closure date. If it was fitted on terminal branch segments, keying it on tip conductivity is *more* correct than before and the re-anchoring should be undone rather than kept.
 
-#### The leak to close first
+#### The staged structural/hydraulic θ split — RETRACTED
 
-`theta` is not hydraulics-only in TF24 — it sets sapwood volume, hence construction cost and maintenance respiration. Preserving $R_L$ by adjusting `theta` therefore silently rewrites the carbon budget, and the model is no longer back-compatible through that channel even when hydraulics match.
+An earlier version of this section proposed introducing θ(L) for **hydraulics only**, leaving structural θ constant, and unifying them at a later phase. **That staging is retracted and must not be implemented.**
 
-Hence the Phase 2 split in §10: introduce θ(L) for **hydraulics only**, leave structural θ at its current constant value, and absorb the entire reparameterisation into `ks_tip`. This gives current behaviour reproduced exactly at $H_a$, carbon budget untouched everywhere, and *only* the height dependence of R changed — one thing at a time, which is what P5 and P6 diagnosis requires.
+θ has one meaning. It is leaf area per unit sapwood area, and TF24 reads it in both the hydraulic term and the carbon budget — `area_sapwood`, `area_bark`, their growth rates, `mass_sapwood` (hence construction cost, respiration, turnover and NSC capacity), and the hard-coded `dmass_sapwood_darea_leaf` derivative. Splitting it would produce a plant that *conducts* as though θ varied along the stem while being *built and respired* as though it did not: two different plants sharing one trait name. That is not a staging decision, it is an incoherent model, and the fact that it would have been convenient is not a reason.
 
-The cost is a deliberate physical inconsistency between structural and hydraulic θ. **Log it as a staging decision with an explicit closure date**; a divergence between two uses of the same trait is exactly the kind of thing that survives quietly for two years.
+The consequence is that **θ(L) is a single change, not two**: when it lands, it lands in the hydraulic path *and* in the allometry at the same time. That is harder than the staged version, and it is the honest cost of the compensation mechanism.
 
-#### Staged inconsistencies ledger — opened 2026-08-14, Phase 2a
+Until then `theta_c` is **declared and refused**: `prepare_strategy()` throws on any non-zero value rather than applying a half-model. Widening (`D_c`) carries the height dependence in the meantime, and is unaffected — it enters through $k_s(L)$, which has no structural counterpart to keep in step.
 
-Both close at Phase 2b. Neither will announce itself if forgotten, which is the point of writing them down.
-
-| # | What is inconsistent | Why it was staged | Closes at |
-|---|---|---|---|
-| SI-1 | `theta` is the *hydraulic* Huber value in `R_L` but the *structural* one in `area_sapwood` / `mass_sapwood` / construction cost / respiration / storage capacity. At Phase 2a they still agree, because `theta_c` = 0 and no profile exists — the inconsistency is **latent**, and becomes real the moment `theta_c` > 0. | Changing the height dependence and the carbon budget in one step would make P5/P6 diagnosis impossible. One thing at a time. | Phase 2b |
-| SI-2 | `B_Hv1` was re-anchored so that the Ks–p50 relation reproduces the old $p_{50}$ at a *terminal-segment* `K_s`. The relation's slope now acts on a tip quantity, while having been fitted on whatever the original measurements were. | Letting `K_s` move the vulnerability curve would have bought a height exponent and silently sold the safety margin ($p_{50}$ 2.889 → 4.438 MPa). | Phase 2b |
-
-SI-2 has a cheap resolution worth doing first: **find out what the Ks–p50 relation was actually fitted on.** Terminal branch segments are the usual measurement unit, in which case keying it on tip conductivity is *more* correct than before and the re-anchoring should be undone rather than kept.
-
-Phase 2b must also handle a trap in `dmass_sapwood_darea_leaf` (`src/tf24_strategy.cpp`): it hard-codes the closed-form derivative $\rho\eta_c a_{l1}\theta(a_{l2}+1)A^{a_{l2}}$ rather than differentiating `mass_sapwood`. When structural θ becomes a profile it must be re-derived by hand, and **nothing in the test suite will fail if it is not.**
+⚠️ When θ(L) is implemented, `dmass_sapwood_darea_leaf` (`src/tf24_strategy.cpp`) is the trap: it hard-codes the closed-form derivative $\rho\eta_c a_{l1}\theta(a_{l2}+1)A^{a_{l2}}$ rather than differentiating `mass_sapwood`, so it must be re-derived by hand and **nothing in the test suite will fail if it is not.**
 
 #### Recommended starting configuration
 
@@ -408,8 +399,8 @@ Tracked separately as [#618](https://github.com/traitecoevo/plant/issues/618). N
 |---|---|---|
 | 0 | Naming: `b`→`D_c`, `a_theta`→`theta_c`, `L_min`→`L_tip`; `K_s` keeps its name. Cost-θ rename is a no-op (§1) | **done** |
 | 1 | Implement $k_s(L)$, $n_A(L)$, $\theta(L)$ profiles; closed-form $L_{eff}$ with `theta_c` as switch, all three parameters defaulting to 0 | reproduces linear case **bit-identically**; `scientific_version` NOT bumped |
-| 2a | Reparameterise `K_s` only at `H_anchor` = 16.5958691 m (default `hmat`), θ(L) for **hydraulics only**, structural θ untouched; bind `L_tip` to the `K_s` protocol; re-anchor `B_Hv1` to hold $p_{50}$ | matches current at $H_a$; carbon budget unchanged; vulnerability curve unchanged; anchor and protocol documented in code; `scientific_version` → 9 with measured deltas |
-| 2b | Unify structural and hydraulic θ; **narrow `theta` to the tip definition and bump the parameter-file schema version**; expose `theta_base(H)` as derived output | demographic consequences of each channel separately understood; staging inconsistency closed; old-format parameter files rejected (I11) |
+| 2a | Turn widening on (`D_c` = 0.2, `L_tip` = 0.02) and reparameterise `K_s` at `H_anchor` = 1 m; `theta_c` stays 0 and is refused; re-anchor `B_Hv1` to hold $p_{50}$ | resistance unchanged at $H_a$; carbon budget untouched because θ has no profile yet; vulnerability curve unchanged; `scientific_version` → 9 with measured deltas |
+| 2b | Implement θ(L) **everywhere at once** — hydraulic path *and* allometry (`area_sapwood`, `area_bark`, `mass_sapwood`, `dmass_sapwood_darea_leaf`, and their rate forms); narrow `theta` to the tip definition; **build** the parameter-file schema gate; expose `theta_base(H)` as derived output | `theta_c` guard lifted; carbon budget and hydraulics use the same θ; old-format parameter files rejected (I11) |
 | 3 | Add ρgH as an explicit separate term | predawn Ψ gradient reproduced |
 | 4 | Diagnostic ceiling check (§4.2) | $D_{implied}$ at emergent height compared against measured basal diameters |
 | 5 | Sweeps and invariance tests | §11 criteria met |
@@ -440,6 +431,7 @@ Tracked separately as [#618](https://github.com/traitecoevo/plant/issues/618). N
 - **I10** $R_L(H)$ is continuously differentiable over the whole height range. Any kink introduced later must be traced to a named mechanism before it is allowed to influence ESS height.
 - **I11** No parameter file written under the old `theta` definition can be loaded once $a_\theta > 0$: the schema version gate rejects rather than reinterprets it. ⚠️ The gate does not exist; Phase 2b must build it (§1).
 - **I12** $p_{50}$ at the default parameters is unchanged by the `K_s` reparameterisation. Whatever the reparameterisation buys, it must not also move the vulnerability curve (§4.4, the second leak).
+- **I13** θ has exactly one meaning. The hydraulic term and the carbon budget read the same θ(L); no configuration may profile one without the other (§4.4).
 
 ---
 
