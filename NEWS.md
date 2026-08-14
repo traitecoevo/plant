@@ -300,74 +300,52 @@ were not previously recorded here:
   segment length, default `0.02` m). Resistance now grows as `H^0.6` rather than
   `H^1.0`. **`scientific_version` moves to 9 and TF24 output changes** (#615).
 
+  The height exponent is *derived* rather than assumed, from two measurable
+  within-plant profiles: conduit widening `D(L) = D_tip·(L/L_tip)^D_c` with
+  `D_c ≈ 0.2` conserved across terrestrial vascular plants, and the Huber
+  profile `theta(L) = theta·(L/L_tip)^(−theta_c)`. Under a conserved lumen
+  fraction the packing limit `n_A ∝ D⁻²` means conductivity scales as `D²`, not
+  the `D⁴` of Hagen–Poiseuille, which survives only along a single continuous
+  conduit.
+
   `K_s` keeps its name but narrows in meaning to the **terminal segment**, and
-  its default moves `1 -> 0.11681288783361685` (a factor 8.5607) so that
-  resistance is *unchanged* at `TF24_H_ANCHOR` = 16.5958691 m, TF24's default
-  `hmat`. Use the exported `TF24_K_s_at_tip()` to convert a `K_s` calibrated
-  under the old model.
+  its default moves `1 -> 0.33577377016801868` (a factor 2.9782) so that
+  resistance is *unchanged* at `TF24_H_ANCHOR` = 1 m. Use the exported
+  `TF24_K_s_from_whole_stem()` to convert a whole-stem conductivity.
 
   Because `R_L` depends on `theta` and `K_s` only through their ratio, there is
-  exactly one free scalar, so the old and new models agree at exactly **one**
-  height and nowhere else. This is a *rotation* about the anchor, not a
-  rescaling — below it every plant is more resistant than before, above it every
-  plant is less:
+  exactly one free scalar, so old and new agree at exactly **one** height. This
+  is a *rotation* about the anchor, not a rescaling — only sub-metre plants pay
+  more than they did:
 
-  | H (m) | 0.394 | 1.00 | 8.00 | 16.60 | 30.0 | 60.0 |
-  |---|---|---|---|---|---|---|
-  | `R_new/R_old` | 3.95 | 2.87 | 1.33 | 1.00 | 0.79 | 0.60 |
+  | H (m) | 0.394 | 1.00 | 5.00 | 8.00 | 16.60 | 30.0 | 60.0 |
+  |---|---|---|---|---|---|---|---|
+  | `R_new/R_old` | 1.38 | 1.00 | 0.55 | 0.46 | 0.35 | 0.28 | 0.21 |
 
-  Setting `D_c`, `theta_c` and `L_tip` all back to zero still recovers the
-  pre-#615 model bit for bit.
+  Setting `D_c`, `theta_c` and `L_tip` to zero and `K_s` back to 1 recovers the
+  previous model exactly, end-to-end through the SCM.
 
-  `B_Hv1` moves `0.4607063 -> 0.2742044521276228` in `make_TF24_hyperpar`. This
+  **The sign of the effect depends on stand density.** Individually a plant is
+  better off wherever it is taller than the anchor (assimilation ratio 1.055 at
+  5 m, 1.143 at 10 m, single plant, wet soil). But lower resistance also means
+  faster transpiration, so in a dense stand everyone draws the shared soil column
+  down faster and the patch does worse. One-species SCM at `hmat` = 5: ratio
+  1.216 at `birth_rate` 0.5, 1.095 at 2, and 0.857 at 20. The pinned test
+  scenarios all run at 20, the least favourable end; the hydraulic gateway, which
+  runs longer patches at the default `hmat`, moves the other way by 2.2×–320×,
+  with one scenario crossing R0 = 1 so persistence goes 2/8 → 3/8.
+
+  `B_Hv1` moves `0.4607063 -> 0.36591565341924093` in `make_TF24_hyperpar`. This
   is **not** a science change but a correction that prevents one: the hyperpar
   derives the whole vulnerability curve from `K_s` via
   `p_50 = 10^(B_Hv1 + B_Hv2·log10(K_s))`, so feeding a terminal-segment `K_s`
   through the un-re-anchored relation would have moved `p_50` from 2.889 to
-  4.438 MPa as a side effect. The intercept was shifted to hold `p_50` fixed.
-  The roxygen for `B_Hv1` now describes a tip conductivity rather than a
-  whole-stem one; whether the Ks–p50 relation should be keyed on tip
-  conductivity at all is logged as open. The `K_s` rows of
-  `inst/scenarios/scenario_mapping.csv` were rescaled to the new baseline for
-  the same reason.
+  3.593 MPa as a side effect. The intercept was shifted to hold `p_50` fixed.
+  The `K_s` rows of `inst/scenarios/scenario_mapping.csv` were rescaled to the
+  new baseline for the same reason.
 
-  TF24 used to impose `leaf_specific_conductance_max = K_s·theta/(height·eta_c)`,
-  i.e. resistance strictly linear in height — a ~29× resistance increase from
-  0.3 to 8 m, across the size range where most of the demography happens. That
-  form was never derived; it is what you get from assuming a uniform tube. The
-  replacement integrates two measurable within-plant profiles along the flow
-  path, so the height exponent is *derived* rather than assumed:
-
-  - conduit widening, `D(L) = D_tip·(L/L_tip)^D_c`, with `D_c ≈ 0.2` conserved
-    across terrestrial vascular plants;
-  - the packing limit, `n_A ∝ D⁻²` under a conserved lumen fraction, which is
-    why sapwood-specific conductivity scales as `D²` and **not** the `D⁴` of
-    Hagen–Poiseuille — that survives only along a single continuous conduit;
-  - the Huber profile, `theta(L) = theta·(L/L_tip)^(−theta_c)` (note the sign:
-    θ falls basipetally, so the Huber value 1/θ rises).
-
-  With `beta = 2·D_c + theta_c` these close to an effective path length
-  `L_eff = L_tip·expm1((1−beta)·log(L_top/L_tip))/(1−beta)`, exposed in
-  `plant/stem_hydraulics.h`. `L_top` is `height·eta_c`, the leaf-area-weighted
-  mean leaf height — `eta_c` scales the upper limit of the integral, not the
-  resistance.
-
-  `K_s` is unchanged in name and value, and narrows in meaning to the terminal
-  segment once `D_c > 0`. Setting `D_c` or `theta_c` non-zero requires a
-  positive `L_tip` shorter than the birth-size flow path; both are checked in
-  `prepare_strategy()`, because the symptom otherwise is a negative conductance
-  surfacing as an unattributable `NaN` inside the leaf solver.
-
-  The machinery landed inert first, verified bit-identical at 17 significant
-  figures on the one- and two-species SCM scenarios in both density coordinates
-  and across all 8 hydraulic-gateway scenarios, before the defaults were moved.
-  Turning it on moves the pinned SCM outputs by −6.5% to −25% (they run at
-  `hmat` = 5 m, entirely below the anchor, so they sit in the more-resistant
-  half of the rotation) and the gateway by −91% to +93% in *both* directions
-  (it runs at the default `hmat`, straddling the anchor). 8/8 gateway scenarios
-  still run, 2/8 still persist, and no classification flips on either axis.
-
-  Design note: `notes/plan-tf24-height-hydraulics.md`.
+  Design note: `notes/plan-tf24-height-hydraulics.md`. The diurnal closure that
+  the cost and gain terms need is tracked separately as #618.
 
 * **`Control$node_density_in_birth_date`** (default `FALSE`) carries the SCM's
   size distribution as a density in birth date instead of in height.

@@ -99,13 +99,14 @@ TF24_generate_stand_report <- function(results,
 ##' @param B_lf4 CO_2 respiration per unit structural leaf nitrogen [mol / yr / kg]
 ##' @param B_lf5 CO_2 respiration per unit photosynthetic leaf nitrogen [mol / yr / kg]
 ##' @param a_lf1 intercept for empirical relationship between narea and vcmax, lma (Dong et al. 2022)
-##' @param B_Hv1 p50 at terminal-segment K_s = 1 [-MPa]. Since #615 Phase 2a
-##'   the relation is keyed on a tip conductivity rather than a whole-stem one,
-##'   so the intercept describes a different physical quantity than it did; it
-##'   was re-anchored to hold p_50 fixed at the default parameters. Whether the
-##'   Ks-p50 relation should be keyed on tip conductivity at all is open -- twig
-##'   segments are what people usually measure -- and is logged as a staged
-##'   inconsistency in notes/plan-tf24-height-hydraulics.md.
+##' @param B_Hv1 p50 at terminal-segment K_s = 1 [-MPa]. The relation is keyed
+##'   on a tip conductivity rather than a whole-stem one, so the intercept
+##'   describes a different physical quantity than it did before the stem path
+##'   integral existed; it was re-anchored to hold p_50 fixed at the default
+##'   parameters. Whether the Ks-p50 relation should be keyed on tip conductivity
+##'   at all is open -- twig segments are what people usually measure -- and is
+##'   logged as a staged inconsistency in
+##'   notes/plan-tf24-height-hydraulics.md.
 ##' @param B_Hv2 Scaling slope for K_s in p50 [dimensionless]
 ##' @param B_c1 Shape parameter c of the vulnerability curve at p_50 = 0 [dimensionless]
 ##' @param B_c2 Scaling slope for p_50 in the vulnerability-curve shape parameter c [dimensionless]
@@ -132,17 +133,15 @@ make_TF24_hyperpar <- function(lma_0=0.1978791,
                                 B_lf4=21000,
                                 B_lf5= 40000,
                                 latitude=0,
-                                # Re-anchored for #615 Phase 2a: K_s is now a
-                                # TERMINAL-SEGMENT conductivity, 8.5607x smaller
-                                # than the whole-stem value this relation was
-                                # calibrated against. Left at 0.4607063 the same
-                                # relation would have moved p_50 from 2.889 to
-                                # 4.438 MPa -- buying a height exponent and
-                                # silently selling the vulnerability curve.
-                                # Shifted by -0.2*log10(8.5607) so p_50 is
-                                # unchanged at the default (invariance criterion
-                                # I12).
-                                B_Hv1 = 0.2742044521276228,
+                                # K_s is a TERMINAL-SEGMENT conductivity,
+                                # 2.9782x smaller than the whole-stem value this
+                                # relation was calibrated against. Left at
+                                # 0.4607063 the same relation would have moved
+                                # p_50 from 2.889 to 3.593 MPa -- buying a height
+                                # exponent and silently selling the vulnerability
+                                # curve. Shifted by -0.2*log10(2.9782) so p_50 is
+                                # unchanged at the default.
+                                B_Hv1 = 0.36591565341924093,
                                 B_Hv2 = -0.2,
                                 B_c1 = 2.04,
                                 B_c2 = 0) {
@@ -309,18 +308,18 @@ make_TF24_hyperpar <- function(lma_0=0.1978791,
 ##' @rdname TF24_hyperpar
 TF24_hyperpar <- make_TF24_hyperpar()
 
-##' Height at which the stem hydraulic path is anchored [m] (#615).
+##' Height at which the stem hydraulic path is anchored [m].
 ##'
 ##' TF24's resistance depends on `theta` and `K_s` only through their ratio, so
-##' there is exactly one free scalar and the new height-dependent model can be
-##' made to agree with the old linear one at exactly **one** height -- never two.
-##' `TF24_H_ANCHOR` is that height. It is the pivot of a rotation: below it every
-##' plant is more resistant than under the old model, above it every plant is
-##' less.
+##' there is exactly one free scalar and the height-dependent model can be made
+##' to agree with the older height-linear one at exactly **one** height -- never
+##' two. `TF24_H_ANCHOR` is that height. It is the pivot of a rotation: below it
+##' every plant is more resistant than under the linear model, above it every
+##' plant is less.
 ##'
-##' The value is TF24's own default `hmat` (16.5958691 m), i.e. maturation
-##' stature, which is where the existing calibration effectively sits and where
-##' the measurements are. It is deliberately a fixed constant rather than being
+##' Anchored at 1 m, so resistance is unchanged at 1 m stature and falls
+##' progressively above it -- reaching 0.21x by 60 m. Only sub-metre plants pay
+##' more than they did. It is deliberately a fixed constant rather than being
 ##' read from `pars$hmat`: sweeping `hmat` as a trait must not silently move the
 ##' hydraulics with it.
 ##'
@@ -329,37 +328,36 @@ TF24_hyperpar <- make_TF24_hyperpar()
 ##' `theta * L_tip^beta / K_s`, which is already identifiable only as a whole --
 ##' and inviting independent calibration of its members is exactly what
 ##' invariance criterion I5 forbids.
-##'
-##' Anchored 2026-08-14 (epic #615, Phase 2a).
 ##' @export
-TF24_H_ANCHOR <- 16.5958691
+TF24_H_ANCHOR <- 1
 
-##' Sapwood-specific conductivity of the terminal segment, back-derived from a
-##' whole-stem value (#615).
+##' Convert a whole-stem sapwood-specific conductivity to a terminal-segment one.
 ##'
-##' Converts a `K_s` calibrated under the old height-linear model into the
-##' terminal-segment `K_s` that reproduces it at `H_anchor` under the path
-##' integral. The ratio is obtained by calling the same
-##' `effective_path_length` the model itself uses, at beta and at zero, rather
-##' than being written as a literal: that way the `eta_c` convention (the path
-##' runs to the leaf-area-weighted mean leaf height, not the apex) and the
-##' thin-crown approximation cancel out of the ratio instead of being smuggled
-##' into a hand-computed constant.
+##' `K_s` is a property of the terminal segment, but conductivity is usually
+##' *reported* for a stem section at some height -- and it was defined that way
+##' in TF24 before the stem path integral existed. This converts such a value
+##' into the terminal-segment `K_s` that reproduces it at `H_anchor`.
 ##'
-##' At the shipped defaults the ratio is 8.5607, so `K_s` 1 -> 0.1168129. The
-##' design note's figure of ~9.5 assumes the path runs to `H` rather than to
-##' `H * eta_c`.
+##' The ratio is obtained by calling the same `effective_path_length` the model
+##' itself uses, at `beta` and at zero, rather than being written as a literal:
+##' that way the `eta_c` convention (the path runs to the leaf-area-weighted mean
+##' leaf height, not the apex) and the thin-crown approximation cancel out of the
+##' ratio instead of being smuggled into a hand-computed constant.
 ##'
-##' @param K_s Whole-stem sapwood-specific conductivity under the old model.
+##' At the shipped defaults the ratio is 2.9782, so a whole-stem 1 becomes
+##' 0.3357738.
+##'
+##' @param K_s Whole-stem sapwood-specific conductivity.
 ##' @param D_c Conduit widening exponent.
 ##' @param theta_c Huber-profile exponent.
 ##' @param L_tip Terminal segment length [m].
-##' @param H_anchor Height at which old and new models agree [m].
+##' @param H_anchor Height at which the whole-stem value was defined [m].
 ##' @param eta Canopy shape parameter, used for the crown-centre coordinate.
 ##' @return The terminal-segment `K_s`.
 ##' @export
-TF24_K_s_at_tip <- function(K_s, D_c = 0.2, theta_c = 0, L_tip = 0.02,
-                            H_anchor = TF24_H_ANCHOR, eta = 12) {
+TF24_K_s_from_whole_stem <- function(K_s, D_c = 0.2, theta_c = 0,
+                                    L_tip = 0.02,
+                                    H_anchor = TF24_H_ANCHOR, eta = 12) {
   eta_c <- 1 - 2 / (1 + eta) + 1 / (1 + 2 * eta)
   L_top <- H_anchor * eta_c
   beta <- 2 * D_c + theta_c

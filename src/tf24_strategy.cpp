@@ -386,16 +386,16 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   //
   // The flow path runs from the base to the leaf-area-weighted mean leaf
   // height, height*eta_c, NOT to the apex; eta_c therefore scales the UPPER
-  // LIMIT of the path integral rather than the resistance (#615). The two
-  // readings differ by the constant eta_c^-beta, which is H-independent and so
-  // degenerate with K_s -- nothing downstream can distinguish them, and the
-  // Phase 2a reparameterisation absorbs the difference entirely.
+  // LIMIT of the path integral rather than the resistance. The two readings
+  // differ by the constant eta_c^-beta, which is H-independent and so degenerate
+  // with K_s -- nothing downstream can distinguish them, and the K_s
+  // reparameterisation absorbs the difference entirely.
   //
-  // At the default parameters path_beta_ is 0 and pars.L_tip is 0, so
-  // effective_path_length returns height*eta_c having performed no arithmetic,
-  // and the expression below is bit-identical to the pre-#615 code it replaces.
+  // Setting D_c, theta_c and L_tip all to zero makes effective_path_length
+  // return height*eta_c having performed no arithmetic, so this expression is
+  // then bit-identical to the height-linear code it replaces.
   const double stem_path_length = stem_hydraulics::effective_path_length(
-      height * eta_c, pars.L_tip, path_beta_);
+      height * eta_c, pars.L_tip, stem_path_exponent_);
   const double leaf_specific_conductance_max = pars.K_s * pars.theta / stem_path_length;
 
   // sapwood volume per leaf area (pars.theta * height * eta_c) used to be passed
@@ -850,17 +850,27 @@ void TF24_Strategy::prepare_strategy() {
   height_0 = height_seed();
   area_leaf_0 = area_leaf(height_0);
 
-  // Stem hydraulic path (#615). The factor 2 on D_c is the packing limit: under
-  // a conserved lumen fraction, widening is paid for by proportionally fewer
-  // conduits, so sapwood-specific conductivity scales as D^2 and not the D^4 of
-  // Hagen-Poiseuille. See plant/stem_hydraulics.h.
-  path_beta_ = 2.0 * pars.D_c + pars.theta_c;
-  if (path_beta_ != 0.0) {
+  // The exponent of the stem path integral, beta = 2*D_c + theta_c. The factor 2
+  // on D_c is the packing limit: under a conserved lumen fraction, widening is
+  // paid for by proportionally fewer conduits, so sapwood-specific conductivity
+  // scales as D^2 and not the D^4 of Hagen-Poiseuille. See
+  // plant/stem_hydraulics.h.
+  //
+  // What it implies: leaf-specific resistance grows as H^(1-beta) rather than
+  // linearly with height. beta = 0 is the linear case; the default beta = 0.4
+  // gives H^0.6; beta >= 1 saturates, so resistance approaches a finite limit no
+  // matter how tall the plant grows. Larger beta therefore means a weaker height
+  // penalty on carbon gain.
+  stem_path_exponent_ = 2.0 * pars.D_c + pars.theta_c;
+  if (stem_path_exponent_ != 0.0) {
     // L_tip is the anchor of both profiles, so it cannot be zero once either is
     // active: k_s(L) = K_s*(L/L_tip)^(2*D_c) diverges everywhere as L_tip -> 0,
     // giving zero resistance. That is a degenerate configuration to reject, not
     // a numerical edge case to tolerate.
-    if (!(pars.L_tip > 0.0)) {
+    //
+    // Written to reject zero and NaN as well as negatives: `L_tip < 0.0` alone
+    // would let a zero through, which is the case this guard exists for.
+    if (pars.L_tip <= 0.0 || std::isnan(pars.L_tip)) {
       throw std::invalid_argument(
         "L_tip must be > 0 when D_c or theta_c is non-zero: the within-plant "
         "profiles are defined relative to the terminal segment, and L_tip -> 0 "

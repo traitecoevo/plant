@@ -8,7 +8,7 @@ namespace plant {
 namespace stem_hydraulics {
 
 // Effective hydraulic path length of a stem whose anatomy varies as a power of
-// distance-from-apex L (#615; notes/plan-tf24-height-hydraulics.md sec. 4).
+// distance-from-apex L. See notes/plan-tf24-height-hydraulics.md sec. 4.
 //
 // Two within-plant profiles, both anchored at the terminal segment:
 //
@@ -20,9 +20,7 @@ namespace stem_hydraulics {
 // The exponent on conductivity is 2*D_c, NOT 4*D_c: the D^4 of Hagen-Poiseuille
 // survives only along a single continuous conduit, and at the tissue level a
 // conserved lumen fraction means widening is paid for by proportionally fewer
-// conduits, halving the effective exponent. That factor 2 is the single most
-// consequential departure from a naive single-tube treatment, which is why it
-// lives here rather than being folded into the parameter.
+// conduits, halving the effective exponent.
 //
 // Note the SIGN on theta: theta falls basipetally (so the Huber value 1/theta
 // rises), hence -theta_c. A positive theta_c means less leaf area supported per
@@ -38,7 +36,7 @@ namespace stem_hydraulics {
 // leaf-area-weighted mean leaf height, not the full height (see the call site
 // in src/tf24_strategy.cpp).
 //
-// beta == 0 recovers L_eff = L_top - L_tip, the pre-#615 linear model, and with
+// beta == 0 recovers L_eff = L_top - L_tip, the height-linear model, and with
 // L_tip == 0 it returns L_top having performed no arithmetic at all, so the
 // collapsed configuration is bit-identical to the old expression rather than
 // merely equal to it (invariance criterion I7).

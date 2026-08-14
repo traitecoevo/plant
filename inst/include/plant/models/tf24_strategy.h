@@ -73,16 +73,15 @@ struct TF24_Pars {
   // * Leaf hydraulic / photosynthesis traits (default Eucalyptus saligna)
   double vcmax_25 = 96;
   double p_50 = 1.85;
-  // Sapwood-specific conductivity of the TERMINAL segment (#615 Phase 2a). Was
-  // 1, a whole-stem value under the height-linear model; back-derived to the tip
-  // by TF24_K_s_at_tip(1) so that resistance is UNCHANGED at TF24_H_ANCHOR
-  // (16.5958691 m, the default hmat). The ratio is 8.5607 -- the design note's
-  // ~9.5 assumes the flow path runs to H rather than to H*eta_c.
+  // Sapwood-specific conductivity of the TERMINAL segment. Was 1, a whole-stem
+  // value under the height-linear model; back-derived to the tip by
+  // TF24_K_s_from_whole_stem(1) so that resistance is UNCHANGED at
+  // TF24_H_ANCHOR = 1 m. The ratio is 2.9782.
   //
-  // Only theta/K_s is identifiable, so agreement with the old model holds at
-  // exactly ONE height and nowhere else. That is by construction: changing the
-  // height dependence is the object of the exercise.
-  double K_s = 0.11681288783361685;
+  // Only theta/K_s is identifiable, so agreement with the height-linear model
+  // holds at exactly ONE height and nowhere else. That is by construction:
+  // changing the height dependence is the object of the exercise.
+  double K_s = 0.33577377016801868;
   double c = log(log(1-0.5)/log(1-0.88))/(log(p_50) - log(5.16));
   double b = p_50 / std::pow(-log(1 - 50.0 / 100.0), 1 / c);
   double psi_crit = b*std::pow(log(1/0.05),1/c); // derived from b and c
@@ -120,18 +119,17 @@ struct TF24_Pars {
   // layers below the column do not exist, so deepening roots alone gains
   // nothing without deepening the soil as well.
   double rooting_depth_max = 1.5;
-  // * Stem hydraulic path (#615)
+  // * Stem hydraulic path
   // Within-plant anatomical profiles along the flow path, parameterised by
   // distance from the apex L and anchored at the terminal segment. See
   // plant/stem_hydraulics.h for the closed form and
   // notes/plan-tf24-height-hydraulics.md for the derivation.
   //
-  // Phase 1 shipped all three at zero, which collapses the path integral to the
-  // pre-#615 model (resistance linear in height) bit-for-bit. Phase 2a turns
-  // widening on and reparameterises K_s to match at TF24_H_ANCHOR; theta_c stays
-  // at zero, so `theta` keeps its whole-plant meaning and no parameter-file
-  // migration is needed yet. Setting all three back to zero still recovers the
-  // pre-#615 model exactly, which is what the I7 regression test asserts.
+  // Setting all three to zero collapses the path integral to a resistance
+  // linear in height -- the model before this existed -- bit for bit, which is
+  // what the regression test asserts. theta_c is zero by default, so `theta`
+  // keeps its whole-plant meaning and no parameter-file migration is needed
+  // yet.
   //
   // Conduit widening exponent: D(L) = D_tip*(L/L_tip)^D_c. Reaches the model
   // only through beta = 2*D_c + theta_c -- the diameter itself is never
@@ -280,58 +278,57 @@ public:
   // Gamma*/Kc/Ko/Km and conductance side, which is the whole point of item 10c. Set
   // `atm_kpa` per site if you mean altitude; it just no longer defaults to an
   // altitude nobody chose.
-  // #615 Phase 1 added D_c / theta_c / L_tip and rewrote
-  // leaf_specific_conductance_max as a path integral over the stem. With all
-  // three at zero the integral collapses to the previous expression bit for bit
-  // -- verified at 17 significant figures on the one-species and two-species SCM
-  // scenarios in both coordinates, and on all 8 gateway scenarios -- so that
-  // step was deliberately NOT a bump.
+  // v9 (#615): stem resistance becomes a path integral over two within-plant
+  // anatomical profiles instead of being linear in height, so the height
+  // exponent is derived rather than assumed. Defaults D_c = 0.2, L_tip = 0.02,
+  // theta_c = 0, giving R_L ~ H^0.6. K_s is reparameterised from the old
+  // whole-stem 1 to the terminal-segment 0.33577377016801868 (a factor 2.9782)
+  // so that resistance is UNCHANGED at TF24_H_ANCHOR = 1 m. theta_c stays at 0,
+  // so `theta` keeps its whole-plant meaning and no parameter file needs
+  // migrating.
   //
-  // v9 (#615 Phase 2a): the defaults move to D_c = 0.2 and L_tip = 0.02, so
-  // resistance now grows as H^0.6 rather than H^1.0, and K_s is reparameterised
-  // from the old whole-stem 1 to the terminal-segment 0.11681288783361685 (a
-  // factor 8.5607) so that resistance is UNCHANGED at TF24_H_ANCHOR = 16.5958691
-  // m, the default hmat. theta_c stays at 0, so `theta` keeps its whole-plant
-  // meaning and no parameter-file migration is needed yet.
+  // Only theta/K_s is identifiable, so there is one free scalar and the two
+  // models agree at exactly ONE height. It is a ROTATION about the anchor:
   //
-  // Because only theta/K_s is identifiable there is exactly one free scalar, so
-  // the two models agree at exactly ONE height. The reparameterisation is a
-  // ROTATION about the anchor, not a rescaling: below it every plant is more
-  // resistant than before, above it every plant is less.
+  //     H (m)        0.394  1.00   5.00   8.00   16.60  30.0   60.0
+  //     R_new/R_old  1.38   1.00   0.55   0.46   0.35   0.28   0.21
   //
-  //     H (m)     0.394    1.00    8.00   16.60   30.0    60.0
-  //     R_new/R_old  3.95    2.87    1.33    1.00   0.79    0.60
+  // Only sub-metre plants pay more than they did; everything taller pays
+  // progressively less. Setting D_c, theta_c and L_tip to zero and K_s to 1
+  // recovers the previous model exactly, end-to-end through the SCM -- see the
+  // "height-linear parameters" test in tests/testthat/test-strategy-tf24.R,
+  // which reproduces this file's pre-v9 pinned values unmodified.
   //
-  // Every tested scenario sits BELOW the anchor -- they run at hmat = 5 m -- so
-  // they are all in the more-resistant half of the rotation and all move down:
+  // THE SIGN OF THE EFFECT DEPENDS ON DENSITY, which is the most important
+  // thing to know about this change. Individually, plants are better off
+  // wherever they are taller than the anchor (assimilation ratio 0.997 at 0.5 m,
+  // 1.001 at 1 m, 1.055 at 5 m, 1.143 at 10 m, single plant, wet soil, no
+  // competition). But lower resistance also means faster transpiration, so in a
+  // dense stand everyone draws the shared soil column down faster and the patch
+  // does WORSE. One-species SCM, hmat = 5, max_patch_lifetime = 5:
   //
-  //     one-species SCM offspring     81.8571 -> 75.5522    -7.70%
-  //     two-species, fast             67.3220 -> 62.9266    -6.53%
-  //     two-species, slow           2.7745e-4 -> 2.0835e-4  -24.91%
-  //     birth-date coordinate, fast  287.1604 -> 253.9007   -11.58%
-  //     birth-date coordinate, slow   59.5320 -> 49.4161    -16.99%
-  //     seeded stochastic counts        81 / 3 -> 67 / 1
+  //     birth_rate    0.5      2       20
+  //     ratio        1.216   1.095   0.857
   //
-  // These are not the change's characteristic magnitude; they are its magnitude
-  // at seedling-to-sapling sizes, which is P6 (establishment shifts) and is
-  // expected rather than a regression.
+  // The pinned scenarios below all run at birth_rate = 20, i.e. at the least
+  // favourable end of that range; they are not representative of the change's
+  // sign in general.
   //
-  // The hydraulic gateway, which runs at the DEFAULT hmat and so straddles the
-  // anchor, moves both further and in both directions -- confirming that this is
-  // a rotation and not a uniform penalty:
+  //     one-species SCM offspring     81.8571 -> 70.1963    -14.25%
+  //     two-species, fast             67.3220 -> 56.2809    -16.40%
+  //     two-species, slow           2.7745e-4 -> 1.2629e-4  -54.49%
+  //     birth-date coordinate, fast  287.1604 -> 273.8933    -4.62%
+  //     birth-date coordinate, slow   59.5320 ->  49.3474   -17.11%
+  //     seeded stochastic counts        81 / 3 -> 104 / 3
   //
-  //     S01 +9.7%   S02 +93.5%   S07 +3.6%
-  //     S03 -90.4%  S04 -90.6%   S05 -86.2%  S06 -88.7%  S08 -70.6%
-  //
-  // 8/8 still run, 0 crash, 2/8 still persist, and NO classification flips on
-  // either axis. The large negative moves are all on scenarios sitting at
-  // ~1e-13 offspring, i.e. already far below viability, where a large relative
-  // move carries little weight.
+  // The hydraulic gateway runs longer patches at the default hmat and moves the
+  // other way, up by 2.2x to 320x on every scenario, with S02 crossing R0 = 1 so
+  // persistence goes 2/8 -> 3/8. 8/8 still run, 0 crash, no `observed` flips.
   //
   // p_50 is deliberately UNCHANGED (2.8887 MPa): make_TF24_hyperpar derives the
   // vulnerability curve from K_s, so B_Hv1 was re-anchored 0.4607063 ->
-  // 0.2742044521276228 to stop the reparameterisation from also moving it. Left
-  // alone it would have gone to 4.4382 MPa.
+  // 0.36591565341924093 to stop the reparameterisation from also moving it.
+  // Left alone it would have gone to 3.5933 MPa.
   static constexpr int scientific_version = 9;
 
   double compute_average_light_environment(double z, double height,
@@ -598,13 +595,14 @@ public:
 
   // Derived / precomputed in prepare_strategy() (NOT user-set) -------------
   double eta_c     = NA_REAL; // crown shape factor, precomputed from pars.eta
-  // beta = 2*pars.D_c + pars.theta_c, the single exponent the stem path
-  // integral depends on (#615). Named for the path rather than for either
-  // parameter, since it belongs to neither. Cached because prepare_strategy()
-  // is also where the (beta, L_tip) precondition is checked, and the two belong
-  // together: nothing may reach stem_hydraulics::effective_path_length that has
-  // not been through that validation.
-  double path_beta_ = 0.0;
+  // beta = 2*pars.D_c + pars.theta_c, the exponent of the stem path integral:
+  // leaf-specific resistance grows as H^(1-beta). Named for the path rather than
+  // for either parameter, since it belongs to neither. Cached because
+  // prepare_strategy() is also where the (beta, L_tip) precondition is checked,
+  // and the two belong together: nothing may reach
+  // stem_hydraulics::effective_path_length that has not been through that
+  // validation.
+  double stem_path_exponent_ = 0.0;
   CanopyShape canopy_shape;
   // Height and leaf area of a (germinated) seed
   double height_0  = NA_REAL;

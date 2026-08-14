@@ -8,7 +8,7 @@ Status: draft for discussion. Epic [#615](https://github.com/traitecoevo/plant/i
 
 ## 1. Problem statement
 
-TF24 currently imposes resistance increasing linearly with height — [`src/tf24_strategy.cpp:382`](../src/tf24_strategy.cpp#L382), `leaf_specific_conductance_max = pars.K_s * pars.theta / (height * eta_c)`. Over a seedling-to-mulga range (0.3 → 8 m) this gives a 27-fold resistance increase, which greatly limits productivity across the size range where most demographic action occurs.
+TF24 currently imposes resistance increasing linearly with height — [`src/tf24_strategy.cpp:385`](../src/tf24_strategy.cpp#L385), `leaf_specific_conductance_max = pars.K_s * pars.theta / (height * eta_c)`. Over a seedling-to-mulga range (0.3 → 8 m) this gives a 27-fold resistance increase, which greatly limits productivity across the size range where most demographic action occurs.
 
 An earlier draft of this plan rationalised the linear form as the correct asymptote for the tallest trees, reached once conduit widening saturates. **That framing is retracted.** It required a conduit-diameter cap whose mechanism is unknown (see §2.1), and it was appealing largely because it flattered the existing implementation. Absent a mechanistic plateau, linear scaling is a convenient default, not an asymptote.
 
@@ -386,7 +386,7 @@ Given the target timescale is environmental change over weeks to years, capacita
 
 3. **The buffer is self-limiting.** Stomatal closure from the early-morning maximum limits tension and thereby prevents further reservoir discharge, which is why some studies find storage contributing a roughly constant ~10% fraction regardless of size.
 
-4. **A larger error is already present.** Collapsing the diurnal cycle to daily means introduces a Jensen error across the concave $A(g_c)$ curve that almost certainly exceeds the capacitance term. Optimising capacitance while using daily-mean VPD would be fixing the wrong term. **Priority: get the diurnal closure right first** (see §9.1).
+4. **A larger error is already present.** Collapsing the diurnal cycle to daily means introduces a Jensen error across the concave $A(g_c)$ curve that almost certainly exceeds the capacitance term. Optimising capacitance while using daily-mean VPD would be fixing the wrong term. **Priority: get the diurnal closure right first** ([#618](https://github.com/traitecoevo/plant/issues/618)).
 
 5. **Under well-watered conditions the effect is small anyway** — a 30-fold sweep in stem capacitance moved GPP by only ~0.2 g C m⁻² day⁻¹ at high soil moisture.
 
@@ -394,14 +394,11 @@ Given the target timescale is environmental change over weeks to years, capacita
 
 **Scope assumption to log:** complete overnight recharge — assumed, untested at Alice Mulga and Ti Tree East.
 
-### 9.1 Required companion work — the diurnal closure
+### 9.1 Required companion work — moved out
 
-The cost and gain terms need *different moments* of the diurnal distribution:
+The diurnal closure — that 𝒞 needs the daily *minimum* Ψ_leaf while daily A is an *integral* over a concave $A(g_c)$, so a single daily Ψ serves neither — is **not part of this plan**. It is temporal aggregation, not stem architecture, and it does not depend on the work here.
 
-- $\mathcal{C}$ is driven by **daily minimum** Ψ_leaf (midday excursion sets PLC)
-- Daily A is an **integral** over a concave $A(g_c)$
-
-Daily-mean Ψ_leaf serves neither. A single daily timestep carrying one Ψ value cannot do both jobs. The fix is not sub-daily integration but an explicit closure: run a representative diurnal course offline, derive daily-scale response surfaces for (A_daily, Ψ_min) as functions of daily meteorology, and **verify the closure is invariant across the environmental range of interest.** That invariance check is cheap and is testable in exactly the form the calibratability-protection criteria require.
+Tracked separately as [#618](https://github.com/traitecoevo/plant/issues/618). Note that argument 4 above leans on it: the claim that capacitance can be deferred rests on the Jensen error being the larger term, which #618 is what would establish.
 
 ---
 
@@ -415,8 +412,7 @@ Daily-mean Ψ_leaf serves neither. A single daily timestep carrying one Ψ value
 | 2b | Unify structural and hydraulic θ; **narrow `theta` to the tip definition and bump the parameter-file schema version**; expose `theta_base(H)` as derived output | demographic consequences of each channel separately understood; staging inconsistency closed; old-format parameter files rejected (I11) |
 | 3 | Add ρgH as an explicit separate term | predawn Ψ gradient reproduced |
 | 4 | Diagnostic ceiling check (§4.2) | $D_{implied}$ at emergent height compared against measured basal diameters |
-| 5 | Diurnal closure (§9.1) | closure invariance verified |
-| 6 | Sweeps and invariance tests | §11 criteria met |
+| 5 | Sweeps and invariance tests | §11 criteria met |
 
 ### 10.1 Sweeps
 

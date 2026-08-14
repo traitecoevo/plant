@@ -1,4 +1,4 @@
-# Height-dependent stem hydraulic resistance (#615).
+# Height-dependent stem hydraulic resistance.
 #
 # TF24 used to impose resistance strictly linear in height:
 #   leaf_specific_conductance_max = K_s * theta / (height * eta_c)
@@ -11,9 +11,8 @@
 # exponent is derived from measurable quantities rather than assumed. See
 # plant/stem_hydraulics.h and notes/plan-tf24-height-hydraulics.md.
 #
-# Phase 1 lands the machinery INERT: D_c, theta_c and L_tip all default to zero,
-# which collapses the path integral back to the linear model bit for bit. These
-# tests exist mainly to keep it that way.
+# Setting D_c, theta_c and L_tip all to zero collapses the path integral back to
+# the linear model bit for bit. Several tests below exist to keep it that way.
 
 # eta_c at the default eta = 12: the leaf-area-weighted mean height fraction of
 # the Yokozawa crown, and therefore the fraction of full height that the
@@ -22,22 +21,22 @@
 # and nothing else asserts the coupling.
 ETA_C_AT_12 <- 0.8861538461538462
 
-test_that("stem path parameters carry the Phase 2a defaults", {
+test_that("stem path parameters carry their shipped defaults", {
   p <- TF24_Strategy()$pars
   # Widening is on; theta_c stays at zero so `theta` keeps its whole-plant
-  # meaning and no parameter-file migration is needed until Phase 2b.
+  # meaning and no parameter-file migration is needed yet.
   expect_identical(p$D_c, 0.2)
   expect_identical(p$theta_c, 0)
   expect_identical(p$L_tip, 0.02)
   # K_s is now a TERMINAL-SEGMENT conductivity, back-derived from the old
   # whole-stem 1 so that resistance is unchanged at the anchor height. Asserted
   # against the helper rather than a literal, so the two cannot drift apart.
-  expect_identical(p$K_s, TF24_K_s_at_tip(1))
-  expect_equal(1 / p$K_s, 8.560699239148647, tolerance = 1e-12)
+  expect_identical(p$K_s, TF24_K_s_from_whole_stem(1))
+  expect_equal(1 / p$K_s, 2.9781957045054700, tolerance = 1e-12)
 })
 
-test_that("zeroing the profile parameters recovers the pre-#615 model", {
-  # Invariance criterion I7 survives Phase 2a as an explicit configuration
+test_that("zeroing the profile parameters recovers the height-linear model", {
+  # Invariance criterion I7 survives the reparameterisation as an explicit
   # rather than as the default. expect_identical, not expect_equal: a value that
   # drifted to 1e-16 would still pass expect_equal while silently taking the
   # beta == 0 branch out of play, and the SCM pins elsewhere sit at tolerance
@@ -60,7 +59,7 @@ test_that("zeroing the profile parameters recovers the pre-#615 model", {
     # what removes any dependence on -ffp-contract fusing the caller's multiply.
     expect_identical(L, h * eta_c)
     # ...and the conductance the strategy forms from it must be, expression for
-    # expression, the one the pre-#615 code computed.
+    # expression, the one the height-linear code computed.
     expect_identical(s$pars$K_s * s$pars$theta / L,
                      s$pars$K_s * s$pars$theta / (h * eta_c))
   }
@@ -82,14 +81,16 @@ test_that("resistance is unchanged at the anchor height and rotates about it", {
 
   expect_equal(r_new(TF24_H_ANCHOR) / r_old(TF24_H_ANCHOR), 1, tolerance = 1e-12)
 
-  # The rotation, pinned. The seedling figure is the one that matters: it is P6
-  # (establishment shifts) in full, and it must not move unnoticed.
-  expect_equal(r_new(0.3941) / r_old(0.3941), 3.954, tolerance = 1e-3)
-  expect_equal(r_new(8) / r_old(8), 1.327, tolerance = 1e-3)
-  expect_equal(r_new(60) / r_old(60), 0.604, tolerance = 1e-3)
+  # The rotation, pinned. Anchored at 1 m, only sub-metre plants pay more than
+  # they did; everything taller pays progressively less, down to 0.21x at 60 m.
+  # That is the whole behavioural content of the change and it must not move
+  # unnoticed.
+  expect_equal(r_new(0.3941) / r_old(0.3941), 1.3757, tolerance = 1e-3)
+  expect_equal(r_new(8) / r_old(8), 0.4615, tolerance = 1e-3)
+  expect_equal(r_new(60) / r_old(60), 0.2100, tolerance = 1e-3)
 
   # Monotone through the anchor: strictly more resistant below, less above.
-  expect_gt(r_new(1) / r_old(1), 1)
+  expect_gt(r_new(0.5) / r_old(0.5), 1)
   expect_lt(r_new(30) / r_old(30), 1)
 })
 
@@ -97,7 +98,7 @@ test_that("the K_s reparameterisation leaves the vulnerability curve alone", {
   # Invariance criterion I12. make_TF24_hyperpar derives the whole vulnerability
   # curve from K_s via p_50 = 10^(B_Hv1 + B_Hv2*log10(K_s)). Feeding a
   # terminal-segment K_s through the un-re-anchored relation would have moved
-  # p_50 from 2.889 to 4.438 MPa -- buying a height exponent and silently
+  # p_50 from 2.889 to 3.593 MPa -- buying a height exponent and silently
   # selling the safety margin of a model whose whole subject is hydraulic
   # limitation. B_Hv1 was shifted to hold it.
   s <- TF24_Strategy()
@@ -107,7 +108,7 @@ test_that("the K_s reparameterisation leaves the vulnerability curve alone", {
 
   # And the un-re-anchored value, recorded so the size of the averted leak stays
   # visible: this is what p_50 would be at B_Hv1 = 0.4607063.
-  expect_equal(10^(0.4607063 - 0.2 * log10(s$pars$K_s)), 4.438213068367852,
+  expect_equal(10^(0.4607063 - 0.2 * log10(s$pars$K_s)), 3.5933287036419,
                tolerance = 1e-10)
 })
 
