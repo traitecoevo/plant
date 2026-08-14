@@ -73,7 +73,16 @@ struct TF24_Pars {
   // * Leaf hydraulic / photosynthesis traits (default Eucalyptus saligna)
   double vcmax_25 = 96;
   double p_50 = 1.85;
-  double K_s = 1;
+  // Sapwood-specific conductivity of the TERMINAL segment (#615 Phase 2a). Was
+  // 1, a whole-stem value under the height-linear model; back-derived to the tip
+  // by TF24_K_s_at_tip(1) so that resistance is UNCHANGED at TF24_H_ANCHOR
+  // (16.5958691 m, the default hmat). The ratio is 8.5607 -- the design note's
+  // ~9.5 assumes the flow path runs to H rather than to H*eta_c.
+  //
+  // Only theta/K_s is identifiable, so agreement with the old model holds at
+  // exactly ONE height and nowhere else. That is by construction: changing the
+  // height dependence is the object of the exercise.
+  double K_s = 0.11681288783361685;
   double c = log(log(1-0.5)/log(1-0.88))/(log(p_50) - log(5.16));
   double b = p_50 / std::pow(-log(1 - 50.0 / 100.0), 1 / c);
   double psi_crit = b*std::pow(log(1/0.05),1/c); // derived from b and c
@@ -117,16 +126,21 @@ struct TF24_Pars {
   // plant/stem_hydraulics.h for the closed form and
   // notes/plan-tf24-height-hydraulics.md for the derivation.
   //
-  // All three default to zero, which collapses the path integral to the
-  // pre-#615 model (resistance linear in height) bit-for-bit. Phase 2a moves
-  // them to D_c = 0.2, L_tip = 0.02 and reparameterises K_s to match.
+  // Phase 1 shipped all three at zero, which collapses the path integral to the
+  // pre-#615 model (resistance linear in height) bit-for-bit. Phase 2a turns
+  // widening on and reparameterises K_s to match at TF24_H_ANCHOR; theta_c stays
+  // at zero, so `theta` keeps its whole-plant meaning and no parameter-file
+  // migration is needed yet. Setting all three back to zero still recovers the
+  // pre-#615 model exactly, which is what the I7 regression test asserts.
   //
   // Conduit widening exponent: D(L) = D_tip*(L/L_tip)^D_c. Reaches the model
   // only through beta = 2*D_c + theta_c -- the diameter itself is never
   // evaluated, and D_tip is not a parameter until the sec. 4.2 diagnostic.
   // Named D_c, not b, because b is already the Weibull vulnerability scale
   // above; `_c` means "exponent" here, as in c and root_c.
-  double D_c = 0.0;
+  // Measured, not fitted: conserved across terrestrial vascular plants, with a
+  // within-stem range of roughly 0.1-0.3.
+  double D_c = 0.2;
   // Huber-profile exponent: theta(L) = theta*(L/L_tip)^(-theta_c). NOTE THE
   // MINUS SIGN. theta falls basipetally while the Huber value 1/theta rises, so
   // a positive theta_c means less leaf area supported per unit sapwood towards
@@ -146,7 +160,7 @@ struct TF24_Pars {
   // theta*L_tip^beta/K_s. It must therefore come from the SAME terminal-segment
   // definition over which K_s and theta were measured -- none of the three may
   // be calibrated independently of the others (invariance criterion I5).
-  double L_tip = 0.0;
+  double L_tip = 0.02;
   // Germination
   double recruitment_decay = 0.0;
   // Penman-Monteith leaf energy balance (#523). use_energy_balance gates PM
@@ -266,14 +280,59 @@ public:
   // Gamma*/Kc/Ko/Km and conductance side, which is the whole point of item 10c. Set
   // `atm_kpa` per site if you mean altitude; it just no longer defaults to an
   // altitude nobody chose.
-  // #615 Phase 1 adds D_c / theta_c / L_tip and rewrites
-  // leaf_specific_conductance_max as a path integral over the stem. At the
-  // defaults (all three zero) the integral collapses to the previous expression
-  // bit for bit -- verified at 17 significant figures on the one-species and
-  // two-species SCM scenarios in both coordinates, and on all 8 gateway
-  // scenarios -- so this is deliberately NOT a bump. Phase 2a, which moves the
-  // defaults and reparameterises K_s, is.
-  static constexpr int scientific_version = 8;
+  // #615 Phase 1 added D_c / theta_c / L_tip and rewrote
+  // leaf_specific_conductance_max as a path integral over the stem. With all
+  // three at zero the integral collapses to the previous expression bit for bit
+  // -- verified at 17 significant figures on the one-species and two-species SCM
+  // scenarios in both coordinates, and on all 8 gateway scenarios -- so that
+  // step was deliberately NOT a bump.
+  //
+  // v9 (#615 Phase 2a): the defaults move to D_c = 0.2 and L_tip = 0.02, so
+  // resistance now grows as H^0.6 rather than H^1.0, and K_s is reparameterised
+  // from the old whole-stem 1 to the terminal-segment 0.11681288783361685 (a
+  // factor 8.5607) so that resistance is UNCHANGED at TF24_H_ANCHOR = 16.5958691
+  // m, the default hmat. theta_c stays at 0, so `theta` keeps its whole-plant
+  // meaning and no parameter-file migration is needed yet.
+  //
+  // Because only theta/K_s is identifiable there is exactly one free scalar, so
+  // the two models agree at exactly ONE height. The reparameterisation is a
+  // ROTATION about the anchor, not a rescaling: below it every plant is more
+  // resistant than before, above it every plant is less.
+  //
+  //     H (m)     0.394    1.00    8.00   16.60   30.0    60.0
+  //     R_new/R_old  3.95    2.87    1.33    1.00   0.79    0.60
+  //
+  // Every tested scenario sits BELOW the anchor -- they run at hmat = 5 m -- so
+  // they are all in the more-resistant half of the rotation and all move down:
+  //
+  //     one-species SCM offspring     81.8571 -> 75.5522    -7.70%
+  //     two-species, fast             67.3220 -> 62.9266    -6.53%
+  //     two-species, slow           2.7745e-4 -> 2.0835e-4  -24.91%
+  //     birth-date coordinate, fast  287.1604 -> 253.9007   -11.58%
+  //     birth-date coordinate, slow   59.5320 -> 49.4161    -16.99%
+  //     seeded stochastic counts        81 / 3 -> 67 / 1
+  //
+  // These are not the change's characteristic magnitude; they are its magnitude
+  // at seedling-to-sapling sizes, which is P6 (establishment shifts) and is
+  // expected rather than a regression.
+  //
+  // The hydraulic gateway, which runs at the DEFAULT hmat and so straddles the
+  // anchor, moves both further and in both directions -- confirming that this is
+  // a rotation and not a uniform penalty:
+  //
+  //     S01 +9.7%   S02 +93.5%   S07 +3.6%
+  //     S03 -90.4%  S04 -90.6%   S05 -86.2%  S06 -88.7%  S08 -70.6%
+  //
+  // 8/8 still run, 0 crash, 2/8 still persist, and NO classification flips on
+  // either axis. The large negative moves are all on scenarios sitting at
+  // ~1e-13 offspring, i.e. already far below viability, where a large relative
+  // move carries little weight.
+  //
+  // p_50 is deliberately UNCHANGED (2.8887 MPa): make_TF24_hyperpar derives the
+  // vulnerability curve from K_s, so B_Hv1 was re-anchored 0.4607063 ->
+  // 0.2742044521276228 to stop the reparameterisation from also moving it. Left
+  // alone it would have gone to 4.4382 MPa.
+  static constexpr int scientific_version = 9;
 
   double compute_average_light_environment(double z, double height,
                                            const TF24_Environment &environment);

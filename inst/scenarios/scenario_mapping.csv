@@ -7,8 +7,8 @@ Root distribution,Extremely top heavy,trait,root_depth_shape_eta,0.05,shallow/su
 Root distribution,Extremely bottom heavy,trait,root_depth_shape_eta,0.8,deep roots (verify sign vs Q())
 Annual rainfall amplitude of variation,Equal to mean rainfall,driver,rainfall_amp_frac,1.0,sine amplitude = mean; trough clamped to 0 (extremely seasonal)
 Annual rainfall amplitude of variation,Half of mean rainfall,driver,rainfall_amp_frac,0.5,sine amplitude = half mean (seasonal)
-Ks,High,trait,K_s,2,default 1 x2; drives p_50/c/b/psi_crit via TF24_hyperpar (#548)
-Ks,Low,trait,K_s,0.5,default 1 /2; lower K_s -> more-negative p_50 via TF24_hyperpar (#548)
+Ks,High,trait,K_s,0.23362577566723369,default 0.11681288783361685 x2; drives p_50/c/b/psi_crit via TF24_hyperpar (#548); rescaled to the terminal-segment default (#615)
+Ks,Low,trait,K_s,0.058406443916808423,default 0.11681288783361685 /2; lower K_s -> more-negative p_50 via TF24_hyperpar (#548); rescaled to the terminal-segment default (#615)
 Vcmax_25,High,trait,vcmax_25,192,default 96 x2
 Vcmax_25,Low,trait,vcmax_25,48,default 96 /2
 LMA,High,trait,lma,0.3957582,default 0.1978791 x2

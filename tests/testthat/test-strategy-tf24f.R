@@ -40,7 +40,10 @@ test_that("Defaults", {
     k_I = 0.5,
     vcmax_25 = 96,
     p_50 = 1.85,
-    K_s = 1,
+    # Terminal-segment conductivity since #615 Phase 2a: the old whole-stem 1,
+    # back-derived by TF24_K_s_at_tip(1) so resistance is unchanged at
+    # TF24_H_ANCHOR. Ratio 8.5607.
+    K_s = TF24_K_s_at_tip(1),
     c = log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16)),
     b = 1.85 /((-log(1 - 50.0 / 100.0))^(1 / (log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16))))),
     psi_crit = (1.85 /((-log(1 - 50.0 / 100.0))^(1 / (log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16))))))*log(1/0.05)^(1/(log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16)))),
@@ -62,11 +65,11 @@ test_that("Defaults", {
     root_b = 3.898245,
     root_psi_crit = 3.898245 * log(1 / 0.05)^(1 / 2.680147),
     rooting_depth_max = 1.5,
-    # Stem hydraulic path (#615). All zero = the pre-#615 model, in which
-    # resistance is linear in height; see plant/stem_hydraulics.h.
-    D_c = 0,
+    # Stem hydraulic path (#615). Widening is on since Phase 2a; theta_c stays
+    # 0, so `theta` keeps its whole-plant meaning. See plant/stem_hydraulics.h.
+    D_c = 0.2,
     theta_c = 0,
-    L_tip = 0,
+    L_tip = 0.02,
     recruitment_decay = 0,
     use_energy_balance = 0,
     d = 0.05)
@@ -299,8 +302,24 @@ test_that("acclimation runs, is active, and converges to TF24", {
   # (3) Consistent with TF24 "within reason": as the acclimation gain grows,
   #     TF24f tracks the optimum that TF24 computes directly each step, so its
   #     offspring production converges onto TF24's.
+  #
+  #     Asserted at k_acclim = 100 rather than at the k = 10 used above. Under
+  #     #615's height-dependent resistance the residual tracking lag at k = 10
+  #     costs 1.19%, which no longer clears a 1e-2 bar -- so the honest fix is to
+  #     show the convergence rather than to widen the tolerance. Measured gap
+  #     against TF24 as the gain rises:
+  #
+  #       k_acclim     10      30     100     300
+  #       rel. gap  1.186%  0.396%  0.107%  0.020%
+  #
+  #     Monotone to zero, which is what makes this a lag and not a structural
+  #     divergence between the two strategies.
   tf24 <- run_scm(mk("TF24"), Environment("TF24"), Control())$offspring_production
-  expect_equal(fast, tf24, tolerance = 1e-2)
+  converged <- run_scm(set_k_acclim(pf, 100), Environment("TF24f"),
+                       Control())$offspring_production
+  expect_equal(converged, tf24, tolerance = 1e-2)
+  # ...and the approach is monotone: a higher gain is never further away.
+  expect_lt(abs(converged - tf24), abs(fast - tf24))
 })
 
 # Water mass-balance: the transpiration integrated up the stem side of every

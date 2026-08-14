@@ -295,11 +295,41 @@ were not previously recorded here:
 ### New features
 
 * **TF24 stem hydraulic resistance is now a path integral over the stem**, with
-  three new `TF24_Pars` fields — `D_c` (conduit widening exponent), `theta_c`
-  (Huber-profile exponent) and `L_tip` (terminal segment length, m). All three
-  default to `0`, which collapses the integral to the previous model exactly, so
-  **nothing changes at the defaults** and `scientific_version` stays at 8
-  (#615).
+  three new `TF24_Pars` fields — `D_c` (conduit widening exponent, default
+  `0.2`), `theta_c` (Huber-profile exponent, default `0`) and `L_tip` (terminal
+  segment length, default `0.02` m). Resistance now grows as `H^0.6` rather than
+  `H^1.0`. **`scientific_version` moves to 9 and TF24 output changes** (#615).
+
+  `K_s` keeps its name but narrows in meaning to the **terminal segment**, and
+  its default moves `1 -> 0.11681288783361685` (a factor 8.5607) so that
+  resistance is *unchanged* at `TF24_H_ANCHOR` = 16.5958691 m, TF24's default
+  `hmat`. Use the exported `TF24_K_s_at_tip()` to convert a `K_s` calibrated
+  under the old model.
+
+  Because `R_L` depends on `theta` and `K_s` only through their ratio, there is
+  exactly one free scalar, so the old and new models agree at exactly **one**
+  height and nowhere else. This is a *rotation* about the anchor, not a
+  rescaling — below it every plant is more resistant than before, above it every
+  plant is less:
+
+  | H (m) | 0.394 | 1.00 | 8.00 | 16.60 | 30.0 | 60.0 |
+  |---|---|---|---|---|---|---|
+  | `R_new/R_old` | 3.95 | 2.87 | 1.33 | 1.00 | 0.79 | 0.60 |
+
+  Setting `D_c`, `theta_c` and `L_tip` all back to zero still recovers the
+  pre-#615 model bit for bit.
+
+  `B_Hv1` moves `0.4607063 -> 0.2742044521276228` in `make_TF24_hyperpar`. This
+  is **not** a science change but a correction that prevents one: the hyperpar
+  derives the whole vulnerability curve from `K_s` via
+  `p_50 = 10^(B_Hv1 + B_Hv2·log10(K_s))`, so feeding a terminal-segment `K_s`
+  through the un-re-anchored relation would have moved `p_50` from 2.889 to
+  4.438 MPa as a side effect. The intercept was shifted to hold `p_50` fixed.
+  The roxygen for `B_Hv1` now describes a tip conductivity rather than a
+  whole-stem one; whether the Ks–p50 relation should be keyed on tip
+  conductivity at all is logged as open. The `K_s` rows of
+  `inst/scenarios/scenario_mapping.csv` were rescaled to the new baseline for
+  the same reason.
 
   TF24 used to impose `leaf_specific_conductance_max = K_s·theta/(height·eta_c)`,
   i.e. resistance strictly linear in height — a ~29× resistance increase from
@@ -328,10 +358,16 @@ were not previously recorded here:
   `prepare_strategy()`, because the symptom otherwise is a negative conductance
   surfacing as an unattributable `NaN` inside the leaf solver.
 
-  Verified inert at 17 significant figures on the one- and two-species SCM
-  scenarios in both density coordinates, and bit-identical across all 8
-  scenarios of the hydraulic gateway. Design note:
-  `notes/plan-tf24-height-hydraulics.md`.
+  The machinery landed inert first, verified bit-identical at 17 significant
+  figures on the one- and two-species SCM scenarios in both density coordinates
+  and across all 8 hydraulic-gateway scenarios, before the defaults were moved.
+  Turning it on moves the pinned SCM outputs by −6.5% to −25% (they run at
+  `hmat` = 5 m, entirely below the anchor, so they sit in the more-resistant
+  half of the rotation) and the gateway by −91% to +93% in *both* directions
+  (it runs at the default `hmat`, straddling the anchor). 8/8 gateway scenarios
+  still run, 2/8 still persist, and no classification flips on either axis.
+
+  Design note: `notes/plan-tf24-height-hydraulics.md`.
 
 * **`Control$node_density_in_birth_date`** (default `FALSE`) carries the SCM's
   size distribution as a density in birth date instead of in height.

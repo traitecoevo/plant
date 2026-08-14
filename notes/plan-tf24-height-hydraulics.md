@@ -251,6 +251,19 @@ Hence the Phase 2 split in §10: introduce θ(L) for **hydraulics only**, leave 
 
 The cost is a deliberate physical inconsistency between structural and hydraulic θ. **Log it as a staging decision with an explicit closure date**; a divergence between two uses of the same trait is exactly the kind of thing that survives quietly for two years.
 
+#### Staged inconsistencies ledger — opened 2026-08-14, Phase 2a
+
+Both close at Phase 2b. Neither will announce itself if forgotten, which is the point of writing them down.
+
+| # | What is inconsistent | Why it was staged | Closes at |
+|---|---|---|---|
+| SI-1 | `theta` is the *hydraulic* Huber value in `R_L` but the *structural* one in `area_sapwood` / `mass_sapwood` / construction cost / respiration / storage capacity. At Phase 2a they still agree, because `theta_c` = 0 and no profile exists — the inconsistency is **latent**, and becomes real the moment `theta_c` > 0. | Changing the height dependence and the carbon budget in one step would make P5/P6 diagnosis impossible. One thing at a time. | Phase 2b |
+| SI-2 | `B_Hv1` was re-anchored so that the Ks–p50 relation reproduces the old $p_{50}$ at a *terminal-segment* `K_s`. The relation's slope now acts on a tip quantity, while having been fitted on whatever the original measurements were. | Letting `K_s` move the vulnerability curve would have bought a height exponent and silently sold the safety margin ($p_{50}$ 2.889 → 4.438 MPa). | Phase 2b |
+
+SI-2 has a cheap resolution worth doing first: **find out what the Ks–p50 relation was actually fitted on.** Terminal branch segments are the usual measurement unit, in which case keying it on tip conductivity is *more* correct than before and the re-anchoring should be undone rather than kept.
+
+Phase 2b must also handle a trap in `dmass_sapwood_darea_leaf` (`src/tf24_strategy.cpp`): it hard-codes the closed-form derivative $\rho\eta_c a_{l1}\theta(a_{l2}+1)A^{a_{l2}}$ rather than differentiating `mass_sapwood`. When structural θ becomes a profile it must be re-derived by hand, and **nothing in the test suite will fail if it is not.**
+
 #### Recommended starting configuration
 
 ```

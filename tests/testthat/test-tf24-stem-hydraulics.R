@@ -22,16 +22,93 @@
 # and nothing else asserts the coupling.
 ETA_C_AT_12 <- 0.8861538461538462
 
-test_that("stem path parameters default to the collapsed (pre-#615) model", {
+test_that("stem path parameters carry the Phase 2a defaults", {
   p <- TF24_Strategy()$pars
-  # expect_identical, not expect_equal. These three zeros ARE the bit-identity
-  # contract: a default that drifted to 1e-16 would still pass expect_equal
-  # while silently taking the beta == 0 branch out of play, and the SCM pins
-  # elsewhere sit at tolerance 2e-2, which would absorb the ~1% consequence
-  # without anyone noticing.
-  expect_identical(p$D_c, 0)
+  # Widening is on; theta_c stays at zero so `theta` keeps its whole-plant
+  # meaning and no parameter-file migration is needed until Phase 2b.
+  expect_identical(p$D_c, 0.2)
   expect_identical(p$theta_c, 0)
-  expect_identical(p$L_tip, 0)
+  expect_identical(p$L_tip, 0.02)
+  # K_s is now a TERMINAL-SEGMENT conductivity, back-derived from the old
+  # whole-stem 1 so that resistance is unchanged at the anchor height. Asserted
+  # against the helper rather than a literal, so the two cannot drift apart.
+  expect_identical(p$K_s, TF24_K_s_at_tip(1))
+  expect_equal(1 / p$K_s, 8.560699239148647, tolerance = 1e-12)
+})
+
+test_that("zeroing the profile parameters recovers the pre-#615 model", {
+  # Invariance criterion I7 survives Phase 2a as an explicit configuration
+  # rather than as the default. expect_identical, not expect_equal: a value that
+  # drifted to 1e-16 would still pass expect_equal while silently taking the
+  # beta == 0 branch out of play, and the SCM pins elsewhere sit at tolerance
+  # 2e-2, which would absorb the consequence without anyone noticing.
+  s <- TF24_Strategy()
+  s$pars$D_c <- 0
+  s$pars$theta_c <- 0
+  s$pars$L_tip <- 0
+  expect_identical(2 * s$pars$D_c + s$pars$theta_c, 0)
+  expect_silent(TF24_Individual(s))
+
+  eta_c <- 1 - 2 / (1 + s$pars$eta) + 1 / (1 + 2 * s$pars$eta)
+  expect_identical(eta_c, ETA_C_AT_12)
+
+  # 0.3941 is roughly TF24's birth height; 16.5958691 is its default hmat.
+  for (h in c(0.2, 0.3941, 1, 5, 16.5958691, 40)) {
+    L <- test_stem_effective_path_length(h * eta_c, 0, 0)
+    # The path integral must return the OPERAND, not merely something equal to
+    # it: no arithmetic at all is performed on the collapsed branch, which is
+    # what removes any dependence on -ffp-contract fusing the caller's multiply.
+    expect_identical(L, h * eta_c)
+    # ...and the conductance the strategy forms from it must be, expression for
+    # expression, the one the pre-#615 code computed.
+    expect_identical(s$pars$K_s * s$pars$theta / L,
+                     s$pars$K_s * s$pars$theta / (h * eta_c))
+  }
+})
+
+test_that("resistance is unchanged at the anchor height and rotates about it", {
+  # The single point of agreement between the old and new models. R_L depends on
+  # theta and K_s only through their ratio, so there is exactly one free scalar
+  # and agreement holds at exactly ONE height -- never two. Below the anchor
+  # every plant is more resistant than under the old model, above it every plant
+  # is less: the reparameterisation is a rotation, not a rescaling.
+  p <- TF24_Strategy()$pars
+  eta_c <- 1 - 2 / (1 + p$eta) + 1 / (1 + 2 * p$eta)
+  beta <- 2 * p$D_c + p$theta_c
+
+  # theta cancels; K_s_old was 1.
+  r_old <- function(h) test_stem_effective_path_length(h * eta_c, p$L_tip, 0) / 1
+  r_new <- function(h) test_stem_effective_path_length(h * eta_c, p$L_tip, beta) / p$K_s
+
+  expect_equal(r_new(TF24_H_ANCHOR) / r_old(TF24_H_ANCHOR), 1, tolerance = 1e-12)
+
+  # The rotation, pinned. The seedling figure is the one that matters: it is P6
+  # (establishment shifts) in full, and it must not move unnoticed.
+  expect_equal(r_new(0.3941) / r_old(0.3941), 3.954, tolerance = 1e-3)
+  expect_equal(r_new(8) / r_old(8), 1.327, tolerance = 1e-3)
+  expect_equal(r_new(60) / r_old(60), 0.604, tolerance = 1e-3)
+
+  # Monotone through the anchor: strictly more resistant below, less above.
+  expect_gt(r_new(1) / r_old(1), 1)
+  expect_lt(r_new(30) / r_old(30), 1)
+})
+
+test_that("the K_s reparameterisation leaves the vulnerability curve alone", {
+  # Invariance criterion I12. make_TF24_hyperpar derives the whole vulnerability
+  # curve from K_s via p_50 = 10^(B_Hv1 + B_Hv2*log10(K_s)). Feeding a
+  # terminal-segment K_s through the un-re-anchored relation would have moved
+  # p_50 from 2.889 to 4.438 MPa -- buying a height exponent and silently
+  # selling the safety margin of a model whose whole subject is hydraulic
+  # limitation. B_Hv1 was shifted to hold it.
+  s <- TF24_Strategy()
+  m <- trait_matrix(s$pars$lma, "lma")
+  derived <- TF24_hyperpar(m, s, filter = FALSE)
+  expect_equal(derived[, "p_50"][[1]], 2.888725665336019, tolerance = 1e-10)
+
+  # And the un-re-anchored value, recorded so the size of the averted leak stays
+  # visible: this is what p_50 would be at B_Hv1 = 0.4607063.
+  expect_equal(10^(0.4607063 - 0.2 * log10(s$pars$K_s)), 4.438213068367852,
+               tolerance = 1e-10)
 })
 
 test_that("stem path parameters are settable", {
@@ -42,30 +119,6 @@ test_that("stem path parameters are settable", {
   expect_equal(s$pars$D_c, 0.2)
   expect_equal(s$pars$theta_c, 0.4)
   expect_equal(s$pars$L_tip, 0.02)
-})
-
-test_that("the collapsed path integral reproduces the pre-#615 conductance exactly", {
-  # Invariance criterion I7. This is the gate that makes Phase 1 a non-bump, so
-  # it asserts bitwise identity (expect_identical on doubles is identical(),
-  # which is bitwise) rather than numerical closeness.
-  p <- TF24_Strategy()$pars
-  eta_c <- 1 - 2 / (1 + p$eta) + 1 / (1 + 2 * p$eta)
-  expect_identical(eta_c, ETA_C_AT_12)
-
-  beta <- 2 * p$D_c + p$theta_c
-  expect_identical(beta, 0)
-
-  # 0.3941 is roughly TF24's birth height; 16.5958691 is its default hmat.
-  for (h in c(0.2, 0.3941, 1, 5, 16.5958691, 40)) {
-    L <- test_stem_effective_path_length(h * eta_c, p$L_tip, beta)
-    # The path integral must return the OPERAND, not merely something equal to
-    # it: no arithmetic at all is performed on the collapsed branch, which is
-    # what removes any dependence on -ffp-contract fusing the caller's multiply.
-    expect_identical(L, h * eta_c)
-    # ...and the conductance the strategy forms from it must be, expression for
-    # expression, the one the old code computed.
-    expect_identical(p$K_s * p$theta / L, p$K_s * p$theta / (h * eta_c))
-  }
 })
 
 test_that("the closed form matches numerical quadrature of the integrand", {
@@ -199,8 +252,9 @@ test_that("theta_c enters with the sign that compensates", {
 })
 
 test_that("a non-zero profile requires a terminal segment", {
+  # The default now HAS widening on, so drop L_tip rather than raise D_c.
   s <- TF24_Strategy()
-  s$pars$D_c <- 0.2
+  s$pars$L_tip <- 0
   expect_error(TF24_Individual(s), "L_tip")
 
   s$pars$L_tip <- 0.02
@@ -214,6 +268,7 @@ test_that("a non-zero profile requires a terminal segment", {
 
   # The guard is scoped to an active profile: L_tip is ignored at beta == 0.
   inert <- TF24_Strategy()
+  inert$pars$D_c <- 0
   inert$pars$L_tip <- 100
   expect_silent(TF24_Individual(inert))
 })
@@ -223,15 +278,20 @@ test_that("widening reaches the plant, and helps more at greater height", {
   # supports more carbon gain -- and because the mechanism is a height exponent
   # and not a constant, the advantage must GROW with height. That ratio is the
   # thing under test; a uniform conductance rescaling would raise both equally.
+  #
+  # Compared at a FIXED K_s: `flat` is the shipped strategy with the profile
+  # switched off, so the only difference is the height dependence. (The shipped
+  # default pairs widening with a reparameterised K_s, which is a different
+  # comparison -- that one is the rotation asserted above.)
   wet <- rep(0.25, 5)
 
-  base <- TF24_Strategy()
   wide <- TF24_Strategy()
-  wide$pars$D_c <- 0.2
-  wide$pars$L_tip <- 0.02
+  flat <- TF24_Strategy()
+  flat$pars$D_c <- 0
+  flat$pars$L_tip <- 0
 
   gain <- function(h) {
-    a0 <- tf24_probe(base, wet, height = h)[["assimilation"]]
+    a0 <- tf24_probe(flat, wet, height = h)[["assimilation"]]
     a1 <- tf24_probe(wide, wet, height = h)[["assimilation"]]
     expect_true(is.finite(a0) && is.finite(a1))
     expect_gt(a1, a0)

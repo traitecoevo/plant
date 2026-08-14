@@ -211,7 +211,10 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
   ## entry under Breaking changes in NEWS.md) and is not re-checked here.
   baseline <- list(
     FF16 = list(n_total = 83L, n_alive_final = 5L),
-    TF24 = list(n_total = 81L, n_alive_final = 3L),
+    # Moved 81/3 -> 67/1 at #615 Phase 2a: the stem path integral with
+    # widening on makes plants below the 16.6 m anchor MORE resistant, and
+    # this run never gets near it.
+    TF24 = list(n_total = 67L, n_alive_final = 1L),
     K93  = list(n_total = 117L, n_alive_final = 2L)
   )
   for (x in names(strategy_types)) {
