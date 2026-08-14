@@ -62,6 +62,11 @@ test_that("Defaults", {
     root_b = 3.898245,
     root_psi_crit = 3.898245 * log(1 / 0.05)^(1 / 2.680147),
     rooting_depth_max = 1.5,
+    # Stem hydraulic path (#615). All zero = the pre-#615 model, in which
+    # resistance is linear in height; see plant/stem_hydraulics.h.
+    D_c = 0,
+    theta_c = 0,
+    L_tip = 0,
     recruitment_decay = 0,
     use_energy_balance = 0,
     d = 0.05)

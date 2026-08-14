@@ -1325,6 +1325,9 @@ template <> inline SEXP wrap(const plant::TF24_Pars& x) {
   ret["root_b"] = Rcpp::wrap(x.root_b);
   ret["root_psi_crit"] = Rcpp::wrap(x.root_psi_crit);
   ret["rooting_depth_max"] = Rcpp::wrap(x.rooting_depth_max);
+  ret["D_c"] = Rcpp::wrap(x.D_c);
+  ret["theta_c"] = Rcpp::wrap(x.theta_c);
+  ret["L_tip"] = Rcpp::wrap(x.L_tip);
   ret["recruitment_decay"] = Rcpp::wrap(x.recruitment_decay);
   ret["use_energy_balance"] = Rcpp::wrap(x.use_energy_balance);
   ret["d"] = Rcpp::wrap(x.d);
@@ -1456,6 +1459,12 @@ template <> inline plant::TF24_Pars as(SEXP x) {
   ret.root_psi_crit = Rcpp::as<double >(xl["root_psi_crit"]);
   // ret.rooting_depth_max = Rcpp::as<decltype(retrooting_depth_max) >(xl["rooting_depth_max"]);
   ret.rooting_depth_max = Rcpp::as<double >(xl["rooting_depth_max"]);
+  // ret.D_c = Rcpp::as<decltype(retD_c) >(xl["D_c"]);
+  ret.D_c = Rcpp::as<double >(xl["D_c"]);
+  // ret.theta_c = Rcpp::as<decltype(rettheta_c) >(xl["theta_c"]);
+  ret.theta_c = Rcpp::as<double >(xl["theta_c"]);
+  // ret.L_tip = Rcpp::as<decltype(retL_tip) >(xl["L_tip"]);
+  ret.L_tip = Rcpp::as<double >(xl["L_tip"]);
   // ret.recruitment_decay = Rcpp::as<decltype(retrecruitment_decay) >(xl["recruitment_decay"]);
   ret.recruitment_decay = Rcpp::as<double >(xl["recruitment_decay"]);
   // ret.use_energy_balance = Rcpp::as<decltype(retuse_energy_balance) >(xl["use_energy_balance"]);

@@ -31,6 +31,25 @@ expect_equal_internals <- function(object, expected, ...) {
   expect_equal(to_state(object), to_state(expected), ...)
 }
 
+# One compute_rates call on a standalone TF24 individual, returning its named
+# aux vector. The cheapest probe of the hydraulic path there is: no SCM, no
+# patch, one leaf optimisation. Shared by test-tf24-root-pars.R and
+# test-tf24-stem-hydraulics.R.
+#
+# `soil_theta` is soil water content per layer (m^3 m^-3) -- note that this is
+# an entirely different `theta` from the strategy's `pars$theta`, which is leaf
+# area per sapwood area. Both are reachable in the same session; the argument is
+# named for the one it is.
+tf24_probe <- function(strategy, soil_theta, height = 5) {
+  ind <- TF24_Individual(strategy)
+  ind$set_state("height", height)
+  env <- TF24_Environment()
+  env$set_soil_number_of_depths(length(soil_theta))
+  env$set_soil_water_state(soil_theta)
+  ind$compute_rates(env)
+  stats::setNames(ind$internals$auxs, ind$aux_names)
+}
+
 test_ode_make_system <- function(obj) {
   make_derivs <- function(obj) {
     if (is.null(obj$set_ode_state)) {

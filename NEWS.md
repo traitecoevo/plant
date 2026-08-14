@@ -294,6 +294,45 @@ were not previously recorded here:
 
 ### New features
 
+* **TF24 stem hydraulic resistance is now a path integral over the stem**, with
+  three new `TF24_Pars` fields — `D_c` (conduit widening exponent), `theta_c`
+  (Huber-profile exponent) and `L_tip` (terminal segment length, m). All three
+  default to `0`, which collapses the integral to the previous model exactly, so
+  **nothing changes at the defaults** and `scientific_version` stays at 8
+  (#615).
+
+  TF24 used to impose `leaf_specific_conductance_max = K_s·theta/(height·eta_c)`,
+  i.e. resistance strictly linear in height — a ~29× resistance increase from
+  0.3 to 8 m, across the size range where most of the demography happens. That
+  form was never derived; it is what you get from assuming a uniform tube. The
+  replacement integrates two measurable within-plant profiles along the flow
+  path, so the height exponent is *derived* rather than assumed:
+
+  - conduit widening, `D(L) = D_tip·(L/L_tip)^D_c`, with `D_c ≈ 0.2` conserved
+    across terrestrial vascular plants;
+  - the packing limit, `n_A ∝ D⁻²` under a conserved lumen fraction, which is
+    why sapwood-specific conductivity scales as `D²` and **not** the `D⁴` of
+    Hagen–Poiseuille — that survives only along a single continuous conduit;
+  - the Huber profile, `theta(L) = theta·(L/L_tip)^(−theta_c)` (note the sign:
+    θ falls basipetally, so the Huber value 1/θ rises).
+
+  With `beta = 2·D_c + theta_c` these close to an effective path length
+  `L_eff = L_tip·expm1((1−beta)·log(L_top/L_tip))/(1−beta)`, exposed in
+  `plant/stem_hydraulics.h`. `L_top` is `height·eta_c`, the leaf-area-weighted
+  mean leaf height — `eta_c` scales the upper limit of the integral, not the
+  resistance.
+
+  `K_s` is unchanged in name and value, and narrows in meaning to the terminal
+  segment once `D_c > 0`. Setting `D_c` or `theta_c` non-zero requires a
+  positive `L_tip` shorter than the birth-size flow path; both are checked in
+  `prepare_strategy()`, because the symptom otherwise is a negative conductance
+  surfacing as an unattributable `NaN` inside the leaf solver.
+
+  Verified inert at 17 significant figures on the one- and two-species SCM
+  scenarios in both density coordinates, and bit-identical across all 8
+  scenarios of the hydraulic gateway. Design note:
+  `notes/plan-tf24-height-hydraulics.md`.
+
 * **`Control$node_density_in_birth_date`** (default `FALSE`) carries the SCM's
   size distribution as a density in birth date instead of in height.
 

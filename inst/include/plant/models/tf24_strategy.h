@@ -8,6 +8,7 @@
 #include <plant/qag.h>
 #include <plant/leaf_model.h>
 #include <plant/canopy_shape.h>
+#include <plant/stem_hydraulics.h>
 
 namespace plant {
 
@@ -110,6 +111,42 @@ struct TF24_Pars {
   // layers below the column do not exist, so deepening roots alone gains
   // nothing without deepening the soil as well.
   double rooting_depth_max = 1.5;
+  // * Stem hydraulic path (#615)
+  // Within-plant anatomical profiles along the flow path, parameterised by
+  // distance from the apex L and anchored at the terminal segment. See
+  // plant/stem_hydraulics.h for the closed form and
+  // notes/plan-tf24-height-hydraulics.md for the derivation.
+  //
+  // All three default to zero, which collapses the path integral to the
+  // pre-#615 model (resistance linear in height) bit-for-bit. Phase 2a moves
+  // them to D_c = 0.2, L_tip = 0.02 and reparameterises K_s to match.
+  //
+  // Conduit widening exponent: D(L) = D_tip*(L/L_tip)^D_c. Reaches the model
+  // only through beta = 2*D_c + theta_c -- the diameter itself is never
+  // evaluated, and D_tip is not a parameter until the sec. 4.2 diagnostic.
+  // Named D_c, not b, because b is already the Weibull vulnerability scale
+  // above; `_c` means "exponent" here, as in c and root_c.
+  double D_c = 0.0;
+  // Huber-profile exponent: theta(L) = theta*(L/L_tip)^(-theta_c). NOTE THE
+  // MINUS SIGN. theta falls basipetally while the Huber value 1/theta rises, so
+  // a positive theta_c means less leaf area supported per unit sapwood towards
+  // the base -- that is the compensation mechanism. The derived default at
+  // Phase 2b is 2*D_c, but do NOT couple them here: member initialisers run
+  // once at default construction, so setting D_c from R would leave a derived
+  // theta_c stale (the trap psi_crit and root_psi_crit already document). The
+  // coupling belongs in make_TF24_hyperpar.
+  //
+  // Name clash to be aware of: phylloptim's Leaf spells soil water content
+  // theta_, theta_w_ and theta_fc_ (m^3 m^-3), all R-visible, so s$pars$theta_c
+  // (dimensionless) and leaf$theta_ coexist in one session.
+  double theta_c = 0.0;
+  // Terminal segment length [m]. Not an innocuous numerical cutoff: it enters
+  // the resistance with elasticity beta ~ 0.6 and trades off exactly against
+  // both K_s and theta, which are identifiable only in the grouping
+  // theta*L_tip^beta/K_s. It must therefore come from the SAME terminal-segment
+  // definition over which K_s and theta were measured -- none of the three may
+  // be calibrated independently of the others (invariance criterion I5).
+  double L_tip = 0.0;
   // Germination
   double recruitment_decay = 0.0;
   // Penman-Monteith leaf energy balance (#523). use_energy_balance gates PM
@@ -229,6 +266,13 @@ public:
   // Gamma*/Kc/Ko/Km and conductance side, which is the whole point of item 10c. Set
   // `atm_kpa` per site if you mean altitude; it just no longer defaults to an
   // altitude nobody chose.
+  // #615 Phase 1 adds D_c / theta_c / L_tip and rewrites
+  // leaf_specific_conductance_max as a path integral over the stem. At the
+  // defaults (all three zero) the integral collapses to the previous expression
+  // bit for bit -- verified at 17 significant figures on the one-species and
+  // two-species SCM scenarios in both coordinates, and on all 8 gateway
+  // scenarios -- so this is deliberately NOT a bump. Phase 2a, which moves the
+  // defaults and reparameterises K_s, is.
   static constexpr int scientific_version = 8;
 
   double compute_average_light_environment(double z, double height,
@@ -495,6 +539,13 @@ public:
 
   // Derived / precomputed in prepare_strategy() (NOT user-set) -------------
   double eta_c     = NA_REAL; // crown shape factor, precomputed from pars.eta
+  // beta = 2*pars.D_c + pars.theta_c, the single exponent the stem path
+  // integral depends on (#615). Named for the path rather than for either
+  // parameter, since it belongs to neither. Cached because prepare_strategy()
+  // is also where the (beta, L_tip) precondition is checked, and the two belong
+  // together: nothing may reach stem_hydraulics::effective_path_length that has
+  // not been through that validation.
+  double path_beta_ = 0.0;
   CanopyShape canopy_shape;
   // Height and leaf area of a (germinated) seed
   double height_0  = NA_REAL;
