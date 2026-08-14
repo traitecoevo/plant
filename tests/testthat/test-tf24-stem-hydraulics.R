@@ -31,7 +31,13 @@ test_that("stem path parameters carry their shipped defaults", {
   # K_s is now a TERMINAL-SEGMENT conductivity, back-derived from the old
   # whole-stem 1 so that resistance is unchanged at the anchor height. Asserted
   # against the helper rather than a literal, so the two cannot drift apart.
-  expect_identical(p$K_s, TF24_K_s_from_whole_stem(1))
+  # Deliberately expect_equal, not expect_identical. The header default is a
+  # literal while the helper computes it through log() and expm1(), whose
+  # last-ULP behaviour is libm-dependent -- so a bitwise comparison here would be
+  # asserting something about the platform's maths library rather than about
+  # plant. 1e-12 is far tighter than any real drift and still catches the thing
+  # that matters, which is the literal and the helper falling out of step.
+  expect_equal(p$K_s, TF24_K_s_from_whole_stem(1), tolerance = 1e-12)
   expect_equal(1 / p$K_s, 2.9781957045054700, tolerance = 1e-12)
 })
 
