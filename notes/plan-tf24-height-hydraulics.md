@@ -22,6 +22,10 @@ The justification is structural rather than convenient: **the tip is the only po
 
 Only the cost term is renamed: use `hcost` / 𝒞 for normalised hydraulic cost, avoiding the conventional Sperry θ. That is the newer and less embedded symbol.
 
+**Correction — there is nothing to rename in code.** Neither plant nor phylloptim ever spells the hydraulic cost `theta`; it is `hydraulic_cost_`, `hydraulic_cost_TF()`, `hydraulic_cost_Sperry()` throughout, and `hydraulic_cost_` is an R-visible `Leaf` field. Introducing `hcost` would be a *new* name for a quantity that already has a clear one. Keep 𝒞 as notation in this document and leave the code alone.
+
+The live `theta` collision is a different one, and this document missed it: phylloptim's `Leaf$theta_`, `theta_w_` and `theta_fc_` are **soil water content, wilting point and field capacity** (m³ m⁻³) for the Medlyn soil-moisture stress term, and all three are exposed to R. So `s$pars$theta` (m² m⁻², leaf per sapwood) and `leaf$theta_` (m³ m⁻³, soil water) are reachable in one session under the same name. Phase 2a's `theta_c` joins that stem. Dimensionlessness is the only thing distinguishing it.
+
 #### Silent-breakage hazard
 
 At β = 0.4 with $H_a$ = 20 m and `L_min` = 0.02 m:
@@ -30,7 +34,7 @@ $$\theta_{tip} = \theta_{old}\times 1000^{0.4} \approx \mathbf{15.8\times}$$
 
 Same name, same units (m² m⁻²), a number ~16× different. Nothing in the type system catches this, and stale parameter files, saved runs, published tables and students' scripts would all be silently wrong. Three safeguards, in order of reliability:
 
-1. **Bump the parameter-file schema version.** Files without the new tag are *rejected*, not reinterpreted. This is the only safeguard that actually catches the error, since units are unchanged.
+1. **Bump the parameter-file schema version.** Files without the new tag are *rejected*, not reinterpreted. This is the only safeguard that actually catches the error, since units are unchanged. ⚠️ **This machinery does not exist and must be built.** plant has `scientific_version` / `model_id()`, a *model* version consumed by logpile's cache — not a file-format gate. RcppR6 pars lists carry no version tag, there is no `Parameters` serialiser, and nothing anywhere can reject an old parameter file. I11 is therefore a build task at Phase 2b, not a bump.
 2. **Range guard** — an old-style value arrives ~16× too small; warn on implausible tip Huber values.
 3. **Conversion helper** in-repo, recording `H_anchor` alongside every converted value.
 
@@ -90,15 +94,19 @@ Keep $a_\theta$ as an explicit switch/sweep parameter rather than hard-coding $2
 
 ## 3. Trait set
 
-| Symbol | Meaning | Units | Default | Evolvable? | Measurement |
-|---|---|---|---|---|---|
-| `ks_tip` | sapwood-specific conductivity, terminal segment | kg m⁻¹ s⁻¹ MPa⁻¹ | reparameterise from current | **yes** | twig segment conductivity |
-| `theta` | leaf area per sapwood area, **terminal segment** (narrowed definition) | m² m⁻² | reparameterise from current, ~16× larger | **yes** | terminal shoot dissection |
-| `b` | widening exponent | – | 0.20 | no (conserved) | tip-to-base conduit series |
-| `a_theta` | Huber profile exponent | – | 2b = 0.40 | no (derived) | derived; check vs data |
-| `L_min` | terminal segment length | m | 0.02 | no | **must match `ks_tip` protocol** |
-| `D_tip` | tip conduit diameter | µm | species | no | anatomy; needed only for the §4.2 diagnostic |
-| ρg | 0.00979 | MPa m⁻¹ | constant | no | physical constant |
+| Symbol | **Code name** | Meaning | Units | Default | Evolvable? | Measurement |
+|---|---|---|---|---|---|---|
+| `ks_tip` | **`K_s`** (unchanged) | sapwood-specific conductivity, terminal segment | kg m⁻¹ s⁻¹ MPa⁻¹ | reparameterise from current | **yes** | twig segment conductivity |
+| `theta` | **`theta`** (unchanged) | leaf area per sapwood area, **terminal segment** (narrowed definition) | m² m⁻² | reparameterise from current, ~16× larger | **yes** | terminal shoot dissection |
+| `b` | **`D_c`** | widening exponent | – | 0.20 | no (conserved) | tip-to-base conduit series |
+| `a_theta` | **`theta_c`** | Huber profile exponent | – | 2·`D_c` = 0.40 | no (derived) | derived; check vs data |
+| `L_min` | **`L_tip`** | terminal segment length | m | 0.02 | no | **must match `K_s` protocol** |
+| `D_tip` | — (not a parameter until §4.2) | tip conduit diameter | µm | species | no | anatomy; needed only for the §4.2 diagnostic |
+| ρg | — | 0.00979 | MPa m⁻¹ | constant | no | physical constant |
+
+**The code names are the contract.** `b` was unusable: `TF24_Pars` already has `b`, the Weibull vulnerability *scale*, derived in-struct from `p_50` and again in `make_TF24_hyperpar`. The `_c` suffix means "exponent" in this codebase (`c` and `root_c` are both curve shape exponents). `K_s` is not renamed to `ks_tip`: it is an R-facing *trait* read by the hyperpar, so renaming would break every `trait_matrix(..., "K_s")` call for a suffix a comment conveys — its meaning narrows at Phase 2a, its name does not move.
+
+Two costs of `theta_c`, accepted rather than fixed: phylloptim spells soil water content `theta_`, `theta_w_`, `theta_fc_`, all R-visible, so `s$pars$theta_c` (dimensionless) and `leaf$theta_` (m³ m⁻³) coexist in one session; and `D_c` names a diameter profile the model never evaluates — `D_c` reaches the model only through β.
 
 ### 3.1 Identifiability hazard — flag prominently
 
@@ -144,6 +152,16 @@ Note the sapwood-area *profile* drops out of the exponent entirely — it appear
 
 Over 0.3 → 8 m: linear = 27×, $H^{0.6}$ = 7.2×, $H^{0.2}$ = 1.9×.
 
+**Correction — those are the asymptotic ratios, and they understate the closed form.** Evaluated on the actual expression with `L_tip` = 0.02 m over the same 0.3 → 8 m:
+
+| β | asymptotic (above) | closed form |
+|---|---|---|
+| 0 | 27× | **28.8×** |
+| 0.4 | 7.2× | **8.8×** |
+| 0.8 | 1.9× | **3.3×** |
+
+The gap is the $-L_{tip}^{1-\beta}$ term, which bites hardest at seedling stature — exactly where P6 lives. Use the closed-form column when arguing P5 or P7; the asymptotic one flatters the compensation by nearly 2× at β = 0.8.
+
 **Consistency constraint to state explicitly in the paper:** you cannot independently specify `b`, the θ profile, and the resistance exponent. Pick two, derive the third. Constant θ combined with an assumed $H^{0.2}$ would double-count the compensation.
 
 ### 4.2 Diagnostic ceiling — falsification, not constraint
@@ -182,6 +200,16 @@ $$R_L = \frac{\theta_{tip}}{k_{s,tip}}\cdot\frac{L_{min}^{\beta}\left(H^{1-\beta
 
 rather than as $(H/L_{min})^{1-\beta}$, so that `L_min` = 0 is admissible without a division. Guard β = 0 and β = 1 explicitly.
 
+**Correction — do not implement that form.** It fails on two counts. As β → 1 both powers approach 1 and differencing them destroys every significant digit (at 1−β = 1e-12 it retains about four). And its `L_min` = 0 admissibility rests on `pow(H, 1.0) == H`, which is a libm courtesy rather than an IEEE-754 or C99 Annex F guarantee — not something to hang the I7 regression gate on. Implement instead
+
+$$L_{eff} = L_{tip}\cdot\frac{\mathrm{expm1}\!\left((1-\beta)\log(L_{top}/L_{tip})\right)}{1-\beta}$$
+
+which holds full relative precision down to $|1-\beta| \sim 10^{-300}$, needs no separate branch for β > 1 (both numerator and denominator go negative and the quotient stays positive, tending to $L_{tip}/(\beta-1)$ — the saturating regime of §4.1), and takes the logarithmic limit at β = 1 exactly. `L_tip` = 0 is then admissible *only* at β = 0, which is correct: at β > 0 a zero tip length sends $k_s(L)$ to infinity everywhere and is a degenerate configuration to reject loudly, not an edge case to tolerate. The β = 0 branch returns its operand with no arithmetic performed at all, which is what makes I7 bitwise rather than approximately true.
+
+**The path runs to $H\eta_c$, not to $H$.** TF24's existing conductance is `K_s * theta / (height * eta_c)`, where $\eta_c$ = 0.8862 at the default `eta` = 12 is the leaf-area-weighted mean height fraction of the Yokozawa crown. So the representative flow path ends at the mean leaf height. $\eta_c$ scales the **upper limit** of the integral, not the resistance: the two readings differ by the constant $\eta_c^{-\beta}$ (1.05× at β = 0.4), which is H-independent and therefore absorbed wholesale by the reparameterisation below. Every ratio quoted in this section changes slightly as a result — the 9.5× becomes **8.56×** at $H_a$ = 16.6 m.
+
+*Deferred, with the number attached:* the exact leaf-area-weighted $\int f(u)/L_{eff}(uH)\,du$ differs from this mean-path approximation by −0.63% at H = 0.3 m and −0.62% at H = 40 m (β = 0.2, `eta` = 12), shrinking as β grows. Sub-1%, near-constant in H, hence absorbed by the anchor — and the *current* model already carries it at β = 0, so nothing new is introduced. It scales with `eta`, not β, so the check for the mulga growth form (open item 2) is "what `eta` does mulga get".
+
 #### Only one degree of freedom exists
 
 $R_L$ depends on `theta_tip` and `ks_tip` **only through their ratio**. There is exactly one free scalar, so current behaviour can be matched at exactly *one* reference height — never two. Any β > 0 is back-compatible at a point, not across the size range. That is by construction, since changing the height dependence is the object of the exercise.
@@ -204,6 +232,16 @@ Same order, and the gap is the $(1-\beta)$ factor — as expected, since the old
 This is a cheap and genuine check: if a measured twig $k_s$ comes in an order of magnitude away from ~9.5× below the current calibrated value, the old calibration was absorbing something other than path length, and that must be understood before Phase 3.
 
 For β = 0.8 the factor is ~50×, but that case also moves θ, so it is not directly comparable to the anatomical ratio.
+
+#### The second leak, missed by this document
+
+`K_s` is not hydraulics-only either. `make_TF24_hyperpar` derives the entire vulnerability curve from it — $p_{50} = 10^{B_{Hv1} + B_{Hv2}\log_{10}K_s}$ with $B_{Hv2} = -0.2$, and then `c`, `b` and `psi_crit` from $p_{50}$. Dividing `K_s` by 8.56 to get a tip conductivity therefore multiplies $p_{50}$ by $8.56^{0.2}$ = 1.54, moving it from **2.889 to 4.438 MPa** and re-shaping the safety margin of a model whose whole subject is hydraulic limitation. The reparameterisation would have bought a height exponent and silently sold the vulnerability curve.
+
+(Note also that 2.889 MPa is the hyperparameterised $p_{50}$ at `K_s` = 1. `TF24_Pars` defaults `p_50` to 1.85, but `make_TF24_hyperpar` overrides it, so anything quoting 1.85 is quoting the un-hyperparameterised path.)
+
+**Fix: re-anchor the intercept**, $B_{Hv1}: 0.4607063 \rightarrow 0.2742044521276228$ (= $B_{Hv1} - 0.2\log_{10}8.5607$), holding $p_{50}$ at 2.8887256653 exactly at the new default. Two consequences to document rather than fix: the roxygen "p50 at `K_s` = 1" now describes a different physical quantity, and `inst/scenarios/scenario_mapping.csv`'s `K_s` High/Low rows (2 / 0.5) must be rescaled to the new baseline or those scenarios silently change meaning.
+
+This is a *second* staged inconsistency, of the same species as the structural/hydraulic θ split below: the Ks–p50 relation's slope now acts on a tip quantity while having been fitted on whatever the original measurements were. Whether the relation should be keyed on tip conductivity at all is a real question — twig segments are what people actually measure — and it needs the same explicit closure date.
 
 #### The leak to close first
 
@@ -358,9 +396,9 @@ Daily-mean Ψ_leaf serves neither. A single daily timestep carrying one Ψ value
 
 | Phase | Work | Gate |
 |---|---|---|
-| 0 | Resolve `theta` / cost-θ notation collision | naming agreed |
-| 1 | Implement $k_s(L)$, $n_A(L)$, $\theta(L)$ profiles; closed-form $R_L$ with `a_theta` as switch | reproduces linear case at $\beta = 0$ |
-| 2a | Reparameterise `ks_tip` only at a documented `H_anchor`, θ(L) for **hydraulics only**, structural θ untouched; bind `L_min` to the `ks_tip` protocol | matches current at $H_a$; carbon budget unchanged; anchor and protocol documented in code |
+| 0 | Naming: `b`→`D_c`, `a_theta`→`theta_c`, `L_min`→`L_tip`; `K_s` keeps its name. Cost-θ rename is a no-op (§1) | **done** |
+| 1 | Implement $k_s(L)$, $n_A(L)$, $\theta(L)$ profiles; closed-form $L_{eff}$ with `theta_c` as switch, all three parameters defaulting to 0 | reproduces linear case **bit-identically**; `scientific_version` NOT bumped |
+| 2a | Reparameterise `K_s` only at `H_anchor` = 16.5958691 m (default `hmat`), θ(L) for **hydraulics only**, structural θ untouched; bind `L_tip` to the `K_s` protocol; re-anchor `B_Hv1` to hold $p_{50}$ | matches current at $H_a$; carbon budget unchanged; vulnerability curve unchanged; anchor and protocol documented in code; `scientific_version` → 9 with measured deltas |
 | 2b | Unify structural and hydraulic θ; **narrow `theta` to the tip definition and bump the parameter-file schema version**; expose `theta_base(H)` as derived output | demographic consequences of each channel separately understood; staging inconsistency closed; old-format parameter files rejected (I11) |
 | 3 | Add ρgH as an explicit separate term | predawn Ψ gradient reproduced |
 | 4 | Diagnostic ceiling check (§4.2) | $D_{implied}$ at emergent height compared against measured basal diameters |
@@ -391,7 +429,8 @@ Daily-mean Ψ_leaf serves neither. A single daily timestep carrying one Ψ value
 - **I8** The back-compatible `ks_tip` at $H_a$ agrees to within an order of magnitude with a measured twig $k_s$, and the discrepancy is accounted for rather than tuned away.
 - **I9** $D_{implied}$ at the emergent height falls within the observed basal-diameter envelope for the focal species (§4.2). Violation is a falsification signal, not a licence to add a cap.
 - **I10** $R_L(H)$ is continuously differentiable over the whole height range. Any kink introduced later must be traced to a named mechanism before it is allowed to influence ESS height.
-- **I11** No parameter file written under the old `theta` definition can be loaded once $a_\theta > 0$: the schema version gate rejects rather than reinterprets it.
+- **I11** No parameter file written under the old `theta` definition can be loaded once $a_\theta > 0$: the schema version gate rejects rather than reinterprets it. ⚠️ The gate does not exist; Phase 2b must build it (§1).
+- **I12** $p_{50}$ at the default parameters is unchanged by the `K_s` reparameterisation. Whatever the reparameterisation buys, it must not also move the vulnerability curve (§4.4, the second leak).
 
 ---
 
