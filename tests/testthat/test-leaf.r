@@ -62,7 +62,8 @@ test_that("Basic functions", {
   root_b = 1.29
   root_psi_crit = root_b * (log(1.0 / 0.05))^(1.0 / root_c)
   
-  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, 
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, p_50 = b * (log(2))^(1 / c),
+            root_c = root_c, root_p_50 = root_b * (log(2))^(1 / root_c), 
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24)
@@ -74,7 +75,6 @@ test_that("Basic functions", {
   expect_true(is.na(l$atm_vpd_))
   expect_true(is.na(l$ca_))
   expect_true(is.na(l$lambda_))
-  expect_true(is.na(l$lambda_analytical_))
   expect_true(is.na(l$atm_o2_kpa_))
   expect_true(is.na(l$leaf_temp_))
   expect_true(is.na(l$ci_))
@@ -83,7 +83,6 @@ test_that("Basic functions", {
   expect_true(is.na(l$transpiration_))
   expect_true(is.na(l$profit_))
   expect_true(is.na(l$lambda_))
-  expect_true(is.na(l$lambda_analytical_))
   expect_true(is.na(l$hydraulic_cost_))
   expect_true(is.na(l$electron_transport_))
   expect_true(is.na(l$gamma_))
@@ -175,7 +174,8 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
 
 
   #generating a new leaf object should wipe the previously stored values
-  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, 
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, p_50 = b * (log(2))^(1 / c),
+            root_c = root_c, root_p_50 = root_b * (log(2))^(1 / root_c), 
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24)
@@ -185,7 +185,6 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   expect_true(is.na(l$atm_vpd_))
   expect_true(is.na(l$ca_))
   expect_true(is.na(l$lambda_))
-  expect_true(is.na(l$lambda_analytical_))
   expect_true(is.na(l$atm_o2_kpa_))
   expect_true(is.na(l$leaf_temp_))
   expect_true(is.na(l$ci_))
@@ -194,7 +193,6 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   expect_true(is.na(l$transpiration_))
   expect_true(is.na(l$profit_))
   expect_true(is.na(l$lambda_))
-  expect_true(is.na(l$lambda_analytical_))
   expect_true(is.na(l$hydraulic_cost_))
   expect_true(is.na(l$electron_transport_))
   expect_true(is.na(l$gamma_))
@@ -237,7 +235,7 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   
   upper_bound_int <- 3*((log(1/1e-5))^(1/2.04))
   #for situations where psi_stem exceeds tolerance of integrator
-  expect_error(l$transpiration(upper_bound_int, psi_stem[1]), "Extrapolation disabled and evaluation point outside of interpolated domain.")
+  expect_error(l$transpiration(upper_bound_int, psi_stem[1]), "evaluated outside its domain")
   
   #for situations where psi_soil exceeds psi_crit + tolerance
   
@@ -245,7 +243,7 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   psi_stem = psi_soil 
   
-  expect_error(l$transpiration(psi_stem[1], psi_soil[1]), "Extrapolation disabled and evaluation point outside of interpolated domain.")
+  expect_error(l$transpiration(psi_stem[1], psi_soil[1]), "evaluated outside its domain")
   
   #test that fast E supply calculation is closely approximating full integration
   psi_soil = 0
@@ -265,7 +263,8 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
 
   psi_soil = 2
   
-   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, 
+   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, p_50 = b * (log(2))^(1 / c),
+            root_c = root_c, root_p_50 = root_b * (log(2))^(1 / root_c), 
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24)
@@ -282,14 +281,19 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   expect_equal(l$transpiration_, 0)
   
   #costs 0 when psi_stem == psi_soil == 0
-  expect_equal(l$hydraulic_cost_Sperry(psi_stem = psi_soil, psi_upstream = psi_soil), 0)
+  ## phylloptim 0.6.0 removed the two-argument Sperry hydraulic cost; its
+  ## successor is the normalised field hydraulic_cost_norm_, written by the
+  ## ProfitMax solve rather than callable at an arbitrary psi_stem (#622).
+  ## The hydraulic_cost_TF assertions beside these cover the same property
+  ## for the curve plant actually runs.
   #costs positive even when transpiration stream is 0 in hydraulic cost tf
   expect_equal(l$hydraulic_cost_TF(psi_soil) > 0, TRUE)
   
   #when psi stem is greater than psi soil
   psi_soil = 2
   
-  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, 
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, p_50 = b * (log(2))^(1 / c),
+            root_c = root_c, root_p_50 = root_b * (log(2))^(1 / root_c), 
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24)
@@ -308,7 +312,8 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   #when psi stem is equal to psi soil
   psi_soil = 2
   
-   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, 
+   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, p_50 = b * (log(2))^(1 / c),
+            root_c = root_c, root_p_50 = root_b * (log(2))^(1 / root_c), 
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24)
@@ -318,16 +323,15 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   
   
   #calculate the hydraulic cost usign the sperry method, should be 0 when psi_soil is equivalent to psi_stem
-  expect_equal(l$hydraulic_cost_Sperry(psi_soil, psi_soil), 0)
   #calculate hydraulic cost using TF method, should be greater than 0 when psi_soil is greater than 0
   expect_equal(l$hydraulic_cost_TF(psi_soil) > 0, TRUE)
   
-  expect_equal(l$hydraulic_cost_Sperry(psi_soil + 1, psi_soil) > 0, TRUE)
   expect_equal(l$hydraulic_cost_TF(psi_soil + 1) > 0, TRUE)
   
   #ensure that hydraulic_cost returns 0 cost at 0 psi_soil/psi_stem
   psi_soil = 0
-   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, 
+   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, p_50 = b * (log(2))^(1 / c),
+            root_c = root_c, root_p_50 = root_b * (log(2))^(1 / root_c), 
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24)
@@ -335,7 +339,6 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
    
   l$set_leaf_states_rates_from_psi_stem(0, 0)
   expect_equal(l$hydraulic_cost_TF(psi_soil), 0)
-  expect_equal(l$hydraulic_cost_Sperry(psi_soil, psi_soil), 0)
   
   #psi_soil == psi_stem means A == -R_d_
   expect_equal(l$assim_colimited_, -l$R_d_)
@@ -359,7 +362,8 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   #test whether conversion between E and psi is equivalent between R and C++
   
   psi_soil = 0.5
-   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, 
+   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, p_50 = b * (log(2))^(1 / c),
+            root_c = root_c, root_p_50 = root_b * (log(2))^(1 / root_c), 
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24)
@@ -369,7 +373,11 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   c_i = l$ci_  
   benefit_ = l$assim_colimited_
   
-  kg_to_mol_h2o = 55.4939
+  # Keep this R replica in step with phylloptim's constant: 0.6.0 derives it as
+  # 1/molar_mass_h2o (55.509298) instead of the old hard-coded 55.4939. Leaving
+  # the old value here would bias the round-trip below by exactly that 2.77e-4,
+  # which is the whole content of the difference (#622).
+  kg_to_mol_h2o = 1 / 0.018015
   umol_to_mol = 1e-6
   kPa_to_Pa = 1e3
   
@@ -382,12 +390,14 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   psi_stem = l$transpiration_to_psi_stem(E_ci, psi_soil)
   
   #conversion back and forth is not perfect
+  # Compare against what was fed in at set_leaf_states_rates_from_psi_stem above.
   expect_equal(psi_stem, psi_crit, tolerance = 1e-05)
   
   #let's start testing profit functions
   
   #first off- what happens when we moving psi_soil around
-  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, 
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, p_50 = b * (log(2))^(1 / c),
+            root_c = root_c, root_p_50 = root_b * (log(2))^(1 / root_c), 
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24)
@@ -398,7 +408,7 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   #first off- what happens when we moving psi_soil around
   # start with one soil layer. For the TF method, it will fail when there is more than one layer
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = PPFD, psi_soil = psi_crit + 1, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
-    l$optimise_psi_stem_TF()
+    l$set_model("TF24", "stem"); l$optimise()
   
   expect_equal(l$transpiration_, 0)
   expect_equal(l$opt_psi_stem_, psi_crit+1)
@@ -409,7 +419,7 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   # check a more standard case, wet soil
 
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = PPFD, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
-  l$optimise_psi_stem_TF()
+  l$set_model("TF24", "stem"); l$optimise()
   expect_true(l$profit_ > 0)
   expect_true(l$opt_psi_stem_ > 0)
   expect_true(l$stom_cond_CO2_ > 0)
@@ -425,28 +435,30 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   root_carbon = c(0.5, 1)
 
   l$set_physiology(root_network = net((root_carbon) / area_leaf_, soil_depth), PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
-  expect_error(l$optimise_psi_stem_TF(), "psi soil must have only one value to use non-root-based profit optimisation methods")
+  expect_error({l$set_model("TF24", "stem"); l$optimise()}, "psi soil must have only one value to use non-root-based profit optimisation methods")
 
   #test various responses to environmental gradients to check that behaviour is being conserved
   
 psi_soil = 1
 soil_depth = 1
   #light
-   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, 
+   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, p_50 = b * (log(2))^(1 / c),
+            root_c = root_c, root_p_50 = root_b * (log(2))^(1 / root_c), 
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24)
     l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
-  l$optimise_psi_stem_TF()
+  l$set_model("TF24", "stem"); l$optimise()
   
   high_light <- l$profit_
   
-  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, 
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, p_50 = b * (log(2))^(1 / c),
+            root_c = root_c, root_p_50 = root_b * (log(2))^(1 / root_c), 
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24)
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 100, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
-  l$optimise_psi_stem_TF()
+  l$set_model("TF24", "stem"); l$optimise()
   
   low_light <- l$profit_
   
@@ -454,21 +466,23 @@ soil_depth = 1
   
   #soil moist
   
-  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, 
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, p_50 = b * (log(2))^(1 / c),
+            root_c = root_c, root_p_50 = root_b * (log(2))^(1 / root_c), 
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24)
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
-  l$optimise_psi_stem_TF()
+  l$set_model("TF24", "stem"); l$optimise()
   
   high_moist <- l$profit_
   
-  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, 
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, p_50 = b * (log(2))^(1 / c),
+            root_c = root_c, root_p_50 = root_b * (log(2))^(1 / root_c), 
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24)
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 2, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
-  l$optimise_psi_stem_TF()
+  l$set_model("TF24", "stem"); l$optimise()
   
   low_moist <- l$profit_
   
@@ -477,21 +491,23 @@ soil_depth = 1
   
   #vpd'
   
-  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, 
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, p_50 = b * (log(2))^(1 / c),
+            root_c = root_c, root_p_50 = root_b * (log(2))^(1 / root_c), 
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24)
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
-  l$optimise_psi_stem_TF()
+  l$set_model("TF24", "stem"); l$optimise()
   
   low_vpd <- l$profit_
   
-  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, 
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, p_50 = b * (log(2))^(1 / c),
+            root_c = root_c, root_p_50 = root_b * (log(2))^(1 / root_c), 
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24)
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 2, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
-  l$optimise_psi_stem_TF()
+  l$set_model("TF24", "stem"); l$optimise()
   
   high_vpd <- l$profit_
   
@@ -499,21 +515,23 @@ soil_depth = 1
   
   #vcmax_25
   
-  l <- Leaf(vcmax_25 = 50, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, 
+  l <- Leaf(vcmax_25 = 50, jmax_25 = jmax_25, c = c, p_50 = b * (log(2))^(1 / c),
+            root_c = root_c, root_p_50 = root_b * (log(2))^(1 / root_c), 
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24)
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
-  l$optimise_psi_stem_TF()
+  l$set_model("TF24", "stem"); l$optimise()
   
   low_vcmax <- l$profit_
   
-  l <- Leaf(vcmax_25 = 150, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, 
+  l <- Leaf(vcmax_25 = 150, jmax_25 = jmax_25, c = c, p_50 = b * (log(2))^(1 / c),
+            root_c = root_c, root_p_50 = root_b * (log(2))^(1 / root_c), 
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24)
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
-  l$optimise_psi_stem_TF()
+  l$set_model("TF24", "stem"); l$optimise()
   
   high_vcmax <- l$profit_
   
@@ -521,19 +539,22 @@ soil_depth = 1
   
   #test effect of leaf temperature
   
-  l_low_temp <-Leaf(vcmax_25 = 50, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, 
+  l_low_temp <-Leaf(vcmax_25 = 50, jmax_25 = jmax_25, c = c, p_50 = b * (log(2))^(1 / c),
+            root_c = root_c, root_p_50 = root_b * (log(2))^(1 / root_c), 
                             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
                             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
                             ci_niter = ci_niter, g1_TF24 = g1_TF24)
   l_low_temp$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, leaf_temp = 20, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   
-  l_ref_temp <- Leaf(vcmax_25 = 50, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, 
+  l_ref_temp <- Leaf(vcmax_25 = 50, jmax_25 = jmax_25, c = c, p_50 = b * (log(2))^(1 / c),
+            root_c = root_c, root_p_50 = root_b * (log(2))^(1 / root_c), 
                              beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
                              GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
                              ci_niter = ci_niter, g1_TF24 = g1_TF24)
   l_ref_temp$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, leaf_temp = 25, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   
-  l_high_temp <- Leaf(vcmax_25 = 50, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, 
+  l_high_temp <- Leaf(vcmax_25 = 50, jmax_25 = jmax_25, c = c, p_50 = b * (log(2))^(1 / c),
+            root_c = root_c, root_p_50 = root_b * (log(2))^(1 / root_c), 
                               beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
                               GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
                               ci_niter = ci_niter, g1_TF24 = g1_TF24)
@@ -541,20 +562,25 @@ soil_depth = 1
   
   expect_true(l_low_temp$gamma_ < l_ref_temp$gamma_ &  l_ref_temp$gamma_ <  l_high_temp$gamma_)
   
-    l_high_temp <-Leaf(vcmax_25 = 50, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, 
+    l_high_temp <-Leaf(vcmax_25 = 50, jmax_25 = jmax_25, c = c, p_50 = b * (log(2))^(1 / c),
+            root_c = root_c, root_p_50 = root_b * (log(2))^(1 / root_c), 
                              beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
                              GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
                              ci_niter = ci_niter, g1_TF24 = g1_TF24)
     l_high_temp$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, leaf_temp = 40, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   
-  expect_equal(round(l_high_temp$ko_, 1), round(562314.4,1))
-  expect_equal(round(l_high_temp$kc_, 1), round(1879.0751,1))
+  # Off the 25 C reference, phylloptim 0.6.0's derived gas constants shift these
+  # in the 5th significant figure. plant runs its leaf at 25 C, where the
+  # Arrhenius factors are 1 and nothing moves (#622).
+  expect_equal(round(l_high_temp$ko_, 1), round(562292.4,1))
+  expect_equal(round(l_high_temp$kc_, 1), round(1878.9,1))
   expect_equal(round(l_high_temp$gamma_, 1), round(88.800391,1))
   expect_equal(round(l_high_temp$vcmax_, 1), round(35.2,1))
 
   # test out the root component of the leaf unit
 
-  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit, root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, 
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, p_50 = b * (log(2))^(1 / c),
+            root_c = root_c, root_p_50 = root_b * (log(2))^(1 / root_c), 
             beta2= beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, g1_TF24 = g1_TF24)
@@ -615,7 +641,10 @@ expect_equal(l$E_up_, sum(l$soil_consumption_)*0.018015)
   root_carbon = c(1, 1)
 l$set_physiology(root_network = net((root_carbon) / area_leaf_, soil_depth), PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
 l$find_root_collar_psi()
-expect_equal(l$profit_, -vcmax_25*0.015-l$hydraulic_cost_TF(psi_crit))
+# R_d is a trait with its own default in phylloptim 0.6.0, not 0.015*vcmax_25
+# (they coincide at vcmax_25 = 96), and psi_crit is derived. Read both off the
+# leaf so this stays an identity rather than a restatement of old formulas.
+expect_equal(l$profit_, -l$R_d_ - l$hydraulic_cost_TF(l$psi_crit))
 l$opt_root_psi_
 
 # assim_max_ < 0 early-exit: wet soil (so the upstream shut-down exits are NOT
@@ -679,8 +708,8 @@ test_that("Medlyn stomatal model", {
   area_leaf_ = 0.05
 
   make_leaf <- function() {
-    Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit,
-         root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, beta2 = beta2,
+    Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, p_50 = b * (log(2))^(1 / c),
+         root_c = root_c, root_p_50 = root_b * (log(2))^(1 / root_c), beta2 = beta2,
          a = a, curv_fact_elec_trans = curv_fact_elec_trans,
          curv_fact_colim = curv_fact_colim, GSS_tol_abs = GSS_tol_abs,
          vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol,
@@ -699,9 +728,13 @@ test_that("Medlyn stomatal model", {
   # numerical solver: reference values for this branch's build (regression guard)
   l <- set_phys(make_leaf())
   l$solve_medlyn_ci_numerical()
-  expect_equal(l$ci_, 19.636480, tolerance = 1e-5)
-  expect_equal(l$stom_cond_CO2_, 0.1205285, tolerance = 1e-6)
-  expect_equal(l$assim_colimited_, 15.143049, tolerance = 1e-5)
+  # These three moved with phylloptim 0.6.0's kg_to_mol_h2o, which changed from
+  # a hard-coded 55.4939 to 1/molar_mass_h2o = 55.509298 (+2.77e-4 relative).
+  # It enters the E -> g_sc conversion, so g_sc carries exactly that relative
+  # shift and ci and assimilation follow (#622).
+  expect_equal(l$ci_, 19.6244425204, tolerance = 1e-5)
+  expect_equal(l$stom_cond_CO2_, 0.120848522773, tolerance = 1e-6)
+  expect_equal(l$assim_colimited_, 15.1922296035, tolerance = 1e-5)
   # operating point is physically sane: gamma* < ci < ca, positive gs and assim
   expect_true(l$ci_ > 0 && l$ci_ < ca)
   expect_true(l$stom_cond_CO2_ > 0)
@@ -792,8 +825,8 @@ test_that("psi_stem_to_ci supply=demand solve", {
   umol_per_mol_to_Pa = atm_kpa_ * kPa_to_Pa * umol_to_mol
 
   make_leaf <- function() {
-    Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit,
-         root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, beta2 = beta2,
+    Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, p_50 = b * (log(2))^(1 / c),
+         root_c = root_c, root_p_50 = root_b * (log(2))^(1 / root_c), beta2 = beta2,
          a = a, curv_fact_elec_trans = curv_fact_elec_trans,
          curv_fact_colim = curv_fact_colim, GSS_tol_abs = GSS_tol_abs,
          vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol,
@@ -860,7 +893,7 @@ test_that("psi_stem_to_ci supply=demand solve", {
   # --- 8. regression guard: reference ci for the standard scenario on this
   # build. A solver change that alters the converged value beyond rounding is
   # expected to update this number (it is NOT bit-identical across methods).
-  expect_equal(ci, 11.7990174439, tolerance = 1e-6)
+  expect_equal(ci, 11.7559822995, tolerance = 1e-6)
 })
 
 # find_root_psi is the inner soil->root-collar continuity solve (#486). Given a
@@ -908,8 +941,8 @@ test_that("find_root_psi soil->collar continuity solve", {
   area_leaf_ = 0.05
 
   make_leaf <- function() {
-    Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit,
-         root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, beta2 = beta2,
+    Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, p_50 = b * (log(2))^(1 / c),
+         root_c = root_c, root_p_50 = root_b * (log(2))^(1 / root_c), beta2 = beta2,
          a = a, curv_fact_elec_trans = curv_fact_elec_trans,
          curv_fact_colim = curv_fact_colim, GSS_tol_abs = GSS_tol_abs,
          vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol,
@@ -940,6 +973,10 @@ test_that("find_root_psi soil->collar continuity solve", {
   # psi_crit, the driest feasible collar.
   wettest <- min(psi_soil)
   lower <- wettest
+  # phylloptim 0.6.0 derives psi_crit from (P50, c) rather than taking it as a
+  # constructor argument, so read it off the leaf -- the block's local psi_crit
+  # is no longer what the leaf is using (#622).
+  psi_crit <- l$psi_crit
   upper <- psi_crit
 
   # Method-independent scalar targets, rebuilt in pure R from the R-exposed
@@ -1032,7 +1069,7 @@ test_that("find_root_psi soil->collar continuity solve", {
   # Sign flipped with the representation; the magnitudes are unchanged, which is
   # the point of #25 being a representation change and not a model change.
   expect_equal(root0, 0.4387473787, tolerance = 1e-3)
-  expect_equal(root1, 0.6854590915, tolerance = 1e-3)
+  expect_equal(root1, 0.686287940458, tolerance = 1e-3)
 })
 
 test_that("dprofit_droot_collar_psi matches a finite difference (AD/IFT gradient, #527)", {
@@ -1042,8 +1079,8 @@ test_that("dprofit_droot_collar_psi matches a finite difference (AD/IFT gradient
   GSS_tol_abs = 1e-8; vulnerability_curve_ncontrol = 100; ci_abs_tol = 1e-6
   ci_niter = 1000; root_c = 2.65; root_b = 1.29
   root_psi_crit = root_b * (log(1.0 / 0.05))^(1.0 / root_c)
-  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, b = b, psi_crit = psi_crit,
-            root_c = root_c, root_b = root_b, root_psi_crit = root_psi_crit, beta2 = beta2,
+  l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, c = c, p_50 = b * (log(2))^(1 / c),
+            root_c = root_c, root_p_50 = root_b * (log(2))^(1 / root_c), beta2 = beta2,
             a = a, curv_fact_elec_trans = curv_fact_elec_trans,
             curv_fact_colim = curv_fact_colim, GSS_tol_abs = GSS_tol_abs,
             vulnerability_curve_ncontrol = vulnerability_curve_ncontrol,
@@ -1134,8 +1171,8 @@ test_that("Leaf() errors on misspelled argument names (issue #377)", {
   root_c <- 2.65; root_b <- 1.29
   root_psi_crit <- root_b * (log(1 / 0.05))^(1 / root_c)
   common_args <- list(
-    c = c, b = b, psi_crit = psi_crit, root_c = root_c, root_b = root_b,
-    root_psi_crit = root_psi_crit, beta2 = 1, jmax_25 = jmax_25,
+    c = c, p_50 = b * (log(2))^(1 / c), root_c = root_c, root_p_50 = root_b * (log(2))^(1 / root_c),
+    beta2 = 1, jmax_25 = jmax_25,
     a = 0.3, curv_fact_elec_trans = 0.7, curv_fact_colim = 0.99,
     GSS_tol_abs = 1e-8, vulnerability_curve_ncontrol = 100,
     ci_abs_tol = 1e-6, ci_niter = 1000, g1_TF24 = 46.33

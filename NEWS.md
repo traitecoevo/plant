@@ -7,6 +7,36 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **Migrated to phylloptim 0.6.0 and odelia 0.3.1 (#622).** `Leaf()` now takes
+  `p_50` and `root_p_50` instead of `b`/`psi_crit` and `root_b`/`root_psi_crit`:
+  phylloptim parameterises both vulnerability curves on P50 and derives the rest.
+
+  ⚠️ **`b` is not `p_50`.** They are different quantities, both in MPa, so swapping
+  them compiles, runs, and silently describes a curve 1.1465x too wide at TF24's
+  defaults. Migration: pass `p_50` directly where plant already has it; convert a
+  literal `b` with `p_50 = b * (log(2))^(1 / c)`. Verified -- handing over
+  `(p_50, c)` reproduces plant's `b`, `psi_crit`, `root_b` and `root_psi_crit` bit
+  for bit.
+
+  Also: `optimise_psi_stem_TF()` / `optimise_psi_stem_Sperry()` -> configure then
+  solve, `l$set_model("TF24", "stem")` followed by `l$optimise()`;
+  `hydraulic_cost_Sperry()` removed; `profit_psi_stem_Sperry()` is ProfitMax
+  underneath; `lambda_analytical_` removed. `psi_crit` and `stem_b` are newly
+  readable, since they are now derived rather than supplied.
+
+  **TF24 output moves by +0.36%** (net reproduction 3.671011e-25 -> 3.684168e-25
+  on the reference run; 1055 -> 1065 ODE steps). Bisected to one upstream constant:
+  `kg_to_mol_h2o` changed from a hard-coded `55.4939` to `1/molar_mass_h2o =
+  55.509298`, +2.77e-4 relative. It enters the E -> g_sc conversion, so stomatal
+  conductance carries exactly that shift and ci, assimilation and profit follow;
+  the demographic integration amplifies it. The new value is the more accurate one
+  (water's molar mass is 0.018015 kg/mol). odelia 0.2.1 -> 0.3.1 and every
+  pre-#126 phylloptim commit were measured inert.
+
+  FF16 and K93 are untouched. `scientific_version` was deliberately **not** bumped,
+  so archived TF24 results from before this change carry the same `TF24@v8` tag
+  despite differing by ~0.36%.
+
 * **`Leaf$set_physiology()` takes `root_network`, not `root_carbon_per_leaf_area`,
   and `Leaf()` no longer takes `beta_R_H` or `beta_R_V`.** Requires
   phylloptim >= 0.2.0 (phylloptim #33). Migration:

@@ -42,7 +42,7 @@ double TF24_Strategy::compute_average_light_environment(
        canopy_shape.q_from_height(z, height);
 }
 
-// assumes optimise_psi_stem_TF has been run for optimal psi_stem
+// assumes the TF24 collar solve has been run for optimal psi_stem
 double TF24_Strategy::evapotranspiration_dt(double area_leaf_, int soil_layer) {
   return leaf.soil_consumption_[soil_layer] * area_leaf_;
 }
@@ -841,8 +841,19 @@ void TF24_Strategy::prepare_strategy() {
   } else {
     extrinsic_drivers.set_constant("birth_rate", birth_rate_y[0]);
   }
-  leaf = Leaf(pars.vcmax_25, pars.c, pars.b, pars.psi_crit,
-              pars.root_c, pars.root_b, pars.root_psi_crit,
+  // phylloptim 0.6.0 parameterises both vulnerability curves on P50 and derives
+  // b and psi_crit itself, by the same formulas TF24_Pars uses (b =
+  // P50/(ln 2)^(1/c), psi_crit = P95), so handing over (P50, c) reproduces the
+  // previous numbers exactly -- see issue #622.
+  //
+  // ⚠️ Pass `p_50`, NOT `b`. They are different quantities and both are MPa, so
+  // swapping them compiles, runs, and silently describes a curve 1.1465x too
+  // wide at TF24's defaults. The root curve needs the conversion the other way,
+  // because root_b is a literal rather than derived from a P50.
+  const double root_p_50 =
+    pars.root_b * std::pow(-std::log(1 - 50.0 / 100.0), 1 / pars.root_c);
+  leaf = Leaf(pars.vcmax_25, pars.c, pars.p_50,
+              pars.root_c, root_p_50,
               pars.beta2, pars.jmax_25, pars.a,
               pars.curv_fact_elec_trans, pars.curv_fact_colim,
               control.GSS_tol_abs, control.vulnerability_curve_ncontrol,

@@ -7,11 +7,9 @@
 Leaf(
   vcmax_25,
   c,
-  b,
-  psi_crit,
+  p_50,
   root_c,
-  root_b,
-  root_psi_crit,
+  root_p_50,
   beta2,
   jmax_25,
   a,
@@ -29,15 +27,12 @@ Leaf(
 
 \item{c}{shape parameter of hydraulic vulnerability curve (unitless)}
 
-\item{b}{sensitivity parameter of hydraulic vulnerability curve (MPa)}
-
-\item{psi_crit}{critical psi stem (-MPa )}
+\item{p_50}{water potential at 50% loss of stem conductivity (MPa, positive
+magnitude). phylloptim derives b and psi_crit from it -- do not pass b.}
 
 \item{root_c}{shape parameter of hydraulic vulnerability curve for roots(unitless)}
 
-\item{root_b}{sensitivity parameter of hydraulic vulnerability curve for roots (MPa)}
-
-\item{root_psi_crit}{critical psi stem for roots (-MPa )}
+\item{root_p_50}{water potential at 50% loss of root conductivity (MPa)}
 
 \item{beta2}{exponent for effect of hydraulic risk (unitless)}
 

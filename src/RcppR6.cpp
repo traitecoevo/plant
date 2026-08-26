@@ -8,8 +8,8 @@ SEXP RootNetwork__ctor() {
 
 
 // [[Rcpp::export]]
-plant::Leaf Leaf__ctor(double vcmax_25, double c, double b, double psi_crit, double root_c, double root_b, double root_psi_crit, double beta2, double jmax_25, double a, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter, double g1_TF24) {
-  return plant::Leaf(vcmax_25, c, b, psi_crit, root_c, root_b, root_psi_crit, beta2, jmax_25, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, g1_TF24);
+plant::Leaf Leaf__ctor(double vcmax_25, double c, double p_50, double root_c, double root_p_50, double beta2, double jmax_25, double a, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter, double g1_TF24) {
+  return plant::Leaf(vcmax_25, c, p_50, root_c, root_p_50, beta2, jmax_25, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, g1_TF24);
 }
 // [[Rcpp::export]]
 void Leaf__initialize_integrator(plant::RcppR6::RcppR6<plant::Leaf> obj_, int integration_rule, double integration_tol) {
@@ -100,28 +100,24 @@ double Leaf__psi_stem_to_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_
   return obj_->psi_stem_to_ci(psi_stem, psi_upstream);
 }
 // [[Rcpp::export]]
-double Leaf__hydraulic_cost_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem, double psi_upstream) {
-  return obj_->hydraulic_cost_Sperry(psi_stem, psi_upstream);
-}
-// [[Rcpp::export]]
 double Leaf__hydraulic_cost_TF(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
   return obj_->hydraulic_cost_TF(psi_stem);
 }
 // [[Rcpp::export]]
 double Leaf__profit_psi_stem_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem, double psi_upstream) {
-  return obj_->profit_psi_stem_Sperry(psi_stem, psi_upstream);
+  return obj_->profit_psi_stem_ProfitMax(psi_stem, psi_upstream);
 }
 // [[Rcpp::export]]
 double Leaf__profit_psi_stem_TF(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem, double psi_upstream) {
   return obj_->profit_psi_stem_TF(psi_stem, psi_upstream);
 }
 // [[Rcpp::export]]
-void Leaf__optimise_psi_stem_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  obj_->optimise_psi_stem_Sperry();
+void Leaf__set_model(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::string curve, std::string route) {
+  obj_->set_model(curve, route);
 }
 // [[Rcpp::export]]
-void Leaf__optimise_psi_stem_TF(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  obj_->optimise_psi_stem_TF();
+void Leaf__optimise(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  obj_->optimise();
 }
 // [[Rcpp::export]]
 double Leaf__medlyn_model_gs(plant::RcppR6::RcppR6<plant::Leaf> obj_, double assim_colimited_) {
@@ -200,20 +196,21 @@ void Leaf__psi_stem__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) 
 
 // [[Rcpp::export]]
 double Leaf__lambda___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->lambda_;
+  return obj_->CF77_lambda_;
 }
 // [[Rcpp::export]]
 void Leaf__lambda___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
-  obj_->lambda_ = value;
+  obj_->CF77_lambda_ = value;
 }
 
 // [[Rcpp::export]]
-double Leaf__lambda_analytical___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->lambda_analytical_;
+double Leaf__psi_crit__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->psi_crit;
 }
+
 // [[Rcpp::export]]
-void Leaf__lambda_analytical___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
-  obj_->lambda_analytical_ = value;
+double Leaf__stem_b__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->stem_b;
 }
 
 // [[Rcpp::export]]

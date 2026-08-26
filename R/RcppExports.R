@@ -5,8 +5,8 @@ RootNetwork__ctor <- function() {
     .Call('_plant_RootNetwork__ctor', PACKAGE = 'plant')
 }
 
-Leaf__ctor <- function(vcmax_25, c, b, psi_crit, root_c, root_b, root_psi_crit, beta2, jmax_25, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, g1_TF24) {
-    .Call('_plant_Leaf__ctor', PACKAGE = 'plant', vcmax_25, c, b, psi_crit, root_c, root_b, root_psi_crit, beta2, jmax_25, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, g1_TF24)
+Leaf__ctor <- function(vcmax_25, c, p_50, root_c, root_p_50, beta2, jmax_25, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, g1_TF24) {
+    .Call('_plant_Leaf__ctor', PACKAGE = 'plant', vcmax_25, c, p_50, root_c, root_p_50, beta2, jmax_25, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, g1_TF24)
 }
 
 Leaf__initialize_integrator <- function(obj_, integration_rule, integration_tol) {
@@ -97,10 +97,6 @@ Leaf__psi_stem_to_ci <- function(obj_, psi_stem, psi_upstream) {
     .Call('_plant_Leaf__psi_stem_to_ci', PACKAGE = 'plant', obj_, psi_stem, psi_upstream)
 }
 
-Leaf__hydraulic_cost_Sperry <- function(obj_, psi_stem, psi_upstream) {
-    .Call('_plant_Leaf__hydraulic_cost_Sperry', PACKAGE = 'plant', obj_, psi_stem, psi_upstream)
-}
-
 Leaf__hydraulic_cost_TF <- function(obj_, psi_stem) {
     .Call('_plant_Leaf__hydraulic_cost_TF', PACKAGE = 'plant', obj_, psi_stem)
 }
@@ -113,12 +109,12 @@ Leaf__profit_psi_stem_TF <- function(obj_, psi_stem, psi_upstream) {
     .Call('_plant_Leaf__profit_psi_stem_TF', PACKAGE = 'plant', obj_, psi_stem, psi_upstream)
 }
 
-Leaf__optimise_psi_stem_Sperry <- function(obj_) {
-    invisible(.Call('_plant_Leaf__optimise_psi_stem_Sperry', PACKAGE = 'plant', obj_))
+Leaf__set_model <- function(obj_, curve, route) {
+    invisible(.Call('_plant_Leaf__set_model', PACKAGE = 'plant', obj_, curve, route))
 }
 
-Leaf__optimise_psi_stem_TF <- function(obj_) {
-    invisible(.Call('_plant_Leaf__optimise_psi_stem_TF', PACKAGE = 'plant', obj_))
+Leaf__optimise <- function(obj_) {
+    invisible(.Call('_plant_Leaf__optimise', PACKAGE = 'plant', obj_))
 }
 
 Leaf__medlyn_model_gs <- function(obj_, assim_colimited_) {
@@ -197,12 +193,12 @@ Leaf__lambda___set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__lambda___set', PACKAGE = 'plant', obj_, value))
 }
 
-Leaf__lambda_analytical___get <- function(obj_) {
-    .Call('_plant_Leaf__lambda_analytical___get', PACKAGE = 'plant', obj_)
+Leaf__psi_crit__get <- function(obj_) {
+    .Call('_plant_Leaf__psi_crit__get', PACKAGE = 'plant', obj_)
 }
 
-Leaf__lambda_analytical___set <- function(obj_, value) {
-    invisible(.Call('_plant_Leaf__lambda_analytical___set', PACKAGE = 'plant', obj_, value))
+Leaf__stem_b__get <- function(obj_) {
+    .Call('_plant_Leaf__stem_b__get', PACKAGE = 'plant', obj_)
 }
 
 Leaf__electron_transport___get <- function(obj_) {

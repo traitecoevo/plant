@@ -31,11 +31,10 @@ Leaf:
       Leaf model
       @param vcmax_25 Maximum Carboxylation Rate (umol m^-2 s^-1)
       @param c shape parameter of hydraulic vulnerability curve (unitless)
-      @param b sensitivity parameter of hydraulic vulnerability curve (MPa)
-      @param psi_crit critical psi stem (-MPa )
+      @param p_50 water potential at 50% loss of stem conductivity (MPa, positive
+        magnitude). phylloptim derives b and psi_crit from it -- do not pass b.
       @param root_c shape parameter of hydraulic vulnerability curve for roots(unitless)
-      @param root_b sensitivity parameter of hydraulic vulnerability curve for roots (MPa)
-      @param root_psi_crit critical psi stem for roots (-MPa )
+      @param root_p_50 water potential at 50% loss of root conductivity (MPa)
       @param beta2 exponent for effect of hydraulic risk (unitless)
       @param jmax_25  maximum rate of electron transport (umol m^-2 s^-1)
       @param a quantum yield of photosynthetic electron transport (mol mol^-1)
@@ -51,11 +50,9 @@ Leaf:
     args:
       - vcmax_25: double
       - c: double
-      - b: double
-      - psi_crit: double
+      - p_50: double
       - root_c: double
-      - root_b: double
-      - root_psi_crit: double
+      - root_p_50: double
       - beta2: double
       - jmax_25: double
       - a: double
@@ -75,8 +72,13 @@ Leaf:
     soil_consumption_: {type: "std::vector<double>", access: field}
     profit_: {type: double, access: field}
     psi_stem: {type: double, access: field}
-    lambda_: {type: double, access: field}
-    lambda_analytical_: {type: double, access: field}
+    # phylloptim 0.6.0 scopes the marginal-cost field to the model that owns it.
+    # The R-side name is the YAML key, so plant's API is unchanged (#622).
+    lambda_: {type: double, access: field, name_cpp: "CF77_lambda_"}
+    # Derived from (P50, c) by phylloptim, not settable; exposed so R can read
+    # the curve the leaf is actually using rather than re-deriving it (#622).
+    psi_crit: {type: double, access: field, readonly: true}
+    stem_b: {type: double, access: field, readonly: true}
     electron_transport_: {type: double, access: field}
     gamma_: {type: double, access: field}
     ko_: {type: double, access: field}
@@ -200,23 +202,25 @@ Leaf:
       return_type: double
       args: [psi_stem: double, psi_upstream: double]
     #leaf economics functions
-    hydraulic_cost_Sperry:
-      return_type: double
-      args: [psi_stem: double, psi_upstream: double]
     hydraulic_cost_TF:
       return_type: double
       args: [psi_stem: double]
     profit_psi_stem_Sperry:
       return_type: double
+      name_cpp: profit_psi_stem_ProfitMax
       args: [psi_stem: double, psi_upstream: double]
     profit_psi_stem_TF:
       return_type: double
       args: [psi_stem: double, psi_upstream: double]
       # optimiser functions
-    optimise_psi_stem_Sperry:
+    # phylloptim 0.6.0 makes the optimality model configuration rather than a
+    # call: set_model() seats the curve and route, optimise() solves whatever is
+    # seated. `optimise_psi_stem_TF()` is gone -- ("TF24", "stem") is it (#622).
+    # The third set_model argument (method) keeps its C++ default of "exact".
+    set_model:
       return_type: void
-      args: []
-    optimise_psi_stem_TF:
+      args: [curve: "std::string", route: "std::string"]
+    optimise:
       return_type: void
       args: []
     # Medlyn stomatal-conductance model (from develop #450)

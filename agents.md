@@ -480,7 +480,7 @@ Rules:
 - **Do NOT bump** for refactors, performance work, interface renames, or
   serialisation-format changes — the science is unchanged.
 - FF16/K93 are scientifically frozen and should rarely move; TF24/TF24f change
-  often and will bump frequently. Current: `FF16@v1`, `K93@v1`, `TF24@v2`.
+  often and will bump frequently. Read the current values with `model_id()` rather than trusting this line.
 - **TF24f is a compound version.** It is a fast *approximation* of TF24 that
   inherits TF24's equations/parameters, so its version is
   `"<TF24 version>.<approximation revision>"` (`TF24f@v2.1`). The major
