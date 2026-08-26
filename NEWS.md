@@ -7,6 +7,24 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **phylloptim 0.7.0 -> 0.8.0.** Bumped deliberately, which is what the `==` pin
+  below exists to force. 0.8.0 (traitecoevo/phylloptim#133) reports the seated
+  curve's `lambda_emergent` through `leaf_solve()` and fixes a stale
+  `lambda_emergent_` after the two terminal exits on a reused `Leaf`.
+
+  **Inert for plant, and by construction rather than by luck:** the header diff is
+  24 lines, being one element appended to `operating_point_values()` and two
+  `lambda_emergent_ = NA` writes. plant reads neither that vector nor that member.
+  Verified anyway — suite unchanged at 2985 pass, and the scenario scorecard's
+  `offspring_production` bit-identical across all 8 scenarios against the same
+  plant source built on 0.7.0.
+
+  ⚠️ Newly available and **not** yet used here: `lambda_emergent` is the seated
+  curve's own `(dC/dpsi)/(dE/dpsi)`, where `marginal_cost_water()` is TF24's price
+  whatever curve ran. On `TF24_floor` the two differ by the price floor
+  (32996 vs 82996 at `lambda_o = 5e4`), so anything reporting a marginal cost of
+  water from this model wants the emergent one.
+
 * **TF24's leaf parameters carry phylloptim's names (#634).** `TF24_Pars` renamed:
   `p_50 -> stem_P50`, `c -> stem_c`, `b -> stem_b`, `beta2 -> TF24_beta2`,
   `g1_TF24 -> TF24_cost_scale`. `Leaf()`'s arguments move with them, and
@@ -61,7 +79,7 @@ products using plant.
   that band pins the optimum against a bracket bound.
 
 * **`phylloptim` and `odelia` are pinned with `==`, not `>=` (#634).**
-  `LinkingTo: odelia (== 0.3.1), phylloptim (== 0.7.0)`. plant's regression
+  `LinkingTo: odelia (== 0.3.1), phylloptim (== 0.8.0)`. plant's regression
   baselines are bit-exact and both packages are compiled *into* plant, so under
   `>=` a later upstream release silently changes plant's arithmetic and the first
   sign is a red baseline with no local change to explain it -- a bisect across two
