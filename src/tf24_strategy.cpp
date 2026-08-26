@@ -624,8 +624,24 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
 // would keep solving TF24 while `shadow_cost()` reported a price the solve never
 // saw -- worse than not switching at all. `optimise()` dispatches on the seated
 // curve and route and covers all eight curves on both routes.
+//
+// The try/catch turns an unphysical psi probe into a rejected step rather than a
+// dead run. phylloptim raises its own infeasible_error, which derives from
+// std::runtime_error and NOT from odelia::util::DomainError -- they are siblings
+// -- so odelia's stepper cannot recognise it and the throw kills the whole solve
+// having taken zero steps (#608 measured exactly this). Translating it lets
+// odelia shrink and retry, and it only stops if the minimum step still cannot
+// reach a feasible probe, reporting phylloptim's own message when it does.
+//
+// Deliberately narrow: only infeasible_error is translated. A util::stop() from
+// phylloptim, or any other exception, still propagates, so a bug stays a bug
+// instead of becoming step-shrinking until "Cannot achieve the desired accuracy".
 void TF24_Strategy::solve_leaf() {
-  leaf.optimise();
+  try {
+    leaf.optimise();
+  } catch (const phylloptim::util::infeasible_error& e) {
+    odelia::util::stop_domain(std::string("leaf solve infeasible: ") + e.what());
+  }
 }
 
 // [eqn 16] Fraction of production allocated to reproduction

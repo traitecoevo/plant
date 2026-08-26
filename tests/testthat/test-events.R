@@ -420,3 +420,39 @@ test_that("the event log records every applied event, in order", {
   scm$reset()
   expect_equal(length(scm$event_log$time), 0)
 })
+
+# Domain hooks (odelia #55/#56). These make two previously-fatal conditions into
+# rejected steps instead. They are insurance rather than a demonstrated fix:
+# #599's dense-stochastic failure, the case they were written for, no longer
+# reproduces on develop, so there is nothing left that they visibly rescue. What
+# can be pinned is that the mechanism is wired up and that it costs nothing when
+# the state is fine.
+
+test_that("the patch declares its state domain to the solver", {
+  p <- add_strategies(scm_base_parameters("TF24"), trait_matrix(1, "lma"))
+  scm <- SCM("TF24", "TF24_Env")(p, Environment("TF24"), empty_events(), control())
+  patch <- scm$patch
+  y <- patch$ode_state
+
+  ## A sane state is accepted.
+  expect_true(patch$ode_state_valid(y))
+
+  ## Only the environment block is checked. It is the trailing part of the ODE
+  ## vector, and it is where integrator overshoot shows up.
+  n_env <- Environment("TF24")$ode_size
+  expect_gt(n_env, 0)
+  for (i in seq(length(y) - n_env + 1, length(y))) {
+    bad <- y; bad[[i]] <- NaN
+    expect_false(patch$ode_state_valid(bad))
+    bad[[i]] <- Inf
+    expect_false(patch$ode_state_valid(bad))
+  }
+
+  ## A node's log_density is legitimately -Inf (a cohort that never
+  ## established), so the species block must NOT be rejected for that -- a
+  ## blanket finiteness test would stall the solver at its minimum step.
+  ff <- add_strategies(scm_base_parameters("FF16"), trait_matrix(1, "lma"))
+  scm_ff <- SCM("FF16", "FF16_Env")(ff, Environment("FF16"), empty_events(),
+                                    control())
+  expect_true(scm_ff$patch$ode_state_valid(c(-Inf, 1, 2)))
+})

@@ -62,11 +62,22 @@ void TF24f_Strategy::compute_rates(const TF24_Environment& environment,
 // model is being solved; `with_curve` hands back a body compile-time specialised
 // on the curve, so this costs one predictable branch per solve and the arms are
 // the same instantiations the hot path had before.
+// The try/catch turns an unphysical psi probe into a rejected step rather than a
+// dead run. phylloptim raises its own infeasible_error, which derives from
+// std::runtime_error and NOT from odelia::util::DomainError -- they are siblings
+// -- so odelia's stepper cannot recognise it and the throw kills the whole solve
+// having taken zero steps (#608 measured exactly this). Only infeasible_error is
+// translated, so a util::stop() from phylloptim still propagates and a bug stays
+// a bug rather than becoming step-shrinking.
 void TF24f_Strategy::solve_leaf() {
-  Leaf::with_curve(leaf.cost_curve_, [&](auto tag) {
-    constexpr Leaf::CostCurve K = tag.value;
-    solve_leaf_for<K>();
-  });
+  try {
+    Leaf::with_curve(leaf.cost_curve_, [&](auto tag) {
+      constexpr Leaf::CostCurve K = tag.value;
+      solve_leaf_for<K>();
+    });
+  } catch (const phylloptim::util::infeasible_error& e) {
+    odelia::util::stop_domain(std::string("leaf solve infeasible: ") + e.what());
+  }
 }
 
 template <Leaf::CostCurve K>

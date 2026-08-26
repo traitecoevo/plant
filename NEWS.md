@@ -546,6 +546,14 @@ were not previously recorded here:
   Runs that supply no events are unaffected, and verified so: FF16, K93 and TF24
   are `identical()` on ODE step times, fitness and state.
 
+  Also adopts odelia 0.3.1's opt-in domain checks. Two conditions that used to
+  kill a run outright are now rejected steps: a non-finite environment state
+  (measured in #608 to be integrator overshoot, which a smaller step recovers),
+  and an infeasible leaf probe out of phylloptim's collar root-find. Both are
+  inert when nothing goes wrong -- the three reference runs stay `identical()`.
+  A runaway cohort density stays fatal, because that divergence is in the
+  equations rather than the stepper and shrinking cannot recover it.
+
 * **`Control$node_density_in_birth_date`** (default `FALSE`) carries the SCM's
   size distribution as a density in birth date instead of in height.
 

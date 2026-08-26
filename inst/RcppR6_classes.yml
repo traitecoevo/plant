@@ -736,6 +736,11 @@ Patch:
     node_ode_size: {type: size_t, access: member}
     state: {type: "Rcpp::List", access: member, name_cpp: r_get_state}
   methods:
+    # The opt-in domain check the adaptive stepper calls on a completed step
+    # (odelia #55/#56). Exposed so a test can pin the contract directly.
+    ode_state_valid:
+      args: [y: "std::vector<double>"]
+      return_type: bool
     introduce_new_node:
       return_type: void
       args: [species_index: "plant::util::index"]
