@@ -3,8 +3,8 @@ strategy_types <- get_list_of_strategy_types()
 environment_types <- get_list_of_environment_types()
 
 ## ODE states contributed by the environment, and their values. Only TF24 carries
-## any: five soil-water layers then four cumulative fluxes.
-n_environment_ode_states <- c(FF16 = 0L, TF24 = 9L, K93 = 0L)
+## any: five soil-water layers then five cumulative fluxes.
+n_environment_ode_states <- c(FF16 = 0L, TF24 = 10L, K93 = 0L)
 
 ## Recompute the environment and every rate at the patch's current state, the way
 ## the solver does on each derivatives evaluation. Needed because the introduction
@@ -157,9 +157,10 @@ test_that("the environment's ODE state and rates are part of the system", {
 ## high; count anything other than one uptake per living individual and it comes
 ## out wrong by that factor instead.
 ##
-## The rate read is the cumulative root-uptake accumulator (the last environment
-## state), whose rate is the per-area total across soil layers, with no positivity
-## guard in the way.
+## The rate read is the cumulative root-uptake accumulator, whose rate is the
+## per-area total across soil layers, with no positivity guard in the way. It is
+## the second-to-last environment state: sum_pulse_runoff sits after it and is
+## held at rate zero, so reading the last one would read a constant zero.
 test_that("resource uptake is summed per individual and normalised by area", {
   patch_with <- function(patch_area, n_individuals) {
     p <- Parameters("TF24", "TF24_Env")(strategies = list(TF24_Strategy()),
@@ -172,7 +173,7 @@ test_that("resource uptake is summed per individual and normalised by area", {
     refresh_rates(patch)
     patch
   }
-  uptake <- function(patch) tail(patch$ode_rates, 1)
+  uptake <- function(patch) tail(patch$ode_rates, 2)[[1]]
   first_individual_rates <- function(patch) {
     patch$species[[1]]$individual_at(1)$ode_rates
   }

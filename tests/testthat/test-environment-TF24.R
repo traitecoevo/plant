@@ -61,7 +61,7 @@ test_that("Environment-TF24 drivers", {
   
   expect_silent(env$set_soil_water_state(rep(theta_sat,num_depths)))
   expect_equal(env$get_soil_water_state(), rep(theta_sat,num_depths))
-  expect_equal(env$get_soil_water_state_cumulative_flux(), rep(0,4))  
+  expect_equal(env$get_soil_water_state_cumulative_flux(), rep(0,5))  
   
   expect_equal(env$psi_from_soil_moist(theta_sat), a_psi/1e6)
   
@@ -232,14 +232,14 @@ test_that("Environment-TF24 clear returns the soil to its starting state", {
 
   expect_silent(env$clear())
   expect_equal(env$get_soil_water_state(), rep(0.428 * 0.5, n))
-  expect_equal(env$get_soil_water_state_cumulative_flux(), rep(0, 4))
+  expect_equal(env$get_soil_water_state_cumulative_flux(), rep(0, 5))
 
   # clear() returns the state last set, not the constructed default.
   start <- seq(0.30, by = 0.01, length.out = n)
   env$set_soil_water_state(start)
   env$clear()
   expect_identical(env$get_soil_water_state(), start)
-  expect_equal(env$get_soil_water_state_cumulative_flux(), rep(0, 4))
+  expect_equal(env$get_soil_water_state_cumulative_flux(), rep(0, 5))
 
   # After a changed layer count, the starting state is the one set since.
   env$set_soil_parameters(3, NULL, NULL, NULL, NULL)

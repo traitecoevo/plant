@@ -109,7 +109,19 @@ public:
   };
   
   // Number of cumulative auxilliary variables to track in soil moisture model
-  static constexpr size_t aux_num = 4;
+  // Trailing state slots that accumulate diagnostic fluxes rather than
+  // participating in the water balance: sum_rainfall, sum_infiltration,
+  // sum_drainage, sum_resource_depletion, sum_pulse_runoff.
+  //
+  // The fifth is fed only by rainfall-pulse events (#522). That is deliberate,
+  // not an oversight: the ODE controller takes its error norm over *every*
+  // state component, so an accumulator with a non-zero rate would join the
+  // step-size decision and could move existing TF24 trajectories. Held at rate
+  // zero it contributes exactly zero to the norm, so a run with no pulses is
+  // bit-identical to one from before this slot existed. Accumulating the
+  // continuous saturation-excess runoff here too would be a deliberate change
+  // to what TF24 reports, and needs its own decision.
+  static constexpr size_t aux_num = 5;
   
   // Setup soil water distribtuion
   void set_soil_number_of_depths(int n) {
@@ -382,6 +394,10 @@ public:
       vars.set_rate(soil_number_of_depths + 1, infiltration);
       vars.set_rate(soil_number_of_depths + 2, water_flux[soil_number_of_depths - 1]);
       vars.set_rate(soil_number_of_depths + 3, total_resource_depletion);
+      // Pulse runoff has no continuous source: it only ever moves in
+      // add_water_pulse(). Pinned at zero so it stays out of the step-size
+      // error norm -- see the note on aux_num.
+      vars.set_rate(soil_number_of_depths + 4, 0.0);
 
   }
 
@@ -501,6 +517,47 @@ public:
 
   // TODO: I wonder if this needs a better name? See also environment.h
   Internals r_internals() const { return vars; }
+
+  // Apply an instantaneous rainfall pulse of `depth` metres to the surface
+  // layer (issue #522).
+  //
+  // The cap is the whole substance of this function. A pulse is applied
+  // *between* solver legs, so unlike the continuous rates it has no error
+  // estimate and no step rejection standing behind it: nothing but this line
+  // stops it driving layer 0 past saturation, where the retention and
+  // conductivity curves are meaningless. Layer 0 can accept
+  // (theta_sat - theta_0) * dz[0] metres, and a realistic dryland event
+  // (~13 mm) already exceeds that from a moderately wet start, so the excess
+  // is real and frequent rather than a corner case. A hard min() is fine here
+  // precisely because we are outside the integrator -- the "no kinks in the
+  // rates" rule applies to continuous derivatives, not to a jump.
+  //
+  // Note this does *not* pass through the saturation-excess infiltration term
+  // in compute_rates(): that term partitions a rainfall *rate* and is tuned
+  // for continuous forcing, so applying it to an instantaneous depth would
+  // double-count against the capacity cap. Whether a pulse should be filtered
+  // that way as well is the first open question on this action.
+  void add_water_pulse(double depth) {
+    if (!util::is_finite(depth) || depth < 0.0) {
+      util::stop("Rainfall pulse depth must be finite and non-negative");
+    }
+    const double theta_0 = vars.state(0);
+    const double sat_0 =
+      soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, 0);
+    const double capacity = std::max(0.0, (sat_0 - theta_0) * dz[0]);
+    const double accepted = std::min(depth, capacity);
+    const double excess = depth - accepted;
+
+    vars.set_state(0, theta_0 + accepted / dz[0]);
+    // Direct state increments, not rates: the trailing slots are integrated
+    // from their rates during a leg, and a pulse happens between legs.
+    const size_t n = soil_number_of_depths;
+    vars.set_state(n,     vars.state(n)     + depth);     // sum_rainfall
+    vars.set_state(n + 1, vars.state(n + 1) + accepted);  // sum_infiltration
+    vars.set_state(n + 4, vars.state(n + 4) + excess);    // sum_pulse_runoff
+
+    psi_soil_cache_valid_ = false;
+  }
 
   // R interface
   void set_soil_water_state(std::vector<double> state) {

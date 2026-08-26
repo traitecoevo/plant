@@ -37,13 +37,7 @@ events <- function(...) {
   if (length(parts) == 0L) {
     return(empty_events())
   }
-  ev <- list(
-    time          = unlist(lapply(parts, function(x) x$time), use.names = FALSE),
-    type          = unlist(lapply(parts, function(x) x$type), use.names = FALSE),
-    species_index = unlist(lapply(parts, function(x) x$species_index),
-                           use.names = FALSE),
-    params        = unlist(lapply(parts, function(x) x$params), recursive = FALSE)
-  )
+  ev <- do.call(join_event_rows, parts)
   ## Sorting here is a convenience for anyone reading the object; the C++
   ## queue re-sorts on insertion and is the authority on ties.
   i <- order(ev$time)
@@ -94,12 +88,21 @@ node_introductions <- function(p) {
   do.call(join_event_rows, parts)
 }
 
+## Concatenate event rows. unlist() on an empty list gives NULL, which would
+## silently turn an empty schedule into a malformed one, so the empty case is
+## spelled out with the right types.
 join_event_rows <- function(...) {
   parts <- list(...)
-  list(time = unlist(lapply(parts, `[[`, "time"), use.names = FALSE),
-       type = unlist(lapply(parts, `[[`, "type"), use.names = FALSE),
-       species_index = unlist(lapply(parts, `[[`, "species_index"), use.names = FALSE),
-       params = unlist(lapply(parts, `[[`, "params"), recursive = FALSE))
+  pull <- function(field, empty) {
+    if (length(parts) == 0L) return(empty)
+    out <- unlist(lapply(parts, `[[`, field), use.names = FALSE)
+    if (is.null(out)) empty else out
+  }
+  list(time = pull("time", numeric(0)),
+       type = pull("type", character(0)),
+       species_index = pull("species_index", integer(0)),
+       params = if (length(parts) == 0L) list() else
+         unlist(lapply(parts, `[[`, "params"), recursive = FALSE))
 }
 
 ##' @param time Event time(s), in years of patch age.

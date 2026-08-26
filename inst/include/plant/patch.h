@@ -812,6 +812,13 @@ void Patch<T,E>::apply_event(const NodeScheduleEvent& event) {
     // environment recompute rather than one each; they never arrive here.
     util::stop("Node introductions are applied via introduce_new_nodes()");
     break;
+  case EventType::RainfallPulse:
+    // Water only: nothing about the vegetation changes, so the light
+    // environment is untouched and the nodes keep their state. The rates are
+    // stale afterwards, but the solver recomputes them when it re-reads the
+    // system (Patch::ode_rates computes), so there is nothing to do here.
+    environment.add_water_pulse(event.params.at(0));
+    break;
   default:
     util::stop("Event type not implemented");
     break;

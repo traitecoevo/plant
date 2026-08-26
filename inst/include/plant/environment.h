@@ -40,6 +40,16 @@ public:
 
   virtual void compute_rates(std::vector<double> const& resource_depletion){};
 
+  // Apply an instantaneous rainfall pulse: `depth` metres of water arriving at
+  // the soil surface at one instant (issue #522). Applied between solver legs,
+  // so nothing about it is error-controlled -- an implementation must bound the
+  // jump itself. Environments with no soil water refuse rather than silently
+  // swallow the water, so that a pulse aimed at the wrong model is visible.
+  virtual void add_water_pulse(double /*depth*/) {
+    util::stop("This environment has no soil water state to apply a rainfall "
+               "pulse to");
+  }
+
   odelia::ode::const_iterator set_ode_state(odelia::ode::const_iterator it) {
     for (size_t i = 0; i < vars.state_size; i++) {
       vars.states[i] = *it++;

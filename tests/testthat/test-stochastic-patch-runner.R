@@ -3,8 +3,8 @@ strategy_types <- get_list_of_strategy_types()
 environment_types <- get_list_of_environment_types()
 
 ## ODE states contributed by the environment; only TF24 carries any (five
-## soil-water layers then four cumulative fluxes).
-n_environment_ode_states <- c(FF16 = 0L, TF24 = 9L, K93 = 0L)
+## soil-water layers then five cumulative fluxes).
+n_environment_ode_states <- c(FF16 = 0L, TF24 = 10L, K93 = 0L)
 
 ## Control for a stochastic run, with TF24's soil integrated at a step size it
 ## can actually take.
@@ -264,8 +264,11 @@ test_that("TF24's environment states are integrated over a stochastic run", {
   ## per-node and per-species consumption_rate forwarders carry; it cannot exceed
   ## what infiltrated.
   flux <- obj$patch$environment$get_soil_water_state_cumulative_flux()
-  expect_length(flux, 4)
-  expect_true(all(flux > 0))
+  expect_length(flux, 5)
+  ## The four continuous accumulators. The fifth, sum_pulse_runoff, is fed only
+  ## by rainfall-pulse events, so it is exactly zero on a run with none.
+  expect_true(all(flux[1:4] > 0))
+  expect_identical(flux[[5]], 0)
   expect_lt(flux[[4]], flux[[2]])
 })
 
