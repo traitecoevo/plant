@@ -516,6 +516,10 @@ public:
   double vulnerability_curve_ncontrol = 100;
   double ci_abs_tol = 1e-6;
   double ci_niter = 1000;
+  // The root-architecture model's two constants. They used to be handed to the
+  // Leaf constructor; since phylloptim #33 the leaf takes the RESISTANCES and this
+  // strategy owns the model that produces them, which is where they belong -- the
+  // 1/3 : 2/3 root split and the dz^2 vertical scaling were never gas exchange.
   double beta_R_H = 3.4e2;
   double beta_R_V = 9.4e3;
 
@@ -544,6 +548,14 @@ public:
   // Reusable per-layer root-mass buffer, refilled (not reallocated) each
   // net_mass_production_dt call to avoid a heap allocation per derivs eval.
   std::vector<double> root_carbon_per_leaf_area_;
+
+  // And the resistances derived from it, held the same way and for the same
+  // reason (phylloptim #33). Refilled through root_network_from_carbon's in-place
+  // overload: building five fresh vectors per solve measured +0.074 us there,
+  // about +2% of a whole solve. It must NOT be moved from -- phylloptim's
+  // set_root_network takes it by const reference precisely so this buffer keeps
+  // its capacity across calls.
+  phylloptim::RootNetwork root_network_;
 };
 
 TF24_Strategy::ptr make_strategy_ptr(TF24_Strategy s);

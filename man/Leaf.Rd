@@ -7,11 +7,9 @@
 Leaf(
   vcmax_25,
   c,
-  b,
-  psi_crit,
+  p_50,
   root_c,
-  root_b,
-  root_psi_crit,
+  root_p_50,
   beta2,
   jmax_25,
   a,
@@ -21,9 +19,7 @@ Leaf(
   vulnerability_curve_ncontrol,
   ci_abs_tol,
   ci_niter,
-  g1_TF24,
-  beta_R_H,
-  beta_R_V
+  g1_TF24
 )
 }
 \arguments{
@@ -31,15 +27,12 @@ Leaf(
 
 \item{c}{shape parameter of hydraulic vulnerability curve (unitless)}
 
-\item{b}{sensitivity parameter of hydraulic vulnerability curve (MPa)}
-
-\item{psi_crit}{critical psi stem (-MPa )}
+\item{p_50}{water potential at 50% loss of stem conductivity (MPa, positive
+magnitude). phylloptim derives b and psi_crit from it -- do not pass b.}
 
 \item{root_c}{shape parameter of hydraulic vulnerability curve for roots(unitless)}
 
-\item{root_b}{sensitivity parameter of hydraulic vulnerability curve for roots (MPa)}
-
-\item{root_psi_crit}{critical psi stem for roots (-MPa )}
+\item{root_p_50}{water potential at 50% loss of root conductivity (MPa)}
 
 \item{beta2}{exponent for effect of hydraulic risk (unitless)}
 
@@ -60,10 +53,6 @@ Leaf(
 \item{ci_niter}{maximum number of iterations for root-solving ci}
 
 \item{g1_TF24}{cost parameter for TF24 profit model umol m^-2 s^-1}
-
-\item{beta_R_H}{proportionality constant between minimum horizontal (intralayer) root hydraulic resistance and C_r^-1 (MPa s mol C / mol H2O)}
-
-\item{beta_R_V}{proportionality constant between minimum vertical (interlayer) root hydraulic resistance and dz^2/C_r (MPa mol C s / mol H2O / m^2)}
 }
 \description{
 Leaf model

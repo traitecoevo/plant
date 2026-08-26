@@ -42,7 +42,7 @@ double TF24_Strategy::compute_average_light_environment(
        canopy_shape.q_from_height(z, height);
 }
 
-// assumes optimise_psi_stem_TF has been run for optimal psi_stem
+// assumes the TF24 collar solve has been run for optimal psi_stem
 double TF24_Strategy::evapotranspiration_dt(double area_leaf_, int soil_layer) {
   return leaf.soil_consumption_[soil_layer] * area_leaf_;
 }
@@ -441,6 +441,26 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
       prev_q = q;
     }
 
+  // ----------------------------------------------------------------------
+  // CARBON -> RESISTANCE: THE ROOT ARCHITECTURE MODEL
+  // ----------------------------------------------------------------------
+  // This runs HERE, on the plant side, since phylloptim #33. The leaf's supply
+  // solve reads two vectors -- r_R_H_min and r_R_V_sum -- and nothing in it knows
+  // about root carbon, the 1/3 : 2/3 split, the layer thickness or beta_R_*. So
+  // this strategy owns the model, exactly as it already owned the
+  // conductance-versus-height model that produces leaf_specific_conductance_max
+  // above, and hands over the reduced quantity.
+  //
+  // Filled IN PLACE into the member buffer, for the same reason
+  // root_carbon_per_leaf_area_ is a member: this is per-solve, and five fresh
+  // vectors per call measured +0.074 us. phylloptim::layer_thickness is the shared
+  // definition of dz -- do not open-code soil_depths_.back()/n here, because the
+  // vertical resistance scales with dz^2 and the two sides drifting apart would be
+  // a silent squared factor that neither package could detect.
+  phylloptim::root_network_from_carbon(
+      root_carbon_per_leaf_area_, phylloptim::layer_thickness(soil_depths_),
+      beta_R_H, beta_R_V, root_network_);
+
   // Reuse geometry precomputed by environment; avoids rebuilding z midpoints each call.
   // The soil geometry moved into the leaf package's MultiLayerRoots (phylloptim #2).
   leaf.roots_.z_soil_mid_ = environment.get_soil_mid_depths();
@@ -456,7 +476,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   // the radiation argument varies between calls; every other input is
   // depth-independent and already computed above.
   auto optimise_at = [&](double radiation) {
-    leaf.set_physiology(root_carbon_per_leaf_area_, radiation, psi_soil, soil_depths_, leaf_specific_conductance_max, environment.get_atm_vpd(), environment.get_ca(), environment.get_leaf_temp(), environment.get_atm_o2_kpa(), environment.get_atm_kpa());
+    leaf.set_physiology(root_network_, radiation, psi_soil, soil_depths_, leaf_specific_conductance_max, environment.get_atm_vpd(), environment.get_ca(), environment.get_leaf_temp(), environment.get_atm_o2_kpa(), environment.get_atm_kpa());
     solve_leaf();
   };
 
@@ -821,13 +841,23 @@ void TF24_Strategy::prepare_strategy() {
   } else {
     extrinsic_drivers.set_constant("birth_rate", birth_rate_y[0]);
   }
-  leaf = Leaf(pars.vcmax_25, pars.c, pars.b, pars.psi_crit,
-              pars.root_c, pars.root_b, pars.root_psi_crit,
+  // phylloptim 0.6.0 parameterises both vulnerability curves on P50 and derives
+  // b and psi_crit itself, by the same formulas TF24_Pars uses (b =
+  // P50/(ln 2)^(1/c), psi_crit = P95), so handing over (P50, c) reproduces the
+  // previous numbers exactly -- see issue #622.
+  //
+  // ⚠️ Pass `p_50`, NOT `b`. They are different quantities and both are MPa, so
+  // swapping them compiles, runs, and silently describes a curve 1.1465x too
+  // wide at TF24's defaults. The root curve needs the conversion the other way,
+  // because root_b is a literal rather than derived from a P50.
+  const double root_p_50 =
+    pars.root_b * std::pow(-std::log(1 - 50.0 / 100.0), 1 / pars.root_c);
+  leaf = Leaf(pars.vcmax_25, pars.c, pars.p_50,
+              pars.root_c, root_p_50,
               pars.beta2, pars.jmax_25, pars.a,
               pars.curv_fact_elec_trans, pars.curv_fact_colim,
               control.GSS_tol_abs, control.vulnerability_curve_ncontrol,
-              control.ci_abs_tol, control.ci_niter, pars.g1_TF24, beta_R_H,
-              beta_R_V);
+              control.ci_abs_tol, control.ci_niter, pars.g1_TF24);
   // Penman-Monteith leaf energy balance (#523): enable per pars (default off,
   // backward-compatible) and pass the leaf-dimension trait. Wind speed is a
   // per-timestep driver, set from the environment before each set_physiology.

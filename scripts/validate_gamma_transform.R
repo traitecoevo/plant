@@ -32,7 +32,7 @@ make_leaf <- function(c, b, ncontrol = 100) {
       beta2 = 1, a = 0.3, curv_fact_elec_trans = 0.7,
        curv_fact_colim = 0.99, GSS_tol_abs = 1e-8,
        vulnerability_curve_ncontrol = ncontrol, ci_abs_tol = 1e-6,
-       ci_niter = 1000, g1_TF24 = 46.33, beta_R_H = 3.4e3, beta_R_V = 9.4e4)
+       ci_niter = 1000, g1_TF24 = 46.33)
 }
 
 report <- function(label, c, b, ncontrol = 100) {

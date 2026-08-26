@@ -15,16 +15,17 @@ pm_rho_cp <- 1200.0   # volumetric heat capacity of air, J m^-3 K^-1
 pm_make_leaf <- function() {
   s <- TF24_Strategy(); p <- s$pars; ctrl <- Control()
   root_c <- 2.680147; root_b <- 3.898245
-  root_psi_crit <- root_b * (log(1 / 0.05))^(1 / root_c)
-  Leaf(vcmax_25 = p$vcmax_25, jmax_25 = p$jmax_25, c = p$c, b = p$b,
-       psi_crit = p$psi_crit, root_c = root_c, root_b = root_b,
-       root_psi_crit = root_psi_crit, beta2 = p$beta2, a = p$a,
+  # phylloptim 0.6.0 parameterises both curves on P50 and derives b and psi_crit
+  # itself; the root pair is a literal b here, so convert (#622).
+  root_p_50 <- root_b * (log(2))^(1 / root_c)
+  Leaf(vcmax_25 = p$vcmax_25, jmax_25 = p$jmax_25, c = p$c, p_50 = p$p_50,
+       root_c = root_c, root_p_50 = root_p_50, beta2 = p$beta2, a = p$a,
        curv_fact_elec_trans = p$curv_fact_elec_trans,
        curv_fact_colim = p$curv_fact_colim,
        GSS_tol_abs = ctrl$GSS_tol_abs,
        vulnerability_curve_ncontrol = ctrl$vulnerability_curve_ncontrol,
        ci_abs_tol = ctrl$ci_abs_tol, ci_niter = ctrl$ci_niter,
-       g1_TF24 = p$g1_TF24, beta_R_H = 3.4e2, beta_R_V = 9.4e3)
+       g1_TF24 = p$g1_TF24)
 }
 
 ## Default well-watered, well-rooted, moderate-conductance operating point (so
@@ -42,8 +43,12 @@ pm_set_physiology <- function(l, PAR, Tair, VPD, pm, cfg = pm_leaf_config()) {
   l$use_energy_balance_ <- isTRUE(pm)
   l$d_ <- cfg$d
   l$wind_speed_ <- cfg$wind_speed
+  # phylloptim #33: the leaf takes the resistances, so the architecture model runs
+  # here. Same constants TF24_Strategy uses.
   l$set_physiology(
-    root_carbon_per_leaf_area = cfg$root_carbon_per_leaf_area,
+    root_network = phylloptim::root_network_from_carbon(
+      cfg$root_carbon_per_leaf_area, soil_depth = 1,
+      beta_R_H = 3.4e2, beta_R_V = 9.4e3),
     PPFD = PAR, psi_soil = cfg$psi_soil, soil_depth = 1,
     leaf_specific_conductance_max = cfg$leaf_specific_conductance_max,
     atm_vpd = VPD, ca = cfg$ca,

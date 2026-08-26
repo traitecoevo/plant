@@ -24,7 +24,7 @@ mk_leaf <- function() {
        GSS_tol_abs = ctrl$GSS_tol_abs,
        vulnerability_curve_ncontrol = ctrl$vulnerability_curve_ncontrol,
        ci_abs_tol = ctrl$ci_abs_tol, ci_niter = ctrl$ci_niter,
-       g1_TF24 = p$g1_TF24, beta_R_H = 3.4e2, beta_R_V = 9.4e3)
+       g1_TF24 = p$g1_TF24)
 }
 
 ## Representative single-leaf geometry, tuned so the profit optimum opens the

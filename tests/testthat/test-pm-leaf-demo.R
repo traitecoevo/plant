@@ -44,7 +44,8 @@ test_that("PM path fails fast on a non-finite wind speed (review: itowers1)", {
   source(helpers, local = TRUE)
 
   set_phys <- function(l) {
-    l$set_physiology( root_carbon_per_leaf_area = 20,
+    l$set_physiology(root_network = phylloptim::root_network_from_carbon(
+                       20, soil_depth = 1),
                      PPFD = 1000, psi_soil = 0.3, soil_depth = 1,
                      leaf_specific_conductance_max = 5e-3, atm_vpd = 2, ca = 40, leaf_temp = 30,
                      atm_o2_kpa = 21, atm_kpa = 101.3)
