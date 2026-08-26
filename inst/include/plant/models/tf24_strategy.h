@@ -72,14 +72,59 @@ struct TF24_Pars {
   double k_I = 0.5;
   // * Leaf hydraulic / photosynthesis traits (default Eucalyptus saligna)
   double vcmax_25 = 96;
-  double p_50 = 1.85;
+  // ⚠️ THE LEAF TRAITS CARRY PHYLLOPTIM'S NAMES, and that is a rule rather than a
+  // tidy-up. These are handed to the `Leaf` constructor POSITIONALLY, so a
+  // mismatch between what a name says here and which slot it lands in is silent:
+  // `g1_TF24` was the old name for what phylloptim calls `TF24_cost_scale`, and it
+  // reads as a stomatal-slope g1 -- a quantity the leaf also has, under `g1`, in
+  // the Medlyn path. One name per quantity, spelled the same on both sides of the
+  // boundary, is what makes the hand-over at prepare_strategy() checkable by eye.
+  //
+  // ⚠️ `stem_b` AND `psi_crit` ARE DERIVED HERE AND HANDED OVER TO NOBODY.
+  // phylloptim takes (stem_P50, stem_c) and derives both itself, by these same
+  // formulas -- so these two members are TF24_hyperpar's reporting copies, not
+  // inputs to the model. Setting one does not change the curve.
+  double stem_P50 = 1.85;
   double K_s = 1;
-  double c = log(log(1-0.5)/log(1-0.88))/(log(p_50) - log(5.16));
-  double b = p_50 / std::pow(-log(1 - 50.0 / 100.0), 1 / c);
-  double psi_crit = b*std::pow(log(1/0.05),1/c); // derived from b and c
+  double stem_c = log(log(1-0.5)/log(1-0.88))/(log(stem_P50) - log(5.16));
+  double stem_b = stem_P50 / std::pow(-log(1 - 50.0 / 100.0), 1 / stem_c);
+  double psi_crit = stem_b*std::pow(log(1/0.05),1/stem_c); // derived from stem_b and stem_c
+  // Read by nothing: not passed to the leaf, not read by any equation here. Kept
+  // only because it is in the R-visible parameter list.
   double beta1 = 20000;
-  double beta2 = 1.5;
-  double g1_TF24 = 7.5;
+  double TF24_beta2 = 1.5;
+  double TF24_cost_scale = 7.5;
+  // THE PRICE OF WATER AS TRANSPIRATION GOES TO ZERO, umol C (kg H2O)^-1: the
+  // `lambda_o` of phylloptim's TF24_floor cost curve, which TF24 and TF24f are
+  // seated on (#634).
+  //
+  // WHY IT EXISTS. Every conductance-loss cost -- TF24's included -- prices water
+  // at zero as E goes to zero, since no conductivity is lost when nothing flows,
+  // so water is free precisely when it is abundant. TF24_floor splits the cost
+  // into a part depending on potential alone and a part linear in the flux,
+  // Theta(E) = Theta~(psi) + lambda_o*E, with Theta~ being TF24's own cost at
+  // TF24's own traits. So this is the curve's ONLY parameter, and **TF24 is
+  // TF24_floor at lambda_o = 0, at identical parameter values** -- which makes
+  // "is TF24 missing a price of water?" a one-restriction question.
+  //
+  // ⚠️ DEFAULTS TO ZERO, WHICH IS TF24 EXACTLY -- not approximately. phylloptim
+  // asserts the reduction bit-for-bit rather than to a tolerance, because each
+  // term is the parent's own expression so zeroing the price adds an exact zero to
+  // TF24's exact value (it survives fused multiply-add for the same reason). So
+  // every result this repo has recorded is unchanged at the default, and a moved
+  // regression baseline means a mistake rather than a new expected value.
+  //
+  // ⚠️ IT IS A SHADOW PRICE, NOT A COST, and that distinction is why
+  // net_mass_production_dt adds `leaf.shadow_cost()` back to `leaf.profit_` before
+  // converting to carbon. `Theta~` is carbon actually forgone; `lambda_o` is the
+  // value of water in its best alternative use, which for a leaf is assimilation
+  // later. Paying it changes the aperture chosen and loses no carbon.
+  //
+  // ⚠️ ITS SCALE IS SET BY THE LEAF, not chosen freely: phylloptim's own marginal
+  // cost of water runs ~9e4 to 3e5 in these units at its defaults, so a value far
+  // outside that band pins the optimum against a bracket bound and the answer
+  // describes the bracket rather than the model.
+  double TF24_floor_lambda_o = 0.0;
   double jmax_25 = vcmax_25*1.64;
   double a = 0.30; // effective quantum yield of electron transport
   double curv_fact_elec_trans = 0.7;
@@ -279,6 +324,14 @@ public:
       "transpiration",
       "E_up_",
       "profit",
+      // The part of the cost the objective deducted that is a PRICE rather than
+      // a realised carbon loss (umol C m^-2 s^-1): `TF24_floor_lambda_o * E` on
+      // the seated curve, and exactly zero at the default price. Reported beside
+      // `profit` because without it the two cannot be separated after the fact
+      // from plant's own output, and the distinction is the whole point of the
+      // curve: the carbon the plant actually kept is `profit + shadow_cost`,
+      // which is what net_mass_production_dt grows on.
+      "shadow_cost",
       "stom_cond_CO2",
       // Net CO2 assimilation at the optimal operating point, per unit leaf
       // area (umol CO2 m^-2 s^-1). Net, not gross: Leaf::assim_colimited()
@@ -550,6 +603,7 @@ public:
   int aux_idx_transpiration = -1;
   int aux_idx_E_up = -1;
   int aux_idx_profit = -1;
+  int aux_idx_shadow_cost = -1;
   int aux_idx_stom_cond_CO2 = -1;
   int aux_idx_assimilation = -1;
   int aux_idx_area_sapwood = -1;       // only present when collect_all_auxiliary

@@ -22,17 +22,17 @@ BEGIN_RCPP
 END_RCPP
 }
 // Leaf__ctor
-plant::Leaf Leaf__ctor(double vcmax_25, double c, double p_50, double root_c, double root_p_50, double beta2, double jmax_25, double a, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter, double g1_TF24);
-RcppExport SEXP _plant_Leaf__ctor(SEXP vcmax_25SEXP, SEXP cSEXP, SEXP p_50SEXP, SEXP root_cSEXP, SEXP root_p_50SEXP, SEXP beta2SEXP, SEXP jmax_25SEXP, SEXP aSEXP, SEXP curv_fact_elec_transSEXP, SEXP curv_fact_colimSEXP, SEXP GSS_tol_absSEXP, SEXP vulnerability_curve_ncontrolSEXP, SEXP ci_abs_tolSEXP, SEXP ci_niterSEXP, SEXP g1_TF24SEXP) {
+plant::Leaf Leaf__ctor(double vcmax_25, double stem_c, double stem_P50, double root_c, double root_P50, double TF24_beta2, double jmax_25, double a, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter, double TF24_cost_scale);
+RcppExport SEXP _plant_Leaf__ctor(SEXP vcmax_25SEXP, SEXP stem_cSEXP, SEXP stem_P50SEXP, SEXP root_cSEXP, SEXP root_P50SEXP, SEXP TF24_beta2SEXP, SEXP jmax_25SEXP, SEXP aSEXP, SEXP curv_fact_elec_transSEXP, SEXP curv_fact_colimSEXP, SEXP GSS_tol_absSEXP, SEXP vulnerability_curve_ncontrolSEXP, SEXP ci_abs_tolSEXP, SEXP ci_niterSEXP, SEXP TF24_cost_scaleSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< double >::type vcmax_25(vcmax_25SEXP);
-    Rcpp::traits::input_parameter< double >::type c(cSEXP);
-    Rcpp::traits::input_parameter< double >::type p_50(p_50SEXP);
+    Rcpp::traits::input_parameter< double >::type stem_c(stem_cSEXP);
+    Rcpp::traits::input_parameter< double >::type stem_P50(stem_P50SEXP);
     Rcpp::traits::input_parameter< double >::type root_c(root_cSEXP);
-    Rcpp::traits::input_parameter< double >::type root_p_50(root_p_50SEXP);
-    Rcpp::traits::input_parameter< double >::type beta2(beta2SEXP);
+    Rcpp::traits::input_parameter< double >::type root_P50(root_P50SEXP);
+    Rcpp::traits::input_parameter< double >::type TF24_beta2(TF24_beta2SEXP);
     Rcpp::traits::input_parameter< double >::type jmax_25(jmax_25SEXP);
     Rcpp::traits::input_parameter< double >::type a(aSEXP);
     Rcpp::traits::input_parameter< double >::type curv_fact_elec_trans(curv_fact_elec_transSEXP);
@@ -41,8 +41,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type vulnerability_curve_ncontrol(vulnerability_curve_ncontrolSEXP);
     Rcpp::traits::input_parameter< double >::type ci_abs_tol(ci_abs_tolSEXP);
     Rcpp::traits::input_parameter< double >::type ci_niter(ci_niterSEXP);
-    Rcpp::traits::input_parameter< double >::type g1_TF24(g1_TF24SEXP);
-    rcpp_result_gen = Rcpp::wrap(Leaf__ctor(vcmax_25, c, p_50, root_c, root_p_50, beta2, jmax_25, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, g1_TF24));
+    Rcpp::traits::input_parameter< double >::type TF24_cost_scale(TF24_cost_scaleSEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__ctor(vcmax_25, stem_c, stem_P50, root_c, root_P50, TF24_beta2, jmax_25, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, TF24_cost_scale));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -391,6 +391,17 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// Leaf__shadow_cost
+double Leaf__shadow_cost(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__shadow_cost(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__shadow_cost(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Leaf__medlyn_model_gs
 double Leaf__medlyn_model_gs(plant::RcppR6::RcppR6<plant::Leaf> obj_, double assim_colimited_);
 RcppExport SEXP _plant_Leaf__medlyn_model_gs(SEXP obj_SEXP, SEXP assim_colimited_SEXP) {
@@ -596,6 +607,28 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type value(valueSEXP);
     Leaf__lambda___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__TF24_floor_lambda_o__get
+double Leaf__TF24_floor_lambda_o__get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__TF24_floor_lambda_o__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__TF24_floor_lambda_o__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__TF24_floor_lambda_o__set
+void Leaf__TF24_floor_lambda_o__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__TF24_floor_lambda_o__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__TF24_floor_lambda_o__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -12326,6 +12359,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__profit_psi_stem_TF", (DL_FUNC) &_plant_Leaf__profit_psi_stem_TF, 3},
     {"_plant_Leaf__set_model", (DL_FUNC) &_plant_Leaf__set_model, 3},
     {"_plant_Leaf__optimise", (DL_FUNC) &_plant_Leaf__optimise, 1},
+    {"_plant_Leaf__shadow_cost", (DL_FUNC) &_plant_Leaf__shadow_cost, 1},
     {"_plant_Leaf__medlyn_model_gs", (DL_FUNC) &_plant_Leaf__medlyn_model_gs, 2},
     {"_plant_Leaf__solve_medlyn_ci_numerical", (DL_FUNC) &_plant_Leaf__solve_medlyn_ci_numerical, 1},
     {"_plant_Leaf__solve_medlyn_ci_analytical", (DL_FUNC) &_plant_Leaf__solve_medlyn_ci_analytical, 1},
@@ -12345,6 +12379,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__psi_stem__set", (DL_FUNC) &_plant_Leaf__psi_stem__set, 2},
     {"_plant_Leaf__lambda___get", (DL_FUNC) &_plant_Leaf__lambda___get, 1},
     {"_plant_Leaf__lambda___set", (DL_FUNC) &_plant_Leaf__lambda___set, 2},
+    {"_plant_Leaf__TF24_floor_lambda_o__get", (DL_FUNC) &_plant_Leaf__TF24_floor_lambda_o__get, 1},
+    {"_plant_Leaf__TF24_floor_lambda_o__set", (DL_FUNC) &_plant_Leaf__TF24_floor_lambda_o__set, 2},
     {"_plant_Leaf__psi_crit__get", (DL_FUNC) &_plant_Leaf__psi_crit__get, 1},
     {"_plant_Leaf__stem_b__get", (DL_FUNC) &_plant_Leaf__stem_b__get, 1},
     {"_plant_Leaf__electron_transport___get", (DL_FUNC) &_plant_Leaf__electron_transport___get, 1},

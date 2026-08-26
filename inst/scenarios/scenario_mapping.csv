@@ -7,13 +7,13 @@ Root distribution,Extremely top heavy,trait,root_depth_shape_eta,0.05,shallow/su
 Root distribution,Extremely bottom heavy,trait,root_depth_shape_eta,0.8,deep roots (verify sign vs Q())
 Annual rainfall amplitude of variation,Equal to mean rainfall,driver,rainfall_amp_frac,1.0,sine amplitude = mean; trough clamped to 0 (extremely seasonal)
 Annual rainfall amplitude of variation,Half of mean rainfall,driver,rainfall_amp_frac,0.5,sine amplitude = half mean (seasonal)
-Ks,High,trait,K_s,2,default 1 x2; drives p_50/c/b/psi_crit via TF24_hyperpar (#548)
-Ks,Low,trait,K_s,0.5,default 1 /2; lower K_s -> more-negative p_50 via TF24_hyperpar (#548)
+Ks,High,trait,K_s,2,default 1 x2; drives stem_P50/stem_c/stem_b/psi_crit via TF24_hyperpar (#548)
+Ks,Low,trait,K_s,0.5,default 1 /2; lower K_s -> larger stem_P50 via TF24_hyperpar (#548)
 Vcmax_25,High,trait,vcmax_25,192,default 96 x2
 Vcmax_25,Low,trait,vcmax_25,48,default 96 /2
 LMA,High,trait,lma,0.3957582,default 0.1978791 x2
 LMA,Low,trait,lma,0.0989396,default 0.1978791 /2
-Wood density,High,trait,rho,1216,default 608 x2; drives g1_TF24 via TF24_hyperpar (#548)
-Wood density,Low,trait,rho,304,default 608 /2; lower rho -> higher g1_TF24 via TF24_hyperpar (#548)
+Wood density,High,trait,rho,1216,default 608 x2; drives TF24_cost_scale via TF24_hyperpar (#548)
+Wood density,Low,trait,rho,304,default 608 /2; lower rho -> higher TF24_cost_scale via TF24_hyperpar (#548)
 Huber value,High,trait,theta,4.2836e-4,default 1/4669 x2
 Huber value,Low,trait,theta,1.0709e-4,default 1/4669 /2

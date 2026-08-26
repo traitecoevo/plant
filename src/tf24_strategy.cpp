@@ -71,6 +71,7 @@ void TF24_Strategy::refresh_indices () {
   aux_idx_transpiration         = aux_index.at("transpiration");
   aux_idx_E_up                  = aux_index.at("E_up_");
   aux_idx_profit                = aux_index.at("profit");
+  aux_idx_shadow_cost           = aux_index.at("shadow_cost");
   aux_idx_stom_cond_CO2         = aux_index.at("stom_cond_CO2");
   aux_idx_assimilation          = aux_index.at("assimilation");
   // area_sapwood is only registered when collect_all_auxiliary is set.
@@ -171,6 +172,7 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   vars.set_aux(aux_idx_transpiration, leaf.transpiration_);
   vars.set_aux(aux_idx_E_up, leaf.E_up_);
   vars.set_aux(aux_idx_profit, leaf.profit_);
+  vars.set_aux(aux_idx_shadow_cost, leaf.shadow_cost());
   vars.set_aux(aux_idx_stom_cond_CO2, leaf.stom_cond_CO2_);
   vars.set_aux(aux_idx_assimilation, leaf.assim_colimited_);
 
@@ -577,10 +579,35 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   }
 
 
+  // ⚠️ THE CARBON THE PLANT ACTUALLY KEPT, WHICH IS NOT THE OBJECTIVE. `profit_`
+  // is what the leaf MAXIMISED, and on the TF24_floor curve that deducts two
+  // terms which are not the same kind of thing: the hydraulic cost is realised
+  // carbon (damaged tissue, capacity to rebuild) and belongs in a carbon budget,
+  // while `lambda_o * E` is a SHADOW PRICE -- the value of water in its best
+  // alternative use, which for a leaf is assimilation later. No carbon is lost
+  // when the plant pays it; it changes the aperture chosen and nothing else,
+  // which is what a Lagrange multiplier does. Feeding the objective straight into
+  // growth would tax the plant by carbon it never spent, and would show up as the
+  // strategy being penalised physiologically for holding water back. Measured on
+  // a 5 m plant at PPFD 1800 and theta 0.25, the objective understates the carbon
+  // kept by 2.3% at lambda_o = 1e4, 9.4% at 5e4, 15.4% at 1e5 and 22.6% at 2e5 --
+  // so the error is the same order as the effect being modelled.
+  //
+  // `shadow_cost()` is exactly 0.0 on every curve but TF24_floor, and 0.0 there
+  // at the default price, so this line is bit-neutral at TF24's defaults.
+  //
+  // ⚠️ AND NO SECOND CANOPY INTEGRAL IS NEEDED, which is why this is one term
+  // rather than a parallel `shadow_y` vector above. `shadow_cost()` reads the
+  // STORED `transpiration_`, and the DeepCrown branch overwrote `profit_` and
+  // `transpiration_` with integrals taken against the SAME weights `qi`. The
+  // shadow term is linear in E, so
+  //     int profit*q dz + lambda_o * int E*q dz  ==  int (A - Theta~)*q dz
+  // exactly. Move either assignment away from the other and this stops holding.
+  const double carbon_profit_ = leaf.profit_ + leaf.shadow_cost();
   //TODO: one point constant ratio and integral width for daylength
   // convert assimilation per leaf area per second (umol m^-2 s^-1) to canopy-level total yearly assimilation (mol yr^-1)
   // converts to canopy area, then years, then mols
-  const double assimilation_ = leaf.profit_ * area_leaf_* 60*60*12*365/1e6;
+  const double assimilation_ = carbon_profit_ * area_leaf_* 60*60*12*365/1e6;
   // const double assimilation_ = assimilation(environment, height, area_leaf_);
   const double respiration_ =
     respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
@@ -590,8 +617,15 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
 }
 
 // Base TF24: optimise the root-collar water potential from scratch each call.
+//
+// ⚠️ `optimise()`, NOT `find_root_collar_psi()`. The latter is a fixed shortcut,
+// hard-wired to `find_root_collar_psi_for<CostCurve::TF24>()`, and so does NOT
+// read the curve prepare_strategy() seated. Calling it with TF24_floor seated
+// would keep solving TF24 while `shadow_cost()` reported a price the solve never
+// saw -- worse than not switching at all. `optimise()` dispatches on the seated
+// curve and route and covers all eight curves on both routes.
 void TF24_Strategy::solve_leaf() {
-  leaf.find_root_collar_psi();
+  leaf.optimise();
 }
 
 // [eqn 16] Fraction of production allocated to reproduction
@@ -877,23 +911,52 @@ void TF24_Strategy::prepare_strategy() {
   // P50/(ln 2)^(1/c), psi_crit = P95), so handing over (P50, c) reproduces the
   // previous numbers exactly -- see issue #622.
   //
-  // ⚠️ Pass `p_50`, NOT `b`. They are different quantities and both are MPa, so
-  // swapping them compiles, runs, and silently describes a curve 1.1465x too
-  // wide at TF24's defaults. The root curve needs the conversion the other way,
-  // because root_b is a literal rather than derived from a P50.
-  const double root_p_50 =
+  // ⚠️ Pass `stem_P50`, NOT `stem_b`. They are different quantities and both are
+  // MPa, so swapping them compiles, runs, and silently describes a curve 1.1465x
+  // too wide at TF24's defaults. Since #634 the two names match phylloptim's,
+  // which is what makes that mistake visible at the call site.
+  //
+  // ⚠️ THE ROOT SIDE IS THE ONE ASYMMETRY LEFT, and it is not a naming one: this
+  // struct exposes the Weibull SCALE (`root_b`) where phylloptim takes the 50%
+  // QUANTILE, so the conversion below is required. `root_b` and `root_P50` are
+  // different parameters -- P50 = b*(ln 2)^(1/c) -- so there is nothing to rename
+  // here; which of the pair is settable is an interface question of its own.
+  const double root_P50 =
     pars.root_b * std::pow(-std::log(1 - 50.0 / 100.0), 1 / pars.root_c);
-  leaf = Leaf(pars.vcmax_25, pars.c, pars.p_50,
-              pars.root_c, root_p_50,
-              pars.beta2, pars.jmax_25, pars.a,
+  leaf = Leaf(pars.vcmax_25, pars.stem_c, pars.stem_P50,
+              pars.root_c, root_P50,
+              pars.TF24_beta2, pars.jmax_25, pars.a,
               pars.curv_fact_elec_trans, pars.curv_fact_colim,
               control.GSS_tol_abs, control.vulnerability_curve_ncontrol,
-              control.ci_abs_tol, control.ci_niter, pars.g1_TF24);
+              control.ci_abs_tol, control.ci_niter, pars.TF24_cost_scale);
   // Penman-Monteith leaf energy balance (#523): enable per pars (default off,
   // backward-compatible) and pass the leaf-dimension trait. Wind speed is a
   // per-timestep driver, set from the environment before each set_physiology.
   leaf.use_energy_balance_ = (pars.use_energy_balance != 0.0);
   leaf.d_ = pars.d;
+  // --- the cost curve (#634) ------------------------------------------------
+  // TF24 and TF24f run on phylloptim's TF24_floor curve: TF24's hydraulic cost
+  // plus a price of water that does not vanish as transpiration does. At
+  // `lambda_o = 0`, which is the default, that curve IS TF24 bit-for-bit at
+  // identical parameter values -- so this is a strict generalisation and every
+  // existing result is unchanged.
+  //
+  // ⚠️ SET THE PRICE BEFORE SEATING IS NOT REQUIRED, BUT PASSING IT IS.
+  // phylloptim refuses TF24_floor with an unset (NA) price, deliberately: at zero
+  // the curve is TF24, so a caller who seated it and never named a price would be
+  // running the production model under a new name. plant's parameter therefore
+  // has an explicit 0.0 default and is assigned here unconditionally -- never
+  // left to phylloptim's NA sentinel.
+  //
+  // ⚠️ THE SEATED CURVE IS THE ONLY PLACE THIS IS DECIDED. Every collar-solve
+  // entry point in this repo goes through `Leaf::optimise()` or a
+  // `Leaf::with_curve` dispatch on `leaf.cost_curve_`; nothing names a curve at
+  // its call site. `find_root_collar_psi()`, `evaluate_root_collar_psi()` and
+  // `dprofit_droot_collar_psi()` are phylloptim's TF24-hardwired shortcuts and
+  // must NOT be reintroduced here -- they would solve TF24 while `shadow_cost()`
+  // reported a price the solve never saw.
+  leaf.TF24_floor_lambda_o = pars.TF24_floor_lambda_o;
+  leaf.set_model(Leaf::CostCurve::TF24_floor, /* collar route */ true);
 }
 
 TF24_Strategy::ptr make_strategy_ptr(TF24_Strategy s) {

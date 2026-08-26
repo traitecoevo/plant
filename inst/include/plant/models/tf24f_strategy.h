@@ -57,7 +57,15 @@ public:
   // Override the leaf solve: instead of optimising the root-collar psi, evaluate
   // the leaf at the tracked state and finite-difference the profit gradient
   // (left in dprofit_dpsi_ for compute_rates to turn into the state's rate).
+  //
+  // Resolves the seated cost curve once (see the definition) and hands the whole
+  // body to solve_leaf_for<K>, so every phylloptim call inside it differentiates
+  // and evaluates the SAME model.
   void solve_leaf();
+  // The tracked solve for one cost curve. Defined in the .cpp and instantiated
+  // only through `solve_leaf`'s `with_curve` dispatch, which is why it needs no
+  // explicit instantiation list: the lambda there names every arm.
+  template <Leaf::CostCurve K> void solve_leaf_for();
 
   // Seed the tracked state at its optimum for a newly introduced individual, so
   // gradient ascent starts at the optimum (no birth transient / no climb from 0,
@@ -84,8 +92,9 @@ public:
   // establishment_probability), where the tracked state has not been read yet.
   double tracked_root_psi_ = 0.0;
   double dprofit_dpsi_ = 0.0;
-  // When true, solve_leaf() runs the base optimiser (find_root_collar_psi) rather
-  // than the tracked evaluation; used by set_initial_states to read the optimum.
+  // When true, solve_leaf() runs the base optimiser (Leaf::optimise on the seated
+  // curve) rather than the tracked evaluation; used by set_initial_states to read
+  // the optimum.
   bool initializing_ = false;
 };
 

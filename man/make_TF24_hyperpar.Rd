@@ -47,9 +47,9 @@ make_TF24f_hyperpar(...)
 
 \item{B_dI2}{Scaling slope for wood density in intrinsic mortality [dimensionless]}
 
-\item{B_hks1}{Intercept for the g1_TF24 ~ rho relationship at rho_0 [dimensionless]}
+\item{B_hks1}{Intercept for the TF24_cost_scale ~ rho relationship at rho_0 [dimensionless]}
 
-\item{B_hks2}{Scaling slope for rho in the g1_TF24 relationship [dimensionless]}
+\item{B_hks2}{Scaling slope for rho in the TF24_cost_scale relationship [dimensionless]}
 
 \item{B_ks1}{Rate of sapwood turnover at rho_0 [/yr]}
 
@@ -79,9 +79,9 @@ make_TF24f_hyperpar(...)
 
 \item{B_Hv2}{Scaling slope for K_s in p50 [dimensionless]}
 
-\item{B_c1}{Shape parameter c of the vulnerability curve at p_50 = 0 [dimensionless]}
+\item{B_c1}{Shape parameter stem_c of the vulnerability curve at stem_P50 = 0 [dimensionless]}
 
-\item{B_c2}{Scaling slope for p_50 in the vulnerability-curve shape parameter c [dimensionless]}
+\item{B_c2}{Scaling slope for stem_P50 in the vulnerability-curve shape parameter stem_c [dimensionless]}
 
 \item{...}{Arguments passed to \code{\link{make_TF24_hyperpar}}}
 }

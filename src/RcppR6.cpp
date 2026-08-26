@@ -8,8 +8,8 @@ SEXP RootNetwork__ctor() {
 
 
 // [[Rcpp::export]]
-plant::Leaf Leaf__ctor(double vcmax_25, double c, double p_50, double root_c, double root_p_50, double beta2, double jmax_25, double a, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter, double g1_TF24) {
-  return plant::Leaf(vcmax_25, c, p_50, root_c, root_p_50, beta2, jmax_25, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, g1_TF24);
+plant::Leaf Leaf__ctor(double vcmax_25, double stem_c, double stem_P50, double root_c, double root_P50, double TF24_beta2, double jmax_25, double a, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter, double TF24_cost_scale) {
+  return plant::Leaf(vcmax_25, stem_c, stem_P50, root_c, root_P50, TF24_beta2, jmax_25, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, TF24_cost_scale);
 }
 // [[Rcpp::export]]
 void Leaf__initialize_integrator(plant::RcppR6::RcppR6<plant::Leaf> obj_, int integration_rule, double integration_tol) {
@@ -120,6 +120,10 @@ void Leaf__optimise(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   obj_->optimise();
 }
 // [[Rcpp::export]]
+double Leaf__shadow_cost(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->shadow_cost();
+}
+// [[Rcpp::export]]
 double Leaf__medlyn_model_gs(plant::RcppR6::RcppR6<plant::Leaf> obj_, double assim_colimited_) {
   return obj_->medlyn_model_gs(assim_colimited_);
 }
@@ -201,6 +205,15 @@ double Leaf__lambda___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
 // [[Rcpp::export]]
 void Leaf__lambda___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
   obj_->CF77_lambda_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__TF24_floor_lambda_o__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->TF24_floor_lambda_o;
+}
+// [[Rcpp::export]]
+void Leaf__TF24_floor_lambda_o__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->TF24_floor_lambda_o = value;
 }
 
 // [[Rcpp::export]]
