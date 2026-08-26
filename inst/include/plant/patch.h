@@ -75,7 +75,7 @@ public:
   void introduce_new_node(size_t species_index);
   void introduce_new_nodes(const std::vector<size_t>& species_index);
 
-  // Apply one non-introduction scheduled event (issue #522). Called between
+  // Apply one non-introduction scheduled event (issue #628). Called between
   // solver legs, so it may change state and ODE size but must not move the
   // clock -- the caller re-reads both with set_state_from_system(). An action
   // is free to reach the answer however it likes, including by integrating its
@@ -84,7 +84,7 @@ public:
   EventRecord apply_event(const NodeScheduleEvent& event);
 
   // Scale every selected node's density by phi, and report how many nodes were
-  // touched. Shared by thinning and heat damage, which differ only in how phi
+  // touched. Shared by harvest and climate extremes, which differ only in how phi
   // is chosen per node -- so there is one place where a discrete removal meets
   // the state, and one place to get it right.
   //
@@ -863,78 +863,84 @@ EventRecord Patch<T,E>::apply_event(const NodeScheduleEvent& event) {
     util::stop("Node introductions are applied via introduce_new_nodes()");
     break;
 
-  case EventType::RainfallPulse: {
-    // Water only: nothing about the vegetation changes, so the light
-    // environment is untouched and the nodes keep their state. The rates are
-    // stale afterwards, but the solver recomputes them when it re-reads the
-    // system (Patch::ode_rates computes), so there is nothing to do here.
-    rec.applied = environment.add_water_pulse(event.params.at(0));
+  case EventType::ResourcePulse: {
+    // The environment only: no individual changes, so the competition profile
+    // is untouched and the nodes keep their state. The rates are stale
+    // afterwards, but the solver recomputes them when it re-reads the system
+    // (Patch::ode_rates computes), so there is nothing to do here.
+    if (event.target_index >= environment.n_resources()) {
+      util::stop("Resource " + util::to_string(event.target_index + 1) +
+                 " does not exist: this environment has " +
+                 util::to_string(environment.n_resources()) + " resources");
+    }
+    rec.applied = environment.add_resource_pulse(event.target_index,
+                                                 event.params.at(0));
     break;
   }
 
-  case EventType::Thinning: {
-    // Remove a fraction of the individuals in a height band. One rule covers
-    // the cases that matter: a whole-stand knock-down (the default band), a
-    // harvest of everything above a size, and the size-class thinning that the
-    // restoration work asks for (#627).
+  case EventType::Harvest: {
+    // Remove a fraction of the individuals in a size band. One rule covers the
+    // cases that matter: a whole-population removal (the default band), taking
+    // everything above a size, and the size-selective removal the restoration
+    // work asks for (#627).
     //
-    // Individuals are removed rather than shortened. Cutting heights instead
-    // would have to keep them in decreasing order, which Species'
-    // competition integral relies on, and the unordered fallback exists only
-    // on the height coordinate. Partial biomass removal -- coppicing, crown
-    // loss -- is a real and different thing, and needs that question answered.
+    // Individuals are removed rather than shrunk. Changing sizes instead would
+    // have to keep them in decreasing order, which Species' competition
+    // integral relies on, and the unordered fallback exists only on the size
+    // coordinate. Removing part of an individual rather than the whole of it
+    // is a real and different thing, and needs that question answered first.
     const double fraction = event.params.at(0);
-    const double height_min = event.params.at(1);
-    const double height_max = event.params.at(2);
+    const double size_min = event.params.at(1);
+    const double size_max = event.params.at(2);
     if (!(fraction >= 0.0) || fraction >= 1.0) {
-      util::stop("Thinning fraction must be in [0, 1)");
+      util::stop("Harvest fraction must be in [0, 1)");
     }
     const double phi = 1.0 - fraction;
     size_t n_affected = 0;
     for (size_t i : targets) {
-      n_affected += scale_node_densities(i, [&](double height) {
-        return (height >= height_min && height <= height_max) ? phi : 1.0;
+      n_affected += scale_node_densities(i, [&](double size) {
+        return (size >= size_min && size <= size_max) ? phi : 1.0;
       });
     }
     rec.applied = {fraction, static_cast<double>(n_affected)};
     break;
   }
 
-  case EventType::HeatDamage: {
-    // A worked example of the sub-integration pattern, not defensible thermal
-    // biology. The event has a nominal duration in the world; the solver's
-    // clock does not move across it, so the action steps its own damage
-    // variable over that duration under a simple diurnal cycle and hands back
-    // a single survival fraction.
+  case EventType::ClimateExtreme: {
+    // An episode of extreme conditions -- heat, cold, salinity, whatever the
+    // model's `intensity` means -- that kills in proportion to the dose
+    // accumulated above a threshold.
     //
-    // What it is standing in for is the leaf thermal damage/acclimation state
-    // (#566). Until that exists there is nothing for a temperature to act on:
-    // this model runs its leaf at a fixed 25 C, so the honest crude version is
-    // a mortality that rises with heat exposure, and the hook is the part
-    // worth keeping.
-    const double t_peak = event.params.at(0);
+    // This is a worked example of the sub-integration pattern rather than
+    // defensible physiology. The event has a nominal duration in the world;
+    // the solver's clock does not move across it, so the action steps its own
+    // damage variable over that duration under a simple daily cycle and hands
+    // back a single survival fraction. The hook is the part worth keeping: a
+    // model with a real damage state (#566 for TF24's leaf) plugs in here, and
+    // until one exists a dose-dependent mortality is the honest crude stand-in.
+    const double intensity = event.params.at(0);
     const double duration = event.params.at(1);
-    const double t_crit = event.params.at(2);
+    const double threshold = event.params.at(2);
     const double sensitivity = event.params.at(3);
     if (!util::is_finite(duration) || duration < 0.0) {
-      util::stop("Heat damage duration must be finite and non-negative");
+      util::stop("Climate extreme duration must be finite and non-negative");
     }
 
-    // Half-hourly sub-steps through a sinusoidal daily cycle whose maximum is
-    // t_peak and whose amplitude is the excess over t_crit. Damage accrues
-    // only above t_crit, so a mild event accrues none at all.
+    // Half-hourly sub-steps through a sinusoidal daily cycle peaking at
+    // `intensity`, with amplitude set by its excess over `threshold`. Dose
+    // accrues only above the threshold, so a mild episode accrues none at all.
     const double dt_days = 0.5 / 24.0;
     const size_t n_steps =
       static_cast<size_t>(std::max(1.0, std::ceil(duration * 365.0 / dt_days)));
-    const double amplitude = std::max(0.0, t_peak - t_crit);
+    const double amplitude = std::max(0.0, intensity - threshold);
     double damage = 0.0;
     for (size_t k = 0; k < n_steps; ++k) {
       const double day_fraction =
         std::fmod(static_cast<double>(k) * dt_days, 1.0);
-      // Peak in the afternoon; the trough sits one amplitude below t_crit.
-      const double temperature =
-        t_crit + amplitude * (2.0 * std::sin(M_PI * day_fraction) - 1.0);
-      const double excess = std::max(0.0, temperature - t_crit);
+      // Peak mid-cycle; the trough sits one amplitude below the threshold.
+      const double level =
+        threshold + amplitude * (2.0 * std::sin(M_PI * day_fraction) - 1.0);
+      const double excess = std::max(0.0, level - threshold);
       damage += sensitivity * excess * dt_days / 365.0;
     }
 
@@ -950,7 +956,7 @@ EventRecord Patch<T,E>::apply_event(const NodeScheduleEvent& event) {
 
   // Anything that changed the vegetation changes the light profile too, and
   // every cohort's rates are computed against it.
-  if (event.type != EventType::RainfallPulse) {
+  if (event.type != EventType::ResourcePulse) {
     compute_environment(false);
   }
   return rec;

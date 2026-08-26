@@ -10,7 +10,7 @@ test_that("events() builds an empty schedule", {
 test_that("constructors are vectorised over time and parameters", {
   ev <- rainfall_pulse(time = c(1, 2, 3), depth = c(0.01, 0.02, 0.03))
   expect_equal(ev$time, c(1, 2, 3))
-  expect_equal(ev$type, rep("rainfall_pulse", 3))
+  expect_equal(ev$type, rep("resource_pulse", 3))
   expect_equal(ev$params, list(0.01, 0.02, 0.03))
 
   ## A scalar parameter is recycled against the times.
@@ -24,39 +24,40 @@ test_that("constructors are vectorised over time and parameters", {
 
 test_that("events() concatenates and sorts by time", {
   ev <- events(
-    partial_disturbance(time = 40, fraction = 0.3),
+    harvest(time = 40, fraction = 0.3),
     rainfall_pulse(time = c(1.5, 60), depth = 0.01),
-    harvest(time = 20, fraction = 0.5, height_min = 10)
+    harvest(time = 20, fraction = 0.5, size_min = 10)
   )
   expect_equal(ev$time, c(1.5, 20, 40, 60))
-  ## harvest() and partial_disturbance() are thinning() under names that read
-  ## better at their own call sites; they are one action, not three.
-  expect_equal(ev$type, c("rainfall_pulse", "thinning", "thinning",
-                          "rainfall_pulse"))
+  ## rainfall_pulse() is the TF24-flavoured name for a resource pulse: the
+  ## generic layer knows about pools, not about water.
+  expect_equal(ev$type, c("resource_pulse", "harvest", "harvest",
+                          "resource_pulse"))
   ## Each event carries its own type's parameters, in constructor order:
-  ## fraction, height_min, height_max.
+  ## fraction, size_min, size_max.
   expect_equal(ev$params[[2]], c(0.5, 10, Inf))
   expect_equal(ev$params[[3]], c(0.3, 0, Inf))
-  ## A pulse acts on the abiotic state; thinning defaults to the whole patch.
+  ## A pulse acts on the environment; harvest defaults to the whole patch.
   expect_equal(ev$target, c("environment", "patch", "patch", "environment"))
 })
 
 test_that("a target is validated against what the type can accept", {
-  ## Soil water is not owned by any one species, so a pulse cannot be narrowed.
-  expect_error(Events(time = 1, type = "rainfall_pulse", target = "species",
+  ## A resource pool belongs to the environment, not to any one species, so a
+  ## pulse cannot be narrowed to one.
+  expect_error(Events(time = 1, type = "resource_pulse", target = "species",
                       target_index = 1L, params = list(0.01)),
                "cannot be aimed at a single species")
   ## An introduction must say which species is being introduced.
   expect_error(Events(time = 1, type = "node_introduction", target = "patch",
                       target_index = 1L, params = list(numeric(0))),
                "must name the species")
-  expect_error(Events(time = 1, type = "thinning", target = "nowhere",
+  expect_error(Events(time = 1, type = "harvest", target = "nowhere",
                       target_index = 1L, params = list(c(0.5, 0, Inf))),
                "Unknown event target 'nowhere'")
-  ## Thinning may be aimed either way.
-  expect_equal(thinning(time = 1, fraction = 0.5)$target, "patch")
-  expect_equal(thinning(time = 1, fraction = 0.5, species = 2)$target, "species")
-  expect_equal(thinning(time = 1, fraction = 0.5, species = 2)$target_index, 2L)
+  ## Harvest may be aimed either way.
+  expect_equal(harvest(time = 1, fraction = 0.5)$target, "patch")
+  expect_equal(harvest(time = 1, fraction = 0.5, species = 2)$target, "species")
+  expect_equal(harvest(time = 1, fraction = 0.5, species = 2)$target_index, 2L)
 })
 
 test_that("Events validation rejects malformed input", {
@@ -66,14 +67,14 @@ test_that("Events validation rejects malformed input", {
   ## The message names the types that do exist, so the fix is visible.
   expect_error(Events(time = 1, type = "not_a_type", target = "environment", target_index = 1L,
                       params = list(numeric(0))),
-               "rainfall_pulse")
-  expect_error(Events(time = 1, type = "rainfall_pulse", target = "environment", target_index = 1L,
+               "resource_pulse")
+  expect_error(Events(time = 1, type = "resource_pulse", target = "environment", target_index = 1L,
                       params = list(c(1, 2))),
                "expects 1 parameters but has 2")
-  expect_error(Events(time = -1, type = "rainfall_pulse", target = "environment", target_index = 1L,
+  expect_error(Events(time = -1, type = "resource_pulse", target = "environment", target_index = 1L,
                       params = list(1)),
                "non-finite or negative time")
-  expect_error(Events(time = c(1, 2), type = "rainfall_pulse",
+  expect_error(Events(time = c(1, 2), type = "resource_pulse",
                       target = "environment", target_index = 1L, params = list(1)),
                "same length")
 })
@@ -99,9 +100,9 @@ test_that("events_default() is the schedule a run gets with no events", {
 
   ## It composes: an Events object can be fed straight back into events(), so
   ## adding to an ordinary run does not mean rebuilding its schedule by hand.
-  combined <- events(ev, thinning(time = 10, fraction = 0.5))
+  combined <- events(ev, harvest(time = 10, fraction = 0.5))
   expect_equal(length(combined$time), length(ev$time) + 1)
-  expect_equal(sum(combined$type == "thinning"), 1)
+  expect_equal(sum(combined$type == "harvest"), 1)
   ## Still sorted, with the new event in its place rather than appended.
   expect_false(is.unsorted(combined$time))
 })
@@ -165,7 +166,7 @@ test_that("a schedule round-trips through the events format", {
   expect_identical(canon(back), canon(ev))
 })
 
-test_that("a rainfall pulse conserves water and respects layer capacity", {
+test_that("a resource pulse conserves mass and respects pool capacity", {
   env <- Environment("TF24")
   dz <- env$depth / env$get_soil_number_of_depths()
   sat <- env$soil_moist_sat
@@ -210,14 +211,16 @@ test_that("a pulse into a saturated layer is shed entirely", {
   expect_equal(flux[[5]], 0.02)  # all of it runs off
 })
 
-test_that("a rainfall pulse is refused by environments without soil water", {
+test_that("a resource pulse is refused by environments with no pools", {
   ## FF16 carries no soil state, so a pulse aimed at it is a modelling mistake
   ## and should say so rather than be quietly dropped. Tested through a run,
   ## which is the path a user actually takes.
   p <- add_strategies(scm_base_parameters("FF16"), trait_matrix(1, "lma"))
   ev <- events(node_introductions(p), rainfall_pulse(time = 1, depth = 0.01))
   scm <- SCM("FF16", "FF16_Env")(p, Environment("FF16"), ev, control())
-  expect_error(scm$run(), "no soil water state")
+  ## FF16 declares no resources at all, so the patch catches it before the
+  ## environment is even asked, and says how many there are.
+  expect_error(scm$run(), "this environment has 0 resources")
 
   expect_error(Environment("TF24")$add_water_pulse(-1),
                "finite and non-negative")
@@ -307,47 +310,47 @@ total_density <- function(scm) {
   sum(exp(scm$patch$species[[1]]$log_densities))
 }
 
-test_that("thinning removes a fraction of the standing density", {
+test_that("harvest removes a fraction of the standing density", {
   base <- ff16_run()
   thinned <- ff16_run(function(p) {
-    events(node_introductions(p), thinning(time = 10, fraction = 0.5))
+    events(node_introductions(p), harvest(time = 10, fraction = 0.5))
   })
 
-  ## Density is the thing thinning acts on, and nothing puts individuals back
+  ## Density is the thing harvest acts on, and nothing puts individuals back
   ## into an existing cohort, so the removal is still visible at the end of the
   ## run. (Fitness is not the thing to test: at these patch ages it is ~1e-12,
-  ## and thinning also relieves competition, so the two effects fight.)
+  ## and harvest also relieves competition, so the two effects fight.)
   expect_lt(total_density(thinned), total_density(base))
 
   ## And the removal is recorded, with what was asked and what was done.
   log <- thinned$event_log
   expect_equal(length(log$time), 1)
   expect_equal(log$time, 10)
-  expect_equal(log$type, "thinning")
+  expect_equal(log$type, "harvest")
   expect_equal(log$target, "patch")
   expect_equal(log$requested[[1]], c(0.5, 0, Inf))
   expect_equal(log$applied[[1]][[1]], 0.5)
   expect_gt(log$applied[[1]][[2]], 0)   # some nodes were actually touched
 })
 
-test_that("thinning respects its height band", {
+test_that("harvest respects its size band", {
   ## A band above every individual present takes nothing, so the run is
   ## untouched -- but the event still happened, and is still recorded.
   base <- ff16_run()
   spared <- ff16_run(function(p) {
     events(node_introductions(p),
-           thinning(time = 10, fraction = 0.9, height_min = 1e6))
+           harvest(time = 10, fraction = 0.9, size_min = 1e6))
   })
   expect_equal(spared$net_reproduction_ratios, base$net_reproduction_ratios)
   expect_equal(spared$event_log$applied[[1]][[2]], 0)
 
   ## A band that covers everything takes more than one that covers the top.
   all_sizes <- ff16_run(function(p) {
-    events(node_introductions(p), thinning(time = 10, fraction = 0.5))
+    events(node_introductions(p), harvest(time = 10, fraction = 0.5))
   })
   tops_only <- ff16_run(function(p) {
     events(node_introductions(p),
-           thinning(time = 10, fraction = 0.5, height_min = 5))
+           harvest(time = 10, fraction = 0.5, size_min = 5))
   })
   expect_gt(all_sizes$event_log$applied[[1]][[2]],
             tops_only$event_log$applied[[1]][[2]])
@@ -357,30 +360,30 @@ test_that("thinning respects its height band", {
 test_that("removing an entire cohort is refused rather than silently infinite", {
   expect_error(
     ff16_run(function(p) {
-      events(node_introductions(p), thinning(time = 10, fraction = 1))
+      events(node_introductions(p), harvest(time = 10, fraction = 1))
     }),
-    "Thinning fraction must be in")
+    "Harvest fraction must be in")
 })
 
-test_that("heat damage accrues only above its critical temperature", {
+test_that("a climate extreme accrues dose only above its threshold", {
   base <- ff16_run()
 
   ## Below the threshold there is nothing to accrue, so the event is a no-op
   ## with a recorded zero rather than an unrecorded nothing.
   mild <- ff16_run(function(p) {
     events(node_introductions(p),
-           heat_damage(time = 10, temperature = 30, temperature_crit = 40))
+           climate_extreme(time = 10, intensity = 30, threshold = 40))
   })
   expect_equal(mild$event_log$applied[[1]][[1]], 0)
   expect_equal(mild$net_reproduction_ratios, base$net_reproduction_ratios)
 
-  ## Above it, damage rises with both peak temperature and duration -- which is
+  ## Above it, damage rises with both peak intensity and duration -- which is
   ## the sub-integration doing its work, since duration enters nowhere else.
-  damage <- function(temperature, duration) {
+  damage <- function(intensity, duration) {
     scm <- ff16_run(function(p) {
       events(node_introductions(p),
-             heat_damage(time = 10, temperature = temperature,
-                         duration = duration, temperature_crit = 40))
+             climate_extreme(time = 10, intensity = intensity,
+                             duration = duration, threshold = 40))
     })
     scm$event_log$applied[[1]][[1]]
   }
@@ -391,7 +394,7 @@ test_that("heat damage accrues only above its critical temperature", {
   ## The clock does not move across the event, however long it nominally lasts.
   long <- ff16_run(function(p) {
     events(node_introductions(p),
-           heat_damage(time = 10, temperature = 45, duration = 1))
+           climate_extreme(time = 10, intensity = 45, duration = 1))
   })
   expect_equal(long$time, base$time)
 })
@@ -399,13 +402,13 @@ test_that("heat damage accrues only above its critical temperature", {
 test_that("the event log records every applied event, in order", {
   scm <- ff16_run(function(p) {
     events(node_introductions(p),
-           thinning(time = 5, fraction = 0.2),
-           heat_damage(time = 12, temperature = 45),
-           thinning(time = 15, fraction = 0.1, height_min = 2))
+           harvest(time = 5, fraction = 0.2),
+           climate_extreme(time = 12, intensity = 45),
+           harvest(time = 15, fraction = 0.1, size_min = 2))
   })
   log <- scm$event_log
   expect_equal(log$time, c(5, 12, 15))
-  expect_equal(log$type, c("thinning", "heat_damage", "thinning"))
+  expect_equal(log$type, c("harvest", "climate_extreme", "harvest"))
   expect_equal(length(log$requested), 3)
   expect_equal(length(log$applied), 3)
 

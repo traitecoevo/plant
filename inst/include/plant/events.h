@@ -10,7 +10,7 @@
 
 namespace plant {
 
-// Name <-> tag for the R-facing event types (issue #522). The strings are the
+// Name <-> tag for the R-facing event types (issue #628). The strings are the
 // stable interface: they appear in `events()` output and in saved runs, so
 // treat them as an API and add to them rather than renaming them.
 EventType event_type_from_string(const std::string& name);
@@ -24,9 +24,9 @@ std::string event_target_to_string(EventTarget target);
 size_t event_type_n_params(EventType type);
 
 // The target a type acts on when none is named, and whether it will accept
-// being narrowed to a single species. Thinning and heat damage will (thin one
-// species, or the whole stand); a rainfall pulse will not, because soil water
-// is not owned by any one species.
+// being narrowed to a single species. Harvest and climate extremes will (act on
+// one species, or on the whole patch); a resource pulse will not, because a
+// resource pool belongs to the environment rather than to any one species.
 EventTarget event_type_default_target(EventType type);
 bool event_type_accepts_species(EventType type);
 
@@ -52,7 +52,8 @@ public:
   std::vector<std::string> type;
   // What each event acts on: "patch", "environment" or "species".
   std::vector<std::string> target;
-  // 1-based, matching R. Read only when the target is "species".
+  // 1-based, matching R. Which species, or which resource, depending on the
+  // target; unread when the target is the whole patch.
   std::vector<size_t> target_index;
   // Per-type payload; see event_type_n_params().
   std::vector<std::vector<double> > params;
@@ -62,9 +63,9 @@ public:
 // (issue #628).
 //
 // The two are routinely different and the difference is the interesting part:
-// a rainfall pulse is capped at what the surface layer can hold, so the depth
-// that reaches the soil is often less than the depth requested, and thinning a
-// size class removes whatever was in that class rather than a fixed number.
+// a resource pulse is capped at what the pool can hold, so the amount that
+// lands is often less than the amount requested, and harvesting a size class
+// removes whatever was in that class rather than a fixed number.
 // Without this the shortfall is only inferable from an accumulator, which is
 // no way to answer "what did this run do".
 class EventLog {
@@ -80,7 +81,7 @@ public:
   // What the event asked for: the event's own params, verbatim.
   std::vector<std::vector<double> > requested;
   // What it achieved. Per-type, and documented by the action that fills it:
-  // a pulse reports {accepted, shed}; thinning and heat damage report
+  // a pulse reports {accepted, shed}; harvest and climate extremes report
   // {fraction_applied, nodes_affected}.
   std::vector<std::vector<double> > applied;
 };

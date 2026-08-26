@@ -518,17 +518,41 @@ public:
   // TODO: I wonder if this needs a better name? See also environment.h
   Internals r_internals() const { return vars; }
 
+  // The generic resource-pulse hook (#628): TF24's resources are its soil
+  // layers, so a pulse is a depth of water added to one of them. Layer 0 is
+  // rain; a deeper layer is irrigation, or a water table rising into the
+  // profile. Either way the water has entered the column, so it counts as
+  // input for the purposes of the water balance.
+  std::vector<double> add_resource_pulse(size_t layer, double amount) {
+    if (layer >= static_cast<size_t>(soil_number_of_depths)) {
+      util::stop("Soil layer " + util::to_string(layer + 1) +
+                 " does not exist: this environment has " +
+                 util::to_string(soil_number_of_depths) + " layers");
+    }
+    return add_water_pulse_to_layer(layer, amount);
+  }
+
   // Apply an instantaneous rainfall pulse of `depth` metres to the surface
-  // layer (issue #522).
-  //
+  // layer. The model-specific name for the generic action above, kept because
+  // rain onto the surface is what this is for nine times in ten.
+  std::vector<double> add_water_pulse(double depth) {
+    return add_resource_pulse(0, depth);
+  }
+
+  // R interface: layers are 1-based on that side, as everywhere else.
+  std::vector<double> r_add_resource_pulse(util::index layer, double amount) {
+    return add_resource_pulse(
+      layer.check_bounds(static_cast<size_t>(soil_number_of_depths)), amount);
+  }
+
   // The cap is the whole substance of this function. A pulse is applied
   // *between* solver legs, so unlike the continuous rates it has no error
   // estimate and no step rejection standing behind it: nothing but this line
-  // stops it driving layer 0 past saturation, where the retention and
-  // conductivity curves are meaningless. Layer 0 can accept
-  // (theta_sat - theta_0) * dz[0] metres, and a realistic dryland event
-  // (~13 mm) already exceeds that from a moderately wet start, so the excess
-  // is real and frequent rather than a corner case. A hard min() is fine here
+  // stops it driving the layer past saturation, where the retention and
+  // conductivity curves are meaningless. A layer can accept
+  // (theta_sat - theta) * dz metres, and a realistic dryland event (~13 mm)
+  // already exceeds that from a moderately wet start, so the excess is real
+  // and frequent rather than a corner case. A hard min() is fine here
   // precisely because we are outside the integrator -- the "no kinks in the
   // rates" rule applies to continuous derivatives, not to a jump.
   //
@@ -537,18 +561,18 @@ public:
   // for continuous forcing, so applying it to an instantaneous depth would
   // double-count against the capacity cap. Whether a pulse should be filtered
   // that way as well is the first open question on this action.
-  std::vector<double> add_water_pulse(double depth) {
+  std::vector<double> add_water_pulse_to_layer(size_t layer, double depth) {
     if (!util::is_finite(depth) || depth < 0.0) {
-      util::stop("Rainfall pulse depth must be finite and non-negative");
+      util::stop("Water pulse depth must be finite and non-negative");
     }
-    const double theta_0 = vars.state(0);
-    const double sat_0 =
-      soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, 0);
-    const double capacity = std::max(0.0, (sat_0 - theta_0) * dz[0]);
+    const double theta = vars.state(layer);
+    const double sat =
+      soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, layer);
+    const double capacity = std::max(0.0, (sat - theta) * dz[layer]);
     const double accepted = std::min(depth, capacity);
     const double excess = depth - accepted;
 
-    vars.set_state(0, theta_0 + accepted / dz[0]);
+    vars.set_state(layer, theta + accepted / dz[layer]);
     // Direct state increments, not rates: the trailing slots are integrated
     // from their rates during a leg, and a pulse happens between legs.
     const size_t n = soil_number_of_depths;

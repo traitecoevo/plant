@@ -4,11 +4,9 @@
 \alias{events}
 \alias{events_default}
 \alias{node_introductions}
-\alias{rainfall_pulse}
-\alias{thinning}
+\alias{resource_pulse}
 \alias{harvest}
-\alias{partial_disturbance}
-\alias{heat_damage}
+\alias{climate_extreme}
 \title{Discrete events applied during an SCM run.}
 \usage{
 events(...)
@@ -17,19 +15,15 @@ events_default(p)
 
 node_introductions(p)
 
-rainfall_pulse(time, depth)
+resource_pulse(time, resource, amount)
 
-thinning(time, fraction, height_min = 0, height_max = Inf, species = NULL)
+harvest(time, fraction, size_min = 0, size_max = Inf, species = NULL)
 
-harvest(time, fraction, height_min = 0, species = NULL)
-
-partial_disturbance(time, fraction, species = NULL)
-
-heat_damage(
+climate_extreme(
   time,
-  temperature,
+  intensity,
   duration = 14/365,
-  temperature_crit = 40,
+  threshold = 40,
   sensitivity = 1,
   species = NULL
 )
@@ -38,35 +32,42 @@ heat_damage(
 \item{...}{For \code{events}, objects returned by the individual event
 constructors, or whole \code{Events} objects; these are concatenated. Each
 constructor is vectorised over its arguments, so a whole series of
-rainfall pulses is one call.}
+pulses is one call.}
 
 \item{p}{Parameters object, whose \code{node_schedule_times} supply the
 introduction times.}
 
 \item{time}{Event time(s), in years of patch age.}
 
-\item{depth}{Depth of water delivered, in m (so 13 mm is \code{0.013}).
-What the surface layer cannot hold is recorded as runoff rather than
-forced in; see \code{scm$event_log}.}
+\item{resource}{Index of the environment's resource pool to add to. What a
+resource is depends on the environment: TF24's are its soil layers, so
+\code{resource = 1} is the surface. See \code{\link{rainfall_pulse}} for
+that case under a name that reads correctly.}
+
+\item{amount}{How much to add, in whatever the environment measures that
+resource in. What the pool cannot hold is shed rather than forced in;
+\code{scm$event_log} reports how much of each.}
 
 \item{fraction}{Fraction of individuals removed, in \code{[0, 1)}.}
 
-\item{height_min, height_max}{Only individuals whose height falls in this
-band are removed (m). The defaults take the whole stand.}
+\item{size_min, size_max}{Only individuals whose size falls in this band are
+removed. Size is the individual's size coordinate — height, for plant's
+models. The defaults take the whole population.}
 
 \item{species}{Index of the species to act on; \code{NULL} (the default)
 acts on every species in the patch.}
 
-\item{temperature}{Peak air temperature reached during the event (deg C).}
+\item{intensity}{Peak level reached during the episode, in whatever the
+model measures the stressor in (deg C for a heatwave, say).}
 
-\item{duration}{Nominal duration of the event (years; a fortnight is
+\item{duration}{Nominal duration of the episode (years; a fortnight is
 \code{14 / 365}). The action sub-integrates over it at half-hourly steps;
 patch time does not advance.}
 
-\item{temperature_crit}{Temperature above which damage accrues (deg C).}
+\item{threshold}{Level above which dose accrues; below it the episode does
+nothing.}
 
-\item{sensitivity}{Damage accrued per degree-year above
-\code{temperature_crit}.}
+\item{sensitivity}{Dose accrued per unit-year above \code{threshold}.}
 }
 \value{
 An \code{Events} object: a list with \code{time}, \code{type},
@@ -77,22 +78,30 @@ An event is a \code{(time, action)} pair applied between solver legs: the
 integrator is stopped at the event time, the action changes the patch, the
 system is recomputed, and integration resumes from the new state. Node
 introduction has always worked this way; these functions make the same
-mechanism available for rainfall pulses, thinning and heat damage.
+mechanism available for resource pulses, harvest and climate extremes.
 }
 \details{
+The vocabulary here is deliberately model-agnostic, because the machinery is
+shared by every strategy and environment and nothing about it is specific to
+plants: a resource pulse is water in TF24 and could be anything countable in
+a size-structured animal model, and a climate extreme is heat in one model
+and could be cold or salinity in another. Names that are only true of one
+model live with that model — \code{\link{rainfall_pulse}} is a resource
+pulse of water into TF24's surface soil layer.
+
 Each event carries when it happens, what kind of thing it is, what it acts
-on, and the values it needs. The target is \code{"environment"} (the
-abiotic state), \code{"patch"} (every species) or \code{"species"} (one,
-named by \code{species}). There is deliberately no per-cohort target: a
-cohort has no stable address across a run, because nodes are appended and
-never removed and schedule refinement changes how many exist. Selecting
-particular cohorts is expressed as a size range instead, which is both well
-defined and what thinning actually needs.
+on, and the values it needs. The target is \code{"environment"} (its
+resource pools and drivers), \code{"patch"} (every species) or
+\code{"species"} (one, named by \code{species}). There is deliberately no
+per-cohort target: a cohort has no stable address across a run, because
+nodes are appended and never removed and schedule refinement changes how
+many exist. Selecting particular cohorts is expressed as a size range
+instead, which is both well defined and what size-selective removal needs.
 
 Events are instantaneous \emph{to the solver}: patch time does not advance
 across one. An action is still free to reach its answer by integrating its
-own fast sub-model over a nominal duration — \code{\link{heat_damage}} does
-— with the patch's demography frozen. The solver sees one jump either way.
+own fast sub-model over a nominal duration — \code{\link{climate_extreme}}
+does — with demography frozen. The solver sees one jump either way.
 
 Events sharing a time are applied in a fixed order: environment events
 first, then demographic ones, then node introductions — so a node
@@ -104,26 +113,26 @@ without, at solver tolerance, even away from the events themselves.
 
 What each event actually did — as against what was asked of it — is
 recorded, and readable afterwards as \code{scm$event_log}. The two differ
-routinely: a pulse is capped at what the soil can hold, and thinning a size
-class removes whatever was in it.
+routinely: a pulse is capped at what the pool can hold, and harvesting a
+size class removes whatever was in it.
 
 \code{events_default(p)} is the schedule a run gets when no events
   are supplied: the node introductions from \code{p$node_schedule_times} and
   nothing else. Start from it when adding events to an otherwise ordinary
-  run — \code{events(events_default(p), rainfall_pulse(...))} — or pass it
+  run — \code{events(events_default(p), harvest(...))} — or pass it
   on its own, which reproduces the default run exactly.
 
-\code{harvest} and \code{partial_disturbance} are \code{thinning}
-  under two names that read better at their own call sites: a harvest takes
-  everything above a size, a partial disturbance takes a fraction of
-  everything. They are the same action — the only difference is which
-  individuals are selected.
+\code{harvest} covers removal generally, not only the forestry
+  sense: leave the size band at its defaults and it is an across-the-board
+  knock-down; set \code{size_min} and it takes everything above a size; set
+  both and it thins one size class. They are one action, differing only in
+  which individuals are selected.
 }
 \examples{
 p <- scm_base_parameters("FF16")
 p <- add_strategies(p, trait_matrix(1, "lma"))
 ev <- events(
   events_default(p),
-  thinning(time = 20, fraction = 0.3)
+  harvest(time = 20, fraction = 0.3)
 )
 }

@@ -327,14 +327,21 @@ were not previously recorded here:
 * **Discrete events (#628).** `run_scm()` takes an `events` argument: a queue of
   `(time, action)` items applied between solver legs, the way node introductions
   always have been. Build one with `events()` and the typed constructors —
-  `node_introductions()`, `rainfall_pulse()`, `thinning()` (and its aliases
-  `harvest()` and `partial_disturbance()`), `heat_damage()`.
+  `node_introductions()`, `resource_pulse()`, `harvest()`, `climate_extreme()`.
+
+  The vocabulary is deliberately taxa- and model-agnostic, because the machinery
+  is shared by every strategy and environment: a resource pulse is water in TF24
+  and could be anything countable in a size-structured animal model, and a
+  climate extreme is heat in one model and could be cold or salinity in another.
+  Names that are only true of one model live with that model — `rainfall_pulse()`
+  is a resource pulse of water into TF24's surface soil layer, and
+  `TF24_Environment$add_water_pulse()` is the same action on the C++ side.
 
   ```r
   ev <- events(
     node_introductions(p),
     rainfall_pulse(time = c(1.5, 3.2), depth = c(0.013, 0.050)),
-    thinning(time = 20, fraction = 0.5, height_min = 10)
+    harvest(time = 20, fraction = 0.5, size_min = 10)
   )
   res <- run_scm(p, env = env, ctrl = ctrl, events = ev)
   ```
@@ -342,15 +349,15 @@ were not previously recorded here:
   Each event carries when it happens, its type, its target (`"environment"`,
   `"patch"` or one `"species"`) and the values it needs. What each one actually
   did — as against what was asked of it — is readable as `scm$event_log`; the two
-  differ routinely, because a rainfall pulse is capped at what the surface soil
-  layer can hold and the excess is shed.
+  differ routinely, because a pulse is capped at what the pool can hold and the
+  excess is shed.
 
   Two things worth knowing. An event is also a **stop time** for the integrator,
   so adding one changes the adaptive step sequence: a run with events legitimately
   differs from one without, at solver tolerance, even away from the events. And
   events are instantaneous *to the solver* only — an action may sub-integrate its
   own fast model over a nominal duration with demography frozen, which is what
-  `heat_damage()` does. Design notes in `notes/plan-events.md`.
+  `climate_extreme()` does. Design notes in `notes/plan-events.md`.
 
   Runs that supply no events are unaffected, and verified so: FF16, K93 and TF24
   are `identical()` on ODE step times, fitness and state.
