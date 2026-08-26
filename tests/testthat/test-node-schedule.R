@@ -190,6 +190,23 @@ test_that("Setting max time behaves sensibly", {
   expect_error(sched$set_times(t1 * 2, 1), "Times cannot be greater than max_time")
 })
 
+test_that("max_time can be set on an empty schedule", {
+  ## An empty schedule constrains max_time not at all, and this is the normal
+  ## case: make_node_schedule() and node_schedule_default() both set max_time
+  ## before adding any times. The bound is read off the last event, so the
+  ## empty case has to be tested explicitly -- reading it unguarded was
+  ## undefined behaviour that happened not to crash.
+  sched <- plant:::NodeSchedule(1)
+  expect_equal(sched$size, 0)
+  expect_silent(sched$max_time <- 10)
+  expect_equal(sched$max_time, 10)
+
+  ## Still nonnegative-only, and the bound reappears once there are events.
+  expect_error(sched$max_time <- -1, "max_time must be nonnegative")
+  sched$set_times(c(0, 5), 1)
+  expect_error(sched$max_time <- 1, "max_time must be at least the final")
+})
+
 test_that("Bulk get/set of times works", {
   n <- 3
   sched <- plant:::NodeSchedule(n)

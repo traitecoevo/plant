@@ -243,14 +243,23 @@ std::vector<size_t> SCM<T, E>::run_next_impl(bool sync_patch) {
     return ret; // empty: nothing introduced this step
   }
 
-  // Consume every event scheduled at the current time t0: each contributes a
-  // species to introduce. Stop once the next event ends later than t0 (i.e. it
-  // belongs to a later introduction) or the schedule is exhausted.
+  // Consume every event scheduled at the current time t0. Introductions are
+  // collected into `ret` and applied as one batch (a single environment
+  // recompute for the lot); every other event type carries its own action and
+  // is applied in turn. The queue is sorted so that the actions arrive before
+  // the introductions, and so a node introduced here sees the post-event
+  // environment. Stop once the next event ends later than t0 (i.e. it belongs
+  // to a later interval) or the schedule is exhausted.
+  std::vector<NodeSchedule::Event> actions;
   while (true) {
     if (!util::identical(t0, e.time_introduction())) {
       util::stop("Start time not what was expected");
     }
-    ret.push_back(e.species_index);
+    if (e.is_node_introduction()) {
+      ret.push_back(e.species_index);
+    } else {
+      actions.push_back(e);
+    }
     node_schedule.pop();
     if (e.time_end() > t0 || complete()) {
       break;
@@ -259,7 +268,12 @@ std::vector<size_t> SCM<T, E>::run_next_impl(bool sync_patch) {
     }
   }
 
-  sys.introduce_new_nodes(ret);
+  for (const auto& a : actions) {
+    sys.apply_event(a);
+  }
+  if (!ret.empty()) {
+    sys.introduce_new_nodes(ret);
+  }
   solver.set_state_from_system();
 
   // Three integration modes:
