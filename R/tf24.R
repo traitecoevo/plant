@@ -86,8 +86,8 @@ TF24_generate_stand_report <- function(results,
 ##' @param rho_0 Central (mean) value for wood density [kg /m3]
 ##' @param B_dI1 Rate of instantaneous mortality at rho_0 [/yr]
 ##' @param B_dI2 Scaling slope for wood density in intrinsic mortality [dimensionless]
-##' @param B_hks1 Intercept for the g1_TF24 ~ rho relationship at rho_0 [dimensionless]
-##' @param B_hks2 Scaling slope for rho in the g1_TF24 relationship [dimensionless]
+##' @param B_hks1 Intercept for the TF24_cost_scale ~ rho relationship at rho_0 [dimensionless]
+##' @param B_hks2 Scaling slope for rho in the TF24_cost_scale relationship [dimensionless]
 ##' @param B_ks1 Rate of sapwood turnover at rho_0 [/yr]
 ##' @param B_ks2 Scaling slope for rho in sapwood turnover [dimensionless]
 ##' @param B_rs1 CO_2 respiration per unit sapwood volume [mol / yr / m3 ]
@@ -101,8 +101,8 @@ TF24_generate_stand_report <- function(results,
 ##' @param a_lf1 intercept for empirical relationship between narea and vcmax, lma (Dong et al. 2022)
 ##' @param B_Hv1 p50 at K_s = 1 [-MPa]
 ##' @param B_Hv2 Scaling slope for K_s in p50 [dimensionless]
-##' @param B_c1 Shape parameter c of the vulnerability curve at p_50 = 0 [dimensionless]
-##' @param B_c2 Scaling slope for p_50 in the vulnerability-curve shape parameter c [dimensionless]
+##' @param B_c1 Shape parameter stem_c of the vulnerability curve at stem_P50 = 0 [dimensionless]
+##' @param B_c2 Scaling slope for stem_P50 in the vulnerability-curve shape parameter stem_c [dimensionless]
 ##' @param latitude degrees from equator (0-90), used in solar model [deg]
 ##' @export
 ##' @rdname make_TF24_hyperpar
@@ -181,29 +181,32 @@ make_TF24_hyperpar <- function(lma_0=0.1978791,
     ## rho / mortality relationship:
     d_I  <- B_dI1 * (rho / rho_0) ^ (-B_dI2)
 
-    ## Reuse the legacy hk_s parameterisation to derive g1_TF24:
-    g1_TF24 <- B_hks1 * (rho / rho_0) ^ (-B_hks2)
+    ## Reuse the legacy hk_s parameterisation to derive TF24_cost_scale (the TF24
+    ## hydraulic cost scale, named `g1_TF24` before #634):
+    TF24_cost_scale <- B_hks1 * (rho / rho_0) ^ (-B_hks2)
 
     ## rho / wood turnover relationship:
     k_s  <- B_ks1 *  (rho / rho_0) ^ (-B_ks2)
 
     ## TODO: Convert the p50 ks function back to a mean centred function using K_s_0
 
-    ## p_50 sapwood specific conductivity turnover:
+    ## stem_P50 sapwood specific conductivity turnover:
     if (any(K_s <= 0, na.rm = TRUE)) {
-      stop("K_s must be > 0 for p_50 derivation", call. = FALSE)
+      stop("K_s must be > 0 for stem_P50 derivation", call. = FALSE)
     }
-    p_50 <- 10^(B_Hv1 + B_Hv2 * log10(K_s))
+    stem_P50 <- 10^(B_Hv1 + B_Hv2 * log10(K_s))
 
-    ## p_50 shape parameter trade off
-    c <- B_c1 * exp(-B_c2 * p_50)
-    ## scale parameter b of the vulnerability curve exp(-(psi/b)^c): the water
+    ## stem_P50 shape parameter trade off
+    stem_c <- B_c1 * exp(-B_c2 * stem_P50)
+    ## scale parameter stem_b of the vulnerability curve exp(-(psi/b)^c): the water
     ## potential at 1/e (~37%) conductivity remaining, solved here from the 50%
-    ## loss-of-conductivity point p_50 [-MPa]:
-    b <- p_50/((-log(1-50/100))^(1/c))
+    ## loss-of-conductivity point stem_P50 [MPa]. NOTE phylloptim derives this and
+    ## psi_crit from (stem_P50, stem_c) itself, by these same formulas -- the two
+    ## below are reported for the record and are not inputs to the leaf (#634).
+    stem_b <- stem_P50/((-log(1-50/100))^(1/stem_c))
 
-    ## water potential at critical xylem failure (95%) (return -MPa):
-    psi_crit <- b*(log(1/0.05))^(1/c)
+    ## water potential at critical xylem failure (95%) [MPa]:
+    psi_crit <- stem_b*(log(1/0.05))^(1/stem_c)
 
     ## rho / sapwood respiration relationship:
 
@@ -238,11 +241,11 @@ make_TF24_hyperpar <- function(lma_0=0.1978791,
     
     r_l <- r_ls + r_lp
 
-    extra <- cbind(k_l,                        # lma
-                   d_I, g1_TF24, k_s, r_s, r_b, # rho
-                   a_f3,                        # omega
-                   r_l, nmass_l,                # lma, narea
-                   c, p_50, b, psi_crit)        # K_s
+    extra <- cbind(k_l,                              # lma
+                   d_I, TF24_cost_scale, k_s, r_s, r_b, # rho
+                   a_f3,                              # omega
+                   r_l, nmass_l,                      # lma, narea
+                   stem_c, stem_P50, stem_b, psi_crit) # K_s
 
     overlap <- intersect(colnames(m), colnames(extra))
     if (length(overlap) > 0L) {

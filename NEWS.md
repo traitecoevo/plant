@@ -43,6 +43,86 @@ products using plant.
   the trait mechanism cannot reach, and naming one is now an error rather than
   silence — which is the honest report, not the fix.
 
+* **phylloptim 0.7.0 -> 0.8.0.** Bumped deliberately, which is what the `==` pin
+  below exists to force. 0.8.0 (traitecoevo/phylloptim#133) reports the seated
+  curve's `lambda_emergent` through `leaf_solve()` and fixes a stale
+  `lambda_emergent_` after the two terminal exits on a reused `Leaf`.
+
+  **Inert for plant, and by construction rather than by luck:** the header diff is
+  24 lines, being one element appended to `operating_point_values()` and two
+  `lambda_emergent_ = NA` writes. plant reads neither that vector nor that member.
+  Verified anyway — suite unchanged at 2985 pass, and the scenario scorecard's
+  `offspring_production` bit-identical across all 8 scenarios against the same
+  plant source built on 0.7.0.
+
+  ⚠️ Newly available and **not** yet used here: `lambda_emergent` is the seated
+  curve's own `(dC/dpsi)/(dE/dpsi)`, where `marginal_cost_water()` is TF24's price
+  whatever curve ran. On `TF24_floor` the two differ by the price floor
+  (32996 vs 82996 at `lambda_o = 5e4`), so anything reporting a marginal cost of
+  water from this model wants the emergent one.
+
+* **TF24's leaf parameters carry phylloptim's names (#634).** `TF24_Pars` renamed:
+  `p_50 -> stem_P50`, `c -> stem_c`, `b -> stem_b`, `beta2 -> TF24_beta2`,
+  `g1_TF24 -> TF24_cost_scale`. `Leaf()`'s arguments move with them, and
+  `root_p_50 -> root_P50`. Same values, same equations: the model-version snapshot
+  changes names only, with **no value moved** on either TF24 or TF24f.
+
+  ⚠️ **`g1_TF24` was never a stomatal slope.** It is the TF24 hydraulic *cost
+  scale*, handed to `Leaf()` positionally, while the leaf separately has a real
+  Medlyn `g1`. One name per quantity, spelled the same on both sides, is what
+  makes the hand-over in `prepare_strategy()` checkable by eye.
+
+  `TF24_hyperpar` emits the new names, so anything reading `ret[, "g1_TF24"]` or
+  `ret[, "p_50"]` needs updating. `stem_b` and `psi_crit` are TF24_hyperpar's
+  *reporting* copies -- phylloptim derives its own from `(stem_P50, stem_c)` -- so
+  setting either does not change the curve. `root_b` keeps its name: it is the
+  Weibull *scale*, a different quantity from `root_P50 = root_b*(ln 2)^(1/root_c)`,
+  and plant still converts at hand-over.
+
+* **`TF24_Pars` gains `TF24_floor_lambda_o` (#634), defaulting to 0.** TF24 and
+  TF24f are now seated on phylloptim's `TF24_floor` cost curve, and this is its
+  one parameter: the price of water as transpiration goes to zero, in
+  `umol C (kg H2O)^-1`.
+
+  Every conductance-loss cost -- TF24's included -- prices water at zero as `E`
+  goes to zero, since no conductivity is lost when nothing flows, so water is free
+  precisely when it is abundant. `TF24_floor` splits the cost into a part depending
+  on potential alone and a part linear in the flux, `Theta(E) = Theta~(psi) +
+  lambda_o*E`, with `Theta~` being TF24's own cost at TF24's own traits. **TF24 is
+  `TF24_floor` at `lambda_o = 0` at identical parameter values**, so "is TF24
+  missing a price of water?" is a one-restriction question.
+
+  **Nothing moves at the default.** phylloptim asserts the reduction bit-for-bit
+  rather than to a tolerance, and plant's whole suite passes with every pinned
+  baseline unchanged. `scientific_version` is deliberately **not** bumped: no
+  equation and no default output changes.
+
+  A new aux, **`shadow_cost`**, is reported beside `profit` -- so `aux_size` goes
+  11 -> 12 (12 -> 13 with `collect_all_auxiliary`). It is `lambda_o * E` on this
+  curve and exactly 0.0 on the other seven, and zero on another curve means "this
+  curve does not separate the two", not "this curve's cost is all realised carbon".
+
+  ⚠️ **The price is a shadow price, not a cost, and growth is billed on
+  `profit + shadow_cost`.** `profit` is the *objective* and deducts both terms;
+  `Theta~` is carbon actually forgone, while `lambda_o` is the value of water in
+  its best alternative use, and paying it loses no carbon. Growing on the
+  objective would tax the plant by carbon it never spent -- measured on a 5 m
+  plant at PPFD 1800 and theta 0.25, the objective understates the carbon kept by
+  2.3% at `lambda_o = 1e4`, 9.4% at 5e4, 15.4% at 1e5 and 22.6% at 2e5.
+
+  Its scale is set by the leaf, not chosen freely: phylloptim's own marginal cost
+  of water runs ~9e4 to 3e5 in these units at its defaults, so a value far outside
+  that band pins the optimum against a bracket bound.
+
+* **`phylloptim` and `odelia` are pinned with `==`, not `>=` (#634).**
+  `LinkingTo: odelia (== 0.3.1), phylloptim (== 0.8.0)`. plant's regression
+  baselines are bit-exact and both packages are compiled *into* plant, so under
+  `>=` a later upstream release silently changes plant's arithmetic and the first
+  sign is a red baseline with no local change to explain it -- a bisect across two
+  repositories. Under `==` the same upgrade fails at install time, naming the
+  version, before anything is built. Upgrading is then a deliberate act: bump the
+  pin, rebuild, read the baseline diff, record it.
+
 * **Migrated to phylloptim 0.6.0 and odelia 0.3.1 (#622).** `Leaf()` now takes
   `p_50` and `root_p_50` instead of `b`/`psi_crit` and `root_b`/`root_psi_crit`:
   phylloptim parameterises both vulnerability curves on P50 and derives the rest.

@@ -29,40 +29,46 @@ Leaf:
   constructor:
     roxygen: |
       Leaf model
-      @param vcmax_25 Maximum Carboxylation Rate (umol m^-2 s^-1)
-      @param c shape parameter of hydraulic vulnerability curve (unitless)
-      @param p_50 water potential at 50% loss of stem conductivity (MPa, positive
-        magnitude). phylloptim derives b and psi_crit from it -- do not pass b.
-      @param root_c shape parameter of hydraulic vulnerability curve for roots(unitless)
-      @param root_p_50 water potential at 50% loss of root conductivity (MPa)
-      @param beta2 exponent for effect of hydraulic risk (unitless)
-      @param jmax_25  maximum rate of electron transport (umol m^-2 s^-1)
+
+      Argument names match phylloptim's own `Leaf()` binding exactly (#634): the
+      arguments are positional in C++, so a name here that disagrees with the slot
+      it lands in is a silent error rather than a compile one.
+      @param vcmax_25 maximum carboxylation rate at 25 C (umol m^-2 s^-1)
+      @param stem_c shape parameter of the STEM hydraulic vulnerability curve (unitless)
+      @param stem_P50 STEM potential at 50% loss of hydraulic conductivity (MPa,
+        positive magnitude). phylloptim derives `stem_b` and `psi_crit` from it --
+        do not pass the scale.
+      @param root_c shape parameter of the ROOT hydraulic vulnerability curve (unitless)
+      @param root_P50 ROOT potential at 50% loss of hydraulic conductivity (MPa,
+        positive magnitude)
+      @param TF24_beta2 exponent for the effect of hydraulic risk (unitless)
+      @param jmax_25 maximum rate of electron transport at 25 C (umol m^-2 s^-1)
       @param a quantum yield of photosynthetic electron transport (mol mol^-1)
       @param curv_fact_elec_trans curvature factor for the light response curve (unitless)
-      @param curv_fact_colim curvature factor for the colimited photosythnthesis equatiom
-      @param GSS_tol_abs tolereance parameter for golden section search
+      @param curv_fact_colim curvature factor for the colimited photosynthesis equation
+      @param GSS_tol_abs tolerance parameter for golden section search
       @param vulnerability_curve_ncontrol number of points for pre-calculating vulnerability curve
       @param ci_abs_tol absolute tolerance value for root-solving ci
       @param ci_niter maximum number of iterations for root-solving ci
-      @param g1_TF24 cost parameter for TF24 profit model umol m^-2 s^-1
+      @param TF24_cost_scale cost parameter for the TF24 profit model (umol m^-2 s^-1)
 
       @export
     args:
       - vcmax_25: double
-      - c: double
-      - p_50: double
+      - stem_c: double
+      - stem_P50: double
       - root_c: double
-      - root_p_50: double
-      - beta2: double
+      - root_P50: double
+      - TF24_beta2: double
       - jmax_25: double
       - a: double
       - curv_fact_elec_trans: double
-      - curv_fact_colim: double     
+      - curv_fact_colim: double
       - GSS_tol_abs: double
       - vulnerability_curve_ncontrol: double
       - ci_abs_tol: double
       - ci_niter: double
-      - g1_TF24: double
+      - TF24_cost_scale: double
 
   active:
     ci_: {type: double, access: field}
@@ -75,6 +81,12 @@ Leaf:
     # phylloptim 0.6.0 scopes the marginal-cost field to the model that owns it.
     # The R-side name is the YAML key, so plant's API is unchanged (#622).
     lambda_: {type: double, access: field, name_cpp: "CF77_lambda_"}
+    # The TF24_floor curve's only parameter: the price of water as transpiration
+    # goes to zero, umol C (kg H2O)^-1. Mirrors `lambda_` above -- same units,
+    # same footing, never assigned by model code. phylloptim leaves it NA and
+    # refuses the curve without one; plant's TF24_Pars supplies an explicit 0.0
+    # (#634).
+    TF24_floor_lambda_o: {type: double, access: field}
     # Derived from (P50, c) by phylloptim, not settable; exposed so R can read
     # the curve the leaf is actually using rather than re-deriving it (#622).
     psi_crit: {type: double, access: field, readonly: true}
@@ -222,6 +234,15 @@ Leaf:
       args: [curve: "std::string", route: "std::string"]
     optimise:
       return_type: void
+      args: []
+    # The part of the cost the objective deducted that is a PRICE rather than a
+    # realised carbon loss: `TF24_floor_lambda_o * transpiration_` on that curve
+    # and exactly 0.0 on the other seven. `profit_ + shadow_cost()` is the carbon
+    # actually kept, which is what TF24 grows on (#634). Zero on another curve
+    # says that curve does not separate the two -- not that its cost is all
+    # realised carbon.
+    shadow_cost:
+      return_type: double
       args: []
     # Medlyn stomatal-conductance model (from develop #450)
     medlyn_model_gs:
@@ -1284,15 +1305,20 @@ TF24_Pars:
     - a_st2: double
     - a_st3: double
     - k_I: double
+    # ⚠️ The leaf traits carry phylloptim's names (#634). One name per quantity,
+    # spelled the same on both sides of the boundary; see TF24_Pars in
+    # inst/include/plant/models/tf24_strategy.h for why, and for which of these
+    # are derived reporting copies rather than inputs.
     - vcmax_25: double
-    - p_50: double
+    - stem_P50: double
     - K_s: double
-    - c: double
-    - b: double
+    - stem_c: double
+    - stem_b: double
     - psi_crit: double
     - beta1: double
-    - beta2: double
-    - g1_TF24: double
+    - TF24_beta2: double
+    - TF24_cost_scale: double
+    - TF24_floor_lambda_o: double
     - jmax_25: double
     - a: double
     - curv_fact_elec_trans: double

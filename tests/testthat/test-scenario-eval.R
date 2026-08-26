@@ -22,11 +22,11 @@ test_that("scenario_to_config translates a row into concrete settings", {
   cfg <- scenario_to_config(tbl[1, ], map)
 
   expect_true(cfg$expected %in% c("failure", "success"))
-  ## K_s and lma are input traits; p_50/g1_TF24 are derived by TF24_hyperpar
+  ## K_s and lma are input traits; stem_P50/TF24_cost_scale are derived by TF24_hyperpar
   ## (#548) and must NOT be passed as input traits.
   expect_true(all(c("K_s", "lma", "rho", "vcmax_25", "theta",
                     "root_depth_shape_eta") %in% names(cfg$traits)))
-  expect_false(any(c("p_50", "c", "b", "psi_crit", "g1_TF24") %in%
+  expect_false(any(c("stem_P50", "stem_c", "stem_b", "psi_crit", "TF24_cost_scale") %in%
                      names(cfg$traits)))
   expect_true(is.numeric(cfg$traits) && all(is.finite(cfg$traits)))
   expect_true(!is.null(cfg$env$K_sat))
@@ -50,9 +50,9 @@ test_that("build_scenario applies traits and environment fields", {
   pars <- built$p$strategies[[1]]$pars
   expect_equal(pars$lma, unname(cfg$traits[["lma"]]))
   expect_equal(pars$K_s, unname(cfg$traits[["K_s"]]))
-  ## p_50 is derived from K_s by the hyperpar, so it must differ from the
+  ## stem_P50 is derived from K_s by the hyperpar, so it must differ from the
   ## default once K_s is changed.
-  expect_false(isTRUE(all.equal(pars$p_50, TF24_Strategy()$pars$p_50)))
+  expect_false(isTRUE(all.equal(pars$stem_P50, TF24_Strategy()$pars$stem_P50)))
   expect_equal(built$env$K_sat, cfg$env$K_sat)
 })
 

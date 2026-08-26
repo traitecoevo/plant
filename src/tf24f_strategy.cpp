@@ -52,11 +52,32 @@ void TF24f_Strategy::compute_rates(const TF24_Environment& environment,
 // ordinary operating state, not an edge case: measured at 3.9% of leaf solves on
 // a dry-start run at 1 m/yr rainfall and 50.0% at 0.04, so it carries both the
 // correctness argument in the AD branch below and most of the cost saving.
+// ⚠️ ONE RUNTIME CURVE DISPATCH FOR THE WHOLE SOLVE, and that is deliberate
+// rather than incidental. Every phylloptim entry point below is templated on the
+// cost curve, and until #634 each named `CostCurve::TF24` at its call site --
+// which meant `set_model()` had no effect here at all, and seating TF24_floor
+// would have had TF24f tracking TF24's gradient while `shadow_cost()` reported a
+// price nothing in the solve had seen. Dispatching once, around the entire body,
+// is what makes it impossible for two of these calls to disagree about which
+// model is being solved; `with_curve` hands back a body compile-time specialised
+// on the curve, so this costs one predictable branch per solve and the arms are
+// the same instantiations the hot path had before.
 void TF24f_Strategy::solve_leaf() {
+  Leaf::with_curve(leaf.cost_curve_, [&](auto tag) {
+    constexpr Leaf::CostCurve K = tag.value;
+    solve_leaf_for<K>();
+  });
+}
+
+template <Leaf::CostCurve K>
+void TF24f_Strategy::solve_leaf_for() {
   if (initializing_) {
     // Birth initialisation: run the full optimiser so set_initial_states can
-    // read the optimum collar psi.
-    leaf.find_root_collar_psi();
+    // read the optimum collar psi. `optimise()` rather than
+    // `find_root_collar_psi()`, which is hard-wired to TF24 and would silently
+    // seed the tracked state from a different model's optimum than the one the
+    // subsequent steps track.
+    leaf.optimise();
     return;
   }
   if (use_ad_gradient) {
@@ -83,7 +104,7 @@ void TF24f_Strategy::solve_leaf() {
     // throw; phylloptim 0.6.0 closed that instance, and not asking is the only
     // protection available at this layer against the next one.
     double bound_a, bound_b;
-    if (!leaf.prepare_collar_solve<Leaf::CostCurve::TF24>(bound_a, bound_b)) {
+    if (!leaf.prepare_collar_solve<K>(bound_a, bound_b)) {
       dprofit_dpsi_ = 0.0;
       return;
     }
@@ -92,7 +113,7 @@ void TF24f_Strategy::solve_leaf() {
     // across both profit evaluations drops a redundant re-derivation of the
     // soil-side caches per step, as #530 did for the FD branch: three per solve
     // down to two.
-    leaf.profit_at_collar_psi<Leaf::CostCurve::TF24>(tracked_root_psi_, bound_a, bound_b);
+    leaf.profit_at_collar_psi<K>(tracked_root_psi_, bound_a, bound_b);
     // No negation: the leaf package stores this as the positive magnitude the
     // tracked state and the gradient both want (phylloptim #25).
     const double used = leaf.opt_root_psi_;
@@ -101,8 +122,8 @@ void TF24f_Strategy::solve_leaf() {
     // post-prepare body and would take this to one, but it is a separate change --
     // reseating in a different order can move the last bits, and the claim this
     // change rests on is that nothing moves.
-    dprofit_dpsi_ = leaf.dprofit_droot_collar_psi(used);
-    leaf.profit_at_collar_psi<Leaf::CostCurve::TF24>(used, bound_a, bound_b);  // restore operating point
+    dprofit_dpsi_ = leaf.dprofit_droot_collar_psi_for<K>(used);
+    leaf.profit_at_collar_psi<K>(used, bound_a, bound_b);  // restore operating point
   } else {
     // Centred finite-difference fallback (#526), perturbing about the clamped
     // operating value `used`. A one-sided difference biases the fixed point to
@@ -121,7 +142,7 @@ void TF24f_Strategy::solve_leaf() {
     // them per eval (the old four-evaluate_root_collar_psi form) was the ~29%
     // cost over the forward difference.
     double bound_a, bound_b;
-    if (!leaf.prepare_collar_solve<Leaf::CostCurve::TF24>(bound_a, bound_b)) {
+    if (!leaf.prepare_collar_solve<K>(bound_a, bound_b)) {
       // Operating point fully determined by feasibility handling (shutdown /
       // assim<0 / collapsed interval); no interior interval to perturb in, so the
       // gradient is zero (matching the old form, where every clamped eval
@@ -133,10 +154,10 @@ void TF24f_Strategy::solve_leaf() {
     // `used` is the tracked state clamped into the feasible interval -- the same
     // value the old leading evaluate_root_collar_psi(tracked_root_psi_) produced.
     const double used = std::min(std::max(tracked_root_psi_, bound_a), bound_b);
-    const double p_plus  = leaf.profit_at_collar_psi<Leaf::CostCurve::TF24>(used + h, bound_a, bound_b);
-    const double p_minus = leaf.profit_at_collar_psi<Leaf::CostCurve::TF24>(used - h, bound_a, bound_b);
+    const double p_plus  = leaf.profit_at_collar_psi<K>(used + h, bound_a, bound_b);
+    const double p_minus = leaf.profit_at_collar_psi<K>(used - h, bound_a, bound_b);
     dprofit_dpsi_ = (p_plus - p_minus) / (2.0 * h);
-    leaf.profit_at_collar_psi<Leaf::CostCurve::TF24>(used, bound_a, bound_b);  // restore operating point
+    leaf.profit_at_collar_psi<K>(used, bound_a, bound_b);  // restore operating point
   }
 }
 

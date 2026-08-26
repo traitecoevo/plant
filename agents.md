@@ -616,6 +616,29 @@ repo's README for how it renders, freezes (`_freeze/`), and version-pins posts.
 - ✅ Changing a model's equations/default parameters (output changes for the
   same inputs) → bump its `scientific_version` in the model header (see §7).
 - ✅ After interface changes run the full `make rebuild`; after C++-only changes `make compile`.
+- ⚠️ **The leaf's cost curve is seated ONCE, in `TF24_Strategy::prepare_strategy()`,
+  and no call site may name a curve.** Every collar-solve entry point in phylloptim
+  is templated on the cost curve, and `find_root_collar_psi()`,
+  `evaluate_root_collar_psi()` and `dprofit_droot_collar_psi()` are its
+  TF24-hardwired shortcuts. Reintroducing one — or writing
+  `<Leaf::CostCurve::TF24>` at a call site — solves TF24 while `shadow_cost()`
+  reports a price the solve never saw, which is worse than not switching at all
+  and shows up as no error. Use `leaf.optimise()`, or
+  `Leaf::with_curve(leaf.cost_curve_, ...)` for the templated entry points
+  (`src/tf24f_strategy.cpp` dispatches once around its whole body for this
+  reason). See #634.
+- ⚠️ **TF24's leaf parameters must keep phylloptim's names.** They are handed to
+  the `Leaf` constructor **positionally**, so a name that disagrees with the slot
+  it lands in is silent, not a compile error. `stem_P50`, `stem_c`, `stem_b`,
+  `TF24_beta2`, `TF24_cost_scale`, `TF24_floor_lambda_o`, `root_c`, `root_P50`.
+  The one deliberate asymmetry: `TF24_Pars` exposes `root_b` (the Weibull scale)
+  where phylloptim takes `root_P50` (the quantile), so `prepare_strategy()`
+  converts — those are different quantities, not a naming mismatch.
+- ⚠️ **`phylloptim` and `odelia` are pinned with `==` in `LinkingTo`, deliberately.**
+  Both are compiled into plant and plant's baselines are bit-exact, so a `>=`
+  bound lets a later upstream release change plant's arithmetic with no local
+  change to explain the red baseline. Upgrading means bumping the pin *and* the
+  `Remotes:` sha together, rebuilding, and recording the baseline diff.
 - ℹ️ Active bindings ending in `_` generally expose internal C++ fields for
   inspection/testing, not part of the stable user API.
 - ℹ️ Two solvers (deterministic SCM, stochastic) share the same model classes —
