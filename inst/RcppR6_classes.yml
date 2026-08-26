@@ -1398,6 +1398,9 @@ TF24_Environment:
     get_soil_number_of_depths:
       args: []
       return_type: int
+    add_water_pulse:
+      args: [depth: double]
+      return_type: void
     set_soil_water_state:
       args: [state: std::vector<double>]
       return_type: void

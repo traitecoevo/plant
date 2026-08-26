@@ -125,6 +125,131 @@ test_that("a schedule round-trips through the events format", {
   expect_identical(canon(back), canon(ev))
 })
 
+test_that("a rainfall pulse conserves water and respects layer capacity", {
+  env <- Environment("TF24")
+  dz <- env$depth / env$get_soil_number_of_depths()
+  sat <- env$soil_moist_sat
+
+  ## A pulse the surface layer can absorb: all of it goes into layer 0, and
+  ## the depth added is exactly delta_theta * dz.
+  theta0 <- env$get_soil_water_state()[[1]]
+  depth <- 0.005
+  env$add_water_pulse(depth)
+  flux <- env$get_soil_water_state_cumulative_flux()
+  expect_equal(env$get_soil_water_state()[[1]], theta0 + depth / dz)
+  expect_equal(flux[[1]], depth)      # sum_rainfall
+  expect_equal(flux[[2]], depth)      # sum_infiltration: all accepted
+  expect_equal(flux[[5]], 0)          # sum_pulse_runoff: nothing rejected
+  ## Deeper layers are untouched: a pulse enters at the surface only.
+  expect_equal(env$get_soil_water_state()[-1],
+               rep(sat / 2, env$get_soil_number_of_depths() - 1))
+
+  ## Water in equals water stored plus water shed, whatever the pulse size.
+  env2 <- Environment("TF24")
+  theta0 <- env2$get_soil_water_state()[[1]]
+  big <- 0.5
+  env2$add_water_pulse(big)
+  f2 <- env2$get_soil_water_state_cumulative_flux()
+  stored <- (env2$get_soil_water_state()[[1]] - theta0) * dz
+  expect_equal(stored + f2[[5]], big)
+  expect_equal(f2[[2]] + f2[[5]], f2[[1]])
+
+  ## And the layer stops exactly at saturation rather than running past it.
+  expect_equal(env2$get_soil_water_state()[[1]], sat)
+  expect_gt(f2[[5]], 0)
+})
+
+test_that("a pulse into a saturated layer is shed entirely", {
+  env <- Environment("TF24")
+  n <- env$get_soil_number_of_depths()
+  env$set_soil_water_state(rep(env$soil_moist_sat, n))
+  env$add_water_pulse(0.02)
+  flux <- env$get_soil_water_state_cumulative_flux()
+  expect_equal(env$get_soil_water_state()[[1]], env$soil_moist_sat)
+  expect_equal(flux[[2]], 0)     # nothing infiltrates
+  expect_equal(flux[[5]], 0.02)  # all of it runs off
+})
+
+test_that("a rainfall pulse is refused by environments without soil water", {
+  ## FF16 carries no soil state, so a pulse aimed at it is a modelling mistake
+  ## and should say so rather than be quietly dropped. Tested through a run,
+  ## which is the path a user actually takes.
+  p <- add_strategies(scm_base_parameters("FF16"), trait_matrix(1, "lma"))
+  ev <- events(node_introductions(p), rainfall_pulse(time = 1, depth = 0.01))
+  scm <- SCM("FF16", "FF16_Env")(p, Environment("FF16"), ev, control())
+  expect_error(scm$run(), "no soil water state")
+
+  expect_error(Environment("TF24")$add_water_pulse(-1),
+               "finite and non-negative")
+})
+
+test_that("pulses wet the soil during a run", {
+  ## Shorten the run before adding strategies: clearing node_schedule_times
+  ## only takes effect when Parameters next crosses into C++ and re-validates,
+  ## which add_strategies() does.
+  p <- scm_base_parameters("TF24")
+  p$max_patch_lifetime <- 5
+  p$node_schedule_times <- list()
+  p <- add_strategies(p, trait_matrix(1, "lma"))
+
+  run <- function(ev) {
+    scm <- SCM("TF24", "TF24_Env")(p, Environment("TF24"), ev, control())
+    scm$run()
+    scm
+  }
+
+  base <- run(events(node_introductions(p)))
+  pulsed <- run(events(node_introductions(p),
+                       rainfall_pulse(time = c(1, 2, 3), depth = 0.02)))
+
+  ## Every pulse is accounted for, and the run reaches the end.
+  flux <- pulsed$patch$environment$get_soil_water_state_cumulative_flux()
+  base_flux <- base$patch$environment$get_soil_water_state_cumulative_flux()
+  expect_equal(flux[[1]] - base_flux[[1]], 0.06)   # sum_rainfall
+  expect_equal(flux[[5]], 0)                       # the pulses themselves fit
+  expect_equal(pulsed$time, base$time)
+
+  ## The pulse's own 0.06 all infiltrates, but the run does not gain a full
+  ## 0.06 of infiltration: a wetter surface sheds more of the *continuous*
+  ## rain, through the saturation-excess term in compute_rates(). So the two
+  ## channels interact, and the gain is strictly between zero and the pulse.
+  ## (That shed water is currently not accumulated anywhere -- see #522.)
+  infil_gain <- flux[[2]] - base_flux[[2]]
+  expect_gt(infil_gain, 0)
+  expect_lt(infil_gain, 0.06)
+
+  ## The column balances: what it stored is what came in, less what drained
+  ## and what the plants took. This holds with pulses in it precisely because
+  ## a pulse adds to storage and to sum_infiltration together.
+  balance <- function(scm) {
+    e <- scm$patch$environment
+    n <- e$get_soil_number_of_depths()
+    dz <- e$depth / n
+    f <- e$get_soil_water_state_cumulative_flux()
+    stored <- sum(e$get_soil_water_state() - e$soil_moist_sat / 2) * dz
+    stored - (f[[2]] - f[[3]] - f[[4]])
+  }
+  expect_equal(balance(base), 0, tolerance = 1e-6)
+  expect_equal(balance(pulsed), 0, tolerance = 1e-6)
+
+  ## The pulses actually did something: the extra water has to leave, and on
+  ## this soil it leaves fast -- K(theta) rises as theta^16 -- so by the end of
+  ## the run the pulsed column has drained more than the unpulsed one.
+  ## (Which is why the *final* storage is not the thing to test.)
+  expect_gt(flux[[3]], base_flux[[3]])
+
+  ## And the extra water is fully accounted between the three sinks: whatever
+  ## infiltrated over and above the base run either drained, was taken up, or
+  ## is still in the column.
+  e <- pulsed$patch$environment
+  dz <- e$depth / e$get_soil_number_of_depths()
+  stored_gain <- sum(e$get_soil_water_state() -
+                     base$patch$environment$get_soil_water_state()) * dz
+  expect_equal(stored_gain + (flux[[3]] - base_flux[[3]]) +
+                 (flux[[4]] - base_flux[[4]]),
+               infil_gain, tolerance = 1e-6)
+})
+
 test_that("an unimplemented event type fails where the user can see it", {
   ## Types 2-5 are declared but not yet dispatched; until they are, reaching one
   ## must be a clear error rather than a silent no-op.

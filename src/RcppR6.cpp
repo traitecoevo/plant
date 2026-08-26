@@ -4743,6 +4743,10 @@ int TF24_Environment__get_soil_number_of_depths(plant::RcppR6::RcppR6<plant::TF2
   return obj_->get_soil_number_of_depths();
 }
 // [[Rcpp::export]]
+void TF24_Environment__add_water_pulse(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, double depth) {
+  obj_->add_water_pulse(depth);
+}
+// [[Rcpp::export]]
 void TF24_Environment__set_soil_water_state(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, std::vector<double> state) {
   obj_->set_soil_water_state(state);
 }

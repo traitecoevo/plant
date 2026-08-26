@@ -49,7 +49,10 @@ tidy_env <- function(results) {
 
   names(env_long) <- env_variables
   if(any(env_variables == "soil_moist_cumulative_flux")){
-  cumulative_names <- c("sum_rainfall","sum_infiltration","sum_drainage","sum_resource_depletion")
+  ## Positional: must stay in lockstep with the trailing state slots written in
+  ## tf24_environment.h's compute_rates()/add_water_pulse().
+  cumulative_names <- c("sum_rainfall","sum_infiltration","sum_drainage",
+                        "sum_resource_depletion","sum_pulse_runoff")
   
   env_long$soil_moist_cumulative_flux <- env_long$soil_moist_cumulative_flux %>%
     dplyr::mutate(cumulative_variables = rep(cumulative_names, times = dplyr::n()/length(cumulative_names))) %>%
