@@ -2,6 +2,7 @@
 % Please edit documentation in R/events.R
 \name{events}
 \alias{events}
+\alias{events_default}
 \alias{node_introductions}
 \alias{rainfall_pulse}
 \alias{thinning}
@@ -11,6 +12,8 @@
 \title{Discrete events applied during an SCM run.}
 \usage{
 events(...)
+
+events_default(p)
 
 node_introductions(p)
 
@@ -33,8 +36,9 @@ heat_damage(
 }
 \arguments{
 \item{...}{For \code{events}, objects returned by the individual event
-constructors; these are concatenated. Each constructor is vectorised over
-its arguments, so a whole series of rainfall pulses is one call.}
+constructors, or whole \code{Events} objects; these are concatenated. Each
+constructor is vectorised over its arguments, so a whole series of
+rainfall pulses is one call.}
 
 \item{p}{Parameters object, whose \code{node_schedule_times} supply the
 introduction times.}
@@ -103,6 +107,12 @@ recorded, and readable afterwards as \code{scm$event_log}. The two differ
 routinely: a pulse is capped at what the soil can hold, and thinning a size
 class removes whatever was in it.
 
+\code{events_default(p)} is the schedule a run gets when no events
+  are supplied: the node introductions from \code{p$node_schedule_times} and
+  nothing else. Start from it when adding events to an otherwise ordinary
+  run — \code{events(events_default(p), rainfall_pulse(...))} — or pass it
+  on its own, which reproduces the default run exactly.
+
 \code{harvest} and \code{partial_disturbance} are \code{thinning}
   under two names that read better at their own call sites: a harvest takes
   everything above a size, a partial disturbance takes a fraction of
@@ -113,7 +123,7 @@ class removes whatever was in it.
 p <- scm_base_parameters("FF16")
 p <- add_strategies(p, trait_matrix(1, "lma"))
 ev <- events(
-  node_introductions(p),
+  events_default(p),
   thinning(time = 20, fraction = 0.3)
 )
 }

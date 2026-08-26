@@ -34,8 +34,9 @@
 ##' class removes whatever was in it.
 ##'
 ##' @param ... For \code{events}, objects returned by the individual event
-##'   constructors; these are concatenated. Each constructor is vectorised over
-##'   its arguments, so a whole series of rainfall pulses is one call.
+##'   constructors, or whole \code{Events} objects; these are concatenated. Each
+##'   constructor is vectorised over its arguments, so a whole series of
+##'   rainfall pulses is one call.
 ##' @return An \code{Events} object: a list with \code{time}, \code{type},
 ##'   \code{target}, \code{target_index} and \code{params}, in schedule order.
 ##' @rdname events
@@ -44,7 +45,7 @@
 ##' p <- scm_base_parameters("FF16")
 ##' p <- add_strategies(p, trait_matrix(1, "lma"))
 ##' ev <- events(
-##'   node_introductions(p),
+##'   events_default(p),
 ##'   thinning(time = 20, fraction = 0.3)
 ##' )
 events <- function(...) {
@@ -117,6 +118,17 @@ event_rows <- function(type, time, target, target_index = 1L, params = list()) {
 ## "patch" unless a species was named, in which case "species".
 scope_of <- function(species) {
   if (is.null(species)) "patch" else "species"
+}
+
+##' @details \code{events_default(p)} is the schedule a run gets when no events
+##'   are supplied: the node introductions from \code{p$node_schedule_times} and
+##'   nothing else. Start from it when adding events to an otherwise ordinary
+##'   run — \code{events(events_default(p), rainfall_pulse(...))} — or pass it
+##'   on its own, which reproduces the default run exactly.
+##' @rdname events
+##' @export
+events_default <- function(p) {
+  events(node_introductions(p))
 }
 
 ##' @param p Parameters object, whose \code{node_schedule_times} supply the
