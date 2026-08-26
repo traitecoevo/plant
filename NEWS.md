@@ -639,6 +639,8 @@ were not previously recorded here:
 
 ### Minor changes & bug fixes
 
+* **An out-of-domain hydraulic lookup now names the spline, the point, the domain and the caller** (#576), via odelia >= 0.2.2 and phylloptim >= 0.2.1, both already required. The message used to be odelia's bare "Extrapolation disabled and evaluation point outside of interpolated domain.", which named none of the four — and since the leaf reads the same transport spline from four places and holds a second spline that is its inverse, that sentence did not distinguish the cases that matter. Localising #576 meant instrumenting the call sites by hand to find out which spline was read and at what value; the answer (the *lower* end of the inverse, where the demanded flux is negative) is what showed the spline had been right to refuse. Error text only; no model behaviour changes. `test-leaf.r` now asserts the spline, which end was missed and the caller, rather than the whole sentence — which is phylloptim's to word.
+
 * **The scenario gateway scores numerical viability and persistence as separate
   axes, and no longer leads with a match rate** (#572). `scenario_summary()`
   classified a run as a success on `finite && total > 0`; with `birth_rate = 1`

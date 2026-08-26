@@ -235,16 +235,34 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   
   upper_bound_int <- 3*((log(1/1e-5))^(1/2.04))
   #for situations where psi_stem exceeds tolerance of integrator
-  expect_error(l$transpiration(upper_bound_int, psi_stem[1]), "evaluated outside its domain")
-  
+  # The leaf reads the same transport spline from four places and holds a second
+  # spline that is its inverse, so "outside its domain" on its own does not say
+  # which lookup failed -- and that is the fact localising #576 turned on. Assert
+  # the three parts that make the message a diagnosis (which spline, which end,
+  # which caller) rather than the whole sentence, which is phylloptim's to word.
+  err <- expect_error(l$transpiration(upper_bound_int, psi_stem[1]),
+                      "evaluated outside its domain")
+  expect_match(conditionMessage(err), "transpiration_from_psi")
+  expect_match(conditionMessage(err), "beyond the upper end")
+  expect_match(conditionMessage(err), "Leaf::transpiration, at psi_stem")
+
   #for situations where psi_soil exceeds psi_crit + tolerance
   
   psi_soil = upper_bound_int
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   psi_stem = psi_soil 
   
-  expect_error(l$transpiration(psi_stem[1], psi_soil[1]), "evaluated outside its domain")
-  
+  # Same spline, same end -- and the SAME caller label, because psi_stem and
+  # psi_soil are equal here and `Leaf::transpiration` checks the stem argument
+  # first, so it never reaches the upstream one. Asserted rather than left
+  # implicit: this case is reached from the soil side, and the label saying
+  # `at psi_stem` is the thing that would otherwise read as a bug.
+  err <- expect_error(l$transpiration(psi_stem[1], psi_soil[1]),
+                      "evaluated outside its domain")
+  expect_match(conditionMessage(err), "transpiration_from_psi")
+  expect_match(conditionMessage(err), "beyond the upper end")
+  expect_match(conditionMessage(err), "Leaf::transpiration, at psi_stem")
+
   #test that fast E supply calculation is closely approximating full integration
   psi_soil = 0
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
