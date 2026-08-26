@@ -12,14 +12,42 @@
 
 namespace plant {
 
+// What an event *does* when the solver reaches its time (issue #522).
+//
+// Every event in the schedule used to be a node introduction; the tag is what
+// lets rainfall pulses, harvests and the rest share one queue, so that
+// SCM::run_next_impl's stop/apply/resume loop serves all of them.
+//
+// The enumerator order is also the order in which events sharing a time are
+// applied, so do not reorder casually. Environment events come first (they set
+// the physical conditions), demographic removals next, and node introduction
+// last so that a newborn's initial conditions are computed against the
+// post-event environment.
+enum class EventType {
+  RainfallPulse = 0,
+  TemperatureExtreme,
+  Harvest,
+  PartialDisturbance,
+  NodeIntroduction
+};
+
+// Position of a type in the within-time application order. The enumerator
+// value *is* the rank; the function exists so that call sites read as intent
+// rather than as an incidental cast.
+inline int event_type_rank(EventType type) {
+  return static_cast<int>(type);
+}
+
 // This could be done via a list object, but I think this is OK for
 // now.  The main reason for keeping this as a separate class is it
 // only makes sense to have a nontrivial constructor, and that's not
 // yet supported for RcppR6 lists.
 class NodeScheduleEvent {
 public:
-  NodeScheduleEvent(double introduction, size_t species_index_)
-    : species_index(species_index_) {
+  NodeScheduleEvent(double introduction, size_t species_index_,
+                    EventType type_ = EventType::NodeIntroduction,
+                    std::vector<double> params_ = std::vector<double>())
+    : type(type_), species_index(species_index_), params(params_) {
     times.push_back(introduction);
   }
   size_t species_index_raw() const {
@@ -31,8 +59,18 @@ public:
   double time_end() const {
     return times.back();
   }
+  bool is_node_introduction() const {
+    return type == EventType::NodeIntroduction;
+  }
 
+  EventType type;
+  // Meaningful for node introductions (and, in future, births); ignored by
+  // every other type, which addresses the patch as a whole.
   size_t species_index;
+  // Per-type payload: a pulse depth, a harvested fraction, and so on. Kept as
+  // a bare vector so the queue stays plain data and crosses the R boundary
+  // without a templated binding per (strategy, environment) pair.
+  std::vector<double> params;
   std::vector<double> times;
 };
 
@@ -75,6 +113,7 @@ private:
 
   events_iterator add_time(double times, size_t species_index,
                            events_iterator it);
+  events_iterator insert_event(const Event& e);
   void distribute_ode_times();
 
   size_t n_species;

@@ -75,6 +75,14 @@ public:
   void introduce_new_node(size_t species_index);
   void introduce_new_nodes(const std::vector<size_t>& species_index);
 
+  // Apply one non-introduction scheduled event (issue #522). Called between
+  // solver legs, so it may change state and ODE size but must not move the
+  // clock -- the caller re-reads both with set_state_from_system(). An action
+  // is free to reach the answer however it likes, including by integrating its
+  // own fast sub-model over the event's nominal duration with the patch's
+  // demography frozen; to this solver that is still one instantaneous jump.
+  void apply_event(const NodeScheduleEvent& event);
+
   // Open to better ways to test whether nodes have been introduced
   int node_ode_size() const {
     int node_ode_size = ode_size() - environment.ode_size();
@@ -788,6 +796,20 @@ void Patch<T,E>::introduce_new_nodes(const std::vector<size_t>& species_index) {
   }
 
   compute_environment(false);
+}
+
+template <typename T, typename E>
+void Patch<T,E>::apply_event(const NodeScheduleEvent& event) {
+  switch (event.type) {
+  case EventType::NodeIntroduction:
+    // Introductions are batched by the caller so that a run of them costs one
+    // environment recompute rather than one each; they never arrive here.
+    util::stop("Node introductions are applied via introduce_new_nodes()");
+    break;
+  default:
+    util::stop("Event type not implemented");
+    break;
+  }
 }
 
 template <typename T, typename E>
