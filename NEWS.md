@@ -43,6 +43,78 @@ products using plant.
   the trait mechanism cannot reach, and naming one is now an error rather than
   silence — which is the honest report, not the fix.
 
+* **Soil layers can have different widths (#626).** New
+  `TF24_Environment$set_soil_layer_widths(widths)`, taking the WIDTH of each layer
+  top down; `depth` becomes their total. Soil evaporation needs a very thin layer
+  at the top of the profile, which a layer count cannot express. Width is the
+  input, not depth, because "depth 0.3" is ambiguous between a top, a midpoint and
+  a bottom while "width 0.3" is not.
+
+  `set_soil_number_of_depths(n)` is unchanged, in signature and in arithmetic, and
+  is still the way to ask for equal layers. Also newly exposed:
+  `get_soil_layer_widths()`, `get_soil_depths()`, `get_soil_mid_depths()`, and a
+  `soil_layer_width` element in `get_state()` (so `tidy_env()` reports it).
+
+  Two R helpers: `soil_widths_graded(depth, n, top)` builds a geometric ladder
+  from a thin surface layer, and `set_tf24_soil(env, widths, theta, ...)` sets
+  geometry, per-layer parameters and water state in the one order that works.
+
+  `old -> new`:
+
+  - `env$depth <- x` -> `env$set_soil_number_of_depths(n)` (equal layers spanning
+    the new depth) or `env$set_soil_layer_widths(w)`. **`depth` is now read-only**:
+    writing it rebuilt nothing, since only the geometry setters fill `z`/`z_mid`/
+    `dz`, so it silently left the old column in place.
+  - `sum(theta) * env$depth / n` -> `sum(theta * env$get_soil_layer_widths())`.
+    `theta` is intensive, so storage needs the per-layer width; the two agree only
+    for equal layers. Same for `results$env$soil_depth$soil_depth[[1]]` ->
+    `results$env$soil_layer_width$soil_layer_width`.
+  - `leaf$dz_` -> gone with phylloptim 0.9.0. It was one scalar thickness that
+    nothing read. Use `env$get_soil_layer_widths()`.
+
+  **No default output moves.** `run_scm` on the default environment is
+  bit-identical (`offspring_production = 11.143684537309916` before and after),
+  and `scientific_version` is unchanged.
+
+  ⚠️ **A thin surface layer is permitted and not policed. Two things it costs.**
+  The water balance's Jacobian diagonal is `K'(theta)/dz`, so a 2 cm layer is 15x
+  stiffer than the 0.3 m default (2.6e5 vs 1.8e4 yr^-1 at 0.99*theta_sat, a
+  characteristic time of about two minutes). It bites only when the layer is wet,
+  i.e. just after rain, which is when an evaporation layer matters; and below
+  `dz ~ 2.6 mm` the stable step falls under `Control()$ode_step_size_min` and the
+  controller cannot satisfy stability at all. Separately, **runoff is
+  recalibrated**: the infiltration term keys off layer 0 alone through
+  `(theta_0/theta_sat)^b_infil` with `b_infil = 8`, and a thin layer 0 fills far
+  faster, so annual runoff moved 13.4% -> 20.4% under event-driven rainfall with
+  no parameter changed. `a_infil`/`b_infil` were calibrated against a 30 cm
+  surface layer. Both are in `notes/plan-626-soil-layer-widths.md` and in
+  `soil_widths_graded()`'s help.
+
+  Soil evaporation itself is **out of scope**: #626 is the enabling geometry
+  change. The follow-up needs the infiltration re-keying above, step control for a
+  thin wet layer, an upward capillary flux, and the evaporation sink.
+
+* **phylloptim 0.8.0 -> 0.9.0.** Root vertical resistance now scales with the
+  thickness of each layer rather than one column average
+  (traitecoevo/phylloptim#136). Required by #626, and a **bug fix**: total
+  vertical root resistance must not depend on how the column is sliced, and with
+  one scalar it did. On a 2 cm surface layer over 1.5 m it was inflated **3.68x**,
+  throttling root water uptake with nothing reporting it. At plant's own operating
+  point that is `opt_root_psi` 1.747 -> 0.598 MPa and assimilation 15.34 -> 17.25;
+  a thick-over-thin profile moves the same quantities the other way (1.655 ->
+  4.211, 15.48 -> 11.18).
+
+  Unlike the 0.7.0 -> 0.8.0 bump above, this is **not** inert by construction — it
+  is inert only for profiles reachable before now. Every equal-layer profile is
+  bit-identical, which is every profile plant could previously build; the 3.68x is
+  on a profile #626 makes reachable.
+
+  `phylloptim::layer_thickness()` -> `layer_thicknesses()`, returning a vector.
+  ⚠️ **plant must pass `TF24_Environment`'s own `dz` and must never re-derive
+  widths by differencing `z`**: differencing loses a bit for 122 of 180
+  `(depth, n)` pairs, plant's default 1.5 m over 5 layers among them, and the
+  resistance scales with `dz[i]^2`. See `agents.md` §3.2.
+
 * **phylloptim 0.7.0 -> 0.8.0.** Bumped deliberately, which is what the `==` pin
   below exists to force. 0.8.0 (traitecoevo/phylloptim#133) reports the seated
   curve's `lambda_emergent` through `leaf_solve()` and fixes a stale

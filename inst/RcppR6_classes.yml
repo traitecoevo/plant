@@ -108,7 +108,10 @@ Leaf:
     ca_: {type: double, access: field}
     soil_depth_: {type: "std::vector<double>", access: field, name_cpp: "roots_.soil_depth_"}
     z_soil_mid_: {type: "std::vector<double>", access: field, name_cpp: "roots_.z_soil_mid_"}
-    dz_: {type: double, access: field, name_cpp: "roots_.dz_"}
+    # NOTE: `dz_` is gone, with phylloptim 0.9.0 (#626). It was a single scalar
+    # layer thickness, correct only for equal layers, that nothing read. Layer
+    # widths are per layer now and belong to the environment:
+    # TF24_Environment$get_soil_layer_widths().
 
     soil_number_of_depths_: {type: int, access: field, name_cpp: "roots_.soil_number_of_depths_"}
     max_soil_layer: {type: int, access: field, name_cpp: "roots_.max_soil_layer"}
@@ -1436,6 +1439,23 @@ TF24_Environment:
     set_soil_number_of_depths:
       args: [soil_number_of_depths: int]
       return_type: void
+    # Unequal layers (#626): the WIDTH of each, top down, rather than a count.
+    # `depth` becomes their total. Resets the water state, like the setter above.
+    set_soil_layer_widths:
+      args: [widths: "std::vector<double>"]
+      return_type: void
+    get_soil_layer_widths:
+      args: []
+      return_type: "std::vector<double>"
+    # Cumulative depth to the bottom of each layer. Present in C++ since the soil
+    # model was written and simply never exposed; reachable only bundled inside
+    # r_get_state() until #626.
+    get_soil_depths:
+      args: []
+      return_type: "std::vector<double>"
+    get_soil_mid_depths:
+      args: []
+      return_type: "std::vector<double>"
     set_soil_parameters:
       args:
         - soil_number_of_depths: int
@@ -1490,7 +1510,11 @@ TF24_Environment:
     time: {type: double, access: field}
     soil_moist_sat: {type: double, access: field}
     K_sat: {type: double, access: field}
-    depth: {type: double, access: field}
+    # READ-ONLY (#626). A raw setter here rebuilt nothing: only the geometry
+    # setters fill z/z_mid/dz, so `env$depth <- 3` left a 1.5 m column in place and
+    # said nothing. Set the geometry instead -- set_soil_number_of_depths() for
+    # equal layers spanning a new depth, set_soil_layer_widths() otherwise.
+    depth: {type: double, access: field, readonly: true}
     a_psi: {type: double, access: field}
     n_psi: {type: double, access: field}
     a_infil: {type: double, access: field}

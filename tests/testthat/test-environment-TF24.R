@@ -105,6 +105,93 @@ test_that("Environment-TF24 soil layers", {
   expect_error(env$set_soil_water_state(c(0.5, 0.4)))
  })
 
+test_that("Environment-TF24 exposes the three descriptions of its geometry", {
+  # dz is the width of each layer, z the cumulative depth to its BOTTOM, z_mid its
+  # midpoint. Each is read by a different part of the model -- the water balance
+  # divides by the width, the root-mass distribution differences Q() across the
+  # boundaries, the leaf's gravitational head uses the midpoint -- so all three
+  # are exposed and the relations between them asserted here (#626).
+  env <- Environment("TF24")
+
+  expect_equal(env$get_soil_layer_widths(), rep(0.3, 5))
+  expect_equal(env$get_soil_depths(), c(0.3, 0.6, 0.9, 1.2, 1.5))
+  expect_equal(env$get_soil_mid_depths(), c(0.15, 0.45, 0.75, 1.05, 1.35))
+  expect_equal(env$depth, 1.5)
+
+  # The three are consistent by construction, whatever the geometry.
+  check_geometry <- function(env) {
+    dz <- env$get_soil_layer_widths()
+    z <- env$get_soil_depths()
+    expect_equal(z, cumsum(dz))
+    expect_equal(env$get_soil_mid_depths(), z - dz / 2)
+    expect_equal(env$depth, z[[length(z)]])
+    expect_equal(env$get_soil_number_of_depths(), length(dz))
+  }
+  check_geometry(env)
+
+  env$set_soil_number_of_depths(15)
+  check_geometry(env)
+  expect_equal(env$get_soil_layer_widths(), rep(0.1, 15))
+
+  env$set_soil_layer_widths(c(0.02, 0.28, 0.30, 0.40, 0.50))
+  check_geometry(env)
+  expect_equal(env$get_soil_layer_widths(), c(0.02, 0.28, 0.30, 0.40, 0.50))
+  expect_equal(env$get_soil_depths(), c(0.02, 0.30, 0.60, 1.00, 1.50))
+  expect_equal(env$get_soil_number_of_depths(), 5)
+
+  # ⚠️ NOT expect_identical against set_soil_number_of_depths(5). The equal-layer
+  # path builds z as (i+1)*delta_z and this one as a running sum of dz, and the
+  # two differ in the last bit for 103 of 180 (depth, n) pairs. Keeping the two
+  # constructions apart is deliberate: z feeds Q() and the gravitational head, so
+  # routing the uniform path through a running sum would re-baseline every TF24
+  # number for no gain.
+  env$set_soil_layer_widths(rep(0.3, 5))
+  uniform_by_widths <- env$get_soil_depths()
+  env$set_soil_number_of_depths(5)
+  expect_equal(uniform_by_widths, env$get_soil_depths())
+})
+
+test_that("Environment-TF24 refuses an unusable set of layer widths", {
+  env <- Environment("TF24")
+  expect_error(env$set_soil_layer_widths(numeric(0)), "at least one layer")
+  expect_error(env$set_soil_layer_widths(c(0.3, 0, 0.3)), "finite and positive")
+  expect_error(env$set_soil_layer_widths(c(0.3, -0.1)), "finite and positive")
+  expect_error(env$set_soil_layer_widths(c(0.3, NA)), "finite and positive")
+  # And a refusal leaves the geometry alone rather than half-applied.
+  expect_equal(env$get_soil_layer_widths(), rep(0.3, 5))
+})
+
+test_that("Environment-TF24 depth is read-only", {
+  # Writing it used to rebuild nothing -- only the geometry setters fill z/z_mid/dz
+  # -- so `env$depth <- 3` left a 1.5 m column in place and said nothing (#626).
+  env <- Environment("TF24")
+  expect_error(env$depth <- 3)
+  expect_equal(env$depth, 1.5)
+
+  # The supported routes both keep depth and the widths consistent.
+  env$set_soil_layer_widths(rep(0.6, 5))
+  expect_equal(env$depth, 3)
+  env$set_soil_number_of_depths(6)
+  expect_equal(env$get_soil_layer_widths(), rep(0.5, 6))
+  expect_equal(env$depth, 3)
+})
+
+test_that("Environment-TF24 set_soil_parameters keeps unequal layer widths", {
+  # The ordering hazard: set_soil_parameters() used to rebuild the geometry
+  # unconditionally, which threw away widths just set and reverted to equal
+  # layers. Silent, because both are valid geometries. It rebuilds only when the
+  # layer count actually changes now (#626).
+  env <- Environment("TF24")
+  widths <- c(0.02, 0.28, 0.30, 0.40, 0.50)
+  env$set_soil_layer_widths(widths)
+  env$set_soil_parameters(5, NULL, c(200, 163, 163, 163, 100), NULL, NULL)
+  expect_equal(env$get_soil_layer_widths(), widths)
+
+  # A genuine change of count still rebuilds, to equal layers.
+  env$set_soil_parameters(3, NULL, NULL, NULL, NULL)
+  expect_equal(env$get_soil_layer_widths(), rep(0.5, 3))
+})
+
 test_that("Environment-TF24 soil moisture and potential invert each other", {
 
   env <- Environment("TF24")
@@ -169,8 +256,11 @@ test_that("Environment-TF24 running soil moisture profile", {
 
   
   # check conservation of water for 1 layer
-  
-  depth <- out$env$soil_depth$soil_depth[1]
+
+  # The layer's WIDTH (#626). With a single layer this is numerically the same as
+  # its cumulative depth, which is what this read before -- right by coincidence
+  # rather than by construction, so it now asks for what it means.
+  depth <- out$env$soil_layer_width$soil_layer_width[1]
   out$env$soil_moist_cumulative_flux %>%
     dplyr::mutate(sum_runoff = sum_rainfall - sum_infiltration) -> cumulative_fluxes
   

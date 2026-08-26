@@ -173,7 +173,9 @@ test_that("a schedule round-trips through the events format", {
 
 test_that("a resource pulse conserves mass and respects pool capacity", {
   env <- Environment("TF24")
-  dz <- env$depth / env$get_soil_number_of_depths()
+  ## The surface layer's own width (#626). `depth / n` gave the same number while
+  ## every layer was equal; it is the wrong quantity now that they need not be.
+  dz <- env$get_soil_layer_widths()[[1]]
   sat <- env$soil_moist_sat
 
   ## A pulse the surface layer can absorb: all of it goes into layer 0, and
@@ -271,10 +273,11 @@ test_that("pulses wet the soil during a run", {
   ## a pulse adds to storage and to sum_infiltration together.
   balance <- function(scm) {
     e <- scm$patch$environment
-    n <- e$get_soil_number_of_depths()
-    dz <- e$depth / n
+    dz <- e$get_soil_layer_widths()
     f <- e$get_soil_water_state_cumulative_flux()
-    stored <- sum(e$get_soil_water_state() - e$soil_moist_sat / 2) * dz
+    ## sum(theta * dz), per layer: theta is intensive, so a scalar width is only
+    ## right for equal layers (#626).
+    stored <- sum((e$get_soil_water_state() - e$soil_moist_sat / 2) * dz)
     stored - (f[[2]] - f[[3]] - f[[4]])
   }
   expect_equal(balance(base), 0, tolerance = 1e-6)
@@ -290,9 +293,9 @@ test_that("pulses wet the soil during a run", {
   ## infiltrated over and above the base run either drained, was taken up, or
   ## is still in the column.
   e <- pulsed$patch$environment
-  dz <- e$depth / e$get_soil_number_of_depths()
-  stored_gain <- sum(e$get_soil_water_state() -
-                     base$patch$environment$get_soil_water_state()) * dz
+  dz <- e$get_soil_layer_widths()
+  stored_gain <- sum((e$get_soil_water_state() -
+                      base$patch$environment$get_soil_water_state()) * dz)
   expect_equal(stored_gain + (flux[[3]] - base_flux[[3]]) +
                  (flux[[4]] - base_flux[[4]]),
                infil_gain, tolerance = 1e-6)
