@@ -50,6 +50,10 @@ scm_base_parameters <- function(type = NA, env = environment_type(type)) {
 ##' @param p Parameters object
 ##' @param env Environment object (defaults to the strategy's environment)
 ##' @param ctrl Control object
+##' @param events An \code{\link{events}} object giving the discrete events to
+##'   apply during the run — rainfall pulses, harvest, and node introductions
+##'   themselves. When \code{NULL} (the default) the schedule is taken from
+##'   \code{p$node_schedule_times}, i.e. introductions only.
 ##' @param refine_schedule Should the node-introduction schedule be adaptively
 ##'   refined before/while running (using \code{schedule_eps} and
 ##'   \code{schedule_nsteps} from \code{ctrl})?
@@ -64,7 +68,7 @@ scm_base_parameters <- function(type = NA, env = environment_type(type)) {
 ##' @rdname run_scm
 ##' @export
 run_scm <- function(p, env = NULL,
-                    ctrl = control(),
+                    ctrl = control(), events = NULL,
                     refine_schedule = FALSE, collect = FALSE,
                     use_ode_times = FALSE) {
 
@@ -73,7 +77,13 @@ run_scm <- function(p, env = NULL,
   if (is.null(env))
     env <- Environment(types[[1]])
 
-  scm <- do.call('SCM', types)(p, env, ctrl)
+  ## No events supplied: the schedule comes from p$node_schedule_times, as it
+  ## did before events existed. An empty Events object is how that is signalled
+  ## across the boundary.
+  if (is.null(events))
+    events <- empty_events()
+
+  scm <- do.call('SCM', types)(p, env, events, ctrl)
   if (use_ode_times) {
     # Pin integration to the schedule's ode_times (loaded from p$ode_times).
     sched <- scm$node_schedule

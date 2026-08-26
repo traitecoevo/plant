@@ -37,7 +37,9 @@ public:
   typedef Parameters<T, E> parameters_type;
 
   // ---- Construction ------------------------------------------------------
-  SCM(parameters_type p, environment_type e, plant::Control c);
+  // An empty `ev` means "no events supplied": the schedule then comes from
+  // p.node_schedule_times exactly as it always has (#522).
+  SCM(parameters_type p, environment_type e, plant::Events ev, plant::Control c);
 
   // ---- Simulation lifecycle ----------------------------------------------
 
@@ -96,6 +98,11 @@ public:
 
   // Node schedule access
   NodeSchedule r_node_schedule() const { return node_schedule; }
+  // The schedule read back out in the R-facing wire format, so that a run
+  // whose schedule was refined can be re-run, or inspected, as events.
+  Events r_events() const {
+    return events_from_schedule_events(node_schedule.get_events());
+  }
   void r_set_node_schedule(NodeSchedule x);
   void r_set_node_schedule_times(std::vector<std::vector<double>> x);
 
@@ -136,9 +143,9 @@ private:
 // ---- Construction --------------------------------------------------------
 
 template <typename T, typename E>
-SCM<T, E>::SCM(parameters_type p, environment_type e, Control c)
+SCM<T, E>::SCM(parameters_type p, environment_type e, Events ev, Control c)
     : parameters(p), control(c), patch(parameters, e, c),
-      node_schedule(make_node_schedule(parameters)),
+      node_schedule(make_node_schedule(parameters, ev)),
       solver(patch, make_ode_control(c)) {
 
   parameters.validate();

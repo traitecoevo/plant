@@ -85,6 +85,12 @@ public:
   void set_times(const std::vector<double>& times_, size_t species_index);
   void set_times(const std::vector<std::vector<double> >& times);
   std::vector<double> times(size_t species_index) const;
+  // Whole-queue access, in schedule order, for round-tripping through the
+  // R-facing `Events` wire format (see events.h). set_all_events() replaces
+  // every event, introductions included, so it is the one entry point that
+  // does not go through the per-species times interface.
+  std::vector<Event> get_events() const;
+  void set_all_events(const std::vector<Event>& events_);
   void reset();
   void pop();
   Event next_event() const;

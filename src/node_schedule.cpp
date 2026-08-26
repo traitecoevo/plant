@@ -87,6 +87,27 @@ std::vector<double> NodeSchedule::times(size_t species_index) const {
   return ret;
 }
 
+std::vector<NodeScheduleEvent> NodeSchedule::get_events() const {
+  return std::vector<Event>(events.begin(), events.end());
+}
+
+void NodeSchedule::set_all_events(const std::vector<Event>& events_) {
+  events.clear();
+  // Insert one at a time rather than sorting a copy, so the caller's order is
+  // irrelevant and the tie-breaking rule lives in exactly one place.
+  //
+  // Rebuild each event from its introduction time rather than copying it
+  // wholesale: master events must carry exactly one time (reset() appends the
+  // interval end to the *queue* copies), and the caller may be handing back an
+  // event that has been through a queue.
+  for (std::vector<Event>::const_iterator e = events_.begin();
+       e != events_.end(); ++e) {
+    insert_event(Event(e->time_introduction(), e->species_index, e->type,
+                       e->params));
+  }
+  reset();
+}
+
 void NodeSchedule::reset() {
   queue = events;
 

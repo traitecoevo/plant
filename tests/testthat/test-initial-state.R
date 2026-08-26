@@ -13,7 +13,7 @@ run_and_resume <- function(p, x, e, frac = 0.5) {
   env <- Environment(x)
   ctrl <- Control()
 
-  scm <- SCM(x, e)(p, env, ctrl)
+  scm <- SCM(x, e)(p, env, empty_events(), ctrl)
   scm$collect <- TRUE
   scm$run()
 
@@ -21,7 +21,7 @@ run_and_resume <- function(p, x, e, frac = 0.5) {
   state <- export_patch_state(scm, step = k)
 
   p2 <- set_initial_state(p, state)
-  scm2 <- SCM(x, e)(p2, env, ctrl)
+  scm2 <- SCM(x, e)(p2, env, empty_events(), ctrl)
   scm2$collect <- TRUE
   scm2$run()
 
@@ -53,7 +53,7 @@ test_that("FF16 single-species round-trip reproduces the run", {
 
   # Re-importing the same state is deterministic.
   env <- Environment(x); ctrl <- Control()
-  scm3 <- SCM(x, e)(r$p2, env, ctrl); scm3$run()
+  scm3 <- SCM(x, e)(r$p2, env, empty_events(), ctrl); scm3$run()
   expect_identical(scm3$net_reproduction_ratios, r$scm2$net_reproduction_ratios)
 })
 
@@ -113,7 +113,7 @@ test_that("make_initial_state seeds a patch from a size distribution", {
   expect_true(all(unlist(state$pr_patch_survival) > 0))
 
   p2 <- set_initial_state(p1, state)
-  seeded <- SCM(x, e)(p2, env, ctrl)
+  seeded <- SCM(x, e)(p2, env, empty_events(), ctrl)
   # the seeded patch holds the requested nodes, ordered by decreasing height
   expect_equal(seeded$patch$species[[1]]$size, 10)
   expect_equal(sort(seeded$patch$species[[1]]$heights, decreasing = TRUE),
@@ -133,7 +133,7 @@ test_that("implausibly dense initial conditions are rejected", {
   # many large plants at very high density -> exploding density rates
   state <- make_initial_state(p1, heights = seq(8, 12, length.out = 20),
                               densities = rep(50, 20))
-  expect_error(SCM(x, e)(set_initial_state(p1, state), env, ctrl),
+  expect_error(SCM(x, e)(set_initial_state(p1, state), env, empty_events(), ctrl),
                "non-finite densities")
 })
 

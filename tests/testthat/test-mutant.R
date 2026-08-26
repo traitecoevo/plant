@@ -27,7 +27,7 @@ test_that("mutant method works", {
   # test error handling
   # scm object but not yet run
   types <- extract_RcppR6_template_types(pr1, "Parameters")
-  scm <- do.call("SCM", types)(pr1, e, ctrl)
+  scm <- do.call("SCM", types)(pr1, e, empty_events(), ctrl)
 
   expect_error(scm$run_mutant(p0), "Run a resident first to generate a competitve landscape") 
 

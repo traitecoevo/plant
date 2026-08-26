@@ -47,7 +47,7 @@ test_that("Construction", {
     expect_inherits(pat, sprintf("Patch<%s,%s>", x, e))
     expect_equal(class(pat$species[[1]]), class(sp))
 
-    scm <- SCM(x, e)(par, env, ctrl)
+    scm <- SCM(x, e)(par, env, empty_events(), ctrl)
     expect_inherits(scm, "SCM")
     expect_inherits(scm, sprintf("SCM<%s,%s>", x, e))
     expect_equal(class(scm$patch), class(pat))

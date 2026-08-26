@@ -2195,6 +2195,27 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Events__ctor
+SEXP Events__ctor();
+RcppExport SEXP _plant_Events__ctor() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(Events__ctor());
+    return rcpp_result_gen;
+END_RCPP
+}
+// Events__vdor
+SEXP Events__vdor(SEXP obj);
+RcppExport SEXP _plant_Events__vdor(SEXP objSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type obj(objSEXP);
+    rcpp_result_gen = Rcpp::wrap(Events__vdor(obj));
+    return rcpp_result_gen;
+END_RCPP
+}
 // NodeSchedule__ctor
 plant::NodeSchedule NodeSchedule__ctor(size_t n_species);
 RcppExport SEXP _plant_NodeSchedule__ctor(SEXP n_speciesSEXP) {
@@ -7316,15 +7337,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // SCM___FF16__FF16_Env__ctor
-plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> SCM___FF16__FF16_Env__ctor(plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> parameters, plant::FF16_Environment environment, plant::Control control);
-RcppExport SEXP _plant_SCM___FF16__FF16_Env__ctor(SEXP parametersSEXP, SEXP environmentSEXP, SEXP controlSEXP) {
+plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> SCM___FF16__FF16_Env__ctor(plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> parameters, plant::FF16_Environment environment, plant::Events events, plant::Control control);
+RcppExport SEXP _plant_SCM___FF16__FF16_Env__ctor(SEXP parametersSEXP, SEXP environmentSEXP, SEXP eventsSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> >::type parameters(parametersSEXP);
     Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
+    Rcpp::traits::input_parameter< plant::Events >::type events(eventsSEXP);
     Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__ctor(parameters, environment, control));
+    rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__ctor(parameters, environment, events, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -7514,6 +7536,17 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// SCM___FF16__FF16_Env__events__get
+plant::Events SCM___FF16__FF16_Env__events__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_SCM___FF16__FF16_Env__events__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__events__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // SCM___FF16__FF16_Env__ode_times__get
 std::vector<double> SCM___FF16__FF16_Env__ode_times__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_SCM___FF16__FF16_Env__ode_times__get(SEXP obj_SEXP) {
@@ -7570,15 +7603,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // SCM___TF24__TF24_Env__ctor
-plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> SCM___TF24__TF24_Env__ctor(plant::Parameters<plant::TF24_Strategy,plant::TF24_Environment> parameters, plant::TF24_Environment environment, plant::Control control);
-RcppExport SEXP _plant_SCM___TF24__TF24_Env__ctor(SEXP parametersSEXP, SEXP environmentSEXP, SEXP controlSEXP) {
+plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> SCM___TF24__TF24_Env__ctor(plant::Parameters<plant::TF24_Strategy,plant::TF24_Environment> parameters, plant::TF24_Environment environment, plant::Events events, plant::Control control);
+RcppExport SEXP _plant_SCM___TF24__TF24_Env__ctor(SEXP parametersSEXP, SEXP environmentSEXP, SEXP eventsSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::Parameters<plant::TF24_Strategy,plant::TF24_Environment> >::type parameters(parametersSEXP);
     Rcpp::traits::input_parameter< plant::TF24_Environment >::type environment(environmentSEXP);
+    Rcpp::traits::input_parameter< plant::Events >::type events(eventsSEXP);
     Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24__TF24_Env__ctor(parameters, environment, control));
+    rcpp_result_gen = Rcpp::wrap(SCM___TF24__TF24_Env__ctor(parameters, environment, events, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -7768,6 +7802,17 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// SCM___TF24__TF24_Env__events__get
+plant::Events SCM___TF24__TF24_Env__events__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_);
+RcppExport SEXP _plant_SCM___TF24__TF24_Env__events__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___TF24__TF24_Env__events__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // SCM___TF24__TF24_Env__ode_times__get
 std::vector<double> SCM___TF24__TF24_Env__ode_times__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_);
 RcppExport SEXP _plant_SCM___TF24__TF24_Env__ode_times__get(SEXP obj_SEXP) {
@@ -7824,15 +7869,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // SCM___TF24f__TF24_Env__ctor
-plant::SCM<plant::TF24f_Strategy,plant::TF24_Environment> SCM___TF24f__TF24_Env__ctor(plant::Parameters<plant::TF24f_Strategy,plant::TF24_Environment> parameters, plant::TF24_Environment environment, plant::Control control);
-RcppExport SEXP _plant_SCM___TF24f__TF24_Env__ctor(SEXP parametersSEXP, SEXP environmentSEXP, SEXP controlSEXP) {
+plant::SCM<plant::TF24f_Strategy,plant::TF24_Environment> SCM___TF24f__TF24_Env__ctor(plant::Parameters<plant::TF24f_Strategy,plant::TF24_Environment> parameters, plant::TF24_Environment environment, plant::Events events, plant::Control control);
+RcppExport SEXP _plant_SCM___TF24f__TF24_Env__ctor(SEXP parametersSEXP, SEXP environmentSEXP, SEXP eventsSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::Parameters<plant::TF24f_Strategy,plant::TF24_Environment> >::type parameters(parametersSEXP);
     Rcpp::traits::input_parameter< plant::TF24_Environment >::type environment(environmentSEXP);
+    Rcpp::traits::input_parameter< plant::Events >::type events(eventsSEXP);
     Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24f__TF24_Env__ctor(parameters, environment, control));
+    rcpp_result_gen = Rcpp::wrap(SCM___TF24f__TF24_Env__ctor(parameters, environment, events, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -8022,6 +8068,17 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// SCM___TF24f__TF24_Env__events__get
+plant::Events SCM___TF24f__TF24_Env__events__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy,plant::TF24_Environment> > obj_);
+RcppExport SEXP _plant_SCM___TF24f__TF24_Env__events__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy,plant::TF24_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___TF24f__TF24_Env__events__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // SCM___TF24f__TF24_Env__ode_times__get
 std::vector<double> SCM___TF24f__TF24_Env__ode_times__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy,plant::TF24_Environment> > obj_);
 RcppExport SEXP _plant_SCM___TF24f__TF24_Env__ode_times__get(SEXP obj_SEXP) {
@@ -8078,15 +8135,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // SCM___K93__K93_Env__ctor
-plant::SCM<plant::K93_Strategy,plant::K93_Environment> SCM___K93__K93_Env__ctor(plant::Parameters<plant::K93_Strategy,plant::K93_Environment> parameters, plant::K93_Environment environment, plant::Control control);
-RcppExport SEXP _plant_SCM___K93__K93_Env__ctor(SEXP parametersSEXP, SEXP environmentSEXP, SEXP controlSEXP) {
+plant::SCM<plant::K93_Strategy,plant::K93_Environment> SCM___K93__K93_Env__ctor(plant::Parameters<plant::K93_Strategy,plant::K93_Environment> parameters, plant::K93_Environment environment, plant::Events events, plant::Control control);
+RcppExport SEXP _plant_SCM___K93__K93_Env__ctor(SEXP parametersSEXP, SEXP environmentSEXP, SEXP eventsSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >::type parameters(parametersSEXP);
     Rcpp::traits::input_parameter< plant::K93_Environment >::type environment(environmentSEXP);
+    Rcpp::traits::input_parameter< plant::Events >::type events(eventsSEXP);
     Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__ctor(parameters, environment, control));
+    rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__ctor(parameters, environment, events, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -8274,6 +8332,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::NodeSchedule >::type value(valueSEXP);
     SCM___K93__K93_Env__node_schedule__set(obj_, value);
     return R_NilValue;
+END_RCPP
+}
+// SCM___K93__K93_Env__events__get
+plant::Events SCM___K93__K93_Env__events__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_);
+RcppExport SEXP _plant_SCM___K93__K93_Env__events__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__events__get(obj_));
+    return rcpp_result_gen;
 END_RCPP
 }
 // SCM___K93__K93_Env__ode_times__get
@@ -12490,6 +12559,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_NodeScheduleEvent__time_introduction__get", (DL_FUNC) &_plant_NodeScheduleEvent__time_introduction__get, 1},
     {"_plant_NodeScheduleEvent__time_end__get", (DL_FUNC) &_plant_NodeScheduleEvent__time_end__get, 1},
     {"_plant_NodeScheduleEvent__species_index_raw__get", (DL_FUNC) &_plant_NodeScheduleEvent__species_index_raw__get, 1},
+    {"_plant_Events__ctor", (DL_FUNC) &_plant_Events__ctor, 0},
+    {"_plant_Events__vdor", (DL_FUNC) &_plant_Events__vdor, 1},
     {"_plant_NodeSchedule__ctor", (DL_FUNC) &_plant_NodeSchedule__ctor, 1},
     {"_plant_NodeSchedule__expand", (DL_FUNC) &_plant_NodeSchedule__expand, 3},
     {"_plant_NodeSchedule__clear_times", (DL_FUNC) &_plant_NodeSchedule__clear_times, 2},
@@ -12944,7 +13015,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___K93__K93_Env__ode_aux__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__ode_aux__get, 1},
     {"_plant_Patch___K93__K93_Env__node_ode_size__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__node_ode_size__get, 1},
     {"_plant_Patch___K93__K93_Env__state__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__state__get, 1},
-    {"_plant_SCM___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__ctor, 3},
+    {"_plant_SCM___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__ctor, 4},
     {"_plant_SCM___FF16__FF16_Env__run", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__run, 1},
     {"_plant_SCM___FF16__FF16_Env__run_mutant", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__run_mutant, 2},
     {"_plant_SCM___FF16__FF16_Env__refine_schedule", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__refine_schedule, 1},
@@ -12962,12 +13033,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___FF16__FF16_Env__refinement_error_by_node__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__refinement_error_by_node__get, 1},
     {"_plant_SCM___FF16__FF16_Env__node_schedule__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__node_schedule__get, 1},
     {"_plant_SCM___FF16__FF16_Env__node_schedule__set", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__node_schedule__set, 2},
+    {"_plant_SCM___FF16__FF16_Env__events__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__events__get, 1},
     {"_plant_SCM___FF16__FF16_Env__ode_times__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__ode_times__get, 1},
     {"_plant_SCM___FF16__FF16_Env__collect__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__collect__get, 1},
     {"_plant_SCM___FF16__FF16_Env__collect__set", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__collect__set, 2},
     {"_plant_SCM___FF16__FF16_Env__collect_refinement_errors__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__collect_refinement_errors__get, 1},
     {"_plant_SCM___FF16__FF16_Env__collect_refinement_errors__set", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__collect_refinement_errors__set, 2},
-    {"_plant_SCM___TF24__TF24_Env__ctor", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__ctor, 3},
+    {"_plant_SCM___TF24__TF24_Env__ctor", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__ctor, 4},
     {"_plant_SCM___TF24__TF24_Env__run", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__run, 1},
     {"_plant_SCM___TF24__TF24_Env__run_mutant", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__run_mutant, 2},
     {"_plant_SCM___TF24__TF24_Env__refine_schedule", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__refine_schedule, 1},
@@ -12985,12 +13057,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___TF24__TF24_Env__refinement_error_by_node__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__refinement_error_by_node__get, 1},
     {"_plant_SCM___TF24__TF24_Env__node_schedule__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__node_schedule__get, 1},
     {"_plant_SCM___TF24__TF24_Env__node_schedule__set", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__node_schedule__set, 2},
+    {"_plant_SCM___TF24__TF24_Env__events__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__events__get, 1},
     {"_plant_SCM___TF24__TF24_Env__ode_times__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__ode_times__get, 1},
     {"_plant_SCM___TF24__TF24_Env__collect__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__collect__get, 1},
     {"_plant_SCM___TF24__TF24_Env__collect__set", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__collect__set, 2},
     {"_plant_SCM___TF24__TF24_Env__collect_refinement_errors__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__collect_refinement_errors__get, 1},
     {"_plant_SCM___TF24__TF24_Env__collect_refinement_errors__set", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__collect_refinement_errors__set, 2},
-    {"_plant_SCM___TF24f__TF24_Env__ctor", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__ctor, 3},
+    {"_plant_SCM___TF24f__TF24_Env__ctor", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__ctor, 4},
     {"_plant_SCM___TF24f__TF24_Env__run", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__run, 1},
     {"_plant_SCM___TF24f__TF24_Env__run_mutant", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__run_mutant, 2},
     {"_plant_SCM___TF24f__TF24_Env__refine_schedule", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__refine_schedule, 1},
@@ -13008,12 +13081,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___TF24f__TF24_Env__refinement_error_by_node__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__refinement_error_by_node__get, 1},
     {"_plant_SCM___TF24f__TF24_Env__node_schedule__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__node_schedule__get, 1},
     {"_plant_SCM___TF24f__TF24_Env__node_schedule__set", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__node_schedule__set, 2},
+    {"_plant_SCM___TF24f__TF24_Env__events__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__events__get, 1},
     {"_plant_SCM___TF24f__TF24_Env__ode_times__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__ode_times__get, 1},
     {"_plant_SCM___TF24f__TF24_Env__collect__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__collect__get, 1},
     {"_plant_SCM___TF24f__TF24_Env__collect__set", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__collect__set, 2},
     {"_plant_SCM___TF24f__TF24_Env__collect_refinement_errors__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__collect_refinement_errors__get, 1},
     {"_plant_SCM___TF24f__TF24_Env__collect_refinement_errors__set", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__collect_refinement_errors__set, 2},
-    {"_plant_SCM___K93__K93_Env__ctor", (DL_FUNC) &_plant_SCM___K93__K93_Env__ctor, 3},
+    {"_plant_SCM___K93__K93_Env__ctor", (DL_FUNC) &_plant_SCM___K93__K93_Env__ctor, 4},
     {"_plant_SCM___K93__K93_Env__run", (DL_FUNC) &_plant_SCM___K93__K93_Env__run, 1},
     {"_plant_SCM___K93__K93_Env__run_mutant", (DL_FUNC) &_plant_SCM___K93__K93_Env__run_mutant, 2},
     {"_plant_SCM___K93__K93_Env__refine_schedule", (DL_FUNC) &_plant_SCM___K93__K93_Env__refine_schedule, 1},
@@ -13031,6 +13105,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___K93__K93_Env__refinement_error_by_node__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__refinement_error_by_node__get, 1},
     {"_plant_SCM___K93__K93_Env__node_schedule__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__node_schedule__get, 1},
     {"_plant_SCM___K93__K93_Env__node_schedule__set", (DL_FUNC) &_plant_SCM___K93__K93_Env__node_schedule__set, 2},
+    {"_plant_SCM___K93__K93_Env__events__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__events__get, 1},
     {"_plant_SCM___K93__K93_Env__ode_times__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__ode_times__get, 1},
     {"_plant_SCM___K93__K93_Env__collect__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__collect__get, 1},
     {"_plant_SCM___K93__K93_Env__collect__set", (DL_FUNC) &_plant_SCM___K93__K93_Env__collect__set, 2},
