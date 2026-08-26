@@ -508,6 +508,36 @@ were not previously recorded here:
   flux the plant has moves establishment and every plant near its compensation
   point, so it wants its own change and its own re-blessing rather than being
   folded in here where one census movement would have two causes.
+* **Discrete events (#628).** `run_scm()` takes an `events` argument: a queue of
+  `(time, action)` items applied between solver legs, the way node introductions
+  always have been. Build one with `events()` and the typed constructors —
+  `node_introductions()`, `rainfall_pulse()`, `thinning()` (and its aliases
+  `harvest()` and `partial_disturbance()`), `heat_damage()`.
+
+  ```r
+  ev <- events(
+    node_introductions(p),
+    rainfall_pulse(time = c(1.5, 3.2), depth = c(0.013, 0.050)),
+    thinning(time = 20, fraction = 0.5, height_min = 10)
+  )
+  res <- run_scm(p, env = env, ctrl = ctrl, events = ev)
+  ```
+
+  Each event carries when it happens, its type, its target (`"environment"`,
+  `"patch"` or one `"species"`) and the values it needs. What each one actually
+  did — as against what was asked of it — is readable as `scm$event_log`; the two
+  differ routinely, because a rainfall pulse is capped at what the surface soil
+  layer can hold and the excess is shed.
+
+  Two things worth knowing. An event is also a **stop time** for the integrator,
+  so adding one changes the adaptive step sequence: a run with events legitimately
+  differs from one without, at solver tolerance, even away from the events. And
+  events are instantaneous *to the solver* only — an action may sub-integrate its
+  own fast model over a nominal duration with demography frozen, which is what
+  `heat_damage()` does. Design notes in `notes/plan-events.md`.
+
+  Runs that supply no events are unaffected, and verified so: FF16, K93 and TF24
+  are `identical()` on ODE step times, fitness and state.
 
 * **`Control$node_density_in_birth_date`** (default `FALSE`) carries the SCM's
   size distribution as a density in birth date instead of in height.

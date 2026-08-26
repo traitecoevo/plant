@@ -91,6 +91,21 @@ test_that("node_introductions() reproduces the parameters' schedule", {
   }
 })
 
+test_that("events_default() is the schedule a run gets with no events", {
+  p <- add_strategies(scm_base_parameters("FF16"), trait_matrix(1, "lma"))
+  ev <- events_default(p)
+  expect_true(all(ev$type == "node_introduction"))
+  expect_identical(ev$time, events(node_introductions(p))$time)
+
+  ## It composes: an Events object can be fed straight back into events(), so
+  ## adding to an ordinary run does not mean rebuilding its schedule by hand.
+  combined <- events(ev, thinning(time = 10, fraction = 0.5))
+  expect_equal(length(combined$time), length(ev$time) + 1)
+  expect_equal(sum(combined$type == "thinning"), 1)
+  ## Still sorted, with the new event in its place rather than appended.
+  expect_false(is.unsorted(combined$time))
+})
+
 test_that("an out-of-range species index is rejected", {
   p <- add_strategies(scm_base_parameters("FF16"), trait_matrix(1, "lma"))
   ev <- events(node_introductions(p))
