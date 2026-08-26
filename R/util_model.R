@@ -33,12 +33,87 @@ generate_strategy <- function(p, traits, hyperpar = param_hyperpar(p),
   traits <- hyperpar(traits, strategy)
 
   trait_names <- colnames(traits)
+  ## Refuse a name that is not a parameter of this model (#636).
+  ##
+  ## ⚠️ WITHOUT THIS, A MISSPELT TRAIT IS A SILENT NO-OP AND THE RUN LOOKS FINE.
+  ## The assignment below is `pars[trait_names] <- xi` on a list, which APPENDS an
+  ## unknown name rather than dropping it -- so the junk element reaches the
+  ## generated `Rcpp::as<*_Pars>`, which reads only the fields it knows and never
+  ## looks at the extras (`RcppR6_post.hpp`: "No current support for a hook").
+  ## The strategy then builds, solves and reports at the DEFAULT value of the
+  ## parameter the caller believed they were varying. A trait sweep written with a
+  ## typo runs the whole sweep at one point; a calibration fits a model it never
+  ## perturbed. There is nothing in the output to say so, which is why this has to
+  ## be refused rather than warned about.
+  ##
+  ## ⚠️ AFTER hyperpar(), NOT BEFORE. The hyperpar is what turns input traits into
+  ## the parameter columns actually assigned -- it consumes e.g. `K_s` and emits
+  ## `stem_P50`/`stem_c`, and its own guard already refuses an input that collides
+  ## with something it derives. Checking the caller's original column names would
+  ## reject every legitimate hyperparameterised trait.
+  ##
+  ## ⚠️ THE VALID SET IS `pars` ONLY, and that is narrower than "settable on the
+  ## strategy". TF24f's `k_acclim`, `psi_fd_step` and `use_ad_gradient` are real
+  ## user-settable fields living at the TOP level, and the assignment below cannot
+  ## reach them, so they are not traits today. This turns that silence into an
+  ## error, which is the honest report; making them reachable is a feature and is
+  ## deliberately not done here (#636).
+  known <- names(strategy$pars)
+  ## Traits the hyperpar reads from the matrix but never assigns to the strategy.
+  ## It declares them itself (see `make_FF16_hyperpar`), because `pars` cannot
+  ## show them: FF16's `narea` derives `a_p1`, `a_p2` and `r_l` and is not a
+  ## parameter, so a `narea` sweep is legitimate and must not be refused. A
+  ## caller-supplied hyperpar with no declaration gets `pars` alone, which is the
+  ## honest default -- we cannot know what an arbitrary closure reads.
+  consumed <- attr(hyperpar, "input_traits", exact = TRUE)
+  if (is.null(consumed)) consumed <- character(0)
+
+  unknown <- setdiff(trait_names, c(known, consumed))
+  if (length(unknown) > 0L) {
+    ## Name the nearest valid parameter for each offender: the whole failure mode
+    ## is a name that is almost right, so "did you mean" is the message doing the
+    ## real work.
+    candidates <- c(known, consumed)
+    suggest <- vapply(unknown, function(u) {
+      d <- utils::adist(u, candidates, ignore.case = TRUE)[1, ]
+      near <- candidates[d == min(d) & d <= max(2L, ceiling(nchar(u) / 3))]
+      if (length(near) == 0L) u else sprintf("%s (did you mean %s?)", u,
+                                             paste(near, collapse = " / "))
+    }, character(1L), USE.NAMES = FALSE)
+    ## The strategy carries no `name` field at R level, so the class is what names
+    ## the model -- e.g. "TF24_Strategy". `strategy$name` silently yields NULL.
+    model <- class(strategy)[[1L]]
+    stop(sprintf(paste0(
+      "Unknown trait name%s for %s: %s\n",
+      "A trait must name a parameter in the strategy's `pars`, or a trait the ",
+      "hyperpar consumes; see names(%s()$pars) for the %d available.\n",
+      "Note the hyperpar's own arguments (B_kl1, B_ks1, ...) are NOT traits: ",
+      "pass them to make_%s_hyperpar() instead."),
+      if (length(unknown) > 1L) "s" else "",
+      model,
+      paste(suggest, collapse = ", "),
+      model, length(known), sub("_Strategy$", "", model)),
+      call. = FALSE)
+  }
+
+  ## Assign only the columns that ARE parameters. A consumed trait like `narea`
+  ## has already done its work inside the hyperpar, and appending it to `pars`
+  ## would leave a junk element that the generated `Rcpp::as<*_Pars>` ignores --
+  ## harmless to the model, but it makes a strategy compare unequal to a default
+  ## one for a reason that has nothing to do with the model.
+  ##
+  ## ⚠️ `xi` below is UNNAMED and positional, aligned with `trait_names`, so this
+  ## has to carry the positions rather than the names. `xi[assign_names]` returns
+  ## a vector of NAs -- silently, and every parameter would land as NA.
+  assign_at <- which(trait_names %in% known)
+  assign_names <- trait_names[assign_at]
+
   f <- function(xi, br) {
     # Every column produced by hyperpar() is a biological parameter, which now
     # lives in the nested `pars` sub-object. Copy-back form: active/nested list
     # access returns a copy, so modify it then assign it back.
     pars <- strategy$pars
-    pars[trait_names] <- xi
+    pars[assign_names] <- xi[assign_at]
     strategy$pars <- pars
     if (is.list(br)) {
       if (!is.numeric(br$x) || length(br$x) < 2) {

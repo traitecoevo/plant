@@ -247,9 +247,23 @@ test_that("Sensible behaviour on integration failure", {
   expect_equal(res$state[,"height"], sizes[seq_len(length(res$time))], tolerance = 1E-5)
 
   ## As reported in issue #174
+  ##
+  ## ⚠️ THIS MATRIX USED TO CARRY TEN MORE COLUMNS, NINE OF WHICH DID NOTHING:
+  ## `B_kl1`, `B_kl2`, `B_ks1`, `B_lf1`, `B_lf4`, `B_lf5`, `B_rs1`, `B_rb1` are
+  ## CONSTRUCTOR arguments of make_FF16_hyperpar(), not traits -- the hyperpar is
+  ## built with no arguments on the line above, so naming them here never
+  ## configured anything -- and `c_r1` is not a parameter of this model at all.
+  ## They were appended to `pars` as junk elements and ignored by the generated
+  ## Rcpp converter. #636 refuses an unknown trait name, which is what surfaced
+  ## them.
+  ##
+  ## `narea` is KEPT: FF16's hyperpar genuinely reads it from the matrix, to
+  ## derive `a_p1`, `a_p2` and `r_l`. Measured before removing the rest -- of the
+  ## ten, `narea` alone moved any parameter of the strategy -- so this run is
+  ## unchanged and the #174 regression below still exercises what it did.
   traits <- trait_matrix(
-    c(10.8552329005728,0.0105249489979936,633.641169104633,0.00227017846696535,3.61377429973252,0.66734,1.99575855688525,0.0567301588978768,900.481925352216,0.278101287831634,0.0183902655344452,0.523884989942541,4.34167189261234,4.520285,0.824983001217059,0.0344755338576102,0.245619588820917,0.260495,5031.78411788144,1.06992910086522,1.1368443297711,50,1),
-    c("eta","lma","rho","theta","a_l1","a_l2","a_r1","a_b1","r_r","k_b","k_r","omega","B_kl1","B_kl2","B_ks1","narea","B_lf1","B_lf5","B_lf4","B_rs1","B_rb1","hmat","c_r1")
+    c(10.8552329005728,0.0105249489979936,633.641169104633,0.00227017846696535,3.61377429973252,0.66734,1.99575855688525,0.0567301588978768,900.481925352216,0.278101287831634,0.0183902655344452,0.523884989942541,0.0344755338576102,50),
+    c("eta","lma","rho","theta","a_l1","a_l2","a_r1","a_b1","r_r","k_b","k_r","omega","narea","hmat")
   )
 
   s <- generate_strategy(scm_base_parameters("FF16"), traits, hyperpar = hyperpar, birth_rate = 1.0)[[1]]
