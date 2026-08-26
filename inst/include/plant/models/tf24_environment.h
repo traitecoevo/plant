@@ -537,7 +537,7 @@ public:
   // for continuous forcing, so applying it to an instantaneous depth would
   // double-count against the capacity cap. Whether a pulse should be filtered
   // that way as well is the first open question on this action.
-  void add_water_pulse(double depth) {
+  std::vector<double> add_water_pulse(double depth) {
     if (!util::is_finite(depth) || depth < 0.0) {
       util::stop("Rainfall pulse depth must be finite and non-negative");
     }
@@ -557,6 +557,7 @@ public:
     vars.set_state(n + 4, vars.state(n + 4) + excess);    // sum_pulse_runoff
 
     psi_soil_cache_valid_ = false;
+    return {accepted, excess};
   }
 
   // R interface

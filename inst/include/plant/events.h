@@ -16,9 +16,19 @@ namespace plant {
 EventType event_type_from_string(const std::string& name);
 std::string event_type_to_string(EventType type);
 
+EventTarget event_target_from_string(const std::string& name);
+std::string event_target_to_string(EventTarget target);
+
 // How many parameters a type expects, so a malformed event is rejected where
 // the user can still see which one it was rather than deep inside a run.
 size_t event_type_n_params(EventType type);
+
+// The target a type acts on when none is named, and whether it will accept
+// being narrowed to a single species. Thinning and heat damage will (thin one
+// species, or the whole stand); a rainfall pulse will not, because soil water
+// is not owned by any one species.
+EventTarget event_type_default_target(EventType type);
+bool event_type_accepts_species(EventType type);
 
 // The R-facing description of a run's discrete events.
 //
@@ -40,12 +50,53 @@ public:
 
   std::vector<double> time;
   std::vector<std::string> type;
-  // 1-based, matching R. Meaningful only for node introductions; every other
-  // type acts on the patch as a whole and ignores it.
-  std::vector<size_t> species_index;
+  // What each event acts on: "patch", "environment" or "species".
+  std::vector<std::string> target;
+  // 1-based, matching R. Read only when the target is "species".
+  std::vector<size_t> target_index;
   // Per-type payload; see event_type_n_params().
   std::vector<std::vector<double> > params;
 };
+
+// What a run's events actually did, as opposed to what was asked of them
+// (issue #628).
+//
+// The two are routinely different and the difference is the interesting part:
+// a rainfall pulse is capped at what the surface layer can hold, so the depth
+// that reaches the soil is often less than the depth requested, and thinning a
+// size class removes whatever was in that class rather than a fixed number.
+// Without this the shortfall is only inferable from an accumulator, which is
+// no way to answer "what did this run do".
+class EventLog {
+public:
+  EventLog() {}
+  size_t size() const { return time.size(); }
+  void validate() {}
+
+  std::vector<double> time;
+  std::vector<std::string> type;
+  std::vector<std::string> target;
+  std::vector<size_t> target_index;
+  // What the event asked for: the event's own params, verbatim.
+  std::vector<std::vector<double> > requested;
+  // What it achieved. Per-type, and documented by the action that fills it:
+  // a pulse reports {accepted, shed}; thinning and heat damage report
+  // {fraction_applied, nodes_affected}.
+  std::vector<std::vector<double> > applied;
+};
+
+// One applied event, as the action reports it back to the runner.
+class EventRecord {
+public:
+  double time = 0.0;
+  EventType type = EventType::NodeIntroduction;
+  EventTarget target = EventTarget::Patch;
+  size_t target_index = 0;
+  std::vector<double> requested;
+  std::vector<double> applied;
+};
+
+EventLog event_log_from_records(const std::vector<EventRecord>& records);
 
 // Events -> queue entries. Validates species indices against the number of
 // species, which Events itself cannot know.

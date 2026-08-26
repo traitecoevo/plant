@@ -284,7 +284,7 @@ NodeScheduleEvent:
   constructor:
     args: [introduction: double, species_index: "plant::util::index"]
   active:
-    species_index: {type: "plant::util::index", access: field, name_cpp: species_index}
+    target_index: {type: "plant::util::index", access: field, name_cpp: target_index}
     times: {type: "std::vector<double>", access: field, readonly: true}
     time_introduction: {type: double, access: member}
     time_end: {type: double, access: member}
@@ -297,8 +297,21 @@ Events:
   list:
     - time: "std::vector<double>"
     - type: "std::vector<std::string>"
-    - species_index: "std::vector<size_t>"
+    - target: "std::vector<std::string>"
+    - target_index: "std::vector<size_t>"
     - params: "std::vector<std::vector<double> >"
+
+EventLog:
+  name_cpp: "plant::EventLog"
+  validator:
+    name_cpp: validate
+  list:
+    - time: "std::vector<double>"
+    - type: "std::vector<std::string>"
+    - target: "std::vector<std::string>"
+    - target_index: "std::vector<size_t>"
+    - requested: "std::vector<std::vector<double> >"
+    - applied: "std::vector<std::vector<double> >"
 
 NodeSchedule:
   name_cpp: "plant::NodeSchedule"
@@ -838,6 +851,11 @@ SCM:
       type: "plant::Events"
       access: member
       name_cpp: r_events
+    # What the events actually did, as against what was asked of them.
+    event_log:
+      type: "plant::EventLog"
+      access: member
+      name_cpp: r_event_log
     # ODE times: read-only view of the step times the solver actually used.
     # Pinning integration to fixed times is toggled on the NodeSchedule.
     ode_times:

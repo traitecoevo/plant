@@ -38,6 +38,8 @@ template <> SEXP wrap(const plant::NodeScheduleEvent&);
 template <> plant::NodeScheduleEvent as(SEXP);
 template <> SEXP wrap(const plant::Events&);
 template <> plant::Events as(SEXP);
+template <> SEXP wrap(const plant::EventLog&);
+template <> plant::EventLog as(SEXP);
 template <> SEXP wrap(const plant::NodeSchedule&);
 template <> plant::NodeSchedule as(SEXP);
 template <> SEXP wrap(const plant::Control&);

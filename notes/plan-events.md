@@ -1,6 +1,8 @@
-# A general discrete-events mechanism (#522)
+# A general discrete-events mechanism (#628)
 
-**Status: in progress.** This is the working plan for [#522](https://github.com/traitecoevo/plant/issues/522), and the constraints in it bind anyone editing the schedule, the SCM run loop, or the TF24 soil state while the work is open. Sibling issue [#601](https://github.com/traitecoevo/plant/issues/601) inherits the mechanism built here.
+**Status: in progress.** This is the working plan for [#628](https://github.com/traitecoevo/plant/issues/628), the event-structure subtask of [#522](https://github.com/traitecoevo/plant/issues/522). The constraints in it bind anyone editing the schedule, the SCM run loop, or the TF24 soil state while the work is open.
+
+Two other issues consume what is built here: [#627](https://github.com/traitecoevo/plant/issues/627) wants thinning that can target size classes, which is the `thinning` action below; [#601](https://github.com/traitecoevo/plant/issues/601) wants the same queue for finite births and deaths when the stochastic and deterministic solvers are unified.
 
 ## Context
 
@@ -50,13 +52,14 @@ Both halves matter. The first is the guardrail on the migration commit. The seco
 So: **keep the queue plain data; put the dispatch in the templated layer.**
 
 ```cpp
-enum class EventType { NodeIntroduction, RainfallPulse, Harvest,
-                       PartialDisturbance, TemperatureExtreme };
+enum class EventType   { RainfallPulse, HeatDamage, Thinning, NodeIntroduction };
+enum class EventTarget { Patch, Environment, Species };
 
 class ScheduleEvent {
 public:
-  EventType type = EventType::NodeIntroduction;
-  size_t species_index = 0;      // meaningful for NodeIntroduction (and future Birth)
+  EventType type;
+  EventTarget target;            // what it acts on
+  size_t target_index;           // which species, when the target is Species
   std::vector<double> params;    // per-type payload, incl. nominal duration where relevant
   std::vector<double> times;     // [t_intro, ...extra ode times..., t_end] -- semantics UNCHANGED
   double time_introduction() const { return times.front(); }
@@ -64,7 +67,11 @@ public:
 };
 ```
 
-`species_index` stays a named field rather than folding into `params`, so the existing RcppR6 binding ([yml:257-266](../inst/RcppR6_classes.yml#L257-L266)), the `ret.push_back(e.species_index)` in the run loop, and `collect_competition_errors(added)` all survive untouched.
+Each event says when it happens, what kind of thing it is, what it acts on, and the values it needs — the four things #628 asks for. Type and target are separate because the same action serves different scopes: thinning a whole patch and thinning one species run the same code over a different set of nodes.
+
+**There is deliberately no per-cohort target.** A cohort has no stable address across a run — nodes are appended and never removed, and `refine_schedule()` changes how many exist — so "cohort 7" in a schedule written before the run is not well defined. Selecting particular cohorts is expressed as a predicate on their state (a height band) in the action's parameters, which is both well defined and what #627 actually asks for.
+
+`target_index` stays a named field rather than folding into `params`, so the run loop's `ret.push_back(...)` and `collect_competition_errors(added)` survive untouched.
 
 Dispatch is `Patch<T,E>::apply_event(const ScheduleEvent&)` switching on `type`. Closed extension is the right trade for five in-tree types, and it keeps every object copyable — which matters because `next_event()` returns by value and `odelia::ode::Solver` owns the system by value.
 
@@ -146,9 +153,20 @@ void scale_node_density(node_type& n, double phi) {
 |---|---|---|---|---|
 | 1 | **NodeIntroduction** | — | `Patch::introduce_new_nodes()`, unchanged ([patch.h:780-791](../inst/include/plant/patch.h#L780-L791)) | nothing; must not move |
 | 2 | **RainfallPulse** | `depth` (m) | jump in layer 0, capped at free capacity, excess to runoff | should it also pass the saturation-excess term? |
-| 3 | **Harvest** | `fraction`, `height_min` | `phi = 1-f` for nodes above `height_min` | removal vs biomass reduction (coppicing) |
-| 4 | **PartialDisturbance** | `fraction` | `phi = 1-f` for all nodes | size-dependence of damage |
-| 5 | **TemperatureExtreme** | `temperature`, `duration`, `T_crit`, `k` | internal sub-integration over `duration`, accumulating damage to `phi` | the whole thing — see below |
+| 3 | **Thinning** | `fraction`, `height_min`, `height_max` | `phi = 1-f` for nodes in the height band | removal vs biomass reduction (coppicing) |
+| 4 | **HeatDamage** | `temperature`, `duration`, `T_crit`, `sensitivity` | internal sub-integration over `duration`, accumulating damage to `phi` | the whole thing — see below |
+
+**Harvest and partial disturbance are not separate types.** They are `thinning` with different selectivity: a harvest takes everything above a size, a partial disturbance takes a fraction of everything, and #627's size-class thinning takes a band. `harvest()` and `partial_disturbance()` exist in R as names that read better at their own call sites, both delegating to `thinning()`. One action, three ways of asking for it.
+
+## What the events actually did
+
+Each applied event is recorded — time, type, target, what was requested, and what was achieved — and read back as `scm$event_log` ([#628](https://github.com/traitecoevo/plant/issues/628)).
+
+This is not bookkeeping for its own sake. **The two are routinely different**: a pulse is capped at what the surface layer can hold, so the depth that reaches the soil is often less than the depth asked for; thinning a height band removes whatever was in that band, which is not knowable in advance. A pulse reports `{accepted, shed}`; thinning and heat damage report `{fraction_applied, nodes_affected}`. Without the log the shortfall is only inferable from an accumulator, which is no way to answer "what did this run do".
+
+Node introductions are not logged: they are the schedule, not an intervention, and a hundred and forty of them would bury the three that matter.
+
+The log lives on the runner rather than the patch, because the patch is copied into `history` once per step and a log that grew with the run would be copied with it every time.
 
 **Rainfall pulse.** A new `TF24_Environment::add_water_pulse(double depth)`:
 
@@ -186,8 +204,9 @@ ev <- events(
   node_introductions(p),                                        # the existing default schedule
   rainfall_pulse(time = c(1.5, 3.2, 7.8), depth = c(0.013, 0.005, 0.050)),
   harvest(time = 20, fraction = 0.5, height_min = 10),
+  thinning(time = 30, fraction = 0.2, height_min = 2, height_max = 5),
   partial_disturbance(time = 40, fraction = 0.3),
-  temperature_extreme(time = 60, temperature = 45, duration = 14/365)
+  heat_damage(time = 60, temperature = 45, duration = 14/365)
 )
 res <- run_scm(p, env = env, ctrl = ctrl, events = ev, collect = TRUE)
 ```
@@ -199,12 +218,19 @@ Plus pulse-series generators, since the decision on #522 is that the user bakes 
 ## Commit sequence
 
 1. This plan.
-2. **Generalise the queue; migrate node introduction onto it.** `EventType` with a single value, merge-preserving `set_times()`, rewritten `run_next_impl`. **Zero behaviour change.** The risky commit, isolated.
-3. **Plumb events through.** `SCM` constructor argument, R `events` argument, `node_schedule_times` as a deprecated view, ordering rule. No action implementations yet.
+2. **Generalise the queue; migrate node introduction onto it.** `EventType` tag, merge-preserving `set_times()`, rewritten `run_next_impl`. **Zero behaviour change.** The risky commit, isolated.
+3. **Plumb events through.** `Events` wire format, `SCM` constructor argument, R `events` argument, ordering rule.
 4. **Rainfall pulse.** `aux_num` 4 to 5 (pulse-only, rate 0), `add_water_pulse`, the action, `tidy_outputs`, water-balance test.
-5. **The density primitive + three actions.** Harvest, partial disturbance, temperature extreme (with its sub-integration).
-6. **R interface.** Constructors, series generators, roxygen, `NEWS.md`, a vignette section.
+5. **Targets, the event log, and the demographic actions.** `EventTarget`, `scm$event_log`, the shared density primitive, thinning and heat damage.
+6. **Docs.** Series generators, `NEWS.md`, a vignette section.
 7. **#505 rename** `NodeSchedule` to `Schedule`, pure mechanical, kept out of the risky diffs.
+
+## Things found along the way
+
+- **`r_set_max_time()` read `events.back()` on an empty list**, which is undefined behaviour and the *normal* path — both `make_node_schedule()` and `node_schedule_default()` set `max_time` before adding any times. It had always read harmless garbage; changing the event's member layout turned it into a segfault. Fixed, with a test.
+- **A pulse suppresses the continuous infiltration that follows it.** Wetting layer 0 raises the saturation-excess term at [tf24_environment.h:336-338](../inst/include/plant/models/tf24_environment.h#L336-L338), so a run gains strictly less infiltration than the pulse delivered. Real behaviour, and worth knowing before reading a water budget.
+- **Pulsed columns end *drier* than unpulsed ones.** `K(theta)` rises as `theta^16.14`, so the extra water drains fast and the wetter interval costs more drainage than it stores. Final storage is therefore the wrong thing to test a pulse with; the cumulative fluxes are the right thing.
+- **Positional flux slots are fragile, as predicted.** Adding the fifth accumulator silently changed what `tail(patch$ode_rates, 1)` means — a stochastic test was reading root uptake that way and started reading a pinned zero.
 
 ## Verification
 

@@ -25,10 +25,25 @@ namespace plant {
 // post-event environment.
 enum class EventType {
   RainfallPulse = 0,
-  TemperatureExtreme,
-  Harvest,
-  PartialDisturbance,
+  HeatDamage,
+  Thinning,
   NodeIntroduction
+};
+
+// What an event acts on (issue #628). Separate from the type, because the same
+// action can be aimed at different scopes: thinning a whole patch and thinning
+// one species run the same code over a different set of nodes.
+//
+// Deliberately no per-cohort target. A cohort has no stable address across a
+// run -- nodes are appended and never removed, and refine_schedule() changes
+// how many there are -- so "cohort 7" in a schedule written before the run is
+// not well defined. Selecting particular cohorts is expressed as a predicate on
+// their state (a size range) in the action's parameters instead, which is both
+// well defined and what the thinning use case actually asks for.
+enum class EventTarget {
+  Patch = 0,     // the whole patch: every species, every node
+  Environment,   // the abiotic state -- soil water, drivers
+  Species        // one species, named by target_index
 };
 
 // Position of a type in the within-time application order. The enumerator
@@ -44,14 +59,16 @@ inline int event_type_rank(EventType type) {
 // yet supported for RcppR6 lists.
 class NodeScheduleEvent {
 public:
-  NodeScheduleEvent(double introduction, size_t species_index_,
+  NodeScheduleEvent(double introduction, size_t target_index_,
                     EventType type_ = EventType::NodeIntroduction,
+                    EventTarget target_ = EventTarget::Species,
                     std::vector<double> params_ = std::vector<double>())
-    : type(type_), species_index(species_index_), params(params_) {
+    : type(type_), target(target_), target_index(target_index_),
+      params(params_) {
     times.push_back(introduction);
   }
   size_t species_index_raw() const {
-    return species_index;
+    return target_index;
   }
   double time_introduction() const {
     return times.front();
@@ -64,9 +81,10 @@ public:
   }
 
   EventType type;
-  // Meaningful for node introductions (and, in future, births); ignored by
-  // every other type, which addresses the patch as a whole.
-  size_t species_index;
+  EventTarget target;
+  // Index within the target: the species, for a species-targeted event.
+  // Zero and unused for patch- and environment-targeted events.
+  size_t target_index;
   // Per-type payload: a pulse depth, a harvested fraction, and so on. Kept as
   // a bare vector so the queue stays plain data and crosses the R boundary
   // without a templated binding per (strategy, environment) pair.
