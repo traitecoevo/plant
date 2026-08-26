@@ -95,9 +95,10 @@ knitr::kable(as.data.frame(scorecard)[, cols], digits = 4)
   attributed to any single trait — these are paired archetypes, not a factorial.
 - **Binary expectations.** The table records only pass/fail, with no graduated
   target or tolerance.
-- **Derived hydraulic traits (#548).** `p_50`, `c`, `b` and `psi_crit` are
-  derived from `K_s`, and `g1_TF24` from `rho`, inside `TF24_hyperpar`. The CSV's
-  `Ks`/`Psi_crit,b,c` and `Wood density`/`g1_TF24` columns are consistent with
+- **Derived hydraulic traits (#548).** `stem_P50`, `stem_c`, `stem_b` and
+  `psi_crit` are derived from `K_s`, and `TF24_cost_scale` from `rho`, inside
+  `TF24_hyperpar`. The CSV's `Ks`/`psi_crit,stem_b,stem_c` and `Wood
+  density`/`TF24_cost_scale` columns are consistent with
   those relationships, so the mapping sets `K_s` and `rho` and lets the hyperpar
   derive the rest.
 ```

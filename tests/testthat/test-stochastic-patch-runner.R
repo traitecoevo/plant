@@ -209,9 +209,13 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
   ## could be. The area fix changes the run, so that particular equivalence is no
   ## longer what this test pins; it was established at the time (see the atm_kpa
   ## entry under Breaking changes in NEWS.md) and is not re-checked here.
+  ## Bounding the storage pool by the shape of its own flow (#609) moved TF24's
+  ## established count from 81 to 79 and left its survivor count at 3. FF16 and
+  ## K93 are untouched, which is the discriminator: the change is in TF24's
+  ## storage block and nothing else reads it.
   baseline <- list(
     FF16 = list(n_total = 83L, n_alive_final = 5L),
-    TF24 = list(n_total = 81L, n_alive_final = 3L),
+    TF24 = list(n_total = 79L, n_alive_final = 3L),
     K93  = list(n_total = 117L, n_alive_final = 2L)
   )
   for (x in names(strategy_types)) {

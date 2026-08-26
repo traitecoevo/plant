@@ -7,6 +7,86 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **phylloptim 0.7.0 -> 0.8.0.** Bumped deliberately, which is what the `==` pin
+  below exists to force. 0.8.0 (traitecoevo/phylloptim#133) reports the seated
+  curve's `lambda_emergent` through `leaf_solve()` and fixes a stale
+  `lambda_emergent_` after the two terminal exits on a reused `Leaf`.
+
+  **Inert for plant, and by construction rather than by luck:** the header diff is
+  24 lines, being one element appended to `operating_point_values()` and two
+  `lambda_emergent_ = NA` writes. plant reads neither that vector nor that member.
+  Verified anyway — suite unchanged at 2985 pass, and the scenario scorecard's
+  `offspring_production` bit-identical across all 8 scenarios against the same
+  plant source built on 0.7.0.
+
+  ⚠️ Newly available and **not** yet used here: `lambda_emergent` is the seated
+  curve's own `(dC/dpsi)/(dE/dpsi)`, where `marginal_cost_water()` is TF24's price
+  whatever curve ran. On `TF24_floor` the two differ by the price floor
+  (32996 vs 82996 at `lambda_o = 5e4`), so anything reporting a marginal cost of
+  water from this model wants the emergent one.
+
+* **TF24's leaf parameters carry phylloptim's names (#634).** `TF24_Pars` renamed:
+  `p_50 -> stem_P50`, `c -> stem_c`, `b -> stem_b`, `beta2 -> TF24_beta2`,
+  `g1_TF24 -> TF24_cost_scale`. `Leaf()`'s arguments move with them, and
+  `root_p_50 -> root_P50`. Same values, same equations: the model-version snapshot
+  changes names only, with **no value moved** on either TF24 or TF24f.
+
+  ⚠️ **`g1_TF24` was never a stomatal slope.** It is the TF24 hydraulic *cost
+  scale*, handed to `Leaf()` positionally, while the leaf separately has a real
+  Medlyn `g1`. One name per quantity, spelled the same on both sides, is what
+  makes the hand-over in `prepare_strategy()` checkable by eye.
+
+  `TF24_hyperpar` emits the new names, so anything reading `ret[, "g1_TF24"]` or
+  `ret[, "p_50"]` needs updating. `stem_b` and `psi_crit` are TF24_hyperpar's
+  *reporting* copies -- phylloptim derives its own from `(stem_P50, stem_c)` -- so
+  setting either does not change the curve. `root_b` keeps its name: it is the
+  Weibull *scale*, a different quantity from `root_P50 = root_b*(ln 2)^(1/root_c)`,
+  and plant still converts at hand-over.
+
+* **`TF24_Pars` gains `TF24_floor_lambda_o` (#634), defaulting to 0.** TF24 and
+  TF24f are now seated on phylloptim's `TF24_floor` cost curve, and this is its
+  one parameter: the price of water as transpiration goes to zero, in
+  `umol C (kg H2O)^-1`.
+
+  Every conductance-loss cost -- TF24's included -- prices water at zero as `E`
+  goes to zero, since no conductivity is lost when nothing flows, so water is free
+  precisely when it is abundant. `TF24_floor` splits the cost into a part depending
+  on potential alone and a part linear in the flux, `Theta(E) = Theta~(psi) +
+  lambda_o*E`, with `Theta~` being TF24's own cost at TF24's own traits. **TF24 is
+  `TF24_floor` at `lambda_o = 0` at identical parameter values**, so "is TF24
+  missing a price of water?" is a one-restriction question.
+
+  **Nothing moves at the default.** phylloptim asserts the reduction bit-for-bit
+  rather than to a tolerance, and plant's whole suite passes with every pinned
+  baseline unchanged. `scientific_version` is deliberately **not** bumped: no
+  equation and no default output changes.
+
+  A new aux, **`shadow_cost`**, is reported beside `profit` -- so `aux_size` goes
+  11 -> 12 (12 -> 13 with `collect_all_auxiliary`). It is `lambda_o * E` on this
+  curve and exactly 0.0 on the other seven, and zero on another curve means "this
+  curve does not separate the two", not "this curve's cost is all realised carbon".
+
+  ⚠️ **The price is a shadow price, not a cost, and growth is billed on
+  `profit + shadow_cost`.** `profit` is the *objective* and deducts both terms;
+  `Theta~` is carbon actually forgone, while `lambda_o` is the value of water in
+  its best alternative use, and paying it loses no carbon. Growing on the
+  objective would tax the plant by carbon it never spent -- measured on a 5 m
+  plant at PPFD 1800 and theta 0.25, the objective understates the carbon kept by
+  2.3% at `lambda_o = 1e4`, 9.4% at 5e4, 15.4% at 1e5 and 22.6% at 2e5.
+
+  Its scale is set by the leaf, not chosen freely: phylloptim's own marginal cost
+  of water runs ~9e4 to 3e5 in these units at its defaults, so a value far outside
+  that band pins the optimum against a bracket bound.
+
+* **`phylloptim` and `odelia` are pinned with `==`, not `>=` (#634).**
+  `LinkingTo: odelia (== 0.3.1), phylloptim (== 0.8.0)`. plant's regression
+  baselines are bit-exact and both packages are compiled *into* plant, so under
+  `>=` a later upstream release silently changes plant's arithmetic and the first
+  sign is a red baseline with no local change to explain it -- a bisect across two
+  repositories. Under `==` the same upgrade fails at install time, naming the
+  version, before anything is built. Upgrading is then a deliberate act: bump the
+  pin, rebuild, read the baseline diff, record it.
+
 * **Migrated to phylloptim 0.6.0 and odelia 0.3.1 (#622).** `Leaf()` now takes
   `p_50` and `root_p_50` instead of `b`/`psi_crit` and `root_b`/`root_psi_crit`:
   phylloptim parameterises both vulnerability curves on P50 and derives the rest.
@@ -324,6 +404,110 @@ were not previously recorded here:
 
 ### New features
 
+* **The NSC storage pool is bounded by the shape of its own flow (`TF24@v9`,
+  `TF24f@v9.1`).** `dS/dt` was `net_flux > 0 ? net_flux : floor_gate * net_flux`
+  -- one signed flux with a gate applied in one direction. It is now a charge and
+  a drain, each non-negative without a test and each limited by the room the
+  other has (#609):
+
+  ```
+  charge = Ppos * (1 - G)          drain = Ppos - P
+  dS/dt  = charge * (1 - r)  -  drain * r   =   charge - (charge + drain) * r
+  ```
+
+  The split is exact -- `charge - drain = P - Ppos*G` is the old net flux -- so
+  what changes is where the limits sit. Both bounds now follow from the form,
+  with no scale left to choose: at `r = 0` the rate is `charge >= 0`, at `r = 1`
+  it is `-drain <= 0`, and past either boundary the corresponding limiter goes
+  negative and pushes back. The pool is a first-order filter on production, so
+  `d(dS/dt)/dS` is the constant `-(charge + drain)/S_max`.
+
+  **Storage previously had no upper bound at all**; `r = min(S/S_max, 1)` clipped
+  the *read* while the state ran past capacity. Measured on a one-species stand
+  at the full 105.32-year lifetime: the state reached **1.035** of capacity and
+  **52.7 per cent** of cohorts sat at or above it, so for half the stand `dr/dS`
+  was exactly zero and the mortality that reads `r` could not respond. It is now
+  0.000 per cent at every lifetime from 2 to 105.32, with the reserve fraction
+  peaking at 0.800 -- the value a newborn is seeded at -- and a median of 0.62
+  where it was exactly 1.
+
+  **The derivative was discontinuous where the net flux changed sign**, which is
+  what motivated the change. `d(dS/dt)/dP` stepped by `1/floor_gate =
+  (r + 1e-3)/r` across that point -- measured 1.972 against a predicted 2.000 at
+  a reserve fraction of 1e-3, and unbounded as the pool empties. The new rate is
+  smooth there.
+
+  **A negative state is now refused rather than floored**, which is what lets
+  both read-clamps go. The exact flow cannot leave `[0, S_max]` but a finite
+  Runge-Kutta step can, and it did: about 3 per cent of records at the default
+  height at maturity, deepest at 4.5 per cent of capacity. The rate now calls
+  `odelia::util::stop_domain` there and `Patch::ode_state_valid` declares the
+  bound to the stepper, so the step is rejected, shrunk and retried instead of
+  committed -- requires **odelia >= 0.3.1**. Crossings go to none, on the
+  birth-date coordinate and the height one alike. `max(S, 0)` and
+  `min(S/S_max, 1)` are gone with the branch, which is #609's own closing
+  requirement that both consumers read the same quantity.
+
+  **The drain is limited in proportion to what the pool holds, and that is a
+  change to the drawdown as well as to the bound.** A plant at half reserves
+  draws at half the deficit rate, where the old gate drew at essentially the
+  full rate until the pool was within 0.1 per cent of empty. What it does *not*
+  change is how much carbon goes unpaid -- what a plant pays from reserves is
+  exactly the pool's depletion in either form -- so the integral over a drawdown
+  is the same and only its schedule differs, which is the buffering #517 asked
+  for.
+
+  **A narrower drain limiter is what makes this shape necessary, and it is
+  measured rather than argued.** Limiting the drain by `r/(r + D)` puts an
+  *attracting fixed point* at `r ~ D` whose relaxation time is `S_max D / drain`
+  -- 0.64 hours at the stiffest record on the reference stand, a 0.41 m seedling
+  with a storage capacity of 1e-6 kg, against a solver stepping in days. The
+  shipped rate has the same knee but falls through it into the region where
+  `max(S, 0)` makes the rate identically zero, so it never resolves it; a rate
+  that holds the bound has to. Accepted ODE steps over one 10-year run:
+
+  | rate | accepted steps | wall |
+  |---|---|---|
+  | shipped `max(S,0)` and `net>0 ?:` | 940 | 8 s |
+  | drain limited by `r/(r + 1e-3)` | 12 865 | 114 s |
+  | drain limited by `r` | **488** | **3 s** |
+
+  So the form that holds the bound is also **1.9 times faster than the one that
+  shipped**, and the step count stops growing with height at maturity. Note this
+  is not a case for a change of state basis: an eigenvalue at a fixed point is a
+  property of the vector field and not of the chart, so `S = w^2` or `log S`
+  would leave it exactly where it is.
+
+  **Offspring production moves on every fixture.** The height-coordinate answers
+  fall by a factor of about 2.7 (82.09 -> 30.22, 67.54 -> 23.20) and the
+  birth-date ones by 19 and 27 per cent (287.16 -> 233.06, 59.53 -> 43.64). Most
+  of that is the fill limiter rather than the drain, since the median cohort of a
+  mature stand previously sat clipped at a reserve fraction of 1. The height
+  coordinate amplifies any change to the pool because its compression term
+  differences growth against height at fixed absolute carbon, so it reads the
+  reserve fraction moving where the birth-date density rate never asks.
+
+  **Carbon is still not conserved across the block.** The pool is capped by
+  withholding the surplus rather than by spending it, so at capacity the charge
+  the gate withheld -- `Ppos * (1 - G)`, about 1.2e-4 of production -- leaves the
+  budget instead of charging the pool; at the empty boundary the unmet part of
+  the deficit does the same. Both are properties of limiting a flux rather than
+  spending it, and routing either into growth or into tissue loss is a larger
+  modelling change than #609 proposes.
+
+  **Not addressed here: `storage_prod_eps` is an absolute rate against fluxes
+  spanning six orders.** It is 1e-4 kg/yr, and a plant's own maintenance flux on
+  the reference stand runs from 4.60e-05 to 2.88e+01 kg/yr -- so the smoothing
+  constant is between 3.5e-06 and **2.17** of a plant's whole turnover, and
+  exceeds it on **39.8 per cent** of records. A plant at zero net production is
+  therefore credited with `eps/2 = 5e-5` kg/yr it does not have, which is 0.5 per
+  cent of an adult's maintenance and 29 per cent of a seedling's, and `Ppos`
+  reaches **21.3 times `|P|` with the opposite sign** where the pool is
+  stiffest. #609 predicted this and asked for it to be checked against a real
+  germination state before acting; it now has been. Making it a fraction of a
+  flux the plant has moves establishment and every plant near its compensation
+  point, so it wants its own change and its own re-blessing rather than being
+  folded in here where one census movement would have two causes.
 * **Discrete events (#628).** `run_scm()` takes an `events` argument: a queue of
   `(time, action)` items applied between solver legs, the way node introductions
   always have been. Build one with `events()` and the typed constructors —
@@ -684,6 +868,13 @@ were not previously recorded here:
   wanted only for reporting.
 
 ### Minor changes & bug fixes
+
+* **An out-of-domain hydraulic lookup now names the spline, the point, the domain and the caller** (#576), via odelia >= 0.2.2 and phylloptim >= 0.2.1, both already required. The message used to be odelia's bare "Extrapolation disabled and evaluation point outside of interpolated domain.", which named none of the four — and since the leaf reads the same transport spline from four places and holds a second spline that is its inverse, that sentence did not distinguish the cases that matter. Localising #576 meant instrumenting the call sites by hand to find out which spline was read and at what value; the answer (the *lower* end of the inverse, where the demanded flux is negative) is what showed the spline had been right to refuse. Error text only; no model behaviour changes. `test-leaf.r` now asserts the spline, which end was missed and the caller, rather than the whole sentence — which is phylloptim's to word.
+* **TF24f's AD gradient branch mirrors the finite-difference branch — 21% faster, same numbers** (#576). `TF24f_Strategy::solve_leaf`'s two gradient methods were asymmetric. The finite-difference branch has, since #530, run `prepare_collar_solve()` once itself and shared it across its profit evaluations, and taken a zero gradient when that call reports the operating point *forced* by feasibility handling rather than chosen from an interval. The AD branch — the default, hence TF24f-only — went through `evaluate_root_collar_psi()`, which hides that return value, so it re-derived the soil-side caches on each of its three leaf evaluations and asked for a gradient even at a collar potential the feasibility analysis had already rejected. The AD branch now does what the FD branch does.
+
+  Measured on a 10-year dry-start TF24f SCM run: **bit-identical `offspring_production` at all 26 points** of a 13-rainfall × two-gradient-branch sweep, and **2.61 s → 2.10 s** at rainfall 1 m/yr and **1.74 s → 1.41 s** at 0.04 (minimum of five; the FD branch is the control and does not move, 2.20 → 2.23 s and 1.19 → 1.21 s). The forced-operating-point exit is an ordinary state rather than an edge case, and since the storage-pool change (#619) a common one: it fires on 3.9% of leaf solves at rainfall 1 m/yr and **50.0%** at 0.04.
+
+  This began as the fix for #576, where the AD branch died in a dry rainfall window (0.01 and 0.03–0.06 m/yr at θ = 0.005, five layers) with "Extrapolation disabled and evaluation point outside of interpolated domain" while TF24 ran — asking, in shutdown, for the stem potential that would carry a *negative* sap flux, i.e. wetter than saturation. **That throw no longer reproduces**, on this commit or on develop: phylloptim 0.6.0 closed it upstream. The regression test added here is therefore a guard against its return, not a reproducer, and the reason to make this change is now the redundant work and the asymmetry rather than the crash.
 
 * **The scenario gateway scores numerical viability and persistence as separate
   axes, and no longer leads with a match rate** (#572). `scenario_summary()`

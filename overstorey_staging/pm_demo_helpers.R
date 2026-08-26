@@ -15,17 +15,18 @@ pm_rho_cp <- 1200.0   # volumetric heat capacity of air, J m^-3 K^-1
 pm_make_leaf <- function() {
   s <- TF24_Strategy(); p <- s$pars; ctrl <- Control()
   root_c <- 2.680147; root_b <- 3.898245
-  # phylloptim 0.6.0 parameterises both curves on P50 and derives b and psi_crit
-  # itself; the root pair is a literal b here, so convert (#622).
-  root_p_50 <- root_b * (log(2))^(1 / root_c)
-  Leaf(vcmax_25 = p$vcmax_25, jmax_25 = p$jmax_25, c = p$c, p_50 = p$p_50,
-       root_c = root_c, root_p_50 = root_p_50, beta2 = p$beta2, a = p$a,
+  # phylloptim 0.6.0 parameterises both curves on P50 and derives stem_b and psi_crit
+  # itself; the root pair is a literal Weibull scale (root_b) here, so convert
+  # (#622). Argument names match phylloptim's since #634.
+  root_P50 <- root_b * (log(2))^(1 / root_c)
+  Leaf(vcmax_25 = p$vcmax_25, jmax_25 = p$jmax_25, stem_c = p$stem_c, stem_P50 = p$stem_P50,
+       root_c = root_c, root_P50 = root_P50, TF24_beta2 = p$TF24_beta2, a = p$a,
        curv_fact_elec_trans = p$curv_fact_elec_trans,
        curv_fact_colim = p$curv_fact_colim,
        GSS_tol_abs = ctrl$GSS_tol_abs,
        vulnerability_curve_ncontrol = ctrl$vulnerability_curve_ncontrol,
        ci_abs_tol = ctrl$ci_abs_tol, ci_niter = ctrl$ci_niter,
-       g1_TF24 = p$g1_TF24)
+       TF24_cost_scale = p$TF24_cost_scale)
 }
 
 ## Default well-watered, well-rooted, moderate-conductance operating point (so

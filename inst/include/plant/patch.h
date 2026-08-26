@@ -99,30 +99,6 @@ public:
   template <typename Select>
   size_t scale_node_densities(size_t species_index, Select select);
 
-  // Opt-in domain check (odelia #55/#56): the stepper calls this on the state a
-  // completed step landed on, before accepting it, and rejects/shrinks/retries
-  // if it returns false. That state is a linear combination of the RK stages and
-  // is never handed to set_ode_state(), so check_finite_ode_state() -- which
-  // runs per stage -- cannot see it.
-  //
-  // ONLY the environment block is checked. A node's log_density is legitimately
-  // -Inf (a cohort that never established; see Node::compute_initial_conditions),
-  // so a blanket finiteness test over the whole vector would reject valid states
-  // and stall the solver at its minimum step. The environment block is where
-  // integrator overshoot actually shows up.
-  bool ode_state_valid(const std::vector<double>& y) const {
-    const size_t n_env = environment.ode_size();
-    if (n_env == 0 || y.size() < n_env) {
-      return true; // FF16/K93 carry no environment state: no check, no cost
-    }
-    for (size_t i = y.size() - n_env; i < y.size(); ++i) {
-      if (!util::is_finite(y[i])) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   // Open to better ways to test whether nodes have been introduced
   int node_ode_size() const {
     int node_ode_size = ode_size() - environment.ode_size();
@@ -153,6 +129,12 @@ public:
   odelia::ode::iterator ode_rates(odelia::ode::iterator it);
   // Retrieve auxillary variables and save into the ode solver
   odelia::ode::iterator ode_aux(odelia::ode::iterator it) const;
+
+  // The strategy's own bound on its states, read by the solver: a step landing
+  // on a state it refuses is rejected and retried smaller, rather than
+  // committed and clamped by whoever reads it next. Walks the state vector in
+  // the order ode_state writes it.
+  bool ode_state_valid(const std::vector<double>& y) const;
 
   // Returns state in structure format as opposed to single 
   // vector as given by ode_state
@@ -1180,6 +1162,57 @@ template <typename T, typename E>
 odelia::ode::iterator Patch<T,E>::ode_aux(odelia::ode::iterator it) const {
   it = odelia::ode::ode_aux(species.begin(), species.end(), it);
   return it;
+}
+
+template <typename T, typename E>
+bool Patch<T,E>::ode_state_valid(const std::vector<double>& y) const {
+  // The environment block first, and separately: it is the trailing part of the
+  // ODE vector, it is where integrator overshoot shows up (TF24's soil water,
+  // driven past its bounds by a step inherited across a discrete change), and
+  // the completed step's state never reaches check_finite_ode_state(), which
+  // runs per stage. Finiteness only -- a node's log_density is legitimately
+  // -Inf, so this must not be extended over the species block.
+  const size_t n_env = environment.ode_size();
+  if (n_env > 0 && y.size() >= n_env) {
+    for (size_t i = y.size() - n_env; i < y.size(); ++i) {
+      if (!util::is_finite(y[i])) {
+        return false;
+      }
+    }
+  }
+
+  // Resolved on the concrete strategy, so a model that appends or inserts a
+  // state gets its own positions rather than its base's. Named rather than
+  // indexed because a strategy that declared the index would be declaring
+  // something its own state_names() already says.
+  static const std::vector<size_t> bounded = [] {
+    const std::vector<std::string> names = T::state_names();
+    std::vector<size_t> ret;
+    for (const std::string& name : T::non_negative_states()) {
+      const auto found = std::find(names.begin(), names.end(), name);
+      if (found == names.end()) {
+        util::stop("Strategy declares '" + name + "' as a non-negative state "
+                   "and does not carry it");
+      }
+      ret.push_back(static_cast<size_t>(found - names.begin()));
+    }
+    return ret;
+  }();
+  if (bounded.empty()) {
+    return true;
+  }
+  const size_t stride = node_type::ode_size();
+  size_t at = 0;
+  for (const auto& sp : species) {
+    for (size_t k = 0; k < sp.size(); ++k, at += stride) {
+      for (const size_t i : bounded) {
+        if (y[at + i] < 0.0) {
+          return false;
+        }
+      }
+    }
+  }
+  return true;
 }
 
 }

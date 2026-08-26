@@ -5,8 +5,8 @@ RootNetwork__ctor <- function() {
     .Call('_plant_RootNetwork__ctor', PACKAGE = 'plant')
 }
 
-Leaf__ctor <- function(vcmax_25, c, p_50, root_c, root_p_50, beta2, jmax_25, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, g1_TF24) {
-    .Call('_plant_Leaf__ctor', PACKAGE = 'plant', vcmax_25, c, p_50, root_c, root_p_50, beta2, jmax_25, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, g1_TF24)
+Leaf__ctor <- function(vcmax_25, stem_c, stem_P50, root_c, root_P50, TF24_beta2, jmax_25, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, TF24_cost_scale) {
+    .Call('_plant_Leaf__ctor', PACKAGE = 'plant', vcmax_25, stem_c, stem_P50, root_c, root_P50, TF24_beta2, jmax_25, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, TF24_cost_scale)
 }
 
 Leaf__initialize_integrator <- function(obj_, integration_rule, integration_tol) {
@@ -117,6 +117,10 @@ Leaf__optimise <- function(obj_) {
     invisible(.Call('_plant_Leaf__optimise', PACKAGE = 'plant', obj_))
 }
 
+Leaf__shadow_cost <- function(obj_) {
+    .Call('_plant_Leaf__shadow_cost', PACKAGE = 'plant', obj_)
+}
+
 Leaf__medlyn_model_gs <- function(obj_, assim_colimited_) {
     .Call('_plant_Leaf__medlyn_model_gs', PACKAGE = 'plant', obj_, assim_colimited_)
 }
@@ -191,6 +195,14 @@ Leaf__lambda___get <- function(obj_) {
 
 Leaf__lambda___set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__lambda___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__TF24_floor_lambda_o__get <- function(obj_) {
+    .Call('_plant_Leaf__TF24_floor_lambda_o__get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__TF24_floor_lambda_o__set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__TF24_floor_lambda_o__set', PACKAGE = 'plant', obj_, value))
 }
 
 Leaf__psi_crit__get <- function(obj_) {
