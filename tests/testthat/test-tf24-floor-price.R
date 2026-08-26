@@ -176,3 +176,84 @@ test_that("TF24f tracks the seated curve rather than TF24", {
   # the priced objective's, so it points to a wetter collar than TF24's does.
   expect_lt(costly$rate, free$rate)
 })
+
+# --- the price as a TRAIT ------------------------------------------------------
+#
+# `TF24_floor_lambda_o` is a `TF24_Pars` field, and that is NOT the same thing as
+# being usable as a trait: the trait pathway goes trait_matrix() ->
+# generate_strategy() -> `pars[trait_names] <- xi`, through the hyperpar, and a
+# parameter can be settable on a strategy while being unreachable that way (the
+# hyperpar's overwrite guard rejects anything it derives itself, and phylloptim's
+# own CF77 price spent its whole life reachable only through `leaf_model()` for
+# the mirror-image reason). It works here, and these pin it, because a price of
+# water is a strategic trait -- lambda_o indexes a continuum from carbon
+# maximisation at zero to water-conserving strategies above it, which is a
+# prediction about aridity and so is exactly the thing someone will want to vary
+# across species or sweep.
+
+test_that("the water price is settable as a trait", {
+  p0 <- scm_base_parameters("TF24")
+  prices <- c(0, 5e4, 1e5)
+  ss <- generate_strategy(p0, trait_matrix(prices, "TF24_floor_lambda_o"))
+
+  expect_length(ss, length(prices))
+  expect_equal(vapply(ss, function(s) s$pars$TF24_floor_lambda_o, numeric(1)),
+               prices)
+})
+
+test_that("a strategy built from the trait actually solves at that price", {
+  # ⚠️ THE HALF THAT MATTERS. The test above only shows the value landed on the
+  # strategy; this shows `prepare_strategy()` carried it into the leaf and the
+  # solve used it. A parameter that reaches `pars` but never reaches
+  # `leaf.TF24_floor_lambda_o` looks completely fine from R.
+  p0 <- scm_base_parameters("TF24")
+  prices <- c(0, 5e4, 1e5)
+  ss <- generate_strategy(p0, trait_matrix(prices, "TF24_floor_lambda_o"))
+
+  got <- lapply(ss, function(s) tf24_aux(s))
+  shadow <- vapply(got, function(a) a[["shadow_cost"]], numeric(1))
+  flux   <- vapply(got, function(a) a[["transpiration"]], numeric(1))
+
+  # Zero price, zero shadow cost; and a priced leaf reports one.
+  expect_identical(shadow[[1]], 0)
+  expect_true(all(shadow[-1] > 0))
+  # The identity, per strategy, against that strategy's own price.
+  expect_equal(shadow, prices * flux, tolerance = 1e-12)
+  # And the solve moved: a dearer price spends less water. Monotone, so this
+  # cannot pass on a leaf that read only one of the three prices.
+  expect_true(all(diff(flux) < 0))
+})
+
+test_that("the price varies across species in one parameter set", {
+  # The multi-species route, which is a different code path from
+  # generate_strategy(): each species gets its own strategy and its own leaf.
+  p0 <- scm_base_parameters("TF24")
+  p <- add_strategies(p0, trait_matrix(c(0, 1e5), "TF24_floor_lambda_o"),
+                      birth_rate = c(1, 1))
+  expect_length(p$strategies, 2)
+  expect_equal(vapply(p$strategies, function(s) s$pars$TF24_floor_lambda_o,
+                      numeric(1)),
+               c(0, 1e5))
+})
+
+test_that("TF24_hyperpar passes the price through untouched", {
+  # ⚠️ NOT AUTOMATIC. TF24_hyperpar refuses to overwrite a parameter it derives
+  # itself ("Attempt to overwrite generated parameters"), which is what makes
+  # `stem_P50`, `stem_c`, `stem_b`, `psi_crit` and `TF24_cost_scale` unusable as
+  # input traits. The price is derived from nothing, so it must survive -- and if
+  # someone ever adds a lambda_o ~ aridity relationship to the hyperpar, this is
+  # the test that will tell them they have just made it unsettable.
+  p0 <- scm_base_parameters("TF24")
+  m <- trait_matrix(c(0, 1e5), "TF24_floor_lambda_o")
+  ret <- TF24_hyperpar(m, p0$strategy_default)
+  expect_true("TF24_floor_lambda_o" %in% colnames(ret))
+  expect_equal(ret[, "TF24_floor_lambda_o"], c(0, 1e5))
+})
+
+test_that("TF24f takes the price as a trait too", {
+  # TF24f shares TF24_Pars, so this is about the hyperpar and the strategy
+  # template rather than about a second parameter.
+  pf <- scm_base_parameters("TF24f")
+  sf <- generate_strategy(pf, trait_matrix(1e5, "TF24_floor_lambda_o"))
+  expect_equal(sf[[1]]$pars$TF24_floor_lambda_o, 1e5)
+})
