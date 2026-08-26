@@ -860,6 +860,31 @@ were not previously recorded here:
 
 ### Minor changes & bug fixes
 
+* **The scenario gateway baseline is re-blessed, and the gateway diffs the numbers as well as the flags** (#639). `tests/testthat/test_data/scenario_baseline.rds` had been recorded against the tree that became #583 and matched no later build, so `PLANT_RUN_SCENARIOS=1` failed on an unmodified `develop`, and every PR that ran it inherited a failure it had not caused. The cheapest way to establish that was to build a second copy of the base branch and re-run, which two PRs each paid for separately.
+
+  **Bisected, one build per commit, at `max_patch_lifetime = 100` in the gateway's own birth-date coordinate.** Nothing between the bless and #633 moves a scenario — the merged #583 (`133499b8`) and #606 (`39c0c657`) both reproduce the recorded R0 on all eight to seven significant figures — and nothing after #619 does either: `745dd600` and `develop` agree on all eight, so #605, #635 and #637 are inert here, as #635's own NEWS entry claims. Two commits moved it:
+
+  | scenario | baseline | after #633 | after #619 = develop | net |
+  |---|---|---|---|---|
+  | S01 | 1.488721 | 0.2725883 (0.18x) | 0.4797763 (1.76x) | **0.32x** |
+  | S02 | 9.963559e-2 | 2.784370e-3 (0.028x) | 1.153315e-2 (4.14x) | **0.12x** |
+  | S03 | 5.498561e-12 | 1.745197e-10 (31.7x) | 1.665416e-10 (0.95x) | **30.3x** |
+  | S04 | 4.745912e-13 | 1.357792e-11 (28.6x) | 1.317815e-11 (0.97x) | **27.8x** |
+  | S05 | 5.888102e-13 | 5.052547e-12 (8.58x) | 2.470008e-11 (4.89x) | **42.0x** |
+  | S06 | 3.261466e-13 | 5.082346e-12 (15.6x) | 6.570073e-12 (1.29x) | **20.1x** |
+  | S07 | 1415.200 | 837.6889 (0.59x) | 810.7050 (0.97x) | **0.57x** |
+  | S08 | 3.230258e-14 | 2.711131e-13 (8.39x) | 2.025578e-14 (0.075x) | **0.63x** |
+
+  So this is inherited, not a live regression: #619 is a declared science change (`TF24@v8 -> v9`), and #633 is the dependency migration. Both were merged without re-blessing, which is what let them accumulate.
+
+  **Read the sizes with the levels.** S03-S06 and S08 sit between 2e-14 and 2e-10, so a 30x there is 30x of a strategy that is numerically extinct either way and means very little. The moves that mean something are S01 (1.49 -> 0.48, crossing R0 = 1, which is the flag that flipped), S02 (0.12x) and S07 (1415 -> 811). #633's own NEWS entry measured +0.36% on the standard reference run and traced it to one constant (`kg_to_mol_h2o` 55.4939 -> 55.509298, itself 2.8e-4 relative); a 30x on a marginal water-limited scenario from a 2.8e-4 input is the expected shape, because R0 there is an exponentially small survivorship integral, and it is exactly why a single mesic reference run is not a substitute for the gateway.
+
+  **Within #633 the move is phylloptim's, not odelia's.** Rebuilt at `b374ce3b` against phylloptim 0.6.0 but odelia held at 0.2.1 — the `LinkingTo` floor relaxed for the probe, nothing else changed — the scorecard is unchanged on all eight, so odelia 0.2.1 -> 0.3.1 is inert here and the 8x-32x is phylloptim 0.2.0 -> 0.6.0, i.e. the seven-model solver unification (phylloptim #126) reaching every water-limited run. Consistent with odelia's two behavioural changes in that range: `stop_domain` rejection (odelia #56) had no declared domain to act on until #619 added one, and rejecting a non-finite error estimate (#54) only bites on a step that was already diverging.
+
+  **It is not #590**, which is what the size of the move first suggested. #590 is an ancestor of the blessed commit, and the baseline's own metadata records `node_density_in_birth_date = TRUE`: the recorded numbers were already in birth date. Provenance is also why the bless commit itself is not the control — the rds was written from a *dirty* tree at `99e44db6`, whose committed `run_scenarios()` still defaulted to `control()` and had no `node_density_in_birth_date` metadata field at all, so the tree that produced it was the one that landed as `133499b8`.
+
+  `test-scenario-gateway.R` now diffs `offspring_production` at a relative tolerance (`SCENARIO_TOL`, default `1e-3`) alongside `observed` and `persists`, and **any** failure prints the full eight-row table. The two flags were the whole diff, and they are coarse: six of the eight scenarios sit at R0 below 1e-9, where a 30x move crosses nothing, so the table above was reported as the single line `persists S01: TRUE -> FALSE`.
+
 * **An out-of-domain hydraulic lookup now names the spline, the point, the domain and the caller** (#576), via odelia >= 0.2.2 and phylloptim >= 0.2.1, both already required. The message used to be odelia's bare "Extrapolation disabled and evaluation point outside of interpolated domain.", which named none of the four — and since the leaf reads the same transport spline from four places and holds a second spline that is its inverse, that sentence did not distinguish the cases that matter. Localising #576 meant instrumenting the call sites by hand to find out which spline was read and at what value; the answer (the *lower* end of the inverse, where the demanded flux is negative) is what showed the spline had been right to refuse. Error text only; no model behaviour changes. `test-leaf.r` now asserts the spline, which end was missed and the caller, rather than the whole sentence — which is phylloptim's to word.
 * **TF24f's AD gradient branch mirrors the finite-difference branch — 21% faster, same numbers** (#576). `TF24f_Strategy::solve_leaf`'s two gradient methods were asymmetric. The finite-difference branch has, since #530, run `prepare_collar_solve()` once itself and shared it across its profit evaluations, and taken a zero gradient when that call reports the operating point *forced* by feasibility handling rather than chosen from an interval. The AD branch — the default, hence TF24f-only — went through `evaluate_root_collar_psi()`, which hides that return value, so it re-derived the soil-side caches on each of its three leaf evaluations and asked for a gradient even at a collar potential the feasibility analysis had already rejected. The AD branch now does what the FD branch does.
 

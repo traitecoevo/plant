@@ -524,8 +524,13 @@ default and enabled with `PLANT_RUN_SCENARIOS=1`. It runs the full SCM for every
 TF24 hydraulic scenario in `inst/scenarios/` and diffs the per-scenario
 outcomes against a recorded baseline — a *baseline diff*, not an "all pass"
 assertion, so it catches both regressions and improvements (many scenarios are
-expected to fail by design). When a changed outcome is intended, re-bless the
-baseline with `make bless-scenarios`. See
+expected to fail by design). It diffs two classifications (`observed`,
+`persists`) and `offspring_production` at a relative tolerance (`SCENARIO_TOL`,
+default `1e-3`), and prints the full per-scenario table on any failure. When a
+changed outcome is intended, re-bless the baseline with `make bless-scenarios`
+— **in its own commit, with the before/after table in NEWS**. A baseline diff
+only carries information while the baseline is current, and one that is not
+hands every later PR a failure it did not cause (#639). See
 [notes/plan-tf24-scenario-framework.md](notes/plan-tf24-scenario-framework.md).
 
 CI: [.github/workflows/R-CMD-check.yaml](.github/workflows/R-CMD-check.yaml) and
