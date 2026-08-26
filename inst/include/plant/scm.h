@@ -103,6 +103,9 @@ public:
   Events r_events() const {
     return events_from_schedule_events(node_schedule.get_events());
   }
+  // What the events actually did, in the order they were applied. Cleared by
+  // reset(), so it always describes the run you are looking at.
+  EventLog r_event_log() const { return event_log_from_records(event_log); }
   void r_set_node_schedule(NodeSchedule x);
   void r_set_node_schedule_times(std::vector<std::vector<double>> x);
 
@@ -137,6 +140,10 @@ private:
   Control control;
   patch_type patch;
   NodeSchedule node_schedule;
+  // Lives on the runner rather than the patch: the patch is copied into
+  // `history` once per step, and a log that grew with the run would be copied
+  // with it every time.
+  std::vector<EventRecord> event_log;
   odelia::ode::Solver<patch_type> solver;
 };
 
@@ -263,7 +270,7 @@ std::vector<size_t> SCM<T, E>::run_next_impl(bool sync_patch) {
       util::stop("Start time not what was expected");
     }
     if (e.is_node_introduction()) {
-      ret.push_back(e.species_index);
+      ret.push_back(e.target_index);
     } else {
       actions.push_back(e);
     }
@@ -276,7 +283,7 @@ std::vector<size_t> SCM<T, E>::run_next_impl(bool sync_patch) {
   }
 
   for (const auto& a : actions) {
-    sys.apply_event(a);
+    event_log.push_back(sys.apply_event(a));
   }
   if (!ret.empty()) {
     sys.introduce_new_nodes(ret);
@@ -404,6 +411,7 @@ template <typename T, typename E> void SCM<T, E>::reset() {
   solver.reset();
   patch = solver.get_system_ref();
   history.clear();
+  event_log.clear();
 }
 
 template <typename T, typename E> bool SCM<T, E>::complete() const {

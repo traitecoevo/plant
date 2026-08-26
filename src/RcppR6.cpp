@@ -829,12 +829,12 @@ plant::NodeScheduleEvent NodeScheduleEvent__ctor(double introduction, plant::uti
   return plant::NodeScheduleEvent(introduction, species_index);
 }
 // [[Rcpp::export]]
-plant::util::index NodeScheduleEvent__species_index__get(plant::RcppR6::RcppR6<plant::NodeScheduleEvent> obj_) {
-  return obj_->species_index;
+plant::util::index NodeScheduleEvent__target_index__get(plant::RcppR6::RcppR6<plant::NodeScheduleEvent> obj_) {
+  return obj_->target_index;
 }
 // [[Rcpp::export]]
-void NodeScheduleEvent__species_index__set(plant::RcppR6::RcppR6<plant::NodeScheduleEvent> obj_, plant::util::index value) {
-  obj_->species_index = value;
+void NodeScheduleEvent__target_index__set(plant::RcppR6::RcppR6<plant::NodeScheduleEvent> obj_, plant::util::index value) {
+  obj_->target_index = value;
 }
 
 // [[Rcpp::export]]
@@ -865,6 +865,16 @@ SEXP Events__ctor() {
 // [[Rcpp::export]]
 SEXP Events__vdor(SEXP obj) {
   return Rcpp::wrap(Rcpp::as<plant::Events >(obj));
+}
+
+
+// [[Rcpp::export]]
+SEXP EventLog__ctor() {
+  return Rcpp::wrap(plant::EventLog());
+}
+// [[Rcpp::export]]
+SEXP EventLog__vdor(SEXP obj) {
+  return Rcpp::wrap(Rcpp::as<plant::EventLog >(obj));
 }
 
 
@@ -3041,6 +3051,11 @@ plant::Events SCM___FF16__FF16_Env__events__get(plant::RcppR6::RcppR6<plant::SCM
 }
 
 // [[Rcpp::export]]
+plant::EventLog SCM___FF16__FF16_Env__event_log__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->r_event_log();
+}
+
+// [[Rcpp::export]]
 std::vector<double> SCM___FF16__FF16_Env__ode_times__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->r_ode_times();
 }
@@ -3148,6 +3163,11 @@ void SCM___TF24__TF24_Env__node_schedule__set(plant::RcppR6::RcppR6<plant::SCM<p
 // [[Rcpp::export]]
 plant::Events SCM___TF24__TF24_Env__events__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
   return obj_->r_events();
+}
+
+// [[Rcpp::export]]
+plant::EventLog SCM___TF24__TF24_Env__event_log__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->r_event_log();
 }
 
 // [[Rcpp::export]]
@@ -3261,6 +3281,11 @@ plant::Events SCM___TF24f__TF24_Env__events__get(plant::RcppR6::RcppR6<plant::SC
 }
 
 // [[Rcpp::export]]
+plant::EventLog SCM___TF24f__TF24_Env__event_log__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->r_event_log();
+}
+
+// [[Rcpp::export]]
 std::vector<double> SCM___TF24f__TF24_Env__ode_times__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy,plant::TF24_Environment> > obj_) {
   return obj_->r_ode_times();
 }
@@ -3368,6 +3393,11 @@ void SCM___K93__K93_Env__node_schedule__set(plant::RcppR6::RcppR6<plant::SCM<pla
 // [[Rcpp::export]]
 plant::Events SCM___K93__K93_Env__events__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
   return obj_->r_events();
+}
+
+// [[Rcpp::export]]
+plant::EventLog SCM___K93__K93_Env__event_log__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->r_event_log();
 }
 
 // [[Rcpp::export]]

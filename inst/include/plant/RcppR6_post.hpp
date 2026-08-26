@@ -35,6 +35,9 @@ template <> inline std::string generator_name<plant::NodeScheduleEvent >() {retu
 template <> inline std::string   class_name_r<plant::Events >() {return "Events";}
 template <> inline std::string   package_name<plant::Events >() {return "plant";}
 template <> inline std::string generator_name<plant::Events >() {return "";}
+template <> inline std::string   class_name_r<plant::EventLog >() {return "EventLog";}
+template <> inline std::string   package_name<plant::EventLog >() {return "plant";}
+template <> inline std::string generator_name<plant::EventLog >() {return "";}
 template <> inline std::string   class_name_r<plant::NodeSchedule >() {return "NodeSchedule";}
 template <> inline std::string   package_name<plant::NodeSchedule >() {return "plant";}
 template <> inline std::string generator_name<plant::NodeSchedule >() {return ".R6_NodeSchedule";}
@@ -346,7 +349,8 @@ template <> inline SEXP wrap(const plant::Events& x) {
   Rcpp::List ret;
   ret["time"] = Rcpp::wrap(x.time);
   ret["type"] = Rcpp::wrap(x.type);
-  ret["species_index"] = Rcpp::wrap(x.species_index);
+  ret["target"] = Rcpp::wrap(x.target);
+  ret["target_index"] = Rcpp::wrap(x.target_index);
   ret["params"] = Rcpp::wrap(x.params);
   ret.attr("class") = "Events";
   return ret;
@@ -364,10 +368,47 @@ template <> inline plant::Events as(SEXP x) {
   ret.time = Rcpp::as<std::vector<double> >(xl["time"]);
   // ret.type = Rcpp::as<decltype(rettype) >(xl["type"]);
   ret.type = Rcpp::as<std::vector<std::string> >(xl["type"]);
-  // ret.species_index = Rcpp::as<decltype(retspecies_index) >(xl["species_index"]);
-  ret.species_index = Rcpp::as<std::vector<size_t> >(xl["species_index"]);
+  // ret.target = Rcpp::as<decltype(rettarget) >(xl["target"]);
+  ret.target = Rcpp::as<std::vector<std::string> >(xl["target"]);
+  // ret.target_index = Rcpp::as<decltype(rettarget_index) >(xl["target_index"]);
+  ret.target_index = Rcpp::as<std::vector<size_t> >(xl["target_index"]);
   // ret.params = Rcpp::as<decltype(retparams) >(xl["params"]);
   ret.params = Rcpp::as<std::vector<std::vector<double> > >(xl["params"]);
+  ret.validate();
+  return ret;
+}
+template <> inline SEXP wrap(const plant::EventLog& x) {
+  Rcpp::List ret;
+  ret["time"] = Rcpp::wrap(x.time);
+  ret["type"] = Rcpp::wrap(x.type);
+  ret["target"] = Rcpp::wrap(x.target);
+  ret["target_index"] = Rcpp::wrap(x.target_index);
+  ret["requested"] = Rcpp::wrap(x.requested);
+  ret["applied"] = Rcpp::wrap(x.applied);
+  ret.attr("class") = "EventLog";
+  return ret;
+}
+template <> inline plant::EventLog as(SEXP x) {
+  if (!plant::RcppR6::is<plant::EventLog >(x)) {
+    Rcpp::stop("Expected an object of type EventLog");
+    // NOTE: Won't drop through or return anything.
+  }
+  // NOTE: assumes default constructable, and will assign *every*
+  // field twice.  No current support for a hook.
+  plant::EventLog ret;
+  Rcpp::List xl(x);
+  // ret.time = Rcpp::as<decltype(rettime) >(xl["time"]);
+  ret.time = Rcpp::as<std::vector<double> >(xl["time"]);
+  // ret.type = Rcpp::as<decltype(rettype) >(xl["type"]);
+  ret.type = Rcpp::as<std::vector<std::string> >(xl["type"]);
+  // ret.target = Rcpp::as<decltype(rettarget) >(xl["target"]);
+  ret.target = Rcpp::as<std::vector<std::string> >(xl["target"]);
+  // ret.target_index = Rcpp::as<decltype(rettarget_index) >(xl["target_index"]);
+  ret.target_index = Rcpp::as<std::vector<size_t> >(xl["target_index"]);
+  // ret.requested = Rcpp::as<decltype(retrequested) >(xl["requested"]);
+  ret.requested = Rcpp::as<std::vector<std::vector<double> > >(xl["requested"]);
+  // ret.applied = Rcpp::as<decltype(retapplied) >(xl["applied"]);
+  ret.applied = Rcpp::as<std::vector<std::vector<double> > >(xl["applied"]);
   ret.validate();
   return ret;
 }

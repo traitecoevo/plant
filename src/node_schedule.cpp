@@ -36,9 +36,9 @@ void NodeSchedule::clear_times(size_t species_index) {
   events_iterator e = events.begin();
   while (e != events.end()) {
     // Only introductions are addressed by species: every other event type
-    // acts on the patch as a whole and carries species_index 0, so clearing a
+    // acts on the patch as a whole and carries target_index 0, so clearing a
     // species' schedule must not take them with it.
-    if (e->is_node_introduction() && e->species_index == species_index) {
+    if (e->is_node_introduction() && e->target_index == species_index) {
       e = events.erase(e);
     } else {
       ++e;
@@ -80,7 +80,7 @@ void NodeSchedule::set_times(const std::vector<std::vector<double> >& times_) {
 std::vector<double> NodeSchedule::times(size_t species_index) const {
   std::vector<double> ret;
   for (events_const_iterator e = events.begin(); e != events.end(); ++e) {
-    if (e->is_node_introduction() && e->species_index == species_index) {
+    if (e->is_node_introduction() && e->target_index == species_index) {
       ret.push_back(e->time_introduction());
     }
   }
@@ -102,7 +102,7 @@ void NodeSchedule::set_all_events(const std::vector<Event>& events_) {
   // event that has been through a queue.
   for (std::vector<Event>::const_iterator e = events_.begin();
        e != events_.end(); ++e) {
-    insert_event(Event(e->time_introduction(), e->species_index, e->type,
+    insert_event(Event(e->time_introduction(), e->target_index, e->type, e->target,
                        e->params));
   }
   reset();

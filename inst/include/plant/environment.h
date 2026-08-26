@@ -45,9 +45,11 @@ public:
   // so nothing about it is error-controlled -- an implementation must bound the
   // jump itself. Environments with no soil water refuse rather than silently
   // swallow the water, so that a pulse aimed at the wrong model is visible.
-  virtual void add_water_pulse(double /*depth*/) {
+  // Returns what it managed to apply: {accepted, shed}, both in metres.
+  virtual std::vector<double> add_water_pulse(double /*depth*/) {
     util::stop("This environment has no soil water state to apply a rainfall "
                "pulse to");
+    return std::vector<double>(); // not reached
   }
 
   odelia::ode::const_iterator set_ode_state(odelia::ode::const_iterator it) {

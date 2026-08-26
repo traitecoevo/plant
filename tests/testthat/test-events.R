@@ -1,4 +1,4 @@
-# The event queue and its R-facing wire format (issue #522).
+# The event queue and its R-facing wire format (issues #628, #522).
 
 test_that("events() builds an empty schedule", {
   ev <- events()
@@ -29,28 +29,52 @@ test_that("events() concatenates and sorts by time", {
     harvest(time = 20, fraction = 0.5, height_min = 10)
   )
   expect_equal(ev$time, c(1.5, 20, 40, 60))
-  expect_equal(ev$type, c("rainfall_pulse", "harvest", "partial_disturbance",
+  ## harvest() and partial_disturbance() are thinning() under names that read
+  ## better at their own call sites; they are one action, not three.
+  expect_equal(ev$type, c("rainfall_pulse", "thinning", "thinning",
                           "rainfall_pulse"))
-  ## Each event carries its own type's parameters, in constructor order.
-  expect_equal(ev$params[[2]], c(0.5, 10))
+  ## Each event carries its own type's parameters, in constructor order:
+  ## fraction, height_min, height_max.
+  expect_equal(ev$params[[2]], c(0.5, 10, Inf))
+  expect_equal(ev$params[[3]], c(0.3, 0, Inf))
+  ## A pulse acts on the abiotic state; thinning defaults to the whole patch.
+  expect_equal(ev$target, c("environment", "patch", "patch", "environment"))
+})
+
+test_that("a target is validated against what the type can accept", {
+  ## Soil water is not owned by any one species, so a pulse cannot be narrowed.
+  expect_error(Events(time = 1, type = "rainfall_pulse", target = "species",
+                      target_index = 1L, params = list(0.01)),
+               "cannot be aimed at a single species")
+  ## An introduction must say which species is being introduced.
+  expect_error(Events(time = 1, type = "node_introduction", target = "patch",
+                      target_index = 1L, params = list(numeric(0))),
+               "must name the species")
+  expect_error(Events(time = 1, type = "thinning", target = "nowhere",
+                      target_index = 1L, params = list(c(0.5, 0, Inf))),
+               "Unknown event target 'nowhere'")
+  ## Thinning may be aimed either way.
+  expect_equal(thinning(time = 1, fraction = 0.5)$target, "patch")
+  expect_equal(thinning(time = 1, fraction = 0.5, species = 2)$target, "species")
+  expect_equal(thinning(time = 1, fraction = 0.5, species = 2)$target_index, 2L)
 })
 
 test_that("Events validation rejects malformed input", {
-  expect_error(Events(time = 1, type = "not_a_type", species_index = 1L,
+  expect_error(Events(time = 1, type = "not_a_type", target = "environment", target_index = 1L,
                       params = list(numeric(0))),
                "Unknown event type 'not_a_type'")
   ## The message names the types that do exist, so the fix is visible.
-  expect_error(Events(time = 1, type = "not_a_type", species_index = 1L,
+  expect_error(Events(time = 1, type = "not_a_type", target = "environment", target_index = 1L,
                       params = list(numeric(0))),
                "rainfall_pulse")
-  expect_error(Events(time = 1, type = "rainfall_pulse", species_index = 1L,
+  expect_error(Events(time = 1, type = "rainfall_pulse", target = "environment", target_index = 1L,
                       params = list(c(1, 2))),
                "expects 1 parameters but has 2")
-  expect_error(Events(time = -1, type = "rainfall_pulse", species_index = 1L,
+  expect_error(Events(time = -1, type = "rainfall_pulse", target = "environment", target_index = 1L,
                       params = list(1)),
                "non-finite or negative time")
   expect_error(Events(time = c(1, 2), type = "rainfall_pulse",
-                      species_index = 1L, params = list(1)),
+                      target = "environment", target_index = 1L, params = list(1)),
                "same length")
 })
 
@@ -62,7 +86,7 @@ test_that("node_introductions() reproduces the parameters' schedule", {
   expect_equal(sum(ev$type == "node_introduction"), length(ev$time))
   ## One event per (species, time), and each species keeps its own times.
   for (i in seq_along(p$node_schedule_times)) {
-    expect_equal(sort(ev$time[ev$species_index == i]),
+    expect_equal(sort(ev$time[ev$target_index == i]),
                  sort(p$node_schedule_times[[i]]))
   }
 })
@@ -72,7 +96,8 @@ test_that("an out-of-range species index is rejected", {
   ev <- events(node_introductions(p))
   ## One species, so index 2 has nowhere to go.
   bad <- Events(time = c(0, 1), type = rep("node_introduction", 2),
-                species_index = c(1L, 2L), params = list(numeric(0), numeric(0)))
+                target = rep("species", 2), target_index = c(1L, 2L),
+                params = list(numeric(0), numeric(0)))
   expect_error(SCM("FF16", "FF16_Env")(p, Environment("FF16"), bad, control()),
                "outside 1\\.\\.1")
 })
@@ -121,7 +146,7 @@ test_that("a schedule round-trips through the events format", {
   ## does one environment recompute for the whole batch, and the ODE state is
   ## laid out by species index, not by introduction order. So compare the
   ## schedule as a set of (time, species) pairs.
-  canon <- function(x) sort(paste(x$time, x$species_index))
+  canon <- function(x) sort(paste(x$time, x$target_index))
   expect_identical(canon(back), canon(ev))
 })
 
@@ -250,12 +275,130 @@ test_that("pulses wet the soil during a run", {
                infil_gain, tolerance = 1e-6)
 })
 
-test_that("an unimplemented event type fails where the user can see it", {
-  ## Types 2-5 are declared but not yet dispatched; until they are, reaching one
-  ## must be a clear error rather than a silent no-op.
-  p <- add_strategies(scm_base_parameters("FF16"), trait_matrix(1, "lma"))
-  ev <- events(node_introductions(p),
-               partial_disturbance(time = 1, fraction = 0.5))
-  scm <- SCM("FF16", "FF16_Env")(p, Environment("FF16"), ev, control())
-  expect_error(scm$run(), "Event type not implemented")
+## A short FF16 run, used by the demographic-event tests below.
+ff16_run <- function(ev = NULL, max_lifetime = 20) {
+  p <- scm_base_parameters("FF16")
+  p$max_patch_lifetime <- max_lifetime
+  p$node_schedule_times <- list()
+  p <- add_strategies(p, trait_matrix(1, "lma"))
+  scm <- SCM("FF16", "FF16_Env")(
+    p, Environment("FF16"),
+    if (is.null(ev)) events(node_introductions(p)) else ev(p), control())
+  scm$run()
+  scm
+}
+
+total_density <- function(scm) {
+  sum(exp(scm$patch$species[[1]]$log_densities))
+}
+
+test_that("thinning removes a fraction of the standing density", {
+  base <- ff16_run()
+  thinned <- ff16_run(function(p) {
+    events(node_introductions(p), thinning(time = 10, fraction = 0.5))
+  })
+
+  ## Density is the thing thinning acts on, and nothing puts individuals back
+  ## into an existing cohort, so the removal is still visible at the end of the
+  ## run. (Fitness is not the thing to test: at these patch ages it is ~1e-12,
+  ## and thinning also relieves competition, so the two effects fight.)
+  expect_lt(total_density(thinned), total_density(base))
+
+  ## And the removal is recorded, with what was asked and what was done.
+  log <- thinned$event_log
+  expect_equal(length(log$time), 1)
+  expect_equal(log$time, 10)
+  expect_equal(log$type, "thinning")
+  expect_equal(log$target, "patch")
+  expect_equal(log$requested[[1]], c(0.5, 0, Inf))
+  expect_equal(log$applied[[1]][[1]], 0.5)
+  expect_gt(log$applied[[1]][[2]], 0)   # some nodes were actually touched
+})
+
+test_that("thinning respects its height band", {
+  ## A band above every individual present takes nothing, so the run is
+  ## untouched -- but the event still happened, and is still recorded.
+  base <- ff16_run()
+  spared <- ff16_run(function(p) {
+    events(node_introductions(p),
+           thinning(time = 10, fraction = 0.9, height_min = 1e6))
+  })
+  expect_equal(spared$net_reproduction_ratios, base$net_reproduction_ratios)
+  expect_equal(spared$event_log$applied[[1]][[2]], 0)
+
+  ## A band that covers everything takes more than one that covers the top.
+  all_sizes <- ff16_run(function(p) {
+    events(node_introductions(p), thinning(time = 10, fraction = 0.5))
+  })
+  tops_only <- ff16_run(function(p) {
+    events(node_introductions(p),
+           thinning(time = 10, fraction = 0.5, height_min = 5))
+  })
+  expect_gt(all_sizes$event_log$applied[[1]][[2]],
+            tops_only$event_log$applied[[1]][[2]])
+  expect_lt(total_density(all_sizes), total_density(tops_only))
+})
+
+test_that("removing an entire cohort is refused rather than silently infinite", {
+  expect_error(
+    ff16_run(function(p) {
+      events(node_introductions(p), thinning(time = 10, fraction = 1))
+    }),
+    "Thinning fraction must be in")
+})
+
+test_that("heat damage accrues only above its critical temperature", {
+  base <- ff16_run()
+
+  ## Below the threshold there is nothing to accrue, so the event is a no-op
+  ## with a recorded zero rather than an unrecorded nothing.
+  mild <- ff16_run(function(p) {
+    events(node_introductions(p),
+           heat_damage(time = 10, temperature = 30, temperature_crit = 40))
+  })
+  expect_equal(mild$event_log$applied[[1]][[1]], 0)
+  expect_equal(mild$net_reproduction_ratios, base$net_reproduction_ratios)
+
+  ## Above it, damage rises with both peak temperature and duration -- which is
+  ## the sub-integration doing its work, since duration enters nowhere else.
+  damage <- function(temperature, duration) {
+    scm <- ff16_run(function(p) {
+      events(node_introductions(p),
+             heat_damage(time = 10, temperature = temperature,
+                         duration = duration, temperature_crit = 40))
+    })
+    scm$event_log$applied[[1]][[1]]
+  }
+  expect_gt(damage(45, 14 / 365), 0)
+  expect_gt(damage(50, 14 / 365), damage(45, 14 / 365))
+  expect_gt(damage(45, 28 / 365), damage(45, 14 / 365))
+
+  ## The clock does not move across the event, however long it nominally lasts.
+  long <- ff16_run(function(p) {
+    events(node_introductions(p),
+           heat_damage(time = 10, temperature = 45, duration = 1))
+  })
+  expect_equal(long$time, base$time)
+})
+
+test_that("the event log records every applied event, in order", {
+  scm <- ff16_run(function(p) {
+    events(node_introductions(p),
+           thinning(time = 5, fraction = 0.2),
+           heat_damage(time = 12, temperature = 45),
+           thinning(time = 15, fraction = 0.1, height_min = 2))
+  })
+  log <- scm$event_log
+  expect_equal(log$time, c(5, 12, 15))
+  expect_equal(log$type, c("thinning", "heat_damage", "thinning"))
+  expect_equal(length(log$requested), 3)
+  expect_equal(length(log$applied), 3)
+
+  ## Node introductions are not logged: they are the schedule, not an
+  ## intervention, and logging 140 of them would bury the three that matter.
+  expect_false(any(log$type == "node_introduction"))
+
+  ## reset() clears it, so the log always describes the run in front of you.
+  scm$reset()
+  expect_equal(length(scm$event_log$time), 0)
 })

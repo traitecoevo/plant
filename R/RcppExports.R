@@ -749,12 +749,12 @@ NodeScheduleEvent__ctor <- function(introduction, species_index) {
     .Call('_plant_NodeScheduleEvent__ctor', PACKAGE = 'plant', introduction, species_index)
 }
 
-NodeScheduleEvent__species_index__get <- function(obj_) {
-    .Call('_plant_NodeScheduleEvent__species_index__get', PACKAGE = 'plant', obj_)
+NodeScheduleEvent__target_index__get <- function(obj_) {
+    .Call('_plant_NodeScheduleEvent__target_index__get', PACKAGE = 'plant', obj_)
 }
 
-NodeScheduleEvent__species_index__set <- function(obj_, value) {
-    invisible(.Call('_plant_NodeScheduleEvent__species_index__set', PACKAGE = 'plant', obj_, value))
+NodeScheduleEvent__target_index__set <- function(obj_, value) {
+    invisible(.Call('_plant_NodeScheduleEvent__target_index__set', PACKAGE = 'plant', obj_, value))
 }
 
 NodeScheduleEvent__times__get <- function(obj_) {
@@ -779,6 +779,14 @@ Events__ctor <- function() {
 
 Events__vdor <- function(obj) {
     .Call('_plant_Events__vdor', PACKAGE = 'plant', obj)
+}
+
+EventLog__ctor <- function() {
+    .Call('_plant_EventLog__ctor', PACKAGE = 'plant')
+}
+
+EventLog__vdor <- function(obj) {
+    .Call('_plant_EventLog__vdor', PACKAGE = 'plant', obj)
 }
 
 NodeSchedule__ctor <- function(n_species) {
@@ -2673,6 +2681,10 @@ SCM___FF16__FF16_Env__events__get <- function(obj_) {
     .Call('_plant_SCM___FF16__FF16_Env__events__get', PACKAGE = 'plant', obj_)
 }
 
+SCM___FF16__FF16_Env__event_log__get <- function(obj_) {
+    .Call('_plant_SCM___FF16__FF16_Env__event_log__get', PACKAGE = 'plant', obj_)
+}
+
 SCM___FF16__FF16_Env__ode_times__get <- function(obj_) {
     .Call('_plant_SCM___FF16__FF16_Env__ode_times__get', PACKAGE = 'plant', obj_)
 }
@@ -2767,6 +2779,10 @@ SCM___TF24__TF24_Env__node_schedule__set <- function(obj_, value) {
 
 SCM___TF24__TF24_Env__events__get <- function(obj_) {
     .Call('_plant_SCM___TF24__TF24_Env__events__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___TF24__TF24_Env__event_log__get <- function(obj_) {
+    .Call('_plant_SCM___TF24__TF24_Env__event_log__get', PACKAGE = 'plant', obj_)
 }
 
 SCM___TF24__TF24_Env__ode_times__get <- function(obj_) {
@@ -2865,6 +2881,10 @@ SCM___TF24f__TF24_Env__events__get <- function(obj_) {
     .Call('_plant_SCM___TF24f__TF24_Env__events__get', PACKAGE = 'plant', obj_)
 }
 
+SCM___TF24f__TF24_Env__event_log__get <- function(obj_) {
+    .Call('_plant_SCM___TF24f__TF24_Env__event_log__get', PACKAGE = 'plant', obj_)
+}
+
 SCM___TF24f__TF24_Env__ode_times__get <- function(obj_) {
     .Call('_plant_SCM___TF24f__TF24_Env__ode_times__get', PACKAGE = 'plant', obj_)
 }
@@ -2959,6 +2979,10 @@ SCM___K93__K93_Env__node_schedule__set <- function(obj_, value) {
 
 SCM___K93__K93_Env__events__get <- function(obj_) {
     .Call('_plant_SCM___K93__K93_Env__events__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___K93__K93_Env__event_log__get <- function(obj_) {
+    .Call('_plant_SCM___K93__K93_Env__event_log__get', PACKAGE = 'plant', obj_)
 }
 
 SCM___K93__K93_Env__ode_times__get <- function(obj_) {

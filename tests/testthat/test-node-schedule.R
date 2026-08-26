@@ -3,7 +3,7 @@ drain_schedule <- function(sched) {
   cmp <- vector("list", sched$size)
   for (i in seq_len(sched$size)) {
     e <- sched$next_event
-    cmp[[i]] <- c(e$species_index,
+    cmp[[i]] <- c(e$target_index,
                   e$time_introduction,
                   e$times,
                   e$time_end)
@@ -22,11 +22,11 @@ drain_schedule <- function(sched) {
 test_that("NodeScheduleEvent", {
   e <- NodeScheduleEvent(pi, 1)
 
-  expect_identical(e$species_index, 1L)
+  expect_identical(e$target_index, 1L)
   expect_identical(e$species_index_raw, 0.0)
 
-  e$species_index <- 2L
-  expect_identical(e$species_index, 2L)
+  e$target_index <- 2L
+  expect_identical(e$target_index, 2L)
   expect_identical(e$species_index_raw, 1.0)
 
   expect_identical(e$times, pi)
@@ -84,7 +84,7 @@ test_that("Set times (one species)", {
   expect_false(sched$use_ode_times)
   e <- sched$next_event
   expect_identical(e$time_introduction, t1[[1]])
-  expect_equal(e$species_index, species_index)
+  expect_equal(e$target_index, species_index)
 
   cmp <- drain_schedule(sched)
 
