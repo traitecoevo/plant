@@ -7,6 +7,7 @@
 #include <plant/util.h>
 #include <plant/adaptive_interpolator.h> // interpolator::refinement_failure
 #include <odelia/ode_interface.hpp>
+#include <odelia/ode_util.hpp> // odelia::util::stop_domain
 
 #include <plant/disturbance_regime.h>
 
@@ -97,6 +98,30 @@ public:
   // density untouched. Either way the two views of the same cohort disagree.
   template <typename Select>
   size_t scale_node_densities(size_t species_index, Select select);
+
+  // Opt-in domain check (odelia #55/#56): the stepper calls this on the state a
+  // completed step landed on, before accepting it, and rejects/shrinks/retries
+  // if it returns false. That state is a linear combination of the RK stages and
+  // is never handed to set_ode_state(), so check_finite_ode_state() -- which
+  // runs per stage -- cannot see it.
+  //
+  // ONLY the environment block is checked. A node's log_density is legitimately
+  // -Inf (a cohort that never established; see Node::compute_initial_conditions),
+  // so a blanket finiteness test over the whole vector would reject valid states
+  // and stall the solver at its minimum step. The environment block is where
+  // integrator overshoot actually shows up.
+  bool ode_state_valid(const std::vector<double>& y) const {
+    const size_t n_env = environment.ode_size();
+    if (n_env == 0 || y.size() < n_env) {
+      return true; // FF16/K93 carry no environment state: no check, no cost
+    }
+    for (size_t i = y.size() - n_env; i < y.size(); ++i) {
+      if (!util::is_finite(y[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   // Open to better ways to test whether nodes have been introduced
   int node_ode_size() const {
@@ -475,7 +500,18 @@ void Patch<T,E>::check_finite_ode_state() const {
   const Internals& env_vars = environment.vars;
   for (size_t i = 0; i < env_vars.state_size; ++i) {
     if (!util::is_finite(env_vars.states[i])) {
-      util::stop("Non-finite environment state (index " + util::to_string(i) +
+      // A rejection, not a failure. #608 measured every observed TF24 soil
+      // excursion to be explicit-integrator overshoot -- the step a leg
+      // inherits across a discrete change, not a defect in the water balance --
+      // and the same case integrates cleanly from a smaller step. So hand this
+      // to the stepper to shrink and retry (odelia #55/#56). If the minimum
+      // step still lands here, odelia stops and reports this message, so
+      // nothing is lost when it really is divergent.
+      //
+      // Contrast mode (1) above, which stays fatal: that divergence is in the
+      // equations rather than the stepper, so shrinking cannot recover it and
+      // trying would only burn steps before failing anyway.
+      odelia::util::stop_domain("Non-finite environment state (index " + util::to_string(i) +
                  " = " + util::to_string(env_vars.states[i]) + ") at time=" +
                  util::to_string(environment.time) +
                  ". For TF24 this is a soil-water state driven non-finite by the "

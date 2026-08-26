@@ -2461,6 +2461,10 @@ plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> Patch___FF16__FF16_En
   return plant::Patch<plant::FF16_Strategy,plant::FF16_Environment>(parameters, environment, control);
 }
 // [[Rcpp::export]]
+bool Patch___FF16__FF16_Env__ode_state_valid(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_, std::vector<double> y) {
+  return obj_->ode_state_valid(y);
+}
+// [[Rcpp::export]]
 void Patch___FF16__FF16_Env__introduce_new_node(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::util::index species_index) {
   obj_->r_introduce_new_node(species_index);
 }
@@ -2586,6 +2590,10 @@ Rcpp::List Patch___FF16__FF16_Env__state__get(plant::RcppR6::RcppR6<plant::Patch
 // [[Rcpp::export]]
 plant::Patch<plant::TF24_Strategy,plant::TF24_Environment> Patch___TF24__TF24_Env__ctor(plant::Parameters<plant::TF24_Strategy,plant::TF24_Environment> parameters, plant::TF24_Environment environment, plant::Control control) {
   return plant::Patch<plant::TF24_Strategy,plant::TF24_Environment>(parameters, environment, control);
+}
+// [[Rcpp::export]]
+bool Patch___TF24__TF24_Env__ode_state_valid(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy,plant::TF24_Environment> > obj_, std::vector<double> y) {
+  return obj_->ode_state_valid(y);
 }
 // [[Rcpp::export]]
 void Patch___TF24__TF24_Env__introduce_new_node(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy,plant::TF24_Environment> > obj_, plant::util::index species_index) {
@@ -2715,6 +2723,10 @@ plant::Patch<plant::TF24f_Strategy,plant::TF24_Environment> Patch___TF24f__TF24_
   return plant::Patch<plant::TF24f_Strategy,plant::TF24_Environment>(parameters, environment, control);
 }
 // [[Rcpp::export]]
+bool Patch___TF24f__TF24_Env__ode_state_valid(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Strategy,plant::TF24_Environment> > obj_, std::vector<double> y) {
+  return obj_->ode_state_valid(y);
+}
+// [[Rcpp::export]]
 void Patch___TF24f__TF24_Env__introduce_new_node(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Strategy,plant::TF24_Environment> > obj_, plant::util::index species_index) {
   obj_->r_introduce_new_node(species_index);
 }
@@ -2840,6 +2852,10 @@ Rcpp::List Patch___TF24f__TF24_Env__state__get(plant::RcppR6::RcppR6<plant::Patc
 // [[Rcpp::export]]
 plant::Patch<plant::K93_Strategy,plant::K93_Environment> Patch___K93__K93_Env__ctor(plant::Parameters<plant::K93_Strategy,plant::K93_Environment> parameters, plant::K93_Environment environment, plant::Control control) {
   return plant::Patch<plant::K93_Strategy,plant::K93_Environment>(parameters, environment, control);
+}
+// [[Rcpp::export]]
+bool Patch___K93__K93_Env__ode_state_valid(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_, std::vector<double> y) {
+  return obj_->ode_state_valid(y);
 }
 // [[Rcpp::export]]
 void Patch___K93__K93_Env__introduce_new_node(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::util::index species_index) {

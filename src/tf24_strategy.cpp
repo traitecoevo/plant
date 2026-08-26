@@ -559,8 +559,25 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
 }
 
 // Base TF24: optimise the root-collar water potential from scratch each call.
+// An unphysical psi probe is a step-size symptom, not a modelling error.
+//
+// phylloptim raises its own infeasible_error, which derives from
+// std::runtime_error and NOT from odelia::util::DomainError -- they are
+// siblings -- so odelia's stepper cannot recognise it and the throw kills the
+// whole solve, having taken zero steps (#608 measured exactly this). Translating
+// it here is what turns it into a rejected step: odelia shrinks and retries, and
+// only stops if the minimum step still cannot reach a feasible probe, in which
+// case phylloptim's own message is what it reports.
+//
+// Deliberately narrow: only infeasible_error is translated. A util::stop() from
+// phylloptim, or any other exception, still propagates, so a bug stays a bug
+// instead of becoming step-shrinking until "Cannot achieve the desired accuracy".
 void TF24_Strategy::solve_leaf() {
-  leaf.find_root_collar_psi();
+  try {
+    leaf.find_root_collar_psi();
+  } catch (const phylloptim::util::infeasible_error& e) {
+    odelia::util::stop_domain(std::string("leaf solve infeasible: ") + e.what());
+  }
 }
 
 // [eqn 16] Fraction of production allocated to reproduction

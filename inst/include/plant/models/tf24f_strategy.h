@@ -58,6 +58,9 @@ public:
   // the leaf at the tracked state and finite-difference the profit gradient
   // (left in dprofit_dpsi_ for compute_rates to turn into the state's rate).
   void solve_leaf();
+  // The body; solve_leaf() wraps it to translate phylloptim's infeasible_error
+  // into a rejectable odelia::util::DomainError.
+  void solve_leaf_impl();
 
   // Seed the tracked state at its optimum for a newly introduced individual, so
   // gradient ascent starts at the optimum (no birth transient / no climb from 0,
