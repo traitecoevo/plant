@@ -115,7 +115,7 @@ tf24_dry_scm <- local({
     key <- paste(model, lifetime, sep = "/")
     if (is.null(cache[[key]])) {
       x <- tf24_dry_start(model, lifetime)
-      scm <- SCM(model, environment_type(model))(x$p, x$env, Control())
+      scm <- SCM(model, environment_type(model))(x$p, x$env, empty_events(), Control())
       scm$collect <- TRUE
       scm$run()
       cache[[key]] <<- scm

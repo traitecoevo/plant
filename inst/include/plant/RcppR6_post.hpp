@@ -32,6 +32,9 @@ template <> inline std::string generator_name<odelia::ode::Solver<plant::tools::
 template <> inline std::string   class_name_r<plant::NodeScheduleEvent >() {return "NodeScheduleEvent";}
 template <> inline std::string   package_name<plant::NodeScheduleEvent >() {return "plant";}
 template <> inline std::string generator_name<plant::NodeScheduleEvent >() {return ".R6_NodeScheduleEvent";}
+template <> inline std::string   class_name_r<plant::Events >() {return "Events";}
+template <> inline std::string   package_name<plant::Events >() {return "plant";}
+template <> inline std::string generator_name<plant::Events >() {return "";}
 template <> inline std::string   class_name_r<plant::NodeSchedule >() {return "NodeSchedule";}
 template <> inline std::string   package_name<plant::NodeSchedule >() {return "plant";}
 template <> inline std::string generator_name<plant::NodeSchedule >() {return ".R6_NodeSchedule";}
@@ -338,6 +341,35 @@ template <> inline SEXP wrap(const plant::NodeScheduleEvent& x) {
 }
 template <> inline plant::NodeScheduleEvent as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::NodeScheduleEvent>(x));
+}
+template <> inline SEXP wrap(const plant::Events& x) {
+  Rcpp::List ret;
+  ret["time"] = Rcpp::wrap(x.time);
+  ret["type"] = Rcpp::wrap(x.type);
+  ret["species_index"] = Rcpp::wrap(x.species_index);
+  ret["params"] = Rcpp::wrap(x.params);
+  ret.attr("class") = "Events";
+  return ret;
+}
+template <> inline plant::Events as(SEXP x) {
+  if (!plant::RcppR6::is<plant::Events >(x)) {
+    Rcpp::stop("Expected an object of type Events");
+    // NOTE: Won't drop through or return anything.
+  }
+  // NOTE: assumes default constructable, and will assign *every*
+  // field twice.  No current support for a hook.
+  plant::Events ret;
+  Rcpp::List xl(x);
+  // ret.time = Rcpp::as<decltype(rettime) >(xl["time"]);
+  ret.time = Rcpp::as<std::vector<double> >(xl["time"]);
+  // ret.type = Rcpp::as<decltype(rettype) >(xl["type"]);
+  ret.type = Rcpp::as<std::vector<std::string> >(xl["type"]);
+  // ret.species_index = Rcpp::as<decltype(retspecies_index) >(xl["species_index"]);
+  ret.species_index = Rcpp::as<std::vector<size_t> >(xl["species_index"]);
+  // ret.params = Rcpp::as<decltype(retparams) >(xl["params"]);
+  ret.params = Rcpp::as<std::vector<std::vector<double> > >(xl["params"]);
+  ret.validate();
+  return ret;
 }
 template <> inline SEXP wrap(const plant::NodeSchedule& x) {
   return wrap(plant::RcppR6::RcppR6<plant::NodeSchedule>(x));

@@ -8,6 +8,7 @@ run_scm(
   p,
   env = NULL,
   ctrl = control(),
+  events = NULL,
   refine_schedule = FALSE,
   collect = FALSE,
   use_ode_times = FALSE
@@ -19,6 +20,11 @@ run_scm(
 \item{env}{Environment object (defaults to the strategy's environment)}
 
 \item{ctrl}{Control object}
+
+\item{events}{An \code{\link{events}} object giving the discrete events to
+apply during the run — rainfall pulses, harvest, and node introductions
+themselves. When \code{NULL} (the default) the schedule is taken from
+\code{p$node_schedule_times}, i.e. introductions only.}
 
 \item{refine_schedule}{Should the node-introduction schedule be adaptively
 refined before/while running (using \code{schedule_eps} and

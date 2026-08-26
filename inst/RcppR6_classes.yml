@@ -290,6 +290,16 @@ NodeScheduleEvent:
     time_end: {type: double, access: member}
     species_index_raw: {type: "size_t", access: member, name_cpp: species_index_raw}
 
+Events:
+  name_cpp: "plant::Events"
+  validator:
+    name_cpp: validate
+  list:
+    - time: "std::vector<double>"
+    - type: "std::vector<std::string>"
+    - species_index: "std::vector<size_t>"
+    - params: "std::vector<std::vector<double> >"
+
 NodeSchedule:
   name_cpp: "plant::NodeSchedule"
   constructor:
@@ -764,6 +774,7 @@ SCM:
     args:
       - parameters: "plant::Parameters<T,E>"
       - environment: "E"
+      - events: "plant::Events"
       - control: "plant::Control"
   # Order mirrors the public API grouping in inst/include/plant/scm.h.
   methods:
@@ -822,6 +833,11 @@ SCM:
       access: member
       name_cpp: r_node_schedule
       name_cpp_set: r_set_node_schedule
+    # The schedule as events; reflects any refinement that has happened.
+    events:
+      type: "plant::Events"
+      access: member
+      name_cpp: r_events
     # ODE times: read-only view of the step times the solver actually used.
     # Pinning integration to fixed times is toggled on the NodeSchedule.
     ode_times:
