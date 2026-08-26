@@ -40,15 +40,21 @@ public:
 
   virtual void compute_rates(std::vector<double> const& resource_depletion){};
 
-  // Apply an instantaneous rainfall pulse: `depth` metres of water arriving at
-  // the soil surface at one instant (issue #522). Applied between solver legs,
-  // so nothing about it is error-controlled -- an implementation must bound the
-  // jump itself. Environments with no soil water refuse rather than silently
-  // swallow the water, so that a pulse aimed at the wrong model is visible.
-  // Returns what it managed to apply: {accepted, shed}, both in metres.
-  virtual std::vector<double> add_water_pulse(double /*depth*/) {
-    util::stop("This environment has no soil water state to apply a rainfall "
-               "pulse to");
+  // Add `amount` of resource `i` at one instant (#628). What the resource is,
+  // and what the amount is measured in, is the environment's business: TF24's
+  // resources are soil layers and the amount is metres of water.
+  //
+  // Applied between solver legs, so nothing about it is error-controlled -- an
+  // implementation must bound the jump itself, because no error estimate and
+  // no step rejection stand behind it. Returns what it managed to apply:
+  // {accepted, shed}, in the same units.
+  //
+  // An environment with no resources refuses rather than silently swallowing
+  // the amount, so a pulse aimed at a model that cannot take one is visible.
+  virtual std::vector<double> add_resource_pulse(size_t /*i*/,
+                                                 double /*amount*/) {
+    util::stop("This environment has no resource pools, so there is nothing "
+               "for a resource pulse to add to");
     return std::vector<double>(); // not reached
   }
 

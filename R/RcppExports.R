@@ -4205,8 +4205,12 @@ TF24_Environment__get_soil_number_of_depths <- function(obj_) {
     .Call('_plant_TF24_Environment__get_soil_number_of_depths', PACKAGE = 'plant', obj_)
 }
 
+TF24_Environment__add_resource_pulse <- function(obj_, layer, amount) {
+    .Call('_plant_TF24_Environment__add_resource_pulse', PACKAGE = 'plant', obj_, layer, amount)
+}
+
 TF24_Environment__add_water_pulse <- function(obj_, depth) {
-    invisible(.Call('_plant_TF24_Environment__add_water_pulse', PACKAGE = 'plant', obj_, depth))
+    .Call('_plant_TF24_Environment__add_water_pulse', PACKAGE = 'plant', obj_, depth)
 }
 
 TF24_Environment__set_soil_water_state <- function(obj_, state) {

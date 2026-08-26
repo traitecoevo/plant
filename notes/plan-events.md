@@ -2,7 +2,7 @@
 
 **Status: in progress.** This is the working plan for [#628](https://github.com/traitecoevo/plant/issues/628), the event-structure subtask of [#522](https://github.com/traitecoevo/plant/issues/522). The constraints in it bind anyone editing the schedule, the SCM run loop, or the TF24 soil state while the work is open.
 
-Two other issues consume what is built here: [#627](https://github.com/traitecoevo/plant/issues/627) wants thinning that can target size classes, which is the `thinning` action below; [#601](https://github.com/traitecoevo/plant/issues/601) wants the same queue for finite births and deaths when the stochastic and deterministic solvers are unified.
+Two other issues consume what is built here: [#627](https://github.com/traitecoevo/plant/issues/627) wants removal that can target size classes, which is the `harvest` action below; [#601](https://github.com/traitecoevo/plant/issues/601) wants the same queue for finite births and deaths when the stochastic and deterministic solvers are unified.
 
 ## Context
 
@@ -12,14 +12,14 @@ Several strands of science want the same machinery for other jumps:
 
 - **Rainfall pulses** (#522, the motivating case). TF24 takes rainfall as a smooth cubic spline, which smears out exactly the variability that matters ecologically — large pulses.
 - **Births with counts, and deaths** (#601). Unifying the stochastic and deterministic solvers needs both.
-- **Management and partial disturbance** — harvest, thinning, damage that does not clear the patch.
-- **Temperature extremes** (raised by @itowers1 on #522).
+- **Management and partial disturbance** — harvest, thinning, damage that does not clear the patch (#627).
+- **Climate extremes** — heat, in the case raised by @itowers1 on #522.
 
-The deliverable is **a generic interface plus a deliberately crude worked example of each of five event types**, so the team refines five concrete cases rather than arguing an abstraction in the void. The science in each action is placeholder; the interface is the product.
+The deliverable is **a generic interface plus a deliberately crude worked example of each event type**, so the team refines concrete cases rather than arguing an abstraction in the void. The science in each action is placeholder; the interface is the product.
 
 ## Decisions
 
-1. **All five types get real but crude implementations**, each a small replaceable unit.
+1. **Every type gets a real but crude implementation**, each a small replaceable unit.
 2. **Events are instantaneous to the outer solver** — see below, which is the load-bearing idea.
 3. **Node introduction becomes just another event type.** One queue, one representation.
 4. **The queue lives in plant, owned by the runner**, as `NodeSchedule` is today. No odelia change.
@@ -29,9 +29,9 @@ The deliverable is **a generic interface plus a deliberately crude worked exampl
 
 An event is instantaneous **from the outer solver's point of view**: patch time does not advance across it, and odelia refuses to move the clock during one anyway ([ode_solver_internal.hpp:438-452](../../odelia/inst/include/odelia/ode_solver_internal.hpp#L438-L452) — `set_time` will not move backwards or sideways).
 
-But an action is free to compute its jump **however it likes**. It may apply a closed-form rule, or it may internally sub-integrate its own fast sub-model over the event's nominal real-world duration — a fortnight at half-hourly steps — with plant demography frozen throughout. Both are the same thing to the solver: state in, state out, clock unmoved.
+But an action is free to compute its jump **however it likes**. It may apply a closed-form rule, or it may internally sub-integrate its own fast sub-model over the event's nominal real-world duration — a fortnight at half-hourly steps — with demography frozen throughout. Both are the same thing to the solver: state in, state out, clock unmoved.
 
-This is what makes the heatwave case fit **with no widening of the solver contract at all**. A `TemperatureExtreme` event carries a nominal duration, runs its damage sub-model internally, and hands back a jump. The event interface does not need a duration concept; the *action* does, and that is a private matter for that action.
+This is what makes the heatwave case fit **with no widening of the solver contract at all**. A `ClimateExtreme` event carries a nominal duration, runs its damage sub-model internally, and hands back a jump. The event interface does not need a duration concept; the *action* does, and that is a private matter for that action.
 
 The accepted approximation this buys, stated plainly: patch age does not advance during an event's nominal duration. Ten fourteen-day heatwaves in a 105.32 yr run leave 0.38 yr — **0.36%** — of real time unaccounted.
 
@@ -52,14 +52,14 @@ Both halves matter. The first is the guardrail on the migration commit. The seco
 So: **keep the queue plain data; put the dispatch in the templated layer.**
 
 ```cpp
-enum class EventType   { RainfallPulse, HeatDamage, Thinning, NodeIntroduction };
+enum class EventType   { ResourcePulse, ClimateExtreme, Harvest, NodeIntroduction };
 enum class EventTarget { Patch, Environment, Species };
 
 class ScheduleEvent {
 public:
   EventType type;
   EventTarget target;            // what it acts on
-  size_t target_index;           // which species, when the target is Species
+  size_t target_index;           // which species, or which resource
   std::vector<double> params;    // per-type payload, incl. nominal duration where relevant
   std::vector<double> times;     // [t_intro, ...extra ode times..., t_end] -- semantics UNCHANGED
   double time_introduction() const { return times.front(); }
@@ -67,9 +67,11 @@ public:
 };
 ```
 
-Each event says when it happens, what kind of thing it is, what it acts on, and the values it needs — the four things #628 asks for. Type and target are separate because the same action serves different scopes: thinning a whole patch and thinning one species run the same code over a different set of nodes.
+Each event says when it happens, what kind of thing it is, what it acts on, and the values it needs — the four things #628 asks for. Type and target are separate because the same action serves different scopes: harvesting a whole patch and harvesting one species run the same code over a different set of nodes.
 
-**There is deliberately no per-cohort target.** A cohort has no stable address across a run — nodes are appended and never removed, and `refine_schedule()` changes how many exist — so "cohort 7" in a schedule written before the run is not well defined. Selecting particular cohorts is expressed as a predicate on their state (a height band) in the action's parameters, which is both well defined and what #627 actually asks for.
+**The names are deliberately taxa- and model-agnostic.** This layer is shared by every strategy and environment, so nothing in it should be specific to plants, to water or to temperature: a resource pulse is water in TF24 and could be anything countable in a size-structured animal model; a climate extreme is heat in one model and could be cold, salinity or hypoxia in another. Model-specific vocabulary belongs in the model, where it is accurate — `TF24_Environment::add_water_pulse()` and R's `rainfall_pulse()` are the same action under the name that reads correctly there. The pulse rides plant's *existing* generic abstraction, `Environment::n_resources()`, so `target_index` names the resource just as it names the species elsewhere.
+
+**There is deliberately no per-cohort target.** A cohort has no stable address across a run — nodes are appended and never removed, and `refine_schedule()` changes how many exist — so "cohort 7" in a schedule written before the run is not well defined. Selecting particular cohorts is expressed as a predicate on their state (a size band) in the action's parameters, which is both well defined and what #627 actually asks for.
 
 `target_index` stays a named field rather than folding into `params`, so the run loop's `ret.push_back(...)` and `collect_competition_errors(added)` survive untouched.
 
@@ -96,7 +98,7 @@ and the C++ constructor gains it: `SCM(parameters, environment, events, control)
 
 Two events at one instant need a deterministic, documented order. Today `add_time` ([node_schedule.cpp:273-283](../src/node_schedule.cpp#L273-L283)) inserts equal-time events before existing ones, which is an accident, not a decision. Sort by `(time, type_rank)`:
 
-1. **Environment events** (rainfall pulse, temperature extreme) — set the physical conditions.
+1. **Environment events** (a resource pulse) — set the external conditions.
 2. **Demographic removals** (harvest, partial disturbance).
 3. **Node introductions** last, so a newborn's initial conditions ([node.h:183-213](../inst/include/plant/node.h#L183-L213)) are computed against the post-event environment.
 
@@ -137,7 +139,7 @@ The break condition still keys off `e.time_end() > t0`, which `reset()` ([node_s
 
 ### 5. The five actions
 
-Three of the five share one primitive. Harvest, partial disturbance and temperature extreme differ only in how a per-node survival factor is chosen:
+Harvest and climate extremes share one primitive, differing only in how a per-node survival factor is chosen:
 
 ```cpp
 // applies factor phi in (0,1] to one node, keeping the two accountings in step
@@ -152,17 +154,17 @@ void scale_node_density(node_type& n, double phi) {
 | # | Event | Params | Crude rule | The decision to refine |
 |---|---|---|---|---|
 | 1 | **NodeIntroduction** | — | `Patch::introduce_new_nodes()`, unchanged ([patch.h:780-791](../inst/include/plant/patch.h#L780-L791)) | nothing; must not move |
-| 2 | **RainfallPulse** | `depth` (m) | jump in layer 0, capped at free capacity, excess to runoff | should it also pass the saturation-excess term? |
-| 3 | **Thinning** | `fraction`, `height_min`, `height_max` | `phi = 1-f` for nodes in the height band | removal vs biomass reduction (coppicing) |
-| 4 | **HeatDamage** | `temperature`, `duration`, `T_crit`, `sensitivity` | internal sub-integration over `duration`, accumulating damage to `phi` | the whole thing — see below |
+| 2 | **ResourcePulse** | `amount`, resource named by `target_index` | jump in that pool, capped at free capacity, excess shed | should it also pass the saturation-excess term? |
+| 3 | **Harvest** | `fraction`, `size_min`, `size_max` | `phi = 1-f` for nodes in the size band | removal vs partial biomass loss |
+| 4 | **ClimateExtreme** | `intensity`, `duration`, `threshold`, `sensitivity` | internal sub-integration over `duration`, accumulating dose to `phi` | the whole thing — see below |
 
-**Harvest and partial disturbance are not separate types.** They are `thinning` with different selectivity: a harvest takes everything above a size, a partial disturbance takes a fraction of everything, and #627's size-class thinning takes a band. `harvest()` and `partial_disturbance()` exist in R as names that read better at their own call sites, both delegating to `thinning()`. One action, three ways of asking for it.
+**Harvest, thinning and partial disturbance are one type.** They differ only in selectivity: leave the size band at its defaults and it is an across-the-board knock-down; set `size_min` and it takes everything above a size; set both and it thins one size class, which is what #627 asks for. One action, three ways of asking for it — so there is one implementation, not three.
 
 ## What the events actually did
 
 Each applied event is recorded — time, type, target, what was requested, and what was achieved — and read back as `scm$event_log` ([#628](https://github.com/traitecoevo/plant/issues/628)).
 
-This is not bookkeeping for its own sake. **The two are routinely different**: a pulse is capped at what the surface layer can hold, so the depth that reaches the soil is often less than the depth asked for; thinning a height band removes whatever was in that band, which is not knowable in advance. A pulse reports `{accepted, shed}`; thinning and heat damage report `{fraction_applied, nodes_affected}`. Without the log the shortfall is only inferable from an accumulator, which is no way to answer "what did this run do".
+This is not bookkeeping for its own sake. **The two are routinely different**: a pulse is capped at what the pool can hold, so the amount that lands is often less than the amount asked for; harvesting a size band removes whatever was in that band, which is not knowable in advance. A pulse reports `{accepted, shed}`; harvest and climate extremes report `{fraction_applied, nodes_affected}`. Without the log the shortfall is only inferable from an accumulator, which is no way to answer "what did this run do".
 
 Node introductions are not logged: they are the schedule, not an intervention, and a hundred and forty of them would bury the three that matter.
 
@@ -203,10 +205,9 @@ Per-type vectorised constructors combined by `events()`:
 ev <- events(
   node_introductions(p),                                        # the existing default schedule
   rainfall_pulse(time = c(1.5, 3.2, 7.8), depth = c(0.013, 0.005, 0.050)),
-  harvest(time = 20, fraction = 0.5, height_min = 10),
-  thinning(time = 30, fraction = 0.2, height_min = 2, height_max = 5),
-  partial_disturbance(time = 40, fraction = 0.3),
-  heat_damage(time = 60, temperature = 45, duration = 14/365)
+  harvest(time = 20, fraction = 0.5, size_min = 10),
+  harvest(time = 30, fraction = 0.2, size_min = 2, size_max = 5),
+  climate_extreme(time = 60, intensity = 45, duration = 14/365)
 )
 res <- run_scm(p, env = env, ctrl = ctrl, events = ev, collect = TRUE)
 ```
@@ -221,7 +222,7 @@ Plus pulse-series generators, since the decision on #522 is that the user bakes 
 2. **Generalise the queue; migrate node introduction onto it.** `EventType` tag, merge-preserving `set_times()`, rewritten `run_next_impl`. **Zero behaviour change.** The risky commit, isolated.
 3. **Plumb events through.** `Events` wire format, `SCM` constructor argument, R `events` argument, ordering rule.
 4. **Rainfall pulse.** `aux_num` 4 to 5 (pulse-only, rate 0), `add_water_pulse`, the action, `tidy_outputs`, water-balance test.
-5. **Targets, the event log, and the demographic actions.** `EventTarget`, `scm$event_log`, the shared density primitive, thinning and heat damage.
+5. **Targets, the event log, and the removal actions.** `EventTarget`, `scm$event_log`, the shared density primitive, harvest and climate extremes.
 6. **Docs.** Series generators, `NEWS.md`, a vignette section.
 7. **#505 rename** `NodeSchedule` to `Schedule`, pure mechanical, kept out of the risky diffs.
 

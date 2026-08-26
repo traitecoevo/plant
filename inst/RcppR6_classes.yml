@@ -1442,9 +1442,15 @@ TF24_Environment:
     get_soil_number_of_depths:
       args: []
       return_type: int
+    # The generic resource-pulse hook, and the name it goes by here: TF24's
+    # resources are its soil layers, so a pulse is a depth of water (m).
+    add_resource_pulse:
+      name_cpp: r_add_resource_pulse
+      args: [layer: "plant::util::index", amount: double]
+      return_type: std::vector<double>
     add_water_pulse:
       args: [depth: double]
-      return_type: void
+      return_type: std::vector<double>
     set_soil_water_state:
       args: [state: std::vector<double>]
       return_type: void

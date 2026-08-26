@@ -11819,15 +11819,29 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// TF24_Environment__add_resource_pulse
+std::vector<double> TF24_Environment__add_resource_pulse(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, plant::util::index layer, double amount);
+RcppExport SEXP _plant_TF24_Environment__add_resource_pulse(SEXP obj_SEXP, SEXP layerSEXP, SEXP amountSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::util::index >::type layer(layerSEXP);
+    Rcpp::traits::input_parameter< double >::type amount(amountSEXP);
+    rcpp_result_gen = Rcpp::wrap(TF24_Environment__add_resource_pulse(obj_, layer, amount));
+    return rcpp_result_gen;
+END_RCPP
+}
 // TF24_Environment__add_water_pulse
-void TF24_Environment__add_water_pulse(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, double depth);
+std::vector<double> TF24_Environment__add_water_pulse(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, double depth);
 RcppExport SEXP _plant_TF24_Environment__add_water_pulse(SEXP obj_SEXP, SEXP depthSEXP) {
 BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type depth(depthSEXP);
-    TF24_Environment__add_water_pulse(obj_, depth);
-    return R_NilValue;
+    rcpp_result_gen = Rcpp::wrap(TF24_Environment__add_water_pulse(obj_, depth));
+    return rcpp_result_gen;
 END_RCPP
 }
 // TF24_Environment__set_soil_water_state
@@ -13526,6 +13540,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_TF24_Environment__set_soil_number_of_depths", (DL_FUNC) &_plant_TF24_Environment__set_soil_number_of_depths, 2},
     {"_plant_TF24_Environment__set_soil_parameters", (DL_FUNC) &_plant_TF24_Environment__set_soil_parameters, 6},
     {"_plant_TF24_Environment__get_soil_number_of_depths", (DL_FUNC) &_plant_TF24_Environment__get_soil_number_of_depths, 1},
+    {"_plant_TF24_Environment__add_resource_pulse", (DL_FUNC) &_plant_TF24_Environment__add_resource_pulse, 3},
     {"_plant_TF24_Environment__add_water_pulse", (DL_FUNC) &_plant_TF24_Environment__add_water_pulse, 2},
     {"_plant_TF24_Environment__set_soil_water_state", (DL_FUNC) &_plant_TF24_Environment__set_soil_water_state, 2},
     {"_plant_TF24_Environment__get_soil_water_state", (DL_FUNC) &_plant_TF24_Environment__get_soil_water_state, 1},

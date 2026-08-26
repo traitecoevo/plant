@@ -12,37 +12,46 @@
 
 namespace plant {
 
-// What an event *does* when the solver reaches its time (issue #522).
+// What an event *does* when the solver reaches its time (issue #628).
 //
 // Every event in the schedule used to be a node introduction; the tag is what
-// lets rainfall pulses, harvests and the rest share one queue, so that
+// lets resource pulses, harvests and the rest share one queue, so that
 // SCM::run_next_impl's stop/apply/resume loop serves all of them.
+//
+// These names are deliberately taxa- and model-agnostic. This layer is shared
+// by every strategy and environment, and nothing about it is specific to
+// plants, to water, or to temperature: a resource pulse is water in TF24 and
+// could be anything countable in a size-structured animal model, and a climate
+// extreme is heat in one model and could be cold, salinity or hypoxia in
+// another. Model-specific vocabulary belongs in the model, where it is
+// accurate -- TF24_Environment::add_water_pulse() is this same action under
+// the name that reads correctly there.
 //
 // The enumerator order is also the order in which events sharing a time are
 // applied, so do not reorder casually. Environment events come first (they set
-// the physical conditions), demographic removals next, and node introduction
-// last so that a newborn's initial conditions are computed against the
-// post-event environment.
+// the external conditions), removals next, and node introduction last so that
+// a newborn's initial conditions are computed against the post-event
+// environment.
 enum class EventType {
-  RainfallPulse = 0,
-  HeatDamage,
-  Thinning,
+  ResourcePulse = 0,
+  ClimateExtreme,
+  Harvest,
   NodeIntroduction
 };
 
 // What an event acts on (issue #628). Separate from the type, because the same
-// action can be aimed at different scopes: thinning a whole patch and thinning
-// one species run the same code over a different set of nodes.
+// action can be aimed at different scopes: harvesting a whole patch and
+// harvesting one species run the same code over a different set of nodes.
 //
 // Deliberately no per-cohort target. A cohort has no stable address across a
 // run -- nodes are appended and never removed, and refine_schedule() changes
 // how many there are -- so "cohort 7" in a schedule written before the run is
 // not well defined. Selecting particular cohorts is expressed as a predicate on
 // their state (a size range) in the action's parameters instead, which is both
-// well defined and what the thinning use case actually asks for.
+// well defined and what the size-selective harvest use case actually asks for.
 enum class EventTarget {
   Patch = 0,     // the whole patch: every species, every node
-  Environment,   // the abiotic state -- soil water, drivers
+  Environment,   // the external state: resource pools and drivers
   Species        // one species, named by target_index
 };
 
@@ -82,8 +91,9 @@ public:
 
   EventType type;
   EventTarget target;
-  // Index within the target: the species, for a species-targeted event.
-  // Zero and unused for patch- and environment-targeted events.
+  // Which one, within the target: the species for a species-targeted event,
+  // the resource for an environment-targeted one. Zero and unused when the
+  // target is the whole patch.
   size_t target_index;
   // Per-type payload: a pulse depth, a harvested fraction, and so on. Kept as
   // a bare vector so the queue stays plain data and crosses the R boundary

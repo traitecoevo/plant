@@ -16,15 +16,16 @@ struct TypeInfo {
 };
 
 const TypeInfo type_info[] = {
-  // Soil water belongs to the patch, not to any one species, so a pulse
-  // cannot be narrowed to one.
-  {EventType::RainfallPulse,    "rainfall_pulse",    1,
+  // amount. The resource is named by target_index, and belongs to the
+  // environment rather than to any one species, so a pulse cannot be narrowed
+  // to one species.
+  {EventType::ResourcePulse,    "resource_pulse",    1,
    EventTarget::Environment, false},
-  // temperature, duration, temperature_crit, sensitivity
-  {EventType::HeatDamage,       "heat_damage",       4,
+  // intensity, duration, threshold, sensitivity
+  {EventType::ClimateExtreme,   "climate_extreme",   4,
    EventTarget::Patch,       true},
-  // fraction, height_min, height_max
-  {EventType::Thinning,         "thinning",          3,
+  // fraction, size_min, size_max
+  {EventType::Harvest,          "harvest",           3,
    EventTarget::Patch,       true},
   {EventType::NodeIntroduction, "node_introduction", 0,
    EventTarget::Species,     true}
@@ -149,11 +150,19 @@ std::vector<NodeScheduleEvent> to_schedule_events(const Events& events,
   for (size_t i = 0; i < events.size(); ++i) {
     const EventType type = event_type_from_string(events.type[i]);
     const EventTarget target = event_target_from_string(events.target[i]);
+    // 1-based on the way in, as everywhere else in the R interface.
     size_t index = 0;
-    if (target == EventTarget::Species) {
-      // 1-based on the way in, as everywhere else in the R interface.
+    if (target != EventTarget::Patch) {
       const size_t raw = events.target_index[i];
-      if (raw < 1 || raw > n_species) {
+      if (raw < 1) {
+        util::stop("Event " + util::to_string(i + 1) +
+                   " has target_index " + util::to_string(raw) +
+                   ", which must be at least 1");
+      }
+      // Species can be bounds-checked here; a resource index cannot, because
+      // how many an environment has is the environment's business and it is
+      // not in scope. Patch::apply_event() checks it against n_resources().
+      if (target == EventTarget::Species && raw > n_species) {
         util::stop("Event " + util::to_string(i + 1) +
                    " has target_index " + util::to_string(raw) +
                    ", outside 1.." + util::to_string(n_species));
