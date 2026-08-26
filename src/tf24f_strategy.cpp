@@ -38,15 +38,20 @@ void TF24f_Strategy::compute_rates(const TF24_Environment& environment,
 }
 
 // Track instead of optimise: evaluate the leaf at the tracked collar psi and
-// supply d(profit)/d(psi) for the gradient-ascent rate. evaluate_root_collar_psi
-// clamps to the feasible interval, so we read back the *clamped* operating value
-// (`used` = opt_root_psi_) and form the gradient about it; this keeps the
-// gradient meaningful even when the tracked state has drifted outside the
-// interval (e.g. an uninitialised state at 0), pulling it back inside, and the
-// final evaluate leaves the leaf outputs at the operating point that
-// compute_rates' aux reads expect. Two gradient methods are available
-// (use_ad_gradient): the exact AD/IFT gradient (default, #527) or a centred
-// finite difference (#526); see the branches below.
+// supply d(profit)/d(psi) for the gradient-ascent rate. The evaluation clamps to
+// the feasible interval, so we read back the *clamped* operating value (`used` =
+// opt_root_psi_) and form the gradient about it; this keeps the gradient
+// meaningful even when the tracked state has drifted outside the interval (e.g.
+// an uninitialised state at 0), pulling it back inside, and the final evaluation
+// leaves the leaf outputs at the operating point that compute_rates' aux reads
+// expect. Two gradient methods are available (use_ad_gradient): the exact AD/IFT
+// gradient (default, #527) or a centred finite difference (#526).
+//
+// Both branches run prepare_collar_solve themselves and bail with a zero gradient
+// when it reports the operating point already determined. That exit is an
+// ordinary operating state, not an edge case: measured at 3.9% of leaf solves on
+// a dry-start run at 1 m/yr rainfall and 50.0% at 0.04, so it carries both the
+// correctness argument in the AD branch below and most of the cost saving.
 void TF24f_Strategy::solve_leaf() {
   if (initializing_) {
     // Birth initialisation: run the full optimiser so set_initial_states can
@@ -58,14 +63,46 @@ void TF24f_Strategy::solve_leaf() {
     // Exact gradient (default, #527): forward-mode AD over the analytic algebra
     // + IFT at the ci root-find + analytic spline derivatives for the transport.
     // No O(h) bias and no finite-difference step to tune.
+    //
+    // Run prepare_collar_solve here rather than letting evaluate_root_collar_psi
+    // hide it, for the same reason the FD branch below does: its return value is
+    // the only way to see that the operating point was *forced* by feasibility
+    // handling rather than chosen from an interval. When it was, there is no
+    // interval to move within, so the acclimation gradient is zero, and asking
+    // for one is not merely wasted work -- it is a question with no answer. In
+    // shutdown the collar sits where the soil cannot supply the demanded flux at
+    // all, so uptake there is negative and the stem potential that would carry it
+    // would be wetter than saturation: the transport inverse has no solution.
+    //
+    // ⚠️ Do not rely on the callee to refuse politely. phylloptim returns a 0.0
+    // SENTINEL from dprofit_at_collar_psi on its own shutdown exits, which is why
+    // dropping this guard would currently still give the same numbers -- but a
+    // throw from inside the transport inverse lands on the FIRST statement of
+    // that function, before either of its own guards, so neither the isfinite
+    // check nor the `feasible` out-parameter can see it. #576 was exactly that
+    // throw; phylloptim 0.6.0 closed that instance, and not asking is the only
+    // protection available at this layer against the next one.
+    double bound_a, bound_b;
+    if (!leaf.prepare_collar_solve<Leaf::CostCurve::TF24>(bound_a, bound_b)) {
+      dprofit_dpsi_ = 0.0;
+      return;
+    }
     // Establish the operating point (and the clamped collar psi `used`) and leave
-    // the leaf outputs there for compute_rates' aux reads.
-    leaf.evaluate_root_collar_psi(tracked_root_psi_);
+    // the leaf outputs there for compute_rates' aux reads. Sharing the one prepare
+    // across both profit evaluations drops a redundant re-derivation of the
+    // soil-side caches per step, as #530 did for the FD branch: three per solve
+    // down to two.
+    leaf.profit_at_collar_psi<Leaf::CostCurve::TF24>(tracked_root_psi_, bound_a, bound_b);
     // No negation: the leaf package stores this as the positive magnitude the
     // tracked state and the gradient both want (phylloptim #25).
     const double used = leaf.opt_root_psi_;
+    // The remaining second prepare is inside here: dprofit_droot_collar_psi seats
+    // the soil-side caches itself. phylloptim's dprofit_at_collar_psi<K> is the
+    // post-prepare body and would take this to one, but it is a separate change --
+    // reseating in a different order can move the last bits, and the claim this
+    // change rests on is that nothing moves.
     dprofit_dpsi_ = leaf.dprofit_droot_collar_psi(used);
-    leaf.evaluate_root_collar_psi(used);  // restore operating-point outputs
+    leaf.profit_at_collar_psi<Leaf::CostCurve::TF24>(used, bound_a, bound_b);  // restore operating point
   } else {
     // Centred finite-difference fallback (#526), perturbing about the clamped
     // operating value `used`. A one-sided difference biases the fixed point to
