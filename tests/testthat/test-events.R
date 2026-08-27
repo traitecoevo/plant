@@ -125,9 +125,14 @@ test_that("the events path reproduces the default path exactly", {
   for (x in c("FF16", "K93")) {
     e <- environment_type(x)
     ## Two species, so that the tied introduction times -- every species shares
-    ## the default schedule -- are exercised too.
+    ## the default schedule -- are exercised too. The trait has to be one the
+    ## strategy actually carries: `lma` is FF16's and K93 has no such parameter
+    ## (#637 now refuses an unknown trait name rather than ignoring it). Perturb
+    ## the strategy's own default so this keeps working if the defaults move.
+    tr <- if (x == "K93") "eta" else "lma"
+    base <- do.call(sprintf("%s_Strategy", x), list())$pars[[tr]]
     p <- add_strategies(scm_base_parameters(x),
-                        trait_matrix(c(0.08, 0.1), "lma"),
+                        trait_matrix(c(base * 0.95, base * 1.05), tr),
                         birth_rate = list(1, 1))
 
     run <- function(ev) {
