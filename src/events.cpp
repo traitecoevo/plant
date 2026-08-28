@@ -12,7 +12,13 @@ struct TypeInfo {
   const char* name;
   size_t n_params;
   EventTarget default_target;
-  bool accepts_species;
+  // Every target this type will accept. A type that acts on the abiotic state
+  // cannot be aimed at a species, and one that acts on individuals cannot be
+  // aimed at the environment; stating both directions here is what stops an
+  // impossible combination being accepted and then quietly reinterpreted.
+  bool allows_patch;
+  bool allows_environment;
+  bool allows_species;
 };
 
 const TypeInfo type_info[] = {
@@ -20,15 +26,15 @@ const TypeInfo type_info[] = {
   // environment rather than to any one species, so a pulse cannot be narrowed
   // to one species.
   {EventType::ResourcePulse,    "resource_pulse",    1,
-   EventTarget::Environment, false},
+   EventTarget::Environment, false, true,  false},
   // intensity, duration, threshold, sensitivity
   {EventType::ClimateExtreme,   "climate_extreme",   4,
-   EventTarget::Patch,       true},
+   EventTarget::Patch,       true,  false, true},
   // fraction, size_min, size_max
   {EventType::Harvest,          "harvest",           3,
-   EventTarget::Patch,       true},
+   EventTarget::Patch,       true,  false, true},
   {EventType::NodeIntroduction, "node_introduction", 0,
-   EventTarget::Species,     true}
+   EventTarget::Species,     false, false, true}
 };
 
 const size_t n_type_info = sizeof(type_info) / sizeof(type_info[0]);
@@ -89,7 +95,28 @@ EventTarget event_type_default_target(EventType type) {
 }
 
 bool event_type_accepts_species(EventType type) {
-  return info_for(type).accepts_species;
+  return info_for(type).allows_species;
+}
+
+bool event_type_allows_target(EventType type, EventTarget target) {
+  const TypeInfo& i = info_for(type);
+  switch (target) {
+  case EventTarget::Patch:       return i.allows_patch;
+  case EventTarget::Environment: return i.allows_environment;
+  case EventTarget::Species:     return i.allows_species;
+  }
+  return false;
+}
+
+// The targets a type will take, for an error message that says what to do
+// rather than only what was wrong.
+std::string event_type_target_list(EventType type) {
+  const TypeInfo& i = info_for(type);
+  std::string ret;
+  if (i.allows_patch)       ret += std::string(ret.empty() ? "" : ", ") + "patch";
+  if (i.allows_environment) ret += std::string(ret.empty() ? "" : ", ") + "environment";
+  if (i.allows_species)     ret += std::string(ret.empty() ? "" : ", ") + "species";
+  return ret;
 }
 
 EventTarget event_target_from_string(const std::string& name) {
@@ -113,6 +140,58 @@ std::string event_target_to_string(EventTarget target) {
   return ""; // not reached
 }
 
+namespace {
+// Reject a parameter the action cannot act on, here rather than mid-run. Each
+// of these is silent otherwise: a NaN intensity becomes a zero-damage climate
+// event, a negative sensitivity produces negative applied mortality, and an
+// inverted size band harvests nothing at all -- results that look like answers.
+void validate_event_params(const std::string& at, EventType type,
+                           const std::vector<double>& q) {
+  const auto finite = [&](double v, const char* name) {
+    if (!util::is_finite(v)) {
+      util::stop(at + " has a non-finite " + name);
+    }
+  };
+  const auto nonneg = [&](double v, const char* name) {
+    finite(v, name);
+    if (v < 0.0) {
+      util::stop(at + " has a negative " + name + " (" +
+                 util::to_string(v) + ")");
+    }
+  };
+  switch (type) {
+  case EventType::ResourcePulse:
+    nonneg(q.at(0), "amount");
+    break;
+  case EventType::ClimateExtreme:
+    finite(q.at(0), "intensity");
+    nonneg(q.at(1), "duration");
+    finite(q.at(2), "threshold");
+    nonneg(q.at(3), "sensitivity");
+    break;
+  case EventType::Harvest: {
+    finite(q.at(0), "fraction");
+    if (q.at(0) < 0.0 || q.at(0) >= 1.0) {
+      util::stop(at + " has fraction " + util::to_string(q.at(0)) +
+                 ", which must be in [0, 1): removing all of a cohort would "
+                 "take its density to -Inf.");
+    }
+    nonneg(q.at(1), "size_min");
+    // size_max is Inf by default, which is the whole point of the default, so
+    // it is bounded rather than required finite.
+    if (std::isnan(q.at(2)) || q.at(2) < q.at(1)) {
+      util::stop(at + " has size_max " + util::to_string(q.at(2)) +
+                 " below size_min " + util::to_string(q.at(1)) +
+                 ": the band is empty, so the event would silently do nothing");
+    }
+    break;
+  }
+  case EventType::NodeIntroduction:
+    break;
+  }
+}
+}
+
 void Events::validate() {
   const size_t n = time.size();
   if (type.size() != n || target.size() != n || target_index.size() != n ||
@@ -134,11 +213,37 @@ void Events::validate() {
                  " parameters but has " + util::to_string(params[i].size()));
     }
     const EventTarget tg = event_target_from_string(target[i]);
-    if (tg == EventTarget::Species && !event_type_accepts_species(t)) {
-      util::stop(at + " cannot be aimed at a single species");
+    if (!event_type_allows_target(t, tg)) {
+      // Naming the permitted targets matters more than naming the offence: an
+      // environment-aimed harvest is a modelling mistake, and the useful reply
+      // is what it should have said instead.
+      if (tg == EventTarget::Species) {
+        util::stop(at + " cannot be aimed at a single species; it accepts " +
+                   event_type_target_list(t));
+      }
+      if (t == EventType::NodeIntroduction) {
+        util::stop(at + " must name the species being introduced");
+      }
+      util::stop(at + " cannot act on the " + target[i] + "; it accepts " +
+                 event_type_target_list(t));
     }
-    if (tg != EventTarget::Species && t == EventType::NodeIntroduction) {
-      util::stop(at + " must name the species being introduced");
+    validate_event_params(at, t, params[i]);
+  }
+}
+
+void validate_event_horizon(const Events& events, double max_time) {
+  // An event past the end of the run is not a no-op to be dropped: it usually
+  // means a time-unit slip, a truncated run, or a forcing record reused at the
+  // wrong length. Silently ignoring it would give a plausible answer that is
+  // missing the intervention the user asked for. Caught here, before any
+  // integration, rather than surfacing later as the solver's own complaint
+  // about being asked to integrate backwards.
+  for (size_t i = 0; i < events.size(); ++i) {
+    if (events.time[i] > max_time) {
+      util::stop("Event " + util::to_string(i + 1) + " (" + events.type[i] +
+                 ") occurs at time " + util::to_string(events.time[i]) +
+                 ", after max_patch_lifetime = " + util::to_string(max_time) +
+                 ". Events must fall within [0, max_patch_lifetime].");
     }
   }
 }

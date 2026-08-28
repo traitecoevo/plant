@@ -29,6 +29,10 @@ size_t event_type_n_params(EventType type);
 // resource pool belongs to the environment rather than to any one species.
 EventTarget event_type_default_target(EventType type);
 bool event_type_accepts_species(EventType type);
+// Whether a type will act on this target at all, and the list it will take.
+bool event_type_allows_target(EventType type, EventTarget target);
+std::string event_type_target_list(EventType type);
+
 
 // The R-facing description of a run's discrete events.
 //
@@ -82,7 +86,12 @@ public:
   std::vector<std::vector<double> > requested;
   // What it achieved. Per-type, and documented by the action that fills it:
   // a pulse reports {accepted, shed}; harvest and climate extremes report
-  // {fraction_applied, nodes_affected}.
+  // {fraction_applied, nodes_affected, density_removed}.
+  //
+  // `nodes_affected` counts numerical cohorts touched, not individuals -- it is
+  // bookkeeping about the discretisation. `density_removed` is the quantity
+  // actually taken out, summed over those cohorts, and is the number to read
+  // when asking what the intervention did.
   std::vector<std::vector<double> > applied;
 };
 
@@ -98,6 +107,10 @@ public:
 };
 
 EventLog event_log_from_records(const std::vector<EventRecord>& records);
+
+// Reject events scheduled past the end of the run. Separate from validate()
+// because Events crosses the R boundary without knowing the run's length.
+void validate_event_horizon(const Events& events, double max_time);
 
 // Events -> queue entries. Validates species indices against the number of
 // species, which Events itself cannot know.

@@ -305,11 +305,14 @@ NodeSchedule::add_time(double time, size_t species_index,
 }
 
 // Sorted insert, by time and then by the type's place in the within-time
-// application order (see EventType). The type comparison only ever separates
-// events of *different* types: two events of the same type at the same time
-// fall through both tests and are inserted before the incumbent, exactly as
-// this did when introductions were the only type -- which is what keeps a
-// pure-introduction schedule bit-identical across the move to a typed queue.
+// application order (see EventType), and STABLE within a (time, type) pair --
+// equal events keep the order they were given in.
+//
+// Stability is not cosmetic. Two rainfall pulses at one instant are capped in
+// sequence against the same pool, so the first one applied gets the capacity
+// and the second gets what is left. Applying them in reverse order conserves
+// total water but attributes accepted and shed to the wrong event records,
+// which is precisely what the log exists to report.
 NodeSchedule::events_iterator
 NodeSchedule::insert_event(const Event& e) {
   const double time = e.time_introduction();
@@ -318,7 +321,7 @@ NodeSchedule::insert_event(const Event& e) {
   while (it != events.end() &&
          (time > it->time_introduction() ||
           (util::identical(time, it->time_introduction()) &&
-           rank > event_type_rank(it->type)))) {
+           rank >= event_type_rank(it->type)))) {
     ++it;
   }
   return events.insert(it, e);

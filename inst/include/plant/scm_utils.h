@@ -39,6 +39,7 @@ NodeSchedule make_node_schedule(const Parameters& p, const Events& events) {
   if (events.size() == 0) {
     return make_node_schedule(p);
   }
+  validate_event_horizon(events, p.max_patch_lifetime);
   NodeSchedule ret(p.size());
   ret.r_set_max_time(p.max_patch_lifetime);
   ret.set_all_events(to_schedule_events(events, p.size()));

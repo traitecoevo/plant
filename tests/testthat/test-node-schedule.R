@@ -115,10 +115,14 @@ test_that("Set times (two species)", {
   max_t <- max(c(t1, t2)) + mean(diff(sort(c(t1, t2))))
   sched$max_time <- max_t
 
-  ## Come up with the expected times (2nd argument ensures stable sort)
+  ## Come up with the expected times. Species order within a tied time follows
+  ## insertion order now (#628 made the queue's tie-break stable, so two events
+  ## of one type at one instant keep the order they were given). Species 1's
+  ## times are set first, so at a tie species 1 comes first -- this used to be
+  ## the other way round.
   expected <- rbind(data.frame(species_index=1, start=t1),
                     data.frame(species_index=2, start=t2))
-  expected <- expected[order(expected$start, -expected$species_index),]
+  expected <- expected[order(expected$start, expected$species_index),]
   expected$end <- c(expected$start[-1], max_t)
 
   cmp <- drain_schedule(sched)
@@ -256,7 +260,9 @@ test_that("ode_times", {
   ## times in R is hard enough!
   expected <- rbind(data.frame(species_index=1, start=t1),
                     data.frame(species_index=2, start=t2))
-  expected <- expected[order(expected$start, -expected$species_index),]
+  ## Ascending species index at a tie: the queue's tie-break is stable now, so
+  ## events keep insertion order (#628).
+  expected <- expected[order(expected$start, expected$species_index),]
   expected$end <- c(expected$start[-1], max_t)
 
   t_ode <- seq(0, sched$max_time, length.out=14)

@@ -15,6 +15,7 @@
 #include <cmath>
 #include <limits>
 #include <string>
+#include <utility> // std::pair
 
 using namespace Rcpp;
 
@@ -96,8 +97,11 @@ public:
   // only log_density leaves fecundity undiscounted (it is weighted by
   // exp(-mortality) independently); moving only mortality leaves the standing
   // density untouched. Either way the two views of the same cohort disagree.
+  // Returns {nodes_affected, density_removed} -- the count is bookkeeping, the
+  // density is the quantity actually taken out.
   template <typename Select>
-  size_t scale_node_densities(size_t species_index, Select select);
+  std::pair<size_t, double> scale_node_densities(size_t species_index,
+                                                 Select select);
 
   // Open to better ways to test whether nodes have been introduced
   int node_ode_size() const {
@@ -833,9 +837,11 @@ void Patch<T,E>::introduce_new_nodes(const std::vector<size_t>& species_index) {
 
 template <typename T, typename E>
 template <typename Select>
-size_t Patch<T,E>::scale_node_densities(size_t species_index, Select select) {
+std::pair<size_t, double>
+Patch<T,E>::scale_node_densities(size_t species_index, Select select) {
   species_type& sp = species[species_index];
   size_t n_affected = 0;
+  double density_removed = 0.0;
   for (auto n = sp.node_begin(); n != sp.node_end(); ++n) {
     const double phi = select(n->height());
     if (phi >= 1.0) {
@@ -847,12 +853,16 @@ size_t Patch<T,E>::scale_node_densities(size_t species_index, Select select) {
                  "the density transport cannot carry back.");
     }
     const double log_phi = std::log(phi);
+    const double before = n->get_density();
     n->set_log_density(n->get_log_density() + log_phi);
+    if (util::is_finite(before)) {
+      density_removed += before - n->get_density();
+    }
     n->individual.set_state("mortality",
                             n->individual.state(MORTALITY_INDEX) - log_phi);
     ++n_affected;
   }
-  return n_affected;
+  return {n_affected, density_removed};
 }
 
 template <typename T, typename E>
@@ -915,12 +925,15 @@ EventRecord Patch<T,E>::apply_event(const NodeScheduleEvent& event) {
     }
     const double phi = 1.0 - fraction;
     size_t n_affected = 0;
+    double removed = 0.0;
     for (size_t i : targets) {
-      n_affected += scale_node_densities(i, [&](double size) {
+      const auto r = scale_node_densities(i, [&](double size) {
         return (size >= size_min && size <= size_max) ? phi : 1.0;
       });
+      n_affected += r.first;
+      removed += r.second;
     }
-    rec.applied = {fraction, static_cast<double>(n_affected)};
+    rec.applied = {fraction, static_cast<double>(n_affected), removed};
     break;
   }
 
@@ -964,10 +977,13 @@ EventRecord Patch<T,E>::apply_event(const NodeScheduleEvent& event) {
 
     const double phi = std::exp(-damage);
     size_t n_affected = 0;
+    double removed = 0.0;
     for (size_t i : targets) {
-      n_affected += scale_node_densities(i, [&](double) { return phi; });
+      const auto r = scale_node_densities(i, [&](double) { return phi; });
+      n_affected += r.first;
+      removed += r.second;
     }
-    rec.applied = {1.0 - phi, static_cast<double>(n_affected)};
+    rec.applied = {1.0 - phi, static_cast<double>(n_affected), removed};
     break;
   }
   }

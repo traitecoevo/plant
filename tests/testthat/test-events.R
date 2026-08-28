@@ -336,6 +336,7 @@ test_that("harvest removes a fraction of the standing density", {
   expect_equal(log$requested[[1]], c(0.5, 0, Inf))
   expect_equal(log$applied[[1]][[1]], 0.5)
   expect_gt(log$applied[[1]][[2]], 0)   # some nodes were actually touched
+  expect_gt(log$applied[[1]][[3]], 0)   # and density actually came out
 })
 
 test_that("harvest respects its size band", {
@@ -363,11 +364,9 @@ test_that("harvest respects its size band", {
 })
 
 test_that("removing an entire cohort is refused rather than silently infinite", {
-  expect_error(
-    ff16_run(function(p) {
-      events(node_introductions(p), harvest(time = 10, fraction = 1))
-    }),
-    "Harvest fraction must be in")
+  ## Caught when the schedule is built, not partway through a run.
+  expect_error(harvest(time = 10, fraction = 1) |> events(),
+               "which must be in \\[0, 1\\)")
 })
 
 test_that("a climate extreme accrues dose only above its threshold", {
@@ -460,4 +459,150 @@ test_that("the patch declares its state domain to the solver", {
   scm_ff <- SCM("FF16", "FF16_Env")(ff, Environment("FF16"), empty_events(),
                                     control())
   expect_true(scm_ff$patch$ode_state_valid(c(-Inf, 1, 2)))
+})
+
+# --- Review of #632 (@elijahmagistrado / GPT 5.6 Sol) -------------------------
+
+test_that("collected results carry the events and the log", {
+  ## Events are supplied separately from `p`, so a collected result that drops
+  ## them no longer records what was asked for or what was done -- including how
+  ## much of a pulse the soil took and how much it shed.
+  p <- scm_base_parameters("FF16")
+  p$max_patch_lifetime <- 2
+  p$node_schedule_times <- list()
+  p <- add_strategies(p, trait_matrix(1, "lma"))
+  ev <- events(events_default(p), harvest(time = 1, fraction = 0.2))
+
+  out <- run_scm(p, events = ev, collect = TRUE)
+  expect_true(all(c("events", "event_log") %in% names(out)))
+
+  scm <- run_scm(p, events = ev)
+  expect_identical(out$events$time, scm$events$time)
+  expect_identical(out$events$type, scm$events$type)
+  expect_identical(out$event_log$time, scm$event_log$time)
+  expect_identical(out$event_log$type, scm$event_log$type)
+  expect_identical(out$event_log$applied, scm$event_log$applied)
+
+  ## The whole requested schedule comes back, not just the interventions.
+  expect_equal(length(out$events$time), length(ev$time))
+  ## And the log holds exactly the non-introduction events.
+  expect_equal(out$event_log$type, "harvest")
+
+  ## An event-free run returns a valid empty log rather than dropping the field.
+  bare <- run_scm(p, collect = TRUE)
+  expect_true(all(c("events", "event_log") %in% names(bare)))
+  expect_equal(length(bare$event_log$time), 0)
+
+  ## Re-running does not accumulate records from the previous run.
+  again <- run_scm(p, events = ev, collect = TRUE)
+  expect_identical(again$event_log$time, out$event_log$time)
+})
+
+test_that("an event after the horizon is refused before the run starts", {
+  p <- scm_base_parameters("FF16")
+  p$max_patch_lifetime <- 2
+  p$node_schedule_times <- list()
+  p <- add_strategies(p, trait_matrix(1, "lma"))
+  at <- function(t) events(events_default(p), harvest(time = t, fraction = 0.5))
+
+  ## Inside and exactly at the horizon are both fine, and the boundary event is
+  ## applied rather than quietly dropped.
+  expect_no_error(run_scm(p, events = at(1.9)))
+  edge <- run_scm(p, events = at(2))
+  expect_equal(edge$event_log$time, 2)
+
+  ## Past it, refused at construction -- naming the event, its time and the
+  ## horizon. Silently discarding it would hide a units slip or a truncated run.
+  expect_error(run_scm(p, events = at(2.1)), "after max_patch_lifetime = 2")
+  expect_error(run_scm(p, events = at(2.1)), "harvest")
+
+  ## Every type, and the offending row is identified among many.
+  expect_error(run_scm(p, events = events(events_default(p),
+                                          climate_extreme(time = 5, intensity = 45))),
+               "climate_extreme")
+  many <- events(events_default(p),
+                 harvest(time = c(0.5, 1.0, 9.0), fraction = 0.1))
+  expect_error(run_scm(p, events = many), "occurs at time 9")
+})
+
+test_that("a type refuses a target it cannot act on", {
+  ## Previously accepted and then silently reinterpreted.
+  expect_error(Events(time = 1, type = "harvest", target = "environment",
+                      target_index = 1L, params = list(c(0.5, 0, Inf))),
+               "cannot act on the environment")
+  expect_error(Events(time = 1, type = "resource_pulse", target = "patch",
+                      target_index = 1L, params = list(0.01)),
+               "cannot act on the patch")
+  ## The message says what the type will take.
+  expect_error(Events(time = 1, type = "harvest", target = "environment",
+                      target_index = 1L, params = list(c(0.5, 0, Inf))),
+               "accepts patch, species")
+})
+
+test_that("event parameters are checked before the run, not during it", {
+  ## Each of these is otherwise silent: a NaN intensity is a zero-damage event,
+  ## a negative sensitivity gives negative applied mortality, and an inverted
+  ## band harvests nothing while looking like it did something.
+  expect_error(events(climate_extreme(time = 1, intensity = NaN)),
+               "non-finite intensity")
+  expect_error(events(climate_extreme(time = 1, intensity = 45, sensitivity = -1)),
+               "negative sensitivity")
+  expect_error(events(climate_extreme(time = 1, intensity = 45, duration = -1)),
+               "negative duration")
+  expect_error(events(harvest(time = 1, fraction = 0.5, size_min = 5, size_max = 2)),
+               "below size_min")
+  expect_error(events(rainfall_pulse(time = 1, depth = -0.01)),
+               "negative amount")
+})
+
+test_that("simultaneous events keep their type order and their input order", {
+  ## Across types: environment, then removals, then introductions.
+  p <- scm_base_parameters("FF16")
+  p$max_patch_lifetime <- 20
+  p$node_schedule_times <- list()
+  p <- add_strategies(p, trait_matrix(1, "lma"))
+  ev <- events(harvest(time = 5, fraction = 0.1),
+               climate_extreme(time = 5, intensity = 45),
+               events_default(p))
+  at5 <- ev$type[ev$time == 5]
+  expect_equal(at5[at5 != "node_introduction"], c("climate_extreme", "harvest"))
+
+  ## And the object agrees with the queue that will run it. This is the guard
+  ## against R's idea of the order drifting from the C++ enum's.
+  scm <- SCM("FF16", "FF16_Env")(p, Environment("FF16"), ev, control())
+  expect_identical(scm$events$type, ev$type)
+  expect_identical(scm$events$time, ev$time)
+
+  ## Within one type at one time, input order is preserved. It matters: two
+  ## pulses at an instant are capped in sequence against the same pool, so the
+  ## order decides which record is credited with the accepted water.
+  env <- Environment("TF24")
+  env$extrinsic_drivers_set_constant("rainfall", 0)
+  tf <- scm_base_parameters("TF24")
+  tf$max_patch_lifetime <- 5
+  tf$node_schedule_times <- list()
+  tf <- add_strategies(tf, trait_matrix(1, "lma"))
+  big <- 0.5   # far more than layer 0 can hold, so the first one takes it all
+  pulses <- events(events_default(tf),
+                   rainfall_pulse(time = c(2, 2), depth = c(big, big)))
+  scm <- run_scm(tf, env = env, events = pulses)
+  log <- scm$event_log
+  expect_equal(length(log$time), 2)
+  ## The first-applied pulse is credited with the accepted water; the second
+  ## finds the layer full and is shed. Reversed input order would swap these.
+  expect_gt(log$applied[[1]][[1]], 0)
+  expect_equal(log$applied[[2]][[1]], 0)
+  expect_equal(log$applied[[2]][[2]], big)
+})
+
+test_that("the log reports the density a removal actually took out", {
+  base <- ff16_run()
+  cut <- ff16_run(function(p) {
+    events(node_introductions(p), harvest(time = 10, fraction = 0.5))
+  })
+  removed <- cut$event_log$applied[[1]][[3]]
+  expect_gt(removed, 0)
+  ## It is a density, not a count of numerical cohorts: the two differ, and the
+  ## count alone was what the log used to claim.
+  expect_false(isTRUE(all.equal(removed, cut$event_log$applied[[1]][[2]])))
 })

@@ -579,6 +579,15 @@ were not previously recorded here:
   own fast model over a nominal duration with demography frozen, which is what
   `climate_extreme()` does. Design notes in `notes/plan-events.md`.
 
+  `collect = TRUE` returns `events` and `event_log` alongside the tidied output,
+  since events are supplied separately from `p` and a collected result would
+  otherwise record neither what was asked for nor what was done.
+
+  Events are validated before the run rather than during it: an event past
+  `max_patch_lifetime`, a type aimed at a target it cannot act on, and
+  parameters an action cannot use (a non-finite intensity, a negative
+  sensitivity, an inverted size band) are all refused at construction.
+
   Runs that supply no events are unaffected, and verified so: FF16, K93 and TF24
   are `identical()` on ODE step times, fitness and state.
 

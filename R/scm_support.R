@@ -68,9 +68,9 @@ scm_base_parameters <- function(type = NA, env = environment_type(type)) {
 ##' @rdname run_scm
 ##' @export
 run_scm <- function(p, env = NULL,
-                    ctrl = control(), events = NULL,
+                    ctrl = control(),
                     refine_schedule = FALSE, collect = FALSE,
-                    use_ode_times = FALSE) {
+                    use_ode_times = FALSE, events = NULL) {
 
   types <- extract_RcppR6_template_types(p, "Parameters")
 
@@ -108,6 +108,12 @@ run_scm <- function(p, env = NULL,
   results[["offspring_production"]] <- scm$offspring_production
   results[["net_reproduction_ratios"]] <- scm$net_reproduction_ratios
   results[["p"]] <- scm$parameters
+  ## Events are supplied separately from `p`, so `p` alone does not describe the
+  ## run. Carry both the requested schedule and what was actually applied, or a
+  ## collected result silently loses the whole event record -- including how much
+  ## of each pulse the soil accepted and how much it shed.
+  results[["events"]] <- scm$events
+  results[["event_log"]] <- scm$event_log
 
   results
 }

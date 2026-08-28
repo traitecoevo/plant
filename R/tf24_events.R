@@ -33,10 +33,37 @@
 ##'   events_default(p),
 ##'   rainfall_pulse(time = c(1.5, 3.2), depth = c(0.013, 0.050))
 ##' )
-rainfall_pulse <- function(time, depth, layer = 1) {
+##' @param env Optionally, the \code{Environment} the run will use. When given,
+##'   \code{rainfall_pulse()} warns if that environment still carries a non-zero
+##'   continuous \code{rainfall} driver — pulses \emph{add to} the continuous
+##'   forcing rather than replacing it, so supplying both silently double-counts
+##'   the water. Set the driver to zero to model rainfall as pulses alone.
+##' @rdname rainfall_pulse
+rainfall_pulse <- function(time, depth, layer = 1, env = NULL) {
+  if (!is.null(env)) warn_if_continuous_rainfall(env)
   ## Builds the rows directly rather than calling resource_pulse(), so that a
   ## length mismatch is reported against `depth` -- the argument the caller
   ## actually typed -- instead of the generic `amount`.
   event_rows("resource_pulse", time = time, target = "environment",
              target_index = layer, params = list(depth = depth))
+}
+
+## Pulses are added on top of whatever the `rainfall` driver is doing; nothing
+## disables it. Silently double-counting the water is the easy mistake here, so
+## say so rather than leaving it to be discovered in a water budget.
+warn_if_continuous_rainfall <- function(env, times = seq(0, 105.32, length.out = 64)) {
+  drivers <- tryCatch(env$extrinsic_drivers_get_names(),
+                      error = function(e) character(0))
+  if (!"rainfall" %in% drivers) return(invisible(FALSE))
+  vals <- tryCatch(env$extrinsic_drivers_evaluate_range("rainfall", times),
+                   error = function(e) 0)
+  if (any(abs(vals) > 0)) {
+    warning("This environment still has a non-zero continuous `rainfall` ",
+            "driver. Rainfall pulses are added on top of it, not instead of ",
+            "it, so the run will receive both. Set the driver to zero with ",
+            "env$extrinsic_drivers_set_constant(\"rainfall\", 0) to model ",
+            "rainfall as pulses alone.", call. = FALSE)
+    return(invisible(TRUE))
+  }
+  invisible(FALSE)
 }

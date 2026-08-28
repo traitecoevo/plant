@@ -63,14 +63,27 @@ events <- function(...) {
     return(empty_events())
   }
   ev <- do.call(join_event_rows, parts)
-  ## Sorting here is a convenience for anyone reading the object; the C++
-  ## queue re-sorts on insertion and is the authority on ties.
-  i <- order(ev$time)
+  ## Sort the way the queue applies them -- by time, then by type -- so the
+  ## object you read is in the order things actually happen. Sorting by time
+  ## alone would list a different order from the one that runs, which is the
+  ## kind of discrepancy nobody checks until it matters. `order` is stable, so
+  ## events of one type at one instant keep the order they were given in, and
+  ## that matters: two pulses at one time are capped in sequence against the
+  ## same pool, so the order decides which is credited with the water.
+  i <- order(ev$time, match(ev$type, event_type_order()))
   Events(time = as.numeric(ev$time[i]),
          type = as.character(ev$type[i]),
          target = as.character(ev$target[i]),
          target_index = as.integer(ev$target_index[i]),
          params = ev$params[i])
+}
+
+## The within-time application order, mirroring EventType in node_schedule.h:
+## environment first (it sets the conditions), then removals, then node
+## introduction last so a newborn starts in the post-event environment.
+## Kept in step with the C++ enum by the round-trip test in test-events.R.
+event_type_order <- function() {
+  c("resource_pulse", "climate_extreme", "harvest", "node_introduction")
 }
 
 ## The "no events supplied" signal: the C++ side falls back to
