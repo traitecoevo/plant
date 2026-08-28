@@ -143,3 +143,50 @@ test_that("mutant method densities", {
   run_case(30, c(0, 5, 10, 20))
   run_case(20, c(0, 5, 10, 20))
 })
+
+test_that("mutant method densities, TF24", {
+  # The same resident-vs-mutant identity as the block above, for a model whose
+  # rates refuse a state. TF24's storage pool reports an overshoot below empty by
+  # throwing a domain error, which the adaptive stepper answers by shrinking and
+  # retrying -- a routine event, some hundreds of times in a resident run that
+  # goes on to complete normally.
+  #
+  # run_mutant() pins the stepper to the resident's recorded step times, and that
+  # path used to call the stepper with no domain handling at all, so the first of
+  # those refusals killed the replay (#642). It failed for every TF24 strategy
+  # tried, this identity case included, and left invasion-fitness analysis with no
+  # equivalent workaround. Fixed in odelia 0.4.0 by subdividing a refused pinned
+  # step to the same endpoint.
+  #
+  # The patch lifetime is load-bearing and is the cheapest one that covers the
+  # bug: the refusals only begin partway into a run, so at 10 the replay never
+  # meets one and the test passes with or without the fix. 14 fails without it.
+  # A resident that never trips the guard would make this test vacuous, so the
+  # first expectation checks the run is long enough to be a real test.
+  ctrl <- Control()
+  ctrl$save_RK45_cache <- TRUE
+  tol <- 1e-3
+
+  p0 <- scm_base_parameters("TF24")
+  p0$max_patch_lifetime <- 14
+  p1 <- add_strategies(p0, trait_matrix(0, "TF24_floor_lambda_o"),
+                       hyperpar = TF24_hyperpar, birth_rate = 1)
+
+  env <- Environment("TF24")
+  env$set_soil_water_state(rep(0.428 * 0.5, env$get_soil_number_of_depths()))
+  env$extrinsic_drivers_set_constant("rainfall", 1)
+
+  scm <- run_scm(p1, env = env, ctrl = ctrl)
+  resident_rr <- scm$net_reproduction_ratios
+
+  # Not an assertion about the model, just a guard that the replay below has
+  # something to replay: a resident that died out would make the identity trivial.
+  expect_true(all(is.finite(resident_rr)) && all(resident_rr > 0))
+
+  # Identical mutant, replaying the resident's own recorded environment, must
+  # recover the resident's own fitness.
+  expect_no_error(scm$run_mutant(p1))
+  mutant_rr <- scm$net_reproduction_ratios
+
+  expect_equal(log(mutant_rr), log(resident_rr), tolerance = tol)
+})
