@@ -29,19 +29,30 @@ struct TF24_Pars {
   double theta     = 1.0/4669;   // Sapwood area per leaf area [dimensionless]
   double a_l1      = 5.44;       // height with 1m2 leaf [m]
   double a_l2      = 0.306;      // scaling of height with leaf area
-  double a_r1      = 0.07;       // Root mass per leaf area [kg / m]
+  double a_r1      = 0.07;       // Fine-root mass per leaf area [kg / m]
+  // Coarse (structural) root mass per unit sapwood mass. Coarse roots are
+  // treated as the below-ground continuation of the sapwood cylinder, so they
+  // inherit its height scaling and the structural root:shoot ratio is
+  // size-invariant. Zero by default, so the pool is absent unless switched on.
+  // Only a_r1 feeds the depth-distributed water uptake -- that is a fine-root
+  // process, and coarse roots must stay out of it (see #349).
+  double a_cr1     = 0.0;        // [dimensionless]
   double a_b1      = 0.17;       // Ratio of bark area : sapwood area
   // * Production
   double r_s    = 4012.0 / 608.0; // Sapwood respiration per stem mass
   double r_b    = 2.0 * r_s;      // Bark respiration (assumed 2 x sapwood)
-  double r_r    = 217.0;          // Root respiration per mass
+  double r_r    = 217.0;          // Fine-root respiration per mass
+  // Coarse roots are woody, so this defaults to the sapwood rate. As with r_b,
+  // a default and not a link: setting r_s afterwards does not move it.
+  double r_cr   = r_s;            // Coarse-root respiration per mass
   double r_l    = 39.27 / 0.1978791; // Leaf dark respiration per leaf mass
   double a_y    = 0.7;            // Carbon conversion parameter
   double a_bio  = 2.45e-2;        // CO2 -> dry mass [kg / mol]
   double k_l    = 0.4565855;      // Leaf turnover [/yr]
   double k_b    = 0.2;            // Bark turnover [/yr]
   double k_s    = 0.2;            // Sapwood turnover [/yr]
-  double k_r    = 1.0;            // Root turnover [/yr]
+  double k_r    = 1.0;            // Fine-root turnover [/yr]
+  double k_cr   = k_s;            // Coarse-root turnover [/yr] (woody)
   double a_p1   = 151.177775377968;   // LRC hyperbola [mol CO2 / yr / m2]
   double a_p2   = 0.204716166503633;  // LRC hyperbola shape
   // * Seed production
@@ -378,12 +389,18 @@ public:
   // [eqn 7] Mass of (fine) roots
   double mass_root(double area_leaf) const;
 
+  // [eqn 7b] Mass of coarse (structural) roots, as a fraction of sapwood mass
+  // (see TF24_Pars::a_cr1). Zero unless a_cr1 is set.
+  double mass_coarse_root(double mass_sapwood) const;
+
   // [eqn 8] Total Mass
   double mass_live(double mass_leaf, double mass_bark,
-                   double mass_sapwood, double mass_root) const;
+                   double mass_sapwood, double mass_root,
+                   double mass_coarse_root) const;
 
   double mass_total(double mass_leaf, double mass_bark, double mass_sapwood,
-                    double mass_heartwood, double mass_root) const;
+                    double mass_heartwood, double mass_root,
+                    double mass_coarse_root) const;
 
   // Above-ground mass = leaf + all stem components (bark + sapwood +
   // heartwood); excludes roots.
@@ -407,20 +424,24 @@ public:
 
   // [eqn 13] Total maintenance respiration
   double respiration(double mass_leaf, double mass_sapwood,
-                     double mass_bark, double mass_root) const;
+                     double mass_bark, double mass_root,
+                     double mass_coarse_root) const;
 
   double respiration_leaf(double mass) const;
   double respiration_bark(double mass) const;
   double respiration_sapwood(double mass) const;
   double respiration_root(double mass) const;
+  double respiration_coarse_root(double mass) const;
 
   // [eqn 14] Total turnover
   double turnover(double mass_leaf, double mass_bark,
-                  double mass_sapwood, double mass_root) const;
+                  double mass_sapwood, double mass_root,
+                  double mass_coarse_root) const;
   double turnover_leaf(double mass) const;
   double turnover_bark(double mass) const;
   double turnover_sapwood(double mass) const;
   double turnover_root(double mass) const;
+  double turnover_coarse_root(double mass) const;
 
   // [eqn 15] Net production
   double net_mass_production_dt_A(double assimilation, double respiration,
@@ -467,6 +488,9 @@ public:
   double dmass_bark_darea_leaf(double area_leaf) const;
   // Mass of root needed for new unit area leaf, d m_r / d a_l
   double dmass_root_darea_leaf(double area_leaf) const;
+  // Mass of coarse root needed for new unit area leaf, d m_cr / d a_l.
+  // == a_cr1 * dmass_sapwood_darea_leaf, so it carries the same height scaling.
+  double dmass_coarse_root_darea_leaf(double area_leaf) const;
   // Growth rate of basal diameter_stem per unit stem area
   double ddiameter_stem_darea_stem(double area_stem) const;
   // Growth rate of components per unit time:
@@ -477,6 +501,8 @@ public:
   double area_stem_dt(double area_leaf, double area_leaf_dt) const;
   double diameter_stem_dt(double area_stem, double area_stem_dt) const;
   double mass_root_dt(double area_leaf,
+                       double area_leaf_dt) const;
+  double mass_coarse_root_dt(double area_leaf,
                        double area_leaf_dt) const;
   double mass_live_dt(double fraction_allocation_reproduction,
                        double net_mass_production_dt) const;

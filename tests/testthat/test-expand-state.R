@@ -15,18 +15,21 @@ allometry_oracle <- function(s, height, area_heartwood, mass_heartwood) {
   area_stem <- area_bark + area_sapwood + area_heartwood
   diameter_stem <- sqrt(4 * area_stem / pi)
   mass_root <- p$a_r1 * area_leaf
-  mass_live <- mass_leaf + mass_sapwood + mass_bark + mass_root
-  mass_total <- mass_leaf + mass_bark + mass_sapwood + mass_heartwood + mass_root
+  mass_coarse_root <- p$a_cr1 * mass_sapwood
+  mass_live <- mass_leaf + mass_sapwood + mass_bark + mass_root + mass_coarse_root
+  mass_total <- mass_leaf + mass_bark + mass_sapwood + mass_heartwood + mass_root + mass_coarse_root
   mass_above_ground <- mass_leaf + mass_bark + mass_sapwood + mass_heartwood
   list(area_leaf = area_leaf, mass_leaf = mass_leaf, area_sapwood = area_sapwood,
        mass_sapwood = mass_sapwood, area_bark = area_bark, mass_bark = mass_bark,
        area_stem = area_stem, diameter_stem = diameter_stem, mass_root = mass_root,
+       mass_coarse_root = mass_coarse_root,
        mass_live = mass_live, mass_total = mass_total,
        mass_above_ground = mass_above_ground)
 }
 
-check_allometry <- function(strategy_fn, cpp_fn) {
+check_allometry <- function(strategy_fn, cpp_fn, a_cr1 = 0) {
   s <- strategy_fn()
+  s$pars$a_cr1 <- a_cr1
   height <- seq(0.5, 20, length.out = 50)
   # vary heartwood so area_stem / mass_total / mass_above_ground are exercised
   area_heartwood <- seq(0, 0.01, length.out = 50)
@@ -49,6 +52,18 @@ test_that("TF24 C++ allometry matches the historical R formulas", {
   check_allometry(TF24_Strategy, TF24_strategy_expand_allometry)
 })
 
+## The oracle above carries the coarse-root pool (#349), but at the shipped
+## default a_cr1 = 0 every coarse-root term is zero, so the checks above would
+## pass even if C++ ignored a_cr1 entirely. Re-run them with the pool switched
+## on so the new terms are actually compared.
+test_that("FF16 C++ allometry matches the R formulas with coarse roots on", {
+  check_allometry(FF16_Strategy, FF16_strategy_expand_allometry, a_cr1 = 0.25)
+})
+
+test_that("TF24 C++ allometry matches the R formulas with coarse roots on", {
+  check_allometry(TF24_Strategy, TF24_strategy_expand_allometry, a_cr1 = 0.25)
+})
+
 test_that("FF16_expand_state adds the expected derived columns", {
   p <- scm_base_parameters("FF16")
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = FF16_hyperpar, birth_rate = list(20))
@@ -57,7 +72,8 @@ test_that("FF16_expand_state adds the expected derived columns", {
 
   derived <- c("area_leaf", "mass_leaf", "area_sapwood", "mass_sapwood",
                "area_bark", "mass_bark", "area_stem", "diameter_stem",
-               "mass_root", "mass_live", "mass_total", "mass_above_ground")
+               "mass_root", "mass_coarse_root", "mass_live", "mass_total",
+               "mass_above_ground")
   expect_true(all(derived %in% names(es$species)))
 
   # Re-derive with the oracle from the (already present) state columns and the

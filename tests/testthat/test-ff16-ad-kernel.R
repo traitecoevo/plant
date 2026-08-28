@@ -47,6 +47,7 @@ compile_ff16_ad_kernel <- function() {
         p.lma=v[0];p.rho=v[1];p.theta=v[2];p.a_b1=v[3];p.a_r1=v[4];p.eta_c=v[5];
         p.a_p1=v[6];p.a_p2=v[7];p.r_l=v[8];p.r_s=v[9];p.r_b=v[10];p.r_r=v[11];
         p.k_l=v[12];p.k_b=v[13];p.k_s=v[14];p.k_r=v[15];p.a_bio=v[16];p.a_y=v[17];
+        p.a_cr1=v[18];p.r_cr=v[19];p.k_cr=v[20];
         return p;
       }
       static plant::FF16ProdPars<double> pod_d(const std::vector<double>& v) {
@@ -54,6 +55,7 @@ compile_ff16_ad_kernel <- function() {
         p.lma=v[0];p.rho=v[1];p.theta=v[2];p.a_b1=v[3];p.a_r1=v[4];p.eta_c=v[5];
         p.a_p1=v[6];p.a_p2=v[7];p.r_l=v[8];p.r_s=v[9];p.r_b=v[10];p.r_r=v[11];
         p.k_l=v[12];p.k_b=v[13];p.k_s=v[14];p.k_r=v[15];p.a_bio=v[16];p.a_y=v[17];
+        p.a_cr1=v[18];p.r_cr=v[19];p.k_cr=v[20];
         return p;
       }
 
@@ -94,16 +96,22 @@ testthat::test_that("FF16 net-production AD gradient matches finite differences"
     "Skipping FF16 AD kernel in pkgload load_all sessions.")
   compile_ff16_ad_kernel()
 
+  ## Trailing three are the coarse-root pool (#349): a_cr1, r_cr, k_cr. a_cr1 is
+  ## deliberately non-zero here so the new terms are actually differentiated --
+  ## at the shipped default of 0 the whole pool drops out of the gradient.
   v <- c(0.1978791, 608, 0.0002141786, 0.17, 0.07, 0.5805, 151.177, 0.204,
-         0.01979, 0.0859, 0.04, 0.2086, 0.4565, 0.2, 0.0, 1.0, 0.0245, 0.7)
+         0.01979, 0.0859, 0.04, 0.2086, 0.4565, 0.2, 0.0, 1.0, 0.0245, 0.7,
+         0.2, 0.0859, 0.2)
   height <- 5; area_leaf <- 0.3; light_E <- 0.78
 
   g <- ff16_netprod_grad(v, height, area_leaf, light_E)
   inp <- c(v, height, area_leaf, light_E)
+  np <- length(v)
   fd <- vapply(seq_along(inp), function(i) {
     h <- 1e-6 * max(1, abs(inp[i]))
     up <- inp; dn <- inp; up[i] <- up[i] + h; dn[i] <- dn[i] - h
-    f <- function(z) ff16_netprod_value(z[1:18], z[19], z[20], z[21])
+    f <- function(z) ff16_netprod_value(z[seq_len(np)], z[np + 1], z[np + 2],
+                                        z[np + 3])
     (f(up) - f(dn)) / (2 * h)
   }, numeric(1))
 
