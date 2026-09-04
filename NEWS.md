@@ -437,8 +437,44 @@ were not previously recorded here:
   * Semantic change: `patch$ode_rates` was a cheap read of stored values and is
     now a full right-hand-side evaluation. `StochasticPatch$compute_rates()` is
     unchanged.
+* TF24/TF24f gain a `Tleaf` auxiliary variable, so their `aux_size` grows by one
+  (#625; see New features for what the slot holds). Additive — it is appended
+  after `assimilation` — so every existing name lookup and every positional index
+  below it is unchanged. Migration, for code that indexes auxs by position or
+  asserts their count:
+  * `aux_size` `12` -> `13`; with `collect_all_auxiliary`, `13` -> `14`
+  * `auxs[[13]]` (`area_sapwood`, `collect_all_auxiliary` only) -> `auxs[[14]]`,
+    or better `ind$aux("area_sapwood")`
+  * no other slot moves; `ind$aux(<name>)` needs no change anywhere
 
 ### New features
+
+* **TF24 and TF24f report leaf temperature as an auxiliary variable, `Tleaf`
+  (#625).** The leaf's own temperature at the optimal operating point, in deg C,
+  alongside `opt_psi_stem` and the other leaf outputs. `aux_size` therefore goes
+  12 -> 13 (13 -> 14 with `collect_all_auxiliary`), appended after
+  `assimilation`, so existing positional indices are unchanged except
+  `area_sapwood`, which moves from 13 to 14.
+
+  It is an **output, not the `leaf_temp` driver**, and that is the whole reason
+  for the slot. With `pars$use_energy_balance` at its default of `0` the leaf
+  runs at the prescribed driver and `Tleaf` equals it exactly — reported anyway,
+  rather than `NA`, so the column can be plotted against anything. Turn the
+  Penman-Monteith energy balance on and the leaf solves its own temperature from
+  its transpiration at every operating point; that value was computed, used to
+  re-derive the whole Farquhar temperature block, and then discarded, so the one
+  quantity the PM path exists to produce was the one a canopy-level analysis
+  could not read. Measured on a 5 m plant at PPFD 1800 with air at 30 °C, the
+  leaf sits at **39.2 °C**.
+
+  Under `shading_model = "deep-crown"` it is integrated to the leaf-area-weighted
+  crown mean alongside `profit`, `transpiration`, `assimilation` and the rest,
+  and NOT left at whichever quadrature node the crown loop ended on. Note what
+  that means for interpretation: it is a **crown mean**, not any single leaf's
+  temperature, so a canopy with a hot top and a cool base reports the average of
+  the two. The depth profile itself is not exposed — a fixed-width aux slot
+  cannot carry a per-node vector — so the second half of #625 (reporting each
+  leaf output against crown depth) remains open.
 
 * **The NSC storage pool is bounded by the shape of its own flow (`TF24@v9`,
   `TF24f@v9.1`).** `dS/dt` was `net_flux > 0 ? net_flux : floor_gate * net_flux`

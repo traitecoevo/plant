@@ -108,8 +108,8 @@ test_that("TF24f collect_all_auxiliary option", {
 
   s <- TF24f_Strategy()
   p <- TF24f_Individual(s)
-  expect_equal(p$aux_size, 12)
-  expect_equal(length(p$internals$auxs), 12)
+  expect_equal(p$aux_size, 13)
+  expect_equal(length(p$internals$auxs), 13)
 expect_equal(p$aux_names, c(
     "competition_effect",
     "height_inverse",
@@ -122,14 +122,15 @@ expect_equal(p$aux_names, c(
     "profit",
     "shadow_cost",
     "stom_cond_CO2",
-    "assimilation"
+    "assimilation",
+    "Tleaf"
   ))
 
   s <- TF24f_Strategy(collect_all_auxiliary=TRUE)
   expect_true(s$collect_all_auxiliary)
   p <- TF24f_Individual(s)
-  expect_equal(p$aux_size, 13)
-  expect_equal(length(p$internals$auxs), 13)
+  expect_equal(p$aux_size, 14)
+  expect_equal(length(p$internals$auxs), 14)
   expect_equal(p$aux_names, c(
     "competition_effect",
     "height_inverse",
@@ -143,6 +144,7 @@ expect_equal(p$aux_names, c(
     "shadow_cost",
     "stom_cond_CO2",
     "assimilation",
+    "Tleaf",
     "area_sapwood"
   ))
 })
