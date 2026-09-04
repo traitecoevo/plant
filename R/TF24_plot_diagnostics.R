@@ -3,7 +3,12 @@
 #' Assembles a multi-panel diagnostic figure from a collected TF24 SCM run:
 #' patch leaf area, the size distribution, soil water potential, stem and root
 #' water potentials, profit, stomatal conductance, transpiration (total and per
-#' leaf area) and the rainfall driver. Panels are combined with `patchwork`.
+#' leaf area), the rainfall driver and leaf temperature. Panels are combined
+#' with `patchwork`.
+#'
+#' The leaf-temperature panel is flat at the prescribed `leaf_temp` driver
+#' unless the strategy ran with `pars$use_energy_balance` non-zero; see the
+#' `Tleaf` auxiliary variable.
 #'
 #' `ggplot2` and `patchwork` are Suggested packages; the function errors if
 #' either is unavailable. The returned plot is neither drawn nor saved — print
@@ -119,6 +124,19 @@ TF24_plot_diagnostics <- function(results, x, y) {
     ggplot2::xlab("Time (years)") +
     ggplot2::labs(colour = "Height (m)") -> stomatal_conductance
 
+  # Leaf temperature by height over time. Flat at the prescribed driver unless
+  # the strategy ran with pars$use_energy_balance non-zero, in which case it is
+  # the leaf's own solved temperature -- and under the deep-crown shading model,
+  # the leaf-area-weighted crown mean of it rather than any single leaf's.
+  results$species %>%
+    ggplot2::ggplot(ggplot2::aes(x = .data$time, y = .data$Tleaf)) +
+    ggplot2::geom_line(ggplot2::aes(colour = .data$height, group = .data$node), na.rm = TRUE) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(text = ggplot2::element_text(size = 20)) +
+    ggplot2::ylab(expression(paste(T[leaf], " (", degree, C, ")"))) +
+    ggplot2::xlab("Time (years)") +
+    ggplot2::labs(colour = "Height (m)") -> leaf_temperature
+
   # Rainfall time series
   tibble::tibble(x = x, y = y) %>%
     ggplot2::ggplot(ggplot2::aes(x = .data$x, y = .data$y)) +
@@ -167,7 +185,8 @@ TF24_plot_diagnostics <- function(results, x, y) {
   combined <- (patch_leaf_area + size_distribution) /
     ((soil_water_potential + root_water_potential) / (stem_water_potential + profit)) /
     (stomatal_conductance + transpiration) /
-    (transpiration_per_leaf_area + rainfall)
+    (transpiration_per_leaf_area + rainfall) /
+    leaf_temperature
 
   combined
 }
