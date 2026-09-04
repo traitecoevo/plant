@@ -14,8 +14,11 @@ test_that("FF16_Strategy parameters agree with reference model", {
   v <- setdiff(names(cmp_pars), c("n_area"))
   expect_true(all(v %in% names(sp)))
 
-  ## And v.v., except for a few additions present in pars but not the reference:
-  extra <- c("S_D", "recruitment_decay")
+  ## And v.v., except for a few additions present in pars but not the reference.
+  ## The coarse-root trio (#349) is absent from the 2012 reference model by
+  ## construction: at the shipped default a_cr1 = 0 the pool contributes nothing,
+  ## so the two implementations still agree on every growth quantity below.
+  extra <- c("S_D", "recruitment_decay", "a_cr1", "r_cr", "k_cr")
   common <- setdiff(names(sp), extra)
   expect_true(all(extra %in% names(sp)))
   expect_true(all(common %in% names(cmp_pars)))

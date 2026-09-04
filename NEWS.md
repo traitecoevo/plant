@@ -440,6 +440,20 @@ were not previously recorded here:
 
 ### New features
 
+* **FF16 and TF24 gained a coarse-root pool, off by default (#349).** Both models carried one root pool, `mass_root = a_r1 * A_l` — fine roots, with no height scaling. Coarse (structural) roots are now modelled as the below-ground continuation of the sapwood cylinder:
+
+  ```
+  m_cr = a_cr1 * m_s = a_cr1 * rho * theta * eta_c * A_l * H
+  ```
+
+  so they scale with height and the structural root:shoot ratio is size-invariant — the property fine roots cannot supply. They respire at `r_cr` and turn over at `k_cr`, both defaulting to the sapwood rates because coarse roots are woody, and they enter `mass_live` / `mass_total` but not `mass_above_ground`. `*_expand_state()` gains a `mass_coarse_root` column.
+
+  Because `d m_cr / d A_l = a_cr1 * d m_s / d A_l`, the growth allocation stays closed-form: the new term reuses the sapwood term the bark share already shares, and `darea_leaf_dmass_live` gains one addend rather than needing a rederivation.
+
+  **`a_cr1` defaults to 0, so nothing moves and no scientific version does either.** Every new term is appended rather than interleaved, so at the default the sums are bit-identical (`x + 0.0 == x`, and the association order of the existing terms is untouched) — `FF16@v1`, `TF24@v9` and `TF24f@v9.1` all stand, and FF16 still agrees with the published 2012 reference model. The model-version drift guard fires on the three added parameters; its snapshot was re-blessed after confirming the diff is three added names and no changed default.
+
+  ⚠️ **Coarse roots are deliberately outside TF24's water uptake.** The depth-distributed uptake reads `a_r1` directly: absorbing surface is a fine-root property, and `test-coarse-roots.R` asserts every water-side quantity is bit-identical with the pool on.
+
 * **The NSC storage pool is bounded by the shape of its own flow (`TF24@v9`,
   `TF24f@v9.1`).** `dS/dt` was `net_flux > 0 ? net_flux : floor_gate * net_flux`
   -- one signed flux with a gate applied in one direction. It is now a charge and

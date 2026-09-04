@@ -123,16 +123,26 @@ double TF24_Strategy::mass_root(double area_leaf) const {
   return pars.a_r1 * area_leaf;
 }
 
+// [eqn 7b] Mass of coarse (structural) roots
+double TF24_Strategy::mass_coarse_root(double mass_sapwood) const {
+  return pars.a_cr1 * mass_sapwood;
+}
+
 // [eqn 8] Total mass
+// The coarse-root term is appended, not interleaved, so that with the default
+// a_cr1 = 0 the sum is bit-identical to the pre-#349 expression (x + 0.0 == x
+// exactly, and the association order of the other terms is untouched).
 double TF24_Strategy::mass_live(double mass_leaf, double mass_bark,
-                           double mass_sapwood, double mass_root) const {
-  return mass_leaf + mass_sapwood + mass_bark + mass_root;
+                           double mass_sapwood, double mass_root,
+                           double mass_coarse_root) const {
+  return mass_leaf + mass_sapwood + mass_bark + mass_root + mass_coarse_root;
 }
 
 double TF24_Strategy::mass_total(double mass_leaf, double mass_bark,
                             double mass_sapwood, double mass_heartwood,
-                            double mass_root) const {
-  return mass_leaf + mass_bark + mass_sapwood +  mass_heartwood + mass_root;
+                            double mass_root, double mass_coarse_root) const {
+  return mass_leaf + mass_bark + mass_sapwood +  mass_heartwood + mass_root +
+    mass_coarse_root;
 }
 
 double TF24_Strategy::mass_above_ground(double mass_leaf, double mass_bark,
@@ -326,11 +336,13 @@ double TF24_Strategy::assimilation_leaf(double x) const {
 // [eqn 13] Total maintenance respiration
 // NOTE: In contrast with Falster ref model, we do not normalise by pars.a_y*pars.a_bio.
 double TF24_Strategy::respiration(double mass_leaf, double mass_sapwood,
-                             double mass_bark, double mass_root) const {
+                             double mass_bark, double mass_root,
+                             double mass_coarse_root) const {
   return respiration_leaf(mass_leaf) +
          respiration_bark(mass_bark) +
          respiration_sapwood(mass_sapwood) +
-         respiration_root(mass_root);
+         respiration_root(mass_root) +
+         respiration_coarse_root(mass_coarse_root);
 }
 
 double TF24_Strategy::respiration_leaf(double mass) const {
@@ -349,13 +361,19 @@ double TF24_Strategy::respiration_root(double mass) const {
   return pars.r_r * mass;
 }
 
+double TF24_Strategy::respiration_coarse_root(double mass) const {
+  return pars.r_cr * mass;
+}
+
 // [eqn 14] Total turnover
 double TF24_Strategy::turnover(double mass_leaf, double mass_bark,
-                          double mass_sapwood, double mass_root) const {
+                          double mass_sapwood, double mass_root,
+                          double mass_coarse_root) const {
    return turnover_leaf(mass_leaf) +
           turnover_bark(mass_bark) +
           turnover_sapwood(mass_sapwood) +
-          turnover_root(mass_root);
+          turnover_root(mass_root) +
+          turnover_coarse_root(mass_coarse_root);
 }
 
 double TF24_Strategy::turnover_leaf(double mass) const {
@@ -372,6 +390,10 @@ double TF24_Strategy::turnover_sapwood(double mass) const {
 
 double TF24_Strategy::turnover_root(double mass) const {
   return pars.k_r * mass;
+}
+
+double TF24_Strategy::turnover_coarse_root(double mass) const {
+  return pars.k_cr * mass;
 }
 
 // [eqn 15] Net production
@@ -609,10 +631,13 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   // converts to canopy area, then years, then mols
   const double assimilation_ = carbon_profit_ * area_leaf_* 60*60*12*365/1e6;
   // const double assimilation_ = assimilation(environment, height, area_leaf_);
+  const double mass_coarse_root_ = mass_coarse_root(mass_sapwood_);
   const double respiration_ =
-    respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
+    respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_,
+                mass_coarse_root_);
   const double turnover_ =
-    turnover(mass_leaf_, mass_bark_, mass_sapwood_, mass_root_);
+    turnover(mass_leaf_, mass_bark_, mass_sapwood_, mass_root_,
+             mass_coarse_root_);
   return net_mass_production_dt_A(assimilation_, respiration_, turnover_);
 }
 
@@ -662,10 +687,13 @@ double TF24_Strategy::fecundity_dt(double net_mass_production_dt,
 }
 
 double TF24_Strategy::darea_leaf_dmass_live(double area_leaf) const {
+  // The coarse-root term is appended last so that at the default a_cr1 = 0 the
+  // denominator is bit-identical to the pre-#349 sum.
   return 1.0/(  dmass_leaf_darea_leaf(area_leaf)
               + dmass_sapwood_darea_leaf(area_leaf)
               + dmass_bark_darea_leaf(area_leaf)
-              + dmass_root_darea_leaf(area_leaf));
+              + dmass_root_darea_leaf(area_leaf)
+              + dmass_coarse_root_darea_leaf(area_leaf));
 }
 
 double TF24_Strategy::dheight_darea_leaf(double area_leaf) const {
@@ -690,6 +718,11 @@ double TF24_Strategy::dmass_bark_darea_leaf(double area_leaf) const {
 // Mass of root needed for new unit area leaf, d m_r / d a_l
 double TF24_Strategy::dmass_root_darea_leaf(double /* area_leaf */) const {
   return pars.a_r1;
+}
+
+// Mass of coarse root needed for new unit area leaf, d m_cr / d a_l
+double TF24_Strategy::dmass_coarse_root_darea_leaf(double area_leaf) const {
+  return pars.a_cr1 * dmass_sapwood_darea_leaf(area_leaf);
 }
 
 // Growth rate of basal diameter_stem per unit time
@@ -732,6 +765,12 @@ double TF24_Strategy::mass_root_dt(double area_leaf,
   return area_leaf_dt * dmass_root_darea_leaf(area_leaf);
 }
 
+// Growth rate of coarse-root mass per unit time
+double TF24_Strategy::mass_coarse_root_dt(double area_leaf,
+                               double area_leaf_dt) const {
+  return area_leaf_dt * dmass_coarse_root_darea_leaf(area_leaf);
+}
+
 double TF24_Strategy::mass_live_dt(double fraction_allocation_reproduction,
                                double net_mass_production_dt) const {
   return (1 - fraction_allocation_reproduction) * net_mass_production_dt;
@@ -752,8 +791,10 @@ double TF24_Strategy::mass_above_ground_dt(double area_leaf,
                                        double area_leaf_dt) const {
   const double mass_root_dt =
     area_leaf_dt * dmass_root_darea_leaf(area_leaf);
+  const double mass_coarse_root_dt =
+    area_leaf_dt * dmass_coarse_root_darea_leaf(area_leaf);
   return mass_total_dt(fraction_allocation_reproduction, net_mass_production_dt,
-                        mass_heartwood_dt) - mass_root_dt;
+                        mass_heartwood_dt) - mass_root_dt - mass_coarse_root_dt;
 }
 
 double TF24_Strategy::mass_heartwood_dt(double mass_sapwood) const {
@@ -763,10 +804,12 @@ double TF24_Strategy::mass_heartwood_dt(double mass_sapwood) const {
 
 double TF24_Strategy::mass_live_given_height(double height) const {
   double area_leaf_ = area_leaf(height);
+  const double mass_sapwood_ = mass_sapwood(area_sapwood(area_leaf_), height);
   return mass_leaf(area_leaf_) +
          mass_bark(area_bark(area_leaf_), height) +
-         mass_sapwood(area_sapwood(area_leaf_), height) +
-         mass_root(area_leaf_);
+         mass_sapwood_ +
+         mass_root(area_leaf_) +
+         mass_coarse_root(mass_sapwood_);
 }
 
 double TF24_Strategy::height_given_mass_leaf(double mass_leaf) const {

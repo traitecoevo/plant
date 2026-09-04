@@ -1150,10 +1150,12 @@ FF16_Pars:
     - a_l1: double
     - a_l2: double
     - a_r1: double
+    - a_cr1: double
     - a_b1: double
     - r_s: double
     - r_b: double
     - r_r: double
+    - r_cr: double
     - r_l: double
     - a_y: double
     - a_bio: double
@@ -1161,6 +1163,7 @@ FF16_Pars:
     - k_b: double
     - k_s: double
     - k_r: double
+    - k_cr: double
     - a_p1: double
     - a_p2: double
     - a_f3: double
@@ -1319,10 +1322,12 @@ TF24_Pars:
     - a_l1: double
     - a_l2: double
     - a_r1: double
+    - a_cr1: double
     - a_b1: double
     - r_s: double
     - r_b: double
     - r_r: double
+    - r_cr: double
     - r_l: double
     - a_y: double
     - a_bio: double
@@ -1330,6 +1335,7 @@ TF24_Pars:
     - k_b: double
     - k_s: double
     - k_r: double
+    - k_cr: double
     - a_p1: double
     - a_p2: double
     - a_f3: double
