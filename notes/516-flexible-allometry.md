@@ -229,6 +229,123 @@ same caveat as the theta scan, and the reason these numbers do not settle
 whether the mechanism helps. A stand where something survives, and where the
 deficit is transient rather than permanent, is what would.
 
+## Second exploration: why thinning does not buy survival (2026-09-08)
+
+Five measurements, and they move the problem out of the allometry entirely.
+
+### 1. The sheddable costs are large. RETRACTION.
+
+An earlier note here and in the demo said sapwood respiration dominates a drought
+deficit, so thinning could not reach it. **That is wrong.** Leaf, fine root and
+bark all scale with leaf area — only sapwood is sticky. At 10 m:
+
+| leaf | bark | sapwood | root | reachable by thinning |
+|---|---|---|---|---|
+| 49.6% | 5.4% | 23.5% | 21.5% | **76.5%** |
+
+(Roots follow leaf area *exactly*, `m_r = a_r1 * A`, so they shrink instantly with
+the canopy rather than decaying at `k_r`. Same simplification as bark. Neither has
+a state.)
+
+### 2. But thinning cuts income just as fast
+
+Assimilation scales with leaf area too. Net production per unit leaf area is flat
+as the canopy falls from 100% to 1.8%, and slightly *worsens* as the stem it still
+carries is spread over fewer leaves:
+
+| canopy fullness | 1.00 | 0.50 | 0.20 | 0.10 | 0.05 | 0.018 |
+|---|---|---|---|---|---|---|
+| net production per m² leaf | −3.81 | −3.69 | −3.77 | −3.92 | −4.15 | −4.68 |
+| stem per leaf | 1.0 | 1.5 | 2.5 | 3.6 | 5.4 | 9.5 |
+
+A plant whose leaves cost more than they earn cannot fix that by having fewer
+leaves. Thinning slows the burn; it never reaches balance.
+
+### 3. There is no drought in which it changes the outcome
+
+| soil water | 0.20 | 0.17 | 0.15 | 0.13 | 0.11 |
+|---|---|---|---|---|---|
+| survivorship, 4-yr drought | 0.93 | 0.93 | 0.93 | 4.9e-10 | 3.4e-10 |
+| gate engaged? | no | no | no | yes | yes |
+
+A cliff, not a gradient. Above 0.15 reserves stay full and the gate never opens;
+below it the plant dies whatever it does. Thinning *early* — raising `a_pl1` from
+0.05 to 0.30, which was the obvious fix — was measured across this sweep and buys
+a factor of **1.0 to 1.13**, while costing height.
+
+### 4. The root cause is the reserve pool, not the gate
+
+`dS/dt = charge*(1-r) - drain*r` has **no resting point**: positive production
+fills the pool to capacity, negative empties it, and nothing sits between. So `r`
+is close to a binary readout of the *sign* of production. Mortality then reads it
+through `a_dG1 * exp(-a_dG2 * r)` with `a_dG2 = 20`, which is sharp enough to turn
+a near-binary input into a near-binary output spanning eight orders.
+
+**A mechanism that makes a plant modestly cheaper to run has nothing to act on.**
+The buffer does not buffer. That is an NSC-design property, not an allometry one.
+
+### 5. The departures are unbounded, and it bites in ORDINARY conditions
+
+Withholding gives a constant *relative* thinning rate `u * k_l`, so the canopy
+decays exponentially with no floor. `k_l` is a trait, so this arrives sooner for
+fast-leaved species:
+
+| lma | k_l /yr | max thinning /yr | canopy after 2 yr | after 4 yr |
+|---|---|---|---|---|
+| 0.05 | 4.80 | 4.44 | 1.4e-04 | 2.0e-08 |
+| 0.0825 | 2.04 | 1.88 | 0.023 | 5.4e-04 |
+| 0.1979 | 0.46 | 0.42 | 0.43 | 0.185 |
+| 0.40 | 0.14 | 0.13 | 0.78 | 0.60 |
+
+⚠️ **And it is not confined to drought.** In a plain WET stand (rainfall 1.5 m/yr,
+`lma = 0.0825`, self-thinning over 25 years) suppressed cohorts show exactly the
+intended gradual decline at first — a 0.45 m seedling at 0.63 of its preferred
+canopy — but the deeply shaded ones run away: at t = 20 a 10 m suppressed cohort
+sits at canopy **0.000** with stem-per-leaf **1.3e9**. Mortality has already
+removed them (survivorship 1e-34) so `R0` is unaffected (ratio 0.9992), but the
+states are meaningless and numerically hazardous.
+
+**A bound is now a hard requirement, not a watch item.**
+
+### What the literature says, and it contradicts the current design
+
+A global synthesis of 121 studies and 177 species finds **minimum NSC around 46
+per cent of the seasonal maximum**, with depletion of total NSC "rare"
+(Martínez-Vilalta et al. 2016, Ecol. Monogr., doi:10.1002/ecm.1231). Soluble
+sugars in particular are "kept above some critical threshold". Beech under three
+years of drought *increased* NSC for two years before starch fell, and it was the
+**dead** trees that were "virtually empty" — the authors conclude that
+"maintaining an active C storage function at the expense of growth was certainly
+key to survival" (Chuste et al. 2019, Trees, doi:10.1007/s00468-019-01923-5).
+
+So real plants **defend** the pool, sacrificing growth to do it, and are found
+empty only when dead. TF24 does the reverse: growth is gated but storage is the
+residual, so the pool drains to zero and the plant is scored dead by a fraction
+that had no floor to begin with.
+
+Also relevant: time-to-starch-depletion predicted mortality better than any
+instantaneous level (Trueba et al. 2024, Ann. For. Sci.,
+doi:10.1186/s13595-024-01246-7) — which is an argument for what mortality should
+read.
+
+### Where this leaves the design
+
+Confirmed with Daniel: **the canopy thinning IS the tissue consumption that pays
+the deficit.** That reframes the gate. Withholding should be sized to the
+*shortfall* rather than to reserves — withhold what is needed to close the deficit,
+up to what turnover makes available — so the pool acquires a resting point by
+construction and `r` stops being binary. One change, addressing items 4 and 5
+together, since a demand-driven withholding also stops once the deficit closes.
+
+Open, and needing a decision:
+
+- **What bounds the departures** when the deficit exceeds what withholding can
+  close. Mortality removes the plant, but not before the states are absurd.
+- **What mortality should read.** A reserve fraction cannot see a plant that has
+  made itself cheaper to run. Time-to-depletion at the current burn rate can, and
+  has empirical support.
+- **Whether storage should outrank growth**, as the literature says it does.
+
 ## Open
 
 - Which growth rate the optimality criterion should maximise is **not** a modelling choice to be argued — see "Deciding the objective by invasion analysis" above. It is settled by experiment, and the cheap half of that experiment can run before any of this code exists.
