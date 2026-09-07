@@ -608,6 +608,38 @@ The zero-crossing lands on the argmax of `dh/dt` — which is the defining corre
 
 At soil 0.15 growth is still rising at 1.82x and `R_s` stays positive throughout; at soil 0.13 the plant has no carbon and `R_s` is ~1e-11. In an SCM run on a wet stand, `a_sw = 0.5` raises R0 from 97.3 to 154.0 (+58%), which is the size of the prize in leaving the pipe model.
 
+## Shedding's benefit is a steep function of SIZE (2026-09-08)
+
+Re-asking "does shedding buy survival?" against a well-configured stem, as the earlier section said had to be done. The answer is more interesting than either yes or no, and **the earlier null result was measured at one size**.
+
+Measured on a single plant: wet acclimation, mortality integral zeroed at the start of the drought so only the drought's own hazard is compared, then drought, then recovery.
+
+| height | 4 | 8 | 10 | 13 | 16 | 18 | 20 |
+|---|---|---|---|---|---|---|---|
+| survival ratio, shed / fixed (4 yr @ 0.16) | 1.00 | 1.00 | 1.00 | 1.03 | 9.5 | — | 4.4e9 |
+| canopy retained at the end | 1.00 | 1.00 | 1.00 | 1.00 | 0.74 | — | 0.38 |
+
+**Below about 13 m shedding does literally nothing** — the ratio is 1.000 and the canopy never leaves 1.000. Not a weak effect: no effect. The gate reads the *marginal* leaf's balance, and a short plant's marginal leaf still pays for itself even in drought. This is why the earlier sweep, run at 10 m and below, found 1.001-1.06x and concluded thinning does not buy survival. That conclusion was right about the size it was taken at and wrong as a general statement.
+
+**⚠️ But the large ratios are not what they look like.** At 20 m and above the plant has `P < 0 in WET soil` (-17.9 kg/yr at 20 m, -84.2 at 24 m). Those cells are not a tree surviving a drought; they are a tree that this height-resistance relation cannot sustain at all, which shedding then rescues. A ratio of 4e9 between 3e-19 and 1e-9 is two kinds of dead.
+
+**The viability ceiling and the benefit band are the same thing.** `P` in wet soil crosses zero between 17 and 18 m:
+
+| height | 14 | 16 | 17 | 18 | 19 | 20 |
+|---|---|---|---|---|---|---|
+| P at soil 0.30 (kg/yr) | +9.6 | +6.6 | +3.2 | **-1.8** | -8.7 | -17.9 |
+| shed/fixed survival, 1 yr @ 0.15 | 2.6 | 4.8 | 10.6 | 6.1e9 | 4.9e9 | 2.1e9 |
+
+So the whole of shedding's leverage lives in a narrow band straddling the height at which the model stops being able to keep a tree alive. Of a 90-cell grid (heights 8-18, soil 0.20-0.14, droughts 1-4 yr), **zero cells** had shedding take a plant from dead to comfortably alive by a strict bar; the best real rescue is 18 m, 1 yr at soil 0.15, where survivorship goes from 2.2e-11 to **0.137**.
+
+### What this means for the work
+
+1. **The demo's "thinning does not buy survival" section needs qualifying, not deleting.** It is true below 13 m and false above 16 m, and the reason is the one the analytical criterion already gives: eta grows with height because `k_max ∝ 1/h`, so tall plants are exactly the ones for which thinning pays. The criterion predicted this; the behavioural test was taken at a size where the criterion says the answer is no.
+
+2. **⚠️ Every number here is provisional against #617**, and more so than anything else measured on this branch. The band's location IS the height-resistance relation. #617 replaces resistance-linear-in-height with a path integral over conduit widening, and basipetal widening is precisely what stops resistance growing linearly with height in real trees — so it should move the ceiling up and take the band with it. Re-measure this table after #617, before drawing any ecological conclusion from it.
+
+3. **Sapwood acclimation helps more than shedding does, in the range where plants are viable.** At 10 m, `a_sw = 0.5` raised drought survivorship about 10x (7.7e-3 to 7.9e-2 at soil 0.16) where shedding gave 1.002x. Both mechanisms matter, but they matter at different sizes.
+
 ## Open
 
 - Which growth rate the optimality criterion should maximise is **not** a modelling choice to be argued — see "Deciding the objective by invasion analysis" above. It is settled by experiment, and the cheap half of that experiment can run before any of this code exists.
