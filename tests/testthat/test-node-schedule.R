@@ -3,7 +3,7 @@ drain_schedule <- function(sched) {
   cmp <- vector("list", sched$size)
   for (i in seq_len(sched$size)) {
     e <- sched$next_event
-    cmp[[i]] <- c(e$species_index,
+    cmp[[i]] <- c(e$target_index,
                   e$time_introduction,
                   e$times,
                   e$time_end)
@@ -22,11 +22,11 @@ drain_schedule <- function(sched) {
 test_that("NodeScheduleEvent", {
   e <- NodeScheduleEvent(pi, 1)
 
-  expect_identical(e$species_index, 1L)
+  expect_identical(e$target_index, 1L)
   expect_identical(e$species_index_raw, 0.0)
 
-  e$species_index <- 2L
-  expect_identical(e$species_index, 2L)
+  e$target_index <- 2L
+  expect_identical(e$target_index, 2L)
   expect_identical(e$species_index_raw, 1.0)
 
   expect_identical(e$times, pi)
@@ -84,7 +84,7 @@ test_that("Set times (one species)", {
   expect_false(sched$use_ode_times)
   e <- sched$next_event
   expect_identical(e$time_introduction, t1[[1]])
-  expect_equal(e$species_index, species_index)
+  expect_equal(e$target_index, species_index)
 
   cmp <- drain_schedule(sched)
 
@@ -115,10 +115,14 @@ test_that("Set times (two species)", {
   max_t <- max(c(t1, t2)) + mean(diff(sort(c(t1, t2))))
   sched$max_time <- max_t
 
-  ## Come up with the expected times (2nd argument ensures stable sort)
+  ## Come up with the expected times. Species order within a tied time follows
+  ## insertion order now (#628 made the queue's tie-break stable, so two events
+  ## of one type at one instant keep the order they were given). Species 1's
+  ## times are set first, so at a tie species 1 comes first -- this used to be
+  ## the other way round.
   expected <- rbind(data.frame(species_index=1, start=t1),
                     data.frame(species_index=2, start=t2))
-  expected <- expected[order(expected$start, -expected$species_index),]
+  expected <- expected[order(expected$start, expected$species_index),]
   expected$end <- c(expected$start[-1], max_t)
 
   cmp <- drain_schedule(sched)
@@ -190,6 +194,23 @@ test_that("Setting max time behaves sensibly", {
   expect_error(sched$set_times(t1 * 2, 1), "Times cannot be greater than max_time")
 })
 
+test_that("max_time can be set on an empty schedule", {
+  ## An empty schedule constrains max_time not at all, and this is the normal
+  ## case: make_node_schedule() and node_schedule_default() both set max_time
+  ## before adding any times. The bound is read off the last event, so the
+  ## empty case has to be tested explicitly -- reading it unguarded was
+  ## undefined behaviour that happened not to crash.
+  sched <- plant:::NodeSchedule(1)
+  expect_equal(sched$size, 0)
+  expect_silent(sched$max_time <- 10)
+  expect_equal(sched$max_time, 10)
+
+  ## Still nonnegative-only, and the bound reappears once there are events.
+  expect_error(sched$max_time <- -1, "max_time must be nonnegative")
+  sched$set_times(c(0, 5), 1)
+  expect_error(sched$max_time <- 1, "max_time must be at least the final")
+})
+
 test_that("Bulk get/set of times works", {
   n <- 3
   sched <- plant:::NodeSchedule(n)
@@ -239,7 +260,9 @@ test_that("ode_times", {
   ## times in R is hard enough!
   expected <- rbind(data.frame(species_index=1, start=t1),
                     data.frame(species_index=2, start=t2))
-  expected <- expected[order(expected$start, -expected$species_index),]
+  ## Ascending species index at a tie: the queue's tie-break is stable now, so
+  ## events keep insertion order (#628).
+  expected <- expected[order(expected$start, expected$species_index),]
   expected$end <- c(expected$start[-1], max_t)
 
   t_ode <- seq(0, sched$max_time, length.out=14)

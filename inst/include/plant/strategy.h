@@ -26,6 +26,12 @@ public:
 
   static std::vector<std::string> state_names();
 
+  // Which of state_names() the model keeps non-negative. The solver rejects a
+  // step that lands outside, so the bound holds on the state itself rather than
+  // on each reader of it. A strategy with no such state declares none and the
+  // check compiles to nothing.
+  static std::vector<std::string> non_negative_states() { return {}; }
+
   std::vector<std::string> aux_names();
 
   // TODO(#483) : expose this so can access state_names directly

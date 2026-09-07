@@ -6,13 +6,11 @@
 \usage{
 Leaf(
   vcmax_25,
-  c,
-  b,
-  psi_crit,
+  stem_c,
+  stem_P50,
   root_c,
-  root_b,
-  root_psi_crit,
-  beta2,
+  root_P50,
+  TF24_beta2,
   jmax_25,
   a,
   curv_fact_elec_trans,
@@ -21,35 +19,34 @@ Leaf(
   vulnerability_curve_ncontrol,
   ci_abs_tol,
   ci_niter,
-  g1_TF24
+  TF24_cost_scale
 )
 }
 \arguments{
-\item{vcmax_25}{Maximum Carboxylation Rate (umol m^-2 s^-1)}
+\item{vcmax_25}{maximum carboxylation rate at 25 C (umol m^-2 s^-1)}
 
-\item{c}{shape parameter of hydraulic vulnerability curve (unitless)}
+\item{stem_c}{shape parameter of the STEM hydraulic vulnerability curve (unitless)}
 
-\item{b}{sensitivity parameter of hydraulic vulnerability curve (MPa)}
+\item{stem_P50}{STEM potential at 50% loss of hydraulic conductivity (MPa,
+positive magnitude). phylloptim derives `stem_b` and `psi_crit` from it --
+do not pass the scale.}
 
-\item{psi_crit}{critical psi stem (-MPa )}
+\item{root_c}{shape parameter of the ROOT hydraulic vulnerability curve (unitless)}
 
-\item{root_c}{shape parameter of hydraulic vulnerability curve for roots(unitless)}
+\item{root_P50}{ROOT potential at 50% loss of hydraulic conductivity (MPa,
+positive magnitude)}
 
-\item{root_b}{sensitivity parameter of hydraulic vulnerability curve for roots (MPa)}
+\item{TF24_beta2}{exponent for the effect of hydraulic risk (unitless)}
 
-\item{root_psi_crit}{critical psi stem for roots (-MPa )}
-
-\item{beta2}{exponent for effect of hydraulic risk (unitless)}
-
-\item{jmax_25}{maximum rate of electron transport (umol m^-2 s^-1)}
+\item{jmax_25}{maximum rate of electron transport at 25 C (umol m^-2 s^-1)}
 
 \item{a}{quantum yield of photosynthetic electron transport (mol mol^-1)}
 
 \item{curv_fact_elec_trans}{curvature factor for the light response curve (unitless)}
 
-\item{curv_fact_colim}{curvature factor for the colimited photosythnthesis equatiom}
+\item{curv_fact_colim}{curvature factor for the colimited photosynthesis equation}
 
-\item{GSS_tol_abs}{tolereance parameter for golden section search}
+\item{GSS_tol_abs}{tolerance parameter for golden section search}
 
 \item{vulnerability_curve_ncontrol}{number of points for pre-calculating vulnerability curve}
 
@@ -57,8 +54,10 @@ Leaf(
 
 \item{ci_niter}{maximum number of iterations for root-solving ci}
 
-\item{g1_TF24}{cost parameter for TF24 profit model umol m^-2 s^-1}
+\item{TF24_cost_scale}{cost parameter for the TF24 profit model (umol m^-2 s^-1)}
 }
 \description{
-Leaf model
+Argument names match phylloptim's own `Leaf()` binding exactly (#634): the
+arguments are positional in C++, so a name here that disagrees with the slot
+it lands in is a silent error rather than a compile one.
 }

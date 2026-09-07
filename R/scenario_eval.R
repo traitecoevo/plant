@@ -94,8 +94,8 @@ scenario_to_config <- function(row, mapping) {
                 call. = FALSE))
   }
 
-  ## Note: the vulnerability curve (c/b/psi_crit) is derived from K_s, and
-  ## g1_TF24 from rho, inside TF24_hyperpar (#548). Those descriptor columns are
+  ## Note: the vulnerability curve (stem_c/stem_b/psi_crit) is derived from K_s,
+  ## and TF24_cost_scale from rho, inside TF24_hyperpar (#548). Those descriptor columns are
   ## therefore intentionally absent from scenario_mapping.csv and left to the
   ## hyperpar; passing them as input traits would trip its overwrite guard.
 

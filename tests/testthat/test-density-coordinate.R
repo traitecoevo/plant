@@ -64,7 +64,7 @@ short_run <- local({
       }
       ctrl <- Control()
       ctrl$node_density_in_birth_date <- birth_date
-      scm <- SCM(x, environment_type(x))(p, Environment(x), ctrl)
+      scm <- SCM(x, environment_type(x))(p, Environment(x), empty_events(), ctrl)
       scm$collect <- TRUE
       scm$run()
       cache[[key]] <<- scm
@@ -304,7 +304,7 @@ test_that("nodes sharing a birth date are rejected in birth-date coordinates", {
   x <- "FF16"; e <- "FF16_Env"
   p <- size_only_parameters(x)
 
-  scm <- SCM(x, e)(p, Environment(x), Control())
+  scm <- SCM(x, e)(p, Environment(x), empty_events(), Control())
   scm$collect <- TRUE
   scm$run()
   state <- export_patch_state(scm, step = max(2L, length(scm$history) %/% 2L))
@@ -378,7 +378,7 @@ log_density_gap <- function(refine) {
     ctrl <- Control()
     ctrl$node_density_in_birth_date <- birth_date
     scm <- SCM("FF16", "FF16_Env")(interleave_schedule(p_of(), refine),
-                                   Environment("FF16"), ctrl)
+                                   Environment("FF16"), empty_events(), ctrl)
     scm$run()
     scm$patch$species[[1]]
   }
@@ -506,7 +506,7 @@ test_that("resume reads the raw state, so it is unaffected by the conversion", {
   state <- export_patch_state(scm, step = max(2L, length(scm$history) %/% 2L))
   p2 <- set_initial_state(scm$parameters, state)
 
-  scm2 <- SCM(x, e)(p2, Environment(x), ctrl)
+  scm2 <- SCM(x, e)(p2, Environment(x), empty_events(), ctrl)
   scm2$collect <- TRUE
   scm2$run()
 

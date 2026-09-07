@@ -157,7 +157,7 @@ make_FF16_hyperpar <- function(
   assert_scalar(B_lf5)
   assert_scalar(latitude)
 
-  function(m, s, filter=TRUE) {
+  f <- function(m, s, filter=TRUE) {
     with_default <- function(name, default_value=s$pars[[name]]) {
       rep_len(if (name %in% colnames(m)) m[, name] else default_value,
               nrow(m))
@@ -289,6 +289,23 @@ make_FF16_hyperpar <- function(
     }
     m
   }
+
+  ## The traits this hyperpar reads from the MATRIX that are not fields of the
+  ## strategy's `pars` (#636). `generate_strategy()` refuses an unknown trait
+  ## name, and it cannot know about these from `pars` alone: `narea` is consumed
+  ## here to derive `a_p1`, `a_p2` and `r_l`, and is never itself assigned to the
+  ## strategy -- so without this declaration a legitimate `narea` sweep would be
+  ## rejected.
+  ##
+  ## ⚠️ ONLY THE ONES READ FROM `m`, i.e. those with a `with_default()` call above.
+  ## The nineteen CONSTRUCTOR arguments of this function (`B_kl1`, `B_ks1`,
+  ## `B_lf4`, ...) are not traits: they parameterise the trade-offs once, when the
+  ## hyperpar is built. Naming one in a trait matrix has never done anything, and
+  ## listing them here would restore exactly the silence #636 removes --
+  ## `tests/testthat/test-ode-individual-runner.R` had been passing nine of them
+  ## for years, to no effect.
+  attr(f, "input_traits") <- "narea"
+  f
 }
 
 ##' Hyperparameter function for FF16 physiological model

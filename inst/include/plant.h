@@ -22,6 +22,7 @@
 #include <plant/strategy.h>
 #include <plant/parameters.h>
 #include <plant/node_schedule.h>
+#include <plant/events.h>
 
 // Disturbance regimes for meta-population
 #include <plant/disturbance_regime.h>

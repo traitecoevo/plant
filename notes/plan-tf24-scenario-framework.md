@@ -1,5 +1,7 @@
 # TF24/TF24F Scenario Evaluation Framework
 
+> ⚠️ **Parameter names in this note are pre-#634.** `p_50`, `c`, `b`, `beta2` and `g1_TF24` are now `stem_P50`, `stem_c`, `stem_b`, `TF24_beta2` and `TF24_cost_scale`. The plan itself landed as #548; this file is kept as its record.
+
 Status: implemented. Branch `feature/tf24-scenario-framework`, based on
 `hydraulic_forest_expectations` (PR #555).
 

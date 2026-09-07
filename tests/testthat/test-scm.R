@@ -25,7 +25,7 @@ test_that("Run SCM", {
     ## ode_step_size_max of the accurate preset (the fast Control() default
     ## permits steps that overshoot these closely-spaced introductions).
     ctrl <- control_accurate()
-    scm <- SCM(x, e)(p, env, ctrl)
+    scm <- SCM(x, e)(p, env, empty_events(), ctrl)
     expect_inherits(scm, sprintf("SCM<%s,%s>", x, e))
 
     expect_equal(scm$parameters, p)
@@ -168,7 +168,7 @@ test_that("schedule setting", {
       max_patch_lifetime=5.0)
     env <- Environment(x)
     ctrl <- Control()
-    scm <- SCM(x, e)(p, env, ctrl)
+    scm <- SCM(x, e)(p, env, empty_events(), ctrl)
 
     ## Then set a node schedule:
     ## Build a schedule for 14 introductions from t=0 to t=5
@@ -189,7 +189,7 @@ test_that("schedule setting", {
     expect_identical(sched2$max_time, sched$max_time)
     expect_identical(sched2$all_times, list(t))
 
-    scm2 <- SCM(x, e)(p2, env, ctrl)
+    scm2 <- SCM(x, e)(p2, env, empty_events(), ctrl)
     expect_identical(scm2$node_schedule$max_time, sched2$max_time)
     expect_identical(scm2$node_schedule$all_times, sched2$all_times)
   }
@@ -240,7 +240,7 @@ test_that("refinement_error_by_node collected in C++ matches per-step assembly",
     n_spp <- length(p1$strategies)
 
     ## New path: a single run with error collection enabled.
-    scm <- SCM(x, e)(p1, env, ctrl)
+    scm <- SCM(x, e)(p1, env, empty_events(), ctrl)
     scm$collect_refinement_errors <- TRUE
     scm$run()
     new_total <- scm$refinement_error_by_node
@@ -251,7 +251,7 @@ test_that("refinement_error_by_node collected in C++ matches per-step assembly",
     ## once collecting a patch snapshot after each introduction, then recompute
     ## each step's competition error from the snapshot. A species counts as
     ## "added" at a step when its node count grew from the previous snapshot.
-    scm_ref <- SCM(x, e)(p1, env, ctrl)
+    scm_ref <- SCM(x, e)(p1, env, empty_events(), ctrl)
     scm_ref$collect <- TRUE
     scm_ref$run()
     lai_error <- rep(list(NULL), n_spp)
@@ -284,7 +284,7 @@ test_that("Can create empty SCM", {
     p <- Parameters(x, e)()
     env <- Environment(x)
     ctrl <- Control()
-    scm <- SCM(x, e)(p, env, ctrl)
+    scm <- SCM(x, e)(p, env, empty_events(), ctrl)
 
     ## Check light environment is empty:
     env <- scm$patch$environment
@@ -302,7 +302,7 @@ test_that("A second run on one SCM reproduces the first", {
   p0 <- scm_base_parameters("TF24", "TF24_Env")
   p0$max_patch_lifetime <- 10
   p <- add_strategies(p0, trait_matrix(0.1978791, "lma"))
-  new_scm <- function() SCM("TF24", "TF24_Env")(p, Environment("TF24"), Control())
+  new_scm <- function() SCM("TF24", "TF24_Env")(p, Environment("TF24"), empty_events(), Control())
 
   scm <- new_scm()
   scm$run()

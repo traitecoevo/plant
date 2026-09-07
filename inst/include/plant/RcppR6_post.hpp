@@ -32,6 +32,12 @@ template <> inline std::string generator_name<odelia::ode::Solver<plant::tools::
 template <> inline std::string   class_name_r<plant::NodeScheduleEvent >() {return "NodeScheduleEvent";}
 template <> inline std::string   package_name<plant::NodeScheduleEvent >() {return "plant";}
 template <> inline std::string generator_name<plant::NodeScheduleEvent >() {return ".R6_NodeScheduleEvent";}
+template <> inline std::string   class_name_r<plant::Events >() {return "Events";}
+template <> inline std::string   package_name<plant::Events >() {return "plant";}
+template <> inline std::string generator_name<plant::Events >() {return "";}
+template <> inline std::string   class_name_r<plant::EventLog >() {return "EventLog";}
+template <> inline std::string   package_name<plant::EventLog >() {return "plant";}
+template <> inline std::string generator_name<plant::EventLog >() {return "";}
 template <> inline std::string   class_name_r<plant::NodeSchedule >() {return "NodeSchedule";}
 template <> inline std::string   package_name<plant::NodeSchedule >() {return "plant";}
 template <> inline std::string generator_name<plant::NodeSchedule >() {return ".R6_NodeSchedule";}
@@ -338,6 +344,73 @@ template <> inline SEXP wrap(const plant::NodeScheduleEvent& x) {
 }
 template <> inline plant::NodeScheduleEvent as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::NodeScheduleEvent>(x));
+}
+template <> inline SEXP wrap(const plant::Events& x) {
+  Rcpp::List ret;
+  ret["time"] = Rcpp::wrap(x.time);
+  ret["type"] = Rcpp::wrap(x.type);
+  ret["target"] = Rcpp::wrap(x.target);
+  ret["target_index"] = Rcpp::wrap(x.target_index);
+  ret["params"] = Rcpp::wrap(x.params);
+  ret.attr("class") = "Events";
+  return ret;
+}
+template <> inline plant::Events as(SEXP x) {
+  if (!plant::RcppR6::is<plant::Events >(x)) {
+    Rcpp::stop("Expected an object of type Events");
+    // NOTE: Won't drop through or return anything.
+  }
+  // NOTE: assumes default constructable, and will assign *every*
+  // field twice.  No current support for a hook.
+  plant::Events ret;
+  Rcpp::List xl(x);
+  // ret.time = Rcpp::as<decltype(rettime) >(xl["time"]);
+  ret.time = Rcpp::as<std::vector<double> >(xl["time"]);
+  // ret.type = Rcpp::as<decltype(rettype) >(xl["type"]);
+  ret.type = Rcpp::as<std::vector<std::string> >(xl["type"]);
+  // ret.target = Rcpp::as<decltype(rettarget) >(xl["target"]);
+  ret.target = Rcpp::as<std::vector<std::string> >(xl["target"]);
+  // ret.target_index = Rcpp::as<decltype(rettarget_index) >(xl["target_index"]);
+  ret.target_index = Rcpp::as<std::vector<size_t> >(xl["target_index"]);
+  // ret.params = Rcpp::as<decltype(retparams) >(xl["params"]);
+  ret.params = Rcpp::as<std::vector<std::vector<double> > >(xl["params"]);
+  ret.validate();
+  return ret;
+}
+template <> inline SEXP wrap(const plant::EventLog& x) {
+  Rcpp::List ret;
+  ret["time"] = Rcpp::wrap(x.time);
+  ret["type"] = Rcpp::wrap(x.type);
+  ret["target"] = Rcpp::wrap(x.target);
+  ret["target_index"] = Rcpp::wrap(x.target_index);
+  ret["requested"] = Rcpp::wrap(x.requested);
+  ret["applied"] = Rcpp::wrap(x.applied);
+  ret.attr("class") = "EventLog";
+  return ret;
+}
+template <> inline plant::EventLog as(SEXP x) {
+  if (!plant::RcppR6::is<plant::EventLog >(x)) {
+    Rcpp::stop("Expected an object of type EventLog");
+    // NOTE: Won't drop through or return anything.
+  }
+  // NOTE: assumes default constructable, and will assign *every*
+  // field twice.  No current support for a hook.
+  plant::EventLog ret;
+  Rcpp::List xl(x);
+  // ret.time = Rcpp::as<decltype(rettime) >(xl["time"]);
+  ret.time = Rcpp::as<std::vector<double> >(xl["time"]);
+  // ret.type = Rcpp::as<decltype(rettype) >(xl["type"]);
+  ret.type = Rcpp::as<std::vector<std::string> >(xl["type"]);
+  // ret.target = Rcpp::as<decltype(rettarget) >(xl["target"]);
+  ret.target = Rcpp::as<std::vector<std::string> >(xl["target"]);
+  // ret.target_index = Rcpp::as<decltype(rettarget_index) >(xl["target_index"]);
+  ret.target_index = Rcpp::as<std::vector<size_t> >(xl["target_index"]);
+  // ret.requested = Rcpp::as<decltype(retrequested) >(xl["requested"]);
+  ret.requested = Rcpp::as<std::vector<std::vector<double> > >(xl["requested"]);
+  // ret.applied = Rcpp::as<decltype(retapplied) >(xl["applied"]);
+  ret.applied = Rcpp::as<std::vector<std::vector<double> > >(xl["applied"]);
+  ret.validate();
+  return ret;
 }
 template <> inline SEXP wrap(const plant::NodeSchedule& x) {
   return wrap(plant::RcppR6::RcppR6<plant::NodeSchedule>(x));
@@ -1302,14 +1375,15 @@ template <> inline SEXP wrap(const plant::TF24_Pars& x) {
   ret["a_st3"] = Rcpp::wrap(x.a_st3);
   ret["k_I"] = Rcpp::wrap(x.k_I);
   ret["vcmax_25"] = Rcpp::wrap(x.vcmax_25);
-  ret["p_50"] = Rcpp::wrap(x.p_50);
+  ret["stem_P50"] = Rcpp::wrap(x.stem_P50);
   ret["K_s"] = Rcpp::wrap(x.K_s);
-  ret["c"] = Rcpp::wrap(x.c);
-  ret["b"] = Rcpp::wrap(x.b);
+  ret["stem_c"] = Rcpp::wrap(x.stem_c);
+  ret["stem_b"] = Rcpp::wrap(x.stem_b);
   ret["psi_crit"] = Rcpp::wrap(x.psi_crit);
   ret["beta1"] = Rcpp::wrap(x.beta1);
-  ret["beta2"] = Rcpp::wrap(x.beta2);
-  ret["g1_TF24"] = Rcpp::wrap(x.g1_TF24);
+  ret["TF24_beta2"] = Rcpp::wrap(x.TF24_beta2);
+  ret["TF24_cost_scale"] = Rcpp::wrap(x.TF24_cost_scale);
+  ret["TF24_floor_lambda_o"] = Rcpp::wrap(x.TF24_floor_lambda_o);
   ret["jmax_25"] = Rcpp::wrap(x.jmax_25);
   ret["a"] = Rcpp::wrap(x.a);
   ret["curv_fact_elec_trans"] = Rcpp::wrap(x.curv_fact_elec_trans);
@@ -1413,22 +1487,24 @@ template <> inline plant::TF24_Pars as(SEXP x) {
   ret.k_I = Rcpp::as<double >(xl["k_I"]);
   // ret.vcmax_25 = Rcpp::as<decltype(retvcmax_25) >(xl["vcmax_25"]);
   ret.vcmax_25 = Rcpp::as<double >(xl["vcmax_25"]);
-  // ret.p_50 = Rcpp::as<decltype(retp_50) >(xl["p_50"]);
-  ret.p_50 = Rcpp::as<double >(xl["p_50"]);
+  // ret.stem_P50 = Rcpp::as<decltype(retstem_P50) >(xl["stem_P50"]);
+  ret.stem_P50 = Rcpp::as<double >(xl["stem_P50"]);
   // ret.K_s = Rcpp::as<decltype(retK_s) >(xl["K_s"]);
   ret.K_s = Rcpp::as<double >(xl["K_s"]);
-  // ret.c = Rcpp::as<decltype(retc) >(xl["c"]);
-  ret.c = Rcpp::as<double >(xl["c"]);
-  // ret.b = Rcpp::as<decltype(retb) >(xl["b"]);
-  ret.b = Rcpp::as<double >(xl["b"]);
+  // ret.stem_c = Rcpp::as<decltype(retstem_c) >(xl["stem_c"]);
+  ret.stem_c = Rcpp::as<double >(xl["stem_c"]);
+  // ret.stem_b = Rcpp::as<decltype(retstem_b) >(xl["stem_b"]);
+  ret.stem_b = Rcpp::as<double >(xl["stem_b"]);
   // ret.psi_crit = Rcpp::as<decltype(retpsi_crit) >(xl["psi_crit"]);
   ret.psi_crit = Rcpp::as<double >(xl["psi_crit"]);
   // ret.beta1 = Rcpp::as<decltype(retbeta1) >(xl["beta1"]);
   ret.beta1 = Rcpp::as<double >(xl["beta1"]);
-  // ret.beta2 = Rcpp::as<decltype(retbeta2) >(xl["beta2"]);
-  ret.beta2 = Rcpp::as<double >(xl["beta2"]);
-  // ret.g1_TF24 = Rcpp::as<decltype(retg1_TF24) >(xl["g1_TF24"]);
-  ret.g1_TF24 = Rcpp::as<double >(xl["g1_TF24"]);
+  // ret.TF24_beta2 = Rcpp::as<decltype(retTF24_beta2) >(xl["TF24_beta2"]);
+  ret.TF24_beta2 = Rcpp::as<double >(xl["TF24_beta2"]);
+  // ret.TF24_cost_scale = Rcpp::as<decltype(retTF24_cost_scale) >(xl["TF24_cost_scale"]);
+  ret.TF24_cost_scale = Rcpp::as<double >(xl["TF24_cost_scale"]);
+  // ret.TF24_floor_lambda_o = Rcpp::as<decltype(retTF24_floor_lambda_o) >(xl["TF24_floor_lambda_o"]);
+  ret.TF24_floor_lambda_o = Rcpp::as<double >(xl["TF24_floor_lambda_o"]);
   // ret.jmax_25 = Rcpp::as<decltype(retjmax_25) >(xl["jmax_25"]);
   ret.jmax_25 = Rcpp::as<double >(xl["jmax_25"]);
   // ret.a = Rcpp::as<decltype(reta) >(xl["a"]);

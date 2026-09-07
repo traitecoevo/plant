@@ -37,7 +37,9 @@ public:
   typedef Parameters<T, E> parameters_type;
 
   // ---- Construction ------------------------------------------------------
-  SCM(parameters_type p, environment_type e, plant::Control c);
+  // An empty `ev` means "no events supplied": the schedule then comes from
+  // p.node_schedule_times exactly as it always has (#522).
+  SCM(parameters_type p, environment_type e, plant::Events ev, plant::Control c);
 
   // ---- Simulation lifecycle ----------------------------------------------
 
@@ -96,6 +98,14 @@ public:
 
   // Node schedule access
   NodeSchedule r_node_schedule() const { return node_schedule; }
+  // The schedule read back out in the R-facing wire format, so that a run
+  // whose schedule was refined can be re-run, or inspected, as events.
+  Events r_events() const {
+    return events_from_schedule_events(node_schedule.get_events());
+  }
+  // What the events actually did, in the order they were applied. Cleared by
+  // reset(), so it always describes the run you are looking at.
+  EventLog r_event_log() const { return event_log_from_records(event_log); }
   void r_set_node_schedule(NodeSchedule x);
   void r_set_node_schedule_times(std::vector<std::vector<double>> x);
 
@@ -130,15 +140,19 @@ private:
   Control control;
   patch_type patch;
   NodeSchedule node_schedule;
+  // Lives on the runner rather than the patch: the patch is copied into
+  // `history` once per step, and a log that grew with the run would be copied
+  // with it every time.
+  std::vector<EventRecord> event_log;
   odelia::ode::Solver<patch_type> solver;
 };
 
 // ---- Construction --------------------------------------------------------
 
 template <typename T, typename E>
-SCM<T, E>::SCM(parameters_type p, environment_type e, Control c)
+SCM<T, E>::SCM(parameters_type p, environment_type e, Events ev, Control c)
     : parameters(p), control(c), patch(parameters, e, c),
-      node_schedule(make_node_schedule(parameters)),
+      node_schedule(make_node_schedule(parameters, ev)),
       solver(patch, make_ode_control(c)) {
 
   parameters.validate();
@@ -243,14 +257,23 @@ std::vector<size_t> SCM<T, E>::run_next_impl(bool sync_patch) {
     return ret; // empty: nothing introduced this step
   }
 
-  // Consume every event scheduled at the current time t0: each contributes a
-  // species to introduce. Stop once the next event ends later than t0 (i.e. it
-  // belongs to a later introduction) or the schedule is exhausted.
+  // Consume every event scheduled at the current time t0. Introductions are
+  // collected into `ret` and applied as one batch (a single environment
+  // recompute for the lot); every other event type carries its own action and
+  // is applied in turn. The queue is sorted so that the actions arrive before
+  // the introductions, and so a node introduced here sees the post-event
+  // environment. Stop once the next event ends later than t0 (i.e. it belongs
+  // to a later interval) or the schedule is exhausted.
+  std::vector<NodeSchedule::Event> actions;
   while (true) {
     if (!util::identical(t0, e.time_introduction())) {
       util::stop("Start time not what was expected");
     }
-    ret.push_back(e.species_index);
+    if (e.is_node_introduction()) {
+      ret.push_back(e.target_index);
+    } else {
+      actions.push_back(e);
+    }
     node_schedule.pop();
     if (e.time_end() > t0 || complete()) {
       break;
@@ -259,7 +282,12 @@ std::vector<size_t> SCM<T, E>::run_next_impl(bool sync_patch) {
     }
   }
 
-  sys.introduce_new_nodes(ret);
+  for (const auto& a : actions) {
+    event_log.push_back(sys.apply_event(a));
+  }
+  if (!ret.empty()) {
+    sys.introduce_new_nodes(ret);
+  }
   solver.set_state_from_system();
 
   // Three integration modes:
@@ -383,6 +411,7 @@ template <typename T, typename E> void SCM<T, E>::reset() {
   solver.reset();
   patch = solver.get_system_ref();
   history.clear();
+  event_log.clear();
 }
 
 template <typename T, typename E> bool SCM<T, E>::complete() const {

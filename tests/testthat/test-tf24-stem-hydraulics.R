@@ -102,18 +102,18 @@ test_that("resistance is unchanged at the anchor height and rotates about it", {
 
 test_that("the K_s reparameterisation leaves the vulnerability curve alone", {
   # Invariance criterion I12. make_TF24_hyperpar derives the whole vulnerability
-  # curve from K_s via p_50 = 10^(B_Hv1 + B_Hv2*log10(K_s)). Feeding a
+  # curve from K_s via stem_P50 = 10^(B_Hv1 + B_Hv2*log10(K_s)). Feeding a
   # terminal-segment K_s through the un-re-anchored relation would have moved
-  # p_50 from 2.889 to 3.593 MPa -- buying a height exponent and silently
+  # stem_P50 from 2.889 to 3.593 MPa -- buying a height exponent and silently
   # selling the safety margin of a model whose whole subject is hydraulic
   # limitation. B_Hv1 was shifted to hold it.
   s <- TF24_Strategy()
   m <- trait_matrix(s$pars$lma, "lma")
   derived <- TF24_hyperpar(m, s, filter = FALSE)
-  expect_equal(derived[, "p_50"][[1]], 2.888725665336019, tolerance = 1e-10)
+  expect_equal(derived[, "stem_P50"][[1]], 2.888725665336019, tolerance = 1e-10)
 
   # And the un-re-anchored value, recorded so the size of the averted leak stays
-  # visible: this is what p_50 would be at B_Hv1 = 0.4607063.
+  # visible: this is what stem_P50 would be at B_Hv1 = 0.4607063.
   expect_equal(10^(0.4607063 - 0.2 * log10(s$pars$K_s)), 3.5933287036419,
                tolerance = 1e-10)
 })

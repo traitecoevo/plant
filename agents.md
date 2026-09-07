@@ -480,7 +480,7 @@ Rules:
 - **Do NOT bump** for refactors, performance work, interface renames, or
   serialisation-format changes — the science is unchanged.
 - FF16/K93 are scientifically frozen and should rarely move; TF24/TF24f change
-  often and will bump frequently. Current: `FF16@v1`, `K93@v1`, `TF24@v2`.
+  often and will bump frequently. Read the current values with `model_id()` rather than trusting this line.
 - **TF24f is a compound version.** It is a fast *approximation* of TF24 that
   inherits TF24's equations/parameters, so its version is
   `"<TF24 version>.<approximation revision>"` (`TF24f@v2.1`). The major
@@ -524,8 +524,13 @@ default and enabled with `PLANT_RUN_SCENARIOS=1`. It runs the full SCM for every
 TF24 hydraulic scenario in `inst/scenarios/` and diffs the per-scenario
 outcomes against a recorded baseline — a *baseline diff*, not an "all pass"
 assertion, so it catches both regressions and improvements (many scenarios are
-expected to fail by design). When a changed outcome is intended, re-bless the
-baseline with `make bless-scenarios`. See
+expected to fail by design). It diffs two classifications (`observed`,
+`persists`) and `offspring_production` at a relative tolerance (`SCENARIO_TOL`,
+default `1e-3`), and prints the full per-scenario table on any failure. When a
+changed outcome is intended, re-bless the baseline with `make bless-scenarios`
+— **in its own commit, with the before/after table in NEWS**. A baseline diff
+only carries information while the baseline is current, and one that is not
+hands every later PR a failure it did not cause (#639). See
 [notes/plan-tf24-scenario-framework.md](notes/plan-tf24-scenario-framework.md).
 
 CI: [.github/workflows/R-CMD-check.yaml](.github/workflows/R-CMD-check.yaml) and
@@ -616,6 +621,29 @@ repo's README for how it renders, freezes (`_freeze/`), and version-pins posts.
 - ✅ Changing a model's equations/default parameters (output changes for the
   same inputs) → bump its `scientific_version` in the model header (see §7).
 - ✅ After interface changes run the full `make rebuild`; after C++-only changes `make compile`.
+- ⚠️ **The leaf's cost curve is seated ONCE, in `TF24_Strategy::prepare_strategy()`,
+  and no call site may name a curve.** Every collar-solve entry point in phylloptim
+  is templated on the cost curve, and `find_root_collar_psi()`,
+  `evaluate_root_collar_psi()` and `dprofit_droot_collar_psi()` are its
+  TF24-hardwired shortcuts. Reintroducing one — or writing
+  `<Leaf::CostCurve::TF24>` at a call site — solves TF24 while `shadow_cost()`
+  reports a price the solve never saw, which is worse than not switching at all
+  and shows up as no error. Use `leaf.optimise()`, or
+  `Leaf::with_curve(leaf.cost_curve_, ...)` for the templated entry points
+  (`src/tf24f_strategy.cpp` dispatches once around its whole body for this
+  reason). See #634.
+- ⚠️ **TF24's leaf parameters must keep phylloptim's names.** They are handed to
+  the `Leaf` constructor **positionally**, so a name that disagrees with the slot
+  it lands in is silent, not a compile error. `stem_P50`, `stem_c`, `stem_b`,
+  `TF24_beta2`, `TF24_cost_scale`, `TF24_floor_lambda_o`, `root_c`, `root_P50`.
+  The one deliberate asymmetry: `TF24_Pars` exposes `root_b` (the Weibull scale)
+  where phylloptim takes `root_P50` (the quantile), so `prepare_strategy()`
+  converts — those are different quantities, not a naming mismatch.
+- ⚠️ **`phylloptim` and `odelia` are pinned with `==` in `LinkingTo`, deliberately.**
+  Both are compiled into plant and plant's baselines are bit-exact, so a `>=`
+  bound lets a later upstream release change plant's arithmetic with no local
+  change to explain the red baseline. Upgrading means bumping the pin *and* the
+  `Remotes:` sha together, rebuilding, and recording the baseline diff.
 - ℹ️ Active bindings ending in `_` generally expose internal C++ fields for
   inspection/testing, not part of the stable user API.
 - ℹ️ Two solvers (deterministic SCM, stochastic) share the same model classes —

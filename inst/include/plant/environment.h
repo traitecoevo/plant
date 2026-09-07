@@ -40,6 +40,24 @@ public:
 
   virtual void compute_rates(std::vector<double> const& resource_depletion){};
 
+  // Add `amount` of resource `i` at one instant (#628). What the resource is,
+  // and what the amount is measured in, is the environment's business: TF24's
+  // resources are soil layers and the amount is metres of water.
+  //
+  // Applied between solver legs, so nothing about it is error-controlled -- an
+  // implementation must bound the jump itself, because no error estimate and
+  // no step rejection stand behind it. Returns what it managed to apply:
+  // {accepted, shed}, in the same units.
+  //
+  // An environment with no resources refuses rather than silently swallowing
+  // the amount, so a pulse aimed at a model that cannot take one is visible.
+  virtual std::vector<double> add_resource_pulse(size_t /*i*/,
+                                                 double /*amount*/) {
+    util::stop("This environment has no resource pools, so there is nothing "
+               "for a resource pulse to add to");
+    return std::vector<double>(); // not reached
+  }
+
   odelia::ode::const_iterator set_ode_state(odelia::ode::const_iterator it) {
     for (size_t i = 0; i < vars.state_size; i++) {
       vars.states[i] = *it++;

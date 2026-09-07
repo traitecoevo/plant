@@ -51,9 +51,9 @@ for (x in names(strategy_types)) {
     }
     if(x %in% c("TF24")) {
       length_odes <- env$get_soil_number_of_depths()
-      soil_moist_inits <- c(rep(env$soil_moist_sat, length_odes)/2, rep(0,4))
+      soil_moist_inits <- c(rep(env$soil_moist_sat, length_odes)/2, rep(0,5))
       expect_equal(patch$ode_state, soil_moist_inits)
-      expect_equal(patch$ode_rates, c(3.312786717, rep(0,4), 1.000000000, 0.996093750, 0.002257735, 0.000000000), tolerance = 1e-4)
+      expect_equal(patch$ode_rates, c(3.312786717, rep(0,4), 1.000000000, 0.996093750, 0.002257735, 0.000000000, 0.000000000), tolerance = 1e-4)
     }
     
     expect_identical(patch$ode_state, env_state)

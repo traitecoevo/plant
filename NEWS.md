@@ -7,6 +7,152 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **An unknown trait name is now an error (#636).** `generate_strategy()` (and
+  `add_strategies()` / `add_mutant()`, which route through it) refuse a trait
+  whose name is not a parameter of the model, naming the offenders and their
+  nearest valid matches.
+
+  It used to be silent, and not by dropping the name: `pars[["typo"]] <- x`
+  APPENDS to a list, so the junk element reached the generated
+  `Rcpp::as<*_Pars>`, which reads only the fields it knows. The strategy then
+  built, solved and reported at the **default** value of the parameter the caller
+  meant to vary, with nothing in the output to say so — a trait sweep running its
+  whole length at one point.
+
+  ⚠️ **A hyperpar's own arguments are not traits.** `B_kl1`, `B_ks1`, `B_lf4` and
+  the rest parameterise the trade-offs once, when the hyperpar is *built*; pass
+  them to `make_FF16_hyperpar()`, not in a trait matrix. Naming one as a trait has
+  never done anything, and now says so. `tests/testthat/test-ode-individual-runner.R`
+  had been passing nine of them for years to no effect; removing them leaves that
+  test's strategy bit-identical, measured.
+
+  ⚠️ **A trait the hyperpar consumes without assigning is still accepted.** FF16's
+  `narea` derives `a_p1`, `a_p2` and `r_l` and is not a parameter of any model, so
+  a `pars`-only check would have rejected a sweep that works. Hyperpars declare
+  such traits themselves through a new `input_traits` attribute
+  (`attr(make_FF16_hyperpar(), "input_traits") == "narea"`). A **caller-supplied**
+  hyperpar carrying no declaration gets the `pars`-only set, since nothing can know
+  what an arbitrary closure reads — attach the attribute if yours consumes a
+  non-parameter trait.
+
+  Consumed traits are also no longer appended to `pars`, so a strategy no longer
+  compares unequal to a default one over an element the model never reads.
+
+  Known gap, unchanged here: top-level strategy fields are not traits. TF24f's
+  `k_acclim`, `psi_fd_step` and `use_ad_gradient` are real settable fields that
+  the trait mechanism cannot reach, and naming one is now an error rather than
+  silence — which is the honest report, not the fix.
+
+* **phylloptim 0.7.0 -> 0.8.0.** Bumped deliberately, which is what the `==` pin
+  below exists to force. 0.8.0 (traitecoevo/phylloptim#133) reports the seated
+  curve's `lambda_emergent` through `leaf_solve()` and fixes a stale
+  `lambda_emergent_` after the two terminal exits on a reused `Leaf`.
+
+  **Inert for plant, and by construction rather than by luck:** the header diff is
+  24 lines, being one element appended to `operating_point_values()` and two
+  `lambda_emergent_ = NA` writes. plant reads neither that vector nor that member.
+  Verified anyway — suite unchanged at 2985 pass, and the scenario scorecard's
+  `offspring_production` bit-identical across all 8 scenarios against the same
+  plant source built on 0.7.0.
+
+  ⚠️ Newly available and **not** yet used here: `lambda_emergent` is the seated
+  curve's own `(dC/dpsi)/(dE/dpsi)`, where `marginal_cost_water()` is TF24's price
+  whatever curve ran. On `TF24_floor` the two differ by the price floor
+  (32996 vs 82996 at `lambda_o = 5e4`), so anything reporting a marginal cost of
+  water from this model wants the emergent one.
+
+* **TF24's leaf parameters carry phylloptim's names (#634).** `TF24_Pars` renamed:
+  `p_50 -> stem_P50`, `c -> stem_c`, `b -> stem_b`, `beta2 -> TF24_beta2`,
+  `g1_TF24 -> TF24_cost_scale`. `Leaf()`'s arguments move with them, and
+  `root_p_50 -> root_P50`. Same values, same equations: the model-version snapshot
+  changes names only, with **no value moved** on either TF24 or TF24f.
+
+  ⚠️ **`g1_TF24` was never a stomatal slope.** It is the TF24 hydraulic *cost
+  scale*, handed to `Leaf()` positionally, while the leaf separately has a real
+  Medlyn `g1`. One name per quantity, spelled the same on both sides, is what
+  makes the hand-over in `prepare_strategy()` checkable by eye.
+
+  `TF24_hyperpar` emits the new names, so anything reading `ret[, "g1_TF24"]` or
+  `ret[, "p_50"]` needs updating. `stem_b` and `psi_crit` are TF24_hyperpar's
+  *reporting* copies -- phylloptim derives its own from `(stem_P50, stem_c)` -- so
+  setting either does not change the curve. `root_b` keeps its name: it is the
+  Weibull *scale*, a different quantity from `root_P50 = root_b*(ln 2)^(1/root_c)`,
+  and plant still converts at hand-over.
+
+* **`TF24_Pars` gains `TF24_floor_lambda_o` (#634), defaulting to 0.** TF24 and
+  TF24f are now seated on phylloptim's `TF24_floor` cost curve, and this is its
+  one parameter: the price of water as transpiration goes to zero, in
+  `umol C (kg H2O)^-1`.
+
+  Every conductance-loss cost -- TF24's included -- prices water at zero as `E`
+  goes to zero, since no conductivity is lost when nothing flows, so water is free
+  precisely when it is abundant. `TF24_floor` splits the cost into a part depending
+  on potential alone and a part linear in the flux, `Theta(E) = Theta~(psi) +
+  lambda_o*E`, with `Theta~` being TF24's own cost at TF24's own traits. **TF24 is
+  `TF24_floor` at `lambda_o = 0` at identical parameter values**, so "is TF24
+  missing a price of water?" is a one-restriction question.
+
+  **Nothing moves at the default.** phylloptim asserts the reduction bit-for-bit
+  rather than to a tolerance, and plant's whole suite passes with every pinned
+  baseline unchanged. `scientific_version` is deliberately **not** bumped: no
+  equation and no default output changes.
+
+  A new aux, **`shadow_cost`**, is reported beside `profit` -- so `aux_size` goes
+  11 -> 12 (12 -> 13 with `collect_all_auxiliary`). It is `lambda_o * E` on this
+  curve and exactly 0.0 on the other seven, and zero on another curve means "this
+  curve does not separate the two", not "this curve's cost is all realised carbon".
+
+  ⚠️ **The price is a shadow price, not a cost, and growth is billed on
+  `profit + shadow_cost`.** `profit` is the *objective* and deducts both terms;
+  `Theta~` is carbon actually forgone, while `lambda_o` is the value of water in
+  its best alternative use, and paying it loses no carbon. Growing on the
+  objective would tax the plant by carbon it never spent -- measured on a 5 m
+  plant at PPFD 1800 and theta 0.25, the objective understates the carbon kept by
+  2.3% at `lambda_o = 1e4`, 9.4% at 5e4, 15.4% at 1e5 and 22.6% at 2e5.
+
+  Its scale is set by the leaf, not chosen freely: phylloptim's own marginal cost
+  of water runs ~9e4 to 3e5 in these units at its defaults, so a value far outside
+  that band pins the optimum against a bracket bound.
+
+* **`phylloptim` and `odelia` are pinned with `==`, not `>=` (#634).**
+  `LinkingTo: odelia (== 0.3.1), phylloptim (== 0.8.0)`. plant's regression
+  baselines are bit-exact and both packages are compiled *into* plant, so under
+  `>=` a later upstream release silently changes plant's arithmetic and the first
+  sign is a red baseline with no local change to explain it -- a bisect across two
+  repositories. Under `==` the same upgrade fails at install time, naming the
+  version, before anything is built. Upgrading is then a deliberate act: bump the
+  pin, rebuild, read the baseline diff, record it.
+
+* **Migrated to phylloptim 0.6.0 and odelia 0.3.1 (#622).** `Leaf()` now takes
+  `p_50` and `root_p_50` instead of `b`/`psi_crit` and `root_b`/`root_psi_crit`:
+  phylloptim parameterises both vulnerability curves on P50 and derives the rest.
+
+  ⚠️ **`b` is not `p_50`.** They are different quantities, both in MPa, so swapping
+  them compiles, runs, and silently describes a curve 1.1465x too wide at TF24's
+  defaults. Migration: pass `p_50` directly where plant already has it; convert a
+  literal `b` with `p_50 = b * (log(2))^(1 / c)`. Verified -- handing over
+  `(p_50, c)` reproduces plant's `b`, `psi_crit`, `root_b` and `root_psi_crit` bit
+  for bit.
+
+  Also: `optimise_psi_stem_TF()` / `optimise_psi_stem_Sperry()` -> configure then
+  solve, `l$set_model("TF24", "stem")` followed by `l$optimise()`;
+  `hydraulic_cost_Sperry()` removed; `profit_psi_stem_Sperry()` is ProfitMax
+  underneath; `lambda_analytical_` removed. `psi_crit` and `stem_b` are newly
+  readable, since they are now derived rather than supplied.
+
+  **TF24 output moves by +0.36%** (net reproduction 3.671011e-25 -> 3.684168e-25
+  on the reference run; 1055 -> 1065 ODE steps). Bisected to one upstream constant:
+  `kg_to_mol_h2o` changed from a hard-coded `55.4939` to `1/molar_mass_h2o =
+  55.509298`, +2.77e-4 relative. It enters the E -> g_sc conversion, so stomatal
+  conductance carries exactly that shift and ci, assimilation and profit follow;
+  the demographic integration amplifies it. The new value is the more accurate one
+  (water's molar mass is 0.018015 kg/mol). odelia 0.2.1 -> 0.3.1 and every
+  pre-#126 phylloptim commit were measured inert.
+
+  FF16 and K93 are untouched. `scientific_version` was deliberately **not** bumped,
+  so archived TF24 results from before this change carry the same `TF24@v8` tag
+  despite differing by ~0.36%.
+
 * **`Leaf$set_physiology()` takes `root_network`, not `root_carbon_per_leaf_area`,
   and `Leaf()` no longer takes `beta_R_H` or `beta_R_V`.** Requires
   phylloptim >= 0.2.0 (phylloptim #33). Migration:
@@ -291,6 +437,15 @@ were not previously recorded here:
   * Semantic change: `patch$ode_rates` was a cheap read of stored values and is
     now a full right-hand-side evaluation. `StochasticPatch$compute_rates()` is
     unchanged.
+* TF24/TF24f gain a `Tleaf` auxiliary variable, so their `aux_size` grows by one
+  (#625; see New features for what the slot holds). Additive — it is appended
+  after `assimilation` — so every existing name lookup and every positional index
+  below it is unchanged. Migration, for code that indexes auxs by position or
+  asserts their count:
+  * `aux_size` `12` -> `13`; with `collect_all_auxiliary`, `13` -> `14`
+  * `auxs[[13]]` (`area_sapwood`, `collect_all_auxiliary` only) -> `auxs[[14]]`,
+    or better `ind$aux("area_sapwood")`
+  * no other slot moves; `ind$aux(<name>)` needs no change anywhere
 
 ### New features
 
@@ -298,7 +453,7 @@ were not previously recorded here:
   three new `TF24_Pars` fields — `D_c` (conduit widening exponent, default
   `0.2`), `theta_c` (Huber-profile exponent, default `0`) and `L_tip` (terminal
   segment length, default `0.02` m). Resistance now grows as `H^0.6` rather than
-  `H^1.0`. **`scientific_version` moves to 9 and TF24 output changes** (#615).
+  `H^1.0`. **`scientific_version` moves to 10 and TF24 output changes** (#615).
 
   The height exponent is *derived* rather than assumed, from two measurable
   within-plant profiles: conduit widening `D(L) = D_tip·(L/L_tip)^D_c` with
@@ -338,9 +493,9 @@ were not previously recorded here:
   `B_Hv1` moves `0.4607063 -> 0.36591565341924093` in `make_TF24_hyperpar`. This
   is **not** a science change but a correction that prevents one: the hyperpar
   derives the whole vulnerability curve from `K_s` via
-  `p_50 = 10^(B_Hv1 + B_Hv2·log10(K_s))`, so feeding a terminal-segment `K_s`
-  through the un-re-anchored relation would have moved `p_50` from 2.889 to
-  3.593 MPa as a side effect. The intercept was shifted to hold `p_50` fixed.
+  `stem_P50 = 10^(B_Hv1 + B_Hv2·log10(K_s))`, so feeding a terminal-segment
+  `K_s` through the un-re-anchored relation would have moved `stem_P50` from
+  2.889 to 3.593 MPa as a side effect. The intercept was shifted to hold it fixed.
   The `K_s` rows of `inst/scenarios/scenario_mapping.csv` were rescaled to the
   new baseline for the same reason.
 
@@ -358,6 +513,191 @@ were not previously recorded here:
 
   Design note: `notes/plan-tf24-height-hydraulics.md`. The diurnal closure that
   the cost and gain terms need is tracked separately as #618.
+* **TF24 and TF24f report leaf temperature as an auxiliary variable, `Tleaf`
+  (#625).** The leaf's own temperature at the optimal operating point, in deg C,
+  alongside `opt_psi_stem` and the other leaf outputs. `aux_size` therefore goes
+  12 -> 13 (13 -> 14 with `collect_all_auxiliary`), appended after
+  `assimilation`, so existing positional indices are unchanged except
+  `area_sapwood`, which moves from 13 to 14.
+
+  It is an **output, not the `leaf_temp` driver**, and that is the whole reason
+  for the slot. With `pars$use_energy_balance` at its default of `0` the leaf
+  runs at the prescribed driver and `Tleaf` equals it exactly — reported anyway,
+  rather than `NA`, so the column can be plotted against anything. Turn the
+  Penman-Monteith energy balance on and the leaf solves its own temperature from
+  its transpiration at every operating point; that value was computed, used to
+  re-derive the whole Farquhar temperature block, and then discarded, so the one
+  quantity the PM path exists to produce was the one a canopy-level analysis
+  could not read. Measured on a 5 m plant at PPFD 1800 with air at 30 °C, the
+  leaf sits at **39.2 °C**.
+
+  Under `shading_model = "deep-crown"` it is integrated to the leaf-area-weighted
+  crown mean alongside `profit`, `transpiration`, `assimilation` and the rest,
+  and NOT left at whichever quadrature node the crown loop ended on. Note what
+  that means for interpretation: it is a **crown mean**, not any single leaf's
+  temperature, so a canopy with a hot top and a cool base reports the average of
+  the two. The depth profile itself is not exposed — a fixed-width aux slot
+  cannot carry a per-node vector — so the second half of #625 (reporting each
+  leaf output against crown depth) remains open.
+
+* **The NSC storage pool is bounded by the shape of its own flow (`TF24@v9`,
+  `TF24f@v9.1`).** `dS/dt` was `net_flux > 0 ? net_flux : floor_gate * net_flux`
+  -- one signed flux with a gate applied in one direction. It is now a charge and
+  a drain, each non-negative without a test and each limited by the room the
+  other has (#609):
+
+  ```
+  charge = Ppos * (1 - G)          drain = Ppos - P
+  dS/dt  = charge * (1 - r)  -  drain * r   =   charge - (charge + drain) * r
+  ```
+
+  The split is exact -- `charge - drain = P - Ppos*G` is the old net flux -- so
+  what changes is where the limits sit. Both bounds now follow from the form,
+  with no scale left to choose: at `r = 0` the rate is `charge >= 0`, at `r = 1`
+  it is `-drain <= 0`, and past either boundary the corresponding limiter goes
+  negative and pushes back. The pool is a first-order filter on production, so
+  `d(dS/dt)/dS` is the constant `-(charge + drain)/S_max`.
+
+  **Storage previously had no upper bound at all**; `r = min(S/S_max, 1)` clipped
+  the *read* while the state ran past capacity. Measured on a one-species stand
+  at the full 105.32-year lifetime: the state reached **1.035** of capacity and
+  **52.7 per cent** of cohorts sat at or above it, so for half the stand `dr/dS`
+  was exactly zero and the mortality that reads `r` could not respond. It is now
+  0.000 per cent at every lifetime from 2 to 105.32, with the reserve fraction
+  peaking at 0.800 -- the value a newborn is seeded at -- and a median of 0.62
+  where it was exactly 1.
+
+  **The derivative was discontinuous where the net flux changed sign**, which is
+  what motivated the change. `d(dS/dt)/dP` stepped by `1/floor_gate =
+  (r + 1e-3)/r` across that point -- measured 1.972 against a predicted 2.000 at
+  a reserve fraction of 1e-3, and unbounded as the pool empties. The new rate is
+  smooth there.
+
+  **A negative state is now refused rather than floored**, which is what lets
+  both read-clamps go. The exact flow cannot leave `[0, S_max]` but a finite
+  Runge-Kutta step can, and it did: about 3 per cent of records at the default
+  height at maturity, deepest at 4.5 per cent of capacity. The rate now calls
+  `odelia::util::stop_domain` there and `Patch::ode_state_valid` declares the
+  bound to the stepper, so the step is rejected, shrunk and retried instead of
+  committed -- requires **odelia >= 0.3.1**. Crossings go to none, on the
+  birth-date coordinate and the height one alike. `max(S, 0)` and
+  `min(S/S_max, 1)` are gone with the branch, which is #609's own closing
+  requirement that both consumers read the same quantity.
+
+  **The drain is limited in proportion to what the pool holds, and that is a
+  change to the drawdown as well as to the bound.** A plant at half reserves
+  draws at half the deficit rate, where the old gate drew at essentially the
+  full rate until the pool was within 0.1 per cent of empty. What it does *not*
+  change is how much carbon goes unpaid -- what a plant pays from reserves is
+  exactly the pool's depletion in either form -- so the integral over a drawdown
+  is the same and only its schedule differs, which is the buffering #517 asked
+  for.
+
+  **A narrower drain limiter is what makes this shape necessary, and it is
+  measured rather than argued.** Limiting the drain by `r/(r + D)` puts an
+  *attracting fixed point* at `r ~ D` whose relaxation time is `S_max D / drain`
+  -- 0.64 hours at the stiffest record on the reference stand, a 0.41 m seedling
+  with a storage capacity of 1e-6 kg, against a solver stepping in days. The
+  shipped rate has the same knee but falls through it into the region where
+  `max(S, 0)` makes the rate identically zero, so it never resolves it; a rate
+  that holds the bound has to. Accepted ODE steps over one 10-year run:
+
+  | rate | accepted steps | wall |
+  |---|---|---|
+  | shipped `max(S,0)` and `net>0 ?:` | 940 | 8 s |
+  | drain limited by `r/(r + 1e-3)` | 12 865 | 114 s |
+  | drain limited by `r` | **488** | **3 s** |
+
+  So the form that holds the bound is also **1.9 times faster than the one that
+  shipped**, and the step count stops growing with height at maturity. Note this
+  is not a case for a change of state basis: an eigenvalue at a fixed point is a
+  property of the vector field and not of the chart, so `S = w^2` or `log S`
+  would leave it exactly where it is.
+
+  **Offspring production moves on every fixture.** The height-coordinate answers
+  fall by a factor of about 2.7 (82.09 -> 30.22, 67.54 -> 23.20) and the
+  birth-date ones by 19 and 27 per cent (287.16 -> 233.06, 59.53 -> 43.64). Most
+  of that is the fill limiter rather than the drain, since the median cohort of a
+  mature stand previously sat clipped at a reserve fraction of 1. The height
+  coordinate amplifies any change to the pool because its compression term
+  differences growth against height at fixed absolute carbon, so it reads the
+  reserve fraction moving where the birth-date density rate never asks.
+
+  **Carbon is still not conserved across the block.** The pool is capped by
+  withholding the surplus rather than by spending it, so at capacity the charge
+  the gate withheld -- `Ppos * (1 - G)`, about 1.2e-4 of production -- leaves the
+  budget instead of charging the pool; at the empty boundary the unmet part of
+  the deficit does the same. Both are properties of limiting a flux rather than
+  spending it, and routing either into growth or into tissue loss is a larger
+  modelling change than #609 proposes.
+
+  **Not addressed here: `storage_prod_eps` is an absolute rate against fluxes
+  spanning six orders.** It is 1e-4 kg/yr, and a plant's own maintenance flux on
+  the reference stand runs from 4.60e-05 to 2.88e+01 kg/yr -- so the smoothing
+  constant is between 3.5e-06 and **2.17** of a plant's whole turnover, and
+  exceeds it on **39.8 per cent** of records. A plant at zero net production is
+  therefore credited with `eps/2 = 5e-5` kg/yr it does not have, which is 0.5 per
+  cent of an adult's maintenance and 29 per cent of a seedling's, and `Ppos`
+  reaches **21.3 times `|P|` with the opposite sign** where the pool is
+  stiffest. #609 predicted this and asked for it to be checked against a real
+  germination state before acting; it now has been. Making it a fraction of a
+  flux the plant has moves establishment and every plant near its compensation
+  point, so it wants its own change and its own re-blessing rather than being
+  folded in here where one census movement would have two causes.
+* **Discrete events (#628).** `run_scm()` takes an `events` argument: a queue of
+  `(time, action)` items applied between solver legs, the way node introductions
+  always have been. Build one with `events()` and the typed constructors —
+  `node_introductions()`, `resource_pulse()`, `harvest()`, `climate_extreme()`.
+
+  The vocabulary is deliberately taxa- and model-agnostic, because the machinery
+  is shared by every strategy and environment: a resource pulse is water in TF24
+  and could be anything countable in a size-structured animal model, and a
+  climate extreme is heat in one model and could be cold or salinity in another.
+  Names that are only true of one model live with that model — `rainfall_pulse()`
+  is a resource pulse of water into TF24's surface soil layer, and
+  `TF24_Environment$add_water_pulse()` is the same action on the C++ side.
+
+  ```r
+  ev <- events(
+    node_introductions(p),
+    rainfall_pulse(time = c(1.5, 3.2), depth = c(0.013, 0.050)),
+    harvest(time = 20, fraction = 0.5, size_min = 10)
+  )
+  res <- run_scm(p, env = env, ctrl = ctrl, events = ev)
+  ```
+
+  Each event carries when it happens, its type, its target (`"environment"`,
+  `"patch"` or one `"species"`) and the values it needs. What each one actually
+  did — as against what was asked of it — is readable as `scm$event_log`; the two
+  differ routinely, because a pulse is capped at what the pool can hold and the
+  excess is shed.
+
+  Two things worth knowing. An event is also a **stop time** for the integrator,
+  so adding one changes the adaptive step sequence: a run with events legitimately
+  differs from one without, at solver tolerance, even away from the events. And
+  events are instantaneous *to the solver* only — an action may sub-integrate its
+  own fast model over a nominal duration with demography frozen, which is what
+  `climate_extreme()` does. Design notes in `notes/plan-events.md`.
+
+  `collect = TRUE` returns `events` and `event_log` alongside the tidied output,
+  since events are supplied separately from `p` and a collected result would
+  otherwise record neither what was asked for nor what was done.
+
+  Events are validated before the run rather than during it: an event past
+  `max_patch_lifetime`, a type aimed at a target it cannot act on, and
+  parameters an action cannot use (a non-finite intensity, a negative
+  sensitivity, an inverted size band) are all refused at construction.
+
+  Runs that supply no events are unaffected, and verified so: FF16, K93 and TF24
+  are `identical()` on ODE step times, fitness and state.
+
+  Also adopts odelia 0.3.1's opt-in domain checks. Two conditions that used to
+  kill a run outright are now rejected steps: a non-finite environment state
+  (measured in #608 to be integrator overshoot, which a smaller step recovers),
+  and an infeasible leaf probe out of phylloptim's collar root-find. Both are
+  inert when nothing goes wrong -- the three reference runs stay `identical()`.
+  A runaway cohort density stays fatal, because that divergence is in the
+  equations rather than the stepper and shrinking cannot recover it.
 
 * **`Control$node_density_in_birth_date`** (default `FALSE`) carries the SCM's
   size distribution as a density in birth date instead of in height.
@@ -673,6 +1013,44 @@ were not previously recorded here:
   wanted only for reporting.
 
 ### Minor changes & bug fixes
+
+* **`run_mutant()` works for TF24 and TF24f** (#642), via odelia 0.4.0. Invasion fitness was unobtainable for these models: `run_mutant()` failed for every TF24 strategy tried, including the identity case where the mutant equals the resident, with `"TF24 storage is negative"`. The cause was in the solver, not the model. TF24's storage pool reports an overshoot below empty by throwing a domain error, which the adaptive stepper answers by shrinking and retrying — a routine event, **480 times in a resident run that then completes normally**, at `max_patch_lifetime = 20`. `run_mutant()` pins the stepper to the resident's recorded step times, and that path called the stepper with no domain handling at all, so the first such refusal killed the replay. It was never specific to mutants: `run_scm(..., use_ode_times = TRUE)` failed the same way replaying a resident against its own recorded times. odelia 0.4.0 subdivides a refused pinned step to the same endpoint, so the recorded times are unchanged and a step nothing objects to is taken exactly as before.
+
+  Reading the overshoot as round-off would have been a mistake: the fatal state is 6% of capacity below zero (`S = -1.5e-07` against `S_max = 2.6e-06`), and attempts rejected during the resident run reach `-414%`. No tolerance on `storage_domain_tol` covers that, and widening it would feed `mortality_storage_dependent_dt()` the unbounded argument its `[0, 1]` contract exists to prevent.
+
+  `test-mutant.R` now checks the resident-vs-mutant identity for TF24 alongside FF16. Its `max_patch_lifetime = 14` is load-bearing and is the cheapest value that covers the bug — the refusals begin only partway into a run, so at 10 the replay never meets one and the test passes either way. Note the identity holds to ~1e-6 at best for TF24, against ~1e-13 for FF16; that gap is unrelated to this fix and unexplained.
+
+* **The scenario gateway baseline is re-blessed, and the gateway diffs the numbers as well as the flags** (#639). `tests/testthat/test_data/scenario_baseline.rds` had been recorded against the tree that became #583 and matched no later build, so `PLANT_RUN_SCENARIOS=1` failed on an unmodified `develop`, and every PR that ran it inherited a failure it had not caused. The cheapest way to establish that was to build a second copy of the base branch and re-run, which two PRs each paid for separately.
+
+  **Bisected, one build per commit, at `max_patch_lifetime = 100` in the gateway's own birth-date coordinate.** Nothing between the bless and #633 moves a scenario — the merged #583 (`133499b8`) and #606 (`39c0c657`) both reproduce the recorded R0 on all eight to seven significant figures — and nothing after #619 does either: `745dd600` and `develop` agree on all eight, so #605, #635 and #637 are inert here, as #635's own NEWS entry claims. Two commits moved it:
+
+  | scenario | baseline | after #633 | after #619 = develop | net |
+  |---|---|---|---|---|
+  | S01 | 1.488721 | 0.2725883 (0.18x) | 0.4797763 (1.76x) | **0.32x** |
+  | S02 | 9.963559e-2 | 2.784370e-3 (0.028x) | 1.153315e-2 (4.14x) | **0.12x** |
+  | S03 | 5.498561e-12 | 1.745197e-10 (31.7x) | 1.665416e-10 (0.95x) | **30.3x** |
+  | S04 | 4.745912e-13 | 1.357792e-11 (28.6x) | 1.317815e-11 (0.97x) | **27.8x** |
+  | S05 | 5.888102e-13 | 5.052547e-12 (8.58x) | 2.470008e-11 (4.89x) | **42.0x** |
+  | S06 | 3.261466e-13 | 5.082346e-12 (15.6x) | 6.570073e-12 (1.29x) | **20.1x** |
+  | S07 | 1415.200 | 837.6889 (0.59x) | 810.7050 (0.97x) | **0.57x** |
+  | S08 | 3.230258e-14 | 2.711131e-13 (8.39x) | 2.025578e-14 (0.075x) | **0.63x** |
+
+  So this is inherited, not a live regression: #619 is a declared science change (`TF24@v8 -> v9`), and #633 is the dependency migration. Both were merged without re-blessing, which is what let them accumulate.
+
+  **Read the sizes with the levels.** S03-S06 and S08 sit between 2e-14 and 2e-10, so a 30x there is 30x of a strategy that is numerically extinct either way and means very little. The moves that mean something are S01 (1.49 -> 0.48, crossing R0 = 1, which is the flag that flipped), S02 (0.12x) and S07 (1415 -> 811). #633's own NEWS entry measured +0.36% on the standard reference run and traced it to one constant (`kg_to_mol_h2o` 55.4939 -> 55.509298, itself 2.8e-4 relative); a 30x on a marginal water-limited scenario from a 2.8e-4 input is the expected shape, because R0 there is an exponentially small survivorship integral, and it is exactly why a single mesic reference run is not a substitute for the gateway.
+
+  **Within #633 the move is phylloptim's, not odelia's.** Rebuilt at `b374ce3b` against phylloptim 0.6.0 but odelia held at 0.2.1 — the `LinkingTo` floor relaxed for the probe, nothing else changed — the scorecard is unchanged on all eight, so odelia 0.2.1 -> 0.3.1 is inert here and the 8x-32x is phylloptim 0.2.0 -> 0.6.0, i.e. the seven-model solver unification (phylloptim #126) reaching every water-limited run. Consistent with odelia's two behavioural changes in that range: `stop_domain` rejection (odelia #56) had no declared domain to act on until #619 added one, and rejecting a non-finite error estimate (#54) only bites on a step that was already diverging.
+
+  **It is not #590**, which is what the size of the move first suggested. #590 is an ancestor of the blessed commit, and the baseline's own metadata records `node_density_in_birth_date = TRUE`: the recorded numbers were already in birth date. Provenance is also why the bless commit itself is not the control — the rds was written from a *dirty* tree at `99e44db6`, whose committed `run_scenarios()` still defaulted to `control()` and had no `node_density_in_birth_date` metadata field at all, so the tree that produced it was the one that landed as `133499b8`.
+
+  `test-scenario-gateway.R` now diffs `offspring_production` at a relative tolerance (`SCENARIO_TOL`, default `1e-3`) alongside `observed` and `persists`, and **any** failure prints the full eight-row table. The two flags were the whole diff, and they are coarse: six of the eight scenarios sit at R0 below 1e-9, where a 30x move crosses nothing, so the table above was reported as the single line `persists S01: TRUE -> FALSE`.
+
+* **An out-of-domain hydraulic lookup now names the spline, the point, the domain and the caller** (#576), via odelia >= 0.2.2 and phylloptim >= 0.2.1, both already required. The message used to be odelia's bare "Extrapolation disabled and evaluation point outside of interpolated domain.", which named none of the four — and since the leaf reads the same transport spline from four places and holds a second spline that is its inverse, that sentence did not distinguish the cases that matter. Localising #576 meant instrumenting the call sites by hand to find out which spline was read and at what value; the answer (the *lower* end of the inverse, where the demanded flux is negative) is what showed the spline had been right to refuse. Error text only; no model behaviour changes. `test-leaf.r` now asserts the spline, which end was missed and the caller, rather than the whole sentence — which is phylloptim's to word.
+* **TF24f's AD gradient branch mirrors the finite-difference branch — 21% faster, same numbers** (#576). `TF24f_Strategy::solve_leaf`'s two gradient methods were asymmetric. The finite-difference branch has, since #530, run `prepare_collar_solve()` once itself and shared it across its profit evaluations, and taken a zero gradient when that call reports the operating point *forced* by feasibility handling rather than chosen from an interval. The AD branch — the default, hence TF24f-only — went through `evaluate_root_collar_psi()`, which hides that return value, so it re-derived the soil-side caches on each of its three leaf evaluations and asked for a gradient even at a collar potential the feasibility analysis had already rejected. The AD branch now does what the FD branch does.
+
+  Measured on a 10-year dry-start TF24f SCM run: **bit-identical `offspring_production` at all 26 points** of a 13-rainfall × two-gradient-branch sweep, and **2.61 s → 2.10 s** at rainfall 1 m/yr and **1.74 s → 1.41 s** at 0.04 (minimum of five; the FD branch is the control and does not move, 2.20 → 2.23 s and 1.19 → 1.21 s). The forced-operating-point exit is an ordinary state rather than an edge case, and since the storage-pool change (#619) a common one: it fires on 3.9% of leaf solves at rainfall 1 m/yr and **50.0%** at 0.04.
+
+  This began as the fix for #576, where the AD branch died in a dry rainfall window (0.01 and 0.03–0.06 m/yr at θ = 0.005, five layers) with "Extrapolation disabled and evaluation point outside of interpolated domain" while TF24 ran — asking, in shutdown, for the stem potential that would carry a *negative* sap flux, i.e. wetter than saturation. **That throw no longer reproduces**, on this commit or on develop: phylloptim 0.6.0 closed it upstream. The regression test added here is therefore a guard against its return, not a reproducer, and the reason to make this change is now the redundant work and the asymmetry rather than the crash.
 
 * **The scenario gateway scores numerical viability and persistence as separate
   axes, and no longer leads with a match rate** (#572). `scenario_summary()`

@@ -7,6 +7,7 @@
 #include <plant/util.h>
 #include <plant/adaptive_interpolator.h> // interpolator::refinement_failure
 #include <odelia/ode_interface.hpp>
+#include <odelia/ode_util.hpp> // odelia::util::stop_domain
 
 #include <plant/disturbance_regime.h>
 
@@ -14,6 +15,7 @@
 #include <cmath>
 #include <limits>
 #include <string>
+#include <utility> // std::pair
 
 using namespace Rcpp;
 
@@ -75,6 +77,32 @@ public:
   void introduce_new_node(size_t species_index);
   void introduce_new_nodes(const std::vector<size_t>& species_index);
 
+  // Apply one non-introduction scheduled event (issue #628). Called between
+  // solver legs, so it may change state and ODE size but must not move the
+  // clock -- the caller re-reads both with set_state_from_system(). An action
+  // is free to reach the answer however it likes, including by integrating its
+  // own fast sub-model over the event's nominal duration with the patch's
+  // demography frozen; to this solver that is still one instantaneous jump.
+  EventRecord apply_event(const NodeScheduleEvent& event);
+
+  // Scale every selected node's density by phi, and report how many nodes were
+  // touched. Shared by harvest and climate extremes, which differ only in how phi
+  // is chosen per node -- so there is one place where a discrete removal meets
+  // the state, and one place to get it right.
+  //
+  // Both accountings have to move together. On the birth-date coordinate the
+  // model maintains log_density(t) = log(birth_rate) - mortality(t), because
+  // log_density integrates -mortality_rate from log(birth_rate * pr_estab)
+  // while mortality integrates +mortality_rate from -log(pr_estab). Moving
+  // only log_density leaves fecundity undiscounted (it is weighted by
+  // exp(-mortality) independently); moving only mortality leaves the standing
+  // density untouched. Either way the two views of the same cohort disagree.
+  // Returns {nodes_affected, density_removed} -- the count is bookkeeping, the
+  // density is the quantity actually taken out.
+  template <typename Select>
+  std::pair<size_t, double> scale_node_densities(size_t species_index,
+                                                 Select select);
+
   // Open to better ways to test whether nodes have been introduced
   int node_ode_size() const {
     int node_ode_size = ode_size() - environment.ode_size();
@@ -105,6 +133,12 @@ public:
   odelia::ode::iterator ode_rates(odelia::ode::iterator it);
   // Retrieve auxillary variables and save into the ode solver
   odelia::ode::iterator ode_aux(odelia::ode::iterator it) const;
+
+  // The strategy's own bound on its states, read by the solver: a step landing
+  // on a state it refuses is rejected and retried smaller, rather than
+  // committed and clamped by whoever reads it next. Walks the state vector in
+  // the order ode_state writes it.
+  bool ode_state_valid(const std::vector<double>& y) const;
 
   // Returns state in structure format as opposed to single 
   // vector as given by ode_state
@@ -452,7 +486,18 @@ void Patch<T,E>::check_finite_ode_state() const {
   const Internals& env_vars = environment.vars;
   for (size_t i = 0; i < env_vars.state_size; ++i) {
     if (!util::is_finite(env_vars.states[i])) {
-      util::stop("Non-finite environment state (index " + util::to_string(i) +
+      // A rejection, not a failure. #608 measured every observed TF24 soil
+      // excursion to be explicit-integrator overshoot -- the step a leg
+      // inherits across a discrete change, not a defect in the water balance --
+      // and the same case integrates cleanly from a smaller step. So hand this
+      // to the stepper to shrink and retry (odelia #55/#56). If the minimum
+      // step still lands here, odelia stops and reports this message, so
+      // nothing is lost when it really is divergent.
+      //
+      // Contrast mode (1) above, which stays fatal: that divergence is in the
+      // equations rather than the stepper, so shrinking cannot recover it and
+      // trying would only burn steps before failing anyway.
+      odelia::util::stop_domain("Non-finite environment state (index " + util::to_string(i) +
                  " = " + util::to_string(env_vars.states[i]) + ") at time=" +
                  util::to_string(environment.time) +
                  ". For TF24 this is a soil-water state driven non-finite by the "
@@ -791,6 +836,167 @@ void Patch<T,E>::introduce_new_nodes(const std::vector<size_t>& species_index) {
 }
 
 template <typename T, typename E>
+template <typename Select>
+std::pair<size_t, double>
+Patch<T,E>::scale_node_densities(size_t species_index, Select select) {
+  species_type& sp = species[species_index];
+  size_t n_affected = 0;
+  double density_removed = 0.0;
+  for (auto n = sp.node_begin(); n != sp.node_end(); ++n) {
+    const double phi = select(n->height());
+    if (phi >= 1.0) {
+      continue;
+    }
+    if (!(phi > 0.0)) {
+      util::stop("An event must leave a positive fraction of each cohort: "
+                 "removing all of one would take its density to -Inf, which "
+                 "the density transport cannot carry back.");
+    }
+    const double log_phi = std::log(phi);
+    const double before = n->get_density();
+    n->set_log_density(n->get_log_density() + log_phi);
+    if (util::is_finite(before)) {
+      density_removed += before - n->get_density();
+    }
+    n->individual.set_state("mortality",
+                            n->individual.state(MORTALITY_INDEX) - log_phi);
+    ++n_affected;
+  }
+  return {n_affected, density_removed};
+}
+
+template <typename T, typename E>
+EventRecord Patch<T,E>::apply_event(const NodeScheduleEvent& event) {
+  EventRecord rec;
+  rec.time = time();
+  rec.type = event.type;
+  rec.target = event.target;
+  rec.target_index = event.target_index;
+  rec.requested = event.params;
+
+  // Which species the event reaches: one, or all of them.
+  std::vector<size_t> targets;
+  if (event.target == EventTarget::Species) {
+    targets.push_back(event.target_index);
+  } else {
+    for (size_t i = 0; i < species.size(); ++i) {
+      targets.push_back(i);
+    }
+  }
+
+  switch (event.type) {
+  case EventType::NodeIntroduction:
+    // Introductions are batched by the caller so that a run of them costs one
+    // environment recompute rather than one each; they never arrive here.
+    util::stop("Node introductions are applied via introduce_new_nodes()");
+    break;
+
+  case EventType::ResourcePulse: {
+    // The environment only: no individual changes, so the competition profile
+    // is untouched and the nodes keep their state. The rates are stale
+    // afterwards, but the solver recomputes them when it re-reads the system
+    // (Patch::ode_rates computes), so there is nothing to do here.
+    if (event.target_index >= environment.n_resources()) {
+      util::stop("Resource " + util::to_string(event.target_index + 1) +
+                 " does not exist: this environment has " +
+                 util::to_string(environment.n_resources()) + " resources");
+    }
+    rec.applied = environment.add_resource_pulse(event.target_index,
+                                                 event.params.at(0));
+    break;
+  }
+
+  case EventType::Harvest: {
+    // Remove a fraction of the individuals in a size band. One rule covers the
+    // cases that matter: a whole-population removal (the default band), taking
+    // everything above a size, and the size-selective removal the restoration
+    // work asks for (#627).
+    //
+    // Individuals are removed rather than shrunk. Changing sizes instead would
+    // have to keep them in decreasing order, which Species' competition
+    // integral relies on, and the unordered fallback exists only on the size
+    // coordinate. Removing part of an individual rather than the whole of it
+    // is a real and different thing, and needs that question answered first.
+    const double fraction = event.params.at(0);
+    const double size_min = event.params.at(1);
+    const double size_max = event.params.at(2);
+    if (!(fraction >= 0.0) || fraction >= 1.0) {
+      util::stop("Harvest fraction must be in [0, 1)");
+    }
+    const double phi = 1.0 - fraction;
+    size_t n_affected = 0;
+    double removed = 0.0;
+    for (size_t i : targets) {
+      const auto r = scale_node_densities(i, [&](double size) {
+        return (size >= size_min && size <= size_max) ? phi : 1.0;
+      });
+      n_affected += r.first;
+      removed += r.second;
+    }
+    rec.applied = {fraction, static_cast<double>(n_affected), removed};
+    break;
+  }
+
+  case EventType::ClimateExtreme: {
+    // An episode of extreme conditions -- heat, cold, salinity, whatever the
+    // model's `intensity` means -- that kills in proportion to the dose
+    // accumulated above a threshold.
+    //
+    // This is a worked example of the sub-integration pattern rather than
+    // defensible physiology. The event has a nominal duration in the world;
+    // the solver's clock does not move across it, so the action steps its own
+    // damage variable over that duration under a simple daily cycle and hands
+    // back a single survival fraction. The hook is the part worth keeping: a
+    // model with a real damage state (#566 for TF24's leaf) plugs in here, and
+    // until one exists a dose-dependent mortality is the honest crude stand-in.
+    const double intensity = event.params.at(0);
+    const double duration = event.params.at(1);
+    const double threshold = event.params.at(2);
+    const double sensitivity = event.params.at(3);
+    if (!util::is_finite(duration) || duration < 0.0) {
+      util::stop("Climate extreme duration must be finite and non-negative");
+    }
+
+    // Half-hourly sub-steps through a sinusoidal daily cycle peaking at
+    // `intensity`, with amplitude set by its excess over `threshold`. Dose
+    // accrues only above the threshold, so a mild episode accrues none at all.
+    const double dt_days = 0.5 / 24.0;
+    const size_t n_steps =
+      static_cast<size_t>(std::max(1.0, std::ceil(duration * 365.0 / dt_days)));
+    const double amplitude = std::max(0.0, intensity - threshold);
+    double damage = 0.0;
+    for (size_t k = 0; k < n_steps; ++k) {
+      const double day_fraction =
+        std::fmod(static_cast<double>(k) * dt_days, 1.0);
+      // Peak mid-cycle; the trough sits one amplitude below the threshold.
+      const double level =
+        threshold + amplitude * (2.0 * std::sin(M_PI * day_fraction) - 1.0);
+      const double excess = std::max(0.0, level - threshold);
+      damage += sensitivity * excess * dt_days / 365.0;
+    }
+
+    const double phi = std::exp(-damage);
+    size_t n_affected = 0;
+    double removed = 0.0;
+    for (size_t i : targets) {
+      const auto r = scale_node_densities(i, [&](double) { return phi; });
+      n_affected += r.first;
+      removed += r.second;
+    }
+    rec.applied = {1.0 - phi, static_cast<double>(n_affected), removed};
+    break;
+  }
+  }
+
+  // Anything that changed the vegetation changes the light profile too, and
+  // every cohort's rates are computed against it.
+  if (event.type != EventType::ResourcePulse) {
+    compute_environment(false);
+  }
+  return rec;
+}
+
+template <typename T, typename E>
 void Patch<T,E>::r_set_time(double time) {
   environment.time = time;
 }
@@ -972,6 +1178,57 @@ template <typename T, typename E>
 odelia::ode::iterator Patch<T,E>::ode_aux(odelia::ode::iterator it) const {
   it = odelia::ode::ode_aux(species.begin(), species.end(), it);
   return it;
+}
+
+template <typename T, typename E>
+bool Patch<T,E>::ode_state_valid(const std::vector<double>& y) const {
+  // The environment block first, and separately: it is the trailing part of the
+  // ODE vector, it is where integrator overshoot shows up (TF24's soil water,
+  // driven past its bounds by a step inherited across a discrete change), and
+  // the completed step's state never reaches check_finite_ode_state(), which
+  // runs per stage. Finiteness only -- a node's log_density is legitimately
+  // -Inf, so this must not be extended over the species block.
+  const size_t n_env = environment.ode_size();
+  if (n_env > 0 && y.size() >= n_env) {
+    for (size_t i = y.size() - n_env; i < y.size(); ++i) {
+      if (!util::is_finite(y[i])) {
+        return false;
+      }
+    }
+  }
+
+  // Resolved on the concrete strategy, so a model that appends or inserts a
+  // state gets its own positions rather than its base's. Named rather than
+  // indexed because a strategy that declared the index would be declaring
+  // something its own state_names() already says.
+  static const std::vector<size_t> bounded = [] {
+    const std::vector<std::string> names = T::state_names();
+    std::vector<size_t> ret;
+    for (const std::string& name : T::non_negative_states()) {
+      const auto found = std::find(names.begin(), names.end(), name);
+      if (found == names.end()) {
+        util::stop("Strategy declares '" + name + "' as a non-negative state "
+                   "and does not carry it");
+      }
+      ret.push_back(static_cast<size_t>(found - names.begin()));
+    }
+    return ret;
+  }();
+  if (bounded.empty()) {
+    return true;
+  }
+  const size_t stride = node_type::ode_size();
+  size_t at = 0;
+  for (const auto& sp : species) {
+    for (size_t k = 0; k < sp.size(); ++k, at += stride) {
+      for (const size_t i : bounded) {
+        if (y[at + i] < 0.0) {
+          return false;
+        }
+      }
+    }
+  }
+  return true;
 }
 
 }

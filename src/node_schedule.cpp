@@ -35,7 +35,10 @@ NodeSchedule NodeSchedule::expand(size_t n_extra,
 void NodeSchedule::clear_times(size_t species_index) {
   events_iterator e = events.begin();
   while (e != events.end()) {
-    if (e->species_index == species_index) {
+    // Only introductions are addressed by species: every other event type
+    // acts on the patch as a whole and carries target_index 0, so clearing a
+    // species' schedule must not take them with it.
+    if (e->is_node_introduction() && e->target_index == species_index) {
       e = events.erase(e);
     } else {
       ++e;
@@ -77,11 +80,32 @@ void NodeSchedule::set_times(const std::vector<std::vector<double> >& times_) {
 std::vector<double> NodeSchedule::times(size_t species_index) const {
   std::vector<double> ret;
   for (events_const_iterator e = events.begin(); e != events.end(); ++e) {
-    if (e->species_index == species_index) {
+    if (e->is_node_introduction() && e->target_index == species_index) {
       ret.push_back(e->time_introduction());
     }
   }
   return ret;
+}
+
+std::vector<NodeScheduleEvent> NodeSchedule::get_events() const {
+  return std::vector<Event>(events.begin(), events.end());
+}
+
+void NodeSchedule::set_all_events(const std::vector<Event>& events_) {
+  events.clear();
+  // Insert one at a time rather than sorting a copy, so the caller's order is
+  // irrelevant and the tie-breaking rule lives in exactly one place.
+  //
+  // Rebuild each event from its introduction time rather than copying it
+  // wholesale: master events must carry exactly one time (reset() appends the
+  // interval end to the *queue* copies), and the caller may be handing back an
+  // event that has been through a queue.
+  for (std::vector<Event>::const_iterator e = events_.begin();
+       e != events_.end(); ++e) {
+    insert_event(Event(e->time_introduction(), e->target_index, e->type, e->target,
+                       e->params));
+  }
+  reset();
 }
 
 void NodeSchedule::reset() {
@@ -187,7 +211,11 @@ void NodeSchedule::r_set_max_time(double x) {
   if (x < 0) {
     Rcpp::stop("max_time must be nonnegative");
   }
-  if (x < events.back().time_introduction()) {
+  // events.back() is the latest scheduled event, so this is "max_time must not
+  // fall before the end of the schedule". An empty schedule constrains
+  // nothing -- and it is the normal case here, because make_node_schedule()
+  // and node_schedule_default() both set max_time before any times are added.
+  if (!events.empty() && x < events.back().time_introduction()) {
     Rcpp::stop("max_time must be at least the final scheduled time");
   }
   max_time = x;
@@ -273,13 +301,30 @@ NodeSchedule NodeSchedule::r_copy() const {
 NodeSchedule::events_iterator
 NodeSchedule::add_time(double time, size_t species_index,
                          events_iterator it) {
-  Event e(time, species_index);
-  it = events.begin();
-  while (it != events.end() && time > it->time_introduction()) {
+  return insert_event(Event(time, species_index));
+}
+
+// Sorted insert, by time and then by the type's place in the within-time
+// application order (see EventType), and STABLE within a (time, type) pair --
+// equal events keep the order they were given in.
+//
+// Stability is not cosmetic. Two rainfall pulses at one instant are capped in
+// sequence against the same pool, so the first one applied gets the capacity
+// and the second gets what is left. Applying them in reverse order conserves
+// total water but attributes accepted and shed to the wrong event records,
+// which is precisely what the log exists to report.
+NodeSchedule::events_iterator
+NodeSchedule::insert_event(const Event& e) {
+  const double time = e.time_introduction();
+  const int rank = event_type_rank(e.type);
+  events_iterator it = events.begin();
+  while (it != events.end() &&
+         (time > it->time_introduction() ||
+          (util::identical(time, it->time_introduction()) &&
+           rank >= event_type_rank(it->type)))) {
     ++it;
   }
-  it = events.insert(it, e);
-  return it;
+  return events.insert(it, e);
 }
 
 }
