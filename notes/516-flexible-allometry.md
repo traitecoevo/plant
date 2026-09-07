@@ -360,6 +360,77 @@ Open, and needing a decision:
   has empirical support.
 - **Whether storage should outrank growth**, as the literature says it does.
 
+## The empirical case against a reserve-gated trigger (2026-09-08)
+
+Two sources read in full: Robinson's mulga chapter (573 *Acacia aneura*, 49 dune
+sites, drone imagery 2017-2024 across a severe drought) and Manzoni et al. 2015
+(*Adv. Water Resour.* 84:37-51), an optimality model of leaf phenology.
+
+**They say the trigger should be the instantaneous carbon balance, not the size of
+the reserve pool.** Four independent lines:
+
+1. **The optimal trigger is a flux, derived not assumed.** Manzoni maximises
+   cumulative season carbon gain over leaf area and gets `dG/dt = 0` -> `A_net = 0`
+   (Eq. 7, p.40): shed when the marginal leaf stops paying for its own
+   respiration. In water-potential units that is `psi_s ~ -2 MPa`, about day 20 of
+   a dry-down — *"optimal leaf loss is a later and more drastic measure of water
+   loss regulation than stomatal closure"* (p.48).
+2. **It fires while the plant is still carbon-rich.** Manzoni's Fig. 4D has
+   cumulative gain at its *seasonal maximum* when shedding begins. **Waiting for
+   reserves to run down IS the evergreen strategy** — and that strategy runs
+   `A_net` to -10 umol m^-2 s^-1 and its season gain from +150 to **-50 gC m^-2**.
+   It is the loser at long drought. This is the sharpest contradiction of what we
+   built.
+3. **Shedding is what healthy plants do.** 85% of Robinson's trees shed, including
+   the healthiest; the died and survived canopy-density distributions are
+   *indistinguishable* in 2018 and only separate from 2019. Shedding is not a
+   marker of imminent death.
+4. **The size result runs backwards for a reserve rule.** Under reserve exhaustion
+   the biggest stores should shed last and die when they shed. Robinson finds
+   large trees shed *less* (*"a large canopy area apparently buffering against the
+   most severe drought-driven leaf loss"*) **and** survive best — canopy area is
+   the strongest mortality predictor (log-odds -0.03, p = 8.4e-5). The explanation
+   offered is water access, not carbon stores.
+
+### What the data require
+
+- **Leaf area must reach ~zero and come back, in a plant that stays alive.**
+  Manzoni's optimum is literally `L = 0` for all three shedding strategies;
+  Robinson's methods treat complete de-greening followed by re-leafing as
+  documented mulga behaviour, and only score a tree dead if it fails to re-green
+  in a later wet year. ⚠️ **This kills the idea of canopy-dependent mortality**
+  floated above — losing the canopy must not itself be lethal.
+- **Decline is slow, recovery fast.** Robinson: 2-3 years down, one season back.
+- **Recovery's cost is a discrete re-flush, not a rate.** Manzoni prices it at
+  `gamma = LMA * f_C / Y ~ 48 gC m^-2` per unit LAI, so a full canopy is ~95
+  against a 600-800 gC m^-2 season — 12-16 per cent. We charge continuous turnover
+  instead and so miss the flushing cost that drives the whole result.
+- **Duration matters more than intensity.** The switch is at `T_d/T ~ 0.1`;
+  evergreen gain crosses zero at `T_d/T ~ 0.45`.
+- **Gradual and instantaneous shedding give identical carbon gain** in Manzoni, so
+  gradual is free in the optimality currency and is what the field data show.
+
+### Consequence for this work
+
+**The gate reads the wrong variable.** Raising `a_pl1` failed not because the
+threshold was in the wrong place but because reserves are the wrong signal — they
+are near-binary (see above), and they turn over *after* the decision should have
+been made. Switching the gate to the instantaneous carbon balance would:
+
+- fire early, while the plant still has reserves, which is what the empirical
+  record shows and what Daniel proposed;
+- leave the pool defended rather than drained, so `r` stops being binary and gains
+  a resting point without any change to `dS/dt`;
+- make the response continuous in a quantity that is itself continuous, so there is
+  something for it to act on.
+
+⚠️ **One structural tension it creates.** If leaf area must be able to reach zero,
+the log-departure coordinate cannot represent the endpoint — `phi -> -inf` — and
+`rebuild_rel ~ 1/A` diverges there. The coordinate was chosen to make the resting
+model exact, and it does; but it assumes the canopy stays a fixed fraction away
+from nothing. A fully-shedding species breaks that assumption, and choosing between
+exactness at rest and representability at zero is now an open design question.
+
 ## Open
 
 - Which growth rate the optimality criterion should maximise is **not** a modelling choice to be argued — see "Deciding the objective by invasion analysis" above. It is settled by experiment, and the cheap half of that experiment can run before any of this code exists.
