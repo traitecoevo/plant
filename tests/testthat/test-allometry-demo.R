@@ -173,3 +173,75 @@ test_that("the demo's equations reproduce the C++ departure rates", {
                  tolerance = 1e-10, info = label)
   }
 })
+
+test_that("the shedding criterion's carbon decomposition is exact", {
+  skip_if_not(file.exists(demo_helpers), "demo helpers not present")
+  skip_on_cran()
+  source(demo_helpers, local = TRUE)
+
+  ## P = c*abar*A - g(h)*A - s(h,A_s). This is the model's own budget
+  ## rearranged, not an approximation of it, and the demo's criterion is
+  ## nothing but its derivative -- so if this stops holding exactly, the whole
+  ## analytical section is void rather than merely imprecise.
+  for (h in c(5, 10, 15, 20)) {
+    z <- allometry_carbon_terms(h, theta_soil = 0.20)
+    expect_equal(z$gain - z$g - z$s, z$P, tolerance = 1e-10,
+                 info = sprintf("height %g", h))
+  }
+})
+
+test_that("the elasticity rises with height, and the criterion tracks dP/dA", {
+  skip_if_not(file.exists(demo_helpers), "demo helpers not present")
+  skip_on_cran()
+  source(demo_helpers, local = TRUE)
+
+  z <- lapply(c(5, 10, 15, 20), allometry_carbon_terms, theta_soil = 0.20)
+  eta   <- vapply(z, `[[`, numeric(1), "eta")
+  kappa <- vapply(z, `[[`, numeric(1), "kappa")
+  dPdA  <- vapply(z, `[[`, numeric(1), "dPdA")
+
+  ## kmax ~ 1/h, so a taller plant is more supply-limited and relieving that
+  ## limitation is worth more. This is what closes the gap in which tall plants
+  ## died without ever shedding.
+  expect_true(all(diff(eta) > 0))
+  expect_true(all(diff(kappa) > 0))
+
+  ## Above ~10 m the elasticity exceeds 1: leaf area is actively
+  ## counterproductive, and removing leaves raises TOTAL assimilation.
+  expect_lt(eta[[1]], 1)      # 5 m
+  expect_gt(eta[[3]], 1)      # 15 m
+
+  ## The criterion and the measured derivative agree in sign. (Not independent
+  ## -- eta is recovered through the decomposition, because the profit auxes
+  ## cannot difference abar reliably -- but it does guard the arithmetic.)
+  expect_equal(eta > 1 - kappa, dPdA < 0)
+
+  ## A short 5 m plant in moist soil should not shed; a tall one should.
+  expect_gt(dPdA[[1]], 0)
+  expect_lt(dPdA[[4]], 0)
+})
+
+test_that("shedding is measured at fixed sapwood, which is what thinning does", {
+  skip_if_not(file.exists(demo_helpers), "demo helpers not present")
+  skip_on_cran()
+  source(demo_helpers, local = TRUE)
+
+  ## Letting sapwood follow leaf area down the pipe model measures movement
+  ## ALONG the allometry, not thinning, and gets the sign wrong where it
+  ## matters. allometry_carbon_terms() holds A_s fixed and asserts it does; this
+  ## checks the assertion is load-bearing by confirming the two differ.
+  z <- allometry_carbon_terms(15, theta_soil = 0.20)
+  expect_lt(z$dPdA, 0)                       # at fixed sapwood: shedding helps
+
+  s <- TF24_Strategy(collect_all_auxiliary = TRUE)
+  along <- function(phi) {
+    e <- tf24_demo_env(0.20)
+    i <- TF24_Individual(s)
+    i$set_state("height", 15)
+    i$set_state("log_area_leaf_departure", phi)   # psi left at 0: A_s follows A
+    i$set_initial_states(e); i$compute_rates(e)
+    c(A = i$aux("competition_effect"), P = i$aux("net_mass_production_dt"))
+  }
+  a <- along(0); b <- along(-0.02)
+  expect_gt((b[["P"]] - a[["P"]]) / (b[["A"]] - a[["A"]]), 0)   # opposite sign
+})

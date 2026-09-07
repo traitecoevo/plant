@@ -138,3 +138,60 @@ allometry_reference_curve <- function(s, heights) {
              area_leaf = z$area_leaf,
              area_sapwood = z$area_sapwood)
 }
+
+## The carbon budget split by whether a cost scales with leaf area, which is what
+## the shedding criterion rests on. Returns the three terms plus the elasticity
+## of per-leaf assimilation to hydraulic supply.
+##
+## `eta` is estimated by differencing at FIXED sapwood area -- lower the leaf
+## departure by d and raise the sapwood departure by d, so A_s is unchanged. That
+## is what real thinning does; letting A_s follow A down the pipe model measures
+## something else entirely.
+allometry_carbon_terms <- function(height, theta_soil, d = 0.02, phi = 0) {
+  p <- TF24_Strategy()$pars
+  eta_c <- 1 - 2 / (1 + p$eta) + 1 / (1 + 2 * p$eta)
+  cc <- p$a_bio * p$a_y
+  CONV <- 60 * 60 * 12 * 365 / 1e6          # per-second to annual, mol
+  s <- TF24_Strategy(collect_all_auxiliary = TRUE)
+
+  at <- function(ph, ps) {
+    e <- tf24_demo_env(theta_soil)
+    i <- TF24_Individual(s)
+    i$set_state("height", height)
+    i$set_state("log_area_leaf_departure", ph)
+    i$set_state("log_area_sapwood_departure", ps)
+    i$set_initial_states(e)
+    i$compute_rates(e)
+    A <- i$aux("competition_effect")
+    list(A = A, A_s = i$aux("area_sapwood"),
+         abar = (i$aux("profit") + i$aux("shadow_cost")) * CONV,
+         P = i$aux("net_mass_production_dt"))
+  }
+
+  a <- at(phi, 0)
+  b <- at(phi - d, d)                       # same A_s, less A
+  stopifnot(abs(b$A_s / a$A_s - 1) < 1e-9)
+
+  ## Costs that scale with leaf area: leaf, fine root, and bark (pinned to leaf
+  ## area). Sapwood is the one that does not.
+  per_area <- cc * (p$r_l * p$lma + p$r_r * p$a_r1 +
+                      p$r_b * p$a_b1 * p$theta * height * eta_c * p$rho) +
+    (p$k_l * p$lma + p$k_r * p$a_r1 +
+       p$k_b * p$a_b1 * p$theta * height * eta_c * p$rho)
+  m_s <- a$A_s * height * eta_c * p$rho
+  dPdA <- (b$P - a$P) / (b$A - a$A)
+
+  ## eta is recovered from the measured dP/dA and the (exact) decomposition,
+  ## NOT by differencing abar. The profit auxes misreport assimilation off the
+  ## trajectory by ~2 per cent, which is small against the level but comparable
+  ## to the difference being taken, so a direct estimate of eta is unusable
+  ## while dP/dA -- a difference of P itself -- is not.
+  list(height = height, theta_soil = theta_soil,
+       gain = cc * a$abar * a$A,
+       g = per_area * a$A,
+       s = cc * p$r_s * m_s + p$k_s * m_s,
+       P = a$P,
+       kappa = per_area / (cc * a$abar),
+       eta = 1 - (dPdA + per_area) / (cc * a$abar),
+       dPdA = dPdA)
+}

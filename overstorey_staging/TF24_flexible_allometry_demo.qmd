@@ -185,6 +185,117 @@ moved as early as it would go. The carbon-balance gate is the better model on th
 evidence; it does not, as it turns out, fix survival either — see below.
 :::
 
+## When does shedding pay? An analytical criterion
+
+This is the centre of the design. Thinning is only worth doing if it improves the
+plant's carbon budget, and that can be settled on paper rather than by running
+stands.
+
+### The budget splits in two
+
+At a given height, every cost either scales with leaf area or does not. Leaf, fine
+root and bark all do — bark because it is pinned to leaf area. Sapwood does not:
+it is carried whether or not any particular leaf exists. So
+
+$$P \;=\; \underbrace{c\,\bar a\!\left(\tfrac{A_s}{A}\right) A}_{\text{gain}}
+\;-\; \underbrace{g(h)\,A}_{\substack{\text{leaf, root, bark}\\ \text{(scales with }A)}}
+\;-\; \underbrace{s(h, A_s)}_{\substack{\text{sapwood}\\ \text{(does not)}}}$$
+
+where $\bar a$ is assimilation per unit leaf area. It depends on $A$ only through
+the Huber value $A_s/A$: fewer leaves on the same stem means better hydraulic
+supply to each.
+
+```{r decomposition}
+terms <- lapply(c(5, 10, 15, 20), allometry_carbon_terms, theta_soil = 0.20)
+do.call(rbind, lapply(terms, function(z)
+  data.frame(height = z$height, gain = z$gain, `leaf-side cost` = z$g,
+             `sapwood cost` = z$s,
+             `gain - costs` = z$gain - z$g - z$s, `actual P` = z$P,
+             check.names = FALSE))) |>
+  knitr::kable(digits = 3)
+```
+
+The last two columns agree to machine precision, so this is the model's own budget
+rearranged rather than an approximation of it.
+
+### Differentiate at fixed sapwood
+
+Real thinning happens at roughly constant sapwood: the stem is lost only to
+heartwood, at `k_s`, while leaves go at the faster `k_l`. So the derivative that
+matters holds $A_s$ fixed — and since $k_{\max}\propto A_s/A$, reducing leaf area
+*raises* supply per leaf:
+
+$$\frac{\partial P}{\partial A}\bigg|_{A_s} = c\,\bar a\,(1-\eta) - g(h),
+\qquad
+\eta \;\equiv\; \frac{k_{\max}}{\bar a}\,\frac{\partial \bar a}{\partial k_{\max}}$$
+
+Writing $\kappa = g/(c\bar a)$ for the leaf-side cost as a fraction of the
+leaf-side gain, shedding improves the budget exactly when this is negative:
+
+$$\boxed{\;\text{shedding pays} \iff \eta > 1 - \kappa\;}$$
+
+### Reading it
+
+$\eta$ is the elasticity of per-leaf assimilation to hydraulic supply, and it is
+the whole content of the criterion.
+
+- **$\eta = 0$** — no hydraulic feedback — gives $\kappa > 1$: shed once leaf-side
+  costs exceed leaf-side gains. That is exactly Manzoni et al. (2015)'s
+  $A_\text{net} = 0$, and it is what the model implements today.
+- **$\eta = 1$** — assimilation proportional to supply — means shedding *always*
+  pays: halving leaf area leaves total assimilation unchanged and halves the cost.
+- **$\eta > 1$** means leaf area is actively counterproductive: removing leaves
+  *raises* total assimilation.
+
+```{r elasticity}
+do.call(rbind, lapply(terms, function(z)
+  data.frame(height = z$height, kappa = z$kappa, `threshold 1-kappa` = 1 - z$kappa,
+             eta = z$eta, `dP/dA` = z$dPdA,
+             `shedding pays` = z$eta > 1 - z$kappa, check.names = FALSE))) |>
+  knitr::kable(digits = 3)
+```
+
+**$\eta$ rises steeply with height**, because $k_{\max}\propto 1/h$ — a taller
+plant is more supply-limited, so relieving that limitation is worth more. Above
+about 10 m it exceeds 1: TF24 says a tall plant assimilates *more* in total after
+shedding leaves. Per-leaf assimilation falls 46-fold between 5 m and 15 m in this
+model, which is what makes the effect so large.
+
+### Two things this settles
+
+**Whole-plant solvency is the wrong gate.** At 15 m in moist soil the plant is
+solvent — `P` is positive — and shedding still improves its budget. Solvency asks
+whether the plant is in deficit; the criterion asks whether the *last leaf* is
+worth keeping. Only the second says whether thinning helps.
+
+**And it closes the gap** in which a tall plant died without ever shedding. That
+gap was an artefact of setting $\eta = 0$: with the hydraulic term included, tall
+plants are exactly the ones for which thinning pays most.
+
+::: {.callout-warning}
+## Why this is not implemented yet
+Two reasons, both about measuring $\eta$ rather than about the criterion.
+
+**The auxes cannot currently measure it.** `profit` and `shadow_cost` reconstruct
+`P` exactly at a resting state but are about 2 per cent out at a departed one.
+That is small against the level and comparable to the *difference* being taken, so
+differencing $\bar a$ directly is unusable. The $\eta$ column above is therefore
+recovered from the measured `dP/dA` through the exact decomposition — a valid
+measurement of $\eta$, but not an independent check of the criterion.
+
+**And the number it depends on is about to change.** The 46-fold assimilation drop
+with height comes from stem resistance assumed linear in height. #617 (epic #615)
+replaces that with a path integral over conduit widening and the Huber profile, so
+the height exponent is derived rather than assumed. Any $\eta$ measured now is
+measured against a relation that is being replaced.
+
+There is also a prior question. The leverage above is large partly because the
+plant sits far from a sensible sapwood-to-leaf ratio, so `P` is a small residual
+between large numbers. **Sapwood should track its optimum first**; then the
+shedding question is posed against a well-configured stem instead of a
+misconfigured one.
+:::
+
 ## What it does
 
 ### The gate
