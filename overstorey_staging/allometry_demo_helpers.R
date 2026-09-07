@@ -109,3 +109,15 @@ demo_soil_history <- function(wet = 0.30, dry = 0.11,
   }
   rbind(seg(wet, years_wet), seg(dry, years_dry), seg(wet, years_wet))
 }
+
+## The allometric curves themselves, taken from the strategy's own C++ expansion
+## rather than re-derived in R, so a reference line in a plot cannot drift from
+## the model it is a reference for.
+allometry_reference_curve <- function(s, heights) {
+  expand <- get("TF24_strategy_expand_allometry", envir = asNamespace("plant"))
+  zero <- rep(0, length(heights))
+  z <- expand(s, heights, zero, zero)
+  data.frame(height = heights,
+             area_leaf = z$area_leaf,
+             area_sapwood = z$area_sapwood)
+}

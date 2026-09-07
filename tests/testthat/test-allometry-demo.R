@@ -34,6 +34,18 @@ test_that("the flexible-allometry demo's claims still hold", {
   ## "rebuilds to ~98 per cent of preferred"
   expect_gt(tail(flex$canopy_fraction, 1), 0.9)
 
+  ## "leaf area falls to 19 per cent of what its height implies while sapwood
+  ## area falls only to 46 per cent" -- the claim the allometry-plane panels
+  ## rest on, and the one a reader cannot check by eye because the two x-axes
+  ## differ by four orders of magnitude.
+  ref <- allometry_reference_curve(TF24_Strategy(), flex$height)
+  expect_equal(min(flex$area_leaf / ref$area_leaf), 0.19, tolerance = 0.15)
+  expect_equal(min(flex$area_sapwood / ref$area_sapwood), 0.46, tolerance = 0.15)
+  ## The fixed plant never leaves its curve, which is what the dashed line means.
+  ref_fixed <- allometry_reference_curve(TF24_Strategy(), fixed$height)
+  expect_equal(max(abs(fixed$area_leaf / ref_fixed$area_leaf - 1)), 0,
+               tolerance = 1e-8)
+
   ## Height never falls, in either model.
   expect_true(all(diff(flex$height) >= -1e-10))
   expect_true(all(diff(fixed$height) >= -1e-10))
