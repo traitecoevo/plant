@@ -261,16 +261,49 @@ about 10 m it exceeds 1: TF24 says a tall plant assimilates *more* in total afte
 shedding leaves. Per-leaf assimilation falls 46-fold between 5 m and 15 m in this
 model, which is what makes the effect so large.
 
-### Two things this settles
+### What this settles, and what it does not
 
-**Whole-plant solvency is the wrong gate.** At 15 m in moist soil the plant is
-solvent — `P` is positive — and shedding still improves its budget. Solvency asks
-whether the plant is in deficit; the criterion asks whether the *last leaf* is
-worth keeping. Only the second says whether thinning helps.
-
-**And it closes the gap** in which a tall plant died without ever shedding. That
-gap was an artefact of setting $\eta = 0$: with the hydraulic term included, tall
+**It closes the gap** in which a tall plant died without ever shedding. That gap
+was an artefact of setting $\eta = 0$: with the hydraulic term included, tall
 plants are exactly the ones for which thinning pays most.
+
+**Solvency is not wrong, but it is late.** Across every size and soil tried, no
+state has the plant insolvent while shedding *hurts* — so gating on whole-plant
+solvency would never make a plant thin pointlessly. What it would do is fire late:
+there is a wide band of *solvent* plants for which thinning already pays.
+
+```{r solvency-vs-criterion}
+grid <- expand.grid(height = c(2, 5, 10, 15, 20),
+                    theta_soil = c(0.30, 0.20, 0.16, 0.14, 0.12))
+q <- do.call(rbind, lapply(seq_len(nrow(grid)), function(i) {
+  z <- allometry_carbon_terms(grid$height[i], grid$theta_soil[i])
+  data.frame(height = z$height, soil = z$theta_soil, P = z$P, dPdA = z$dPdA,
+             quadrant = if (z$P >= 0 && z$dPdA >= 0) "solvent, keep"
+                        else if (z$P >= 0) "solvent, SHEDDING PAYS"
+                        else if (z$dPdA < 0) "insolvent, shedding pays"
+                        else "insolvent, shedding hurts")
+}))
+table(q$quadrant) |> as.data.frame() |>
+  setNames(c("quadrant", "cases")) |> knitr::kable()
+```
+
+**And that band is an artefact of the stem being wrong, not of the criterion.**
+Sweeping the sapwood departure at fixed leaf area, net production is maximised at
+stem-per-leaf about **3.3 times** the value the pipe model prefers — and at *that*
+sapwood, shedding no longer pays:
+
+| stem per leaf | 1.0 (default) | 1.35 | 2.5 | **3.3 (optimum)** | 6.0 |
+|---|---|---|---|---|---|
+| P at 15 m, moist | 3.42 | 17.45 | 24.91 | **29.74** | 22.92 |
+| does shedding pay? | yes | yes | no | **no** | no |
+
+So a plant carrying its optimal stem is one for which thinning does not pay while
+it is solvent, and the two criteria coincide. The discrepancy above is the model
+sitting at a badly-placed Huber value, not a disagreement between the criteria.
+
+This also says a *single fixed* $\theta$ cannot be right, because
+$k_{\max}\propto 1/h$: the ratio that suits a seedling starves a 15 m tree. It is
+the strongest argument yet for the sapwood target being derived rather than fixed.
 
 ::: {.callout-warning}
 ## Why this is not implemented yet
