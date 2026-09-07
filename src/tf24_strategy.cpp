@@ -79,6 +79,8 @@ void TF24_Strategy::refresh_indices () {
   state_idx_area_heartwood      = state_index.at("area_heartwood");
   state_idx_mass_heartwood      = state_index.at("mass_heartwood");
   state_idx_storage             = state_index.at("storage");
+  state_idx_log_area_leaf_departure =
+    state_index.at("log_area_leaf_departure");
 }
 
 // [eqn 2] area_leaf (inverse of [eqn 3])
@@ -142,9 +144,21 @@ double TF24_Strategy::mass_above_ground(double mass_leaf, double mass_bark,
 
 // for updating auxiliary state
 void TF24_Strategy::update_dependent_aux(const int index, Internals& vars) {
-  if (index == HEIGHT_INDEX) {
-    double height = vars.state(HEIGHT_INDEX);
-    vars.set_aux(aux_idx_competition_effect, area_leaf(height));
+  // Leaf area depends on BOTH height and the departure state, so either write
+  // has to refresh it. Individual::set_ode_state refreshes per slot in slot
+  // order, so the height pass (slot 0) necessarily reads the departure still
+  // sitting in vars from the previous evaluation; the departure pass recomputes
+  // from both, which is why it must not be a partial update. Whichever fires
+  // last leaves the aux consistent with the whole state vector.
+  if (index == HEIGHT_INDEX || index == state_idx_log_area_leaf_departure) {
+    const double height = vars.state(HEIGHT_INDEX);
+    // A = A*(h) * exp(phi). With plasticity off phi is exactly 0 and exp(0) is
+    // exactly 1, so this is bit-identical to the plain area_leaf(height) it
+    // replaces -- the multiplication is exact and cannot be reassociated,
+    // there being no addition for an FMA to fuse (#516).
+    const double departure = vars.state(state_idx_log_area_leaf_departure);
+    vars.set_aux(aux_idx_competition_effect,
+                 area_leaf(height) * std::exp(departure));
     vars.set_aux(aux_idx_height_inverse, 1.0 / height);
   }
 }
@@ -286,6 +300,17 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   // so production and the two flows no longer balance: at capacity the charge
   // the gate withheld, Ppos(1 - G) ~ 1.2e-4 of production, leaves the budget.
   vars.set_rate(state_idx_storage, charge * (1.0 - r) - drain * r);
+
+  // The canopy's departure from the leaf area its height prefers (#516). Held
+  // at zero here, so leaf area is still exactly the allometric value and this
+  // commit changes no result: what it buys is the coordinate the plasticity
+  // terms will be written on, and a checkpoint at which "the state was added"
+  // and "the behaviour changed" are separately attributable.
+  //
+  // Zero is the resting value rather than a placeholder, so the state is inert
+  // rather than merely unused: the exact flow keeps phi at 0, and an integrator
+  // stepping a rate of exactly 0.0 leaves the state exactly 0.0.
+  vars.set_rate(state_idx_log_area_leaf_departure, 0.0);
 
   // [eqn 21] - Instantaneous mortality rate, now driven by relative reserves r.
   vars.set_rate(MORTALITY_INDEX,

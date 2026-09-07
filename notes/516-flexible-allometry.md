@@ -37,7 +37,24 @@ Freeing sapwood fixes all of it emergently. The canopy thins at up to `k_l = 0.4
 
 ## Mechanism
 
-Two new states, `state_size()` 6 -> 8: `area_leaf` and `area_sapwood`, both added to `non_negative_states()`. Positivity is a property of the form rather than a guard — every loss term is proportional to the state itself, so each decays exponentially and cannot cross zero. `height` stays a state and stays monotone: its rate remains a product of non-negative factors, so height never decreases even while the canopy is shedding.
+Two new states, `state_size()` 6 -> 8. **Each is integrated as a log departure from its preferred value, not as a level:**
+
+- `log_area_leaf_departure` = `ln(A / A*(h))`, where `A*(h) = (h/a_l1)^(1/a_l2)` is the preferred canopy for the current height;
+- `log_area_sapwood_departure` = `ln(A_s / (theta * A))`, added in the sapwood commit.
+
+Leaf area itself is then derived, `A = A*(h) * exp(phi)`, and cached in the `competition_effect` aux the model already reads.
+
+**Why the departure rather than the level.** Integrating `A` directly makes the pair `(h, A)` a *redundant* system: `A = A*(h)` is an invariant of the exact flow but Runge–Kutta preserves it only to truncation error, so height's rate would read a drifted `A` and exactness would be unreachable *by construction* rather than through any coding mistake. On the departure coordinate the allometric motion stays analytic and only the departure is integrated, so with plasticity off `dphi/dt` is exactly `0`, `phi` stays exactly `0`, and `exp(0) == 1` makes `A` bit-identical to today's `area_leaf(height)`.
+
+That exactness survives the solver because odelia's error control is a **max** norm over the states (`ode_control.hpp`, `rmax = std::max(r, rmax)`): a state with zero error contributes zero, so step sizes are untouched. An RMS norm would have diluted the mean and changed the steps, and the exactness claim would have been false — worth re-checking if odelia's controller ever changes.
+
+Three consequences worth having:
+
+- **Zero is the right default.** `Internals` zero-initialises states and `phi = 0` *is* "on the preferred trajectory", so a freshly constructed `Individual`, a `make_initial_state()` seeding, and an export/resume are all correct with no seeding code. Integrating levels would have started every plant at `A = 0`.
+- **Neither state belongs in `non_negative_states()`** — a log ratio is signed, so there is no bound to violate and nothing to declare.
+- **Scale-free by construction**, which is what keeps the plasticity parameters from repeating `storage_prod_eps`'s mistake (#620) of being an absolute constant against fluxes spanning six orders.
+
+`height` stays a state and stays monotone: its rate remains a product of non-negative factors, so height never decreases even while the canopy is shedding.
 
 **Conditional replacement of leaf turnover.** A smooth replacement fraction `f(r)`, logistic, centred below the growth threshold `a_st2`:
 

@@ -302,7 +302,7 @@ public:
   // Overrides ----------------------------------------------
 
   // update this when the length of state_names changes
-  static size_t state_size () { return 6; }
+  static size_t state_size () { return 7; }
   // update this when the length of aux_names changes
   size_t aux_size () { return aux_names().size(); }
 
@@ -313,7 +313,8 @@ public:
       "fecundity",
       "area_heartwood",
       "mass_heartwood",
-      "storage"
+      "storage",
+      "log_area_leaf_departure"
       });
   }
 
@@ -627,6 +628,9 @@ public:
   int state_idx_area_heartwood = -1;
   int state_idx_mass_heartwood = -1;
   int state_idx_storage        = -1;
+  // ln(area_leaf / area_leaf(height)): how far the canopy sits from the leaf
+  // area the height allometry prefers. Signed, so not a non_negative_state.
+  int state_idx_log_area_leaf_departure = -1;
 
   // For integrating functions with using Gauss-Kronrod quadrature
   quadrature::QK function_integrator;

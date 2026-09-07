@@ -606,3 +606,82 @@ test_that("a negative storage state is refused by name, not floored", {
   ind$set_state("storage", 1e-4)
   expect_no_error(ind$compute_rates(env))
 })
+
+## Leaf area as a state: the departure coordinate (#516) -------------------
+##
+## Leaf area is carried as ln(A / A*(h)), the departure from the leaf area the
+## height allometry prefers, rather than as a level. That choice is what makes
+## the fixed-allometry model an *exact* special case: integrating A alongside
+## height would make A = A*(h) a redundant invariant that Runge-Kutta preserves
+## only to truncation error, so height's rate would read a drifted A.
+##
+## The risk these guard against is the opposite of a wrong number -- a state
+## that is inert because it is unwired looks exactly like one that is inert
+## because it is resting, and only the second is what this claims.
+
+tf24_departure_env <- function() {
+  env <- Environment("TF24")
+  env$set_soil_number_of_depths(5)
+  env$set_soil_water_state(rep(0.2, 5))
+  env$set_fixed_environment(1.0, 40)
+  env
+}
+
+test_that("the leaf-area departure rests at zero and is exactly inert", {
+  env <- tf24_departure_env()
+  ind <- TF24_Individual()
+  expect_true("log_area_leaf_departure" %in% ind$ode_names)
+
+  ## Zero-initialised *is* the on-trajectory value, so a fresh individual needs
+  ## no seeding -- which is also why make_initial_state() and a resume are
+  ## correct without one.
+  expect_identical(ind$state("log_area_leaf_departure"), 0.0)
+
+  ind$compute_rates(env)
+  ## Exactly zero, not merely small: the exactness of the special case rests on
+  ## the integrator stepping a rate of 0.0 and leaving the state at 0.0.
+  expect_identical(ind$rate("log_area_leaf_departure"), 0.0)
+})
+
+test_that("leaf area is the allometric value times exp(departure)", {
+  env <- tf24_departure_env()
+  s <- TF24_Strategy()
+
+  for (h in c(0.4, 1.0, 5.0, 15.0)) {
+    ind <- TF24_Individual(s)
+    ind$set_state("height", h)
+
+    ## At rest, exactly the plain allometry it replaced. Compared against the
+    ## strategy's own expand_allometry rather than a formula written out here,
+    ## so the allometry still lives in one place.
+    at_rest <- ind$aux("competition_effect")
+    expect_identical(at_rest,
+                     TF24_strategy_expand_allometry(s, h, 0, 0)$area_leaf)
+
+    ## And it moves, by exactly exp(phi). An unwired state would leave leaf
+    ## area pinned to the allometry whatever the departure said, and a ratio
+    ## is the sharpest form of the claim because the exp factor is the whole
+    ## content of the coordinate.
+    for (phi in c(-0.7, -0.1, 0.25)) {
+      ind$set_state("log_area_leaf_departure", phi)
+      expect_equal(ind$aux("competition_effect") / at_rest, exp(phi))
+    }
+  }
+})
+
+test_that("a thinned canopy is an ordinary state, not a domain violation", {
+  env <- tf24_departure_env()
+  ind <- TF24_Individual()
+  ind$set_state("height", 5.0)
+
+  ## The departure is a signed log ratio, so it must not be bounded below --
+  ## a non-negative declaration would reject ordinary canopy thinning once the
+  ## plasticity terms are switched on. Half a canopy is -log(2).
+  for (phi in c(-log(2), -2.0, -5.0)) {
+    ind$set_state("log_area_leaf_departure", phi)
+    ind$set_initial_states(env)
+    expect_no_error(ind$compute_rates(env))
+    expect_true(is.finite(ind$aux("net_mass_production_dt")))
+    expect_gt(ind$aux("competition_effect"), 0)
+  }
+})
