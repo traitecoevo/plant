@@ -64,6 +64,160 @@ data.frame(
             round(s$pars$k_l, 4), s$pars$k_s))
 ```
 
+## The mathematics
+
+::: {.callout-tip}
+## These equations are checked, not just written down
+`tests/testthat/test-allometry-demo.R` reimplements everything in this section
+in R — from the prose rather than from the source — and compares it against what
+the C++ computes, over 81 combinations of height, both departures and reserve
+level, agreeing to 1e-10. So a divergence between this description and the model
+fails a test rather than quietly misleading a reader.
+:::
+
+### Symbols
+
+| symbol | code | meaning |
+|---|---|---|
+| $h$ | `height` | height, a state (m) |
+| $\phi$ | `log_area_leaf_departure` | leaf-area departure, a state |
+| $\psi$ | `log_area_sapwood_departure` | sapwood departure, a state |
+| $S$ | `storage` | NSC pool, a state (kg) |
+| $A_\star(h)$ | `area_leaf(height)` | preferred leaf area (m²) |
+| $A$, $A_s$, $A_b$ | — | actual leaf, sapwood, bark area (m²) |
+| $\rho_\ell,\ \rho_s$ | `replacement`, `replacement_sapwood` | replaced share of leaf / sapwood turnover |
+| $u_\ell,\ u_s$ | `withheld`, `withheld_sapwood` | withheld share, $1-\rho$ |
+| $\sigma$ | `rebuild_share` | share of growth redirected to rebuilding |
+| $b$ | `rebuild_rel` | relative rebuild rate (yr⁻¹) |
+| $F$ | `growth_flux` | carbon for growth and reproduction (kg yr⁻¹) |
+
+### Sizes
+
+The allometry is unchanged, $A_\star(h) = (h/a_{l1})^{1/a_{l2}}$; what changes is
+that a plant need not sit on it:
+
+$$A = A_\star(h)\,e^{\phi}, \qquad A_s = \theta A\,e^{\psi} = \theta A_\star(h)\,e^{\phi+\psi}.$$
+
+So $\phi$ is log canopy fullness and $\psi$ is the log Huber value relative to
+$\theta$. Masses follow as before, $m_\ell = \lambda A$ (with $\lambda$ the LMA),
+$m_r = a_{r1} A$, $m_s = A_s h \eta_c \rho$ and $m_b = A_b h \eta_c \rho$.
+
+::: {.callout-note}
+Bark area is still pinned to *leaf* area, $A_b = a_{b1}\theta A$, not to sapwood.
+Repinning it to sapwood is arguably more physical — bark sheathes the stem — but
+it was left alone to keep this change bit-identical at rest.
+:::
+
+Hydraulic supply per leaf area reads the Huber value the plant actually has,
+
+$$k_{\max,\text{leaf}} = \frac{K_s\,\theta e^{\psi}}{h\,\eta_c},$$
+
+which is the channel by which thinning improves supply to the leaves that remain.
+
+### The replacement gate
+
+With $r = S/S_{\max}$ and $S_{\max} = a_{st1} m_s$, the replaced share of leaf
+turnover is a logistic on reserves, and the sapwood share is that scaled by how
+over-built the stem already is:
+
+$$\rho_\ell = 1 - \frac{a_{pl0}}{1 + \exp\!\big((r - a_{pl1})/w_{pl}\big)},
+\qquad
+\rho_s = \rho_\ell\, e^{-\psi/a_{pl2}}.$$
+
+$a_{pl0}$ caps how much may be withheld, so $a_{pl0}=0$ gives $\rho_\ell \equiv 1$.
+Only the two pools with states are gated — the turnover actually charged is
+
+$$T = \rho_\ell k_\ell m_\ell + k_b m_b + \rho_s k_s m_s + k_r m_r,$$
+
+and bark and root stay fully charged because neither has a state to lose, so
+withholding their cost would save carbon that no tissue paid for.
+
+### Growth, and where it goes
+
+Net production and the existing NSC gate are untouched:
+
+$$P = a_{bio}a_y(\tilde A - R) - T,\qquad
+P_+ = \tfrac12\Big(P + \sqrt{P^2+\varepsilon^2}\Big),\qquad
+F = P_+\,G(r).$$
+
+$F$ splits between **extension** along the allometry and **rebuilding** the
+canopy, with the rebuild share gated on the same reserves as replacement:
+
+$$\sigma = \rho_\ell\left(1 - e^{\phi/a_{pl2}}\right).$$
+
+Extension moves the plant along the curve. Its marginal costs are evaluated at
+$A_\star$, the leaf area the plant's *height* implies, because they are
+properties of the curve and a plant's place on the curve is given by its height:
+
+$$\dot A_\star = (1-\sigma)\,F f_g \left.\frac{\partial A}{\partial m_{\text{live}}}\right|_{A_\star},
+\qquad
+\frac{dh}{dt} = \left.\frac{\partial h}{\partial A}\right|_{A_\star}\dot A_\star
+= a_{l1}a_{l2}A_\star^{\,a_{l2}-1}\,\dot A_\star .$$
+
+Rebuilding buys leaf area at **unchanged height**, and buys the whole package —
+leaf, fine root, and the sapwood and bark that supply it — at the ratio the plant
+prefers rather than the one it has:
+
+$$c_{\text{reb}}(h) = \lambda + a_{r1} + \theta h \eta_c \rho\,(1+a_{b1}),
+\qquad
+b = \frac{\sigma F f_g}{c_{\text{reb}}(h)\,A}.$$
+
+### The two departure equations
+
+$$\boxed{\;\frac{d\phi}{dt} = b - u_\ell k_\ell\;}
+\qquad
+\boxed{\;\frac{d\psi}{dt} = u_\ell k_\ell - u_s k_s + b\left(e^{-\psi}-1\right)\;}$$
+
+Reading them: the canopy loses the turnover it declined to replace and regains
+what rebuilding buys. The Huber value moves on the **difference** of the two
+losses. The final term is exact geometry rather than a parameter — rebuilding
+adds leaf and sapwood in the ratio $\theta$, so it moves the two logs by $b/A$
+and $\theta b/A_s$, whose difference is $(b/A)(e^{-\psi}-1)$.
+
+### Four properties that follow from the form
+
+**Thinning conserves carbon exactly.** Carbon not charged is
+$u_\ell k_\ell m_\ell + u_s k_s m_s$. The withholding terms move the states by
+$d(\ln A)/dt = -u_\ell k_\ell$ and, since
+$d(\ln A_s)/dt = d(\ln A)/dt + d\psi/dt$, by $d(\ln A_s)/dt = -u_s k_s$. The mass
+lost is therefore $\lambda u_\ell k_\ell A + h\eta_c\rho\,u_s k_s A_s$ — the same
+two terms. An identity, not a tolerance.
+
+**$\phi \le 0$ is invariant.** At $\phi=0$, $\sigma=0$ so $b=0$ and
+$d\phi/dt = -u_\ell k_\ell \le 0$: the flow points inward. A plant never carries
+*more* leaf than its height prefers.
+
+**$\psi \ge 0$ is invariant.** At $\psi=0$, $\rho_s = \rho_\ell$ so $u_s=u_\ell$,
+and $e^{-\psi}-1 = 0$, leaving
+
+$$\left.\frac{d\psi}{dt}\right|_{\psi=0} = u_\ell\,(k_\ell - k_s) \;\ge\; 0
+\qquad\text{because } k_\ell > k_s .$$
+
+So a stem never ends up with less conducting area than its canopy needs, the
+scaling factor $e^{-\psi/a_{pl2}}$ stays within $(0,1]$, and no over-replacement
+arises to cost unbounded carbon. **⚠️ If $k_s$ were ever raised above $k_\ell$
+this argument reverses.**
+
+**Height never falls.** $dh/dt$ is a product of $(1-\sigma) \in (0,1]$, $F \ge 0$,
+$f_g \ge 0$ and two positive derivatives.
+
+And $a_{pl0}=0$ is the fixed allometry *exactly*: $\rho_\ell = 1$ gives
+$u_\ell = 0$; $\phi=0$ gives $\sigma = 0$ hence $b=0$; $\psi=0$ gives
+$\rho_s = 1$ hence $u_s = 0$. Both rates are exactly zero, $e^0 = 1$ leaves the
+sizes bitwise unchanged, and odelia's **max**-norm error control ignores a
+zero-error state so the step sizes are untouched too.
+
+### One approximation, stated
+
+Extension is charged at $\partial m_{\text{live}}/\partial A$ evaluated at
+$A_\star$, but a thinned plant adds only $e^{\phi}\,\dot A_\star$ of actual leaf
+area for it. So a plant off its trajectory is **over-charged** for extension, by
+a factor $e^{-\phi}$. The direction is conservative — a thinned plant grows more
+slowly than a strict budget would allow, never faster — and the error vanishes as
+the canopy recovers. It is the price of keeping extension exactly
+departure-preserving, which is what makes the resting model exact and confines
+all of the departure's motion to plasticity.
+
 ## The gate: replacement is withheld only at very low reserves
 
 Replacement is gated on the NSC reserve fraction $r = S/S_{max}$, on a logistic

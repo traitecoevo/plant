@@ -70,3 +70,100 @@ test_that("the demo's gate map brackets the replacement gate", {
   ## Height growth is non-negative throughout.
   expect_true(all(gate$dheight >= 0))
 })
+
+# An independent R implementation of the equations written out in the demo's
+# "The mathematics" section, checked against what the C++ actually computes.
+#
+# This is the guard that matters most for a documented mechanism: the demo can
+# only be trusted if its equations ARE the model. Written from the prose rather
+# than from the source, so a divergence between the two shows up here.
+#
+# Constants not exposed to R are repeated with the member they mirror named. If
+# one of those changes, this test fails -- which is the intent, not a nuisance:
+# the prose would need changing too.
+tf24_departure_rates_r <- function(s, height, phi, psi, storage, P, A) {
+  p <- s$pars
+  storage_gate_width      <- 0.1    # TF24_Strategy::storage_gate_width
+  storage_prod_eps        <- 1e-4   # TF24_Strategy::storage_prod_eps
+  plasticity_gate_width   <- 0.02   # TF24_Strategy::plasticity_gate_width
+
+  eta_c <- 1 - 2 / (1 + p$eta) + 1 / (1 + 2 * p$eta)   # CanopyShape::eta_c
+
+  ## Sizes
+  A_s   <- p$theta * A * exp(psi)
+  m_s   <- A_s * height * eta_c * p$rho
+  S_max <- p$a_st1 * m_s
+  r     <- if (S_max > 0) storage / S_max else 0
+
+  ## The replacement gate, and the sapwood share scaled by how over-built it is
+  rho_l <- 1 - p$a_pl0 / (1 + exp((r - p$a_pl1) / plasticity_gate_width))
+  rho_s <- rho_l * exp(-psi / p$a_pl2)
+  u_l   <- 1 - rho_l
+  u_s   <- 1 - rho_s
+
+  ## Growth flux, and its split
+  G     <- 1 / (1 + exp(-(r - p$a_st2) / storage_gate_width))
+  Ppos  <- 0.5 * (P + sqrt(P^2 + storage_prod_eps^2))
+  F     <- Ppos * G
+  f_r   <- p$a_f1 / (1 + exp(p$a_f2 * (1 - height / p$hmat)))
+  f_g   <- 1 - f_r
+  sigma <- rho_l * (1 - exp(phi / p$a_pl2))
+
+  ## Rebuilding buys the whole package at the preferred ratio
+  c_reb <- p$lma + p$a_r1 + p$theta * height * eta_c * p$rho * (1 + p$a_b1)
+  b     <- sigma * F * f_g / (c_reb * A)
+
+  list(dphi = b - u_l * p$k_l,
+       dpsi = u_l * p$k_l - u_s * p$k_s + b * (exp(-psi) - 1),
+       r = r, rho_l = rho_l, rho_s = rho_s, b = b)
+}
+
+test_that("the demo's equations reproduce the C++ departure rates", {
+  skip_on_cran()
+  env <- Environment("TF24")
+  env$set_soil_number_of_depths(5)
+  env$set_soil_water_state(rep(0.2, 5))
+  env$set_fixed_environment(1.0, 40)
+
+  s <- TF24_Strategy(collect_all_auxiliary = TRUE)
+  s$pars$a_pl0 <- 1.0
+
+  ## A grid that exercises both departures, both signs of production, and the
+  ## whole range of the gate -- including the resting point and states far off
+  ## the trajectory.
+  grid <- expand.grid(height = c(1, 5, 15),
+                      phi = c(0, -0.4, -1.5),
+                      psi = c(0, 0.3, 1.2),
+                      storage_frac = c(0, 0.03, 0.5))
+
+  for (i in seq_len(nrow(grid))) {
+    g <- grid[i, ]
+    ind <- TF24_Individual(s)
+    ind$set_state("height", g$height)
+    ind$set_state("log_area_leaf_departure", g$phi)
+    ind$set_state("log_area_sapwood_departure", g$psi)
+
+    ## Capacity depends on the state, so read it off a seeded twin.
+    ref <- TF24_Individual(s)
+    ref$set_state("height", g$height)
+    ref$set_state("log_area_leaf_departure", g$phi)
+    ref$set_state("log_area_sapwood_departure", g$psi)
+    ref$set_initial_states(env)
+    capacity <- ref$state("storage") / s$pars$a_st3
+
+    ind$set_state("storage", g$storage_frac * capacity)
+    ind$compute_rates(env)
+
+    got <- list(dphi = ind$rate("log_area_leaf_departure"),
+                dpsi = ind$rate("log_area_sapwood_departure"))
+    want <- tf24_departure_rates_r(
+      s, g$height, g$phi, g$psi, g$storage_frac * capacity,
+      P = ind$aux("net_mass_production_dt"),
+      A = ind$aux("competition_effect"))
+
+    label <- sprintf("h=%g phi=%g psi=%g r_frac=%g",
+                     g$height, g$phi, g$psi, g$storage_frac)
+    expect_equal(got$dphi, want$dphi, tolerance = 1e-10, info = label)
+    expect_equal(got$dpsi, want$dpsi, tolerance = 1e-10, info = label)
+  }
+})
