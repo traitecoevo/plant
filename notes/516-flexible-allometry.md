@@ -130,6 +130,72 @@ Run on a wet (1.5 m/yr) and an arid (0.4 m/yr) constant stand, `mpl = 20`, defau
 
 **Worth its own look:** TF24's default theta is far from its own model's fitness optimum, by ~1.4x in the trait and ~35x in fitness on a wet stand. Since theta is a *calibrated* value, the more likely reading is that the model over-prices sapwood rather than that the parameter is wrong — but either way it is a finding about TF24 rather than about this epic, and it deserves separating from it.
 
+## Where this stands after the first behavioural validation
+
+The mechanism is in and exact when off (`a_pl0 = 0`), and it thins a canopy in
+the intended direction. Three things measured on it say the default should
+**not** be turned on yet, and each is a modelling decision rather than a bug.
+
+**Measured, single plant at h = 5 m with reserves held empty, `a_pl0 = 1`:**
+
+| departure `phi` | `dphi/dt` | `dpsi/dt` | `dh/dt` | production per leaf area |
+|---|---|---|---|---|
+| 0.00 | −0.422 | +0.237 | 0.632 | 1.765 |
+| −0.50 | −0.290 | +0.105 | 0.383 | 1.894 |
+| −1.00 | −0.272 | +0.087 | 0.242 | 1.989 |
+
+Thinning throughout, the Huber value rising, height still climbing but more
+slowly, and production per leaf area rising 13 per cent as the canopy thins --
+the benefit the mechanism exists to deliver.
+
+**1. Rebuilding has to be gated on the same signal as replacement.** The first
+version made the rebuild share a function of the gap alone, so a starving plant
+withheld replacement and spent its growth flux rebuilding at the same time.
+Measured, it rebuilt at ~1.5/yr against shedding's 0.42/yr: the canopy thinned
+5 per cent and stalled, and the Huber value *fell*. Fixed by multiplying the
+share by `replacement`, so a plant rebuilds only to the degree it is willing to
+maintain. This one is settled and done, and is why the factor is load-bearing.
+
+**2. The response is far too small at the default parameters.** On a strongly
+seasonal stand (mean rain 0.7 and 1.1 m/yr, amplitude 0.9 of mean) the canopy
+thins by only **1.6 to 3.0 per cent** (`phi` reaching −0.030 and −0.016). That
+is not "thinning out the canopy" in any meaningful sense. The cause is that the
+NSC gate keeps reserves well above `a_pl1 = 0.05` except in permanent deficit,
+so the replacement gate almost never opens. Either `a_pl1` has to sit much
+closer to the growth gate `a_st2 = 0.10`, or the gate should read something
+other than the reserve fraction. Undecided.
+
+**3. The sapwood departure has no restoring force, and drifts the wrong way.**
+Its only terms are `+withheld*(k_l - k_s)` and `−rebuild_rel`. Nothing relaxes
+it toward zero, and because rebuilding buys leaf area *without* sapwood, and
+rebuilding is fast, the second term dominates: on both seasonal stands `psi`
+ended in [−0.10, 0], i.e. plants finished hydraulically **under**-built rather
+than over-built. Rebuilding a canopy ought to buy the sapwood that supplies it.
+
+Fixing it means splitting the growth flux three ways -- extension, leaf
+rebuild, sapwood rebuild -- with the shares summing to at most one. That is the
+three-degrees-of-freedom allocation problem against a single budget constraint,
+and it needs a decision rather than a default.
+
+**4. A stiffness hazard, identified and not fixed.** `rebuild_rel` is an
+absolute carbon rate divided by leaf area, which is correct -- it is what turns
+a carbon flux into a relative rate, and the absolute `dA/dt` stays bounded by
+the carbon. But in the departure coordinate it scales as `exp(-phi)`, so it
+grows without bound as the canopy empties. This is structurally the same
+fast-attracting-boundary shape that #609's analysis identified for `log S`, and
+the same remedy applies if it bites: a basis whose rate vanishes at the
+boundary. It has not caused a failure in any run here, and a plant deep enough
+in deficit to reach it is dying, but a cohort in that state is carried by the
+SCM and can slow or reject steps.
+
+**On fitness.** Turning plasticity on lowered R0 in every stand tested: −0.07
+per cent on a wet stand where it barely engages, and factors of 0.76 and 0.83
+on the seasonal ones. All the seasonal stands have R0 far below 1, so nothing
+persists on them and the ranking is among strategies that all die out -- the
+same caveat as the theta scan, and the reason these numbers do not settle
+whether the mechanism helps. A stand where something survives, and where the
+deficit is transient rather than permanent, is what would.
+
 ## Open
 
 - Which growth rate the optimality criterion should maximise is **not** a modelling choice to be argued — see "Deciding the objective by invasion analysis" above. It is settled by experiment, and the cheap half of that experiment can run before any of this code exists.

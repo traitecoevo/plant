@@ -304,12 +304,26 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   const double area_leaf_star = area_leaf(height);
   const double darea_leaf_dmass_live_ = darea_leaf_dmass_live(area_leaf_star);
 
-  // The share of growth redirected into closing the canopy gap, vanishing
-  // exactly when the gap closes and approaching 1 as it widens. The departure
-  // cannot go positive under these dynamics -- shedding only lowers it and this
-  // share only raises it, stopping at zero -- so the form needs no bound.
+  // The share of growth redirected into closing the canopy gap: it vanishes
+  // exactly when the gap closes, widens as the gap does, and is gated by the
+  // SAME reserve signal that decides replacement.
+  //
+  // ⚠️ THE `replacement` FACTOR IS LOAD-BEARING, not a refinement. Without it
+  // the gap alone drives rebuilding, so a starving plant withholds replacement
+  // and spends its growth flux rebuilding at the same time -- contradictory,
+  // since carbon enough to rebuild is carbon enough to maintain. Measured, the
+  // unconditioned form rebuilt at ~1.5/yr against shedding's 0.42/yr, so the
+  // canopy thinned by 5 per cent and stalled, and the Huber value fell instead
+  // of rising because rebuilding adds leaf area without sapwood. Gating both on
+  // the same signal makes a plant rebuild exactly to the degree it is willing
+  // to maintain.
+  //
+  // The departure cannot go positive under these dynamics -- shedding only
+  // lowers it and this share only raises it, stopping at zero -- so the form
+  // needs no bound.
   const double leaf_departure = vars.state(state_idx_log_area_leaf_departure);
-  const double rebuild_share = 1.0 - std::exp(leaf_departure / pars.a_pl2);
+  const double rebuild_share =
+    replacement * (1.0 - std::exp(leaf_departure / pars.a_pl2));
   const double extension_share = 1.0 - rebuild_share;
 
   const double area_leaf_dt =
