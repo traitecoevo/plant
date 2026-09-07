@@ -337,7 +337,24 @@ public:
       // area (umol CO2 m^-2 s^-1). Net, not gross: Leaf::assim_colimited()
       // subtracts dark respiration R_d_, so gross = assimilation + R_d_ with
       // R_d_ = 0.015 * vcmax_ at the acclimated vcmax_.
-      "assimilation"
+      "assimilation",
+      // Leaf temperature at the optimal operating point (deg C) -- an OUTPUT,
+      // not the `leaf_temp` driver, and the distinction is the point of
+      // reporting it. With pars.use_energy_balance off this equals the driver,
+      // so the column is flat at TF24's defaults; with it on the leaf solves
+      // its own temperature from its transpiration per operating point, and
+      // that value was previously computed, used to re-derive the whole
+      // Farquhar block, and then discarded -- so the one quantity the
+      // Penman-Monteith path exists to produce was the one a canopy-level
+      // analysis could not read (#625). Reported here rather than left to be
+      // inferred from an assimilation that cannot be explained without it.
+      //
+      // Under the deep-crown shading model this is the leaf-area-weighted crown
+      // mean, integrated alongside the other leaf outputs; it is NOT the
+      // temperature of any single leaf, and a canopy with a hot top and a cool
+      // base reports the mean of the two. The depth profile itself is not an
+      // aux (a fixed-width slot cannot carry a per-quadrature-node vector).
+      "Tleaf"
     });
     // add the associated computation to compute_rates and compute there
     if (collect_all_auxiliary) {
@@ -606,6 +623,7 @@ public:
   int aux_idx_shadow_cost = -1;
   int aux_idx_stom_cond_CO2 = -1;
   int aux_idx_assimilation = -1;
+  int aux_idx_Tleaf = -1;
   int aux_idx_area_sapwood = -1;       // only present when collect_all_auxiliary
   int state_idx_area_heartwood = -1;
   int state_idx_mass_heartwood = -1;

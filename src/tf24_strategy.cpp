@@ -74,6 +74,7 @@ void TF24_Strategy::refresh_indices () {
   aux_idx_shadow_cost           = aux_index.at("shadow_cost");
   aux_idx_stom_cond_CO2         = aux_index.at("stom_cond_CO2");
   aux_idx_assimilation          = aux_index.at("assimilation");
+  aux_idx_Tleaf                 = aux_index.at("Tleaf");
   // area_sapwood is only registered when collect_all_auxiliary is set.
   aux_idx_area_sapwood = aux_index.count("area_sapwood") ? aux_index.at("area_sapwood") : -1;
   state_idx_area_heartwood      = state_index.at("area_heartwood");
@@ -175,6 +176,10 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   vars.set_aux(aux_idx_shadow_cost, leaf.shadow_cost());
   vars.set_aux(aux_idx_stom_cond_CO2, leaf.stom_cond_CO2_);
   vars.set_aux(aux_idx_assimilation, leaf.assim_colimited_);
+  // The leaf's own temperature at the operating point, not the `leaf_temp`
+  // driver -- see aux_names(). Equal to the driver while pars.use_energy_balance
+  // is off; solved from the leaf's transpiration when it is on.
+  vars.set_aux(aux_idx_Tleaf, leaf.Tleaf_);
 
 
 
@@ -544,7 +549,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
       function_integrator.integrate_vector_x(0.0, height);
     const size_t nn = nodes.size();
     std::vector<double> profit_y(nn), trans_y(nn), eup_y(nn), psi_y(nn),
-      root_psi_y(nn), gco2_y(nn), assim_y(nn);
+      root_psi_y(nn), gco2_y(nn), assim_y(nn), tleaf_y(nn);
     std::vector<std::vector<double>> soil_y(
       soil_number_of_depths_, std::vector<double>(nn));
     for (size_t i = 0; i < nn; ++i) {
@@ -557,6 +562,11 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
       root_psi_y[i] = leaf.opt_root_psi_ * qi;
       gco2_y[i]     = leaf.stom_cond_CO2_ * qi;
       assim_y[i]    = leaf.assim_colimited_ * qi;
+      // Leaf temperature varies through the crown because the light does, so it
+      // must be integrated like every other leaf output. Left out, `Tleaf_`
+      // would report whichever node the loop happened to end on -- and that node
+      // is neither the crown top nor the centre.
+      tleaf_y[i]    = leaf.Tleaf_ * qi;
       for (int a = 0; a < soil_number_of_depths_; ++a) {
         soil_y[a][i] = leaf.soil_consumption_[a] * qi;
       }
@@ -572,6 +582,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
     leaf.opt_root_psi_    = function_integrator.integrate_vector(root_psi_y, 0.0, height);
     leaf.stom_cond_CO2_   = function_integrator.integrate_vector(gco2_y, 0.0, height);
     leaf.assim_colimited_ = function_integrator.integrate_vector(assim_y, 0.0, height);
+    leaf.Tleaf_           = function_integrator.integrate_vector(tleaf_y, 0.0, height);
     for (int a = 0; a < soil_number_of_depths_; ++a) {
       leaf.soil_consumption_[a] =
         function_integrator.integrate_vector(soil_y[a], 0.0, height);

@@ -23,9 +23,14 @@ The assembled `patchwork` plot.
 Assembles a multi-panel diagnostic figure from a collected TF24 SCM run:
 patch leaf area, the size distribution, soil water potential, stem and root
 water potentials, profit, stomatal conductance, transpiration (total and per
-leaf area) and the rainfall driver. Panels are combined with `patchwork`.
+leaf area), the rainfall driver and leaf temperature. Panels are combined
+with `patchwork`.
 }
 \details{
+The leaf-temperature panel is flat at the prescribed `leaf_temp` driver
+unless the strategy ran with `pars$use_energy_balance` non-zero; see the
+`Tleaf` auxiliary variable.
+
 `ggplot2` and `patchwork` are Suggested packages; the function errors if
 either is unavailable. The returned plot is neither drawn nor saved — print
 it or pass it to [ggplot2::ggsave()] as needed.
