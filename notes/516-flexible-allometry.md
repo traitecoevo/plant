@@ -107,6 +107,29 @@ The sharper form is not "which proxy wins" but **which proxy attains the ESS**. 
 
 **Cost is the binding constraint.** TF24 is expensive per step and an ESS search over one trait is many resident-plus-mutant runs under a fluctuating driver. Expect this to want HPC rather than a laptop.
 
+**Evaluate mutants one at a time, not in a batch.** Measured on a wet one-species TF24 stand (`mpl = 20`, default traits, `theta` as the trait), comparing the resident's own R0 against the resident slot the mutant run recomputes:
+
+| mutants in the call | resident slot | relative shift |
+|---|---|---|
+| 1 (a twin of the resident) | 5.7636882085232299 | 5.5e-07 |
+| 9 (spanning 0.25x to 4x) | 5.6314597794715402 | **2.3e-02** |
+
+In both cases the twin mutant agrees with the resident slot *exactly*, so this is not mutants leaking into the competitive environment — that part works. The likely cause is that mutants are integrated in the **same ODE system** as the resident, so their error enters the shared max-norm step-size control and changes the accepted steps, and with them the resident's own trajectory. That is a hypothesis: the batch here varied both the count and the extremeness of the mutants (some sit at R0 ~ 1e-18), and those were not separated.
+
+Either way the practical rule is the same, and it is not a small correction: a batched landscape carries a per-cent error that depends on **which other mutants happened to be in the batch**, which is exactly the kind of contamination an ESS search cannot tolerate, since it compares nearby strategies. One mutant per call costs one run each and buys ~1e-7.
+
+### What stage 1 already found
+
+Run on a wet (1.5 m/yr) and an arid (0.4 m/yr) constant stand, `mpl = 20`, default traits, `theta` swept over 0.25x to 4x of its default 1/4669.
+
+**The landscape is nowhere near flat, so the epic is worth building.** On the wet stand R0 spans about **1e20** across the sweep. Fitness is steeply asymmetric: *raising* theta above the default collapses R0 by 13 orders of magnitude and more, while lowering it toward ~0.7x is strongly favoured — the peak mutant reaches R0 ~ 200 against the resident's 5.76. Sapwood is expensive (its mass scales with theta *and* with height, so respiration and turnover scale with it) while the hydraulic benefit saturates, and the model prices that very sharply.
+
+**Two things it does not establish.** The peak is one step of an iteration, not an ESS: for that the resident has to be moved to the peak and the scan repeated until the peak sits at the resident, and the resident should be at demographic equilibrium (R0 = 1) rather than the 5.76 it sits at here. And the arid stand is **not an ESS analysis at all** — every strategy on it has R0 between 1e-11 and 2e-9, so nothing persists and the ranking is among strategies that all go extinct. Its apparent preference for *less* sapwood under drought is therefore not evidence of a drought response; that comparison needs a stand where something survives.
+
+**The extremely seasonal case does not complete**, failing on the negative-storage domain boundary at t ≈ 2.94 with the sub-step already at its minimum. That is the pre-existing #550/#609 failure mode under an extreme driver, not something this work introduced.
+
+**Worth its own look:** TF24's default theta is far from its own model's fitness optimum, by ~1.4x in the trait and ~35x in fitness on a wet stand. Since theta is a *calibrated* value, the more likely reading is that the model over-prices sapwood rather than that the parameter is wrong — but either way it is a finding about TF24 rather than about this epic, and it deserves separating from it.
+
 ## Open
 
 - Which growth rate the optimality criterion should maximise is **not** a modelling choice to be argued — see "Deciding the objective by invasion analysis" above. It is settled by experiment, and the cheap half of that experiment can run before any of this code exists.
