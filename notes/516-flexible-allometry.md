@@ -431,6 +431,91 @@ model exact, and it does; but it assumes the canopy stays a fixed fraction away
 from nothing. A fully-shedding species breaks that assumption, and choosing between
 exactness at rest and representability at zero is now an open design question.
 
+## When does shedding actually pay? An analytical answer (2026-09-08)
+
+Daniel's framing: shedding is only useful if it improves the plant's net carbon
+budget, and that should be designable without stand simulations. It is.
+
+### The decomposition
+
+At fixed height, net production splits by whether a cost scales with leaf area.
+Leaf, fine root and bark all do; sapwood does not:
+
+$$P = c\,\bar a\!\left(\tfrac{A_s}{A}\right) A \;-\; g(h)\,A \;-\; s(h, A_s)$$
+
+**Verified bit-exactly** against `net_mass_production_dt` (relative error 1e-16 at
+four size/soil combinations). `g(h)` is a constant per unit leaf area; `s` is the
+sapwood burden and is independent of `A`.
+
+### The criterion
+
+Differentiating at **fixed sapwood** — which is what real thinning does, since
+sapwood only decays at `k_s`, and which is the step my earlier probe got wrong by
+letting `A_s` follow `A` down the pipe model:
+
+$$\frac{\partial P}{\partial A}\bigg|_{A_s} = c\,\bar a\,(1-\eta) - g(h),
+\qquad \eta \equiv \frac{k_{\max}}{\bar a}\frac{\partial \bar a}{\partial k_{\max}}$$
+
+because `kmax` is proportional to `1/A` at fixed sapwood. With
+`kappa = g/(c*abar)` the leaf-side cost as a fraction of leaf-side gain,
+
+> **shedding pays iff `eta > 1 - kappa`.**
+
+`eta` is the elasticity of per-leaf assimilation to hydraulic supply. Reading it:
+
+- `eta = 0` (no hydraulic feedback) recovers `kappa > 1`, which is exactly
+  Manzoni's `A_net = 0`. So the criterion currently implemented is the special
+  case where leaf area does not affect supply.
+- `eta = 1` (assimilation proportional to supply) means shedding **always** pays:
+  halving leaf area leaves total assimilation unchanged and halves the cost.
+- In between, shedding pays *earlier* than Manzoni's rule, by exactly `eta`.
+
+**This closes the gap** where a tall plant died without shedding. `kmax ~ 1/h`, so
+`eta` rises with height (measured 0.20 at 5 m, 0.43 at 10 m, 0.63 at 15 m, 0.84 at
+20 m) — tall plants have most to gain from thinning, and the current criterion,
+which sets `eta = 0`, cannot see it.
+
+**And it rules out gating on whole-plant solvency.** At h = 15, theta = 0.20 the
+plant is solvent (`P = +3.4`) and shedding still improves the budget. Solvency and
+marginal benefit are different questions, and only the second says whether
+shedding pays.
+
+### Two cautions on the numbers
+
+⚠️ **The `profit` / `shadow_cost` auxes do not faithfully report the assimilation
+net production used.** The decomposition reconstructs `P` exactly at a resting
+state but is 2 per cent out at a departed one (5.71 against 6.09 at h = 10,
+theta = 0.20, phi = −0.05). So `abar` recovered from those auxes is unreliable off
+the trajectory, and every `eta` above is an estimate rather than a measurement.
+The *direct* finite difference of `P` is unambiguous and is what the sign
+conclusions rest on. Worth its own look — it may be the same class of issue as
+the leaf's carried state.
+
+⚠️ **The apparent size of the benefit is an artefact of a badly-placed Huber
+value.** Shedding 10 per cent of the canopy at fixed sapwood raised `P` from 3.42
+to 8.33 for a healthy 15 m plant — but `P` is a small residual between large
+numbers precisely because the sapwood burden is large, so a modest absolute gain
+looks dramatic. The plant is sitting far from its optimal sapwood-to-leaf ratio,
+which is what gives thinning such leverage.
+
+### What this implies for the order of work
+
+The leverage above is the **optimality-derived sapwood target** asking to be built
+(the epic split out earlier). If sapwood tracked its optimum, a plant would not sit
+at a Huber value this wrong, and the thinning question would be posed cleanly
+instead of against a misconfigured stem.
+
+It also depends on the height-hydraulics relation, which **#617 (epic #615)** is
+replacing: it derives the height exponent from conduit widening and the Huber
+profile rather than assuming resistance linear in height. TF24 currently drops
+per-leaf assimilation 46-fold between 5 m and 15 m, and that number is doing most
+of the work in everything above. Any `eta` measured now is measured against a
+height-resistance relation that is about to change.
+
+**So: sapwood optimality first, then re-measure `eta`, then implement the
+criterion.** Implementing `eta` against the current stem model would be fitting to
+a relation that #617 replaces.
+
 ## Open
 
 - Which growth rate the optimality criterion should maximise is **not** a modelling choice to be argued — see "Deciding the objective by invasion analysis" above. It is settled by experiment, and the cheap half of that experiment can run before any of this code exists.
