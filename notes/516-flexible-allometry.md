@@ -305,7 +305,21 @@ sits at canopy **0.000** with stem-per-leaf **1.3e9**. Mortality has already
 removed them (survivorship 1e-34) so `R0` is unaffected (ratio 0.9992), but the
 states are meaningless and numerically hazardous.
 
-**A bound is now a hard requirement, not a watch item.**
+**This is a NUMERICAL failure, not a biological one — the distinction matters for
+the fix.** The ordering across LMA is right and is a success: a fast-leaved species
+*should* shed faster and die sooner, and `u * k_l` is the correct rate law. What
+fails is that the state runs far past any meaningful floor and into arithmetic that
+stops meaning anything — leaf area at 1e-8 m², production per leaf area at −9.2e7,
+`stem_per_leaf` at 1.3e9 — all on the same vanishing denominator, and
+`rebuild_rel` scales as `1/A` too. Those divisions sit in a solver step shared with
+live cohorts.
+
+But underneath it is a real biological gap: **nothing in the model kills a plant
+for having lost its canopy.** Mortality reads reserves alone, so TF24 will carry a
+plant to 2e-8 of its canopy provided its reserve fraction says otherwise. The fix
+is therefore not a clamp on the departure but a mortality term that responds to
+canopy state — which would also give mortality something *continuous* to read in
+place of the near-binary reserve fraction.
 
 ### What the literature says, and it contradicts the current design
 
