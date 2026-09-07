@@ -72,7 +72,28 @@ These are two halves of one decision and conserve carbon exactly: carbon not spe
 - **Root:leaf plasticity** — roots are sheddable like leaves, so it reuses this machinery with no new mechanism.
 - **`storage_prod_eps` rescaling** (#620) — inherited, and this work is sensitive to it near the compensation point. Its own commit and its own number check; do not silently absorb it.
 
+### Deciding the objective by invasion analysis
+
+*Which* growth rate the optimality criterion maximises — `dh/dt`, `dA/dt`, or the relative `(dA/dt)/A` — should not be argued from first principles. All three are **proxies for fitness**, and a proxy is worth only what its correlation with lifetime offspring production is in the environment the plant actually experiences. plant already computes that currency, so this is an empirical question inside the model rather than a modelling preference.
+
+The sharper form is not "which proxy wins" but **which proxy attains the ESS**. Two separable questions, in this order:
+
+1. **What sapwood:leaf ratio is evolutionarily stable?** Treat `theta` as a trait and run the standard resident–mutant invasion analysis. This needs **no proximate rule at all** — evolution supplies the set-point — and it needs no new code: `theta` is already a `TF24_Pars` field and `add_strategies()` accepts it as a trait (verified, two distinct values across two strategies), and `run_mutant()` works for TF24 as of #643.
+
+   Run this **first**, because it prices the rest of the epic. If the fitness landscape in `theta` is close to flat, an optimality-derived target is not worth building whatever it costs. If it is sharply peaked, the ESS is the number every candidate proxy then has to reproduce.
+
+2. **Does a plastic rule beat the best fixed ratio, and which proxy does it best?** Only here is a rule needed. The test is whether a plastic strategy invades a resident sitting at the ESS ratio from (1). If it cannot, the plasticity is not earning its keep and the fixed ratio stands.
+
+**The trap that would silently drain this of power.** Under constant conditions all three proxies are monotone in the same carbon surplus and will very likely agree, possibly exactly. The differences live in the *fluctuating* case, which is the whole motivation for plasticity — so the comparison has to run under drought or deep shade (the scenario gateway's regimes), not a benign constant environment. This is the same shape as the trap already recorded for shading models: a stand-alone individual sees uniform light, so every shading model agrees exactly and the test has no power. **A null result in a constant environment means the experiment was posed wrongly, not that the choice does not matter.**
+
+**Scope of what it establishes.** Invasion analysis answers "given TF24's physiology, which rule is evolutionarily stable". That is well posed, but the answer is a property of the model, not evidence about real plants — using the model to select its own mechanism is legitimate only if the conclusion is stated at that scope. The reality check is #512: observed Huber values and how they shift with light and water. Both are needed and they answer different questions.
+
+**Cost is the binding constraint.** TF24 is expensive per step and an ESS search over one trait is many resident-plus-mutant runs under a fluctuating driver. Expect this to want HPC rather than a laptop.
+
 ## Open
 
-- Which growth rate the optimality criterion should maximise, when that epic starts: `dh/dt`, `dA/dt`, or the relative `(dA/dt)/A`. Leaf area is what compounds into future assimilation, which argues for the last.
-- Whether the new gate centres and the rebuild rate become species traits or stay strategy parameters. Undecided; #512 is the input and is not done. They start as parameters with defaults reproducing the current model.
+- Which growth rate the optimality criterion should maximise is **not** a modelling choice to be argued — see "Deciding the objective by invasion analysis" above. It is settled by experiment, and the cheap half of that experiment can run before any of this code exists.
+
+## Settled
+
+- **The new gate centres and the rebuild rate are `TF24_Pars` fields, and therefore settable as traits.** Nothing further is needed for that: plant's trait mechanism reaches nested `pars`, so a parameter that lives there can be varied through `trait_matrix()`/`add_strategies()` immediately — verified on `theta`, which takes two distinct values across two strategies with no hyperpar involvement. A **hyperpar** entry is a different thing and is *not* wanted yet: that machinery is for a parameter *derived* from another trait (as `k_l` is from `lma`), and there is no trade-off to encode until #512 says what one would look like. Defaults reproduce the current model.
