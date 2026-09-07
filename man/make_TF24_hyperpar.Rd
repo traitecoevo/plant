@@ -26,7 +26,7 @@ make_TF24_hyperpar(
   B_lf4 = 21000,
   B_lf5 = 40000,
   latitude = 0,
-  B_Hv1 = 0.4607063,
+  B_Hv1 = 0.365915653419241,
   B_Hv2 = -0.2,
   B_c1 = 2.04,
   B_c2 = 0
@@ -75,7 +75,14 @@ make_TF24f_hyperpar(...)
 
 \item{latitude}{degrees from equator (0-90), used in solar model [deg]}
 
-\item{B_Hv1}{p50 at K_s = 1 [-MPa]}
+\item{B_Hv1}{p50 at terminal-segment K_s = 1 [-MPa]. The relation is keyed
+on a tip conductivity rather than a whole-stem one, so the intercept
+describes a different physical quantity than it did before the stem path
+integral existed; it was re-anchored to hold stem_P50 fixed at the default
+parameters. Whether the Ks-p50 relation should be keyed on tip conductivity
+at all is open -- twig segments are what people usually measure -- and is
+logged as a staged inconsistency in
+notes/plan-tf24-height-hydraulics.md.}
 
 \item{B_Hv2}{Scaling slope for K_s in p50 [dimensionless]}
 

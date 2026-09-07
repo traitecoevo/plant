@@ -215,7 +215,7 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
   ## storage block and nothing else reads it.
   baseline <- list(
     FF16 = list(n_total = 83L, n_alive_final = 5L),
-    TF24 = list(n_total = 79L, n_alive_final = 3L),
+    TF24 = list(n_total = 77L, n_alive_final = 3L),
     K93  = list(n_total = 117L, n_alive_final = 2L)
   )
   for (x in names(strategy_types)) {

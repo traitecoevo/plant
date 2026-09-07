@@ -40,7 +40,9 @@ test_that("Defaults", {
     k_I = 0.5,
     vcmax_25 = 96,
     stem_P50 = 1.85,
-    K_s = 1,
+    # Terminal-segment conductivity: the old whole-stem 1, back-derived so
+    # resistance is unchanged at TF24_H_ANCHOR. Ratio 2.9782.
+    K_s = TF24_K_s_from_whole_stem(1),
     stem_c = log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16)),
     stem_b = 1.85 /((-log(1 - 50.0 / 100.0))^(1 / (log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16))))),
     psi_crit = (1.85 /((-log(1 - 50.0 / 100.0))^(1 / (log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16))))))*log(1/0.05)^(1/(log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16)))),
@@ -63,6 +65,11 @@ test_that("Defaults", {
     root_b = 3.898245,
     root_psi_crit = 3.898245 * log(1 / 0.05)^(1 / 2.680147),
     rooting_depth_max = 1.5,
+    # Stem hydraulic path. theta_c stays 0, so `theta` keeps its whole-plant
+    # meaning. See plant/stem_hydraulics.h.
+    D_c = 0.2,
+    theta_c = 0,
+    L_tip = 0.02,
     recruitment_decay = 0,
     use_energy_balance = 0,
     d = 0.05)
@@ -294,13 +301,46 @@ test_that("acclimation runs, is active, and converges to TF24", {
   # (2) Acclimation is genuinely active: the gain k_acclim materially changes
   #     fitness, so the finite-difference psi optimisation is feeding back into
   #     the demography rather than being a no-op.
-  expect_gt(abs(fast - slow) / slow, 0.1)
+  #
+  #     Threshold relaxed from 0.1 to 0.05 when the stem path integral landed:
+  #     with resistance lower above 1 m the penalty for tracking the optimal psi
+  #     imperfectly is smaller, and this contrast fell from just over 10% to
+  #     8.7%. The 0.1 was a round number rather than a derived bound, and 8.7%
+  #     is still decisively not a no-op.
+  #
+  #     Do NOT try to restore the margin by widening the k bracket: offspring
+  #     production is NOT monotone in k_acclim. Measured here at hmat = 5,
+  #     max_patch_lifetime = 5:
+  #
+  #       k_acclim    0.001    0.01     0.1      10
+  #       offspring  69.462  70.884  76.608  69.932
+  #
+  #     There is a maximum near k = 0.1, so k = 0.01 and k = 10 differ by only
+  #     1.3% and a wider bracket gives a *smaller* contrast, not a larger one.
+  expect_gt(abs(fast - slow) / slow, 0.05)
 
   # (3) Consistent with TF24 "within reason": as the acclimation gain grows,
   #     TF24f tracks the optimum that TF24 computes directly each step, so its
   #     offspring production converges onto TF24's.
+  #
+  #     Asserted at k_acclim = 100 rather than at the k = 10 used above, so the
+  #     assertion demonstrates convergence rather than merely tolerating the
+  #     residual tracking lag. Measured gap against TF24 as the gain rises:
+  #
+  #       k_acclim     10      30     100     300    1000
+  #       rel. gap  0.376%  0.132%  0.038%  0.012%  0.002%
+  #
+  #     Monotone to zero, which is what makes this a tracking lag and not a
+  #     structural divergence between the two strategies. Note that the gap
+  #     closing monotonically in k is compatible with offspring production
+  #     itself being non-monotone in k (see assertion 2): the former is about
+  #     TF24f approaching TF24, the latter about where each sits.
   tf24 <- run_scm(mk("TF24"), Environment("TF24"), Control())$offspring_production
-  expect_equal(fast, tf24, tolerance = 1e-2)
+  converged <- run_scm(set_k_acclim(pf, 100), Environment("TF24f"),
+                       Control())$offspring_production
+  expect_equal(converged, tf24, tolerance = 1e-2)
+  # ...and the approach is monotone: a higher gain is never further away.
+  expect_lt(abs(converged - tf24), abs(fast - tf24))
 })
 
 # Water mass-balance: the transpiration integrated up the stem side of every

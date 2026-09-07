@@ -416,11 +416,25 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   const std::vector<double>& psi_soil = environment.get_soil_water_potential_state();
   
 // find leaf specific max hydraulic conductance (kg m^-2 LA s^-1 MPa ^-1)
-  // pars.K_s: max hydraulic conductivity (kg m^-2 s^-1 MPa^-1),
+  // pars.K_s: sapwood-specific conductivity of the TERMINAL segment -- which is
+  //   the whole-stem value while pars.D_c == 0 (kg m^-1 s^-1 MPa^-1)
   // pars.theta: huber value
   // eta_c: accounts for average position of leaf mass
   // height: maximum plant height
-  const double leaf_specific_conductance_max = pars.K_s * pars.theta / (height * eta_c);
+  //
+  // The flow path runs from the base to the leaf-area-weighted mean leaf
+  // height, height*eta_c, NOT to the apex; eta_c therefore scales the UPPER
+  // LIMIT of the path integral rather than the resistance. The two readings
+  // differ by the constant eta_c^-beta, which is H-independent and so degenerate
+  // with K_s -- nothing downstream can distinguish them, and the K_s
+  // reparameterisation absorbs the difference entirely.
+  //
+  // Setting D_c, theta_c and L_tip all to zero makes effective_path_length
+  // return height*eta_c having performed no arithmetic, so this expression is
+  // then bit-identical to the height-linear code it replaces.
+  const double stem_path_length = stem_hydraulics::effective_path_length(
+      height * eta_c, pars.L_tip, stem_path_exponent_);
+  const double leaf_specific_conductance_max = pars.K_s * pars.theta / stem_path_length;
 
   // sapwood volume per leaf area (pars.theta * height * eta_c) used to be passed
   // to the leaf, which stored it and never read it. Dropped with the other three
@@ -927,6 +941,66 @@ void TF24_Strategy::prepare_strategy() {
   // NOTE: Also pre-computing, though less trivial
   height_0 = height_seed();
   area_leaf_0 = area_leaf(height_0);
+
+  // The exponent of the stem path integral, beta = 2*D_c + theta_c. The factor 2
+  // on D_c is the packing limit: under a conserved lumen fraction, widening is
+  // paid for by proportionally fewer conduits, so sapwood-specific conductivity
+  // scales as D^2 and not the D^4 of Hagen-Poiseuille. See
+  // plant/stem_hydraulics.h.
+  //
+  // What it implies: leaf-specific resistance grows as H^(1-beta) rather than
+  // linearly with height. beta = 0 is the linear case; the default beta = 0.4
+  // gives H^0.6; beta >= 1 saturates, so resistance approaches a finite limit no
+  // matter how tall the plant grows. Larger beta therefore means a weaker height
+  // penalty on carbon gain.
+  stem_path_exponent_ = 2.0 * pars.D_c + pars.theta_c;
+
+  // theta_c is declared but NOT YET USABLE. It profiles theta along the flow
+  // path, and theta is not a hydraulics-only trait: it also sets area_sapwood,
+  // area_bark, their growth rates, mass_sapwood (hence construction cost,
+  // respiration, turnover and NSC capacity) and the hard-coded
+  // dmass_sapwood_darea_leaf derivative. Those all still read a flat pars.theta.
+  //
+  // Applying the profile to the hydraulic term alone would give a plant whose
+  // stem conducts as though theta varied while it is built and respired as
+  // though theta were constant -- two different plants sharing one trait. There
+  // is no staged version of this worth having, so it is refused rather than
+  // half-applied. Lift the guard in the same change that profiles theta
+  // everywhere.
+  if (pars.theta_c != 0.0) {
+    throw std::invalid_argument(
+      "theta_c is not implemented yet: theta also sets sapwood and bark area, "
+      "construction cost, respiration and storage capacity, and those still "
+      "use a constant theta. A hydraulics-only theta profile would be "
+      "physically inconsistent, so it is refused rather than half-applied. Use "
+      "D_c to vary the height dependence of resistance.");
+  }
+
+  if (stem_path_exponent_ != 0.0) {
+    // L_tip is the anchor of both profiles, so it cannot be zero once either is
+    // active: k_s(L) = K_s*(L/L_tip)^(2*D_c) diverges everywhere as L_tip -> 0,
+    // giving zero resistance. That is a degenerate configuration to reject, not
+    // a numerical edge case to tolerate.
+    //
+    // Written to reject zero and NaN as well as negatives: `L_tip < 0.0` alone
+    // would let a zero through, which is the case this guard exists for.
+    if (pars.L_tip <= 0.0 || std::isnan(pars.L_tip)) {
+      throw std::invalid_argument(
+        "L_tip must be > 0 when D_c or theta_c is non-zero: the within-plant "
+        "profiles are defined relative to the terminal segment, and L_tip -> 0 "
+        "sends sapwood-specific conductivity to infinity everywhere");
+    }
+    // A plant cannot be shorter than one terminal segment. Worth catching here
+    // rather than downstream: height_0 is solved from seed mass, so a user
+    // sweeping omega down at a fixed L_tip will eventually cross this, and the
+    // symptom is a negative path length, hence a negative conductance, hence an
+    // unattributable NaN twenty frames inside the leaf solver.
+    if (!(pars.L_tip < height_0 * eta_c)) {
+      throw std::invalid_argument(
+        "L_tip must be shorter than the birth-size flow path (height_0*eta_c): "
+        "a plant cannot be smaller than one terminal segment");
+    }
+  }
 
   if (is_variable_birth_rate) {
     extrinsic_drivers.set_variable("birth_rate", birth_rate_x, birth_rate_y);
