@@ -106,6 +106,18 @@ struct TF24_Pars {
   // physical nor integrable. 1/a_pl4 is the averaging window, so the default is
   // about a four-month memory -- long against weather, short against a drought.
   double a_pl4  = 3.0;            // Acclimation rate of the tracked marginal return [/yr]
+  // Rate at which sapwood per leaf area chases the ratio that maximises GROWTH,
+  // /yr. Zero (the default) pins it to the pipe model and leaves every result
+  // unchanged.
+  //
+  // The controller integrates the marginal return, and an integrator IS an
+  // averager: a small rate makes the stem respond to the mean of a signal that
+  // swings with the weather, without needing a second state to track it.
+  //
+  // ⚠️ The objective is growth, NOT net production. Priced properly, extra stem
+  // is paid for in forgone leaf-area growth, and the two optima differ a lot:
+  // production peaks near 3.3x the pipe-model ratio, growth near 1.4-1.8x.
+  double a_sw   = 0.0;            // Sapwood acclimation rate [/yr]
   // * Light capture
   double k_I = 0.5;
   // * Leaf hydraulic / photosynthesis traits (default Eucalyptus saligna)
@@ -399,7 +411,13 @@ public:
       // The marginal leaf's carbon balance, which the replacement gate reads.
       // Dimensionless and zero at break-even, so its sign says whether the last
       // leaf is paying for itself.
-      "leaf_marginal_return"
+      "leaf_marginal_return",
+      // The marginal return of SAPWOOD area, in growth rather than production
+      // (#516). Dimensionless, and zero at the Huber value that maximises the
+      // plant's growth rate, so its sign says which way the stem should move.
+      // Zero unless sapwood acclimation is on (a_sw > 0), because computing it
+      // costs a second leaf evaluation.
+      "sapwood_marginal_return"
     });
     // add the associated computation to compute_rates and compute there
     if (collect_all_auxiliary) {
@@ -514,6 +532,12 @@ public:
   // they must come from one number.
   double withheld_leaf_ = 0.0;
   double withheld_sapwood_ = 0.0;
+  // d(profit)/d(kmax) at the leaf's own operating point, umol m^-2 s^-1 per unit
+  // conductance. Zero unless sapwood acclimation is on.
+  double dprofit_dkmax_ = 0.0;
+  // Respiration plus turnover (kg yr^-1), the strictly-positive scale the
+  // sapwood controller normalises by. Set in net_mass_production_dt.
+  double maintenance_flux_ = 0.0;
 
   // Relative reserves r = S / S_max, the buffered carbon signal that growth and
   // mortality read. Leaf replacement no longer reads it (see a_pl1).
@@ -789,6 +813,7 @@ public:
   int aux_idx_stom_cond_CO2 = -1;
   int aux_idx_assimilation = -1;
   int aux_idx_leaf_marginal_return = -1;
+  int aux_idx_sapwood_marginal_return = -1;
   int aux_idx_area_sapwood = -1;       // only present when collect_all_auxiliary
   int state_idx_area_heartwood = -1;
   int state_idx_mass_heartwood = -1;

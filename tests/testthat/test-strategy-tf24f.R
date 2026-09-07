@@ -22,6 +22,7 @@ test_that("Defaults", {
     a_st1 = 0.10,
     a_st2 = 0.10,
     a_st3 = 0.8,
+    a_sw = 0.0,
     a_pl0 = 0.0,
     a_pl1 = 0.0,
     a_pl2 = 0.2,
@@ -113,8 +114,8 @@ test_that("TF24f collect_all_auxiliary option", {
 
   s <- TF24f_Strategy()
   p <- TF24f_Individual(s)
-  expect_equal(p$aux_size, 13)
-  expect_equal(length(p$internals$auxs), 13)
+  expect_equal(p$aux_size, 14)
+  expect_equal(length(p$internals$auxs), 14)
 expect_equal(p$aux_names, c(
     "competition_effect",
     "height_inverse",
@@ -128,14 +129,14 @@ expect_equal(p$aux_names, c(
     "shadow_cost",
     "stom_cond_CO2",
     "assimilation",
-    "leaf_marginal_return"
+    "leaf_marginal_return", "sapwood_marginal_return"
   ))
 
   s <- TF24f_Strategy(collect_all_auxiliary=TRUE)
   expect_true(s$collect_all_auxiliary)
   p <- TF24f_Individual(s)
-  expect_equal(p$aux_size, 14)
-  expect_equal(length(p$internals$auxs), 14)
+  expect_equal(p$aux_size, 15)
+  expect_equal(length(p$internals$auxs), 15)
   expect_equal(p$aux_names, c(
     "competition_effect",
     "height_inverse",
@@ -149,7 +150,7 @@ expect_equal(p$aux_names, c(
     "shadow_cost",
     "stom_cond_CO2",
     "assimilation",
-    "leaf_marginal_return",
+    "leaf_marginal_return", "sapwood_marginal_return",
     "area_sapwood"
   ))
 })

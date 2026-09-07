@@ -572,6 +572,42 @@ already needed.
 ⚠️ And #617 (epic #615) replaces the height-resistance relation this is all
 measured against, so step 2's number should be re-taken after it lands.
 
+### What the implementation found (2026-09-08)
+
+Steps 1, 2 and 4 are done. Step 3 turned out not to be needed: `d(profit)/d(kmax)` is measured inside plant by one re-evaluation of the leaf at the already-found `psi*`, which is exactly the envelope-theorem argument above, so no phylloptim change is required to land this. plant #614 remains worth having for the analytic version, but it is no longer a blocker.
+
+**The controller.** `dpsi/dt` gains `a_sw * R_s`, with
+
+    R_s = availability * (dP/dpsi - P * dmass_sapwood_darea_leaf * darea_leaf_dmass_live) / maintenance
+
+The second term in the bracket is the price of the extra stem, paid in forgone leaf area; dropping it optimises production instead, whose optimum sits far out near 3.3x. `a_sw = 0` is the default and the model is then **bit-exact** — verified by building at HEAD and re-running the scenario gateway, which returned the same eight numbers to every digit.
+
+**Four things the implementation got wrong first, each worth stating because each looked right:**
+
+1. **⚠️ Sapwood turnover is GATED, so its `psi`-derivative is not `k_s * m_s`.** What the budget is charged is `replacement_sapwood * k_s * m_s` with `replacement_sapwood ∝ exp(-psi/a_pl2)` against `m_s ∝ exp(psi)`, so the charge falls as `exp((1 - 1/a_pl2) psi)` — steeply, `a_pl2` being well below 1. Differentiating the ungated cost drops a term worth **+6.8 kg/yr of 13.1** and moved the controller's zero from the true 1.35x down to 1.05x. This is the single largest error in the derivation and it is invisible to any sign or monotonicity check.
+
+2. **The denominator must be strictly positive, and `profit` is not.** `profit + shadow_cost` is net of leaf respiration and goes negative in exactly the drought where the controller most needs a sign. Normalising by it silently switched the controller off at soil 0.13. It now divides by the maintenance bill (`a_bio * a_y * respiration + turnover`), which is positive whenever the plant has tissue.
+
+3. **Re-proportioning must be paid for.** Nothing debits the budget for the `a_sw` drift, so without a gate a plant in carbon deficit keeps thickening its stem on carbon it does not have. **The reserve gate `G` is NOT the right switch**: at soil 0.13 reserves are still full so `G ~ 1`, and what has gone to zero is `Ppos`. The factor used is `growth_flux / (growth_flux + maintenance)` — a share of throughput, so smooth, in `[0, 1)`, vanishing with the growth flux, and strictly positive so **it cannot move the zero**, only the speed.
+
+4. **Deep-crown is refused, not skipped.** The sensitivity is measured at one radiation; deep-crown integrates profit over crown positions, so that difference is not its derivative. Skipping it leaves the controller with only its negative cost term, and the stem shrinks without bound while the run looks plausible the whole way down. `prepare_strategy()` now throws on `a_sw > 0` with deep-crown.
+
+**On the FD step.** The first diagnosis was that `dk = 1e-6 * kmax` sat in the solver's noise floor. It did not — widening it 1000x moved `R_s` by 0.3%, which also rules out a constant offset between a point value and an integral. The step is now `1e-3` relative on the reasoning that it should clear the leaf's internal tolerances, but the recorded finding is that **the step was never the problem**; the missing turnover term was.
+
+**Measured, at h = 10 m, soil 0.20, against the pipe-model ratio:**
+
+| stem/leaf | dh/dt | R_s |
+|---|---|---|
+| 1.00 | 1.191 | +0.264 |
+| 1.22 | 1.393 | +0.089 |
+| **1.35** | **1.411** | **−0.002** |
+| 1.49 | 1.396 | −0.085 |
+| 1.82 | 1.303 | −0.221 |
+
+The zero-crossing lands on the argmax of `dh/dt` — which is the defining correctness property, since a controller built on production instead is still monotone, still converges, and is still wrong. `test-strategy-tf24.R` asserts it on the grid rather than by interpolation so that the production version fails rather than passing on a tolerance.
+
+At soil 0.15 growth is still rising at 1.82x and `R_s` stays positive throughout; at soil 0.13 the plant has no carbon and `R_s` is ~1e-11. In an SCM run on a wet stand, `a_sw = 0.5` raises R0 from 97.3 to 154.0 (+58%), which is the size of the prize in leaving the pipe model.
+
 ## Open
 
 - Which growth rate the optimality criterion should maximise is **not** a modelling choice to be argued — see "Deciding the objective by invasion analysis" above. It is settled by experiment, and the cheap half of that experiment can run before any of this code exists.

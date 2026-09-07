@@ -1378,6 +1378,7 @@ template <> inline SEXP wrap(const plant::TF24_Pars& x) {
   ret["a_pl2"] = Rcpp::wrap(x.a_pl2);
   ret["a_pl3"] = Rcpp::wrap(x.a_pl3);
   ret["a_pl4"] = Rcpp::wrap(x.a_pl4);
+  ret["a_sw"] = Rcpp::wrap(x.a_sw);
   ret["k_I"] = Rcpp::wrap(x.k_I);
   ret["vcmax_25"] = Rcpp::wrap(x.vcmax_25);
   ret["stem_P50"] = Rcpp::wrap(x.stem_P50);
@@ -1495,6 +1496,8 @@ template <> inline plant::TF24_Pars as(SEXP x) {
   ret.a_pl3 = Rcpp::as<double >(xl["a_pl3"]);
   // ret.a_pl4 = Rcpp::as<decltype(reta_pl4) >(xl["a_pl4"]);
   ret.a_pl4 = Rcpp::as<double >(xl["a_pl4"]);
+  // ret.a_sw = Rcpp::as<decltype(reta_sw) >(xl["a_sw"]);
+  ret.a_sw = Rcpp::as<double >(xl["a_sw"]);
   // ret.k_I = Rcpp::as<decltype(retk_I) >(xl["k_I"]);
   ret.k_I = Rcpp::as<double >(xl["k_I"]);
   // ret.vcmax_25 = Rcpp::as<decltype(retvcmax_25) >(xl["vcmax_25"]);

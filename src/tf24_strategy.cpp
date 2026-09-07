@@ -75,6 +75,8 @@ void TF24_Strategy::refresh_indices () {
   aux_idx_stom_cond_CO2         = aux_index.at("stom_cond_CO2");
   aux_idx_assimilation          = aux_index.at("assimilation");
   aux_idx_leaf_marginal_return  = aux_index.at("leaf_marginal_return");
+  aux_idx_sapwood_marginal_return =
+    aux_index.at("sapwood_marginal_return");
   // area_sapwood is only registered when collect_all_auxiliary is set.
   aux_idx_area_sapwood = aux_index.count("area_sapwood") ? aux_index.at("area_sapwood") : -1;
   state_idx_area_heartwood      = state_index.at("area_heartwood");
@@ -433,9 +435,78 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   // and sapwood in the ratio theta, so it moves the two logs by b/A and
   // theta*b/A_s, whose difference is (b/A) * (exp(-psi) - 1). It vanishes at
   // psi = 0, which is what leaves the inward-pointing boundary flow intact.
+  // --- Sapwood chases the ratio that maximises GROWTH (#516) -----------------
+  // An integral controller on the marginal return: dpsi/dt = a_sw * R_s, which
+  // converges exactly onto R_s = 0 and needs no separate tracked state, because
+  // integrating IS averaging. A small a_sw therefore makes the stem respond to
+  // the MEAN of a signal that swings with the weather.
+  //
+  // R_s is the marginal return of sapwood area, in growth rather than in
+  // production. Growth is F * f_g * D with D = darea_leaf_dmass_live, so
+  //     d(growth)/dpsi  proportional to  dP/dpsi - P * (dm_sap/dA) * D
+  // the second term being the price of the extra stem, paid in forgone leaf
+  // area. Dropping it optimises production instead, which peaks near 3.3x the
+  // pipe-model ratio against growth's 1.4-1.8x.
+  //
+  // Divided by the gross assimilation flux to make it dimensionless. That
+  // denominator is strictly positive, unlike P, so the sign of R_s is the sign
+  // of the growth derivative everywhere including deep deficit.
+  double sapwood_marginal_ = 0.0;
+  if (pars.a_sw > 0.0 && shading_model_ != ShadingModel::DeepCrown) {
+    const double area_sapwood_now = area_sapwood(area_leaf_, sapwood_departure);
+    const double mass_sapwood_now = mass_sapwood(area_sapwood_now, height);
+    const double kmax_now =
+      pars.K_s * sapwood_per_leaf_area(sapwood_departure) / (height * eta_c);
+    const double conv = pars.a_bio * pars.a_y;
+    // psi enters kmax and sapwood mass both as exp(psi), so d/dpsi of each is
+    // itself -- which is what makes these two terms so simple.
+    // ⚠️ SAPWOOD TURNOVER IS GATED, so its psi-derivative is not k_s * m_s.
+    // What the budget is actually charged is
+    //     replacement_sapwood * k_s * m_s,  replacement_sapwood ∝ exp(-psi/a_pl2)
+    // against m_s ∝ exp(psi), so the charge falls as exp((1 - 1/a_pl2) * psi) --
+    // steeply, a_pl2 being well below one. Differentiating the UNGATED cost
+    // instead drops a term worth +6.8 kg/yr of 13.1 at the default, and moved
+    // the controller's zero from 1.35x the pipe-model ratio down to 1.05x.
+    // Respiration carries no such gate, so it keeps the plain exp(psi).
+    const double charged_sapwood_turnover =
+      (1.0 - withheld_sapwood) * pars.k_s * mass_sapwood_now;
+    const double dP_dpsi =
+      conv * area_leaf_ * dprofit_dkmax_ * kmax_now * 60*60*12*365/1e6
+      - conv * pars.r_s * mass_sapwood_now
+      - charged_sapwood_turnover * (1.0 - 1.0 / pars.a_pl2);
+    const double dmass_sap_dA =
+      dmass_sapwood_darea_leaf(area_leaf_star, sapwood_departure);
+    const double gross = maintenance_flux_;
+    if (gross > 0.0) {
+      // ⚠️ SCALED BY CARBON AVAILABILITY, because re-proportioning the stem is
+      // an allocation decision and has to be paid for out of the growth flux.
+      // Without this the drift raises area_sapwood at fixed leaf area -- real
+      // tissue -- while the budget is charged nothing, so a plant in deficit
+      // would keep thickening on carbon it does not have. The reserve gate G is
+      // NOT the right switch on its own: at soil 0.13 reserves are still full so
+      // G ~ 1, and what has gone to zero is Ppos. growth_flux carries both.
+      //
+      // The factor is a share of throughput, so it is smooth, lies in [0, 1),
+      // and vanishes with the growth flux. Symmetric on purpose: scaling only
+      // the building direction would put a kink at R_s = 0, and the turnover
+      // route out of an over-built stem stays open regardless, being a real
+      // mass flow. Being strictly positive it cannot move the zero, so the
+      // controller still converges on the growth optimum -- it only sets how
+      // fast, which is what a_sw is for.
+      const double availability =
+        growth_flux / (growth_flux + maintenance_flux_);
+      sapwood_marginal_ = availability *
+        (dP_dpsi - net_mass_production_dt_ * dmass_sap_dA *
+           darea_leaf_dmass_live_) / gross;
+    }
+  }
+
+  vars.set_aux(aux_idx_sapwood_marginal_return, sapwood_marginal_);
+
   vars.set_rate(state_idx_log_area_sapwood_departure,
                 withheld * pars.k_l - withheld_sapwood * pars.k_s +
-                  rebuild_rel * (std::exp(-sapwood_departure) - 1.0));
+                  rebuild_rel * (std::exp(-sapwood_departure) - 1.0) +
+                  pars.a_sw * sapwood_marginal_);
 
   // [eqn 21] - Instantaneous mortality rate, now driven by relative reserves r.
   vars.set_rate(MORTALITY_INDEX,
@@ -670,7 +741,12 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   // (profit_, transpiration_, soil_consumption_, opt_psi_stem_, ...) set. Only
   // the radiation argument varies between calls; every other input is
   // depth-independent and already computed above.
+  // Remembered so the sapwood sensitivity below can re-set the physiology at the
+  // same light without re-deriving it. Under DeepCrown this holds the LAST
+  // quadrature point's radiation, which is why that path is refused there.
+  double last_radiation_ = 0.0;
   auto optimise_at = [&](double radiation) {
+    last_radiation_ = radiation;
     leaf.set_physiology(root_network_, radiation, psi_soil, soil_depths_, leaf_specific_conductance_max, environment.get_atm_vpd(), environment.get_ca(), environment.get_leaf_temp(), environment.get_atm_o2_kpa(), environment.get_atm_kpa());
     solve_leaf();
   };
@@ -766,6 +842,51 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   //     int profit*q dz + lambda_o * int E*q dz  ==  int (A - Theta~)*q dz
   // exactly. Move either assignment away from the other and this stops holding.
   const double carbon_profit_ = leaf.profit_ + leaf.shadow_cost();
+
+  // --- How much would more conducting area be worth? (#516) ------------------
+  // d(profit)/d(kmax) at the operating point the leaf just found. By the
+  // ENVELOPE THEOREM this needs no second optimisation: profit is already
+  // maximised over the collar potential, so the indirect term through psi*
+  // vanishes and what remains is the partial derivative at a known point.
+  // phylloptim reports d(profit)/d(psi) as ~1e-15 at its optimum, which is that
+  // statement measured rather than assumed.
+  //
+  // So this re-EVALUATES at the same psi* with kmax nudged; it does not re-solve.
+  // There is no root-find inside the difference, so it has none of the tol/h
+  // noise floor that differencing through a solver would.
+  //
+  // Skipped entirely at a_sw = 0, which is the default, so the hot path is
+  // untouched unless sapwood acclimation is switched on.
+  dprofit_dkmax_ = 0.0;
+  if (pars.a_sw > 0.0 && shading_model_ != ShadingModel::DeepCrown) {
+    const double psi_star = leaf.opt_root_psi_;
+    // ⚠️ THE STEP IS MEASURED, NOT ASSUMED. profit is computed through a leaf
+    // evaluation with its own internal tolerances, so its effective precision is
+    // far short of machine epsilon and a "safely small" step is swamped by
+    // round-off: at 1e-6 relative the difference moved profit by ~1e-7 of itself
+    // and the controller's zero landed at 1.05x the pipe-model ratio instead of
+    // the true 1.35x. A relative step of 1e-3 puts the signal well clear of the
+    // noise while staying deep in the linear regime.
+    const double dk = 1e-3 * leaf_specific_conductance_max;
+    leaf.set_physiology(root_network_, last_radiation_, psi_soil, soil_depths_,
+                        leaf_specific_conductance_max + dk,
+                        environment.get_atm_vpd(), environment.get_ca(),
+                        environment.get_leaf_temp(),
+                        environment.get_atm_o2_kpa(), environment.get_atm_kpa());
+    leaf.evaluate_root_collar_psi(psi_star);
+    const double profit_up = leaf.profit_ + leaf.shadow_cost();
+    dprofit_dkmax_ = (profit_up - carbon_profit_) / dk;
+    // Put the leaf back where it was: every aux below reads its members, and a
+    // leaf left at the perturbed conductance would report a plant that does not
+    // exist.
+    leaf.set_physiology(root_network_, last_radiation_, psi_soil, soil_depths_,
+                        leaf_specific_conductance_max,
+                        environment.get_atm_vpd(), environment.get_ca(),
+                        environment.get_leaf_temp(),
+                        environment.get_atm_o2_kpa(), environment.get_atm_kpa());
+    leaf.evaluate_root_collar_psi(psi_star);
+  }
+
   //TODO: one point constant ratio and integral width for daylength
   // convert assimilation per leaf area per second (umol m^-2 s^-1) to canopy-level total yearly assimilation (mol yr^-1)
   // converts to canopy area, then years, then mols
@@ -821,6 +942,13 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   const double turnover_ =
     turnover(replacement_leaf, replacement_sapwood, mass_leaf_, mass_bark_,
              mass_sapwood_, mass_root_);
+  // The plant's maintenance bill, which the sapwood controller divides by to
+  // get a dimensionless return. It is used instead of assimilation or profit
+  // because it is STRICTLY POSITIVE while the plant has tissue: profit is net
+  // of leaf respiration and goes negative in exactly the drought where the
+  // controller most needs a sign, and a denominator that changes sign would
+  // flip the direction the stem moves.
+  maintenance_flux_ = pars.a_bio * pars.a_y * respiration_ + turnover_;
   return net_mass_production_dt_A(assimilation_, respiration_, turnover_);
 }
 
@@ -1153,6 +1281,19 @@ void TF24_Strategy::prepare_strategy() {
     throw std::invalid_argument(
       "shading_model '" + control.shading_model +
       "' is not supported for the TF24 strategy");
+  }
+
+  // ⚠️ Sapwood acclimation needs d(profit)/d(kmax), which is measured by
+  // re-evaluating the leaf at ONE radiation. Under deep-crown, carbon_profit_
+  // is an integral over crown positions instead, so that single-point
+  // difference is not its derivative. Refuse rather than skip: skipping leaves
+  // the controller with only its (negative) cost term, so the stem would shrink
+  // without bound and the run would look plausible the whole way down.
+  if (pars.a_sw > 0.0 && shading_model_ == ShadingModel::DeepCrown) {
+    throw std::invalid_argument(
+      "TF24 sapwood acclimation (a_sw > 0) is not supported with the "
+      "deep-crown shading model: the sapwood sensitivity is measured at a "
+      "single radiation and deep-crown integrates over the crown");
   }
 
   canopy_shape.initialise(pars.eta, shading_model_);

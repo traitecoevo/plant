@@ -21,6 +21,7 @@ test_that("Defaults", {
     a_st1 = 0.10,
     a_st2 = 0.10,
     a_st3 = 0.8,
+    a_sw = 0.0,
     a_pl0 = 0.0,
     a_pl1 = 0.0,
     a_pl2 = 0.2,
@@ -94,8 +95,8 @@ test_that("TF24 collect_all_auxiliary option", {
 
   s <- TF24_Strategy()
   p <- TF24_Individual(s)
-  expect_equal(p$aux_size, 13)
-  expect_equal(length(p$internals$auxs), 13)
+  expect_equal(p$aux_size, 14)
+  expect_equal(length(p$internals$auxs), 14)
 expect_equal(p$aux_names, c(
     "competition_effect",
     "height_inverse",
@@ -109,14 +110,14 @@ expect_equal(p$aux_names, c(
     "shadow_cost",
     "stom_cond_CO2",
     "assimilation",
-    "leaf_marginal_return"
+    "leaf_marginal_return", "sapwood_marginal_return"
   ))
 
   s <- TF24_Strategy(collect_all_auxiliary=TRUE)
   expect_true(s$collect_all_auxiliary)
   p <- TF24_Individual(s)
-  expect_equal(p$aux_size, 14)
-  expect_equal(length(p$internals$auxs), 14)
+  expect_equal(p$aux_size, 15)
+  expect_equal(length(p$internals$auxs), 15)
   expect_equal(p$aux_names, c(
     "competition_effect",
     "height_inverse",
@@ -130,7 +131,7 @@ expect_equal(p$aux_names, c(
     "shadow_cost",
     "stom_cond_CO2",
     "assimilation",
-    "leaf_marginal_return",
+    "leaf_marginal_return", "sapwood_marginal_return",
     "area_sapwood"
   ))
 })
@@ -1017,4 +1018,91 @@ test_that("new growth is priced at the Huber value the plant actually carries", 
   ## at rest the whole thing is bitwise what it replaced, which the exactness
   ## check elsewhere covers, and here the resting growth is simply positive.
   expect_gt(G[[1]], 0)
+})
+
+## --- Sapwood tracks the Huber value that maximises GROWTH (#516) -----------
+## The defining property is not that the controller has the right sign, but that
+## its zero sits on the argmax of dh/dt. Production and growth have different
+## optima -- production keeps rising well past 3x the pipe-model ratio, because
+## nothing in it charges the plant for the stem -- so a controller built on the
+## wrong one is wrong in a way that still looks monotone and still converges.
+
+tf24_sapwood_probe <- function(psi, theta_soil, a_sw = 1.0, height = 10) {
+  s <- TF24_Strategy(collect_all_auxiliary = TRUE)
+  s$pars$a_sw <- a_sw
+  env <- Environment("TF24")
+  env$set_soil_number_of_depths(5L)
+  env$set_soil_water_state(rep(theta_soil, 5L))
+  env$set_fixed_environment(1.0, 40)
+  ind <- TF24_Individual(s)
+  ind$set_state("height", height)
+  ind$set_state("log_area_sapwood_departure", psi)
+  ind$set_initial_states(env)
+  ind$compute_rates(env)
+  list(R_s = ind$aux("sapwood_marginal_return"),
+       dpsi = ind$rate("log_area_sapwood_departure"),
+       dheight = ind$rate("height"))
+}
+
+test_that("sapwood acclimation is inert at a_sw = 0", {
+  ## a_sw = 0 is the default, and is what keeps the fixed-allometry model
+  ## recoverable: the controller must contribute exactly nothing, not merely a
+  ## small amount. Zero exactly, so it cannot perturb the stepper either.
+  off <- tf24_sapwood_probe(0.2, 0.20, a_sw = 0.0)
+  expect_identical(off$R_s, 0.0)
+  on  <- tf24_sapwood_probe(0.2, 0.20, a_sw = 1.0)
+  expect_gt(abs(on$R_s), 1e-3)
+  ## and with the controller off the rate is whatever the mass flows alone say
+  expect_equal(on$dpsi - off$dpsi, on$R_s, tolerance = 1e-12)
+})
+
+test_that("the sapwood controller vanishes exactly at the growth optimum", {
+  psi <- seq(0, 0.6, by = 0.025)
+  d <- vapply(psi, function(p) {
+    r <- tf24_sapwood_probe(p, 0.20)
+    c(r$R_s, r$dheight)
+  }, numeric(2))
+  R_s <- d[1, ]; dh <- d[2, ]
+
+  ## R_s crosses zero exactly once, downwards.
+  expect_gt(R_s[[1]], 0)
+  expect_lt(R_s[[length(R_s)]], 0)
+  expect_equal(sum(diff(sign(R_s)) != 0), 1L)
+
+  ## ...and it crosses where growth peaks. Compared on the grid rather than by
+  ## interpolation, so a controller optimising production instead (whose zero
+  ## sits far to the right, near 3x) fails rather than passing on a tolerance.
+  psi_zero <- psi[which.min(abs(R_s))]
+  psi_peak <- psi[which.max(dh)]
+  expect_equal(psi_zero, psi_peak)
+
+  ## The optimum is genuinely away from the pipe-model ratio the fixed model
+  ## uses, which is why the controller changes anything at all.
+  expect_gt(exp(psi_peak), 1.2)
+})
+
+test_that("the sapwood controller switches off when there is no carbon", {
+  ## Re-proportioning the stem is an allocation decision, so it must stop when
+  ## there is no growth flux to pay for it -- otherwise the drift builds real
+  ## tissue for free. Reserves are still full at this soil water, so the reserve
+  ## gate G alone would NOT catch this: what has gone to zero is production.
+  ## Not exactly zero: the availability factor is a smooth share of throughput,
+  ## so it goes to ~1e-11 rather than snapping to 0 -- which is the point, a
+  ## hard cut here would be a breakpoint in the rate. Negligible against the
+  ## ~0.26 the same probe returns in the wet.
+  dry <- tf24_sapwood_probe(0.2, 0.13)
+  expect_lt(abs(dry$R_s), 1e-8)
+  wet <- tf24_sapwood_probe(0.2, 0.20)
+  expect_gt(abs(wet$R_s), 1e-3)
+})
+
+test_that("sapwood acclimation is refused under deep crown", {
+  ## The sensitivity is measured at a single radiation, which deep-crown's
+  ## integrated profit is not a function of. Skipping it would leave the
+  ## controller with only its negative cost term and shrink the stem forever,
+  ## so this must fail loudly instead.
+  s <- TF24_Strategy()
+  s$pars$a_sw <- 1.0
+  s$control$shading_model <- "deep-crown"
+  expect_error(TF24_Individual(s), "deep-crown")
 })
