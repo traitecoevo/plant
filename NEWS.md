@@ -476,9 +476,108 @@ were not previously recorded here:
   * Semantic change: `patch$ode_rates` was a cheap read of stored values and is
     now a full right-hand-side evaluation. `StochasticPatch$compute_rates()` is
     unchanged.
+* TF24/TF24f gain a `Tleaf` auxiliary variable, so their `aux_size` grows by one
+  (#625; see New features for what the slot holds). Additive — it is appended
+  after `assimilation` — so every existing name lookup and every positional index
+  below it is unchanged. Migration, for code that indexes auxs by position or
+  asserts their count:
+  * `aux_size` `12` -> `13`; with `collect_all_auxiliary`, `13` -> `14`
+  * `auxs[[13]]` (`area_sapwood`, `collect_all_auxiliary` only) -> `auxs[[14]]`,
+    or better `ind$aux("area_sapwood")`
+  * no other slot moves; `ind$aux(<name>)` needs no change anywhere
 
 ### New features
 
+* **TF24 stem hydraulic resistance is now a path integral over the stem**, with
+  three new `TF24_Pars` fields — `D_c` (conduit widening exponent, default
+  `0.2`), `theta_c` (Huber-profile exponent, default `0`) and `L_tip` (terminal
+  segment length, default `0.02` m). Resistance now grows as `H^0.6` rather than
+  `H^1.0`. **`scientific_version` moves to 10 and TF24 output changes** (#615).
+
+  The height exponent is *derived* rather than assumed, from two measurable
+  within-plant profiles: conduit widening `D(L) = D_tip·(L/L_tip)^D_c` with
+  `D_c ≈ 0.2` conserved across terrestrial vascular plants, and the Huber
+  profile `theta(L) = theta·(L/L_tip)^(−theta_c)`. Under a conserved lumen
+  fraction the packing limit `n_A ∝ D⁻²` means conductivity scales as `D²`, not
+  the `D⁴` of Hagen–Poiseuille, which survives only along a single continuous
+  conduit.
+
+  `K_s` keeps its name but narrows in meaning to the **terminal segment**, and
+  its default moves `1 -> 0.33577377016801868` (a factor 2.9782) so that
+  resistance is *unchanged* at `TF24_H_ANCHOR` = 1 m. Use the exported
+  `TF24_K_s_from_whole_stem()` to convert a whole-stem conductivity.
+
+  Because `R_L` depends on `theta` and `K_s` only through their ratio, there is
+  exactly one free scalar, so old and new agree at exactly **one** height. This
+  is a *rotation* about the anchor, not a rescaling — only sub-metre plants pay
+  more than they did:
+
+  | H (m) | 0.394 | 1.00 | 5.00 | 8.00 | 16.60 | 30.0 | 60.0 |
+  |---|---|---|---|---|---|---|---|
+  | `R_new/R_old` | 1.38 | 1.00 | 0.55 | 0.46 | 0.35 | 0.28 | 0.21 |
+
+  Setting `D_c`, `theta_c` and `L_tip` to zero and `K_s` back to 1 recovers the
+  previous model exactly, end-to-end through the SCM.
+
+  **The sign of the effect depends on stand density.** Individually a plant is
+  better off wherever it is taller than the anchor (assimilation ratio 1.054 at
+  5 m, 1.141 at 10 m, single plant, wet soil). But lower resistance also means
+  faster transpiration, so in a dense stand everyone draws the shared soil column
+  down faster and the patch does worse. One-species SCM at `hmat` = 5: ratio
+  1.196 at `birth_rate` 0.5, 1.047 at 2, and 0.803 at 20. The pinned test
+  scenarios all run at 20, the least favourable end; the hydraulic gateway, which
+  runs longer patches at the default `hmat`, moves the other way by 3.1×–2208×,
+  with two scenarios crossing R0 = 1 so persistence goes 1/8 → 3/8.
+
+  `B_Hv1` moves `0.4607063 -> 0.36591565341924093` in `make_TF24_hyperpar`. This
+  is **not** a science change but a correction that prevents one: the hyperpar
+  derives the whole vulnerability curve from `K_s` via
+  `stem_P50 = 10^(B_Hv1 + B_Hv2·log10(K_s))`, so feeding a terminal-segment
+  `K_s` through the un-re-anchored relation would have moved `stem_P50` from
+  2.889 to 3.593 MPa as a side effect. The intercept was shifted to hold it fixed.
+  The `K_s` rows of `inst/scenarios/scenario_mapping.csv` were rescaled to the
+  new baseline for the same reason.
+
+  **`theta_c` is declared but refused**: `prepare_strategy()` throws on any
+  non-zero value. `theta` is not a hydraulics-only trait — it also sets
+  `area_sapwood`, `area_bark`, `mass_sapwood` (hence construction cost,
+  respiration, turnover and NSC capacity) and the hard-coded
+  `dmass_sapwood_darea_leaf` derivative, all of which read a flat `theta`.
+  Profiling it on the hydraulic side alone would give a plant that conducts as
+  though `theta` varied along the stem and is built as though it did not, so the
+  half-model is refused rather than staged. When `theta(L)` lands it lands in
+  the hydraulic path and the allometry in the same change. `D_c` carries the
+  height dependence meanwhile and is unaffected — it enters through `k_s(L)`,
+  which has no structural counterpart.
+
+  Design note: `notes/plan-tf24-height-hydraulics.md`. The diurnal closure that
+  the cost and gain terms need is tracked separately as #618.
+* **TF24 and TF24f report leaf temperature as an auxiliary variable, `Tleaf`
+  (#625).** The leaf's own temperature at the optimal operating point, in deg C,
+  alongside `opt_psi_stem` and the other leaf outputs. `aux_size` therefore goes
+  12 -> 13 (13 -> 14 with `collect_all_auxiliary`), appended after
+  `assimilation`, so existing positional indices are unchanged except
+  `area_sapwood`, which moves from 13 to 14.
+
+  It is an **output, not the `leaf_temp` driver**, and that is the whole reason
+  for the slot. With `pars$use_energy_balance` at its default of `0` the leaf
+  runs at the prescribed driver and `Tleaf` equals it exactly — reported anyway,
+  rather than `NA`, so the column can be plotted against anything. Turn the
+  Penman-Monteith energy balance on and the leaf solves its own temperature from
+  its transpiration at every operating point; that value was computed, used to
+  re-derive the whole Farquhar temperature block, and then discarded, so the one
+  quantity the PM path exists to produce was the one a canopy-level analysis
+  could not read. Measured on a 5 m plant at PPFD 1800 with air at 30 °C, the
+  leaf sits at **39.2 °C**.
+
+  Under `shading_model = "deep-crown"` it is integrated to the leaf-area-weighted
+  crown mean alongside `profit`, `transpiration`, `assimilation` and the rest,
+  and NOT left at whichever quadrature node the crown loop ended on. Note what
+  that means for interpretation: it is a **crown mean**, not any single leaf's
+  temperature, so a canopy with a hot top and a cool base reports the average of
+  the two. The depth profile itself is not exposed — a fixed-width aux slot
+  cannot carry a per-node vector — so the second half of #625 (reporting each
+  leaf output against crown depth) remains open.
 * **TF24 sapwood can track the Huber value that maximises growth (`a_sw`, #516).** `d(log A_s departure)/dt` gains `a_sw * R_s`, an integral controller on the marginal *growth* return of sapwood area. It converges onto `R_s = 0` rather than tracking with an offset, and because integrating is averaging, a small `a_sw` makes the stem follow the long-run mean of a signal that swings with the weather — no extra tracked state.
 
   The objective is growth, not net production, and the distinction is the whole design: against production extra sapwood is nearly always worth building, because it raises `k_max` and nothing charges the plant for the leaf area it did not build instead. `R_s` subtracts that price, which moves the optimum from about 3.3x the pipe-model ratio in to **1.35x** (at 10 m, moist soil), where height growth actually peaks. The optimum rises as soil dries — a drier plant wants more stem per leaf — which a single fixed `theta` cannot express.

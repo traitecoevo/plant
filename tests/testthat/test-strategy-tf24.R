@@ -45,7 +45,9 @@ test_that("Defaults", {
     k_I = 0.5,
     vcmax_25 = 96,
     stem_P50 = 1.85,
-    K_s = 1,
+    # Terminal-segment conductivity: the old whole-stem 1, back-derived so
+    # resistance is unchanged at TF24_H_ANCHOR. Ratio 2.9782.
+    K_s = TF24_K_s_from_whole_stem(1),
     stem_c = log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16)),
     stem_b = 1.85 /((-log(1 - 50.0 / 100.0))^(1 / (log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16))))),
     psi_crit = (1.85 /((-log(1 - 50.0 / 100.0))^(1 / (log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16))))))*log(1/0.05)^(1/(log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16)))),
@@ -68,6 +70,11 @@ test_that("Defaults", {
     root_b = 3.898245,
     root_psi_crit = 3.898245 * log(1 / 0.05)^(1 / 2.680147),
     rooting_depth_max = 1.5,
+    # Stem hydraulic path. theta_c stays 0, so `theta` keeps its whole-plant
+    # meaning. See plant/stem_hydraulics.h.
+    D_c = 0.2,
+    theta_c = 0,
+    L_tip = 0.02,
     recruitment_decay = 0,
     use_energy_balance = 0,
     d = 0.05)
@@ -95,8 +102,8 @@ test_that("TF24 collect_all_auxiliary option", {
 
   s <- TF24_Strategy()
   p <- TF24_Individual(s)
-  expect_equal(p$aux_size, 14)
-  expect_equal(length(p$internals$auxs), 14)
+  expect_equal(p$aux_size, 15)
+  expect_equal(length(p$internals$auxs), 15)
 expect_equal(p$aux_names, c(
     "competition_effect",
     "height_inverse",
@@ -110,14 +117,14 @@ expect_equal(p$aux_names, c(
     "shadow_cost",
     "stom_cond_CO2",
     "assimilation",
-    "leaf_marginal_return", "sapwood_marginal_return"
+    "Tleaf", "leaf_marginal_return", "sapwood_marginal_return"
   ))
 
   s <- TF24_Strategy(collect_all_auxiliary=TRUE)
   expect_true(s$collect_all_auxiliary)
   p <- TF24_Individual(s)
-  expect_equal(p$aux_size, 15)
-  expect_equal(length(p$internals$auxs), 15)
+  expect_equal(p$aux_size, 16)
+  expect_equal(length(p$internals$auxs), 16)
   expect_equal(p$aux_names, c(
     "competition_effect",
     "height_inverse",
@@ -131,7 +138,7 @@ expect_equal(p$aux_names, c(
     "shadow_cost",
     "stom_cond_CO2",
     "assimilation",
-    "leaf_marginal_return", "sapwood_marginal_return",
+    "Tleaf", "leaf_marginal_return", "sapwood_marginal_return",
     "area_sapwood"
   ))
 })
@@ -302,7 +309,7 @@ test_that("offspring arrival", {
                        hyperpar = TF24_hyperpar, birth_rate = list(20))
 
   out <- run_scm(p1, env, ctrl)
-  expect_equal(out$offspring_production, 30.22207354, tolerance = 2e-2)
+  expect_equal(out$offspring_production, 24.32140145, tolerance = 2e-2)
 
   # two species: the second strategy has a moderately higher lma (0.10 vs
   # 0.0825), so it grows more slowly and is more heavily shaded. In the height
@@ -319,7 +326,7 @@ test_that("offspring arrival", {
                        hyperpar = TF24_hyperpar, birth_rate = list(20, 20))
 
   out <- run_scm(p2, env, ctrl)
-  expect_equal(out$offspring_production[[1]], 23.20349831, tolerance = 2e-2)
+  expect_equal(out$offspring_production[[1]], 18.54300907, tolerance = 2e-2)
   expect_lt(out$offspring_production[[2]], 0.5)
 
   # Same two species, integrated in birth date (#590). They coexist at
@@ -355,6 +362,59 @@ test_that("offspring arrival", {
   # a reserve fraction of exactly 1 with the read clipped there, where it now
   # sits at 0.62 with nothing on the clip.
   out_bd <- run_scm(p2, env, Control(node_density_coordinate = "birth_date"))
+  expect_equal(out_bd$offspring_production[[1]], 219.26680110, tolerance = 2e-2)
+  expect_equal(out_bd$offspring_production[[2]], 34.58766277, tolerance = 2e-2)
+})
+
+test_that("the height-linear parameters reproduce the pre-path-integral results", {
+  # The stem path integral (plant/stem_hydraulics.h) replaced a resistance
+  # strictly linear in height. Setting D_c, theta_c and L_tip to zero and K_s
+  # back to its old whole-stem value of 1 must recover that model exactly --
+  # end-to-end through a full SCM run, not just in the closed form.
+  #
+  # The values pinned here are develop's own, i.e. the ones the tests above this
+  # one carried before the path integral landed, at the same 2e-2 tolerance and
+  # for the same cross-platform reasons. They are adopted without modification,
+  # which is the strongest available statement that the new machinery adds a
+  # capability rather than changing the old behaviour.
+  linear <- function(p) {
+    # Every strategy, not just the first: resetting only strategies[[1]] leaves
+    # the second species on the path integral and silently compares two
+    # different models.
+    for (i in seq_along(p$strategies)) {
+      s <- p$strategies[[i]]
+      s$pars$D_c <- 0
+      s$pars$theta_c <- 0
+      s$pars$L_tip <- 0
+      s$pars$K_s <- 1
+      p$strategies[[i]] <- s
+    }
+    p
+  }
+
+  p0 <- scm_base_parameters("TF24")
+  env <- Environment("TF24")
+  # ⚠️ PINNED TO THE HEIGHT COORDINATE. These are develop's pre-#516 values, and
+  # they were taken when Control()'s default resolved to the height coordinate
+  # for TF24. #516 makes "auto" resolve to birth_date for TF24, so a bare
+  # Control() here compares two coordinates rather than two hydraulic models --
+  # it reads 404.5 against 30.2, which looks like a broken exactness test and is
+  # not one. The coordinate has to be named for the comparison to mean anything.
+  ctrl <- Control(node_density_coordinate = "height")
+  p0$max_patch_lifetime <- 5
+
+  p1 <- add_strategies(p0, trait_matrix(c(0.0825, 5), c("lma", "hmat")),
+                       hyperpar = TF24_hyperpar, birth_rate = list(20))
+  out <- run_scm(linear(p1), env, ctrl)
+  expect_equal(out$offspring_production, 30.22207354, tolerance = 2e-2)
+
+  p2 <- add_strategies(p0, trait_matrix(c(0.0825, 0.10, 5, 5), c("lma", "hmat")),
+                       hyperpar = TF24_hyperpar, birth_rate = list(20, 20))
+  out2 <- run_scm(linear(p2), env, ctrl)
+  expect_equal(out2$offspring_production[[1]], 23.20349831, tolerance = 2e-2)
+  expect_lt(out2$offspring_production[[2]], 0.5)
+
+  out_bd <- run_scm(linear(p2), env, Control(node_density_coordinate = "birth_date"))
   expect_equal(out_bd$offspring_production[[1]], 233.05915606, tolerance = 2e-2)
   expect_equal(out_bd$offspring_production[[2]], 43.63800899, tolerance = 2e-2)
 })
@@ -1008,11 +1068,14 @@ test_that("new growth is priced at the Huber value the plant actually carries", 
 
   ## Both have interior optima, and the growth one sits well below the
   ## production one -- because extra stem is now paid for in forgone leaf growth.
+  ## The ORDERING is the invariant here, not the levels: #617 moved both optima
+  ## in (the path integral lowers resistance for tall plants, so extra sapwood
+  ## buys less), and pinning a level would have to be re-pinned by any change to
+  ## the hydraulics. What must survive is that growth's optimum is strictly
+  ## inside production's.
   expect_gt(which.max(P), 1)
-  expect_gt(which.max(G), 1)
   expect_lt(which.max(G), which.max(P))
-  expect_lt(exp(psis[which.max(G)]), 2.5)
-  expect_gt(exp(psis[which.max(P)]), 2.5)
+  expect_lt(exp(psis[which.max(G)]), exp(psis[which.max(P)]))
 
   ## Bark stays pinned to leaf area, so it must NOT move with the departure:
   ## at rest the whole thing is bitwise what it replaced, which the exactness
@@ -1057,7 +1120,9 @@ test_that("sapwood acclimation is inert at a_sw = 0", {
 })
 
 test_that("the sapwood controller vanishes exactly at the growth optimum", {
-  psi <- seq(0, 0.6, by = 0.025)
+  # Spans BELOW the pipe model: after #617 a short plant's optimum is at
+  # psi < 0, so a grid starting at zero would report its left edge as the peak.
+  psi <- seq(-0.3, 0.6, by = 0.025)
   d <- vapply(psi, function(p) {
     r <- tf24_sapwood_probe(p, 0.20)
     c(r$R_s, r$dheight)
@@ -1076,9 +1141,21 @@ test_that("the sapwood controller vanishes exactly at the growth optimum", {
   psi_peak <- psi[which.max(dh)]
   expect_equal(psi_zero, psi_peak)
 
-  ## The optimum is genuinely away from the pipe-model ratio the fixed model
-  ## uses, which is why the controller changes anything at all.
-  expect_gt(exp(psi_peak), 1.2)
+  ## The optimum is genuinely NOT the pipe-model ratio, and -- the part that
+  ## cannot be reproduced by any single fixed theta -- it RISES WITH HEIGHT.
+  ## After #617 a 5 m plant wants less stem per leaf than the pipe model and a
+  ## 20 m plant wants more, so it is the trend that is asserted rather than a
+  ## level: the level moved from 1.35x to 1.05x when the path integral landed,
+  ## and would move again with the hydraulics.
+  peak_at <- function(h) {
+    d <- vapply(psi, function(p) tf24_sapwood_probe(p, 0.20, height = h)$dheight,
+                numeric(1))
+    exp(psi[which.max(d)])
+  }
+  expect_lt(peak_at(5), peak_at(10))
+  expect_lt(peak_at(10), peak_at(16))
+  expect_lt(peak_at(5), 1.0)          # a short plant wants LESS than the pipe model
+  expect_gt(peak_at(16), 1.1)         # a tall one wants more
 })
 
 test_that("the sapwood controller switches off when there is no carbon", {

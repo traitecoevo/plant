@@ -201,7 +201,7 @@ allometry_carbon_terms <- function(height, theta_soil, d = 0.02, phi = 0) {
 ## rate it is the derivative of, so the two can be plotted on the same axis and
 ## the zero-crossing checked against the peak rather than asserted.
 allometry_sapwood_controller <- function(theta_soil, height = 10, a_sw = 1.0,
-                                         psi = seq(0, 0.7, length.out = 29L)) {
+                                         psi = seq(-0.3, 0.7, length.out = 41L)) {
   s <- TF24_Strategy(collect_all_auxiliary = TRUE)
   s$pars$a_sw <- a_sw
   out <- lapply(psi, function(p) {

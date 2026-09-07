@@ -74,6 +74,7 @@ void TF24_Strategy::refresh_indices () {
   aux_idx_shadow_cost           = aux_index.at("shadow_cost");
   aux_idx_stom_cond_CO2         = aux_index.at("stom_cond_CO2");
   aux_idx_assimilation          = aux_index.at("assimilation");
+  aux_idx_Tleaf                 = aux_index.at("Tleaf");
   aux_idx_leaf_marginal_return  = aux_index.at("leaf_marginal_return");
   aux_idx_sapwood_marginal_return =
     aux_index.at("sapwood_marginal_return");
@@ -250,6 +251,10 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   vars.set_aux(aux_idx_shadow_cost, leaf.shadow_cost());
   vars.set_aux(aux_idx_stom_cond_CO2, leaf.stom_cond_CO2_);
   vars.set_aux(aux_idx_assimilation, leaf.assim_colimited_);
+  // The leaf's own temperature at the operating point, not the `leaf_temp`
+  // driver -- see aux_names(). Equal to the driver while pars.use_energy_balance
+  // is off; solved from the leaf's transpiration when it is on.
+  vars.set_aux(aux_idx_Tleaf, leaf.Tleaf_);
 
 
 
@@ -455,8 +460,10 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   if (pars.a_sw > 0.0 && shading_model_ != ShadingModel::DeepCrown) {
     const double area_sapwood_now = area_sapwood(area_leaf_, sapwood_departure);
     const double mass_sapwood_now = mass_sapwood(area_sapwood_now, height);
-    const double kmax_now =
-      pars.K_s * sapwood_per_leaf_area(sapwood_departure) / (height * eta_c);
+    // Read, do not recompute: #617 replaced the height-linear denominator with
+    // a path integral, and a recomputed copy here would still have been on the
+    // old relation -- wrong by a factor 0.35 at 16 m, and silent.
+    const double kmax_now = leaf_specific_conductance_max_;
     const double conv = pars.a_bio * pars.a_y;
     // psi enters kmax and sapwood mass both as exp(psi), so d/dpsi of each is
     // itself -- which is what makes these two terms so simple.
@@ -639,16 +646,35 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   const std::vector<double>& psi_soil = environment.get_soil_water_potential_state();
   
 // find leaf specific max hydraulic conductance (kg m^-2 LA s^-1 MPa ^-1)
-  // pars.K_s: max hydraulic conductivity (kg m^-2 s^-1 MPa^-1),
+  // pars.K_s: sapwood-specific conductivity of the TERMINAL segment -- which is
+  //   the whole-stem value while pars.D_c == 0 (kg m^-1 s^-1 MPa^-1)
   // pars.theta: huber value
   // eta_c: accounts for average position of leaf mass
   // height: maximum plant height
-  // Supply per unit leaf area follows the Huber value the plant actually has,
-  // so a stem that keeps its conducting area while the canopy thins supplies
-  // each remaining leaf better -- the acclimation half of #516, and the reason
-  // this reads the state rather than pars.theta.
+  //
+  // The flow path runs from the base to the leaf-area-weighted mean leaf
+  // height, height*eta_c, NOT to the apex; eta_c therefore scales the UPPER
+  // LIMIT of the path integral rather than the resistance. The two readings
+  // differ by the constant eta_c^-beta, which is H-independent and so degenerate
+  // with K_s -- nothing downstream can distinguish them, and the K_s
+  // reparameterisation absorbs the difference entirely.
+  //
+  // Setting D_c, theta_c and L_tip all to zero makes effective_path_length
+  // return height*eta_c having performed no arithmetic, so this expression is
+  // then bit-identical to the height-linear code it replaces.
+  const double stem_path_length = stem_hydraulics::effective_path_length(
+      height * eta_c, pars.L_tip, stem_path_exponent_);
+  // ⚠️ NUMERATOR IS THE STATE, NOT pars.theta (#516). Supply per unit leaf area
+  // follows the Huber value the plant actually carries, so a stem that keeps its
+  // conducting area while the canopy thins supplies each remaining leaf better.
+  // That is the acclimation half of #516, and it is also what the sapwood
+  // controller differentiates: psi enters here as exp(psi), which is why
+  // d(kmax)/d(psi) is just kmax. Stored so the controller reads the SAME value
+  // rather than recomputing it -- recomputing it is how the two silently drift
+  // apart when the denominator changes, as it just did in #617.
   const double leaf_specific_conductance_max =
-    pars.K_s * sapwood_per_leaf_area(sapwood_departure) / (height * eta_c);
+    pars.K_s * sapwood_per_leaf_area(sapwood_departure) / stem_path_length;
+  leaf_specific_conductance_max_ = leaf_specific_conductance_max;
 
   // sapwood volume per leaf area (pars.theta * height * eta_c) used to be passed
   // to the leaf, which stored it and never read it. Dropped with the other three
@@ -782,7 +808,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
       function_integrator.integrate_vector_x(0.0, height);
     const size_t nn = nodes.size();
     std::vector<double> profit_y(nn), trans_y(nn), eup_y(nn), psi_y(nn),
-      root_psi_y(nn), gco2_y(nn), assim_y(nn);
+      root_psi_y(nn), gco2_y(nn), assim_y(nn), tleaf_y(nn);
     std::vector<std::vector<double>> soil_y(
       soil_number_of_depths_, std::vector<double>(nn));
     for (size_t i = 0; i < nn; ++i) {
@@ -795,6 +821,11 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
       root_psi_y[i] = leaf.opt_root_psi_ * qi;
       gco2_y[i]     = leaf.stom_cond_CO2_ * qi;
       assim_y[i]    = leaf.assim_colimited_ * qi;
+      // Leaf temperature varies through the crown because the light does, so it
+      // must be integrated like every other leaf output. Left out, `Tleaf_`
+      // would report whichever node the loop happened to end on -- and that node
+      // is neither the crown top nor the centre.
+      tleaf_y[i]    = leaf.Tleaf_ * qi;
       for (int a = 0; a < soil_number_of_depths_; ++a) {
         soil_y[a][i] = leaf.soil_consumption_[a] * qi;
       }
@@ -810,6 +841,7 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
     leaf.opt_root_psi_    = function_integrator.integrate_vector(root_psi_y, 0.0, height);
     leaf.stom_cond_CO2_   = function_integrator.integrate_vector(gco2_y, 0.0, height);
     leaf.assim_colimited_ = function_integrator.integrate_vector(assim_y, 0.0, height);
+    leaf.Tleaf_           = function_integrator.integrate_vector(tleaf_y, 0.0, height);
     for (int a = 0; a < soil_number_of_depths_; ++a) {
       leaf.soil_consumption_[a] =
         function_integrator.integrate_vector(soil_y[a], 0.0, height);
@@ -859,32 +891,49 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   // untouched unless sapwood acclimation is switched on.
   dprofit_dkmax_ = 0.0;
   if (pars.a_sw > 0.0 && shading_model_ != ShadingModel::DeepCrown) {
-    const double psi_star = leaf.opt_root_psi_;
-    // ⚠️ THE STEP IS MEASURED, NOT ASSUMED. profit is computed through a leaf
-    // evaluation with its own internal tolerances, so its effective precision is
-    // far short of machine epsilon and a "safely small" step is swamped by
-    // round-off: at 1e-6 relative the difference moved profit by ~1e-7 of itself
-    // and the controller's zero landed at 1.05x the pipe-model ratio instead of
-    // the true 1.35x. A relative step of 1e-3 puts the signal well clear of the
-    // noise while staying deep in the linear regime.
+    // ⚠️ THIS COSTS A SECOND FULL LEAF SOLVE, and there is no way around it.
+    //
+    // The obvious shortcut is the envelope theorem: profit is already optimised,
+    // so re-evaluate at the collar potential already found and the indirect term
+    // vanishes. THAT ARGUMENT IS WRONG HERE, and it was believed long enough to
+    // ship. It holds for opt_psi_stem_, which really is chosen to maximise
+    // profit. It does NOT hold for opt_root_psi_, which is found by a ROOT FIND
+    // -- the collar potential at which the soil-root network's supply matches
+    // the leaf's demand. A constraint, not an optimum, so d(profit)/d(collar) is
+    // not zero and dropping the indirect term drops a real quantity.
+    //
+    // Measured: holding the collar fixed under-reports d(profit)/d(kmax) by
+    // 15-19 per cent, which put the controller's zero at 1.22x the pipe-model
+    // ratio where growth actually peaks at 1.28x. Re-solving matches a finite
+    // difference of the model's own assimilation to 0.09 per cent and lands the
+    // zero exactly on the peak. The error was invisible in wet soil, where the
+    // grid was too coarse to resolve it.
+    //
+    // The cost is confined to a_sw > 0; at the default the block never runs.
+    //
+    // THE STEP IS MEASURED, NOT ASSUMED. profit comes through a solve with its
+    // own internal tolerances, so its effective precision is far short of
+    // machine epsilon. 1e-3 relative sits clear of that noise floor while
+    // staying deep in the linear regime; sweeping it 1e-6 to 1e-3 moved the
+    // result by 0.3 per cent, so the step is not what limits accuracy here.
     const double dk = 1e-3 * leaf_specific_conductance_max;
     leaf.set_physiology(root_network_, last_radiation_, psi_soil, soil_depths_,
                         leaf_specific_conductance_max + dk,
                         environment.get_atm_vpd(), environment.get_ca(),
                         environment.get_leaf_temp(),
                         environment.get_atm_o2_kpa(), environment.get_atm_kpa());
-    leaf.evaluate_root_collar_psi(psi_star);
+    solve_leaf();
     const double profit_up = leaf.profit_ + leaf.shadow_cost();
     dprofit_dkmax_ = (profit_up - carbon_profit_) / dk;
-    // Put the leaf back where it was: every aux below reads its members, and a
-    // leaf left at the perturbed conductance would report a plant that does not
-    // exist.
+    // Put the leaf back where it was -- a third solve. Every aux below reads the
+    // leaf's members, and a leaf left at the perturbed conductance would report
+    // a plant that does not exist.
     leaf.set_physiology(root_network_, last_radiation_, psi_soil, soil_depths_,
                         leaf_specific_conductance_max,
                         environment.get_atm_vpd(), environment.get_ca(),
                         environment.get_leaf_temp(),
                         environment.get_atm_o2_kpa(), environment.get_atm_kpa());
-    leaf.evaluate_root_collar_psi(psi_star);
+    solve_leaf();
   }
 
   //TODO: one point constant ratio and integral width for daylength
@@ -1302,6 +1351,66 @@ void TF24_Strategy::prepare_strategy() {
   // NOTE: Also pre-computing, though less trivial
   height_0 = height_seed();
   area_leaf_0 = area_leaf(height_0);
+
+  // The exponent of the stem path integral, beta = 2*D_c + theta_c. The factor 2
+  // on D_c is the packing limit: under a conserved lumen fraction, widening is
+  // paid for by proportionally fewer conduits, so sapwood-specific conductivity
+  // scales as D^2 and not the D^4 of Hagen-Poiseuille. See
+  // plant/stem_hydraulics.h.
+  //
+  // What it implies: leaf-specific resistance grows as H^(1-beta) rather than
+  // linearly with height. beta = 0 is the linear case; the default beta = 0.4
+  // gives H^0.6; beta >= 1 saturates, so resistance approaches a finite limit no
+  // matter how tall the plant grows. Larger beta therefore means a weaker height
+  // penalty on carbon gain.
+  stem_path_exponent_ = 2.0 * pars.D_c + pars.theta_c;
+
+  // theta_c is declared but NOT YET USABLE. It profiles theta along the flow
+  // path, and theta is not a hydraulics-only trait: it also sets area_sapwood,
+  // area_bark, their growth rates, mass_sapwood (hence construction cost,
+  // respiration, turnover and NSC capacity) and the hard-coded
+  // dmass_sapwood_darea_leaf derivative. Those all still read a flat pars.theta.
+  //
+  // Applying the profile to the hydraulic term alone would give a plant whose
+  // stem conducts as though theta varied while it is built and respired as
+  // though theta were constant -- two different plants sharing one trait. There
+  // is no staged version of this worth having, so it is refused rather than
+  // half-applied. Lift the guard in the same change that profiles theta
+  // everywhere.
+  if (pars.theta_c != 0.0) {
+    throw std::invalid_argument(
+      "theta_c is not implemented yet: theta also sets sapwood and bark area, "
+      "construction cost, respiration and storage capacity, and those still "
+      "use a constant theta. A hydraulics-only theta profile would be "
+      "physically inconsistent, so it is refused rather than half-applied. Use "
+      "D_c to vary the height dependence of resistance.");
+  }
+
+  if (stem_path_exponent_ != 0.0) {
+    // L_tip is the anchor of both profiles, so it cannot be zero once either is
+    // active: k_s(L) = K_s*(L/L_tip)^(2*D_c) diverges everywhere as L_tip -> 0,
+    // giving zero resistance. That is a degenerate configuration to reject, not
+    // a numerical edge case to tolerate.
+    //
+    // Written to reject zero and NaN as well as negatives: `L_tip < 0.0` alone
+    // would let a zero through, which is the case this guard exists for.
+    if (pars.L_tip <= 0.0 || std::isnan(pars.L_tip)) {
+      throw std::invalid_argument(
+        "L_tip must be > 0 when D_c or theta_c is non-zero: the within-plant "
+        "profiles are defined relative to the terminal segment, and L_tip -> 0 "
+        "sends sapwood-specific conductivity to infinity everywhere");
+    }
+    // A plant cannot be shorter than one terminal segment. Worth catching here
+    // rather than downstream: height_0 is solved from seed mass, so a user
+    // sweeping omega down at a fixed L_tip will eventually cross this, and the
+    // symptom is a negative path length, hence a negative conductance, hence an
+    // unattributable NaN twenty frames inside the leaf solver.
+    if (!(pars.L_tip < height_0 * eta_c)) {
+      throw std::invalid_argument(
+        "L_tip must be shorter than the birth-size flow path (height_0*eta_c): "
+        "a plant cannot be smaller than one terminal segment");
+    }
+  }
 
   if (is_variable_birth_rate) {
     extrinsic_drivers.set_variable("birth_rate", birth_rate_x, birth_rate_y);

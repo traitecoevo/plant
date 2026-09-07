@@ -1386,6 +1386,9 @@ TF24_Pars:
     - root_b: double
     - root_psi_crit: double
     - rooting_depth_max: double
+    - D_c: double
+    - theta_c: double
+    - L_tip: double
     - recruitment_decay: double
     - use_energy_balance: double
     - d: double

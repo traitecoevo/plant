@@ -46,7 +46,9 @@ test_that("Defaults", {
     k_I = 0.5,
     vcmax_25 = 96,
     stem_P50 = 1.85,
-    K_s = 1,
+    # Terminal-segment conductivity: the old whole-stem 1, back-derived so
+    # resistance is unchanged at TF24_H_ANCHOR. Ratio 2.9782.
+    K_s = TF24_K_s_from_whole_stem(1),
     stem_c = log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16)),
     stem_b = 1.85 /((-log(1 - 50.0 / 100.0))^(1 / (log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16))))),
     psi_crit = (1.85 /((-log(1 - 50.0 / 100.0))^(1 / (log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16))))))*log(1/0.05)^(1/(log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16)))),
@@ -69,6 +71,11 @@ test_that("Defaults", {
     root_b = 3.898245,
     root_psi_crit = 3.898245 * log(1 / 0.05)^(1 / 2.680147),
     rooting_depth_max = 1.5,
+    # Stem hydraulic path. theta_c stays 0, so `theta` keeps its whole-plant
+    # meaning. See plant/stem_hydraulics.h.
+    D_c = 0.2,
+    theta_c = 0,
+    L_tip = 0.02,
     recruitment_decay = 0,
     use_energy_balance = 0,
     d = 0.05)
@@ -114,8 +121,8 @@ test_that("TF24f collect_all_auxiliary option", {
 
   s <- TF24f_Strategy()
   p <- TF24f_Individual(s)
-  expect_equal(p$aux_size, 14)
-  expect_equal(length(p$internals$auxs), 14)
+  expect_equal(p$aux_size, 15)
+  expect_equal(length(p$internals$auxs), 15)
 expect_equal(p$aux_names, c(
     "competition_effect",
     "height_inverse",
@@ -129,14 +136,14 @@ expect_equal(p$aux_names, c(
     "shadow_cost",
     "stom_cond_CO2",
     "assimilation",
-    "leaf_marginal_return", "sapwood_marginal_return"
+    "Tleaf", "leaf_marginal_return", "sapwood_marginal_return"
   ))
 
   s <- TF24f_Strategy(collect_all_auxiliary=TRUE)
   expect_true(s$collect_all_auxiliary)
   p <- TF24f_Individual(s)
-  expect_equal(p$aux_size, 15)
-  expect_equal(length(p$internals$auxs), 15)
+  expect_equal(p$aux_size, 16)
+  expect_equal(length(p$internals$auxs), 16)
   expect_equal(p$aux_names, c(
     "competition_effect",
     "height_inverse",
@@ -150,7 +157,7 @@ expect_equal(p$aux_names, c(
     "shadow_cost",
     "stom_cond_CO2",
     "assimilation",
-    "leaf_marginal_return", "sapwood_marginal_return",
+    "Tleaf", "leaf_marginal_return", "sapwood_marginal_return",
     "area_sapwood"
   ))
 })
@@ -292,21 +299,55 @@ test_that("acclimation runs, is active, and converges to TF24", {
   #     and a full patch runs end-to-end to a finite, positive offspring count.
   expect_true("opt_root_psi_state" %in% TF24f_Individual()$ode_names)
   pf <- mk("TF24f")
-  slow <- run_scm(set_k_acclim(pf, 0.1), Environment("TF24f"), Control())$offspring_production
-  fast <- run_scm(set_k_acclim(pf, 10),  Environment("TF24f"), Control())$offspring_production
+  slow <- run_scm(set_k_acclim(pf, 0.001), Environment("TF24f"), Control())$offspring_production
+  fast <- run_scm(set_k_acclim(pf, 1),   Environment("TF24f"), Control())$offspring_production
   expect_length(fast, 1)
   expect_true(is.finite(fast) && fast > 0)
 
   # (2) Acclimation is genuinely active: the gain k_acclim materially changes
   #     fitness, so the finite-difference psi optimisation is feeding back into
   #     the demography rather than being a no-op.
+  #
+  #     ⚠️ THE BRACKET STRADDLES A MAXIMUM, so it has to be chosen against the
+  #     coordinate in use, not carried over. Offspring production is NOT
+  #     monotone in k_acclim, and #516 moved where its peak sits: under the
+  #     height coordinate the maximum was near k = 0.1, and under the birth-date
+  #     coordinate TF24f now defaults to, it is near k = 1. Measured here at
+  #     hmat = 5, max_patch_lifetime = 5:
+  #
+  #       k_acclim      0.001     0.01      0.1        1       10
+  #       birth-date  388.267  390.547  409.512  439.537  397.309
+  #       height       15.416   16.442   22.066   22.233   24.365
+  #
+  #     The old 0.1-vs-10 pair therefore compares two points on OPPOSITE SIDES
+  #     of the birth-date peak and reads only 3.0% -- which looks like weak
+  #     acclimation and is really a badly-placed bracket. Spanning 0.001 to 1
+  #     gives 13.2%, so the original 0.1 threshold stands rather than being
+  #     relaxed again.
   expect_gt(abs(fast - slow) / slow, 0.1)
 
   # (3) Consistent with TF24 "within reason": as the acclimation gain grows,
   #     TF24f tracks the optimum that TF24 computes directly each step, so its
   #     offspring production converges onto TF24's.
+  #
+  #     Asserted at k_acclim = 100 rather than at the k = 10 used above, so the
+  #     assertion demonstrates convergence rather than merely tolerating the
+  #     residual tracking lag. Measured gap against TF24 as the gain rises:
+  #
+  #       k_acclim     10      30     100     300    1000
+  #       rel. gap  0.376%  0.132%  0.038%  0.012%  0.002%
+  #
+  #     Monotone to zero, which is what makes this a tracking lag and not a
+  #     structural divergence between the two strategies. Note that the gap
+  #     closing monotonically in k is compatible with offspring production
+  #     itself being non-monotone in k (see assertion 2): the former is about
+  #     TF24f approaching TF24, the latter about where each sits.
   tf24 <- run_scm(mk("TF24"), Environment("TF24"), Control())$offspring_production
-  expect_equal(fast, tf24, tolerance = 1e-2)
+  converged <- run_scm(set_k_acclim(pf, 100), Environment("TF24f"),
+                       Control())$offspring_production
+  expect_equal(converged, tf24, tolerance = 1e-2)
+  # ...and the approach is monotone: a higher gain is never further away.
+  expect_lt(abs(converged - tf24), abs(fast - tf24))
 })
 
 # Water mass-balance: the transpiration integrated up the stem side of every
