@@ -8,10 +8,10 @@ run_scm(
   p,
   env = NULL,
   ctrl = control(),
-  events = NULL,
   refine_schedule = FALSE,
   collect = FALSE,
-  use_ode_times = FALSE
+  use_ode_times = FALSE,
+  events = NULL
 )
 }
 \arguments{
@@ -21,11 +21,6 @@ run_scm(
 
 \item{ctrl}{Control object}
 
-\item{events}{An \code{\link{events}} object giving the discrete events to
-apply during the run — rainfall pulses, harvest, and node introductions
-themselves. When \code{NULL} (the default) the schedule is taken from
-\code{p$node_schedule_times}, i.e. introductions only.}
-
 \item{refine_schedule}{Should the node-introduction schedule be adaptively
 refined before/while running (using \code{schedule_eps} and
 \code{schedule_nsteps} from \code{ctrl})?}
@@ -34,6 +29,11 @@ refined before/while running (using \code{schedule_eps} and
 returned (instead of the \code{SCM} object)?}
 
 \item{use_ode_times}{Should ODE times be used?}
+
+\item{events}{An \code{\link{events}} object giving the discrete events to
+apply during the run — rainfall pulses, harvest, and node introductions
+themselves. When \code{NULL} (the default) the schedule is taken from
+\code{p$node_schedule_times}, i.e. introductions only.}
 }
 \value{
 When \code{collect = FALSE}, an \code{SCM} object. When
