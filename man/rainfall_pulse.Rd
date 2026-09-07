@@ -4,7 +4,7 @@
 \alias{rainfall_pulse}
 \title{A rainfall pulse for TF24.}
 \usage{
-rainfall_pulse(time, depth, layer = 1)
+rainfall_pulse(time, depth, layer = 1, env = NULL)
 }
 \arguments{
 \item{time}{Event time(s), in years of patch age.}
@@ -14,6 +14,12 @@ rainfall_pulse(time, depth, layer = 1)
 \item{layer}{Soil layer to deliver it to. The default, 1, is the surface,
 i.e. rain. A deeper layer is irrigation, or a water table rising into the
 profile.}
+
+\item{env}{Optionally, the \code{Environment} the run will use. When given,
+\code{rainfall_pulse()} warns if that environment still carries a non-zero
+continuous \code{rainfall} driver — pulses \emph{add to} the continuous
+forcing rather than replacing it, so supplying both silently double-counts
+the water. Set the driver to zero to model rainfall as pulses alone.}
 }
 \value{
 Event rows, to be combined with \code{\link{events}}.

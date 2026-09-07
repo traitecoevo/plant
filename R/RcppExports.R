@@ -341,14 +341,6 @@ Leaf__z_soil_mid___set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__z_soil_mid___set', PACKAGE = 'plant', obj_, value))
 }
 
-Leaf__dz___get <- function(obj_) {
-    .Call('_plant_Leaf__dz___get', PACKAGE = 'plant', obj_)
-}
-
-Leaf__dz___set <- function(obj_, value) {
-    invisible(.Call('_plant_Leaf__dz___set', PACKAGE = 'plant', obj_, value))
-}
-
 Leaf__soil_number_of_depths___get <- function(obj_) {
     .Call('_plant_Leaf__soil_number_of_depths___get', PACKAGE = 'plant', obj_)
 }
@@ -4213,6 +4205,22 @@ TF24_Environment__set_soil_number_of_depths <- function(obj_, soil_number_of_dep
     invisible(.Call('_plant_TF24_Environment__set_soil_number_of_depths', PACKAGE = 'plant', obj_, soil_number_of_depths))
 }
 
+TF24_Environment__set_soil_layer_widths <- function(obj_, widths) {
+    invisible(.Call('_plant_TF24_Environment__set_soil_layer_widths', PACKAGE = 'plant', obj_, widths))
+}
+
+TF24_Environment__get_soil_layer_widths <- function(obj_) {
+    .Call('_plant_TF24_Environment__get_soil_layer_widths', PACKAGE = 'plant', obj_)
+}
+
+TF24_Environment__get_soil_depths <- function(obj_) {
+    .Call('_plant_TF24_Environment__get_soil_depths', PACKAGE = 'plant', obj_)
+}
+
+TF24_Environment__get_soil_mid_depths <- function(obj_) {
+    .Call('_plant_TF24_Environment__get_soil_mid_depths', PACKAGE = 'plant', obj_)
+}
+
 TF24_Environment__set_soil_parameters <- function(obj_, soil_number_of_depths, soil_moist_sat_values, K_sat_values, a_psi_values, n_psi_values) {
     invisible(.Call('_plant_TF24_Environment__set_soil_parameters', PACKAGE = 'plant', obj_, soil_number_of_depths, soil_moist_sat_values, K_sat_values, a_psi_values, n_psi_values))
 }
@@ -4295,10 +4303,6 @@ TF24_Environment__K_sat__set <- function(obj_, value) {
 
 TF24_Environment__depth__get <- function(obj_) {
     .Call('_plant_TF24_Environment__depth__get', PACKAGE = 'plant', obj_)
-}
-
-TF24_Environment__depth__set <- function(obj_, value) {
-    invisible(.Call('_plant_TF24_Environment__depth__set', PACKAGE = 'plant', obj_, value))
 }
 
 TF24_Environment__a_psi__get <- function(obj_) {

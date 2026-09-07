@@ -491,12 +491,20 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   //
   // Filled IN PLACE into the member buffer, for the same reason
   // root_carbon_per_leaf_area_ is a member: this is per-solve, and five fresh
-  // vectors per call measured +0.074 us. phylloptim::layer_thickness is the shared
-  // definition of dz -- do not open-code soil_depths_.back()/n here, because the
-  // vertical resistance scales with dz^2 and the two sides drifting apart would be
-  // a silent squared factor that neither package could detect.
+  // vectors per call measured +0.074 us.
+  //
+  // ⚠️ PASS THE ENVIRONMENT'S OWN `dz`, AND DO NOT DERIVE WIDTHS FROM `z` HERE.
+  // The layer widths are the environment's geometry -- it is what
+  // set_soil_layer_widths() was given -- so this hands over a const& to the live
+  // member, exactly as it does with `z` above. phylloptim::layer_thicknesses()
+  // exists for a caller who holds only a profile, and going through it from here
+  // would be actively wrong: differencing `z` is not bit-exact, losing a bit for
+  // 122 of 180 (depth, n) pairs including plant's own default 1.5 m over 5, and
+  // the vertical resistance scales with dz[i]^2, so it would perturb every solve
+  // for nothing. Since phylloptim 0.9.0 the thickness is per LAYER; before that it
+  // was one scalar, which inflated root resistance up to 3.7x on a graded profile.
   phylloptim::root_network_from_carbon(
-      root_carbon_per_leaf_area_, phylloptim::layer_thickness(soil_depths_),
+      root_carbon_per_leaf_area_, environment.dz,
       beta_R_H, beta_R_V, root_network_);
 
   // Reuse geometry precomputed by environment; avoids rebuilding z midpoints each call.

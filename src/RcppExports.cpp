@@ -1006,28 +1006,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Leaf__dz___get
-double Leaf__dz___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
-RcppExport SEXP _plant_Leaf__dz___get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Leaf__dz___get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Leaf__dz___set
-void Leaf__dz___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
-RcppExport SEXP _plant_Leaf__dz___set(SEXP obj_SEXP, SEXP valueSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
-    Leaf__dz___set(obj_, value);
-    return R_NilValue;
-END_RCPP
-}
 // Leaf__soil_number_of_depths___get
 int Leaf__soil_number_of_depths___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
 RcppExport SEXP _plant_Leaf__soil_number_of_depths___get(SEXP obj_SEXP) {
@@ -11841,6 +11819,50 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// TF24_Environment__set_soil_layer_widths
+void TF24_Environment__set_soil_layer_widths(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, std::vector<double> widths);
+RcppExport SEXP _plant_TF24_Environment__set_soil_layer_widths(SEXP obj_SEXP, SEXP widthsSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type widths(widthsSEXP);
+    TF24_Environment__set_soil_layer_widths(obj_, widths);
+    return R_NilValue;
+END_RCPP
+}
+// TF24_Environment__get_soil_layer_widths
+std::vector<double> TF24_Environment__get_soil_layer_widths(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_);
+RcppExport SEXP _plant_TF24_Environment__get_soil_layer_widths(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(TF24_Environment__get_soil_layer_widths(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// TF24_Environment__get_soil_depths
+std::vector<double> TF24_Environment__get_soil_depths(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_);
+RcppExport SEXP _plant_TF24_Environment__get_soil_depths(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(TF24_Environment__get_soil_depths(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// TF24_Environment__get_soil_mid_depths
+std::vector<double> TF24_Environment__get_soil_mid_depths(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_);
+RcppExport SEXP _plant_TF24_Environment__get_soil_mid_depths(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(TF24_Environment__get_soil_mid_depths(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // TF24_Environment__set_soil_parameters
 void TF24_Environment__set_soil_parameters(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, int soil_number_of_depths, SEXP soil_moist_sat_values, SEXP K_sat_values, SEXP a_psi_values, SEXP n_psi_values);
 RcppExport SEXP _plant_TF24_Environment__set_soil_parameters(SEXP obj_SEXP, SEXP soil_number_of_depthsSEXP, SEXP soil_moist_sat_valuesSEXP, SEXP K_sat_valuesSEXP, SEXP a_psi_valuesSEXP, SEXP n_psi_valuesSEXP) {
@@ -12077,17 +12099,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(TF24_Environment__depth__get(obj_));
     return rcpp_result_gen;
-END_RCPP
-}
-// TF24_Environment__depth__set
-void TF24_Environment__depth__set(plant::RcppR6::RcppR6<plant::TF24_Environment> obj_, double value);
-RcppExport SEXP _plant_TF24_Environment__depth__set(SEXP obj_SEXP, SEXP valueSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
-    TF24_Environment__depth__set(obj_, value);
-    return R_NilValue;
 END_RCPP
 }
 // TF24_Environment__a_psi__get
@@ -12622,8 +12633,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__soil_depth___set", (DL_FUNC) &_plant_Leaf__soil_depth___set, 2},
     {"_plant_Leaf__z_soil_mid___get", (DL_FUNC) &_plant_Leaf__z_soil_mid___get, 1},
     {"_plant_Leaf__z_soil_mid___set", (DL_FUNC) &_plant_Leaf__z_soil_mid___set, 2},
-    {"_plant_Leaf__dz___get", (DL_FUNC) &_plant_Leaf__dz___get, 1},
-    {"_plant_Leaf__dz___set", (DL_FUNC) &_plant_Leaf__dz___set, 2},
     {"_plant_Leaf__soil_number_of_depths___get", (DL_FUNC) &_plant_Leaf__soil_number_of_depths___get, 1},
     {"_plant_Leaf__soil_number_of_depths___set", (DL_FUNC) &_plant_Leaf__soil_number_of_depths___set, 2},
     {"_plant_Leaf__max_soil_layer__get", (DL_FUNC) &_plant_Leaf__max_soil_layer__get, 1},
@@ -13590,6 +13599,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_TF24_Environment__psi_from_soil_moist", (DL_FUNC) &_plant_TF24_Environment__psi_from_soil_moist, 2},
     {"_plant_TF24_Environment__soil_moist_from_psi", (DL_FUNC) &_plant_TF24_Environment__soil_moist_from_psi, 2},
     {"_plant_TF24_Environment__set_soil_number_of_depths", (DL_FUNC) &_plant_TF24_Environment__set_soil_number_of_depths, 2},
+    {"_plant_TF24_Environment__set_soil_layer_widths", (DL_FUNC) &_plant_TF24_Environment__set_soil_layer_widths, 2},
+    {"_plant_TF24_Environment__get_soil_layer_widths", (DL_FUNC) &_plant_TF24_Environment__get_soil_layer_widths, 1},
+    {"_plant_TF24_Environment__get_soil_depths", (DL_FUNC) &_plant_TF24_Environment__get_soil_depths, 1},
+    {"_plant_TF24_Environment__get_soil_mid_depths", (DL_FUNC) &_plant_TF24_Environment__get_soil_mid_depths, 1},
     {"_plant_TF24_Environment__set_soil_parameters", (DL_FUNC) &_plant_TF24_Environment__set_soil_parameters, 6},
     {"_plant_TF24_Environment__get_soil_number_of_depths", (DL_FUNC) &_plant_TF24_Environment__get_soil_number_of_depths, 1},
     {"_plant_TF24_Environment__add_resource_pulse", (DL_FUNC) &_plant_TF24_Environment__add_resource_pulse, 3},
@@ -13611,7 +13624,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_TF24_Environment__K_sat__get", (DL_FUNC) &_plant_TF24_Environment__K_sat__get, 1},
     {"_plant_TF24_Environment__K_sat__set", (DL_FUNC) &_plant_TF24_Environment__K_sat__set, 2},
     {"_plant_TF24_Environment__depth__get", (DL_FUNC) &_plant_TF24_Environment__depth__get, 1},
-    {"_plant_TF24_Environment__depth__set", (DL_FUNC) &_plant_TF24_Environment__depth__set, 2},
     {"_plant_TF24_Environment__a_psi__get", (DL_FUNC) &_plant_TF24_Environment__a_psi__get, 1},
     {"_plant_TF24_Environment__a_psi__set", (DL_FUNC) &_plant_TF24_Environment__a_psi__set, 2},
     {"_plant_TF24_Environment__n_psi__get", (DL_FUNC) &_plant_TF24_Environment__n_psi__get, 1},

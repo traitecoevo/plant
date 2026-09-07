@@ -220,11 +220,15 @@ knowing before you go looking for a leaf bug here:
   carbon compiles fine, quietly weakens the root system by the leaf area, and
   **the leaf can no longer detect it** — the division used to happen inside the
   leaf and now happens here. See the NEWS entry.
-- **Do not open-code the layer thickness.** `root_network_from_carbon` scales the
-  vertical resistance by `dz^2`, and `phylloptim::layer_thickness()` is the shared
-  definition of `dz` that `MultiLayerRoots::set_soil_state` also uses. Two copies
-  drifting apart puts a silent squared factor on every vertical resistance, with
-  both halves internally consistent and neither package able to notice.
+- **Pass `TF24_Environment`'s own `dz`, and never derive layer widths from `z`.**
+  `root_network_from_carbon` scales the vertical resistance by `dz[i]^2` — per
+  layer since phylloptim 0.9.0 (#626); it was one scalar before, which inflated
+  root resistance up to 3.7× on a profile of unequal layers. The widths are the
+  environment's geometry, so `TF24_Strategy` hands over a `const&` to
+  `environment.dz`. `phylloptim::layer_thicknesses()` exists for a caller who
+  holds only a cumulative profile and is the **wrong** route from here: it
+  differences, and differencing is not bit-exact — it loses a bit for 122 of 180
+  `(depth, n)` pairs, plant's own 1.5 m over 5 layers among them.
 - **`nm` is how you diagnose a stale build.** See the `R CMD INSTALL` note in §6 —
   a header-only dependency changing underneath a stale `.o` produces an error that
   names an untouched field accessor.
