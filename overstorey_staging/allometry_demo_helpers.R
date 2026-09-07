@@ -195,3 +195,29 @@ allometry_carbon_terms <- function(height, theta_soil, d = 0.02, phi = 0) {
        eta = 1 - (dPdA + per_area) / (cc * a$abar),
        dPdA = dPdA)
 }
+
+## The sapwood controller's signal, swept over the Huber value at fixed height
+## and leaf area (#516). Returns the marginal growth return R_s beside the growth
+## rate it is the derivative of, so the two can be plotted on the same axis and
+## the zero-crossing checked against the peak rather than asserted.
+allometry_sapwood_controller <- function(theta_soil, height = 10, a_sw = 1.0,
+                                         psi = seq(0, 0.7, length.out = 29L)) {
+  s <- TF24_Strategy(collect_all_auxiliary = TRUE)
+  s$pars$a_sw <- a_sw
+  out <- lapply(psi, function(p) {
+    env <- tf24_demo_env(theta_soil)
+    ind <- TF24_Individual(s)
+    ind$set_state("height", height)
+    ind$set_state("log_area_sapwood_departure", p)
+    ind$set_initial_states(env)
+    ind$compute_rates(env)
+    data.frame(psi = p, huber_ratio = exp(p),
+               R_s = ind$aux("sapwood_marginal_return"),
+               dheight = ind$rate("height"),
+               P = ind$aux("net_mass_production_dt"))
+  })
+  d <- do.call(rbind, out)
+  d$theta_soil <- theta_soil
+  d$height <- height
+  d
+}

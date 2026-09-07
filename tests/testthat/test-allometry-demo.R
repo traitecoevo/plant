@@ -245,3 +245,33 @@ test_that("shedding is measured at fixed sapwood, which is what thinning does", 
   a <- along(0); b <- along(-0.02)
   expect_gt((b[["P"]] - a[["P"]]) / (b[["A"]] - a[["A"]]), 0)   # opposite sign
 })
+
+test_that("the demo's sapwood-controller claims hold", {
+  skip_if_not(file.exists(demo_helpers), "demo helpers not present")
+  skip_on_cran()
+  source(demo_helpers, local = TRUE)
+
+  ## Guards the numbers the demo states in prose. A chunk that runs is not a
+  ## chunk that is checked, and the claim here -- that the controller's zero
+  ## sits on the growth peak -- is the one the whole derivation exists to make.
+  ctl <- lapply(c(0.30, 0.20, 0.15), allometry_sapwood_controller)
+  names(ctl) <- c("wet", "moist", "dry")
+
+  for (nm in c("wet", "moist")) {
+    d <- ctl[[nm]]
+    expect_equal(d$huber_ratio[which.min(abs(d$R_s))],
+                 d$huber_ratio[which.max(d$dheight)])
+  }
+
+  ## The optimum moves with soil water, and is nowhere near the pipe model.
+  peak <- vapply(ctl, function(d) d$huber_ratio[which.max(d$dheight)], numeric(1))
+  expect_equal(unname(round(peak[["wet"]], 2)), 1.28)
+  expect_equal(unname(round(peak[["moist"]], 2)), 1.35)
+  expect_gt(peak[["dry"]], peak[["moist"]])       # drier wants MORE stem
+
+  ## The wart the demo admits to: at the pipe-model ratio in dry soil the plant
+  ## cannot grow, so the controller is switched off rather than pointing uphill.
+  expect_lt(ctl$dry$dheight[[1]], 1e-8)
+  expect_lt(abs(ctl$dry$R_s[[1]]), 1e-8)
+  expect_gt(ctl$dry$R_s[[which.min(abs(ctl$dry$huber_ratio - 1.35))]], 0.05)
+})
