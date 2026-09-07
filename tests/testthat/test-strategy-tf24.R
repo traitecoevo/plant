@@ -685,3 +685,59 @@ test_that("a thinned canopy is an ordinary state, not a domain violation", {
     expect_gt(ind$aux("competition_effect"), 0)
   }
 })
+
+test_that("the sapwood departure sets the Huber value and rests inert", {
+  env <- tf24_departure_env()
+  ind <- TF24_Individual(TF24_Strategy(collect_all_auxiliary = TRUE))
+  expect_true("log_area_sapwood_departure" %in% ind$ode_names)
+  expect_identical(ind$state("log_area_sapwood_departure"), 0.0)
+  ind$compute_rates(env)
+  expect_identical(ind$rate("log_area_sapwood_departure"), 0.0)
+})
+
+test_that("sapwood area is theta * leaf area * exp(sapwood departure)", {
+  env <- tf24_departure_env()
+  s <- TF24_Strategy(collect_all_auxiliary = TRUE)
+  theta <- s$pars$theta
+
+  for (h in c(1.0, 5.0, 15.0)) {
+    ind <- TF24_Individual(s)
+    ind$set_state("height", h)
+    ind$compute_rates(env)
+    leaf <- ind$aux("competition_effect")
+
+    ## At rest, exactly the pipe-model value.
+    expect_identical(ind$aux("area_sapwood"), leaf * theta)
+
+    ## A stem that keeps its conducting area while the canopy thins carries a
+    ## higher Huber value, which is the whole mechanism: it is what makes
+    ## per-leaf-area maintenance cost rise and per-leaf-area hydraulic supply
+    ## improve as a plant thins out.
+    for (psi in c(-0.3, 0.4, 1.0)) {
+      ind$set_state("log_area_sapwood_departure", psi)
+      ind$compute_rates(env)
+      expect_equal(ind$aux("area_sapwood") / (leaf * theta), exp(psi))
+    }
+  }
+})
+
+test_that("a departed Huber value carries through to storage capacity", {
+  env <- tf24_departure_env()
+  s <- TF24_Strategy()
+  cap <- function(psi) {
+    ind <- TF24_Individual(s)
+    ind$set_state("height", 5.0)
+    ind$set_state("log_area_sapwood_departure", psi)
+    ind$set_initial_states(env)
+    ## Seeded at a_st3 of capacity, so the state reports capacity up to a
+    ## constant -- which is all a ratio needs.
+    ind$state("storage")
+  }
+  ## Capacity is a_st1 * mass_sapwood, and mass_sapwood is linear in sapwood
+  ## area, so it must inherit exp(psi) exactly. This is the route by which
+  ## freeing sapwood closes the mortality free lunch: shedding leaves no longer
+  ## shrinks the denominator of the reserve fraction that mortality reads.
+  for (psi in c(-0.5, 0.6)) {
+    expect_equal(cap(psi) / cap(0), exp(psi))
+  }
+})

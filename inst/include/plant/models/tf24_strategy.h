@@ -302,7 +302,7 @@ public:
   // Overrides ----------------------------------------------
 
   // update this when the length of state_names changes
-  static size_t state_size () { return 7; }
+  static size_t state_size () { return 8; }
   // update this when the length of aux_names changes
   size_t aux_size () { return aux_names().size(); }
 
@@ -314,7 +314,8 @@ public:
       "area_heartwood",
       "mass_heartwood",
       "storage",
-      "log_area_leaf_departure"
+      "log_area_leaf_departure",
+      "log_area_sapwood_departure"
       });
   }
 
@@ -381,8 +382,20 @@ public:
   // [eqn 1] mass_leaf (inverse of [eqn 2])
   double mass_leaf(double area_leaf) const;
 
-  // [eqn 4] area and mass of sapwood
+  // Sapwood area per unit leaf area -- the Huber value, `theta` displaced by
+  // the sapwood departure state. ALWAYS form the ratio this way rather than as
+  // area_sapwood / area_leaf: the two are algebraically equal but not bitwise,
+  // because a multiply followed by a divide does not recover its operand, and
+  // that difference is enough to lose the exactness of the resting model.
+  double sapwood_per_leaf_area(double sapwood_departure) const {
+    return pars.theta * std::exp(sapwood_departure);
+  }
+
+  // [eqn 4] area and mass of sapwood. The one-argument form is the resting
+  // allometry (used where a plant is on its trajectory by definition, e.g. the
+  // germination inversion); the two-argument form reads the departure state.
   double area_sapwood(double area_leaf) const;
+  double area_sapwood(double area_leaf, double sapwood_departure) const;
   double mass_sapwood(double area_sapwood, double height) const;
 
   // [eqn 5] area and mass of bark
@@ -446,7 +459,8 @@ public:
 
   virtual double net_mass_production_dt(const TF24_Environment& environment,
                                 double height, double area_leaf_,
-                                double height_inverse);
+                                double height_inverse,
+                                double sapwood_departure);
 
   // Resolve the leaf operating point on the already-set-up `leaf` (i.e. after
   // leaf.set_physiology(...)). Base TF24 optimises the root-collar psi via
@@ -460,9 +474,11 @@ public:
   // does not need to know TF24's state/aux layout.
   double net_mass_production_dt(const TF24_Environment& environment,
                                 const Internals& vars) {
-    return net_mass_production_dt(environment, vars.state(HEIGHT_INDEX),
-                                  vars.aux(aux_idx_competition_effect),
-                                  vars.aux(aux_idx_height_inverse));
+    return net_mass_production_dt(
+        environment, vars.state(HEIGHT_INDEX),
+        vars.aux(aux_idx_competition_effect),
+        vars.aux(aux_idx_height_inverse),
+        vars.state(state_idx_log_area_sapwood_departure));
   }
 
   // [eqn 16] Fraction of whole plan growth that is leaf
@@ -490,7 +506,8 @@ public:
   // Growth rate of components per unit time:
   double area_leaf_dt(double area_leaf_dt) const;
   double area_sapwood_dt(double area_leaf_dt) const;
-  double area_heartwood_dt(double area_leaf) const;
+  double area_heartwood_dt(double area_leaf,
+                           double sapwood_departure) const;
   double area_bark_dt(double area_leaf_dt) const;
   double area_stem_dt(double area_leaf, double area_leaf_dt) const;
   double diameter_stem_dt(double area_stem, double area_stem_dt) const;
@@ -519,7 +536,8 @@ public:
   // reserves r = S/S_max deplete, bounded in [a_dG1*e^-a_dG2, a_dG1].
   double mortality_storage_dependent_dt(double relative_reserves) const;
   // NSC storage capacity S_max = a_st1 * mass_sapwood [kg NSC].
-  double storage_capacity(double area_leaf, double height) const;
+  double storage_capacity(double area_leaf, double height,
+                          double sapwood_departure) const;
   // Seed the storage state for a newly germinated individual (#517).
   void set_initial_states(const TF24_Environment& environment, Internals& vars);
   // [eqn 20] Survival of seedlings during establishment, from the carbon a
@@ -631,6 +649,10 @@ public:
   // ln(area_leaf / area_leaf(height)): how far the canopy sits from the leaf
   // area the height allometry prefers. Signed, so not a non_negative_state.
   int state_idx_log_area_leaf_departure = -1;
+  // ln(area_sapwood / (theta * area_leaf)): how far the conducting stem sits
+  // from the leaf area it supports, i.e. the departure of the Huber value from
+  // its preferred one. Also signed.
+  int state_idx_log_area_sapwood_departure = -1;
 
   // For integrating functions with using Gauss-Kronrod quadrature
   quadrature::QK function_integrator;

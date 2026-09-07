@@ -81,6 +81,8 @@ void TF24_Strategy::refresh_indices () {
   state_idx_storage             = state_index.at("storage");
   state_idx_log_area_leaf_departure =
     state_index.at("log_area_leaf_departure");
+  state_idx_log_area_sapwood_departure =
+    state_index.at("log_area_sapwood_departure");
 }
 
 // [eqn 2] area_leaf (inverse of [eqn 3])
@@ -96,6 +98,14 @@ double TF24_Strategy::mass_leaf(double area_leaf) const {
 // [eqn 4] area and mass of sapwood
 double TF24_Strategy::area_sapwood(double area_leaf) const {
   return area_leaf * pars.theta;
+}
+
+// The conducting area a plant actually has, as against the one its leaf area
+// prefers. At a resting departure sapwood_per_leaf_area() returns pars.theta
+// unchanged, so this is bit-identical to the overload above.
+double TF24_Strategy::area_sapwood(double area_leaf,
+                                   double sapwood_departure) const {
+  return area_leaf * sapwood_per_leaf_area(sapwood_departure);
 }
 
 double TF24_Strategy::mass_sapwood(double area_sapwood, double height) const {
@@ -168,11 +178,17 @@ void TF24_Strategy::update_dependent_aux(const int index, Internals& vars) {
 // i.e. setting rates of ode vars from the state and updating aux vars
 void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internals& vars) {
   double height = vars.state(HEIGHT_INDEX);
+  // The Huber value's departure from theta. Read once here and threaded through
+  // every sapwood quantity below, so the conducting area a plant has and the
+  // one its leaf area prefers cannot disagree between two call sites.
+  const double sapwood_departure =
+    vars.state(state_idx_log_area_sapwood_departure);
   double area_leaf_ = vars.aux(aux_idx_competition_effect);
 
   const double net_mass_production_dt_ =
     net_mass_production_dt(environment, height, area_leaf_,
-                           vars.aux(aux_idx_height_inverse));
+                           vars.aux(aux_idx_height_inverse),
+                           sapwood_departure);
 
   // store the aux sate
   vars.set_aux(aux_idx_net_mass_production_dt, net_mass_production_dt_);
@@ -222,7 +238,8 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   // grows without bound below zero. So the pool is refused there rather than
   // floored, and the stepper shrinks and retries (#609, #610).
   const double S = vars.state(state_idx_storage);
-  const double S_max = storage_capacity(area_leaf_, height);
+  const double S_max =
+    storage_capacity(area_leaf_, height, sapwood_departure);
   // Refused only where the pool is negative by more than round-off on its own
   // scale. The tolerance is not slack: at r = 0 the rate is the charge alone and
   // so non-negative, so a draining cohort approaches the boundary and its last
@@ -265,8 +282,9 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
 
   // Sapwood -> heartwood conversion is turnover-driven, so it proceeds
   // regardless of carbon status (previously gated behind net>0).
-  vars.set_rate(state_idx_area_heartwood, area_heartwood_dt(area_leaf_));
-  const double area_sapwood_ = area_sapwood(area_leaf_);
+  vars.set_rate(state_idx_area_heartwood,
+                area_heartwood_dt(area_leaf_, sapwood_departure));
+  const double area_sapwood_ = area_sapwood(area_leaf_, sapwood_departure);
   const double mass_sapwood_ = mass_sapwood(area_sapwood_, height);
   vars.set_rate(state_idx_mass_heartwood, mass_heartwood_dt(mass_sapwood_));
 
@@ -311,6 +329,7 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   // rather than merely unused: the exact flow keeps phi at 0, and an integrator
   // stepping a rate of exactly 0.0 leaves the state exactly 0.0.
   vars.set_rate(state_idx_log_area_leaf_departure, 0.0);
+  vars.set_rate(state_idx_log_area_sapwood_departure, 0.0);
 
   // [eqn 21] - Instantaneous mortality rate, now driven by relative reserves r.
   vars.set_rate(MORTALITY_INDEX,
@@ -412,12 +431,13 @@ double TF24_Strategy::net_mass_production_dt_A(double assimilation, double respi
 // Used by establishment_probability() and compute_rates().
 double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment,
                                 double height, double area_leaf_,
-                                double height_inverse) {
+                                double height_inverse,
+                                double sapwood_departure) {
   // height_inverse (= 1/height) is supplied by the shared individual.h interface
   // (cached aux); unused here as the TF24 root-water path works in height directly.
   (void)height_inverse;
   const double mass_leaf_    = mass_leaf(area_leaf_);
-  const double area_sapwood_ = area_sapwood(area_leaf_);
+  const double area_sapwood_ = area_sapwood(area_leaf_, sapwood_departure);
   const double mass_sapwood_ = mass_sapwood(area_sapwood_, height);
   const double area_bark_    = area_bark(area_leaf_);
   const double mass_bark_    = mass_bark(area_bark_, height);
@@ -440,7 +460,12 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   // pars.theta: huber value
   // eta_c: accounts for average position of leaf mass
   // height: maximum plant height
-  const double leaf_specific_conductance_max = pars.K_s * pars.theta / (height * eta_c);
+  // Supply per unit leaf area follows the Huber value the plant actually has,
+  // so a stem that keeps its conducting area while the canopy thins supplies
+  // each remaining leaf better -- the acclimation half of #516, and the reason
+  // this reads the state rather than pars.theta.
+  const double leaf_specific_conductance_max =
+    pars.K_s * sapwood_per_leaf_area(sapwood_departure) / (height * eta_c);
 
   // sapwood volume per leaf area (pars.theta * height * eta_c) used to be passed
   // to the leaf, which stored it and never read it. Dropped with the other three
@@ -729,8 +754,9 @@ double TF24_Strategy::area_sapwood_dt(double area_leaf_dt) const {
 
 // Note, unlike others, heartwood growth does not depend on leaf area growth, but
 // rather existing sapwood
-double TF24_Strategy::area_heartwood_dt(double area_leaf) const {
-  return pars.k_s * area_sapwood(area_leaf);
+double TF24_Strategy::area_heartwood_dt(double area_leaf,
+                                        double sapwood_departure) const {
+  return pars.k_s * area_sapwood(area_leaf, sapwood_departure);
 }
 
 // Growth rate of bark area at base per unit time
@@ -743,7 +769,10 @@ double TF24_Strategy::area_stem_dt(double area_leaf,
                                double area_leaf_dt) const {
   return area_sapwood_dt(area_leaf_dt) +
     area_bark_dt(area_leaf_dt) +
-    area_heartwood_dt(area_leaf);
+    // At the resting Huber value: this reporting helper is handed sizes, not a
+    // state vector, so it cannot see the departure. Its callers are the R-facing
+    // expansion path, which reconstructs a plant on its own trajectory.
+    area_heartwood_dt(area_leaf, 0.0);
 }
 
 // Growth rate of basal diameter_stem per unit time
@@ -831,8 +860,10 @@ double TF24_Strategy::mortality_storage_dependent_dt(double relative_reserves) c
 
 // NSC storage capacity: scales with sapwood mass (per Daniel, #517). mass_sapwood
 // = area_sapwood(area_leaf) * height * eta_c * rho.
-double TF24_Strategy::storage_capacity(double area_leaf_, double height) const {
-  return pars.a_st1 * mass_sapwood(area_sapwood(area_leaf_), height);
+double TF24_Strategy::storage_capacity(double area_leaf_, double height,
+                                       double sapwood_departure) const {
+  return pars.a_st1 *
+    mass_sapwood(area_sapwood(area_leaf_, sapwood_departure), height);
 }
 
 // Seed the storage state for a newly germinated individual at a_st3 fraction of
@@ -844,14 +875,21 @@ void TF24_Strategy::set_initial_states(const TF24_Environment& environment,
   const double height = vars.state(HEIGHT_INDEX);
   const double area_leaf_ = area_leaf(height);
   vars.set_state(state_idx_storage,
-                 pars.a_st3 * storage_capacity(area_leaf_, height));
+                 pars.a_st3 *
+                   storage_capacity(area_leaf_, height,
+                                    vars.state(state_idx_log_area_sapwood_departure)));
 }
 
 // [eqn 20] Survival of seedlings during establishment
 double TF24_Strategy::establishment_probability(const TF24_Environment& environment) {
   return establishment_probability(
     environment,
-    net_mass_production_dt(environment, height_0, area_leaf_0, 1.0 / height_0));
+    net_mass_production_dt(environment, height_0, area_leaf_0, 1.0 / height_0,
+                           // A germinating seed is on its allometry by
+                           // definition -- height_0 is solved from seed mass,
+                           // and area_leaf_0 from height_0 -- so its Huber
+                           // value is the resting one.
+                           0.0));
 }
 
 // Both forms above end here. The carbon is birth-size carbon either way, whatever
