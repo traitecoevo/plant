@@ -516,6 +516,62 @@ height-resistance relation that is about to change.
 criterion.** Implementing `eta` against the current stem model would be fitting to
 a relation that #617 replaces.
 
+## Sapwood tracking its optimum: the design (2026-09-08)
+
+Agreed direction. Four decisions, and one of them removes the cost objection.
+
+**1. The objective is GROWTH RATE, not net production.** Corrected by Daniel, and
+it matters here in a way it does not for shedding. Growth is
+`F * f_g * darea_leaf_dmass_live(A*)`, and that conversion factor is evaluated at
+`A*(h)` -- the leaf area the plant's HEIGHT implies -- so at fixed height it is a
+constant. Therefore `d(growth)/dA` and `dP/dA` have the same sign and **the
+shedding criterion is unaffected**. For sapwood it is decisive, because extra
+sapwood must be paid for in forgone leaf-area growth.
+
+**2. First fix an inconsistency that biases the optimum.**
+`dmass_sapwood_darea_leaf` uses `pars.theta`, not the plant's actual Huber value.
+So a plant carrying 3.3x the sapwood per leaf currently pays the *pipe-model*
+price for new growth and gets the hydraulic benefit free. That is much of why P
+peaked as far out as 3.3x. Fixing it moves the growth optimum well below the P
+optimum. Its own commit, its own number check -- it changes behaviour on its own.
+
+**3. `psi` integrating the marginal return IS the slow, time-averaged response.**
+`dpsi/dt = a_sw * R_s`, with `R_s` the dimensionless marginal growth return of
+sapwood (zero at the optimum), is an integral controller: it converges exactly
+onto `R_s = 0`, and a small `a_sw` makes it slow. **No extra tracked state is
+needed, because integration is averaging** -- which is what the tracked marginal
+for the shedding gate had to be built for, and is not needed twice.
+
+**4. The derivative is nearly free, by the envelope theorem.** `R_s` needs
+`d(profit)/d(kmax)`, which looked like a second leaf solve per rate evaluation --
+a doubling of the hot path. It is not. `profit_` is already *maximised* over the
+collar potential, so the derivative with respect to a parameter is the partial
+derivative of the objective at the optimum already found:
+
+    d(profit*)/d(kmax) = (partial profit / partial kmax) at psi*
+
+the indirect term vanishing because `partial profit / partial psi = 0` there. It
+holds at the KKT corner too: the active constraint is `psi <= psi_crit`, and
+`psi_crit` is built from `stem_b`/`stem_c`, not from `kmax`, so the multiplier
+term drops out. **One evaluation of a closed form at a known point, not a
+re-optimisation.**
+
+This is what phylloptim's IFT gradient machinery (#4) exists for; the known gap is
+that its gradient outputs are `A`, `gc`, `psi_stem` and `collar` rather than the
+`profit_` plant bills -- plant #614, and the same sensitivity the optimality epic
+already needed.
+
+### Order
+
+1. Construction cost reads the actual Huber value, not `theta`. Behaviour change,
+   own commit.
+2. Re-measure the optimum against growth rate. Expect it well below 3.3x.
+3. Add `d(profit)/d(kmax)` to phylloptim by the envelope theorem.
+4. The integral controller, with `a_sw = 0` by default so exactness holds.
+
+⚠️ And #617 (epic #615) replaces the height-resistance relation this is all
+measured against, so step 2's number should be re-taken after it lands.
+
 ## Open
 
 - Which growth rate the optimality criterion should maximise is **not** a modelling choice to be argued — see "Deciding the objective by invasion analysis" above. It is settled by experiment, and the cheap half of that experiment can run before any of this code exists.
