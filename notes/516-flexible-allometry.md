@@ -67,7 +67,13 @@ These are two halves of one decision and conserve carbon exactly: carbon not spe
 
 **Gradual rebuild.** `growth_flux = Ppos * G` splits smoothly between extension along the preferred trajectory and closing the leaf-area gap, with the split a smooth function of the gap that vanishes when it closes, so the gap closes asymptotically with no breakpoint.
 
-**Sapwood.** `dA_s/dt = build - k_s * A_s`, preferred value `theta * A`. The loss term stays unconditional, matching the existing behaviour that sapwood-to-heartwood conversion proceeds regardless of carbon status: sapwood is not sheddable, so its plasticity enters only through the allocation of new growth, as a slow ratchet.
+**Sapwood — and a correction to how this note first described it.** It said sapwood is *not sheddable*, so its plasticity could only enter through the allocation of new growth. That is wrong, and the implementation is better for it: sapwood is continuously lost to heartwood at `k_s`, and that loss is currently replaced *implicitly* by the allometry, exactly as leaf turnover is. So the same "decline to replace" mechanism applies, and one uniform gate covers both pools rather than two special cases.
+
+The asymmetry is then a consequence rather than an assumption. Because the two departures differ only by their rate constants,
+
+    dpsi/dt = withheld * (k_l - k_s) - rebuild
+
+so withholding both raises sapwood per leaf area at up to `k_l - k_s` = 0.457 − 0.2 = 0.257/yr. The Huber value rises under stress because leaves turn over faster than sapwood does, not because anything says sapwood is special. Heartwood accumulation stays ungated either way: the tissue becomes heartwood whether or not it is replaced.
 
 ## Invariants a future edit could break
 
