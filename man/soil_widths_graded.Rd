@@ -15,7 +15,8 @@ soil_widths_graded(depth = 1.5, n = 5, top = 0.02)
 \code{depth / n}, since a graded profile thickens with depth.}
 }
 \value{
-A vector of \code{n} layer widths, summing to \code{depth}.
+A vector of \code{n} layer widths, summing to \code{depth}, each at
+  least as thick as the one above it.
 }
 \description{
 Builds a vector of layer widths for
@@ -49,6 +50,26 @@ replacing the uniform profile with a 2 cm top layer moved annual runoff from
 13.4\% to 20.4\% under an event-driven rainfall series, with no parameter
 changed. \code{a_infil} and \code{b_infil} were calibrated against a 30 cm
 surface layer.
+}
+
+\section{Layers may not get thinner with depth}{
+
+\code{set_soil_layer_widths()} refuses a profile in which any layer is
+thinner than the one above it (equal widths are fine, so a uniform profile is
+legal). Refining towards the surface is the standard and is what this function
+builds; refining at depth has no counterpart in TF24 — a contrast in soil
+properties is per-layer \emph{parameters}, not a thin layer, and TF24 has no
+water table — while it does reach a failure the model cannot absorb, driving
+the size-density equations to overflow. Every profile this function returns
+satisfies the rule by construction.
+
+⚠️ A thickening profile is not automatically well resolved either. The error
+in the usual Richards discretisation vanishes on a uniform grid and grows with
+the \emph{contrast} between adjacent thicknesses whichever way it runs, and
+grading fast with depth is equivalent to a coarser column. So a small
+\code{top} at a fixed \code{n} buys surface resolution at the price of a
+coarse base: at \code{top = 0.005} the deepest of five layers is 1.11 m.
+Prefer more layers to a steeper ladder.
 }
 
 \examples{
