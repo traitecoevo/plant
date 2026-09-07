@@ -464,7 +464,8 @@ public:
   // stay fully charged because neither has a state to lose, so withholding
   // their cost would save carbon that no tissue paid for -- a free lunch, and a
   // silent one.
-  double turnover(double replacement, double mass_leaf, double mass_bark,
+  double turnover(double replacement_leaf, double replacement_sapwood,
+                  double mass_leaf, double mass_bark,
                   double mass_sapwood, double mass_root) const;
   double turnover_leaf(double mass) const;
   double turnover_bark(double mass) const;
@@ -495,6 +496,37 @@ public:
                       plasticity_gate_width));
   }
 
+  // Sapwood replaces a scaled share of what its conversion to heartwood
+  // removes: the same carbon gate as leaves, times exp(-psi / a_pl2), so a stem
+  // carrying more conducting area than its canopy needs declines to renew the
+  // excess even when carbon is ample.
+  //
+  // This is what gives the Huber value a restoring force. Without it psi has
+  // only terms that push it around and none that return it, and measured, it
+  // drifted to leave plants hydraulically UNDER-built (#516).
+  //
+  // ⚠️ psi >= 0 IS INVARIANT, and that is the reason this form needs no bound.
+  // At psi = 0 the factor is 1, so the two replacement fractions coincide and
+  //     dpsi/dt = (1 - replacement) * (k_l - k_s) >= 0,
+  // since k_l > k_s. The flow at the boundary points inward, so the "too little
+  // sapwood" branch is unreachable, the factor stays within (0, 1], and no
+  // over-replacement (a fraction above 1) can arise to cost unbounded carbon.
+  // If k_s were ever raised above k_l that argument reverses and this needs
+  // revisiting.
+  double sapwood_replacement_fraction(double replacement_leaf,
+                                      double sapwood_departure) const {
+    return replacement_leaf * std::exp(-sapwood_departure / pars.a_pl2);
+  }
+
+  // Carbon cost of a unit of leaf area bought at UNCHANGED height: the leaf,
+  // the fine root, and the sapwood and bark that supply it, at the ratio the
+  // plant prefers rather than the one it currently has. Buying the whole
+  // package is what stops rebuilding a canopy from diluting the Huber value.
+  double mass_live_per_area_leaf_at_height(double height) const {
+    return pars.lma + pars.a_r1 +
+      pars.theta * height * eta_c * pars.rho * (1.0 + pars.a_b1);
+  }
+
   // [eqn 15] Net production
   double net_mass_production_dt_A(double assimilation, double respiration,
                                   double turnover) const;
@@ -503,7 +535,8 @@ public:
                                 double height, double area_leaf_,
                                 double height_inverse,
                                 double sapwood_departure,
-                                double replacement);
+                                double replacement_leaf,
+                                double replacement_sapwood);
 
   // Resolve the leaf operating point on the already-set-up `leaf` (i.e. after
   // leaf.set_physiology(...)). Base TF24 optimises the root-collar psi via
@@ -522,7 +555,10 @@ public:
         vars.aux(aux_idx_competition_effect),
         vars.aux(aux_idx_height_inverse),
         vars.state(state_idx_log_area_sapwood_departure),
-        replacement_fraction(relative_reserves(vars)));
+        replacement_fraction(relative_reserves(vars)),
+        sapwood_replacement_fraction(
+            replacement_fraction(relative_reserves(vars)),
+            vars.state(state_idx_log_area_sapwood_departure)));
   }
 
   // [eqn 16] Fraction of whole plan growth that is leaf

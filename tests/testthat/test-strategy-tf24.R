@@ -813,3 +813,75 @@ test_that("a_pl0 = 0 leaves both departures exactly inert", {
     expect_identical(ind$rate("log_area_sapwood_departure"), 0.0)
   }
 })
+
+test_that("the Huber value has a restoring force and cannot fall below preferred", {
+  env <- tf24_departure_env()
+  s <- TF24_Strategy()
+  s$pars$a_pl0 <- 1.0
+  k_l <- s$pars$k_l
+  k_s <- s$pars$k_s
+
+  rate_at <- function(psi, storage) {
+    ind <- TF24_Individual(s)
+    ind$set_state("height", 5.0)
+    ind$set_state("log_area_sapwood_departure", psi)
+    ind$set_state("storage", storage)
+    ind$compute_rates(env)
+    ind$rate("log_area_sapwood_departure")
+  }
+
+  ## psi >= 0 is invariant, and it is a property of the form rather than a
+  ## guard: at psi = 0 the two replacement fractions coincide, so the rate is
+  ## (1 - replacement) * (k_l - k_s), which is non-negative because k_l > k_s.
+  ## The flow at the boundary points inward, so a stem cannot end up with less
+  ## conducting area than its canopy prefers.
+  expect_gt(k_l, k_s)
+  expect_gte(rate_at(0.0, 0.0), 0)
+
+  ## Excess sapwood is renewed less, so the departure is pulled back. This is
+  ## the restoring force that was missing: without it psi drifted, and measured,
+  ## it drifted the wrong way and left plants under-built.
+  expect_lt(rate_at(1.5, 0.0), rate_at(0.0, 0.0))
+
+  ## The restoring force is relative to carbon status, NOT absolute. Given
+  ## carbon to spend, an over-built stem is pulled back to its preferred ratio.
+  ample <- function(psi) {
+    ind <- TF24_Individual(s)
+    ind$set_state("height", 5.0)
+    ind$set_state("log_area_sapwood_departure", psi)
+    ind$set_initial_states(env)        # born at a_st3 of capacity
+    ind$compute_rates(env)
+    ind$rate("log_area_sapwood_departure")
+  }
+  expect_lt(ample(1.5), 0)
+  expect_equal(ample(0.0), 0, tolerance = 1e-12)
+
+  ## But with reserves EMPTY it keeps rising however over-built the stem is,
+  ## because withheld leaf turnover (k_l) outruns withheld sapwood renewal
+  ## (k_s) whatever psi does. That is arithmetic rather than a defect -- a plant
+  ## thinning its canopy at 46 per cent a year while losing conducting area at
+  ## 20 per cent really does raise its Huber value -- but it means neither
+  ## departure is bounded under a PERMANENT deficit. See the note (#516): a
+  ## plant in that state is dying, and what bounds it is mortality removing the
+  ## cohort, not the allometry.
+  expect_gt(rate_at(6.0, 0.0), 0)
+})
+
+test_that("rebuilding a canopy does not dilute the Huber value", {
+  env <- tf24_departure_env()
+  s <- TF24_Strategy()
+  s$pars$a_pl0 <- 1.0
+
+  ## A plant with a canopy gap and ample reserves rebuilds. Buying leaf area
+  ## alone would lower sapwood per leaf area; buying the whole package at the
+  ## preferred ratio must not, so at psi = 0 the rebuild contributes nothing to
+  ## the sapwood departure and the boundary flow stays non-negative.
+  ind <- TF24_Individual(s)
+  ind$set_state("height", 5.0)
+  ind$set_state("log_area_leaf_departure", -0.5)
+  ind$set_initial_states(env)          # reserves ample, so rebuilding is on
+  ind$compute_rates(env)
+
+  expect_gt(ind$rate("log_area_leaf_departure"), 0)   # the canopy is rebuilding
+  expect_gte(ind$rate("log_area_sapwood_departure"), 0)
+})

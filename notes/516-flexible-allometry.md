@@ -171,17 +171,44 @@ so the replacement gate almost never opens. Either `a_pl1` has to sit much
 closer to the growth gate `a_st2 = 0.10`, or the gate should read something
 other than the reserve fraction. Undecided.
 
-**3. The sapwood departure has no restoring force, and drifts the wrong way.**
-Its only terms are `+withheld*(k_l - k_s)` and `−rebuild_rel`. Nothing relaxes
-it toward zero, and because rebuilding buys leaf area *without* sapwood, and
-rebuilding is fast, the second term dominates: on both seasonal stands `psi`
-ended in [−0.10, 0], i.e. plants finished hydraulically **under**-built rather
-than over-built. Rebuilding a canopy ought to buy the sapwood that supplies it.
+**3. The sapwood departure had no restoring force. FIXED.** Its only terms were
+`+withheld*(k_l - k_s)` and `−rebuild_rel`, neither of which returns it to zero,
+and because rebuilding bought leaf area *without* sapwood the second dominated:
+on both seasonal stands `psi` ended in [−0.10, 0], leaving plants hydraulically
+**under**-built. Two changes, and neither needed the three-way flux split that
+first looked unavoidable:
 
-Fixing it means splitting the growth flux three ways -- extension, leaf
-rebuild, sapwood rebuild -- with the shares summing to at most one. That is the
-three-degrees-of-freedom allocation problem against a single budget constraint,
-and it needs a decision rather than a default.
+- **Rebuilding buys the whole package** -- leaf, fine root, and the sapwood and
+  bark that supply it -- at the ratio the plant *prefers* rather than the one it
+  has, so closing a canopy gap no longer dilutes the Huber value.
+- **Sapwood renews a scaled share**, `replacement * exp(-psi / a_pl2)`, so a
+  stem carrying more conducting area than its canopy needs declines to renew the
+  excess even when carbon is ample. That is the restoring force.
+
+**`psi >= 0` is now invariant, by the form rather than by a guard.** At `psi = 0`
+the two replacement fractions coincide, so `dpsi/dt = (1 - replacement) *
+(k_l - k_s) >= 0` because `k_l > k_s`: the boundary flow points inward, the "too
+little sapwood" branch is unreachable, and the scaling factor stays in (0, 1] so
+no over-replacement can arise to cost unbounded carbon. ⚠️ **If `k_s` were ever
+raised above `k_l` that argument reverses.**
+
+Measured after the fix, on the same seasonal stands: `psi` in **[0, +0.040]** and
+**[0, +0.043]** -- the right sign -- and `dpsi/dt` holds near +0.21 across the
+gap range instead of decaying to +0.087. Leaf departure reaches −0.052 against
+sapwood's +0.043, so leaf is the larger of the two, with the ratio set by
+`k_l / (k_l - k_s)` ~ 1.8 under pure withholding: the speeds are governed by the
+turnover constants, as they should be.
+
+**What the fix does NOT do: bound either departure under a permanent deficit.**
+With reserves empty, `withheld * k_l` (0.42/yr) outruns `withheld_sapwood * k_s`
+(0.2/yr) whatever `psi` is, so `psi` keeps rising -- measured at +0.22/yr even at
+`psi = 6`. This is arithmetic rather than a defect: a plant thinning its canopy
+at 46 per cent a year while losing conducting area at 20 per cent really does
+raise its Huber value without limit. But it means a plant in *permanent* deficit
+has both departures diverging linearly, `phi` toward −inf and `psi` toward +inf.
+What removes such a plant is mortality, not the allometry. Whether that is
+acceptable, or whether the departures need a bound, is the live question -- and
+it is the same question as (4) below.
 
 **4. A stiffness hazard, identified and not fixed.** `rebuild_rel` is an
 absolute carbon rate divided by leaf area, which is correct -- it is what turns

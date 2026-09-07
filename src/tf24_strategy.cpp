@@ -213,11 +213,18 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   // two departure states, so the carbon and the tissue balance exactly.
   const double replacement = replacement_fraction(r);
   const double withheld    = 1.0 - replacement;
+  // Sapwood renews the same share, scaled down where it already carries more
+  // conducting area than its canopy needs. See the header: this is what gives
+  // the Huber value a restoring force, and it is what makes psi >= 0 invariant.
+  const double replacement_sapwood =
+    sapwood_replacement_fraction(replacement, sapwood_departure);
+  const double withheld_sapwood = 1.0 - replacement_sapwood;
 
   const double net_mass_production_dt_ =
     net_mass_production_dt(environment, height, area_leaf_,
                            vars.aux(aux_idx_height_inverse),
-                           sapwood_departure, replacement);
+                           sapwood_departure, replacement,
+                           replacement_sapwood);
 
   // store the aux sate
   vars.set_aux(aux_idx_net_mass_production_dt, net_mass_production_dt_);
@@ -336,12 +343,14 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   vars.set_rate(FECUNDITY_INDEX,
     fecundity_dt(growth_flux, fraction_allocation_reproduction_));
 
-  // Rebuilding buys leaf area at unchanged height, so it pays for the leaf and
-  // the fine root that come with it and nothing else -- the sapwood it will
-  // eventually want is bought through its own state, at its own pace.
+  // Rebuilding buys leaf area at unchanged height, and it buys the WHOLE
+  // package -- leaf, fine root, and the sapwood and bark that supply it -- at
+  // the ratio the plant prefers rather than the one it has. Buying leaf alone
+  // diluted the Huber value, and measured, that dilution dominated: plants
+  // finished under-built rather than over-built (#516).
   const double rebuild_rel =
     rebuild_share * growth_flux * fraction_allocation_growth_ /
-      ((pars.lma + pars.a_r1) * area_leaf_);
+      (mass_live_per_area_leaf_at_height(height) * area_leaf_);
 
   // Sapwood -> heartwood conversion is turnover-driven, so it proceeds
   // regardless of carbon status (previously gated behind net>0).
@@ -404,14 +413,21 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   vars.set_rate(state_idx_log_area_leaf_departure,
                 rebuild_rel - withheld * pars.k_l);
 
-  // The Huber value's departure is the DIFFERENCE of the two losses, and the
-  // drought acclimation falls out of it rather than being imposed: leaf area
-  // can thin at up to k_l = 0.457/yr while conducting area is only lost to
-  // heartwood at k_s = 0.2/yr, so withholding both raises sapwood per leaf area
-  // at up to k_l - k_s. Rebuilding leaf area lowers it again, which is why the
-  // sapwood departure needs no rebuild term of its own.
+
+  // The Huber value's departure is the DIFFERENCE of the two losses, so the
+  // drought acclimation falls out of the arithmetic rather than being imposed:
+  // leaf area thins at up to k_l = 0.457/yr while conducting area is only lost
+  // to heartwood at k_s = 0.2/yr, and withholding both raises sapwood per leaf
+  // area. The excess is then renewed less (withheld_sapwood > withheld), which
+  // is the restoring force.
+  //
+  // The last term is exact geometry, not a parameter: rebuilding adds leaf area
+  // and sapwood in the ratio theta, so it moves the two logs by b/A and
+  // theta*b/A_s, whose difference is (b/A) * (exp(-psi) - 1). It vanishes at
+  // psi = 0, which is what leaves the inward-pointing boundary flow intact.
   vars.set_rate(state_idx_log_area_sapwood_departure,
-                withheld * (pars.k_l - pars.k_s) - rebuild_rel);
+                withheld * pars.k_l - withheld_sapwood * pars.k_s +
+                  rebuild_rel * (std::exp(-sapwood_departure) - 1.0));
 
   // [eqn 21] - Instantaneous mortality rate, now driven by relative reserves r.
   vars.set_rate(MORTALITY_INDEX,
@@ -476,14 +492,15 @@ double TF24_Strategy::respiration_root(double mass) const {
 }
 
 // [eqn 14] Total turnover
-double TF24_Strategy::turnover(double replacement, double mass_leaf,
+double TF24_Strategy::turnover(double replacement_leaf,
+                          double replacement_sapwood, double mass_leaf,
                           double mass_bark,
                           double mass_sapwood, double mass_root) const {
-   // At replacement = 1 this is bit-identical to charging the whole flux --
+   // At both fractions = 1 this is bit-identical to charging the whole flux --
    // 1.0 * x is exactly x, and the four terms are summed in the same order.
-   return replacement * turnover_leaf(mass_leaf) +
+   return replacement_leaf * turnover_leaf(mass_leaf) +
           turnover_bark(mass_bark) +
-          replacement * turnover_sapwood(mass_sapwood) +
+          replacement_sapwood * turnover_sapwood(mass_sapwood) +
           turnover_root(mass_root);
 }
 
@@ -518,7 +535,8 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
                                 double height, double area_leaf_,
                                 double height_inverse,
                                 double sapwood_departure,
-                                double replacement) {
+                                double replacement_leaf,
+                                double replacement_sapwood) {
   // height_inverse (= 1/height) is supplied by the shared individual.h interface
   // (cached aux); unused here as the TF24 root-water path works in height directly.
   (void)height_inverse;
@@ -748,8 +766,8 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   const double respiration_ =
     respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
   const double turnover_ =
-    turnover(replacement, mass_leaf_, mass_bark_, mass_sapwood_,
-             mass_root_);
+    turnover(replacement_leaf, replacement_sapwood, mass_leaf_, mass_bark_,
+             mass_sapwood_, mass_root_);
   return net_mass_production_dt_A(assimilation_, respiration_, turnover_);
 }
 
@@ -982,7 +1000,9 @@ double TF24_Strategy::establishment_probability(const TF24_Environment& environm
                            // from the gate rather than written as 1.0, so a
                            // species whose plasticity starts biting at birth
                            // has that reflected here too.
-                           replacement_fraction(pars.a_st3)));
+                           replacement_fraction(pars.a_st3),
+                           sapwood_replacement_fraction(
+                               replacement_fraction(pars.a_st3), 0.0)));
 }
 
 // Both forms above end here. The carbon is birth-size carbon either way, whatever
