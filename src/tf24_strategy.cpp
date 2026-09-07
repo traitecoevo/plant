@@ -316,7 +316,8 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   // of the departure's motion is plasticity. At rest the two coincide bitwise
   // (exp(0) == 1), so this is the same number the fixed model used.
   const double area_leaf_star = area_leaf(height);
-  const double darea_leaf_dmass_live_ = darea_leaf_dmass_live(area_leaf_star);
+  const double darea_leaf_dmass_live_ =
+    darea_leaf_dmass_live(area_leaf_star, sapwood_departure);
 
   // The share of growth redirected into closing the canopy gap: it vanishes
   // exactly when the gap closes, widens as the gap does, and is gated by the
@@ -868,9 +869,10 @@ double TF24_Strategy::fecundity_dt(double net_mass_production_dt,
     (pars.omega + pars.a_f3);
 }
 
-double TF24_Strategy::darea_leaf_dmass_live(double area_leaf) const {
+double TF24_Strategy::darea_leaf_dmass_live(double area_leaf,
+                                            double sapwood_departure) const {
   return 1.0/(  dmass_leaf_darea_leaf(area_leaf)
-              + dmass_sapwood_darea_leaf(area_leaf)
+              + dmass_sapwood_darea_leaf(area_leaf, sapwood_departure)
               + dmass_bark_darea_leaf(area_leaf)
               + dmass_root_darea_leaf(area_leaf));
 }
@@ -885,13 +887,23 @@ double TF24_Strategy::dmass_leaf_darea_leaf(double /* area_leaf */) const {
 }
 
 // Mass of stem needed for new unit area leaf, d m_s / d a_l
-double TF24_Strategy::dmass_sapwood_darea_leaf(double area_leaf) const {
-  return pars.rho * eta_c * pars.a_l1 * pars.theta * (pars.a_l2 + 1.0) * pow(area_leaf, pars.a_l2);
+double TF24_Strategy::dmass_sapwood_darea_leaf(double area_leaf,
+                                               double sapwood_departure) const {
+  // Priced at the Huber value the plant ACTUALLY carries. At rest
+  // sapwood_per_leaf_area() returns pars.theta unchanged, so this is bitwise
+  // the expression it replaces.
+  return pars.rho * eta_c * pars.a_l1 * sapwood_per_leaf_area(sapwood_departure) *
+    (pars.a_l2 + 1.0) * pow(area_leaf, pars.a_l2);
 }
 
 // Mass of bark needed for new unit area leaf, d m_b / d a_l
 double TF24_Strategy::dmass_bark_darea_leaf(double area_leaf) const {
-  return pars.a_b1 * dmass_sapwood_darea_leaf(area_leaf);
+  // At a RESTING sapwood departure deliberately: bark follows leaf area, so it
+  // must not pick up the Huber value's excursion. Expressed as a_b1 times the
+  // sapwood form at zero departure rather than written out, because floating
+  // point multiplication is not associative -- writing the product flat changes
+  // the last bits and moved a whole SCM trajectory when first tried.
+  return pars.a_b1 * dmass_sapwood_darea_leaf(area_leaf, 0.0);
 }
 
 // Mass of root needed for new unit area leaf, d m_r / d a_l

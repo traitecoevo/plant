@@ -620,15 +620,25 @@ public:
                       double fraction_allocation_reproduction) const;
 
   // [eqn 18] Fraction of mass growth that is leaves
-  double darea_leaf_dmass_live(double area_leaf) const;
+  // Leaf area bought per unit live mass. Takes the sapwood departure because
+  // the stem that comes with a new leaf is priced at the Huber value the plant
+  // ACTUALLY carries, not at pars.theta. Without that a plant holding extra
+  // conducting area gets its hydraulic benefit free, which is most of why net
+  // production appeared to peak at 3.3x the pipe-model ratio.
+  double darea_leaf_dmass_live(double area_leaf,
+                               double sapwood_departure) const;
 
   // change in height per change in leaf area
   double dheight_darea_leaf(double area_leaf) const;
   // Mass of leaf needed for new unit area leaf, d m_s / d a_l
   double dmass_leaf_darea_leaf(double area_leaf) const;
   // Mass of stem needed for new unit area leaf, d m_s / d a_l
-  double dmass_sapwood_darea_leaf(double area_leaf) const;
+  double dmass_sapwood_darea_leaf(double area_leaf,
+                                  double sapwood_departure) const;
   // Mass of bark needed for new unit area leaf, d m_b / d a_l
+  // Bark is pinned to LEAF area, not to sapwood, so it keeps pars.theta and
+  // does not move with the departure. Sharing the sapwood expression would give
+  // it the Huber value's excursion, which it has no business having.
   double dmass_bark_darea_leaf(double area_leaf) const;
   // Mass of root needed for new unit area leaf, d m_r / d a_l
   double dmass_root_darea_leaf(double area_leaf) const;

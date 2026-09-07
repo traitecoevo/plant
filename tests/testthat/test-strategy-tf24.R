@@ -983,3 +983,38 @@ test_that("rebuilding a canopy does not dilute the Huber value", {
   expect_gt(ind$rate("log_area_leaf_departure"), 0)   # the canopy is rebuilding
   expect_gte(ind$rate("log_area_sapwood_departure"), 0)
 })
+
+test_that("new growth is priced at the Huber value the plant actually carries", {
+  env <- tf24_departure_env()
+  s <- TF24_Strategy(collect_all_auxiliary = TRUE)
+
+  ## dmass_sapwood_darea_leaf used pars.theta, so a plant holding extra
+  ## conducting area got its hydraulic benefit for free and paid the pipe-model
+  ## price for new growth. That is most of why net production appeared to peak
+  ## at 3.3x the pipe-model ratio; priced properly, GROWTH peaks near 1.4-1.8x.
+  growth_at <- function(psi, h = 10) {
+    ind <- TF24_Individual(s)
+    ind$set_state("height", h)
+    ind$set_state("log_area_sapwood_departure", psi)
+    ind$set_initial_states(env)
+    ind$compute_rates(env)
+    c(P = ind$aux("net_mass_production_dt"), dh = ind$rate("height"))
+  }
+
+  psis <- seq(0, 2.4, by = 0.3)
+  out <- vapply(psis, growth_at, numeric(2))
+  P <- out["P", ]; G <- out["dh", ]
+
+  ## Both have interior optima, and the growth one sits well below the
+  ## production one -- because extra stem is now paid for in forgone leaf growth.
+  expect_gt(which.max(P), 1)
+  expect_gt(which.max(G), 1)
+  expect_lt(which.max(G), which.max(P))
+  expect_lt(exp(psis[which.max(G)]), 2.5)
+  expect_gt(exp(psis[which.max(P)]), 2.5)
+
+  ## Bark stays pinned to leaf area, so it must NOT move with the departure:
+  ## at rest the whole thing is bitwise what it replaced, which the exactness
+  ## check elsewhere covers, and here the resting growth is simply positive.
+  expect_gt(G[[1]], 0)
+})
