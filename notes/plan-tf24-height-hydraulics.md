@@ -399,7 +399,7 @@ Tracked separately as [#618](https://github.com/traitecoevo/plant/issues/618). N
 |---|---|---|
 | 0 | Naming: `b`→`D_c`, `a_theta`→`theta_c`, `L_min`→`L_tip`; `K_s` keeps its name. Cost-θ rename is a no-op (§1) | **done** |
 | 1 | Implement $k_s(L)$, $n_A(L)$, $\theta(L)$ profiles; closed-form $L_{eff}$ with `theta_c` as switch, all three parameters defaulting to 0 | reproduces linear case **bit-identically**; `scientific_version` NOT bumped |
-| 2a | Turn widening on (`D_c` = 0.2, `L_tip` = 0.02) and reparameterise `K_s` at `H_anchor` = 1 m; `theta_c` stays 0 and is refused; re-anchor `B_Hv1` to hold $p_{50}$ | resistance unchanged at $H_a$; carbon budget untouched because θ has no profile yet; vulnerability curve unchanged; `scientific_version` → 9 with measured deltas |
+| 2a | Turn widening on (`D_c` = 0.2, `L_tip` = 0.02) and reparameterise `K_s` at `H_anchor` = 1 m; `theta_c` stays 0 and is refused; re-anchor `B_Hv1` to hold $p_{50}$ | resistance unchanged at $H_a$; carbon budget untouched because θ has no profile yet; vulnerability curve unchanged; `scientific_version` → 10 with measured deltas |
 | 2b | Implement θ(L) **everywhere at once** — hydraulic path *and* allometry (`area_sapwood`, `area_bark`, `mass_sapwood`, `dmass_sapwood_darea_leaf`, and their rate forms); narrow `theta` to the tip definition; **build** the parameter-file schema gate; expose `theta_base(H)` as derived output | `theta_c` guard lifted; carbon budget and hydraulics use the same θ; old-format parameter files rejected (I11) |
 | 3 | Add ρgH as an explicit separate term | predawn Ψ gradient reproduced |
 | 4 | Diagnostic ceiling check (§4.2) | $D_{implied}$ at emergent height compared against measured basal diameters |

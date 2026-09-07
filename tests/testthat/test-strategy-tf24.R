@@ -299,7 +299,7 @@ test_that("offspring arrival", {
                        hyperpar = TF24_hyperpar, birth_rate = list(20))
 
   out <- run_scm(p1, env, ctrl)
-  expect_equal(out$offspring_production, 70.19632153, tolerance = 2e-2)
+  expect_equal(out$offspring_production, 24.32140145, tolerance = 2e-2)
 
   # two species: the second strategy has a moderately higher lma (0.10 vs
   # 0.0825), so it grows more slowly and is more heavily shaded. In the height
@@ -316,7 +316,7 @@ test_that("offspring arrival", {
                        hyperpar = TF24_hyperpar, birth_rate = list(20, 20))
 
   out <- run_scm(p2, env, ctrl)
-  expect_equal(out$offspring_production[[1]], 56.28086762, tolerance = 2e-2)
+  expect_equal(out$offspring_production[[1]], 18.54300907, tolerance = 2e-2)
   expect_lt(out$offspring_production[[2]], 0.5)
 
   # Same two species, integrated in birth date (#590). They coexist at
@@ -352,8 +352,8 @@ test_that("offspring arrival", {
   # a reserve fraction of exactly 1 with the read clipped there, where it now
   # sits at 0.62 with nothing on the clip.
   out_bd <- run_scm(p2, env, Control(node_density_in_birth_date = TRUE))
-  expect_equal(out_bd$offspring_production[[1]], 273.89333679, tolerance = 2e-2)
-  expect_equal(out_bd$offspring_production[[2]], 49.34739911, tolerance = 2e-2)
+  expect_equal(out_bd$offspring_production[[1]], 219.26680110, tolerance = 2e-2)
+  expect_equal(out_bd$offspring_production[[2]], 34.58766277, tolerance = 2e-2)
 })
 
 test_that("the height-linear parameters reproduce the pre-path-integral results", {

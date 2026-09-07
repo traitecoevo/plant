@@ -481,14 +481,14 @@ were not previously recorded here:
   previous model exactly, end-to-end through the SCM.
 
   **The sign of the effect depends on stand density.** Individually a plant is
-  better off wherever it is taller than the anchor (assimilation ratio 1.055 at
-  5 m, 1.143 at 10 m, single plant, wet soil). But lower resistance also means
+  better off wherever it is taller than the anchor (assimilation ratio 1.054 at
+  5 m, 1.141 at 10 m, single plant, wet soil). But lower resistance also means
   faster transpiration, so in a dense stand everyone draws the shared soil column
   down faster and the patch does worse. One-species SCM at `hmat` = 5: ratio
-  1.216 at `birth_rate` 0.5, 1.095 at 2, and 0.857 at 20. The pinned test
+  1.196 at `birth_rate` 0.5, 1.047 at 2, and 0.803 at 20. The pinned test
   scenarios all run at 20, the least favourable end; the hydraulic gateway, which
-  runs longer patches at the default `hmat`, moves the other way by 2.2×–320×,
-  with one scenario crossing R0 = 1 so persistence goes 2/8 → 3/8.
+  runs longer patches at the default `hmat`, moves the other way by 3.1×–2208×,
+  with two scenarios crossing R0 = 1 so persistence goes 1/8 → 3/8.
 
   `B_Hv1` moves `0.4607063 -> 0.36591565341924093` in `make_TF24_hyperpar`. This
   is **not** a science change but a correction that prevents one: the hyperpar

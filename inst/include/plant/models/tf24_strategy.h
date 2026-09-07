@@ -358,29 +358,29 @@ public:
   //
   // THE SIGN OF THE EFFECT DEPENDS ON DENSITY, which is the most important
   // thing to know about this change. Individually, plants are better off
-  // wherever they are taller than the anchor (assimilation ratio 0.997 at 0.5 m,
-  // 1.001 at 1 m, 1.055 at 5 m, 1.143 at 10 m, single plant, wet soil, no
-  // competition). But lower resistance also means faster transpiration, so in a
+  // wherever they are taller than the anchor (assimilation ratio 0.9968 at
+  // 0.5 m, 1.0006 at 1 m, 1.0543 at 5 m, 1.1410 at 10 m, single plant, wet soil,
+  // no competition). But lower resistance also means faster transpiration, so in a
   // dense stand everyone draws the shared soil column down faster and the patch
   // does WORSE. One-species SCM, hmat = 5, max_patch_lifetime = 5:
   //
   //     birth_rate    0.5      2       20
-  //     ratio        1.216   1.095   0.857
+  //     ratio        1.196   1.047   0.803
   //
   // The pinned scenarios below all run at birth_rate = 20, i.e. at the least
   // favourable end of that range; they are not representative of the change's
   // sign in general.
   //
-  //     one-species SCM offspring     81.8571 -> 70.1963    -14.25%
-  //     two-species, fast             67.3220 -> 56.2809    -16.40%
-  //     two-species, slow           2.7745e-4 -> 1.2629e-4  -54.49%
-  //     birth-date coordinate, fast  287.1604 -> 273.8933    -4.62%
-  //     birth-date coordinate, slow   59.5320 ->  49.3474   -17.11%
-  //     seeded stochastic counts        81 / 3 -> 104 / 3
+  //     one-species SCM offspring      30.2980 ->  24.3214   -19.73%
+  //     two-species, fast              23.2557 ->  18.5430   -20.26%
+  //     two-species, slow            4.0284e-6 -> 1.8965e-6  -52.92%
+  //     birth-date coordinate, fast   233.3660 -> 219.2668    -6.04%
+  //     birth-date coordinate, slow    43.7240 ->  34.5877   -20.90%
+  //     seeded stochastic counts         79 / 3 ->  77 / 3
   //
   // The hydraulic gateway runs longer patches at the default hmat and moves the
-  // other way, up by 2.2x to 320x on every scenario, with S02 crossing R0 = 1 so
-  // persistence goes 2/8 -> 3/8. 8/8 still run, 0 crash, no `observed` flips.
+  // other way, up by 3.1x to 2208x on every scenario, with S01 and S02 crossing
+  // R0 = 1 so persistence goes 1/8 -> 3/8. 8/8 still run, 0 crash.
   //
   // theta_c is declared but REFUSED (prepare_strategy throws on any non-zero
   // value). theta is read by the carbon budget as well as the hydraulic term,
