@@ -76,8 +76,36 @@ struct TF24_Pars {
   // a_pl0 = 0 is the fixed allometry EXACTLY, not approximately: it zeroes the
   // withheld fraction, which leaves both departures resting at zero.
   double a_pl0  = 0.0;            // Max fraction of leaf/sapwood turnover left unreplaced [0-1]
-  double a_pl1  = 0.05;           // Reserve fraction at which withholding is half its max [0-1]
-  double a_pl2  = 0.2;            // Log-gap scale over which growth is redirected to rebuilding
+  // ⚠️ a_pl1 GATES ON THE MARGINAL LEAF'S CARBON BALANCE, NOT ON RESERVES. It is
+  // the dimensionless return (gain - cost)/cost at which withholding is half its
+  // maximum, so 0 is exactly Manzoni et al. (2015)'s optimum -- shed once a leaf
+  // stops covering its own upkeep. An earlier version gated on the NSC reserve
+  // fraction; that fires only after the pool has drained, which is the evergreen
+  // strategy Manzoni shows losing a long drought, and it was measured here to buy
+  // a factor of 1.0-1.13 on survivorship. Negative values make a plant hold its
+  // canopy past break-even; positive values make it shed while still in profit.
+  double a_pl1  = 0.0;            // Marginal leaf return at which withholding is half its max
+  double a_pl2  = 0.2;            // Log-gap scale for rebuilding, and for the canopy floor
+  // Smallest canopy a plant will thin to, as a fraction of what its height
+  // implies. Two jobs. Biologically it is the evergreen habit: Robinson's mulga
+  // that de-leafed severely died, so for an evergreen the floor is real rather
+  // than a numerical convenience. Numerically it is what keeps the state in a
+  // range where the arithmetic means something -- without it the canopy decays
+  // exponentially with no bound, reaching 2e-8 for a fast-leaved species and
+  // 0.000 for a suppressed cohort in an ordinary wet stand, with divisions by
+  // leaf area reaching 1e9 inside a solver step shared with live cohorts.
+  //
+  // Set it very small for a drought-deciduous species, which sheds to nothing and
+  // re-flushes. That is supported and should stay reachable, but it is not the
+  // habit this model is aimed at, and the departure coordinate degrades as the
+  // floor approaches zero (phi -> -inf).
+  double a_pl3  = 0.05;           // Minimum canopy, as a fraction of the preferred [0-1]
+  // Rate at which the tracked marginal return chases the instantaneous one, /yr.
+  // The gate must read a RUNNING MEAN: assimilation swings with the weather, and
+  // a plant that shed and re-flushed on every dry week would be neither
+  // physical nor integrable. 1/a_pl4 is the averaging window, so the default is
+  // about a four-month memory -- long against weather, short against a drought.
+  double a_pl4  = 3.0;            // Acclimation rate of the tracked marginal return [/yr]
   // * Light capture
   double k_I = 0.5;
   // * Leaf hydraulic / photosynthesis traits (default Eucalyptus saligna)
@@ -312,7 +340,7 @@ public:
   // Overrides ----------------------------------------------
 
   // update this when the length of state_names changes
-  static size_t state_size () { return 8; }
+  static size_t state_size () { return 9; }
   // update this when the length of aux_names changes
   size_t aux_size () { return aux_names().size(); }
 
@@ -325,7 +353,8 @@ public:
       "mass_heartwood",
       "storage",
       "log_area_leaf_departure",
-      "log_area_sapwood_departure"
+      "log_area_sapwood_departure",
+      "leaf_marginal_return_tracked"
       });
   }
 
@@ -366,7 +395,11 @@ public:
       // area (umol CO2 m^-2 s^-1). Net, not gross: Leaf::assim_colimited()
       // subtracts dark respiration R_d_, so gross = assimilation + R_d_ with
       // R_d_ = 0.015 * vcmax_ at the acclimated vcmax_.
-      "assimilation"
+      "assimilation",
+      // The marginal leaf's carbon balance, which the replacement gate reads.
+      // Dimensionless and zero at break-even, so its sign says whether the last
+      // leaf is paying for itself.
+      "leaf_marginal_return"
     });
     // add the associated computation to compute_rates and compute there
     if (collect_all_auxiliary) {
@@ -472,9 +505,18 @@ public:
   double turnover_sapwood(double mass) const;
   double turnover_root(double mass) const;
 
-  // Relative reserves r = S / S_max, the buffered carbon signal that growth,
-  // mortality and now leaf replacement all read. Formed in one place so those
-  // three cannot end up reading different numbers.
+  // The marginal leaf's carbon balance, set by net_mass_production_dt and read
+  // by compute_rates. Dimensionless; zero at break-even.
+  double marginal_leaf_return_ = 0.0;
+  // The withheld shares net_mass_production_dt actually charged, kept so
+  // compute_rates cannot form them differently from the budget that used them.
+  // The carbon not spent and the tissue lost are two halves of one decision, so
+  // they must come from one number.
+  double withheld_leaf_ = 0.0;
+  double withheld_sapwood_ = 0.0;
+
+  // Relative reserves r = S / S_max, the buffered carbon signal that growth and
+  // mortality read. Leaf replacement no longer reads it (see a_pl1).
   double relative_reserves(const Internals& vars) const {
     const double S_max =
       storage_capacity(vars.aux(aux_idx_competition_effect),
@@ -490,10 +532,21 @@ public:
   // Centred BELOW the growth gate a_st2, which orders the allocation ladder
   // without any branching: reproduction and growth are cut first, canopy
   // replacement next, and only then do reserves run out and mortality rise.
-  double replacement_fraction(double relative_reserves_) const {
+  double replacement_fraction(double marginal_return) const {
     return 1.0 - pars.a_pl0 /
-      (1.0 + std::exp((relative_reserves_ - pars.a_pl1) /
+      (1.0 + std::exp((marginal_return - pars.a_pl1) /
                       plasticity_gate_width));
+  }
+
+  // How much of the withheld replacement actually happens, tapering to nothing
+  // at the canopy floor. Same functional form as the rebuild share, mirrored:
+  // rebuilding vanishes at the ceiling (phi = 0) and shedding at the floor
+  // (phi = ln a_pl3), so phi is confined to [ln a_pl3, 0] by the SHAPE of the
+  // flow rather than by any clamp -- and both bounds are therefore differentiable
+  // and cost the solver nothing.
+  double shedding_gate(double leaf_departure) const {
+    const double floor_departure = std::log(pars.a_pl3);
+    return 1.0 - std::exp((floor_departure - leaf_departure) / pars.a_pl2);
   }
 
   // Sapwood replaces a scaled share of what its conversion to heartwood
@@ -535,8 +588,8 @@ public:
                                 double height, double area_leaf_,
                                 double height_inverse,
                                 double sapwood_departure,
-                                double replacement_leaf,
-                                double replacement_sapwood);
+                                double leaf_departure,
+                                double tracked_marginal);
 
   // Resolve the leaf operating point on the already-set-up `leaf` (i.e. after
   // leaf.set_physiology(...)). Base TF24 optimises the root-collar psi via
@@ -555,10 +608,8 @@ public:
         vars.aux(aux_idx_competition_effect),
         vars.aux(aux_idx_height_inverse),
         vars.state(state_idx_log_area_sapwood_departure),
-        replacement_fraction(relative_reserves(vars)),
-        sapwood_replacement_fraction(
-            replacement_fraction(relative_reserves(vars)),
-            vars.state(state_idx_log_area_sapwood_departure)));
+        vars.state(state_idx_log_area_leaf_departure),
+        vars.state(state_idx_leaf_marginal_tracked));
   }
 
   // [eqn 16] Fraction of whole plan growth that is leaf
@@ -727,6 +778,7 @@ public:
   int aux_idx_shadow_cost = -1;
   int aux_idx_stom_cond_CO2 = -1;
   int aux_idx_assimilation = -1;
+  int aux_idx_leaf_marginal_return = -1;
   int aux_idx_area_sapwood = -1;       // only present when collect_all_auxiliary
   int state_idx_area_heartwood = -1;
   int state_idx_mass_heartwood = -1;
@@ -738,6 +790,10 @@ public:
   // from the leaf area it supports, i.e. the departure of the Huber value from
   // its preferred one. Also signed.
   int state_idx_log_area_sapwood_departure = -1;
+  // Running mean of the marginal leaf's carbon balance. The gate reads THIS,
+  // not the instantaneous value, so a plant does not shed and re-flush with
+  // every passing dry spell.
+  int state_idx_leaf_marginal_tracked = -1;
 
   // For integrating functions with using Gauss-Kronrod quadrature
   quadrature::QK function_integrator;

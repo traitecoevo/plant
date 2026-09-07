@@ -74,6 +74,7 @@ void TF24_Strategy::refresh_indices () {
   aux_idx_shadow_cost           = aux_index.at("shadow_cost");
   aux_idx_stom_cond_CO2         = aux_index.at("stom_cond_CO2");
   aux_idx_assimilation          = aux_index.at("assimilation");
+  aux_idx_leaf_marginal_return  = aux_index.at("leaf_marginal_return");
   // area_sapwood is only registered when collect_all_auxiliary is set.
   aux_idx_area_sapwood = aux_index.count("area_sapwood") ? aux_index.at("area_sapwood") : -1;
   state_idx_area_heartwood      = state_index.at("area_heartwood");
@@ -83,6 +84,8 @@ void TF24_Strategy::refresh_indices () {
     state_index.at("log_area_leaf_departure");
   state_idx_log_area_sapwood_departure =
     state_index.at("log_area_sapwood_departure");
+  state_idx_leaf_marginal_tracked =
+    state_index.at("leaf_marginal_return_tracked");
 }
 
 // [eqn 2] area_leaf (inverse of [eqn 3])
@@ -208,23 +211,27 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   }
   const double r     = S_max > 0.0 ? S / S_max : 0.0;
 
-  // How much of the leaf and sapwood flux the plant rebuilds. The part it
-  // withholds is not charged below, and the matching tissue leaves through the
-  // two departure states, so the carbon and the tissue balance exactly.
-  const double replacement = replacement_fraction(r);
-  const double withheld    = 1.0 - replacement;
-  // Sapwood renews the same share, scaled down where it already carries more
-  // conducting area than its canopy needs. See the header: this is what gives
-  // the Huber value a restoring force, and it is what makes psi >= 0 invariant.
-  const double replacement_sapwood =
-    sapwood_replacement_fraction(replacement, sapwood_departure);
-  const double withheld_sapwood = 1.0 - replacement_sapwood;
-
   const double net_mass_production_dt_ =
     net_mass_production_dt(environment, height, area_leaf_,
                            vars.aux(aux_idx_height_inverse),
-                           sapwood_departure, replacement,
-                           replacement_sapwood);
+                           sapwood_departure,
+                           vars.state(state_idx_log_area_leaf_departure),
+                           vars.state(state_idx_leaf_marginal_tracked));
+
+  vars.set_aux(aux_idx_leaf_marginal_return, marginal_leaf_return_);
+
+  // The running mean chases the instantaneous balance at a_pl4. A first-order
+  // filter, so the memory is 1/a_pl4 and nothing about it can overshoot.
+  vars.set_rate(state_idx_leaf_marginal_tracked,
+                pars.a_pl4 * (marginal_leaf_return_ -
+                              vars.state(state_idx_leaf_marginal_tracked)));
+
+  // Read back the shares the budget above actually charged, rather than forming
+  // them again: the carbon not spent and the tissue lost are two halves of one
+  // decision, and they balance only if they come from one number.
+  const double withheld          = withheld_leaf_;
+  const double withheld_sapwood  = withheld_sapwood_;
+  const double replacement       = 1.0 - withheld;
 
   // store the aux sate
   vars.set_aux(aux_idx_net_mass_production_dt, net_mass_production_dt_);
@@ -535,8 +542,8 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
                                 double height, double area_leaf_,
                                 double height_inverse,
                                 double sapwood_departure,
-                                double replacement_leaf,
-                                double replacement_sapwood) {
+                                double leaf_departure,
+                                double tracked_marginal) {
   // height_inverse (= 1/height) is supplied by the shared individual.h interface
   // (cached aux); unused here as the TF24 root-water path works in height directly.
   (void)height_inverse;
@@ -765,6 +772,51 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   // const double assimilation_ = assimilation(environment, height, area_leaf_);
   const double respiration_ =
     respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
+  // --- Is the marginal leaf paying for itself? (#516) ------------------------
+  // The gate reads this rather than the reserve pool, following Manzoni et al.
+  // 2015: maximising a season's carbon gain over leaf area gives dG/dL = 0, i.e.
+  // shed once a leaf stops covering its own upkeep. That criterion fires while
+  // the plant is still carbon-rich -- waiting for reserves to run down IS the
+  // evergreen strategy in that paper, and it is the one that loses a long
+  // drought. Robinson's mulga agree from the field: 85 per cent of trees shed,
+  // the healthiest included, and shedders are indistinguishable from survivors
+  // until a year in.
+  //
+  // ⚠️ ONLY COSTS THAT SCALE WITH LEAF AREA BELONG HERE, because only those are
+  // what a marginal leaf brings with it: its own upkeep, its fine root and its
+  // bark (both pinned to leaf area). Sapwood is excluded deliberately -- it is
+  // carried whether or not this leaf exists, so charging it here would make the
+  // marginal leaf look unprofitable for a cost it is not responsible for, and
+  // would make a tall plant shed for being tall.
+  const double scaling_respiration_ =
+    respiration_leaf(mass_leaf_) + respiration_bark(mass_bark_) +
+    respiration_root(mass_root_);
+  const double scaling_turnover_ =
+    turnover_leaf(mass_leaf_) + turnover_bark(mass_bark_) +
+    turnover_root(mass_root_);
+  const double scaling_cost_ =
+    pars.a_bio * pars.a_y * scaling_respiration_ + scaling_turnover_;
+  const double scaling_gain_ = pars.a_bio * pars.a_y * assimilation_;
+  // Dimensionless, and zero exactly at Manzoni's break-even, so the gate's
+  // centre is a pure number whose default of 0 IS that optimum.
+  marginal_leaf_return_ = scaling_cost_ > 0.0
+    ? (scaling_gain_ - scaling_cost_) / scaling_cost_
+    : 0.0;
+
+  // The gate can be formed here, in the SAME pass: the marginal return is built
+  // from gross costs, so it does not depend on what is charged below. A second
+  // pass would mean a second leaf solve, which is the expensive part of the step.
+  // The gate reads the TRACKED marginal return, not the instantaneous one that
+  // was just computed: assimilation swings with the weather, and a plant that
+  // shed on every dry week would be neither physical nor integrable.
+  const double replacement_leaf =
+    1.0 - (1.0 - replacement_fraction(tracked_marginal)) *
+            shedding_gate(leaf_departure);
+  const double replacement_sapwood =
+    sapwood_replacement_fraction(replacement_leaf, sapwood_departure);
+  withheld_leaf_    = 1.0 - replacement_leaf;
+  withheld_sapwood_ = 1.0 - replacement_sapwood;
+
   const double turnover_ =
     turnover(replacement_leaf, replacement_sapwood, mass_leaf_, mass_bark_,
              mass_sapwood_, mass_root_);
@@ -983,6 +1035,14 @@ void TF24_Strategy::set_initial_states(const TF24_Environment& environment,
                  pars.a_st3 *
                    storage_capacity(area_leaf_, height,
                                     vars.state(state_idx_log_area_sapwood_departure)));
+
+  // Seed the tracked marginal balance from the plant's own first evaluation.
+  // Left at zero it would start every seedling exactly at the gate's centre,
+  // withholding half its replacement from birth; and a running mean has to
+  // start somewhere its own history would have put it. Costs one leaf solve per
+  // birth, against one per derivative evaluation, so it is not on the hot path.
+  net_mass_production_dt(environment, vars);
+  vars.set_state(state_idx_leaf_marginal_tracked, marginal_leaf_return_);
 }
 
 // [eqn 20] Survival of seedlings during establishment
@@ -992,17 +1052,14 @@ double TF24_Strategy::establishment_probability(const TF24_Environment& environm
     net_mass_production_dt(environment, height_0, area_leaf_0, 1.0 / height_0,
                            // A germinating seed is on its allometry by
                            // definition -- height_0 is solved from seed mass,
-                           // and area_leaf_0 from height_0 -- so its Huber
-                           // value is the resting one.
-                           0.0,
-                           // And it is born at a_st3 of capacity, which is the
-                           // reserve fraction its replacement gate sees. Taken
-                           // from the gate rather than written as 1.0, so a
-                           // species whose plasticity starts biting at birth
-                           // has that reflected here too.
-                           replacement_fraction(pars.a_st3),
-                           sapwood_replacement_fraction(
-                               replacement_fraction(pars.a_st3), 0.0)));
+                           // and area_leaf_0 from height_0 -- so both of its
+                           // departures are the resting ones. The gate then
+                           // reads the seed's own marginal return, which is the
+                           // point: a seedling whose leaves cannot pay for
+                           // themselves establishes worse, and now says so. It
+                           // has no history yet, so the tracked balance starts
+                           // at break-even.
+                           0.0, 0.0, 0.0));
 }
 
 // Both forms above end here. The carbon is birth-size carbon either way, whatever

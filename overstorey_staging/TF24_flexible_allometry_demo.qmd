@@ -36,20 +36,49 @@ to height, so a struggling plant had no way to economise and no option but to di
 It now has one.
 
 This page shows the new mechanism working — a plant thinning through a drought and
-rebuilding afterwards — and then shows the problem with it. **Thinning currently
-saves the plant almost nothing.** It survives about one per cent longer and ends up
-two metres shorter. Finding out why is the useful part, and the answer turns out to
-be about which costs a plant can actually shed.
+rebuilding afterwards, and a suppressed plant doing the same in the shade — and
+then shows the problem with it. **Thinning saves the plant almost nothing.** We
+have now tested two different triggers for it, and both give a survival gain of
+about one per cent while costing two metres of height. That rules the trigger out
+and points somewhere else, which is the useful part.
 
 The mechanism is off by default. Everything here runs with it switched on.
 
-::: {.callout-note collapse="true"}
-## Where things are
-The maths is written out in full in the [appendix](#appendix-the-mathematics),
-with each equation matched to the name it has in the code. The behaviour comes
-first, on the grounds that it is easier to read equations once you know what they
-do.
-:::
+## Principles
+
+These are the rules the build follows. Most of the design decisions below are
+consequences of them rather than independent choices, and where a measurement
+overturned one it is said so explicitly.
+
+1. **The old model must be recoverable exactly.** Switching the mechanism off
+   returns the fixed allometry bit for bit, not approximately. This is a
+   diagnostic, not an end in itself: it is how we know a decomposition is
+   algebraically right rather than merely plausible.
+2. **Bounds should follow from the form, not from clamps.** Where a quantity must
+   stay in a range, arrange the flow so it cannot leave — a rate that vanishes at
+   the boundary. A clamp changes the answer silently, is a kink in every
+   downstream derivative, and hides the overshoot it was added to catch.
+3. **Everything smooth.** No `min`, `max` or branches in the carbon-to-growth map.
+   Automatic differentiation is coming, and a kink propagates into every
+   sensitivity that passes through it.
+4. **Carbon and tissue balance as an identity.** Carbon a plant declines to spend
+   and tissue it consequently loses are two halves of one decision, so they are
+   computed from one number and asserted as an identity, never as a tolerance.
+5. **Only gate a pool that has a state.** Withholding the cost of tissue that
+   cannot shrink saves carbon no tissue paid for — a free lunch, and a silent one.
+6. **Scale-free where possible.** Rates are relative, so the same parameter means
+   the same thing for a seedling and a mature tree. This is what keeps the
+   plasticity parameters from repeating `storage_prod_eps`'s mistake of being an
+   absolute constant against fluxes spanning six orders of magnitude.
+7. **Signals that drive slow structure must be slow.** Assimilation swings with
+   the weather; leaf and stem take years to build. Anything reading the first to
+   decide the second reads a running mean.
+8. **Numerically safe always.** A state that runs somewhere its arithmetic stops
+   meaning anything is a defect even when the biology it represents is right —
+   a dying plant is still integrated alongside live ones.
+9. **Follow the evidence, and record what it overturns.** Two of the decisions
+   here reverse earlier ones after measurement, and both retractions are kept in
+   place rather than quietly edited away.
 
 ## What changed
 
@@ -117,61 +146,80 @@ data.frame(
 
 ### How it works, in words
 
-A plant carries a pool of stored carbon (NSC). The fraction of that pool it still
-holds, `r`, is the signal for everything below.
-
-1. **When reserves run low, the plant stops replacing tissue it loses.** Leaves and
-   sapwood turn over continuously; normally both are replaced automatically. Now a
-   plant with low reserves declines to replace some of it, and *is not charged for
-   what it does not replace*. Its canopy thins as a result.
-2. **Leaves go faster than stem.** Leaves turn over at `k_l = 0.46`/yr and sapwood
+1. **A plant sheds when its marginal leaf stops paying for itself.** Not when its
+   reserves run out — when the last leaf's assimilation no longer covers its own
+   upkeep and that of the fine root and bark that come with it. Below that point,
+   the plant declines to replace some of the leaf and sapwood its turnover
+   destroys, and *is not charged for what it does not replace*.
+2. **It reads a running mean, not today's weather.** Assimilation swings daily; a
+   canopy takes years to build. The gate reads a filtered balance with a memory of
+   about four months — long against weather, short against a drought.
+3. **Leaves go faster than stem.** Leaves turn over at `k_l = 0.46`/yr and sapwood
    at `k_s = 0.20`/yr, so withholding both thins the canopy faster than the stem.
-   Conducting area per unit leaf area therefore *rises* — the plant supplies each
-   remaining leaf better. Nothing imposes this; it falls out of the two rates.
-3. **When carbon returns, the plant rebuilds.** Some of its growth is redirected
-   from getting taller into refilling the canopy, tapering off as the gap closes.
-4. **Height never falls.** A plant in deficit simply stops growing.
+   Conducting area per unit leaf area therefore *rises*. Nothing imposes this; it
+   falls out of the two rate constants.
+4. **When the balance recovers, the plant rebuilds**, redirecting growth from
+   height into canopy, tapering off as the gap closes.
+5. **Height never falls, and the canopy never empties.** A plant in deficit stops
+   growing, and thinning tapers to nothing at a floor.
 
-The cuts are ordered, and the ordering emerges rather than being coded: growth and
-reproduction are gated at $r = 0.10$, canopy replacement lower at $r = 0.05$. So a
-struggling plant stops growing first, stops maintaining its canopy second, and only
-then runs its reserves down.
+::: {.callout-important}
+## Why the trigger is the carbon balance and not the reserve pool
+The first version gated on the NSC reserve fraction: shed once reserves are nearly
+gone. Two lines of evidence overturned it.
+
+**Theory.** Manzoni et al. (2015) maximise a season's carbon gain over leaf area
+and *derive* the trigger: `dG/dL = 0`, i.e. shed once a leaf stops covering its
+upkeep. That fires while the plant is still carbon-rich — their Fig. 4D has
+cumulative gain at its seasonal *maximum* when shedding starts. **Waiting for
+reserves to run down is precisely the evergreen strategy in that paper, and it is
+the one that loses a long drought**, running its season's gain from +150 to
+−50 gC m⁻².
+
+**Field data.** In Robinson's mulga, 85 per cent of trees shed — the healthiest
+included — and the died and survived canopy distributions are indistinguishable in
+the first year. Shedding is what healthy trees do, not what dying trees do last.
+
+Measured here, the reserve gate bought a survival factor of 1.0–1.13 even when
+moved as early as it would go. The carbon-balance gate is the better model on the
+evidence; it does not, as it turns out, fix survival either — see below.
+:::
 
 ## What it does
 
 ### The gate
 
-Replacement is withheld only when reserves are genuinely low. Here is the response
-at a fixed size, sweeping the reserve fraction:
+The gate responds to soil water — through the marginal leaf's carbon balance —
+while reserves are held *full* throughout. That is the demonstration that reserves
+are no longer the axis it reads.
 
-```{r gate, fig.height=4, fig.cap="Departure rates against reserve fraction, for a 5 m plant with the mechanism fully on."}
+```{r gate, fig.height=4, fig.cap="A 5 m plant across soil water, with reserves at 0.8 of capacity throughout. The old gate could not fire anywhere on this axis."}
 gate <- allometry_gate_map(a_pl0 = 1.0, height = 5)
 
-p_gate <- gate |>
-  select(r, `leaf` = dphi, `sapwood` = dpsi) |>
-  pivot_longer(-r) |>
-  ggplot(aes(r, value, colour = name)) +
+p_margin <- ggplot(gate, aes(theta_soil, margin)) +
   geom_hline(yintercept = 0, linewidth = 0.3, colour = "grey50") +
   geom_line(linewidth = 0.9) +
-  labs(x = "reserve fraction  r", y = "departure rate (per year)",
-       colour = NULL, title = "The replacement gate",
-       subtitle = "Canopy thins (negative); stem-per-leaf rises (positive)")
+  labs(x = "soil water content", y = "marginal leaf return",
+       title = "Is the last leaf paying for itself?",
+       subtitle = "Zero is break-even: Manzoni's criterion")
 
-p_h <- ggplot(gate, aes(r, dheight)) +
+p_rates <- gate |>
+  select(theta_soil, leaf = dphi, sapwood = dpsi) |>
+  pivot_longer(-theta_soil) |>
+  ggplot(aes(theta_soil, value, colour = name)) +
+  geom_hline(yintercept = 0, linewidth = 0.3, colour = "grey50") +
   geom_line(linewidth = 0.9) +
-  labs(x = "reserve fraction  r", y = "height growth (m/yr)",
-       title = "Height never falls",
-       subtitle = "Gated separately, and at a higher reserve level")
+  labs(x = "soil water content", y = "departure rate (per year)", colour = NULL,
+       title = "What the plant does about it",
+       subtitle = "Canopy thins; stem-per-leaf rises")
 
-p_gate + p_h
+p_margin + p_rates
 ```
 
-Two things to take from this. The leaf and sapwood curves have **opposite signs** —
-that is the acclimation, and it is simply `k_l > k_s` showing up. And the gate is
-**sharp**: by $r = 0.33$ both rates are down to ~1e-7. That is deliberate, since a
-plant with reserves in hand should not be shedding leaves. But it is also why the
-response is small in any stand where reserves rarely empty, which will matter
-below.
+The two departure curves have **opposite signs** — that is the acclimation, and it
+is `k_l > k_s` showing up. And the response is switch-like in soil water, because
+the quantity it reads crosses zero sharply: between 0.15 and 0.13 the marginal
+leaf goes from 88 per cent in profit to 106 per cent in loss.
 
 ### Through a drought and out the other side
 
@@ -275,6 +323,63 @@ imposed:
 
 So the mechanism does what it was designed to do.
 
+### In the shade: self-thinning in a wet stand
+
+Shade is as much the point as drought. A plant losing the light race has the same
+problem as one losing water — its leaves stop paying for themselves — and the same
+lever. Here a wet stand (rainfall 1.5 m/yr) is left to self-thin for 25 years.
+
+```{r selfthin, message=FALSE, warning=FALSE}
+thin_flex <- allometry_self_thinning(a_pl0 = 1.0)
+thin_fix  <- allometry_self_thinning(a_pl0 = 0.0)
+```
+
+```{r selfthin-plot, fig.height=4.5, fig.cap="Every cohort alive at each census, against its height. Shading is a within-stand gradient, so the canopy response is a function of position in it."}
+late <- thin_flex$cohorts |>
+  filter(time %in% unique(time)[round(seq(0.3, 1, length.out = 4) *
+                                      length(unique(time)))])
+
+p_pos <- ggplot(late, aes(height, canopy_fraction, colour = factor(round(time)))) +
+  geom_hline(yintercept = 1, linewidth = 0.3, colour = "grey50") +
+  geom_point(size = 1.1) +
+  labs(x = "height (m)", y = "canopy fullness", colour = "patch age",
+       title = "Suppressed plants thin; dominants do not")
+
+p_surv <- ggplot(late, aes(canopy_fraction, survivorship,
+                           colour = factor(round(time)))) +
+  geom_point(size = 1.1) + scale_y_log10() +
+  labs(x = "canopy fullness", y = "survivorship", colour = "patch age",
+       title = "And a thinned canopy goes with a dying plant")
+
+(p_pos + p_surv) + plot_layout(guides = "collect")
+```
+
+```{r selfthin-table}
+thin_flex$cohorts |>
+  filter(time == max(time)) |>
+  arrange(desc(height)) |>
+  slice(unique(round(seq(1, n(), length.out = 7)))) |>
+  transmute(height = round(height, 2),
+            `canopy fullness` = signif(canopy_fraction, 3),
+            `stem per leaf` = signif(huber_ratio, 3),
+            survivorship = signif(survivorship, 2)) |>
+  knitr::kable()
+```
+
+This is the behaviour asked for, and it emerges from competition alone: dominants
+sit exactly on their allometry, suppressed plants thin progressively, and the
+thinnest are the ones on their way out. Nothing in the model knows about canopy
+position — the light gradient does all of it.
+
+```{r selfthin-r0}
+data.frame(allometry = c("fixed", "flexible"),
+           R0 = c(thin_fix$R0, thin_flex$R0)) |>
+  knitr::kable()
+```
+
+Lifetime offspring production is essentially unchanged, because the cohorts that
+thin are the ones already contributing nothing.
+
 ## ⚠️ The problem: thinning does not buy survival
 
 It does not, however, do what it was *for*. The point was to stop a drop in
@@ -318,9 +423,10 @@ canopy instead of height. That is why switching the mechanism on lowered lifetim
 offspring production in every stand tested — by factors of 0.55 to 0.64 on seasonal
 stands.
 
-### Why
+### Why — and it is not the trigger
 
-Three measurements, each ruling out an explanation.
+Three measurements rule out the obvious explanations, and a fourth rules out the
+trigger itself.
 
 **It is not that the sheddable costs are too small.** Most of a plant's
 maintenance *does* follow its canopy — leaf, fine root and bark all scale with
@@ -335,8 +441,8 @@ deficit. That was wrong, and this table is the retraction.)
 
 **It is that thinning cuts income just as fast.** Assimilation scales with leaf
 area too, so shrinking the canopy shrinks both sides of the budget together. Net
-production per unit leaf area is essentially flat as a plant thins — and slightly
-*worsens*, because the stem it still carries is spread over fewer leaves:
+production per unit leaf area is flat as a plant thins, and slightly *worsens*
+because the stem it still carries is spread over fewer leaves:
 
 | canopy fullness | 1.00 | 0.50 | 0.20 | 0.10 | 0.05 | 0.018 |
 |---|---|---|---|---|---|---|
@@ -346,55 +452,79 @@ production per unit leaf area is essentially flat as a plant thins — and sligh
 A plant whose leaves cost more than they earn cannot fix that by having fewer
 leaves. Thinning slows the burn; it never reaches balance.
 
-**And there is no drought in which it changes the outcome.** Sweeping severity
-and duration, the transition from fine to dead is a *cliff*, not a gradient —
-there is no intermediate regime for a cost saving to act in:
+**There is no drought in which it changes the outcome.** Sweeping severity and
+duration, the transition from fine to dead is a *cliff*:
 
 | soil water | 0.20 | 0.17 | 0.15 | 0.13 | 0.11 |
 |---|---|---|---|---|---|
 | survivorship, 4-yr drought | 0.93 | 0.93 | 0.93 | 4.9e-10 | 3.4e-10 |
-| canopy thinning engaged? | no | no | no | yes | yes |
 
-Above 0.15 the gate never opens because reserves stay full. Below it, the plant
-dies whatever it does. Thinning early — raising the gate to $r = 0.30$, so the
-plant economises before its reserves are gone — was measured across this sweep and
-buys a factor of 1.0 to 1.13, while costing height.
+**And the trigger is not the problem.** This is the decisive one. We have now run
+two different gates through the same drought:
 
-### The real cause is upstream, in the reserve pool
+| gate | fires when | survival gain | height cost |
+|---|---|---|---|
+| reserve fraction, centred at 0.05 | reserves nearly gone | 1.010 | ~2 m |
+| reserve fraction, moved as early as it goes | reserves at 30% | 1.0–1.13 | more |
+| **marginal leaf balance** (current) | **leaf stops paying, reserves still full** | **1.001** | ~2.5 m |
 
-The storage pool has **no stable intermediate state**. Its rate is
-$\dot S = \text{charge}\,(1-r) - \text{drain}\,r$, so when production is positive
-the pool fills toward capacity and when it is negative the pool empties, with no
-resting point between. The reserve fraction is therefore close to a binary readout
-of the *sign* of net production.
+Firing *earlier*, on a *better-supported* signal, buys nothing. The carbon-balance
+gate is still the right model — the evidence for it is independent of survival —
+but survival is downstream of something else.
 
-Mortality then reads that fraction through $a_{dG1}e^{-a_{dG2} r}$ with
-$a_{dG2}=20$, which is sharp enough to turn a near-binary input into a near-binary
-output: mortality is at its floor or its ceiling, and spans eight orders of
-magnitude between them.
+**And a grid of intensity against duration shows why.** The two thresholds are in
+the wrong order in stress space:
 
-So a mechanism that makes a plant modestly cheaper to run has nothing to act on.
-The buffer does not buffer, and that is a property of the NSC design rather than
-of the allometry. **Fixing it means changing what mortality reads, or giving the
-pool a resting point — not tuning the replacement gate.**
+| soil water | survivorship (fixed, 4 yr) | minimum canopy reached | survival gain |
+|---|---|---|---|
+| 0.145 | 0.911 | **1.000** — never thins | 1.00 |
+| 0.140 | 1.5e-06 | **0.989** — barely thins | **1.06** |
+| 0.135 | 1.0e-09 | 0.317 — thins hard | 1.01 |
 
-### Three candidates, none chosen
+At 0.145 the plant is healthy and its leaves are still profitable, so it has no
+reason to shed. By 0.140 it is already effectively dead — and its canopy has moved
+by one per cent. **Mortality saturates at a milder drought than shedding begins
+at**, so there is no intensity at which a plant is both stressed enough to thin and
+alive enough to profit from it. The largest gain in the whole grid, 1.06, sits in
+that gap.
+
+No gate can fix this, because the ordering is not the gate's doing: mortality
+collapses as soon as net production turns slightly negative, since the pool has no
+resting point and drains completely.
+
+### The real cause is the reserve pool, and what mortality reads
+
+The storage pool has **no resting point**. Its rate is
+$\dot S = \text{charge}\,(1-r) - \text{drain}\,r$, so positive production fills it
+to capacity and negative empties it, with nothing in between. The reserve fraction
+is therefore close to a binary readout of the *sign* of net production. Mortality
+then reads it through $a_{dG1}e^{-a_{dG2} r}$ with $a_{dG2}=20$, sharp enough to
+turn a near-binary input into a near-binary output spanning eight orders.
+
+So a mechanism that makes a plant modestly cheaper to run has nothing to act on,
+whatever triggers it. The buffer does not buffer.
+
+The literature says both halves of this are wrong (see the [NSC
+appendix](#appendix-what-the-nsc-literature-says)): plants hold a **minimum NSC of
+about 46 per cent** of their seasonal maximum and are found empty only when dead,
+and they **sacrifice growth to defend storage** — the reverse of TF24, which gates
+growth and leaves storage as the residual.
+
+### Where the fix has to go
 
 1. **Give the pool a resting point.** If the part of a deficit the pool cannot
-   meet were paid by consuming tissue, the pool would stabilise instead of
-   emptying, and the reserve fraction would sit somewhere informative. NEWS
-   already records that this unmet deficit currently *leaves the budget*, with
-   "routing it into tissue loss" named as deferred work — this is that work.
-2. **Soften what mortality reads.** A reserve *fraction* is scale-free and
-   bounded, which is why #517 chose it, but combined with $a_{dG2}=20$ it is
-   nearly a step. Something like how long reserves would last at the current burn
-   rate would respond to a plant having made itself cheaper to run — which is
-   precisely what thinning does and what the fraction cannot see.
-3. **Accept that these droughts are simply lethal.** At soil 0.11 to 0.13 a 10 m
-   plant cannot balance its carbon by any allometric adjustment, so dying may be
-   the right answer and this page's premise the wrong one. If so, the mechanism's
-   value lies elsewhere — in allometric variation between individuals, or in
-   shade rather than drought — and that is where it should be demonstrated.
+   meet were paid by consuming tissue — which is what canopy thinning *is* — the
+   pool would stabilise instead of emptying, and the reserve fraction would sit
+   somewhere informative. NEWS already records that this unmet deficit currently
+   leaves the budget, with "routing it into tissue loss" named as deferred work.
+2. **Defend storage ahead of growth.** Beech under three years of drought
+   *increased* NSC for two years before starch fell, and the authors conclude that
+   maintaining storage at the expense of growth was key to survival. TF24 does the
+   opposite.
+3. **Change what mortality reads.** A reserve *fraction* cannot see a plant that
+   has made itself cheaper to run — which is exactly what thinning does. Time to
+   depletion at the current burn rate can, and predicted mortality better than any
+   instantaneous level across 12 species.
 
 ## Also unresolved: nothing bounds the departures in permanent deficit
 
@@ -430,6 +560,42 @@ data.frame(
 
 The open questions are the two sections above: thinning does not yet buy survival,
 and nothing bounds the departures for a plant that never recovers.
+
+## Future refinements
+
+Deliberately out of scope here, recorded so they are not rediscovered.
+
+**A discrete re-flush drawing on stores.** Leaf construction *is* fully paid for
+in the rebuild term — leaf, fine root, sapwood and bark at the preferred ratio —
+so nothing is missing from the budget. What is missing is the *shape*: rebuilding
+is continuous, financed out of current flux, whereas a real plant flushes a canopy
+in a burst financed from reserves. Manzoni prices such a flush at 12–16 per cent of
+a season's gain, and whether one happens changes his result qualitatively at long
+drought duration. This is also the natural place for a reserve term to re-enter:
+modulating the *cost of recovering*, not the *onset of shedding*.
+
+**Acclimation of photosynthetic capacity.** `Amax` is fixed here, but it is
+observed to scale back under sustained stress (Joshi et al. 2022). That is a
+cheaper adjustment than shedding and a faster one, so it should sit between
+stomatal closure and leaf loss in the ladder — and its absence may be part of why
+the marginal balance crosses zero as abruptly as it does.
+
+**Leaf turnover under an optimality argument.** `k_l` is currently a trait fixed by
+the LMA trade-off. Leaf lifespan is itself an optimisation — hold a leaf while its
+marginal return exceeds the cost of replacing it — so `k_l` could be derived rather
+than imposed, in the same currency as the shedding gate. Attractive because it
+would make shedding and leaf lifespan one mechanism instead of two.
+
+**Optimality-derived allometric targets.** The preferred sapwood-to-leaf ratio, and
+ultimately the preferred leaf area itself, could come from stationarity of the
+plant's own growth rate rather than from fixed coefficients. Its own epic; the
+sapwood target is written as a replaceable function so this can drop in.
+
+**Drought-deciduous habit.** Setting the canopy floor near zero already permits
+shedding to nothing and re-flushing, and that is supported behaviour for some
+species. It is not the habit this model is aimed at, and the departure coordinate
+degrades as the floor approaches zero, so it stays possible rather than
+prioritised.
 
 # Appendix: the mathematics {#appendix-the-mathematics}
 
@@ -588,3 +754,81 @@ budget would allow, never faster — and the error vanishes as the canopy recove
 It is the price of keeping extension exactly departure-preserving, which is what
 makes the resting model exact and confines all of the departure's motion to
 plasticity.
+
+# Appendix: what the NSC literature says {#appendix-what-the-nsc-literature-says}
+
+Gathered because the reserve pool turned out to be the binding constraint, not the
+allometry. Every point here bears on a design decision above.
+
+**Plants defend the pool rather than draining it.** A global synthesis of 121
+studies and 177 species found **minimum NSC around 46 per cent of the seasonal
+maximum**, with depletion of total NSC "rare"; the authors propose a dual function
+in which starch is the reservoir while soluble sugars "are kept above some critical
+threshold" (Martínez-Vilalta et al. 2016, *Ecol. Monogr.*,
+[doi:10.1002/ecm.1231](https://doi.org/10.1002/ecm.1231)). TF24 lets the reserve
+fraction run to ~1e-10.
+
+**Storage outranks growth — the reverse of what we do.** Beech under three years of
+drought *increased* NSC through years 1–2; starch fell only in year 3, and it was
+the **dead** trees that were "virtually empty", with 87 per cent surviving. The
+conclusion is explicit: *"maintaining an active C storage function at the expense
+of growth was certainly key to survival"* (Chuste et al. 2019, *Trees*,
+[doi:10.1007/s00468-019-01923-5](https://doi.org/10.1007/s00468-019-01923-5)).
+After release from darkness, "NSC reformation occurs preferentially over growth"
+(Weber et al. 2018, *New Phytol.*,
+[doi:10.1111/nph.14987](https://doi.org/10.1111/nph.14987)).
+
+**Under moderate stress the pool is actively regulated back up.** Across 47 studies
+and 52 species, prolonged slight-to-moderate drought brought NSC back *toward*
+control values — *"trees activated physiological regulation processes to increase
+carbon storage and reduce the risks of carbon starvation"* — with net loss only
+under long, severe drought (He et al. 2020, *Glob. Change Biol.*,
+[doi:10.1111/gcb.15078](https://doi.org/10.1111/gcb.15078)).
+
+**Depletion at death is partial.** Foliar NSC in *Pinus edulis* fell 30 per cent
+through mortality, but "carbohydrates were not completely exhausted at mortality"
+(Adams et al. 2013, *New Phytol.*,
+[doi:10.1111/nph.12102](https://doi.org/10.1111/nph.12102)). Seedlings survive
+weeks at starch of 0.4–0.8 per cent dry matter (Weber et al. 2018).
+
+**What predicts death is a rate, not a level.** Across 12 species, total NSC and
+soluble sugars did not decline at all; starch did, and *"the time leading to starch
+depletion emerged as a strong mortality predictor"* (Trueba et al. 2024, *Ann. For.
+Sci.*, [doi:10.1186/s13595-024-01246-7](https://doi.org/10.1186/s13595-024-01246-7)).
+This is the direct argument for changing what mortality reads: a time-to-depletion
+responds to a plant that has made itself cheaper to run, and an instantaneous
+fraction cannot.
+
+**Shade depletes reserves as drought does**, so the self-thinning case above is a
+carbon problem and not only a light one (Maguire & Kobe 2015, *Ecol. Evol.*,
+[doi:10.1002/ece3.1819](https://doi.org/10.1002/ece3.1819)); shade-induced depletion
+also raises embolism vulnerability and blocks hydraulic recovery (Tomasella et al.
+2021, *New Phytol.*, [doi:10.1111/nph.17384](https://doi.org/10.1111/nph.17384)).
+
+**Life stage matters**, which our single size-scaled pool does not capture: mature
+trees stayed homeostatic under throughfall exclusion while understorey seedlings
+lost about 15 per cent of total NSC (Zhang et al. 2020, *For. Ecol. Manage.*,
+[doi:10.1016/j.foreco.2020.118159](https://doi.org/10.1016/j.foreco.2020.118159)).
+
+## And on leaf shedding itself
+
+**The optimal trigger is a flux, and it fires early.** Manzoni et al. (2015,
+*Adv. Water Resour.* 84:37–51) maximise a season's carbon gain over leaf area and
+derive `dG/dL = 0` — shed when a leaf stops covering its upkeep — at about
+−2 MPa soil water potential, *"a later and more drastic measure of water loss
+regulation than stomatal closure"*. Gradual and instantaneous shedding give
+*identical* carbon gain, so gradual is free in the optimality currency and is what
+the field data show.
+
+**Shedding is what healthy plants do.** In Robinson's mulga (573 trees, 49 sites,
+2017–2024), 85 per cent shed, including the healthiest; the died and survived
+canopy-density distributions are indistinguishable in the first year and only
+separate later. Decline took 2–3 years; recovery took one season. Larger trees shed
+*less* and survived better (canopy area the strongest mortality predictor), which
+that work attributes to deep-water access rather than to carbon stores.
+
+⚠️ **One correction to an earlier reading.** Severe de-leafing in that dataset went
+with death: the trajectory groups that fell to near-zero canopy density all died.
+Complete de-greening followed by re-leafing is documented for mulga but is rare,
+and whether a plant can do it depends on its strategy. So a canopy floor is not
+merely a numerical convenience for an evergreen — it is the observed behaviour.

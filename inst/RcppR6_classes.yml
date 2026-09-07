@@ -1353,6 +1353,8 @@ TF24_Pars:
     - a_pl0: double
     - a_pl1: double
     - a_pl2: double
+    - a_pl3: double
+    - a_pl4: double
     - k_I: double
     # ⚠️ The leaf traits carry phylloptim's names (#634). One name per quantity,
     # spelled the same on both sides of the boundary; see TF24_Pars in

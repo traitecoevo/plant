@@ -22,33 +22,50 @@ tf24_demo_env <- function(theta_soil, n_depths = 5L, canopy_top = 40) {
   env
 }
 
-## The two departure rates over a range of reserve fractions, at a fixed size.
-## Storage is set directly, so `r` is swept rather than emerging -- which is
-## what isolates the gate from everything else that moves with it.
-allometry_gate_map <- function(a_pl0 = 1.0, height = 5, theta_soil = 0.2,
-                               n = 61L) {
-  s <- tf24_allometry_strategy(a_pl0)
-  env <- tf24_demo_env(theta_soil)
-
-  ## Capacity is needed to turn a target r into a storage value; read it off a
-  ## plant seeded at a known fraction of it rather than re-deriving it in R.
-  ref <- TF24_Individual(s)
-  ref$set_state("height", height)
-  ref$set_initial_states(env)
-  capacity <- ref$state("storage") / s$pars$a_st3
-
-  r_grid <- seq(0, 1, length.out = n)
-  out <- lapply(r_grid, function(r) {
+## The gate's response, swept over SOIL WATER rather than over the reserve pool.
+## The gate reads the marginal leaf's carbon balance now (#516), so the pool is
+## no longer the axis it responds to -- and holding reserves full while sweeping
+## soil water is exactly the demonstration that it is not.
+allometry_gate_map <- function(a_pl0 = 1.0, height = 5,
+                               theta = seq(0.08, 0.35, length.out = 40L)) {
+  s <- tf24_allometry_strategy(a_pl0, collect_all_auxiliary = TRUE)
+  out <- lapply(theta, function(th) {
+    env <- tf24_demo_env(th)
     ind <- TF24_Individual(s)
     ind$set_state("height", height)
-    ind$set_state("storage", r * capacity)
+    ind$set_initial_states(env)      # reserves at a_st3 of capacity throughout
     ind$compute_rates(env)
-    data.frame(r = r,
+    data.frame(theta_soil = th,
+               margin = ind$aux("leaf_marginal_return"),
                dphi = ind$rate("log_area_leaf_departure"),
                dpsi = ind$rate("log_area_sapwood_departure"),
                dheight = ind$rate("height"))
   })
   cbind(do.call(rbind, out), a_pl0 = a_pl0)
+}
+
+## A wet stand left to self-thin, so suppressed plants can be compared with
+## dominants. Shade is as much the point as drought: a plant losing the light
+## race has the same problem as one losing water, and the same lever.
+allometry_self_thinning <- function(a_pl0 = 1.0, mpl = 25, lma = 0.0825,
+                                    birth_rate = 20, rain = 1.5) {
+  p <- scm_base_parameters("TF24")
+  p$max_patch_lifetime <- mpl
+  p <- add_strategies(p, trait_matrix(lma, "lma"), hyperpar = TF24_hyperpar,
+                      birth_rate = birth_rate)
+  p$strategies[[1]]$pars$a_pl0 <- a_pl0
+  env <- Environment("TF24")
+  env$set_soil_number_of_depths(5)
+  env$set_soil_water_state(rep(0.428 * 0.5, 5))
+  env$extrinsic_drivers_set_constant("rainfall", rain)
+  out <- run_scm(p, env, Control(), collect = TRUE)
+  d <- out$species
+  d <- d[is.finite(d$height) & d$density > 0, ]
+  d$canopy_fraction <- exp(d$log_area_leaf_departure)
+  d$huber_ratio <- exp(d$log_area_sapwood_departure)
+  d$survivorship <- exp(-d$mortality)
+  d$a_pl0 <- a_pl0
+  list(cohorts = d, R0 = out$offspring_production)
 }
 
 ## Step one plant through a prescribed soil-water history, so a drought and its

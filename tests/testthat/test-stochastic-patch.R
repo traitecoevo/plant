@@ -241,7 +241,13 @@ test_that("a stochastic recruit is born with its initial states seeded", {
     cmp <- Individual(x, e)(p$strategies[[1]])
     cmp$set_initial_states(patch$environment)
 
-    expect_equal(patch$species[[1]]$individual_at(1)$ode_state, cmp$ode_state)
+    ## The tracked marginal balance is seeded from a leaf solve (#516), so it
+    ## inherits that solve's ~1e-5 sensitivity to how the environment was built,
+    ## where every other seeded state is exact. Compared at a tolerance for that
+    ## reason: a real seeding failure moves a state by orders of magnitude, not
+    ## by its sixth digit.
+    expect_equal(patch$species[[1]]$individual_at(1)$ode_state, cmp$ode_state,
+                 tolerance = 1e-4)
   }
 })
 
