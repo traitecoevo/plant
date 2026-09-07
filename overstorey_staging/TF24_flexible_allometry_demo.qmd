@@ -1,0 +1,284 @@
+---
+title: "TF24 flexible allometry: a canopy that thins, and why it does not yet buy survival"
+format:
+  html:
+    toc: true
+    code-fold: true
+    fig-width: 9
+    fig-height: 5
+---
+
+```{r setup, message=FALSE, warning=FALSE}
+# Staging demo: needs the in-tree dev build (#516), not necessarily the
+# installed `plant`.
+pkg_root <- if (file.exists("DESCRIPTION")) "." else ".."
+if (requireNamespace("pkgload", quietly = TRUE)) {
+  pkgload::load_all(pkg_root, quiet = TRUE)
+} else {
+  library(plant)
+}
+library(ggplot2)
+library(patchwork)
+library(dplyr)
+library(tidyr)
+
+# Shared computation, kept out of this file so a test can exercise it: a chunk
+# that runs is not a chunk that is checked.
+source(file.path(pkg_root, "overstorey_staging", "allometry_demo_helpers.R"))
+
+theme_set(theme_bw(base_size = 12))
+```
+
+## What changed
+
+TF24 used to pin leaf area to height, `A = A*(h) = (h/a_l1)^(1/a_l2)`. A plant
+could not economise by carrying less leaf, and `dh/dt >= 0` was structural, so
+thinning was not expressible at all.
+
+Leaf area and sapwood area are now ODE states — but carried as **log departures
+from their preferred values** rather than as levels:
+
+| state | meaning | resting value |
+|---|---|---|
+| `log_area_leaf_departure` (`phi`) | `ln(A / A*(h))` | 0 |
+| `log_area_sapwood_departure` (`psi`) | `ln(A_s / (theta * A))` | 0 |
+
+Leaf area is derived, `A = A*(h) * exp(phi)`. The reason for the departure
+coordinate is exactness: integrating `A` alongside `h` would make `A = A*(h)` a
+redundant invariant that Runge–Kutta preserves only to truncation error, so
+height's rate would read a drifted leaf area. On the departure coordinate the
+allometric motion stays analytic and only the departure is integrated, so with
+plasticity off `dphi/dt` is exactly zero and the fixed-allometry model is
+recovered **bit-for-bit**.
+
+The switch is `a_pl0`, the maximum fraction of leaf and sapwood turnover a plant
+may decline to replace. `a_pl0 = 0` (the default) is the old model exactly.
+
+```{r versions}
+s <- TF24_Strategy()
+data.frame(
+  quantity = c("model", "state_size", "a_pl0 (default)", "a_pl1", "a_pl2",
+               "k_l", "k_s"),
+  value = c(model_id("TF24"), TF24_Individual(s)$ode_size,
+            s$pars$a_pl0, s$pars$a_pl1, s$pars$a_pl2,
+            round(s$pars$k_l, 4), s$pars$k_s))
+```
+
+## The gate: replacement is withheld only at very low reserves
+
+Replacement is gated on the NSC reserve fraction $r = S/S_{max}$, on a logistic
+centred at `a_pl1 = 0.05` — below the growth gate `a_st2 = 0.10`, so the
+allocation ladder emerges without any branching: reproduction and growth are cut
+first, canopy replacement next, and only then do reserves run out.
+
+```{r gate, fig.height=4}
+gate <- allometry_gate_map(a_pl0 = 1.0, height = 5)
+
+p_gate <- gate |>
+  select(r, `leaf  d(phi)/dt` = dphi, `sapwood  d(psi)/dt` = dpsi) |>
+  pivot_longer(-r) |>
+  ggplot(aes(r, value, colour = name)) +
+  geom_hline(yintercept = 0, linewidth = 0.3, colour = "grey50") +
+  geom_line(linewidth = 0.9) +
+  labs(x = "reserve fraction  r = S / S_max", y = "departure rate (1/yr)",
+       colour = NULL, title = "The replacement gate",
+       subtitle = "Leaf area thins; sapwood per leaf area rises")
+
+p_h <- ggplot(gate, aes(r, dheight)) +
+  geom_line(linewidth = 0.9) +
+  labs(x = "reserve fraction  r", y = "d(height)/dt  (m/yr)",
+       title = "Height never falls",
+       subtitle = "Growth is gated separately, and earlier")
+
+p_gate + p_h
+```
+
+Two things to read off this. The leaf and sapwood rates have **opposite signs**,
+which is the acclimation: leaf area thins at up to `k_l` while conducting area
+is only lost to heartwood at `k_s`, so sapwood per leaf area rises at up to
+`k_l - k_s`. And the gate is **sharp** — by $r = 0.33$ the rates are already
+~1e-7. That is deliberate (a plant should not thin its canopy while it still has
+reserves) but it is also why the response is small in any stand where reserves
+rarely empty.
+
+## The mechanism works: thin through a drought, rebuild after it
+
+A plant is held at wet soil, dropped into a four-year drought, then returned.
+Soil water is prescribed piecewise-constant here so the carbon balance can be
+driven directly — this is *not* how the SCM drives soil water.
+
+```{r trajectory, message=FALSE, warning=FALSE}
+history <- demo_soil_history(wet = 0.30, dry = 0.11,
+                             years_wet = 2, years_dry = 4)
+traj <- bind_rows(
+  allometry_trajectory(0.0, history, dt = 0.25),
+  allometry_trajectory(1.0, history, dt = 0.25)) |>
+  mutate(allometry = ifelse(a_pl0 == 0, "fixed", "flexible"))
+```
+
+```{r trajectory-plot, fig.height=7}
+dry_band <- annotate("rect", xmin = 2, xmax = 6, ymin = -Inf, ymax = Inf,
+                     fill = "grey85", alpha = 0.6)
+
+p1 <- ggplot(traj, aes(time, canopy_fraction, colour = allometry)) +
+  dry_band + geom_line(linewidth = 0.9) +
+  labs(x = NULL, y = "A / A*(h)", colour = NULL,
+       title = "Canopy relative to what its height prefers")
+
+p2 <- ggplot(traj, aes(time, huber_ratio, colour = allometry)) +
+  dry_band + geom_line(linewidth = 0.9) +
+  labs(x = NULL, y = "A_s / (theta A)", colour = NULL,
+       title = "Huber value relative to preferred")
+
+p3 <- ggplot(traj, aes(time, height, colour = allometry)) +
+  dry_band + geom_line(linewidth = 0.9) +
+  labs(x = "time (yr)", y = "height (m)", colour = NULL,
+       title = "Height")
+
+(p1 / p2 / p3) + plot_layout(guides = "collect")
+```
+
+```{r trajectory-table}
+traj |>
+  filter(allometry == "flexible", time %in% c(2, 3, 4, 5, 6, 6.5, 7.5, 8)) |>
+  transmute(time, soil = theta_soil,
+            `A / A*` = round(canopy_fraction, 3),
+            `Huber ratio` = round(huber_ratio, 3),
+            height = round(height, 2)) |>
+  knitr::kable()
+```
+
+This is the intended behaviour, and all of it emerges rather than being imposed:
+
+- the canopy thins to about **19 per cent** of what its height prefers, at a rate
+  bounded by `k_l` because the mechanism is declining to replace what died
+  rather than actively shedding;
+- sapwood per leaf area rises to about **2.4 times** its preferred value, purely
+  because `k_l > k_s` — no asymmetry is imposed anywhere;
+- **height never falls**, and simply stops while the plant is in deficit;
+- on recovery the canopy rebuilds to ~98 per cent of preferred and the Huber
+  value returns toward 1, asymptotically and with no jump.
+
+## ⚠️ The issue to solve: thinning does not buy survival
+
+Here is what the mechanism was *for* — buffering mortality, so a productivity
+drop does not translate straight into death. It does not yet do that.
+
+```{r survival, fig.height=4}
+surv <- traj |>
+  select(time, theta_soil, allometry, survivorship) |>
+  pivot_wider(names_from = allometry, values_from = survivorship) |>
+  mutate(gain = flexible / fixed)
+
+p_s <- traj |>
+  ggplot(aes(time, survivorship, colour = allometry)) +
+  dry_band + geom_line(linewidth = 0.9) + scale_y_log10() +
+  labs(x = "time (yr)", y = "survivorship  exp(-mortality)", colour = NULL,
+       title = "Survivorship is essentially unchanged")
+
+p_g <- ggplot(surv, aes(time, gain)) +
+  dry_band + geom_hline(yintercept = 1, linewidth = 0.3, colour = "grey50") +
+  geom_line(linewidth = 0.9) +
+  labs(x = "time (yr)", y = "flexible / fixed",
+       title = "Survival gain from thinning")
+
+p_s + p_g
+```
+
+```{r survival-numbers}
+surv |>
+  filter(time %in% c(2, 4, 6, 8)) |>
+  transmute(time, soil = theta_soil,
+            `surv. fixed` = signif(fixed, 3),
+            `surv. flexible` = signif(flexible, 3),
+            `gain` = round(gain, 4)) |>
+  knitr::kable()
+```
+
+**The survival gain is about 1 per cent**, against a survivorship that falls
+through ten orders of magnitude either way. And flexibility *costs* height: the
+flexible plant finishes around 2 m shorter, having spent its recovery carbon
+rebuilding canopy rather than growing. That is why turning plasticity on lowered
+R0 in every stand tested (factors of 0.55 to 0.64 on seasonal stands).
+
+### Why
+
+Mortality reads the reserve **fraction** $r = S/S_{max}$, and during a deep drought
+`r` is pinned near zero however thin the canopy gets, so mortality sits at its
+bounded maximum `a_dG1` regardless.
+
+Thinning ought to help through the **carbon balance** instead — less leaf to
+maintain means a less negative `P`, so the pool drains more slowly. It does, but
+not nearly enough, and the reason is a scaling mismatch:
+
+```{r costs}
+traj |>
+  filter(allometry == "flexible", theta_soil < 0.2) |>
+  transmute(time, `A / A*` = round(canopy_fraction, 3),
+            `net production P` = signif(P, 3),
+            `P per leaf area` = signif(P_per_area, 3)) |>
+  head(9) |>
+  knitr::kable()
+```
+
+Leaf and fine-root costs scale with the canopy, so thinning reduces them. But
+**sapwood respiration scales with `A_s * h`**, which thinning the canopy does not
+touch — sapwood is only lost to heartwood at `k_s`, and deliberately so, since
+that is what closed the free lunch where shedding leaves would have shrunk the
+denominator of `r` and made a plant immortal for free. For a tall plant in
+drought, that untouchable maintenance cost dominates the deficit.
+
+So there is a real tension, now measured from both sides:
+
+- if storage capacity followed **leaf area**, thinning would inflate `r` directly
+  — a free lunch, and an immortal skeleton;
+- because it follows **sapwood** it cannot be inflated — but then thinning gives
+  no reserve benefit either.
+
+The resolution has to be that thinning helps by reducing the *deficit*, which
+means the deficit has to be dominated by costs that scale with the canopy. At
+TF24's defaults, for a tall plant, it is not.
+
+### Candidates, none chosen
+
+1. **Let the stem thin too, faster than `k_s`.** Physically this is heartwood
+   conversion accelerating under stress, or sapwood being abandoned. It reduces
+   the dominant cost, but it re-opens the `S_max` question and needs care not to
+   restore the free lunch.
+2. **Reconsider what mortality reads.** A reserve *fraction* is scale-free and
+   bounded, which is why #517 chose it, but it is insensitive to a plant having
+   made itself cheaper to run. Some measure of how long reserves would last at
+   the current burn rate would respond to thinning.
+3. **Check whether `r_s` is too high.** Sapwood respiration per unit stem mass
+   dominating a drought deficit for a tall plant may be the real finding here,
+   and it is a parameter question rather than a structural one.
+
+## Also unresolved: neither departure is bounded in permanent deficit
+
+With reserves empty, `withheld * k_l` (0.42/yr) outruns `withheld_sapwood * k_s`
+(0.2/yr) whatever `psi` does, so both departures diverge linearly — `phi` toward
+`-inf` and `psi` toward `+inf`. That is arithmetic rather than a defect: a plant
+thinning at 46 per cent a year while losing conducting area at 20 per cent really
+does raise its Huber value without limit. What removes such a plant is mortality,
+not the allometry, and in a cohort model that plant is still carried.
+
+Related: `rebuild_rel` scales as `exp(-phi)`, so it grows without bound as a
+canopy empties — structurally the fast-attracting-boundary shape that #609's
+analysis identified for `log S`. It has not caused a failure in any run so far.
+
+## What is settled
+
+```{r settled}
+data.frame(
+  claim = c("a_pl0 = 0 reproduces the fixed allometry",
+            "carbon and tissue balance under withholding",
+            "psi >= 0 is invariant",
+            "height never decreases",
+            "the canopy rebuilds after a drought"),
+  status = c("bit-identical, verified over 288 quantities and an SCM run",
+             "exact by construction: turnover not charged is mass lost",
+             "by the form: at psi = 0 the rate is (1-repl)(k_l - k_s) >= 0",
+             "by the form: its rate is a product of non-negative factors",
+             "measured: to ~98 per cent of preferred, asymptotically")) |>
+  knitr::kable()
+```
