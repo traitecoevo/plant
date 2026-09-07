@@ -479,6 +479,16 @@ were not previously recorded here:
 
 ### New features
 
+* **TF24 sapwood can track the Huber value that maximises growth (`a_sw`, #516).** `d(log A_s departure)/dt` gains `a_sw * R_s`, an integral controller on the marginal *growth* return of sapwood area. It converges onto `R_s = 0` rather than tracking with an offset, and because integrating is averaging, a small `a_sw` makes the stem follow the long-run mean of a signal that swings with the weather — no extra tracked state.
+
+  The objective is growth, not net production, and the distinction is the whole design: against production extra sapwood is nearly always worth building, because it raises `k_max` and nothing charges the plant for the leaf area it did not build instead. `R_s` subtracts that price, which moves the optimum from about 3.3x the pipe-model ratio in to **1.35x** (at 10 m, moist soil), where height growth actually peaks. The optimum rises as soil dries — a drier plant wants more stem per leaf — which a single fixed `theta` cannot express.
+
+  `d(profit)/d(kmax)` costs one re-evaluation of the leaf at the collar potential already found, not a re-optimisation, by the envelope theorem; no phylloptim change was needed.
+
+  **`a_sw = 0` is the default and the model is then bit-exact** — verified by building at HEAD and re-running the scenario gateway, which returned the same eight numbers to every digit. With `a_sw = 0.5` on a wet stand, R0 goes from 97.3 to 154.0.
+
+  ⚠️ **Refused with the deep-crown shading model.** The sensitivity is measured at a single radiation and deep-crown integrates profit over crown positions, so the difference is not its derivative. `prepare_strategy()` throws rather than skipping it, because skipping leaves the controller with only its negative cost term and the stem shrinks without bound while the run looks plausible the whole way down.
+
 * **The NSC storage pool is bounded by the shape of its own flow (`TF24@v9`,
   `TF24f@v9.1`).** `dS/dt` was `net_flux > 0 ? net_flux : floor_gate * net_flux`
   -- one signed flux with a gate applied in one direction. It is now a charge and
