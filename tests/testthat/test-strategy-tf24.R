@@ -21,6 +21,9 @@ test_that("Defaults", {
     a_st1 = 0.10,
     a_st2 = 0.10,
     a_st3 = 0.8,
+    a_pl0 = 0.0,
+    a_pl1 = 0.05,
+    a_pl2 = 0.2,
     a_p1   = 151.177775377968,
     a_p2   = 0.204716166503633,
     a_f1   = 1,
@@ -739,5 +742,74 @@ test_that("a departed Huber value carries through to storage capacity", {
   ## shrinks the denominator of the reserve fraction that mortality reads.
   for (psi in c(-0.5, 0.6)) {
     expect_equal(cap(psi) / cap(0), exp(psi))
+  }
+})
+
+
+test_that("the replacement gate withholds exactly what the reserves say", {
+  env <- tf24_departure_env()
+
+  ## At empty reserves r = 0, so the withheld fraction is a_pl0 / (1 +
+  ## exp(-a_pl1 / width)) and needs no knowledge of the pool's capacity --
+  ## which is what makes this an exact prediction rather than a tolerance.
+  gate_width <- 0.02          # TF24_Strategy::plasticity_gate_width
+  s <- TF24_Strategy()
+  s$pars$a_pl0 <- 1.0
+  k_l <- s$pars$k_l
+  k_s <- s$pars$k_s
+  withheld <- 1.0 / (1.0 + exp((0.0 - s$pars$a_pl1) / gate_width))
+
+  ind <- TF24_Individual(s)
+  ind$set_state("height", 5.0)
+  ind$set_state("storage", 0.0)
+  ind$compute_rates(env)
+
+  ## The canopy thins at the unreplaced share of its own turnover, so thinning
+  ## is bounded by k_l: a plant declines to replace what died rather than
+  ## actively shedding.
+  expect_equal(ind$rate("log_area_leaf_departure"), -withheld * k_l)
+  expect_lt(ind$rate("log_area_leaf_departure"), 0)
+
+  ## And the Huber value rises, at the DIFFERENCE of the two turnover rates.
+  ## This is the drought acclimation, and it is arithmetic rather than an
+  ## imposed asymmetry: conducting area is only lost to heartwood at k_s.
+  expect_equal(ind$rate("log_area_sapwood_departure"),
+               withheld * (k_l - k_s))
+  expect_gt(ind$rate("log_area_sapwood_departure"), 0)
+
+  ## Height still cannot fall while the canopy is thinning.
+  expect_gte(ind$rate("height"), 0)
+})
+
+test_that("a well-provisioned plant replaces everything it loses", {
+  env <- tf24_departure_env()
+  s <- TF24_Strategy()
+  s$pars$a_pl0 <- 1.0
+
+  ind <- TF24_Individual(s)
+  ind$set_state("height", 5.0)
+  ## Born at a_st3 = 0.8 of capacity, far above the gate centre a_pl1 = 0.05,
+  ## so the withheld fraction is ~exp(-37) and the canopy holds station.
+  ind$set_initial_states(env)
+  ind$compute_rates(env)
+
+  expect_equal(ind$rate("log_area_leaf_departure"), 0, tolerance = 1e-12)
+  expect_equal(ind$rate("log_area_sapwood_departure"), 0, tolerance = 1e-12)
+})
+
+test_that("a_pl0 = 0 leaves both departures exactly inert", {
+  env <- tf24_departure_env()
+  expect_identical(TF24_Strategy()$pars$a_pl0, 0.0)
+
+  ## The off switch is exact, not approximate: it zeroes the withheld fraction,
+  ## which leaves the resting model bit-identical. Asserted at reserve levels
+  ## that would otherwise thin hard.
+  for (storage in c(0.0, 1e-9)) {
+    ind <- TF24_Individual()
+    ind$set_state("height", 5.0)
+    ind$set_state("storage", storage)
+    ind$compute_rates(env)
+    expect_identical(ind$rate("log_area_leaf_departure"), 0.0)
+    expect_identical(ind$rate("log_area_sapwood_departure"), 0.0)
   }
 })

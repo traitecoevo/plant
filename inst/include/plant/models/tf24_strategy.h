@@ -68,6 +68,16 @@ struct TF24_Pars {
   double a_st1  = 0.10;           // Storage capacity per unit sapwood mass [kg NSC / kg]
   double a_st2  = 0.1;            // Reserve fraction at which growth is half-on [0-1]
   double a_st3  = 0.8;            // Initial storage at birth [fraction of capacity]
+  // * Flexible allometry (#516) -- a plant under carbon stress declines to
+  //   replace the leaf and sapwood its turnover destroys, so its canopy thins
+  //   instead of its mortality spiking, and rebuilds when carbon returns.
+  //   Settable as traits, being TF24_Pars fields; not hyperparameterised,
+  //   there being no trade-off to encode until #512 reports one.
+  // a_pl0 = 0 is the fixed allometry EXACTLY, not approximately: it zeroes the
+  // withheld fraction, which leaves both departures resting at zero.
+  double a_pl0  = 0.0;            // Max fraction of leaf/sapwood turnover left unreplaced [0-1]
+  double a_pl1  = 0.05;           // Reserve fraction at which withholding is half its max [0-1]
+  double a_pl2  = 0.2;            // Log-gap scale over which growth is redirected to rebuilding
   // * Light capture
   double k_I = 0.5;
   // * Leaf hydraulic / photosynthesis traits (default Eucalyptus saligna)
@@ -446,12 +456,44 @@ public:
   double respiration_root(double mass) const;
 
   // [eqn 14] Total turnover
-  double turnover(double mass_leaf, double mass_bark,
+  // Turnover the plant actually PAYS for. `replacement` is the fraction of the
+  // leaf and sapwood flux it chooses to rebuild; the rest is not charged, and
+  // the matching tissue is lost through the departure states instead.
+  //
+  // ⚠️ ONLY A POOL WHOSE SIZE IS A STATE MAY BE GATED. Bark and root turnover
+  // stay fully charged because neither has a state to lose, so withholding
+  // their cost would save carbon that no tissue paid for -- a free lunch, and a
+  // silent one.
+  double turnover(double replacement, double mass_leaf, double mass_bark,
                   double mass_sapwood, double mass_root) const;
   double turnover_leaf(double mass) const;
   double turnover_bark(double mass) const;
   double turnover_sapwood(double mass) const;
   double turnover_root(double mass) const;
+
+  // Relative reserves r = S / S_max, the buffered carbon signal that growth,
+  // mortality and now leaf replacement all read. Formed in one place so those
+  // three cannot end up reading different numbers.
+  double relative_reserves(const Internals& vars) const {
+    const double S_max =
+      storage_capacity(vars.aux(aux_idx_competition_effect),
+                       vars.state(HEIGHT_INDEX),
+                       vars.state(state_idx_log_area_sapwood_departure));
+    return S_max > 0.0 ? vars.state(state_idx_storage) / S_max : 0.0;
+  }
+
+  // The fraction of leaf and sapwood turnover a plant rebuilds, as a smooth
+  // function of its reserves: ~1 while they are ample, falling to 1 - a_pl0 as
+  // they empty. a_pl0 = 0 gives exactly 1 and so exactly the fixed allometry.
+  //
+  // Centred BELOW the growth gate a_st2, which orders the allocation ladder
+  // without any branching: reproduction and growth are cut first, canopy
+  // replacement next, and only then do reserves run out and mortality rise.
+  double replacement_fraction(double relative_reserves_) const {
+    return 1.0 - pars.a_pl0 /
+      (1.0 + std::exp((relative_reserves_ - pars.a_pl1) /
+                      plasticity_gate_width));
+  }
 
   // [eqn 15] Net production
   double net_mass_production_dt_A(double assimilation, double respiration,
@@ -460,7 +502,8 @@ public:
   virtual double net_mass_production_dt(const TF24_Environment& environment,
                                 double height, double area_leaf_,
                                 double height_inverse,
-                                double sapwood_departure);
+                                double sapwood_departure,
+                                double replacement);
 
   // Resolve the leaf operating point on the already-set-up `leaf` (i.e. after
   // leaf.set_physiology(...)). Base TF24 optimises the root-collar psi via
@@ -478,7 +521,8 @@ public:
         environment, vars.state(HEIGHT_INDEX),
         vars.aux(aux_idx_competition_effect),
         vars.aux(aux_idx_height_inverse),
-        vars.state(state_idx_log_area_sapwood_departure));
+        vars.state(state_idx_log_area_sapwood_departure),
+        replacement_fraction(relative_reserves(vars)));
   }
 
   // [eqn 16] Fraction of whole plan growth that is leaf
@@ -613,6 +657,11 @@ public:
   // step is invalid, as a fraction of capacity. A draining cohort approaches the
   // boundary, so this separates round-off there from a real excursion.
   double storage_domain_tol = 1e-8;
+  // Width of the replacement gate in reserve-fraction units. Narrower than
+  // storage_gate_width because it sits below it (a_pl1 < a_st2): growth is the
+  // first thing cut, leaf replacement the next, so the two gates have to be
+  // distinguishable rather than overlapping into one.
+  double plasticity_gate_width = 0.02;
 
   // Solver tolerances and other constants not currently exposed to R
   double newton_tol_abs = 0.001;

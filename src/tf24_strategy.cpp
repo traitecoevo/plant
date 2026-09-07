@@ -185,10 +185,39 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
     vars.state(state_idx_log_area_sapwood_departure);
   double area_leaf_ = vars.aux(aux_idx_competition_effect);
 
+  // --- Reserves, read BEFORE production -------------------------------------
+  // The replacement gate is a function of the reserve fraction and it changes
+  // what turnover costs, so r has to be known before net production is formed.
+  // Nothing is recomputed to get it there: S is a state and S_max depends only
+  // on states, so this is the same arithmetic in an earlier place. It also
+  // means a pool outside its domain is refused before the leaf is solved, which
+  // is the expensive part of the step being rejected.
+  const double S = vars.state(state_idx_storage);
+  const double S_max =
+    storage_capacity(area_leaf_, height, sapwood_departure);
+  // Refused only where the pool is negative by more than round-off on its own
+  // scale. The tolerance is not slack: at r = 0 the rate is the charge alone and
+  // so non-negative, so a draining cohort approaches the boundary and its last
+  // bits are round-off on a state near zero. Comparing against an exact zero
+  // refuses nearly every attempt there, which rejects nothing real.
+  if (S < -storage_domain_tol * S_max) {
+    odelia::util::stop_domain(
+        "TF24 storage is negative (" + util::format_double(S) +
+        " kg): the pool's flow does not leave [0, capacity], so this is a step "
+        "that overshot the empty boundary");
+  }
+  const double r     = S_max > 0.0 ? S / S_max : 0.0;
+
+  // How much of the leaf and sapwood flux the plant rebuilds. The part it
+  // withholds is not charged below, and the matching tissue leaves through the
+  // two departure states, so the carbon and the tissue balance exactly.
+  const double replacement = replacement_fraction(r);
+  const double withheld    = 1.0 - replacement;
+
   const double net_mass_production_dt_ =
     net_mass_production_dt(environment, height, area_leaf_,
                            vars.aux(aux_idx_height_inverse),
-                           sapwood_departure);
+                           sapwood_departure, replacement);
 
   // store the aux sate
   vars.set_aux(aux_idx_net_mass_production_dt, net_mass_production_dt_);
@@ -237,21 +266,7 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   // corrupt is the meaning of the state, because mortality reads the ratio and
   // grows without bound below zero. So the pool is refused there rather than
   // floored, and the stepper shrinks and retries (#609, #610).
-  const double S = vars.state(state_idx_storage);
-  const double S_max =
-    storage_capacity(area_leaf_, height, sapwood_departure);
-  // Refused only where the pool is negative by more than round-off on its own
-  // scale. The tolerance is not slack: at r = 0 the rate is the charge alone and
-  // so non-negative, so a draining cohort approaches the boundary and its last
-  // bits are round-off on a state near zero. Comparing against an exact zero
-  // refuses nearly every attempt there, which rejects nothing real.
-  if (S < -storage_domain_tol * S_max) {
-    odelia::util::stop_domain(
-        "TF24 storage is negative (" + util::format_double(S) +
-        " kg): the pool's flow does not leave [0, capacity], so this is a step "
-        "that overshot the empty boundary");
-  }
-  const double r     = S_max > 0.0 ? S / S_max : 0.0;
+  // The pool and the reserve fraction were read above, before production.
   // Reserve-gated growth (#517), following Daniel's intuition that a plant
   // should not grow unless it has ample carbon in storage. Growth and
   // reproduction proceed at the *production* rate, but scaled by a smooth gate
@@ -272,13 +287,47 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   const double growth_flux = Ppos * G;
 
   const double fraction_allocation_reproduction_ = fraction_allocation_reproduction(height);
-  const double darea_leaf_dmass_live_ = darea_leaf_dmass_live(area_leaf_);
   const double fraction_allocation_growth_ = fraction_allocation_growth(height);
-  const double area_leaf_dt = growth_flux * fraction_allocation_growth_ * darea_leaf_dmass_live_;
 
-  vars.set_rate(HEIGHT_INDEX, dheight_darea_leaf(area_leaf_) * area_leaf_dt);
+  // --- Where the growth flux goes (#516) ------------------------------------
+  // Growth moves a plant ALONG its allometry, plasticity moves it OFF, and
+  // rebuilding moves it back. Keeping those three separate is what makes the
+  // resting model exact and the departed one interpretable.
+  //
+  // So the allometric derivatives are evaluated at the leaf area the plant's
+  // HEIGHT implies, area_leaf(height), not at the leaf area it actually has.
+  // They are properties of the curve, and a plant's place on the curve is given
+  // by its height; its leaf area is a departure from that. Evaluated this way,
+  // extension is exactly departure-preserving for any departure, so the whole
+  // of the departure's motion is plasticity. At rest the two coincide bitwise
+  // (exp(0) == 1), so this is the same number the fixed model used.
+  const double area_leaf_star = area_leaf(height);
+  const double darea_leaf_dmass_live_ = darea_leaf_dmass_live(area_leaf_star);
+
+  // The share of growth redirected into closing the canopy gap, vanishing
+  // exactly when the gap closes and approaching 1 as it widens. The departure
+  // cannot go positive under these dynamics -- shedding only lowers it and this
+  // share only raises it, stopping at zero -- so the form needs no bound.
+  const double leaf_departure = vars.state(state_idx_log_area_leaf_departure);
+  const double rebuild_share = 1.0 - std::exp(leaf_departure / pars.a_pl2);
+  const double extension_share = 1.0 - rebuild_share;
+
+  const double area_leaf_dt =
+    extension_share * growth_flux * fraction_allocation_growth_ *
+      darea_leaf_dmass_live_;
+
+  // Height follows extension alone, so rebuilding a canopy buys no height and
+  // height still cannot fall: every factor here is non-negative.
+  vars.set_rate(HEIGHT_INDEX, dheight_darea_leaf(area_leaf_star) * area_leaf_dt);
   vars.set_rate(FECUNDITY_INDEX,
     fecundity_dt(growth_flux, fraction_allocation_reproduction_));
+
+  // Rebuilding buys leaf area at unchanged height, so it pays for the leaf and
+  // the fine root that come with it and nothing else -- the sapwood it will
+  // eventually want is bought through its own state, at its own pace.
+  const double rebuild_rel =
+    rebuild_share * growth_flux * fraction_allocation_growth_ /
+      ((pars.lma + pars.a_r1) * area_leaf_);
 
   // Sapwood -> heartwood conversion is turnover-driven, so it proceeds
   // regardless of carbon status (previously gated behind net>0).
@@ -328,8 +377,27 @@ void TF24_Strategy::compute_rates(const TF24_Environment& environment,  Internal
   // Zero is the resting value rather than a placeholder, so the state is inert
   // rather than merely unused: the exact flow keeps phi at 0, and an integrator
   // stepping a rate of exactly 0.0 leaves the state exactly 0.0.
-  vars.set_rate(state_idx_log_area_leaf_departure, 0.0);
-  vars.set_rate(state_idx_log_area_sapwood_departure, 0.0);
+  // --- The two departures (#516) --------------------------------------------
+  // Relative rates, so both are scale-free: the same withheld fraction thins a
+  // seedling's canopy and an adult's by the same proportion, which is what
+  // keeps these parameters from repeating storage_prod_eps's mistake (#620) of
+  // being an absolute constant against fluxes spanning six orders.
+  //
+  // Leaf area loses the turnover it did not replace and regains what rebuilding
+  // buys. Thinning is therefore bounded by k_l -- a plant declines to replace
+  // what died rather than actively shedding -- so the canopy cannot empty
+  // faster than its leaves turn over.
+  vars.set_rate(state_idx_log_area_leaf_departure,
+                rebuild_rel - withheld * pars.k_l);
+
+  // The Huber value's departure is the DIFFERENCE of the two losses, and the
+  // drought acclimation falls out of it rather than being imposed: leaf area
+  // can thin at up to k_l = 0.457/yr while conducting area is only lost to
+  // heartwood at k_s = 0.2/yr, so withholding both raises sapwood per leaf area
+  // at up to k_l - k_s. Rebuilding leaf area lowers it again, which is why the
+  // sapwood departure needs no rebuild term of its own.
+  vars.set_rate(state_idx_log_area_sapwood_departure,
+                withheld * (pars.k_l - pars.k_s) - rebuild_rel);
 
   // [eqn 21] - Instantaneous mortality rate, now driven by relative reserves r.
   vars.set_rate(MORTALITY_INDEX,
@@ -394,11 +462,14 @@ double TF24_Strategy::respiration_root(double mass) const {
 }
 
 // [eqn 14] Total turnover
-double TF24_Strategy::turnover(double mass_leaf, double mass_bark,
+double TF24_Strategy::turnover(double replacement, double mass_leaf,
+                          double mass_bark,
                           double mass_sapwood, double mass_root) const {
-   return turnover_leaf(mass_leaf) +
+   // At replacement = 1 this is bit-identical to charging the whole flux --
+   // 1.0 * x is exactly x, and the four terms are summed in the same order.
+   return replacement * turnover_leaf(mass_leaf) +
           turnover_bark(mass_bark) +
-          turnover_sapwood(mass_sapwood) +
+          replacement * turnover_sapwood(mass_sapwood) +
           turnover_root(mass_root);
 }
 
@@ -432,7 +503,8 @@ double TF24_Strategy::net_mass_production_dt_A(double assimilation, double respi
 double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment,
                                 double height, double area_leaf_,
                                 double height_inverse,
-                                double sapwood_departure) {
+                                double sapwood_departure,
+                                double replacement) {
   // height_inverse (= 1/height) is supplied by the shared individual.h interface
   // (cached aux); unused here as the TF24 root-water path works in height directly.
   (void)height_inverse;
@@ -662,7 +734,8 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   const double respiration_ =
     respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
   const double turnover_ =
-    turnover(mass_leaf_, mass_bark_, mass_sapwood_, mass_root_);
+    turnover(replacement, mass_leaf_, mass_bark_, mass_sapwood_,
+             mass_root_);
   return net_mass_production_dt_A(assimilation_, respiration_, turnover_);
 }
 
@@ -889,7 +962,13 @@ double TF24_Strategy::establishment_probability(const TF24_Environment& environm
                            // definition -- height_0 is solved from seed mass,
                            // and area_leaf_0 from height_0 -- so its Huber
                            // value is the resting one.
-                           0.0));
+                           0.0,
+                           // And it is born at a_st3 of capacity, which is the
+                           // reserve fraction its replacement gate sees. Taken
+                           // from the gate rather than written as 1.0, so a
+                           // species whose plasticity starts biting at birth
+                           // has that reflected here too.
+                           replacement_fraction(pars.a_st3)));
 }
 
 // Both forms above end here. The carbon is birth-size carbon either way, whatever
