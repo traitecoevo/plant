@@ -542,7 +542,9 @@ onto `R_s = 0`, and a small `a_sw` makes it slow. **No extra tracked state is
 needed, because integration is averaging** -- which is what the tracked marginal
 for the shedding gate had to be built for, and is not needed twice.
 
-**4. The derivative is nearly free, by the envelope theorem.** `R_s` needs
+**4. ⚠️ RETRACTED — see "What the implementation found" below. The derivative is NOT nearly free; the envelope theorem does not apply to the collar potential, which is root-found rather than maximised. The reasoning as originally written:**
+
+**The derivative is nearly free, by the envelope theorem.** `R_s` needs
 `d(profit)/d(kmax)`, which looked like a second leaf solve per rate evaluation --
 a doubling of the hot path. It is not. `profit_` is already *maximised* over the
 collar potential, so the derivative with respect to a parameter is the partial
@@ -574,7 +576,15 @@ measured against, so step 2's number should be re-taken after it lands.
 
 ### What the implementation found (2026-09-08)
 
-Steps 1, 2 and 4 are done. Step 3 turned out not to be needed: `d(profit)/d(kmax)` is measured inside plant by one re-evaluation of the leaf at the already-found `psi*`, which is exactly the envelope-theorem argument above, so no phylloptim change is required to land this. plant #614 remains worth having for the analytic version, but it is no longer a blocker.
+Steps 1, 2 and 4 are done. Step 3 is not needed as an upstream change: `d(profit)/d(kmax)` is measured inside plant. plant #614 remains worth having for the analytic version, and is now worth MORE than it looked, for the reason below.
+
+**⚠️ RETRACTION: the envelope theorem does not apply, and point 4 above is wrong.** The shortcut was to re-evaluate the leaf at the collar potential already found, on the argument that the indirect term vanishes at an optimum. That holds for `opt_psi_stem_`, which is genuinely chosen to maximise profit. It does NOT hold for `opt_root_psi_`, which is found by a **root find** — the collar potential at which the soil-root network's supply matches the leaf's demand. A constraint is not an optimum, so `d(profit)/d(collar)` is not zero and the indirect term is real.
+
+Measured: holding the collar fixed under-reports `d(profit)/d(kmax)` by **15-19 per cent**, which put the controller's zero at 1.22x the pipe-model ratio where growth actually peaks at 1.28x. A full re-solve matches a finite difference of the model's own assimilation to **0.09 per cent** and lands the zero on the peak in all twelve height/soil cells tried.
+
+**Why it survived so long:** in wet soil the growth peak is extremely flat (at 16 m, `dh/dt` differs by 6e-4 relative between 1.13x and 1.22x), so a 0.025 scan grid could not resolve a 0.03 offset in psi and the zero appeared to land exactly on the peak. It only showed up in dry soil, on a 0.01 grid. **A coarse grid does not merely lose precision here; it manufactures an exact-looking agreement.**
+
+**Consequence:** `a_sw > 0` costs a second full leaf solve per rate evaluation (three in total: the original, the perturbed, and one to restore the leaf's members for the auxes). The default `a_sw = 0` skips the block entirely, so the hot path is untouched unless acclimation is on. An analytic `d(profit)/d(kmax)` from phylloptim would remove that cost.
 
 **The controller.** `dpsi/dt` gains `a_sw * R_s`, with
 
@@ -608,7 +618,28 @@ The zero-crossing lands on the argmax of `dh/dt` — which is the defining corre
 
 At soil 0.15 growth is still rising at 1.82x and `R_s` stays positive throughout; at soil 0.13 the plant has no carbon and `R_s` is ~1e-11. In an SCM run on a wet stand, `a_sw = 0.5` raises R0 from 97.3 to 154.0 (+58%), which is the size of the prize in leaving the pipe model.
 
-## Shedding's benefit is a steep function of SIZE (2026-09-08)
+## Shedding's benefit is a steep function of SIZE — re-measured after #617 (2026-09-08)
+
+**The prediction below was made before #617 landed and it held.** It said the benefit band sits at the height-resistance relation's viability ceiling, and that the path integral should push the ceiling up and take the band with it. Measured after the merge:
+
+| | before #617 | after #617 |
+|---|---|---|
+| viability ceiling (P > 0 in wet soil) | between 17 and 18 m | between 30 and 36 m |
+| shedding benefit first appears | ~16 m | ~20 m |
+| largest benefit found | 6.1e9x (at 18 m, and both arms dead) | 84x (at 30 m, 4 yr @ soil 0.14) |
+| benefit at soil 0.16 for 4 yr, any height | up to 4.4e9x | **exactly 1.00 at every height to 24 m** |
+
+The ceiling roughly doubled, which is what conduit widening is for. Three things follow.
+
+**1. TF24 is now far more drought-tolerant, and the earlier "cliff" is gone.** A 4-year drought at soil 0.16 no longer kills anything up to 24 m (survivorship ~0.92 at every height) and the canopy never thins, so shedding has nothing to do. Before #617 that same drought took a 20 m plant to 2.9e-19.
+
+**2. The size dependence survives, shifted.** At soil 0.14 the benefit is 1.00 at 10 m, 1.04 at 16 m, 2.4 at 20 m, 21 at 24 m and 84 at 30 m. Below ~13 m the canopy still does not thin at all: the marginal leaf keeps paying for itself, which is the gate working as designed.
+
+**3. Shedding still never converts death into survival.** Zero cells of the post-#617 grid (heights 16-30, soils 0.14-0.12, 4 yr) have the fixed plant dead and the shedding plant alive; the large ratios still sit between two very small numbers. And the benefit is largest at *moderate* drought (0.14), not the harshest — at soil 0.12 everything dies whatever it does, so the ratio returns to ~1.
+
+⚠️ **The numbers in the original section below are PRE-#617 and superseded.** They are kept because the reasoning they support — that the band tracks the viability ceiling — is what the merge then confirmed, and because the size of the shift is the clearest available statement of how much the height-resistance relation was driving this.
+
+## Shedding's benefit is a steep function of SIZE — the pre-#617 measurement (2026-09-08)
 
 Re-asking "does shedding buy survival?" against a well-configured stem, as the earlier section said had to be done. The answer is more interesting than either yes or no, and **the earlier null result was measured at one size**.
 

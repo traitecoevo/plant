@@ -361,15 +361,33 @@ Drop the second term and you optimise production; keep it and the optimum moves
 in to **1.35x** at 10 m in moist soil, where growth actually peaks. The optimum is
 not one number: it depends on height and on soil water, which is the point.
 
-### The derivative is nearly free
+### The derivative costs a second solve, and an argument that it does not
 
-$\partial P/\partial\psi$ needs $d(\text{profit})/d(k_{\max})$, which looks
-like a second leaf solve on the hottest path in the package. It is not. Profit is
-already *maximised* over the collar potential, so by the envelope theorem the
-derivative with respect to a parameter is just the partial derivative of the
-objective at the optimum already found — one re-evaluation at the known
-$\psi^\ast$, no re-optimisation. This is also why no phylloptim change was
-needed to land it.
+$\partial P/\partial\psi$ needs $d(\text{profit})/d(k_{\max})$, which is a
+second leaf solve on the hottest path in the package. There is a tempting
+argument that it need not be — and it is wrong, which is worth recording because
+it was believed long enough to ship.
+
+**The argument.** Profit is already maximised, so by the envelope theorem the
+derivative with respect to a parameter is the *partial* derivative at the optimum
+already found: re-evaluate at the collar potential you have, and the indirect term
+vanishes because $\partial\,\text{profit}/\partial\psi^\ast = 0$ there.
+
+**Why it fails.** That holds for `opt_psi_stem_`, which really is chosen to
+maximise profit. It does not hold for `opt_root_psi_`, the *collar* potential,
+which is not maximised at all — it is found by a **root find**, the potential at
+which the soil-root network's supply matches the leaf's demand. A constraint, not
+an optimum. So $\partial\,\text{profit}/\partial(\text{collar}) \neq 0$ and the
+indirect term is real.
+
+**What it cost.** Holding the collar fixed under-reported the sensitivity by
+15–19%, which put the controller's zero at 1.22x the pipe-model ratio where growth
+actually peaks at 1.28x. It was invisible in wet soil, where the scan grid was too
+coarse to resolve the gap. Re-solving properly matches a finite difference of the
+model's own assimilation to 0.09% and lands the zero on the peak.
+
+So `a_sw > 0` roughly doubles the leaf work per rate evaluation. At the default
+`a_sw = 0` the block never runs.
 
 ### What it does
 
