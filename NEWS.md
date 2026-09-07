@@ -59,6 +59,19 @@ products using plant.
   from a thin surface layer, and `set_tf24_soil(env, widths, theta, ...)` sets
   geometry, per-layer parameters and water state in the one order that works.
 
+  ⚠️ **Layers may not get thinner with depth** (equal is fine, so a uniform
+  profile stays legal). Refining towards the surface is the standard and is what
+  the thin layer is for; refining at depth has no counterpart in TF24 -- a
+  contrast in soil properties is per-layer *parameters* (`set_soil_parameters()`),
+  not a thin layer, and TF24 has no water table -- while it does reach a failure
+  the model cannot absorb, driving the SCM size-density equations to overflow
+  (#550). Sampled over the basal thickness it fails at 5, 3, 2.5, 2 and 1.5 cm,
+  where all 18 profiles thickening with depth ran clean, including one with a 5 mm
+  surface layer. ⚠️ **Not a guarantee**: the blocked failures are ragged in the
+  geometry (5 cm fails, 4 cm passes, 3-1.5 cm fail, 1 cm passes) and 46 of 48
+  sampled thinning profiles ran fine, so this removes a foot-gun rather than
+  proving stability, and the underlying fragility is still #550's.
+
   `old -> new`:
 
   - `env$depth <- x` -> `env$set_soil_number_of_depths(n)` (equal layers spanning

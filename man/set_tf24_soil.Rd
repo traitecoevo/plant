@@ -18,8 +18,9 @@ set_tf24_soil(
 \item{env}{A \code{\link{TF24_Environment}}.}
 
 \item{widths}{Layer widths, m, top down — e.g. from
-\code{\link{soil_widths_graded}}. A single number sets one layer of that
-width. If \code{NULL} the geometry is left alone.}
+\code{\link{soil_widths_graded}}. Must not get thinner with depth (equal
+is fine). A single number sets one layer of that width. If \code{NULL} the
+geometry is left alone.}
 
 \item{theta}{Initial volumetric soil moisture. A single number is used for
 every layer; a vector must have one entry per layer. If \code{NULL} the

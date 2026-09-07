@@ -91,7 +91,7 @@ test_that("TF24 water budget closes on a graded layer profile", {
   profiles <- list(
     "2 cm surface layer" = c(0.02, 0.28, 0.30, 0.40, 0.50),
     "graded ladder" = soil_widths_graded(1.5, 5, top = 0.02),
-    "thick over thin" = c(0.75, 0.25, 0.25, 0.15, 0.10),
+    "steeply graded" = c(0.01, 0.04, 0.15, 0.40, 0.90),
     "single thin layer" = 0.02
   )
   for (label in names(profiles)) {

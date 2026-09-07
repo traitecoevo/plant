@@ -122,40 +122,39 @@ test_that("plant hands the leaf each layer's own thickness, not a column average
   #                      scalar    per-layer    scalar    per-layer
   #   uniform, 5 layers  1.661740  1.661740     15.464934 15.464934
   #   2 cm surface layer 1.747280  0.598266     15.338550 17.251842
-  #   thick over thin    1.654759  4.211291     15.478450 11.179142
   #
   # Two things to read off it. The uniform column is BIT-IDENTICAL, which is why
   # no default plant output moves. And on a graded column a scalar thickness lands
-  # everything within 6% of the uniform value, on the WRONG SIDE of it: a thin
-  # surface layer is charged 0.3 m of root segment instead of 0.02 m, over-resisting
-  # by 225x in that layer and 3.7x in total, so the plant appears to need MORE
-  # suction when it needs far less. Reversing a thin-over-thick profile reverses the
-  # error. So the discriminator is the sign, and it does not depend on the exact
-  # values surviving an unrelated solver change.
+  # within 6% of the uniform value and on the WRONG SIDE of it: the 2 cm surface
+  # layer is charged 0.3 m of root segment instead of 0.02 m, over-resisting by
+  # 225x in that layer and 3.7x in total, so the plant appears to need MORE suction
+  # when it needs far less. That sign flip is the discriminator, and unlike a
+  # tolerance it does not depend on the exact values surviving an unrelated solver
+  # change.
+  #
+  # (A thick-over-thin profile flips it the other way -- 1.654759 -> 4.211291 --
+  # which was the other half of this test until such profiles were refused
+  # outright; see the ordering test below.)
   uniform <- probe_root_operating_point(rep(0.3, 5))
-
   thin_top <- probe_root_operating_point(c(0.02, 0.28, 0.30, 0.40, 0.50))
-  thick_top <- probe_root_operating_point(c(0.75, 0.25, 0.25, 0.15, 0.10))
+  steep <- probe_root_operating_point(soil_widths_graded(1.5, 5, top = 0.01))
 
-  for (p in list(uniform, thin_top, thick_top)) {
+  for (p in list(uniform, thin_top, steep)) {
     expect_true(is.finite(p[["assimilation"]]))
     expect_true(is.finite(p[["opt_root_psi"]]))
   }
 
   # Thinning the surface layer moves root carbon deeper and cuts the vertical
   # resistance it is charged, so the plant sits at LESS suction than uniform.
+  # Under a scalar thickness both inequalities reverse.
   expect_lt(thin_top[["opt_root_psi"]], uniform[["opt_root_psi"]])
   expect_gt(thin_top[["assimilation"]], uniform[["assimilation"]])
-
-  # Thickening it does the reverse. Both inequalities fail under a scalar
-  # thickness, which puts these within 6% of uniform and the wrong way round.
-  expect_gt(thick_top[["opt_root_psi"]], uniform[["opt_root_psi"]])
-  expect_lt(thick_top[["assimilation"]], uniform[["assimilation"]])
+  expect_lt(steep[["opt_root_psi"]], uniform[["opt_root_psi"]])
 
   # And the effect is large, not marginal: a scalar thickness kept every graded
   # profile inside 6% of the uniform operating point.
   expect_gt(abs(thin_top[["opt_root_psi"]] / uniform[["opt_root_psi"]] - 1), 0.2)
-  expect_gt(abs(thick_top[["opt_root_psi"]] / uniform[["opt_root_psi"]] - 1), 0.2)
+  expect_gt(abs(steep[["opt_root_psi"]] / uniform[["opt_root_psi"]] - 1), 0.2)
 })
 
 test_that("an unequal-layer column runs end to end", {

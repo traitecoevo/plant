@@ -200,6 +200,47 @@ public:
                    util::format_double(widths[i]));
       }
     }
+    // Layers must not get THINNER with depth. Equal is fine, so a uniform
+    // profile is legal and `rep(w, n)` still works.
+    //
+    // WHY. Refining towards the surface is the standard: a 1 cm-scale cell is
+    // needed near the surface and not deeper down (Downer & Ogden 2004), and
+    // that is what the profile here is for. Refining at DEPTH has no counterpart
+    // in this model -- a contrast in soil properties is per-layer *parameters*
+    // (set_soil_parameters, #558), not a thin layer, and a water table is a
+    // bottom boundary condition TF24 does not have -- while it does reach a
+    // failure this model cannot absorb. A thin layer under a thick one drives
+    // the SCM size-density equation to overflow (#550): sampled over the basal
+    // thickness, it fails at 5 cm, 3 cm, 2.5 cm, 2 cm and 1.5 cm, where all 18
+    // profiles thickening with depth ran clean, including a 5 mm surface layer.
+    //
+    // ⚠️ THIS IS NOT A SAFETY GUARANTEE, and do not read it as one. The failures
+    // it blocks are RAGGED in the geometry -- 5 cm fails, 4 cm passes, 3 to
+    // 1.5 cm fail, 1 cm passes again -- so thinning-with-depth is a property the
+    // observed failures share rather than a characterisation of them, and 46 of
+    // 48 sampled thinning profiles ran fine. It is a foot-gun removed, not a
+    // proof of stability, and the underlying fragility is still #550's.
+    //
+    // ⚠️ NOR IS A THICKENING PROFILE AUTOMATICALLY WELL RESOLVED. The error in
+    // the usual Richards discretisation vanishes on a uniform grid and "worsens
+    // with increasing layer thickness differences" whichever way they run
+    // (Mackay et al. 2022), and a fast increase with depth is equivalent to a
+    // coarser column (Regenass et al. 2021). So grading steeply is its own cost;
+    // see soil_widths_graded().
+    for (size_t i = 1; i < widths.size(); ++i) {
+      if (widths[i] < widths[i - 1]) {
+        util::stop(
+            "set_soil_layer_widths: layers must not get thinner with depth; "
+            "layer " + util::to_string(i + 1) + " (" +
+            util::format_double(widths[i]) + " m) is thinner than layer " +
+            util::to_string(i) + " (" + util::format_double(widths[i - 1]) +
+            " m). Equal widths are allowed. Refine towards the SURFACE, which "
+            "is what a thin layer is for here; a thin layer beneath a thicker "
+            "one can drive the size-density equations to overflow (#550), and "
+            "a contrast in soil properties belongs in set_soil_parameters() "
+            "rather than in the geometry.");
+      }
+    }
 
     soil_number_of_depths = static_cast<int>(widths.size());
     dz = widths;

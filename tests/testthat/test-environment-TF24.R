@@ -161,6 +161,42 @@ test_that("Environment-TF24 refuses an unusable set of layer widths", {
   expect_equal(env$get_soil_layer_widths(), rep(0.3, 5))
 })
 
+test_that("Environment-TF24 refuses layers that get thinner with depth", {
+  # Refining towards the SURFACE is what a thin layer is for here, and refining
+  # at depth reaches a failure this model cannot absorb: a thin layer under a
+  # thicker one drives the SCM size-density equation to overflow (#550). Sampled
+  # over the basal thickness it fails at 5, 3, 2.5, 2 and 1.5 cm, where all 18
+  # profiles thickening with depth ran clean, including a 5 mm surface layer.
+  env <- Environment("TF24")
+
+  expect_error(env$set_soil_layer_widths(c(0.75, 0.25, 0.25, 0.15, 0.10)),
+               "thinner with depth")
+  expect_error(env$set_soil_layer_widths(c(0.74, 0.74, 0.02)),
+               "thinner with depth")
+  # Non-monotone counts too: it is "never thinner than the layer above", not
+  # "the last layer is not the thinnest".
+  expect_error(env$set_soil_layer_widths(c(0.02, 0.74, 0.02)),
+               "thinner with depth")
+  # The message names both layers and their widths, so the caller can see which
+  # pair is wrong rather than being told the profile is bad.
+  expect_error(env$set_soil_layer_widths(c(0.5, 0.2, 0.8)),
+               "layer 2 \\(0.2 m\\) is thinner than layer 1 \\(0.5 m\\)")
+
+  # EQUAL is allowed, so a uniform profile stays legal.
+  expect_silent(env$set_soil_layer_widths(rep(0.3, 5)))
+  expect_equal(env$get_soil_layer_widths(), rep(0.3, 5))
+
+  # As does anything thickening with depth, including what the issue asked for.
+  expect_silent(env$set_soil_layer_widths(c(0.02, 0.28, 0.30, 0.40, 0.50)))
+  expect_silent(env$set_soil_layer_widths(soil_widths_graded(1.5, 5, top = 0.005)))
+  # A mix of equal runs and increases.
+  expect_silent(env$set_soil_layer_widths(c(0.1, 0.1, 0.3, 0.5, 0.5)))
+
+  # A refusal leaves the previous geometry intact.
+  expect_error(env$set_soil_layer_widths(c(0.9, 0.1)), "thinner with depth")
+  expect_equal(env$get_soil_layer_widths(), c(0.1, 0.1, 0.3, 0.5, 0.5))
+})
+
 test_that("Environment-TF24 depth is read-only", {
   # Writing it used to rebuild nothing -- only the geometry setters fill z/z_mid/dz
   # -- so `env$depth <- 3` left a 1.5 m column in place and said nothing (#626).
