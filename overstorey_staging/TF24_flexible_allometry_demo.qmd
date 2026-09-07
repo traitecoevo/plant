@@ -320,57 +320,81 @@ stands.
 
 ### Why
 
-Mortality reads the reserve **fraction**. In a deep drought that fraction is pinned
-near zero however thin the canopy gets, so mortality sits at its ceiling either
-way. Thinning cannot help through that channel.
+Three measurements, each ruling out an explanation.
 
-It ought to help through the **carbon balance** instead: less leaf to maintain
-means a less negative carbon budget, so the pool drains more slowly. It does help —
-production per unit leaf area climbs steadily as the canopy thins — but nowhere
-near enough to matter.
+**It is not that the sheddable costs are too small.** Most of a plant's
+maintenance *does* follow its canopy — leaf, fine root and bark all scale with
+leaf area, and only sapwood is sticky:
 
-```{r costs, fig.cap=NULL}
-traj |>
-  filter(allometry == "flexible", theta_soil < 0.2) |>
-  transmute(time, `canopy fullness` = round(canopy_fraction, 3),
-            `net production` = signif(P, 3),
-            `per unit leaf area` = signif(P_per_area, 3)) |>
-  head(9) |>
-  knitr::kable()
-```
+| height | leaf | bark | sapwood | root | reachable by thinning |
+|---|---|---|---|---|---|
+| 10 m | 49.6% | 5.4% | 23.5% | 21.5% | **76.5%** |
 
-The reason is which costs a plant can actually shed. Leaf and fine-root costs scale
-with the canopy, so thinning cuts them. **Sapwood respiration scales with stem area
-times height**, and thinning the canopy does not touch it — sapwood is lost only to
-heartwood, at `k_s`, and deliberately so. For a tall plant in drought, that
-unsheddable cost dominates the deficit, so cutting the sheddable part barely moves
-the total.
+(An earlier draft of this page claimed sapwood respiration dominated the drought
+deficit. That was wrong, and this table is the retraction.)
 
-There is a genuine tension here, and it has now been measured from both sides:
+**It is that thinning cuts income just as fast.** Assimilation scales with leaf
+area too, so shrinking the canopy shrinks both sides of the budget together. Net
+production per unit leaf area is essentially flat as a plant thins — and slightly
+*worsens*, because the stem it still carries is spread over fewer leaves:
 
-- if storage capacity followed **leaf area**, thinning would inflate the reserve
-  fraction directly — mortality would fall for free, and a plant could shed its way
-  to being immortal;
-- because capacity follows **sapwood**, it cannot be inflated — but then thinning
-  delivers no reserve benefit at all.
+| canopy fullness | 1.00 | 0.50 | 0.20 | 0.10 | 0.05 | 0.018 |
+|---|---|---|---|---|---|---|
+| net production per m² leaf | −3.81 | −3.69 | −3.77 | −3.92 | −4.15 | −4.68 |
+| stem per leaf, relative | 1.0 | 1.5 | 2.5 | 3.6 | 5.4 | 9.5 |
 
-The way out has to be that thinning reduces the *deficit*. For that, the deficit
-has to be dominated by costs that scale with the canopy. At TF24's defaults, for a
-tall plant, it is not.
+A plant whose leaves cost more than they earn cannot fix that by having fewer
+leaves. Thinning slows the burn; it never reaches balance.
+
+**And there is no drought in which it changes the outcome.** Sweeping severity
+and duration, the transition from fine to dead is a *cliff*, not a gradient —
+there is no intermediate regime for a cost saving to act in:
+
+| soil water | 0.20 | 0.17 | 0.15 | 0.13 | 0.11 |
+|---|---|---|---|---|---|
+| survivorship, 4-yr drought | 0.93 | 0.93 | 0.93 | 4.9e-10 | 3.4e-10 |
+| canopy thinning engaged? | no | no | no | yes | yes |
+
+Above 0.15 the gate never opens because reserves stay full. Below it, the plant
+dies whatever it does. Thinning early — raising the gate to $r = 0.30$, so the
+plant economises before its reserves are gone — was measured across this sweep and
+buys a factor of 1.0 to 1.13, while costing height.
+
+### The real cause is upstream, in the reserve pool
+
+The storage pool has **no stable intermediate state**. Its rate is
+$\dot S = \text{charge}\,(1-r) - \text{drain}\,r$, so when production is positive
+the pool fills toward capacity and when it is negative the pool empties, with no
+resting point between. The reserve fraction is therefore close to a binary readout
+of the *sign* of net production.
+
+Mortality then reads that fraction through $a_{dG1}e^{-a_{dG2} r}$ with
+$a_{dG2}=20$, which is sharp enough to turn a near-binary input into a near-binary
+output: mortality is at its floor or its ceiling, and spans eight orders of
+magnitude between them.
+
+So a mechanism that makes a plant modestly cheaper to run has nothing to act on.
+The buffer does not buffer, and that is a property of the NSC design rather than
+of the allometry. **Fixing it means changing what mortality reads, or giving the
+pool a resting point — not tuning the replacement gate.**
 
 ### Three candidates, none chosen
 
-1. **Let the stem thin as well, faster than `k_s`.** Physically, heartwood
-   conversion accelerating under stress, or sapwood being abandoned outright. It
-   attacks the dominant cost — but it reopens the storage-capacity question and
-   needs care not to restore the free lunch.
-2. **Reconsider what mortality reads.** A reserve *fraction* is scale-free and
-   bounded, which is why #517 chose it, but it is blind to a plant having made
-   itself cheaper to run. Something like how long reserves would last at the
-   current burn rate would respond to thinning.
-3. **Check whether sapwood respiration is simply too high.** That `r_s` dominates a
-   tall plant's drought deficit may be the real finding here — in which case this is
-   a parameter question, not a structural one.
+1. **Give the pool a resting point.** If the part of a deficit the pool cannot
+   meet were paid by consuming tissue, the pool would stabilise instead of
+   emptying, and the reserve fraction would sit somewhere informative. NEWS
+   already records that this unmet deficit currently *leaves the budget*, with
+   "routing it into tissue loss" named as deferred work — this is that work.
+2. **Soften what mortality reads.** A reserve *fraction* is scale-free and
+   bounded, which is why #517 chose it, but combined with $a_{dG2}=20$ it is
+   nearly a step. Something like how long reserves would last at the current burn
+   rate would respond to a plant having made itself cheaper to run — which is
+   precisely what thinning does and what the fraction cannot see.
+3. **Accept that these droughts are simply lethal.** At soil 0.11 to 0.13 a 10 m
+   plant cannot balance its carbon by any allometric adjustment, so dying may be
+   the right answer and this page's premise the wrong one. If so, the mechanism's
+   value lies elsewhere — in allometric variation between individuals, or in
+   shade rather than drought — and that is where it should be demonstrated.
 
 ## Also unresolved: nothing bounds the departures in permanent deficit
 
