@@ -375,7 +375,7 @@ Control:
     - node_gradient_direction: int
     - node_gradient_richardson: bool
     - node_gradient_richardson_depth: size_t
-    - node_density_in_birth_date: bool
+    - node_density_coordinate: std::string
     - ode_step_size_initial: double
     - ode_step_size_min: double
     - ode_step_size_max: double
@@ -628,6 +628,11 @@ Node:
     ## Exact and current for the boundary node; frozen at its own birth for an
     ## introduced one.
     growth_rate_at_birth: {type: double, access: member, readonly: true}
+    ## Which coordinate this node's density is carried in, with Control's
+    ## "auto" already resolved against the model's own requirement. Read this
+    ## rather than restating which models prefer which coordinate: the density
+    ## rate and the boundary condition both differ between them.
+    density_in_birth_date: {type: bool, access: member, readonly: true}
     fecundity: {type: double, access: member}
     ode_size: {type: size_t, access: member}
     ode_state: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_state", name_cpp_set: "odelia::ode::r_set_ode_state"}
@@ -672,8 +677,10 @@ Species:
     ## |dh/dtau| per node, boundary node last; the conversion between the two.
     height_jacobian: {type: "std::vector<double>", access: member, readonly: true}
     node_times: {type: "std::vector<double>", access: member}
-    ## Which coordinate this species' size distribution is carried in. Set from
-    ## the patch's control, not the strategy's (Patch::add_strategies).
+    ## Which coordinate this species' size distribution is carried in: the
+    ## patch's control (not the strategy's -- Patch::add_strategies), with
+    ## "auto" resolved against the model's own requirement. This is the resolved
+    ## value, so it is what a run should be reported against.
     density_in_birth_date: {type: bool, access: member, readonly: true}
     patch_densities: {type: "std::vector<double>", access: member, name_cpp: r_patch_densities}
     pr_patch_survival_at_birth: {type: "std::vector<double>", access: member, name_cpp: r_pr_patch_survival_at_birth}

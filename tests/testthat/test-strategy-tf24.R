@@ -282,7 +282,11 @@ test_that("offspring arrival", {
   # orders of magnitude.
   p0 <- scm_base_parameters("TF24")
   env <- Environment("TF24")
-  ctrl <- Control()
+  # The height arm of the comparison below, named explicitly: TF24's default is
+  # now the birth-date coordinate ("auto" resolves to it), so a bare Control()
+  # here would silently run both arms in the same coordinate and compare a
+  # number against itself.
+  ctrl <- Control(node_density_coordinate = "height")
   p0$max_patch_lifetime <- 5
 
   # one species
@@ -342,7 +346,7 @@ test_that("offspring arrival", {
   # previously had no upper bound and the median cohort of a mature stand sat at
   # a reserve fraction of exactly 1 with the read clipped there, where it now
   # sits at 0.62 with nothing on the clip.
-  out_bd <- run_scm(p2, env, Control(node_density_in_birth_date = TRUE))
+  out_bd <- run_scm(p2, env, Control(node_density_coordinate = "birth_date"))
   expect_equal(out_bd$offspring_production[[1]], 233.05915606, tolerance = 2e-2)
   expect_equal(out_bd$offspring_production[[2]], 43.63800899, tolerance = 2e-2)
 })
@@ -570,7 +574,7 @@ test_that("a run keeps every storage state inside [0, capacity]", {
   p$max_patch_lifetime <- 10
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = TF24_hyperpar,
                       birth_rate = list(1.10))
-  out <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE),
+  out <- run_scm(p, ctrl = Control(node_density_coordinate = "birth_date"),
                  collect = TRUE)
 
   d <- out$species

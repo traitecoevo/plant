@@ -7,6 +7,45 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **The density coordinate is now chosen per model, and TF24 defaults to birth
+  date (#516).** `Control`'s boolean flag becomes a three-valued string, so that
+  a model can carry a default a passed `Control` does not silently override.
+  Migration:
+
+  * `control(node_density_in_birth_date = TRUE)`  -> `control(node_density_coordinate = "birth_date")`
+  * `control(node_density_in_birth_date = FALSE)` -> `control(node_density_coordinate = "height")`
+  * `ctrl$node_density_in_birth_date`             -> `ctrl$node_density_coordinate` (`"auto"`/`"birth_date"`/`"height"`)
+  * *(resolved value, per species/node)*          -> `species$density_in_birth_date` / `node$density_in_birth_date`
+
+  ⚠️ **This changes TF24 and TF24f results for identical inputs**, by several
+  times on offspring production, and bumps `TF24@v9 -> v10` (`TF24f@v9.1 ->
+  v10.1`). `"auto"` is the new default and resolves to `"birth_date"` for
+  TF24/TF24f and `"height"` for FF16/K93, so **FF16 and K93 are bit-identical**
+  — `auto` resolves to the same `false` the old default carried, and their
+  reference baselines are untouched.
+
+  Why it is not merely a numerical preference: the height coordinate's density
+  rate carries a compression term that equals `d(growth)/d(height)` only when
+  growth is a function of size alone. TF24's reserve pool feeds back into
+  growth, so the finite-difference probe moves height at fixed *absolute*
+  carbon and shifts the reserve fraction, whereas a cohort actually grows at
+  roughly constant reserve fraction — a different derivative, not a coarser one
+  (#590). Refinement confirms it: the birth-date answers are converged at the
+  default schedule while the height ones keep climbing and the exclusion ratio
+  widens instead of closing.
+
+  An unrecognised value is refused rather than read as one of the two
+  coordinates, since a typo would otherwise return a plausible number. The
+  empty string is accepted as a synonym for `"auto"`, matching how
+  `shading_model` already spells "let the model decide".
+
+  ⚠️ **A `Species` built outside a `Patch` cannot use the birth-date coordinate.**
+  The no-argument `introduce_new_node()` leaves every node carrying the same
+  birth date, which spans zero width, so the competition integral collapses to
+  exactly `0` and `log_densities` is `NA`. A real run cannot reach this — `Patch`
+  checks the birth dates are distinct and errors — but bare-`Species` diagnostic
+  code should set `node_density_coordinate = "height"` explicitly.
+
 * **An unknown trait name is now an error (#636).** `generate_strategy()` (and
   `add_strategies()` / `add_mutant()`, which route through it) refuse a trait
   whose name is not a parameter of the model, naming the offenders and their

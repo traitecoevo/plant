@@ -60,10 +60,23 @@ struct Control {
   bool   node_gradient_richardson;
   size_t node_gradient_richardson_depth;
 
-  // Carry the size distribution as a density in birth date rather than in
-  // height. The two resource integrals then run over introduction times, and
-  // the density rate is mortality alone.
-  bool node_density_in_birth_date;
+  // Which coordinate the size distribution's density is carried in:
+  //
+  //   "auto"       let the model decide (the default)
+  //   "birth_date" density in birth date; the two resource integrals run over
+  //                introduction times and the density rate is mortality alone
+  //   "height"     density in height; the density rate additionally carries a
+  //                compression term
+  //
+  // The height coordinate's compression term is the total derivative of the
+  // growth rate along a cohort's own trajectory, which equals the partial
+  // d(growth)/d(height) only when growth is a function of size alone. A model
+  // carrying state that feeds back into growth breaks that, so the coordinate
+  // is not a free numerical choice for every model -- hence "auto", resolved
+  // per model against Strategy::density_in_birth_date_default. An explicit
+  // value is an override and always wins, so both coordinates stay available
+  // for the comparison tests. See notes/516-flexible-allometry.md.
+  std::string node_density_coordinate;
 
   double ode_step_size_initial;
   double ode_step_size_min;
@@ -94,6 +107,28 @@ struct Control {
   double ci_abs_tol;
   double ci_niter;
 };
+
+// Resolve Control::node_density_coordinate for a model whose own preference is
+// `model_prefers_birth_date` (Strategy::density_in_birth_date_default). Only
+// "auto" consults the model; an explicit setting wins. An unrecognised value is
+// refused rather than silently treated as one of the two coordinates, because
+// the coordinates do not agree for a model with carried state -- a typo would
+// otherwise read as a real result.
+inline bool density_in_birth_date(const Control& control,
+                                  bool model_prefers_birth_date) {
+  const std::string& coord = control.node_density_coordinate;
+  if (coord == "auto" || coord.empty()) {
+    return model_prefers_birth_date;
+  }
+  if (coord == "birth_date") {
+    return true;
+  }
+  if (coord == "height") {
+    return false;
+  }
+  util::stop("Unknown node_density_coordinate \"" + coord +
+             "\": expected \"auto\", \"birth_date\" or \"height\"");
+}
 
 inline odelia::ode::OdeControl make_ode_control(const Control& control) {
   return odelia::ode::OdeControl(control.ode_tol_abs,

@@ -34,8 +34,7 @@ workers <- as.integer(Sys.getenv("SCENARIO_WORKERS",
 ctrl <- scenario_control()
 message(sprintf("Running scenarios (max_patch_lifetime = %g, workers = %d, %s) ...",
                 mpl, workers,
-                if (ctrl$node_density_in_birth_date) "density in birth date"
-                else "density in height"))
+                sprintf("density in %s", ctrl$node_density_coordinate)))
 scorecard <- run_scenarios(ctrl = ctrl, max_patch_lifetime = mpl,
                            workers = workers)
 

@@ -280,7 +280,16 @@ public:
   // previously had no upper bound at all -- the read was clipped at capacity
   // while the state ran to 1.035 of it, with half a full-lifetime stand sitting
   // at or above the clip -- and that surplus now stays in production instead.
-  static constexpr int scientific_version = 9;
+  // v10: the size distribution's density is carried in birth date by default
+  // rather than in height (Control's node_density_coordinate = "auto" resolves
+  // here to "birth_date"; see density_in_birth_date_default below). Nothing in
+  // the equations moved -- what changed is which coordinate the transport
+  // equation is solved in, and the height coordinate's compression term is a
+  // different derivative rather than a coarser one once the reserve pool feeds
+  // back into growth (#590). It is a bump because identical inputs now give
+  // different numbers, by several times on offspring production, so a cached
+  // TF24 run from v9 is not comparable.
+  static constexpr int scientific_version = 10;
 
   double compute_average_light_environment(double z, double height,
                                            const TF24_Environment &environment);
@@ -312,6 +321,14 @@ public:
   // negative value is a step that overshot rather than a state the model has,
   // and the solver rejects it and retries smaller.
   static std::vector<std::string> non_negative_states() { return {"storage"}; }
+
+  // TF24 carries reserves that feed back into growth, so its growth rate is not
+  // a function of size alone and the height coordinate's compression term is a
+  // different derivative rather than a worse approximation of the right one
+  // (#590). The two coordinates' offspring production differ by several times
+  // here, where FF16's and K93's agree to 5e-5 and 5.6e-7, so this is a
+  // correctness default and not a performance one. TF24f inherits it.
+  static constexpr bool density_in_birth_date_default = true;
 
   std::vector<std::string> aux_names() {
     std::vector<std::string> ret({

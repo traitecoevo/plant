@@ -111,6 +111,13 @@ public:
 
   individual_type individual;
 
+  // Which coordinate this node's density is carried in. Resolves Control's
+  // "auto" against the strategy's own requirement; see control.h.
+  bool density_in_birth_date() const {
+    return plant::density_in_birth_date(individual.control(),
+                                        T::density_in_birth_date_default);
+  }
+
 private:
   // This is the gradient of growth rate with respect to height:
   double growth_rate_gradient(const environment_type& environment) const;
@@ -154,7 +161,7 @@ void Node<T,E>::compute_rates(const environment_type& environment,
   // individual along the birth-date axis. A density in height additionally
   // compresses as the spacing between neighbouring sizes changes.
   log_density_dt = -individual.rate(MORTALITY_INDEX);
-  if (!individual.control().node_density_in_birth_date) {
+  if (!density_in_birth_date()) {
     log_density_dt -= growth_rate_gradient(environment);
   }
   // survival_individual: converts from the mean of the poisson process (on
@@ -205,7 +212,7 @@ void Node<T,E>::compute_initial_conditions(const environment_type& environment,
   // present-day Jacobian; see Species::height_jacobian().
   const double g = individual.rate(HEIGHT_INDEX);
   birth_growth_rate = g;
-  if (individual.control().node_density_in_birth_date) {
+  if (density_in_birth_date()) {
     set_log_density(log(birth_rate * pr_estab));
   } else {
     // NOTE: log(0.0) -> -Inf, which should behave fine.

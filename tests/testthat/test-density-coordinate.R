@@ -1,5 +1,5 @@
 # Carrying the SCM's size distribution in birth date rather than in height
-# (Control$node_density_in_birth_date).
+# (Control$node_density_coordinate).
 #
 # The two coordinates describe the same population, so for a strategy whose
 # growth is a function of size alone they must agree in the limit of a fine
@@ -39,7 +39,7 @@ size_only_parameters <- function(x) {
 
 offspring_in_coordinate <- function(p, x, birth_date, step_max = NULL) {
   ctrl <- Control()
-  ctrl$node_density_in_birth_date <- birth_date
+  ctrl$node_density_coordinate <- if (birth_date) "birth_date" else "height"
   if (!is.null(step_max)) {
     ctrl$ode_step_size_max <- step_max
   }
@@ -63,7 +63,7 @@ short_run <- local({
         add_strategies(p0, trait_matrix(0.059, "b_0"), birth_rate = 1.0)
       }
       ctrl <- Control()
-      ctrl$node_density_in_birth_date <- birth_date
+      ctrl$node_density_coordinate <- if (birth_date) "birth_date" else "height"
       scm <- SCM(x, environment_type(x))(p, Environment(x), empty_events(), ctrl)
       scm$collect <- TRUE
       scm$run()
@@ -183,7 +183,7 @@ test_that("the birth-date quadrature grid is strictly increasing", {
 test_that("a repeated birth date drops a node out of the competition integral", {
   build <- function(birth_date, times) {
     ctrl <- Control()
-    ctrl$node_density_in_birth_date <- birth_date
+    ctrl$node_density_coordinate <- if (birth_date) "birth_date" else "height"
     st <- FF16_Strategy()
     st$control <- ctrl
     s <- Species("FF16", "FF16_Env")(st)
@@ -286,7 +286,7 @@ test_that("the boundary node's birth date tracks patch time", {
   for (x in c("FF16", "K93")) {
     p <- size_only_parameters(x)
     ctrl <- Control()
-    ctrl$node_density_in_birth_date <- TRUE
+    ctrl$node_density_coordinate <- "birth_date"
     patch <- Patch(x, environment_type(x))(p, Environment(x), ctrl)
 
     for (t in c(0.0, 1.5, 7.25)) {
@@ -312,7 +312,7 @@ test_that("nodes sharing a birth date are rejected in birth-date coordinates", {
   ## A faithful resume carries per-node times, so both coordinates accept it.
   p_ok <- set_initial_state(p, state)
   ctrl_bd <- Control()
-  ctrl_bd$node_density_in_birth_date <- TRUE
+  ctrl_bd$node_density_coordinate <- "birth_date"
   expect_no_error(Patch(x, e)(p_ok, Environment(x), ctrl_bd))
 
   ## Drop them and every node inherits the boundary node's birth date.
@@ -336,7 +336,7 @@ test_that("nodes sharing a birth date are rejected in birth-date coordinates", {
 test_that("the patch control decides the coordinate for every species", {
   x <- "FF16"; e <- "FF16_Env"
   ctrl_bd <- Control()
-  ctrl_bd$node_density_in_birth_date <- TRUE
+  ctrl_bd$node_density_coordinate <- "birth_date"
 
   p0 <- scm_base_parameters(x)
   p <- add_strategies(p0, trait_matrix(c(0.08, 0.2), "lma"),
@@ -376,7 +376,7 @@ log_density_gap <- function(refine) {
   }
   one <- function(birth_date) {
     ctrl <- Control()
-    ctrl$node_density_in_birth_date <- birth_date
+    ctrl$node_density_coordinate <- if (birth_date) "birth_date" else "height"
     scm <- SCM("FF16", "FF16_Env")(interleave_schedule(p_of(), refine),
                                    Environment("FF16"), empty_events(), ctrl)
     scm$run()
@@ -500,7 +500,7 @@ test_that("the collected state carries both densities", {
 test_that("resume reads the raw state, so it is unaffected by the conversion", {
   x <- "FF16"; e <- "FF16_Env"
   ctrl <- Control()
-  ctrl$node_density_in_birth_date <- TRUE
+  ctrl$node_density_coordinate <- "birth_date"
 
   scm <- collected_run(TRUE)
   state <- export_patch_state(scm, step = max(2L, length(scm$history) %/% 2L))
@@ -683,4 +683,69 @@ test_that("a competitively excluded species is no worse off", {
   expect_lt(h[[1]] / max(h), 0.05)
   ## And its relative error is of the same order as the rest.
   expect_lt(rel[[1]], 3 * max(rel[-1]))
+})
+
+## The coordinate is a per-model default, not a global one ------------------
+##
+## The height coordinate's compression term is only the transport equation's
+## compression when growth is a function of size alone, so it is not a free
+## numerical choice: TF24 carries reserves that feed back into growth and needs
+## the birth-date coordinate, while FF16 and K93 do not and keep the coordinate
+## they were calibrated in. Control therefore defaults to "auto" and each model
+## resolves it. These guard the resolution itself, which no convergence test
+## above can see -- they all set the coordinate explicitly.
+
+test_that("Control leaves the coordinate to the model by default", {
+  expect_identical(Control()$node_density_coordinate, "auto")
+})
+
+test_that("auto resolves to the coordinate each model requires", {
+  resolved <- function(x, ctrl = Control()) {
+    ## K93 is parameterised on b_0, not lma, and an unknown trait name is now
+    ## refused (#637), so each model gets a trait it actually has.
+    p <- scm_base_parameters(x)
+    p$max_patch_lifetime <- 5
+    p <- if (x == "K93") {
+      add_strategies(p, trait_matrix(0.059, "b_0"), birth_rate = list(20))
+    } else {
+      add_strategies(p, trait_matrix(0.0825, "lma"),
+                     hyperpar = hyperpar(x), birth_rate = list(20))
+    }
+    run_scm(p, Environment(x), ctrl)$patch$species[[1]]$density_in_birth_date
+  }
+
+  ## TF24's two coordinates disagree by several times, so this is the whole
+  ## point of the default rather than a preference.
+  expect_true(resolved("TF24"))
+  ## FF16's agree to ~5e-5 and K93's to ~5.6e-7, and both are calibrated in
+  ## height, so they must not move.
+  expect_false(resolved("FF16"))
+  expect_false(resolved("K93"))
+
+  ## An explicit setting is an override and beats the model's own requirement,
+  ## which is what keeps both arms of the comparisons above reachable.
+  expect_false(resolved("TF24", Control(node_density_coordinate = "height")))
+  expect_true(resolved("FF16", Control(node_density_coordinate = "birth_date")))
+})
+
+test_that("an unrecognised coordinate is refused rather than guessed", {
+  p <- scm_base_parameters("FF16")
+  p$max_patch_lifetime <- 5
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = list(20))
+
+  ## The two coordinates do not agree for a model with carried state, so a typo
+  ## silently read as one of them would come back as a plausible number rather
+  ## than an error. Each near miss must name what was expected.
+  for (bad in c("birthdate", "birth date", "Height", "birth_dates", "auto ")) {
+    expect_error(run_scm(p, Environment("FF16"),
+                         Control(node_density_coordinate = bad)),
+                 "Unknown node_density_coordinate")
+  }
+
+  ## The empty string is the one non-"auto" value that is accepted, because it
+  ## is how Control already spells "let the model decide" for shading_model.
+  ## Asserted so the two conventions cannot drift apart silently.
+  expect_false(run_scm(p, Environment("FF16"),
+                       Control(node_density_coordinate = ""))$
+                 patch$species[[1]]$density_in_birth_date)
 })
