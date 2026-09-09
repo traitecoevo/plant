@@ -221,3 +221,53 @@ allometry_sapwood_controller <- function(theta_soil, height = 10, a_sw = 1.0,
   d$height <- height
   d
 }
+
+## Step one plant: acclimate wet, zero the mortality integral, drought, recover.
+## Zeroing mortality is what makes sizes comparable -- otherwise a tall plant's
+## answer is dominated by the lifetime of hazard it took to get tall, and the
+## drought's own contribution is unreadable.
+allometry_drought <- function(a_pl0, height, theta_dry, years_dry = 4,
+                              wet = 0.30, acclimate = 2, recover = 4,
+                              a_sw = 0, dt = 0.1) {
+  s <- TF24_Strategy(collect_all_auxiliary = TRUE)
+  s$pars$a_pl0 <- a_pl0
+  s$pars$a_sw  <- a_sw
+  ind <- TF24_Individual(s)
+  ind$set_state("height", height)
+  ind$set_initial_states(tf24_demo_env(wet))
+  run <- function(theta, years) {
+    env <- tf24_demo_env(theta)
+    for (k in seq_len(as.integer(round(years / dt)))) {
+      res <- try(grow_individual_to_time(ind, dt, env), silent = TRUE)
+      if (inherits(res, "try-error")) return(FALSE)
+      ind$ode_state <- as.numeric(res$state[1, ])
+    }
+    TRUE
+  }
+  if (!run(wet, acclimate)) return(NULL)
+  ind$set_state("mortality", 0)
+  if (!run(theta_dry, years_dry)) return(NULL)
+  if (!run(wet, recover)) return(NULL)
+  st <- setNames(as.numeric(ind$ode_state), ind$ode_names)
+  data.frame(a_pl0 = a_pl0, height = height, theta_dry = theta_dry,
+             years_dry = years_dry,
+             survivorship = exp(-st[["mortality"]]),
+             canopy = exp(st[["log_area_leaf_departure"]]),
+             huber = exp(st[["log_area_sapwood_departure"]]))
+}
+
+## The intensity-by-size grid the "does not buy survival" section rests on.
+allometry_drought_grid <- function(heights = c(10, 20, 24),
+                                   thetas = c(0.145, 0.140, 0.135),
+                                   years_dry = 4) {
+  g <- expand.grid(height = heights, theta_dry = thetas)
+  out <- lapply(seq_len(nrow(g)), function(i) {
+    a <- allometry_drought(0.0, g$height[i], g$theta_dry[i], years_dry)
+    b <- allometry_drought(1.0, g$height[i], g$theta_dry[i], years_dry)
+    if (is.null(a) || is.null(b)) return(NULL)
+    data.frame(height = g$height[i], theta_dry = g$theta_dry[i],
+               S_fixed = a$survivorship, S_shed = b$survivorship,
+               min_canopy = b$canopy, gain = b$survivorship / a$survivorship)
+  })
+  do.call(rbind, out)
+}

@@ -293,3 +293,65 @@ test_that("the demo's sapwood-controller claims hold", {
   expect_true(all(starved$dheight < 1e-6))
   expect_true(all(abs(starved$R_s) < 1e-8))
 })
+
+test_that("the demo's 'does not buy survival' claims still hold", {
+  skip_if_not(file.exists(demo_helpers), "demo helpers not present")
+  skip_on_cran()
+  source(demo_helpers, local = TRUE)
+
+  ## This section rotted once already: it carried pre-#617 numbers describing a
+  ## tall-plant cliff that no longer existed, and rendered clean the whole time
+  ## because its tables are prose rather than chunks. These guard the claims.
+  g <- allometry_drought_grid()
+
+  ## 1. THE ORDERING, which is the section's decisive argument. At soil 0.145
+  ##    every plant is healthy and none thins; by 0.140 a 10 m plant is at one
+  ##    in a million and its canopy STILL has not moved. Mortality saturates at
+  ##    a milder drought than shedding begins at.
+  mild <- g[g$theta_dry == 0.145, ]
+  expect_true(all(mild$min_canopy > 0.99))
+  expect_true(all(abs(mild$gain - 1) < 0.01))
+
+  mid10 <- g[g$theta_dry == 0.140 & g$height == 10, ]
+  expect_equal(mid10$min_canopy, 1, tolerance = 1e-3)   # has not thinned
+  expect_lt(mid10$S_fixed, 1e-5)                        # and is already dead
+
+  ## 2. NO RESCUE. The large ratios sit between two very small numbers, so the
+  ##    ratio alone must never be quoted as a survival benefit.
+  expect_gt(max(g$gain), 5)                             # ratios do get large
+  rescued <- g$S_fixed < 0.05 & g$S_shed > 0.2
+  expect_false(any(rescued))
+
+  ## 2b. The trajectory the section quotes: shedding ends BELOW parity, and the
+  ##     height cost is about four metres. Measured on demo_soil_history's own
+  ##     arguments -- quoting a number from a nearby-but-different run is how the
+  ##     Huber-value claim went wrong in an earlier draft.
+  hist <- demo_soil_history(wet = 0.30, dry = 0.11, years_wet = 2, years_dry = 4)
+  tf <- allometry_trajectory(0.0, hist, dt = 0.25)
+  tx <- allometry_trajectory(1.0, hist, dt = 0.25)
+  ratio <- tail(tx$survivorship, 1) / tail(tf$survivorship, 1)
+  expect_lt(ratio, 1)                                   # no gain; slightly worse
+  expect_gt(ratio, 0.9)
+  drop <- tail(tf$height, 1) - tail(tx$height, 1)
+  expect_gt(drop, 3);  expect_lt(drop, 5)               # ~4 m shorter
+  expect_lt(min(tx$canopy_fraction), 0.25)              # it really does thin
+
+  ## 3. Thinning improves the per-leaf carbon balance but cannot close it --
+  ##    the argument that REPLACED "thinning cuts income just as fast" when the
+  ##    stem path integral landed. An interior optimum, and still negative.
+  per_area <- vapply(c(0, -0.7, -1.6, -2.3, -3.0, -4.0), function(k) {
+    s <- TF24_Strategy(collect_all_auxiliary = TRUE)
+    ind <- TF24_Individual(s)
+    ind$set_state("height", 10)
+    ind$set_state("log_area_leaf_departure", k)
+    ind$set_state("log_area_sapwood_departure", -k * 0.35)
+    env <- tf24_demo_env(0.13)
+    ind$set_initial_states(env)
+    ind$compute_rates(env)
+    ind$aux("net_mass_production_dt") / ind$aux("competition_effect")
+  }, numeric(1))
+  expect_true(all(per_area < 0))                        # never reaches balance
+  expect_gt(per_area[[4]], per_area[[1]])               # but thinning helps
+  expect_gt(which.max(per_area), 1)                     # interior optimum
+  expect_lt(which.max(per_area), length(per_area))
+})

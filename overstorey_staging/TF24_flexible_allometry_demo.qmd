@@ -662,7 +662,7 @@ thin are the ones already contributing nothing.
 It does not, however, do what it was *for*. The point was to stop a drop in
 productivity turning straight into death.
 
-```{r survival, fig.height=4, fig.cap="Survivorship falls through ten orders of magnitude with or without the mechanism."}
+```{r survival, fig.height=4, fig.cap="Survivorship falls through nine orders of magnitude with or without the mechanism, and the ratio ends slightly below one."}
 surv <- traj |>
   select(time, theta_soil, allometry, survivorship) |>
   pivot_wider(names_from = allometry, values_from = survivorship) |>
@@ -672,7 +672,7 @@ p_s <- traj |>
   ggplot(aes(time, survivorship, colour = allometry)) +
   dry_band + geom_line(linewidth = 0.9) + scale_y_log10() +
   labs(x = "time (yr)", y = "survivorship", colour = NULL,
-       title = "Survivorship is essentially unchanged")
+       title = "Survivorship is not improved")
 
 p_g <- ggplot(surv, aes(time, gain)) +
   dry_band + geom_hline(yintercept = 1, linewidth = 0.3, colour = "grey50") +
@@ -693,12 +693,30 @@ surv |>
   knitr::kable()
 ```
 
-**The gain is about one per cent**, against a survivorship that falls through ten
-orders of magnitude either way. And thinning *costs* something real: the flexible
-plant finishes around **two metres shorter**, having spent its recovery carbon on
-canopy instead of height. That is why switching the mechanism on lowered lifetime
-offspring production in every stand tested — by factors of 0.55 to 0.64 on seasonal
-stands.
+**There is no gain at all — the ratio ends slightly below one**, against a
+survivorship that falls through nine orders of magnitude either way. And thinning
+*costs* something real: the flexible plant finishes about **four metres shorter**
+(9.5 m against 13.3 m), having spent its recovery carbon on canopy instead of
+height.
+
+At the stand level that cost is now small, which is itself a change: lifetime
+offspring production is essentially unaffected by switching the mechanism on.
+
+| stand | `a_pl0 = 0` | `a_pl0 = 1` | ratio |
+|---|---|---|---|
+| wet, rain 1.5 | 636.9 | 637.0 | 1.000 |
+| seasonal, rain 0.4 | 11.16 | 11.13 | 0.997 |
+| dry, rain 0.6 | 2.73e-5 | 2.52e-5 | 0.924 |
+
+::: {.callout-note}
+## An earlier draft of this page was much harsher, and #617 is the reason
+It reported that shedding *lowered* offspring production by factors of 0.55 to
+0.64 on seasonal stands. Those numbers were taken before the stem path integral
+landed, when resistance was linear in height and tall plants were penalised far
+more heavily. The mechanism is now close to free at the stand level rather than
+expensive — but it still does not buy survival, which is the claim this section
+is about.
+:::
 
 ### Why — and it is not the trigger
 
@@ -712,62 +730,97 @@ leaf area, and only sapwood is sticky:
 | height | leaf | bark | sapwood | root | reachable by thinning |
 |---|---|---|---|---|---|
 | 10 m | 49.6% | 5.4% | 23.5% | 21.5% | **76.5%** |
+| 20 m | 38.5% | 8.4% | 36.4% | 16.7% | **63.6%** |
 
 (An earlier draft of this page claimed sapwood respiration dominated the drought
-deficit. That was wrong, and this table is the retraction.)
+deficit. That was wrong, and this table is the retraction. Sapwood's share does
+grow with height, which is why the tall row is worth showing, but even at 20 m
+most of the bill still follows the canopy.)
 
-**It is that thinning cuts income just as fast.** Assimilation scales with leaf
-area too, so shrinking the canopy shrinks both sides of the budget together. Net
-production per unit leaf area is flat as a plant thins, and slightly *worsens*
-because the stem it still carries is spread over fewer leaves:
+**It is that thinning cannot reach balance, even though it now helps.** This is
+the argument that changed most with #617, and the earlier version of it was
+wrong. Thinning *does* improve the per-leaf carbon balance — by 43% between a full
+canopy and a tenth of one — because the remaining leaves inherit the whole stem's
+hydraulic supply. But the improvement saturates, reverses, and never reaches zero:
 
 | canopy fullness | 1.00 | 0.50 | 0.20 | 0.10 | 0.05 | 0.018 |
 |---|---|---|---|---|---|---|
-| net production per m² leaf | −3.81 | −3.69 | −3.77 | −3.92 | −4.15 | −4.68 |
-| stem per leaf, relative | 1.0 | 1.5 | 2.5 | 3.6 | 5.4 | 9.5 |
+| net production per m² leaf | −1.47 | −1.17 | −0.94 | **−0.84** | −0.86 | −0.99 |
+| stem per leaf, relative | 1.0 | 1.3 | 1.8 | 2.2 | 2.9 | 4.1 |
 
-A plant whose leaves cost more than they earn cannot fix that by having fewer
-leaves. Thinning slows the burn; it never reaches balance.
+::: {.callout-warning}
+## Retraction
+Before #617 this table read −3.81 at a full canopy and *worsened* monotonically to
+−4.68, and the argument was that "thinning cuts income just as fast" — that
+shrinking the canopy shrinks both sides of the budget together. **That is no
+longer true.** With resistance derived from stem anatomy the hydraulic benefit of
+carrying a whole stem over fewer leaves is real and substantial, and there is an
+interior optimum near a tenth of full canopy.
 
-**There is no drought in which it changes the outcome.** Sweeping severity and
-duration, the transition from fine to dead is a *cliff*:
+The conclusion survives the argument being replaced: a plant whose leaves cost
+more than they earn can now *narrow* the gap by having fewer leaves, but it still
+cannot close it. Thinning slows the burn; it never reaches balance.
+:::
 
-| soil water | 0.20 | 0.17 | 0.15 | 0.13 | 0.11 |
+**The transition from fine to dead is a cliff**, and it is narrow in soil water
+whatever the plant's size:
+
+| soil water, 4-yr drought | 0.20 | 0.17 | 0.15 | 0.14 | 0.13 | 0.11 |
+|---|---|---|---|---|---|---|
+| survivorship, 10 m | 0.96 | 0.96 | 0.95 | 1.0e-06 | 9.9e-10 | 4.9e-10 |
+| survivorship, 20 m | 0.96 | 0.96 | 0.85 | 6.0e-08 | 1.7e-09 | 7.3e-10 |
+
+Everything happens between 0.15 and 0.14. Nine orders of magnitude of survivorship
+are crossed in one hundredth of volumetric soil water.
+
+**And the two thresholds are in the wrong order in stress space.** This is the
+decisive measurement. Sweeping intensity at three sizes, and reading the minimum
+canopy the shedding plant reaches beside the survivorship the fixed plant gets:
+
+| height | soil | survivorship, fixed | survivorship, shedding | min canopy | gain |
 |---|---|---|---|---|---|
-| survivorship, 4-yr drought | 0.93 | 0.93 | 0.93 | 4.9e-10 | 3.4e-10 |
+| 10 m | 0.145 | 0.953 | 0.953 | **1.000** — never thins | 1.00 |
+| 10 m | 0.140 | 1.0e-06 | 1.0e-06 | **1.000** — still never thins | 1.00 |
+| 10 m | 0.135 | 3.8e-09 | 7.4e-09 | 0.357 | 1.95 |
+| 20 m | 0.145 | 2.4e-05 | 2.4e-05 | **1.000** | 1.00 |
+| 20 m | 0.140 | 6.0e-08 | 1.4e-07 | 0.674 | 2.36 |
+| 20 m | 0.135 | 5.6e-09 | 1.9e-08 | 0.260 | 3.32 |
+| 24 m | 0.145 | 5.0e-07 | 5.0e-07 | 0.999 | 1.00 |
+| 24 m | 0.140 | 2.8e-08 | 5.6e-07 | 0.467 | **20.1** |
+| 24 m | 0.135 | 5.4e-09 | 2.0e-08 | 0.212 | 3.70 |
 
-**And the trigger is not the problem.** This is the decisive one. We have now run
-two different gates through the same drought:
+Read the rows where the canopy is still **1.000**. At soil 0.145 the plant is
+healthy and its leaves are still profitable, so it has no reason to shed — quite
+right. At 0.140 a 10 m plant is already at a survivorship of one in a million, and
+its canopy *still has not moved*. **Mortality saturates at a milder drought than
+shedding begins at**, so there is no intensity at which a plant is both stressed
+enough to thin and alive enough to profit from it.
 
-| gate | fires when | survival gain | height cost |
-|---|---|---|---|
-| reserve fraction, centred at 0.05 | reserves nearly gone | 1.010 | ~2 m |
-| reserve fraction, moved as early as it goes | reserves at 30% | 1.0–1.13 | more |
-| **marginal leaf balance** (current) | **leaf stops paying, reserves still full** | **1.001** | ~2.5 m |
-
-Firing *earlier*, on a *better-supported* signal, buys nothing. The carbon-balance
-gate is still the right model — the evidence for it is independent of survival —
-but survival is downstream of something else.
-
-**And a grid of intensity against duration shows why.** The two thresholds are in
-the wrong order in stress space:
-
-| soil water | survivorship (fixed, 4 yr) | minimum canopy reached | survival gain |
-|---|---|---|---|
-| 0.145 | 0.911 | **1.000** — never thins | 1.00 |
-| 0.140 | 1.5e-06 | **0.989** — barely thins | **1.06** |
-| 0.135 | 1.0e-09 | 0.317 — thins hard | 1.01 |
-
-At 0.145 the plant is healthy and its leaves are still profitable, so it has no
-reason to shed. By 0.140 it is already effectively dead — and its canopy has moved
-by one per cent. **Mortality saturates at a milder drought than shedding begins
-at**, so there is no intensity at which a plant is both stressed enough to thin and
-alive enough to profit from it. The largest gain in the whole grid, 1.06, sits in
-that gap.
+The largest gain in the grid is 20-fold, and it takes survivorship from 2.8e-08 to
+5.6e-07. Both of those are dead. Across a 90-cell sweep of size, intensity and
+duration there is **no cell** where the fixed plant dies and the shedding plant
+lives.
 
 No gate can fix this, because the ordering is not the gate's doing: mortality
 collapses as soon as net production turns slightly negative, since the pool has no
 resting point and drains completely.
+
+::: {.callout-note}
+## The gate itself was tested, and is not the problem
+Three gates have been run through the same drought. These were measured *before*
+#617 and have not been re-taken, so read the levels as historical — but the
+comparison between them is what matters, and the ordering above is unchanged:
+
+| gate | fires when | survival gain |
+|---|---|---|
+| reserve fraction, centred at 0.05 | reserves nearly gone | 1.010 |
+| reserve fraction, moved as early as it goes | reserves at 30% | 1.0–1.13 |
+| **marginal leaf balance** (current) | **leaf stops paying, reserves still full** | **1.001** |
+
+Firing *earlier*, on a *better-supported* signal, bought nothing. The
+carbon-balance gate is still the right model — the evidence for it is independent
+of survival — but survival is downstream of something else.
+:::
 
 ### The real cause is the reserve pool, and what mortality reads
 
