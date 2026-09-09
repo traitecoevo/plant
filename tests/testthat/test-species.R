@@ -1,13 +1,29 @@
 strategy_types <- get_list_of_strategy_types()
 environment_types <- get_list_of_environment_types()
 
+## The blocks below build a Species directly, outside any Patch, introduce nodes
+## with the no-argument introduce_new_node() -- which leaves every node carrying
+## the same birth date -- and compare the result against cmp_compute_competition,
+## a height-coordinate oracle. They are therefore tests of the height trapezium
+## and have to name that coordinate: TF24 resolves Control's "auto" to birth
+## date, where coincident birth dates span zero width and the integral collapses
+## to exactly 0. A real run cannot reach that state (Patch checks the birth dates
+## are distinct and errors), but a bare Species has no such hook.
+height_coordinate_strategy <- function(x) {
+  s <- strategy_types[[x]]()
+  ctrl <- s$control
+  ctrl$node_density_coordinate <- "height"
+  s$control <- ctrl
+  s
+}
+
 for (x in names(strategy_types)) {
   e <- environment_types[[x]]
 
 
   test_that("Basics", {
     env <- Environment(x)
-    s <- strategy_types[[x]]()
+    s <- height_coordinate_strategy(x)
     sp <- Species(x, e)(s)
     new_node <- Node(x, e)(s)
     plant <- Individual(x, e)(s)
@@ -77,7 +93,7 @@ for (x in names(strategy_types)) {
 
   ## 1: empty species (no nodes) has no leaf area above any height:
   test_that("Empty species has no leaf area", {
-    sp <- Species(x, e)(strategy_types[[x]]())
+    sp <- Species(x, e)(height_coordinate_strategy(x))
     expect_equal(sp$compute_competition(0), 0)
     expect_equal(sp$compute_competition(10), 0)
     expect_equal(sp$compute_competition(Inf), 0)
@@ -86,7 +102,7 @@ for (x in names(strategy_types)) {
   ## 2: Node up against boundary has no leaf area:
   test_that("species with only boundary node no leaf area", {
     env <- Environment(x)
-    sp <- Species(x, e)(strategy_types[[x]]())
+    sp <- Species(x, e)(height_coordinate_strategy(x))
     sp$introduce_new_node()
     sp$compute_rates(env, pr_patch_survival = 1, birth_rate = 1)
     expect_equal(sp$compute_competition(0), 0)
@@ -104,7 +120,7 @@ for (x in names(strategy_types)) {
   ## 3: Single node; one round of trapezium:
   test_that("Leaf area sensible with one node", {
     env <- Environment(x)
-    sp <- Species(x, e)(strategy_types[[x]]())
+    sp <- Species(x, e)(height_coordinate_strategy(x))
     sp$compute_rates(env, pr_patch_survival = 1, birth_rate = 1)
     sp$introduce_new_node()
     h_top <- sp$height_max * 4
@@ -129,7 +145,7 @@ for (x in names(strategy_types)) {
 
   test_that("Leaf area sensible with two nodes", {
     env <- Environment(x)
-    sp <- Species(x, e)(strategy_types[[x]]())
+    sp <- Species(x, e)(height_coordinate_strategy(x))
     sp$compute_rates(env, pr_patch_survival = 1, birth_rate = 1)
     sp$introduce_new_node()
     h_top <- sp$height_max * 4
@@ -155,7 +171,7 @@ for (x in names(strategy_types)) {
 
   test_that("Leaf area sensible with three nodes", {
     env <- Environment(x)
-    sp <- Species(x, e)(strategy_types[[x]]())
+    sp <- Species(x, e)(height_coordinate_strategy(x))
     sp$compute_rates(env, pr_patch_survival = 1, birth_rate = 1)
     sp$introduce_new_node()
     h_top <- sp$height_max * 4

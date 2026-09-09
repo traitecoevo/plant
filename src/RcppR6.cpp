@@ -1707,6 +1707,11 @@ double Node___FF16__FF16_Env__growth_rate_at_birth__get(plant::RcppR6::RcppR6<pl
 }
 
 // [[Rcpp::export]]
+bool Node___FF16__FF16_Env__density_in_birth_date__get(plant::RcppR6::RcppR6<plant::Node<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->density_in_birth_date();
+}
+
+// [[Rcpp::export]]
 double Node___FF16__FF16_Env__fecundity__get(plant::RcppR6::RcppR6<plant::Node<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->fecundity();
 }
@@ -1779,6 +1784,11 @@ double Node___TF24__TF24_Env__introduction_time__get(plant::RcppR6::RcppR6<plant
 // [[Rcpp::export]]
 double Node___TF24__TF24_Env__growth_rate_at_birth__get(plant::RcppR6::RcppR6<plant::Node<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
   return obj_->growth_rate_at_birth();
+}
+
+// [[Rcpp::export]]
+bool Node___TF24__TF24_Env__density_in_birth_date__get(plant::RcppR6::RcppR6<plant::Node<plant::TF24_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->density_in_birth_date();
 }
 
 // [[Rcpp::export]]
@@ -1857,6 +1867,11 @@ double Node___TF24f__TF24_Env__growth_rate_at_birth__get(plant::RcppR6::RcppR6<p
 }
 
 // [[Rcpp::export]]
+bool Node___TF24f__TF24_Env__density_in_birth_date__get(plant::RcppR6::RcppR6<plant::Node<plant::TF24f_Strategy,plant::TF24_Environment> > obj_) {
+  return obj_->density_in_birth_date();
+}
+
+// [[Rcpp::export]]
 double Node___TF24f__TF24_Env__fecundity__get(plant::RcppR6::RcppR6<plant::Node<plant::TF24f_Strategy,plant::TF24_Environment> > obj_) {
   return obj_->fecundity();
 }
@@ -1929,6 +1944,11 @@ double Node___K93__K93_Env__introduction_time__get(plant::RcppR6::RcppR6<plant::
 // [[Rcpp::export]]
 double Node___K93__K93_Env__growth_rate_at_birth__get(plant::RcppR6::RcppR6<plant::Node<plant::K93_Strategy,plant::K93_Environment> > obj_) {
   return obj_->growth_rate_at_birth();
+}
+
+// [[Rcpp::export]]
+bool Node___K93__K93_Env__density_in_birth_date__get(plant::RcppR6::RcppR6<plant::Node<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->density_in_birth_date();
 }
 
 // [[Rcpp::export]]

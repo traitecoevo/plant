@@ -128,7 +128,7 @@ cache deliberately errs toward rerunning.}
   (\code{"failure"} or \code{"success"}).
 
 \code{scenario_control} returns the \code{Control} the gateway runs
-  under: \code{control()} with \code{node_density_in_birth_date = TRUE}.
+  under: \code{control()} with \code{node_density_coordinate = "birth_date"}.
 
   Every scenario here is TF24, and TF24 is the model the two density
   coordinates genuinely disagree on (#590). The transport equation's

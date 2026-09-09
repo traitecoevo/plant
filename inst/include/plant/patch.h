@@ -424,7 +424,7 @@ void Patch<T,E>::check_birth_dates_distinct() const {
                  "and drop out of the competition and resource integrals. Supply "
                  "per-node introduction times (parameters$initial_node_times) "
                  "with the initial state, or run with "
-                 "control$node_density_in_birth_date = FALSE.");
+                 "control$node_density_coordinate = \"height\".");
     }
   }
 }

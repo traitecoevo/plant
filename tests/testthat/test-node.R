@@ -110,9 +110,14 @@ for (x in names(strategy_types)) {
     g <- plant$rate("height")
 
     ## Ode *values*:
+    ## The boundary condition differs by coordinate -- a density in height is
+    ## divided by the growth rate, a density in birth date is not -- so read the
+    ## coordinate off the node rather than assuming one. TF24 resolves Control's
+    ## "auto" to birth date; FF16 and K93 to height.
+    birth_date <- node$density_in_birth_date
     cmp <- c(plant$internals$states,
              0, # offspring_produced_survival_weighted
-             log(pr_estab / g) # log density
+             if (birth_date) log(pr_estab) else log(pr_estab / g) # log density
              )
     cmp[which(plant$ode_names == 'mortality')] <- -log(pr_estab)
     expect_equal(node$ode_state, cmp)
@@ -120,10 +125,13 @@ for (x in names(strategy_types)) {
     expect_identical(node$fecundity, 0.0);
 
     ## Ode *rates*:
+    ## Only a density in height compresses as the spacing between neighbouring
+    ## sizes changes, so only that coordinate carries the gradient term.
     cmp <- c(plant$internals$rates,
              ## This is different to the approach in tree1?
              plant$rate("fecundity") * exp(-plant$state("mortality")),
-             -plant$rate("mortality") - node$growth_rate_gradient(env))
+             -plant$rate("mortality") -
+               if (birth_date) 0 else node$growth_rate_gradient(env))
 
 
     expect_equal(node$ode_rates, cmp)
@@ -166,7 +174,7 @@ for (x in names(strategy_types)) {
 
   test_that(sprintf("density in birth date (%s)", x), {
     ctrl <- Control()
-    ctrl$node_density_in_birth_date <- TRUE
+    ctrl$node_density_coordinate <- "birth_date"
     s <- strategy_types[[x]]()
     s$control <- ctrl
 
@@ -188,8 +196,13 @@ for (x in names(strategy_types)) {
     expect_equal(rates[[length(rates)]],
                  -node$individual$rate("mortality"))
 
-    ## And the height coordinate keeps its compression term.
+    ## And the height coordinate keeps its compression term. Named explicitly:
+    ## TF24 resolves "auto" to birth date, so a default Control here would test
+    ## the same coordinate as the block above.
     s2 <- strategy_types[[x]]()
+    ctrl2 <- s2$control
+    ctrl2$node_density_coordinate <- "height"
+    s2$control <- ctrl2
     node2 <- Node(x, e)(s2)
     node2$compute_initial_conditions(env, pr_patch_survival = 1, birth_rate = 2)
     node2$compute_rates(env, 1)

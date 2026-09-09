@@ -21,6 +21,12 @@ test_that("Defaults", {
     a_st1 = 0.10,
     a_st2 = 0.10,
     a_st3 = 0.8,
+    a_sw = 0.0,
+    a_pl0 = 0.0,
+    a_pl1 = 0.0,
+    a_pl2 = 0.2,
+    a_pl3 = 0.05,
+    a_pl4 = 3.0,
     a_p1   = 151.177775377968,
     a_p2   = 0.204716166503633,
     a_f1   = 1,
@@ -96,8 +102,8 @@ test_that("TF24 collect_all_auxiliary option", {
 
   s <- TF24_Strategy()
   p <- TF24_Individual(s)
-  expect_equal(p$aux_size, 13)
-  expect_equal(length(p$internals$auxs), 13)
+  expect_equal(p$aux_size, 15)
+  expect_equal(length(p$internals$auxs), 15)
 expect_equal(p$aux_names, c(
     "competition_effect",
     "height_inverse",
@@ -111,14 +117,14 @@ expect_equal(p$aux_names, c(
     "shadow_cost",
     "stom_cond_CO2",
     "assimilation",
-    "Tleaf"
+    "Tleaf", "leaf_marginal_return", "sapwood_marginal_return"
   ))
 
   s <- TF24_Strategy(collect_all_auxiliary=TRUE)
   expect_true(s$collect_all_auxiliary)
   p <- TF24_Individual(s)
-  expect_equal(p$aux_size, 14)
-  expect_equal(length(p$internals$auxs), 14)
+  expect_equal(p$aux_size, 16)
+  expect_equal(length(p$internals$auxs), 16)
   expect_equal(p$aux_names, c(
     "competition_effect",
     "height_inverse",
@@ -132,7 +138,7 @@ expect_equal(p$aux_names, c(
     "shadow_cost",
     "stom_cond_CO2",
     "assimilation",
-    "Tleaf",
+    "Tleaf", "leaf_marginal_return", "sapwood_marginal_return",
     "area_sapwood"
   ))
 })
@@ -291,7 +297,11 @@ test_that("offspring arrival", {
   # orders of magnitude.
   p0 <- scm_base_parameters("TF24")
   env <- Environment("TF24")
-  ctrl <- Control()
+  # The height arm of the comparison below, named explicitly: TF24's default is
+  # now the birth-date coordinate ("auto" resolves to it), so a bare Control()
+  # here would silently run both arms in the same coordinate and compare a
+  # number against itself.
+  ctrl <- Control(node_density_coordinate = "height")
   p0$max_patch_lifetime <- 5
 
   # one species
@@ -351,7 +361,7 @@ test_that("offspring arrival", {
   # previously had no upper bound and the median cohort of a mature stand sat at
   # a reserve fraction of exactly 1 with the read clipped there, where it now
   # sits at 0.62 with nothing on the clip.
-  out_bd <- run_scm(p2, env, Control(node_density_in_birth_date = TRUE))
+  out_bd <- run_scm(p2, env, Control(node_density_coordinate = "birth_date"))
   expect_equal(out_bd$offspring_production[[1]], 219.26680110, tolerance = 2e-2)
   expect_equal(out_bd$offspring_production[[2]], 34.58766277, tolerance = 2e-2)
 })
@@ -384,7 +394,13 @@ test_that("the height-linear parameters reproduce the pre-path-integral results"
 
   p0 <- scm_base_parameters("TF24")
   env <- Environment("TF24")
-  ctrl <- Control()
+  # ⚠️ PINNED TO THE HEIGHT COORDINATE. These are develop's pre-#516 values, and
+  # they were taken when Control()'s default resolved to the height coordinate
+  # for TF24. #516 makes "auto" resolve to birth_date for TF24, so a bare
+  # Control() here compares two coordinates rather than two hydraulic models --
+  # it reads 404.5 against 30.2, which looks like a broken exactness test and is
+  # not one. The coordinate has to be named for the comparison to mean anything.
+  ctrl <- Control(node_density_coordinate = "height")
   p0$max_patch_lifetime <- 5
 
   p1 <- add_strategies(p0, trait_matrix(c(0.0825, 5), c("lma", "hmat")),
@@ -398,7 +414,7 @@ test_that("the height-linear parameters reproduce the pre-path-integral results"
   expect_equal(out2$offspring_production[[1]], 23.20349831, tolerance = 2e-2)
   expect_lt(out2$offspring_production[[2]], 0.5)
 
-  out_bd <- run_scm(linear(p2), env, Control(node_density_in_birth_date = TRUE))
+  out_bd <- run_scm(linear(p2), env, Control(node_density_coordinate = "birth_date"))
   expect_equal(out_bd$offspring_production[[1]], 233.05915606, tolerance = 2e-2)
   expect_equal(out_bd$offspring_production[[2]], 43.63800899, tolerance = 2e-2)
 })
@@ -626,7 +642,7 @@ test_that("a run keeps every storage state inside [0, capacity]", {
   p$max_patch_lifetime <- 10
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = TF24_hyperpar,
                       birth_rate = list(1.10))
-  out <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE),
+  out <- run_scm(p, ctrl = Control(node_density_coordinate = "birth_date"),
                  collect = TRUE)
 
   d <- out$species
@@ -657,4 +673,513 @@ test_that("a negative storage state is refused by name, not floored", {
   # domain and not about compute_rates refusing generally.
   ind$set_state("storage", 1e-4)
   expect_no_error(ind$compute_rates(env))
+})
+
+## Leaf area as a state: the departure coordinate (#516) -------------------
+##
+## Leaf area is carried as ln(A / A*(h)), the departure from the leaf area the
+## height allometry prefers, rather than as a level. That choice is what makes
+## the fixed-allometry model an *exact* special case: integrating A alongside
+## height would make A = A*(h) a redundant invariant that Runge-Kutta preserves
+## only to truncation error, so height's rate would read a drifted A.
+##
+## The risk these guard against is the opposite of a wrong number -- a state
+## that is inert because it is unwired looks exactly like one that is inert
+## because it is resting, and only the second is what this claims.
+
+tf24_departure_env <- function() {
+  env <- Environment("TF24")
+  env$set_soil_number_of_depths(5)
+  env$set_soil_water_state(rep(0.2, 5))
+  env$set_fixed_environment(1.0, 40)
+  env
+}
+
+test_that("the leaf-area departure rests at zero and is exactly inert", {
+  env <- tf24_departure_env()
+  ind <- TF24_Individual()
+  expect_true("log_area_leaf_departure" %in% ind$ode_names)
+
+  ## Zero-initialised *is* the on-trajectory value, so a fresh individual needs
+  ## no seeding -- which is also why make_initial_state() and a resume are
+  ## correct without one.
+  expect_identical(ind$state("log_area_leaf_departure"), 0.0)
+
+  ind$compute_rates(env)
+  ## Exactly zero, not merely small: the exactness of the special case rests on
+  ## the integrator stepping a rate of 0.0 and leaving the state at 0.0.
+  expect_identical(ind$rate("log_area_leaf_departure"), 0.0)
+})
+
+test_that("leaf area is the allometric value times exp(departure)", {
+  env <- tf24_departure_env()
+  s <- TF24_Strategy()
+
+  for (h in c(0.4, 1.0, 5.0, 15.0)) {
+    ind <- TF24_Individual(s)
+    ind$set_state("height", h)
+
+    ## At rest, exactly the plain allometry it replaced. Compared against the
+    ## strategy's own expand_allometry rather than a formula written out here,
+    ## so the allometry still lives in one place.
+    at_rest <- ind$aux("competition_effect")
+    expect_identical(at_rest,
+                     TF24_strategy_expand_allometry(s, h, 0, 0)$area_leaf)
+
+    ## And it moves, by exactly exp(phi). An unwired state would leave leaf
+    ## area pinned to the allometry whatever the departure said, and a ratio
+    ## is the sharpest form of the claim because the exp factor is the whole
+    ## content of the coordinate.
+    for (phi in c(-0.7, -0.1, 0.25)) {
+      ind$set_state("log_area_leaf_departure", phi)
+      expect_equal(ind$aux("competition_effect") / at_rest, exp(phi))
+    }
+  }
+})
+
+test_that("a thinned canopy is an ordinary state, not a domain violation", {
+  env <- tf24_departure_env()
+  ind <- TF24_Individual()
+  ind$set_state("height", 5.0)
+
+  ## The departure is a signed log ratio, so it must not be bounded below --
+  ## a non-negative declaration would reject ordinary canopy thinning once the
+  ## plasticity terms are switched on. Half a canopy is -log(2).
+  for (phi in c(-log(2), -2.0, -5.0)) {
+    ind$set_state("log_area_leaf_departure", phi)
+    ind$set_initial_states(env)
+    expect_no_error(ind$compute_rates(env))
+    expect_true(is.finite(ind$aux("net_mass_production_dt")))
+    expect_gt(ind$aux("competition_effect"), 0)
+  }
+})
+
+test_that("the sapwood departure sets the Huber value and rests inert", {
+  env <- tf24_departure_env()
+  ind <- TF24_Individual(TF24_Strategy(collect_all_auxiliary = TRUE))
+  expect_true("log_area_sapwood_departure" %in% ind$ode_names)
+  expect_identical(ind$state("log_area_sapwood_departure"), 0.0)
+  ind$compute_rates(env)
+  expect_identical(ind$rate("log_area_sapwood_departure"), 0.0)
+})
+
+test_that("sapwood area is theta * leaf area * exp(sapwood departure)", {
+  env <- tf24_departure_env()
+  s <- TF24_Strategy(collect_all_auxiliary = TRUE)
+  theta <- s$pars$theta
+
+  for (h in c(1.0, 5.0, 15.0)) {
+    ind <- TF24_Individual(s)
+    ind$set_state("height", h)
+    ind$compute_rates(env)
+    leaf <- ind$aux("competition_effect")
+
+    ## At rest, exactly the pipe-model value.
+    expect_identical(ind$aux("area_sapwood"), leaf * theta)
+
+    ## A stem that keeps its conducting area while the canopy thins carries a
+    ## higher Huber value, which is the whole mechanism: it is what makes
+    ## per-leaf-area maintenance cost rise and per-leaf-area hydraulic supply
+    ## improve as a plant thins out.
+    for (psi in c(-0.3, 0.4, 1.0)) {
+      ind$set_state("log_area_sapwood_departure", psi)
+      ind$compute_rates(env)
+      expect_equal(ind$aux("area_sapwood") / (leaf * theta), exp(psi))
+    }
+  }
+})
+
+test_that("a departed Huber value carries through to storage capacity", {
+  env <- tf24_departure_env()
+  s <- TF24_Strategy()
+  cap <- function(psi) {
+    ind <- TF24_Individual(s)
+    ind$set_state("height", 5.0)
+    ind$set_state("log_area_sapwood_departure", psi)
+    ind$set_initial_states(env)
+    ## Seeded at a_st3 of capacity, so the state reports capacity up to a
+    ## constant -- which is all a ratio needs.
+    ind$state("storage")
+  }
+  ## Capacity is a_st1 * mass_sapwood, and mass_sapwood is linear in sapwood
+  ## area, so it must inherit exp(psi) exactly. This is the route by which
+  ## freeing sapwood closes the mortality free lunch: shedding leaves no longer
+  ## shrinks the denominator of the reserve fraction that mortality reads.
+  for (psi in c(-0.5, 0.6)) {
+    expect_equal(cap(psi) / cap(0), exp(psi))
+  }
+})
+
+
+test_that("the gate reads the marginal leaf, not the reserve pool", {
+  s <- TF24_Strategy(collect_all_auxiliary = TRUE)
+  s$pars$a_pl0 <- 1.0
+
+  probe <- function(theta_soil) {
+    env <- Environment("TF24")
+    env$set_soil_number_of_depths(5)
+    env$set_soil_water_state(rep(theta_soil, 5))
+    env$set_fixed_environment(1.0, 40)
+    ind <- TF24_Individual(s)
+    ind$set_state("height", 5.0)
+    ind$set_initial_states(env)          # reserves at a_st3 = 0.8 of capacity
+    ind$compute_rates(env)
+    list(dphi = ind$rate("log_area_leaf_departure"),
+         dpsi = ind$rate("log_area_sapwood_departure"),
+         margin = ind$aux("leaf_marginal_return"))
+  }
+
+  wet <- probe(0.30)
+  dry <- probe(0.11)
+
+  ## THE POINT OF THE CHANGE. Reserves sit at 0.8 of capacity in BOTH cases, so
+  ## a reserve-gated version could not fire at all here. The gate now reads
+  ## whether the marginal leaf covers its own upkeep -- Manzoni et al. (2015)'s
+  ## optimum -- so it fires while the plant is still carbon-rich, which is what
+  ## the field data show and what waiting for reserves cannot do.
+  expect_gt(wet$margin, 0)               # leaves pay for themselves
+  expect_lt(dry$margin, 0)               # they do not
+  expect_equal(wet$dphi, 0, tolerance = 1e-9)
+  expect_lt(dry$dphi, -0.1)
+  expect_gt(dry$dpsi, 0)
+
+  ## Withholding cannot exceed the turnover it declines to replace, so thinning
+  ## is bounded by k_l however negative the balance goes.
+  expect_gte(dry$dphi, -s$pars$k_l)
+
+  ## a_pl1 is a marginal return now, not a reserve level, and its default of
+  ## zero IS the break-even criterion.
+  expect_identical(TF24_Strategy()$pars$a_pl1, 0.0)
+})
+
+test_that("the gate reads a running mean, not the instantaneous balance", {
+  s <- TF24_Strategy(collect_all_auxiliary = TRUE)
+  s$pars$a_pl0 <- 1.0
+
+  wet <- Environment("TF24"); wet$set_soil_number_of_depths(5)
+  wet$set_soil_water_state(rep(0.30, 5)); wet$set_fixed_environment(1.0, 40)
+  dry <- Environment("TF24"); dry$set_soil_number_of_depths(5)
+  dry$set_soil_water_state(rep(0.11, 5)); dry$set_fixed_environment(1.0, 40)
+
+  ind <- TF24_Individual(s)
+  ind$set_state("height", 5.0)
+  ind$set_initial_states(wet)            # a history of good conditions
+  ind$compute_rates(dry)                 # then one dry evaluation
+
+  ## Assimilation swings with the weather. A plant that shed on the strength of
+  ## a single dry evaluation would flicker in and out of leaf, so the gate reads
+  ## a running mean that a brief spell cannot move far.
+  expect_lt(ind$aux("leaf_marginal_return"), 0)          # instantaneous: bad
+  expect_gt(ind$state("leaf_marginal_return_tracked"), 0) # the memory: still good
+  expect_equal(ind$rate("log_area_leaf_departure"), 0, tolerance = 1e-9)
+
+  ## And the memory chases the instantaneous value at a_pl4, downward here.
+  expect_lt(ind$rate("leaf_marginal_return_tracked"), 0)
+
+  ## Seeded from the plant's own first evaluation, so a newborn does not start
+  ## at the gate's centre withholding half its replacement.
+  fresh <- TF24_Individual(s)
+  fresh$set_state("height", 5.0)
+  fresh$set_initial_states(wet)
+  fresh$compute_rates(wet)
+  expect_equal(fresh$state("leaf_marginal_return_tracked"),
+               fresh$aux("leaf_marginal_return"), tolerance = 1e-8)
+  expect_equal(fresh$rate("leaf_marginal_return_tracked"), 0, tolerance = 1e-8)
+})
+
+test_that("the canopy floor bounds thinning, by the shape of the flow", {
+  s <- TF24_Strategy(collect_all_auxiliary = TRUE)
+  s$pars$a_pl0 <- 1.0
+  floor_phi <- log(s$pars$a_pl3)
+
+  env <- Environment("TF24")
+  env$set_soil_number_of_depths(5)
+  env$set_soil_water_state(rep(0.11, 5))     # deficit, so the gate is wide open
+  env$set_fixed_environment(1.0, 40)
+
+  rate_at <- function(phi) {
+    ind <- TF24_Individual(s)
+    ind$set_state("height", 5.0)
+    ind$set_state("log_area_leaf_departure", phi)
+    ind$set_initial_states(env)
+    ind$compute_rates(env)
+    ind$rate("log_area_leaf_departure")
+  }
+
+  ## Thinning tapers to nothing AT the floor, so phi >= log(a_pl3) holds by the
+  ## form rather than by a clamp. That is what keeps leaf area in a range where
+  ## the arithmetic means something: without it the canopy decays exponentially
+  ## with no bound -- measured at 2e-8 for a fast-leaved species, and 0.000 for a
+  ## suppressed cohort in a plain wet stand, with divisions by leaf area
+  ## reaching 1e9 inside a solver step shared with live cohorts.
+  expect_lt(rate_at(-0.2), 0)                       # thinning freely
+  ## At the floor the shedding term is exactly zero, so what remains is the
+  ## rebuild term: the flow points INWARD (upward), not merely to a standstill.
+  ## That is the invariant working -- phi cannot cross log(a_pl3) from above.
+  expect_gte(rate_at(floor_phi), 0)
+
+  ## Tapering rather than stepping, so the bound costs the solver nothing.
+  near <- rate_at(floor_phi + 0.02)
+  expect_lt(near, 0)
+  expect_gt(near, rate_at(floor_phi + 0.5))
+
+  ## A drought-deciduous species stays reachable by lowering the floor. Not the
+  ## habit this is aimed at, but it must not be excluded by construction.
+  s$pars$a_pl3 <- 1e-6
+  expect_lt(rate_at(log(0.02)), -0.1)
+})
+
+test_that("a plant whose leaves pay for themselves replaces all of them", {
+  s <- TF24_Strategy()
+  s$pars$a_pl0 <- 1.0
+  env <- Environment("TF24")
+  env$set_soil_number_of_depths(5)
+  env$set_soil_water_state(rep(0.30, 5))
+  env$set_fixed_environment(1.0, 40)
+
+  ind <- TF24_Individual(s)
+  ind$set_state("height", 5.0)
+  ind$set_initial_states(env)
+  ind$compute_rates(env)
+
+  expect_equal(ind$rate("log_area_leaf_departure"), 0, tolerance = 1e-9)
+  expect_equal(ind$rate("log_area_sapwood_departure"), 0, tolerance = 1e-9)
+})
+
+test_that("a_pl0 = 0 leaves both departures exactly inert", {
+  env <- tf24_departure_env()
+  expect_identical(TF24_Strategy()$pars$a_pl0, 0.0)
+
+  ## The off switch is exact, not approximate: it zeroes the withheld fraction,
+  ## which leaves the resting model bit-identical. Asserted at reserve levels
+  ## that would otherwise thin hard.
+  for (storage in c(0.0, 1e-9)) {
+    ind <- TF24_Individual()
+    ind$set_state("height", 5.0)
+    ind$set_state("storage", storage)
+    ind$compute_rates(env)
+    expect_identical(ind$rate("log_area_leaf_departure"), 0.0)
+    expect_identical(ind$rate("log_area_sapwood_departure"), 0.0)
+  }
+})
+
+test_that("the Huber value has a restoring force and cannot fall below preferred", {
+  env <- tf24_departure_env()
+  s <- TF24_Strategy()
+  s$pars$a_pl0 <- 1.0
+  k_l <- s$pars$k_l
+  k_s <- s$pars$k_s
+
+  ## The gate reads the marginal leaf now, so stress is applied through soil
+  ## water rather than by draining the pool.
+  dry <- Environment("TF24")
+  dry$set_soil_number_of_depths(5)
+  dry$set_soil_water_state(rep(0.11, 5))
+  dry$set_fixed_environment(1.0, 40)
+  rate_at <- function(psi, unused = 0) {
+    ind <- TF24_Individual(s)
+    ind$set_state("height", 5.0)
+    ind$set_state("log_area_sapwood_departure", psi)
+    ind$set_initial_states(dry)
+    ind$compute_rates(dry)
+    ind$rate("log_area_sapwood_departure")
+  }
+
+  ## psi >= 0 is invariant, and it is a property of the form rather than a
+  ## guard: at psi = 0 the two replacement fractions coincide, so the rate is
+  ## (1 - replacement) * (k_l - k_s), which is non-negative because k_l > k_s.
+  ## The flow at the boundary points inward, so a stem cannot end up with less
+  ## conducting area than its canopy prefers.
+  expect_gt(k_l, k_s)
+  expect_gte(rate_at(0.0, 0.0), 0)
+
+  ## Excess sapwood is renewed less, so the departure is pulled back. This is
+  ## the restoring force that was missing: without it psi drifted, and measured,
+  ## it drifted the wrong way and left plants under-built.
+  expect_lt(rate_at(1.5, 0.0), rate_at(0.0, 0.0))
+
+  ## The restoring force is relative to carbon status, NOT absolute. Given
+  ## carbon to spend, an over-built stem is pulled back to its preferred ratio.
+  wet <- Environment("TF24")
+  wet$set_soil_number_of_depths(5)
+  wet$set_soil_water_state(rep(0.30, 5))
+  wet$set_fixed_environment(1.0, 40)
+  ample <- function(psi) {
+    ind <- TF24_Individual(s)
+    ind$set_state("height", 5.0)
+    ind$set_state("log_area_sapwood_departure", psi)
+    ind$set_initial_states(wet)
+    ind$compute_rates(wet)
+    ind$rate("log_area_sapwood_departure")
+  }
+  expect_lt(ample(1.5), 0)
+  expect_equal(ample(0.0), 0, tolerance = 1e-12)
+
+  ## But with reserves EMPTY it keeps rising however over-built the stem is,
+  ## because withheld leaf turnover (k_l) outruns withheld sapwood renewal
+  ## (k_s) whatever psi does. That is arithmetic rather than a defect -- a plant
+  ## thinning its canopy at 46 per cent a year while losing conducting area at
+  ## 20 per cent really does raise its Huber value -- but it means neither
+  ## departure is bounded under a PERMANENT deficit. See the note (#516): a
+  ## plant in that state is dying, and what bounds it is mortality removing the
+  ## cohort, not the allometry.
+  expect_gt(rate_at(6.0, 0.0), 0)
+})
+
+test_that("rebuilding a canopy does not dilute the Huber value", {
+  env <- tf24_departure_env()
+  s <- TF24_Strategy()
+  s$pars$a_pl0 <- 1.0
+
+  ## A plant with a canopy gap and ample reserves rebuilds. Buying leaf area
+  ## alone would lower sapwood per leaf area; buying the whole package at the
+  ## preferred ratio must not, so at psi = 0 the rebuild contributes nothing to
+  ## the sapwood departure and the boundary flow stays non-negative.
+  ind <- TF24_Individual(s)
+  ind$set_state("height", 5.0)
+  ind$set_state("log_area_leaf_departure", -0.5)
+  ind$set_initial_states(env)          # reserves ample, so rebuilding is on
+  ind$compute_rates(env)
+
+  expect_gt(ind$rate("log_area_leaf_departure"), 0)   # the canopy is rebuilding
+  expect_gte(ind$rate("log_area_sapwood_departure"), 0)
+})
+
+test_that("new growth is priced at the Huber value the plant actually carries", {
+  env <- tf24_departure_env()
+  s <- TF24_Strategy(collect_all_auxiliary = TRUE)
+
+  ## dmass_sapwood_darea_leaf used pars.theta, so a plant holding extra
+  ## conducting area got its hydraulic benefit for free and paid the pipe-model
+  ## price for new growth. That is most of why net production appeared to peak
+  ## at 3.3x the pipe-model ratio; priced properly, GROWTH peaks near 1.4-1.8x.
+  growth_at <- function(psi, h = 10) {
+    ind <- TF24_Individual(s)
+    ind$set_state("height", h)
+    ind$set_state("log_area_sapwood_departure", psi)
+    ind$set_initial_states(env)
+    ind$compute_rates(env)
+    c(P = ind$aux("net_mass_production_dt"), dh = ind$rate("height"))
+  }
+
+  psis <- seq(0, 2.4, by = 0.3)
+  out <- vapply(psis, growth_at, numeric(2))
+  P <- out["P", ]; G <- out["dh", ]
+
+  ## Both have interior optima, and the growth one sits well below the
+  ## production one -- because extra stem is now paid for in forgone leaf growth.
+  ## The ORDERING is the invariant here, not the levels: #617 moved both optima
+  ## in (the path integral lowers resistance for tall plants, so extra sapwood
+  ## buys less), and pinning a level would have to be re-pinned by any change to
+  ## the hydraulics. What must survive is that growth's optimum is strictly
+  ## inside production's.
+  expect_gt(which.max(P), 1)
+  expect_lt(which.max(G), which.max(P))
+  expect_lt(exp(psis[which.max(G)]), exp(psis[which.max(P)]))
+
+  ## Bark stays pinned to leaf area, so it must NOT move with the departure:
+  ## at rest the whole thing is bitwise what it replaced, which the exactness
+  ## check elsewhere covers, and here the resting growth is simply positive.
+  expect_gt(G[[1]], 0)
+})
+
+## --- Sapwood tracks the Huber value that maximises GROWTH (#516) -----------
+## The defining property is not that the controller has the right sign, but that
+## its zero sits on the argmax of dh/dt. Production and growth have different
+## optima -- production keeps rising well past 3x the pipe-model ratio, because
+## nothing in it charges the plant for the stem -- so a controller built on the
+## wrong one is wrong in a way that still looks monotone and still converges.
+
+tf24_sapwood_probe <- function(psi, theta_soil, a_sw = 1.0, height = 10) {
+  s <- TF24_Strategy(collect_all_auxiliary = TRUE)
+  s$pars$a_sw <- a_sw
+  env <- Environment("TF24")
+  env$set_soil_number_of_depths(5L)
+  env$set_soil_water_state(rep(theta_soil, 5L))
+  env$set_fixed_environment(1.0, 40)
+  ind <- TF24_Individual(s)
+  ind$set_state("height", height)
+  ind$set_state("log_area_sapwood_departure", psi)
+  ind$set_initial_states(env)
+  ind$compute_rates(env)
+  list(R_s = ind$aux("sapwood_marginal_return"),
+       dpsi = ind$rate("log_area_sapwood_departure"),
+       dheight = ind$rate("height"))
+}
+
+test_that("sapwood acclimation is inert at a_sw = 0", {
+  ## a_sw = 0 is the default, and is what keeps the fixed-allometry model
+  ## recoverable: the controller must contribute exactly nothing, not merely a
+  ## small amount. Zero exactly, so it cannot perturb the stepper either.
+  off <- tf24_sapwood_probe(0.2, 0.20, a_sw = 0.0)
+  expect_identical(off$R_s, 0.0)
+  on  <- tf24_sapwood_probe(0.2, 0.20, a_sw = 1.0)
+  expect_gt(abs(on$R_s), 1e-3)
+  ## and with the controller off the rate is whatever the mass flows alone say
+  expect_equal(on$dpsi - off$dpsi, on$R_s, tolerance = 1e-12)
+})
+
+test_that("the sapwood controller vanishes exactly at the growth optimum", {
+  # Spans BELOW the pipe model: after #617 a short plant's optimum is at
+  # psi < 0, so a grid starting at zero would report its left edge as the peak.
+  psi <- seq(-0.3, 0.6, by = 0.025)
+  d <- vapply(psi, function(p) {
+    r <- tf24_sapwood_probe(p, 0.20)
+    c(r$R_s, r$dheight)
+  }, numeric(2))
+  R_s <- d[1, ]; dh <- d[2, ]
+
+  ## R_s crosses zero exactly once, downwards.
+  expect_gt(R_s[[1]], 0)
+  expect_lt(R_s[[length(R_s)]], 0)
+  expect_equal(sum(diff(sign(R_s)) != 0), 1L)
+
+  ## ...and it crosses where growth peaks. Compared on the grid rather than by
+  ## interpolation, so a controller optimising production instead (whose zero
+  ## sits far to the right, near 3x) fails rather than passing on a tolerance.
+  psi_zero <- psi[which.min(abs(R_s))]
+  psi_peak <- psi[which.max(dh)]
+  expect_equal(psi_zero, psi_peak)
+
+  ## The optimum is genuinely NOT the pipe-model ratio, and -- the part that
+  ## cannot be reproduced by any single fixed theta -- it RISES WITH HEIGHT.
+  ## After #617 a 5 m plant wants less stem per leaf than the pipe model and a
+  ## 20 m plant wants more, so it is the trend that is asserted rather than a
+  ## level: the level moved from 1.35x to 1.05x when the path integral landed,
+  ## and would move again with the hydraulics.
+  peak_at <- function(h) {
+    d <- vapply(psi, function(p) tf24_sapwood_probe(p, 0.20, height = h)$dheight,
+                numeric(1))
+    exp(psi[which.max(d)])
+  }
+  expect_lt(peak_at(5), peak_at(10))
+  expect_lt(peak_at(10), peak_at(16))
+  expect_lt(peak_at(5), 1.0)          # a short plant wants LESS than the pipe model
+  expect_gt(peak_at(16), 1.1)         # a tall one wants more
+})
+
+test_that("the sapwood controller switches off when there is no carbon", {
+  ## Re-proportioning the stem is an allocation decision, so it must stop when
+  ## there is no growth flux to pay for it -- otherwise the drift builds real
+  ## tissue for free. Reserves are still full at this soil water, so the reserve
+  ## gate G alone would NOT catch this: what has gone to zero is production.
+  ## Not exactly zero: the availability factor is a smooth share of throughput,
+  ## so it goes to ~1e-11 rather than snapping to 0 -- which is the point, a
+  ## hard cut here would be a breakpoint in the rate. Negligible against the
+  ## ~0.26 the same probe returns in the wet.
+  dry <- tf24_sapwood_probe(0.2, 0.13)
+  expect_lt(abs(dry$R_s), 1e-8)
+  wet <- tf24_sapwood_probe(0.2, 0.20)
+  expect_gt(abs(wet$R_s), 1e-3)
+})
+
+test_that("sapwood acclimation is refused under deep crown", {
+  ## The sensitivity is measured at a single radiation, which deep-crown's
+  ## integrated profit is not a function of. Skipping it would leave the
+  ## controller with only its negative cost term and shrink the stem forever,
+  ## so this must fail loudly instead.
+  s <- TF24_Strategy()
+  s$pars$a_sw <- 1.0
+  s$control$shading_model <- "deep-crown"
+  expect_error(TF24_Individual(s), "deep-crown")
 })
