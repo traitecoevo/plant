@@ -51,7 +51,7 @@ compile_ff16_resident_ad <- function() {
         std::vector<S> yk(xk.size());
         for (size_t i = 0; i < xk.size(); ++i)
           yk[i] = exp(-density * k_I * area_leaf * qfrac_knot[i]);
-        odelia::interpolator::basic_interpolator<S> light;
+        odelia::interpolator::hermite_interpolator<S> light;
         light.init(xk, yk);
         S assim = plant::ff16_assimilation_deep_crown_replay<S>(
             p.a_p1, p.a_p2, area_leaf, z, wq,
