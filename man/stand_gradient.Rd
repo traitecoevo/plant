@@ -4,7 +4,7 @@
 \alias{stand_gradient}
 \title{Gradient of a stand's census metrics with respect to traits.}
 \usage{
-stand_gradient(scm, metrics = NULL, traits = NULL)
+stand_gradient(scm, metrics = NULL, traits = NULL, hyperpar = NULL)
 }
 \arguments{
 \item{scm}{A run \code{SCM} object for the TF24 strategy.}
@@ -13,22 +13,20 @@ stand_gradient(scm, metrics = NULL, traits = NULL)
 
 \item{traits}{Column names to differentiate with respect to; defaults to
 every differentiable parameter every species declares. A column is named
-for its species and its parameter, as \code{"1.lma"}.}
+for its species and its parameter, as \code{"1.lma"}. With \code{hyperpar},
+these name the traits to differentiate through it, and must be given.}
+
+\item{hyperpar}{\code{NULL}, or the hyperparameter function the stand was
+built with, as \code{TF24_hyperpar}. See the section on traits and
+parameters.}
 }
 \value{
 A list with \code{value}, the metrics at the end of the run;
   \code{gradient}, a metrics-by-traits matrix; \code{refusal}, one entry per
   metric holding the reason and where it was found, or \code{NULL} where the
   metric answered; and \code{control}, the entries the gradient was taken at.
-
-  A refused metric's whole row is \code{NaN}: a sum has no defined value with
-  an undefined term, so refusal is metric-level and carries no localisation
-  within a metric. Every other number is one the sweep computed, an exact
-  zero included — a parameter no gradient exists for cannot be asked for, so
-  it never reaches a column. \code{psi_crit} and \code{root_psi_crit} are
-  two such: each is derived from its curve's \code{(P50, c)} pair, which
-  \code{phylloptim} derives for itself, so setting one reaches no equation
-  and asking for its gradient errors rather than returning a zero.
+  With \code{hyperpar}, also \code{jacobian}: for each trait, the derivative of
+  every parameter the hyperparameter function derives from it.
 }
 \description{
 Doubles in and doubles out: the active scalar is created and destroyed inside
@@ -41,6 +39,32 @@ back over the steps the adaptive pass resolved; added to it is the census's own
 reading of the traits at that state, which is not a sensitivity of the state
 and so no sweep produces it.
 }
+\section{Traits and parameters}{
+
+⚠️ **Without \code{hyperpar}, each column is a PARTIAL derivative with every
+other parameter held fixed**, including those a hyperparameter function
+derives from the trait. \code{TF24_hyperpar} sets \code{k_l}, \code{r_l} and
+\code{nmass_l} from \code{lma}, so \code{gradient[, "1.lma"]} is not the
+derivative a trait fit wants: on a 3-year stand it was 2.4 to 4 times a
+finite difference of \code{lma} through \code{add_strategies()}.
+
+Pass \code{hyperpar} for the total derivative with respect to the traits as a
+trait matrix gives them. Each trait's column is its own partial plus every
+derived parameter's partial times that parameter's derivative with respect
+to the trait. The hyperparameter function is closed-form, so that derivative
+is taken by central difference of the function itself, costing no model run.
+Pass the function the stand was built with: a run does not record it.
+
+  A refused metric's whole row is \code{NaN}: a sum has no defined value with
+  an undefined term, so refusal is metric-level and carries no localisation
+  within a metric. Every other number is one the sweep computed, an exact
+  zero included — a parameter no gradient exists for cannot be asked for, so
+  it never reaches a column. \code{psi_crit} and \code{root_psi_crit} are
+  two such: each is derived from its curve's \code{(P50, c)} pair, which
+  \code{phylloptim} derives for itself, so setting one reaches no equation
+  and asking for its gradient errors rather than returning a zero.
+}
+
 \section{A single entry can dominate a second moment}{
 
 A gradient taken where the run crosses an unresolved event — a cohort

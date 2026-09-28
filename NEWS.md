@@ -205,6 +205,27 @@ products using plant.
   constant -- so a consumer forming the bound's row needs to know which bound.
   Measured: at shipped defaults every dry pin is on the root-crit arm.
 
+* **`stand_gradient()`'s columns are partial derivatives, and `hyperpar =` gives
+  the trait derivative.** Each column is the derivative with every other
+  parameter held fixed, including those a hyperparameter function derives from
+  the trait. `TF24_hyperpar` sets `k_l`, `r_l` and `nmass_l` from `lma`, so
+  `gradient[, "1.lma"]` was 2.4 to 3.4 times a finite difference of `lma` through
+  `add_strategies()` on a 3-year stand. `stand_gradient(scm, traits = "1.lma",
+  hyperpar = TF24_hyperpar)` returns the total instead, agreeing with that
+  difference to 1e-4 or better. It also returns `$jacobian`, the derivative of
+  each derived parameter. Pass the function the stand was built with, because a
+  run does not record it. Without `hyperpar`, results are unchanged.
+
+* **Growth is billed on the carbon kept again, and an infeasible leaf solve is a
+  rejected step again.** Both regressed when TF24's model moved into its
+  templated header. `net_mass_production_dt` adds `leaf.shadow_cost()` back to
+  the objective, as it did before; without it, growth at a non-zero
+  `TF24_floor_lambda_o` was taxed 2.3% to 22.6% for carbon never spent, and the
+  gradient's active path carries the same term. Both TF24 and TF24f `solve_leaf`
+  once more translate phylloptim's `infeasible_error` into odelia's domain error
+  (#608), so the stepper shrinks and retries instead of ending the run. Both are
+  bit-neutral at the default price and on any feasible solve.
+
 * **The census trait gradient says why a metric has no numbers, instead of
   raising.** A refusal used to escape to the R prompt as an error, with nothing a
   caller could inspect and no way to keep the metrics that did answer.
