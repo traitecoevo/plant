@@ -148,8 +148,12 @@ void TF24f_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,
 // compute_rates' aux reads expect. Two gradient methods are available
 // (use_ad_gradient): the exact AD/IFT gradient (default, #527) or a centred
 // finite difference (#526); see the branches below.
+// A function-try-block, so every exit of the body is covered: phylloptim's
+// infeasible_error becomes odelia's DomainError, a rejected step rather than a
+// dead run, for the reason TF24_Strategy::solve_leaf gives. Only that error is
+// translated; anything else still propagates.
 template <typename S>
-void TF24f_Strategy<S>::solve_leaf() {
+void TF24f_Strategy<S>::solve_leaf() try {
   if (initializing_) {
     // Birth initialisation: run the full optimiser so set_initial_states can
     // read the optimum collar psi.
@@ -203,6 +207,8 @@ void TF24f_Strategy<S>::solve_leaf() {
     dprofit_dpsi_ = (p_plus - p_minus) / (2.0 * h);
     this->leaf.template profit_at_collar_psi<phylloptim::Leaf::CostCurve::TF24_floor>(used, bound_a, bound_b);  // restore operating point
   }
+} catch (const phylloptim::util::infeasible_error& e) {
+  odelia::util::stop_domain(std::string("leaf solve infeasible: ") + e.what());
 }
 
 // Seed the tracked state at its optimum: run the base optimiser once (via the

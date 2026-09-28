@@ -1461,17 +1461,21 @@ public:
   // Written by net_mass_production_dt before compute_rates reads either.
   S leaf_profit_;
   std::vector<S> leaf_soil_consumption_;
+  // The shadow price of the water the leaf used, `lambda_o * E`: added back to
+  // the objective to give the carbon kept (net_mass_production_dt says why).
+  S leaf_shadow_cost_;
 
-  // Every active value this strategy holds: the whole parameter table, the two
-  // leaf outputs, and the per-layer root carbon. `leaf` is not among them -- it
+  // Every active value this strategy holds: the whole parameter table, the leaf
+  // outputs, and the per-layer root carbon. `leaf` is not among them -- it
   // solves in double, which is what keeps the leaf off the tape.
+  // ⚠️ A LEAF OUTPUT LEFT OFF THIS LIST CARRIES NO ROWS, SILENTLY.
   template <class F>
   void for_each_active(F&& f) {
     for (const ad_parameter& field : pars.ad_parameter_table()) {
       f(pars.*field.at);
     }
     odelia::ode::visit_active(f, leaf_profit_, leaf_soil_consumption_,
-                              root_carbon_per_leaf_area_);
+                              leaf_shadow_cost_, root_carbon_per_leaf_area_);
   }
 };
 
@@ -1641,6 +1645,11 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& radiation,
   };
   double slope = std::numeric_limits<double>::quiet_NaN();
   Leaf::LeafOutputs<S> got;
+  // Transpiration at the collar the solve placed, carrying its move: the draw is
+  // taken at the passive collar, so its flux alone would miss dcollar/dtheta. The
+  // step is zero in value and its slope is the draw's own. Read for the shadow
+  // cost below.
+  S transpiration_at = S(leaf.transpiration_);
   try {
     if (leaf.operating_point_kind() == Leaf::OperatingPointKind::Interior) {
       slope = leaf.template marginal_collar_slope<
@@ -1723,6 +1732,8 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& radiation,
                                                                       slope);
     got = leaf.template outputs_at<phylloptim::Leaf::CostCurve::TF24_floor, S>(
         collar, draw, in);
+    transpiration_at =
+        draw.flux.value + draw.flux.slope * (collar - S(leaf.opt_root_psi_));
   } catch (const std::runtime_error& e) {
     note_leaf_clamps(clamps_before);
     // The leaf produced nothing to record a row against, so every output takes
@@ -1731,6 +1742,7 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& radiation,
     // this.
     refuse(std::string("TF24 gradient: ") + e.what());
     leaf_profit_ = S(leaf.profit_);
+    leaf_shadow_cost_ = S(leaf.shadow_cost());
     leaf_soil_consumption_.assign(n_layer, S(0.0));
     for (std::size_t j = 0; j < n_layer; ++j) {
       leaf_soil_consumption_[j] = S(leaf.soil_consumption_[j]);
@@ -1777,6 +1789,16 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& radiation,
     carry(leaf.soil_consumption_[j], got.uptake[j], leaf_soil_consumption_[j],
           false);
   }
+  // The shadow cost, recorded against the leaf's own value like every output
+  // here. It is `lambda_o * E` on TF24_floor and zero on any other curve -- the
+  // same condition phylloptim's shadow_cost() applies -- so a curve that reads no
+  // price carries no row through it. It reads the water, so a refused water row
+  // leaves it without one too.
+  const S shadow_rows =
+      leaf.cost_curve_ == Leaf::CostCurve::TF24_floor
+          ? in[phylloptim::par_TF24_floor_lambda_o] * transpiration_at
+          : S(0.0);
+  carry(leaf.shadow_cost(), shadow_rows, leaf_shadow_cost_, false);
 }
 
 template <typename S>
@@ -2414,11 +2436,27 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
   //TODO: one point constant ratio and integral width for daylength
   // convert assimilation per leaf area per second (umol m^-2 s^-1) to canopy-level total yearly assimilation (mol yr^-1)
   // converts to canopy area, then years, then mols
-  S profit_ = leaf.profit_;
+  //
+  // ⚠️ GROWTH IS BILLED ON THE CARBON KEPT, `profit + shadow_cost`, NOT ON THE
+  // OBJECTIVE. On TF24_floor the objective deducts `lambda_o * E`, the shadow
+  // price of water: the value of the water in its best alternative use, which for
+  // a leaf is assimilation later. No carbon is lost when the plant pays it; it
+  // changes the aperture chosen and nothing else, which is what a Lagrange
+  // multiplier does. Feeding the objective straight into growth would tax the
+  // plant by carbon it never spent: measured on a 5 m plant at PPFD 1800 and theta
+  // 0.25, the objective understates the carbon kept by 2.3% at lambda_o = 1e4,
+  // 9.4% at 5e4, 15.4% at 1e5 and 22.6% at 2e5.
+  //
+  // `shadow_cost()` is exactly 0.0 on every curve but TF24_floor, and 0.0 there at
+  // the default price, so this is bit-neutral at TF24's defaults. No second
+  // canopy integral is needed: `shadow_cost()` reads the stored `transpiration_`,
+  // which the DeepCrown branch integrated against the same weights as `profit_`,
+  // and the shadow term is linear in E.
+  S profit_ = leaf.profit_ + leaf.shadow_cost();
   if constexpr (!std::is_same_v<S, double>) {
     record_leaf_outputs(radiation_used, psi_soil,
                         leaf_specific_conductance_max);
-    profit_ = leaf_profit_;
+    profit_ = leaf_profit_ + leaf_shadow_cost_;
   }
   const S assimilation_ = profit_ * area_leaf_* 60*60*12*365/1e6;
   // const double assimilation_ = assimilation(environment, height, area_leaf_);
@@ -2432,21 +2470,37 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
 // Base TF24: place the operating point the run found at this rate evaluation, or
 // optimise the root-collar water potential where it kept none -- a branch that exited
 // on feasibility, or an evaluation the run addressed no record against.
+//
+// ⚠️ THE TRY/CATCH TURNS AN UNPHYSICAL PSI PROBE INTO A REJECTED STEP rather than
+// a dead run. phylloptim raises its own infeasible_error, which derives from
+// std::runtime_error and NOT from odelia::util::DomainError -- they are siblings
+// -- so odelia's stepper cannot recognise it, and the throw kills the whole solve
+// having taken zero steps (#608 measured exactly this). Translating it lets odelia
+// shrink and retry, and it stops only if the minimum step still cannot reach a
+// feasible probe, reporting phylloptim's own message when it does.
+//
+// Deliberately narrow: only infeasible_error is translated. A util::stop() from
+// phylloptim, or any other exception, still propagates, so a bug stays a bug
+// instead of becoming step-shrinking until "Cannot achieve the desired accuracy".
 template <typename S>
 void TF24_Strategy<S>::solve_leaf() {
   const leaf_solved_point recorded = leaf_points->load();
-  if (recorded.kind == Leaf::OperatingPointKind::Unsolved) {
-    // ⚠️ THE CURVE-TYPED FORM. find_root_collar_psi() is the TF24 SHORTHAND and
-    // solves TF24 whatever set_model seated, so calling it here would optimise
-    // one curve, differentiate another, and report a shadow price the solve
-    // never paid.
-    leaf.template find_root_collar_psi_for<
-        phylloptim::Leaf::CostCurve::TF24_floor>();
-  } else {
-    // ⚠️ ONE CALL, because the collar and the arm have to go back together:
-    // evaluating at a target restores every number and then tags the point
-    // `prescribed`, and collar_at switches on the kind.
-    leaf.replay_operating_point(recorded.collar, recorded.kind);
+  try {
+    if (recorded.kind == Leaf::OperatingPointKind::Unsolved) {
+      // ⚠️ THE CURVE-TYPED FORM. find_root_collar_psi() is the TF24 SHORTHAND
+      // and solves TF24 whatever set_model seated, so calling it here would
+      // optimise one curve, differentiate another, and report a shadow price the
+      // solve never paid.
+      leaf.template find_root_collar_psi_for<
+          phylloptim::Leaf::CostCurve::TF24_floor>();
+    } else {
+      // ⚠️ ONE CALL, because the collar and the arm have to go back together:
+      // evaluating at a target restores every number and then tags the point
+      // `prescribed`, and collar_at switches on the kind.
+      leaf.replay_operating_point(recorded.collar, recorded.kind);
+    }
+  } catch (const phylloptim::util::infeasible_error& e) {
+    odelia::util::stop_domain(std::string("leaf solve infeasible: ") + e.what());
   }
   leaf_points->store({leaf.opt_root_psi_, leaf.operating_point_kind()});
   // The classification is decided by the branch taken and then overwritten by
