@@ -114,10 +114,17 @@ test_that("the boundary node's row carries the field its own cohorts build", {
 
     # Both sides are partial derivatives at one state only if they agree on the
     # value, and a mismatch invalidates the rows below rather than failing them.
+    # A few ULP, not zero: the tangent side evaluates the seed's carbon through
+    # xad's forward scalar, and on arm64 the compiler fuses that arithmetic
+    # differently from the plain double path -- measured 1 ULP (1.1e-16
+    # relative) on Apple Silicon where Linux x86-64 reads bit-identical. One
+    # state is still one state at that distance; a wrong state is 1e-3 away.
     expect_equal(got$log_density, ref$value[["log_density"]],
-                 tolerance = 0, label = paste("boundary value,", name))
+                 tolerance = 8 * .Machine$double.eps,
+                 label = paste("boundary value,", name))
     expect_equal(got$carbon, ref$value[["carbon"]],
-                 tolerance = 0, label = paste("birth-size carbon,", name))
+                 tolerance = 8 * .Machine$double.eps,
+                 label = paste("birth-size carbon,", name))
 
     # The seed's height solves live mass equals seed mass, which reads the tissue
     # and allometric parameters and nothing the reduction owns. So k_I's height
