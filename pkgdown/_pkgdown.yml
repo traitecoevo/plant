@@ -110,7 +110,6 @@ reference:
   desc: You're unlikely to run these unless you're diving deep into the code. (Do these need to be exposed? Should they be private?)
   contents:
   - environment_type
-  - Interpolator
 
 - title: Review if still needed
   contents:

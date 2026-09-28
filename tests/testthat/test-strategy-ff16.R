@@ -206,24 +206,44 @@ test_that("offspring arrival", {
 
   p0 <- scm_base_parameters("FF16")
   env <- Environment("FF16")
-  ctrl <- Control()
-  
+  # Blessed on the birth-date coordinate, which this names rather than inherits:
+  # Control() defaults to height, and a fixture that reads its coordinate from the
+  # default silently re-points at another function when the default moves.
+  ctrl <- Control(node_density_in_birth_date = TRUE)
+
   # one species
   p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = FF16_hyperpar, birth_rate = list(20))
 
+  # On the height coordinate the density boundary condition divides by the growth
+  # rate and the density rate carries a compression term, so a whole run is a
+  # different function: these were 16.8846, 4.215205, c(11.99578, 16.47192) and
+  # 307 there. Both are supported and neither is an approximation of the other,
+  # so the coordinate is asserted rather than assumed.
+  expect_true(ctrl$node_density_in_birth_date)
   out <- run_scm(p1, env, ctrl)
-  expect_equal(out$offspring_production, 16.8895016, tolerance=1e-4)
-  expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.215899), tolerance=1e-5)
+  expect_equal(out$offspring_production, 17.1720, tolerance=1e-4)
+  expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.223149), tolerance=1e-5)
 
   # two species
   p2 <- add_strategies(p0, trait_matrix(c(0.0825, 0.2625), "lma"), hyperpar = FF16_hyperpar, birth_rate = list(11.99177, 16.51006))
-  
+
   out <- run_scm(p2, env, ctrl)
-  expect_equal(out$offspring_production, c(11.995204, 16.474988), tolerance=1e-5)
-  expect_equal(length(out$ode_times), 293)
+  expect_equal(out$offspring_production, c(12.04841, 16.59391), tolerance=1e-5)
+  expect_equal(length(out$ode_times), 276)
+
+  # Non-vacuity for the coordinate claim: the other coordinate has to give a
+  # different answer, or naming this one would be decoration. The magnitude is
+  # left unpinned -- one blessed set per function is enough, and pinning two
+  # doubles what has to be re-blessed whenever either moves.
+  height <- run_scm(p2, env, Control(node_density_in_birth_date = FALSE))
+  expect_false(isTRUE(all.equal(height$offspring_production,
+                                out$offspring_production)))
 })
 
 test_that("Report generation", {
+  # The report's plotting stack is a Suggests, so a tree without it is a tree
+  # that cannot answer this rather than one that fails it.
+  skip_if_not_installed("ggridges")
 
   p0 <- scm_base_parameters("FF16")
   env <- Environment("FF16")

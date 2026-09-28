@@ -12,7 +12,15 @@
 ## process. Tracked upstream in traitecoevo/odelia#29.
 
 CXX_STD = CXX20
-PKG_CPPFLAGS = -isystem../inst/include/
+
+## ⚠️ THE SAME TWO DEFINES AS src/Makevars, AND THEY MATTER MORE HERE. odelia's
+## active tape is a __thread variable whose storage class is not part of the
+## mangled name, and Windows is the one platform where plant.dll resolves it at
+## LINK time against odelia.dll rather than at load. A mismatch links cleanly,
+## passes load, and corrupts every recorded derivative. Change one file and you
+## must change all four. One assignment rather than two: appending to a variable
+## in a second line is a GNU make extension R CMD check warns on.
+PKG_CPPFLAGS = -isystem../inst/include/ -DXAD_NO_THREADLOCAL -DXAD_USE_STRONG_INLINE
 
 ## odelia's compiled DLL lives under its installed, arch-specific libs dir
 ## (.../odelia/libs/x64). Resolve the base libs dir in R, then append R's

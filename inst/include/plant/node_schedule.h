@@ -4,6 +4,7 @@
 
 #include <RcppCommon.h> // SEXP
 #include <plant/util.h>
+#include <odelia/ode_interface.hpp>
 
 // The "times" methods (set_times, times) refer to the *introduction*
 // times.  As such, this really needs that at least one species has an
@@ -100,12 +101,35 @@ public:
   // without a templated binding per (strategy, environment) pair.
   std::vector<double> params;
   std::vector<double> times;
+
+// One instant, and everything that happens at it.
+//
+// The schedule is ascending by time with ONE row per distinct time, because a
+// time naming three species is one introduction: the run introduces them
+// together and computes the environment once for the set. Actions at the same
+// instant are held sorted by event_type_rank and apply BEFORE the
+// introductions, so a newborn's initial conditions are computed against the
+// post-event environment -- an ordering made a property of this structure
+// rather than re-established by the run loop at every stop.
+//
+// `times` keeps the [t_intro, ...extra ode times..., t_end] semantics events
+// carried before; ode_steps is what a replay reads, and program_within() serves it.
+};
+
+struct schedule_entry {
+  double time;
+  std::vector<NodeScheduleEvent> actions;
+  std::vector<size_t> species;
+  std::vector<double> times;
+  double time_introduction() const { return times.front(); }
+  double time_end() const { return times.back(); }
 };
 
 class NodeSchedule {
 public:
   typedef NodeScheduleEvent Event;
   NodeSchedule(size_t n_species_);
+  // Introductions, not species-times: a time naming three species is one.
   size_t size() const;
   size_t get_n_species() const;
   NodeSchedule expand(size_t n_extra, std::vector<double> times);
@@ -113,6 +137,8 @@ public:
   void set_times(const std::vector<double>& times_, size_t species_index);
   void set_times(const std::vector<std::vector<double> >& times);
   std::vector<double> times(size_t species_index) const;
+  // Puts the walk back at the first introduction. The schedule itself is not
+  // consumed by a run, so this restores a position and nothing else.
   // Whole-queue access, in schedule order, for round-tripping through the
   // R-facing `Events` wire format (see events.h). set_all_events() replaces
   // every event, introductions included, so it is the one entry point that
@@ -120,13 +146,26 @@ public:
   std::vector<Event> get_events() const;
   void set_all_events(const std::vector<Event>& events_);
   void reset();
+
+  // Where the walk is, where its interval ends, and moving past it. `next()`
+  // stays valid across a pop, which only moves the position.
+  const schedule_entry& next() const;
+  double time_end() const;
   void pop();
-  Event next_event() const;
   size_t remaining() const;
+
+  // The program a replay of the interval `(start, end)` takes: the state it
+  // starts from, then the recorded steps strictly inside it. Empty where the
+  // recording put no step in there, and empty on a schedule holding no recording.
+  //
+  // Boundaries are excluded because the run stops at them anyway and the
+  // interval above starts from there -- so a step at one would be taken twice.
+  std::vector<odelia::ode::instruction>
+  program_within(double start, double end) const;
 
   double get_max_time() const;
   std::vector<std::vector<double> > get_times() const;
-  bool using_ode_times() const;
+  bool using_ode_steps() const { return !ode_steps.empty(); }
 
   // * R interface:
   void r_clear_times(util::index species_index);
@@ -134,28 +173,36 @@ public:
   void r_set_times(std::vector<double> times_, util::index species_index);
   void r_set_max_time(double x);
   std::vector<double> r_ode_times() const;
-  void r_set_ode_times(std::vector<double> x);
-  void r_clear_ode_times();
-  void r_set_use_ode_times(bool x);
+  std::vector<double> r_ode_step_sizes() const;
+  // The two halves of one recording, installed together: apart, they can be
+  // paired across different runs and nothing says so.
+  void r_set_ode_steps(std::vector<double> times, std::vector<double> sizes);
+  void r_clear_ode_steps();
+  // Where the walk is, as a list: the time, the species from one, and the time
+  // its interval ends. The species are one number each, counted the way R counts
+  // them, where the class this replaces reported the same index twice under two
+  // names.
+  SEXP r_next_introduction() const;
   SEXP r_all_times() const;
   void r_set_all_times(SEXP x);
   NodeSchedule r_copy() const;
 
 private:
-  typedef std::list<Event>::iterator events_iterator;
-  typedef std::list<Event>::const_iterator events_const_iterator;
-
-  events_iterator add_time(double times, size_t species_index,
-                           events_iterator it);
-  events_iterator insert_event(const Event& e);
-  void distribute_ode_times();
+  void insert(double time, size_t species_index);
+  std::vector<schedule_entry>::iterator entry_at(double time);
 
   size_t n_species;
-  std::list<Event> events;
-  std::list<Event> queue;
+  // Ascending by time, one entry per distinct time, species ascending within an
+  // entry -- which is the order Patch::introduced_at rebuilds off the same times,
+  // so the two agree.
+  std::vector<schedule_entry> schedule;
+  // How far the run has got. A position rather than a consumed copy of the
+  // schedule, so what the run reads and what a caller set are one object.
+  size_t at;
   double max_time;
-  std::vector<double> ode_times;
-  bool use_ode_times;
+  // The recorded ODE steps this schedule replays, when it holds any. Holding
+  // them is what makes a schedule a replay, so no flag says so separately.
+  std::vector<odelia::ode::instruction> ode_steps;
 };
 
 }

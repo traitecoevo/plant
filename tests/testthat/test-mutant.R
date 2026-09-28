@@ -1,13 +1,20 @@
+## What an invasion run has to reproduce. Every number here was measured on
+## develop, against a recorder reached through three hooks the ODE solver called
+## into the patch. odelia's rewrite deleted those hooks; what replaces them is
+## odelia's own store/load channel -- the run keeps the field in the same
+## per-(step, stage) row it already keeps what a rate evaluation solved for, and
+## the invasion pass loads it. The numbers did not move, which is the point of
+## keeping them: they were the specification the replacement was written to, not
+## a re-pin taken from it.
 
 test_that("mutant method works", {
-  # basic setup 
+  # basic setup
   p0 <- scm_base_parameters("FF16")
   p0$max_patch_lifetime <- 50
-  
+
   e <- Environment("FF16")
   ctrl <- Control()
-  ctrl$save_RK45_cache = TRUE
-    
+
   tol <- 1e-4
   
   # We'll run tests with 1 and 3 residents, each with different numbers of mutants
@@ -29,7 +36,7 @@ test_that("mutant method works", {
   types <- extract_RcppR6_template_types(pr1, "Parameters")
   scm <- do.call("SCM", types)(pr1, e, empty_events(), ctrl)
 
-  expect_error(scm$run_mutant(p0), "Run a resident first to generate a competitve landscape") 
+  expect_error(scm$run_mutant(p0), "Run a resident first")
 
   # check mutant fitness against resindet and expected values
   scm <- run_scm(pr1, e, ctrl)
@@ -106,7 +113,6 @@ test_that("mutant method densities", {
   # equilibrium -- only the resident-vs-mutant identity -- so the long, costly
   # patch bought no extra coverage.)
   ctrl <- Control()
-  ctrl$save_RK45_cache = TRUE
 
   traits <- trait_matrix(0.0825, c("lma"))
   tol <- 1e-3
@@ -154,23 +160,45 @@ test_that("mutant method densities, TF24", {
   # run_mutant() pins the stepper to the resident's recorded step times, and that
   # path used to call the stepper with no domain handling at all, so the first of
   # those refusals killed the replay (#642). It failed for every TF24 strategy
-  # tried, this identity case included, and left invasion-fitness analysis with no
-  # equivalent workaround. Fixed in odelia 0.4.0 by subdividing a refused pinned
-  # step to the same endpoint.
+  # tried, this identity case included.
   #
-  # The patch lifetime is load-bearing and is the cheapest one that covers the
-  # bug: the refusals only begin partway into a run, so at 10 the replay never
-  # meets one and the test passes with or without the fix. 14 fails without it.
-  # A resident that never trips the guard would make this test vacuous, so the
-  # first expectation checks the run is long enough to be a real test.
+  # ⚠️ THE FIX IS NOT THE ONE THIS COMMENT USED TO NAME. odelia 0.4.0 subdivided a
+  # refused pinned step; this replay does not subdivide at all, deliberately --
+  # see NEWS.md under Known issues, where the reason is that subdividing is what
+  # made the answer depend on how many invaders shared the call. A replay that met
+  # a refusal would now FAIL rather than shrink, and `expect_no_error` below
+  # passing is the statement that it meets none.
+  #
+  # ⚠️ THE LIFETIME BUYS THE REGIME AND THE COHORT COUNT IS WHAT COSTS, and the
+  # default schedule confounds them by deriving its introduction count from the
+  # lifetime. Held at 6 and varying only how many of that schedule's 89
+  # introductions are kept, against the 1e-3 this compares at:
+  #
+  #   introductions     20     40     60     89
+  #   steps            311    363    452    497
+  #   log gap        4e-15  4e-13  1e-14  4e-15
+  #   seconds          2.7    6.0   11.2     18
+  #
+  # The gap does not fall with either count, because this is an identity rather
+  # than an approximation. So a longer recording buys only more of the regime,
+  # and twenty introductions are enough to hold the identity at 4e-15.
+  #
+  # ⚠️ THOSE STEP COUNTS ARE A TWENTIETH OF WHAT THEY WERE, and the pool is why.
+  # This table read 6071 to 12714 steps and 71 to 623 seconds while compute_rates
+  # ran the clamped pre-v9 pool the templating commit transcribed; restoring the
+  # charge and drain form took the same four fixtures to 311 to 497. The stiffness
+  # the schedule was thinned to avoid was mostly the pool integrating past its own
+  # ceiling. Both counts are asserted below rather than left to the constants.
   ctrl <- Control()
-  ctrl$save_RK45_cache <- TRUE
   tol <- 1e-3
 
   p0 <- scm_base_parameters("TF24")
-  p0$max_patch_lifetime <- 14
+  p0$max_patch_lifetime <- 6
   p1 <- add_strategies(p0, trait_matrix(0, "TF24_floor_lambda_o"),
                        hyperpar = TF24_hyperpar, birth_rate = 1)
+  full <- p1$node_schedule_times[[1]]
+  p1$node_schedule_times <-
+    list(full[round(seq(1, length(full), length.out = 20))])
 
   env <- Environment("TF24")
   env$set_soil_water_state(rep(0.428 * 0.5, env$get_soil_number_of_depths()))
@@ -179,9 +207,12 @@ test_that("mutant method densities, TF24", {
   scm <- run_scm(p1, env = env, ctrl = ctrl)
   resident_rr <- scm$net_reproduction_ratios
 
-  # Not an assertion about the model, just a guard that the replay below has
-  # something to replay: a resident that died out would make the identity trivial.
+  # Not assertions about the model, just guards that the replay below has
+  # something to replay: a resident that died out would make the identity
+  # trivial, and a short recording would make it cheap in the wrong way.
   expect_true(all(is.finite(resident_rr)) && all(resident_rr > 0))
+  expect_gt(length(scm$ode_times), 250)
+  expect_equal(scm$patch$species[[1]]$size, 20L)
 
   # Identical mutant, replaying the resident's own recorded environment, must
   # recover the resident's own fitness.

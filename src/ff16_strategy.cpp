@@ -22,6 +22,7 @@ void FF16_Strategy::refresh_indices () {
   for (size_t i = 0; i < aux_names_vec.size(); i++) {
     aux_index[aux_names_vec[i]] = i;
   }
+  check_state_layout(state_index, state_size(), "FF16");
 }
 
 // area_leaf() is defined inline in ff16_strategy.h (hot path).
@@ -84,7 +85,7 @@ double FF16_Strategy::mass_above_ground(double mass_leaf, double mass_bark,
 
 // one-shot update of the scm variables
 // i.e. setting rates of ode vars from the state and updating aux vars
-void FF16_Strategy::compute_rates(const FF16_Environment& environment,  Internals& vars) {
+void FF16_Strategy::compute_rates(const FF16_Environment& environment,  Internals<double>& vars) {
 
   double height = vars.state(HEIGHT_INDEX);
   double area_leaf_ = vars.aux(COMPETITION_EFFECT_AUX_INDEX);
@@ -462,14 +463,19 @@ double FF16_Strategy::mortality_dt(double productivity_area,
   // levels and the rate of change won't matter.  It is possible that
   // we will need to trim this to some large finite value, but for
   // now, just checking that the actual mortality rate is finite.
-  if (util::is_finite(cumulative_mortality)) {
+  // ⚠️ THE CEILING IS TESTED BESIDE FINITENESS, and the pair must not be
+  // reduced back to one test. compute_initial_conditions holds an unestablished
+  // recruit's hazard at establishment_failure_hazard rather than at the +Inf
+  // -log(0) gives, so this is the test that keeps such a cohort's rate parked --
+  // which is what makes the finite hazard bit-identical to the infinite one.
+  if (util::is_finite(cumulative_mortality) &&
+      cumulative_mortality < establishment_failure_hazard) {
     return
       mortality_growth_independent_dt() +
       mortality_growth_dependent_dt(productivity_area);
  } else {
-    // If mortality probability is 1 (latency = Inf) then the rate
-    // calculations break.  Setting them to zero gives the correct
-    // behaviour.
+    // Mortality probability is 1, so the rate calculations have nothing left to
+    // describe and the state does not move again.
     return 0.0;
   }
 }
@@ -571,14 +577,15 @@ void FF16_Strategy::prepare_strategy() {
     break;
   }
 
-  eta_c = CanopyShape::eta_c(pars.eta);
+  eta_c = CanopyShape<double>::eta_c(pars.eta);
   // NOTE: Also pre-computing, though less trivial
   height_0 = height_seed();
   height_0_inverse = 1.0 / height_0;
   area_leaf_0 = area_leaf(height_0);
 
   if (is_variable_birth_rate) {
-    extrinsic_drivers.set_variable("birth_rate", birth_rate_x, birth_rate_y);
+    extrinsic_drivers.set_variable("birth_rate", birth_rate_x, birth_rate_y,
+                                   odelia::drivers::Slopes::monotone);
   } else {
     extrinsic_drivers.set_constant("birth_rate", birth_rate_y[0]);
   }

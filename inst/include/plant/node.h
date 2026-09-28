@@ -4,8 +4,9 @@
 
 #include <plant/environment.h>
 #include <plant/gradient.h>
+#include <plant/individual.h>
 #include <odelia/ode_interface.hpp>
-#include <optional>
+#include <plant/with_slope.h>
 #include <limits> // std::numeric_limits
 
 namespace plant {
@@ -13,6 +14,8 @@ namespace plant {
 template <typename T, typename E>
 class Node {
 public:
+  using value_type = typename T::value_type;
+
   typedef T        strategy_type;
   typedef E        environment_type;
   typedef Individual<T,E> individual_type;
@@ -23,20 +26,31 @@ public:
   void compute_initial_conditions(const environment_type& environment, double pr_patch_survival, double birth_rate);
 
   // Wrapper to growth_rate_gradient for testing
-  double r_growth_rate_gradient(const environment_type& environment);
+  value_type r_growth_rate_gradient(const environment_type& environment);
 
-  double height() const {return individual.state(HEIGHT_INDEX);}
-  double compute_competition(double z) const;
-  double fecundity() const {return offspring_produced_survival_weighted;}
+  value_type height() const {return individual.state(HEIGHT_INDEX);}
+  value_type compute_competition(const value_type& z) const;
+  // The node's competition contribution and its vertical derivative, both
+  // weighted by density. The first entry equals compute_competition(z) exactly.
+  with_slope<value_type>
+  compute_competition_and_slope(const value_type& z) const;
+  value_type fecundity() const {return offspring_produced_survival_weighted;}
 
-  // Bookkeeping recorded at the moment the node is introduced, so that
-  // lifetime-fitness calculations need not look these up after the run.
-  // patch_density_at_birth is the (unnormalised) probability density of a
-  // patch having the node's introduction age, i.e. survival_weighting->density.
-  void set_introduction(double time, double patch_density) {
-    node_introduction_time = time;
-    patch_density_at_birth = patch_density;
+  // The survival factor offspring_produced_survival_weighted_dt multiplies. It
+  // is zero rather than non-finite where the mortality integral has run away:
+  // that happens only where the density is already too low to contribute, and a
+  // non-finite factor here takes every rate reading this node with it.
+  value_type survival_individual() const {
+    const value_type s = exp(-individual.state(MORTALITY_INDEX));
+    return util::is_finite(s) ? s : value_type(0.0);
   }
+
+  // d(offspring_produced_survival_weighted_dt)/d(fecundity rate).
+  value_type offspring_dt_dfecundity_rate(double pr_patch_survival) const {
+    return survival_individual() * pr_patch_survival /
+      pr_patch_survival_at_birth;
+  }
+
   // The height growth rate this node was born at, i.e. |dh/dtau| exactly, at
   // birth. Current only for the boundary node (re-evaluated every step); frozen
   // at its own birth for an introduced one. Zero for a node loaded from an
@@ -51,7 +65,7 @@ public:
   double introduction_time() const {return node_introduction_time;}
   double patch_density() const {return patch_density_at_birth;}
   double get_pr_patch_survival_at_birth() const {return pr_patch_survival_at_birth;}
-  double get_log_density_rate() const {return log_density_dt;}
+  value_type get_log_density_rate() const {return log_density_dt;}
 
   // Restore birth bookkeeping for a node imported from an exported patch state,
   // without re-running compute_initial_conditions (which would overwrite the
@@ -67,16 +81,16 @@ public:
 
   // Lifetime offspring of this node, weighted by the probability of
   // landing in a patch of the node's age and by survival during dispersal.
-  double weighted_fecundity(double S_D) const {
+  value_type weighted_fecundity(const value_type& S_D) const {
     return offspring_produced_survival_weighted * patch_density_at_birth * S_D;
   }
 
   // Unfortunate, but need a get_ here because of name shadowing...
-  double get_log_density() const {return log_density;}
+  value_type get_log_density() const {return log_density;}
   // exp(log_density); can overflow to +Inf when the SCM density equation runs
-  // away (see Patch::check_finite_node_densities).
-  double get_density() const {return density;}
-  void set_log_density(double x) {
+  // away (see Patch::check_finite_ode_state).
+  value_type get_density() const {return density;}
+  void set_log_density(const value_type& x) {
     log_density = x;
     density = exp(log_density);
   }
@@ -89,10 +103,11 @@ public:
   // +2 for log_density and offspring_production_dt
   static size_t ode_size() { return strategy_type::state_size() + 2; }
   size_t aux_size() const { return individual.aux_size(); }
-  odelia::ode::const_iterator set_ode_state(odelia::ode::const_iterator it);
-  odelia::ode::iterator       ode_state(odelia::ode::iterator it) const;
-  odelia::ode::iterator       ode_rates(odelia::ode::iterator it) const;
-  odelia::ode::iterator       ode_aux(odelia::ode::iterator it) const;
+  template <typename It> It set_ode_state(It it);
+  template <typename It> It ode_state(It it) const;
+  template <typename It> It ode_rates(It it) const;
+  template <typename It> It ode_aux(It it) const;
+  template <typename It> It set_ode_aux(It it);
 
   static std::vector<std::string> ode_names() {
     std::vector<std::string> names = strategy_type::state_names();
@@ -105,24 +120,44 @@ public:
     individual.resize_consumption_rates(i);
   }
 
-  double consumption_rate(int i) const {
+  value_type consumption_rate(int i) const {
     return individual.consumption_rate(i) * density;
   }
 
   individual_type individual;
 
-private:
-  // This is the gradient of growth rate with respect to height:
-  double growth_rate_gradient(const environment_type& environment) const;
+  // The five this node carries beside the individual's. `density` is among them
+  // although every load rewrites it: a write keeps whatever slot the value
+  // already held.
+  template <class F>
+  void for_each_active(F&& f) {
+    odelia::ode::visit_active(f, log_density, log_density_dt, density,
+                              offspring_produced_survival_weighted,
+                              offspring_produced_survival_weighted_dt,
+                              individual);
+  }
 
-  double log_density;
-  double log_density_dt;
-  double density; // hmm...
-  double offspring_produced_survival_weighted;
-  double offspring_produced_survival_weighted_dt;
+private:
+  // The node's own two rates, from the individual's. Apart from compute_rates()
+  // because compute_initial_conditions() has to seat the node's state between
+  // the individual's rates and these, and BOTH OF THESE READ STATE THAT SEEDING
+  // WRITES: the density rate through the guard below, the offspring rate through
+  // survival_individual(). Taken before it, they describe the state the node
+  // held a step ago.
+  void compute_node_rates(const environment_type& environment,
+                          double pr_patch_survival);
+
+  // This is the gradient of growth rate with respect to height:
+  value_type growth_rate_gradient(const environment_type& environment) const;
+
+  value_type log_density;
+  value_type log_density_dt;
+  value_type density; // hmm...
+  value_type offspring_produced_survival_weighted;
+  value_type offspring_produced_survival_weighted_dt;
   double pr_patch_survival_at_birth;
 
-  // Recorded at introduction (see set_introduction).
+  // Recorded at introduction (see set_birth_state).
   double node_introduction_time;
   double patch_density_at_birth;
   // |dh/dtau| at birth; see growth_rate_at_birth().
@@ -132,7 +167,7 @@ private:
 template <typename T, typename E>
 Node<T,E>::Node(strategy_type_ptr s)
   : individual(s),
-    log_density(-std::numeric_limits<double>::infinity()),
+    log_density(value_type(-std::numeric_limits<double>::infinity())),
     log_density_dt(0),
     density(0),
     offspring_produced_survival_weighted(0),
@@ -143,34 +178,37 @@ Node<T,E>::Node(strategy_type_ptr s)
 }
 
 template <typename T, typename E>
+void Node<T,E>::compute_node_rates(const environment_type& environment,
+                                   double pr_patch_survival) {
+  // The coordinate branch lives in Individual::log_density_rate, which the step
+  // recording reaches through this same call, so the recording and this path
+  // cannot disagree about which coordinate they are on.
+  //
+  // ⚠️ A COHORT WITH NO DENSITY HAS NO LOG-DENSITY TRAJECTORY, and this guard is
+  // what says so. On the HEIGHT coordinate `log_density_rate` is
+  // `-d(growth)/d(height) - mortality`, which is non-zero for a dead cohort, so
+  // without it the density DRIFTS OFF ITS FLOOR: exp(-establishment_failure_hazard)
+  // is exactly zero, but integrating a positive rate up to -700 reaches 1e-305,
+  // which is a cohort that does not exist acquiring a density. The -Inf this
+  // sentinel replaced could not drift, so a finite one needs saying explicitly.
+  //
+  // ⚠️ A POSITIVE FINITE DENSITY, AND BOTH HALVES ARE LOAD-BEARING. `density > 0`
+  // is what the floor needs once log(0)'s -Inf was replaced by a finite
+  // sentinel; `is_finite(log_density)` is what an overflow to +Inf needs, which
+  // passes `> 0` and is not a density anything can be carried along.
+  log_density_dt = (util::is_finite(log_density) && density > 0.0)
+                     ? individual.log_density_rate(environment)
+                     : value_type(0.0);
+  offspring_produced_survival_weighted_dt =
+    individual.rate(FECUNDITY_INDEX) *
+    offspring_dt_dfecundity_rate(pr_patch_survival);
+}
+
+template <typename T, typename E>
 void Node<T,E>::compute_rates(const environment_type& environment,
                                 double pr_patch_survival) {
   individual.compute_rates(environment);
-
-  // NOTE: This must be called *after* compute_rates, but given we
-  // need mortality_dt() that's always going to be the case.
-  //
-  // A density in birth date changes only by mortality: nothing moves an
-  // individual along the birth-date axis. A density in height additionally
-  // compresses as the spacing between neighbouring sizes changes.
-  log_density_dt = -individual.rate(MORTALITY_INDEX);
-  if (!individual.control().node_density_in_birth_date) {
-    log_density_dt -= growth_rate_gradient(environment);
-  }
-  // survival_individual: converts from the mean of the poisson process (on
-  // [0,Inf)) to a probability (on [0,1]).
-  double survival_individual = exp(-individual.state(MORTALITY_INDEX));
-  if (!util::is_finite(survival_individual)) {
-    // This is caused by NaN values in plant.mortality and log
-    // density; this should only be an issue when density is so low
-    // that we can throw these away.  I think that with smaller step
-    // sizes this is better behaved too?
-    survival_individual = 0.0;
-  }
-
-  offspring_produced_survival_weighted_dt =
-    individual.rate(FECUNDITY_INDEX) * survival_individual *
-    pr_patch_survival / pr_patch_survival_at_birth;
+  compute_node_rates(environment, pr_patch_survival);
 }
 
 // NOTE: There will be a discussion of why the mortality rate initial
@@ -187,11 +225,21 @@ void Node<T,E>::compute_initial_conditions(const environment_type& environment,
   // optimum) before the first rates evaluation, so the birth growth rate uses
   // the initialised operating point rather than a default.
   individual.set_initial_states(environment);
-  compute_rates(environment, pr_patch_survival);
+  // ⚠️ THE INDIVIDUAL'S RATES ONLY. The node's own two come after the seeding
+  // below, because both read state it writes -- taken here, the density rate is
+  // guarded against the density this node held BEFORE birth, which on one being
+  // born for the first time is zero, and the rate it reports is that zero for
+  // the whole of the node's first evaluation.
+  individual.compute_rates(environment);
 
-  const double pr_estab =
+  const value_type pr_estab =
     individual.establishment_probability_of_newborn(environment);
-  individual.set_state("mortality", -log(pr_estab));
+  // Held at establishment_failure_hazard on the zero arm rather than at the
+  // -log(0) the equation gives; see the constant for what an infinite state
+  // costs the reverse pass.
+  individual.set_state("mortality",
+                       pr_estab > 0 ? -log(pr_estab)
+                                    : value_type(establishment_failure_hazard));
   // The birth-date axis of the node about to be introduced; Patch re-stamps
   // this with the exact introduction time as the node is pushed.
   node_introduction_time = environment.time;
@@ -203,61 +251,47 @@ void Node<T,E>::compute_initial_conditions(const environment_type& environment,
   // which compute_initial_conditions() re-evaluates every step. For an
   // introduced node it is frozen at its own birth and so cannot serve as its
   // present-day Jacobian; see Species::height_jacobian().
-  const double g = individual.rate(HEIGHT_INDEX);
-  birth_growth_rate = g;
-  if (individual.control().node_density_in_birth_date) {
-    set_log_density(log(birth_rate * pr_estab));
-  } else {
-    // NOTE: log(0.0) -> -Inf, which should behave fine.
-    set_log_density(g > 0 ? log(birth_rate * pr_estab / g) : log(0.0));
-  }
+  const value_type g = individual.rate(HEIGHT_INDEX);
+  // A double diagnostic read back over the R boundary, so it takes the value.
+  birth_growth_rate = odelia::util::to_passive(g);
+  // The density itself, before its log: a recruit that cannot pay for itself
+  // has an establishment probability of exactly zero on the arm below
+  // threshold, so both this and its derivative are exactly zero there.
+  const value_type density_at_birth =
+    individual.control().node_density_in_birth_date
+      ? birth_rate * pr_estab
+      : (g > 0 ? birth_rate * pr_estab / g : value_type(0.0));
+  // log() reaches -Inf from that zero through 0/0, so it records a non-finite
+  // DERIVATIVE beside a correct value, and every rate reading the field this
+  // node contributes to comes back non-finite. Only exp(log_density) is read
+  // downstream, and it is continuous in both value and derivative here, so the
+  // constructed constant is the same number carrying the zero the density has.
+  //
+  // ⚠️ AND THAT CONSTANT IS FINITE, for the reason the hazard's is: -Inf is a
+  // STATE the patch carries for the rest of its life, and one no row can attach
+  // to. `exp(-establishment_failure_hazard)` is exactly zero, so the density this
+  // node contributes is the one log(0) gave it.
+  set_log_density(density_at_birth > 0
+                      ? log(density_at_birth)
+                      : value_type(-establishment_failure_hazard));
 
-  // Need to check that the rates are valid after setting the
-  // mortality value here (can go to -Inf and that requires squashing
-  // the rate to zero).
-  if (!util::is_finite(log_density)) {
-    // Can do this at the same time that we do set_log_density, I think.
-    log_density_dt = 0.0;
-  }
+  // Now that the density and the hazard are seated, the node's own rates.
+  compute_node_rates(environment, pr_patch_survival);
   // NOTE: It's *possible* here that we need to set
   // individual.vars.mortality_dt to zero here, but I don't see that's
   // likely.
 }
 
 template <typename T, typename E>
-double Node<T,E>::growth_rate_gradient(const environment_type& environment) const {
-  // Finite-differencing the growth rate needs a mutable Individual to perturb
-  // height on, but it must not disturb this node's already-computed state and
-  // rates. Rather than copy-construct a fresh Individual (and its four
-  // Internals vectors) on every call, reuse a thread-local scratch: copy
-  // assignment reuses the existing vector storage, so steady-state calls do
-  // not allocate. The scratch is per (strategy, environment) instantiation and
-  // is never used re-entrantly, so a single thread-local is sufficient.
-  thread_local std::optional<individual_type> scratch;
-  if (scratch.has_value()) {
-    *scratch = individual;
-  } else {
-    scratch.emplace(individual);
-  }
-  individual_type& p = *scratch;
-  auto fun = [&] (double h) -> double {
-    return p.growth_rate_given_height(h, environment);
-  };
-
-  const Control& control = individual.control();
-  const double eps = control.node_gradient_eps;
-  if (control.node_gradient_richardson) {
-    return util::gradient_richardson(fun,  individual.state(HEIGHT_INDEX), eps,
-                                     control.node_gradient_richardson_depth);
-  } else {
-    return util::gradient_fd(fun, individual.state(HEIGHT_INDEX), eps, individual.rate(HEIGHT_INDEX),
-                             control.node_gradient_direction);
-  }
+typename Node<T,E>::value_type
+Node<T,E>::growth_rate_gradient(const environment_type& environment) const {
+  return individual.growth_rate_gradient(environment);
 }
 
 // Wrapper to growth_rate_gradient for testing
 template <typename T, typename E>
-double Node<T,E>::r_growth_rate_gradient(const environment_type& environment) {
+typename Node<T,E>::value_type
+Node<T,E>::r_growth_rate_gradient(const environment_type& environment) {
   // We need to compute the physiological variables here, first, so
   // that reusing intervals works as expected.  This would ordinarily
   // be taken care of because of the calling order of
@@ -267,14 +301,24 @@ double Node<T,E>::r_growth_rate_gradient(const environment_type& environment) {
 }
 
 template <typename T, typename E>
-double Node<T,E>::compute_competition(double height_) const {
+typename Node<T,E>::value_type
+Node<T,E>::compute_competition(const value_type& height_) const {
   return density * individual.compute_competition(height_);
+}
+
+template <typename T, typename E>
+with_slope<typename Node<T,E>::value_type>
+Node<T,E>::compute_competition_and_slope(const value_type& height_) const {
+  const with_slope<value_type> fs =
+    individual.compute_competition_and_slope(height_);
+  return {density * fs.value, density * fs.slope};
 }
 
 // ODE interface -- note that the don't care about time in the node;
 // only Patch and above does.
 template <typename T, typename E>
-odelia::ode::const_iterator Node<T,E>::set_ode_state(odelia::ode::const_iterator it) {
+template <typename It>
+It Node<T,E>::set_ode_state(It it) {
   for (size_t i = 0; i < individual.ode_size(); i++) {
     individual.set_state(i, *it++);
   }
@@ -283,30 +327,39 @@ odelia::ode::const_iterator Node<T,E>::set_ode_state(odelia::ode::const_iterator
   return it;
 }
 template <typename T, typename E>
-odelia::ode::iterator Node<T,E>::ode_state(odelia::ode::iterator it) const {
+template <typename It>
+It Node<T,E>::ode_state(It it) const {
   for (size_t i = 0; i < individual.ode_size(); i++) {
-    *it++ = individual.state(i);
+    util::write_iterator_scalar(it, individual.state(i));
   }
-  *it++ = offspring_produced_survival_weighted;
-  *it++ = log_density;
+  util::write_iterator_scalar(it, offspring_produced_survival_weighted);
+  util::write_iterator_scalar(it, log_density);
   return it;
 }
 template <typename T, typename E>
-odelia::ode::iterator Node<T,E>::ode_rates(odelia::ode::iterator it) const {
+template <typename It>
+It Node<T,E>::ode_rates(It it) const {
   for (size_t i = 0; i < individual.ode_size(); i++) {
-    *it++ = individual.rate(i);
+    util::write_iterator_scalar(it, individual.rate(i));
   }
-  *it++ = offspring_produced_survival_weighted_dt;
-  *it++ = log_density_dt;
+  util::write_iterator_scalar(it, offspring_produced_survival_weighted_dt);
+  util::write_iterator_scalar(it, log_density_dt);
   return it;
 }
 
 template <typename T, typename E>
-odelia::ode::iterator Node<T,E>::ode_aux(odelia::ode::iterator it) const {
+template <typename It>
+It Node<T,E>::ode_aux(It it) const {
   for (size_t i = 0; i < individual.aux_size(); i++) {
-    *it++ = individual.aux(i);
+    util::write_iterator_scalar(it, individual.aux(i));
   }
   return it;
+}
+
+template <typename T, typename E>
+template <typename It>
+It Node<T,E>::set_ode_aux(It it) {
+  return individual.set_ode_aux(it);
 }
 
 

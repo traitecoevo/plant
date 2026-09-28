@@ -165,7 +165,16 @@ grow_individual_bracket <- function(individual, sizes, size_name, env,
         warning(paste(msg, collapse="\n"), immediate.=TRUE)
       }
       ## TODO(#483): Consider making this an error, or making the test a bit better.
-      if (runner$object$individual$ode_rates[[2]] < 1e-10) {
+      ##
+      ## ⚠️ BOTH HALVES, BECAUSE A PARKED RATE IS WHAT A DEAD PLANT LOOKS LIKE.
+      ## Every strategy's mortality_dt returns exactly zero once the accumulated
+      ## hazard reaches establishment_failure_hazard, so the rate alone cannot
+      ## separate "it died" from "it failed for some other reason" -- it reads
+      ## zero for both. The hazard is the fact and the rate is the proxy, so a
+      ## plant is taken to have died if either says so.
+      rates <- runner$object$individual$ode_rates
+      states <- runner$object$individual$ode_state
+      if (rates[[2]] < 1e-10 && states[[2]] < 700) {
         warning("Integration may have failed for reasons other than mortality",
                 immediate.=TRUE)
       }

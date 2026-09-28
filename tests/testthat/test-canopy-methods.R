@@ -126,7 +126,7 @@ test_that("flat-top-box cannot build a light environment (discontinuous competit
   p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = FF16_hyperpar, birth_rate = list(20))
   ctrl <- Control(); ctrl$shading_model <- "flat-top-box"
   expect_error(run_scm(p1, Environment("FF16"), ctrl),
-               "Interpolated function as refined as currently possible")
+               "no light environment can be built from it")
 })
 
 test_that("under uniform light, the integrate-based models all agree", {
@@ -171,12 +171,21 @@ test_that("deep-crown reproduces the baseline SCM result", {
   # SCM test kept at the full default horizon: it is the canonical anchor, so it
   # pins the established full-lifetime FF16 number rather than a shortened-horizon
   # value.
+  #
+  # The established number is the one on the height coordinate, which is the
+  # coordinate it was established on. A stand carried in birth date is a
+  # quadrature over a different abscissa, so the same model returns a different
+  # number there -- +1.70% -- and that is a property of the coordinate rather
+  # than of the shading model. Both are pinned, because a change that moved only
+  # one of them would be a change to the reduction and not to the coordinate.
   p0 <- scm_base_parameters("FF16")
   env <- Environment("FF16")
-  ctrl <- Control() # shading_model defaults to "deep-crown"
+  # shading_model defaults to "deep-crown"
   p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = FF16_hyperpar, birth_rate = list(20))
-  out <- run_scm(p1, env, ctrl)
-  expect_equal(out$offspring_production, 16.88946, tolerance = 1e-4)
+  over_height <- run_scm(p1, env, Control(node_density_in_birth_date = FALSE))
+  expect_equal(over_height$offspring_production, 16.8846, tolerance = 1e-4)
+  over_birth_date <- run_scm(p1, env, Control(node_density_in_birth_date = TRUE))
+  expect_equal(over_birth_date$offspring_production, 17.1720, tolerance = 1e-4)
 })
 
 test_that("crown-centre runs through the SCM and changes the outcome", {
@@ -276,8 +285,7 @@ test_that("adaptive and fixed-schedule PPA agree (well-behaved integration)", {
   ctrl <- Control(); ctrl$shading_model <- "ppa"
   adaptive <- run_scm(p1, Environment("FF16"), ctrl)$offspring_production
   pf <- p1; pf$ode_times <- seq(0, p0$max_patch_lifetime, length.out = 800)
-  fixed <- run_scm(pf, Environment("FF16"), ctrl,
-                   use_ode_times = TRUE)$offspring_production
+  fixed <- run_scm(pf, Environment("FF16"), ctrl)$offspring_production
   expect_equal(adaptive, fixed, tolerance = 1e-2)
 })
 
@@ -324,5 +332,314 @@ test_that("TF24 shading models agree under uniform light", {
     ref <- tf24_prod("mean-light", E)
     expect_equal(tf24_prod("crown-centre", E), ref, tolerance = 1e-8)
     expect_equal(tf24_prod("deep-crown", E), ref, tolerance = 1e-8)
+  }
+})
+
+# One grown TF24 stand, built once and read by the three blocks below. They ask
+# different questions of the same state, and growing it three times was the whole
+# cost of this file.
+#
+# Lifetime 2 rather than 8: what these blocks need is a canopy of distinct cohort
+# heights, which the first introductions supply. `collect` is on because the first block reads the history.
+#
+# Safe to share because `scm$patch` hands back a COPY -- the blocks below set an
+# ODE state on it and rebuild its environment, and neither reaches this stand.
+tf24_light_stand <- local({
+  built <- NULL
+  function() {
+    if (is.null(built)) {
+      p0 <- scm_base_parameters("TF24", "TF24_Env")
+      p0$max_patch_lifetime <- 2
+      p <- add_strategies(p0, trait_matrix(0.1978791, "lma"))
+      scm <- SCM("TF24", "TF24_Env")(p, Environment("TF24"), empty_events(),
+                                     Control())
+      scm$collect <- TRUE
+      scm$run()
+      # All three blocks read a light field, and a stand that cast no shade would
+      # satisfy them trivially -- Beer's law at every knot is exp(0) against 1.
+      # Measured here: 82 history entries, height_max 4.47 m, 65 distinct knot
+      # values, shade reaching 0.78.
+      shade <- scm$patch$environment$light_availability$state[, "light_availability"]
+      stopifnot(length(scm$history) > 20, min(shade) < 0.9,
+                length(unique(shade)) == 65L)
+      built <<- list(scm = scm, p = p)
+    }
+    built
+  }
+})
+
+test_that("the light interpolant's knot positions are run-constant", {
+  # The field is held on u = z / height_max at uniform fractions fixed for the
+  # run, so every build places its knots at u_k * height_max: the count is the
+  # same at every stage and the positions are a function of height_max alone.
+  scm <- tf24_light_stand()$scm
+
+  u <- seq(0, 1, length.out = 65)
+  expect_gt(length(scm$history), 20)
+  for (h in scm$history) {
+    x <- h$environment$light_availability$state[, "height"]
+    expect_identical(x, u * h$height_max)
+  }
+})
+
+test_that("the light interpolant is a function of the state, not of the build before it", {
+  # Reaching a state by running to it and by setting it directly must give the
+  # same field, bitwise: nothing carries over from the previous build.
+  stand <- tf24_light_stand()
+  scm <- stand$scm
+  p <- stand$p
+
+  ran <- scm$patch
+  n <- vapply(ran$species, function(s) s$size, 0.0)
+  y <- ran$ode_state
+  t <- ran$ode_time
+  ran$set_ode_state(y, t)
+
+  fresh <- Patch("TF24", "TF24_Env")(p, Environment("TF24"), Control())
+  fresh$set_state(t, y, n, c(0, 0.5, 1, 1, 1, 1, 0, 0, 0))
+  fresh$set_ode_state(y, t)
+
+  expect_identical(fresh$environment$light_availability$state,
+                   ran$environment$light_availability$state)
+})
+
+test_that("the light field carries Beer's law and its derivative at every knot", {
+  # E = exp(-A) and dE/dz = -A' exp(-A), with A and A' the competition profile
+  # and its vertical derivative, so the slope a consumer reads at a knot is the
+  # derivative of the value it reads there.
+  scm <- tf24_light_stand()$scm
+  patch <- scm$patch
+  # Rebuilt at the clock it is read at. On the birth-date coordinate the closing
+  # interval runs from the youngest cohort's birth date to now, so the field is a
+  # function of the time as well as of the state, and a build left behind by an
+  # earlier stage is a field at a different argument.
+  patch$compute_environment()
+
+  state <- patch$environment$light_availability$state
+  expect_identical(colnames(state), c("height", "light_availability", "slope"))
+  expect_equal(nrow(state), 65)
+
+  as <- vapply(state[, "height"], patch$compute_competition_and_slope, c(0, 0))
+  expect_equal(unname(state[, "light_availability"]), exp(-as[1, ]))
+  expect_equal(unname(state[, "slope"]), -as[2, ] * exp(-as[1, ]),
+               tolerance = 1e-14)
+})
+# A multi-cohort FF16 patch at a given eta, with the cohort heights pushed apart
+# so the trapezium grid the competition reduction walks is non-degenerate.
+slope_patch <- function(eta, n = 6) {
+  s <- FF16_Strategy()
+  s$pars$eta <- eta
+  s$birth_rate_y <- 1
+  s$is_variable_birth_rate <- FALSE
+  p <- Parameters("FF16", "FF16_Env")(strategies = list(s),
+                                      patch_type = "meta-population")
+  patch <- Patch("FF16", "FF16_Env")(p, Environment("FF16"), Control())
+  for (i in seq_len(n)) {
+    patch$introduce_new_node(1, i * 1.0)
+    y <- patch$ode_state
+    y[1] <- y[1] + 0.7 * i
+    patch$set_ode_state(y, i * 1.0)
+  }
+  patch
+}
+
+# Both the eta-specialised multiplication chains (1, 2, 4, 8, 10, 12) and the
+# general std::pow path, which are different code in CanopyShape.
+slope_etas <- c(1, 2, 4, 8, 10, 12, 7.3)
+
+test_that("the slope reduction is the vertical derivative of the value reduction", {
+  for (eta in slope_etas) {
+    patch <- slope_patch(eta)
+    hmax <- patch$height_max
+    z <- seq(0.05 * hmax, 0.95 * hmax, length.out = 25)
+    h <- 1e-6 * hmax
+    got <- vapply(z, function(zz) patch$compute_competition_and_slope(zz)[2], 0)
+    fd <- vapply(z, function(zz) {
+      (patch$compute_competition(zz + h) - patch$compute_competition(zz - h)) / (2 * h)
+    }, 0)
+    expect_equal(got, fd, tolerance = 1e-8,
+                 info = sprintf("eta = %g", eta))
+  }
+})
+
+test_that("the fused value is the value reduction bit for bit", {
+  # Not a tolerance: a value and a slope from sums that associate differently
+  # disagree in their last bits, and equality here is what rules that out.
+  for (eta in slope_etas) {
+    patch <- slope_patch(eta)
+    z <- seq(0, 1.2 * patch$height_max, length.out = 200)
+    fused <- vapply(z, function(zz) patch$compute_competition_and_slope(zz)[1], 0)
+    plain <- vapply(z, function(zz) patch$compute_competition(zz), 0)
+    expect_true(identical(fused, plain), info = sprintf("eta = %g", eta))
+  }
+})
+
+test_that("the fused value tracks the association the value reduction uses", {
+  # Three species, so the patch-level sum has three terms and its association is
+  # observable at double precision -- which is what makes the check above a check.
+  mk <- function(eta) {
+    s <- FF16_Strategy(); s$pars$eta <- eta
+    s$birth_rate_y <- 1; s$is_variable_birth_rate <- FALSE
+    s
+  }
+  p <- Parameters("FF16", "FF16_Env")(strategies = list(mk(12), mk(4), mk(7.3)),
+                                      patch_type = "meta-population")
+  patch <- Patch("FF16", "FF16_Env")(p, Environment("FF16"), Control())
+  n1 <- Node("FF16", "FF16_Env")(p$strategies[[1]])$ode_size
+  for (i in 1:5) {
+    for (k in 1:3) patch$introduce_new_node(k, i * 1.0)
+    y <- patch$ode_state
+    y[1]          <- y[1] + 0.70 * i
+    y[1 + n1]     <- y[1 + n1] + 0.31 * i
+    y[1 + 2 * n1] <- y[1 + 2 * n1] + 0.53 * i
+    patch$set_ode_state(y, i * 1.0)
+  }
+  area <- patch$get_area
+  z <- seq(0, 1.2 * patch$height_max, length.out = 400)
+  fused <- vapply(z, function(zz) patch$compute_competition_and_slope(zz)[1], 0)
+  f <- lapply(1:3, function(k)
+    vapply(z, function(zz) patch$species[[k]]$compute_competition(zz), 0) / area)
+  expect_true(identical(fused, (f[[1]] + f[[2]]) + f[[3]]))
+  expect_false(identical(fused, f[[1]] + (f[[2]] + f[[3]])))
+})
+
+test_that("the slope reduction is finite at the ground knot", {
+  # q(z, H) is 0 / 0 at z = 0 for every H, and z = 0 is the light field's lowest
+  # query, so the limit has to be taken rather than evaluated.
+  for (eta in slope_etas) {
+    fs <- slope_patch(eta)$compute_competition_and_slope(0)
+    expect_true(all(is.finite(fs)), info = sprintf("eta = %g", eta))
+  }
+})
+
+test_that("the vertical slope is refused for the hard-step shading model", {
+  for (m in c("flat-top-box")) {
+    s <- FF16_Strategy()
+    s$birth_rate_y <- 1
+    s$is_variable_birth_rate <- FALSE
+    p <- Parameters("FF16", "FF16_Env")(strategies = list(s),
+                                        patch_type = "meta-population")
+    # The Patch overwrites every strategy's control with its own, so the shading
+    # model has to be set on the Control the Patch is given.
+    ctrl <- Control()
+    ctrl$shading_model <- m
+    patch <- Patch("FF16", "FF16_Env")(p, Environment("FF16"), ctrl)
+    # Introducing a node builds the light field, and the field now asks for a
+    # slope at every knot, so the refusal arrives at the introduction.
+    expect_error(patch$introduce_new_node(1, 0), "no vertical slope")
+  }
+})
+
+
+test_that("the crown's separable form is the same profile as its own kernel", {
+  # Q is a polynomial in w = (z / H)^eta, and that is what lets the field's
+  # reduction sum over crowns once instead of once per height. Both spellings are
+  # kept -- the dot product is what makes the sum linear in crowns plus heights,
+  # the direct form is what stays well conditioned as a height approaches a crown
+  # top -- so the number that can drift between them is measured rather than
+  # assumed.
+  #
+  # ⚠️ REFEREED IN ABSOLUTE TERMS, AND A RELATIVE READ HERE IS MEANINGLESS. Q is
+  # exactly zero at a crown's own top and the expanded form gets there by
+  # cancelling 1 - 2w + w^2 with every term at one, so a relative error against
+  # zero reads 1e272 while the absolute error is a few ULP. Q lives in [0, 1] so an
+  # absolute bound on it is already scale-free; q's own scale is eta / H, so it is
+  # divided by that. Measured: 3.9e-16 and 9.8e-16.
+  #
+  # The same claim on a whole stand rather than one crown: over 100,035 field reads
+  # on a 30-year TF24 run the two agree to 7.7e-14 in the knot values and 3.4e-14
+  # in the slopes, which moved nothing in either suite.
+  eta <- 12
+  Q_direct <- function(z, h) if (z > h) 0 else (1 - (z / h)^eta)^2
+  q_direct <- function(z, h) if (z > h || z <= 0) 0 else
+    2 * eta * (1 - (z / h)^eta) * (z / h)^eta / z
+  Q_moments <- function(z, h) {
+    s <- (1 / h)^eta
+    sum(c(1, -2 * z^eta, (z^eta)^2) * c(1, s, s^2))
+  }
+  dQ_moments <- function(z, h) {
+    s <- (1 / h)^eta
+    tz <- if (z > 0) z^eta / z else if (eta == 1) 1 else 0
+    sum(c(0, -2 * eta * tz, 2 * eta * z^eta * tz) * c(1, s, s^2))
+  }
+
+  worst_q <- 0
+  worst_slope <- 0
+  for (h in c(0.6, 1.7, 5.3, 16.6)) {
+    for (u in seq(0, 1, length.out = 97)) {
+      z <- u * h
+      worst_q <- max(worst_q, abs(Q_direct(z, h) - Q_moments(z, h)))
+      # q is -dQ/dz, so the separable slope carries the opposite sign.
+      worst_slope <- max(worst_slope,
+                         abs(q_direct(z, h) + dQ_moments(z, h)) / (eta / h))
+    }
+  }
+  expect_lt(worst_q, 1e-14)
+  expect_lt(worst_slope, 1e-14)
+
+  # And the identity the whole reduction rests on: a crown's scale is its own
+  # contribution at height zero, because Q(0) is exactly one -- which is what lets
+  # the reduction read a scale off an accessor that already exists rather than
+  # adding a member at every level of the tower.
+  expect_identical(Q_direct(0, 3.2), 1)
+  expect_identical(Q_moments(0, 3.2), 1)
+})
+
+# Defect: the reduction taken over the node list rather than over the abscissa
+# set. TF24's reserve-gated growth lets two cohorts cross in height, and
+# in the height coordinate the abscissa is -height, so a crossing puts a negative
+# width in the trapezium. Nothing else here catches it: both the C++ and a by-hand
+# walk read the same defective grid.
+#
+# The check is permutation invariance, because that is what the quadrature grid
+# being a set means. It is bit-for-bit rather than approximate: restoring the
+# order gives the same intervals in the same sequence, so the sums associate
+# identically, and only the order the nodes are stored in differs.
+test_that("the competition reduction is invariant to the node order", {
+  # Written through the state vector, because the heights setter refuses a
+  # crossing and a run has no such guard.
+  build <- function(heights, log_densities) {
+    ctrl <- Control()
+    ctrl$node_density_in_birth_date <- FALSE
+    st <- FF16_Strategy()
+    st$control <- ctrl
+    s <- Species("FF16", "FF16_Env")(st)
+    env <- Environment("FF16")
+    env$set_fixed_environment(1.0, 200)
+    for (i in seq_along(heights)) {
+      s$compute_rates(env, 1.0, 1.0)
+      s$introduce_new_node()
+    }
+    state <- s$ode_state
+    names_j <- s$nodes[[1]]$ode_names
+    stride <- s$nodes[[1]]$ode_size
+    i_height <- match("height", names_j)
+    i_density <- match("log_density", names_j)
+    for (j in seq_along(heights)) {
+      base <- (j - 1L) * stride
+      state[[base + i_height]] <- heights[[j]]
+      state[[base + i_density]] <- log_densities[[j]]
+    }
+    s$ode_state <- state
+    s
+  }
+
+  h <- c(9, 6, 4, 2)
+  d <- log(c(0.4, 0.9, 1.7, 2.6))
+  ordered <- build(h, d)
+  expect_identical(ordered$heights, h)
+
+  # The same four (height, density) samples with two adjacent pairs swapped.
+  p <- c(2, 1, 4, 3)
+  crossed <- build(h[p], d[p])
+  expect_identical(crossed$heights, h[p])
+  expect_false(all(diff(crossed$heights) < 0))
+
+  # Below the canopy top, at the crown bases, and above every node. The value and
+  # the slope accumulate in one loop over one set of widths, so a width with the
+  # wrong sign cannot reach one channel and not the other.
+  for (z in c(0, 1, 2, 3, 4, 6, 8.5, 9.5)) {
+    expect_identical(crossed$compute_competition(z),
+                     ordered$compute_competition(z))
   }
 })

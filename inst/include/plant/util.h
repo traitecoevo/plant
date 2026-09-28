@@ -6,6 +6,10 @@
 #include <RcppCommon.h> // as/wrap/SEXP
 #include <R_ext/Arith.h> // NA_REAL etc. (kept; widely relied on transitively)
 #include <cmath> // std::isfinite
+#include <concepts> // std::integral, std::floating_point
+#include <iterator> // std::iterator_traits
+#include <type_traits> // std::is_arithmetic_v
+#include <odelia/ode_util.hpp> // to_passive
 
 namespace plant {
 namespace util {
@@ -34,6 +38,16 @@ inline std::vector<index> index_vector(const std::vector<size_t> x) {
 // the package's -O2 (no -ffast-math) build.
 inline bool is_finite(double x) {
   return std::isfinite(x);
+}
+
+// The same test on a scalar carrying derivative layers: the answer picks a
+// branch and carries no derivative, so it is taken at the value. Constrained
+// away from the built-in numbers only so the overload above keeps them; nothing
+// here is a property worth naming.
+template <typename T>
+  requires (!std::is_arithmetic_v<std::remove_cvref_t<T>>)
+bool is_finite(const T& x) {
+  return std::isfinite(odelia::util::to_passive(x));
 }
 
 void check_length(size_t received, size_t expected);
@@ -122,9 +136,33 @@ bool is_decreasing(ForwardIterator first, ForwardIterator last) {
 
 void warning(const std::string &);
 
+// What the destination iterator holds decides what a serialiser writes: an
+// R-facing double takes the rebind_from value, an active buffer takes the value
+// itself. Only double crosses the R boundary, and this is where it converts.
+//
+// Writes through the iterator rather than returning, because returning meant
+// returning by value: at an active scalar that copy registers a tape slot and
+// records an operation, once per element per stage, for a value the caller was
+// about to assign anyway.
+template <typename It, typename S>
+void write_iterator_scalar(It& it, const S& value) {
+  if constexpr (std::floating_point<
+                  typename std::iterator_traits<It>::value_type>) {
+    *it++ = odelia::util::to_passive(value);
+  } else {
+    *it++ = value;
+  }
+}
+
+// A diagnostic is read rather than differentiated, so an active scalar formats
+// at its value. std::to_string covers the built-in types and nothing else.
 template<typename T>
 std::string to_string(T x) {
-  return std::to_string(x);
+  if constexpr (std::integral<T> || std::floating_point<T>) {
+    return std::to_string(x);
+  } else {
+    return std::to_string(odelia::util::to_passive(x));
+  }
 }
 
 // to_string() always gives six decimal places, so quantities much smaller than
@@ -147,8 +185,11 @@ void rescale(ForwardIterator first, ForwardIterator last,
 // TODO(#483): Probably move these out to their own file?
 // Integration via the trapezium rule, for any containers that
 // implement the basics of iteration (const_iterator, begin, size)
+// The integrand's scalar comes out, so a vector of double integrates to a
+// double and nothing about that path changes.
 template <typename ContainerX, typename ContainerY>
-double trapezium(const ContainerX& x, const ContainerY& y) {
+typename ContainerY::value_type trapezium(const ContainerX& x,
+                                          const ContainerY& y) {
   util::check_length(y.size(), x.size());
   if (x.size() < 2) {
     util::stop("Need at least two points for the trapezium rule");
@@ -157,7 +198,7 @@ double trapezium(const ContainerX& x, const ContainerY& y) {
   ++x1;
   typename ContainerY::const_iterator y0 = y.begin(), y1 = y.begin();
   ++y1;
-  double tot = 0.0;
+  typename ContainerY::value_type tot = 0.0;
   while (x1 != x.end()) {
     tot += (*x1++ - *x0++) * (*y1++ + *y0++);
   }
