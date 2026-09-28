@@ -48,7 +48,7 @@ compile_ff16_deep_crown_ad <- function() {
                             double resp, double turn, double a_bio, double a_y) {
         std::vector<S> yk(xk.size());
         for (size_t i = 0; i < xk.size(); ++i) yk[i] = exp(-theta * shade[i]);
-        odelia::interpolator::basic_interpolator<S> light;
+        odelia::interpolator::hermite_interpolator<S> light;
         light.init(xk, yk);
         S assim = plant::ff16_assimilation_deep_crown_replay<S>(
             a_p1, S(a_p2), S(area_leaf), z, wq,
