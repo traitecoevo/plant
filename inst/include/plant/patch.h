@@ -42,8 +42,28 @@ concept KeepsSolvedChoices =
 // Named from the factory rather than from a second alias beside it, so there is
 // one answer to "what is this at another scalar" and a type that cannot rebind
 // says so here rather than further in.
+//
+// Written as a trait with a `void` fallback rather than a bare decltype alias,
+// and for a compiler reason: clang substitutes a member template's declaration
+// -- its default template arguments and its return type -- when the enclosing
+// class is instantiated, where GCC defers until the member is used. A bare
+// alias naming `X::rebind_from` is then a hard error the moment
+// `Patch<FF16_Strategy, ...>` exists, because FF16 and K93 declare no
+// `rebind_from`. The `void` fallback turns that into a type nothing
+// instantiates, and `Patch::rebind_from` is constrained on it below.
+template <typename X, typename U, typename = void>
+struct at_scalar_impl { using type = void; };
 template <typename X, typename U>
-using at_scalar = decltype(std::declval<const X&>().template rebind_from<U>());
+struct at_scalar_impl<X, U,
+  std::void_t<decltype(std::declval<const X&>().template rebind_from<U>())>> {
+  using type = decltype(std::declval<const X&>().template rebind_from<U>());
+};
+template <typename X, typename U>
+using at_scalar = typename at_scalar_impl<X, U>::type;
+// Both halves of a patch can be named at scalar U.
+template <typename T, typename E, typename U>
+concept PatchRebindable =
+  !std::is_void_v<at_scalar<T, U>> && !std::is_void_v<at_scalar<E, U>>;
 
 // The scalar a forward tangent runs on, and the two things done to one: seed a
 // direction, read the derivative it produced. Brought in here once, so no header
@@ -104,9 +124,12 @@ public:
 
   // This patch at scalar U: strategies (already prepared), environment, node
   // structure, ODE state, and the birth stamps that divide the fecundity rate.
-  template <class U,
-            class T2 = at_scalar<T, U>, class E2 = at_scalar<E, U>>
-  Patch<T2,E2> rebind_from() const;
+  // Constrained, so that for a strategy with no rebind (FF16, K93) the member
+  // does not exist: odelia's `Rebindable` concept then reads false instead of
+  // instantiating `Patch<void, void>`.
+  template <class U>
+    requires PatchRebindable<T, E, U>
+  Patch<at_scalar<T, U>, at_scalar<E, U>> rebind_from() const;
 
 
   // Every scalar's Patch is one class, so a rebind reaches the rebound patch's
@@ -566,8 +589,11 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c,
 }
 
 template <typename T, typename E>
-template <class U, class T2, class E2>
-Patch<T2,E2> Patch<T,E>::rebind_from() const {
+template <class U>
+  requires PatchRebindable<T, E, U>
+Patch<at_scalar<T, U>, at_scalar<E, U>> Patch<T,E>::rebind_from() const {
+  using T2 = at_scalar<T, U>;
+  using E2 = at_scalar<E, U>;
   // What a rebound patch reads, and nothing else. patch_type and
   // max_patch_lifetime are read by validate(), which the constructor below runs
   // to rebuild the disturbance regime: without them the rebound patch gets a
