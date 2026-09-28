@@ -2,7 +2,7 @@
 #ifndef PLANT_PLANT_WITH_SLOPE_H_
 #define PLANT_PLANT_WITH_SLOPE_H_
 
-#include <odelia/with_slope.hpp>
+#include <odelia/value_with_slope.hpp>
 
 namespace plant {
 
@@ -13,7 +13,7 @@ namespace plant {
 // reports the miss. A model defining the pair itself is a model carrying that
 // library's obligation, and a second definition is a second thing to forget.
 template <typename T>
-using with_slope = odelia::with_slope<T>;
+using with_slope = odelia::value_with_slope<T>;
 
 // WHAT THE SLOPE IS WITH RESPECT TO is this package's, which is why odelia's
 // header does not name it: phylloptim's operating point carries d/d(collar
