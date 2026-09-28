@@ -1481,6 +1481,8 @@ were not previously recorded here:
 
 ### Internals & performance
 
+* **odelia 0.5.1 and phylloptim 0.8.3: the spline behind the light field is a local cubic Hermite (odelia#60, #61).** With values alone it reads the same natural cubic spline as before, so forward numbers move only at rounding, amplified through the run: offspring production changes by 8e-11 relative for FF16, 1.5e-6 for TF24 on the height coordinate and 5e-13 on the birth-date coordinate, with identical step and introduction counts. Runs are slightly faster than on odelia 0.4.0 (FF16 full lifetime 0.106 to 0.102 s, TF24 6 yr 2.35 to 2.31 s). The C++ front end is `odelia::interpolator::hermite_interpolator<S>`, formerly `basic_interpolator<S>`, which two AD tests named directly. phylloptim moves to its 0.8.x maintenance line because both packages must pin the same odelia.
+
 * The scenario gateway's seasonal rainfall driver places its spline knots **per
   year** (48 yr⁻¹) rather than per run, so the realised seasonality no longer
   depends on `max_patch_lifetime`. The previous `max(200, mpl × 6)` gave 6 knots
