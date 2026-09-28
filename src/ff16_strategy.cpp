@@ -584,7 +584,8 @@ void FF16_Strategy::prepare_strategy() {
   area_leaf_0 = area_leaf(height_0);
 
   if (is_variable_birth_rate) {
-    extrinsic_drivers.set_variable("birth_rate", birth_rate_x, birth_rate_y);
+    extrinsic_drivers.set_variable("birth_rate", birth_rate_x, birth_rate_y,
+                                   odelia::drivers::Slopes::monotone);
   } else {
     extrinsic_drivers.set_constant("birth_rate", birth_rate_y[0]);
   }

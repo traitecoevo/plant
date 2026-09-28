@@ -2871,7 +2871,8 @@ void TF24_Strategy<S>::prepare_strategy() {
   }
 
   if (this->is_variable_birth_rate) {
-    this->extrinsic_drivers.set_variable("birth_rate", this->birth_rate_x, this->birth_rate_y);
+    this->extrinsic_drivers.set_variable("birth_rate", this->birth_rate_x, this->birth_rate_y,
+                                         odelia::drivers::Slopes::monotone);
   } else {
     this->extrinsic_drivers.set_constant("birth_rate", this->birth_rate_y[0]);
   }

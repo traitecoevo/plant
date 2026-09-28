@@ -126,9 +126,13 @@ public:
     extrinsic_drivers.set_constant(driver_name, value);
   }
 
+  // ⚠️ MONOTONE, NOT odelia's natural default. A driver is data given as values
+  // alone, and a natural spline beside a wet day reads NEGATIVE rainfall between
+  // the points (test-tf24-water-budget.R); monotone slopes keep every read inside
+  // the two values bracketing it. The birth-rate drivers make the same choice.
   void extrinsic_drivers_set_variable(std::string driver_name, std::vector<double> const &x, std::vector<double> const &y)
   {
-    extrinsic_drivers.set_variable(driver_name, x, y);
+    extrinsic_drivers.set_variable(driver_name, x, y, odelia::drivers::Slopes::monotone);
   }
 
   double extrinsic_drivers_evaluate(std::string driver_name, double x) const

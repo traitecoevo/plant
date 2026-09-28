@@ -153,7 +153,8 @@ void K93_Strategy::prepare_strategy() {
   canopy_shape.initialise(pars.eta);
 
   if (is_variable_birth_rate) {
-    extrinsic_drivers.set_variable("birth_rate", birth_rate_x, birth_rate_y);
+    extrinsic_drivers.set_variable("birth_rate", birth_rate_x, birth_rate_y,
+                                   odelia::drivers::Slopes::monotone);
   } else {
     extrinsic_drivers.set_constant("birth_rate", birth_rate_y[0]);
   }
