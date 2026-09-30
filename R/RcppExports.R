@@ -1521,6 +1521,10 @@ Node___FF16__FF16_Env__growth_rate_at_birth__get <- function(obj_) {
     .Call('_plant_Node___FF16__FF16_Env__growth_rate_at_birth__get', PACKAGE = 'plant', obj_)
 }
 
+Node___FF16__FF16_Env__density_in_birth_date__get <- function(obj_) {
+    .Call('_plant_Node___FF16__FF16_Env__density_in_birth_date__get', PACKAGE = 'plant', obj_)
+}
+
 Node___FF16__FF16_Env__fecundity__get <- function(obj_) {
     .Call('_plant_Node___FF16__FF16_Env__fecundity__get', PACKAGE = 'plant', obj_)
 }
@@ -1583,6 +1587,10 @@ Node___TF24__TF24_Env__introduction_time__get <- function(obj_) {
 
 Node___TF24__TF24_Env__growth_rate_at_birth__get <- function(obj_) {
     .Call('_plant_Node___TF24__TF24_Env__growth_rate_at_birth__get', PACKAGE = 'plant', obj_)
+}
+
+Node___TF24__TF24_Env__density_in_birth_date__get <- function(obj_) {
+    .Call('_plant_Node___TF24__TF24_Env__density_in_birth_date__get', PACKAGE = 'plant', obj_)
 }
 
 Node___TF24__TF24_Env__fecundity__get <- function(obj_) {
@@ -1649,6 +1657,10 @@ Node___TF24f__TF24_Env__growth_rate_at_birth__get <- function(obj_) {
     .Call('_plant_Node___TF24f__TF24_Env__growth_rate_at_birth__get', PACKAGE = 'plant', obj_)
 }
 
+Node___TF24f__TF24_Env__density_in_birth_date__get <- function(obj_) {
+    .Call('_plant_Node___TF24f__TF24_Env__density_in_birth_date__get', PACKAGE = 'plant', obj_)
+}
+
 Node___TF24f__TF24_Env__fecundity__get <- function(obj_) {
     .Call('_plant_Node___TF24f__TF24_Env__fecundity__get', PACKAGE = 'plant', obj_)
 }
@@ -1711,6 +1723,10 @@ Node___K93__K93_Env__introduction_time__get <- function(obj_) {
 
 Node___K93__K93_Env__growth_rate_at_birth__get <- function(obj_) {
     .Call('_plant_Node___K93__K93_Env__growth_rate_at_birth__get', PACKAGE = 'plant', obj_)
+}
+
+Node___K93__K93_Env__density_in_birth_date__get <- function(obj_) {
+    .Call('_plant_Node___K93__K93_Env__density_in_birth_date__get', PACKAGE = 'plant', obj_)
 }
 
 Node___K93__K93_Env__fecundity__get <- function(obj_) {

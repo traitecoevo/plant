@@ -22,6 +22,12 @@ test_that("Defaults", {
     a_st1 = 0.10,
     a_st2 = 0.10,
     a_st3 = 0.8,
+    a_sw = 0.0,
+    a_pl0 = 0.0,
+    a_pl1 = 0.0,
+    a_pl2 = 0.2,
+    a_pl3 = 0.05,
+    a_pl4 = 3.0,
     a_p1   = 151.177775377968,
     a_p2   = 0.204716166503633,
     a_f1   = 1,
@@ -115,8 +121,8 @@ test_that("TF24f collect_all_auxiliary option", {
 
   s <- TF24f_Strategy()
   p <- TF24f_Individual(s)
-  expect_equal(p$aux_size, 13)
-  expect_equal(length(p$internals$auxs), 13)
+  expect_equal(p$aux_size, 15)
+  expect_equal(length(p$internals$auxs), 15)
 expect_equal(p$aux_names, c(
     "competition_effect",
     "height_inverse",
@@ -130,14 +136,14 @@ expect_equal(p$aux_names, c(
     "shadow_cost",
     "stom_cond_CO2",
     "assimilation",
-    "Tleaf"
+    "Tleaf", "leaf_marginal_return", "sapwood_marginal_return"
   ))
 
   s <- TF24f_Strategy(collect_all_auxiliary=TRUE)
   expect_true(s$collect_all_auxiliary)
   p <- TF24f_Individual(s)
-  expect_equal(p$aux_size, 14)
-  expect_equal(length(p$internals$auxs), 14)
+  expect_equal(p$aux_size, 16)
+  expect_equal(length(p$internals$auxs), 16)
   expect_equal(p$aux_names, c(
     "competition_effect",
     "height_inverse",
@@ -151,7 +157,7 @@ expect_equal(p$aux_names, c(
     "shadow_cost",
     "stom_cond_CO2",
     "assimilation",
-    "Tleaf",
+    "Tleaf", "leaf_marginal_return", "sapwood_marginal_return",
     "area_sapwood"
   ))
 })
@@ -293,8 +299,8 @@ test_that("acclimation runs, is active, and converges to TF24", {
   #     and a full patch runs end-to-end to a finite, positive offspring count.
   expect_true("opt_root_psi_state" %in% TF24f_Individual()$ode_names)
   pf <- mk("TF24f")
-  slow <- run_scm(set_k_acclim(pf, 0.1), Environment("TF24f"), Control())$offspring_production
-  fast <- run_scm(set_k_acclim(pf, 10),  Environment("TF24f"), Control())$offspring_production
+  slow <- run_scm(set_k_acclim(pf, 0.001), Environment("TF24f"), Control())$offspring_production
+  fast <- run_scm(set_k_acclim(pf, 1),   Environment("TF24f"), Control())$offspring_production
   expect_length(fast, 1)
   expect_true(is.finite(fast) && fast > 0)
 
@@ -302,22 +308,23 @@ test_that("acclimation runs, is active, and converges to TF24", {
   #     fitness, so the finite-difference psi optimisation is feeding back into
   #     the demography rather than being a no-op.
   #
-  #     Threshold relaxed from 0.1 to 0.05 when the stem path integral landed:
-  #     with resistance lower above 1 m the penalty for tracking the optimal psi
-  #     imperfectly is smaller, and this contrast fell from just over 10% to
-  #     8.7%. The 0.1 was a round number rather than a derived bound, and 8.7%
-  #     is still decisively not a no-op.
+  #     ⚠️ THE BRACKET STRADDLES A MAXIMUM, so it has to be chosen against the
+  #     coordinate in use, not carried over. Offspring production is NOT
+  #     monotone in k_acclim, and #516 moved where its peak sits: under the
+  #     height coordinate the maximum was near k = 0.1, and under the birth-date
+  #     coordinate TF24f now defaults to, it is near k = 1. Measured here at
+  #     hmat = 5, max_patch_lifetime = 5:
   #
-  #     Do NOT try to restore the margin by widening the k bracket: offspring
-  #     production is NOT monotone in k_acclim. Measured here at hmat = 5,
-  #     max_patch_lifetime = 5:
+  #       k_acclim      0.001     0.01      0.1        1       10
+  #       birth-date  388.267  390.547  409.512  439.537  397.309
+  #       height       15.416   16.442   22.066   22.233   24.365
   #
-  #       k_acclim    0.001    0.01     0.1      10
-  #       offspring  69.462  70.884  76.608  69.932
-  #
-  #     There is a maximum near k = 0.1, so k = 0.01 and k = 10 differ by only
-  #     1.3% and a wider bracket gives a *smaller* contrast, not a larger one.
-  expect_gt(abs(fast - slow) / slow, 0.05)
+  #     The old 0.1-vs-10 pair therefore compares two points on OPPOSITE SIDES
+  #     of the birth-date peak and reads only 3.0% -- which looks like weak
+  #     acclimation and is really a badly-placed bracket. Spanning 0.001 to 1
+  #     gives 13.2%, so the original 0.1 threshold stands rather than being
+  #     relaxed again.
+  expect_gt(abs(fast - slow) / slow, 0.1)
 
   # (3) Consistent with TF24 "within reason": as the acclimation gain grows,
   #     TF24f tracks the optimum that TF24 computes directly each step, so its

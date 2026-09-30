@@ -310,10 +310,14 @@ Read on the two axes the gateway now reports: **numerical viability 8/8**, and
 
 ### Density coordinate: the gateway runs in birth date (#590, decided 2026-08-05)
 
-`scenario_control()` supplies `control(node_density_in_birth_date = TRUE)` and is
-the default `ctrl` for `build_scenario`, `classify_scm_run`, `evaluate_scenario`
-and `run_scenarios`. The package default (`FALSE`, height) is deliberately left
-alone; only the gateway opts in.
+`scenario_control()` supplies `control(node_density_coordinate = "birth_date")` and
+is the default `ctrl` for `build_scenario`, `classify_scm_run`, `evaluate_scenario`
+and `run_scenarios`.
+
+Since #516 the package default is `"auto"`, which TF24 resolves to `"birth_date"`
+anyway, so the gateway no longer differs from the default — it still names the
+coordinate explicitly so that the value recorded in a scorecard's metadata is the
+resolved one rather than something a reader has to resolve against the model.
 
 Why the gateway and not the package: every scenario here is TF24, and TF24 is
 exactly the model #590 identifies as the one the coordinates disagree on. The

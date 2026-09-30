@@ -32,6 +32,13 @@ public:
   // check compiles to nothing.
   static std::vector<std::string> non_negative_states() { return {}; }
 
+  // Which density coordinate this model needs when Control leaves the choice on
+  // "auto". The height coordinate's compression term is only valid where growth
+  // is a function of size alone, so a model that carries state feeding back into
+  // growth must say so here. Size-only models leave this false and keep the
+  // height coordinate they were calibrated in.
+  static constexpr bool density_in_birth_date_default = false;
+
   std::vector<std::string> aux_names();
 
   // TODO(#483) : expose this so can access state_names directly

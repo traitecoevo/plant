@@ -99,7 +99,8 @@ public:
   // Which coordinate this species' size distribution is carried in. Exposed so
   // Patch can check every species agrees before summing their contributions.
   bool density_in_birth_date() const {
-    return control().node_density_in_birth_date;
+    return plant::density_in_birth_date(control(),
+                                        T::density_in_birth_date_default);
   }
 
   // * ODE interface
@@ -210,12 +211,12 @@ private:
     return birth_date ? n.introduction_time() : -n.height();
   }
   double quadrature_abscissa(const node_type& n) const {
-    return abscissa_of(n, control().node_density_in_birth_date);
+    return abscissa_of(n, density_in_birth_date());
   }
   std::vector<double> quadrature_abscissae() const {
     std::vector<double> ret;
     ret.reserve(size());
-    const bool birth_date = control().node_density_in_birth_date;
+    const bool birth_date = density_in_birth_date();
     for (auto& c : nodes) {
       ret.push_back(abscissa_of(c, birth_date));
     }
@@ -356,7 +357,7 @@ double Species<T,E>::compute_competition(double height) const {
   // Read the coordinate once: this is the hottest loop in the solver (one pass
   // per spline knot per Runge-Kutta stage), so the control lookup does not
   // belong inside it.
-  const bool birth_date = control().node_density_in_birth_date;
+  const bool birth_date = density_in_birth_date();
   // The loop below uses the node list itself as the quadrature grid, and the
   // early exit is valid only if that grid is monotone. When it is not, the exit
   // fires at the first node below `height` and silently drops every node beyond
@@ -533,7 +534,7 @@ double Species<T,E>::consumption_rate(int i) const {
   if (size() == 0) {
     return 0.0;
   }
-  if (control().node_density_in_birth_date) {
+  if (density_in_birth_date()) {
     // Introduction times are fixed at birth and nodes are appended in that
     // order, so this grid is ascending however the heights behave -- there is no
     // inverted case to sort. new_node's birth date is the current time, which is
@@ -616,7 +617,7 @@ Rcpp::NumericMatrix Species<T, E>::r_get_state() const {
   // meaning, and the quantity actually integrated is reported alongside it as
   // `log_density_state`. Note export_patch_state() resumes from patch$ode_state,
   // not from here, so the raw state is what a resume reloads.
-  const size_t extra = control().node_density_in_birth_date ? 1 : 0;
+  const size_t extra = density_in_birth_date() ? 1 : 0;
 
   // Set output size. // +1 is seed
   Rcpp::NumericMatrix ret(static_cast<int>(ode_size + aux_size + extra), n_nodes + 1);
@@ -778,7 +779,7 @@ std::vector<double> Species<T,E>::r_log_densities_state() const {
 template <typename T, typename E>
 std::vector<double> Species<T,E>::r_log_densities() const {
   std::vector<double> ret = r_log_densities_state();
-  if (!control().node_density_in_birth_date) {
+  if (!density_in_birth_date()) {
     return ret;
   }
   // N = nu / |dh/dtau|. jac carries one extra trailing entry for the boundary

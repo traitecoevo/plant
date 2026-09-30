@@ -109,7 +109,7 @@ scenario_to_config <- function(row, mapping) {
 }
 
 ##' @return \code{scenario_control} returns the \code{Control} the gateway runs
-##'   under: \code{control()} with \code{node_density_in_birth_date = TRUE}.
+##'   under: \code{control()} with \code{node_density_coordinate = "birth_date"}.
 ##'
 ##'   Every scenario here is TF24, and TF24 is the model the two density
 ##'   coordinates genuinely disagree on (#590). The transport equation's
@@ -129,7 +129,10 @@ scenario_to_config <- function(row, mapping) {
 ##' @rdname scenario_eval
 ##' @export
 scenario_control <- function() {
-  control(node_density_in_birth_date = TRUE)
+  ## Set explicitly rather than left on "auto" (which TF24 now resolves to the
+  ## same thing), so the coordinate recorded in a stored scorecard's metadata is
+  ## the resolved one and not a value a reader has to resolve themselves.
+  control(node_density_coordinate = "birth_date")
 }
 
 ##' @param config A config list from \code{scenario_to_config}.
@@ -411,7 +414,10 @@ run_scenarios <- function(scenarios = read_scenario_table(),
   ## verdict -- so a stored scorecard that does not say which produced it cannot
   ## honestly be compared against another, and the blessed baseline is exactly
   ## such a stored scorecard.
-  meta$node_density_in_birth_date <- ctrl$node_density_in_birth_date
+  ## The requested coordinate. scenario_control() sets it explicitly rather than
+  ## leaving it on "auto", so what is stored here is the coordinate the run
+  ## actually used and not one the reader has to resolve against the model.
+  meta$node_density_coordinate <- ctrl$node_density_coordinate
   meta$max_patch_lifetime <- max_patch_lifetime
   attr(scorecard, "metadata") <- meta
   attr(scorecard, "max_patch_lifetime") <- max_patch_lifetime
