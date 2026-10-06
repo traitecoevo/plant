@@ -505,12 +505,14 @@ double TF24_Strategy::net_mass_production_dt(const TF24_Environment& environment
   //
   // Filled IN PLACE into the member buffer, for the same reason
   // root_carbon_per_leaf_area_ is a member: this is per-solve, and five fresh
-  // vectors per call measured +0.074 us. phylloptim::layer_thickness is the shared
-  // definition of dz -- do not open-code soil_depths_.back()/n here, because the
-  // vertical resistance scales with dz^2 and the two sides drifting apart would be
-  // a silent squared factor that neither package could detect.
+  // vectors per call measured +0.074 us. phylloptim::layer_thicknesses is the
+  // shared definition of the per-layer dz -- do not open-code the differences
+  // here, because the vertical resistance scales with dz^2 and the two sides
+  // drifting apart would be a silent squared factor that neither package could
+  // detect. Per layer since phylloptim 0.9.0: one column-average dz inflated the
+  // total vertical resistance of a graded profile up to 3.7x.
   phylloptim::root_network_from_carbon(
-      root_carbon_per_leaf_area_, phylloptim::layer_thickness(soil_depths_),
+      root_carbon_per_leaf_area_, phylloptim::layer_thicknesses(soil_depths_),
       beta_R_H, beta_R_V, root_network_);
 
   // Reuse geometry precomputed by environment; avoids rebuilding z midpoints each call.

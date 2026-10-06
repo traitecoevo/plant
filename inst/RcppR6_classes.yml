@@ -108,7 +108,6 @@ Leaf:
     ca_: {type: double, access: field}
     soil_depth_: {type: "std::vector<double>", access: field, name_cpp: "roots_.soil_depth_"}
     z_soil_mid_: {type: "std::vector<double>", access: field, name_cpp: "roots_.z_soil_mid_"}
-    dz_: {type: double, access: field, name_cpp: "roots_.dz_"}
 
     soil_number_of_depths_: {type: int, access: field, name_cpp: "roots_.soil_number_of_depths_"}
     max_soil_layer: {type: int, access: field, name_cpp: "roots_.max_soil_layer"}

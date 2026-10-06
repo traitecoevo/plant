@@ -341,14 +341,6 @@ Leaf__z_soil_mid___set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__z_soil_mid___set', PACKAGE = 'plant', obj_, value))
 }
 
-Leaf__dz___get <- function(obj_) {
-    .Call('_plant_Leaf__dz___get', PACKAGE = 'plant', obj_)
-}
-
-Leaf__dz___set <- function(obj_, value) {
-    invisible(.Call('_plant_Leaf__dz___set', PACKAGE = 'plant', obj_, value))
-}
-
 Leaf__soil_number_of_depths___get <- function(obj_) {
     .Call('_plant_Leaf__soil_number_of_depths___get', PACKAGE = 'plant', obj_)
 }
