@@ -371,15 +371,6 @@ void Leaf__z_soil_mid___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::vector
 }
 
 // [[Rcpp::export]]
-double Leaf__dz___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->roots_.dz_;
-}
-// [[Rcpp::export]]
-void Leaf__dz___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
-  obj_->roots_.dz_ = value;
-}
-
-// [[Rcpp::export]]
 int Leaf__soil_number_of_depths___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   return obj_->roots_.soil_number_of_depths_;
 }
