@@ -46,44 +46,11 @@ test_that("a dry TF24f patch no longer aborts on the ci root-find", {
   expect_false(isTRUE(grepl("do not bracket the root", msg, fixed = TRUE)))
 })
 
-test_that("adaptive interpolation names a non-finite target", {
-  # check_err() compares against NaN, and every NaN comparison is false, so a
-  # single NaN made its interval permanently unacceptable: refinement ran to
-  # max_depth and then reported a resolution limit. The message sent debugging
-  # in the wrong direction, so a non-finite value now says so.
-  #
-  # The light spline is the adaptive interpolator's only production caller, and
-  # it is fed a C++ lambda, so drive it through the exposed test hook.
-  expect_error(
-    test_adaptive_interpolator(function(x) if (x > 0.5) NaN else x, 0, 1),
-    "non-finite")
-
-  # A genuinely unresolvable but finite target still reports resolution, and now
-  # says what was exhausted.
-  expect_error(
-    test_adaptive_interpolator(function(x) as.numeric(x > 0.5), 0, 1),
-    "as refined as currently possible")
-
-  # A smooth target is unaffected.
-  expect_silent(test_adaptive_interpolator(function(x) sin(x), 0, 1))
-})
-
-test_that("a resolution limit says where refinement stalled", {
-  # Naming the x is the whole diagnosis: refinement stalls on a feature of the
-  # target, so the location points straight at whatever put the feature there.
-  # Without it the message says only that some feature somewhere is too narrow
-  # (#571 took an afternoon to localise by hand).
-  msg <- tryCatch(
-    test_adaptive_interpolator(function(x) as.numeric(x > 0.5), 0, 1),
-    error = conditionMessage)
-
-  expect_match(msg, "at x = ")
-  x <- as.numeric(sub(".*at x = ([0-9.e+-]+):.*", "\\1", msg))
-  expect_equal(x, 0.5, tolerance = 1e-3)
-  # And what the target does across the interval it could not resolve.
-  expect_match(msg, "jumps from 0 to 1")
-  expect_match(msg, "interval\\(s\\) still unresolved")
-})
+# The two blocks that stood here drove an adaptive interpolator through an
+# exported test hook, on the ground that the light field was its only
+# production caller. The field places its knots on a fixed lattice and refines
+# nothing, so the hook, the refiner and its diagnosis had no consumer left; the
+# refinement that remains is odelia's, and its own tests cover the stop.
 
 ## Helper: the #571 dry start. Five layers held below the residual floor with
 ## 1 m/yr rainfall, which is a normal dryland initial condition rather than an

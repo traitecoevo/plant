@@ -30,3 +30,19 @@ overstorey-staging/figures/
 
 # Claude Code personal settings
 .claude/settings.local.json
+
+# Build logs from the pinned compile recipe
+build.log
+
+# Quarto leaves a figure directory beside each rendered document; the .html is
+# already ignored above and these are the same build output.
+*_files/
+
+# Agent worktrees. A worktree checked out here records as a gitlink with no
+# .gitmodules entry, which clones as an empty directory nothing can populate.
+.claude/worktrees/
+
+# testthat's pending snapshot, rewritten by every failing run. ⚠️ NEVER COMMIT
+# ONE: `snapshot_accept()` promotes whatever a `.new.md` holds, so a committed
+# one lets an unrelated run accept a surface nobody looked at.
+tests/testthat/_snaps/*.new.md

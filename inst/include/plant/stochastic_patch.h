@@ -2,6 +2,10 @@
 #ifndef PLANT_PLANT_STOCHASTIC_PATCH_H_
 #define PLANT_PLANT_STOCHASTIC_PATCH_H_
 
+#include <plant/parameters.h>
+#include <plant/stochastic_species.h>
+#include <plant/util.h>
+#include <plant/with_slope.h>
 #include <numeric> // std::accumulate, in compute_rates
 
 namespace plant {
@@ -18,7 +22,7 @@ namespace plant {
 template <typename T, typename E>
 class StochasticPatch {
 public:
-  using value_type = double;
+  using value_type = typename T::value_type;
 
   typedef T                      strategy_type;
   typedef E                      environment_type;
@@ -32,10 +36,13 @@ public:
   double time() const {return environment.time;}
   double get_area() const { return area;}
 
-  double height_max() const;
+  value_type height_max() const;
 
   // [eqn 11] Canopy openness at `height`
-  double compute_competition(double height) const;
+  value_type compute_competition(double height) const;
+  // That profile and its vertical derivative, from one pass over the species.
+  with_slope<value_type>
+  compute_competition_and_slope(double height) const;
 
   bool introduce_new_node(size_t species_index);
   void introduce_new_node_and_update(size_t species_index);
@@ -54,9 +61,9 @@ public:
   double ode_time() const;
   double area;
 
-  odelia::ode::const_iterator set_ode_state(odelia::ode::const_iterator it, double time);
-  odelia::ode::iterator       ode_state(odelia::ode::iterator it) const;
-  odelia::ode::iterator       ode_rates(odelia::ode::iterator it) const;
+  template <typename It> It set_ode_state(It it, double time);
+  template <typename It> It ode_state(It it) const;
+  template <typename It> It ode_rates(It it) const;
 
   // * R interface
   // Data accessors:
@@ -77,13 +84,13 @@ public:
   }
 
   species_type r_at(util::index species_index) const {
-    at(species_index.check_bounds(size()));
+    return species[species_index.check_bounds(size())];
   }
   // These are only here because they wrap private functions.
-  void r_compute_environment() {compute_environment(false);}
+  void r_compute_environment() {compute_environment();}
   void r_compute_rates() {compute_rates();}
 private:
-  void compute_environment(bool rescale);
+  void compute_environment();
   void compute_rates();
 
   parameters_type parameters;
@@ -119,22 +126,27 @@ void StochasticPatch<T,E>::reset() {
   }
   resource_depletion.reserve(environment.n_resources());
   environment.clear();
-  compute_environment(false);
+  compute_environment();
   compute_rates();
 }
 
 template <typename T, typename E>
-double StochasticPatch<T,E>::height_max() const {
-  double ret = 0.0;
+typename StochasticPatch<T,E>::value_type
+StochasticPatch<T,E>::height_max() const {
+  value_type ret = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
-      ret = std::max(ret, species[i].height_max());
+      const value_type h = species[i].height_max();
+      if (h > ret) {
+        ret = h;
+      }
   }
   return ret;
 }
 
 template <typename T, typename E>
-double StochasticPatch<T,E>::compute_competition(double height) const {
-  double tot = 0.0;
+typename StochasticPatch<T,E>::value_type
+StochasticPatch<T,E>::compute_competition(double height) const {
+  value_type tot = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
     tot += species[i].compute_competition(height) / area;
   }
@@ -142,10 +154,37 @@ double StochasticPatch<T,E>::compute_competition(double height) const {
 }
 
 template <typename T, typename E>
-void StochasticPatch<T,E>::compute_environment(bool rescale) {
+with_slope<typename StochasticPatch<T,E>::value_type>
+StochasticPatch<T,E>::compute_competition_and_slope(double height) const {
+  with_slope<value_type> sum{0.0, 0.0};
+  for (size_t i = 0; i < species.size(); ++i) {
+    const with_slope<value_type> fs =
+      species[i].compute_competition_and_slope(height);
+    sum.value += fs.value / area;
+    sum.slope += fs.slope / area;
+  }
+  return sum;
+}
+
+template <typename T, typename E>
+void StochasticPatch<T,E>::compute_environment() {
   if (height_max() > 0.0) {
-    auto f = [&] (double x) -> double {return compute_competition(x);};
-    environment.compute_environment(f, height_max(), rescale);
+    // Written as std::vector<double> this still compiles, taking the value of an
+    // active profile, and the field's knot values and slopes would then be
+    // constants with nothing raised to say so.
+    //
+    // Individuals rather than nodes here, so there is no trapezium over a grid and
+    // nothing to accumulate across knots: the per-knot sum IS the reduction, and
+    // this walks the knots itself.
+    auto f = [&] (const std::vector<double>& x, std::vector<value_type>& y,
+                  std::vector<value_type>& m) -> void {
+      for (size_t k = 0; k < x.size(); ++k) {
+        const with_slope<value_type> fs = compute_competition_and_slope(x[k]);
+        y[k] = fs.value;
+        m[k] = fs.slope;
+      }
+    };
+    environment.compute_environment(f, height_max());
   } else {
     environment.clear_environment();
   }
@@ -182,13 +221,15 @@ void StochasticPatch<T,E>::introduce_new_node_and_update(size_t species_index) {
   // Add a offspring, setting ODE variables based on the *current* light environment
   species[species_index].introduce_new_node(environment);
   // Then we update the light environment.
-  compute_environment(false);
+  compute_environment();
 }
 
 template <typename T, typename E>
 bool StochasticPatch<T,E>::introduce_new_node(size_t species_index) {
-  const double pr_germinate =
-    species[species_index].establishment_probability(environment);
+  // The draw decides whether an individual is added, so the probability is read
+  // at its value here.
+  const double pr_germinate = odelia::util::to_passive(
+    species[species_index].establishment_probability(environment));
   const bool added = unif_rand() < pr_germinate;
   if (added) {
     introduce_new_node_and_update(species_index);
@@ -207,7 +248,7 @@ std::vector<size_t> StochasticPatch<T,E>::deaths() {
     recompute = recompute || n_deaths > 0;
   }
   if (recompute) {
-    compute_environment(false);
+    compute_environment();
     compute_rates();
   }
   return ret;
@@ -261,8 +302,8 @@ double StochasticPatch<T,E>::ode_time() const {
 }
 
 template <typename T, typename E>
-odelia::ode::const_iterator StochasticPatch<T,E>::set_ode_state(odelia::ode::const_iterator it,
-                                                      double time) {
+template <typename It>
+It StochasticPatch<T,E>::set_ode_state(It it, double time) {
   
   // set ode sates
   it = odelia::ode::set_ode_state(species.begin(), species.end(), it);
@@ -270,7 +311,7 @@ odelia::ode::const_iterator StochasticPatch<T,E>::set_ode_state(odelia::ode::con
   environment.time = time;
 
   // pre-compute resources avaialability and competion, as defined by residents
-  compute_environment(true);
+  compute_environment();
 
   // compute rates of changes
   compute_rates();
@@ -278,13 +319,15 @@ odelia::ode::const_iterator StochasticPatch<T,E>::set_ode_state(odelia::ode::con
 }
 
 template <typename T, typename E>
-odelia::ode::iterator StochasticPatch<T,E>::ode_state(odelia::ode::iterator it) const {
+template <typename It>
+It StochasticPatch<T,E>::ode_state(It it) const {
   it = odelia::ode::ode_state(species.begin(), species.end(), it);
   return environment.ode_state(it);
 }
 
 template <typename T, typename E>
-odelia::ode::iterator StochasticPatch<T,E>::ode_rates(odelia::ode::iterator it) const {
+template <typename It>
+It StochasticPatch<T,E>::ode_rates(It it) const {
   it = odelia::ode::ode_rates(species.begin(), species.end(), it);
   return environment.ode_rates(it);
 }

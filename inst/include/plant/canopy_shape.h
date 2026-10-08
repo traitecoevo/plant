@@ -5,6 +5,11 @@
 #include <cmath>
 #include <string>
 #include <stdexcept>
+#include <type_traits>
+#include <utility>
+#include <array>
+#include <cstddef>
+#include <odelia/ode_util.hpp>
 
 namespace plant {
 
@@ -95,23 +100,29 @@ inline ShadingModel shading_model_from_string(const std::string& name,
 // model can choose eta without changing its intended biology, prefer one of
 // the specialised values below (1, 2, 4, 8, 10, 12); other eta values still
 // work, but fall back to std::pow().
+//
+// The profile is templated on the scalar S the coordinate and eta carry.
 
+template <typename S = double>
 class CanopyShape {
 public:
+  using value_type = S;
+
   CanopyShape()
-    : eta_(12.0), eta_inverse_(1.0 / 12.0), eta_c_(eta_c(12.0)),
+    : eta_(12.0), eta_inverse_(1.0 / 12.0), eta_c_(eta_c(S(12.0))),
       pow_eta_(&pow_eta_12), leaf_above_(&leaf_above_deep) {
   }
 
-  explicit CanopyShape(double eta) {
+  explicit CanopyShape(S eta) {
     initialise(eta);
   }
 
-  void initialise(double eta, ShadingModel shading_model = ShadingModel::DeepCrown) {
+  void initialise(S eta, ShadingModel shading_model = ShadingModel::DeepCrown) {
     eta_ = eta;
     eta_inverse_ = 1.0 / eta;
     eta_c_ = eta_c(eta);
     pow_eta_ = select_pow_eta(eta);
+    shading_model_ = shading_model;
     // Most models cast shade via the smooth Yokozawa Q (leaf_area_above == Q).
     // FlatTopBox collapses it to a hard step; FlatTopSoftBox to a smoothed step.
     switch (shading_model) {
@@ -126,85 +137,218 @@ public:
   // for every model except FlatTopBox, which uses a step at the crown centre.
   // Bound once in initialise(), so the competition hot path makes one predicted
   // indirect call with no branch.
-  double leaf_area_above(double z_over_height) const {
+  S leaf_area_above(S z_over_height) const {
     return leaf_above_(*this, z_over_height);
   }
 
   // Undefined at the crown base, where z is 0: use q_from_height, which carries
   // the height the limit there needs.
-  double q(double z_over_height, double z) const {
-    const double u_eta = pow_eta_(z_over_height, eta_);
+  S q(S z_over_height, S z) const {
+    const S u_eta = pow_eta(z_over_height);
     return 2.0 * eta_ * (1.0 - u_eta) * u_eta / z;
   }
 
-  double q_from_height(double z, double height) const {
+  S q_from_height(S z, S height) const {
     // The 1 / z above is 0 / 0 at the crown base, so take the limit: 0 for every
     // eta above 1, and 2 / height at eta = 1. The light field's lowest knot asks
     // for exactly this, and the crown integral never does.
     if (z <= 0.0) {
-      return eta_ == 1.0 ? 2.0 / height : 0.0;
+      return eta_ == 1.0 ? S(2.0) / height : S(0.0);
     }
     return q(z / height, z);
   }
 
-  double Q(double z_over_height) const {
-    if (z_over_height > 1.0) {
-      return 0.0;
+  // Q(u) and q(z, H) from the single u^eta both need, where u = z / H and
+  // height_inverse = 1 / H. q is exactly -dQ/dz, so the second entry is the
+  // negative vertical derivative of the first. The Q returned is bit-for-bit the
+  // one Q() returns, which is what lets a fused reduction match the value one.
+  //
+  // FlatTopSoftBox carries its own smoothstep derivative, below. FlatTopBox is a
+  // hard step, so its slope is a point mass with no finite value to return -- and
+  // that model already cannot build a light environment at all.
+  std::pair<S, S> Q_and_q(S z_over_height, S z, S height_inverse) const {
+    if (shading_model_ == ShadingModel::FlatTopBox) {
+      throw std::runtime_error("The flat-top-box competition profile is a step, "
+                               "so it has no vertical slope and no light "
+                               "environment can be built from it");
     }
-    const double tmp = 1.0 - pow_eta_(z_over_height, eta_);
+    if (shading_model_ == ShadingModel::FlatTopSoftBox) {
+      return Q_and_q_softbox(z_over_height, height_inverse);
+    }
+    if (z_over_height > 1.0) {
+      return {S(0.0), S(0.0)};
+    }
+    if (z <= 0.0) {
+      // The 1 / z below is 0 / 0 at the crown base, so take the limit: 0 for
+      // every eta above 1 and 2 / H at eta = 1. The light field's lowest knot
+      // asks for exactly this, and the crown integral never does.
+      return {Q(z_over_height), eta_ == 1.0 ? 2.0 * height_inverse : S(0.0)};
+    }
+    const S u_eta = pow_eta(z_over_height);
+    const S tmp = 1.0 - u_eta;
+    return {tmp * tmp, 2.0 * eta_ * tmp * u_eta / z};
+  }
+
+
+  // Q as a polynomial in w = (z / H)^eta -- for the smooth profile Q = 1 - 2w + w^2
+  // -- and w SEPARATES: w = z^eta * H^-eta. So a reduction over crowns at many
+  // heights is three running sums over the crowns, one per power of w, and every
+  // height reads the same sums. That is what takes a field build from one walk per
+  // height to one walk in total.
+  //
+  // The count is zero for the box profiles, which are piecewise in z / H with an
+  // interior breakpoint and so have no such form; FlatTopBox cannot build a field
+  // at all. A caller reads the count once per build and takes the walk when it is
+  // zero.
+  static constexpr std::size_t max_moments = 3;
+  std::size_t n_moments() const {
+    switch (shading_model_) {
+    case ShadingModel::FlatTopBox:
+    case ShadingModel::FlatTopSoftBox:
+      return 0;
+    default:
+      return max_moments;
+    }
+  }
+
+  // The powers of H^-eta one crown contributes. Out-parameters because these are
+  // formed once per crown per build and a returned array of active values copies
+  // each one, which with a tape active is a recorded operation apiece.
+  void crown_moments(const S& height_inverse,
+                     std::array<S, max_moments>& out) const {
+    out[0] = S(1.0);
+    out[1] = pow_eta(height_inverse);
+    out[2] = out[1] * out[1];
+  }
+
+  // The polynomial's coefficients times the matching powers of z^eta, so that
+  // Q(z, H) is this dotted with crown_moments(1 / H).
+  //
+  // The magnitudes look alarming and are not: z^2eta and H^-2eta are large and
+  // small respectively, but a height only ever reads the sums of crowns that reach
+  // it, so H >= z wherever the two meet and their product is at most one.
+  void height_weights(const S& z, std::array<S, max_moments>& out) const {
+    const S t = pow_eta(z);
+    out[0] = S(1.0);
+    out[1] = -2.0 * t;
+    out[2] = t * t;
+  }
+
+  // d/dz of the above, which is what the field's slope channel reads from the same
+  // sums. z^eta differentiates to eta * z^(eta-1), and z^(eta-1) is 0/0 at the
+  // crown base: the limit is 0 for every eta above 1 and 1 at eta = 1, which are
+  // the two cases Q_and_q takes by hand.
+  void height_weight_slopes(const S& z, std::array<S, max_moments>& out) const {
+    const S t = pow_eta(z);
+    const S t_over_z = z > 0.0 ? S(t / z) : (eta_ == 1.0 ? S(1.0) : S(0.0));
+    out[0] = S(0.0);
+    out[1] = -2.0 * eta_ * t_over_z;
+    out[2] = 2.0 * eta_ * t * t_over_z;
+  }
+
+  S Q(S z_over_height) const {
+    if (z_over_height > 1.0) {
+      return S(0.0);
+    }
+    const S tmp = 1.0 - pow_eta(z_over_height);
     return tmp * tmp;
   }
 
-  double Q_from_height(double z, double height) const {
+  S Q_from_height(S z, S height) const {
     if (z > height) {
-      return 0.0;
+      return S(0.0);
     }
     return Q(z / height);
   }
 
-  double Qp(double x, double height) const {
+  S Qp(S x, S height) const {
     return std::pow(1.0 - std::sqrt(x), eta_inverse_) * height;
   }
 
   // [eqn 12] Crown-centre coordinate u = z / H. Static because the strategies
   // need the same number for their sapwood and conductance terms, and one
   // formula is better than three.
-  static double eta_c(double eta) {
+  static S eta_c(S eta) {
     return 1.0 - 2.0 / (1.0 + eta) + 1.0 / (1.0 + 2.0 * eta);
   }
 
 private:
-  typedef double (*pow_eta_fn)(double, double);
-  typedef double (*leaf_above_fn)(const CanopyShape&, double);
+  typedef S (*pow_eta_fn)(S, S);
+  typedef S (*leaf_above_fn)(const CanopyShape&, S);
+
+  // u^eta, by THE SAME ALGORITHM AT BOTH SCALARS.
+  //
+  // ⚠️ Two algorithms here make the DIFFERENTIATED light environment a different
+  // quantity from the FORWARD one, and no check can see it because both are
+  // plausible. A multiplication chain at double against a correctly-rounded pow
+  // at an active scalar disagree in the last bits: at the default eta = 12 the
+  // chain is four roundings (u2=u*u; u4=u2*u2; u8=u4*u4; u8*u4), differing on
+  // about 82% of u in (0,1) by up to 8 ulp, and Q = (1 - u^eta)^2 cancels near
+  // the crown top and turns that into ~4e-9 relative.
+  //
+  // The derivative that justified the second algorithm is one nothing may read:
+  // TF24_Strategy declares `eta` undifferentiable, for exactly the reason the old
+  // comment here gave -- u^eta*log(u) is 0*(-inf) at u = 0 and the guard returns a
+  // constant zero, "so a row here would be a silently wrong zero". A branch whose
+  // only product is a forbidden row is a branch that earns nothing.
+  //
+  // The guard stays and stays active-only: pow_eta_ may be pow_eta_general, which
+  // is pow, and at u = 0 its eta row is that same NaN. At double the chain gives 0
+  // there anyway, so leaving the guard off that side keeps the forward numbers
+  // bit-identical to what they have always been.
+  S pow_eta(S u) const {
+    if constexpr (!std::is_same_v<S, double>) {
+      if (odelia::util::to_passive(u) <= 0.0) {
+        return S(0.0);
+      }
+    }
+    return pow_eta_(u, eta_);
+  }
 
   // Smooth Yokozawa profile -- the correct shading a crown casts.
-  static double leaf_above_deep(const CanopyShape& c, double z_over_height) {
+  static S leaf_above_deep(const CanopyShape& c, S z_over_height) {
     return c.Q(z_over_height);
   }
 
   // FlatTopBox: all leaf area collapsed into the thin crown-centre layer, so the
   // crown fully shades everything below z = H*eta_c and nothing above. A step.
-  static double leaf_above_box(const CanopyShape& c, double z_over_height) {
-    return z_over_height < c.eta_c_ ? 1.0 : 0.0;
+  static S leaf_above_box(const CanopyShape& c, S z_over_height) {
+    return z_over_height < c.eta_c_ ? S(1.0) : S(0.0);
   }
 
   // FlatTopSoftBox: the hard step softened into a monotone C1 drop, full shade up
   // to lo = max(0, 2*eta_c - 1) then a cubic-smoothstep fall to zero at the crown
   // top (so the transition is centred on the crown centre eta_c and the profile
   // is continuous -- buildable -- but still box-like, not the Yokozawa taper).
-  static double leaf_above_softbox(const CanopyShape& c, double z_over_height) {
-    const double lo = c.eta_c_ > 0.5 ? 2.0 * c.eta_c_ - 1.0 : 0.0;
+  static S leaf_above_softbox(const CanopyShape& c, S z_over_height) {
+    const S lo = c.eta_c_ > 0.5 ? 2.0 * c.eta_c_ - 1.0 : S(0.0);
     if (z_over_height <= lo) {
-      return 1.0;
+      return S(1.0);
     }
     if (z_over_height >= 1.0) {
-      return 0.0;
+      return S(0.0);
     }
-    const double t = (z_over_height - lo) / (1.0 - lo);
+    const S t = (z_over_height - lo) / (1.0 - lo);
     return 1.0 - t * t * (3.0 - 2.0 * t);
   }
 
-  static pow_eta_fn select_pow_eta(double eta) {
+  // The smoothstep above and its exact negative vertical derivative, from one
+  // evaluation of t. d/dt of 1 - t^2(3 - 2t) is -6t(1 - t), so q = -dQ/dz is
+  // 6t(1 - t) / ((1 - lo) H), and it vanishes at both ends of the transition.
+  std::pair<S, S> Q_and_q_softbox(S z_over_height, S height_inverse) const {
+    const S lo = eta_c_ > 0.5 ? 2.0 * eta_c_ - 1.0 : S(0.0);
+    if (z_over_height <= lo) {
+      return {S(1.0), S(0.0)};
+    }
+    if (z_over_height >= 1.0) {
+      return {S(0.0), S(0.0)};
+    }
+    const S t = (z_over_height - lo) / (1.0 - lo);
+    return {1.0 - t * t * (3.0 - 2.0 * t),
+            6.0 * t * (1.0 - t) * height_inverse / (1.0 - lo)};
+  }
+
+  static pow_eta_fn select_pow_eta(S eta) {
     if (eta == 1.0) {
       return &pow_eta_1;
     } else if (eta == 2.0) {
@@ -222,48 +366,52 @@ private:
     }
   }
 
-  static double pow_eta_general(double u, double eta) {
-    return std::pow(u, eta);
+  static S pow_eta_general(S u, S eta) {
+    using std::pow;
+    return pow(u, eta);
   }
 
-  static double pow_eta_1(double u, double) {
+  static S pow_eta_1(S u, S) {
     return u;
   }
 
-  static double pow_eta_2(double u, double) {
+  static S pow_eta_2(S u, S) {
     return u * u;
   }
 
-  static double pow_eta_4(double u, double) {
-    const double u2 = u * u;
+  static S pow_eta_4(S u, S) {
+    const S u2 = u * u;
     return u2 * u2;
   }
 
-  static double pow_eta_8(double u, double) {
-    const double u2 = u * u;
-    const double u4 = u2 * u2;
+  static S pow_eta_8(S u, S) {
+    const S u2 = u * u;
+    const S u4 = u2 * u2;
     return u4 * u4;
   }
 
-  static double pow_eta_10(double u, double) {
-    const double u2 = u * u;
-    const double u4 = u2 * u2;
-    const double u8 = u4 * u4;
+  static S pow_eta_10(S u, S) {
+    const S u2 = u * u;
+    const S u4 = u2 * u2;
+    const S u8 = u4 * u4;
     return u8 * u2;
   }
 
-  static double pow_eta_12(double u, double) {
-    const double u2 = u * u;
-    const double u4 = u2 * u2;
-    const double u8 = u4 * u4;
+  static S pow_eta_12(S u, S) {
+    const S u2 = u * u;
+    const S u4 = u2 * u2;
+    const S u8 = u4 * u4;
     return u8 * u4;
   }
 
-  double eta_;
-  double eta_inverse_;
-  double eta_c_;
+  S eta_;
+  S eta_inverse_;
+  S eta_c_;
   pow_eta_fn pow_eta_;
   leaf_above_fn leaf_above_;
+  // Which shape leaf_area_above() is casting. Q_and_q() reads it to refuse the
+  // box profiles, whose derivative is not q.
+  ShadingModel shading_model_ = ShadingModel::DeepCrown;
 };
 
 }

@@ -64,7 +64,7 @@ test_that("empty", {
 
     ## Importantly, this moves time forward to where the first
     ## introduction will be!
-    expect_identical(obj$time, sched2$next_event$time_introduction)
+    expect_identical(obj$time, sched2$next_introduction$time)
 
     ## We're empty though.... The ODE system still carries the environment's own
     ## states (TF24's soil water and cumulative fluxes; none for FF16 or K93).
@@ -182,15 +182,10 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
   ## against trajectory-changing regressions in the stochastic tower; update
   ## them deliberately if the model/RNG use changes.
   ##
-  ## patch_area is 1 m^2, the default. It used to read 50, but that was inert:
-  ## stochastic_schedule() passed it into stochastic_arrival_times()'s delta_t
-  ## slot, so arrivals never scaled with area and the stand came out at ~105
-  ## individuals whatever the area. Now that area-scaling works, 50 m^2 would
-  ## mean ~5300 individuals, measured at ~670x the run time for FF16 alone;
-  ## 1 m^2 keeps the stand the size this baseline has always actually run at,
-  ## over the full default 105.32 yr lifetime. Every value below was regenerated
-  ## from a run after the fix -- the stand is the same size but 50x denser, so
-  ## establishment and mortality both differ from the old numbers.
+  ## patch_area is 1 m^2, the default, and DO NOT raise it: arrivals scale with
+  ## area, so 50 m^2 means ~5300 individuals, measured at ~670x the run time for
+  ## FF16 alone. 1 m^2 keeps the stand to ~105 individuals over the full default
+  ## 105.32 yr lifetime, which is what every value below was generated at.
   ##
   ## The seeded schedule holds 117 arrivals (mean 105.32 = lifetime x birth_rate
   ## x area). n_total is how many of those established: establishment is a
@@ -209,6 +204,13 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
   ## could be. The area fix changes the run, so that particular equivalence is no
   ## longer what this test pins; it was established at the time (see the atm_kpa
   ## entry under Breaking changes in NEWS.md) and is not re-checked here.
+  ## ⚠️ BOTH SIDES MOVED THIS BASELINE and the merged value is neither, so
+  ## every entry below is measured from a run of this tree. Upstream's move is
+  ## the paragraph after this one; ours is K93's survivor count, 2 -> 3, from the
+  ## light field holding its knot data once. K93 reads neither a storage pool nor
+  ## a leaf, so the light field is the only thing this branch changed that it
+  ## sees -- and FF16, which shares that field and moves for nothing else here,
+  ## is unmoved at 83 and 5.
   ## Bounding the storage pool by the shape of its own flow (#609) moved TF24's
   ## established count from 81 to 79 and left its survivor count at 3. FF16 and
   ## K93 are untouched, which is the discriminator: the change is in TF24's
@@ -216,7 +218,7 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
   baseline <- list(
     FF16 = list(n_total = 83L, n_alive_final = 5L),
     TF24 = list(n_total = 77L, n_alive_final = 3L),
-    K93  = list(n_total = 117L, n_alive_final = 2L)
+    K93  = list(n_total = 117L, n_alive_final = 3L)
   )
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]

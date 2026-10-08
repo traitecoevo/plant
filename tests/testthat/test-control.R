@@ -23,15 +23,23 @@ test_that("Defaults", {
 
     offspring_production_iterations = 1000, # size_t
     offspring_production_tol = 1e-8, # 1e-6, Had to change this...
-    
-    save_RK45_cache = FALSE,
 
     schedule_nsteps   = 20, # size_t
     schedule_eps      = 2e-2,
     schedule_verbose  = FALSE,
     
-    GSS_tol_abs = 1e-3,
-    vulnerability_curve_ncontrol = 1e2,
+    # The smallest profit curvature the reverse-mode collar response will divide
+    # by. Measured rather than chosen: the smallest magnitude over 1351 solved
+    # interior leaf states is 0.0623, so this sits sixty times below the range the
+    # model occupies.
+    gradient_curvature_floor = 1e-3,
+
+    GSS_tol_abs = 1e-1,
+    # Read rather than restated: this is the leaf's choice, and it lived as four
+    # separate numbers -- here, plant's Control, phylloptim's Leaf and
+    # phylloptim's R control -- of which plant's was the one every stand ran on.
+    vulnerability_curve_ncontrol =
+      phylloptim::leaf_control()$vulnerability_curve_ncontrol,
     ci_abs_tol = 1e-3,
     ci_niter = 1000
   )

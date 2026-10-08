@@ -56,10 +56,19 @@ scm_base_parameters <- function(type = NA, env = environment_type(type)) {
 ##'   \code{p$node_schedule_times}, i.e. introductions only.
 ##' @param refine_schedule Should the node-introduction schedule be adaptively
 ##'   refined before/while running (using \code{schedule_eps} and
-##'   \code{schedule_nsteps} from \code{ctrl})?
+##'   \code{schedule_nsteps} from \code{ctrl})? Refinement records the ODE
+##'   schedule its final run took into \code{p$ode_times} and
+##'   \code{p$ode_step_sizes}, so a later run of those parameters replays it
+##'   exactly rather than choosing its own steps again.
+##' @param record_trajectory Should the run keep the state at every accepted
+##'   step? A gradient sweeps those states and cannot recover them from a
+##'   finished run, so a run that did not keep them is repeated -- one whole
+##'   forward integration. Asked for here because the flag has to be set before
+##'   the run that fills it, and this function is where that run happens. With
+##'   \code{refine_schedule = TRUE} the refinement's own runs do not keep them;
+##'   only the final run does.
 ##' @param collect Should tidied results be collected at every step and
 ##'   returned (instead of the \code{SCM} object)?
-##' @param use_ode_times Should ODE times be used?
 ##' @return When \code{collect = FALSE}, an \code{SCM} object. When
 ##'   \code{collect = TRUE}, a list of tidied patch output with
 ##'   \code{offspring_production}, \code{net_reproduction_ratios} and the
@@ -70,12 +79,17 @@ scm_base_parameters <- function(type = NA, env = environment_type(type)) {
 run_scm <- function(p, env = NULL,
                     ctrl = control(),
                     refine_schedule = FALSE, collect = FALSE,
-                    use_ode_times = FALSE, events = NULL) {
+                    record_trajectory = FALSE, events = NULL) {
 
   types <- extract_RcppR6_template_types(p, "Parameters")
 
   if (is.null(env))
     env <- Environment(types[[1]])
+
+  # An ODE schedule carried by the parameters is taken, because a schedule is
+  # there to be used: p$ode_times with p$ode_step_sizes replays a recorded run
+  # exactly, and p$ode_times alone stops at a grid the caller chose. To integrate
+  # freely, carry neither.
 
   ## No events supplied: the schedule comes from p$node_schedule_times, as it
   ## did before events existed. An empty Events object is how that is signalled
@@ -84,19 +98,20 @@ run_scm <- function(p, env = NULL,
     events <- empty_events()
 
   scm <- do.call('SCM', types)(p, env, events, ctrl)
-  if (use_ode_times) {
-    # Pin integration to the schedule's ode_times (loaded from p$ode_times).
-    sched <- scm$node_schedule
-    sched$use_ode_times <- TRUE
-    scm$node_schedule <- sched
-  }
   if (collect) {
     scm$collect <- TRUE
   }
 
   if (refine_schedule) {
+    # Refinement's runs are bisected against and discarded, so they keep no
+    # states; the run a sweep walks is one more, after the schedule settles.
     scm$refine_schedule()
+    if (record_trajectory) {
+      scm$record_trajectory <- TRUE
+      scm$run()
+    }
   } else {
+    scm$record_trajectory <- record_trajectory
     scm$run()
   }
 

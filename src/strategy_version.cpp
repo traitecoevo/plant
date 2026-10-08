@@ -17,9 +17,9 @@ std::string strategy_scientific_version(std::string type) {
   if (type == "K93")
     return std::to_string(plant::K93_Strategy::scientific_version);
   if (type == "TF24")
-    return std::to_string(plant::TF24_Strategy::scientific_version);
+    return std::to_string(plant::TF24_Strategy<double>::scientific_version);
   if (type == "TF24f")
-    return std::to_string(plant::TF24_Strategy::scientific_version) + "." +
-           std::to_string(plant::TF24f_Strategy::approximation_revision);
+    return std::to_string(plant::TF24_Strategy<double>::scientific_version) + "." +
+           std::to_string(plant::TF24f_Strategy<double>::approximation_revision);
   Rcpp::stop("Unknown type " + type);
 }

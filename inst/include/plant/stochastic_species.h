@@ -10,6 +10,7 @@
 #include <plant/species_base.h>
 #include <plant/stochastic_node.h>
 #include <odelia/ode_interface.hpp>
+#include <plant/with_slope.h>
 
 namespace plant {
 
@@ -46,6 +47,8 @@ class StochasticSpecies
                                   typename nodes_type::const_iterator> alive_const_iterator;
 
 public:
+  using value_type = typename T::value_type;
+
   typedef T         strategy_type;
   typedef E         environment_type;
   typedef Individual<T,E>  individual_type;
@@ -59,8 +62,12 @@ public:
   void introduce_new_node();
   void introduce_new_node(const E& environment);
 
-  double height_max() const;
-  double compute_competition(double height) const;
+  value_type height_max() const;
+  value_type compute_competition(double height) const;
+  // The same sum and its vertical derivative, from one pass over the living
+  // individuals. `value` equals compute_competition(height) bit for bit.
+  with_slope<value_type>
+  compute_competition_and_slope(double height) const;
   void compute_rates(const E& environment);
   double consumption_rate(int i) const;
   std::vector<double> net_reproduction_ratio_by_node() const;
@@ -70,7 +77,7 @@ public:
   // This is totally new, relative to the deterministic model; this
   // will destructively modify the species by killing individuals.
   size_t deaths();
-  double establishment_probability(const E& environment) {
+  value_type establishment_probability(const E& environment) {
     return new_node.establishment_probability(environment);
   }
 
@@ -154,13 +161,14 @@ void StochasticSpecies<T,E>::introduce_new_node(const E& environment) {
 // (c.f. Species).  Otherwise we return the height of the largest
 // individual (always the first in the list).
 template <typename T, typename E>
-double StochasticSpecies<T,E>::height_max() const {
+typename StochasticSpecies<T,E>::value_type
+StochasticSpecies<T,E>::height_max() const {
   for (auto& n : nodes) {
     if (n.alive) {
       return n.height();
     }
   }
-  return 0.0;
+  return value_type(0.0);
 }
 
 // Because plants are always ordered from largest to smallest, we
@@ -179,11 +187,12 @@ double StochasticSpecies<T,E>::height_max() const {
 // also needed if the last looked at plant was still contributing to
 // the integral).
 template <typename T, typename E>
-double StochasticSpecies<T,E>::compute_competition(double height) const {
+typename StochasticSpecies<T,E>::value_type
+StochasticSpecies<T,E>::compute_competition(double height) const {
   if (size() == 0 || height_max() < height) {
-    return 0.0;
+    return value_type(0.0);
   }
-  double tot = 0.0;
+  value_type tot = 0.0;
   for (auto& n : nodes) {
     if (n.alive) {
       if (n.height() > height) {
@@ -196,8 +205,28 @@ double StochasticSpecies<T,E>::compute_competition(double height) const {
   return tot;
 }
 
-// NOTE: We should probably prefer to rescale when this is called
-// through the ode stepper.
+template <typename T, typename E>
+with_slope<typename StochasticSpecies<T,E>::value_type>
+StochasticSpecies<T,E>::compute_competition_and_slope(double height) const {
+  if (size() == 0 || height_max() < height) {
+    return {value_type(0.0), value_type(0.0)};
+  }
+  with_slope<value_type> sum{0.0, 0.0};
+  for (auto& n : nodes) {
+    if (n.alive) {
+      if (n.height() > height) {
+        const with_slope<value_type> fs =
+          n.compute_competition_and_slope(height);
+        sum.value += fs.value;
+        sum.slope += fs.slope;
+      } else {
+        break;
+      }
+    }
+  }
+  return sum;
+}
+
 template <typename T, typename E>
 void StochasticSpecies<T,E>::compute_rates(const E& environment) {
   for (auto& n : nodes) {
@@ -233,7 +262,8 @@ std::vector<double> StochasticSpecies<T,E>::net_reproduction_ratio_by_node() con
   //
   // NOTE: dead plants count here!
   for (auto& n : nodes) {
-    ret.push_back(n.individual.state(FECUNDITY_INDEX));
+    ret.push_back(
+      odelia::util::to_passive(n.individual.state(FECUNDITY_INDEX)));
   }
   return ret;
 }
@@ -281,7 +311,7 @@ std::vector<double> StochasticSpecies<T,E>::r_heights() const {
   // TODO(#479): also simplify r_heights for Species?
   for (auto& n : nodes) {
     if (n.alive) {
-      ret.push_back(n.height());
+      ret.push_back(odelia::util::to_passive(n.height()));
     }
   }
   return ret;

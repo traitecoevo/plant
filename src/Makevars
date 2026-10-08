@@ -3,8 +3,26 @@
 ## Using C++20
 CXX_STD = CXX20
 
-## Where to find headers
-PKG_CPPFLAGS = -isystem../inst/include/
+## Where to find headers, and the two XAD defines, in ONE assignment. Appending
+## to a variable in a second line is a GNU make extension, and R CMD check warns
+## on every Makefile in the tarball that uses one.
+##
+## XAD reaches its active tape through a __thread variable defined in odelia and
+## read from here; because R dlopens odelia that resolves through a call on every
+## active value's construction and destruction. Neither package contains a
+## thread. XAD_USE_STRONG_INLINE is client-side by design and forces the AReal
+## constructors inline, which they are not by default. Both must match odelia's
+## Makevars exactly: a mismatch on the first is a storage-class conflict on a
+## symbol whose mangled name does not change.
+PKG_CPPFLAGS = -isystem../inst/include/ -DXAD_NO_THREADLOCAL -DXAD_USE_STRONG_INLINE
+
+## ⚠️ NO -fno-stack-protector HERE, however tempting xad::DerivInfo's raw C
+## arrays make it. R CMD check raises *Non-portable flags in variable
+## 'PKG_CXXFLAGS'* on it, and it does not even do what it says: R places
+## PKG_CXXFLAGS BEFORE the distro CXXFLAGS, so on Linux the later
+## -fstack-protector-strong wins and this is inert. Where it does take effect is
+## macOS/clang, which adds no hardening of its own -- so the one platform it
+## reaches is the one platform it leaves unprotected.
 
 ## Link to gperftools profiler
 ## Uncomment next line if you want to use the profiler.

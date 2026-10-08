@@ -150,9 +150,18 @@ test_that("rainfall driver is floored at zero", {
                  final$sum_resource_depletion)
 })
 
-test_that("check_driver_interpolation flags spline undershoot", {
+test_that("an interpolated driver cannot undershoot its own series", {
   env <- TF24_Environment()
-  # Intermittent daily rainfall: the case that motivated the floor.
+  # Intermittent daily rainfall: the case that motivated the floor, and the case
+  # this assertion used to record as broken. A driver arrives as values with no
+  # slopes, and the rule that chooses them decides whether a wet day can push the
+  # days beside it below zero. It can no longer: the fit is monotone on every span,
+  # so a read is bounded by the two control points that bracket it.
+  #
+  # What that replaced, on this exact series: 12% of points negative, reaching
+  # -1.86 mm, with the integral conserved -- so a total-rainfall check could not
+  # see it and this diagnostic had to exist to surface it. The diagnostic stays,
+  # because a caller can still supply a series that is itself negative.
   set.seed(42)
   n <- 365 * 3
   times <- seq(0, 3, length.out = n)
@@ -161,18 +170,17 @@ test_that("check_driver_interpolation flags spline undershoot", {
               stats::rexp(n, 1 / 8), 0)
   env$extrinsic_drivers_set_variable("rainfall", times, y)
 
-  expect_warning(
-    res <- suppressMessages(check_driver_interpolation(env, "rainfall", times, y)),
-    "interpolates negative")
+  expect_silent(
+    res <- suppressMessages(check_driver_interpolation(env, "rainfall", times, y)))
 
-  expect_true(res$min < 0)          # spline undershoots below every supplied value
   expect_equal(min(y), 0)
-  expect_gt(res$frac_negative, 0.1) # substantial, not a rounding artefact
-  expect_gt(res$negative_area, 0)
-  # The spline conserves the integral -- undershoot is compensated by
-  # overshoot -- which is why the problem is invisible in a total-rainfall check
-  # and needs this diagnostic to surface.
-  expect_equal(res$integral_evaluated, res$integral_supplied, tolerance = 1e-6)
+  expect_gte(res$min, 0)
+  expect_equal(res$frac_negative, 0)
+  expect_equal(res$negative_area, 0)
+  # And it stays a faithful total, which the overshooting fit also managed -- by
+  # cancelling one error against another rather than by making none.
+  expect_equal(res$integral_evaluated, res$integral_supplied, tolerance = 1e-5)
+  expect_lte(res$max, max(y))
 })
 
 test_that("check_driver_interpolation is quiet on a smooth series", {

@@ -26,28 +26,12 @@ run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy),
     invisible(NULL)
   }
 
-  f_mutant <- function(x) {
-    p0 <- scm_base_parameters(x)
-    p_resident <- add_strategies(p0, trait_matrix(0.0825, "lma"))
-
-    ctrl <- Control()
-    ctrl$save_RK45_cache <- TRUE
-
-    scm <- run_scm(p_resident, ctrl = ctrl)
-
-    # One additional mutant strategy around the resident trait value.
-    p_mutant <- add_strategies(p_resident, trait_matrix(0.09, "lma"), birth_rate = 1)
-    scm$run_mutant(p_mutant)
-    invisible(NULL)
-  }
-
   message("Running benchmarks via `run_plant_benchmarks`")
   strategy <- names(strategy_types)
 
   exprs <- list(
     scm = quote(f_scm(strategy)),
-    build_schedule = quote(f_build_schedule(strategy)),
-    mutant <- quote(f_mutant(strategy))
+    build_schedule = quote(f_build_schedule(strategy))
   )
   
   bench::press(strategy = strategy,

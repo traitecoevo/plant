@@ -11,7 +11,15 @@ test_that("root hydraulic parameters are exposed with unchanged defaults", {
   # change and should require editing this test deliberately.
   pars <- TF24_Strategy()$pars
   expect_equal(pars$root_c, 2.680147)
-  expect_equal(pars$root_b, 3.898245)
+  expect_equal(pars$root_P50, 3.4)
+  # ⚠️ AGAINST THE DERIVATION, NOT AGAINST THE OLD LITERAL. root_b was a
+  # hard-coded 3.898245 and is computed from (root_P50, root_c) now, which
+  # agrees with that seven-figure number to 3.1e-08 -- just outside
+  # expect_equal's default tolerance. The curve is the same curve, stated
+  # exactly rather than rounded, so the check is the identity rather than the
+  # digits.
+  expect_equal(pars$root_b,
+               pars$root_P50 / log(2)^(1 / pars$root_c))
   expect_equal(pars$rooting_depth_max, 1.5)
   # root_psi_crit is derived: the potential at 5% remaining root conductivity.
   expect_equal(pars$root_psi_crit,
@@ -39,9 +47,11 @@ test_that("root_b reaches the root vulnerability curve", {
 
   base <- TF24_Strategy()
   fragile <- TF24_Strategy()
-  fragile$pars$root_b <- 0.5
-  fragile$pars$root_psi_crit <-
-    fragile$pars$root_b * log(1 / 0.05)^(1 / fragile$pars$root_c)
+  # ⚠️ THROUGH root_P50, WHICH IS THE TRAIT. The strategy hands
+  # (root_P50, root_c) to the leaf and the leaf derives root_b and
+  # root_psi_crit, so writing either of those changes nothing -- and changes it
+  # SILENTLY, which is why this drives the knob that reaches the model.
+  fragile$pars$root_P50 <- 0.5 * log(2)^(1 / fragile$pars$root_c)
 
   a_base <- tf24_probe(base, wet)[["assimilation"]]
   a_fragile <- tf24_probe(fragile, wet)[["assimilation"]]

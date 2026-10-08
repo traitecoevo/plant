@@ -6,6 +6,7 @@
 #include <plant/strategy.h>
 #include <plant/models/k93_environment.h>
 #include <plant/canopy_shape.h>
+#include <plant/with_slope.h>
 
 namespace plant {
 
@@ -36,6 +37,8 @@ struct K93_Pars {
 
 class K93_Strategy: public Strategy<K93_Environment> {
 public:
+  using value_type = double;
+
   typedef std::shared_ptr<K93_Strategy> ptr;
   K93_Strategy();
 
@@ -43,7 +46,10 @@ public:
   // the simulation output for identical inputs. Do NOT bump for refactors,
   // performance, interface, or serialisation changes. Bumping invalidates
   // logpile's cache for this model (see plant::model_version() / model_id()).
-  static constexpr int scientific_version = 1;
+  // v2: as FF16 v2 -- the reductions integrate over the coordinate the density
+  // is carried in, so a birth-date run's output moves and a height run's does
+  // not.
+  static constexpr int scientific_version = 2;
 
   // Direct aux indices for the hot path, avoiding aux_index.at("...") string-map
   // lookups (these showed up in profiling; see #466). MUST stay in sync with the
@@ -69,7 +75,7 @@ public:
     return std::vector<std::string>({"competition_effect", "height_inverse"});
   }
 
-  void compute_rates(const K93_Environment& environment, Internals& vars);
+  void compute_rates(const K93_Environment& environment, Internals<double>& vars);
 
   void refresh_indices();
 
@@ -77,7 +83,7 @@ public:
   // The rates-carrying entry point Individual calls for every strategy. K93's
   // establishment reads no carbon budget, so the rates are unused here.
   double establishment_probability(const K93_Environment& environment,
-                                   const Internals&) {
+                                   const Internals<double>&) {
     return establishment_probability(environment);
   }
   double net_mass_production_dt(const K93_Environment& environment,
@@ -89,7 +95,7 @@ public:
   // carbon budget, so the worker ignores these arguments and returns NA; the
   // wrapper exists to keep Individual's interface uniform across strategies.
   double net_mass_production_dt(const K93_Environment& environment,
-                                const Internals& vars) {
+                                const Internals<double>& vars) {
     return net_mass_production_dt(environment, vars.state(HEIGHT_INDEX),
                                   vars.aux(COMPETITION_EFFECT_AUX_INDEX),
                                   vars.aux(HEIGHT_INVERSE_AUX_INDEX));
@@ -106,16 +112,30 @@ public:
   double compute_competition_by_ratio(double z_over_size,
                                       double whole_plant_competition) const {
     // Competition only felt if plant bigger than target size z.
-    return whole_plant_competition * canopy_shape.Q(z_over_size);
+    return whole_plant_competition * canopy_shape.leaf_area_above(z_over_size);
   }
   // Strategy-agnostic entry point used by Individual<K93> (#266): reads the
   // cached competition_effect and height_inverse aux slots itself.
-  double compute_competition(double z, const Internals& vars) const {
+  double compute_competition(double z, const Internals<double>& vars) const {
     return compute_competition(z, vars.aux(COMPETITION_EFFECT_AUX_INDEX),
                                vars.aux(HEIGHT_INVERSE_AUX_INDEX));
   }
 
-  void update_dependent_aux(const int index, Internals& vars);
+  // The competition contribution and its vertical derivative from one pass, so
+  // u^eta is evaluated once. The first entry is bit-for-bit the one
+  // compute_competition() returns: both read the shading model's own profile,
+  // which is what keeps them equal under a flat-top one.
+  with_slope<double>
+  compute_competition_and_slope(double z, const Internals<double>& vars) const {
+    const double whole_plant_competition = vars.aux(COMPETITION_EFFECT_AUX_INDEX);
+    const double height_inverse = vars.aux(HEIGHT_INVERSE_AUX_INDEX);
+    const std::pair<double, double> Qq =
+      canopy_shape.Q_and_q(z * height_inverse, z, height_inverse);
+    return {whole_plant_competition * Qq.first,
+            -(whole_plant_competition * Qq.second)};
+  }
+
+  void update_dependent_aux(const int index, Internals<double>& vars);
 
 
   // K93 Methods  ----------------------------------------------
@@ -142,7 +162,7 @@ public:
   K93_Pars pars;
 
   // Derived / precomputed in prepare_strategy() (NOT user-set)
-  CanopyShape canopy_shape;
+  CanopyShape<double> canopy_shape;
 };
 
 K93_Strategy::ptr make_strategy_ptr(K93_Strategy s);

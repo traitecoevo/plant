@@ -483,7 +483,7 @@ Rules:
   often and will bump frequently. Read the current values with `model_id()` rather than trusting this line.
 - **TF24f is a compound version.** It is a fast *approximation* of TF24 that
   inherits TF24's equations/parameters, so its version is
-  `"<TF24 version>.<approximation revision>"` (`TF24f@v2.1`). The major
+  `"<TF24 version>.<approximation revision>"` (`TF24f@v5.1`). The major
   component auto-tracks `TF24_Strategy::scientific_version` (a TF24 change
   invalidates TF24f too — the safe direction); bump `approximation_revision`
   (in `tf24f_strategy.h`) only for changes specific to the fast approximation.
@@ -493,7 +493,9 @@ Rules:
   reruns. The drift-guard test [tests/testthat/test-model-version.R](tests/testthat/test-model-version.R)
   fails when a default changes without a bump (snapshot of each model's default
   `pars`/`control`); pure equation changes are not auto-detected and rely on
-  review. Adding a new model → add its constant and a dispatch arm in
+  review. **The drift guard skips on CRAN**, and so does the scenario gateway,
+  so in an invocation that sets that flag a bump has no live gate at all: check
+  both ran before believing one. Adding a new model → add its constant and a dispatch arm in
   `src/strategy_version.cpp` (the scaffolder should do this).
 
 ---
@@ -639,6 +641,20 @@ repo's README for how it renders, freezes (`_freeze/`), and version-pins posts.
   The one deliberate asymmetry: `TF24_Pars` exposes `root_b` (the Weibull scale)
   where phylloptim takes `root_P50` (the quantile), so `prepare_strategy()`
   converts — those are different quantities, not a naming mismatch.
+- ⚠️ **NEVER PUT A NON-FINITE NUMBER IN AN ODE STATE, and do not read
+  `check_finite_ode_state` as protection against one.** It tests the cohort
+  DENSITY (`exp(log_density)`, so `-Inf` passes as a finite zero) and the
+  environment's own states; the six slots `Strategy::state_names()` declares and
+  the node's two extras are not looked at. A `+Inf` hazard from `-log(0)` at an
+  establishment probability of exactly zero therefore ran for years: every reader
+  is guarded (`is_finite` tests, or `exp(-mortality)`, which is zero either way),
+  so the forward model is right and silent, while the recorded trajectory the
+  reverse sweep replays carries an entry no row can attach to and **every census
+  metric comes back not-a-number with no refusal declared** — which the parity
+  gate cannot see, because there is nothing to name. Where a sentinel is wanted,
+  pick a finite one whose consumers read the same numbers: `establishment_failure_hazard`
+  is 750 because `exp(-x)` is exactly zero past 745.14. `test-gradient-parity.R`
+  asserts every recorded state is finite on all five drivers.
 - ⚠️ **`phylloptim` and `odelia` are pinned with `==` in `LinkingTo`, deliberately.**
   Both are compiled into plant and plant's baselines are bit-exact, so a `>=`
   bound lets a later upstream release change plant's arithmetic with no local
@@ -688,11 +704,16 @@ follow-up [#470] (LTO).
   detects an equidistant knot grid in `set_points()` and replaces the
   `std::lower_bound` binary search with direct index arithmetic. Falls back to
   binary search for adaptive/non-uniform grids. ([#435])
-- **Finite-difference gradient without reallocation.**
-  `Node::growth_rate_gradient()` ([node.h](inst/include/plant/node.h)) needs a
-  mutable `Individual` to perturb height on; it reuses a `thread_local` scratch
-  (copy-*assigned* each call, reusing vector storage) instead of
-  copy-constructing fresh `Internals` every call.
+- **Finite-difference gradient: a copy, and deliberately not a scratch.**
+  `Individual::growth_rate_gradient()`
+  ([individual.h](inst/include/plant/individual.h)) needs a mutable `Individual` to
+  perturb height on, and copy-constructs one per call. A `thread_local` scratch was
+  tried and removed: three arrangements measured within 1.5%, and the function has
+  since moved to `Individual` and become scalar-templated, so a cached scratch would
+  exist at the active type and carry tape slots across recordings — the aliasing
+  failure `scm.h` records, for 1.5%. **Do not reintroduce it.** The copy is also
+  absent from the gradient path entirely: `log_density_rate` calls this only on the
+  height coordinate, and the reverse pass runs on the birth-date one.
 
 **Templated headers & inlining (this build has _no_ LTO).** `src/Makevars` uses
 `CXX_STD = CXX20` with no `-flto` and `DESCRIPTION` has no `UseLTO`, so a
@@ -768,6 +789,116 @@ explicit tolerance (noted in that file).
 [#465]: https://github.com/traitecoevo/plant/issues/465
 [#466]: https://github.com/traitecoevo/plant/issues/466
 [#470]: https://github.com/traitecoevo/plant/issues/470
+
+---
+
+## 13. Writing a model that carries an active scalar
+
+A model is templated on the scalar `S` it carries: its state, its traits and
+everything derived from them. `double` is production; an active `S` records the
+computation so a derivative can be taken from it. Write the science once. If new
+physiology does not compile at the active scalar, that is the design working —
+it is telling you the quantity you just wrote is not differentiable the way you
+wrote it, and the rules below are the reasons why.
+
+**Fractions are `double`; positions and values carry `S`.** A knot fraction, a
+quadrature abscissa as a fraction of an interval and a sort key are decided on
+passive values, and declaring them `double` says so. The *position* built from
+one is not: a crown abscissa is `height · ξ`, and reading the field at the
+fraction rather than at the position makes `d/d(height)` exactly zero. A knot
+*count* that depends on an active value makes the recorded computation depend on
+the state.
+
+**Declare an inner solve by its residual**, through `implicit_value`. Never
+differentiate the iteration that found the root: a golden-section result is
+affine in its bracket and independent of the objective's values, so recording
+the search returns the bracket's derivative.
+
+**Never define a rate as a numerical derivative of an active quantity.** If a
+rate is a difference, difference on a grid the model already has.
+
+**A clamp, floor, `min`/`max` or `if` on a computed value is a derivative
+decision.** Record it with the incidence that justifies it.
+
+**Never give a deduced return type to anything returning an active value.** The
+AD operators return expression templates holding references to their operands,
+so a deduced return type hands the caller references to temporaries that die on
+return; the reverse sweep then reads reused stack memory and segfaults
+arbitrarily far from the cause, invisibly to valgrind. Declare the scalar return
+type on every such function and lambda, including one-line helpers:
+
+```cpp
+// BAD  -- returns a dangling expression template
+auto anchor = [](double v, S x) { return S(v) + (x - to_passive(x)); };
+// GOOD -- the same arithmetic, materialised while its operands are alive
+auto anchor = [](double v, const S& x) -> S { return S(v) + (x - to_passive(x)); };
+```
+
+The two differ only in `-> S` and taking `x` by reference. That is the whole
+lesson: the fix is the declared return type.
+
+**A supplied derivative cannot be checked against the value it is attached to.**
+Where a submodel hands back constants and its partials are attached by hand, the
+recorded expression is `value + Σ partial_i * (x_i - to_passive(x_i))`: exact in
+the derivative and **identically zero in the value**, by construction. So a finite
+difference of that function is zero on every supplied input whether the
+partials are there, wrong, or silently dropped — and dropping them gives a
+gradient column of exactly zero, which reads as an answer. Two rules follow.
+Build the input vector from the submodel's own `inputs()`, name-driven,
+with a hard stop on a name you cannot map, so a widened boundary is a compile or
+run failure rather than a shorter vector. And never `resize` a partials row to
+fit the inputs you happened to build: check the length and fail. This cost two
+waves, with fifteen correct rows computed and thrown away behind every passing
+gate in the tree.
+
+**Two arguments of one type with unrelated meanings is a silent-swap hazard**,
+the more so under templating, because a template argument makes both of them the
+same type wherever it is instantiated. Prefer a named struct or distinct types;
+where you cannot, the call sites are a review checklist rather than a compiler's
+problem.
+
+### Adding a census metric
+
+A census metric is a weighted reduction over the size distribution: the
+trapezium integral of `n_k * psi(state_k)` over the cohort heights, with
+`n_k = exp(l_k)`. `Species::census(psi)` owns the reduction and `psi` owns the
+quantity. Because the metrics travel as a tuple, the codomain of a census — and
+of its gradient — is the tuple's size, so a metric is added without touching the
+reduction, the reverse pass or `odelia`. Four steps:
+
+1. **Write the metric** as a struct in `namespace census_metric`
+   ([inst/include/plant/species.h](inst/include/plant/species.h)), with a
+   templated `operator()(const Strategy&, const Individual&)` returning
+   `typename Individual::value_type`, and a `name()`. It reads the strategy and
+   one cohort and nothing else; a metric with a height cut of its own applies
+   the cut inside `operator()`. Declare the return type — the AD operators
+   return expression templates, and a deduced one dangles (above).
+2. **Add its name to `tf24_census`**, the tuple below the metrics in the same
+   file. That is the one-word change: `census()`,
+   `census_state_adjoint()` and `census_trait_gradient()` in
+   [inst/include/plant/scm.h](inst/include/plant/scm.h) all fold over the tuple,
+   and `census_metric_names_tf24()` reports it, so the new row appears in the
+   value, in the seed and in the gradient with no further edit.
+3. **Rebuild.** No export signature changes and no new symbol reaches R, so
+   `make RcppR6` and `make attributes` have nothing to do. `tf24_census` is named
+   in exactly one translation unit,
+   [src/census_gradient.cpp](src/census_gradient.cpp), so `touch` it and
+   `pkgbuild::compile_dll()` — one file compiles and the library relinks. Any
+   other edit to `species.h` needs `rm -f src/*.o` first, because the header is
+   inline and R's make does not track header dependencies.
+4. **Assert its value and one non-zero gradient row.** The value against an
+   independent R-side computation from the tidied output, and the gradient row
+   against a trait that genuinely moves it — a row of exact zeros reads as an
+   answer and is this design's worst failure mode, so name the trait and say why
+   it moves the metric.
+
+What a metric may *not* do: read another cohort, read the light field, or carry
+a state of its own. Each of those makes it a term in the rates rather than a
+functional of the state at one time, and the seeding in
+`SCM::census_state_adjoint` — one recording of the reduction with the ODE state
+as its inputs — would no longer be the whole derivative.
+
+---
 
 ## Issue & project-board conventions
 

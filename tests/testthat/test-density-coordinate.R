@@ -321,8 +321,11 @@ test_that("nodes sharing a birth date are rejected in birth-date coordinates", {
   expect_error(Patch(x, e)(p_bad, Environment(x), ctrl_bd),
                "sharing an introduction time")
 
-  ## The height coordinate never integrates over these, so it is unaffected.
-  expect_no_error(Patch(x, e)(p_bad, Environment(x), Control()))
+  ## The height coordinate never integrates over these, so it is unaffected. Named
+  ## rather than taken from the default, which is the birth-date coordinate.
+  ctrl_h <- Control()
+  ctrl_h$node_density_in_birth_date <- FALSE
+  expect_no_error(Patch(x, e)(p_bad, Environment(x), ctrl_h))
 })
 
 ## The coordinate is stored per strategy but cannot differ between the species
@@ -349,10 +352,12 @@ test_that("the patch control decides the coordinate for every species", {
     expect_true(s$density_in_birth_date)
   }
 
-  ## And the other way round: a patch built with the default control carries
-  ## every species in height, whatever the strategies say.
+  ## And the other way round: a patch built on the height coordinate carries every
+  ## species in height, whatever the strategies say.
+  ctrl_h <- Control()
+  ctrl_h$node_density_in_birth_date <- FALSE
   p$strategies[[1]]$control <- ctrl_bd
-  patch_h <- Patch(x, e)(p, Environment(x), Control())
+  patch_h <- Patch(x, e)(p, Environment(x), ctrl_h)
   for (s in patch_h$species) {
     expect_false(s$density_in_birth_date)
   }

@@ -14,6 +14,7 @@
 #include <vector>
 #include <cmath> // std::abs, std::isnan
 #include <RcppCommon.h> // SEXP
+#include <odelia/ode_util.hpp> // to_passive
 #include <plant/util.h> // util::stop
 
 namespace plant {
@@ -23,8 +24,13 @@ class QK {
 public:
   QK();
   QK(size_t rule);
-  template <typename Function>
-  double integrate(Function f, double a, double b);
+  // The limits and the integrand's values carry the scalar the caller evaluates
+  // at; the rule's abscissae and weights are fractions of the interval and stay
+  // double. A crown integral's upper limit is the cohort's height, so reading
+  // the field at the fraction instead of at the position built from it makes
+  // d(area)/d(height) exactly zero.
+  template <typename Function, typename S>
+  S integrate(Function f, const S& a, const S& b);
 
   // These two provide very low level access to the integration
   // routines.
@@ -51,6 +57,8 @@ private:
   double last_error;
 
   size_t n;
+  // Integrand values at the abscissae, kept only to form last_result_asc, so
+  // they hold the values even when the integrand carries a scalar.
   std::vector<double> fv1;
   std::vector<double> fv2;
   std::vector<double> xgk, wg, wgk;
@@ -58,76 +66,90 @@ private:
 
 // Skipping dealing with Functors by just requiring something
 // callable using templates.
-template <typename Function>
-double QK::integrate(Function f, double a, double b) {
-  const double center          = 0.5 * (a + b);
-  const double half_length     = 0.5 * (b - a);
-  const double abs_half_length = std::abs(half_length);
-  const double f_center        = f(center);
-  if (std::isnan(f_center)) {
-    util::stop("Integrand returned NaN at x=" + std::to_string(center));
+template <typename Function, typename S>
+S QK::integrate(Function f, const S& a, const S& b) {
+  using odelia::util::to_passive;
+  const S center               = 0.5 * (a + b);
+  const S half_length          = 0.5 * (b - a);
+  const double abs_half_length = std::abs(to_passive(half_length));
+  const S f_center             = f(center);
+  if (std::isnan(to_passive(f_center))) {
+    util::stop("Integrand returned NaN at x=" +
+               std::to_string(to_passive(center)));
   }
 
-  double result_gauss = 0;
-  double result_kronrod = f_center * wgk[n - 1];
-  double result_abs = std::abs(result_kronrod);
+  // The Gauss sum exists only to form the error estimate, which is a last_*
+  // diagnostic -- so it is accumulated at the values, like the other three. DO NOT
+  // make it S: at the active scalar it records a statement per Gauss node whose
+  // row nothing ever reads, because the only thing downstream of it is
+  // to_passive(err). That was 8-11% of this rule's tape.
+  double result_gauss = 0.0;
+  S result_kronrod = f_center * wgk[n - 1];
+  // The four last_* diagnostics are read by a user, not differentiated, so the
+  // absolute and ascending sums are accumulated at the values throughout.
+  double result_abs = std::abs(to_passive(result_kronrod));
 
   if (n % 2 == 0) {
-    result_gauss = f_center * wg[n / 2 - 1];
+    result_gauss = to_passive(f_center) * wg[n / 2 - 1];
   }
 
   for (size_t j = 0; j < (n - 1) / 2; j++) {
     const size_t jtw = j * 2 + 1;  /* in original fortran j=1,2,3 jtw=2,4,6 */
-    const double abscissa = half_length * xgk[jtw];
-    const double fval1 = f(center - abscissa);
-    const double fval2 = f(center + abscissa);
-    const double fsum = fval1 + fval2;
-    fv1[jtw] = fval1;
-    fv2[jtw] = fval2;
-    result_gauss   += wg[j] * fsum;
+    const S abscissa = half_length * xgk[jtw];
+    const S fval1 = f(center - abscissa);
+    const S fval2 = f(center + abscissa);
+    const S fsum = fval1 + fval2;
+    fv1[jtw] = to_passive(fval1);
+    fv2[jtw] = to_passive(fval2);
+    result_gauss   += wg[j] * to_passive(fsum);
     result_kronrod += wgk[jtw] * fsum;
-    result_abs     += wgk[jtw] * (std::abs(fval1) + std::abs(fval2));
+    result_abs     += wgk[jtw] * (std::abs(fv1[jtw]) + std::abs(fv2[jtw]));
   }
 
   for (size_t j = 0; j < n / 2; j++) {
     size_t jtwm1 = j * 2;
-    const double abscissa = half_length * xgk[jtwm1];
-    const double fval1 = f(center - abscissa);
-    const double fval2 = f(center + abscissa);
-    fv1[jtwm1] = fval1;
-    fv2[jtwm1] = fval2;
+    const S abscissa = half_length * xgk[jtwm1];
+    const S fval1 = f(center - abscissa);
+    const S fval2 = f(center + abscissa);
+    fv1[jtwm1] = to_passive(fval1);
+    fv2[jtwm1] = to_passive(fval2);
     result_kronrod += wgk[jtwm1] * (fval1 + fval2);
-    result_abs     += wgk[jtwm1] * (std::abs(fval1) + std::abs(fval2));
+    result_abs     += wgk[jtwm1] * (std::abs(fv1[jtwm1]) + std::abs(fv2[jtwm1]));
   };
 
-  const double mean = result_kronrod * 0.5;
+  // The mean only centres the ascending sum, which is a diagnostic, so it is
+  // taken at the value for the same reason the Gauss sum is.
+  const double mean_value = to_passive(result_kronrod) * 0.5;
 
-  double result_asc = wgk[n - 1] * std::abs(f_center - mean);
+  double result_asc =
+    wgk[n - 1] * std::abs(to_passive(f_center) - mean_value);
 
   for (size_t j = 0; j < n - 1; j++) {
-    result_asc += wgk[j] * (std::abs(fv1[j] - mean) +
-                            std::abs(fv2[j] - mean));
+    result_asc += wgk[j] * (std::abs(fv1[j] - mean_value) +
+                            std::abs(fv2[j] - mean_value));
   }
 
   /* scale by the width of the integration region */
 
-  const double err = (result_kronrod - result_gauss) * half_length;
+  const double err =
+    (to_passive(result_kronrod) - result_gauss) * to_passive(half_length);
 
   result_kronrod *= half_length;
   result_abs *= abs_half_length;
   result_asc *= abs_half_length;
 
-  last_result     = result_kronrod;
+  last_result     = to_passive(result_kronrod);
   last_result_abs = result_abs;
   last_result_asc = result_asc;
   last_error      = rescale_error(err, result_abs, result_asc);
 
   if (std::isnan(last_result)) {
     util::stop("Integrand produced NaN result over [" +
-               std::to_string(a) + ", " + std::to_string(b) + "]");
+               std::to_string(to_passive(a)) + ", " +
+               std::to_string(to_passive(b)) + "]");
   }
 
-  return last_result;
+  return result_kronrod;
 }
 
 }

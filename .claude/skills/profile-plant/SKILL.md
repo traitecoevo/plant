@@ -144,8 +144,10 @@ re-deriving:
    measurable gain, and declined.)
 5. **No `std::map<string,int>::at` in hot state/rate paths.** Resolve aux/ode
    indices once; use direct integer indices.
-6. **Gradient calc.** Reuse a thread-local scratch `Individual` instead of
-   copying `Internals` on every `growth_rate_gradient` call.
+6. ~~**Gradient calc.** Reuse a thread-local scratch `Individual`.~~ **Withdrawn.**
+   It measured within 1.5% of the plain copy, and `growth_rate_gradient` is now
+   scalar-templated, so a cached scratch would hold active scalars and carry tape
+   slots between recordings. Copy per call; see `plant/agents.md`.
 
 Most of these were bit-identical (or a deliberate, documented reciprocal-multiply
 reorder).

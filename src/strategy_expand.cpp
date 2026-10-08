@@ -81,7 +81,7 @@ Rcpp::List FF16_strategy_expand_allometry(plant::FF16_Strategy s,
 }
 
 // [[Rcpp::export]]
-Rcpp::List TF24_strategy_expand_allometry(plant::TF24_Strategy s,
+Rcpp::List TF24_strategy_expand_allometry(plant::TF24_Strategy<double> s,
                                           Rcpp::NumericVector height,
                                           Rcpp::NumericVector area_heartwood,
                                           Rcpp::NumericVector mass_heartwood) {
@@ -90,7 +90,7 @@ Rcpp::List TF24_strategy_expand_allometry(plant::TF24_Strategy s,
 }
 
 // [[Rcpp::export]]
-Rcpp::List TF24f_strategy_expand_allometry(plant::TF24f_Strategy s,
+Rcpp::List TF24f_strategy_expand_allometry(plant::TF24f_Strategy<double> s,
                                           Rcpp::NumericVector height,
                                           Rcpp::NumericVector area_heartwood,
                                           Rcpp::NumericVector mass_heartwood) {

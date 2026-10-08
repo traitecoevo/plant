@@ -26,7 +26,7 @@ NodeSchedule make_node_schedule(const Parameters& p) {
   NodeSchedule ret(p.size());
   ret.r_set_max_time(p.max_patch_lifetime);
   ret.set_times(p.node_schedule_times);
-  ret.r_set_ode_times(p.ode_times);
+  ret.r_set_ode_steps(p.ode_times, p.ode_step_sizes);
   return ret;
 }
 
@@ -43,7 +43,9 @@ NodeSchedule make_node_schedule(const Parameters& p, const Events& events) {
   NodeSchedule ret(p.size());
   ret.r_set_max_time(p.max_patch_lifetime);
   ret.set_all_events(to_schedule_events(events, p.size()));
-  ret.r_set_ode_times(p.ode_times);
+  // A GRID the caller chose, which is the same type a run's own program is:
+  // an empty size list means every time is stepped TO rather than stepped BY.
+  ret.r_set_ode_steps(p.ode_times, {});
   return ret;
 }
 

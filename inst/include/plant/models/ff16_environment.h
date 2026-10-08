@@ -4,7 +4,6 @@
 
 #include <plant/environment.h>
 #include <plant/resource_spline.h>
-#include <odelia/interpolator.hpp>
 #include <plant/canopy_shape.h> // ShadingModel, shading_model_from_string
 #include <cmath>                // std::log, std::exp, std::floor (PPA stepping)
 
@@ -14,24 +13,14 @@ namespace plant {
 
 class FF16_Environment : public Environment {
 public:
-  // constructor for R interface - default settings can be modified
-  // except for light_availability_spline_rescale_usually
-  // which are only updated on construction
   FF16_Environment() {
     time = 0.0;
 
     // Shading defaults have lower tolerance which are overwritten for speed
-    light_availability = ResourceSpline(
-        1e-4, // light_availability_spline_tol,
-        17,   // light_availability_spline_nbase,
-        16,   // light_availability_spline_max_depth,
-        true  // light_availability_spline_rescale_usually)
-    );
-
   };
 
   // A ResourceSpline used for storing light availbility (0-1)
-  ResourceSpline light_availability;
+  ResourceSpline<double> light_availability;
 
   // PPA: when true, the light a plant experiences is the stepped (layered)
   // profile rather than the smooth one stored in light_availability. The
@@ -124,6 +113,9 @@ public:
   {
     light_availability.r_init_interpolators(state);
   }
+  virtual std::vector<double> get_interpolators_state() const {
+    return light_availability.interpolators_state();
+  }
 
   virtual void compute_rates(std::vector<double> const& resource_depletion) {
 
@@ -135,19 +127,12 @@ public:
             );
   }
 
-  // Pre-compute resources available in the environment, as a function of height
+  // The light every knot is left with, from the competition profile above it.
   template <typename Function>
-  void compute_environment(Function f_compute_competition, double height_max, bool rescale) {
-
-    // Define an anonymous function to use in creation of light_availability spline
-    // Note: extinction coefficient was already applied in strategy, so
-    // f_compute_competition gives sum of projected leaf area (k L) across species. Just need to apply Beer's law, E = exp(- (k L))
-    auto f_light_availability = [&](double height) -> double
-    { return exp(-f_compute_competition(height)); };
-
-    // Calculates the light_availability spline, by fitting to the function
-    // `f_compute_competition` as a function of height
-    light_availability.compute_environment(f_light_availability, height_max, rescale);
+  void compute_environment(Function f_compute_competition_and_slope,
+                           double height_max) {
+    build_extinction_field(light_availability, f_compute_competition_and_slope,
+                           height_max);
   }
 
   virtual void clear_environment() {

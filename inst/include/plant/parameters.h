@@ -10,6 +10,7 @@
 #include <plant/node_schedule.h>
 #include <plant/scm_utils.h> // Unfortunately needed for setup_node_schedule
 
+#include <memory>
 #include <plant/disturbance_regime.h>
 #include <plant/disturbances/no_disturbance.h>
 #include <plant/disturbances/weibull_disturbance.h>
@@ -44,8 +45,20 @@ struct Parameters {
   std::string patch_type;
   double max_patch_lifetime; // Disturbance interval (years)
   std::vector<strategy_type> strategies;
+  // Every active value the strategies here carry. They are copies the patch does
+  // not run, and a recording does not read them -- but they hold slots, and a
+  // slot left registered is one the next clear reissues.
+  template <class F>
+  void for_each_active(F&& f) {
+    odelia::ode::visit_active(f, strategies, strategy_default);
+  }
 
-  Disturbance_Regime* disturbance;
+  // Owned, and shared with every copy of these parameters and with the patch
+  // that reads it. A raw pointer here was allocated on every validate() and
+  // freed nowhere, and the leak was load-bearing: the pointer is copied into
+  // each Parameters copy and aliased by the patch, so freeing it once would have
+  // left the others dangling.
+  std::shared_ptr<Disturbance_Regime> disturbance;
 
   // Default strategy.
   strategy_type strategy_default;
@@ -54,6 +67,11 @@ struct Parameters {
   std::vector<double> node_schedule_times_default;
   std::vector<std::vector<double> > node_schedule_times;
   std::vector<double> ode_times;
+  // The size of the step that reached each of ode_times, NaN first. Recorded
+  // beside the times because a schedule replayed by times alone takes different
+  // steps: a size differenced back out of two recorded times is not the size
+  // that was taken. A run carrying both replays itself exactly.
+  std::vector<double> ode_step_sizes;
 
   // Initial patch state. When initial_state is non-empty the patch is seeded
   // with these nodes at reset() instead of starting empty -- used to resume an
@@ -106,10 +124,10 @@ void Parameters<T,E>::validate() {
   // when calculating fitness, otherwise defaults to fixed-duration run without
   // disturbance
   if(patch_type == "meta-population") {
-    disturbance = new Weibull_Disturbance_Regime(max_patch_lifetime);
+    disturbance = std::make_shared<Weibull_Disturbance_Regime>(max_patch_lifetime);
   }
   else {
-    disturbance = new No_Disturbance();
+    disturbance = std::make_shared<No_Disturbance>();
   }
 }
 

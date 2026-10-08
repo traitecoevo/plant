@@ -26,11 +26,11 @@ template <> plant::Leaf as(SEXP);
 template <> SEXP wrap(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> >&);
 template <> odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > as(SEXP);
 
-template <> SEXP wrap(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> >&);
-template <> odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy, plant::TF24_Environment> > as(SEXP);
+template <> SEXP wrap(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy<double>, plant::TF24_Environment<double>> >&);
+template <> odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24_Strategy<double>, plant::TF24_Environment<double>> > as(SEXP);
 
-template <> SEXP wrap(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24f_Strategy, plant::TF24_Environment> >&);
-template <> odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24f_Strategy, plant::TF24_Environment> > as(SEXP);
+template <> SEXP wrap(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24f_Strategy<double>, plant::TF24_Environment<double>> >&);
+template <> odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24f_Strategy<double>, plant::TF24_Environment<double>> > as(SEXP);
 
 template <> SEXP wrap(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> >&);
 template <> odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > as(SEXP);
@@ -53,119 +53,117 @@ template <> plant::quadrature::QAG as(SEXP);
 template <> SEXP wrap(const plant::Individual<plant::FF16_Strategy,plant::FF16_Environment>&);
 template <> plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> as(SEXP);
 
-template <> SEXP wrap(const plant::Individual<plant::TF24_Strategy,plant::TF24_Environment>&);
-template <> plant::Individual<plant::TF24_Strategy,plant::TF24_Environment> as(SEXP);
+template <> SEXP wrap(const plant::Individual<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> >&);
+template <> plant::Individual<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > as(SEXP);
 
-template <> SEXP wrap(const plant::Individual<plant::TF24f_Strategy,plant::TF24_Environment>&);
-template <> plant::Individual<plant::TF24f_Strategy,plant::TF24_Environment> as(SEXP);
+template <> SEXP wrap(const plant::Individual<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> >&);
+template <> plant::Individual<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > as(SEXP);
 
 template <> SEXP wrap(const plant::Individual<plant::K93_Strategy,plant::K93_Environment>&);
 template <> plant::Individual<plant::K93_Strategy,plant::K93_Environment> as(SEXP);
 template <> SEXP wrap(const plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment>&);
 template <> plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment> as(SEXP);
 
-template <> SEXP wrap(const plant::tools::IndividualRunner<plant::TF24_Strategy,plant::TF24_Environment>&);
-template <> plant::tools::IndividualRunner<plant::TF24_Strategy,plant::TF24_Environment> as(SEXP);
+template <> SEXP wrap(const plant::tools::IndividualRunner<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> >&);
+template <> plant::tools::IndividualRunner<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > as(SEXP);
 
-template <> SEXP wrap(const plant::tools::IndividualRunner<plant::TF24f_Strategy,plant::TF24_Environment>&);
-template <> plant::tools::IndividualRunner<plant::TF24f_Strategy,plant::TF24_Environment> as(SEXP);
+template <> SEXP wrap(const plant::tools::IndividualRunner<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> >&);
+template <> plant::tools::IndividualRunner<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > as(SEXP);
 
 template <> SEXP wrap(const plant::tools::IndividualRunner<plant::K93_Strategy,plant::K93_Environment>&);
 template <> plant::tools::IndividualRunner<plant::K93_Strategy,plant::K93_Environment> as(SEXP);
-template <> SEXP wrap(const plant::Internals&);
-template <> plant::Internals as(SEXP);
+template <> SEXP wrap(const plant::Internals<double>&);
+template <> plant::Internals<double> as(SEXP);
 template <> SEXP wrap(const plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment>&);
 template <> plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> as(SEXP);
 
-template <> SEXP wrap(const plant::Parameters<plant::TF24_Strategy,plant::TF24_Environment>&);
-template <> plant::Parameters<plant::TF24_Strategy,plant::TF24_Environment> as(SEXP);
+template <> SEXP wrap(const plant::Parameters<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> >&);
+template <> plant::Parameters<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > as(SEXP);
 
-template <> SEXP wrap(const plant::Parameters<plant::TF24f_Strategy,plant::TF24_Environment>&);
-template <> plant::Parameters<plant::TF24f_Strategy,plant::TF24_Environment> as(SEXP);
+template <> SEXP wrap(const plant::Parameters<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> >&);
+template <> plant::Parameters<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > as(SEXP);
 
 template <> SEXP wrap(const plant::Parameters<plant::K93_Strategy,plant::K93_Environment>&);
 template <> plant::Parameters<plant::K93_Strategy,plant::K93_Environment> as(SEXP);
 template <> SEXP wrap(const plant::Node<plant::FF16_Strategy,plant::FF16_Environment>&);
 template <> plant::Node<plant::FF16_Strategy,plant::FF16_Environment> as(SEXP);
 
-template <> SEXP wrap(const plant::Node<plant::TF24_Strategy,plant::TF24_Environment>&);
-template <> plant::Node<plant::TF24_Strategy,plant::TF24_Environment> as(SEXP);
+template <> SEXP wrap(const plant::Node<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> >&);
+template <> plant::Node<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > as(SEXP);
 
-template <> SEXP wrap(const plant::Node<plant::TF24f_Strategy,plant::TF24_Environment>&);
-template <> plant::Node<plant::TF24f_Strategy,plant::TF24_Environment> as(SEXP);
+template <> SEXP wrap(const plant::Node<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> >&);
+template <> plant::Node<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > as(SEXP);
 
 template <> SEXP wrap(const plant::Node<plant::K93_Strategy,plant::K93_Environment>&);
 template <> plant::Node<plant::K93_Strategy,plant::K93_Environment> as(SEXP);
 template <> SEXP wrap(const plant::Species<plant::FF16_Strategy,plant::FF16_Environment>&);
 template <> plant::Species<plant::FF16_Strategy,plant::FF16_Environment> as(SEXP);
 
-template <> SEXP wrap(const plant::Species<plant::TF24_Strategy,plant::TF24_Environment>&);
-template <> plant::Species<plant::TF24_Strategy,plant::TF24_Environment> as(SEXP);
+template <> SEXP wrap(const plant::Species<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> >&);
+template <> plant::Species<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > as(SEXP);
 
-template <> SEXP wrap(const plant::Species<plant::TF24f_Strategy,plant::TF24_Environment>&);
-template <> plant::Species<plant::TF24f_Strategy,plant::TF24_Environment> as(SEXP);
+template <> SEXP wrap(const plant::Species<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> >&);
+template <> plant::Species<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > as(SEXP);
 
 template <> SEXP wrap(const plant::Species<plant::K93_Strategy,plant::K93_Environment>&);
 template <> plant::Species<plant::K93_Strategy,plant::K93_Environment> as(SEXP);
 template <> SEXP wrap(const plant::Patch<plant::FF16_Strategy,plant::FF16_Environment>&);
 template <> plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> as(SEXP);
 
-template <> SEXP wrap(const plant::Patch<plant::TF24_Strategy,plant::TF24_Environment>&);
-template <> plant::Patch<plant::TF24_Strategy,plant::TF24_Environment> as(SEXP);
+template <> SEXP wrap(const plant::Patch<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> >&);
+template <> plant::Patch<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > as(SEXP);
 
-template <> SEXP wrap(const plant::Patch<plant::TF24f_Strategy,plant::TF24_Environment>&);
-template <> plant::Patch<plant::TF24f_Strategy,plant::TF24_Environment> as(SEXP);
+template <> SEXP wrap(const plant::Patch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> >&);
+template <> plant::Patch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > as(SEXP);
 
 template <> SEXP wrap(const plant::Patch<plant::K93_Strategy,plant::K93_Environment>&);
 template <> plant::Patch<plant::K93_Strategy,plant::K93_Environment> as(SEXP);
 template <> SEXP wrap(const plant::SCM<plant::FF16_Strategy,plant::FF16_Environment>&);
 template <> plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> as(SEXP);
 
-template <> SEXP wrap(const plant::SCM<plant::TF24_Strategy,plant::TF24_Environment>&);
-template <> plant::SCM<plant::TF24_Strategy,plant::TF24_Environment> as(SEXP);
+template <> SEXP wrap(const plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> >&);
+template <> plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > as(SEXP);
 
-template <> SEXP wrap(const plant::SCM<plant::TF24f_Strategy,plant::TF24_Environment>&);
-template <> plant::SCM<plant::TF24f_Strategy,plant::TF24_Environment> as(SEXP);
+template <> SEXP wrap(const plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> >&);
+template <> plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > as(SEXP);
 
 template <> SEXP wrap(const plant::SCM<plant::K93_Strategy,plant::K93_Environment>&);
 template <> plant::SCM<plant::K93_Strategy,plant::K93_Environment> as(SEXP);
 template <> SEXP wrap(const plant::StochasticSpecies<plant::FF16_Strategy,plant::FF16_Environment>&);
 template <> plant::StochasticSpecies<plant::FF16_Strategy,plant::FF16_Environment> as(SEXP);
 
-template <> SEXP wrap(const plant::StochasticSpecies<plant::TF24_Strategy,plant::TF24_Environment>&);
-template <> plant::StochasticSpecies<plant::TF24_Strategy,plant::TF24_Environment> as(SEXP);
+template <> SEXP wrap(const plant::StochasticSpecies<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> >&);
+template <> plant::StochasticSpecies<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > as(SEXP);
 
-template <> SEXP wrap(const plant::StochasticSpecies<plant::TF24f_Strategy,plant::TF24_Environment>&);
-template <> plant::StochasticSpecies<plant::TF24f_Strategy,plant::TF24_Environment> as(SEXP);
+template <> SEXP wrap(const plant::StochasticSpecies<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> >&);
+template <> plant::StochasticSpecies<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > as(SEXP);
 
 template <> SEXP wrap(const plant::StochasticSpecies<plant::K93_Strategy,plant::K93_Environment>&);
 template <> plant::StochasticSpecies<plant::K93_Strategy,plant::K93_Environment> as(SEXP);
 template <> SEXP wrap(const plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment>&);
 template <> plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> as(SEXP);
 
-template <> SEXP wrap(const plant::StochasticPatch<plant::TF24_Strategy,plant::TF24_Environment>&);
-template <> plant::StochasticPatch<plant::TF24_Strategy,plant::TF24_Environment> as(SEXP);
+template <> SEXP wrap(const plant::StochasticPatch<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> >&);
+template <> plant::StochasticPatch<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > as(SEXP);
 
-template <> SEXP wrap(const plant::StochasticPatch<plant::TF24f_Strategy,plant::TF24_Environment>&);
-template <> plant::StochasticPatch<plant::TF24f_Strategy,plant::TF24_Environment> as(SEXP);
+template <> SEXP wrap(const plant::StochasticPatch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> >&);
+template <> plant::StochasticPatch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > as(SEXP);
 
 template <> SEXP wrap(const plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment>&);
 template <> plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> as(SEXP);
 template <> SEXP wrap(const plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment>&);
 template <> plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> as(SEXP);
 
-template <> SEXP wrap(const plant::StochasticPatchRunner<plant::TF24_Strategy,plant::TF24_Environment>&);
-template <> plant::StochasticPatchRunner<plant::TF24_Strategy,plant::TF24_Environment> as(SEXP);
+template <> SEXP wrap(const plant::StochasticPatchRunner<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> >&);
+template <> plant::StochasticPatchRunner<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > as(SEXP);
 
-template <> SEXP wrap(const plant::StochasticPatchRunner<plant::TF24f_Strategy,plant::TF24_Environment>&);
-template <> plant::StochasticPatchRunner<plant::TF24f_Strategy,plant::TF24_Environment> as(SEXP);
+template <> SEXP wrap(const plant::StochasticPatchRunner<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> >&);
+template <> plant::StochasticPatchRunner<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > as(SEXP);
 
 template <> SEXP wrap(const plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment>&);
 template <> plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> as(SEXP);
-template <> SEXP wrap(const plant::ResourceSpline&);
-template <> plant::ResourceSpline as(SEXP);
-template <> SEXP wrap(const odelia::interpolator::Interpolator&);
-template <> odelia::interpolator::Interpolator as(SEXP);
+template <> SEXP wrap(const plant::ResourceSpline<double>&);
+template <> plant::ResourceSpline<double> as(SEXP);
 template <> SEXP wrap(const plant::Disturbance_Regime&);
 template <> plant::Disturbance_Regime as(SEXP);
 template <> SEXP wrap(const plant::No_Disturbance&);
@@ -186,14 +184,14 @@ template <> SEXP wrap(const plant::K93_Environment&);
 template <> plant::K93_Environment as(SEXP);
 template <> SEXP wrap(const plant::ExtrinsicDrivers&);
 template <> plant::ExtrinsicDrivers as(SEXP);
-template <> SEXP wrap(const plant::TF24_Pars&);
-template <> plant::TF24_Pars as(SEXP);
-template <> SEXP wrap(const plant::TF24_Strategy&);
-template <> plant::TF24_Strategy as(SEXP);
-template <> SEXP wrap(const plant::TF24_Environment&);
-template <> plant::TF24_Environment as(SEXP);
-template <> SEXP wrap(const plant::TF24f_Strategy&);
-template <> plant::TF24f_Strategy as(SEXP);
+template <> SEXP wrap(const plant::TF24_Pars<double>&);
+template <> plant::TF24_Pars<double> as(SEXP);
+template <> SEXP wrap(const plant::TF24_Strategy<double>&);
+template <> plant::TF24_Strategy<double> as(SEXP);
+template <> SEXP wrap(const plant::TF24_Environment<double>&);
+template <> plant::TF24_Environment<double> as(SEXP);
+template <> SEXP wrap(const plant::TF24f_Strategy<double>&);
+template <> plant::TF24f_Strategy<double> as(SEXP);
 }
 
 #endif

@@ -109,21 +109,30 @@ for (x in names(strategy_types)) {
     y <- plant$ode_state
     g <- plant$rate("height")
 
-    ## Ode *values*:
+    ## Ode *values*. The boundary condition is the coordinate's, and the two are
+    ## different functions rather than two discretisations of one: carried in
+    ## height the density is the recruit flux divided by the growth rate, because
+    ## a seedling that grows faster spends less time in the smallest size class;
+    ## carried in birth date nothing moves a plant along the abscissa, so the
+    ## division is absent.
+    birth_date <- s$control$node_density_in_birth_date
     cmp <- c(plant$internals$states,
              0, # offspring_produced_survival_weighted
-             log(pr_estab / g) # log density
-             )
+             if (birth_date) log(pr_estab) else log(pr_estab / g))
     cmp[which(plant$ode_names == 'mortality')] <- -log(pr_estab)
     expect_equal(node$ode_state, cmp)
 
     expect_identical(node$fecundity, 0.0);
 
-    ## Ode *rates*:
+    ## Ode *rates*. Same split: in height the size axis stretches where growth
+    ## accelerates with size, so the density carries a compression term; in birth
+    ## date germination dates neither spread apart nor pile up, and mortality is
+    ## the whole of the density rate.
     cmp <- c(plant$internals$rates,
              ## This is different to the approach in tree1?
              plant$rate("fecundity") * exp(-plant$state("mortality")),
-             -plant$rate("mortality") - node$growth_rate_gradient(env))
+             if (birth_date) -plant$rate("mortality")
+             else -plant$rate("mortality") - node$growth_rate_gradient(env))
 
 
     expect_equal(node$ode_rates, cmp)
@@ -188,8 +197,12 @@ for (x in names(strategy_types)) {
     expect_equal(rates[[length(rates)]],
                  -node$individual$rate("mortality"))
 
-    ## And the height coordinate keeps its compression term.
+    ## And the height coordinate keeps its compression term. Named rather than
+    ## taken from the default, which is the birth-date coordinate.
+    ctrl_h <- Control()
+    ctrl_h$node_density_in_birth_date <- FALSE
     s2 <- strategy_types[[x]]()
+    s2$control <- ctrl_h
     node2 <- Node(x, e)(s2)
     node2$compute_initial_conditions(env, pr_patch_survival = 1, birth_rate = 2)
     node2$compute_rates(env, 1)

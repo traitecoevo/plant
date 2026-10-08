@@ -224,11 +224,16 @@ integrate_over_size_distribution <- function(tidy_species_data) {
   tidy_species_data  %>%
     dplyr::select(-dplyr::any_of("node")) %>% stats::na.omit() %>%
     dplyr::filter(.data$step > 1) %>% 
-    dplyr::group_by(.data$step, .data$time, .data$patch_density, .data$species) %>% 
+    dplyr::group_by(.data$step, .data$time, .data$patch_density, .data$species) %>%
+    # This one really does integrate over height, so a crossed grid is a live
+    # hazard: reserve-gated growth lets a younger cohort overtake an older one,
+    # and neighbouring trapezia then cancel instead of accumulating. Ordering the
+    # grid first is what makes the rule below hold however the rows arrive.
+    dplyr::arrange(.data$height, .by_group = TRUE) %>%
     dplyr::reframe(
-      density_integrated = -trapezium(.data$height, .data$density), 
+      density_integrated = trapezium(.data$height, .data$density),
       min_height = min(.data$height),
-      dplyr::across(tidyselect::where(is.double) & !c("density", "density_integrated", "min_height") , ~-trapezium(height, density * .x))
+      dplyr::across(tidyselect::where(is.double) & !c("density", "density_integrated", "min_height") , ~trapezium(height, density * .x))
     ) %>%
     dplyr::rename(density = "density_integrated")
 }
