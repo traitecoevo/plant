@@ -44,8 +44,6 @@ public:
   typedef Element                     node_type;
   typedef typename strategy_type::ptr strategy_type_ptr;
 
-  using value_type = typename T::value_type;
-
   size_t size_individuals() const { return nodes.size(); }
 
   // * ODE interface -- delegates to the shared odelia free functions over the
@@ -53,20 +51,14 @@ public:
   size_t ode_size() const {
     return odelia::ode::ode_size(d().node_begin(), d().node_end());
   }
-  template <typename It> It set_ode_state(It it) {
+  odelia::ode::const_iterator set_ode_state(odelia::ode::const_iterator it) {
     return odelia::ode::set_ode_state(d().node_begin(), d().node_end(), it);
   }
-  template <typename It> It ode_state(It it) const {
+  odelia::ode::iterator ode_state(odelia::ode::iterator it) const {
     return odelia::ode::ode_state(d().node_begin(), d().node_end(), it);
   }
-  template <typename It> It ode_rates(It it) const {
+  odelia::ode::iterator ode_rates(odelia::ode::iterator it) const {
     return odelia::ode::ode_rates(d().node_begin(), d().node_end(), it);
-  }
-  template <typename It> It ode_aux(It it) const {
-    return odelia::ode::ode_aux(d().node_begin(), d().node_end(), it);
-  }
-  template <typename It> It set_ode_aux(It it) {
-    return odelia::ode::set_ode_aux(d().node_begin(), d().node_end(), it);
   }
 
   // Serialise one element's ODE state / aux into an R matrix column. Generic
@@ -85,9 +77,6 @@ public:
 
 protected:
   explicit SpeciesBase(strategy_type s) : strategy(make_strategy_ptr(s)) {}
-  // An already-prepared strategy, taken as is. prepare_strategy() is refused at
-  // an active scalar, so a species there is reachable only through this.
-  explicit SpeciesBase(strategy_type_ptr s) : strategy(s) {}
 
   const Control& control() const { return strategy->control; }
 

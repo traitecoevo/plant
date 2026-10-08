@@ -97,17 +97,17 @@ S ff16_net_mass_production_crown_top(const FF16ProdPars<S>& p,
   return ff16_net_from_components(p, height, area_leaf, assimilation);
 }
 
-// Deep-crown assimilation as a weighted sum over nodes a first pass placed. The
-// production model's default assimilation integrates
+// Deep-crown assimilation as a FROZEN-REPLAY weighted sum (#472 scope B,
+// Milestone B). The production model's default assimilation integrates
 // assimilation_leaf(light(z)) * q(z/height, z) over crown depth with adaptive
-// Gauss-Kronrod, and the adaptive controller is NOT differentiated: pass 1
-// (double) discovers the nodes z_j and the COMBINED weights
+// Gauss-Kronrod. Per the two-pass plan we do NOT differentiate the adaptive
+// controller: pass 1 (double) discovers the nodes z_j and the COMBINED weights
 // wq_j = w_j * q(z_j/height, z_j) (the leaf-area density q is constant in the
-// physiology traits, so it folds into the held weight); pass 2 replays
+// physiology traits, so it folds into the frozen weight); pass 2 replays
 //   A = area_leaf * sum_j wq_j * assimilation_leaf(a_p1, a_p2, light(z_j)).
-// `light` is any callable z -> S. The resident field is a hermite_interpolator<S>
-// carrying a value and a slope at every knot, so A is differentiable w.r.t.
-// a_p1/a_p2 and w.r.t. both halves of the field's knot data.
+// `light` is any callable z -> S (e.g. an AD-capable resident light spline,
+// odelia::interpolator::hermite_interpolator<S>), so A is differentiable w.r.t.
+// a_p1/a_p2 and w.r.t. light's knot values (the resident self-shading coupling).
 template <typename S, typename LightFn>
 S ff16_assimilation_deep_crown_replay(S a_p1, S a_p2, S area_leaf,
                                       const std::vector<double>& z,

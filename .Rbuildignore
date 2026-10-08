@@ -28,7 +28,7 @@
 ^inst/docs/figures$
 ^inst/scripts$
 ^inst/website$
-^inst/RcppR6_classes\.yml$
+^inst/RcppR6*$
 ^gh-pages$
 ^Meta$
 ^water_bucket_submodel$

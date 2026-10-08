@@ -2,7 +2,6 @@
 #ifndef PLANT_PLANT_STOCHASTIC_PATCH_RUNNER_H_
 #define PLANT_PLANT_STOCHASTIC_PATCH_RUNNER_H_
 
-#include <odelia/ode_solver.hpp>
 #include <plant/stochastic_patch.h>
 #include <plant/stochastic_utils.h>
 
@@ -82,37 +81,31 @@ size_t StochasticPatchRunner<T, E>::run_next() {
   const double t0 = time();
   auto& patch_solver = solver.get_system_ref();
 
-  const schedule_entry& intro = node_schedule.next();
-  if (!util::identical(t0, intro.time)) {
+  // NOTE: Unlike SCM::run_next(), this assumes that there is only a
+  // single event at a given time.  That's not all bad -- multiple
+  // events could occur at a single time but the time-saving trick of
+  // not computing the light environment would not work.
+  NodeSchedule::Event e = node_schedule.next_event();
+  if (!util::identical(t0, e.time_introduction())) {
     util::stop("Start time not what was expected");
   }
-  // The stochastic tower only knows about node introductions; an instant
+  // The stochastic tower only knows about node introductions; a schedule
   // carrying any other event type belongs to the deterministic solver until
   // this runner is migrated onto the shared queue too (#601).
-  if (!intro.actions.empty()) {
+  if (!e.is_node_introduction()) {
     util::stop("The stochastic solver does not yet apply scheduled events "
                "other than node introductions");
   }
-  const double t_end = node_schedule.time_end();
+  const size_t idx = e.target_index;
   node_schedule.pop();
 
-  // Arrival times are drawn from a continuous distribution, so an introduction
-  // here names one species; the loop is what makes that an observation rather
-  // than an assumption. Only the first reaches R, which is why this stays a
-  // walk over the set rather than the set itself: the return is one arrival.
-  bool widened = false;
-  for (const size_t idx : intro.species) {
-    if (patch_solver.introduce_new_node(idx)) {
-      widened = true;
-    }
-  }
-  if (widened) {
+  if (patch_solver.introduce_new_node(idx)) {
     solver.set_state_from_system();
   }
-  advance(t_end);
+  advance(e.time_end());
   patch = solver.get_system_ref();
 
-  return intro.species.front();
+  return idx;
 }
 
 template <typename T, typename E>
@@ -150,7 +143,7 @@ template <typename T, typename E> void StochasticPatchRunner<T, E>::reset() {
   solver.get_system_ref() = patch;
   solver.reset();
   if (node_schedule.size() > 0) {
-    const double t = node_schedule.next().time;
+    const double t = node_schedule.next_event().time_introduction();
     if (t >= 0.0) {
       // One step of this length would be tens of years for a late first arrival,
       // and the environment's own states are integrated over it, so this leg

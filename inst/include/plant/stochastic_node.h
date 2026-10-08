@@ -4,7 +4,6 @@
 
 #include <plant/individual.h>
 #include <odelia/ode_interface.hpp>
-#include <plant/with_slope.h>
 
 namespace plant {
 
@@ -32,21 +31,15 @@ namespace plant {
 template <typename T, typename E>
 class StochasticNode {
 public:
-  using value_type = typename T::value_type;
-
   typedef Individual<T, E> individual_type;
 
   explicit StochasticNode(individual_type individual_)
     : individual(individual_), alive(true) {}
 
   // --- forwards used by StochasticSpecies / StochasticPatch ---------------
-  value_type height() const { return individual.state(HEIGHT_INDEX); }
-  value_type compute_competition(const value_type& z) const {
+  double height() const { return individual.state(HEIGHT_INDEX); }
+  double compute_competition(double z) const {
     return individual.compute_competition(z);
-  }
-  with_slope<value_type>
-  compute_competition_and_slope(const value_type& z) const {
-    return individual.compute_competition_and_slope(z);
   }
   void compute_rates(const E& environment) {
     individual.compute_rates(environment);
@@ -54,7 +47,7 @@ public:
   void set_initial_states(const E& environment) {
     individual.set_initial_states(environment);
   }
-  value_type mortality_probability() const {
+  double mortality_probability() const {
     return individual.mortality_probability();
   }
   void reset_mortality() { individual.reset_mortality(); }
@@ -68,17 +61,20 @@ public:
   static size_t ode_size() { return individual_type::ode_size(); }
   size_t aux_size() const { return individual.aux_size(); }
 
-  template <typename It> It set_ode_state(It it) {
+  odelia::ode::const_iterator set_ode_state(odelia::ode::const_iterator it) {
     return individual.set_ode_state(it);
   }
-  template <typename It> It ode_state(It it) const {
+  odelia::ode::iterator ode_state(odelia::ode::iterator it) const {
     return individual.ode_state(it);
   }
-  template <typename It> It ode_rates(It it) const {
+  odelia::ode::iterator ode_rates(odelia::ode::iterator it) const {
     return individual.ode_rates(it);
   }
-  template <typename It> It ode_aux(It it) const {
-    return individual.ode_aux(it);
+  odelia::ode::iterator ode_aux(odelia::ode::iterator it) const {
+    for (size_t i = 0; i < individual.aux_size(); ++i) {
+      *it++ = individual.aux(i);
+    }
+    return it;
   }
 
   // Predicate for filtering the living subset (see StochasticSpecies). A free

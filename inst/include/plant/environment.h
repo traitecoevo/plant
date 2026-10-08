@@ -3,6 +3,8 @@
 #define PLANT_PLANT_ENVIRONMENT_H_
 
 #include <plant/control.h>
+#include <odelia/interpolator.hpp>
+#include <plant/adaptive_interpolator.h>
 #include <odelia/ode_interface.hpp>
 #include <plant/internals.h>
 #include <plant/util.h>
@@ -16,6 +18,12 @@ namespace plant {
 
 class Environment {
 public:
+  template <typename Function>
+  void compute_environment(Function f, double height_max, bool rescale);
+
+  void set_fixed_environment(double value, double height_max);
+  void set_fixed_environment(double value);
+
   // Configure the crown shading model for the light profile. Default: no-op;
   // only FF16_Environment builds an alternative (stepped) profile. Called once
   // from the Patch constructor with the run's Control settings.
@@ -23,20 +31,14 @@ public:
                                  double /*layer_optical_depth*/,
                                  double /*layer_smoothing*/) {}
 
-  // ODE interface. An environment holding no integrated state answers zero and
-  // leaves every iterator where it found it. One that integrates state declares
-  // these itself, at the scalar it holds that state in, so the state and the
-  // rates a cohort reads back travel at the same scalar the cohort does.
-  size_t ode_size() const { return 0; }
+  // ODE interface: do nothing if the environment has no state.
+  size_t ode_size() const { return vars.state_size; }
 
   // How many entries of resource_depletion compute_rates reads, and so how
   // long each individual's consumption vector must be.
   virtual size_t n_resources() const { return 0; }
 
-  // One aux slot per resource, holding the uptake the individuals supplied to
-  // compute_rates. The soil rates subtract it and keep no record of it, so
-  // without this slot the consumption is unrecoverable from the state.
-  size_t aux_size() const { return n_resources(); }
+  virtual void compute_rates(std::vector<double> const& resource_depletion){};
 
   // Add `amount` of resource `i` at one instant (#628). What the resource is,
   // and what the amount is measured in, is the environment's business: TF24's
@@ -56,19 +58,26 @@ public:
     return std::vector<double>(); // not reached
   }
 
-  template <typename It> It set_ode_state(It it) { return it; }
+  odelia::ode::const_iterator set_ode_state(odelia::ode::const_iterator it) {
+    for (size_t i = 0; i < vars.state_size; i++) {
+      vars.states[i] = *it++;
+    }
+    return it;
+  }
 
-  template <typename It> It ode_state(It it) const { return it; }
+  odelia::ode::iterator ode_state(odelia::ode::iterator it) const {
+    for (size_t i = 0; i < vars.state_size; i++) {
+      *it++ = vars.states[i];
+    }
+    return it;
+  }
 
-  template <typename It> It ode_rates(It it) const { return it; }
-
-  template <typename It> It ode_aux(It it) const { return it; }
-
-  template <typename It> It set_ode_aux(It it) { return it; }
-
-  // No integrated state, so no rates of it. An environment that has them
-  // declares its own, taking the uptake at the scalar the patch summed it in.
-  template <typename V> void compute_rates(const std::vector<V>&) {}
+  odelia::ode::iterator ode_rates(odelia::ode::iterator it) const {
+    for (size_t i = 0; i < vars.state_size; i++) {
+      *it++ = vars.rates[i];
+    }
+    return it;
+  }
 
   virtual Rcpp::List r_get_state() const
   {
@@ -101,9 +110,6 @@ public:
   virtual void clear_state() {}
 
   virtual void r_init_interpolators(const std::vector<double>& state) {}
-  // What r_init_interpolators() reads back. An environment with no interpolant
-  // has none, which is what makes this a no-op pair rather than a special case.
-  virtual std::vector<double> get_interpolators_state() const { return {}; }
 
   double get_environment_at_height(double height) const { return 0.0; };
 
@@ -113,6 +119,7 @@ public:
 
   size_t species_arriving_index;
 
+  Internals vars;
   ExtrinsicDrivers extrinsic_drivers;
 
   // The
@@ -126,13 +133,9 @@ public:
     extrinsic_drivers.set_constant(driver_name, value);
   }
 
-  // ⚠️ MONOTONE, NOT odelia's natural default. A driver is data given as values
-  // alone, and a natural spline beside a wet day reads NEGATIVE rainfall between
-  // the points (test-tf24-water-budget.R); monotone slopes keep every read inside
-  // the two values bracketing it. The birth-rate drivers make the same choice.
   void extrinsic_drivers_set_variable(std::string driver_name, std::vector<double> const &x, std::vector<double> const &y)
   {
-    extrinsic_drivers.set_variable(driver_name, x, y, odelia::drivers::Slopes::monotone);
+    extrinsic_drivers.set_variable(driver_name, x, y);
   }
 
   double extrinsic_drivers_evaluate(std::string driver_name, double x) const

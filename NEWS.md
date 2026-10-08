@@ -1,40 +1,11 @@
 ## Plant (development version)
 
-While the reverse-mode gradient work is in progress this file carries **breaking
-changes only**, and they are kept current because the `plant-update-interface`
-skill reads them as its spec. Everything else that was here -- what has been
-measured, what each defect excludes, and what is open -- was a development record
-rather than release notes, and is in the git history rather than the tree.
-
 ### Breaking changes
 
 These change the R-facing interface and require updating downstream code. Each
 entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
-
-* **`Control$save_RK45_cache` is gone, and `run_mutant()` no longer needs it.**
-  Migration: delete the setting. It was the opt-in for the invasion-fitness
-  recorder, set on the RESIDENT run one call before the one that needed it -- so a
-  resident that had not set it recorded nothing, and the `run_mutant()` after it
-  failed with a message about the competitive landscape rather than about the
-  flag. `run_mutant()` now keeps what it needs when it is called, so there is
-  nothing to arrange beforehand and no way to ask for an invasion run and not get
-  one.
-
-  What it keeps is the same field, at the same address -- per (step, stage) -- but
-  in odelia's own store/load channel rather than three solver hooks that odelia's
-  rewrite deleted. And it keeps the NUMBERS a replay evaluates rather than the
-  environment holding them: the light interpolant's knots, values and slopes, and
-  the environment's own ODE state. That is what makes an invasion sweep affordable
-  -- a replay costs less than the resident run it stands in (0.06 s against 0.07 s
-  on a lifetime-30 FF16 stand), where copying whole environments per sub-step put
-  the old cache at 6.8 GB and out of memory past ~10 years.
-
-  ⚠️ **`SCM$environment_history` and `SCM$patch_step_history` were never on the
-  R interface**, whatever the #362/#379 note below says: neither is in
-  `RcppR6_classes.yml` on `develop`. `save_RK45_cache` is the one published name
-  this removes, and its removal had gone unrecorded here until now.
 
 * **An unknown trait name is now an error (#636).** `generate_strategy()` (and
   `add_strategies()` / `add_mutant()`, which route through it) refuse a trait
@@ -182,69 +153,6 @@ products using plant.
   so archived TF24 results from before this change carry the same `TF24@v8` tag
   despite differing by ~0.36%.
 
-* **A finite-difference arm that crosses the feasible boundary now refuses.**
-  Requires the matching phylloptim. The leaf's environment rows are taken at a
-  frozen collar, and the entry point they went through clamped that collar into
-  whatever interval the PERTURBED state had -- so at a pinned operating point,
-  where the collar sits about a millionth of the interval's width off the wet
-  bound and a 1e-3 trait step moves that bound two orders further, one arm
-  answered about a different collar. No migration: the affected metrics were
-  returning a number and now report `refused` with the collar named. Measured at
-  psi_soil 5.0, `dprofit/droot_b` came back as 184.699 where the same difference
-  well inside the interval reads 0.0056.
-
-* **The dry pin is reported by its arm, and the inverted interval by its own
-  name.** Requires the matching phylloptim. Migration for anyone matching on the
-  kind a refusal message names:
-  * `"pinned-dry"`         -> `"pinned-dry-root-crit"` or `"pinned-dry-root-psi-crit"`
-  * `"hydraulic-shutdown"` -> unchanged, except the inverted-interval exit, which
-    is now `"infeasible-bracket"`
-
-  The two dry arms are different functions of the inputs -- the stem's continuity
-  root is a search result, the root's own critical potential is a registered
-  constant -- so a consumer forming the bound's row needs to know which bound.
-  Measured: at shipped defaults every dry pin is on the root-crit arm.
-
-* **`stand_gradient()`'s columns are partial derivatives, and `hyperpar =` gives
-  the trait derivative.** Each column is the derivative with every other
-  parameter held fixed, including those a hyperparameter function derives from
-  the trait. `TF24_hyperpar` sets `k_l`, `r_l` and `nmass_l` from `lma`, so
-  `gradient[, "1.lma"]` was 2.4 to 3.4 times a finite difference of `lma` through
-  `add_strategies()` on a 3-year stand. `stand_gradient(scm, traits = "1.lma",
-  hyperpar = TF24_hyperpar)` returns the total instead, agreeing with that
-  difference to 1e-4 or better. It also returns `$jacobian`, the derivative of
-  each derived parameter. Pass the function the stand was built with, because a
-  run does not record it. Without `hyperpar`, results are unchanged.
-
-* **Growth is billed on the carbon kept again, and an infeasible leaf solve is a
-  rejected step again.** Both regressed when TF24's model moved into its
-  templated header. `net_mass_production_dt` adds `leaf.shadow_cost()` back to
-  the objective, as it did before; without it, growth at a non-zero
-  `TF24_floor_lambda_o` was taxed 2.3% to 22.6% for carbon never spent, and the
-  gradient's active path carries the same term. Both TF24 and TF24f `solve_leaf`
-  once more translate phylloptim's `infeasible_error` into odelia's domain error
-  (#608), so the stepper shrinks and retries instead of ending the run. Both are
-  bit-neutral at the default price and on any feasible solve.
-
-* **The census trait gradient says why a metric has no numbers, instead of
-  raising.** A refusal used to escape to the R prompt as an error, with nothing a
-  caller could inspect and no way to keep the metrics that did answer.
-  Migration:
-  * `census_trait_gradient_tf24(scm, m)` (a list of numeric rows)
-    -> `census_trait_gradient_tf24(scm, m)$gradient` for the same rows
-  * `census_trait_gradient_split_tf24(scm, splits)`
-    -> `census_trait_gradient_split_tf24(scm, splits)$gradient`
-  * `stand_gradient(scm)` gains `$refusal`; `$gradient` is unchanged in shape and
-    meaning
-
-  Both C++ entry points now return `list(gradient, refusal)`. `refusal` carries
-  one entry per metric -- the reason, and the species it was found on -- or `NULL`
-  where the metric answered.
-
-  **A refused metric's whole gradient row is `NaN`.** Refusal is metric-level: a
-  sum has no defined value with an undefined term, so no localisation within a
-  metric is available. Metrics are independent of one another.
-
 * **`Leaf$set_physiology()` takes `root_network`, not `root_carbon_per_leaf_area`,
   and `Leaf()` no longer takes `beta_R_H` or `beta_R_V`.** Requires
   phylloptim >= 0.2.0 (phylloptim #33). Migration:
@@ -268,38 +176,6 @@ products using plant.
   (6 heights x 3 soil-moisture profiles) x 26 states, rates and auxiliaries,
   against `develop`; phylloptim's own 288-point golden file is bit-identical too.
   `scientific_version` is therefore unchanged.
-
-* **A census gradient's trait columns are named per species: `"lma"` -> `"1.lma"`.**
-  Migration:
-  * `colnames(stand_gradient(scm)$gradient)`  -> same, now `"<species>.<parameter>"`
-  * `stand_gradient(scm, traits = "lma")`     -> `stand_gradient(scm, traits = "1.lma")`
-  * `census_trait_names_tf24(scm)`            -> same, now prefixed
-  * `g$gradient[, "lma"]`                     -> `g$gradient[, "1.lma"]`, or
-    `g$gradient[, sub("^[0-9]+\\.", "", colnames(g$gradient)) == "lma"]` for every
-    species' column
-
-  Concatenating each species' parameter names with no prefix gave `S * P` columns
-  with every name repeated `S` times. Character indexing resolves a name to its
-  *first* match, so a multi-species gradient silently returned **species one's
-  column** for every named parameter, and the unknown-parameter check could not
-  see it because the name was present. A bare name now refuses, naming the
-  convention. The prefix is applied at every species count, including one, so a
-  single-species caller is not written against a shape that changes when a second
-  species arrives. Found by asserting the columns are unique; it was live in three
-  of this suite's own checks, one of which was comparing a quantity summed over
-  both species against species one's column.
-
-* **No trait is refused by name any more.** Migration: none mechanical, but the
-  *behaviour* changed and a caller relying on a by-name refusal will now get an
-  answer. Thirteen traits the leaf supplied no derivative for are now supplied,
-  and eleven of them come back live. `psi_crit` and `root_psi_crit` are the other
-  two, and they are not columns at all: each is derived from its curve's
-  `(P50, c)` pair, which `phylloptim` derives for itself, so setting one reaches
-  no equation. Both are listed in `TF24_Pars::undifferentiable`, which means
-  asking for one errors rather than returning a zero --
-  `census_undifferentiable_tf24()` reports the list and the reason beside each
-  name. What remains of the refusal mechanism is metric-level, reported through
-  `stand_gradient()`'s `refusal` and reduced by `stand_gradient_refused()`.
 
 * **`run_stochastic_collect()`'s environment field is `env`, not `light_env`.**
   Migration: `out$light_env -> out$env`. The old name was never produced by
@@ -455,21 +331,8 @@ products using plant.
   * `run_scm_collect(p, …)` -> `run_scm(p, …, collect = TRUE)`
   * `run_scm_error(p, …)` -> set `scm$collect_errors <- TRUE` then read
     `scm$combined_node_errors`
-* **`run_scm()`'s fifth positional argument changed meaning**, which a
-  positional call cannot notice. The signature is
-  `run_scm(p, env, ctrl, refine_schedule, collect, record_trajectory, events)`;
-  where `use_ode_times` used to sit, `record_trajectory` now does. They are not
-  the same request -- `use_ode_times` REPLAYED a recorded schedule, while
-  `record_trajectory` asks the run to KEEP its state at every accepted step, which
-  is what `stand_gradient()` sweeps. Migration:
-  * `run_scm(p, env, ctrl, use_ode_times = TRUE)` -> take `scm$ode_times` and
-    `scm$ode_step_sizes` off the run that produced them onto `p`, and run again.
-    A schedule carrying both repeats the run exactly; times alone step TO each
-    time and leave the sub-steps to the controller. ⚠️ **Not `run_mutant()`**,
-    which this migration used to name: that replays a resident's FIELD for an
-    invader, where `use_ode_times` replayed a resident's own SCHEDULE for
-    itself.
-  * a positional fifth argument -> name it, and check which of the two you meant
+* The argument order of `run_scm()` changed; `use_ode_times` is now the last
+  argument (after the new `refine_schedule` and `collect`).
 * Numeric `Control` defaults are now set in the C++ `Control()` constructor
   (the pragmatic "fast" settings), and the two R preset helpers were removed
   (#463). Raw `Control()` now means **fast**, not accurate. Migration:
@@ -584,6 +447,7 @@ were not previously recorded here:
     or better `ind$aux("area_sapwood")`
   * no other slot moves; `ind$aux(<name>)` needs no change anywhere
 
+### New features
 
 * **TF24 stem hydraulic resistance is now a path integral over the stem**, with
   three new `TF24_Pars` fields — `D_c` (conduit widening exponent, default
@@ -835,41 +699,17 @@ were not previously recorded here:
   A runaway cohort density stays fatal, because that divergence is in the
   equations rather than the stepper and shrinking cannot recover it.
 
-* **Three `Control` defaults moved, and two of them move every TF24 number.**
-  Nothing in a caller's code changes; the answers do.
-  * `GSS_tol_abs` `1e-3` -> `1e-1`. The golden-section search that places the
-    leaf's operating point runs to a looser bracket.
-  * `vulnerability_curve_ncontrol` `100` -> `400`. The pre-integrated
-    vulnerability tables are built on four times the knots, which is what the
-    supplied leaf rows are read off. `phylloptim`'s `leaf_control()` carries the
-    same number, and nothing checks the two against each other.
-  * `gradient_curvature_floor`, new at `1e-3`. It moves NO forward number: it
-    decides which gradient rows exist, by refusing a collar response whose profit
-    curvature is too small to invert. It is in `gradient_control()` for that
-    reason -- two gradients are comparable only when taken at the same value.
-
-  Migration: none mechanical. A result pinned against an older TF24 run needs
-  re-blessing, and a caller who wants the previous leaf resolution sets both of
-  the first two back explicitly.
-
-* **FF16 and K93 `scientific_version` 1 -> 2.** Neither model's own equations
-  changed. Both read their trapezium widths from the coordinate the density is
-  carried in, and that is what `node_density_in_birth_date` moves -- so a run
-  with the flag set is a different quadrature of the same model and says so.
-  TF24 and TF24f are at `v10` / `v10.1`; the stem path integral that took them
-  there is `develop`'s, not this branch's.
-
-* **FF16 results move by up to 4e-4 relative, from the light field alone.** The
-  light interpolant is built on knots carrying a value and an exact slope, and is
-  4-470x closer to the exact canopy light than the values-only spline it replaces.
-  An FF16 resident's net reproduction ratio moves from 2.773227 to 2.773160 over a
-  50-year patch, and invaders against it by up to 4e-4. That is below the error
-  of the old spline: tightening its tolerance from 1e-4 to 1e-9 moves the same
-  ratios by up to 7e-4. Migration: a result pinned against an older FF16 run needs
-  re-measuring.
-
 * **`Control$node_density_in_birth_date`** (default `FALSE`) carries the SCM's
   size distribution as a density in birth date instead of in height.
+
+  The transport equation's compression term is the total derivative of the growth
+  rate along a cohort's own trajectory, which equals `∂g/∂h` only when growth is
+  a function of size. TF24's reserve gate breaks that: the finite-difference
+  probe in `Node::growth_rate_gradient` moves height while holding *absolute*
+  carbon fixed, so it shifts the reserve fraction `r = S/S_max`, whereas a cohort
+  actually grows with `r` roughly constant. The probe is accurate about a
+  quantity the plant never experiences, so this is a different derivative rather
+  than a worse approximation of the right one.
 
   In birth-date coordinates the density rate is mortality alone (nothing moves an
   individual along the birth-date axis), the birth density is
@@ -977,28 +817,6 @@ were not previously recorded here:
   abscissa cannot invert (introduction times are fixed at birth), but the
   *height* early exit is skipped when the height ordering has broken, since a
   node below the query height can then be followed by a taller one.
-
-### Added
-
-* **The gradient's incidence counters.** The leaf classifies its operating point
-  by the branch taken and the next plant overwrites it, and a clamp that severs a
-  row leaves a number indistinguishable from a true zero -- so neither was
-  recoverable after a run. Additions only:
-  * `census_operating_point_counts_tf24(scm)` -> per-species counts by kind
-  * `census_operating_point_names_tf24()`     -> the kinds, in that order
-  * `census_clamp_counts_tf24(scm)`           -> per-species counts by clamp site
-  * `census_clamp_names_tf24()`               -> the sites, in that order
-  * `census_clear_diagnostics_tf24(scm)`       -> reset both, per run
-
-* **The two readings a published counter does not give.** `census_clamp_counts_tf24`
-  counts every solve the forward run made, and a caller asking whether a
-  *gradient* carries a severance reads it and gets the wrong answer: the sweep
-  visits the recorded steps, and fewer of them. `gradient_control` publishes the
-  curvature floor and `stand_gradient_compare` refuses two gradients taken at
-  different ones, and nothing said how close a run came. Additions only:
-  * `census_clamp_counts_differentiated_tf24(scm)` -> per-species counts where the sweep ran
-  * `census_curvature_margin_tf24(scm)`            -> the smallest profit curvature met, or -1 for none
-
 * **A dry TF24f patch no longer aborts the whole run on the ci root-find.**
   `Leaf::dprofit_droot_collar_psi` — TF24f's exact AD/IFT gradient — called
   `psi_stem_to_ci()` before testing for hydraulic shut-down. In shut-down,
@@ -1159,53 +977,6 @@ were not previously recorded here:
 * Added an HTML report (plots + analyses) for the FF16 strategy (#350).
 
 ### Known issues
-
-* **No correctness check reaches a production step count.** The gradient ladder's
-  longest stand accepts 68 steps; a century fixture accepts about 3,400. Range
-  count is covered -- `ladder_stand_many_ranges()` puts 62 ranges in a run of
-  under half a year, and the split identity holds there bit for bit, which
-  exercises the range loop, the narrowing across a widening and the re-entry a cut
-  forces at ten times the count every other rung runs at. What it does not cover
-  is the step loop and the recording's own footprint, both of which grow with run
-  length rather than with introductions.
-
-  The two were separated deliberately: they are confounded in the default
-  schedule, because that schedule derives its introduction count from the patch
-  lifetime. Written introduction times separate them, and range count is the half
-  that is cheap. The remaining half is not: one stand at the length a user runs
-  costs minutes to build and is dominated by regimes that refuse.
-
-* **An invasion replay cannot subdivide, so an invader that refuses a state fails
-  rather than shrinking.** The replay walks `step_by` with the resident's recorded
-  sizes, and that path has no domain handling — no `try`, no sub-step. This is
-  deliberate where it can be: it is what makes the replay exact and what makes the
-  answer independent of how many invaders share the call (traitecoevo/plant#646),
-  since no error norm is consulted.
-
-  It has not been seen to fire. TF24's identity case replays 28,813 steps at
-  `max_patch_lifetime = 14` — the fixture chosen because TF24's storage pool
-  refuses routinely, ~480 times in a resident run — and never refuses, which is
-  what an identity invader on the resident's own grid should do. **A genuinely
-  different TF24 invader is the untested case.** If it fires it will say so
-  loudly rather than quietly approximating, which is the choice made here:
-  `develop` subdivided instead, and its field then rewound once per sub-step,
-  which is the whole of its unexplained ~1e-6 on TF24 against ~1e-13 on FF16.
-
-* **`test-mutant.R`'s two ten-mutant panels are pinned to `develop`'s model, and
-  this branch's has moved.** `run_mutant()` itself is restored and exact: a
-  strategy replayed as an invader of itself returns the resident's own fitness to
-  **1e-15**, and it does so with two, three, five or nine invaders in the patch --
-  which is the statement that nothing in the replay builds an invader's own field,
-  since nine identical invaders would otherwise stand in a ninefold canopy.
-
-  What has moved is underneath. This branch's FF16 residents already differ from
-  the same file's resident pins: **2.7731596 against 2.77322 (-2.2e-5)** for one
-  resident, and **+4.7e-5** on the three-resident stand. Those sit inside the
-  1e-4 the resident assertions allow, so they pass; the mutant panels amplify the
-  same drift to 4e-4 and do not. The replay reproduces THIS branch's resident
-  exactly, so re-pinning the panels would accept a change to the model's science
-  -- which is the `scientific_version` decision, not this one. They are left
-  failing and named here rather than re-pinned.
 
 * **A dense TF24 stochastic run throws at the default ODE step cap** (#599). The
   soil water balance is stiff — the conductivity curve's exponent is
@@ -1591,10 +1362,6 @@ were not previously recorded here:
 * Upgraded the minimum C++ standard from C++14 — currently C++20 (#442).
 * Expanded the K93 (#421) and self-thinning (#369) vignettes; added a draft
   `extrinsic_drivers` vignette (#340).
-
-  Read off the live system, so take them from the object you ran. Measured on a
-  drought run that refuses: 99.71% interior, 0.29% pinned-dry -- and that 0.29%
-  is what makes every metric's gradient undefined.
 
 ## Plant 2.0.0 release notes
 

@@ -1,22 +1,13 @@
-## What an invasion run has to reproduce. The run keeps the resident's field in
-## odelia's store/load channel, per (step, stage), and the invasion pass loads it,
-## so a mutant identical to a resident reproduces that resident's ratio exactly.
-##
-## The pinned numbers are this branch's. They moved from develop's by up to 4e-4
-## relative because the light field is read off value-and-slope knots, 4-470x
-## closer to the exact canopy light than develop's spline; develop's own numbers
-## move by up to 7e-4 when its spline tolerance is tightened from 1e-4 to 1e-9.
-## Read a change here against that: these ratios resolve the light field's error,
-## not the replay's.
 
 test_that("mutant method works", {
-  # basic setup
+  # basic setup 
   p0 <- scm_base_parameters("FF16")
   p0$max_patch_lifetime <- 50
-
+  
   e <- Environment("FF16")
   ctrl <- Control()
-
+  ctrl$save_RK45_cache = TRUE
+    
   tol <- 1e-4
   
   # We'll run tests with 1 and 3 residents, each with different numbers of mutants
@@ -38,29 +29,29 @@ test_that("mutant method works", {
   types <- extract_RcppR6_template_types(pr1, "Parameters")
   scm <- do.call("SCM", types)(pr1, e, empty_events(), ctrl)
 
-  expect_error(scm$run_mutant(p0), "Run a resident first")
+  expect_error(scm$run_mutant(p0), "Run a resident first to generate a competitve landscape") 
 
   # check mutant fitness against resindet and expected values
   scm <- run_scm(pr1, e, ctrl)
   pr1_rr <- scm$net_reproduction_ratios
-  expected <- 2.77316
+  expected <- 2.77322
   expect_equal(pr1_rr, expected, tolerance = tol)
 
   scm$run_mutant(pr1m1)
   pr1m1_rr <- scm$net_reproduction_ratios
-  expected <- c(2.77316, 3.708121)
+  expected <- c(2.77322, 3.707605)
   expect_equal(pr1m1_rr, expected, tolerance = tol)
   expect_equal(pr1m1_rr[1], pr1_rr, tolerance = tol)
 
   scm$run_mutant(pr1m3)
   pr1m3_rr <- scm$net_reproduction_ratios
-  expected <- c(2.77316, 3.745544e-10, 2.77316, 3.708121)
+  expected <- c(2.77322, 3.7429e-10, 2.77322, 3.70753)
   expect_equal(pr1m3_rr, expected, tolerance = tol)
   expect_equal(pr1m3_rr[1], pr1_rr, tolerance = tol)
 
   scm$run_mutant(pr1m10)
   pr1m10_rr <- scm$net_reproduction_ratios
-  expected <- c(2.77316, 3.745544e-10, 9.295552e-07, 0.136394, 2.77316, 3.890101, 1.525211, 1.160076, 1.871274, 2.765771, 3.708121)
+  expected <- c(2.773222, 3.742935e-10, 9.308944e-07, 0.1363641, 2.773222, 3.890554, 1.524582, 1.160212, 1.871261, 2.765328, 3.707372)
   expect_equal(pr1m10_rr, expected, tolerance = tol)
   expect_equal(pr1m10_rr[1], pr1_rr, tolerance = tol)
 
@@ -75,27 +66,27 @@ test_that("mutant method works", {
 
   scm <- run_scm(pr3, e, ctrl)
   pr3_rr <- scm$net_reproduction_ratios
-  expected <- c(4.266668e-10, 2.83187, 0.09125858)
+  expected <- c(4.265e-10, 2.831741, 0.09125339)
   expect_equal(pr3_rr, expected, tolerance = tol)
 
 
   scm$run_mutant(pr3m1)
   pr3m1_rr <- scm$net_reproduction_ratios
-  expected <- c(4.266668e-10, 2.83187, 0.09125858, 0.09125858)
+  expected <- c(4.265e-10, 2.831741, 0.09125339, 0.09125339)
   expect_equal(pr3m1_rr, expected, tolerance = tol)
   expect_equal(pr3m1_rr[1:3], pr3_rr, tolerance = tol)
 
   scm$run_mutant(pr3m3)
   pr3m3_rr <- scm$net_reproduction_ratios
-  expected <- c(4.266668e-10, 2.83187, 0.09125858, 4.266668e-10, 2.83187, 0.09125858)
+  expected <- c(4.265e-10, 2.831741, 0.09125339, 4.265e-10, 2.831741, 0.09125339)
   expect_equal(pr3m3_rr, expected, tolerance = tol)
   expect_equal(pr3m3_rr[1:3], pr3_rr, tolerance = tol)
 
   scm$run_mutant(pr3m10)
   pr3m10_rr <- scm$net_reproduction_ratios
-  expected <- c(4.266668e-10, 2.83187, 0.09125858, 4.266668e-10, 5.59171e-06, 0.2661018, 2.83187, 2.689998, 0.3798588, 0.07099742, 0.07227027, 0.08342955, 0.09125858)
+  expected <- c(4.265011e-10, 2.831741, 0.09125377, 4.265011e-10, 5.587752e-06, 0.266188, 2.831741, 2.690585, 0.3796333, 0.07098642, 0.07226859, 0.08342181, 0.09125377)
   expect_equal(pr3m10_rr, expected, tolerance = tol)
-  expect_equal(pr3m10_rr[1:3], pr3_rr, tolerance = tol)
+  expect_equal(pr3m3_rr[1:3], pr3_rr, tolerance = tol)
 })
 
 test_that("mutant method densities", {
@@ -115,6 +106,7 @@ test_that("mutant method densities", {
   # equilibrium -- only the resident-vs-mutant identity -- so the long, costly
   # patch bought no extra coverage.)
   ctrl <- Control()
+  ctrl$save_RK45_cache = TRUE
 
   traits <- trait_matrix(0.0825, c("lma"))
   tol <- 1e-3
@@ -162,45 +154,23 @@ test_that("mutant method densities, TF24", {
   # run_mutant() pins the stepper to the resident's recorded step times, and that
   # path used to call the stepper with no domain handling at all, so the first of
   # those refusals killed the replay (#642). It failed for every TF24 strategy
-  # tried, this identity case included.
+  # tried, this identity case included, and left invasion-fitness analysis with no
+  # equivalent workaround. Fixed in odelia 0.4.0 by subdividing a refused pinned
+  # step to the same endpoint.
   #
-  # ⚠️ THE FIX IS NOT THE ONE THIS COMMENT USED TO NAME. odelia 0.4.0 subdivided a
-  # refused pinned step; this replay does not subdivide at all, deliberately --
-  # see NEWS.md under Known issues, where the reason is that subdividing is what
-  # made the answer depend on how many invaders shared the call. A replay that met
-  # a refusal would now FAIL rather than shrink, and `expect_no_error` below
-  # passing is the statement that it meets none.
-  #
-  # ⚠️ THE LIFETIME BUYS THE REGIME AND THE COHORT COUNT IS WHAT COSTS, and the
-  # default schedule confounds them by deriving its introduction count from the
-  # lifetime. Held at 6 and varying only how many of that schedule's 89
-  # introductions are kept, against the 1e-3 this compares at:
-  #
-  #   introductions     20     40     60     89
-  #   steps            311    363    452    497
-  #   log gap        4e-15  4e-13  1e-14  4e-15
-  #   seconds          2.7    6.0   11.2     18
-  #
-  # The gap does not fall with either count, because this is an identity rather
-  # than an approximation. So a longer recording buys only more of the regime,
-  # and twenty introductions are enough to hold the identity at 4e-15.
-  #
-  # ⚠️ THOSE STEP COUNTS ARE A TWENTIETH OF WHAT THEY WERE, and the pool is why.
-  # This table read 6071 to 12714 steps and 71 to 623 seconds while compute_rates
-  # ran the clamped pre-v9 pool the templating commit transcribed; restoring the
-  # charge and drain form took the same four fixtures to 311 to 497. The stiffness
-  # the schedule was thinned to avoid was mostly the pool integrating past its own
-  # ceiling. Both counts are asserted below rather than left to the constants.
+  # The patch lifetime is load-bearing and is the cheapest one that covers the
+  # bug: the refusals only begin partway into a run, so at 10 the replay never
+  # meets one and the test passes with or without the fix. 14 fails without it.
+  # A resident that never trips the guard would make this test vacuous, so the
+  # first expectation checks the run is long enough to be a real test.
   ctrl <- Control()
+  ctrl$save_RK45_cache <- TRUE
   tol <- 1e-3
 
   p0 <- scm_base_parameters("TF24")
-  p0$max_patch_lifetime <- 6
+  p0$max_patch_lifetime <- 14
   p1 <- add_strategies(p0, trait_matrix(0, "TF24_floor_lambda_o"),
                        hyperpar = TF24_hyperpar, birth_rate = 1)
-  full <- p1$node_schedule_times[[1]]
-  p1$node_schedule_times <-
-    list(full[round(seq(1, length(full), length.out = 20))])
 
   env <- Environment("TF24")
   env$set_soil_water_state(rep(0.428 * 0.5, env$get_soil_number_of_depths()))
@@ -209,12 +179,9 @@ test_that("mutant method densities, TF24", {
   scm <- run_scm(p1, env = env, ctrl = ctrl)
   resident_rr <- scm$net_reproduction_ratios
 
-  # Not assertions about the model, just guards that the replay below has
-  # something to replay: a resident that died out would make the identity
-  # trivial, and a short recording would make it cheap in the wrong way.
+  # Not an assertion about the model, just a guard that the replay below has
+  # something to replay: a resident that died out would make the identity trivial.
   expect_true(all(is.finite(resident_rr)) && all(resident_rr > 0))
-  expect_gt(length(scm$ode_times), 250)
-  expect_equal(scm$patch$species[[1]]$size, 20L)
 
   # Identical mutant, replaying the resident's own recorded environment, must
   # recover the resident's own fitness.
