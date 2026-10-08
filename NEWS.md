@@ -859,6 +859,15 @@ were not previously recorded here:
   TF24 and TF24f are at `v10` / `v10.1`; the stem path integral that took them
   there is `develop`'s, not this branch's.
 
+* **FF16 results move by up to 4e-4 relative, from the light field alone.** The
+  light interpolant is built on knots carrying a value and an exact slope, and is
+  4-470x closer to the exact canopy light than the values-only spline it replaces.
+  An FF16 resident's net reproduction ratio moves from 2.773227 to 2.773160 over a
+  50-year patch, and invaders against it by up to 4e-4. That is below the error
+  of the old spline: tightening its tolerance from 1e-4 to 1e-9 moves the same
+  ratios by up to 7e-4. Migration: a result pinned against an older FF16 run needs
+  re-measuring.
+
 * **`Control$node_density_in_birth_date`** (default `FALSE`) carries the SCM's
   size distribution as a density in birth date instead of in height.
 
