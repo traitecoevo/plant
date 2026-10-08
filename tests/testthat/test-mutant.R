@@ -95,7 +95,7 @@ test_that("mutant method works", {
   pr3m10_rr <- scm$net_reproduction_ratios
   expected <- c(4.266668e-10, 2.83187, 0.09125858, 4.266668e-10, 5.59171e-06, 0.2661018, 2.83187, 2.689998, 0.3798588, 0.07099742, 0.07227027, 0.08342955, 0.09125858)
   expect_equal(pr3m10_rr, expected, tolerance = tol)
-  expect_equal(pr3m3_rr[1:3], pr3_rr, tolerance = tol)
+  expect_equal(pr3m10_rr[1:3], pr3_rr, tolerance = tol)
 })
 
 test_that("mutant method densities", {
