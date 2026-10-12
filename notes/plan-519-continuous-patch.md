@@ -1,0 +1,177 @@
+# The continuous patch (#519)
+
+**Status: scoped, not started.** This is the working plan for [#519](https://github.com/traitecoevo/plant/issues/519), scoped against the TF24 semi-arid fitness calculation in mulgafutures (`meetings/2026.10.12 semi-arid fitness/01-fitness-calculation.md`, §4, §4.5, §10 job 1) and the six requirements in [Daniel's comment](https://github.com/traitecoevo/plant/issues/519#issuecomment-6119048385). The constraints in it bind anyone editing the schedule, `Species`' node list, the fitness integral or the resume path while the work is open. Section 7 holds the first measured numbers; everything before it is design.
+
+## Context
+
+The use case is one patch run continuously under one stationary realisation of a rainfall-pulse series, with no disturbance regime. Mutant cohorts are introduced across a window $[T_1, T_2]$ and their lifetime offspring production is averaged over arrival time: $R = \frac{1}{T_2 - T_1}\int_{T_1}^{T_2} \tilde R(t_0)\,dt_0$, run to $T_2 + L$ so the last arrivals live out their lives. That replaces the FF16 patch-age weighting, and every part of the fitness note's §4 and §6 sits on this mode.
+
+What the code does today, which the design builds on rather than replaces:
+
+- **A run is a schedule of stops.** The event queue of #632 holds one `schedule_entry` per instant ([node_schedule.h:119](../inst/include/plant/node_schedule.h#L119)) with its actions ranked and its species grouped; `SCM::run_next` ([scm.h:587](../inst/include/plant/scm.h#L587)) pops the entry at the current time, applies the actions, introduces the species, and integrates to the next entry. The run ends when the queue is consumed, and the last leg ends at `max_time = max_patch_lifetime`. Node introduction is already an event type ([node_schedule.h:36](../inst/include/plant/node_schedule.h#L36)).
+- **Nodes are appended and never removed**, so a long run's cost grows with every cohort introduced. On the birth-date coordinate (#590, `control$node_density_in_birth_date`, [control.h:66](../inst/include/plant/control.h#L66)) the node list is the quadrature grid of the competition field, the resource uptake, the census and the fitness integral ([species.h:326](../inst/include/plant/species.h#L326), [:498](../inst/include/plant/species.h#L498), [:791](../inst/include/plant/species.h#L791), [:840](../inst/include/plant/species.h#L840)), and a cohort's density changes by mortality alone ([individual.h:257](../inst/include/plant/individual.h#L257)).
+- **Fitness is a trapezium over birth dates.** `net_reproduction_ratio_for_species` ([patch.h:930-938](../inst/include/plant/patch.h#L930-L938)) integrates `fecundity_k × patch_density_at_birth_k × S_D` ([node.h:84](../inst/include/plant/node.h#L84)) over the node times, scaled per node by `birth_rate_at(t_k)` for offspring production ([patch.h:943](../inst/include/plant/patch.h#L943)). `patch_density_at_birth` is stamped at introduction from `survival_weighting->density(t)` ([patch.h:1245](../inst/include/plant/patch.h#L1245)); `pr_survival(t)` multiplies the fecundity rate ([node.h:49](../inst/include/plant/node.h#L49)) and the inflow condition ([patch.h:1045](../inst/include/plant/patch.h#L1045)). The regime is built in `Parameters::validate()` ([parameters.h:126](../inst/include/plant/parameters.h#L126)): Weibull for `patch_type == "meta-population"`, otherwise `No_Disturbance` (density 1, survival 1).
+- **Resume exists and has gaps.** `export_patch_state()` / `set_initial_state()` ([scm_support.R:157](../R/scm_support.R#L157), [:296](../R/scm_support.R#L296)) carry the flat ODE state (nodes, then the environment, which for TF24 is the five soil layers and the five flux accumulators of [tf24_environment.h:125](../inst/include/plant/models/tf24_environment.h#L125)), the per-node birth bookkeeping and the residual introduction schedule, and `Patch::set_initial_state` ([patch.h:717](../inst/include/plant/patch.h#L717)) loads them. The gaps: a pinned replay across the resume gap is refused ([scm.h:605](../inst/include/plant/scm.h#L605)); `r_set_ode_steps` demands a first time of exactly zero ([node_schedule.cpp:271](../src/node_schedule.cpp#L271)); `Patch::reset()` lets `environment.clear()` zero the clock when `initial_state` is empty ([patch.h:689](../inst/include/plant/patch.h#L689)); `make_initial_state()` stamps every node with time 0 ([scm_support.R:265](../R/scm_support.R#L265)), which the birth-date coordinate refuses for more than one node per species; and the export does not carry residual events.
+- **The reverse pass has no run-length tape.** odelia 0.7.1's tape holds one step at a time ([adjoint.hpp:15](../../odelia/inst/include/odelia/adjoint.hpp#L15), [ode_solver.hpp:511](../../odelia/inst/include/odelia/ode_solver.hpp#L511)). What grows with the run is the row store, one `step_record` per accepted step ([ode_interface.hpp:242](../../odelia/inst/include/odelia/ode_interface.hpp#L242), [ode_solver_internal.hpp:387](../../odelia/inst/include/odelia/ode_solver_internal.hpp#L387)): the state plus six per-stage solved rows, which for TF24 is one 16-byte `leaf_solved_point` per node per stage ([tf24_strategy.h:487](../inst/include/plant/models/tf24_strategy.h#L487)) plus the recorded field when an invasion keeps it. `solve_adjoint` sweeps any sub-range of rows ([ode_solver.hpp:446](../../odelia/inst/include/odelia/ode_solver.hpp#L446)), and a recording starts where the run starts ([ode_solver_internal.hpp:90](../../odelia/inst/include/odelia/ode_solver_internal.hpp#L90)).
+- **Cost.** TF24's rate evaluation is a leaf solve per node per stage; a 105-year run on the default schedule costs about a minute (test-scm.R's own note). Pulses add a leg boundary each, and a leg inherits the previous leg's step size, which is the measured trigger of the soil column's blow-ups (NEWS, [Known issues](../NEWS.md#L1167); `ode_step_size_max = 0.05` is the guard).
+
+## Decisions
+
+1. **The regime supplies the weight; the schedule supplies the times.** A `Window_Regime : Disturbance_Regime` with `density(t)` equal to a normalised tabulated weight on $[T_1, T_2]$ and zero outside, and `pr_survival ≡ 1`, feeds the fitness integral, the node stamps and the inflow condition unchanged. Periodic introduction is a generated schedule on the existing queue, not a new mechanism. The regime never reads the environment: R builds the germination weight from the same pulse series that drives the run, which is baked in up front (#522).
+2. **Two mechanisms bound the node list, both applied at scheduled instants.** *Retirement*: a cohort whose density has fallen below `retire_density` is frozen in place with density exactly zero and no further rate evaluation; on the birth-date coordinate density only ever falls, so this is irreversible and exact to the floor. The pilot (section 7) shows this is the bigger lever: cost tracks introduced cohorts while only 14 to 25 carry density. *Absorption*: each species gets one top cohort pinned at `absorb_height`; at every introduction instant the oldest tracked cohorts merge into it, as a contiguous block from the old end, while the oldest one is retired, or is at or above the boundary and was born outside the window. Height rather than age because the top layer is then the absorbing boundary the issue asked for: its size is fixed and only its densities move, so a stand in a constant environment has a fixed point. The structure at any recorded time stays derivable because the forward run logs the count absorbed per species per instant and a replay or sweep loads that selection instead of re-deciding it; retirement needs no log, because a retired cohort is recognisable from the state it is loaded with.
+3. **Birth-date coordinate only.** TF24 needs it (#590) and the reverse sweep refuses the other coordinate; the top layer is refused on the height coordinate.
+4. **Resume is the mechanism for everything long.** The burn-in is paid once and exported; the window run, every mutant and every gradient resume from it. The refusals that block a pinned replay or an invasion from a resumed state are removed.
+5. **Two terminations on one primitive**, `SCM::run_to(t)`: a fixed horizon is `run()` with `max_patch_lifetime = T_2 + L`; convergence is a block-mean test driven from R over `run_to`, with a hard cap.
+6. **History is thinned to snapshots of summaries.** The per-leg Patch copy of `collect` stays for short runs. Per-node lifetime offspring production is ODE state and is never thinned; it is lost only for absorbed cohorts, which are never window cohorts.
+7. **Gradients: cut at the window boundary first.** That is the resume path with `record_trajectory = TRUE`; the burn-in state is exogenous. Short mutant runs from sampled saved states are the same mechanism with the start time sampled and one lifespan long.
+8. **Bit identity.** Every capability here is opt-in (`patch_type = "window"`, `retire_density`, `absorb_height`, `snapshot_interval`, `run_to`), so a run with an unchanged set of stop times and actions is bit-identical to today's, verified with `identical()` on raw arrays for FF16, K93 and TF24 at every migration commit.
+
+## Design
+
+### 1. Periodic introduction and the window regime
+
+The two halves of requirement 1 are different objects. Introduction *times* are a schedule: `node_schedule_times_periodic(t0, t1, dt)` beside `node_schedule_times_default` ([scm_utils.cpp:6](../src/scm_utils.cpp#L6)), filling `p$node_schedule_times` with a uniform grid, which `node_introductions(p)` turns into queue entries like any other. The *weight* each cohort carries in the fitness integral is the regime's: `Window_Regime(T1, T2, x, w)` returns `density(t) = w(t) / ∫_{T_1}^{T_2} w` for $t$ in the window and 0 outside, with `w` tabulated on knots `x` and read at the node's own birth date, so the uniform case is `1/(T2 - T1)` and a germination-weighted case is a table built in R from the pulse series and a trigger rule (an event-size threshold first; the form is empirical, note §9). `pr_survival`, `cdf`, `icdf` and `r_mean_interval` keep the base class's answers. The normalisation uses the trapezium over the regime's own knots, so a resident's window-averaged $R$ is the plain time average when the weights are all one.
+
+It is selected by `patch_type = "window"` with four new `Parameters` fields (`window_start`, `window_end`, `window_weight_x`, `window_weight_y`), built in `validate()` beside the Weibull ([parameters.h:115](../inst/include/plant/parameters.h#L115)). Cohorts born outside the window carry density 0 and contribute nothing to fitness; they are the stand. Mutants therefore need introductions inside the window only, residents throughout.
+
+How it coexists with the queue: introductions are already events, the generator only chooses their times, and `refine_schedule` ([scm.h:782](../inst/include/plant/scm.h#L782)) bisects a uniform grid exactly as it bisects the default one and leaves actions untouched. What spacing a pulsed stand needs, and how the schedule should be refined against a pulse series, is deliberately not settled here: Andrew has found that the node schedule does not capture pulsed rainfall well and is proposing refinements, and this plan takes the introduction grid as given (non-goals). Two constraints it does impose: each refinement iteration is a whole run, so any refinement happens on a segment from a saved state rather than on the long run, and refinement with the top layer on is refused (design 2).
+
+Test: the window-averaged $R$ of a converged resident does not move when the window is shifted or lengthened beyond the realisation noise, and with unit weights it equals the plain time average of the per-node lifetime output.
+
+### 2. Retirement and the absorbing top layer
+
+**Retiring dead cohorts.** Every node costs a leaf solve per stage whether or not it carries density, and under a pulse regime most cohorts die within a decade or two: the pilot's stand has 14 to 25 cohorts with any density out of hundreds introduced, and its cost per year grows linearly with the hundreds (section 7). On the birth-date coordinate the density rate is minus the mortality rate ([individual.h:257](../inst/include/plant/individual.h#L257)), so density never rises and a cohort below a floor stays there. At each introduction instant, inside the same insertion map, a cohort whose density is below `retire_density` (Control, default 0 = off) is retired: its density is set to the exact-zero sentinel the model already uses for a cohort that never established ([node.h:199](../inst/include/plant/node.h#L199)), its rates are zero from then on and its physiology is not evaluated. It keeps its place in the node list and the state vector, so no trapezium changes: a zero-density grid point is a meaningful zero (the comment above `ascending_by_abscissa` in species.h says why it must not be dropped). Its lifetime offspring state is frozen at its retirement value, and that is the approximation: the output a cohort would still have produced is at most its remaining per-capita output times `retire_density / (birth_rate × pr_estab)`, so the floor is chosen against the fitness tolerance. A retired cohort is recognisable from its state alone (the sentinel), so a replay or sweep needs no log to reproduce the decision; the decision itself is a selection on state and a kink for the gradient, as any floor is.
+
+**The top layer.** Per species an optional top cohort: one representative `Individual` whose size states (height, and the states the strategy derives from height: TF24's heartwood area and mass) are pinned at `absorb_height`, and whose remaining states (TF24's storage; the cumulative mortality and fecundity accounting) stay dynamic; plus three densities. `log N_abs` is the density the field and the uptake see. `log W_abs` is the fitness-weighted density: at each absorption it gains the absorbed node's trapezium weight times `patch_density_at_birth × S_D × birth_rate_at(t_k) × exp(−mortality_k)`. `seeds_abs` integrates the per-capita fecundity rate times `W_abs`. Both densities decay by the top cohort's own mortality rate, evaluated on the pinned individual in the current environment, so drought mortality and pulse-driven uptake act on the top layer as on any cohort. A frozen scalar `seeds_frozen` holds the absorbed nodes' accumulated lifetime output times their weights at absorption; it is bookkeeping, not ODE state, like `patch_density_at_birth`.
+
+Contributions: the top cohort is a point mass added outside the trapezia in `field_splits` and `reduce_competition` ([species.h:498](../inst/include/plant/species.h#L498), [:608](../inst/include/plant/species.h#L608)), `consumption_rate` ([species.h:791](../inst/include/plant/species.h#L791)) and `census_integral` ([species.h:840](../inst/include/plant/species.h#L840)), as `N_abs × φ(state_top)`; offspring production becomes the trapezium over tracked nodes plus `seeds_frozen + seeds_abs`.
+
+Merge rule: at an introduction instant, while the oldest tracked node is retired, or has `height ≥ absorb_height` and a birth date outside the window, merge it. Prefix-only, because an interior removal hands the removed node's trapezium weight to its neighbours. The top cohort keeps a zero-valued grid anchor at the birth date of the youngest node it absorbed, so removing a retired prefix changes no trapezium at all, and removing a live node moves only its own interval into the top layer's densities, which is first order in the grid spacing, the trapezium's own order. Window cohorts are never absorbed, so every cohort that enters the fitness integral keeps its own lifetime offspring state and $\tilde R(t_0)$ along the window is readable per node (note §10 job 4). Retirement alone bounds the cost; absorption is what bounds the node list and gives the fixed point.
+
+Where it happens: inside the instant's insertion map. `Patch::apply_insertion(time, x, y)` ([patch.h:1665](../inst/include/plant/patch.h#L1665)) becomes absorb-then-push and `run_next` calls the same, so odelia transposes the merge as the insertion row it already handles and no new row kind is needed. The count absorbed per species per instant is logged on the SCM beside the event log ([scm.h:511](../inst/include/plant/scm.h#L511)) and exported with the state, so `nodes_at` and `reshape_to` ([patch.h:1610](../inst/include/plant/patch.h#L1610), [:1627](../inst/include/plant/patch.h#L1627)) derive the structure from the schedule plus the log, and a replay or a sweep loads the selection rather than re-deciding it, exactly as the leaf's operating-point kind is loaded. This keeps odelia's premise that insertions are scheduled, not triggered ([ode_interface.hpp:280](../../odelia/inst/include/odelia/ode_interface.hpp#L280)).
+
+Interaction with #590: natural. The top layer is off the birth-date grid, there is no compression term, and the merge changes no abscissa. On the height coordinate the top layer would have to be a grid point at the top of the height axis, which is a different construction; it is refused there.
+
+What the boundary costs in accuracy: the pinned height sits below the asymptote, so the top layer's fecundity and growth-related rates are those of `absorb_height`, not of `hmat`. Choose it near the asymptote; the pilot's height trajectory (section 7) says where, and the default is off.
+
+Rejected: absorption by age (schedule-derivable without a log, but the merged cohort keeps growing and no fixed point exists, which is what the issue calls "edging upward indefinitely"); an evolving density-weighted mean instead of a pinned state (same problem); interior removal (breaks the trapezia); a check at every step (state-triggered inside the stepper, which a solver hook can observe but not restructure).
+
+Tests: retirement with the floor at zero is bit-identical to today, and with a finite floor the stand's field, uptake and offspring production move by less than the bound above; three instantaneous conservation identities across an absorption, exact to rounding: total density $\sum_k c_k n_k + N_{abs}$, total fitness-weighted density, and offspring production. `absorb_height = Inf` bit-identical to today. A constant-driver stand with the top layer on reaches a fixed point, and its field, uptake and seed output agree with the unabsorbed stand to trapezium order. Refuse on the height coordinate; refuse `refine_schedule` with the top layer on.
+
+### 3. Restart from a saved state
+
+What the export already carries for a TF24 patch: every node's ODE state, the environment's ODE state (soil water by layer and the five accumulators), the per-node birth date, patch density and survival at birth, and the residual introduction schedule. What the resumed run rebuilds: the light spline, the boundary node, the rates. What it loses: `birth_growth_rate` per node, which only the Jacobian report reads.
+
+What a continuous-patch resume adds:
+
+- **Residual events.** Events are a `run_scm()` argument by design (plan-events §2), so `export_patch_state()` gains `events`, the events at or after the export time, read off `scm$events`, and the caller passes them back. Pulses, germination and season-end events all ride this field.
+- **The top layer.** Its ODE state travels in the species block for free; `seeds_frozen` and the absorption log are added to the export as per-species bookkeeping.
+- **The window.** On `Parameters`, so it travels.
+- **A seed bank, later.** A per-species scalar in the species ODE block, so the export carries it without a format change.
+
+Fixes the resume path needs, each small:
+
+- `Patch::reset()` honours `initial_time` with an empty `initial_state` ([patch.h:689](../inst/include/plant/patch.h#L689)); an empty mutant patch has to start at $T_1$.
+- `r_set_ode_steps` accepts a first time equal to `initial_time` ([node_schedule.cpp:271](../src/node_schedule.cpp#L271)).
+- `run_next` replays the gap to the first residual entry by program instead of refusing ([scm.h:595-608](../inst/include/plant/scm.h#L595-L608)).
+- `run_mutant` ([scm.h:708](../inst/include/plant/scm.h#L708)) from a resumed resident: the resident's recording starts at $T_1$, and the mutant's parameters carry no initial state, `initial_time = T_1` and a schedule inside the window.
+
+`make_initial_state()` ([scm_support.R:208](../R/scm_support.R#L208)) is not the resume entry point: it builds a synthetic size distribution at age 0 with every node stamped at time 0, which `check_birth_dates_distinct` refuses on the birth-date coordinate for more than one node per species. The fitness note's "restart with `make_initial_state()`" should read `set_initial_state()`.
+
+A resumed run is not bit-identical to a straight one: the step-size memory restarts at `ode_step_size_initial` at the seam. Section 7 measures the gap.
+
+### 4. Termination
+
+`SCM::run_to(t)` runs legs until the patch time reaches `t` or the queue is consumed, then refreshes the `patch` snapshot ([scm.h:583](../inst/include/plant/scm.h#L583) does this only after a full `run()`), so a caller can read the stand between legs without a Patch copy per step.
+
+Fixed horizon: `run()` with `max_patch_lifetime = T_2 + L`, where $L$ is the longest lifespan the user believes in; the event horizon check already refuses events past it.
+
+Convergence: a block-mean test. Over blocks of $B$ years (default 20, a few correlation times of the driver) take the mean of the stand's census metrics and of soil water per layer; converged when every metric's relative change between consecutive block means is below `tol` (default 0.02) for two successive blocks; stop at `t_max` regardless and report which metrics had not converged. Driven from R over `run_to`, with the trace kept. The referee is external: the soil-water histogram of the converged run against the closed-form density of the fitness note's §5.
+
+With the top layer on and periodic introduction, the node count is bounded by the years a cohort takes to reach `absorb_height` divided by the spacing, plus the window cohorts, so a converged stand has a fixed cost per step; and because the top layer's size is pinned, a constant-driver stand has a true fixed point for the test to find.
+
+### 5. History
+
+Today `collect = TRUE` pushes a copy of the whole Patch at every leg ([scm.h:569-578](../inst/include/plant/scm.h#L569-L578)); under twenty pulses a year that is twenty copies of a several-hundred-node patch per simulated year and is not usable for a long run.
+
+Add `snapshot_interval` (years) on the SCM. At the first leg boundary past each multiple the run pushes a summary: time, per-species node counts, the tallest height, the census metrics, the per-node lifetime offspring vector, the environment state and the cumulative fluxes. `collect` is unchanged for short runs, and the event log is unchanged because it is bounded by the event count.
+
+Per-node lifetime offspring production is ODE state (`offspring_produced_survival_weighted`), so it is kept by the run itself whether or not anything is recorded. The only cohorts whose per-node value is lost are absorbed ones, which by design 2 are never window cohorts.
+
+### 6. Reverse-mode gradients over a long run
+
+There is no run-length tape to cut. The cost of a sweep is the row store and the walk over it: per accepted step about $8(8n + 10) + 6(16n + 1600)$ bytes for $n$ TF24 nodes (state, six solved rows, the field when kept), and six stage re-evaluations per row on the way back.
+
+**Cut at the window boundary.** Resume at $T_1$ with `record_trajectory = TRUE` ([scm.h:125](../inst/include/plant/scm.h#L125)); the recording's row 0 is the resumed state and `census_trait_gradient` ([scm.h:1187](../inst/include/plant/scm.h#L1187)) sweeps rows over $[T_1, T_2 + L]$ only. What the cut drops is the dependence of the state at $T_1$ on the traits. For a rare mutant in a frozen resident field that dependence is exactly zero, so the cut is exact; for the resident's own fitness it treats the burn-in stand as fixed, a deliberate approximation that has to be stated beside any resident gradient.
+
+**Short mutant runs from sampled saved states.** The same mechanism with $t_0$ sampled: $K$ exported states along the stationary run, and for each a resident recording of one lifespan $L$ (`resident_recording` persists on the SCM across mutants, [scm.h:141](../inst/include/plant/scm.h#L141)), then per mutant one $L$-year replay and one $L$-year sweep. The row store is bounded by $L$ rather than by $T_2 - T_1 + L$, and the runs are independent. What it needs beyond the cut: the resume fixes of design 3 and the sampling design (stratified by soil-water state, note §4.5).
+
+The cut comes first because it is the degenerate case ($K = 1$, $t_0 = T_1$) and because nothing new is built for it. TF24's fitness metrics are not yet differentiable (TF24 opts out of the fitness metrics; `S_D` and `birth_rate_at` are doubles), which is the line of work in #658, not this plan's.
+
+### 7. What the pilot measured
+
+Run on 2026-10-12 with [`notes/scripts/continuous-patch-519/measure.R`](scripts/continuous-patch-519/measure.R); the chunk table, the resume probe and the exported 1000-year state are in [`notes/scripts/continuous-patch-519/output/`](scripts/continuous-patch-519/output/). plant `a9e7f8b6` (develop) with odelia 0.7.1 and phylloptim 0.10.1, Apple M5 Max.
+
+**Setup.** One TF24 species (lma 0.0825, default `hmat`), `patch_type = "fixed"` (no disturbance regime), birth rate 1, one cohort introduced per year, birth-date coordinate, `ode_step_size_max = 0.05`, the continuous rainfall driver off, and 19,911 rainfall pulses over 1000 years from a Poisson process at 20 per year with exponential depths of mean 14 mm (277.7 mm per year), seed 1. Run as 100 chunks of 10 years through `export_patch_state()` and `set_initial_state()`, each chunk re-supplying its own introductions and pulses as events.
+
+**Cost.** The whole 1000 years took 1364 s of wall time and nothing failed: no domain error and no leaf refusal in about 86,000 accepted steps across 19,911 pulses at the 0.05 cap.
+
+| simulated years | s per year | cohorts introduced | cohorts with density | steps per year |
+|---|---|---|---|---|
+| 100 | 0.28 | 101 | 18 | 93 |
+| 300 | 0.88 | 301 | 17 | 93 |
+| 500 | 1.38 | 501 | 20 | 89 |
+| 700 | 2.14 | 701 | 23 | 96 |
+| 1000 | 2.77 | 1000 | 20 | 90 |
+
+The cost per simulated year is 2.71 ms per introduced cohort (a linear fit over the 100 chunks, $R^2 = 0.986$) and has no relation to the number of cohorts carrying density ($R^2 = 0.006$). Steps per year sit at 73 to 96 (median 86) throughout: about twenty are forced by the pulses and the step cap, the rest are the controller's. Per node and accepted step that is 31 µs, or about 5 µs per node and stage, which is the leaf solve. A cohort whose density has collapsed costs exactly what a live one costs, and that is the whole of the growth in cost.
+
+**The stand.** Century block means of the per-decade values: total density 0.80 to 1.12 individuals per m² with no trend from the first century on, surface soil water 0.18 to 0.22, 17 to 19 cohorts with density; the per-decade values swing between 0.13 and 1.7 per m², which is pulse-driven recruitment. In density, soil water and live-cohort count the stand is at a stochastic steady state from its first century. The tallest height keeps rising (16.0 m at year 10 to 19.2 m at year 1000, by 0.04 m per century at the end) but it belongs to the founding cohort, which carries no density: at year 1000 every cohort with density is under 30 years old and under 18 m, and 965 of the 1000 cohorts stand above 18 m with density below $10^{-6}$ of the maximum. The "edging upward" the issue describes is, in this stand, the individuals of dead cohorts being integrated for centuries.
+
+**Water.** Over the run: 277.7 m of rain, 275.2 m infiltrated (0.9 %, 2.5 m, shed at the pulse cap), 18.8 m drained (6.8 %), 256.4 m taken up (92 %).
+
+**Resume.** The probe (a straight run to 2.5 years against a run exported at 1.5 and resumed) differs by at most $1.7 \times 10^{-7}$ relative across the 34 state entries (median $2.4 \times 10^{-8}$), with offspring production equal to six digits: within solver tolerance, as the step-size restart at the seam predicts. The 100 seams of the long run needed nothing re-supplied beyond the chunk's events.
+
+**Not exercised.** The queue held about 210 events per chunk, so the quadratic build at $10^4$ events in one queue (hazard 4) was not measured. One species, one realisation, one cohort rate.
+
+**What it decides.**
+
+- Retirement comes first and is enough for this stand: at a bounded 18 live cohorts the same 1000 years cost 41 s against 1351 s unbounded, 33 times less, and a 3000-year run (a century of burn-in plus the few-thousand-year window of the note's §4.5) is 150 s bounded against about 12,000 s unbounded at one cohort per year. A denser schedule scales the bounded cost linearly and the unbounded one quadratically.
+- The top layer has nothing to absorb in this parameterisation, because no cohort with density is old. It is for long-lived stands, is built after retirement, and `absorb_height` is set from a pilot that shows old live cohorts, which this one does not.
+- Burn-in for this stand is about a century; the decade-scale swings in density set the correlation time the window length has to average over.
+- For a sweep, the row store at 1000 cohorts is about 160 KB per accepted step, 14 MB per simulated year, so a 300-year window plus lifespan is about 4 GB. Retirement does not shrink the state vector; absorption does.
+
+## Commit sequence
+
+1. This plan, and the status line of `plan-events.md`.
+2. **Resume fixes.** The clock with an empty initial state, `r_set_ode_steps`' first time, the replay across the gap, residual events in the export. Bit-identical for a run from empty.
+3. **Window regime.** `Window_Regime`, the periodic generator, the four `Parameters` fields and `patch_type = "window"`, the copy in `rebind_from`, an R constructor. Opt-in.
+4. **`run_to`, the convergence driver, snapshots.**
+5. **Retirement and the absorbing top layer.** `retire_density` first, on its own, with the cost measured against the pilot; then the top cohort, `absorb_height`, the merge inside the insertion map, the absorption log, `reshape_to`, the export, with the conservation and fixed-point tests.
+6. **Gradients.** A sweep of a resumed recording; `run_mutant` from a resumed resident; the pinned-step finite-difference referee.
+7. NEWS, docs, and the pulse-series helper if the pilot's generator is worth keeping.
+
+## Verification
+
+Bit-identity baselines captured on `develop` before commit 2, for FF16, K93 and TF24, compared with `identical()` on raw collected arrays after each of commits 2 to 5. Per-commit tests as listed in each design section. The scenario gateway (`NOT_CRAN=true PLANT_RUN_SCENARIOS=1`) is expected to stay green with no re-bless, because nothing here changes a run that does not opt in.
+
+## Non-goals, recorded deliberately
+
+- **Node-schedule adequacy under pulsed rainfall.** Andrew has found that the introduction schedule does not capture pulsed rainfall well and is proposing refinements. This plan takes the introduction grid as an input, generates it periodically, and leaves its spacing and its refinement against a pulse series to that work; the pilot's one cohort per year is a cost setting, not a recommendation.
+- **Endogenous seed rain.** The inflow stays the parameter `birth_rate`; the resident's fixed point stays in regnans. The top layer conserves what the stand produces, it does not feed it back.
+- **The seed bank and the annual life cycle.** A separate build (note §4.4); what it adds to the export is listed in design 3.
+- **The stochastic tower** (#601).
+- **State-triggered absorption or termination inside the stepper**, and absorption by anything other than a prefix of the birth-date grid.
+- **Multi-patch** (#427), **run caching** (#651), the **#505 rename**.
+
+## Hazards
+
+1. **`rebind_from` copies what `validate()` reads** ([patch.h:611](../inst/include/plant/patch.h#L611)): the window fields and the absorption log must be copied too, or the rebound patch runs a different regime and a different structure with nothing raised.
+2. **Refinement and the top layer do not mix.** `refine_schedule` pairs per-node errors with schedule times; refuse the combination rather than let the pairing drift.
+3. **Inherited step size across pulses.** Plan-events' hazard 1 is untouched; every pulse is a leg boundary, and `ode_step_size_max = 0.05` is a measured guard, not a fix.
+4. **The queue is built by a linear scan per event** ([node_schedule.cpp:132](../src/node_schedule.cpp#L132)): quadratic at the $10^4$ to $10^5$ events of a long pulsed run. Section 7 says whether it shows.
+5. **The height rule and the retirement floor are selections on state.** A trait perturbation that changes which cohorts merge makes a pinned-step finite difference disagree with the sweep at that kink, as the leaf's operating-point kinds do; the referee must hold the selection fixed.
+6. **Crossing cohorts.** TF24's reserve gate lets a younger cohort overtake an older one; the prefix rule then waits for the oldest, which is the safe direction.
+7. **`make_initial_state()` on the birth-date coordinate** stamps every node at time 0 and is refused for more than one node per species; it is not the resume entry point.
+8. **`history` under `collect`** is a Patch copy per leg; never on for a long run.
+9. **A resumed run is not bit-identical** to a straight one at the seam; say so beside any number that crosses one.

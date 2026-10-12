@@ -1,6 +1,6 @@
 # A general discrete-events mechanism (#628)
 
-**Status: in progress.** This is the working plan for [#628](https://github.com/traitecoevo/plant/issues/628), the event-structure subtask of [#522](https://github.com/traitecoevo/plant/issues/522). The constraints in it bind anyone editing the schedule, the SCM run loop, or the TF24 soil state while the work is open.
+**Status: landed.** Merged to `develop` on 2026-08-28 as [#632](https://github.com/traitecoevo/plant/pull/632) (`32151e87`), closing [#628](https://github.com/traitecoevo/plant/issues/628), the event-structure subtask of [#522](https://github.com/traitecoevo/plant/issues/522). Commits 2 to 5 below are in; still open from this plan are the pulse-series generators (commit 6), the #505 rename (commit 7) and hazard 1, the inherited step size. The run-loop sketch in §4 predates the landed `schedule_entry` grouping, which the code describes; the constraints still bind anyone editing the schedule, the SCM run loop, or the TF24 soil state. The continuous patch ([plan-519-continuous-patch.md](plan-519-continuous-patch.md)) builds on this queue.
 
 Two other issues consume what is built here: [#627](https://github.com/traitecoevo/plant/issues/627) wants removal that can target size classes, which is the `harvest` action below; [#601](https://github.com/traitecoevo/plant/issues/601) wants the same queue for finite births and deaths when the stochastic and deterministic solvers are unified.
 
