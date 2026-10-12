@@ -267,10 +267,10 @@ public:
                        const std::vector<double>& patch_density,
                        const std::vector<double>& pr_patch_survival);
 
-  // Retire every node whose density sits strictly between zero and `floor`,
-  // and say how many. A node already at zero is left as it is, so applying
-  // this to a state that has been through it is a no-op -- which is what lets
-  // a replay apply the same map to a recorded state.
+  // Retire every node with density that has survived less than `floor` of
+  // itself since birth, and say how many. A node already at zero is left as it
+  // is, so applying this to a state that has been through it is a no-op --
+  // which is what lets a replay apply the same map to a recorded state.
   size_t retire_below(double floor);
   std::vector<bool> r_retired() const;
 
@@ -1101,8 +1101,7 @@ template <typename T, typename E>
 size_t Species<T,E>::retire_below(double floor) {
   size_t n = 0;
   for (auto& c : nodes) {
-    const value_type d = c.get_density();
-    if (d > 0.0 && d < floor) {
+    if (c.get_density() > 0.0 && c.survival_individual() < floor) {
       c.retire();
       ++n;
     }

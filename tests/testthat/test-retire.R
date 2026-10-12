@@ -19,18 +19,18 @@ run_collecting <- function(p, ctrl) {
 }
 
 test_that("retirement is off by default and needs the birth-date coordinate", {
-  expect_equal(Control()$retire_density, 0)
+  expect_equal(Control()$retire_survival, 0)
   p <- ff16(5)
-  expect_error(run_scm(p, ctrl = Control(retire_density = 1e-8)),
+  expect_error(run_scm(p, ctrl = Control(retire_survival = 1e-8)),
                "birth-date")
-  expect_no_error(run_scm(p, ctrl = Control(retire_density = 1e-8,
+  expect_no_error(run_scm(p, ctrl = Control(retire_survival = 1e-8,
                                             node_density_in_birth_date = TRUE)))
 })
 
 test_that("cohorts below the floor are retired, frozen, and cost the stand less than the floor", {
   p <- ff16(60)
   ctrl0 <- Control(node_density_in_birth_date = TRUE)
-  ctrl1 <- Control(node_density_in_birth_date = TRUE, retire_density = 1e-6)
+  ctrl1 <- Control(node_density_in_birth_date = TRUE, retire_survival = 1e-6)
   scm0 <- run_collecting(p, ctrl0)
   scm1 <- run_collecting(p, ctrl1)
   sp0 <- scm0$patch$species[[1]]
@@ -66,7 +66,7 @@ test_that("cohorts below the floor are retired, frozen, and cost the stand less 
 
 test_that("a retired cohort stays retired across an export and a resume", {
   p <- ff16(60)
-  ctrl <- Control(node_density_in_birth_date = TRUE, retire_density = 1e-6)
+  ctrl <- Control(node_density_in_birth_date = TRUE, retire_survival = 1e-6)
   scm <- run_collecting(p, ctrl)
   retired_end <- scm$patch$species[[1]]$retired
   ## A snapshot after the first retirement.

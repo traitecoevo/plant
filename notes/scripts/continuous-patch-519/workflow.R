@@ -12,7 +12,7 @@
 ##   PLANT_519_WINDOW     window length (100)
 ##   PLANT_519_LIFESPAN   years run past the window so its last arrivals live
 ##                        out their output (50; the pilot's cohorts die by 30)
-##   PLANT_519_RETIRE     control$retire_density (1e-9)
+##   PLANT_519_RETIRE     control$retire_survival (1e-9)
 ##   PLANT_519_OUT        output directory
 
 suppressPackageStartupMessages(library(plant))
@@ -53,7 +53,7 @@ base_parameters <- function(lifetime) {
   add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = TF24_hyperpar, birth_rate = 1)
 }
 ctrl <- control(node_density_in_birth_date = TRUE, ode_step_size_max = 0.05,
-                retire_density = retire)
+                retire_survival = retire)
 make_env <- function() {
   env <- Environment("TF24")
   env$extrinsic_drivers_set_constant("rainfall", 0)

@@ -76,7 +76,7 @@ test_that("run_until_converged stops when the block means settle", {
   p <- ff16(400)
   p$patch_type <- "fixed"
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 400, 1))
-  ctrl <- Control(node_density_in_birth_date = TRUE, retire_density = 1e-8)
+  ctrl <- Control(node_density_in_birth_date = TRUE, retire_survival = 1e-8)
   scm <- new_scm(p, ctrl)
   r <- run_until_converged(scm, block = 20, tol = 0.02)
   expect_true(r$converged)

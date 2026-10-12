@@ -109,7 +109,7 @@ test_that("a converged stand's window average does not depend on the window", {
   p$patch_type <- "fixed"
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 500, 1))
   scm <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE,
-                                   retire_density = 1e-8))
+                                   retire_survival = 1e-8))
   sp <- scm$patch$species[[1]]
   t <- sp$node_times
   out <- sp$net_reproduction_ratio_by_node * p$strategies[[1]]$pars$S_D
@@ -130,7 +130,7 @@ test_that("a converged stand's window average does not depend on the window", {
   ## And the regime run with one of these windows agrees with the post-hoc mean.
   q <- window_regime(p, 200, 300)
   scm2 <- run_scm(q, ctrl = Control(node_density_in_birth_date = TRUE,
-                                    retire_density = 1e-8))
+                                    retire_survival = 1e-8))
   expect_equal(scm2$net_reproduction_ratios, late, tolerance = 1e-10)
 })
 

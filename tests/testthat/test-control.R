@@ -6,7 +6,7 @@ test_that("Defaults", {
     node_gradient_richardson = FALSE,
     node_gradient_richardson_depth = 4, # size_t, so not int
     node_density_in_birth_date = FALSE,
-    retire_density = 0.0,
+    retire_survival = 0.0,
 
     ode_a_dydt = 0.0,
     ode_a_y = 1.0,

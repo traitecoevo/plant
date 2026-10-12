@@ -85,7 +85,7 @@ public:
     return offspring_produced_survival_weighted * patch_density_at_birth * S_D;
   }
 
-  // A cohort carrying no density: retired below control$retire_density, or born
+  // A cohort carrying no density: retired below control$retire_survival, or born
   // below the establishment threshold. Read off the density itself, so a state
   // loaded from a recording or an export carries the answer with it and no
   // record has to say which cohorts were retired.
@@ -225,7 +225,7 @@ void Node<T,E>::compute_rates(const environment_type& environment,
   // reports is zero, and its individual stays where it froze. Gated on the
   // floor rather than on the density alone, so a run that has not opted in
   // integrates its empty cohorts exactly as it always has.
-  if (individual.control().retire_density > 0.0 && retired()) {
+  if (individual.control().retire_survival > 0.0 && retired()) {
     individual.zero_rates();
     log_density_dt = value_type(0.0);
     offspring_produced_survival_weighted_dt = value_type(0.0);

@@ -380,7 +380,7 @@ Control:
     - node_gradient_richardson: bool
     - node_gradient_richardson_depth: size_t
     - node_density_in_birth_date: bool
-    - retire_density: double
+    - retire_survival: double
     - ode_step_size_initial: double
     - ode_step_size_min: double
     - ode_step_size_max: double
@@ -684,7 +684,7 @@ Species:
     ## The quantity actually integrated: the height density on the height path,
     ## the birth-date density (nu) on the birth-date one.
     log_densities_state: {type: "std::vector<double>", access: member, name_cpp: r_log_densities_state, readonly: true}
-    # Which nodes carry no density: retired below control$retire_density, or
+    # Which nodes carry no density: retired below control$retire_survival, or
     # born below the establishment threshold. Their individuals are frozen
     # when retirement is on.
     retired: {type: "std::vector<bool>", access: member, name_cpp: r_retired, readonly: true}

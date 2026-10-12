@@ -65,15 +65,17 @@ struct Control {
   // the density rate is mortality alone.
   bool node_density_in_birth_date;
 
-  // Retire a cohort whose density has fallen below this, at the next node
-  // introduction: its density becomes exactly zero and its individual is no
-  // longer integrated, so it costs no rate evaluation from then on. Zero (the
-  // default) retires nothing. In the units the solver carries the density in,
-  // which on the birth-date coordinate -- the only one this is allowed on,
-  // because there density can only fall -- is individuals per m^2 per year of
-  // birth date. A long run's cost is otherwise proportional to every cohort
-  // ever introduced, dead or not (#519).
-  double retire_density;
+  // Retire a cohort whose survival since birth -- exp(-mortality), the factor
+  // its density has fallen by -- is below this, at the next node introduction:
+  // its density becomes exactly zero and its individual is no longer
+  // integrated, so it costs no rate evaluation from then on. Zero (the
+  // default) retires nothing. A fraction rather than a density, so a species a
+  // million times rarer than its neighbour is retired at the same point in its
+  // life: an absolute floor froze a rare invader at a survival of 1e-3 and
+  // halved its lifetime output. Birth-date coordinate only, because there
+  // density can only fall. A long run's cost is otherwise proportional to every
+  // cohort ever introduced, dead or not (#519).
+  double retire_survival;
 
   double ode_step_size_initial;
   double ode_step_size_min;

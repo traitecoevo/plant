@@ -526,8 +526,8 @@ private:
   // birth-date coordinate alone: on the height coordinate the transport term
   // can raise it. Refused at construction, where the control is first seen.
   void check_retirement_coordinate() const {
-    if (control.retire_density > 0.0 && !control.node_density_in_birth_date) {
-      util::stop("control$retire_density needs the birth-date size-density "
+    if (control.retire_survival > 0.0 && !control.node_density_in_birth_date) {
+      util::stop("control$retire_survival needs the birth-date size-density "
                  "coordinate (control$node_density_in_birth_date = TRUE): "
                  "only there does a cohort's density never rise again.");
     }
@@ -544,7 +544,7 @@ private:
   void push_nodes(const introduction& species_index, double time);
 
   // The retirement half of an introduction instant: every cohort below
-  // control.retire_density goes to exactly zero density before the new one is
+  // control.retire_survival goes to exactly zero density before the new one is
   // pushed. Part of the insertion map and of nothing else, so a replay or a
   // sweep that applies the map applies this too, and a reconciliation that only
   // rebuilds the shape (reshape_to) does not -- the state it loads already
@@ -1323,11 +1323,11 @@ void Patch<T,E>::introduce_nodes(const introduction& species_index, double time)
 // it is introduced at, which is what lets a record hold only the time.
 template <typename T, typename E>
 void Patch<T,E>::retire_dead() {
-  if (!(control.retire_density > 0.0)) {
+  if (!(control.retire_survival > 0.0)) {
     return;
   }
   for (species_type& s : species) {
-    s.retire_below(control.retire_density);
+    s.retire_below(control.retire_survival);
   }
 }
 
