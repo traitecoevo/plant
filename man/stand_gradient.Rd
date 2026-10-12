@@ -10,7 +10,13 @@ stand_gradient(scm, metrics = NULL, traits = NULL, hyperpar = NULL)
 \item{scm}{A run \code{SCM} object for the TF24 or FF16 model, on the
 birth-date coordinate (\code{control(node_density_in_birth_date = TRUE)}).}
 
-\item{metrics}{Census metric names to differentiate; defaults to all of them.}
+\item{metrics}{Metric names to differentiate; defaults to every metric the
+model declares: the census metrics (\code{\link{stand_census}}) and, for
+a model that declares its fitness differentiable, each species'
+\code{"<species>.net_reproduction_ratio"} and
+\code{"<species>.offspring_production"} (\code{\link{stand_fitness}}).
+Each metric costs one sweep of the recorded trajectory, so name the ones
+wanted.}
 
 \item{traits}{Column names to differentiate with respect to; defaults to
 every differentiable parameter every species declares. A column is named

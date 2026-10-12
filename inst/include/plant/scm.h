@@ -152,9 +152,65 @@ public:
   std::vector<double> net_reproduction_ratios() const { return patch.net_reproduction_ratios(); }
   std::vector<double> offspring_production() const { return patch.offspring_production(); }
 
-  // Every metric the strategy declares, summed over the species, in the order it
-  // declares them. The codomain is the list's length.
+  // Every metric the stand reports at the end of a run, in the order
+  // stand_metrics() lists them. The codomain is the list's length.
   std::vector<double> census() const;
+
+  // One stand metric: a census sum over the species, or one species' fitness.
+  // One list serves the value, the forward tangent and the reverse sweep, so a
+  // metric is added here and nowhere else.
+  struct stand_metric {
+    enum class kind { census, net_reproduction_ratio, offspring_production };
+    kind what;
+    // The census metric, or the species, this one reads.
+    size_t index;
+    std::string name;
+  };
+
+  // The census metrics the strategy declares, then, for a strategy that
+  // declares its fitness differentiable, each species' net reproduction ratio
+  // and offspring production, named for the species as a column is:
+  // "1.net_reproduction_ratio". Built per call because the species count is
+  // the run's; the order is fixed by this function alone.
+  std::vector<stand_metric> stand_metrics() const {
+    std::vector<stand_metric> ret;
+    const auto& census_list = metrics_of<patch_type>();
+    for (size_t m = 0; m < census_list.size(); ++m) {
+      ret.push_back({stand_metric::kind::census, m, census_list[m].name});
+    }
+    if constexpr (DeclaresFitnessMetrics<T>) {
+      for (size_t i = 0; i < patch.size(); ++i) {
+        const std::string species = util::to_string(static_cast<int>(i + 1));
+        ret.push_back({stand_metric::kind::net_reproduction_ratio, i,
+                       species + ".net_reproduction_ratio"});
+        ret.push_back({stand_metric::kind::offspring_production, i,
+                       species + ".offspring_production"});
+      }
+    }
+    return ret;
+  }
+
+  // Which of the two kinds a metric is, for the R side to split on.
+  static const char* metric_kind_name(const stand_metric& m) {
+    return m.what == stand_metric::kind::census ? "census" : "fitness";
+  }
+
+  // One metric read off `p`, at whatever scalar it carries. Templated on the
+  // patch so the value and its derivative are the same reduction at two
+  // scalars.
+  template <class P>
+  static typename P::value_type metric_value(const P& p, const stand_metric& m) {
+    switch (m.what) {
+    case stand_metric::kind::census:
+      return census_sum(p, metrics_of<P>()[m.index]);
+    case stand_metric::kind::net_reproduction_ratio:
+      return p.net_reproduction_ratio_of(m.index);
+    case stand_metric::kind::offspring_production:
+      return p.offspring_production_of(m.index);
+    }
+    util::stop("metric_value: unknown metric kind");
+    return typename P::value_type(0.0); // not reached
+  }
 
   // What a census of this model reads, at whatever scalar `P` carries. The one
   // place a strategy is asked, and the one place the question is refused for a
@@ -965,11 +1021,11 @@ Rcpp::List SCM<T, E>::r_store_trajectory() {
 
 template <typename T, typename E>
 std::vector<double> SCM<T, E>::census() const {
-  const auto& metrics = metrics_of<patch_type>();
+  const std::vector<stand_metric> metrics = stand_metrics();
   std::vector<double> ret;
   ret.reserve(metrics.size());
-  for (const census_metric<T>& metric : metrics) {
-    ret.push_back(odelia::util::to_passive(census_sum(patch, metric)));
+  for (const stand_metric& metric : metrics) {
+    ret.push_back(odelia::util::to_passive(metric_value(patch, metric)));
   }
   return ret;
 }
@@ -1014,7 +1070,8 @@ census_rows SCM<T, E>::census_state_and_trait_rows() const {
   std::vector<double> state(patch.ode_size());
   patch.ode_state(state.begin());
 
-  const size_t n_metric = metrics_of<patch_type>().size();
+  const std::vector<stand_metric> metrics = stand_metrics();
+  const size_t n_metric = metrics.size();
   census_rows ret;
   ret.trait.assign(n_metric, patch.trait_adjoint_size());
 
@@ -1023,9 +1080,8 @@ census_rows SCM<T, E>::census_state_and_trait_rows() const {
     // The traits carry their derivative from where they sit on the strategy; this
     // buffer is the state and nothing else.
     active.set_state_and_boundary(x, time());
-    const auto& metrics = metrics_of<std::decay_t<decltype(active)>>();
     for (size_t m = 0; m < metrics.size(); ++m) {
-      y[m] = census_sum(active, metrics[m]);
+      y[m] = metric_value(active, metrics[m]);
     }
   };
   // One recording, so the tape and the rebind are odelia's to make. A sweep taking
@@ -1042,7 +1098,7 @@ template <typename T, typename E>
 std::vector<std::vector<double>>
 SCM<T, E>::census_trait_difference(double rel) {
   require_birth_date_coordinate("census_trait_difference");
-  const auto& metrics = metrics_of<patch_type>();
+  const std::vector<stand_metric> metrics = stand_metrics();
   const size_t n_metric = metrics.size();
   const size_t n_state = patch.ode_size();
 
@@ -1059,8 +1115,8 @@ SCM<T, E>::census_trait_difference(double rel) {
   auto census_at = [&](std::vector<double>& out) -> void {
     patch.set_state_and_boundary(state.begin(), time_);
     out.clear();
-    for (const census_metric<T>& metric : metrics) {
-      out.push_back(odelia::util::to_passive(census_sum(patch, metric)));
+    for (const stand_metric& metric : metrics) {
+      out.push_back(odelia::util::to_passive(metric_value(patch, metric)));
     }
   };
 
@@ -1099,7 +1155,7 @@ SCM<T, E>::census_trait_gradient(const std::vector<size_t>& extra_stops,
   // anything runs, so the shape of the answer is known on the refusal path too.
   // Named rather than positional: a caller indexing by position gets a different
   // metric's gradient when the list changes, and nothing says so.
-  const auto& metrics = metrics_of<patch_type>();
+  const std::vector<stand_metric> metrics = stand_metrics();
   std::vector<size_t> rows;
   if (which_metrics.empty()) {
     rows.resize(metrics.size());
@@ -1117,11 +1173,11 @@ SCM<T, E>::census_trait_gradient(const std::vector<size_t>& extra_stops,
       }
       if (at == metrics.size()) {
         std::string known;
-        for (const census_metric<T>& metric : metrics) {
+        for (const stand_metric& metric : metrics) {
           known += known.empty() ? "" : ", ";
           known += metric.name;
         }
-        util::stop("census_trait_gradient: this model has no census metric `" +
+        util::stop("census_trait_gradient: this model has no metric `" +
                    want + "`; it has " + known);
       }
       rows.push_back(at);
@@ -1282,7 +1338,7 @@ SCM<T, E>::census_trait_tangent(const std::vector<double>& direction,
   odelia::ode::be_at_step(solver.get_system_ref(), rec, rec.size() - 1);
 
   const auto& reached = forward.get_system_ref();
-  const auto& metrics = metrics_of<std::decay_t<decltype(reached)>>();
+  const std::vector<stand_metric> metrics = stand_metrics();
   std::vector<double> ret;
   ret.reserve(metrics.size());
   value.clear();
@@ -1290,8 +1346,8 @@ SCM<T, E>::census_trait_tangent(const std::vector<double>& direction,
   // Reduced ONCE per metric, and its value read off the same tangent as its
   // derivative. Two reductions would be two evaluations of one function, which is
   // the shape this whole check exists to catch elsewhere.
-  for (const auto& metric : metrics) {
-    const tangent reached_metric = census_sum(reached, metric);
+  for (const stand_metric& metric : metrics) {
+    const tangent reached_metric = metric_value(reached, metric);
     ret.push_back(derivative_along(reached_metric));
     value.push_back(odelia::util::to_passive(reached_metric));
   }
@@ -1331,11 +1387,11 @@ std::vector<Scalar> SCM<T, E>::replay_initial_state(size_t from_range,
   odelia::ode::be_at_step(live, rec, rec.size() - 1);
 
   const auto& reached = forward.get_system_ref();
-  const auto& metrics = metrics_of<std::decay_t<decltype(reached)>>();
+  const std::vector<stand_metric> metrics = stand_metrics();
   std::vector<Scalar> out;
   out.reserve(metrics.size());
-  for (const auto& metric : metrics) {
-    out.push_back(census_sum(reached, metric));
+  for (const stand_metric& metric : metrics) {
+    out.push_back(metric_value(reached, metric));
   }
   return out;
 }

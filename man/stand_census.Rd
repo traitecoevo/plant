@@ -2,21 +2,34 @@
 % Please edit documentation in R/stand_gradient.R
 \name{stand_census}
 \alias{stand_census}
-\title{Census metrics of a solved stand.}
+\alias{stand_fitness}
+\title{Metrics of a solved stand.}
 \usage{
 stand_census(scm)
+
+stand_fitness(scm)
 }
 \arguments{
 \item{scm}{A run \code{SCM} object for the TF24 or FF16 model, on the
 birth-date coordinate (\code{control(node_density_in_birth_date = TRUE)}).}
 }
 \value{
-A named numeric vector, one entry per census metric.
+A named numeric vector, one entry per metric.
 }
 \description{
-The trapezium integral of \eqn{n_k \psi(\mathrm{state}_k)} over the size
-distribution, for each metric \eqn{\psi}. The grid is the coordinate the
-density is carried in -- the birth date, or the height -- and the inflow
-boundary node closes it, so the interval between it and the smallest cohort
-is in the sum.
+\code{stand_census} reports the census metrics: the trapezium integral of
+\eqn{n_k \psi(\mathrm{state}_k)} over the size distribution, for each
+per-plant quantity \eqn{\psi}, summed over the species. The grid is the
+coordinate the density is carried in -- the birth date, or the height -- and
+the inflow boundary node closes it, so the interval between it and the
+smallest cohort is in the sum.
+}
+\details{
+\code{stand_fitness} reports, for a model that declares its fitness
+differentiable (FF16), each species' net reproduction ratio and offspring
+production, named \code{"<species>.net_reproduction_ratio"} and
+\code{"<species>.offspring_production"}. They are the same numbers as
+\code{scm$net_reproduction_ratios} and \code{scm$offspring_production},
+reported under the names \code{\link{stand_gradient}} differentiates them
+by.
 }

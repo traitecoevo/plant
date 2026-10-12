@@ -127,9 +127,10 @@ struct FF16_Pars {
   // The parameters no gradient exists for, each with the sentence that says why.
   // Each is excluded by name rather than given a silent zero, so asking for one
   // errors in these words. Nothing else is excluded: every other member reaches
-  // a rate or the seed's residual, and a_f1, a_f2 and a_f3 reach fecundity_dt,
-  // which no census metric reads, so their columns are zero on any trajectory
-  // rather than absent.
+  // a rate, the seed's residual or the fitness metrics' own reading -- S_D
+  // multiplies the net reproduction ratio directly, and a_f1, a_f2 and a_f3
+  // reach fecundity_dt, which the fitness metrics read and the census does not,
+  // so their census columns are zero on any trajectory rather than absent.
   struct no_gradient {
     const char* name;
     const char* why;
@@ -141,10 +142,7 @@ struct FF16_Pars {
                   "constant zero instead, so a row here would be a silently "
                   "wrong zero rather than a NaN; and at the specialised eta "
                   "values the profile is a multiplication chain eta does not "
-                  "appear in at all"},
-      no_gradient{"S_D",
-                  "survival during dispersal, which multiplies a census "
-                  "reduction and enters no rate"}};
+                  "appear in at all"}};
 
   // Every member above, in declaration order. field_ptrs() and both
   // ad_parameter_* projections read this, so a member reaches all of them or
@@ -314,6 +312,13 @@ public:
     }
     return ret;
   }
+
+  // Each species' net reproduction ratio and offspring production are offered
+  // as differentiable stand metrics beside the census (SCM::stand_metrics).
+  // Declared here because the fecundity channel is refereed for this model:
+  // test-ff16-fitness-gradient.R checks every route into it against a pinned
+  // central difference.
+  static constexpr bool differentiable_fitness = true;
 
   // The metrics a census of this model sums, in the order it reports them: the
   // same three TF24 declares, read off this model's own slots.

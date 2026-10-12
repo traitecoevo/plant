@@ -170,6 +170,9 @@ public:
   std::vector<double> net_reproduction_ratio_by_node() const;
   // Per-node lifetime offspring, weighted by patch-age density and S_D.
   std::vector<double> net_reproduction_ratio_by_node_weighted() const;
+  // The same, at the scalar the nodes carry: what a differentiated fitness
+  // reads. The double form above is this with the derivative dropped.
+  std::vector<value_type> weighted_fecundity_by_node() const;
   // Introduction times of each node (the integration x-axis for fitness).
   std::vector<double> node_times() const;
 
@@ -757,6 +760,17 @@ std::vector<double> Species<T,E>::net_reproduction_ratio_by_node_weighted() cons
   for (auto& c : nodes) {
     ret.push_back(
       odelia::util::to_passive(c.weighted_fecundity(strategy->pars.S_D)));
+  }
+  return ret;
+}
+
+template <typename T, typename E>
+std::vector<typename Species<T,E>::value_type>
+Species<T,E>::weighted_fecundity_by_node() const {
+  std::vector<value_type> ret;
+  ret.reserve(size());
+  for (auto& c : nodes) {
+    ret.push_back(c.weighted_fecundity(strategy->pars.S_D));
   }
   return ret;
 }

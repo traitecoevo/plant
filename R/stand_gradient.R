@@ -22,21 +22,51 @@ census_backend <- function(scm) {
          "stand gradient; TF24 and FF16 declare one"))
 }
 
-##' Census metrics of a solved stand.
+# Every metric the run reports, named, with each one's kind ("census" or
+# "fitness") beside it. The C++ side lists them in one order for the value, the
+# tangent and the sweep, and this is the one place R reads that list.
+stand_metric_table <- function(scm) {
+  b <- census_backend(scm)
+  named <- b$metric_names(scm)
+  list(name = unname(named), kind = names(named))
+}
+
+##' Metrics of a solved stand.
 ##'
-##' The trapezium integral of \eqn{n_k \psi(\mathrm{state}_k)} over the size
-##' distribution, for each metric \eqn{\psi}. The grid is the coordinate the
-##' density is carried in -- the birth date, or the height -- and the inflow
-##' boundary node closes it, so the interval between it and the smallest cohort
-##' is in the sum.
+##' \code{stand_census} reports the census metrics: the trapezium integral of
+##' \eqn{n_k \psi(\mathrm{state}_k)} over the size distribution, for each
+##' per-plant quantity \eqn{\psi}, summed over the species. The grid is the
+##' coordinate the density is carried in -- the birth date, or the height -- and
+##' the inflow boundary node closes it, so the interval between it and the
+##' smallest cohort is in the sum.
+##'
+##' \code{stand_fitness} reports, for a model that declares its fitness
+##' differentiable (FF16), each species' net reproduction ratio and offspring
+##' production, named \code{"<species>.net_reproduction_ratio"} and
+##' \code{"<species>.offspring_production"}. They are the same numbers as
+##' \code{scm$net_reproduction_ratios} and \code{scm$offspring_production},
+##' reported under the names \code{\link{stand_gradient}} differentiates them
+##' by.
 ##'
 ##' @param scm A run \code{SCM} object for the TF24 or FF16 model, on the
 ##'   birth-date coordinate (\code{control(node_density_in_birth_date = TRUE)}).
-##' @return A named numeric vector, one entry per census metric.
+##' @return A named numeric vector, one entry per metric.
 ##' @export
 stand_census <- function(scm) {
+  stand_metrics_of_kind(scm, "census")
+}
+
+##' @rdname stand_census
+##' @export
+stand_fitness <- function(scm) {
+  stand_metrics_of_kind(scm, "fitness")
+}
+
+stand_metrics_of_kind <- function(scm, kind) {
   b <- census_backend(scm)
-  stats::setNames(b$census(scm), b$metric_names())
+  table <- stand_metric_table(scm)
+  values <- stats::setNames(b$census(scm), table$name)
+  values[table$kind == kind]
 }
 
 ##' Sensitivity of the census metrics to the ODE state at the current time.
@@ -55,7 +85,7 @@ stand_census_state_adjoint <- function(scm) {
   b <- census_backend(scm)
   rows <- b$state_adjoint(scm)
   out <- do.call(rbind, rows)
-  rownames(out) <- b$metric_names()
+  rownames(out) <- stand_metric_table(scm)$name
   out
 }
 
@@ -93,7 +123,13 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##'
 ##' @param scm A run \code{SCM} object for the TF24 or FF16 model, on the
 ##'   birth-date coordinate (\code{control(node_density_in_birth_date = TRUE)}).
-##' @param metrics Census metric names to differentiate; defaults to all of them.
+##' @param metrics Metric names to differentiate; defaults to every metric the
+##'   model declares: the census metrics (\code{\link{stand_census}}) and, for
+##'   a model that declares its fitness differentiable, each species'
+##'   \code{"<species>.net_reproduction_ratio"} and
+##'   \code{"<species>.offspring_production"} (\code{\link{stand_fitness}}).
+##'   Each metric costs one sweep of the recorded trajectory, so name the ones
+##'   wanted.
 ##' @param traits Column names to differentiate with respect to; defaults to
 ##'   every differentiable parameter every species declares. A column is named
 ##'   for its species and its parameter, as \code{"1.lma"}. With \code{hyperpar},
@@ -152,7 +188,7 @@ stand_gradient <- function(scm, metrics = NULL, traits = NULL, hyperpar = NULL) 
     return(stand_gradient_through(scm, metrics, traits, hyperpar))
   }
   b <- census_backend(scm)
-  all_metrics <- b$metric_names()
+  all_metrics <- stand_metric_table(scm)$name
   # Every parameter the strategy carries has a column, bar the few the model
   # states it cannot differentiate. So the width does not depend on what the
   # sweep can currently answer, and a caller indexing by position sees the same
@@ -166,7 +202,7 @@ stand_gradient <- function(scm, metrics = NULL, traits = NULL, hyperpar = NULL) 
   }
   unknown <- setdiff(metrics, all_metrics)
   if (length(unknown) > 0L) {
-    stop("Unknown census metric: ", paste(unknown, collapse = ", "))
+    stop("Unknown metric: ", paste(unknown, collapse = ", "))
   }
   unknown <- setdiff(traits, all_traits)
   if (length(unknown) > 0L) {
@@ -193,7 +229,7 @@ stand_gradient <- function(scm, metrics = NULL, traits = NULL, hyperpar = NULL) 
     stop("Unknown trait: ", paste(unknown, collapse = ", "), hint)
   }
 
-  value <- stand_census(scm)[metrics]
+  value <- stats::setNames(b$census(scm), all_metrics)[metrics]
   # Only the metrics asked for are swept. A metric costs a sweep of the whole
   # trajectory, so computing all three and subsetting the answer charged a
   # caller who wanted one for three. Named, not positioned: C++ resolves the

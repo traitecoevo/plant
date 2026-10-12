@@ -4429,8 +4429,8 @@ TF24f_Strategy__ctor <- function() {
     .Call('_plant_TF24f_Strategy__ctor', PACKAGE = 'plant')
 }
 
-census_metric_names_tf24 <- function() {
-    .Call('_plant_census_metric_names_tf24', PACKAGE = 'plant')
+census_metric_names_tf24 <- function(obj_) {
+    .Call('_plant_census_metric_names_tf24', PACKAGE = 'plant', obj_)
 }
 
 census_tf24 <- function(obj_) {
@@ -4457,8 +4457,8 @@ gradient_control_tf24 <- function(obj_) {
     .Call('_plant_gradient_control_tf24', PACKAGE = 'plant', obj_)
 }
 
-census_metric_names_ff16 <- function() {
-    .Call('_plant_census_metric_names_ff16', PACKAGE = 'plant')
+census_metric_names_ff16 <- function(obj_) {
+    .Call('_plant_census_metric_names_ff16', PACKAGE = 'plant', obj_)
 }
 
 census_ff16 <- function(obj_) {

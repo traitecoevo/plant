@@ -161,6 +161,16 @@ public:
   // These are patch-level quantities: each integrates the per-node weighted
   // net reproduction over a species' node-introduction times.
   // Integrate lifetime fitness of a species' nodes, scaled per node.
+  // One species' lifetime fitness integral at the scalar the patch carries:
+  // the trapezium over its cohorts' birth dates of the survival-weighted
+  // fecundity, each cohort scaled by `scalars` (one, or the birth rate at its
+  // birth). The two R-facing double forms below are this with the derivative
+  // dropped, so the number a sweep differentiates is the number R reports.
+  value_type fitness_integral(size_t species_index,
+                              const std::vector<double>& scalars) const;
+  value_type net_reproduction_ratio_of(size_t species_index) const;
+  value_type offspring_production_of(size_t species_index) const;
+
   double net_reproduction_ratio_for_species(size_t species_index,
                                             std::vector<double> const& scalars) const;
   // Offspring production: fitness scaled by the birth rate over time.
@@ -927,40 +937,59 @@ std::vector<double> Patch<T,E>::r_compute_competition_effect_error_by_node_for_s
 
 // Integrate over lifetime fitness of individual nodes, scaled per node.
 template <typename T, typename E>
-double Patch<T,E>::net_reproduction_ratio_for_species(
+typename Patch<T,E>::value_type Patch<T,E>::fitness_integral(
     size_t species_index, std::vector<double> const& scalars) const {
-  auto net_prod = species[species_index].net_reproduction_ratio_by_node_weighted();
+  const std::vector<value_type> net_prod =
+    species[species_index].weighted_fecundity_by_node();
   auto const times = species[species_index].node_times();
-  auto net_prod_scaled = std::vector<double>(times.size());
+  auto net_prod_scaled = std::vector<value_type>(times.size());
   for (size_t i = 0; i < times.size(); ++i) {
     net_prod_scaled[i] = net_prod[i] * scalars[i];
   }
   return util::trapezium(times, net_prod_scaled);
 }
 
+template <typename T, typename E>
+double Patch<T,E>::net_reproduction_ratio_for_species(
+    size_t species_index, std::vector<double> const& scalars) const {
+  return odelia::util::to_passive(fitness_integral(species_index, scalars));
+}
+
 // Offspring production, equal to overall fitness scaled by the birth rate.
 template <typename T, typename E>
-std::vector<double> Patch<T,E>::offspring_production() const {
-  auto ret = std::vector<double>(species.size());
-  for (size_t i = 0; i < species.size(); ++i) {
-    // scale by birth rate function over time
-    auto const times = species[i].node_times();
-    auto scalars = std::vector<double>(times.size());
-    for (size_t j = 0; j < times.size(); ++j) {
-      scalars[j] = species[i].extrinsic_drivers().evaluate("birth_rate", times[j]);
-    }
-    ret[i] = net_reproduction_ratio_for_species(i, scalars);
+typename Patch<T,E>::value_type
+Patch<T,E>::offspring_production_of(size_t i) const {
+  // scale by birth rate function over time
+  auto const times = species[i].node_times();
+  auto scalars = std::vector<double>(times.size());
+  for (size_t j = 0; j < times.size(); ++j) {
+    scalars[j] = species[i].extrinsic_drivers().evaluate("birth_rate", times[j]);
   }
-  return ret;
+  return fitness_integral(i, scalars);
 }
 
 // Overall fitness (no scaling, ie scalars set to 1.0).
 template <typename T, typename E>
+typename Patch<T,E>::value_type
+Patch<T,E>::net_reproduction_ratio_of(size_t i) const {
+  auto scalars = std::vector<double>(species[i].size(), 1.0);
+  return fitness_integral(i, scalars);
+}
+
+template <typename T, typename E>
+std::vector<double> Patch<T,E>::offspring_production() const {
+  auto ret = std::vector<double>(species.size());
+  for (size_t i = 0; i < species.size(); ++i) {
+    ret[i] = odelia::util::to_passive(offspring_production_of(i));
+  }
+  return ret;
+}
+
+template <typename T, typename E>
 std::vector<double> Patch<T,E>::net_reproduction_ratios() const {
   auto ret = std::vector<double>(species.size());
   for (size_t i = 0; i < species.size(); ++i) {
-    auto scalars = std::vector<double>(species[i].size(), 1.0);
-    ret[i] = net_reproduction_ratio_for_species(i, scalars);
+    ret[i] = odelia::util::to_passive(net_reproduction_ratio_of(i));
   }
   return ret;
 }
