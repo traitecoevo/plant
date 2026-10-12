@@ -4457,6 +4457,34 @@ gradient_control_tf24 <- function(obj_) {
     .Call('_plant_gradient_control_tf24', PACKAGE = 'plant', obj_)
 }
 
+census_metric_names_ff16 <- function() {
+    .Call('_plant_census_metric_names_ff16', PACKAGE = 'plant')
+}
+
+census_ff16 <- function(obj_) {
+    .Call('_plant_census_ff16', PACKAGE = 'plant', obj_)
+}
+
+census_state_adjoint_ff16 <- function(obj_) {
+    .Call('_plant_census_state_adjoint_ff16', PACKAGE = 'plant', obj_)
+}
+
+census_trait_names_ff16 <- function(obj_) {
+    .Call('_plant_census_trait_names_ff16', PACKAGE = 'plant', obj_)
+}
+
+census_undifferentiable_ff16 <- function() {
+    .Call('_plant_census_undifferentiable_ff16', PACKAGE = 'plant')
+}
+
+census_trait_gradient_ff16 <- function(obj_, which_metrics = NULL) {
+    .Call('_plant_census_trait_gradient_ff16', PACKAGE = 'plant', obj_, which_metrics)
+}
+
+gradient_control_ff16 <- function(obj_) {
+    .Call('_plant_gradient_control_ff16', PACKAGE = 'plant', obj_)
+}
+
 node_schedule_default__Parameters___FF16__FF16_Env <- function(p) {
     .Call('_plant_node_schedule_default__Parameters___FF16__FF16_Env', PACKAGE = 'plant', p)
 }

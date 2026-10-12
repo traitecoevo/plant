@@ -7,7 +7,8 @@
 stand_gradient(scm, metrics = NULL, traits = NULL, hyperpar = NULL)
 }
 \arguments{
-\item{scm}{A run \code{SCM} object for the TF24 strategy.}
+\item{scm}{A run \code{SCM} object for the TF24 or FF16 model, on the
+birth-date coordinate (\code{control(node_density_in_birth_date = TRUE)}).}
 
 \item{metrics}{Census metric names to differentiate; defaults to all of them.}
 
@@ -17,7 +18,7 @@ for its species and its parameter, as \code{"1.lma"}. With \code{hyperpar},
 these name the traits to differentiate through it, and must be given.}
 
 \item{hyperpar}{\code{NULL}, or the hyperparameter function the stand was
-built with, as \code{TF24_hyperpar}. See the section on traits and
+built with, as \code{TF24_hyperpar} or \code{FF16_hyperpar}. See the section on traits and
 parameters.}
 }
 \value{

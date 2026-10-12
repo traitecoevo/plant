@@ -13,7 +13,7 @@
 // [[Rcpp::export]]
 std::string strategy_scientific_version(std::string type) {
   if (type == "FF16")
-    return std::to_string(plant::FF16_Strategy::scientific_version);
+    return std::to_string(plant::FF16_Strategy<double>::scientific_version);
   if (type == "K93")
     return std::to_string(plant::K93_Strategy::scientific_version);
   if (type == "TF24")
