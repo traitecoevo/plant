@@ -150,33 +150,74 @@ run_scm <- function(p, env = NULL,
 ##' @return A list describing the patch state, suitable for
 ##'   \code{\link{set_initial_state}}: \code{time}, \code{n} (nodes per species),
 ##'   \code{ode_state} (flat), the per-species lists \code{node_times},
-##'   \code{patch_density} and \code{pr_patch_survival}, and the residual
-##'   \code{node_schedule_times}.
+##'   \code{patch_density} and \code{pr_patch_survival}, the residual
+##'   \code{node_schedule_times}, and \code{events}, the run's events still to
+##'   come -- its residual introductions and every action the run had not yet
+##'   applied when the state was taken (an action at the export time itself is
+##'   pending in a collected snapshot and applied in a finished run's final
+##'   patch). Events are a \code{\link{run_scm}} argument rather than a field
+##'   of \code{Parameters}, so pass \code{state$events} to the resumed run's
+##'   \code{events} argument; a resumed run given none re-runs the residual
+##'   introductions alone and silently loses any pulse or harvest still ahead.
 ##' @seealso \code{\link{set_initial_state}}, \code{\link{run_scm}}
 ##' @export
 export_patch_state <- function(scm, step = NULL) {
   patch <- if (is.null(step)) scm$patch else scm$history[[step]]
   time <- patch$time
   species <- patch$species
-
-  ## Residual schedule: the introductions not yet represented among the seeded
-  ## nodes. A patch snapshot sits integrated *to* its next introduction time
-  ## without having introduced that node yet (its node times are all strictly
-  ## below `time`), so the residual keeps every original time at or after `time`
-  ## -- the resumed run introduces the node due at `time` itself, then the rest.
   tol <- 1e-8
-  residual <- lapply(scm$parameters$node_schedule_times,
-                     function(tt) tt[tt >= time - tol])
+
+  ## Residual schedule: the introductions not yet made. A seeded node carries
+  ## its introduction time, so the residual is every scheduled time at or after
+  ## `time` that no seeded node of that species carries. A patch snapshot sits
+  ## integrated *to* its next introduction time without having introduced that
+  ## node yet, so the node due at `time` itself stays in the residual; a run
+  ## that ended on an introduction (one scheduled at max_patch_lifetime) has
+  ## made it, and keeping every time at or after `time` re-introduced it.
+  node_times <- lapply(species, function(s) s$node_times)
+  residual <- Map(function(tt, made) tt[tt >= time - tol & !(tt %in% made)],
+                  scm$parameters$node_schedule_times, node_times)
 
   list(
     time = time,
     n = as.integer(vapply(species, function(s) s$size, numeric(1))),
     ode_state = patch$ode_state,
-    node_times = lapply(species, function(s) s$node_times),
+    node_times = node_times,
     patch_density = lapply(species, function(s) s$patch_densities),
     pr_patch_survival = lapply(species, function(s) s$pr_patch_survival_at_birth),
-    node_schedule_times = residual
+    node_schedule_times = residual,
+    events = residual_events(scm, time, residual, tol,
+                             final = is.null(step) || step == length(scm$history))
   )
+}
+
+## The events a resumed run still has to apply: the residual introductions, and
+## every action the run had not applied when this state was taken. An action
+## strictly after `time` is pending. An action at exactly `time` is pending in a
+## collected snapshot, which is taken on arrival at an instant before the
+## instant's actions run, and applied in the run's final patch, which the run
+## leaves only after applying everything scheduled at its end. The event log
+## cannot decide this, because it covers the whole run whichever snapshot is
+## exported.
+residual_events <- function(scm, time, residual, tol, final) {
+  ev <- scm$events
+  n <- length(ev$time)
+  if (n == 0L) {
+    return(ev)
+  }
+  keep <- logical(n)
+  for (i in seq_len(n)) {
+    if (ev$type[[i]] == "node_introduction") {
+      tt <- residual[[ev$target_index[[i]]]]
+      keep[i] <- any(abs(tt - ev$time[[i]]) <= tol)
+    } else if (ev$time[[i]] > time + tol) {
+      keep[i] <- TRUE
+    } else if (abs(ev$time[[i]] - time) <= tol) {
+      keep[i] <- !final
+    }
+  }
+  Events(time = ev$time[keep], type = ev$type[keep], target = ev$target[keep],
+         target_index = ev$target_index[keep], params = ev$params[keep])
 }
 
 ##' Build an initial patch state from a specified size distribution, for seeding
@@ -290,7 +331,9 @@ make_initial_state <- function(p, heights, densities = NULL,
 ##' @param p A \code{Parameters} object (its strategies must match the exported
 ##'   state).
 ##' @param state An exported state list from \code{\link{export_patch_state}}.
-##' @return The modified \code{Parameters} object.
+##' @return The modified \code{Parameters} object. The state's \code{events}
+##'   are not carried on it: pass them to \code{\link{run_scm}} as
+##'   \code{events = state$events}.
 ##' @seealso \code{\link{export_patch_state}}, \code{\link{run_scm}}
 ##' @export
 set_initial_state <- function(p, state) {

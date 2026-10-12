@@ -256,9 +256,9 @@ test_that("ode_times", {
 
   ## Too few values:
   expect_error(sched$set_ode_steps(c(0.0), none), "Need at least two times")
-  ## Does not start at 0
+  ## Does not start where the run starts (zero, for a schedule built bare)
   expect_error(sched$set_ode_steps(c(1, 2, 3), none),
-               "First time must be exactly zero")
+               "First time must be exactly the run's start time")
   ## Does not finish at time_max
   expect_error(sched$set_ode_steps(c(0.0, 2, 3), none),
                "Last time must be exactly max_time")

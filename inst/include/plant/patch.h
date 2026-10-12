@@ -467,6 +467,15 @@ public:
 
   void add_strategies(std::vector<strategy_type> strategies);
   void overwrite_strategies(std::vector<strategy_type> strategies);
+  // Become the patch these parameters describe, in the environment and under
+  // the control this one has: their strategies, their regime, and the state
+  // they seed the next reset() from. What an invasion needs, because an
+  // invader is a different community in the resident's world: replacing only
+  // the strategies left this patch seeding itself from the RESIDENT's exported
+  // state at every reset, so an invader of a resumed resident started as a copy
+  // of the resident's stand. Invisible from empty, where there is nothing to
+  // seed.
+  void overwrite_parameters(const parameters_type& p);
 
 private:
   // A patch whose species take the prepared strategies given, rather than
@@ -665,6 +674,16 @@ void Patch<T,E>::overwrite_strategies(std::vector<strategy_type> strategies) {
 }
 
 template <typename T, typename E>
+void Patch<T,E>::overwrite_parameters(const parameters_type& p) {
+  parameters = p;
+  // As the constructor does: the validated member carries the regime.
+  parameters.validate();
+  survival_weighting = parameters.disturbance;
+  area = parameters.patch_area;
+  overwrite_strategies(parameters.strategies);
+}
+
+template <typename T, typename E>
 void Patch<T,E>::add_strategies(std::vector<strategy_type> strategies) {
   for (auto i = 0; i < strategies.size(); ++i) {
 		auto s = strategies[i];
@@ -687,6 +706,12 @@ void Patch<T,E>::reset() {
 
   // compute ephemeral effects like light_availability
   environment.clear();
+  // clear() put the clock at zero. A patch that starts later than that -- an
+  // invader resumed into a resident's window, with no cohorts of its own yet --
+  // starts at the time its parameters name, and the field and rates below are
+  // built at that time. set_initial_state() sets the same clock for a seeded
+  // patch, and the default is zero, so a run from empty is unchanged.
+  environment.time = parameters.initial_time;
 
   if (!parameters.initial_state.empty()) {
     // Seed the patch from an exported state / initial size distribution.

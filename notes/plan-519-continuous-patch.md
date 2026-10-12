@@ -74,7 +74,7 @@ Fixes the resume path needs, each small:
 - `Patch::reset()` honours `initial_time` with an empty `initial_state` ([patch.h:689](../inst/include/plant/patch.h#L689)); an empty mutant patch has to start at $T_1$.
 - `r_set_ode_steps` accepts a first time equal to `initial_time` ([node_schedule.cpp:271](../src/node_schedule.cpp#L271)).
 - `run_next` replays the gap to the first residual entry by program instead of refusing ([scm.h:595-608](../inst/include/plant/scm.h#L595-L608)).
-- `run_mutant` ([scm.h:708](../inst/include/plant/scm.h#L708)) from a resumed resident: the resident's recording starts at $T_1$, and the mutant's parameters carry no initial state, `initial_time = T_1` and a schedule inside the window.
+- `run_mutant` ([scm.h:708](../inst/include/plant/scm.h#L708)) from a resumed resident: the resident's recording starts at $T_1$, and the mutant's parameters carry no initial state, `initial_time = T_1` and a schedule inside the window. Found while building it: the patch seeds itself at every `reset()` from its OWN copy of the parameters, and `run_mutant` replaced only the strategies, so an invader of a resumed resident started as a copy of the resident's exported stand; the invader now takes the whole parameters (`Patch::overwrite_parameters`). Invisible from empty, where there is nothing to seed.
 
 `make_initial_state()` ([scm_support.R:208](../R/scm_support.R#L208)) is not the resume entry point: it builds a synthetic size distribution at age 0 with every node stamped at time 0, which `check_birth_dates_distinct` refuses on the birth-date coordinate for more than one node per species. The fitness note's "restart with `make_initial_state()`" should read `set_initial_state()`.
 
@@ -144,7 +144,7 @@ The cost per simulated year is 2.71 ms per introduced cohort (a linear fit over 
 ## Commit sequence
 
 1. This plan, and the status line of `plan-events.md`.
-2. **Resume fixes.** The clock with an empty initial state, `r_set_ode_steps`' first time, the replay across the gap, residual events in the export. Bit-identical for a run from empty.
+2. **Resume fixes.** The clock with an empty initial state, `r_set_ode_steps`' first time, the replay across the gap, residual events in the export, the invader's seed. Bit-identical for a run from empty. Done on this branch.
 3. **Window regime.** `Window_Regime`, the periodic generator, the four `Parameters` fields and `patch_type = "window"`, the copy in `rebind_from`, an R constructor. Opt-in.
 4. **`run_to`, the convergence driver, snapshots.**
 5. **Retirement and the absorbing top layer.** `retire_density` first, on its own, with the cost measured against the pilot; then the top cohort, `absorb_height`, the merge inside the insertion map, the absorption log, `reshape_to`, the export, with the conservation and fixed-point tests.

@@ -500,6 +500,9 @@ private:
   // is solver.get_system_ref(); run() refreshes the `patch` snapshot once, after
   // its loop, rather than per event.
   std::vector<size_t> run_next();
+  // Integrate from t0 to t_end in whichever of the three modes the schedule
+  // and control select; see the definition.
+  void integrate_to(double t0, double t_end);
 
   parameters_type parameters;
   Control control;
@@ -592,24 +595,19 @@ std::vector<size_t> SCM<T, E>::run_next() {
 
   const schedule_entry& intro = node_schedule.next();
 
-  // Resume support: if the next scheduled introduction is in the future,
-  // integrate the gap up to it without introducing any node. This happens on
-  // the first step of a run resumed from an exported state -- the patch is
-  // already populated (in reset()) and starts at parameters.initial_time, which
-  // falls before the first residual schedule entry. It never happens for an
-  // empty patch, whose schedule always starts at t0 = 0, so the normal path
-  // below is unchanged. The next call will then introduce at that time.
+  // Resume support: if the next scheduled entry is in the future, integrate
+  // the gap up to it without introducing any node. This happens on the first
+  // step of a run resumed from an exported state -- the patch is already
+  // populated (in reset()) and starts at parameters.initial_time, which falls
+  // before the first residual schedule entry -- and on the first step of an
+  // invader starting inside a resident's window with no cohorts yet. It never
+  // happens for a run from empty, whose schedule starts at t0 = 0, so the
+  // normal path below is unchanged. The gap is crossed the same three ways the
+  // intervals below are, a pinned program included: a resumed run's recording
+  // starts at the resumed time and its first interval is this one.
   if (intro.time > t0) {
     solver.set_state_from_system();
-    if (node_schedule.using_ode_steps()) {
-      util::stop("Resuming from an initial state is not supported for "
-                 "replaying a recorded run");
-    } else if (control.fixed_time_step > 0.0) {
-      solver.advance_euler(
-          uniform_euler_times(t0, intro.time, control.fixed_time_step));
-    } else {
-      solver.advance_adaptive({solver.time(), intro.time});
-    }
+    integrate_to(t0, intro.time);
     return ret; // empty: nothing introduced this step
   }
 
@@ -636,13 +634,21 @@ std::vector<size_t> SCM<T, E>::run_next() {
   // Recorded here because this is where the width changes.
   solver.push_insertion();
 
-  // Three integration modes:
-  //  - pinned ode times (resident replay for a mutant): step exactly to the
-  //    cached times via the full RKCK stepper, by their recorded step sizes
-  //    when the schedule carries them;
-  //  - fixed-step forward Euler (control.fixed_time_step > 0): walk a uniform
-  //    sub-grid between this introduction and the next;
-  //  - otherwise: adaptive, error-controlled RKCK to the next introduction.
+  integrate_to(t0, t_end);
+
+  return ret;
+}
+
+// One interval of the run, from the instant the solver stands at to the next
+// scheduled entry. Three integration modes:
+//  - pinned ode times (resident replay for a mutant): step exactly to the
+//    cached times via the full RKCK stepper, by their recorded step sizes
+//    when the schedule carries them;
+//  - fixed-step forward Euler (control.fixed_time_step > 0): walk a uniform
+//    sub-grid between this instant and the next;
+//  - otherwise: adaptive, error-controlled RKCK to the next instant.
+template <typename T, typename E>
+void SCM<T, E>::integrate_to(double t0, double t_end) {
   if (node_schedule.using_ode_steps()) {
     if (control.fixed_time_step > 0.0) {
       // A recorded field is kept per rate evaluation, and forward Euler makes
@@ -676,8 +682,6 @@ std::vector<size_t> SCM<T, E>::run_next() {
   } else {
     solver.advance_adaptive({solver.time(), t_end});
   }
-
-  return ret;
 }
 
 // An invader integrates against a field it does not move: every strategy in `p`
@@ -731,7 +735,9 @@ void SCM<T, E>::run_mutant(parameters_type p) {
   // Destructive, as it has always been: the mutants become this SCM's community,
   // and its outputs are theirs.
   parameters = p;
-  patch.overwrite_strategies(parameters.strategies);
+  // The whole parameters, not the strategies alone: the patch seeds itself
+  // from ITS parameters at reset(), and an invader has no seed of its own.
+  patch.overwrite_parameters(parameters);
   node_schedule = make_node_schedule(parameters);
   reset();
   // ⚠️ A REPLAY KEEPS NOTHING. It is the recording's consumer, not another one of

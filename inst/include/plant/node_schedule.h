@@ -164,6 +164,12 @@ public:
   program_within(double start, double end) const;
 
   double get_max_time() const;
+  // The time the run this schedule drives starts at: zero for a run from
+  // empty, the exported time for a resumed one. A recorded program's first
+  // entry is the state the run started from, so it has to be this time; the
+  // check used to demand zero, which refused every replay of a resumed run.
+  double get_start_time() const { return start_time; }
+  void set_start_time(double t) { start_time = t; }
   std::vector<std::vector<double> > get_times() const;
   bool using_ode_steps() const { return !ode_steps.empty(); }
 
@@ -200,6 +206,7 @@ private:
   // schedule, so what the run reads and what a caller set are one object.
   size_t at;
   double max_time;
+  double start_time;
   // The recorded ODE steps this schedule replays, when it holds any. Holding
   // them is what makes a schedule a replay, so no flag says so separately.
   std::vector<odelia::ode::instruction> ode_steps;

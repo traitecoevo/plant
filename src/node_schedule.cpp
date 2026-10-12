@@ -11,7 +11,8 @@ namespace plant {
 NodeSchedule::NodeSchedule(size_t n_species_)
   : n_species(n_species_),
     at(0),
-    max_time(std::numeric_limits<double>::infinity()) {
+    max_time(std::numeric_limits<double>::infinity()),
+    start_time(0.0) {
 }
 
 size_t NodeSchedule::size() const {
@@ -267,8 +268,9 @@ void NodeSchedule::r_set_ode_steps(std::vector<double> times,
   if (sizes.size() != times.size()) {
     Rcpp::stop("ode_step_sizes must be the same length as ode_times");
   }
-  if (!util::identical(times.front(), 0.0)) {
-    Rcpp::stop("First time must be exactly zero");
+  if (!util::identical(times.front(), start_time)) {
+    Rcpp::stop("First time must be exactly the run's start time (" +
+               util::to_string(start_time) + ")");
   }
   if (util::is_finite(max_time) && !util::identical(times.back(), max_time)) {
     Rcpp::stop("Last time must be exactly max_time");
