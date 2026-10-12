@@ -120,6 +120,25 @@ test_that("cohorts an arrival window weights are never absorbed", {
   expect_equal(sp$top_layer$weight, 0)
 })
 
+test_that("a window resumed from a burn-in scores its own cohorts, not the layer's", {
+  ## The burn-in runs without a window, so every cohort it absorbs carries a
+  ## fitness weight of one into the exported layer. Resumed into a window, the
+  ## ratio is the mean over the window's cohorts, none of which is absorbed.
+  burn <- new_scm(ff16(200), ctrl(absorb = 0.05))
+  burn$run_to(150)
+  expect_gt(burn$patch$species[[1]]$top_layer$weight, 0)
+  state <- export_patch_state(burn)
+  p2 <- window_regime(set_initial_state(ff16(300), state), 150, 200)
+  p2$node_schedule_times <- list(node_schedule_times_periodic(150, 300, 1))
+  s <- run_scm(p2, ctrl = ctrl(absorb = 0.05))
+  sp <- s$patch$species[[1]]
+  out <- sp$net_reproduction_ratio_by_node * p2$strategies[[1]]$pars$S_D
+  k <- which(sp$node_times >= 150 & sp$node_times <= 200)
+  expect_gt(sp$top_layer$seeds, 0)
+  expect_equal(s$net_reproduction_ratios,
+               trapezium(sp$node_times[k], out[k]) / 50, tolerance = 1e-12)
+})
+
 test_that("the top layer survives an export and a resume", {
   straight <- new_scm(ff16(300), ctrl(absorb = 0.05))
   straight$run()

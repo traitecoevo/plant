@@ -1065,13 +1065,18 @@ double Patch<T,E>::net_reproduction_ratio_for_species(
   }
   if (first == last) {
     // One cohort in the window: its output is the mean.
-    return (net_prod_scaled[first] + top_seeds) / weight[first];
+    return net_prod_scaled[first] / weight[first];
   }
   const std::vector<double> t(times.begin() + first, times.begin() + last + 1);
   const std::vector<double> num(net_prod_scaled.begin() + first,
                                 net_prod_scaled.begin() + last + 1);
   const std::vector<double> den(weight.begin() + first, weight.begin() + last + 1);
-  return (util::trapezium(t, num) + top_seeds) / util::trapezium(t, den);
+  // The top layer's seeds are left out: the window's cohorts are never
+  // absorbed, so nothing in the layer belongs to the window. What it carries
+  // was weighted by whatever regime absorbed it -- a burn-in run without the
+  // window stamps every cohort one -- and counted here it scored the burn-in's
+  // stand as the window's: 378.7 against the window cohorts' own 62.7.
+  return util::trapezium(t, num) / util::trapezium(t, den);
 }
 
 // Offspring production, equal to overall fitness scaled by the birth rate.

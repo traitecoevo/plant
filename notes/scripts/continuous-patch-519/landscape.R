@@ -120,6 +120,14 @@ for (si in seq_along(seeds)) {
   for (f in c("node_times", "patch_density", "pr_patch_survival", "node_schedule_times")) {
     padded[[f]] <- c(state[[f]], list(numeric(0)))
   }
+  ## The second species' ODE block goes between the first's and the
+  ## environment's: no nodes, but its top-layer block when the layer is on.
+  n_env <- make_env()$ode_size
+  ## A node's block is the strategy's states plus two (lifetime output, log
+  ## density); the layer's is the strategy's states plus five.
+  top_size <- if (absorb > 0) length(scm2$patch$species[[1]]$new_node$ode_names) - 2L + 5L else 0L
+  padded$ode_state <- c(head(state$ode_state, -n_env), rep(0, top_size),
+                        tail(state$ode_state, n_env))
   for (lma in c(resident_lma, lma_grid)) {
     pm <- scm_base_parameters("TF24")
     pm$patch_type <- "fixed"
