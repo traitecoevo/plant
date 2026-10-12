@@ -832,6 +832,9 @@ SCM:
     # Simulation lifecycle
     run:
       return_type: void
+    run_to:
+      args: [time: double]
+      return_type: void
     run_mutant:
       args: [p: "plant::Parameters<T,E>"]
       return_type: void
@@ -912,6 +915,13 @@ SCM:
     collect: {type: bool, access: field}
     collect_refinement_errors: {type: bool, access: field}
     record_trajectory: {type: bool, access: field}
+    # Whether every scheduled entry has been consumed; where run_to() stops
+    # early, this is what says the run is not finished.
+    complete: {type: bool, access: member}
+    # The thinned record (#519): set before the run; read back as a list, one
+    # entry per snapshot, with tidy_snapshots() to flatten it.
+    snapshot_interval: {type: double, access: field}
+    snapshots: {type: "Rcpp::List", access: member, name_cpp: r_snapshots}
 
 StochasticSpecies:
   name_cpp: "plant::StochasticSpecies<T,E>"

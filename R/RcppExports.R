@@ -2705,6 +2705,10 @@ SCM___FF16__FF16_Env__run <- function(obj_) {
     invisible(.Call('_plant_SCM___FF16__FF16_Env__run', PACKAGE = 'plant', obj_))
 }
 
+SCM___FF16__FF16_Env__run_to <- function(obj_, time) {
+    invisible(.Call('_plant_SCM___FF16__FF16_Env__run_to', PACKAGE = 'plant', obj_, time))
+}
+
 SCM___FF16__FF16_Env__run_mutant <- function(obj_, p) {
     invisible(.Call('_plant_SCM___FF16__FF16_Env__run_mutant', PACKAGE = 'plant', obj_, p))
 }
@@ -2813,12 +2817,32 @@ SCM___FF16__FF16_Env__record_trajectory__set <- function(obj_, value) {
     invisible(.Call('_plant_SCM___FF16__FF16_Env__record_trajectory__set', PACKAGE = 'plant', obj_, value))
 }
 
+SCM___FF16__FF16_Env__complete__get <- function(obj_) {
+    .Call('_plant_SCM___FF16__FF16_Env__complete__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___FF16__FF16_Env__snapshot_interval__get <- function(obj_) {
+    .Call('_plant_SCM___FF16__FF16_Env__snapshot_interval__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___FF16__FF16_Env__snapshot_interval__set <- function(obj_, value) {
+    invisible(.Call('_plant_SCM___FF16__FF16_Env__snapshot_interval__set', PACKAGE = 'plant', obj_, value))
+}
+
+SCM___FF16__FF16_Env__snapshots__get <- function(obj_) {
+    .Call('_plant_SCM___FF16__FF16_Env__snapshots__get', PACKAGE = 'plant', obj_)
+}
+
 SCM___TF24__TF24_Env__ctor <- function(parameters, environment, events, control) {
     .Call('_plant_SCM___TF24__TF24_Env__ctor', PACKAGE = 'plant', parameters, environment, events, control)
 }
 
 SCM___TF24__TF24_Env__run <- function(obj_) {
     invisible(.Call('_plant_SCM___TF24__TF24_Env__run', PACKAGE = 'plant', obj_))
+}
+
+SCM___TF24__TF24_Env__run_to <- function(obj_, time) {
+    invisible(.Call('_plant_SCM___TF24__TF24_Env__run_to', PACKAGE = 'plant', obj_, time))
 }
 
 SCM___TF24__TF24_Env__run_mutant <- function(obj_, p) {
@@ -2929,12 +2953,32 @@ SCM___TF24__TF24_Env__record_trajectory__set <- function(obj_, value) {
     invisible(.Call('_plant_SCM___TF24__TF24_Env__record_trajectory__set', PACKAGE = 'plant', obj_, value))
 }
 
+SCM___TF24__TF24_Env__complete__get <- function(obj_) {
+    .Call('_plant_SCM___TF24__TF24_Env__complete__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___TF24__TF24_Env__snapshot_interval__get <- function(obj_) {
+    .Call('_plant_SCM___TF24__TF24_Env__snapshot_interval__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___TF24__TF24_Env__snapshot_interval__set <- function(obj_, value) {
+    invisible(.Call('_plant_SCM___TF24__TF24_Env__snapshot_interval__set', PACKAGE = 'plant', obj_, value))
+}
+
+SCM___TF24__TF24_Env__snapshots__get <- function(obj_) {
+    .Call('_plant_SCM___TF24__TF24_Env__snapshots__get', PACKAGE = 'plant', obj_)
+}
+
 SCM___TF24f__TF24_Env__ctor <- function(parameters, environment, events, control) {
     .Call('_plant_SCM___TF24f__TF24_Env__ctor', PACKAGE = 'plant', parameters, environment, events, control)
 }
 
 SCM___TF24f__TF24_Env__run <- function(obj_) {
     invisible(.Call('_plant_SCM___TF24f__TF24_Env__run', PACKAGE = 'plant', obj_))
+}
+
+SCM___TF24f__TF24_Env__run_to <- function(obj_, time) {
+    invisible(.Call('_plant_SCM___TF24f__TF24_Env__run_to', PACKAGE = 'plant', obj_, time))
 }
 
 SCM___TF24f__TF24_Env__run_mutant <- function(obj_, p) {
@@ -3045,12 +3089,32 @@ SCM___TF24f__TF24_Env__record_trajectory__set <- function(obj_, value) {
     invisible(.Call('_plant_SCM___TF24f__TF24_Env__record_trajectory__set', PACKAGE = 'plant', obj_, value))
 }
 
+SCM___TF24f__TF24_Env__complete__get <- function(obj_) {
+    .Call('_plant_SCM___TF24f__TF24_Env__complete__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___TF24f__TF24_Env__snapshot_interval__get <- function(obj_) {
+    .Call('_plant_SCM___TF24f__TF24_Env__snapshot_interval__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___TF24f__TF24_Env__snapshot_interval__set <- function(obj_, value) {
+    invisible(.Call('_plant_SCM___TF24f__TF24_Env__snapshot_interval__set', PACKAGE = 'plant', obj_, value))
+}
+
+SCM___TF24f__TF24_Env__snapshots__get <- function(obj_) {
+    .Call('_plant_SCM___TF24f__TF24_Env__snapshots__get', PACKAGE = 'plant', obj_)
+}
+
 SCM___K93__K93_Env__ctor <- function(parameters, environment, events, control) {
     .Call('_plant_SCM___K93__K93_Env__ctor', PACKAGE = 'plant', parameters, environment, events, control)
 }
 
 SCM___K93__K93_Env__run <- function(obj_) {
     invisible(.Call('_plant_SCM___K93__K93_Env__run', PACKAGE = 'plant', obj_))
+}
+
+SCM___K93__K93_Env__run_to <- function(obj_, time) {
+    invisible(.Call('_plant_SCM___K93__K93_Env__run_to', PACKAGE = 'plant', obj_, time))
 }
 
 SCM___K93__K93_Env__run_mutant <- function(obj_, p) {
@@ -3159,6 +3223,22 @@ SCM___K93__K93_Env__record_trajectory__get <- function(obj_) {
 
 SCM___K93__K93_Env__record_trajectory__set <- function(obj_, value) {
     invisible(.Call('_plant_SCM___K93__K93_Env__record_trajectory__set', PACKAGE = 'plant', obj_, value))
+}
+
+SCM___K93__K93_Env__complete__get <- function(obj_) {
+    .Call('_plant_SCM___K93__K93_Env__complete__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___K93__K93_Env__snapshot_interval__get <- function(obj_) {
+    .Call('_plant_SCM___K93__K93_Env__snapshot_interval__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___K93__K93_Env__snapshot_interval__set <- function(obj_, value) {
+    invisible(.Call('_plant_SCM___K93__K93_Env__snapshot_interval__set', PACKAGE = 'plant', obj_, value))
+}
+
+SCM___K93__K93_Env__snapshots__get <- function(obj_) {
+    .Call('_plant_SCM___K93__K93_Env__snapshots__get', PACKAGE = 'plant', obj_)
 }
 
 StochasticSpecies___FF16__FF16_Env__ctor <- function(strategy) {

@@ -3072,6 +3072,10 @@ void SCM___FF16__FF16_Env__run(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Stra
   obj_->run();
 }
 // [[Rcpp::export]]
+void SCM___FF16__FF16_Env__run_to(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_, double time) {
+  obj_->run_to(time);
+}
+// [[Rcpp::export]]
 void SCM___FF16__FF16_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_, plant::Parameters<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > p) {
   obj_->run_mutant(p);
 }
@@ -3195,6 +3199,25 @@ void SCM___FF16__FF16_Env__record_trajectory__set(plant::RcppR6::RcppR6<plant::S
   obj_->record_trajectory = value;
 }
 
+// [[Rcpp::export]]
+bool SCM___FF16__FF16_Env__complete__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
+  return obj_->complete();
+}
+
+// [[Rcpp::export]]
+double SCM___FF16__FF16_Env__snapshot_interval__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
+  return obj_->snapshot_interval;
+}
+// [[Rcpp::export]]
+void SCM___FF16__FF16_Env__snapshot_interval__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_, double value) {
+  obj_->snapshot_interval = value;
+}
+
+// [[Rcpp::export]]
+Rcpp::List SCM___FF16__FF16_Env__snapshots__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
+  return obj_->r_snapshots();
+}
+
 
 // [[Rcpp::export]]
 plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > SCM___TF24__TF24_Env__ctor(plant::Parameters<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > parameters, plant::TF24_Environment<double> environment, plant::Events events, plant::Control control) {
@@ -3203,6 +3226,10 @@ plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > SCM__
 // [[Rcpp::export]]
 void SCM___TF24__TF24_Env__run(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
   obj_->run();
+}
+// [[Rcpp::export]]
+void SCM___TF24__TF24_Env__run_to(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_, double time) {
+  obj_->run_to(time);
 }
 // [[Rcpp::export]]
 void SCM___TF24__TF24_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Parameters<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > p) {
@@ -3328,6 +3355,25 @@ void SCM___TF24__TF24_Env__record_trajectory__set(plant::RcppR6::RcppR6<plant::S
   obj_->record_trajectory = value;
 }
 
+// [[Rcpp::export]]
+bool SCM___TF24__TF24_Env__complete__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->complete();
+}
+
+// [[Rcpp::export]]
+double SCM___TF24__TF24_Env__snapshot_interval__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->snapshot_interval;
+}
+// [[Rcpp::export]]
+void SCM___TF24__TF24_Env__snapshot_interval__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_, double value) {
+  obj_->snapshot_interval = value;
+}
+
+// [[Rcpp::export]]
+Rcpp::List SCM___TF24__TF24_Env__snapshots__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_snapshots();
+}
+
 
 // [[Rcpp::export]]
 plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > SCM___TF24f__TF24_Env__ctor(plant::Parameters<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > parameters, plant::TF24_Environment<double> environment, plant::Events events, plant::Control control) {
@@ -3336,6 +3382,10 @@ plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > SCM_
 // [[Rcpp::export]]
 void SCM___TF24f__TF24_Env__run(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
   obj_->run();
+}
+// [[Rcpp::export]]
+void SCM___TF24f__TF24_Env__run_to(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_, double time) {
+  obj_->run_to(time);
 }
 // [[Rcpp::export]]
 void SCM___TF24f__TF24_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Parameters<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > p) {
@@ -3461,6 +3511,25 @@ void SCM___TF24f__TF24_Env__record_trajectory__set(plant::RcppR6::RcppR6<plant::
   obj_->record_trajectory = value;
 }
 
+// [[Rcpp::export]]
+bool SCM___TF24f__TF24_Env__complete__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->complete();
+}
+
+// [[Rcpp::export]]
+double SCM___TF24f__TF24_Env__snapshot_interval__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->snapshot_interval;
+}
+// [[Rcpp::export]]
+void SCM___TF24f__TF24_Env__snapshot_interval__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_, double value) {
+  obj_->snapshot_interval = value;
+}
+
+// [[Rcpp::export]]
+Rcpp::List SCM___TF24f__TF24_Env__snapshots__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_snapshots();
+}
+
 
 // [[Rcpp::export]]
 plant::SCM<plant::K93_Strategy,plant::K93_Environment> SCM___K93__K93_Env__ctor(plant::Parameters<plant::K93_Strategy,plant::K93_Environment> parameters, plant::K93_Environment environment, plant::Events events, plant::Control control) {
@@ -3469,6 +3538,10 @@ plant::SCM<plant::K93_Strategy,plant::K93_Environment> SCM___K93__K93_Env__ctor(
 // [[Rcpp::export]]
 void SCM___K93__K93_Env__run(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
   obj_->run();
+}
+// [[Rcpp::export]]
+void SCM___K93__K93_Env__run_to(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, double time) {
+  obj_->run_to(time);
 }
 // [[Rcpp::export]]
 void SCM___K93__K93_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::Parameters<plant::K93_Strategy,plant::K93_Environment> p) {
@@ -3592,6 +3665,25 @@ bool SCM___K93__K93_Env__record_trajectory__get(plant::RcppR6::RcppR6<plant::SCM
 // [[Rcpp::export]]
 void SCM___K93__K93_Env__record_trajectory__set(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, bool value) {
   obj_->record_trajectory = value;
+}
+
+// [[Rcpp::export]]
+bool SCM___K93__K93_Env__complete__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->complete();
+}
+
+// [[Rcpp::export]]
+double SCM___K93__K93_Env__snapshot_interval__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->snapshot_interval;
+}
+// [[Rcpp::export]]
+void SCM___K93__K93_Env__snapshot_interval__set(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, double value) {
+  obj_->snapshot_interval = value;
+}
+
+// [[Rcpp::export]]
+Rcpp::List SCM___K93__K93_Env__snapshots__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->r_snapshots();
 }
 
 

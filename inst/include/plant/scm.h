@@ -97,6 +97,37 @@ public:
   // Run the whole schedule from t = 0 to completion.
   void run();
 
+  // Advance to the first leg boundary at or past `t`, or to the end of the
+  // schedule, and refresh `patch`. A run that has not begun begins first, as
+  // run() does, so a sequence of these is a run() leg for leg; a finished one
+  // is left where it is. What a caller driving a run from outside needs -- a
+  // convergence test between legs, an export at a time of its choosing --
+  // without a Patch copy per step (#519).
+  void run_to(double t);
+
+  // A thinned record of the run: one summary per `snapshot_interval` years,
+  // taken at the run's start and at the first leg boundary at or past each
+  // later multiple, where `history` is a copy of the whole patch per leg. Zero,
+  // the default, records none. Per species it keeps the node counts, the
+  // tallest cohort with density, the trapezium of the carried density over the
+  // birth-date grid, and every node's lifetime offspring output; and the
+  // environment's own state.
+  double snapshot_interval = 0.0;
+  struct species_snapshot {
+    size_t n_nodes = 0;
+    size_t n_live = 0;
+    size_t n_retired = 0;
+    double height_max = 0.0;
+    double density = 0.0;
+    std::vector<double> fecundity;
+  };
+  struct snapshot {
+    double time = 0.0;
+    std::vector<species_snapshot> species;
+    std::vector<double> environment;
+  };
+  Rcpp::List r_snapshots() const;
+
   // Integrate `p`'s strategies as invaders against the field the resident run
   // stood in: every one of them, the resident's own included, sees a field it
   // does not move. Destructive -- `p` becomes this SCM's parameters, and its
@@ -504,6 +535,17 @@ private:
   // and control select; see the definition.
   void integrate_to(double t0, double t_end);
 
+  // Everything run() does before its loop: put the run at its start and record
+  // what a start records. run_to() calls it once, run() every time.
+  void begin();
+  // One leg, with the bookkeeping the loop keeps per leg: refinement errors,
+  // the history copy, a snapshot where one is due.
+  void step_leg();
+  void take_snapshot();
+  bool begun = false;
+  double next_snapshot = 0.0;
+  std::vector<snapshot> snapshots;
+
   parameters_type parameters;
   Control control;
   patch_type patch;
@@ -560,6 +602,25 @@ std::vector<double> SCM<T, E>::uniform_euler_times(double t0, double t1,
 // ---- Simulation lifecycle ------------------------------------------------
 
 template <typename T, typename E> void SCM<T, E>::run() {
+  begin();
+  while (!complete()) {
+    step_leg();
+  }
+  // Expose the final state through the `patch` accessor after the loop.
+  patch = solver.get_system_ref();
+}
+
+template <typename T, typename E> void SCM<T, E>::run_to(double t) {
+  if (!begun) {
+    begin();
+  }
+  while (!complete() && time() < t) {
+    step_leg();
+  }
+  patch = solver.get_system_ref();
+}
+
+template <typename T, typename E> void SCM<T, E>::begin() {
   // Set before reset(), which records the state the run starts from. One flag, and
   // it is the solver's: the choices this run's rate evaluations make are the same
   // recording as its states, so what keeps the states is what says the choices are
@@ -571,19 +632,85 @@ template <typename T, typename E> void SCM<T, E>::run() {
   if (collect) {
     history.push_back(solver.get_system_ref());
   }
-
-  while (!complete()) {
-    std::vector<size_t> added = run_next();
-    if (collect_refinement_errors) {
-      solver.get_system_ref().collect_competition_errors(added);
-    }
-    if (collect) {
-      history.push_back(solver.get_system_ref());
-    }
+  if (snapshot_interval > 0.0) {
+    take_snapshot();
   }
+  begun = true;
+}
 
-  // Expose the final state through the `patch` accessor after the loop.
-  patch = solver.get_system_ref();
+template <typename T, typename E> void SCM<T, E>::step_leg() {
+  std::vector<size_t> added = run_next();
+  if (collect_refinement_errors) {
+    solver.get_system_ref().collect_competition_errors(added);
+  }
+  if (collect) {
+    history.push_back(solver.get_system_ref());
+  }
+  if (snapshot_interval > 0.0 && time() >= next_snapshot) {
+    take_snapshot();
+  }
+}
+
+template <typename T, typename E> void SCM<T, E>::take_snapshot() {
+  const patch_type& live = solver.get_system_ref();
+  snapshot s;
+  s.time = time();
+  for (size_t i = 0; i < live.size(); ++i) {
+    const species_type& sp = live.at_species(i);
+    species_snapshot ss;
+    ss.n_nodes = sp.size();
+    double tallest = std::numeric_limits<double>::quiet_NaN();
+    std::vector<double> density;
+    density.reserve(sp.size());
+    for (auto it = sp.node_begin(); it != sp.node_end(); ++it) {
+      const double d = odelia::util::to_passive(it->get_density());
+      density.push_back(d);
+      if (d > 0.0) {
+        ++ss.n_live;
+        const double h = odelia::util::to_passive(it->height());
+        if (!(h <= tallest)) {
+          tallest = h;
+        }
+      }
+      if (it->retired()) {
+        ++ss.n_retired;
+      }
+      ss.fecundity.push_back(odelia::util::to_passive(it->fecundity()));
+    }
+    ss.height_max = tallest;
+    // The carried density integrated over the birth-date grid: individuals per
+    // unit area on that coordinate.
+    ss.density = sp.size() > 1 ? util::trapezium(sp.node_times(), density) : 0.0;
+    s.species.push_back(std::move(ss));
+  }
+  // The environment's block is the tail of the state vector.
+  std::vector<double> state(live.ode_size());
+  live.ode_state(state.begin());
+  s.environment.assign(state.begin() + live.node_ode_size(), state.end());
+  snapshots.push_back(std::move(s));
+  next_snapshot = (std::floor(time() / snapshot_interval) + 1.0) * snapshot_interval;
+}
+
+template <typename T, typename E> Rcpp::List SCM<T, E>::r_snapshots() const {
+  Rcpp::List ret(snapshots.size());
+  for (size_t k = 0; k < snapshots.size(); ++k) {
+    const snapshot& s = snapshots[k];
+    Rcpp::List species(s.species.size());
+    for (size_t i = 0; i < s.species.size(); ++i) {
+      const species_snapshot& ss = s.species[i];
+      species[i] = Rcpp::List::create(
+          Rcpp::_["n_nodes"] = static_cast<int>(ss.n_nodes),
+          Rcpp::_["n_live"] = static_cast<int>(ss.n_live),
+          Rcpp::_["n_retired"] = static_cast<int>(ss.n_retired),
+          Rcpp::_["height_max"] = ss.height_max,
+          Rcpp::_["density"] = ss.density,
+          Rcpp::_["fecundity"] = ss.fecundity);
+    }
+    ret[k] = Rcpp::List::create(Rcpp::_["time"] = s.time,
+                                Rcpp::_["species"] = species,
+                                Rcpp::_["environment"] = s.environment);
+  }
+  return ret;
 }
 
 template <typename T, typename E>
@@ -855,6 +982,8 @@ template <typename T, typename E> void SCM<T, E>::reset() {
   patch = solver.get_system_ref();
   history.clear();
   event_log.clear();
+  snapshots.clear();
+  begun = false;
 }
 
 
