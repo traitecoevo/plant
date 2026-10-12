@@ -4,7 +4,7 @@ This is the reference walkthrough for the **biology** step of `plant-new-strateg
 (originally `vignettes/strategy_new.Rmd`). It shows how the shipped K93 model was
 built by scaffolding from FF16 and then filling in a simple size-structured
 model. K93 already exists in the package — read its files
-(`inst/include/plant/models/k93_strategy.h`, `src/k93_strategy.cpp`, `R/k93.R`)
+(`inst/include/plant/models/k93_strategy.h`, `R/k93.R`)
 alongside this guide.
 
 K93 tracks growth, reproduction and mortality as functions of stem size and the
@@ -19,7 +19,7 @@ formulation) supplies background mortality; dispersal/establishment are set to 1
 - **Fecundity (eqn 12):** `R(x) = d₀ · basal_area(x) · exp(−d₁·B(x))`.
 - **Mortality (eqn 11):** `μ(x) = −c₀ + c₁·B(x)`, floored at 0.
 
-## Strategy source (`src/k93_strategy.cpp`)
+## Strategy source (`inst/include/plant/models/k93_strategy.h`)
 
 ```cpp
 // [eqn 10] Growth
