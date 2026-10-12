@@ -103,9 +103,9 @@ inside <- t >= T1 & t <= T2
 ## The regime's number is the trapezium-weighted mean of the window's arrivals,
 ## and nothing of the seeded burn-in cohorts: replicated here as a check.
 trap <- function(x, y) sum(diff(x) * (head(y, -1) + tail(y, -1)) / 2)
-d <- ifelse(inside, 1 / window, 0)
+k <- which(inside)
 stamp("window [%g, %g] run to %g in %.1f s: R = %.4f at birth rate 1 (replica %.4f); %d cohorts in the window, %d seeded from the burn-in at weight %g",
-      T1, T2, T_end, w_win, R_window, trap(t, out * d) / trap(t, d), sum(inside),
+      T1, T2, T_end, w_win, R_window, trap(t[k], out[k]) / (t[max(k)] - t[min(k)]), sum(inside),
       sum(t < T1), max(sp$patch_densities[t < T1]))
 
 ## ---- 3. how variable is one arrival's output along the window? --------------
@@ -115,7 +115,7 @@ n <- length(r)
 rho <- if (n > 2) cor(r[-1], r[-n]) else NA
 n_eff <- n * (1 - rho) / (1 + rho)
 rel_se <- sd(r) / mean(r) / sqrt(n_eff)
-half <- function(a, b) { d <- ifelse(t >= a & t <= b, 1, 0); trap(t, out * d) / trap(t, d) }
+half <- function(a, b) { k <- which(t >= a & t <= b); trap(t[k], out[k]) / (t[max(k)] - t[min(k)]) }
 stamp("arrival output: mean %.4f, CV %.2f, zero in %d of %d years, lag-1 autocorrelation %.2f, n_eff %.0f, relative SE of the window mean %.3f",
       mean(r), sd(r) / mean(r), sum(r == 0), n, rho, n_eff, rel_se)
 stamp("half windows: [%g, %g] %.4f, [%g, %g] %.4f", T1, T1 + window / 2, half(T1, T1 + window / 2),

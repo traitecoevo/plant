@@ -9,6 +9,15 @@ ff16 <- function(lifetime) {
   add_strategies(p, trait_matrix(0.0825, "lma"))
 }
 
+## The regime's ratio, replicated: the trapezium over the span of cohorts the
+## window weights, output times weight over weight.
+window_mean_of <- function(t, out, d) {
+  span <- range(which(d > 0))
+  k <- span[1]:span[2]
+  trapezium <- function(x, y) sum(diff(x) * (head(y, -1) + tail(y, -1)) / 2)
+  trapezium(t[k], out[k] * d[k]) / trapezium(t[k], d[k])
+}
+
 patch_of <- function(p) {
   Patch("FF16", "FF16_Env")(p, Environment("FF16"), Control())
 }
@@ -65,11 +74,10 @@ test_that("the net reproduction ratio is the window average of per-node lifetime
   fec <- sp$net_reproduction_ratio_by_node
   S_D <- p$strategies[[1]]$pars$S_D
   d <- ifelse(t >= 10 & t <= 20, 1 / 10, 0)
-  ## The same trapezia the patch takes, over every node, with the window's
-  ## density at each birth date: output times weight over weight alone.
-  trapezium <- function(x, y) sum(diff(x) * (head(y, -1) + tail(y, -1)) / 2)
-  expect_equal(scm$net_reproduction_ratios,
-               trapezium(t, fec * d * S_D) / trapezium(t, d), tolerance = 1e-12)
+  ## The same trapezia the patch takes, over the window's cohorts, with the
+  ## window's density at each birth date: output times weight over weight.
+  expect_equal(scm$net_reproduction_ratios, window_mean_of(t, fec * S_D, d),
+               tolerance = 1e-12)
   ## Which is the weighted mean of the cohorts' output, so it sits inside their range.
   inside <- t >= 10 & t <= 20
   expect_gte(scm$net_reproduction_ratios, min(fec[inside]) * S_D)
@@ -113,10 +121,8 @@ test_that("a converged stand's window average does not depend on the window", {
   sp <- scm$patch$species[[1]]
   t <- sp$node_times
   out <- sp$net_reproduction_ratio_by_node * p$strategies[[1]]$pars$S_D
-  trapezium <- function(x, y) sum(diff(x) * (head(y, -1) + tail(y, -1)) / 2)
   window_mean <- function(a, b) {
-    d <- ifelse(t >= a & t <= b, 1 / (b - a), 0)
-    trapezium(t, out * d) / trapezium(t, d)
+    window_mean_of(t, out, ifelse(t >= a & t <= b, 1 / (b - a), 0))
   }
   early <- window_mean(100, 200)
   late <- window_mean(200, 300)
@@ -156,8 +162,7 @@ test_that("cohorts seeded from a burn-in weigh nothing before the window", {
   expect_true(all(sp$patch_densities[t >= 25 & t <= 35] == 0.1))
   out <- sp$net_reproduction_ratio_by_node * p2$strategies[[1]]$pars$S_D
   d <- ifelse(t >= 25 & t <= 35, 0.1, 0)
-  trapezium <- function(x, y) sum(diff(x) * (head(y, -1) + tail(y, -1)) / 2)
-  expect_equal(scm$net_reproduction_ratios, trapezium(t, out * d) / trapezium(t, d),
+  expect_equal(scm$net_reproduction_ratios, window_mean_of(t, out, d),
                tolerance = 1e-12)
   ## A resume under the regime that stamped the export is unchanged by this.
   p3 <- set_initial_state(ff16(40), state)
@@ -165,4 +170,28 @@ test_that("cohorts seeded from a burn-in weigh nothing before the window", {
   p3$node_schedule_times <- list(node_schedule_times_periodic(20, 40, 1))
   scm3 <- run_scm(p3, ctrl = ctrl)
   expect_true(all(scm3$patch$species[[1]]$patch_densities == 1))
+})
+
+test_that("cohorts outside the window do not move the ratio", {
+  ## A resident whose schedule starts before the window, and a copy of the same
+  ## strategy a million times rarer whose schedule starts at the window, in one
+  ## run. Both stand in the same field with the same strategy and birth dates,
+  ## and a cohort's per-capita output does not depend on its own density, so
+  ## their window cohorts' outputs are the same numbers and the two must score
+  ## the same. Over every node instead, the resident's zero-weight cohort before
+  ## the window gave its first window cohort a whole interval and the copy's
+  ## half of one: 89.34 against 86.92 here. Long enough for the window's
+  ## cohorts to reproduce, or both ratios are near zero and agree vacuously.
+  p <- scm_base_parameters("FF16")
+  p$max_patch_lifetime <- 100
+  p$node_schedule_times <- list()
+  p <- add_strategies(p, trait_matrix(c(0.0825, 0.0825), "lma"),
+                      birth_rate = list(1, 1e-6))
+  p <- window_regime(p, 10, 20)
+  p$node_schedule_times <- list(node_schedule_times_periodic(0, 100, 1),
+                                node_schedule_times_periodic(10, 100, 1))
+  scm <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE))
+  r <- scm$net_reproduction_ratios
+  expect_gt(r[[1]], 1)
+  expect_equal(r[[2]], r[[1]], tolerance = 1e-12)
 })

@@ -998,23 +998,43 @@ double Patch<T,E>::net_reproduction_ratio_for_species(
   for (size_t i = 0; i < times.size(); ++i) {
     net_prod_scaled[i] = net_prod[i] * scalars[i];
   }
-  const double integral = util::trapezium(times, net_prod_scaled);
   if (!survival_weighting->is_arrival_weighting()) {
-    return integral;
+    return util::trapezium(times, net_prod_scaled);
   }
-  // An arrival weighting is normalised over the cohorts this run introduced,
-  // on the same grid and with the same trapezium: the weighted mean of their
-  // lifetime output, which a density stepping to zero at the window's edges
-  // would otherwise overstate by a trapezium interval per edge.
-  const double weight =
-    util::trapezium(times, species[species_index].r_patch_densities());
-  if (!(weight > 0.0)) {
+  // An arrival weighting is the weighted mean of lifetime output over the
+  // cohorts the window weights, taken by the trapezium over THOSE cohorts
+  // alone: the span from the first to the last with positive weight, output
+  // times weight over weight. Nothing outside the span enters, so a species
+  // whose schedule starts at the window and a species with cohorts before it
+  // score the same cohorts the same way -- which is what makes a resident's
+  // own strategy, invading, score the resident's ratio. Over every node
+  // instead, a zero-weight cohort just outside the window gave the edge cohort
+  // a whole interval where a species without one gave it half, 0.4 % apart on
+  // the pulsed TF24 stand of #519; and a weight stepping to zero at the edges
+  // with no normalisation at all overstated the mean by spacing over width.
+  const std::vector<double> weight = species[species_index].r_patch_densities();
+  size_t first = times.size(), last = 0;
+  for (size_t i = 0; i < times.size(); ++i) {
+    if (weight[i] > 0.0) {
+      first = std::min(first, i);
+      last = i;
+    }
+  }
+  if (first == times.size()) {
     util::stop("No cohort of species " + util::to_string(species_index + 1) +
                " was introduced inside the arrival window, so its net "
                "reproduction ratio is undefined: open the window over the "
                "run's introductions.");
   }
-  return integral / weight;
+  if (first == last) {
+    // One cohort in the window: its output is the mean.
+    return net_prod_scaled[first] / weight[first];
+  }
+  const std::vector<double> t(times.begin() + first, times.begin() + last + 1);
+  const std::vector<double> num(net_prod_scaled.begin() + first,
+                                net_prod_scaled.begin() + last + 1);
+  const std::vector<double> den(weight.begin() + first, weight.begin() + last + 1);
+  return util::trapezium(t, num) / util::trapezium(t, den);
 }
 
 // Offspring production, equal to overall fitness scaled by the birth rate.
