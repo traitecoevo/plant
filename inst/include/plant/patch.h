@@ -638,6 +638,13 @@ Patch<at_scalar<T, U>, at_scalar<E, U>> Patch<T,E>::rebind_from() const {
   p2.patch_area = parameters.patch_area;
   p2.patch_type = parameters.patch_type;
   p2.max_patch_lifetime = parameters.max_patch_lifetime;
+  // The window regime is built from these four by the same validate(): left
+  // behind, a "window" patch_type would refuse to build at all, and a copy
+  // that defaulted them silently would weight the rebound patch differently.
+  p2.window_start = parameters.window_start;
+  p2.window_end = parameters.window_end;
+  p2.window_weight_x = parameters.window_weight_x;
+  p2.window_weight_y = parameters.window_weight_y;
   p2.node_schedule_times_default = parameters.node_schedule_times_default;
   p2.node_schedule_times = parameters.node_schedule_times;
   p2.initial_time = parameters.initial_time;
@@ -980,7 +987,23 @@ double Patch<T,E>::net_reproduction_ratio_for_species(
   for (size_t i = 0; i < times.size(); ++i) {
     net_prod_scaled[i] = net_prod[i] * scalars[i];
   }
-  return util::trapezium(times, net_prod_scaled);
+  const double integral = util::trapezium(times, net_prod_scaled);
+  if (!survival_weighting->is_arrival_weighting()) {
+    return integral;
+  }
+  // An arrival weighting is normalised over the cohorts this run introduced,
+  // on the same grid and with the same trapezium: the weighted mean of their
+  // lifetime output, which a density stepping to zero at the window's edges
+  // would otherwise overstate by a trapezium interval per edge.
+  const double weight =
+    util::trapezium(times, species[species_index].r_patch_densities());
+  if (!(weight > 0.0)) {
+    util::stop("No cohort of species " + util::to_string(species_index + 1) +
+               " was introduced inside the arrival window, so its net "
+               "reproduction ratio is undefined: open the window over the "
+               "run's introductions.");
+  }
+  return integral / weight;
 }
 
 // Offspring production, equal to overall fitness scaled by the birth rate.

@@ -354,3 +354,78 @@ set_initial_state <- function(p, state) {
   p
 }
 
+
+##' Weight arrivals by a window of the run: the continuous patch's regime
+##' (plant issue #519). Where the default \code{"meta-population"} patch type
+##' weights a cohort by the density of patches at its age under a Weibull
+##' disturbance regime, this weights it by when it arrived in one long run: a
+##' cohort born inside \code{[start, end]} carries the tabulated weight at its
+##' birth date and a cohort born outside carries zero. The net reproduction
+##' ratio is then the weighted mean, over the cohorts the run introduced, of a
+##' cohort's lifetime output: the trapezium over birth dates of output times
+##' weight, divided by the trapezium of the weight on the same grid, so a
+##' uniform window is the exact mean however its edges sit against the
+##' introduction grid. Patch survival is one.
+##'
+##' With no knots the window is uniform, each birth date weighted
+##' \code{1 / (end - start)}. Knots give a piecewise-linear weight, held at the
+##' end knots' values beyond them: a germination opportunity built from the
+##' same rainfall series that drives the run, say.
+##'
+##' The run must extend past \code{end} by the longest lifespan that matters,
+##' or the last arrivals' output is truncated; and the window should open after
+##' the stand's burn-in, which \code{\link{export_patch_state}} lets a run pay
+##' once.
+##'
+##' @title Weight arrivals by a window
+##' @param p A \code{Parameters} object.
+##' @param start,end The window, in years of the run.
+##' @param weight_x,weight_y Optional knots of the weight over the window;
+##'   \code{weight_x} increasing, \code{weight_y} non-negative. Omit both for a
+##'   uniform window.
+##' @return The modified \code{Parameters} object, with
+##'   \code{patch_type = "window"}.
+##' @seealso \code{\link{node_schedule_times_periodic}}
+##' @export
+window_regime <- function(p, start, end, weight_x = numeric(0),
+                          weight_y = numeric(0)) {
+  if (!(is.numeric(start) && is.numeric(end) && length(start) == 1L &&
+        length(end) == 1L && end > start)) {
+    stop("`end` must exceed `start`")
+  }
+  if (length(weight_x) != length(weight_y)) {
+    stop("`weight_x` and `weight_y` must have the same length")
+  }
+  p$patch_type <- "window"
+  p$window_start <- as.numeric(start)
+  p$window_end <- as.numeric(end)
+  p$window_weight_x <- as.numeric(weight_x)
+  p$window_weight_y <- as.numeric(weight_y)
+  p
+}
+
+##' Node introduction times on a uniform grid, for a run that introduces a
+##' cohort periodically rather than on the front-loaded default schedule of
+##' \code{\link{node_schedule_times_default}}: the continuous patch (plant issue
+##' #519). Times run from \code{start} in steps of \code{by} and stop short of
+##' \code{end}, because a run ends at its last scheduled time and a cohort
+##' introduced there would never be integrated.
+##'
+##' @title Periodic node introduction times
+##' @param start First introduction time.
+##' @param end The run's end; no time is at or past it.
+##' @param by Spacing between introductions, in years.
+##' @return A numeric vector of introduction times, for one species of
+##'   \code{p$node_schedule_times}.
+##' @seealso \code{\link{window_regime}}
+##' @export
+node_schedule_times_periodic <- function(start, end, by) {
+  if (!(by > 0)) {
+    stop("`by` must be positive")
+  }
+  if (!(end > start)) {
+    stop("`end` must exceed `start`")
+  }
+  times <- seq(start, end, by = by)
+  times[times < end]
+}
