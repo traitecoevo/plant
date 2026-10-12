@@ -8,6 +8,11 @@
 ##   PLANT_519_SEEDS     comma-separated seeds of the series (1,2)
 ##   PLANT_519_LMA       comma-separated mutant lma values
 ##                       (0.05,0.06,0.0825,0.1,0.125,0.15,0.2)
+##   PLANT_519_BIRTH     comma-separated resident birth rate per seed (1); the
+##                       equilibrium values come from equilibrium.R
+##   PLANT_519_T1        window start; when set, the burn-in runs to it rather
+##                       than to convergence, so every series and birth rate
+##                       shares one window (0, unset)
 ##   plus the burn-in and window settings of workflow.R.
 
 suppressPackageStartupMessages(library(plant))
@@ -21,6 +26,9 @@ vec_env <- function(name, default) {
 }
 seeds      <- vec_env("PLANT_519_SEEDS", c(1, 2))
 lma_grid   <- vec_env("PLANT_519_LMA", c(0.05, 0.06, 0.0825, 0.1, 0.125, 0.15, 0.2))
+births     <- vec_env("PLANT_519_BIRTH", rep(1, length(seeds)))
+fixed_T1   <- num_env("PLANT_519_T1", 0)
+if (length(births) != length(seeds)) stop("one birth rate per seed")
 block      <- num_env("PLANT_519_BLOCK", 50)
 tol        <- num_env("PLANT_519_TOL", 0.15)
 burn_max   <- num_env("PLANT_519_BURN_MAX", 400)
@@ -47,15 +55,17 @@ make_env <- function() {
   env$extrinsic_drivers_set_constant("rainfall", 0)
   env
 }
-parameters_for <- function(lma, lifetime) {
+parameters_for <- function(lma, lifetime, birth = 1) {
   p <- scm_base_parameters("TF24")
   p$patch_type <- "fixed"
   p$max_patch_lifetime <- lifetime
-  add_strategies(p, trait_matrix(lma, "lma"), hyperpar = TF24_hyperpar, birth_rate = 1)
+  add_strategies(p, trait_matrix(lma, "lma"), hyperpar = TF24_hyperpar, birth_rate = birth)
 }
 
 landscape <- list()
-for (seed in seeds) {
+for (si in seq_along(seeds)) {
+  seed <- seeds[[si]]
+  birth <- births[[si]]
   set.seed(seed)
   n_pulses    <- rpois(1, lambda * series_tmax)
   pulse_time  <- sort(runif(n_pulses, 0, series_tmax))
@@ -67,21 +77,27 @@ for (seed in seeds) {
   }
 
   ## The resident's burn-in, exported where it settled.
-  p <- parameters_for(resident_lma, burn_max)
+  p <- parameters_for(resident_lma, burn_max, birth)
   p$node_schedule_times <- list(intro_times[intro_times < burn_max])
   scm <- plant:::SCM("TF24", "TF24_Env")(p, make_env(), events(node_introductions(p), pulses_in(0, burn_max)), ctrl)
-  w <- system.time(conv <- run_until_converged(scm, block = block, tol = tol, t_max = burn_max,
-                                               environment_entries = 1:5))[["elapsed"]]
+  if (fixed_T1 > 0) {
+    w <- system.time(scm$run_to(fixed_T1))[["elapsed"]]
+    conv <- list(converged = NA)
+  } else {
+    w <- system.time(conv <- run_until_converged(scm, block = block, tol = tol, t_max = burn_max,
+                                                 environment_entries = 1:5))[["elapsed"]]
+  }
   state <- export_patch_state(scm)
   T1 <- state$time
   T2 <- T1 + window
   T_end <- T2 + lifespan
-  stamp("seed %g: burn-in %s at %g yr (%.0f s)", seed, if (conv$converged) "converged" else "capped", T1, w)
+  stamp("seed %g, birth rate %.6g: burn-in %s at %g yr (%.0f s)", seed, birth,
+        if (is.na(conv$converged)) "run to the fixed window start" else if (conv$converged) "converged" else "capped", T1, w)
 
   ## The resident through the window, from the export.
   made <- max(state$node_times[[1]])
   schedule <- intro_times[intro_times > made & intro_times < T_end]
-  p2 <- parameters_for(resident_lma, T_end)
+  p2 <- parameters_for(resident_lma, T_end, birth)
   p2 <- set_initial_state(p2, state)
   p2 <- window_regime(p2, T1, T2)
   p2$node_schedule_times <- list(schedule)
@@ -109,7 +125,7 @@ for (seed in seeds) {
     pm$patch_type <- "fixed"
     pm$max_patch_lifetime <- T_end
     pm <- add_strategies(pm, trait_matrix(c(resident_lma, lma), "lma"),
-                         hyperpar = TF24_hyperpar, birth_rate = list(1, 1e-6))
+                         hyperpar = TF24_hyperpar, birth_rate = list(birth, birth * 1e-6))
     pm <- set_initial_state(pm, padded)
     pm <- window_regime(pm, T1, T2)
     pm$node_schedule_times <- list(schedule, schedule)
@@ -117,7 +133,7 @@ for (seed in seeds) {
     scm_m <- plant:::SCM("TF24", "TF24_Env")(pm, make_env(), evm, ctrl)
     w <- system.time(scm_m$run())[["elapsed"]]
     R <- scm_m$net_reproduction_ratios
-    landscape[[length(landscape) + 1]] <- data.frame(seed = seed, T1 = T1, lma = lma,
+    landscape[[length(landscape) + 1]] <- data.frame(seed = seed, birth = birth, T1 = T1, lma = lma,
                                                      resident = lma == resident_lma,
                                                      R = R[[2]], R_resident_beside = R[[1]], wall_s = w)
     stamp("seed %g: mutant lma %.4f R = %.4f, resident beside it %.4f (%.0f s)%s", seed, lma, R[[2]], R[[1]], w,
@@ -125,8 +141,9 @@ for (seed in seeds) {
   }
 }
 d <- do.call(rbind, landscape)
-write.csv(d, file.path(out_dir, "landscape.csv"), row.names = FALSE)
-saveRDS(d, file.path(out_dir, "landscape.rds"))
+out_name <- Sys.getenv("PLANT_519_NAME", "landscape")
+write.csv(d, file.path(out_dir, paste0(out_name, ".csv")), row.names = FALSE)
+saveRDS(d, file.path(out_dir, paste0(out_name, ".rds")))
 
 ## Relief against noise: log R by lma per series; the between-series difference
 ## at each lma; and whether the two series agree on where the landscape peaks.

@@ -167,7 +167,24 @@ The cost per simulated year is 2.71 ms per introduced cohort (a linear fit over 
 
 - The level of fitness differs by 16 % between the two series at a 100-year window, in line with the 13 % standard error measured above. The ratio of a mutant's fitness to the resident's differs by at most 0.36 % within ±0.0175 lma of the resident and by under 1 % out to lma 0.05: on a shared series the realisation noise is common to resident and mutant and cancels from the ratio, which is what selection acts on. The landscape's shape is the same on both series (log-scale correlation 1.000, every adjacent difference the same sign).
 - The resident's own strategy, invading, scores the resident's own ratio exactly (62.7272 beside a resident at 62.7272), within $1.1 \times 10^{-5}$ of the resident alone, which is the copy's own one-in-a-million shading.
-- ⚠️ The resident is at birth rate 1, not at its equilibrium ($R = 62.7$, not 1), so this is the landscape in a stand thinner than the resident would make for itself, and the direction of selection here (lower lma) is not yet the direction at equilibrium. The next measurement is the resident's equilibrium birth rate, the fixed point at $R = 1$, and the landscape again there.
+- The resident here is at birth rate 1, not at its equilibrium ($R = 62.7$), so this is the landscape in a stand thinner than the resident makes for itself. The next paragraph has it at equilibrium.
+
+**The landscape at the resident's equilibrium, measured.** [`equilibrium.R`](scripts/continuous-patch-519/equilibrium.R) finds, per series, the birth rate $b^*$ at which the resident's window-averaged fitness is one, by a root-find on $\log R$ in $\log b$ with every evaluation a run from empty over the same window [200, 300], so the realisation does not move with $b$ ([`output/equilibrium.csv`](scripts/continuous-patch-519/output/equilibrium.csv), [`output/equilibrium-evaluations.csv`](scripts/continuous-patch-519/output/equilibrium-evaluations.csv)). In production regnans owns this fixed point; this is a script to see the landscape there. [`landscape.R`](scripts/continuous-patch-519/landscape.R) with `PLANT_519_BIRTH` and `PLANT_519_T1 = 200` then reruns the sweep at $b^*$ ([`output/landscape-equilibrium.csv`](scripts/continuous-patch-519/output/landscape-equilibrium.csv)).
+
+- $b^* = 8.18$ on series 1 ($R = 1.0011$) and $9.03$ on series 2 ($R = 1.00002$), each in three root-find evaluations of about 30 s. $R(b)$ is smooth at fixed realisation, with a constant elasticity $d \log R / d \log b$ of $-2.3$ on both series from $b = 1$ to 10 and across $\pm 1$ % of $b^*$, so the fixed point is well posed; the stand at equilibrium is about four times denser than at $b = 1$ (2.3 to 2.5 against 0.6 individuals per m² in the window).
+
+| mutant lma | $R / R_{res}$ at $b^*$, series 1 | series 2 | gap | $R / R_{res}$ at $b = 1$, series 1 | series 2 |
+|---|---|---|---|---|---|
+| 0.05 | 2.647 | 2.703 | 2.1 % | 1.959 | 1.977 |
+| 0.06 | 2.255 | 2.273 | 0.8 % | 1.754 | 1.765 |
+| 0.0825 (resident) | 1 | 1 | 0 | 1 | 1 |
+| 0.10 | 0.394 | 0.414 | 5.2 % | 0.533 | 0.531 |
+| 0.125 | 0.087 | 0.098 | 13 % | 0.181 | 0.182 |
+| 0.15 | 0.015 | 0.018 | 20 % | 0.050 | 0.052 |
+
+- Selection favours lower lma at equilibrium as at $b = 1$, and more strongly: $d \log R / d\,\mathrm{lma}$ across [0.06, 0.10] is $-43.6$ and $-42.6$ on the two series at $b^*$ against $-29.8$ and $-30.0$ at $b = 1$. The denser stand sharpens selection rather than reversing it, and the landscape is monotone over the swept range, so the singular strategy, if there is one, lies below lma 0.05.
+- The two series agree on the gradient to 2.4 % and on mutants near the resident to 1 to 5 %. That is wider than at $b = 1$ (0.4 %), because at equilibrium each series has its own resident birth rate, so the two stands differ in density as well as in realisation; it is the right comparison, and it says one 100-year window resolves the direction and size of selection here to a few percent.
+- The resident's own strategy invading scores the resident beside it exactly on both series (1.0011, 1.0000).
 
 **Retirement, measured.** The same stand and the same pulse series rerun to 200 years with `retire_survival = 1e-9` ([`output/chunks-retire-1e-9.csv`](scripts/continuous-patch-519/output/chunks-retire-1e-9.csv)):
 
