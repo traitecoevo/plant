@@ -398,6 +398,24 @@ public:
   // everywhere but the invasion pass -- see `solved_values`.
   void set_keep_field(bool keep) { keep_field = keep; }
 
+  // The field this patch stands in now, packaged as a recording keeps one: what
+  // an invader of a RESUMED resident stands in at the run's first instant. A
+  // recording's first row is the state the run started from and no step reached
+  // it, so it carries no field; an insertion at that instant -- the resident's
+  // first introduction, at the resume time -- would otherwise be made in the
+  // invader's own empty canopy.
+  recorded_field current_field() const {
+    recorded_field f;
+    f.interpolators = environment.get_interpolators_state();
+    f.state.assign(environment.ode_size(), 0.0);
+    environment.ode_state(f.state.begin());
+    f.time = environment.time;
+    f.kept = true;
+    return f;
+  }
+  // Stand in `f` until a recorded row hands over another; see current_field().
+  void stand_in(const recorded_field* f) { loaded_field = f; }
+
   // A recorded state loaded as the run itself carries it. set_ode_state evaluates
   // the inflow condition in the field that leaves the boundary interval off, then
   // rebuilds the field including it; the run then rates the nodes and evaluates

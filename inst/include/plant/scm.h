@@ -170,6 +170,14 @@ public:
   // Its program is not held beside it: a recording IS a program, row by row, and
   // two containers that have to agree can be made to disagree.
   std::vector<odelia::ode::step_record<patch_type>> resident_recording;
+  // The resident's field at the recording's first row, kept for a resident
+  // resumed from a saved state: its first introduction can fall at that very
+  // instant, before any recorded step hands an invader the field, and the
+  // invader must stand in the resident's canopy there, not its own empty one.
+  // Unused for a resident run from empty, whose field at that instant is the
+  // empty patch's, the same as an invader's.
+  recorded_field resident_start_field;
+  bool resident_resumed = false;
 
   // True once every scheduled node introduction has been consumed.
   bool complete() const;
@@ -857,6 +865,12 @@ void SCM<T, E>::run_mutant(parameters_type p) {
     patch.set_keep_field(false);
     const trajectory rec = solver.recording();
     resident_recording.assign(rec.begin(), rec.end());
+    resident_resumed = !parameters.initial_state.empty();
+    if (resident_resumed) {
+      patch_type& live = solver.get_system_ref();
+      odelia::ode::be_at_step(live, trajectory(resident_recording), 0);
+      resident_start_field = live.current_field();
+    }
   }
 
   // Destructive, as it has always been: the mutants become this SCM's community,
@@ -871,6 +885,9 @@ void SCM<T, E>::run_mutant(parameters_type p) {
   // them, and a recording of a replay is a copy of its own input that nobody
   // reads -- a state vector and six rows per step, for every invader in a sweep.
   solver.set_keep_states(false);
+  if (resident_resumed) {
+    solver.get_system_ref().stand_in(&resident_start_field);
+  }
   solver.advance_recorded(resident_recording);
   patch = solver.get_system_ref();
 }
