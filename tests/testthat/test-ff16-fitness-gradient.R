@@ -85,9 +85,13 @@ test_that("the fitness gradient is the pinned-step central difference", {
   }
   # With a constant birth rate the offspring production is the net reproduction
   # ratio times that rate, column for column.
+  # Every column but the birth rate's own, which carries the ratio itself too
+  # (test-ff16-birth-rate-gradient.R has that one).
   b <- scm$parameters$strategies[[1]]$birth_rate_y
-  expect_equal(g$gradient["1.offspring_production", ],
-               b * g$gradient["1.net_reproduction_ratio", ], tolerance = 1e-12)
+  traits <- setdiff(colnames(g$gradient), "1.birth_rate")
+  expect_equal(g$gradient["1.offspring_production", traits],
+               b * g$gradient["1.net_reproduction_ratio", traits],
+               tolerance = 1e-12)
   # S_D multiplies the whole integral, so its column is the value over S_D.
   S_D <- scm$parameters$strategies[[1]]$pars$S_D
   expect_equal(g$gradient["1.net_reproduction_ratio", "1.S_D"],

@@ -11,6 +11,7 @@
 #include <odelia/sweep.hpp>
 
 #include <algorithm>
+#include <map>
 #include <cmath>
 #include <limits>
 #include <span>
@@ -139,6 +140,12 @@ public:
   // Its program is not held beside it: a recording IS a program, row by row, and
   // two containers that have to agree can be made to disagree.
   std::vector<odelia::ode::step_record<patch_type>> resident_recording;
+
+  // Whether the last integration was an invasion (run_mutant) rather than a run.
+  // A record of an invasion is swept against the field it loaded; a run on the
+  // same SCM would overwrite that with the invaders' own, so the two have to be
+  // told apart where a record is asked for.
+  bool invasion = false;
 
   // True once every scheduled node introduction has been consumed.
   bool complete() const;
@@ -617,6 +624,7 @@ template <typename T, typename E> void SCM<T, E>::run() {
   // it is the solver's: the choices this run's rate evaluations make are the same
   // recording as its states, so what keeps the states is what says the choices are
   // kept too.
+  invasion = false;
   solver.set_keep_states(record_trajectory);
   reset();
   // The solver owns the live patch system; operate on it directly during the
@@ -790,11 +798,16 @@ void SCM<T, E>::run_mutant(parameters_type p) {
   patch.overwrite_strategies(parameters.strategies);
   node_schedule = make_node_schedule(parameters);
   reset();
-  // ⚠️ A REPLAY KEEPS NOTHING. It is the recording's consumer, not another one of
-  // them, and a recording of a replay is a copy of its own input that nobody
-  // reads -- a state vector and six rows per step, for every invader in a sweep.
-  solver.set_keep_states(false);
+  // A replay keeps its states only when asked, as a run does: a recording of a
+  // replay is a state vector and six rows per step for every invader in a
+  // sweep, and nothing reads it unless a gradient is taken. When one is, the
+  // record carries the resident's field in every row (odelia 0.7.2), so the
+  // sweep loads it exactly as the replay did: the field is exogenous to the
+  // invader and its derivative is zero rather than severed. That is the
+  // rare-mutant derivative, the canopy held at the recorded resident.
+  solver.set_keep_states(record_trajectory);
   solver.advance_recorded(resident_recording);
+  invasion = true;
   patch = solver.get_system_ref();
 }
 
@@ -807,6 +820,15 @@ typename SCM<T, E>::trajectory SCM<T, E>::store_trajectory() {
   // Asked of this flag and not of the solver: run() is what sets the solver's
   // from this one, so asking the solver is asking it what it was just told.
   if (!record_trajectory) {
+    // ⚠️ NOT FOR AN INVASION. run() would integrate the invaders as residents,
+    // shading themselves, and the gradient taken on that record would be the
+    // resident-feedback derivative of a different stand with every number
+    // finite. The invasion has to be re-run with the flag set before it.
+    if (invasion) {
+      util::stop("store_trajectory: run_mutant() kept no states, so there is "
+                 "nothing to sweep; set record_trajectory = TRUE before "
+                 "run_mutant() and run it again");
+    }
     record_trajectory = true;
     run();
   }
@@ -1190,6 +1212,21 @@ SCM<T, E>::census_trait_gradient(const std::vector<size_t>& extra_stops,
   store_trajectory();
 
   patch_type& live = solver.get_system_ref();
+
+  // A sweep of an invasion reaches each introduction, and the first rates
+  // after it, with no row to load: hand the patch the field the invasion stood
+  // in there, the one its last evaluation before the introduction loaded.
+  if (invasion) {
+    std::map<double, const recorded_field*> fields;
+    const auto& rec = resident_recording;
+    for (size_t at = 2; at < rec.size(); ++at) {
+      if (rec[at].insertion && !rec[at - 1].insertion &&
+          rec[at - 1].solved[5].field.kept) {
+        fields[rec[at].time] = &rec[at - 1].solved[5].field;
+      }
+    }
+    live.set_introduction_fields(fields);
+  }
 
   // Cleared here so that a previous call's degeneracy cannot refuse this one.
   clear_recorded_refusal(live);

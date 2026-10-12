@@ -352,17 +352,38 @@ public:
 
   using ad_parameter = typename FF16_Pars<S>::ad_parameter;
 
+  // The birth rate a constant-birth-rate species is run at, held at the
+  // working scalar so that it is a gradient column: it reaches the inflow
+  // condition (the density every cohort is born at) and the offspring
+  // integral's scalars. A variable birth rate is a driver read as a double and
+  // carries no column, so that species' gradient has one column fewer rather
+  // than a zero that reads as an answer. Set by prepare_strategy() from
+  // birth_rate_y, carried by assign_from().
+  S birth_rate_ = 1.0;
+  bool has_birth_rate_column() const { return !this->is_variable_birth_rate; }
+  S birth_rate_at(double t) const {
+    return has_birth_rate_column()
+             ? birth_rate_
+             : S(this->extrinsic_drivers.evaluate("birth_rate", t));
+  }
+
   // How many gradient columns one of these carries, for a caller sizing a batch.
-  static constexpr size_t ad_column_count = FF16_Pars<S>::column_count;
+  size_t ad_column_count() const {
+    return FF16_Pars<S>::column_count + (has_birth_rate_column() ? 1 : 0);
+  }
 
   // Addresses of the parameters a gradient can be taken with respect to, in the
-  // order ad_parameter_names() gives. The strategy is shared and the fields do
-  // not move, so take them once per gradient evaluation.
+  // order ad_parameter_names() gives: the parameter table's columns, then the
+  // birth rate where it is one. The strategy is shared and the fields do not
+  // move, so take them once per gradient evaluation.
   std::vector<S*> ad_parameters() {
     std::vector<S*> ret;
-    ret.reserve(FF16_Pars<S>::column_count);
+    ret.reserve(ad_column_count());
     for (const ad_parameter& p : FF16_Pars<S>::ad_parameter_columns) {
       ret.push_back(&(pars.*p.at));
+    }
+    if (has_birth_rate_column()) {
+      ret.push_back(&birth_rate_);
     }
     return ret;
   }
@@ -371,9 +392,12 @@ public:
   // that order. Which parameters are left out, and why, is `undifferentiable`.
   std::vector<std::string> ad_parameter_names() {
     std::vector<std::string> ret;
-    ret.reserve(FF16_Pars<S>::column_count);
+    ret.reserve(ad_column_count());
     for (const ad_parameter& p : FF16_Pars<S>::ad_parameter_columns) {
       ret.push_back(p.name);
+    }
+    if (has_birth_rate_column()) {
+      ret.push_back("birth_rate");
     }
     return ret;
   }
@@ -725,6 +749,7 @@ public:
     // eta carries no column, so the shape factor is carried passive, as the
     // canopy shape's own eta is.
     eta_c = S(odelia::util::to_passive(src.eta_c));
+    birth_rate_ = S(odelia::util::to_passive(src.birth_rate_));
     bind_shading_model(src.shading_model_);
     height_0 = src.height_0;
     dmass_dheight_0 = src.dmass_dheight_0;
@@ -756,6 +781,7 @@ public:
     for (const ad_parameter& field : pars.ad_parameter_table()) {
       f(pars.*field.at);
     }
+    f(birth_rate_);
   }
 
   // Biological (user-settable) parameters; see FF16_Pars above.
@@ -1507,6 +1533,7 @@ void FF16_Strategy<S>::prepare_strategy() {
                                          odelia::drivers::Slopes::monotone);
   } else {
     this->extrinsic_drivers.set_constant("birth_rate", this->birth_rate_y[0]);
+    birth_rate_ = this->birth_rate_y[0];
   }
 }
 

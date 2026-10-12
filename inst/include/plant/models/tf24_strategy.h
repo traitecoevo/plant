@@ -870,7 +870,7 @@ public:
   using ad_parameter = typename TF24_Pars<S>::ad_parameter;
 
   // How many gradient columns one of these carries, for a caller sizing a batch.
-  static constexpr size_t ad_column_count = TF24_Pars<S>::column_count;
+  size_t ad_column_count() const { return TF24_Pars<S>::column_count; }
 
   // Addresses of the parameters a gradient can be taken with respect to, in the
   // order ad_parameter_names() gives: the table entries whose role has a column.

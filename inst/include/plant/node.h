@@ -23,7 +23,7 @@ public:
   Node(strategy_type_ptr s);
 
   void compute_rates(const environment_type& environment, double pr_patch_survival);
-  void compute_initial_conditions(const environment_type& environment, double pr_patch_survival, double birth_rate);
+  void compute_initial_conditions(const environment_type& environment, double pr_patch_survival, const value_type& birth_rate);
 
   // Wrapper to growth_rate_gradient for testing
   value_type r_growth_rate_gradient(const environment_type& environment);
@@ -219,7 +219,8 @@ void Node<T,E>::compute_rates(const environment_type& environment,
 // defined on p 7 at the moment.
 template <typename T, typename E>
 void Node<T,E>::compute_initial_conditions(const environment_type& environment,
-                                             double pr_patch_survival, double birth_rate) {
+                                             double pr_patch_survival,
+                                             const value_type& birth_rate) {
   pr_patch_survival_at_birth = pr_patch_survival;
   // Seed strategy-specific initial states (e.g. TF24f's tracked psi at its
   // optimum) before the first rates evaluation, so the birth growth rate uses

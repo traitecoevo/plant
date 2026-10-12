@@ -168,6 +168,21 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##'   \code{phylloptim} derives for itself, so setting one reaches no equation
 ##'   and asking for its gradient errors rather than returning a zero.
 ##'
+##' @section An invader against a recorded resident:
+##' Set \code{scm$record_trajectory <- TRUE} before \code{scm$run_mutant(p)}
+##' and the invasion replay keeps its states; a gradient taken then is of the
+##' invaders' metrics with the canopy held at the recorded resident -- the
+##' field is exogenous to the invader and carries no derivative -- which is the
+##' rare-mutant derivative. Several invaders in \code{p} are swept together,
+##' each with its own columns. A sweep of an invasion that kept no states is
+##' refused rather than re-run.
+##'
+##' @section The birth rate:
+##' For a species run at a constant birth rate the column
+##' \code{"<species>.birth_rate"} is the derivative with respect to that rate,
+##' which reaches the density every cohort is born at and the offspring
+##' integral. A species with a variable birth rate has no such column.
+##'
 ##' @section A single entry can dominate a second moment:
 ##' A gradient taken where the run crosses an unresolved event — a cohort
 ##' reaching \code{hmat} between two steps, say — is a derivative of the

@@ -60,7 +60,9 @@ test_that("FF16 declares the three census metrics and names its columns", {
   pars <- names(FF16_Strategy()$pars)
   cannot <- names(census_undifferentiable_ff16())
   expect_setequal(cannot, "eta")
-  expect_setequal(colnames(g$gradient), paste0("1.", setdiff(pars, cannot)))
+  # ... plus the birth rate, a column of its own for a constant rate.
+  expect_setequal(colnames(g$gradient),
+                  paste0("1.", c(setdiff(pars, cannot), "birth_rate")))
   expect_false(any(stand_gradient_refused(g)))
   expect_error(stand_gradient(scm, traits = "1.eta"), "No gradient exists")
 })

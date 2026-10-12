@@ -17,6 +17,7 @@
 #include <cmath>
 #include <limits>
 #include <sstream>
+#include <map>
 #include <string>
 #include <utility> // std::pair
 
@@ -167,7 +168,7 @@ public:
   // birth). The two R-facing double forms below are this with the derivative
   // dropped, so the number a sweep differentiates is the number R reports.
   value_type fitness_integral(size_t species_index,
-                              const std::vector<double>& scalars) const;
+                              const std::vector<value_type>& scalars) const;
   value_type net_reproduction_ratio_of(size_t species_index) const;
   value_type offspring_production_of(size_t species_index) const;
 
@@ -387,6 +388,7 @@ public:
       }
     }
     loaded_field = from.field.kept ? &from.field : nullptr;
+    field_fresh = loaded_field != nullptr;
   }
   void end_solved() {
     if constexpr (KeepsSolvedChoices<strategy_type>) {
@@ -395,6 +397,7 @@ public:
       }
     }
     field_slot = nullptr;
+    field_fresh = false;
     // ⚠️ `loaded_field` IS NOT CLEARED HERE, and that is the point. A field is a
     // state of the world the patch stands in, not a loan for one evaluation: an
     // INSERTION happens between two rows, at the instant the row below it ended,
@@ -407,6 +410,18 @@ public:
   // Keep the field this run stands in, so a later run can stand in it. Off
   // everywhere but the invasion pass -- see `solved_values`.
   void set_keep_field(bool keep) { keep_field = keep; }
+
+  // The field an invasion stood in at each of its introductions, by the
+  // instant of the introduction. An insertion is a map between two rows and
+  // the first rates after it are taken at a state no row holds, so a sweep
+  // reaches both with no row to load; the run stood in the field its last
+  // evaluation loaded, which is the one named here. Consulted wherever no
+  // field is loaded, and only at exactly these instants. Installed by the SCM
+  // before a sweep of an invasion, carried by a rebind, and cleared by reset().
+  void set_introduction_fields(
+      const std::map<double, const recorded_field*>& fields) {
+    introduction_fields = fields;
+  }
 
   // A recorded state loaded as the run itself carries it. set_ode_state evaluates
   // the inflow condition in the field that leaves the boundary interval off, then
@@ -509,6 +524,13 @@ private:
   // end_solved(). It points into a recording the SCM holds for as long as it can
   // replay one, and reset() clears it.
   const recorded_field* loaded_field = nullptr;
+  std::map<double, const recorded_field*> introduction_fields;
+  // Whether `loaded_field` was loaded by the evaluation now running. A field
+  // this evaluation loaded is for this instant and a mismatch is a mispaired
+  // recording; one that persists from an earlier evaluation serves only the
+  // instant it belongs to (an insertion at that instant, and the first rates
+  // after it) and lapses at any other.
+  bool field_fresh = false;
   recorded_field* field_slot = nullptr;
 
   // Seed the patch from parameters.initial_state (nodes + birth bookkeeping)
@@ -660,6 +682,7 @@ Patch<at_scalar<T, U>, at_scalar<E, U>> Patch<T,E>::rebind_from() const {
   out.environment.set_shading_model(control.shading_model,
                                     control.ppa_layer_optical_depth,
                                     control.ppa_layer_smoothing);
+  out.introduction_fields = introduction_fields;
   // The field and the boundary node are left to the caller. Every caller sets a
   // state through set_ode_state or set_state_and_boundary before reading
   // either, and both rebuild the field and re-evaluate the inflow condition, so
@@ -689,6 +712,7 @@ void Patch<T,E>::reset() {
   // A fresh run stands in no recorded field until a row hands it one.
   loaded_field = nullptr;
   field_slot = nullptr;
+  introduction_fields.clear();
    for (auto& s : species) {
     s.clear();
     // allocate variables for tracking resource consumption
@@ -938,7 +962,7 @@ std::vector<double> Patch<T,E>::r_compute_competition_effect_error_by_node_for_s
 // Integrate over lifetime fitness of individual nodes, scaled per node.
 template <typename T, typename E>
 typename Patch<T,E>::value_type Patch<T,E>::fitness_integral(
-    size_t species_index, std::vector<double> const& scalars) const {
+    size_t species_index, std::vector<value_type> const& scalars) const {
   const std::vector<value_type> net_prod =
     species[species_index].weighted_fecundity_by_node();
   auto const times = species[species_index].node_times();
@@ -952,7 +976,8 @@ typename Patch<T,E>::value_type Patch<T,E>::fitness_integral(
 template <typename T, typename E>
 double Patch<T,E>::net_reproduction_ratio_for_species(
     size_t species_index, std::vector<double> const& scalars) const {
-  return odelia::util::to_passive(fitness_integral(species_index, scalars));
+  return odelia::util::to_passive(fitness_integral(
+      species_index, std::vector<value_type>(scalars.begin(), scalars.end())));
 }
 
 // Offspring production, equal to overall fitness scaled by the birth rate.
@@ -961,9 +986,9 @@ typename Patch<T,E>::value_type
 Patch<T,E>::offspring_production_of(size_t i) const {
   // scale by birth rate function over time
   auto const times = species[i].node_times();
-  auto scalars = std::vector<double>(times.size());
+  auto scalars = std::vector<value_type>(times.size());
   for (size_t j = 0; j < times.size(); ++j) {
-    scalars[j] = species[i].extrinsic_drivers().evaluate("birth_rate", times[j]);
+    scalars[j] = species[i].strategy_ptr()->birth_rate_at(times[j]);
   }
   return fitness_integral(i, scalars);
 }
@@ -972,7 +997,7 @@ Patch<T,E>::offspring_production_of(size_t i) const {
 template <typename T, typename E>
 typename Patch<T,E>::value_type
 Patch<T,E>::net_reproduction_ratio_of(size_t i) const {
-  auto scalars = std::vector<double>(species[i].size(), 1.0);
+  auto scalars = std::vector<value_type>(species[i].size(), value_type(1.0));
   return fitness_integral(i, scalars);
 }
 
@@ -1075,8 +1100,7 @@ void Patch<T,E>::compute_boundary_nodes() {
   const double time_ = environment.time;
   const double pr_patch_survival = survival_weighting->pr_survival(time_);
   for (size_t i = 0; i < size(); ++i) {
-    const double birth_rate =
-      species[i].extrinsic_drivers().evaluate("birth_rate", time_);
+    const value_type birth_rate = species[i].strategy_ptr()->birth_rate_at(time_);
     species[i].compute_boundary_node(environment, pr_patch_survival, birth_rate);
   }
 }
@@ -1123,6 +1147,21 @@ void Patch<T,E>::compute_environment() {
   // ⚠️ THE INSTANT IS CHECKED. The field and the state reach here by different
   // routes, and a recording paired one step out would hand every evaluation its
   // neighbour's field with every number finite.
+  // A field that persists from an earlier evaluation is for the instant it was
+  // loaded at: an insertion at that instant and the first rates after it stand
+  // in it, as the run did, and at any other instant it lapses and the patch
+  // builds its own. Only a field THIS evaluation loaded is held to the instant
+  // exactly, because a mismatch there is a mispaired recording.
+  if (loaded_field != nullptr && !field_fresh &&
+      loaded_field->time != environment.time) {
+    loaded_field = nullptr;
+  }
+  if (loaded_field == nullptr && !introduction_fields.empty()) {
+    const auto at = introduction_fields.find(environment.time);
+    if (at != introduction_fields.end()) {
+      loaded_field = at->second;
+    }
+  }
   if (loaded_field != nullptr) {
     if (!util::identical(loaded_field->time, environment.time)) {
       // ⚠️ EVERY DIGIT, because the two instants a mispaired recording hands over
@@ -1227,7 +1266,7 @@ void Patch<T,E>::compute_rates() {
 
   double pr_patch_survival = survival_weighting->pr_survival(time_);
   for (size_t i = 0; i < size(); ++i) {
-    double birth_rate = species[i].extrinsic_drivers().evaluate("birth_rate", time_);
+    const value_type birth_rate = species[i].strategy_ptr()->birth_rate_at(time_);
 
     species[i].compute_rates(env, pr_patch_survival, birth_rate);
   }
@@ -1601,7 +1640,11 @@ std::vector<typename T::value_type*> Patch<T,E>::ad_parameters() {
 // length. It is asked several times per gradient.
 template <typename T, typename E>
 size_t Patch<T,E>::trait_adjoint_size() const {
-  return species.size() * T::ad_column_count;
+  size_t n = 0;
+  for (size_t i = 0; i < species.size(); ++i) {
+    n += species[i].strategy_ptr()->ad_column_count();
+  }
+  return n;
 }
 
 template <typename T, typename E>
@@ -1706,6 +1749,11 @@ void Patch<T,E>::apply_insertion(const introduction& species_index, double time,
 template <typename T, typename E>
 void Patch<T,E>::set_recorded_state(const std::vector<value_type>& y,
                                     double time) {
+  // A field an invasion loaded is for the instant of its last rate evaluation,
+  // and this call puts the patch at any recorded instant: left installed, the
+  // field's own time check refuses the mismatch. The sweep loads the row's own
+  // field on the active copy at every stage, so nothing here reads this one.
+  loaded_field = nullptr;
   reshape_to(time);
   util::check_length(y.size(), ode_size());
   set_state_and_boundary(y.begin(), time);

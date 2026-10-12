@@ -123,7 +123,8 @@ public:
   // of compute_rates() so the field build owns it and the field stops reading a
   // density carried from the previous evaluation.
   void compute_boundary_node(const environment_type& environment,
-                             double pr_patch_survival, double birth_rate) {
+                             double pr_patch_survival,
+                             const value_type& birth_rate) {
     new_node.compute_initial_conditions(environment, pr_patch_survival, birth_rate);
   }
 
@@ -165,7 +166,7 @@ public:
     invalidate_height_scan();
     return base_type::set_ode_state(it);
   }
-  void compute_rates(const environment_type& environment, double pr_patch_survival, double birth_rate);
+  void compute_rates(const environment_type& environment, double pr_patch_survival, const value_type& birth_rate);
 
   std::vector<double> net_reproduction_ratio_by_node() const;
   // Per-node lifetime offspring, weighted by patch-age density and S_D.
@@ -712,7 +713,7 @@ Species<T,E>::close_competition_and_slope(const competition_split& c,
 }
 
 template <typename T, typename E>
-void Species<T,E>::compute_rates(const E& environment, double pr_patch_survival, double birth_rate) {
+void Species<T,E>::compute_rates(const E& environment, double pr_patch_survival, const value_type& birth_rate) {
   for (auto& c : nodes) {
     c.compute_rates(environment, pr_patch_survival);
   }
