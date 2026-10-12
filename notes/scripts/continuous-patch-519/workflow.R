@@ -12,7 +12,7 @@
 ##   PLANT_519_WINDOW     window length (100)
 ##   PLANT_519_LIFESPAN   years run past the window so its last arrivals live
 ##                        out their output (50; the pilot's cohorts die by 30)
-##   PLANT_519_RETIRE     control$retire_survival (1e-9)
+##   PLANT_519_ABSORB     control$absorb_epsilon, the absorbing top layer (0.05)
 ##   PLANT_519_OUT        output directory
 
 suppressPackageStartupMessages(library(plant))
@@ -25,7 +25,7 @@ tol        <- num_env("PLANT_519_TOL", 0.15)
 burn_max   <- num_env("PLANT_519_BURN_MAX", 400)
 window     <- num_env("PLANT_519_WINDOW", 100)
 lifespan   <- num_env("PLANT_519_LIFESPAN", 50)
-retire     <- num_env("PLANT_519_RETIRE", 1e-9)
+absorb     <- num_env("PLANT_519_ABSORB", 0.05)
 lambda     <- num_env("PLANT_519_LAMBDA", 20)
 mean_depth <- num_env("PLANT_519_DEPTH", 0.014)
 seed       <- num_env("PLANT_519_SEED", 1)
@@ -36,9 +36,9 @@ stamp <- function(...) {
   cat(format(Sys.time(), "%H:%M:%S"), sprintf(...), "\n", sep = " ")
   flush(stdout())
 }
-stamp("plant %s at %s; block %g, tol %g, burn-in cap %g, window %g, lifespan %g, retire %g",
+stamp("plant %s at %s; block %g, tol %g, burn-in cap %g, window %g, lifespan %g, absorb %g",
       as.character(packageVersion("plant")), find.package("plant"), block, tol, burn_max,
-      window, lifespan, retire)
+      window, lifespan, absorb)
 
 set.seed(seed)
 n_pulses    <- rpois(1, lambda * series_tmax)
@@ -53,7 +53,7 @@ base_parameters <- function(lifetime) {
   add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = TF24_hyperpar, birth_rate = 1)
 }
 ctrl <- control(node_density_in_birth_date = TRUE, ode_step_size_max = 0.05,
-                retire_survival = retire)
+                absorb_epsilon = absorb)
 make_env <- function() {
   env <- Environment("TF24")
   env$extrinsic_drivers_set_constant("rainfall", 0)

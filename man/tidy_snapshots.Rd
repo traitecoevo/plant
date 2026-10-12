@@ -13,7 +13,9 @@ tidy_snapshots(scm)
 \value{
 A list of three: \code{species}, a data frame with one row per
   snapshot and species (\code{time}, \code{species}, \code{n_nodes},
-  \code{n_live}, \code{n_retired}, \code{height_max}, \code{density});
+  \code{n_live}, \code{n_retired}, \code{height_max}, \code{density},
+  which includes what the absorbing top layer carries, and
+  \code{top_density});
   \code{environment}, a data frame with one row per snapshot of \code{time}
   and the environment's state entries (\code{env_1}, ...); and
   \code{fecundity}, a list over snapshots of lists over species of each

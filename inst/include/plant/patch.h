@@ -161,8 +161,11 @@ public:
   // These are patch-level quantities: each integrates the per-node weighted
   // net reproduction over a species' node-introduction times.
   // Integrate lifetime fitness of a species' nodes, scaled per node.
+  // `birth_scaled` says the scalars are the birth rate at each birth date, so
+  // the top layer's seed output is read on the same scale.
   double net_reproduction_ratio_for_species(size_t species_index,
-                                            std::vector<double> const& scalars) const;
+                                            std::vector<double> const& scalars,
+                                            bool birth_scaled = false) const;
   // Offspring production: fitness scaled by the birth rate over time.
   std::vector<double> offspring_production() const;
   // Overall fitness (unscaled, scalars == 1).
@@ -540,14 +543,24 @@ private:
   // value can propagate into competition, resource uptake, or physiology and
   // surface as an opaque downstream error.
   void check_finite_ode_state() const;
-  // Retirement rests on density only ever falling, which holds on the
+  // The top layer rests on density only ever falling, which holds on the
   // birth-date coordinate alone: on the height coordinate the transport term
   // can raise it. Refused at construction, where the control is first seen.
   void check_retirement_coordinate() const {
-    if (control.retire_survival > 0.0 && !control.node_density_in_birth_date) {
-      util::stop("control$retire_survival needs the birth-date size-density "
-                 "coordinate (control$node_density_in_birth_date = TRUE): "
-                 "only there does a cohort's density never rise again.");
+    if (control.absorb_epsilon > 0.0) {
+      if (!control.node_density_in_birth_date) {
+        util::stop("control$absorb_epsilon needs the birth-date size-density "
+                   "coordinate (control$node_density_in_birth_date = TRUE)");
+      }
+      if (!(control.absorb_epsilon < 0.5)) {
+        util::stop("control$absorb_epsilon must lie in (0, 0.5): it is the "
+                   "fraction of maximal allocation to reproduction not yet "
+                   "reached at the absorbing height");
+      }
+      if constexpr (!HasAsymptoticHeight<T>) {
+        util::stop("control$absorb_epsilon needs a strategy that declares an "
+                   "asymptotic height, and this one does not");
+      }
     }
   }
   // Guard the birth-date coordinate's quadrature grid: it is the per-node
@@ -561,13 +574,14 @@ private:
   // rebuilt are stamped by the same expression.
   void push_nodes(const introduction& species_index, double time);
 
-  // The retirement half of an introduction instant: every cohort below
-  // control.retire_survival goes to exactly zero density before the new one is
-  // pushed. Part of the insertion map and of nothing else, so a replay or a
-  // sweep that applies the map applies this too, and a reconciliation that only
-  // rebuilds the shape (reshape_to) does not -- the state it loads already
-  // carries the zeros. A no-op at the default floor of zero.
-  void retire_dead();
+  // The absorbing half of an introduction instant: every cohort that has
+  // reached its species' asymptotic height goes into the top layer
+  // (Species::absorb_tall) before the new cohort is pushed. Part of the
+  // insertion map and of nothing else, so a replay or a sweep that applies the
+  // map applies this too, and a reconciliation that only rebuilds the shape
+  // (reshape_to) does not -- the state it loads already carries the zeros and
+  // the layer. A no-op with control.absorb_epsilon zero.
+  void absorb_tall();
 
   parameters_type parameters;
 
@@ -1009,7 +1023,12 @@ std::vector<double> Patch<T,E>::r_compute_competition_effect_error_by_node_for_s
 // Integrate over lifetime fitness of individual nodes, scaled per node.
 template <typename T, typename E>
 double Patch<T,E>::net_reproduction_ratio_for_species(
-    size_t species_index, std::vector<double> const& scalars) const {
+    size_t species_index, std::vector<double> const& scalars,
+    bool birth_scaled) const {
+  // The seed output of cohorts absorbed into the top layer after they were
+  // absorbed: what they accrued before is still on their nodes.
+  const double top_seeds =
+    odelia::util::to_passive(species[species_index].top_seeds(birth_scaled));
   auto net_prod = species[species_index].net_reproduction_ratio_by_node_weighted();
   auto const times = species[species_index].node_times();
   auto net_prod_scaled = std::vector<double>(times.size());
@@ -1017,7 +1036,7 @@ double Patch<T,E>::net_reproduction_ratio_for_species(
     net_prod_scaled[i] = net_prod[i] * scalars[i];
   }
   if (!survival_weighting->is_arrival_weighting()) {
-    return util::trapezium(times, net_prod_scaled);
+    return util::trapezium(times, net_prod_scaled) + top_seeds;
   }
   // An arrival weighting is the weighted mean of lifetime output over the
   // cohorts the window weights, taken by the trapezium over THOSE cohorts
@@ -1046,13 +1065,13 @@ double Patch<T,E>::net_reproduction_ratio_for_species(
   }
   if (first == last) {
     // One cohort in the window: its output is the mean.
-    return net_prod_scaled[first] / weight[first];
+    return (net_prod_scaled[first] + top_seeds) / weight[first];
   }
   const std::vector<double> t(times.begin() + first, times.begin() + last + 1);
   const std::vector<double> num(net_prod_scaled.begin() + first,
                                 net_prod_scaled.begin() + last + 1);
   const std::vector<double> den(weight.begin() + first, weight.begin() + last + 1);
-  return util::trapezium(t, num) / util::trapezium(t, den);
+  return (util::trapezium(t, num) + top_seeds) / util::trapezium(t, den);
 }
 
 // Offspring production, equal to overall fitness scaled by the birth rate.
@@ -1066,7 +1085,7 @@ std::vector<double> Patch<T,E>::offspring_production() const {
     for (size_t j = 0; j < times.size(); ++j) {
       scalars[j] = species[i].extrinsic_drivers().evaluate("birth_rate", times[j]);
     }
-    ret[i] = net_reproduction_ratio_for_species(i, scalars);
+    ret[i] = net_reproduction_ratio_for_species(i, scalars, true);
   }
   return ret;
 }
@@ -1341,7 +1360,7 @@ void Patch<T,E>::compute_rates() {
 // would write a subrange of the same positions.
 template <typename T, typename E>
 void Patch<T,E>::introduce_nodes(const introduction& species_index, double time) {
-  retire_dead();
+  absorb_tall();
   push_nodes(species_index, time);
 
   // A schedule carrying the same time twice for one species stamps two nodes
@@ -1360,12 +1379,13 @@ void Patch<T,E>::introduce_nodes(const introduction& species_index, double time)
 // and the patch density and survival there. All three are functions of the time
 // it is introduced at, which is what lets a record hold only the time.
 template <typename T, typename E>
-void Patch<T,E>::retire_dead() {
-  if (!(control.retire_survival > 0.0)) {
+void Patch<T,E>::absorb_tall() {
+  if (!(control.absorb_epsilon > 0.0)) {
     return;
   }
+  const bool arrival = survival_weighting->is_arrival_weighting();
   for (species_type& s : species) {
-    s.retire_below(control.retire_survival);
+    s.absorb_tall(arrival);
   }
 }
 
@@ -1793,7 +1813,7 @@ template <typename It>
 void Patch<T,E>::apply_insertion(const introduction& species_index, double time,
                                  It x, std::vector<value_type>& y) {
   set_state_and_boundary(x, time);
-  retire_dead();
+  absorb_tall();
   push_nodes(species_index, time);
   y.assign(ode_size(), value_type(0.0));
   ode_state(y.begin());
@@ -1904,6 +1924,19 @@ bool Patch<T,E>::ode_state_valid(const std::vector<double>& y) const {
           return false;
         }
       }
+    }
+    // The top layer's block follows the species' nodes. Its individual holds the
+    // same bounded states as a node's; it is checked once it carries density.
+    if (sp.top_ode_size() > 0) {
+      const size_t density_at = at + individual_type::ode_size();
+      if (y[density_at] > 0.0) {
+        for (const size_t i : bounded) {
+          if (y[at + i] < 0.0) {
+            return false;
+          }
+        }
+      }
+      at += sp.top_ode_size();
     }
   }
   return true;

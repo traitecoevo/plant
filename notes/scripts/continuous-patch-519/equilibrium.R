@@ -29,7 +29,7 @@ T1         <- num_env("PLANT_519_T1", 200)
 window     <- num_env("PLANT_519_WINDOW", 100)
 lifespan   <- num_env("PLANT_519_LIFESPAN", 50)
 btol       <- num_env("PLANT_519_BTOL", 0.005)
-retire     <- num_env("PLANT_519_RETIRE", 1e-9)
+absorb     <- num_env("PLANT_519_ABSORB", 0.05)
 lambda     <- num_env("PLANT_519_LAMBDA", 20)
 mean_depth <- num_env("PLANT_519_DEPTH", 0.014)
 series_tmax <- num_env("PLANT_519_SERIES_TMAX", 1000)
@@ -43,7 +43,7 @@ T2 <- T1 + window
 T_end <- T2 + lifespan
 resident_lma <- 0.0825
 ctrl <- control(node_density_in_birth_date = TRUE, ode_step_size_max = 0.05,
-                retire_survival = retire)
+                absorb_epsilon = absorb)
 make_env <- function() {
   env <- Environment("TF24")
   env$extrinsic_drivers_set_constant("rainfall", 0)

@@ -428,7 +428,7 @@ template <> inline SEXP wrap(const plant::Control& x) {
   ret["node_gradient_richardson"] = Rcpp::wrap(x.node_gradient_richardson);
   ret["node_gradient_richardson_depth"] = Rcpp::wrap(x.node_gradient_richardson_depth);
   ret["node_density_in_birth_date"] = Rcpp::wrap(x.node_density_in_birth_date);
-  ret["retire_survival"] = Rcpp::wrap(x.retire_survival);
+  ret["absorb_epsilon"] = Rcpp::wrap(x.absorb_epsilon);
   ret["ode_step_size_initial"] = Rcpp::wrap(x.ode_step_size_initial);
   ret["ode_step_size_min"] = Rcpp::wrap(x.ode_step_size_min);
   ret["ode_step_size_max"] = Rcpp::wrap(x.ode_step_size_max);
@@ -479,8 +479,8 @@ template <> inline plant::Control as(SEXP x) {
   ret.node_gradient_richardson_depth = Rcpp::as<size_t >(xl["node_gradient_richardson_depth"]);
   // ret.node_density_in_birth_date = Rcpp::as<decltype(retnode_density_in_birth_date) >(xl["node_density_in_birth_date"]);
   ret.node_density_in_birth_date = Rcpp::as<bool >(xl["node_density_in_birth_date"]);
-  // ret.retire_survival = Rcpp::as<decltype(retretire_survival) >(xl["retire_survival"]);
-  ret.retire_survival = Rcpp::as<double >(xl["retire_survival"]);
+  // ret.absorb_epsilon = Rcpp::as<decltype(retabsorb_epsilon) >(xl["absorb_epsilon"]);
+  ret.absorb_epsilon = Rcpp::as<double >(xl["absorb_epsilon"]);
   // ret.ode_step_size_initial = Rcpp::as<decltype(retode_step_size_initial) >(xl["ode_step_size_initial"]);
   ret.ode_step_size_initial = Rcpp::as<double >(xl["ode_step_size_initial"]);
   // ret.ode_step_size_min = Rcpp::as<decltype(retode_step_size_min) >(xl["ode_step_size_min"]);

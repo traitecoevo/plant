@@ -109,15 +109,16 @@ test_that("the window survives the rebind a gradient runs on", {
 })
 
 test_that("a converged stand's window average does not depend on the window", {
-  ## A periodic stand with retirement, run long enough that every cohort in
-  ## either window lives out its output before the end. Post hoc, the window
-  ## mean of per-node output is what the regime computes (the identity above),
-  ## so one run serves every window.
+  ## A periodic stand run long enough that every cohort in either window lives
+  ## out its output before the end. Post hoc, the window mean of per-node output
+  ## is what the regime computes (the identity above), so one run serves every
+  ## window. No top layer here: it would absorb the window's cohorts in the run
+  ## without a window, stopping their per-node output where it took them (the
+  ## rest goes to the layer), and the identity is per node.
   p <- ff16(500)
   p$patch_type <- "fixed"
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 500, 1))
-  scm <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE,
-                                   retire_survival = 1e-8))
+  scm <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE))
   sp <- scm$patch$species[[1]]
   t <- sp$node_times
   out <- sp$net_reproduction_ratio_by_node * p$strategies[[1]]$pars$S_D
@@ -135,8 +136,7 @@ test_that("a converged stand's window average does not depend on the window", {
   expect_gt(abs(window_mean(400, 500) / early - 1), 1e-2)
   ## And the regime run with one of these windows agrees with the post-hoc mean.
   q <- window_regime(p, 200, 300)
-  scm2 <- run_scm(q, ctrl = Control(node_density_in_birth_date = TRUE,
-                                    retire_survival = 1e-8))
+  scm2 <- run_scm(q, ctrl = Control(node_density_in_birth_date = TRUE))
   expect_equal(scm2$net_reproduction_ratios, late, tolerance = 1e-10)
 })
 

@@ -20,7 +20,8 @@
 ##   PLANT_519_DEPTH     mean pulse depth in m, exponential (0.014 -> 280 mm/yr)
 ##   PLANT_519_SEED      seed of the pulse series (1)
 ##   PLANT_519_PROBE     1 to run the resume-vs-straight probe first (1)
-##   PLANT_519_RETIRE    control$retire_survival; 0 (the default) retires nothing
+##   PLANT_519_ABSORB    control$absorb_epsilon, the absorbing top layer; 0 (the
+##                       default) absorbs nothing
 ##   PLANT_519_SERIES_TMAX  horizon the pulse series is drawn over (TMAX); set it
 ##                       to a longer run's horizon to reuse that run's series
 ##   PLANT_519_OUT       output directory (notes/scripts/continuous-patch-519/output)
@@ -41,7 +42,7 @@ lambda     <- num_env("PLANT_519_LAMBDA", 20)
 mean_depth <- num_env("PLANT_519_DEPTH", 0.014)
 seed       <- num_env("PLANT_519_SEED", 1)
 do_probe   <- num_env("PLANT_519_PROBE", 1) > 0
-retire     <- num_env("PLANT_519_RETIRE", 0)
+absorb     <- num_env("PLANT_519_ABSORB", 0)
 series_tmax <- num_env("PLANT_519_SERIES_TMAX", t_max)
 out_dir    <- Sys.getenv("PLANT_519_OUT", "notes/scripts/continuous-patch-519/output")
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
@@ -56,8 +57,8 @@ stamp("odelia %s, phylloptim %s", as.character(packageVersion("odelia")),
       as.character(packageVersion("phylloptim")))
 stamp("git %s", tryCatch(system("git rev-parse --short HEAD", intern = TRUE),
                         error = function(e) "?"))
-stamp("budget %.0f s, chunk %g yr, horizon %g yr, %g pulses/yr of mean %.3f m, seed %g, retire_survival %g",
-      budget_s, chunk, t_max, lambda, mean_depth, seed, retire)
+stamp("budget %.0f s, chunk %g yr, horizon %g yr, %g pulses/yr of mean %.3f m, seed %g, absorb_epsilon %g",
+      budget_s, chunk, t_max, lambda, mean_depth, seed, absorb)
 
 ## ---- the stand ---------------------------------------------------------------
 
@@ -74,7 +75,7 @@ base_parameters <- function() {
 ## column (#599): the cap bounds the step a leg inherits across the boundary a
 ## pulse makes, and pulses make many.
 ctrl <- control(node_density_in_birth_date = TRUE, ode_step_size_max = 0.05,
-                retire_survival = retire)
+                absorb_epsilon = absorb)
 
 ## Rainfall as pulses alone: the continuous driver is turned off, or the run
 ## would receive both.
@@ -239,7 +240,7 @@ if (length(rows) > 0) {
   saveRDS(list(chunks = table, failure = failure,
                settings = list(budget_s = budget_s, chunk = chunk, t_max = t_max,
                                lambda = lambda, mean_depth = mean_depth, seed = seed,
-                               retire_survival = retire),
+                               absorb_epsilon = absorb),
                versions = list(plant = as.character(packageVersion("plant")),
                                odelia = as.character(packageVersion("odelia")),
                                phylloptim = as.character(packageVersion("phylloptim")))),

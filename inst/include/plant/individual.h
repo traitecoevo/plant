@@ -120,6 +120,9 @@ public:
     }
   }
 
+  // Hold one state where it is: its rate set to zero after compute_rates().
+  void hold_state(int i) { vars.set_rate(i, value_type(0.0)); }
+
   void compute_rates(const environment_type& environment) {
     if (vars.resource_size() != environment.n_resources()) {
       // handles when Individual hasn't been instantiated in a Patch (ie with an environment)

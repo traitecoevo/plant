@@ -7,7 +7,7 @@
 ##   PLANT_519_TMAX     cap on the run (3000)
 ##   PLANT_519_BLOCK    years per convergence block (50)
 ##   PLANT_519_TOL      relative change between block means that counts as settled (0.005)
-##   PLANT_519_RETIRE   control$retire_survival (1e-8)
+##   PLANT_519_ABSORB   control$absorb_epsilon, the absorbing top layer (0.02)
 ##   PLANT_519_OUT      output directory
 
 suppressPackageStartupMessages(library(plant))
@@ -19,22 +19,22 @@ birth  <- num_env("PLANT_519_BIRTH", 1)
 t_max  <- num_env("PLANT_519_TMAX", 3000)
 block  <- num_env("PLANT_519_BLOCK", 50)
 tol    <- num_env("PLANT_519_TOL", 0.005)
-retire <- num_env("PLANT_519_RETIRE", 1e-8)
+absorb <- num_env("PLANT_519_ABSORB", 0.02)
 out_dir <- Sys.getenv("PLANT_519_OUT", "notes/scripts/continuous-patch-519/output")
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 stamp <- function(...) {
   cat(format(Sys.time(), "%H:%M:%S"), sprintf(...), "\n", sep = " ")
   flush(stdout())
 }
-stamp("plant %s; FF16 lma 0.0825, birth rate %g, cap %g yr, block %g yr, tol %g, retire_survival %g",
-      as.character(packageVersion("plant")), birth, t_max, block, tol, retire)
+stamp("plant %s; FF16 lma 0.0825, birth rate %g, cap %g yr, block %g yr, tol %g, absorb_epsilon %g",
+      as.character(packageVersion("plant")), birth, t_max, block, tol, absorb)
 
 p <- scm_base_parameters("FF16")
 p$patch_type <- "fixed"
 p$max_patch_lifetime <- t_max
 p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = birth)
 p$node_schedule_times <- list(node_schedule_times_periodic(0, t_max, 1))
-ctrl <- Control(node_density_in_birth_date = TRUE, retire_survival = retire)
+ctrl <- Control(node_density_in_birth_date = TRUE, absorb_epsilon = absorb)
 scm <- plant:::SCM("FF16", "FF16_Env")(p, Environment("FF16"), plant:::empty_events(), ctrl)
 scm$snapshot_interval <- 5
 
@@ -92,13 +92,13 @@ stamp("at %g yr: %d live cohorts, ages %g to %g; share of density in cohorts old
 write.csv(d, file.path(out_dir, "ff16-continuous.csv"), row.names = FALSE)
 write.csv(sn, file.path(out_dir, "ff16-continuous-snapshots.csv"), row.names = FALSE)
 
-## What retirement buys: the same 3000 years with and without it.
-for (r in c(retire, 0)) {
+## What the top layer buys: the same 3000 years with and without it.
+for (r in c(absorb, 0)) {
   q <- p
   scm_r <- plant:::SCM("FF16", "FF16_Env")(q, Environment("FF16"), plant:::empty_events(),
-                                           Control(node_density_in_birth_date = TRUE, retire_survival = r))
+                                           Control(node_density_in_birth_date = TRUE, absorb_epsilon = r))
   w <- system.time(scm_r$run())[["elapsed"]]
-  stamp("3000 yr with retire_survival %g: %.1f s, %d cohorts, %d still integrated, %d steps",
+  stamp("3000 yr with absorb_epsilon %g: %.1f s, %d cohorts, %d still integrated, %d steps",
         r, w, scm_r$patch$species[[1]]$size, scm_r$patch$species[[1]]$size - sum(scm_r$patch$species[[1]]$retired),
         length(scm_r$ode_times))
 }
@@ -127,11 +127,14 @@ R_at <- function(b) {
 ## depend on the birth rate), so b* is read off two evaluations and checked at
 ## b*. The check is guarded: a stand that dense can stop on FF16's density
 ## overflow guard, which is reported rather than fatal.
+## Birth rates of 10 and above stop on FF16's density overflow in this stand
+## on develop too (birth-date coordinate, annual cohorts, no disturbance), so
+## the elasticity is read over [b, 3b].
 R1 <- R_at(birth)
-R10 <- R_at(10 * birth)
-elasticity <- log(R10 / R1) / log(10)
+R3 <- R_at(3 * birth)
+elasticity <- log(R3 / R1) / log(3)
 b_star <- birth * R1^(-1 / elasticity)
-stamp("d log R / d log b = %.5f over [%g, %g]; b* = %.6g", elasticity, birth, 10 * birth, b_star)
+stamp("d log R / d log b = %.5f over [%g, %g]; b* = %.6g", elasticity, birth, 3 * birth, b_star)
 check <- tryCatch(sprintf("R(b*) = %.6g", R_at(b_star)), error = function(e) paste("R(b*) not evaluated:", substr(conditionMessage(e), 1, 120)))
 stamp("%s", check)
 write.csv(data.frame(elasticity = elasticity, b_star = b_star, check = check),

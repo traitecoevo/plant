@@ -253,6 +253,10 @@ make_initial_state <- function(p, heights, densities = NULL,
   if (is.null(env)) {
     env <- Environment(types[[1]])
   }
+  if (ctrl$absorb_epsilon > 0) {
+    stop("make_initial_state() lays out the nodes' state by hand and has no ",
+         "absorbing top layer; build the state with control$absorb_epsilon = 0")
+  }
   n_spp <- length(p$strategies)
 
   as_list <- function(z) if (is.list(z)) z else list(z)

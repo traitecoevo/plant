@@ -118,7 +118,10 @@ public:
     size_t n_live = 0;
     size_t n_retired = 0;
     double height_max = 0.0;
+    // The trapezium of the carried density over the birth-date grid, plus what
+    // the top layer carries.
     double density = 0.0;
+    double top_density = 0.0;
     std::vector<double> fecundity;
   };
   struct snapshot {
@@ -234,6 +237,14 @@ public:
                  ": the reverse-mode gradient runs on the birth-date "
                  "size-density coordinate only. Set "
                  "control$node_density_in_birth_date = TRUE and re-run.");
+    }
+    // Absorption is a selection on state that moves density between blocks; its
+    // transpose is not written, so a sweep across it would be a different
+    // function's derivative with every number finite.
+    if (control.absorb_epsilon > 0.0) {
+      util::stop(std::string(entry) +
+                 ": the absorbing top layer is not differentiable yet. Set "
+                 "control$absorb_epsilon = 0 and re-run.");
     }
   }
 
@@ -685,10 +696,16 @@ template <typename T, typename E> void SCM<T, E>::take_snapshot() {
       }
       ss.fecundity.push_back(odelia::util::to_passive(it->fecundity()));
     }
+    // The top layer is a cohort with density, pinned at its height.
+    ss.top_density = sp.top_density();
+    if (ss.top_density > 0.0 && !(sp.top_height() <= tallest)) {
+      tallest = sp.top_height();
+    }
     ss.height_max = tallest;
     // The carried density integrated over the birth-date grid: individuals per
     // unit area on that coordinate.
-    ss.density = sp.size() > 1 ? util::trapezium(sp.node_times(), density) : 0.0;
+    ss.density = (sp.size() > 1 ? util::trapezium(sp.node_times(), density) : 0.0) +
+      ss.top_density;
     s.species.push_back(std::move(ss));
   }
   // The environment's block is the tail of the state vector.
@@ -712,6 +729,7 @@ template <typename T, typename E> Rcpp::List SCM<T, E>::r_snapshots() const {
           Rcpp::_["n_retired"] = static_cast<int>(ss.n_retired),
           Rcpp::_["height_max"] = ss.height_max,
           Rcpp::_["density"] = ss.density,
+          Rcpp::_["top_density"] = ss.top_density,
           Rcpp::_["fecundity"] = ss.fecundity);
     }
     ret[k] = Rcpp::List::create(Rcpp::_["time"] = s.time,

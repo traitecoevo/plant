@@ -380,7 +380,7 @@ Control:
     - node_gradient_richardson: bool
     - node_gradient_richardson_depth: size_t
     - node_density_in_birth_date: bool
-    - retire_survival: double
+    - absorb_epsilon: double
     - ode_step_size_initial: double
     - ode_step_size_min: double
     - ode_step_size_max: double
@@ -684,10 +684,13 @@ Species:
     ## The quantity actually integrated: the height density on the height path,
     ## the birth-date density (nu) on the birth-date one.
     log_densities_state: {type: "std::vector<double>", access: member, name_cpp: r_log_densities_state, readonly: true}
-    # Which nodes carry no density: retired below control$retire_survival, or
-    # born below the establishment threshold. Their individuals are frozen
-    # when retirement is on.
+    # Which nodes carry no density: absorbed into the top layer, or at exactly
+    # zero density. Their individuals are frozen when the top layer is on.
     retired: {type: "std::vector<bool>", access: member, name_cpp: r_retired, readonly: true}
+    # The absorbing top layer (control$absorb_epsilon): its height, the density
+    # it carries, the fitness weights it carries without and with the birth-rate
+    # scaling, and the seed output each has accrued.
+    top_layer: {type: "Rcpp::List", access: member, name_cpp: r_top_layer, readonly: true}
     ## |dh/dtau| per node, boundary node last; the conversion between the two.
     height_jacobian: {type: "std::vector<double>", access: member, readonly: true}
     node_times: {type: "std::vector<double>", access: member}

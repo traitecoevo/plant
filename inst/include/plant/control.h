@@ -65,17 +65,16 @@ struct Control {
   // the density rate is mortality alone.
   bool node_density_in_birth_date;
 
-  // Retire a cohort whose survival since birth -- exp(-mortality), the factor
-  // its density has fallen by -- is below this, at the next node introduction:
-  // its density becomes exactly zero and its individual is no longer
-  // integrated, so it costs no rate evaluation from then on. Zero (the
-  // default) retires nothing. A fraction rather than a density, so a species a
-  // million times rarer than its neighbour is retired at the same point in its
-  // life: an absolute floor froze a rare invader at a survival of 1e-3 and
-  // halved its lifetime output. Birth-date coordinate only, because there
-  // density can only fall. A long run's cost is otherwise proportional to every
-  // cohort ever introduced, dead or not (#519).
-  double retire_survival;
+  // The absorbing top layer of a continuous patch (#519): with epsilon > 0, a
+  // cohort that has grown to the height where its strategy allocates 1 - epsilon
+  // of its maximum to reproduction (Strategy::asymptotic_height) is absorbed at
+  // the next node introduction into one top cohort per species, pinned at that
+  // height, which carries its density, its future seed output and its share of
+  // the light field and uptake. Without it a stand that runs on never
+  // equilibrates: the oldest cohorts edge up toward their asymptote for as long
+  // as they carry density. Zero (the default) absorbs nothing. Birth-date
+  // coordinate only, and only for a strategy that declares an asymptotic height.
+  double absorb_epsilon;
 
   double ode_step_size_initial;
   double ode_step_size_min;
@@ -109,6 +108,20 @@ struct Control {
   double ci_abs_tol;
   double ci_niter;
 };
+
+// Whether a cohort with no density is frozen in place -- no rate evaluation,
+// every rate zero -- rather than integrated. In a continuous patch a cohort
+// leaves the integrated set in one way only, by passing the absorbing height
+// into the top layer, which takes its density with it; a cohort whose density
+// is already exactly zero is frozen too, since there is nothing of it to keep
+// and its per-capita output is exactly zero as well. Off unless the top layer
+// is on, so any other run integrates its empty cohorts exactly as it always has.
+//
+// There is deliberately no survival floor: retiring a cohort below one discards
+// the biomass old trees still hold rather than conserving it (#519).
+inline bool freezes_retired(const Control& c) {
+  return c.absorb_epsilon > 0.0;
+}
 
 inline odelia::ode::OdeControl make_ode_control(const Control& control) {
   return odelia::ode::OdeControl(control.ode_tol_abs,

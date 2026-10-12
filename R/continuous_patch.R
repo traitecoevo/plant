@@ -13,7 +13,9 @@
 ##'   \code{snapshot_interval}.
 ##' @return A list of three: \code{species}, a data frame with one row per
 ##'   snapshot and species (\code{time}, \code{species}, \code{n_nodes},
-##'   \code{n_live}, \code{n_retired}, \code{height_max}, \code{density});
+##'   \code{n_live}, \code{n_retired}, \code{height_max}, \code{density},
+##'   which includes what the absorbing top layer carries, and
+##'   \code{top_density});
 ##'   \code{environment}, a data frame with one row per snapshot of \code{time}
 ##'   and the environment's state entries (\code{env_1}, ...); and
 ##'   \code{fecundity}, a list over snapshots of lists over species of each
@@ -27,7 +29,8 @@ tidy_snapshots <- function(scm) {
       sp <- s$species[[i]]
       data.frame(time = s$time, species = i, n_nodes = sp$n_nodes,
                  n_live = sp$n_live, n_retired = sp$n_retired,
-                 height_max = sp$height_max, density = sp$density)
+                 height_max = sp$height_max, density = sp$density,
+                 top_density = sp$top_density)
     }))
   }))
   environment <- do.call(rbind, lapply(snaps, function(s) {
