@@ -108,6 +108,18 @@ public:
     strategy->set_initial_states(environment, vars);
   }
 
+  // Every rate this individual reports, set to zero: what a frozen cohort
+  // hands the solver instead of a rate evaluation. The states stay where they
+  // are, so a height or a storage pool read back later is the value it froze at.
+  void zero_rates() {
+    for (size_t i = 0; i < vars.state_size(); ++i) {
+      vars.set_rate(i, value_type(0.0));
+    }
+    for (size_t i = 0; i < vars.resource_size(); ++i) {
+      vars.set_consumption_rate(i, value_type(0.0));
+    }
+  }
+
   void compute_rates(const environment_type& environment) {
     if (vars.resource_size() != environment.n_resources()) {
       // handles when Individual hasn't been instantiated in a Patch (ie with an environment)

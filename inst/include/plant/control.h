@@ -65,6 +65,16 @@ struct Control {
   // the density rate is mortality alone.
   bool node_density_in_birth_date;
 
+  // Retire a cohort whose density has fallen below this, at the next node
+  // introduction: its density becomes exactly zero and its individual is no
+  // longer integrated, so it costs no rate evaluation from then on. Zero (the
+  // default) retires nothing. In the units the solver carries the density in,
+  // which on the birth-date coordinate -- the only one this is allowed on,
+  // because there density can only fall -- is individuals per m^2 per year of
+  // birth date. A long run's cost is otherwise proportional to every cohort
+  // ever introduced, dead or not (#519).
+  double retire_density;
+
   double ode_step_size_initial;
   double ode_step_size_min;
   double ode_step_size_max;

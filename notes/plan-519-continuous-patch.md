@@ -141,13 +141,24 @@ The cost per simulated year is 2.71 ms per introduced cohort (a linear fit over 
 - Burn-in for this stand is about a century; the decade-scale swings in density set the correlation time the window length has to average over.
 - For a sweep, the row store at 1000 cohorts is about 160 KB per accepted step, 14 MB per simulated year, so a 300-year window plus lifespan is about 4 GB. Retirement does not shrink the state vector; absorption does.
 
+**Retirement, measured.** The same stand and the same pulse series rerun to 200 years with `retire_density = 1e-9` ([`output/chunks-retire-1e-9.csv`](scripts/continuous-patch-519/output/chunks-retire-1e-9.csv)):
+
+| simulated years | s per year, off | s per year, on | cohorts with density | retired | cumulative offspring, relative difference |
+|---|---|---|---|---|---|
+| 10 | 0.024 | 0.023 | 10 | 1 | 3.6e-3 |
+| 50 | 0.122 | 0.079 | 19 | 25 | 1.9e-4 |
+| 100 | 0.281 | 0.096 | 18 | 73 | 1.7e-4 |
+| 200 | 0.470 | 0.087 | 18 | 176 | 3.7e-5 |
+
+The cost per year stops growing once the retired cohorts outnumber the live ones, at about 0.09 s per year for 18 live cohorts, 5.4 times less than the unretired run by year 200 and about 30 times less at the original run's year 1000. Steps per year fall from 87 to 79, because frozen cohorts put nothing into the error norm. The cumulative offspring production agrees to 4e-5 by year 200; the per-decade snapshots of density and soil water differ by more (density by up to 86 % in one decade), which is how far this pulse-driven stand carries any perturbation at the floor's size, not a cost of the floor: the resume probe's 1e-7 seam does the same. On a 60-year FF16 stand a floor of 1e-6 retires 7 of 118 cohorts and moves offspring production by 4e-8 and the total density by 9e-8; a floor of 1e-4 retires 18 and moves them by 8e-5 and 1.6e-4, the floor over the birth density, as the bound says.
+
 ## Commit sequence
 
 1. This plan, and the status line of `plan-events.md`.
 2. **Resume fixes.** The clock with an empty initial state, `r_set_ode_steps`' first time, the replay across the gap, residual events in the export, the invader's seed. Bit-identical for a run from empty. Done on this branch.
 3. **Window regime.** `Window_Regime`, the periodic generator, the four `Parameters` fields and `patch_type = "window"`, the copy in `rebind_from`, an R constructor. Opt-in.
 4. **`run_to`, the convergence driver, snapshots.**
-5. **Retirement and the absorbing top layer.** `retire_density` first, on its own, with the cost measured against the pilot; then the top cohort, `absorb_height`, the merge inside the insertion map, the absorption log, `reshape_to`, the export, with the conservation and fixed-point tests.
+5. **Retirement and the absorbing top layer.** `retire_density` first, on its own, with the cost measured against the pilot (done on this branch: `Control$retire_density`, the retire pass inside the insertion map, frozen rates, `Species$retired`, refused on the height coordinate); then the top cohort, `absorb_height`, the merge inside the insertion map, the absorption log, `reshape_to`, the export, with the conservation and fixed-point tests.
 6. **Gradients.** A sweep of a resumed recording; `run_mutant` from a resumed resident; the pinned-step finite-difference referee.
 7. NEWS, docs, and the pulse-series helper if the pilot's generator is worth keeping.
 

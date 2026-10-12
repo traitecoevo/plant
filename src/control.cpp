@@ -33,6 +33,7 @@ Control::Control() {
   node_gradient_richardson = false;
   node_gradient_richardson_depth = 4;
   node_density_in_birth_date = false;
+  retire_density = 0.0;
 
   ode_step_size_initial = 1e-6;
   ode_step_size_min = 1e-6;

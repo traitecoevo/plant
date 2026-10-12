@@ -522,6 +522,16 @@ private:
   // value can propagate into competition, resource uptake, or physiology and
   // surface as an opaque downstream error.
   void check_finite_ode_state() const;
+  // Retirement rests on density only ever falling, which holds on the
+  // birth-date coordinate alone: on the height coordinate the transport term
+  // can raise it. Refused at construction, where the control is first seen.
+  void check_retirement_coordinate() const {
+    if (control.retire_density > 0.0 && !control.node_density_in_birth_date) {
+      util::stop("control$retire_density needs the birth-date size-density "
+                 "coordinate (control$node_density_in_birth_date = TRUE): "
+                 "only there does a cohort's density never rise again.");
+    }
+  }
   // Guard the birth-date coordinate's quadrature grid: it is the per-node
   // introduction times, so nodes sharing one give zero-width intervals that drop
   // silently out of the integral. Reached by a schedule carrying a repeated time
@@ -532,6 +542,14 @@ private:
   // the reconciling loader share it, so a node the run made and a node a walk
   // rebuilt are stamped by the same expression.
   void push_nodes(const introduction& species_index, double time);
+
+  // The retirement half of an introduction instant: every cohort below
+  // control.retire_density goes to exactly zero density before the new one is
+  // pushed. Part of the insertion map and of nothing else, so a replay or a
+  // sweep that applies the map applies this too, and a reconciliation that only
+  // rebuilds the shape (reshape_to) does not -- the state it loads already
+  // carries the zeros. A no-op at the default floor of zero.
+  void retire_dead();
 
   parameters_type parameters;
 
@@ -561,6 +579,7 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
   // assigned after its own construction still carries the regime of the lifetime
   // it was constructed with.
   survival_weighting = parameters.disturbance;
+  check_retirement_coordinate();
 
   // Configure the light profile's shading model before the first
   // compute_environment() in reset(). No-op for environments without a light
@@ -585,6 +604,7 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c,
   parameters.validate();
 
   survival_weighting = parameters.disturbance;
+  check_retirement_coordinate();
 
   environment.set_shading_model(control.shading_model,
                                 control.ppa_layer_optical_depth,
@@ -1249,6 +1269,7 @@ void Patch<T,E>::compute_rates() {
 // would write a subrange of the same positions.
 template <typename T, typename E>
 void Patch<T,E>::introduce_nodes(const introduction& species_index, double time) {
+  retire_dead();
   push_nodes(species_index, time);
 
   // A schedule carrying the same time twice for one species stamps two nodes
@@ -1266,6 +1287,16 @@ void Patch<T,E>::introduce_nodes(const introduction& species_index, double time)
 // The three numbers a node carries that the ODE state does not: its birth date,
 // and the patch density and survival there. All three are functions of the time
 // it is introduced at, which is what lets a record hold only the time.
+template <typename T, typename E>
+void Patch<T,E>::retire_dead() {
+  if (!(control.retire_density > 0.0)) {
+    return;
+  }
+  for (species_type& s : species) {
+    s.retire_below(control.retire_density);
+  }
+}
+
 template <typename T, typename E>
 void Patch<T,E>::push_nodes(const introduction& species_index, double time) {
   const double patch_density = survival_weighting->density(time);
@@ -1690,6 +1721,7 @@ template <typename It>
 void Patch<T,E>::apply_insertion(const introduction& species_index, double time,
                                  It x, std::vector<value_type>& y) {
   set_state_and_boundary(x, time);
+  retire_dead();
   push_nodes(species_index, time);
   y.assign(ode_size(), value_type(0.0));
   ode_state(y.begin());

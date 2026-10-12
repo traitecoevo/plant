@@ -20,6 +20,9 @@
 ##   PLANT_519_DEPTH     mean pulse depth in m, exponential (0.014 -> 280 mm/yr)
 ##   PLANT_519_SEED      seed of the pulse series (1)
 ##   PLANT_519_PROBE     1 to run the resume-vs-straight probe first (1)
+##   PLANT_519_RETIRE    control$retire_density; 0 (the default) retires nothing
+##   PLANT_519_SERIES_TMAX  horizon the pulse series is drawn over (TMAX); set it
+##                       to a longer run's horizon to reuse that run's series
 ##   PLANT_519_OUT       output directory (notes/scripts/continuous-patch-519/output)
 ##
 ## Run from the plant root with the library that holds the pinned odelia and
@@ -38,6 +41,8 @@ lambda     <- num_env("PLANT_519_LAMBDA", 20)
 mean_depth <- num_env("PLANT_519_DEPTH", 0.014)
 seed       <- num_env("PLANT_519_SEED", 1)
 do_probe   <- num_env("PLANT_519_PROBE", 1) > 0
+retire     <- num_env("PLANT_519_RETIRE", 0)
+series_tmax <- num_env("PLANT_519_SERIES_TMAX", t_max)
 out_dir    <- Sys.getenv("PLANT_519_OUT", "notes/scripts/continuous-patch-519/output")
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 
@@ -51,8 +56,8 @@ stamp("odelia %s, phylloptim %s", as.character(packageVersion("odelia")),
       as.character(packageVersion("phylloptim")))
 stamp("git %s", tryCatch(system("git rev-parse --short HEAD", intern = TRUE),
                         error = function(e) "?"))
-stamp("budget %.0f s, chunk %g yr, horizon %g yr, %g pulses/yr of mean %.3f m, seed %g",
-      budget_s, chunk, t_max, lambda, mean_depth, seed)
+stamp("budget %.0f s, chunk %g yr, horizon %g yr, %g pulses/yr of mean %.3f m, seed %g, retire_density %g",
+      budget_s, chunk, t_max, lambda, mean_depth, seed, retire)
 
 ## ---- the stand ---------------------------------------------------------------
 
@@ -68,7 +73,8 @@ base_parameters <- function() {
 ## Birth-date coordinate (#590) and the measured step cap for TF24's stiff soil
 ## column (#599): the cap bounds the step a leg inherits across the boundary a
 ## pulse makes, and pulses make many.
-ctrl <- control(node_density_in_birth_date = TRUE, ode_step_size_max = 0.05)
+ctrl <- control(node_density_in_birth_date = TRUE, ode_step_size_max = 0.05,
+                retire_density = retire)
 
 ## Rainfall as pulses alone: the continuous driver is turned off, or the run
 ## would receive both.
@@ -83,10 +89,11 @@ make_env <- function() {
 ## A stationary marked Poisson process: exponential inter-arrival times and
 ## exponential depths. One realisation, drawn once, shared by every segment.
 set.seed(seed)
-n_pulses    <- rpois(1, lambda * t_max)
-pulse_time  <- sort(runif(n_pulses, 0, t_max))
+n_pulses    <- rpois(1, lambda * series_tmax)
+pulse_time  <- sort(runif(n_pulses, 0, series_tmax))
 pulse_depth <- rexp(n_pulses, rate = 1 / mean_depth)
-stamp("%d pulses, %.1f mm/yr", n_pulses, 1000 * sum(pulse_depth) / t_max)
+stamp("%d pulses over %g yr, %.1f mm/yr", n_pulses, series_tmax,
+      1000 * sum(pulse_depth) / series_tmax)
 
 ## Periodic introduction: one cohort per year, on the integers.
 intro_times <- seq(0, t_max, by = 1)
@@ -142,6 +149,7 @@ summarise_segment <- function(scm, t0, t1, wall) {
   nu <- exp(m["log_density", ])          # density in birth date
   fec <- m["offspring_produced_survival_weighted", ]
   live <- nu > 1e-6 * max(nu)
+  retired <- sp$retired
   env <- patch$environment
   theta <- env$get_soil_water_state()
   flux <- env$get_soil_water_state_cumulative_flux()
@@ -153,7 +161,7 @@ summarise_segment <- function(scm, t0, t1, wall) {
     t0 = t0, t1 = t1, years = t1 - t0, wall_s = wall,
     s_per_year = wall / (t1 - t0),
     steps = length(scm$ode_times), steps_per_year = length(scm$ode_times) / (t1 - t0),
-    n_nodes = sp$size, n_live = sum(live),
+    n_nodes = sp$size, n_live = sum(live), n_retired = sum(retired),
     height_max = max(h), height_mean_live = sum(h[live] * nu[live]) / sum(nu[live]),
     density_total = trapezium(times, nu),
     fecundity_total = trapezium(times, fec),
@@ -208,8 +216,8 @@ repeat {
   rows[[k]] <- row
   table <- do.call(rbind, rows)
   write.csv(table, file.path(out_dir, "chunks.csv"), row.names = FALSE)
-  stamp("%6.1f yr: %6.1f s (%5.2f s/yr, %5.0f steps/yr) nodes %4d live %4d h_max %5.2f dens %.3g R0 %.3g theta %.3f/%.3f/%.3f/%.3f/%.3f shed %.0f%%",
-        t1, res$wall, row$s_per_year, row$steps_per_year, row$n_nodes, row$n_live,
+  stamp("%6.1f yr: %6.1f s (%5.2f s/yr, %5.0f steps/yr) nodes %4d live %4d retired %4d h_max %5.2f dens %.3g R0 %.3g theta %.3f/%.3f/%.3f/%.3f/%.3f shed %.0f%%",
+        t1, res$wall, row$s_per_year, row$steps_per_year, row$n_nodes, row$n_live, row$n_retired,
         row$height_max, row$density_total, row$offspring_production,
         row$theta_1, row$theta_2, row$theta_3, row$theta_4, row$theta_5,
         100 * row$pulse_shed_m / max(row$pulse_accepted_m + row$pulse_shed_m, 1e-12))
@@ -230,7 +238,8 @@ if (length(rows) > 0) {
   table <- do.call(rbind, rows)
   saveRDS(list(chunks = table, failure = failure,
                settings = list(budget_s = budget_s, chunk = chunk, t_max = t_max,
-                               lambda = lambda, mean_depth = mean_depth, seed = seed),
+                               lambda = lambda, mean_depth = mean_depth, seed = seed,
+                               retire_density = retire),
                versions = list(plant = as.character(packageVersion("plant")),
                                odelia = as.character(packageVersion("odelia")),
                                phylloptim = as.character(packageVersion("phylloptim")))),

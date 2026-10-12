@@ -267,6 +267,13 @@ public:
                        const std::vector<double>& patch_density,
                        const std::vector<double>& pr_patch_survival);
 
+  // Retire every node whose density sits strictly between zero and `floor`,
+  // and say how many. A node already at zero is left as it is, so applying
+  // this to a state that has been through it is a no-op -- which is what lets
+  // a replay apply the same map to a recorded state.
+  size_t retire_below(double floor);
+  std::vector<bool> r_retired() const;
+
   ExtrinsicDrivers extrinsic_drivers() const {return strategy->extrinsic_drivers;}
 
   // The prepared strategy this species and its nodes share.
@@ -1086,6 +1093,29 @@ std::vector<double> Species<T,E>::r_pr_patch_survival_at_birth() const {
   ret.reserve(size());
   for (nodes_const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
     ret.push_back(it->get_pr_patch_survival_at_birth());
+  }
+  return ret;
+}
+
+template <typename T, typename E>
+size_t Species<T,E>::retire_below(double floor) {
+  size_t n = 0;
+  for (auto& c : nodes) {
+    const value_type d = c.get_density();
+    if (d > 0.0 && d < floor) {
+      c.retire();
+      ++n;
+    }
+  }
+  return n;
+}
+
+template <typename T, typename E>
+std::vector<bool> Species<T,E>::r_retired() const {
+  std::vector<bool> ret;
+  ret.reserve(size());
+  for (nodes_const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
+    ret.push_back(it->retired());
   }
   return ret;
 }
