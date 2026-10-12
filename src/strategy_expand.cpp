@@ -72,7 +72,7 @@ Rcpp::List strategy_expand_allometry_impl(S s,
 } // namespace plant
 
 // [[Rcpp::export]]
-Rcpp::List FF16_strategy_expand_allometry(plant::FF16_Strategy s,
+Rcpp::List FF16_strategy_expand_allometry(plant::FF16_Strategy<double> s,
                                           Rcpp::NumericVector height,
                                           Rcpp::NumericVector area_heartwood,
                                           Rcpp::NumericVector mass_heartwood) {

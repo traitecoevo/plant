@@ -3,7 +3,7 @@
 
 // [[Rcpp::export]]
 plant::Internals<double> FF16_oderunner_individual_internals(
-  const odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment>>& obj) {
+  const odelia::ode::Solver<plant::tools::IndividualRunner<plant::FF16_Strategy<double>,plant::FF16_Environment<double>>>& obj) {
   return obj.get_system().individual.r_internals();
 }
 

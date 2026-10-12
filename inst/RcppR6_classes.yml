@@ -259,7 +259,7 @@ OdeRunner:
   templates:
     parameters: T
     concrete:
-      - ["FF16": "plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment>"]
+      - ["FF16": "plant::tools::IndividualRunner<plant::FF16_Strategy<double>, plant::FF16_Environment<double>>"]
       - ["TF24": "plant::tools::IndividualRunner<plant::TF24_Strategy<double>, plant::TF24_Environment<double>>"]
       - ["TF24f": "plant::tools::IndividualRunner<plant::TF24f_Strategy<double>, plant::TF24_Environment<double>>"]
       - ["K93": "plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment>"]
@@ -466,7 +466,7 @@ Individual:
   templates:
     parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16": "plant::FF16_Strategy<double>", "FF16_Env": "plant::FF16_Environment<double>"]
       - ["TF24": "plant::TF24_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24f": "plant::TF24f_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
@@ -528,7 +528,7 @@ IndividualRunner:
   templates:
     parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16": "plant::FF16_Strategy<double>", "FF16_Env": "plant::FF16_Environment<double>"]
       - ["TF24": "plant::TF24_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24f": "plant::TF24f_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
@@ -587,7 +587,7 @@ Parameters:
   templates:
     parameters: [T, E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16": "plant::FF16_Strategy<double>", "FF16_Env": "plant::FF16_Environment<double>"]
       - ["TF24": "plant::TF24_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24f": "plant::TF24f_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
@@ -616,7 +616,7 @@ Node:
   templates:
     parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16": "plant::FF16_Strategy<double>", "FF16_Env": "plant::FF16_Environment<double>"]
       - ["TF24": "plant::TF24_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24f": "plant::TF24f_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
@@ -663,7 +663,7 @@ Species:
   templates:
     parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16": "plant::FF16_Strategy<double>", "FF16_Env": "plant::FF16_Environment<double>"]
       - ["TF24": "plant::TF24_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24f": "plant::TF24f_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
@@ -725,7 +725,7 @@ Patch:
   templates:
     parameters: [T, E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16": "plant::FF16_Strategy<double>", "FF16_Env": "plant::FF16_Environment<double>"]
       - ["TF24": "plant::TF24_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24f": "plant::TF24f_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
@@ -808,7 +808,7 @@ SCM:
   templates:
     parameters: [T, E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16": "plant::FF16_Strategy<double>", "FF16_Env": "plant::FF16_Environment<double>"]
       - ["TF24": "plant::TF24_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24f": "plant::TF24f_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
@@ -909,7 +909,7 @@ StochasticSpecies:
   templates:
     parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16": "plant::FF16_Strategy<double>", "FF16_Env": "plant::FF16_Environment<double>"]
       - ["TF24": "plant::TF24_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24f": "plant::TF24f_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
@@ -954,7 +954,7 @@ StochasticPatch:
   templates:
     parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16": "plant::FF16_Strategy<double>", "FF16_Env": "plant::FF16_Environment<double>"]
       - ["TF24": "plant::TF24_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24f": "plant::TF24f_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
@@ -1024,7 +1024,7 @@ StochasticPatchRunner:
   templates:
     parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16": "plant::FF16_Strategy<double>", "FF16_Env": "plant::FF16_Environment<double>"]
       - ["TF24": "plant::TF24_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24f": "plant::TF24f_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
@@ -1139,7 +1139,7 @@ Weibull_Disturbance_Regime:
       return_type: double
 
 FF16_Pars:
-  name_cpp: "plant::FF16_Pars"
+  name_cpp: "plant::FF16_Pars<double>"
   roxygen: |
     Biological trait/parameters for the FF16 strategy. Held as the nested
     \code{pars} element of an \code{\link{FF16_Strategy}} (access as
@@ -1183,7 +1183,7 @@ FF16_Pars:
     - recruitment_decay: double
 
 FF16_Strategy:
-  name_cpp: "plant::FF16_Strategy"
+  name_cpp: "plant::FF16_Strategy<double>"
   roxygen: |
     Strategy parameters that tune various aspects of the biological model.
     @title Strategy parameters
@@ -1191,7 +1191,7 @@ FF16_Strategy:
     variadic arguments, or as a list, but not both).
     @export
   list:
-    - pars: "plant::FF16_Pars"
+    - pars: "plant::FF16_Pars<double>"
     - control: "plant::Control"
     - collect_all_auxiliary: bool
     - birth_rate_x: std::vector<double>
@@ -1199,7 +1199,7 @@ FF16_Strategy:
     - is_variable_birth_rate: bool
 
 FF16_Environment:
-  name_cpp: "plant::FF16_Environment"
+  name_cpp: "plant::FF16_Environment<double>"
   constructor:
     roxygen: |
       Create an FF16_Environment object.

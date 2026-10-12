@@ -28,17 +28,28 @@ struct census_rows {
   odelia::ode::adjoint_rows trait;  // one column per registered trait
 };
 
+// A strategy whose inner solve can find no row for a census metric, and says so
+// by recording a refusal rather than throwing through a live tape. A model with
+// no inner solve (FF16) declares none, and the two readers below compile to
+// "nothing was refused" for it.
+template <typename T>
+concept RecordsRefusal = requires(T& s) {
+  { s.recorded_refusal->happened() } -> std::convertible_to<bool>;
+};
+
 // The refusal any of a patch's species recorded, with the one thing a species
 // knows about itself filled in. Read after a recording rather than during one:
 // what a leaf could not record is not something a void interface can return, so
 // it is left where the leaf is and collected here.
 template <typename Patch>
 refusal recorded_refusal(Patch& patch) {
-  for (size_t i = 0; i < patch.size(); ++i) {
-    refusal why = *patch.at_species(i).strategy_ptr()->recorded_refusal;
-    if (why.happened()) {
-      why.species = static_cast<int>(i + 1);
-      return why;
+  if constexpr (RecordsRefusal<typename Patch::strategy_type>) {
+    for (size_t i = 0; i < patch.size(); ++i) {
+      refusal why = *patch.at_species(i).strategy_ptr()->recorded_refusal;
+      if (why.happened()) {
+        why.species = static_cast<int>(i + 1);
+        return why;
+      }
     }
   }
   return refusal{};
@@ -48,8 +59,10 @@ refusal recorded_refusal(Patch& patch) {
 // the call that reads it starts rather than trusted to be clean.
 template <typename Patch>
 void clear_recorded_refusal(Patch& patch) {
-  for (size_t i = 0; i < patch.size(); ++i) {
-    *patch.at_species(i).strategy_ptr()->recorded_refusal = refusal{};
+  if constexpr (RecordsRefusal<typename Patch::strategy_type>) {
+    for (size_t i = 0; i < patch.size(); ++i) {
+      *patch.at_species(i).strategy_ptr()->recorded_refusal = refusal{};
+    }
   }
 }
 
@@ -1173,7 +1186,7 @@ SCM<T, E>::census_trait_gradient(const std::vector<size_t>& extra_stops,
     try {
       ranges = solver.solve_adjoint(lambda, trait_adjoint, extra_stops);
     } catch (const odelia::util::AdjointRangeError& e) {
-      why = refusal{std::string("TF24 gradient: ") + e.what(), -1};
+      why = refusal{std::string("stand gradient: ") + e.what(), -1};
     }
     if (!why.happened()) {
       std::vector<std::vector<double>> at_first_state = lambda.to_rows();

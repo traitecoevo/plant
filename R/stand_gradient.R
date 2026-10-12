@@ -1,3 +1,27 @@
+# The model's census entry points, chosen off the SCM's own class. Every
+# exported function below reads them from here, so a model that declares no
+# census is refused once, by name, instead of failing on a C++ type check.
+census_backend <- function(scm) {
+  type <- extract_RcppR6_template_types(scm, "SCM")[[1]]
+  switch(type,
+    TF24 = list(metric_names = census_metric_names_tf24,
+                census = census_tf24,
+                state_adjoint = census_state_adjoint_tf24,
+                trait_names = census_trait_names_tf24,
+                undifferentiable = census_undifferentiable_tf24,
+                trait_gradient = census_trait_gradient_tf24,
+                control = gradient_control_tf24),
+    FF16 = list(metric_names = census_metric_names_ff16,
+                census = census_ff16,
+                state_adjoint = census_state_adjoint_ff16,
+                trait_names = census_trait_names_ff16,
+                undifferentiable = census_undifferentiable_ff16,
+                trait_gradient = census_trait_gradient_ff16,
+                control = gradient_control_ff16),
+    stop("No census is declared for the ", type, " model, so it has no ",
+         "stand gradient; TF24 and FF16 declare one"))
+}
+
 ##' Census metrics of a solved stand.
 ##'
 ##' The trapezium integral of \eqn{n_k \psi(\mathrm{state}_k)} over the size
@@ -6,11 +30,13 @@
 ##' boundary node closes it, so the interval between it and the smallest cohort
 ##' is in the sum.
 ##'
-##' @param scm A run \code{SCM} object for the TF24 strategy.
+##' @param scm A run \code{SCM} object for the TF24 or FF16 model, on the
+##'   birth-date coordinate (\code{control(node_density_in_birth_date = TRUE)}).
 ##' @return A named numeric vector, one entry per census metric.
 ##' @export
 stand_census <- function(scm) {
-  stats::setNames(census_tf24(scm), census_metric_names_tf24())
+  b <- census_backend(scm)
+  stats::setNames(b$census(scm), b$metric_names())
 }
 
 ##' Sensitivity of the census metrics to the ODE state at the current time.
@@ -21,13 +47,15 @@ stand_census <- function(scm) {
 ##' integrand only where the height is the coordinate integrated over; on the
 ##' birth-date coordinate the weights are constants.
 ##'
-##' @param scm A run \code{SCM} object for the TF24 strategy.
+##' @param scm A run \code{SCM} object for the TF24 or FF16 model, on the
+##'   birth-date coordinate (\code{control(node_density_in_birth_date = TRUE)}).
 ##' @return A numeric matrix, metrics by ODE state entries.
 ##' @export
 stand_census_state_adjoint <- function(scm) {
-  rows <- census_state_adjoint_tf24(scm)
+  b <- census_backend(scm)
+  rows <- b$state_adjoint(scm)
   out <- do.call(rbind, rows)
-  rownames(out) <- census_metric_names_tf24()
+  rownames(out) <- b$metric_names()
   out
 }
 
@@ -41,10 +69,11 @@ stand_census_state_adjoint <- function(scm) {
 ##' support. \code{stand_gradient} records them and
 ##' \code{stand_gradient_compare} refuses a pair that disagrees.
 ##'
-##' @param scm A run \code{SCM} object for the TF24 strategy.
+##' @param scm A run \code{SCM} object for the TF24 or FF16 model, on the
+##'   birth-date coordinate (\code{control(node_density_in_birth_date = TRUE)}).
 ##' @return A named numeric vector of length five.
 ##' @export
-gradient_control <- function(scm) gradient_control_tf24(scm)
+gradient_control <- function(scm) census_backend(scm)$control(scm)
 
 # The parameter a gradient column names, with its species index stripped. An
 # unknown name is matched on this so a missing species prefix is distinguishable
@@ -62,14 +91,15 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##' reading of the traits at that state, which is not a sensitivity of the state
 ##' and so no sweep produces it.
 ##'
-##' @param scm A run \code{SCM} object for the TF24 strategy.
+##' @param scm A run \code{SCM} object for the TF24 or FF16 model, on the
+##'   birth-date coordinate (\code{control(node_density_in_birth_date = TRUE)}).
 ##' @param metrics Census metric names to differentiate; defaults to all of them.
 ##' @param traits Column names to differentiate with respect to; defaults to
 ##'   every differentiable parameter every species declares. A column is named
 ##'   for its species and its parameter, as \code{"1.lma"}. With \code{hyperpar},
 ##'   these name the traits to differentiate through it, and must be given.
 ##' @param hyperpar \code{NULL}, or the hyperparameter function the stand was
-##'   built with, as \code{TF24_hyperpar}. See the section on traits and
+##'   built with, as \code{TF24_hyperpar} or \code{FF16_hyperpar}. See the section on traits and
 ##'   parameters.
 ##' @return A list with \code{value}, the metrics at the end of the run;
 ##'   \code{gradient}, a metrics-by-traits matrix; \code{refusal}, one entry per
@@ -121,12 +151,13 @@ stand_gradient <- function(scm, metrics = NULL, traits = NULL, hyperpar = NULL) 
   if (!is.null(hyperpar)) {
     return(stand_gradient_through(scm, metrics, traits, hyperpar))
   }
-  all_metrics <- census_metric_names_tf24()
+  b <- census_backend(scm)
+  all_metrics <- b$metric_names()
   # Every parameter the strategy carries has a column, bar the few the model
   # states it cannot differentiate. So the width does not depend on what the
   # sweep can currently answer, and a caller indexing by position sees the same
   # shape from run to run.
-  all_traits <- census_trait_names_tf24(scm)
+  all_traits <- b$trait_names(scm)
   if (is.null(metrics)) {
     metrics <- all_metrics
   }
@@ -142,7 +173,7 @@ stand_gradient <- function(scm, metrics = NULL, traits = NULL, hyperpar = NULL) 
     # A parameter the model carries but cannot differentiate is not unknown, and
     # saying so sent readers looking for a spelling mistake. The model states why
     # it has no gradient; that sentence is the refusal.
-    why <- census_undifferentiable_tf24()
+    why <- b$undifferentiable()
     named <- trait_without_species(unknown)
     cannot <- named %in% names(why)
     if (any(cannot)) {
@@ -167,7 +198,7 @@ stand_gradient <- function(scm, metrics = NULL, traits = NULL, hyperpar = NULL) 
   # trajectory, so computing all three and subsetting the answer charged a
   # caller who wanted one for three. Named, not positioned: C++ resolves the
   # names against the same list it reports them from.
-  swept <- census_trait_gradient_tf24(scm, as.character(metrics))
+  swept <- b$trait_gradient(scm, as.character(metrics))
   gradient <- do.call(rbind, swept$gradient)
   dimnames(gradient) <- list(metrics, all_traits)
 
@@ -187,7 +218,8 @@ stand_gradient <- function(scm, metrics = NULL, traits = NULL, hyperpar = NULL) 
 # costs no model evaluation.
 stand_gradient_through <- function(scm, metrics, traits, hyperpar) {
   if (!is.function(hyperpar)) {
-    stop("`hyperpar` must be a hyperparameter function, as TF24_hyperpar")
+    stop("`hyperpar` must be a hyperparameter function, as TF24_hyperpar ",
+         "or FF16_hyperpar")
   }
   if (is.null(traits) || length(traits) == 0L) {
     stop("Name the traits to differentiate through `hyperpar`, as \"1.lma\"")
@@ -195,7 +227,7 @@ stand_gradient_through <- function(scm, metrics, traits, hyperpar) {
   partial <- stand_gradient(scm, metrics)
   G <- partial$gradient
   strategies <- scm$parameters$strategies
-  undifferentiable <- names(census_undifferentiable_tf24())
+  undifferentiable <- names(census_backend(scm)$undifferentiable())
 
   total <- matrix(NA_real_, nrow(G), length(traits),
                   dimnames = list(rownames(G), traits))
