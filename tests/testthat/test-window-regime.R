@@ -133,3 +133,36 @@ test_that("a converged stand's window average does not depend on the window", {
                                     retire_density = 1e-8))
   expect_equal(scm2$net_reproduction_ratios, late, tolerance = 1e-10)
 })
+
+test_that("cohorts seeded from a burn-in weigh nothing before the window", {
+  ## A burn-in under no regime exports its stand; resumed into a window, the
+  ## seeded cohorts were born before it and carry no weight, whatever the
+  ## burn-in stamped them with, so the ratio is the mean over the window's own
+  ## arrivals.
+  p <- ff16(20)
+  p$patch_type <- "fixed"
+  p$node_schedule_times <- list(node_schedule_times_periodic(0, 20, 1))
+  ctrl <- Control(node_density_in_birth_date = TRUE)
+  burn <- run_scm(p, ctrl = ctrl)
+  state <- export_patch_state(burn)
+  expect_true(all(state$patch_density[[1]] == 1))
+  p2 <- window_regime(ff16(40), 25, 35)
+  p2 <- set_initial_state(p2, state)
+  p2$node_schedule_times <- list(node_schedule_times_periodic(20, 40, 1))
+  scm <- run_scm(p2, ctrl = ctrl)
+  sp <- scm$patch$species[[1]]
+  t <- sp$node_times
+  expect_true(all(sp$patch_densities[t < 25] == 0))
+  expect_true(all(sp$patch_densities[t >= 25 & t <= 35] == 0.1))
+  out <- sp$net_reproduction_ratio_by_node * p2$strategies[[1]]$pars$S_D
+  d <- ifelse(t >= 25 & t <= 35, 0.1, 0)
+  trapezium <- function(x, y) sum(diff(x) * (head(y, -1) + tail(y, -1)) / 2)
+  expect_equal(scm$net_reproduction_ratios, trapezium(t, out * d) / trapezium(t, d),
+               tolerance = 1e-12)
+  ## A resume under the regime that stamped the export is unchanged by this.
+  p3 <- set_initial_state(ff16(40), state)
+  p3$patch_type <- "fixed"
+  p3$node_schedule_times <- list(node_schedule_times_periodic(20, 40, 1))
+  scm3 <- run_scm(p3, ctrl = ctrl)
+  expect_true(all(scm3$patch$species[[1]]$patch_densities == 1))
+})

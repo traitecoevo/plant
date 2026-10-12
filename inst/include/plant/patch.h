@@ -797,8 +797,19 @@ void Patch<T,E>::set_initial_state() {
     auto s_it = parameters.initial_pr_patch_survival.begin();
     for (size_t i = 0; i < n_species; ++i) {
       const size_t n = parameters.n_initial_cohorts[i];
-      species[i].set_birth_state(std::vector<double>(t_it, t_it + n),
-                                 std::vector<double>(d_it, d_it + n),
+      const std::vector<double> times(t_it, t_it + n);
+      // The patch density at birth is THIS run's regime read at the birth
+      // date, not the stamp the exporting run made: a cohort seeded from a
+      // burn-in into an arrival window is born before the window and weighs
+      // nothing in it, where the burn-in stamped it one. For a resume under
+      // the regime that stamped it the two are the same number. The survival
+      // at birth is kept from the export, because the cohort's output so far
+      // was accumulated against it.
+      std::vector<double> patch_density(n);
+      for (size_t k = 0; k < n; ++k) {
+        patch_density[k] = survival_weighting->density(times[k]);
+      }
+      species[i].set_birth_state(times, patch_density,
                                  std::vector<double>(s_it, s_it + n));
       t_it += n;
       d_it += n;

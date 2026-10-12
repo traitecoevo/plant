@@ -66,6 +66,11 @@ tidy_snapshots <- function(scm) {
 ##'   species), \code{"n_live"} (cohorts with density, summed) and
 ##'   \code{"environment"} (every entry of the environment's state) to judge.
 ##' @param snapshot_interval Years between snapshots when the SCM has none set.
+##' @param environment_entries Which entries of the environment's state the
+##'   \code{"environment"} statistic reads; \code{NULL} (the default) reads them
+##'   all. TF24's state is its soil water by layer followed by five cumulative
+##'   flux accumulators, which grow without bound and never settle, so a TF24
+##'   burn-in passes the layer indices, \code{seq_len(n_layers)}.
 ##' @return A list: \code{converged}, \code{time} (where the run stands), and
 ##'   \code{trace}, a data frame with one row per block of the block means and
 ##'   their relative changes (\code{rel_*}).
@@ -74,7 +79,7 @@ tidy_snapshots <- function(scm) {
 run_until_converged <- function(scm, block = 20, tol = 0.02,
                                 t_max = scm$parameters$max_patch_lifetime,
                                 statistics = c("density", "height_max", "environment"),
-                                snapshot_interval = 1) {
+                                snapshot_interval = 1, environment_entries = NULL) {
   statistics <- match.arg(statistics, c("density", "height_max", "n_live", "environment"),
                           several.ok = TRUE)
   if (scm$snapshot_interval <= 0) {
@@ -98,6 +103,9 @@ run_until_converged <- function(scm, block = 20, tol = 0.02,
     if ("environment" %in% statistics && length(s$environment) > 0) {
       env <- s$environment
       names(env) <- paste0("env_", seq_along(env))
+      if (!is.null(environment_entries)) {
+        env <- env[environment_entries]
+      }
       out <- c(out, env)
     }
     out
