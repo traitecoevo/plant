@@ -429,7 +429,21 @@ template <typename T, typename E>
 typename Species<T,E>::HeightScan Species<T,E>::compute_height_scan() const {
   HeightScan ret{value_type(-std::numeric_limits<double>::infinity()), true};
   value_type h_prev = std::numeric_limits<double>::infinity();
+  // ⚠️ WITH RETIREMENT ON, A RETIRED COHORT IS LEFT OUT OF THE SCAN. Its height
+  // froze when it was retired and younger cohorts grow past it, so counted it
+  // breaks the ordering and every field build falls back to a walk per height:
+  // measured, a continuous FF16 stand ran 1.6x SLOWER with retirement than
+  // without, integrating 112 cohorts instead of 1882. It contributes exactly zero
+  // to every reduction, so the ordering of the cohorts that contribute is the one
+  // the fast build and the walk's early exit rest on. Gated on the floor, so a
+  // run that has not opted in scans exactly as it always has.
+  const bool skip_retired = control().retire_survival > 0.0;
+  bool any = false;
   for (nodes_const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
+    if (skip_retired && it->retired()) {
+      continue;
+    }
+    any = true;
     const value_type h = it->height();
     if (h > h_prev) {
       ret.decreasing = false;
@@ -438,6 +452,10 @@ typename Species<T,E>::HeightScan Species<T,E>::compute_height_scan() const {
       ret.h_max = h;
     }
     h_prev = h;
+  }
+  // Every cohort retired: the canopy top is the seed's, as for an empty species.
+  if (skip_retired && !any) {
+    ret.h_max = new_node.height();
   }
   return ret;
 }
@@ -616,6 +634,7 @@ Species<T,E>::reduce_competition(const value_type& height,
                                  const std::vector<std::size_t>& order) const {
   const bool birth_date = control().node_density_in_birth_date;
   const HeightScan& scan = scan_heights();
+  const bool skip_retired = control().retire_survival > 0.0;
   const bool permuted = !order.empty();
   const std::size_t n = size();
   auto node_at = [&](std::size_t k) -> const node_type& {
@@ -644,7 +663,11 @@ Species<T,E>::reduce_competition(const value_type& height,
     sum.slope += (x0 - x1) * (at_x1.slope + fs0.slope);
     x1    = x0;
     at_x1 = fs0;
-    if (scan.decreasing && node.height() < height) {
+    // A retired cohort is outside the ordering the scan certified (see
+    // compute_height_scan), so its frozen height says nothing about the cohorts
+    // after it; it contributes zero, and the walk goes on past it.
+    if (scan.decreasing && node.height() < height &&
+        !(skip_retired && node.retired())) {
       break;
     }
   }
@@ -1105,6 +1128,10 @@ size_t Species<T,E>::retire_below(double floor) {
       c.retire();
       ++n;
     }
+  }
+  // The height scan leaves retired cohorts out, so retiring one changes it.
+  if (n > 0) {
+    invalidate_height_scan();
   }
   return n;
 }
