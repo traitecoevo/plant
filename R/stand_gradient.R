@@ -218,7 +218,8 @@ stand_gradient <- function(scm, metrics = NULL, traits = NULL, hyperpar = NULL) 
 # costs no model evaluation.
 stand_gradient_through <- function(scm, metrics, traits, hyperpar) {
   if (!is.function(hyperpar)) {
-    stop("`hyperpar` must be a hyperparameter function, as TF24_hyperpar")
+    stop("`hyperpar` must be a hyperparameter function, as TF24_hyperpar ",
+         "or FF16_hyperpar")
   }
   if (is.null(traits) || length(traits) == 0L) {
     stop("Name the traits to differentiate through `hyperpar`, as \"1.lma\"")

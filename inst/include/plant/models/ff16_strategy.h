@@ -69,6 +69,9 @@ struct FF16_Pars {
   // (NOTE that there is a re-parametrisation here relative to the paper
   // -- r_b is defined (new) as 2*r_s, whereas the paper assumes a
   // fixed multiplication by 2)
+  // Spelled out rather than as 2.0 * r_s: r_b and r_s are two independent
+  // fields (the hyperparameter function sets each), and the literal keeps the
+  // default readable in a struct whose members are a template scalar.
   S r_b    = 2.0 * (4012.0 / 608.0);
   // Carbon conversion parameter
   S a_y    = 0.7;
@@ -606,9 +609,14 @@ public:
     return establishment_probability(environment,
                                      vars.aux(NET_MASS_PRODUCTION_DT_AUX_INDEX));
   }
-  // The equation the two above share.
+  // The equation the two above share. The seed's leaf area is derived once by
+  // whichever caller has it: on an active scalar seed_geometry() is an
+  // implicit node per call, and the one-argument form had made two.
   S establishment_probability(const FF16_Environment<S>& environment,
                               const S& net_mass_production_dt_);
+  S establishment_probability(const FF16_Environment<S>& environment,
+                              const S& net_mass_production_dt_,
+                              const S& seed_area_leaf);
 
   // * Competitive environment
   // [eqn 11] total projected leaf area above height above height `z` for given plant
@@ -1385,20 +1393,29 @@ S FF16_Strategy<S>::establishment_probability(const FF16_Environment<S>& environ
   return establishment_probability(
     environment,
     net_mass_production_dt(environment, seed.height, seed.area_leaf,
-                           1.0 / seed.height));
+                           1.0 / seed.height),
+    seed.area_leaf);
 }
 
-// Both forms above end here. The carbon is birth-size carbon either way, whatever
-// height the caller's plant happens to be at.
 template <typename S>
 S FF16_Strategy<S>::establishment_probability(const FF16_Environment<S>& environment,
                                               const S& net_mass_production_dt_) {
+  return establishment_probability(environment, net_mass_production_dt_,
+                                   seed_geometry().area_leaf);
+}
+
+// Every form above ends here. The carbon is birth-size carbon either way,
+// whatever height the caller's plant happens to be at.
+template <typename S>
+S FF16_Strategy<S>::establishment_probability(const FF16_Environment<S>& environment,
+                                              const S& net_mass_production_dt_,
+                                              const S& seed_area_leaf) {
   using std::exp;
 
   S decay_over_time = exp(-pars.recruitment_decay * environment.time);
 
   if (net_mass_production_dt_ > 0) {
-    const S tmp = pars.a_d0 * seed_geometry().area_leaf / net_mass_production_dt_;
+    const S tmp = pars.a_d0 * seed_area_leaf / net_mass_production_dt_;
     return 1.0 / (tmp * tmp + 1.0) * decay_over_time;
   } else {
     return 0.0;
