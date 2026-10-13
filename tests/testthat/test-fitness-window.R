@@ -87,6 +87,30 @@ test_that("the net reproduction ratio is the window average of per-node lifetime
   expect_true(all(sp$patch_densities[t >= 10 & t <= 20] == 0.1))
 })
 
+## A guard for any change to the fitness integral (#658 routes it through a
+## plain trapezium): offspring production takes the same normalised window mean,
+## of output scaled by the birth rate at each birth date.
+test_that("offspring production is the window mean of output times birth rate", {
+  p <- fitness_window(ff16(30), 10, 20)
+  p$strategies[[1]]$birth_rate_y <- 3
+  scm <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE))
+  expect_equal(scm$offspring_production, 3 * scm$net_reproduction_ratios,
+               tolerance = 1e-12)
+})
+
+test_that("a window the run cannot score is refused before the run", {
+  ## Past the run's end, its last arrivals are never integrated.
+  expect_error(run_scm(fitness_window(ff16(30), 10, 30)), "run's end")
+  ## With no cohort inside it, there is nothing to score.
+  p <- fitness_window(ff16(30), 10, 20)
+  p$node_schedule_times <- list(c(0, 1, 2, 25))
+  expect_error(run_scm(p), "No cohort")
+  ## And a misspelt patch type is refused rather than run unweighted.
+  p <- fitness_window(ff16(30), 10, 20)
+  p$patch_type <- "fitness-window"
+  expect_error(run_scm(p), "Unknown patch_type")
+})
+
 test_that("periodic introduction times stop short of the run's end", {
   expect_equal(node_schedule_times_periodic(0, 10, 1), 0:9)
   expect_equal(node_schedule_times_periodic(2.5, 10, 2.5), c(2.5, 5, 7.5))

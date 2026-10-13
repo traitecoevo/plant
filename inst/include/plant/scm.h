@@ -193,6 +193,8 @@ public:
   recorded_field resident_start_field;
   // The field run_mutant_held() holds; empty until its first call.
   recorded_field held_field;
+  // Whether the last run was run_mutant_held()'s, which the gradient refuses.
+  bool ran_in_held_field = false;
   // Whether any species holds a cohort: what "reset" means for a schedule
   // setter. Not the node ODE size, which counts the top layer's block.
   bool patch_has_nodes() const {
@@ -287,9 +289,10 @@ public:
     }
     // A held field is exogenous to the run that stands in it, but the sweep's
     // rebound patches rebuild their field from their own state, so a sweep of a
-    // held run would transpose a different run's field.
-    // The SCM's patch and the solver's are released together (run_mutant_held).
-    if (patch.holds_field()) {
+    // held run would transpose a different run's field. run_mutant_held()
+    // releases the field before it returns, so what is asked is whether the run
+    // these outputs came from stood in one, not whether one is held now.
+    if (patch.holds_field() || ran_in_held_field) {
       util::stop(std::string(entry) +
                  ": this run stands in a held field (run_mutant_held), which "
                  "the reverse-mode gradient does not transpose.");
@@ -605,6 +608,11 @@ private:
   // Everything run() does before its loop: put the run at its start and record
   // what a start records. run_to() calls it once, run() every time.
   void begin();
+  // A fitness window the run cannot score -- one reaching past the run's end,
+  // or holding no cohort of any species -- reads NaN after the whole run, so it
+  // is refused before it. Asked of the schedule the run will walk, which events
+  // may have built, and of the cohorts a resume seeds.
+  void check_fitness_window() const;
   // One leg, with the bookkeeping the loop keeps per leg: refinement errors,
   // the history copy, a snapshot where one is due.
   void step_leg();
@@ -633,6 +641,7 @@ SCM<T, E>::SCM(parameters_type p, environment_type e, Events ev, Control c)
       solver(patch, make_ode_control(c)) {
 
   parameters.validate();
+  check_fitness_window();
 
   collect = false;
   collect_refinement_errors = false;
@@ -642,6 +651,38 @@ SCM<T, E>::SCM(parameters_type p, environment_type e, Events ev, Control c)
     util::warning("We recommened keeping patch_area = 1 for the SCM, as need to check units for all other sizes");
   }
 
+}
+
+template <typename T, typename E>
+void SCM<T, E>::check_fitness_window() const {
+  if (parameters.patch_type != "fitness_window") {
+    return;
+  }
+  const double start = parameters.fitness_window_start;
+  const double end = parameters.fitness_window_end;
+  const double max_time = node_schedule.get_max_time();
+  // A cohort introduced at the run's end is never integrated, so the window
+  // has to close before it -- by the longest lifespan that matters, which is
+  // the caller's to judge.
+  if (!(end < max_time)) {
+    util::stop("The fitness window ends at " + util::to_string(end) +
+               ", at or after the run's end (max_patch_lifetime = " +
+               util::to_string(max_time) + "), so its last arrivals are never "
+               "integrated. Run past the window by the longest lifespan.");
+  }
+  auto inside = [&](double t) { return t >= start && t <= end; };
+  for (const std::vector<double>& times : node_schedule.get_times()) {
+    if (std::any_of(times.begin(), times.end(), inside)) {
+      return;
+    }
+  }
+  if (std::any_of(parameters.initial_node_times.begin(),
+                  parameters.initial_node_times.end(), inside)) {
+    return;
+  }
+  util::stop("No cohort of any species is introduced inside the fitness window [" +
+             util::to_string(start) + ", " + util::to_string(end) +
+             "], so there is nothing to score.");
 }
 
 // Build a uniform grid {t0, t0 + dt, ..., t1} with spacing dt, starting exactly
@@ -684,6 +725,10 @@ template <typename T, typename E> void SCM<T, E>::run() {
 }
 
 template <typename T, typename E> void SCM<T, E>::run_to(double t) {
+  // NaN compares false with every time, so it would silently do nothing.
+  if (std::isnan(t)) {
+    util::stop("run_to: the target time is NaN");
+  }
   if (!begun) {
     begin();
   }
@@ -707,6 +752,18 @@ template <typename T, typename E> void SCM<T, E>::begin() {
   // kept too.
   solver.set_keep_states(record_trajectory);
   reset();
+  // A run is a walk over its schedule's entries and integrates nothing between
+  // them, so a resume with no entry left -- exported after its last
+  // introduction -- would report its seeded state as the run's end. A run from
+  // empty with no schedule is an empty run, and stays one.
+  if (!parameters.initial_state.empty() && complete() &&
+      time() < node_schedule.get_max_time()) {
+    util::stop("This run has no introductions left (a resume exported after the "
+               "last one?), so it would stop at t = " + util::to_string(time()) +
+               " rather than run to max_patch_lifetime = " +
+               util::to_string(node_schedule.get_max_time()) +
+               ". Keep at least one introduction ahead of the export.");
+  }
   // The solver owns the live patch system; operate on it directly during the
   // run and avoid per-step copies into the `patch` member.
   if (collect) {
@@ -1006,12 +1063,21 @@ void SCM<T, E>::run_mutant_held(parameters_type p) {
   // reset() copies the patch into the solver, so the held field reaches every
   // rate evaluation of the run.
   patch.hold_field(held_field);
-  run();
-  // Released once the invaders have run: their outputs are in `patch`, and a
-  // later run of this SCM -- a resident's, a replay, a recording -- must build
-  // its own field. The next call holds SCM::held_field again.
+  // Released once the invaders have run, or failed to: their outputs are in
+  // `patch`, and a later run of this SCM -- a resident's, a replay, a recording
+  // -- must build its own field. The next call holds SCM::held_field again.
+  try {
+    run();
+  } catch (...) {
+    patch.release_field();
+    solver.get_system_ref().release_field();
+    throw;
+  }
   patch.release_field();
   solver.get_system_ref().release_field();
+  // Released, but what the run left behind -- its outputs, and any recording it
+  // kept -- was made in the held field. Cleared by the next reset().
+  ran_in_held_field = true;
 }
 
 template <typename T, typename E>
@@ -1131,6 +1197,7 @@ template <typename T, typename E> void SCM<T, E>::reset() {
   event_log.clear();
   snapshots.clear();
   begun = false;
+  ran_in_held_field = false;
 }
 
 

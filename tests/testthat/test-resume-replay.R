@@ -106,6 +106,15 @@ test_that("an exported state carries the events still to come", {
             1e-2 * scm$net_reproduction_ratios)
 })
 
+test_that("a resume with no introductions left is refused, not stopped at its start", {
+  ## A run walks its schedule's entries; with none left it would report the
+  ## exported state as the run's end, ten years short of it.
+  r <- resumed_parameters()
+  p2 <- r$p2
+  p2$node_schedule_times <- list(numeric(0))
+  expect_error(run_scm(p2), "no introductions left")
+})
+
 test_that("an action applied at the export time is not exported again", {
   p <- ff16(15)
   ev <- events(events_default(p), harvest(time = 15, fraction = 0.2))

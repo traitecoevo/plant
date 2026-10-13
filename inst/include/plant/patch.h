@@ -587,8 +587,10 @@ private:
         util::stop("control$absorb_epsilon needs a strategy that declares an "
                    "asymptotic height, and this one does not");
       } else {
-        // a_f2 <= 0 puts the height at infinity or below the ground, which
-        // would absorb nothing or every cohort bar the youngest.
+        // A strategy answers NaN where its allocation curve has no such height
+        // (a_f2 <= 0: allocation to reproduction does not rise with height). A
+        // height that is not positive and finite would absorb nothing or every
+        // cohort bar the youngest.
         for (const strategy_type& st : parameters.strategies) {
           const double h = st.asymptotic_height(control.absorb_epsilon);
           if (!(h > 0.0) || !util::is_finite(h)) {
@@ -775,6 +777,9 @@ void Patch<T,E>::overwrite_parameters(const parameters_type& p) {
   // As the constructor does: the validated member carries the regime.
   parameters.validate();
   survival_weighting = parameters.disturbance;
+  // The invaders' strategies are checked as the constructor checks the
+  // residents': an absorbing height they cannot have would absorb every cohort.
+  check_retirement_coordinate();
   area = parameters.patch_area;
   overwrite_strategies(parameters.strategies);
 }
@@ -1477,6 +1482,19 @@ void Patch<T,E>::push_nodes(const introduction& species_index, double time) {
       util::stop("introduce_nodes: species " +
                  util::to_string(static_cast<int>(i)) + " of a patch holding " +
                  util::to_string(static_cast<int>(species.size())));
+    }
+    // With the top layer on, a cohort born with no density is frozen at birth
+    // (freezes_retired), so a cohort the fitness integral weights would score
+    // zero output per seed where it would have accrued some. Refused rather
+    // than scored: a zero birth rate is the old idiom for a rare invader.
+    if (freezes_retired(control) && patch_density > 0.0 &&
+        !(species[i].extrinsic_drivers().evaluate("birth_rate", time) > 0.0)) {
+      util::stop("Species " + util::to_string(static_cast<int>(i + 1)) +
+                 " has birth rate zero at t = " + util::to_string(time) +
+                 ". With the top layer on (control$absorb_epsilon > 0) a cohort "
+                 "born with no density is frozen at birth and its output per "
+                 "seed reads zero. Give the species a small positive birth "
+                 "rate, e.g. 1e-6 of the resident's.");
     }
     species[i].introduce_new_node(time, patch_density, pr_survival);
   }

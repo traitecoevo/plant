@@ -536,11 +536,16 @@ public:
   // maximum, a_f1, to reproduction: where a continuous patch's absorbing top
   // layer sits (#519). Growth's share of surplus there is 1 - (1 - epsilon) a_f1,
   // within epsilon a_f1 of its floor -- and epsilon itself only where a_f1 is one.
-  // The inverse of fraction_allocation_reproduction()'s logistic.
+  // The inverse of fraction_allocation_reproduction()'s logistic, and NaN where
+  // the logistic does not rise with height (a_f2 <= 0) or hmat is not positive.
   double asymptotic_height(double epsilon) const {
     using odelia::util::to_passive;
-    return to_passive(pars.hmat) *
-      (1.0 + std::log((1.0 - epsilon) / epsilon) / to_passive(pars.a_f2));
+    const double hmat = to_passive(pars.hmat);
+    const double a_f2 = to_passive(pars.a_f2);
+    if (!(hmat > 0.0) || !(a_f2 > 0.0)) {
+      return std::numeric_limits<double>::quiet_NaN();
+    }
+    return hmat * (1.0 + std::log((1.0 - epsilon) / epsilon) / a_f2);
   }
   S fraction_allocation_growth(const S& height) const;
   // [eqn 17] Rate of offspring production
