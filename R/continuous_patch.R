@@ -150,3 +150,61 @@ run_until_converged <- function(scm, block = 20, tol = 0.02,
   list(converged = converged, time = scm$time,
        trace = as.data.frame(do.call(rbind, trace)))
 }
+
+##' Fitness of invaders at a resident's fixed point
+##'
+##' A resident at a fixed point makes one field, so an invader of it needs no
+##' recording of the resident and no replay: it stands in that one field, held,
+##' for its whole life. This runs each strategy in \code{traits} as one cohort
+##' born at time zero into the field \code{scm} stands in now, until the cohort
+##' is dead, and returns each one's lifetime offspring per seed. Every arrival
+##' at a fixed point sees the same field, so that one cohort's output is the
+##' invader's fitness. The resident's own strategy scores the resident's
+##' reproduction ratio, which is one at its demographic equilibrium.
+##'
+##' The field is taken from the state \code{scm} has reached at the first call,
+##' and held for every later one; run the resident to its fixed point first, for
+##' instance with \code{\link{run_until_converged}} under constant drivers and
+##' the absorbing top layer (\code{Control$absorb_epsilon}). The invaders run
+##' together, as one community, since nothing they do moves a held field.
+##' \code{scm} is consumed: afterwards it holds the invaders.
+##'
+##' @title Invader fitness at a fixed point
+##' @param scm The resident's \code{SCM}, run to its fixed point.
+##' @param p The resident's \code{Parameters}; each invader's strategy is built
+##'   from them as \code{\link{add_mutant}} builds one.
+##' @param traits A trait matrix, one row per invader.
+##' @param hyperpar Hyperparameter function, as for \code{add_strategies}.
+##' @param lifetime Years each invader runs for. It has to outlive the cohort:
+##'   the call fails if a cohort's survival at the end is above
+##'   \code{survival_tol}.
+##' @param survival_tol The survival below which a cohort counts as dead.
+##' @return Lifetime offspring per seed, one per row of \code{traits}.
+##' @seealso \code{\link{run_until_converged}}
+##' @export
+fixed_point_fitness <- function(scm, p, traits, hyperpar = param_hyperpar(p),
+                                lifetime = 3000, survival_tol = 1e-8) {
+  pm <- add_mutant(p, traits, hyperpar = hyperpar,
+                   birth_rate = as.list(rep(1, nrow(traits))))
+  pm$patch_type <- "fixed"
+  pm$max_patch_lifetime <- lifetime
+  pm$node_schedule_times <- rep(list(0), nrow(traits))
+  pm$initial_state <- numeric(0)
+  pm$n_initial_cohorts <- integer(0)
+  pm$initial_node_times <- numeric(0)
+  pm$initial_patch_density <- numeric(0)
+  pm$initial_pr_patch_survival <- numeric(0)
+  pm$initial_time <- 0
+  scm$run_mutant_held(pm)
+  species <- scm$patch$species
+  vapply(seq_along(species), function(i) {
+    node <- species[[i]]$nodes[[1]]
+    state <- stats::setNames(node$ode_state, node$ode_names)
+    survival <- exp(-state[["mortality"]])
+    if (survival > survival_tol) {
+      stop(sprintf(paste("Invader %d is still alive at the end of its %g years",
+                         "(survival %.3g): raise `lifetime`"), i, lifetime, survival))
+    }
+    species[[i]]$net_reproduction_ratio_by_node[[1]] * pm$strategies[[i]]$pars$S_D
+  }, numeric(1))
+}

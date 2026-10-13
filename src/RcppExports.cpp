@@ -7722,6 +7722,17 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// SCM___FF16__FF16_Env__run_mutant_held
+void SCM___FF16__FF16_Env__run_mutant_held(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_, plant::Parameters<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > p);
+RcppExport SEXP _plant_SCM___FF16__FF16_Env__run_mutant_held(SEXP obj_SEXP, SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::Parameters<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > >::type p(pSEXP);
+    SCM___FF16__FF16_Env__run_mutant_held(obj_, p);
+    return R_NilValue;
+END_RCPP
+}
 // SCM___FF16__FF16_Env__store_trajectory
 Rcpp::List SCM___FF16__FF16_Env__store_trajectory(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_);
 RcppExport SEXP _plant_SCM___FF16__FF16_Env__store_trajectory(SEXP obj_SEXP) {
@@ -8095,6 +8106,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::Parameters<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > >::type p(pSEXP);
     SCM___TF24__TF24_Env__run_mutant(obj_, p);
+    return R_NilValue;
+END_RCPP
+}
+// SCM___TF24__TF24_Env__run_mutant_held
+void SCM___TF24__TF24_Env__run_mutant_held(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Parameters<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > p);
+RcppExport SEXP _plant_SCM___TF24__TF24_Env__run_mutant_held(SEXP obj_SEXP, SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::Parameters<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > >::type p(pSEXP);
+    SCM___TF24__TF24_Env__run_mutant_held(obj_, p);
     return R_NilValue;
 END_RCPP
 }
@@ -8474,6 +8496,17 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// SCM___TF24f__TF24_Env__run_mutant_held
+void SCM___TF24f__TF24_Env__run_mutant_held(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Parameters<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > p);
+RcppExport SEXP _plant_SCM___TF24f__TF24_Env__run_mutant_held(SEXP obj_SEXP, SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::Parameters<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > >::type p(pSEXP);
+    SCM___TF24f__TF24_Env__run_mutant_held(obj_, p);
+    return R_NilValue;
+END_RCPP
+}
 // SCM___TF24f__TF24_Env__store_trajectory
 Rcpp::List SCM___TF24f__TF24_Env__store_trajectory(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
 RcppExport SEXP _plant_SCM___TF24f__TF24_Env__store_trajectory(SEXP obj_SEXP) {
@@ -8847,6 +8880,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >::type p(pSEXP);
     SCM___K93__K93_Env__run_mutant(obj_, p);
+    return R_NilValue;
+END_RCPP
+}
+// SCM___K93__K93_Env__run_mutant_held
+void SCM___K93__K93_Env__run_mutant_held(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::Parameters<plant::K93_Strategy,plant::K93_Environment> p);
+RcppExport SEXP _plant_SCM___K93__K93_Env__run_mutant_held(SEXP obj_SEXP, SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >::type p(pSEXP);
+    SCM___K93__K93_Env__run_mutant_held(obj_, p);
     return R_NilValue;
 END_RCPP
 }
@@ -14224,6 +14268,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___FF16__FF16_Env__run", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__run, 1},
     {"_plant_SCM___FF16__FF16_Env__run_to", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__run_to, 2},
     {"_plant_SCM___FF16__FF16_Env__run_mutant", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__run_mutant, 2},
+    {"_plant_SCM___FF16__FF16_Env__run_mutant_held", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__run_mutant_held, 2},
     {"_plant_SCM___FF16__FF16_Env__store_trajectory", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__store_trajectory, 1},
     {"_plant_SCM___FF16__FF16_Env__refine_schedule", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__refine_schedule, 1},
     {"_plant_SCM___FF16__FF16_Env__reset", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__reset, 1},
@@ -14258,6 +14303,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___TF24__TF24_Env__run", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__run, 1},
     {"_plant_SCM___TF24__TF24_Env__run_to", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__run_to, 2},
     {"_plant_SCM___TF24__TF24_Env__run_mutant", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__run_mutant, 2},
+    {"_plant_SCM___TF24__TF24_Env__run_mutant_held", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__run_mutant_held, 2},
     {"_plant_SCM___TF24__TF24_Env__store_trajectory", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__store_trajectory, 1},
     {"_plant_SCM___TF24__TF24_Env__refine_schedule", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__refine_schedule, 1},
     {"_plant_SCM___TF24__TF24_Env__reset", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__reset, 1},
@@ -14292,6 +14338,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___TF24f__TF24_Env__run", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__run, 1},
     {"_plant_SCM___TF24f__TF24_Env__run_to", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__run_to, 2},
     {"_plant_SCM___TF24f__TF24_Env__run_mutant", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__run_mutant, 2},
+    {"_plant_SCM___TF24f__TF24_Env__run_mutant_held", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__run_mutant_held, 2},
     {"_plant_SCM___TF24f__TF24_Env__store_trajectory", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__store_trajectory, 1},
     {"_plant_SCM___TF24f__TF24_Env__refine_schedule", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__refine_schedule, 1},
     {"_plant_SCM___TF24f__TF24_Env__reset", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__reset, 1},
@@ -14326,6 +14373,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___K93__K93_Env__run", (DL_FUNC) &_plant_SCM___K93__K93_Env__run, 1},
     {"_plant_SCM___K93__K93_Env__run_to", (DL_FUNC) &_plant_SCM___K93__K93_Env__run_to, 2},
     {"_plant_SCM___K93__K93_Env__run_mutant", (DL_FUNC) &_plant_SCM___K93__K93_Env__run_mutant, 2},
+    {"_plant_SCM___K93__K93_Env__run_mutant_held", (DL_FUNC) &_plant_SCM___K93__K93_Env__run_mutant_held, 2},
     {"_plant_SCM___K93__K93_Env__store_trajectory", (DL_FUNC) &_plant_SCM___K93__K93_Env__store_trajectory, 1},
     {"_plant_SCM___K93__K93_Env__refine_schedule", (DL_FUNC) &_plant_SCM___K93__K93_Env__refine_schedule, 1},
     {"_plant_SCM___K93__K93_Env__reset", (DL_FUNC) &_plant_SCM___K93__K93_Env__reset, 1},

@@ -2729,6 +2729,10 @@ SCM___FF16__FF16_Env__run_mutant <- function(obj_, p) {
     invisible(.Call('_plant_SCM___FF16__FF16_Env__run_mutant', PACKAGE = 'plant', obj_, p))
 }
 
+SCM___FF16__FF16_Env__run_mutant_held <- function(obj_, p) {
+    invisible(.Call('_plant_SCM___FF16__FF16_Env__run_mutant_held', PACKAGE = 'plant', obj_, p))
+}
+
 SCM___FF16__FF16_Env__store_trajectory <- function(obj_) {
     .Call('_plant_SCM___FF16__FF16_Env__store_trajectory', PACKAGE = 'plant', obj_)
 }
@@ -2863,6 +2867,10 @@ SCM___TF24__TF24_Env__run_to <- function(obj_, time) {
 
 SCM___TF24__TF24_Env__run_mutant <- function(obj_, p) {
     invisible(.Call('_plant_SCM___TF24__TF24_Env__run_mutant', PACKAGE = 'plant', obj_, p))
+}
+
+SCM___TF24__TF24_Env__run_mutant_held <- function(obj_, p) {
+    invisible(.Call('_plant_SCM___TF24__TF24_Env__run_mutant_held', PACKAGE = 'plant', obj_, p))
 }
 
 SCM___TF24__TF24_Env__store_trajectory <- function(obj_) {
@@ -3001,6 +3009,10 @@ SCM___TF24f__TF24_Env__run_mutant <- function(obj_, p) {
     invisible(.Call('_plant_SCM___TF24f__TF24_Env__run_mutant', PACKAGE = 'plant', obj_, p))
 }
 
+SCM___TF24f__TF24_Env__run_mutant_held <- function(obj_, p) {
+    invisible(.Call('_plant_SCM___TF24f__TF24_Env__run_mutant_held', PACKAGE = 'plant', obj_, p))
+}
+
 SCM___TF24f__TF24_Env__store_trajectory <- function(obj_) {
     .Call('_plant_SCM___TF24f__TF24_Env__store_trajectory', PACKAGE = 'plant', obj_)
 }
@@ -3135,6 +3147,10 @@ SCM___K93__K93_Env__run_to <- function(obj_, time) {
 
 SCM___K93__K93_Env__run_mutant <- function(obj_, p) {
     invisible(.Call('_plant_SCM___K93__K93_Env__run_mutant', PACKAGE = 'plant', obj_, p))
+}
+
+SCM___K93__K93_Env__run_mutant_held <- function(obj_, p) {
+    invisible(.Call('_plant_SCM___K93__K93_Env__run_mutant_held', PACKAGE = 'plant', obj_, p))
 }
 
 SCM___K93__K93_Env__store_trajectory <- function(obj_) {

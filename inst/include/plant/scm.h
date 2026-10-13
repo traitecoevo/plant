@@ -136,6 +136,16 @@ public:
   // does not move. Destructive -- `p` becomes this SCM's parameters, and its
   // outputs are `p`'s. Needs a finished resident run to take a program from.
   void run_mutant(parameters_type p);
+  // Integrate `p`'s strategies as invaders of a stand at a fixed point: every
+  // one of them stands in ONE field, the resident's as it stands now, held for
+  // the whole of their run (#519). Where run_mutant() replays a resident's
+  // recorded field step by step, a fixed point has a single field, so nothing
+  // is recorded and nothing replayed, and an invader takes its own steps. The
+  // field is taken at the first call, from the state the resident has reached
+  // -- run it to its fixed point first -- and every later call stands in the
+  // same one. Destructive, as run_mutant() is: `p` becomes this SCM's
+  // parameters, and its outputs are `p`'s.
+  void run_mutant_held(parameters_type p);
 
   // Run, keeping the state at each accepted step, and return one record per step.
   //
@@ -180,6 +190,8 @@ public:
   // Unused for a resident run from empty, whose field at that instant is the
   // empty patch's, the same as an invader's.
   recorded_field resident_start_field;
+  // The field run_mutant_held() holds; empty until its first call.
+  recorded_field held_field;
   bool resident_resumed = false;
 
   // True once every scheduled node introduction has been consumed.
@@ -908,6 +920,29 @@ void SCM<T, E>::run_mutant(parameters_type p) {
   }
   solver.advance_recorded(resident_recording);
   patch = solver.get_system_ref();
+}
+
+template <typename T, typename E>
+void SCM<T, E>::run_mutant_held(parameters_type p) {
+  if (!held_field.kept) {
+    if (!begun) {
+      util::stop("Run the resident to its fixed point before holding its field "
+                 "for an invader");
+    }
+    // Built afresh from the state the resident is at, rather than read off
+    // whichever rate evaluation last touched the environment, which is a
+    // stage of the last step and not its end.
+    patch_type& live = solver.get_system_ref();
+    live.r_compute_environment();
+    held_field = live.current_field();
+  }
+  parameters = p;
+  patch.overwrite_parameters(parameters);
+  node_schedule = make_node_schedule(parameters);
+  // reset() copies the patch into the solver, so the held field reaches every
+  // rate evaluation of the run.
+  patch.hold_field(held_field);
+  run();
 }
 
 template <typename T, typename E>

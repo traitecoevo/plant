@@ -3100,6 +3100,10 @@ void SCM___FF16__FF16_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::FF
   obj_->run_mutant(p);
 }
 // [[Rcpp::export]]
+void SCM___FF16__FF16_Env__run_mutant_held(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_, plant::Parameters<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > p) {
+  obj_->run_mutant_held(p);
+}
+// [[Rcpp::export]]
 Rcpp::List SCM___FF16__FF16_Env__store_trajectory(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
   return obj_->r_store_trajectory();
 }
@@ -3254,6 +3258,10 @@ void SCM___TF24__TF24_Env__run_to(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_S
 // [[Rcpp::export]]
 void SCM___TF24__TF24_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Parameters<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > p) {
   obj_->run_mutant(p);
+}
+// [[Rcpp::export]]
+void SCM___TF24__TF24_Env__run_mutant_held(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Parameters<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > p) {
+  obj_->run_mutant_held(p);
 }
 // [[Rcpp::export]]
 Rcpp::List SCM___TF24__TF24_Env__store_trajectory(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
@@ -3412,6 +3420,10 @@ void SCM___TF24f__TF24_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::T
   obj_->run_mutant(p);
 }
 // [[Rcpp::export]]
+void SCM___TF24f__TF24_Env__run_mutant_held(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Parameters<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > p) {
+  obj_->run_mutant_held(p);
+}
+// [[Rcpp::export]]
 Rcpp::List SCM___TF24f__TF24_Env__store_trajectory(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->r_store_trajectory();
 }
@@ -3566,6 +3578,10 @@ void SCM___K93__K93_Env__run_to(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Stra
 // [[Rcpp::export]]
 void SCM___K93__K93_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::Parameters<plant::K93_Strategy,plant::K93_Environment> p) {
   obj_->run_mutant(p);
+}
+// [[Rcpp::export]]
+void SCM___K93__K93_Env__run_mutant_held(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::Parameters<plant::K93_Strategy,plant::K93_Environment> p) {
+  obj_->run_mutant_held(p);
 }
 // [[Rcpp::export]]
 Rcpp::List SCM___K93__K93_Env__store_trajectory(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {

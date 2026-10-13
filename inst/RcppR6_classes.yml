@@ -841,6 +841,9 @@ SCM:
     run_mutant:
       args: [p: "plant::Parameters<T,E>"]
       return_type: void
+    run_mutant_held:
+      args: [p: "plant::Parameters<T,E>"]
+      return_type: void
     store_trajectory:
       return_type: "Rcpp::List"
       name_cpp: r_store_trajectory

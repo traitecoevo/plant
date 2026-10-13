@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <utility> // std::pair
@@ -419,6 +420,19 @@ public:
   // Stand in `f` until a recorded row hands over another; see current_field().
   void stand_in(const recorded_field* f) { loaded_field = f; }
 
+  // Stand in `f` at every rate evaluation of every later run, whatever the
+  // time: a stand at a fixed point makes one field, and an invader of it needs
+  // that field and nothing recorded (#519). The environment's own state is held
+  // with it -- its rates are zero -- so TF24's soil does not move either.
+  // Survives reset(), unlike a recorded field, because the run that uses it
+  // begins with one.
+  //
+  // ⚠️ HELD BY VALUE, NOT POINTED AT. A pointer into the patch's own member
+  // dangles in every copy (#589), and the solver integrates a copy.
+  void hold_field(const recorded_field& f) { held_field = f; }
+  void release_field() { held_field.reset(); }
+  bool holds_field() const { return held_field.has_value(); }
+
   // A recorded state loaded as the run itself carries it. set_ode_state evaluates
   // the inflow condition in the field that leaves the boundary interval off, then
   // rebuilds the field including it; the run then rates the nodes and evaluates
@@ -530,6 +544,8 @@ private:
   // replay one, and reset() clears it.
   const recorded_field* loaded_field = nullptr;
   recorded_field* field_slot = nullptr;
+  // See hold_field(). Takes precedence over a loaded field.
+  std::optional<recorded_field> held_field;
 
   // Seed the patch from parameters.initial_state (nodes + birth bookkeeping)
   // when present; called from reset(). Sets environment.time = initial_time.
@@ -1251,6 +1267,12 @@ void Patch<T,E>::compute_environment() {
   // ⚠️ THE INSTANT IS CHECKED. The field and the state reach here by different
   // routes, and a recording paired one step out would hand every evaluation its
   // neighbour's field with every number finite.
+  if (held_field) {
+    environment.r_init_interpolators(held_field->interpolators);
+    environment.set_ode_state(held_field->state.begin());
+    compute_boundary_nodes();
+    return;
+  }
   if (loaded_field != nullptr) {
     if (!util::identical(loaded_field->time, environment.time)) {
       // ⚠️ EVERY DIGIT, because the two instants a mispaired recording hands over
@@ -1373,7 +1395,10 @@ void Patch<T,E>::compute_rates() {
       });
     resource_depletion.push_back(resource_consumed / area);
   }
-  env.compute_rates(resource_depletion);
+  // A held field is exogenous: nothing the species take moves it.
+  if (!held_field) {
+    env.compute_rates(resource_depletion);
+  }
 }
 
 // The whole light environment is rebuilt here, where only the knots below the
@@ -1699,6 +1724,13 @@ template <typename It>
 It Patch<T,E>::ode_rates(It it) {
   compute_rates();
   it = odelia::ode::ode_rates(species.begin(), species.end(), it);
+  if (held_field) {
+    for (size_t k = 0; k < environment.ode_size(); ++k) {
+      *it = 0.0;
+      ++it;
+    }
+    return it;
+  }
   it = environment.ode_rates(it);
   return it;
 }
