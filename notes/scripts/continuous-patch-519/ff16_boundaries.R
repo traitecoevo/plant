@@ -10,7 +10,7 @@ ctrl <- function(absorb = 0) Control(node_density_in_birth_date = TRUE, absorb_e
 
 ## 1. Exact conservation at the instant: a stand grown without absorption, so
 ## many cohorts stand above the absorbing height, loaded with it on.
-burn <- plant:::SCM("FF16", "FF16_Env")(mk(400), Environment("FF16"), plant:::empty_events(), ctrl())
+burn <- run_scm(mk(400), Environment("FF16"), ctrl(), run = FALSE)
 burn$run_to(300); state <- export_patch_state(burn)
 state$ode_state <- c(state$ode_state, rep(0, 5 + 5))   # an empty top block (FF16: 5 states + 5)
 p2 <- set_initial_state(mk(400), state)
@@ -29,7 +29,7 @@ cat(sprintf("after:  %d cohorts, %d retired, top density %.6g at height %.6f, to
 cfgs <- list(list(lab = "no boundary", a = 0))
 for (eps in c(0.05, 0.02, 0.01)) cfgs[[length(cfgs) + 1]] <- list(lab = sprintf("top layer, epsilon %g", eps), a = eps)
 for (cfg in cfgs) {
-  s <- plant:::SCM("FF16", "FF16_Env")(mk(1000), Environment("FF16"), plant:::empty_events(), ctrl(cfg$a))
+  s <- run_scm(mk(1000), Environment("FF16"), ctrl(cfg$a), run = FALSE)
   s$snapshot_interval <- 50
   w <- system.time(s$run())[["elapsed"]]
   sp <- s$patch$species[[1]]; sn <- tidy_snapshots(s)$species

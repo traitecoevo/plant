@@ -42,6 +42,11 @@ The run must extend past \code{end} by the longest lifespan that matters,
 or the last arrivals' output is truncated; and the window should open after
 the stand's burn-in, which \code{\link{export_patch_state}} lets a run pay
 once.
+
+The window is closed at both ends, because the trapezium over
+\code{[start, end]} needs a cohort at each. Invaders introduced only inside
+the window need one at \code{end} too:
+\code{node_schedule_times_periodic(start, end, by, include_end = TRUE)}.
 }
 \seealso{
 \code{\link{node_schedule_times_periodic}}

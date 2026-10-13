@@ -2544,6 +2544,14 @@ void Patch___FF16__FF16_Env__compute_environment(plant::RcppR6::RcppR6<plant::Pa
   obj_->r_compute_environment();
 }
 // [[Rcpp::export]]
+void Patch___FF16__FF16_Env__hold_field(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
+  obj_->r_hold_current_field();
+}
+// [[Rcpp::export]]
+void Patch___FF16__FF16_Env__release_field(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
+  obj_->release_field();
+}
+// [[Rcpp::export]]
 void Patch___FF16__FF16_Env__reset(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
   obj_->reset();
 }
@@ -2665,6 +2673,11 @@ Rcpp::List Patch___FF16__FF16_Env__state__get(plant::RcppR6::RcppR6<plant::Patch
   return obj_->r_get_state();
 }
 
+// [[Rcpp::export]]
+bool Patch___FF16__FF16_Env__holds_field__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
+  return obj_->holds_field();
+}
+
 
 // [[Rcpp::export]]
 plant::Patch<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > Patch___TF24__TF24_Env__ctor(plant::Parameters<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > parameters, plant::TF24_Environment<double> environment, plant::Control control) {
@@ -2681,6 +2694,14 @@ void Patch___TF24__TF24_Env__introduce_new_node(plant::RcppR6::RcppR6<plant::Pat
 // [[Rcpp::export]]
 void Patch___TF24__TF24_Env__compute_environment(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
   obj_->r_compute_environment();
+}
+// [[Rcpp::export]]
+void Patch___TF24__TF24_Env__hold_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  obj_->r_hold_current_field();
+}
+// [[Rcpp::export]]
+void Patch___TF24__TF24_Env__release_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  obj_->release_field();
 }
 // [[Rcpp::export]]
 void Patch___TF24__TF24_Env__reset(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
@@ -2804,6 +2825,11 @@ Rcpp::List Patch___TF24__TF24_Env__state__get(plant::RcppR6::RcppR6<plant::Patch
   return obj_->r_get_state();
 }
 
+// [[Rcpp::export]]
+bool Patch___TF24__TF24_Env__holds_field__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->holds_field();
+}
+
 
 // [[Rcpp::export]]
 plant::Patch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > Patch___TF24f__TF24_Env__ctor(plant::Parameters<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > parameters, plant::TF24_Environment<double> environment, plant::Control control) {
@@ -2820,6 +2846,14 @@ void Patch___TF24f__TF24_Env__introduce_new_node(plant::RcppR6::RcppR6<plant::Pa
 // [[Rcpp::export]]
 void Patch___TF24f__TF24_Env__compute_environment(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
   obj_->r_compute_environment();
+}
+// [[Rcpp::export]]
+void Patch___TF24f__TF24_Env__hold_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  obj_->r_hold_current_field();
+}
+// [[Rcpp::export]]
+void Patch___TF24f__TF24_Env__release_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  obj_->release_field();
 }
 // [[Rcpp::export]]
 void Patch___TF24f__TF24_Env__reset(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
@@ -2943,6 +2977,11 @@ Rcpp::List Patch___TF24f__TF24_Env__state__get(plant::RcppR6::RcppR6<plant::Patc
   return obj_->r_get_state();
 }
 
+// [[Rcpp::export]]
+bool Patch___TF24f__TF24_Env__holds_field__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->holds_field();
+}
+
 
 // [[Rcpp::export]]
 plant::Patch<plant::K93_Strategy,plant::K93_Environment> Patch___K93__K93_Env__ctor(plant::Parameters<plant::K93_Strategy,plant::K93_Environment> parameters, plant::K93_Environment environment, plant::Control control) {
@@ -2959,6 +2998,14 @@ void Patch___K93__K93_Env__introduce_new_node(plant::RcppR6::RcppR6<plant::Patch
 // [[Rcpp::export]]
 void Patch___K93__K93_Env__compute_environment(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
   obj_->r_compute_environment();
+}
+// [[Rcpp::export]]
+void Patch___K93__K93_Env__hold_field(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  obj_->r_hold_current_field();
+}
+// [[Rcpp::export]]
+void Patch___K93__K93_Env__release_field(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  obj_->release_field();
 }
 // [[Rcpp::export]]
 void Patch___K93__K93_Env__reset(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
@@ -3080,6 +3127,11 @@ size_t Patch___K93__K93_Env__node_ode_size__get(plant::RcppR6::RcppR6<plant::Pat
 // [[Rcpp::export]]
 Rcpp::List Patch___K93__K93_Env__state__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
   return obj_->r_get_state();
+}
+
+// [[Rcpp::export]]
+bool Patch___K93__K93_Env__holds_field__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->holds_field();
 }
 
 

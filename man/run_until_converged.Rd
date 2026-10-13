@@ -15,8 +15,10 @@ run_until_converged(
 )
 }
 \arguments{
-\item{scm}{An \code{SCM} whose schedule reaches \code{t_max}. Its
-\code{snapshot_interval} is set to \code{snapshot_interval} if it is zero.}
+\item{scm}{An \code{SCM} built and not yet run to the end, as
+\code{run_scm(p, ..., run = FALSE)} returns one, whose schedule reaches
+\code{t_max}. Its \code{snapshot_interval} is set to
+\code{snapshot_interval} if it is zero.}
 
 \item{block}{Years per block.}
 
@@ -55,9 +57,12 @@ block the mean over that block's snapshots is taken of the chosen
 statistics, and the run is converged when every statistic's relative change
 from the previous block's mean has stayed below \code{tol} for two
 consecutive blocks. It stops regardless at \code{t_max}, or when the
-schedule is consumed, and says which it was. Under a stochastic driver the
-block has to span several of the driver's correlation times, or the test
-measures the driver and not the stand.
+schedule is consumed, and says which it was; a last block shorter than
+\code{block} runs the patch on to \code{t_max} without being tested. Under a
+stochastic driver the block has to span several of the driver's correlation
+times, or the test measures the driver and not the stand. A statistic that
+is \code{NA} in a block -- the tallest cohort of a stand with none alive --
+cannot settle, and the function warns which.
 }
 \seealso{
 \code{\link{tidy_snapshots}}, \code{\link{export_patch_state}}

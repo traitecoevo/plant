@@ -39,8 +39,12 @@ public:
     if (x_.size() != w_.size()) {
       util::stop("fitness_window_weight_x and fitness_window_weight_y must have the same length");
     }
-    if (!util::is_sorted(x_.begin(), x_.end())) {
-      util::stop("fitness_window_weight_x must be increasing");
+    // Strictly, and finite: a repeated knot is a jump the interpolation cannot
+    // place, and a NaN knot compares false both ways.
+    for (size_t i = 0; i < x_.size(); ++i) {
+      if (!util::is_finite(x_[i]) || (i > 0 && !(x_[i] > x_[i - 1]))) {
+        util::stop("fitness_window_weight_x must be finite and strictly increasing");
+      }
     }
     for (const double v : w_) {
       if (!(v >= 0.0)) {

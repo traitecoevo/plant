@@ -71,7 +71,7 @@ for (seed in seeds) {
                         hyperpar = TF24_hyperpar, birth_rate = b)
     p <- fitness_window(p, T1, T2)
     p$node_schedule_times <- list(node_schedule_times_periodic(0, T_end, 1))
-    scm <- plant:::SCM("TF24", "TF24_Env")(p, make_env(), events(node_introductions(p), pulses), ctrl)
+    scm <- run_scm(p, make_env(), ctrl, events = events(node_introductions(p), pulses), run = FALSE)
     scm$snapshot_interval <- 1
     w <- system.time(scm$run())[["elapsed"]]
     sn <- tidy_snapshots(scm)$species

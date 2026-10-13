@@ -87,7 +87,7 @@ resident_parameters <- function(b, t_max) {
 ## run ends at its lifetime, which is how a field is read inside an interval.
 resident_at <- function(b, t_read = t_eq) {
   p <- resident_parameters(b, t_read)
-  scm <- plant:::SCM(model, env_type)(p, make_env(), plant:::empty_events(), ctrl)
+  scm <- run_scm(p, make_env(), ctrl, run = FALSE)
   scm$run()
   list(scm = scm, p = p)
 }

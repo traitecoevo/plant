@@ -8,6 +8,17 @@
 ##' grid and every node's lifetime offspring output, plus the environment's own
 ##' state.
 ##'
+##' Read on the birth-date coordinate, which a continuous patch runs on:
+##' \code{density} is the trapezium of the carried density over the nodes'
+##' birth dates, a number of individuals per unit area, without the closing
+##' interval to the boundary node that a census adds; on the height coordinate
+##' it is the same trapezium over birth dates of a density in height, which is
+##' not a count. \code{n_retired} counts the nodes carrying no density, frozen
+##' or not, so it is \code{n_nodes - n_live}. The per-node \code{fecundity}
+##' vectors grow with the node list, so their memory grows with the square of
+##' the run's length (about 6 MB at a snapshot a year over 1000 years of one
+##' species); a coarser interval cuts it.
+##'
 ##' @title Tidy a run's snapshots
 ##' @param scm An \code{SCM} that was run with a positive
 ##'   \code{snapshot_interval}.
@@ -24,6 +35,9 @@
 ##' @export
 tidy_snapshots <- function(scm) {
   snaps <- scm$snapshots
+  if (length(snaps) == 0L) {
+    stop("this SCM kept no snapshots: set scm$snapshot_interval before its run")
+  }
   species <- do.call(rbind, lapply(snaps, function(s) {
     do.call(rbind, lapply(seq_along(s$species), function(i) {
       sp <- s$species[[i]]
@@ -52,13 +66,18 @@ tidy_snapshots <- function(scm) {
 ##' statistics, and the run is converged when every statistic's relative change
 ##' from the previous block's mean has stayed below \code{tol} for two
 ##' consecutive blocks. It stops regardless at \code{t_max}, or when the
-##' schedule is consumed, and says which it was. Under a stochastic driver the
-##' block has to span several of the driver's correlation times, or the test
-##' measures the driver and not the stand.
+##' schedule is consumed, and says which it was; a last block shorter than
+##' \code{block} runs the patch on to \code{t_max} without being tested. Under a
+##' stochastic driver the block has to span several of the driver's correlation
+##' times, or the test measures the driver and not the stand. A statistic that
+##' is \code{NA} in a block -- the tallest cohort of a stand with none alive --
+##' cannot settle, and the function warns which.
 ##'
 ##' @title Run until the stand's block means settle
-##' @param scm An \code{SCM} whose schedule reaches \code{t_max}. Its
-##'   \code{snapshot_interval} is set to \code{snapshot_interval} if it is zero.
+##' @param scm An \code{SCM} built and not yet run to the end, as
+##'   \code{run_scm(p, ..., run = FALSE)} returns one, whose schedule reaches
+##'   \code{t_max}. Its \code{snapshot_interval} is set to
+##'   \code{snapshot_interval} if it is zero.
 ##' @param block Years per block.
 ##' @param tol Relative change between consecutive block means below which a
 ##'   statistic counts as settled.
@@ -83,8 +102,42 @@ run_until_converged <- function(scm, block = 20, tol = 0.02,
                                 t_max = scm$parameters$max_patch_lifetime,
                                 statistics = c("density", "height_max", "environment"),
                                 snapshot_interval = 1, environment_entries = NULL) {
+  defaulted <- missing(statistics)
   statistics <- match.arg(statistics, c("density", "height_max", "n_live", "environment"),
                           several.ok = TRUE)
+  if (isTRUE(scm$complete)) {
+    stop("this SCM's run has already finished; build one with ",
+         "run_scm(p, ..., run = FALSE) and let run_until_converged() run it")
+  }
+  if (!(length(block) == 1L && is.finite(block) && block > 0)) {
+    stop("`block` must be a positive number of years")
+  }
+  if (!(length(tol) == 1L && is.finite(tol) && tol > 0)) {
+    stop("`tol` must be a positive number")
+  }
+  if (!(length(t_max) == 1L && is.finite(t_max) && t_max > scm$time)) {
+    stop("`t_max` must lie after the run's current time, ", scm$time)
+  }
+  n_env <- scm$patch$environment$ode_size
+  if ("environment" %in% statistics && n_env == 0) {
+    # In the default set it is simply not there to judge; asked for, it is a
+    # request that cannot be met.
+    if (defaulted) {
+      statistics <- setdiff(statistics, "environment")
+    } else {
+      stop("this model's environment carries no state, so \"environment\" ",
+           "cannot be judged; leave it out of `statistics`")
+    }
+  }
+  if (!is.null(environment_entries)) {
+    if (!"environment" %in% statistics) {
+      stop("`environment_entries` is read only by the \"environment\" statistic")
+    }
+    if (!all(environment_entries %in% seq_len(n_env))) {
+      stop("`environment_entries` must index the environment's ", n_env,
+           " state entries")
+    }
+  }
   if (scm$snapshot_interval <= 0) {
     scm$snapshot_interval <- snapshot_interval
   }
@@ -103,7 +156,7 @@ run_until_converged <- function(scm, block = 20, tol = 0.02,
     if ("n_live" %in% statistics) {
       out <- c(out, n_live = sum(vapply(s$species, `[[`, integer(1), "n_live")))
     }
-    if ("environment" %in% statistics && length(s$environment) > 0) {
+    if ("environment" %in% statistics) {
       env <- s$environment
       names(env) <- paste0("env_", seq_along(env))
       if (!is.null(environment_entries)) {
@@ -118,6 +171,7 @@ run_until_converged <- function(scm, block = 20, tol = 0.02,
   previous <- NULL
   streak <- 0L
   converged <- FALSE
+  undefined <- character(0)
   k <- 0L
   repeat {
     k <- k + 1L
@@ -133,11 +187,12 @@ run_until_converged <- function(scm, block = 20, tol = 0.02,
       stop("no snapshot fell inside the block ending at ", t_end)
     }
     m <- rowMeans(do.call(cbind, lapply(snaps[in_block], statistic)))
+    undefined <- union(undefined, names(m)[is.na(m)])
     rel <- if (is.null(previous)) rep(NA_real_, length(m)) else
       abs(m - previous) / pmax(abs(previous), .Machine$double.eps)
     names(rel) <- paste0("rel_", names(m))
     trace[[k]] <- c(block = k, time = scm$time, m, rel)
-    streak <- if (!is.null(previous) && all(rel < tol)) streak + 1L else 0L
+    streak <- if (!is.null(previous) && isTRUE(all(rel < tol))) streak + 1L else 0L
     previous <- m
     if (streak >= 2L) {
       converged <- TRUE
@@ -146,6 +201,16 @@ run_until_converged <- function(scm, block = 20, tol = 0.02,
     if (scm$complete) {
       break
     }
+  }
+  # What is left of the run past the last whole block.
+  if (!converged && !isTRUE(scm$complete) && scm$time < t_max) {
+    scm$run_to(t_max)
+  }
+  if (length(undefined) > 0) {
+    warning("these statistics were NA in at least one block and could not ",
+            "settle: ", paste(undefined, collapse = ", "),
+            " (the tallest cohort of a stand with none alive is undefined)",
+            call. = FALSE)
   }
   list(converged = converged, time = scm$time,
        trace = as.data.frame(do.call(rbind, trace)))
@@ -159,15 +224,27 @@ run_until_converged <- function(scm, block = 20, tol = 0.02,
 ##' born at time zero into the field \code{scm} stands in now, until the cohort
 ##' is dead, and returns each one's lifetime offspring per seed. Every arrival
 ##' at a fixed point sees the same field, so that one cohort's output is the
-##' invader's fitness. The resident's own strategy scores the resident's
-##' reproduction ratio, which is one at its demographic equilibrium.
+##' invader's fitness. The resident's own strategy scores a resident cohort's
+##' lifetime output per seed, which is one at the resident's demographic
+##' equilibrium (it is not \code{scm$net_reproduction_ratios}, which a
+##' continuous patch's ever-growing node list does not make a per-cohort
+##' quantity).
 ##'
 ##' The field is taken from the state \code{scm} has reached at the first call,
 ##' and held for every later one; run the resident to its fixed point first, for
 ##' instance with \code{\link{run_until_converged}} under constant drivers and
 ##' the absorbing top layer (\code{Control$absorb_epsilon}). The invaders run
 ##' together, as one community, since nothing they do moves a held field.
-##' \code{scm} is consumed: afterwards it holds the invaders.
+##' \code{scm} is consumed: afterwards it holds the invaders, and the field is
+##' released, so a later run of it builds its own.
+##'
+##' The introduction grid has to make the stand a fixed point. Between two
+##' introductions the field swings, and a grid that is too coarse makes the
+##' stand a periodic orbit whose field, held at an introduction, is the top of
+##' the swing: FF16 at its equilibrium birth rate swings by 1.8 \% in held
+##' fitness at a cohort a year and 0.02 \% at four. \code{SCM$run_to()} stops
+##' only at introduction instants, so to hold a field mid-interval, and check
+##' the grid, end the resident's run there with \code{max_patch_lifetime}.
 ##'
 ##' @title Invader fitness at a fixed point
 ##' @param scm The resident's \code{SCM}, run to its fixed point.
@@ -176,9 +253,13 @@ run_until_converged <- function(scm, block = 20, tol = 0.02,
 ##' @param traits A trait matrix, one row per invader.
 ##' @param hyperpar Hyperparameter function, as for \code{add_strategies}.
 ##' @param lifetime Years each invader runs for. It has to outlive the cohort:
-##'   the call fails if a cohort's survival at the end is above
-##'   \code{survival_tol}.
-##' @param survival_tol The survival below which a cohort counts as dead.
+##'   the call fails unless, at the end, none of the cohort survives, or its
+##'   survival since establishment is below \code{survival_tol} and it has
+##'   stopped growing. A cohort still growing may be on its way to the canopy,
+##'   where most of its output lies, however few of it are left. An invader
+##'   that never establishes scores zero.
+##' @param survival_tol The survival since establishment below which a cohort
+##'   that has stopped growing counts as dead.
 ##' @return Lifetime offspring per seed, one per row of \code{traits}.
 ##' @seealso \code{\link{run_until_converged}}
 ##' @export
@@ -195,16 +276,44 @@ fixed_point_fitness <- function(scm, p, traits, hyperpar = param_hyperpar(p),
   pm$initial_patch_density <- numeric(0)
   pm$initial_pr_patch_survival <- numeric(0)
   pm$initial_time <- 0
-  scm$run_mutant_held(pm)
-  species <- scm$patch$species
-  vapply(seq_along(species), function(i) {
-    node <- species[[i]]$nodes[[1]]
-    state <- stats::setNames(node$ode_state, node$ode_names)
-    survival <- exp(-state[["mortality"]])
-    if (survival > survival_tol) {
-      stop(sprintf(paste("Invader %d is still alive at the end of its %g years",
-                         "(survival %.3g): raise `lifetime`"), i, lifetime, survival))
+  pm$ode_times <- numeric(0)
+  pm$ode_step_sizes <- numeric(0)
+  run_held <- function(years) {
+    pm$max_patch_lifetime <- years
+    scm$run_mutant_held(pm)
+    lapply(scm$patch$species, function(sp) {
+      node <- sp$nodes[[1]]
+      list(state = stats::setNames(node$ode_state, node$ode_names),
+           rates = stats::setNames(node$ode_rates, node$ode_names),
+           output = sp$net_reproduction_ratio_by_node[[1]])
+    })
+  }
+  ## Each invader's hazard an instant after birth: what establishment cost it,
+  ## so survival can be judged from establishment on, and a cohort that has
+  ## barely established is not taken for a dead one.
+  born <- run_held(1e-8)
+  run <- run_held(lifetime)
+  vapply(seq_along(run), function(i) {
+    hazard_at_birth <- born[[i]]$state[["mortality"]]
+    ## A cohort that never established starts at the establishment-failure
+    ## hazard, whose survival is exactly zero, and its output is zero however
+    ## long it runs.
+    established <- exp(-hazard_at_birth) > 0
+    survival <- exp(-(run[[i]]$state[["mortality"]] - hazard_at_birth))
+    ## Done when none survive, or when the survivors are few and have stopped
+    ## growing -- at their asymptote, or stalled in the shade, where a held
+    ## field keeps them. A cohort still growing can be on its way to the canopy
+    ## where most of its output lies, however few of it are left.
+    height <- run[[i]]$state[["height"]]
+    growing <- run[[i]]$rates[["height"]] > 1e-3 * height
+    done <- !established || survival == 0 || (survival < survival_tol && !growing)
+    if (!done) {
+      stop(sprintf(paste("Invader %d is still alive (survival since",
+                         "establishment %.3g) and %s at the end of its %g",
+                         "years: raise `lifetime`"),
+                   i, survival, if (growing) "growing" else "not yet below `survival_tol`",
+                   lifetime))
     }
-    species[[i]]$net_reproduction_ratio_by_node[[1]] * pm$strategies[[i]]$pars$S_D
+    run[[i]]$output * pm$strategies[[i]]$pars$S_D
   }, numeric(1))
 }

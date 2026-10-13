@@ -762,6 +762,7 @@ Patch:
     ode_aux: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_aux"}
     node_ode_size: {type: size_t, access: member}
     state: {type: "Rcpp::List", access: member, name_cpp: r_get_state}
+    holds_field: {type: bool, access: member, readonly: true}
   methods:
     # The opt-in domain check the adaptive stepper calls on a completed step
     # (odelia #55/#56). Exposed so a test can pin the contract directly.
@@ -775,6 +776,13 @@ Patch:
     compute_environment:
       return_type: void
       name_cpp: r_compute_environment
+    # Hold the field the patch makes now at every later rate evaluation, its
+    # environment's own state included, as SCM$run_mutant_held() does.
+    hold_field:
+      return_type: void
+      name_cpp: r_hold_current_field
+    release_field:
+      return_type: void
     reset:
       return_type: void
     # Because we now care about time, we need to make sure that the

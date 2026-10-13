@@ -1019,8 +1019,9 @@ public:
   virtual S fraction_allocation_reproduction(const S& height) const;
 
   // The height above which this strategy allocates at least 1 - epsilon of its
-  // maximum to reproduction, so its height growth is at most a fraction epsilon
-  // of what it was: where a continuous patch's absorbing top layer sits (#519).
+  // maximum, a_f1, to reproduction: where a continuous patch's absorbing top
+  // layer sits (#519). Growth's share of surplus there is 1 - (1 - epsilon) a_f1,
+  // within epsilon a_f1 of its floor -- and epsilon itself only where a_f1 is one.
   // The inverse of fraction_allocation_reproduction()'s logistic.
   double asymptotic_height(double epsilon) const {
     using odelia::util::to_passive;

@@ -69,6 +69,10 @@ scm_base_parameters <- function(type = NA, env = environment_type(type)) {
 ##'   only the final run does.
 ##' @param collect Should tidied results be collected at every step and
 ##'   returned (instead of the \code{SCM} object)?
+##' @param run Run the SCM? \code{FALSE} returns it built and unrun, for a
+##'   caller that drives it leg by leg: \code{\link{run_until_converged}} and
+##'   \code{SCM$run_to()}. It cannot be combined with \code{collect} or
+##'   \code{refine_schedule}, which are about the run.
 ##' @return When \code{collect = FALSE}, an \code{SCM} object. When
 ##'   \code{collect = TRUE}, a list of tidied patch output with
 ##'   \code{offspring_production}, \code{net_reproduction_ratios} and the
@@ -79,7 +83,11 @@ scm_base_parameters <- function(type = NA, env = environment_type(type)) {
 run_scm <- function(p, env = NULL,
                     ctrl = control(),
                     refine_schedule = FALSE, collect = FALSE,
-                    record_trajectory = FALSE, events = NULL) {
+                    record_trajectory = FALSE, events = NULL, run = TRUE) {
+  if (!run && (collect || refine_schedule)) {
+    stop("`run = FALSE` returns an unrun SCM, so `collect` and ",
+         "`refine_schedule`, which are about the run, cannot be asked for")
+  }
 
   types <- extract_RcppR6_template_types(p, "Parameters")
 
@@ -98,6 +106,10 @@ run_scm <- function(p, env = NULL,
     events <- empty_events()
 
   scm <- do.call('SCM', types)(p, env, events, ctrl)
+  if (!run) {
+    scm$record_trajectory <- record_trajectory
+    return(scm)
+  }
   if (collect) {
     scm$collect <- TRUE
   }
@@ -154,11 +166,18 @@ run_scm <- function(p, env = NULL,
 ##'   \code{node_schedule_times}, and \code{events}, the run's events still to
 ##'   come -- its residual introductions and every action the run had not yet
 ##'   applied when the state was taken (an action at the export time itself is
-##'   pending in a collected snapshot and applied in a finished run's final
-##'   patch). Events are a \code{\link{run_scm}} argument rather than a field
+##'   pending in a collected snapshot and in a run that \code{SCM$run_to()}
+##'   stopped there, and applied in a finished run's final patch). Events are a \code{\link{run_scm}} argument rather than a field
 ##'   of \code{Parameters}, so pass \code{state$events} to the resumed run's
 ##'   \code{events} argument; a resumed run given none re-runs the residual
 ##'   introductions alone and silently loses any pulse or harvest still ahead.
+##'
+##' With the absorbing top layer on (\code{Control$absorb_epsilon}), each
+##' species' block of \code{ode_state} ends with the layer: its pinned
+##' individual's states, then its density, its two fitness weights and its two
+##' seed totals. A state exported without the layer has no such block, so
+##' resuming it with the layer on needs that many zeros inserted after each
+##' species' nodes.
 ##' @seealso \code{\link{set_initial_state}}, \code{\link{run_scm}}
 ##' @export
 export_patch_state <- function(scm, step = NULL) {
@@ -173,7 +192,7 @@ export_patch_state <- function(scm, step = NULL) {
   ## integrated *to* its next introduction time without having introduced that
   ## node yet, so the node due at `time` itself stays in the residual; a run
   ## that ended on an introduction (one scheduled at max_patch_lifetime) has
-  ## made it, and keeping every time at or after `time` re-introduced it.
+  ## made it, and a time a seeded node carries is never residual.
   node_times <- lapply(species, function(s) s$node_times)
   residual <- Map(function(tt, made) tt[tt >= time - tol & !(tt %in% made)],
                   scm$parameters$node_schedule_times, node_times)
@@ -187,7 +206,8 @@ export_patch_state <- function(scm, step = NULL) {
     pr_patch_survival = lapply(species, function(s) s$pr_patch_survival_at_birth),
     node_schedule_times = residual,
     events = residual_events(scm, time, residual, tol,
-                             final = is.null(step) || step == length(scm$history))
+                             final = isTRUE(scm$complete) &&
+                               (is.null(step) || step == length(scm$history)))
   )
 }
 
@@ -195,7 +215,8 @@ export_patch_state <- function(scm, step = NULL) {
 ## every action the run had not applied when this state was taken. An action
 ## strictly after `time` is pending. An action at exactly `time` is pending in a
 ## collected snapshot, which is taken on arrival at an instant before the
-## instant's actions run, and applied in the run's final patch, which the run
+## instant's actions run, and in a run that run_to() stopped there, which stops
+## on arrival too; it is applied in a finished run's final patch, which the run
 ## leaves only after applying everything scheduled at its end. The event log
 ## cannot decide this, because it covers the whole run whichever snapshot is
 ## exported.
@@ -381,6 +402,11 @@ set_initial_state <- function(p, state) {
 ##' the stand's burn-in, which \code{\link{export_patch_state}} lets a run pay
 ##' once.
 ##'
+##' The window is closed at both ends, because the trapezium over
+##' \code{[start, end]} needs a cohort at each. Invaders introduced only inside
+##' the window need one at \code{end} too:
+##' \code{node_schedule_times_periodic(start, end, by, include_end = TRUE)}.
+##'
 ##' @title Weight arrivals by a window
 ##' @param p A \code{Parameters} object.
 ##' @param start,end The window, in years of the run.
@@ -411,19 +437,28 @@ fitness_window <- function(p, start, end, weight_x = numeric(0),
 ##' Node introduction times on a uniform grid, for a run that introduces a
 ##' cohort periodically rather than on the front-loaded default schedule of
 ##' \code{\link{node_schedule_times_default}}: the continuous patch (plant issue
-##' #519). Times run from \code{start} in steps of \code{by} and stop short of
-##' \code{end}, because a run ends at its last scheduled time and a cohort
-##' introduced there would never be integrated.
+##' #519). Times run from \code{start} in steps of \code{by}. By default they
+##' stop short of \code{end}, so consecutive spans tile without repeating a
+##' time: \code{periodic(0, 100, 1)} and \code{periodic(100, 200, 1)} meet at
+##' 100 once. A cohort introduced at a run's \code{max_patch_lifetime} would
+##' never be integrated either.
+##'
+##' A schedule for a \code{\link{fitness_window}} over \code{[start, end]} is
+##' the other case: the window weighs a cohort at each end, so invaders
+##' introduced only inside it need \code{include_end = TRUE} to have the
+##' cohort at \code{end} the resident has. Without it their window average
+##' misses the last arrival (2 \% low for a copy of the resident over ten).
 ##'
 ##' @title Periodic node introduction times
 ##' @param start First introduction time.
-##' @param end The run's end; no time is at or past it.
+##' @param end The span's end.
 ##' @param by Spacing between introductions, in years.
+##' @param include_end Whether a time landing on \code{end} is kept.
 ##' @return A numeric vector of introduction times, for one species of
 ##'   \code{p$node_schedule_times}.
 ##' @seealso \code{\link{fitness_window}}
 ##' @export
-node_schedule_times_periodic <- function(start, end, by) {
+node_schedule_times_periodic <- function(start, end, by, include_end = FALSE) {
   if (!(by > 0)) {
     stop("`by` must be positive")
   }
@@ -431,5 +466,5 @@ node_schedule_times_periodic <- function(start, end, by) {
     stop("`end` must exceed `start`")
   }
   times <- seq(start, end, by = by)
-  times[times < end]
+  if (include_end) times[times <= end] else times[times < end]
 }

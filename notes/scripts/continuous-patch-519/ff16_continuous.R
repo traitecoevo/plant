@@ -35,7 +35,7 @@ p$max_patch_lifetime <- t_max
 p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = birth)
 p$node_schedule_times <- list(node_schedule_times_periodic(0, t_max, 1))
 ctrl <- Control(node_density_in_birth_date = TRUE, absorb_epsilon = absorb)
-scm <- plant:::SCM("FF16", "FF16_Env")(p, Environment("FF16"), plant:::empty_events(), ctrl)
+scm <- run_scm(p, Environment("FF16"), ctrl, run = FALSE)
 scm$snapshot_interval <- 5
 
 rows <- list()
@@ -95,8 +95,7 @@ write.csv(sn, file.path(out_dir, "ff16-continuous-snapshots.csv"), row.names = F
 ## What the top layer buys: the same 3000 years with and without it.
 for (r in c(absorb, 0)) {
   q <- p
-  scm_r <- plant:::SCM("FF16", "FF16_Env")(q, Environment("FF16"), plant:::empty_events(),
-                                           Control(node_density_in_birth_date = TRUE, absorb_epsilon = r))
+  scm_r <- run_scm(q, Environment("FF16"), Control(node_density_in_birth_date = TRUE, absorb_epsilon = r), run = FALSE)
   w <- system.time(scm_r$run())[["elapsed"]]
   stamp("3000 yr with absorb_epsilon %g: %.1f s, %d cohorts, %d still integrated, %d steps",
         r, w, scm_r$patch$species[[1]]$size, scm_r$patch$species[[1]]$size - sum(scm_r$patch$species[[1]]$retired),
@@ -115,7 +114,7 @@ R_at <- function(b) {
   q <- add_strategies(q, trait_matrix(0.0825, "lma"), birth_rate = b)
   q <- fitness_window(q, T1, T1 + W)
   q$node_schedule_times <- list(node_schedule_times_periodic(0, T1 + W + L, 1))
-  s <- plant:::SCM("FF16", "FF16_Env")(q, Environment("FF16"), plant:::empty_events(), ctrl)
+  s <- run_scm(q, Environment("FF16"), ctrl, run = FALSE)
   s$run()
   R <- s$net_reproduction_ratios
   sp <- s$patch$species[[1]]

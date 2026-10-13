@@ -2233,6 +2233,14 @@ Patch___FF16__FF16_Env__compute_environment <- function(obj_) {
     invisible(.Call('_plant_Patch___FF16__FF16_Env__compute_environment', PACKAGE = 'plant', obj_))
 }
 
+Patch___FF16__FF16_Env__hold_field <- function(obj_) {
+    invisible(.Call('_plant_Patch___FF16__FF16_Env__hold_field', PACKAGE = 'plant', obj_))
+}
+
+Patch___FF16__FF16_Env__release_field <- function(obj_) {
+    invisible(.Call('_plant_Patch___FF16__FF16_Env__release_field', PACKAGE = 'plant', obj_))
+}
+
 Patch___FF16__FF16_Env__reset <- function(obj_) {
     invisible(.Call('_plant_Patch___FF16__FF16_Env__reset', PACKAGE = 'plant', obj_))
 }
@@ -2341,6 +2349,10 @@ Patch___FF16__FF16_Env__state__get <- function(obj_) {
     .Call('_plant_Patch___FF16__FF16_Env__state__get', PACKAGE = 'plant', obj_)
 }
 
+Patch___FF16__FF16_Env__holds_field__get <- function(obj_) {
+    .Call('_plant_Patch___FF16__FF16_Env__holds_field__get', PACKAGE = 'plant', obj_)
+}
+
 Patch___TF24__TF24_Env__ctor <- function(parameters, environment, control) {
     .Call('_plant_Patch___TF24__TF24_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
 }
@@ -2355,6 +2367,14 @@ Patch___TF24__TF24_Env__introduce_new_node <- function(obj_, species_index, time
 
 Patch___TF24__TF24_Env__compute_environment <- function(obj_) {
     invisible(.Call('_plant_Patch___TF24__TF24_Env__compute_environment', PACKAGE = 'plant', obj_))
+}
+
+Patch___TF24__TF24_Env__hold_field <- function(obj_) {
+    invisible(.Call('_plant_Patch___TF24__TF24_Env__hold_field', PACKAGE = 'plant', obj_))
+}
+
+Patch___TF24__TF24_Env__release_field <- function(obj_) {
+    invisible(.Call('_plant_Patch___TF24__TF24_Env__release_field', PACKAGE = 'plant', obj_))
 }
 
 Patch___TF24__TF24_Env__reset <- function(obj_) {
@@ -2465,6 +2485,10 @@ Patch___TF24__TF24_Env__state__get <- function(obj_) {
     .Call('_plant_Patch___TF24__TF24_Env__state__get', PACKAGE = 'plant', obj_)
 }
 
+Patch___TF24__TF24_Env__holds_field__get <- function(obj_) {
+    .Call('_plant_Patch___TF24__TF24_Env__holds_field__get', PACKAGE = 'plant', obj_)
+}
+
 Patch___TF24f__TF24_Env__ctor <- function(parameters, environment, control) {
     .Call('_plant_Patch___TF24f__TF24_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
 }
@@ -2479,6 +2503,14 @@ Patch___TF24f__TF24_Env__introduce_new_node <- function(obj_, species_index, tim
 
 Patch___TF24f__TF24_Env__compute_environment <- function(obj_) {
     invisible(.Call('_plant_Patch___TF24f__TF24_Env__compute_environment', PACKAGE = 'plant', obj_))
+}
+
+Patch___TF24f__TF24_Env__hold_field <- function(obj_) {
+    invisible(.Call('_plant_Patch___TF24f__TF24_Env__hold_field', PACKAGE = 'plant', obj_))
+}
+
+Patch___TF24f__TF24_Env__release_field <- function(obj_) {
+    invisible(.Call('_plant_Patch___TF24f__TF24_Env__release_field', PACKAGE = 'plant', obj_))
 }
 
 Patch___TF24f__TF24_Env__reset <- function(obj_) {
@@ -2589,6 +2621,10 @@ Patch___TF24f__TF24_Env__state__get <- function(obj_) {
     .Call('_plant_Patch___TF24f__TF24_Env__state__get', PACKAGE = 'plant', obj_)
 }
 
+Patch___TF24f__TF24_Env__holds_field__get <- function(obj_) {
+    .Call('_plant_Patch___TF24f__TF24_Env__holds_field__get', PACKAGE = 'plant', obj_)
+}
+
 Patch___K93__K93_Env__ctor <- function(parameters, environment, control) {
     .Call('_plant_Patch___K93__K93_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
 }
@@ -2603,6 +2639,14 @@ Patch___K93__K93_Env__introduce_new_node <- function(obj_, species_index, time) 
 
 Patch___K93__K93_Env__compute_environment <- function(obj_) {
     invisible(.Call('_plant_Patch___K93__K93_Env__compute_environment', PACKAGE = 'plant', obj_))
+}
+
+Patch___K93__K93_Env__hold_field <- function(obj_) {
+    invisible(.Call('_plant_Patch___K93__K93_Env__hold_field', PACKAGE = 'plant', obj_))
+}
+
+Patch___K93__K93_Env__release_field <- function(obj_) {
+    invisible(.Call('_plant_Patch___K93__K93_Env__release_field', PACKAGE = 'plant', obj_))
 }
 
 Patch___K93__K93_Env__reset <- function(obj_) {
@@ -2711,6 +2755,10 @@ Patch___K93__K93_Env__node_ode_size__get <- function(obj_) {
 
 Patch___K93__K93_Env__state__get <- function(obj_) {
     .Call('_plant_Patch___K93__K93_Env__state__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___K93__K93_Env__holds_field__get <- function(obj_) {
+    .Call('_plant_Patch___K93__K93_Env__holds_field__get', PACKAGE = 'plant', obj_)
 }
 
 SCM___FF16__FF16_Env__ctor <- function(parameters, environment, events, control) {

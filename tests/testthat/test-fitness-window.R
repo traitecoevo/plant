@@ -90,6 +90,9 @@ test_that("the net reproduction ratio is the window average of per-node lifetime
 test_that("periodic introduction times stop short of the run's end", {
   expect_equal(node_schedule_times_periodic(0, 10, 1), 0:9)
   expect_equal(node_schedule_times_periodic(2.5, 10, 2.5), c(2.5, 5, 7.5))
+  # A window weighs a cohort at its end, so an invader's schedule can keep it.
+  expect_equal(node_schedule_times_periodic(2.5, 10, 2.5, include_end = TRUE),
+               c(2.5, 5, 7.5, 10))
   expect_error(node_schedule_times_periodic(0, 10, 0), "positive")
   expect_error(node_schedule_times_periodic(10, 0, 1), "exceed")
   p <- ff16(20)
@@ -178,10 +181,10 @@ test_that("cohorts outside the window do not move the ratio", {
   ## run. Both stand in the same field with the same strategy and birth dates,
   ## and a cohort's per-capita output does not depend on its own density, so
   ## their window cohorts' outputs are the same numbers and the two must score
-  ## the same. Over every node instead, the resident's zero-weight cohort before
-  ## the window gave its first window cohort a whole interval and the copy's
-  ## half of one: 89.34 against 86.92 here. Long enough for the window's
-  ## cohorts to reproduce, or both ratios are near zero and agree vacuously.
+  ## the same. Over every node, the resident's zero-weight cohort before the
+  ## window would give its first window cohort a whole interval and the copy's
+  ## half of one. Long enough for the window's cohorts to reproduce, or both
+  ## ratios are near zero and agree vacuously.
   p <- scm_base_parameters("FF16")
   p$max_patch_lifetime <- 100
   p$node_schedule_times <- list()
@@ -194,4 +197,31 @@ test_that("cohorts outside the window do not move the ratio", {
   r <- scm$net_reproduction_ratios
   expect_gt(r[[1]], 1)
   expect_equal(r[[2]], r[[1]], tolerance = 1e-12)
+})
+
+test_that("a tabulated weight in a full run is the weighted mean of the cohorts", {
+  ## A weight that rises and falls over the window, read at each cohort's birth
+  ## date: the run's ratio is the weighted mean of the per-node outputs of the
+  ## same run without the window, which the window does not change.
+  p <- scm_base_parameters("FF16")
+  p$patch_type <- "fixed"
+  p$max_patch_lifetime <- 120
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
+  p$node_schedule_times <- list(node_schedule_times_periodic(0, 120, 1))
+  ctrl <- Control(node_density_in_birth_date = TRUE)
+  plain <- run_scm(p, ctrl = ctrl)
+  sp <- plain$patch$species[[1]]
+  t <- sp$node_times
+  out <- sp$net_reproduction_ratio_by_node * p$strategies[[1]]$pars$S_D
+  x <- c(20, 30, 40)
+  y <- c(1, 3, 1)
+  w <- ifelse(t >= 20 & t <= 40, approx(x, y, t, rule = 2)$y, 0)
+  windowed <- run_scm(fitness_window(p, 20, 40, weight_x = x, weight_y = y), ctrl = ctrl)
+  expect_gt(windowed$net_reproduction_ratios, 1)
+  expect_equal(windowed$net_reproduction_ratios, window_mean_of(t, out, w),
+               tolerance = 1e-10)
+  ## And it is not the uniform mean.
+  expect_false(isTRUE(all.equal(windowed$net_reproduction_ratios,
+                                window_mean_of(t, out, as.numeric(w > 0)),
+                                tolerance = 1e-6)))
 })

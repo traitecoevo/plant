@@ -120,8 +120,8 @@ test_that("an action applied at the export time is not exported again", {
 test_that("an invader introduced at the resume instant stands in the resident's canopy", {
   ## The resident resumes at 60 and introduces its first cohort at 60 itself:
   ## that insertion is the recording's first row after its start, so no step
-  ## has handed the invader the resident's field yet. Made in the invader's own
-  ## empty canopy, the invader's first cohort was 15 % off the resident's.
+  ## has handed the invader the resident's field yet, and made in the invader's
+  ## own empty canopy its first cohort would be far off the resident's.
   ctrl <- Control(node_density_in_birth_date = TRUE)
   mk <- function(lifetime) {
     p <- scm_base_parameters("FF16")
@@ -148,4 +148,33 @@ test_that("an invader introduced at the resume instant stands in the resident's 
   invader <- res$patch$species[[1]]$net_reproduction_ratio_by_node
   expect_gt(resident[[1]], 1)
   expect_equal(invader, resident, tolerance = 1e-8)
+})
+
+test_that("an invader of a resumed resident starts empty, at the resume time", {
+  ## add_mutant() on the resumed parameters keeps their initial state, which
+  ## would seed the invader with the resident's exported stand under its own
+  ## traits; and an invader left at time zero is not where the replay starts.
+  ctrl <- Control(node_density_in_birth_date = TRUE)
+  mk <- function(lifetime) {
+    p <- scm_base_parameters("FF16")
+    p$patch_type <- "fixed"
+    p$max_patch_lifetime <- lifetime
+    add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
+  }
+  p <- mk(40)
+  p$node_schedule_times <- list(node_schedule_times_periodic(0, 40, 1))
+  burn <- run_scm(p, ctrl = ctrl, run = FALSE)
+  burn$run_to(20)
+  state <- export_patch_state(burn)
+  p2 <- set_initial_state(mk(40), state)
+  res <- run_scm(p2, ctrl = ctrl)
+  seeded <- add_mutant(p2, trait_matrix(0.1, "lma"))
+  expect_gt(length(seeded$initial_state), 0)
+  expect_error(res$run_mutant(seeded), "initial state")
+  empty <- mk(40)
+  empty$node_schedule_times <- p2$node_schedule_times
+  expect_error(res$run_mutant(empty), "initial_time")
+  empty$initial_time <- state$time
+  res$run_mutant(empty)
+  expect_true(is.finite(res$net_reproduction_ratios))
 })

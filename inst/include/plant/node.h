@@ -221,9 +221,9 @@ void Node<T,E>::compute_rates(const environment_type& environment,
                                 double pr_patch_survival) {
   // A cohort with no density has no trajectory, and with retirement on it is
   // not integrated either: no physiology is evaluated for it, every rate it
-  // reports is zero, and its individual stays where it froze. Gated on the
-  // floor rather than on the density alone, so a run that has not opted in
-  // integrates its empty cohorts exactly as it always has.
+  // reports is zero, and its individual stays where it froze. Gated on the top
+  // layer (freezes_retired) rather than on the density alone, so a run that has
+  // not opted in integrates its empty cohorts exactly as it always has.
   if (freezes_retired(individual.control()) && retired()) {
     individual.zero_rates();
     log_density_dt = value_type(0.0);

@@ -84,26 +84,173 @@ test_that("a stand with a top layer reaches a fixed point close to the unbounded
   expect_equal(s$net_reproduction_ratios, free$net_reproduction_ratios, tolerance = 1e-5)
 })
 
-test_that("an absorbed cohort is frozen in place", {
+test_that("a cohort is absorbed only at the absorbing height, and frozen there", {
   ## In a continuous run a cohort leaves the integrated set one way only: by
-  ## passing the absorbing height. Once absorbed it carries no density and its
-  ## individual is no longer integrated, so its height never moves again.
+  ## passing the absorbing height. Every cohort that leaves it between two legs
+  ## while still carrying density was absorbed, so it must stand at the height;
+  ## and once out its height never moves again.
   s <- new_scm(ff16(300), ctrl(absorb = 0.05))
   s$collect <- TRUE
   s$run()
-  sp <- s$patch$species[[1]]
-  absorbed <- which(sp$retired & sp$heights >= h_abs(0.05))
-  expect_gt(length(absorbed), 10)
-  expect_true(all(exp(sp$log_densities_state[absorbed]) == 0))
-  for (j in absorbed[c(1, length(absorbed))]) {
-    exists <- vapply(s$history, function(hh) hh$species[[1]]$size >= j, logical(1))
-    h <- vapply(s$history[exists], function(hh) hh$species[[1]]$heights[[j]], numeric(1))
-    r <- vapply(s$history[exists], function(hh) hh$species[[1]]$retired[[j]], logical(1))
-    after <- which(r)
-    expect_equal(h[after], rep(h[after[[1]]], length(after)))
-    ## It was absorbed at or above the height, not before.
-    expect_gte(h[after[[1]]], h_abs(0.05))
+  hist <- lapply(s$history, function(hh) hh$species[[1]])
+  checked <- 0
+  for (r in seq_along(hist)[-1]) {
+    before <- hist[[r - 1]]
+    after <- hist[[r]]
+    k <- seq_len(before$size)
+    left <- which(!before$retired[k] & after$retired[k] &
+                  exp(before$log_densities_state[k]) > 1e-200)
+    for (j in left) {
+      expect_gte(after$heights[[j]], h_abs(0.05))
+      later <- vapply(hist[r:length(hist)], function(h) h$heights[[j]], numeric(1))
+      expect_equal(later, rep(later[[1]], length(later)))
+      checked <- checked + 1
+    }
   }
+  expect_gt(checked, 10)
+})
+
+test_that("a run starts without the last run's top layer", {
+  ## The layer belongs to a run: a second run on the same SCM -- refinement's,
+  ## run_mutant()'s pinned resident rerun, a recording -- starts with none.
+  s <- new_scm(ff16(150), ctrl(absorb = 0.05))
+  s$snapshot_interval <- 50
+  s$run()
+  a <- s$net_reproduction_ratios
+  y <- s$patch$ode_state
+  expect_gt(s$patch$species[[1]]$top_layer$density, 0)
+  s$run()
+  expect_identical(s$net_reproduction_ratios, a)
+  expect_identical(s$patch$ode_state, y)
+  ## The rerun's first snapshot is the empty patch, with no layer pinning its top.
+  first <- s$snapshots[[1]]$species[[1]]
+  expect_equal(first$top_density, 0)
+  expect_true(is.na(first$height_max) || first$height_max < 1)
+})
+
+test_that("an event reaches the trees the top layer holds", {
+  ## A harvest of everything above 10 m takes the same fraction of the layer,
+  ## pinned at the absorbing height, as of the canopy cohorts. Read just after
+  ## it: a harvest of nothing a moment later puts a leg boundary there.
+  p <- ff16(152)
+  mark <- harvest(time = 150.51, fraction = 0)
+  run_with <- function(ev) {
+    s <- run_scm(p, ctrl = ctrl(absorb = 0.05), events = ev, run = FALSE)
+    s$run_to(150)
+    before <- s$patch$species[[1]]$top_layer
+    s$run_to(150.51)
+    list(before = before, after = s$patch$species[[1]]$top_layer)
+  }
+  none <- run_with(events(node_introductions(p), mark))
+  cut <- run_with(events(node_introductions(p), mark,
+                         harvest(time = 150.5, fraction = 0.9, size_min = 10)))
+  expect_gt(none$before$density, 0)
+  ## With the harvest the layer holds a tenth of what it holds without.
+  expect_equal(cut$after$density / none$after$density, 0.1, tolerance = 1e-3)
+  expect_equal(cut$after$weight / none$after$weight, 0.1, tolerance = 1e-3)
+  ## Its seeds are past output and are not harvested.
+  expect_equal(cut$after$seeds, none$after$seeds, tolerance = 1e-3)
+})
+
+test_that("a layer whose density is spent empties rather than lingering", {
+  ## The layer's density decays linearly, and at the bottom of the subnormal
+  ## range a decay step rounds back to the value it started from. Left alone, a
+  ## layer whose inflow stopped would keep the canopy top at the absorbing
+  ## height for good; below the smallest normal double it is emptied at the
+  ## next introduction instant, and its seeds stay.
+  s <- new_scm(ff16(160), ctrl(absorb = 0.05))
+  s$run_to(150)
+  state <- export_patch_state(s)
+  n <- state$n[[1]]
+  top <- 7 * n + 5 + 1:3
+  seeds <- 7 * n + 5 + 4
+  state$ode_state[top] <- 5e-322
+  ## And no cohort left to absorb: every exported one dead.
+  state$ode_state[7 * seq_len(n)] <- -750
+  q <- set_initial_state(ff16(160), state)
+  r <- run_scm(q, ctrl = ctrl(absorb = 0.05), events = state$events, run = FALSE)
+  r$snapshot_interval <- 1
+  r$run_to(152)
+  layer <- r$patch$species[[1]]$top_layer
+  expect_equal(layer$density, 0)
+  expect_equal(layer$weight, 0)
+  expect_equal(layer$seeds, state$ode_state[[seeds]], tolerance = 1e-12)
+  expect_lt(r$patch$species[[1]]$height_max, h_abs(0.05))
+})
+
+test_that("a frozen cohort's height does not move the field", {
+  ## A frozen cohort carries no density, so where its height sits must not
+  ## matter -- not even out of the live cohorts' order, where a younger cohort
+  ## that overtook an older one and then froze can put it. The fast field build
+  ## once stopped its crossing search at such a cohort.
+  p <- scm_base_parameters("FF16")
+  p$patch_type <- "fixed"
+  p$max_patch_lifetime <- 10
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
+  p$node_schedule_times <- list(0:4)
+  pa <- Patch("FF16", "FF16_Env")(p, Environment("FF16"), ctrl(absorb = 0.05))
+  for (t in 0:3) {
+    pa$set_time(t)
+    pa$introduce_new_node(1, t)
+  }
+  node <- function(h, log_density) c(h, 0.01, 0, 0, 0, 0, log_density)
+  heights <- c(0.5, 1.2, 2, 2.5, 3, 3.4, 4)
+  field <- function(frozen_at) {
+    pa$set_ode_state(c(node(4.39, 0), node(1.5, 0), node(frozen_at, -750),
+                       node(1.07, 0), rep(0, 10)), 3)
+    vapply(heights, pa$environment$get_environment_at_height, numeric(1))
+  }
+  out_of_order <- field(3.5)
+  expect_identical(pa$species[[1]]$retired, c(FALSE, FALSE, TRUE, FALSE))
+  expect_identical(out_of_order, field(1.3))
+})
+
+test_that("refinement, a bad epsilon and a bad absorbing height are refused", {
+  expect_error(run_scm(ff16(20), ctrl = ctrl(absorb = 0.05), refine_schedule = TRUE),
+               "top layer")
+  expect_error(run_scm(ff16(5), ctrl = ctrl(absorb = -0.1)), "zero \\(off\\)")
+  expect_error(run_scm(ff16(5), ctrl = ctrl(absorb = NaN)), "zero \\(off\\)")
+  p <- ff16(5)
+  p$strategies[[1]]$pars$a_f2 <- 0
+  expect_error(run_scm(p, ctrl = ctrl(absorb = 0.05)), "a_f2")
+})
+
+test_that("each species has its own layer, at its own height", {
+  ## Two strategies with different maturation heights, absorbed at their own
+  ## heights, each conserving its density as the layer takes it.
+  p <- scm_base_parameters("FF16")
+  p$patch_type <- "fixed"
+  p$max_patch_lifetime <- 200
+  p <- add_strategies(p, trait_matrix(c(0.0825, 0.0825), "lma"), birth_rate = list(1, 1))
+  p$strategies[[2]]$pars$hmat <- 10
+  p$node_schedule_times <- rep(list(node_schedule_times_periodic(0, 200, 1)), 2)
+  s <- new_scm(p, ctrl(absorb = 0.05))
+  s$run()
+  layers <- lapply(s$patch$species, function(sp) sp$top_layer)
+  expect_true(all(vapply(layers, function(l) l$density > 0, logical(1))))
+  expect_equal(layers[[1]]$height, h_abs(0.05))
+  s2 <- p$strategies[[2]]$pars
+  expect_equal(layers[[2]]$height, 10 * (1 + log(0.95 / 0.05) / s2$a_f2))
+})
+
+test_that("TF24 absorbs at its own asymptotic height", {
+  ## TF24 declares an asymptotic height from the same reproductive allocation
+  ## curve; a short stand with a low maturation height reaches it.
+  p <- scm_base_parameters("TF24")
+  p$patch_type <- "fixed"
+  p$max_patch_lifetime <- 25
+  p <- add_strategies(p, trait_matrix(c(0.0825, 2), c("lma", "hmat")),
+                      hyperpar = TF24_hyperpar, birth_rate = 1)
+  p$node_schedule_times <- list(node_schedule_times_periodic(0, 25, 1))
+  env <- Environment("TF24")
+  env$extrinsic_drivers_set_constant("rainfall", 1)
+  s <- run_scm(p, env, Control(node_density_in_birth_date = TRUE, absorb_epsilon = 0.05,
+                               ode_step_size_max = 0.05))
+  layer <- s$patch$species[[1]]$top_layer
+  pars <- p$strategies[[1]]$pars
+  expect_gt(layer$density, 0)
+  expect_equal(layer$height, pars$hmat * (1 + log(0.95 / 0.05) / pars$a_f2))
+  expect_true(is.finite(s$net_reproduction_ratios))
 })
 
 test_that("cohorts an arrival window weights are never absorbed", {

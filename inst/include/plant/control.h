@@ -113,9 +113,14 @@ struct Control {
 // every rate zero -- rather than integrated. In a continuous patch a cohort
 // leaves the integrated set in one way only, by passing the absorbing height
 // into the top layer, which takes its density with it; a cohort whose density
-// is already exactly zero is frozen too, since there is nothing of it to keep
-// and its per-capita output is exactly zero as well. Off unless the top layer
-// is on, so any other run integrates its empty cohorts exactly as it always has.
+// is already exactly zero is frozen too, since there is nothing of it to keep.
+// Its per-capita output stops where it was. That is zero for a cohort that
+// failed to establish, and nothing to speak of for one that died, but a cohort
+// BORN with no density -- at a zero birth rate -- is frozen at birth and its
+// per-capita output reads zero where it would have accrued a little: give a
+// rare species a small positive birth rate, not zero, with the layer on. Off
+// unless the top layer is on, so any other run integrates its empty cohorts
+// exactly as it always has.
 //
 // There is deliberately no survival floor: retiring a cohort below one discards
 // the biomass old trees still hold rather than conserving it (#519).

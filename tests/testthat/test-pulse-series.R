@@ -30,6 +30,11 @@ test_that("a regular series puts one pulse every interval", {
   s <- pulse_series_regular(2, 3, interval = 0.25, amount = 0.01)
   expect_equal(s$time, c(2.25, 2.5, 2.75, 3))
   expect_equal(s$amount, rep(0.01, 4))
+  ## A last pulse landing on `to` is on it, not a rounding error past it, so a
+  ## run whose horizon is `to` accepts it.
+  r <- pulse_series_regular(0, 0.7, interval = 0.1, amount = 0.01)
+  expect_true(all(r$time <= 0.7))
+  expect_identical(r$time[[nrow(r)]], 0.7)
 })
 
 test_that("a record repeats end to end over a longer run", {

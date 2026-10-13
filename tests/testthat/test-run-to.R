@@ -97,3 +97,86 @@ test_that("run_until_converged stops when the block means settle", {
   expect_false(r2$converged)
   expect_gte(r2$time, 100)
 })
+
+test_that("run_to() with collect on keeps the same history as run()", {
+  p <- ff16(15)
+  ev <- events(node_introductions(p), harvest(time = 7.5, fraction = 0.3))
+  a <- run_scm(p, events = ev, run = FALSE)
+  a$collect <- TRUE
+  a$run()
+  b <- run_scm(p, events = ev, run = FALSE)
+  b$collect <- TRUE
+  for (t in c(3, 7.5, 12, 15)) {
+    b$run_to(t)
+  }
+  expect_identical(length(b$history), length(a$history))
+  expect_identical(b$history[[length(b$history)]]$ode_state,
+                   a$history[[length(a$history)]]$ode_state)
+  expect_identical(b$event_log, a$event_log)
+})
+
+test_that("an export where run_to() stopped keeps the action due there", {
+  ## run_to() stops on arrival at an instant, before the instant's actions run,
+  ## so a harvest due at the stop is still to come in the export.
+  p <- ff16(15)
+  ev <- events(node_introductions(p), harvest(time = 7.5, fraction = 0.5))
+  straight <- run_scm(p, events = ev)
+  s <- run_scm(p, events = ev, run = FALSE)
+  s$run_to(7.2)
+  expect_equal(s$time, 7.5)
+  expect_length(s$event_log$time, 0)
+  state <- export_patch_state(s)
+  expect_true("harvest" %in% state$events$type)
+  resumed <- run_scm(set_initial_state(p, state), events = state$events)
+  expect_equal(resumed$event_log$type, "harvest")
+  expect_equal(resumed$net_reproduction_ratios, straight$net_reproduction_ratios,
+               tolerance = 1e-3)
+})
+
+test_that("run_scm(run = FALSE) returns an SCM to drive, and only that", {
+  p <- ff16(10)
+  s <- run_scm(p, run = FALSE)
+  expect_false(s$complete)
+  expect_equal(s$time, 0)
+  expect_error(run_scm(p, run = FALSE, collect = TRUE), "unrun")
+  expect_error(run_scm(p, run = FALSE, refine_schedule = TRUE), "unrun")
+})
+
+test_that("run_until_converged() refuses what it cannot judge", {
+  p <- ff16(100)
+  p$patch_type <- "fixed"
+  p$node_schedule_times <- list(node_schedule_times_periodic(0, 100, 1))
+  ctrl <- Control(node_density_in_birth_date = TRUE, absorb_epsilon = 0.02)
+  expect_error(run_until_converged(run_scm(p, ctrl = ctrl)), "already finished")
+  s <- function() run_scm(p, ctrl = ctrl, run = FALSE)
+  expect_error(run_until_converged(s(), block = 0), "block")
+  expect_error(run_until_converged(s(), tol = -1), "tol")
+  expect_error(run_until_converged(s(), t_max = 0), "after")
+  ## FF16's environment carries no state: by default it is left out, asked for
+  ## it is refused, and its entries are refused without it.
+  expect_error(run_until_converged(s(), statistics = "environment"), "no state")
+  expect_error(run_until_converged(s(), statistics = "density",
+                                   environment_entries = 1), "environment")
+  ## A last block shorter than `block` still runs the patch on to t_max.
+  r <- run_until_converged(s(), block = 30, tol = 1e-12, t_max = 70,
+                           statistics = "density")
+  expect_false(r$converged)
+  expect_gte(r$time, 70)
+})
+
+test_that("a statistic that is undefined in a block cannot settle, and says so", {
+  ## A strategy whose seedlings make no net carbon never establishes, so no
+  ## cohort is alive and the tallest living cohort is undefined in every block.
+  p <- scm_base_parameters("FF16")
+  p$patch_type <- "fixed"
+  p$max_patch_lifetime <- 60
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
+  p$strategies[[1]]$pars$r_l <- 1e6
+  p$node_schedule_times <- list(node_schedule_times_periodic(0, 60, 1))
+  s <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE, absorb_epsilon = 0.02),
+               run = FALSE)
+  expect_warning(r <- run_until_converged(s, block = 20, tol = 0.1,
+                                          statistics = c("density", "height_max")),
+                 "height_max")
+  expect_false(r$converged)
+})

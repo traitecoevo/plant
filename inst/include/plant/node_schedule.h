@@ -166,8 +166,8 @@ public:
   double get_max_time() const;
   // The time the run this schedule drives starts at: zero for a run from
   // empty, the exported time for a resumed one. A recorded program's first
-  // entry is the state the run started from, so it has to be this time; the
-  // check used to demand zero, which refused every replay of a resumed run.
+  // entry is the state the run started from, so it has to be this time, and a
+  // replay of a resumed run starts there rather than at zero.
   double get_start_time() const { return start_time; }
   void set_start_time(double t) { start_time = t; }
   std::vector<std::vector<double> > get_times() const;

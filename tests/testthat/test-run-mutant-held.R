@@ -62,8 +62,8 @@ test_that("every invader stands in the field taken at the first call", {
 })
 
 test_that("a held field holds the environment's own state", {
-  # TF24's soil is part of the field; held, it does not move however long the
-  # invader runs.
+  # TF24's soil is part of the field. Held, the patch stands in it whatever state
+  # it is set to, and the soil's own rates are zero, so it does not move either.
   p <- scm_base_parameters("TF24")
   p$patch_type <- "fixed"
   p$max_patch_lifetime <- 6
@@ -75,12 +75,54 @@ test_that("a held field holds the environment's own state", {
   ctrl <- Control(node_density_in_birth_date = TRUE, ode_step_size_max = 0.05)
   scm <- SCM("TF24", "TF24_Env")(p, env, empty_events(), ctrl)
   scm$run_to(5)
-  n_env <- scm$patch$environment$ode_size
-  soil <- tail(scm$patch$ode_state, n_env)
+  pa <- scm$patch
+  n_env <- pa$environment$ode_size
+  y <- pa$ode_state
+  soil <- tail(y, n_env)
+  expect_true(any(tail(pa$ode_rates, n_env) != 0))
+  pa$hold_field()
+  expect_true(pa$holds_field)
+  expect_true(all(tail(pa$ode_rates, n_env) == 0))
+  # A state with other soil water: the patch still stands in the held soil.
+  y_dry <- y
+  y_dry[length(y) - n_env + 1] <- soil[[1]] / 2
+  pa$set_ode_state(y_dry, pa$time)
+  expect_identical(tail(pa$ode_state, n_env), soil)
+  pa$release_field()
+  expect_false(pa$holds_field)
+  expect_true(any(tail(pa$ode_rates, n_env) != 0))
+  # Through the SCM, the invader runs in it and the SCM releases it afterwards.
   R <- fixed_point_fitness(scm, p, trait_matrix(0.0825, "lma"), lifetime = 200,
                            survival_tol = 1)
   expect_true(is.finite(R))
-  expect_identical(tail(scm$patch$ode_state, n_env), soil)
+  expect_false(scm$patch$holds_field)
+})
+
+test_that("a held field is released once the invaders have run", {
+  # A later run of the SCM builds its own field: a rerun of the invaders'
+  # parameters is a fresh run of them, not another held one.
+  fp <- ff16_fixed_point(t_eq = 150)
+  held <- fixed_point_fitness(fp$scm, fp$p, trait_matrix(0.1, "lma"))
+  fp$scm$run()
+  rerun <- fp$scm$patch$species[[1]]$net_reproduction_ratio_by_node[[1]] *
+    fp$p$strategies[[1]]$pars$S_D
+  pm <- fp$scm$parameters
+  fresh <- run_scm(pm, ctrl = fp$ctrl)
+  expect_identical(rerun, fresh$patch$species[[1]]$net_reproduction_ratio_by_node[[1]] *
+                     fp$p$strategies[[1]]$pars$S_D)
+  expect_false(isTRUE(all.equal(rerun, held)))
+})
+
+test_that("a field held inside an interval scores as one held at its start", {
+  # Between two introductions the field swings; on a grid fine enough for a
+  # fixed point the swing is small, which is the check a coarse grid fails.
+  fp <- ff16_fixed_point(t_eq = 150)
+  at_start <- fixed_point_fitness(fp$scm, fp$p, trait_matrix(0.1, "lma"))
+  p <- fp$p
+  p$max_patch_lifetime <- 150.5
+  mid <- run_scm(p, ctrl = fp$ctrl)
+  at_mid <- fixed_point_fitness(mid, p, trait_matrix(0.1, "lma"))
+  expect_equal(at_mid, at_start, tolerance = 1e-2)
 })
 
 test_that("holding a field needs a resident to take it from", {
@@ -96,5 +138,12 @@ test_that("an invader that outlives its run is refused", {
   fp <- ff16_fixed_point(t_eq = 100)
   expect_error(fixed_point_fitness(fp$scm, fp$p, trait_matrix(0.0825, "lma"),
                                    lifetime = 20),
+               "still alive")
+  # Survival since establishment, not since seed: in a dense stand a seedling's
+  # establishment is far below any tolerance, and a cohort cut off before it
+  # reproduces must still count as alive.
+  dense <- ff16_fixed_point(b = 68.867, t_eq = 150)
+  expect_error(fixed_point_fitness(dense$scm, dense$p, trait_matrix(0.06, "lma"),
+                                   lifetime = 40),
                "still alive")
 })

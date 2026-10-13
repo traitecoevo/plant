@@ -70,7 +70,7 @@ pulses_in <- function(a, b) {
 ## ---- 1. burn-in, until the block means settle ------------------------------
 p <- base_parameters(burn_max)
 p$node_schedule_times <- list(intro_times[intro_times < burn_max])
-scm <- plant:::SCM("TF24", "TF24_Env")(p, make_env(), events(node_introductions(p), pulses_in(0, burn_max)), ctrl)
+scm <- run_scm(p, make_env(), ctrl, events = events(node_introductions(p), pulses_in(0, burn_max)), run = FALSE)
 w_burn <- system.time(conv <- run_until_converged(
   scm, block = block, tol = tol, t_max = burn_max,
   statistics = c("density", "height_max", "environment"), environment_entries = 1:5))[["elapsed"]]
@@ -94,7 +94,7 @@ p2 <- set_initial_state(p2, state)
 p2 <- fitness_window(p2, T1, T2)
 made <- max(state$node_times[[1]])
 p2$node_schedule_times <- list(intro_times[intro_times > made & intro_times < T_end])
-scm2 <- plant:::SCM("TF24", "TF24_Env")(p2, make_env(), events(node_introductions(p2), pulses_in(T1, T_end)), ctrl)
+scm2 <- run_scm(p2, make_env(), ctrl, events = events(node_introductions(p2), pulses_in(T1, T_end)), run = FALSE)
 scm2$snapshot_interval <- 1
 w_win <- system.time(scm2$run())[["elapsed"]]
 R_window <- scm2$net_reproduction_ratios

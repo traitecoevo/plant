@@ -29,6 +29,18 @@ carrying density, the trapezium of the carried density over the birth-date
 grid and every node's lifetime offspring output, plus the environment's own
 state.
 }
+\details{
+Read on the birth-date coordinate, which a continuous patch runs on:
+\code{density} is the trapezium of the carried density over the nodes'
+birth dates, a number of individuals per unit area, without the closing
+interval to the boundary node that a census adds; on the height coordinate
+it is the same trapezium over birth dates of a density in height, which is
+not a count. \code{n_retired} counts the nodes carrying no density, frozen
+or not, so it is \code{n_nodes - n_live}. The per-node \code{fecundity}
+vectors grow with the node list, so their memory grows with the square of
+the run's length (about 6 MB at a snapshot a year over 1000 years of one
+species); a coarser interval cuts it.
+}
 \seealso{
 \code{\link{run_until_converged}}
 }

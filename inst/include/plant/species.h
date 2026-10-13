@@ -208,6 +208,23 @@ public:
     return top_on() ? individual_type::ode_size() + 5 : 0;
   }
   bool top_on() const { return control().absorb_epsilon > 0.0; }
+  // Every number the layer carries is finite. Its readers test density > 0, so
+  // a NaN layer would otherwise read as an empty one.
+  bool top_finite() const {
+    using odelia::util::to_passive;
+    for (size_t i = 0; i < individual_type::ode_size(); ++i) {
+      if (!util::is_finite(to_passive(top_.state(i)))) {
+        return false;
+      }
+    }
+    for (const value_type* v : {&top_density_, &top_weight_, &top_weight_birth_,
+                                &top_seeds_, &top_seeds_birth_}) {
+      if (!util::is_finite(to_passive(*v))) {
+        return false;
+      }
+    }
+    return true;
+  }
   // The height the layer sits at, from the strategy's allocation to reproduction.
   double absorb_height() const;
   // Absorb every live cohort, bar the youngest, at or above absorb_height(), and
@@ -229,6 +246,32 @@ public:
     return odelia::util::to_passive(top_.state(HEIGHT_INDEX));
   }
   Rcpp::List r_top_layer() const;
+  // The layer's density and weights decay linearly, and at the bottom of the
+  // subnormal range a decay step rounds back to the value it started from, so a
+  // layer whose inflow has stopped never empties by itself: it would keep the
+  // canopy top at the absorbing height and a pinned tree rated at every stage.
+  // Below the smallest normal double a value carries nothing, so it is put to
+  // zero. The seeds the layer accrued are output, not state that decays, and
+  // stay. Called at each introduction instant, with absorption.
+  // An event that removes a fraction of the stand at the layer's height removes
+  // that fraction of the trees the layer holds: its density and both fitness
+  // weights scale together. Its seeds are past output and stay. Returns the
+  // density removed.
+  double scale_top(double phi) {
+    const double before = odelia::util::to_passive(top_density_);
+    top_density_ *= phi;
+    top_weight_ *= phi;
+    top_weight_birth_ *= phi;
+    return before - odelia::util::to_passive(top_density_);
+  }
+  void flush_top() {
+    const double tiny = std::numeric_limits<double>::min();
+    for (value_type* v : {&top_density_, &top_weight_, &top_weight_birth_}) {
+      if (odelia::util::to_passive(*v) < tiny) {
+        *v = value_type(0.0);
+      }
+    }
+  }
   void compute_rates(const environment_type& environment, double pr_patch_survival, double birth_rate);
   void compute_top_rates(const environment_type& environment, double pr_patch_survival);
 
@@ -485,6 +528,13 @@ void Species<T,E>::clear() {
   nodes.clear();
   // Reset the new_node to a blank new_node, too.
   new_node = node_type(strategy);
+  // And the top layer: it belongs to a run, so a run that starts again starts
+  // without one. A resumed patch loads the exported layer after this.
+  top_ = individual_type(strategy);
+  top_density_ = top_weight_ = top_weight_birth_ = value_type(0.0);
+  top_seeds_ = top_seeds_birth_ = value_type(0.0);
+  top_density_dt_ = top_weight_dt_ = top_weight_birth_dt_ = value_type(0.0);
+  top_seeds_dt_ = top_seeds_birth_dt_ = value_type(0.0);
 }
 
 template <typename T, typename E>
@@ -713,6 +763,16 @@ void Species<T,E>::field_splits_nodes(const std::vector<value_type>& heights,
   // `crossing` is the first node the height is above -- the one the walk stops at.
   // The heights ascend and the nodes descend, so it only ever moves one way: one
   // merge over both, rather than a search per height.
+  //
+  // ⚠️ A FROZEN COHORT IS PASSED OVER, as the walk passes over it. Its height is
+  // outside the ordering the scan certified, so it can sit above the height after
+  // a live cohort below it; it carries density zero, so its moments are exact
+  // zeros in the prefix wherever it sits. The walk stops at the first LIVE cohort
+  // below the height, and so does this.
+  const bool skip_retired = freezes_retired(control());
+  auto frozen = [&](std::size_t i) -> bool {
+    return skip_retired && nodes[i].retired();
+  };
   std::size_t crossing = n;
   moments weight, weight_slope;
   for (std::size_t k = 0; k < heights.size(); ++k) {
@@ -720,14 +780,21 @@ void Species<T,E>::field_splits_nodes(const std::vector<value_type>& heights,
     if (scan.h_max < height) {
       continue;  // no node reaches it; the empty split stands
     }
-    while (crossing > 0 && nodes[crossing - 1].height() < height) {
+    while (crossing > 0 &&
+           (frozen(crossing - 1) || nodes[crossing - 1].height() < height)) {
       --crossing;
+    }
+    // Over the frozen cohorts that sit between the last live one above the height
+    // and the first live one below it.
+    std::size_t stop = crossing;
+    while (stop < n && frozen(stop)) {
+      ++stop;
     }
     // The walk stops AFTER the interval whose upper node is the first below the
     // height, so the last node it visited is that one -- or the last node of all,
     // where none is below.
-    const std::size_t last = crossing < n ? crossing : n - 1;
-    const std::size_t summed = last > 0 ? last - (crossing < n ? 1 : 0) : 0;
+    const std::size_t last = stop < n ? stop : n - 1;
+    const std::size_t summed = last > 0 ? last - (stop < n ? 1 : 0) : 0;
 
     strategy->canopy_shape.height_weights(height, weight);
     strategy->canopy_shape.height_weight_slopes(height, weight_slope);
@@ -744,10 +811,10 @@ void Species<T,E>::field_splits_nodes(const std::vector<value_type>& heights,
     competition_split& c = out[k];
     const with_slope<value_type> fs_last =
       nodes[last].compute_competition_and_slope(height);
-    if (crossing < n) {
+    if (stop < n) {
       const with_slope<value_type> fs_above =
-        nodes[crossing - 1].compute_competition_and_slope(height);
-      const double width = abscissa[crossing] - abscissa[crossing - 1];
+        nodes[stop - 1].compute_competition_and_slope(height);
+      const double width = abscissa[stop] - abscissa[stop - 1];
       sum.value += width * (fs_above.value + fs_last.value);
       sum.slope += width * (fs_above.slope + fs_last.slope);
     }
@@ -927,7 +994,11 @@ double Species<T,E>::absorb_height() const {
 
 template <typename T, typename E>
 size_t Species<T,E>::absorb_tall(bool arrival_weighting) {
-  if (!top_on() || size() < 2) {
+  if (!top_on()) {
+    return 0;
+  }
+  flush_top();
+  if (size() < 2) {
     return 0;
   }
   using odelia::util::to_passive;

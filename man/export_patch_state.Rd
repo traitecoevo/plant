@@ -21,11 +21,18 @@ A list describing the patch state, suitable for
   \code{node_schedule_times}, and \code{events}, the run's events still to
   come -- its residual introductions and every action the run had not yet
   applied when the state was taken (an action at the export time itself is
-  pending in a collected snapshot and applied in a finished run's final
-  patch). Events are a \code{\link{run_scm}} argument rather than a field
+  pending in a collected snapshot and in a run that \code{SCM$run_to()}
+  stopped there, and applied in a finished run's final patch). Events are a \code{\link{run_scm}} argument rather than a field
   of \code{Parameters}, so pass \code{state$events} to the resumed run's
   \code{events} argument; a resumed run given none re-runs the residual
   introductions alone and silently loses any pulse or harvest still ahead.
+
+With the absorbing top layer on (\code{Control$absorb_epsilon}), each
+species' block of \code{ode_state} ends with the layer: its pinned
+individual's states, then its density, its two fitness weights and its two
+seed totals. A state exported without the layer has no such block, so
+resuming it with the layer on needs that many zeros inserted after each
+species' nodes.
 }
 \description{
 Export the full state of a patch from a (run) \code{SCM} so it can be

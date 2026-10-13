@@ -5,7 +5,11 @@
 ##
 ##   PLANT_519_MODE    "absorb" (this branch: the top layer at epsilon 0.05) or
 ##                     "floor", which needs a build of c706e257, the commit with
-##                     the survival floor at 1e-9 that the top layer replaced
+##                     the survival floor at 1e-9 that the top layer replaced;
+##                     on any later build it errors. For that build the script
+##                     builds its SCMs with plant:::SCM() and falls back to
+##                     window_regime(), which it predates run_scm(run = FALSE)
+##                     and fitness_window() by.
 ##   PLANT_519_BIRTH   resident birth rate (8.17503, b* on series 1)
 ##   PLANT_519_OUT     output directory
 

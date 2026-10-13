@@ -82,7 +82,7 @@ for (si in seq_along(seeds)) {
   ## The resident's burn-in, exported where it settled.
   p <- parameters_for(resident_lma, burn_max, birth)
   p$node_schedule_times <- list(intro_times[intro_times < burn_max])
-  scm <- plant:::SCM("TF24", "TF24_Env")(p, make_env(), events(node_introductions(p), pulses_in(0, burn_max)), ctrl)
+  scm <- run_scm(p, make_env(), ctrl, events = events(node_introductions(p), pulses_in(0, burn_max)), run = FALSE)
   if (fixed_T1 > 0) {
     w <- system.time(scm$run_to(fixed_T1))[["elapsed"]]
     conv <- list(converged = NA)
@@ -105,7 +105,7 @@ for (si in seq_along(seeds)) {
   p2 <- fitness_window(p2, T1, T2)
   p2$node_schedule_times <- list(schedule)
   ev <- events(node_introductions(p2), pulses_in(T1, T_end))
-  scm2 <- plant:::SCM("TF24", "TF24_Env")(p2, make_env(), ev, ctrl)
+  scm2 <- run_scm(p2, make_env(), ctrl, events = ev, run = FALSE)
   w <- system.time(scm2$run())[["elapsed"]]
   R_resident <- scm2$net_reproduction_ratios
   stamp("seed %g: resident window [%g, %g] R = %.4f (%.0f s)", seed, T1, T2, R_resident, w)
@@ -141,7 +141,7 @@ for (si in seq_along(seeds)) {
     pm <- fitness_window(pm, T1, T2)
     pm$node_schedule_times <- list(schedule, schedule)
     evm <- events(node_introductions(pm), pulses_in(T1, T_end))
-    scm_m <- plant:::SCM("TF24", "TF24_Env")(pm, make_env(), evm, ctrl)
+    scm_m <- run_scm(pm, make_env(), ctrl, events = evm, run = FALSE)
     w <- system.time(scm_m$run())[["elapsed"]]
     R <- scm_m$net_reproduction_ratios
     landscape[[length(landscape) + 1]] <- data.frame(seed = seed, birth = birth, T1 = T1, lma = lma,

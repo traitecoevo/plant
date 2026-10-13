@@ -66,7 +66,9 @@ pulse_series_regular <- function(from, to, interval, amount) {
   check_positive_scalar(interval, "interval")
   check_positive_scalar(amount, "amount")
   n <- floor((to - from) / interval + 1e-10)
-  time <- from + seq_len(n) * interval
+  # The slack that keeps a pulse landing on `to` can put it a rounding error
+  # past it, outside (from, to]; it belongs on `to`.
+  time <- pmin(from + seq_len(n) * interval, to)
   data.frame(time = time, amount = rep(amount, length(time)))
 }
 
