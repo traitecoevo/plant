@@ -380,6 +380,7 @@ Control:
     - node_gradient_richardson: bool
     - node_gradient_richardson_depth: size_t
     - node_density_in_birth_date: bool
+    - absorb_epsilon: double
     - ode_step_size_initial: double
     - ode_step_size_min: double
     - ode_step_size_max: double
@@ -598,6 +599,10 @@ Parameters:
     - n_patches: size_t
     - patch_type: "std::string"
     - max_patch_lifetime: double
+    - fitness_window_start: double
+    - fitness_window_end: double
+    - fitness_window_weight_x: "std::vector<double>"
+    - fitness_window_weight_y: "std::vector<double>"
     - strategies: "std::vector<T>"
     - strategy_default: "T"
     - node_schedule_times_default: "std::vector<double>"
@@ -679,6 +684,13 @@ Species:
     ## The quantity actually integrated: the height density on the height path,
     ## the birth-date density (nu) on the birth-date one.
     log_densities_state: {type: "std::vector<double>", access: member, name_cpp: r_log_densities_state, readonly: true}
+    # Which nodes carry no density: absorbed into the top layer, or at exactly
+    # zero density. Their individuals are frozen when the top layer is on.
+    retired: {type: "std::vector<bool>", access: member, name_cpp: r_retired, readonly: true}
+    # The absorbing top layer (control$absorb_epsilon): its height, the density
+    # it carries, the fitness weights it carries without and with the birth-rate
+    # scaling, and the seed output each has accrued.
+    top_layer: {type: "Rcpp::List", access: member, name_cpp: r_top_layer, readonly: true}
     ## |dh/dtau| per node, boundary node last; the conversion between the two.
     height_jacobian: {type: "std::vector<double>", access: member, readonly: true}
     node_times: {type: "std::vector<double>", access: member}
@@ -750,6 +762,7 @@ Patch:
     ode_aux: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_aux"}
     node_ode_size: {type: size_t, access: member}
     state: {type: "Rcpp::List", access: member, name_cpp: r_get_state}
+    holds_field: {type: bool, access: member, readonly: true}
   methods:
     # The opt-in domain check the adaptive stepper calls on a completed step
     # (odelia #55/#56). Exposed so a test can pin the contract directly.
@@ -763,6 +776,13 @@ Patch:
     compute_environment:
       return_type: void
       name_cpp: r_compute_environment
+    # Hold the field the patch makes now at every later rate evaluation, its
+    # environment's own state included, as SCM$run_mutant_held() does.
+    hold_field:
+      return_type: void
+      name_cpp: r_hold_current_field
+    release_field:
+      return_type: void
     reset:
       return_type: void
     # Because we now care about time, we need to make sure that the
@@ -823,7 +843,13 @@ SCM:
     # Simulation lifecycle
     run:
       return_type: void
+    run_to:
+      args: [time: double]
+      return_type: void
     run_mutant:
+      args: [p: "plant::Parameters<T,E>"]
+      return_type: void
+    run_mutant_held:
       args: [p: "plant::Parameters<T,E>"]
       return_type: void
     store_trajectory:
@@ -903,6 +929,13 @@ SCM:
     collect: {type: bool, access: field}
     collect_refinement_errors: {type: bool, access: field}
     record_trajectory: {type: bool, access: field}
+    # Whether every scheduled entry has been consumed; where run_to() stops
+    # early, this is what says the run is not finished.
+    complete: {type: bool, access: member}
+    # The thinned record (#519): set before the run; read back as a list, one
+    # entry per snapshot, with tidy_snapshots() to flatten it.
+    snapshot_interval: {type: double, access: field}
+    snapshots: {type: "Rcpp::List", access: member, name_cpp: r_snapshots}
 
 StochasticSpecies:
   name_cpp: "plant::StochasticSpecies<T,E>"

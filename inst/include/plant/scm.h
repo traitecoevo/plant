@@ -95,14 +95,59 @@ public:
 
   // ---- Simulation lifecycle ----------------------------------------------
 
-  // Run the whole schedule from t = 0 to completion.
+  // Run the whole schedule, from the run's start time (zero, or a resumed run's
+  // export time) to completion.
   void run();
+
+  // Advance to the first leg boundary at or past `t`, or to the end of the
+  // schedule, and refresh `patch`. A run that has not begun begins first, as
+  // run() does, so a sequence of these is a run() leg for leg; a finished one
+  // is left where it is. What a caller driving a run from outside needs -- a
+  // convergence test between legs, an export at a time of its choosing --
+  // without a Patch copy per step (#519).
+  void run_to(double t);
+
+  // A thinned record of the run: one summary per `snapshot_interval` years,
+  // taken at the run's start and at the first leg boundary at or past each
+  // later multiple, where `history` is a copy of the whole patch per leg. Zero,
+  // the default, records none. Per species it keeps the node counts, the
+  // tallest cohort with density, the trapezium of the carried density over the
+  // birth-date grid, and every node's lifetime offspring output; and the
+  // environment's own state.
+  double snapshot_interval = 0.0;
+  struct species_snapshot {
+    size_t n_nodes = 0;
+    size_t n_live = 0;
+    size_t n_retired = 0;
+    double height_max = 0.0;
+    // The trapezium of the carried density over the birth-date grid, plus what
+    // the top layer carries.
+    double density = 0.0;
+    double top_density = 0.0;
+    std::vector<double> fecundity;
+  };
+  struct snapshot {
+    double time = 0.0;
+    std::vector<species_snapshot> species;
+    std::vector<double> environment;
+  };
+  Rcpp::List r_snapshots() const;
 
   // Integrate `p`'s strategies as invaders against the field the resident run
   // stood in: every one of them, the resident's own included, sees a field it
   // does not move. Destructive -- `p` becomes this SCM's parameters, and its
   // outputs are `p`'s. Needs a finished resident run to take a program from.
   void run_mutant(parameters_type p);
+  // Integrate `p`'s strategies as invaders of a stand at a fixed point: every
+  // one of them stands in ONE field, the resident's as it stands now, held for
+  // the whole of their run (#519). Where run_mutant() replays a resident's
+  // recorded field step by step, a fixed point has a single field, so nothing
+  // is recorded and nothing replayed, and an invader takes its own steps. The
+  // field is taken at the first call, from the state the resident has reached
+  // -- run it to its fixed point first -- and every later call stands in the
+  // same one. Destructive, as run_mutant() is: `p` becomes this SCM's
+  // parameters, and its outputs are `p`'s.
+  void run_mutant_held(parameters_type p);
 
   // Run, keeping the state at each accepted step, and return one record per step.
   //
@@ -140,6 +185,28 @@ public:
   // Its program is not held beside it: a recording IS a program, row by row, and
   // two containers that have to agree can be made to disagree.
   std::vector<odelia::ode::step_record<patch_type>> resident_recording;
+  // The resident's field at the recording's first row, kept for a resident
+  // resumed from a saved state: its first introduction can fall at that very
+  // instant, before any recorded step hands an invader the field, and the
+  // invader must stand in the resident's canopy there, not its own empty one.
+  // Unused for a resident run from empty, whose field at that instant is the
+  // empty patch's, the same as an invader's.
+  recorded_field resident_start_field;
+  // The field run_mutant_held() holds; empty until its first call.
+  recorded_field held_field;
+  // Whether the last run was run_mutant_held()'s, which the gradient refuses.
+  bool ran_in_held_field = false;
+  // Whether any species holds a cohort: what "reset" means for a schedule
+  // setter. Not the node ODE size, which counts the top layer's block.
+  bool patch_has_nodes() const {
+    for (size_t i = 0; i < patch.size(); ++i) {
+      if (patch.at_species(i).size() > 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+  bool resident_resumed = false;
 
   // Whether the last integration was an invasion (run_mutant) rather than a run.
   // A record of an invasion is swept against the field it loaded; a run on the
@@ -252,12 +319,46 @@ public:
   // complains, and the two coordinates are different functions rather than two
   // discretisations of one -- one census metric's trait sensitivity changes
   // sign between them -- so the answer would be finite, plausible and wrong.
+  // An invader starts from an empty patch in the resident's world. Parameters
+  // that carry an initial state -- a resident's export, kept by add_mutant() on
+  // resumed parameters -- would seed it with the resident's stand under the
+  // invader's traits.
+  static void require_invader_starts_empty(const parameters_type& p,
+                                           const char* entry) {
+    if (!p.initial_state.empty()) {
+      util::stop(std::string(entry) + ": an invader starts from an empty patch, "
+                 "but these parameters carry an initial state (a resident's "
+                 "export, kept by add_mutant() on resumed parameters, perhaps). "
+                 "Clear p$initial_state, p$n_initial_cohorts, "
+                 "p$initial_node_times, p$initial_patch_density and "
+                 "p$initial_pr_patch_survival.");
+    }
+  }
+
   void require_birth_date_coordinate(const char* entry) const {
     if (!control.node_density_in_birth_date) {
       util::stop(std::string(entry) +
                  ": the reverse-mode gradient runs on the birth-date "
                  "size-density coordinate only. Set "
                  "control$node_density_in_birth_date = TRUE and re-run.");
+    }
+    // Absorption is a selection on state that moves density between blocks; its
+    // transpose is not written, so a sweep across it would be a different
+    // function's derivative with every number finite.
+    if (control.absorb_epsilon > 0.0) {
+      util::stop(std::string(entry) +
+                 ": the absorbing top layer is not differentiable yet. Set "
+                 "control$absorb_epsilon = 0 and re-run.");
+    }
+    // A held field is exogenous to the run that stands in it, but the sweep's
+    // rebound patches rebuild their field from their own state, so a sweep of a
+    // held run would transpose a different run's field. run_mutant_held()
+    // releases the field before it returns, so what is asked is whether the run
+    // these outputs came from stood in one, not whether one is held now.
+    if (patch.holds_field() || ran_in_held_field) {
+      util::stop(std::string(entry) +
+                 ": this run stands in a held field (run_mutant_held), which "
+                 "the reverse-mode gradient does not transpose.");
     }
   }
 
@@ -563,6 +664,25 @@ private:
   // is solver.get_system_ref(); run() refreshes the `patch` snapshot once, after
   // its loop, rather than per event.
   std::vector<size_t> run_next();
+  // Integrate from t0 to t_end in whichever of the three modes the schedule
+  // and control select; see the definition.
+  void integrate_to(double t0, double t_end);
+
+  // Everything run() does before its loop: put the run at its start and record
+  // what a start records. run_to() calls it once, run() every time.
+  void begin();
+  // A fitness window the run cannot score -- one reaching past the run's end,
+  // or holding no cohort of any species -- reads NaN after the whole run, so it
+  // is refused before it. Asked of the schedule the run will walk, which events
+  // may have built, and of the cohorts a resume seeds.
+  void check_fitness_window() const;
+  // One leg, with the bookkeeping the loop keeps per leg: refinement errors,
+  // the history copy, a snapshot where one is due.
+  void step_leg();
+  void take_snapshot();
+  bool begun = false;
+  double next_snapshot = 0.0;
+  std::vector<snapshot> snapshots;
 
   parameters_type parameters;
   Control control;
@@ -584,6 +704,7 @@ SCM<T, E>::SCM(parameters_type p, environment_type e, Events ev, Control c)
       solver(patch, make_ode_control(c)) {
 
   parameters.validate();
+  check_fitness_window();
 
   collect = false;
   collect_refinement_errors = false;
@@ -593,6 +714,38 @@ SCM<T, E>::SCM(parameters_type p, environment_type e, Events ev, Control c)
     util::warning("We recommened keeping patch_area = 1 for the SCM, as need to check units for all other sizes");
   }
 
+}
+
+template <typename T, typename E>
+void SCM<T, E>::check_fitness_window() const {
+  if (parameters.patch_type != "fitness_window") {
+    return;
+  }
+  const double start = parameters.fitness_window_start;
+  const double end = parameters.fitness_window_end;
+  const double max_time = node_schedule.get_max_time();
+  // A cohort introduced at the run's end is never integrated, so the window
+  // has to close before it -- by the longest lifespan that matters, which is
+  // the caller's to judge.
+  if (!(end < max_time)) {
+    util::stop("The fitness window ends at " + util::to_string(end) +
+               ", at or after the run's end (max_patch_lifetime = " +
+               util::to_string(max_time) + "), so its last arrivals are never "
+               "integrated. Run past the window by the longest lifespan.");
+  }
+  auto inside = [&](double t) { return t >= start && t <= end; };
+  for (const std::vector<double>& times : node_schedule.get_times()) {
+    if (std::any_of(times.begin(), times.end(), inside)) {
+      return;
+    }
+  }
+  if (std::any_of(parameters.initial_node_times.begin(),
+                  parameters.initial_node_times.end(), inside)) {
+    return;
+  }
+  util::stop("No cohort of any species is introduced inside the fitness window [" +
+             util::to_string(start) + ", " + util::to_string(end) +
+             "], so there is nothing to score.");
 }
 
 // Build a uniform grid {t0, t0 + dt, ..., t1} with spacing dt, starting exactly
@@ -620,6 +773,42 @@ std::vector<double> SCM<T, E>::uniform_euler_times(double t0, double t1,
 // ---- Simulation lifecycle ------------------------------------------------
 
 template <typename T, typename E> void SCM<T, E>::run() {
+  begin();
+  try {
+    while (!complete()) {
+      step_leg();
+    }
+  } catch (...) {
+    // A leg that threw leaves the solver mid-step; the next run begins afresh.
+    begun = false;
+    throw;
+  }
+  // Expose the final state through the `patch` accessor after the loop.
+  patch = solver.get_system_ref();
+}
+
+template <typename T, typename E> void SCM<T, E>::run_to(double t) {
+  // NaN compares false with every time, so it would silently do nothing.
+  if (std::isnan(t)) {
+    util::stop("run_to: the target time is NaN");
+  }
+  if (!begun) {
+    begin();
+  }
+  try {
+    while (!complete() && time() < t) {
+      step_leg();
+    }
+  } catch (...) {
+    // A leg that threw leaves the solver mid-step, so a caller that catches and
+    // calls run_to() again begins afresh rather than continuing from it.
+    begun = false;
+    throw;
+  }
+  patch = solver.get_system_ref();
+}
+
+template <typename T, typename E> void SCM<T, E>::begin() {
   // Set before reset(), which records the state the run starts from. One flag, and
   // it is the solver's: the choices this run's rate evaluations make are the same
   // recording as its states, so what keeps the states is what says the choices are
@@ -627,24 +816,109 @@ template <typename T, typename E> void SCM<T, E>::run() {
   invasion = false;
   solver.set_keep_states(record_trajectory);
   reset();
+  // A run is a walk over its schedule's entries and integrates nothing between
+  // them, so a resume with no entry left -- exported after its last
+  // introduction -- would report its seeded state as the run's end. A run from
+  // empty with no schedule is an empty run, and stays one.
+  if (!parameters.initial_state.empty() && complete() &&
+      time() < node_schedule.get_max_time()) {
+    util::stop("This run has no introductions left (a resume exported after the "
+               "last one?), so it would stop at t = " + util::to_string(time()) +
+               " rather than run to max_patch_lifetime = " +
+               util::to_string(node_schedule.get_max_time()) +
+               ". Keep at least one introduction ahead of the export.");
+  }
   // The solver owns the live patch system; operate on it directly during the
   // run and avoid per-step copies into the `patch` member.
   if (collect) {
     history.push_back(solver.get_system_ref());
   }
-
-  while (!complete()) {
-    std::vector<size_t> added = run_next();
-    if (collect_refinement_errors) {
-      solver.get_system_ref().collect_competition_errors(added);
-    }
-    if (collect) {
-      history.push_back(solver.get_system_ref());
-    }
+  if (snapshot_interval > 0.0) {
+    take_snapshot();
   }
+  begun = true;
+}
 
-  // Expose the final state through the `patch` accessor after the loop.
-  patch = solver.get_system_ref();
+template <typename T, typename E> void SCM<T, E>::step_leg() {
+  std::vector<size_t> added = run_next();
+  if (collect_refinement_errors) {
+    solver.get_system_ref().collect_competition_errors(added);
+  }
+  if (collect) {
+    history.push_back(solver.get_system_ref());
+  }
+  if (snapshot_interval > 0.0 && time() >= next_snapshot) {
+    take_snapshot();
+  }
+}
+
+template <typename T, typename E> void SCM<T, E>::take_snapshot() {
+  const patch_type& live = solver.get_system_ref();
+  snapshot s;
+  s.time = time();
+  for (size_t i = 0; i < live.size(); ++i) {
+    const species_type& sp = live.at_species(i);
+    species_snapshot ss;
+    ss.n_nodes = sp.size();
+    double tallest = std::numeric_limits<double>::quiet_NaN();
+    std::vector<double> density;
+    density.reserve(sp.size());
+    for (auto it = sp.node_begin(); it != sp.node_end(); ++it) {
+      const double d = odelia::util::to_passive(it->get_density());
+      density.push_back(d);
+      if (d > 0.0) {
+        ++ss.n_live;
+        const double h = odelia::util::to_passive(it->height());
+        if (!(h <= tallest)) {
+          tallest = h;
+        }
+      }
+      if (it->retired()) {
+        ++ss.n_retired;
+      }
+      ss.fecundity.push_back(odelia::util::to_passive(it->fecundity()));
+    }
+    // The top layer is a cohort with density, pinned at its height.
+    ss.top_density = sp.top_density();
+    if (ss.top_density > 0.0 && !(sp.top_height() <= tallest)) {
+      tallest = sp.top_height();
+    }
+    ss.height_max = tallest;
+    // The carried density integrated over the birth-date grid: individuals per
+    // unit area on that coordinate.
+    ss.density = (sp.size() > 1 ? util::trapezium(sp.node_times(), density) : 0.0) +
+      ss.top_density;
+    s.species.push_back(std::move(ss));
+  }
+  // The environment's block is the tail of the state vector.
+  std::vector<double> state(live.ode_size());
+  live.ode_state(state.begin());
+  s.environment.assign(state.begin() + live.node_ode_size(), state.end());
+  snapshots.push_back(std::move(s));
+  next_snapshot = (std::floor(time() / snapshot_interval) + 1.0) * snapshot_interval;
+}
+
+template <typename T, typename E> Rcpp::List SCM<T, E>::r_snapshots() const {
+  Rcpp::List ret(snapshots.size());
+  for (size_t k = 0; k < snapshots.size(); ++k) {
+    const snapshot& s = snapshots[k];
+    Rcpp::List species(s.species.size());
+    for (size_t i = 0; i < s.species.size(); ++i) {
+      const species_snapshot& ss = s.species[i];
+      species[i] = Rcpp::List::create(
+          Rcpp::_["n_nodes"] = static_cast<int>(ss.n_nodes),
+          Rcpp::_["n_live"] = static_cast<int>(ss.n_live),
+          Rcpp::_["n_retired"] = static_cast<int>(ss.n_retired),
+          Rcpp::_["height_max"] = ss.height_max,
+          Rcpp::_["density"] = ss.density,
+          Rcpp::_["top_density"] = ss.top_density,
+          Rcpp::_["fecundity"] = ss.fecundity);
+    }
+    ret[k] = Rcpp::List::create(Rcpp::_["time"] = s.time,
+                                Rcpp::_["species"] = species,
+                                Rcpp::_["environment"] = s.environment);
+  }
+  return ret;
 }
 
 template <typename T, typename E>
@@ -656,24 +930,19 @@ std::vector<size_t> SCM<T, E>::run_next() {
 
   const schedule_entry& intro = node_schedule.next();
 
-  // Resume support: if the next scheduled introduction is in the future,
-  // integrate the gap up to it without introducing any node. This happens on
-  // the first step of a run resumed from an exported state -- the patch is
-  // already populated (in reset()) and starts at parameters.initial_time, which
-  // falls before the first residual schedule entry. It never happens for an
-  // empty patch, whose schedule always starts at t0 = 0, so the normal path
-  // below is unchanged. The next call will then introduce at that time.
+  // Resume support: if the next scheduled entry is in the future, integrate
+  // the gap up to it without introducing any node. This happens on the first
+  // step of a run resumed from an exported state -- the patch is already
+  // populated (in reset()) and starts at parameters.initial_time, which falls
+  // before the first residual schedule entry -- and on the first step of an
+  // invader starting inside a resident's window with no cohorts yet. It never
+  // happens for a run from empty, whose schedule starts at t0 = 0, so the
+  // normal path below is unchanged. The gap is crossed the same three ways the
+  // intervals below are, a pinned program included: a resumed run's recording
+  // starts at the resumed time and its first interval is this one.
   if (intro.time > t0) {
     solver.set_state_from_system();
-    if (node_schedule.using_ode_steps()) {
-      util::stop("Resuming from an initial state is not supported for "
-                 "replaying a recorded run");
-    } else if (control.fixed_time_step > 0.0) {
-      solver.advance_euler(
-          uniform_euler_times(t0, intro.time, control.fixed_time_step));
-    } else {
-      solver.advance_adaptive({solver.time(), intro.time});
-    }
+    integrate_to(t0, intro.time);
     return ret; // empty: nothing introduced this step
   }
 
@@ -700,13 +969,21 @@ std::vector<size_t> SCM<T, E>::run_next() {
   // Recorded here because this is where the width changes.
   solver.push_insertion();
 
-  // Three integration modes:
-  //  - pinned ode times (resident replay for a mutant): step exactly to the
-  //    cached times via the full RKCK stepper, by their recorded step sizes
-  //    when the schedule carries them;
-  //  - fixed-step forward Euler (control.fixed_time_step > 0): walk a uniform
-  //    sub-grid between this introduction and the next;
-  //  - otherwise: adaptive, error-controlled RKCK to the next introduction.
+  integrate_to(t0, t_end);
+
+  return ret;
+}
+
+// One interval of the run, from the instant the solver stands at to the next
+// scheduled entry. Three integration modes:
+//  - pinned ode times (resident replay for a mutant): step exactly to the
+//    cached times via the full RKCK stepper, by their recorded step sizes
+//    when the schedule carries them;
+//  - fixed-step forward Euler (control.fixed_time_step > 0): walk a uniform
+//    sub-grid between this instant and the next;
+//  - otherwise: adaptive, error-controlled RKCK to the next instant.
+template <typename T, typename E>
+void SCM<T, E>::integrate_to(double t0, double t_end) {
   if (node_schedule.using_ode_steps()) {
     if (control.fixed_time_step > 0.0) {
       // A recorded field is kept per rate evaluation, and forward Euler makes
@@ -740,8 +1017,6 @@ std::vector<size_t> SCM<T, E>::run_next() {
   } else {
     solver.advance_adaptive({solver.time(), t_end});
   }
-
-  return ret;
 }
 
 // An invader integrates against a field it does not move: every strategy in `p`
@@ -770,6 +1045,7 @@ std::vector<size_t> SCM<T, E>::run_next() {
 // resident's field, because this call has overwritten `parameters` with `p`.
 template <typename T, typename E>
 void SCM<T, E>::run_mutant(parameters_type p) {
+  require_invader_starts_empty(p, "run_mutant");
   if (resident_recording.empty()) {
     const std::vector<double> times = r_ode_times();
     const std::vector<double> sizes = r_ode_step_sizes();
@@ -790,12 +1066,29 @@ void SCM<T, E>::run_mutant(parameters_type p) {
     patch.set_keep_field(false);
     const trajectory rec = solver.recording();
     resident_recording.assign(rec.begin(), rec.end());
+    resident_resumed = !parameters.initial_state.empty();
+    if (resident_resumed) {
+      patch_type& live = solver.get_system_ref();
+      odelia::ode::be_at_step(live, trajectory(resident_recording), 0);
+      resident_start_field = live.current_field();
+    }
   }
 
+  // An invader of a resumed resident is introduced into the resident's run from
+  // the instant it resumed, and a replay starts at the recording's first row.
+  if (resident_resumed &&
+      !util::identical(p.initial_time, resident_recording.front().time)) {
+    util::stop("run_mutant: the resident resumed at t = " +
+               util::to_string(resident_recording.front().time) +
+               ", so its invaders start there; set p$initial_time to that "
+               "(it is " + util::to_string(p.initial_time) + ")");
+  }
   // Destructive, as it has always been: the mutants become this SCM's community,
   // and its outputs are theirs.
   parameters = p;
-  patch.overwrite_strategies(parameters.strategies);
+  // The whole parameters, not the strategies alone: the patch seeds itself
+  // from ITS parameters at reset(), and an invader has no seed of its own.
+  patch.overwrite_parameters(parameters);
   node_schedule = make_node_schedule(parameters);
   reset();
   // A replay keeps its states only when asked, as a run does: a recording of a
@@ -806,9 +1099,54 @@ void SCM<T, E>::run_mutant(parameters_type p) {
   // invader and its derivative is zero rather than severed. That is the
   // rare-mutant derivative, the canopy held at the recorded resident.
   solver.set_keep_states(record_trajectory);
+  if (resident_resumed) {
+    solver.get_system_ref().stand_in(&resident_start_field);
+  }
   solver.advance_recorded(resident_recording);
   invasion = true;
   patch = solver.get_system_ref();
+  // A replay takes the resident's steps and pops no schedule entry, so it leaves
+  // nothing a run_to() could continue: a later run of this SCM begins afresh, as
+  // a run of the invaders' parameters.
+  begun = false;
+}
+
+template <typename T, typename E>
+void SCM<T, E>::run_mutant_held(parameters_type p) {
+  require_invader_starts_empty(p, "run_mutant_held");
+  if (!held_field.kept) {
+    if (!begun) {
+      util::stop("Run the resident to its fixed point before holding its field "
+                 "for an invader");
+    }
+    // Built afresh from the state the resident is at, rather than read off
+    // whichever rate evaluation last touched the environment, which is a
+    // stage of the last step and not its end.
+    patch_type& live = solver.get_system_ref();
+    live.r_compute_environment();
+    held_field = live.current_field();
+  }
+  parameters = p;
+  patch.overwrite_parameters(parameters);
+  node_schedule = make_node_schedule(parameters);
+  // reset() copies the patch into the solver, so the held field reaches every
+  // rate evaluation of the run.
+  patch.hold_field(held_field);
+  // Released once the invaders have run, or failed to: their outputs are in
+  // `patch`, and a later run of this SCM -- a resident's, a replay, a recording
+  // -- must build its own field. The next call holds SCM::held_field again.
+  try {
+    run();
+  } catch (...) {
+    patch.release_field();
+    solver.get_system_ref().release_field();
+    throw;
+  }
+  patch.release_field();
+  solver.get_system_ref().release_field();
+  // Released, but what the run left behind -- its outputs, and any recording it
+  // kept -- was made in the held field. Cleared by the next reset().
+  ran_in_held_field = true;
 }
 
 template <typename T, typename E>
@@ -858,6 +1196,14 @@ std::vector<double> SCM<T, E>::bisect_flagged_intervals(const std::vector<double
 
 template <typename T, typename E>
 void SCM<T, E>::refine_schedule() {
+  // Refinement pairs each node's error with a schedule time, and a frozen cohort
+  // has no error to pair; the top layer would also make each iteration depend on
+  // which cohorts the last one absorbed.
+  if (control.absorb_epsilon > 0.0) {
+    util::stop("refine_schedule: refining the node schedule with the absorbing "
+               "top layer on is not supported. Refine with "
+               "control$absorb_epsilon = 0 and run the refined schedule with it.");
+  }
   collect_refinement_errors = true;
   const double eps = control.schedule_eps;
 
@@ -927,6 +1273,9 @@ template <typename T, typename E> void SCM<T, E>::reset() {
   patch = solver.get_system_ref();
   history.clear();
   event_log.clear();
+  snapshots.clear();
+  begun = false;
+  ran_in_held_field = false;
 }
 
 
@@ -993,10 +1342,13 @@ SCM<T, E>::r_compute_competition_effect_error_by_node_for_species_i(util::index 
 
 template <typename T, typename E>
 void SCM<T, E>::r_set_node_schedule(NodeSchedule x) {
-  if (patch.node_ode_size() > 0) {
+  if (patch_has_nodes()) {
     util::stop("Cannot set schedule without resetting first");
   }
   util::check_length(x.get_n_species(), patch.size());
+  // The run starts where its parameters say, which a schedule built in R does
+  // not know.
+  x.set_start_time(parameters.initial_time);
   node_schedule = x;
 
   // Update here so that extracting Parameters reflects the new schedule,
@@ -1007,7 +1359,7 @@ void SCM<T, E>::r_set_node_schedule(NodeSchedule x) {
 template <typename T, typename E>
 void SCM<T, E>::r_set_node_schedule_times(
     std::vector<std::vector<double>> x) {
-  if (patch.node_ode_size() > 0) {
+  if (patch_has_nodes()) {
     util::stop("Cannot set schedule without resetting first");
   }
   node_schedule.set_times(x);

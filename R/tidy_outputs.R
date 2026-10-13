@@ -5,6 +5,7 @@
 tidy_species <- function(results) {
 
   n_spp <- length(results[[1]]$species)
+  warn_top_layer(results)
 
    get_species_sdd <- function(i) {
      purrr::imap_dfr(results, ~ .x$species[[i]] |>
@@ -21,7 +22,21 @@ tidy_species <- function(results) {
 }
 
 
-#' Turn `env` component of solver output into a tidy data object 
+## The absorbing top layer (control$absorb_epsilon) is not a node, so the rows
+## tidy_species() returns, and every integral over them, leave out what it
+## carries. Said rather than refused: this runs at the end of a collected run.
+warn_top_layer <- function(results) {
+  top <- unlist(lapply(results, function(r)
+    lapply(r$species, function(s) attr(s, "top_density"))))
+  if (length(top) > 0 && any(top > 0)) {
+    warning("The absorbing top layer carries density (up to ",
+            signif(max(top), 3), ") that these node rows leave out, so ",
+            "integrals over them undercount the stand. Read the layer from ",
+            "species$top_layer or tidy_snapshots().", call. = FALSE)
+  }
+}
+
+#' Turn `env` component of solver output into a tidy data object
 #'
 #' @rdname tidy_patch
 #' @importFrom rlang .data

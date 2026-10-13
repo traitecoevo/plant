@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <optional>
 #include <sstream>
 #include <map>
 #include <string>
@@ -165,15 +166,21 @@ public:
   // One species' lifetime fitness integral at the scalar the patch carries:
   // the trapezium over its cohorts' birth dates of the survival-weighted
   // fecundity, each cohort scaled by `scalars` (one, or the birth rate at its
-  // birth). The two R-facing double forms below are this with the derivative
-  // dropped, so the number a sweep differentiates is the number R reports.
+  // birth), plus what the top layer's cohorts produced after they were absorbed;
+  // under an arrival weighting, the weighted mean over the window's cohorts
+  // instead. `birth_scaled` says the scalars are the birth rate at each birth
+  // date, so the top layer's seed output is read on the same scale. The two
+  // R-facing double forms below are this with the derivative dropped, so the
+  // number a sweep differentiates is the number R reports.
   value_type fitness_integral(size_t species_index,
-                              const std::vector<value_type>& scalars) const;
+                              const std::vector<value_type>& scalars,
+                              bool birth_scaled = false) const;
   value_type net_reproduction_ratio_of(size_t species_index) const;
   value_type offspring_production_of(size_t species_index) const;
 
   double net_reproduction_ratio_for_species(size_t species_index,
-                                            std::vector<double> const& scalars) const;
+                                            std::vector<double> const& scalars,
+                                            bool birth_scaled = false) const;
   // Offspring production: fitness scaled by the birth rate over time.
   std::vector<double> offspring_production() const;
   // Overall fitness (unscaled, scalars == 1).
@@ -423,6 +430,43 @@ public:
     introduction_fields = fields;
   }
 
+  // The field this patch stands in now, packaged as a recording keeps one: what
+  // an invader of a RESUMED resident stands in at the run's first instant. A
+  // recording's first row is the state the run started from and no step reached
+  // it, so it carries no field; an insertion at that instant -- the resident's
+  // first introduction, at the resume time -- would otherwise be made in the
+  // invader's own empty canopy.
+  recorded_field current_field() const {
+    recorded_field f;
+    f.interpolators = environment.get_interpolators_state();
+    f.state.assign(environment.ode_size(), 0.0);
+    environment.ode_state(f.state.begin());
+    f.time = environment.time;
+    f.kept = true;
+    return f;
+  }
+  // Stand in `f` until a recorded row hands over another; see current_field().
+  void stand_in(const recorded_field* f) { loaded_field = f; }
+
+  // Stand in `f` at every rate evaluation of every later run, whatever the
+  // time: a stand at a fixed point makes one field, and an invader of it needs
+  // that field and nothing recorded (#519). The environment's own state is held
+  // with it -- its rates are zero -- so TF24's soil does not move either.
+  // Survives reset(), unlike a recorded field, because the run that uses it
+  // begins with one.
+  //
+  // ⚠️ HELD BY VALUE, NOT POINTED AT. A pointer into the patch's own member
+  // dangles in every copy (#589), and the solver integrates a copy.
+  void hold_field(const recorded_field& f) { held_field = f; }
+  void release_field() { held_field.reset(); }
+  bool holds_field() const { return held_field.has_value(); }
+  // From R: hold the field this patch makes from its own state now.
+  void r_hold_current_field() {
+    release_field();
+    compute_environment();
+    hold_field(current_field());
+  }
+
   // A recorded state loaded as the run itself carries it. set_ode_state evaluates
   // the inflow condition in the field that leaves the boundary interval off, then
   // rebuilds the field including it; the run then rates the nodes and evaluates
@@ -492,6 +536,15 @@ public:
 
   void add_strategies(std::vector<strategy_type> strategies);
   void overwrite_strategies(std::vector<strategy_type> strategies);
+  // Become the patch these parameters describe, in the environment and under
+  // the control this one has: their strategies, their regime, and the state
+  // they seed the next reset() from. What an invasion needs, because an
+  // invader is a different community in the resident's world: replacing only
+  // the strategies left this patch seeding itself from the RESIDENT's exported
+  // state at every reset, so an invader of a resumed resident started as a copy
+  // of the resident's stand. Invisible from empty, where there is nothing to
+  // seed.
+  void overwrite_parameters(const parameters_type& p);
 
 private:
   // A patch whose species take the prepared strategies given, rather than
@@ -532,6 +585,8 @@ private:
   // after it) and lapses at any other.
   bool field_fresh = false;
   recorded_field* field_slot = nullptr;
+  // See hold_field(). Takes precedence over a loaded field.
+  std::optional<recorded_field> held_field;
 
   // Seed the patch from parameters.initial_state (nodes + birth bookkeeping)
   // when present; called from reset(). Sets environment.time = initial_time.
@@ -545,6 +600,43 @@ private:
   // value can propagate into competition, resource uptake, or physiology and
   // surface as an opaque downstream error.
   void check_finite_ode_state() const;
+  // The top layer rests on density only ever falling, which holds on the
+  // birth-date coordinate alone: on the height coordinate the transport term
+  // can raise it. Refused at construction, where the control is first seen.
+  void check_retirement_coordinate() const {
+    // A negative or NaN epsilon would read as "off" below, silently.
+    if (!(control.absorb_epsilon >= 0.0)) {
+      util::stop("control$absorb_epsilon must be zero (off) or in (0, 0.5)");
+    }
+    if (control.absorb_epsilon > 0.0) {
+      if (!control.node_density_in_birth_date) {
+        util::stop("control$absorb_epsilon needs the birth-date size-density "
+                   "coordinate (control$node_density_in_birth_date = TRUE)");
+      }
+      if (!(control.absorb_epsilon < 0.5)) {
+        util::stop("control$absorb_epsilon must lie in (0, 0.5): it is the "
+                   "fraction of maximal allocation to reproduction not yet "
+                   "reached at the absorbing height");
+      }
+      if constexpr (!HasAsymptoticHeight<T>) {
+        util::stop("control$absorb_epsilon needs a strategy that declares an "
+                   "asymptotic height, and this one does not");
+      } else {
+        // A strategy answers NaN where its allocation curve has no such height
+        // (a_f2 <= 0: allocation to reproduction does not rise with height). A
+        // height that is not positive and finite would absorb nothing or every
+        // cohort bar the youngest.
+        for (const strategy_type& st : parameters.strategies) {
+          const double h = st.asymptotic_height(control.absorb_epsilon);
+          if (!(h > 0.0) || !util::is_finite(h)) {
+            util::stop("The absorbing height is " + util::to_string(h) +
+                       " for a strategy, from hmat and a_f2: it needs a "
+                       "positive hmat and a positive a_f2");
+          }
+        }
+      }
+    }
+  }
   // Guard the birth-date coordinate's quadrature grid: it is the per-node
   // introduction times, so nodes sharing one give zero-width intervals that drop
   // silently out of the integral. Reached by a schedule carrying a repeated time
@@ -555,6 +647,15 @@ private:
   // the reconciling loader share it, so a node the run made and a node a walk
   // rebuilt are stamped by the same expression.
   void push_nodes(const introduction& species_index, double time);
+
+  // The absorbing half of an introduction instant: every cohort that has
+  // reached its species' asymptotic height goes into the top layer
+  // (Species::absorb_tall) before the new cohort is pushed. Part of the
+  // insertion map and of nothing else, so a replay or a sweep that applies the
+  // map applies this too, and a reconciliation that only rebuilds the shape
+  // (reshape_to) does not -- the state it loads already carries the zeros and
+  // the layer. A no-op with control.absorb_epsilon zero.
+  void absorb_tall();
 
   parameters_type parameters;
 
@@ -584,6 +685,7 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
   // assigned after its own construction still carries the regime of the lifetime
   // it was constructed with.
   survival_weighting = parameters.disturbance;
+  check_retirement_coordinate();
 
   // Configure the light profile's shading model before the first
   // compute_environment() in reset(). No-op for environments without a light
@@ -608,6 +710,7 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c,
   parameters.validate();
 
   survival_weighting = parameters.disturbance;
+  check_retirement_coordinate();
 
   environment.set_shading_model(control.shading_model,
                                 control.ppa_layer_optical_depth,
@@ -641,6 +744,13 @@ Patch<at_scalar<T, U>, at_scalar<E, U>> Patch<T,E>::rebind_from() const {
   p2.patch_area = parameters.patch_area;
   p2.patch_type = parameters.patch_type;
   p2.max_patch_lifetime = parameters.max_patch_lifetime;
+  // The fitness window is built from these four by the same validate(): left
+  // behind, a "fitness_window" patch_type would refuse to build at all, and a copy
+  // that defaulted them silently would weight the rebound patch differently.
+  p2.fitness_window_start = parameters.fitness_window_start;
+  p2.fitness_window_end = parameters.fitness_window_end;
+  p2.fitness_window_weight_x = parameters.fitness_window_weight_x;
+  p2.fitness_window_weight_y = parameters.fitness_window_weight_y;
   p2.node_schedule_times_default = parameters.node_schedule_times_default;
   p2.node_schedule_times = parameters.node_schedule_times;
   p2.initial_time = parameters.initial_time;
@@ -698,6 +808,19 @@ void Patch<T,E>::overwrite_strategies(std::vector<strategy_type> strategies) {
 }
 
 template <typename T, typename E>
+void Patch<T,E>::overwrite_parameters(const parameters_type& p) {
+  parameters = p;
+  // As the constructor does: the validated member carries the regime.
+  parameters.validate();
+  survival_weighting = parameters.disturbance;
+  // The invaders' strategies are checked as the constructor checks the
+  // residents': an absorbing height they cannot have would absorb every cohort.
+  check_retirement_coordinate();
+  area = parameters.patch_area;
+  overwrite_strategies(parameters.strategies);
+}
+
+template <typename T, typename E>
 void Patch<T,E>::add_strategies(std::vector<strategy_type> strategies) {
   for (auto i = 0; i < strategies.size(); ++i) {
 		auto s = strategies[i];
@@ -721,6 +844,12 @@ void Patch<T,E>::reset() {
 
   // compute ephemeral effects like light_availability
   environment.clear();
+  // clear() put the clock at zero. A patch that starts later than that -- an
+  // invader resumed into a resident's window, with no cohorts of its own yet --
+  // starts at the time its parameters name, and the field and rates below are
+  // built at that time. set_initial_state() sets the same clock for a seeded
+  // patch, and the default is zero, so a run from empty is unchanged.
+  environment.time = parameters.initial_time;
 
   if (!parameters.initial_state.empty()) {
     // Seed the patch from an exported state / initial size distribution.
@@ -779,9 +908,21 @@ void Patch<T,E>::set_initial_state() {
     auto s_it = parameters.initial_pr_patch_survival.begin();
     for (size_t i = 0; i < n_species; ++i) {
       const size_t n = parameters.n_initial_cohorts[i];
-      species[i].set_birth_state(std::vector<double>(t_it, t_it + n),
-                                 std::vector<double>(d_it, d_it + n),
-                                 std::vector<double>(s_it, s_it + n));
+      const std::vector<double> times(t_it, t_it + n);
+      // The patch density and survival at birth are THIS run's regime read at
+      // the birth date, not the stamps the exporting run made. A cohort seeded
+      // from a burn-in into a fitness window is born before the window and
+      // weighs nothing in it, where the burn-in stamped it one; and a resumed
+      // run whose regime differs (a Weibull over a longer lifetime) divides its
+      // own patch survival by the survival at birth, so both have to be its
+      // own. Under the regime that stamped them they are the same numbers. The
+      // exported stamps are read only for their lengths.
+      std::vector<double> patch_density(n), pr_survival(n);
+      for (size_t k = 0; k < n; ++k) {
+        patch_density[k] = survival_weighting->density(times[k]);
+        pr_survival[k] = survival_weighting->pr_survival(times[k]);
+      }
+      species[i].set_birth_state(times, patch_density, pr_survival);
       t_it += n;
       d_it += n;
       s_it += n;
@@ -873,19 +1014,45 @@ void Patch<T,E>::check_finite_ode_state() const {
         // fail here with an actionable message rather than letting the +Inf
         // propagate into the competition integral or density-weighted resource
         // uptake, where it surfaces as an opaque downstream error.
-        util::stop("Non-finite cohort density in the SCM size-density "
-                   "(characteristic) equations: species " +
-                   util::to_string(i + 1) + " has a node with density=" +
-                   util::to_string(it->get_density()) + " (log_density=" +
-                   util::to_string(it->get_log_density()) + ", height=" +
-                   util::to_string(it->height()) + ") at time=" +
-                   util::to_string(environment.time) +
-                   ". The density derivative -d(growth)/d(height) - mortality "
-                   "can grow without bound when growth rate falls steeply with "
-                   "size under rapidly changing or extreme environmental "
-                   "forcing, driving density to overflow. Try a shorter "
-                   "max_patch_lifetime or less extreme environmental drivers.");
+        const std::string msg =
+          "Non-finite cohort density in the SCM size-density "
+          "(characteristic) equations: species " +
+          util::to_string(i + 1) + " has a node with density=" +
+          util::to_string(it->get_density()) + " (log_density=" +
+          util::to_string(it->get_log_density()) + ", height=" +
+          util::to_string(it->height()) + ") at time=" +
+          util::to_string(environment.time) +
+          ". The density derivative -d(growth)/d(height) - mortality "
+          "can grow without bound when growth rate falls steeply with "
+          "size under rapidly changing or extreme environmental "
+          "forcing, driving density to overflow. Try a shorter "
+          "max_patch_lifetime or less extreme environmental drivers.";
+        // ⚠️ ON THE BIRTH-DATE COORDINATE THIS IS A REJECTION, NOT A FAILURE.
+        // There the rate is -mortality and nothing raises a density, so a
+        // stage above the ceiling is the stepper's own overshoot, not the
+        // runaway above. It happens when a stage straddles a dying cohort's
+        // rates switching off: its log density underflowing (Node's density
+        // guard) or its hazard reaching establishment_failure_hazard (the
+        // strategy's mortality rate) zeroes a rate of order 1e3 per year, and
+        // the stage weights, some negative, turn that jump into a log density
+        // of +800 at a trial stage. A shorter step does not straddle as far,
+        // so hand it to the stepper. The height coordinate stays fatal.
+        if (species[i].density_in_birth_date()) {
+          odelia::util::stop_domain(msg);
+        }
+        util::stop(msg);
       }
+    }
+  }
+
+  // The top layer's numbers, which no node above reads. A rejection, as for the
+  // stage overshoot above: the layer's density decays linearly, and a stage can
+  // carry it past where the step will land.
+  for (size_t i = 0; i < species.size(); ++i) {
+    if (species[i].top_on() && !species[i].top_finite()) {
+      odelia::util::stop_domain("Non-finite top layer in species " +
+                                util::to_string(i + 1) + " at time=" +
+                                util::to_string(environment.time));
     }
   }
 
@@ -904,7 +1071,8 @@ void Patch<T,E>::check_finite_ode_state() const {
       // A rejection, not a failure: measured, every observed TF24 soil
       // excursion is explicit-integrator overshoot across a discrete change and
       // not a defect in the balance -- hand it to the stepper to shrink and
-      // retry rather than failing the run. Mode (1) above stays fatal.
+      // retry rather than failing the run. Mode (1) above stays fatal on the
+      // height coordinate.
       odelia::util::stop_domain("Non-finite environment state (index " + util::to_string(i) +
                  " = " + util::to_string(state_i) + ") at time=" +
                  util::to_string(environment.time) +
@@ -962,7 +1130,8 @@ std::vector<double> Patch<T,E>::r_compute_competition_effect_error_by_node_for_s
 // Integrate over lifetime fitness of individual nodes, scaled per node.
 template <typename T, typename E>
 typename Patch<T,E>::value_type Patch<T,E>::fitness_integral(
-    size_t species_index, std::vector<value_type> const& scalars) const {
+    size_t species_index, std::vector<value_type> const& scalars,
+    bool birth_scaled) const {
   const std::vector<value_type> net_prod =
     species[species_index].weighted_fecundity_by_node();
   auto const times = species[species_index].node_times();
@@ -970,14 +1139,61 @@ typename Patch<T,E>::value_type Patch<T,E>::fitness_integral(
   for (size_t i = 0; i < times.size(); ++i) {
     net_prod_scaled[i] = net_prod[i] * scalars[i];
   }
-  return util::trapezium(times, net_prod_scaled);
+  if (!survival_weighting->is_arrival_weighting()) {
+    // The seed output of cohorts absorbed into the top layer after they were
+    // absorbed: what they accrued before is still on their nodes.
+    return util::trapezium(times, net_prod_scaled) +
+      species[species_index].top_seeds(birth_scaled);
+  }
+  // An arrival weighting is the weighted mean of lifetime output over the
+  // cohorts the window weights, taken by the trapezium over THOSE cohorts
+  // alone: the span from the first to the last with positive weight, output
+  // times weight over weight. Nothing outside the span enters, so a species
+  // whose schedule starts at the window and a species with cohorts before it
+  // score the same cohorts the same way -- which is what makes a resident's
+  // own strategy, invading, score the resident's ratio. Over every node, a
+  // zero-weight cohort just outside the window would give the edge cohort a
+  // whole interval where a species without one gives it half; and without the
+  // normalisation a weight stepping to zero at the edges overstates the mean by
+  // spacing over width. The weights are the regime's, read at the birth dates,
+  // and carry no derivative: the denominator is a constant of the traits.
+  const std::vector<double> weight = species[species_index].r_patch_densities();
+  size_t first = times.size(), last = 0;
+  for (size_t i = 0; i < times.size(); ++i) {
+    if (weight[i] > 0.0) {
+      first = std::min(first, i);
+      last = i;
+    }
+  }
+  if (first == times.size()) {
+    // No cohort the window weights: the mean is undefined. NaN rather than a
+    // throw, which would fail every accessor after a finished run -- and with
+    // it run_scm()'s history -- for one species set up that way.
+    return value_type(std::numeric_limits<double>::quiet_NaN());
+  }
+  if (first == last) {
+    // One cohort in the window: its output is the mean.
+    return net_prod_scaled[first] / weight[first];
+  }
+  const std::vector<double> t(times.begin() + first, times.begin() + last + 1);
+  const std::vector<value_type> num(net_prod_scaled.begin() + first,
+                                    net_prod_scaled.begin() + last + 1);
+  const std::vector<double> den(weight.begin() + first, weight.begin() + last + 1);
+  // The top layer's seeds are left out: the window's cohorts are never
+  // absorbed, so nothing in the layer belongs to the window. What it carries
+  // was weighted by whatever regime absorbed it -- a burn-in run without the
+  // window stamps every cohort one -- and counted here it would score the
+  // burn-in's stand as the window's.
+  return util::trapezium(t, num) / util::trapezium(t, den);
 }
 
 template <typename T, typename E>
 double Patch<T,E>::net_reproduction_ratio_for_species(
-    size_t species_index, std::vector<double> const& scalars) const {
+    size_t species_index, std::vector<double> const& scalars,
+    bool birth_scaled) const {
   return odelia::util::to_passive(fitness_integral(
-      species_index, std::vector<value_type>(scalars.begin(), scalars.end())));
+      species_index, std::vector<value_type>(scalars.begin(), scalars.end()),
+      birth_scaled));
 }
 
 // Offspring production, equal to overall fitness scaled by the birth rate.
@@ -990,7 +1206,7 @@ Patch<T,E>::offspring_production_of(size_t i) const {
   for (size_t j = 0; j < times.size(); ++j) {
     scalars[j] = species[i].strategy_ptr()->birth_rate_at(times[j]);
   }
-  return fitness_integral(i, scalars);
+  return fitness_integral(i, scalars, true);
 }
 
 // Overall fitness (no scaling, ie scalars set to 1.0).
@@ -1138,6 +1354,13 @@ void Patch<T,E>::compute_environment() {
     s.set_new_node_birth_date(environment.time);
   }
 
+  // A held field (hold_field) takes precedence over any loaded one.
+  if (held_field) {
+    environment.r_init_interpolators(held_field->interpolators);
+    environment.set_ode_state(held_field->state.begin());
+    compute_boundary_nodes();
+    return;
+  }
   // Standing in a field this evaluation did not build, which is what an invader
   // does: it is vanishingly rare, so the field is exogenous to it and it puts
   // nothing into the reduction below. Only the inflow condition is still its own
@@ -1284,7 +1507,10 @@ void Patch<T,E>::compute_rates() {
       });
     resource_depletion.push_back(resource_consumed / area);
   }
-  env.compute_rates(resource_depletion);
+  // A held field is exogenous: nothing the species take moves it.
+  if (!held_field) {
+    env.compute_rates(resource_depletion);
+  }
 }
 
 // The whole light environment is rebuilt here, where only the knots below the
@@ -1292,6 +1518,7 @@ void Patch<T,E>::compute_rates() {
 // would write a subrange of the same positions.
 template <typename T, typename E>
 void Patch<T,E>::introduce_nodes(const introduction& species_index, double time) {
+  absorb_tall();
   push_nodes(species_index, time);
 
   // A schedule carrying the same time twice for one species stamps two nodes
@@ -1304,6 +1531,17 @@ void Patch<T,E>::introduce_nodes(const introduction& species_index, double time)
   // rates now describe neither. The solver reads them next without checking, so
   // they have to be brought up to date here.
   compute_rates();
+}
+
+template <typename T, typename E>
+void Patch<T,E>::absorb_tall() {
+  if (!(control.absorb_epsilon > 0.0)) {
+    return;
+  }
+  const bool arrival = survival_weighting->is_arrival_weighting();
+  for (species_type& s : species) {
+    s.absorb_tall(arrival);
+  }
 }
 
 // The three numbers a node carries that the ODE state does not: its birth date,
@@ -1319,6 +1557,19 @@ void Patch<T,E>::push_nodes(const introduction& species_index, double time) {
                  util::to_string(static_cast<int>(i)) + " of a patch holding " +
                  util::to_string(static_cast<int>(species.size())));
     }
+    // With the top layer on, a cohort born with no density is frozen at birth
+    // (freezes_retired), so a cohort the fitness integral weights would score
+    // zero output per seed where it would have accrued some. Refused rather
+    // than scored: a zero birth rate is the old idiom for a rare invader.
+    if (freezes_retired(control) && patch_density > 0.0 &&
+        !(odelia::util::to_passive(species[i].strategy_ptr()->birth_rate_at(time)) > 0.0)) {
+      util::stop("Species " + util::to_string(static_cast<int>(i + 1)) +
+                 " has birth rate zero at t = " + util::to_string(time) +
+                 ". With the top layer on (control$absorb_epsilon > 0) a cohort "
+                 "born with no density is frozen at birth and its output per "
+                 "seed reads zero. Give the species a small positive birth "
+                 "rate, e.g. 1e-6 of the resident's.");
+    }
     species[i].introduce_new_node(time, patch_density, pr_survival);
   }
 }
@@ -1331,15 +1582,24 @@ Patch<T,E>::scale_node_densities(size_t species_index, Select select) {
   species_type& sp = species[species_index];
   size_t n_affected = 0;
   double density_removed = 0.0;
+  // With the top layer on, a frozen cohort carries nothing and never moves again,
+  // so an event passes over it rather than count it.
+  const bool skip_retired = freezes_retired(control);
+  auto refuse_whole = []() {
+    util::stop("An event must leave a positive fraction of each cohort: "
+               "removing all of one would take its density to -Inf, which "
+               "the density transport cannot carry back.");
+  };
   for (auto n = sp.node_begin(); n != sp.node_end(); ++n) {
+    if (skip_retired && n->retired()) {
+      continue;
+    }
     const double phi = select(n->height());
     if (phi >= 1.0) {
       continue;
     }
     if (!(phi > 0.0)) {
-      util::stop("An event must leave a positive fraction of each cohort: "
-                 "removing all of one would take its density to -Inf, which "
-                 "the density transport cannot carry back.");
+      refuse_whole();
     }
     const double log_phi = std::log(phi);
     const double before = n->get_density();
@@ -1350,6 +1610,17 @@ Patch<T,E>::scale_node_densities(size_t species_index, Select select) {
     n->individual.set_state("mortality",
                             n->individual.state(MORTALITY_INDEX) - log_phi);
     ++n_affected;
+  }
+  // The top layer holds trees at its height, and an event reaches them there.
+  if (sp.top_density() > 0.0) {
+    const double phi = select(sp.top_height());
+    if (phi < 1.0) {
+      if (!(phi > 0.0)) {
+        refuse_whole();
+      }
+      density_removed += sp.scale_top(phi);
+      ++n_affected;
+    }
   }
   return {n_affected, density_removed};
 }
@@ -1598,6 +1869,13 @@ template <typename It>
 It Patch<T,E>::ode_rates(It it) {
   compute_rates();
   it = odelia::ode::ode_rates(species.begin(), species.end(), it);
+  if (held_field) {
+    for (size_t k = 0; k < environment.ode_size(); ++k) {
+      *it = 0.0;
+      ++it;
+    }
+    return it;
+  }
   it = environment.ode_rates(it);
   return it;
 }
@@ -1737,6 +2015,7 @@ template <typename It>
 void Patch<T,E>::apply_insertion(const introduction& species_index, double time,
                                  It x, std::vector<value_type>& y) {
   set_state_and_boundary(x, time);
+  absorb_tall();
   push_nodes(species_index, time);
   y.assign(ode_size(), value_type(0.0));
   ode_state(y.begin());
@@ -1852,6 +2131,19 @@ bool Patch<T,E>::ode_state_valid(const std::vector<double>& y) const {
           return false;
         }
       }
+    }
+    // The top layer's block follows the species' nodes. Its individual holds the
+    // same bounded states as a node's; it is checked once it carries density.
+    if (sp.top_ode_size() > 0) {
+      const size_t density_at = at + individual_type::ode_size();
+      if (y[density_at] > 0.0) {
+        for (const size_t i : bounded) {
+          if (y[at + i] < 0.0) {
+            return false;
+          }
+        }
+      }
+      at += sp.top_ode_size();
     }
   }
   return true;

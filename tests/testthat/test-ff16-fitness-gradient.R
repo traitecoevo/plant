@@ -118,3 +118,28 @@ test_that("one species' fitness responds to the other's traits through the canop
   # The cross terms are real: species 2's shading reaches species 1's fitness.
   expect_true(abs(g$gradient["1.net_reproduction_ratio", "2.k_I"]) > 0)
 })
+
+test_that("the fitness gradient over a window is the pinned-step central difference", {
+  # A window takes the weighted mean over its own cohorts. The weights are the
+  # regime's, read at the birth dates, so they carry no derivative and the
+  # normalisation divides the gradient as it divides the value.
+  p <- fitness_window(fitness_parameters(), 2, 5)
+  scm <- run_scm(p, NULL, fitness_control(), record_trajectory = TRUE)
+  g <- stand_gradient(scm, metrics = c("1.net_reproduction_ratio",
+                                       "1.offspring_production"))
+  expect_false(any(stand_gradient_refused(g)))
+  expect_identical(g$value[["1.net_reproduction_ratio"]],
+                   scm$net_reproduction_ratios)
+  q <- pinned(scm)
+  for (name in c("hmat", "lma", "S_D")) {
+    for (metric in c("1.net_reproduction_ratio", "1.offspring_production")) {
+      fd <- central_difference(q, 1, name, metric)
+      expect_equal(g$gradient[metric, paste0("1.", name)], fd,
+                   tolerance = 1e-5, label = paste(metric, name))
+    }
+  }
+  traits <- setdiff(colnames(g$gradient), "1.birth_rate")
+  expect_equal(g$gradient["1.offspring_production", traits],
+               2 * g$gradient["1.net_reproduction_ratio", traits],
+               tolerance = 1e-12)
+})

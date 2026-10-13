@@ -689,3 +689,28 @@ test_that("a competitively excluded species is no worse off", {
   ## And its relative error is of the same order as the rest.
   expect_lt(rel[[1]], 3 * max(rel[-1]))
 })
+
+test_that("a dense birth-date stand steps over its dying cohorts", {
+  # At a high birth rate FF16's shaded cohorts die at rates of order 1e3 per
+  # year, and each one's rates switch off when its density underflows and its
+  # hazard reaches establishment_failure_hazard. A Runge-Kutta stage straddling
+  # that switch weighs a rate of -1e3 against zero, some weights negative, and
+  # can put a trial log density far above any real one. On the birth-date
+  # coordinate nothing raises a density, so the guard rejects such a stage and
+  # the stepper retries it smaller, where a stop would end the run.
+  p <- scm_base_parameters("FF16")
+  p$patch_type <- "fixed"
+  p$max_patch_lifetime <- 20
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 10)
+  p$node_schedule_times <- list(seq(0, 20, by = 1))
+  scm <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE))
+  sp <- scm$patch$species[[1]]
+  # The run reached its end, and the shaded cohorts did die.
+  expect_equal(scm$time, 20)
+  expect_true(any(exp(sp$log_densities_state) == 0))
+  # A birth-date density only falls: none exceeds the largest at birth, which
+  # is log(birth rate) plus at most a few units of establishment and patch
+  # density.
+  expect_lt(max(sp$log_densities_state), log(10) + 1)
+  expect_true(is.finite(scm$offspring_production))
+})

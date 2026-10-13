@@ -85,6 +85,18 @@ public:
     return offspring_produced_survival_weighted * patch_density_at_birth * S_D;
   }
 
+  // A cohort carrying no density: absorbed into the top layer, or at exactly
+  // zero density (born below the establishment threshold, or underflowed). Read
+  // off the density itself, so a state loaded from a recording or an export
+  // carries the answer with it and no record has to say which cohorts went.
+  bool retired() const { return !(density > 0.0); }
+  // Take the cohort's density to exactly zero, on the finite sentinel a cohort
+  // that never established already carries: what absorption leaves behind, once
+  // the density has moved into the top layer.
+  void retire() {
+    set_log_density(value_type(-establishment_failure_hazard));
+  }
+
   // Unfortunate, but need a get_ here because of name shadowing...
   value_type get_log_density() const {return log_density;}
   // exp(log_density); can overflow to +Inf when the SCM density equation runs
@@ -207,6 +219,17 @@ void Node<T,E>::compute_node_rates(const environment_type& environment,
 template <typename T, typename E>
 void Node<T,E>::compute_rates(const environment_type& environment,
                                 double pr_patch_survival) {
+  // A cohort with no density has no trajectory, and with retirement on it is
+  // not integrated either: no physiology is evaluated for it, every rate it
+  // reports is zero, and its individual stays where it froze. Gated on the top
+  // layer (freezes_retired) rather than on the density alone, so a run that has
+  // not opted in integrates its empty cohorts exactly as it always has.
+  if (freezes_retired(individual.control()) && retired()) {
+    individual.zero_rates();
+    log_density_dt = value_type(0.0);
+    offspring_produced_survival_weighted_dt = value_type(0.0);
+    return;
+  }
   individual.compute_rates(environment);
   compute_node_rates(environment, pr_patch_survival);
 }

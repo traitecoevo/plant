@@ -13,7 +13,9 @@ state).}
 \item{state}{An exported state list from \code{\link{export_patch_state}}.}
 }
 \value{
-The modified \code{Parameters} object.
+The modified \code{Parameters} object. The state's \code{events}
+  are not carried on it: pass them to \code{\link{run_scm}} as
+  \code{events = state$events}.
 }
 \description{
 Write an exported patch state (from \code{\link{export_patch_state}}) into a
@@ -22,6 +24,14 @@ that state instead of an empty patch. The state is carried on the
 \code{Parameters} object (rather than passed separately) so the run stays
 self-describing and reproducible, and so the seeding survives the reset at
 the start of every run / schedule refinement.
+}
+\details{
+Each seeded cohort's patch density and survival at birth are read from the
+resuming parameters' own regime at its birth date, not taken from the
+export: a cohort seeded from a burn-in into a \code{\link{fitness_window}}
+run weighs what the window gives it. Under the regime that exported it they
+are the same numbers. The exported \code{patch_density} and
+\code{pr_patch_survival} are checked only for their lengths.
 }
 \seealso{
 \code{\link{export_patch_state}}, \code{\link{run_scm}}

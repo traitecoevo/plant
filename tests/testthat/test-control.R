@@ -6,6 +6,7 @@ test_that("Defaults", {
     node_gradient_richardson = FALSE,
     node_gradient_richardson_depth = 4, # size_t, so not int
     node_density_in_birth_date = FALSE,
+    absorb_epsilon = 0.0,
 
     ode_a_dydt = 0.0,
     ode_a_y = 1.0,
@@ -51,4 +52,27 @@ test_that("Defaults", {
 
   expect_identical(sort(names(ctrl)), keys)
   expect_identical(unclass(ctrl)[keys], expected[keys])
+})
+
+test_that("a Control or Parameters saved before a field existed still loads", {
+  ## A field added later is opt-in and inert at its default, so an object that
+  ## predates it means the default. Simulated by dropping the newest fields.
+  ctrl <- Control(node_density_in_birth_date = TRUE)
+  ctrl[["absorb_epsilon"]] <- NULL
+  ctrl[["gradient_curvature_floor"]] <- NULL
+  p <- scm_base_parameters("FF16")
+  p$max_patch_lifetime <- 5
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"))
+  old <- p
+  for (f in c("fitness_window_start", "fitness_window_end",
+              "fitness_window_weight_x", "fitness_window_weight_y")) {
+    old[[f]] <- NULL
+  }
+  old$strategies[[1]]$control[["absorb_epsilon"]] <- NULL
+  expect_false("absorb_epsilon" %in% names(ctrl))
+  expect_false("fitness_window_start" %in% names(old))
+  a <- run_scm(old, ctrl = ctrl)
+  b <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE))
+  expect_identical(a$net_reproduction_ratios, b$net_reproduction_ratios)
+  expect_equal(a$parameters$fitness_window_start, 0)
 })
