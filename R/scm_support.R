@@ -152,7 +152,9 @@ run_scm <- function(p, env = NULL,
 ##' (introduction time, patch-age density and survival probability at birth)
 ##' that is not part of the ODE state but feeds the rates and lifetime-fitness
 ##' integrals, the patch age, and the not-yet-introduced ("residual") portion of
-##' the node-introduction schedule.
+##' the node-introduction schedule. A resume re-derives the two birth weights
+##' from its own regime (see \code{\link{set_initial_state}}); they are exported
+##' as a record of the run that made them.
 ##'
 ##' @title Export patch state from an SCM
 ##' @param scm An \code{SCM} object that has been run.
@@ -351,6 +353,13 @@ make_initial_state <- function(p, heights, densities = NULL,
 ##' \code{Parameters} object (rather than passed separately) so the run stays
 ##' self-describing and reproducible, and so the seeding survives the reset at
 ##' the start of every run / schedule refinement.
+##'
+##' Each seeded cohort's patch density and survival at birth are read from the
+##' resuming parameters' own regime at its birth date, not taken from the
+##' export: a cohort seeded from a burn-in into a \code{\link{fitness_window}}
+##' run weighs what the window gives it. Under the regime that exported it they
+##' are the same numbers. The exported \code{patch_density} and
+##' \code{pr_patch_survival} are checked only for their lengths.
 ##'
 ##' @title Seed Parameters with an initial patch state
 ##' @param p A \code{Parameters} object (its strategies must match the exported

@@ -63,15 +63,26 @@ tidy_snapshots <- function(scm) {
 ##'
 ##' The run advances one block at a time with \code{scm$run_to()}. After each
 ##' block the mean over that block's snapshots is taken of the chosen
-##' statistics, and the run is converged when every statistic's relative change
-##' from the previous block's mean has stayed below \code{tol} for two
-##' consecutive blocks. It stops regardless at \code{t_max}, or when the
-##' schedule is consumed, and says which it was; a last block shorter than
-##' \code{block} runs the patch on to \code{t_max} without being tested. Under a
-##' stochastic driver the block has to span several of the driver's correlation
-##' times, or the test measures the driver and not the stand. A statistic that
-##' is \code{NA} in a block -- the tallest cohort of a stand with none alive --
+##' statistics, and the run is converged once the last \code{window} block
+##' means of every statistic agree: their range is below \code{tol} times the
+##' largest of them in magnitude, or below \code{tol_abs}. Judging the range
+##' over a window rather than the change between neighbouring blocks is what
+##' lets a steady drift accumulate into the test instead of passing block by
+##' block. It stops regardless at \code{t_max}, or when the schedule is
+##' consumed, and says which it was; a last block shorter than \code{block}
+##' runs the patch on to \code{t_max} without being tested. Under a stochastic
+##' driver the block has to span several of the driver's correlation times, or
+##' the test measures the driver and not the stand. A statistic that is
+##' \code{NA} in a block -- the tallest cohort of a stand with none alive --
 ##' cannot settle, and the function warns which.
+##'
+##' A settled stand statistic is not a settled fitness. A drift slower than
+##' \code{tol} per \code{window * block} years passes, and an invader's fitness
+##' can be far more sensitive to the stand than the statistic is: a TF24 stand
+##' under constant rain at its equilibrium birth rate was still gaining 0.1 \%
+##' density a century at year 5000, and the resident's fitness read off it at
+##' years 300 and 500 differed sixfold. Check the quantity you will use at two
+##' times.
 ##'
 ##' @title Run until the stand's block means settle
 ##' @param scm An \code{SCM} built and not yet run to the end, as
@@ -79,32 +90,58 @@ tidy_snapshots <- function(scm) {
 ##'   \code{t_max}. Its \code{snapshot_interval} is set to
 ##'   \code{snapshot_interval} if it is zero.
 ##' @param block Years per block.
-##' @param tol Relative change between consecutive block means below which a
-##'   statistic counts as settled.
+##' @param tol Relative range of the last \code{window} block means below
+##'   which a statistic counts as settled.
 ##' @param t_max Time to give up at; defaults to the run's
 ##'   \code{max_patch_lifetime}.
 ##' @param statistics Which of \code{"density"} (the species' carried density
 ##'   summed), \code{"height_max"} (the tallest cohort with density over the
 ##'   species), \code{"n_live"} (cohorts with density, summed) and
-##'   \code{"environment"} (every entry of the environment's state) to judge.
+##'   \code{"environment"} (entries of the environment's state) to judge. The
+##'   default leaves out \code{"height_max"} when the absorbing top layer is on,
+##'   since the layer pins it at the absorbing height whatever the stand does.
 ##' @param snapshot_interval Years between snapshots when the SCM has none set.
 ##' @param environment_entries Which entries of the environment's state the
-##'   \code{"environment"} statistic reads; \code{NULL} (the default) reads them
-##'   all. TF24's state is its soil water by layer followed by five cumulative
-##'   flux accumulators, which grow without bound and never settle, so a TF24
-##'   burn-in passes the layer indices, \code{seq_len(n_layers)}.
+##'   \code{"environment"} statistic reads. \code{NULL} (the default) reads
+##'   every entry but the cumulative flux accumulators (TF24's last five), which
+##'   grow without bound, so that their relative change shrinks with time
+##'   whether or not anything has settled.
+##' @param window Number of consecutive block means that must agree.
+##' @param tol_abs Absolute range below which a statistic counts as settled
+##'   whatever its size: for one that settles at or near zero. Zero, the
+##'   default, judges every statistic relatively.
 ##' @return A list: \code{converged}, \code{time} (where the run stands), and
 ##'   \code{trace}, a data frame with one row per block of the block means and
-##'   their relative changes (\code{rel_*}).
+##'   the relative range of each over the window ending there (\code{rel_*},
+##'   \code{NA} until \code{window} blocks have run).
 ##' @seealso \code{\link{tidy_snapshots}}, \code{\link{export_patch_state}}
 ##' @export
 run_until_converged <- function(scm, block = 20, tol = 0.02,
                                 t_max = scm$parameters$max_patch_lifetime,
                                 statistics = c("density", "height_max", "environment"),
-                                snapshot_interval = 1, environment_entries = NULL) {
+                                snapshot_interval = 1, environment_entries = NULL,
+                                window = 3, tol_abs = 0) {
   defaulted <- missing(statistics)
   statistics <- match.arg(statistics, c("density", "height_max", "n_live", "environment"),
                           several.ok = TRUE)
+  layer_on <- any(vapply(scm$patch$species, function(s) isTRUE(s$top_layer$on),
+                         logical(1)))
+  if (layer_on && "height_max" %in% statistics) {
+    if (defaulted) {
+      statistics <- setdiff(statistics, "height_max")
+    } else {
+      warning("with the absorbing top layer on, \"height_max\" is pinned at the ",
+              "absorbing height once the layer fills, and settles whatever the ",
+              "stand does", call. = FALSE)
+    }
+  }
+  if (!(length(window) == 1L && is.finite(window) && window >= 2 &&
+        window == round(window))) {
+    stop("`window` must be a whole number of blocks, at least 2")
+  }
+  if (!(length(tol_abs) == 1L && is.finite(tol_abs) && tol_abs >= 0)) {
+    stop("`tol_abs` must be a non-negative number")
+  }
   if (isTRUE(scm$complete)) {
     stop("this SCM's run has already finished; build one with ",
          "run_scm(p, ..., run = FALSE) and let run_until_converged() run it")
@@ -137,6 +174,10 @@ run_until_converged <- function(scm, block = 20, tol = 0.02,
       stop("`environment_entries` must index the environment's ", n_env,
            " state entries")
     }
+  } else if ("environment" %in% statistics) {
+    # The accumulators are the last entries of the environment's state.
+    n_acc <- length(scm$patch$state$env$soil_moist_cumulative_flux)
+    environment_entries <- seq_len(n_env - n_acc)
   }
   if (scm$snapshot_interval <= 0) {
     scm$snapshot_interval <- snapshot_interval
@@ -168,8 +209,7 @@ run_until_converged <- function(scm, block = 20, tol = 0.02,
   }
   t0 <- scm$time
   trace <- list()
-  previous <- NULL
-  streak <- 0L
+  means <- list()
   converged <- FALSE
   undefined <- character(0)
   k <- 0L
@@ -188,13 +228,23 @@ run_until_converged <- function(scm, block = 20, tol = 0.02,
     }
     m <- rowMeans(do.call(cbind, lapply(snaps[in_block], statistic)))
     undefined <- union(undefined, names(m)[is.na(m)])
-    rel <- if (is.null(previous)) rep(NA_real_, length(m)) else
-      abs(m - previous) / pmax(abs(previous), .Machine$double.eps)
+    means[[k]] <- m
+    rel <- rep(NA_real_, length(m))
+    settled <- FALSE
+    if (k >= window) {
+      # One row per statistic, one column per block of the window. The range
+      # is scaled by the largest magnitude in the window, not by the previous
+      # block alone, so a statistic near zero is judged on its own scale and
+      # one exactly zero throughout has settled.
+      w <- do.call(cbind, means[(k - window + 1L):k])
+      range <- apply(w, 1, function(x) max(x) - min(x))
+      scale <- apply(abs(w), 1, max)
+      rel <- ifelse(range == 0, 0, range / scale)
+      settled <- isTRUE(all(rel < tol | range < tol_abs))
+    }
     names(rel) <- paste0("rel_", names(m))
     trace[[k]] <- c(block = k, time = scm$time, m, rel)
-    streak <- if (!is.null(previous) && isTRUE(all(rel < tol))) streak + 1L else 0L
-    previous <- m
-    if (streak >= 2L) {
+    if (settled) {
       converged <- TRUE
       break
     }

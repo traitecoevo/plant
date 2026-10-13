@@ -45,6 +45,8 @@ struct Parameters {
   // Data -- public for now (see github issue #17).
   double patch_area; // Size of the patch (m^2)
   size_t n_patches;  // Number of patches in the metacommunity
+  // "meta-population" (Weibull patch ages), "fixed" (no disturbance) or
+  // "fitness_window"; validate() refuses anything else.
   std::string patch_type;
   double max_patch_lifetime; // Disturbance interval (years)
   // The arrival window and its weight, read when patch_type is "fitness_window": the
@@ -141,8 +143,14 @@ void Parameters<T,E>::validate() {
                                                   fitness_window_weight_x,
                                                   fitness_window_weight_y);
   }
-  else {
+  else if (patch_type == "fixed") {
     disturbance = std::make_shared<No_Disturbance>();
+  }
+  else {
+    // Named rather than defaulted: a misspelt type would otherwise run with no
+    // weighting at all and report a fitness for it.
+    util::stop("Unknown patch_type \"" + patch_type + "\": use "
+               "\"meta-population\", \"fixed\" or \"fitness_window\"");
   }
 }
 

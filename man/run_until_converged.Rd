@@ -11,7 +11,9 @@ run_until_converged(
   t_max = scm$parameters$max_patch_lifetime,
   statistics = c("density", "height_max", "environment"),
   snapshot_interval = 1,
-  environment_entries = NULL
+  environment_entries = NULL,
+  window = 3,
+  tol_abs = 0
 )
 }
 \arguments{
@@ -22,8 +24,8 @@ run_until_converged(
 
 \item{block}{Years per block.}
 
-\item{tol}{Relative change between consecutive block means below which a
-statistic counts as settled.}
+\item{tol}{Relative range of the last \code{window} block means below
+which a statistic counts as settled.}
 
 \item{t_max}{Time to give up at; defaults to the run's
 \code{max_patch_lifetime}.}
@@ -31,20 +33,29 @@ statistic counts as settled.}
 \item{statistics}{Which of \code{"density"} (the species' carried density
 summed), \code{"height_max"} (the tallest cohort with density over the
 species), \code{"n_live"} (cohorts with density, summed) and
-\code{"environment"} (every entry of the environment's state) to judge.}
+\code{"environment"} (entries of the environment's state) to judge. The
+default leaves out \code{"height_max"} when the absorbing top layer is on,
+since the layer pins it at the absorbing height whatever the stand does.}
 
 \item{snapshot_interval}{Years between snapshots when the SCM has none set.}
 
 \item{environment_entries}{Which entries of the environment's state the
-\code{"environment"} statistic reads; \code{NULL} (the default) reads them
-all. TF24's state is its soil water by layer followed by five cumulative
-flux accumulators, which grow without bound and never settle, so a TF24
-burn-in passes the layer indices, \code{seq_len(n_layers)}.}
+\code{"environment"} statistic reads. \code{NULL} (the default) reads
+every entry but the cumulative flux accumulators (TF24's last five), which
+grow without bound, so that their relative change shrinks with time
+whether or not anything has settled.}
+
+\item{window}{Number of consecutive block means that must agree.}
+
+\item{tol_abs}{Absolute range below which a statistic counts as settled
+whatever its size: for one that settles at or near zero. Zero, the
+default, judges every statistic relatively.}
 }
 \value{
 A list: \code{converged}, \code{time} (where the run stands), and
   \code{trace}, a data frame with one row per block of the block means and
-  their relative changes (\code{rel_*}).
+  the relative range of each over the window ending there (\code{rel_*},
+  \code{NA} until \code{window} blocks have run).
 }
 \description{
 Run a patch until its stand has settled, judged on block means of its
@@ -54,15 +65,26 @@ and then exported with \code{\link{export_patch_state}}.
 \details{
 The run advances one block at a time with \code{scm$run_to()}. After each
 block the mean over that block's snapshots is taken of the chosen
-statistics, and the run is converged when every statistic's relative change
-from the previous block's mean has stayed below \code{tol} for two
-consecutive blocks. It stops regardless at \code{t_max}, or when the
-schedule is consumed, and says which it was; a last block shorter than
-\code{block} runs the patch on to \code{t_max} without being tested. Under a
-stochastic driver the block has to span several of the driver's correlation
-times, or the test measures the driver and not the stand. A statistic that
-is \code{NA} in a block -- the tallest cohort of a stand with none alive --
+statistics, and the run is converged once the last \code{window} block
+means of every statistic agree: their range is below \code{tol} times the
+largest of them in magnitude, or below \code{tol_abs}. Judging the range
+over a window rather than the change between neighbouring blocks is what
+lets a steady drift accumulate into the test instead of passing block by
+block. It stops regardless at \code{t_max}, or when the schedule is
+consumed, and says which it was; a last block shorter than \code{block}
+runs the patch on to \code{t_max} without being tested. Under a stochastic
+driver the block has to span several of the driver's correlation times, or
+the test measures the driver and not the stand. A statistic that is
+\code{NA} in a block -- the tallest cohort of a stand with none alive --
 cannot settle, and the function warns which.
+
+A settled stand statistic is not a settled fitness. A drift slower than
+\code{tol} per \code{window * block} years passes, and an invader's fitness
+can be far more sensitive to the stand than the statistic is: a TF24 stand
+under constant rain at its equilibrium birth rate was still gaining 0.1 \%
+density a century at year 5000, and the resident's fitness read off it at
+years 300 and 500 differed sixfold. Check the quantity you will use at two
+times.
 }
 \seealso{
 \code{\link{tidy_snapshots}}, \code{\link{export_patch_state}}

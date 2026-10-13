@@ -42,7 +42,9 @@ trajectory: every node's ODE state plus the per-node birth bookkeeping
 (introduction time, patch-age density and survival probability at birth)
 that is not part of the ODE state but feeds the rates and lifetime-fitness
 integrals, the patch age, and the not-yet-introduced ("residual") portion of
-the node-introduction schedule.
+the node-introduction schedule. A resume re-derives the two birth weights
+from its own regime (see \code{\link{set_initial_state}}); they are exported
+as a record of the run that made them.
 }
 \seealso{
 \code{\link{set_initial_state}}, \code{\link{run_scm}}

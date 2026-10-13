@@ -3,12 +3,12 @@
 # fixed_point_fitness). The referee is the same cohort born into the running
 # stand, which sees the field the stand actually makes.
 
-ff16_fixed_point <- function(b = 1, t_eq = 300, absorb = 0.02) {
+ff16_fixed_point <- function(b = 1, t_eq = 300, absorb = 0.02, by = 1) {
   p <- scm_base_parameters("FF16")
   p$patch_type <- "fixed"
   p$max_patch_lifetime <- t_eq + 1
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = b)
-  p$node_schedule_times <- list(node_schedule_times_periodic(0, t_eq + 1, 1))
+  p$node_schedule_times <- list(node_schedule_times_periodic(0, t_eq + 1, by))
   ctrl <- Control(node_density_in_birth_date = TRUE, absorb_epsilon = absorb)
   scm <- SCM("FF16", "FF16_Env")(p, Environment("FF16"), empty_events(), ctrl)
   scm$run_to(t_eq)
@@ -146,4 +146,72 @@ test_that("an invader that outlives its run is refused", {
   expect_error(fixed_point_fitness(dense$scm, dense$p, trait_matrix(0.06, "lma"),
                                    lifetime = 40),
                "still alive")
+})
+
+## The parameters fixed_point_fitness() builds for one invader.
+held_invader <- function(fp, lma, lifetime = 200) {
+  pm <- add_mutant(fp$p, trait_matrix(lma, "lma"), birth_rate = list(1))
+  pm$patch_type <- "fixed"
+  pm$max_patch_lifetime <- lifetime
+  pm$node_schedule_times <- list(0)
+  pm$initial_time <- 0
+  pm$ode_times <- numeric(0)
+  pm$ode_step_sizes <- numeric(0)
+  pm
+}
+
+test_that("a gradient refuses a run made in a held field, after it is released", {
+  ## The field is released when run_mutant_held() returns, but the outputs, and
+  ## any recording, were made in it.
+  fp <- ff16_fixed_point(t_eq = 60, absorb = 0)
+  fp$scm$run_mutant_held(held_invader(fp, 0.1))
+  expect_false(fp$scm$patch$holds_field)
+  expect_error(stand_gradient(fp$scm, metrics = "leaf_area"), "held field")
+  fp <- ff16_fixed_point(t_eq = 60, absorb = 0)
+  fp$scm$record_trajectory <- TRUE
+  fp$scm$run_mutant_held(held_invader(fp, 0.1))
+  expect_error(stand_gradient(fp$scm, metrics = "leaf_area"), "held field")
+  ## A later run of the SCM is its own, and the gradient takes it.
+  fp$scm$run()
+  expect_true(all(is.finite(stand_gradient(fp$scm, metrics = "leaf_area")$gradient)))
+})
+
+test_that("a held field is released when the invaders' run fails", {
+  fp <- ff16_fixed_point(t_eq = 60)
+  ## With the layer on, a zero birth rate is refused at the introduction, which
+  ## is inside the invaders' run.
+  pm <- held_invader(fp, 0.1)
+  pm$strategies[[1]]$birth_rate_y <- 0
+  expect_error(fp$scm$run_mutant_held(pm), "birth rate zero")
+  expect_false(fp$scm$patch$holds_field)
+  ## And an invader is checked as a resident is: with no asymptote to absorb at,
+  ## it is refused before it runs.
+  pm <- held_invader(fp, 0.1)
+  pm$strategies[[1]]$pars$a_f2 <- -1
+  expect_error(fp$scm$run_mutant_held(pm), "a_f2")
+  expect_false(fp$scm$patch$holds_field)
+})
+
+test_that("a coarse grid makes the fixed point a periodic orbit", {
+  ## Between two introductions the field swings. At the resident's equilibrium
+  ## birth rate and a cohort a year the swing is percent-level, so a field held
+  ## at an introduction is not the stand's; a cohort a quarter year shrinks it
+  ## a hundredfold. Read with the resident's own strategy.
+  b_star <- 68.867
+  swing <- function(by) {
+    fp <- ff16_fixed_point(b = b_star, t_eq = 150, by = by)
+    at_start <- fixed_point_fitness(fp$scm, fp$p, trait_matrix(0.0825, "lma"))
+    p <- fp$p
+    p$max_patch_lifetime <- 150 + by / 2
+    tt <- p$node_schedule_times[[1]]
+    p$node_schedule_times <- list(tt[tt < p$max_patch_lifetime])
+    mid <- run_scm(p, ctrl = fp$ctrl)
+    at_mid <- fixed_point_fitness(mid, p, trait_matrix(0.0825, "lma"))
+    abs(at_mid / at_start - 1)
+  }
+  coarse <- swing(1)
+  fine <- swing(0.25)
+  expect_gt(coarse, 5e-3)
+  expect_lt(fine, 1e-3)
+  expect_lt(fine, coarse / 10)
 })

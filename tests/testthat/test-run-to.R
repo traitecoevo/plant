@@ -84,10 +84,15 @@ test_that("run_until_converged stops when the block means settle", {
   expect_lt(r$time, 400)
   expect_false(scm$complete)
   expect_equal(scm$patch$time, r$time)
-  expect_true(all(c("density", "height_max", "rel_density") %in% names(r$trace)))
-  ## The last two blocks are the ones that settled.
+  expect_true(all(c("density", "rel_density") %in% names(r$trace)))
+  ## The layer pins the tallest cohort, so by default it is not judged.
+  expect_false("height_max" %in% names(r$trace))
+  ## The last window of blocks is the one that settled, and the ones before it
+  ## had not.
   n <- nrow(r$trace)
-  expect_true(all(r$trace$rel_density[c(n - 1, n)] < 0.02))
+  expect_lt(r$trace$rel_density[[n]], 0.02)
+  expect_true(all(is.na(r$trace$rel_density[1:2])))
+  expect_true(all(r$trace$rel_density[3:(n - 1)] >= 0.02))
   ## And the run can be exported where it stopped.
   state <- export_patch_state(scm)
   expect_equal(state$time, r$time)
@@ -173,10 +178,71 @@ test_that("a statistic that is undefined in a block cannot settle, and says so",
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
   p$strategies[[1]]$pars$r_l <- 1e6
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 60, 1))
-  s <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE, absorb_epsilon = 0.02),
-               run = FALSE)
+  s <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE), run = FALSE)
   expect_warning(r <- run_until_converged(s, block = 20, tol = 0.1,
                                           statistics = c("density", "height_max")),
                  "height_max")
   expect_false(r$converged)
+})
+
+test_that("a statistic is judged on its own scale, however small", {
+  ## A stand too sparse to shade itself is the same stand at any birth rate,
+  ## scaled, so whether it has settled cannot depend on the birth rate. Judged
+  ## against a floor of machine epsilon, a stand at 1e-300 read as settled two
+  ## blocks in, while its density was still rising by 15 % a block.
+  converge <- function(b, ...) {
+    p <- ff16(200)
+    p$patch_type <- "fixed"
+    p$strategies[[1]]$birth_rate_y <- b
+    p$node_schedule_times <- list(node_schedule_times_periodic(0, 200, 1))
+    s <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE), run = FALSE)
+    run_until_converged(s, block = 20, tol = 0.02, t_max = 120,
+                        statistics = "density", ...)
+  }
+  tiny <- converge(1e-300)
+  small <- converge(1e-150)
+  expect_lt(max(tiny$trace$density), 1e-280)
+  expect_equal(tiny$trace$rel_density, small$trace$rel_density, tolerance = 1e-10)
+  expect_equal(tiny$time, small$time)
+  expect_gt(tiny$trace$rel_density[[4]], 0.1)
+  expect_gt(tiny$time, 80)
+  ## A floor in absolute terms is the caller's to set, and then it counts.
+  floored <- converge(1e-300, tol_abs = 1e-200)
+  expect_true(floored$converged)
+  expect_equal(floored$time, 60)
+})
+
+test_that("statistics that settle by construction are not judged by default", {
+  ## The top layer pins the tallest cohort: asked for, it warns.
+  p <- ff16(100)
+  p$patch_type <- "fixed"
+  p$node_schedule_times <- list(node_schedule_times_periodic(0, 100, 1))
+  ctrl <- Control(node_density_in_birth_date = TRUE, absorb_epsilon = 0.02)
+  expect_warning(run_until_converged(run_scm(p, ctrl = ctrl, run = FALSE),
+                                     block = 20, t_max = 40,
+                                     statistics = c("density", "height_max")),
+                 "pinned")
+  expect_error(run_until_converged(run_scm(p, ctrl = ctrl, run = FALSE), window = 1),
+               "window")
+  ## TF24's cumulative flux accumulators grow without bound: by default only the
+  ## soil water is judged.
+  p <- scm_base_parameters("TF24")
+  p$patch_type <- "fixed"
+  p$max_patch_lifetime <- 4
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = TF24_hyperpar,
+                      birth_rate = 1)
+  p$node_schedule_times <- list(0:3)
+  s <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE,
+                                 ode_step_size_max = 0.05), run = FALSE)
+  n_env <- s$patch$environment$ode_size
+  n_acc <- length(s$patch$state$env$soil_moist_cumulative_flux)
+  expect_gt(n_acc, 0)
+  r <- run_until_converged(s, block = 1, tol = 1e-12, t_max = 3)
+  env <- grep("^env_", names(r$trace), value = TRUE)
+  expect_identical(env, paste0("env_", seq_len(n_env - n_acc)))
+})
+
+test_that("run_to() refuses a time it cannot compare", {
+  s <- run_scm(ff16(10), run = FALSE)
+  expect_error(s$run_to(NaN), "NaN")
 })

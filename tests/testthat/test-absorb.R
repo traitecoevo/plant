@@ -213,6 +213,42 @@ test_that("refinement, a bad epsilon and a bad absorbing height are refused", {
   p <- ff16(5)
   p$strategies[[1]]$pars$a_f2 <- 0
   expect_error(run_scm(p, ctrl = ctrl(absorb = 0.05)), "a_f2")
+  ## A negative a_f2 can still give a positive height, but allocation to
+  ## reproduction then falls with height, so there is no asymptote to absorb at.
+  p$strategies[[1]]$pars$a_f2 <- -50
+  expect_error(run_scm(p, ctrl = ctrl(absorb = 0.05)), "a_f2")
+})
+
+test_that("a cohort born with no density is refused rather than scored zero", {
+  ## A zero birth rate is the old idiom for a rare invader. With the layer on its
+  ## cohorts would be frozen at birth and score nothing per seed.
+  p <- ff16(5)
+  p$strategies[[1]]$birth_rate_y <- 0
+  expect_error(run_scm(p, ctrl = ctrl(absorb = 0.05)), "birth rate zero")
+  ## Off, it runs as it always has.
+  expect_true(is.finite(run_scm(p, ctrl = ctrl())$net_reproduction_ratios))
+})
+
+test_that("tidying a collected run says what the node rows leave out", {
+  ## The layer is no node, so tidy_patch() and every integral over its rows
+  ## miss what it carries.
+  expect_warning(run_scm(ff16(150), ctrl = ctrl(absorb = 0.05), collect = TRUE),
+                 "top layer")
+  expect_no_warning(run_scm(ff16(20), ctrl = ctrl(), collect = TRUE))
+})
+
+## Guards for any change to the fitness integral (#658 routes it through a plain
+## trapezium): the layer's seeds are scaled by the birth rate at the birth dates
+## its cohorts carry, as a node's output is.
+test_that("offspring production scales the layer's seeds by the birth rate", {
+  p <- ff16(150)
+  p$strategies[[1]]$birth_rate_y <- 2
+  s <- run_scm(p, ctrl = ctrl(absorb = 0.05))
+  layer <- s$patch$species[[1]]$top_layer
+  expect_gt(layer$seeds, 0)
+  expect_equal(layer$seeds_birth, 2 * layer$seeds, tolerance = 1e-12)
+  expect_equal(s$offspring_production, 2 * s$net_reproduction_ratios,
+               tolerance = 1e-12)
 })
 
 test_that("each species has its own layer, at its own height", {

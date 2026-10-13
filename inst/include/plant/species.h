@@ -1277,6 +1277,12 @@ Rcpp::NumericMatrix Species<T, E>::r_get_state() const {
   }
 
   ret.attr("dimnames") = Rcpp::List::create(names, R_NilValue);
+  // The top layer is no column of this matrix, so a reader integrating the
+  // columns misses it; carried beside them so that reader can say so
+  // (tidy_species). Only with the layer on, so any other state is unchanged.
+  if (top_on()) {
+    ret.attr("top_density") = odelia::util::to_passive(top_density_);
+  }
 
   return ret;
 }

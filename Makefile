@@ -19,6 +19,7 @@ full_compile:
 # generates 
 RcppR6:
 	Rscript -e "library(methods); RcppR6::RcppR6()"
+	Rscript scripts/rcppr6_tolerate_missing_fields.R
 
 # generates src/RcppExports.cpp, R/RcppExports.R from anything with Rcpp::export. 
 attributes:
