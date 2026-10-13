@@ -104,7 +104,7 @@ simultaneous <- function(b, lma) {
   p <- resident_parameters(b, t_eq + life)
   p <- add_lma(p, lma, b * 1e-6)
   p$node_schedule_times[[2]] <- t_eq + 0.5 * dt
-  p <- window_regime(p, t_eq + 0.25 * dt, t_eq + 0.75 * dt)
+  p <- fitness_window(p, t_eq + 0.25 * dt, t_eq + 0.75 * dt)
   w <- system.time(scm <- run_scm(p, env = make_env(), ctrl = ctrl))[["elapsed"]]
   sp <- scm$patch$species
   c(R_mutant = sp[[2]]$net_reproduction_ratio_by_node[[1]] * p$strategies[[2]]$pars$S_D, wall = w)

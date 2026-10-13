@@ -599,10 +599,10 @@ Parameters:
     - n_patches: size_t
     - patch_type: "std::string"
     - max_patch_lifetime: double
-    - window_start: double
-    - window_end: double
-    - window_weight_x: "std::vector<double>"
-    - window_weight_y: "std::vector<double>"
+    - fitness_window_start: double
+    - fitness_window_end: double
+    - fitness_window_weight_x: "std::vector<double>"
+    - fitness_window_weight_y: "std::vector<double>"
     - strategies: "std::vector<T>"
     - strategy_default: "T"
     - node_schedule_times_default: "std::vector<double>"

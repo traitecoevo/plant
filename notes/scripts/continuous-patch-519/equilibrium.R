@@ -69,7 +69,7 @@ for (seed in seeds) {
     p$max_patch_lifetime <- T_end
     p <- add_strategies(p, trait_matrix(resident_lma, "lma"),
                         hyperpar = TF24_hyperpar, birth_rate = b)
-    p <- window_regime(p, T1, T2)
+    p <- fitness_window(p, T1, T2)
     p$node_schedule_times <- list(node_schedule_times_periodic(0, T_end, 1))
     scm <- plant:::SCM("TF24", "TF24_Env")(p, make_env(), events(node_introductions(p), pulses), ctrl)
     scm$snapshot_interval <- 1

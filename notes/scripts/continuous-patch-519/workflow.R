@@ -91,7 +91,7 @@ T2 <- T1 + window
 T_end <- T2 + lifespan
 p2 <- base_parameters(T_end)
 p2 <- set_initial_state(p2, state)
-p2 <- window_regime(p2, T1, T2)
+p2 <- fitness_window(p2, T1, T2)
 made <- max(state$node_times[[1]])
 p2$node_schedule_times <- list(intro_times[intro_times > made & intro_times < T_end])
 scm2 <- plant:::SCM("TF24", "TF24_Env")(p2, make_env(), events(node_introductions(p2), pulses_in(T1, T_end)), ctrl)

@@ -113,7 +113,7 @@ R_at <- function(b) {
   q <- scm_base_parameters("FF16")
   q$max_patch_lifetime <- T1 + W + L
   q <- add_strategies(q, trait_matrix(0.0825, "lma"), birth_rate = b)
-  q <- window_regime(q, T1, T1 + W)
+  q <- fitness_window(q, T1, T1 + W)
   q$node_schedule_times <- list(node_schedule_times_periodic(0, T1 + W + L, 1))
   s <- plant:::SCM("FF16", "FF16_Env")(q, Environment("FF16"), plant:::empty_events(), ctrl)
   s$run()

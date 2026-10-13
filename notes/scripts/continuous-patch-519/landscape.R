@@ -102,7 +102,7 @@ for (si in seq_along(seeds)) {
   schedule <- intro_times[intro_times > made & intro_times < T_end]
   p2 <- parameters_for(resident_lma, T_end, birth)
   p2 <- set_initial_state(p2, state)
-  p2 <- window_regime(p2, T1, T2)
+  p2 <- fitness_window(p2, T1, T2)
   p2$node_schedule_times <- list(schedule)
   ev <- events(node_introductions(p2), pulses_in(T1, T_end))
   scm2 <- plant:::SCM("TF24", "TF24_Env")(p2, make_env(), ev, ctrl)
@@ -138,7 +138,7 @@ for (si in seq_along(seeds)) {
     pm <- add_strategies(pm, trait_matrix(c(resident_lma, lma), "lma"),
                          hyperpar = TF24_hyperpar, birth_rate = list(birth, birth * 1e-6))
     pm <- set_initial_state(pm, padded)
-    pm <- window_regime(pm, T1, T2)
+    pm <- fitness_window(pm, T1, T2)
     pm$node_schedule_times <- list(schedule, schedule)
     evm <- events(node_introductions(pm), pulses_in(T1, T_end))
     scm_m <- plant:::SCM("TF24", "TF24_Env")(pm, make_env(), evm, ctrl)

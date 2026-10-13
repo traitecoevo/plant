@@ -1,4 +1,4 @@
-## The window regime (#519): a cohort is weighted by when it arrived in one
+## The fitness window (#519): a cohort is weighted by when it arrived in one
 ## long run rather than by the density of patches at its age, so the net
 ## reproduction ratio is the window average of a cohort's lifetime output.
 
@@ -23,8 +23,8 @@ patch_of <- function(p) {
 }
 
 test_that("a uniform window weights its birth dates equally and nothing outside", {
-  p <- window_regime(ff16(30), 10, 20)
-  expect_equal(p$patch_type, "window")
+  p <- fitness_window(ff16(30), 10, 20)
+  expect_equal(p$patch_type, "fitness_window")
   patch <- patch_of(p)
   expect_equal(patch$density(5), 0)
   expect_equal(patch$density(10), 0.1)
@@ -38,36 +38,36 @@ test_that("a uniform window weights its birth dates equally and nothing outside"
 test_that("a tabulated weight is read at the birth date and normalised over the window", {
   ## Weight 1 at 10 rising to 3 at 20: integral 20, so the density runs from
   ## 1/20 to 3/20 and is 2/20 in the middle.
-  p <- window_regime(ff16(30), 10, 20, weight_x = c(10, 20), weight_y = c(1, 3))
+  p <- fitness_window(ff16(30), 10, 20, weight_x = c(10, 20), weight_y = c(1, 3))
   patch <- patch_of(p)
   expect_equal(patch$density(10), 1 / 20)
   expect_equal(patch$density(15), 2 / 20)
   expect_equal(patch$density(20), 3 / 20)
   expect_equal(patch$density(9.99), 0)
   ## Knots inside the window are held constant beyond them.
-  p <- window_regime(ff16(30), 10, 20, weight_x = c(12, 14), weight_y = c(2, 2))
+  p <- fitness_window(ff16(30), 10, 20, weight_x = c(12, 14), weight_y = c(2, 2))
   expect_equal(patch_of(p)$density(11), 0.1)
   expect_equal(patch_of(p)$density(19), 0.1)
 })
 
 test_that("a window refuses what it cannot weight by", {
   p <- ff16(30)
-  expect_error(window_regime(p, 20, 10), "exceed")
-  expect_error(window_regime(p, 10, 20, weight_x = c(10, 20), weight_y = 1), "same length")
-  expect_error(patch_of(window_regime(p, 10, 20, weight_x = c(10, 20), weight_y = c(1, -1))),
+  expect_error(fitness_window(p, 20, 10), "exceed")
+  expect_error(fitness_window(p, 10, 20, weight_x = c(10, 20), weight_y = 1), "same length")
+  expect_error(patch_of(fitness_window(p, 10, 20, weight_x = c(10, 20), weight_y = c(1, -1))),
                "non-negative")
-  expect_error(patch_of(window_regime(p, 10, 20, weight_x = c(20, 10), weight_y = c(1, 1))),
+  expect_error(patch_of(fitness_window(p, 10, 20, weight_x = c(20, 10), weight_y = c(1, 1))),
                "increasing")
-  expect_error(patch_of(window_regime(p, 10, 20, weight_x = c(10, 20), weight_y = c(0, 0))),
+  expect_error(patch_of(fitness_window(p, 10, 20, weight_x = c(10, 20), weight_y = c(0, 0))),
                "integrate to zero")
   ## The fields default to an empty window, which the type refuses to build.
   q <- ff16(30)
-  q$patch_type <- "window"
+  q$patch_type <- "fitness_window"
   expect_error(patch_of(q), "exceed")
 })
 
 test_that("the net reproduction ratio is the window average of per-node lifetime output", {
-  p <- window_regime(ff16(30), 10, 20)
+  p <- fitness_window(ff16(30), 10, 20)
   scm <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE))
   sp <- scm$patch$species[[1]]
   t <- sp$node_times
@@ -100,8 +100,8 @@ test_that("periodic introduction times stop short of the run's end", {
 
 test_that("the window survives the rebind a gradient runs on", {
   ## rebind_from rebuilds the regime from the parameters it copies; a copy
-  ## that left the window behind could not build a "window" patch at all.
-  p <- window_regime(ff16(10), 2, 8)
+  ## that left the window behind could not build a "fitness_window" patch at all.
+  p <- fitness_window(ff16(10), 2, 8)
   scm <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE),
                  record_trajectory = TRUE)
   g <- stand_gradient(scm, metrics = "leaf_area")
@@ -135,7 +135,7 @@ test_that("a converged stand's window average does not depend on the window", {
   expect_gt(abs(window_mean(0, 100) / early - 1), 1e-2)
   expect_gt(abs(window_mean(400, 500) / early - 1), 1e-2)
   ## And the regime run with one of these windows agrees with the post-hoc mean.
-  q <- window_regime(p, 200, 300)
+  q <- fitness_window(p, 200, 300)
   scm2 <- run_scm(q, ctrl = Control(node_density_in_birth_date = TRUE))
   expect_equal(scm2$net_reproduction_ratios, late, tolerance = 1e-10)
 })
@@ -152,7 +152,7 @@ test_that("cohorts seeded from a burn-in weigh nothing before the window", {
   burn <- run_scm(p, ctrl = ctrl)
   state <- export_patch_state(burn)
   expect_true(all(state$patch_density[[1]] == 1))
-  p2 <- window_regime(ff16(40), 25, 35)
+  p2 <- fitness_window(ff16(40), 25, 35)
   p2 <- set_initial_state(p2, state)
   p2$node_schedule_times <- list(node_schedule_times_periodic(20, 40, 1))
   scm <- run_scm(p2, ctrl = ctrl)
@@ -187,7 +187,7 @@ test_that("cohorts outside the window do not move the ratio", {
   p$node_schedule_times <- list()
   p <- add_strategies(p, trait_matrix(c(0.0825, 0.0825), "lma"),
                       birth_rate = list(1, 1e-6))
-  p <- window_regime(p, 10, 20)
+  p <- fitness_window(p, 10, 20)
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 100, 1),
                                 node_schedule_times_periodic(10, 100, 1))
   scm <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE))

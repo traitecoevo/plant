@@ -62,7 +62,9 @@ state <- export_patch_state(scm)
 
 p2 <- base_parameters(350)
 p2 <- set_initial_state(p2, state)
-p2 <- window_regime(p2, 200, 300)
+## The floor-era build names it window_regime().
+weight_window <- if (exists("fitness_window", mode = "function")) fitness_window else get("window_regime")
+p2 <- weight_window(p2, 200, 300)
 p2$node_schedule_times <- list(intro_times[intro_times > max(state$node_times[[1]]) & intro_times < 350])
 scm2 <- plant:::SCM("TF24", "TF24_Env")(p2, make_env(), events(node_introductions(p2), pulses_in(200, 350)), ctrl)
 rows <- lapply(seq(225, 350, by = 25), function(t) {

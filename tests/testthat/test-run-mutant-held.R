@@ -24,7 +24,7 @@ in_stand_fitness <- function(fp, lma, life = 400) {
   p <- add_strategies(p, trait_matrix(lma, "lma"),
                       birth_rate = fp$b * 1e-6)
   p$node_schedule_times[[2]] <- fp$t_eq
-  p <- window_regime(p, fp$t_eq, fp$t_eq + 1)
+  p <- fitness_window(p, fp$t_eq, fp$t_eq + 1)
   scm <- run_scm(p, ctrl = fp$ctrl)
   sp <- scm$patch$species
   S_D <- p$strategies[[1]]$pars$S_D

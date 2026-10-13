@@ -107,7 +107,7 @@ test_that("an absorbed cohort is frozen in place", {
 })
 
 test_that("cohorts an arrival window weights are never absorbed", {
-  p <- window_regime(ff16(400), 50, 60)
+  p <- fitness_window(ff16(400), 50, 60)
   s <- run_scm(p, ctrl = ctrl(absorb = 0.05))
   sp <- s$patch$species[[1]]
   in_window <- sp$node_times >= 50 & sp$node_times <= 60
@@ -128,7 +128,7 @@ test_that("a window resumed from a burn-in scores its own cohorts, not the layer
   burn$run_to(150)
   expect_gt(burn$patch$species[[1]]$top_layer$weight, 0)
   state <- export_patch_state(burn)
-  p2 <- window_regime(set_initial_state(ff16(300), state), 150, 200)
+  p2 <- fitness_window(set_initial_state(ff16(300), state), 150, 200)
   p2$node_schedule_times <- list(node_schedule_times_periodic(150, 300, 1))
   s <- run_scm(p2, ctrl = ctrl(absorb = 0.05))
   sp <- s$patch$species[[1]]

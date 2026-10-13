@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef PLANT_PLANT_WINDOW_REGIME_H_
-#define PLANT_PLANT_WINDOW_REGIME_H_
+#ifndef PLANT_PLANT_FITNESS_WINDOW_H_
+#define PLANT_PLANT_FITNESS_WINDOW_H_
 
 #include <vector>
 #include <algorithm>
@@ -28,19 +28,19 @@ namespace plant {
 //
 // Survival is one: nothing resets the patch, so a cohort's own mortality is the
 // only hazard it meets.
-class Window_Regime : public Disturbance_Regime {
+class Fitness_Window : public Disturbance_Regime {
 public:
-  Window_Regime(double start, double end,
+  Fitness_Window(double start, double end,
                 std::vector<double> x, std::vector<double> w)
     : start_(start), end_(end), x_(std::move(x)), w_(std::move(w)) {
     if (!(end_ > start_)) {
-      util::stop("window_end must exceed window_start");
+      util::stop("fitness_window_end must exceed fitness_window_start");
     }
     if (x_.size() != w_.size()) {
-      util::stop("window_weight_x and window_weight_y must have the same length");
+      util::stop("fitness_window_weight_x and fitness_window_weight_y must have the same length");
     }
     if (!util::is_sorted(x_.begin(), x_.end())) {
-      util::stop("window_weight_x must be increasing");
+      util::stop("fitness_window_weight_x must be increasing");
     }
     for (const double v : w_) {
       if (!(v >= 0.0)) {

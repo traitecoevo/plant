@@ -26,5 +26,5 @@ cohort periodically rather than on the front-loaded default schedule of
 introduced there would never be integrated.
 }
 \seealso{
-\code{\link{window_regime}}
+\code{\link{fitness_window}}
 }

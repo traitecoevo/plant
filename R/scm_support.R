@@ -388,10 +388,10 @@ set_initial_state <- function(p, state) {
 ##'   \code{weight_x} increasing, \code{weight_y} non-negative. Omit both for a
 ##'   uniform window.
 ##' @return The modified \code{Parameters} object, with
-##'   \code{patch_type = "window"}.
+##'   \code{patch_type = "fitness_window"}.
 ##' @seealso \code{\link{node_schedule_times_periodic}}
 ##' @export
-window_regime <- function(p, start, end, weight_x = numeric(0),
+fitness_window <- function(p, start, end, weight_x = numeric(0),
                           weight_y = numeric(0)) {
   if (!(is.numeric(start) && is.numeric(end) && length(start) == 1L &&
         length(end) == 1L && end > start)) {
@@ -400,11 +400,11 @@ window_regime <- function(p, start, end, weight_x = numeric(0),
   if (length(weight_x) != length(weight_y)) {
     stop("`weight_x` and `weight_y` must have the same length")
   }
-  p$patch_type <- "window"
-  p$window_start <- as.numeric(start)
-  p$window_end <- as.numeric(end)
-  p$window_weight_x <- as.numeric(weight_x)
-  p$window_weight_y <- as.numeric(weight_y)
+  p$patch_type <- "fitness_window"
+  p$fitness_window_start <- as.numeric(start)
+  p$fitness_window_end <- as.numeric(end)
+  p$fitness_window_weight_x <- as.numeric(weight_x)
+  p$fitness_window_weight_y <- as.numeric(weight_y)
   p
 }
 
@@ -421,7 +421,7 @@ window_regime <- function(p, start, end, weight_x = numeric(0),
 ##' @param by Spacing between introductions, in years.
 ##' @return A numeric vector of introduction times, for one species of
 ##'   \code{p$node_schedule_times}.
-##' @seealso \code{\link{window_regime}}
+##' @seealso \code{\link{fitness_window}}
 ##' @export
 node_schedule_times_periodic <- function(start, end, by) {
   if (!(by > 0)) {

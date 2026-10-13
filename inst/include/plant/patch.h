@@ -686,13 +686,13 @@ Patch<at_scalar<T, U>, at_scalar<E, U>> Patch<T,E>::rebind_from() const {
   p2.patch_area = parameters.patch_area;
   p2.patch_type = parameters.patch_type;
   p2.max_patch_lifetime = parameters.max_patch_lifetime;
-  // The window regime is built from these four by the same validate(): left
-  // behind, a "window" patch_type would refuse to build at all, and a copy
+  // The fitness window is built from these four by the same validate(): left
+  // behind, a "fitness_window" patch_type would refuse to build at all, and a copy
   // that defaulted them silently would weight the rebound patch differently.
-  p2.window_start = parameters.window_start;
-  p2.window_end = parameters.window_end;
-  p2.window_weight_x = parameters.window_weight_x;
-  p2.window_weight_y = parameters.window_weight_y;
+  p2.fitness_window_start = parameters.fitness_window_start;
+  p2.fitness_window_end = parameters.fitness_window_end;
+  p2.fitness_window_weight_x = parameters.fitness_window_weight_x;
+  p2.fitness_window_weight_y = parameters.fitness_window_weight_y;
   p2.node_schedule_times_default = parameters.node_schedule_times_default;
   p2.node_schedule_times = parameters.node_schedule_times;
   p2.initial_time = parameters.initial_time;
