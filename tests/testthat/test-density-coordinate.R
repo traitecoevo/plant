@@ -695,10 +695,9 @@ test_that("a dense birth-date stand steps over its dying cohorts", {
   # year, and each one's rates switch off when its density underflows and its
   # hazard reaches establishment_failure_hazard. A Runge-Kutta stage straddling
   # that switch weighs a rate of -1e3 against zero, some weights negative, and
-  # once put a trial log density at +868: the density guard stopped the run at
-  # birth rate 10, which the height coordinate ran. On the birth-date coordinate
-  # nothing raises a density, so the guard now rejects the stage and the stepper
-  # retries it smaller.
+  # can put a trial log density far above any real one. On the birth-date
+  # coordinate nothing raises a density, so the guard rejects such a stage and
+  # the stepper retries it smaller, where a stop would end the run.
   p <- scm_base_parameters("FF16")
   p$patch_type <- "fixed"
   p$max_patch_lifetime <- 20
