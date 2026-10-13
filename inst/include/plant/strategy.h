@@ -96,6 +96,13 @@ public:
   // whether the spline for each species should be constant fn or not (extrapolation on/off)
   bool is_variable_birth_rate = false;
 
+  // The birth rate at `t`, as the patch reads it for the inflow condition and
+  // the offspring integral. A model that offers the birth rate as a gradient
+  // column answers at its own scalar instead (FF16); this one is a double.
+  double birth_rate_at(double t) const {
+    return extrinsic_drivers.evaluate("birth_rate", t);
+  }
+
   bool collect_all_auxiliary;
 
   void refresh_indices();

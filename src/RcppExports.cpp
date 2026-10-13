@@ -12931,12 +12931,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // census_metric_names_tf24
-std::vector<std::string> census_metric_names_tf24();
-RcppExport SEXP _plant_census_metric_names_tf24() {
+Rcpp::CharacterVector census_metric_names_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_census_metric_names_tf24(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(census_metric_names_tf24());
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(census_metric_names_tf24(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -13007,12 +13008,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // census_metric_names_ff16
-std::vector<std::string> census_metric_names_ff16();
-RcppExport SEXP _plant_census_metric_names_ff16() {
+Rcpp::CharacterVector census_metric_names_ff16(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double>, plant::FF16_Environment<double> > > obj_);
+RcppExport SEXP _plant_census_metric_names_ff16(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(census_metric_names_ff16());
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double>, plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(census_metric_names_ff16(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -14861,14 +14863,14 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_TF24_Environment__light_availability__set", (DL_FUNC) &_plant_TF24_Environment__light_availability__set, 2},
     {"_plant_TF24_Environment__soil__get", (DL_FUNC) &_plant_TF24_Environment__soil__get, 1},
     {"_plant_TF24f_Strategy__ctor", (DL_FUNC) &_plant_TF24f_Strategy__ctor, 0},
-    {"_plant_census_metric_names_tf24", (DL_FUNC) &_plant_census_metric_names_tf24, 0},
+    {"_plant_census_metric_names_tf24", (DL_FUNC) &_plant_census_metric_names_tf24, 1},
     {"_plant_census_tf24", (DL_FUNC) &_plant_census_tf24, 1},
     {"_plant_census_state_adjoint_tf24", (DL_FUNC) &_plant_census_state_adjoint_tf24, 1},
     {"_plant_census_trait_names_tf24", (DL_FUNC) &_plant_census_trait_names_tf24, 1},
     {"_plant_census_undifferentiable_tf24", (DL_FUNC) &_plant_census_undifferentiable_tf24, 0},
     {"_plant_census_trait_gradient_tf24", (DL_FUNC) &_plant_census_trait_gradient_tf24, 2},
     {"_plant_gradient_control_tf24", (DL_FUNC) &_plant_gradient_control_tf24, 1},
-    {"_plant_census_metric_names_ff16", (DL_FUNC) &_plant_census_metric_names_ff16, 0},
+    {"_plant_census_metric_names_ff16", (DL_FUNC) &_plant_census_metric_names_ff16, 1},
     {"_plant_census_ff16", (DL_FUNC) &_plant_census_ff16, 1},
     {"_plant_census_state_adjoint_ff16", (DL_FUNC) &_plant_census_state_adjoint_ff16, 1},
     {"_plant_census_trait_names_ff16", (DL_FUNC) &_plant_census_trait_names_ff16, 1},

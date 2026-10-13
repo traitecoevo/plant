@@ -55,12 +55,14 @@ test_that("FF16 declares the three census metrics and names its columns", {
   expect_equal(names(stand_census(scm)),
                c("leaf_area", "mass_above_ground", "area_stem"))
   g <- stand_gradient(scm, metrics = "leaf_area")
-  # Every parameter of FF16_Pars bar the two the model says it cannot
+  # Every parameter of FF16_Pars bar the one the model says it cannot
   # differentiate, each prefixed by its species.
   pars <- names(FF16_Strategy()$pars)
   cannot <- names(census_undifferentiable_ff16())
-  expect_setequal(cannot, c("eta", "S_D"))
-  expect_setequal(colnames(g$gradient), paste0("1.", setdiff(pars, cannot)))
+  expect_setequal(cannot, "eta")
+  # ... plus the birth rate, a column of its own for a constant rate.
+  expect_setequal(colnames(g$gradient),
+                  paste0("1.", c(setdiff(pars, cannot), "birth_rate")))
   expect_false(any(stand_gradient_refused(g)))
   expect_error(stand_gradient(scm, traits = "1.eta"), "No gradient exists")
 })

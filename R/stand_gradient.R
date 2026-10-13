@@ -22,26 +22,64 @@ census_backend <- function(scm) {
          "stand gradient; TF24 and FF16 declare one"))
 }
 
-##' Census metrics of a solved stand.
+# Every metric the run reports, named, with each one's kind ("census" or
+# "fitness") beside it. The C++ side lists them in one order for the value, the
+# tangent and the sweep, and this is the one place R reads that list.
+stand_metric_table <- function(scm) {
+  b <- census_backend(scm)
+  named <- b$metric_names(scm)
+  list(name = unname(named), kind = names(named))
+}
+
+##' Metrics of a solved stand.
 ##'
-##' The trapezium integral of \eqn{n_k \psi(\mathrm{state}_k)} over the size
-##' distribution, for each metric \eqn{\psi}. The grid is the coordinate the
-##' density is carried in -- the birth date, or the height -- and the inflow
-##' boundary node closes it, so the interval between it and the smallest cohort
-##' is in the sum.
+##' \code{stand_census} reports the census metrics: the trapezium integral of
+##' \eqn{n_k \psi(\mathrm{state}_k)} over the size distribution, for each
+##' per-plant quantity \eqn{\psi}, summed over the species. The grid is the
+##' coordinate the density is carried in -- the birth date, or the height -- and
+##' the inflow boundary node closes it, so the interval between it and the
+##' smallest cohort is in the sum.
+##'
+##' \code{stand_fitness} reports, for a model that declares its fitness
+##' differentiable (FF16), each species' net reproduction ratio and offspring
+##' production, named \code{"<species>.net_reproduction_ratio"} and
+##' \code{"<species>.offspring_production"}. They are the same numbers as
+##' \code{scm$net_reproduction_ratios} and \code{scm$offspring_production},
+##' reported under the names \code{\link{stand_gradient}} differentiates them
+##' by.
 ##'
 ##' @param scm A run \code{SCM} object for the TF24 or FF16 model, on the
 ##'   birth-date coordinate (\code{control(node_density_in_birth_date = TRUE)}).
-##' @return A named numeric vector, one entry per census metric.
+##' @return A named numeric vector, one entry per metric.
 ##' @export
 stand_census <- function(scm) {
-  b <- census_backend(scm)
-  stats::setNames(b$census(scm), b$metric_names())
+  stand_metrics_of_kind(scm, "census")
 }
 
-##' Sensitivity of the census metrics to the ODE state at the current time.
+##' @rdname stand_census
+##' @export
+stand_fitness <- function(scm) {
+  stand_metrics_of_kind(scm, "fitness")
+}
+
+stand_metrics_of_kind <- function(scm, kind) {
+  b <- census_backend(scm)
+  table <- stand_metric_table(scm)
+  # An empty vector reads as a stand with no species, and indexing it by name
+  # fails far from the cause; say instead that the model declares none.
+  if (!any(table$kind == kind)) {
+    stop("This model declares no differentiable ", kind, " metric")
+  }
+  values <- stats::setNames(b$census(scm), table$name)
+  values[table$kind == kind]
+}
+
+##' Sensitivity of the stand metrics to the ODE state at the current time.
 ##'
-##' One row per metric and one column per ODE state entry, in the order
+##' One row per metric -- the census metrics, then for a model that declares
+##' its fitness differentiable each species' net reproduction ratio and offspring
+##' production, named as \code{\link{stand_gradient}} names them -- and one
+##' column per ODE state entry, in the order
 ##' \code{scm$patch$ode_state} writes. This is what the reverse pass is seeded
 ##' with. The cohort-height columns carry the trapezium weights as well as the
 ##' integrand only where the height is the coordinate integrated over; on the
@@ -55,7 +93,7 @@ stand_census_state_adjoint <- function(scm) {
   b <- census_backend(scm)
   rows <- b$state_adjoint(scm)
   out <- do.call(rbind, rows)
-  rownames(out) <- b$metric_names()
+  rownames(out) <- stand_metric_table(scm)$name
   out
 }
 
@@ -80,7 +118,7 @@ gradient_control <- function(scm) census_backend(scm)$control(scm)
 # from a parameter the strategy does not declare.
 trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 
-##' Gradient of a stand's census metrics with respect to traits.
+##' Gradient of a stand's metrics with respect to traits.
 ##'
 ##' Doubles in and doubles out: the active scalar is created and destroyed inside
 ##' one call and never crosses into R.
@@ -93,7 +131,13 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##'
 ##' @param scm A run \code{SCM} object for the TF24 or FF16 model, on the
 ##'   birth-date coordinate (\code{control(node_density_in_birth_date = TRUE)}).
-##' @param metrics Census metric names to differentiate; defaults to all of them.
+##' @param metrics Metric names to differentiate; defaults to every metric the
+##'   model declares: the census metrics (\code{\link{stand_census}}) and, for
+##'   a model that declares its fitness differentiable, each species'
+##'   \code{"<species>.net_reproduction_ratio"} and
+##'   \code{"<species>.offspring_production"} (\code{\link{stand_fitness}}).
+##'   Each metric costs one sweep of the recorded trajectory, so name the ones
+##'   wanted.
 ##' @param traits Column names to differentiate with respect to; defaults to
 ##'   every differentiable parameter every species declares. A column is named
 ##'   for its species and its parameter, as \code{"1.lma"}. With \code{hyperpar},
@@ -132,6 +176,23 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##'   \code{phylloptim} derives for itself, so setting one reaches no equation
 ##'   and asking for its gradient errors rather than returning a zero.
 ##'
+##' @section An invader against a recorded resident:
+##' Set \code{scm$record_trajectory <- TRUE} before \code{scm$run_mutant(p)}
+##' and the invasion replay keeps its states; a gradient taken then is of the
+##' invaders' metrics with the canopy held at the recorded resident -- the
+##' field is exogenous to the invader and carries no derivative -- which is the
+##' rare-mutant derivative. Several invaders in \code{p} share one replay and
+##' each has its own columns, but each metric is still one sweep, so a set of
+##' invaders costs about what running them one at a time does. An invader of a
+##' resumed resident starts at the resume time, as \code{run_mutant} requires.
+##' A sweep of an invasion that kept no states is refused rather than re-run.
+##'
+##' @section The birth rate:
+##' For a species run at a constant birth rate the column
+##' \code{"<species>.birth_rate"} is the derivative with respect to that rate,
+##' which reaches the density every cohort is born at and the offspring
+##' integral. A species with a variable birth rate has no such column.
+##'
 ##' @section A single entry can dominate a second moment:
 ##' A gradient taken where the run crosses an unresolved event — a cohort
 ##' reaching \code{hmat} between two steps, say — is a derivative of the
@@ -152,7 +213,7 @@ stand_gradient <- function(scm, metrics = NULL, traits = NULL, hyperpar = NULL) 
     return(stand_gradient_through(scm, metrics, traits, hyperpar))
   }
   b <- census_backend(scm)
-  all_metrics <- b$metric_names()
+  all_metrics <- stand_metric_table(scm)$name
   # Every parameter the strategy carries has a column, bar the few the model
   # states it cannot differentiate. So the width does not depend on what the
   # sweep can currently answer, and a caller indexing by position sees the same
@@ -166,7 +227,7 @@ stand_gradient <- function(scm, metrics = NULL, traits = NULL, hyperpar = NULL) 
   }
   unknown <- setdiff(metrics, all_metrics)
   if (length(unknown) > 0L) {
-    stop("Unknown census metric: ", paste(unknown, collapse = ", "))
+    stop("Unknown metric: ", paste(unknown, collapse = ", "))
   }
   unknown <- setdiff(traits, all_traits)
   if (length(unknown) > 0L) {
@@ -193,7 +254,7 @@ stand_gradient <- function(scm, metrics = NULL, traits = NULL, hyperpar = NULL) 
     stop("Unknown trait: ", paste(unknown, collapse = ", "), hint)
   }
 
-  value <- stand_census(scm)[metrics]
+  value <- stats::setNames(b$census(scm), all_metrics)[metrics]
   # Only the metrics asked for are swept. A metric costs a sweep of the whole
   # trajectory, so computing all three and subsetting the answer charged a
   # caller who wanted one for three. Named, not positioned: C++ resolves the
@@ -242,6 +303,13 @@ stand_gradient_through <- function(scm, metrics, traits, hyperpar) {
     }
     s <- strategies[[species]]
     x <- s$pars[[name]]
+    # A column no parameter backs -- the birth rate -- is not something the
+    # hyperparameter function derives from or into, so its total is its partial.
+    if (is.null(x) && tr %in% colnames(G)) {
+      total[, tr] <- G[, tr]
+      jacobian[[tr]] <- numeric(0)
+      next
+    }
     if (is.null(x)) {
       stop("\"", tr, "\" is not a parameter of species ", species,
            "'s strategy, so its value cannot be read to differentiate at")

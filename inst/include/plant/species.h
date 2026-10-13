@@ -138,7 +138,8 @@ public:
   // of compute_rates() so the field build owns it and the field stops reading a
   // density carried from the previous evaluation.
   void compute_boundary_node(const environment_type& environment,
-                             double pr_patch_survival, double birth_rate) {
+                             double pr_patch_survival,
+                             const value_type& birth_rate) {
     new_node.compute_initial_conditions(environment, pr_patch_survival, birth_rate);
   }
 
@@ -272,12 +273,15 @@ public:
       }
     }
   }
-  void compute_rates(const environment_type& environment, double pr_patch_survival, double birth_rate);
+  void compute_rates(const environment_type& environment, double pr_patch_survival, const value_type& birth_rate);
   void compute_top_rates(const environment_type& environment, double pr_patch_survival);
 
   std::vector<double> net_reproduction_ratio_by_node() const;
   // Per-node lifetime offspring, weighted by patch-age density and S_D.
   std::vector<double> net_reproduction_ratio_by_node_weighted() const;
+  // The same, at the scalar the nodes carry: what a differentiated fitness
+  // reads. The double form above is this with the derivative dropped.
+  std::vector<value_type> weighted_fecundity_by_node() const;
   // Introduction times of each node (the integration x-axis for fitness).
   std::vector<double> node_times() const;
 
@@ -943,7 +947,7 @@ Species<T,E>::close_competition_and_slope(const competition_split& c,
 }
 
 template <typename T, typename E>
-void Species<T,E>::compute_rates(const E& environment, double pr_patch_survival, double birth_rate) {
+void Species<T,E>::compute_rates(const E& environment, double pr_patch_survival, const value_type& birth_rate) {
   for (auto& c : nodes) {
     c.compute_rates(environment, pr_patch_survival);
   }
@@ -1042,7 +1046,7 @@ size_t Species<T,E>::absorb_tall(bool arrival_weighting) {
       c.survival_individual() / c.get_pr_patch_survival_at_birth();
     top_weight_ += w;
     top_weight_birth_ +=
-      w * strategy->extrinsic_drivers.evaluate("birth_rate", c.introduction_time());
+      w * strategy->birth_rate_at(c.introduction_time());
     c.retire();
     ++count;
   }
@@ -1101,6 +1105,17 @@ std::vector<double> Species<T,E>::net_reproduction_ratio_by_node_weighted() cons
   for (auto& c : nodes) {
     ret.push_back(
       odelia::util::to_passive(c.weighted_fecundity(strategy->pars.S_D)));
+  }
+  return ret;
+}
+
+template <typename T, typename E>
+std::vector<typename Species<T,E>::value_type>
+Species<T,E>::weighted_fecundity_by_node() const {
+  std::vector<value_type> ret;
+  ret.reserve(size());
+  for (auto& c : nodes) {
+    ret.push_back(c.weighted_fecundity(strategy->pars.S_D));
   }
   return ret;
 }

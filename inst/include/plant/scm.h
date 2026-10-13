@@ -11,6 +11,7 @@
 #include <odelia/sweep.hpp>
 
 #include <algorithm>
+#include <map>
 #include <cmath>
 #include <limits>
 #include <span>
@@ -207,6 +208,12 @@ public:
   }
   bool resident_resumed = false;
 
+  // Whether the last integration was an invasion (run_mutant) rather than a run.
+  // A record of an invasion is swept against the field it loaded; a run on the
+  // same SCM would overwrite that with the invaders' own, so the two have to be
+  // told apart where a record is asked for.
+  bool invasion = false;
+
   // True once every scheduled node introduction has been consumed.
   bool complete() const;
 
@@ -219,9 +226,65 @@ public:
   std::vector<double> net_reproduction_ratios() const { return patch.net_reproduction_ratios(); }
   std::vector<double> offspring_production() const { return patch.offspring_production(); }
 
-  // Every metric the strategy declares, summed over the species, in the order it
-  // declares them. The codomain is the list's length.
+  // Every metric the stand reports at the end of a run, in the order
+  // stand_metrics() lists them. The codomain is the list's length.
   std::vector<double> census() const;
+
+  // One stand metric: a census sum over the species, or one species' fitness.
+  // One list serves the value, the forward tangent and the reverse sweep, so a
+  // metric is added here and nowhere else.
+  struct stand_metric {
+    enum class kind { census, net_reproduction_ratio, offspring_production };
+    kind what;
+    // The census metric, or the species, this one reads.
+    size_t index;
+    std::string name;
+  };
+
+  // The census metrics the strategy declares, then, for a strategy that
+  // declares its fitness differentiable, each species' net reproduction ratio
+  // and offspring production, named for the species as a column is:
+  // "1.net_reproduction_ratio". Built per call because the species count is
+  // the run's; the order is fixed by this function alone.
+  std::vector<stand_metric> stand_metrics() const {
+    std::vector<stand_metric> ret;
+    const auto& census_list = metrics_of<patch_type>();
+    for (size_t m = 0; m < census_list.size(); ++m) {
+      ret.push_back({stand_metric::kind::census, m, census_list[m].name});
+    }
+    if constexpr (DeclaresFitnessMetrics<T>) {
+      for (size_t i = 0; i < patch.size(); ++i) {
+        const std::string species = util::to_string(static_cast<int>(i + 1));
+        ret.push_back({stand_metric::kind::net_reproduction_ratio, i,
+                       species + ".net_reproduction_ratio"});
+        ret.push_back({stand_metric::kind::offspring_production, i,
+                       species + ".offspring_production"});
+      }
+    }
+    return ret;
+  }
+
+  // Which of the two kinds a metric is, for the R side to split on.
+  static const char* metric_kind_name(const stand_metric& m) {
+    return m.what == stand_metric::kind::census ? "census" : "fitness";
+  }
+
+  // One metric read off `p`, at whatever scalar it carries. Templated on the
+  // patch so the value and its derivative are the same reduction at two
+  // scalars.
+  template <class P>
+  static typename P::value_type metric_value(const P& p, const stand_metric& m) {
+    switch (m.what) {
+    case stand_metric::kind::census:
+      return census_sum(p, metrics_of<P>()[m.index]);
+    case stand_metric::kind::net_reproduction_ratio:
+      return p.net_reproduction_ratio_of(m.index);
+    case stand_metric::kind::offspring_production:
+      return p.offspring_production_of(m.index);
+    }
+    util::stop("metric_value: unknown metric kind");
+    return typename P::value_type(0.0); // not reached
+  }
 
   // What a census of this model reads, at whatever scalar `P` carries. The one
   // place a strategy is asked, and the one place the question is refused for a
@@ -750,6 +813,7 @@ template <typename T, typename E> void SCM<T, E>::begin() {
   // it is the solver's: the choices this run's rate evaluations make are the same
   // recording as its states, so what keeps the states is what says the choices are
   // kept too.
+  invasion = false;
   solver.set_keep_states(record_trajectory);
   reset();
   // A run is a walk over its schedule's entries and integrates nothing between
@@ -1027,14 +1091,19 @@ void SCM<T, E>::run_mutant(parameters_type p) {
   patch.overwrite_parameters(parameters);
   node_schedule = make_node_schedule(parameters);
   reset();
-  // ⚠️ A REPLAY KEEPS NOTHING. It is the recording's consumer, not another one of
-  // them, and a recording of a replay is a copy of its own input that nobody
-  // reads -- a state vector and six rows per step, for every invader in a sweep.
-  solver.set_keep_states(false);
+  // A replay keeps its states only when asked, as a run does: a recording of a
+  // replay is a state vector and six rows per step for every invader in a
+  // sweep, and nothing reads it unless a gradient is taken. When one is, the
+  // record carries the resident's field in every row, so the
+  // sweep loads it exactly as the replay did: the field is exogenous to the
+  // invader and its derivative is zero rather than severed. That is the
+  // rare-mutant derivative, the canopy held at the recorded resident.
+  solver.set_keep_states(record_trajectory);
   if (resident_resumed) {
     solver.get_system_ref().stand_in(&resident_start_field);
   }
   solver.advance_recorded(resident_recording);
+  invasion = true;
   patch = solver.get_system_ref();
   // A replay takes the resident's steps and pops no schedule entry, so it leaves
   // nothing a run_to() could continue: a later run of this SCM begins afresh, as
@@ -1089,6 +1158,15 @@ typename SCM<T, E>::trajectory SCM<T, E>::store_trajectory() {
   // Asked of this flag and not of the solver: run() is what sets the solver's
   // from this one, so asking the solver is asking it what it was just told.
   if (!record_trajectory) {
+    // ⚠️ NOT FOR AN INVASION. run() would integrate the invaders as residents,
+    // shading themselves, and the gradient taken on that record would be the
+    // resident-feedback derivative of a different stand with every number
+    // finite. The invasion has to be re-run with the flag set before it.
+    if (invasion) {
+      util::stop("store_trajectory: run_mutant() kept no states, so there is "
+                 "nothing to sweep; set record_trajectory = TRUE before "
+                 "run_mutant() and run it again");
+    }
     record_trajectory = true;
     run();
   }
@@ -1317,11 +1395,11 @@ Rcpp::List SCM<T, E>::r_store_trajectory() {
 
 template <typename T, typename E>
 std::vector<double> SCM<T, E>::census() const {
-  const auto& metrics = metrics_of<patch_type>();
+  const std::vector<stand_metric> metrics = stand_metrics();
   std::vector<double> ret;
   ret.reserve(metrics.size());
-  for (const census_metric<T>& metric : metrics) {
-    ret.push_back(odelia::util::to_passive(census_sum(patch, metric)));
+  for (const stand_metric& metric : metrics) {
+    ret.push_back(odelia::util::to_passive(metric_value(patch, metric)));
   }
   return ret;
 }
@@ -1366,7 +1444,8 @@ census_rows SCM<T, E>::census_state_and_trait_rows() const {
   std::vector<double> state(patch.ode_size());
   patch.ode_state(state.begin());
 
-  const size_t n_metric = metrics_of<patch_type>().size();
+  const std::vector<stand_metric> metrics = stand_metrics();
+  const size_t n_metric = metrics.size();
   census_rows ret;
   ret.trait.assign(n_metric, patch.trait_adjoint_size());
 
@@ -1375,9 +1454,8 @@ census_rows SCM<T, E>::census_state_and_trait_rows() const {
     // The traits carry their derivative from where they sit on the strategy; this
     // buffer is the state and nothing else.
     active.set_state_and_boundary(x, time());
-    const auto& metrics = metrics_of<std::decay_t<decltype(active)>>();
     for (size_t m = 0; m < metrics.size(); ++m) {
-      y[m] = census_sum(active, metrics[m]);
+      y[m] = metric_value(active, metrics[m]);
     }
   };
   // One recording, so the tape and the rebind are odelia's to make. A sweep taking
@@ -1394,7 +1472,7 @@ template <typename T, typename E>
 std::vector<std::vector<double>>
 SCM<T, E>::census_trait_difference(double rel) {
   require_birth_date_coordinate("census_trait_difference");
-  const auto& metrics = metrics_of<patch_type>();
+  const std::vector<stand_metric> metrics = stand_metrics();
   const size_t n_metric = metrics.size();
   const size_t n_state = patch.ode_size();
 
@@ -1411,8 +1489,8 @@ SCM<T, E>::census_trait_difference(double rel) {
   auto census_at = [&](std::vector<double>& out) -> void {
     patch.set_state_and_boundary(state.begin(), time_);
     out.clear();
-    for (const census_metric<T>& metric : metrics) {
-      out.push_back(odelia::util::to_passive(census_sum(patch, metric)));
+    for (const stand_metric& metric : metrics) {
+      out.push_back(odelia::util::to_passive(metric_value(patch, metric)));
     }
   };
 
@@ -1451,7 +1529,7 @@ SCM<T, E>::census_trait_gradient(const std::vector<size_t>& extra_stops,
   // anything runs, so the shape of the answer is known on the refusal path too.
   // Named rather than positional: a caller indexing by position gets a different
   // metric's gradient when the list changes, and nothing says so.
-  const auto& metrics = metrics_of<patch_type>();
+  const std::vector<stand_metric> metrics = stand_metrics();
   std::vector<size_t> rows;
   if (which_metrics.empty()) {
     rows.resize(metrics.size());
@@ -1469,11 +1547,11 @@ SCM<T, E>::census_trait_gradient(const std::vector<size_t>& extra_stops,
       }
       if (at == metrics.size()) {
         std::string known;
-        for (const census_metric<T>& metric : metrics) {
+        for (const stand_metric& metric : metrics) {
           known += known.empty() ? "" : ", ";
           known += metric.name;
         }
-        util::stop("census_trait_gradient: this model has no census metric `" +
+        util::stop("census_trait_gradient: this model has no metric `" +
                    want + "`; it has " + known);
       }
       rows.push_back(at);
@@ -1486,6 +1564,46 @@ SCM<T, E>::census_trait_gradient(const std::vector<size_t>& extra_stops,
   store_trajectory();
 
   patch_type& live = solver.get_system_ref();
+
+  // A sweep of an invasion reaches each introduction, and the first rates
+  // after it, with no row to load: hand the patch the field the invasion stood
+  // in there, the one its last evaluation before the introduction loaded.
+  if (invasion) {
+    // A replay pairs a model's recorded inner solves with its cohorts by
+    // position, and a resumed resident's seeded cohorts shift the pairing
+    // (plan-519 hazard 16), so its invasion's derivative is not refereed.
+    if constexpr (RecordsRefusal<T>) {
+      if (resident_resumed) {
+        util::stop("census_trait_gradient: an invasion of a resumed resident is "
+                   "not differentiable for a model that replays recorded inner "
+                   "solves (TF24) yet; take it from a resident run from empty.");
+      }
+    }
+    std::map<double, const recorded_field*> fields;
+    const auto& rec = resident_recording;
+    for (size_t at = 2; at < rec.size(); ++at) {
+      if (rec[at].insertion && !rec[at - 1].insertion &&
+          rec[at - 1].solved[5].field.kept) {
+        fields[rec[at].time] = &rec[at - 1].solved[5].field;
+      }
+    }
+    // A resumed resident's first row is the state it resumed from, which no
+    // step reached, so it carries no field; an introduction at that instant
+    // stood in the resident's field there (run_mutant's stand_in), and the
+    // sweep has to stand in the same one.
+    // A resident run from empty stood in the empty patch's field there, which
+    // the invader builds the same, so its entry names no field.
+    // And the metrics are read at the run's end, off the final state, where
+    // the seed builds the invader's own field as the forward census does: a
+    // fitness reads no field, and a census's boundary interval is the one term
+    // that does (an invader's census is not the rare-mutant quantity).
+    if (!rec.empty()) {
+      fields.emplace(rec.front().time,
+                     resident_resumed ? &resident_start_field : nullptr);
+      fields.emplace(rec.back().time, nullptr);
+    }
+    live.set_introduction_fields(fields);
+  }
 
   // Cleared here so that a previous call's degeneracy cannot refuse this one.
   clear_recorded_refusal(live);
@@ -1634,7 +1752,7 @@ SCM<T, E>::census_trait_tangent(const std::vector<double>& direction,
   odelia::ode::be_at_step(solver.get_system_ref(), rec, rec.size() - 1);
 
   const auto& reached = forward.get_system_ref();
-  const auto& metrics = metrics_of<std::decay_t<decltype(reached)>>();
+  const std::vector<stand_metric> metrics = stand_metrics();
   std::vector<double> ret;
   ret.reserve(metrics.size());
   value.clear();
@@ -1642,8 +1760,8 @@ SCM<T, E>::census_trait_tangent(const std::vector<double>& direction,
   // Reduced ONCE per metric, and its value read off the same tangent as its
   // derivative. Two reductions would be two evaluations of one function, which is
   // the shape this whole check exists to catch elsewhere.
-  for (const auto& metric : metrics) {
-    const tangent reached_metric = census_sum(reached, metric);
+  for (const stand_metric& metric : metrics) {
+    const tangent reached_metric = metric_value(reached, metric);
     ret.push_back(derivative_along(reached_metric));
     value.push_back(odelia::util::to_passive(reached_metric));
   }
@@ -1683,11 +1801,11 @@ std::vector<Scalar> SCM<T, E>::replay_initial_state(size_t from_range,
   odelia::ode::be_at_step(live, rec, rec.size() - 1);
 
   const auto& reached = forward.get_system_ref();
-  const auto& metrics = metrics_of<std::decay_t<decltype(reached)>>();
+  const std::vector<stand_metric> metrics = stand_metrics();
   std::vector<Scalar> out;
   out.reserve(metrics.size());
-  for (const auto& metric : metrics) {
-    out.push_back(census_sum(reached, metric));
+  for (const stand_metric& metric : metrics) {
+    out.push_back(metric_value(reached, metric));
   }
   return out;
 }

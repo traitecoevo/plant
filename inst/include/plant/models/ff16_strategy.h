@@ -127,9 +127,10 @@ struct FF16_Pars {
   // The parameters no gradient exists for, each with the sentence that says why.
   // Each is excluded by name rather than given a silent zero, so asking for one
   // errors in these words. Nothing else is excluded: every other member reaches
-  // a rate or the seed's residual, and a_f1, a_f2 and a_f3 reach fecundity_dt,
-  // which no census metric reads, so their columns are zero on any trajectory
-  // rather than absent.
+  // a rate, the seed's residual or the fitness metrics' own reading -- S_D
+  // multiplies the net reproduction ratio directly, and a_f1, a_f2 and a_f3
+  // reach fecundity_dt, which the fitness metrics read and the census does not,
+  // so their census columns are zero on any trajectory rather than absent.
   struct no_gradient {
     const char* name;
     const char* why;
@@ -141,10 +142,7 @@ struct FF16_Pars {
                   "constant zero instead, so a row here would be a silently "
                   "wrong zero rather than a NaN; and at the specialised eta "
                   "values the profile is a multiplication chain eta does not "
-                  "appear in at all"},
-      no_gradient{"S_D",
-                  "survival during dispersal, which multiplies a census "
-                  "reduction and enters no rate"}};
+                  "appear in at all"}};
 
   // Every member above, in declaration order. field_ptrs() and both
   // ad_parameter_* projections read this, so a member reaches all of them or
@@ -315,6 +313,13 @@ public:
     return ret;
   }
 
+  // Each species' net reproduction ratio and offspring production are offered
+  // as differentiable stand metrics beside the census (SCM::stand_metrics).
+  // Declared here because the fecundity channel is refereed for this model:
+  // test-ff16-fitness-gradient.R checks every route into it against a pinned
+  // central difference.
+  static constexpr bool differentiable_fitness = true;
+
   // The metrics a census of this model sums, in the order it reports them: the
   // same three TF24 declares, read off this model's own slots.
   static const auto& census_metrics() {
@@ -347,17 +352,38 @@ public:
 
   using ad_parameter = typename FF16_Pars<S>::ad_parameter;
 
+  // The birth rate a constant-birth-rate species is run at, held at the
+  // working scalar so that it is a gradient column: it reaches the inflow
+  // condition (the density every cohort is born at) and the offspring
+  // integral's scalars. A variable birth rate is a driver read as a double and
+  // carries no column, so that species' gradient has one column fewer rather
+  // than a zero that reads as an answer. Set by prepare_strategy() from
+  // birth_rate_y, carried by assign_from().
+  S birth_rate_ = 1.0;
+  bool has_birth_rate_column() const { return !this->is_variable_birth_rate; }
+  S birth_rate_at(double t) const {
+    return has_birth_rate_column()
+             ? birth_rate_
+             : S(this->extrinsic_drivers.evaluate("birth_rate", t));
+  }
+
   // How many gradient columns one of these carries, for a caller sizing a batch.
-  static constexpr size_t ad_column_count = FF16_Pars<S>::column_count;
+  size_t ad_column_count() const {
+    return FF16_Pars<S>::column_count + (has_birth_rate_column() ? 1 : 0);
+  }
 
   // Addresses of the parameters a gradient can be taken with respect to, in the
-  // order ad_parameter_names() gives. The strategy is shared and the fields do
-  // not move, so take them once per gradient evaluation.
+  // order ad_parameter_names() gives: the parameter table's columns, then the
+  // birth rate where it is one. The strategy is shared and the fields do not
+  // move, so take them once per gradient evaluation.
   std::vector<S*> ad_parameters() {
     std::vector<S*> ret;
-    ret.reserve(FF16_Pars<S>::column_count);
+    ret.reserve(ad_column_count());
     for (const ad_parameter& p : FF16_Pars<S>::ad_parameter_columns) {
       ret.push_back(&(pars.*p.at));
+    }
+    if (has_birth_rate_column()) {
+      ret.push_back(&birth_rate_);
     }
     return ret;
   }
@@ -366,9 +392,12 @@ public:
   // that order. Which parameters are left out, and why, is `undifferentiable`.
   std::vector<std::string> ad_parameter_names() {
     std::vector<std::string> ret;
-    ret.reserve(FF16_Pars<S>::column_count);
+    ret.reserve(ad_column_count());
     for (const ad_parameter& p : FF16_Pars<S>::ad_parameter_columns) {
       ret.push_back(p.name);
+    }
+    if (has_birth_rate_column()) {
+      ret.push_back("birth_rate");
     }
     return ret;
   }
@@ -736,6 +765,7 @@ public:
     // eta carries no column, so the shape factor is carried passive, as the
     // canopy shape's own eta is.
     eta_c = S(odelia::util::to_passive(src.eta_c));
+    birth_rate_ = S(odelia::util::to_passive(src.birth_rate_));
     bind_shading_model(src.shading_model_);
     height_0 = src.height_0;
     dmass_dheight_0 = src.dmass_dheight_0;
@@ -760,13 +790,15 @@ public:
   // the templated Individual; here height_0 is derived in prepare_strategy().
   double initial_height() const { return height_0; }
 
-  // Every active value this strategy holds: the whole parameter table. Nothing
-  // else on it carries a derivative between rate evaluations.
+  // Every active value this strategy holds: the whole parameter table and the
+  // constant birth rate. Nothing else on it carries a derivative between rate
+  // evaluations.
   template <class F>
   void for_each_active(F&& f) {
     for (const ad_parameter& field : pars.ad_parameter_table()) {
       f(pars.*field.at);
     }
+    f(birth_rate_);
   }
 
   // Biological (user-settable) parameters; see FF16_Pars above.
@@ -1518,6 +1550,7 @@ void FF16_Strategy<S>::prepare_strategy() {
                                          odelia::drivers::Slopes::monotone);
   } else {
     this->extrinsic_drivers.set_constant("birth_rate", this->birth_rate_y[0]);
+    birth_rate_ = this->birth_rate_y[0];
   }
 }
 

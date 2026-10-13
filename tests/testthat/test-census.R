@@ -349,7 +349,7 @@ test_that("the trait gradient entry point is reachable", {
   # A column is named for its species as well as its parameter: a bare name would
   # resolve to species one's column silently on a multi-species stand.
   got <- stand_gradient(scm, traits = "1.lma")
-  expect_equal(rownames(got$gradient), census_metric_names_tf24())
+  expect_equal(rownames(got$gradient), unname(census_metric_names_tf24(scm)))
   expect_equal(colnames(got$gradient), "1.lma")
   expect_false(any(stand_gradient_refused(got)))
   expect_true(all(is.finite(got$gradient)))

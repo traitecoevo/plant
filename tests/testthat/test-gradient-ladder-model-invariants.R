@@ -414,7 +414,7 @@ test_that("an unknown parameter refuses by name rather than returning a number",
   stand <- ladder_stand_two_by_two()
   expect_error(stand_gradient(stand, traits = "not_a_parameter"), "Unknown trait")
   expect_error(stand_gradient(stand, metrics = "not_a_metric"),
-               "Unknown census metric")
+               "Unknown metric")
 })
 
 test_that("gradient columns are named per species", {

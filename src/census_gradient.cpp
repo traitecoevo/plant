@@ -13,9 +13,19 @@ Rcpp::List census_gradient_to_r(const plant::census_gradient& g);
 
 namespace {
 
+// The metrics' names, each carrying its kind ("census" or "fitness") as the
+// R name, so the R side splits the two without parsing the metric's name.
 template <class SCM>
-std::vector<std::string> metric_names_of() {
-  return plant::census_metric_names<typename SCM::strategy_type>();
+Rcpp::CharacterVector metric_names_of(SCM& scm) {
+  const auto metrics = scm.stand_metrics();
+  Rcpp::CharacterVector ret(metrics.size());
+  Rcpp::CharacterVector kinds(metrics.size());
+  for (size_t m = 0; m < metrics.size(); ++m) {
+    ret[m] = metrics[m].name;
+    kinds[m] = SCM::metric_kind_name(metrics[m]);
+  }
+  ret.names() = kinds;
+  return ret;
 }
 
 template <class SCM>
@@ -105,8 +115,8 @@ Rcpp::List census_gradient_to_r(const plant::census_gradient& g) {
 // ---- TF24 ----------------------------------------------------------------
 
 // [[Rcpp::export]]
-std::vector<std::string> census_metric_names_tf24() {
-  return metric_names_of<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > >();
+Rcpp::CharacterVector census_metric_names_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_) {
+  return metric_names_of(*obj_);
 }
 
 // [[Rcpp::export]]
@@ -149,8 +159,8 @@ Rcpp::NumericVector gradient_control_tf24(plant::RcppR6::RcppR6<plant::SCM<plant
 // ---- FF16 ----------------------------------------------------------------
 
 // [[Rcpp::export]]
-std::vector<std::string> census_metric_names_ff16() {
-  return metric_names_of<plant::SCM<plant::FF16_Strategy<double>, plant::FF16_Environment<double> > >();
+Rcpp::CharacterVector census_metric_names_ff16(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double>, plant::FF16_Environment<double> > > obj_) {
+  return metric_names_of(*obj_);
 }
 
 // [[Rcpp::export]]

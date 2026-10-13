@@ -41,6 +41,17 @@ concept Censusable = requires {
       std::convertible_to<census_metric<Strategy>>;
 };
 
+// A strategy whose fitness -- each species' net reproduction ratio and offspring
+// production, read off the fecundity state -- is offered as a differentiable
+// stand metric beside the census. Opt-in by a flag rather than inferred from the
+// state, because a model has to say its fecundity channel is refereed: the
+// reverse pass sweeps every state either way, and a row nobody checked would
+// read as an answer.
+template <class Strategy>
+concept DeclaresFitnessMetrics = requires {
+  { Strategy::differentiable_fitness } -> std::convertible_to<bool>;
+} && bool(Strategy::differentiable_fitness);
+
 // The names of a strategy's metrics, in the order it reports them. Read off the
 // metrics themselves, so a name and the quantity it belongs to cannot be listed
 // in two places.

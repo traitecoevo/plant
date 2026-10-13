@@ -2,7 +2,7 @@
 % Please edit documentation in R/stand_gradient.R
 \name{stand_gradient}
 \alias{stand_gradient}
-\title{Gradient of a stand's census metrics with respect to traits.}
+\title{Gradient of a stand's metrics with respect to traits.}
 \usage{
 stand_gradient(scm, metrics = NULL, traits = NULL, hyperpar = NULL)
 }
@@ -10,7 +10,13 @@ stand_gradient(scm, metrics = NULL, traits = NULL, hyperpar = NULL)
 \item{scm}{A run \code{SCM} object for the TF24 or FF16 model, on the
 birth-date coordinate (\code{control(node_density_in_birth_date = TRUE)}).}
 
-\item{metrics}{Census metric names to differentiate; defaults to all of them.}
+\item{metrics}{Metric names to differentiate; defaults to every metric the
+model declares: the census metrics (\code{\link{stand_census}}) and, for
+a model that declares its fitness differentiable, each species'
+\code{"<species>.net_reproduction_ratio"} and
+\code{"<species>.offspring_production"} (\code{\link{stand_fitness}}).
+Each metric costs one sweep of the recorded trajectory, so name the ones
+wanted.}
 
 \item{traits}{Column names to differentiate with respect to; defaults to
 every differentiable parameter every species declares. A column is named
@@ -64,6 +70,27 @@ Pass the function the stand was built with: a run does not record it.
   two such: each is derived from its curve's \code{(P50, c)} pair, which
   \code{phylloptim} derives for itself, so setting one reaches no equation
   and asking for its gradient errors rather than returning a zero.
+}
+
+\section{An invader against a recorded resident}{
+
+Set \code{scm$record_trajectory <- TRUE} before \code{scm$run_mutant(p)}
+and the invasion replay keeps its states; a gradient taken then is of the
+invaders' metrics with the canopy held at the recorded resident -- the
+field is exogenous to the invader and carries no derivative -- which is the
+rare-mutant derivative. Several invaders in \code{p} share one replay and
+each has its own columns, but each metric is still one sweep, so a set of
+invaders costs about what running them one at a time does. An invader of a
+resumed resident starts at the resume time, as \code{run_mutant} requires.
+A sweep of an invasion that kept no states is refused rather than re-run.
+}
+
+\section{The birth rate}{
+
+For a species run at a constant birth rate the column
+\code{"<species>.birth_rate"} is the derivative with respect to that rate,
+which reaches the density every cohort is born at and the offspring
+integral. A species with a variable birth rate has no such column.
 }
 
 \section{A single entry can dominate a second moment}{
