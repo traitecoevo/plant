@@ -839,18 +839,33 @@ void Patch<T,E>::check_finite_ode_state() const {
         // fail here with an actionable message rather than letting the +Inf
         // propagate into the competition integral or density-weighted resource
         // uptake, where it surfaces as an opaque downstream error.
-        util::stop("Non-finite cohort density in the SCM size-density "
-                   "(characteristic) equations: species " +
-                   util::to_string(i + 1) + " has a node with density=" +
-                   util::to_string(it->get_density()) + " (log_density=" +
-                   util::to_string(it->get_log_density()) + ", height=" +
-                   util::to_string(it->height()) + ") at time=" +
-                   util::to_string(environment.time) +
-                   ". The density derivative -d(growth)/d(height) - mortality "
-                   "can grow without bound when growth rate falls steeply with "
-                   "size under rapidly changing or extreme environmental "
-                   "forcing, driving density to overflow. Try a shorter "
-                   "max_patch_lifetime or less extreme environmental drivers.");
+        const std::string msg =
+          "Non-finite cohort density in the SCM size-density "
+          "(characteristic) equations: species " +
+          util::to_string(i + 1) + " has a node with density=" +
+          util::to_string(it->get_density()) + " (log_density=" +
+          util::to_string(it->get_log_density()) + ", height=" +
+          util::to_string(it->height()) + ") at time=" +
+          util::to_string(environment.time) +
+          ". The density derivative -d(growth)/d(height) - mortality "
+          "can grow without bound when growth rate falls steeply with "
+          "size under rapidly changing or extreme environmental "
+          "forcing, driving density to overflow. Try a shorter "
+          "max_patch_lifetime or less extreme environmental drivers.";
+        // ⚠️ ON THE BIRTH-DATE COORDINATE THIS IS A REJECTION, NOT A FAILURE.
+        // There the rate is -mortality and nothing raises a density, so a
+        // stage above the ceiling is the stepper's own overshoot, not the
+        // runaway above. It happens when a stage straddles a dying cohort's
+        // rates switching off: its log density underflowing (Node's density
+        // guard) or its hazard reaching establishment_failure_hazard (the
+        // strategy's mortality rate) zeroes a rate of order 1e3 per year, and
+        // the stage weights, some negative, turn that jump into a log density
+        // of +800 at a trial stage. A shorter step does not straddle as far,
+        // so hand it to the stepper. The height coordinate stays fatal.
+        if (species[i].density_in_birth_date()) {
+          odelia::util::stop_domain(msg);
+        }
+        util::stop(msg);
       }
     }
   }
@@ -870,7 +885,8 @@ void Patch<T,E>::check_finite_ode_state() const {
       // A rejection, not a failure: measured, every observed TF24 soil
       // excursion is explicit-integrator overshoot across a discrete change and
       // not a defect in the balance -- hand it to the stepper to shrink and
-      // retry rather than failing the run. Mode (1) above stays fatal.
+      // retry rather than failing the run. Mode (1) above stays fatal on the
+      // height coordinate.
       odelia::util::stop_domain("Non-finite environment state (index " + util::to_string(i) +
                  " = " + util::to_string(state_i) + ") at time=" +
                  util::to_string(environment.time) +
