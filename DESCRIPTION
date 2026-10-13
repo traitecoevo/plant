@@ -55,7 +55,7 @@ Suggests:
 Remotes:
     richfitz/RcppR6,
     traitecoevo/odelia@1a0a890,
-    traitecoevo/phylloptim@afd333a
+    traitecoevo/phylloptim@a6f0869
 URL: https://github.com/traitecoevo/plant
 BugReports: https://github.com/traitecoevo/plant/issues
 Config/roxygen2/version: 8.0.0
