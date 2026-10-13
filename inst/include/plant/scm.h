@@ -1094,7 +1094,7 @@ void SCM<T, E>::run_mutant(parameters_type p) {
   // A replay keeps its states only when asked, as a run does: a recording of a
   // replay is a state vector and six rows per step for every invader in a
   // sweep, and nothing reads it unless a gradient is taken. When one is, the
-  // record carries the resident's field in every row (odelia 0.7.2), so the
+  // record carries the resident's field in every row, so the
   // sweep loads it exactly as the replay did: the field is exogenous to the
   // invader and its derivative is zero rather than severed. That is the
   // rare-mutant derivative, the canopy held at the recorded resident.
@@ -1569,6 +1569,16 @@ SCM<T, E>::census_trait_gradient(const std::vector<size_t>& extra_stops,
   // after it, with no row to load: hand the patch the field the invasion stood
   // in there, the one its last evaluation before the introduction loaded.
   if (invasion) {
+    // A replay pairs a model's recorded inner solves with its cohorts by
+    // position, and a resumed resident's seeded cohorts shift the pairing
+    // (plan-519 hazard 16), so its invasion's derivative is not refereed.
+    if constexpr (RecordsRefusal<T>) {
+      if (resident_resumed) {
+        util::stop("census_trait_gradient: an invasion of a resumed resident is "
+                   "not differentiable for a model that replays recorded inner "
+                   "solves (TF24) yet; take it from a resident run from empty.");
+      }
+    }
     std::map<double, const recorded_field*> fields;
     const auto& rec = resident_recording;
     for (size_t at = 2; at < rec.size(); ++at) {
@@ -1576,6 +1586,21 @@ SCM<T, E>::census_trait_gradient(const std::vector<size_t>& extra_stops,
           rec[at - 1].solved[5].field.kept) {
         fields[rec[at].time] = &rec[at - 1].solved[5].field;
       }
+    }
+    // A resumed resident's first row is the state it resumed from, which no
+    // step reached, so it carries no field; an introduction at that instant
+    // stood in the resident's field there (run_mutant's stand_in), and the
+    // sweep has to stand in the same one.
+    // A resident run from empty stood in the empty patch's field there, which
+    // the invader builds the same, so its entry names no field.
+    // And the metrics are read at the run's end, off the final state, where
+    // the seed builds the invader's own field as the forward census does: a
+    // fitness reads no field, and a census's boundary interval is the one term
+    // that does (an invader's census is not the rare-mutant quantity).
+    if (!rec.empty()) {
+      fields.emplace(rec.front().time,
+                     resident_resumed ? &resident_start_field : nullptr);
+      fields.emplace(rec.back().time, nullptr);
     }
     live.set_introduction_fields(fields);
   }

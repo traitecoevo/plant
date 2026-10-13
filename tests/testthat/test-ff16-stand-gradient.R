@@ -55,7 +55,7 @@ test_that("FF16 declares the three census metrics and names its columns", {
   expect_equal(names(stand_census(scm)),
                c("leaf_area", "mass_above_ground", "area_stem"))
   g <- stand_gradient(scm, metrics = "leaf_area")
-  # Every parameter of FF16_Pars bar the two the model says it cannot
+  # Every parameter of FF16_Pars bar the one the model says it cannot
   # differentiate, each prefixed by its species.
   pars <- names(FF16_Strategy()$pars)
   cannot <- names(census_undifferentiable_ff16())

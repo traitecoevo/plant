@@ -162,7 +162,6 @@ public:
   // * Lifetime fitness / offspring production
   // These are patch-level quantities: each integrates the per-node weighted
   // net reproduction over a species' node-introduction times.
-  // Integrate lifetime fitness of a species' nodes, scaled per node.
   // One species' lifetime fitness integral at the scalar the patch carries:
   // the trapezium over its cohorts' birth dates of the survival-weighted
   // fecundity, each cohort scaled by `scalars` (one, or the birth rate at its
@@ -422,9 +421,13 @@ public:
   // instant of the introduction. An insertion is a map between two rows and
   // the first rates after it are taken at a state no row holds, so a sweep
   // reaches both with no row to load; the run stood in the field its last
-  // evaluation loaded, which is the one named here. Consulted wherever no
-  // field is loaded, and only at exactly these instants. Installed by the SCM
-  // before a sweep of an invasion, carried by a rebind, and cleared by reset().
+  // evaluation loaded, which is the one named here -- or, at the recording's
+  // first instant, the resident's start field (a resumed resident) or none (a
+  // resident from empty, whose field there is the empty patch's, which the
+  // invader builds the same). Consulted wherever no field is loaded, and an
+  // instant it does not name is refused: building the invader's own field
+  // there is finite and wrong. Installed by the SCM before a sweep of an
+  // invasion, carried by a rebind, and cleared by reset().
   void set_introduction_fields(
       const std::map<double, const recorded_field*>& fields) {
     introduction_fields = fields;
@@ -1140,6 +1143,14 @@ typename Patch<T,E>::value_type Patch<T,E>::fitness_integral(
     net_prod_scaled[i] = net_prod[i] * scalars[i];
   }
   if (!survival_weighting->is_arrival_weighting()) {
+    // Fewer than two cohorts span no birth-date interval, so the integral is
+    // undefined. NaN rather than a throw, as for a window with no cohort: every
+    // stand metric is evaluated together, and a census of a stand holding a
+    // one-cohort species (a held-field invader) would otherwise fail on a
+    // fitness nobody asked for.
+    if (times.size() < 2) {
+      return value_type(std::numeric_limits<double>::quiet_NaN());
+    }
     // The seed output of cohorts absorbed into the top layer after they were
     // absorbed: what they accrued before is still on their nodes.
     return util::trapezium(times, net_prod_scaled) +
@@ -1381,9 +1392,15 @@ void Patch<T,E>::compute_environment() {
   }
   if (loaded_field == nullptr && !introduction_fields.empty()) {
     const auto at = introduction_fields.find(environment.time);
-    if (at != introduction_fields.end()) {
-      loaded_field = at->second;
+    if (at == introduction_fields.end()) {
+      std::ostringstream m;
+      m.precision(17);
+      m << "A sweep of an invasion reached t=" << environment.time
+        << " with no recorded field and no introduction there, so the invader "
+           "would stand in its own canopy rather than the resident's";
+      util::stop(m.str());
     }
+    loaded_field = at->second;
   }
   if (loaded_field != nullptr) {
     if (!util::identical(loaded_field->time, environment.time)) {
@@ -2030,8 +2047,8 @@ void Patch<T,E>::set_recorded_state(const std::vector<value_type>& y,
                                     double time) {
   // A field an invasion loaded is for the instant of its last rate evaluation,
   // and this call puts the patch at any recorded instant: left installed, the
-  // field's own time check refuses the mismatch. The sweep loads the row's own
-  // field on the active copy at every stage, so nothing here reads this one.
+  // field's own time check refuses the mismatch. The sweep loads each row's
+  // field on the active copy, and the introduction fields where no row has one.
   loaded_field = nullptr;
   reshape_to(time);
   util::check_length(y.size(), ode_size());

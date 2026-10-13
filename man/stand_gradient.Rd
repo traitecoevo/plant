@@ -2,7 +2,7 @@
 % Please edit documentation in R/stand_gradient.R
 \name{stand_gradient}
 \alias{stand_gradient}
-\title{Gradient of a stand's census metrics with respect to traits.}
+\title{Gradient of a stand's metrics with respect to traits.}
 \usage{
 stand_gradient(scm, metrics = NULL, traits = NULL, hyperpar = NULL)
 }
@@ -78,9 +78,11 @@ Set \code{scm$record_trajectory <- TRUE} before \code{scm$run_mutant(p)}
 and the invasion replay keeps its states; a gradient taken then is of the
 invaders' metrics with the canopy held at the recorded resident -- the
 field is exogenous to the invader and carries no derivative -- which is the
-rare-mutant derivative. Several invaders in \code{p} are swept together,
-each with its own columns. A sweep of an invasion that kept no states is
-refused rather than re-run.
+rare-mutant derivative. Several invaders in \code{p} share one replay and
+each has its own columns, but each metric is still one sweep, so a set of
+invaders costs about what running them one at a time does. An invader of a
+resumed resident starts at the resume time, as \code{run_mutant} requires.
+A sweep of an invasion that kept no states is refused rather than re-run.
 }
 
 \section{The birth rate}{

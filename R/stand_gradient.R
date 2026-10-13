@@ -65,13 +65,21 @@ stand_fitness <- function(scm) {
 stand_metrics_of_kind <- function(scm, kind) {
   b <- census_backend(scm)
   table <- stand_metric_table(scm)
+  # An empty vector reads as a stand with no species, and indexing it by name
+  # fails far from the cause; say instead that the model declares none.
+  if (!any(table$kind == kind)) {
+    stop("This model declares no differentiable ", kind, " metric")
+  }
   values <- stats::setNames(b$census(scm), table$name)
   values[table$kind == kind]
 }
 
-##' Sensitivity of the census metrics to the ODE state at the current time.
+##' Sensitivity of the stand metrics to the ODE state at the current time.
 ##'
-##' One row per metric and one column per ODE state entry, in the order
+##' One row per metric -- the census metrics, then for a model that declares
+##' its fitness differentiable each species' net reproduction ratio and offspring
+##' production, named as \code{\link{stand_gradient}} names them -- and one
+##' column per ODE state entry, in the order
 ##' \code{scm$patch$ode_state} writes. This is what the reverse pass is seeded
 ##' with. The cohort-height columns carry the trapezium weights as well as the
 ##' integrand only where the height is the coordinate integrated over; on the
@@ -110,7 +118,7 @@ gradient_control <- function(scm) census_backend(scm)$control(scm)
 # from a parameter the strategy does not declare.
 trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 
-##' Gradient of a stand's census metrics with respect to traits.
+##' Gradient of a stand's metrics with respect to traits.
 ##'
 ##' Doubles in and doubles out: the active scalar is created and destroyed inside
 ##' one call and never crosses into R.
@@ -173,9 +181,11 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##' and the invasion replay keeps its states; a gradient taken then is of the
 ##' invaders' metrics with the canopy held at the recorded resident -- the
 ##' field is exogenous to the invader and carries no derivative -- which is the
-##' rare-mutant derivative. Several invaders in \code{p} are swept together,
-##' each with its own columns. A sweep of an invasion that kept no states is
-##' refused rather than re-run.
+##' rare-mutant derivative. Several invaders in \code{p} share one replay and
+##' each has its own columns, but each metric is still one sweep, so a set of
+##' invaders costs about what running them one at a time does. An invader of a
+##' resumed resident starts at the resume time, as \code{run_mutant} requires.
+##' A sweep of an invasion that kept no states is refused rather than re-run.
 ##'
 ##' @section The birth rate:
 ##' For a species run at a constant birth rate the column
@@ -293,6 +303,13 @@ stand_gradient_through <- function(scm, metrics, traits, hyperpar) {
     }
     s <- strategies[[species]]
     x <- s$pars[[name]]
+    # A column no parameter backs -- the birth rate -- is not something the
+    # hyperparameter function derives from or into, so its total is its partial.
+    if (is.null(x) && tr %in% colnames(G)) {
+      total[, tr] <- G[, tr]
+      jacobian[[tr]] <- numeric(0)
+      next
+    }
     if (is.null(x)) {
       stop("\"", tr, "\" is not a parameter of species ", species,
            "'s strategy, so its value cannot be read to differentiate at")

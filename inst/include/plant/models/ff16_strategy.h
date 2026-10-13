@@ -790,8 +790,9 @@ public:
   // the templated Individual; here height_0 is derived in prepare_strategy().
   double initial_height() const { return height_0; }
 
-  // Every active value this strategy holds: the whole parameter table. Nothing
-  // else on it carries a derivative between rate evaluations.
+  // Every active value this strategy holds: the whole parameter table and the
+  // constant birth rate. Nothing else on it carries a derivative between rate
+  // evaluations.
   template <class F>
   void for_each_active(F&& f) {
     for (const ad_parameter& field : pars.ad_parameter_table()) {

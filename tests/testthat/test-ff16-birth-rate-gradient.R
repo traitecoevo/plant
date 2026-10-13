@@ -75,3 +75,19 @@ test_that("a variable birth rate has no column rather than a zero", {
   expect_false("1.birth_rate" %in% colnames(g$gradient))
   expect_error(stand_gradient(scm, traits = "1.birth_rate"), "Unknown trait")
 })
+
+test_that("the birth-rate column passes through a hyperparameter function as itself", {
+  p <- scm_base_parameters("FF16")
+  p$max_patch_lifetime <- 6
+  p <- add_strategies(p, trait_matrix(c(0.0825, 3), c("lma", "hmat")),
+                      birth_rate = 2)
+  scm <- run_scm(p, NULL, Control(node_density_in_birth_date = TRUE),
+                 record_trajectory = TRUE)
+  through <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
+                            traits = c("1.lma", "1.birth_rate"),
+                            hyperpar = FF16_hyperpar)
+  partial <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
+                            traits = "1.birth_rate")
+  expect_identical(through$gradient[, "1.birth_rate"],
+                   partial$gradient[, "1.birth_rate"])
+})

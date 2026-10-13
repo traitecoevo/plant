@@ -79,8 +79,10 @@ test_that("the fitness gradient is the pinned-step central difference", {
                  "a_dG1", "d_I", "a_d0")) {
     for (metric in c("1.net_reproduction_ratio", "1.offspring_production")) {
       fd <- central_difference(p, 1, name, metric)
-      expect_equal(g$gradient[metric, paste0("1.", name)], fd,
-                   tolerance = 1e-5, label = paste(metric, name))
+      # Relative to the difference, not absolute: a_dG1's column is ~2.6e-6, so
+      # an absolute tolerance of 1e-5 would pass zero or its negative.
+      expect_lt(abs(g$gradient[metric, paste0("1.", name)] - fd), 1e-5 * abs(fd),
+                label = paste(metric, name))
     }
   }
   # With a constant birth rate the offspring production is the net reproduction

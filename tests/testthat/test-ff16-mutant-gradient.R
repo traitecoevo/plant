@@ -106,3 +106,89 @@ test_that("a sweep of an invasion that kept no states is refused, not re-run", {
   expect_error(stand_gradient(scm, metrics = "1.net_reproduction_ratio"),
                "run_mutant\\(\\) kept no states")
 })
+
+# d(metric)/d(name) of invader `i` by central difference across replays, each
+# replay of `p` with that one parameter moved.
+replay_difference <- function(scm, p, i, name, metric, rel = 1e-5) {
+  x <- p$strategies[[i]]$pars[[name]]
+  h <- rel * abs(x)
+  at <- function(v) {
+    q <- p
+    q$strategies[[i]]$pars[[name]] <- v
+    scm$run_mutant(q)
+    stand_fitness(scm)[[metric]]
+  }
+  (at(x + h) - at(x - h)) / (2 * h)
+}
+
+test_that("invaders do not shade each other, and an invader's birth rate reaches only its output", {
+  scm <- run_scm(resident_parameters(), NULL, mutant_control(),
+                 record_trajectory = TRUE)
+  scm$run_mutant(mutant_parameters(scm, c(0.07, 0.1)))
+  g <- stand_gradient(scm, metrics = c("1.net_reproduction_ratio",
+                                       "1.offspring_production"),
+                      traits = c("2.lma", "2.k_I", "1.birth_rate"))
+  expect_false(any(stand_gradient_refused(g)))
+  # Each stands in the resident's field, which neither moves.
+  expect_identical(g$gradient["1.net_reproduction_ratio", c("2.lma", "2.k_I")],
+                   c("2.lma" = 0, "2.k_I" = 0))
+  # A rare invader's birth rate moves no density it sees, so its ratio does not
+  # depend on it, and its offspring production is the ratio times that rate.
+  expect_identical(g$gradient["1.net_reproduction_ratio", "1.birth_rate"], 0)
+  expect_equal(g$gradient["1.offspring_production", "1.birth_rate"],
+               g$value[["1.net_reproduction_ratio"]], tolerance = 1e-12)
+})
+
+test_that("an invader introduced after the replay starts has a gradient", {
+  # The invader's patch is empty, and FF16's environment carries no state, so
+  # the replay steps with no state until its first cohort; the sweep passes
+  # those steps over (odelia 0.7.3).
+  scm <- run_scm(resident_parameters(), NULL, mutant_control(),
+                 record_trajectory = TRUE)
+  p <- mutant_parameters(scm, 0.09)
+  tt <- p$node_schedule_times[[1]]
+  p$node_schedule_times <- list(tt[tt >= 1])
+  scm$run_mutant(p)
+  g <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
+                      traits = c("1.lma", "1.a_d0"))
+  expect_false(any(stand_gradient_refused(g)))
+  for (name in c("lma", "a_d0")) {
+    fd <- replay_difference(scm, p, 1, name, "1.net_reproduction_ratio")
+    expect_lt(abs(g$gradient["1.net_reproduction_ratio", paste0("1.", name)] - fd),
+              1e-5 * abs(fd), label = name)
+  }
+})
+
+test_that("an invader of a resumed resident stands in the resident's canopy at the resume instant", {
+  # The resident resumes at 6 and its first cohort after the resume is born at
+  # 6 itself. That insertion follows the recording's first row, which no step
+  # reached and which carries no field, so the sweep has to be handed the
+  # resident's field there, as the replay was. Establishment reads it, so a_d0
+  # is the column that shows the wrong canopy (it was 26 % off).
+  p <- resident_parameters(lifetime = 12)
+  p$patch_type <- "fixed"
+  p$node_schedule_times <- list(node_schedule_times_periodic(0, 12, 0.5))
+  burn <- run_scm(p, NULL, mutant_control(), run = FALSE)
+  burn$run_to(6)
+  state <- export_patch_state(burn)
+  p2 <- set_initial_state(p, state)
+  scm <- run_scm(p2, NULL, mutant_control(), record_trajectory = TRUE)
+  pm <- mutant_parameters(scm, 0.09)
+  pm$initial_state <- numeric(0)
+  pm$n_initial_cohorts <- integer(0)
+  pm$initial_node_times <- numeric(0)
+  pm$initial_patch_density <- numeric(0)
+  pm$initial_pr_patch_survival <- numeric(0)
+  pm$initial_time <- state$time
+  pm$node_schedule_times <- state$node_schedule_times
+  expect_equal(pm$node_schedule_times[[1]][[1]], state$time)
+  scm$run_mutant(pm)
+  g <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
+                      traits = c("1.lma", "1.a_d0", "1.omega"))
+  expect_false(any(stand_gradient_refused(g)))
+  for (name in c("lma", "a_d0", "omega")) {
+    fd <- replay_difference(scm, pm, 1, name, "1.net_reproduction_ratio")
+    expect_lt(abs(g$gradient["1.net_reproduction_ratio", paste0("1.", name)] - fd),
+              1e-5 * abs(fd), label = name)
+  }
+})
