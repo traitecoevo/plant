@@ -46,3 +46,6 @@ build.log
 # ONE: `snapshot_accept()` promotes whatever a `.new.md` holds, so a committed
 # one lets an unrelated run accept a surface nobody looked at.
 tests/testthat/_snaps/*.new.md
+
+# What the #519 pilot scripts write; each script regenerates its own tables.
+notes/scripts/continuous-patch-519/output/

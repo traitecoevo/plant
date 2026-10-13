@@ -14,6 +14,7 @@
 #include <plant/disturbance_regime.h>
 #include <plant/disturbances/no_disturbance.h>
 #include <plant/disturbances/weibull_disturbance.h>
+#include <plant/disturbances/fitness_window.h>
 
 // TODO(#483): I will possibly move out the "Patch" parameters out into
 // their own simple list class at some point, to make this a bit more
@@ -34,6 +35,8 @@ struct Parameters {
     n_patches(1),
     patch_type("meta-population"),
     max_patch_lifetime(105.32), // designed to agree with Daniel's implementation
+    fitness_window_start(0.0),
+    fitness_window_end(0.0),
     initial_time(0.0)
   {
     validate();
@@ -44,6 +47,13 @@ struct Parameters {
   size_t n_patches;  // Number of patches in the metacommunity
   std::string patch_type;
   double max_patch_lifetime; // Disturbance interval (years)
+  // The arrival window and its weight, read when patch_type is "fitness_window": the
+  // continuous patch's regime (#519, disturbances/fitness_window.h). Both ends
+  // default to zero, which validate() refuses, so a window has to be chosen.
+  double fitness_window_start;
+  double fitness_window_end;
+  std::vector<double> fitness_window_weight_x;
+  std::vector<double> fitness_window_weight_y;
   std::vector<strategy_type> strategies;
   // Every active value the strategies here carry. They are copies the patch does
   // not run, and a recording does not read them -- but they hold slots, and a
@@ -125,6 +135,11 @@ void Parameters<T,E>::validate() {
   // disturbance
   if(patch_type == "meta-population") {
     disturbance = std::make_shared<Weibull_Disturbance_Regime>(max_patch_lifetime);
+  }
+  else if (patch_type == "fitness_window") {
+    disturbance = std::make_shared<Fitness_Window>(fitness_window_start, fitness_window_end,
+                                                  fitness_window_weight_x,
+                                                  fitness_window_weight_y);
   }
   else {
     disturbance = std::make_shared<No_Disturbance>();

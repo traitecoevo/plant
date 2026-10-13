@@ -13,7 +13,9 @@ state).}
 \item{state}{An exported state list from \code{\link{export_patch_state}}.}
 }
 \value{
-The modified \code{Parameters} object.
+The modified \code{Parameters} object. The state's \code{events}
+  are not carried on it: pass them to \code{\link{run_scm}} as
+  \code{events = state$events}.
 }
 \description{
 Write an exported patch state (from \code{\link{export_patch_state}}) into a

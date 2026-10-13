@@ -65,6 +65,17 @@ struct Control {
   // the density rate is mortality alone.
   bool node_density_in_birth_date;
 
+  // The absorbing top layer of a continuous patch (#519): with epsilon > 0, a
+  // cohort that has grown to the height where its strategy allocates 1 - epsilon
+  // of its maximum to reproduction (Strategy::asymptotic_height) is absorbed at
+  // the next node introduction into one top cohort per species, pinned at that
+  // height, which carries its density, its future seed output and its share of
+  // the light field and uptake. Without it a stand that runs on never
+  // equilibrates: the oldest cohorts edge up toward their asymptote for as long
+  // as they carry density. Zero (the default) absorbs nothing. Birth-date
+  // coordinate only, and only for a strategy that declares an asymptotic height.
+  double absorb_epsilon;
+
   double ode_step_size_initial;
   double ode_step_size_min;
   double ode_step_size_max;
@@ -97,6 +108,25 @@ struct Control {
   double ci_abs_tol;
   double ci_niter;
 };
+
+// Whether a cohort with no density is frozen in place -- no rate evaluation,
+// every rate zero -- rather than integrated. In a continuous patch a cohort
+// leaves the integrated set in one way only, by passing the absorbing height
+// into the top layer, which takes its density with it; a cohort whose density
+// is already exactly zero is frozen too, since there is nothing of it to keep.
+// Its per-capita output stops where it was. That is zero for a cohort that
+// failed to establish, and nothing to speak of for one that died, but a cohort
+// BORN with no density -- at a zero birth rate -- is frozen at birth and its
+// per-capita output reads zero where it would have accrued a little: give a
+// rare species a small positive birth rate, not zero, with the layer on. Off
+// unless the top layer is on, so any other run integrates its empty cohorts
+// exactly as it always has.
+//
+// There is deliberately no survival floor: retiring a cohort below one discards
+// the biomass old trees still hold rather than conserving it (#519).
+inline bool freezes_retired(const Control& c) {
+  return c.absorb_epsilon > 0.0;
+}
 
 inline odelia::ode::OdeControl make_ode_control(const Control& control) {
   return odelia::ode::OdeControl(control.ode_tol_abs,

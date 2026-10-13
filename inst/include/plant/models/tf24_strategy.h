@@ -1017,6 +1017,17 @@ public:
 
   // [eqn 16] Fraction of whole plan growth that is leaf
   virtual S fraction_allocation_reproduction(const S& height) const;
+
+  // The height above which this strategy allocates at least 1 - epsilon of its
+  // maximum, a_f1, to reproduction: where a continuous patch's absorbing top
+  // layer sits (#519). Growth's share of surplus there is 1 - (1 - epsilon) a_f1,
+  // within epsilon a_f1 of its floor -- and epsilon itself only where a_f1 is one.
+  // The inverse of fraction_allocation_reproduction()'s logistic.
+  double asymptotic_height(double epsilon) const {
+    using odelia::util::to_passive;
+    return to_passive(pars.hmat) *
+      (1.0 + std::log((1.0 - epsilon) / epsilon) / to_passive(pars.a_f2));
+  }
   S fraction_allocation_growth(const S& height) const;
   // [eqn 17] Rate of offspring production
   S fecundity_dt(const S& net_mass_production_dt,

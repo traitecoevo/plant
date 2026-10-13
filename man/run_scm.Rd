@@ -11,7 +11,8 @@ run_scm(
   refine_schedule = FALSE,
   collect = FALSE,
   record_trajectory = FALSE,
-  events = NULL
+  events = NULL,
+  run = TRUE
 )
 }
 \arguments{
@@ -43,6 +44,11 @@ only the final run does.}
 apply during the run — rainfall pulses, harvest, and node introductions
 themselves. When \code{NULL} (the default) the schedule is taken from
 \code{p$node_schedule_times}, i.e. introductions only.}
+
+\item{run}{Run the SCM? \code{FALSE} returns it built and unrun, for a
+caller that drives it leg by leg: \code{\link{run_until_converged}} and
+\code{SCM$run_to()}. It cannot be combined with \code{collect} or
+\code{refine_schedule}, which are about the run.}
 }
 \value{
 When \code{collect = FALSE}, an \code{SCM} object. When

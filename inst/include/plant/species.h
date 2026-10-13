@@ -25,6 +25,13 @@ namespace plant {
 // survival-weighted rates, lifetime fitness, schedule-refinement error) stays
 // here.
 
+// A strategy that says where its height growth stops: what the absorbing top
+// layer of a continuous patch is pinned at (Control::absorb_epsilon, #519).
+template <typename T>
+concept HasAsymptoticHeight = requires(const T& s, double epsilon) {
+  { s.asymptotic_height(epsilon) } -> std::convertible_to<double>;
+};
+
 template <typename T, typename E>
 class Species : public SpeciesBase<Species<T, E>, T, E, Node<T, E>> {
   typedef SpeciesBase<Species<T, E>, T, E, Node<T, E>> base_type;
@@ -42,9 +49,14 @@ public:
 
   // ODE plumbing and the per-element serialisers are inherited from SpeciesBase
   // and iterate all nodes (the deterministic model has no notion of "dead").
-  using base_type::ode_size;
-  using base_type::ode_state;
-  using base_type::ode_rates;
+  // The nodes' blocks, then the top layer's when it is on (top_ode_size()).
+  size_t ode_size() const { return base_type::ode_size() + top_ode_size(); }
+  template <typename It> It ode_state(It it) const {
+    return top_ode_state(base_type::ode_state(it));
+  }
+  template <typename It> It ode_rates(It it) const {
+    return top_ode_rates(base_type::ode_rates(it));
+  }
   using base_type::get_node_state;
   using base_type::get_node_aux;
   typename std::vector<node_type>::iterator node_begin() { return nodes.begin(); }
@@ -112,6 +124,9 @@ public:
   // the operation count IS the tape.
   void field_splits(const std::vector<value_type>& heights,
                     std::vector<competition_split>& out) const;
+  // The top layer as a point mass, added to a split's running sums (twice its
+  // contribution, since every reader halves them).
+  void add_top(competition_split& c, const value_type& height) const;
   // The inclusive reduction, from a split taken at the same height. Bit-identical
   // to compute_competition_and_slope(height) at the boundary node it is closed
   // with.
@@ -141,7 +156,11 @@ public:
   template <class F>
   void for_each_active(F&& f) {
     odelia::ode::visit_active(f, nodes, new_node, height_scan_cache.h_max,
-                              strategy);
+                              top_, top_density_, top_weight_,
+                              top_weight_birth_, top_seeds_, top_seeds_birth_,
+                              top_density_dt_, top_weight_dt_,
+                              top_weight_birth_dt_, top_seeds_dt_,
+                              top_seeds_birth_dt_, strategy);
   }
 
   // Whether the decreasing-height node ordering still holds (see height_max()).
@@ -163,9 +182,98 @@ public:
   // with it. Shadows (rather than uses) the SpeciesBase version for that reason.
   template <typename It> It set_ode_state(It it) {
     invalidate_height_scan();
-    return base_type::set_ode_state(it);
+    return set_top_ode_state(base_type::set_ode_state(it));
+  }
+
+  // * The absorbing top layer (Control::absorb_epsilon, #519)
+  //
+  // One cohort per species, pinned at the strategy's asymptotic height, into
+  // which a cohort that has grown there is absorbed at a node introduction. The
+  // absorbed cohort stays in the node list as a zero-density grid point, exactly
+  // as a retired one does, and the share of every trapezium it held -- its
+  // quadrature weight times its density -- moves into the top layer. Keeping
+  // the grid point is what makes the transfer exact: the neighbours' intervals
+  // are untouched, so total density is conserved to rounding at the instant,
+  // and the node structure never changes, so a replay or an export needs no
+  // record of which cohorts went.
+  //
+  // Its block is the pinned individual's state (height held, the rest
+  // integrated: TF24's storage, the heartwood), then five numbers: the density
+  // it carries, the fitness weight it carries without and with the birth-rate
+  // scaling (sum of quadrature weight x patch density at birth x S_D x survival
+  // at absorption / patch survival at birth, and the same x birth rate at
+  // birth), and the seed output each has accrued since. The lifetime output an
+  // absorbed cohort has already accrued stays on its node.
+  size_t top_ode_size() const {
+    return top_on() ? individual_type::ode_size() + 5 : 0;
+  }
+  bool top_on() const { return control().absorb_epsilon > 0.0; }
+  // Every number the layer carries is finite. Its readers test density > 0, so
+  // a NaN layer would otherwise read as an empty one.
+  bool top_finite() const {
+    using odelia::util::to_passive;
+    for (size_t i = 0; i < individual_type::ode_size(); ++i) {
+      if (!util::is_finite(to_passive(top_.state(i)))) {
+        return false;
+      }
+    }
+    for (const value_type* v : {&top_density_, &top_weight_, &top_weight_birth_,
+                                &top_seeds_, &top_seeds_birth_}) {
+      if (!util::is_finite(to_passive(*v))) {
+        return false;
+      }
+    }
+    return true;
+  }
+  // The height the layer sits at, from the strategy's allocation to reproduction.
+  double absorb_height() const;
+  // Absorb every live cohort, bar the youngest, at or above absorb_height(), and
+  // say how many. Under an arrival weighting a cohort the window weights is
+  // never absorbed, so every cohort the fitness integral reads keeps its own
+  // lifetime output.
+  size_t absorb_tall(bool arrival_weighting);
+  // The seed output the layer has accrued, for the fitness integral.
+  value_type top_seeds(bool birth_scaled) const {
+    if (!top_on()) {
+      return value_type(0.0);
+    }
+    return birth_scaled ? top_seeds_birth_ : top_seeds_;
+  }
+  double top_density() const {
+    return top_on() ? odelia::util::to_passive(top_density_) : 0.0;
+  }
+  double top_height() const {
+    return odelia::util::to_passive(top_.state(HEIGHT_INDEX));
+  }
+  Rcpp::List r_top_layer() const;
+  // The layer's density and weights decay linearly, and at the bottom of the
+  // subnormal range a decay step rounds back to the value it started from, so a
+  // layer whose inflow has stopped never empties by itself: it would keep the
+  // canopy top at the absorbing height and a pinned tree rated at every stage.
+  // Below the smallest normal double a value carries nothing, so it is put to
+  // zero. The seeds the layer accrued are output, not state that decays, and
+  // stay. Called at each introduction instant, with absorption.
+  // An event that removes a fraction of the stand at the layer's height removes
+  // that fraction of the trees the layer holds: its density and both fitness
+  // weights scale together. Its seeds are past output and stay. Returns the
+  // density removed.
+  double scale_top(double phi) {
+    const double before = odelia::util::to_passive(top_density_);
+    top_density_ *= phi;
+    top_weight_ *= phi;
+    top_weight_birth_ *= phi;
+    return before - odelia::util::to_passive(top_density_);
+  }
+  void flush_top() {
+    const double tiny = std::numeric_limits<double>::min();
+    for (value_type* v : {&top_density_, &top_weight_, &top_weight_birth_}) {
+      if (odelia::util::to_passive(*v) < tiny) {
+        *v = value_type(0.0);
+      }
+    }
   }
   void compute_rates(const environment_type& environment, double pr_patch_survival, double birth_rate);
+  void compute_top_rates(const environment_type& environment, double pr_patch_survival);
 
   std::vector<double> net_reproduction_ratio_by_node() const;
   // Per-node lifetime offspring, weighted by patch-age density and S_D.
@@ -267,6 +375,8 @@ public:
                        const std::vector<double>& patch_density,
                        const std::vector<double>& pr_patch_survival);
 
+  std::vector<bool> r_retired() const;
+
   ExtrinsicDrivers extrinsic_drivers() const {return strategy->extrinsic_drivers;}
 
   // The prepared strategy this species and its nodes share.
@@ -310,6 +420,57 @@ private:
   using base_type::strategy;
   using base_type::control;
   node_type new_node;
+  // The top layer (see top_ode_size()) and its rates.
+  individual_type top_;
+  value_type top_density_{0.0}, top_weight_{0.0}, top_weight_birth_{0.0},
+    top_seeds_{0.0}, top_seeds_birth_{0.0};
+  value_type top_density_dt_{0.0}, top_weight_dt_{0.0},
+    top_weight_birth_dt_{0.0}, top_seeds_dt_{0.0}, top_seeds_birth_dt_{0.0};
+  template <typename It> It top_ode_state(It it) const {
+    if (!top_on()) {
+      return it;
+    }
+    for (size_t i = 0; i < individual_type::ode_size(); ++i) {
+      util::write_iterator_scalar(it, top_.state(i));
+    }
+    util::write_iterator_scalar(it, top_density_);
+    util::write_iterator_scalar(it, top_weight_);
+    util::write_iterator_scalar(it, top_weight_birth_);
+    util::write_iterator_scalar(it, top_seeds_);
+    util::write_iterator_scalar(it, top_seeds_birth_);
+    return it;
+  }
+  template <typename It> It set_top_ode_state(It it) {
+    if (!top_on()) {
+      return it;
+    }
+    for (size_t i = 0; i < individual_type::ode_size(); ++i) {
+      top_.set_state(i, *it++);
+    }
+    top_density_ = *it++;
+    top_weight_ = *it++;
+    top_weight_birth_ = *it++;
+    top_seeds_ = *it++;
+    top_seeds_birth_ = *it++;
+    return it;
+  }
+  template <typename It> It top_ode_rates(It it) const {
+    if (!top_on()) {
+      return it;
+    }
+    for (size_t i = 0; i < individual_type::ode_size(); ++i) {
+      util::write_iterator_scalar(it, top_.rate(i));
+    }
+    util::write_iterator_scalar(it, top_density_dt_);
+    util::write_iterator_scalar(it, top_weight_dt_);
+    util::write_iterator_scalar(it, top_weight_birth_dt_);
+    util::write_iterator_scalar(it, top_seeds_dt_);
+    util::write_iterator_scalar(it, top_seeds_birth_dt_);
+    return it;
+  }
+  // The nodes' part of field_splits().
+  void field_splits_nodes(const std::vector<value_type>& heights,
+                          std::vector<competition_split>& out) const;
 
   // The abscissa every reduction over the size distribution is taken over,
   // increasing as the node list is walked from the tallest down. Heights are
@@ -345,13 +506,15 @@ private:
 template <typename T, typename E>
 Species<T,E>::Species(strategy_type s)
   : base_type(s),
-    new_node(this->strategy) {
+    new_node(this->strategy),
+    top_(this->strategy) {
 }
 
 template <typename T, typename E>
 Species<T,E>::Species(strategy_type_ptr s)
   : base_type(s),
-    new_node(this->strategy) {
+    new_node(this->strategy),
+    top_(this->strategy) {
 }
 
 template <typename T, typename E>
@@ -365,6 +528,13 @@ void Species<T,E>::clear() {
   nodes.clear();
   // Reset the new_node to a blank new_node, too.
   new_node = node_type(strategy);
+  // And the top layer: it belongs to a run, so a run that starts again starts
+  // without one. A resumed patch loads the exported layer after this.
+  top_ = individual_type(strategy);
+  top_density_ = top_weight_ = top_weight_birth_ = value_type(0.0);
+  top_seeds_ = top_seeds_birth_ = value_type(0.0);
+  top_density_dt_ = top_weight_dt_ = top_weight_birth_dt_ = value_type(0.0);
+  top_seeds_dt_ = top_seeds_birth_dt_ = value_type(0.0);
 }
 
 template <typename T, typename E>
@@ -394,10 +564,13 @@ void Species<T,E>::introduce_new_node() {
 // ordering one walk rather than two.
 template <typename T, typename E>
 typename Species<T,E>::value_type Species<T,E>::height_max() const {
-  if (nodes.empty()) {
-    return new_node.height();
+  value_type h = nodes.empty() ? new_node.height() : scan_heights().h_max;
+  // The top layer is not a node, so the scan does not see it; the canopy top
+  // the field spans has to.
+  if (top_on() && top_density_ > 0.0 && top_.state(HEIGHT_INDEX) > h) {
+    h = top_.state(HEIGHT_INDEX);
   }
-  return scan_heights().h_max;
+  return h;
 }
 
 // Are the node heights ordered largest to smallest? See height_max() above for
@@ -422,7 +595,22 @@ template <typename T, typename E>
 typename Species<T,E>::HeightScan Species<T,E>::compute_height_scan() const {
   HeightScan ret{value_type(-std::numeric_limits<double>::infinity()), true};
   value_type h_prev = std::numeric_limits<double>::infinity();
+  // ⚠️ WITH THE TOP LAYER ON, A FROZEN COHORT IS LEFT OUT OF THE SCAN. Its height
+  // froze when it was absorbed (or reached zero density) and younger cohorts
+  // grow past it, so counted it breaks the ordering and every field build falls
+  // back to a walk per height: measured, a continuous FF16 stand ran 1.6x SLOWER
+  // with frozen cohorts counted than with none frozen at all. It contributes
+  // exactly zero to every reduction, so the ordering of the cohorts that
+  // contribute is the one the fast build and the walk's early exit rest on.
+  // Gated on the top layer, so a run that has not opted in scans exactly as it
+  // always has.
+  const bool skip_retired = freezes_retired(control());
+  bool any = false;
   for (nodes_const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
+    if (skip_retired && it->retired()) {
+      continue;
+    }
+    any = true;
     const value_type h = it->height();
     if (h > h_prev) {
       ret.decreasing = false;
@@ -431,6 +619,10 @@ typename Species<T,E>::HeightScan Species<T,E>::compute_height_scan() const {
       ret.h_max = h;
     }
     h_prev = h;
+  }
+  // Every cohort retired: the canopy top is the seed's, as for an empty species.
+  if (skip_retired && !any) {
+    ret.h_max = new_node.height();
   }
   return ret;
 }
@@ -486,8 +678,28 @@ Species<T,E>::compute_competition(const value_type& height) const {
 template <typename T, typename E>
 with_slope<typename Species<T,E>::value_type>
 Species<T,E>::compute_competition_and_slope(const value_type& height) const {
-  return close_competition_and_slope(compute_competition_and_slope_split(height),
-                                     height);
+  competition_split c = compute_competition_and_slope_split(height);
+  add_top(c, height);
+  return close_competition_and_slope(c, height);
+}
+
+template <typename T, typename E>
+void Species<T,E>::add_top(competition_split& c, const value_type& height) const {
+  if (!top_on() || !(top_density_ > 0.0)) {
+    return;
+  }
+  const with_slope<value_type> fs = top_.compute_competition_and_slope(height);
+  c.sum.value += 2.0 * top_density_ * fs.value;
+  c.sum.slope += 2.0 * top_density_ * fs.slope;
+}
+
+template <typename T, typename E>
+void Species<T,E>::field_splits(const std::vector<value_type>& heights,
+                                std::vector<competition_split>& out) const {
+  field_splits_nodes(heights, out);
+  for (std::size_t k = 0; k < heights.size(); ++k) {
+    add_top(out[k], heights[k]);
+  }
 }
 
 // One pass over the nodes for the whole height set. Where the prefix form does not
@@ -495,8 +707,8 @@ Species<T,E>::compute_competition_and_slope(const value_type& height) const {
 // height takes the walk, which is the same branch the walk's own early exit rests
 // on.
 template <typename T, typename E>
-void Species<T,E>::field_splits(const std::vector<value_type>& heights,
-                                std::vector<competition_split>& out) const {
+void Species<T,E>::field_splits_nodes(const std::vector<value_type>& heights,
+                                      std::vector<competition_split>& out) const {
   out.assign(heights.size(), competition_split());
   if (size() == 0) {
     return;
@@ -551,6 +763,16 @@ void Species<T,E>::field_splits(const std::vector<value_type>& heights,
   // `crossing` is the first node the height is above -- the one the walk stops at.
   // The heights ascend and the nodes descend, so it only ever moves one way: one
   // merge over both, rather than a search per height.
+  //
+  // ⚠️ A FROZEN COHORT IS PASSED OVER, as the walk passes over it. Its height is
+  // outside the ordering the scan certified, so it can sit above the height after
+  // a live cohort below it; it carries density zero, so its moments are exact
+  // zeros in the prefix wherever it sits. The walk stops at the first LIVE cohort
+  // below the height, and so does this.
+  const bool skip_retired = freezes_retired(control());
+  auto frozen = [&](std::size_t i) -> bool {
+    return skip_retired && nodes[i].retired();
+  };
   std::size_t crossing = n;
   moments weight, weight_slope;
   for (std::size_t k = 0; k < heights.size(); ++k) {
@@ -558,14 +780,21 @@ void Species<T,E>::field_splits(const std::vector<value_type>& heights,
     if (scan.h_max < height) {
       continue;  // no node reaches it; the empty split stands
     }
-    while (crossing > 0 && nodes[crossing - 1].height() < height) {
+    while (crossing > 0 &&
+           (frozen(crossing - 1) || nodes[crossing - 1].height() < height)) {
       --crossing;
+    }
+    // Over the frozen cohorts that sit between the last live one above the height
+    // and the first live one below it.
+    std::size_t stop = crossing;
+    while (stop < n && frozen(stop)) {
+      ++stop;
     }
     // The walk stops AFTER the interval whose upper node is the first below the
     // height, so the last node it visited is that one -- or the last node of all,
     // where none is below.
-    const std::size_t last = crossing < n ? crossing : n - 1;
-    const std::size_t summed = last > 0 ? last - (crossing < n ? 1 : 0) : 0;
+    const std::size_t last = stop < n ? stop : n - 1;
+    const std::size_t summed = last > 0 ? last - (stop < n ? 1 : 0) : 0;
 
     strategy->canopy_shape.height_weights(height, weight);
     strategy->canopy_shape.height_weight_slopes(height, weight_slope);
@@ -582,10 +811,10 @@ void Species<T,E>::field_splits(const std::vector<value_type>& heights,
     competition_split& c = out[k];
     const with_slope<value_type> fs_last =
       nodes[last].compute_competition_and_slope(height);
-    if (crossing < n) {
+    if (stop < n) {
       const with_slope<value_type> fs_above =
-        nodes[crossing - 1].compute_competition_and_slope(height);
-      const double width = abscissa[crossing] - abscissa[crossing - 1];
+        nodes[stop - 1].compute_competition_and_slope(height);
+      const double width = abscissa[stop] - abscissa[stop - 1];
       sum.value += width * (fs_above.value + fs_last.value);
       sum.slope += width * (fs_above.slope + fs_last.slope);
     }
@@ -609,6 +838,7 @@ Species<T,E>::reduce_competition(const value_type& height,
                                  const std::vector<std::size_t>& order) const {
   const bool birth_date = control().node_density_in_birth_date;
   const HeightScan& scan = scan_heights();
+  const bool skip_retired = freezes_retired(control());
   const bool permuted = !order.empty();
   const std::size_t n = size();
   auto node_at = [&](std::size_t k) -> const node_type& {
@@ -637,7 +867,11 @@ Species<T,E>::reduce_competition(const value_type& height,
     sum.slope += (x0 - x1) * (at_x1.slope + fs0.slope);
     x1    = x0;
     at_x1 = fs0;
-    if (scan.decreasing && node.height() < height) {
+    // A retired cohort is outside the ordering the scan certified (see
+    // compute_height_scan), so its frozen height says nothing about the cohorts
+    // after it; it contributes zero, and the walk goes on past it.
+    if (scan.decreasing && node.height() < height &&
+        !(skip_retired && node.retired())) {
       break;
     }
   }
@@ -719,6 +953,116 @@ void Species<T,E>::compute_rates(const E& environment, double pr_patch_survival,
   // it -- so the two are the same function at different arguments rather than one
   // computed twice. This value is the one an introduced node inherits.
   new_node.compute_initial_conditions(environment, pr_patch_survival, birth_rate);
+  if (top_on()) {
+    compute_top_rates(environment, pr_patch_survival);
+  }
+}
+
+// The pinned individual's rates, height held; its density and fitness weights
+// decay at its mortality rate, and the seed output accrues at its fecundity rate
+// times the patch survival, as a node's does.
+template <typename T, typename E>
+void Species<T,E>::compute_top_rates(const E& environment,
+                                     double pr_patch_survival) {
+  if (!(top_density_ > 0.0) && !(top_weight_ > 0.0) && !(top_weight_birth_ > 0.0)) {
+    top_.zero_rates();
+    top_density_dt_ = top_weight_dt_ = top_weight_birth_dt_ = value_type(0.0);
+    top_seeds_dt_ = top_seeds_birth_dt_ = value_type(0.0);
+    return;
+  }
+  top_.compute_rates(environment);
+  top_.hold_state(HEIGHT_INDEX);
+  const value_type mortality = top_.rate(MORTALITY_INDEX);
+  const value_type fecundity = top_.rate(FECUNDITY_INDEX);
+  top_density_dt_ = -mortality * top_density_;
+  top_weight_dt_ = -mortality * top_weight_;
+  top_weight_birth_dt_ = -mortality * top_weight_birth_;
+  top_seeds_dt_ = fecundity * pr_patch_survival * top_weight_;
+  top_seeds_birth_dt_ = fecundity * pr_patch_survival * top_weight_birth_;
+}
+
+template <typename T, typename E>
+double Species<T,E>::absorb_height() const {
+  if constexpr (HasAsymptoticHeight<T>) {
+    return strategy->asymptotic_height(control().absorb_epsilon);
+  } else {
+    util::stop("control$absorb_epsilon needs a strategy that declares an "
+               "asymptotic height, and this one does not");
+    return 0.0;
+  }
+}
+
+template <typename T, typename E>
+size_t Species<T,E>::absorb_tall(bool arrival_weighting) {
+  if (!top_on()) {
+    return 0;
+  }
+  flush_top();
+  if (size() < 2) {
+    return 0;
+  }
+  using odelia::util::to_passive;
+  const double h_abs = absorb_height();
+  const double S_D = to_passive(strategy->pars.S_D);
+  size_t count = 0;
+  // The youngest cohort is never absorbed: its quadrature weight is not final
+  // until the next one is introduced.
+  for (size_t k = 0; k + 1 < size(); ++k) {
+    node_type& c = nodes[k];
+    if (!(c.get_density() > 0.0) || to_passive(c.height()) < h_abs) {
+      continue;
+    }
+    if (arrival_weighting && c.patch_density() > 0.0) {
+      continue;
+    }
+    // The cohort's trapezium weight on the birth-date grid, retired neighbours
+    // included: they are zero-valued grid points and keep their intervals.
+    const double left = k > 0 ?
+      nodes[k].introduction_time() - nodes[k - 1].introduction_time() : 0.0;
+    const double right = nodes[k + 1].introduction_time() - nodes[k].introduction_time();
+    const double weight = (left + right) / 2.0;
+    const value_type added = weight * c.get_density();
+    if (!(top_density_ > 0.0)) {
+      top_ = c.individual;
+    } else {
+      // The states the layer integrates are the density-weighted mean of what
+      // it holds and what it absorbs.
+      for (size_t i = 0; i < individual_type::ode_size(); ++i) {
+        if (static_cast<int>(i) == HEIGHT_INDEX) {
+          continue;
+        }
+        top_.set_state(i, (top_density_ * top_.state(i) +
+                           added * c.individual.state(i)) /
+                          (top_density_ + added));
+      }
+    }
+    top_.set_state(HEIGHT_INDEX, value_type(h_abs));
+    top_density_ += added;
+    const value_type w = weight * c.patch_density() * S_D *
+      c.survival_individual() / c.get_pr_patch_survival_at_birth();
+    top_weight_ += w;
+    top_weight_birth_ +=
+      w * strategy->extrinsic_drivers.evaluate("birth_rate", c.introduction_time());
+    c.retire();
+    ++count;
+  }
+  if (count > 0) {
+    invalidate_height_scan();
+  }
+  return count;
+}
+
+template <typename T, typename E>
+Rcpp::List Species<T,E>::r_top_layer() const {
+  using odelia::util::to_passive;
+  return Rcpp::List::create(
+      Rcpp::_["on"] = top_on(),
+      Rcpp::_["height"] = top_on() && top_density_ > 0.0 ? top_height() : NA_REAL,
+      Rcpp::_["density"] = to_passive(top_density_),
+      Rcpp::_["weight"] = to_passive(top_weight_),
+      Rcpp::_["weight_birth"] = to_passive(top_weight_birth_),
+      Rcpp::_["seeds"] = to_passive(top_seeds_),
+      Rcpp::_["seeds_birth"] = to_passive(top_seeds_birth_));
 }
 
 template <typename T, typename E>
@@ -784,6 +1128,7 @@ bool Species<T,E>::birth_dates_are_distinct() const {
 template <typename T, typename E>
 void Species<T,E>::resize_consumption_rates(int r) {
   new_node.resize_consumption_rates(r);
+  top_.resize_consumption_rates(r);
 }
 
 template <typename T, typename E>
@@ -831,7 +1176,11 @@ Species<T,E>::consumption_rate(int i) const {
     x.swap(x_sorted);
     rates.swap(r_sorted);
   }
-  return util::trapezium(x, rates);
+  value_type ret = util::trapezium(x, rates);
+  if (top_on() && top_density_ > 0.0) {
+    ret += top_density_ * top_.consumption_rate(i);
+  }
+  return ret;
 }
 
 
@@ -860,7 +1209,11 @@ Species<T,E>::census_integral(const census_metric<T>& metric) const {
   x.push_back(abscissa_of(new_node, birth_date));
   weighted.push_back(new_node.get_density() *
                      new_node.individual.census_value(metric));
-  return util::trapezium(x, weighted);
+  value_type ret = util::trapezium(x, weighted);
+  if (top_on() && top_density_ > 0.0) {
+    ret += top_density_ * top_.census_value(metric);
+  }
+  return ret;
 }
 
 // bit clunky...
@@ -1086,6 +1439,16 @@ std::vector<double> Species<T,E>::r_pr_patch_survival_at_birth() const {
   ret.reserve(size());
   for (nodes_const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
     ret.push_back(it->get_pr_patch_survival_at_birth());
+  }
+  return ret;
+}
+
+template <typename T, typename E>
+std::vector<bool> Species<T,E>::r_retired() const {
+  std::vector<bool> ret;
+  ret.reserve(size());
+  for (nodes_const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
+    ret.push_back(it->retired());
   }
   return ret;
 }
