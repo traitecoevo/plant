@@ -100,13 +100,13 @@ public:
   // where the field's dependence on the canopy top lives.
   S height_max() const { return height_max_; }
 
-  S get_value_at_height(S height) const {
+  S get_value_at_height(const S& height) const {
     return get_value_at_height(height, max_height());
   }
 
   // Variant taking a pre-fetched cap (= max_height()) so callers integrating
   // over many points pay the spline.max() lookup once rather than per point.
-  S get_value_at_height(S height, double cap) const {
+  S get_value_at_height(const S& height, double cap) const {
     // TODO(#385): change maximum - here hard-coded to 1.0
     // `cap` already guards the upper bound and the crown integral keeps
     // height >= 0 = spline.min(), so use the unchecked operator() rather than
@@ -117,8 +117,18 @@ public:
     // not be negative. The clamp is a no-op for the usual positive case, so
     // values stay bit-identical there. This is the single chokepoint for
     // FF16/K93/TF24.
-    return height <= cap ? std::max(S(0.0), spline(height / height_max_))
-                         : S(1.0);
+    //
+    // Early returns rather than std::max inside a conditional, which return a
+    // copy: at an active scalar that is a tape statement per quadrature point.
+    // `!(0 < value)` is std::max's own test, so a NaN still reads as 0.
+    if (!(height <= cap)) {
+      return S(1.0);
+    }
+    S value = spline(height / height_max_);
+    if (!(0.0 < odelia::util::to_passive(value))) {
+      return S(0.0);
+    }
+    return value;
   }
 
   // The heights, then the values, then the slopes: the columns of r_get_state()

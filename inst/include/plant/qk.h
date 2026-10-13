@@ -98,11 +98,12 @@ S QK::integrate(Function f, const S& a, const S& b) {
     const S abscissa = half_length * xgk[jtw];
     const S fval1 = f(center - abscissa);
     const S fval2 = f(center + abscissa);
-    const S fsum = fval1 + fval2;
     fv1[jtw] = to_passive(fval1);
     fv2[jtw] = to_passive(fval2);
-    result_gauss   += wg[j] * to_passive(fsum);
-    result_kronrod += wgk[jtw] * fsum;
+    // The pair's sum is formed in each expression rather than held as an S,
+    // which at an active scalar would be one more statement per pair.
+    result_gauss   += wg[j] * (fv1[jtw] + fv2[jtw]);
+    result_kronrod += wgk[jtw] * (fval1 + fval2);
     result_abs     += wgk[jtw] * (std::abs(fv1[jtw]) + std::abs(fv2[jtw]));
   }
 
