@@ -20,9 +20,18 @@ cat(format(Sys.time(), "%H:%M:%S"), "plant", as.character(packageVersion("plant"
 ## The series and stand of workflow.R and landscape.R, seed 1.
 set.seed(1)
 series_tmax <- 1000
-n_pulses    <- rpois(1, 20 * series_tmax)
-pulse_time  <- sort(runif(n_pulses, 0, series_tmax))
-pulse_depth <- rexp(n_pulses, rate = 1 / 0.014)
+## pulse_series_poisson() draws count, times, then amounts, so a seed rebuilds
+## the series this script's committed numbers were measured on. The floor-era
+## build predates it, so the same draws are spelled out for that one.
+draw_pulses <- if (exists("pulse_series_poisson", mode = "function")) pulse_series_poisson else
+  function(from, to, rate, mean_amount) {
+    n <- rpois(1, rate * (to - from))
+    data.frame(time = sort(runif(n, from, to)), amount = rexp(n, rate = 1 / mean_amount))
+  }
+series      <- draw_pulses(0, series_tmax, rate = 20, mean_amount = 0.014)
+pulse_time  <- series$time
+pulse_depth <- series$amount
+n_pulses    <- nrow(series)
 intro_times <- seq(0, series_tmax, by = 1)
 ctrl <- if (mode == "floor") {
   control(node_density_in_birth_date = TRUE, ode_step_size_max = 0.05, retire_survival = 1e-9)

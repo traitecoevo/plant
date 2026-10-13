@@ -67,9 +67,12 @@ for (si in seq_along(seeds)) {
   seed <- seeds[[si]]
   birth <- births[[si]]
   set.seed(seed)
-  n_pulses    <- rpois(1, lambda * series_tmax)
-  pulse_time  <- sort(runif(n_pulses, 0, series_tmax))
-  pulse_depth <- rexp(n_pulses, rate = 1 / mean_depth)
+  ## pulse_series_poisson() draws count, times, then amounts, so a seed rebuilds
+  ## the series this script's committed numbers were measured on.
+  series      <- pulse_series_poisson(0, series_tmax, rate = lambda, mean_amount = mean_depth)
+  pulse_time  <- series$time
+  pulse_depth <- series$amount
+  n_pulses    <- nrow(series)
   intro_times <- seq(0, series_tmax, by = 1)
   pulses_in <- function(a, b) {
     k <- pulse_time > a & pulse_time <= b

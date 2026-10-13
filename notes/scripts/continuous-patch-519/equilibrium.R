@@ -54,9 +54,12 @@ evaluations <- list()
 equilibria <- list()
 for (seed in seeds) {
   set.seed(seed)
-  n_pulses    <- rpois(1, lambda * series_tmax)
-  pulse_time  <- sort(runif(n_pulses, 0, series_tmax))
-  pulse_depth <- rexp(n_pulses, rate = 1 / mean_depth)
+  ## pulse_series_poisson() draws count, times, then amounts, so a seed rebuilds
+  ## the series this script's committed numbers were measured on.
+  series      <- pulse_series_poisson(0, series_tmax, rate = lambda, mean_amount = mean_depth)
+  pulse_time  <- series$time
+  pulse_depth <- series$amount
+  n_pulses    <- nrow(series)
   k <- pulse_time > 0 & pulse_time <= T_end
   pulses <- rainfall_pulse(pulse_time[k], pulse_depth[k])
 
