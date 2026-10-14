@@ -16,8 +16,8 @@ control <- function(...) Control(...)
 ##' @rdname control_presets
 ##' @export
 control_accurate <- function(base = Control()) {
-  base$ode_tol_rel       <- 1e-6
-  base$ode_tol_abs       <- 1e-6
+  base$ode_tol_rel       <- 1e-7
+  base$ode_tol_abs       <- 1e-7
   base$ode_step_size_max <- 1e-1
   base$schedule_eps      <- 1e-3
   base
