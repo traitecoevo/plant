@@ -748,7 +748,10 @@ public:
   // neither model reads either: the curve count is read at one site, building
   // the Leaf, and the floor only by the sweep. Both suites are green on their
   // pinned outputs.
-  static constexpr int scientific_version = 11;
+  // v12: as FF16 v3 -- odelia 0.8.0's step-size rule and the default ode_tol
+  // 1e-4 -> 1e-5 move every adaptive run within the ODE tolerance. TF24f
+  // follows to v12.1.
+  static constexpr int scientific_version = 12;
 
   S compute_average_light_environment(const S& z, const S& height,
                                       const TF24_Environment<S> &environment);
