@@ -1382,6 +1382,7 @@ TF24_Pars:
     - a_st1: double
     - a_st2: double
     - a_st3: double
+    - storage_relaxation_offset: double
     - k_I: double
     # ⚠️ The leaf traits carry phylloptim's names (#634). One name per quantity,
     # spelled the same on both sides of the boundary; see TF24_Pars in
