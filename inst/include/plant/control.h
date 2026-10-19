@@ -129,13 +129,16 @@ inline bool freezes_retired(const Control& c) {
 }
 
 inline odelia::ode::OdeControl make_ode_control(const Control& control) {
-  return odelia::ode::OdeControl(control.ode_tol_abs,
-                         control.ode_tol_rel,
-                         control.ode_a_y,
-                         control.ode_a_dydt,
-                         control.ode_step_size_min,
-                         control.ode_step_size_max,
-                         control.ode_step_size_initial);
+  odelia::ode::OdeControl ret(control.ode_tol_abs,
+                              control.ode_tol_rel,
+                              control.ode_a_y,
+                              control.ode_a_dydt,
+                              control.ode_step_size_min,
+                              control.ode_step_size_max,
+                              control.ode_step_size_initial);
+  // GSL's rule, which plant's step sequences and references were made with.
+  ret.set_controller(odelia::ode::Controller::gsl);
+  return ret;
 }
 
 }
