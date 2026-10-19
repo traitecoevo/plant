@@ -34,10 +34,9 @@ test_that("the fixture actually widens, in both stride directions", {
 test_that("a reloaded state carries the boundary node the run carries", {
   # A stage evaluates the inflow condition twice, in two different fields, and
   # they are the same function at different arguments: the first is taken with
-  # every species' boundary interval left off, the field is then rebuilt including
-  # it, and the second is taken in that rebuilt field. The reductions were built
-  # on the first; the water aggregation, an introduced node and a census all read
-  # the second.
+  # every species' boundary node left out, the field is then rebuilt including
+  # it, and the second is taken in that rebuilt field. The newest interval's
+  # establishment rate and the water aggregation read the second.
   #
   # Every rebuild the sweep does -- the census seed, the census's direct term, the
   # replay of an introduction, and the introduction's own transpose -- starts from
@@ -49,8 +48,8 @@ test_that("a reloaded state carries the boundary node the run carries", {
   p$node_schedule_times <- list(c(0, 0.29, 0.94), c(0, 0.57))
   stand <- ladder_run(p)
 
-  # What the run left behind is what the run introduced from and censused.
-  left <- ladder_boundary_density(stand)
+  # What the run left behind is what the run's last rates read.
+  left <- ladder_boundary_carbon(stand)
   patch <- ladder_as_patch(stand)
   both <- ladder_boundary_evaluations(patch, patch$ode_state, patch$ode_time)
 
@@ -125,6 +124,10 @@ test_that("the boundary node's row carries the field its own cohorts build", {
     expect_equal(got$carbon, ref$value[["carbon"]],
                  tolerance = 8 * .Machine$double.eps,
                  label = paste("birth-size carbon,", name))
+    # On this coordinate the boundary node's density is the birth rate, which
+    # reads no trait, so the field reaches establishment through the carbon a
+    # recruit produces and not through the density.
+    expect_identical(got$dlog_density, 0)
 
     # The seed's height solves live mass equals seed mass, which reads the tissue
     # and allometric parameters and nothing the reduction owns. So k_I's height
@@ -137,7 +140,7 @@ test_that("the boundary node's row carries the field its own cohorts build", {
       expect_identical(got$dheight, 0)
     }
 
-    parts <- c("log_density", "carbon", if (reaches_birth_size) "height")
+    parts <- c("carbon", if (reaches_birth_size) "height")
     for (part in parts) {
       row <- got[[paste0("d", part)]]
       expect_gt(abs(row), 0)
@@ -250,12 +253,12 @@ test_that("the initial reserve channel carries a row", {
   expect_gt(peak, 0)
 })
 
-test_that("the newcomer depends on the state it was introduced into", {
-  # The introduction is evaluated at the pre-introduction state: the field is
-  # rebuilt and the boundary node placed in it, so the newcomer's own quantities
-  # depend on the state before the introduction as well as on the traits. An
-  # implementation written as though the newcomer has no predecessor drops that
-  # half entirely.
+test_that("the recruit depends on the state it is introduced into", {
+  # The boundary node is evaluated at the pre-introduction state: the field is
+  # rebuilt and the boundary node placed in it, so the carbon a recruit produces,
+  # which the establishment of the seeds arriving then reads, depends on the
+  # state as well as on the traits. An implementation written as though the
+  # recruit has no predecessor drops that half entirely.
   #
   # Perturbing the soil at the introduction time is what exposes it, because a
   # boundary node taking its potentials from a cache has no visible dependence on
@@ -288,11 +291,11 @@ test_that("the newcomer depends on the state it was introduced into", {
     }
     patch
   }
-  newcomer_density <- function(state) {
+  recruit_carbon <- function(state) {
     patch <- founding_patch()
     patch$set_ode_state(state, at)
     invisible(patch$ode_rates)
-    ladder_boundary_density(patch)
+    ladder_boundary_carbon(patch)
   }
 
   # The soil block begins after every species' nodes, so its offset is read off the
@@ -304,7 +307,7 @@ test_that("the newcomer depends on the state it was introduced into", {
                          function(i) template$species[[i]]$ode_size,
                          numeric(1))) + 1L
 
-  base <- newcomer_density(pre)
+  base <- recruit_carbon(pre)
   # The top layer, and it has to be the top one: a plant at birth size is
   # shallow-rooted, so the deepest layer of the column does not reach it and a
   # perturbation there moves the newcomer by exactly zero. That is a property of
@@ -312,10 +315,10 @@ test_that("the newcomer depends on the state it was introduced into", {
   # the channel missing.
   bumped <- pre
   bumped[[moisture]] <- bumped[[moisture]] * 1.05
-  moved <- newcomer_density(bumped)
+  moved <- recruit_carbon(bumped)
 
   gap <- max(abs(moved - base) / abs(base))
-  message(sprintf("\n  a 5%% perturbation of the top layer moves the boundary node by %.3e",
+  message(sprintf("\n  a 5%% perturbation of the top layer moves the recruit's carbon by %.3e",
                   gap))
   expect_gt(gap, 1e-9)
 })
@@ -482,7 +485,7 @@ test_that("the census's sensitivity to a range's starting state is refereed", {
     coarse <- along(1e-5)
     fine <- along(1e-6)
     scale <- max(abs(fine))
-    if (scale == 0) {
+    if (all(abs(fine) <= 1e-9 * abs(none$value))) {
       # ⚠️ NOT A SKIP, AND IT WAS ONE. The difference says this component reaches
       # no census metric, and the tangent has to say the same: a live tangent
       # beside a dead difference is a channel one route has and the other does
@@ -490,13 +493,15 @@ test_that("the census's sensitivity to a range's starting state is refereed", {
       # asserted nothing at all, so a wrong non-zero tangent passed -- and the
       # count is how it hid: the file went 104 passes to 103 when one more
       # component joined this branch, with a message rather than a failure.
-      # ⚠️ THE BOUND IS THE CENSUS'S RESOLUTION, NOT ZERO, and the difference
-      # between the two readings is what this measures. Components 6 to 9 come
-      # back EXACTLY 0.00e+00 -- structurally dead, no channel at all. Component 4
-      # comes back 2.2e-11 of the census: a live channel whose response is below
-      # what a replayed difference can carry, so the difference reads a hard zero
-      # and lands here. Holding it to 1e-12 would report the census's own last
-      # bits as a disagreement between the two routes.
+      # ⚠️ THE BOUND IS THE CENSUS'S RESOLUTION, NOT ZERO, on both routes, and
+      # each metric is read against its own value: offspring production is 1e-19
+      # here, so its difference's noise is larger than the other metrics' whole
+      # response to a deep layer. Components 6 to 10 come back exactly zero --
+      # structurally dead, no channel at all. The three deeper soil layers come
+      # back 2.7e-10, 4.1e-11 and 1.8e-12 of the census on the tangent: live
+      # channels whose response is below what a replayed difference can carry.
+      # Holding them to 1e-12 would report the census's own last bits as a
+      # disagreement between the two routes.
       ladder_report_margin(
         sprintf("d(census)/d(range 0 state %d) is zero on both routes", i),
         max(abs(tangent)) / max(abs(none$value)), 1e-9)
