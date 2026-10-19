@@ -67,6 +67,16 @@ template <typename T, typename E, typename U>
 concept PatchRebindable =
   !std::is_void_v<at_scalar<T, U>> && !std::is_void_v<at_scalar<E, U>>;
 
+// An environment with soil layers: its first n_resources() states, which read
+// the plants only through the uptake from each.
+template <typename E>
+concept HasSoil =
+  requires(const E& e, double time, std::vector<typename E::value_type>& u) {
+  { e.resource_uptake } -> std::convertible_to<std::vector<typename E::value_type>>;
+  e.layer_rates(time, u, u, u);
+  { e.rainfall_knots(time, time) } -> std::same_as<std::vector<double>>;
+};
+
 // The scalar a forward tangent runs on, and the two things done to one: seed a
 // direction, read the derivative it produced. Brought in here once, so no header
 // in this package names the AD library at all -- and so that seeding an adjoint
@@ -298,6 +308,31 @@ public:
   template <typename It> It ode_aux(It it) const;
   // Hand them back, in the order ode_aux wrote them
   template <typename It> It set_ode_aux(It it);
+
+  // The soil, as odelia's subsystem: the environment's first states, which come
+  // last in the patch's.
+  odelia::ode::state_range subsystem() const requires HasSoil<E> {
+    return {ode_size() - environment.ode_size(), environment.n_resources()};
+  }
+  // Where the rain changes form; a step that spans one substeps the soil.
+  std::vector<double> subsystem_knots(double from, double to) const
+    requires HasSoil<E> {
+    return environment.rainfall_knots(from, to);
+  }
+  void subsystem_inputs(std::vector<value_type>& u) const requires HasSoil<E> {
+    u = environment.resource_uptake;
+  }
+  // Zero in a held field, whose soil does not move.
+  template <class U>
+  void subsystem_rates(double t, const std::vector<U>& theta,
+                       const std::vector<U>& uptake,
+                       std::vector<U>& rate) const requires HasSoil<E> {
+    if (held_field) {
+      rate.assign(theta.size(), U(0.0));
+      return;
+    }
+    environment.layer_rates(t, theta, uptake, rate);
+  }
 
 
   // Every species' differentiable parameters, species-major: the order a trait

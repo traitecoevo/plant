@@ -174,7 +174,7 @@ std::vector<odelia::ode::instruction>
 NodeSchedule::program_within(double start, double end) const {
   std::vector<odelia::ode::instruction> ret;
   for (const odelia::ode::instruction& s : ode_steps) {
-    if (s.time <= start || s.time >= end) {
+    if (s.time <= start || s.time > end) {
       continue;
     }
     if (ret.empty()) {
@@ -243,6 +243,26 @@ std::vector<double> NodeSchedule::r_ode_step_sizes() const {
   return ret;
 }
 
+std::vector<std::vector<double> >
+substep_field(const std::vector<odelia::ode::instruction>& steps,
+              std::vector<double> odelia::ode::subsystem_substeps::*field) {
+  std::vector<std::vector<double> > ret;
+  ret.reserve(steps.size());
+  for (const odelia::ode::instruction& step : steps) {
+    ret.push_back(step.subsystem ? (*step.subsystem).*field
+                                 : std::vector<double>());
+  }
+  return ret;
+}
+
+std::vector<std::vector<double> > NodeSchedule::r_ode_soil_input_slopes() const {
+  return substep_field(ode_steps, &odelia::ode::subsystem_substeps::input_slope);
+}
+
+std::vector<std::vector<double> > NodeSchedule::r_ode_soil_substep_ends() const {
+  return substep_field(ode_steps, &odelia::ode::subsystem_substeps::ends);
+}
+
 // The ODE schedule this run takes: times to stop at, and the sizes that reached
 // them where a recorded run is being replayed. Both at once, because a size
 // belongs to the time it was recorded with and there is no version of this that
@@ -252,8 +272,27 @@ std::vector<double> NodeSchedule::r_ode_step_sizes() const {
 // caller recorded: the solver steps TO each time instead of by a recorded size.
 // A schedule holding either replays it -- there is no flag to turn that on, so to
 // integrate freely instead, hand over no schedule.
-void NodeSchedule::r_set_ode_steps(std::vector<double> times,
-                                   std::vector<double> sizes) {
+//
+// Each step's record of substepping the soil goes with its size, and none may
+// be given at all: a recording that substepped the soil then replays only where
+// no step spans a knot of the rain, and is refused where one does.
+void NodeSchedule::r_set_ode_steps(
+    std::vector<double> times, std::vector<double> sizes,
+    std::vector<std::vector<double> > input_slopes,
+    std::vector<std::vector<double> > substep_ends) {
+  const bool recorded = !input_slopes.empty() || !substep_ends.empty();
+  if (recorded && (input_slopes.size() != sizes.size() ||
+                   substep_ends.size() != sizes.size())) {
+    Rcpp::stop("ode_soil_input_slopes and ode_soil_substep_ends must be as "
+               "long as ode_step_sizes, or both empty");
+  }
+  for (size_t i = 0; i < input_slopes.size(); ++i) {
+    if (input_slopes[i].empty() != substep_ends[i].empty()) {
+      Rcpp::stop("A step that substepped the soil needs both its input slopes "
+                 "and its substep ends; step " + std::to_string(i + 1) +
+                 " has one");
+    }
+  }
   if (times.empty()) {
     r_clear_ode_steps();
     return;
@@ -286,6 +325,10 @@ void NodeSchedule::r_set_ode_steps(std::vector<double> times,
   ode_steps.reserve(times.size());
   for (size_t i = 0; i < times.size(); ++i) {
     ode_steps.push_back({times[i], sizes[i]});
+    if (!input_slopes.empty() && !input_slopes[i].empty()) {
+      ode_steps.back().subsystem =
+        odelia::ode::subsystem_substeps{input_slopes[i], substep_ends[i]};
+    }
   }
   if (!util::is_finite(max_time)) {
     max_time = ode_steps.back().time;

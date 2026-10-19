@@ -328,6 +328,8 @@ NodeSchedule:
     max_time: {type: double, access: member, name_cpp: get_max_time, name_cpp_set: r_set_max_time}
     ode_times: {type: "std::vector<double>", access: member, name_cpp: r_ode_times}
     ode_step_sizes: {type: "std::vector<double>", access: member, name_cpp: r_ode_step_sizes}
+    ode_soil_input_slopes: {type: "std::vector<std::vector<double> >", access: member, name_cpp: r_ode_soil_input_slopes}
+    ode_soil_substep_ends: {type: "std::vector<std::vector<double> >", access: member, name_cpp: r_ode_soil_substep_ends}
     using_ode_steps: {type: bool, access: member, name_cpp: using_ode_steps}
     all_times: {type: SEXP, access: member, name_cpp: r_all_times, name_cpp_set: r_set_all_times}
   methods:
@@ -340,7 +342,7 @@ NodeSchedule:
     set_ode_steps:
       return_type: void
       name_cpp: r_set_ode_steps
-      args: [times: "std::vector<double>", sizes: "std::vector<double>"]
+      args: [times: "std::vector<double>", sizes: "std::vector<double>", input_slopes: "std::vector<std::vector<double> >", substep_ends: "std::vector<std::vector<double> >"]
     clear_ode_steps:
       return_type: void
       name_cpp: r_clear_ode_steps
@@ -388,6 +390,7 @@ Control:
     - ode_tol_abs: double
     - ode_a_y: double
     - ode_a_dydt: double
+    - ode_soil_substep: bool
     - fixed_time_step: double
     - schedule_nsteps: size_t
     - schedule_eps: double
@@ -609,6 +612,8 @@ Parameters:
     - node_schedule_times: "std::vector<std::vector<double> >"
     - ode_times: "std::vector<double>"
     - ode_step_sizes: "std::vector<double>"
+    - ode_soil_input_slopes: "std::vector<std::vector<double> >"
+    - ode_soil_substep_ends: "std::vector<std::vector<double> >"
     - initial_state: "std::vector<double>"
     - n_initial_cohorts: "std::vector<size_t>"
     - initial_node_times: "std::vector<double>"
@@ -923,6 +928,16 @@ SCM:
       type: "std::vector<double>"
       access: member
       name_cpp: r_ode_step_sizes
+    # Each step's record of substepping the soil: its input slopes and substep
+    # ends.
+    ode_soil_input_slopes:
+      type: "std::vector<std::vector<double> >"
+      access: member
+      name_cpp: r_ode_soil_input_slopes
+    ode_soil_substep_ends:
+      type: "std::vector<std::vector<double> >"
+      access: member
+      name_cpp: r_ode_soil_substep_ends
     # Collection toggles (bound directly to the public members)
     collect: {type: bool, access: field}
     collect_refinement_errors: {type: bool, access: field}

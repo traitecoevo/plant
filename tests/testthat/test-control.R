@@ -15,6 +15,8 @@ test_that("Defaults", {
     ode_step_size_min = 1e-6,
     ode_tol_abs = 1e-4,
     ode_tol_rel = 1e-4,
+    # Only a step across a knot of the rain substeps the soil.
+    ode_soil_substep = FALSE,
     fixed_time_step = 0.0,
 
     function_integration_rule = 21, # size_t so not int

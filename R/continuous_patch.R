@@ -326,6 +326,8 @@ fixed_point_fitness <- function(scm, p, traits, hyperpar = param_hyperpar(p),
   pm$initial_time <- 0
   pm$ode_times <- numeric(0)
   pm$ode_step_sizes <- numeric(0)
+  pm$ode_soil_input_slopes <- list()
+  pm$ode_soil_substep_ends <- list()
   run_held <- function(years) {
     pm$max_patch_lifetime <- years
     scm$run_mutant_held(pm)
