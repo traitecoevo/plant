@@ -1226,8 +1226,8 @@ OdeRunner <- function(T) {
       clear_times = function(species_index) {
         NodeSchedule__clear_times(self, species_index)
       },
-      set_ode_steps = function(times, sizes) {
-        NodeSchedule__set_ode_steps(self, times, sizes)
+      set_ode_steps = function(times, sizes, input_slopes, substep_ends) {
+        NodeSchedule__set_ode_steps(self, times, sizes, input_slopes, substep_ends)
       },
       clear_ode_steps = function() {
         NodeSchedule__clear_ode_steps(self)
@@ -1295,6 +1295,20 @@ OdeRunner <- function(T) {
           NodeSchedule__ode_step_sizes__get(self)
         } else {
           stop("NodeSchedule$ode_step_sizes is read-only")
+        }
+      },
+      ode_soil_input_slopes = function(value) {
+        if (missing(value)) {
+          NodeSchedule__ode_soil_input_slopes__get(self)
+        } else {
+          stop("NodeSchedule$ode_soil_input_slopes is read-only")
+        }
+      },
+      ode_soil_substep_ends = function(value) {
+        if (missing(value)) {
+          NodeSchedule__ode_soil_substep_ends__get(self)
+        } else {
+          stop("NodeSchedule$ode_soil_substep_ends is read-only")
         }
       },
       using_ode_steps = function(value) {
@@ -4795,6 +4809,20 @@ SCM <- function(T, E) {
           stop("SCM<FF16,FF16_Env>$ode_step_sizes is read-only")
         }
       },
+      ode_soil_input_slopes = function(value) {
+        if (missing(value)) {
+          SCM___FF16__FF16_Env__ode_soil_input_slopes__get(self)
+        } else {
+          stop("SCM<FF16,FF16_Env>$ode_soil_input_slopes is read-only")
+        }
+      },
+      ode_soil_substep_ends = function(value) {
+        if (missing(value)) {
+          SCM___FF16__FF16_Env__ode_soil_substep_ends__get(self)
+        } else {
+          stop("SCM<FF16,FF16_Env>$ode_soil_substep_ends is read-only")
+        }
+      },
       collect = function(value) {
         if (missing(value)) {
           SCM___FF16__FF16_Env__collect__get(self)
@@ -4974,6 +5002,20 @@ SCM <- function(T, E) {
           stop("SCM<TF24,TF24_Env>$ode_step_sizes is read-only")
         }
       },
+      ode_soil_input_slopes = function(value) {
+        if (missing(value)) {
+          SCM___TF24__TF24_Env__ode_soil_input_slopes__get(self)
+        } else {
+          stop("SCM<TF24,TF24_Env>$ode_soil_input_slopes is read-only")
+        }
+      },
+      ode_soil_substep_ends = function(value) {
+        if (missing(value)) {
+          SCM___TF24__TF24_Env__ode_soil_substep_ends__get(self)
+        } else {
+          stop("SCM<TF24,TF24_Env>$ode_soil_substep_ends is read-only")
+        }
+      },
       collect = function(value) {
         if (missing(value)) {
           SCM___TF24__TF24_Env__collect__get(self)
@@ -5151,6 +5193,20 @@ SCM <- function(T, E) {
           SCM___TF24f__TF24_Env__ode_step_sizes__get(self)
         } else {
           stop("SCM<TF24f,TF24_Env>$ode_step_sizes is read-only")
+        }
+      },
+      ode_soil_input_slopes = function(value) {
+        if (missing(value)) {
+          SCM___TF24f__TF24_Env__ode_soil_input_slopes__get(self)
+        } else {
+          stop("SCM<TF24f,TF24_Env>$ode_soil_input_slopes is read-only")
+        }
+      },
+      ode_soil_substep_ends = function(value) {
+        if (missing(value)) {
+          SCM___TF24f__TF24_Env__ode_soil_substep_ends__get(self)
+        } else {
+          stop("SCM<TF24f,TF24_Env>$ode_soil_substep_ends is read-only")
         }
       },
       collect = function(value) {
@@ -5509,6 +5565,20 @@ SCM <- function(T, E) {
           SCM___K93__K93_Env__ode_step_sizes__get(self)
         } else {
           stop("SCM<K93,K93_Env>$ode_step_sizes is read-only")
+        }
+      },
+      ode_soil_input_slopes = function(value) {
+        if (missing(value)) {
+          SCM___K93__K93_Env__ode_soil_input_slopes__get(self)
+        } else {
+          stop("SCM<K93,K93_Env>$ode_soil_input_slopes is read-only")
+        }
+      },
+      ode_soil_substep_ends = function(value) {
+        if (missing(value)) {
+          SCM___K93__K93_Env__ode_soil_substep_ends__get(self)
+        } else {
+          stop("SCM<K93,K93_Env>$ode_soil_substep_ends is read-only")
         }
       },
       collect = function(value) {

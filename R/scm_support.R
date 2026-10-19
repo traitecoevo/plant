@@ -57,9 +57,10 @@ scm_base_parameters <- function(type = NA, env = environment_type(type)) {
 ##' @param refine_schedule Should the node-introduction schedule be adaptively
 ##'   refined before/while running (using \code{schedule_eps} and
 ##'   \code{schedule_nsteps} from \code{ctrl})? Refinement records the ODE
-##'   schedule its final run took into \code{p$ode_times} and
-##'   \code{p$ode_step_sizes}, so a later run of those parameters replays it
-##'   exactly rather than choosing its own steps again.
+##'   schedule its final run took into \code{p$ode_times},
+##'   \code{p$ode_step_sizes}, \code{p$ode_soil_input_slopes} and
+##'   \code{p$ode_soil_substep_ends}, so a later run of those parameters replays
+##'   it exactly rather than choosing its own steps again.
 ##' @param record_trajectory Should the run keep the state at every accepted
 ##'   step? A gradient sweeps those states and cannot recover them from a
 ##'   finished run, so a run that did not keep them is repeated -- one whole
@@ -95,9 +96,9 @@ run_scm <- function(p, env = NULL,
     env <- Environment(types[[1]])
 
   # An ODE schedule carried by the parameters is taken, because a schedule is
-  # there to be used: p$ode_times with p$ode_step_sizes replays a recorded run
-  # exactly, and p$ode_times alone stops at a grid the caller chose. To integrate
-  # freely, carry neither.
+  # there to be used: p$ode_times with p$ode_step_sizes and the soil's records
+  # replays a recorded run exactly, and p$ode_times alone stops at a grid the
+  # caller chose. To integrate freely, carry neither.
 
   ## No events supplied: the schedule comes from p$node_schedule_times, as it
   ## did before events existed. An empty Events object is how that is signalled

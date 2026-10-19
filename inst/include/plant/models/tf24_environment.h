@@ -458,7 +458,7 @@ public:
       vars.states[i] = S(odelia::util::to_passive(src.vars.states[i]));
     }
     water_flux.assign(src.water_flux.size(), S(0.0));
-    resource_uptake.assign(src.resource_uptake.size(), 0.0);
+    resource_uptake.assign(src.resource_uptake.size(), S(0.0));
     z = src.z;
     z_mid = src.z_mid;
     dz = src.dz;
@@ -500,10 +500,9 @@ public:
 
   // The state the solver integrates, and the uptake compute_rates received.
   Internals<S> vars;
-  // Double: this is the uptake read back out through the R-facing aux interface,
-  // never an input to a rate, so holding it at the working scalar was a slot per
-  // layer per stage for a reading.
-  std::vector<double> resource_uptake;
+  // At the working scalar: a step that substeps the soil reads it as the
+  // layers' inputs, and the sweep differentiates through them.
+  std::vector<S> resource_uptake;
 
   // TODO: should we use auxilliary in internals
   std::vector<S> water_flux;
@@ -576,11 +575,11 @@ public:
   ResourceSpline<S> light_availability;
 
   // Every active value this environment holds: the integrated state and its
-  // rates, the per-layer flux, the potentials derived from the state, and the
-  // light field's knot values and slopes.
+  // rates, the per-layer flux and uptake, the potentials derived from the state,
+  // and the light field's knot values and slopes.
   template <class F>
   void for_each_active(F&& f) {
-    odelia::ode::visit_active(f, vars, water_flux, psi_soil_,
+    odelia::ode::visit_active(f, vars, water_flux, resource_uptake, psi_soil_,
                               light_availability);
   }
 
@@ -744,7 +743,7 @@ public:
                   &water_flux, [this](int site) { note_clamp(site); });
     S total_resource_depletion = 0.0;
     for (size_t i = 0; i < soil_number_of_depths; i++) {
-      resource_uptake[i] = odelia::util::to_passive(resource_depletion[i]);
+      resource_uptake[i] = resource_depletion[i];
       total_resource_depletion += resource_depletion[i];
     }
       vars.set_rate(soil_number_of_depths, rainfall);
@@ -818,6 +817,11 @@ public:
       water_input = k;
     }
     return infiltration;
+  }
+
+  // The times in (from, to) where the rain changes form: the soil's knots.
+  std::vector<double> rainfall_knots(double from, double to) const {
+    return extrinsic_drivers.knots("rainfall", from, to);
   }
 
   // The layers' rates at `time_` under a given uptake u from each, as
