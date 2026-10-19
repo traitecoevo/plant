@@ -578,20 +578,8 @@ public:
     // remedy is not to spline an intermittent series; run
     // `check_driver_interpolation()` on any such driver, which reports the
     // undershoot area and warns.
-    const double rainfall_raw = extrinsic_drivers.evaluate("rainfall", time);
-    if (rainfall_raw < 0.0) {
-      note_clamp(CLAMP_RAINFALL);
-    }
-    double rainfall = std::max(0.0, rainfall_raw);
-    const double soil_moist_sat_0 =
-      soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, 0);
-    const S excess = S(1) - a_infil * pow(vars.state(0) / soil_moist_sat_0, b_infil);
-    // Counted: where the top layer is wet enough that this goes negative, the
-    // infiltrated fraction stops reading that layer's state at all.
-    if (excess < S(0.0)) {
-      note_clamp(CLAMP_INFILTRATION);
-    }
-    S infiltration = rainfall * max(S(0.0), excess);
+    const double rainfall = rainfall_floored();
+    const S infiltration = infiltration_from(rainfall, vars.state(0));
     S total_resource_depletion = 0.0;
 
 
@@ -613,28 +601,8 @@ public:
       water_flux[i] = soil_K_from_soil_theta(vars.state(i), i);
       // this function does runoff
 
-      // Positivity guard (issue #485): a layer at or below the residual
-      // moisture theta_r is not dried further (only rewetting is allowed). This
-      // keeps the explicit fixed-step solver from driving a drought-stressed
-      // layer to theta <= 0, where the retention curve psi_from_soil_moist and
-      // the conductivity curve soil_K_from_soil_theta go non-finite. Wetter
-      // layers are unaffected, so non-drought runs are unchanged.
-      const S theta = vars.state(i);
-      S rate = (water_input - water_flux[i] - resource_depletion[i]) / dz[i];
-      // Positivity guard (issue #485), hardened for #549: at/below the residual
-      // moisture a layer must not be dried further. The original `rate < 0.0`
-      // test let a *non-finite* rate through, because `NaN < 0.0` is false in
-      // IEEE 754 -- a NaN soil_consumption_ (from the retention curve's enormous
-      // psi_soil near theta_r) then wrote straight into the soil state. `!(rate
-      // > 0.0)` is true for NaN and for rate <= 0, so only genuine rewetting is
-      // allowed and NaN/negative rates are clamped to 0.
-      if (theta <= soil_moist_residual && !(rate > 0.0)) {
-        // Counted: a layer held here reads no uptake and no flux, so every route
-        // from a trait to this layer's state is cut for as long as it holds.
-        note_clamp(CLAMP_SOIL_POSITIVITY);
-        rate = 0.0;
-      }
-      vars.set_rate(i, rate);
+      vars.set_rate(i, soil_layer_rate(water_input, water_flux[i],
+                                       resource_depletion[i], vars.state(i), i));
       resource_uptake[i] = odelia::util::to_passive(resource_depletion[i]);
       total_resource_depletion += resource_depletion[i];
     }
@@ -647,6 +615,83 @@ public:
       // error norm -- see the note on aux_num.
       vars.set_rate(soil_number_of_depths + 4, 0.0);
 
+  }
+
+  // The three pieces of the water balance a column is made of, as const
+  // members so that a column OTHER than this environment's -- TF24w's private
+  // root zones (#681) -- integrates the same physics. compute_rates() above is
+  // written in terms of them, and the expressions are the ones it carried
+  // before they were factored out, verbatim, so the environment's own column
+  // is bit-identical (the default baseline and the water-budget test hold).
+
+  // The rainfall driver at `time`, floored at zero. Drivers are interpolated
+  // with a cubic spline, which overshoots badly on intermittent forcing: a
+  // realistic daily series with a ~10% wet-day fraction evaluates negative at
+  // ~45% of points, reaching -5.7 m yr^-1. Unfloored, negative rainfall gives
+  // negative infiltration and a negative layer-0 rate, which is unphysical
+  // (rain drying the soil) and fails in two different ways depending on
+  // wetness: above residual moisture the water really is removed, while
+  // at/below residual the positivity guard clamps the rate to zero, so the
+  // removal is recorded in `sum_rainfall` but never applied and the water
+  // budget stops closing. Drylands sit at residual for much of the year, so
+  // that second case is the common one in the intended application.
+  //
+  // Flooring removes both. It is a bound on the sign, NOT a correction to the
+  // interpolation: the spline conserves the integral exactly (undershoot is
+  // compensated by overshoot), so discarding the negative lobes raises total
+  // rainfall by the undershoot area -- ~7% for the series above. The real
+  // remedy is not to spline an intermittent series; run
+  // `check_driver_interpolation()` on any such driver, which reports the
+  // undershoot area and warns.
+  double rainfall_floored() const {
+    const double rainfall_raw = extrinsic_drivers.evaluate("rainfall", time);
+    if (rainfall_raw < 0.0) {
+      note_clamp(CLAMP_RAINFALL);
+    }
+    return std::max(0.0, rainfall_raw);
+  }
+
+  // Infiltration (m yr^-1) of `rainfall` through a top layer at `theta_0`:
+  // rainfall reduced by a saturation-excess runoff term controlled by
+  // a_infil/b_infil.
+  S infiltration_from(double rainfall, const S& theta_0) const {
+    using std::max;
+    using std::pow;
+    const double soil_moist_sat_0 =
+      soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, 0);
+    const S excess = S(1) - a_infil * pow(theta_0 / soil_moist_sat_0, b_infil);
+    // Counted: where the top layer is wet enough that this goes negative, the
+    // infiltrated fraction stops reading that layer's state at all.
+    if (excess < S(0.0)) {
+      note_clamp(CLAMP_INFILTRATION);
+    }
+    return rainfall * max(S(0.0), excess);
+  }
+
+  // One layer's balance: (in - out - uptake) / thickness, in theta per year,
+  // with the positivity guard.
+  //
+  // Positivity guard (issue #485): a layer at or below the residual moisture
+  // theta_r is not dried further (only rewetting is allowed). This keeps the
+  // explicit fixed-step solver from driving a drought-stressed layer to
+  // theta <= 0, where the retention curve psi_from_soil_moist and the
+  // conductivity curve soil_K_from_soil_theta go non-finite. Wetter layers are
+  // unaffected, so non-drought runs are unchanged. Hardened for #549: the
+  // original `rate < 0.0` test let a *non-finite* rate through, because
+  // `NaN < 0.0` is false in IEEE 754 -- a NaN soil_consumption_ (from the
+  // retention curve's enormous psi_soil near theta_r) then wrote straight into
+  // the soil state. `!(rate > 0.0)` is true for NaN and for rate <= 0, so only
+  // genuine rewetting is allowed and NaN/negative rates are clamped to 0.
+  S soil_layer_rate(const S& water_input, const S& water_out, const S& uptake,
+                    const S& theta, size_t i) const {
+    S rate = (water_input - water_out - uptake) / dz[i];
+    if (theta <= soil_moist_residual && !(rate > 0.0)) {
+      // Counted: a layer held here reads no uptake and no flux, so every route
+      // from a trait to this layer's state is cut for as long as it holds.
+      note_clamp(CLAMP_SOIL_POSITIVITY);
+      rate = 0.0;
+    }
+    return rate;
   }
 
   // calculate K from K_sat based on theta
