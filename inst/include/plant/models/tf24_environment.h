@@ -342,6 +342,10 @@ public:
     b_infil = src.b_infil;
     soil_moist_residual = src.soil_moist_residual;
     soil_psi_max_ = src.soil_psi_max_;
+    water_mixing_rate = src.water_mixing_rate;
+    private_water_mean_ = src.private_water_mean_;
+    private_water_newborn_ = src.private_water_newborn_;
+    private_water_cover_ = src.private_water_cover_;
     // Shared, not copied, for the reason the strategy's is: this copy is the one
     // the sweep runs on and it is discarded afterwards.
     clamps.differentiated = src.clamps.differentiated;
@@ -363,6 +367,79 @@ public:
 
   // The state the solver integrates, and the uptake compute_rates received.
   Internals<S> vars;
+
+  // * Private root-zone water (TF24w, #681)
+  //
+  // Lateral exchange between a plant's root-zone column and its surroundings,
+  // as a relaxation rate toward the area-weighted patch mean [yr^-1]. A soil
+  // property rather than a plant's, which is why it lives beside K_sat: one
+  // number per patch, 0 is fully private, large is pooled (the TF24 limit).
+  // Read by TF24w and by Patch's exchange pass; TF24 reads nothing from it.
+  double water_mixing_rate = 0.0;
+  // The aggregates the exchange pass computes from every column before the
+  // species are rated, and that every column then reads: the area-weighted
+  // mean water content per layer, the crown cover (sum of crown area per m2 of
+  // patch) and the bare fraction max(0, 1 - cover). With no plants the mean is
+  // this column, so a newborn seeded from it starts where the soil is.
+  std::vector<double> private_water_mean_;
+  // What a newborn's column starts at: the content of the ground it takes over,
+  // which is the bare column while ground is open and the private columns' mean
+  // once crowns cover it. Seeding at that content is what keeps an introduction
+  // from making or losing water.
+  std::vector<double> private_water_newborn_;
+  double private_water_cover_ = 0.0;
+  void set_private_water_aggregates(const std::vector<double>& mean,
+                                    const std::vector<double>& newborn,
+                                    double cover) {
+    private_water_mean_ = mean;
+    private_water_newborn_ = newborn;
+    private_water_cover_ = cover;
+  }
+  double private_water_newborn(size_t layer) const {
+    if (private_water_newborn_.size() != static_cast<size_t>(soil_number_of_depths)) {
+      return odelia::util::to_passive(vars.state(layer));
+    }
+    return private_water_newborn_[layer];
+  }
+  double private_water_mean(size_t layer) const {
+    if (private_water_mean_.size() != static_cast<size_t>(soil_number_of_depths)) {
+      return odelia::util::to_passive(vars.state(layer));
+    }
+    return private_water_mean_[layer];
+  }
+  double private_water_cover() const { return private_water_cover_; }
+  double private_water_bare() const { return std::max(0.0, 1.0 - private_water_cover_); }
+  // The exchange pass adds the mixing and land-transfer terms to this column's
+  // rates after compute_rates has set its own, and overwrites the diagnostic
+  // accumulators with area-weighted totals over every column.
+  void add_to_rate(size_t layer, const S& v) {
+    vars.set_rate(layer, vars.rate(layer) + v);
+  }
+  // k: 0 rainfall, 1 infiltration, 2 drainage, 3 resource depletion, 4 pulse runoff.
+  void set_accumulator_rate(size_t k, const S& v) {
+    vars.set_rate(soil_number_of_depths + k, v);
+  }
+  const S& accumulator_rate(size_t k) const {
+    return vars.rate(soil_number_of_depths + k);
+  }
+  // A pulse applied to every column: this column's add_water_pulse_to_layer has
+  // already booked its own accepted depth and excess as if it were the whole
+  // patch, so the pass corrects the two accumulators by the area-weighted
+  // totals minus what was booked.
+  void adjust_pulse_accumulators(double d_infiltration, double d_runoff) {
+    const size_t n = soil_number_of_depths;
+    vars.set_state(n + 1, vars.state(n + 1) + S(d_infiltration));
+    vars.set_state(n + 4, vars.state(n + 4) + S(d_runoff));
+  }
+  // What a layer at `theta` can still accept, in metres of water: the cap
+  // add_water_pulse_to_layer applies, factored out so a private column applies
+  // the same one.
+  double pulse_capacity(const S& theta, size_t layer) const {
+    const S sat = S(
+      soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, layer));
+    const S capacity_raw = (sat - theta) * dz[layer];
+    return std::max(0.0, odelia::util::to_passive(capacity_raw));
+  }
   // Double: this is the uptake read back out through the R-facing aux interface,
   // never an input to a rate, so holding it at the working scalar was a slot per
   // layer per stage for a reading.
@@ -578,20 +655,8 @@ public:
     // remedy is not to spline an intermittent series; run
     // `check_driver_interpolation()` on any such driver, which reports the
     // undershoot area and warns.
-    const double rainfall_raw = extrinsic_drivers.evaluate("rainfall", time);
-    if (rainfall_raw < 0.0) {
-      note_clamp(CLAMP_RAINFALL);
-    }
-    double rainfall = std::max(0.0, rainfall_raw);
-    const double soil_moist_sat_0 =
-      soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, 0);
-    const S excess = S(1) - a_infil * pow(vars.state(0) / soil_moist_sat_0, b_infil);
-    // Counted: where the top layer is wet enough that this goes negative, the
-    // infiltrated fraction stops reading that layer's state at all.
-    if (excess < S(0.0)) {
-      note_clamp(CLAMP_INFILTRATION);
-    }
-    S infiltration = rainfall * max(S(0.0), excess);
+    const double rainfall = rainfall_floored();
+    const S infiltration = infiltration_from(rainfall, vars.state(0));
     S total_resource_depletion = 0.0;
 
 
@@ -613,28 +678,8 @@ public:
       water_flux[i] = soil_K_from_soil_theta(vars.state(i), i);
       // this function does runoff
 
-      // Positivity guard (issue #485): a layer at or below the residual
-      // moisture theta_r is not dried further (only rewetting is allowed). This
-      // keeps the explicit fixed-step solver from driving a drought-stressed
-      // layer to theta <= 0, where the retention curve psi_from_soil_moist and
-      // the conductivity curve soil_K_from_soil_theta go non-finite. Wetter
-      // layers are unaffected, so non-drought runs are unchanged.
-      const S theta = vars.state(i);
-      S rate = (water_input - water_flux[i] - resource_depletion[i]) / dz[i];
-      // Positivity guard (issue #485), hardened for #549: at/below the residual
-      // moisture a layer must not be dried further. The original `rate < 0.0`
-      // test let a *non-finite* rate through, because `NaN < 0.0` is false in
-      // IEEE 754 -- a NaN soil_consumption_ (from the retention curve's enormous
-      // psi_soil near theta_r) then wrote straight into the soil state. `!(rate
-      // > 0.0)` is true for NaN and for rate <= 0, so only genuine rewetting is
-      // allowed and NaN/negative rates are clamped to 0.
-      if (theta <= soil_moist_residual && !(rate > 0.0)) {
-        // Counted: a layer held here reads no uptake and no flux, so every route
-        // from a trait to this layer's state is cut for as long as it holds.
-        note_clamp(CLAMP_SOIL_POSITIVITY);
-        rate = 0.0;
-      }
-      vars.set_rate(i, rate);
+      vars.set_rate(i, soil_layer_rate(water_input, water_flux[i],
+                                       resource_depletion[i], vars.state(i), i));
       resource_uptake[i] = odelia::util::to_passive(resource_depletion[i]);
       total_resource_depletion += resource_depletion[i];
     }
@@ -647,6 +692,83 @@ public:
       // error norm -- see the note on aux_num.
       vars.set_rate(soil_number_of_depths + 4, 0.0);
 
+  }
+
+  // The three pieces of the water balance a column is made of, as const
+  // members so that a column OTHER than this environment's -- TF24w's private
+  // root zones (#681) -- integrates the same physics. compute_rates() above is
+  // written in terms of them, and the expressions are the ones it carried
+  // before they were factored out, verbatim, so the environment's own column
+  // is bit-identical (the default baseline and the water-budget test hold).
+
+  // The rainfall driver at `time`, floored at zero. Drivers are interpolated
+  // with a cubic spline, which overshoots badly on intermittent forcing: a
+  // realistic daily series with a ~10% wet-day fraction evaluates negative at
+  // ~45% of points, reaching -5.7 m yr^-1. Unfloored, negative rainfall gives
+  // negative infiltration and a negative layer-0 rate, which is unphysical
+  // (rain drying the soil) and fails in two different ways depending on
+  // wetness: above residual moisture the water really is removed, while
+  // at/below residual the positivity guard clamps the rate to zero, so the
+  // removal is recorded in `sum_rainfall` but never applied and the water
+  // budget stops closing. Drylands sit at residual for much of the year, so
+  // that second case is the common one in the intended application.
+  //
+  // Flooring removes both. It is a bound on the sign, NOT a correction to the
+  // interpolation: the spline conserves the integral exactly (undershoot is
+  // compensated by overshoot), so discarding the negative lobes raises total
+  // rainfall by the undershoot area -- ~7% for the series above. The real
+  // remedy is not to spline an intermittent series; run
+  // `check_driver_interpolation()` on any such driver, which reports the
+  // undershoot area and warns.
+  double rainfall_floored() const {
+    const double rainfall_raw = extrinsic_drivers.evaluate("rainfall", time);
+    if (rainfall_raw < 0.0) {
+      note_clamp(CLAMP_RAINFALL);
+    }
+    return std::max(0.0, rainfall_raw);
+  }
+
+  // Infiltration (m yr^-1) of `rainfall` through a top layer at `theta_0`:
+  // rainfall reduced by a saturation-excess runoff term controlled by
+  // a_infil/b_infil.
+  S infiltration_from(double rainfall, const S& theta_0) const {
+    using std::max;
+    using std::pow;
+    const double soil_moist_sat_0 =
+      soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, 0);
+    const S excess = S(1) - a_infil * pow(theta_0 / soil_moist_sat_0, b_infil);
+    // Counted: where the top layer is wet enough that this goes negative, the
+    // infiltrated fraction stops reading that layer's state at all.
+    if (excess < S(0.0)) {
+      note_clamp(CLAMP_INFILTRATION);
+    }
+    return rainfall * max(S(0.0), excess);
+  }
+
+  // One layer's balance: (in - out - uptake) / thickness, in theta per year,
+  // with the positivity guard.
+  //
+  // Positivity guard (issue #485): a layer at or below the residual moisture
+  // theta_r is not dried further (only rewetting is allowed). This keeps the
+  // explicit fixed-step solver from driving a drought-stressed layer to
+  // theta <= 0, where the retention curve psi_from_soil_moist and the
+  // conductivity curve soil_K_from_soil_theta go non-finite. Wetter layers are
+  // unaffected, so non-drought runs are unchanged. Hardened for #549: the
+  // original `rate < 0.0` test let a *non-finite* rate through, because
+  // `NaN < 0.0` is false in IEEE 754 -- a NaN soil_consumption_ (from the
+  // retention curve's enormous psi_soil near theta_r) then wrote straight into
+  // the soil state. `!(rate > 0.0)` is true for NaN and for rate <= 0, so only
+  // genuine rewetting is allowed and NaN/negative rates are clamped to 0.
+  S soil_layer_rate(const S& water_input, const S& water_out, const S& uptake,
+                    const S& theta, size_t i) const {
+    S rate = (water_input - water_out - uptake) / dz[i];
+    if (theta <= soil_moist_residual && !(rate > 0.0)) {
+      // Counted: a layer held here reads no uptake and no flux, so every route
+      // from a trait to this layer's state is cut for as long as it holds.
+      note_clamp(CLAMP_SOIL_POSITIVITY);
+      rate = 0.0;
+    }
+    return rate;
   }
 
   // calculate K from K_sat based on theta
@@ -826,11 +948,7 @@ public:
     // ARGUMENT and the report, which is why they are read passive here rather
     // than the state being narrowed.
     const S theta = vars.state(layer);
-    const S sat = S(
-      soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, layer));
-    const S capacity_raw = (sat - theta) * dz[layer];
-    const double capacity =
-        std::max(0.0, odelia::util::to_passive(capacity_raw));
+    const double capacity = pulse_capacity(theta, layer);
     const double accepted = std::min(depth, capacity);
     const double excess = depth - accepted;
 

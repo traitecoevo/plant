@@ -1,7 +1,7 @@
 # Scientific model versioning (see R/strategy_support.R, src/strategy_version.cpp,
 # and the `scientific_version` constant in inst/include/plant/models/*_strategy.h).
 
-models <- c("FF16", "K93", "TF24", "TF24f")
+models <- c("FF16", "K93", "TF24", "TF24f", "TF24w")
 
 test_that("model_version() returns a valid version string for every model", {
   for (type in models) {
@@ -13,12 +13,14 @@ test_that("model_version() returns a valid version string for every model", {
   }
 })
 
-test_that("TF24f carries a compound version that tracks TF24", {
-  expect_match(model_version("TF24f"), "\\.")
-  expect_identical(
-    sub("\\..*$", "", model_version("TF24f")),
-    model_version("TF24")
-  )
+test_that("TF24f and TF24w carry compound versions that track TF24", {
+  for (type in c("TF24f", "TF24w")) {
+    expect_match(model_version(type), "\\.")
+    expect_identical(
+      sub("\\..*$", "", model_version(type)),
+      model_version("TF24")
+    )
+  }
 })
 
 test_that("model_id() is 'Model@vN' and agrees with model_version()", {

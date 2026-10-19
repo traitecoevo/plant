@@ -122,6 +122,12 @@ public:
 
   // Hold one state where it is: its rate set to zero after compute_rates().
   void hold_state(int i) { vars.set_rate(i, value_type(0.0)); }
+  // Add to one state's rate after compute_rates(): what a term coupling this
+  // individual to the rest of the patch (TF24w's land transfer, #681) uses,
+  // because the strategy's own rates are a function of its state alone.
+  void add_to_rate(int i, const value_type& v) {
+    vars.set_rate(i, vars.rate(i) + v);
+  }
 
   void compute_rates(const environment_type& environment) {
     if (vars.resource_size() != environment.n_resources()) {

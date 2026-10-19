@@ -193,6 +193,10 @@ void StochasticPatch<T,E>::compute_environment() {
 
 template <typename T, typename E>
 void StochasticPatch<T,E>::compute_rates() {
+  if constexpr (HasPrivateWater<T>) {
+    util::stop("TF24w's private root-zone water is not implemented for the "
+               "stochastic patch (#681)");
+  }
   for (size_t i = 0; i < size(); ++i) {
     species[i].compute_rates(environment);
   }

@@ -78,6 +78,7 @@ test_that("Defaults", {
     L_tip = 0.02,
     recruitment_decay = 0,
     use_energy_balance = 0,
+    L_crown = 2.0,
     d = 0.05)
 
   # Top-level strategy fields: the pars sub-object plus infrastructure.

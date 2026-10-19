@@ -603,6 +603,9 @@ private:
   // value can propagate into competition, resource uptake, or physiology and
   // surface as an opaque downstream error.
   void check_finite_ode_state() const;
+  // The private-water passes (#681); reached only for HasPrivateWater<T>.
+  void private_water_aggregates();
+  void private_water_exchange(const std::vector<value_type>& resource_depletion);
   // The top layer rests on density only ever falling, which holds on the
   // birth-date coordinate alone: on the height coordinate the transport term
   // can raise it. Refused at construction, where the control is first seen.
@@ -610,6 +613,17 @@ private:
     // A negative or NaN epsilon would read as "off" below, silently.
     if (!(control.absorb_epsilon >= 0.0)) {
       util::stop("control$absorb_epsilon must be zero (off) or in (0, 0.5)");
+    }
+    // A private root-zone column feeds back into growth through the leaf's
+    // supply, and on the height coordinate the density rate's growth-gradient
+    // term holds every other state fixed while it perturbs height (#516), which
+    // is then the wrong derivative. The birth-date coordinate has no such term.
+    if constexpr (HasPrivateWater<T>) {
+      if (!control.node_density_in_birth_date) {
+        util::stop("TF24w's private root-zone water needs the birth-date "
+                   "size-density coordinate (control$node_density_in_birth_date "
+                   "= TRUE)");
+      }
     }
     if (control.absorb_epsilon > 0.0) {
       if (!control.node_density_in_birth_date) {
@@ -1505,6 +1519,12 @@ void Patch<T,E>::compute_rates() {
   double time_ = env.time;
 
   double pr_patch_survival = survival_weighting->pr_survival(time_);
+  // The aggregates every private column reads -- the patch mean and the crown
+  // cover -- come from the columns' states, so they are formed before any column
+  // is rated (#681).
+  if constexpr (HasPrivateWater<T>) {
+    private_water_aggregates();
+  }
   for (size_t i = 0; i < size(); ++i) {
     const value_type birth_rate = species[i].strategy_ptr()->birth_rate_at(time_);
 
@@ -1526,8 +1546,214 @@ void Patch<T,E>::compute_rates() {
   }
   // A held field is exogenous: nothing the species take moves it.
   if (!held_field) {
-    env.compute_rates(resource_depletion);
+    if constexpr (HasPrivateWater<T>) {
+      // The uptake came out of each plant's own column in its compute_rates;
+      // the patch column is the bare ground and takes none. What couples the
+      // columns -- mixing, land transfer -- is added once every column has its
+      // own rates, below.
+      const std::vector<value_type> none(env.n_resources(), value_type(0.0));
+      env.compute_rates(none);
+      private_water_exchange(resource_depletion);
+    } else {
+      env.compute_rates(resource_depletion);
+    }
   }
+}
+
+// The two passes of private root-zone water (TF24w, #681). Every quantity here
+// is a share of the patch's ground: a column's share is its crown area per m2
+// of patch, divided by the cover where crowns overlap, and the bare ground is
+// what crowns leave. Shares sum to one, which is what makes both the mixing and
+// the land transfer below conserve water.
+//
+// Pass 1, before the columns are rated: the area-weighted mean water content per
+// layer and the cover, cached on the environment for every column to read.
+template <typename T, typename E>
+void Patch<T,E>::private_water_aggregates() {
+  using odelia::util::to_passive;
+  environment_type& env = environment;
+  const size_t n = env.n_resources();
+  std::vector<double> sum(n, 0.0);
+  double cover = 0.0;
+  for (auto& sp : species) {
+    const auto& st = *sp.strategy_ptr();
+    const int first = st.state_idx_water_first;
+    sp.for_each_water_column([&](const typename species_type::individual_type& ind,
+                                 double nw, double, int kind) {
+      if (!(nw > 0.0) || kind == 1) {
+        return;
+      }
+      const double share = nw * to_passive(st.crown_area(ind.area_leaf()));
+      cover += share;
+      for (size_t i = 0; i < n; ++i) {
+        sum[i] += share * to_passive(ind.state(first + static_cast<int>(i)));
+      }
+    });
+  }
+  const double scale = 1.0 / std::max(1.0, cover);
+  const double bare = std::max(0.0, 1.0 - cover);
+  std::vector<double> mean(n), newborn(n);
+  for (size_t i = 0; i < n; ++i) {
+    const double own = to_passive(env.vars.state(i));
+    mean[i] = sum[i] * scale + bare * own;
+    newborn[i] = cover < 1.0 ? own : (cover > 0.0 ? sum[i] / cover : own);
+  }
+  env.set_private_water_aggregates(mean, newborn, cover);
+}
+
+// Pass 2, after every column has its own rates: the terms that couple them.
+//
+// Land transfer. A column's share moves as its crown grows and its cohort dies,
+// and -- once the ground is covered -- as every other crown does the same:
+//   cover <= 1:  share' = share * g,  bare' = -sum(share')
+//   cover >  1:  share' = share * (g - cover'/cover),  bare' = 0
+// with g = A'/A - mu + w'/w: the crown's relative growth rate from the height
+// rate through the leaf-area allometry (crown area is leaf area over L_crown,
+// so the two have one relative rate), less the mortality rate, plus the growth
+// of the quadrature weight the youngest cohort and the boundary node carry
+// (Species::for_each_water_column). The two rates are what the species loop
+// just wrote. Land a shrinking share releases carries its water, and land a
+// growing share acquires arrives at the released land's mean content, so the
+// patch's water is unchanged by any re-tiling. The kink at cover = 1 is the
+// physics: expansion over bare ground is free, expansion into a neighbour is
+// not.
+//
+// Mixing. Every column relaxes toward the area-weighted mean at the
+// environment's water_mixing_rate; the private columns added their own term in
+// compute_rates, and the bare column's is added here.
+//
+// The accumulators the environment keeps (infiltration, drainage, uptake) are
+// overwritten with the area-weighted totals over every column, so a water
+// budget read off them still closes.
+template <typename T, typename E>
+void Patch<T,E>::private_water_exchange(const std::vector<value_type>& resource_depletion) {
+  using odelia::util::to_passive;
+  environment_type& env = environment;
+  const size_t n = env.n_resources();
+  const double cover = env.private_water_cover();
+  const double scale = 1.0 / std::max(1.0, cover);
+  const double bare = env.private_water_bare();
+  const double m = env.water_mixing_rate;
+
+  struct column {
+    typename species_type::individual_type* ind;
+    int first;
+    double share;
+    double growth;  // A'/A - mu
+    double share_dt;
+  };
+  std::vector<column> cols;
+  // The boundary node's uptake per m2 of patch, charged to the pool below.
+  std::vector<double> boundary_uptake(n, 0.0);
+  double infiltration = 0.0, drainage = 0.0, cover_dt = 0.0;
+  for (auto& sp : species) {
+    const auto& st = *sp.strategy_ptr();
+    sp.for_each_water_column([&](typename species_type::individual_type& ind,
+                                 double nw, double weight_growth, int kind) {
+      if (!(nw > 0.0)) {
+        return;
+      }
+      if (kind == 1) {
+        for (size_t i = 0; i < n; ++i) {
+          boundary_uptake[i] +=
+            nw * to_passive(ind.consumption_rate(static_cast<int>(i))) / area;
+        }
+        return;
+      }
+      const double area_leaf = to_passive(ind.area_leaf());
+      const double share = nw * to_passive(st.crown_area(ind.area_leaf())) * scale;
+      // A share's relative rate: the crown's growth, less mortality, plus the
+      // growth of the ground the quadrature assigns the cohort.
+      const double growth =
+        to_passive(ind.rate(HEIGHT_INDEX)) * to_passive(ind.darea_leaf_dheight()) /
+          area_leaf -
+        to_passive(ind.rate(MORTALITY_INDEX)) + weight_growth;
+      cols.push_back({&ind, st.state_idx_water_first, share, growth, 0.0});
+      cover_dt += share * growth;
+      infiltration += share * to_passive(ind.aux(st.aux_idx_water_infiltration));
+      drainage += share * to_passive(ind.aux(st.aux_idx_water_drainage));
+    });
+  }
+  // Share rates, and the bare ground's.
+  double bare_dt = 0.0;
+  for (column& c : cols) {
+    c.share_dt = cover > 1.0 ? c.share * (c.growth - cover_dt)
+                             : c.share * c.growth;
+    bare_dt -= c.share_dt;
+  }
+  if (cover > 1.0) {
+    bare_dt = 0.0;
+  }
+  // The released land and its water.
+  std::vector<double> released(n, 0.0);
+  double released_area = 0.0;
+  for (const column& c : cols) {
+    if (c.share_dt < 0.0) {
+      released_area -= c.share_dt;
+      for (size_t i = 0; i < n; ++i) {
+        released[i] -= c.share_dt * to_passive(c.ind->state(c.first + static_cast<int>(i)));
+      }
+    }
+  }
+  if (bare_dt < 0.0) {
+    released_area -= bare_dt;
+    for (size_t i = 0; i < n; ++i) {
+      released[i] -= bare_dt * to_passive(env.vars.state(i));
+    }
+  }
+  // Acquiring columns take land at the released land's mean content. With
+  // nothing released nothing is acquired (the shares sum to one), so the
+  // branch is not reached with a zero divisor.
+  if (released_area > 0.0) {
+    for (size_t i = 0; i < n; ++i) {
+      released[i] /= released_area;
+    }
+    for (const column& c : cols) {
+      if (c.share_dt > 0.0 && c.share > 0.0) {
+        const double rel = c.share_dt / c.share;
+        for (size_t i = 0; i < n; ++i) {
+          const int slot = c.first + static_cast<int>(i);
+          c.ind->add_to_rate(slot, value_type((released[i] - to_passive(c.ind->state(slot))) * rel));
+        }
+      }
+    }
+    // A bare fraction below 1e-6 is treated as none: the relaxation rate
+    // bare'/bare it would carry is unbounded there, and the water involved is
+    // not.
+    if (bare_dt > 0.0 && bare >= 1e-6) {
+      const double rel = bare_dt / bare;
+      for (size_t i = 0; i < n; ++i) {
+        env.add_to_rate(i, value_type((released[i] - to_passive(env.vars.state(i))) * rel));
+      }
+    }
+  }
+  // The bare column's mixing term; the private columns carry their own.
+  if (m > 0.0 && bare >= 1e-6) {
+    for (size_t i = 0; i < n; ++i) {
+      env.add_to_rate(i, value_type(m * (env.private_water_mean(i) - to_passive(env.vars.state(i)))));
+    }
+  }
+  // The boundary node's uptake, charged to every column alike per unit of
+  // ground: the shares sum to one, so exactly that depth leaves the patch.
+  for (size_t i = 0; i < n; ++i) {
+    if (boundary_uptake[i] != 0.0) {
+      const double charge = boundary_uptake[i] / env.dz[i];
+      for (const column& c : cols) {
+        c.ind->add_to_rate(c.first + static_cast<int>(i), value_type(-charge));
+      }
+      env.add_to_rate(i, value_type(-charge));
+    }
+  }
+  // Accumulators: area-weighted over every column. The environment's own
+  // compute_rates just wrote the bare column's infiltration and drainage into
+  // slots 1 and 2, as if it were the whole patch.
+  value_type uptake = 0.0;
+  for (size_t i = 0; i < n; ++i) {
+    uptake += resource_depletion[i];
+  }
+  env.set_accumulator_rate(1, value_type(bare * to_passive(env.accumulator_rate(1)) + infiltration));
+  env.set_accumulator_rate(2, value_type(bare * to_passive(env.accumulator_rate(2)) + drainage));
+  env.set_accumulator_rate(3, uptake);
 }
 
 // The whole light environment is rebuilt here, where only the knots below the
@@ -1678,8 +1904,44 @@ EventRecord Patch<T,E>::apply_event(const NodeScheduleEvent& event) {
                  " does not exist: this environment has " +
                  util::to_string(environment.n_resources()) + " resources");
     }
-    rec.applied = environment.add_resource_pulse(event.target_index,
-                                                 event.params.at(0));
+    if constexpr (HasPrivateWater<T>) {
+      // Every column takes the pulse, each capped at what its own layer can
+      // hold (#681). The environment's column books its own accepted depth and
+      // excess as though it were the whole patch; the accumulators are then
+      // corrected to the area-weighted totals, and the record reports those.
+      using odelia::util::to_passive;
+      private_water_aggregates();
+      const size_t layer = event.target_index;
+      const double depth = event.params.at(0);
+      const double scale = 1.0 / std::max(1.0, environment.private_water_cover());
+      const double bare = environment.private_water_bare();
+      double accepted_w = 0.0, excess_w = 0.0;
+      for (auto& sp : species) {
+        const auto& st = *sp.strategy_ptr();
+        const int slot = st.state_idx_water_first + static_cast<int>(layer);
+        sp.for_each_water_column([&](typename species_type::individual_type& ind,
+                                     double nw, double, int kind) {
+          if (kind == 1) {
+            return;
+          }
+          const double theta = to_passive(ind.state(slot));
+          const double accepted =
+            std::min(depth, environment.pulse_capacity(ind.state(slot), layer));
+          ind.set_state(slot, value_type(theta + accepted / environment.dz[layer]));
+          const double share = nw * to_passive(st.crown_area(ind.area_leaf())) * scale;
+          accepted_w += share * accepted;
+          excess_w += share * (depth - accepted);
+        });
+      }
+      const std::vector<double> own =
+        environment.add_resource_pulse(layer, depth);
+      environment.adjust_pulse_accumulators(accepted_w - (1.0 - bare) * own[0],
+                                            excess_w - (1.0 - bare) * own[1]);
+      rec.applied = {accepted_w + bare * own[0], excess_w + bare * own[1]};
+    } else {
+      rec.applied = environment.add_resource_pulse(event.target_index,
+                                                   event.params.at(0));
+    }
     break;
   }
 
