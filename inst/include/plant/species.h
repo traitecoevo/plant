@@ -425,8 +425,9 @@ private:
   // exit is the decreasing heights', not this parameter's.
   competition_split reduce_competition(const value_type& height,
                                        const std::vector<std::size_t>& order) const;
-  // The node positions in ascending abscissa, for the case where the heights are
-  // no longer ordered and the node list cannot be the quadrature grid.
+  // The node positions in ascending abscissa, tallest first, for where the heights
+  // are no longer ordered: the height path's quadrature grid and the birth-date
+  // path's prefix.
   // Positions only: nothing here evaluates a contribution, so no width the
   // reduction forms out of it can carry a derivative.
   std::vector<std::size_t> ascending_by_abscissa() const;
@@ -738,9 +739,9 @@ void Species<T,E>::field_splits(const std::vector<value_type>& heights,
 }
 
 // One pass over the nodes for the whole height set. Where the prefix form does not
-// hold -- a broken ordering, or a profile that is not a polynomial in w -- every
-// height takes the walk, which is the same branch the walk's own early exit rests
-// on.
+// hold -- a broken ordering on the height coordinate, or a profile that is not a
+// polynomial in w -- every height takes the walk, which is the same branch the
+// walk's own early exit rests on.
 template <typename T, typename E>
 void Species<T,E>::field_splits_nodes(const std::vector<value_type>& heights,
                                       std::vector<competition_split>& out) const {
@@ -750,7 +751,8 @@ void Species<T,E>::field_splits_nodes(const std::vector<value_type>& heights,
   }
   const HeightScan& scan = scan_heights();
   const std::size_t n_moments = strategy->canopy_shape.n_moments();
-  if (!scan.decreasing || n_moments == 0) {
+  const bool birth_date = control().node_density_in_birth_date;
+  if ((!scan.decreasing && !birth_date) || n_moments == 0) {
     for (std::size_t k = 0; k < heights.size(); ++k) {
       out[k] = compute_competition_and_slope_split(heights[k]);
     }
@@ -777,28 +779,33 @@ void Species<T,E>::field_splits_nodes(const std::vector<value_type>& heights,
     }
   }
   moments weight, weight_slope;
-  // ⚠️ A RETIRED COHORT IS PASSED OVER, as the walk passes over it. Its height
-  // is outside the ordering the scan certified, so it can sit above the height
-  // after a cohort with density below it; it carries density zero, so its
-  // moments are exact zeros in the prefix wherever it sits.
+  // ⚠️ A RETIRED COHORT IS SKIPPED IN THE SUM. Its height is outside the
+  // ordering the scan certified, so it can sit above the height after a cohort
+  // with density below it; it carries density zero, so its moments are exact
+  // zeros in the prefix wherever it sits.
   const bool skip_retired = freezes_retired(control());
   auto frozen = [&](std::size_t i) -> bool {
     return skip_retired && nodes[i].retired();
   };
 
-  if (control().node_density_in_birth_date) {
+  if (birth_date) {
     // Each node weighted once, and a height reads the prefix of the nodes that
-    // reach it: below its own height a node contributes an exact zero, and the
-    // heights of the cohorts with density decrease along the list. prefix[i]
-    // sums the first i nodes, twice over as the split's sums are.
+    // reach it: below its own height a node contributes an exact zero, so the
+    // prefix runs tallest first. That is list order until two cohorts cross, and
+    // `order` once they have. prefix[i] sums the first i nodes, twice over as the
+    // split's sums are.
+    const std::vector<std::size_t> order =
+      scan.decreasing ? std::vector<std::size_t>() : ascending_by_abscissa();
+    auto at = [&order](std::size_t i) { return order.empty() ? i : order[i]; };
     const std::vector<value_type> w = establishment_weights(0, n);
     std::vector<moments> prefix(n + 1);
     for (std::size_t j = 0; j < n_moments; ++j) {
       prefix[0][j] = value_type(0.0);
     }
     for (std::size_t i = 0; i < n; ++i) {
+      const std::size_t o = at(i);
       for (std::size_t j = 0; j < n_moments; ++j) {
-        prefix[i + 1][j] = prefix[i][j] + 2.0 * w[i] * scale[i] * mom[i][j];
+        prefix[i + 1][j] = prefix[i][j] + 2.0 * w[o] * scale[o] * mom[o][j];
       }
     }
     // The heights ascend and the nodes descend, so the count reaching a height
@@ -809,8 +816,8 @@ void Species<T,E>::field_splits_nodes(const std::vector<value_type>& heights,
       if (scan.h_max < height) {
         continue;  // no node reaches it; the empty split stands
       }
-      while (reach > 0 &&
-             (frozen(reach - 1) || nodes[reach - 1].height() < height)) {
+      while (reach > 0 && (frozen(at(reach - 1)) ||
+                           nodes[at(reach - 1)].height() < height)) {
         --reach;
       }
       strategy->canopy_shape.height_weights(height, weight);
