@@ -32,6 +32,15 @@ concept HasAsymptoticHeight = requires(const T& s, double epsilon) {
   { s.asymptotic_height(epsilon) } -> std::convertible_to<double>;
 };
 
+// A strategy whose cohorts each carry a private root-zone soil column (TF24w,
+// #681): the patch rates it in two extra passes, applies rain pulses to every
+// column, and refuses the height coordinate, the gradient path and the
+// stochastic patch for it.
+template <typename T>
+concept HasPrivateWater = requires {
+  { T::n_water_layers } -> std::convertible_to<size_t>;
+};
+
 template <typename T, typename E>
 class Species : public SpeciesBase<Species<T, E>, T, E, Node<T, E>> {
   typedef SpeciesBase<Species<T, E>, T, E, Node<T, E>> base_type;
@@ -63,6 +72,54 @@ public:
   typename std::vector<node_type>::iterator node_end() { return nodes.end(); }
   typename std::vector<node_type>::const_iterator node_begin() const { return nodes.begin(); }
   typename std::vector<node_type>::const_iterator node_end() const { return nodes.end(); }
+
+  // Every soil column this species holds, for the private-water passes (#681):
+  // each node's individual with the ground it stands for -- its trapezium
+  // weight on the birth-date grid times its density, individuals per m2 of
+  // patch -- then the boundary node, which closes the grid as it does in every
+  // other reduction here, then the absorbed top layer at its density. Retired
+  // nodes come through at weight zero. The grid is the one consumption_rate()
+  // integrates over, so a column's share of the patch is the share of the water
+  // it draws.
+  //
+  // The third argument is the weight's own relative rate of change, which the
+  // land-transfer pass adds to a share's rate. The boundary node sits at the
+  // current time, so the youngest cohort's half-interval grows at one half a
+  // year per year; every other weight is fixed between introductions, and an
+  // introduction leaves every weight continuous (the new boundary stands where
+  // the old one did). The top layer is a point mass.
+  //
+  // The fourth says which kind of column it is: 0 a node, 1 the boundary node,
+  // 2 the top layer. The boundary node's state is re-seeded every evaluation
+  // rather than integrated, so it owns no ground: the passes count its uptake
+  // (it closes the quadrature grid, as it does in consumption_rate) but charge
+  // that uptake to the pool, and give it no share.
+  template <class F> void for_each_water_column(F&& f) {
+    using odelia::util::to_passive;
+    const bool birth_date = control().node_density_in_birth_date;
+    const size_t m = nodes.size();
+    if (m > 0) {
+      std::vector<double> x;
+      x.reserve(m + 1);
+      for (auto& c : nodes) {
+        x.push_back(abscissa_of(c, birth_date));
+      }
+      x.push_back(abscissa_of(new_node, birth_date));
+      for (size_t k = 0; k < m; ++k) {
+        const double left = k > 0 ? x[k] - x[k - 1] : 0.0;
+        const double right = x[k + 1] - x[k];
+        const double w = (left + right) / 2.0;
+        const double w_dt = (k + 1 == m) ? 0.5 : 0.0;
+        f(nodes[k].individual, w * to_passive(nodes[k].get_density()),
+          w > 0.0 ? w_dt / w : 0.0, 0);
+      }
+      const double w = (x[m] - x[m - 1]) / 2.0;
+      f(new_node.individual, w * to_passive(new_node.get_density()), 0.0, 1);
+    }
+    if (top_on() && top_density_ > 0.0) {
+      f(top_, to_passive(top_density_), 0.0, 2);
+    }
+  }
 
   size_t size() const;
   void clear();

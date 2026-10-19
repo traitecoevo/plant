@@ -342,6 +342,10 @@ public:
     b_infil = src.b_infil;
     soil_moist_residual = src.soil_moist_residual;
     soil_psi_max_ = src.soil_psi_max_;
+    water_mixing_rate = src.water_mixing_rate;
+    private_water_mean_ = src.private_water_mean_;
+    private_water_newborn_ = src.private_water_newborn_;
+    private_water_cover_ = src.private_water_cover_;
     // Shared, not copied, for the reason the strategy's is: this copy is the one
     // the sweep runs on and it is discarded afterwards.
     clamps.differentiated = src.clamps.differentiated;
@@ -363,6 +367,79 @@ public:
 
   // The state the solver integrates, and the uptake compute_rates received.
   Internals<S> vars;
+
+  // * Private root-zone water (TF24w, #681)
+  //
+  // Lateral exchange between a plant's root-zone column and its surroundings,
+  // as a relaxation rate toward the area-weighted patch mean [yr^-1]. A soil
+  // property rather than a plant's, which is why it lives beside K_sat: one
+  // number per patch, 0 is fully private, large is pooled (the TF24 limit).
+  // Read by TF24w and by Patch's exchange pass; TF24 reads nothing from it.
+  double water_mixing_rate = 0.0;
+  // The aggregates the exchange pass computes from every column before the
+  // species are rated, and that every column then reads: the area-weighted
+  // mean water content per layer, the crown cover (sum of crown area per m2 of
+  // patch) and the bare fraction max(0, 1 - cover). With no plants the mean is
+  // this column, so a newborn seeded from it starts where the soil is.
+  std::vector<double> private_water_mean_;
+  // What a newborn's column starts at: the content of the ground it takes over,
+  // which is the bare column while ground is open and the private columns' mean
+  // once crowns cover it. Seeding at that content is what keeps an introduction
+  // from making or losing water.
+  std::vector<double> private_water_newborn_;
+  double private_water_cover_ = 0.0;
+  void set_private_water_aggregates(const std::vector<double>& mean,
+                                    const std::vector<double>& newborn,
+                                    double cover) {
+    private_water_mean_ = mean;
+    private_water_newborn_ = newborn;
+    private_water_cover_ = cover;
+  }
+  double private_water_newborn(size_t layer) const {
+    if (private_water_newborn_.size() != static_cast<size_t>(soil_number_of_depths)) {
+      return odelia::util::to_passive(vars.state(layer));
+    }
+    return private_water_newborn_[layer];
+  }
+  double private_water_mean(size_t layer) const {
+    if (private_water_mean_.size() != static_cast<size_t>(soil_number_of_depths)) {
+      return odelia::util::to_passive(vars.state(layer));
+    }
+    return private_water_mean_[layer];
+  }
+  double private_water_cover() const { return private_water_cover_; }
+  double private_water_bare() const { return std::max(0.0, 1.0 - private_water_cover_); }
+  // The exchange pass adds the mixing and land-transfer terms to this column's
+  // rates after compute_rates has set its own, and overwrites the diagnostic
+  // accumulators with area-weighted totals over every column.
+  void add_to_rate(size_t layer, const S& v) {
+    vars.set_rate(layer, vars.rate(layer) + v);
+  }
+  // k: 0 rainfall, 1 infiltration, 2 drainage, 3 resource depletion, 4 pulse runoff.
+  void set_accumulator_rate(size_t k, const S& v) {
+    vars.set_rate(soil_number_of_depths + k, v);
+  }
+  const S& accumulator_rate(size_t k) const {
+    return vars.rate(soil_number_of_depths + k);
+  }
+  // A pulse applied to every column: this column's add_water_pulse_to_layer has
+  // already booked its own accepted depth and excess as if it were the whole
+  // patch, so the pass corrects the two accumulators by the area-weighted
+  // totals minus what was booked.
+  void adjust_pulse_accumulators(double d_infiltration, double d_runoff) {
+    const size_t n = soil_number_of_depths;
+    vars.set_state(n + 1, vars.state(n + 1) + S(d_infiltration));
+    vars.set_state(n + 4, vars.state(n + 4) + S(d_runoff));
+  }
+  // What a layer at `theta` can still accept, in metres of water: the cap
+  // add_water_pulse_to_layer applies, factored out so a private column applies
+  // the same one.
+  double pulse_capacity(const S& theta, size_t layer) const {
+    const S sat = S(
+      soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, layer));
+    const S capacity_raw = (sat - theta) * dz[layer];
+    return std::max(0.0, odelia::util::to_passive(capacity_raw));
+  }
   // Double: this is the uptake read back out through the R-facing aux interface,
   // never an input to a rate, so holding it at the working scalar was a slot per
   // layer per stage for a reading.
@@ -871,11 +948,7 @@ public:
     // ARGUMENT and the report, which is why they are read passive here rather
     // than the state being narrowed.
     const S theta = vars.state(layer);
-    const S sat = S(
-      soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, layer));
-    const S capacity_raw = (sat - theta) * dz[layer];
-    const double capacity =
-        std::max(0.0, odelia::util::to_passive(capacity_raw));
+    const double capacity = pulse_capacity(theta, layer);
     const double accepted = std::min(depth, capacity);
     const double excess = depth - accepted;
 
