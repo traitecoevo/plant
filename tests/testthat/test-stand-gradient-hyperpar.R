@@ -77,11 +77,28 @@ test_that("a derived parameter is not a column of its own under a trade-off", {
 
 test_that("a strategy that is not on the trade-off is refused, not chained", {
   p <- hyperpar_parameters(lifetime = 1)
-  p$strategies[[1]]$pars$lma <- 0.09
+  p <- add_strategies(p, trait_matrix(c(0.0825, 5.13), c("lma", "hmat")),
+                      hyperpar = TF24_hyperpar, birth_rate = list(1.10))
+  p$strategies[[2]]$pars$lma <- 0.09
   run <- hyperpar_run(p)
-  expect_error(stand_gradient(run$scm, traits = "1.lma"),
-               "Species 1's k_l, r_l, nmass_l are not what `hyperpar` derives")
-  expect_no_error(stand_gradient(run$scm, traits = "1.lma", hyperpar = NULL))
+  expect_error(stand_gradient(run$scm, traits = "2.lma"),
+               "Species 2's k_l, r_l, nmass_l are not what `hyperpar` gives")
+  expect_error(stand_gradient(run$scm), "Species 2's")
+  # Only the species asked about is checked.
+  expect_no_error(stand_gradient(run$scm, traits = "1.lma"))
+  expect_no_error(stand_gradient(run$scm, traits = "2.lma", hyperpar = NULL))
   expect_error(stand_gradient(run$scm, traits = "1.lma", hyperpar = "TF24"),
                "must be a hyperparameter function")
+})
+
+test_that("a default strategy, or one built at an input it does not keep, is refused", {
+  # TF24's defaults are not the trade-off's at its default traits.
+  expect_error(trade_off(scm_base_parameters("TF24")$strategy_default, 1,
+                         TF24_hyperpar), "built by hand")
+  p <- add_strategies(scm_base_parameters("FF16"),
+                      trait_matrix(c(0.1, 3e-3), c("lma", "narea")),
+                      hyperpar = FF16_hyperpar, birth_rate = list(1))
+  expect_error(trade_off(p$strategies[[1]], 1, FF16_hyperpar),
+               "built at a narea the strategy does not keep")
+  expect_no_error(trade_off(p$strategies[[1]], 1, make_FF16_hyperpar(narea = 3e-3)))
 })
