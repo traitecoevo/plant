@@ -1,12 +1,10 @@
 # The rare-mutant derivative on FF16: an invader's fitness differentiated by
 # its own traits with the canopy held at the recorded resident (plant#650, E2).
 #
-# run_mutant() replays the resident's recorded program with the invaders in the
-# patch, loading the resident's field at every rate evaluation. Asked to keep
-# its states, that replay records the field it loaded in every row, and a sweep
-# of the record loads it the same way: the field is exogenous to the invader
-# and carries no derivative. The referee is the same replay at perturbed
-# traits, which steps where the resident stepped by construction.
+# run_mutant() runs the invaders on the resident's steps, reading the field the
+# resident made at every rate evaluation, in the run and in its sweep alike: the
+# field is exogenous to the invader and carries no derivative. The referee is
+# the same invasion at perturbed traits, which steps where the resident stepped.
 
 mutant_control <- function(...) {
   Control(node_density_in_birth_date = TRUE, offspring_production_tol = 1e-12,
@@ -100,11 +98,14 @@ test_that("several invaders against one resident each carry their own columns", 
   }
 })
 
-test_that("a sweep of an invasion that kept no states is refused, not re-run", {
+test_that("a sweep of an invasion that kept no states runs it again, as an invasion", {
   scm <- run_scm(resident_parameters(lifetime = 3), NULL, mutant_control())
   scm$run_mutant(mutant_parameters(scm, 0.0825))
-  expect_error(stand_gradient(scm, metrics = "1.net_reproduction_ratio"),
-               "run_mutant\\(\\) kept no states")
+  again <- stand_gradient(scm, metrics = "1.net_reproduction_ratio")
+  scm$record_trajectory <- TRUE
+  scm$run_mutant(mutant_parameters(scm, 0.0825))
+  kept <- stand_gradient(scm, metrics = "1.net_reproduction_ratio")
+  expect_identical(again$gradient, kept$gradient)
 })
 
 # d(metric)/d(name) of invader `i` by central difference across replays, each
@@ -159,12 +160,10 @@ test_that("an invader introduced after the replay starts has a gradient", {
   }
 })
 
-test_that("an invader of a resumed resident stands in the resident's canopy at the resume instant", {
+test_that("an invader of a resumed resident is born in the resident's canopy at the resume instant", {
   # The resident resumes at 6 and its first cohort after the resume is born at
-  # 6 itself. That insertion follows the recording's first row, which no step
-  # reached and which carries no field, so the sweep has to be handed the
-  # resident's field there, as the replay was. Establishment reads it, so a_d0
-  # is the column that shows the wrong canopy (it was 26 % off).
+  # 6 itself, in the field of the state the resident resumed from. Establishment
+  # reads it, so a_d0 is the column that shows the wrong canopy (it was 26 % off).
   p <- resident_parameters(lifetime = 12)
   p$patch_type <- "fixed"
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 12, 0.5))
@@ -187,6 +186,23 @@ test_that("an invader of a resumed resident stands in the resident's canopy at t
                       traits = c("1.lma", "1.a_d0", "1.omega"))
   expect_false(any(stand_gradient_refused(g)))
   for (name in c("lma", "a_d0", "omega")) {
+    fd <- replay_difference(scm, pm, 1, name, "1.net_reproduction_ratio")
+    expect_lt(abs(g$gradient["1.net_reproduction_ratio", paste0("1.", name)] - fd),
+              1e-5 * abs(fd), label = name)
+  }
+})
+
+test_that("an invader's gradient through the run's harvest is the difference across invasions", {
+  p <- resident_parameters()
+  scm <- run_scm(p, NULL, mutant_control(), record_trajectory = TRUE,
+                 events = events(events_default(p),
+                                 harvest(time = 4, fraction = 0.5)))
+  pm <- mutant_parameters(scm, 0.09)
+  scm$run_mutant(pm)
+  g <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
+                      traits = c("1.lma", "1.a_d0"))
+  expect_false(any(stand_gradient_refused(g)))
+  for (name in c("lma", "a_d0")) {
     fd <- replay_difference(scm, pm, 1, name, "1.net_reproduction_ratio")
     expect_lt(abs(g$gradient["1.net_reproduction_ratio", paste0("1.", name)] - fd),
               1e-5 * abs(fd), label = name)

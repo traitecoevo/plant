@@ -401,7 +401,10 @@ test_that("A run that substepped the soil is replayed, swept and invaded as it r
   traits <- census_trait_names_tf24(substepped)
   tangent <- ladder_trajectory_tangent_tf24(substepped,
                                             as.numeric(traits == "1.lma"))
-  expect_equal(tangent$value, unname(stand_census(substepped)), tolerance = 1e-12)
+  ## The sweep's rows: the census, then each species' fitness.
+  metrics <- function(scm) c(stand_census(scm), stand_fitness(scm))
+  expect_identical(names(metrics(substepped)), rownames(g$gradient))
+  expect_equal(tangent$value, unname(metrics(substepped)), tolerance = 1e-12)
   expect_equal(unname(g$gradient[, "1.lma"]), tangent$tangent, tolerance = 1e-6)
   at_lma <- function(x) {
     q <- p
@@ -410,7 +413,7 @@ test_that("A run that substepped the soil is replayed, swept and invaded as it r
     pars$lma <- x
     s$pars <- pars
     q$strategies[[1]] <- s
-    stand_census(replay(q))
+    metrics(replay(q))
   }
   d <- 1e-4 * lma
   differenced <- (at_lma(lma + d) - at_lma(lma - d)) / (2 * d)

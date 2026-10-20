@@ -145,6 +145,9 @@ public:
   // does not go through the per-species times interface.
   std::vector<Event> get_events() const;
   void set_all_events(const std::vector<Event>& events_);
+  // One action that is not an introduction, at its instant after the actions of
+  // its rank already there.
+  void add_action(const Event& e);
   void reset();
 
   // Where the walk is, where its interval ends, and moving past it. `next()`
@@ -186,6 +189,17 @@ public:
                        std::vector<std::vector<double> > input_slopes,
                        std::vector<std::vector<double> > substep_ends);
   void r_clear_ode_steps();
+  // The steps a recorded run took. Its introductions' rows are left out, because
+  // a run makes its introductions from this schedule.
+  template <class Rows> void set_ode_steps(const Rows& rows) {
+    ode_steps.clear();
+    for (const odelia::ode::instruction& r : rows) {
+      if (!r.insertion) {
+        ode_steps.push_back({r.time, r.step_size, false, r.subsystem});
+      }
+    }
+    reset();
+  }
   // Where the walk is, as a list: the time, the species from one, and the time
   // its interval ends. The species are one number each, counted the way R counts
   // them, where the class this replaces reported the same index twice under two

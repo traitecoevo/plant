@@ -96,7 +96,8 @@ public:
   // ---- Simulation lifecycle ----------------------------------------------
 
   // Run the whole schedule, from the run's start time (zero, or a resumed run's
-  // export time) to completion.
+  // export time) to completion. After run_mutant(), the invaders run as a
+  // community of their own, on the schedule their parameters make.
   void run();
 
   // Advance to the first leg boundary at or past `t`, or to the end of the
@@ -133,10 +134,10 @@ public:
   };
   Rcpp::List r_snapshots() const;
 
-  // Integrate `p`'s strategies as invaders against the field the resident run
-  // stood in: every one of them, the resident's own included, sees a field it
-  // does not move. Destructive -- `p` becomes this SCM's parameters, and its
-  // outputs are `p`'s. Needs a finished resident run to take a program from.
+  // Integrate `p`'s strategies as invaders of this SCM's last run: they take its
+  // steps, meet its harvests and extremes, and read the field it made at each
+  // rate evaluation, which none of them moves. Destructive -- `p` becomes this
+  // SCM's parameters, and its outputs are `p`'s.
   void run_mutant(parameters_type p);
   // Integrate `p`'s strategies as invaders of a stand at a fixed point: every
   // one of them stands in ONE field, the resident's as it stands now, held for
@@ -179,19 +180,6 @@ public:
   // Return patch, schedule and solver to their t = 0 state; clear history.
   void reset();
 
-  // The resident run an invasion stands in: one row per accepted step, carrying
-  // the field each of its stages was taken in. Kept whole rather than re-derived,
-  // because the point of an invasion sweep is many invaders against ONE resident.
-  // Its program is not held beside it: a recording IS a program, row by row, and
-  // two containers that have to agree can be made to disagree.
-  std::vector<odelia::ode::step_record<patch_type>> resident_recording;
-  // The resident's field at the recording's first row, kept for a resident
-  // resumed from a saved state: its first introduction can fall at that very
-  // instant, before any recorded step hands an invader the field, and the
-  // invader must stand in the resident's canopy there, not its own empty one.
-  // Unused for a resident run from empty, whose field at that instant is the
-  // empty patch's, the same as an invader's.
-  recorded_field resident_start_field;
   // The field run_mutant_held() holds; empty until its first call.
   recorded_field held_field;
   // Whether the last run was run_mutant_held()'s, which the gradient refuses.
@@ -206,13 +194,6 @@ public:
     }
     return false;
   }
-  bool resident_resumed = false;
-
-  // Whether the last integration was an invasion (run_mutant) rather than a run.
-  // A record of an invasion is swept against the field it loaded; a run on the
-  // same SCM would overwrite that with the invaders' own, so the two have to be
-  // told apart where a record is asked for.
-  bool invasion = false;
 
   // True once every scheduled node introduction has been consumed.
   bool complete() const;
@@ -673,6 +654,8 @@ private:
   // and control select; see the definition.
   void integrate_to(double t0, double t_end);
 
+  // run() without leaving an invasion: the schedule as it is now.
+  void run_schedule();
   // Everything run() does before its loop: put the run at its start and record
   // what a start records. run_to() calls it once, run() every time.
   void begin();
@@ -697,6 +680,14 @@ private:
   // `history` once per step, and a log that grew with the run would be copied
   // with it every time.
   std::vector<EventRecord> event_log;
+  // The field at each state of the last recorded run that no step reached: its
+  // start, then each entry's, after the entry's actions and introductions.
+  std::vector<recorded_field> entry_fields;
+  // The run invaders read: its steps and the field each rate evaluation was
+  // taken in, kept from the first invasion until the next run().
+  std::vector<field_row> invaded_run;
+  // Its harvests and extremes, which its invaders meet too.
+  std::vector<NodeScheduleEvent> invaded_actions;
   odelia::ode::Solver<patch_type> solver;
 };
 
@@ -778,6 +769,16 @@ std::vector<double> SCM<T, E>::uniform_euler_times(double t0, double t1,
 // ---- Simulation lifecycle ------------------------------------------------
 
 template <typename T, typename E> void SCM<T, E>::run() {
+  if (!invaded_run.empty()) {
+    patch.read_fields_of(nullptr);
+    invaded_run.clear();
+    invaded_actions.clear();
+    node_schedule = make_node_schedule(parameters);
+  }
+  run_schedule();
+}
+
+template <typename T, typename E> void SCM<T, E>::run_schedule() {
   begin();
   try {
     while (!complete()) {
@@ -818,9 +819,13 @@ template <typename T, typename E> void SCM<T, E>::begin() {
   // it is the solver's: the choices this run's rate evaluations make are the same
   // recording as its states, so what keeps the states is what says the choices are
   // kept too.
-  invasion = false;
   solver.set_keep_states(record_trajectory);
+  patch.set_keep_field(record_trajectory);
   reset();
+  entry_fields.clear();
+  if (record_trajectory) {
+    entry_fields.push_back(solver.get_system_ref().current_field());
+  }
   // A run is a walk over its schedule's entries and integrates nothing between
   // them, so a resume with no entry left -- exported after its last
   // introduction -- would report its seeded state as the run's end. A run from
@@ -973,6 +978,9 @@ std::vector<size_t> SCM<T, E>::run_next() {
   // reached, which is what the next step runs from and which no step reached.
   // Recorded here because this is where the width changes.
   solver.push_insertion();
+  if (record_trajectory) {
+    entry_fields.push_back(sys.current_field());
+  }
 
   integrate_to(t0, t_end);
 
@@ -1024,97 +1032,85 @@ void SCM<T, E>::integrate_to(double t0, double t_end) {
   }
 }
 
-// An invader integrates against a field it does not move: every strategy in `p`
-// is an invader, the resident's own among them, and that one coming back with the
-// resident's fitness is what says the machinery is sound.
+// An invader grows in a field it does not move: every strategy in `p` is an
+// invader, and one with the traits of the run it reads comes back with that
+// run's fitness.
 //
-// Two passes, because the field lives at the Runge-Kutta stages and no recorded
-// step boundary carries one. The first replays the resident over its own recorded
-// program, keeping the field at each rate evaluation; the second walks that
-// recording with `p`'s strategies in the patch, and each evaluation LOADS the
-// field the resident stood in rather than building its own. Which of the two a
-// pass is doing is the constness of what the walk hands over, so there is no mode
-// here and none to go stale.
-//
-// ⚠️ THE RECORDING PASS IS PINNED AND NOT ADAPTIVE. An adaptive run evaluates
-// inside attempts it then rejects; pinned to its own program it rejects nothing,
-// so what it keeps is exactly the sequence a replay of that program makes.
-//
-// The replay needs no schedule of its own: the recording carries its own
-// insertions, and the patch answers each one from ITS introduction times, so `p`'s
-// species are introduced where the resident's were. That is the same map the sweep
-// transposes rather than a second spelling of it.
-//
-// The record outlives the call, so a second invasion against the same resident
-// pays for one pass and not two -- and, as on develop, it is still the FIRST
-// resident's field, because this call has overwritten `parameters` with `p`.
+// A run that kept no field is run again on its own steps to keep one.
 template <typename T, typename E>
 void SCM<T, E>::run_mutant(parameters_type p) {
   require_invader_starts_empty(p, "run_mutant");
-  if (resident_recording.empty()) {
-    const std::vector<double> times = r_ode_times();
-    // Two, not one: a run that never stepped still reports the instant it
-    // started at, and a program of one entry is a start with nothing after it.
-    if (times.size() < 2) {
+  if (invaded_run.empty()) {
+    if (solver.schedule().size() < 2) {
       util::stop("Run a resident first to generate a competitive landscape");
     }
-    // Pinned to its own program, so it rejects nothing and what it keeps is
-    // exactly the sequence a replay of that program makes.
-    node_schedule.r_set_ode_steps(times, r_ode_step_sizes(),
-                                  r_ode_soil_input_slopes(),
-                                  r_ode_soil_substep_ends());
-    node_schedule.reset();
-    patch.set_keep_field(true);
-    const bool kept = record_trajectory;
-    record_trajectory = true;
-    run();
-    record_trajectory = kept;
-    patch.set_keep_field(false);
+    if (entry_fields.empty()) {
+      node_schedule.set_ode_steps(solver.schedule());
+      const bool kept = record_trajectory;
+      record_trajectory = true;
+      run_schedule();
+      record_trajectory = kept;
+    }
+    for (const auto& e : node_schedule.get_events()) {
+      if (e.type != EventType::Harvest && e.type != EventType::ClimateExtreme) {
+        continue;
+      }
+      if (e.target == EventTarget::Species) {
+        util::stop("run_mutant: the resident's run has a harvest or climate "
+                   "extreme at t = " + util::to_string(e.time_introduction()) +
+                   " on one species, and an invader is none of them");
+      }
+      invaded_actions.push_back(e);
+    }
     const trajectory rec = solver.recording();
-    resident_recording.assign(rec.begin(), rec.end());
-    resident_resumed = !parameters.initial_state.empty();
-    if (resident_resumed) {
-      patch_type& live = solver.get_system_ref();
-      odelia::ode::be_at_step(live, trajectory(resident_recording), 0);
-      resident_start_field = live.current_field();
+    const size_t entries = std::count_if(
+        rec.begin(), rec.end(), [](const auto& row) { return row.insertion; });
+    util::check_length(entry_fields.size(), entries + 1);
+    auto entry = entry_fields.begin();
+    for (const auto& row : rec) {
+      field_row r{row, {}};
+      for (size_t i = 0; i < row.solved.size(); ++i) {
+        r.fields[i] = row.solved[i].field;
+      }
+      if (&row == &rec.front() || row.insertion) {
+        r.fields[odelia::ode::end_slot] = *entry++;
+      }
+      invaded_run.push_back(std::move(r));
     }
   }
-
-  // An invader of a resumed resident is introduced into the resident's run from
-  // the instant it resumed, and a replay starts at the recording's first row.
-  if (resident_resumed &&
-      !util::identical(p.initial_time, resident_recording.front().time)) {
-    util::stop("run_mutant: the resident resumed at t = " +
-               util::to_string(resident_recording.front().time) +
+  if (!util::identical(p.initial_time, invaded_run.front().time)) {
+    util::stop("run_mutant: the residents' run starts at t = " +
+               util::to_string(invaded_run.front().time) +
                ", so its invaders start there; set p$initial_time to that "
                "(it is " + util::to_string(p.initial_time) + ")");
   }
-  // Destructive, as it has always been: the mutants become this SCM's community,
-  // and its outputs are theirs.
-  parameters = p;
-  // The whole parameters, not the strategies alone: the patch seeds itself
-  // from ITS parameters at reset(), and an invader has no seed of its own.
-  patch.overwrite_parameters(parameters);
-  node_schedule = make_node_schedule(parameters);
-  reset();
-  // A replay keeps its states only when asked, as a run does: a recording of a
-  // replay is a state vector and six rows per step for every invader in a
-  // sweep, and nothing reads it unless a gradient is taken. When one is, the
-  // record carries the resident's field in every row, so the
-  // sweep loads it exactly as the replay did: the field is exogenous to the
-  // invader and its derivative is zero rather than severed. That is the
-  // rare-mutant derivative, the canopy held at the recorded resident.
-  solver.set_keep_states(record_trajectory);
-  if (resident_resumed) {
-    solver.get_system_ref().stand_in(&resident_start_field);
+  // An introduction the residents did not make falls between their evaluations,
+  // where no field was kept.
+  std::vector<double> introduced;
+  for (const auto& row : invaded_run) {
+    if (row.insertion) {
+      introduced.push_back(row.time);
+    }
   }
-  solver.advance_recorded(resident_recording);
-  invasion = true;
-  patch = solver.get_system_ref();
-  // A replay takes the resident's steps and pops no schedule entry, so it leaves
-  // nothing a run_to() could continue: a later run of this SCM begins afresh, as
-  // a run of the invaders' parameters.
-  begun = false;
+  for (size_t i = 0; i < p.node_schedule_times.size(); ++i) {
+    for (const double t : p.node_schedule_times[i]) {
+      if (std::none_of(introduced.begin(), introduced.end(),
+                       [t](double u) { return util::identical(u, t); })) {
+        util::stop("run_mutant: species " + util::to_string(i + 1) +
+                   " is introduced at t = " + util::to_string(t) +
+                   ", where the resident introduced nothing");
+      }
+    }
+  }
+  parameters = p;
+  patch.overwrite_parameters(parameters);
+  patch.read_fields_of(&invaded_run);
+  node_schedule = make_node_schedule(parameters);
+  for (const auto& a : invaded_actions) {
+    node_schedule.add_action(a);
+  }
+  node_schedule.set_ode_steps(invaded_run);
+  run_schedule();
 }
 
 template <typename T, typename E>
@@ -1134,6 +1130,7 @@ void SCM<T, E>::run_mutant_held(parameters_type p) {
   }
   parameters = p;
   patch.overwrite_parameters(parameters);
+  patch.read_fields_of(nullptr);
   node_schedule = make_node_schedule(parameters);
   // reset() copies the patch into the solver, so the held field reaches every
   // rate evaluation of the run.
@@ -1164,17 +1161,8 @@ typename SCM<T, E>::trajectory SCM<T, E>::store_trajectory() {
   // Asked of this flag and not of the solver: run() is what sets the solver's
   // from this one, so asking the solver is asking it what it was just told.
   if (!record_trajectory) {
-    // ⚠️ NOT FOR AN INVASION. run() would integrate the invaders as residents,
-    // shading themselves, and the gradient taken on that record would be the
-    // resident-feedback derivative of a different stand with every number
-    // finite. The invasion has to be re-run with the flag set before it.
-    if (invasion) {
-      util::stop("store_trajectory: run_mutant() kept no states, so there is "
-                 "nothing to sweep; set record_trajectory = TRUE before "
-                 "run_mutant() and run it again");
-    }
     record_trajectory = true;
-    run();
+    run_schedule();
   }
 
   // Handed back as the solver holds it. The state, the time it was reached at and
@@ -1586,46 +1574,6 @@ SCM<T, E>::census_trait_gradient(const std::vector<size_t>& extra_stops,
   store_trajectory();
 
   patch_type& live = solver.get_system_ref();
-
-  // A sweep of an invasion reaches each introduction, and the first rates
-  // after it, with no row to load: hand the patch the field the invasion stood
-  // in there, the one its last evaluation before the introduction loaded.
-  if (invasion) {
-    // A replay pairs a model's recorded inner solves with its cohorts by
-    // position, and a resumed resident's seeded cohorts shift the pairing
-    // (plan-519 hazard 16), so its invasion's derivative is not refereed.
-    if constexpr (RecordsRefusal<T>) {
-      if (resident_resumed) {
-        util::stop("census_trait_gradient: an invasion of a resumed resident is "
-                   "not differentiable for a model that replays recorded inner "
-                   "solves (TF24) yet; take it from a resident run from empty.");
-      }
-    }
-    std::map<double, const recorded_field*> fields;
-    const auto& rec = resident_recording;
-    for (size_t at = 2; at < rec.size(); ++at) {
-      if (rec[at].insertion && !rec[at - 1].insertion &&
-          rec[at - 1].solved[5].field.kept) {
-        fields[rec[at].time] = &rec[at - 1].solved[5].field;
-      }
-    }
-    // A resumed resident's first row is the state it resumed from, which no
-    // step reached, so it carries no field; an introduction at that instant
-    // stood in the resident's field there (run_mutant's stand_in), and the
-    // sweep has to stand in the same one.
-    // A resident run from empty stood in the empty patch's field there, which
-    // the invader builds the same, so its entry names no field.
-    // And the metrics are read at the run's end, off the final state, where
-    // the seed builds the invader's own field as the forward census does: a
-    // fitness reads no field, and a census's boundary interval is the one term
-    // that does (an invader's census is not the rare-mutant quantity).
-    if (!rec.empty()) {
-      fields.emplace(rec.front().time,
-                     resident_resumed ? &resident_start_field : nullptr);
-      fields.emplace(rec.back().time, nullptr);
-    }
-    live.set_introduction_fields(fields);
-  }
 
   // Cleared here so that a previous call's degeneracy cannot refuse this one.
   clear_recorded_refusal(live);
