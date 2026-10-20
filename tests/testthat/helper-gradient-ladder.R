@@ -1437,22 +1437,29 @@ ladder_reproductive_rates <- function() {
 
 # Reach the census through the introduction boundary and through nothing else.
 # The block is one individual's physiology and reads none of them: the
-# establishment probability, its decay in patch age and the initial reserve are
-# evaluated once per introduction, at the seed size, in the field the newcomer is
-# placed in. So an exact zero in the BLOCK is correct here and an exact zero in
+# establishment probability, its decay in patch age, the initial reserve and the
+# birth rate are evaluated once per introduction, at the seed size, in the field
+# the newcomer is placed in. So an exact zero in the BLOCK is correct here and an exact zero in
 # the census is not -- which is the whole content of the class, and is why the
 # two levels carry different declared lists.
 #
 # The other half of the claim is asserted where it can be: the floor's census
-# classification puts all three in the live class, and the introductions file's single-channel
+# classification puts all four in the live class, and the introductions file's single-channel
 # probes take a_st3 and recruitment_decay by name.
 ladder_zero_outside_the_cohort_block <- function() {
-  c("a_d0", "a_st3", "recruitment_decay")
+  c("a_d0", "a_st3", "recruitment_decay", "birth_rate")
+}
+
+# Survival during dispersal multiplies the fitness metrics and enters no rate,
+# so its row is zero in the block and in the census.
+ladder_zero_outside_every_rate <- function() {
+  "S_D"
 }
 
 ladder_zero_by_construction <- function() {
   c(ladder_zero_at_an_interior_optimum(),
-    ladder_zero_outside_the_metric_support())
+    ladder_zero_outside_the_metric_support(),
+    ladder_zero_outside_every_rate())
 }
 
 # Which cause a declared zero is claimed to have. Named so a check can measure
@@ -1461,6 +1468,8 @@ ladder_zero_cause <- function(name) {
   bare <- ladder_bare_traits(name)
   if (bare %in% ladder_zero_at_an_interior_optimum()) {
     "a limit the operating point is away from: moves no rate at all"
+  } else if (bare %in% ladder_zero_outside_every_rate()) {
+    "a factor of the fitness alone: moves no rate at all"
   } else if (bare %in% ladder_zero_outside_the_metric_support()) {
     "outside the metric support: reaches no rate the census reads"
   } else {

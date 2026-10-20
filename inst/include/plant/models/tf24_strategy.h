@@ -273,8 +273,8 @@ struct TF24_Pars {
   // is the correct derivative and reads as an answer. It also disarms the guard
   // -- "every registered TF24 parameter reaches an output" -- that catches a
   // parameter added to the model and never wired into it. `a_f3` is the contrast
-  // and is NOT here: it reaches fecundity_dt, so it is registered, and its column
-  // is zero only because no census metric reads that rate.
+  // and is NOT here: it reaches fecundity_dt, so it is registered, and its census
+  // column is zero only because no census metric reads that rate.
   struct no_gradient {
     const char* name;
     const char* why;
@@ -308,9 +308,6 @@ struct TF24_Pars {
       no_gradient{"a_p1", "the light-response curve the Farquhar leaf replaced"},
       no_gradient{"a_p2", "the light-response curve the Farquhar leaf replaced"},
       no_gradient{"beta1", "no equation on this path reads it"},
-      no_gradient{"S_D",
-                  "survival during dispersal, which multiplies a census "
-                  "reduction and enters no rate"},
       no_gradient{"var_sapwood_volume_cost", "declared and carried; no equation "
                                              "on this path reads it"},
       no_gradient{"nmass_l", "declared and carried; no equation reads it"},
@@ -346,9 +343,9 @@ struct TF24_Pars {
       PLANT_TF24_AD_PARAMETER(k_r),
       PLANT_TF24_AD_PARAMETER(a_p1),
       PLANT_TF24_AD_PARAMETER(a_p2),
-      // Occurs only in fecundity_dt's denominator, and no census metric reads
-      // fecundity: zero on any trajectory rather than on this one.
-      // `ladder_zero_outside_the_metric_support` prices that claim.
+      // Occurs only in fecundity_dt's denominator, which the fitness metrics
+      // read and no census metric does: its census column is zero on any
+      // trajectory. `ladder_zero_outside_the_metric_support` checks that claim.
       PLANT_TF24_AD_PARAMETER(a_f3),
       PLANT_TF24_AD_PARAMETER(a_f1),
       PLANT_TF24_AD_PARAMETER(a_f2),
@@ -783,6 +780,10 @@ public:
       });
   }
 
+  // Each species' net reproduction ratio and offspring production are stand
+  // metrics (SCM::stand_metrics), refereed in test-tf24-fitness-gradient.R.
+  static constexpr bool differentiable_fitness = true;
+
   // The metrics a census of this model sums, in the order it reports them. Beside
   // the state and aux names because all three say what this model calls its own
   // quantities -- and every slot is read by its cached index, which is how every
@@ -876,19 +877,34 @@ public:
 
   using ad_parameter = typename TF24_Pars<S>::ad_parameter;
 
+  // A constant birth rate, at the working scalar so that it is a gradient
+  // column; a variable one is a driver read as a double and has no column.
+  S birth_rate_ = 1.0;
+  bool has_birth_rate_column() const { return !this->is_variable_birth_rate; }
+  S birth_rate_at(double t) const {
+    return has_birth_rate_column()
+             ? birth_rate_
+             : S(this->extrinsic_drivers.evaluate("birth_rate", t));
+  }
+
   // How many gradient columns one of these carries, for a caller sizing a batch.
-  size_t ad_column_count() const { return TF24_Pars<S>::column_count; }
+  size_t ad_column_count() const {
+    return TF24_Pars<S>::column_count + (has_birth_rate_column() ? 1 : 0);
+  }
 
   // Addresses of the parameters a gradient can be taken with respect to, in the
-  // order ad_parameter_names() gives: the table entries whose role has a column.
-  // Both allocate, so take them once per gradient evaluation and hold them for
-  // the run rather than per block; the strategy is shared and the fields do not
-  // move. Index against .size().
+  // order ad_parameter_names() gives: the table entries whose role has a column,
+  // then the birth rate where it is one. Both allocate, so take them once per
+  // gradient evaluation and hold them for the run rather than per block; the
+  // strategy is shared and the fields do not move. Index against .size().
   std::vector<S*> ad_parameters() {
     std::vector<S*> ret;
-    ret.reserve(TF24_Pars<S>::column_count);
+    ret.reserve(ad_column_count());
     for (const ad_parameter& p : TF24_Pars<S>::ad_parameter_columns) {
       ret.push_back(&(pars.*p.at));
+    }
+    if (has_birth_rate_column()) {
+      ret.push_back(&birth_rate_);
     }
     return ret;
   }
@@ -897,9 +913,12 @@ public:
   // that order. Which parameters are left out, and why, is `undifferentiable`.
   std::vector<std::string> ad_parameter_names() {
     std::vector<std::string> ret;
-    ret.reserve(TF24_Pars<S>::column_count);
+    ret.reserve(ad_column_count());
     for (const ad_parameter& p : TF24_Pars<S>::ad_parameter_columns) {
       ret.push_back(p.name);
+    }
+    if (has_birth_rate_column()) {
+      ret.push_back("birth_rate");
     }
     return ret;
   }
@@ -1220,6 +1239,7 @@ public:
 
     shading_model_ = src.shading_model_;
     eta_c = S(odelia::util::to_passive(src.eta_c));
+    birth_rate_ = S(odelia::util::to_passive(src.birth_rate_));
     canopy_shape.initialise(pars.eta, shading_model_);
     height_0 = src.height_0;
     dmass_dheight_0 = src.dmass_dheight_0;
@@ -1484,15 +1504,17 @@ public:
   // the objective to give the carbon kept (net_mass_production_dt says why).
   S leaf_shadow_cost_;
 
-  // Every active value this strategy holds: the whole parameter table, the leaf
-  // outputs, and the per-layer root carbon. `leaf` is not among them -- it
-  // solves in double, which is what keeps the leaf off the tape.
+  // Every active value this strategy holds: the whole parameter table, the
+  // constant birth rate, the leaf outputs, and the per-layer root carbon. `leaf`
+  // is not among them -- it solves in double, which is what keeps the leaf off
+  // the tape.
   // ⚠️ A LEAF OUTPUT LEFT OFF THIS LIST CARRIES NO ROWS, SILENTLY.
   template <class F>
   void for_each_active(F&& f) {
     for (const ad_parameter& field : pars.ad_parameter_table()) {
       f(pars.*field.at);
     }
+    f(birth_rate_);
     odelia::ode::visit_active(f, leaf_profit_, leaf_soil_consumption_,
                               leaf_shadow_cost_, root_carbon_per_leaf_area_);
   }
@@ -2942,6 +2964,7 @@ void TF24_Strategy<S>::prepare_strategy() {
                                          odelia::drivers::Slopes::monotone);
   } else {
     this->extrinsic_drivers.set_constant("birth_rate", this->birth_rate_y[0]);
+    birth_rate_ = this->birth_rate_y[0];
   }
   if constexpr (std::is_same_v<S, double>) {
     // (P50, c) per curve, and phylloptim derives b and psi_crit itself. Handing

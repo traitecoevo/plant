@@ -115,16 +115,21 @@ void NodeSchedule::set_all_events(const std::vector<Event>& events_) {
     if (e->is_node_introduction()) {
       insert(e->time_introduction(), e->target_index);
     } else {
-      std::vector<schedule_entry>::iterator it = entry_at(e->time_introduction());
-      std::vector<Event>::iterator a = it->actions.begin();
-      while (a != it->actions.end() &&
-             event_type_rank(a->type) <= event_type_rank(e->type)) {
-        ++a;
-      }
-      it->actions.insert(a, Event(e->time_introduction(), e->target_index,
-                                  e->type, e->target, e->params));
+      add_action(*e);
     }
   }
+  reset();
+}
+
+void NodeSchedule::add_action(const Event& e) {
+  std::vector<schedule_entry>::iterator it = entry_at(e.time_introduction());
+  std::vector<Event>::iterator a = it->actions.begin();
+  while (a != it->actions.end() &&
+         event_type_rank(a->type) <= event_type_rank(e.type)) {
+    ++a;
+  }
+  it->actions.insert(a, Event(e.time_introduction(), e.target_index, e.type,
+                              e.target, e.params));
   reset();
 }
 

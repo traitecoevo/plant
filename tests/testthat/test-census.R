@@ -300,7 +300,9 @@ test_that("G6: no census metric has an all-zero state sensitivity", {
   # A structural claim about the seed rather than one about the shape of the
   # distribution, so it reads the stand every other block uses.
   scm <- census_stand()
-  seed <- stand_census_state_adjoint(scm)
+  # The census's rows; the fitness rows read the fecundity state.
+  seed <- stand_census_state_adjoint(scm)[names(stand_census(scm)), ,
+                                          drop = FALSE]
   expect_equal(nrow(seed), 3L)
   # Every metric is built from height, and every cohort's density -- which its
   # mortality sets -- multiplies it, so both state families must move all three.

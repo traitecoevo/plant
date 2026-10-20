@@ -42,7 +42,7 @@ stand_metric_table <- function(scm) {
 ##' integrated against its hat function; in height, by the trapezium.
 ##'
 ##' \code{stand_fitness} reports, for a model that declares its fitness
-##' differentiable (FF16), each species' net reproduction ratio and offspring
+##' differentiable (FF16 and TF24), each species' net reproduction ratio and offspring
 ##' production, named \code{"<species>.net_reproduction_ratio"} and
 ##' \code{"<species>.offspring_production"}. They are the same numbers as
 ##' \code{scm$net_reproduction_ratios} and \code{scm$offspring_production},
@@ -178,15 +178,15 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##'   and asking for its gradient errors rather than returning a zero.
 ##'
 ##' @section An invader against a recorded resident:
-##' Set \code{scm$record_trajectory <- TRUE} before \code{scm$run_mutant(p)}
-##' and the invasion replay keeps its states; a gradient taken then is of the
-##' invaders' metrics with the canopy held at the recorded resident -- the
-##' field is exogenous to the invader and carries no derivative -- which is the
-##' rare-mutant derivative. Several invaders in \code{p} share one replay and
-##' each has its own columns, but each metric is still one sweep, so a set of
-##' invaders costs about what running them one at a time does. An invader of a
-##' resumed resident starts at the resume time, as \code{run_mutant} requires.
-##' A sweep of an invasion that kept no states is refused rather than re-run.
+##' After \code{scm$run_mutant(p)}, a gradient is of the invaders' metrics with
+##' the canopy held at the recorded resident -- the field is exogenous to the
+##' invader and carries no derivative -- which is the rare-mutant derivative.
+##' An invasion that kept no states is run again, as an invasion, to keep them;
+##' set \code{scm$record_trajectory <- TRUE} before it to save that run.
+##' Several invaders in \code{p} share one run and each has its own columns,
+##' but each metric is still one sweep, so a set of invaders costs about what
+##' running them one at a time does. An invader of a resumed resident starts at
+##' the resume time, as \code{run_mutant} requires.
 ##'
 ##' @section The birth rate:
 ##' For a species run at a constant birth rate the column
