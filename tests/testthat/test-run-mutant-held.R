@@ -182,14 +182,15 @@ test_that("a gradient refuses a run made in a held field, after it is released",
   fp <- ff16_fixed_point(t_eq = 60, absorb = 0)
   fp$scm$run_mutant_held(held_invader(fp, 0.1))
   expect_false(fp$scm$patch$holds_field)
-  expect_error(stand_gradient(fp$scm, metrics = "leaf_area"), "held field")
+  expect_error(stand_gradient(fp$scm, metrics = "leaf_area", hyperpar = NULL), "held field")
   fp <- ff16_fixed_point(t_eq = 60, absorb = 0)
   fp$scm$record_trajectory <- TRUE
   fp$scm$run_mutant_held(held_invader(fp, 0.1))
-  expect_error(stand_gradient(fp$scm, metrics = "leaf_area"), "held field")
+  expect_error(stand_gradient(fp$scm, metrics = "leaf_area", hyperpar = NULL), "held field")
   ## A later run of the SCM is its own, and the gradient takes it.
   fp$scm$run()
-  expect_true(all(is.finite(stand_gradient(fp$scm, metrics = "leaf_area")$gradient)))
+  expect_true(all(is.finite(stand_gradient(fp$scm, metrics = "leaf_area",
+                                           hyperpar = NULL)$gradient)))
 })
 
 test_that("a held field is released when the invaders' run fails", {

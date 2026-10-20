@@ -397,7 +397,7 @@ test_that("A run that substepped the soil is replayed, swept and invaded as it r
 
   ## The sweep holds each step's substeps and input slopes, as a tangent of the
   ## replayed program does, and both agree with its central differences.
-  g <- stand_gradient(substepped, traits = "1.lma")
+  g <- stand_gradient(substepped, traits = "1.lma", hyperpar = NULL)
   traits <- census_trait_names_tf24(substepped)
   tangent <- ladder_trajectory_tangent_tf24(substepped,
                                             as.numeric(traits == "1.lma"))

@@ -22,8 +22,8 @@ test_that("two consecutive sweeps of one recording are bit-identical", {
   # The short fixture: this asserts an exact identity, which run length cannot
   # weaken, and it is one of the three checks that drove this file's runtime.
   stand <- ladder_stand_introductions_short()
-  first <- stand_gradient(stand)
-  second <- stand_gradient(stand)
+  first <- stand_gradient(stand, hyperpar = NULL)
+  second <- stand_gradient(stand, hyperpar = NULL)
   expect_gt(sum(is.finite(first$gradient)), 0)
   expect_identical(first$gradient, second$gradient)
   expect_identical(first$value, second$value)
@@ -43,15 +43,15 @@ test_that("a gradient is bit-identical under a permutation of the sweep order", 
   # identity, so a shorter run tests the same claim at a quarter of the sweeps.
   stand <- ladder_stand_introductions_short()
   all_metrics <- names(stand_census(stand))
-  full <- stand_gradient(stand)
+  full <- stand_gradient(stand, hyperpar = NULL)
   expect_gt(sum(is.finite(full$gradient)), 0)
 
   for (m in rev(all_metrics)) {
-    alone <- stand_gradient(stand, metrics = m)
+    alone <- stand_gradient(stand, metrics = m, hyperpar = NULL)
     expect_identical(alone$gradient[m, ], full$gradient[m, ],
                      info = paste("metric swept alone:", m))
   }
-  reversed <- stand_gradient(stand, metrics = rev(all_metrics))
+  reversed <- stand_gradient(stand, metrics = rev(all_metrics), hyperpar = NULL)
   expect_identical(reversed$gradient[all_metrics, ], full$gradient[all_metrics, ])
 })
 

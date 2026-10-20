@@ -27,7 +27,7 @@ test_that("a TF24 invader's census gradient is the difference across replays", {
   pm$strategies[[1]]$pars$lma <- 0.1
   scm$run_mutant(pm)
   metrics <- c("leaf_area", "1.net_reproduction_ratio")
-  g <- stand_gradient(scm, metrics = metrics, traits = "1.lma")
+  g <- stand_gradient(scm, metrics = metrics, traits = "1.lma", hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   x <- pm$strategies[[1]]$pars$lma
   h <- 1e-5 * x
@@ -79,7 +79,8 @@ test_that("a TF24 invasion of a resumed resident is differentiated", {
   pm$initial_time <- state$time
   pm$node_schedule_times <- state$node_schedule_times
   scm$run_mutant(pm)
-  g <- stand_gradient(scm, metrics = "1.net_reproduction_ratio", traits = "1.lma")
+  g <- stand_gradient(scm, metrics = "1.net_reproduction_ratio", traits = "1.lma",
+                      hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   scm$record_trajectory <- FALSE
   x <- pm$strategies[[1]]$pars$lma

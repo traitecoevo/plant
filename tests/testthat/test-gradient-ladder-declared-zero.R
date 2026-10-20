@@ -72,7 +72,7 @@ test_that("the birth-size channel is priced rather than asserted", {
   # nothing.
   traits <- ladder_traits()$fast
   stand <- ladder_stand_allometric_probe(TRUE)
-  gradient <- stand_gradient(stand)
+  gradient <- stand_gradient(stand, hyperpar = NULL)
   cols <- colnames(gradient$gradient)
 
   message("\n  sweep against a whole-run difference, leaf area, 0.4 yr:")
@@ -180,7 +180,8 @@ test_that("the columns declared zero are exactly zero, and no others are", {
   stand <- ladder_stand_two_by_two()
   # The census's rows. The fitness rows read a_f3 and S_D, and
   # test-tf24-fitness-gradient.R referees them.
-  g <- stand_gradient(stand, metrics = names(stand_census(stand)))
+  g <- stand_gradient(stand, metrics = names(stand_census(stand)),
+                      hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
 
   # Both directions. Every column the ladder declares zero is zero, and every

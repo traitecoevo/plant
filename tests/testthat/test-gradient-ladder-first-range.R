@@ -45,7 +45,7 @@ test_that("the sweep runs the range below the first introduction", {
   # One sweep, and both counts are its own return. DO NOT take one from a call and
   # the other off the solver afterwards: that pair can describe two different
   # sweeps.
-  stand_gradient(stand)
+  stand_gradient(stand, hyperpar = NULL)
   counts <- ladder_boundary_evaluations_tf24(stand)
   ranges <- counts$ranges
 
@@ -75,7 +75,7 @@ test_that("the adjoint the walk ends holding is the census's sensitivity to the 
   # Through stand_gradient so a sweep that refuses this stand skips by the
   # ladder's one gate and a sweep that BREAKS is re-raised. The adjoint itself
   # comes back with the gradient that ended holding it.
-  stand_gradient(stand)
+  stand_gradient(stand, hyperpar = NULL)
   lambda <- do.call(rbind, census_trait_gradient_tf24(stand)$at_first_state)
   rownames(lambda) <- metrics
 
