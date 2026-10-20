@@ -90,6 +90,9 @@ struct TF24_Pars {
   S a_st1  = 0.10;           // Storage capacity per unit sapwood mass [kg NSC / kg]
   S a_st2  = 0.1;            // Reserve fraction at which growth is half-on [0-1]
   S a_st3  = 0.8;            // Initial storage at birth [fraction of capacity]
+  // Added to the storage pool's own relaxation time, storage_max/(charge +
+  // drain) [yr].
+  S storage_relaxation_offset = 7.0 / 365.0;
   // * Light capture
   S k_I = 0.5;
   // * Leaf hydraulic / photosynthesis traits (default Eucalyptus saligna)
@@ -357,6 +360,7 @@ struct TF24_Pars {
       PLANT_TF24_AD_PARAMETER(a_st1),
       PLANT_TF24_AD_PARAMETER(a_st2),
       PLANT_TF24_AD_PARAMETER(a_st3),
+      PLANT_TF24_AD_PARAMETER(storage_relaxation_offset),
       PLANT_TF24_AD_PARAMETER(k_I),
       PLANT_TF24_AD_PARAMETER(vcmax_25),
       PLANT_TF24_AD_PARAMETER(stem_P50),
@@ -748,7 +752,10 @@ public:
   // neither model reads either: the curve count is read at one site, building
   // the Leaf, and the floor only by the sweep. Both suites are green on their
   // pinned outputs.
-  static constexpr int scientific_version = 11;
+  // v12: storage_relaxation_offset = 7 days is added to the storage pool's own
+  // relaxation time (zero gives v11's rates), and a stage below empty no longer
+  // refuses the step.
+  static constexpr int scientific_version = 12;
 
   S compute_average_light_environment(const S& z, const S& height,
                                       const TF24_Environment<S> &environment);
@@ -1308,10 +1315,6 @@ public:
   // (replacing the old hard net>0 growth cutoff) for AD-readiness.
   double storage_gate_width = 0.1;
   double storage_prod_eps   = 1e-4;
-  // How far below empty the storage pool may sit before the solver is told the
-  // step is invalid, as a fraction of capacity. A draining cohort approaches the
-  // boundary, so this separates round-off there from a real excursion.
-  double storage_domain_tol = 1e-8;
 
   // The clamp sites this strategy reaches; the list itself is shared with the
   // environment, which reaches the others.
@@ -1997,30 +2000,12 @@ void TF24_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,  In
   // relative reserves rather than instantaneous net production -- so a trough
   // draws reserves down and death is gradual, instead of the growth cutoff and
   // ~1e32 mortality spike that caused the #550 blow-up.
-  // The storage state is read as it stands, and neither end of its range is
-  // clamped: the rate below holds the flow inside [0, storage_max] by its own
-  // form, so a value outside is a step that overshot rather than a state the
-  // model has. Where a stage does land outside, both limiters go negative and
-  // push back, so the arithmetic is finite and restoring; what a committed value
-  // outside would corrupt is the meaning of the state, because mortality reads
-  // the ratio and grows without bound below zero. So the pool is refused there
-  // rather than floored, and the stepper shrinks and retries (#609, #610).
+  // Read unclamped: a stage below empty keeps finite rates for the error
+  // estimate, and non_negative_states() refuses a step that ends there.
   const S storage     = vars.state(state_idx_storage);
   const S storage_max = storage_capacity(area_leaf_, height);
   using std::exp;
   using std::sqrt;
-  // Refused only where the pool is negative by more than round-off on its own
-  // scale. The tolerance is not slack: at r = 0 the rate is the charge alone and
-  // so non-negative, so a draining cohort approaches the boundary and its last
-  // bits are round-off on a state near zero. Comparing against an exact zero
-  // refuses nearly every attempt there, which rejects nothing real.
-  if (storage < -storage_domain_tol * storage_max) {
-    odelia::util::stop_domain(
-        "TF24 storage is negative (" +
-        util::format_double(odelia::util::to_passive(storage)) +
-        " kg): the pool's flow does not leave [0, capacity], so this is a step "
-        "that overshot the empty boundary");
-  }
   const S r           = storage_max > 0.0 ? storage / storage_max : S(0.0);
   // Reserve-gated growth (#517), following Daniel's intuition that a plant
   // should not grow unless it has ample carbon in storage. Growth and
@@ -2086,7 +2071,14 @@ void TF24_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,  In
   // The pool is capped by withholding the surplus rather than by spending it,
   // so production and the two flows no longer balance: at capacity the charge
   // the gate withheld, Ppos(1 - G) ~ 1.2e-4 of production, leaves the budget.
-  vars.set_rate(state_idx_storage, charge * (1.0 - r) - drain * r);
+  //
+  // The flow relaxes the pool over storage_max/(charge + drain), hours in a
+  // seedling; the divisor adds storage_relaxation_offset to that time.
+  const S relaxation_rate =
+      storage_max > 0.0 ? (charge + drain) / storage_max : S(0.0);
+  vars.set_rate(state_idx_storage,
+                (charge * (1.0 - r) - drain * r) /
+                    (1.0 + relaxation_rate * pars.storage_relaxation_offset));
 
   // [eqn 21] - Instantaneous mortality rate, now driven by relative reserves r.
   vars.set_rate(MORTALITY_INDEX,
@@ -2911,6 +2903,11 @@ void TF24_Strategy<S>::prepare_strategy() {
       "use a constant theta. A hydraulics-only theta profile would be "
       "physically inconsistent, so it is refused rather than half-applied. Use "
       "D_c to vary the height dependence of resistance.");
+  }
+
+  // A negative offset can zero the storage rate's divisor or flip its sign.
+  if (!(odelia::util::to_passive(pars.storage_relaxation_offset) >= 0.0)) {
+    throw std::invalid_argument("storage_relaxation_offset must be >= 0");
   }
 
   if (odelia::util::to_passive(stem_path_exponent()) != 0.0) {

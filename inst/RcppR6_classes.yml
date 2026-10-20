@@ -631,10 +631,8 @@ Node:
   active:
     individual: {type: "plant::Individual<T,E>", access: field, readonly: true}
     height: {type: double, access: member}
-    ## The quantity this node carries: the density in height on the height path,
-    ## the density in birth date on the birth-date one. Unlike
-    ## Species$log_densities this is *not* converted, because forming |dh/dtau|
-    ## needs the neighbouring nodes and a Node does not have them.
+    ## The density in height on the height path; log(birth rate) - mortality on
+    ## the birth-date one. Not converted, as |dh/dtau| needs neighbouring nodes.
     log_density: {type: double, access: member, name_cpp: get_log_density}
     ## The node's birth date. For the not-yet-introduced boundary node this is
     ## the current patch time, refreshed on every environment build.
@@ -681,9 +679,6 @@ Species:
     heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
     ## Always a density in height, whichever coordinate the solver carried it in.
     log_densities: {type: "std::vector<double>", access: member, name_cpp: r_log_densities}
-    ## The quantity actually integrated: the height density on the height path,
-    ## the birth-date density (nu) on the birth-date one.
-    log_densities_state: {type: "std::vector<double>", access: member, name_cpp: r_log_densities_state, readonly: true}
     # Which nodes carry no density: absorbed into the top layer, or at exactly
     # zero density. Their individuals are frozen when the top layer is on.
     retired: {type: "std::vector<bool>", access: member, name_cpp: r_retired, readonly: true}
@@ -693,6 +688,9 @@ Species:
     top_layer: {type: "Rcpp::List", access: member, name_cpp: r_top_layer, readonly: true}
     ## |dh/dtau| per node, boundary node last; the conversion between the two.
     height_jacobian: {type: "std::vector<double>", access: member, readonly: true}
+    ## Birth-date path: each node's establishment weight, pr_estab integrated
+    ## against its hat function in birth date, boundary node last.
+    establishment_weights: {type: "std::vector<double>", access: member, name_cpp: r_establishment_weights, readonly: true}
     node_times: {type: "std::vector<double>", access: member}
     ## Which coordinate this species' size distribution is carried in. Set from
     ## the patch's control, not the strategy's (Patch::add_strategies).
@@ -1384,6 +1382,7 @@ TF24_Pars:
     - a_st1: double
     - a_st2: double
     - a_st3: double
+    - storage_relaxation_offset: double
     - k_I: double
     # ⚠️ The leaf traits carry phylloptim's names (#634). One name per quantity,
     # spelled the same on both sides of the boundary; see TF24_Pars in

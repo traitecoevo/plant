@@ -141,6 +141,11 @@ public:
     return strategy->establishment_probability(environment, vars);
   }
 
+  // The birth rate at `t`, at the scalar the strategy offers it.
+  value_type birth_rate_at(double t) const {
+    return strategy->birth_rate_at(t);
+  }
+
   value_type net_mass_production_dt(const environment_type &environment) {
     // TODO(#483):  maybe reuse intervals? default false
     return strategy->net_mass_production_dt(environment, vars);
