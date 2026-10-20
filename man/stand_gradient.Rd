@@ -53,15 +53,19 @@ and so no sweep produces it.
 A column is the derivative as its trait moves through the construction that
 built the strategy, which is what a difference through \code{add_strategies()}
 measures. The hyperparameter function derives some parameters from the traits
-(\code{TF24_hyperpar} sets \code{k_l} and \code{r_l} from \code{lma}), so a
+(\code{TF24_hyperpar} sets 13, among them \code{k_l}, \code{r_l}, \code{d_I},
+\code{a_f3} and the stem curve, from six traits including \code{lma}), so a
 trait's column is its own partial plus each derived parameter's partial times
 that parameter's derivative with respect to the trait. The function is
 closed-form, so that derivative is a central difference of the function
 itself, and costs no model run.
 
-A derived parameter is not an axis of its own here, and has no column. Each
-species' derived parameters are checked against its traits first: a strategy
-edited after it was built, or built through another function, is refused
+Every derived parameter leaves the columns, as
+\code{colnames(hyperpar(matrix(numeric(0), 1, 0), s, filter = FALSE))} lists
+them for a strategy \code{s}. Each requested species' derived parameters are
+checked against its traits first: a strategy built by hand (TF24's default is
+not on its trade-off), edited after it was built, built at an input it does not
+keep (FF16's \code{narea}), or built through another function, is refused
 rather than differentiated along a trade-off it does not lie on. Pass the
 function it was built with, or \code{hyperpar = NULL}.
 
