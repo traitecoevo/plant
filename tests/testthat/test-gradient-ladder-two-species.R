@@ -74,7 +74,7 @@ test_that("a trait is one input read by every cohort, not one input per cohort",
     p$node_schedule_times <- list(c(0, 0.31, 0.63), c(0, 0.41))
     ladder_run(p)
   })
-  result_more <- stand_gradient(more)
+  result_more <- stand_gradient(more, hyperpar = NULL)
 
   # Refining the schedule at fixed ecology moves the answer by quadrature, not
   # by a whole cohort count. A ratio near the node-count ratio is the signature.
@@ -138,6 +138,6 @@ test_that("record once and sweep many gives each metric its own recording", {
   # for a comparison that is an identity by construction, so three of them cost two
   # minutes and establish exactly what one does. It stays as the placeholder for the
   # real check, which needs the sweep itself to take a metric subset.
-  alone <- stand_gradient(stand, metrics = metrics[[1]])
+  alone <- stand_gradient(stand, metrics = metrics[[1]], hyperpar = NULL)
   expect_identical(alone$gradient[metrics[[1]], ], result$gradient[metrics[[1]], ])
 })

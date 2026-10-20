@@ -351,11 +351,11 @@ test_that("the trait gradient entry point is reachable", {
   expect_true(is.function(census_trait_gradient_tf24))
   # A column is named for its species as well as its parameter: a bare name would
   # resolve to species one's column silently on a multi-species stand.
-  got <- stand_gradient(scm, traits = "1.lma")
+  got <- stand_gradient(scm, traits = "1.lma", hyperpar = NULL)
   expect_equal(rownames(got$gradient), unname(census_metric_names_tf24(scm)))
   expect_equal(colnames(got$gradient), "1.lma")
   expect_false(any(stand_gradient_refused(got)))
   expect_true(all(is.finite(got$gradient)))
   # And the bare name refuses, naming the convention rather than only failing.
-  expect_error(stand_gradient(scm, traits = "lma"), "species index")
+  expect_error(stand_gradient(scm, traits = "lma", hyperpar = NULL), "species index")
 })

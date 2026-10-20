@@ -40,12 +40,13 @@ test_that("a mutant's fitness gradient is the pinned difference across replays",
   scm <- run_scm(resident_parameters(), NULL, mutant_control(),
                  record_trajectory = TRUE)
   resident <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
-                             traits = "1.lma")
+                             traits = "1.lma", hyperpar = NULL)
 
   # One invader at the resident's own trait, replayed with its states kept.
   scm$run_mutant(mutant_parameters(scm, 0.0825))
   g <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
-                      traits = c("1.lma", "1.omega", "1.a_f1", "1.k_I"))
+                      traits = c("1.lma", "1.omega", "1.a_f1", "1.k_I"),
+                      hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   # The resident as its own invader has the resident's fitness.
   expect_equal(g$value[["1.net_reproduction_ratio"]],
@@ -80,7 +81,7 @@ test_that("several invaders against one resident each carry their own columns", 
   scm$run_mutant(mutant_parameters(scm, c(0.07, 0.1)))
   g <- stand_gradient(scm, metrics = c("1.net_reproduction_ratio",
                                        "2.net_reproduction_ratio"),
-                      traits = c("1.lma", "2.lma"))
+                      traits = c("1.lma", "2.lma"), hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   for (i in 1:2) {
     x <- scm$parameters$strategies[[i]]$pars$lma
@@ -101,10 +102,12 @@ test_that("several invaders against one resident each carry their own columns", 
 test_that("a sweep of an invasion that kept no states runs it again, as an invasion", {
   scm <- run_scm(resident_parameters(lifetime = 3), NULL, mutant_control())
   scm$run_mutant(mutant_parameters(scm, 0.0825))
-  again <- stand_gradient(scm, metrics = "1.net_reproduction_ratio")
+  again <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
+                          hyperpar = NULL)
   scm$record_trajectory <- TRUE
   scm$run_mutant(mutant_parameters(scm, 0.0825))
-  kept <- stand_gradient(scm, metrics = "1.net_reproduction_ratio")
+  kept <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
+                         hyperpar = NULL)
   expect_identical(again$gradient, kept$gradient)
 })
 
@@ -128,7 +131,8 @@ test_that("invaders do not shade each other, and an invader's birth rate reaches
   scm$run_mutant(mutant_parameters(scm, c(0.07, 0.1)))
   g <- stand_gradient(scm, metrics = c("1.net_reproduction_ratio",
                                        "1.offspring_production"),
-                      traits = c("2.lma", "2.k_I", "1.birth_rate"))
+                      traits = c("2.lma", "2.k_I", "1.birth_rate"),
+                      hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   # Each stands in the resident's field, which neither moves.
   expect_identical(g$gradient["1.net_reproduction_ratio", c("2.lma", "2.k_I")],
@@ -151,7 +155,7 @@ test_that("an invader introduced after the replay starts has a gradient", {
   p$node_schedule_times <- list(tt[tt >= 1])
   scm$run_mutant(p)
   g <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
-                      traits = c("1.lma", "1.a_d0"))
+                      traits = c("1.lma", "1.a_d0"), hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   for (name in c("lma", "a_d0")) {
     fd <- replay_difference(scm, p, 1, name, "1.net_reproduction_ratio")
@@ -183,7 +187,7 @@ test_that("an invader of a resumed resident is born in the resident's canopy at 
   expect_equal(pm$node_schedule_times[[1]][[1]], state$time)
   scm$run_mutant(pm)
   g <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
-                      traits = c("1.lma", "1.a_d0", "1.omega"))
+                      traits = c("1.lma", "1.a_d0", "1.omega"), hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   for (name in c("lma", "a_d0", "omega")) {
     fd <- replay_difference(scm, pm, 1, name, "1.net_reproduction_ratio")
@@ -200,7 +204,7 @@ test_that("an invader's gradient through the run's harvest is the difference acr
   pm <- mutant_parameters(scm, 0.09)
   scm$run_mutant(pm)
   g <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
-                      traits = c("1.lma", "1.a_d0"))
+                      traits = c("1.lma", "1.a_d0"), hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   for (name in c("lma", "a_d0")) {
     fd <- replay_difference(scm, pm, 1, name, "1.net_reproduction_ratio")

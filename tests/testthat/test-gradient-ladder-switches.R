@@ -88,7 +88,7 @@ test_that("the census's direct term has no other home", {
   # allometric constants set leaf area from height, so they are in the leaf-area
   # metric's own formula.
   stand <- ladder_stand_two_by_two()
-  result <- stand_gradient(stand)
+  result <- stand_gradient(stand, hyperpar = NULL)
   seeds <- stand_census_state_adjoint(stand)
 
   # The state adjoint is the seed and carries no direct term, so a gradient that
@@ -173,7 +173,7 @@ test_that("the boundary's three channels are three switches", {
   # ends in an accumulator no metric here reads. So a zero column is the channel
   # gone, with nothing else to supply the number.
   expect_true("omega" %in% columns)
-  result <- stand_gradient(stand)
+  result <- stand_gradient(stand, hyperpar = NULL)
   at <- which(ladder_bare_traits(colnames(result$gradient)) == "omega")
   expect_length(at, length(stand$patch$species))
   expect_gt(max(abs(result$gradient[, at, drop = FALSE])), 0)

@@ -1363,7 +1363,8 @@ ladder_shared <- function(key) {
       marginal_recruit = ladder_stand_marginal_recruit(),
       allometric_probe = ladder_stand_allometric_probe(TRUE),
       stop("ladder_shared: no such fixture: ", key, call. = FALSE))
-    assign(key, list(stand = stand, gradient = stand_gradient(stand)),
+    assign(key, list(stand = stand, gradient = stand_gradient(stand,
+                                                              hyperpar = NULL)),
            envir = ladder_shared_cache)
   }
   get(key, envir = ladder_shared_cache, inherits = FALSE)

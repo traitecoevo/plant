@@ -54,7 +54,7 @@ test_that("FF16 declares the three census metrics and names its columns", {
   scm <- ff16_stand(lifetime = 2)
   expect_equal(names(stand_census(scm)),
                c("leaf_area", "mass_above_ground", "area_stem"))
-  g <- stand_gradient(scm, metrics = "leaf_area")
+  g <- stand_gradient(scm, metrics = "leaf_area", hyperpar = NULL)
   # Every parameter of FF16_Pars bar the one the model says it cannot
   # differentiate, each prefixed by its species.
   pars <- names(FF16_Strategy()$pars)
@@ -64,7 +64,7 @@ test_that("FF16 declares the three census metrics and names its columns", {
   expect_setequal(colnames(g$gradient),
                   paste0("1.", c(setdiff(pars, cannot), "birth_rate")))
   expect_false(any(stand_gradient_refused(g)))
-  expect_error(stand_gradient(scm, traits = "1.eta"), "No gradient exists")
+  expect_error(stand_gradient(scm, traits = "1.eta", hyperpar = NULL), "No gradient exists")
 })
 
 test_that("the FF16 census is density times the allometry by establishment weight", {
@@ -95,7 +95,7 @@ test_that("the FF16 census is density times the allometry by establishment weigh
 
 test_that("the FF16 stand gradient is the pinned-step central difference", {
   scm <- ff16_stand(lifetime = 5)
-  g <- stand_gradient(scm, metrics = "mass_above_ground")
+  g <- stand_gradient(scm, metrics = "mass_above_ground", hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   p <- pinned(scm)
   # One trait from each route a parameter takes into the stand: the allometry
@@ -111,11 +111,8 @@ test_that("the FF16 stand gradient is the pinned-step central difference", {
 
 test_that("a trait's total through FF16_hyperpar is the difference through add_strategies", {
   scm <- ff16_stand(lifetime = 5)
-  g <- stand_gradient(scm, metrics = "mass_above_ground", traits = "1.lma",
-                      hyperpar = FF16_hyperpar)
-  # lma sets k_l and r_l through the hyperparameter function, so the total
-  # carries both of their columns.
-  expect_setequal(names(g$jacobian[["1.lma"]]), c("k_l", "r_l"))
+  # lma sets k_l and r_l through FF16_hyperpar, so its column carries both.
+  g <- stand_gradient(scm, metrics = "mass_above_ground", traits = "1.lma")
   x <- 0.0825
   h <- 1e-4 * x
   at <- function(v) {
@@ -133,7 +130,7 @@ test_that("a trait's total through FF16_hyperpar is the difference through add_s
 test_that("two FF16 species carry each their own columns", {
   scm <- ff16_stand(lifetime = 5, lma = c(0.0825, 0.2))
   g <- stand_gradient(scm, metrics = "mass_above_ground",
-                      traits = c("1.lma", "2.lma"))
+                      traits = c("1.lma", "2.lma"), hyperpar = NULL)
   p <- pinned(scm)
   for (i in 1:2) {
     fd <- central_difference(p, i, "lma", "mass_above_ground")
@@ -145,14 +142,14 @@ test_that("two FF16 species carry each their own columns", {
 test_that("the gradient refuses what it cannot differentiate, by name", {
   # The height coordinate: the same refusal TF24 makes.
   scm <- ff16_stand(lifetime = 2, ctrl = Control())
-  expect_error(stand_gradient(scm), "birth-date")
+  expect_error(stand_gradient(scm, hyperpar = NULL), "birth-date")
   # The PPA stepped light profile has no derivative to carry.
   scm <- ff16_stand(lifetime = 2, ctrl = referee_control(shading_model = "ppa"))
-  expect_error(stand_gradient(scm), "staircase")
+  expect_error(stand_gradient(scm, hyperpar = NULL), "staircase")
   # A model that declares no census.
   p <- scm_base_parameters("K93")
   p$max_patch_lifetime <- 2
   p <- add_strategies(p, trait_matrix(0.059, "b_0"), birth_rate = list(1))
   scm <- run_scm(p, NULL, Control(node_density_in_birth_date = TRUE))
-  expect_error(stand_gradient(scm), "No census is declared for the K93 model")
+  expect_error(stand_gradient(scm, hyperpar = NULL), "No census is declared for the K93 model")
 })

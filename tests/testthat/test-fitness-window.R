@@ -133,7 +133,7 @@ test_that("the window survives the rebind a gradient runs on", {
   p <- fitness_window(ff16(10), 2, 8)
   scm <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE),
                  record_trajectory = TRUE)
-  g <- stand_gradient(scm, metrics = "leaf_area")
+  g <- stand_gradient(scm, metrics = "leaf_area", hyperpar = NULL)
   expect_true(all(is.finite(g$gradient)))
 })
 
