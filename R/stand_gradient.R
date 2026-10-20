@@ -154,15 +154,19 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##' A column is the derivative as its trait moves through the construction that
 ##' built the strategy, which is what a difference through \code{add_strategies()}
 ##' measures. The hyperparameter function derives some parameters from the traits
-##' (\code{TF24_hyperpar} sets \code{k_l} and \code{r_l} from \code{lma}), so a
+##' (\code{TF24_hyperpar} sets 13, among them \code{k_l}, \code{r_l}, \code{d_I},
+##' \code{a_f3} and the stem curve, from six traits including \code{lma}), so a
 ##' trait's column is its own partial plus each derived parameter's partial times
 ##' that parameter's derivative with respect to the trait. The function is
 ##' closed-form, so that derivative is a central difference of the function
 ##' itself, and costs no model run.
 ##'
-##' A derived parameter is not an axis of its own here, and has no column. Each
-##' species' derived parameters are checked against its traits first: a strategy
-##' edited after it was built, or built through another function, is refused
+##' Every derived parameter leaves the columns, as
+##' \code{colnames(hyperpar(matrix(numeric(0), 1, 0), s, filter = FALSE))} lists
+##' them for a strategy \code{s}. Each requested species' derived parameters are
+##' checked against its traits first: a strategy built by hand (TF24's default is
+##' not on its trade-off), edited after it was built, built at an input it does not
+##' keep (FF16's \code{narea}), or built through another function, is refused
 ##' rather than differentiated along a trade-off it does not lie on. Pass the
 ##' function it was built with, or \code{hyperpar = NULL}.
 ##'
@@ -272,19 +276,21 @@ stand_gradient <- function(scm, metrics = NULL, traits = NULL,
        control = gradient_control(scm))
 }
 
-# The chain rule through a hyperparameter function: a trait reaches the model as
-# itself and through every parameter the function derives from it, and the sweep's
-# columns are partials with the derived ones held fixed. The total is
-#     d(metric)/d(trait) = G[, trait] + G[, derived] %*% d(derived)/d(trait).
+# The chain rule through a hyperparameter function: a trait's total is its partial
+# plus G[, derived] %*% d(derived)/d(trait), with the derived partials from the sweep.
 stand_gradient_through <- function(scm, metrics, traits, hyperpar) {
   if (!is.function(hyperpar)) {
     stop("`hyperpar` must be a hyperparameter function, as TF24_hyperpar, or ",
          "NULL for partial derivatives")
   }
   strategies <- scm$parameters$strategies
-  trade_offs <- Map(trade_off, strategies, seq_along(strategies),
+  species <- seq_along(strategies)
+  if (!is.null(traits)) {
+    species <- species[species %in% sub("^([0-9]+)\\..*", "\\1", traits)]
+  }
+  trade_offs <- Map(trade_off, strategies[species], species,
                     MoreArgs = list(hyperpar = hyperpar))
-  derived <- unlist(lapply(trade_offs, function(t) rownames(t)))
+  derived <- unlist(lapply(trade_offs, rownames))
   columns <- census_backend(scm)$trait_names(scm)
   if (is.null(traits)) {
     traits <- setdiff(columns, derived)
@@ -292,8 +298,8 @@ stand_gradient_through <- function(scm, metrics, traits, hyperpar) {
   named <- intersect(traits, derived)
   if (length(named) > 0L) {
     stop(paste(named, collapse = ", "), " derived from the species' traits by ",
-         "`hyperpar`, so not an axis of its own: ask for the trait, or pass ",
-         "hyperpar = NULL for the partial derivative")
+         "`hyperpar`: ask for the trait it comes from, or pass hyperpar = NULL ",
+         "for its partial derivative")
   }
   # A derived parameter without a column adds nothing only where the model states
   # no equation reads it; any other leaves the sum incomplete.
@@ -309,20 +315,18 @@ stand_gradient_through <- function(scm, metrics, traits, hyperpar) {
   partial <- stand_gradient(scm, metrics, union(traits, read), hyperpar = NULL)
   G <- partial$gradient
   total <- G[, traits, drop = FALSE]
-  for (t in trade_offs) {
-    along <- intersect(colnames(t), traits)
-    from <- intersect(rownames(t), read)
+  for (J in trade_offs) {
+    along <- intersect(colnames(J), traits)
+    from <- intersect(rownames(J), read)
     total[, along] <- total[, along] +
-      G[, from, drop = FALSE] %*% t[from, along, drop = FALSE]
+      G[, from, drop = FALSE] %*% J[from, along, drop = FALSE]
   }
   partial$gradient <- total
   partial
 }
 
-# What `hyperpar` derives from species `i`'s traits: the derivative of each derived
-# parameter with respect to each trait, rows and columns named as gradient columns.
-# One call on 2P + 1 rows: the strategy's traits, then each moved by a relative
-# 6e-6 up and down.
+# Each parameter `hyperpar` derives for species `i`, differentiated in each trait
+# by one call on the traits and each moved up and down: rows and columns named.
 trade_off <- function(s, i, hyperpar) {
   derived <- colnames(hyperpar(matrix(numeric(0), 1L, 0L), s, filter = FALSE))
   if (length(derived) == 0L) {
@@ -335,16 +339,19 @@ trade_off <- function(s, i, hyperpar) {
   rows <- rbind(x, at + diag(h, P), at - diag(h, P))
   colnames(rows) <- names(x)
   out <- hyperpar(rows, s, filter = FALSE)[, derived, drop = FALSE]
-  # ⚠️ CHECKED, because a chain through a trade-off the strategy does not lie on
-  # returns finite numbers for a construction nobody ran. Within 1e-7, as the
-  # function's own filter keeps a default within sqrt(.Machine$double.eps).
-  held <- unlist(s$pars[derived])
-  off <- abs(out[1L, ] - held) > 1e-7 * abs(held)
+  # ⚠️ CHECKED: a chain through a trade-off the strategy is not on returns finite,
+  # wrong numbers. 1e-7, as the function's filter keeps a default to 1.5e-8.
+  gap <- abs(out[1L, ] - unlist(s$pars)[derived])
+  off <- !is.finite(gap) | gap > 1e-7 * abs(out[1L, ])
   if (any(off)) {
+    unkept <- attr(hyperpar, "input_traits", exact = TRUE)
     stop("Species ", i, "'s ", paste(derived[off], collapse = ", "),
-         " are not what `hyperpar` derives from its traits, so it was edited ",
-         "after it was built or built through another function: pass that ",
-         "function, or hyperpar = NULL for partial derivatives")
+         " are not what `hyperpar` gives at its traits: it was built by hand, ",
+         "edited after it was built",
+         if (length(unkept)) paste0(", built at a ", paste(unkept, collapse = ", "),
+                                    " the strategy does not keep"),
+         ", or built through another function. Pass the function it was built ",
+         "with, or hyperpar = NULL for partial derivatives")
   }
   up <- out[1L + seq_len(P), , drop = FALSE]
   down <- out[1L + P + seq_len(P), , drop = FALSE]
