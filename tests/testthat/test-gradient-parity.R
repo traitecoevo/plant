@@ -46,7 +46,7 @@ parity_range_gap <- character(0)
 # store_trajectory() has already kept it, where reading it first would run the
 # model twice. Counted rather than carried -- one driver's states are 67 MB.
 parity_of <- function(scm) {
-  g <- stand_gradient(scm)
+  g <- stand_gradient(scm, hyperpar = NULL)
   refused_metric <- stand_gradient_refused(g)
   counts <- census_operating_point_counts_tf24(scm)[[1]]
   names(counts) <- census_operating_point_names_tf24()

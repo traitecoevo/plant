@@ -7,7 +7,7 @@
 test_that("the sweep runs on a stand in the declared regime", {
   stand <- ladder_stand_two_by_two()
   ladder_require_regime(stand, "stand")
-  g <- stand_gradient(stand)
+  g <- stand_gradient(stand, hyperpar = NULL)
   # Non-vacuity: a sweep that ran and answered nothing is not a sweep that ran,
   # and every metric refusing is a different event from the sweep failing.
   expect_false(any(stand_gradient_refused(g)))
@@ -81,7 +81,7 @@ test_that("a fold refuses every metric, and on this census nothing would be spar
   env$extrinsic_drivers_set_constant("rainfall", 2.0)
   scm <- SCM("TF24", "TF24_Env")(p, env, empty_events(), ctrl)
   scm$run()
-  g <- stand_gradient(scm)
+  g <- stand_gradient(scm, hyperpar = NULL)
 
   # Every metric refuses, each by the curvature guard rather than by anything
   # else -- so the refusal is the one under test and it reached the metric
@@ -108,7 +108,7 @@ test_that("refusal is metric-level and not per-parameter", {
   #
   # A partly-populated gradient vector is the shape that reads as an answer.
   stand <- ladder_stand_two_by_two()
-  result <- stand_gradient(stand)
+  result <- stand_gradient(stand, hyperpar = NULL)
   for (m in rownames(result$gradient)) {
     row <- result$gradient[m, ]
     expect_false(any(is.na(row)) && !all(is.na(row)),

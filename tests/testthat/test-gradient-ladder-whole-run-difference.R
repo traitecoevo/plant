@@ -69,7 +69,7 @@ reference_uncaptured_columns <- function() {
 
 reference_compare <- function(regime, rows) {
   scm <- reference_stand(regime)
-  got <- stand_gradient(scm)
+  got <- stand_gradient(scm, hyperpar = NULL)
   mine <- rows[rows$regime == regime$name, , drop = FALSE]
   column <- paste0(mine$species, ".", mine$parameter)
   # A column the sweep does not carry is the capture's business rather than this

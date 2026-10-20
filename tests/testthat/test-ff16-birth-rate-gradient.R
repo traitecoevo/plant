@@ -21,7 +21,7 @@ birth_parameters <- function(birth_rate, lma = c(0.0825, 0.2), hmat = 3,
 test_that("the birth rate is a column, named per species, for a constant rate", {
   scm <- run_scm(birth_parameters(c(2, 1)), NULL, birth_control(),
                  record_trajectory = TRUE)
-  g <- stand_gradient(scm, metrics = "1.net_reproduction_ratio")
+  g <- stand_gradient(scm, metrics = "1.net_reproduction_ratio", hyperpar = NULL)
   expect_true(all(c("1.birth_rate", "2.birth_rate") %in% colnames(g$gradient)))
   expect_false(any(stand_gradient_refused(g)))
   # The last column of each species' block, after the parameter table's.
@@ -36,7 +36,8 @@ test_that("d(fitness)/d(birth rate) is the pinned-step central difference", {
   metrics <- c("1.net_reproduction_ratio", "2.net_reproduction_ratio",
                "1.offspring_production", "2.offspring_production")
   g <- stand_gradient(scm, metrics = metrics,
-                      traits = c("1.birth_rate", "2.birth_rate"))
+                      traits = c("1.birth_rate", "2.birth_rate"),
+                      hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   at <- function(b_) {
     p <- birth_parameters(b_)
@@ -71,9 +72,9 @@ test_that("a variable birth rate has no column rather than a zero", {
                       birth_rate = list(list(x = c(0, 3), y = c(2, 2))))
   expect_true(p$strategies[[1]]$is_variable_birth_rate)
   scm <- run_scm(p, NULL, birth_control(), record_trajectory = TRUE)
-  g <- stand_gradient(scm, metrics = "1.net_reproduction_ratio")
+  g <- stand_gradient(scm, metrics = "1.net_reproduction_ratio", hyperpar = NULL)
   expect_false("1.birth_rate" %in% colnames(g$gradient))
-  expect_error(stand_gradient(scm, traits = "1.birth_rate"), "Unknown trait")
+  expect_error(stand_gradient(scm, traits = "1.birth_rate", hyperpar = NULL), "Unknown trait")
 })
 
 test_that("the birth-rate column passes through a hyperparameter function as itself", {
@@ -87,7 +88,7 @@ test_that("the birth-rate column passes through a hyperparameter function as its
                             traits = c("1.lma", "1.birth_rate"),
                             hyperpar = FF16_hyperpar)
   partial <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
-                            traits = "1.birth_rate")
+                            traits = "1.birth_rate", hyperpar = NULL)
   expect_identical(through$gradient[, "1.birth_rate"],
                    partial$gradient[, "1.birth_rate"])
 })

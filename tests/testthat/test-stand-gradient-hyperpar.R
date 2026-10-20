@@ -1,44 +1,42 @@
-# stand_gradient(hyperpar = ): the total derivative with respect to a trait as a
-# trait matrix gives it, through the parameters the hyperparameter function
-# derives from it. Without `hyperpar` a column is a partial with every derived
-# parameter held fixed, and for lma that was 2.4 to 4 times the derivative a
-# trait fit wants.
+# A trait's column is the total derivative as the trait moves through the
+# hyperparameter function that built the strategy; hyperpar = NULL gives the
+# partials, with every derived parameter held fixed. For lma the partial was 2.4
+# to 4 times the total.
 
-hyperpar_run <- function(lifetime = 3) {
+hyperpar_parameters <- function(lifetime = 3) {
   p <- scm_base_parameters("TF24")
   p$max_patch_lifetime <- lifetime
-  p <- add_strategies(p, trait_matrix(c(0.0825, 5.13), c("lma", "hmat")),
-                      hyperpar = TF24_hyperpar, birth_rate = list(1.10))
+  add_strategies(p, trait_matrix(c(0.0825, 5.13), c("lma", "hmat")),
+                 hyperpar = TF24_hyperpar, birth_rate = list(1.10))
+}
+
+hyperpar_run <- function(p = hyperpar_parameters()) {
   ctrl <- Control(node_density_in_birth_date = TRUE)
   list(p = p, ctrl = ctrl,
        scm = run_scm(p, Environment("TF24"), ctrl, refine_schedule = TRUE,
                      record_trajectory = TRUE))
 }
 
-test_that("the chain rule is the partials weighted by the hyperpar's own derivative", {
+test_that("a trait's column is its partial plus each derived parameter's, chained", {
   run <- hyperpar_run()
-  tot <- stand_gradient(run$scm, traits = c("1.lma", "1.hmat"),
-                        hyperpar = TF24_hyperpar)
-  par <- stand_gradient(run$scm)
+  tot <- stand_gradient(run$scm, traits = c("1.lma", "1.hmat"))
+  par <- stand_gradient(run$scm, hyperpar = NULL)
 
-  # lma's derived parameters, and one checked against TF24_hyperpar's closed
-  # form: k_l = B_kl1 * (lma / lma_0)^(-B_kl2), so dk_l/dlma = -B_kl2 * k_l / lma.
-  J <- tot$jacobian[["1.lma"]]
-  expect_true(all(c("k_l", "r_l") %in% names(J)))
-  lma <- 0.0825
-  k_l <- run$scm$parameters$strategies[[1]]$pars$k_l
-  expect_equal(J[["k_l"]], -1.71 * k_l / lma, tolerance = 1e-8)
-
-  # The total, rebuilt from the partials: own column plus each derived column
-  # times its derivative. Parameters no equation reads carry no column.
-  cols <- paste0("1.", names(J))
-  keep <- cols %in% colnames(par$gradient)
+  # TF24_hyperpar derives k_l, r_l and nmass_l from lma; nmass_l reaches no
+  # equation, so it has no column. Their derivatives, from the function itself.
+  s <- run$scm$parameters$strategies[[1]]
+  derived <- function(lma) {
+    TF24_hyperpar(trait_matrix(lma, "lma"), s, filter = FALSE)[1, c("k_l", "r_l")]
+  }
+  h <- 1e-6 * 0.0825
+  d <- (derived(0.0825 + h) - derived(0.0825 - h)) / (2 * h)
+  # k_l = B_kl1 * (lma / lma_0)^(-B_kl2), so dk_l/dlma = -B_kl2 * k_l / lma.
+  expect_equal(d[["k_l"]], -1.71 * s$pars$k_l / 0.0825, tolerance = 1e-8)
   expect_equal(tot$gradient[, "1.lma"],
-               par$gradient[, "1.lma"] +
-                 as.vector(par$gradient[, cols[keep], drop = FALSE] %*% J[keep]))
+               par$gradient[, "1.lma"] + par$gradient[, "1.k_l"] * d[["k_l"]] +
+                 par$gradient[, "1.r_l"] * d[["r_l"]], tolerance = 1e-8)
 
   # Nothing derives from hmat, so its total is its partial.
-  expect_length(tot$jacobian[["1.hmat"]], 0L)
   expect_identical(tot$gradient[, "1.hmat"], par$gradient[, "1.hmat"])
 
   # And the point of it: for lma the partial is not the total.
@@ -48,7 +46,7 @@ test_that("the chain rule is the partials weighted by the hyperpar's own derivat
 test_that("the total agrees with a difference of the trait through add_strategies", {
   skip_on_cran()
   run <- hyperpar_run()
-  tot <- stand_gradient(run$scm, traits = "1.lma", hyperpar = TF24_hyperpar)
+  tot <- stand_gradient(run$scm, traits = "1.lma")
   sched <- run$scm$node_schedule$times(1)
   census_at <- function(lma) {
     p <- scm_base_parameters("TF24")
@@ -62,16 +60,28 @@ test_that("the total agrees with a difference of the trait through add_strategie
   h <- 1e-3 * 0.0825
   fd <- (census_at(0.0825 + h) - census_at(0.0825 - h)) / (2 * h)
   # Measured 3e-5 to 8e-5 across two steps, which is the difference's own noise;
-  # the partial it replaces was 2.4 to 3.4 times off.
+  # the partial was 2.4 to 3.4 times off.
   expect_equal(tot$gradient[names(fd), "1.lma"], fd, tolerance = 1e-3)
 })
 
-test_that("a trait it cannot differentiate through is refused", {
-  run <- hyperpar_run(lifetime = 1)
-  expect_error(stand_gradient(run$scm, hyperpar = TF24_hyperpar),
-               "Name the traits")
-  expect_error(stand_gradient(run$scm, traits = "lma", hyperpar = TF24_hyperpar),
-               "names its species")
+test_that("a derived parameter is not a column of its own under a trade-off", {
+  run <- hyperpar_run(hyperpar_parameters(lifetime = 1))
+  tot <- stand_gradient(run$scm)
+  par <- stand_gradient(run$scm, hyperpar = NULL)
+  expect_false(any(c("1.k_l", "1.r_l", "1.stem_P50") %in% colnames(tot$gradient)))
+  expect_true(all(c("1.lma", "1.K_s", "1.hmat") %in% colnames(tot$gradient)))
+  expect_true(all(c("1.k_l", "1.r_l") %in% colnames(par$gradient)))
+  expect_error(stand_gradient(run$scm, traits = "1.k_l"),
+               "1.k_l derived from the species' traits")
+})
+
+test_that("a strategy that is not on the trade-off is refused, not chained", {
+  p <- hyperpar_parameters(lifetime = 1)
+  p$strategies[[1]]$pars$lma <- 0.09
+  run <- hyperpar_run(p)
+  expect_error(stand_gradient(run$scm, traits = "1.lma"),
+               "Species 1's k_l, r_l, nmass_l are not what `hyperpar` derives")
+  expect_no_error(stand_gradient(run$scm, traits = "1.lma", hyperpar = NULL))
   expect_error(stand_gradient(run$scm, traits = "1.lma", hyperpar = "TF24"),
                "must be a hyperparameter function")
 })

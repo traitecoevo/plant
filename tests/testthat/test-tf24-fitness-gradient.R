@@ -44,7 +44,7 @@ test_that("TF24 reports its fitness under the names the gradient uses", {
   expect_identical(f[["1.net_reproduction_ratio"]], scm$net_reproduction_ratios)
   expect_identical(f[["1.offspring_production"]], scm$offspring_production)
   expect_false("S_D" %in% names(census_undifferentiable_tf24()))
-  g <- stand_gradient(scm, metrics = names(f))
+  g <- stand_gradient(scm, metrics = names(f), hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   # The birth rate is the last column of the species' block.
   expect_equal(utils::tail(colnames(g$gradient), 1), "1.birth_rate")
@@ -61,7 +61,8 @@ test_that("TF24's fitness gradient is the pinned-step central difference", {
   names <- c("hmat", "a_f1", "a_f2", "omega", "a_f3", "S_D", "lma", "k_I",
              "d_I", "a_dG1", "vcmax_25", "stem_P50", "a_d0")
   g <- stand_gradient(scm, metrics = metrics,
-                      traits = paste0("1.", c(names, "birth_rate")))
+                      traits = paste0("1.", c(names, "birth_rate")),
+                      hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   expect_gt(g$value[["1.net_reproduction_ratio"]], 1)
 
@@ -115,7 +116,7 @@ test_that("Newton on d ln J / d b finds the equilibrium birth rate, and an invad
   for (k in 1:8) {
     resident <- fitness_stand_run(fitness_stand_parameters(b))
     g <- stand_gradient(resident, metrics = "1.offspring_production",
-                        traits = "1.birth_rate")
+                        traits = "1.birth_rate", hyperpar = NULL)
     J <- g$value[["1.offspring_production"]]
     excess <- log(J) - log(b)
     if (abs(excess) < 1e-8) {
@@ -139,7 +140,7 @@ test_that("Newton on d ln J / d b finds the equilibrium birth rate, and an invad
   invader <- fitness_stand_parameters(1, 0.9)
   resident$run_mutant(invader)
   gi <- stand_gradient(resident, metrics = "1.net_reproduction_ratio",
-                       traits = c("1.lma", "1.hmat"))
+                       traits = c("1.lma", "1.hmat"), hyperpar = NULL)
   expect_false(any(stand_gradient_refused(gi)))
   expect_gt(gi$value[["1.net_reproduction_ratio"]], 1)
   resident$record_trajectory <- FALSE
