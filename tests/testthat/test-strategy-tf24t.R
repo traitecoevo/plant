@@ -441,9 +441,10 @@ test_that("faster repair lowers the share of damage that becomes permanent", {
 
 test_that("a single TF24t plant grows through the ODE runner, and costs slow it", {
   # At 15 deg C air, not the default 25. A lone plant in full light runs its
-  # leaves 6-9 deg C above the air, so at 25 phi_d sits near its midpoint, damage
-  # ratchets into I_p within a year at the default k_mat, and the dying plant's
-  # empty storage pool holds the stepper to tiny steps.
+  # leaves 4-6 deg C above the air, and hotter as damage closes its stomata, so
+  # at 25 phi_d climbs toward its midpoint, damage ratchets into I_p within a
+  # year at the default k_mat, and the dying plant's empty storage pool holds
+  # the stepper to tiny steps.
   #
   # The runner does not seed the initial states, so they are seeded here: an
   # unseeded storage pool starts empty, where a plant losing carbon is refused
