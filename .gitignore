@@ -28,6 +28,9 @@ Meta
 # Overstorey repo; not version-controlled here.
 overstorey-staging/figures/
 
+# ATLS demo file-based cache (expensive SCM runs); regenerated on render.
+overstorey_staging/cache/
+
 # Claude Code personal settings
 .claude/settings.local.json
 
