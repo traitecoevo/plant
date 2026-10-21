@@ -1,6 +1,6 @@
 # Porting the ATLS thermal-damage layer to develop (#566)
 
-**Status: in progress (started 2026-10-21).** The ATLS layer was built in July on `feature/tf24-atls-thermal-damage` (tip `bee0a02a`, TF24t@v3.3) against plant's own leaf model. #591 then moved the leaf into phylloptim and deleted 23 of the files that branch changes, so it cannot merge. This note is the plan for re-implementing it on current code.
+**Status: in progress (started 2026-10-21); both halves implemented, item 4 blocked.** The ATLS layer was built in July on `feature/tf24-atls-thermal-damage` (tip `bee0a02a`, TF24t@v3.3) against plant's own leaf model. #591 then moved the leaf into phylloptim and deleted 23 of the files that branch changes, so it cannot merge. This note is the plan for re-implementing it on current code.
 
 ## Decisions
 
@@ -34,10 +34,17 @@ phylloptim `Leaf` gains (all R-bound):
 
 ## Order of work
 
-- [ ] phylloptim: leaf-level layer, tests, NEWS, PR.
-- [ ] plant: TF24t on the templated TF24 strategy, registration, R helpers, tests, model-version snapshot; pin phylloptim to the PR head while both are open.
-- [ ] plant: carry over the July notes (`notes/atls/`) and the July viability results, marked as computed on the July code.
-- [ ] Re-run the materiality gate and the low-density viability boundary on the ported code, on the birth-date coordinate.
+- [x] phylloptim: leaf-level layer, tests, NEWS, PR — [phylloptim#162](https://github.com/traitecoevo/phylloptim/pull/162), open; plant pins its head `c57c6d33`.
+- [x] plant: TF24t on the templated TF24 strategy, registration, R helpers, tests, model-version snapshot; pin phylloptim to the PR head while both are open — on `feature/tf24t-atls-port`, stacked on #678. Re-pin to phylloptim's squash sha after #162 merges, and rebase onto develop after #678 merges.
+- [x] plant: carry over the July notes (`notes/atls/`) and the July viability results, marked as computed on the July code — in `964638d2`. The July staging docs (`overstorey_staging/TF24t_leaf_ATLS_model.qmd`, `TF24t_leaf_ATLS_demo.qmd`, `atls_demo_helpers.R`) are ported to the current API on the same branch; the demo's two SCM sections are not re-rendered (see below).
+- [ ] Re-run the materiality gate and the low-density viability boundary on the ported code, on the birth-date coordinate. **Blocked on the TF24 baseline below**: as set up in July (lma 0.0825, birth rate 1) the stand is inviable whenever the energy balance is on, so the comparison crosses no boundary until it is re-set.
+
+## Invariants the plant half adds
+
+- **`TF24t_Strategy::rebind_from` is deleted, and must stay deleted** until TF24t has a derivative of its own. The inherited one returns a `TF24_Strategy<U>`, so it would rebind a TF24t patch as a TF24 patch — no thermal states, no layer, every number finite. Deleted, Patch's `at_scalar` and odelia's `Rebindable` read false and every AD route (stand gradient, sweep, an implicit stepper's Jacobian) refuses at compile time. `census_backend()` names TF24t with the reason.
+- **The thermal parameters are top-level strategy fields, not `TF24_Pars`**, as TF24f's are. A trait matrix cannot reach them (`add_strategies` refuses them by name); set them on the strategy. The drift guard snapshots them through `top_level_science` in `test-model-version.R`, so a new TF24t parameter goes there too, and a changed default needs a `thermal_revision` bump.
+- **At non-damaging settings a rate evaluation is bit-identical to TF24 with `pars$use_energy_balance = 1`** (alpha = 0, k_i = 0, topt_offset = 0, all costs 0). The one operation that is not an identity by construction is the ΔS round trip at zero shift, which is exact at phylloptim's default temperature parameters. A free SCM run is not identical (the four extra states sit in the step-size controller's error norm: 260 against 266 steps); TF24 pinned to TF24t's own step program is. `test-strategy-tf24t.R` asserts both.
+- **`Individual$set_initial_states` must run before an `IndividualRunner`** is built from a TF24t plant. The runner does not seed, and an unseeded storage pool starts empty, where a plant losing carbon has every step that dips below it refused.
 
 ## Known issues carried over, not fixed here
 
@@ -45,3 +52,9 @@ phylloptim `Leaf` gains (all R-bound):
 - At the default `k_mat = 0.02 /day` permanent damage ratchets to inviability in every climate; the July runs used 0.00125.
 - Acclimation (about 100 days to equilibrate, 6 °C cap) is slower and smaller than Piet Arnold's evidence (hours to days, about 12 °C).
 - Repair depends on temperature only; no within-day dose or overnight recovery.
+
+## Found while porting the plant half
+
+- **TF24 with the energy balance on is inviable in the July viability setup.** Single species, lma 0.0825, birth rate 1, full patch lifetime: low-density R0 is 1e-8 at 15 °C, 5e-15 at 20 °C, 7e-16 at 24 °C and 1e-18 at 28 °C, against 56 at 25 °C with the balance off (July: 57 at 24 °C, crossing 1 near 28 °C). TF24t inherits it, since it forces the balance on. Cause not investigated; candidates are the hotter operating leaf and phylloptim's Q10 respiration rising with it. This blocks the last item above.
+- **The operating leaf runs hotter than in July.** A lone plant in full light at 25 °C air sits 6–9 °C above it (July: about 4 °C above 27 °C air). At default TF24t settings a lone plant at 25 °C air is dead within 0.6 years (I_p 0.74, storage empty), through damage, closing stomata and a hotter leaf. At 15 °C air it grows.
+- **The stochastic path reads stale thermal state.** `establishment_probability(env)` (no internals) solves the species' shared leaf with whatever A, I_r and I_p the last rate evaluation of any individual left there. The SCM uses the newborn's own rates; the stochastic runner does not. Same as July.
