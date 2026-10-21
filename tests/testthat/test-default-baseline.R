@@ -1,9 +1,9 @@
 ## The continuous patch's features (#519) are opt-in, so a run that uses none of
 ## them must not move. Two checks: in-build invariances that hold on every
-## platform, and a baseline recorded from the build before the features
-## (scripts/capture-default-baseline.R), compared where it was recorded.
+## platform, and a recorded baseline (scripts/capture-default-baseline.R),
+## compared where it was recorded.
 
-test_that("default runs reproduce the baseline recorded before #661", {
+test_that("default runs reproduce the recorded baseline", {
   skip_on_cran()
   ## Recorded on macOS arm64. Elsewhere the same code rounds differently and an
   ## adaptive step can land elsewhere, so the comparison would test the platform.

@@ -111,17 +111,17 @@ public:
   // taken at the run's start and at the first leg boundary at or past each
   // later multiple, where `history` is a copy of the whole patch per leg. Zero,
   // the default, records none. Per species it keeps the node counts, the
-  // tallest cohort with density, the trapezium of the carried density over the
-  // birth-date grid, and every node's lifetime offspring output; and the
-  // environment's own state.
+  // tallest cohort with density, the carried density integrated over birth
+  // date, and every node's lifetime offspring output; and the environment's
+  // own state.
   double snapshot_interval = 0.0;
   struct species_snapshot {
     size_t n_nodes = 0;
     size_t n_live = 0;
     size_t n_retired = 0;
     double height_max = 0.0;
-    // The trapezium of the carried density over the birth-date grid, plus what
-    // the top layer carries.
+    // The carried density integrated over birth date, plus what the top layer
+    // carries.
     double density = 0.0;
     double top_density = 0.0;
     std::vector<double> fecundity;
@@ -884,10 +884,18 @@ template <typename T, typename E> void SCM<T, E>::take_snapshot() {
       tallest = sp.top_height();
     }
     ss.height_max = tallest;
-    // The carried density integrated over the birth-date grid: individuals per
-    // unit area on that coordinate.
-    ss.density = (sp.size() > 1 ? util::trapezium(sp.node_times(), density) : 0.0) +
-      ss.top_density;
+    // The carried density integrated over birth date, without the boundary
+    // node: individuals per unit area on that coordinate.
+    double integral = 0.0;
+    if (sp.density_in_birth_date()) {
+      const std::vector<double> w = sp.r_establishment_weights();
+      for (size_t k = 0; k < density.size(); ++k) {
+        integral += w[k] * density[k];
+      }
+    } else if (sp.size() > 1) {
+      integral = util::trapezium(sp.node_times(), density);
+    }
+    ss.density = integral + ss.top_density;
     s.species.push_back(std::move(ss));
   }
   // The environment's block is the tail of the state vector.
@@ -1204,6 +1212,12 @@ void SCM<T, E>::refine_schedule() {
                "top layer on is not supported. Refine with "
                "control$absorb_epsilon = 0 and run the refined schedule with it.");
   }
+  // The refinement indicators are trapezia of node densities, which on the
+  // birth-date path exclude the establishment probability.
+  if (control.node_density_in_birth_date) {
+    util::stop("refine_schedule() supports only the height coordinate; with "
+               "node_density_in_birth_date, give the node schedule directly.");
+  }
   collect_refinement_errors = true;
   const double eps = control.schedule_eps;
 
@@ -1415,11 +1429,12 @@ std::vector<double> SCM<T, E>::census() const {
 //
 // set_state_and_boundary rebuilds the environment and the boundary node from the state
 // it is given. Both are on the census's path -- the boundary node is the
-// reduction's lower grid point and is not ODE state -- so the recording must carry
-// that rebuild. Loading the state without it leaves the boundary node at the values
-// it was copied with, and its whole contribution to the seed is then exactly zero
-// with nothing thrown. Loading it with set_ode_state alone leaves the condition at
-// its first evaluation, which is not the one census() reads.
+// reduction's lower grid point and is not ODE state, and its crown is the seed's,
+// whose size the traits set -- so the recording must carry that rebuild. Loading
+// the state without it leaves the boundary node at the values it was copied with,
+// which carry no trait's derivative, with nothing thrown. Loading it with
+// set_ode_state alone leaves the condition at its first evaluation, which is not
+// the one census() reads.
 //
 // One patch, one tape, one recording, and a seed per metric. The recording does
 // not depend on which metric is being asked for -- it writes every metric into y

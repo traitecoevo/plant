@@ -297,6 +297,12 @@ ladder_patch <- function(species, heights, log_densities,
 # band. A stand left where a run put it damps every channel running through
 # growth, and a check then passes because the signal is small rather than because
 # the code is right.
+#
+# On the birth-date coordinate a node's density is its birth rate times its
+# survival, so a density is written as the mortality that gives it; and each
+# interval's establishment is written as its width, with the moment that goes
+# with it, so every node's weight is its hat function's and the reductions are
+# the trapezia over birth date they were before establishment was integrated.
 ladder_condition <- function(patch, heights, log_densities,
                              relative_reserve = 0.12, time = 1.37,
                              moisture = c(0.192, 0.271, 0.233, 0.317, 0.208)) {
@@ -309,13 +315,24 @@ ladder_condition <- function(patch, heights, log_densities,
     i_height <- match("height", names_i)
     i_storage <- match("storage", names_i)
     i_density <- match("log_density", names_i)
+    i_mortality <- match("mortality", names_i)
+    i_interval <- match(c("interval_establishment",
+                          "interval_establishment_moment"), names_i)
     stopifnot(length(heights[[i]]) == length(sp$nodes),
               length(log_densities[[i]]) == length(sp$nodes))
+    birth <- vapply(sp$nodes, function(n) n$introduction_time, numeric(1))
+    width <- diff(c(birth, time))
     for (j in seq_along(sp$nodes)) {
       base <- at + (j - 1L) * stride
       h <- heights[[i]][[j]]
       state[[base + i_height]] <- h
-      state[[base + i_density]] <- log_densities[[i]][[j]]
+      if (is.na(i_density)) {
+        birth_rate <- sp$extrinsic_drivers$evaluate("birth_rate", birth[[j]])
+        state[[base + i_mortality]] <- log(birth_rate) - log_densities[[i]][[j]]
+        state[base + i_interval] <- c(width[[j]], width[[j]]^2 / 2)
+      } else {
+        state[[base + i_density]] <- log_densities[[i]][[j]]
+      }
       state[[base + i_storage]] <-
         relative_reserve * ladder_storage_capacity(patch, i, h)
     }
@@ -429,18 +446,16 @@ ladder_stand_many_ranges <- function(n = 61L, lifetime = 0.45) {
 # census depends on the state there through three cohorts rather than through the
 # soil alone.
 #
-# The birth dates are supplied rather than taken from make_initial_state, which
-# gives every seeded node the same one; the birth-date coordinate integrates over
-# that abscissa and refuses a tie. They are distinct, negative and mutually
-# non-commensurate for the reason every other fixture's are.
+# The birth dates are distinct, negative and mutually non-commensurate for the
+# reason every other fixture's are.
 ladder_stand_resumed <- function() {
   p <- ladder_parameters(c("fast", "slow"), lifetime = 0.45)
   p$node_schedule_times <- list(c(0, 0.13, 0.31), c(0, 0.22))
   state <- make_initial_state(p,
                               heights = list(c(1.71, 0.93), c(1.24)),
                               log_densities = list(c(-0.39, -1.67), c(-1.03)),
-                              env = Environment("TF24"), ctrl = ladder_control())
-  state$node_times <- list(c(-0.37, -0.11), c(-0.23))
+                              env = Environment("TF24"), ctrl = ladder_control(),
+                              birth_dates = list(c(-0.37, -0.11), c(-0.23)))
   ladder_run(set_initial_state(p, state))
 }
 
@@ -626,42 +641,67 @@ ladder_nodes <- function(x) {
   for (i in seq_len(length(patch$species))) {
     sp <- patch$species[[i]]
     nodes <- c(list(sp$new_node), rev(sp$nodes))
+    weight <- ladder_establishment_weights(sp)
     out[[i]] <- data.frame(
       species = i,
       boundary = c(TRUE, rep(FALSE, length(nodes) - 1L)),
       birth_date = vapply(nodes, function(n) n$introduction_time, numeric(1)),
       height = vapply(nodes, function(n) n$height, numeric(1)),
-      log_density = vapply(nodes, function(n) n$log_density, numeric(1)))
+      log_density = vapply(nodes, function(n) n$log_density, numeric(1)),
+      weight = rev(weight))
   }
   do.call(rbind, out)
 }
 
-# Each species' inflow boundary density, as the patch currently holds it. The
-# boundary node is not ODE state, so which evaluation of the condition a patch is
-# carrying is a property of what was last done to it, and that is what the two
-# readers below are for.
-ladder_boundary_density <- function(x) {
+# Each node's establishment weight, boundary node last: each interval's
+# establishment split between the hat functions at its two ends, the upper end
+# taking the moment over the width. Written out from the interval states the
+# nodes carry rather than read back from the model.
+ladder_establishment_weights <- function(species) {
+  nodes <- species$nodes
+  t <- c(vapply(nodes, function(n) n$introduction_time, numeric(1)),
+         species$new_node$introduction_time)
+  if (!species$density_in_birth_date) {
+    return(rep(NA_real_, length(t)))
+  }
+  w <- numeric(length(t))
+  for (j in seq_along(nodes)) {
+    y <- stats::setNames(nodes[[j]]$ode_state, nodes[[j]]$ode_names)
+    width <- t[[j + 1]] - t[[j]]
+    upper <- if (width > 0) y[["interval_establishment_moment"]] / width else 0
+    w[[j]] <- w[[j]] + y[["interval_establishment"]] - upper
+    w[[j + 1]] <- w[[j + 1]] + upper
+  }
+  w
+}
+
+# Each species' recruit carbon -- what the boundary node produces at birth size,
+# which its establishment probability reads -- as the patch currently holds it.
+# The boundary node is not ODE state, so which evaluation of the condition a
+# patch is carrying is a property of what was last done to it, and that is what
+# the two readers below are for.
+ladder_boundary_carbon <- function(x) {
   patch <- ladder_as_patch(x)
-  vapply(seq_len(length(patch$species)),
-         function(i) patch$species[[i]]$new_node$log_density, numeric(1))
+  vapply(seq_len(length(patch$species)), function(i) {
+    patch$species[[i]]$new_node$individual$aux("net_mass_production_dt")
+  }, numeric(1))
 }
 
 # The inflow condition at each of its two evaluations, from one recorded state.
 #
 # A stage evaluates it twice. `in_field` is the one a state load produces, taken
-# in the field with every species' boundary interval left off -- the field is then
-# rebuilt including it, so this is the value the reductions were built on.
-# `in_uptake` is the one a rate evaluation produces, taken in that rebuilt field;
-# it is the value the water aggregation reads, the value an introduced node
-# inherits, and the value a census reports.
+# in the field with every species' boundary node left out -- the field is then
+# rebuilt including it. `in_uptake` is the one a rate evaluation produces, taken
+# in that rebuilt field; it is the value the newest interval's establishment rate
+# and the water aggregation read.
 #
 # They are the same function at different arguments, so nothing about either number
 # says which one a caller is holding.
 ladder_boundary_evaluations <- function(patch, state, time) {
   patch$set_ode_state(state, time)
-  in_field <- ladder_boundary_density(patch)
+  in_field <- ladder_boundary_carbon(patch)
   invisible(patch$ode_rates)
-  list(in_field = in_field, in_uptake = ladder_boundary_density(patch))
+  list(in_field = in_field, in_uptake = ladder_boundary_carbon(patch))
 }
 
 # A gradient's columns with their species index stripped. A check written about a
@@ -699,12 +739,13 @@ ladder_trapezium <- function(x, y) {
   sum(diff(x) * (y[-1] + y[-n])) * 0.5
 }
 
-# The leaf-area census over a named coordinate, summed over species.
+# The leaf-area census by a named coordinate's rule, summed over species.
 #
-# A census is a quadrature of a density, so its weights are gaps in the
-# coordinate the state is carried on. This forms the same sum over either choice
-# of abscissa, so the two can be compared against the model's own and the answer
-# says which axis the model integrated.
+# A census is a quadrature of a density, so its weights belong to the coordinate
+# the state is carried on: the establishment weights in birth date, the
+# trapezium in height. This forms the sum by either rule, so the two can be
+# compared against the model's own and the answer says which rule the model
+# took.
 ladder_census_leaf_area <- function(x, coordinate = c("birth_date", "height")) {
   coordinate <- match.arg(coordinate)
   nodes <- ladder_nodes(x)
@@ -712,9 +753,12 @@ ladder_census_leaf_area <- function(x, coordinate = c("birth_date", "height")) {
   for (i in unique(nodes$species)) {
     part <- nodes[nodes$species == i, , drop = FALSE]
     weighted <- exp(part$log_density) * ladder_area_leaf(x, i, part$height)
-    axis <- part[[coordinate]]
-    ord <- order(axis)
-    total <- total + ladder_trapezium(axis[ord], weighted[ord])
+    if (coordinate == "birth_date") {
+      total <- total + sum(part$weight * weighted)
+    } else {
+      ord <- order(part$height)
+      total <- total + ladder_trapezium(part$height[ord], weighted[ord])
+    }
   }
   total
 }
@@ -741,11 +785,8 @@ ladder_census_direct_term <- function(x) {
     area <- ladder_area_leaf(x, i, part$height)
     d_a_l1 <- -area / (a_l2 * a_l1)
     d_a_l2 <- -area * log(part$height / a_l1) / (a_l2^2)
-    density <- exp(part$log_density)
-    axis <- part$birth_date
-    ord <- order(axis)
-    term <- c(a_l1 = ladder_trapezium(axis[ord], (density * d_a_l1)[ord]),
-              a_l2 = ladder_trapezium(axis[ord], (density * d_a_l2)[ord]))
+    weighted <- part$weight * exp(part$log_density)
+    term <- c(a_l1 = sum(weighted * d_a_l1), a_l2 = sum(weighted * d_a_l2))
     out <- c(out, stats::setNames(term, paste0(i, ".", names(term))))
   }
   out
@@ -1635,9 +1676,12 @@ ladder_run_difference_pair <- function(name, species = 2L,
   g <- vapply(steps, at, numeric(length(stand_census(base))))
   # The most-agreeing adjacent pair brackets where truncation crosses round-off;
   # its coarser member carries the less round-off of the two. One step for the
-  # whole column, so a metric is not read at a different place from its neighbour.
+  # whole column, so a metric is not read at a different place from its neighbour,
+  # and chosen on each metric's gaps over its own size: the metrics differ by
+  # orders, and absolute gaps let the largest choose the step for the rest.
   gaps <- abs(g[, -1L, drop = FALSE] - g[, -ncol(g), drop = FALSE])
-  best <- which.min(apply(gaps, 2, max))
+  size <- pmax(apply(abs(g), 1, max), .Machine$double.xmin)
+  best <- which.min(apply(gaps / size, 2, max))
   # ⚠️ THE SPREAD IS ABSOLUTE, IN THE METRIC'S OWN UNITS, AND THE ONE CONSUMER
   # DIVIDES IT BY THE SAME SCALE IT DIVIDES ITS RESIDUAL BY. Normalising here too
   # is the second of two divisions and each hides the other: against the column's

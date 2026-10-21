@@ -10,7 +10,8 @@ make_initial_state(
   densities = NULL,
   log_densities = NULL,
   env = NULL,
-  ctrl = control()
+  ctrl = control(),
+  birth_dates = NULL
 )
 }
 \arguments{
@@ -28,6 +29,13 @@ Supply this or \code{log_densities}.}
 \item{env}{Environment object (defaults to the strategy's environment).}
 
 \item{ctrl}{Control object.}
+
+\item{birth_dates}{Per-species node birth dates, before 0 and ascending as
+the heights descend (same shape as \code{heights}). Required on the
+birth-date coordinate, where each node's density is its birth rate times
+its survival and \code{densities} are densities in birth date: the
+survival is set to give that density, and each interval's establishment to
+its width, as if every seed established. Elsewhere every node is born at 0.}
 }
 \value{
 A state list suitable for \code{\link{set_initial_state}}.
