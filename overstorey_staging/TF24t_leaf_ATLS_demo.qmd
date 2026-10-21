@@ -1,0 +1,344 @@
+---
+title: "TF24t leaf-level thermal response (ATLS): damage, and four strategies"
+format:
+  html:
+    toc: true
+    code-fold: true
+    fig-width: 9
+    fig-height: 5
+---
+
+```{r setup, message=FALSE, warning=FALSE}
+# Staging demo: needs the in-tree build (ATLS, #566; builds on PM, #523). Resolve
+# the package root whether rendered from the repo root or from
+# overstorey_staging/. Set ATLS_DEMO_PLANT=installed to render against the
+# installed plant instead of a pkgload::load_all() build, which compiles without
+# optimisation and makes the SCM sections far slower.
+pkg_root <- if (file.exists("DESCRIPTION")) "." else ".."
+if (identical(Sys.getenv("ATLS_DEMO_PLANT"), "installed") ||
+    !requireNamespace("pkgload", quietly = TRUE)) {
+  library(plant)
+} else {
+  pkgload::load_all(pkg_root, quiet = TRUE)
+}
+library(ggplot2)
+library(patchwork)
+library(dplyr)
+library(tidyr)
+
+# Shared driving code (also exercised by tests/testthat/test-atls-leaf-demo.R,
+# so this demo cannot silently rot).
+source(file.path(pkg_root, "overstorey_staging", "atls_demo_helpers.R"))
+
+theme_set(theme_bw(base_size = 12))
+# One colour per strategy archetype, reused across the document.
+strat_pal <- c("Generalist" = "#7570b3", "Tolerant" = "#d95f02",
+               "Repairer" = "#1b9e77", "Acclimated" = "#e7298a")
+
+# File-based cache for the expensive SCM runs: computed once, reused on
+# re-render. Keyed on the cache name AND the deparsed call, so editing a chunk's
+# call invalidates that entry. A rebuilt model is NOT tracked: delete
+# overstorey_staging/cache/ to force a rerun after changing the model.
+cache_dir <- file.path(pkg_root, "overstorey_staging", "cache")
+dir.create(cache_dir, showWarnings = FALSE, recursive = TRUE)
+cached_rds <- function(name, expr) {
+  call_txt <- paste(deparse(substitute(expr)), collapse = " ")
+  path <- file.path(cache_dir, paste0(name, ".rds"))
+  if (file.exists(path)) {
+    hit <- readRDS(path)
+    if (identical(hit$call, call_txt)) return(hit$value)
+  }
+  value <- expr
+  saveRDS(list(call = call_txt, value = value), path)
+  value
+}
+```
+
+The **ATLS** layer (leaf thermal damage, repair and acclimation, issue #566) gives a TF24 leaf a mechanistic response to heat. Its core is the **deactivated fraction** `φ_d ∈ [0, 1]` — the transiently unfolded share of the machinery, read straight off the *same* Medlyn peaked-Arrhenius curve that sets capacity. `φ_d` half-unfolds at an **emergent onset** `≈ H_d/ΔS ≈ 34.5 °C`, with no separate `T_crit` parameter. Unfolded protein leaks into **lasting damage**: a recoverable pool `I_r` (resynthesised over about 4 days) and a permanent pool `I_p` (cleared only as the plant grows new leaf). Both capacities carry the lasting discount `(1 − I_r − I_p)`, so a cooled leaf does *not* rebound instantly.
+
+The leaf half lives in phylloptim's `Leaf` behind `use_thermal_damage_`; the `TF24t` strategy turns it on and integrates the slow states. The equations are in `TF24t_leaf_ATLS_model.qmd`.
+
+A thermal *strategy* is a point in a four-axis trait space, all plugging into the same physics:
+
+| Axis | Knob | Moves |
+|---|---|---|
+| **Tolerance** (constitutive) | `topt_offset` | shifts the capacity optimum *and* the damage onset up together |
+| **Acclimation** (inducible) | `A` state | the same shift, induced when the regime is hot |
+| **Repair** | preventive `k_i`, restorative `k_rec` | lower the leak into `I_r` or rebuild it faster (and cut the permanent floor) |
+| **Avoidance** | transpirational cooling (energy balance) | lowers the operating leaf temperature, hence `φ_d` |
+
+This demo drives a single well-watered leaf, then a single-species stand. It is a work-in-progress staging document, not a built vignette. See `notes/atls/implementation-plan.md` for the design and `notes/plan-atls-port.md` for the port to phylloptim.
+
+## 1. The deactivation curve `φ_d(Tleaf)` and the damage it drives
+
+The generalist (default) leaf: `φ_d` sits near 0 when cold, passes through **half-unfolding at the emergent onset ≈ 34.5 °C** (`H_d/ΔS`, marked), and saturates toward 1 when hot — all from the *same* `K(T)` inside the peaked Arrhenius. Leaf temperature is *prescribed* here, so this is the pure mechanism with no optimiser in the loop.
+
+The right-hand panel shows the standing recoverable damage this substrate would drive, `I_r* = k_i·φ_d / (k_i·φ_d + k_rec_eff + k_mat)` (with `I_p = 0`): the balance the `I_r` ODE relaxes toward at a held temperature. A fresh leaf loses no capacity instantly; damage is a *memory* that fills this pool over days, and each unit of `I_r` or `I_p` discounts **both** `vcmax` and `jmax`.
+
+```{r damage-curve}
+Tleaf <- seq(20, 50, by = 0.5)
+phi_gen <- atls_phi_d_curve(Tleaf, atls_traits())
+Ir_gen  <- atls_Ir_star_curve(Tleaf, atls_traits())
+onset <- 200000 / 650 - 273.15   # H_d/dS in deg C, about 34.5
+
+p_phi <- ggplot(data.frame(Tleaf, phi = phi_gen), aes(Tleaf, phi)) +
+  geom_line(colour = "#d95f02", linewidth = 0.9) +
+  geom_vline(xintercept = onset, linetype = "dashed", colour = "grey50") +
+  annotate("text", x = onset + 0.4, y = 0.05, label = "onset H_d/ΔS", hjust = 0,
+           size = 3, colour = "grey40") +
+  ylim(0, 1) +
+  labs(x = "leaf temperature (°C)", y = "φ_d (unfolded fraction)",
+       title = "Deactivation φ_d(Tleaf)")
+
+p_Ir <- ggplot(data.frame(Tleaf, Ir = Ir_gen), aes(Tleaf, Ir)) +
+  geom_line(colour = "#7570b3", linewidth = 0.9) +
+  ylim(0, 1) +
+  labs(x = "leaf temperature (°C)", y = "I_r* (quasi-steady)",
+       title = "Standing recoverable damage")
+
+p_phi | p_Ir
+```
+
+## 2. Four thermal-response strategies move the damage differently
+
+Each archetype is a single-axis move off the generalist, shown as the standing recoverable damage `I_r*(Tleaf)`. **Tolerance** and **acclimation** shift the onset (and hence `I_r*`) to higher temperature; **repair** (higher `k_rec`, lower `k_i`) lowers `I_r*` at a given temperature. Avoidance is not a curve shift — it lowers the *operating* temperature, shown in §4.
+
+```{r strategy-curves}
+strategies <- atls_strategies()
+Ir_curves <- bind_rows(lapply(names(strategies), function(nm) {
+  data.frame(strategy = nm, Tleaf = Tleaf,
+             Ir = atls_Ir_star_curve(Tleaf, strategies[[nm]]))
+}))
+
+ggplot(Ir_curves, aes(Tleaf, Ir, colour = strategy)) +
+  geom_line(linewidth = 0.9) +
+  scale_colour_manual(values = strat_pal, name = NULL) +
+  ylim(0, 1) +
+  labs(x = "leaf temperature (°C)", y = "I_r* (quasi-steady recoverable damage)",
+       title = "Standing damage I_r*(Tleaf) by thermal strategy",
+       subtitle = "Tolerant/Acclimated shift the onset right; Repairer lowers the whole curve") +
+  theme(legend.position = "top")
+```
+
+## 3. Who keeps carbon where? Assimilation across a heat gradient
+
+The payoff, on fresh leaves (`I_r = I_p = 0`, so the assimilation panel isolates the reversible-capacity effect). Tolerance and acclimation raise the capacity optimum (`topt_offset`, `A`), buying carbon at hot leaf temperatures; the standing-damage panel shows where lasting damage *would* accrue over days.
+
+```{r strategy-assim}
+grad <- atls_solve_strategies(seq(24, 48, by = 2), strategies,
+                              PAR = 1500, VPD = 2)
+
+p_grad_A <- ggplot(grad, aes(Tenv, A, colour = strategy)) +
+  geom_line(linewidth = 0.9) +
+  scale_colour_manual(values = strat_pal, name = NULL) +
+  labs(x = "leaf temperature (°C)", y = "assimilation (µmol C m⁻² s⁻¹)",
+       title = "Carbon gain by strategy")
+
+p_grad_Ir <- ggplot(grad, aes(Tenv, Ir_star, colour = strategy)) +
+  geom_line(linewidth = 0.9) +
+  scale_colour_manual(values = strat_pal, name = NULL) +
+  labs(x = "leaf temperature (°C)", y = "I_r* at the operating point",
+       title = "Standing damage by strategy")
+
+(p_grad_Ir | p_grad_A) +
+  plot_layout(guides = "collect") &
+  theme(legend.position = "top")
+```
+
+## 4. Avoidance: transpirational cooling as the fourth axis
+
+Avoidance is not a damage trait — it is the leaf keeping itself cooler than it would otherwise be by transpiring, through the Penman–Monteith energy balance (#523). A better-coupled leaf (smaller dimension `d`, higher conductance) runs closer to air temperature, so on a hot day it sits at a lower `φ_d` and drives less lasting damage. Both leaves here are the generalist; only the coupling differs.
+
+```{r avoidance}
+avoid_cfgs <- list(
+  "poorly coupled (large leaf, low g)" =
+    atls_leaf_config(d = 0.10, leaf_specific_conductance_max = 2e-3),
+  "well coupled (small leaf, high g)" =
+    atls_leaf_config(d = 0.02, leaf_specific_conductance_max = 1e-2))
+
+avoid <- bind_rows(lapply(names(avoid_cfgs), function(nm) {
+  bind_rows(lapply(seq(24, 40, by = 0.5), function(Tair) {
+    r <- atls_solve_cell(1500, Tair, 2, atls_traits(), pm = TRUE,
+                         cfg = avoid_cfgs[[nm]])
+    data.frame(coupling = nm, Tair = Tair, Tleaf = r$Tleaf,
+               phi_d = r$phi_d, A = r$A)
+  }))
+}))
+
+avoid_pal <- c("poorly coupled (large leaf, low g)" = "#b2182b",
+               "well coupled (small leaf, high g)" = "#2166ac")
+
+p_av_T <- ggplot(avoid, aes(Tair, Tleaf, colour = coupling)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dotted", colour = "grey60") +
+  geom_line(linewidth = 0.9) +
+  scale_colour_manual(values = avoid_pal, name = NULL) +
+  labs(x = "air temperature (°C)", y = "operating leaf temperature (°C)",
+       title = "Cooling by coupling", subtitle = "dotted = Tleaf = Tair")
+
+p_av_phi <- ggplot(avoid, aes(Tair, phi_d, colour = coupling)) +
+  geom_line(linewidth = 0.9) +
+  scale_colour_manual(values = avoid_pal, name = NULL) +
+  labs(x = "air temperature (°C)", y = "φ_d at the operating point",
+       title = "... lowers the deactivated fraction")
+
+(p_av_T | p_av_phi) +
+  plot_layout(guides = "collect") &
+  theme(legend.position = "top")
+```
+
+> An isolated, poorly coupled leaf under high radiation runs far above the air — more than 20 °C above it across this sweep — so the *absolute* temperatures here are an upper bound; the **contrast** between couplings is the robust signal.
+
+## 5. From one leaf to a community: persistence under warming (SCM)
+
+Everything above is a single isolated leaf. The demographic question is whether the damage feedback changes whether a *population* persists. We run the size-structured community model (SCM) — a single-species patch under a constant climate, with the `leaf_temp` driver as the midday air temperature — across a warming gradient, TF24t against TF24 with the energy balance on.
+
+**How we measure fitness matters.** The net reproduction ratio R0 at a *fixed* seed rain is **not** a valid cross-strategy comparison: it conflates per-capita productivity with density-dependent recruitment. A less fecund resident shades the patch less, so at a shared seed rain each of its seeds does *better*, inflating its R0 although it is the weaker plant.
+
+The density-free measure is **viability**: when *rare*, does a resident more than replace itself? R0 is evaluated in the low-density limit (a small `birth_rate`). R0 ≥ 1 means the population grows from rare and persists. The warmest climate with R0 ≥ 1 is the **persistence boundary**, and *that* is comparable across strategies, because density effects vanish as density goes to zero. We read the boundary, never the R0 magnitude away from it.
+
+Each SCM run takes one to two minutes; the grid is cached to an `.rds` under `overstorey_staging/cache/` (delete that folder to force a rerun) and the runs are spread across cores.
+
+```{r scm-viability}
+# k_mat is a CALIBRATION TARGET. At its default (0.02/day) the permanent pool
+# ratchets -- maturation influx DAYS_PER_YEAR*k_mat ~ 7.3/yr against the only
+# sink, leaf turnover k_l ~ 0.46/yr -- which makes TF24t inviable in every
+# climate. This section uses the balanced k_l/DAYS_PER_YEAR ~ 0.00125/day, the
+# value the July runs used, so it is illustrative.
+atls_scm_kmat <- 0.00125
+
+scen5 <- list(
+  "PM only (TF24)"    = list(type = "TF24"),
+  "PM + ATLS (TF24t)" = list(type = "TF24t",
+                             mutate = function(s) { s$k_mat <- atls_scm_kmat; s }))
+# The cache name carries k_mat: the scenario list (hence k_mat) hides behind the
+# `scen5` symbol, so the call text alone would not see a change to it.
+viab5  <- cached_rds(sprintf("scm-viability-k%.5g", atls_scm_kmat),
+                     atls_scm_viability(seq(23, 31, by = 1), scen5))
+bound5 <- atls_persistence_boundary(viab5)
+knitr::kable(bound5, digits = 1, col.names = c("scenario", "persistence °C"))
+
+ggplot(viab5, aes(air_temp, pmax(log10(R0), -8), colour = scenario)) +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey50") +
+  geom_vline(data = bound5, aes(xintercept = boundary, colour = scenario),
+             linetype = "dotted", show.legend = FALSE) +
+  geom_line(linewidth = 0.9) + geom_point(size = 1.8) +
+  annotate("text", x = 23, y = 0.35, label = "persistence (R0 = 1)",
+           hjust = 0, size = 3, colour = "grey40") +
+  scale_colour_manual(values = c("PM only (TF24)"    = "#1b9e77",
+                                 "PM + ATLS (TF24t)" = "#d95f02"), name = NULL) +
+  labs(x = "midday climate temperature (°C)",
+       y = expression(log[10] * " R0 (low density)"),
+       title = "Persistence boundary: warmest climate a rare population survives",
+       subtitle = "low-density R0; the R0 = 1 crossing (dotted) is the density-free boundary") +
+  theme(legend.position = "top")
+```
+
+The valid signal is the **persistence boundary** — the dotted crossings, not the curve heights, which still carry the density artifact and are drawn on a log scale only to expose the crossing.
+
+> **Reading these results.** On the July code, ATLS moved the persistence boundary *cooler* than the energy balance alone: adding lasting thermal damage was a net persistence penalty (`notes/atls/results-2026-07/`). That reading has not been re-derived on the ported code, and on current code it cannot be read off this figure: with the energy balance on, this stand is far below replacement at every temperature in the range, with or without the thermal layer (TF24 with the balance on gives low-density R0 of 1e-8 at 15 °C and 1e-18 at 28 °C, against 56 at 25 °C with it off). No scenario crosses R0 = 1, so the table reports no boundary. The comparison needs re-setting — the baseline understood, or the climate range or traits moved — before it says anything about the thermal layer.
+
+## 6. Which thermal strategy persists hottest? (SCM tournament)
+
+Same measure, now varying the *strategy* — each a heritable single-axis move off the generalist (tolerance = constitutive `topt_offset`; repair = higher restorative `k_rec` and lower preventive `k_i`; acclimator = faster acclimation kinetics). "Persists hottest" means the highest **persistence boundary**, not the R0 height at a shared seed rain.
+
+```{r scm-tournament}
+# Each strategy carries the balanced k_mat from section 5, so the ranking is not
+# swamped by the default permanent-damage ratchet.
+scm_strats <- atls_scm_strategies()
+scen6 <- setNames(lapply(names(scm_strats), function(nm) {
+  base <- scm_strats[[nm]]
+  list(type = "TF24t",
+       mutate = function(s) { s <- base(s); s$k_mat <- atls_scm_kmat; s })
+}), names(scm_strats))
+
+viab6  <- cached_rds(sprintf("scm-viability-strat-k%.5g", atls_scm_kmat),
+                     atls_scm_viability(seq(23, 33, by = 1), scen6))
+bound6 <- atls_persistence_boundary(viab6)
+bound6 <- bound6[order(-bound6$boundary), ]
+knitr::kable(bound6, digits = 1, row.names = FALSE,
+             col.names = c("strategy", "persistence °C"))
+
+strat_pal6 <- c("Generalist" = "#7570b3", "Tolerant" = "#d95f02",
+                "Repairer" = "#1b9e77", "Acclimator" = "#e7298a")
+ggplot(bound6, aes(reorder(scenario, boundary), boundary, fill = scenario)) +
+  geom_col(width = 0.7) +
+  geom_text(aes(label = sprintf("%.1f °C", boundary)), hjust = -0.15, size = 3) +
+  coord_flip() +
+  scale_fill_manual(values = strat_pal6, guide = "none") +
+  expand_limits(y = max(bound6$boundary, na.rm = TRUE) + 1.5) +
+  labs(x = NULL,
+       y = "persistence boundary (warmest climate with R0 ≥ 1, °C)",
+       title = "Which thermal strategy persists hottest?",
+       subtitle = "warmest climate at which a rare TF24t resident still replaces itself") +
+  theme(axis.text.y = element_text(size = 10))
+```
+
+> **Reading these results.** On the July code the order was **tolerance > repair > acclimation > generalist**, and tolerance and repair persisted hotter although their low-density R0 at cool climates was *lower* than the generalist's — the inversion that is why the ranking is by the R0 = 1 crossing. As in §5, that reading is July's and has not yet been re-derived on the ported code.
+
+## 7. Memory: the running-mean leaf temperature
+
+The sections above read the *instantaneous* operating leaf temperature. TF24t also carries a diagnostic ODE state, **`mean_leaf_temp`**, an exponential moving average of the operating-point `Tleaf`:
+
+$$
+\frac{\mathrm{d}\,\overline{T_\ell}}{\mathrm{d}t}
+  = D\,k_{\overline{T}}\,\bigl(T_\ell - \overline{T_\ell}\bigr),
+$$
+
+where `T_ℓ` is the operating-point leaf temperature (TF24's `Tleaf` aux), `k_mean_leaf_temp` is the memory decay rate (day⁻¹; `D = 365.25` puts it on the yearly clock), and the memory is `1/k_mean_leaf_temp`. It is **purely diagnostic** — nothing reads it — so it is a clean read-out of the temperature history a plant has experienced. Below, a single TF24t individual is driven with an oscillating air temperature; the running mean lags and smooths the operating temperature (memory about 20 d here).
+
+```{r running-mean, message=FALSE, warning=FALSE}
+traj_wide <- cached_rds("running-mean", {
+  e <- "TF24_Env"
+  k_mem  <- 0.05               # day^-1, about a 20-day memory
+  period <- 0.12               # yr (about 44 d), comparable to the memory
+  t_end  <- 0.6                # yr
+
+  s <- TF24t_Strategy(); s$k_mean_leaf_temp <- k_mem
+  p <- Individual("TF24t", e)(s)
+  env <- Environment("TF24t")
+  # The adaptive stepper can probe the driver just past t_end, so the driver is
+  # set on a grid beyond the loop horizon; outside its range the spline would
+  # extrapolate.
+  t_drive <- seq(0, t_end * 1.15, length.out = 230)
+  env$extrinsic_drivers_set_variable("leaf_temp", t_drive,
+                                     27 + 6 * sin(2 * pi * t_drive / period))
+  # Seeded as a node would be: storage, A at equilibrium, and the running mean
+  # at the birth air temperature.
+  p$set_initial_states(env)
+
+  runner <- plant:::OdeRunner("TF24t")(plant:::IndividualRunner("TF24t", e)(p, env))
+  rec <- list()
+  while (runner$time < t_end) {
+    runner$step()
+    ind <- runner$object$individual
+    rec[[length(rec) + 1L]] <- data.frame(
+      time      = runner$time,
+      air_temp  = env$extrinsic_drivers_evaluate("leaf_temp", min(runner$time, t_end)),
+      operating = ind$aux("Tleaf"),
+      running   = ind$state("mean_leaf_temp"))
+  }
+  do.call(rbind, rec)
+})
+traj <- traj_wide |>
+  pivot_longer(c(air_temp, operating, running), names_to = "series",
+               values_to = "temp")
+
+series_lab <- c(air_temp = "air temperature (driver)",
+                operating = "operating leaf temp (instantaneous)",
+                running = "mean_leaf_temp (running mean)")
+series_pal <- c(air_temp = "grey60", operating = "#d95f02", running = "#1b9e77")
+
+ggplot(traj, aes(time, temp, colour = series)) +
+  geom_line(linewidth = 0.8) +
+  scale_colour_manual(values = series_pal, labels = series_lab, name = NULL) +
+  labs(x = "time (years)", y = "temperature (°C)",
+       title = "mean_leaf_temp lags and smooths the operating leaf temperature",
+       subtitle = "single TF24t individual, oscillating air temperature; memory about 20 d") +
+  theme(legend.position = "top")
+```
+
+The running mean (green) tracks the operating leaf temperature (orange) with a lag set by `k_mean_leaf_temp` and a reduced amplitude. The operating temperature sits above the air because a lone plant in full light runs hot (§4); its jumps and plateaus near the air-temperature peaks are the leaf shutting its stomata, after which nothing cools it. `mean_leaf_temp` averages that operating signal, not the driver.
+
+## 8. Summary
+
+The deactivation curve `φ_d(Tleaf)` is the single substrate: strategies act by moving *where it turns on* (tolerance and acclimation shift the emergent onset), *how much of the unfolded protein leaks into lasting damage and how fast it is rebuilt* (preventive `k_i`, restorative `k_rec`), or *where the leaf actually operates* (avoidance). Damage is a **memory** — the pools `I_r` and `I_p` discount both capacities and persist after cooling — and permanent damage clears only as the plant grows new leaf. At the community scale the same layer sets a **persistence boundary**, the warmest climate at which a rare population still replaces itself. Its value on the ported code, and the strategy ranking, are to be re-derived; both rest on two open calibration items, the leaf overheating and the `k_mat` permanent-damage rate. See `notes/atls/gate-atls-vs-pm-evaluation.md` for the July materiality gate.
