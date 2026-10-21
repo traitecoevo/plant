@@ -153,11 +153,9 @@ test_that("mutant method densities", {
 })
 
 test_that("mutant method densities, TF24", {
-  # The same resident-vs-mutant identity as the block above, for a model whose
-  # rates refuse a state. TF24's storage pool reports an overshoot below empty by
-  # throwing a domain error, which the adaptive stepper answers by shrinking and
-  # retrying -- a routine event, some hundreds of times in a resident run that
-  # goes on to complete normally.
+  # The same resident-vs-mutant identity as the block above, for a model that
+  # refuses a step: one whose end leaves TF24's storage pool below empty, which
+  # the adaptive stepper answers by shrinking and retrying.
   #
   # run_mutant() pins the stepper to the resident's recorded step times, and that
   # path used to call the stepper with no domain handling at all, so the first of
@@ -191,6 +189,7 @@ test_that("mutant method densities, TF24", {
   # charge and drain form took the same four fixtures to 311 to 497. The stiffness
   # the schedule was thinned to avoid was mostly the pool integrating past its own
   # ceiling. Both counts are asserted below rather than left to the constants.
+  # At the default storage relaxation offset twenty introductions take 189 steps.
   ctrl <- Control()
   tol <- 1e-3
 
@@ -213,7 +212,7 @@ test_that("mutant method densities, TF24", {
   # something to replay: a resident that died out would make the identity
   # trivial, and a short recording would make it cheap in the wrong way.
   expect_true(all(is.finite(resident_rr)) && all(resident_rr > 0))
-  expect_gt(length(scm$ode_times), 250)
+  expect_gt(length(scm$ode_times), 150)
   expect_equal(scm$patch$species[[1]]$size, 20L)
 
   # Identical mutant, replaying the resident's own recorded environment, must
@@ -222,4 +221,45 @@ test_that("mutant method densities, TF24", {
   mutant_rr <- scm$net_reproduction_ratios
 
   expect_equal(log(mutant_rr), log(resident_rr), tolerance = tol)
+})
+
+test_that("invaders from lma x0.7 to x2 run on the run's steps, TF24", {
+  # An invader is integrated on the resident's steps and cannot shrink them, so
+  # each stage must keep its pool from overshooting. The storage relaxation
+  # offset holds that out to lma x2 on birth date; at a zero offset the invader
+  # at x2 overflows its density.
+  stand <- function(lma_factor, offset) {
+    p <- scm_base_parameters("TF24")
+    p$max_patch_lifetime <- 6
+    lma <- p$strategy_default$pars[["lma"]]
+    p <- add_strategies(p, trait_matrix(c(0, lma * lma_factor),
+                                        c("TF24_floor_lambda_o", "lma")),
+                        hyperpar = TF24_hyperpar, birth_rate = 1)
+    full <- p$node_schedule_times[[1]]
+    p$node_schedule_times <-
+      list(full[round(seq(1, length(full), length.out = 20))])
+    s <- p$strategies[[1]]
+    s$pars$storage_relaxation_offset <- offset
+    p$strategies[[1]] <- s
+    p
+  }
+  run <- function(offset) {
+    env <- Environment("TF24")
+    env$set_soil_water_state(rep(0.428 * 0.5, env$get_soil_number_of_depths()))
+    env$extrinsic_drivers_set_constant("rainfall", 1)
+    run_scm(stand(1, offset), env = env,
+            ctrl = Control(node_density_in_birth_date = TRUE))
+  }
+
+  offset <- TF24_Strategy()$pars$storage_relaxation_offset
+  scm <- run(offset)
+  for (m in c(0.7, 2)) {
+    scm$run_mutant(stand(m, offset))
+    expect_true(is.finite(scm$net_reproduction_ratios))
+  }
+
+  scm <- run(0)
+  scm$run_mutant(stand(0.7, 0))
+  expect_true(is.finite(scm$net_reproduction_ratios))
+  expect_error(scm$run_mutant(stand(2, 0)), "Non-finite cohort density")
 })

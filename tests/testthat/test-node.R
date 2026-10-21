@@ -178,6 +178,8 @@ for (x in names(strategy_types)) {
     ctrl$node_density_in_birth_date <- TRUE
     s <- strategy_types[[x]]()
     s$control <- ctrl
+    ## The birth rate the node is born at, which a loaded state reads back.
+    s$birth_rate_y <- 2
 
     env <- Environment(x)
     env$set_fixed_environment(1.0, 100)
@@ -186,16 +188,27 @@ for (x in names(strategy_types)) {
     node <- Node(x, e)(s)
     node$compute_initial_conditions(env, pr_patch_survival = 1, birth_rate = 2)
 
-    ## No division by the growth rate at the boundary.
-    pr_estab <- node$individual$establishment_probability(env)
-    expect_equal(node$log_density, log(2 * pr_estab))
+    ## Density starts at the birth rate and mortality at zero; the establishment
+    ## probability enters through the species' establishment weights.
+    expect_equal(node$log_density, log(2))
+    expect_identical(node$individual$state("mortality"), 0)
 
-    ## Nothing moves an individual along the birth-date axis, so the only
-    ## term left is mortality.
+    ## Nothing moves an individual along the birth-date axis, so the density is
+    ## not a state: it follows mortality.
+    expect_false("log_density" %in% node$ode_names)
+    y <- node$ode_state
+    y[[match("mortality", node$ode_names)]] <- 0.5
+    node$ode_state <- y
+    expect_equal(node$log_density, log(2) - 0.5)
+
+    ## The interval states grow only on the newest node, which Species sets, so
+    ## on a lone node their rates are zero.
     node$compute_rates(env, 1)
     rates <- node$ode_rates
-    expect_equal(rates[[length(rates)]],
-                 -node$individual$rate("mortality"))
+    k <- match(c("interval_establishment", "interval_establishment_moment"),
+               node$ode_names)
+    expect_false(anyNA(k))
+    expect_identical(rates[k], c(0, 0))
 
     ## And the height coordinate keeps its compression term. Named rather than
     ## taken from the default, which is the birth-date coordinate.
@@ -210,5 +223,7 @@ for (x in names(strategy_types)) {
     expect_equal(rates2[[length(rates2)]],
                  -node2$individual$rate("mortality") -
                    node2$growth_rate_gradient(env))
+    expect_false(any(c("interval_establishment",
+                       "interval_establishment_moment") %in% node2$ode_names))
   })
 }

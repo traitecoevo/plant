@@ -163,17 +163,28 @@ public:
   // These are patch-level quantities: each integrates the per-node weighted
   // net reproduction over a species' node-introduction times.
   // One species' lifetime fitness integral at the scalar the patch carries:
-  // the trapezium over its cohorts' birth dates of the survival-weighted
-  // fecundity, each cohort scaled by `scalars` (one, or the birth rate at its
-  // birth), plus what the top layer's cohorts produced after they were absorbed;
-  // under an arrival weighting, the weighted mean over the window's cohorts
-  // instead. `birth_scaled` says the scalars are the birth rate at each birth
-  // date, so the top layer's seed output is read on the same scale. The two
-  // R-facing double forms below are this with the derivative dropped, so the
-  // number a sweep differentiates is the number R reports.
+  // the survival-weighted fecundity integrated over its cohorts' birth dates,
+  // by establishment weight on the birth-date coordinate and by the trapezium
+  // on the height one, each cohort scaled by `scalars` (one, or the birth rate
+  // at its birth), plus what the top layer's cohorts produced after they were
+  // absorbed; under an arrival weighting, the weighted mean over the window's
+  // cohorts instead. `birth_scaled` says the scalars are the birth rate at each
+  // birth date, so the top layer's seed output is read on the same scale. The
+  // two R-facing double forms below are this with the derivative dropped, so
+  // the number a sweep differentiates is the number R reports.
   value_type fitness_integral(size_t species_index,
                               const std::vector<value_type>& scalars,
                               bool birth_scaled = false) const;
+  // Cohort first + i's entry of `f` by weight w[i].
+  static value_type establishment_weighted(const std::vector<value_type>& w,
+                                           const std::vector<value_type>& f,
+                                           size_t first) {
+    value_type tot(0.0);
+    for (size_t i = 0; i < w.size(); ++i) {
+      tot += w[i] * f.at(first + i);
+    }
+    return tot;
+  }
   value_type net_reproduction_ratio_of(size_t species_index) const;
   value_type offspring_production_of(size_t species_index) const;
 
@@ -243,13 +254,12 @@ public:
   // is chosen per node -- so there is one place where a discrete removal meets
   // the state, and one place to get it right.
   //
-  // Both accountings have to move together. On the birth-date coordinate the
-  // model maintains log_density(t) = log(birth_rate) - mortality(t), because
-  // log_density integrates -mortality_rate from log(birth_rate * pr_estab)
-  // while mortality integrates +mortality_rate from -log(pr_estab). Moving
-  // only log_density leaves fecundity undiscounted (it is weighted by
-  // exp(-mortality) independently); moving only mortality leaves the standing
-  // density untouched. Either way the two views of the same cohort disagree.
+  // Both accountings have to move together. On the birth-date coordinate
+  // log_density is log(birth_rate) - mortality(t), derived rather than a state,
+  // and moving both keeps it current. Moving only log_density leaves fecundity
+  // undiscounted (it is weighted by exp(-mortality) independently); moving only
+  // mortality leaves the standing density untouched. Either way the two views
+  // of the same cohort disagree.
   // Returns {nodes_affected, density_removed} -- the count is bookkeeping, the
   // density is the quantity actually taken out.
   template <typename Select>
@@ -972,10 +982,9 @@ void Patch<T,E>::check_birth_dates_distinct() const {
         }
       }
       util::stop("Species " + util::to_string(i + 1) + " has nodes sharing an "
-                 "introduction time (" + util::to_string(repeated) + "), which "
-                 "the birth-date size-density coordinate integrates over: the "
-                 "repeated nodes span zero width and drop out of the competition "
-                 "and resource integrals. Remove the repeat from the node "
+                 "introduction time (" + util::to_string(repeated) + "), but "
+                 "the birth-date size-density coordinate needs each node's own "
+                 "birth date. Remove the repeat from the node "
                  "schedule, supply per-node introduction times "
                  "(parameters$initial_node_times) with an initial state, or run "
                  "with control$node_density_in_birth_date = FALSE.");
@@ -1135,9 +1144,9 @@ template <typename T, typename E>
 typename Patch<T,E>::value_type Patch<T,E>::fitness_integral(
     size_t species_index, std::vector<value_type> const& scalars,
     bool birth_scaled) const {
-  const std::vector<value_type> net_prod =
-    species[species_index].weighted_fecundity_by_node();
-  auto const times = species[species_index].node_times();
+  const species_type& sp = species[species_index];
+  const std::vector<value_type> net_prod = sp.weighted_fecundity_by_node();
+  auto const times = sp.node_times();
   auto net_prod_scaled = std::vector<value_type>(times.size());
   for (size_t i = 0; i < times.size(); ++i) {
     net_prod_scaled[i] = net_prod[i] * scalars[i];
@@ -1153,11 +1162,18 @@ typename Patch<T,E>::value_type Patch<T,E>::fitness_integral(
     }
     // The seed output of cohorts absorbed into the top layer after they were
     // absorbed: what they accrued before is still on their nodes.
-    return util::trapezium(times, net_prod_scaled) +
-      species[species_index].top_seeds(birth_scaled);
+    if (!sp.density_in_birth_date()) {
+      return util::trapezium(times, net_prod_scaled) +
+        sp.top_seeds(birth_scaled);
+    }
+    // The boundary node, last, has no output yet.
+    std::vector<value_type> w = sp.establishment_weights(0, times.size());
+    w.pop_back();
+    return establishment_weighted(w, net_prod_scaled, 0) +
+      sp.top_seeds(birth_scaled);
   }
   // An arrival weighting is the weighted mean of lifetime output over the
-  // cohorts the window weights, taken by the trapezium over THOSE cohorts
+  // cohorts the window weights, taken over the intervals between THOSE cohorts
   // alone: the span from the first to the last with positive weight, output
   // times weight over weight. Nothing outside the span enters, so a species
   // whose schedule starts at the window and a species with cohorts before it
@@ -1168,7 +1184,7 @@ typename Patch<T,E>::value_type Patch<T,E>::fitness_integral(
   // normalisation a weight stepping to zero at the edges overstates the mean by
   // spacing over width. The weights are the regime's, read at the birth dates,
   // and carry no derivative: the denominator is a constant of the traits.
-  const std::vector<double> weight = species[species_index].r_patch_densities();
+  const std::vector<double> weight = sp.r_patch_densities();
   size_t first = times.size(), last = 0;
   for (size_t i = 0; i < times.size(); ++i) {
     if (weight[i] > 0.0) {
@@ -1183,19 +1199,28 @@ typename Patch<T,E>::value_type Patch<T,E>::fitness_integral(
     return value_type(std::numeric_limits<double>::quiet_NaN());
   }
   if (first == last) {
+    if (sp.density_in_birth_date()) {
+      // No interval of the window to integrate establishment over.
+      return value_type(std::numeric_limits<double>::quiet_NaN());
+    }
     // One cohort in the window: its output is the mean.
     return net_prod_scaled[first] / weight[first];
   }
   const std::vector<double> t(times.begin() + first, times.begin() + last + 1);
-  const std::vector<value_type> num(net_prod_scaled.begin() + first,
-                                    net_prod_scaled.begin() + last + 1);
+  const value_type num = sp.density_in_birth_date()
+    ? establishment_weighted(sp.establishment_weights(first, last),
+                             net_prod_scaled, first)
+    : util::trapezium(t, std::vector<value_type>(
+                             net_prod_scaled.begin() + first,
+                             net_prod_scaled.begin() + last + 1));
   const std::vector<double> den(weight.begin() + first, weight.begin() + last + 1);
   // The top layer's seeds are left out: the window's cohorts are never
   // absorbed, so nothing in the layer belongs to the window. What it carries
   // was weighted by whatever regime absorbed it -- a burn-in run without the
   // window stamps every cohort one -- and counted here it would score the
-  // burn-in's stand as the window's.
-  return util::trapezium(t, num) / util::trapezium(t, den);
+  // burn-in's stand as the window's. The denominator counts arrivals, which
+  // the window weights whether or not they establish.
+  return num / util::trapezium(t, den);
 }
 
 template <typename T, typename E>
@@ -2064,7 +2089,10 @@ Patch<T,E>::introduction_jacobian(const std::vector<size_t>& species_index,
                                   double time_before) {
   const size_t n_state = ode_size();
   const size_t n_trait = trait_adjoint_size();
-  const size_t n_out = n_state + species_index.size() * node_type::ode_size();
+  size_t n_out = n_state;
+  for (size_t i : species_index) {
+    n_out += species[i].r_new_node().ode_size();
+  }
   util::check_length(state_before.size(), n_state);
 
   std::vector<double> in(state_before);
@@ -2139,10 +2167,9 @@ bool Patch<T,E>::ode_state_valid(const std::vector<double>& y) const {
   if (bounded.empty()) {
     return true;
   }
-  const size_t stride = node_type::ode_size();
   size_t at = 0;
   for (const auto& sp : species) {
-    for (size_t k = 0; k < sp.size(); ++k, at += stride) {
+    for (auto n = sp.node_begin(); n != sp.node_end(); at += n->ode_size(), ++n) {
       for (const size_t i : bounded) {
         if (y[at + i] < 0.0) {
           return false;

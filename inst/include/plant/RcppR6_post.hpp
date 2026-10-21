@@ -1427,6 +1427,7 @@ template <> inline SEXP wrap(const plant::TF24_Pars<double>& x) {
   ret["a_st1"] = Rcpp::wrap(x.a_st1);
   ret["a_st2"] = Rcpp::wrap(x.a_st2);
   ret["a_st3"] = Rcpp::wrap(x.a_st3);
+  ret["storage_relaxation_offset"] = Rcpp::wrap(x.storage_relaxation_offset);
   ret["k_I"] = Rcpp::wrap(x.k_I);
   ret["vcmax_25"] = Rcpp::wrap(x.vcmax_25);
   ret["stem_P50"] = Rcpp::wrap(x.stem_P50);
@@ -1539,6 +1540,8 @@ template <> inline plant::TF24_Pars<double> as(SEXP x) {
   ret.a_st2 = Rcpp::as<double >(xl["a_st2"]);
   // ret.a_st3 = Rcpp::as<decltype(reta_st3) >(xl["a_st3"]);
   ret.a_st3 = Rcpp::as<double >(xl["a_st3"]);
+  // ret.storage_relaxation_offset = Rcpp::as<decltype(retstorage_relaxation_offset) >(xl["storage_relaxation_offset"]);
+  ret.storage_relaxation_offset = Rcpp::as<double >(xl["storage_relaxation_offset"]);
   // ret.k_I = Rcpp::as<decltype(retk_I) >(xl["k_I"]);
   ret.k_I = Rcpp::as<double >(xl["k_I"]);
   // ret.vcmax_25 = Rcpp::as<decltype(retvcmax_25) >(xl["vcmax_25"]);
