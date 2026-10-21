@@ -19,7 +19,7 @@ Depends:
     R (>= 4.5.0)
 Encoding: UTF-8
 License: AGPL (>= 3)
-LinkingTo: Rcpp, BH, odelia (== 0.7.3), phylloptim (== 0.10.2)
+LinkingTo: Rcpp, BH, odelia (== 0.8.1), phylloptim (== 0.10.2)
 Imports:
     Rcpp,
     R6,
@@ -32,7 +32,7 @@ Imports:
     tidyselect (>= 1.2.0),
     tidyr,
     purrr,
-    odelia (>= 0.7.3),
+    odelia (>= 0.8.1),
     withr,
     parallel,
     tools
@@ -54,7 +54,7 @@ Suggests:
     kableExtra
 Remotes:
     richfitz/RcppR6,
-    traitecoevo/odelia@88cbff7,
+    aornugent/odelia@d663a2b,
     traitecoevo/phylloptim@edaffe8
 URL: https://github.com/traitecoevo/plant
 BugReports: https://github.com/traitecoevo/plant/issues

@@ -144,7 +144,7 @@ if ("settle" %in% tasks) {
   ## Where the density sits: by cohort age.
   sp <- scm$patch$species[[1]]
   age <- scm$time - sp$node_times
-  nu <- exp(sp$log_densities_state)
+  nu <- exp(vapply(sp$nodes, function(n) n$log_density, numeric(1)))
   live <- nu > 0
   stamp("at %g yr: %d live cohorts, ages %g to %g; share of density in cohorts older than 50 / 100 yr: %.2e / %.2e; tallest live %.3f m",
         scm$time, sum(live), min(age[live]), max(age[live]), sum(nu[age > 50]) / sum(nu),

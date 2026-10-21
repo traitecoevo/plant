@@ -137,7 +137,8 @@ test_that("Run SCM", {
 
     ## Pull the times out of the SCM and set them in the schedule:
     sched <- scm$node_schedule
-    sched$set_ode_steps(scm$ode_times, scm$ode_step_sizes)
+    sched$set_ode_steps(scm$ode_times, scm$ode_step_sizes,
+                        scm$ode_soil_input_slopes, scm$ode_soil_substep_ends)
     scm$reset() # must reset
     scm$node_schedule <- sched
 
@@ -177,8 +178,12 @@ test_that("A pinned replay of a run's own steps reproduces it", {
       scm <- SCM(x, environment_types[[x]])(p, env, empty_events(), Control())
       sched <- scm$node_schedule
       sched$all_times <- free$node_schedule$all_times
-      sched$set_ode_steps(free$ode_times,
-                          if (with_sizes) free$ode_step_sizes else numeric(0))
+      if (with_sizes) {
+        sched$set_ode_steps(free$ode_times, free$ode_step_sizes,
+                            free$ode_soil_input_slopes, free$ode_soil_substep_ends)
+      } else {
+        sched$set_ode_steps(free$ode_times, numeric(0), list(), list())
+      }
       scm$node_schedule <- sched
       scm$run()
       scm
@@ -210,25 +215,214 @@ test_that("an ODE schedule is installed whole or refused", {
   expect_error(sched$ode_step_sizes <- scm$ode_step_sizes, "read-only")
   expect_error(sched$ode_times <- scm$ode_times, "read-only")
 
-  expect_error(sched$set_ode_steps(scm$ode_times, scm$ode_step_sizes[-1]),
+  slopes <- scm$ode_soil_input_slopes
+  ends <- scm$ode_soil_substep_ends
+  expect_error(sched$set_ode_steps(scm$ode_times, scm$ode_step_sizes[-1],
+                                   slopes[-1], ends[-1]),
                "same length as ode_times")
-  expect_error(sched$set_ode_steps(scm$ode_times, c(0, scm$ode_step_sizes[-1])),
+  expect_error(sched$set_ode_steps(scm$ode_times, c(0, scm$ode_step_sizes[-1]),
+                                   slopes, ends),
                "First step size must be NaN")
+  ## Each step's soil record goes with its size, or none is given at all.
+  expect_error(sched$set_ode_steps(scm$ode_times, scm$ode_step_sizes,
+                                   slopes, ends[-1]),
+               "as long as ode_step_sizes")
+  expect_error(sched$set_ode_steps(scm$ode_times, numeric(0), slopes, ends),
+               "as long as ode_step_sizes")
+  expect_error(sched$set_ode_steps(scm$ode_times, scm$ode_step_sizes,
+                                   replace(slopes, 2, list(0.5)), ends),
+               "step 2 has one")
 
-  sched$set_ode_steps(scm$ode_times, scm$ode_step_sizes)
+  sched$set_ode_steps(scm$ode_times, scm$ode_step_sizes, slopes, ends)
   expect_true(sched$using_ode_steps)
   expect_identical(sched$ode_times, scm$ode_times)
   expect_identical(sched$ode_step_sizes, scm$ode_step_sizes)
+  expect_identical(sched$ode_soil_input_slopes, slopes)
+  expect_identical(sched$ode_soil_substep_ends, ends)
 
   ## Times with no sizes is a grid to stop at rather than a run to replay, and a
   ## schedule holding either uses it.
-  sched$set_ode_steps(scm$ode_times, numeric(0))
+  sched$set_ode_steps(scm$ode_times, numeric(0), list(), list())
   expect_true(sched$using_ode_steps)
   expect_true(all(is.na(sched$ode_step_sizes)))
 
   sched$clear_ode_steps()
   expect_false(sched$using_ode_steps)
   expect_identical(sched$ode_times, numeric(0))
+})
+
+test_that("TF24's soil is substepped where that lets a step grow", {
+  ## Substepped, the soil is integrated in substeps of its own under the uptake
+  ## extrapolated over each step, so it no longer holds the stand to the soil's
+  ## stability limit or its error. A wet year, whose rain the soil drains within
+  ## days while the young stand takes up a small fraction of it, is where that
+  ## pays.
+  p0 <- scm_base_parameters("TF24", "TF24_Env")
+  p0$max_patch_lifetime <- 1
+  p0$patch_type <- "fixed"
+  p <- add_strategies(p0, trait_matrix(0.1978791, "lma"))
+  wet <- function() {
+    e <- Environment("TF24")
+    e$extrinsic_drivers_set_constant("rainfall", 3)
+    e
+  }
+  run <- function(substep, tol = 1e-4) {
+    run_scm(p, wet(), Control(node_density_in_birth_date = TRUE,
+                              ode_tol_rel = tol, ode_tol_abs = 1e-4 * tol,
+                              ode_soil_substep = substep))
+  }
+  fitness <- function(scm) sum(scm$offspring_production)
+
+  coupled <- run(FALSE)
+  substepped <- run(TRUE)
+  taken <- lengths(substepped$ode_soil_substep_ends) > 0
+  expect_false(any(lengths(coupled$ode_soil_substep_ends) > 0))
+  expect_gt(mean(taken), 0.3)
+  expect_lt(length(substepped$ode_times), 0.8 * length(coupled$ode_times))
+  ## Each record: an input slope per layer, and substeps ending at the step's
+  ## end.
+  n_soil <- Environment("TF24")$get_soil_number_of_depths()
+  expect_true(all(lengths(substepped$ode_soil_input_slopes[taken]) == n_soil))
+  expect_true(all(vapply(substepped$ode_soil_substep_ends[taken],
+                         function(e) e[length(e)] == 1, TRUE)))
+  ## Its error falls with the tolerance, against a tight run with the soil
+  ## coupled.
+  tight <- fitness(run(FALSE, 1e-7))
+  error <- function(scm) abs(fitness(scm) / tight - 1)
+  expect_lt(error(substepped), 1e-5)
+  expect_lt(error(run(TRUE, 3e-5)), error(substepped))
+})
+
+test_that("TF24 takes a daily rain record without being stopped at its knots", {
+  ## Daily rain through a monotone cubic changes form at every day beside a wet
+  ## one. A step across such a knot reads the rain only at its stages and misses
+  ## what falls between, so a step that spans one substeps the soil, whatever the
+  ## stand draws, and lands a substep on each. A run given no stops then matches
+  ## one stopped at every knot, with ode_soil_substep on and off.
+  p0 <- scm_base_parameters("TF24", "TF24_Env")
+  p0$max_patch_lifetime <- 2
+  p0$patch_type <- "fixed"
+  p <- add_strategies(p0, trait_matrix(0.1978791, "lma"))
+  set.seed(4)
+  days <- seq(0, 2 * 365 + 5)
+  rain <- ifelse(runif(length(days)) < 0.15, rgamma(length(days), 0.8, 0.2), 0)
+  knots <- local({
+    wet <- rain != 0
+    n <- length(wet)
+    x <- (days / 365)[wet | c(FALSE, wet[-n]) | c(wet[-1], FALSE)]
+    x[x > 0 & x < 2]
+  })
+  env <- function() {
+    e <- Environment("TF24")
+    e$extrinsic_drivers_set_variable("rainfall", days / 365, rain)
+    e
+  }
+  for (setting in list(c(substep = TRUE, tol = 1e-5), c(substep = FALSE, tol = 1e-5))) {
+    ctrl <- Control(node_density_in_birth_date = TRUE,
+                    ode_tol_rel = setting[["tol"]],
+                    ode_tol_abs = 1e-4 * setting[["tol"]],
+                    ode_soil_substep = as.logical(setting[["substep"]]))
+    stops <- events(events_default(p),
+                    rainfall_pulse(time = knots, depth = rep(0, length(knots))))
+    stopped <- run_scm(p, env(), ctrl, events = stops)
+    free <- run_scm(p, env(), ctrl)
+    expect_lt(abs(sum(free$offspring_production) /
+                  sum(stopped$offspring_production) - 1), 2e-5)
+    t <- free$ode_times
+    substepped <- lengths(free$ode_soil_substep_ends[-1]) > 0
+    spans <- vapply(seq_along(substepped), function(k)
+      any(knots > t[k] & knots < t[k + 1]), TRUE)
+    expect_true(any(spans))
+    expect_true(all(substepped[spans]))
+    ends <- unlist(Map(function(t0, h, e) t0 + e * h, t[-length(t)],
+                       free$ode_step_sizes[-1], free$ode_soil_substep_ends[-1]))
+    landed <- vapply(knots, function(k) any(abs(c(t, ends) - k) < 1e-12), TRUE)
+    expect_true(all(landed))
+    if (!setting[["substep"]]) {
+      ## Stopped at every knot, no step spans one, and with ode_soil_substep
+      ## off none substeps.
+      expect_true(all(lengths(stopped$ode_soil_substep_ends) == 0))
+    }
+  }
+})
+
+test_that("A run that substepped the soil is replayed, swept and invaded as it ran", {
+  ## Three years of seasonal rain, on most of whose steps the young stand takes
+  ## up a small fraction of the water flowing through the soil. Each step keeps
+  ## its record, so a replay, the sweep and an invader take it as the run did.
+  p0 <- scm_base_parameters("TF24", "TF24_Env")
+  p0$max_patch_lifetime <- 3
+  p0$patch_type <- "fixed"
+  lma <- 0.1978791
+  p <- add_strategies(p0, trait_matrix(lma, "lma"))
+  env <- function() {
+    e <- Environment("TF24")
+    t <- seq(0, 3, length.out = 601)
+    e$extrinsic_drivers_set_variable("rainfall", t,
+                                     0.25 * (1 + 0.95 * sin(2 * pi * t)))
+    e
+  }
+  ctrl <- Control(node_density_in_birth_date = TRUE, ode_tol_abs = 1e-8,
+                  ode_soil_substep = TRUE)
+  substepped <- run_scm(p, env(), ctrl, record_trajectory = TRUE)
+  expect_gt(mean(lengths(substepped$ode_soil_substep_ends) > 0), 0.5)
+
+  ## A replay of the program, records and all, repeats the run bit for bit.
+  replay <- function(q) {
+    scm <- SCM("TF24", "TF24_Env")(q, env(), empty_events(), ctrl)
+    sched <- scm$node_schedule
+    sched$all_times <- substepped$node_schedule$all_times
+    sched$set_ode_steps(substepped$ode_times, substepped$ode_step_sizes,
+                        substepped$ode_soil_input_slopes,
+                        substepped$ode_soil_substep_ends)
+    scm$node_schedule <- sched
+    scm$run()
+    scm
+  }
+  again <- replay(p)
+  expect_identical(again$patch$ode_state, substepped$patch$ode_state)
+  expect_identical(again$ode_soil_substep_ends, substepped$ode_soil_substep_ends)
+  ## So does the program carried in the parameters. Its times alone, a grid,
+  ## are refused where a step would substep the soil, and its sizes without
+  ## their records where a step spans a knot of the rain.
+  q <- p
+  q$ode_times <- substepped$ode_times
+  expect_error(run_scm(q, env(), ctrl), "replay the run's program")
+  q$ode_step_sizes <- substepped$ode_step_sizes
+  expect_error(run_scm(q, env(), ctrl), "carries no substeps")
+  q$ode_soil_input_slopes <- substepped$ode_soil_input_slopes
+  q$ode_soil_substep_ends <- substepped$ode_soil_substep_ends
+  carried <- run_scm(q, env(), ctrl)
+  expect_identical(carried$patch$ode_state, substepped$patch$ode_state)
+
+  ## The sweep holds each step's substeps and input slopes, as a tangent of the
+  ## replayed program does, and both agree with its central differences.
+  g <- stand_gradient(substepped, traits = "1.lma")
+  traits <- census_trait_names_tf24(substepped)
+  tangent <- ladder_trajectory_tangent_tf24(substepped,
+                                            as.numeric(traits == "1.lma"))
+  expect_equal(tangent$value, unname(stand_census(substepped)), tolerance = 1e-12)
+  expect_equal(unname(g$gradient[, "1.lma"]), tangent$tangent, tolerance = 1e-6)
+  at_lma <- function(x) {
+    q <- p
+    s <- q$strategies[[1]]
+    pars <- s$pars
+    pars$lma <- x
+    s$pars <- pars
+    q$strategies[[1]] <- s
+    stand_census(replay(q))
+  }
+  d <- 1e-4 * lma
+  differenced <- (at_lma(lma + d) - at_lma(lma - d)) / (2 * d)
+  expect_equal(unname(g$gradient[, "1.lma"]), unname(differenced),
+               tolerance = 1e-2)
+
+  ## An invader with the stand's traits, integrated on the run's steps with the
+  ## soil read from the run, has the stand's fitness. Not to the bit: on this
+  ## stand it misses by 4e-14 with the soil coupled too.
+  ratios <- substepped$net_reproduction_ratios
+  substepped$run_mutant(p)
+  expect_equal(substepped$net_reproduction_ratios, ratios, tolerance = 1e-12)
 })
 
 test_that("schedule setting", {

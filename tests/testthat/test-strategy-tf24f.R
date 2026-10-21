@@ -22,6 +22,7 @@ test_that("Defaults", {
     a_st1 = 0.10,
     a_st2 = 0.10,
     a_st3 = 0.8,
+    storage_relaxation_offset = 7 / 365,
     a_p1   = 151.177775377968,
     a_p2   = 0.204716166503633,
     a_f1   = 1,
@@ -335,14 +336,20 @@ test_that("acclimation runs, is active, and converges to TF24", {
   #     residual tracking lag. Measured gap against TF24 as the gain rises:
   #
   #       k_acclim     10      30     100     300    1000
-  #       rel. gap  0.376%  0.132%  0.038%  0.012%  0.002%
+  #       rel. gap  0.113%  0.054%  0.041%  0.013%  0.002%
+  #
+  #     TF24 is integrated to 1e-6 here. At the default tolerance its own
+  #     time-integration error is about 0.2%, larger than the lag at k = 100.
   #
   #     Monotone to zero, which is what makes this a tracking lag and not a
   #     structural divergence between the two strategies. Note that the gap
   #     closing monotonically in k is compatible with offspring production
   #     itself being non-monotone in k (see assertion 2): the former is about
   #     TF24f approaching TF24, the latter about where each sits.
-  tf24 <- run_scm(mk("TF24"), Environment("TF24"), Control())$offspring_production
+  tight <- Control()
+  tight$ode_tol_rel <- 1e-6
+  tight$ode_tol_abs <- 1e-6
+  tf24 <- run_scm(mk("TF24"), Environment("TF24"), tight)$offspring_production
   converged <- run_scm(set_k_acclim(pf, 100), Environment("TF24f"),
                        Control())$offspring_production
   expect_equal(converged, tf24, tolerance = 1e-2)

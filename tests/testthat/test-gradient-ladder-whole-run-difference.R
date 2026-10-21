@@ -172,9 +172,10 @@ test_that("the sweep agrees with a difference of whole runs, over five regimes",
     # The reference's own resolution, with a floor: where its four steps agreed
     # to round-off, the sweep is still only asked to agree to the truncation the
     # coarsest of them carries. Over 270 answered columns a regime, the worst
-    # reads 1.1e-03 on drought, 7.6e-04 on seasonal and 6.3e-05 on wet -- and all
-    # three are `theta` or `omega`, which reach the census through the channels
-    # the leaf boundary carries and are the last columns to resolve.
+    # reads 1.8e-03 on drought, 1.4e-04 on clamped, 8.9e-05 on shaded, 5.5e-05
+    # on wet and 5.0e-05 on seasonal -- and all five are `theta` or `omega`,
+    # which reach the census through the channels the leaf boundary carries and
+    # are the last columns to resolve.
     tolerance <- pmax(3 * r$spread, 2e-3)
     over <- live & r$residual > tolerance
     # ⚠️ THIS RUNG IS WHAT FOUND THE KNOT GRID, and the floor is what found it.

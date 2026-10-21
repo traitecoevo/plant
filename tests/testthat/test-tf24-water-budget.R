@@ -132,7 +132,14 @@ test_that("rainfall driver is floored at zero", {
   p <- scm_base_parameters("TF24")
   p$max_patch_lifetime <- 2
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))
-  out <- run_scm(p, env, collect = TRUE)
+  # ⚠️ The sums are the main step's states, read at its stages. A step across a
+  # knot of the rain substeps the soil but not them, so they miss the rain the
+  # soil takes between stages and the budget stops closing. Every control point
+  # here is a knot; stopped at each, every step lies inside one span.
+  knots <- times[times > 0 & times < 2]
+  stops <- events(events_default(p),
+                  rainfall_pulse(time = knots, depth = rep(0, length(knots))))
+  out <- run_scm(p, env, events = stops, collect = TRUE)
 
   flux <- out$env$soil_moist_cumulative_flux
   # Cumulative rainfall and infiltration are both monotone non-decreasing: the

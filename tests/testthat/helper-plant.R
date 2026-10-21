@@ -128,3 +128,16 @@ plant_test_cores <- function(jobs) {
   }
   min(jobs, max(1L, parallel::detectCores() - 1L))
 }
+
+# The establishment weights of nodes k (contiguous) over the intervals between
+# them alone, from each interval's establishment and its moment: what a fitness
+# window integrates its cohorts' output against on the birth-date coordinate.
+establishment_weights_within <- function(sp, k) {
+  y <- vapply(sp$nodes[k], function(n) {
+    stats::setNames(n$ode_state, n$ode_names)[
+      c("interval_establishment", "interval_establishment_moment")]
+  }, numeric(2))
+  m <- length(k)
+  next_share <- y[2, -m] / diff(sp$node_times[k])
+  c(y[1, -m] - next_share, 0) + c(0, next_share)
+}

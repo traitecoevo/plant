@@ -33,12 +33,13 @@ stand_metric_table <- function(scm) {
 
 ##' Metrics of a solved stand.
 ##'
-##' \code{stand_census} reports the census metrics: the trapezium integral of
+##' \code{stand_census} reports the census metrics: the integral of
 ##' \eqn{n_k \psi(\mathrm{state}_k)} over the size distribution, for each
 ##' per-plant quantity \eqn{\psi}, summed over the species. The grid is the
-##' coordinate the density is carried in -- the birth date, or the height -- and
-##' the inflow boundary node closes it, so the interval between it and the
-##' smallest cohort is in the sum.
+##' coordinate the density is carried in, and the inflow boundary node closes
+##' it, so the interval between it and the smallest cohort is in the sum. In
+##' birth date each cohort is weighted by the establishment probability
+##' integrated against its hat function; in height, by the trapezium.
 ##'
 ##' \code{stand_fitness} reports, for a model that declares its fitness
 ##' differentiable (FF16), each species' net reproduction ratio and offspring
@@ -83,7 +84,7 @@ stand_metrics_of_kind <- function(scm, kind) {
 ##' \code{scm$patch$ode_state} writes. This is what the reverse pass is seeded
 ##' with. The cohort-height columns carry the trapezium weights as well as the
 ##' integrand only where the height is the coordinate integrated over; on the
-##' birth-date coordinate the weights are constants.
+##' birth-date coordinate the weights are the interval-establishment columns.
 ##'
 ##' @param scm A run \code{SCM} object for the TF24 or FF16 model, on the
 ##'   birth-date coordinate (\code{control(node_density_in_birth_date = TRUE)}).

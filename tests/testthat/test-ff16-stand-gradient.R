@@ -67,14 +67,12 @@ test_that("FF16 declares the three census metrics and names its columns", {
   expect_error(stand_gradient(scm, traits = "1.eta"), "No gradient exists")
 })
 
-test_that("the FF16 census is the trapezium of density times the allometry", {
+test_that("the FF16 census is density times the allometry by establishment weight", {
   scm <- ff16_stand(lifetime = 3)
   sp <- scm$patch$species[[1]]
   st <- do.call(cbind, c(lapply(sp$nodes, function(n) n$ode_state),
                          list(sp$new_node$ode_state)))
   rownames(st) <- sp$new_node$ode_names
-  birth_date <- c(vapply(sp$nodes, function(n) n$introduction_time, 0),
-                  sp$new_node$introduction_time)
   pars <- scm$parameters$strategies[[1]]$pars
   eta_c <- 1 - 2 / (1 + pars$eta) + 1 / (1 + 2 * pars$eta)
   height <- st["height", ]
@@ -88,9 +86,10 @@ test_that("the FF16 census is the trapezium of density times the allometry", {
       area_sapwood * height * eta_c * pars$rho +
       st["mass_heartwood", ],
     area_stem = area_bark + area_sapwood + st["area_heartwood", ])
-  density <- exp(st["log_density", ])
-  trapezium <- function(x, y) sum(diff(x) * (head(y, -1) + tail(y, -1))) / 2
-  expected <- vapply(psi, function(v) trapezium(birth_date, density * v), 0)
+  density <- exp(vapply(c(sp$nodes, list(sp$new_node)),
+                        function(n) n$log_density, 0))
+  weight <- ladder_establishment_weights(sp)
+  expected <- vapply(psi, function(v) sum(weight * density * v), 0)
   expect_equal(stand_census(scm), expected, tolerance = 1e-12)
 })
 
