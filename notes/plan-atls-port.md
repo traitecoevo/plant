@@ -35,7 +35,7 @@ phylloptim `Leaf` gains (all R-bound):
 ## Order of work
 
 - [x] phylloptim: leaf-level layer, tests, NEWS, PR — [phylloptim#162](https://github.com/traitecoevo/phylloptim/pull/162), open; plant pins its head `c57c6d33`.
-- [x] plant: TF24t on the templated TF24 strategy, registration, R helpers, tests, model-version snapshot; pin phylloptim to the PR head while both are open — on `feature/tf24t-atls-port`, stacked on #678. Re-pin to phylloptim's squash sha after #162 merges, and rebase onto develop after #678 merges.
+- [x] plant: TF24t on the templated TF24 strategy, registration, R helpers, tests, model-version snapshot; pin phylloptim to the PR head while both are open — #694 (`feature/tf24t-atls-port`), a draft stacked on #678. Re-pin to phylloptim's squash sha after #162 merges, and rebase onto develop after #678 merges.
 - [x] plant: carry over the July notes (`notes/atls/`) and the July viability results, marked as computed on the July code — in `964638d2`. The July staging docs (`overstorey_staging/TF24t_leaf_ATLS_model.qmd`, `TF24t_leaf_ATLS_demo.qmd`, `atls_demo_helpers.R`) are ported to the current API on the same branch; the demo's two SCM sections are not re-rendered (see below).
 - [ ] Re-run the materiality gate and the low-density viability boundary on the ported code, on the birth-date coordinate. **Blocked on the TF24 baseline below**: as set up in July (lma 0.0825, birth rate 1) the stand is inviable whenever the energy balance is on, so the comparison crosses no boundary until it is re-set.
 
