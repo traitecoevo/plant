@@ -18,6 +18,12 @@ census_backend <- function(scm) {
                 undifferentiable = census_undifferentiable_ff16,
                 trait_gradient = census_trait_gradient_ff16,
                 control = gradient_control_ff16),
+    # Named rather than left to the default, because the reason is not that no
+    # census was written: no derivative of the thermal-damage layer exists.
+    TF24t = stop("No census is declared for the TF24t model, so it has no ",
+                 "stand gradient: phylloptim refuses the derivative of its ",
+                 "leaf with the thermal-damage layer on, and a gradient ",
+                 "without it would describe TF24 rather than TF24t"),
     stop("No census is declared for the ", type, " model, so it has no ",
          "stand gradient; TF24 and FF16 declare one"))
 }

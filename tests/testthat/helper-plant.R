@@ -83,7 +83,9 @@ test_ode_make_solver <- function(sys) {
 # psi) and relies on birth-initialisation via Node::compute_initial_conditions, so
 # it does not satisfy the generic invariants these lists drive (5-state layout;
 # growth of a standalone Individual stepped a few times, which bypasses that
-# initialisation). TF24f is covered via the SCM in test-strategy-tf24f.R.
+# initialisation). TF24f is covered via the SCM in test-strategy-tf24f.R. TF24t
+# is excluded for the same reasons (four appended states, seeded in
+# set_initial_states) and is covered in test-strategy-tf24t.R.
 
 # ! Important the whitespace in the following function is used by the strategy scaffolder
 get_list_of_strategy_types <- function() {
