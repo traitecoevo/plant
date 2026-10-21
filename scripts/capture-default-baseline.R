@@ -8,8 +8,10 @@
 ##   Rscript scripts/capture-default-baseline.R [out.rds]
 ## The cases are built by default_baseline_cases(), defined in the test's
 ## helper, so the test and the capture run the same code. It uses only API
-## that predates #661, so it runs against the commit before it (9f04309b),
-## which is where the recorded baseline comes from.
+## that predates #661, so it runs against the commit before it (9f04309b).
+## The height-coordinate cases have not moved since that build; the
+## birth-date cases were re-blessed when establishment came to be integrated
+## exactly on that coordinate, which changes their numbers by design.
 
 args <- commandArgs(trailingOnly = TRUE)
 out <- if (length(args) > 0) args[[1]] else

@@ -1,7 +1,7 @@
 ## Runs that use none of the opt-in features, and what each reports. Shared by
 ## test-default-baseline.R and scripts/capture-default-baseline.R, which
-## records them from a build that predates the features. Uses only API that
-## predates #661, so the capture can run against such a build.
+## records them. Uses only API that predates #661, so the capture can run
+## against a build before it.
 default_baseline_cases <- function() {
   outputs <- function(scm) {
     list(ode_state = scm$patch$ode_state,

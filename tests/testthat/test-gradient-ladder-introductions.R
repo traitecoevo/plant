@@ -113,16 +113,15 @@ test_that("the boundary node's row carries the field its own cohorts build", {
 
     # Both sides are partial derivatives at one state only if they agree on the
     # value, and a mismatch invalidates the rows below rather than failing them.
-    # A few ULP, not zero: the tangent side evaluates the seed's carbon through
-    # xad's forward scalar, and on arm64 the compiler fuses that arithmetic
-    # differently from the plain double path -- measured 1 ULP (1.1e-16
-    # relative) on Apple Silicon where Linux x86-64 reads bit-identical. One
-    # state is still one state at that distance; a wrong state is 1e-3 away.
+    # Not zero: the tangent side evaluates the seed's carbon through xad's
+    # forward scalar, and on arm64 the compiler fuses that arithmetic
+    # differently from the plain double path -- up to ~1e-15 relative on Apple
+    # Silicon, bit-identical on Linux x86-64. A wrong state is 1e-3 away.
     expect_equal(got$log_density, ref$value[["log_density"]],
-                 tolerance = 8 * .Machine$double.eps,
+                 tolerance = 1e-12,
                  label = paste("boundary value,", name))
     expect_equal(got$carbon, ref$value[["carbon"]],
-                 tolerance = 8 * .Machine$double.eps,
+                 tolerance = 1e-12,
                  label = paste("birth-size carbon,", name))
     # On this coordinate the boundary node's density is the birth rate, which
     # reads no trait, so the field reaches establishment through the carbon a
