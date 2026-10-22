@@ -183,9 +183,10 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##'   and asking for its gradient errors rather than returning a zero.
 ##'
 ##' @section An invader against a recorded resident:
-##' After \code{scm$run_mutant(p)}, a gradient is of the invaders' metrics with
-##' the canopy held at the recorded resident -- the field is exogenous to the
-##' invader and carries no derivative -- which is the rare-mutant derivative.
+##' After \code{scm$run_mutant(p)}, a gradient is of the invaders' metrics in
+##' the residents' recorded field, which the invaders read at each rate
+##' evaluation and do not move, so it carries no derivative: the rare-mutant
+##' derivative. A run of \code{scm$run_mutant_held()} is refused.
 ##' An invasion that kept no states is run again, as an invasion, to keep them;
 ##' set \code{scm$record_trajectory <- TRUE} before it to save that run.
 ##' Several invaders in \code{p} share one run and each has its own columns,

@@ -113,7 +113,8 @@ public:
 // rather than re-established by the run loop at every stop.
 //
 // `times` keeps the [t_intro, ...extra ode times..., t_end] semantics events
-// carried before; ode_steps is what a replay reads, and schedule_within() serves it.
+// carried before; ode_steps is the recorded schedule a pinned run steps over, and
+// schedule_within() serves it.
 };
 
 struct schedule_entry {
@@ -157,7 +158,7 @@ public:
   void pop();
   size_t remaining() const;
 
-  // The schedule a replay of the interval `(start, end]` takes: the state it
+  // The schedule a pinned run of the interval `(start, end]` takes: the state it
   // starts from, then the recorded steps inside it, the one reaching `end`
   // included. Empty where the recording put no step in there, and empty on a
   // schedule holding no recording.
@@ -223,8 +224,8 @@ private:
   size_t at;
   double max_time;
   double start_time;
-  // The recorded ODE steps this schedule replays, when it holds any. Holding
-  // them is what makes a schedule a replay, so no flag says so separately.
+  // The recorded ODE steps a run on this schedule takes, when it holds any.
+  // Holding them is what pins the run, so no flag says so separately.
   std::vector<odelia::ode::schedule_row> ode_steps;
 };
 
