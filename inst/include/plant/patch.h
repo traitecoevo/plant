@@ -50,16 +50,16 @@ concept KeepsSolvedChoices =
 // and for a compiler reason: clang substitutes a member template's declaration
 // -- its default template arguments and its return type -- when the enclosing
 // class is instantiated, where GCC defers until the member is used. A bare
-// alias naming `X::rebind_from` is then a hard error the moment
+// alias naming `X::rebind` is then a hard error the moment
 // `Patch<FF16_Strategy, ...>` exists, because FF16 and K93 declare no
-// `rebind_from`. The `void` fallback turns that into a type nothing
-// instantiates, and `Patch::rebind_from` is constrained on it below.
+// `rebind`. The `void` fallback turns that into a type nothing
+// instantiates, and `Patch::rebind` is constrained on it below.
 template <typename X, typename U, typename = void>
 struct at_scalar_impl { using type = void; };
 template <typename X, typename U>
 struct at_scalar_impl<X, U,
-  std::void_t<decltype(std::declval<const X&>().template rebind_from<U>())>> {
-  using type = decltype(std::declval<const X&>().template rebind_from<U>());
+  std::void_t<decltype(std::declval<const X&>().template rebind<U>())>> {
+  using type = decltype(std::declval<const X&>().template rebind<U>());
 };
 template <typename X, typename U>
 using at_scalar = typename at_scalar_impl<X, U>::type;
@@ -121,7 +121,7 @@ struct patch_solved_values {
 
 // One step of a run as an invader reads it: the step, and the field each of its
 // rate evaluations was taken in, by stage.
-struct field_row : odelia::ode::instruction {
+struct field_row : odelia::ode::schedule_row {
   std::array<recorded_field, 6> fields;
 };
 
@@ -148,7 +148,7 @@ public:
   // instantiating `Patch<void, void>`.
   template <class U>
     requires PatchRebindable<T, E, U>
-  Patch<at_scalar<T, U>, at_scalar<E, U>> rebind_from() const;
+  Patch<at_scalar<T, U>, at_scalar<E, U>> rebind() const;
 
 
   // Every scalar's Patch is one class, so a rebind reaches the rebound patch's
@@ -566,7 +566,7 @@ public:
 
 private:
   // A patch whose species take the prepared strategies given, rather than
-  // preparing the ones in the parameters. rebind_from's only route in.
+  // preparing the ones in the parameters. rebind's only route in.
   Patch(parameters_type p, environment_type e, plant::Control c,
         const std::vector<strategy_type_ptr>& prepared);
 
@@ -736,7 +736,7 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c,
 template <typename T, typename E>
 template <class U>
   requires PatchRebindable<T, E, U>
-Patch<at_scalar<T, U>, at_scalar<E, U>> Patch<T,E>::rebind_from() const {
+Patch<at_scalar<T, U>, at_scalar<E, U>> Patch<T,E>::rebind() const {
   using T2 = at_scalar<T, U>;
   using E2 = at_scalar<E, U>;
   // What a rebound patch reads, and nothing else. patch_type and
@@ -764,18 +764,18 @@ Patch<at_scalar<T, U>, at_scalar<E, U>> Patch<T,E>::rebind_from() const {
   p2.node_schedule_times_default = parameters.node_schedule_times_default;
   p2.node_schedule_times = parameters.node_schedule_times;
   p2.initial_time = parameters.initial_time;
-  p2.strategy_default = parameters.strategy_default.template rebind_from<U>();
+  p2.strategy_default = parameters.strategy_default.template rebind<U>();
 
   // The strategies the species run, not the ones in the parameters: those are
   // the prepared copies, and preparing again is refused at an active scalar.
   std::vector<typename T2::ptr> prepared;
   for (const species_type& s : species) {
     prepared.push_back(std::make_shared<T2>(
-      s.strategy_ptr()->template rebind_from<U>()));
+      s.strategy_ptr()->template rebind<U>()));
     p2.strategies.push_back(*prepared.back());
   }
 
-  E2 env = environment.template rebind_from<U>();
+  E2 env = environment.template rebind<U>();
   Patch<T2,E2> out(p2, env, control, prepared);
 
   for (size_t i = 0; i < species.size(); ++i) {
@@ -2110,7 +2110,7 @@ Patch<T,E>::introduction_jacobian(const std::vector<size_t>& species_index,
   }
   util::check_length(in.size(), n_state + n_trait);
 
-  auto active = this->template rebind_from<tangent>();
+  auto active = this->template rebind<tangent>();
   std::vector<std::vector<double>> ret(n_out,
                                        std::vector<double>(in.size(), 0.0));
   for (size_t c = 0; c < in.size(); ++c) {

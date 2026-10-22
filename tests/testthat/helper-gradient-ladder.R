@@ -225,19 +225,19 @@ ladder_field_knots <- function(x) {
   ladder_as_patch(x)$environment$light_availability$state
 }
 
-# The state a range's first step ran from, which is what a first-range reference
+# The state a segment's first step ran from, which is what a first-segment reference
 # indexes its direction against.
 #
 # The run keeps it and nothing needs to rebuild it: store_trajectory()'s first
-# record is the first range's base, and a later range's base is the introduction
+# record is the first segment's base, and a later segment's base is the introduction
 # record that widened into it. Checked bit for bit against the C++ accessor this
-# replaced over 45 ranges on four stands.
-ladder_range_base_state <- function(x, range = 0L) {
+# replaced over 45 segments on four stands.
+ladder_segment_base_state <- function(x, segment = 0L) {
   records <- x$store_trajectory()
-  if (range == 0L) {
+  if (segment == 0L) {
     return(records[[1L]]$state)
   }
-  Filter(function(r) isTRUE(r$introduction), records)[[range]]$state
+  Filter(function(r) isTRUE(r$introduction), records)[[segment]]$state
 }
 
 # Two species, two cohorts each. Two species catch a reduction sum that collapses
@@ -400,13 +400,13 @@ ladder_stand_introductions_short <- function() {
   ladder_run(p)
 }
 
-# Many ranges, and a short run. The sweep opens a range at every introduction, so
-# the range count is what the range machinery and the insertion transpose are
+# Many segments, and a short run. The sweep opens a segment at every introduction, so
+# the segment count is what the segment machinery and the insertion transpose are
 # exercised at -- and in the DEFAULT schedule that count is derived from the patch
 # lifetime, which is why the two read as one thing. They are separable: written
-# introduction times put 61 ranges in a run of less than half a year.
+# introduction times put 61 segments in a run of less than half a year.
 #
-# Measured on this fixture: 62 introductions, 62 ranges, 68 accepted steps, and a
+# Measured on this fixture: 62 introductions, 62 segments, 68 accepted steps, and a
 # sweep in 1.7 s. The four-node stand every other trajectory rung uses has six.
 #
 # ⚠️ WHAT THIS DOES NOT REACH IS THE STEP COUNT. Sixty-eight against the ~3,400 a
@@ -440,8 +440,8 @@ ladder_stand_many_ranges <- function(n = 61L, lifetime = 0.45) {
 # seventeen steps before the state first widens.
 #
 # Every other stand introduces at the initial time, which puts the first introduction
-# at the first recorded step and leaves the lowest range with no step in it. A
-# walk that ran that range and a walk that started above it are then the same
+# at the first recorded step and leaves the lowest segment with no step in it. A
+# walk that ran that segment and a walk that started above it are then the same
 # walk. Here they are not: half the run sits below the first introduction, and the
 # census depends on the state there through three cohorts rather than through the
 # soil alone.
@@ -461,7 +461,7 @@ ladder_stand_resumed <- function() {
 
 # Which rows of a recording are introductions, and how many of its rows are steps.
 #
-# A recording holds one row per instruction, and an introduction is an instruction: it
+# A recording holds one row per schedule_row, and an introduction is an schedule_row: it
 # shares its time with the row below it and no step reached it. So the number of
 # steps is not the number of rows, and the row an introduction happens at is a row of
 # its own rather than the gap between two.
@@ -583,7 +583,7 @@ ladder_environment <- function(rain = NULL, amplitude = 0, lifetime = 2) {
 # pays for cohorts it is not asking about. Measured on the clamped driver at a
 # lifetime of 5: twenty introductions record 3267 steps and run and sweep in
 # 17.8 s where its eighty-eight record far more and take 258, with both light
-# sites firing on both paths and the same range refusal either way.
+# sites firing on both paths and the same overflow refusal either way.
 ladder_driver_stand <- function(rain, lifetime, k_I = 0.5, amplitude = 0,
                                 introductions = NULL) {
   p <- scm_base_parameters("TF24")
@@ -1240,9 +1240,9 @@ ladder_block_scale <- function(x) {
 # The phrase the SWEEP's own refusal carries, as distinct from every refusal the
 # leaf raises.
 #
-# A descent is a product of step Jacobians and has no error control, so it can
+# A sweep is a product of step Jacobians and has no error control, so it can
 # pass far outside the range of the answer it returns and come back: on the
-# drought stand it reaches 4.99978e+281 and contracts to 3.69e+46 one range
+# drought stand it reaches 4.99978e+281 and contracts to 3.69e+46 one segment
 # later, for a gradient of order 1e+03. A driver that answers does so with
 # margin, and one that overflows is refused rather than handed the overflow's
 # numbers.
@@ -1659,7 +1659,7 @@ ladder_run_difference_pair <- function(name, species = 2L,
   #
   # ⚠️ EXCEPT WHERE THE BASE SUBSTEPPED THE SOIL, which every step across a knot
   # of a variable rainfall does. A grid of times alone is refused across such a
-  # step, so that run replays its whole program, sizes and substeps with the
+  # step, so that run replays its whole schedule, sizes and substeps with the
   # times, as the sweep differentiates it.
   base <- ladder_run(build(), env = env_of())
   ode_times <- base$ode_times

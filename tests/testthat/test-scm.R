@@ -367,7 +367,7 @@ test_that("A run that substepped the soil is replayed, swept and invaded as it r
   substepped <- run_scm(p, env(), ctrl, record_trajectory = TRUE)
   expect_gt(mean(lengths(substepped$ode_soil_substep_ends) > 0), 0.5)
 
-  ## A replay of the program, records and all, repeats the run bit for bit.
+  ## A replay of the schedule, records and all, repeats the run bit for bit.
   replay <- function(q) {
     scm <- SCM("TF24", "TF24_Env")(q, env(), empty_events(), ctrl)
     sched <- scm$node_schedule
@@ -382,12 +382,12 @@ test_that("A run that substepped the soil is replayed, swept and invaded as it r
   again <- replay(p)
   expect_identical(again$patch$ode_state, substepped$patch$ode_state)
   expect_identical(again$ode_soil_substep_ends, substepped$ode_soil_substep_ends)
-  ## So does the program carried in the parameters. Its times alone, a grid,
+  ## So does the schedule carried in the parameters. Its times alone, a grid,
   ## are refused where a step would substep the soil, and its sizes without
   ## their records where a step spans a knot of the rain.
   q <- p
   q$ode_times <- substepped$ode_times
-  expect_error(run_scm(q, env(), ctrl), "replay the run's program")
+  expect_error(run_scm(q, env(), ctrl), "replay the run's schedule")
   q$ode_step_sizes <- substepped$ode_step_sizes
   expect_error(run_scm(q, env(), ctrl), "carries no substeps")
   q$ode_soil_input_slopes <- substepped$ode_soil_input_slopes
@@ -396,7 +396,7 @@ test_that("A run that substepped the soil is replayed, swept and invaded as it r
   expect_identical(carried$patch$ode_state, substepped$patch$ode_state)
 
   ## The sweep holds each step's substeps and input slopes, as a tangent of the
-  ## replayed program does, and both agree with its central differences.
+  ## replayed schedule does, and both agree with its central differences.
   g <- stand_gradient(substepped, traits = "1.lma", hyperpar = NULL)
   traits <- census_trait_names_tf24(substepped)
   tangent <- ladder_trajectory_tangent_tf24(substepped,
@@ -609,7 +609,7 @@ test_that("A second run on one SCM reproduces the first", {
 
 
 
-test_that("store_trajectory records one state per instruction", {
+test_that("store_trajectory records one state per schedule_row", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     s <- strategy_types[[x]]()
@@ -631,7 +631,7 @@ test_that("store_trajectory records one state per instruction", {
     traj <- scm$store_trajectory()
     expect_identical(traj[[length(traj)]]$state, forward_state)
 
-    ## One record per instruction, which is a row per accepted step and a row per
+    ## One record per schedule_row, which is a row per accepted step and a row per
     ## introduction. The steps are the resolved grid itself rather than any second list
     ## of times, and the schedule is the steps, so an introduction cannot reach it.
     is_junction <- vapply(traj, function(r) r$introduction, logical(1))

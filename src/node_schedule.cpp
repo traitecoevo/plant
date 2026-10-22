@@ -175,10 +175,10 @@ size_t NodeSchedule::remaining() const {
   return schedule.size() - at;
 }
 
-std::vector<odelia::ode::instruction>
-NodeSchedule::program_within(double start, double end) const {
-  std::vector<odelia::ode::instruction> ret;
-  for (const odelia::ode::instruction& s : ode_steps) {
+std::vector<odelia::ode::schedule_row>
+NodeSchedule::schedule_within(double start, double end) const {
+  std::vector<odelia::ode::schedule_row> ret;
+  for (const odelia::ode::schedule_row& s : ode_steps) {
     if (s.time <= start || s.time > end) {
       continue;
     }
@@ -233,7 +233,7 @@ void NodeSchedule::r_set_max_time(double x) {
 std::vector<double> NodeSchedule::r_ode_times() const {
   std::vector<double> ret;
   ret.reserve(ode_steps.size());
-  for (const odelia::ode::instruction& r : ode_steps) {
+  for (const odelia::ode::schedule_row& r : ode_steps) {
     ret.push_back(r.time);
   }
   return ret;
@@ -242,18 +242,18 @@ std::vector<double> NodeSchedule::r_ode_times() const {
 std::vector<double> NodeSchedule::r_ode_step_sizes() const {
   std::vector<double> ret;
   ret.reserve(ode_steps.size());
-  for (const odelia::ode::instruction& r : ode_steps) {
+  for (const odelia::ode::schedule_row& r : ode_steps) {
     ret.push_back(r.step_size);
   }
   return ret;
 }
 
 std::vector<std::vector<double> >
-substep_field(const std::vector<odelia::ode::instruction>& steps,
+substep_field(const std::vector<odelia::ode::schedule_row>& steps,
               std::vector<double> odelia::ode::subsystem_substeps::*field) {
   std::vector<std::vector<double> > ret;
   ret.reserve(steps.size());
-  for (const odelia::ode::instruction& step : steps) {
+  for (const odelia::ode::schedule_row& step : steps) {
     ret.push_back(step.subsystem ? (*step.subsystem).*field
                                  : std::vector<double>());
   }
