@@ -17,12 +17,13 @@ birth-date coordinate (\code{control(node_density_in_birth_date = TRUE)}).}
 A named numeric vector, one entry per metric.
 }
 \description{
-\code{stand_census} reports the census metrics: the trapezium integral of
+\code{stand_census} reports the census metrics: the integral of
 \eqn{n_k \psi(\mathrm{state}_k)} over the size distribution, for each
 per-plant quantity \eqn{\psi}, summed over the species. The grid is the
-coordinate the density is carried in -- the birth date, or the height -- and
-the inflow boundary node closes it, so the interval between it and the
-smallest cohort is in the sum.
+coordinate the density is carried in, and the inflow boundary node closes
+it, so the interval between it and the smallest cohort is in the sum. In
+birth date each cohort is weighted by the establishment probability
+integrated against its hat function; in height, by the trapezium.
 }
 \details{
 \code{stand_fitness} reports, for a model that declares its fitness

@@ -5,8 +5,8 @@
 # form whole, so nothing above it is ever checked this well again.
 #
 # Do not contract. A dot-product identity yields one number per run: an error in
-# one cell enters as a seed component times that cell times an input component,
-# so it hides behind a small seed, it cancels against other cells, and when it
+# one cell enters as an adjoint component times that cell times an input component,
+# so it hides behind a small adjoint, it cancels against other cells, and when it
 # does fail it localises to nothing. At this size the whole object can be formed,
 # so forming it is strictly better -- a failure names an output row and an input
 # column rather than reporting that a sum disagreed.
@@ -244,14 +244,14 @@ test_that("a crossed stand transposes, because the forward model runs it", {
   rates <- crossed$ode_rates
   expect_true(all(is.finite(rates)))
 
-  seed <- ladder_seeds(crossed$ode_size,
+  adjoint <- ladder_test_vector(crossed$ode_size,
                        scale = ladder_block_scale(rates))
-  expect_no_error(ladder_rhs_adjoint_tf24(crossed, seed))
+  expect_no_error(ladder_rhs_adjoint_tf24(crossed, adjoint))
 })
 
 test_that("the tangent carries the soil channel, and two references agree in it", {
   # The environment holds its integrated soil state at the scalar the model
-  # carries, so a tangent seeded anywhere propagates through the water balance and
+  # carries, so a tangent set anywhere propagates through the water balance and
   # back through the retention curve. Every soil column and every soil rate row of
   # its Jacobian is non-zero, and that is asserted rather than left to a
   # residual, because a reference silent about a channel and a transpose wrong in
@@ -279,26 +279,26 @@ test_that("the tangent carries the soil channel, and two references agree in it"
                        max(abs(jacobian - fine)) / max(abs(fine)),
                        1e3 * floor)
 
-  # The transpose against the tangent, seeded on every rate. Off the soil rates it
+  # The transpose against the tangent, set on every rate. Off the soil rates it
   # is round-off. On them it is the leaf's own supplied-row gap: both reductions
   # now carry the boundary node's row, so what is left is the difference between a
   # recorded uptake row and one taken by re-solving the collar.
   rates <- patch$ode_rates
-  seed <- ladder_seeds(n, scale = ladder_block_scale(rates))
-  cohort_seed <- seed
-  cohort_seed[is_soil] <- 0
+  adjoint <- ladder_test_vector(n, scale = ladder_block_scale(rates))
+  cohort_adjoint <- adjoint
+  cohort_adjoint[is_soil] <- 0
   expected <- as.vector(crossprod(jacobian[!is_soil, , drop = FALSE],
-                                  cohort_seed[!is_soil]))
-  observed <- ladder_rhs_adjoint_tf24(patch, cohort_seed)$state
+                                  cohort_adjoint[!is_soil]))
+  observed <- ladder_rhs_adjoint_tf24(patch, cohort_adjoint)$state
   ladder_report_margin("right-hand-side transpose, off the soil rates",
                        max(abs(expected - observed)) / max(abs(expected)),
                        1e3 * ladder_forward_floor(patch))
 
-  soil_seed <- seed
-  soil_seed[!is_soil] <- 0
+  soil_adjoint <- adjoint
+  soil_adjoint[!is_soil] <- 0
   soil_expected <- as.vector(crossprod(jacobian[is_soil, , drop = FALSE],
-                                       seed[is_soil]))
-  soil_observed <- ladder_rhs_adjoint_tf24(patch, soil_seed)$state
+                                       adjoint[is_soil]))
+  soil_observed <- ladder_rhs_adjoint_tf24(patch, soil_adjoint)$state
   ladder_report_margin("the transpose on the soil rates",
                        max(abs(soil_expected - soil_observed)) /
                          max(abs(soil_expected)),
@@ -323,15 +323,15 @@ test_that("one right-hand-side evaluation transposes to a difference of itself",
 
   n <- patch$ode_size
   rates <- patch$ode_rates
-  seed <- ladder_seeds(n, scale = ladder_block_scale(rates))
-  observed <- ladder_rhs_adjoint_tf24(patch, seed)$state
+  adjoint <- ladder_test_vector(n, scale = ladder_block_scale(rates))
+  observed <- ladder_rhs_adjoint_tf24(patch, adjoint)$state
 
   # Two steps, so the tolerance is the reference's own uncertainty rather than a
   # literal: a central difference is truncation-dominated above its minimum and
   # round-off-dominated below, so the gap between two decades bounds the better
   # one's error.
-  coarse <- as.vector(crossprod(ladder_rhs_state_difference(patch, 1e-5), seed))
-  fine <- as.vector(crossprod(ladder_rhs_state_difference(patch, 1e-6), seed))
+  coarse <- as.vector(crossprod(ladder_rhs_state_difference(patch, 1e-5), adjoint))
+  fine <- as.vector(crossprod(ladder_rhs_state_difference(patch, 1e-6), adjoint))
   floor <- ladder_difference_floor(coarse, fine)
   message(sprintf("  the difference's own error at this step: %.3e", floor))
 
@@ -366,7 +366,7 @@ test_that("the state Jacobian holds at the states a trajectory reached", {
   # supplied row behind each other, so the whole matrix is comparable at the
   # arithmetic floor.
   stand <- ladder_stand_trajectory(lifetime = 2)
-  trajectory <- stand$store_trajectory()
+  trajectory <- stand$store_recording()
   widths <- vapply(trajectory, function(s) length(s$state), numeric(1))
   # The first recorded state is the one no step reached, and on this coordinate it
   # holds the environment and no cohort. From the introduction onward the width is
@@ -397,7 +397,7 @@ test_that("the state Jacobian holds at the states a trajectory reached", {
     forward <- ladder_rhs_state_jacobian_forward_tf24(patch)
     # One unit output adjoint per rate gives one row of the transpose, so the whole
     # object is formed rather than contracted: a contraction against one direction
-    # lets a wrong cell hide behind a small seed component and localises to nothing.
+    # lets a wrong cell hide behind a small adjoint component and localises to nothing.
     reverse <- t(vapply(seq_len(n), function(i) {
       ladder_rhs_adjoint_tf24(patch, replace(numeric(n), i, 1))$state
     }, numeric(n)))
@@ -449,18 +449,18 @@ test_that("the trait rows that arise inside a reduction arrive", {
   is_soil <- seq_len(n) > (n - n_env)
   columns <- ladder_trait_names_tf24(patch)
   rates <- patch$ode_rates
-  seed <- ladder_seeds(n, scale = ladder_block_scale(rates))
+  adjoint <- ladder_test_vector(n, scale = ladder_block_scale(rates))
 
-  # Seeded on the cohort rates only. The soil rates now carry trait rows in the
+  # Set on the cohort rates only. The soil rates now carry trait rows in the
   # reference too, but their transpose is short of the boundary node's own draw,
   # so including them here would report that gap as a reduction defect.
-  cohort_seed <- seed
-  cohort_seed[is_soil] <- 0
+  cohort_adjoint <- adjoint
+  cohort_adjoint[is_soil] <- 0
   jacobian <- ladder_rhs_trait_jacobian_forward_tf24(patch)
   expect_gt(sum(jacobian[is_soil, ] != 0), n_env)
   expected <- as.vector(crossprod(jacobian[!is_soil, , drop = FALSE],
-                                  cohort_seed[!is_soil]))
-  observed <- ladder_rhs_adjoint_tf24(patch, cohort_seed)$trait
+                                  cohort_adjoint[!is_soil]))
+  observed <- ladder_rhs_adjoint_tf24(patch, cohort_adjoint)$trait
   names(expected) <- names(observed) <- columns
 
   # Non-vacuity first: the reduction's own contribution has to be non-zero in
@@ -503,13 +503,13 @@ test_that("the trait rows a difference can reach agree with one", {
 
   n <- patch$ode_size
   columns <- ladder_trait_names_tf24(patch)
-  seed <- ladder_seeds(n, scale = ladder_block_scale(patch$ode_rates))
-  observed <- ladder_rhs_adjoint_tf24(patch, seed)$trait
+  adjoint <- ladder_test_vector(n, scale = ladder_block_scale(patch$ode_rates))
+  observed <- ladder_rhs_adjoint_tf24(patch, adjoint)$trait
 
   coarse <- as.vector(crossprod(
-    ladder_rhs_trait_difference_tf24(patch, 1e-5), seed))
+    ladder_rhs_trait_difference_tf24(patch, 1e-5), adjoint))
   fine <- as.vector(crossprod(
-    ladder_rhs_trait_difference_tf24(patch, 1e-6), seed))
+    ladder_rhs_trait_difference_tf24(patch, 1e-6), adjoint))
 
   # Which columns the difference cannot reach, asserted to be exactly the
   # declared set. A column that leaves this set has become refereeable, and one
@@ -558,7 +558,7 @@ test_that("the trait rows a difference can reach agree with one", {
 
 test_that("the recording does not grow with the stand", {
   # Peak is one cohort's rates at one stage, so it is flat in the cohort count
-  # and in the number of differentiation targets: seeding more traits adds
+  # and in the number of differentiation targets: setting directions on more traits adds
   # registered slots, not recorded operations. Either climbing with the cohort
   # count is the tape leaking.
   one <- ladder_patch_one()

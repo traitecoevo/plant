@@ -80,9 +80,9 @@ struct Parameters {
   std::vector<std::vector<double> > node_schedule_times;
   std::vector<double> ode_times;
   // The size of the step that reached each of ode_times, NaN first. Recorded
-  // beside the times because a schedule replayed by times alone takes different
+  // beside the times because a schedule run by its times alone takes different
   // steps: a size differenced back out of two recorded times is not the size
-  // that was taken. A run carrying both replays itself exactly.
+  // that was taken. A run carrying both takes exactly the steps it recorded.
   std::vector<double> ode_step_sizes;
   // Each step's record of substepping the soil, beside its size: its input
   // slopes and substep ends, both empty where the step took the soil with the
@@ -90,11 +90,11 @@ struct Parameters {
   std::vector<std::vector<double> > ode_soil_input_slopes;
   std::vector<std::vector<double> > ode_soil_substep_ends;
 
-  // Initial patch state. When initial_state is non-empty the patch is seeded
+  // Initial patch state. When initial_state is non-empty the patch is initialised
   // with these nodes at reset() instead of starting empty -- used to resume an
-  // exported patch run or to seed an arbitrary initial size distribution.
+  // exported patch run or to initialise an arbitrary size distribution.
   // Carried here so a run stays fully self-describing/serialisable (see
-  // agents.md), and so the seeding survives the reset() at the start of every
+  // agents.md), and so the initial state survives the reset() at the start of every
   // SCM::run()/refine_schedule().
   //   initial_state             flat ODE state (all nodes, then environment),
   //                             in the order Patch::set_ode_state expects.
@@ -102,7 +102,7 @@ struct Parameters {
   //   initial_node_times        per-node introduction time (flat across species).
   //   initial_patch_density     per-node patch-age density at birth (flat).
   //   initial_pr_patch_survival per-node pr_patch_survival at birth (flat).
-  //   initial_time              patch age to resume at (0 for a fresh seed).
+  //   initial_time              patch age to resume at (0 for a fresh start).
   // Length consistency is checked in Patch::set_initial_state(), where the
   // node/ode sizes are known.
   std::vector<double> initial_state;

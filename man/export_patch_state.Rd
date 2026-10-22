@@ -36,7 +36,7 @@ species' nodes.
 }
 \description{
 Export the full state of a patch from a (run) \code{SCM} so it can be
-re-imported to seed a new run (see \code{\link{set_initial_state}}). The
+re-imported to initialise a new run (see \code{\link{set_initial_state}}). The
 exported object captures everything needed to reproduce the patch's forward
 trajectory: every node's ODE state plus the per-node birth bookkeeping
 (introduction time, patch-age density and survival probability at birth)

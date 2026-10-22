@@ -2554,12 +2554,12 @@ void Patch___FF16__FF16_Env__compute_environment(plant::RcppR6::RcppR6<plant::Pa
   obj_->r_compute_environment();
 }
 // [[Rcpp::export]]
-void Patch___FF16__FF16_Env__hold_field(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
-  obj_->r_hold_current_field();
+void Patch___FF16__FF16_Env__use_current_field(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
+  obj_->r_use_current_field();
 }
 // [[Rcpp::export]]
-void Patch___FF16__FF16_Env__release_field(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
-  obj_->release_field();
+void Patch___FF16__FF16_Env__clear_constant_field(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
+  obj_->clear_constant_field();
 }
 // [[Rcpp::export]]
 void Patch___FF16__FF16_Env__reset(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
@@ -2684,8 +2684,8 @@ Rcpp::List Patch___FF16__FF16_Env__state__get(plant::RcppR6::RcppR6<plant::Patch
 }
 
 // [[Rcpp::export]]
-bool Patch___FF16__FF16_Env__holds_field__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
-  return obj_->holds_field();
+bool Patch___FF16__FF16_Env__has_constant_field__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
+  return obj_->has_constant_field();
 }
 
 
@@ -2706,12 +2706,12 @@ void Patch___TF24__TF24_Env__compute_environment(plant::RcppR6::RcppR6<plant::Pa
   obj_->r_compute_environment();
 }
 // [[Rcpp::export]]
-void Patch___TF24__TF24_Env__hold_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  obj_->r_hold_current_field();
+void Patch___TF24__TF24_Env__use_current_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  obj_->r_use_current_field();
 }
 // [[Rcpp::export]]
-void Patch___TF24__TF24_Env__release_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  obj_->release_field();
+void Patch___TF24__TF24_Env__clear_constant_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  obj_->clear_constant_field();
 }
 // [[Rcpp::export]]
 void Patch___TF24__TF24_Env__reset(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
@@ -2836,8 +2836,8 @@ Rcpp::List Patch___TF24__TF24_Env__state__get(plant::RcppR6::RcppR6<plant::Patch
 }
 
 // [[Rcpp::export]]
-bool Patch___TF24__TF24_Env__holds_field__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->holds_field();
+bool Patch___TF24__TF24_Env__has_constant_field__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->has_constant_field();
 }
 
 
@@ -2858,12 +2858,12 @@ void Patch___TF24f__TF24_Env__compute_environment(plant::RcppR6::RcppR6<plant::P
   obj_->r_compute_environment();
 }
 // [[Rcpp::export]]
-void Patch___TF24f__TF24_Env__hold_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  obj_->r_hold_current_field();
+void Patch___TF24f__TF24_Env__use_current_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  obj_->r_use_current_field();
 }
 // [[Rcpp::export]]
-void Patch___TF24f__TF24_Env__release_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  obj_->release_field();
+void Patch___TF24f__TF24_Env__clear_constant_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  obj_->clear_constant_field();
 }
 // [[Rcpp::export]]
 void Patch___TF24f__TF24_Env__reset(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
@@ -2988,8 +2988,8 @@ Rcpp::List Patch___TF24f__TF24_Env__state__get(plant::RcppR6::RcppR6<plant::Patc
 }
 
 // [[Rcpp::export]]
-bool Patch___TF24f__TF24_Env__holds_field__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->holds_field();
+bool Patch___TF24f__TF24_Env__has_constant_field__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->has_constant_field();
 }
 
 
@@ -3010,12 +3010,12 @@ void Patch___K93__K93_Env__compute_environment(plant::RcppR6::RcppR6<plant::Patc
   obj_->r_compute_environment();
 }
 // [[Rcpp::export]]
-void Patch___K93__K93_Env__hold_field(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  obj_->r_hold_current_field();
+void Patch___K93__K93_Env__use_current_field(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  obj_->r_use_current_field();
 }
 // [[Rcpp::export]]
-void Patch___K93__K93_Env__release_field(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  obj_->release_field();
+void Patch___K93__K93_Env__clear_constant_field(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  obj_->clear_constant_field();
 }
 // [[Rcpp::export]]
 void Patch___K93__K93_Env__reset(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
@@ -3140,8 +3140,8 @@ Rcpp::List Patch___K93__K93_Env__state__get(plant::RcppR6::RcppR6<plant::Patch<p
 }
 
 // [[Rcpp::export]]
-bool Patch___K93__K93_Env__holds_field__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  return obj_->holds_field();
+bool Patch___K93__K93_Env__has_constant_field__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->has_constant_field();
 }
 
 
@@ -3162,12 +3162,12 @@ void SCM___FF16__FF16_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::FF
   obj_->run_mutant(p);
 }
 // [[Rcpp::export]]
-void SCM___FF16__FF16_Env__run_mutant_held(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_, plant::Parameters<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > p) {
-  obj_->run_mutant_held(p);
+void SCM___FF16__FF16_Env__run_mutant_constant(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_, plant::Parameters<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > p) {
+  obj_->run_mutant_constant(p);
 }
 // [[Rcpp::export]]
-Rcpp::List SCM___FF16__FF16_Env__store_trajectory(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
-  return obj_->r_store_trajectory();
+Rcpp::List SCM___FF16__FF16_Env__store_recording(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
+  return obj_->r_store_recording();
 }
 // [[Rcpp::export]]
 void SCM___FF16__FF16_Env__refine_schedule(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
@@ -3287,12 +3287,12 @@ void SCM___FF16__FF16_Env__collect_refinement_errors__set(plant::RcppR6::RcppR6<
 }
 
 // [[Rcpp::export]]
-bool SCM___FF16__FF16_Env__record_trajectory__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
-  return obj_->record_trajectory;
+bool SCM___FF16__FF16_Env__keep_states__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
+  return obj_->keep_states;
 }
 // [[Rcpp::export]]
-void SCM___FF16__FF16_Env__record_trajectory__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_, bool value) {
-  obj_->record_trajectory = value;
+void SCM___FF16__FF16_Env__keep_states__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_, bool value) {
+  obj_->keep_states = value;
 }
 
 // [[Rcpp::export]]
@@ -3332,12 +3332,12 @@ void SCM___TF24__TF24_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::TF
   obj_->run_mutant(p);
 }
 // [[Rcpp::export]]
-void SCM___TF24__TF24_Env__run_mutant_held(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Parameters<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > p) {
-  obj_->run_mutant_held(p);
+void SCM___TF24__TF24_Env__run_mutant_constant(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Parameters<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > p) {
+  obj_->run_mutant_constant(p);
 }
 // [[Rcpp::export]]
-Rcpp::List SCM___TF24__TF24_Env__store_trajectory(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->r_store_trajectory();
+Rcpp::List SCM___TF24__TF24_Env__store_recording(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_store_recording();
 }
 // [[Rcpp::export]]
 void SCM___TF24__TF24_Env__refine_schedule(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
@@ -3457,12 +3457,12 @@ void SCM___TF24__TF24_Env__collect_refinement_errors__set(plant::RcppR6::RcppR6<
 }
 
 // [[Rcpp::export]]
-bool SCM___TF24__TF24_Env__record_trajectory__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->record_trajectory;
+bool SCM___TF24__TF24_Env__keep_states__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->keep_states;
 }
 // [[Rcpp::export]]
-void SCM___TF24__TF24_Env__record_trajectory__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_, bool value) {
-  obj_->record_trajectory = value;
+void SCM___TF24__TF24_Env__keep_states__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_, bool value) {
+  obj_->keep_states = value;
 }
 
 // [[Rcpp::export]]
@@ -3502,12 +3502,12 @@ void SCM___TF24f__TF24_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::T
   obj_->run_mutant(p);
 }
 // [[Rcpp::export]]
-void SCM___TF24f__TF24_Env__run_mutant_held(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Parameters<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > p) {
-  obj_->run_mutant_held(p);
+void SCM___TF24f__TF24_Env__run_mutant_constant(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Parameters<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > p) {
+  obj_->run_mutant_constant(p);
 }
 // [[Rcpp::export]]
-Rcpp::List SCM___TF24f__TF24_Env__store_trajectory(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->r_store_trajectory();
+Rcpp::List SCM___TF24f__TF24_Env__store_recording(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_store_recording();
 }
 // [[Rcpp::export]]
 void SCM___TF24f__TF24_Env__refine_schedule(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
@@ -3627,12 +3627,12 @@ void SCM___TF24f__TF24_Env__collect_refinement_errors__set(plant::RcppR6::RcppR6
 }
 
 // [[Rcpp::export]]
-bool SCM___TF24f__TF24_Env__record_trajectory__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->record_trajectory;
+bool SCM___TF24f__TF24_Env__keep_states__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->keep_states;
 }
 // [[Rcpp::export]]
-void SCM___TF24f__TF24_Env__record_trajectory__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_, bool value) {
-  obj_->record_trajectory = value;
+void SCM___TF24f__TF24_Env__keep_states__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_, bool value) {
+  obj_->keep_states = value;
 }
 
 // [[Rcpp::export]]
@@ -3672,12 +3672,12 @@ void SCM___K93__K93_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::K93_
   obj_->run_mutant(p);
 }
 // [[Rcpp::export]]
-void SCM___K93__K93_Env__run_mutant_held(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::Parameters<plant::K93_Strategy,plant::K93_Environment> p) {
-  obj_->run_mutant_held(p);
+void SCM___K93__K93_Env__run_mutant_constant(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::Parameters<plant::K93_Strategy,plant::K93_Environment> p) {
+  obj_->run_mutant_constant(p);
 }
 // [[Rcpp::export]]
-Rcpp::List SCM___K93__K93_Env__store_trajectory(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  return obj_->r_store_trajectory();
+Rcpp::List SCM___K93__K93_Env__store_recording(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->r_store_recording();
 }
 // [[Rcpp::export]]
 void SCM___K93__K93_Env__refine_schedule(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
@@ -3797,12 +3797,12 @@ void SCM___K93__K93_Env__collect_refinement_errors__set(plant::RcppR6::RcppR6<pl
 }
 
 // [[Rcpp::export]]
-bool SCM___K93__K93_Env__record_trajectory__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  return obj_->record_trajectory;
+bool SCM___K93__K93_Env__keep_states__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->keep_states;
 }
 // [[Rcpp::export]]
-void SCM___K93__K93_Env__record_trajectory__set(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, bool value) {
-  obj_->record_trajectory = value;
+void SCM___K93__K93_Env__keep_states__set(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, bool value) {
+  obj_->keep_states = value;
 }
 
 // [[Rcpp::export]]

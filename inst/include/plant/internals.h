@@ -16,8 +16,8 @@ inline constexpr int HEIGHT_INDEX = 0;
 inline constexpr int MORTALITY_INDEX = 1;
 inline constexpr int FECUNDITY_INDEX = 2;
 
-// The cumulative hazard at which a cohort is held: dead with probability one,
-// its rate parked, and its state still a number.
+// The cumulative hazard a cohort that failed to establish is given: dead with
+// probability one, its rate stopped, and its state still a number.
 //
 // ⚠️ NEVER PUT A NON-FINITE NUMBER IN AN ODE STATE. `-log(pr_estab)` at an
 // establishment probability of exactly zero gives +Inf, and Patch's own
@@ -35,14 +35,14 @@ inline constexpr int FECUNDITY_INDEX = 2;
 // +Inf gave them.
 //
 // ⚠️ EVERY `mortality_dt` MUST TEST THIS BESIDE `is_finite`, and all three do.
-// That test is what stops a held cohort's state moving again; keyed on
+// That test is what stops a failed cohort's state moving again; keyed on
 // finiteness alone a finite hazard passes it, the rate returns, and the run is
 // no longer the one +Inf produced.
 inline constexpr double establishment_failure_hazard = 750.0;
 
 // The scalar S carries the state, its rates, the auxiliary quantities derived
 // from them, and the consumption rates. The consumption rates are five of the
-// eleven rate outputs a reverse pass seeds an adjoint on, so storing them at
+// eleven rate outputs a reverse pass starts an adjoint on, so storing them at
 // their values would read the whole water channel's gradient as zero. The
 // environment's water balance is double, and converts where it accumulates.
 template <typename S = double>

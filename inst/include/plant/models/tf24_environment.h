@@ -274,7 +274,7 @@ public:
     for (size_t k = 0; k < m.size(); ++k) {
       util::write_iterator_scalar(it, m[k]);
     }
-    // The canopy top, because the field is held against height / height_max and
+    // The canopy top, because the field is tabulated against height / height_max and
     // a query divides by it: read the values and slopes without this and a
     // cohort's reads name every knot and not the grid they sit on.
     util::write_iterator_scalar(it, light_availability.height_max());

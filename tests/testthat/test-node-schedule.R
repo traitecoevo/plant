@@ -303,7 +303,7 @@ test_that("ode_times", {
 
   ## Which recorded steps fall inside which interval is no longer stored, so
   ## there is nothing here that can be stale. It is arithmetic at the point of
-  ## use, and that a pinned replay reproduces its own run is checked end to end
+  ## use, and that a pinned run reproduces its own run is checked end to end
   ## in test-scm.R.
 
   ## check we can clear times:

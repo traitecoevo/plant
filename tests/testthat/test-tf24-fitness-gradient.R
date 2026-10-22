@@ -34,7 +34,7 @@ fitness_stand_control <- function() {
 
 fitness_stand_run <- function(p, record = TRUE) {
   run_scm(p, fitness_stand_environment(), fitness_stand_control(),
-          record_trajectory = record)
+          keep_states = record)
 }
 
 test_that("TF24 reports its fitness under the names the gradient uses", {
@@ -130,11 +130,11 @@ test_that("Newton on d ln J / d b finds the equilibrium birth rate, and an invad
   expect_equal(resident$net_reproduction_ratios, 1, tolerance = 1e-8)
 
   # An invader at the resident's traits has the resident's ratio, one.
-  resident$record_trajectory <- TRUE
+  resident$keep_states <- TRUE
   resident$run_mutant(fitness_stand_parameters(1))
   expect_equal(resident$net_reproduction_ratios, 1, tolerance = 1e-8)
 
-  # An invader at lma x0.9, differentiated with the canopy held at the
+  # An invader at lma x0.9, differentiated in the recorded field of the
   # resident's equilibrium: the sweep against a central difference of
   # invasions of the same recording.
   invader <- fitness_stand_parameters(1, 0.9)
@@ -143,7 +143,7 @@ test_that("Newton on d ln J / d b finds the equilibrium birth rate, and an invad
                        traits = c("1.lma", "1.hmat"), hyperpar = NULL)
   expect_false(any(stand_gradient_refused(gi)))
   expect_gt(gi$value[["1.net_reproduction_ratio"]], 1)
-  resident$record_trajectory <- FALSE
+  resident$keep_states <- FALSE
   for (name in c("lma", "hmat")) {
     x <- invader$strategies[[1]]$pars[[name]]
     h <- 1e-4 * x

@@ -7,7 +7,7 @@
 ## closer to the exact canopy light than develop's spline; develop's own numbers
 ## move by up to 7e-4 when its spline tolerance is tightened from 1e-4 to 1e-9.
 ## Read a change here against that: these ratios resolve the light field's error,
-## not the replay's.
+## not the pinned run's.
 
 test_that("mutant method works", {
   # basic setup
@@ -226,13 +226,13 @@ test_that("mutant method densities, TF24", {
   #
   # run_mutant() pins the stepper to the resident's recorded step times, and that
   # path used to call the stepper with no domain handling at all, so the first of
-  # those refusals killed the replay (#642). It failed for every TF24 strategy
+  # those refusals killed the pinned run (#642). It failed for every TF24 strategy
   # tried, this identity case included.
   #
   # ⚠️ THE FIX IS NOT THE ONE THIS COMMENT USED TO NAME. odelia 0.4.0 subdivided a
-  # refused pinned step; this replay does not subdivide at all, deliberately --
+  # refused pinned step; this pinned run does not subdivide at all, deliberately --
   # see NEWS.md under Known issues, where the reason is that subdividing is what
-  # made the answer depend on how many invaders shared the call. A replay that met
+  # made the answer depend on how many invaders shared the call. A pinned run that met
   # a refusal would now FAIL rather than shrink, and `expect_no_error` below
   # passing is the statement that it meets none.
   #
@@ -275,14 +275,14 @@ test_that("mutant method densities, TF24", {
   scm <- run_scm(p1, env = env, ctrl = ctrl)
   resident_rr <- scm$net_reproduction_ratios
 
-  # Not assertions about the model, just guards that the replay below has
-  # something to replay: a resident that died out would make the identity
+  # Not assertions about the model, just guards that the pinned run below has
+  # something to rerun: a resident that died out would make the identity
   # trivial, and a short recording would make it cheap in the wrong way.
   expect_true(all(is.finite(resident_rr)) && all(resident_rr > 0))
   expect_gt(length(scm$ode_times), 150)
   expect_equal(scm$patch$species[[1]]$size, 20L)
 
-  # Identical mutant, replaying the resident's own recorded environment, must
+  # Identical mutant, reading the resident's own recorded field, must
   # recover the resident's own fitness.
   expect_no_error(scm$run_mutant(p1))
   mutant_rr <- scm$net_reproduction_ratios

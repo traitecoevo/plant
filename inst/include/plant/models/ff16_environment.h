@@ -160,7 +160,7 @@ public:
   }
 
   // A cohort reads the light field: knot values, then knot slopes, then the
-  // canopy top the field is held against. The count and the two fills below
+  // canopy top the field is tabulated against. The count and the two fills below
   // are declared together, so a reader that gets the count from this class gets
   // the fill from it too.
   size_t n_cohort_reads() const {
@@ -193,7 +193,7 @@ public:
   }
 
   // Every active value this environment holds: the light field's knot values
-  // and slopes, and the canopy top they are held against.
+  // and slopes, and the canopy top they are tabulated against.
   template <class F>
   void for_each_active(F&& f) {
     odelia::ode::visit_active(f, light_availability);

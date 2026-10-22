@@ -1112,7 +1112,7 @@ public:
   S mortality_storage_dependent_dt(const S& relative_reserves) const;
   // NSC storage capacity S_max = a_st1 * mass_sapwood [kg NSC].
   S storage_capacity(const S& area_leaf, const S& height) const;
-  // Seed the storage state for a newly germinated individual (#517).
+  // Initialise the storage state for a newly germinated individual (#517).
   void set_initial_states(const TF24_Environment<S>& environment, Internals<S>& vars);
   // [eqn 20] Survival of seedlings during establishment, from the carbon a
   // seedling produces at birth size. This form works that carbon out.
@@ -1180,7 +1180,7 @@ public:
   // defines it -- live mass equals seed mass -- and the leaf area is derived from
   // the height it returns. The two come from one call because the leaf area's own
   // partials in the allometric constants and its chain through the height are the
-  // same channel: taking either against the other held fixed mixes them.
+  // same channel: taking either with the other fixed mixes them.
   struct SeedGeometry { S height; S area_leaf; };
   SeedGeometry seed_geometry() const {
     if constexpr (std::is_same_v<S, double>) {
@@ -1270,7 +1270,7 @@ public:
 
   // This strategy at another scalar, carrying no derivative -- assign_from takes
   // every parameter through to_passive. It is what an implicit node asks a
-  // parameter set for when it needs a slope with the parameters held still.
+  // parameter set for when it needs a slope with the parameters fixed.
   template <class U>
   TF24_Strategy<U> rebind() const {
     TF24_Strategy<U> out;
@@ -1303,8 +1303,8 @@ public:
   // penalty on carbon gain. Named for the path rather than for either parameter,
   // since it belongs to neither.
   //
-  // DO NOT cache this in a member. rebind() runs before the seeds are
-  // written into ad_parameters(), so a copy taken at rebind carries the passive
+  // DO NOT cache this in a member. rebind() runs before the directions are
+  // set on ad_parameters(), so a copy taken at rebind carries the passive
   // value and D_c's column comes back an exact zero -- a number that reads as an
   // answer. Read here, it carries whatever tape identity pars.D_c has at the
   // call. prepare_strategy() validates (beta, L_tip) off this same expression,
@@ -1793,7 +1793,7 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& radiation,
   note_leaf_clamps(clamps_before);
 
   // A collar the theorem could not place costs every output that reads it, and
-  // profit is not one of them: at an interior point it reads the collar held. An
+  // profit is not one of them: at an interior point it reads the collar fixed. An
   // unplaceable collar throws, and the catch above refuses at that grain.
 
   // ⚠️ THE VALUE IS THE LEAF'S, NOT THIS COMPOSITION'S. The solve is what plant's
@@ -2701,7 +2701,7 @@ S TF24_Strategy<S>::mortality_dt(const S& relative_reserves,
   // is bounded (see mortality_storage_dependent_dt): death becomes gradual as
   // reserves deplete instead of spiking to ~1e32 under carbon deficit (#550).
   // ⚠️ THE TEST IS THE CEILING, NOT FINITENESS, and the two must not be swapped
-  // back. A cohort held at establishment_failure_hazard has survival exactly
+  // back. A cohort that failed to establish has survival exactly
   // zero, so parking its rate there is the same statement `!is_finite` used to
   // make -- and keeping the rate parked is what makes a finite hazard
   // bit-identical to the +Inf it replaces, in the state, in the rate and so in
@@ -2740,7 +2740,7 @@ S TF24_Strategy<S>::storage_capacity(const S& area_leaf_, const S& height) const
   return pars.a_st1 * mass_sapwood(area_sapwood(area_leaf_), height);
 }
 
-// Seed the storage state for a newly germinated individual at a_st3 fraction of
+// Initialise the storage state for a newly germinated individual at a_st3 fraction of
 // its capacity (Stefaniak et al. 2026, Eq 8), so seedlings are born with
 // reserves rather than starting empty (which would kill them immediately).
 template <typename S>
@@ -2897,7 +2897,7 @@ void TF24_Strategy<S>::prepare_strategy() {
     using tangent = odelia::ode::tangent_scalar<double>;
     const TF24_Strategy<tangent> at_tangent = rebind<tangent>();
     tangent probe = height_0;
-    odelia::ode::seed_direction(probe, 1.0);
+    odelia::ode::set_direction(probe, 1.0);
     dmass_dheight_0 = odelia::ode::derivative_along(
         at_tangent.mass_live_given_height(probe));
   }

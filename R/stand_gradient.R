@@ -81,7 +81,7 @@ stand_metrics_of_kind <- function(scm, kind) {
 ##' its fitness differentiable each species' net reproduction ratio and offspring
 ##' production, named as \code{\link{stand_gradient}} names them -- and one
 ##' column per ODE state entry, in the order
-##' \code{scm$patch$ode_state} writes. This is what the reverse pass is seeded
+##' \code{scm$patch$ode_state} writes. This is what the reverse pass starts
 ##' with. The cohort-height columns carry the trapezium weights as well as the
 ##' integrand only where the height is the coordinate integrated over; on the
 ##' birth-date coordinate the weights are the interval-establishment columns.
@@ -125,7 +125,7 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##' one call and never crosses into R.
 ##'
 ##' Two terms, because a census reads the traits as well as the state. The reverse
-##' pass is seeded on the states the census reads at the end of the run and runs
+##' pass starts on the states the census reads at the end of the run and runs
 ##' back over the steps the adaptive pass resolved; added to it is the census's own
 ##' reading of the traits at that state, which is not a sensitivity of the state
 ##' and so no sweep produces it.
@@ -171,7 +171,7 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##' function it was built with, or \code{hyperpar = NULL}.
 ##'
 ##' With \code{hyperpar = NULL} every parameter has a column, and each is a
-##' partial derivative with every other parameter held fixed.
+##' partial derivative with every other parameter fixed.
 ##'
 ##'   A refused metric's whole row is \code{NaN}: a sum has no defined value with
 ##'   an undefined term, so refusal is metric-level and carries no localisation
@@ -186,9 +186,9 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##' After \code{scm$run_mutant(p)}, a gradient is of the invaders' metrics in
 ##' the residents' recorded field, which the invaders read at each rate
 ##' evaluation and do not move, so it carries no derivative: the rare-mutant
-##' derivative. A run of \code{scm$run_mutant_held()} is refused.
+##' derivative. A run of \code{scm$run_mutant_constant()} is refused.
 ##' An invasion that kept no states is run again, as an invasion, to keep them;
-##' set \code{scm$record_trajectory <- TRUE} before it to save that run.
+##' set \code{scm$keep_states <- TRUE} before it to save that run.
 ##' Several invaders in \code{p} share one run and each has its own columns,
 ##' but each metric is still one sweep, so a set of invaders costs about what
 ##' running them one at a time does. An invader of a resumed resident starts at

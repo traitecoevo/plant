@@ -17,7 +17,7 @@ namespace plant {
 // root-collar water potential. Instead of TF24's per-step golden-section
 // optimisation, solve_leaf() evaluates the leaf at the tracked state and the
 // state relaxes toward its optimum by gradient ascent on carbon profit
-// (dpsi/dt = k_acclim * d(profit)/d(psi)); the state is seeded at its optimum at
+// (dpsi/dt = k_acclim * d(profit)/d(psi)); the state is initialised at its optimum at
 // birth. The five states shared with TF24 are computed by the inherited
 // compute_rates, so TF24f does NOT reproduce TF24 bit-for-bit -- it tracks the
 // optimum with a (gain-dependent) lag and is faster.
@@ -63,7 +63,7 @@ public:
   // (left in dprofit_dpsi_ for compute_rates to turn into the state's rate).
   void solve_leaf();
 
-  // Seed the tracked state at its optimum for a newly introduced individual, so
+  // Initialise the tracked state at its optimum for a newly introduced individual, so
   // gradient ascent starts at the optimum (no birth transient / no climb from 0,
   // which otherwise lets shaded recruits escape suppression). Runs the base
   // optimiser once via the initializing_ flag below.
@@ -211,14 +211,14 @@ void TF24f_Strategy<S>::solve_leaf() try {
   odelia::util::stop_domain(std::string("leaf solve infeasible: ") + e.what());
 }
 
-// Seed the tracked state at its optimum: run the base optimiser once (via the
+// Initialise the tracked state at its optimum: run the base optimiser once (via the
 // initializing_ flag, which makes solve_leaf optimise rather than track) and
 // store the resulting collar psi as the initial state. Both are the positive
 // magnitude of the potential, in MPa.
 template <typename S>
 void TF24f_Strategy<S>::set_initial_states(const TF24_Environment<S>& environment,
                                         Internals<S>& vars) {
-  // Seed the shared TF24 states first (notably the NSC storage pool, #517) --
+  // Initialise the shared TF24 states first (notably the NSC storage pool, #517) --
   // set_initial_states is non-virtual, so without this call TF24f seedlings
   // would be born with empty reserves and die immediately.
   base_type::set_initial_states(environment, vars);

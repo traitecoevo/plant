@@ -1,4 +1,4 @@
-# TF24 invaders against a recorded resident: the same replay and sweep as FF16's
+# TF24 invaders against a recorded resident: the same pinned run and sweep as FF16's
 # (test-ff16-mutant-gradient.R), on a model whose invaders solve their own leaf
 # in the recorded field and whose sweep loads those solves.
 
@@ -20,9 +20,9 @@ tf24_control <- function() {
   Control(node_density_in_birth_date = TRUE, ode_step_size_max = 0.05)
 }
 
-test_that("a TF24 invader's census gradient is the difference across replays", {
+test_that("a TF24 invader's census gradient is the difference across pinned runs", {
   p <- tf24_resident()
-  scm <- run_scm(p, tf24_env(), tf24_control(), record_trajectory = TRUE)
+  scm <- run_scm(p, tf24_env(), tf24_control(), keep_states = TRUE)
   pm <- p
   pm$strategies[[1]]$pars$lma <- 0.1
   scm$run_mutant(pm)
@@ -74,7 +74,7 @@ test_that("a TF24 invasion of a resumed resident is differentiated", {
   burn$run_to(1)
   state <- export_patch_state(burn)
   scm <- run_scm(set_initial_state(p, state), tf24_env(), tf24_control(),
-                 record_trajectory = TRUE)
+                 keep_states = TRUE)
   pm <- p
   pm$initial_time <- state$time
   pm$node_schedule_times <- state$node_schedule_times
@@ -82,7 +82,7 @@ test_that("a TF24 invasion of a resumed resident is differentiated", {
   g <- stand_gradient(scm, metrics = "1.net_reproduction_ratio", traits = "1.lma",
                       hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
-  scm$record_trajectory <- FALSE
+  scm$keep_states <- FALSE
   x <- pm$strategies[[1]]$pars$lma
   h <- 1e-4 * x
   at <- function(v) {

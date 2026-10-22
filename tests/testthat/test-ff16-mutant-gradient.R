@@ -1,5 +1,5 @@
 # The rare-mutant derivative on FF16: an invader's fitness differentiated by
-# its own traits with the canopy held at the recorded resident (plant#650, E2).
+# its own traits in the residents' recorded field (plant#650, E2).
 #
 # run_mutant() runs the invaders on the resident's steps, reading the field the
 # resident made at every rate evaluation, in the run and in its sweep alike: the
@@ -20,7 +20,7 @@ resident_parameters <- function(lma = 0.0825, hmat = 3, lifetime = 8,
 }
 
 # The invaders' parameters: the resident's, with the strategies replaced. They
-# carry the resident's node schedule, which is what the replay introduces by.
+# carry the resident's node schedule, which is what the pinned run introduces by.
 mutant_parameters <- function(scm, lma, hmat = 3) {
   p <- scm$parameters
   m <- trait_matrix(c(lma, rep(hmat, length(lma))), c("lma", "hmat"))
@@ -36,13 +36,13 @@ mutant_fitness <- function(scm, lma) {
   stand_fitness(scm)
 }
 
-test_that("a mutant's fitness gradient is the pinned difference across replays", {
+test_that("a mutant's fitness gradient is the difference across pinned runs", {
   scm <- run_scm(resident_parameters(), NULL, mutant_control(),
-                 record_trajectory = TRUE)
+                 keep_states = TRUE)
   resident <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
                              traits = "1.lma", hyperpar = NULL)
 
-  # One invader at the resident's own trait, replayed with its states kept.
+  # One invader at the resident's own trait, rerun with its states kept.
   scm$run_mutant(mutant_parameters(scm, 0.0825))
   g <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
                       traits = c("1.lma", "1.omega", "1.a_f1", "1.k_I"),
@@ -52,7 +52,7 @@ test_that("a mutant's fitness gradient is the pinned difference across replays",
   expect_equal(g$value[["1.net_reproduction_ratio"]],
                resident$value[["1.net_reproduction_ratio"]], tolerance = 1e-10)
 
-  # Each column against a central difference of the replay itself. The
+  # Each column against a central difference of the pinned run itself. The
   # recording stands; only the invader's parameter moves.
   for (name in c("lma", "omega", "a_f1", "k_I")) {
     x <- scm$parameters$strategies[[1]]$pars[[name]]
@@ -77,7 +77,7 @@ test_that("a mutant's fitness gradient is the pinned difference across replays",
 
 test_that("several invaders against one resident each carry their own columns", {
   scm <- run_scm(resident_parameters(), NULL, mutant_control(),
-                 record_trajectory = TRUE)
+                 keep_states = TRUE)
   scm$run_mutant(mutant_parameters(scm, c(0.07, 0.1)))
   g <- stand_gradient(scm, metrics = c("1.net_reproduction_ratio",
                                        "2.net_reproduction_ratio"),
@@ -104,16 +104,16 @@ test_that("a sweep of an invasion that kept no states runs it again, as an invas
   scm$run_mutant(mutant_parameters(scm, 0.0825))
   again <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
                           hyperpar = NULL)
-  scm$record_trajectory <- TRUE
+  scm$keep_states <- TRUE
   scm$run_mutant(mutant_parameters(scm, 0.0825))
   kept <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
                          hyperpar = NULL)
   expect_identical(again$gradient, kept$gradient)
 })
 
-# d(metric)/d(name) of invader `i` by central difference across replays, each
-# replay of `p` with that one parameter moved.
-replay_difference <- function(scm, p, i, name, metric, rel = 1e-5) {
+# d(metric)/d(name) of invader `i` by central difference across pinned runs, each
+# pinned run of `p` with that one parameter moved.
+rerun_difference <- function(scm, p, i, name, metric, rel = 1e-5) {
   x <- p$strategies[[i]]$pars[[name]]
   h <- rel * abs(x)
   at <- function(v) {
@@ -127,7 +127,7 @@ replay_difference <- function(scm, p, i, name, metric, rel = 1e-5) {
 
 test_that("invaders do not shade each other, and an invader's birth rate reaches only its output", {
   scm <- run_scm(resident_parameters(), NULL, mutant_control(),
-                 record_trajectory = TRUE)
+                 keep_states = TRUE)
   scm$run_mutant(mutant_parameters(scm, c(0.07, 0.1)))
   g <- stand_gradient(scm, metrics = c("1.net_reproduction_ratio",
                                        "1.offspring_production"),
@@ -144,12 +144,12 @@ test_that("invaders do not shade each other, and an invader's birth rate reaches
                g$value[["1.net_reproduction_ratio"]], tolerance = 1e-12)
 })
 
-test_that("an invader introduced after the replay starts has a gradient", {
+test_that("an invader introduced after the pinned run starts has a gradient", {
   # The invader's patch is empty, and FF16's environment carries no state, so
-  # the replay steps with no state until its first cohort; the sweep passes
+  # the pinned run steps with no state until its first cohort; the sweep passes
   # those steps over (odelia 0.7.3).
   scm <- run_scm(resident_parameters(), NULL, mutant_control(),
-                 record_trajectory = TRUE)
+                 keep_states = TRUE)
   p <- mutant_parameters(scm, 0.09)
   tt <- p$node_schedule_times[[1]]
   p$node_schedule_times <- list(tt[tt >= 1])
@@ -158,7 +158,7 @@ test_that("an invader introduced after the replay starts has a gradient", {
                       traits = c("1.lma", "1.a_d0"), hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   for (name in c("lma", "a_d0")) {
-    fd <- replay_difference(scm, p, 1, name, "1.net_reproduction_ratio")
+    fd <- rerun_difference(scm, p, 1, name, "1.net_reproduction_ratio")
     expect_lt(abs(g$gradient["1.net_reproduction_ratio", paste0("1.", name)] - fd),
               1e-5 * abs(fd), label = name)
   }
@@ -175,7 +175,7 @@ test_that("an invader of a resumed resident is born in the resident's canopy at 
   burn$run_to(6)
   state <- export_patch_state(burn)
   p2 <- set_initial_state(p, state)
-  scm <- run_scm(p2, NULL, mutant_control(), record_trajectory = TRUE)
+  scm <- run_scm(p2, NULL, mutant_control(), keep_states = TRUE)
   pm <- mutant_parameters(scm, 0.09)
   pm$initial_state <- numeric(0)
   pm$n_initial_cohorts <- integer(0)
@@ -190,7 +190,7 @@ test_that("an invader of a resumed resident is born in the resident's canopy at 
                       traits = c("1.lma", "1.a_d0", "1.omega"), hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   for (name in c("lma", "a_d0", "omega")) {
-    fd <- replay_difference(scm, pm, 1, name, "1.net_reproduction_ratio")
+    fd <- rerun_difference(scm, pm, 1, name, "1.net_reproduction_ratio")
     expect_lt(abs(g$gradient["1.net_reproduction_ratio", paste0("1.", name)] - fd),
               1e-5 * abs(fd), label = name)
   }
@@ -198,7 +198,7 @@ test_that("an invader of a resumed resident is born in the resident's canopy at 
 
 test_that("an invader's gradient through the run's harvest is the difference across invasions", {
   p <- resident_parameters()
-  scm <- run_scm(p, NULL, mutant_control(), record_trajectory = TRUE,
+  scm <- run_scm(p, NULL, mutant_control(), keep_states = TRUE,
                  events = events(events_default(p),
                                  harvest(time = 4, fraction = 0.5)))
   pm <- mutant_parameters(scm, 0.09)
@@ -207,7 +207,7 @@ test_that("an invader's gradient through the run's harvest is the difference acr
                       traits = c("1.lma", "1.a_d0"), hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   for (name in c("lma", "a_d0")) {
-    fd <- replay_difference(scm, pm, 1, name, "1.net_reproduction_ratio")
+    fd <- rerun_difference(scm, pm, 1, name, "1.net_reproduction_ratio")
     expect_lt(abs(g$gradient["1.net_reproduction_ratio", paste0("1.", name)] - fd),
               1e-5 * abs(fd), label = name)
   }
