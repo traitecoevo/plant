@@ -225,7 +225,7 @@ public:
   }
 
   template <class U>
-  FF16_Environment<U> rebind_from() const {
+  FF16_Environment<U> rebind() const {
     FF16_Environment<U> out;
     out.assign_from(*this);
     return out;

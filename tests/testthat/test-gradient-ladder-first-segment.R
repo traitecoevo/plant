@@ -1,13 +1,13 @@
 # The range of the recording below the first introduction.
 #
 # Every other stand introduces at the initial time, so its first introduction sits at
-# the first recorded step and the lowest range holds no step. A walk that ran
-# that range and a walk that began above it produce the same numbers on every
+# the first recorded step and the lowest segment holds no step. A walk that ran
+# that segment and a walk that began above it produce the same numbers on every
 # such fixture, which is why nothing else in this ladder constrains the lower end
 # of the walk. This fixture resumes from a patch that already carries cohorts, so
 # half its recording is below the first introduction, and three things here say the
-# walk reached it: it swept one more range, it asked the inflow boundary for the
-# steps in that range, and what it ended holding is the census's sensitivity to
+# walk reached it: it swept one more segment, it asked the inflow boundary for the
+# steps in that segment, and what it ended holding is the census's sensitivity to
 # the first recorded state rather than to the state at the introduction.
 
 test_that("the fixture holds recorded steps below its first introduction", {
@@ -24,18 +24,18 @@ test_that("the fixture holds recorded steps below its first introduction", {
   expect_gte(length(introduction), 2L)
   # Counted from one here, so an introduction at the first recorded step reads as 1.
   expect_gt(introduction[[1]], 1L)
-  # And the first range is a substantial part of the run rather than a step or
+  # And the first segment is a substantial part of the run rather than a step or
   # two, so a walk that skipped it misses a term rather than a rounding.
   expect_gt(introduction[[1]], 0.25 * length(widths))
 
   # The state below the introduction carries cohorts, not the soil alone. On a run
   # from bare ground it would carry the environment only, and the census's
-  # sensitivity to it is then twelve orders below its sensitivity one range up.
+  # sensitivity to it is then twelve orders below its sensitivity one segment up.
   environment_width <- stand$patch$ode_size - stand$patch$node_ode_size
   expect_gt(length(trajectory[[1]]$state), environment_width)
 })
 
-test_that("the sweep runs the range below the first introduction", {
+test_that("the sweep runs the segment below the first introduction", {
   stand <- ladder_stand_resumed()
   trajectory <- stand$store_trajectory()
   widths <- vapply(trajectory, function(s) length(s$state), numeric(1))
@@ -47,17 +47,17 @@ test_that("the sweep runs the range below the first introduction", {
   # sweeps.
   stand_gradient(stand, hyperpar = NULL)
   counts <- ladder_boundary_evaluations_tf24(stand)
-  ranges <- counts$ranges
+  segments <- counts$segments
 
-  # One range per width, and every width here has a step in it, so the count is
+  # One segment per width, and every width here has a step in it, so the count is
   # one MORE than the number of introductions. A walk beginning at the first introduction
   # reports exactly the number of introductions.
-  message(sprintf("  %.0f ranges over %d introductions, %.0f boundary evaluations",
-                  ranges, n_widening, counts$evaluations))
-  expect_equal(ranges, n_widening + 1)
+  message(sprintf("  %.0f segments over %d introductions, %.0f boundary evaluations",
+                  segments, n_widening, counts$evaluations))
+  expect_equal(segments, n_widening + 1)
 
   # And the boundary is evaluated once per stage of every step swept. A walk that
-  # skipped the lowest range would divide this by the steps in it, which on a
+  # skipped the lowest segment would divide this by the steps in it, which on a
   # fixture that widens at its first step is nothing at all. It does not scale
   # with the metrics: a step is recorded once and the recording swept per metric.
   stages <- 6L
@@ -79,7 +79,7 @@ test_that("the adjoint the walk ends holding is the census's sensitivity to the 
   lambda <- do.call(rbind, census_trait_gradient_tf24(stand)$at_first_state)
   rownames(lambda) <- metrics
 
-  base <- ladder_range_base_state(stand, 0L)
+  base <- ladder_segment_base_state(stand, 0L)
   expect_equal(ncol(lambda), length(base))
 
   reference <- do.call(cbind, lapply(seq_along(base), function(i) {

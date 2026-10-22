@@ -42,7 +42,7 @@ compile_ff16_deep_crown_ad <- function() {
             #include <odelia/interpolator.hpp>
       #include <plant/models/ff16_production_kernel.h>
 
-      using adt = odelia::ode::active_scalar<double>;
+      using adt = odelia::ode::adjoint_scalar<double>;
 
       // theta enters the resident light spline knot values: y_i = exp(-theta*s_i).
       template <typename S>

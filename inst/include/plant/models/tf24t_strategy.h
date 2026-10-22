@@ -46,13 +46,13 @@ namespace plant {
 // through capacities already scaled by F, so a leaf cannot trade carbon now
 // against impairment later.
 //
-// ⚠️ NO DERIVATIVE PATH CARRIES THIS MODEL. rebind_from is deleted below, so no
+// ⚠️ NO DERIVATIVE PATH CARRIES THIS MODEL. rebind is deleted below, so no
 // AD route reaches it. (phylloptim's own trait gradient does carry the layer; a
 // TF24t stand gradient would need the four states on the tape, which is not
 // built.)
 template <typename S = double>
 class TF24t_Strategy : public TF24_Strategy<S> {
-  // Only ever instantiated at double; see rebind_from below.
+  // Only ever instantiated at double; see rebind below.
   static_assert(std::is_same_v<S, double>,
                 "TF24t has no differentiable form: the leaf's thermal-damage "
                 "layer carries no derivative");
@@ -127,14 +127,14 @@ public:
   void set_initial_states(const TF24_Environment<S>& environment,
                           Internals<S>& vars);
 
-  // ⚠️ DELETED, NOT INHERITED. TF24_Strategy::rebind_from returns a
+  // ⚠️ DELETED, NOT INHERITED. TF24_Strategy::rebind returns a
   // TF24_Strategy<U>, so an inherited one would rebind a TF24t patch as a TF24
   // patch: no thermal states, no layer, and a derivative of a different model
   // with every number finite. Deleting it makes Patch's at_scalar and odelia's
   // Rebindable read false, so the stand gradient, the sweep and an implicit
   // stepper's Jacobian all refuse at compile time instead.
   template <class U>
-  void rebind_from() const = delete;
+  void rebind() const = delete;
 
   // --- Leaf thermal traits, copied into the leaf in prepare_strategy ---------
   // Rate constants per day. Calibration targets, not measured values. The leaf's

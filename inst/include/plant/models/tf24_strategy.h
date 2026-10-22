@@ -1335,7 +1335,7 @@ public:
   // every parameter through to_passive. It is what an implicit node asks a
   // parameter set for when it needs a slope with the parameters held still.
   template <class U>
-  TF24_Strategy<U> rebind_from() const {
+  TF24_Strategy<U> rebind() const {
     TF24_Strategy<U> out;
     out.assign_from(*this);
     return out;
@@ -1366,7 +1366,7 @@ public:
   // penalty on carbon gain. Named for the path rather than for either parameter,
   // since it belongs to neither.
   //
-  // DO NOT cache this in a member. rebind_from() runs before the seeds are
+  // DO NOT cache this in a member. rebind() runs before the seeds are
   // written into ad_parameters(), so a copy taken at rebind carries the passive
   // value and D_c's column comes back an exact zero -- a number that reads as an
   // answer. Read here, it carries whatever tape identity pars.D_c has at the
@@ -1450,7 +1450,7 @@ public:
   std::shared_ptr<refusal> recorded_refusal = std::make_shared<refusal>();
 
   // How many leaf solves landed in each operating-point kind, indexed by the
-  // enum. Diagnostic and deliberately outside rebind_from: a block copies the
+  // enum. Diagnostic and deliberately outside rebind: a block copies the
   // strategy per unit and discards it, so carrying the tally across would count
   // the sweep's copies as well as the run.
   std::vector<size_t> operating_point_counts =
@@ -1875,8 +1875,8 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& PPFD_int,
     // instead of owning it, so a stack array is what holds them here -- and is
     // what the span was for, since a braced list built a vector per call.
     const odelia::input_and_derivative<S> rows[]{{from, 1.0}};
-    const odelia::record_report report =
-        odelia::record_with_derivatives<S>(value, rows, into);
+    const odelia::supply_report report =
+        odelia::supply_derivatives<S>(value, rows, into);
     if (report.whole) {
       return;
     }
@@ -3039,7 +3039,7 @@ void TF24_Strategy<S>::prepare_strategy() {
   // taken here where the choice is visible and the scalar is already double.
   {
     using tangent = odelia::ode::tangent_scalar<double>;
-    const TF24_Strategy<tangent> at_tangent = rebind_from<tangent>();
+    const TF24_Strategy<tangent> at_tangent = rebind<tangent>();
     tangent probe = height_0;
     odelia::ode::seed_direction(probe, 1.0);
     dmass_dheight_0 = odelia::ode::derivative_along(

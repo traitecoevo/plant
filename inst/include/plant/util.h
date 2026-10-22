@@ -137,7 +137,7 @@ bool is_decreasing(ForwardIterator first, ForwardIterator last) {
 void warning(const std::string &);
 
 // What the destination iterator holds decides what a serialiser writes: an
-// R-facing double takes the rebind_from value, an active buffer takes the value
+// R-facing double takes the rebind value, an active buffer takes the value
 // itself. Only double crosses the R boundary, and this is where it converts.
 //
 // Writes through the iterator rather than returning, because returning meant

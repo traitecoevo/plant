@@ -1,5 +1,5 @@
 ## A run resumed from a saved state supports what a run from empty does: a
-## replay of its own recorded program, an invasion against it, and the events
+## replay of its own recorded schedule, an invasion against it, and the events
 ## still ahead of it. The burn-in of a long run is paid once and exported, so
 ## every later run is one of these (#519).
 
@@ -45,14 +45,14 @@ test_that("an empty patch starts at initial_time", {
                tolerance = 1e-6)
 })
 
-test_that("a resumed run replays its own recorded program", {
+test_that("a resumed run replays its own recorded schedule", {
   r <- resumed_parameters()
   scm2 <- run_scm(r$p2)
   p3 <- r$p2
   p3$ode_times <- scm2$ode_times
   p3$ode_step_sizes <- scm2$ode_step_sizes
   ## The first recorded time is the resumed time, not zero, and the replay
-  ## crosses the gap to the first residual introduction by the program.
+  ## crosses the gap to the first residual introduction by the schedule.
   expect_equal(p3$ode_times[[1]], r$state$time)
   scm3 <- run_scm(p3)
   expect_identical(scm3$patch$ode_state, scm2$patch$ode_state)

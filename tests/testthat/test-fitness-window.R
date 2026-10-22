@@ -126,7 +126,7 @@ test_that("periodic introduction times stop short of the run's end", {
 })
 
 test_that("the window survives the rebind a gradient runs on", {
-  ## rebind_from rebuilds the regime from the parameters it copies; a copy
+  ## rebind rebuilds the regime from the parameters it copies; a copy
   ## that left the window behind could not build a "fitness_window" patch at all.
   p <- fitness_window(ff16(10), 2, 8)
   scm <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE),
