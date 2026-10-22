@@ -120,9 +120,9 @@ struct patch_solved_values {
 };
 
 // One step of a run as an invader reads it: the step, and the field each of its
-// rate evaluations was taken in, by stage.
+// rate evaluations was taken in, by slot of the step's row.
 struct field_row : odelia::ode::schedule_row {
-  std::array<recorded_field, 6> fields;
+  std::array<recorded_field, odelia::ode::end_slot + 1> fields;
 };
 
 template <typename T, typename E>

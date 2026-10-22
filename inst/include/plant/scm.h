@@ -990,9 +990,9 @@ std::vector<size_t> SCM<T, E>::run_next() {
 
 // One interval of the run, from the instant the solver stands at to the next
 // scheduled entry. Three integration modes:
-//  - pinned ode times (resident replay for a mutant): step exactly to the
-//    cached times via the full RKCK stepper, by their recorded step sizes
-//    when the schedule carries them;
+//  - a recorded schedule (an invader taking its residents' steps): step
+//    exactly to the cached times via the full RKCK stepper, by their recorded
+//    step sizes when the schedule carries them;
 //  - fixed-step forward Euler (control.fixed_time_step > 0): walk a uniform
 //    sub-grid between this instant and the next;
 //  - otherwise: adaptive, error-controlled RKCK to the next instant.
