@@ -27,7 +27,7 @@ ff16_stand <- function(lifetime = 5, lma = 0.0825, birth_rate = 2,
   p$max_patch_lifetime <- lifetime
   p <- add_strategies(p, trait_matrix(lma, "lma"),
                       birth_rate = as.list(rep(birth_rate, length(lma))))
-  run_scm(p, NULL, ctrl, record_trajectory = TRUE, ...)
+  run_scm(p, NULL, ctrl, keep_states = TRUE, ...)
 }
 
 # The perturbed run stepped exactly where the recorded one stepped.

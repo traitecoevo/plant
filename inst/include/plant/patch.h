@@ -78,13 +78,13 @@ concept HasSoil =
   { e.rainfall_knots(time, time) } -> std::same_as<std::vector<double>>;
 };
 
-// The scalar a forward tangent runs on, and the two things done to one: seed a
+// The scalar a forward tangent runs on, and the two things done to one: set a
 // direction, read the derivative it produced. Brought in here once, so no header
-// in this package names the AD library at all -- and so that seeding an adjoint
-// scalar by mistake, which the library spells identically and answers with
-// nothing, does not compile.
+// in this package names the AD library at all -- and so that setting a direction
+// on an adjoint scalar by mistake, which the library spells identically and
+// answers with nothing, does not compile.
 using tangent = odelia::ode::tangent_scalar<double>;
-using odelia::ode::seed_direction;
+using odelia::ode::set_direction;
 using odelia::ode::derivative_along;
 
 // One accepted step. The state widens at an introduction, so the record is ragged.
@@ -120,9 +120,9 @@ struct patch_solved_values {
 };
 
 // One step of a run as an invader reads it: the step, and the field each of its
-// rate evaluations was taken in, by slot of the step's row.
+// rate evaluations was taken in, by stage.
 struct field_row : odelia::ode::schedule_row {
-  std::array<recorded_field, odelia::ode::end_slot + 1> fields;
+  std::array<recorded_field, odelia::ode::end_stage + 1> fields;
 };
 
 template <typename T, typename E>
@@ -403,7 +403,7 @@ public:
   //
   // ⚠️ THE FIELD IS WRITTEN, NEVER LOADED. A patch's field is recomputable from
   // its own state, so loading it back as a recorded double would sever the tape
-  // there. It is kept for an invader, which reads it by slot and time (see
+  // there. It is kept for an invader, which reads it by stage and time (see
   // field_from_run()) and never solves it.
   // ⚠️ AN ALIAS AND NOT A NESTED STRUCT, because a nested struct of a class
   // template is a DISTINCT TYPE per instantiation -- so the sweep, which hands a
@@ -413,7 +413,7 @@ public:
   using solved_values =
       patch_solved_values<odelia::ode::solved_values_t<strategy_type>>;
 
-  void store_solved(solved_values& into, std::size_t slot) {
+  void store_solved(solved_values& into, std::size_t stage) {
     if constexpr (KeepsSolvedChoices<strategy_type>) {
       into.strategies.resize(species.size());
       for (size_t i = 0; i < species.size(); ++i) {
@@ -423,19 +423,19 @@ public:
     // ⚠️ A DESTINATION, NOT A VALUE. The walk opens this extent BEFORE the state
     // is loaded, so the field does not exist yet; compute_environment() fills it.
     field_slot = keep_field ? &into.field : nullptr;
-    evaluation_slot = slot;
+    this->stage = stage;
   }
   // ⚠️ THE SPECIES COUNT IS CHECKED, because it is the one thing a recorded list can
   // disagree with the patch about that would otherwise read as a species solving
   // nothing.
-  void load_solved(const solved_values& from, std::size_t slot) {
+  void load_solved(const solved_values& from, std::size_t stage) {
     if constexpr (KeepsSolvedChoices<strategy_type>) {
       util::check_length(from.strategies.size(), species.size());
       for (size_t i = 0; i < species.size(); ++i) {
         species[i].strategy_ptr()->load_solved(from.strategies[i]);
       }
     }
-    evaluation_slot = slot;
+    this->stage = stage;
   }
   void end_solved() {
     if constexpr (KeepsSolvedChoices<strategy_type>) {
@@ -444,7 +444,7 @@ public:
       }
     }
     field_slot = nullptr;
-    evaluation_slot.reset();
+    stage.reset();
   }
 
   // Keep the field of every rate evaluation, so an invader can read it.
@@ -468,21 +468,22 @@ public:
 
   // Stand in `f` at every rate evaluation of every later run, whatever the
   // time: a stand at a fixed point makes one field, and an invader of it needs
-  // that field and nothing recorded (#519). The environment's own state is held
+  // that field and nothing recorded (#519). The environment's own state is kept
   // with it -- its rates are zero -- so TF24's soil does not move either.
   // Survives reset(), unlike a recorded field, because the run that uses it
   // begins with one.
   //
   // ⚠️ HELD BY VALUE, NOT POINTED AT. A pointer into the patch's own member
   // dangles in every copy (#589), and the solver integrates a copy.
-  void hold_field(const recorded_field& f) { held_field = f; }
-  void release_field() { held_field.reset(); }
-  bool holds_field() const { return held_field.has_value(); }
-  // From R: hold the field this patch makes from its own state now.
-  void r_hold_current_field() {
-    release_field();
+  void use_constant_field(const recorded_field& f) { constant_field = f; }
+  void clear_constant_field() { constant_field.reset(); }
+  bool has_constant_field() const { return constant_field.has_value(); }
+  // From R: use the field this patch makes from its own state now, as a
+  // constant field.
+  void r_use_current_field() {
+    clear_constant_field();
     compute_environment();
-    hold_field(current_field());
+    use_constant_field(current_field());
   }
 
   // A recorded state loaded as the run itself carries it. set_ode_state evaluates
@@ -494,7 +495,7 @@ public:
   template <typename It> It set_state_and_boundary(It it, double time);
 
   // The same, at the node structure the record describes: whatever the patch was
-  // seeded with, plus one node per species named by each of the first `applied`
+  // initialised with, plus one node per species named by each of the first `applied`
   // insertions, each stamped with the recorded time it was inserted at.
   //
   // A reconciliation rather than a sequence of insertions and removals, so it is
@@ -518,7 +519,7 @@ public:
   }
 
   introduction introduced_at(double time) const;
-  // How many nodes species `i` holds at a recorded `time`: what it was seeded
+  // How many nodes species `i` holds at a recorded `time`: what it was initialised
   // with, plus the introductions strictly below. Strictly, because an
   // introduction at `time` follows the step recorded there.
   size_t nodes_at(size_t i, double time) const;
@@ -556,12 +557,12 @@ public:
   void overwrite_strategies(std::vector<strategy_type> strategies);
   // Become the patch these parameters describe, in the environment and under
   // the control this one has: their strategies, their regime, and the state
-  // they seed the next reset() from. What an invasion needs, because an
+  // they initialise the next reset() from. What an invasion needs, because an
   // invader is a different community in the resident's world: replacing only
-  // the strategies left this patch seeding itself from the RESIDENT's exported
+  // the strategies left this patch initialising itself from the RESIDENT's exported
   // state at every reset, so an invader of a resumed resident started as a copy
   // of the resident's stand. Invisible from empty, where there is nothing to
-  // seed.
+  // initialise.
   void overwrite_parameters(const parameters_type& p);
 
 private:
@@ -590,15 +591,15 @@ private:
   // so every copy of the patch -- the solver's, a rebound one, R's -- keeps the
   // run it reads alive.
   std::shared_ptr<const std::vector<field_row>> field_run;
-  // This rate evaluation's slot of its step's row; none outside a step, where the
+  // This rate evaluation's stage in its step's row; none outside a step, where the
   // patch is at a recorded state.
-  std::optional<std::size_t> evaluation_slot;
+  std::optional<std::size_t> stage;
   const recorded_field& field_from_run() const;
-  bool field_given() const { return held_field || field_run != nullptr; }
-  // See hold_field(). Takes precedence over a field read from a recording.
-  std::optional<recorded_field> held_field;
+  bool field_given() const { return constant_field || field_run != nullptr; }
+  // See use_constant_field(). Takes precedence over a field read from a recording.
+  std::optional<recorded_field> constant_field;
 
-  // Seed the patch from parameters.initial_state (nodes + birth bookkeeping)
+  // Initialise the patch from parameters.initial_state (nodes + birth bookkeeping)
   // when present; called from reset(). Sets environment.time = initial_time.
   void set_initial_state();
   // Guard against initial conditions whose per-node log-density rates are so
@@ -650,7 +651,7 @@ private:
   // Guard the birth-date coordinate's quadrature grid: it is the per-node
   // introduction times, so nodes sharing one give zero-width intervals that drop
   // silently out of the integral. Reached by a schedule carrying a repeated time
-  // and by a patch whose nodes were seeded or imported without per-node times.
+  // and by a patch whose nodes were initialised or imported without per-node times.
   void check_birth_dates_distinct() const;
 
   // One node per species named, stamped from the time alone. The insertion and
@@ -661,7 +662,7 @@ private:
   // The absorbing half of an introduction instant: every cohort that has
   // reached its species' asymptotic height goes into the top layer
   // (Species::absorb_tall) before the new cohort is pushed. Part of the
-  // insertion map and of nothing else, so a replay or a sweep that applies the
+  // insertion map and of nothing else, so a pinned run or a sweep that applies the
   // map applies this too, and a reconciliation that only rebuilds the shape
   // (reshape_to) does not -- the state it loads already carries the zeros and
   // the layer. A no-op with control.absorb_epsilon zero.
@@ -854,12 +855,12 @@ void Patch<T,E>::reset() {
   // clear() put the clock at zero. A patch that starts later than that -- an
   // invader resumed into a resident's window, with no cohorts of its own yet --
   // starts at the time its parameters name, and the field and rates below are
-  // built at that time. set_initial_state() sets the same clock for a seeded
+  // built at that time. set_initial_state() sets the same clock for an initialised
   // patch, and the default is zero, so a run from empty is unchanged.
   environment.time = parameters.initial_time;
 
   if (!parameters.initial_state.empty()) {
-    // Seed the patch from an exported state / initial size distribution.
+    // Initialise the patch from an exported state / initial size distribution.
     // set_initial_state() does its own compute_environment()/compute_rates at
     // the real node heights, so skip the empty-patch path.
     set_initial_state();
@@ -876,7 +877,7 @@ void Patch<T,E>::reset() {
 
 }
 
-// Seed the patch from parameters.initial_state. Introduces the requested number
+// Initialise the patch from parameters.initial_state. Introduces the requested number
 // of nodes per species, loads the flat ODE state (nodes + environment) at the
 // resume time, restores per-node birth bookkeeping (not part of the ODE state
 // but feeds the rates and lifetime-fitness integrals), then computes the
@@ -905,7 +906,7 @@ void Patch<T,E>::set_initial_state() {
 
   // Restore birth bookkeeping per node, sliced per species from the flat
   // parameter vectors. Skipped (left at defaults) when not supplied, e.g. a
-  // from-scratch distribution seeded at patch age 0.
+  // from-scratch distribution initialised at patch age 0.
   if (!parameters.initial_node_times.empty()) {
     util::check_length(parameters.initial_node_times.size(), total_nodes);
     util::check_length(parameters.initial_patch_density.size(), total_nodes);
@@ -917,7 +918,7 @@ void Patch<T,E>::set_initial_state() {
       const size_t n = parameters.n_initial_cohorts[i];
       const std::vector<double> times(t_it, t_it + n);
       // The patch density and survival at birth are THIS run's regime read at
-      // the birth date, not the stamps the exporting run made. A cohort seeded
+      // the birth date, not the stamps the exporting run made. A cohort initialised
       // from a burn-in into a fitness window is born before the window and
       // weighs nothing in it, where the burn-in stamped it one; and a resumed
       // run whose regime differs (a Weibull over a longer lifetime) divides its
@@ -939,7 +940,7 @@ void Patch<T,E>::set_initial_state() {
   check_birth_dates_distinct();
 
   // Build the environment from the real node heights and compute rates for the
-  // seeded population.
+  // initialised population.
   compute_environment();
   compute_rates();
 }
@@ -1149,7 +1150,7 @@ typename Patch<T,E>::value_type Patch<T,E>::fitness_integral(
     // Fewer than two cohorts span no birth-date interval, so the integral is
     // undefined. NaN rather than a throw, as for a window with no cohort: every
     // stand metric is evaluated together, and a census of a stand holding a
-    // one-cohort species (a held-field invader) would otherwise fail on a
+    // one-cohort species (a constant-field invader) would otherwise fail on a
     // fitness nobody asked for.
     if (times.size() < 2) {
       return value_type(std::numeric_limits<double>::quiet_NaN());
@@ -1338,7 +1339,7 @@ std::vector<std::vector<double>> Patch<T,E>::refinement_error_by_node() const {
 // stands. Owned by the field build rather than by compute_rates(), so that the
 // field reads a boundary density derived from this state instead of one carried
 // from the previous evaluation.
-// An invader replaying a recorded field reaches this with that field already
+// An invader reading a recorded field reaches this with that field already
 // installed, which is what makes its own inflow condition right to evaluate
 // here: the condition is what a species does IN the field, not to it.
 template <typename T, typename E>
@@ -1351,27 +1352,27 @@ void Patch<T,E>::compute_boundary_nodes() {
   }
 }
 
-// The field `field_run` made at this evaluation. Inside a step it is the slot's,
+// The field `field_run` made at this evaluation. Inside a step it is the stage's,
 // in the first step at or after the time; where a step is too short to move its
 // stages past its start, the step after that one; and where a stage's time
 // rounds past the time its step is recorded to end at, the step before. Outside
-// a step the patch is at a recorded state, and it is the end slot of the last
+// a step the patch is at a recorded state, and it is the end stage of the last
 // row at the time, which is the state after any entry made there.
 template <typename T, typename E>
 const recorded_field& Patch<T,E>::field_from_run() const {
   const auto& rec = *field_run;
   const double t = environment.time;
-  const std::size_t slot = evaluation_slot.value_or(odelia::ode::end_slot);
+  const std::size_t at = stage.value_or(odelia::ode::end_stage);
   const auto made_now = [&](auto row) {
-    const recorded_field& f = row->fields[slot];
+    const recorded_field& f = row->fields[at];
     return f.kept && util::identical(f.time, t);
   };
-  if (evaluation_slot) {
+  if (stage) {
     auto row = std::lower_bound(
         rec.begin(), rec.end(), t,
         [](const auto& r, double u) { return r.time < u; });
     if (row != rec.end() && made_now(row)) {
-      return row->fields[slot];
+      return row->fields[at];
     }
     if (row != rec.end()) {
       auto next = std::next(row);
@@ -1379,7 +1380,7 @@ const recorded_field& Patch<T,E>::field_from_run() const {
         ++next;
       }
       if (next != rec.end() && made_now(next)) {
-        return next->fields[slot];
+        return next->fields[at];
       }
     }
     if (row != rec.begin()) {
@@ -1387,7 +1388,7 @@ const recorded_field& Patch<T,E>::field_from_run() const {
         --row;
       } while (row != rec.begin() && row->insertion);
       if (made_now(row)) {
-        return row->fields[slot];
+        return row->fields[at];
       }
     }
   } else {
@@ -1395,18 +1396,18 @@ const recorded_field& Patch<T,E>::field_from_run() const {
         rec.begin(), rec.end(), t,
         [](double u, const auto& r) { return u < r.time; });
     if (row != rec.begin() && made_now(--row)) {
-      return row->fields[slot];
+      return row->fields[at];
     }
   }
   std::ostringstream m;
   m.precision(17);
   m << "The run this patch reads has no field at t=" << t;
-  if (evaluation_slot) {
-    m << " in slot " << slot;
+  if (stage) {
+    m << " at stage " << at;
   }
   m << ": the two runs did not take the same steps";
   util::stop(m.str());
-  return rec.front().fields[slot];
+  return rec.front().fields[at];
 }
 
 // Creates splines of resource availability.
@@ -1442,10 +1443,10 @@ void Patch<T,E>::compute_environment() {
     s.set_new_node_birth_date(environment.time);
   }
 
-  // A held field (hold_field) takes precedence over any loaded one.
-  if (held_field) {
-    environment.r_init_interpolators(held_field->interpolators);
-    environment.set_ode_state(held_field->state.begin());
+  // A constant field (use_constant_field) takes precedence over any loaded one.
+  if (constant_field) {
+    environment.r_init_interpolators(constant_field->interpolators);
+    environment.set_ode_state(constant_field->state.begin());
     compute_boundary_nodes();
     return;
   }
@@ -2025,8 +2026,8 @@ size_t Patch<T,E>::nodes_at(size_t i, double time) const {
   return base + n;
 }
 
-// Derived rather than replayed: the schedule this patch is run from says which
-// species gain a node when, so a walk that jumps into the middle of a recording
+// Derived rather than read off the recording: the schedule this patch is run
+// from says which species gain a node when, so a walk that jumps into the middle of a recording
 // works out the shape there instead of being handed a list of what happened.
 template <typename T, typename E>
 void Patch<T,E>::reshape_to(double time) {
@@ -2088,7 +2089,7 @@ void Patch<T,E>::set_recorded_state(const std::vector<value_type>& y,
   set_state_and_boundary(y.begin(), time);
 }
 
-// One tangent seed per input column, over the same map. The node the map pushes is
+// One tangent direction per input column, over the same map. The node the map pushes is
 // removed between columns, so every column is taken from the same width.
 template <typename T, typename E>
 std::vector<std::vector<double>>
@@ -2117,7 +2118,7 @@ Patch<T,E>::introduction_jacobian(const std::vector<size_t>& species_index,
     std::vector<tangent> x(in.size());
     for (size_t j = 0; j < in.size(); ++j) {
       x[j] = in[j];
-      seed_direction(x[j], (j == c) ? 1.0 : 0.0);
+      set_direction(x[j], (j == c) ? 1.0 : 0.0);
     }
     // The traits first, for the reason the transpose writes them first: a
     // quantity the state determines reads them while deriving it.

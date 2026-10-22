@@ -133,7 +133,7 @@ void NodeSchedule::add_action(const Event& e) {
   reset();
 }
 
-// Find the instant, or make it. Every entry seeds `times` with its own time, so
+// Find the instant, or make it. Every entry initialises `times` with its own time, so
 // time_introduction() and time_end() are answerable the moment it exists.
 std::vector<schedule_entry>::iterator NodeSchedule::entry_at(double time) {
   std::vector<schedule_entry>::iterator it = schedule.begin();
@@ -183,7 +183,7 @@ NodeSchedule::schedule_within(double start, double end) const {
       continue;
     }
     if (ret.empty()) {
-      // The state the replay starts from, which no step reached.
+      // The state the pinned run starts from, which no step reached.
       ret.push_back({start, std::numeric_limits<double>::quiet_NaN()});
     }
     ret.push_back(s);
@@ -269,17 +269,17 @@ std::vector<std::vector<double> > NodeSchedule::r_ode_soil_substep_ends() const 
 }
 
 // The ODE schedule this run takes: times to stop at, and the sizes that reached
-// them where a recorded run is being replayed. Both at once, because a size
+// them where a run is pinned to a recording. Both at once, because a size
 // belongs to the time it was recorded with and there is no version of this that
 // takes one and keeps the other.
 //
 // Sizes may be omitted, and that is a grid a caller chose rather than a run a
 // caller recorded: the solver steps TO each time instead of by a recorded size.
-// A schedule holding either replays it -- there is no flag to turn that on, so to
+// A schedule holding either pins the run to it -- there is no flag to turn that on, so to
 // integrate freely instead, hand over no schedule.
 //
 // Each step's record of substepping the soil goes with its size, and none may
-// be given at all: a recording that substepped the soil then replays only where
+// be given at all: a recording that substepped the soil then pins a run only where
 // no step spans a knot of the rain, and is refused where one does.
 void NodeSchedule::r_set_ode_steps(
     std::vector<double> times, std::vector<double> sizes,

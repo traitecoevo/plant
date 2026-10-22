@@ -306,7 +306,7 @@ void Node<T,E>::compute_initial_conditions(const environment_type& environment,
                                              double pr_patch_survival,
                                              const value_type& birth_rate) {
   pr_patch_survival_at_birth = pr_patch_survival;
-  // Seed strategy-specific initial states (e.g. TF24f's tracked psi at its
+  // Initialise strategy-specific initial states (e.g. TF24f's tracked psi at its
   // optimum) before the first rates evaluation, so the birth growth rate uses
   // the initialised operating point rather than a default.
   individual.set_initial_states(environment);
@@ -314,8 +314,8 @@ void Node<T,E>::compute_initial_conditions(const environment_type& environment,
   if (individual.control().node_density_in_birth_date) {
     individual.set_state("mortality", value_type(0.0));
   }
-  // ⚠️ THE INDIVIDUAL'S RATES ONLY. The node's own two come after the seeding
-  // below, because both read state it writes -- taken here, the density rate is
+  // ⚠️ THE INDIVIDUAL'S RATES ONLY. The node's own two come after the initial
+  // state below, because both read state it writes -- taken here, the density rate is
   // guarded against the density this node held BEFORE birth, which on one being
   // born for the first time is zero, and the rate it reports is that zero for
   // the whole of the node's first evaluation.

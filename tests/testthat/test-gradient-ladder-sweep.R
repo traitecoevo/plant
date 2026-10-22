@@ -23,9 +23,9 @@ test_that("a curvature the collar cannot stand on refuses instead of returning z
   #
   # ⚠️ THE GRAIN IS THE WHOLE EVALUATION, NOT THE METRIC, and that is forced
   # rather than chosen: the missing row is an intermediate of one recording that
-  # spans six stages and every cohort in them, so no seed carries a component the
+  # spans six stages and every cohort in them, so no adjoint carries a component the
   # loss could be attributed to. The refusal therefore travels on the one channel
-  # the sweep already has, and a seed that never reads an uptake output pays for it
+  # the sweep already has, and an adjoint that never reads an uptake output pays for it
   # too. What is discharged here is that the loss is REPORTED; separating the two
   # output kinds is not.
   #
@@ -41,7 +41,7 @@ test_that("a curvature the collar cannot stand on refuses instead of returning z
   for (label in c(size_only, water_coupled)) {
     got <- ladder_rhs_adjoint_tf24(folded, replace(numeric(n), match(label, nm), 1))
     expect_true(got$refused,
-                label = paste("a seed answered from rows that do not exist:", label))
+                label = paste("an adjoint answered from rows that do not exist:", label))
     expect_true(grepl("curvature", got$reason, fixed = TRUE))
     # Not-a-number rather than the zeros the tape would otherwise hand back, so a
     # caller ignoring the flag still cannot read a severance as an answer. This is
@@ -145,8 +145,8 @@ test_that("a shut point's rows are numbers, and every one of them is finite", {
   # absence-never-a-number check against a driver that genuinely refuses.
   shutdown <- ladder_patch_shutdown()
   n <- shutdown$ode_size
-  seed <- ladder_seeds(n, scale = ladder_block_scale(shutdown$ode_rates))
-  got <- ladder_rhs_adjoint_tf24(shutdown, seed)$state
+  adjoint <- ladder_test_vector(n, scale = ladder_block_scale(shutdown$ode_rates))
+  got <- ladder_rhs_adjoint_tf24(shutdown, adjoint)$state
   expect_true(is.numeric(got))
   expect_true(all(is.finite(got)))
   # Non-vacuity: a shut leaf still moves the stand, so a row of zeros would mean
@@ -161,7 +161,7 @@ test_that("both output kinds answer at a shut point, which they did not before",
   #
   # At a shut point the question is now moot in the direction that matters --
   # BOTH answer. The rows are a substituted constant plus the bound's movement,
-  # and neither output kind is missing. So this measures that all four seeds come
+  # and neither output kind is missing. So this measures that all four adjoints come
   # back rather than that all four are refused together.
   #
   # ⚠️ The independence requirement is not discharged HERE, and no longer needs
@@ -176,8 +176,8 @@ test_that("both output kinds answer at a shut point, which they did not before",
                 "water-coupled, a layer" = "environment_1",
                 "water-coupled, total uptake" = "environment_9")
   for (label in names(kinds)) {
-    seed <- replace(numeric(n), match(kinds[[label]], nm), 1)
-    got <- ladder_rhs_adjoint_tf24(shutdown, seed)$state
+    adjoint <- replace(numeric(n), match(kinds[[label]], nm), 1)
+    got <- ladder_rhs_adjoint_tf24(shutdown, adjoint)$state
     message(sprintf("  %-28s answered", label))
     expect_true(all(is.finite(got)))
   }

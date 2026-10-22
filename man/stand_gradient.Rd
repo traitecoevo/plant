@@ -43,7 +43,7 @@ one call and never crosses into R.
 }
 \details{
 Two terms, because a census reads the traits as well as the state. The reverse
-pass is seeded on the states the census reads at the end of the run and runs
+pass starts on the states the census reads at the end of the run and runs
 back over the steps the adaptive pass resolved; added to it is the census's own
 reading of the traits at that state, which is not a sensitivity of the state
 and so no sweep produces it.
@@ -70,7 +70,7 @@ rather than differentiated along a trade-off it does not lie on. Pass the
 function it was built with, or \code{hyperpar = NULL}.
 
 With \code{hyperpar = NULL} every parameter has a column, and each is a
-partial derivative with every other parameter held fixed.
+partial derivative with every other parameter fixed.
 
   A refused metric's whole row is \code{NaN}: a sum has no defined value with
   an undefined term, so refusal is metric-level and carries no localisation
@@ -87,9 +87,9 @@ partial derivative with every other parameter held fixed.
 After \code{scm$run_mutant(p)}, a gradient is of the invaders' metrics in
 the residents' recorded field, which the invaders read at each rate
 evaluation and do not move, so it carries no derivative: the rare-mutant
-derivative. A run of \code{scm$run_mutant_held()} is refused.
+derivative. A run of \code{scm$run_mutant_constant()} is refused.
 An invasion that kept no states is run again, as an invasion, to keep them;
-set \code{scm$record_trajectory <- TRUE} before it to save that run.
+set \code{scm$keep_states <- TRUE} before it to save that run.
 Several invaders in \code{p} share one run and each has its own columns,
 but each metric is still one sweep, so a set of invaders costs about what
 running them one at a time does. An invader of a resumed resident starts at

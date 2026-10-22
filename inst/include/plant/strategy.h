@@ -115,7 +115,7 @@ public:
 
   void update_dependent_aux(const int index, Internals<double>& vars);
 
-  // Seed strategy-specific initial ODE states for a newly introduced individual,
+  // Initialise strategy-specific initial ODE states for a newly introduced individual,
   // given its birth environment (called once from Node::compute_initial_conditions
   // before the first compute_rates). Default no-op; strategies that carry an
   // acclimating/tracked state (e.g. TF24f, #525) override this to initialise it at

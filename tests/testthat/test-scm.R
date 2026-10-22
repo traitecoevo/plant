@@ -160,10 +160,10 @@ test_that("Run SCM", {
   }
 })
 
-test_that("A pinned replay of a run's own steps reproduces it", {
-  ## Pinning only the times leaves the replay to recover each step size by
+test_that("A pinned run on a run's own steps reproduces it", {
+  ## Pinning only the times leaves the pinned run to recover each step size by
   ## differencing them, and fl(fl(t + h) - t) != h, so it steps by something
-  ## other than what was recorded. Pinning the sizes too replays the run.
+  ## other than what was recorded. Pinning the sizes too takes the run's own steps.
   traits <- list(FF16 = trait_matrix(0.0825, "lma"),
                  FF16r = trait_matrix(0.0825, "lma"),
                  K93 = trait_matrix(0.059, "b_0"))
@@ -174,7 +174,7 @@ test_that("A pinned replay of a run's own steps reproduces it", {
     free <- SCM(x, environment_types[[x]])(p, env, empty_events(), Control())
     free$run()
 
-    replay <- function(with_sizes) {
+    rerun <- function(with_sizes) {
       scm <- SCM(x, environment_types[[x]])(p, env, empty_events(), Control())
       sched <- scm$node_schedule
       sched$all_times <- free$node_schedule$all_times
@@ -189,7 +189,7 @@ test_that("A pinned replay of a run's own steps reproduces it", {
       scm
     }
 
-    pinned <- replay(TRUE)
+    pinned <- rerun(TRUE)
     expect_identical(pinned$ode_times, free$ode_times)
     expect_identical(pinned$ode_step_sizes, free$ode_step_sizes)
     expect_identical(pinned$net_reproduction_ratios,
@@ -240,7 +240,7 @@ test_that("an ODE schedule is installed whole or refused", {
   expect_identical(sched$ode_soil_input_slopes, slopes)
   expect_identical(sched$ode_soil_substep_ends, ends)
 
-  ## Times with no sizes is a grid to stop at rather than a run to replay, and a
+  ## Times with no sizes is a grid to stop at rather than a run to rerun, and a
   ## schedule holding either uses it.
   sched$set_ode_steps(scm$ode_times, numeric(0), list(), list())
   expect_true(sched$using_ode_steps)
@@ -346,10 +346,10 @@ test_that("TF24 takes a daily rain record without being stopped at its knots", {
   }
 })
 
-test_that("A run that substepped the soil is replayed, swept and invaded as it ran", {
+test_that("A run that substepped the soil is rerun, swept and invaded as it ran", {
   ## Three years of seasonal rain, on most of whose steps the young stand takes
   ## up a small fraction of the water flowing through the soil. Each step keeps
-  ## its record, so a replay, the sweep and an invader take it as the run did.
+  ## its record, so a pinned run, the sweep and an invader take it as the run did.
   p0 <- scm_base_parameters("TF24", "TF24_Env")
   p0$max_patch_lifetime <- 3
   p0$patch_type <- "fixed"
@@ -364,11 +364,11 @@ test_that("A run that substepped the soil is replayed, swept and invaded as it r
   }
   ctrl <- Control(node_density_in_birth_date = TRUE, ode_tol_abs = 1e-8,
                   ode_soil_substep = TRUE)
-  substepped <- run_scm(p, env(), ctrl, record_trajectory = TRUE)
+  substepped <- run_scm(p, env(), ctrl, keep_states = TRUE)
   expect_gt(mean(lengths(substepped$ode_soil_substep_ends) > 0), 0.5)
 
-  ## A replay of the schedule, records and all, repeats the run bit for bit.
-  replay <- function(q) {
+  ## A pinned run of the schedule, records and all, repeats the run bit for bit.
+  rerun <- function(q) {
     scm <- SCM("TF24", "TF24_Env")(q, env(), empty_events(), ctrl)
     sched <- scm$node_schedule
     sched$all_times <- substepped$node_schedule$all_times
@@ -379,7 +379,7 @@ test_that("A run that substepped the soil is replayed, swept and invaded as it r
     scm$run()
     scm
   }
-  again <- replay(p)
+  again <- rerun(p)
   expect_identical(again$patch$ode_state, substepped$patch$ode_state)
   expect_identical(again$ode_soil_substep_ends, substepped$ode_soil_substep_ends)
   ## So does the schedule carried in the parameters. Its times alone, a grid,
@@ -387,7 +387,7 @@ test_that("A run that substepped the soil is replayed, swept and invaded as it r
   ## their records where a step spans a knot of the rain.
   q <- p
   q$ode_times <- substepped$ode_times
-  expect_error(run_scm(q, env(), ctrl), "replay the run's schedule")
+  expect_error(run_scm(q, env(), ctrl), "step the run's schedule")
   q$ode_step_sizes <- substepped$ode_step_sizes
   expect_error(run_scm(q, env(), ctrl), "carries no substeps")
   q$ode_soil_input_slopes <- substepped$ode_soil_input_slopes
@@ -396,7 +396,7 @@ test_that("A run that substepped the soil is replayed, swept and invaded as it r
   expect_identical(carried$patch$ode_state, substepped$patch$ode_state)
 
   ## The sweep holds each step's substeps and input slopes, as a tangent of the
-  ## replayed schedule does, and both agree with its central differences.
+  ## pinned schedule does, and both agree with its central differences.
   g <- stand_gradient(substepped, traits = "1.lma", hyperpar = NULL)
   traits <- census_trait_names_tf24(substepped)
   tangent <- ladder_trajectory_tangent_tf24(substepped,
@@ -413,7 +413,7 @@ test_that("A run that substepped the soil is replayed, swept and invaded as it r
     pars$lma <- x
     s$pars <- pars
     q$strategies[[1]] <- s
-    metrics(replay(q))
+    metrics(rerun(q))
   }
   d <- 1e-4 * lma
   differenced <- (at_lma(lma + d) - at_lma(lma - d)) / (2 * d)
@@ -609,7 +609,7 @@ test_that("A second run on one SCM reproduces the first", {
 
 
 
-test_that("store_trajectory records one state per schedule_row", {
+test_that("store_recording records one state per schedule_row", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     s <- strategy_types[[x]]()
@@ -628,7 +628,7 @@ test_that("store_trajectory records one state per schedule_row", {
     forward_state <- scm$patch$ode_state
     grid <- scm$ode_times
 
-    traj <- scm$store_trajectory()
+    traj <- scm$store_recording()
     expect_identical(traj[[length(traj)]]$state, forward_state)
 
     ## One record per schedule_row, which is a row per accepted step and a row per
@@ -667,6 +667,6 @@ test_that("store_trajectory records one state per schedule_row", {
 
     ## The store is a function of the run: recording it twice gives the same
     ## records, down to the last bit of every state.
-    expect_identical(scm$store_trajectory(), traj)
+    expect_identical(scm$store_recording(), traj)
   }
 })
