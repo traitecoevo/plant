@@ -198,6 +198,27 @@ test_that("a run after an invasion runs the invaders as a community of their own
   expect_equal(scm$net_reproduction_ratios, alone, tolerance = 1e-12)
 })
 
+test_that("an invader's patch reads its run after the SCM has let it go", {
+  p <- scm_base_parameters("FF16")
+  p$max_patch_lifetime <- 20
+  q <- add_strategies(p, trait_matrix(0.1, "lma"), birth_rate = 1)
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
+
+  scm <- run_scm(p)
+  scm$run_mutant(q)
+  invader <- scm$patch
+  invader$compute_environment()
+  before <- invader$ode_rates
+
+  # The next run drops the SCM's hold on the invaded run, and then the SCM goes.
+  scm$run()
+  rm(scm)
+  gc()
+
+  invader$compute_environment()
+  expect_identical(invader$ode_rates, before)
+})
+
 test_that("mutant method densities, TF24", {
   # The same resident-vs-mutant identity as the block above, for a model that
   # refuses a step: one whose end leaves TF24's storage pool below empty, which

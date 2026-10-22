@@ -684,8 +684,9 @@ private:
   // start, then each entry's, after the entry's actions and introductions.
   std::vector<recorded_field> entry_fields;
   // The run invaders read: its steps and the field each rate evaluation was
-  // taken in, kept from the first invasion until the next run().
-  std::vector<field_row> invaded_run;
+  // taken in, kept from the first invasion until the next run(). Shared with
+  // every patch that reads it, which keeps it alive however long they outlive it.
+  std::shared_ptr<const std::vector<field_row>> invaded_run;
   // Its harvests and extremes, which its invaders meet too.
   std::vector<NodeScheduleEvent> invaded_actions;
   odelia::ode::Solver<patch_type> solver;
@@ -769,9 +770,9 @@ std::vector<double> SCM<T, E>::uniform_euler_times(double t0, double t1,
 // ---- Simulation lifecycle ------------------------------------------------
 
 template <typename T, typename E> void SCM<T, E>::run() {
-  if (!invaded_run.empty()) {
+  if (invaded_run) {
     patch.read_fields_of(nullptr);
-    invaded_run.clear();
+    invaded_run.reset();
     invaded_actions.clear();
     node_schedule = make_node_schedule(parameters);
   }
@@ -1040,7 +1041,7 @@ void SCM<T, E>::integrate_to(double t0, double t_end) {
 template <typename T, typename E>
 void SCM<T, E>::run_mutant(parameters_type p) {
   require_invader_starts_empty(p, "run_mutant");
-  if (invaded_run.empty()) {
+  if (!invaded_run) {
     if (solver.schedule().size() < 2) {
       util::stop("Run a resident first to generate a competitive landscape");
     }
@@ -1067,6 +1068,8 @@ void SCM<T, E>::run_mutant(parameters_type p) {
         rec.begin(), rec.end(), [](const auto& row) { return row.insertion; });
     util::check_length(entry_fields.size(), entries + 1);
     auto entry = entry_fields.begin();
+    std::vector<field_row> rows;
+    rows.reserve(rec.size());
     for (const auto& row : rec) {
       field_row r{row, {}};
       for (size_t i = 0; i < row.solved.size(); ++i) {
@@ -1075,19 +1078,21 @@ void SCM<T, E>::run_mutant(parameters_type p) {
       if (&row == &rec.front() || row.insertion) {
         r.fields[odelia::ode::end_slot] = *entry++;
       }
-      invaded_run.push_back(std::move(r));
+      rows.push_back(std::move(r));
     }
+    invaded_run =
+        std::make_shared<const std::vector<field_row>>(std::move(rows));
   }
-  if (!util::identical(p.initial_time, invaded_run.front().time)) {
+  if (!util::identical(p.initial_time, invaded_run->front().time)) {
     util::stop("run_mutant: the residents' run starts at t = " +
-               util::to_string(invaded_run.front().time) +
+               util::to_string(invaded_run->front().time) +
                ", so its invaders start there; set p$initial_time to that "
                "(it is " + util::to_string(p.initial_time) + ")");
   }
   // An introduction the residents did not make falls between their evaluations,
   // where no field was kept.
   std::vector<double> introduced;
-  for (const auto& row : invaded_run) {
+  for (const auto& row : *invaded_run) {
     if (row.insertion) {
       introduced.push_back(row.time);
     }
@@ -1104,12 +1109,12 @@ void SCM<T, E>::run_mutant(parameters_type p) {
   }
   parameters = p;
   patch.overwrite_parameters(parameters);
-  patch.read_fields_of(&invaded_run);
+  patch.read_fields_of(invaded_run);
   node_schedule = make_node_schedule(parameters);
   for (const auto& a : invaded_actions) {
     node_schedule.add_action(a);
   }
-  node_schedule.set_ode_steps(invaded_run);
+  node_schedule.set_ode_steps(*invaded_run);
   run_schedule();
 }
 
