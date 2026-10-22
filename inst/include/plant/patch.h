@@ -19,6 +19,7 @@
 #include <optional>
 #include <sstream>
 #include <map>
+#include <memory>
 #include <string>
 #include <utility> // std::pair
 
@@ -450,7 +451,9 @@ public:
   void set_keep_field(bool keep) { keep_field = keep; }
   // Read the field of `run` at every rate evaluation, rather than build one from
   // this patch's own nodes; null builds its own again.
-  void read_fields_of(const std::vector<field_row>* run) { field_run = run; }
+  void read_fields_of(std::shared_ptr<const std::vector<field_row>> run) {
+    field_run = std::move(run);
+  }
 
   // The field this patch is in now, packaged as a recording keeps one.
   recorded_field current_field() const {
@@ -583,8 +586,10 @@ private:
   bool keep_field = false;
   // Where this rate evaluation's field is written, or null where it is not kept.
   recorded_field* field_slot = nullptr;
-  // The run whose field this patch reads, or null where it builds its own.
-  const std::vector<field_row>* field_run = nullptr;
+  // The run whose field this patch reads, or null where it builds its own. Shared,
+  // so every copy of the patch -- the solver's, a rebound one, R's -- keeps the
+  // run it reads alive.
+  std::shared_ptr<const std::vector<field_row>> field_run;
   // This rate evaluation's slot of its step's row; none outside a step, where the
   // patch is at a recorded state.
   std::optional<std::size_t> evaluation_slot;
