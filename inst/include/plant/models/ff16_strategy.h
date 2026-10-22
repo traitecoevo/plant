@@ -780,7 +780,7 @@ public:
   // This strategy at another scalar, carrying no derivative -- assign_from takes
   // every parameter through to_passive.
   template <class U>
-  FF16_Strategy<U> rebind_from() const {
+  FF16_Strategy<U> rebind() const {
     FF16_Strategy<U> out;
     out.assign_from(*this);
     return out;
@@ -1537,7 +1537,7 @@ void FF16_Strategy<S>::prepare_strategy() {
   // taken here where the choice is visible and the scalar is already double.
   {
     using tangent = odelia::ode::tangent_scalar<double>;
-    const FF16_Strategy<tangent> at_tangent = rebind_from<tangent>();
+    const FF16_Strategy<tangent> at_tangent = rebind<tangent>();
     tangent probe = height_0;
     odelia::ode::seed_direction(probe, 1.0);
     dmass_dheight_0 = odelia::ode::derivative_along(

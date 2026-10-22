@@ -105,7 +105,7 @@ reference_compare <- function(regime, rows) {
          unname(scale[mine$metric]))
 }
 
-# The regimes whose descent leaves the range a double holds, so this reference
+# The regimes whose sweep leaves the range a double holds, so this reference
 # has nothing to referee on them. Named rather than inferred: a regime that stops
 # answering and one that never answered both arrive refused.
 #

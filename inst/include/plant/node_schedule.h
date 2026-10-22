@@ -113,7 +113,7 @@ public:
 // rather than re-established by the run loop at every stop.
 //
 // `times` keeps the [t_intro, ...extra ode times..., t_end] semantics events
-// carried before; ode_steps is what a replay reads, and program_within() serves it.
+// carried before; ode_steps is what a replay reads, and schedule_within() serves it.
 };
 
 struct schedule_entry {
@@ -157,16 +157,16 @@ public:
   void pop();
   size_t remaining() const;
 
-  // The program a replay of the interval `(start, end]` takes: the state it
+  // The schedule a replay of the interval `(start, end]` takes: the state it
   // starts from, then the recorded steps inside it, the one reaching `end`
   // included. Empty where the recording put no step in there, and empty on a
   // schedule holding no recording.
-  std::vector<odelia::ode::instruction>
-  program_within(double start, double end) const;
+  std::vector<odelia::ode::schedule_row>
+  schedule_within(double start, double end) const;
 
   double get_max_time() const;
   // The time the run this schedule drives starts at: zero for a run from
-  // empty, the exported time for a resumed one. A recorded program's first
+  // empty, the exported time for a resumed one. A recorded schedule's first
   // entry is the state the run started from, so it has to be this time, and a
   // replay of a resumed run starts there rather than at zero.
   double get_start_time() const { return start_time; }
@@ -193,7 +193,7 @@ public:
   // a run makes its introductions from this schedule.
   template <class Rows> void set_ode_steps(const Rows& rows) {
     ode_steps.clear();
-    for (const odelia::ode::instruction& r : rows) {
+    for (const odelia::ode::schedule_row& r : rows) {
       if (!r.insertion) {
         ode_steps.push_back({r.time, r.step_size, false, r.subsystem});
       }
@@ -225,13 +225,13 @@ private:
   double start_time;
   // The recorded ODE steps this schedule replays, when it holds any. Holding
   // them is what makes a schedule a replay, so no flag says so separately.
-  std::vector<odelia::ode::instruction> ode_steps;
+  std::vector<odelia::ode::schedule_row> ode_steps;
 };
 
 // One field of each step's record of substepping the subsystem, beside its
 // size; empty where the step did not substep it.
 std::vector<std::vector<double> >
-substep_field(const std::vector<odelia::ode::instruction>& steps,
+substep_field(const std::vector<odelia::ode::schedule_row>& steps,
               std::vector<double> odelia::ode::subsystem_substeps::*field);
 
 }

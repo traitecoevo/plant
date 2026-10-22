@@ -37,7 +37,7 @@
 // cannot report: `stand_gradient` returns one number per (metric, trait) over a
 // whole run, so a Jacobian, an adjoint or a reference evaluated at one state has
 // no route to R through it. Two entry points failed that test and are gone --
-// the field's knots are on the published `ResourceSpline`, and a range's base
+// the field's knots are on the published `ResourceSpline`, and a segment's base
 // state is the first record `store_trajectory()` keeps, or the introduction
 // record that widened into it.
 
@@ -83,7 +83,7 @@ using tangent_environment = plant::at_scalar<environment_type, tangent>;
 using tangent_individual = plant::Individual<tangent_strategy,
                                              tangent_environment>;
 
-using adjoint = odelia::ode::active_scalar<double>;
+using adjoint = odelia::ode::adjoint_scalar<double>;
 using adjoint_patch = plant::Patch<plant::at_scalar<strategy_type, adjoint>,
                                    plant::at_scalar<environment_type, adjoint>>;
 
@@ -105,7 +105,7 @@ size_t rhs_adjoint(patch_type& patch,
     odelia::ode::adjoint_rows::one_row(lambda_dydt);
   odelia::ode::adjoint_rows swept;
   odelia::ode::adjoint_rows rows(1, patch.trait_adjoint_size());
-  odelia::ode::active_system<std::decay_t<decltype(patch)>> active{patch, tape};
+  odelia::ode::adjoint_system<std::decay_t<decltype(patch)>> active{patch, tape};
   const size_t recording = odelia::ode::rates_adjoint(
     active, state, patch.time(), seeds, swept, rows);
   lambda_state.assign(swept[0].begin(), swept[0].end());
@@ -142,8 +142,8 @@ struct tangent_block {
 
   tangent_block(const patch_type& patch, const node_address& at)
     : strategy_template(
-        patch.at_species(at.species).strategy_ptr()->rebind_from<tangent>()),
-      environment_template(patch.r_environment().rebind_from<tangent>()) {
+        patch.at_species(at.species).strategy_ptr()->rebind<tangent>()),
+      environment_template(patch.r_environment().rebind<tangent>()) {
     // The knot positions come across because a rebind carries the field's data
     // and not its grid.
     environment_template.light_availability.spline.set_nodes(
@@ -314,16 +314,16 @@ Rcpp::NumericMatrix ladder_block_jacobian_reverse_tf24(plant::RcppR6::RcppR6<pla
   patch_type& patch = *obj_;
   const node_address at = locate(patch, static_cast<size_t>(node - 1));
 
-  using scalar = odelia::ode::active_scalar<double>;
+  using scalar = odelia::ode::adjoint_scalar<double>;
   using active_strategy = plant::at_scalar<strategy_type, scalar>;
   using active_environment = plant::at_scalar<environment_type, scalar>;
   using active_individual = plant::Individual<active_strategy,
                                               active_environment>;
 
   const active_strategy strategy_template =
-    patch.at_species(at.species).strategy_ptr()->rebind_from<scalar>();
+    patch.at_species(at.species).strategy_ptr()->rebind<scalar>();
   active_environment environment_template =
-    patch.r_environment().rebind_from<scalar>();
+    patch.r_environment().rebind<scalar>();
   environment_template.light_availability.spline.set_nodes(
     patch.r_environment().light_availability.spline.knots());
 
@@ -377,7 +377,7 @@ std::vector<double> ladder_rhs_value_forward_tf24(plant::RcppR6::RcppR6<plant::P
   std::vector<double> x0(n);
   patch.ode_state(x0.begin());
 
-  auto active = patch.rebind_from<tangent>();
+  auto active = patch.rebind<tangent>();
   std::vector<tangent> x(n);
   for (size_t i = 0; i < n; ++i) {
     x[i] = x0[i];
@@ -406,7 +406,7 @@ Rcpp::NumericMatrix ladder_rhs_state_jacobian_forward_tf24(plant::RcppR6::RcppR6
   std::vector<std::vector<double>> columns;
   columns.reserve(n);
   for (size_t c = 0; c < n; ++c) {
-    auto active = patch.rebind_from<tangent>();
+    auto active = patch.rebind<tangent>();
     std::vector<tangent> x(n);
     for (size_t i = 0; i < n; ++i) {
       x[i] = x0[i];
@@ -451,7 +451,7 @@ Rcpp::NumericMatrix ladder_rhs_trait_jacobian_forward_tf24(plant::RcppR6::RcppR6
   std::vector<std::vector<double>> columns;
   columns.reserve(n_trait);
   for (size_t c = 0; c < n_trait; ++c) {
-    auto active = patch.rebind_from<tangent>();
+    auto active = patch.rebind<tangent>();
     size_t at = 0;
     for (size_t i = 0; i < active.size(); ++i) {
       std::vector<tangent*> pars =
@@ -542,7 +542,7 @@ Rcpp::List ladder_trajectory_tangent_tf24(plant::RcppR6::RcppR6<plant::SCM<plant
 Rcpp::List ladder_boundary_density_tangent_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_,
                                                 int index) {
     const patch_type& source = *obj_;
-  auto active = source.template rebind_from<tangent>();
+  auto active = source.template rebind<tangent>();
   std::vector<tangent*> pars =
     active.at_species(0).strategy_ptr()->ad_parameters();
   if (index < 1 || static_cast<size_t>(index) > pars.size()) {
@@ -600,7 +600,7 @@ Rcpp::List ladder_seed_geometry_tangent_tf24(plant::RcppR6::RcppR6<plant::Patch<
                                              int index) {
     const patch_type& patch = *obj_;
   const strategy_type& source = *patch.at_species(0).strategy_ptr();
-  auto active = source.template rebind_from<tangent>();
+  auto active = source.template rebind<tangent>();
   std::vector<tangent*> pars = active.ad_parameters();
   if (index < 1 || static_cast<size_t>(index) > pars.size()) {
     plant::util::stop("ladder_seed_geometry_tangent: index out of range");
@@ -621,11 +621,11 @@ Rcpp::List ladder_seed_geometry_tangent_tf24(plant::RcppR6::RcppR6<plant::Patch<
 // [[Rcpp::export]]
 Rcpp::List ladder_census_initial_state_tangent_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_,
                                                     std::vector<double> direction,
-                                                    int range) {
+                                                    int segment) {
   std::vector<double> value;
   const std::vector<double> tangent =
     obj_->census_initial_state_tangent(
-      direction, value, static_cast<size_t>(range));
+      direction, value, static_cast<size_t>(segment));
   return Rcpp::List::create(Rcpp::_["value"] = value,
                             Rcpp::_["tangent"] = tangent);
 }
@@ -636,9 +636,9 @@ Rcpp::List ladder_census_initial_state_tangent_tf24(plant::RcppR6::RcppR6<plant:
 // [[Rcpp::export]]
 std::vector<double> ladder_census_initial_state_replay_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_,
                                                             std::vector<double> state0,
-                                                            int range) {
+                                                            int segment) {
   return obj_->census_initial_state_replay(
-    state0, static_cast<size_t>(range));
+    state0, static_cast<size_t>(segment));
 }
 
 // How many times the inflow boundary's own term entered the trait adjoint over one
@@ -658,9 +658,9 @@ Rcpp::List ladder_boundary_evaluations_tf24(plant::RcppR6::RcppR6<plant::SCM<pla
   obj_->clear_boundary_condition_evaluations();
   const plant::census_gradient result =
     obj_->census_trait_gradient();
-  // Every count here comes off the one gradient above, the ranges it walked
+  // Every count here comes off the one gradient above, the segments it walked
   // included. Read through its own accessor they could describe a different call.
-  const double ranges = static_cast<double>(result.ranges);
+  const double segments = static_cast<double>(result.segments);
   // And whether there is an answer at all. A refused sweep costs what an accepted
   // one costs, so a caller timing this without reading the refusal is timing work
   // whose result was thrown away -- which is what the profile scripts were doing.
@@ -678,7 +678,7 @@ Rcpp::List ladder_boundary_evaluations_tf24(plant::RcppR6::RcppR6<plant::SCM<pla
     Rcpp::_["evaluations"] =
       static_cast<double>(obj_->boundary_condition_evaluations()),
     Rcpp::_["placements"] = placed,
-    Rcpp::_["ranges"] = ranges,
+    Rcpp::_["segments"] = segments,
     Rcpp::_["refusal"] = refused,
     Rcpp::_["metrics"] = static_cast<int>(result.gradient.size()));
 }
@@ -855,7 +855,7 @@ Rcpp::List ladder_introduction_jacobian_tf24(plant::RcppR6::RcppR6<plant::Patch<
   // The transpose the sweep takes at an introduction, taken here on its own: the same
   // tape and the same product the solver's walk runs, with the trajectory and the
   // segmentation left out so a disagreement is the map's.
-  using ad_scalar = odelia::ode::active_scalar<double>;
+  using ad_scalar = odelia::ode::adjoint_scalar<double>;
   auto widen = [&](auto& active_patch,
                    std::vector<ad_scalar>::const_iterator x,
                    std::vector<ad_scalar>& y) -> void {
@@ -864,7 +864,7 @@ Rcpp::List ladder_introduction_jacobian_tf24(plant::RcppR6::RcppR6<plant::Patch<
   odelia::ode::adjoint_rows lambda_before;
   odelia::ode::adjoint_rows trait_adjoint(n_out, n_trait);
   ad_scalar::tape_type tape(false);
-  odelia::ode::active_system<std::decay_t<decltype(patch)>> active{patch, tape};
+  odelia::ode::adjoint_system<std::decay_t<decltype(patch)>> active{patch, tape};
   odelia::ode::state_and_parameter_adjoints(active, state_before, seeds, widen,
                                             lambda_before, trait_adjoint);
 

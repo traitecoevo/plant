@@ -129,7 +129,7 @@ public:
     soil_number_of_depths = n;
     
     vars = Internals<S>(soil_number_of_depths + aux_num);
-    initial_states = rebind_from(vars.states);
+    initial_states = rebind(vars.states);
 
     z.resize(soil_number_of_depths);
     z_mid.resize(soil_number_of_depths);
@@ -240,7 +240,7 @@ public:
 
   // The values of an active vector, for the R boundary and for the state a run
   // restarts from.
-  static std::vector<double> rebind_from(const std::vector<S>& x) {
+  static std::vector<double> rebind(const std::vector<S>& x) {
     std::vector<double> out(x.size());
     for (size_t i = 0; i < x.size(); ++i) {
       out[i] = odelia::util::to_passive(x[i]);
@@ -355,7 +355,7 @@ public:
   }
 
   template <class U>
-  TF24_Environment<U> rebind_from() const {
+  TF24_Environment<U> rebind() const {
     TF24_Environment<U> out;
     out.assign_from(*this);
     return out;
@@ -483,7 +483,7 @@ public:
 
   // The clamp sites the water balance reaches. The site list is shared with the
   // strategy's, so a tally reads the same however the site is reached; the
-  // differentiated half is shared through rebind_from for the same reason.
+  // differentiated half is shared through rebind for the same reason.
   // Mutable because it is a tally and not state: the reads that clamp are const,
   // and a clamp changes what they return to nobody.
   mutable clamp_counter clamps;
@@ -741,7 +741,7 @@ public:
 
 
   std::vector<double> get_soil_water_state() const {
-    std::vector<double> out = rebind_from(vars.states);
+    std::vector<double> out = rebind(vars.states);
     out.resize(out.size() - aux_num);
     return out;
   }
@@ -757,7 +757,7 @@ public:
     return psi_soil_;
   }
   std::vector<double> get_soil_water_state_cumulative_flux() const {
-    const std::vector<double> all = rebind_from(vars.states);
+    const std::vector<double> all = rebind(vars.states);
     return {all.end() - aux_num, all.end()};
   }
   std::vector<double> get_soil_depths() const { return z; }
@@ -767,8 +767,8 @@ public:
   // TODO: I wonder if this needs a better name? See also environment.h
   Internals<double> r_internals() const {
     Internals<double> out(vars.state_size(), vars.aux_size(), vars.resource_size());
-    out.states = rebind_from(vars.states);
-    out.rates = rebind_from(vars.rates);
+    out.states = rebind(vars.states);
+    out.rates = rebind(vars.rates);
     return out;
   }
 
@@ -857,7 +857,7 @@ public:
         vars.set_state(i, 0);
       }
   }
-    initial_states = rebind_from(vars.states);
+    initial_states = rebind(vars.states);
     psi_soil_valid_ = false;
 }
 

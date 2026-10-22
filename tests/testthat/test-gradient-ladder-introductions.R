@@ -1,7 +1,7 @@
 # Introductions, where the state changes dimension.
 #
 # The minimum fixture is two species and three introductions in the order
-# species 1, species 2, species 1 -- four ranges, with the node stride
+# species 1, species 2, species 1 -- four segments, with the node stride
 # exercised in both directions. Introducing into species 1 while species 2 exists
 # is the arrangement a narrowing implemented as a truncation of the tail fails
 # on.
@@ -191,8 +191,8 @@ test_that("the introduction map's whole Jacobian agrees entry by entry", {
   }
 })
 
-test_that("the state a range resumes from is the one the introduction made", {
-  # The state the range above an introduction linearises its first step at is
+test_that("the state a segment resumes from is the one the introduction made", {
+  # The state the segment above an introduction linearises its first step at is
   # rebuilt rather than recorded -- no record holds it -- and the sweep only
   # length-checks the rebuild. Two things must hold of it and neither was asserted:
   # the rows an introduction does not touch come through unchanged, and the rows it
@@ -324,10 +324,10 @@ test_that("the recruit depends on the state it is introduced into", {
 })
 
 test_that("the initial condition carries no trait row on these fixtures", {
-  # The last range's state adjoint is the initial-condition term, and the sweep
+  # The last segment's state adjoint is the initial-condition term, and the sweep
   # discards the final narrowed vector. That is exact here and it is a scope
   # statement rather than a check passing: every fixture in this ladder starts
-  # from bare ground, so the first range is the empty patch and y(0) is the soil
+  # from bare ground, so the first segment is the empty patch and y(0) is the soil
   # alone. No trait reaches it, so there is nothing in the discarded vector.
   #
   # What the discard would lose is a run resumed from a populated exported state,
@@ -431,8 +431,8 @@ test_that("a newcomer's leaf area reaches the census through a field built witho
 })
 
 
-test_that("the census's sensitivity to a range's starting state is refereed", {
-  # A range's first step runs from a state no record holds -- the widened one,
+test_that("the census's sensitivity to a segment's starting state is refereed", {
+  # A segment's first step runs from a state no record holds -- the widened one,
   # after the introduction and before the step. The three probes here are the only
   # way to reach it: one names the state, one differentiates the whole remaining
   # trajectory from it exactly, and one replays that trajectory in plain double so
@@ -442,12 +442,12 @@ test_that("the census's sensitivity to a range's starting state is refereed", {
   # adjoint it holds after the last introduction is d(census)/d(this state). None
   # of the reverse pass is on this path, so the two share no code.
   stand <- ladder_stand_introductions_short()
-  base <- ladder_range_base_state(stand, 0L)
+  base <- ladder_segment_base_state(stand, 0L)
 
   # Segment 0 is the state no step reached, which on this coordinate holds the
   # environment and no cohort -- so its width is the soil column's.
   expect_gt(length(base), 0L)
-  message(sprintf("\n  range 0 starts from %d components", length(base)))
+  message(sprintf("\n  segment 0 starts from %d components", length(base)))
 
   # An unseeded direction differentiates nothing, which pins that the tangent is
   # carried by the seed rather than by the replay.
@@ -503,12 +503,12 @@ test_that("the census's sensitivity to a range's starting state is refereed", {
       # Holding them to 1e-12 would report the census's own last bits as a
       # disagreement between the two routes.
       ladder_report_margin(
-        sprintf("d(census)/d(range 0 state %d) is zero on both routes", i),
+        sprintf("d(census)/d(segment 0 state %d) is zero on both routes", i),
         max(abs(tangent)) / max(abs(none$value)), 1e-9)
       next
     }
     floor <- max(max(abs(coarse - fine)) / scale, 4 * .Machine$double.eps)
-    ladder_report_margin(sprintf("d(census)/d(range 0 state %d)", i),
+    ladder_report_margin(sprintf("d(census)/d(segment 0 state %d)", i),
                          max(abs(tangent - fine)) / scale, 10 * floor)
   }
 })

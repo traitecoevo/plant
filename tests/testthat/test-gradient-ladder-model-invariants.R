@@ -176,7 +176,7 @@ test_that("the regime holds at the states a trajectory passed through", {
     collected[[length(collected) + 1L]] <- report
   }
 
-  # The whole point is the range over the trajectory rather than any one state, so
+  # The whole point is the segment over the trajectory rather than any one state, so
   # the assertions are collected over every sampled state and reported once.
   enforced <- do.call(rbind, collected)
   expect_equal(nrow(enforced), length(at) * length(per_state))

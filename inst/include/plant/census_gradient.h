@@ -19,7 +19,7 @@ struct refusal {
   std::string reason;
   // 1-based where a species' own strategy recorded the refusal, and -1 where
   // what failed spans every cohort in every stage and belongs to no species --
-  // the reverse walk's own range refusal is of that kind. A CALLER MUST HANDLE
+  // the reverse walk's own overflow refusal is of that kind. A CALLER MUST HANDLE
   // -1 RATHER THAN INDEXING WITH IT.
   int species = -1;
 
@@ -41,11 +41,11 @@ struct census_gradient {
   // did not. They are written only where there is an answer to describe, so a
   // refused metric leaves them at the defaults instead of clearing back to them.
 
-  // How many backward ranges were walked: one per width, plus one per requested
-  // split that fell inside a range, which is what says a split cut.  Not
+  // How many backward segments were walked: one per width, plus one per requested
+  // split that fell inside a segment, which is what says a split cut.  Not
   // multiplied by the metric count -- one recording is swept once per metric, so
-  // the ranges walked are the same however many rows are carried.
-  size_t ranges = 0;
+  // the segments walked are the same however many rows are carried.
+  size_t segments = 0;
 
   // The adjoint the walk ended holding: one row per metric swept, one column per
   // entry of the first recorded state. It is d(census)/d(that state), which
