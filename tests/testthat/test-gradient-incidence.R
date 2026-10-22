@@ -368,7 +368,7 @@ test_that("phylloptim's root-vulnerability clamps stay out of reach, with a marg
     # clamp would bind in. The forward run keeps them, so this costs no sweep:
     # measured, the three drivers contribute 510, 2503 and 3715 records whether
     # or not a gradient has been taken on them.
-    for (r in scm$store_trajectory()) {
+    for (r in scm$store_recording()) {
       s <- r$state
       n <- length(s)
       theta <- s[(n - nlayer - n_aux + 1):(n - n_aux)]

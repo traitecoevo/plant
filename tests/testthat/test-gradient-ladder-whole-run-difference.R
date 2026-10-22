@@ -181,7 +181,7 @@ test_that("the sweep agrees with a difference of whole runs, over five regimes",
     over <- live & r$residual > tolerance
     # ⚠️ THIS RUNG IS WHAT FOUND THE KNOT GRID, and the floor is what found it.
     # `shaded` and `clamped` read 9.9e-03 and 8.0e-03 here while the light field
-    # was held against knots at u_k * height_max whose positions were passivised:
+    # was tabulated against knots at u_k * height_max whose positions were passivised:
     # the canopy top is a cohort's height, so the grid moved with it and the
     # gradient carried only the values and the slopes. Every other rung takes the
     # field AS values and slopes, so none of them could see it. Widening this

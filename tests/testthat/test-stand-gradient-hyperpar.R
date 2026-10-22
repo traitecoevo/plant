@@ -1,6 +1,6 @@
 # A trait's column is the total derivative as the trait moves through the
 # hyperparameter function that built the strategy; hyperpar = NULL gives the
-# partials, with every derived parameter held fixed. For lma the partial was 2.4
+# partials, with every derived parameter fixed. For lma the partial was 2.4
 # to 4 times the total.
 
 hyperpar_parameters <- function(lifetime = 3) {
@@ -14,7 +14,7 @@ hyperpar_run <- function(p = hyperpar_parameters()) {
   ctrl <- Control(node_density_in_birth_date = TRUE)
   list(p = p, ctrl = ctrl,
        scm = run_scm(p, Environment("TF24"), ctrl, refine_schedule = TRUE,
-                     record_trajectory = TRUE))
+                     keep_states = TRUE))
 }
 
 test_that("a trait's column is its partial plus each derived parameter's, chained", {

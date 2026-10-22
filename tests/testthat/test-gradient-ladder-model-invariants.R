@@ -110,7 +110,7 @@ test_that("the reference computes the model's own rates", {
   # function, and every Jacobian taken from it is that function's Jacobian --
   # internally consistent, plausible, and refereeing nothing.
   #
-  # It needs no derivative and no seed, so it is a floor item rather than part of
+  # It needs no derivative and no adjoint, so it is a floor item rather than part of
   # the harness, and it is not subsumed by any agreement between a tangent and a
   # sweep: both are built on the same rebound twin, so a twin that differs from
   # the model in value can have them agree with each other exactly.
@@ -141,7 +141,7 @@ test_that("the regime holds at the states a trajectory passed through", {
   # same convention the per-fixture report uses: the fixture is then outside the
   # domain its checks are declared for, and that is a finding about the fixture.
   stand <- ladder_stand_trajectory(lifetime = 2)
-  trajectory <- stand$store_trajectory()
+  trajectory <- stand$store_recording()
   patch <- ladder_as_patch(stand)
   at <- unique(round(seq(2, length(trajectory), length.out = 8)))
 
@@ -277,16 +277,16 @@ test_that("a rejected step attempt is not a question about the gradient", {
   # exclusion left to perform, so "the gradient is unchanged when rejections are
   # excluded" compares a thing with itself.
   #
-  # The seam a rejected attempt does leave is in the FORWARD replay, not the
+  # The seam a rejected attempt does leave is in the FORWARD pinned run, not the
   # sweep: it moves patch state that is not ODE state -- the first-same-as-last
-  # derivative carry, and anything cached on the patch -- so a pinned replay is
-  # not bit-identical to the adaptive run it replays. That is what the trajectory
+  # derivative carry, and anything cached on the patch -- so a pinned run is
+  # not bit-identical to the adaptive run it reruns. That is what the trajectory
   # reference's own floor measures, and it is asserted where the reference is
   # used rather than here.
   shared <- ladder_shared("introductions")
   stand <- shared$stand
   result <- shared$gradient
-  ladder_report_margin("the replay reaches this stand's own census",
+  ladder_report_margin("the pinned run reaches this stand's own census",
                        ladder_replay_floor(stand, result$value), 1e-9)
 })
 

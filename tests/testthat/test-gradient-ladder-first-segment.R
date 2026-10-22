@@ -15,7 +15,7 @@ test_that("the fixture holds recorded steps below its first introduction", {
   # this suite has.
   stand <- ladder_stand_resumed()
   ladder_require_regime(stand, "stand")
-  trajectory <- stand$store_trajectory()
+  trajectory <- stand$store_recording()
   widths <- vapply(trajectory, function(s) length(s$state), numeric(1))
   introduction <- which(diff(widths) != 0)
   message(sprintf("\n  %d recorded steps, %d introductions, widths %s",
@@ -37,7 +37,7 @@ test_that("the fixture holds recorded steps below its first introduction", {
 
 test_that("the sweep runs the segment below the first introduction", {
   stand <- ladder_stand_resumed()
-  trajectory <- stand$store_trajectory()
+  trajectory <- stand$store_recording()
   widths <- vapply(trajectory, function(s) length(s$state), numeric(1))
   n_widening <- sum(diff(widths) != 0)
   steps <- ladder_step_count(trajectory)
@@ -66,7 +66,7 @@ test_that("the sweep runs the segment below the first introduction", {
 
 test_that("the adjoint the walk ends holding is the census's sensitivity to the first recorded state", {
   # The walk's lower end, measured against a forward tangent of the same
-  # trajectory from the same state. The tangent is a forward replay at the
+  # trajectory from the same state. The tangent is a forward pinned run at the
   # recorded step sizes and shares no code with the sweep, so a disagreement is
   # the walk's.
   stand <- ladder_stand_resumed()

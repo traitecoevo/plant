@@ -807,7 +807,7 @@ Patch:
     ode_aux: {type: "std::vector<double>", access: function, name_cpp: "odelia::ode::r_ode_aux"}
     node_ode_size: {type: size_t, access: member}
     state: {type: "Rcpp::List", access: member, name_cpp: r_get_state}
-    holds_field: {type: bool, access: member, readonly: true}
+    has_constant_field: {type: bool, access: member, readonly: true}
   methods:
     # The opt-in domain check the adaptive stepper calls on a completed step
     # (odelia #55/#56). Exposed so a test can pin the contract directly.
@@ -821,12 +821,13 @@ Patch:
     compute_environment:
       return_type: void
       name_cpp: r_compute_environment
-    # Hold the field the patch makes now at every later rate evaluation, its
-    # environment's own state included, as SCM$run_mutant_held() does.
-    hold_field:
+    # Use the field the patch makes now as a constant field at every later rate
+    # evaluation, its environment's own state included, as
+    # SCM$run_mutant_constant() does.
+    use_current_field:
       return_type: void
-      name_cpp: r_hold_current_field
-    release_field:
+      name_cpp: r_use_current_field
+    clear_constant_field:
       return_type: void
     reset:
       return_type: void
@@ -895,12 +896,12 @@ SCM:
     run_mutant:
       args: [p: "plant::Parameters<T,E>"]
       return_type: void
-    run_mutant_held:
+    run_mutant_constant:
       args: [p: "plant::Parameters<T,E>"]
       return_type: void
-    store_trajectory:
+    store_recording:
       return_type: "Rcpp::List"
-      name_cpp: r_store_trajectory
+      name_cpp: r_store_recording
     refine_schedule:
       return_type: void
     reset:
@@ -984,7 +985,7 @@ SCM:
     # Collection toggles (bound directly to the public members)
     collect: {type: bool, access: field}
     collect_refinement_errors: {type: bool, access: field}
-    record_trajectory: {type: bool, access: field}
+    keep_states: {type: bool, access: field}
     # Whether every scheduled entry has been consumed; where run_to() stops
     # early, this is what says the run is not finished.
     complete: {type: bool, access: member}

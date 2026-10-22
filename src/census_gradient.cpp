@@ -30,7 +30,7 @@ Rcpp::CharacterVector metric_names_of(SCM& scm) {
 
 template <class SCM>
 std::vector<std::vector<double>> state_adjoint_of(SCM& scm) {
-  return scm.census_state_and_trait_rows().state.to_rows();
+  return scm.census_state_and_trait_rows().state.to_vectors();
 }
 
 // The parameters no gradient exists for, each with the sentence saying why, so

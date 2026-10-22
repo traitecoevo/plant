@@ -16,7 +16,7 @@
 #                      for and requires the answer to change.
 #   adversariality     the fixtures keep every distinguishing quantity distinct:
 #                      no equal heights, no small-integer ratios, two species
-#                      differing by whole factors, seeds from a fixed generator.
+#                      differing by whole factors, test vectors from a fixed generator.
 #   tolerance          ladder_forward_floor() measures a fixture's own arithmetic
 #                      floor and every tolerance is a multiple of it.
 #
@@ -228,12 +228,12 @@ ladder_field_knots <- function(x) {
 # The state a segment's first step ran from, which is what a first-segment reference
 # indexes its direction against.
 #
-# The run keeps it and nothing needs to rebuild it: store_trajectory()'s first
+# The run keeps it and nothing needs to rebuild it: store_recording()'s first
 # record is the first segment's base, and a later segment's base is the introduction
 # record that widened into it. Checked bit for bit against the C++ accessor this
 # replaced over 45 segments on four stands.
 ladder_segment_base_state <- function(x, segment = 0L) {
-  records <- x$store_trajectory()
+  records <- x$store_recording()
   if (segment == 0L) {
     return(records[[1L]]$state)
   }
@@ -837,7 +837,7 @@ ladder_light_at_reads <- function(x) {
 #
 # This is a reference the forward tangent cannot be, and the reason is structural
 # rather than a matter of accuracy. The environment holds its integrated state as
-# a double store and takes it passively, so a tangent seeded on a soil moisture
+# a double store and takes it passively, so a tangent set on a soil moisture
 # carries nothing: every soil column and every soil rate row of its Jacobian is
 # exactly zero. A difference re-runs the forward balance, so it carries them.
 #
@@ -1174,17 +1174,17 @@ ladder_species_separated <- function(x) {
   all(abs(log(ratio)) > 0.2)
 }
 
-# Block-normalised seeds from a fixed generator. Soil moisture is of order a
+# Block-normalised test vectors from a fixed generator. Soil moisture is of order a
 # third and heartwood mass is in kilograms, so an unnormalised inner product is a
-# test of the largest block alone; and a seed of all ones makes a summation-order
+# test of the largest block alone; and a vector of all ones makes a summation-order
 # defect invisible. Signs alternate so a sum that should cancel does.
-ladder_seeds <- function(n, scale = NULL, seed = 20240811L) {
+ladder_test_vector <- function(n, scale = NULL, rng_seed = 20240811L) {
   had <- exists(".Random.seed", envir = globalenv())
   if (had) old <- get(".Random.seed", envir = globalenv())
   on.exit({
     if (had) assign(".Random.seed", old, envir = globalenv())
   }, add = TRUE)
-  set.seed(seed)
+  set.seed(rng_seed)
   v <- stats::runif(n, 0.3, 1.7) * rep_len(c(1, -1), n)
   if (!is.null(scale)) {
     stopifnot(length(scale) == n)
@@ -1449,7 +1449,7 @@ ladder_zero_cause <- function(name) {
 # the run recorded. `direction` carries one weight per gradient column, so a unit
 # vector asks for one column and a mixed one for a contraction.
 #
-# It returns the metrics the replay itself reached as well as the derivative,
+# It returns the metrics the pinned run itself reached as well as the derivative,
 # because a reference whose value disagrees with the model is a reference to a
 # different trajectory and every derivative taken from it is that trajectory's.
 ladder_trajectory_tangent <- function(stand, direction) {
@@ -1537,7 +1537,7 @@ ladder_assert_one_parameter <- function(before, after, name) {
 # because a tangent imposes the same equation the sweep does.
 #
 # It is for the columns a declared zero reaches, not for a sweep: two model runs
-# per column against one seeded run for a tangent column.
+# per column against one run with its direction set for a tangent column.
 #
 # The parameter is set on the built strategy rather than on the trait vector, and
 # the seed-height slope is identical either way -- so this keeps the whole of what
@@ -1620,13 +1620,13 @@ ladder_run_difference_pair <- function(name, species = 2L,
   # a resolved difference gives 1.
   #
   # The TIMES only, not the step sizes with them. Pinning both makes each side
-  # replay a step the other's state cannot take, which refuses outright on the
+  # rerun a step the other's state cannot take, which refuses outright on the
   # shaded and clamped stands; the grid is what the census accumulates on and is
   # all that has to agree.
   #
   # ⚠️ EXCEPT WHERE THE BASE SUBSTEPPED THE SOIL, which every step across a knot
   # of a variable rainfall does. A grid of times alone is refused across such a
-  # step, so that run replays its whole schedule, sizes and substeps with the
+  # step, so that run reruns its whole schedule, sizes and substeps with the
   # times, as the sweep differentiates it.
   base <- ladder_run(build(), env = env_of())
   ode_times <- base$ode_times
@@ -1777,8 +1777,8 @@ ladder_trait_direction <- function(columns, name) {
   replace(numeric(length(columns)), at, 1)
 }
 
-# How far the replay's own census lands from the run's. This is the trajectory
-# checks' floor: the reference replays step sizes rather than times, so its state
+# How far the pinned run's own census lands from the run's. This is the trajectory
+# checks' floor: the reference takes step sizes rather than times, so its state
 # at the end is the run's state only up to the arithmetic of re-stepping, and
 # every derivative it reports is a derivative at the state it actually reached.
 ladder_replay_floor <- function(stand, value) {

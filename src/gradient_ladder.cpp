@@ -38,7 +38,7 @@
 // whole run, so a Jacobian, an adjoint or a reference evaluated at one state has
 // no route to R through it. Two entry points failed that test and are gone --
 // the field's knots are on the published `ResourceSpline`, and a segment's base
-// state is the first record `store_trajectory()` keeps, or the introduction
+// state is the first record `store_recording()` keeps, or the introduction
 // record that widened into it.
 
 // The references the gradient is checked against, and the two objects they are
@@ -47,7 +47,7 @@
 //
 // The main reference is a forward-mode tangent of the same forward source. It is
 // exact -- no step size, no truncation -- and it traverses the forward
-// reductions while none of the transposes under test are on its path. One seed
+// reductions while none of the transposes under test are on its path. One direction
 // gives one exact Jacobian column, which is what makes forming a whole Jacobian
 // affordable at one cohort.
 //
@@ -76,7 +76,7 @@ using patch_handle = plant::RcppR6::RcppR6<patch_type>;
 // odelia for the adjoint -- rather than being restated here, and the two things
 // done to a tangent come from the same place.
 using plant::tangent;
-using plant::seed_direction;
+using plant::set_direction;
 using plant::derivative_along;
 using tangent_strategy = plant::at_scalar<strategy_type, tangent>;
 using tangent_environment = plant::at_scalar<environment_type, tangent>;
@@ -89,7 +89,7 @@ using adjoint_patch = plant::Patch<plant::at_scalar<strategy_type, adjoint>,
 
 // One right-hand-side transpose, taken by the call the sweep takes: odelia rebinds
 // the patch to the adjoint scalar, records derivs() and sweeps the recording per
-// seed. Returns the recording's size. The tape is the caller's, as it is the
+// output. Returns the recording's size. The tape is the caller's, as it is the
 // solver's in a sweep, so a caller repeating the call does not pay for it twice.
 size_t rhs_adjoint(patch_type& patch,
                    odelia::ode::adjoint_tape<double>& tape,
@@ -101,13 +101,13 @@ size_t rhs_adjoint(patch_type& patch,
   std::vector<double> state(n);
   patch.ode_state(state.begin());
 
-  const odelia::ode::adjoint_rows seeds =
-    odelia::ode::adjoint_rows::one_row(lambda_dydt);
-  odelia::ode::adjoint_rows swept;
-  odelia::ode::adjoint_rows rows(1, patch.trait_adjoint_size());
+  const odelia::ode::adjoint_batch adjoints =
+    odelia::ode::adjoint_batch::one(lambda_dydt);
+  odelia::ode::adjoint_batch swept;
+  odelia::ode::adjoint_batch rows(1, patch.trait_adjoint_size());
   odelia::ode::adjoint_system<std::decay_t<decltype(patch)>> active{patch, tape};
   const size_t recording = odelia::ode::rates_adjoint(
-    active, state, patch.time(), seeds, swept, rows);
+    active, state, patch.time(), adjoints, swept, rows);
   lambda_state.assign(swept[0].begin(), swept[0].end());
   trait_adjoint.assign(rows[0].begin(), rows[0].end());
   return recording;
@@ -130,9 +130,9 @@ node_address locate(const patch_type& patch, size_t flat) {
   return node_address{0, 0};
 }
 
-// The block as the sweep records it, standing ready to be evaluated at a seeded
-// input vector. The strategy and environment are rebound once and copied per
-// evaluation, because a rebind runs the strategy's preparation and preparing at
+// The block as the sweep records it, standing ready to be evaluated at an input
+// vector carrying a direction. The strategy and environment are rebound once and
+// copied per evaluation, because a rebind runs the strategy's preparation and preparing at
 // an active scalar is refused.
 struct tangent_block {
   tangent_strategy strategy_template;
@@ -158,9 +158,9 @@ struct tangent_block {
       .block_inputs(in.begin(), patch.r_environment());
   }
 
-  // One evaluation with column `seed` carrying a unit tangent. Returns the
+  // One evaluation with column `input` carrying a unit direction. Returns the
   // outputs' tangents, which is one exact Jacobian column.
-  std::vector<double> column(int seed) {
+  std::vector<double> column(int input) {
     typename tangent_strategy::ptr strategy =
       std::make_shared<tangent_strategy>(strategy_template);
     tangent_individual individual(strategy);
@@ -170,8 +170,8 @@ struct tangent_block {
     for (size_t i = 0; i < in.size(); ++i) {
       x[i] = in[i];
     }
-    if (seed >= 0) {
-      seed_direction(x[static_cast<size_t>(seed)], 1.0);
+    if (input >= 0) {
+      set_direction(x[static_cast<size_t>(input)], 1.0);
     }
 
     individual.set_block_inputs(x.begin(), environment);
@@ -348,16 +348,16 @@ Rcpp::NumericMatrix ladder_block_jacobian_reverse_tf24(plant::RcppR6::RcppR6<pla
 
     // A batch of one, deliberately: this reference takes the Jacobian a row at a
     // time so that what it checks is one recording swept by one unit adjoint.
-    odelia::ode::adjoint_rows seed(1, n_out);
-    seed[0][r] = 1.0;
-    odelia::ode::adjoint_rows row;
+    odelia::ode::adjoint_batch adjoint(1, n_out);
+    adjoint[0][r] = 1.0;
+    odelia::ode::adjoint_batch row;
     auto block = [&](const std::vector<scalar>& x,
                      std::vector<scalar>& y) -> void {
       individual.set_block_inputs(x.begin(), environment);
       individual.compute_rates(environment);
       individual.block_outputs(y.begin(), environment);
     };
-    odelia::ode::vector_jacobian_product(tape, in, seed, block, row);
+    odelia::ode::vector_jacobian_product(tape, in, adjoint, block, row);
     rows.emplace_back(row[0].begin(), row[0].end());
   }
   Rcpp::NumericMatrix out = to_matrix(rows, n_in);
@@ -411,7 +411,7 @@ Rcpp::NumericMatrix ladder_rhs_state_jacobian_forward_tf24(plant::RcppR6::RcppR6
     for (size_t i = 0; i < n; ++i) {
       x[i] = x0[i];
     }
-    seed_direction(x[c], 1.0);
+    set_direction(x[c], 1.0);
     active.set_ode_state(x.begin(), time);
     std::vector<tangent> dydt(n);
     active.ode_rates(dydt.begin());
@@ -432,7 +432,7 @@ Rcpp::NumericMatrix ladder_rhs_state_jacobian_forward_tf24(plant::RcppR6::RcppR6
 }
 
 // The same evaluation's Jacobian with respect to the traits, species-major in
-// each strategy's own order. The parameters are seeded before the state is set,
+// each strategy's own order. The parameters' directions are set before the state is,
 // because the quantities a state determines read the parameters and would
 // otherwise be derived at the previous values.
 // [[Rcpp::export]]
@@ -458,7 +458,7 @@ Rcpp::NumericMatrix ladder_rhs_trait_jacobian_forward_tf24(plant::RcppR6::RcppR6
         active.at_species(i).strategy_ptr()->ad_parameters();
       for (size_t p = 0; p < pars.size(); ++p, ++at) {
         if (at == c) {
-          seed_direction(*pars[p], 1.0);
+          set_direction(*pars[p], 1.0);
         }
       }
     }
@@ -548,10 +548,10 @@ Rcpp::List ladder_boundary_density_tangent_tf24(plant::RcppR6::RcppR6<plant::Pat
   if (index < 1 || static_cast<size_t>(index) > pars.size()) {
     plant::util::stop("ladder_boundary_density_tangent: index out of range");
   }
-  seed_direction(*pars[static_cast<size_t>(index) - 1], 1.0);
+  set_direction(*pars[static_cast<size_t>(index) - 1], 1.0);
 
-  // Seeded before the state is applied, because an active patch derives the aux a state
-  // determines as it is built, which is before this seed exists. Leaf area at
+    // Set before the state is applied, because an active patch derives the aux a
+  // state determines as it is built, which is before this direction exists. Leaf area at
   // fixed height would then carry no row, and neither would the field the
   // reduction builds from it -- so the two constants that set leaf area come back
   // short by their whole field channel while every other parameter is exact.
@@ -605,7 +605,7 @@ Rcpp::List ladder_seed_geometry_tangent_tf24(plant::RcppR6::RcppR6<plant::Patch<
   if (index < 1 || static_cast<size_t>(index) > pars.size()) {
     plant::util::stop("ladder_seed_geometry_tangent: index out of range");
   }
-  seed_direction(*pars[static_cast<size_t>(index) - 1], 1.0);
+  set_direction(*pars[static_cast<size_t>(index) - 1], 1.0);
   const auto seed = active.seed_geometry();
   return Rcpp::List::create(
     Rcpp::_["height"] = odelia::util::to_passive(seed.height),
@@ -630,14 +630,14 @@ Rcpp::List ladder_census_initial_state_tangent_tf24(plant::RcppR6::RcppR6<plant:
                             Rcpp::_["tangent"] = tangent);
 }
 
-// The census a plain-double replay of the recorded steps reaches from `state0`.
+// The census a plain-double run on the recorded steps reaches from `state0`.
 // Differencing this is what referees the tangent above: the same steps, the same
 // introductions, one perturbed state.
 // [[Rcpp::export]]
-std::vector<double> ladder_census_initial_state_replay_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_,
+std::vector<double> ladder_census_initial_state_pinned_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_,
                                                             std::vector<double> state0,
                                                             int segment) {
-  return obj_->census_initial_state_replay(
+  return obj_->census_initial_state_pinned(
     state0, static_cast<size_t>(segment));
 }
 
@@ -698,7 +698,7 @@ std::vector<std::string> ladder_trait_names_tf24(plant::RcppR6::RcppR6<plant::Pa
 
 
 // The block's outputs differenced in one input, in plain double, with the
-// environment held. A difference of the RECORDED step cannot see an error in a
+// environment fixed. A difference of the RECORDED step cannot see an error in a
 // supplied row -- the recording makes the value independent of a recorded input -- so
 // this differences the double path instead, which runs the leaf's own solve.
 // Columns are the block's inputs in block_inputs order, rows its outputs.
@@ -745,7 +745,7 @@ Rcpp::NumericMatrix ladder_block_difference_tf24(plant::RcppR6::RcppR6<plant::Pa
 }
 
 // The block's outputs differenced along ONE direction of its inputs, in plain
-// double, with the environment held.
+// double, with the environment fixed.
 //
 // Summing the per-column differences above would not do. Water moves on
 // differences of potential and tissue fails on absolutes, so along a direction
@@ -819,13 +819,13 @@ std::vector<double> ladder_block_direction_difference_tf24(plant::RcppR6::RcppR6
 //
 // The introduction checks have no other reference for this map. It takes the
 // pre-introduction state and the traits in, the whole widened state out; the
-// forward side seeds one tangent per input column, and the reverse side is the
-// transpose the sweep actually runs, seeded with one unit output adjoint per row.
+// forward side sets one direction per input column, and the reverse side is the
+// transpose the sweep actually runs, from one unit output adjoint per row.
 // Both go through introduce_over, so the reference traverses the forward function
 // and not the transpose.
 //
 // Forming it entirely is what localises a disagreement to a cell. A contraction
-// returns one number, hides an error behind a small seed component, and when it
+// returns one number, hides an error behind a small adjoint component, and when it
 // fails localises to nothing.
 // [[Rcpp::export]]
 Rcpp::List ladder_introduction_jacobian_tf24(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_,
@@ -848,10 +848,10 @@ Rcpp::List ladder_introduction_jacobian_tf24(plant::RcppR6::RcppR6<plant::Patch<
     patch.introduction_jacobian(which, state_before, time_before);
   const size_t n_out = forward.size();
 
-  // One seed per output row, swept over a single recording of the map, which is
+  // One adjoint per output row, swept over a single recording of the map, which is
   // the shape the trajectory sweep takes. The trait accumulator adds by design,
   // so it is cleared before the call and again after it.
-  const odelia::ode::adjoint_rows seeds = odelia::ode::adjoint_rows::all_rows(n_out);
+  const odelia::ode::adjoint_batch adjoints = odelia::ode::adjoint_batch::identity(n_out);
   // The transpose the sweep takes at an introduction, taken here on its own: the same
   // tape and the same product the solver's walk runs, with the trajectory and the
   // segmentation left out so a disagreement is the map's.
@@ -861,11 +861,11 @@ Rcpp::List ladder_introduction_jacobian_tf24(plant::RcppR6::RcppR6<plant::Patch<
                    std::vector<ad_scalar>& y) -> void {
     active_patch.apply_insertion(which, time_before, x, y);
   };
-  odelia::ode::adjoint_rows lambda_before;
-  odelia::ode::adjoint_rows trait_adjoint(n_out, n_trait);
+  odelia::ode::adjoint_batch lambda_before;
+  odelia::ode::adjoint_batch trait_adjoint(n_out, n_trait);
   ad_scalar::tape_type tape(false);
   odelia::ode::adjoint_system<std::decay_t<decltype(patch)>> active{patch, tape};
-  odelia::ode::state_and_parameter_adjoints(active, state_before, seeds, widen,
+  odelia::ode::state_and_parameter_adjoints(active, state_before, adjoints, widen,
                                             lambda_before, trait_adjoint);
 
   Rcpp::NumericMatrix rev(static_cast<int>(n_out),
@@ -892,7 +892,7 @@ Rcpp::List ladder_introduction_jacobian_tf24(plant::RcppR6::RcppR6<plant::Patch<
 }
 
 // The whole right-hand side differenced in each trait, in plain double, by
-// perturbing the prepared strategy exactly where the tangent seeds it. A
+// perturbing the prepared strategy exactly where the tangent sets its direction. A
 // difference that rebuilds from Parameters re-runs prepare_strategy and so
 // carries the birth-size channel the differentiated path imposes to zero; this
 // one does not, so it referees the trait rows the sweep actually computes.
@@ -940,7 +940,7 @@ Rcpp::NumericMatrix ladder_rhs_trait_difference_tf24(plant::RcppR6::RcppR6<plant
 // split sweep and a whole one reach R in one shape.
 Rcpp::List census_gradient_to_r(const plant::census_gradient& g);
 
-// The census's own reading of the traits at the state held. No sweep produces it,
+// The census's own reading of the traits at the current state. No sweep produces it,
 // so it is the one route to the census a transpose check cannot touch, and it is
 // easy to omit because it is a one-line calculation at the final state.
 //
@@ -950,7 +950,7 @@ Rcpp::List census_gradient_to_r(const plant::census_gradient& g);
 // [[Rcpp::export]]
 std::vector<std::vector<double>>
 ladder_census_trait_direct_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_) {
-  return obj_->census_state_and_trait_rows().trait.to_rows();
+  return obj_->census_state_and_trait_rows().trait.to_vectors();
 }
 
 // The same quantity differenced in plain double, which is what referees it.

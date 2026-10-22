@@ -749,7 +749,7 @@ public:
   // defines it -- live mass equals seed mass -- and the leaf area is derived from
   // the height it returns. The two come from one call because the leaf area's own
   // partials in the allometric constants and its chain through the height are the
-  // same channel: taking either against the other held fixed mixes them.
+  // same channel: taking either with the other fixed mixes them.
   struct SeedGeometry { S height; S area_leaf; };
   SeedGeometry seed_geometry() const {
     if constexpr (std::is_same_v<S, double>) {
@@ -1623,7 +1623,7 @@ void FF16_Strategy<S>::prepare_strategy() {
     using tangent = odelia::ode::tangent_scalar<double>;
     const FF16_Strategy<tangent> at_tangent = rebind<tangent>();
     tangent probe = height_0;
-    odelia::ode::seed_direction(probe, 1.0);
+    odelia::ode::set_direction(probe, 1.0);
     dmass_dheight_0 = odelia::ode::derivative_along(
         at_tangent.mass_live_given_height(probe));
   }

@@ -16,9 +16,9 @@
 # fixture existed. Count the finite entries before comparing any.
 
 test_that("two consecutive sweeps of one recording are bit-identical", {
-  # The check that the forward replay of introductions leaves the system where
-  # it found it. A run that has to be repeatable is a run whose replay is not
-  # consuming the state it replays.
+  # The check that the forward pinned run of introductions leaves the system where
+  # it found it. A run that has to be repeatable is a run whose pinned run does not
+  # consume the state it starts from.
   # The short fixture: this asserts an exact identity, which run length cannot
   # weaken, and it is one of the three checks that drove this file's runtime.
   stand <- ladder_stand_introductions_short()
@@ -74,7 +74,7 @@ test_that("a sweep split at an interior step equals the whole sweep", {
   expect_gt(sum(is.finite(whole)), 0)
   unsplit_segments <- unsplit$segments
 
-  introductions <- ladder_introduction_rows(stand$store_trajectory())
+  introductions <- ladder_introduction_rows(stand$store_recording())
   expect_gte(length(introductions), 3L)
 
   # A cut names the row the sweep resumes at, counted from one. A introduction is
@@ -121,7 +121,7 @@ test_that("the split identity holds where the recording has sixty-two segments",
   # Two sweeps, 3.2 s. Bit-identity is what makes that affordable -- no reference
   # to capture, no margin to re-bless, and a shorter run tests the same claim.
   stand <- ladder_stand_many_ranges()
-  trajectory <- stand$store_trajectory()
+  trajectory <- stand$store_recording()
   introductions <- ladder_introduction_rows(trajectory)
   expect_gt(length(introductions), 50L)
 
