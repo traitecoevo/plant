@@ -385,6 +385,10 @@ public:
   // the order ode_state writes it.
   bool ode_state_valid(const std::vector<double>& y) const;
 
+  // Each state's tolerance multiplier on an adaptive step: the soil's on its
+  // layers and 1 elsewhere, whatever the step's start time.
+  void tolerance_scales(double time, std::vector<double>& scales) const;
+
   // Returns state in structure format as opposed to single 
   // vector as given by ode_state
   Rcpp::List r_get_state() const;
@@ -690,6 +694,7 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
     control(c) {
 
   parameters.validate();
+  validate_ode_tol_scales(control);
 
   // The validated member, not the argument: validate() derives the regime from
   // patch_type and max_patch_lifetime, so an argument whose lifetime was
@@ -719,6 +724,7 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c,
     control(c) {
 
   parameters.validate();
+  validate_ode_tol_scales(control);
 
   survival_weighting = parameters.disturbance;
   check_retirement_coordinate();
@@ -2137,6 +2143,16 @@ Patch<T,E>::introduction_jacobian(const std::vector<size_t>& species_index,
     }
   }
   return ret;
+}
+
+template <typename T, typename E>
+void Patch<T,E>::tolerance_scales(double, std::vector<double>& scales) const {
+  scales.assign(ode_size(), 1.0);
+  if constexpr (HasSoil<E>) {
+    const auto [first, n] = subsystem();
+    std::fill_n(scales.begin() + static_cast<std::ptrdiff_t>(first), n,
+                control.ode_tol_scale_soil);
+  }
 }
 
 template <typename T, typename E>

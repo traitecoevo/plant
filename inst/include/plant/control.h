@@ -89,6 +89,9 @@ struct Control {
   // it whatever this is.
   bool ode_soil_substep;
 
+  // Multiplies the tolerance on TF24's soil layers, so above 1 loosens it.
+  double ode_tol_scale_soil;
+
   // Fixed-step ODE integration (forward Euler).  Units: years.  When 0 (the
   // default) the SCM integrates residents with the adaptive, error-controlled
   // Cash-Karp RKCK solver.  When > 0 it instead uses plain forward Euler on a
@@ -132,6 +135,9 @@ struct Control {
 inline bool freezes_retired(const Control& c) {
   return c.absorb_epsilon > 0.0;
 }
+
+// Refuses a tolerance scale the stepper cannot use: one that is not positive.
+void validate_ode_tol_scales(const Control& control);
 
 inline odelia::ode::OdeControl make_ode_control(const Control& control) {
   odelia::ode::OdeControl ret(control.ode_tol_abs,
