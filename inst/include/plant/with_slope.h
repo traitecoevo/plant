@@ -2,18 +2,17 @@
 #ifndef PLANT_PLANT_WITH_SLOPE_H_
 #define PLANT_PLANT_WITH_SLOPE_H_
 
-#include <odelia/value_with_slope.hpp>
+#include <odelia/with_slope.hpp>
 
 namespace plant {
 
 // ⚠️ THE TYPE IS ODELIA'S, AND IT HAS TO BE. Its `for_each_active` exists for
 // odelia's own visit_active, which passes over any shape it does not open
 // WITHOUT refusing it -- so a pair that does not say what it holds loses both
-// members from the tape audit in silence, and active_system::release is what
+// members from the tape audit in silence, and adjoint_system::release is what
 // reports the miss. A model defining the pair itself is a model carrying that
 // library's obligation, and a second definition is a second thing to forget.
-template <typename T>
-using with_slope = odelia::value_with_slope<T>;
+using odelia::with_slope;
 
 // WHAT THE SLOPE IS WITH RESPECT TO is this package's, which is why odelia's
 // header does not name it: phylloptim's operating point carries d/d(collar

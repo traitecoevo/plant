@@ -214,10 +214,11 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
   ## Bounding the storage pool by the shape of its own flow (#609) moved TF24's
   ## established count from 81 to 79 and left its survivor count at 3. FF16 and
   ## K93 are untouched, which is the discriminator: the change is in TF24's
-  ## storage block and nothing else reads it.
+  ## storage block and nothing else reads it. At a zero storage relaxation offset
+  ## the count is 77, pinned below.
   baseline <- list(
     FF16 = list(n_total = 83L, n_alive_final = 5L),
-    TF24 = list(n_total = 77L, n_alive_final = 3L),
+    TF24 = list(n_total = 79L, n_alive_final = 3L),
     K93  = list(n_total = 117L, n_alive_final = 3L)
   )
   for (x in names(strategy_types)) {
@@ -239,6 +240,16 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
     expect_equal(res$time, res2$time)
     expect_equal(res$species, res2$species)
   }
+
+  set.seed(1)
+  s <- TF24_Strategy()
+  s$pars$storage_relaxation_offset <- 0
+  p <- Parameters("TF24", "TF24_Env")(strategies = list(s), patch_area = 1)
+  res <- run_stochastic_collect(p, Environment("TF24"),
+                                stochastic_control("TF24"))
+  ia <- attr(res$species, "is_alive")[[1]]
+  expect_equal(dim(res$species[[1]])[3], 77L)
+  expect_equal(sum(ia[nrow(ia), ], na.rm = TRUE), 3L)
 })
 
 test_that("TF24's environment states are integrated over a stochastic run", {

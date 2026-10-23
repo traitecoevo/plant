@@ -9,7 +9,9 @@
 #include <utility>
 #include <array>
 #include <cstddef>
+#include <vector>
 #include <odelia/ode_util.hpp>
+#include <plant/qk.h>
 
 namespace plant {
 
@@ -80,6 +82,13 @@ inline ShadingModel shading_model_from_string(const std::string& name,
   return shading_model_from_string(name);
 }
 
+// A quadrature over the unit crown with the leaf-area density in its weights.
+// For z = H s, q(z, H) dz = q(s, 1) ds, so an integral over a crown of height H
+// of f(z) q(z, H) dz is the sum of weight[j] * f(H * fraction[j]).
+struct crown_rule {
+  std::vector<double> fraction, weight;
+};
+
 // Canopy profile used by the FF16/TF24/K93 strategies. The equations follow
 // the Yokozawa (1995) foliage-profile model, written in terms of the
 // height-normalised coordinate u = z / H:
@@ -143,9 +152,20 @@ public:
 
   // Undefined at the crown base, where z is 0: use q_from_height, which carries
   // the height the limit there needs.
-  S q(S z_over_height, S z) const {
+  S q(const S& z_over_height, const S& z) const {
     const S u_eta = pow_eta(z_over_height);
     return 2.0 * eta_ * (1.0 - u_eta) * u_eta / z;
+  }
+
+  // `rule`'s points on the unit crown, weighted by this shape's q(s, 1).
+  crown_rule unit_crown(const quadrature::QK& rule) const {
+    crown_rule ret;
+    rule.unit_rule(ret.fraction, ret.weight);
+    for (std::size_t j = 0; j < ret.fraction.size(); ++j) {
+      const S s(ret.fraction[j]);
+      ret.weight[j] *= odelia::util::to_passive(q(s, s));
+    }
+    return ret;
   }
 
   S q_from_height(S z, S height) const {
@@ -273,7 +293,11 @@ public:
   }
 
 private:
-  typedef S (*pow_eta_fn)(S, S);
+  // ⚠️ ACTIVE ARGUMENTS BY CONST REFERENCE, here and in pow_eta and q. XAD
+  // records a copy of an active scalar as a tape statement, and these run at
+  // every crown quadrature point of every cohort, so a copy taken by value is
+  // a statement per point per cohort (#677).
+  typedef S (*pow_eta_fn)(const S&, const S&);
   typedef S (*leaf_above_fn)(const CanopyShape&, S);
 
   // u^eta, by THE SAME ALGORITHM AT BOTH SCALARS.
@@ -296,7 +320,7 @@ private:
   // is pow, and at u = 0 its eta row is that same NaN. At double the chain gives 0
   // there anyway, so leaving the guard off that side keeps the forward numbers
   // bit-identical to what they have always been.
-  S pow_eta(S u) const {
+  S pow_eta(const S& u) const {
     if constexpr (!std::is_same_v<S, double>) {
       if (odelia::util::to_passive(u) <= 0.0) {
         return S(0.0);
@@ -366,42 +390,42 @@ private:
     }
   }
 
-  static S pow_eta_general(S u, S eta) {
+  static S pow_eta_general(const S& u, const S& eta) {
     using std::pow;
     return pow(u, eta);
   }
 
-  static S pow_eta_1(S u, S) {
+  static S pow_eta_1(const S& u, const S&) {
     return u;
   }
 
-  static S pow_eta_2(S u, S) {
+  static S pow_eta_2(const S& u, const S&) {
     return u * u;
   }
 
-  static S pow_eta_4(S u, S) {
+  static S pow_eta_4(const S& u, const S&) {
     const S u2 = u * u;
     return u2 * u2;
   }
 
-  static S pow_eta_8(S u, S) {
+  static S pow_eta_8(const S& u, const S&) {
     const S u2 = u * u;
     const S u4 = u2 * u2;
     return u4 * u4;
   }
 
-  static S pow_eta_10(S u, S) {
+  static S pow_eta_10(const S& u, const S&) {
     const S u2 = u * u;
     const S u4 = u2 * u2;
     const S u8 = u4 * u4;
     return u8 * u2;
   }
 
-  static S pow_eta_12(S u, S) {
-    const S u2 = u * u;
-    const S u4 = u2 * u2;
-    const S u8 = u4 * u4;
-    return u8 * u4;
+  // The same four roundings as the chain above, held as two values rather than
+  // four: each named active value is a statement, and this is the default eta.
+  static S pow_eta_12(const S& u, const S&) {
+    const S u4 = (u * u) * (u * u);
+    return u4 * u4 * u4;
   }
 
   S eta_;

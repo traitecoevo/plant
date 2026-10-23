@@ -88,14 +88,14 @@ test_that("the census's direct term has no other home", {
   # allometric constants set leaf area from height, so they are in the leaf-area
   # metric's own formula.
   stand <- ladder_stand_two_by_two()
-  result <- stand_gradient(stand)
-  seeds <- stand_census_state_adjoint(stand)
+  result <- stand_gradient(stand, hyperpar = NULL)
+  adjoints <- stand_census_state_adjoint(stand)
 
-  # The state adjoint is the seed and carries no direct term, so a gradient that
+  # The state adjoint is where the sweep starts and carries no direct term, so a gradient that
   # were only the trajectory term would be missing the metric's own reading of
   # the traits.
-  expect_equal(nrow(seeds), nrow(result$gradient))
-  expect_true(any(seeds != 0))
+  expect_equal(nrow(adjoints), nrow(result$gradient))
+  expect_true(any(adjoints != 0))
 
   # The term itself, formed here and in the coordinate the density is carried
   # in. Non-vacuity: it has to be a share of the reported row worth noticing, or
@@ -173,7 +173,7 @@ test_that("the boundary's three channels are three switches", {
   # ends in an accumulator no metric here reads. So a zero column is the channel
   # gone, with nothing else to supply the number.
   expect_true("omega" %in% columns)
-  result <- stand_gradient(stand)
+  result <- stand_gradient(stand, hyperpar = NULL)
   at <- which(ladder_bare_traits(colnames(result$gradient)) == "omega")
   expect_length(at, length(stand$patch$species))
   expect_gt(max(abs(result$gradient[, at, drop = FALSE])), 0)

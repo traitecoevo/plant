@@ -27,7 +27,7 @@ ff16_stand <- function(lifetime = 5, lma = 0.0825, birth_rate = 2,
   p$max_patch_lifetime <- lifetime
   p <- add_strategies(p, trait_matrix(lma, "lma"),
                       birth_rate = as.list(rep(birth_rate, length(lma))))
-  run_scm(p, NULL, ctrl, record_trajectory = TRUE, ...)
+  run_scm(p, NULL, ctrl, keep_states = TRUE, ...)
 }
 
 # The perturbed run stepped exactly where the recorded one stepped.
@@ -54,7 +54,7 @@ test_that("FF16 declares the three census metrics and names its columns", {
   scm <- ff16_stand(lifetime = 2)
   expect_equal(names(stand_census(scm)),
                c("leaf_area", "mass_above_ground", "area_stem"))
-  g <- stand_gradient(scm, metrics = "leaf_area")
+  g <- stand_gradient(scm, metrics = "leaf_area", hyperpar = NULL)
   # Every parameter of FF16_Pars bar the one the model says it cannot
   # differentiate, each prefixed by its species.
   pars <- names(FF16_Strategy()$pars)
@@ -64,17 +64,15 @@ test_that("FF16 declares the three census metrics and names its columns", {
   expect_setequal(colnames(g$gradient),
                   paste0("1.", c(setdiff(pars, cannot), "birth_rate")))
   expect_false(any(stand_gradient_refused(g)))
-  expect_error(stand_gradient(scm, traits = "1.eta"), "No gradient exists")
+  expect_error(stand_gradient(scm, traits = "1.eta", hyperpar = NULL), "No gradient exists")
 })
 
-test_that("the FF16 census is the trapezium of density times the allometry", {
+test_that("the FF16 census is density times the allometry by establishment weight", {
   scm <- ff16_stand(lifetime = 3)
   sp <- scm$patch$species[[1]]
   st <- do.call(cbind, c(lapply(sp$nodes, function(n) n$ode_state),
                          list(sp$new_node$ode_state)))
   rownames(st) <- sp$new_node$ode_names
-  birth_date <- c(vapply(sp$nodes, function(n) n$introduction_time, 0),
-                  sp$new_node$introduction_time)
   pars <- scm$parameters$strategies[[1]]$pars
   eta_c <- 1 - 2 / (1 + pars$eta) + 1 / (1 + 2 * pars$eta)
   height <- st["height", ]
@@ -88,15 +86,16 @@ test_that("the FF16 census is the trapezium of density times the allometry", {
       area_sapwood * height * eta_c * pars$rho +
       st["mass_heartwood", ],
     area_stem = area_bark + area_sapwood + st["area_heartwood", ])
-  density <- exp(st["log_density", ])
-  trapezium <- function(x, y) sum(diff(x) * (head(y, -1) + tail(y, -1))) / 2
-  expected <- vapply(psi, function(v) trapezium(birth_date, density * v), 0)
+  density <- exp(vapply(c(sp$nodes, list(sp$new_node)),
+                        function(n) n$log_density, 0))
+  weight <- ladder_establishment_weights(sp)
+  expected <- vapply(psi, function(v) sum(weight * density * v), 0)
   expect_equal(stand_census(scm), expected, tolerance = 1e-12)
 })
 
 test_that("the FF16 stand gradient is the pinned-step central difference", {
   scm <- ff16_stand(lifetime = 5)
-  g <- stand_gradient(scm, metrics = "mass_above_ground")
+  g <- stand_gradient(scm, metrics = "mass_above_ground", hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   p <- pinned(scm)
   # One trait from each route a parameter takes into the stand: the allometry
@@ -112,11 +111,8 @@ test_that("the FF16 stand gradient is the pinned-step central difference", {
 
 test_that("a trait's total through FF16_hyperpar is the difference through add_strategies", {
   scm <- ff16_stand(lifetime = 5)
-  g <- stand_gradient(scm, metrics = "mass_above_ground", traits = "1.lma",
-                      hyperpar = FF16_hyperpar)
-  # lma sets k_l and r_l through the hyperparameter function, so the total
-  # carries both of their columns.
-  expect_setequal(names(g$jacobian[["1.lma"]]), c("k_l", "r_l"))
+  # lma sets k_l and r_l through FF16_hyperpar, so its column carries both.
+  g <- stand_gradient(scm, metrics = "mass_above_ground", traits = "1.lma")
   x <- 0.0825
   h <- 1e-4 * x
   at <- function(v) {
@@ -131,10 +127,29 @@ test_that("a trait's total through FF16_hyperpar is the difference through add_s
   expect_equal(g$gradient["mass_above_ground", "1.lma"], fd, tolerance = 1e-5)
 })
 
+test_that("both crown integrals differentiate through the light and the leaf rate", {
+  # Deep crown integrates the leaf rate over the crown, so a_p1 reaches the census
+  # as a parameter of the integrand; mean light integrates the light alone and
+  # applies a_p1 after. lma reaches both through the light field and the height
+  # the crown is read at.
+  for (model in c("deep-crown", "mean-light")) {
+    ctrl <- referee_control(shading_model = model)
+    scm <- ff16_stand(lifetime = 5, ctrl = ctrl)
+    g <- stand_gradient(scm, metrics = "mass_above_ground",
+                        traits = c("1.lma", "1.a_p1"), hyperpar = NULL)
+    for (trait in c("lma", "a_p1")) {
+      fd <- central_difference(pinned(scm), 1, trait, "mass_above_ground",
+                               ctrl = ctrl)
+      expect_equal(g$gradient["mass_above_ground", paste0("1.", trait)], fd,
+                   tolerance = 1e-5, label = paste(model, trait))
+    }
+  }
+})
+
 test_that("two FF16 species carry each their own columns", {
   scm <- ff16_stand(lifetime = 5, lma = c(0.0825, 0.2))
   g <- stand_gradient(scm, metrics = "mass_above_ground",
-                      traits = c("1.lma", "2.lma"))
+                      traits = c("1.lma", "2.lma"), hyperpar = NULL)
   p <- pinned(scm)
   for (i in 1:2) {
     fd <- central_difference(p, i, "lma", "mass_above_ground")
@@ -146,14 +161,14 @@ test_that("two FF16 species carry each their own columns", {
 test_that("the gradient refuses what it cannot differentiate, by name", {
   # The height coordinate: the same refusal TF24 makes.
   scm <- ff16_stand(lifetime = 2, ctrl = Control())
-  expect_error(stand_gradient(scm), "birth-date")
+  expect_error(stand_gradient(scm, hyperpar = NULL), "birth-date")
   # The PPA stepped light profile has no derivative to carry.
   scm <- ff16_stand(lifetime = 2, ctrl = referee_control(shading_model = "ppa"))
-  expect_error(stand_gradient(scm), "staircase")
+  expect_error(stand_gradient(scm, hyperpar = NULL), "staircase")
   # A model that declares no census.
   p <- scm_base_parameters("K93")
   p$max_patch_lifetime <- 2
   p <- add_strategies(p, trait_matrix(0.059, "b_0"), birth_rate = list(1))
   scm <- run_scm(p, NULL, Control(node_density_in_birth_date = TRUE))
-  expect_error(stand_gradient(scm), "No census is declared for the K93 model")
+  expect_error(stand_gradient(scm, hyperpar = NULL), "No census is declared for the K93 model")
 })

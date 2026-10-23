@@ -22,6 +22,9 @@ namespace quadrature {
 
 class QK {
 public:
+  // The most points any rule has (QK61's); initialise refuses a rule with more.
+  static constexpr std::size_t max_points = 61;
+
   QK();
   QK(size_t rule);
   // The limits and the integrand's values carry the scalar the caller evaluates
@@ -35,6 +38,9 @@ public:
   // These two provide very low level access to the integration
   // routines.
   std::vector<double> integrate_vector_x(double a, double b) const;
+  // The rule on [0, 1]: its abscissae, in integrate_vector_x's order, and the
+  // weight each carries.
+  void unit_rule(std::vector<double>& x, std::vector<double>& w) const;
   double integrate_vector(const std::vector<double>& y,
                           double a, double b);
 
@@ -98,11 +104,12 @@ S QK::integrate(Function f, const S& a, const S& b) {
     const S abscissa = half_length * xgk[jtw];
     const S fval1 = f(center - abscissa);
     const S fval2 = f(center + abscissa);
-    const S fsum = fval1 + fval2;
     fv1[jtw] = to_passive(fval1);
     fv2[jtw] = to_passive(fval2);
-    result_gauss   += wg[j] * to_passive(fsum);
-    result_kronrod += wgk[jtw] * fsum;
+    // The pair's sum is formed in each expression rather than held as an S,
+    // which at an active scalar would be one more statement per pair.
+    result_gauss   += wg[j] * (fv1[jtw] + fv2[jtw]);
+    result_kronrod += wgk[jtw] * (fval1 + fval2);
     result_abs     += wgk[jtw] * (std::abs(fv1[jtw]) + std::abs(fv2[jtw]));
   }
 

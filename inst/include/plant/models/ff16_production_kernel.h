@@ -25,9 +25,11 @@ S ff16_area_leaf(S a_l1, S a_l2, S height) {
   return pow(height / a_l1, 1.0 / a_l2);
 }
 
-// [eqn 12] Photosynthetic rate per leaf area; x is openness in [0,1].
+// [eqn 12] Photosynthetic rate per leaf area; x is openness in [0,1]. By const
+// reference because it runs at every crown quadrature point, where a copy of an
+// active scalar is a tape statement.
 template <typename S>
-S ff16_assimilation_leaf(S a_p1, S a_p2, S x) {
+S ff16_assimilation_leaf(const S& a_p1, const S& a_p2, const S& x) {
   return a_p1 * x / (x + a_p2);
 }
 

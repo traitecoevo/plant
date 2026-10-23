@@ -43,14 +43,14 @@ parity_range_gap <- character(0)
 # One driver, reduced to what the two directions each said.
 #
 # The trajectory is read AFTER the sweep and costs nothing: stand_gradient's own
-# store_trajectory() has already kept it, where reading it first would run the
+# store_recording() has already kept it, where reading it first would run the
 # model twice. Counted rather than carried -- one driver's states are 67 MB.
 parity_of <- function(scm) {
-  g <- stand_gradient(scm)
+  g <- stand_gradient(scm, hyperpar = NULL)
   refused_metric <- stand_gradient_refused(g)
   counts <- census_operating_point_counts_tf24(scm)[[1]]
   names(counts) <- census_operating_point_names_tf24()
-  rec <- scm$store_trajectory()
+  rec <- scm$store_recording()
   unrowed <- vapply(rec, function(r) sum(!is.finite(r$state)), 0)
   list(refused_metric = refused_metric, gradient = g,
        refused = any(refused_metric),
@@ -251,12 +251,12 @@ test_that("the driver that reaches a clamp says so, answered or not", {
 
   # The light floor is the driver-specific one: the shaded driver reaches it and
   # the control does not, so these counts measure the driver rather than the clamp.
-  # Both sites, because the crown one is where it binds first. Counted over the
+  # The crown site, because under mean light a mean of floored points cannot
+  # fall below the floor, so the radiation site does not bind. Counted over the
   # steps the descent reached before it was refused, which is a subset of the run
   # and not none.
-  expect_gt(at("clamped", "light_floor"), 0)
   expect_gt(at("clamped", "light_floor_crown"), 0)
-  expect_gt(at("clamped", "light_floor_crown"), at("clamped", "light_floor"))
+  expect_equal(at("clamped", "light_floor"), 0)
   expect_equal(at("wet", "light_floor"), 0)
   expect_equal(at("wet", "light_floor_crown"), 0)
 

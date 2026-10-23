@@ -714,7 +714,7 @@ public:
   // defines it -- live mass equals seed mass -- and the leaf area is derived from
   // the height it returns. The two come from one call because the leaf area's own
   // partials in the allometric constants and its chain through the height are the
-  // same channel: taking either against the other held fixed mixes them.
+  // same channel: taking either with the other fixed mixes them.
   struct SeedGeometry { S height; S area_leaf; };
   SeedGeometry seed_geometry() const {
     if constexpr (std::is_same_v<S, double>) {
@@ -771,6 +771,7 @@ public:
     dmass_dheight_0 = src.dmass_dheight_0;
     area_leaf_0 = S(odelia::util::to_passive(src.area_leaf_0));
     function_integrator = src.function_integrator;
+    crown = src.crown;
 
     // The index maps and the slot numbers are a function of the names, so they
     // are derived rather than carried.
@@ -780,7 +781,7 @@ public:
   // This strategy at another scalar, carrying no derivative -- assign_from takes
   // every parameter through to_passive.
   template <class U>
-  FF16_Strategy<U> rebind_from() const {
+  FF16_Strategy<U> rebind() const {
     FF16_Strategy<U> out;
     out.assign_from(*this);
     return out;
@@ -823,6 +824,7 @@ public:
 
   // For integrating functions with using Gauss-Kronrod quadrature
   quadrature::QK function_integrator;
+  crown_rule crown;
 
 private:
   // Bind the competition profile and the assimilation implementation to one
@@ -1013,30 +1015,13 @@ template <typename S>
 S FF16_Strategy<S>::assimilation_deep_crown(const FF16_Environment<S>& environment,
                                             const S& height,
                                             const S& area_leaf,
-                                            const S& height_inverse) {
-
-  S A = 0.0;
-
-  // Define an anonymous function to integrate.
-  // Keep the lambda's own closure type (do not wrap in std::function) so the
-  // templated QK::integrate inlines the integrand at each quadrature point
-  // instead of making a type-erased indirect call.
-  // Hoist the light-spline upper bound (canopy top) out of the integrand: it
-  // is invariant across the quadrature, so fetch it once and pass it into the
-  // capped get_environment_at_height() overload rather than re-reading
-  // spline.max() at every quadrature point.
-  const double canopy_top = environment.max_environment_height();
-  auto f = [&](const S& z) -> S {
-    return assimilation_leaf(environment.get_environment_at_height(z, canopy_top)) *
-      canopy_shape.q(z * height_inverse, z);
-  };
-
-  // Integrate over crown depth using using Gauss-Kronrod quadrature.
-  // The number of points used in the integration is determined by the control parameter
-  // function_integration_rule. Rules defined in qk_rules.cpp
-  A = function_integrator.integrate(f, S(0.0), height);
-
-  return area_leaf * A;
+                                            const S& /* height_inverse */) {
+  return area_leaf * environment.light_availability.crown_integral(
+      height, crown,
+      [](const auto& E, const auto& a_p1, const auto& a_p2) {
+        return ff16_assimilation_leaf(a_p1, a_p2, E);
+      },
+      pars.a_p1, pars.a_p2);
 }
 
 // [eqn 12] Gross annual CO2 assimilation -- mean-light model.
@@ -1051,13 +1036,9 @@ template <typename S>
 S FF16_Strategy<S>::assimilation_average_light(const FF16_Environment<S>& environment,
                                                const S& height,
                                                const S& area_leaf,
-                                               const S& height_inverse) {
-  const double canopy_top = environment.max_environment_height();
-  auto f = [&](const S& z) -> S {
-    return environment.get_environment_at_height(z, canopy_top) *
-      canopy_shape.q(z * height_inverse, z);
-  };
-  const S mean_light = function_integrator.integrate(f, S(0.0), height);
+                                               const S& /* height_inverse */) {
+  const S mean_light = environment.light_availability.crown_integral(
+      height, crown, [](const auto& E) { return E; });
   return area_leaf * assimilation_leaf(mean_light);
 }
 
@@ -1529,6 +1510,7 @@ void FF16_Strategy<S>::prepare_strategy() {
     shading_model_from_string(this->control.shading_model, ShadingModel::DeepCrown));
 
   eta_c = CanopyShape<S>::eta_c(pars.eta);
+  crown = canopy_shape.unit_crown(function_integrator);
   // NOTE: Also pre-computing, though less trivial
   height_0 = height_seed();
   area_leaf_0 = area_leaf(height_0);
@@ -1537,9 +1519,9 @@ void FF16_Strategy<S>::prepare_strategy() {
   // taken here where the choice is visible and the scalar is already double.
   {
     using tangent = odelia::ode::tangent_scalar<double>;
-    const FF16_Strategy<tangent> at_tangent = rebind_from<tangent>();
+    const FF16_Strategy<tangent> at_tangent = rebind<tangent>();
     tangent probe = height_0;
-    odelia::ode::seed_direction(probe, 1.0);
+    odelia::ode::set_direction(probe, 1.0);
     dmass_dheight_0 = odelia::ode::derivative_along(
         at_tangent.mass_live_given_height(probe));
   }

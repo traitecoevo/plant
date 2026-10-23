@@ -6,7 +6,11 @@
 #include <odelia/interpolator.hpp>
 #include <odelia/ode_util.hpp>
 #include <odelia/ode_interface.hpp>
+#include <odelia/implicit_node.hpp>
+#include <odelia/tangent.hpp>
+#include <plant/canopy_shape.h>
 #include <plant/util.h>
+#include <array>
 #include <algorithm> // std::max, for the resource-availability floor (#253)
 #include <utility>   // std::pair, the value and slope a build supplies
 
@@ -30,7 +34,7 @@ public:
 
   void setup() {
     // Uniform and fixed for the run, and they ARE the interpolant's grid: the
-    // field is held against u = height / height_max, so a build refreshes values
+    // field is tabulated against u = height / height_max, so a build refreshes values
     // and slopes and never moves a knot. 1/64 is exact, so u_k is too.
     //
     // ⚠️ DO NOT PUT THE KNOTS BACK IN HEIGHT. They were at u_k * height_max,
@@ -73,7 +77,7 @@ public:
 
   void set_fixed_value(S value, S height_max) {
     // In u, so the grid is the same three points whatever the canopy top is; the
-    // top is held beside it and is what a query divides by.
+    // top is kept beside it and is what a query divides by.
     height_max_ = height_max;
     const double top = odelia::util::to_passive(height_max);
     knot_heights_ = {0.0, top / 2.0, top};
@@ -100,13 +104,13 @@ public:
   // where the field's dependence on the canopy top lives.
   S height_max() const { return height_max_; }
 
-  S get_value_at_height(S height) const {
+  S get_value_at_height(const S& height) const {
     return get_value_at_height(height, max_height());
   }
 
   // Variant taking a pre-fetched cap (= max_height()) so callers integrating
   // over many points pay the spline.max() lookup once rather than per point.
-  S get_value_at_height(S height, double cap) const {
+  S get_value_at_height(const S& height, double cap) const {
     // TODO(#385): change maximum - here hard-coded to 1.0
     // `cap` already guards the upper bound and the crown integral keeps
     // height >= 0 = spline.min(), so use the unchecked operator() rather than
@@ -117,8 +121,100 @@ public:
     // not be negative. The clamp is a no-op for the usual positive case, so
     // values stay bit-identical there. This is the single chokepoint for
     // FF16/K93/TF24.
-    return height <= cap ? std::max(S(0.0), spline(height / height_max_))
-                         : S(1.0);
+    //
+    // Early returns rather than std::max inside a conditional, which return a
+    // copy: at an active scalar that is a tape statement per quadrature point.
+    // `!(0 < value)` is std::max's own test, so a NaN still reads as 0.
+    if (!(height <= cap)) {
+      return S(1.0);
+    }
+    S value = spline(height / height_max_);
+    if (!(0.0 < odelia::util::to_passive(value))) {
+      return S(0.0);
+    }
+    return value;
+  }
+
+  // The integral over a crown of height `height` of phi(E, p...), where E is the
+  // field at each depth: the sum over j of
+  // crown.weight[j] * phi(E(height * crown.fraction[j]), p...), each E read as
+  // get_value_at_height reads it. phi is written once, over its scalar.
+  //
+  // At an active scalar the sum is taken in double, so it equals the passive sum
+  // bit for bit, and is recorded as one statement. Its partials on the knot data
+  // are each read's weights times phi's slope in E; on the height and the canopy
+  // top they come through each read's position; on p, from one forward-mode
+  // evaluation of phi per read.
+  template <class Phi, class... P>
+  S crown_integral(const S& height, const crown_rule& crown, Phi phi,
+                   const P&... p) const {
+    const double cap = max_height();
+    if constexpr (!odelia::CarriesAdjoint<S>) {
+      S total = 0.0;
+      for (std::size_t j = 0; j < crown.fraction.size(); ++j) {
+        total += crown.weight[j] *
+                 phi(get_value_at_height(height * crown.fraction[j], cap), p...);
+      }
+      return total;
+    } else {
+      static_assert((std::is_same_v<P, S> && ...),
+                    "crown_integral: phi's parameters carry the field's scalar");
+      using odelia::util::to_passive;
+      const double h = to_passive(height), top = to_passive(height_max_);
+      // Four partials a read, then the height, the canopy top and p: bounded by
+      // the largest rule, so they are held here and nothing is allocated per crown.
+      constexpr std::size_t max_partials =
+          4 * quadrature::QK::max_points + 2 + sizeof...(P);
+      std::array<const S*, max_partials> inputs;
+      std::array<double, max_partials> derivatives;
+      std::size_t n = 0;
+      double total = 0.0, d_height = 0.0, d_top = 0.0;
+      std::array<double, sizeof...(P)> d_p{};
+      for (std::size_t j = 0; j < crown.fraction.size(); ++j) {
+        const double s = crown.fraction[j];
+        // 1 above the canopy top and 0 where the read is not positive, as the
+        // passive read is. Neither depends on the knots or the read's position.
+        double E = 1.0;
+        bool reads_knots = false;
+        typename decltype(spline)::linear_read read{};
+        if (h * s <= cap) {
+          read = spline.read_linear(h * s / top);
+          reads_knots = 0.0 < read.value;
+          E = reads_knots ? read.value : 0.0;
+        }
+        const auto f = odelia::ode::value_and_partials(phi, E, to_passive(p)...);
+        total += crown.weight[j] * f.value;
+        for (std::size_t i = 0; i < sizeof...(P); ++i) {
+          d_p[i] += crown.weight[j] * f.partial[i + 1];
+        }
+        if (reads_knots) {
+          const double g = crown.weight[j] * f.partial[0];
+          for (std::size_t i = 0; i < read.input.size(); ++i) {
+            inputs[n] = read.input[i];
+            derivatives[n++] = g * read.weight[i];
+          }
+          d_height += g * read.slope * (s / top);
+          d_top -= g * read.slope * (h * s / top / top);
+        }
+      }
+      inputs[n] = &height;
+      derivatives[n++] = d_height;
+      inputs[n] = &height_max_;
+      derivatives[n++] = d_top;
+      const std::array<const S*, sizeof...(P)> parameters{&p...};
+      for (std::size_t i = 0; i < sizeof...(P); ++i) {
+        inputs[n] = parameters[i];
+        derivatives[n++] = d_p[i];
+      }
+      S out;
+      const odelia::supply_report report = odelia::supply_derivatives<S>(
+          total, std::span<const S* const>(inputs.data(), n),
+          std::span<const double>(derivatives.data(), n), out);
+      if (!report.whole) {
+        util::stop("crown_integral: " + report.why);
+      }
+      return out;
+    }
   }
 
   // The heights, then the values, then the slopes: the columns of r_get_state()
@@ -132,7 +228,7 @@ public:
     std::vector<double> state_x(it, it + state_n);
     std::vector<S> state_y(it + state_n, it + 2 * state_n);
     std::vector<S> state_m(it + 2 * state_n, state.end());
-    // Heights in, u held: the caller's grid names the canopy top as its last
+    // Heights in, u fixed: the caller's grid names the canopy top as its last
     // knot, and the slopes it carries are per unit height.
     const double top = state_x.empty() ? 1.0 : state_x.back();
     height_max_ = S(top);
@@ -235,7 +331,7 @@ public:
 
 private:
 
-  // Place the knots at the held fractions, once. The first and last are exactly
+  // Place the knots at the fixed fractions, once. The first and last are exactly
   // 0 and 1, so the domain is exactly [0, 1] in u and [0, height_max] in height.
   // Nothing moves them afterwards; every build refreshes the values and slopes.
   void lay_out_knots() {

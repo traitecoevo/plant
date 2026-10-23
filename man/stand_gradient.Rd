@@ -4,7 +4,12 @@
 \alias{stand_gradient}
 \title{Gradient of a stand's metrics with respect to traits.}
 \usage{
-stand_gradient(scm, metrics = NULL, traits = NULL, hyperpar = NULL)
+stand_gradient(
+  scm,
+  metrics = NULL,
+  traits = NULL,
+  hyperpar = param_hyperpar(scm$parameters)
+)
 }
 \arguments{
 \item{scm}{A run \code{SCM} object for the TF24 or FF16 model, on the
@@ -19,21 +24,18 @@ Each metric costs one sweep of the recorded trajectory, so name the ones
 wanted.}
 
 \item{traits}{Column names to differentiate with respect to; defaults to
-every differentiable parameter every species declares. A column is named
-for its species and its parameter, as \code{"1.lma"}. With \code{hyperpar},
-these name the traits to differentiate through it, and must be given.}
+every differentiable trait every species declares. A column is named for
+its species and its parameter, as \code{"1.lma"}.}
 
-\item{hyperpar}{\code{NULL}, or the hyperparameter function the stand was
-built with, as \code{TF24_hyperpar} or \code{FF16_hyperpar}. See the section on traits and
-parameters.}
+\item{hyperpar}{The hyperparameter function the strategies were built with,
+by default the one \code{add_strategies()} uses; or \code{NULL} for
+partial derivatives. See the section on traits and parameters.}
 }
 \value{
 A list with \code{value}, the metrics at the end of the run;
   \code{gradient}, a metrics-by-traits matrix; \code{refusal}, one entry per
   metric holding the reason and where it was found, or \code{NULL} where the
   metric answered; and \code{control}, the entries the gradient was taken at.
-  With \code{hyperpar}, also \code{jacobian}: for each trait, the derivative of
-  every parameter the hyperparameter function derives from it.
 }
 \description{
 Doubles in and doubles out: the active scalar is created and destroyed inside
@@ -41,26 +43,34 @@ one call and never crosses into R.
 }
 \details{
 Two terms, because a census reads the traits as well as the state. The reverse
-pass is seeded on the states the census reads at the end of the run and runs
+pass starts on the states the census reads at the end of the run and runs
 back over the steps the adaptive pass resolved; added to it is the census's own
 reading of the traits at that state, which is not a sensitivity of the state
 and so no sweep produces it.
 }
 \section{Traits and parameters}{
 
-⚠️ **Without \code{hyperpar}, each column is a PARTIAL derivative with every
-other parameter held fixed**, including those a hyperparameter function
-derives from the trait. \code{TF24_hyperpar} sets \code{k_l}, \code{r_l} and
-\code{nmass_l} from \code{lma}, so \code{gradient[, "1.lma"]} is not the
-derivative a trait fit wants: on a 3-year stand it was 2.4 to 4 times a
-finite difference of \code{lma} through \code{add_strategies()}.
+A column is the derivative as its trait moves through the construction that
+built the strategy, which is what a difference through \code{add_strategies()}
+measures. The hyperparameter function derives some parameters from the traits
+(\code{TF24_hyperpar} sets 13, among them \code{k_l}, \code{r_l}, \code{d_I},
+\code{a_f3} and the stem curve, from six traits including \code{lma}), so a
+trait's column is its own partial plus each derived parameter's partial times
+that parameter's derivative with respect to the trait. The function is
+closed-form, so that derivative is a central difference of the function
+itself, and costs no model run.
 
-Pass \code{hyperpar} for the total derivative with respect to the traits as a
-trait matrix gives them. Each trait's column is its own partial plus every
-derived parameter's partial times that parameter's derivative with respect
-to the trait. The hyperparameter function is closed-form, so that derivative
-is taken by central difference of the function itself, costing no model run.
-Pass the function the stand was built with: a run does not record it.
+Every derived parameter leaves the columns, as
+\code{colnames(hyperpar(matrix(numeric(0), 1, 0), s, filter = FALSE))} lists
+them for a strategy \code{s}. Each requested species' derived parameters are
+checked against its traits first: a strategy built by hand (TF24's default is
+not on its trade-off), edited after it was built, built at an input it does not
+keep (FF16's \code{narea}), or built through another function, is refused
+rather than differentiated along a trade-off it does not lie on. Pass the
+function it was built with, or \code{hyperpar = NULL}.
+
+With \code{hyperpar = NULL} every parameter has a column, and each is a
+partial derivative with every other parameter fixed.
 
   A refused metric's whole row is \code{NaN}: a sum has no defined value with
   an undefined term, so refusal is metric-level and carries no localisation
@@ -74,15 +84,16 @@ Pass the function the stand was built with: a run does not record it.
 
 \section{An invader against a recorded resident}{
 
-Set \code{scm$record_trajectory <- TRUE} before \code{scm$run_mutant(p)}
-and the invasion replay keeps its states; a gradient taken then is of the
-invaders' metrics with the canopy held at the recorded resident -- the
-field is exogenous to the invader and carries no derivative -- which is the
-rare-mutant derivative. Several invaders in \code{p} share one replay and
-each has its own columns, but each metric is still one sweep, so a set of
-invaders costs about what running them one at a time does. An invader of a
-resumed resident starts at the resume time, as \code{run_mutant} requires.
-A sweep of an invasion that kept no states is refused rather than re-run.
+After \code{scm$run_mutant(p)}, a gradient is of the invaders' metrics in
+the residents' recorded field, which the invaders read at each rate
+evaluation and do not move, so it carries no derivative: the rare-mutant
+derivative. A run of \code{scm$run_mutant_constant()} is refused.
+An invasion that kept no states is run again, as an invasion, to keep them;
+set \code{scm$keep_states <- TRUE} before it to save that run.
+Several invaders in \code{p} share one run and each has its own columns,
+but each metric is still one sweep, so a set of invaders costs about what
+running them one at a time does. An invader of a resumed resident starts at
+the resume time, as \code{run_mutant} requires.
 }
 
 \section{The birth rate}{

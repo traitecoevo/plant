@@ -44,7 +44,7 @@ incidence_swept <- function(rain, lifetime, k_I = 0.5, introductions = NULL) {
   key <- incidence_key(rain, lifetime, k_I, introductions)
   entry <- incidence_built(rain, lifetime, k_I, introductions)
   if (is.null(entry$gradient)) {
-    entry$gradient <- stand_gradient(entry$scm)
+    entry$gradient <- stand_gradient(entry$scm, hyperpar = NULL)
     entry$swept <-
       stats::setNames(census_clamp_counts_differentiated_tf24(entry$scm)[[1]],
                       census_clamp_names_tf24())
@@ -144,12 +144,12 @@ test_that("the light floor is counted on both paths, and binds at neither shippe
   # cohort's height. Both halves are asserted, because a counter that never fires
   # and a counter that always fires are equally uninformative.
   #
-  # ⚠️ THE FLOOR IS TWO SITES, NOT ONE, and the uncounted one bound first. The
+  # ⚠️ THE FLOOR IS TWO SITES, NOT ONE. The
   # crown site floors each quadrature point of the mean-light integrand; the
-  # radiation site floors the mean those points make. Since the shape integrates
-  # to one, a floored point cannot pull the mean below the floor -- so on the
-  # shipped shading model the crown site fires ~150x more often, and reading the
-  # radiation site alone under-reports the severance by that factor.
+  # radiation site floors the mean those points make. The crown weights sum to
+  # one, so a mean of floored points cannot fall below the floor: on the shipped
+  # shading model only the crown site fires, and reading the radiation site
+  # alone would report no severance at all.
   # Scoped to the two light sites: the other clamps have their own regimes and
   # their own block below, and several of them do bind at shipped values.
   nm <- census_clamp_names_tf24()
@@ -171,16 +171,16 @@ test_that("the light floor is counted on both paths, and binds at neither shippe
   walked <- entry$scm
   fired <- entry$clamps
   solves <- sum(entry$kinds)
-  # Counts and the ratio between the sites, not a share of solves: the crown site
-  # is counted once per quadrature point of the mean-light integrand, so solves
-  # is not its denominator and dividing by it reported 348%.
-  message(sprintf("  at k_I = 40, over %.0f solves: %s %.0f, %s %.0f (%.0fx)",
+  # Counts, not a share of solves: the crown site is counted once per quadrature
+  # point of the mean-light integrand, so solves is not its denominator and
+  # dividing by it reported 348%.
+  message(sprintf("  at k_I = 40, over %.0f solves: %s %.0f, %s %.0f",
                   solves, nm[light[1]], fired[light[1]],
-                  nm[light[2]], fired[light[2]],
-                  fired[light[2]] / fired[light[1]]))
-  expect_true(all(fired[light] > 0))
-  # The crown site binds first, so it cannot be the smaller of the two.
-  expect_gt(fired[[light[[2]]]], fired[[light[[1]]]])
+                  nm[light[2]], fired[light[2]]))
+  expect_gt(fired[[light[[2]]]], 0)
+  # The mean of floored points is at or above the floor, so the radiation site
+  # does not bind under mean light.
+  expect_equal(fired[[light[[1]]]], 0)
 
   # The forward model keeps running, and the light floor is not what stops the
   # gradient: below the floor the census is not a function of light at all, so
@@ -209,11 +209,11 @@ test_that("the light floor is counted on both paths, and binds at neither shippe
   message(sprintf("  the sweep's own severances: %s",
                   paste(sprintf("%s %.0f", nm[light], swept[light]),
                         collapse = "  ")))
-  expect_true(all(swept[light] > 0))
+  expect_gt(swept[[light[[2]]]], 0)
+  expect_equal(swept[[light[[1]]]], 0)
   # A counter a rebind drops reports zero however often the clamp fires, which is
   # what this one did before the storage was shared. And the sweep visits the
   # recorded steps rather than every solve, so its tally is the smaller.
-  expect_lt(swept[[light[[1]]]], fired[[light[[1]]]])
   expect_lt(swept[[light[[2]]]], fired[[light[[2]]]])
 
   # Named from the enum, so a site cannot be counted under its neighbour's name.
@@ -368,7 +368,7 @@ test_that("phylloptim's root-vulnerability clamps stay out of reach, with a marg
     # clamp would bind in. The forward run keeps them, so this costs no sweep:
     # measured, the three drivers contribute 510, 2503 and 3715 records whether
     # or not a gradient has been taken on them.
-    for (r in scm$store_trajectory()) {
+    for (r in scm$store_recording()) {
       s <- r$state
       n <- length(s)
       theta <- s[(n - nlayer - n_aux + 1):(n - n_aux)]

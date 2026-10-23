@@ -90,6 +90,9 @@ struct TF24_Pars {
   S a_st1  = 0.10;           // Storage capacity per unit sapwood mass [kg NSC / kg]
   S a_st2  = 0.1;            // Reserve fraction at which growth is half-on [0-1]
   S a_st3  = 0.8;            // Initial storage at birth [fraction of capacity]
+  // Added to the storage pool's own relaxation time, storage_max/(charge +
+  // drain) [yr].
+  S storage_relaxation_offset = 7.0 / 365.0;
   // * Light capture
   S k_I = 0.5;
   // * Leaf hydraulic / photosynthesis traits (default Eucalyptus saligna)
@@ -270,8 +273,8 @@ struct TF24_Pars {
   // is the correct derivative and reads as an answer. It also disarms the guard
   // -- "every registered TF24 parameter reaches an output" -- that catches a
   // parameter added to the model and never wired into it. `a_f3` is the contrast
-  // and is NOT here: it reaches fecundity_dt, so it is registered, and its column
-  // is zero only because no census metric reads that rate.
+  // and is NOT here: it reaches fecundity_dt, so it is registered, and its census
+  // column is zero only because no census metric reads that rate.
   struct no_gradient {
     const char* name;
     const char* why;
@@ -305,9 +308,6 @@ struct TF24_Pars {
       no_gradient{"a_p1", "the light-response curve the Farquhar leaf replaced"},
       no_gradient{"a_p2", "the light-response curve the Farquhar leaf replaced"},
       no_gradient{"beta1", "no equation on this path reads it"},
-      no_gradient{"S_D",
-                  "survival during dispersal, which multiplies a census "
-                  "reduction and enters no rate"},
       no_gradient{"var_sapwood_volume_cost", "declared and carried; no equation "
                                              "on this path reads it"},
       no_gradient{"nmass_l", "declared and carried; no equation reads it"},
@@ -343,9 +343,9 @@ struct TF24_Pars {
       PLANT_TF24_AD_PARAMETER(k_r),
       PLANT_TF24_AD_PARAMETER(a_p1),
       PLANT_TF24_AD_PARAMETER(a_p2),
-      // Occurs only in fecundity_dt's denominator, and no census metric reads
-      // fecundity: zero on any trajectory rather than on this one.
-      // `ladder_zero_outside_the_metric_support` prices that claim.
+      // Occurs only in fecundity_dt's denominator, which the fitness metrics
+      // read and no census metric does: its census column is zero on any
+      // trajectory. `ladder_zero_outside_the_metric_support` checks that claim.
       PLANT_TF24_AD_PARAMETER(a_f3),
       PLANT_TF24_AD_PARAMETER(a_f1),
       PLANT_TF24_AD_PARAMETER(a_f2),
@@ -357,6 +357,7 @@ struct TF24_Pars {
       PLANT_TF24_AD_PARAMETER(a_st1),
       PLANT_TF24_AD_PARAMETER(a_st2),
       PLANT_TF24_AD_PARAMETER(a_st3),
+      PLANT_TF24_AD_PARAMETER(storage_relaxation_offset),
       PLANT_TF24_AD_PARAMETER(k_I),
       PLANT_TF24_AD_PARAMETER(vcmax_25),
       PLANT_TF24_AD_PARAMETER(stem_P50),
@@ -748,10 +749,10 @@ public:
   // neither model reads either: the curve count is read at one site, building
   // the Leaf, and the floor only by the sweep. Both suites are green on their
   // pinned outputs.
-  static constexpr int scientific_version = 11;
-
-  S compute_average_light_environment(const S& z, const S& height,
-                                      const TF24_Environment<S> &environment);
+  // v12: storage_relaxation_offset = 7 days is added to the storage pool's own
+  // relaxation time (zero gives v11's rates), and a stage below empty no longer
+  // refuses the step.
+  static constexpr int scientific_version = 12;
 
   // calculate the amount of water transpired relativised by leaf area index.
 
@@ -775,6 +776,10 @@ public:
       "storage"
       });
   }
+
+  // Each species' net reproduction ratio and offspring production are stand
+  // metrics (SCM::stand_metrics), refereed in test-tf24-fitness-gradient.R.
+  static constexpr bool differentiable_fitness = true;
 
   // The metrics a census of this model sums, in the order it reports them. Beside
   // the state and aux names because all three say what this model calls its own
@@ -869,19 +874,34 @@ public:
 
   using ad_parameter = typename TF24_Pars<S>::ad_parameter;
 
+  // A constant birth rate, at the working scalar so that it is a gradient
+  // column; a variable one is a driver read as a double and has no column.
+  S birth_rate_ = 1.0;
+  bool has_birth_rate_column() const { return !this->is_variable_birth_rate; }
+  S birth_rate_at(double t) const {
+    return has_birth_rate_column()
+             ? birth_rate_
+             : S(this->extrinsic_drivers.evaluate("birth_rate", t));
+  }
+
   // How many gradient columns one of these carries, for a caller sizing a batch.
-  size_t ad_column_count() const { return TF24_Pars<S>::column_count; }
+  size_t ad_column_count() const {
+    return TF24_Pars<S>::column_count + (has_birth_rate_column() ? 1 : 0);
+  }
 
   // Addresses of the parameters a gradient can be taken with respect to, in the
-  // order ad_parameter_names() gives: the table entries whose role has a column.
-  // Both allocate, so take them once per gradient evaluation and hold them for
-  // the run rather than per block; the strategy is shared and the fields do not
-  // move. Index against .size().
+  // order ad_parameter_names() gives: the table entries whose role has a column,
+  // then the birth rate where it is one. Both allocate, so take them once per
+  // gradient evaluation and hold them for the run rather than per block; the
+  // strategy is shared and the fields do not move. Index against .size().
   std::vector<S*> ad_parameters() {
     std::vector<S*> ret;
-    ret.reserve(TF24_Pars<S>::column_count);
+    ret.reserve(ad_column_count());
     for (const ad_parameter& p : TF24_Pars<S>::ad_parameter_columns) {
       ret.push_back(&(pars.*p.at));
+    }
+    if (has_birth_rate_column()) {
+      ret.push_back(&birth_rate_);
     }
     return ret;
   }
@@ -890,9 +910,12 @@ public:
   // that order. Which parameters are left out, and why, is `undifferentiable`.
   std::vector<std::string> ad_parameter_names() {
     std::vector<std::string> ret;
-    ret.reserve(TF24_Pars<S>::column_count);
+    ret.reserve(ad_column_count());
     for (const ad_parameter& p : TF24_Pars<S>::ad_parameter_columns) {
       ret.push_back(p.name);
+    }
+    if (has_birth_rate_column()) {
+      ret.push_back("birth_rate");
     }
     return ret;
   }
@@ -961,12 +984,6 @@ public:
   void update_dependent_aux(const int index, Internals<S>& vars);
 
   // * Mass production
-  // [eqn 12] Gross annual CO2 assimilation
-  S assimilation(const TF24_Environment<S>& environment, const S& height,
-                 const S& area_leaf);
-  // [Appendix S6] Per-leaf photosynthetic rate.
-  S assimilation_leaf(const S& x) const;
-
   // [eqn 13] Total maintenance respiration
   S respiration(const S& mass_leaf, const S& mass_sapwood,
                 const S& mass_bark, const S& mass_root) const;
@@ -1086,7 +1103,7 @@ public:
   S mortality_storage_dependent_dt(const S& relative_reserves) const;
   // NSC storage capacity S_max = a_st1 * mass_sapwood [kg NSC].
   S storage_capacity(const S& area_leaf, const S& height) const;
-  // Seed the storage state for a newly germinated individual (#517).
+  // Initialise the storage state for a newly germinated individual (#517).
   void set_initial_states(const TF24_Environment<S>& environment, Internals<S>& vars);
   // [eqn 20] Survival of seedlings during establishment, from the carbon a
   // seedling produces at birth size. This form works that carbon out.
@@ -1154,7 +1171,7 @@ public:
   // defines it -- live mass equals seed mass -- and the leaf area is derived from
   // the height it returns. The two come from one call because the leaf area's own
   // partials in the allometric constants and its chain through the height are the
-  // same channel: taking either against the other held fixed mixes them.
+  // same channel: taking either with the other fixed mixes them.
   struct SeedGeometry { S height; S area_leaf; };
   SeedGeometry seed_geometry() const {
     if constexpr (std::is_same_v<S, double>) {
@@ -1213,6 +1230,7 @@ public:
 
     shading_model_ = src.shading_model_;
     eta_c = S(odelia::util::to_passive(src.eta_c));
+    birth_rate_ = S(odelia::util::to_passive(src.birth_rate_));
     canopy_shape.initialise(pars.eta, shading_model_);
     height_0 = src.height_0;
     dmass_dheight_0 = src.dmass_dheight_0;
@@ -1223,6 +1241,7 @@ public:
     beta_R_H = src.beta_R_H;
     beta_R_V = src.beta_R_V;
     function_integrator = src.function_integrator;
+    crown = src.crown;
     // Shared, not copied: a clamp on this path fires inside a per-unit copy that
     // is then discarded, so the count has to land in storage the run still owns.
     // The missing-row flag is shared for the same reason.
@@ -1243,9 +1262,9 @@ public:
 
   // This strategy at another scalar, carrying no derivative -- assign_from takes
   // every parameter through to_passive. It is what an implicit node asks a
-  // parameter set for when it needs a slope with the parameters held still.
+  // parameter set for when it needs a slope with the parameters fixed.
   template <class U>
-  TF24_Strategy<U> rebind_from() const {
+  TF24_Strategy<U> rebind() const {
     TF24_Strategy<U> out;
     out.assign_from(*this);
     return out;
@@ -1276,8 +1295,8 @@ public:
   // penalty on carbon gain. Named for the path rather than for either parameter,
   // since it belongs to neither.
   //
-  // DO NOT cache this in a member. rebind_from() runs before the seeds are
-  // written into ad_parameters(), so a copy taken at rebind carries the passive
+  // DO NOT cache this in a member. rebind() runs before the directions are
+  // set on ad_parameters(), so a copy taken at rebind carries the passive
   // value and D_c's column comes back an exact zero -- a number that reads as an
   // answer. Read here, it carries whatever tape identity pars.D_c has at the
   // call. prepare_strategy() validates (beta, L_tip) off this same expression,
@@ -1308,10 +1327,6 @@ public:
   // (replacing the old hard net>0 growth cutoff) for AD-readiness.
   double storage_gate_width = 0.1;
   double storage_prod_eps   = 1e-4;
-  // How far below empty the storage pool may sit before the solver is told the
-  // step is invalid, as a fraction of capacity. A draining cohort approaches the
-  // boundary, so this separates round-off there from a real excursion.
-  double storage_domain_tol = 1e-8;
 
   // The clamp sites this strategy reaches; the list itself is shared with the
   // environment, which reaches the others.
@@ -1364,7 +1379,7 @@ public:
   std::shared_ptr<refusal> recorded_refusal = std::make_shared<refusal>();
 
   // How many leaf solves landed in each operating-point kind, indexed by the
-  // enum. Diagnostic and deliberately outside rebind_from: a block copies the
+  // enum. Diagnostic and deliberately outside rebind: a block copies the
   // strategy per unit and discards it, so carrying the tally across would count
   // the sweep's copies as well as the run.
   std::vector<size_t> operating_point_counts =
@@ -1399,6 +1414,9 @@ public:
 
   // For integrating functions with using Gauss-Kronrod quadrature
   quadrature::QK function_integrator;
+  // The quadrature over this strategy's unit crown, which the mean light reads
+  // the light field on.
+  crown_rule crown;
 
   // Reusable per-layer root-carbon buffer, refilled (not reallocated) each
   // net_mass_production_dt call to avoid a heap allocation per derivs eval.
@@ -1481,15 +1499,17 @@ public:
   // the objective to give the carbon kept (net_mass_production_dt says why).
   S leaf_shadow_cost_;
 
-  // Every active value this strategy holds: the whole parameter table, the leaf
-  // outputs, and the per-layer root carbon. `leaf` is not among them -- it
-  // solves in double, which is what keeps the leaf off the tape.
+  // Every active value this strategy holds: the whole parameter table, the
+  // constant birth rate, the leaf outputs, and the per-layer root carbon. `leaf`
+  // is not among them -- it solves in double, which is what keeps the leaf off
+  // the tape.
   // ⚠️ A LEAF OUTPUT LEFT OFF THIS LIST CARRIES NO ROWS, SILENTLY.
   template <class F>
   void for_each_active(F&& f) {
     for (const ad_parameter& field : pars.ad_parameter_table()) {
       f(pars.*field.at);
     }
+    f(birth_rate_);
     odelia::ode::visit_active(f, leaf_profit_, leaf_soil_consumption_,
                               leaf_shadow_cost_, root_carbon_per_leaf_area_);
   }
@@ -1519,26 +1539,6 @@ TF24_Strategy<S>::TF24_Strategy() {
   // build the string state/aux name to index map
   refresh_indices();
   this->name = "TF24";
-}
-
-// not sure 'average' is the right term here..
-template <typename S>
-S TF24_Strategy<S>::compute_average_light_environment(
-    const S& z, const S& height, const TF24_Environment<S> &environment) {
-// NOTE: the light environment is clamped to a small positive floor (1e-4)
-// rather than allowed to reach 0 (original rationale was never recorded;
-// preserved as-is).
-//
-// Counted, because this is where the floor binds first: the mean this feeds is
-// an integral of already-floored values against a shape that integrates to one,
-// so a floored point here cannot lower the mean below the floor and the read
-// downstream sees nothing.
-     using std::max;
-     const S light = environment.get_environment_at_height(z);
-     if (light < S(0.0001)) {
-       note_clamp(CLAMP_LIGHT_FLOOR_CROWN);
-     }
-     return max(light, S(0.0001)) * canopy_shape.q_from_height(z, height);
 }
 
 // assumes optimise_psi_stem_TF has been run for optimal psi_stem
@@ -1768,7 +1768,7 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& radiation,
   note_leaf_clamps(clamps_before);
 
   // A collar the theorem could not place costs every output that reads it, and
-  // profit is not one of them: at an interior point it reads the collar held. An
+  // profit is not one of them: at an interior point it reads the collar fixed. An
   // unplaceable collar throws, and the catch above refuses at that grain.
 
   // ⚠️ THE VALUE IS THE LEAF'S, NOT THIS COMPOSITION'S. The solve is what plant's
@@ -1787,8 +1787,8 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& radiation,
     // instead of owning it, so a stack array is what holds them here -- and is
     // what the span was for, since a braced list built a vector per call.
     const odelia::input_and_derivative<S> rows[]{{from, 1.0}};
-    const odelia::record_report report =
-        odelia::record_with_derivatives<S>(value, rows, into);
+    const odelia::supply_report report =
+        odelia::supply_derivatives<S>(value, rows, into);
     if (report.whole) {
       return;
     }
@@ -1997,30 +1997,12 @@ void TF24_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,  In
   // relative reserves rather than instantaneous net production -- so a trough
   // draws reserves down and death is gradual, instead of the growth cutoff and
   // ~1e32 mortality spike that caused the #550 blow-up.
-  // The storage state is read as it stands, and neither end of its range is
-  // clamped: the rate below holds the flow inside [0, storage_max] by its own
-  // form, so a value outside is a step that overshot rather than a state the
-  // model has. Where a stage does land outside, both limiters go negative and
-  // push back, so the arithmetic is finite and restoring; what a committed value
-  // outside would corrupt is the meaning of the state, because mortality reads
-  // the ratio and grows without bound below zero. So the pool is refused there
-  // rather than floored, and the stepper shrinks and retries (#609, #610).
+  // Read unclamped: a stage below empty keeps finite rates for the error
+  // estimate, and non_negative_states() refuses a step that ends there.
   const S storage     = vars.state(state_idx_storage);
   const S storage_max = storage_capacity(area_leaf_, height);
   using std::exp;
   using std::sqrt;
-  // Refused only where the pool is negative by more than round-off on its own
-  // scale. The tolerance is not slack: at r = 0 the rate is the charge alone and
-  // so non-negative, so a draining cohort approaches the boundary and its last
-  // bits are round-off on a state near zero. Comparing against an exact zero
-  // refuses nearly every attempt there, which rejects nothing real.
-  if (storage < -storage_domain_tol * storage_max) {
-    odelia::util::stop_domain(
-        "TF24 storage is negative (" +
-        util::format_double(odelia::util::to_passive(storage)) +
-        " kg): the pool's flow does not leave [0, capacity], so this is a step "
-        "that overshot the empty boundary");
-  }
   const S r           = storage_max > 0.0 ? storage / storage_max : S(0.0);
   // Reserve-gated growth (#517), following Daniel's intuition that a plant
   // should not grow unless it has ample carbon in storage. Growth and
@@ -2086,44 +2068,19 @@ void TF24_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,  In
   // The pool is capped by withholding the surplus rather than by spending it,
   // so production and the two flows no longer balance: at capacity the charge
   // the gate withheld, Ppos(1 - G) ~ 1.2e-4 of production, leaves the budget.
-  vars.set_rate(state_idx_storage, charge * (1.0 - r) - drain * r);
+  //
+  // The flow relaxes the pool over storage_max/(charge + drain), hours in a
+  // seedling; the divisor adds storage_relaxation_offset to that time.
+  const S relaxation_rate =
+      storage_max > 0.0 ? (charge + drain) / storage_max : S(0.0);
+  vars.set_rate(state_idx_storage,
+                (charge * (1.0 - r) - drain * r) /
+                    (1.0 + relaxation_rate * pars.storage_relaxation_offset));
 
   // [eqn 21] - Instantaneous mortality rate, now driven by relative reserves r.
   vars.set_rate(MORTALITY_INDEX,
       mortality_dt(r, vars.state(MORTALITY_INDEX)));
 
-}
-
-// [eqn 12] Gross annual CO2 assimilation (!!not in use for TF24 model!!)
-template <typename S>
-S TF24_Strategy<S>::assimilation(const TF24_Environment<S>& environment,
-                                    const S& height,
-                                    const S& area_leaf) {
-
-
-  S A = 0.0;
-
-  // Define an anonymous function to integrate
-  // For given height in crown, take photosynthesis at depth multipled by 
-  //   amount of leaf at that depth
-  std::function<S(S)> f = [&](const S& z) -> S {
-    return assimilation_leaf(environment.get_environment_at_height(z)) *
-      canopy_shape.q_from_height(z, height);
-  };
-
-  // Integrate over crown depth using using Gauss-Kronrod quadrature.
-  // The number of points used in the integration is determined by the control parameter
-  // function_integration_rule. Rules defined in qk_rules.cpp
-  A = function_integrator.integrate(f, S(0.0), height);
-
-  return area_leaf * A;
-}
-
-// Photosynthetic rate per leaf area
-// `x` is openness, ranging from 0 to 1.
-template <typename S>
-S TF24_Strategy<S>::assimilation_leaf(const S& x) const {
-  return pars.a_p1 * x / (x + pars.a_p2);
 }
 
 // [eqn 13] Total maintenance respiration
@@ -2357,8 +2314,8 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
   };
 
   // Convert canopy openness (0-1) into absorbed radiation: PPFD attenuated by
-  // the self-shading coefficient pars.k_I. The light floor (1e-4) matches
-  // compute_average_light_environment().
+  // the self-shading coefficient pars.k_I. The light floor (1e-4) matches the
+  // mean light's.
   const double PPFD = environment.get_PPFD();
   auto radiation_at = [&](const S& light) -> S {
     // Counted, not merely applied. Where this binds the cohort's radiation is a
@@ -2392,10 +2349,21 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
     // Leaf-area-weighted mean canopy openness = integral of (light * q) over the
     // crown (q integrates to one). radiation_at then applies pars.k_I * PPFD, exactly
     // reproducing TF24's established average_radiation.
-    auto f = [&](const S& x) -> S {
-      return compute_average_light_environment(x, height, environment);
+    //
+    // Each point's light is floored at 1e-4 first (the original rationale was
+    // never recorded; preserved as-is). Counted here, because this is where the
+    // floor binds: the crown weights sum to one, so a mean of floored values
+    // cannot fall below the floor itself.
+    const auto floored = [this](const auto& light) {
+      using X = std::decay_t<decltype(light)>;
+      if (light < X(0.0001)) {
+        note_clamp(CLAMP_LIGHT_FLOOR_CROWN);
+        return X(0.0001);
+      }
+      return X(light);
     };
-    optimise_at(radiation_at(function_integrator.integrate(f, S(0.0), height)));
+    optimise_at(radiation_at(
+        environment.light_availability.crown_integral(height, crown, floored)));
   } else { // DeepCrown
     if constexpr (std::is_same_v<S, double>) {
       const std::vector<double> nodes =
@@ -2687,7 +2655,7 @@ S TF24_Strategy<S>::mortality_dt(const S& relative_reserves,
   // is bounded (see mortality_storage_dependent_dt): death becomes gradual as
   // reserves deplete instead of spiking to ~1e32 under carbon deficit (#550).
   // ⚠️ THE TEST IS THE CEILING, NOT FINITENESS, and the two must not be swapped
-  // back. A cohort held at establishment_failure_hazard has survival exactly
+  // back. A cohort that failed to establish has survival exactly
   // zero, so parking its rate there is the same statement `!is_finite` used to
   // make -- and keeping the rate parked is what makes a finite hazard
   // bit-identical to the +Inf it replaces, in the state, in the rate and so in
@@ -2726,7 +2694,7 @@ S TF24_Strategy<S>::storage_capacity(const S& area_leaf_, const S& height) const
   return pars.a_st1 * mass_sapwood(area_sapwood(area_leaf_), height);
 }
 
-// Seed the storage state for a newly germinated individual at a_st3 fraction of
+// Initialise the storage state for a newly germinated individual at a_st3 fraction of
 // its capacity (Stefaniak et al. 2026, Eq 8), so seedlings are born with
 // reserves rather than starting empty (which would kill them immediately).
 template <typename S>
@@ -2871,6 +2839,7 @@ void TF24_Strategy<S>::prepare_strategy() {
   }
 
   canopy_shape.initialise(pars.eta, shading_model_);
+  crown = canopy_shape.unit_crown(function_integrator);
 
   eta_c = CanopyShape<S>::eta_c(pars.eta);
   // NOTE: Also pre-computing, though less trivial
@@ -2881,9 +2850,9 @@ void TF24_Strategy<S>::prepare_strategy() {
   // taken here where the choice is visible and the scalar is already double.
   {
     using tangent = odelia::ode::tangent_scalar<double>;
-    const TF24_Strategy<tangent> at_tangent = rebind_from<tangent>();
+    const TF24_Strategy<tangent> at_tangent = rebind<tangent>();
     tangent probe = height_0;
-    odelia::ode::seed_direction(probe, 1.0);
+    odelia::ode::set_direction(probe, 1.0);
     dmass_dheight_0 = odelia::ode::derivative_along(
         at_tangent.mass_live_given_height(probe));
   }
@@ -2911,6 +2880,11 @@ void TF24_Strategy<S>::prepare_strategy() {
       "use a constant theta. A hydraulics-only theta profile would be "
       "physically inconsistent, so it is refused rather than half-applied. Use "
       "D_c to vary the height dependence of resistance.");
+  }
+
+  // A negative offset can zero the storage rate's divisor or flip its sign.
+  if (!(odelia::util::to_passive(pars.storage_relaxation_offset) >= 0.0)) {
+    throw std::invalid_argument("storage_relaxation_offset must be >= 0");
   }
 
   if (odelia::util::to_passive(stem_path_exponent()) != 0.0) {
@@ -2945,6 +2919,7 @@ void TF24_Strategy<S>::prepare_strategy() {
                                          odelia::drivers::Slopes::monotone);
   } else {
     this->extrinsic_drivers.set_constant("birth_rate", this->birth_rate_y[0]);
+    birth_rate_ = this->birth_rate_y[0];
   }
   if constexpr (std::is_same_v<S, double>) {
     // (P50, c) per curve, and phylloptim derives b and psi_crit itself. Handing

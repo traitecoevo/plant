@@ -99,7 +99,7 @@ if ("workflow" %in% tasks) {
   sp0 <- r$burn$patch$species[[1]]
   stamp("burn-in: %s at %g yr in %.1f s; %d cohorts, %d with density, %d retired",
         if (r$conv$converged) "converged" else "NOT converged", r$T1, r$w_burn, sp0$size,
-        sum(exp(sp0$log_densities_state) > 0), sum(sp0$retired))
+        sum(!sp0$retired), sum(sp0$retired))
   print(round(r$conv$trace, 4))
   saveRDS(list(trace = r$conv$trace, converged = r$conv$converged, time = r$T1,
                wall = r$w_burn, snapshots = tidy_snapshots(r$burn), state = r$state),
