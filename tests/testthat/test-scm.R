@@ -314,6 +314,14 @@ test_that("A run's steps answer to the soil's tolerance scale, and at one to not
   soil <- run(ode_tol_scale_soil = 10)
   expect_lt(length(soil$ode_times), length(base$ode_times))
 
+  ## The soil's substeps take their tolerance from the control: at its default
+  ## the run is the same, and looser it takes fewer substeps.
+  substeps <- function(scm) sum(lengths(scm$ode_soil_substep_ends))
+  substepped <- run(ode_soil_substep = TRUE)
+  same_run(run(ode_soil_substep = TRUE, ode_soil_substep_tol = 1e-9), substepped)
+  expect_lt(substeps(run(ode_soil_substep = TRUE, ode_soil_substep_tol = 1e-6)),
+            substeps(substepped))
+
   ## A model with no soil gives the scale nothing to loosen.
   ff <- add_strategies(scm_base_parameters("FF16"), trait_matrix(0.0825, "lma"))
   same_run(run_scm(ff, ctrl = Control(ode_tol_scale_soil = 100)),

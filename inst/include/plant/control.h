@@ -88,6 +88,9 @@ struct Control {
   // or substepping lets it grow. A step that spans a knot of the rain substeps
   // it whatever this is.
   bool ode_soil_substep;
+  // The relative tolerance that chooses the soil's substeps (odelia's
+  // OdeControl::substep_tol); the absolute is 1e-4 of it.
+  double ode_soil_substep_tol;
 
   // Multiplies the tolerance on TF24's soil layers, so above 1 loosens it.
   double ode_tol_scale_soil;
@@ -136,8 +139,8 @@ inline bool freezes_retired(const Control& c) {
   return c.absorb_epsilon > 0.0;
 }
 
-// Refuses a tolerance scale the stepper cannot use: one that is not positive.
-void validate_ode_tol_scales(const Control& control);
+// Refuses a tolerance the stepper cannot use: one that is not positive.
+void validate_ode_tolerances(const Control& control);
 
 // odelia's step-size rule without its stabilisation term: a stand's step is
 // set by accuracy and by the introduction schedule rather than by stability,
@@ -152,6 +155,7 @@ inline odelia::ode::OdeControl make_ode_control(const Control& control) {
                               control.ode_step_size_initial);
   ret.set_stabilisation(0.0);
   ret.substep_subsystem = control.ode_soil_substep;
+  ret.substep_tol = control.ode_soil_substep_tol;
   return ret;
 }
 

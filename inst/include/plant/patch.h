@@ -684,7 +684,7 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
     control(c) {
 
   parameters.validate();
-  validate_ode_tol_scales(control);
+  validate_ode_tolerances(control);
 
   // The validated member, not the argument: validate() derives the regime from
   // patch_type and max_patch_lifetime, so an argument whose lifetime was
@@ -714,7 +714,7 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c,
     control(c) {
 
   parameters.validate();
-  validate_ode_tol_scales(control);
+  validate_ode_tolerances(control);
 
   survival_weighting = parameters.disturbance;
   check_retirement_coordinate();

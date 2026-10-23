@@ -17,6 +17,7 @@ test_that("Defaults", {
     ode_tol_rel = 1e-5,
     # Only a step across a knot of the rain substeps the soil.
     ode_soil_substep = FALSE,
+    ode_soil_substep_tol = 1e-9,
     # A scale of one leaves the soil's tolerance as it was.
     ode_tol_scale_soil = 1,
     fixed_time_step = 0.0,
@@ -81,7 +82,7 @@ test_that("a Control or Parameters saved before a field existed still loads", {
   expect_equal(a$parameters$fitness_window_start, 0)
 })
 
-test_that("a tolerance scale the stepper cannot use is refused", {
+test_that("a tolerance the stepper cannot use is refused", {
   ## Refused where a patch takes its control, so a run fails before its first
   ## step rather than at the step that reads the scale.
   patch <- function(...) {
@@ -90,5 +91,6 @@ test_that("a tolerance scale the stepper cannot use is refused", {
   }
   expect_error(patch(ode_tol_scale_soil = 0), "must be positive")
   expect_error(patch(ode_tol_scale_soil = NaN), "must be positive")
-  expect_no_error(patch(ode_tol_scale_soil = 100))
+  expect_error(patch(ode_soil_substep_tol = 0), "must be positive")
+  expect_no_error(patch(ode_tol_scale_soil = 100, ode_soil_substep_tol = 1e-7))
 })

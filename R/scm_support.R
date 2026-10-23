@@ -10,7 +10,8 @@
 ##' \code{ode_tol_scale_soil} multiplies the tolerance on TF24's soil layers in
 ##' the SCM's adaptive steps, which decides which steps it takes and nothing
 ##' else. Its default of 1 leaves every step as it was. The stochastic runner
-##' ignores it, and warns.
+##' ignores it, and warns. \code{ode_soil_substep_tol} is the relative
+##' tolerance that chooses the soil's substeps inside a step (default 1e-9).
 ##'
 ##' Under \code{control_tf24()} the cap keeps an invader's storage pools stable.
 ##'
