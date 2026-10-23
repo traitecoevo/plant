@@ -127,6 +127,25 @@ test_that("a trait's total through FF16_hyperpar is the difference through add_s
   expect_equal(g$gradient["mass_above_ground", "1.lma"], fd, tolerance = 1e-5)
 })
 
+test_that("both crown integrals differentiate through the light and the leaf rate", {
+  # Deep crown integrates the leaf rate over the crown, so a_p1 reaches the census
+  # as a parameter of the integrand; mean light integrates the light alone and
+  # applies a_p1 after. lma reaches both through the light field and the height
+  # the crown is read at.
+  for (model in c("deep-crown", "mean-light")) {
+    ctrl <- referee_control(shading_model = model)
+    scm <- ff16_stand(lifetime = 5, ctrl = ctrl)
+    g <- stand_gradient(scm, metrics = "mass_above_ground",
+                        traits = c("1.lma", "1.a_p1"), hyperpar = NULL)
+    for (trait in c("lma", "a_p1")) {
+      fd <- central_difference(pinned(scm), 1, trait, "mass_above_ground",
+                               ctrl = ctrl)
+      expect_equal(g$gradient["mass_above_ground", paste0("1.", trait)], fd,
+                   tolerance = 1e-5, label = paste(model, trait))
+    }
+  }
+})
+
 test_that("two FF16 species carry each their own columns", {
   scm <- ff16_stand(lifetime = 5, lma = c(0.0825, 0.2))
   g <- stand_gradient(scm, metrics = "mass_above_ground",
