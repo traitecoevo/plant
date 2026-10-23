@@ -149,7 +149,7 @@ void StochasticSpecies<T,E>::introduce_new_node() {
 template <typename T, typename E>
 void StochasticSpecies<T,E>::introduce_new_node(const E& environment) {
   introduce_new_node();
-  // Seed strategy-specific initial states (e.g. TF24's carbohydrate store) from
+  // Initialise strategy-specific initial states (e.g. TF24's carbohydrate store) from
   // the birth environment before the first rates evaluation, as the
   // deterministic path does in Node::compute_initial_conditions.
   nodes.back().set_initial_states(environment);

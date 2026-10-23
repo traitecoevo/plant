@@ -1,7 +1,7 @@
 # Introductions, where the state changes dimension.
 #
 # The minimum fixture is two species and three introductions in the order
-# species 1, species 2, species 1 -- four ranges, with the node stride
+# species 1, species 2, species 1 -- four segments, with the node stride
 # exercised in both directions. Introducing into species 1 while species 2 exists
 # is the arrangement a narrowing implemented as a truncation of the tail fails
 # on.
@@ -15,7 +15,7 @@ test_that("the fixture actually widens, in both stride directions", {
   # Non-vacuity before anything else: a probe of introductions on a stand that
   # introduces nothing proves nothing.
   stand <- ladder_stand_introductions()
-  trajectory <- stand$store_trajectory()
+  trajectory <- stand$store_recording()
   widths <- vapply(trajectory, function(s) length(s$state), numeric(1))
   changes <- which(diff(widths) != 0)
   message(sprintf("\n  %d recorded steps, %d introductions, widths %s",
@@ -34,13 +34,12 @@ test_that("the fixture actually widens, in both stride directions", {
 test_that("a reloaded state carries the boundary node the run carries", {
   # A stage evaluates the inflow condition twice, in two different fields, and
   # they are the same function at different arguments: the first is taken with
-  # every species' boundary interval left off, the field is then rebuilt including
-  # it, and the second is taken in that rebuilt field. The reductions were built
-  # on the first; the water aggregation, an introduced node and a census all read
-  # the second.
+  # every species' boundary node left out, the field is then rebuilt including
+  # it, and the second is taken in that rebuilt field. The newest interval's
+  # establishment rate and the water aggregation read the second.
   #
-  # Every rebuild the sweep does -- the census seed, the census's direct term, the
-  # replay of an introduction, and the introduction's own transpose -- starts from
+  # Every rebuild the sweep does -- the census adjoint, the census's direct term, the
+  # pinned run of an introduction, and the introduction's own transpose -- starts from
   # a recorded state, and a state load alone stops at the first evaluation. A sweep
   # that stops there linearises a boundary node the trajectory never carried, and
   # the only thing standing between that and a plausible wrong gradient is this
@@ -49,8 +48,8 @@ test_that("a reloaded state carries the boundary node the run carries", {
   p$node_schedule_times <- list(c(0, 0.29, 0.94), c(0, 0.57))
   stand <- ladder_run(p)
 
-  # What the run left behind is what the run introduced from and censused.
-  left <- ladder_boundary_density(stand)
+  # What the run left behind is what the run's last rates read.
+  left <- ladder_boundary_carbon(stand)
   patch <- ladder_as_patch(stand)
   both <- ladder_boundary_evaluations(patch, patch$ode_state, patch$ode_time)
 
@@ -96,7 +95,7 @@ test_that("the inflow condition's own parameters carry a row", {
 
 test_that("the boundary node's row carries the field its own cohorts build", {
   # A twin at an active scalar derives the auxiliaries a state determines as it is
-  # built, which is before a caller has seeded anything. Leaf area at fixed height
+  # built, which is before a caller has set any direction. Leaf area at fixed height
   # then carries no row, and neither does the field the reduction builds from it,
   # so the two constants that set leaf area come back short by their whole field
   # channel while every parameter the reduction reads directly stays exact.
@@ -125,6 +124,10 @@ test_that("the boundary node's row carries the field its own cohorts build", {
     expect_equal(got$carbon, ref$value[["carbon"]],
                  tolerance = 8 * .Machine$double.eps,
                  label = paste("birth-size carbon,", name))
+    # On this coordinate the boundary node's density is the birth rate, which
+    # reads no trait, so the field reaches establishment through the carbon a
+    # recruit produces and not through the density.
+    expect_identical(got$dlog_density, 0)
 
     # The seed's height solves live mass equals seed mass, which reads the tissue
     # and allometric parameters and nothing the reduction owns. So k_I's height
@@ -137,7 +140,7 @@ test_that("the boundary node's row carries the field its own cohorts build", {
       expect_identical(got$dheight, 0)
     }
 
-    parts <- c("log_density", "carbon", if (reaches_birth_size) "height")
+    parts <- c("carbon", if (reaches_birth_size) "height")
     for (part in parts) {
       row <- got[[paste0("d", part)]]
       expect_gt(abs(row), 0)
@@ -151,17 +154,17 @@ test_that("the boundary node's row carries the field its own cohorts build", {
 test_that("the introduction map's whole Jacobian agrees entry by entry", {
   # This fixture's own unit, and the one object it had no reference for. The map is the
   # pre-introduction state and the traits in, the whole widened state out; the
-  # forward side seeds one tangent per input column and the reverse side is the
+  # forward side sets one direction per input column and the reverse side is the
   # transpose the sweep runs. Both go through introduce_over, so the reference
   # traverses the forward function and not the transpose.
   #
   # Formed entirely rather than contracted: a dot product returns one number, hides
-  # an error behind a small seed component, and localises to nothing when it fails.
+  # an error behind a small adjoint component, and localises to nothing when it fails.
   # At this size the whole object fits.
   p <- ladder_parameters(c("fast", "slow"))
   p$node_schedule_times <- list(c(0, 0.29), c(0))
   stand <- ladder_run(p)
-  trajectory <- stand$store_trajectory()
+  trajectory <- stand$store_recording()
   widths <- vapply(trajectory, function(s) length(s$state), numeric(1))
   introduction <- which(diff(widths) != 0)
   times <- vapply(trajectory, function(s) s$time, numeric(1))
@@ -188,8 +191,8 @@ test_that("the introduction map's whole Jacobian agrees entry by entry", {
   }
 })
 
-test_that("the state a range resumes from is the one the introduction made", {
-  # The state the range above an introduction linearises its first step at is
+test_that("the state a segment resumes from is the one the introduction made", {
+  # The state the segment above an introduction linearises its first step at is
   # rebuilt rather than recorded -- no record holds it -- and the sweep only
   # length-checks the rebuild. Two things must hold of it and neither was asserted:
   # the rows an introduction does not touch come through unchanged, and the rows it
@@ -200,7 +203,7 @@ test_that("the state a range resumes from is the one the introduction made", {
   p <- ladder_parameters(c("fast", "slow"))
   p$node_schedule_times <- list(c(0, 0.29), c(0))
   stand <- ladder_run(p)
-  trajectory <- stand$store_trajectory()
+  trajectory <- stand$store_recording()
   widths <- vapply(trajectory, function(s) length(s$state), numeric(1))
   introduction <- which(diff(widths) != 0)
   times <- vapply(trajectory, function(s) s$time, numeric(1))
@@ -250,12 +253,12 @@ test_that("the initial reserve channel carries a row", {
   expect_gt(peak, 0)
 })
 
-test_that("the newcomer depends on the state it was introduced into", {
-  # The introduction is evaluated at the pre-introduction state: the field is
-  # rebuilt and the boundary node placed in it, so the newcomer's own quantities
-  # depend on the state before the introduction as well as on the traits. An
-  # implementation written as though the newcomer has no predecessor drops that
-  # half entirely.
+test_that("the recruit depends on the state it is introduced into", {
+  # The boundary node is evaluated at the pre-introduction state: the field is
+  # rebuilt and the boundary node placed in it, so the carbon a recruit produces,
+  # which the establishment of the seeds arriving then reads, depends on the
+  # state as well as on the traits. An implementation written as though the
+  # recruit has no predecessor drops that half entirely.
   #
   # Perturbing the soil at the introduction time is what exposes it, because a
   # boundary node taking its potentials from a cache has no visible dependence on
@@ -270,7 +273,7 @@ test_that("the newcomer depends on the state it was introduced into", {
   p <- ladder_parameters(c("fast", "slow"))
   p$node_schedule_times <- list(c(0, 0.29, 0.94), c(0, 0.57))
 
-  trajectory <- stand$store_trajectory()
+  trajectory <- stand$store_recording()
   widths <- vapply(trajectory, function(s) length(s$state), numeric(1))
   introduction <- which(diff(widths) != 0)
   b <- introduction[[2]]                      # an introduction with a populated field
@@ -288,11 +291,11 @@ test_that("the newcomer depends on the state it was introduced into", {
     }
     patch
   }
-  newcomer_density <- function(state) {
+  recruit_carbon <- function(state) {
     patch <- founding_patch()
     patch$set_ode_state(state, at)
     invisible(patch$ode_rates)
-    ladder_boundary_density(patch)
+    ladder_boundary_carbon(patch)
   }
 
   # The soil block begins after every species' nodes, so its offset is read off the
@@ -304,7 +307,7 @@ test_that("the newcomer depends on the state it was introduced into", {
                          function(i) template$species[[i]]$ode_size,
                          numeric(1))) + 1L
 
-  base <- newcomer_density(pre)
+  base <- recruit_carbon(pre)
   # The top layer, and it has to be the top one: a plant at birth size is
   # shallow-rooted, so the deepest layer of the column does not reach it and a
   # perturbation there moves the newcomer by exactly zero. That is a property of
@@ -312,19 +315,19 @@ test_that("the newcomer depends on the state it was introduced into", {
   # the channel missing.
   bumped <- pre
   bumped[[moisture]] <- bumped[[moisture]] * 1.05
-  moved <- newcomer_density(bumped)
+  moved <- recruit_carbon(bumped)
 
   gap <- max(abs(moved - base) / abs(base))
-  message(sprintf("\n  a 5%% perturbation of the top layer moves the boundary node by %.3e",
+  message(sprintf("\n  a 5%% perturbation of the top layer moves the recruit's carbon by %.3e",
                   gap))
   expect_gt(gap, 1e-9)
 })
 
 test_that("the initial condition carries no trait row on these fixtures", {
-  # The last range's state adjoint is the initial-condition term, and the sweep
+  # The last segment's state adjoint is the initial-condition term, and the sweep
   # discards the final narrowed vector. That is exact here and it is a scope
   # statement rather than a check passing: every fixture in this ladder starts
-  # from bare ground, so the first range is the empty patch and y(0) is the soil
+  # from bare ground, so the first segment is the empty patch and y(0) is the soil
   # alone. No trait reaches it, so there is nothing in the discarded vector.
   #
   # What the discard would lose is a run resumed from a populated exported state,
@@ -335,7 +338,7 @@ test_that("the initial condition carries no trait row on these fixtures", {
   # do whatever the sweep keeps.
   shared <- ladder_shared("introductions")
   stand <- shared$stand
-  trajectory <- stand$store_trajectory()
+  trajectory <- stand$store_recording()
   widths <- vapply(trajectory, function(s) length(s$state), numeric(1))
   # Bare ground: the first recorded width is the narrowest the run ever has, and
   # the very first step is already an introduction, so nothing was integrated before the
@@ -390,7 +393,7 @@ test_that("a newcomer's leaf area reaches the census through a field built witho
 
   # The reference has to be a derivative of the same trajectory before its
   # disagreement means anything.
-  ladder_report_margin("the replay reaches this stand's own census",
+  ladder_report_margin("the pinned run reaches this stand's own census",
                        ladder_replay_floor(stand, result$value), 1e-9)
 
   # The census's own reading of the traits, so the trajectory term can be separated
@@ -402,7 +405,7 @@ test_that("a newcomer's leaf area reaches the census through a field built witho
   # The field-borne pair, and every parameter reaching the census through the seed's
   # own size. The birth-size class is here because a row missing where a newborn's
   # state is written moved all eight of them together, on this fixture, while the
-  # field-borne columns held -- and only two of the eight were being compared, under
+  # field-borne columns fixed -- and only two of the eight were being compared, under
   # a bound widened for them. The class is what an introduction puts on the path, so the
   # class is what an introduction's rung asks for.
   wanted <- c("1.k_I", "2.k_I",
@@ -428,61 +431,61 @@ test_that("a newcomer's leaf area reaches the census through a field built witho
 })
 
 
-test_that("the census's sensitivity to a range's starting state is refereed", {
-  # A range's first step runs from a state no record holds -- the widened one,
+test_that("the census's sensitivity to a segment's starting state is refereed", {
+  # A segment's first step runs from a state no record holds -- the widened one,
   # after the introduction and before the step. The three probes here are the only
   # way to reach it: one names the state, one differentiates the whole remaining
-  # trajectory from it exactly, and one replays that trajectory in plain double so
+  # trajectory from it exactly, and one reruns that trajectory in plain double so
   # the first can be differenced.
   #
   # This is the forward counterpart of what the sweep carries and discards: the
   # adjoint it holds after the last introduction is d(census)/d(this state). None
   # of the reverse pass is on this path, so the two share no code.
   stand <- ladder_stand_introductions_short()
-  base <- ladder_range_base_state(stand, 0L)
+  base <- ladder_segment_base_state(stand, 0L)
 
   # Segment 0 is the state no step reached, which on this coordinate holds the
   # environment and no cohort -- so its width is the soil column's.
   expect_gt(length(base), 0L)
-  message(sprintf("\n  range 0 starts from %d components", length(base)))
+  message(sprintf("\n  segment 0 starts from %d components", length(base)))
 
-  # An unseeded direction differentiates nothing, which pins that the tangent is
-  # carried by the seed rather than by the replay.
+  # A zero direction differentiates nothing, which pins that the tangent is
+  # carried by the direction rather than by the pinned run.
   none <- ladder_census_initial_state_tangent_tf24(stand, numeric(length(base)),
                                                    0L)
   expect_true(all(none$tangent == 0))
   expect_true(all(is.finite(none$value)))
 
-  # The replay has to reach the same census the tangent reports, or the two are
+  # The pinned run has to reach the same census the tangent reports, or the two are
   # differentiating different functions.
   #
   # ⚠️ THE BUDGET IS 1e-9 AND IT IS THE SAME CLAIM THIS FILE MAKES ONE TEST ABOVE,
   # where it reads 9.78e-13 against 1e-9. It was 1e-12 here, fitted to a reading of
   # 1.24e-15, and that reading was luck rather than a property: the two routes are
-  # one function at two scalars, so with a zero seed they differ only by whatever a
+  # one function at two scalars, so with a zero direction they differ only by whatever a
   # nested root-find's iterate count does with a 1e-16 input difference -- which
   # nothing on either route controls, and which reshuffles whenever the curve the
   # find walks changes shape. Measured on that curve's two forms: 1.24e-15 with the
   # conductivity on its own table, 4.4e-13 with it read as the integral's slope,
   # 1.36e-12 with the integral read as a quintic. The tangent-against-difference
   # checks below -- which are what this file is for -- are unmoved by all three.
-  replayed <- ladder_census_initial_state_replay_tf24(stand, base, 0L)
-  ladder_report_margin("the initial-state replay reaches the run's census",
-                       max(abs(replayed - none$value) / abs(none$value)), 1e-9)
+  rerun_census <- ladder_census_initial_state_pinned_tf24(stand, base, 0L)
+  ladder_report_margin("the initial-state pinned run reaches the run's census",
+                       max(abs(rerun_census - none$value) / abs(none$value)), 1e-9)
 
   for (i in seq_along(base)) {
     d <- replace(numeric(length(base)), i, 1)
     tangent <- ladder_census_initial_state_tangent_tf24(stand, d, 0L)$tangent
     along <- function(rel) {
       h <- max(abs(base[[i]]), 1) * rel
-      (ladder_census_initial_state_replay_tf24(stand, base + h * d, 0L) -
-         ladder_census_initial_state_replay_tf24(stand, base - h * d, 0L)) /
+      (ladder_census_initial_state_pinned_tf24(stand, base + h * d, 0L) -
+         ladder_census_initial_state_pinned_tf24(stand, base - h * d, 0L)) /
         (2 * h)
     }
     coarse <- along(1e-5)
     fine <- along(1e-6)
     scale <- max(abs(fine))
-    if (scale == 0) {
+    if (all(abs(fine) <= 1e-9 * abs(none$value))) {
       # ⚠️ NOT A SKIP, AND IT WAS ONE. The difference says this component reaches
       # no census metric, and the tangent has to say the same: a live tangent
       # beside a dead difference is a channel one route has and the other does
@@ -490,20 +493,22 @@ test_that("the census's sensitivity to a range's starting state is refereed", {
       # asserted nothing at all, so a wrong non-zero tangent passed -- and the
       # count is how it hid: the file went 104 passes to 103 when one more
       # component joined this branch, with a message rather than a failure.
-      # ⚠️ THE BOUND IS THE CENSUS'S RESOLUTION, NOT ZERO, and the difference
-      # between the two readings is what this measures. Components 6 to 9 come
-      # back EXACTLY 0.00e+00 -- structurally dead, no channel at all. Component 4
-      # comes back 2.2e-11 of the census: a live channel whose response is below
-      # what a replayed difference can carry, so the difference reads a hard zero
-      # and lands here. Holding it to 1e-12 would report the census's own last
-      # bits as a disagreement between the two routes.
+      # ⚠️ THE BOUND IS THE CENSUS'S RESOLUTION, NOT ZERO, on both routes, and
+      # each metric is read against its own value: offspring production is 1e-19
+      # here, so its difference's noise is larger than the other metrics' whole
+      # response to a deep layer. Components 6 to 10 come back exactly zero --
+      # structurally dead, no channel at all. The three deeper soil layers come
+      # back 2.7e-10, 4.1e-11 and 1.8e-12 of the census on the tangent: live
+      # channels whose response is below what a pinned-run difference can carry.
+      # Holding them to 1e-12 would report the census's own last bits as a
+      # disagreement between the two routes.
       ladder_report_margin(
-        sprintf("d(census)/d(range 0 state %d) is zero on both routes", i),
+        sprintf("d(census)/d(segment 0 state %d) is zero on both routes", i),
         max(abs(tangent)) / max(abs(none$value)), 1e-9)
       next
     }
     floor <- max(max(abs(coarse - fine)) / scale, 4 * .Machine$double.eps)
-    ladder_report_margin(sprintf("d(census)/d(range 0 state %d)", i),
+    ladder_report_margin(sprintf("d(census)/d(segment 0 state %d)", i),
                          max(abs(tangent - fine)) / scale, 10 * floor)
   }
 })

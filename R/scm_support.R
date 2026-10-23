@@ -57,10 +57,11 @@ scm_base_parameters <- function(type = NA, env = environment_type(type)) {
 ##' @param refine_schedule Should the node-introduction schedule be adaptively
 ##'   refined before/while running (using \code{schedule_eps} and
 ##'   \code{schedule_nsteps} from \code{ctrl})? Refinement records the ODE
-##'   schedule its final run took into \code{p$ode_times} and
-##'   \code{p$ode_step_sizes}, so a later run of those parameters replays it
-##'   exactly rather than choosing its own steps again.
-##' @param record_trajectory Should the run keep the state at every accepted
+##'   schedule its final run took into \code{p$ode_times},
+##'   \code{p$ode_step_sizes}, \code{p$ode_soil_input_slopes} and
+##'   \code{p$ode_soil_substep_ends}, so a later run of those parameters takes
+##'   it exactly rather than choosing its own steps again.
+##' @param keep_states Should the run keep the state at every accepted
 ##'   step? A gradient sweeps those states and cannot recover them from a
 ##'   finished run, so a run that did not keep them is repeated -- one whole
 ##'   forward integration. Asked for here because the flag has to be set before
@@ -83,7 +84,7 @@ scm_base_parameters <- function(type = NA, env = environment_type(type)) {
 run_scm <- function(p, env = NULL,
                     ctrl = control(),
                     refine_schedule = FALSE, collect = FALSE,
-                    record_trajectory = FALSE, events = NULL, run = TRUE) {
+                    keep_states = FALSE, events = NULL, run = TRUE) {
   if (!run && (collect || refine_schedule)) {
     stop("`run = FALSE` returns an unrun SCM, so `collect` and ",
          "`refine_schedule`, which are about the run, cannot be asked for")
@@ -95,9 +96,9 @@ run_scm <- function(p, env = NULL,
     env <- Environment(types[[1]])
 
   # An ODE schedule carried by the parameters is taken, because a schedule is
-  # there to be used: p$ode_times with p$ode_step_sizes replays a recorded run
-  # exactly, and p$ode_times alone stops at a grid the caller chose. To integrate
-  # freely, carry neither.
+  # there to be used: p$ode_times with p$ode_step_sizes and the soil's records
+  # takes a recorded run's steps exactly, and p$ode_times alone stops at a grid the
+  # caller chose. To integrate freely, carry neither.
 
   ## No events supplied: the schedule comes from p$node_schedule_times, as it
   ## did before events existed. An empty Events object is how that is signalled
@@ -107,7 +108,7 @@ run_scm <- function(p, env = NULL,
 
   scm <- do.call('SCM', types)(p, env, events, ctrl)
   if (!run) {
-    scm$record_trajectory <- record_trajectory
+    scm$keep_states <- keep_states
     return(scm)
   }
   if (collect) {
@@ -118,12 +119,12 @@ run_scm <- function(p, env = NULL,
     # Refinement's runs are bisected against and discarded, so they keep no
     # states; the run a sweep walks is one more, after the schedule settles.
     scm$refine_schedule()
-    if (record_trajectory) {
-      scm$record_trajectory <- TRUE
+    if (keep_states) {
+      scm$keep_states <- TRUE
       scm$run()
     }
   } else {
-    scm$record_trajectory <- record_trajectory
+    scm$keep_states <- keep_states
     scm$run()
   }
 
@@ -146,7 +147,7 @@ run_scm <- function(p, env = NULL,
 }
 
 ##' Export the full state of a patch from a (run) \code{SCM} so it can be
-##' re-imported to seed a new run (see \code{\link{set_initial_state}}). The
+##' re-imported to initialise a new run (see \code{\link{set_initial_state}}). The
 ##' exported object captures everything needed to reproduce the patch's forward
 ##' trajectory: every node's ODE state plus the per-node birth bookkeeping
 ##' (introduction time, patch-age density and survival probability at birth)
@@ -188,13 +189,13 @@ export_patch_state <- function(scm, step = NULL) {
   species <- patch$species
   tol <- 1e-8
 
-  ## Residual schedule: the introductions not yet made. A seeded node carries
+  ## Residual schedule: the introductions not yet made. An initialised node carries
   ## its introduction time, so the residual is every scheduled time at or after
-  ## `time` that no seeded node of that species carries. A patch snapshot sits
+  ## `time` that no initialised node of that species carries. A patch snapshot sits
   ## integrated *to* its next introduction time without having introduced that
   ## node yet, so the node due at `time` itself stays in the residual; a run
   ## that ended on an introduction (one scheduled at max_patch_lifetime) has
-  ## made it, and a time a seeded node carries is never residual.
+  ## made it, and a time an initialised node carries is never residual.
   node_times <- lapply(species, function(s) s$node_times)
   residual <- Map(function(tt, made) tt[tt >= time - tol & !(tt %in% made)],
                   scm$parameters$node_schedule_times, node_times)
@@ -243,7 +244,7 @@ residual_events <- function(scm, time, residual, tol, final) {
          target_index = ev$target_index[keep], params = ev$params[keep])
 }
 
-##' Build an initial patch state from a specified size distribution, for seeding
+##' Build an initial patch state from a specified size distribution, for initialising
 ##' a patch at age 0 with pre-existing plants instead of growing it from empty
 ##' (the ecological motivation of \code{plant} issue #304). The returned object
 ##' is consumed by \code{\link{set_initial_state}}.
@@ -251,7 +252,7 @@ residual_events <- function(scm, time, residual, tol, final) {
 ##' Each species' initial nodes are described by their heights and densities;
 ##' the remaining ODE state (mortality, fecundity, accumulated reproduction,
 ##' heartwood, ...) starts at zero, all nodes are introduced at patch age 0, and
-##' the recruitment schedule continues for \code{t > 0} (the seeded distribution
+##' the recruitment schedule continues for \code{t > 0} (the initialised distribution
 ##' replaces the \code{t = 0} recruit). Pathologically large/dense initial
 ##' conditions can produce non-finite densities; \code{run_scm} guards against
 ##' this and errors with a suggestion to use more plausible inputs.
@@ -266,12 +267,18 @@ residual_events <- function(scm, time, residual, tol, final) {
 ##'   \code{densities}).
 ##' @param env Environment object (defaults to the strategy's environment).
 ##' @param ctrl Control object.
+##' @param birth_dates Per-species node birth dates, before 0 and ascending as
+##'   the heights descend (same shape as \code{heights}). Required on the
+##'   birth-date coordinate, where each node's density is its birth rate times
+##'   its survival and \code{densities} are densities in birth date: the
+##'   survival is set to give that density, and each interval's establishment to
+##'   its width, as if every seed established. Elsewhere every node is born at 0.
 ##' @return A state list suitable for \code{\link{set_initial_state}}.
 ##' @seealso \code{\link{set_initial_state}}, \code{\link{export_patch_state}}
 ##' @export
 make_initial_state <- function(p, heights, densities = NULL,
                                log_densities = NULL, env = NULL,
-                               ctrl = control()) {
+                               ctrl = control(), birth_dates = NULL) {
   types <- extract_RcppR6_template_types(p, "Parameters")
   if (is.null(env)) {
     env <- Environment(types[[1]])
@@ -301,9 +308,18 @@ make_initial_state <- function(p, heights, densities = NULL,
   patch <- do.call("Patch", types)(p, env, ctrl)
   ode_names <- patch$species[[1]]$new_node$ode_names
   hi <- match("height", ode_names)
-  ldi <- match("log_density", ode_names)
-  if (is.na(hi) || is.na(ldi)) {
-    stop("could not locate 'height'/'log_density' in node ODE names")
+  birth_date <- ctrl$node_density_in_birth_date
+  ldi <- match(if (birth_date) "mortality" else "log_density", ode_names)
+  ii <- match(c("interval_establishment", "interval_establishment_moment"),
+              ode_names)
+  if (is.na(hi) || is.na(ldi) || (birth_date && anyNA(ii))) {
+    stop("could not locate the node's height and density in its ODE names")
+  }
+  if (birth_date) {
+    if (is.null(birth_dates)) {
+      stop("the birth-date coordinate needs each node's `birth_dates`")
+    }
+    birth_dates <- as_list(birth_dates)
   }
   node_ode_size <- length(ode_names)
   env_state <- patch$ode_state # fresh patch has no nodes: environment ODE only
@@ -327,10 +343,25 @@ make_initial_state <- function(p, heights, densities = NULL,
     ld <- ld[o]
     mat <- matrix(0, nrow = node_ode_size, ncol = length(h))
     mat[hi, ] <- h
-    mat[ldi, ] <- ld
+    times <- rep(0, length(h))
+    if (birth_date) {
+      times <- birth_dates[[i]][o]
+      width <- diff(c(times, 0))
+      if (length(times) != length(h) || any(width <= 0)) {
+        stop("birth_dates must be before 0 and ascend as the heights descend ",
+             "(species ", i, ")")
+      }
+      drivers <- patch$species[[i]]$extrinsic_drivers
+      birth_rate <- vapply(times, function(t) drivers$evaluate("birth_rate", t),
+                           numeric(1))
+      mat[ldi, ] <- log(birth_rate) - ld
+      mat[ii, ] <- rbind(width, width^2 / 2)
+    } else {
+      mat[ldi, ] <- ld
+    }
     ode_chunks[[i]] <- as.vector(mat) # column-major: node-by-node, matching set_ode_state
     n[i] <- length(h)
-    node_times[[i]] <- rep(0, length(h))
+    node_times[[i]] <- times
     patch_density[[i]] <- rep(dens0, length(h))
     pr_patch_survival[[i]] <- rep(pr_surv0, length(h))
   }
@@ -342,7 +373,7 @@ make_initial_state <- function(p, heights, densities = NULL,
     node_times = node_times,
     patch_density = patch_density,
     pr_patch_survival = pr_patch_survival,
-    ## Continue recruitment for t > 0; the seeded distribution replaces the t=0 recruit.
+    ## Continue recruitment for t > 0; the initialised distribution replaces the t=0 recruit.
     node_schedule_times = lapply(p$node_schedule_times, function(tt) tt[tt > 1e-8])
   )
 }
@@ -351,17 +382,17 @@ make_initial_state <- function(p, heights, densities = NULL,
 ##' \code{Parameters} object so that the next \code{\link{run_scm}} starts from
 ##' that state instead of an empty patch. The state is carried on the
 ##' \code{Parameters} object (rather than passed separately) so the run stays
-##' self-describing and reproducible, and so the seeding survives the reset at
+##' self-describing and reproducible, and so the initial state survives the reset at
 ##' the start of every run / schedule refinement.
 ##'
-##' Each seeded cohort's patch density and survival at birth are read from the
+##' Each initial cohort's patch density and survival at birth are read from the
 ##' resuming parameters' own regime at its birth date, not taken from the
-##' export: a cohort seeded from a burn-in into a \code{\link{fitness_window}}
+##' export: a cohort initialised from a burn-in into a \code{\link{fitness_window}}
 ##' run weighs what the window gives it. Under the regime that exported it they
 ##' are the same numbers. The exported \code{patch_density} and
 ##' \code{pr_patch_survival} are checked only for their lengths.
 ##'
-##' @title Seed Parameters with an initial patch state
+##' @title Give Parameters an initial patch state
 ##' @param p A \code{Parameters} object (its strategies must match the exported
 ##'   state).
 ##' @param state An exported state list from \code{\link{export_patch_state}}.
@@ -396,13 +427,14 @@ set_initial_state <- function(p, state) {
 ##' cohort born inside \code{[start, end]} carries the tabulated weight at its
 ##' birth date and a cohort born outside carries zero. The net reproduction
 ##' ratio is then the weighted mean, over the cohorts the run introduced, of a
-##' cohort's lifetime output: the trapezium over birth dates of output times
-##' weight, divided by the trapezium of the weight on the same grid, so a
-##' uniform window is the exact mean however its edges sit against the
-##' introduction grid. Patch survival is one.
+##' cohort's lifetime output: output times weight integrated over the birth
+##' dates between the window's first and last cohorts (by establishment weight
+##' on the birth-date coordinate), divided by the trapezium of the weight on
+##' the same grid, so a uniform window is the exact mean however its edges sit
+##' against the introduction grid. Patch survival is one.
 ##'
 ##' With no knots the window is uniform, each birth date weighted
-##' \code{1 / (end - start)}. Knots give a piecewise-linear weight, held at the
+##' \code{1 / (end - start)}. Knots give a piecewise-linear weight, constant at the
 ##' end knots' values beyond them: a germination opportunity built from the
 ##' same rainfall series that drives the run, say.
 ##'

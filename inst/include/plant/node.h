@@ -57,6 +57,22 @@ public:
   // exported state, which never ran compute_initial_conditions().
   double growth_rate_at_birth() const {return birth_growth_rate;}
 
+  // Birth-date path: pr_estab integrated from this node's birth date to the
+  // next node's, split between the hat functions at the two ends, {this, next}.
+  std::pair<value_type, value_type> interval_shares(double width) const {
+    const value_type next =
+      width > 0 ? interval_establishment_moment / width : value_type(0.0);
+    return {interval_establishment - next, next};
+  }
+  // Only the newest node's interval grows: at the establishment probability of
+  // a seed arriving now, `time_since_birth` after this node's birth date.
+  void set_interval_establishment_rate(const value_type& pr_estab,
+                                       double time_since_birth) {
+    interval_establishment_dt = pr_estab;
+    interval_establishment_moment_dt = time_since_birth * pr_estab;
+  }
+  value_type interval_establishment_rate() const {return interval_establishment_dt;}
+
   // Refresh only the birth date, leaving the rest of the bookkeeping alone.
   // Used for the not-yet-introduced boundary node, whose birth date is the
   // current time and so moves with every step; see
@@ -71,12 +87,16 @@ public:
   // without re-running compute_initial_conditions (which would overwrite the
   // loaded ODE state). pr_patch_survival_at_birth feeds the fecundity rate;
   // node_introduction_time and patch_density_at_birth feed lifetime-fitness
-  // integrals. Required for a resumed run to reproduce the original trajectory.
+  // integrals, and the birth date the birth-date density. Required for a
+  // resumed run to reproduce the original trajectory.
   void set_birth_state(double time, double patch_density_in,
                        double pr_patch_survival) {
     node_introduction_time = time;
     patch_density_at_birth = patch_density_in;
     pr_patch_survival_at_birth = pr_patch_survival;
+    if (individual.control().node_density_in_birth_date) {
+      set_birth_date_density(birth_rate());
+    }
   }
 
   // Lifetime offspring of this node, weighted by the probability of
@@ -85,16 +105,18 @@ public:
     return offspring_produced_survival_weighted * patch_density_at_birth * S_D;
   }
 
-  // A cohort carrying no density: absorbed into the top layer, or at exactly
-  // zero density (born below the establishment threshold, or underflowed). Read
-  // off the density itself, so a state loaded from a recording or an export
-  // carries the answer with it and no record has to say which cohorts went.
+  // A cohort carrying no density: absorbed into the top layer, born with an
+  // infinite hazard rate, or underflowed. Read off the density itself, so a
+  // state loaded from a recording or an export carries the answer with it and
+  // no record has to say which cohorts went.
   bool retired() const { return !(density > 0.0); }
-  // Take the cohort's density to exactly zero, on the finite sentinel a cohort
-  // that never established already carries: what absorption leaves behind, once
-  // the density has moved into the top layer.
+  // Take the density to exactly zero, as absorption leaves it, through the
+  // hazard it is derived from: at or past establishment_failure_hazard.
   void retire() {
-    set_log_density(value_type(-establishment_failure_hazard));
+    const value_type b = birth_rate();
+    individual.set_state("mortality", establishment_failure_hazard +
+                                        (b > 1 ? log(b) : value_type(0.0)));
+    set_birth_date_density(b);
   }
 
   // Unfortunate, but need a get_ here because of name shadowing...
@@ -112,8 +134,12 @@ public:
   // NOTE: We are a time-independent model here so no need to pass
   // time in as an argument.  All the bits involving time are taken
   // care of by Environment for us.
-  // +2 for log_density and offspring_production_dt
-  static size_t ode_size() { return strategy_type::state_size() + 2; }
+  // +2 for log_density and offspring_production_dt; on the birth-date path the
+  // interval's establishment and its moment replace log_density.
+  size_t ode_size() const {
+    return strategy_type::state_size() + 2 +
+      (individual.control().node_density_in_birth_date ? 1 : 0);
+  }
   size_t aux_size() const { return individual.aux_size(); }
   template <typename It> It set_ode_state(It it);
   template <typename It> It ode_state(It it) const;
@@ -121,10 +147,15 @@ public:
   template <typename It> It ode_aux(It it) const;
   template <typename It> It set_ode_aux(It it);
 
-  static std::vector<std::string> ode_names() {
+  std::vector<std::string> ode_names() const {
     std::vector<std::string> names = strategy_type::state_names();
     names.push_back("offspring_produced_survival_weighted");
-    names.push_back("log_density");
+    if (individual.control().node_density_in_birth_date) {
+      names.push_back("interval_establishment");
+      names.push_back("interval_establishment_moment");
+    } else {
+      names.push_back("log_density");
+    }
     return names;
   }
 
@@ -138,7 +169,7 @@ public:
 
   individual_type individual;
 
-  // The five this node carries beside the individual's. `density` is among them
+  // What this node carries beside the individual's. `density` is among them
   // although every load rewrites it: a write keeps whatever slot the value
   // already held.
   template <class F>
@@ -146,7 +177,9 @@ public:
     odelia::ode::visit_active(f, log_density, log_density_dt, density,
                               offspring_produced_survival_weighted,
                               offspring_produced_survival_weighted_dt,
-                              individual);
+                              interval_establishment, interval_establishment_dt,
+                              interval_establishment_moment,
+                              interval_establishment_moment_dt, individual);
   }
 
 private:
@@ -162,6 +195,19 @@ private:
   // This is the gradient of growth rate with respect to height:
   value_type growth_rate_gradient(const environment_type& environment) const;
 
+  // The birth rate at this node's birth date.
+  value_type birth_rate() const {
+    return individual.birth_rate_at(node_introduction_time);
+  }
+  // On the birth-date path log_density is not a state: the birth rate at the
+  // node's birth date times its survival. A zero rate takes the sentinel, for
+  // the reason establishment_failure_hazard gives.
+  void set_birth_date_density(const value_type& birth_rate) {
+    set_log_density((birth_rate > 0 ? log(birth_rate)
+                                    : value_type(-establishment_failure_hazard)) -
+                    individual.state(MORTALITY_INDEX));
+  }
+
   value_type log_density;
   value_type log_density_dt;
   value_type density; // hmm...
@@ -174,6 +220,11 @@ private:
   double patch_density_at_birth;
   // |dh/dtau| at birth; see growth_rate_at_birth().
   double birth_growth_rate;
+  // See interval_shares().
+  value_type interval_establishment;
+  value_type interval_establishment_dt;
+  value_type interval_establishment_moment;
+  value_type interval_establishment_moment_dt;
 };
 
 template <typename T, typename E>
@@ -186,7 +237,11 @@ Node<T,E>::Node(strategy_type_ptr s)
     offspring_produced_survival_weighted_dt(0),
     node_introduction_time(0),
     patch_density_at_birth(0),
-    birth_growth_rate(0) {
+    birth_growth_rate(0),
+    interval_establishment(0),
+    interval_establishment_dt(0),
+    interval_establishment_moment(0),
+    interval_establishment_moment_dt(0) {
 }
 
 template <typename T, typename E>
@@ -219,6 +274,9 @@ void Node<T,E>::compute_node_rates(const environment_type& environment,
 template <typename T, typename E>
 void Node<T,E>::compute_rates(const environment_type& environment,
                                 double pr_patch_survival) {
+  // Zero except on the newest node, set by Species::compute_rates() after this.
+  interval_establishment_dt = value_type(0.0);
+  interval_establishment_moment_dt = value_type(0.0);
   // A cohort with no density has no trajectory, and with retirement on it is
   // not integrated either: no physiology is evaluated for it, every rate it
   // reports is zero, and its individual stays where it froze. Gated on the top
@@ -240,30 +298,29 @@ void Node<T,E>::compute_rates(const environment_type& environment,
 //
 // NOTE: The initial condition for log_density is also a bit tricky, and
 // defined on p 7 at the moment.
+//
+// On the birth-date path mortality starts at zero and density at the birth
+// rate; pr_estab enters only through Species' establishment weights.
 template <typename T, typename E>
 void Node<T,E>::compute_initial_conditions(const environment_type& environment,
                                              double pr_patch_survival,
                                              const value_type& birth_rate) {
   pr_patch_survival_at_birth = pr_patch_survival;
-  // Seed strategy-specific initial states (e.g. TF24f's tracked psi at its
+  // Initialise strategy-specific initial states (e.g. TF24f's tracked psi at its
   // optimum) before the first rates evaluation, so the birth growth rate uses
   // the initialised operating point rather than a default.
   individual.set_initial_states(environment);
-  // ⚠️ THE INDIVIDUAL'S RATES ONLY. The node's own two come after the seeding
-  // below, because both read state it writes -- taken here, the density rate is
+  // Seated before the rates, which then read the newborn's hazard.
+  if (individual.control().node_density_in_birth_date) {
+    individual.set_state("mortality", value_type(0.0));
+  }
+  // ⚠️ THE INDIVIDUAL'S RATES ONLY. The node's own two come after the initial
+  // state below, because both read state it writes -- taken here, the density rate is
   // guarded against the density this node held BEFORE birth, which on one being
   // born for the first time is zero, and the rate it reports is that zero for
   // the whole of the node's first evaluation.
   individual.compute_rates(environment);
 
-  const value_type pr_estab =
-    individual.establishment_probability_of_newborn(environment);
-  // Held at establishment_failure_hazard on the zero arm rather than at the
-  // -log(0) the equation gives; see the constant for what an infinite state
-  // costs the reverse pass.
-  individual.set_state("mortality",
-                       pr_estab > 0 ? -log(pr_estab)
-                                    : value_type(establishment_failure_hazard));
   // The birth-date axis of the node about to be introduced; Patch re-stamps
   // this with the exact introduction time as the node is pushed.
   node_introduction_time = environment.time;
@@ -278,26 +335,40 @@ void Node<T,E>::compute_initial_conditions(const environment_type& environment,
   const value_type g = individual.rate(HEIGHT_INDEX);
   // A double diagnostic read back over the R boundary, so it takes the value.
   birth_growth_rate = odelia::util::to_passive(g);
-  // The density itself, before its log: a recruit that cannot pay for itself
-  // has an establishment probability of exactly zero on the arm below
-  // threshold, so both this and its derivative are exactly zero there.
-  const value_type density_at_birth =
-    individual.control().node_density_in_birth_date
-      ? birth_rate * pr_estab
-      : (g > 0 ? birth_rate * pr_estab / g : value_type(0.0));
-  // log() reaches -Inf from that zero through 0/0, so it records a non-finite
-  // DERIVATIVE beside a correct value, and every rate reading the field this
-  // node contributes to comes back non-finite. Only exp(log_density) is read
-  // downstream, and it is continuous in both value and derivative here, so the
-  // constructed constant is the same number carrying the zero the density has.
-  //
-  // ⚠️ AND THAT CONSTANT IS FINITE, for the reason the hazard's is: -Inf is a
-  // STATE the patch carries for the rest of its life, and one no row can attach
-  // to. `exp(-establishment_failure_hazard)` is exactly zero, so the density this
-  // node contributes is the one log(0) gave it.
-  set_log_density(density_at_birth > 0
-                      ? log(density_at_birth)
-                      : value_type(-establishment_failure_hazard));
+  if (individual.control().node_density_in_birth_date) {
+    set_birth_date_density(birth_rate);
+    // A newborn whose hazard rate is infinite survives no instant.
+    if (!util::is_finite(individual.rate(MORTALITY_INDEX))) {
+      retire();
+    }
+  } else {
+    const value_type pr_estab =
+      individual.establishment_probability_of_newborn(environment);
+    // Held at establishment_failure_hazard on the zero arm rather than at the
+    // -log(0) the equation gives; see the constant for what an infinite state
+    // costs the reverse pass.
+    individual.set_state("mortality",
+                         pr_estab > 0 ? -log(pr_estab)
+                                      : value_type(establishment_failure_hazard));
+    // The density itself, before its log: a recruit that cannot pay for itself
+    // has an establishment probability of exactly zero on the arm below
+    // threshold, so both this and its derivative are exactly zero there.
+    const value_type density_at_birth =
+      g > 0 ? birth_rate * pr_estab / g : value_type(0.0);
+    // log() reaches -Inf from that zero through 0/0, so it records a non-finite
+    // DERIVATIVE beside a correct value, and every rate reading the field this
+    // node contributes to comes back non-finite. Only exp(log_density) is read
+    // downstream, and it is continuous in both value and derivative here, so the
+    // constructed constant is the same number carrying the zero the density has.
+    //
+    // ⚠️ AND THAT CONSTANT IS FINITE, for the reason the hazard's is: -Inf is a
+    // STATE the patch carries for the rest of its life, and one no row can
+    // attach to. `exp(-establishment_failure_hazard)` is exactly zero, so the
+    // density this node contributes is the one log(0) gave it.
+    set_log_density(density_at_birth > 0
+                        ? log(density_at_birth)
+                        : value_type(-establishment_failure_hazard));
+  }
 
   // Now that the density and the hazard are seated, the node's own rates.
   compute_node_rates(environment, pr_patch_survival);
@@ -347,7 +418,13 @@ It Node<T,E>::set_ode_state(It it) {
     individual.set_state(i, *it++);
   }
   offspring_produced_survival_weighted = *it++;
-  set_log_density(*it++);
+  if (individual.control().node_density_in_birth_date) {
+    interval_establishment = *it++;
+    interval_establishment_moment = *it++;
+    set_birth_date_density(birth_rate());
+  } else {
+    set_log_density(*it++);
+  }
   return it;
 }
 template <typename T, typename E>
@@ -357,7 +434,12 @@ It Node<T,E>::ode_state(It it) const {
     util::write_iterator_scalar(it, individual.state(i));
   }
   util::write_iterator_scalar(it, offspring_produced_survival_weighted);
-  util::write_iterator_scalar(it, log_density);
+  if (individual.control().node_density_in_birth_date) {
+    util::write_iterator_scalar(it, interval_establishment);
+    util::write_iterator_scalar(it, interval_establishment_moment);
+  } else {
+    util::write_iterator_scalar(it, log_density);
+  }
   return it;
 }
 template <typename T, typename E>
@@ -367,7 +449,12 @@ It Node<T,E>::ode_rates(It it) const {
     util::write_iterator_scalar(it, individual.rate(i));
   }
   util::write_iterator_scalar(it, offspring_produced_survival_weighted_dt);
-  util::write_iterator_scalar(it, log_density_dt);
+  if (individual.control().node_density_in_birth_date) {
+    util::write_iterator_scalar(it, interval_establishment_dt);
+    util::write_iterator_scalar(it, interval_establishment_moment_dt);
+  } else {
+    util::write_iterator_scalar(it, log_density_dt);
+  }
   return it;
 }
 

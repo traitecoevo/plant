@@ -221,15 +221,15 @@ test_that("offspring arrival", {
   # so the coordinate is asserted rather than assumed.
   expect_true(ctrl$node_density_in_birth_date)
   out <- run_scm(p1, env, ctrl)
-  expect_equal(out$offspring_production, 17.1720, tolerance=1e-4)
-  expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.223149), tolerance=1e-5)
+  expect_equal(out$offspring_production, 17.1406, tolerance=1e-4)
+  expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.272467), tolerance=1e-5)
 
   # two species
   p2 <- add_strategies(p0, trait_matrix(c(0.0825, 0.2625), "lma"), hyperpar = FF16_hyperpar, birth_rate = list(11.99177, 16.51006))
 
   out <- run_scm(p2, env, ctrl)
-  expect_equal(out$offspring_production, c(12.04841, 16.59391), tolerance=1e-5)
-  expect_equal(length(out$ode_times), 276)
+  expect_equal(out$offspring_production, c(12.04839, 16.59379), tolerance=1e-5)
+  expect_equal(length(out$ode_times), 269)
 
   # Non-vacuity for the coordinate claim: the other coordinate has to give a
   # different answer, or naming this one would be decoration. The magnitude is

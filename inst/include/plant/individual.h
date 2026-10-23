@@ -102,7 +102,7 @@ public:
   // The leaf area that adjoint is taken in, for the same caller.
   value_type area_leaf() const { return aux("competition_effect"); }
 
-  // Seed strategy-specific initial ODE states (e.g. an acclimating tracked
+  // Initialise strategy-specific initial ODE states (e.g. an acclimating tracked
   // state) given the birth environment. No-op for strategies that don't need it.
   void set_initial_states(const environment_type& environment) {
     strategy->set_initial_states(environment, vars);
@@ -139,6 +139,11 @@ public:
   // compute_rates has already left in aux rather than solving the leaf again.
   value_type establishment_probability_of_newborn(const environment_type &environment) {
     return strategy->establishment_probability(environment, vars);
+  }
+
+  // The birth rate at `t`, at the scalar the strategy offers it.
+  value_type birth_rate_at(double t) const {
+    return strategy->birth_rate_at(t);
   }
 
   value_type net_mass_production_dt(const environment_type &environment) {
@@ -281,7 +286,7 @@ public:
   // Differencing the growth rate needs a mutable Individual to perturb height
   // on, and it must not disturb this one's computed state and rates, so perturb
   // a copy. Both evaluations carry the scalar, so a recording of this holds the
-  // quotient and the reverse pass forms no seed for the growth rate by hand.
+  // quotient and the reverse pass forms no adjoint for the growth rate by hand.
   value_type growth_rate_gradient(const environment_type& environment) const {
     Individual probe = *this;
     // The lambda carries value_type in and out. Written as double it would

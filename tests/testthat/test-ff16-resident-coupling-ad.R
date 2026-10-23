@@ -43,7 +43,7 @@ compile_ff16_resident_ad <- function() {
       #include <cmath>
             #include <odelia/interpolator.hpp>
       #include <plant/models/ff16_production_kernel.h>
-      using adt = odelia::ode::active_scalar<double>;
+      using adt = odelia::ode::adjoint_scalar<double>;
 
       template <typename S>
       S resident_net(S a_l1, S k_I, const plant::FF16ProdPars<S>& p,

@@ -58,9 +58,8 @@ g17 <- function(x) formatC(x, format = "g", digits = 17)
 # names a patch carried, and seven columns sat uncaptured and unrefereed.
 columns <- setdiff(names(TF24_Strategy()$pars),
                    names(census_undifferentiable_tf24()))
-metrics <- census_metric_names_tf24()
-cat(sprintf("columns %d   metrics %d   regimes %d   species 2\n",
-            length(columns), length(metrics), length(regimes)))
+cat(sprintf("columns %d   regimes %d   species 2\n",
+            length(columns), length(regimes)))
 
 kinds <- list()
 rows <- list()

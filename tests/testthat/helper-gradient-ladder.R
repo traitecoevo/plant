@@ -16,7 +16,7 @@
 #                      for and requires the answer to change.
 #   adversariality     the fixtures keep every distinguishing quantity distinct:
 #                      no equal heights, no small-integer ratios, two species
-#                      differing by whole factors, seeds from a fixed generator.
+#                      differing by whole factors, test vectors from a fixed generator.
 #   tolerance          ladder_forward_floor() measures a fixture's own arithmetic
 #                      floor and every tolerance is a multiple of it.
 #
@@ -225,19 +225,19 @@ ladder_field_knots <- function(x) {
   ladder_as_patch(x)$environment$light_availability$state
 }
 
-# The state a range's first step ran from, which is what a first-range reference
+# The state a segment's first step ran from, which is what a first-segment reference
 # indexes its direction against.
 #
-# The run keeps it and nothing needs to rebuild it: store_trajectory()'s first
-# record is the first range's base, and a later range's base is the introduction
+# The run keeps it and nothing needs to rebuild it: store_recording()'s first
+# record is the first segment's base, and a later segment's base is the introduction
 # record that widened into it. Checked bit for bit against the C++ accessor this
-# replaced over 45 ranges on four stands.
-ladder_range_base_state <- function(x, range = 0L) {
-  records <- x$store_trajectory()
-  if (range == 0L) {
+# replaced over 45 segments on four stands.
+ladder_segment_base_state <- function(x, segment = 0L) {
+  records <- x$store_recording()
+  if (segment == 0L) {
     return(records[[1L]]$state)
   }
-  Filter(function(r) isTRUE(r$introduction), records)[[range]]$state
+  Filter(function(r) isTRUE(r$introduction), records)[[segment]]$state
 }
 
 # Two species, two cohorts each. Two species catch a reduction sum that collapses
@@ -297,6 +297,12 @@ ladder_patch <- function(species, heights, log_densities,
 # band. A stand left where a run put it damps every channel running through
 # growth, and a check then passes because the signal is small rather than because
 # the code is right.
+#
+# On the birth-date coordinate a node's density is its birth rate times its
+# survival, so a density is written as the mortality that gives it; and each
+# interval's establishment is written as its width, with the moment that goes
+# with it, so every node's weight is its hat function's and the reductions are
+# the trapezia over birth date they were before establishment was integrated.
 ladder_condition <- function(patch, heights, log_densities,
                              relative_reserve = 0.12, time = 1.37,
                              moisture = c(0.192, 0.271, 0.233, 0.317, 0.208)) {
@@ -309,13 +315,24 @@ ladder_condition <- function(patch, heights, log_densities,
     i_height <- match("height", names_i)
     i_storage <- match("storage", names_i)
     i_density <- match("log_density", names_i)
+    i_mortality <- match("mortality", names_i)
+    i_interval <- match(c("interval_establishment",
+                          "interval_establishment_moment"), names_i)
     stopifnot(length(heights[[i]]) == length(sp$nodes),
               length(log_densities[[i]]) == length(sp$nodes))
+    birth <- vapply(sp$nodes, function(n) n$introduction_time, numeric(1))
+    width <- diff(c(birth, time))
     for (j in seq_along(sp$nodes)) {
       base <- at + (j - 1L) * stride
       h <- heights[[i]][[j]]
       state[[base + i_height]] <- h
-      state[[base + i_density]] <- log_densities[[i]][[j]]
+      if (is.na(i_density)) {
+        birth_rate <- sp$extrinsic_drivers$evaluate("birth_rate", birth[[j]])
+        state[[base + i_mortality]] <- log(birth_rate) - log_densities[[i]][[j]]
+        state[base + i_interval] <- c(width[[j]], width[[j]]^2 / 2)
+      } else {
+        state[[base + i_density]] <- log_densities[[i]][[j]]
+      }
       state[[base + i_storage]] <-
         relative_reserve * ladder_storage_capacity(patch, i, h)
     }
@@ -383,13 +400,13 @@ ladder_stand_introductions_short <- function() {
   ladder_run(p)
 }
 
-# Many ranges, and a short run. The sweep opens a range at every introduction, so
-# the range count is what the range machinery and the insertion transpose are
+# Many segments, and a short run. The sweep opens a segment at every introduction, so
+# the segment count is what the segment machinery and the insertion transpose are
 # exercised at -- and in the DEFAULT schedule that count is derived from the patch
 # lifetime, which is why the two read as one thing. They are separable: written
-# introduction times put 61 ranges in a run of less than half a year.
+# introduction times put 61 segments in a run of less than half a year.
 #
-# Measured on this fixture: 62 introductions, 62 ranges, 68 accepted steps, and a
+# Measured on this fixture: 62 introductions, 62 segments, 68 accepted steps, and a
 # sweep in 1.7 s. The four-node stand every other trajectory rung uses has six.
 #
 # ⚠️ WHAT THIS DOES NOT REACH IS THE STEP COUNT. Sixty-eight against the ~3,400 a
@@ -423,30 +440,28 @@ ladder_stand_many_ranges <- function(n = 61L, lifetime = 0.45) {
 # seventeen steps before the state first widens.
 #
 # Every other stand introduces at the initial time, which puts the first introduction
-# at the first recorded step and leaves the lowest range with no step in it. A
-# walk that ran that range and a walk that started above it are then the same
+# at the first recorded step and leaves the lowest segment with no step in it. A
+# walk that ran that segment and a walk that started above it are then the same
 # walk. Here they are not: half the run sits below the first introduction, and the
 # census depends on the state there through three cohorts rather than through the
 # soil alone.
 #
-# The birth dates are supplied rather than taken from make_initial_state, which
-# gives every seeded node the same one; the birth-date coordinate integrates over
-# that abscissa and refuses a tie. They are distinct, negative and mutually
-# non-commensurate for the reason every other fixture's are.
+# The birth dates are distinct, negative and mutually non-commensurate for the
+# reason every other fixture's are.
 ladder_stand_resumed <- function() {
   p <- ladder_parameters(c("fast", "slow"), lifetime = 0.45)
   p$node_schedule_times <- list(c(0, 0.13, 0.31), c(0, 0.22))
   state <- make_initial_state(p,
                               heights = list(c(1.71, 0.93), c(1.24)),
                               log_densities = list(c(-0.39, -1.67), c(-1.03)),
-                              env = Environment("TF24"), ctrl = ladder_control())
-  state$node_times <- list(c(-0.37, -0.11), c(-0.23))
+                              env = Environment("TF24"), ctrl = ladder_control(),
+                              birth_dates = list(c(-0.37, -0.11), c(-0.23)))
   ladder_run(set_initial_state(p, state))
 }
 
 # Which rows of a recording are introductions, and how many of its rows are steps.
 #
-# A recording holds one row per instruction, and an introduction is an instruction: it
+# A recording holds one row per schedule_row, and an introduction is an schedule_row: it
 # shares its time with the row below it and no step reached it. So the number of
 # steps is not the number of rows, and the row an introduction happens at is a row of
 # its own rather than the gap between two.
@@ -568,7 +583,7 @@ ladder_environment <- function(rain = NULL, amplitude = 0, lifetime = 2) {
 # pays for cohorts it is not asking about. Measured on the clamped driver at a
 # lifetime of 5: twenty introductions record 3267 steps and run and sweep in
 # 17.8 s where its eighty-eight record far more and take 258, with both light
-# sites firing on both paths and the same range refusal either way.
+# sites firing on both paths and the same overflow refusal either way.
 ladder_driver_stand <- function(rain, lifetime, k_I = 0.5, amplitude = 0,
                                 introductions = NULL) {
   p <- scm_base_parameters("TF24")
@@ -626,42 +641,67 @@ ladder_nodes <- function(x) {
   for (i in seq_len(length(patch$species))) {
     sp <- patch$species[[i]]
     nodes <- c(list(sp$new_node), rev(sp$nodes))
+    weight <- ladder_establishment_weights(sp)
     out[[i]] <- data.frame(
       species = i,
       boundary = c(TRUE, rep(FALSE, length(nodes) - 1L)),
       birth_date = vapply(nodes, function(n) n$introduction_time, numeric(1)),
       height = vapply(nodes, function(n) n$height, numeric(1)),
-      log_density = vapply(nodes, function(n) n$log_density, numeric(1)))
+      log_density = vapply(nodes, function(n) n$log_density, numeric(1)),
+      weight = rev(weight))
   }
   do.call(rbind, out)
 }
 
-# Each species' inflow boundary density, as the patch currently holds it. The
-# boundary node is not ODE state, so which evaluation of the condition a patch is
-# carrying is a property of what was last done to it, and that is what the two
-# readers below are for.
-ladder_boundary_density <- function(x) {
+# Each node's establishment weight, boundary node last: each interval's
+# establishment split between the hat functions at its two ends, the upper end
+# taking the moment over the width. Written out from the interval states the
+# nodes carry rather than read back from the model.
+ladder_establishment_weights <- function(species) {
+  nodes <- species$nodes
+  t <- c(vapply(nodes, function(n) n$introduction_time, numeric(1)),
+         species$new_node$introduction_time)
+  if (!species$density_in_birth_date) {
+    return(rep(NA_real_, length(t)))
+  }
+  w <- numeric(length(t))
+  for (j in seq_along(nodes)) {
+    y <- stats::setNames(nodes[[j]]$ode_state, nodes[[j]]$ode_names)
+    width <- t[[j + 1]] - t[[j]]
+    upper <- if (width > 0) y[["interval_establishment_moment"]] / width else 0
+    w[[j]] <- w[[j]] + y[["interval_establishment"]] - upper
+    w[[j + 1]] <- w[[j + 1]] + upper
+  }
+  w
+}
+
+# Each species' recruit carbon -- what the boundary node produces at birth size,
+# which its establishment probability reads -- as the patch currently holds it.
+# The boundary node is not ODE state, so which evaluation of the condition a
+# patch is carrying is a property of what was last done to it, and that is what
+# the two readers below are for.
+ladder_boundary_carbon <- function(x) {
   patch <- ladder_as_patch(x)
-  vapply(seq_len(length(patch$species)),
-         function(i) patch$species[[i]]$new_node$log_density, numeric(1))
+  vapply(seq_len(length(patch$species)), function(i) {
+    patch$species[[i]]$new_node$individual$aux("net_mass_production_dt")
+  }, numeric(1))
 }
 
 # The inflow condition at each of its two evaluations, from one recorded state.
 #
 # A stage evaluates it twice. `in_field` is the one a state load produces, taken
-# in the field with every species' boundary interval left off -- the field is then
-# rebuilt including it, so this is the value the reductions were built on.
-# `in_uptake` is the one a rate evaluation produces, taken in that rebuilt field;
-# it is the value the water aggregation reads, the value an introduced node
-# inherits, and the value a census reports.
+# in the field with every species' boundary node left out -- the field is then
+# rebuilt including it. `in_uptake` is the one a rate evaluation produces, taken
+# in that rebuilt field; it is the value the newest interval's establishment rate
+# and the water aggregation read.
 #
 # They are the same function at different arguments, so nothing about either number
 # says which one a caller is holding.
 ladder_boundary_evaluations <- function(patch, state, time) {
   patch$set_ode_state(state, time)
-  in_field <- ladder_boundary_density(patch)
+  in_field <- ladder_boundary_carbon(patch)
   invisible(patch$ode_rates)
-  list(in_field = in_field, in_uptake = ladder_boundary_density(patch))
+  list(in_field = in_field, in_uptake = ladder_boundary_carbon(patch))
 }
 
 # A gradient's columns with their species index stripped. A check written about a
@@ -699,12 +739,13 @@ ladder_trapezium <- function(x, y) {
   sum(diff(x) * (y[-1] + y[-n])) * 0.5
 }
 
-# The leaf-area census over a named coordinate, summed over species.
+# The leaf-area census by a named coordinate's rule, summed over species.
 #
-# A census is a quadrature of a density, so its weights are gaps in the
-# coordinate the state is carried on. This forms the same sum over either choice
-# of abscissa, so the two can be compared against the model's own and the answer
-# says which axis the model integrated.
+# A census is a quadrature of a density, so its weights belong to the coordinate
+# the state is carried on: the establishment weights in birth date, the
+# trapezium in height. This forms the sum by either rule, so the two can be
+# compared against the model's own and the answer says which rule the model
+# took.
 ladder_census_leaf_area <- function(x, coordinate = c("birth_date", "height")) {
   coordinate <- match.arg(coordinate)
   nodes <- ladder_nodes(x)
@@ -712,9 +753,12 @@ ladder_census_leaf_area <- function(x, coordinate = c("birth_date", "height")) {
   for (i in unique(nodes$species)) {
     part <- nodes[nodes$species == i, , drop = FALSE]
     weighted <- exp(part$log_density) * ladder_area_leaf(x, i, part$height)
-    axis <- part[[coordinate]]
-    ord <- order(axis)
-    total <- total + ladder_trapezium(axis[ord], weighted[ord])
+    if (coordinate == "birth_date") {
+      total <- total + sum(part$weight * weighted)
+    } else {
+      ord <- order(part$height)
+      total <- total + ladder_trapezium(part$height[ord], weighted[ord])
+    }
   }
   total
 }
@@ -741,11 +785,8 @@ ladder_census_direct_term <- function(x) {
     area <- ladder_area_leaf(x, i, part$height)
     d_a_l1 <- -area / (a_l2 * a_l1)
     d_a_l2 <- -area * log(part$height / a_l1) / (a_l2^2)
-    density <- exp(part$log_density)
-    axis <- part$birth_date
-    ord <- order(axis)
-    term <- c(a_l1 = ladder_trapezium(axis[ord], (density * d_a_l1)[ord]),
-              a_l2 = ladder_trapezium(axis[ord], (density * d_a_l2)[ord]))
+    weighted <- part$weight * exp(part$log_density)
+    term <- c(a_l1 = sum(weighted * d_a_l1), a_l2 = sum(weighted * d_a_l2))
     out <- c(out, stats::setNames(term, paste0(i, ".", names(term))))
   }
   out
@@ -829,7 +870,7 @@ ladder_light_at_reads <- function(x) {
 #
 # This is a reference the forward tangent cannot be, and the reason is structural
 # rather than a matter of accuracy. The environment holds its integrated state as
-# a double store and takes it passively, so a tangent seeded on a soil moisture
+# a double store and takes it passively, so a tangent set on a soil moisture
 # carries nothing: every soil column and every soil rate row of its Jacobian is
 # exactly zero. A difference re-runs the forward balance, so it carries them.
 #
@@ -1166,17 +1207,17 @@ ladder_species_separated <- function(x) {
   all(abs(log(ratio)) > 0.2)
 }
 
-# Block-normalised seeds from a fixed generator. Soil moisture is of order a
+# Block-normalised test vectors from a fixed generator. Soil moisture is of order a
 # third and heartwood mass is in kilograms, so an unnormalised inner product is a
-# test of the largest block alone; and a seed of all ones makes a summation-order
+# test of the largest block alone; and a vector of all ones makes a summation-order
 # defect invisible. Signs alternate so a sum that should cancel does.
-ladder_seeds <- function(n, scale = NULL, seed = 20240811L) {
+ladder_test_vector <- function(n, scale = NULL, rng_seed = 20240811L) {
   had <- exists(".Random.seed", envir = globalenv())
   if (had) old <- get(".Random.seed", envir = globalenv())
   on.exit({
     if (had) assign(".Random.seed", old, envir = globalenv())
   }, add = TRUE)
-  set.seed(seed)
+  set.seed(rng_seed)
   v <- stats::runif(n, 0.3, 1.7) * rep_len(c(1, -1), n)
   if (!is.null(scale)) {
     stopifnot(length(scale) == n)
@@ -1199,9 +1240,9 @@ ladder_block_scale <- function(x) {
 # The phrase the SWEEP's own refusal carries, as distinct from every refusal the
 # leaf raises.
 #
-# A descent is a product of step Jacobians and has no error control, so it can
+# A sweep is a product of step Jacobians and has no error control, so it can
 # pass far outside the range of the answer it returns and come back: on the
-# drought stand it reaches 4.99978e+281 and contracts to 3.69e+46 one range
+# drought stand it reaches 4.99978e+281 and contracts to 3.69e+46 one segment
 # later, for a gradient of order 1e+03. A driver that answers does so with
 # margin, and one that overflows is refused rather than handed the overflow's
 # numbers.
@@ -1322,7 +1363,8 @@ ladder_shared <- function(key) {
       marginal_recruit = ladder_stand_marginal_recruit(),
       allometric_probe = ladder_stand_allometric_probe(TRUE),
       stop("ladder_shared: no such fixture: ", key, call. = FALSE))
-    assign(key, list(stand = stand, gradient = stand_gradient(stand)),
+    assign(key, list(stand = stand, gradient = stand_gradient(stand,
+                                                              hyperpar = NULL)),
            envir = ladder_shared_cache)
   }
   get(key, envir = ladder_shared_cache, inherits = FALSE)
@@ -1396,22 +1438,29 @@ ladder_reproductive_rates <- function() {
 
 # Reach the census through the introduction boundary and through nothing else.
 # The block is one individual's physiology and reads none of them: the
-# establishment probability, its decay in patch age and the initial reserve are
-# evaluated once per introduction, at the seed size, in the field the newcomer is
-# placed in. So an exact zero in the BLOCK is correct here and an exact zero in
+# establishment probability, its decay in patch age, the initial reserve and the
+# birth rate are evaluated once per introduction, at the seed size, in the field
+# the newcomer is placed in. So an exact zero in the BLOCK is correct here and an exact zero in
 # the census is not -- which is the whole content of the class, and is why the
 # two levels carry different declared lists.
 #
 # The other half of the claim is asserted where it can be: the floor's census
-# classification puts all three in the live class, and the introductions file's single-channel
+# classification puts all four in the live class, and the introductions file's single-channel
 # probes take a_st3 and recruitment_decay by name.
 ladder_zero_outside_the_cohort_block <- function() {
-  c("a_d0", "a_st3", "recruitment_decay")
+  c("a_d0", "a_st3", "recruitment_decay", "birth_rate")
+}
+
+# Survival during dispersal multiplies the fitness metrics and enters no rate,
+# so its row is zero in the block and in the census.
+ladder_zero_outside_every_rate <- function() {
+  "S_D"
 }
 
 ladder_zero_by_construction <- function() {
   c(ladder_zero_at_an_interior_optimum(),
-    ladder_zero_outside_the_metric_support())
+    ladder_zero_outside_the_metric_support(),
+    ladder_zero_outside_every_rate())
 }
 
 # Which cause a declared zero is claimed to have. Named so a check can measure
@@ -1420,6 +1469,8 @@ ladder_zero_cause <- function(name) {
   bare <- ladder_bare_traits(name)
   if (bare %in% ladder_zero_at_an_interior_optimum()) {
     "a limit the operating point is away from: moves no rate at all"
+  } else if (bare %in% ladder_zero_outside_every_rate()) {
+    "a factor of the fitness alone: moves no rate at all"
   } else if (bare %in% ladder_zero_outside_the_metric_support()) {
     "outside the metric support: reaches no rate the census reads"
   } else {
@@ -1431,7 +1482,7 @@ ladder_zero_cause <- function(name) {
 # the run recorded. `direction` carries one weight per gradient column, so a unit
 # vector asks for one column and a mixed one for a contraction.
 #
-# It returns the metrics the replay itself reached as well as the derivative,
+# It returns the metrics the pinned run itself reached as well as the derivative,
 # because a reference whose value disagrees with the model is a reference to a
 # different trajectory and every derivative taken from it is that trajectory's.
 ladder_trajectory_tangent <- function(stand, direction) {
@@ -1519,7 +1570,7 @@ ladder_assert_one_parameter <- function(before, after, name) {
 # because a tangent imposes the same equation the sweep does.
 #
 # It is for the columns a declared zero reaches, not for a sweep: two model runs
-# per column against one seeded run for a tangent column.
+# per column against one run with its direction set for a tangent column.
 #
 # The parameter is set on the built strategy rather than on the trait vector, and
 # the seed-height slope is identical either way -- so this keeps the whole of what
@@ -1602,11 +1653,17 @@ ladder_run_difference_pair <- function(name, species = 2L,
   # a resolved difference gives 1.
   #
   # The TIMES only, not the step sizes with them. Pinning both makes each side
-  # replay a step the other's state cannot take, which refuses outright on the
+  # rerun a step the other's state cannot take, which refuses outright on the
   # shaded and clamped stands; the grid is what the census accumulates on and is
   # all that has to agree.
+  #
+  # ⚠️ EXCEPT WHERE THE BASE SUBSTEPPED THE SOIL, which every step across a knot
+  # of a variable rainfall does. A grid of times alone is refused across such a
+  # step, so that run reruns its whole schedule, sizes and substeps with the
+  # times, as the sweep differentiates it.
   base <- ladder_run(build(), env = env_of())
   ode_times <- base$ode_times
+  substepped <- any(lengths(base$ode_soil_substep_ends) > 0)
   census_at <- function(value) {
     p <- build()
     strategies <- p$strategies
@@ -1617,6 +1674,11 @@ ladder_run_difference_pair <- function(name, species = 2L,
     p$strategies <- strategies
     ladder_assert_one_parameter(before, unlist(p$strategies[[species]]$pars), name)
     p$ode_times <- ode_times
+    if (substepped) {
+      p$ode_step_sizes <- base$ode_step_sizes
+      p$ode_soil_input_slopes <- base$ode_soil_input_slopes
+      p$ode_soil_substep_ends <- base$ode_soil_substep_ends
+    }
     stand_census(ladder_run(p, env = env_of()))
   }
   value <- unlist(build()$strategies[[species]]$pars)[[name]]
@@ -1635,9 +1697,12 @@ ladder_run_difference_pair <- function(name, species = 2L,
   g <- vapply(steps, at, numeric(length(stand_census(base))))
   # The most-agreeing adjacent pair brackets where truncation crosses round-off;
   # its coarser member carries the less round-off of the two. One step for the
-  # whole column, so a metric is not read at a different place from its neighbour.
+  # whole column, so a metric is not read at a different place from its neighbour,
+  # and chosen on each metric's gaps over its own size: the metrics differ by
+  # orders, and absolute gaps let the largest choose the step for the rest.
   gaps <- abs(g[, -1L, drop = FALSE] - g[, -ncol(g), drop = FALSE])
-  best <- which.min(apply(gaps, 2, max))
+  size <- pmax(apply(abs(g), 1, max), .Machine$double.xmin)
+  best <- which.min(apply(gaps / size, 2, max))
   # ⚠️ THE SPREAD IS ABSOLUTE, IN THE METRIC'S OWN UNITS, AND THE ONE CONSUMER
   # DIVIDES IT BY THE SAME SCALE IT DIVIDES ITS RESIDUAL BY. Normalising here too
   # is the second of two divisions and each hides the other: against the column's
@@ -1748,8 +1813,8 @@ ladder_trait_direction <- function(columns, name) {
   replace(numeric(length(columns)), at, 1)
 }
 
-# How far the replay's own census lands from the run's. This is the trajectory
-# checks' floor: the reference replays step sizes rather than times, so its state
+# How far the pinned run's own census lands from the run's. This is the trajectory
+# checks' floor: the reference takes step sizes rather than times, so its state
 # at the end is the run's state only up to the arithmetic of re-stepping, and
 # every derivative it reports is a derivative at the state it actually reached.
 ladder_replay_floor <- function(stand, value) {

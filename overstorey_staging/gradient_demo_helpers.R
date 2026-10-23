@@ -63,7 +63,7 @@ gd_point <- function(traits, lifetime = 40, schedule = NULL, refine = TRUE,
                      ctrl = Control(node_density_in_birth_date = TRUE)) {
   p <- gd_parameters(traits, lifetime = lifetime, schedule = schedule)
   scm <- run_scm(p, Environment("TF24"), ctrl, refine_schedule = refine,
-                 collect = FALSE, record_trajectory = TRUE)
+                 collect = FALSE, keep_states = TRUE)
   g <- stand_gradient(scm)
   list(traits = traits,
        value = g$value,

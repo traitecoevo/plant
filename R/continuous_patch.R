@@ -4,16 +4,14 @@
 ##' Flatten the thinned record of a run. With \code{scm$snapshot_interval} set
 ##' before the run, the SCM keeps one summary per interval instead of a copy
 ##' of the whole patch per leg: per species the node counts, the tallest cohort
-##' carrying density, the trapezium of the carried density over the birth-date
-##' grid and every node's lifetime offspring output, plus the environment's own
-##' state.
+##' carrying density, the carried density integrated over birth date and every
+##' node's lifetime offspring output, plus the environment's own state.
 ##'
 ##' Read on the birth-date coordinate, which a continuous patch runs on:
-##' \code{density} is the trapezium of the carried density over the nodes'
-##' birth dates, a number of individuals per unit area, without the closing
-##' interval to the boundary node that a census adds; on the height coordinate
-##' it is the same trapezium over birth dates of a density in height, which is
-##' not a count. \code{n_retired} counts the nodes carrying no density, frozen
+##' \code{density} is the carried density weighted by each node's establishment
+##' weight, a number of individuals per unit area, without the boundary node's
+##' share that a census adds; on the height coordinate it is the trapezium over
+##' birth dates of a density in height, which is not a count. \code{n_retired} counts the nodes carrying no density, frozen
 ##' or not, so it is \code{n_nodes - n_live}. The per-node \code{fecundity}
 ##' vectors grow with the node list, so their memory grows with the square of
 ##' the run's length (about 6 MB at a snapshot a year over 1000 years of one
@@ -269,8 +267,8 @@ run_until_converged <- function(scm, block = 20, tol = 0.02,
 ##' Fitness of invaders at a resident's fixed point
 ##'
 ##' A resident at a fixed point makes one field, so an invader of it needs no
-##' recording of the resident and no replay: it stands in that one field, held,
-##' for its whole life. This runs each strategy in \code{traits} as one cohort
+##' recording of the resident and no pinned run: it stands in that one field,
+##' constant, for its whole life. This runs each strategy in \code{traits} as one cohort
 ##' born at time zero into the field \code{scm} stands in now, until the cohort
 ##' is dead, and returns each one's lifetime offspring per seed. Every arrival
 ##' at a fixed point sees the same field, so that one cohort's output is the
@@ -281,19 +279,19 @@ run_until_converged <- function(scm, block = 20, tol = 0.02,
 ##' quantity).
 ##'
 ##' The field is taken from the state \code{scm} has reached at the first call,
-##' and held for every later one; run the resident to its fixed point first, for
+##' and used for every later one; run the resident to its fixed point first, for
 ##' instance with \code{\link{run_until_converged}} under constant drivers and
 ##' the absorbing top layer (\code{Control$absorb_epsilon}). The invaders run
-##' together, as one community, since nothing they do moves a held field.
+##' together, as one community, since nothing they do moves a constant field.
 ##' \code{scm} is consumed: afterwards it holds the invaders, and the field is
-##' released, so a later run of it builds its own.
+##' cleared, so a later run of it builds its own.
 ##'
 ##' The introduction grid has to make the stand a fixed point. Between two
 ##' introductions the field swings, and a grid that is too coarse makes the
-##' stand a periodic orbit whose field, held at an introduction, is the top of
-##' the swing: FF16 at its equilibrium birth rate swings by 1.8 \% in held
-##' fitness at a cohort a year and 0.02 \% at four. \code{SCM$run_to()} stops
-##' only at introduction instants, so to hold a field mid-interval, and check
+##' stand a periodic orbit whose field, taken at an introduction, is the top of
+##' the swing: FF16 at its equilibrium birth rate swings by 1.8 \% in
+##' constant-field fitness at a cohort a year and 0.02 \% at four. \code{SCM$run_to()} stops
+##' only at introduction instants, so to take a field mid-interval, and check
 ##' the grid, end the resident's run there with \code{max_patch_lifetime}.
 ##'
 ##' @title Invader fitness at a fixed point
@@ -328,14 +326,17 @@ fixed_point_fitness <- function(scm, p, traits, hyperpar = param_hyperpar(p),
   pm$initial_time <- 0
   pm$ode_times <- numeric(0)
   pm$ode_step_sizes <- numeric(0)
+  pm$ode_soil_input_slopes <- list()
+  pm$ode_soil_substep_ends <- list()
   run_held <- function(years) {
     pm$max_patch_lifetime <- years
-    scm$run_mutant_held(pm)
+    scm$run_mutant_constant(pm)
     lapply(scm$patch$species, function(sp) {
       node <- sp$nodes[[1]]
       list(state = stats::setNames(node$ode_state, node$ode_names),
            rates = stats::setNames(node$ode_rates, node$ode_names),
-           output = sp$net_reproduction_ratio_by_node[[1]])
+           output = sp$net_reproduction_ratio_by_node[[1]],
+           birth_date = sp$density_in_birth_date)
     })
   }
   ## Each invader's hazard an instant after birth: what establishment cost it,
@@ -345,13 +346,19 @@ fixed_point_fitness <- function(scm, p, traits, hyperpar = param_hyperpar(p),
   run <- run_held(lifetime)
   vapply(seq_along(run), function(i) {
     hazard_at_birth <- born[[i]]$state[["mortality"]]
-    ## A cohort that never established starts at the establishment-failure
-    ## hazard, whose survival is exactly zero, and its output is zero however
-    ## long it runs.
-    established <- exp(-hazard_at_birth) > 0
+    ## The fraction of seeds that establish. On the birth-date coordinate the
+    ## hazard starts at zero and the newest interval grows at this fraction,
+    ## which the constant field keeps constant. A cohort that never established has
+    ## a fraction of zero, and its output is zero however long it runs.
+    pr_estab <- if (born[[i]]$birth_date) {
+      born[[i]]$rates[["interval_establishment"]]
+    } else {
+      exp(-hazard_at_birth)
+    }
+    established <- pr_estab > 0
     survival <- exp(-(run[[i]]$state[["mortality"]] - hazard_at_birth))
     ## Done when none survive, or when the survivors are few and have stopped
-    ## growing -- at their asymptote, or stalled in the shade, where a held
+    ## growing -- at their asymptote, or stalled in the shade, where a constant
     ## field keeps them. A cohort still growing can be on its way to the canopy
     ## where most of its output lies, however few of it are left.
     height <- run[[i]]$state[["height"]]
@@ -364,6 +371,10 @@ fixed_point_fitness <- function(scm, p, traits, hyperpar = param_hyperpar(p),
                    i, survival, if (growing) "growing" else "not yet below `survival_tol`",
                    lifetime))
     }
-    run[[i]]$output * pm$strategies[[i]]$pars$S_D
+    output <- run[[i]]$output
+    if (run[[i]]$birth_date) {
+      output <- output * pr_estab
+    }
+    output * pm$strategies[[i]]$pars$S_D
   }, numeric(1))
 }

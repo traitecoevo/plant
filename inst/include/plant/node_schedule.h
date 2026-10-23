@@ -113,7 +113,8 @@ public:
 // rather than re-established by the run loop at every stop.
 //
 // `times` keeps the [t_intro, ...extra ode times..., t_end] semantics events
-// carried before; ode_steps is what a replay reads, and program_within() serves it.
+// carried before; ode_steps is the recorded schedule a pinned run steps over, and
+// schedule_within() serves it.
 };
 
 struct schedule_entry {
@@ -145,6 +146,9 @@ public:
   // does not go through the per-species times interface.
   std::vector<Event> get_events() const;
   void set_all_events(const std::vector<Event>& events_);
+  // One action that is not an introduction, at its instant after the actions of
+  // its rank already there.
+  void add_action(const Event& e);
   void reset();
 
   // Where the walk is, where its interval ends, and moving past it. `next()`
@@ -154,20 +158,18 @@ public:
   void pop();
   size_t remaining() const;
 
-  // The program a replay of the interval `(start, end)` takes: the state it
-  // starts from, then the recorded steps strictly inside it. Empty where the
-  // recording put no step in there, and empty on a schedule holding no recording.
-  //
-  // Boundaries are excluded because the run stops at them anyway and the
-  // interval above starts from there -- so a step at one would be taken twice.
-  std::vector<odelia::ode::instruction>
-  program_within(double start, double end) const;
+  // The schedule a pinned run of the interval `(start, end]` takes: the state it
+  // starts from, then the recorded steps inside it, the one reaching `end`
+  // included. Empty where the recording put no step in there, and empty on a
+  // schedule holding no recording.
+  std::vector<odelia::ode::schedule_row>
+  schedule_within(double start, double end) const;
 
   double get_max_time() const;
   // The time the run this schedule drives starts at: zero for a run from
-  // empty, the exported time for a resumed one. A recorded program's first
+  // empty, the exported time for a resumed one. A recorded schedule's first
   // entry is the state the run started from, so it has to be this time, and a
-  // replay of a resumed run starts there rather than at zero.
+  // pinned run of a resumed run starts there rather than at zero.
   double get_start_time() const { return start_time; }
   void set_start_time(double t) { start_time = t; }
   std::vector<std::vector<double> > get_times() const;
@@ -180,10 +182,25 @@ public:
   void r_set_max_time(double x);
   std::vector<double> r_ode_times() const;
   std::vector<double> r_ode_step_sizes() const;
-  // The two halves of one recording, installed together: apart, they can be
-  // paired across different runs and nothing says so.
-  void r_set_ode_steps(std::vector<double> times, std::vector<double> sizes);
+  std::vector<std::vector<double> > r_ode_soil_input_slopes() const;
+  std::vector<std::vector<double> > r_ode_soil_substep_ends() const;
+  // One recording's parts, installed together so none is paired with another
+  // run's. A grid passes no sizes and no soil records.
+  void r_set_ode_steps(std::vector<double> times, std::vector<double> sizes,
+                       std::vector<std::vector<double> > input_slopes,
+                       std::vector<std::vector<double> > substep_ends);
   void r_clear_ode_steps();
+  // The steps a recorded run took. Its introductions' rows are left out, because
+  // a run makes its introductions from this schedule.
+  template <class Rows> void set_ode_steps(const Rows& rows) {
+    ode_steps.clear();
+    for (const odelia::ode::schedule_row& r : rows) {
+      if (!r.insertion) {
+        ode_steps.push_back({r.time, r.step_size, false, r.subsystem});
+      }
+    }
+    reset();
+  }
   // Where the walk is, as a list: the time, the species from one, and the time
   // its interval ends. The species are one number each, counted the way R counts
   // them, where the class this replaces reported the same index twice under two
@@ -207,10 +224,16 @@ private:
   size_t at;
   double max_time;
   double start_time;
-  // The recorded ODE steps this schedule replays, when it holds any. Holding
-  // them is what makes a schedule a replay, so no flag says so separately.
-  std::vector<odelia::ode::instruction> ode_steps;
+  // The recorded ODE steps a run on this schedule takes, when it holds any.
+  // Holding them is what pins the run, so no flag says so separately.
+  std::vector<odelia::ode::schedule_row> ode_steps;
 };
+
+// One field of each step's record of substepping the subsystem, beside its
+// size; empty where the step did not substep it.
+std::vector<std::vector<double> >
+substep_field(const std::vector<odelia::ode::schedule_row>& steps,
+              std::vector<double> odelia::ode::subsystem_substeps::*field);
 
 }
 

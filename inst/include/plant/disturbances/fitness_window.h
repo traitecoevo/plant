@@ -21,7 +21,7 @@ namespace plant {
 // keeps density() on the scale of 1 / (end - start) for a reader.
 //
 // No knots means a uniform window, density 1 / (end - start). Knots give a
-// piecewise-linear weight, read at the cohort's own birth date and held at the
+// piecewise-linear weight, read at the cohort's own birth date and constant at the
 // end knots' values beyond them: a germination opportunity built from the same
 // rainfall series that drives the run, say. The regime never reads the
 // environment; what it weights by is the caller's to tabulate.

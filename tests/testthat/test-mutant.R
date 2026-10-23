@@ -1,13 +1,13 @@
-## What an invasion run has to reproduce. The run keeps the resident's field in
-## odelia's store/load channel, per (step, stage), and the invasion pass loads it,
-## so a mutant identical to a resident reproduces that resident's ratio exactly.
+## What an invasion run has to reproduce. The invaders take the run's steps and
+## read the field it made at each rate evaluation, so a mutant identical to a
+## resident reproduces that resident's ratio exactly.
 ##
 ## The pinned numbers are this branch's. They moved from develop's by up to 4e-4
 ## relative because the light field is read off value-and-slope knots, 4-470x
 ## closer to the exact canopy light than develop's spline; develop's own numbers
 ## move by up to 7e-4 when its spline tolerance is tightened from 1e-4 to 1e-9.
 ## Read a change here against that: these ratios resolve the light field's error,
-## not the replay's.
+## not the pinned run's.
 
 test_that("mutant method works", {
   # basic setup
@@ -152,22 +152,87 @@ test_that("mutant method densities", {
   run_case(20, c(0, 5, 10, 20))
 })
 
+test_that("an invasion meets the run's harvests, and introduces only where it did", {
+  p <- scm_base_parameters("FF16")
+  p$max_patch_lifetime <- 20
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
+  ev <- events(events_default(p), harvest(time = 8, fraction = 0.5),
+               climate_extreme(time = 12, intensity = 45))
+
+  # An invader with the residents' traits meets both events, as they did, and
+  # comes back with their fitness, which the events move.
+  scm <- run_scm(p, events = ev)
+  harvested <- scm$net_reproduction_ratios
+  scm$run_mutant(p)
+  expect_equal(scm$net_reproduction_ratios, harvested, tolerance = 1e-12)
+  expect_equal(scm$event_log$type, c("harvest", "climate_extreme"))
+  expect_gt(abs(log(harvested / run_scm(p)$net_reproduction_ratios)), 0.01)
+
+  one_species <- run_scm(p, events = events(events_default(p),
+                                            harvest(time = 8, fraction = 0.5,
+                                                    species = 1)))
+  expect_error(one_species$run_mutant(p), "an invader is none of them")
+
+  scm <- run_scm(p)
+  expect_no_error(scm$run_mutant(p))
+  times <- p$node_schedule_times[[1]]
+  off <- p
+  off$node_schedule_times <- list(sort(c(times, mean(times[2:3]))))
+  expect_error(scm$run_mutant(off), "where the resident introduced nothing")
+})
+
+test_that("a run after an invasion runs the invaders as a community of their own", {
+  p <- scm_base_parameters("FF16")
+  p$max_patch_lifetime <- 20
+  q <- add_strategies(p, trait_matrix(0.1, "lma"), birth_rate = 1)
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
+  alone <- run_scm(q)$net_reproduction_ratios
+
+  scm <- run_scm(p)
+  scm$run_mutant(q)
+  expect_gt(abs(log(scm$net_reproduction_ratios / alone)), 0.01)
+  scm$run()
+  expect_equal(scm$net_reproduction_ratios, alone, tolerance = 1e-12)
+  # And the next invasion reads that run, not the first.
+  scm$run_mutant(q)
+  expect_equal(scm$net_reproduction_ratios, alone, tolerance = 1e-12)
+})
+
+test_that("an invader's patch reads its run after the SCM has let it go", {
+  p <- scm_base_parameters("FF16")
+  p$max_patch_lifetime <- 20
+  q <- add_strategies(p, trait_matrix(0.1, "lma"), birth_rate = 1)
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
+
+  scm <- run_scm(p)
+  scm$run_mutant(q)
+  invader <- scm$patch
+  invader$compute_environment()
+  before <- invader$ode_rates
+
+  # The next run drops the SCM's hold on the invaded run, and then the SCM goes.
+  scm$run()
+  rm(scm)
+  gc()
+
+  invader$compute_environment()
+  expect_identical(invader$ode_rates, before)
+})
+
 test_that("mutant method densities, TF24", {
-  # The same resident-vs-mutant identity as the block above, for a model whose
-  # rates refuse a state. TF24's storage pool reports an overshoot below empty by
-  # throwing a domain error, which the adaptive stepper answers by shrinking and
-  # retrying -- a routine event, some hundreds of times in a resident run that
-  # goes on to complete normally.
+  # The same resident-vs-mutant identity as the block above, for a model that
+  # refuses a step: one whose end leaves TF24's storage pool below empty, which
+  # the adaptive stepper answers by shrinking and retrying.
   #
   # run_mutant() pins the stepper to the resident's recorded step times, and that
   # path used to call the stepper with no domain handling at all, so the first of
-  # those refusals killed the replay (#642). It failed for every TF24 strategy
+  # those refusals killed the pinned run (#642). It failed for every TF24 strategy
   # tried, this identity case included.
   #
   # ⚠️ THE FIX IS NOT THE ONE THIS COMMENT USED TO NAME. odelia 0.4.0 subdivided a
-  # refused pinned step; this replay does not subdivide at all, deliberately --
+  # refused pinned step; this pinned run does not subdivide at all, deliberately --
   # see NEWS.md under Known issues, where the reason is that subdividing is what
-  # made the answer depend on how many invaders shared the call. A replay that met
+  # made the answer depend on how many invaders shared the call. A pinned run that met
   # a refusal would now FAIL rather than shrink, and `expect_no_error` below
   # passing is the statement that it meets none.
   #
@@ -191,6 +256,7 @@ test_that("mutant method densities, TF24", {
   # charge and drain form took the same four fixtures to 311 to 497. The stiffness
   # the schedule was thinned to avoid was mostly the pool integrating past its own
   # ceiling. Both counts are asserted below rather than left to the constants.
+  # At the default storage relaxation offset twenty introductions take 189 steps.
   ctrl <- Control()
   tol <- 1e-3
 
@@ -209,17 +275,77 @@ test_that("mutant method densities, TF24", {
   scm <- run_scm(p1, env = env, ctrl = ctrl)
   resident_rr <- scm$net_reproduction_ratios
 
-  # Not assertions about the model, just guards that the replay below has
-  # something to replay: a resident that died out would make the identity
+  # Not assertions about the model, just guards that the pinned run below has
+  # something to rerun: a resident that died out would make the identity
   # trivial, and a short recording would make it cheap in the wrong way.
   expect_true(all(is.finite(resident_rr)) && all(resident_rr > 0))
-  expect_gt(length(scm$ode_times), 250)
+  expect_gt(length(scm$ode_times), 150)
   expect_equal(scm$patch$species[[1]]$size, 20L)
 
-  # Identical mutant, replaying the resident's own recorded environment, must
+  # Identical mutant, reading the resident's own recorded field, must
   # recover the resident's own fitness.
   expect_no_error(scm$run_mutant(p1))
   mutant_rr <- scm$net_reproduction_ratios
 
   expect_equal(log(mutant_rr), log(resident_rr), tolerance = tol)
+})
+
+test_that("an invader replays a step too short to move its stages, TF24", {
+  # With a step limit of 0.05, 2.70 + 0.05 rounds short of 2.75 and the run
+  # takes a step of an ulp there; its stages sit where the step before ends.
+  p <- scm_base_parameters("TF24")
+  p$patch_type <- "fixed"
+  p$max_patch_lifetime <- 10
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = TF24_hyperpar,
+                      birth_rate = 1)
+  p$node_schedule_times <- list(node_schedule_times_periodic(0, 10, 0.25))
+  env <- Environment("TF24")
+  env$extrinsic_drivers_set_constant("rainfall", 1)
+  ctrl <- Control(node_density_in_birth_date = TRUE, ode_step_size_max = 0.05)
+  scm <- run_scm(p, env, ctrl, keep_states = TRUE)
+  expect_gt(sum(diff(scm$ode_times) < 1e-12), 0)
+  resident_rr <- scm$net_reproduction_ratios
+  expect_no_error(scm$run_mutant(scm$parameters))
+  expect_equal(scm$net_reproduction_ratios, resident_rr, tolerance = 1e-10)
+})
+
+test_that("invaders from lma x0.7 to x2 run on the run's steps, TF24", {
+  # An invader is integrated on the resident's steps and cannot shrink them, so
+  # each stage must keep its pool from overshooting. The storage relaxation
+  # offset holds that out to lma x2 on birth date; at a zero offset the invader
+  # at x2 overflows its density.
+  stand <- function(lma_factor, offset) {
+    p <- scm_base_parameters("TF24")
+    p$max_patch_lifetime <- 6
+    lma <- p$strategy_default$pars[["lma"]]
+    p <- add_strategies(p, trait_matrix(c(0, lma * lma_factor),
+                                        c("TF24_floor_lambda_o", "lma")),
+                        hyperpar = TF24_hyperpar, birth_rate = 1)
+    full <- p$node_schedule_times[[1]]
+    p$node_schedule_times <-
+      list(full[round(seq(1, length(full), length.out = 20))])
+    s <- p$strategies[[1]]
+    s$pars$storage_relaxation_offset <- offset
+    p$strategies[[1]] <- s
+    p
+  }
+  run <- function(offset) {
+    env <- Environment("TF24")
+    env$set_soil_water_state(rep(0.428 * 0.5, env$get_soil_number_of_depths()))
+    env$extrinsic_drivers_set_constant("rainfall", 1)
+    run_scm(stand(1, offset), env = env,
+            ctrl = Control(node_density_in_birth_date = TRUE))
+  }
+
+  offset <- TF24_Strategy()$pars$storage_relaxation_offset
+  scm <- run(offset)
+  for (m in c(0.7, 2)) {
+    scm$run_mutant(stand(m, offset))
+    expect_true(is.finite(scm$net_reproduction_ratios))
+  }
+
+  scm <- run(0)
+  scm$run_mutant(stand(0.7, 0))
+  expect_true(is.finite(scm$net_reproduction_ratios))
+  expect_error(scm$run_mutant(stand(2, 0)), "Non-finite cohort density")
 })

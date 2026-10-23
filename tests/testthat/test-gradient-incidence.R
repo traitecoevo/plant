@@ -44,7 +44,7 @@ incidence_swept <- function(rain, lifetime, k_I = 0.5, introductions = NULL) {
   key <- incidence_key(rain, lifetime, k_I, introductions)
   entry <- incidence_built(rain, lifetime, k_I, introductions)
   if (is.null(entry$gradient)) {
-    entry$gradient <- stand_gradient(entry$scm)
+    entry$gradient <- stand_gradient(entry$scm, hyperpar = NULL)
     entry$swept <-
       stats::setNames(census_clamp_counts_differentiated_tf24(entry$scm)[[1]],
                       census_clamp_names_tf24())
@@ -368,7 +368,7 @@ test_that("phylloptim's root-vulnerability clamps stay out of reach, with a marg
     # clamp would bind in. The forward run keeps them, so this costs no sweep:
     # measured, the three drivers contribute 510, 2503 and 3715 records whether
     # or not a gradient has been taken on them.
-    for (r in scm$store_trajectory()) {
+    for (r in scm$store_recording()) {
       s <- r$state
       n <- length(s)
       theta <- s[(n - nlayer - n_aux + 1):(n - n_aux)]
