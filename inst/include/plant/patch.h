@@ -1352,10 +1352,11 @@ void Patch<T,E>::compute_boundary_nodes() {
 }
 
 // The field `field_run` made at this evaluation. Inside a step it is the slot's,
-// in the first step at or after the time or, where a stage's time rounds past
-// the time its step is recorded to end at, the step before. Outside a step the
-// patch is at a recorded state, and it is the end slot of the last row at the
-// time, which is the state after any entry made there.
+// in the first step at or after the time; where a step is too short to move its
+// stages past its start, the step after that one; and where a stage's time
+// rounds past the time its step is recorded to end at, the step before. Outside
+// a step the patch is at a recorded state, and it is the end slot of the last
+// row at the time, which is the state after any entry made there.
 template <typename T, typename E>
 const recorded_field& Patch<T,E>::field_from_run() const {
   const auto& rec = *field_run;
@@ -1371,6 +1372,15 @@ const recorded_field& Patch<T,E>::field_from_run() const {
         [](const auto& r, double u) { return r.time < u; });
     if (row != rec.end() && made_now(row)) {
       return row->fields[slot];
+    }
+    if (row != rec.end()) {
+      auto next = std::next(row);
+      while (next != rec.end() && next->insertion) {
+        ++next;
+      }
+      if (next != rec.end() && made_now(next)) {
+        return next->fields[slot];
+      }
     }
     if (row != rec.begin()) {
       do {
