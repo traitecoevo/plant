@@ -51,10 +51,12 @@ reference_stand <- function(regime) {
                                       else regime$amplitude))
 }
 
-# The two columns this reference carries no row for, and the reason is not that
-# nobody captured them: both default to 0, so the capture's RELATIVE step
-# `abs(value) * rel` is 0 and the difference moves no parameter at all. Their
+# The columns this reference carries no row for, and the reason is not that
+# nobody captured them. Two default to 0, so the capture's RELATIVE step
+# `abs(value) * rel` is 0 and the difference moves no parameter at all; their
 # rows record that refusal and carry no metric, which reference_rows() drops.
+# S_D enters no rate, so its census column is zero by construction
+# (ladder_zero_outside_every_rate), and the reference holds the census alone.
 #
 # ⚠️ ASSERTED BOTH WAYS, because the alternative is what this rung did while
 # passing at 13: `reference_compare` drops a reference row whose column the sweep
@@ -62,12 +64,12 @@ reference_stand <- function(regime) {
 # column the REFERENCE does not carry. Forty of forty-eight were refereed and
 # nothing said so.
 reference_uncaptured_columns <- function() {
-  c("TF24_floor_lambda_o", "recruitment_decay")
+  c("S_D", "TF24_floor_lambda_o", "recruitment_decay")
 }
 
 reference_compare <- function(regime, rows) {
   scm <- reference_stand(regime)
-  got <- stand_gradient(scm)
+  got <- stand_gradient(scm, hyperpar = NULL)
   mine <- rows[rows$regime == regime$name, , drop = FALSE]
   column <- paste0(mine$species, ".", mine$parameter)
   # A column the sweep does not carry is the capture's business rather than this
@@ -172,9 +174,10 @@ test_that("the sweep agrees with a difference of whole runs, over five regimes",
     # The reference's own resolution, with a floor: where its four steps agreed
     # to round-off, the sweep is still only asked to agree to the truncation the
     # coarsest of them carries. Over 270 answered columns a regime, the worst
-    # reads 1.1e-03 on drought, 7.6e-04 on seasonal and 6.3e-05 on wet -- and all
-    # three are `theta` or `omega`, which reach the census through the channels
-    # the leaf boundary carries and are the last columns to resolve.
+    # reads 1.8e-03 on drought, 1.4e-04 on clamped, 8.9e-05 on shaded, 5.5e-05
+    # on wet and 5.0e-05 on seasonal -- and all five are `theta` or `omega`,
+    # which reach the census through the channels the leaf boundary carries and
+    # are the last columns to resolve.
     tolerance <- pmax(3 * r$spread, 2e-3)
     over <- live & r$residual > tolerance
     # ⚠️ THIS RUNG IS WHAT FOUND THE KNOT GRID, and the floor is what found it.

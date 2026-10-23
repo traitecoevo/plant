@@ -55,12 +55,14 @@ test_that("FF16 reports its fitness under the names the gradient uses", {
   # The census keeps its own three, and the gradient defaults to all seven.
   expect_equal(names(stand_census(scm)),
                c("leaf_area", "mass_above_ground", "area_stem"))
-  g <- stand_gradient(scm, traits = "1.lma")
+  g <- stand_gradient(scm, traits = "1.lma", hyperpar = NULL)
   expect_equal(rownames(g$gradient), c(names(stand_census(scm)), names(f)))
   expect_false(any(stand_gradient_refused(g)))
   # S_D reaches the fitness directly, so it is a column now.
-  expect_true("1.S_D" %in% colnames(stand_gradient(scm, metrics = "1.offspring_production")$gradient))
-  expect_error(stand_gradient(scm, metrics = "3.offspring_production"),
+  expect_true("1.S_D" %in% colnames(stand_gradient(scm, metrics = "1.offspring_production",
+                                                   hyperpar = NULL)$gradient))
+  expect_error(stand_gradient(scm, metrics = "3.offspring_production",
+                              hyperpar = NULL),
                "Unknown metric")
 })
 
@@ -68,7 +70,8 @@ test_that("the fitness gradient is the pinned-step central difference", {
   scm <- fitness_stand()
   expect_gt(stand_fitness(scm)[["1.net_reproduction_ratio"]], 0)
   g <- stand_gradient(scm, metrics = c("1.net_reproduction_ratio",
-                                       "1.offspring_production"))
+                                       "1.offspring_production"),
+                      hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   p <- pinned(scm)
   # Every route into the fecundity state: the reproduction schedule (hmat,
@@ -104,7 +107,8 @@ test_that("one species' fitness responds to the other's traits through the canop
   scm <- fitness_stand(lma = c(0.0825, 0.2))
   g <- stand_gradient(scm, metrics = c("1.net_reproduction_ratio",
                                        "2.net_reproduction_ratio"),
-                      traits = c("1.lma", "2.lma", "1.k_I", "2.k_I"))
+                      traits = c("1.lma", "2.lma", "1.k_I", "2.k_I"),
+                      hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   p <- pinned(scm)
   # A finer step than the one-species test: one species' fitness is strongly
@@ -128,7 +132,8 @@ test_that("the fitness gradient over a window is the pinned-step central differe
   p <- fitness_window(fitness_parameters(), 2, 5)
   scm <- run_scm(p, NULL, fitness_control(), record_trajectory = TRUE)
   g <- stand_gradient(scm, metrics = c("1.net_reproduction_ratio",
-                                       "1.offspring_production"))
+                                       "1.offspring_production"),
+                      hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   expect_identical(g$value[["1.net_reproduction_ratio"]],
                    scm$net_reproduction_ratios)

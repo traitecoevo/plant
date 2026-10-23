@@ -40,7 +40,7 @@ test_that("a marginal recruit's gradient exists, is finite, and tends to zero", 
   decay <- numeric(length(scales))
   for (k in seq_along(scales)) {
     stand <- ladder_stand_marginal_recruit(scales[[k]])
-    result <- stand_gradient(stand)
+    result <- stand_gradient(stand, hyperpar = NULL)
     expect_true(all(is.finite(result$gradient)))
     establishment[[k]] <- ladder_recruit_establishment(stand)[[1]]
     columns <- colnames(result$gradient)

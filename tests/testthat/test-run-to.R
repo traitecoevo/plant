@@ -57,8 +57,8 @@ test_that("snapshots thin the record and keep every node's lifetime output", {
   expect_equal(last$n_nodes, sp$size)
   expect_equal(last$fecundity, sp$net_reproduction_ratio_by_node)
   trapezium <- function(x, y) sum(diff(x) * (head(y, -1) + tail(y, -1)) / 2)
-  expect_equal(last$density, trapezium(sp$node_times, exp(sp$log_densities_state)))
-  expect_equal(last$height_max, max(sp$heights[exp(sp$log_densities_state) > 0]))
+  expect_equal(last$density, trapezium(sp$node_times, exp(sp$log_densities)))
+  expect_equal(last$height_max, max(sp$heights[exp(sp$log_densities) > 0]))
   expect_equal(last$n_retired, 0L)
   ## FF16 carries no environment state.
   expect_length(last$environment, 0)

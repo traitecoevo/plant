@@ -296,7 +296,7 @@ test_that("a sweep that never ran is distinguishable from an insensitive stand",
   p <- ladder_parameters("fast")
   p$node_schedule_times <- list(numeric(0))
   empty <- ladder_run(p)
-  expect_error(stand_gradient(empty))
+  expect_error(stand_gradient(empty, hyperpar = NULL))
 })
 
 test_that("the reverse pass refuses the coordinate it cannot transpose", {
@@ -309,7 +309,7 @@ test_that("the reverse pass refuses the coordinate it cannot transpose", {
   stand <- ladder_run(p, ctrl = Control(node_density_in_birth_date = FALSE))
 
   expect_error(stand_census_state_adjoint(stand), "birth-date")
-  expect_error(stand_gradient(stand), "birth-date")
+  expect_error(stand_gradient(stand, hyperpar = NULL), "birth-date")
   # The census value is not a gradient and is answerable on either coordinate,
   # so refusing it too would refuse a defined answer.
   expect_silent(stand_census(stand))
@@ -327,7 +327,8 @@ test_that("every trait column resolves to one declared class", {
   shared <- ladder_shared("two_by_two")
   stand <- shared$stand
   result <- shared$gradient
-  g <- result$gradient
+  # The census's rows, which the declared zeros are about.
+  g <- result$gradient[names(stand_census(stand)), , drop = FALSE]
 
   declared_zero <- ladder_zero_by_construction()
   band <- ladder_roundoff_band()
@@ -392,10 +393,12 @@ test_that("each declared zero is zero for the cause it is declared for", {
     moved <- rates[apply(abs(j[, at, drop = FALSE]) > 0, 1, any)]
     message(sprintf("  %-16s %-46s %s", name, ladder_zero_cause(name),
                     paste(unique(moved), collapse = " ")))
-    if (name %in% ladder_zero_at_an_interior_optimum()) {
+    if (name %in% c(ladder_zero_at_an_interior_optimum(),
+                    ladder_zero_outside_every_rate())) {
       # The dry bound of a feasible interval the operating point is inside. It
       # moves nothing at all, and that is complementary slackness rather than a
-      # missing row -- the same parameter carries the whole row at a pin.
+      # missing row -- the same parameter carries the whole row at a pin. S_D
+      # moves nothing either: the fitness reads it directly.
       expect_length(moved, 0L)
     } else {
       # The two reproductive accumulators and nothing else. A third rate would
@@ -412,8 +415,8 @@ test_that("an unknown parameter refuses by name rather than returning a number",
   # must be refused; a registered one that reaches nothing is the other class
   # above and is the one that reads as an answer.
   stand <- ladder_stand_two_by_two()
-  expect_error(stand_gradient(stand, traits = "not_a_parameter"), "Unknown trait")
-  expect_error(stand_gradient(stand, metrics = "not_a_metric"),
+  expect_error(stand_gradient(stand, traits = "not_a_parameter", hyperpar = NULL), "Unknown trait")
+  expect_error(stand_gradient(stand, metrics = "not_a_metric", hyperpar = NULL),
                "Unknown metric")
 })
 

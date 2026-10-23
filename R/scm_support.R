@@ -57,9 +57,10 @@ scm_base_parameters <- function(type = NA, env = environment_type(type)) {
 ##' @param refine_schedule Should the node-introduction schedule be adaptively
 ##'   refined before/while running (using \code{schedule_eps} and
 ##'   \code{schedule_nsteps} from \code{ctrl})? Refinement records the ODE
-##'   schedule its final run took into \code{p$ode_times} and
-##'   \code{p$ode_step_sizes}, so a later run of those parameters replays it
-##'   exactly rather than choosing its own steps again.
+##'   schedule its final run took into \code{p$ode_times},
+##'   \code{p$ode_step_sizes}, \code{p$ode_soil_input_slopes} and
+##'   \code{p$ode_soil_substep_ends}, so a later run of those parameters replays
+##'   it exactly rather than choosing its own steps again.
 ##' @param record_trajectory Should the run keep the state at every accepted
 ##'   step? A gradient sweeps those states and cannot recover them from a
 ##'   finished run, so a run that did not keep them is repeated -- one whole
@@ -95,9 +96,9 @@ run_scm <- function(p, env = NULL,
     env <- Environment(types[[1]])
 
   # An ODE schedule carried by the parameters is taken, because a schedule is
-  # there to be used: p$ode_times with p$ode_step_sizes replays a recorded run
-  # exactly, and p$ode_times alone stops at a grid the caller chose. To integrate
-  # freely, carry neither.
+  # there to be used: p$ode_times with p$ode_step_sizes and the soil's records
+  # replays a recorded run exactly, and p$ode_times alone stops at a grid the
+  # caller chose. To integrate freely, carry neither.
 
   ## No events supplied: the schedule comes from p$node_schedule_times, as it
   ## did before events existed. An empty Events object is how that is signalled
@@ -266,12 +267,18 @@ residual_events <- function(scm, time, residual, tol, final) {
 ##'   \code{densities}).
 ##' @param env Environment object (defaults to the strategy's environment).
 ##' @param ctrl Control object.
+##' @param birth_dates Per-species node birth dates, before 0 and ascending as
+##'   the heights descend (same shape as \code{heights}). Required on the
+##'   birth-date coordinate, where each node's density is its birth rate times
+##'   its survival and \code{densities} are densities in birth date: the
+##'   survival is set to give that density, and each interval's establishment to
+##'   its width, as if every seed established. Elsewhere every node is born at 0.
 ##' @return A state list suitable for \code{\link{set_initial_state}}.
 ##' @seealso \code{\link{set_initial_state}}, \code{\link{export_patch_state}}
 ##' @export
 make_initial_state <- function(p, heights, densities = NULL,
                                log_densities = NULL, env = NULL,
-                               ctrl = control()) {
+                               ctrl = control(), birth_dates = NULL) {
   types <- extract_RcppR6_template_types(p, "Parameters")
   if (is.null(env)) {
     env <- Environment(types[[1]])
@@ -301,9 +308,18 @@ make_initial_state <- function(p, heights, densities = NULL,
   patch <- do.call("Patch", types)(p, env, ctrl)
   ode_names <- patch$species[[1]]$new_node$ode_names
   hi <- match("height", ode_names)
-  ldi <- match("log_density", ode_names)
-  if (is.na(hi) || is.na(ldi)) {
-    stop("could not locate 'height'/'log_density' in node ODE names")
+  birth_date <- ctrl$node_density_in_birth_date
+  ldi <- match(if (birth_date) "mortality" else "log_density", ode_names)
+  ii <- match(c("interval_establishment", "interval_establishment_moment"),
+              ode_names)
+  if (is.na(hi) || is.na(ldi) || (birth_date && anyNA(ii))) {
+    stop("could not locate the node's height and density in its ODE names")
+  }
+  if (birth_date) {
+    if (is.null(birth_dates)) {
+      stop("the birth-date coordinate needs each node's `birth_dates`")
+    }
+    birth_dates <- as_list(birth_dates)
   }
   node_ode_size <- length(ode_names)
   env_state <- patch$ode_state # fresh patch has no nodes: environment ODE only
@@ -327,10 +343,25 @@ make_initial_state <- function(p, heights, densities = NULL,
     ld <- ld[o]
     mat <- matrix(0, nrow = node_ode_size, ncol = length(h))
     mat[hi, ] <- h
-    mat[ldi, ] <- ld
+    times <- rep(0, length(h))
+    if (birth_date) {
+      times <- birth_dates[[i]][o]
+      width <- diff(c(times, 0))
+      if (length(times) != length(h) || any(width <= 0)) {
+        stop("birth_dates must be before 0 and ascend as the heights descend ",
+             "(species ", i, ")")
+      }
+      drivers <- patch$species[[i]]$extrinsic_drivers
+      birth_rate <- vapply(times, function(t) drivers$evaluate("birth_rate", t),
+                           numeric(1))
+      mat[ldi, ] <- log(birth_rate) - ld
+      mat[ii, ] <- rbind(width, width^2 / 2)
+    } else {
+      mat[ldi, ] <- ld
+    }
     ode_chunks[[i]] <- as.vector(mat) # column-major: node-by-node, matching set_ode_state
     n[i] <- length(h)
-    node_times[[i]] <- rep(0, length(h))
+    node_times[[i]] <- times
     patch_density[[i]] <- rep(dens0, length(h))
     pr_patch_survival[[i]] <- rep(pr_surv0, length(h))
   }
@@ -396,10 +427,11 @@ set_initial_state <- function(p, state) {
 ##' cohort born inside \code{[start, end]} carries the tabulated weight at its
 ##' birth date and a cohort born outside carries zero. The net reproduction
 ##' ratio is then the weighted mean, over the cohorts the run introduced, of a
-##' cohort's lifetime output: the trapezium over birth dates of output times
-##' weight, divided by the trapezium of the weight on the same grid, so a
-##' uniform window is the exact mean however its edges sit against the
-##' introduction grid. Patch survival is one.
+##' cohort's lifetime output: output times weight integrated over the birth
+##' dates between the window's first and last cohorts (by establishment weight
+##' on the birth-date coordinate), divided by the trapezium of the weight on
+##' the same grid, so a uniform window is the exact mean however its edges sit
+##' against the introduction grid. Patch survival is one.
 ##'
 ##' With no knots the window is uniform, each birth date weighted
 ##' \code{1 / (end - start)}. Knots give a piecewise-linear weight, held at the

@@ -9,13 +9,14 @@ ff16 <- function(lifetime) {
   add_strategies(p, trait_matrix(0.0825, "lma"))
 }
 
-## The regime's ratio, replicated: the trapezium over the span of cohorts the
-## window weights, output times weight over weight.
-window_mean_of <- function(t, out, d) {
+## The regime's ratio, replicated: over the span of cohorts the window weights,
+## output times weight by establishment weight, over the trapezium of the weight.
+window_mean_of <- function(sp, out, d) {
   span <- range(which(d > 0))
   k <- span[1]:span[2]
+  t <- sp$node_times[k]
   trapezium <- function(x, y) sum(diff(x) * (head(y, -1) + tail(y, -1)) / 2)
-  trapezium(t[k], out[k] * d[k]) / trapezium(t[k], d[k])
+  sum(establishment_weights_within(sp, k) * out[k] * d[k]) / trapezium(t, d[k])
 }
 
 patch_of <- function(p) {
@@ -74,13 +75,14 @@ test_that("the net reproduction ratio is the window average of per-node lifetime
   fec <- sp$net_reproduction_ratio_by_node
   S_D <- p$strategies[[1]]$pars$S_D
   d <- ifelse(t >= 10 & t <= 20, 1 / 10, 0)
-  ## The same trapezia the patch takes, over the window's cohorts, with the
+  ## The same sum the patch takes, over the window's cohorts, with the
   ## window's density at each birth date: output times weight over weight.
-  expect_equal(scm$net_reproduction_ratios, window_mean_of(t, fec * S_D, d),
+  expect_equal(scm$net_reproduction_ratios, window_mean_of(sp, fec * S_D, d),
                tolerance = 1e-12)
-  ## Which is the weighted mean of the cohorts' output, so it sits inside their range.
+  ## Which is the mean output per arriving seed, so no more than the most a
+  ## seed that establishes produces.
   inside <- t >= 10 & t <= 20
-  expect_gte(scm$net_reproduction_ratios, min(fec[inside]) * S_D)
+  expect_gt(scm$net_reproduction_ratios, 0)
   expect_lte(scm$net_reproduction_ratios, max(fec[inside]) * S_D)
   ## Cohorts born outside the window carry no weight.
   expect_true(all(sp$patch_densities[t < 10 | t > 20] == 0))
@@ -131,7 +133,7 @@ test_that("the window survives the rebind a gradient runs on", {
   p <- fitness_window(ff16(10), 2, 8)
   scm <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE),
                  record_trajectory = TRUE)
-  g <- stand_gradient(scm, metrics = "leaf_area")
+  g <- stand_gradient(scm, metrics = "leaf_area", hyperpar = NULL)
   expect_true(all(is.finite(g$gradient)))
 })
 
@@ -150,7 +152,7 @@ test_that("a converged stand's window average does not depend on the window", {
   t <- sp$node_times
   out <- sp$net_reproduction_ratio_by_node * p$strategies[[1]]$pars$S_D
   window_mean <- function(a, b) {
-    window_mean_of(t, out, ifelse(t >= a & t <= b, 1 / (b - a), 0))
+    window_mean_of(sp, out, ifelse(t >= a & t <= b, 1 / (b - a), 0))
   }
   early <- window_mean(100, 200)
   late <- window_mean(200, 300)
@@ -189,7 +191,7 @@ test_that("cohorts seeded from a burn-in weigh nothing before the window", {
   expect_true(all(sp$patch_densities[t >= 25 & t <= 35] == 0.1))
   out <- sp$net_reproduction_ratio_by_node * p2$strategies[[1]]$pars$S_D
   d <- ifelse(t >= 25 & t <= 35, 0.1, 0)
-  expect_equal(scm$net_reproduction_ratios, window_mean_of(t, out, d),
+  expect_equal(scm$net_reproduction_ratios, window_mean_of(sp, out, d),
                tolerance = 1e-12)
   ## A resume under the regime that stamped the export is unchanged by this.
   p3 <- set_initial_state(ff16(40), state)
@@ -242,10 +244,10 @@ test_that("a tabulated weight in a full run is the weighted mean of the cohorts"
   w <- ifelse(t >= 20 & t <= 40, approx(x, y, t, rule = 2)$y, 0)
   windowed <- run_scm(fitness_window(p, 20, 40, weight_x = x, weight_y = y), ctrl = ctrl)
   expect_gt(windowed$net_reproduction_ratios, 1)
-  expect_equal(windowed$net_reproduction_ratios, window_mean_of(t, out, w),
+  expect_equal(windowed$net_reproduction_ratios, window_mean_of(sp, out, w),
                tolerance = 1e-10)
   ## And it is not the uniform mean.
   expect_false(isTRUE(all.equal(windowed$net_reproduction_ratios,
-                                window_mean_of(t, out, as.numeric(w > 0)),
+                                window_mean_of(sp, out, as.numeric(w > 0)),
                                 tolerance = 1e-6)))
 })

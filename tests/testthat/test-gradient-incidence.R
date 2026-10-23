@@ -44,7 +44,7 @@ incidence_swept <- function(rain, lifetime, k_I = 0.5, introductions = NULL) {
   key <- incidence_key(rain, lifetime, k_I, introductions)
   entry <- incidence_built(rain, lifetime, k_I, introductions)
   if (is.null(entry$gradient)) {
-    entry$gradient <- stand_gradient(entry$scm)
+    entry$gradient <- stand_gradient(entry$scm, hyperpar = NULL)
     entry$swept <-
       stats::setNames(census_clamp_counts_differentiated_tf24(entry$scm)[[1]],
                       census_clamp_names_tf24())

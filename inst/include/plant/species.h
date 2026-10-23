@@ -89,14 +89,15 @@ public:
   with_slope<value_type>
   compute_competition_and_slope(const value_type& height) const;
 
-  // The reduction stopped before its closing trapezium: the sums so far and the
-  // last sample, which is everything one more interval needs. Holding it lets the
-  // field WITH the boundary interval be formed from the field without it in one
-  // operation rather than by a second reduction over every node -- the two differ
-  // only in that trapezium, and the boundary node it needs is not known until the
-  // field without it exists.
+  // The reduction stopped before the boundary node: the sums so far and, in
+  // height, the last sample, which is everything one more interval needs.
+  // Holding it lets the field WITH the boundary node be formed from the field
+  // without it in one operation rather than by a second reduction over every
+  // node -- the two differ only in the boundary node's term, and the boundary
+  // node is not known until the field without it exists.
   struct competition_split {
-    // The running sums, and the sample at x1 that one more interval needs.
+    // The running sums, twice the integral on either coordinate, and the
+    // sample at x1 that one more trapezium in height needs.
     with_slope<value_type> sum{value_type(0.0), value_type(0.0)};
     with_slope<value_type> at_x1{value_type(0.0), value_type(0.0)};
     // The abscissa is a position (abscissa_of takes it passive), so a width the
@@ -105,7 +106,7 @@ public:
     bool closes{false};
 
     // The field the nodes were rated in. close_competition_and_slope() is the
-    // same halved sums with the boundary interval added first.
+    // same halved sums with the boundary node's term added first.
     with_slope<value_type> without_boundary() const {
       return {sum.value / 2, sum.slope / 2};
     }
@@ -143,12 +144,12 @@ public:
     new_node.compute_initial_conditions(environment, pr_patch_survival, birth_rate);
   }
 
-  // The trapezium integral of n_k psi(state_k) over the size distribution, with
-  // n_k = exp(l_k). A census is a quadrature of a density, so the grid is the
-  // coordinate that density is carried in; taking gaps in any other variable
-  // integrates one density against another's spacing. The inflow boundary node
-  // closes the grid, being the lower limit of the distribution.
-  // The metric integrated over this species' size distribution.
+  // The metric integrated over this species' size distribution: n_k psi(state_k)
+  // with n_k = exp(l_k), weighted by the establishment weights in birth date and
+  // by the trapezium in height. A census is a quadrature of a density, so the
+  // grid is the coordinate that density is carried in; taking gaps in any other
+  // variable integrates one density against another's spacing. The inflow
+  // boundary node closes the grid, being the lower limit of the distribution.
   value_type census_integral(const census_metric<T>& metric) const;
 
   // Every active value this species holds: its nodes, the boundary node, the
@@ -285,21 +286,29 @@ public:
   // Introduction times of each node (the integration x-axis for fitness).
   std::vector<double> node_times() const;
 
+  // Birth-date path: the establishment weights of nodes first..last, pr_estab
+  // integrated against each one's hat function over the intervals between
+  // them alone. A `last` of size() is the boundary node.
+  std::vector<value_type> establishment_weights(size_t first, size_t last) const;
+  // Every node's, boundary node last.
+  std::vector<double> r_establishment_weights() const;
+
   // The boundary node's birth date is *now*, but compute_initial_conditions()
   // (which stamps it) runs inside compute_rates(), which the ODE stepper calls
   // after set_ode_state() has already rebuilt the environment. Reading the stamp
   // during that rebuild would therefore pick up the previous derivs call's time
-  // and shorten the boundary trapezium by one Runge-Kutta stage. Patch refreshes
-  // it before building the profile. Harmless on the height path, where the
-  // boundary abscissa is the constant initial height.
+  // and shorten the newest node's interval by one Runge-Kutta stage. Patch
+  // refreshes it before building the profile. Harmless on the height path,
+  // where the boundary abscissa is the constant initial height.
   void set_new_node_birth_date(double time) {
     new_node.set_introduction_time(time);
   }
 
-  // Two nodes sharing a birth date give a zero-width trapezium interval, so the
-  // birth-date quadrature silently loses them. Cannot happen for a scheduled
-  // run (introduction times are distinct by construction) but can for a patch
-  // seeded or imported without per-node times.
+  // Two nodes sharing a birth date give a zero-width interval, and the
+  // birth-date weights and reported densities divide by interval widths. Cannot
+  // happen for a scheduled run (introduction times are distinct by
+  // construction) but can for a patch seeded or imported without per-node
+  // times.
   bool birth_dates_are_distinct() const;
 
   // Which coordinate this species' size distribution is carried in. Exposed so
@@ -350,15 +359,11 @@ public:
   // Per-node size density, **always** as a density in height whichever
   // coordinate the solver carried it in, so downstream code (tidy_outputs.R's
   // `density`, interpolate_to_heights(), the plots) keeps its meaning. In
-  // birth-date coordinates that means dividing the carried quantity by the
-  // Jacobian; see height_jacobian(). NA for a node where the Jacobian vanishes,
-  // which is where the height density genuinely does not exist.
+  // birth-date coordinates that means the density in birth date divided by the
+  // Jacobian; see log_birth_date_densities() and height_jacobian(). NA for a
+  // node where the Jacobian vanishes, which is where the height density
+  // genuinely does not exist.
   std::vector<double> r_log_densities() const;
-  // The quantity actually integrated: the density in height on the height path,
-  // and the density in birth date (nu) on the birth-date one. Reported
-  // alongside r_log_densities() rather than instead of it, because it is the
-  // thing whose ODE the solver solves and the thing that cannot go non-finite.
-  std::vector<double> r_log_densities_state() const;
   // Per-node rate of change of log density; used to guard against initial
   // conditions whose densities would explode to non-finite values. This is the
   // rate of the *carried* quantity, so on the birth-date path it is -mortality.
@@ -387,23 +392,50 @@ public:
   strategy_type_ptr strategy_ptr() const {return this->strategy;}
 
 private:
+  // Birth-date path: node j's interval, to the next node or the boundary node,
+  // split between its two ends; see Node::interval_shares().
+  std::pair<value_type, value_type> interval_shares(size_t j) const {
+    const double end = j + 1 < size() ? nodes[j + 1].introduction_time()
+                                      : new_node.introduction_time();
+    return nodes[j].interval_shares(end - nodes[j].introduction_time());
+  }
+  // The boundary node's establishment weight: the newest node's interval's share
+  // at its upper end.
+  value_type boundary_weight() const {
+    return nodes.empty() ? value_type(0.0) : interval_shares(size() - 1).second;
+  }
+  // `f` summed over every node and the boundary node, by establishment weight.
+  // ⚠️ `f` MUST DECLARE ITS RETURN TYPE: an active product returned through a
+  // deduced one is an expression template referencing operands that die in `f`.
+  template <typename F>
+  value_type establishment_weighted_sum(F f) const {
+    const std::vector<value_type> w = establishment_weights(0, size());
+    value_type tot(0.0);
+    for (size_t j = 0; j < size(); ++j) {
+      tot += w[j] * f(nodes[j]);
+    }
+    return tot + w[size()] * f(new_node);
+  }
+  // Per node, boundary node last, the log density in birth date: birth rate
+  // times survival times the establishment weight per unit birth date.
+  std::vector<double> log_birth_date_densities() const;
+
   // The reduction, over the nodes in ascending abscissa. `order` names that order
   // where the node list is not already in it and is empty where it is; the early
   // exit is the decreasing heights', not this parameter's.
   competition_split reduce_competition(const value_type& height,
                                        const std::vector<std::size_t>& order) const;
-  // The node positions in ascending abscissa, for the case where the heights are
-  // no longer ordered and the node list cannot be the quadrature grid.
+  // The node positions in ascending abscissa, tallest first, for where the heights
+  // are no longer ordered: the height path's quadrature grid and the birth-date
+  // path's prefix.
   // Positions only: nothing here evaluates a contribution, so no width the
   // reduction forms out of it can carry a derivative.
   std::vector<std::size_t> ascending_by_abscissa() const;
-  // Whether the closing trapezium to the boundary node is taken. Below a node
-  // that no longer contributes the density is zero and so is the interval; a
-  // single node has no interval but that one, and a birth-date abscissa does not
-  // order with the support at all.
+  // Whether the height path's closing trapezium to the boundary node is taken.
+  // Below a node that no longer contributes the density is zero and so is the
+  // interval; a single node has no interval but that one.
   bool closes_on(const value_type& value_at_x1) const {
-    return size() == 1 || control().node_density_in_birth_date ||
-           value_at_x1 > 0;
+    return size() == 1 || value_at_x1 > 0;
   }
   competition_split compute_competition_and_slope_split(const value_type& height) const;
 
@@ -476,12 +508,12 @@ private:
   void field_splits_nodes(const std::vector<value_type>& heights,
                           std::vector<competition_split>& out) const;
 
-  // The abscissa every reduction over the size distribution is taken over,
-  // increasing as the node list is walked from the tallest down. Heights are
-  // negated so that both coordinates increase in the same direction; negation is
-  // exact, so the height branch's trapezium widths are bit-identical to
-  // differencing the heights themselves. Callers in hot loops read the
-  // coordinate once and pass it in.
+  // The abscissa the height path's reductions and the refinement indicators
+  // are taken over, increasing as the node list is walked from the tallest
+  // down. Heights are negated so that both coordinates increase in the same
+  // direction; negation is exact, so the height branch's trapezium widths are
+  // bit-identical to differencing the heights themselves. Callers in hot loops
+  // read the coordinate once and pass it in.
   //
   // It is a position, so it is read at its value even where the height it comes
   // from is active: a quadrature grid is structure. On the birth-date coordinate
@@ -707,9 +739,9 @@ void Species<T,E>::field_splits(const std::vector<value_type>& heights,
 }
 
 // One pass over the nodes for the whole height set. Where the prefix form does not
-// hold -- a broken ordering, or a profile that is not a polynomial in w -- every
-// height takes the walk, which is the same branch the walk's own early exit rests
-// on.
+// hold -- a broken ordering on the height coordinate, or a profile that is not a
+// polynomial in w -- every height takes the walk, which is the same branch the
+// walk's own early exit rests on.
 template <typename T, typename E>
 void Species<T,E>::field_splits_nodes(const std::vector<value_type>& heights,
                                       std::vector<competition_split>& out) const {
@@ -718,9 +750,9 @@ void Species<T,E>::field_splits_nodes(const std::vector<value_type>& heights,
     return;
   }
   const HeightScan& scan = scan_heights();
-  const bool birth_date = control().node_density_in_birth_date;
   const std::size_t n_moments = strategy->canopy_shape.n_moments();
-  if (!scan.decreasing || n_moments == 0) {
+  const bool birth_date = control().node_density_in_birth_date;
+  if ((!scan.decreasing && !birth_date) || n_moments == 0) {
     for (std::size_t k = 0; k < heights.size(); ++k) {
       out[k] = compute_competition_and_slope_split(heights[k]);
     }
@@ -736,7 +768,6 @@ void Species<T,E>::field_splits_nodes(const std::vector<value_type>& heights,
   // powers of its own inverse height.
   std::vector<value_type> scale(n);
   std::vector<moments> mom(n);
-  std::vector<double> abscissa(n);
   {
     std::size_t i = 0;
     for (nodes_const_iterator it = nodes.begin(); it != nodes.end(); ++it, ++i) {
@@ -745,8 +776,65 @@ void Species<T,E>::field_splits_nodes(const std::vector<value_type>& heights,
         util::stop("Detected non-finite contribution");
       }
       strategy->canopy_shape.crown_moments(1.0 / it->height(), mom[i]);
-      abscissa[i] = abscissa_of(*it, birth_date);
     }
+  }
+  moments weight, weight_slope;
+  // ⚠️ A RETIRED COHORT IS SKIPPED IN THE SUM. Its height is outside the
+  // ordering the scan certified, so it can sit above the height after a cohort
+  // with density below it; it carries density zero, so its moments are exact
+  // zeros in the prefix wherever it sits.
+  const bool skip_retired = freezes_retired(control());
+  auto frozen = [&](std::size_t i) -> bool {
+    return skip_retired && nodes[i].retired();
+  };
+
+  if (birth_date) {
+    // Each node weighted once, and a height reads the prefix of the nodes that
+    // reach it: below its own height a node contributes an exact zero, so the
+    // prefix runs tallest first. That is list order until two cohorts cross, and
+    // `order` once they have. prefix[i] sums the first i nodes, twice over as the
+    // split's sums are.
+    const std::vector<std::size_t> order =
+      scan.decreasing ? std::vector<std::size_t>() : ascending_by_abscissa();
+    auto at = [&order](std::size_t i) { return order.empty() ? i : order[i]; };
+    const std::vector<value_type> w = establishment_weights(0, n);
+    std::vector<moments> prefix(n + 1);
+    for (std::size_t j = 0; j < n_moments; ++j) {
+      prefix[0][j] = value_type(0.0);
+    }
+    for (std::size_t i = 0; i < n; ++i) {
+      const std::size_t o = at(i);
+      for (std::size_t j = 0; j < n_moments; ++j) {
+        prefix[i + 1][j] = prefix[i][j] + 2.0 * w[o] * scale[o] * mom[o][j];
+      }
+    }
+    // The heights ascend and the nodes descend, so the count reaching a height
+    // only falls: one merge over both.
+    std::size_t reach = n;
+    for (std::size_t k = 0; k < heights.size(); ++k) {
+      const value_type& height = heights[k];
+      if (scan.h_max < height) {
+        continue;  // no node reaches it; the empty split stands
+      }
+      while (reach > 0 && (frozen(at(reach - 1)) ||
+                           nodes[at(reach - 1)].height() < height)) {
+        --reach;
+      }
+      strategy->canopy_shape.height_weights(height, weight);
+      strategy->canopy_shape.height_weight_slopes(height, weight_slope);
+      competition_split& c = out[k];
+      for (std::size_t j = 0; j < n_moments; ++j) {
+        c.sum.value += weight[j] * prefix[reach][j];
+        c.sum.slope += weight_slope[j] * prefix[reach][j];
+      }
+      c.closes = true;
+    }
+    return;
+  }
+
+  std::vector<double> abscissa(n);
+  for (std::size_t i = 0; i < n; ++i) {
+    abscissa[i] = abscissa_of(nodes[i], false);
   }
 
   // The trapezium's intervals, accumulated in the order the walk accumulates them
@@ -766,19 +854,9 @@ void Species<T,E>::field_splits_nodes(const std::vector<value_type>& heights,
 
   // `crossing` is the first node the height is above -- the one the walk stops at.
   // The heights ascend and the nodes descend, so it only ever moves one way: one
-  // merge over both, rather than a search per height.
-  //
-  // ⚠️ A FROZEN COHORT IS PASSED OVER, as the walk passes over it. Its height is
-  // outside the ordering the scan certified, so it can sit above the height after
-  // a live cohort below it; it carries density zero, so its moments are exact
-  // zeros in the prefix wherever it sits. The walk stops at the first LIVE cohort
-  // below the height, and so does this.
-  const bool skip_retired = freezes_retired(control());
-  auto frozen = [&](std::size_t i) -> bool {
-    return skip_retired && nodes[i].retired();
-  };
+  // merge over both, rather than a search per height. The walk stops at the
+  // first cohort with density below the height, and so does this.
   std::size_t crossing = n;
-  moments weight, weight_slope;
   for (std::size_t k = 0; k < heights.size(); ++k) {
     const value_type& height = heights[k];
     if (scan.h_max < height) {
@@ -840,7 +918,6 @@ template <typename T, typename E>
 typename Species<T,E>::competition_split
 Species<T,E>::reduce_competition(const value_type& height,
                                  const std::vector<std::size_t>& order) const {
-  const bool birth_date = control().node_density_in_birth_date;
   const HeightScan& scan = scan_heights();
   const bool skip_retired = freezes_retired(control());
   const bool permuted = !order.empty();
@@ -856,14 +933,14 @@ Species<T,E>::reduce_competition(const value_type& height,
     util::stop("Detected non-finite contribution");
   }
   with_slope<value_type> sum{value_type(0.0), value_type(0.0)};
-  double x1 = abscissa_of(first, birth_date);
+  double x1 = abscissa_of(first, false);
   with_slope<value_type> at_x1 = fs1;
 
   for (std::size_t k = 1; k < n; ++k) {
     const node_type& node = node_at(k);
     const with_slope<value_type> fs0 =
       node.compute_competition_and_slope(height);
-    const double x0 = abscissa_of(node, birth_date);
+    const double x0 = abscissa_of(node, false);
     if (!util::is_finite(fs0.value) || !util::is_finite(fs0.slope)) {
       util::stop("Detected non-finite contribution");
     }
@@ -901,11 +978,10 @@ Species<T,E>::reduce_competition(const value_type& height,
 // overestimate it, so they stay in and the grid gets sorted.
 template <typename T, typename E>
 std::vector<std::size_t> Species<T,E>::ascending_by_abscissa() const {
-  const bool birth_date = control().node_density_in_birth_date;
   std::vector<double> at(size());
   std::vector<std::size_t> order(size());
   for (std::size_t i = 0; i < order.size(); ++i) {
-    at[i] = abscissa_of(nodes[i], birth_date);
+    at[i] = abscissa_of(nodes[i], false);
     order[i] = i;
   }
   std::sort(order.begin(), order.end(),
@@ -923,9 +999,26 @@ Species<T,E>::compute_competition_and_slope_split(const value_type& height) cons
   if (size() == 0 || scan.h_max < height) {
     return competition_split();
   }
-  // Introduction times ascend by construction; -height ascends only while the
-  // heights fall, and TF24's reserve-gated growth lets two cohorts cross.
-  if (control().node_density_in_birth_date || scan.decreasing) {
+  if (control().node_density_in_birth_date) {
+    // A weighted sum, so a node below `height` adds an exact zero and the order
+    // of the nodes does not matter. Twice over, as the split's sums are.
+    const std::vector<value_type> w = establishment_weights(0, size());
+    competition_split c;
+    for (std::size_t i = 0; i < size(); ++i) {
+      const with_slope<value_type> fs =
+        nodes[i].compute_competition_and_slope(height);
+      if (!util::is_finite(fs.value) || !util::is_finite(fs.slope)) {
+        util::stop("Detected non-finite contribution");
+      }
+      c.sum.value += 2.0 * w[i] * fs.value;
+      c.sum.slope += 2.0 * w[i] * fs.slope;
+    }
+    c.closes = true;
+    return c;
+  }
+  // -height ascends only while the heights fall, and TF24's reserve-gated growth
+  // lets two cohorts cross.
+  if (scan.decreasing) {
     return reduce_competition(height, {});
   }
   return reduce_competition(height, ascending_by_abscissa());
@@ -940,8 +1033,12 @@ Species<T,E>::close_competition_and_slope(const competition_split& c,
   }
   const with_slope<value_type> fs0 =
     new_node.compute_competition_and_slope(height);
-  const double x0 =
-    abscissa_of(new_node, control().node_density_in_birth_date);
+  if (control().node_density_in_birth_date) {
+    const value_type w = boundary_weight();
+    return {(c.sum.value + 2.0 * w * fs0.value) / 2,
+            (c.sum.slope + 2.0 * w * fs0.slope) / 2};
+  }
+  const double x0 = abscissa_of(new_node, false);
   return {(c.sum.value + (x0 - c.x1) * (c.at_x1.value + fs0.value)) / 2,
           (c.sum.slope + (x0 - c.x1) * (c.at_x1.slope + fs0.slope)) / 2};
 }
@@ -957,6 +1054,11 @@ void Species<T,E>::compute_rates(const E& environment, double pr_patch_survival,
   // it -- so the two are the same function at different arguments rather than one
   // computed twice. This value is the one an introduced node inherits.
   new_node.compute_initial_conditions(environment, pr_patch_survival, birth_rate);
+  if (density_in_birth_date() && size() > 0) {
+    nodes.back().set_interval_establishment_rate(
+      new_node.individual.establishment_probability_of_newborn(environment),
+      new_node.introduction_time() - nodes.back().introduction_time());
+  }
   if (top_on()) {
     compute_top_rates(environment, pr_patch_survival);
   }
@@ -1008,6 +1110,7 @@ size_t Species<T,E>::absorb_tall(bool arrival_weighting) {
   using odelia::util::to_passive;
   const double h_abs = absorb_height();
   const double S_D = to_passive(strategy->pars.S_D);
+  const std::vector<value_type> weights = establishment_weights(0, size());
   size_t count = 0;
   // The youngest cohort is never absorbed: its quadrature weight is not final
   // until the next one is introduced.
@@ -1019,12 +1122,9 @@ size_t Species<T,E>::absorb_tall(bool arrival_weighting) {
     if (arrival_weighting && c.patch_density() > 0.0) {
       continue;
     }
-    // The cohort's trapezium weight on the birth-date grid, retired neighbours
-    // included: they are zero-valued grid points and keep their intervals.
-    const double left = k > 0 ?
-      nodes[k].introduction_time() - nodes[k - 1].introduction_time() : 0.0;
-    const double right = nodes[k + 1].introduction_time() - nodes[k].introduction_time();
-    const double weight = (left + right) / 2.0;
+    // The cohort's establishment weight, retired neighbours included: they are
+    // zero-valued grid points and keep their intervals.
+    const double weight = to_passive(weights[k]);
     const value_type added = weight * c.get_density();
     if (!(top_density_ > 0.0)) {
       top_ = c.individual;
@@ -1131,6 +1231,49 @@ std::vector<double> Species<T,E>::node_times() const {
 }
 
 template <typename T, typename E>
+std::vector<typename Species<T,E>::value_type>
+Species<T,E>::establishment_weights(size_t first, size_t last) const {
+  std::vector<value_type> ret(last - first + 1, value_type(0.0));
+  for (size_t j = first; j < last; ++j) {
+    const auto share = interval_shares(j);
+    ret[j - first] += share.first;
+    ret[j - first + 1] += share.second;
+  }
+  return ret;
+}
+
+template <typename T, typename E>
+std::vector<double> Species<T,E>::r_establishment_weights() const {
+  const std::vector<value_type> w = establishment_weights(0, size());
+  std::vector<double> ret;
+  ret.reserve(w.size());
+  for (const value_type& x : w) {
+    ret.push_back(odelia::util::to_passive(x));
+  }
+  return ret;
+}
+
+template <typename T, typename E>
+std::vector<double> Species<T,E>::log_birth_date_densities() const {
+  using odelia::util::to_passive;
+  const size_t n = size();
+  const std::vector<double> w = r_establishment_weights();
+  std::vector<double> ret(n + 1);
+  for (size_t j = 0; j < n; ++j) {
+    const double lo = nodes[j == 0 ? 0 : j - 1].introduction_time();
+    const double hi = j + 1 < n ? nodes[j + 1].introduction_time()
+                                : new_node.introduction_time();
+    const double span = (hi - lo) / 2;
+    ret[j] = (w[j] > 0 && span > 0 ? std::log(w[j] / span)
+                                   : -std::numeric_limits<double>::infinity()) +
+      to_passive(nodes[j].get_log_density());
+  }
+  ret[n] = n > 0 ? std::log(to_passive(nodes.back().interval_establishment_rate())) +
+    to_passive(new_node.get_log_density()) : NA_REAL;
+  return ret;
+}
+
+template <typename T, typename E>
 bool Species<T,E>::birth_dates_are_distinct() const {
   for (size_t i = 1; i < nodes.size(); ++i) {
     if (nodes[i].introduction_time() == nodes[i - 1].introduction_time()) {
@@ -1152,27 +1295,35 @@ Species<T,E>::consumption_rate(int i) const {
   if (size() == 0) {
     return value_type(0.0);
   }
+  const bool top = top_on() && top_density_ > 0.0;
+  if (control().node_density_in_birth_date) {
+    value_type ret =
+      establishment_weighted_sum([i](const node_type& n) -> value_type {
+        return n.consumption_rate(i);
+      });
+    if (top) {
+      ret += top_density_ * top_.consumption_rate(i);
+    }
+    return ret;
+  }
   // The grid is abscissa_of, as the competition walk's is, so a width is a
-  // position and not state on either coordinate and no reduction has a route to
-  // an active one. Ascending in the abscissa is oldest first in birth date and
-  // tallest first in height, and the closing node is both the newest and the
-  // shortest, so it ends the grid either way.
-  const bool birth_date = control().node_density_in_birth_date;
+  // position and not state and no reduction has a route to an active one.
+  // Ascending in the abscissa is tallest first, and the closing node is the
+  // shortest, so it ends the grid.
   std::vector<double> x;
   std::vector<value_type> rates;
   x.reserve(size() + 1);
   rates.reserve(size() + 1);
   for (auto& c : nodes) {
-    x.push_back(abscissa_of(c, birth_date));
+    x.push_back(abscissa_of(c, false));
     rates.push_back(c.consumption_rate(i));
   }
-  x.push_back(abscissa_of(new_node, birth_date));
+  x.push_back(abscissa_of(new_node, false));
   rates.push_back(new_node.consumption_rate(i));
 
-  // Birth dates are strictly increasing by construction, so only the height
-  // coordinate can arrive crossed -- and there neighbouring trapezia would cancel
-  // instead of accumulating.
-  if (!birth_date && !std::is_sorted(x.begin(), x.end())) {
+  // Crossed heights would make neighbouring trapezia cancel instead of
+  // accumulating.
+  if (!std::is_sorted(x.begin(), x.end())) {
     std::vector<size_t> order(x.size());
     for (size_t j = 0; j < order.size(); ++j) {
       order[j] = j;
@@ -1192,7 +1343,7 @@ Species<T,E>::consumption_rate(int i) const {
     rates.swap(r_sorted);
   }
   value_type ret = util::trapezium(x, rates);
-  if (top_on() && top_density_ > 0.0) {
+  if (top) {
     ret += top_density_ * top_.consumption_rate(i);
   }
   return ret;
@@ -1205,26 +1356,32 @@ Species<T,E>::census_integral(const census_metric<T>& metric) const {
   if (size() == 0) {
     return value_type(0.0);
   }
-  // The abscissa ascends as the nodes are walked in storage order and the
-  // boundary node closes the grid: it is the youngest, and the shortest.
-  const bool birth_date = control().node_density_in_birth_date;
-  if (!birth_date && !heights_are_decreasing()) {
-    util::stop("The census needs the node heights in decreasing order; on a"
-               " crossed grid neighbouring trapezia cancel instead of"
-               " accumulating");
+  value_type ret(0.0);
+  if (control().node_density_in_birth_date) {
+    ret = establishment_weighted_sum([&metric](const node_type& n) -> value_type {
+      return n.get_density() * n.individual.census_value(metric);
+    });
+  } else {
+    // The abscissa ascends as the nodes are walked in storage order and the
+    // boundary node closes the grid, being the shortest.
+    if (!heights_are_decreasing()) {
+      util::stop("The census needs the node heights in decreasing order; on a"
+                 " crossed grid neighbouring trapezia cancel instead of"
+                 " accumulating");
+    }
+    std::vector<double> x;
+    std::vector<value_type> weighted;
+    x.reserve(size() + 1);
+    weighted.reserve(size() + 1);
+    for (auto& c : nodes) {
+      x.push_back(abscissa_of(c, false));
+      weighted.push_back(c.get_density() * c.individual.census_value(metric));
+    }
+    x.push_back(abscissa_of(new_node, false));
+    weighted.push_back(new_node.get_density() *
+                       new_node.individual.census_value(metric));
+    ret = util::trapezium(x, weighted);
   }
-  std::vector<double> x;
-  std::vector<value_type> weighted;
-  x.reserve(size() + 1);
-  weighted.reserve(size() + 1);
-  for (auto& c : nodes) {
-    x.push_back(abscissa_of(c, birth_date));
-    weighted.push_back(c.get_density() * c.individual.census_value(metric));
-  }
-  x.push_back(abscissa_of(new_node, birth_date));
-  weighted.push_back(new_node.get_density() *
-                     new_node.individual.census_value(metric));
-  value_type ret = util::trapezium(x, weighted);
   if (top_on() && top_density_ > 0.0) {
     ret += top_density_ * top_.census_value(metric);
   }
@@ -1246,14 +1403,12 @@ It Species<T,E>::ode_aux(It it) const {
 template <typename T, typename E>
 Rcpp::NumericMatrix Species<T, E>::r_get_state() const {
 
-  size_t ode_size = node_type::ode_size(), n_nodes = size();
+  size_t ode_size = new_node.ode_size(), n_nodes = size();
   size_t aux_size = strategy->aux_size();
 
-  // On the birth-date path `log_density` is converted to the density in height
-  // before it leaves C++, so every downstream consumer of this matrix keeps its
-  // meaning, and the quantity actually integrated is reported alongside it as
-  // `log_density_state`. Note export_patch_state() resumes from patch$ode_state,
-  // not from here, so the raw state is what a resume reloads.
+  // On the birth-date path `log_density` is not a state, so the density in
+  // height is appended as that row, and every downstream consumer of this
+  // matrix keeps its meaning.
   const size_t extra = control().node_density_in_birth_date ? 1 : 0;
 
   // Set output size. // +1 is seed
@@ -1272,22 +1427,20 @@ Rcpp::NumericMatrix Species<T, E>::r_get_state() const {
   it += extra;
 
   // Combine ode_names and aux_names into a single vector for dimnames
-  std::vector<std::string> names = node_type::ode_names();
+  std::vector<std::string> names = new_node.ode_names();
   std::vector<std::string> aux = strategy->aux_names();
   names.insert(names.end(), aux.begin(), aux.end());
 
   if (extra > 0) {
-    const int ld = static_cast<int>(
-      std::find(names.begin(), names.end(), "log_density") - names.begin());
-    const int st = static_cast<int>(ode_size + aux_size);
-    names.push_back("log_density_state");
+    const int ld = static_cast<int>(ode_size + aux_size);
+    names.push_back("log_density");
     // This matrix includes the boundary node as its last column, so the
-    // Jacobian's trailing entry is used here (unlike r_log_densities()).
+    // trailing entries are used here (unlike r_log_densities()).
+    const std::vector<double> nu = log_birth_date_densities();
     const std::vector<double> jac = height_jacobian();
     for (int col = 0; col <= static_cast<int>(n_nodes); ++col) {
-      const double nu = ret(ld, col);
-      ret(st, col) = nu;
-      ret(ld, col) = util::is_finite(jac[col]) ? nu - std::log(jac[col]) : NA_REAL;
+      ret(ld, col) =
+        util::is_finite(jac[col]) ? nu[col] - std::log(jac[col]) : NA_REAL;
     }
   }
 
@@ -1409,27 +1562,22 @@ std::vector<double> Species<T,E>::height_jacobian() const {
 }
 
 template <typename T, typename E>
-std::vector<double> Species<T,E>::r_log_densities_state() const {
+std::vector<double> Species<T,E>::r_log_densities() const {
   std::vector<double> ret;
   ret.reserve(size());
   for (nodes_const_iterator it = nodes.begin();
        it != nodes.end(); ++it) {
     ret.push_back(odelia::util::to_passive(it->get_log_density()));
   }
-  return ret;
-}
-
-template <typename T, typename E>
-std::vector<double> Species<T,E>::r_log_densities() const {
-  std::vector<double> ret = r_log_densities_state();
   if (!control().node_density_in_birth_date) {
     return ret;
   }
-  // N = nu / |dh/dtau|. jac carries one extra trailing entry for the boundary
+  // N = nu / |dh/dtau|. Both have one extra trailing entry for the boundary
   // node, which this accessor does not report.
+  const std::vector<double> nu = log_birth_date_densities();
   const std::vector<double> jac = height_jacobian();
   for (size_t i = 0; i < ret.size(); ++i) {
-    ret[i] = util::is_finite(jac[i]) ? ret[i] - std::log(jac[i]) : NA_REAL;
+    ret[i] = util::is_finite(jac[i]) ? nu[i] - std::log(jac[i]) : NA_REAL;
   }
   return ret;
 }
