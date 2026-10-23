@@ -44,6 +44,7 @@ Control::Control() {
   ode_a_y           = 1.0;
   ode_a_dydt        = 0.0;
   ode_soil_substep  = false;
+  ode_soil_substep_tol = 1e-9;
   ode_tol_scale_soil = 1.0;
 
   // 0 = adaptive RKCK (default); > 0 selects fixed-step forward Euler with this
@@ -84,9 +85,12 @@ Control::Control() {
 }
 
 // Written so that a NaN fails it.
-void validate_ode_tol_scales(const Control& control) {
+void validate_ode_tolerances(const Control& control) {
   if (!(control.ode_tol_scale_soil > 0.0)) {
     util::stop("ode_tol_scale_soil must be positive");
+  }
+  if (!(control.ode_soil_substep_tol > 0.0)) {
+    util::stop("ode_soil_substep_tol must be positive");
   }
 }
 
