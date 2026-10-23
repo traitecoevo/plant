@@ -290,6 +290,25 @@ test_that("mutant method densities, TF24", {
   expect_equal(log(mutant_rr), log(resident_rr), tolerance = tol)
 })
 
+test_that("an invader replays a step too short to move its stages, TF24", {
+  # With a step limit of 0.05, 2.70 + 0.05 rounds short of 2.75 and the run
+  # takes a step of an ulp there; its stages sit where the step before ends.
+  p <- scm_base_parameters("TF24")
+  p$patch_type <- "fixed"
+  p$max_patch_lifetime <- 10
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = TF24_hyperpar,
+                      birth_rate = 1)
+  p$node_schedule_times <- list(node_schedule_times_periodic(0, 10, 0.25))
+  env <- Environment("TF24")
+  env$extrinsic_drivers_set_constant("rainfall", 1)
+  ctrl <- Control(node_density_in_birth_date = TRUE, ode_step_size_max = 0.05)
+  scm <- run_scm(p, env, ctrl, record_trajectory = TRUE)
+  expect_gt(sum(diff(scm$ode_times) < 1e-12), 0)
+  resident_rr <- scm$net_reproduction_ratios
+  expect_no_error(scm$run_mutant(scm$parameters))
+  expect_equal(scm$net_reproduction_ratios, resident_rr, tolerance = 1e-10)
+})
+
 test_that("invaders from lma x0.7 to x2 run on the run's steps, TF24", {
   # An invader is integrated on the resident's steps and cannot shrink them, so
   # each stage must keep its pool from overshooting. The storage relaxation
