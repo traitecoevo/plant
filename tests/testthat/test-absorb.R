@@ -16,7 +16,10 @@ ctrl <- function(absorb = 0) {
   Control(node_density_in_birth_date = TRUE, absorb_epsilon = absorb)
 }
 new_scm <- function(p, c) SCM("FF16", "FF16_Env")(p, Environment("FF16"), empty_events(), c)
-trapezium <- function(x, y) sum(diff(x) * (head(y, -1) + tail(y, -1)) / 2)
+## Each node's density as it carries it: in birth date, birth rate times survival.
+node_log_densities <- function(sp) {
+  vapply(sp$nodes, function(n) n$log_density, numeric(1))
+}
 h_abs <- function(epsilon) {
   s <- FF16_Strategy()
   s$pars$hmat * (1 + log((1 - epsilon) / epsilon) / s$pars$a_f2)
@@ -45,8 +48,8 @@ test_that("absorbing a stand conserves its density to rounding at the instant", 
                                      Environment("FF16"), ctrl(absorb = 0.05))
   total <- function(pt) {
     sp <- pt$species[[1]]
-    trapezium(c(sp$node_times, pt$time),
-              c(exp(sp$log_densities_state), exp(sp$new_node$log_density))) +
+    sum(sp$establishment_weights * exp(c(node_log_densities(sp),
+                                         sp$new_node$log_density))) +
       sp$top_layer$density
   }
   sp <- patch$species[[1]]
@@ -99,7 +102,7 @@ test_that("a cohort is absorbed only at the absorbing height, and frozen there",
     after <- hist[[r]]
     k <- seq_len(before$size)
     left <- which(!before$retired[k] & after$retired[k] &
-                  exp(before$log_densities_state[k]) > 1e-200)
+                  exp(node_log_densities(before)[k]) > 1e-200)
     for (j in left) {
       expect_gte(after$heights[[j]], h_abs(0.05))
       later <- vapply(hist[r:length(hist)], function(h) h$heights[[j]], numeric(1))
@@ -162,11 +165,12 @@ test_that("a layer whose density is spent empties rather than lingering", {
   s$run_to(150)
   state <- export_patch_state(s)
   n <- state$n[[1]]
-  top <- 7 * n + 5 + 1:3
-  seeds <- 7 * n + 5 + 4
+  top <- 8 * n + 5 + 1:3
+  seeds <- 8 * n + 5 + 4
   state$ode_state[top] <- 5e-322
-  ## And no cohort left to absorb: every exported one dead.
-  state$ode_state[7 * seq_len(n)] <- -750
+  ## And no cohort left to absorb: every exported one dead, its hazard at the
+  ## sentinel the birth rate of one puts its density at.
+  state$ode_state[8 * (seq_len(n) - 1) + 2] <- 750
   q <- set_initial_state(ff16(160), state)
   r <- run_scm(q, ctrl = ctrl(absorb = 0.05), events = state$events, run = FALSE)
   r$snapshot_interval <- 1
@@ -193,11 +197,16 @@ test_that("a frozen cohort's height does not move the field", {
     pa$set_time(t)
     pa$introduce_new_node(1, t)
   }
-  node <- function(h, log_density) c(h, 0.01, 0, 0, 0, 0, log_density)
+  ## A node's hazard sets its density, at a birth rate of one; each interval
+  ## between introductions a year apart holds a year's establishment, the
+  ## newest none yet.
+  node <- function(h, hazard, interval = c(1, 0.5)) {
+    c(h, hazard, 0, 0, 0, 0, interval)
+  }
   heights <- c(0.5, 1.2, 2, 2.5, 3, 3.4, 4)
   field <- function(frozen_at) {
-    pa$set_ode_state(c(node(4.39, 0), node(1.5, 0), node(frozen_at, -750),
-                       node(1.07, 0), rep(0, 10)), 3)
+    pa$set_ode_state(c(node(4.39, 0.01), node(1.5, 0.01), node(frozen_at, 750),
+                       node(1.07, 0.01, c(0, 0)), rep(0, 10)), 3)
     vapply(heights, pa$environment$get_environment_at_height, numeric(1))
   }
   out_of_order <- field(3.5)
@@ -319,7 +328,8 @@ test_that("a window resumed from a burn-in scores its own cohorts, not the layer
   k <- which(sp$node_times >= 150 & sp$node_times <= 200)
   expect_gt(sp$top_layer$seeds, 0)
   expect_equal(s$net_reproduction_ratios,
-               trapezium(sp$node_times[k], out[k]) / 50, tolerance = 1e-12)
+               sum(establishment_weights_within(sp, k) * out[k]) / 50,
+               tolerance = 1e-12)
 })
 
 test_that("the top layer survives an export and a resume", {
@@ -344,6 +354,6 @@ test_that("the top layer survives an export and a resume", {
 })
 
 test_that("a gradient refuses the top layer", {
-  s <- run_scm(ff16(10), ctrl = ctrl(absorb = 0.05), record_trajectory = TRUE)
-  expect_error(stand_gradient(s, metrics = "leaf_area"), "not differentiable")
+  s <- run_scm(ff16(10), ctrl = ctrl(absorb = 0.05), keep_states = TRUE)
+  expect_error(stand_gradient(s, metrics = "leaf_area", hyperpar = NULL), "not differentiable")
 })

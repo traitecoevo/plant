@@ -10,7 +10,8 @@ make_initial_state(
   densities = NULL,
   log_densities = NULL,
   env = NULL,
-  ctrl = control()
+  ctrl = control(),
+  birth_dates = NULL
 )
 }
 \arguments{
@@ -28,12 +29,19 @@ Supply this or \code{log_densities}.}
 \item{env}{Environment object (defaults to the strategy's environment).}
 
 \item{ctrl}{Control object.}
+
+\item{birth_dates}{Per-species node birth dates, before 0 and ascending as
+the heights descend (same shape as \code{heights}). Required on the
+birth-date coordinate, where each node's density is its birth rate times
+its survival and \code{densities} are densities in birth date: the
+survival is set to give that density, and each interval's establishment to
+its width, as if every seed established. Elsewhere every node is born at 0.}
 }
 \value{
 A state list suitable for \code{\link{set_initial_state}}.
 }
 \description{
-Build an initial patch state from a specified size distribution, for seeding
+Build an initial patch state from a specified size distribution, for initialising
 a patch at age 0 with pre-existing plants instead of growing it from empty
 (the ecological motivation of \code{plant} issue #304). The returned object
 is consumed by \code{\link{set_initial_state}}.
@@ -42,7 +50,7 @@ is consumed by \code{\link{set_initial_state}}.
 Each species' initial nodes are described by their heights and densities;
 the remaining ODE state (mortality, fecundity, accumulated reproduction,
 heartwood, ...) starts at zero, all nodes are introduced at patch age 0, and
-the recruitment schedule continues for \code{t > 0} (the seeded distribution
+the recruitment schedule continues for \code{t > 0} (the initialised distribution
 replaces the \code{t = 0} recruit). Pathologically large/dense initial
 conditions can produce non-finite densities; \code{run_scm} guards against
 this and errors with a suggestion to use more plausible inputs.

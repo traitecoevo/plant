@@ -10,7 +10,7 @@ run_scm(
   ctrl = control(),
   refine_schedule = FALSE,
   collect = FALSE,
-  record_trajectory = FALSE,
+  keep_states = FALSE,
   events = NULL,
   run = TRUE
 )
@@ -25,14 +25,15 @@ run_scm(
 \item{refine_schedule}{Should the node-introduction schedule be adaptively
 refined before/while running (using \code{schedule_eps} and
 \code{schedule_nsteps} from \code{ctrl})? Refinement records the ODE
-schedule its final run took into \code{p$ode_times} and
-\code{p$ode_step_sizes}, so a later run of those parameters replays it
-exactly rather than choosing its own steps again.}
+schedule its final run took into \code{p$ode_times},
+\code{p$ode_step_sizes}, \code{p$ode_soil_input_slopes} and
+\code{p$ode_soil_substep_ends}, so a later run of those parameters takes
+it exactly rather than choosing its own steps again.}
 
 \item{collect}{Should tidied results be collected at every step and
 returned (instead of the \code{SCM} object)?}
 
-\item{record_trajectory}{Should the run keep the state at every accepted
+\item{keep_states}{Should the run keep the state at every accepted
 step? A gradient sweeps those states and cannot recover them from a
 finished run, so a run that did not keep them is repeated -- one whole
 forward integration. Asked for here because the flag has to be set before

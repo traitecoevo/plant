@@ -30,7 +30,7 @@ Rcpp::CharacterVector metric_names_of(SCM& scm) {
 
 template <class SCM>
 std::vector<std::vector<double>> state_adjoint_of(SCM& scm) {
-  return scm.census_state_and_trait_rows().state.to_rows();
+  return scm.census_state_and_trait_rows().state.to_vectors();
 }
 
 // The parameters no gradient exists for, each with the sentence saying why, so
@@ -106,8 +106,8 @@ Rcpp::List census_gradient_to_r(const plant::census_gradient& g) {
   }
   return Rcpp::List::create(Rcpp::_["gradient"] = gradient,
                             Rcpp::_["refusal"] = refusal,
-                            Rcpp::_["ranges"] =
-                                static_cast<double>(g.ranges),
+                            Rcpp::_["segments"] =
+                                static_cast<double>(g.segments),
                             Rcpp::_["at_first_state"] =
                                 Rcpp::wrap(g.at_first_state));
 }

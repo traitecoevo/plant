@@ -30,7 +30,7 @@ public:
 
   void setup() {
     // Uniform and fixed for the run, and they ARE the interpolant's grid: the
-    // field is held against u = height / height_max, so a build refreshes values
+    // field is tabulated against u = height / height_max, so a build refreshes values
     // and slopes and never moves a knot. 1/64 is exact, so u_k is too.
     //
     // ⚠️ DO NOT PUT THE KNOTS BACK IN HEIGHT. They were at u_k * height_max,
@@ -73,7 +73,7 @@ public:
 
   void set_fixed_value(S value, S height_max) {
     // In u, so the grid is the same three points whatever the canopy top is; the
-    // top is held beside it and is what a query divides by.
+    // top is kept beside it and is what a query divides by.
     height_max_ = height_max;
     const double top = odelia::util::to_passive(height_max);
     knot_heights_ = {0.0, top / 2.0, top};
@@ -132,7 +132,7 @@ public:
     std::vector<double> state_x(it, it + state_n);
     std::vector<S> state_y(it + state_n, it + 2 * state_n);
     std::vector<S> state_m(it + 2 * state_n, state.end());
-    // Heights in, u held: the caller's grid names the canopy top as its last
+    // Heights in, u fixed: the caller's grid names the canopy top as its last
     // knot, and the slopes it carries are per unit height.
     const double top = state_x.empty() ? 1.0 : state_x.back();
     height_max_ = S(top);
@@ -235,7 +235,7 @@ public:
 
 private:
 
-  // Place the knots at the held fractions, once. The first and last are exactly
+  // Place the knots at the fixed fractions, once. The first and last are exactly
   // 0 and 1, so the domain is exactly [0, 1] in u and [0, height_max] in height.
   // Nothing moves them afterwards; every build refreshes the values and slopes.
   void lay_out_knots() {
