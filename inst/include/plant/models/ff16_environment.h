@@ -62,7 +62,12 @@ public:
     set_fixed_environment(value, height_max);
   }
 
-  S get_environment_at_height(S height) const {
+  // The smooth profile is returned as read: step_light hands back a copy, and
+  // at an active scalar a copy is a tape statement per quadrature point.
+  S get_environment_at_height(const S& height) const {
+    if (!light_profile_stepped) {
+      return light_availability.get_value_at_height(height);
+    }
     return step_light(light_availability.get_value_at_height(height));
   }
 
@@ -72,7 +77,10 @@ public:
     return light_availability.max_height();
   }
 
-  S get_environment_at_height(S height, double cap) const {
+  S get_environment_at_height(const S& height, double cap) const {
+    if (!light_profile_stepped) {
+      return light_availability.get_value_at_height(height, cap);
+    }
     return step_light(light_availability.get_value_at_height(height, cap));
   }
 
