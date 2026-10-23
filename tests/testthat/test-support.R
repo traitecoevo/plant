@@ -27,14 +27,13 @@ test_that("control_tf24() sets TF24's step control and keeps the rest", {
   expect_equal(tf$ode_tol_abs, 1e-8)
   expect_equal(tf$ode_tol_scale_soil, 10)
   expect_true(tf$ode_soil_substep)
-  expect_equal(tf$ode_step_size_max, 15 / 365)
   ## The absolute tolerance follows the relative one.
   expect_equal(control_tf24(1e-5)$ode_tol_abs, 1e-9)
 
   ## Every other field is the base's.
   base <- Control(node_density_in_birth_date = TRUE, schedule_eps = 1e-3)
   set <- c("ode_tol_rel", "ode_tol_abs", "ode_soil_substep",
-           "ode_tol_scale_soil", "ode_step_size_max")
+           "ode_tol_scale_soil")
   rest <- setdiff(names(base), set)
   expect_identical(unclass(control_tf24(base = base))[rest],
                    unclass(base)[rest])
