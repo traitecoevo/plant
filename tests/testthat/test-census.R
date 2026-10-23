@@ -19,30 +19,31 @@ tf24_allometry_r <- function(pars, eta) {
 }
 
 # Every cohort's state, boundary node last, from the ODE state the species and
-# its boundary node write. The birth date is not ODE state and is read off the
-# nodes themselves.
+# its boundary node write. The birth date and the density, the birth rate times
+# the survival, are not ODE state and are read off the nodes themselves; the
+# weights are formed from the interval states.
 species_state_r <- function(species) {
   names <- species$new_node$ode_names
   stride <- length(names)
   flat <- c(species$ode_state, species$new_node$ode_state)
   s <- matrix(flat, nrow = stride, dimnames = list(names, NULL))
+  nodes <- c(species$nodes, list(species$new_node))
   data.frame(height = s["height", ],
              area_heartwood = s["area_heartwood", ],
              mass_heartwood = s["mass_heartwood", ],
-             log_density = s["log_density", ],
-             birth_date = c(vapply(species$nodes,
-                                   function(n) n$introduction_time, 0),
-                            species$new_node$introduction_time))
+             log_density = vapply(nodes, function(n) n$log_density, 0),
+             weight = ladder_establishment_weights(species),
+             birth_date = vapply(nodes, function(n) n$introduction_time, 0))
 }
 
 trapezium_r <- function(x, y) {
   sum(diff(x) * (utils::head(y, -1) + utils::tail(y, -1))) / 2
 }
 
-# The census in R. A census is a quadrature of a density, so the grid is the
-# coordinate the density is carried in: the birth date, which ascends as the
-# nodes are stored and puts the boundary node last, or the height, which ascends
-# the other way and puts it first.
+# The census in R. A census is a quadrature of a density, so its rule is the
+# coordinate's the density is carried in: the establishment weights in birth
+# date, boundary node last, or the trapezium in height, which ascends the other
+# way and puts the boundary node first.
 census_r <- function(species, pars, eta, include_boundary = TRUE,
                      birth_date = TRUE) {
   st <- species_state_r(species)
@@ -56,8 +57,10 @@ census_r <- function(species, pars, eta, include_boundary = TRUE,
   psi <- tf24_allometry_r(pars, eta)(st$height, st$area_heartwood,
                                      st$mass_heartwood)
   density <- exp(st$log_density)
-  x <- if (birth_date) st$birth_date else st$height
-  vapply(psi, function(p) trapezium_r(x, density * p), numeric(1))
+  if (birth_date) {
+    return(vapply(psi, function(p) sum(st$weight * density * p), numeric(1)))
+  }
+  vapply(psi, function(p) trapezium_r(st$height, density * p), numeric(1))
 }
 
 # One stand for every block below, on the birth-date coordinate the reverse
@@ -67,18 +70,15 @@ census_r <- function(species, pars, eta, include_boundary = TRUE,
 # in 0.15 s.
 #
 # ⚠️ THE LIVE BOTTOM IS THE PREMISE EVERY CHECK HERE RESTS ON, and it is what a
-# grown distribution is expensive to reach. Where the boundary node's density has
-# underflowed to zero so has its neighbour's, the closing trapezium contributes
-# exactly nothing, and the reduction gate and the seed gates below go quiet
-# rather than failing. Measured: the bottom two densities are 9.96e-01 and
-# 9.92e-01, where the same recipe at a lifetime of 3 gives zero and a distribution
-# grown to a lifetime of 5 gives zero.
+# grown distribution is expensive to reach. Where no seed has established since
+# the newest cohort, the boundary node's weight is zero, and the reduction gate
+# and the seed gates below go quiet rather than failing. Measured: the weight is
+# 2.94e-01 here.
 #
-# ⚠️ SIX NODES RATHER THAN THE SEVENTY-EIGHT A DEFAULT SCHEDULE FILLS IN IS WHAT
-# MAKES THE BOUNDARY NODE READABLE. It is the reduction's closing grid point and
-# the one part of the seed no state column reports, so G3 reads it as the gap
-# between two references -- and that gap is 2.5e-07 of the main term here against
-# 6.1e-09 under a default schedule, where the reference's own floor is 9.5e-11.
+# ⚠️ SIX NODES RATHER THAN THE SEVENTY-EIGHT A DEFAULT SCHEDULE FILLS IN keep the
+# boundary node readable. It is the one part of the seed no state column
+# reports, and G3 reads it in the newest interval's moment, where it is 1.8e-02
+# of that column against a reference floor of 1.5e-11.
 #
 # What it does not carry is the claim that a real trajectory REACHES such a
 # state. Nothing here claims that; the premise is a guard on vacuity.
@@ -93,8 +93,8 @@ census_stand <- local({
       state <- make_initial_state(
         p, heights = list(c(6.2, 3.1, 1.37)),
         log_densities = list(c(-1.3, -0.7, -0.21)),
-        env = Environment("TF24"), ctrl = ctrl)
-      state$node_times <- list(c(-0.41, -0.23, -0.07))
+        env = Environment("TF24"), ctrl = ctrl,
+        birth_dates = list(c(-0.41, -0.23, -0.07)))
       p <- set_initial_state(p, state)
       p$node_schedule_times <- list(c(0, 0.73, 1.41))
       scm <- SCM("TF24", "TF24_Env")(p, Environment("TF24"), empty_events(),
@@ -110,13 +110,11 @@ census_stand <- local({
 # differencing against the seed. `scm$patch` is a copy, so the perturbation
 # cannot reach the stand every other block shares.
 #
-# ⚠️ THE BOUNDARY NODE HAS TO MOVE WITH THE STATE, and a reference that holds it
-# fixed differentiates a different function. It is not ODE state:
-# census_state_and_trait_rows rebuilds it through set_state_and_boundary, from a
-# light field every cohort's height and density enters by the same product the
-# census integrates. Holding it fixed leaves a gap that grows with the stand --
-# 2.5e-07 here, 8.6e-05 on one grown to a lifetime of 12 -- and G3 below
-# measures it rather than absorbing it in a tolerance.
+# ⚠️ THE WEIGHTS HAVE TO MOVE WITH THE STATE, and a reference that holds them
+# fixed differentiates a different function. They are not ODE state but are
+# formed from the interval states, and the boundary node's is the newest
+# interval's moment over its width, so the reference forms them again from the
+# state it is handed; G3 measures the boundary node's part of that.
 census_of_state <- function(scm, column, birth_date = TRUE) {
   strategy <- scm$parameters$strategies[[1]]
   patch <- scm$patch
@@ -148,13 +146,13 @@ test_that("G2: the boundary node is in the reduction", {
   species <- scm$patch$species[[1]]
   strategy <- scm$parameters$strategies[[1]]
   st <- species_state_r(species)
-  # The premise: the closing interval has live density at both ends.
-  expect_gt(exp(st$log_density[nrow(st)]), 0)
-  expect_gt(exp(st$log_density[nrow(st) - 1]), 0)
+  # The premise: the boundary node carries a weight, its share of the newest
+  # node's interval.
+  expect_gt(st$weight[nrow(st)], 0)
   with_boundary <- census_r(species, strategy$pars, strategy$pars$eta, TRUE)
   without <- census_r(species, strategy$pars, strategy$pars$eta, FALSE)
-  # A reduction that starts at the smallest cohort drops the interval down to
-  # the boundary node. Measured, the closing interval is 3.5e-04 of the answer.
+  # A reduction that stops at the smallest cohort drops the boundary node's
+  # share. Measured, it is 3.2e-06 to 3.1e-05 of the answer.
   expect_gt(min(abs(with_boundary - without) / abs(with_boundary)), 1e-6)
   expect_equal(unname(stand_census(scm)), unname(with_boundary),
                tolerance = 1e-12)
@@ -165,10 +163,12 @@ test_that("G3: the seed is the census's derivative on the birth-date grid", {
   # from decides whether a cohort's height moves the quadrature as well as the
   # integrand. On this coordinate it does not.
   #
-  # Every node and both state families, against a Richardson difference of the
-  # census itself rather than of a reduction written out here: the grid claim is
-  # about the abscissa, and a reference that re-derives the integrand as well is
-  # answering two questions with one number.
+  # Every node and every state family the census reads -- the height, the
+  # mortality the density follows, and the interval states the weights are
+  # formed from -- against a Richardson difference of the census itself rather
+  # than of a reduction written out here: the grid claim is about the abscissa,
+  # and a reference that re-derives the integrand as well is answering two
+  # questions with one number.
   #
   # NOT gated on a refusal. This fixture is written rather than reached, so the
   # seed being refused here is the model having moved under a fixture that did
@@ -189,20 +189,19 @@ test_that("G3: the seed is the census's derivative on the birth-date grid", {
                unname(stand_census(scm)[["leaf_area"]]), tolerance = 1e-14)
 
   psi_at <- tf24_allometry_r(strategy$pars, strategy$pars$eta)
-  b <- st$birth_date
-  w <- vapply(seq_along(b), function(i) {
-    lo <- if (i > 1) (b[i] - b[i - 1]) / 2 else 0
-    hi <- if (i < length(b)) (b[i + 1] - b[i]) / 2 else 0
-    lo + hi
-  }, 0)
   density <- exp(st$log_density)
   area_leaf <- psi_at(st$height, st$area_heartwood, st$mass_heartwood)$leaf_area
   d_area_leaf <- (1 / strategy$pars$a_l2) *
     (st$height / strategy$pars$a_l1)^(1 / strategy$pars$a_l2 - 1) /
     strategy$pars$a_l1
+  # Each node's weighted term per unit weight, boundary node last, and the width
+  # of the interval each node opens.
+  share <- density * area_leaf
+  width <- diff(st$birth_date)
 
   got <- boundary_held <- over_birth_date <- over_height <- numeric(0)
-  for (slot in c("height", "log_density")) {
+  for (slot in c("height", "mortality", "interval_establishment",
+                 "interval_establishment_moment")) {
     for (k in seq_len(n_node)) {
       col <- (k - 1) * stride + match(slot, names_i)
       at <- scm$patch$ode_state[[col]]
@@ -215,26 +214,35 @@ test_that("G3: the seed is the census's derivative on the birth-date grid", {
       over_height <- c(over_height,
         -test_gradient_richardson(census_of_state(scm, col, FALSE), at, step, 4))
       got <- c(got, seed["leaf_area", col])
-      # The same derivative with the boundary node pinned, which is what a
-      # reduction written over a fixed state table gives.
-      boundary_held <- c(boundary_held, w[k] * density[k] *
-        if (slot == "height") d_area_leaf[k] else area_leaf[k])
+      # The same derivative with the boundary node's term held, which is what a
+      # reduction written over a fixed state table gives. A moment moves weight
+      # from its node to the node above it, by its value over the width.
+      boundary_held <- c(boundary_held, switch(slot,
+        height = st$weight[k] * density[k] * d_area_leaf[k],
+        mortality = -st$weight[k] * share[k],
+        interval_establishment = share[k],
+        interval_establishment_moment =
+          ((if (k < n_node) share[k + 1] else 0) - share[k]) / width[k]))
     }
   }
 
   # The seed is the derivative on the coordinate the density is carried in.
-  # Measured, the worst node reads 9.5e-11 and most read below 1e-13.
+  # Measured, the worst column reads 1.5e-11 and most read below 1e-13.
   expect_lt(max(abs(got - over_birth_date) / abs(over_birth_date)), 1e-8)
-  # And it is not the derivative on the other grid. Stated per node rather than
-  # as one non-vacuity check: the two grids are 1.4x apart at the closest node
+  # And it is not the derivative on the other grid. Stated per column rather than
+  # as one non-vacuity check: the two grids are 0.34 apart at the closest column
   # and 54x at the furthest, so a seed built on the wrong one is nowhere a small
   # error.
   expect_gt(min(abs(got - over_height) / abs(over_birth_date)), 0.25)
-  # The boundary node's own response is in the seed. It is the one part of the
-  # answer no state column reports, and dropping it leaves every number finite:
-  # scm.h says the contribution goes to exactly zero with nothing thrown. What
-  # separates the two references is 2.5e-07, against the 9.5e-11 above.
-  expect_gt(min(abs(got - boundary_held) / abs(got)), 1e-8)
+  # The boundary node's term is its birth rate over its crown, and the state
+  # moves neither, so its response reaches the seed through its weight alone:
+  # the newest interval's moment over that interval's width. It is the one part
+  # of the answer no state column reports, and dropping it leaves every number
+  # finite.
+  newest <- length(got)
+  expect_equal(unname(got[-newest]), boundary_held[-newest], tolerance = 1e-10)
+  expect_equal(got[[newest]] - boundary_held[[newest]],
+               share[[n_node + 1]] / width[[n_node]], tolerance = 1e-10)
 })
 
 test_that("G4: the seed reaches every state a metric reads", {
@@ -259,17 +267,9 @@ test_that("G4: the seed reaches every state a metric reads", {
   names_i <- species$nodes[[1]]$ode_names
   stride <- length(names_i)
 
-  # Birth-date trapezium weights, boundary node last, as the census integrates.
-  b <- c(vapply(species$nodes, function(n) n$introduction_time, 0),
-         species$new_node$introduction_time)
-  dens <- c(vapply(species$nodes, function(n) exp(n$log_density), 0),
-            exp(species$new_node$log_density))
-  w <- vapply(seq_along(b), function(i) {
-    lo <- if (i > 1) (b[i] - b[i - 1]) / 2 else 0
-    hi <- if (i < length(b)) (b[i + 1] - b[i]) / 2 else 0
-    lo + hi
-  }, 0)
-  expected <- (w * dens)[seq_along(species$nodes)]
+  # The establishment weights times the densities, as the census takes them.
+  st <- species_state_r(species)
+  expected <- (st$weight * exp(st$log_density))[seq_along(species$nodes)]
 
   expect_true(all(expected > 0))
   for (pair in list(c("area_stem", "area_heartwood"),
@@ -300,14 +300,17 @@ test_that("G6: no census metric has an all-zero state sensitivity", {
   # A structural claim about the seed rather than one about the shape of the
   # distribution, so it reads the stand every other block uses.
   scm <- census_stand()
-  seed <- stand_census_state_adjoint(scm)
+  # The census's rows; the fitness rows read the fecundity state.
+  seed <- stand_census_state_adjoint(scm)[names(stand_census(scm)), ,
+                                          drop = FALSE]
   expect_equal(nrow(seed), 3L)
-  # Every metric is built from height, and every cohort's log density multiplies
-  # it, so both state families must move all three metrics.
-  stride <- length(scm$patch$species[[1]]$new_node$ode_names)
+  # Every metric is built from height, and every cohort's density -- which its
+  # mortality sets -- multiplies it, so both state families must move all three.
+  names_i <- scm$patch$species[[1]]$new_node$ode_names
+  stride <- length(names_i)
   n_node <- scm$patch$species[[1]]$size
-  height_cols <- (seq_len(n_node) - 1) * stride + 1
-  density_cols <- (seq_len(n_node) - 1) * stride + stride
+  height_cols <- (seq_len(n_node) - 1) * stride + match("height", names_i)
+  density_cols <- (seq_len(n_node) - 1) * stride + match("mortality", names_i)
   for (m in rownames(seed)) {
     expect_true(any(seed[m, height_cols] != 0))
     expect_true(any(seed[m, density_cols] != 0))

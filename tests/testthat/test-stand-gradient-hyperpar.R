@@ -11,8 +11,7 @@ hyperpar_run <- function(lifetime = 3) {
                       hyperpar = TF24_hyperpar, birth_rate = list(1.10))
   ctrl <- Control(node_density_in_birth_date = TRUE)
   list(p = p, ctrl = ctrl,
-       scm = run_scm(p, Environment("TF24"), ctrl, refine_schedule = TRUE,
-                     record_trajectory = TRUE))
+       scm = run_scm(p, Environment("TF24"), ctrl, record_trajectory = TRUE))
 }
 
 test_that("the chain rule is the partials weighted by the hyperpar's own derivative", {

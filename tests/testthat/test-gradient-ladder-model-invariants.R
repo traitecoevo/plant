@@ -327,7 +327,8 @@ test_that("every trait column resolves to one declared class", {
   shared <- ladder_shared("two_by_two")
   stand <- shared$stand
   result <- shared$gradient
-  g <- result$gradient
+  # The census's rows, which the declared zeros are about.
+  g <- result$gradient[names(stand_census(stand)), , drop = FALSE]
 
   declared_zero <- ladder_zero_by_construction()
   band <- ladder_roundoff_band()
@@ -392,10 +393,12 @@ test_that("each declared zero is zero for the cause it is declared for", {
     moved <- rates[apply(abs(j[, at, drop = FALSE]) > 0, 1, any)]
     message(sprintf("  %-16s %-46s %s", name, ladder_zero_cause(name),
                     paste(unique(moved), collapse = " ")))
-    if (name %in% ladder_zero_at_an_interior_optimum()) {
+    if (name %in% c(ladder_zero_at_an_interior_optimum(),
+                    ladder_zero_outside_every_rate())) {
       # The dry bound of a feasible interval the operating point is inside. It
       # moves nothing at all, and that is complementary slackness rather than a
-      # missing row -- the same parameter carries the whole row at a pin.
+      # missing row -- the same parameter carries the whole row at a pin. S_D
+      # moves nothing either: the fitness reads it directly.
       expect_length(moved, 0L)
     } else {
       # The two reproductive accumulators and nothing else. A third rate would

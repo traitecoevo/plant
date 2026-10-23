@@ -42,6 +42,7 @@ Control::Control() {
   ode_tol_abs       = 1e-4;
   ode_a_y           = 1.0;
   ode_a_dydt        = 0.0;
+  ode_soil_substep  = false;
 
   // 0 = adaptive RKCK (default); > 0 selects fixed-step forward Euler with this
   // spacing in years (see control.h).

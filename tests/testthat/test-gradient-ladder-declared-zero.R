@@ -178,7 +178,9 @@ test_that("the seed's geometry row is refereed against a rebuilt strategy", {
 # maintained beside the model that produces the number.
 test_that("the columns declared zero are exactly zero, and no others are", {
   stand <- ladder_stand_two_by_two()
-  g <- stand_gradient(stand)
+  # The census's rows. The fitness rows read a_f3 and S_D, and
+  # test-tf24-fitness-gradient.R referees them.
+  g <- stand_gradient(stand, metrics = names(stand_census(stand)))
   expect_false(any(stand_gradient_refused(g)))
 
   # Both directions. Every column the ladder declares zero is zero, and every

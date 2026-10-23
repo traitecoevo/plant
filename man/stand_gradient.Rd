@@ -74,15 +74,15 @@ Pass the function the stand was built with: a run does not record it.
 
 \section{An invader against a recorded resident}{
 
-Set \code{scm$record_trajectory <- TRUE} before \code{scm$run_mutant(p)}
-and the invasion replay keeps its states; a gradient taken then is of the
-invaders' metrics with the canopy held at the recorded resident -- the
-field is exogenous to the invader and carries no derivative -- which is the
-rare-mutant derivative. Several invaders in \code{p} share one replay and
-each has its own columns, but each metric is still one sweep, so a set of
-invaders costs about what running them one at a time does. An invader of a
-resumed resident starts at the resume time, as \code{run_mutant} requires.
-A sweep of an invasion that kept no states is refused rather than re-run.
+After \code{scm$run_mutant(p)}, a gradient is of the invaders' metrics with
+the canopy held at the recorded resident -- the field is exogenous to the
+invader and carries no derivative -- which is the rare-mutant derivative.
+An invasion that kept no states is run again, as an invasion, to keep them;
+set \code{scm$record_trajectory <- TRUE} before it to save that run.
+Several invaders in \code{p} share one run and each has its own columns,
+but each metric is still one sweep, so a set of invaders costs about what
+running them one at a time does. An invader of a resumed resident starts at
+the resume time, as \code{run_mutant} requires.
 }
 
 \section{The birth rate}{

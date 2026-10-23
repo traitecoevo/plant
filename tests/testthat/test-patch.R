@@ -77,14 +77,14 @@ for (x in names(strategy_types)) {
     expect_error(patch$introduce_new_node(2, 0), "out of bounds")
     
     # introduce a node and expect different results
-    node_size <- Node(x, e)(s)$ode_size
+    node_size <- cmp$ode_size
     ode_size = node_size + env_size
     patch$introduce_new_node(1, 0)
     expect_equal(patch$node_ode_size, node_size)
     expect_equal(patch$ode_size, ode_size)
     if (x == "FF16") {
-      expect_equal(patch$node_ode_size, 7)
-      expect_equal(patch$ode_size, 7)
+      expect_equal(patch$node_ode_size, 8)
+      expect_equal(patch$ode_size, 8)
     }
     ## Then pull this out:
     cmp$compute_initial_conditions(patch$environment, patch$pr_survival(0.0), 
@@ -92,6 +92,13 @@ for (x in names(strategy_types)) {
      
     ode_state <- c(cmp$ode_state, env_state)
     ode_rates <- c(cmp$ode_rates, env_rates)
+    # The newest node's interval grows at the establishment probability of a
+    # seed arriving now, which its species sets; a lone node sets no interval
+    # rate.
+    i_interval <- match("interval_establishment", cmp$ode_names)
+    pr_estab <- patch$species[[1]]$new_node$individual$establishment_probability(
+      patch$environment)
+    ode_rates[[i_interval]] <- pr_estab
     expect_identical(patch$ode_state, ode_state)
     # The patch's boundary node is evaluated by the field build, in a field that
     # excludes the boundary interval; this comparison node is seeded afterwards in
@@ -106,24 +113,25 @@ for (x in names(strategy_types)) {
       # the two literals below are asserted alongside the relations that produce
       # them, which is what says WHICH function this is a reference for.
       expect_true(ctrl$node_density_in_birth_date)
-      expect_equal(ode_state, c(0.3441947, 0.009159, 0, 0, 0, 0, -0.009159),
+      expect_equal(ode_state, c(0.3441947, 0, 0, 0, 0, 0, 0, 0),
                    tolerance = 1e-4)
       expect_equal(ode_rates,
-                   c(0.3341652, 0.01000000, 0, 5.1781e-09, 9.60270e-07, 0, -0.01),
+                   c(0.3341652, 0.01000000, 0, 5.1781e-09, 9.60270e-07, 0,
+                     0.990882, 0),
                    tolerance = 1e-4)
 
-      # The density rate is minus the mortality rate and nothing else. On the
-      # height coordinate it carries a compression term as well, which is what
-      # made this entry -0.78726 and cost a displaced-height solve to compute.
-      expect_equal(ode_rates[[7]], -ode_rates[[2]])
-
-      # And the boundary condition is the seed arrival times the establishment
-      # probability, with no division by the growth rate. At a birth rate of one
-      # that makes the log density exactly minus the cumulative mortality, since
-      # the mortality a node is seeded with is -log(pr_estab). On the height
-      # coordinate the division put this entry -log(g) higher, at 1.08695.
+      # A newborn's density is the birth rate and its mortality starts at zero,
+      # so at a birth rate of one its log density is exactly zero. On the height
+      # coordinate the establishment probability and the division by the growth
+      # rate put it at 1.08695.
       expect_equal(patch$species[[1]]$extrinsic_drivers$evaluate("birth_rate", 0), 1)
-      expect_equal(ode_state[[7]], -ode_state[[2]])
+      expect_identical(ode_state[[2]], 0)
+      expect_identical(patch$species[[1]]$nodes[[1]]$log_density, 0)
+
+      # The establishment probability enters as the newest node's interval rate
+      # instead, and the interval's moment grows from zero at its birth date.
+      expect_identical(ode_rates[[7]], pr_estab)
+      expect_identical(ode_rates[[8]], 0)
     }
     y <- patch$ode_state
     patch$set_ode_state(y, 0)

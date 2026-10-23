@@ -84,6 +84,11 @@ struct Control {
   double ode_a_y;
   double ode_a_dydt;
 
+  // Substep TF24's soil where a step is past Cash-Karp's stability limit on it
+  // or substepping lets it grow. A step that spans a knot of the rain substeps
+  // it whatever this is.
+  bool ode_soil_substep;
+
   // Fixed-step ODE integration (forward Euler).  Units: years.  When 0 (the
   // default) the SCM integrates residents with the adaptive, error-controlled
   // Cash-Karp RKCK solver.  When > 0 it instead uses plain forward Euler on a
@@ -129,13 +134,17 @@ inline bool freezes_retired(const Control& c) {
 }
 
 inline odelia::ode::OdeControl make_ode_control(const Control& control) {
-  return odelia::ode::OdeControl(control.ode_tol_abs,
-                         control.ode_tol_rel,
-                         control.ode_a_y,
-                         control.ode_a_dydt,
-                         control.ode_step_size_min,
-                         control.ode_step_size_max,
-                         control.ode_step_size_initial);
+  odelia::ode::OdeControl ret(control.ode_tol_abs,
+                              control.ode_tol_rel,
+                              control.ode_a_y,
+                              control.ode_a_dydt,
+                              control.ode_step_size_min,
+                              control.ode_step_size_max,
+                              control.ode_step_size_initial);
+  // GSL's rule, which plant's step sequences and references were made with.
+  ret.set_controller(odelia::ode::Controller::gsl);
+  ret.substep_subsystem = control.ode_soil_substep;
+  return ret;
 }
 
 }

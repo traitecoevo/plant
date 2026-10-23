@@ -895,8 +895,8 @@ void NodeSchedule__clear_times(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_, 
   obj_->clear_times(species_index);
 }
 // [[Rcpp::export]]
-void NodeSchedule__set_ode_steps(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_, std::vector<double> times, std::vector<double> sizes) {
-  obj_->r_set_ode_steps(times, sizes);
+void NodeSchedule__set_ode_steps(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_, std::vector<double> times, std::vector<double> sizes, std::vector<std::vector<double> > input_slopes, std::vector<std::vector<double> > substep_ends) {
+  obj_->r_set_ode_steps(times, sizes, input_slopes, substep_ends);
 }
 // [[Rcpp::export]]
 void NodeSchedule__clear_ode_steps(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_) {
@@ -959,6 +959,16 @@ std::vector<double> NodeSchedule__ode_times__get(plant::RcppR6::RcppR6<plant::No
 // [[Rcpp::export]]
 std::vector<double> NodeSchedule__ode_step_sizes__get(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_) {
   return obj_->r_ode_step_sizes();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double> > NodeSchedule__ode_soil_input_slopes__get(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_) {
+  return obj_->r_ode_soil_input_slopes();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double> > NodeSchedule__ode_soil_substep_ends__get(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_) {
+  return obj_->r_ode_soil_substep_ends();
 }
 
 // [[Rcpp::export]]
@@ -2025,11 +2035,6 @@ std::vector<double> Species___FF16__FF16_Env__log_densities__get(plant::RcppR6::
 }
 
 // [[Rcpp::export]]
-std::vector<double> Species___FF16__FF16_Env__log_densities_state__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
-  return obj_->r_log_densities_state();
-}
-
-// [[Rcpp::export]]
 std::vector<bool> Species___FF16__FF16_Env__retired__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
   return obj_->r_retired();
 }
@@ -2042,6 +2047,11 @@ Rcpp::List Species___FF16__FF16_Env__top_layer__get(plant::RcppR6::RcppR6<plant:
 // [[Rcpp::export]]
 std::vector<double> Species___FF16__FF16_Env__height_jacobian__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
   return obj_->height_jacobian();
+}
+
+// [[Rcpp::export]]
+std::vector<double> Species___FF16__FF16_Env__establishment_weights__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
+  return obj_->r_establishment_weights();
 }
 
 // [[Rcpp::export]]
@@ -2166,11 +2176,6 @@ std::vector<double> Species___TF24__TF24_Env__log_densities__get(plant::RcppR6::
 }
 
 // [[Rcpp::export]]
-std::vector<double> Species___TF24__TF24_Env__log_densities_state__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->r_log_densities_state();
-}
-
-// [[Rcpp::export]]
 std::vector<bool> Species___TF24__TF24_Env__retired__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->r_retired();
 }
@@ -2183,6 +2188,11 @@ Rcpp::List Species___TF24__TF24_Env__top_layer__get(plant::RcppR6::RcppR6<plant:
 // [[Rcpp::export]]
 std::vector<double> Species___TF24__TF24_Env__height_jacobian__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->height_jacobian();
+}
+
+// [[Rcpp::export]]
+std::vector<double> Species___TF24__TF24_Env__establishment_weights__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_establishment_weights();
 }
 
 // [[Rcpp::export]]
@@ -2307,11 +2317,6 @@ std::vector<double> Species___TF24f__TF24_Env__log_densities__get(plant::RcppR6:
 }
 
 // [[Rcpp::export]]
-std::vector<double> Species___TF24f__TF24_Env__log_densities_state__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->r_log_densities_state();
-}
-
-// [[Rcpp::export]]
 std::vector<bool> Species___TF24f__TF24_Env__retired__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->r_retired();
 }
@@ -2324,6 +2329,11 @@ Rcpp::List Species___TF24f__TF24_Env__top_layer__get(plant::RcppR6::RcppR6<plant
 // [[Rcpp::export]]
 std::vector<double> Species___TF24f__TF24_Env__height_jacobian__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->height_jacobian();
+}
+
+// [[Rcpp::export]]
+std::vector<double> Species___TF24f__TF24_Env__establishment_weights__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_establishment_weights();
 }
 
 // [[Rcpp::export]]
@@ -2448,11 +2458,6 @@ std::vector<double> Species___K93__K93_Env__log_densities__get(plant::RcppR6::Rc
 }
 
 // [[Rcpp::export]]
-std::vector<double> Species___K93__K93_Env__log_densities_state__get(plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  return obj_->r_log_densities_state();
-}
-
-// [[Rcpp::export]]
 std::vector<bool> Species___K93__K93_Env__retired__get(plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > obj_) {
   return obj_->r_retired();
 }
@@ -2465,6 +2470,11 @@ Rcpp::List Species___K93__K93_Env__top_layer__get(plant::RcppR6::RcppR6<plant::S
 // [[Rcpp::export]]
 std::vector<double> Species___K93__K93_Env__height_jacobian__get(plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > obj_) {
   return obj_->height_jacobian();
+}
+
+// [[Rcpp::export]]
+std::vector<double> Species___K93__K93_Env__establishment_weights__get(plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->r_establishment_weights();
 }
 
 // [[Rcpp::export]]
@@ -3249,6 +3259,16 @@ std::vector<double> SCM___FF16__FF16_Env__ode_step_sizes__get(plant::RcppR6::Rcp
 }
 
 // [[Rcpp::export]]
+std::vector<std::vector<double> > SCM___FF16__FF16_Env__ode_soil_input_slopes__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
+  return obj_->r_ode_soil_input_slopes();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double> > SCM___FF16__FF16_Env__ode_soil_substep_ends__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
+  return obj_->r_ode_soil_substep_ends();
+}
+
+// [[Rcpp::export]]
 bool SCM___FF16__FF16_Env__collect__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
   return obj_->collect;
 }
@@ -3406,6 +3426,16 @@ std::vector<double> SCM___TF24__TF24_Env__ode_times__get(plant::RcppR6::RcppR6<p
 // [[Rcpp::export]]
 std::vector<double> SCM___TF24__TF24_Env__ode_step_sizes__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->r_ode_step_sizes();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double> > SCM___TF24__TF24_Env__ode_soil_input_slopes__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_ode_soil_input_slopes();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double> > SCM___TF24__TF24_Env__ode_soil_substep_ends__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_ode_soil_substep_ends();
 }
 
 // [[Rcpp::export]]
@@ -3569,6 +3599,16 @@ std::vector<double> SCM___TF24f__TF24_Env__ode_step_sizes__get(plant::RcppR6::Rc
 }
 
 // [[Rcpp::export]]
+std::vector<std::vector<double> > SCM___TF24f__TF24_Env__ode_soil_input_slopes__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_ode_soil_input_slopes();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double> > SCM___TF24f__TF24_Env__ode_soil_substep_ends__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_ode_soil_substep_ends();
+}
+
+// [[Rcpp::export]]
 bool SCM___TF24f__TF24_Env__collect__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->collect;
 }
@@ -3726,6 +3766,16 @@ std::vector<double> SCM___K93__K93_Env__ode_times__get(plant::RcppR6::RcppR6<pla
 // [[Rcpp::export]]
 std::vector<double> SCM___K93__K93_Env__ode_step_sizes__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
   return obj_->r_ode_step_sizes();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double> > SCM___K93__K93_Env__ode_soil_input_slopes__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->r_ode_soil_input_slopes();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double> > SCM___K93__K93_Env__ode_soil_substep_ends__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->r_ode_soil_substep_ends();
 }
 
 // [[Rcpp::export]]
