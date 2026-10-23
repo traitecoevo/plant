@@ -425,6 +425,7 @@ Control:
     - ode_a_y: double
     - ode_a_dydt: double
     - ode_soil_substep: bool
+    - ode_tol_scale_soil: double
     - fixed_time_step: double
     - schedule_nsteps: size_t
     - schedule_eps: double

@@ -689,6 +689,9 @@ private:
   std::shared_ptr<const std::vector<field_row>> invaded_run;
   // Its harvests and extremes, which its invaders meet too.
   std::vector<NodeScheduleEvent> invaded_actions;
+  // The stepper reads the patch's scales only through this concept, so a
+  // signature that drifted from it would leave every run unscaled, silently.
+  static_assert(odelia::ode::ScalesTolerances<patch_type>);
   odelia::ode::Solver<patch_type> solver;
 };
 
