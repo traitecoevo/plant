@@ -1,40 +1,48 @@
 # TF24t: TF24 with phylloptim's lasting leaf thermal-damage and acclimation
 # layer switched on (#566). TF24t reuses TF24_Pars and TF24_Environment, forces
 # the leaf's energy balance on, and appends four ODE states: the thermostability
-# (acclimation) state, the recoverable and permanent damaged fractions, and a
-# running mean of the operating-point leaf temperature that feeds back into
-# nothing.
+# (acclimation) state A, the impaired and damaged fractions of leaf area I and D,
+# and a running mean of the operating-point leaf temperature that feeds back
+# into nothing.
 #
-# Damage is a STATE, not an instantaneous factor: a fresh hot leaf loses nothing
-# beyond the reversible peaked Arrhenius until I_r and I_p accrue through the
+# Impairment is a STATE, not an instantaneous factor: a fresh hot leaf loses
+# nothing beyond the reversible peaked Arrhenius until I and D accrue through the
 # ODE. So the physics is tested on single rate evaluations at preset states, and
 # the SCM runs are short.
 #
-# The leaf-level layer itself (the phi_d curve, the survival discount, the repair
-# gate, the costs in R_d) is tested in phylloptim (test-thermal-damage.R).
+# The dynamics are phylloptim's (Leaf$damage_rates, the impairment switch, the
+# repair gate, the costs in R_d) and are tested there (test-thermal-damage.R).
+# What is tested here is the plant's part: the states reach the leaf, the rates
+# come back on the per-year clock, and damaged leaf is diluted by turnover and
+# growth.
 
 tf24t_days <- 365.25
+tf24t_R <- 8.314462618153240  # phylloptim's exact gas constant
+tf24t_C_to_K <- 273.15
 
 # phylloptim's helpers, in R, for the closed forms the rates are checked against.
-tf24t_softplus <- function(x, s) log1p(exp(pmin(pmax(s * x, -30), 30))) / s
-tf24t_logistic <- function(x) 1 / (1 + exp(-pmin(pmax(x, -30), 30)))
+tf24t_clamp <- function(x, lo = -30, hi = 30) pmin(pmax(x, lo), hi)
+tf24t_softplus <- function(x, s) log1p(exp(tf24t_clamp(s * x))) / s
+tf24t_logistic <- function(x) 1 / (1 + exp(-tf24t_clamp(x)))
 
-# The deactivated fraction at leaf temperature `Tleaf` (deg C) with the onset
-# moved up by `delta` deg C: K/(1+K) of the Jmax curve's two-state equilibrium.
-# H_d and d_S are phylloptim's Jmax defaults and the gas constant is its exact
-# one; a change to either there moves this closed form.
-tf24t_phi_d <- function(Tleaf, delta, H_d = 200000, d_S = 650) {
-  R <- 8.314462618153240
-  onset <- min(max(H_d / d_S + delta, 250), 350)
-  T_K <- Tleaf + 273.15
-  arg <- (H_d / onset * T_K - H_d) / (R * T_K)
-  K <- exp(min(max(arg, -30), 30))
+# The impairment switch K/(1+K) at leaf temperature `Tleaf` (deg C), with its
+# midpoint `Tmid` moved up by `delta` deg C.
+tf24t_switch <- function(Tleaf, delta, H, Tmid) {
+  mid_K <- tf24t_clamp(Tmid + tf24t_C_to_K + delta, 250, 350)
+  T_K <- Tleaf + tf24t_C_to_K
+  K <- exp(tf24t_clamp(H / tf24t_R * (1 / mid_K - 1 / T_K)))
   K / (1 + K)
 }
 
-# Every thermal input at a setting that can neither damage nor cost: no
-# acclimation gain (A stays at its zero seed), no leak into damage, no offset,
-# and every cost coefficient zero.
+# The impairment rate's Arrhenius scale, 1 at k_i_Tref.
+tf24t_k_i_scale <- function(Tleaf, Ea, Tref) {
+  exp(tf24t_clamp(Ea / tf24t_R * (1 / (Tref + tf24t_C_to_K) -
+                                  1 / (Tleaf + tf24t_C_to_K))))
+}
+
+# Every thermal input at a setting that can neither impair nor cost: no
+# acclimation gain (A stays at its zero seed), no impairment, no offset, and
+# every cost coefficient zero.
 tf24t_inert <- function(s = TF24t_Strategy()) {
   s$alpha <- 0
   s$k_i <- 0
@@ -56,8 +64,11 @@ test_that("Defaults", {
   expect_identical(unclass(s$pars), unclass(TF24_Strategy()$pars))
   expect_identical(s$pars$use_energy_balance, 0.0)
 
-  thermal <- list(topt_offset = 0, m_rep = 0.4, t_rep_cut = 45, k_i = 0.5,
-                  k_rec = 0.25, k_mat = 0.02, dTopt_max = 6, K_A = 1,
+  thermal <- list(topt_offset = 0, impair_H = 200000,
+                  impair_Tmid = 200000 / 650 - 273.15,
+                  m_rep = 0.4, t_rep_cut = 45, k_i = 0.5, k_i_Ea = 0,
+                  k_i_Tref = 25, k_rec = 0.25, k_mat = 0.02, dTopt_max = 6,
+                  dTimpair_max = 6, K_A = 1,
                   alpha = 0.02, beta = 0.01, t_accl = 30, softplus_s = 1,
                   k_mean_leaf_temp = 0.0333,
                   c_acclim_maint = 0.02, c_repair_maint = 1e-5,
@@ -73,8 +84,7 @@ test_that("Defaults", {
 
 test_that("TF24t appends four thermal ODE states after TF24's", {
   p <- TF24t_Individual()
-  appended <- c("acclim_thermostab", "damage_recoverable", "damage_permanent",
-                "mean_leaf_temp")
+  appended <- c("acclim_thermostab", "impaired", "damaged", "mean_leaf_temp")
   expect_identical(p$ode_names, c(TF24_Individual()$ode_names, appended))
   # No aux of its own: the running mean relaxes toward TF24's `Tleaf`.
   expect_identical(p$aux_names, TF24_Individual()$aux_names)
@@ -101,63 +111,85 @@ test_that("the energy balance is forced on whatever pars says", {
 
 test_that("the thermal rates follow their equations at the operating point", {
   # Every trait the leaf reads is moved off its default, so a copy into the leaf
-  # that prepare_strategy dropped shows up here as the leaf's default in phi_d or
-  # k_rec_eff. phi_d and k_rec_eff are read at the operating-point leaf
-  # temperature, which is TF24's `Tleaf` aux.
+  # that prepare_strategy dropped shows up here as the leaf's default. All rates
+  # are read at the operating-point leaf temperature, TF24's `Tleaf` aux; the
+  # air temperature (the driver) enters none of them.
   air <- 33
   env <- Environment("TF24t")
   env$extrinsic_drivers_set_constant("leaf_temp", air)
   s <- TF24t_Strategy()
-  s$topt_offset <- 1.5; s$dTopt_max <- 4; s$K_A <- 0.5
+  s$topt_offset <- 1.5; s$dTopt_max <- 4; s$dTimpair_max <- 3; s$K_A <- 0.5
+  s$impair_H <- 250000; s$impair_Tmid <- 36
   s$k_rec <- 0.4; s$m_rep <- 0.3; s$t_rep_cut <- 40
-  s$k_i <- 0.7; s$k_mat <- 0.05; s$alpha <- 0.03; s$beta <- 0.02
+  s$k_i <- 0.7; s$k_i_Ea <- 50000; s$k_i_Tref <- 30; s$k_mat <- 0.05
+  s$alpha <- 0.03; s$beta <- 0.02; s$t_accl <- 28; s$softplus_s <- 0.8
   s$k_mean_leaf_temp <- 0.05
-  A <- 2; Ir <- 0.2; Ip <- 0.1; Tbar <- 28
+  A <- 2; I <- 0.2; D <- 0.1; Tbar <- 28
   ind <- TF24t_Individual(s)
   ind$set_state("height", 5)
   ind$set_state("acclim_thermostab", A)
-  ind$set_state("damage_recoverable", Ir)
-  ind$set_state("damage_permanent", Ip)
+  ind$set_state("impaired", I)
+  ind$set_state("damaged", D)
   ind$set_state("mean_leaf_temp", Tbar)
   ind$compute_rates(env)
   rt <- tf24t_rates(ind)
   Tleaf <- ind$aux("Tleaf")
   expect_true(is.finite(Tleaf))
+  expect_gt(abs(Tleaf - air), 0.1)  # so reading the air instead would show
 
-  # Acclimation is forced by the AIR temperature, the driver.
+  # Acclimation is forced by the LEAF temperature.
   expect_equal(rt[["acclim_thermostab"]],
-               tf24t_days * (s$alpha * tf24t_softplus(air - s$t_accl, s$softplus_s) -
+               tf24t_days * (s$alpha * tf24t_softplus(Tleaf - s$t_accl,
+                                                      s$softplus_s) -
                              s$beta * A),
                tolerance = 1e-12)
 
-  delta <- s$topt_offset + s$dTopt_max * A / (A + s$K_A)
-  phi_d <- tf24t_phi_d(Tleaf, delta)
+  delta <- s$topt_offset + s$dTimpair_max * A / (A + s$K_A)
+  k_imp <- s$k_i * tf24t_k_i_scale(Tleaf, s$k_i_Ea, s$k_i_Tref) *
+    tf24t_switch(Tleaf, delta, s$impair_H, s$impair_Tmid)
   k_rec_eff <- s$k_rec * tf24t_logistic(-s$m_rep * (Tleaf - s$t_rep_cut))
-  expect_gt(phi_d, 0)
-  expect_equal(rt[["damage_recoverable"]],
-               tf24t_days * (s$k_i * phi_d * (1 - Ir - Ip) -
-                             (k_rec_eff + s$k_mat) * Ir),
+  expect_gt(k_imp, 0)
+  expect_equal(rt[["impaired"]],
+               tf24t_days * (k_imp * (1 - I - D) - (k_rec_eff + s$k_mat) * I),
                tolerance = 1e-10)
 
-  # Permanent damage is diluted by leaf turnover and canopy expansion, both
+  # Damaged leaf is diluted by leaf turnover and canopy expansion, both
   # already per year; the expansion is recovered from the height rate through
   # TF24's allometry h = a_l1 * L^a_l2.
   pars <- s$pars
   L <- ind$aux("competition_effect")
   dL_dt <- rt[["height"]] / (pars$a_l1 * pars$a_l2 * L^(pars$a_l2 - 1))
   dilution <- pars$k_l + max(0, dL_dt) / L
-  expect_equal(rt[["damage_permanent"]],
-               tf24t_days * s$k_mat * Ir - dilution * Ip, tolerance = 1e-10)
+  expect_equal(rt[["damaged"]],
+               tf24t_days * s$k_mat * I - dilution * D, tolerance = 1e-10)
 
   expect_equal(rt[["mean_leaf_temp"]],
                tf24t_days * s$k_mean_leaf_temp * (Tleaf - Tbar),
                tolerance = 1e-12)
 })
 
+test_that("the impaired and damaged fractions cut net production by their sum", {
+  # Both scale vcmax and jmax by the functional fraction F = 1 - I - D, so equal
+  # sums give equal capacity and net production (to rounding in the sum).
+  env <- Environment("TF24t")
+  env$extrinsic_drivers_set_constant("leaf_temp", 30)
+  net <- function(I, D) {
+    s <- tf24t_inert()
+    p <- TF24t_Individual(s)
+    p$set_state("height", 5)
+    p$set_state("impaired", I)
+    p$set_state("damaged", D)
+    p$compute_rates(env)
+    p$aux("net_mass_production_dt")
+  }
+  expect_lt(net(0.3, 0), net(0, 0))
+  expect_equal(net(0.2, 0.1), net(0.1, 0.2), tolerance = 1e-12)
+})
+
 test_that("each leaf cost coefficient reaches the leaf", {
   # The four maintenance costs are added to the leaf's R_d and so reach net
   # production only through the leaf. Each multiplicand is made positive -- A > 0,
-  # I_r > 0, and k_i below the leaf's reference 0.5 so some protection is bought.
+  # I > 0, and k_i below the leaf's reference 0.5 so some protection is bought.
   env <- Environment("TF24t")
   env$extrinsic_drivers_set_constant("leaf_temp", 30)
   net <- function(mutate = identity) {
@@ -167,7 +199,7 @@ test_that("each leaf cost coefficient reaches the leaf", {
     ind <- TF24t_Individual(s)
     ind$set_state("height", 5)
     ind$set_state("acclim_thermostab", 2)
-    ind$set_state("damage_recoverable", 0.2)
+    ind$set_state("impaired", 0.2)
     ind$compute_rates(env)
     ind$aux("net_mass_production_dt")
   }
@@ -216,8 +248,7 @@ test_that("at non-damaging settings TF24t is TF24 with the energy balance on", {
     expect_identical(tf24t_rates(a)[shared], tf24t_rates(b)[shared])
     expect_identical(a$internals$auxs, b$internals$auxs)
     expect_identical(unname(tf24t_rates(a)[c("acclim_thermostab",
-                                             "damage_recoverable",
-                                             "damage_permanent")]),
+                                             "impaired", "damaged")]),
                      c(0, 0, 0))
   }
 
@@ -305,11 +336,12 @@ test_that("TF24t refuses misconfigured kinetics", {
   refuses(function(s) { s$k_i <- -1; s }, "damage kinetics")
   refuses(function(s) { s$k_rec <- -1; s }, "damage kinetics")
   refuses(function(s) { s$k_mat <- Inf; s }, "damage kinetics")
+  refuses(function(s) { s$impair_H <- 0; s }, "impair_H")
 })
 
 test_that("TF24t refuses deep-crown shading and accepts the other two", {
-  # phi_d and k_rec_eff are read after the crown loop; deep-crown would leave
-  # them at the last quadrature node.
+  # The damage rates are read after the crown loop; deep-crown would leave them
+  # at the last quadrature node's leaf temperature.
   s <- TF24t_Strategy()
   s$control$shading_model <- "deep-crown"
   expect_error(TF24t_Individual(s), "deep-crown.*not supported for the TF24t")
@@ -335,28 +367,33 @@ test_that("TF24t has no stand gradient", {
   expect_error(stand_gradient(scm), "thermal-damage layer")
 })
 
-test_that("TF24t runs end-to-end; acclimation sits at its equilibrium; damage is bounded", {
+test_that("TF24t runs end-to-end; the fractions are bounded; A stays non-negative", {
   p <- scm_base_parameters("TF24t")
   p$max_patch_lifetime <- 10
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 20)
   res <- run_scm(p, collect = TRUE, refine_schedule = FALSE)
   sp <- res$species
-  expect_true(all(c("acclim_thermostab", "damage_recoverable",
-                    "damage_permanent", "mean_leaf_temp") %in% names(sp)))
-  for (col in c("damage_recoverable", "damage_permanent")) {
+  expect_true(all(c("acclim_thermostab", "impaired", "damaged",
+                    "mean_leaf_temp") %in% names(sp)))
+  for (col in c("impaired", "damaged")) {
     x <- sp[[col]][!is.na(sp[[col]])]
     expect_true(all(is.finite(x)), info = col)
     expect_true(all(x >= -1e-8 & x <= 1 + 1e-6), info = col)
   }
-  # Damage does accrue at the defaults, so the bound above is not vacuous.
-  expect_gt(max(sp$damage_recoverable, na.rm = TRUE), 0.01)
+  F <- 1 - sp$impaired - sp$damaged
+  expect_true(all(F[!is.na(F)] >= -1e-6))
+  # Impairment does accrue at the defaults, so the bound above is not vacuous.
+  expect_gt(max(sp$impaired, na.rm = TRUE), 0.01)
 
-  # A constant environment (leaf_temp driver 25) keeps A at its seed,
-  # A_eq = (alpha/beta) * softplus(T_air - t_accl).
-  s <- p$strategies[[1]]
-  a_eq <- s$alpha / s$beta * tf24t_softplus(25 - s$t_accl, s$softplus_s)
+  # dA/dt = alpha * softplus(.) - beta * A with a non-negative forcing and a
+  # non-negative seed keeps A non-negative. It is no longer constant: the seed is
+  # the equilibrium at the birth AIR temperature, the forcing the leaf's own.
   a <- sp$acclim_thermostab[!is.na(sp$acclim_thermostab)]
-  expect_equal(unique(round(a, 10)), round(a_eq, 10))
+  expect_true(all(is.finite(a)))
+  expect_true(all(a >= -1e-10))
+  s <- p$strategies[[1]]
+  a_seed <- s$alpha / s$beta * tf24t_softplus(25 - s$t_accl, s$softplus_s)
+  expect_equal(a[[1]], a_seed, tolerance = 1e-12)
 })
 
 test_that("with zero gain the acclimation state stays at zero", {
@@ -372,6 +409,30 @@ test_that("with zero gain the acclimation state stays at zero", {
 })
 
 # The whole-plant costs in net_mass_production_dt, and the damage feedback.
+
+test_that("the induction cost scales with leaf area, so a newborn can grow", {
+  # A newborn's A is seeded at the birth AIR temperature's equilibrium, but its
+  # bright leaf runs warmer, so dA/dt is large at birth. Charged per plant, the
+  # cost exceeded the seedling's whole net production; per m^2 of leaf it does not.
+  env <- Environment("TF24t")
+  env$extrinsic_drivers_set_constant("leaf_temp", 28)
+  newborn <- function(c_ind) {
+    s <- TF24t_Strategy(); s$c_accl_induct <- c_ind
+    p <- TF24t_Individual(s)
+    p$set_initial_states(env)
+    p$compute_rates(env)
+    p
+  }
+  p <- newborn(0.01)
+  expect_gt(tf24t_rates(p)[["acclim_thermostab"]], 1)  # the transient is real
+  expect_gt(p$aux("net_mass_production_dt"), 0)
+  # The debit is c_accl_induct * leaf area * pos(dA/dt).
+  free <- newborn(0)
+  dA <- tf24t_rates(p)[["acclim_thermostab"]]
+  pos <- 0.5 * (dA + sqrt(dA^2 + 1e-4^2))
+  expect_equal(free$aux("net_mass_production_dt") - p$aux("net_mass_production_dt"),
+               0.01 * p$aux("competition_effect") * pos, tolerance = 1e-10)
+})
 
 test_that("the construction cost debits net production only when bought", {
   env <- Environment("TF24t")
@@ -390,61 +451,48 @@ test_that("the construction cost debits net production only when bought", {
   expect_lt(net(8, 0.2), net(8, 0))
 })
 
-test_that("lasting damage cuts net production", {
-  env <- Environment("TF24t")
-  env$extrinsic_drivers_set_constant("leaf_temp", 30)
-  net_at_Ir <- function(Ir) {
-    p <- TF24t_Individual(TF24t_Strategy())
-    p$set_state("height", 5)
-    p$set_state("damage_recoverable", Ir)
-    p$compute_rates(env)
-    p$net_mass_production_dt(env)
-  }
-  expect_lt(net_at_Ir(0.5), net_at_Ir(0.0))
-})
-
-test_that("the recoverable-damage flux rises with heat and self-limits with I_r", {
-  dI_r <- function(air, Ir) {
+test_that("the impairment flux rises with heat and self-limits with I", {
+  dI <- function(air, I) {
     env <- Environment("TF24t")
     env$extrinsic_drivers_set_constant("leaf_temp", air)
     p <- TF24t_Individual(TF24t_Strategy())
     p$set_state("height", 5)
-    p$set_state("damage_recoverable", Ir)
+    p$set_state("impaired", I)
     p$compute_rates(env)
-    tf24t_rates(p)[["damage_recoverable"]]
+    tf24t_rates(p)[["impaired"]]
   }
-  expect_gt(dI_r(40, 0), dI_r(20, 0))     # hotter operating point, more flux
-  expect_lt(dI_r(40, 0.5), dI_r(40, 0))   # the (1 - I_r - I_p) factor
+  expect_gt(dI(40, 0), dI(20, 0))     # hotter operating point, more flux
+  expect_lt(dI(40, 0.5), dI(40, 0))   # the F = 1 - I - D factor
 })
 
-test_that("faster repair lowers the share of damage that becomes permanent", {
-  # With no inflow (k_i = 0) and no permanent damage yet, I_r drains at
-  # (k_rec_eff + k_mat) and I_p gains k_mat of it, so the permanent share of the
-  # outflow is k_mat / (k_rec_eff + k_mat). Read off the rates rather than
-  # computed from the parameters, at a cool leaf where the repair gate is open.
-  permanent_share <- function(k_rec) {
+test_that("faster repair lowers the share of impairment that becomes damage", {
+  # With no inflow (k_i = 0) and no damage yet, I drains at (k_rec_eff + k_mat)
+  # and D gains k_mat of it, so the damaged share of the outflow is
+  # k_mat / (k_rec_eff + k_mat). Read off the rates rather than computed from the
+  # parameters, at a cool leaf where the repair gate is open.
+  damaged_share <- function(k_rec) {
     env <- Environment("TF24t")
     env$extrinsic_drivers_set_constant("leaf_temp", 15)
     s <- TF24t_Strategy(); s$k_i <- 0; s$k_rec <- k_rec
     p <- TF24t_Individual(s)
     p$set_state("height", 5)
-    p$set_state("damage_recoverable", 0.3)
+    p$set_state("impaired", 0.3)
     p$compute_rates(env)
     rt <- tf24t_rates(p)
-    rt[["damage_permanent"]] / -rt[["damage_recoverable"]]
+    rt[["damaged"]] / -rt[["impaired"]]
   }
-  fast <- permanent_share(2.0)
-  slow <- permanent_share(0.25)
+  fast <- damaged_share(2.0)
+  slow <- damaged_share(0.25)
   expect_lt(fast, slow)
   expect_gt(fast, 0)
 })
 
 test_that("a single TF24t plant grows through the ODE runner, and costs slow it", {
   # At 15 deg C air, not the default 25. A lone plant in full light runs its
-  # leaves 4-6 deg C above the air, and hotter as damage closes its stomata, so
-  # at 25 phi_d climbs toward its midpoint, damage ratchets into I_p within a
-  # year at the default k_mat, and the dying plant's empty storage pool holds
-  # the stepper to tiny steps.
+  # leaves 4-6 deg C above the air, and hotter as impairment closes its stomata,
+  # so at 25 the impairment switch climbs toward its midpoint, impairment
+  # ratchets into damage within a year at the default k_mat, and the dying
+  # plant's empty storage pool holds the stepper to tiny steps.
   #
   # The runner does not seed the initial states, so they are seeded here: an
   # unseeded storage pool starts empty, where a plant losing carbon is refused

@@ -23,7 +23,7 @@ test_that("TF24f carries a compound version that tracks TF24", {
 
 test_that("TF24t carries a compound version that tracks TF24", {
   expect_identical(model_version("TF24t"),
-                   paste0(model_version("TF24"), ".3"))
+                   paste0(model_version("TF24"), ".4"))
 })
 
 test_that("model_id() is 'Model@vN' and agrees with model_version()", {
@@ -82,8 +82,9 @@ flatten_defaults <- function(lst, prefix) {
 # in `pars`. TF24t's thermal layer lives there, and thermal_revision is the bump
 # that covers it, so it is snapshotted with the rest.
 top_level_science <- list(
-  TF24t = c("topt_offset", "m_rep", "t_rep_cut", "k_i", "k_rec", "k_mat",
-            "dTopt_max", "K_A", "alpha", "beta", "t_accl", "softplus_s",
+  TF24t = c("topt_offset", "impair_H", "impair_Tmid", "m_rep", "t_rep_cut",
+            "k_i", "k_i_Ea", "k_i_Tref", "k_rec", "k_mat", "dTopt_max",
+            "dTimpair_max", "K_A", "alpha", "beta", "t_accl", "softplus_s",
             "k_mean_leaf_temp", "c_acclim_maint", "c_repair_maint",
             "c_protect_maint", "c_repair_flux", "c_build", "c_accl_induct",
             "induct_eps")

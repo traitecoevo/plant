@@ -3,38 +3,40 @@
 # overstorey_staging/ is .Rbuildignore'd (not installed), so this is dev-only:
 # it skips where the helper file is absent.
 
-test_that("ATLS demo leaf helpers run end-to-end (damage, strategies, avoidance)", {
+test_that("ATLS demo leaf helpers run end-to-end (impairment, strategies, avoidance)", {
   skip_on_cran()
   helpers <- test_path("..", "..", "overstorey_staging", "atls_demo_helpers.R")
   skip_if_not(file.exists(helpers), "overstorey_staging/ not present (built package)")
   source(helpers, local = TRUE)
 
-  # (1) The deactivation substrate phi_d(Tleaf): near zero when cold, rising
-  # through the emergent onset (about 34.5 C), bounded, monotone, finite.
+  # (1) The impairment switch k_imp / k_i (k_i_Ea = 0 by default): near zero
+  # when cold, rising through its midpoint (about 34.5 C), bounded, monotone,
+  # finite.
   Ts <- seq(20, 50, by = 1)
-  phi <- atls_phi_d_curve(Ts, atls_traits())
-  expect_true(all(is.finite(phi)))
-  expect_true(all(phi >= 0 & phi <= 1))
-  expect_lt(phi[Ts == 20], 0.05)
-  expect_gt(phi[Ts == 45], 0.8)
-  expect_true(all(diff(phi) >= -1e-9))
+  tr <- atls_traits()
+  sw <- atls_k_imp_curve(Ts, tr) / tr$k_i
+  expect_true(all(is.finite(sw)))
+  expect_true(all(sw >= 0 & sw <= 1))
+  expect_lt(sw[Ts == 20], 0.05)
+  expect_gt(sw[Ts == 45], 0.8)
+  expect_true(all(diff(sw) >= -1e-9))
 
-  # (2) Tolerance, acclimation and repair each lower the standing recoverable
-  # damage I_r* at a hot leaf.
+  # (2) Tolerance, acclimation and repair each lower the standing impaired
+  # fraction I* at a hot leaf.
   hot <- 42
-  gen <- atls_Ir_star_curve(hot, atls_traits())
-  expect_lt(atls_Ir_star_curve(hot, atls_traits(topt_offset = 6)), gen)
-  expect_lt(atls_Ir_star_curve(hot, atls_traits(A = 5)), gen)
-  expect_lt(atls_Ir_star_curve(hot, atls_traits(k_rec = 2.0)), gen)
+  gen <- atls_I_star_curve(hot, atls_traits())
+  expect_lt(atls_I_star_curve(hot, atls_traits(topt_offset = 6)), gen)
+  expect_lt(atls_I_star_curve(hot, atls_traits(A = 5)), gen)
+  expect_lt(atls_I_star_curve(hot, atls_traits(k_rec = 2.0)), gen)
 
   # (3) Every archetype solves finite across a temperature gradient, and a
   # tolerant leaf keeps more carbon than the generalist when hot.
   grad <- atls_solve_strategies(c(30, 38, 44), atls_strategies(), pm = FALSE)
-  for (v in c("Tleaf", "phi_d", "Ir_star", "A", "gs", "E", "profit")) {
+  for (v in c("Tleaf", "k_imp", "I_star", "A", "gs", "E", "profit")) {
     expect_true(all(is.finite(grad[[v]])), info = paste("non-finite", v))
   }
-  expect_true(all(grad$phi_d >= 0 & grad$phi_d <= 1))
-  expect_true(all(grad$Ir_star >= 0 & grad$Ir_star <= 1))
+  expect_true(all(grad$k_imp >= 0))
+  expect_true(all(grad$I_star >= 0 & grad$I_star <= 1))
   # Off the energy balance the leaf runs at the prescribed temperature.
   expect_identical(grad$Tleaf, grad$Tenv)
   tol44 <- grad$A[grad$strategy == "Tolerant"   & grad$Tenv == 44]
@@ -42,7 +44,7 @@ test_that("ATLS demo leaf helpers run end-to-end (damage, strategies, avoidance)
   expect_gt(tol44, gen44)
 
   # (4) Avoidance on the energy-balance path: a better-coupled leaf runs cooler
-  # and unfolds less at the same air temperature.
+  # and is impaired more slowly at the same air temperature.
   poor <- atls_solve_cell(1500, 34, 2, atls_traits(), pm = TRUE,
                           cfg = atls_leaf_config(d = 0.10,
                                                  leaf_specific_conductance_max = 2e-3))
@@ -51,7 +53,7 @@ test_that("ATLS demo leaf helpers run end-to-end (damage, strategies, avoidance)
                                                  leaf_specific_conductance_max = 1e-2))
   expect_true(is.finite(poor$Tleaf) && is.finite(good$Tleaf))
   expect_lt(good$Tleaf, poor$Tleaf)
-  expect_lt(good$phi_d, poor$phi_d)
+  expect_lt(good$k_imp, poor$k_imp)
 })
 
 test_that("ATLS demo SCM helpers return sane stand fitness", {
