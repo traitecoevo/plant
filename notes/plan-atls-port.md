@@ -1,6 +1,6 @@
 # Porting the ATLS thermal-damage layer to develop (#566)
 
-**Status: in progress (started 2026-10-21); both halves implemented and redesigned to three states (TF24t thermal revision 4, phylloptim#162 at b6bea4e); item 4 blocked.** The ATLS layer was built in July on `feature/tf24-atls-thermal-damage` (tip `bee0a02a`, TF24t@v3.3) against plant's own leaf model. #591 then moved the leaf into phylloptim and deleted 23 of the files that branch changes, so it cannot merge. This note is the plan for re-implementing it on current code.
+**Status: in progress (started 2026-10-21); both halves implemented and redesigned to three states (TF24t thermal revision 4, phylloptim#162 at 60aef98); item 4 blocked.** The ATLS layer was built in July on `feature/tf24-atls-thermal-damage` (tip `bee0a02a`, TF24t@v3.3) against plant's own leaf model. #591 then moved the leaf into phylloptim and deleted 23 of the files that branch changes, so it cannot merge. This note is the plan for re-implementing it on current code.
 
 ## Decisions
 
@@ -33,7 +33,7 @@ phylloptim `Leaf` gains (all R-bound):
 
 ## Order of work
 
-- [x] phylloptim: leaf-level layer, tests, NEWS, PR — [phylloptim#162](https://github.com/traitecoevo/phylloptim/pull/162), open; plant pins its head `b6bea4e`.
+- [x] phylloptim: leaf-level layer, tests, NEWS, PR — [phylloptim#162](https://github.com/traitecoevo/phylloptim/pull/162), open; plant pins its head `60aef98`.
 - [x] plant: TF24t on the templated TF24 strategy, registration, R helpers, tests, model-version snapshot; pin phylloptim to the PR head while both are open — #694 (`feature/tf24t-atls-port`), a draft stacked on #678. Re-pin to phylloptim's squash sha after #162 merges, and rebase onto develop after #678 merges.
 - [x] plant: carry over the July notes (`notes/atls/`) and the July viability results, marked as computed on the July code — in `964638d2`. The July staging docs (`overstorey_staging/TF24t_leaf_ATLS_model.qmd`, `TF24t_leaf_ATLS_demo.qmd`, `atls_demo_helpers.R`) are ported to the current API on the same branch; the demo's two SCM sections are not re-rendered (see below).
 - [ ] Re-run the materiality gate and the low-density viability boundary on the ported code, on the birth-date coordinate. **Blocked on the TF24 baseline below**: as set up in July (lma 0.0825, birth rate 1) the stand is inviable whenever the energy balance is on, so the comparison crosses no boundary until it is re-set.
@@ -84,7 +84,7 @@ The interpretation this fixes: the peaked-Arrhenius Vcmax and Jmax curves are th
 
 **Decided (2026-10-29): the leaf-side changes above are part of phylloptim#162 itself**, not a separate PR: drafted as #165 and folded into #162's branch (one 0.12.0 NEWS entry). The `k_mat` default and the acclimation defaults are plant-side and go separately.
 
-**Done in plant (#694, re-pinned to b6bea4e):** TF24t exposes and copies `impair_H`, `impair_Tmid`, `dTimpair_max`, `k_i_Ea` and `k_i_Tref`, which are in `top_level_science` in `test-model-version.R`, and `thermal_revision` is 4.
+**Done in plant (#694, re-pinned to 60aef98):** TF24t exposes and copies `impair_H`, `impair_Tmid`, `dTimpair_max`, `k_i_Ea` and `k_i_Tref`, which are in `top_level_science` in `test-model-version.R`, and `thermal_revision` is 4.
 
 **Decided (Daniel, 2026-10-29): the leaf's damage dynamics move into phylloptim, so leaf experiments can be fitted with phylloptim alone.** This revises decision 2 ("two halves, two repos"). Implemented in phylloptim#162 (`Leaf::damage_rates`, `leaf_damage_trajectory()`) and called by TF24t in #694.
 
