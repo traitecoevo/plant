@@ -67,3 +67,36 @@ test_that("a series becomes rainfall pulses", {
   expect_equal(sum(pulses), nrow(s))
   expect_equal(ev$time[pulses], s$time)
 })
+
+test_that("a series drawn from a fitted record keeps its total and its season", {
+  set.seed(3)
+  date <- seq(as.Date("1981-01-01"), as.Date("2020-12-31"), by = "day")
+  summer <- format(date, "%m") %in% c("12", "01", "02")
+  amount <- ifelse(runif(length(date)) < ifelse(summer, 0.5, 0.05),
+                   rexp(length(date), rate = 1 / 0.01), 0)
+  fit <- pulse_series_fit(date, amount)
+  expect_equal(fit$years, 1981:2020)
+
+  set.seed(4)
+  s <- pulse_series_markov(0, 200, fit)
+  expect_false(is.unsorted(s$time, strictly = TRUE))
+  expect_true(all(s$time > 0 & s$time <= 200 & s$amount > 0))
+  # The mean annual total of 200 drawn years, about 0.6 m with a CV near 0.2,
+  # is the record's to a few percent.
+  annual <- tapply(amount, format(date, "%Y"), sum)
+  expect_equal(sum(s$amount) / 200, mean(annual), tolerance = 0.05)
+  # January has ten times July's chance of rain.
+  day <- floor((s$time %% 1) * 365)
+  expect_gt(sum(day < 31), 5 * sum(day >= 181 & day < 212))
+
+  # Pooling days into weekly pulses moves the water, not its amount.
+  set.seed(4)
+  w <- pulse_series_markov(0, 200, fit, days_per_pulse = 7)
+  expect_equal(sum(w$amount), sum(s$amount))
+  expect_true(all(w$time > 0 & w$time <= 200))
+})
+
+test_that("a fit refuses a record with no complete year", {
+  date <- seq(as.Date("2001-03-01"), as.Date("2002-02-28"), by = "day")
+  expect_error(pulse_series_fit(date, rep(0.001, length(date))), "complete year")
+})
