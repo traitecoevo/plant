@@ -2990,11 +2990,6 @@ std::vector<double> Species___TF24t__TF24_Env__log_densities__get(plant::RcppR6:
 }
 
 // [[Rcpp::export]]
-std::vector<double> Species___TF24t__TF24_Env__log_densities_state__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->r_log_densities_state();
-}
-
-// [[Rcpp::export]]
 std::vector<bool> Species___TF24t__TF24_Env__retired__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->r_retired();
 }
@@ -3007,6 +3002,11 @@ Rcpp::List Species___TF24t__TF24_Env__top_layer__get(plant::RcppR6::RcppR6<plant
 // [[Rcpp::export]]
 std::vector<double> Species___TF24t__TF24_Env__height_jacobian__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->height_jacobian();
+}
+
+// [[Rcpp::export]]
+std::vector<double> Species___TF24t__TF24_Env__establishment_weights__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_establishment_weights();
 }
 
 // [[Rcpp::export]]
@@ -3683,12 +3683,12 @@ void Patch___TF24t__TF24_Env__compute_environment(plant::RcppR6::RcppR6<plant::P
   obj_->r_compute_environment();
 }
 // [[Rcpp::export]]
-void Patch___TF24t__TF24_Env__hold_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  obj_->r_hold_current_field();
+void Patch___TF24t__TF24_Env__use_current_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  obj_->r_use_current_field();
 }
 // [[Rcpp::export]]
-void Patch___TF24t__TF24_Env__release_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  obj_->release_field();
+void Patch___TF24t__TF24_Env__clear_constant_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  obj_->clear_constant_field();
 }
 // [[Rcpp::export]]
 void Patch___TF24t__TF24_Env__reset(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
@@ -3813,8 +3813,8 @@ Rcpp::List Patch___TF24t__TF24_Env__state__get(plant::RcppR6::RcppR6<plant::Patc
 }
 
 // [[Rcpp::export]]
-bool Patch___TF24t__TF24_Env__holds_field__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->holds_field();
+bool Patch___TF24t__TF24_Env__has_constant_field__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->has_constant_field();
 }
 
 
@@ -4497,12 +4497,12 @@ void SCM___TF24t__TF24_Env__run_mutant(plant::RcppR6::RcppR6<plant::SCM<plant::T
   obj_->run_mutant(p);
 }
 // [[Rcpp::export]]
-void SCM___TF24t__TF24_Env__run_mutant_held(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Parameters<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > p) {
-  obj_->run_mutant_held(p);
+void SCM___TF24t__TF24_Env__run_mutant_constant(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Parameters<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > p) {
+  obj_->run_mutant_constant(p);
 }
 // [[Rcpp::export]]
-Rcpp::List SCM___TF24t__TF24_Env__store_trajectory(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->r_store_trajectory();
+Rcpp::List SCM___TF24t__TF24_Env__store_recording(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_store_recording();
 }
 // [[Rcpp::export]]
 void SCM___TF24t__TF24_Env__refine_schedule(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
@@ -4594,6 +4594,16 @@ std::vector<double> SCM___TF24t__TF24_Env__ode_step_sizes__get(plant::RcppR6::Rc
 }
 
 // [[Rcpp::export]]
+std::vector<std::vector<double> > SCM___TF24t__TF24_Env__ode_soil_input_slopes__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_ode_soil_input_slopes();
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double> > SCM___TF24t__TF24_Env__ode_soil_substep_ends__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_ode_soil_substep_ends();
+}
+
+// [[Rcpp::export]]
 bool SCM___TF24t__TF24_Env__collect__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->collect;
 }
@@ -4612,12 +4622,12 @@ void SCM___TF24t__TF24_Env__collect_refinement_errors__set(plant::RcppR6::RcppR6
 }
 
 // [[Rcpp::export]]
-bool SCM___TF24t__TF24_Env__record_trajectory__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->record_trajectory;
+bool SCM___TF24t__TF24_Env__keep_states__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->keep_states;
 }
 // [[Rcpp::export]]
-void SCM___TF24t__TF24_Env__record_trajectory__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_, bool value) {
-  obj_->record_trajectory = value;
+void SCM___TF24t__TF24_Env__keep_states__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_, bool value) {
+  obj_->keep_states = value;
 }
 
 // [[Rcpp::export]]

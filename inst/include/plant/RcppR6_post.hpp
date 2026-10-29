@@ -969,6 +969,8 @@ template <> inline SEXP wrap(const plant::Parameters<plant::TF24t_Strategy<doubl
   ret["node_schedule_times"] = Rcpp::wrap(x.node_schedule_times);
   ret["ode_times"] = Rcpp::wrap(x.ode_times);
   ret["ode_step_sizes"] = Rcpp::wrap(x.ode_step_sizes);
+  ret["ode_soil_input_slopes"] = Rcpp::wrap(x.ode_soil_input_slopes);
+  ret["ode_soil_substep_ends"] = Rcpp::wrap(x.ode_soil_substep_ends);
   ret["initial_state"] = Rcpp::wrap(x.initial_state);
   ret["n_initial_cohorts"] = Rcpp::wrap(x.n_initial_cohorts);
   ret["initial_node_times"] = Rcpp::wrap(x.initial_node_times);
@@ -1015,6 +1017,10 @@ template <> inline plant::Parameters<plant::TF24t_Strategy<double> ,plant::TF24_
   if (xl.containsElementNamed("ode_times")) ret.ode_times = Rcpp::as<std::vector<double> >(xl["ode_times"]);
   // ret.ode_step_sizes = Rcpp::as<decltype(retode_step_sizes) >(xl["ode_step_sizes"]);
   if (xl.containsElementNamed("ode_step_sizes")) ret.ode_step_sizes = Rcpp::as<std::vector<double> >(xl["ode_step_sizes"]);
+  // ret.ode_soil_input_slopes = Rcpp::as<decltype(retode_soil_input_slopes) >(xl["ode_soil_input_slopes"]);
+  if (xl.containsElementNamed("ode_soil_input_slopes")) ret.ode_soil_input_slopes = Rcpp::as<std::vector<std::vector<double> > >(xl["ode_soil_input_slopes"]);
+  // ret.ode_soil_substep_ends = Rcpp::as<decltype(retode_soil_substep_ends) >(xl["ode_soil_substep_ends"]);
+  if (xl.containsElementNamed("ode_soil_substep_ends")) ret.ode_soil_substep_ends = Rcpp::as<std::vector<std::vector<double> > >(xl["ode_soil_substep_ends"]);
   // ret.initial_state = Rcpp::as<decltype(retinitial_state) >(xl["initial_state"]);
   if (xl.containsElementNamed("initial_state")) ret.initial_state = Rcpp::as<std::vector<double> >(xl["initial_state"]);
   // ret.n_initial_cohorts = Rcpp::as<decltype(retn_initial_cohorts) >(xl["n_initial_cohorts"]);
