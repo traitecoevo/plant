@@ -24,8 +24,8 @@ Rcpp::List strategy_expand_allometry_impl(S s,
   }
   Rcpp::NumericVector area_leaf(n), mass_leaf(n), area_sapwood(n),
     mass_sapwood(n), area_bark(n), mass_bark(n), area_stem(n),
-    diameter_stem(n), mass_root(n), mass_live(n), mass_total(n),
-    mass_above_ground(n);
+    diameter_stem(n), mass_root(n), mass_coarse_root(n), mass_live(n),
+    mass_total(n), mass_above_ground(n);
 
   for (R_xlen_t i = 0; i < n; ++i) {
     const double h  = height[i];
@@ -37,6 +37,7 @@ Rcpp::List strategy_expand_allometry_impl(S s,
     const double mb = s.mass_bark(ab, h);
     const double ast = s.area_stem(ab, as, area_heartwood[i]);
     const double mr = s.mass_root(al);
+    const double mcr = s.mass_coarse_root(ms);
     const double mh = mass_heartwood[i];
 
     area_leaf[i]         = al;
@@ -48,8 +49,9 @@ Rcpp::List strategy_expand_allometry_impl(S s,
     area_stem[i]         = ast;
     diameter_stem[i]     = s.diameter_stem(ast);
     mass_root[i]         = mr;
-    mass_live[i]         = s.mass_live(ml, mb, ms, mr);
-    mass_total[i]        = s.mass_total(ml, mb, ms, mh, mr);
+    mass_coarse_root[i]  = mcr;
+    mass_live[i]         = s.mass_live(ml, mb, ms, mr, mcr);
+    mass_total[i]        = s.mass_total(ml, mb, ms, mh, mr, mcr);
     mass_above_ground[i] = s.mass_above_ground(ml, mb, ms, mh);
   }
 
@@ -63,6 +65,7 @@ Rcpp::List strategy_expand_allometry_impl(S s,
     Rcpp::_["area_stem"]         = area_stem,
     Rcpp::_["diameter_stem"]     = diameter_stem,
     Rcpp::_["mass_root"]         = mass_root,
+    Rcpp::_["mass_coarse_root"]  = mass_coarse_root,
     Rcpp::_["mass_live"]         = mass_live,
     Rcpp::_["mass_total"]        = mass_total,
     Rcpp::_["mass_above_ground"] = mass_above_ground);

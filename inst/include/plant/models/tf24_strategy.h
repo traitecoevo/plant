@@ -52,19 +52,30 @@ struct TF24_Pars {
   S theta     = 1.0/4669;   // Sapwood area per leaf area [dimensionless]
   S a_l1      = 5.44;       // height with 1m2 leaf [m]
   S a_l2      = 0.306;      // scaling of height with leaf area
-  S a_r1      = 0.07;       // Root mass per leaf area [kg / m]
+  S a_r1      = 0.07;       // Fine-root mass per leaf area [kg / m]
+  // Coarse (structural) root mass per unit sapwood mass. Coarse roots are
+  // treated as the below-ground continuation of the sapwood cylinder, so they
+  // inherit its height scaling and the structural root:shoot ratio is
+  // size-invariant. Zero by default, so the pool is absent unless switched on.
+  // Only a_r1 feeds the depth-distributed water uptake -- that is a fine-root
+  // process, and coarse roots must stay out of it (see #349).
+  S a_cr1     = 0.0;        // [dimensionless]
   S a_b1      = 0.17;       // Ratio of bark area : sapwood area
   // * Production
   S r_s    = 4012.0 / 608.0; // Sapwood respiration per stem mass
   S r_b    = 2.0 * r_s;      // Bark respiration (assumed 2 x sapwood)
-  S r_r    = 217.0;          // Root respiration per mass
+  S r_r    = 217.0;          // Fine-root respiration per mass
+  // Coarse roots are woody, so this defaults to the sapwood rate. As with r_b,
+  // a default and not a link: setting r_s afterwards does not move it.
+  S r_cr   = r_s;            // Coarse-root respiration per mass
   S r_l    = 39.27 / 0.1978791; // Leaf dark respiration per leaf mass
   S a_y    = 0.7;            // Carbon conversion parameter
   S a_bio  = 2.45e-2;        // CO2 -> dry mass [kg / mol]
   S k_l    = 0.4565855;      // Leaf turnover [/yr]
   S k_b    = 0.2;            // Bark turnover [/yr]
   S k_s    = 0.2;            // Sapwood turnover [/yr]
-  S k_r    = 1.0;            // Root turnover [/yr]
+  S k_r    = 1.0;            // Fine-root turnover [/yr]
+  S k_cr   = k_s;            // Coarse-root turnover [/yr] (woody)
   S a_p1   = 151.177775377968;   // LRC hyperbola [mol CO2 / yr / m2]
   S a_p2   = 0.204716166503633;  // LRC hyperbola shape
   // * Seed production
@@ -308,6 +319,13 @@ struct TF24_Pars {
       no_gradient{"alpha_NIR", "the leaf supplies no row for it"},
       no_gradient{"use_energy_balance",
                   "a gate, compared rather than differentiated"},
+      // The coarse-root pool is opt-in: at the default a_cr1 = 0 it is empty, so
+      // r_cr and k_cr multiply zero and a column would be an exact zero that
+      // reads as an answer. No gradient fixture runs with the pool on.
+      no_gradient{"a_cr1",
+                  "the coarse-root pool is opt-in and has no gradient fixture"},
+      no_gradient{"r_cr", "the coarse-root pool is empty at the default a_cr1 = 0"},
+      no_gradient{"k_cr", "the coarse-root pool is empty at the default a_cr1 = 0"},
       // Refused by the model, so a row would describe half of it.
       no_gradient{"theta_c",
                   "prepare_strategy refuses any non-zero value, because theta "
@@ -349,10 +367,12 @@ struct TF24_Pars {
       PLANT_TF24_AD_PARAMETER(a_l1),
       PLANT_TF24_AD_PARAMETER(a_l2),
       PLANT_TF24_AD_PARAMETER(a_r1),
+      PLANT_TF24_AD_PARAMETER(a_cr1),
       PLANT_TF24_AD_PARAMETER(a_b1),
       PLANT_TF24_AD_PARAMETER(r_s),
       PLANT_TF24_AD_PARAMETER(r_b),
       PLANT_TF24_AD_PARAMETER(r_r),
+      PLANT_TF24_AD_PARAMETER(r_cr),
       PLANT_TF24_AD_PARAMETER(r_l),
       PLANT_TF24_AD_PARAMETER(a_y),
       PLANT_TF24_AD_PARAMETER(a_bio),
@@ -360,6 +380,7 @@ struct TF24_Pars {
       PLANT_TF24_AD_PARAMETER(k_b),
       PLANT_TF24_AD_PARAMETER(k_s),
       PLANT_TF24_AD_PARAMETER(k_r),
+      PLANT_TF24_AD_PARAMETER(k_cr),
       PLANT_TF24_AD_PARAMETER(a_p1),
       PLANT_TF24_AD_PARAMETER(a_p2),
       // Occurs only in fecundity_dt's denominator, and no census metric reads
@@ -970,12 +991,18 @@ public:
   // [eqn 7] Mass of (fine) roots
   S mass_root(const S& area_leaf) const;
 
+  // [eqn 7b] Mass of coarse (structural) roots, as a fraction of sapwood mass
+  // (see TF24_Pars::a_cr1). Zero unless a_cr1 is set.
+  S mass_coarse_root(const S& mass_sapwood) const;
+
   // [eqn 8] Total Mass
   S mass_live(const S& mass_leaf, const S& mass_bark,
-              const S& mass_sapwood, const S& mass_root) const;
+              const S& mass_sapwood, const S& mass_root,
+              const S& mass_coarse_root) const;
 
   S mass_total(const S& mass_leaf, const S& mass_bark, const S& mass_sapwood,
-               const S& mass_heartwood, const S& mass_root) const;
+               const S& mass_heartwood, const S& mass_root,
+               const S& mass_coarse_root) const;
 
   // Above-ground mass = leaf + all stem components (bark + sapwood +
   // heartwood); excludes roots.
@@ -999,20 +1026,24 @@ public:
 
   // [eqn 13] Total maintenance respiration
   S respiration(const S& mass_leaf, const S& mass_sapwood,
-                const S& mass_bark, const S& mass_root) const;
+                const S& mass_bark, const S& mass_root,
+                const S& mass_coarse_root) const;
 
   S respiration_leaf(const S& mass) const;
   S respiration_bark(const S& mass) const;
   S respiration_sapwood(const S& mass) const;
   S respiration_root(const S& mass) const;
+  S respiration_coarse_root(const S& mass) const;
 
   // [eqn 14] Total turnover
   S turnover(const S& mass_leaf, const S& mass_bark,
-             const S& mass_sapwood, const S& mass_root) const;
+             const S& mass_sapwood, const S& mass_root,
+             const S& mass_coarse_root) const;
   S turnover_leaf(const S& mass) const;
   S turnover_bark(const S& mass) const;
   S turnover_sapwood(const S& mass) const;
   S turnover_root(const S& mass) const;
+  S turnover_coarse_root(const S& mass) const;
 
   // [eqn 15] Net production
   S net_mass_production_dt_A(const S& assimilation, const S& respiration,
@@ -1081,6 +1112,9 @@ public:
   S dmass_bark_darea_leaf(const S& area_leaf) const;
   // Mass of root needed for new unit area leaf, d m_r / d a_l
   S dmass_root_darea_leaf(const S& area_leaf) const;
+  // Mass of coarse root needed for new unit area leaf, d m_cr / d a_l.
+  // == a_cr1 * dmass_sapwood_darea_leaf, so it carries the same height scaling.
+  S dmass_coarse_root_darea_leaf(const S& area_leaf) const;
   // Growth rate of basal diameter_stem per unit stem area
   S ddiameter_stem_darea_stem(const S& area_stem) const;
   // Growth rate of components per unit time:
@@ -1092,6 +1126,8 @@ public:
   S diameter_stem_dt(const S& area_stem, const S& area_stem_dt) const;
   S mass_root_dt(const S& area_leaf,
                  const S& area_leaf_dt) const;
+  S mass_coarse_root_dt(const S& area_leaf,
+                        const S& area_leaf_dt) const;
   S mass_live_dt(const S& fraction_allocation_reproduction,
                  const S& net_mass_production_dt) const;
   S mass_total_dt(const S& fraction_allocation_reproduction,
@@ -1936,18 +1972,30 @@ S TF24_Strategy<S>::mass_root(const S& area_leaf) const {
   return pars.a_r1 * area_leaf;
 }
 
+// [eqn 7b] Mass of coarse (structural) roots
+template <typename S>
+S TF24_Strategy<S>::mass_coarse_root(const S& mass_sapwood) const {
+  return pars.a_cr1 * mass_sapwood;
+}
+
 // [eqn 8] Total mass
+// The coarse-root term is appended, not interleaved, so that with the default
+// a_cr1 = 0 the sum is bit-identical to the pre-#349 expression (x + 0.0 == x
+// exactly, and the association order of the other terms is untouched).
 template <typename S>
 S TF24_Strategy<S>::mass_live(const S& mass_leaf, const S& mass_bark,
-                           const S& mass_sapwood, const S& mass_root) const {
-  return mass_leaf + mass_sapwood + mass_bark + mass_root;
+                           const S& mass_sapwood, const S& mass_root,
+                           const S& mass_coarse_root) const {
+  return mass_leaf + mass_sapwood + mass_bark + mass_root + mass_coarse_root;
 }
 
 template <typename S>
 S TF24_Strategy<S>::mass_total(const S& mass_leaf, const S& mass_bark,
                             const S& mass_sapwood, const S& mass_heartwood,
-                            const S& mass_root) const {
-  return mass_leaf + mass_bark + mass_sapwood +  mass_heartwood + mass_root;
+                            const S& mass_root,
+                            const S& mass_coarse_root) const {
+  return mass_leaf + mass_bark + mass_sapwood +  mass_heartwood + mass_root +
+    mass_coarse_root;
 }
 
 template <typename S>
@@ -2160,11 +2208,13 @@ S TF24_Strategy<S>::assimilation_leaf(const S& x) const {
 // NOTE: In contrast with Falster ref model, we do not normalise by pars.a_y*pars.a_bio.
 template <typename S>
 S TF24_Strategy<S>::respiration(const S& mass_leaf, const S& mass_sapwood,
-                             const S& mass_bark, const S& mass_root) const {
+                             const S& mass_bark, const S& mass_root,
+                             const S& mass_coarse_root) const {
   return respiration_leaf(mass_leaf) +
          respiration_bark(mass_bark) +
          respiration_sapwood(mass_sapwood) +
-         respiration_root(mass_root);
+         respiration_root(mass_root) +
+         respiration_coarse_root(mass_coarse_root);
 }
 
 template <typename S>
@@ -2187,14 +2237,21 @@ S TF24_Strategy<S>::respiration_root(const S& mass) const {
   return pars.r_r * mass;
 }
 
+template <typename S>
+S TF24_Strategy<S>::respiration_coarse_root(const S& mass) const {
+  return pars.r_cr * mass;
+}
+
 // [eqn 14] Total turnover
 template <typename S>
 S TF24_Strategy<S>::turnover(const S& mass_leaf, const S& mass_bark,
-                          const S& mass_sapwood, const S& mass_root) const {
+                          const S& mass_sapwood, const S& mass_root,
+                          const S& mass_coarse_root) const {
    return turnover_leaf(mass_leaf) +
           turnover_bark(mass_bark) +
           turnover_sapwood(mass_sapwood) +
-          turnover_root(mass_root);
+          turnover_root(mass_root) +
+          turnover_coarse_root(mass_coarse_root);
 }
 
 template <typename S>
@@ -2215,6 +2272,11 @@ S TF24_Strategy<S>::turnover_sapwood(const S& mass) const {
 template <typename S>
 S TF24_Strategy<S>::turnover_root(const S& mass) const {
   return pars.k_r * mass;
+}
+
+template <typename S>
+S TF24_Strategy<S>::turnover_coarse_root(const S& mass) const {
+  return pars.k_cr * mass;
 }
 
 // [eqn 15] Net production
@@ -2539,10 +2601,13 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
   }
   const S assimilation_ = profit_ * area_leaf_* 60*60*12*365/1e6;
   // const double assimilation_ = assimilation(environment, height, area_leaf_);
+  const S mass_coarse_root_ = mass_coarse_root(mass_sapwood_);
   const S respiration_ =
-    respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
+    respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_,
+                mass_coarse_root_);
   const S turnover_ =
-    turnover(mass_leaf_, mass_bark_, mass_sapwood_, mass_root_);
+    turnover(mass_leaf_, mass_bark_, mass_sapwood_, mass_root_,
+             mass_coarse_root_);
   return net_mass_production_dt_A(assimilation_, respiration_, turnover_);
 }
 
@@ -2612,10 +2677,13 @@ S TF24_Strategy<S>::fecundity_dt(const S& net_mass_production_dt,
 
 template <typename S>
 S TF24_Strategy<S>::darea_leaf_dmass_live(const S& area_leaf) const {
+  // The coarse-root term is appended last so that at the default a_cr1 = 0 the
+  // denominator is bit-identical to the pre-#349 sum.
   return 1.0/(  dmass_leaf_darea_leaf(area_leaf)
               + dmass_sapwood_darea_leaf(area_leaf)
               + dmass_bark_darea_leaf(area_leaf)
-              + dmass_root_darea_leaf(area_leaf));
+              + dmass_root_darea_leaf(area_leaf)
+              + dmass_coarse_root_darea_leaf(area_leaf));
 }
 
 template <typename S>
@@ -2645,6 +2713,12 @@ S TF24_Strategy<S>::dmass_bark_darea_leaf(const S& area_leaf) const {
 template <typename S>
 S TF24_Strategy<S>::dmass_root_darea_leaf(const S& /* area_leaf */) const {
   return pars.a_r1;
+}
+
+// Mass of coarse root needed for new unit area leaf, d m_cr / d a_l
+template <typename S>
+S TF24_Strategy<S>::dmass_coarse_root_darea_leaf(const S& area_leaf) const {
+  return pars.a_cr1 * dmass_sapwood_darea_leaf(area_leaf);
 }
 
 // Growth rate of basal diameter_stem per unit time
@@ -2694,6 +2768,13 @@ S TF24_Strategy<S>::mass_root_dt(const S& area_leaf,
   return area_leaf_dt * dmass_root_darea_leaf(area_leaf);
 }
 
+// Growth rate of coarse-root mass per unit time
+template <typename S>
+S TF24_Strategy<S>::mass_coarse_root_dt(const S& area_leaf,
+                                      const S& area_leaf_dt) const {
+  return area_leaf_dt * dmass_coarse_root_darea_leaf(area_leaf);
+}
+
 template <typename S>
 S TF24_Strategy<S>::mass_live_dt(const S& fraction_allocation_reproduction,
                                const S& net_mass_production_dt) const {
@@ -2717,8 +2798,10 @@ S TF24_Strategy<S>::mass_above_ground_dt(const S& area_leaf,
                                        const S& area_leaf_dt) const {
   const S mass_root_dt =
     area_leaf_dt * dmass_root_darea_leaf(area_leaf);
+  const S mass_coarse_root_dt =
+    area_leaf_dt * dmass_coarse_root_darea_leaf(area_leaf);
   return mass_total_dt(fraction_allocation_reproduction, net_mass_production_dt,
-                        mass_heartwood_dt) - mass_root_dt;
+                        mass_heartwood_dt) - mass_root_dt - mass_coarse_root_dt;
 }
 
 template <typename S>
@@ -2730,10 +2813,12 @@ S TF24_Strategy<S>::mass_heartwood_dt(const S& mass_sapwood) const {
 template <typename S>
 S TF24_Strategy<S>::mass_live_given_height(const S& height) const {
   S area_leaf_ = area_leaf(height);
+  const S mass_sapwood_ = mass_sapwood(area_sapwood(area_leaf_), height);
   return mass_leaf(area_leaf_) +
          mass_bark(area_bark(area_leaf_), height) +
-         mass_sapwood(area_sapwood(area_leaf_), height) +
-         mass_root(area_leaf_);
+         mass_sapwood_ +
+         mass_root(area_leaf_) +
+         mass_coarse_root(mass_sapwood_);
 }
 
 template <typename S>
