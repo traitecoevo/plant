@@ -267,7 +267,10 @@ public:
   // the full-lifetime deep-crown anchor, offspring production moves
   // 16.884586 -> 17.172004, i.e. **+1.70%**; on the height coordinate it is
   // unchanged to the last bit.
-  static constexpr int scientific_version = 2;
+  // v3: the integrator, not the model. odelia 0.8.0's step-size rule and the
+  // default ode_tol 1e-4 -> 1e-5 give every adaptive run a different step
+  // sequence, so output moves within the ODE tolerance at identical inputs.
+  static constexpr int scientific_version = 3;
 
   // Fixed integer slots for the hot ODE rate path, used instead of
   // state_index.at("...") / aux_index.at("...") string-map lookups (those map

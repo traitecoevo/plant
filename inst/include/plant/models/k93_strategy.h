@@ -49,7 +49,9 @@ public:
   // v2: as FF16 v2 -- the reductions integrate over the coordinate the density
   // is carried in, so a birth-date run's output moves and a height run's does
   // not.
-  static constexpr int scientific_version = 2;
+  // v3: as FF16 v3 -- odelia 0.8.0's step-size rule and the default ode_tol
+  // 1e-4 -> 1e-5 move every adaptive run within the ODE tolerance.
+  static constexpr int scientific_version = 3;
 
   // Direct aux indices for the hot path, avoiding aux_index.at("...") string-map
   // lookups (these showed up in profiling; see #466). MUST stay in sync with the
