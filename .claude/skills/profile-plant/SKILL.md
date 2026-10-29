@@ -135,8 +135,8 @@ re-deriving:
    (in aux) instead of recomputing it per quadrature point.
 3. **Environment spline lookup.** Hit per quadrature point × node × step. Use the
    O(1) index — uniform fast path plus non-uniform proportional-guess+nudge —
-   instead of `std::lower_bound` (issue #435). This is exactly what odelia#21 /
-   odelia PR #22 port into the odelia package that the `odelia` branch depends on.
+   instead of `std::lower_bound` (issue #435). odelia's `hermite_spline` provides
+   this.
 4. **Inline hot helpers across TU boundaries.** The no-LTO build forces a
    cross-TU call for every out-of-line helper; moving small FF16 hot helpers
    (`area_leaf`, `compute_competition*`) into the header lets the compiler fold
@@ -144,10 +144,6 @@ re-deriving:
    measurable gain, and declined.)
 5. **No `std::map<string,int>::at` in hot state/rate paths.** Resolve aux/ode
    indices once; use direct integer indices.
-6. ~~**Gradient calc.** Reuse a thread-local scratch `Individual`.~~ **Withdrawn.**
-   It measured within 1.5% of the plain copy, and `growth_rate_gradient` is now
-   scalar-templated, so a cached scratch would hold active scalars and carry tape
-   slots between recordings. Copy per call; see `plant/agents.md`.
 
 Most of these were bit-identical (or a deliberate, documented reciprocal-multiply
 reorder).
