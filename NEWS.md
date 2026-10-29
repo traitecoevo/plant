@@ -13,6 +13,8 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **FF16 and TF24 have a coarse-root pool, off by default (#349).** Coarse roots are the below-ground continuation of the sapwood cylinder, `m_cr = a_cr1 * m_s`, so they scale with height and the structural root:shoot ratio is size-invariant. They respire at `r_cr` and turn over at `k_cr` (defaulting to the sapwood rates), enter `mass_live` and `mass_total` but not `mass_above_ground`, and stay outside TF24's water uptake, which reads fine roots (`a_r1`) only. The growth allocation stays closed-form, since `d m_cr / d A_l = a_cr1 * d m_s / d A_l`. At the default `a_cr1 = 0` every result is bit-identical and no scientific version moves. In TF24 the three parameters carry no gradient column, as the pool is empty at the default. Migration: `*_expand_state()` gains a `mass_coarse_root` column; the strategies gain `a_cr1`, `r_cr` and `k_cr`.
+
 * **TF24's light driver is incoming shortwave, and the leaf absorbs its own light (requires phylloptim 0.13.0; pinned at 0.15.4).** The light chain now runs `SWdown` (incoming shortwave at the surface, horizontal, above the canopy, W m^-2) -> `PPFD_above = 4.57 * f_PAR * SWdown` -> `PPFD_int = k_I * openness * PPFD_above` (intercepted per unit leaf area; `k_I` carries the leaf-angle projection and is applied once) plus `NIR_int = k_I * openness * (1 - f_PAR) * SWdown`. The leaf takes the two intercepted bands and applies its own absorptances: `alpha_PAR = 0.85` drives photosynthesis (with `phi_J`) and the energy balance, `alpha_NIR = 0.20` only the energy balance. With the energy balance on, net radiation was `2 * PPFD / 4.57 - 40` (every intercepted watt absorbed) and is now `alpha_PAR * PPFD_int / 4.57 + alpha_NIR * NIR_int` plus a net longwave that follows air temperature and humidity in place of the constant -40 (phylloptim 0.14.0), about half the absorbed shortwave in daylight, so leaves run cooler. The default light moves too: `SWdown = 900` gives `PPFD_above = 2056.5`, where the `PPFD` driver defaulted to 1800. `scientific_version`: TF24 12 -> 13, TF24f 12.1 -> 13.1, TF24t 12.4 -> 13.4. Migration:
   * `env$extrinsic_drivers_set_constant("PPFD", x)` -> `env$extrinsic_drivers_set_constant("SWdown", x / (0.5 * 4.57))` for the same light above the canopy (or the measured shortwave directly, e.g. PLUMBER2 `SWdown`)
   * `env$extrinsic_drivers_set_variable("PPFD", t, y)` -> `env$extrinsic_drivers_set_variable("SWdown", t, y / (0.5 * 4.57))`
@@ -773,20 +775,6 @@ were not previously recorded here:
   the two. The depth profile itself is not exposed — a fixed-width aux slot
   cannot carry a per-node vector — so the second half of #625 (reporting each
   leaf output against crown depth) remains open.
-
-* **FF16 and TF24 gained a coarse-root pool, off by default (#349).** Both models carried one root pool, `mass_root = a_r1 * A_l` — fine roots, with no height scaling. Coarse (structural) roots are now modelled as the below-ground continuation of the sapwood cylinder:
-
-  ```
-  m_cr = a_cr1 * m_s = a_cr1 * rho * theta * eta_c * A_l * H
-  ```
-
-  so they scale with height and the structural root:shoot ratio is size-invariant — the property fine roots cannot supply. They respire at `r_cr` and turn over at `k_cr`, both defaulting to the sapwood rates because coarse roots are woody, and they enter `mass_live` / `mass_total` but not `mass_above_ground`. `*_expand_state()` gains a `mass_coarse_root` column.
-
-  Because `d m_cr / d A_l = a_cr1 * d m_s / d A_l`, the growth allocation stays closed-form: the new term reuses the sapwood term the bark share already shares, and `darea_leaf_dmass_live` gains one addend rather than needing a rederivation.
-
-  **`a_cr1` defaults to 0, so nothing moves and no scientific version does either.** Every new term is appended rather than interleaved, so at the default the sums are bit-identical (`x + 0.0 == x`, and the association order of the existing terms is untouched) — `FF16@v1`, `TF24@v9` and `TF24f@v9.1` all stand, and FF16 still agrees with the published 2012 reference model. The model-version drift guard fires on the three added parameters; its snapshot was re-blessed after confirming the diff is three added names and no changed default.
-
-  ⚠️ **Coarse roots are deliberately outside TF24's water uptake.** The depth-distributed uptake reads `a_r1` directly: absorbing surface is a fine-root property, and `test-coarse-roots.R` asserts every water-side quantity is bit-identical with the pool on.
 
 * **The NSC storage pool is bounded by the shape of its own flow (`TF24@v9`,
   `TF24f@v9.1`).** `dS/dt` was `net_flux > 0 ? net_flux : floor_gate * net_flux`

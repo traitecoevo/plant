@@ -319,6 +319,13 @@ struct TF24_Pars {
       no_gradient{"alpha_NIR", "the leaf supplies no row for it"},
       no_gradient{"use_energy_balance",
                   "a gate, compared rather than differentiated"},
+      // The coarse-root pool is opt-in: at the default a_cr1 = 0 it is empty, so
+      // r_cr and k_cr multiply zero and a column would be an exact zero that
+      // reads as an answer. No gradient fixture runs with the pool on.
+      no_gradient{"a_cr1",
+                  "the coarse-root pool is opt-in and has no gradient fixture"},
+      no_gradient{"r_cr", "the coarse-root pool is empty at the default a_cr1 = 0"},
+      no_gradient{"k_cr", "the coarse-root pool is empty at the default a_cr1 = 0"},
       // Refused by the model, so a row would describe half of it.
       no_gradient{"theta_c",
                   "prepare_strategy refuses any non-zero value, because theta "
