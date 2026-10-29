@@ -6315,6 +6315,22 @@ void TF24_Environment__set_soil_number_of_depths(plant::RcppR6::RcppR6<plant::TF
   obj_->set_soil_number_of_depths(soil_number_of_depths);
 }
 // [[Rcpp::export]]
+void TF24_Environment__set_soil_layer_widths(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_, std::vector<double> widths) {
+  obj_->set_soil_layer_widths(widths);
+}
+// [[Rcpp::export]]
+std::vector<double> TF24_Environment__get_soil_layer_widths(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_) {
+  return obj_->get_soil_layer_widths();
+}
+// [[Rcpp::export]]
+std::vector<double> TF24_Environment__get_soil_depths(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_) {
+  return obj_->get_soil_depths();
+}
+// [[Rcpp::export]]
+std::vector<double> TF24_Environment__get_soil_mid_depths(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_) {
+  return obj_->get_soil_mid_depths();
+}
+// [[Rcpp::export]]
 void TF24_Environment__set_soil_parameters(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_, int soil_number_of_depths, SEXP soil_moist_sat_values, SEXP K_sat_values, SEXP a_psi_values, SEXP n_psi_values) {
   obj_->set_soil_parameters(soil_number_of_depths, soil_moist_sat_values, K_sat_values, a_psi_values, n_psi_values);
 }
@@ -6400,10 +6416,6 @@ void TF24_Environment__K_sat__set(plant::RcppR6::RcppR6<plant::TF24_Environment<
 // [[Rcpp::export]]
 double TF24_Environment__depth__get(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_) {
   return obj_->depth;
-}
-// [[Rcpp::export]]
-void TF24_Environment__depth__set(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_, double value) {
-  obj_->depth = value;
 }
 
 // [[Rcpp::export]]
