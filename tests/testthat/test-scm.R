@@ -361,7 +361,9 @@ test_that("TF24 takes a daily rain record without being stopped at its knots", {
     e$extrinsic_drivers_set_variable("rainfall", days / 365, rain)
     e
   }
-  for (setting in list(c(substep = TRUE, tol = 1e-6), c(substep = FALSE, tol = 1e-6))) {
+  ## At 1e-6 the match is 3e-6 on macOS but 5e-5 on Windows; at 1e-7 it is
+  ## about 1e-7 here, so the bound holds with a margin on every platform.
+  for (setting in list(c(substep = TRUE, tol = 1e-7), c(substep = FALSE, tol = 1e-7))) {
     ctrl <- Control(node_density_in_birth_date = TRUE,
                     ode_tol_rel = setting[["tol"]],
                     ode_tol_abs = 1e-4 * setting[["tol"]],
