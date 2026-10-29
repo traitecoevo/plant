@@ -61,8 +61,8 @@ public:
   TF24_Environment(int soil_number_of_depths = 5,
                    double soil_moist_sat = 0.428, // saturated soil moisture content (m3 water m^-3 soil)
                    double K_sat = 163.0411, //saturated hydraulic conductivity of soil
-                   double a_psi = 1.78e3, // not currently being used
-                   double n_psi = 6.57, // not currently being used
+                   double a_psi = 1.78e3, // retention-curve scale (Pa)
+                   double n_psi = 6.57, // retention-curve exponent (unitless)
                    double a_infil = 1, // infiltration switch (0-1), 0 no runoff, 1 runoff
                    double b_infil = 8, // unitless, determines infiltration rate
                    double depth = 1.5)  // total depth of soil (m)
@@ -619,9 +619,11 @@ public:
 
   // Ceiling on soil water potential (MPa), issue #549. Near the residual floor
   // the retention curve returns psi ~ 1e8 MPa, which drives the leaf hydraulic
-  // solve non-finite and blows up the soil feedback. Root conductance has
-  // already fallen to ~0 by a few MPa, so clamping here changes nothing
-  // physically while keeping the numerics finite under extreme drought.
+  // solve non-finite and blows up the soil feedback. phylloptim bounds the root
+  // vulnerability curves past their grid (traitecoevo/phylloptim#77), so root
+  // conductivity is exactly 0 above ~46 MPa at the root defaults: any ceiling
+  // above that leaves uptake unchanged, and tightening it cannot fix a drought
+  // symptom. Whether a lower value moves a run is #613.
   double soil_psi_max_ = 1e3;
 
   // The clamp sites the water balance reaches. The site list is shared with the
@@ -639,7 +641,6 @@ public:
   }
 
   // Ability to prescribe a fixed value
-  // TODO: add setting to set other variables like water
   void set_fixed_environment(S value, S height_max) {
     light_availability.set_fixed_value(value, height_max);
   }
@@ -857,9 +858,9 @@ public:
       a_psi_layer * pow(t / soil_moist_sat_layer, -n_psi_layer) / 1e6; // Pa -> MPa
     // Cap at a large-but-finite ceiling (#549): near theta_r the retention curve
     // gives psi ~ 1e8 MPa, which pushes the leaf hydraulic solve non-finite and
-    // corrupts the soil feedback. Root conductance is already ~0 far below this
-    // (psi_crit ~ few MPa), so clamping to soil_psi_max_ leaves uptake at ~0
-    // while keeping every downstream calculation finite.
+    // corrupts the soil feedback. Root conductivity is exactly 0 far below the
+    // ceiling (see soil_psi_max_), so the cap keeps every downstream
+    // calculation finite without changing uptake.
     if (psi > S(soil_psi_max_)) {
       note_clamp(CLAMP_SOIL_POTENTIAL_CEILING);
     }

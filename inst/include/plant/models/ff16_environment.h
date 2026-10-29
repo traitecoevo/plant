@@ -52,7 +52,6 @@ public:
   }
 
   // Ability to prescribe a fixed value
-  // TODO(#476): add setting to set other variables like water
   void set_fixed_environment(S value, S height_max) {
     light_availability.set_fixed_value(value, height_max);
   }

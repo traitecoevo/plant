@@ -203,7 +203,8 @@ inline double K93_Strategy::establishment_probability(const K93_Environment& env
   // clamped to >= 0 under competition) and the g > 0 density guard in
   // Node::compute_initial_conditions. This value is consumed by the SCM
   // (initial mortality / density) and the stochastic germination test.
-  // TODO(#480): may want to make this dependent on achieving positive growth rate.
+  // Deliberately not gated on a positive growth rate, unlike FF16 and TF24
+  // (#480): gating here would filter twice.
   return 1.0;
 }
 

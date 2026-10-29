@@ -2789,7 +2789,6 @@ S TF24_Strategy<S>::mass_total_dt(const S& fraction_allocation_reproduction,
     mass_heartwood_dt;
 }
 
-// TODO: Do we not track root mass change?
 template <typename S>
 S TF24_Strategy<S>::mass_above_ground_dt(const S& area_leaf,
                                        const S& fraction_allocation_reproduction,
