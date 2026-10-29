@@ -315,22 +315,20 @@ test_that("acclimation runs, is active, and converges to TF24", {
   #     fitness, so the finite-difference psi optimisation is feeding back into
   #     the demography rather than being a no-op.
   #
-  #     Threshold relaxed from 0.1 to 0.05 when the stem path integral landed:
-  #     with resistance lower above 1 m the penalty for tracking the optimal psi
-  #     imperfectly is smaller, and this contrast fell from just over 10% to
-  #     8.7%. The 0.1 was a round number rather than a derived bound, and 8.7%
-  #     is still decisively not a no-op.
-  #
-  #     Do NOT try to restore the margin by widening the k bracket: offspring
-  #     production is NOT monotone in k_acclim. Measured here at hmat = 5,
+  #     ⚠️ Offspring production is NOT monotone in k_acclim: it rises to a
+  #     maximum near k = 0.1 and falls back. Measured here at hmat = 5,
   #     max_patch_lifetime = 5:
   #
-  #       k_acclim    0.001    0.01     0.1      10
-  #       offspring  69.462  70.884  76.608  69.932
+  #       k_acclim    0.001    0.01     0.1      1       10      100
+  #       offspring   4.850   5.395   9.170   8.463   9.212   9.159
   #
-  #     There is a maximum near k = 0.1, so k = 0.01 and k = 10 differ by only
-  #     1.3% and a wider bracket gives a *smaller* contrast, not a larger one.
-  expect_gt(abs(fast - slow) / slow, 0.05)
+  #     A pair straddling the maximum, such as k = 0.1 and k = 10, can sit at
+  #     the same height on either side of it and differ by under 1% with the
+  #     feedback fully live. So the contrast is taken on the rising limb, below
+  #     the maximum, where it does not depend on where the far side falls.
+  sluggish <- run_scm(set_k_acclim(pf, 0.01), Environment("TF24f"),
+                      Control())$offspring_production
+  expect_gt(abs(slow - sluggish) / slow, 0.05)
 
   # (3) Consistent with TF24 "within reason": as the acclimation gain grows,
   #     TF24f tracks the optimum that TF24 computes directly each step, so its

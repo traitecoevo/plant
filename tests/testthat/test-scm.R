@@ -266,7 +266,7 @@ test_that("TF24's soil is substepped where that lets a step grow", {
     e$extrinsic_drivers_set_constant("rainfall", 3)
     e
   }
-  run <- function(substep, tol = 1e-4) {
+  run <- function(substep, tol = 1e-5) {
     run_scm(p, wet(), Control(node_density_in_birth_date = TRUE,
                               ode_tol_rel = tol, ode_tol_abs = 1e-4 * tol,
                               ode_soil_substep = substep))
@@ -287,10 +287,10 @@ test_that("TF24's soil is substepped where that lets a step grow", {
                          function(e) e[length(e)] == 1, TRUE)))
   ## Its error falls with the tolerance, against a tight run with the soil
   ## coupled.
-  tight <- fitness(run(FALSE, 1e-7))
+  tight <- fitness(run(FALSE, 1e-8))
   error <- function(scm) abs(fitness(scm) / tight - 1)
   expect_lt(error(substepped), 1e-5)
-  expect_lt(error(run(TRUE, 3e-5)), error(substepped))
+  expect_lt(error(run(TRUE, 3e-6)), error(substepped))
 })
 
 test_that("A run's steps answer to the soil's tolerance scale, and at one to nothing", {
@@ -361,7 +361,7 @@ test_that("TF24 takes a daily rain record without being stopped at its knots", {
     e$extrinsic_drivers_set_variable("rainfall", days / 365, rain)
     e
   }
-  for (setting in list(c(substep = TRUE, tol = 1e-5), c(substep = FALSE, tol = 1e-5))) {
+  for (setting in list(c(substep = TRUE, tol = 1e-6), c(substep = FALSE, tol = 1e-6))) {
     ctrl <- Control(node_density_in_birth_date = TRUE,
                     ode_tol_rel = setting[["tol"]],
                     ode_tol_abs = 1e-4 * setting[["tol"]],
@@ -459,7 +459,9 @@ test_that("A run that substepped the soil is rerun, swept and invaded as it ran"
     q$strategies[[1]] <- s
     metrics(rerun(q))
   }
-  d <- 1e-4 * lma
+  ## The difference's truncation error at a relative step of 1e-4 is 7% on the
+  ## first row; at 1e-5 it is 0.4%, and at 1e-6 rounding takes over.
+  d <- 1e-5 * lma
   differenced <- (at_lma(lma + d) - at_lma(lma - d)) / (2 * d)
   expect_equal(unname(g$gradient[, "1.lma"]), unname(differenced),
                tolerance = 1e-2)
