@@ -43,7 +43,9 @@ Leaf:
         positive magnitude)
       @param TF24_beta2 exponent for the effect of hydraulic risk (unitless)
       @param jmax_25 maximum rate of electron transport at 25 C (umol m^-2 s^-1)
-      @param a quantum yield of photosynthetic electron transport (mol mol^-1)
+      @param phi_J quantum yield of photosynthetic electron transport per ABSORBED
+        photon (mol mol^-1); plant's trait `a` is per intercepted photon, so
+        `phi_J = a / 0.85` at the leaf's default PAR absorptance
       @param curv_fact_elec_trans curvature factor for the light response curve (unitless)
       @param curv_fact_colim curvature factor for the colimited photosynthesis equation
       @param GSS_tol_abs tolerance parameter for golden section search
@@ -61,7 +63,7 @@ Leaf:
       - root_P50: double
       - TF24_beta2: double
       - jmax_25: double
-      - a: double
+      - phi_J: double
       - curv_fact_elec_trans: double
       - curv_fact_colim: double
       - GSS_tol_abs: double
@@ -123,6 +125,7 @@ Leaf:
     use_energy_balance_: {type: bool, access: field}
     d_: {type: double, access: field}
     wind_speed_: {type: double, access: field}
+    NIR_int_: {type: double, access: field}
     Tair_: {type: double, access: field}
     Rn_: {type: double, access: field}
     ra_: {type: double, access: field}

@@ -5,8 +5,8 @@ RootNetwork__ctor <- function() {
     .Call('_plant_RootNetwork__ctor', PACKAGE = 'plant')
 }
 
-Leaf__ctor <- function(vcmax_25, stem_c, stem_P50, root_c, root_P50, TF24_beta2, jmax_25, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, TF24_cost_scale) {
-    .Call('_plant_Leaf__ctor', PACKAGE = 'plant', vcmax_25, stem_c, stem_P50, root_c, root_P50, TF24_beta2, jmax_25, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, TF24_cost_scale)
+Leaf__ctor <- function(vcmax_25, stem_c, stem_P50, root_c, root_P50, TF24_beta2, jmax_25, phi_J, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, TF24_cost_scale) {
+    .Call('_plant_Leaf__ctor', PACKAGE = 'plant', vcmax_25, stem_c, stem_P50, root_c, root_P50, TF24_beta2, jmax_25, phi_J, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, TF24_cost_scale)
 }
 
 Leaf__initialize_integrator <- function(obj_, integration_rule, integration_tol) {
@@ -451,6 +451,14 @@ Leaf__wind_speed___get <- function(obj_) {
 
 Leaf__wind_speed___set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__wind_speed___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__NIR_int___get <- function(obj_) {
+    .Call('_plant_Leaf__NIR_int___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__NIR_int___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__NIR_int___set', PACKAGE = 'plant', obj_, value))
 }
 
 Leaf__Tair___get <- function(obj_) {

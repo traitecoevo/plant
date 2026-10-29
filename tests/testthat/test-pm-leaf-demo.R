@@ -44,6 +44,7 @@ test_that("PM path fails fast on a non-finite wind speed (review: itowers1)", {
   source(helpers, local = TRUE)
 
   set_phys <- function(l) {
+    l$NIR_int_ <- 1000 / 4.57
     l$set_physiology(root_network = phylloptim::root_network_from_carbon(
                        20, soil_depth = 1),
                      PPFD = 1000, psi_soil = 0.3, soil_depth = 1,

@@ -159,7 +159,10 @@ struct TF24_Pars {
   // describes the bracket rather than the model.
   S TF24_floor_lambda_o = 0.0;
   S jmax_25 = vcmax_25*1.64;
-  S a = 0.30; // effective quantum yield of electron transport
+  // Quantum yield of electron transport per INTERCEPTED photon. phylloptim's
+  // phi_J is per absorbed photon, so it is handed over as a / alpha_PAR_ and
+  // J reads a * PPFD whatever the leaf's absorptance.
+  S a = 0.30;
   S curv_fact_elec_trans = 0.7;
   S curv_fact_colim = 0.99;
   // Dark respiration at 25 C, the term net assimilation subtracts. It is handed
@@ -1630,7 +1633,7 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& radiation,
   in[phylloptim::par_root_P50] = pars.root_P50;
   in[phylloptim::par_TF24_beta2] = pars.TF24_beta2;
   in[phylloptim::par_jmax_25] = pars.jmax_25;
-  in[phylloptim::par_a] = pars.a;
+  in[phylloptim::par_phi_J] = pars.a / S(leaf.alpha_PAR_);
   in[phylloptim::par_curv_fact_elec_trans] = pars.curv_fact_elec_trans;
   in[phylloptim::par_curv_fact_colim] = pars.curv_fact_colim;
   in[phylloptim::par_TF24_cost_scale] = pars.TF24_cost_scale;
@@ -2343,6 +2346,11 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
   S radiation_used = 0.0;
   auto optimise_at = [&](const S& radiation) -> void {
     radiation_used = radiation;
+    // Daylight: the near-infrared intercepted beside the PAR carries about the
+    // PAR band's energy. Read only on the energy-balance path, which refuses it
+    // unset, so a light source other than the sun needs its own value here.
+    leaf.NIR_int_ = odelia::util::to_passive(radiation) /
+                    phylloptim::umol_par_per_joule;
     // The leaf takes double, and everything the environment supplies already is
     // one. Three of its arguments are this strategy's own and carry a derivative;
     // psi_soil is the one that needs a buffer to be stripped into.
@@ -2972,7 +2980,7 @@ void TF24_Strategy<S>::prepare_strategy() {
     // disagree silently, which is why they are not in the trait set.
     leaf = Leaf(pars.vcmax_25, pars.stem_c, pars.stem_P50,
                 pars.root_c, pars.root_P50,
-                pars.TF24_beta2, pars.jmax_25, pars.a,
+                pars.TF24_beta2, pars.jmax_25, pars.a / leaf.alpha_PAR_,
                 pars.curv_fact_elec_trans, pars.curv_fact_colim,
                 this->control.GSS_tol_abs, this->control.vulnerability_curve_ncontrol,
                 this->control.ci_abs_tol, this->control.ci_niter,

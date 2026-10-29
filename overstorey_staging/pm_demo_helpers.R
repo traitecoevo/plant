@@ -20,7 +20,7 @@ pm_make_leaf <- function() {
   # (#622). Argument names match phylloptim's since #634.
   root_P50 <- root_b * (log(2))^(1 / root_c)
   Leaf(vcmax_25 = p$vcmax_25, jmax_25 = p$jmax_25, stem_c = p$stem_c, stem_P50 = p$stem_P50,
-       root_c = root_c, root_P50 = root_P50, TF24_beta2 = p$TF24_beta2, a = p$a,
+       root_c = root_c, root_P50 = root_P50, TF24_beta2 = p$TF24_beta2, phi_J = p$a / 0.85,
        curv_fact_elec_trans = p$curv_fact_elec_trans,
        curv_fact_colim = p$curv_fact_colim,
        GSS_tol_abs = ctrl$GSS_tol_abs,
@@ -44,6 +44,8 @@ pm_set_physiology <- function(l, PAR, Tair, VPD, pm, cfg = pm_leaf_config()) {
   l$use_energy_balance_ <- isTRUE(pm)
   l$d_ <- cfg$d
   l$wind_speed_ <- cfg$wind_speed
+  # Daylight: the intercepted near-infrared carries about the PAR band's energy.
+  l$NIR_int_ <- PAR / 4.57
   # phylloptim #33: the leaf takes the resistances, so the architecture model runs
   # here. Same constants TF24_Strategy uses.
   l$set_physiology(
