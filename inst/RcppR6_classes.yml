@@ -1533,6 +1533,23 @@ TF24_Environment:
     set_soil_number_of_depths:
       args: [soil_number_of_depths: int]
       return_type: void
+    # Unequal layers (#626): the WIDTH of each, top down, rather than a count.
+    # `depth` becomes their total. Resets the water state, like the setter above.
+    set_soil_layer_widths:
+      args: [widths: "std::vector<double>"]
+      return_type: void
+    get_soil_layer_widths:
+      args: []
+      return_type: "std::vector<double>"
+    # Cumulative depth to the bottom of each layer. Present in C++ since the soil
+    # model was written and simply never exposed; reachable only bundled inside
+    # r_get_state() until #626.
+    get_soil_depths:
+      args: []
+      return_type: "std::vector<double>"
+    get_soil_mid_depths:
+      args: []
+      return_type: "std::vector<double>"
     set_soil_parameters:
       args:
         - soil_number_of_depths: int
@@ -1587,7 +1604,11 @@ TF24_Environment:
     time: {type: double, access: field}
     soil_moist_sat: {type: double, access: field}
     K_sat: {type: double, access: field}
-    depth: {type: double, access: field}
+    # READ-ONLY (#626). A raw setter here rebuilt nothing: only the geometry
+    # setters fill z/z_mid/dz, so `env$depth <- 3` left a 1.5 m column in place and
+    # said nothing. Set the geometry instead -- set_soil_number_of_depths() for
+    # equal layers spanning a new depth, set_soil_layer_widths() otherwise.
+    depth: {type: double, access: field, readonly: true}
     a_psi: {type: double, access: field}
     n_psi: {type: double, access: field}
     a_infil: {type: double, access: field}

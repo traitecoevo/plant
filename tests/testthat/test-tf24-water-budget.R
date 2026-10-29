@@ -15,9 +15,14 @@
 # Runoff never enters the column, so it cancels; `sum_rainfall` is only needed
 # to check the driver itself (see the rainfall-floor tests below).
 tf24_water_budget <- function(n_layers = 5, theta_0 = 0.25, rainfall = 1.0,
-                              lifetime = 2, lma = 0.0825) {
+                              lifetime = 2, lma = 0.0825, widths = NULL) {
   env <- Environment("TF24")
-  env$set_soil_number_of_depths(n_layers)
+  if (is.null(widths)) {
+    env$set_soil_number_of_depths(n_layers)
+  } else {
+    env$set_soil_layer_widths(widths)
+    n_layers <- length(widths)
+  }
   env$set_soil_water_state(rep(theta_0, n_layers))
   env$extrinsic_drivers_set_constant("rainfall", rainfall)
 
@@ -27,9 +32,11 @@ tf24_water_budget <- function(n_layers = 5, theta_0 = 0.25, rainfall = 1.0,
 
   out <- run_scm(p, env, collect = TRUE)
 
-  # Layers are uniform, so the first cumulative depth is the layer thickness.
-  dz <- out$env$soil_depth$soil_depth[[1]]
+  # theta is intensive (m3 m^-3), so storage is sum(theta * width) -- the WIDTH of
+  # each layer, one per row, not the first cumulative depth. Those coincide only
+  # for equal layers, and this harness runs graded profiles now (#626).
   moist <- out$env$soil_moist
+  dz <- out$env$soil_layer_width$soil_layer_width
   storage <- tapply(moist$soil_moist * dz, moist$step, sum)
 
   flux <- out$env$soil_moist_cumulative_flux
@@ -66,6 +73,30 @@ test_that("TF24 water budget closes across layer counts", {
     b <- tf24_water_budget(n_layers = n)
     expect_equal(b$supplied, b$accounted,
                  info = sprintf("n_layers = %d", n))
+    expect_lt(abs(b$rel_residual), 1e-12)
+  }
+})
+
+test_that("TF24 water budget closes on a graded layer profile", {
+  # THE GUARD ON THE INTER-LAYER CASCADE (#626). Mass conservation,
+  # sum(dz[i] * dtheta_i/dt) = infiltration - drainage - uptake, is exact for any
+  # width distribution because the flux is free drainage: q = K(theta), with the
+  # matric gradient dropped, so it carries no internode distance and nothing in it
+  # needs rescaling when the layers stop being equal.
+  #
+  # ⚠️ This test is what breaks if a capillary or diffusive flux is ever added
+  # using the wrong distance. That term's distance is the INTERNODE separation
+  # z_mid[i+1] - z_mid[i], not dz[i]; the two coincide only for equal layers, so a
+  # uniform-profile budget test would pass on the mistake and this one will not.
+  profiles <- list(
+    "2 cm surface layer" = c(0.02, 0.28, 0.30, 0.40, 0.50),
+    "graded ladder" = soil_widths_graded(1.5, 5, top = 0.02),
+    "thick over thin" = c(0.75, 0.25, 0.25, 0.15, 0.10),
+    "single thin layer" = 0.02
+  )
+  for (label in names(profiles)) {
+    b <- tf24_water_budget(widths = profiles[[label]])
+    expect_equal(b$supplied, b$accounted, info = label)
     expect_lt(abs(b$rel_residual), 1e-12)
   }
 })
@@ -141,8 +172,8 @@ test_that("rainfall driver is floored at zero", {
   expect_true(all(diff(flux$sum_infiltration) >= 0))
 
   # And the budget still closes under a driver that dips negative.
-  dz <- out$env$soil_depth$soil_depth[[1]]
   moist <- out$env$soil_moist
+  dz <- out$env$soil_layer_width$soil_layer_width
   storage <- tapply(moist$soil_moist * dz, moist$step, sum)
   final <- flux[nrow(flux), ]
   expect_equal(storage[[as.character(min(flux$step))]] + final$sum_infiltration,
