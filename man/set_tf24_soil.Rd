@@ -17,7 +17,7 @@ set_tf24_soil(
 \arguments{
 \item{env}{A \code{\link{TF24_Environment}}.}
 
-\item{widths}{Layer widths, m, top down — e.g. from
+\item{widths}{Layer widths, m, top down -- e.g. from
 \code{\link{soil_widths_graded}}. Must not get thinner with depth (equal
 is fine). A single number sets one layer of that width. If \code{NULL} the
 geometry is left alone.}
@@ -36,7 +36,7 @@ not engaged at all.}
 }
 \description{
 Sets the layer geometry, then the per-layer parameters, then the water state,
-in that order — which is the only order that works, and the reason this
+in that order -- which is the only order that works, and the reason this
 function exists.
 }
 \details{

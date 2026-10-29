@@ -23,7 +23,7 @@ Builds a vector of layer widths for
 \code{\link{TF24_Environment}}$\code{set_soil_layer_widths()}: \code{n} layers
 spanning \code{depth}, the first of width \code{top} and each subsequent one a
 fixed factor thicker. The motivating case is soil evaporation, which needs a
-very thin layer at the top of the profile — a 30 cm surface layer
+very thin layer at the top of the profile -- a 30 cm surface layer
 averages away the wetting and drying that drives it.
 }
 \details{
@@ -36,9 +36,9 @@ the column a hair shallower or deeper than asked for.
 Two things, neither of which \code{plant} corrects for you.
 
 **The column gets stiff.** The soil water balance's Jacobian diagonal is
-\code{K'(theta)/dz}, so it scales as \code{1/dz}: measured 1.8e4 yr^-1 at the
+\code{(dK/dtheta)/dz}, so it scales as \code{1/dz}: measured 1.8e4 yr^-1 at the
 0.3 m default and 2.6e5 at 2 cm, where the characteristic time is about two
-minutes. It only bites when the layer is wet — just after rain, which is
+minutes. It only bites when the layer is wet -- just after rain, which is
 exactly when an evaporation layer matters. Below about 2.6 mm the stable step
 falls under \code{Control()}'s \code{ode_step_size_min} and the step controller
 cannot satisfy stability at all.
@@ -57,9 +57,9 @@ surface layer.
 \code{set_soil_layer_widths()} refuses a profile in which any layer is
 thinner than the one above it (equal widths are fine, so a uniform profile is
 legal). Refining towards the surface is the standard and is what this function
-builds; refining at depth has no counterpart in TF24 — a contrast in soil
+builds; refining at depth has no counterpart in TF24 -- a contrast in soil
 properties is per-layer \emph{parameters}, not a thin layer, and TF24 has no
-water table — while it does reach a failure the model cannot absorb, driving
+water table -- while it does reach a failure the model cannot absorb, driving
 the size-density equations to overflow. Every profile this function returns
 satisfies the rule by construction.
 
