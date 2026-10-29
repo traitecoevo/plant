@@ -541,6 +541,14 @@ ladder_run <- function(p, ctrl = NULL, env = NULL) {
 # run would realise a slower cycle and the regime would stop being the regime.
 ladder_environment <- function(rain = NULL, amplitude = 0, lifetime = 2) {
   env <- Environment("TF24")
+  # ⚠️ THE LADDER'S LIGHT IS PINNED, not the model default. Its regimes were
+  # designed at 1800 umol m^-2 s^-1 of PPFD above the canopy, and TF24 v13's
+  # default (SWdown 900, i.e. 2056.5) pushes `clamped` through enough clamps and
+  # shade deaths that a difference of whole runs stops converging: 100 of its
+  # reference columns scatter by more than 1.5x across the four steps, against
+  # 4 at this light, so the reference cannot referee it. This is the old light
+  # expressed as shortwave.
+  env$extrinsic_drivers_set_constant("SWdown", 1800 / (0.5 * 4.57))
   if (is.null(rain)) {
     return(env)
   }
@@ -1026,7 +1034,7 @@ ladder_leaf_own_traits <- function() {
   # and are `stem_c` and `stem_P50`; `root_b` is `root_P50`; `beta2` carries its
   # curve's name. `g1_TF24` is gone -- the leaf takes no Medlyn slope on this
   # path. Exactly the drift this comment predicts, arriving a fourth time.
-  c("stem_c", "stem_P50", "TF24_beta2", "TF24_cost_scale", "a",
+  c("stem_c", "stem_P50", "TF24_beta2", "TF24_cost_scale", "phi_J",
     "curv_fact_elec_trans", "curv_fact_colim", "vcmax_25", "jmax_25",
     "R_d_25", "root_c", "root_P50")
 }

@@ -9,19 +9,17 @@ test_that("Environment-TF24 drivers", {
   env <- Environment("TF24")
   # get list of extrinsic drivers for the environment
 
-  expect_contains(env$extrinsic_drivers_get_names(), c("PPFD", "rainfall", "leaf_temp", "atm_o2_kpa", "atm_kpa", "ca", "atm_vpd"))
+  expect_contains(env$extrinsic_drivers_get_names(), c("SWdown", "rainfall", "leaf_temp", "atm_o2_kpa", "atm_kpa", "ca", "atm_vpd"))
   
   # test default values - check at two values of second argument (should give same result)
-  expect_equal(env$extrinsic_drivers_evaluate("PPFD", 0), 1800)
-  expect_equal(env$extrinsic_drivers_evaluate("PPFD", 10), 1800)
+  expect_equal(env$extrinsic_drivers_evaluate("SWdown", 0), 900)
+  expect_equal(env$extrinsic_drivers_evaluate("SWdown", 10), 900)
   expect_equal(env$extrinsic_drivers_evaluate("rainfall", 0), 1)
   expect_equal(env$extrinsic_drivers_evaluate("rainfall", 10), 1)
   expect_equal(env$extrinsic_drivers_evaluate("atm_vpd", 0), 1)
   expect_equal(env$extrinsic_drivers_evaluate("atm_vpd", 10), 1)
   expect_equal(env$extrinsic_drivers_evaluate("ca", 0), 40)
   expect_equal(env$extrinsic_drivers_evaluate("ca", 10), 40)
-  expect_equal(env$extrinsic_drivers_evaluate("PPFD", 0), 1800)
-  expect_equal(env$extrinsic_drivers_evaluate("PPFD", 10), 1800)
   expect_equal(env$extrinsic_drivers_evaluate("atm_kpa", 0), 101.3)
   expect_equal(env$extrinsic_drivers_evaluate("atm_kpa", 10), 101.3)
 
@@ -34,11 +32,11 @@ test_that("Environment-TF24 drivers", {
   ## a function (simple quadratic)
   x <- seq(-10, 10, 0.41)
   y <- x^2
-  PPFD <- 10
+  SWdown <- 10
   
   env <- Environment("TF24")
-  expect_silent(env$extrinsic_drivers_set_constant("PPFD", PPFD))
-  expect_equal(env$extrinsic_drivers_evaluate("PPFD", 2), PPFD)
+  expect_silent(env$extrinsic_drivers_set_constant("SWdown", SWdown))
+  expect_equal(env$extrinsic_drivers_evaluate("SWdown", 2), SWdown)
   
   # interpolated points
   expect_silent(env$extrinsic_drivers_set_variable("rainfall", x, y))
@@ -66,7 +64,7 @@ test_that("Environment-TF24 drivers", {
   expect_equal(env$psi_from_soil_moist(theta_sat), a_psi/1e6)
   
   # test handy wrappers
-  expect_equal(env$get_PPFD(), env$extrinsic_drivers_evaluate("PPFD", 1))
+  expect_equal(env$get_SWdown(), env$extrinsic_drivers_evaluate("SWdown", 1))
   expect_equal(env$get_atm_vpd(), env$extrinsic_drivers_evaluate("atm_vpd", 1))
   expect_equal(env$get_ca(), env$extrinsic_drivers_evaluate("ca", 1))
   expect_equal(env$get_leaf_temp(), env$extrinsic_drivers_evaluate("leaf_temp", 1))
@@ -136,6 +134,7 @@ test_that("Environment-TF24 running soil moisture profile", {
   expect_equal(env$n_psi, 6.57)
   expect_equal(env$a_infil, 1)
   expect_equal(env$b_infil, 8)
+  expect_equal(env$f_PAR, 0.5)
 
   # set values
   expect_silent(env$soil_moist_sat <- 1)
@@ -144,6 +143,7 @@ test_that("Environment-TF24 running soil moisture profile", {
   expect_silent(env$n_psi <- 4)
   expect_silent(env$a_infil <- 0)
   expect_silent(env$b_infil <- 5)
+  expect_silent(env$f_PAR <- 0.45)
 
   expect_equal(env$soil_moist_sat, 1)
   expect_equal(env$K_sat, 2)
@@ -151,6 +151,7 @@ test_that("Environment-TF24 running soil moisture profile", {
   expect_equal(env$n_psi, 4)
   expect_equal(env$a_infil, 0)
   expect_equal(env$b_infil, 5)
+  expect_equal(env$f_PAR, 0.45)
 
   # check values from above are inherited when apssed into scm
   p0 <- scm_base_parameters("TF24")
@@ -159,6 +160,7 @@ test_that("Environment-TF24 running soil moisture profile", {
   out <- run_scm(p1, env)
   expect_equal(out$patch$environment$n_psi, 4)
   expect_equal(out$patch$environment$b_infil, 5)
+  expect_equal(out$patch$environment$f_PAR, 0.45)
   
   env <- Environment("TF24")
   env$set_soil_number_of_depths(1)

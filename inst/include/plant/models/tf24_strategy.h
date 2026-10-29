@@ -91,6 +91,13 @@ struct TF24_Pars {
   S a_st2  = 0.1;            // Reserve fraction at which growth is half-on [0-1]
   S a_st3  = 0.8;            // Initial storage at birth [fraction of capacity]
   // * Light capture
+  // The canopy extinction coefficient, k = G / cos(theta): 0.5 is a spherical
+  // leaf-angle distribution under an overhead sun. It does TWO jobs. It is the
+  // Beer's-law exponent in the shading this plant casts on others
+  // (compute_competition), and it is the factor that turns irradiance on a
+  // horizontal plane into irradiance INTERCEPTED per unit leaf area -- the
+  // leaf-angle projection -- in the light handed to the leaf. Applied once
+  // there; the leaf applies the absorptance.
   S k_I = 0.5;
   // * Leaf hydraulic / photosynthesis traits (default Eucalyptus saligna)
   S vcmax_25 = 96;
@@ -156,7 +163,10 @@ struct TF24_Pars {
   // describes the bracket rather than the model.
   S TF24_floor_lambda_o = 0.0;
   S jmax_25 = vcmax_25*1.64;
-  S a = 0.30; // effective quantum yield of electron transport
+  // Quantum yield of electron transport per ABSORBED photon. The leaf absorbs
+  // alpha_PAR of the intercepted PPFD, so 0.30 / 0.85 is the old incident-basis
+  // yield of 0.30 restated (phylloptim 0.13.0 renamed `a` to `phi_J`).
+  S phi_J = 0.30 / 0.85;
   S curv_fact_elec_trans = 0.7;
   S curv_fact_colim = 0.99;
   // Dark respiration at 25 C, the term net assimilation subtracts. It is handed
@@ -249,6 +259,11 @@ struct TF24_Pars {
   // aerodynamic resistance ra = C_ra*sqrt(d/U0); inert while PM is off.
   S use_energy_balance = 0.0;
   S d = 0.05;
+  // Leaf absorptances of intercepted PAR and near-infrared, handed to the leaf.
+  // alpha_PAR reaches photosynthesis (with phi_J) and the energy balance;
+  // alpha_NIR only the energy balance, so it is inert while PM is off.
+  S alpha_PAR = 0.85;
+  S alpha_NIR = 0.20;
 
   // Where a parameter lives and what it is called. Nothing here says what its
   // gradient will be: the sweep computes one for every parameter except the
@@ -287,6 +302,10 @@ struct TF24_Pars {
                   "Q()'s u^eta_x reaches u = 0 the same way, and the guard "
                   "supplies the cumulative fraction there outright"},
       no_gradient{"d", "the leaf supplies no row for it"},
+      no_gradient{"alpha_PAR",
+                  "a leaf property the leaf holds as a constant, so it supplies "
+                  "no row; phi_J, which it multiplies, carries the column"},
+      no_gradient{"alpha_NIR", "the leaf supplies no row for it"},
       no_gradient{"use_energy_balance",
                   "a gate, compared rather than differentiated"},
       // Refused by the model, so a row would describe half of it.
@@ -369,7 +388,7 @@ struct TF24_Pars {
       PLANT_TF24_AD_PARAMETER(TF24_cost_scale),
       PLANT_TF24_AD_PARAMETER(TF24_floor_lambda_o),
       PLANT_TF24_AD_PARAMETER(jmax_25),
-      PLANT_TF24_AD_PARAMETER(a),
+      PLANT_TF24_AD_PARAMETER(phi_J),
       PLANT_TF24_AD_PARAMETER(curv_fact_elec_trans),
       PLANT_TF24_AD_PARAMETER(curv_fact_colim),
       PLANT_TF24_AD_PARAMETER(R_d_25),
@@ -394,7 +413,9 @@ struct TF24_Pars {
       PLANT_TF24_AD_PARAMETER(L_tip),
       PLANT_TF24_AD_PARAMETER(recruitment_decay),
       PLANT_TF24_AD_PARAMETER(use_energy_balance),
-      PLANT_TF24_AD_PARAMETER(d)
+      PLANT_TF24_AD_PARAMETER(d),
+      PLANT_TF24_AD_PARAMETER(alpha_PAR),
+      PLANT_TF24_AD_PARAMETER(alpha_NIR)
   };
 #undef PLANT_TF24_AD_PARAMETER
 
@@ -751,7 +772,13 @@ public:
   // v12: as FF16 v3 -- odelia 0.8.0's step-size rule and the default ode_tol
   // 1e-4 -> 1e-5 move every adaptive run within the ODE tolerance. TF24f
   // follows to v12.1.
-  static constexpr int scientific_version = 12;
+  // v13: the light chain. The driver is SWdown (W m^-2, default 900) where it
+  //   was PPFD (1800), so the default PPFD above the canopy is 2056.5; the
+  //   leaf absorbs its intercepted light itself (alpha_PAR 0.85, alpha_NIR
+  //   0.20), so on the energy-balance path net radiation falls to about half;
+  //   and `a` is `phi_J` on an absorbed basis, which reassociates J. TF24f and
+  //   TF24t follow to v13.1 and v13.4.
+  static constexpr int scientific_version = 13;
 
   S compute_average_light_environment(const S& z, const S& height,
                                       const TF24_Environment<S> &environment);
@@ -1006,7 +1033,7 @@ public:
   // Read how the leaf's outputs respond to what it was given, and record each
   // output that re-enters the active chain carrying that response. The leaf is
   // already driven and solved; nothing here re-supplies it.
-  void record_leaf_outputs(const S& radiation, const std::vector<S>& psi_soil,
+  void record_leaf_outputs(const S& PPFD_int, const std::vector<S>& psi_soil,
                            const S& conductance_max);
   // Strategy-agnostic entry point used by Individual<TF24> (#266): reads the
   // height state and the cached aux slots itself, so the generic Individual
@@ -1569,7 +1596,7 @@ S TF24_Strategy<S>::evapotranspiration_dt(const S& area_leaf_, int soil_layer) {
 // and it crosses because reverse mode cannot nest a tangent above its own
 // scalar, where forward mode can.
 template <typename S>
-void TF24_Strategy<S>::record_leaf_outputs(const S& radiation,
+void TF24_Strategy<S>::record_leaf_outputs(const S& PPFD_int,
                                            const std::vector<S>& psi_soil,
                                            const S& conductance_max) {
   using phylloptim::Leaf;
@@ -1608,19 +1635,19 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& radiation,
   in[phylloptim::par_root_P50] = pars.root_P50;
   in[phylloptim::par_TF24_beta2] = pars.TF24_beta2;
   in[phylloptim::par_jmax_25] = pars.jmax_25;
-  in[phylloptim::par_a] = pars.a;
+  in[phylloptim::par_phi_J] = pars.phi_J;
   in[phylloptim::par_curv_fact_elec_trans] = pars.curv_fact_elec_trans;
   in[phylloptim::par_curv_fact_colim] = pars.curv_fact_colim;
   in[phylloptim::par_TF24_cost_scale] = pars.TF24_cost_scale;
   in[phylloptim::par_R_d_25] = pars.R_d_25;
   in[phylloptim::par_kmax] = conductance_max;
   in[phylloptim::par_TF24_floor_lambda_o] = pars.TF24_floor_lambda_o;
-  // The light this cohort stands in, and the one route every other cohort's
+  // The intercepted PPFD this cohort stands in, and the one route every other cohort's
   // height and leaf area have into its carbon: the electron transport reads
   // this slot. Its VALUE is already seated -- optimise_at strips the same
   // number to passive for the leaf -- so what this line adds is the row, on
   // exactly the footing `kmax` is on.
-  in[phylloptim::par_PPFD] = radiation;
+  in[phylloptim::par_PPFD] = PPFD_int;
 
   std::vector<S> r_R_H_min, r_R_V_sum;
   // Carbon becomes resistance HERE, at this scalar, because the architecture
@@ -2221,7 +2248,7 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
 
 
 
-  // The radiation that drives the leaf optimisation depends on the shading
+  // The intercepted light that drives the leaf optimisation depends on the shading
   // model and is computed below (just before the optimisation), once the
   // depth-independent inputs are ready.
 
@@ -2313,30 +2340,59 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
   // Per-timestep above-canopy wind, read only on the energy-balance path.
   leaf.wind_speed_ = environment.get_wind_speed();
 
-  // Optimise the leaf at a given absorbed radiation: rebuilds physiology and
+  // The light chain, from the driver to the leaf. Each stage is named for what
+  // it is, because the stages differ by factors of 0.5 and a value handed over
+  // at the wrong stage is a plausible number:
+  //
+  //   SWdown      incoming shortwave, surface, horizontal, above canopy  W m^-2
+  //   PPFD_above  = umol_par_per_joule * f_PAR * SWdown                  umol m^-2 s^-1
+  //   PPFD_int    = k_I * openness(z) * PPFD_above                       umol m^-2 s^-1
+  //               intercepted per unit leaf area: k_I is the extinction
+  //               coefficient, which carries the leaf-angle projection
+  //   NIR_int     = k_I * openness(z) * (1 - f_PAR) * SWdown             W m^-2
+  //
+  // The leaf takes the two INTERCEPTED bands and applies its own absorptances
+  // (alpha_PAR, alpha_NIR); nothing upstream of it absorbs anything. Both bands
+  // see the same openness and k_I, so NIR_int is a fixed multiple of PPFD_int
+  // and is formed from it at the leaf rather than integrated over the crown a
+  // second time.
+  const double f_PAR = environment.f_PAR;
+  if (!(f_PAR > 0.0 && f_PAR <= 1.0)) {
+    util::stop("TF24: the environment's f_PAR must lie in (0, 1]; got " +
+               util::to_string(f_PAR));
+  }
+  const double PPFD_above =
+    phylloptim::umol_par_per_joule * f_PAR * environment.get_SWdown();
+  const double NIR_per_PPFD_int =
+    (1.0 - f_PAR) / (phylloptim::umol_par_per_joule * f_PAR);
+
+  // Optimise the leaf at a given intercepted PPFD: rebuilds physiology and
   // solves the root-collar water potential, leaving the leaf.* outputs
   // (profit_, transpiration_, soil_consumption_, opt_psi_stem_, ...) set. Only
-  // the radiation argument varies between calls; every other input is
-  // depth-independent and already computed above.
+  // the light varies between calls; every other input is depth-independent and
+  // already computed above.
   //
   // Leaf solves at double, so an active strategy hands it the VALUES of its
-  // inputs -- radiation, the soil potentials and the conductance are all
+  // inputs -- the light, the soil potentials and the conductance are all
   // stripped below -- and record_leaf_outputs puts the rows back on afterwards,
   // by asking the leaf for its own derivatives at the point this solve placed.
-  // So the active input has to OUTLIVE the call, which is what `radiation_used`
+  // So the active input has to OUTLIVE the call, which is what `PPFD_int_used`
   // is for: the leaf is handed only its value and cannot give it back. Each leaf
   // output enters the active chain at one place -- the aux stores and
   // leaf.profit_ in net_mass_production_dt, and leaf.soil_consumption_ in
   // evapotranspiration_dt -- so a partial attaches to one expression per
   // output.
-  S radiation_used = 0.0;
-  auto optimise_at = [&](const S& radiation) -> void {
-    radiation_used = radiation;
+  S PPFD_int_used = 0.0;
+  auto optimise_at = [&](const S& PPFD_int) -> void {
+    PPFD_int_used = PPFD_int;
+    // Read on the energy-balance path only, and carries no row: the derivative
+    // surface does not follow the energy balance.
+    leaf.NIR_int_ = NIR_per_PPFD_int * odelia::util::to_passive(PPFD_int);
     // The leaf takes double, and everything the environment supplies already is
     // one. Three of its arguments are this strategy's own and carry a derivative;
     // psi_soil is the one that needs a buffer to be stripped into.
     if constexpr (std::is_same_v<S, double>) {
-      leaf.set_physiology(root_network_, radiation, psi_soil, soil_depths_,
+      leaf.set_physiology(root_network_, PPFD_int, psi_soil, soil_depths_,
                           leaf_specific_conductance_max,
                           environment.get_atm_vpd(), environment.get_ca(),
                           environment.get_leaf_temp(),
@@ -2348,7 +2404,7 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
       for (size_t a = 0; a < psi_soil.size(); ++a) {
         psi_soil_value_[a] = to_passive(psi_soil[a]);
       }
-      leaf.set_physiology(root_network_, to_passive(radiation), psi_soil_value_,
+      leaf.set_physiology(root_network_, to_passive(PPFD_int), psi_soil_value_,
                           soil_depths_,
                           to_passive(leaf_specific_conductance_max),
                           environment.get_atm_vpd(), environment.get_ca(),
@@ -2359,17 +2415,16 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
     solve_leaf();
   };
 
-  // Convert canopy openness (0-1) into absorbed radiation: PPFD attenuated by
-  // the self-shading coefficient pars.k_I. The light floor (1e-4) matches
-  // compute_average_light_environment().
-  const double PPFD = environment.get_PPFD();
-  auto radiation_at = [&](const S& light) -> S {
-    // Counted, not merely applied. Where this binds the cohort's radiation is a
+  // Convert canopy openness (0-1) into the intercepted PPFD per unit leaf area:
+  // PPFD_above times openness times the extinction coefficient pars.k_I. The
+  // light floor (1e-4) matches compute_average_light_environment().
+  auto PPFD_int_at = [&](const S& light) -> S {
+    // Counted, not merely applied. Where this binds the cohort's light is a
     // constant with respect to every other cohort's height, so the row is
     // severed by the guard rather than by the model -- and the field is smooth
     // underneath. An uncounted severance is indistinguishable from a true zero.
     if (light < S(0.0001)) {
-      // Below the floor the radiation this cohort receives stops depending on
+      // Below the floor the light this cohort receives stops depending on
       // any other cohort's height. The row is therefore exactly zero for the
       // model AS EVALUATED -- every light below the floor gives a bit-identical
       // census -- so the zero is the derivative of the function on the tape and
@@ -2378,7 +2433,7 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
       // severs anything on.
       note_clamp(CLAMP_LIGHT_FLOOR);
     }
-    return pars.k_I * std::max(light, S(0.0001)) * PPFD;
+    return pars.k_I * std::max(light, S(0.0001)) * PPFD_above;
   };
 
   // Aggregate the leaf submodel over the crown according to the shading model.
@@ -2390,15 +2445,15 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
   //  - deep-crown:    one optimisation per crown-depth quadrature point, with
   //                   every leaf output integrated to a leaf-area-weighted mean.
   if (shading_model_ == ShadingModel::CrownCentre) {
-    optimise_at(radiation_at(environment.get_environment_at_height(height * eta_c)));
+    optimise_at(PPFD_int_at(environment.get_environment_at_height(height * eta_c)));
   } else if (shading_model_ == ShadingModel::MeanLight) {
     // Leaf-area-weighted mean canopy openness = integral of (light * q) over the
-    // crown (q integrates to one). radiation_at then applies pars.k_I * PPFD, exactly
-    // reproducing TF24's established average_radiation.
+    // crown (q integrates to one). PPFD_int_at then applies pars.k_I * PPFD_above,
+    // exactly reproducing TF24's established average_radiation.
     auto f = [&](const S& x) -> S {
       return compute_average_light_environment(x, height, environment);
     };
-    optimise_at(radiation_at(function_integrator.integrate(f, S(0.0), height)));
+    optimise_at(PPFD_int_at(function_integrator.integrate(f, S(0.0), height)));
   } else { // DeepCrown
     if constexpr (std::is_same_v<S, double>) {
       const std::vector<double> nodes =
@@ -2410,7 +2465,7 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
         soil_number_of_depths_, std::vector<double>(nn));
       for (size_t i = 0; i < nn; ++i) {
         const S qi = canopy_shape.q_from_height(nodes[i], height);
-        optimise_at(radiation_at(environment.get_environment_at_height(nodes[i])));
+        optimise_at(PPFD_int_at(environment.get_environment_at_height(nodes[i])));
         profit_y[i]   = leaf.profit_ * qi;
         trans_y[i]    = leaf.transpiration_ * qi;
         eup_y[i]      = leaf.E_up_ * qi;
@@ -2473,7 +2528,7 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
   // and the shadow term is linear in E.
   S profit_ = leaf.profit_ + leaf.shadow_cost();
   if constexpr (!std::is_same_v<S, double>) {
-    record_leaf_outputs(radiation_used, psi_soil,
+    record_leaf_outputs(PPFD_int_used, psi_soil,
                         leaf_specific_conductance_max);
     profit_ = leaf_profit_ + leaf_shadow_cost_;
   }
@@ -2955,7 +3010,7 @@ void TF24_Strategy<S>::prepare_strategy() {
     // disagree silently, which is why they are not in the trait set.
     leaf = Leaf(pars.vcmax_25, pars.stem_c, pars.stem_P50,
                 pars.root_c, pars.root_P50,
-                pars.TF24_beta2, pars.jmax_25, pars.a,
+                pars.TF24_beta2, pars.jmax_25, pars.phi_J,
                 pars.curv_fact_elec_trans, pars.curv_fact_colim,
                 this->control.GSS_tol_abs, this->control.vulnerability_curve_ncontrol,
                 this->control.ci_abs_tol, this->control.ci_niter,
@@ -2973,6 +3028,8 @@ void TF24_Strategy<S>::prepare_strategy() {
     // with the balance switched on -- an answer, not an error.
     leaf.use_energy_balance_ = (odelia::util::to_passive(pars.use_energy_balance) != 0.0);
     leaf.d_ = odelia::util::to_passive(pars.d);
+    leaf.alpha_PAR_ = odelia::util::to_passive(pars.alpha_PAR);
+    leaf.alpha_NIR_ = odelia::util::to_passive(pars.alpha_NIR);
     // ⚠️ SEATED ON TF24_floor, WHICH IS TF24 AT lambda_o = 0 -- and exactly, not
     // approximately: each term is TF24's own expression, so zeroing the price
     // adds an exact zero to TF24's exact value. The default price IS zero, so no

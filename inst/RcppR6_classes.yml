@@ -43,7 +43,7 @@ Leaf:
         positive magnitude)
       @param TF24_beta2 exponent for the effect of hydraulic risk (unitless)
       @param jmax_25 maximum rate of electron transport at 25 C (umol m^-2 s^-1)
-      @param a quantum yield of photosynthetic electron transport (mol mol^-1)
+      @param phi_J quantum yield of electron transport per ABSORBED photon (mol mol^-1); J reads phi_J * alpha_PAR_ * PPFD. Was `a` (incident basis) before phylloptim 0.13.0: phi_J = a / alpha_PAR_.
       @param curv_fact_elec_trans curvature factor for the light response curve (unitless)
       @param curv_fact_colim curvature factor for the colimited photosynthesis equation
       @param GSS_tol_abs tolerance parameter for golden section search
@@ -61,7 +61,7 @@ Leaf:
       - root_P50: double
       - TF24_beta2: double
       - jmax_25: double
-      - a: double
+      - phi_J: double
       - curv_fact_elec_trans: double
       - curv_fact_colim: double
       - GSS_tol_abs: double
@@ -123,6 +123,39 @@ Leaf:
     use_energy_balance_: {type: bool, access: field}
     d_: {type: double, access: field}
     wind_speed_: {type: double, access: field}
+    alpha_PAR_: {type: double, access: field}
+    alpha_NIR_: {type: double, access: field}
+    NIR_int_: {type: double, access: field}
+    Tleaf_: {type: double, access: field, readonly: true}
+    use_thermal_damage_: {type: bool, access: field}
+    topt_offset_: {type: double, access: field}
+    impair_H_: {type: double, access: field}
+    impair_Tmid_: {type: double, access: field}
+    k_i_: {type: double, access: field}
+    k_i_Ea_: {type: double, access: field}
+    k_i_Tref_: {type: double, access: field}
+    k_i_baseline_: {type: double, access: field}
+    k_rec_: {type: double, access: field}
+    m_rep_: {type: double, access: field}
+    t_rep_cut_: {type: double, access: field}
+    k_mat_: {type: double, access: field}
+    acclim_alpha_: {type: double, access: field}
+    acclim_beta_: {type: double, access: field}
+    acclim_T_: {type: double, access: field}
+    acclim_s_: {type: double, access: field}
+    dTopt_max_: {type: double, access: field}
+    dTimpair_max_: {type: double, access: field}
+    K_A_: {type: double, access: field}
+    A_: {type: double, access: field}
+    I_: {type: double, access: field}
+    D_: {type: double, access: field}
+    c_acclim_maint_: {type: double, access: field}
+    c_repair_maint_: {type: double, access: field}
+    c_protect_maint_: {type: double, access: field}
+    c_repair_flux_: {type: double, access: field}
+    k_imp_eff_: {type: double, access: field, readonly: true}
+    k_rec_eff_: {type: double, access: field, readonly: true}
+    functional_: {type: double, access: field, readonly: true}
     Tair_: {type: double, access: field}
     Rn_: {type: double, access: field}
     ra_: {type: double, access: field}
@@ -262,6 +295,7 @@ OdeRunner:
       - ["FF16": "plant::tools::IndividualRunner<plant::FF16_Strategy<double>, plant::FF16_Environment<double>>"]
       - ["TF24": "plant::tools::IndividualRunner<plant::TF24_Strategy<double>, plant::TF24_Environment<double>>"]
       - ["TF24f": "plant::tools::IndividualRunner<plant::TF24f_Strategy<double>, plant::TF24_Environment<double>>"]
+      - ["TF24t": "plant::tools::IndividualRunner<plant::TF24t_Strategy<double>, plant::TF24_Environment<double>>"]
       - ["K93": "plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment>"]
   constructor:
     args: [obj: T, control: "odelia::ode::OdeControl=OdeControl()"]
@@ -470,6 +504,7 @@ Individual:
       - ["FF16": "plant::FF16_Strategy<double>", "FF16_Env": "plant::FF16_Environment<double>"]
       - ["TF24": "plant::TF24_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24f": "plant::TF24f_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
+      - ["TF24t": "plant::TF24t_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [s: T]
@@ -532,6 +567,7 @@ IndividualRunner:
       - ["FF16": "plant::FF16_Strategy<double>", "FF16_Env": "plant::FF16_Environment<double>"]
       - ["TF24": "plant::TF24_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24f": "plant::TF24f_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
+      - ["TF24t": "plant::TF24t_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     name_cpp: "plant::tools::IndividualRunner<T,E>"
@@ -591,6 +627,7 @@ Parameters:
       - ["FF16": "plant::FF16_Strategy<double>", "FF16_Env": "plant::FF16_Environment<double>"]
       - ["TF24": "plant::TF24_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24f": "plant::TF24f_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
+      - ["TF24t": "plant::TF24t_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   validator:
     name_cpp: validate
@@ -624,6 +661,7 @@ Node:
       - ["FF16": "plant::FF16_Strategy<double>", "FF16_Env": "plant::FF16_Environment<double>"]
       - ["TF24": "plant::TF24_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24f": "plant::TF24f_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
+      - ["TF24t": "plant::TF24t_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     name_cpp: "plant::make_node<T,E>"
@@ -671,6 +709,7 @@ Species:
       - ["FF16": "plant::FF16_Strategy<double>", "FF16_Env": "plant::FF16_Environment<double>"]
       - ["TF24": "plant::TF24_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24f": "plant::TF24f_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
+      - ["TF24t": "plant::TF24t_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [strategy: T]
@@ -740,6 +779,7 @@ Patch:
       - ["FF16": "plant::FF16_Strategy<double>", "FF16_Env": "plant::FF16_Environment<double>"]
       - ["TF24": "plant::TF24_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24f": "plant::TF24f_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
+      - ["TF24t": "plant::TF24t_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args:
@@ -831,6 +871,7 @@ SCM:
       - ["FF16": "plant::FF16_Strategy<double>", "FF16_Env": "plant::FF16_Environment<double>"]
       - ["TF24": "plant::TF24_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24f": "plant::TF24f_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
+      - ["TF24t": "plant::TF24t_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args:
@@ -945,6 +986,7 @@ StochasticSpecies:
       - ["FF16": "plant::FF16_Strategy<double>", "FF16_Env": "plant::FF16_Environment<double>"]
       - ["TF24": "plant::TF24_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24f": "plant::TF24f_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
+      - ["TF24t": "plant::TF24t_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [strategy: "T"]
@@ -990,6 +1032,7 @@ StochasticPatch:
       - ["FF16": "plant::FF16_Strategy<double>", "FF16_Env": "plant::FF16_Environment<double>"]
       - ["TF24": "plant::TF24_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24f": "plant::TF24f_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
+      - ["TF24t": "plant::TF24t_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args:
@@ -1060,6 +1103,7 @@ StochasticPatchRunner:
       - ["FF16": "plant::FF16_Strategy<double>", "FF16_Env": "plant::FF16_Environment<double>"]
       - ["TF24": "plant::TF24_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["TF24f": "plant::TF24f_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
+      - ["TF24t": "plant::TF24t_Strategy<double>", "TF24_Env": "plant::TF24_Environment<double>"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args:
@@ -1400,7 +1444,7 @@ TF24_Pars:
     - TF24_cost_scale: double
     - TF24_floor_lambda_o: double
     - jmax_25: double
-    - a: double
+    - phi_J: double
     - curv_fact_elec_trans: double
     - curv_fact_colim: double
     - R_d_25: double
@@ -1427,6 +1471,8 @@ TF24_Pars:
     - recruitment_decay: double
     - use_energy_balance: double
     - d: double
+    - alpha_PAR: double
+    - alpha_NIR: double
 
 TF24_Strategy:
   name_cpp: "plant::TF24_Strategy<double>"
@@ -1516,7 +1562,7 @@ TF24_Environment:
     get_soil_water_state_cumulative_flux:
       args: []
       return_type: std::vector<double>  
-    get_PPFD:
+    get_SWdown:
       args: []
       return_type: double
     get_atm_vpd:
@@ -1546,6 +1592,7 @@ TF24_Environment:
     n_psi: {type: double, access: field}
     a_infil: {type: double, access: field}
     b_infil: {type: double, access: field}
+    f_PAR: {type: double, access: field}
     ode_size: {type: size_t, access: member}
     light_availability:
       type: "plant::ResourceSpline<double>"
@@ -1576,3 +1623,51 @@ TF24f_Strategy:
     - k_acclim: double
     - psi_fd_step: double
     - use_ad_gradient: bool
+
+# TF24t inherits TF24_Strategy (see inst/include/plant/models/tf24t_strategy.h)
+# and reuses TF24_Pars, so no separate TF24t_Pars class is generated. Its thermal
+# parameters live at the top level, as TF24f's do.
+TF24t_Strategy:
+  name_cpp: "plant::TF24t_Strategy<double>"
+  roxygen: |
+    Strategy parameters that tune various aspects of the biological model.
+    @title Strategy parameters
+    @param ...,values Values to initialise the struct with (either as
+    variadic arguments, or as a list, but not both).
+    @export
+  list:
+    - pars: "plant::TF24_Pars<double>"
+    - control: "plant::Control"
+    - collect_all_auxiliary: bool
+    - birth_rate_x: std::vector<double>
+    - birth_rate_y: std::vector<double>
+    - is_variable_birth_rate: bool
+    # Leaf thermal traits, copied into the Leaf in prepare_strategy:
+    - topt_offset: double
+    - impair_H: double
+    - impair_Tmid: double
+    - m_rep: double
+    - t_rep_cut: double
+    - k_i: double
+    - k_i_Ea: double
+    - k_i_Tref: double
+    - k_rec: double
+    - k_mat: double
+    - dTopt_max: double
+    - dTimpair_max: double
+    - K_A: double
+    # Acclimation kinetics, on the leaf temperature:
+    - alpha: double
+    - beta: double
+    - t_accl: double
+    - softplus_s: double
+    # Running mean of the operating-point leaf temperature:
+    - k_mean_leaf_temp: double
+    # Thermal costs:
+    - c_acclim_maint: double
+    - c_repair_maint: double
+    - c_protect_maint: double
+    - c_repair_flux: double
+    - c_build: double
+    - c_accl_induct: double
+    - induct_eps: double
