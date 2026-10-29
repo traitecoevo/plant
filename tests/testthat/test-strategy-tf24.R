@@ -51,7 +51,7 @@ test_that("Defaults", {
     TF24_floor_lambda_o = 0,
     jmax_25 = 157.44,
     R_d_25 = 1.44,
-    a = 0.3,
+    phi_J = 0.3 / 0.85,
     curv_fact_elec_trans = 0.7,
     curv_fact_colim = 0.99,
     var_sapwood_volume_cost = 1,
@@ -78,7 +78,9 @@ test_that("Defaults", {
     L_tip = 0.02,
     recruitment_decay = 0,
     use_energy_balance = 0,
-    d = 0.05)
+    d = 0.05,
+    alpha_PAR = 0.85,
+    alpha_NIR = 0.2)
 
   # Top-level strategy fields: the pars sub-object plus infrastructure.
   expected_top <- c("pars", "control", "collect_all_auxiliary",
@@ -306,7 +308,7 @@ test_that("offspring arrival", {
                        hyperpar = TF24_hyperpar, birth_rate = list(20))
 
   out <- run_scm(p1, env, ctrl)
-  expect_equal(out$offspring_production, 24.32140145, tolerance = 2e-2)
+  expect_equal(out$offspring_production, 12.86363839, tolerance = 2e-2)
 
   # two species: the second strategy has a moderately higher lma (0.10 vs
   # 0.0825), so it grows more slowly and is more heavily shaded. We pin the
@@ -320,7 +322,7 @@ test_that("offspring arrival", {
                        hyperpar = TF24_hyperpar, birth_rate = list(20, 20))
 
   out <- run_scm(p2, env, ctrl)
-  expect_equal(out$offspring_production[[1]], 18.54300907, tolerance = 2e-2)
+  expect_equal(out$offspring_production[[1]], 8.16576186, tolerance = 2e-2)
   expect_lt(out$offspring_production[[2]], 0.5)
 
   # Same two species, integrated in birth date (#590). They coexist at
@@ -355,9 +357,17 @@ test_that("offspring arrival", {
   # previously had no upper bound and the median cohort of a mature stand sat at
   # a reserve fraction of exactly 1 with the read clipped there, where it now
   # sits at 0.62 with nothing on the clip.
+  #
+  # TF24 v13 re-pinned all four, and the three single-run values above, at the
+  # new default light: the SWdown driver at 900 W m^-2 is 2056.5 umol m^-2 s^-1
+  # of PPFD above the canopy where the PPFD driver was 1800. They FALL with more
+  # light (24.32 -> 12.86 for one species) because this stand is already past
+  # its light optimum: offspring peak near 1400 and the extra light dries the
+  # soil faster. A build of v13 with the old light reproduced every old value
+  # to ~1e-12, so the change is the light and not the code.
   out_bd <- run_scm(p2, env, Control(node_density_in_birth_date = TRUE))
-  expect_equal(out_bd$offspring_production[[1]], 219.26680110, tolerance = 2e-2)
-  expect_equal(out_bd$offspring_production[[2]], 34.58766277, tolerance = 2e-2)
+  expect_equal(out_bd$offspring_production[[1]], 158.38887778, tolerance = 2e-2)
+  expect_equal(out_bd$offspring_production[[2]], 25.14326057, tolerance = 2e-2)
 })
 
 test_that("the height-linear parameters reproduce the pre-path-integral results", {
@@ -371,6 +381,13 @@ test_that("the height-linear parameters reproduce the pre-path-integral results"
   # for the same cross-platform reasons. They are adopted without modification,
   # which is the strongest available statement that the new machinery adds a
   # capability rather than changing the old behaviour.
+  #
+  # ⚠️ RE-PINNED AT TF24 v13, so they are no longer develop's numbers. The new
+  # default light (SWdown 900, i.e. 2056.5 PPFD above the canopy, where the old
+  # driver gave 1800) moves every run. The old values -- 30.22207354,
+  # 23.20349831, 233.05915606, 43.63800899 -- were reproduced to ~1e-12 by a v13
+  # build with SWdown set back to 1800 / (0.5 * 4.57), which is the statement
+  # this test exists to make, measured once rather than carried.
   linear <- function(p) {
     # Every strategy, not just the first: resetting only strategies[[1]] leaves
     # the second species on the path integral and silently compares two
@@ -394,17 +411,17 @@ test_that("the height-linear parameters reproduce the pre-path-integral results"
   p1 <- add_strategies(p0, trait_matrix(c(0.0825, 5), c("lma", "hmat")),
                        hyperpar = TF24_hyperpar, birth_rate = list(20))
   out <- run_scm(linear(p1), env, ctrl)
-  expect_equal(out$offspring_production, 30.22207354, tolerance = 2e-2)
+  expect_equal(out$offspring_production, 18.91718234, tolerance = 2e-2)
 
   p2 <- add_strategies(p0, trait_matrix(c(0.0825, 0.10, 5, 5), c("lma", "hmat")),
                        hyperpar = TF24_hyperpar, birth_rate = list(20, 20))
   out2 <- run_scm(linear(p2), env, ctrl)
-  expect_equal(out2$offspring_production[[1]], 23.20349831, tolerance = 2e-2)
+  expect_equal(out2$offspring_production[[1]], 12.23143319, tolerance = 2e-2)
   expect_lt(out2$offspring_production[[2]], 0.5)
 
   out_bd <- run_scm(linear(p2), env, Control(node_density_in_birth_date = TRUE))
-  expect_equal(out_bd$offspring_production[[1]], 233.05915606, tolerance = 2e-2)
-  expect_equal(out_bd$offspring_production[[2]], 43.63800899, tolerance = 2e-2)
+  expect_equal(out_bd$offspring_production[[1]], 185.29515663, tolerance = 2e-2)
+  expect_equal(out_bd$offspring_production[[2]], 37.56661294, tolerance = 2e-2)
 })
 
 # Water mass-balance: transpiration integrated up the stem side of every

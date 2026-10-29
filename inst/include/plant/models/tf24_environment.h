@@ -80,7 +80,13 @@ public:
 
     ExtrinsicDrivers extrinsic_drivers;
 
-    extrinsic_drivers_set_constant("PPFD",1800);
+    // The light driver is incoming SHORTWAVE at the surface, on a horizontal plane
+    // above the canopy (W m^-2) -- the quantity a flux tower reports as SWdown, and
+    // NOT a top-of-atmosphere value. 900 is a clear-sky midday figure. The
+    // strategy splits it into its PAR and near-infrared bands with the f_PAR
+    // parameter and carries each down to the leaf; see
+    // TF24_Strategy::compute_leaf_physiology.
+    extrinsic_drivers_set_constant("SWdown",900);
     extrinsic_drivers_set_constant("rainfall",1);
     extrinsic_drivers_set_constant("atm_vpd",1);
     extrinsic_drivers_set_constant("ca",40);
@@ -340,6 +346,7 @@ public:
     use_layered_soil_parameters = src.use_layered_soil_parameters;
     a_infil = src.a_infil;
     b_infil = src.b_infil;
+    f_PAR = src.f_PAR;
     soil_moist_residual = src.soil_moist_residual;
     soil_psi_max_ = src.soil_psi_max_;
     // Shared, not copied, for the reason the strategy's is: this copy is the one
@@ -392,7 +399,7 @@ public:
   // at the call site, so a memo cannot be keyed on one name and read under
   // another.
   enum driver {
-    DRIVER_PPFD = 0,
+    DRIVER_SWDOWN = 0,
     DRIVER_ATM_VPD,
     DRIVER_CA,
     DRIVER_LEAF_TEMP,
@@ -402,7 +409,7 @@ public:
     DRIVER_COUNT
   };
   static constexpr std::array<const char*, DRIVER_COUNT> driver_names_ = {
-      "PPFD", "atm_vpd", "ca", "leaf_temp", "atm_o2_kpa", "atm_kpa",
+      "SWdown", "atm_vpd", "ca", "leaf_temp", "atm_o2_kpa", "atm_kpa",
       "wind_speed"};
 
   // What was read, and the one time every entry was read at. Each driver is a
@@ -466,6 +473,10 @@ public:
   bool use_layered_soil_parameters = false;
   double a_infil;
   double b_infil;
+  // PAR share of the incoming shortwave, on an ENERGY basis (unitless). A
+  // property of the sky, about 0.45-0.5 and rising a little under cloud, so in
+  // practice a constant: a fixed parameter rather than a driver.
+  double f_PAR = 0.5;
 
   // Residual soil moisture floor (m3 m^-3). The water balance cannot dry a
   // layer below this (see the positivity guard in compute_rates), and
@@ -731,7 +742,8 @@ public:
   // current `time`, so the memo collapses the repeated string-keyed lookups
   // across individuals into one lookup per driver per distinct time. Every one
   // returns what a direct `extrinsic_drivers_evaluate(name, time)` returns.
-  double get_PPFD()       const { return driver_at(DRIVER_PPFD); }
+  // Incoming shortwave at the surface, horizontal plane, above the canopy (W m^-2)
+  double get_SWdown()     const { return driver_at(DRIVER_SWDOWN); }
   double get_atm_vpd()    const { return driver_at(DRIVER_ATM_VPD); }
   double get_ca()         const { return driver_at(DRIVER_CA); }
   double get_leaf_temp()  const { return driver_at(DRIVER_LEAF_TEMP); }

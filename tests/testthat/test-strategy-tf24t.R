@@ -283,10 +283,14 @@ test_that("at non-damaging settings TF24t is TF24 with the energy balance on", {
   }
 
   # Paired with the default TF24t, which the same comparison must tell apart.
+  # Since TF24 v13 the leaf absorbs about half the shortwave it used to, so it
+  # runs cooler and takes less damage: the two now differ by |log ratio| 0.34
+  # (about 1.4x), where they differed by more than e-fold. 0.2 still tells
+  # them apart with margin, which is all this asks.
   default <- run_scm(build("TF24t", identity))
   free_ref <- run_scm(build("TF24", pm))
   expect_gt(abs(log(default$offspring_production /
-                    free_ref$offspring_production)), 1)
+                    free_ref$offspring_production)), 0.2)
 })
 
 test_that("mean_leaf_temp is a running mean of the operating leaf temperature", {
@@ -416,6 +420,11 @@ test_that("the induction cost scales with leaf area, so a newborn can grow", {
   # cost exceeded the seedling's whole net production; per m^2 of leaf it does not.
   env <- Environment("TF24t")
   env$extrinsic_drivers_set_constant("leaf_temp", 28)
+  # A bright sun, so the leaf runs warm: since TF24 v13 the leaf absorbs about
+  # half the shortwave, and at the default SWdown of 900 a newborn sits only
+  # 0.07 C above the air (dA/dt 0.07, no transient to test). At 1200 it runs
+  # 2.15 C above and dA/dt is 4.7.
+  env$extrinsic_drivers_set_constant("SWdown", 1200)
   newborn <- function(c_ind) {
     s <- TF24t_Strategy(); s$c_accl_induct <- c_ind
     p <- TF24t_Individual(s)

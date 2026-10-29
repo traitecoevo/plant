@@ -39,7 +39,7 @@ test_that("consumption rates carry one water uptake per soil layer", {
   ind <- TF24_Individual(TF24_Strategy())
   ind$set_state("height", 5)
   env <- TF24_Environment()
-  env$extrinsic_drivers_set_constant("PPFD", 1800)
+  env$extrinsic_drivers_set_constant("SWdown", 1800 / (0.5 * 4.57))  # PPFD above the canopy, as SWdown
   env$set_soil_number_of_depths(length(theta))
   env$set_soil_water_state(theta)
   ind$compute_rates(env)

@@ -61,7 +61,7 @@ Leaf:
       - root_P50: double
       - TF24_beta2: double
       - jmax_25: double
-      - a: double
+      - phi_J: double
       - curv_fact_elec_trans: double
       - curv_fact_colim: double
       - GSS_tol_abs: double
@@ -123,6 +123,9 @@ Leaf:
     use_energy_balance_: {type: bool, access: field}
     d_: {type: double, access: field}
     wind_speed_: {type: double, access: field}
+    alpha_PAR_: {type: double, access: field}
+    alpha_NIR_: {type: double, access: field}
+    NIR_int_: {type: double, access: field}
     Tleaf_: {type: double, access: field, readonly: true}
     use_thermal_damage_: {type: bool, access: field}
     topt_offset_: {type: double, access: field}
@@ -1441,7 +1444,7 @@ TF24_Pars:
     - TF24_cost_scale: double
     - TF24_floor_lambda_o: double
     - jmax_25: double
-    - a: double
+    - phi_J: double
     - curv_fact_elec_trans: double
     - curv_fact_colim: double
     - R_d_25: double
@@ -1468,6 +1471,8 @@ TF24_Pars:
     - recruitment_decay: double
     - use_energy_balance: double
     - d: double
+    - alpha_PAR: double
+    - alpha_NIR: double
 
 TF24_Strategy:
   name_cpp: "plant::TF24_Strategy<double>"
@@ -1557,7 +1562,7 @@ TF24_Environment:
     get_soil_water_state_cumulative_flux:
       args: []
       return_type: std::vector<double>  
-    get_PPFD:
+    get_SWdown:
       args: []
       return_type: double
     get_atm_vpd:
@@ -1587,6 +1592,7 @@ TF24_Environment:
     n_psi: {type: double, access: field}
     a_infil: {type: double, access: field}
     b_infil: {type: double, access: field}
+    f_PAR: {type: double, access: field}
     ode_size: {type: size_t, access: member}
     light_availability:
       type: "plant::ResourceSpline<double>"

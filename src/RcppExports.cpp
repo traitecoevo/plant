@@ -22,8 +22,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // Leaf__ctor
-plant::Leaf Leaf__ctor(double vcmax_25, double stem_c, double stem_P50, double root_c, double root_P50, double TF24_beta2, double jmax_25, double a, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter, double TF24_cost_scale);
-RcppExport SEXP _plant_Leaf__ctor(SEXP vcmax_25SEXP, SEXP stem_cSEXP, SEXP stem_P50SEXP, SEXP root_cSEXP, SEXP root_P50SEXP, SEXP TF24_beta2SEXP, SEXP jmax_25SEXP, SEXP aSEXP, SEXP curv_fact_elec_transSEXP, SEXP curv_fact_colimSEXP, SEXP GSS_tol_absSEXP, SEXP vulnerability_curve_ncontrolSEXP, SEXP ci_abs_tolSEXP, SEXP ci_niterSEXP, SEXP TF24_cost_scaleSEXP) {
+plant::Leaf Leaf__ctor(double vcmax_25, double stem_c, double stem_P50, double root_c, double root_P50, double TF24_beta2, double jmax_25, double phi_J, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter, double TF24_cost_scale);
+RcppExport SEXP _plant_Leaf__ctor(SEXP vcmax_25SEXP, SEXP stem_cSEXP, SEXP stem_P50SEXP, SEXP root_cSEXP, SEXP root_P50SEXP, SEXP TF24_beta2SEXP, SEXP jmax_25SEXP, SEXP phi_JSEXP, SEXP curv_fact_elec_transSEXP, SEXP curv_fact_colimSEXP, SEXP GSS_tol_absSEXP, SEXP vulnerability_curve_ncontrolSEXP, SEXP ci_abs_tolSEXP, SEXP ci_niterSEXP, SEXP TF24_cost_scaleSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -34,7 +34,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type root_P50(root_P50SEXP);
     Rcpp::traits::input_parameter< double >::type TF24_beta2(TF24_beta2SEXP);
     Rcpp::traits::input_parameter< double >::type jmax_25(jmax_25SEXP);
-    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< double >::type phi_J(phi_JSEXP);
     Rcpp::traits::input_parameter< double >::type curv_fact_elec_trans(curv_fact_elec_transSEXP);
     Rcpp::traits::input_parameter< double >::type curv_fact_colim(curv_fact_colimSEXP);
     Rcpp::traits::input_parameter< double >::type GSS_tol_abs(GSS_tol_absSEXP);
@@ -42,7 +42,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type ci_abs_tol(ci_abs_tolSEXP);
     Rcpp::traits::input_parameter< double >::type ci_niter(ci_niterSEXP);
     Rcpp::traits::input_parameter< double >::type TF24_cost_scale(TF24_cost_scaleSEXP);
-    rcpp_result_gen = Rcpp::wrap(Leaf__ctor(vcmax_25, stem_c, stem_P50, root_c, root_P50, TF24_beta2, jmax_25, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, TF24_cost_scale));
+    rcpp_result_gen = Rcpp::wrap(Leaf__ctor(vcmax_25, stem_c, stem_P50, root_c, root_P50, TF24_beta2, jmax_25, phi_J, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, TF24_cost_scale));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1311,6 +1311,72 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type value(valueSEXP);
     Leaf__wind_speed___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__alpha_PAR___get
+double Leaf__alpha_PAR___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__alpha_PAR___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__alpha_PAR___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__alpha_PAR___set
+void Leaf__alpha_PAR___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__alpha_PAR___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__alpha_PAR___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__alpha_NIR___get
+double Leaf__alpha_NIR___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__alpha_NIR___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__alpha_NIR___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__alpha_NIR___set
+void Leaf__alpha_NIR___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__alpha_NIR___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__alpha_NIR___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__NIR_int___get
+double Leaf__NIR_int___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__NIR_int___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__NIR_int___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__NIR_int___set
+void Leaf__NIR_int___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__NIR_int___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__NIR_int___set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -15586,14 +15652,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// TF24_Environment__get_PPFD
-double TF24_Environment__get_PPFD(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_);
-RcppExport SEXP _plant_TF24_Environment__get_PPFD(SEXP obj_SEXP) {
+// TF24_Environment__get_SWdown
+double TF24_Environment__get_SWdown(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_);
+RcppExport SEXP _plant_TF24_Environment__get_SWdown(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment<double> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(TF24_Environment__get_PPFD(obj_));
+    rcpp_result_gen = Rcpp::wrap(TF24_Environment__get_SWdown(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -15836,6 +15902,28 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment<double> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type value(valueSEXP);
     TF24_Environment__b_infil__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// TF24_Environment__f_PAR__get
+double TF24_Environment__f_PAR__get(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_);
+RcppExport SEXP _plant_TF24_Environment__f_PAR__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment<double> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(TF24_Environment__f_PAR__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// TF24_Environment__f_PAR__set
+void TF24_Environment__f_PAR__set(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_, double value);
+RcppExport SEXP _plant_TF24_Environment__f_PAR__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment<double> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    TF24_Environment__f_PAR__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -16845,6 +16933,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__d___set", (DL_FUNC) &_plant_Leaf__d___set, 2},
     {"_plant_Leaf__wind_speed___get", (DL_FUNC) &_plant_Leaf__wind_speed___get, 1},
     {"_plant_Leaf__wind_speed___set", (DL_FUNC) &_plant_Leaf__wind_speed___set, 2},
+    {"_plant_Leaf__alpha_PAR___get", (DL_FUNC) &_plant_Leaf__alpha_PAR___get, 1},
+    {"_plant_Leaf__alpha_PAR___set", (DL_FUNC) &_plant_Leaf__alpha_PAR___set, 2},
+    {"_plant_Leaf__alpha_NIR___get", (DL_FUNC) &_plant_Leaf__alpha_NIR___get, 1},
+    {"_plant_Leaf__alpha_NIR___set", (DL_FUNC) &_plant_Leaf__alpha_NIR___set, 2},
+    {"_plant_Leaf__NIR_int___get", (DL_FUNC) &_plant_Leaf__NIR_int___get, 1},
+    {"_plant_Leaf__NIR_int___set", (DL_FUNC) &_plant_Leaf__NIR_int___set, 2},
     {"_plant_Leaf__Tleaf___get", (DL_FUNC) &_plant_Leaf__Tleaf___get, 1},
     {"_plant_Leaf__use_thermal_damage___get", (DL_FUNC) &_plant_Leaf__use_thermal_damage___get, 1},
     {"_plant_Leaf__use_thermal_damage___set", (DL_FUNC) &_plant_Leaf__use_thermal_damage___set, 2},
@@ -18121,7 +18215,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_TF24_Environment__set_soil_water_state", (DL_FUNC) &_plant_TF24_Environment__set_soil_water_state, 2},
     {"_plant_TF24_Environment__get_soil_water_state", (DL_FUNC) &_plant_TF24_Environment__get_soil_water_state, 1},
     {"_plant_TF24_Environment__get_soil_water_state_cumulative_flux", (DL_FUNC) &_plant_TF24_Environment__get_soil_water_state_cumulative_flux, 1},
-    {"_plant_TF24_Environment__get_PPFD", (DL_FUNC) &_plant_TF24_Environment__get_PPFD, 1},
+    {"_plant_TF24_Environment__get_SWdown", (DL_FUNC) &_plant_TF24_Environment__get_SWdown, 1},
     {"_plant_TF24_Environment__get_atm_vpd", (DL_FUNC) &_plant_TF24_Environment__get_atm_vpd, 1},
     {"_plant_TF24_Environment__get_ca", (DL_FUNC) &_plant_TF24_Environment__get_ca, 1},
     {"_plant_TF24_Environment__get_leaf_temp", (DL_FUNC) &_plant_TF24_Environment__get_leaf_temp, 1},
@@ -18144,6 +18238,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_TF24_Environment__a_infil__set", (DL_FUNC) &_plant_TF24_Environment__a_infil__set, 2},
     {"_plant_TF24_Environment__b_infil__get", (DL_FUNC) &_plant_TF24_Environment__b_infil__get, 1},
     {"_plant_TF24_Environment__b_infil__set", (DL_FUNC) &_plant_TF24_Environment__b_infil__set, 2},
+    {"_plant_TF24_Environment__f_PAR__get", (DL_FUNC) &_plant_TF24_Environment__f_PAR__get, 1},
+    {"_plant_TF24_Environment__f_PAR__set", (DL_FUNC) &_plant_TF24_Environment__f_PAR__set, 2},
     {"_plant_TF24_Environment__ode_size__get", (DL_FUNC) &_plant_TF24_Environment__ode_size__get, 1},
     {"_plant_TF24_Environment__light_availability__get", (DL_FUNC) &_plant_TF24_Environment__light_availability__get, 1},
     {"_plant_TF24_Environment__light_availability__set", (DL_FUNC) &_plant_TF24_Environment__light_availability__set, 2},

@@ -18,7 +18,7 @@ atls_make_leaf <- function() {
   s <- TF24_Strategy(); p <- s$pars; ctrl <- Control()
   Leaf(vcmax_25 = p$vcmax_25, jmax_25 = p$jmax_25, stem_c = p$stem_c,
        stem_P50 = p$stem_P50, root_c = p$root_c, root_P50 = p$root_P50,
-       TF24_beta2 = p$TF24_beta2, a = p$a,
+       TF24_beta2 = p$TF24_beta2, phi_J = p$phi_J,
        curv_fact_elec_trans = p$curv_fact_elec_trans,
        curv_fact_colim = p$curv_fact_colim,
        GSS_tol_abs = ctrl$GSS_tol_abs,
@@ -105,6 +105,8 @@ atls_set_physiology <- function(l, PAR, Tenv, VPD, tr = atls_traits(),
   l$use_energy_balance_ <- isTRUE(pm)
   l$d_ <- cfg$d
   l$wind_speed_ <- cfg$wind_speed
+  # The intercepted near-infrared in daylight: as much energy as the PAR band.
+  l$NIR_int_ <- PAR / 4.57
   # The leaf takes resistances, so the root architecture model runs here, with
   # the constants TF24_Strategy uses.
   l$set_physiology(
@@ -199,7 +201,7 @@ atls_scm_fitness <- function(air_temp, type = "TF24t", mutate = identity,
   p$strategies[[1]] <- s
   env <- Environment(type)
   env$extrinsic_drivers_set_constant("leaf_temp", air_temp)
-  if (!is.null(PPFD)) env$extrinsic_drivers_set_constant("PPFD", PPFD)
+  if (!is.null(PPFD)) env$extrinsic_drivers_set_constant("SWdown", PPFD / (0.5 * 4.57))
   res <- run_scm(p, env = env, collect = FALSE, refine_schedule = FALSE)
   data.frame(type = type, air_temp = air_temp,
              R0 = res$net_reproduction_ratios,

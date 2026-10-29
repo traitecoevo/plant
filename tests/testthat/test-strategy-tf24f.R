@@ -52,7 +52,7 @@ test_that("Defaults", {
     TF24_floor_lambda_o = 0,
     jmax_25 = 157.44,
     R_d_25 = 1.44,
-    a = 0.3,
+    phi_J = 0.3 / 0.85,
     curv_fact_elec_trans = 0.7,
     curv_fact_colim = 0.99,
     var_sapwood_volume_cost = 1,
@@ -79,7 +79,9 @@ test_that("Defaults", {
     L_tip = 0.02,
     recruitment_decay = 0,
     use_energy_balance = 0,
-    d = 0.05)
+    d = 0.05,
+    alpha_PAR = 0.85,
+    alpha_NIR = 0.2)
 
   # Top-level strategy fields: the pars sub-object plus infrastructure, and the
   # TF24f-specific acclimation knobs (gain + finite-difference step) (#525).

@@ -8,8 +8,8 @@ SEXP RootNetwork__ctor() {
 
 
 // [[Rcpp::export]]
-plant::Leaf Leaf__ctor(double vcmax_25, double stem_c, double stem_P50, double root_c, double root_P50, double TF24_beta2, double jmax_25, double a, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter, double TF24_cost_scale) {
-  return plant::Leaf(vcmax_25, stem_c, stem_P50, root_c, root_P50, TF24_beta2, jmax_25, a, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, TF24_cost_scale);
+plant::Leaf Leaf__ctor(double vcmax_25, double stem_c, double stem_P50, double root_c, double root_P50, double TF24_beta2, double jmax_25, double phi_J, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter, double TF24_cost_scale) {
+  return plant::Leaf(vcmax_25, stem_c, stem_P50, root_c, root_P50, TF24_beta2, jmax_25, phi_J, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, TF24_cost_scale);
 }
 // [[Rcpp::export]]
 void Leaf__initialize_integrator(plant::RcppR6::RcppR6<plant::Leaf> obj_, int integration_rule, double integration_tol) {
@@ -494,6 +494,33 @@ double Leaf__wind_speed___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
 // [[Rcpp::export]]
 void Leaf__wind_speed___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
   obj_->wind_speed_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__alpha_PAR___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->alpha_PAR_;
+}
+// [[Rcpp::export]]
+void Leaf__alpha_PAR___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->alpha_PAR_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__alpha_NIR___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->alpha_NIR_;
+}
+// [[Rcpp::export]]
+void Leaf__alpha_NIR___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->alpha_NIR_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__NIR_int___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->NIR_int_;
+}
+// [[Rcpp::export]]
+void Leaf__NIR_int___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->NIR_int_ = value;
 }
 
 // [[Rcpp::export]]
@@ -6316,8 +6343,8 @@ std::vector<double> TF24_Environment__get_soil_water_state_cumulative_flux(plant
   return obj_->get_soil_water_state_cumulative_flux();
 }
 // [[Rcpp::export]]
-double TF24_Environment__get_PPFD(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_) {
-  return obj_->get_PPFD();
+double TF24_Environment__get_SWdown(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_) {
+  return obj_->get_SWdown();
 }
 // [[Rcpp::export]]
 double TF24_Environment__get_atm_vpd(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_) {
@@ -6413,6 +6440,15 @@ double TF24_Environment__b_infil__get(plant::RcppR6::RcppR6<plant::TF24_Environm
 // [[Rcpp::export]]
 void TF24_Environment__b_infil__set(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_, double value) {
   obj_->b_infil = value;
+}
+
+// [[Rcpp::export]]
+double TF24_Environment__f_PAR__get(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_) {
+  return obj_->f_PAR;
+}
+// [[Rcpp::export]]
+void TF24_Environment__f_PAR__set(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_, double value) {
+  obj_->f_PAR = value;
 }
 
 // [[Rcpp::export]]

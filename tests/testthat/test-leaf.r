@@ -51,7 +51,7 @@ test_that("Basic functions", {
   h = 5 #height or path length (m)
   TF24_beta2 = 1
   curv_fact_elec_trans = 0.7
-  a = 0.3
+  phi_J = 0.3 / 0.85
   curv_fact_colim = 0.99
   TF24_cost_scale = 46.32995
   GSS_tol_abs = 1e-8
@@ -64,7 +64,7 @@ test_that("Basic functions", {
   
   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, stem_c = stem_c, stem_P50 = stem_b * (log(2))^(1 / stem_c),
             root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c), 
-            TF24_beta2 = TF24_beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
+            TF24_beta2 = TF24_beta2, phi_J = phi_J, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
   
@@ -176,7 +176,7 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   #generating a new leaf object should wipe the previously stored values
   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, stem_c = stem_c, stem_P50 = stem_b * (log(2))^(1 / stem_c),
             root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c), 
-            TF24_beta2 = TF24_beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
+            TF24_beta2 = TF24_beta2, phi_J = phi_J, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
   
@@ -283,7 +283,7 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   
    l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, stem_c = stem_c, stem_P50 = stem_b * (log(2))^(1 / stem_c),
             root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c), 
-            TF24_beta2 = TF24_beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
+            TF24_beta2 = TF24_beta2, phi_J = phi_J, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
@@ -312,7 +312,7 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   
   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, stem_c = stem_c, stem_P50 = stem_b * (log(2))^(1 / stem_c),
             root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c), 
-            TF24_beta2 = TF24_beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
+            TF24_beta2 = TF24_beta2, phi_J = phi_J, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
@@ -332,7 +332,7 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   
    l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, stem_c = stem_c, stem_P50 = stem_b * (log(2))^(1 / stem_c),
             root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c), 
-            TF24_beta2 = TF24_beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
+            TF24_beta2 = TF24_beta2, phi_J = phi_J, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
@@ -350,7 +350,7 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   psi_soil = 0
    l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, stem_c = stem_c, stem_P50 = stem_b * (log(2))^(1 / stem_c),
             root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c), 
-            TF24_beta2 = TF24_beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
+            TF24_beta2 = TF24_beta2, phi_J = phi_J, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
@@ -382,7 +382,7 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   psi_soil = 0.5
    l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, stem_c = stem_c, stem_P50 = stem_b * (log(2))^(1 / stem_c),
             root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c), 
-            TF24_beta2 = TF24_beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
+            TF24_beta2 = TF24_beta2, phi_J = phi_J, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
@@ -416,7 +416,7 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   #first off- what happens when we moving psi_soil around
   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, stem_c = stem_c, stem_P50 = stem_b * (log(2))^(1 / stem_c),
             root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c), 
-            TF24_beta2 = TF24_beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
+            TF24_beta2 = TF24_beta2, phi_J = phi_J, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
    
@@ -462,7 +462,7 @@ soil_depth = 1
   #light
    l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, stem_c = stem_c, stem_P50 = stem_b * (log(2))^(1 / stem_c),
             root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c), 
-            TF24_beta2 = TF24_beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
+            TF24_beta2 = TF24_beta2, phi_J = phi_J, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
     l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
@@ -472,7 +472,7 @@ soil_depth = 1
   
   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, stem_c = stem_c, stem_P50 = stem_b * (log(2))^(1 / stem_c),
             root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c), 
-            TF24_beta2 = TF24_beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
+            TF24_beta2 = TF24_beta2, phi_J = phi_J, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 100, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
@@ -486,7 +486,7 @@ soil_depth = 1
   
   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, stem_c = stem_c, stem_P50 = stem_b * (log(2))^(1 / stem_c),
             root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c), 
-            TF24_beta2 = TF24_beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
+            TF24_beta2 = TF24_beta2, phi_J = phi_J, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
@@ -496,7 +496,7 @@ soil_depth = 1
   
   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, stem_c = stem_c, stem_P50 = stem_b * (log(2))^(1 / stem_c),
             root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c), 
-            TF24_beta2 = TF24_beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
+            TF24_beta2 = TF24_beta2, phi_J = phi_J, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 2, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
@@ -511,7 +511,7 @@ soil_depth = 1
   
   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, stem_c = stem_c, stem_P50 = stem_b * (log(2))^(1 / stem_c),
             root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c), 
-            TF24_beta2 = TF24_beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
+            TF24_beta2 = TF24_beta2, phi_J = phi_J, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
@@ -521,7 +521,7 @@ soil_depth = 1
   
   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, stem_c = stem_c, stem_P50 = stem_b * (log(2))^(1 / stem_c),
             root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c), 
-            TF24_beta2 = TF24_beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
+            TF24_beta2 = TF24_beta2, phi_J = phi_J, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 2, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
@@ -535,7 +535,7 @@ soil_depth = 1
   
   l <- Leaf(vcmax_25 = 50, jmax_25 = jmax_25, stem_c = stem_c, stem_P50 = stem_b * (log(2))^(1 / stem_c),
             root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c), 
-            TF24_beta2 = TF24_beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
+            TF24_beta2 = TF24_beta2, phi_J = phi_J, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
@@ -545,7 +545,7 @@ soil_depth = 1
   
   l <- Leaf(vcmax_25 = 150, jmax_25 = jmax_25, stem_c = stem_c, stem_P50 = stem_b * (log(2))^(1 / stem_c),
             root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c), 
-            TF24_beta2 = TF24_beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
+            TF24_beta2 = TF24_beta2, phi_J = phi_J, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
@@ -559,21 +559,21 @@ soil_depth = 1
   
   l_low_temp <-Leaf(vcmax_25 = 50, jmax_25 = jmax_25, stem_c = stem_c, stem_P50 = stem_b * (log(2))^(1 / stem_c),
             root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c), 
-                            TF24_beta2 = TF24_beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
+                            TF24_beta2 = TF24_beta2, phi_J = phi_J, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
                             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
                             ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
   l_low_temp$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, leaf_temp = 20, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   
   l_ref_temp <- Leaf(vcmax_25 = 50, jmax_25 = jmax_25, stem_c = stem_c, stem_P50 = stem_b * (log(2))^(1 / stem_c),
             root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c), 
-                             TF24_beta2 = TF24_beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
+                             TF24_beta2 = TF24_beta2, phi_J = phi_J, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
                              GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
                              ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
   l_ref_temp$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, leaf_temp = 25, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   
   l_high_temp <- Leaf(vcmax_25 = 50, jmax_25 = jmax_25, stem_c = stem_c, stem_P50 = stem_b * (log(2))^(1 / stem_c),
             root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c), 
-                              TF24_beta2 = TF24_beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
+                              TF24_beta2 = TF24_beta2, phi_J = phi_J, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
                               GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
                               ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
   l_high_temp$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, leaf_temp = 30, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
@@ -582,7 +582,7 @@ soil_depth = 1
   
     l_high_temp <-Leaf(vcmax_25 = 50, jmax_25 = jmax_25, stem_c = stem_c, stem_P50 = stem_b * (log(2))^(1 / stem_c),
             root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c), 
-                             TF24_beta2 = TF24_beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
+                             TF24_beta2 = TF24_beta2, phi_J = phi_J, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim,
                              GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
                              ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
     l_high_temp$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, leaf_temp = 40, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
@@ -599,7 +599,7 @@ soil_depth = 1
 
   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, stem_c = stem_c, stem_P50 = stem_b * (log(2))^(1 / stem_c),
             root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c), 
-            TF24_beta2 = TF24_beta2, a = a, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
+            TF24_beta2 = TF24_beta2, phi_J = phi_J, curv_fact_elec_trans = curv_fact_elec_trans, curv_fact_colim = curv_fact_colim, 
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
   
@@ -705,7 +705,7 @@ test_that("Medlyn stomatal model", {
   h = 5
   TF24_beta2 = 1
   curv_fact_elec_trans = 0.7
-  a = 0.3
+  phi_J = 0.3 / 0.85
   curv_fact_colim = 0.99
   TF24_cost_scale = 46.32995
   GSS_tol_abs = 1e-8
@@ -728,7 +728,7 @@ test_that("Medlyn stomatal model", {
   make_leaf <- function() {
     Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, stem_c = stem_c, stem_P50 = stem_b * (log(2))^(1 / stem_c),
          root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c), TF24_beta2 = TF24_beta2,
-         a = a, curv_fact_elec_trans = curv_fact_elec_trans,
+         phi_J = phi_J, curv_fact_elec_trans = curv_fact_elec_trans,
          curv_fact_colim = curv_fact_colim, GSS_tol_abs = GSS_tol_abs,
          vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol,
          ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
@@ -815,7 +815,7 @@ test_that("psi_stem_to_ci supply=demand solve", {
   h = 5
   TF24_beta2 = 1
   curv_fact_elec_trans = 0.7
-  a = 0.3
+  phi_J = 0.3 / 0.85
   curv_fact_colim = 0.99
   TF24_cost_scale = 46.32995
   GSS_tol_abs = 1e-8
@@ -848,7 +848,7 @@ test_that("psi_stem_to_ci supply=demand solve", {
   make_leaf <- function() {
     Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, stem_c = stem_c, stem_P50 = stem_b * (log(2))^(1 / stem_c),
          root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c), TF24_beta2 = TF24_beta2,
-         a = a, curv_fact_elec_trans = curv_fact_elec_trans,
+         phi_J = phi_J, curv_fact_elec_trans = curv_fact_elec_trans,
          curv_fact_colim = curv_fact_colim, GSS_tol_abs = GSS_tol_abs,
          vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol,
          ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
@@ -941,7 +941,7 @@ test_that("find_root_psi soil->collar continuity solve", {
   h = 5
   TF24_beta2 = 1
   curv_fact_elec_trans = 0.7
-  a = 0.3
+  phi_J = 0.3 / 0.85
   curv_fact_colim = 0.99
   TF24_cost_scale = 46.32995
   GSS_tol_abs = 1e-8
@@ -964,7 +964,7 @@ test_that("find_root_psi soil->collar continuity solve", {
   make_leaf <- function() {
     Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, stem_c = stem_c, stem_P50 = stem_b * (log(2))^(1 / stem_c),
          root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c), TF24_beta2 = TF24_beta2,
-         a = a, curv_fact_elec_trans = curv_fact_elec_trans,
+         phi_J = phi_J, curv_fact_elec_trans = curv_fact_elec_trans,
          curv_fact_colim = curv_fact_colim, GSS_tol_abs = GSS_tol_abs,
          vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol,
          ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
@@ -1096,13 +1096,13 @@ test_that("find_root_psi soil->collar continuity solve", {
 test_that("dprofit_droot_collar_psi matches a finite difference (AD/IFT gradient, #527)", {
   # Reuse the standard single-layer leaf setup from "Basic functions".
   vcmax_25 = 100; jmax_25 = vcmax_25 * 167; stem_c = 2.04; stem_b = 3; psi_crit = 5
-  theta = 0.000157; K_s = 1; h = 5; TF24_beta2 = 1;   curv_fact_elec_trans = 0.7; a = 0.3; curv_fact_colim = 0.99; TF24_cost_scale = 46.32995
+  theta = 0.000157; K_s = 1; h = 5; TF24_beta2 = 1;   curv_fact_elec_trans = 0.7; phi_J = 0.3 / 0.85; curv_fact_colim = 0.99; TF24_cost_scale = 46.32995
   GSS_tol_abs = 1e-8; vulnerability_curve_ncontrol = 100; ci_abs_tol = 1e-6
   ci_niter = 1000; root_c = 2.65; root_b = 1.29
   root_psi_crit = root_b * (log(1.0 / 0.05))^(1.0 / root_c)
   l <- Leaf(vcmax_25 = vcmax_25, jmax_25 = jmax_25, stem_c = stem_c, stem_P50 = stem_b * (log(2))^(1 / stem_c),
             root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c), TF24_beta2 = TF24_beta2,
-            a = a, curv_fact_elec_trans = curv_fact_elec_trans,
+            phi_J = phi_J, curv_fact_elec_trans = curv_fact_elec_trans,
             curv_fact_colim = curv_fact_colim, GSS_tol_abs = GSS_tol_abs,
             vulnerability_curve_ncontrol = vulnerability_curve_ncontrol,
             ci_abs_tol = ci_abs_tol, ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
@@ -1194,7 +1194,7 @@ test_that("Leaf() errors on misspelled argument names (issue #377)", {
   common_args <- list(
     stem_c = stem_c, stem_P50 = stem_b * (log(2))^(1 / stem_c), root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c),
     TF24_beta2 = 1, jmax_25 = jmax_25,
-    a = 0.3, curv_fact_elec_trans = 0.7, curv_fact_colim = 0.99,
+    phi_J = 0.3 / 0.85, curv_fact_elec_trans = 0.7, curv_fact_colim = 0.99,
     GSS_tol_abs = 1e-8, vulnerability_curve_ncontrol = 100,
     ci_abs_tol = 1e-6, ci_niter = 1000, TF24_cost_scale = 46.33
   )
@@ -1220,7 +1220,7 @@ polish_leaf <- function(psi_soil, height, GSS_tol_abs) {
   l <- Leaf(vcmax_25 = 96, jmax_25 = 96 * 1.64, stem_c = stem_c,
             stem_P50 = stem_b * (log(2))^(1 / stem_c),
             root_c = root_c, root_P50 = root_b * (log(2))^(1 / root_c),
-            TF24_beta2 = 1, a = 0.3, curv_fact_elec_trans = 0.7,
+            TF24_beta2 = 1, phi_J = 0.3 / 0.85, curv_fact_elec_trans = 0.7,
             curv_fact_colim = 0.99, GSS_tol_abs = GSS_tol_abs,
             vulnerability_curve_ncontrol = 100, ci_abs_tol = 1e-6,
             ci_niter = 1000, TF24_cost_scale = 46.32995)
