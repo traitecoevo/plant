@@ -14,6 +14,9 @@ on:
       - main
       - master
       - develop
+  # Runs every platform on any branch, e.g. to try a toolchain change on
+  # Windows and macOS before it merges.
+  workflow_dispatch:
 
 name: R-CMD-check
 
@@ -25,42 +28,55 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Chooses the platforms. A push to develop/master or a manual run checks all
+  # three. A PR checks Linux, and adds Windows when it touches compiled code,
+  # DESCRIPTION or CI: Windows is where plant is most platform-fragile, because
+  # src/Makevars.win must link odelia.dll at build time (mingw ld forbids
+  # undefined symbols in a DLL, traitecoevo/odelia#29), and a dependency bump
+  # changes only DESCRIPTION. macOS runs on pushes only. A matrix entry cannot
+  # carry a job-level `if`, so the matrix itself is the output.
+  platforms:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    outputs:
+      config: ${{ steps.pick.outputs.config }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # The PR's merge commit and its first parent, the base it merges into.
+          fetch-depth: 2
+
+      - id: pick
+        shell: bash
+        run: |
+          linux='{"os": "ubuntu-latest", "r": "release"}'
+          windows='{"os": "windows-latest", "r": "release"}'
+          macos='{"os": "macOS-latest", "r": "release"}'
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            config="[$linux, $windows, $macos]"
+          elif git diff --name-only HEAD^1 HEAD |
+               grep -qE '^(src/|inst/include/|DESCRIPTION$|\.github/)'; then
+            config="[$linux, $windows]"
+          else
+            config="[$linux]"
+          fi
+          echo "config=$config" >> "$GITHUB_OUTPUT"
+          echo "Platforms: $config"
+
   R-CMD-check:
+    needs: platforms
     runs-on: ${{ matrix.config.os }}
     name: ${{ matrix.config.os }} (${{ matrix.config.r }})
-    if: github.event.pull_request.draft == false
 
     strategy:
       fail-fast: false
       matrix:
-        # ubuntu-latest is new here: it had been commented out since CI was first
-        # set up (#295), so plant had never had a green Linux run despite nothing
-        # in DESCRIPTION restricting the platform. It is the cheapest runner on a
-        # private repo (Linux bills at 1x against Windows 2x and macOS 10x),
-        # which is why it is worth having.
-        #
-        # Its dependency step is cache-sensitive in a way that will mislead anyone
-        # measuring it once: 205 s on the first ever run against 37 s warm, because
-        # odelia/phylloptim/RcppR6 are GitHub remotes with no Linux binaries and
-        # build from source. Expect the cold number on a fresh branch or after a
-        # dependency bump.
-        #
-        # Warm, Linux and macOS are within run-to-run noise of each other (~7.5 min
-        # total each); Windows is reliably the slowest by ~4 min. Do NOT try to rank
-        # Linux against macOS from single runs -- macOS's check step alone varies
-        # 314-465 s on unchanged code, which is wider than any effect worth
-        # measuring. Windows is the only leg tight enough to A/B on (668-674 s
-        # across three runs of the same commit).
-        #
-        # The follow-up this enables is making Linux the only per-PR job, with
-        # Windows gated on src/** and inst/include/** rather than dropped: that is
-        # where plant is most platform-fragile (src/Makevars.win must link
-        # odelia.dll at load time because mingw ld forbids undefined symbols in a
-        # DLL, see traitecoevo/odelia#29) and macOS on pushes to develop/master.
-        config:
-          - {os: ubuntu-latest, r: 'release'}
-          - {os: windows-latest, r: 'release'}
-          - {os: macOS-latest, r: 'release'}
+        # The dependency step is cache-sensitive: odelia, phylloptim and RcppR6
+        # are GitHub remotes with no binaries, so they build from source on a
+        # cold cache (a fresh branch or a dependency bump). Do not rank Linux
+        # against macOS from single runs; macOS's check step varies by ~150 s on
+        # unchanged code. Windows is the only leg tight enough to A/B on.
+        config: ${{ fromJSON(needs.platforms.outputs.config) }}
 
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
@@ -88,6 +104,29 @@ jobs:
         with:
           extra-packages: any::rcmdcheck
           needs: check
+
+      # Compiling plant is the largest single step of a check, and most PRs
+      # leave most translation units unchanged. ccache keys each object on its
+      # preprocessed source and flags, so a header change still recompiles
+      # everything that includes it. Set up after the dependencies so that
+      # odelia and phylloptim, which have their own cache, do not fill this one.
+      - uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ matrix.config.os }}-r-${{ matrix.config.r }}
+          max-size: 500M
+
+      # Wrap R's own compilers rather than naming any, so each platform keeps
+      # the compiler and flags its R was built with. R_MAKEVARS_USER is read on
+      # every platform, unlike ~/.R/Makevars.
+      - name: Compile through ccache
+        shell: bash
+        run: |
+          makevars="$RUNNER_TEMP/Makevars"
+          for v in CC CXX CXX17 CXX20; do
+            echo "$v = ccache $(R CMD config $v)" >> "$makevars"
+          done
+          cat "$makevars"
+          echo "R_MAKEVARS_USER=$makevars" >> "$GITHUB_ENV"
 
       - uses: r-lib/actions/check-r-package@v2
         with:
