@@ -108,7 +108,7 @@ test_that("Environment-TF24 exposes the three descriptions of its geometry", {
   # midpoint. Each is read by a different part of the model -- the water balance
   # divides by the width, the root-mass distribution differences Q() across the
   # boundaries, the leaf's gravitational head uses the midpoint -- so all three
-  # are exposed and the relations between them asserted here (#626).
+  # are exposed and the relations between them asserted here.
   env <- Environment("TF24")
 
   expect_equal(env$get_soil_layer_widths(), rep(0.3, 5))
@@ -162,7 +162,7 @@ test_that("Environment-TF24 refuses an unusable set of layer widths", {
 test_that("Environment-TF24 refuses layers that get thinner with depth", {
   # Refining towards the SURFACE is what a thin layer is for here, and refining
   # at depth reaches a failure this model cannot absorb: a thin layer under a
-  # thicker one drives the SCM size-density equation to overflow (#550). Sampled
+  # thicker one drives the SCM size-density equation to overflow. Sampled
   # over the basal thickness it fails at 5, 3, 2.5, 2 and 1.5 cm, where all 18
   # profiles thickening with depth ran clean, including a 5 mm surface layer.
   env <- Environment("TF24")
@@ -196,8 +196,8 @@ test_that("Environment-TF24 refuses layers that get thinner with depth", {
 })
 
 test_that("Environment-TF24 depth is read-only", {
-  # Writing it used to rebuild nothing -- only the geometry setters fill z/z_mid/dz
-  # -- so `env$depth <- 3` left a 1.5 m column in place and said nothing (#626).
+  # Only the geometry setters fill z/z_mid/dz, so a raw write would leave the old
+  # column in place.
   env <- Environment("TF24")
   expect_error(env$depth <- 3)
   expect_equal(env$depth, 1.5)
@@ -211,10 +211,9 @@ test_that("Environment-TF24 depth is read-only", {
 })
 
 test_that("Environment-TF24 set_soil_parameters keeps unequal layer widths", {
-  # The ordering hazard: set_soil_parameters() used to rebuild the geometry
-  # unconditionally, which threw away widths just set and reverted to equal
-  # layers. Silent, because both are valid geometries. It rebuilds only when the
-  # layer count actually changes now (#626).
+  # The ordering hazard: set_soil_parameters() must rebuild the geometry only when
+  # the layer count changes, or it silently reverts widths just set to equal
+  # layers (both are valid geometries).
   env <- Environment("TF24")
   widths <- c(0.02, 0.28, 0.30, 0.40, 0.50)
   env$set_soil_layer_widths(widths)
@@ -295,9 +294,8 @@ test_that("Environment-TF24 running soil moisture profile", {
   
   # check conservation of water for 1 layer
 
-  # The layer's WIDTH (#626). With a single layer this is numerically the same as
-  # its cumulative depth, which is what this read before -- right by coincidence
-  # rather than by construction, so it now asks for what it means.
+  # The layer's WIDTH. With a single layer this equals its cumulative depth, but
+  # only by coincidence.
   depth <- out$env$soil_layer_width$soil_layer_width[1]
   out$env$soil_moist_cumulative_flux %>%
     dplyr::mutate(sum_runoff = sum_rainfall - sum_infiltration) -> cumulative_fluxes

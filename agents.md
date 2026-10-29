@@ -225,11 +225,11 @@ knowing before you go looking for a leaf bug here:
   environment's `dz`.** `root_network_from_carbon` scales the vertical resistance
   by `dz[i]^2`, per layer since phylloptim 0.9.0. `TF24_Strategy` hands it
   `phylloptim::layer_thicknesses(z)`, the shared definition, at both of its call
-  sites. Since #626 the widths are `TF24_Environment`'s input and `z` is built
-  from them, so the differences are those widths to within rounding -- but not
-  bit-exact: on the default 1.5 m over 5 layers, layers 3-5 differ from
-  `depth / n` in the last bit. Every TF24 number has been computed from the
-  differences, so reading `environment.dz` instead would move them all.
+  sites. The widths are `TF24_Environment`'s input and `z` is built from them, so
+  the differences are those widths to within rounding -- but not bit-exact: on
+  the default 1.5 m over 5 layers, layers 3-5 differ from `depth / n` in the last
+  bit, so reading `environment.dz` instead would move every TF24 number. Make
+  that switch at the next rebaseline (marked TODO at the call site).
 - **`nm` is how you diagnose a stale build.** See the `R CMD INSTALL` note in §6 —
   a header-only dependency changing underneath a stale `.o` produces an error that
   names an untouched field accessor.

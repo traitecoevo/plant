@@ -34,7 +34,7 @@ tf24_water_budget <- function(n_layers = 5, theta_0 = 0.25, rainfall = 1.0,
 
   # theta is intensive (m3 m^-3), so storage is sum(theta * width) -- the WIDTH of
   # each layer, one per row, not the first cumulative depth. Those coincide only
-  # for equal layers, and this harness runs graded profiles now (#626).
+  # for equal layers, and this harness runs graded profiles.
   moist <- out$env$soil_moist
   dz <- out$env$soil_layer_width$soil_layer_width
   storage <- tapply(moist$soil_moist * dz, moist$step, sum)
@@ -78,7 +78,7 @@ test_that("TF24 water budget closes across layer counts", {
 })
 
 test_that("TF24 water budget closes on a graded layer profile", {
-  # THE GUARD ON THE INTER-LAYER CASCADE (#626). Mass conservation,
+  # THE GUARD ON THE INTER-LAYER CASCADE. Mass conservation,
   # sum(dz[i] * dtheta_i/dt) = infiltration - drainage - uptake, is exact for any
   # width distribution because the flux is free drainage: q = K(theta), with the
   # matric gradient dropped, so it carries no internode distance and nothing in it

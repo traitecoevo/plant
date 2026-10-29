@@ -94,7 +94,7 @@ test_that("exposing the root parameters left default behaviour unchanged", {
 })
 
 # ---------------------------------------------------------------------------
-# Per-layer layer thickness in the root network (#626, phylloptim 0.9.0)
+# Per-layer layer thickness in the root network
 # ---------------------------------------------------------------------------
 
 probe_root_operating_point <- function(widths, theta = 0.25) {

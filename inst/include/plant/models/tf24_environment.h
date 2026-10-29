@@ -56,11 +56,8 @@ public:
   // except for soil_number_of_depths
   // which are only updated on construction
   
-  // `delta_z` used to sit between soil_number_of_depths and soil_moist_sat here,
-  // documented "not using this" and defaulted to 9999. It was stored and then
-  // immediately overwritten by depth/n inside set_soil_number_of_depths, so it
-  // never carried a caller's value; #626 removed it. Layer geometry is set after
-  // construction, through set_soil_number_of_depths or set_soil_layer_widths.
+  // Layer geometry is set after construction, through set_soil_number_of_depths
+  // or set_soil_layer_widths.
   TF24_Environment(int soil_number_of_depths = 5,
                    double soil_moist_sat = 0.428, // saturated soil moisture content (m3 water m^-3 soil)
                    double K_sat = 163.0411, //saturated hydraulic conductivity of soil
@@ -149,25 +146,23 @@ public:
   //            boundaries and not sample depths.
   //   z_mid[i] the MIDPOINT of layer i. Read by the leaf's gravitational head.
   //
-  // ⚠️ WIDTH IS THE INPUT, NOT DEPTH (#626). The two setters below differ only in
+  // ⚠️ WIDTH IS THE INPUT, NOT DEPTH. The two setters below differ only in
   // which they take, and a caller wanting unequal layers must go through
   // set_soil_layer_widths: there is deliberately no way to state a boundary
   // directly, because "depth 0.3" is ambiguous between a top, a midpoint and a
   // bottom while "width 0.3" is not.
 
-  // Equal layers: n of them, spanning the current `depth`. The historical entry
-  // point, kept at its original signature and its original arithmetic.
+  // Equal layers: n of them, spanning the current `depth`.
   void set_soil_number_of_depths(int n) {
     soil_number_of_depths = n;
 
     z.resize(soil_number_of_depths);
     dz.resize(soil_number_of_depths);
 
-    // ⚠️ DO NOT REWRITE THIS AS cumsum(dz), tidy though that would be beside
-    // set_soil_layer_widths below. `(i+1)*delta_z` and a running sum of the same
-    // delta_z disagree in the last bit for 103 of 180 (depth, n) pairs, and `z`
-    // feeds Q() and the gravitational head -- so unifying them would re-baseline
-    // every TF24 number in exchange for nothing.
+    // TODO(next rebaseline): build `z` as the running sum of `dz`, as
+    // set_soil_layer_widths does. `(i+1)*delta_z` and that sum disagree in the
+    // last bit for 103 of 180 (depth, n) pairs, and `z` feeds Q() and the
+    // gravitational head, so the change moves every TF24 number.
     const double delta_z = depth / soil_number_of_depths;
     for (int i = 0; i < soil_number_of_depths; i++)
     {
@@ -180,8 +175,8 @@ public:
 
   // Unequal layers: the width of each, top down. `depth` becomes their total.
   //
-  // This is what soil evaporation needs (#626) -- a very thin layer at the top of
-  // the profile, which cannot be expressed as a count.
+  // This is what soil evaporation needs -- a very thin layer at the top of the
+  // profile, which cannot be expressed as a count.
   //
   // ⚠️ A THIN SURFACE LAYER MAKES THE COLUMN STIFF, and nothing here stops you.
   // The water balance's diagonal is K'(theta)/dz, so it scales as 1/dz: measured
@@ -214,10 +209,10 @@ public:
     // needed near the surface and not deeper down (Downer & Ogden 2004), and
     // that is what the profile here is for. Refining at DEPTH has no counterpart
     // in this model -- a contrast in soil properties is per-layer *parameters*
-    // (set_soil_parameters, #558), not a thin layer, and a water table is a
+    // (set_soil_parameters), not a thin layer, and a water table is a
     // bottom boundary condition TF24 does not have -- while it does reach a
     // failure this model cannot absorb. A thin layer under a thick one drives
-    // the SCM size-density equation to overflow (#550): sampled over the basal
+    // the SCM size-density equation to overflow: sampled over the basal
     // thickness, it fails at 5 cm, 3 cm, 2.5 cm, 2 cm and 1.5 cm, where all 18
     // profiles thickening with depth ran clean, including a 5 mm surface layer.
     //
@@ -226,7 +221,8 @@ public:
     // 1.5 cm fail, 1 cm passes again -- so thinning-with-depth is a property the
     // observed failures share rather than a characterisation of them, and 46 of
     // 48 sampled thinning profiles ran fine. It is a foot-gun removed, not a
-    // proof of stability, and the underlying fragility is still #550's.
+    // proof of stability; the underlying fragility is in the size-density
+    // equations.
     //
     // ⚠️ NOR IS A THICKENING PROFILE AUTOMATICALLY WELL RESOLVED. The error in
     // the usual Richards discretisation vanishes on a uniform grid and "worsens
@@ -243,7 +239,7 @@ public:
             util::to_string(i) + " (" + util::format_double(widths[i - 1]) +
             " m). Equal widths are allowed. Refine towards the SURFACE, which "
             "is what a thin layer is for here; a thin layer beneath a thicker "
-            "one can drive the size-density equations to overflow (#550), and "
+            "one can drive the size-density equations to overflow, and "
             "a contrast in soil properties belongs in set_soil_parameters() "
             "rather than in the geometry.");
       }
@@ -591,9 +587,8 @@ public:
   int soil_number_of_depths;
 
   // Total column depth, m: the sum of the layer widths, and equal to z.back() by
-  // construction. READ-ONLY from R (#626) -- writing it used to leave z/z_mid/dz
-  // describing the old column, since only the geometry setters rebuild those. To
-  // change it, call set_soil_number_of_depths() again (equal layers spanning the
+  // construction. READ-ONLY from R: only the geometry setters rebuild z/z_mid/dz,
+  // so a raw write would leave them describing the old column. To change it, call set_soil_number_of_depths() again (equal layers spanning the
   // new depth) or set_soil_layer_widths() (which sets it from the widths).
   double depth;
   //saturated soil moisture
@@ -701,25 +696,12 @@ public:
   // single-direction (no upward capillary flux between layers - that is handled
   // hydraulically inside the plant via E_from_Soil_to_Root_Collar).
   //
-  // ------------------------------------------------------------------
-  // WHY VARIABLE LAYER WIDTHS NEED NO CHANGE HERE (#626)
-  // ------------------------------------------------------------------
-  // The inter-layer flux is FREE DRAINAGE: Darcy's law is q = -K(theta) *
-  // (dpsi/dz + 1), and the matric-gradient term is deliberately dropped, leaving
-  // q = K(theta). Two consequences, and the second is the one to remember:
-  //
-  //   * It contains no internode distance, so there is nothing in it to rescale
-  //     when the layers stop being equal. It is evaluated at the donor cell,
-  //     which is correct upwinding for downward flow.
-  //   * The units work out at any width: q is a flux density (m yr^-1 per m2 of
-  //     ground), and dividing the net flux by dz[i] gives yr^-1. Mass
-  //     conservation, sum(dz[i] * dtheta_i/dt) = infiltration - deep drainage -
-  //     total uptake, is exact for any width distribution. Pinned on a graded
-  //     profile in test-tf24-water-budget.R.
-  //
-  // ⚠️ SO DO NOT "GENERALISE" THE CASCADE FOR VARIABLE WIDTHS. There is nothing
-  // to generalise, and notes/plan-tf24-soil-redistribution.md reached the same
-  // conclusion from the redistribution side (#608).
+  // The inter-layer flux is FREE DRAINAGE, q = K(theta) evaluated at the donor
+  // cell (Darcy's law with the matric gradient dropped). It contains no internode
+  // distance, so it holds unchanged for unequal layers, and mass conservation,
+  // sum(dz[i] * dtheta_i/dt) = infiltration - deep drainage - total uptake, is
+  // exact for any widths (pinned on a graded profile in
+  // test-tf24-water-budget.R).
   //
   // ⚠️ BUT IF ANYONE ADDS A CAPILLARY OR DIFFUSIVE FLUX -- and soil evaporation
   // will make them want to, because a top layer drying from above needs upward
@@ -941,7 +923,7 @@ public:
   std::vector<double> get_soil_depths() const { return z; }
   // The WIDTH of each layer, m -- what set_soil_layer_widths() takes, and what a
   // caller needs to turn the per-layer theta into a water volume: storage is
-  // sum(theta * dz), never sum(theta) * dz[1] (#626).
+  // sum(theta * dz), never sum(theta) * dz[1].
   std::vector<double> get_soil_layer_widths() const { return dz; }
 
 
@@ -1086,11 +1068,9 @@ public:
     auto const &soil_moist_cumulative_flux_list = get_soil_water_state_cumulative_flux();
     auto rcpp_soil_moist_vec_cumulative_flux = Rcpp::NumericVector(soil_moist_cumulative_flux_list.begin(), soil_moist_cumulative_flux_list.end());
 
-    // Layer WIDTHS as well as boundaries (#626). Reported because `soil_moist` is
-    // theta, an intensive quantity: turning it into a water volume needs the
-    // width, and every R-side water budget used to reconstruct it as
-    // soil_depth[[1]] -- right only while the layers were equal. tidy_env() picks
-    // a new key up on its own, so this is all it takes to make those correct.
+    // Layer WIDTHS as well as boundaries. Reported because `soil_moist` is theta,
+    // an intensive quantity: turning it into a water volume needs each layer's
+    // width, not soil_depth[[1]], which is right only for equal layers.
     auto const &soil_width_list = get_soil_layer_widths();
     auto rcpp_soil_width_vec = Rcpp::NumericVector(soil_width_list.begin(), soil_width_list.end());
 

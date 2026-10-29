@@ -12,7 +12,7 @@
 ##' \code{\link{TF24_Environment}}$\code{set_soil_layer_widths()}: \code{n} layers
 ##' spanning \code{depth}, the first of width \code{top} and each subsequent one a
 ##' fixed factor thicker. The motivating case is soil evaporation, which needs a
-##' very thin layer at the top of the profile (#626) — a 30 cm surface layer
+##' very thin layer at the top of the profile — a 30 cm surface layer
 ##' averages away the wetting and drying that drives it.
 ##'
 ##' The ratio is solved so the widths sum to \code{depth} exactly; the last width

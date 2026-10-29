@@ -2330,13 +2330,10 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
   // the vertical resistance scales with dz^2 and the two sides drifting apart
   // would be a silent squared factor neither side could detect.
   //
-  // ⚠️ DIFFERENCED FROM `z`, NOT READ FROM THE ENVIRONMENT'S `dz` (#626). Since
-  // set_soil_layer_widths() the widths are the environment's input and `z` is
-  // built from them, so these differences are those widths to within rounding.
-  // They are not bit-exact: on the default 1.5 m over 5, layers 3-5 differ from
-  // depth/n in the last bit. That is why this does not switch to environment.dz,
-  // tidy though it would be -- every TF24 number has been computed this way since
-  // phylloptim 0.9.0, and the switch would move them all for nothing.
+  // TODO(next rebaseline): pass environment.dz, the widths the environment was
+  // given, instead of differencing `z`. The two agree only to rounding (on the
+  // default 1.5 m over 5, layers 3-5 differ in the last bit), so the switch
+  // moves every TF24 number.
   phylloptim::root_network_from_carbon(
       root_carbon_value_, phylloptim::layer_thicknesses(soil_depths_), beta_R_H,
       beta_R_V, root_network_);

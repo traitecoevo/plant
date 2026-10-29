@@ -173,8 +173,7 @@ test_that("a schedule round-trips through the events format", {
 
 test_that("a resource pulse conserves mass and respects pool capacity", {
   env <- Environment("TF24")
-  ## The surface layer's own width (#626). `depth / n` gave the same number while
-  ## every layer was equal; it is the wrong quantity now that they need not be.
+  ## The surface layer's own width; `depth / n` is right only for equal layers.
   dz <- env$get_soil_layer_widths()[[1]]
   sat <- env$soil_moist_sat
 
@@ -276,7 +275,7 @@ test_that("pulses wet the soil during a run", {
     dz <- e$get_soil_layer_widths()
     f <- e$get_soil_water_state_cumulative_flux()
     ## sum(theta * dz), per layer: theta is intensive, so a scalar width is only
-    ## right for equal layers (#626).
+    ## right for equal layers.
     stored <- sum((e$get_soil_water_state() - e$soil_moist_sat / 2) * dz)
     stored - (f[[2]] - f[[3]] - f[[4]])
   }
