@@ -256,11 +256,15 @@ test_that("the water rows hold in the direction the ecology reads", {
     # the difference has converged and not how accurate it is, so it tightens
     # exactly where the check gets sharper -- the same defect the per-layer
     # statistic above was carrying.
+    #
+    # The reference's own error is added, though: `rows` is compared with `fine`,
+    # so a residual within the reference's uncertainty says nothing about the rows.
+    # That uncertainty is platform-dependent: 3e-8 on macOS, up to 2.5e-5 on Linux.
     fit_step <- 1e-3
     ladder_report_margin(
       sprintf("the uniform-drying direction, %s", name),
       max(abs(rows - fine)) / scale,
-      10 * fit_step^2 * amplification)
+      10 * fit_step^2 * amplification + floor)
   }
 })
 
