@@ -128,14 +128,19 @@ inline bool freezes_retired(const Control& c) {
   return c.absorb_epsilon > 0.0;
 }
 
+// odelia's step-size rule without its stabilisation term: a stand's step is
+// set by accuracy and by the introduction schedule rather than by stability,
+// and the term only adds steps there (12-20% of FF16's run time).
 inline odelia::ode::OdeControl make_ode_control(const Control& control) {
-  return odelia::ode::OdeControl(control.ode_tol_abs,
-                         control.ode_tol_rel,
-                         control.ode_a_y,
-                         control.ode_a_dydt,
-                         control.ode_step_size_min,
-                         control.ode_step_size_max,
-                         control.ode_step_size_initial);
+  odelia::ode::OdeControl ret(control.ode_tol_abs,
+                              control.ode_tol_rel,
+                              control.ode_a_y,
+                              control.ode_a_dydt,
+                              control.ode_step_size_min,
+                              control.ode_step_size_max,
+                              control.ode_step_size_initial);
+  ret.set_stabilisation(0.0);
+  return ret;
 }
 
 }
