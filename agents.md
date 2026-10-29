@@ -380,6 +380,7 @@ Use the [Makefile](Makefile) targets. The dependency you must internalise:
 | `make roxygen` | `devtools::document()` → `man/` + `NAMESPACE` |
 | `make rebuild` | **The full pipeline:** `clean` → `RcppR6` → `full_compile` → `roxygen` |
 | `make test` | `make all` then `devtools::test()` |
+| `make test-installed` | run the suite against the plant installed in `R_LIBS`, not this checkout (§8) |
 | `make check` / `make build` / `make install` | `R CMD check` / `build` / `INSTALL` |
 | `make benchmark` | run `scripts/benchmark.R` |
 | `make scenarios` | run the TF24 hydraulic scenario gateway → writes a scorecard RDS (`scripts/run_scenario_gateway.R`) |
@@ -516,6 +517,25 @@ numerics you may need to regenerate these.
 
 Run the suite with `make test` or `devtools::test()`; a single file with
 `devtools::test_active_file()` or `testthat::test_file(...)`.
+
+To test an **installed** plant rather than this checkout (a build against a
+bumped odelia or phylloptim, say), run `R_LIBS=<lib> make test-installed`. It
+prints where plant was loaded from; read that line, because a missing library
+falls back silently to whichever plant is in the default library. The target
+exists because each of its settings fails quietly when left out:
+
+- It calls `test_check("plant")` from `tests/`. `test_check` evaluates the tests
+  in plant's namespace, where the RcppR6 internals (`Parameters`, `Species`,
+  `SCM`, ...) live. `test_dir()` uses the global environment and reports about
+  ninety "could not find function" errors that look like a broken build, and
+  `test_check` run from the package root finds no test files.
+- It sets `TESTTHAT_PARALLEL=false`, because the parallel workers do not inherit
+  `R_LIBS` and fail with an unrelated-looking `queue$poll` backtrace.
+- It sets `NOT_CRAN=true`, without which a set of tests skips, and a summary
+  reporter shows a skip no differently from a pass.
+
+The pass count depends on the environment, so compare it with a control run of
+the same invocation against a reference build, not with a remembered number.
 
 The suite runs under testthat **edition 3** and is parallelised by file
 (`Config/testthat/parallel: true` in `DESCRIPTION`). testthat takes the worker
