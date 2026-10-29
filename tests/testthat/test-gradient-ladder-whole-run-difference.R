@@ -55,8 +55,9 @@ reference_stand <- function(regime) {
 # nobody captured them. Two default to 0, so the capture's RELATIVE step
 # `abs(value) * rel` is 0 and the difference moves no parameter at all; their
 # rows record that refusal and carry no metric, which reference_rows() drops.
-# S_D enters no rate, so its census column is zero by construction
-# (ladder_zero_outside_every_rate), and the reference holds the census alone.
+# S_D is captured: it enters no rate, so its census rows are zero by
+# construction (ladder_zero_outside_every_rate), and the sweep carries it as a
+# fitness column.
 #
 # ⚠️ ASSERTED BOTH WAYS, because the alternative is what this rung did while
 # passing at 13: `reference_compare` drops a reference row whose column the sweep
@@ -64,7 +65,7 @@ reference_stand <- function(regime) {
 # column the REFERENCE does not carry. Forty of forty-eight were refereed and
 # nothing said so.
 reference_uncaptured_columns <- function() {
-  c("S_D", "TF24_floor_lambda_o", "recruitment_decay")
+  c("TF24_floor_lambda_o", "recruitment_decay")
 }
 
 reference_compare <- function(regime, rows) {

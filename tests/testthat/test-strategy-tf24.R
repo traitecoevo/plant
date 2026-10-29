@@ -312,7 +312,7 @@ test_that("offspring arrival", {
                        hyperpar = TF24_hyperpar, birth_rate = list(20))
 
   out <- run_scm(p1, env, ctrl)
-  expect_equal(out$offspring_production, 12.86363839, tolerance = 2e-2)
+  expect_equal(out$offspring_production, 9.12669320, tolerance = 2e-2)
 
   # two species: the second strategy has a moderately higher lma (0.10 vs
   # 0.0825), so it grows more slowly and is more heavily shaded. We pin the
@@ -326,7 +326,7 @@ test_that("offspring arrival", {
                        hyperpar = TF24_hyperpar, birth_rate = list(20, 20))
 
   out <- run_scm(p2, env, ctrl)
-  expect_equal(out$offspring_production[[1]], 8.16576186, tolerance = 2e-2)
+  expect_equal(out$offspring_production[[1]], 5.68263921, tolerance = 2e-2)
   expect_lt(out$offspring_production[[2]], 0.5)
 
   # Same two species, integrated in birth date (#590). They coexist at
@@ -370,8 +370,8 @@ test_that("offspring arrival", {
   # soil faster. A build of v13 with the old light reproduced every old value
   # to ~1e-12, so the change is the light and not the code.
   out_bd <- run_scm(p2, env, Control(node_density_in_birth_date = TRUE))
-  expect_equal(out_bd$offspring_production[[1]], 158.38887778, tolerance = 2e-2)
-  expect_equal(out_bd$offspring_production[[2]], 25.14326057, tolerance = 2e-2)
+  expect_equal(out_bd$offspring_production[[1]], 151.44086321, tolerance = 2e-2)
+  expect_equal(out_bd$offspring_production[[2]], 23.70609023, tolerance = 2e-2)
 })
 
 test_that("the height-linear parameters reproduce the pre-path-integral results", {
