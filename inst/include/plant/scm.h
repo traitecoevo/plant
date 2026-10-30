@@ -25,8 +25,8 @@ namespace plant {
 // Kept as a pair because they come out of one recording: handing them back
 // separately is what let two callers take two recordings of one function.
 struct census_rows {
-  odelia::ode::adjoint_rows state;  // one column per ODE state entry
-  odelia::ode::adjoint_rows trait;  // one column per registered trait
+  odelia::ode::adjoint_batch state;  // one column per ODE state entry
+  odelia::ode::adjoint_batch trait;  // one column per registered trait
 };
 
 // A strategy whose inner solve can find no row for a census metric, and says so
@@ -96,7 +96,8 @@ public:
   // ---- Simulation lifecycle ----------------------------------------------
 
   // Run the whole schedule, from the run's start time (zero, or a resumed run's
-  // export time) to completion.
+  // export time) to completion. After run_mutant(), the invaders run as a
+  // community of their own, on the schedule their parameters make.
   void run();
 
   // Advance to the first leg boundary at or past `t`, or to the end of the
@@ -133,23 +134,23 @@ public:
   };
   Rcpp::List r_snapshots() const;
 
-  // Integrate `p`'s strategies as invaders against the field the resident run
-  // stood in: every one of them, the resident's own included, sees a field it
-  // does not move. Destructive -- `p` becomes this SCM's parameters, and its
-  // outputs are `p`'s. Needs a finished resident run to take a program from.
+  // Integrate `p`'s strategies as invaders of this SCM's last run: they take its
+  // steps, meet its harvests and extremes, and read the field it made at each
+  // rate evaluation, which none of them moves. Destructive -- `p` becomes this
+  // SCM's parameters, and its outputs are `p`'s.
   void run_mutant(parameters_type p);
   // Integrate `p`'s strategies as invaders of a stand at a fixed point: every
-  // one of them stands in ONE field, the resident's as it stands now, held for
-  // the whole of their run (#519). Where run_mutant() replays a resident's
+  // one of them stands in ONE field, the resident's as it stands now, constant for
+  // the whole of their run (#519). Where run_mutant() reads a resident's
   // recorded field step by step, a fixed point has a single field, so nothing
-  // is recorded and nothing replayed, and an invader takes its own steps. The
+  // is recorded and nothing read back, and an invader takes its own steps. The
   // field is taken at the first call, from the state the resident has reached
   // -- run it to its fixed point first -- and every later call stands in the
   // same one. Destructive, as run_mutant() is: `p` becomes this SCM's
   // parameters, and its outputs are `p`'s.
-  void run_mutant_held(parameters_type p);
+  void run_mutant_constant(parameters_type p);
 
-  // Run, keeping the state at each accepted step, and return one record per step.
+  // Run, keeping the state at each accepted step, and return one row per step.
   //
   // A run pinned to this run's times and sizes DOES reproduce these states, bit for
   // bit over 3381 steps, and pays 15% less because it attempts no step it will
@@ -160,15 +161,15 @@ public:
   // The record the run kept, read in place off the solver: one row per accepted
   // step carrying its time, the size that reached it and the state there. Not a
   // copy and not a re-pairing -- the solver holds exactly this.
-  using trajectory = std::span<const odelia::ode::step_record<patch_type>>;
-  trajectory store_trajectory();
+  using recording = std::span<const odelia::ode::step_record<patch_type>>;
+  recording store_recording();
 
   // Set before run() to keep the state at every accepted step. The reverse pass
   // needs those states and cannot recover them from a finished run, so a run that
   // did not keep them has to be repeated -- one whole forward integration. Off by
   // default because the store is one double per state entry per step and a forward
   // run has no use for it.
-  bool record_trajectory = false;
+  bool keep_states = false;
 
   // Adaptively refine the node-introduction schedule entirely in C++:
   // repeatedly run, flag nodes whose combined error exceeds schedule_eps,
@@ -179,23 +180,10 @@ public:
   // Return patch, schedule and solver to their t = 0 state; clear history.
   void reset();
 
-  // The resident run an invasion stands in: one row per accepted step, carrying
-  // the field each of its stages was taken in. Kept whole rather than re-derived,
-  // because the point of an invasion sweep is many invaders against ONE resident.
-  // Its program is not held beside it: a recording IS a program, row by row, and
-  // two containers that have to agree can be made to disagree.
-  std::vector<odelia::ode::step_record<patch_type>> resident_recording;
-  // The resident's field at the recording's first row, kept for a resident
-  // resumed from a saved state: its first introduction can fall at that very
-  // instant, before any recorded step hands an invader the field, and the
-  // invader must stand in the resident's canopy there, not its own empty one.
-  // Unused for a resident run from empty, whose field at that instant is the
-  // empty patch's, the same as an invader's.
-  recorded_field resident_start_field;
-  // The field run_mutant_held() holds; empty until its first call.
-  recorded_field held_field;
-  // Whether the last run was run_mutant_held()'s, which the gradient refuses.
-  bool ran_in_held_field = false;
+  // The field run_mutant_constant() holds; empty until its first call.
+  recorded_field constant_field;
+  // Whether the last run was run_mutant_constant()'s, which the gradient refuses.
+  bool ran_in_constant_field = false;
   // Whether any species holds a cohort: what "reset" means for a schedule
   // setter. Not the node ODE size, which counts the top layer's block.
   bool patch_has_nodes() const {
@@ -206,13 +194,6 @@ public:
     }
     return false;
   }
-  bool resident_resumed = false;
-
-  // Whether the last integration was an invasion (run_mutant) rather than a run.
-  // A record of an invasion is swept against the field it loaded; a run on the
-  // same SCM would overwrite that with the invaders' own, so the two have to be
-  // told apart where a record is asked for.
-  bool invasion = false;
 
   // True once every scheduled node introduction has been consumed.
   bool complete() const;
@@ -321,7 +302,7 @@ public:
   // sign between them -- so the answer would be finite, plausible and wrong.
   // An invader starts from an empty patch in the resident's world. Parameters
   // that carry an initial state -- a resident's export, kept by add_mutant() on
-  // resumed parameters -- would seed it with the resident's stand under the
+  // resumed parameters -- would initialise it with the resident's stand under the
   // invader's traits.
   static void require_invader_starts_empty(const parameters_type& p,
                                            const char* entry) {
@@ -359,21 +340,21 @@ public:
                  ": the absorbing top layer is not differentiable yet. Set "
                  "control$absorb_epsilon = 0 and re-run.");
     }
-    // A held field is exogenous to the run that stands in it, but the sweep's
+    // A constant field is exogenous to the run that stands in it, but the sweep's
     // rebound patches rebuild their field from their own state, so a sweep of a
-    // held run would transpose a different run's field. run_mutant_held()
-    // releases the field before it returns, so what is asked is whether the run
-    // these outputs came from stood in one, not whether one is held now.
-    if (patch.holds_field() || ran_in_held_field) {
+    // run in one would transpose a different run's field. run_mutant_constant()
+    // clears the field before it returns, so what is asked is whether the run
+    // these outputs came from stood in one, not whether one is in use now.
+    if (patch.has_constant_field() || ran_in_constant_field) {
       util::stop(std::string(entry) +
-                 ": this run stands in a held field (run_mutant_held), which "
+                 ": this run stands in a constant field (run_mutant_constant), which "
                  "the reverse-mode gradient does not transpose.");
     }
   }
 
   // d(census)/d(ODE state) and d(census)/d(trait) at the current time, one row
   // per metric each, from one recording. The state half is what the reverse pass
-  // is seeded with; the trait half is what no sweep produces, because a metric
+  // starts from; the trait half is what no sweep produces, because a metric
   // reads the traits itself and the boundary node's own quantities are rebuilt
   // when the state is set. Columns as ode_state writes them, and as
   // census_trait_gradient reports them.
@@ -381,13 +362,13 @@ public:
 
   // d(census)/d(trait), one row per metric and one column per trait in each
   // strategy's ad_parameters() order, species-major. Requires an adaptive run to
-  // have resolved the schedule this replays.
+  // have resolved the schedule this runs on.
   //
   // `extra_stops` names recorded steps at which the sweep stops and resumes. The
   // adjoint recursion is linear in the step, so composition over steps is
   // associative and any split must give the same numbers bit for bit; a
   // difference is something carried across a step boundary that is not the
-  // adjoint. Splits outside a range's interior are ignored, so a caller may
+  // adjoint. Splits outside a segment's interior are ignored, so a caller may
   // pass a boundary index without special-casing it.
   //
   // Returns the numbers AND what each of them is. The two travel together
@@ -399,7 +380,7 @@ public:
   // rather than given a column.
   census_gradient
   // `which_metrics` names the rows to sweep, empty meaning every one. A metric
-  // not asked for is not seeded and not swept, so asking for one costs one --
+  // not asked for is not started and not swept, so asking for one costs one --
   // which is what a caller differentiating a single census wants and what
   // computing all of them and subsetting the answer does not give.
   census_trait_gradient(const std::vector<size_t>& extra_stops = {},
@@ -408,7 +389,7 @@ public:
   // The four references the ladder checks census_trait_gradient against.
 
   // The same quantity differenced, by moving the prepared strategy exactly where
-  // the recording seeds it. It referees the trait half above while sharing none of
+  // the recording sets its direction. It referees the trait half above while sharing none of
   // it: that one records the census and sweeps a tape, this one evaluates the
   // census twice. A difference that rebuilt from Parameters would re-run
   // preparation and carry the birth-size channel the differentiated path imposes
@@ -420,7 +401,7 @@ public:
   // one weight per trait, species-major in each strategy's ad_parameters()
   // order; a coordinate direction gives one Jacobian column and a mixed one a
   // contraction. Returns one tangent per metric, and writes the metrics the
-  // replay itself reached: a reference whose value disagrees with the model is a
+  // pinned run itself reached: a reference whose value disagrees with the model is a
   // reference to a different function, and the gap is this check's own floor.
   std::vector<double> census_trait_tangent(const std::vector<double>& direction,
                                            std::vector<double>& value);
@@ -431,37 +412,37 @@ public:
   //
   // No trait, no derived quantity and no census direct term is on this path, so
   // it isolates how the trajectory carries a perturbation to a state a cohort
-  // starts at, and census_initial_state_replay is what referees it.
+  // starts at, and census_initial_state_pinned is what referees it.
   //
-  // `range` picks where the seeding happens, and only a state a sweep can be
+  // `segment` picks where the direction is set, and only a state a sweep can be
   // RE-ENTERED at will do -- one whose width matches a piece's start, since a
   // walk resuming anywhere else is a width apart from the rows it would carry.
   // `j >= 1` is the state reached just after the jth introduction, which no
   // record holds and the map rebuilds. 0 is the first recorded state, and what
   // it carries is the run's setup: nothing, an introduction the schedule placed
-  // at the initial time, or the cohorts a resumed patch was seeded with, which
+  // at the initial time, or the cohorts a resumed patch was initialised with, which
   // can be several per species at birth dates before the run began.
   std::vector<double>
   census_initial_state_tangent(const std::vector<double>& direction,
                                std::vector<double>& value,
-                               size_t range = 0);
+                               size_t segment = 0);
 
-  // The census a plain-double replay of the recorded steps reaches from
-  // `state0`. Differencing it moves the state the tangent above seeds, through
+  // The census a plain-double run on the recorded steps reaches from
+  // `state0`. Differencing it moves the state the tangent above sets, through
   // the same steps and the same introductions, so the two differentiate one
   // function and a disagreement is the propagation's own.
   std::vector<double>
-  census_initial_state_replay(const std::vector<double>& state0,
-                              size_t range = 0);
+  census_initial_state_pinned(const std::vector<double>& state0,
+                              size_t segment = 0);
 
-  // The replay both entry points above run. `seed` fills the scalar state the
-  // replay starts from, given the recorded one.
+  // The pinned run both entry points above take. `fill` fills the scalar state
+  // the run starts from, given the recorded one.
   //
-  // Storing a trajectory runs the model, so the seeding is handed in rather than
+  // Storing a trajectory runs the model, so the filling is handed in rather than
   // applied by the caller: a caller reading the recorded state for itself would
   // store twice and run twice.
-  template <class Scalar, class Seed>
-  std::vector<Scalar> replay_initial_state(size_t from_range, Seed seed);
+  template <class Scalar, class Fill>
+  std::vector<Scalar> pinned_run_from(size_t from_segment, Fill fill);
 
   // The Control entries that move the trajectory or move which states answer,
   // and so move the gradient. The curvature floor is here for the second reason
@@ -623,7 +604,7 @@ public:
   void r_set_node_schedule_times(std::vector<std::vector<double>> x);
 
   // ODE times: the step times the solver actually used on the last run. Carried
-  // back on the parameters (`p$ode_times`) they make the next run a replay --
+  // back on the parameters (`p$ode_times`) they pin the next run to those steps --
   // holding them is what says so, and no flag says it separately.
   std::vector<double> r_ode_times() const;
 
@@ -632,10 +613,15 @@ public:
   // alone it steps TO each of them and chooses its own sub-steps, which is what
   // a difference of two runs wants -- one grid, each side free to reach it.
   std::vector<double> r_ode_step_sizes() const;
+  // Each step's record of substepping the soil, beside its size: its input
+  // slopes and substep ends, both empty for a step that took the soil with the
+  // rest. A grid of times alone is refused across a step that would substep it.
+  std::vector<std::vector<double> > r_ode_soil_input_slopes() const;
+  std::vector<std::vector<double> > r_ode_soil_substep_ends() const;
 
-  // The trajectory as a list of records, each a time, the step size that reached it,
+  // The recording as a list of rows, each a time, the step size that reached it,
   // and the state there.
-  Rcpp::List r_store_trajectory();
+  Rcpp::List r_store_recording();
 
   // ---- Public state ------------------------------------------------------
   // The two toggles are exposed to R directly (access: field), so they need
@@ -677,13 +663,15 @@ private:
   // and control select; see the definition.
   void integrate_to(double t0, double t_end);
 
+  // run() without leaving an invasion: the schedule as it is now.
+  void run_schedule();
   // Everything run() does before its loop: put the run at its start and record
   // what a start records. run_to() calls it once, run() every time.
   void begin();
   // A fitness window the run cannot score -- one reaching past the run's end,
   // or holding no cohort of any species -- reads NaN after the whole run, so it
   // is refused before it. Asked of the schedule the run will walk, which events
-  // may have built, and of the cohorts a resume seeds.
+  // may have built, and of the cohorts a resume initialises.
   void check_fitness_window() const;
   // One leg, with the bookkeeping the loop keeps per leg: refinement errors,
   // the history copy, a snapshot where one is due.
@@ -701,6 +689,18 @@ private:
   // `history` once per step, and a log that grew with the run would be copied
   // with it every time.
   std::vector<EventRecord> event_log;
+  // The field at each state of the last recorded run that no step reached: its
+  // start, then each entry's, after the entry's actions and introductions.
+  std::vector<recorded_field> entry_fields;
+  // The run invaders read: its steps and the field each rate evaluation was
+  // taken in, kept from the first invasion until the next run(). Shared with
+  // every patch that reads it, which keeps it alive however long they outlive it.
+  std::shared_ptr<const std::vector<field_row>> invaded_run;
+  // Its harvests and extremes, which its invaders meet too.
+  std::vector<NodeScheduleEvent> invaded_actions;
+  // The stepper reads the patch's scales only through this concept, so a
+  // signature that drifted from it would leave every run unscaled, silently.
+  static_assert(odelia::ode::ScalesTolerances<patch_type>);
   odelia::ode::Solver<patch_type> solver;
 };
 
@@ -782,6 +782,16 @@ std::vector<double> SCM<T, E>::uniform_euler_times(double t0, double t1,
 // ---- Simulation lifecycle ------------------------------------------------
 
 template <typename T, typename E> void SCM<T, E>::run() {
+  if (invaded_run) {
+    patch.read_fields_of(nullptr);
+    invaded_run.reset();
+    invaded_actions.clear();
+    node_schedule = make_node_schedule(parameters);
+  }
+  run_schedule();
+}
+
+template <typename T, typename E> void SCM<T, E>::run_schedule() {
   begin();
   try {
     while (!complete()) {
@@ -822,12 +832,16 @@ template <typename T, typename E> void SCM<T, E>::begin() {
   // it is the solver's: the choices this run's rate evaluations make are the same
   // recording as its states, so what keeps the states is what says the choices are
   // kept too.
-  invasion = false;
-  solver.set_keep_states(record_trajectory);
+  solver.set_keep_states(keep_states);
+  patch.set_keep_field(keep_states);
   reset();
+  entry_fields.clear();
+  if (keep_states) {
+    entry_fields.push_back(solver.get_system_ref().current_field());
+  }
   // A run is a walk over its schedule's entries and integrates nothing between
   // them, so a resume with no entry left -- exported after its last
-  // introduction -- would report its seeded state as the run's end. A run from
+  // introduction -- would report its initialised state as the run's end. A run from
   // empty with no schedule is an empty run, and stays one.
   if (!parameters.initial_state.empty() && complete() &&
       time() < node_schedule.get_max_time()) {
@@ -947,7 +961,7 @@ std::vector<size_t> SCM<T, E>::run_next() {
   // invader starting inside a resident's window with no cohorts yet. It never
   // happens for a run from empty, whose schedule starts at t0 = 0, so the
   // normal path below is unchanged. The gap is crossed the same three ways the
-  // intervals below are, a pinned program included: a resumed run's recording
+  // intervals below are, a pinned schedule included: a resumed run's recording
   // starts at the resumed time and its first interval is this one.
   if (intro.time > t0) {
     solver.set_state_from_system();
@@ -977,6 +991,9 @@ std::vector<size_t> SCM<T, E>::run_next() {
   // reached, which is what the next step runs from and which no step reached.
   // Recorded here because this is where the width changes.
   solver.push_insertion();
+  if (keep_states) {
+    entry_fields.push_back(sys.current_field());
+  }
 
   integrate_to(t0, t_end);
 
@@ -985,9 +1002,9 @@ std::vector<size_t> SCM<T, E>::run_next() {
 
 // One interval of the run, from the instant the solver stands at to the next
 // scheduled entry. Three integration modes:
-//  - pinned ode times (resident replay for a mutant): step exactly to the
-//    cached times via the full RKCK stepper, by their recorded step sizes
-//    when the schedule carries them;
+//  - a recorded schedule (an invader taking its residents' steps): step
+//    exactly to the cached times via the full RKCK stepper, by their recorded
+//    step sizes when the schedule carries them;
 //  - fixed-step forward Euler (control.fixed_time_step > 0): walk a uniform
 //    sub-grid between this instant and the next;
 //  - otherwise: adaptive, error-controlled RKCK to the next instant.
@@ -996,30 +1013,30 @@ void SCM<T, E>::integrate_to(double t0, double t_end) {
   if (node_schedule.using_ode_steps()) {
     if (control.fixed_time_step > 0.0) {
       // A recorded field is kept per rate evaluation, and forward Euler makes
-      // one per step where RKCK makes six -- so a program recorded under one
-      // cannot be replayed under the other. Refuse rather than mis-integrate.
+      // one per step where RKCK makes six -- so a schedule recorded under one
+      // cannot be run under the other. Refuse rather than mis-integrate.
       util::stop("fixed_time_step (forward Euler) is not supported for a pinned "
                  "ODE schedule");
     }
     // Each recorded step carries the size it took and the time it reached, so a
-    // replay lands where the run landed rather than a rounding short of it.
+    // pinned run lands where the run landed rather than a rounding short of it.
     // Stepping to the times instead would take different steps, because a size
     // differenced back out of two recorded times is not the size that was taken.
     //
     // A size is NaN where the schedule is a grid rather than a recording, and
-    // the step is taken TO that time instead. The schedule holds no step at an
-    // interval's own end -- a run stops there by clamping its last step to the
-    // boundary, and the step below does the same arithmetic.
-    // An interval with no step inside it is one the schedule crosses in a single
-    // step, so there is nothing to replay before the step to its end. Deciding
-    // that per interval rather than per schedule is what silently integrated
-    // those intervals adaptively.
-    const std::vector<odelia::ode::instruction> inside =
-        node_schedule.program_within(t0, t_end);
+    // the step is taken TO that time instead. The step reaching the interval's
+    // end is taken as recorded, which is the arithmetic of a step to it where
+    // the soil was not substepped; a schedule holding no step there steps to it.
+    // Deciding that per interval rather than per schedule is what silently
+    // integrated those intervals adaptively.
+    const std::vector<odelia::ode::schedule_row> inside =
+        node_schedule.schedule_within(t0, t_end);
     if (!inside.empty()) {
-      solver.advance_recorded(inside);
+      solver.advance_schedule(inside);
     }
-    solver.advance_fixed({solver.time(), t_end});
+    if (!util::identical(solver.time(), t_end)) {
+      solver.advance_fixed({solver.time(), t_end});
+    }
   } else if (control.fixed_time_step > 0.0) {
     solver.advance_euler(
         uniform_euler_times(t0, t_end, control.fixed_time_step));
@@ -1028,104 +1045,97 @@ void SCM<T, E>::integrate_to(double t0, double t_end) {
   }
 }
 
-// An invader integrates against a field it does not move: every strategy in `p`
-// is an invader, the resident's own among them, and that one coming back with the
-// resident's fitness is what says the machinery is sound.
+// An invader grows in a field it does not move: every strategy in `p` is an
+// invader, and one with the traits of the run it reads comes back with that
+// run's fitness.
 //
-// Two passes, because the field lives at the Runge-Kutta stages and no recorded
-// step boundary carries one. The first replays the resident over its own recorded
-// program, keeping the field at each rate evaluation; the second walks that
-// recording with `p`'s strategies in the patch, and each evaluation LOADS the
-// field the resident stood in rather than building its own. Which of the two a
-// pass is doing is the constness of what the walk hands over, so there is no mode
-// here and none to go stale.
-//
-// ⚠️ THE RECORDING PASS IS PINNED AND NOT ADAPTIVE. An adaptive run evaluates
-// inside attempts it then rejects; pinned to its own program it rejects nothing,
-// so what it keeps is exactly the sequence a replay of that program makes.
-//
-// The replay needs no schedule of its own: the recording carries its own
-// insertions, and the patch answers each one from ITS introduction times, so `p`'s
-// species are introduced where the resident's were. That is the same map the sweep
-// transposes rather than a second spelling of it.
-//
-// The record outlives the call, so a second invasion against the same resident
-// pays for one pass and not two -- and, as on develop, it is still the FIRST
-// resident's field, because this call has overwritten `parameters` with `p`.
+// A run that kept no field is run again on its own steps to keep one.
 template <typename T, typename E>
 void SCM<T, E>::run_mutant(parameters_type p) {
   require_invader_starts_empty(p, "run_mutant");
-  if (resident_recording.empty()) {
-    const std::vector<double> times = r_ode_times();
-    const std::vector<double> sizes = r_ode_step_sizes();
-    // Two, not one: a run that never stepped still reports the instant it
-    // started at, and a program of one entry is a start with nothing after it.
-    if (times.size() < 2) {
+  if (!invaded_run) {
+    if (solver.steps_taken().size() < 2) {
       util::stop("Run a resident first to generate a competitive landscape");
     }
-    // Pinned to its own program, so it rejects nothing and what it keeps is
-    // exactly the sequence a replay of that program makes.
-    node_schedule.r_set_ode_steps(times, sizes);
-    node_schedule.reset();
-    patch.set_keep_field(true);
-    const bool kept = record_trajectory;
-    record_trajectory = true;
-    run();
-    record_trajectory = kept;
-    patch.set_keep_field(false);
-    const trajectory rec = solver.recording();
-    resident_recording.assign(rec.begin(), rec.end());
-    resident_resumed = !parameters.initial_state.empty();
-    if (resident_resumed) {
-      patch_type& live = solver.get_system_ref();
-      odelia::ode::be_at_step(live, trajectory(resident_recording), 0);
-      resident_start_field = live.current_field();
+    if (entry_fields.empty()) {
+      node_schedule.set_ode_steps(solver.steps_taken());
+      const bool kept = keep_states;
+      keep_states = true;
+      run_schedule();
+      keep_states = kept;
     }
+    for (const auto& e : node_schedule.get_events()) {
+      if (e.type != EventType::Harvest && e.type != EventType::ClimateExtreme) {
+        continue;
+      }
+      if (e.target == EventTarget::Species) {
+        util::stop("run_mutant: the resident's run has a harvest or climate "
+                   "extreme at t = " + util::to_string(e.time_introduction()) +
+                   " on one species, and an invader is none of them");
+      }
+      invaded_actions.push_back(e);
+    }
+    const recording rec = solver.recording();
+    const size_t entries = std::count_if(
+        rec.begin(), rec.end(), [](const auto& row) { return row.insertion; });
+    util::check_length(entry_fields.size(), entries + 1);
+    auto entry = entry_fields.begin();
+    std::vector<field_row> rows;
+    rows.reserve(rec.size());
+    for (const auto& row : rec) {
+      field_row r{row, {}};
+      for (size_t i = 0; i < row.solved.size(); ++i) {
+        r.fields[i] = row.solved[i].field;
+      }
+      if (&row == &rec.front() || row.insertion) {
+        r.fields[odelia::ode::end_stage] = *entry++;
+      }
+      rows.push_back(std::move(r));
+    }
+    invaded_run =
+        std::make_shared<const std::vector<field_row>>(std::move(rows));
   }
-
-  // An invader of a resumed resident is introduced into the resident's run from
-  // the instant it resumed, and a replay starts at the recording's first row.
-  if (resident_resumed &&
-      !util::identical(p.initial_time, resident_recording.front().time)) {
-    util::stop("run_mutant: the resident resumed at t = " +
-               util::to_string(resident_recording.front().time) +
+  if (!util::identical(p.initial_time, invaded_run->front().time)) {
+    util::stop("run_mutant: the residents' run starts at t = " +
+               util::to_string(invaded_run->front().time) +
                ", so its invaders start there; set p$initial_time to that "
                "(it is " + util::to_string(p.initial_time) + ")");
   }
-  // Destructive, as it has always been: the mutants become this SCM's community,
-  // and its outputs are theirs.
-  parameters = p;
-  // The whole parameters, not the strategies alone: the patch seeds itself
-  // from ITS parameters at reset(), and an invader has no seed of its own.
-  patch.overwrite_parameters(parameters);
-  node_schedule = make_node_schedule(parameters);
-  reset();
-  // A replay keeps its states only when asked, as a run does: a recording of a
-  // replay is a state vector and six rows per step for every invader in a
-  // sweep, and nothing reads it unless a gradient is taken. When one is, the
-  // record carries the resident's field in every row, so the
-  // sweep loads it exactly as the replay did: the field is exogenous to the
-  // invader and its derivative is zero rather than severed. That is the
-  // rare-mutant derivative, the canopy held at the recorded resident.
-  solver.set_keep_states(record_trajectory);
-  if (resident_resumed) {
-    solver.get_system_ref().stand_in(&resident_start_field);
+  // An introduction the residents did not make falls between their evaluations,
+  // where no field was kept.
+  std::vector<double> introduced;
+  for (const auto& row : *invaded_run) {
+    if (row.insertion) {
+      introduced.push_back(row.time);
+    }
   }
-  solver.advance_recorded(resident_recording);
-  invasion = true;
-  patch = solver.get_system_ref();
-  // A replay takes the resident's steps and pops no schedule entry, so it leaves
-  // nothing a run_to() could continue: a later run of this SCM begins afresh, as
-  // a run of the invaders' parameters.
-  begun = false;
+  for (size_t i = 0; i < p.node_schedule_times.size(); ++i) {
+    for (const double t : p.node_schedule_times[i]) {
+      if (std::none_of(introduced.begin(), introduced.end(),
+                       [t](double u) { return util::identical(u, t); })) {
+        util::stop("run_mutant: species " + util::to_string(i + 1) +
+                   " is introduced at t = " + util::to_string(t) +
+                   ", where the resident introduced nothing");
+      }
+    }
+  }
+  parameters = p;
+  patch.overwrite_parameters(parameters);
+  patch.read_fields_of(invaded_run);
+  node_schedule = make_node_schedule(parameters);
+  for (const auto& a : invaded_actions) {
+    node_schedule.add_action(a);
+  }
+  node_schedule.set_ode_steps(*invaded_run);
+  run_schedule();
 }
 
 template <typename T, typename E>
-void SCM<T, E>::run_mutant_held(parameters_type p) {
-  require_invader_starts_empty(p, "run_mutant_held");
-  if (!held_field.kept) {
+void SCM<T, E>::run_mutant_constant(parameters_type p) {
+  require_invader_starts_empty(p, "run_mutant_constant");
+  if (!constant_field.kept) {
     if (!begun) {
-      util::stop("Run the resident to its fixed point before holding its field "
+      util::stop("Run the resident to its fixed point before taking its field "
                  "for an invader");
     }
     // Built afresh from the state the resident is at, rather than read off
@@ -1133,51 +1143,43 @@ void SCM<T, E>::run_mutant_held(parameters_type p) {
     // stage of the last step and not its end.
     patch_type& live = solver.get_system_ref();
     live.r_compute_environment();
-    held_field = live.current_field();
+    constant_field = live.current_field();
   }
   parameters = p;
   patch.overwrite_parameters(parameters);
+  patch.read_fields_of(nullptr);
   node_schedule = make_node_schedule(parameters);
-  // reset() copies the patch into the solver, so the held field reaches every
+  // reset() copies the patch into the solver, so the constant field reaches every
   // rate evaluation of the run.
-  patch.hold_field(held_field);
-  // Released once the invaders have run, or failed to: their outputs are in
-  // `patch`, and a later run of this SCM -- a resident's, a replay, a recording
-  // -- must build its own field. The next call holds SCM::held_field again.
+  patch.use_constant_field(constant_field);
+  // Cleared once the invaders have run, or failed to: their outputs are in
+  // `patch`, and a later run of this SCM -- a resident's, a pinned run, a recording
+  // -- must build its own field. The next call uses SCM::constant_field again.
   try {
     run();
   } catch (...) {
-    patch.release_field();
-    solver.get_system_ref().release_field();
+    patch.clear_constant_field();
+    solver.get_system_ref().clear_constant_field();
     throw;
   }
-  patch.release_field();
-  solver.get_system_ref().release_field();
-  // Released, but what the run left behind -- its outputs, and any recording it
-  // kept -- was made in the held field. Cleared by the next reset().
-  ran_in_held_field = true;
+  patch.clear_constant_field();
+  solver.get_system_ref().clear_constant_field();
+  // Cleared, but what the run left behind -- its outputs, and any recording it
+  // kept -- was made in the constant field. Cleared by the next reset().
+  ran_in_constant_field = true;
 }
 
 template <typename T, typename E>
-typename SCM<T, E>::trajectory SCM<T, E>::store_trajectory() {
+typename SCM<T, E>::recording SCM<T, E>::store_recording() {
   // Run only if this run kept no states to read. Reading does not consume them,
   // and a walk puts the patch back on the last recorded step when it is done, so
   // a second consumer reads the same record rather than repeating the run.
   //
   // Asked of this flag and not of the solver: run() is what sets the solver's
   // from this one, so asking the solver is asking it what it was just told.
-  if (!record_trajectory) {
-    // ⚠️ NOT FOR AN INVASION. run() would integrate the invaders as residents,
-    // shading themselves, and the gradient taken on that record would be the
-    // resident-feedback derivative of a different stand with every number
-    // finite. The invasion has to be re-run with the flag set before it.
-    if (invasion) {
-      util::stop("store_trajectory: run_mutant() kept no states, so there is "
-                 "nothing to sweep; set record_trajectory = TRUE before "
-                 "run_mutant() and run it again");
-    }
-    record_trajectory = true;
-    run();
+  if (!keep_states) {
+    keep_states = true;
+    run_schedule();
   }
 
   // Handed back as the solver holds it. The state, the time it was reached at and
@@ -1248,20 +1250,24 @@ void SCM<T, E>::refine_schedule() {
   // Leave Parameters self-describing: record the refined schedule and the
   // ode times from the final run (mirrors build_schedule.R).
   parameters.node_schedule_times = node_schedule.get_times();
-  // Carried out in the parameters so a later run of them replays this schedule,
+  // Carried out in the parameters so a later run of them takes this schedule,
   // which is what these two fields are for on the way IN. Read off the solver's
   // one record rather than through two accessors: a time and the size that
   // reached it are paired there, and pairing them again here is a chance to
   // pair them wrong.
-  const std::vector<odelia::ode::instruction> taken = solver.schedule();
+  const std::vector<odelia::ode::schedule_row> taken = solver.steps_taken();
   parameters.ode_times.clear();
   parameters.ode_step_sizes.clear();
   parameters.ode_times.reserve(taken.size());
   parameters.ode_step_sizes.reserve(taken.size());
-  for (const odelia::ode::instruction& step : taken) {
+  for (const odelia::ode::schedule_row& step : taken) {
     parameters.ode_times.push_back(step.time);
     parameters.ode_step_sizes.push_back(step.step_size);
   }
+  parameters.ode_soil_input_slopes =
+    substep_field(taken, &odelia::ode::subsystem_substeps::input_slope);
+  parameters.ode_soil_substep_ends =
+    substep_field(taken, &odelia::ode::subsystem_substeps::ends);
 }
 
 // NOTE: solver.reset() sets the solver's internal time to zero. There is
@@ -1275,7 +1281,7 @@ template <typename T, typename E> void SCM<T, E>::reset() {
   patch.set_introduction_times(parameters.node_schedule_times);
   patch.reset();
   node_schedule.reset();
-  // Seed the solver's owned system from the freshly reset patch, then reset
+  // Initialise the solver's owned system from the freshly reset patch, then reset
   // the solver's time/step state and sync the snapshot back.
   solver.get_system_ref() = patch;
   solver.reset();
@@ -1284,7 +1290,7 @@ template <typename T, typename E> void SCM<T, E>::reset() {
   event_log.clear();
   snapshots.clear();
   begun = false;
-  ran_in_held_field = false;
+  ran_in_constant_field = false;
 }
 
 
@@ -1386,8 +1392,20 @@ std::vector<double> SCM<T, E>::r_ode_step_sizes() const {
 }
 
 template <typename T, typename E>
-Rcpp::List SCM<T, E>::r_store_trajectory() {
-  const trajectory rec = store_trajectory();
+std::vector<std::vector<double> > SCM<T, E>::r_ode_soil_input_slopes() const {
+  return substep_field(solver.steps_taken(),
+                       &odelia::ode::subsystem_substeps::input_slope);
+}
+
+template <typename T, typename E>
+std::vector<std::vector<double> > SCM<T, E>::r_ode_soil_substep_ends() const {
+  return substep_field(solver.steps_taken(),
+                       &odelia::ode::subsystem_substeps::ends);
+}
+
+template <typename T, typename E>
+Rcpp::List SCM<T, E>::r_store_recording() {
+  const recording rec = store_recording();
   Rcpp::List ret(rec.size());
   for (size_t i = 0; i < rec.size(); ++i) {
     ret[i] = Rcpp::List::create(
@@ -1430,16 +1448,16 @@ std::vector<double> SCM<T, E>::census() const {
 // with nothing thrown. Loading it with set_ode_state alone leaves the condition at
 // its first evaluation, which is not the one census() reads.
 //
-// One patch, one tape, one recording, and a seed per metric. The recording does
+// One patch, one tape, one recording, and an adjoint per metric. The recording does
 // not depend on which metric is being asked for -- it writes every metric into y
-// and only the seed picks one out -- so a recording per metric was a recording
+// and only the adjoint picks one out -- so a recording per metric was a recording
 // repeated.
 //
 // What made that repetition look necessary is real and is worth stating, because
 // it is the trap next door. Clearing a tape returns its derivative-slot counter
 // to zero, so an active value built outside a sweep loop and read inside it
 // refers, after the first clear, to a slot that now belongs to something else.
-// Measured when that was live: the second and third metrics' seeds were wrong by
+// Measured when that was live: the second and third metrics' adjoints were wrong by
 // three orders and their heartwood columns read exactly zero -- the first metric
 // correct and lending its credibility to the rest. The answer is not a patch per
 // metric, it is to clear once and record once, which is what sweeping a batch
@@ -1448,7 +1466,7 @@ std::vector<double> SCM<T, E>::census() const {
 template <typename T, typename E>
 census_rows SCM<T, E>::census_state_and_trait_rows() const {
   require_birth_date_coordinate("census_state_and_trait_rows");
-  using scalar = odelia::ode::active_scalar<double>;
+  using scalar = odelia::ode::adjoint_scalar<double>;
 
   std::vector<double> state(patch.ode_size());
   patch.ode_state(state.begin());
@@ -1468,14 +1486,15 @@ census_rows SCM<T, E>::census_state_and_trait_rows() const {
     }
   };
   // One recording, so the tape and the rebind are odelia's to make. A sweep taking
-  // many hands in the tape it holds for the descent.
+  // many hands in the tape it holds for the sweep.
   odelia::ode::state_and_parameter_adjoints(
-      patch, state, odelia::ode::adjoint_rows::all_rows(n_metric), reduce,
+      patch, state, odelia::ode::adjoint_batch::identity(n_metric), reduce,
       ret.state, ret.trait);
   return ret;
 }
 
-// The census twice per trait, at the state held, with the strategy moved in place.
+// The census twice per trait, at the current state, with the strategy moved
+// in place.
 // See the declaration for why it perturbs rather than rebuilds.
 template <typename T, typename E>
 std::vector<std::vector<double>>
@@ -1524,7 +1543,7 @@ SCM<T, E>::census_trait_difference(double rel) {
   return ret;
 }
 
-// Seed lambda on the states the census reads at T, then run the reverse pass
+// Set lambda on the states the census reads at T, then run the reverse pass
 // back over the recorded steps. The trait adjoints accumulate across every
 // cohort and every step, so the accumulator is cleared once per metric and read
 // once the sweep is done. It is the solver's system that accumulates: `patch` is
@@ -1567,56 +1586,16 @@ SCM<T, E>::census_trait_gradient(const std::vector<size_t>& extra_stops,
     }
   }
   // The sweep needs the state at every accepted step, and reads them off the
-  // solver itself. store_trajectory() repeats the run to get them unless
-  // record_trajectory kept them the first time, and either way it may run, so the
-  // seeds below are taken after it.
-  store_trajectory();
+  // solver itself. store_recording() repeats the run to get them unless
+  // keep_states kept them the first time, and either way it may run, so the
+  // adjoints below are taken after it.
+  store_recording();
 
   patch_type& live = solver.get_system_ref();
 
-  // A sweep of an invasion reaches each introduction, and the first rates
-  // after it, with no row to load: hand the patch the field the invasion stood
-  // in there, the one its last evaluation before the introduction loaded.
-  if (invasion) {
-    // A replay pairs a model's recorded inner solves with its cohorts by
-    // position, and a resumed resident's seeded cohorts shift the pairing
-    // (plan-519 hazard 16), so its invasion's derivative is not refereed.
-    if constexpr (RecordsRefusal<T>) {
-      if (resident_resumed) {
-        util::stop("census_trait_gradient: an invasion of a resumed resident is "
-                   "not differentiable for a model that replays recorded inner "
-                   "solves (TF24) yet; take it from a resident run from empty.");
-      }
-    }
-    std::map<double, const recorded_field*> fields;
-    const auto& rec = resident_recording;
-    for (size_t at = 2; at < rec.size(); ++at) {
-      if (rec[at].insertion && !rec[at - 1].insertion &&
-          rec[at - 1].solved[5].field.kept) {
-        fields[rec[at].time] = &rec[at - 1].solved[5].field;
-      }
-    }
-    // A resumed resident's first row is the state it resumed from, which no
-    // step reached, so it carries no field; an introduction at that instant
-    // stood in the resident's field there (run_mutant's stand_in), and the
-    // sweep has to stand in the same one.
-    // A resident run from empty stood in the empty patch's field there, which
-    // the invader builds the same, so its entry names no field.
-    // And the metrics are read at the run's end, off the final state, where
-    // the seed builds the invader's own field as the forward census does: a
-    // fitness reads no field, and a census's boundary interval is the one term
-    // that does (an invader's census is not the rare-mutant quantity).
-    if (!rec.empty()) {
-      fields.emplace(rec.front().time,
-                     resident_resumed ? &resident_start_field : nullptr);
-      fields.emplace(rec.back().time, nullptr);
-    }
-    live.set_introduction_fields(fields);
-  }
-
   // Cleared here so that a previous call's degeneracy cannot refuse this one.
   clear_recorded_refusal(live);
-  // The seeds and the direct term are on the gradient path too, so a refusal is
+  // The adjoints and the direct term are on the gradient path too, so a refusal is
   // reachable before the sweep as well as inside it. Polled at both, and the
   // shape of the answer is known from what the caller asked for and the patch's
   // trait width either way -- so a refusal before the sweep costs the sweep and
@@ -1624,33 +1603,33 @@ SCM<T, E>::census_trait_gradient(const std::vector<size_t>& extra_stops,
   census_rows both = census_state_and_trait_rows();
   const size_t width = live.trait_adjoint_size();
   refusal why = recorded_refusal(live);
-  odelia::ode::adjoint_rows trait_adjoint;
+  odelia::ode::adjoint_batch trait_adjoint;
   census_gradient ret;
   if (!why.happened()) {
     // Every metric's sweep visits the same trajectory and differs only in its
-    // seed, so they are carried TOGETHER: a block is recorded once and swept once
+    // adjoint, so they are carried TOGETHER: a block is recorded once and swept once
     // per metric, where the loop this replaces recorded it once per metric. The
     // recording is a model evaluation and a sweep is arithmetic, so the second and
     // third metrics were costing what the first did and now cost almost nothing.
-    odelia::ode::adjoint_rows lambda = both.state.select(rows);
+    odelia::ode::adjoint_batch lambda = both.state.select(rows);
 
     // The accumulator the sweep adds into, owned here for the length of the sweep
     // rather than kept on the patch between calls. Every writer reaches it through
-    // the driver, so a row that does not match the seeds is a length mismatch.
+    // the driver, so a row that does not match the adjoints is a length mismatch.
     //
     // It STARTS at the direct term, which is what the total derivative is: the
     // census reads the traits as well as the state, so a metric's gradient is that
-    // reading plus the sum over the trajectory. Seeded rather than added at the end
+    // reading plus the sum over the trajectory. Started there rather than added at the end
     // because a term added last is a term that can be left out, and a gradient
     // missing it is a plausible number rather than an error.
     trait_adjoint = both.trait.select(rows);
     util::check_length(trait_adjoint.width(), width);
 
-    // One range per width, highest first, narrowing across each introduction and
+    // One segment per width, highest first, narrowing across each introduction and
     // transposing the map that took it. The solver owns that walk: what is left
-    // here is the census the sweep is seeded from.
+    // here is the census the sweep starts from.
     //
-    // ⚠️ CAUGHT BY TYPE, AND NOT BY `runtime_error`. A descent that leaves the
+    // ⚠️ CAUGHT BY TYPE, AND NOT BY `runtime_error`. A sweep that leaves the
     // range a double holds is not a bug in the sweep and not a state the model
     // has no meaning for, and this is the one place that can say so: the numbers
     // it would otherwise hand back are the overflow's, one per input, with
@@ -1661,14 +1640,14 @@ SCM<T, E>::census_trait_gradient(const std::vector<size_t>& extra_stops,
     // is an intermediate of one recording spanning every cohort in every stage,
     // so nothing finer has a component to attribute it to -- which is why it is
     // built here rather than recorded on a strategy the way a leaf's is.
-    size_t ranges = 0;
+    size_t segments = 0;
     try {
-      ranges = solver.solve_adjoint(lambda, trait_adjoint, extra_stops);
-    } catch (const odelia::util::AdjointRangeError& e) {
+      segments = solver.sweep_adjoint(lambda, trait_adjoint, extra_stops);
+    } catch (const odelia::util::AdjointOverflowError& e) {
       why = refusal{std::string("stand gradient: ") + e.what(), -1};
     }
     if (!why.happened()) {
-      std::vector<std::vector<double>> at_first_state = lambda.to_rows();
+      std::vector<std::vector<double>> at_first_state = lambda.to_vectors();
 
       // Polled again, because the sweep is where most refusals are raised. The
       // two diagnostics cross to the answer only here, on the one path that has
@@ -1676,7 +1655,7 @@ SCM<T, E>::census_trait_gradient(const std::vector<size_t>& extra_stops,
       // than being cleared back to them.
       why = recorded_refusal(live);
       if (!why.happened()) {
-        ret.ranges = ranges;
+        ret.segments = segments;
         ret.at_first_state = std::move(at_first_state);
       }
     }
@@ -1684,7 +1663,7 @@ SCM<T, E>::census_trait_gradient(const std::vector<size_t>& extra_stops,
 
   // A refusal costs every metric, and the grain is forced rather than chosen: the
   // row that could not be supplied is an intermediate of a recording spanning six
-  // stages and every cohort in them, so no seed carries a component to attribute
+  // stages and every cohort in them, so no adjoint carries a component to attribute
   // it to.
   ret.gradient.reserve(rows.size());
   ret.why.reserve(rows.size());
@@ -1715,7 +1694,7 @@ SCM<T, E>::census_trait_gradient(const std::vector<size_t>& extra_stops,
 // and it traverses both reductions and the introduction boundary while none of
 // the transposes under test are on its path.
 //
-// The recorded step sizes are replayed rather than the times, and rather than a
+// The recorded step sizes are taken rather than the times, and rather than a
 // controller of its own. A tangent run left to choose its own steps
 // differentiates the controller, which the model does not contain -- and a size
 // differenced back out of two recorded times is not the size that was taken,
@@ -1726,19 +1705,19 @@ SCM<T, E>::census_trait_tangent(const std::vector<double>& direction,
                                 std::vector<double>& value) {
   require_birth_date_coordinate("census_trait_tangent");
 
-  const trajectory rec = store_trajectory();
+  const recording rec = store_recording();
   patch_type& live = solver.get_system_ref();
   odelia::ode::be_at_step(live, rec, 0);
-  auto active = live.template rebind_from<tangent>();
+  auto active = live.template rebind<tangent>();
 
-  // Seeded before the state is set: the quantities a state determines read the
-  // parameters, and would otherwise be derived at the unseeded values.
+  // Directions set before the state is: the quantities a state determines read
+  // the parameters, and would otherwise be derived at the values without them.
   size_t at = 0;
   for (tangent* p : active.ad_parameters()) {
     if (at >= direction.size()) {
       util::stop("census_trait_tangent: one weight per trait, species-major");
     }
-    seed_direction(*p, direction[at++]);
+    set_direction(*p, direction[at++]);
   }
   util::check_length(direction.size(), at);
   std::vector<tangent> x0(rec[0].state.size());
@@ -1751,9 +1730,9 @@ SCM<T, E>::census_trait_tangent(const std::vector<double>& direction,
   forward.set_collect(false);
   forward.set_state_from_system();
 
-  // From row 0: the state seeded above is that row's, at its own width, and any
+  // From row 0: the state filled above is that row's, at its own width, and any
   // introduction the run made is a row of its own above it.
-  forward.advance_recorded(odelia::ode::program_from(
+  forward.advance_schedule(odelia::ode::schedule_from(
       rec, 0, {forward.time(), std::numeric_limits<double>::quiet_NaN()}));
 
   // Leave the double system where the run left it, so this call is repeatable
@@ -1779,30 +1758,30 @@ SCM<T, E>::census_trait_tangent(const std::vector<double>& direction,
 
 
 template <typename T, typename E>
-template <class Scalar, class Seed>
-std::vector<Scalar> SCM<T, E>::replay_initial_state(size_t from_range,
-                                                    Seed seed) {
-  const trajectory rec = store_trajectory();
+template <class Scalar, class Fill>
+std::vector<Scalar> SCM<T, E>::pinned_run_from(size_t from_segment,
+                                                    Fill fill) {
+  const recording rec = store_recording();
   patch_type& live = solver.get_system_ref();
 
   std::vector<double> base;
   size_t start = 0;
-  const double t0 = odelia::ode::state_at_range(live, rec,
-                                                  from_range, base, start);
+  const double t0 = odelia::ode::state_at_segment(live, rec,
+                                                  from_segment, base, start);
 
-  auto active = live.template rebind_from<Scalar>();
+  auto active = live.template rebind<Scalar>();
   std::vector<Scalar> x0(base.size());
-  seed(x0, base);
+  fill(x0, base);
   active.set_ode_state(x0.begin(), t0);
 
   odelia::ode::Solver<decltype(active)> forward(active, make_ode_control(control));
   forward.set_collect(false);
   forward.set_state_from_system();
 
-  // `start` is the row the System was put on, so the program is what follows it
+  // `start` is the row the System was put on, so the schedule is what follows it
   // whether that row is the beginning of the recording or an introduction already
   // applied.
-  forward.advance_recorded(odelia::ode::program_from(
+  forward.advance_schedule(odelia::ode::schedule_from(
       rec, start, {forward.time(), std::numeric_limits<double>::quiet_NaN()}));
 
   // Leave the double system where the run left it, so this call is repeatable
@@ -1823,17 +1802,17 @@ template <typename T, typename E>
 std::vector<double>
 SCM<T, E>::census_initial_state_tangent(const std::vector<double>& direction,
                                         std::vector<double>& value,
-                                        size_t range) {
+                                        size_t segment) {
   require_birth_date_coordinate("census_initial_state_tangent");
 
   const std::vector<tangent> reached =
-    replay_initial_state<tangent>(range,
+    pinned_run_from<tangent>(segment,
       [&](std::vector<tangent>& x0,
           const std::vector<double>& base) -> void {
         util::check_length(direction.size(), base.size());
         for (size_t i = 0; i < x0.size(); ++i) {
           x0[i] = base[i];
-          seed_direction(x0[i], direction[i]);
+          set_direction(x0[i], direction[i]);
         }
       });
 
@@ -1850,10 +1829,10 @@ SCM<T, E>::census_initial_state_tangent(const std::vector<double>& direction,
 
 template <typename T, typename E>
 std::vector<double>
-SCM<T, E>::census_initial_state_replay(const std::vector<double>& state0,
-                                       size_t range) {
-  require_birth_date_coordinate("census_initial_state_replay");
-  return replay_initial_state<double>(range,
+SCM<T, E>::census_initial_state_pinned(const std::vector<double>& state0,
+                                       size_t segment) {
+  require_birth_date_coordinate("census_initial_state_pinned");
+  return pinned_run_from<double>(segment,
     [&](std::vector<double>& x0, const std::vector<double>& base) -> void {
       util::check_length(state0.size(), base.size());
       x0 = state0;

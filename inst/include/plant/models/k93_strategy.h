@@ -49,7 +49,9 @@ public:
   // v2: as FF16 v2 -- the reductions integrate over the coordinate the density
   // is carried in, so a birth-date run's output moves and a height run's does
   // not.
-  static constexpr int scientific_version = 2;
+  // v3: as FF16 v3 -- odelia 0.8.0's step-size rule and the default ode_tol
+  // 1e-4 -> 1e-5 move every adaptive run within the ODE tolerance.
+  static constexpr int scientific_version = 3;
 
   // Direct aux indices for the hot path, avoiding aux_index.at("...") string-map
   // lookups (these showed up in profiling; see #466). MUST stay in sync with the
@@ -201,7 +203,8 @@ inline double K93_Strategy::establishment_probability(const K93_Environment& env
   // clamped to >= 0 under competition) and the g > 0 density guard in
   // Node::compute_initial_conditions. This value is consumed by the SCM
   // (initial mortality / density) and the stochastic germination test.
-  // TODO(#480): may want to make this dependent on achieving positive growth rate.
+  // Deliberately not gated on a positive growth rate, unlike FF16 and TF24
+  // (#480): gating here would filter twice.
   return 1.0;
 }
 

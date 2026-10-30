@@ -14,7 +14,7 @@ tf24_aux <- function(strategy = TF24_Strategy(), height = 5, ppfd = 1800,
   ind <- TF24_Individual(strategy)
   ind$set_state("height", height)
   env <- TF24_Environment()
-  env$extrinsic_drivers_set_constant("PPFD", ppfd)
+  env$extrinsic_drivers_set_constant("SWdown", ppfd / (0.5 * 4.57))  # PPFD above the canopy, as SWdown
   env$set_soil_number_of_depths(length(theta))
   env$set_soil_water_state(theta)
   ind$compute_rates(env)

@@ -68,6 +68,10 @@ StochasticPatchRunner<T, E>::StochasticPatchRunner(parameters_type p,
       solver(patch, make_ode_control(c)) {
   parameters.validate();
   solver.set_collect(false);
+  // Its patch declares no tolerance scales, so the solver never reads them.
+  if (c.ode_tol_scale_soil != 1.0) {
+    util::warning("The stochastic runner ignores ode_tol_scale_soil");
+  }
 }
 
 template <typename T, typename E> void StochasticPatchRunner<T, E>::run() {
@@ -167,8 +171,8 @@ template <typename T, typename E> void StochasticPatchRunner<T, E>::reset() {
       // and re-reads state and rates, but not the step size). The first step
       // after the first arrival would then begin from a rejected step of
       // ode_step_size_max rather than ode_step_size_initial. Error control
-      // recovers, but the realised step sequence differs: FF16's collected
-      // trajectory moves by up to 1e-5 relative, inside ode_tol_rel but not
+      // recovers, but the realised step sequence differs, so the collected
+      // trajectory moves within the ODE tolerance rather than staying
       // identical. Taking the fixed step when the system is empty is what keeps
       // FF16 and K93 bit-identical.
       if (patch.ode_size() > 0) {

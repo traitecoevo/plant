@@ -34,7 +34,7 @@ introduction grid. Patch survival is one.
 }
 \details{
 With no knots the window is uniform, each birth date weighted
-\code{1 / (end - start)}. Knots give a piecewise-linear weight, held at the
+\code{1 / (end - start)}. Knots give a piecewise-linear weight, constant at the
 end knots' values beyond them: a germination opportunity built from the
 same rainfall series that drives the run, say.
 

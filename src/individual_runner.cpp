@@ -28,6 +28,12 @@ plant::Internals<double> TF24f_oderunner_individual_internals(
 }
 
 // [[Rcpp::export]]
+plant::Internals<double> TF24t_oderunner_individual_internals(
+  const odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24t_Strategy<double>, plant::TF24_Environment<double>>>& obj) {
+  return obj.get_system().individual.r_internals();
+}
+
+// [[Rcpp::export]]
 plant::Internals<double> TF24w_oderunner_individual_internals(
   const odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24w_Strategy<double>, plant::TF24_Environment<double>>>& obj) {
   return obj.get_system().individual.r_internals();

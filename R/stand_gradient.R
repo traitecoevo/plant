@@ -18,6 +18,12 @@ census_backend <- function(scm) {
                 undifferentiable = census_undifferentiable_ff16,
                 trait_gradient = census_trait_gradient_ff16,
                 control = gradient_control_ff16),
+    # Named rather than left to the default, because the reason is not that no
+    # census was written: no derivative of the thermal-damage layer exists.
+    TF24t = stop("No census is declared for the TF24t model, so it has no ",
+                 "stand gradient: phylloptim refuses the derivative of its ",
+                 "leaf with the thermal-damage layer on, and a gradient ",
+                 "without it would describe TF24 rather than TF24t"),
     stop("No census is declared for the ", type, " model, so it has no ",
          "stand gradient; TF24 and FF16 declare one"))
 }
@@ -41,7 +47,7 @@ stand_metric_table <- function(scm) {
 ##' smallest cohort is in the sum.
 ##'
 ##' \code{stand_fitness} reports, for a model that declares its fitness
-##' differentiable (FF16), each species' net reproduction ratio and offspring
+##' differentiable (FF16 and TF24), each species' net reproduction ratio and offspring
 ##' production, named \code{"<species>.net_reproduction_ratio"} and
 ##' \code{"<species>.offspring_production"}. They are the same numbers as
 ##' \code{scm$net_reproduction_ratios} and \code{scm$offspring_production},
@@ -80,7 +86,7 @@ stand_metrics_of_kind <- function(scm, kind) {
 ##' its fitness differentiable each species' net reproduction ratio and offspring
 ##' production, named as \code{\link{stand_gradient}} names them -- and one
 ##' column per ODE state entry, in the order
-##' \code{scm$patch$ode_state} writes. This is what the reverse pass is seeded
+##' \code{scm$patch$ode_state} writes. This is what the reverse pass starts
 ##' with. The cohort-height columns carry the trapezium weights as well as the
 ##' integrand only where the height is the coordinate integrated over; on the
 ##' birth-date coordinate the weights are constants.
@@ -124,7 +130,7 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##' one call and never crosses into R.
 ##'
 ##' Two terms, because a census reads the traits as well as the state. The reverse
-##' pass is seeded on the states the census reads at the end of the run and runs
+##' pass starts on the states the census reads at the end of the run and runs
 ##' back over the steps the adaptive pass resolved; added to it is the census's own
 ##' reading of the traits at that state, which is not a sensitivity of the state
 ##' and so no sweep produces it.
@@ -139,33 +145,38 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##'   Each metric costs one sweep of the recorded trajectory, so name the ones
 ##'   wanted.
 ##' @param traits Column names to differentiate with respect to; defaults to
-##'   every differentiable parameter every species declares. A column is named
-##'   for its species and its parameter, as \code{"1.lma"}. With \code{hyperpar},
-##'   these name the traits to differentiate through it, and must be given.
-##' @param hyperpar \code{NULL}, or the hyperparameter function the stand was
-##'   built with, as \code{TF24_hyperpar} or \code{FF16_hyperpar}. See the section on traits and
-##'   parameters.
+##'   every differentiable trait every species declares. A column is named for
+##'   its species and its parameter, as \code{"1.lma"}.
+##' @param hyperpar The hyperparameter function the strategies were built with,
+##'   by default the one \code{add_strategies()} uses; or \code{NULL} for
+##'   partial derivatives. See the section on traits and parameters.
 ##' @return A list with \code{value}, the metrics at the end of the run;
 ##'   \code{gradient}, a metrics-by-traits matrix; \code{refusal}, one entry per
 ##'   metric holding the reason and where it was found, or \code{NULL} where the
 ##'   metric answered; and \code{control}, the entries the gradient was taken at.
-##'   With \code{hyperpar}, also \code{jacobian}: for each trait, the derivative of
-##'   every parameter the hyperparameter function derives from it.
 ##'
 ##' @section Traits and parameters:
-##' ⚠️ **Without \code{hyperpar}, each column is a PARTIAL derivative with every
-##' other parameter held fixed**, including those a hyperparameter function
-##' derives from the trait. \code{TF24_hyperpar} sets \code{k_l}, \code{r_l} and
-##' \code{nmass_l} from \code{lma}, so \code{gradient[, "1.lma"]} is not the
-##' derivative a trait fit wants: on a 3-year stand it was 2.4 to 4 times a
-##' finite difference of \code{lma} through \code{add_strategies()}.
+##' A column is the derivative as its trait moves through the construction that
+##' built the strategy, which is what a difference through \code{add_strategies()}
+##' measures. The hyperparameter function derives some parameters from the traits
+##' (\code{TF24_hyperpar} sets 13, among them \code{k_l}, \code{r_l}, \code{d_I},
+##' \code{a_f3} and the stem curve, from six traits including \code{lma}), so a
+##' trait's column is its own partial plus each derived parameter's partial times
+##' that parameter's derivative with respect to the trait. The function is
+##' closed-form, so that derivative is a central difference of the function
+##' itself, and costs no model run.
 ##'
-##' Pass \code{hyperpar} for the total derivative with respect to the traits as a
-##' trait matrix gives them. Each trait's column is its own partial plus every
-##' derived parameter's partial times that parameter's derivative with respect
-##' to the trait. The hyperparameter function is closed-form, so that derivative
-##' is taken by central difference of the function itself, costing no model run.
-##' Pass the function the stand was built with: a run does not record it.
+##' Every derived parameter leaves the columns, as
+##' \code{colnames(hyperpar(matrix(numeric(0), 1, 0), s, filter = FALSE))} lists
+##' them for a strategy \code{s}. Each requested species' derived parameters are
+##' checked against its traits first: a strategy built by hand (TF24's default is
+##' not on its trade-off), edited after it was built, built at an input it does not
+##' keep (FF16's \code{narea}), or built through another function, is refused
+##' rather than differentiated along a trade-off it does not lie on. Pass the
+##' function it was built with, or \code{hyperpar = NULL}.
+##'
+##' With \code{hyperpar = NULL} every parameter has a column, and each is a
+##' partial derivative with every other parameter fixed.
 ##'
 ##'   A refused metric's whole row is \code{NaN}: a sum has no defined value with
 ##'   an undefined term, so refusal is metric-level and carries no localisation
@@ -177,15 +188,16 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##'   and asking for its gradient errors rather than returning a zero.
 ##'
 ##' @section An invader against a recorded resident:
-##' Set \code{scm$record_trajectory <- TRUE} before \code{scm$run_mutant(p)}
-##' and the invasion replay keeps its states; a gradient taken then is of the
-##' invaders' metrics with the canopy held at the recorded resident -- the
-##' field is exogenous to the invader and carries no derivative -- which is the
-##' rare-mutant derivative. Several invaders in \code{p} share one replay and
-##' each has its own columns, but each metric is still one sweep, so a set of
-##' invaders costs about what running them one at a time does. An invader of a
-##' resumed resident starts at the resume time, as \code{run_mutant} requires.
-##' A sweep of an invasion that kept no states is refused rather than re-run.
+##' After \code{scm$run_mutant(p)}, a gradient is of the invaders' metrics in
+##' the residents' recorded field, which the invaders read at each rate
+##' evaluation and do not move, so it carries no derivative: the rare-mutant
+##' derivative. A run of \code{scm$run_mutant_constant()} is refused.
+##' An invasion that kept no states is run again, as an invasion, to keep them;
+##' set \code{scm$keep_states <- TRUE} before it to save that run.
+##' Several invaders in \code{p} share one run and each has its own columns,
+##' but each metric is still one sweep, so a set of invaders costs about what
+##' running them one at a time does. An invader of a resumed resident starts at
+##' the resume time, as \code{run_mutant} requires.
 ##'
 ##' @section The birth rate:
 ##' For a species run at a constant birth rate the column
@@ -208,7 +220,8 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##' take the answer that is stable, or resolve the event by forcing a step at the
 ##' crossing.
 ##' @export
-stand_gradient <- function(scm, metrics = NULL, traits = NULL, hyperpar = NULL) {
+stand_gradient <- function(scm, metrics = NULL, traits = NULL,
+                           hyperpar = param_hyperpar(scm$parameters)) {
   if (!is.null(hyperpar)) {
     return(stand_gradient_through(scm, metrics, traits, hyperpar))
   }
@@ -269,80 +282,88 @@ stand_gradient <- function(scm, metrics = NULL, traits = NULL, hyperpar = NULL) 
        control = gradient_control(scm))
 }
 
-# The chain rule through a hyperparameter function. A trait the caller fits (lma,
-# rho, K_s...) reaches the model both as itself and through every parameter the
-# hyperpar derives from it (lma sets k_l, r_l and nmass_l), and stand_gradient's
-# columns are partials with the derived ones held fixed. The total is
-#     d(metric)/d(trait) = G[, trait] + sum_k G[, k] * d(p_k)/d(trait)
-# with d(p_k)/d(trait) from a central difference of the hyperpar itself. The
-# hyperpar is closed-form algebra, so that difference is accurate to ~1e-10 and
-# costs no model evaluation.
+# The chain rule through a hyperparameter function: a trait's total is its partial
+# plus G[, derived] %*% d(derived)/d(trait), with the derived partials from the sweep.
 stand_gradient_through <- function(scm, metrics, traits, hyperpar) {
   if (!is.function(hyperpar)) {
-    stop("`hyperpar` must be a hyperparameter function, as TF24_hyperpar ",
-         "or FF16_hyperpar")
+    stop("`hyperpar` must be a hyperparameter function, as TF24_hyperpar, or ",
+         "NULL for partial derivatives")
   }
-  if (is.null(traits) || length(traits) == 0L) {
-    stop("Name the traits to differentiate through `hyperpar`, as \"1.lma\"")
-  }
-  partial <- stand_gradient(scm, metrics)
-  G <- partial$gradient
   strategies <- scm$parameters$strategies
-  undifferentiable <- names(census_backend(scm)$undifferentiable())
-
-  total <- matrix(NA_real_, nrow(G), length(traits),
-                  dimnames = list(rownames(G), traits))
-  jacobian <- list()
-  for (tr in traits) {
-    species <- suppressWarnings(as.integer(sub("\\..*$", "", tr)))
-    name <- trait_without_species(tr)
-    if (is.na(species) || species < 1L || species > length(strategies) ||
-        identical(name, tr)) {
-      stop("A trait names its species and its column, as \"1.lma\": got \"",
-           tr, "\"")
-    }
-    s <- strategies[[species]]
-    x <- s$pars[[name]]
-    # A column no parameter backs -- the birth rate -- is not something the
-    # hyperparameter function derives from or into, so its total is its partial.
-    if (is.null(x) && tr %in% colnames(G)) {
-      total[, tr] <- G[, tr]
-      jacobian[[tr]] <- numeric(0)
-      next
-    }
-    if (is.null(x)) {
-      stop("\"", tr, "\" is not a parameter of species ", species,
-           "'s strategy, so its value cannot be read to differentiate at")
-    }
-    derived <- function(v) {
-      out <- hyperpar(trait_matrix(v, name), s, filter = FALSE)
-      out[1, setdiff(colnames(out), name), drop = TRUE]
-    }
-    h <- 6e-6 * max(abs(x), 1e-3)
-    dp <- (derived(x + h) - derived(x - h)) / (2 * h)
-    dp <- dp[dp != 0]
-    cols <- paste0(species, ".", names(dp))
-    # A derived parameter with no column contributes nothing only if no equation
-    # reads it, which the model states; anything else leaves the sum incomplete.
-    missing <- !(cols %in% colnames(G))
-    unread <- names(dp) %in% undifferentiable
-    if (any(missing & !unread)) {
-      stop("`hyperpar` derives ", paste(names(dp)[missing & !unread],
-                                        collapse = ", "),
-           " from ", name, ", which has no gradient column, so the chain rule ",
-           "for \"", tr, "\" cannot be completed")
-    }
-    keep <- !missing
-    own <- if (tr %in% colnames(G)) G[, tr] else 0
-    total[, tr] <- own + G[, cols[keep], drop = FALSE] %*% dp[keep]
-    jacobian[[tr]] <- dp
+  species <- seq_along(strategies)
+  if (!is.null(traits)) {
+    species <- species[species %in% sub("^([0-9]+)\\..*", "\\1", traits)]
   }
+  trade_offs <- Map(trade_off, strategies[species], species,
+                    MoreArgs = list(hyperpar = hyperpar))
+  derived <- unlist(lapply(trade_offs, rownames))
+  columns <- census_backend(scm)$trait_names(scm)
+  if (is.null(traits)) {
+    traits <- setdiff(columns, derived)
+  }
+  named <- intersect(traits, derived)
+  if (length(named) > 0L) {
+    stop(paste(named, collapse = ", "), " derived from the species' traits by ",
+         "`hyperpar`: ask for the trait it comes from, or pass hyperpar = NULL ",
+         "for its partial derivative")
+  }
+  # A derived parameter without a column adds nothing only where the model states
+  # no equation reads it; any other leaves the sum incomplete.
+  read <- intersect(derived, columns)
+  unread <- names(census_backend(scm)$undifferentiable())
+  lost <- setdiff(derived, read)
+  lost <- lost[!trait_without_species(lost) %in% unread]
+  if (length(lost) > 0L) {
+    stop("`hyperpar` derives ", paste(lost, collapse = ", "), " from the ",
+         "species' traits, which has no gradient column, so the chain rule ",
+         "cannot be completed")
+  }
+  partial <- stand_gradient(scm, metrics, union(traits, read), hyperpar = NULL)
+  G <- partial$gradient
+  total <- G[, traits, drop = FALSE]
+  for (J in trade_offs) {
+    along <- intersect(colnames(J), traits)
+    from <- intersect(rownames(J), read)
+    total[, along] <- total[, along] +
+      G[, from, drop = FALSE] %*% J[from, along, drop = FALSE]
+  }
+  partial$gradient <- total
+  partial
+}
 
-  list(value = partial$value,
-       gradient = total,
-       refusal = partial$refusal,
-       control = partial$control,
-       jacobian = jacobian)
+# Each parameter `hyperpar` derives for species `i`, differentiated in each trait
+# by one call on the traits and each moved up and down: rows and columns named.
+trade_off <- function(s, i, hyperpar) {
+  derived <- colnames(hyperpar(matrix(numeric(0), 1L, 0L), s, filter = FALSE))
+  if (length(derived) == 0L) {
+    return(matrix(numeric(0), 0L, 0L))
+  }
+  x <- unlist(s$pars[setdiff(names(s$pars), derived)])
+  P <- length(x)
+  h <- 6e-6 * pmax(abs(x), 1e-3)
+  at <- matrix(x, P, P, byrow = TRUE)
+  rows <- rbind(x, at + diag(h, P), at - diag(h, P))
+  colnames(rows) <- names(x)
+  out <- hyperpar(rows, s, filter = FALSE)[, derived, drop = FALSE]
+  # ⚠️ CHECKED: a chain through a trade-off the strategy is not on returns finite,
+  # wrong numbers. 1e-7, as the function's filter keeps a default to 1.5e-8.
+  gap <- abs(out[1L, ] - unlist(s$pars)[derived])
+  off <- !is.finite(gap) | gap > 1e-7 * abs(out[1L, ])
+  if (any(off)) {
+    unkept <- attr(hyperpar, "input_traits", exact = TRUE)
+    stop("Species ", i, "'s ", paste(derived[off], collapse = ", "),
+         " are not what `hyperpar` gives at its traits: it was built by hand, ",
+         "edited after it was built",
+         if (length(unkept)) paste0(", built at a ", paste(unkept, collapse = ", "),
+                                    " the strategy does not keep"),
+         ", or built through another function. Pass the function it was built ",
+         "with, or hyperpar = NULL for partial derivatives")
+  }
+  up <- out[1L + seq_len(P), , drop = FALSE]
+  down <- out[1L + P + seq_len(P), , drop = FALSE]
+  J <- t(up - down) / rep(2 * h, each = length(derived))
+  dimnames(J) <- list(paste0(i, ".", derived), paste0(i, ".", names(x)))
+  J[, colSums(J != 0) > 0, drop = FALSE]
 }
 
 ##' Which of a gradient's metrics were refused.

@@ -26,9 +26,8 @@ namespace plant {
 // layers is refused, one with fewer leaves the spare slots at rate zero.
 //
 // The physics of a column is the environment's own, called through the const
-// helpers TF24_Environment factored out for this (rainfall_floored,
-// infiltration_from, soil_K_from_soil_theta, soil_layer_rate,
-// psi_from_soil_moist, pulse_capacity). The leaf reads the column's own
+// members TF24_Environment integrates its own column with (rainfall_floored,
+// layer_rates, psi_from_soil_moist, pulse_capacity). The leaf reads the column's own
 // potentials through the virtual soil_water_potential_for_leaf hook.
 //
 // Limits, enforced where they are first seen: the birth-date size-density
@@ -170,27 +169,25 @@ void TF24w_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,
   // column was rated.
   const S area_eff = area / std::max(1.0, environment.private_water_cover());
 
-  const double rainfall = environment.rainfall_floored();
-  const S infiltration =
-    environment.infiltration_from(rainfall, vars.state(state_idx_water_first));
   const double m = environment.water_mixing_rate;
+  std::vector<S> theta(n), uptake(n), rate(n);
   water_flux_own_.resize(n);
-  S water_input;
   for (int i = 0; i < n; ++i) {
-    const int slot = state_idx_water_first + i;
-    const S& theta = vars.state(slot);
-    water_input = (i == 0) ? infiltration : water_flux_own_[i - 1];
-    water_flux_own_[i] = environment.soil_K_from_soil_theta(theta, i);
+    theta[i] = vars.state(state_idx_water_first + i);
     // Uptake per unit of the plant's own ground. Crown area is leaf area over
     // L_crown and uptake is per leaf area times leaf area, so this is leaf-area
     // density times uptake per leaf area, the same at every size.
-    const S uptake = vars.consumption_rate(i) / area_eff;
-    S rate = environment.soil_layer_rate(water_input, water_flux_own_[i], uptake,
-                                         theta, i);
+    uptake[i] = vars.consumption_rate(i) / area_eff;
+  }
+  const S infiltration =
+    environment.layer_rates(environment.rainfall_floored(), theta, uptake, rate,
+                            &water_flux_own_,
+                            [&environment](int site) { environment.note_clamp(site); });
+  for (int i = 0; i < n; ++i) {
     if (m > 0.0) {
-      rate += m * (S(environment.private_water_mean(i)) - theta);
+      rate[i] += m * (S(environment.private_water_mean(i)) - theta[i]);
     }
-    vars.set_rate(slot, rate);
+    vars.set_rate(state_idx_water_first + i, rate[i]);
   }
   for (int i = n; i < static_cast<int>(n_water_layers); ++i) {
     vars.set_rate(state_idx_water_first + i, S(0.0));

@@ -28,6 +28,9 @@ Meta
 # Overstorey repo; not version-controlled here.
 overstorey-staging/figures/
 
+# ATLS demo file-based cache (expensive SCM runs); regenerated on render.
+overstorey_staging/cache/
+
 # Claude Code personal settings
 .claude/settings.local.json
 
@@ -49,3 +52,5 @@ tests/testthat/_snaps/*.new.md
 
 # What the #519 pilot scripts write; each script regenerates its own tables.
 notes/scripts/continuous-patch-519/output/
+.DS_Store
+tests/testthat/_problems/

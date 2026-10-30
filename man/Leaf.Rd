@@ -12,7 +12,7 @@ Leaf(
   root_P50,
   TF24_beta2,
   jmax_25,
-  a,
+  phi_J,
   curv_fact_elec_trans,
   curv_fact_colim,
   GSS_tol_abs,
@@ -40,7 +40,7 @@ positive magnitude)}
 
 \item{jmax_25}{maximum rate of electron transport at 25 C (umol m^-2 s^-1)}
 
-\item{a}{quantum yield of photosynthetic electron transport (mol mol^-1)}
+\item{phi_J}{quantum yield of electron transport per ABSORBED photon (mol mol^-1); J reads phi_J * alpha_PAR_ * PPFD. Was `a` (incident basis) before phylloptim 0.13.0: phi_J = a / alpha_PAR_.}
 
 \item{curv_fact_elec_trans}{curvature factor for the light response curve (unitless)}
 

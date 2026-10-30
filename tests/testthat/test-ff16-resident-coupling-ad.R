@@ -43,7 +43,7 @@ compile_ff16_resident_ad <- function() {
       #include <cmath>
             #include <odelia/interpolator.hpp>
       #include <plant/models/ff16_production_kernel.h>
-      using adt = odelia::ode::active_scalar<double>;
+      using adt = odelia::ode::adjoint_scalar<double>;
 
       template <typename S>
       S resident_net(S a_l1, S k_I, const plant::FF16ProdPars<S>& p,
@@ -74,6 +74,7 @@ compile_ff16_resident_ad <- function() {
         p.lma=v[0];p.rho=v[1];p.theta=v[2];p.a_b1=v[3];p.a_r1=v[4];p.eta_c=v[5];
         p.a_p1=v[6];p.a_p2=v[7];p.r_l=v[8];p.r_s=v[9];p.r_b=v[10];p.r_r=v[11];
         p.k_l=v[12];p.k_b=v[13];p.k_s=v[14];p.k_r=v[15];p.a_bio=v[16];p.a_y=v[17];
+        p.a_cr1=v[18];p.r_cr=v[19];p.k_cr=v[20];
         return p;
       }
 
@@ -123,8 +124,11 @@ testthat::test_that("FF16 resident self-shading coupling differentiates end-to-e
   wq <- simp * dz / 3 * q
 
   a_l1 <- 0.306; a_l2 <- 0.75; k_I <- 0.5
+  ## Trailing three are the coarse-root pool (#349): a_cr1, r_cr, k_cr, with a
+  ## non-zero a_cr1 so the a_l1 gradient runs through the new terms too.
   v <- c(0.1978791, 608, 0.0002141786, 0.17, 0.07, 0.5805, 151.177, 0.204,
-         0.01979, 0.0859, 0.04, 0.2086, 0.4565, 0.2, 0.0, 1.0, 0.0245, 0.7)
+         0.01979, 0.0859, 0.04, 0.2086, 0.4565, 0.2, 0.0, 1.0, 0.0245, 0.7,
+         0.2, 0.0859, 0.2)
 
   g <- resident_grad(a_l1, k_I, v, a_l2, H, density, xk, qfrac_knot,
                      dqfrac_knot, z, wq)

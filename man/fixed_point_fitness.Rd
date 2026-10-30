@@ -41,8 +41,8 @@ Fitness of invaders at a resident's fixed point
 }
 \details{
 A resident at a fixed point makes one field, so an invader of it needs no
-recording of the resident and no replay: it stands in that one field, held,
-for its whole life. This runs each strategy in \code{traits} as one cohort
+recording of the resident and no pinned run: it stands in that one field,
+constant, for its whole life. This runs each strategy in \code{traits} as one cohort
 born at time zero into the field \code{scm} stands in now, until the cohort
 is dead, and returns each one's lifetime offspring per seed. Every arrival
 at a fixed point sees the same field, so that one cohort's output is the
@@ -53,19 +53,19 @@ continuous patch's ever-growing node list does not make a per-cohort
 quantity).
 
 The field is taken from the state \code{scm} has reached at the first call,
-and held for every later one; run the resident to its fixed point first, for
+and used for every later one; run the resident to its fixed point first, for
 instance with \code{\link{run_until_converged}} under constant drivers and
 the absorbing top layer (\code{Control$absorb_epsilon}). The invaders run
-together, as one community, since nothing they do moves a held field.
+together, as one community, since nothing they do moves a constant field.
 \code{scm} is consumed: afterwards it holds the invaders, and the field is
-released, so a later run of it builds its own.
+cleared, so a later run of it builds its own.
 
 The introduction grid has to make the stand a fixed point. Between two
 introductions the field swings, and a grid that is too coarse makes the
-stand a periodic orbit whose field, held at an introduction, is the top of
-the swing: FF16 at its equilibrium birth rate swings by 1.8 \% in held
-fitness at a cohort a year and 0.02 \% at four. \code{SCM$run_to()} stops
-only at introduction instants, so to hold a field mid-interval, and check
+stand a periodic orbit whose field, taken at an introduction, is the top of
+the swing: FF16 at its equilibrium birth rate swings by 1.8 \% in
+constant-field fitness at a cohort a year and 0.02 \% at four. \code{SCM$run_to()} stops
+only at introduction instants, so to take a field mid-interval, and check
 the grid, end the resident's run there with \code{max_patch_lifetime}.
 }
 \seealso{

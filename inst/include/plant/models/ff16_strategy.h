@@ -48,6 +48,12 @@ struct FF16_Pars {
   S a_l2        = 0.306; // dimensionless scaling of height with leaf area
   // Root mass per leaf area
   S a_r1        = 0.07;  //[kg / m]
+  // Coarse (structural) root mass per unit sapwood mass. Coarse roots are
+  // treated as the below-ground continuation of the sapwood cylinder, so they
+  // inherit its height scaling and the structural root:shoot ratio is
+  // size-invariant. Zero by default: the pool is absent unless switched on, so
+  // FF16 reproduces the published model (Falster et al. 2016).
+  S a_cr1       = 0.0;   // [dimensionless]
   // Ratio of bark area : sapwood area
   S a_b1         = 0.17; // [dimensionless]
 
@@ -73,6 +79,11 @@ struct FF16_Pars {
   // fields (the hyperparameter function sets each), and the literal keeps the
   // default readable in a struct whose members are a template scalar.
   S r_b    = 2.0 * (4012.0 / 608.0);
+  // Coarse-root respiration per mass [mol CO2 / yr / kg]
+  // Coarse roots are woody, so this defaults to the sapwood rate, spelled out
+  // as r_b is. As with r_b, this is a default, not a link: setting r_s
+  // afterwards does not move it.
+  S r_cr   = 4012.0 / 608.0;
   // Carbon conversion parameter
   S a_y    = 0.7;
   // Constant converting assimilated CO2 to dry mass [kg / mol]
@@ -86,6 +97,10 @@ struct FF16_Pars {
   S k_s           = 0.2;
   // Root turnover [/yr]
   S k_r    = 1.0;
+  // Coarse-root turnover [/yr]
+  // Woody, so this defaults to the sapwood rate (k_s) rather than the
+  // fine-root one; spelled out, as r_b is, so it is a default and not a link.
+  S k_cr   = 0.2;
   // Parameters of the hyperbola for annual LRC
   S a_p1   = 151.177775377968; // [mol CO2 / yr / m2]
   S a_p2   = 0.204716166503633; // [dimensionless]
@@ -158,17 +173,20 @@ struct FF16_Pars {
       PLANT_FF16_AD_PARAMETER(a_l1),
       PLANT_FF16_AD_PARAMETER(a_l2),
       PLANT_FF16_AD_PARAMETER(a_r1),
+      PLANT_FF16_AD_PARAMETER(a_cr1),
       PLANT_FF16_AD_PARAMETER(a_b1),
       PLANT_FF16_AD_PARAMETER(r_l),
       PLANT_FF16_AD_PARAMETER(r_r),
       PLANT_FF16_AD_PARAMETER(r_s),
       PLANT_FF16_AD_PARAMETER(r_b),
+      PLANT_FF16_AD_PARAMETER(r_cr),
       PLANT_FF16_AD_PARAMETER(a_y),
       PLANT_FF16_AD_PARAMETER(a_bio),
       PLANT_FF16_AD_PARAMETER(k_l),
       PLANT_FF16_AD_PARAMETER(k_b),
       PLANT_FF16_AD_PARAMETER(k_s),
       PLANT_FF16_AD_PARAMETER(k_r),
+      PLANT_FF16_AD_PARAMETER(k_cr),
       PLANT_FF16_AD_PARAMETER(a_p1),
       PLANT_FF16_AD_PARAMETER(a_p2),
       PLANT_FF16_AD_PARAMETER(a_f3),
@@ -267,7 +285,10 @@ public:
   // the full-lifetime deep-crown anchor, offspring production moves
   // 16.884586 -> 17.172004, i.e. **+1.70%**; on the height coordinate it is
   // unchanged to the last bit.
-  static constexpr int scientific_version = 2;
+  // v3: the integrator, not the model. odelia 0.8.0's step-size rule and the
+  // default ode_tol 1e-4 -> 1e-5 give every adaptive run a different step
+  // sequence, so output moves within the ODE tolerance at identical inputs.
+  static constexpr int scientific_version = 3;
 
   // Fixed integer slots for the hot ODE rate path, used instead of
   // state_index.at("...") / aux_index.at("...") string-map lookups (those map
@@ -452,15 +473,21 @@ public:
   // [eqn 7] Mass of (fine) roots
   S mass_root(const S& area_leaf) const;
 
+  // [eqn 7b] Mass of coarse (structural) roots, as a fraction of sapwood mass
+  // (see FF16_Pars::a_cr1). Zero unless a_cr1 is set.
+  S mass_coarse_root(const S& mass_sapwood) const;
+
   // [eqn 8] Total Mass
   S mass_live(const S& mass_leaf, const S& mass_bark,
-              const S& mass_sapwood, const S& mass_root) const;
+              const S& mass_sapwood, const S& mass_root,
+              const S& mass_coarse_root) const;
 
   S mass_total(const S& mass_leaf, const S& mass_bark, const S& mass_sapwood,
-               const S& mass_heartwood, const S& mass_root) const;
+               const S& mass_heartwood, const S& mass_root,
+               const S& mass_coarse_root) const;
 
   // Above-ground mass = leaf + all stem components (bark + sapwood +
-  // heartwood); excludes roots.
+  // heartwood); excludes both fine and coarse roots.
   S mass_above_ground(const S& mass_leaf, const S& mass_bark,
                       const S& mass_sapwood, const S& mass_heartwood) const;
 
@@ -517,20 +544,24 @@ public:
 
   // [eqn 13] Total maintenance respiration
   S respiration(const S& mass_leaf, const S& mass_sapwood,
-                const S& mass_bark, const S& mass_root) const;
+                const S& mass_bark, const S& mass_root,
+                const S& mass_coarse_root) const;
 
   S respiration_leaf(const S& mass) const;
   S respiration_bark(const S& mass) const;
   S respiration_sapwood(const S& mass) const;
   S respiration_root(const S& mass) const;
+  S respiration_coarse_root(const S& mass) const;
 
   // [eqn 14] Total turnover
   S turnover(const S& mass_leaf, const S& mass_bark,
-             const S& mass_sapwood, const S& mass_root) const;
+             const S& mass_sapwood, const S& mass_root,
+             const S& mass_coarse_root) const;
   S turnover_leaf(const S& mass) const;
   S turnover_bark(const S& mass) const;
   S turnover_sapwood(const S& mass) const;
   S turnover_root(const S& mass) const;
+  S turnover_coarse_root(const S& mass) const;
 
   // [eqn 15] Net production
   S net_mass_production_dt_A(const S& assimilation, const S& respiration,
@@ -606,6 +637,9 @@ public:
   S dmass_bark_darea_leaf(const S& area_leaf) const;
   // Mass of root needed for new unit area leaf, d m_r / d a_l
   S dmass_root_darea_leaf(const S& area_leaf) const;
+  // Mass of coarse root needed for new unit area leaf, d m_cr / d a_l.
+  // == a_cr1 * dmass_sapwood_darea_leaf, so it carries the same height scaling.
+  S dmass_coarse_root_darea_leaf(const S& area_leaf) const;
   // Growth rate of basal diameter_stem per unit stem area
   S ddiameter_stem_darea_stem(const S& area_stem) const;
   // Growth rate of components per unit time:
@@ -615,6 +649,7 @@ public:
   S area_stem_dt(const S& area_leaf, const S& area_leaf_dt) const;
   S diameter_stem_dt(const S& area_stem, const S& area_stem_dt) const;
   S mass_root_dt(const S& area_leaf, const S& area_leaf_dt) const;
+  S mass_coarse_root_dt(const S& area_leaf, const S& area_leaf_dt) const;
   S mass_live_dt(const S& fraction_allocation_reproduction,
                  const S& net_mass_production_dt) const;
   S mass_total_dt(const S& fraction_allocation_reproduction,
@@ -714,7 +749,7 @@ public:
   // defines it -- live mass equals seed mass -- and the leaf area is derived from
   // the height it returns. The two come from one call because the leaf area's own
   // partials in the allometric constants and its chain through the height are the
-  // same channel: taking either against the other held fixed mixes them.
+  // same channel: taking either with the other fixed mixes them.
   struct SeedGeometry { S height; S area_leaf; };
   SeedGeometry seed_geometry() const {
     if constexpr (std::is_same_v<S, double>) {
@@ -780,7 +815,7 @@ public:
   // This strategy at another scalar, carrying no derivative -- assign_from takes
   // every parameter through to_passive.
   template <class U>
-  FF16_Strategy<U> rebind_from() const {
+  FF16_Strategy<U> rebind() const {
     FF16_Strategy<U> out;
     out.assign_from(*this);
     return out;
@@ -931,18 +966,30 @@ S FF16_Strategy<S>::mass_root(const S& area_leaf) const {
   return pars.a_r1 * area_leaf;
 }
 
+// [eqn 7b] Mass of coarse (structural) roots
+template <typename S>
+S FF16_Strategy<S>::mass_coarse_root(const S& mass_sapwood) const {
+  return pars.a_cr1 * mass_sapwood;
+}
+
 // [eqn 8] Total mass
+// The coarse-root term is appended, not interleaved, so that with the default
+// a_cr1 = 0 the sum is bit-identical to the pre-#349 expression (x + 0.0 == x
+// exactly, and the association order of the other terms is untouched).
 template <typename S>
 S FF16_Strategy<S>::mass_live(const S& mass_leaf, const S& mass_bark,
-                              const S& mass_sapwood, const S& mass_root) const {
-  return mass_leaf + mass_sapwood + mass_bark + mass_root;
+                              const S& mass_sapwood, const S& mass_root,
+                              const S& mass_coarse_root) const {
+  return mass_leaf + mass_sapwood + mass_bark + mass_root + mass_coarse_root;
 }
 
 template <typename S>
 S FF16_Strategy<S>::mass_total(const S& mass_leaf, const S& mass_bark,
                                const S& mass_sapwood, const S& mass_heartwood,
-                               const S& mass_root) const {
-  return mass_leaf + mass_bark + mass_sapwood +  mass_heartwood + mass_root;
+                               const S& mass_root,
+                               const S& mass_coarse_root) const {
+  return mass_leaf + mass_bark + mass_sapwood +  mass_heartwood + mass_root +
+    mass_coarse_root;
 }
 
 template <typename S>
@@ -1089,10 +1136,12 @@ S FF16_Strategy<S>::assimilation_leaf(const S& x) const {
 // NOTE: In contrast with Falster ref model, we do not normalise by pars.a_y*pars.a_bio.
 template <typename S>
 S FF16_Strategy<S>::respiration(const S& mass_leaf, const S& mass_sapwood,
-                                const S& mass_bark, const S& mass_root) const {
+                                const S& mass_bark, const S& mass_root,
+                                const S& mass_coarse_root) const {
   // Single source: scalar-templated kernel (#472 scope B, Milestone A).
   return ff16_respiration(mass_leaf, mass_sapwood, mass_bark, mass_root,
-                          pars.r_l, pars.r_s, pars.r_b, pars.r_r);
+                          mass_coarse_root,
+                          pars.r_l, pars.r_s, pars.r_b, pars.r_r, pars.r_cr);
 }
 
 template <typename S>
@@ -1115,13 +1164,20 @@ S FF16_Strategy<S>::respiration_root(const S& mass) const {
   return pars.r_r * mass;
 }
 
+template <typename S>
+S FF16_Strategy<S>::respiration_coarse_root(const S& mass) const {
+  return pars.r_cr * mass;
+}
+
 // [eqn 14] Total turnover
 template <typename S>
 S FF16_Strategy<S>::turnover(const S& mass_leaf, const S& mass_bark,
-                             const S& mass_sapwood, const S& mass_root) const {
+                             const S& mass_sapwood, const S& mass_root,
+                             const S& mass_coarse_root) const {
    // Single source: scalar-templated kernel (#472 scope B, Milestone A).
    return ff16_turnover(mass_leaf, mass_bark, mass_sapwood, mass_root,
-                        pars.k_l, pars.k_b, pars.k_s, pars.k_r);
+                        mass_coarse_root,
+                        pars.k_l, pars.k_b, pars.k_s, pars.k_r, pars.k_cr);
 }
 
 template <typename S>
@@ -1142,6 +1198,11 @@ S FF16_Strategy<S>::turnover_sapwood(const S& mass) const {
 template <typename S>
 S FF16_Strategy<S>::turnover_root(const S& mass) const {
   return pars.k_r * mass;
+}
+
+template <typename S>
+S FF16_Strategy<S>::turnover_coarse_root(const S& mass) const {
+  return pars.k_cr * mass;
 }
 
 // [eqn 15] Net production
@@ -1184,12 +1245,15 @@ S FF16_Strategy<S>::net_mass_production_dt(const FF16_Environment<S>& environmen
   const S area_bark_    = area_bark(area_leaf_);
   const S mass_bark_    = mass_bark(area_bark_, height);
   const S mass_root_    = mass_root(area_leaf_);
+  const S mass_coarse_root_ = mass_coarse_root(mass_sapwood_);
   const S assimilation_ =
     assimilation(environment, height, area_leaf_, height_inverse);
   const S respiration_ =
-    respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
+    respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_,
+                mass_coarse_root_);
   const S turnover_ =
-    turnover(mass_leaf_, mass_bark_, mass_sapwood_, mass_root_);
+    turnover(mass_leaf_, mass_bark_, mass_sapwood_, mass_root_,
+             mass_coarse_root_);
   return net_mass_production_dt_A(assimilation_, respiration_, turnover_);
 }
 
@@ -1227,10 +1291,14 @@ S FF16_Strategy<S>::darea_leaf_dmass_live(const S& area_leaf,
   // so compute the shared pow(area_leaf, pars.a_l2) term once rather than twice.
   const S dmass_sapwood_darea_leaf_ =
     dmass_sapwood_darea_leaf(area_leaf, area_leaf_pow_a_l2);
+  // dmass_coarse_root_darea_leaf == a_cr1 * dmass_sapwood_darea_leaf, so it
+  // reuses the same shared term as bark. Appended last so that at the default
+  // a_cr1 = 0 the denominator is bit-identical to the pre-#349 sum.
   return 1.0/(  dmass_leaf_darea_leaf(area_leaf)
               + dmass_sapwood_darea_leaf_
               + pars.a_b1 * dmass_sapwood_darea_leaf_
-              + dmass_root_darea_leaf(area_leaf));
+              + dmass_root_darea_leaf(area_leaf)
+              + pars.a_cr1 * dmass_sapwood_darea_leaf_);
 }
 
 template <typename S>
@@ -1277,6 +1345,12 @@ S FF16_Strategy<S>::dmass_bark_darea_leaf(const S& area_leaf) const {
 template <typename S>
 S FF16_Strategy<S>::dmass_root_darea_leaf(const S& /* area_leaf */) const {
   return pars.a_r1;
+}
+
+// Mass of coarse root needed for new unit area leaf, d m_cr / d a_l
+template <typename S>
+S FF16_Strategy<S>::dmass_coarse_root_darea_leaf(const S& area_leaf) const {
+  return pars.a_cr1 * dmass_sapwood_darea_leaf(area_leaf);
 }
 
 // Growth rate of basal diameter_stem per unit time
@@ -1327,6 +1401,13 @@ S FF16_Strategy<S>::mass_root_dt(const S& area_leaf,
   return area_leaf_dt * dmass_root_darea_leaf(area_leaf);
 }
 
+// Growth rate of coarse-root mass per unit time
+template <typename S>
+S FF16_Strategy<S>::mass_coarse_root_dt(const S& area_leaf,
+                                        const S& area_leaf_dt) const {
+  return area_leaf_dt * dmass_coarse_root_darea_leaf(area_leaf);
+}
+
 template <typename S>
 S FF16_Strategy<S>::mass_live_dt(const S& fraction_allocation_reproduction,
                                  const S& net_mass_production_dt) const {
@@ -1341,7 +1422,6 @@ S FF16_Strategy<S>::mass_total_dt(const S& fraction_allocation_reproduction,
     mass_heartwood_dt;
 }
 
-// TODO(#480): Do we not track root mass change?
 template <typename S>
 S FF16_Strategy<S>::mass_above_ground_dt(const S& area_leaf,
                                          const S& fraction_allocation_reproduction,
@@ -1350,8 +1430,10 @@ S FF16_Strategy<S>::mass_above_ground_dt(const S& area_leaf,
                                          const S& area_leaf_dt) const {
   const S mass_root_dt =
     area_leaf_dt * dmass_root_darea_leaf(area_leaf);
+  const S mass_coarse_root_dt =
+    area_leaf_dt * dmass_coarse_root_darea_leaf(area_leaf);
   return mass_total_dt(fraction_allocation_reproduction, net_mass_production_dt,
-                        mass_heartwood_dt) - mass_root_dt;
+                        mass_heartwood_dt) - mass_root_dt - mass_coarse_root_dt;
 }
 
 template <typename S>
@@ -1363,10 +1445,12 @@ S FF16_Strategy<S>::mass_heartwood_dt(const S& mass_sapwood) const {
 template <typename S>
 S FF16_Strategy<S>::mass_live_given_height(const S& height) const {
   S area_leaf_ = area_leaf(height);
+  const S mass_sapwood_ = mass_sapwood(area_sapwood(area_leaf_), height);
   return mass_leaf(area_leaf_) +
          mass_bark(area_bark(area_leaf_), height) +
-         mass_sapwood(area_sapwood(area_leaf_), height) +
-         mass_root(area_leaf_);
+         mass_sapwood_ +
+         mass_root(area_leaf_) +
+         mass_coarse_root(mass_sapwood_);
 }
 
 template <typename S>
@@ -1537,9 +1621,9 @@ void FF16_Strategy<S>::prepare_strategy() {
   // taken here where the choice is visible and the scalar is already double.
   {
     using tangent = odelia::ode::tangent_scalar<double>;
-    const FF16_Strategy<tangent> at_tangent = rebind_from<tangent>();
+    const FF16_Strategy<tangent> at_tangent = rebind<tangent>();
     tangent probe = height_0;
-    odelia::ode::seed_direction(probe, 1.0);
+    odelia::ode::set_direction(probe, 1.0);
     dmass_dheight_0 = odelia::ode::derivative_along(
         at_tangent.mass_live_given_height(probe));
   }

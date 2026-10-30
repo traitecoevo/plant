@@ -95,7 +95,7 @@ Key headers to know:
 | Config | [parameters.h](inst/include/plant/parameters.h), [control.h](inst/include/plant/control.h) |
 | Disturbance | [disturbances/weibull_disturbance.h](inst/include/plant/disturbances/weibull_disturbance.h), `no_disturbance.h` |
 | Leaf-level physiology | [leaf_model.h](inst/include/plant/leaf_model.h) (photosynthesis + hydraulics; used by TF24) |
-| Numerics | [ode_solver/](inst/include/plant/ode_solver/), [qag.h](inst/include/plant/qag.h)/[qk.h](inst/include/plant/qk.h) (adaptive quadrature), [interpolator.h](inst/include/plant/interpolator.h)/[adaptive_interpolator.h](inst/include/plant/adaptive_interpolator.h), [uniroot.h](inst/include/plant/uniroot.h), [gradient.h](inst/include/plant/gradient.h) |
+| Numerics | [qag.h](inst/include/plant/qag.h)/[qk.h](inst/include/plant/qk.h) (adaptive quadrature), [uniroot.h](inst/include/plant/uniroot.h), [gradient.h](inst/include/plant/gradient.h); the ODE solver, interpolators and splines come from `odelia` (`LinkingTo`) |
 
 ### The `Strategy` contract
 
@@ -208,8 +208,9 @@ knowing before you go looking for a leaf bug here:
 - **Fix leaf physiology in `phylloptim`, not here.** It has its own golden-file
   regression baseline over 288 operating points and its own hazard list; a change
   made here would be invisible to both.
-- **The two repos move together.** plant tracks the package's `master` via
-  `Remotes:`, so a merge there is what changes results here. Any coupled change
+- **The two repos move together.** plant pins phylloptim to a commit in
+  `Remotes:` (and an exact version in `LinkingTo`), so bumping that pin is what
+  changes results here. Any coupled change
   lands as a pair of PRs, and the plant half is what re-baselines the SCM values.
 - **The leaf is purely intensive.** Every input is per unit leaf area or an
   intensive driver — whole-plant allometry (`kmax(h)`, root carbon totals) is
@@ -220,11 +221,15 @@ knowing before you go looking for a leaf bug here:
   carbon compiles fine, quietly weakens the root system by the leaf area, and
   **the leaf can no longer detect it** — the division used to happen inside the
   leaf and now happens here. See the NEWS entry.
-- **Do not open-code the layer thickness.** `root_network_from_carbon` scales the
-  vertical resistance by `dz^2`, and `phylloptim::layer_thickness()` is the shared
-  definition of `dz` that `MultiLayerRoots::set_soil_state` also uses. Two copies
-  drifting apart puts a silent squared factor on every vertical resistance, with
-  both halves internally consistent and neither package able to notice.
+- **Do not open-code the layer thickness, and do not switch it to the
+  environment's `dz`.** `root_network_from_carbon` scales the vertical resistance
+  by `dz[i]^2`, per layer since phylloptim 0.9.0. `TF24_Strategy` hands it
+  `phylloptim::layer_thicknesses(z)`, the shared definition, at both of its call
+  sites. The widths are `TF24_Environment`'s input and `z` is built from them, so
+  the differences are those widths to within rounding -- but not bit-exact: on
+  the default 1.5 m over 5 layers, layers 3-5 differ from `depth / n` in the last
+  bit, so reading `environment.dz` instead would move every TF24 number. Make
+  that switch at the next rebaseline (marked TODO at the call site).
 - **`nm` is how you diagnose a stale build.** See the `R CMD INSTALL` note in §6 —
   a header-only dependency changing underneath a stale `.o` produces an error that
   names an untouched field accessor.
@@ -375,6 +380,7 @@ Use the [Makefile](Makefile) targets. The dependency you must internalise:
 | `make roxygen` | `devtools::document()` → `man/` + `NAMESPACE` |
 | `make rebuild` | **The full pipeline:** `clean` → `RcppR6` → `full_compile` → `roxygen` |
 | `make test` | `make all` then `devtools::test()` |
+| `make test-installed` | run the suite against the plant installed in `R_LIBS`, not this checkout (§8) |
 | `make check` / `make build` / `make install` | `R CMD check` / `build` / `INSTALL` |
 | `make benchmark` | run `scripts/benchmark.R` |
 | `make scenarios` | run the TF24 hydraulic scenario gateway → writes a scorecard RDS (`scripts/run_scenario_gateway.R`) |
@@ -388,8 +394,8 @@ Practical rules:
 - **Edited only R code / roxygen comments?** `make roxygen` (then `devtools::load_all()`).
 - During development, `devtools::load_all()` is the fastest way to test changes.
 
-C++ standard is **C++20** (`CXX_STD = CXX20` in [src/Makevars](src/Makevars));
-note the README still mentions C++14. Requires R ≥ 4.5.0.
+C++ standard is **C++20** (`CXX_STD = CXX20` in [src/Makevars](src/Makevars)).
+Requires R ≥ 4.5.0.
 
 ### `R CMD INSTALL` does not clean, and a stale `.o` fails in a misleading way
 
@@ -525,6 +531,25 @@ numerics you may need to regenerate these.
 Run the suite with `make test` or `devtools::test()`; a single file with
 `devtools::test_active_file()` or `testthat::test_file(...)`.
 
+To test an **installed** plant rather than this checkout (a build against a
+bumped odelia or phylloptim, say), run `R_LIBS=<lib> make test-installed`. It
+prints where plant was loaded from; read that line, because a missing library
+falls back silently to whichever plant is in the default library. The target
+exists because each of its settings fails quietly when left out:
+
+- It calls `test_check("plant")` from `tests/`. `test_check` evaluates the tests
+  in plant's namespace, where the RcppR6 internals (`Parameters`, `Species`,
+  `SCM`, ...) live. `test_dir()` uses the global environment and reports about
+  ninety "could not find function" errors that look like a broken build, and
+  `test_check` run from the package root finds no test files.
+- It sets `TESTTHAT_PARALLEL=false`, because the parallel workers do not inherit
+  `R_LIBS` and fail with an unrelated-looking `queue$poll` backtrace.
+- It sets `NOT_CRAN=true`, without which a set of tests skips, and a summary
+  reporter shows a skip no differently from a pass.
+
+The pass count depends on the environment, so compare it with a control run of
+the same invocation against a reference build, not with a remembered number.
+
 The suite runs under testthat **edition 3** and is parallelised by file
 (`Config/testthat/parallel: true` in `DESCRIPTION`). testthat takes the worker
 count from `getOption("Ncpus")` / the `TESTTHAT_CPUS` env var, defaulting to
@@ -654,9 +679,9 @@ repo's README for how it renders, freezes (`_freeze/`), and version-pins posts.
   The one deliberate asymmetry: `TF24_Pars` exposes `root_b` (the Weibull scale)
   where phylloptim takes `root_P50` (the quantile), so `prepare_strategy()`
   converts — those are different quantities, not a naming mismatch.
-- ⚠️ **NEVER PUT A NON-FINITE NUMBER IN AN ODE STATE, and do not read
+- ⚠️ **Never put a non-finite number in an ODE state, and do not read
   `check_finite_ode_state` as protection against one.** It tests the cohort
-  DENSITY (`exp(log_density)`, so `-Inf` passes as a finite zero) and the
+  density (`exp(log_density)`, so `-Inf` passes as a finite zero) and the
   environment's own states; the six slots `Strategy::state_names()` declares and
   the node's two extras are not looked at. A `+Inf` hazard from `-log(0)` at an
   establishment probability of exactly zero therefore ran for years: every reader
@@ -712,11 +737,10 @@ follow-up [#470] (LTO).
   timestep by evaluating cumulative competition at a fixed set of heights; each
   individual then queries the environment with an O(1) spline lookup
   (`get_environment_at_height`). Cost becomes O(n) to build + O(1) per query.
-- **Uniform-grid O(1) spline index.** `tk::spline::operator()`
-  ([tk/spline.h](inst/include/tk/spline.h), [src/tk_spline.cpp](src/tk_spline.cpp))
-  detects an equidistant knot grid in `set_points()` and replaces the
-  `std::lower_bound` binary search with direct index arithmetic. Falls back to
-  binary search for adaptive/non-uniform grids. ([#435])
+- **O(1) spline lookup.** odelia's `hermite_spline` (`odelia/spline.hpp`)
+  checks in `set_nodes()` whether its knots are equally spaced. If they are, it
+  finds a point's span by arithmetic instead of a binary search; if not, it
+  guesses from the mean spacing and steps to the right span. ([#435])
 - **Finite-difference gradient: a copy, and deliberately not a scratch.**
   `Individual::growth_rate_gradient()`
   ([individual.h](inst/include/plant/individual.h)) needs a mutable `Individual` to
@@ -860,9 +884,7 @@ gradient column of exactly zero, which reads as an answer. Two rules follow.
 Build the input vector from the submodel's own `inputs()`, name-driven,
 with a hard stop on a name you cannot map, so a widened boundary is a compile or
 run failure rather than a shorter vector. And never `resize` a partials row to
-fit the inputs you happened to build: check the length and fail. This cost two
-waves, with fifteen correct rows computed and thrown away behind every passing
-gate in the tree.
+fit the inputs you happened to build: check the length and fail.
 
 **Two arguments of one type with unrelated meanings is a silent-swap hazard**,
 the more so under templating, because a template argument makes both of them the
@@ -953,6 +975,22 @@ When opening an issue (including whenever the user asks you to create one), alwa
 Create issues with `gh issue create -R traitecoevo/plant --title "[tag] …"
 --label task` (swap in `bug`/`epic` as appropriate).
 
+
+## Writing in this guide
+
+This file is read in full at the start of every agent session, as current
+instructions, by a reader who was not in your session and cannot tell which
+parts are out of date. When you change it:
+
+- Write what is true now, in the present tense. If something here turns out to
+  be wrong, replace it; the story of how you found out belongs in the PR.
+- Give each rule its reason, in plain case. A reason persuades where capitals
+  and warning signs do not.
+- Point to where a value lives (`DESCRIPTION`, a header, a Makefile target)
+  rather than copying the value, and leave out anything a fresh clone cannot
+  resolve, such as local paths or notes from one session.
+- Write in complete sentences that say what happens and what it causes, using
+  names that already exist in the code.
 
 ## Plant family
 

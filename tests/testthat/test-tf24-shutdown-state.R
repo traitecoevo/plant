@@ -69,7 +69,7 @@ test_that("shut-down via the negative-assimilation exit also zeroes gas exchange
   env$set_soil_number_of_depths(5)
 
   invisible(tf24_aux_at(ind, env, 0.30))   # populate first
-  env$extrinsic_drivers_set_constant("PPFD", 0)
+  env$extrinsic_drivers_set_constant("SWdown", 0)
   dark <- tf24_aux_at(ind, env, 0.30)
 
   expect_equal(dark[["transpiration"]], 0)

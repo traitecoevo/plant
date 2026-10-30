@@ -56,17 +56,17 @@ public:
   // except for soil_number_of_depths
   // which are only updated on construction
   
-  TF24_Environment(int soil_number_of_depths = 5, 
-                   double delta_z = 9999, // not using this
-                   double soil_moist_sat = 0.428, // saturated soil moisture content (m3 water m^-3 soil) 
+  // Layer geometry is set after construction, through set_soil_number_of_depths
+  // or set_soil_layer_widths.
+  TF24_Environment(int soil_number_of_depths = 5,
+                   double soil_moist_sat = 0.428, // saturated soil moisture content (m3 water m^-3 soil)
                    double K_sat = 163.0411, //saturated hydraulic conductivity of soil
-                   double a_psi = 1.78e3, // not currently being used
-                   double n_psi = 6.57, // not currently being used
+                   double a_psi = 1.78e3, // retention-curve scale (Pa)
+                   double n_psi = 6.57, // retention-curve exponent (unitless)
                    double a_infil = 1, // infiltration switch (0-1), 0 no runoff, 1 runoff
                    double b_infil = 8, // unitless, determines infiltration rate
                    double depth = 1.5)  // total depth of soil (m)
-      : delta_z(delta_z),
-      soil_moist_sat(soil_moist_sat),
+      : soil_moist_sat(soil_moist_sat),
       a_psi(a_psi),
       n_psi(n_psi),
       K_sat(K_sat),
@@ -80,7 +80,13 @@ public:
 
     ExtrinsicDrivers extrinsic_drivers;
 
-    extrinsic_drivers_set_constant("PPFD",1800);
+    // The light driver is incoming SHORTWAVE at the surface, on a horizontal plane
+    // above the canopy (W m^-2) -- the quantity a flux tower reports as SWdown, and
+    // NOT a top-of-atmosphere value. 900 is a clear-sky midday figure. The
+    // strategy splits it into its PAR and near-infrared bands with the f_PAR
+    // parameter and carries each down to the leaf; see
+    // TF24_Strategy::compute_leaf_physiology.
+    extrinsic_drivers_set_constant("SWdown",900);
     extrinsic_drivers_set_constant("rainfall",1);
     extrinsic_drivers_set_constant("atm_vpd",1);
     extrinsic_drivers_set_constant("ca",40);
@@ -124,25 +130,151 @@ public:
   // to what TF24 reports, and needs its own decision.
   static constexpr size_t aux_num = 5;
   
-  // Setup soil water distribtuion
+  // ------------------------------------------------------------------
+  // SOIL LAYER GEOMETRY
+  // ------------------------------------------------------------------
+  // Three descriptions of the same discretisation, and each is read by a
+  // different part of the model, so all three are kept rather than derived on
+  // demand:
+  //
+  //   dz[i]    the WIDTH of layer i (m). The water balance divides by it, and the
+  //            pulse capacity cap multiplies by it. This is the geometry a caller
+  //            states; the other two follow from it.
+  //   z[i]     the cumulative depth to the BOTTOM of layer i, so z.back() is the
+  //            total column depth. Read by the root-mass distribution, which
+  //            differences Q(z) across a layer -- correct only because these are
+  //            boundaries and not sample depths.
+  //   z_mid[i] the MIDPOINT of layer i. Read by the leaf's gravitational head.
+  //
+  // ⚠️ WIDTH IS THE INPUT, NOT DEPTH. The two setters below differ only in
+  // which they take, and a caller wanting unequal layers must go through
+  // set_soil_layer_widths: there is deliberately no way to state a boundary
+  // directly, because "depth 0.3" is ambiguous between a top, a midpoint and a
+  // bottom while "width 0.3" is not.
+
+  // Equal layers: n of them, spanning the current `depth`.
   void set_soil_number_of_depths(int n) {
     soil_number_of_depths = n;
-    
-    vars = Internals<S>(soil_number_of_depths + aux_num);
-    initial_states = rebind_from(vars.states);
 
     z.resize(soil_number_of_depths);
-    z_mid.resize(soil_number_of_depths);
     dz.resize(soil_number_of_depths);
-    // positive downwards
-    water_flux.resize(soil_number_of_depths);
-    resize_resource_uptake();
 
-    delta_z = depth / soil_number_of_depths;
-
+    // TODO(next rebaseline): build `z` as the running sum of `dz`, as
+    // set_soil_layer_widths does. `(i+1)*delta_z` and that sum disagree in the
+    // last bit for 103 of 180 (depth, n) pairs, and `z` feeds Q() and the
+    // gravitational head, so the change moves every TF24 number.
+    const double delta_z = depth / soil_number_of_depths;
     for (int i = 0; i < soil_number_of_depths; i++)
     {
       z[i] = (i + 1) * delta_z;
+      dz[i] = delta_z;
+    }
+
+    finalise_soil_geometry_();
+  }
+
+  // Unequal layers: the width of each, top down. `depth` becomes their total.
+  //
+  // This is what soil evaporation needs -- a very thin layer at the top of the
+  // profile, which cannot be expressed as a count.
+  //
+  // ⚠️ A THIN SURFACE LAYER MAKES THE COLUMN STIFF, and nothing here stops you.
+  // The water balance's diagonal is K'(theta)/dz, so it scales as 1/dz: measured
+  // 1.8e4 yr^-1 at the 0.3 m default, 2.6e5 at 2 cm, where the characteristic time
+  // is about two minutes. It only bites when the layer is wet, i.e. just after
+  // rain, which is exactly when an evaporation layer matters. Below dz ~ 2.6 mm
+  // the stable step falls under Control()'s ode_step_size_min and the controller
+  // cannot satisfy stability at all. See notes/plan-626-soil-layer-widths.md.
+  //
+  // ⚠️ AND IT RECALIBRATES RUNOFF. The infiltration term keys off layer 0 alone
+  // through (theta_0/theta_sat)^b_infil with b_infil = 8, so a thin layer 0 fills
+  // far faster and holds the switch shut for longer. a_infil/b_infil were
+  // calibrated against a 30 cm surface layer. Not corrected here, because doing so
+  // is a change to what TF24 reports and needs its own decision.
+  void set_soil_layer_widths(std::vector<double> widths) {
+    if (widths.empty()) {
+      util::stop("set_soil_layer_widths: need at least one layer");
+    }
+    for (size_t i = 0; i < widths.size(); ++i) {
+      if (!util::is_finite(widths[i]) || widths[i] <= 0.0) {
+        util::stop("set_soil_layer_widths: every width must be finite and "
+                   "positive; layer " + util::to_string(i + 1) + " is " +
+                   util::format_double(widths[i]));
+      }
+    }
+    // Layers must not get THINNER with depth. Equal is fine, so a uniform
+    // profile is legal and `rep(w, n)` still works.
+    //
+    // WHY. Refining towards the surface is the standard: a 1 cm-scale cell is
+    // needed near the surface and not deeper down (Downer & Ogden 2004), and
+    // that is what the profile here is for. Refining at DEPTH has no counterpart
+    // in this model -- a contrast in soil properties is per-layer *parameters*
+    // (set_soil_parameters), not a thin layer, and a water table is a
+    // bottom boundary condition TF24 does not have -- while it does reach a
+    // failure this model cannot absorb. A thin layer under a thick one drives
+    // the SCM size-density equation to overflow: sampled over the basal
+    // thickness, it fails at 5 cm, 3 cm, 2.5 cm, 2 cm and 1.5 cm, where all 18
+    // profiles thickening with depth ran clean, including a 5 mm surface layer.
+    //
+    // ⚠️ THIS IS NOT A SAFETY GUARANTEE, and do not read it as one. The failures
+    // it blocks are RAGGED in the geometry -- 5 cm fails, 4 cm passes, 3 to
+    // 1.5 cm fail, 1 cm passes again -- so thinning-with-depth is a property the
+    // observed failures share rather than a characterisation of them, and 46 of
+    // 48 sampled thinning profiles ran fine. It is a foot-gun removed, not a
+    // proof of stability; the underlying fragility is in the size-density
+    // equations.
+    //
+    // ⚠️ NOR IS A THICKENING PROFILE AUTOMATICALLY WELL RESOLVED. The error in
+    // the usual Richards discretisation vanishes on a uniform grid and "worsens
+    // with increasing layer thickness differences" whichever way they run
+    // (Mackay et al. 2022), and a fast increase with depth is equivalent to a
+    // coarser column (Regenass et al. 2021). So grading steeply is its own cost;
+    // see soil_widths_graded().
+    for (size_t i = 1; i < widths.size(); ++i) {
+      if (widths[i] < widths[i - 1]) {
+        util::stop(
+            "set_soil_layer_widths: layers must not get thinner with depth; "
+            "layer " + util::to_string(i + 1) + " (" +
+            util::format_double(widths[i]) + " m) is thinner than layer " +
+            util::to_string(i) + " (" + util::format_double(widths[i - 1]) +
+            " m). Equal widths are allowed. Refine towards the SURFACE, which "
+            "is what a thin layer is for here; a thin layer beneath a thicker "
+            "one can drive the size-density equations to overflow, and "
+            "a contrast in soil properties belongs in set_soil_parameters() "
+            "rather than in the geometry.");
+      }
+    }
+
+    soil_number_of_depths = static_cast<int>(widths.size());
+    dz = widths;
+
+    z.resize(soil_number_of_depths);
+    double cumulative = 0.0;
+    for (int i = 0; i < soil_number_of_depths; i++) {
+      cumulative += dz[i];
+      z[i] = cumulative;
+    }
+    // Taken off the running sum rather than summed again, so `depth` and
+    // `z.back()` cannot disagree by rounding. Everything downstream reads one or
+    // the other and they must be the same number.
+    depth = z.back();
+
+    finalise_soil_geometry_();
+  }
+
+  // Everything that follows from z and dz, whichever setter produced them.
+  //
+  // ⚠️ THIS RESETS THE WATER STATE AND DROPS ANY LAYERED PARAMETERS. Both are
+  // per-layer, so neither survives a change of layer count, and the geometry
+  // setters are not the place to guess a re-mapping. Set the geometry first, then
+  // the parameters, then the state -- or use plant's set_tf24_soil() from R, which
+  // exists so nobody has to remember that order.
+  void finalise_soil_geometry_() {
+    vars = Internals<S>(soil_number_of_depths + aux_num);
+    initial_states = rebind(vars.states);
+
+    z_mid.resize(soil_number_of_depths);
+    for (int i = 0; i < soil_number_of_depths; i++) {
       if (i == 0) {
         z_mid[i] = z[i] / 2.0;
       } else {
@@ -150,10 +282,9 @@ public:
       }
     }
 
-    for (int i = 0; i < soil_number_of_depths; i++)
-    {
-      dz[i] = delta_z;
-    }
+    // positive downwards
+    water_flux.resize(soil_number_of_depths);
+    resize_resource_uptake();
 
     psi_soil_.resize(soil_number_of_depths);
     psi_soil_valid_ = false;
@@ -170,7 +301,13 @@ public:
                            SEXP K_sat_values,
                            SEXP a_psi_values,
                            SEXP n_psi_values) {
-    set_soil_number_of_depths(n);
+    // Rebuild the geometry only if the layer count actually changed. Called after
+    // set_soil_layer_widths() at the same count, an unconditional rebuild would
+    // silently throw the widths away and revert to equal layers -- which is a
+    // failure mode with no symptom, since both are valid geometries.
+    if (n != soil_number_of_depths) {
+      set_soil_number_of_depths(n);
+    }
 
     soil_moist_sat_layers = resolve_soil_parameter_values(
       soil_moist_sat_values, n, soil_moist_sat, "soil_moist_sat");
@@ -240,7 +377,7 @@ public:
 
   // The values of an active vector, for the R boundary and for the state a run
   // restarts from.
-  static std::vector<double> rebind_from(const std::vector<S>& x) {
+  static std::vector<double> rebind(const std::vector<S>& x) {
     std::vector<double> out(x.size());
     for (size_t i = 0; i < x.size(); ++i) {
       out[i] = odelia::util::to_passive(x[i]);
@@ -274,7 +411,7 @@ public:
     for (size_t k = 0; k < m.size(); ++k) {
       util::write_iterator_scalar(it, m[k]);
     }
-    // The canopy top, because the field is held against height / height_max and
+    // The canopy top, because the field is tabulated against height / height_max and
     // a query divides by it: read the values and slopes without this and a
     // cohort's reads name every knot and not the grid they sit on.
     util::write_iterator_scalar(it, light_availability.height_max());
@@ -321,13 +458,12 @@ public:
       vars.states[i] = S(odelia::util::to_passive(src.vars.states[i]));
     }
     water_flux.assign(src.water_flux.size(), S(0.0));
-    resource_uptake.assign(src.resource_uptake.size(), 0.0);
+    resource_uptake.assign(src.resource_uptake.size(), S(0.0));
     z = src.z;
     z_mid = src.z_mid;
     dz = src.dz;
     initial_states = src.initial_states;
     soil_number_of_depths = src.soil_number_of_depths;
-    delta_z = src.delta_z;
     depth = src.depth;
     soil_moist_sat = src.soil_moist_sat;
     K_sat = src.K_sat;
@@ -340,6 +476,7 @@ public:
     use_layered_soil_parameters = src.use_layered_soil_parameters;
     a_infil = src.a_infil;
     b_infil = src.b_infil;
+    f_PAR = src.f_PAR;
     soil_moist_residual = src.soil_moist_residual;
     soil_psi_max_ = src.soil_psi_max_;
     water_mixing_rate = src.water_mixing_rate;
@@ -359,7 +496,7 @@ public:
   }
 
   template <class U>
-  TF24_Environment<U> rebind_from() const {
+  TF24_Environment<U> rebind() const {
     TF24_Environment<U> out;
     out.assign_from(*this);
     return out;
@@ -440,10 +577,9 @@ public:
     const S capacity_raw = (sat - theta) * dz[layer];
     return std::max(0.0, odelia::util::to_passive(capacity_raw));
   }
-  // Double: this is the uptake read back out through the R-facing aux interface,
-  // never an input to a rate, so holding it at the working scalar was a slot per
-  // layer per stage for a reading.
-  std::vector<double> resource_uptake;
+  // At the working scalar: a step that substeps the soil reads it as the
+  // layers' inputs, and the sweep differentiates through them.
+  std::vector<S> resource_uptake;
 
   // TODO: should we use auxilliary in internals
   std::vector<S> water_flux;
@@ -469,7 +605,7 @@ public:
   // at the call site, so a memo cannot be keyed on one name and read under
   // another.
   enum driver {
-    DRIVER_PPFD = 0,
+    DRIVER_SWDOWN = 0,
     DRIVER_ATM_VPD,
     DRIVER_CA,
     DRIVER_LEAF_TEMP,
@@ -479,7 +615,7 @@ public:
     DRIVER_COUNT
   };
   static constexpr std::array<const char*, DRIVER_COUNT> driver_names_ = {
-      "PPFD", "atm_vpd", "ca", "leaf_temp", "atm_o2_kpa", "atm_kpa",
+      "SWdown", "atm_vpd", "ca", "leaf_temp", "atm_o2_kpa", "atm_kpa",
       "wind_speed"};
 
   // What was read, and the one time every entry was read at. Each driver is a
@@ -516,19 +652,20 @@ public:
   ResourceSpline<S> light_availability;
 
   // Every active value this environment holds: the integrated state and its
-  // rates, the per-layer flux, the potentials derived from the state, and the
-  // light field's knot values and slopes.
+  // rates, the per-layer flux and uptake, the potentials derived from the state,
+  // and the light field's knot values and slopes.
   template <class F>
   void for_each_active(F&& f) {
-    odelia::ode::visit_active(f, vars, water_flux, psi_soil_,
+    odelia::ode::visit_active(f, vars, water_flux, resource_uptake, psi_soil_,
                               light_availability);
   }
 
-  // Light interface
-  //distance between layers
   int soil_number_of_depths;
-  double delta_z;
 
+  // Total column depth, m: the sum of the layer widths, and equal to z.back() by
+  // construction. READ-ONLY from R: only the geometry setters rebuild z/z_mid/dz,
+  // so a raw write would leave them describing the old column. To change it, call set_soil_number_of_depths() again (equal layers spanning the
+  // new depth) or set_soil_layer_widths() (which sets it from the widths).
   double depth;
   //saturated soil moisture
   double soil_moist_sat;
@@ -543,6 +680,10 @@ public:
   bool use_layered_soil_parameters = false;
   double a_infil;
   double b_infil;
+  // PAR share of the incoming shortwave, on an ENERGY basis (unitless). A
+  // property of the sky, about 0.45-0.5 and rising a little under cloud, so in
+  // practice a constant: a fixed parameter rather than a driver.
+  double f_PAR = 0.5;
 
   // Residual soil moisture floor (m3 m^-3). The water balance cannot dry a
   // layer below this (see the positivity guard in compute_rates), and
@@ -554,14 +695,16 @@ public:
 
   // Ceiling on soil water potential (MPa), issue #549. Near the residual floor
   // the retention curve returns psi ~ 1e8 MPa, which drives the leaf hydraulic
-  // solve non-finite and blows up the soil feedback. Root conductance has
-  // already fallen to ~0 by a few MPa, so clamping here changes nothing
-  // physically while keeping the numerics finite under extreme drought.
+  // solve non-finite and blows up the soil feedback. phylloptim bounds the root
+  // vulnerability curves past their grid (traitecoevo/phylloptim#77), so root
+  // conductivity is exactly 0 above ~46 MPa at the root defaults: any ceiling
+  // above that leaves uptake unchanged, and tightening it cannot fix a drought
+  // symptom. Whether a lower value moves a run is #613.
   double soil_psi_max_ = 1e3;
 
   // The clamp sites the water balance reaches. The site list is shared with the
   // strategy's, so a tally reads the same however the site is reached; the
-  // differentiated half is shared through rebind_from for the same reason.
+  // differentiated half is shared through rebind for the same reason.
   // Mutable because it is a tally and not state: the reads that clamp are const,
   // and a clamp changes what they return to nobody.
   mutable clamp_counter clamps;
@@ -574,7 +717,6 @@ public:
   }
 
   // Ability to prescribe a fixed value
-  // TODO: add setting to set other variables like water
   void set_fixed_environment(S value, S height_max) {
     light_availability.set_fixed_value(value, height_max);
   }
@@ -618,7 +760,7 @@ public:
   //   * water_in_0   = infiltration (rainfall reduced by a saturation-excess
   //                    runoff term controlled by a_infil/b_infil);
   //   * water_in_i>0 = drainage out of the layer above (water_flux[i-1]);
-  //   * water_out_i  = gravitational drainage = soil_K_from_soil_theta(theta_i),
+  //   * water_out_i  = gravitational drainage = conductivity(theta_i, i),
   //                    a Clapp & Hornberger (1978) / Zeng & Decker (2009)
   //                    unsaturated hydraulic conductivity;
   //   * root_uptake_i= resource_depletion[i], supplied by the plants via the
@@ -630,12 +772,25 @@ public:
   // This is an explicit, first-order representation; drainage is instantaneous
   // single-direction (no upward capillary flux between layers - that is handled
   // hydraulically inside the plant via E_from_Soil_to_Root_Collar).
+  //
+  // The inter-layer flux is FREE DRAINAGE, q = K(theta) evaluated at the donor
+  // cell (Darcy's law with the matric gradient dropped). It contains no internode
+  // distance, so it holds unchanged for unequal layers, and mass conservation,
+  // sum(dz[i] * dtheta_i/dt) = infiltration - deep drainage - total uptake, is
+  // exact for any widths (pinned on a graded profile in
+  // test-tf24-water-budget.R).
+  //
+  // ⚠️ BUT IF ANYONE ADDS A CAPILLARY OR DIFFUSIVE FLUX -- and soil evaporation
+  // will make them want to, because a top layer drying from above needs upward
+  // flow -- THAT term does carry a distance, and it is NOT dz[i]. It is the
+  // internode distance z_mid[i+1] - z_mid[i], and the conductivity at the
+  // interface must be a distance-weighted harmonic or geometric mean of the two
+  // cells, not either cell's K. Using dz[i] there would be correct only for equal
+  // layers and would break the graded-profile budget test.
   void compute_rates(std::vector<S> const &resource_depletion)
   {
     using std::max;
-    using std::pow;
 
-    S water_input;
     // Rainfall is floored at zero. Drivers are interpolated with a cubic
     // spline, which overshoots badly on intermittent forcing: a realistic daily
     // series with a ~10% wet-day fraction evaluates negative at ~45% of points,
@@ -656,31 +811,12 @@ public:
     // `check_driver_interpolation()` on any such driver, which reports the
     // undershoot area and warns.
     const double rainfall = rainfall_floored();
-    const S infiltration = infiltration_from(rainfall, vars.state(0));
+    const S infiltration =
+      layer_rates(rainfall, vars.states, resource_depletion, vars.rates,
+                  &water_flux, [this](int site) { note_clamp(site); });
     S total_resource_depletion = 0.0;
-
-
-    // treat each soil layer as a separate resource pool
-    for (size_t i = 0; i < soil_number_of_depths; i++)
-    {
-
-      // initial representation of drainage; to be improved
-      if (i == 0)
-      {
-        water_input = infiltration;
-      }
-      else
-      {
-        // m3 m^-2
-        water_input = water_flux[i-1];
-      }
-        // TODO: m3 m^-2
-      water_flux[i] = soil_K_from_soil_theta(vars.state(i), i);
-      // this function does runoff
-
-      vars.set_rate(i, soil_layer_rate(water_input, water_flux[i],
-                                       resource_depletion[i], vars.state(i), i));
-      resource_uptake[i] = odelia::util::to_passive(resource_depletion[i]);
+    for (size_t i = 0; i < soil_number_of_depths; i++) {
+      resource_uptake[i] = resource_depletion[i];
       total_resource_depletion += resource_depletion[i];
     }
       vars.set_rate(soil_number_of_depths, rainfall);
@@ -694,32 +830,9 @@ public:
 
   }
 
-  // The three pieces of the water balance a column is made of, as const
-  // members so that a column OTHER than this environment's -- TF24w's private
-  // root zones (#681) -- integrates the same physics. compute_rates() above is
-  // written in terms of them, and the expressions are the ones it carried
-  // before they were factored out, verbatim, so the environment's own column
-  // is bit-identical (the default baseline and the water-budget test hold).
-
-  // The rainfall driver at `time`, floored at zero. Drivers are interpolated
-  // with a cubic spline, which overshoots badly on intermittent forcing: a
-  // realistic daily series with a ~10% wet-day fraction evaluates negative at
-  // ~45% of points, reaching -5.7 m yr^-1. Unfloored, negative rainfall gives
-  // negative infiltration and a negative layer-0 rate, which is unphysical
-  // (rain drying the soil) and fails in two different ways depending on
-  // wetness: above residual moisture the water really is removed, while
-  // at/below residual the positivity guard clamps the rate to zero, so the
-  // removal is recorded in `sum_rainfall` but never applied and the water
-  // budget stops closing. Drylands sit at residual for much of the year, so
-  // that second case is the common one in the intended application.
-  //
-  // Flooring removes both. It is a bound on the sign, NOT a correction to the
-  // interpolation: the spline conserves the integral exactly (undershoot is
-  // compensated by overshoot), so discarding the negative lobes raises total
-  // rainfall by the undershoot area -- ~7% for the series above. The real
-  // remedy is not to spline an intermittent series; run
-  // `check_driver_interpolation()` on any such driver, which reports the
-  // undershoot area and warns.
+  // The rainfall driver at `time`, floored at zero for the reasons given on
+  // compute_rates(). A member, so that TF24w's private root zones (#681) floor
+  // and count it as the environment's own column does.
   double rainfall_floored() const {
     const double rainfall_raw = extrinsic_drivers.evaluate("rainfall", time);
     if (rainfall_raw < 0.0) {
@@ -728,76 +841,82 @@ public:
     return std::max(0.0, rainfall_raw);
   }
 
-  // Infiltration (m yr^-1) of `rainfall` through a top layer at `theta_0`:
-  // rainfall reduced by a saturation-excess runoff term controlled by
-  // a_infil/b_infil.
-  S infiltration_from(double rainfall, const S& theta_0) const {
-    using std::max;
-    using std::pow;
-    const double soil_moist_sat_0 =
-      soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, 0);
-    const S excess = S(1) - a_infil * pow(theta_0 / soil_moist_sat_0, b_infil);
-    // Counted: where the top layer is wet enough that this goes negative, the
-    // infiltrated fraction stops reading that layer's state at all.
-    if (excess < S(0.0)) {
-      note_clamp(CLAMP_INFILTRATION);
-    }
-    return rainfall * max(S(0.0), excess);
-  }
-
-  // One layer's balance: (in - out - uptake) / thickness, in theta per year,
-  // with the positivity guard.
-  //
-  // Positivity guard (issue #485): a layer at or below the residual moisture
-  // theta_r is not dried further (only rewetting is allowed). This keeps the
-  // explicit fixed-step solver from driving a drought-stressed layer to
-  // theta <= 0, where the retention curve psi_from_soil_moist and the
-  // conductivity curve soil_K_from_soil_theta go non-finite. Wetter layers are
-  // unaffected, so non-drought runs are unchanged. Hardened for #549: the
-  // original `rate < 0.0` test let a *non-finite* rate through, because
-  // `NaN < 0.0` is false in IEEE 754 -- a NaN soil_consumption_ (from the
-  // retention curve's enormous psi_soil near theta_r) then wrote straight into
-  // the soil state. `!(rate > 0.0)` is true for NaN and for rate <= 0, so only
-  // genuine rewetting is allowed and NaN/negative rates are clamped to 0.
-  S soil_layer_rate(const S& water_input, const S& water_out, const S& uptake,
-                    const S& theta, size_t i) const {
-    S rate = (water_input - water_out - uptake) / dz[i];
-    if (theta <= soil_moist_residual && !(rate > 0.0)) {
-      // Counted: a layer held here reads no uptake and no flux, so every route
-      // from a trait to this layer's state is cut for as long as it holds.
-      note_clamp(CLAMP_SOIL_POSITIVITY);
-      rate = 0.0;
-    }
-    return rate;
-  }
-
-  // calculate K from K_sat based on theta
-  S soil_K_from_soil_theta(S theta, size_t layer) const {
+  // The conductivity at theta held to [0, saturation], counting no clamp.
+  template <class U> U conductivity(const U& theta, size_t layer) const {
     using std::max;
     using std::min;
     using std::pow;
-    //Eq. 5 Zeng and Decker (2009), ref Clapp and Hornberger (1978)
-    // Clamp theta to [0, soil_moist_sat] (issue #485/#549): an intermediate
-    // explicit-RK stage can probe theta < 0 (std::pow(negative, non-integer) is
-    // NaN -> a non-positive layer drains nothing, K = 0) or, once the soil
-    // feedback is perturbed, a theta far above saturation, whose large positive
-    // exponent would otherwise make the inter-layer water_flux astronomically
-    // large and cascade the blow-up across layers. Physically K saturates at
-    // K_sat, so clamp there. Per-layer parameters (#558) fall back to the
-    // scalar default when no layered vector is set.
     const double k_sat_layer = soil_parameter_value(K_sat_layers, K_sat, layer);
     const double soil_moist_sat_layer =
       soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, layer);
     const double n_psi_layer = soil_parameter_value(n_psi_layers, n_psi, layer);
-    if (theta < S(0.0) || theta > S(soil_moist_sat_layer)) {
-      note_clamp(CLAMP_SOIL_CONDUCTIVITY);
-    }
-    const S t = min(max(theta, S(0.0)), S(soil_moist_sat_layer));
+    const U t = min(max(theta, U(0.0)), U(soil_moist_sat_layer));
     return k_sat_layer * pow(t / soil_moist_sat_layer, 2 * n_psi_layer + 3);
   }
 
-  S soil_K_from_soil_theta(S theta) {
-    return soil_K_from_soil_theta(theta, 0);
+  // The share of the rain the top layer takes at moisture theta, before it is
+  // floored at zero: one less the saturation-excess runoff.
+  template <class U> U infiltrated_share(const U& theta) const {
+    using std::pow;
+    const double soil_moist_sat_0 =
+      soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, 0);
+    return U(1) - a_infil * pow(theta / soil_moist_sat_0, b_infil);
+  }
+
+  // Each layer's rate under `rainfall`, less the uptake u from it, held at the
+  // residual moisture; returns the infiltration. `note` counts each clamp, and
+  // `drainage`, if given, takes each layer's.
+  template <class U, class Note>
+  U layer_rates(double rainfall, const std::vector<U>& theta,
+                const std::vector<U>& u, std::vector<U>& rate,
+                std::vector<U>* drainage, Note note) const {
+    using std::max;
+    const U share = infiltrated_share(theta[0]);
+    // Where the top layer is wet enough that this goes negative, the infiltrated
+    // fraction stops reading that layer's state at all.
+    if (share < U(0.0)) {
+      note(CLAMP_INFILTRATION);
+    }
+    const U infiltration = rainfall * max(U(0.0), share);
+    U water_input = infiltration;
+    for (size_t i = 0; i < soil_number_of_depths; ++i) {
+      const U& t = theta[i];
+      // An explicit stage can evaluate theta outside [0, saturation], where the
+      // conductivity curve is held.
+      if (t < U(0.0) ||
+          t > U(soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, i))) {
+        note(CLAMP_SOIL_CONDUCTIVITY);
+      }
+      const U k = conductivity(t, i);
+      if (drainage != nullptr) {
+        (*drainage)[i] = k;
+      }
+      rate[i] = (water_input - k - u[i]) / dz[i];
+      // At or below the residual moisture a layer is not dried further, and a
+      // NaN rate (from the retention curve near residual) is held too.
+      if (t <= soil_moist_residual && !(rate[i] > 0.0)) {
+        note(CLAMP_SOIL_POSITIVITY);
+        rate[i] = U(0.0);
+      }
+      water_input = k;
+    }
+    return infiltration;
+  }
+
+  // The times in (from, to) where the rain changes form: the soil's knots.
+  std::vector<double> rainfall_knots(double from, double to) const {
+    return extrinsic_drivers.knots("rainfall", from, to);
+  }
+
+  // The layers' rates at `time_` under a given uptake u from each, as
+  // compute_rates finds them.
+  template <class U>
+  void layer_rates(double time_, const std::vector<U>& theta,
+                   const std::vector<U>& u, std::vector<U>& rate) const {
+    rate.resize(theta.size());
+    layer_rates<U>(std::max(0.0, extrinsic_drivers.evaluate("rainfall", time_)),
+                   theta, u, rate, nullptr,
+                   [this](int site) { note_clamp(site); });
   }
 
 
@@ -822,9 +941,9 @@ public:
       a_psi_layer * pow(t / soil_moist_sat_layer, -n_psi_layer) / 1e6; // Pa -> MPa
     // Cap at a large-but-finite ceiling (#549): near theta_r the retention curve
     // gives psi ~ 1e8 MPa, which pushes the leaf hydraulic solve non-finite and
-    // corrupts the soil feedback. Root conductance is already ~0 far below this
-    // (psi_crit ~ few MPa), so clamping to soil_psi_max_ leaves uptake at ~0
-    // while keeping every downstream calculation finite.
+    // corrupts the soil feedback. Root conductivity is exactly 0 far below the
+    // ceiling (see soil_psi_max_), so the cap keeps every downstream
+    // calculation finite without changing uptake.
     if (psi > S(soil_psi_max_)) {
       note_clamp(CLAMP_SOIL_POTENTIAL_CEILING);
     }
@@ -853,7 +972,8 @@ public:
   // current `time`, so the memo collapses the repeated string-keyed lookups
   // across individuals into one lookup per driver per distinct time. Every one
   // returns what a direct `extrinsic_drivers_evaluate(name, time)` returns.
-  double get_PPFD()       const { return driver_at(DRIVER_PPFD); }
+  // Incoming shortwave at the surface, horizontal plane, above the canopy (W m^-2)
+  double get_SWdown()     const { return driver_at(DRIVER_SWDOWN); }
   double get_atm_vpd()    const { return driver_at(DRIVER_ATM_VPD); }
   double get_ca()         const { return driver_at(DRIVER_CA); }
   double get_leaf_temp()  const { return driver_at(DRIVER_LEAF_TEMP); }
@@ -864,7 +984,7 @@ public:
 
 
   std::vector<double> get_soil_water_state() const {
-    std::vector<double> out = rebind_from(vars.states);
+    std::vector<double> out = rebind(vars.states);
     out.resize(out.size() - aux_num);
     return out;
   }
@@ -880,18 +1000,22 @@ public:
     return psi_soil_;
   }
   std::vector<double> get_soil_water_state_cumulative_flux() const {
-    const std::vector<double> all = rebind_from(vars.states);
+    const std::vector<double> all = rebind(vars.states);
     return {all.end() - aux_num, all.end()};
   }
+  // Cumulative depth to the BOTTOM of each layer, m.
   std::vector<double> get_soil_depths() const { return z; }
-  // double get_soil_depth(int layer) const { return z[layer]; }
+  // The WIDTH of each layer, m -- what set_soil_layer_widths() takes, and what a
+  // caller needs to turn the per-layer theta into a water volume: storage is
+  // sum(theta * dz), never sum(theta) * dz[1].
+  std::vector<double> get_soil_layer_widths() const { return dz; }
 
 
   // TODO: I wonder if this needs a better name? See also environment.h
   Internals<double> r_internals() const {
     Internals<double> out(vars.state_size(), vars.aux_size(), vars.resource_size());
-    out.states = rebind_from(vars.states);
-    out.rates = rebind_from(vars.rates);
+    out.states = rebind(vars.states);
+    out.rates = rebind(vars.rates);
     return out;
   }
 
@@ -976,7 +1100,7 @@ public:
         vars.set_state(i, 0);
       }
   }
-    initial_states = rebind_from(vars.states);
+    initial_states = rebind(vars.states);
     psi_soil_valid_ = false;
 }
 
@@ -1024,12 +1148,19 @@ public:
     auto const &soil_moist_cumulative_flux_list = get_soil_water_state_cumulative_flux();
     auto rcpp_soil_moist_vec_cumulative_flux = Rcpp::NumericVector(soil_moist_cumulative_flux_list.begin(), soil_moist_cumulative_flux_list.end());
 
+    // Layer WIDTHS as well as boundaries. Reported because `soil_moist` is theta,
+    // an intensive quantity: turning it into a water volume needs each layer's
+    // width, not soil_depth[[1]], which is right only for equal layers.
+    auto const &soil_width_list = get_soil_layer_widths();
+    auto rcpp_soil_width_vec = Rcpp::NumericVector(soil_width_list.begin(), soil_width_list.end());
+
     return Rcpp::List::create(
         // auto ret = get_state(environment.extrinsic_drivers, time);
 
         _["light_availability"] = light_availability.r_get_state(),
         _["soil_moist"] = rcpp_soil_moist_vec,
         _["soil_depth"] = rcpp_soil_depth_vec,
+        _["soil_layer_width"] = rcpp_soil_width_vec,
         _["soil_moist_cumulative_flux"] = rcpp_soil_moist_vec_cumulative_flux
     );
   }

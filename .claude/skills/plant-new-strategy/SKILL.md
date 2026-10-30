@@ -84,18 +84,11 @@ hyperpar — is in [worked-example-k93.md](worked-example-k93.md). Update the
 exposes, and adapt the `make_<Name>_hyperpar` / `<Name>_hyperpar` functions in
 `R/<name>.R`.
 
-### On strategy inheritance (issue #274)
+### Inheriting from an existing strategy
 
-[Issue #274](https://github.com/traitecoevo/plant/issues/274) asked for three
-things. Two are **handled by the scaffolder**:
-
-1. an explicit environment template argument (`environment =`), and
-3. no redundant bindings/files/tests for reused components — a reuse-environment
-   model generates **no** `<Name>_Environment` anywhere.
-
-The third ask — having the new strategy **inherit** an existing strategy's C++
-implementation (`FF16r : public FF16_Strategy`) rather than cloning it — is **not**
-automated by the scaffolder, but it *is* a supported, validated pattern. The
+Having the new strategy **inherit** an existing strategy's C++ implementation
+(`FF16r : public FF16_Strategy`) rather than cloning it is **not** automated by
+the scaffolder, but it *is* a supported, validated pattern. The
 scaffolder always clones; you then **thin the clone down to a subclass by hand**.
 Use this when the new model is a variant that reuses most of an existing
 strategy's biology (e.g. `TF24f`, a fast/acclimating variant of `TF24`, issue
@@ -136,9 +129,8 @@ Step 1 — it works for a subclass unchanged. The generated `R/<name>.R` hyperpa
 clone works as-is when the biology is unchanged; simplify it to delegate to the
 parent's hyperpar if you prefer.
 
-Caveat: `FF16r` itself was removed from the live codebase (#439), so it is history,
-not a current in-tree example — consult `TF24f` (the worked case for this recipe)
-or the `git show` reference above.
+`TF24f` is the in-tree example of this recipe; the `git show` command in step 2
+recovers the original `FF16r`.
 
 ## Step 3 — build, then test
 

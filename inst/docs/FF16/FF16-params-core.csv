@@ -6,7 +6,8 @@ Wood density,$\rho$,kg m$^{-3}$,rho
 Sapwood area per unit leaf area,$\theta$,,theta
 Height of plant with leaf area of 1m$^2$,$\alpha_{\rm l1}$,m,a_l1
 Exponent of relationship between height and leaf area,$\alpha_{\rm l2}$,,a_l2
-Root mass per unit leaf area,$\alpha_{\rm r1}$,kg m$^{-2}$,a_r1
+Fine-root mass per unit leaf area,$\alpha_{\rm r1}$,kg m$^{-2}$,a_r1
+Coarse-root mass per unit sapwood mass,$\alpha_{\rm cr1}$,,a_cr1
 Ratio of bark area to sapwood area,$\alpha_{\rm b1}$,,a_b1
 **Production**,,,
 Leaf photosynthesis per area,$\alpha_{\rm p1}$,mol yr$^{-1}$ m$^{-2}$,a_p1
@@ -17,10 +18,12 @@ Leaf respiration per mass,$r_{\rm l}$,mol yr$^{-1}$ kg$^{-1}$,r_l
 Fine-root respiration per mass,$r_{\rm r}$,mol yr$^{-1}$ kg$^{-1}$,r_r
 Sapwood respiration per mass,$r_{\rm s}$,mol yr$^{-1}$ kg$^{-1}$,r_s
 Bark respiration per mass,$r_{\rm b}$,mol yr$^{-1}$ kg$^{-1}$,r_b
+Coarse-root respiration per mass,$r_{\rm cr}$,mol yr$^{-1}$ kg$^{-1}$,r_cr
 Turnover rate for leaves,$k_{\rm l}$,yr$^{-1}$,k_l
 Turnover rate for sapwood,$k_{\rm s}$,yr$^{-1}$,k_s
 Turnover rate for bark,$k_{\rm b}$,yr$^{-1}$,k_b
 Turnover rate for fine roots,$k_{\rm r}$,yr$^{-1}$,k_r
+Turnover rate for coarse roots,$k_{\rm cr}$,yr$^{-1}$,k_cr
 **Fecundity**,,,
 Seed mass,$\omega$,kg,omega
 Height at maturation,$H_{{\rm mat}}$,m,hmat

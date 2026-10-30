@@ -252,10 +252,10 @@ public:
   // quadrature weight times its density -- moves into the top layer. Keeping
   // the grid point is what makes the transfer exact: the neighbours' intervals
   // are untouched, so total density is conserved to rounding at the instant,
-  // and the node structure never changes, so a replay or an export needs no
+  // and the node structure never changes, so a pinned run or an export needs no
   // record of which cohorts went.
   //
-  // Its block is the pinned individual's state (height held, the rest
+  // Its block is the pinned individual's state (height fixed, the rest
   // integrated: TF24's storage, the heartwood), then five numbers: the density
   // it carries, the fitness weight it carries without and with the birth-rate
   // scaling (sum of quadrature weight x patch density at birth x S_D x survival
@@ -356,7 +356,7 @@ public:
   // Two nodes sharing a birth date give a zero-width trapezium interval, so the
   // birth-date quadrature silently loses them. Cannot happen for a scheduled
   // run (introduction times are distinct by construction) but can for a patch
-  // seeded or imported without per-node times.
+  // initialised or imported without per-node times.
   bool birth_dates_are_distinct() const;
 
   // Which coordinate this species' size distribution is carried in. Exposed so
@@ -605,7 +605,7 @@ void Species<T,E>::introduce_new_node() {
   // environment by the most recent compute_rates() call (see compute_rates ->
   // new_node.compute_initial_conditions above), and the member is refreshed
   // again on the next compute_rates() ready for the following introduction.
-  // Recomputing it here would be redundant, and would (wrongly) re-seed against
+  // Recomputing it here would be redundant, and would (wrongly) recompute against
   // the post-introduction environment rather than the environment at the
   // node's introduction time (resolves the recompute question in #478).
   nodes.push_back(new_node);
@@ -1019,7 +1019,7 @@ void Species<T,E>::compute_rates(const E& environment, double pr_patch_survival,
   }
 }
 
-// The pinned individual's rates, height held; its density and fitness weights
+// The pinned individual's rates, height fixed; its density and fitness weights
 // decay at its mortality rate, and the seed output accrues at its fecundity rate
 // times the patch survival, as a node's does.
 template <typename T, typename E>

@@ -7,6 +7,7 @@
 // approximation of TF24, so its version is "<TF24 version>.<revision>" (e.g.
 // "2.1") -- the major component auto-tracks TF24 (a TF24 science change
 // invalidates TF24f too), the minor is TF24f's own approximation revision.
+// TF24t is compound the same way: "<TF24 version>.<thermal revision>".
 // This is the single source of truth; the R accessors model_version() /
 // model_id() (R/strategy_support.R) read it through here.
 
@@ -21,6 +22,9 @@ std::string strategy_scientific_version(std::string type) {
   if (type == "TF24f")
     return std::to_string(plant::TF24_Strategy<double>::scientific_version) + "." +
            std::to_string(plant::TF24f_Strategy<double>::approximation_revision);
+  if (type == "TF24t")
+    return std::to_string(plant::TF24_Strategy<double>::scientific_version) + "." +
+           std::to_string(plant::TF24t_Strategy<double>::thermal_revision);
   if (type == "TF24w")
     return std::to_string(plant::TF24_Strategy<double>::scientific_version) + "." +
            std::to_string(plant::TF24w_Strategy<double>::private_water_revision);

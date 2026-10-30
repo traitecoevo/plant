@@ -345,6 +345,9 @@ validated. The minimal cut in Steps 1-3 touches only `leaf_model.cpp/.h` and the
 call site — **no generated-code regeneration**.
 
 ### Step 5 — Evaluation protocol (doc Section 7.5) — gate before keeping anything
+
+**Status 2026-10: all four tests run** ([`step5-fick-vs-pm-evaluation.md`](step5-fick-vs-pm-evaluation.md), [`sensitivity-results.md`](sensitivity-results.md)). The gate passes and the PM core stays, default off. It is not ready to switch on: wind-driven ra and Rn (longwave included) are both first-order and uncalibrated, the doc's within-canopy wind profile is not usable without a vapour boundary layer (phylloptim #122), and at TF24's default drivers PM collapses the stand through the leaf-to-air deficit.
+
 Factorial Fick-vs-PM across `Tair`×`VPD`×`PAR`; report `ΔTleaf, ΔE, ΔA, Δgs`.
 Keep the PM core only if `Tleaf − Tair > 2 °C` and annual carbon gain shifts
 >5 % under representative conditions. Test the wind profile and the LW term

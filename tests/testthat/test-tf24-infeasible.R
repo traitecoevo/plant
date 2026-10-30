@@ -13,7 +13,7 @@ infeasible_rates <- function(strategy, individual) {
   ind <- individual(strategy)
   ind$set_state("height", 5)
   env <- TF24_Environment()
-  env$extrinsic_drivers_set_constant("PPFD", 1800)
+  env$extrinsic_drivers_set_constant("SWdown", 1800 / (0.5 * 4.57))  # PPFD above the canopy, as SWdown
   env$set_soil_number_of_depths(5)
   env$set_soil_water_state(rep(0.25, 5))
   ind$compute_rates(env)

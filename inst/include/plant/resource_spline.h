@@ -30,7 +30,7 @@ public:
 
   void setup() {
     // Uniform and fixed for the run, and they ARE the interpolant's grid: the
-    // field is held against u = height / height_max, so a build refreshes values
+    // field is tabulated against u = height / height_max, so a build refreshes values
     // and slopes and never moves a knot. 1/64 is exact, so u_k is too.
     //
     // ⚠️ DO NOT PUT THE KNOTS BACK IN HEIGHT. They were at u_k * height_max,
@@ -73,7 +73,7 @@ public:
 
   void set_fixed_value(S value, S height_max) {
     // In u, so the grid is the same three points whatever the canopy top is; the
-    // top is held beside it and is what a query divides by.
+    // top is kept beside it and is what a query divides by.
     height_max_ = height_max;
     const double top = odelia::util::to_passive(height_max);
     knot_heights_ = {0.0, top / 2.0, top};
@@ -100,13 +100,13 @@ public:
   // where the field's dependence on the canopy top lives.
   S height_max() const { return height_max_; }
 
-  S get_value_at_height(S height) const {
+  S get_value_at_height(const S& height) const {
     return get_value_at_height(height, max_height());
   }
 
   // Variant taking a pre-fetched cap (= max_height()) so callers integrating
   // over many points pay the spline.max() lookup once rather than per point.
-  S get_value_at_height(S height, double cap) const {
+  S get_value_at_height(const S& height, double cap) const {
     // TODO(#385): change maximum - here hard-coded to 1.0
     // `cap` already guards the upper bound and the crown integral keeps
     // height >= 0 = spline.min(), so use the unchecked operator() rather than
@@ -117,8 +117,18 @@ public:
     // not be negative. The clamp is a no-op for the usual positive case, so
     // values stay bit-identical there. This is the single chokepoint for
     // FF16/K93/TF24.
-    return height <= cap ? std::max(S(0.0), spline(height / height_max_))
-                         : S(1.0);
+    //
+    // Early returns rather than std::max inside a conditional, which return a
+    // copy: at an active scalar that is a tape statement per quadrature point.
+    // `!(0 < value)` is std::max's own test, so a NaN still reads as 0.
+    if (!(height <= cap)) {
+      return S(1.0);
+    }
+    S value = spline(height / height_max_);
+    if (!(0.0 < odelia::util::to_passive(value))) {
+      return S(0.0);
+    }
+    return value;
   }
 
   // The heights, then the values, then the slopes: the columns of r_get_state()
@@ -132,7 +142,7 @@ public:
     std::vector<double> state_x(it, it + state_n);
     std::vector<S> state_y(it + state_n, it + 2 * state_n);
     std::vector<S> state_m(it + 2 * state_n, state.end());
-    // Heights in, u held: the caller's grid names the canopy top as its last
+    // Heights in, u fixed: the caller's grid names the canopy top as its last
     // knot, and the slopes it carries are per unit height.
     const double top = state_x.empty() ? 1.0 : state_x.back();
     height_max_ = S(top);
@@ -235,7 +245,7 @@ public:
 
 private:
 
-  // Place the knots at the held fractions, once. The first and last are exactly
+  // Place the knots at the fixed fractions, once. The first and last are exactly
   // 0 and 1, so the domain is exactly [0, 1] in u and [0, height_max] in height.
   // Nothing moves them afterwards; every build refreshes the values and slopes.
   void lay_out_knots() {

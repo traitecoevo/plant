@@ -97,7 +97,7 @@ for (x in names(strategy_types)) {
     # excludes the boundary interval; this comparison node is seeded afterwards in
     # the completed field. So the two agree except through
     # pr_patch_survival_at_birth, which divides the fecundity rate and is fixed at
-    # seeding -- about 1% of a quantity of order 1e-21.
+    # initialisation -- about 1% of a quantity of order 1e-21.
     expect_equal(patch$ode_rates, ode_rates, tolerance = 1e-2)
     if (x == "FF16") {
       # Blessed on the birth-date coordinate, which ctrl names above. The two

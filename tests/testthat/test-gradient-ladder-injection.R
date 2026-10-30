@@ -108,7 +108,7 @@ test_that("the structural assertions reject a structure that does not hold", {
   light <- j[, is_light, drop = FALSE]
   expect_equal(numerical_rank(light), 1L)
   # A ramp rather than a rearrangement of an existing column: adding a multiple of
-  # a column that is already in the range leaves the rank where it was, which is
+  # a column that is already in the segment leaves the rank where it was, which is
   # what a rank-one matrix means.
   broken <- light
   ramp <- seq_len(nrow(broken)) / nrow(broken)

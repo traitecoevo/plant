@@ -1,5 +1,5 @@
 # Invaders of a stand at a fixed point (#519): the resident makes one field, and
-# an invader stands in it, held, for its whole life (SCM$run_mutant_held,
+# an invader stands in it, constant, for its whole life (SCM$run_mutant_constant,
 # fixed_point_fitness). The referee is the same cohort born into the running
 # stand, which sees the field the stand actually makes.
 
@@ -32,22 +32,22 @@ in_stand_fitness <- function(fp, lma, life = 400) {
     invader = sp[[2]]$net_reproduction_ratio_by_node[[1]] * S_D)
 }
 
-test_that("an invader held in the fixed point's field scores its cohort in the stand", {
+test_that("an invader in the fixed point's constant field scores its cohort in the stand", {
   fp <- ff16_fixed_point()
   lma <- c(0.0825, 0.06, 0.1)
-  held <- fixed_point_fitness(fp$scm, fp$p, trait_matrix(lma, "lma"))
-  expect_true(all(is.finite(held)) && all(held > 0))
+  in_field <- fixed_point_fitness(fp$scm, fp$p, trait_matrix(lma, "lma"))
+  expect_true(all(is.finite(in_field)) && all(in_field > 0))
   for (k in seq_along(lma)) {
     ref <- in_stand_fitness(ff16_fixed_point(), lma[k])
-    expect_equal(held[[k]], ref[["invader"]], tolerance = 2e-3)
+    expect_equal(in_field[[k]], ref[["invader"]], tolerance = 2e-3)
   }
   # The resident's own strategy scores the resident's own cohort.
-  expect_equal(held[[1]], in_stand_fitness(ff16_fixed_point(), 0.0825)[["resident"]],
+  expect_equal(in_field[[1]], in_stand_fitness(ff16_fixed_point(), 0.0825)[["resident"]],
                tolerance = 2e-3)
   # A thicker-leaved invader does better in this closed canopy, a thinner one
   # worse: the field is the resident's, not an empty patch's.
-  expect_gt(held[[3]], held[[1]])
-  expect_lt(held[[2]], held[[1]])
+  expect_gt(in_field[[3]], in_field[[1]])
+  expect_lt(in_field[[2]], in_field[[1]])
 })
 
 test_that("every invader stands in the field taken at the first call", {
@@ -61,7 +61,7 @@ test_that("every invader stands in the field taken at the first call", {
   expect_equal(b[[2]], a, tolerance = 1e-3)
 })
 
-test_that("a held field holds the environment's own state", {
+test_that("a constant field keeps the environment's own state", {
   # TF24's soil is part of the field. Held, the patch stands in it whatever state
   # it is set to, and the soil's own rates are zero, so it does not move either.
   p <- scm_base_parameters("TF24")
@@ -80,29 +80,29 @@ test_that("a held field holds the environment's own state", {
   y <- pa$ode_state
   soil <- tail(y, n_env)
   expect_true(any(tail(pa$ode_rates, n_env) != 0))
-  pa$hold_field()
-  expect_true(pa$holds_field)
+  pa$use_current_field()
+  expect_true(pa$has_constant_field)
   expect_true(all(tail(pa$ode_rates, n_env) == 0))
-  # A state with other soil water: the patch still stands in the held soil.
+  # A state with other soil water: the patch still stands in the constant soil.
   y_dry <- y
   y_dry[length(y) - n_env + 1] <- soil[[1]] / 2
   pa$set_ode_state(y_dry, pa$time)
   expect_identical(tail(pa$ode_state, n_env), soil)
-  pa$release_field()
-  expect_false(pa$holds_field)
+  pa$clear_constant_field()
+  expect_false(pa$has_constant_field)
   expect_true(any(tail(pa$ode_rates, n_env) != 0))
-  # Through the SCM, the invader runs in it and the SCM releases it afterwards.
+  # Through the SCM, the invader runs in it and the SCM clears it afterwards.
   R <- fixed_point_fitness(scm, p, trait_matrix(0.0825, "lma"), lifetime = 200,
                            survival_tol = 1)
   expect_true(is.finite(R))
-  expect_false(scm$patch$holds_field)
+  expect_false(scm$patch$has_constant_field)
 })
 
-test_that("a held field is released once the invaders have run", {
+test_that("a constant field is cleared once the invaders have run", {
   # A later run of the SCM builds its own field: a rerun of the invaders'
-  # parameters is a fresh run of them, not another held one.
+  # parameters is a fresh run of them, not another constant-field one.
   fp <- ff16_fixed_point(t_eq = 150)
-  held <- fixed_point_fitness(fp$scm, fp$p, trait_matrix(0.1, "lma"))
+  in_field <- fixed_point_fitness(fp$scm, fp$p, trait_matrix(0.1, "lma"))
   fp$scm$run()
   rerun <- fp$scm$patch$species[[1]]$net_reproduction_ratio_by_node[[1]] *
     fp$p$strategies[[1]]$pars$S_D
@@ -110,10 +110,10 @@ test_that("a held field is released once the invaders have run", {
   fresh <- run_scm(pm, ctrl = fp$ctrl)
   expect_identical(rerun, fresh$patch$species[[1]]$net_reproduction_ratio_by_node[[1]] *
                      fp$p$strategies[[1]]$pars$S_D)
-  expect_false(isTRUE(all.equal(rerun, held)))
+  expect_false(isTRUE(all.equal(rerun, in_field)))
 })
 
-test_that("a field held inside an interval scores as one held at its start", {
+test_that("a field taken inside an interval scores as one taken at its start", {
   # Between two introductions the field swings; on a grid fine enough for a
   # fixed point the swing is small, which is the check a coarse grid fails.
   fp <- ff16_fixed_point(t_eq = 150)
@@ -125,13 +125,13 @@ test_that("a field held inside an interval scores as one held at its start", {
   expect_equal(at_mid, at_start, tolerance = 1e-2)
 })
 
-test_that("holding a field needs a resident to take it from", {
+test_that("a constant field needs a resident to take it from", {
   p <- scm_base_parameters("FF16")
   p$patch_type <- "fixed"
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))
   scm <- SCM("FF16", "FF16_Env")(p, Environment("FF16"), empty_events(),
                                  Control(node_density_in_birth_date = TRUE))
-  expect_error(scm$run_mutant_held(p), "fixed point")
+  expect_error(scm$run_mutant_constant(p), "fixed point")
 })
 
 test_that("an invader that outlives its run is refused", {
@@ -149,7 +149,7 @@ test_that("an invader that outlives its run is refused", {
 })
 
 ## The parameters fixed_point_fitness() builds for one invader.
-held_invader <- function(fp, lma, lifetime = 200) {
+constant_invader <- function(fp, lma, lifetime = 200) {
   pm <- add_mutant(fp$p, trait_matrix(lma, "lma"), birth_rate = list(1))
   pm$patch_type <- "fixed"
   pm$max_patch_lifetime <- lifetime
@@ -160,41 +160,42 @@ held_invader <- function(fp, lma, lifetime = 200) {
   pm
 }
 
-test_that("a gradient refuses a run made in a held field, after it is released", {
-  ## The field is released when run_mutant_held() returns, but the outputs, and
+test_that("a gradient refuses a run made in a constant field, after it is cleared", {
+  ## The field is cleared when run_mutant_constant() returns, but the outputs, and
   ## any recording, were made in it.
   fp <- ff16_fixed_point(t_eq = 60, absorb = 0)
-  fp$scm$run_mutant_held(held_invader(fp, 0.1))
-  expect_false(fp$scm$patch$holds_field)
-  expect_error(stand_gradient(fp$scm, metrics = "leaf_area"), "held field")
+  fp$scm$run_mutant_constant(constant_invader(fp, 0.1))
+  expect_false(fp$scm$patch$has_constant_field)
+  expect_error(stand_gradient(fp$scm, metrics = "leaf_area", hyperpar = NULL), "constant field")
   fp <- ff16_fixed_point(t_eq = 60, absorb = 0)
-  fp$scm$record_trajectory <- TRUE
-  fp$scm$run_mutant_held(held_invader(fp, 0.1))
-  expect_error(stand_gradient(fp$scm, metrics = "leaf_area"), "held field")
+  fp$scm$keep_states <- TRUE
+  fp$scm$run_mutant_constant(constant_invader(fp, 0.1))
+  expect_error(stand_gradient(fp$scm, metrics = "leaf_area", hyperpar = NULL), "constant field")
   ## A later run of the SCM is its own, and the gradient takes it.
   fp$scm$run()
-  expect_true(all(is.finite(stand_gradient(fp$scm, metrics = "leaf_area")$gradient)))
+  expect_true(all(is.finite(stand_gradient(fp$scm, metrics = "leaf_area",
+                                           hyperpar = NULL)$gradient)))
 })
 
-test_that("a held field is released when the invaders' run fails", {
+test_that("a constant field is cleared when the invaders' run fails", {
   fp <- ff16_fixed_point(t_eq = 60)
   ## With the layer on, a zero birth rate is refused at the introduction, which
   ## is inside the invaders' run.
-  pm <- held_invader(fp, 0.1)
+  pm <- constant_invader(fp, 0.1)
   pm$strategies[[1]]$birth_rate_y <- 0
-  expect_error(fp$scm$run_mutant_held(pm), "birth rate zero")
-  expect_false(fp$scm$patch$holds_field)
+  expect_error(fp$scm$run_mutant_constant(pm), "birth rate zero")
+  expect_false(fp$scm$patch$has_constant_field)
   ## And an invader is checked as a resident is: with no asymptote to absorb at,
   ## it is refused before it runs.
-  pm <- held_invader(fp, 0.1)
+  pm <- constant_invader(fp, 0.1)
   pm$strategies[[1]]$pars$a_f2 <- -1
-  expect_error(fp$scm$run_mutant_held(pm), "a_f2")
-  expect_false(fp$scm$patch$holds_field)
+  expect_error(fp$scm$run_mutant_constant(pm), "a_f2")
+  expect_false(fp$scm$patch$has_constant_field)
 })
 
 test_that("a coarse grid makes the fixed point a periodic orbit", {
   ## Between two introductions the field swings. At the resident's equilibrium
-  ## birth rate and a cohort a year the swing is percent-level, so a field held
+  ## birth rate and a cohort a year the swing is percent-level, so a field taken
   ## at an introduction is not the stand's; a cohort a quarter year shrinks it
   ## a hundredfold. Read with the resident's own strategy.
   b_star <- 68.867

@@ -1,4 +1,5 @@
 #include <plant/control.h>
+#include <plant/util.h>
 #include <phylloptim/leaf_model.hpp>
 
 namespace plant {
@@ -38,10 +39,17 @@ Control::Control() {
   ode_step_size_initial = 1e-6;
   ode_step_size_min = 1e-6;
   ode_step_size_max = 5;
-  ode_tol_rel       = 1e-4;
-  ode_tol_abs       = 1e-4;
+  // odelia's step-size rule reads the error in the RMS norm over the whole
+  // state, so a stand's few fast-changing cohorts are bounded more loosely
+  // than these values say; 1e-5 gives the accuracy the worst-component rule
+  // gave at 1e-4, for no more steps.
+  ode_tol_rel       = 1e-5;
+  ode_tol_abs       = 1e-5;
   ode_a_y           = 1.0;
   ode_a_dydt        = 0.0;
+  ode_soil_substep  = false;
+  ode_soil_substep_tol = 1e-9;
+  ode_tol_scale_soil = 1.0;
 
   // 0 = adaptive RKCK (default); > 0 selects fixed-step forward Euler with this
   // spacing in years (see control.h).
@@ -78,6 +86,16 @@ Control::Control() {
   vulnerability_curve_ncontrol = phylloptim::Leaf::ncontrol_default;
   ci_abs_tol = 1e-3;
   ci_niter = 1e3;
+}
+
+// Written so that a NaN fails it.
+void validate_ode_tolerances(const Control& control) {
+  if (!(control.ode_tol_scale_soil > 0.0)) {
+    util::stop("ode_tol_scale_soil must be positive");
+  }
+  if (!(control.ode_soil_substep_tol > 0.0)) {
+    util::stop("ode_soil_substep_tol must be positive");
+  }
 }
 
 }

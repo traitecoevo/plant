@@ -215,9 +215,14 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
   ## established count from 81 to 79 and left its survivor count at 3. FF16 and
   ## K93 are untouched, which is the discriminator: the change is in TF24's
   ## storage block and nothing else reads it.
+  ## TF24 v13's default light (SWdown 900 W m^-2, 2056.5 PPFD above the canopy
+  ## where the old PPFD driver gave 1800) moved TF24 to 54 established and 2
+  ## surviving. FF16 and K93 read no light driver and are unmoved. That is still
+  ## the count at a zero storage relaxation offset, pinned below; the default
+  ## week's offset gives 45 and 1.
   baseline <- list(
     FF16 = list(n_total = 83L, n_alive_final = 5L),
-    TF24 = list(n_total = 77L, n_alive_final = 3L),
+    TF24 = list(n_total = 45L, n_alive_final = 1L),
     K93  = list(n_total = 117L, n_alive_final = 3L)
   )
   for (x in names(strategy_types)) {
@@ -239,6 +244,16 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
     expect_equal(res$time, res2$time)
     expect_equal(res$species, res2$species)
   }
+
+  set.seed(1)
+  s <- TF24_Strategy()
+  s$pars$storage_relaxation_offset <- 0
+  p <- Parameters("TF24", "TF24_Env")(strategies = list(s), patch_area = 1)
+  res <- run_stochastic_collect(p, Environment("TF24"),
+                                stochastic_control("TF24"))
+  ia <- attr(res$species, "is_alive")[[1]]
+  expect_equal(dim(res$species[[1]])[3], 54L)
+  expect_equal(sum(ia[nrow(ia), ], na.rm = TRUE), 2L)
 })
 
 test_that("TF24's environment states are integrated over a stochastic run", {
@@ -258,7 +273,11 @@ test_that("TF24's environment states are integrated over a stochastic run", {
   expect_gt(obj$patch$species[[1]]$size, 0)
 
   theta <- obj$patch$environment$get_soil_water_state()
-  expect_true(all(theta > 0.214))
+  ## Moved, in whichever direction the light sets: at TF24 v13's default light
+  ## the stand draws the upper layers below their initial value (0.149 at the
+  ## top), where the dimmer pre-v13 default left every layer above it. What this
+  ## test guards is that the state is integrated at all.
+  expect_true(all(abs(theta - 0.214) > 1e-3))
   expect_true(all(theta < obj$patch$environment$soil_moist_sat))
 
   ## Cumulative rainfall, infiltration, deep drainage and root uptake. A non-zero
