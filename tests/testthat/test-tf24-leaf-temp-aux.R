@@ -88,7 +88,10 @@ test_that("with the energy balance on, Tleaf departs from air temperature", {
 })
 
 test_that("Tleaf rises with absorbed radiation under the energy balance", {
-  by_light <- vapply(c(0, 200, 800, 1800),
+  # Lit leaves only: from dark to dim light the stomata open, and the cooling
+  # from transpiration can outweigh the radiation absorbed, so a leaf at 200
+  # can sit below a dark one. The dark-vs-bright bracket is tested above.
+  by_light <- vapply(c(200, 800, 1800),
                      function(q) tf24_temp_aux(strategy = pm_strategy(),
                                                ppfd = q)[["Tleaf"]],
                      numeric(1))

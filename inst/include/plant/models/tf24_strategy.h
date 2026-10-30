@@ -127,7 +127,9 @@ struct TF24_Pars {
   // phylloptim takes (stem_P50, stem_c) and derives both itself, by these same
   // formulas -- so these two members are TF24_hyperpar's reporting copies, not
   // inputs to the model. Setting one does not change the curve.
-  S stem_P50 = 1.85;
+  // stem_P50 and stem_c are TF24_hyperpar's values at the default K_s, so a
+  // strategy built from traits and the bare default share one curve (#611).
+  S stem_P50 = 2.8887256653360196;
   // Sapwood-specific conductivity of the TERMINAL segment. Was 1, a whole-stem
   // value under the height-linear model; back-derived to the tip by
   // TF24_K_s_from_whole_stem(1) so that resistance is UNCHANGED at
@@ -137,7 +139,7 @@ struct TF24_Pars {
   // holds at exactly ONE height and nowhere else. That is by construction:
   // changing the height dependence is the object of the exercise.
   S K_s = 0.33577377016801868;
-  S stem_c = log(log(1-0.5)/log(1-0.88))/(log(stem_P50) - log(5.16));
+  S stem_c = 2.04;
   S stem_b = stem_P50 / power(-log(1 - 50.0 / 100.0), 1 / stem_c);
   S psi_crit = stem_b*power(log(1/0.05),1/stem_c); // derived from stem_b and stem_c
   // Read by nothing: not passed to the leaf, not read by any equation here. Kept
