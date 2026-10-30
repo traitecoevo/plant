@@ -27,11 +27,10 @@ disturbance regime, this weights it by when it arrived in one long run: a
 cohort born inside \code{[start, end]} carries the tabulated weight at its
 birth date and a cohort born outside carries zero. The net reproduction
 ratio is then the weighted mean, over the cohorts the run introduced, of a
-cohort's lifetime output: output times weight integrated over the birth
-dates between the window's first and last cohorts (by establishment weight
-on the birth-date coordinate), divided by the trapezium of the weight on
-the same grid, so a uniform window is the exact mean however its edges sit
-against the introduction grid. Patch survival is one.
+cohort's lifetime output: the trapezium over birth dates of output times
+weight, divided by the trapezium of the weight on the same grid, so a
+uniform window is the exact mean however its edges sit against the
+introduction grid. Patch survival is one.
 }
 \details{
 With no knots the window is uniform, each birth date weighted

@@ -2990,6 +2990,11 @@ std::vector<double> Species___TF24t__TF24_Env__log_densities__get(plant::RcppR6:
 }
 
 // [[Rcpp::export]]
+std::vector<double> Species___TF24t__TF24_Env__log_densities_state__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_log_densities_state();
+}
+
+// [[Rcpp::export]]
 std::vector<bool> Species___TF24t__TF24_Env__retired__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->r_retired();
 }
@@ -3002,11 +3007,6 @@ Rcpp::List Species___TF24t__TF24_Env__top_layer__get(plant::RcppR6::RcppR6<plant
 // [[Rcpp::export]]
 std::vector<double> Species___TF24t__TF24_Env__height_jacobian__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
   return obj_->height_jacobian();
-}
-
-// [[Rcpp::export]]
-std::vector<double> Species___TF24t__TF24_Env__establishment_weights__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->r_establishment_weights();
 }
 
 // [[Rcpp::export]]

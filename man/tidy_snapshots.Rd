@@ -25,15 +25,17 @@ A list of three: \code{species}, a data frame with one row per
 Flatten the thinned record of a run. With \code{scm$snapshot_interval} set
 before the run, the SCM keeps one summary per interval instead of a copy
 of the whole patch per leg: per species the node counts, the tallest cohort
-carrying density, the carried density integrated over birth date and every
-node's lifetime offspring output, plus the environment's own state.
+carrying density, the trapezium of the carried density over the birth-date
+grid and every node's lifetime offspring output, plus the environment's own
+state.
 }
 \details{
 Read on the birth-date coordinate, which a continuous patch runs on:
-\code{density} is the carried density weighted by each node's establishment
-weight, a number of individuals per unit area, without the boundary node's
-share that a census adds; on the height coordinate it is the trapezium over
-birth dates of a density in height, which is not a count. \code{n_retired} counts the nodes carrying no density, frozen
+\code{density} is the trapezium of the carried density over the nodes'
+birth dates, a number of individuals per unit area, without the closing
+interval to the boundary node that a census adds; on the height coordinate
+it is the same trapezium over birth dates of a density in height, which is
+not a count. \code{n_retired} counts the nodes carrying no density, frozen
 or not, so it is \code{n_nodes - n_live}. The per-node \code{fecundity}
 vectors grow with the node list, so their memory grows with the square of
 the run's length (about 6 MB at a snapshot a year over 1000 years of one

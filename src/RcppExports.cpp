@@ -7402,6 +7402,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Species___TF24t__TF24_Env__log_densities_state__get
+std::vector<double> Species___TF24t__TF24_Env__log_densities_state__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Species___TF24t__TF24_Env__log_densities_state__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Species___TF24t__TF24_Env__log_densities_state__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Species___TF24t__TF24_Env__retired__get
 std::vector<bool> Species___TF24t__TF24_Env__retired__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
 RcppExport SEXP _plant_Species___TF24t__TF24_Env__retired__get(SEXP obj_SEXP) {
@@ -7432,17 +7443,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(Species___TF24t__TF24_Env__height_jacobian__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Species___TF24t__TF24_Env__establishment_weights__get
-std::vector<double> Species___TF24t__TF24_Env__establishment_weights__get(plant::RcppR6::RcppR6<plant::Species<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_Species___TF24t__TF24_Env__establishment_weights__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Species___TF24t__TF24_Env__establishment_weights__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -17644,10 +17644,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Species___TF24t__TF24_Env__heights__get", (DL_FUNC) &_plant_Species___TF24t__TF24_Env__heights__get, 1},
     {"_plant_Species___TF24t__TF24_Env__heights__set", (DL_FUNC) &_plant_Species___TF24t__TF24_Env__heights__set, 2},
     {"_plant_Species___TF24t__TF24_Env__log_densities__get", (DL_FUNC) &_plant_Species___TF24t__TF24_Env__log_densities__get, 1},
+    {"_plant_Species___TF24t__TF24_Env__log_densities_state__get", (DL_FUNC) &_plant_Species___TF24t__TF24_Env__log_densities_state__get, 1},
     {"_plant_Species___TF24t__TF24_Env__retired__get", (DL_FUNC) &_plant_Species___TF24t__TF24_Env__retired__get, 1},
     {"_plant_Species___TF24t__TF24_Env__top_layer__get", (DL_FUNC) &_plant_Species___TF24t__TF24_Env__top_layer__get, 1},
     {"_plant_Species___TF24t__TF24_Env__height_jacobian__get", (DL_FUNC) &_plant_Species___TF24t__TF24_Env__height_jacobian__get, 1},
-    {"_plant_Species___TF24t__TF24_Env__establishment_weights__get", (DL_FUNC) &_plant_Species___TF24t__TF24_Env__establishment_weights__get, 1},
     {"_plant_Species___TF24t__TF24_Env__node_times__get", (DL_FUNC) &_plant_Species___TF24t__TF24_Env__node_times__get, 1},
     {"_plant_Species___TF24t__TF24_Env__density_in_birth_date__get", (DL_FUNC) &_plant_Species___TF24t__TF24_Env__density_in_birth_date__get, 1},
     {"_plant_Species___TF24t__TF24_Env__patch_densities__get", (DL_FUNC) &_plant_Species___TF24t__TF24_Env__patch_densities__get, 1},

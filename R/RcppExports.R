@@ -2629,6 +2629,10 @@ Species___TF24t__TF24_Env__log_densities__get <- function(obj_) {
     .Call('_plant_Species___TF24t__TF24_Env__log_densities__get', PACKAGE = 'plant', obj_)
 }
 
+Species___TF24t__TF24_Env__log_densities_state__get <- function(obj_) {
+    .Call('_plant_Species___TF24t__TF24_Env__log_densities_state__get', PACKAGE = 'plant', obj_)
+}
+
 Species___TF24t__TF24_Env__retired__get <- function(obj_) {
     .Call('_plant_Species___TF24t__TF24_Env__retired__get', PACKAGE = 'plant', obj_)
 }
@@ -2639,10 +2643,6 @@ Species___TF24t__TF24_Env__top_layer__get <- function(obj_) {
 
 Species___TF24t__TF24_Env__height_jacobian__get <- function(obj_) {
     .Call('_plant_Species___TF24t__TF24_Env__height_jacobian__get', PACKAGE = 'plant', obj_)
-}
-
-Species___TF24t__TF24_Env__establishment_weights__get <- function(obj_) {
-    .Call('_plant_Species___TF24t__TF24_Env__establishment_weights__get', PACKAGE = 'plant', obj_)
 }
 
 Species___TF24t__TF24_Env__node_times__get <- function(obj_) {

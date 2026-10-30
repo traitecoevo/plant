@@ -71,8 +71,11 @@ test_that("TF24's fitness gradient is the pinned-step central difference", {
   pinned$ode_step_sizes <- scm$ode_step_sizes
   # lma and omega set the seed height, which is solved to a root tolerance that
   # a difference reads: omega's is off by 2.5e-2 at a step of 1e-5 and 8e-4 at
-  # 1e-3. Every other column is differenced at 1e-4 and held to 1e-4.
+  # 1e-3. a_d0's difference is flat from 1e-3 to 1e-4 and rounds below it, so
+  # it takes 1e-4. Every other column is differenced at 1e-5, where the
+  # truncation error on hmat is 6e-5 against 5e-3 at 1e-4. All are held to 1e-4.
   birth_size <- c("lma", "omega")
+  rounding_floor <- "a_d0"
   difference <- function(set, x, rel) {
     h <- rel * abs(x)
     up <- stand_fitness(fitness_stand_run(set(x + h), record = FALSE))
@@ -90,7 +93,8 @@ test_that("TF24's fitness gradient is the pinned-step central difference", {
     q
   }
   for (name in c(names, "birth_rate")) {
-    rel <- if (name %in% birth_size) 1e-3 else 1e-4
+    rel <- if (name %in% birth_size) 1e-3
+           else if (name %in% rounding_floor) 1e-4 else 1e-5
     fd <- if (name == "birth_rate") {
       difference(with_birth_rate, pinned$strategies[[1]]$birth_rate_y, rel)
     } else {
