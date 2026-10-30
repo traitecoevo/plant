@@ -29,4 +29,4 @@ jobs:
           mkdir -p ../src_dev lib_dev
           git archive HEAD | tar -x -C ../src_dev
           R CMD INSTALL --no-test-load -l lib_dev ../src_dev > inst_dev.log 2>&1 || { tail -50 inst_dev.log; exit 1; }
-          R_LIBS="$PWD/lib_dev" Rscript probe/probe_seq.R probe/body.R win
+          R_LIBS="$PWD/lib_dev" Rscript probe/probe_heap.R win
