@@ -450,7 +450,10 @@ test_that("A run that substepped the soil is rerun, swept and invaded as it ran"
   ## The sweep's rows: the census, then each species' fitness.
   metrics <- function(scm) c(stand_census(scm), stand_fitness(scm))
   expect_identical(names(metrics(substepped)), rownames(g$gradient))
-  expect_equal(tangent$value, unname(metrics(substepped)), tolerance = 1e-12)
+  ## The tangent is the run at another scalar, not the run, so its value agrees
+  ## to the budget test-gradient-ladder-introductions.R explains, not bit for bit
+  ## (3.6e-13 on macOS, 1.25e-12 on Windows).
+  expect_equal(tangent$value, unname(metrics(substepped)), tolerance = 1e-9)
   expect_equal(unname(g$gradient[, "1.lma"]), tangent$tangent, tolerance = 1e-6)
   at_lma <- function(x) {
     q <- p
