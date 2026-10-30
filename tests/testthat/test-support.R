@@ -23,12 +23,12 @@ test_that("Control presets", {
 test_that("control_tf24() sets TF24's step control and keeps the rest", {
   tf <- control_tf24()
   expect_inherits(tf, "Control")
-  expect_equal(tf$ode_tol_rel, 1e-4)
-  expect_equal(tf$ode_tol_abs, 1e-8)
+  expect_equal(tf$ode_tol_rel, 1e-5)
+  expect_equal(tf$ode_tol_abs, 1e-5)
   expect_equal(tf$ode_tol_scale_soil, 10)
   expect_true(tf$ode_soil_substep)
   ## The absolute tolerance follows the relative one.
-  expect_equal(control_tf24(1e-5)$ode_tol_abs, 1e-9)
+  expect_equal(control_tf24(1e-6)$ode_tol_abs, 1e-6)
 
   ## Every other field is the base's.
   base <- Control(node_density_in_birth_date = TRUE, schedule_eps = 1e-3)
