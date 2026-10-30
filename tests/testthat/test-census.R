@@ -287,7 +287,7 @@ test_that("G4: the state adjoint reaches every state a metric reads", {
 
 test_that("G5: the entry point refuses to compare across two Controls", {
   a <- list(gradient = matrix(1, 1, 1, dimnames = list("leaf_area", "lma")),
-            control = c(GSS_tol_abs = 1e-1, ci_abs_tol = 1e-3,
+            control = c(GSS_tol_abs = 1e-3, ci_abs_tol = 1e-3,
                         node_gradient_eps = 1e-6, schedule_eps = 1e-3))
   b <- a
   b$control[["schedule_eps"]] <- 1e-4
@@ -329,11 +329,12 @@ test_that("the Control a gradient is taken at is the entries that move it", {
   # same order -- self-consistent either way. Measured on the form below: a value
   # wired to the wrong Control field now FAILS, and a name changed in scm.h FAILS.
   #
-  # ⚠️ What it still cannot see is ci_abs_tol and gradient_curvature_floor
-  # swapped, because both are 1e-3 at the defaults and a swap of equal numbers has
-  # nothing to read. That is fine HERE and only here: the pair travels from scm.h
-  # as name-with-value, so there is no second ordering left to disagree with it and
-  # nothing can produce that swap any more. Do not answer it with a test.
+  # ⚠️ What it still cannot see is a swap among GSS_tol_abs, ci_abs_tol and
+  # gradient_curvature_floor, because all three are 1e-3 at the defaults and a swap
+  # of equal numbers has nothing to read. That is fine HERE and only here: each
+  # travels from scm.h as name-with-value, so there is no second ordering left to
+  # disagree with and nothing can produce that swap any more. Do not answer it
+  # with a test.
   scm <- census_stand()
   got <- gradient_control(scm)
   expect_equal(names(got),

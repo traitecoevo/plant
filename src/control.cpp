@@ -77,9 +77,14 @@ Control::Control() {
   // floor limb when it fires.
   gradient_curvature_floor = 1e-3;
 
-  // Bracket tolerance of the collar-potential search. It has only to land inside
-  // the basin of the Newton polish, which sets the operating point returned.
-  GSS_tol_abs = 1e-1;
+  // phylloptim's own default. Despite its name it no longer sets the collar
+  // solve's precision (a root-find at the leaf's fixed collar_root_tol does). It
+  // is the width below which the feasible collar interval counts as collapsed,
+  // where the leaf holds the collar at the midpoint without re-imposing
+  // continuity (`Determined`, phylloptim#145), and the tolerance of the
+  // golden-section fallback. Raising it puts stands on that branch, whose answer
+  // is wrong and which the gradient refuses.
+  GSS_tol_abs = 1e-3;
   // The leaf's own choice, read rather than restated: this was 1e2 while
   // phylloptim's default was sixteen times finer, and since every stand builds its
   // leaf through here, that number was the one the whole reverse sweep ran on.
