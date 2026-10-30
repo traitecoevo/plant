@@ -229,13 +229,24 @@ tidy_individual <- function(results) {
 #' Integrations are performed using trapezium integration
 #'
 #' @param tidy_species_data output of either `tidy_patch` or `tidy_species`
+#' @param lower,upper heights bounding the integral; the defaults integrate over
+#'   the whole size distribution. A bound that falls between two nodes takes the
+#'   integrand by linear interpolation, as the trapezium rule already assumes, so
+#'   totals over adjacent ranges sum to the total over their union. For a finer
+#'   grid, interpolate with `interpolate_to_heights()` first.
 #'
-#' @return a tibble whose columns provide metrics on integrated totals for each variable for each species at each time
+#' @return a tibble whose columns provide metrics on integrated totals for each variable for each species at each time.
+#'   `min_height` is the lowest height in the integrated range, and is `NA`
+#'   when the range holds no individuals (the totals are then zero).
 
 #' @export
 #'
 #' @importFrom rlang .data
-integrate_over_size_distribution <- function(tidy_species_data) {
+integrate_over_size_distribution <- function(tidy_species_data,
+                                             lower = -Inf, upper = Inf) {
+  if (!(length(lower) == 1 && length(upper) == 1 && lower < upper)) {
+    stop("'lower' and 'upper' must be single heights with lower < upper")
+  }
   tidy_species_data  %>%
     dplyr::select(-dplyr::any_of("node")) %>% stats::na.omit() %>%
     dplyr::filter(.data$step > 1) %>% 
@@ -246,9 +257,28 @@ integrate_over_size_distribution <- function(tidy_species_data) {
     # grid first is what makes the rule below hold however the rows arrive.
     dplyr::arrange(.data$height, .by_group = TRUE) %>%
     dplyr::reframe(
-      density_integrated = trapezium(.data$height, .data$density),
-      min_height = min(.data$height),
-      dplyr::across(tidyselect::where(is.double) & !c("density", "density_integrated", "min_height") , ~trapezium(height, density * .x))
+      density_integrated = trapezium_between(.data$height, .data$density, lower, upper),
+      min_height = if (lower < max(.data$height) && upper > min(.data$height)) max(lower, min(.data$height)) else NA_real_,
+      dplyr::across(tidyselect::where(is.double) & !c("density", "density_integrated", "min_height") , ~trapezium_between(height, density * .x, lower, upper))
     ) %>%
     dplyr::rename(density = "density_integrated")
+}
+
+# Trapezium integral of y over sorted x, restricted to [lower, upper]. Each bound
+# takes y by linear interpolation, the integrand the rule already assumes, so
+# integrals over adjacent ranges add exactly. Bounds spanning x reduce to the
+# plain rule.
+trapezium_between <- function(x, y, lower, upper) {
+  n <- length(x)
+  if (lower <= x[1] && upper >= x[n]) {
+    return(trapezium(x, y))
+  }
+  lower <- max(lower, x[1])
+  upper <- min(upper, x[n])
+  if (lower >= upper) {
+    return(0)
+  }
+  at <- function(h) stats::approx(x, y, xout = h, ties = "ordered")$y
+  inside <- x > lower & x < upper
+  trapezium(c(lower, x[inside], upper), c(at(lower), y[inside], at(upper)))
 }
