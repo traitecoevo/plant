@@ -1,0 +1,76 @@
+diff --git a/R/TF24_plot_diagnostics.R b/R/TF24_plot_diagnostics.R
+index 74a84d89..4f82cacd 100644
+--- a/R/TF24_plot_diagnostics.R
++++ b/R/TF24_plot_diagnostics.R
+@@ -61,7 +61,7 @@ TF24_plot_diagnostics <- function(results, x, y) {
+   # Soil water potential by depth over time
+   results$env$soil_moist %>%
+     dplyr::mutate(soil_depth = results$env$soil_depth$soil_depth) %>%
+-    dplyr::mutate(psi_soil = 1.78e-3 * (.data$soil_moist / 0.428)^-6.57) %>%
++    dplyr::mutate(psi_soil = (1.78e3 * (.data$soil_moist / 0.428)^-6.57) / 1e6) %>%
+     ggplot2::ggplot(ggplot2::aes(x = .data$time, y = .data$psi_soil, group = .data$soil_depth, colour = .data$soil_depth)) +
+     ggplot2::geom_point(na.rm = TRUE) +
+     ggplot2::geom_line(na.rm = TRUE) +
+@@ -74,7 +74,7 @@ TF24_plot_diagnostics <- function(results, x, y) {
+   # Soil moisture by depth over time
+   results$env$soil_moist %>%
+     dplyr::mutate(soil_depth = results$env$soil_depth$soil_depth) %>%
+-    dplyr::mutate(psi_soil = 1.78e-3 * (.data$soil_moist / 0.428)^-6.57) %>%
++    dplyr::mutate(psi_soil = (1.78e3 * (.data$soil_moist / 0.428)^-6.57) / 1e6) %>%
+     ggplot2::ggplot(ggplot2::aes(x = .data$time, y = .data$soil_moist, group = .data$soil_depth, colour = .data$soil_depth)) +
+     ggplot2::geom_point(na.rm = TRUE) +
+     ggplot2::geom_line(na.rm = TRUE) +
+diff --git a/R/tf24_soil.R b/R/tf24_soil.R
+index 811d7f3d..cb15d112 100644
+--- a/R/tf24_soil.R
++++ b/R/tf24_soil.R
+@@ -142,8 +142,7 @@ soil_widths_graded <- function(depth = 1.5, n = 5, top = 0.02) {
+ ##' @param soil_moist_sat,K_sat,a_psi,n_psi Per-layer soil parameters, each either
+ ##'   \code{NULL} (use the scalar field for every layer) or a vector with one
+ ##'   entry per layer. If all four are \code{NULL} the layered-parameter path is
+-##'   not engaged at all. \code{a_psi} is the retention-curve scale in
+-##'   MPa.
++##'   not engaged at all.
+ ##' @return \code{env}, modified in place and returned invisibly.
+ ##' @seealso \code{\link{soil_widths_graded}}
+ ##' @export
+diff --git a/inst/include/plant/models/tf24_environment.h b/inst/include/plant/models/tf24_environment.h
+index c8e7e821..1c59d3a4 100644
+--- a/inst/include/plant/models/tf24_environment.h
++++ b/inst/include/plant/models/tf24_environment.h
+@@ -61,7 +61,7 @@ public:
+   TF24_Environment(int soil_number_of_depths = 5,
+                    double soil_moist_sat = 0.428, // saturated soil moisture content (m3 water m^-3 soil)
+                    double K_sat = 163.0411, //saturated hydraulic conductivity of soil
+-                   double a_psi = 1.78e-3, // retention-curve scale (MPa)
++                   double a_psi = 1.78e3, // retention-curve scale (Pa)
+                    double n_psi = 6.57, // retention-curve exponent (unitless)
+                    double a_infil = 1, // infiltration switch (0-1), 0 no runoff, 1 runoff
+                    double b_infil = 8, // unitless, determines infiltration rate
+@@ -671,7 +671,6 @@ public:
+   double soil_moist_sat;
+   //Saturated soil hydraulic conductivity
+   double K_sat;
+-  // Retention curve psi = a_psi (theta / theta_sat)^-n_psi, a_psi in MPa.
+   double a_psi;
+   double n_psi;
+   std::vector<double> soil_moist_sat_layers;
+@@ -939,7 +938,7 @@ public:
+       soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, layer);
+     const double n_psi_layer = soil_parameter_value(n_psi_layers, n_psi, layer);
+     const S psi =
+-      a_psi_layer * pow(t / soil_moist_sat_layer, -n_psi_layer);
++      a_psi_layer * pow(t / soil_moist_sat_layer, -n_psi_layer) / 1e6; // Pa -> MPa
+     // Cap at a large-but-finite ceiling (#549): near theta_r the retention curve
+     // gives psi ~ 1e8 MPa, which pushes the leaf hydraulic solve non-finite and
+     // corrupts the soil feedback. Root conductivity is exactly 0 far below the
+@@ -961,7 +960,8 @@ public:
+     const double n_psi_layer = soil_parameter_value(n_psi_layers, n_psi, layer);
+     const double soil_moist_sat_layer =
+       soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, layer);
+-    return pow((psi / a_psi_layer), (-1 / n_psi_layer)) * soil_moist_sat_layer;
++    // psi is in MPa; a_psi is in Pa.
++    return pow((psi * 1e6 / a_psi_layer), (-1 / n_psi_layer)) * soil_moist_sat_layer;
+   }
+ 
+   double soil_moist_from_psi(double psi) const {
