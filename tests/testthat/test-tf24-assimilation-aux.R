@@ -62,11 +62,10 @@ test_that("assimilation is finite when the hydraulic solve shuts down", {
   # probe wrote. They now set it explicitly, keeping
   # profit == assimilation - hydraulic cost true in every branch.
   # Dry top layers over wet deep ones drives the shutdown.
+  # A leaf shut in light moves no gas, so it nets exactly zero: the limit of
+  # the transpiring leaf as E -> 0.
   aux <- tf24_aux(theta = c(rep(0.04, 8), rep(0.35, 7)))
-  expect_true(is.finite(aux[["assimilation"]]))
-  expect_lt(aux[["assimilation"]], 0)
-  s <- TF24_Strategy()
-  expect_equal(aux[["assimilation"]], -0.015 * s$pars$vcmax_25, tolerance = 1e-8)
+  expect_identical(aux[["assimilation"]], 0)
 })
 
 test_that("assimilation is reported under every shading model", {

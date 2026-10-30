@@ -829,7 +829,14 @@ public:
   //   0.20), so on the energy-balance path net radiation falls to about half;
   //   and `a` is `phi_J` on an absorbed basis, which reassociates J. TF24f and
   //   TF24t follow to v13.1 and v13.4.
-  static constexpr int scientific_version = 13;
+  // v14: the leaf where it stops moving water or gas. A shut leaf nets
+  //   min(0, A(ci = ca)) at its own temperature instead of -R_d, so in light it
+  //   nets zero; its stem holds where flow stopped; shade death is decided at the
+  //   shut leaf's temperature; and a collar interval narrower than GSS_tol_abs is
+  //   solved, not pinned at its midpoint. Output moves near the root limit,
+  //   below light compensation and in heat, and everywhere within ~2.5e-3 from
+  //   phylloptim's ci root-find at 1e-13. TF24f, TF24t and TF24w follow.
+  static constexpr int scientific_version = 14;
 
   // calculate the amount of water transpired relativised by leaf area index.
 

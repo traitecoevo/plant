@@ -279,8 +279,8 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   #note that this scenario should not occur in model anyway
   l$set_leaf_states_rates_from_psi_stem(psi_soil - 1, psi_soil)
 
-  #assimilation becomes dark respiration
-  expect_equal(l$assim_colimited_, -l$R_d_)
+  #a leaf moving no gas nets zero in light
+  expect_identical(l$assim_colimited_, 0)
   #stomatal conductance becomes 0
   expect_equal(l$stom_cond_CO2_, 0)
   #transpiration becomes 0
@@ -346,8 +346,8 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   l$set_leaf_states_rates_from_psi_stem(0, 0)
   expect_equal(l$hydraulic_cost_TF(psi_soil), 0)
   
-  #psi_soil == psi_stem means A == -R_d_
-  expect_equal(l$assim_colimited_, -l$R_d_)
+  #psi_soil == psi_stem moves no gas, so A is zero in light
+  expect_identical(l$assim_colimited_, 0)
   #stomatal conductance becomes 0
   expect_equal(l$stom_cond_CO2_, 0)
   #transpiration becomes 0
@@ -419,7 +419,10 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   expect_equal(l$transpiration_, 0)
   expect_equal(l$opt_psi_stem_, psi_crit+1)
   expect_equal(l$stom_cond_CO2_, 0)
-  expect_equal(l$ci_, l$gamma_*0.1013)
+  # shut in light, the leaf refixes its own respiration: A is zero at a ci
+  # between the CO2 compensation point and ambient
+  expect_identical(l$assim_colimited_, 0)
+  expect_true(l$ci_ > l$gamma_ * 0.1013 && l$ci_ < l$ca_)
   expect_true(l$profit_ < 0)
   
   # check a more standard case, wet soil
@@ -647,10 +650,10 @@ expect_equal(l$E_up_, sum(l$soil_consumption_)*0.018015)
   root_carbon = c(1, 1)
 l$set_physiology(root_network = net((root_carbon) / area_leaf_, soil_depth), PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
 l$find_root_collar_psi()
-# R_d is a trait with its own default in phylloptim 0.6.0, not 0.015*vcmax_25
-# (they coincide at vcmax_25 = 96), and psi_crit is derived. Read both off the
-# leaf so this stays an identity rather than a restatement of old formulas.
-expect_equal(l$profit_, -l$R_d_ - l$hydraulic_cost_TF(l$psi_crit))
+# Shut in light, the leaf nets zero and pays the hydraulic cost where its stem
+# holds. Read both off the leaf so this stays an identity.
+expect_identical(l$assim_colimited_, 0)
+expect_equal(l$profit_, -l$hydraulic_cost_TF(l$opt_psi_stem_))
 l$opt_root_psi_
 
 # assim_max_ < 0 early-exit: wet soil (so the upstream shut-down exits are NOT
@@ -742,7 +745,8 @@ test_that("Medlyn stomatal model", {
   # It enters the E -> g_sc conversion, so g_sc carries exactly that relative
   # shift and ci and assimilation follow (#622).
   expect_equal(l$ci_, 19.6244425204, tolerance = 1e-5)
-  expect_equal(l$stom_cond_CO2_, 0.120848522773, tolerance = 1e-6)
+  # On the CO2 basis: the water-vapour conductance divided by 1.6.
+  expect_equal(l$stom_cond_CO2_, 0.0755303267333, tolerance = 1e-6)
   expect_equal(l$assim_colimited_, 15.1922296035, tolerance = 1e-5)
   # operating point is physically sane: gamma* < ci < ca, positive gs and assim
   expect_true(l$ci_ > 0 && l$ci_ < ca)

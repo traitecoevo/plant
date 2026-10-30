@@ -5,10 +5,10 @@
 # which is what these check, for both solve_leaf bodies.
 
 infeasible_rates <- function(strategy, individual) {
-  # A stem conductance this small puts the transpiration the solve needs off the
-  # end of the stem curve's table, which phylloptim reports as infeasible.
+  # A root curve this shallow leaves no valid root conductance at the soil's
+  # potential, which phylloptim reports as an infeasible uptake.
   p <- strategy$pars
-  p$K_s <- 1e-30
+  p$root_c <- 0.05
   strategy$pars <- p
   ind <- individual(strategy)
   ind$set_state("height", 5)
