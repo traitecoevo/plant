@@ -13,6 +13,15 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **`Control()`'s `GSS_tol_abs` defaults to `1e-3`, phylloptim's own value, where it was `1e-1` (#654).** Since phylloptim 0.16.0 it no longer sets how precisely the leaf's collar potential is solved. It is the width below which the feasible collar interval counts as collapsed, where the leaf holds the collar at the interval's midpoint without re-imposing continuity between collar and stem (the `determined` operating point, traitecoevo/phylloptim#145), so transpiration and uptake disagree there. At `1e-1` the seasonal parity stand reached that point in 3 of about 190,000 leaf solves; at `1e-3` no reference stand does, and those solves are pinned at the root's critical potential instead. Its census moves by at most 3e-13; the other reference stands and the stochastic baseline do not move. The model-version snapshots and the scenario gateway are re-blessed, with no scientific version bump. In the gateway, two scenarios move and no classification changes:
+
+  | scenario | offspring_production before | after |
+  |---|---|---|
+  | S01 mesic traits, arid extremely-seasonal, shallow roots | 45.0794 | 44.9227 (−0.35%) |
+  | S05 xeric traits, wet extremely-seasonal, shallow roots | 8.54636e-09 | 8.54818e-09 (+0.02%) |
+
+  Migration: `Control(GSS_tol_abs = 1e-1)` gives the old value.
+
 * **TF24's default stem vulnerability curve is the one `TF24_hyperpar` gives at the default traits (#611).** The bare `TF24_Strategy()` had `stem_P50 = 1.85` MPa and `stem_c = 1.09`, from a formula tying shape to P50 that nothing else used, while every strategy built through `TF24_hyperpar` got `stem_P50 = 2.889` and `stem_c = 2.04` at the same `K_s`. The default is now the latter, so the two share one curve; c ≈ 2 matches measured angiosperm stems. `stem_b` and `psi_crit` follow. TF24f and TF24t inherit the change. Runs built from traits do not move; runs on the bare default strategy do. `r_l` and `nmass_l` still differ between the two (#579). Migration:
   * to keep the old curve, set `s$pars$stem_P50 <- 1.85; s$pars$stem_c <- 1.0899851679673995`
 

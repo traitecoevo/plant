@@ -40,7 +40,9 @@ test_that("Defaults", {
     # model occupies.
     gradient_curvature_floor = 1e-3,
 
-    GSS_tol_abs = 1e-1,
+    # The leaf's own default too: a wider collapse width puts stands on a branch
+    # of the leaf solve that phylloptim's default never reaches (#654).
+    GSS_tol_abs = phylloptim::leaf_control()$GSS_tol_abs,
     # Read rather than restated: this is the leaf's choice, and it lived as four
     # separate numbers -- here, plant's Control, phylloptim's Leaf and
     # phylloptim's R control -- of which plant's was the one every stand ran on.
