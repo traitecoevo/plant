@@ -1,5 +1,5 @@
 # THROWAWAY PROBE BRANCH -- never merge. test-scm.R's invader-vs-stand gap on
-# Windows at develop, without #686 and without #713.
+# Windows, replaying the test body with each earlier call dropped in turn.
 on:
   workflow_dispatch:
 
@@ -10,6 +10,7 @@ jobs:
     runs-on: windows-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      NOT_CRAN: true
     steps:
       - uses: actions/checkout@v5
 
@@ -19,19 +20,13 @@ jobs:
           use-public-rspm: true
 
       - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::testthat
 
-      - name: Build three and probe
+      - name: Build and probe
         shell: bash
         run: |
-          for v in dev no686 no713; do
-            mkdir -p "../src_$v" "lib_$v"
-            git archive HEAD | tar -x -C "../src_$v"
-          done
-          (cd ../src_no686 && patch -p1 < "$GITHUB_WORKSPACE/probe/revert686.patch")
-          (cd ../src_no713 && patch -p1 < "$GITHUB_WORKSPACE/probe/revert713.patch")
-          for v in dev no686 no713; do
-            R CMD INSTALL --no-test-load -l "lib_$v" "../src_$v" > "inst_$v.log" 2>&1 || { tail -50 "inst_$v.log"; exit 1; }
-          done
-          for v in dev no686 no713; do
-            R_LIBS="$PWD/lib_$v" Rscript probe/probe_inv.R "$v"
-          done
+          mkdir -p ../src_dev lib_dev
+          git archive HEAD | tar -x -C ../src_dev
+          R CMD INSTALL --no-test-load -l lib_dev ../src_dev > inst_dev.log 2>&1 || { tail -50 inst_dev.log; exit 1; }
+          R_LIBS="$PWD/lib_dev" Rscript probe/probe_seq.R probe/body.R win
