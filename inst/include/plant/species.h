@@ -449,8 +449,9 @@ private:
   // exit is the decreasing heights', not this parameter's.
   competition_split reduce_competition(const value_type& height,
                                        const std::vector<std::size_t>& order) const;
-  // The node positions in ascending abscissa, for the case where the heights are
-  // no longer ordered and the node list cannot be the quadrature grid.
+  // The node positions in ascending height abscissa, tallest first, for where the
+  // heights are no longer ordered: the height path's quadrature grid and the
+  // birth-date path's prefix.
   // Positions only: nothing here evaluates a contribution, so no width the
   // reduction forms out of it can carry a derivative.
   std::vector<std::size_t> ascending_by_abscissa() const;
@@ -764,9 +765,9 @@ void Species<T,E>::field_splits(const std::vector<value_type>& heights,
 }
 
 // One pass over the nodes for the whole height set. Where the prefix form does not
-// hold -- a broken ordering, or a profile that is not a polynomial in w -- every
-// height takes the walk, which is the same branch the walk's own early exit rests
-// on.
+// hold -- a broken ordering on the height coordinate, or a profile that is not a
+// polynomial in w -- every height takes the walk, which is the same branch the
+// walk's own early exit rests on.
 template <typename T, typename E>
 void Species<T,E>::field_splits_nodes(const std::vector<value_type>& heights,
                                       std::vector<competition_split>& out) const {
@@ -777,7 +778,7 @@ void Species<T,E>::field_splits_nodes(const std::vector<value_type>& heights,
   const HeightScan& scan = scan_heights();
   const bool birth_date = control().node_density_in_birth_date;
   const std::size_t n_moments = strategy->canopy_shape.n_moments();
-  if (!scan.decreasing || n_moments == 0) {
+  if ((!scan.decreasing && !birth_date) || n_moments == 0) {
     for (std::size_t k = 0; k < heights.size(); ++k) {
       out[k] = compute_competition_and_slope_split(heights[k]);
     }
@@ -805,6 +806,59 @@ void Species<T,E>::field_splits_nodes(const std::vector<value_type>& heights,
       abscissa[i] = abscissa_of(*it, birth_date);
     }
   }
+  const bool skip_retired = freezes_retired(control());
+  auto frozen = [&](std::size_t i) -> bool {
+    return skip_retired && nodes[i].retired();
+  };
+  moments weight, weight_slope;
+
+  if (!scan.decreasing) {
+    // Crossed crowns on the birth-date coordinate, which TF24's reserve-gated
+    // growth allows. The widths are in birth date and the heights do not move
+    // them, so each node carries its own weight, the widths of the two intervals
+    // it bounds, and a height reads the prefix of the nodes that reach it,
+    // tallest first: below its own height a node adds an exact zero. The walk's
+    // sum, associated differently.
+    const std::vector<std::size_t> order = ascending_by_abscissa();
+    std::vector<moments> prefix(n + 1);
+    for (std::size_t j = 0; j < n_moments; ++j) {
+      prefix[0][j] = value_type(0.0);
+    }
+    for (std::size_t i = 0; i < n; ++i) {
+      const std::size_t o = order[i];
+      const double width = (o > 0 ? abscissa[o] - abscissa[o - 1] : 0.0) +
+                           (o + 1 < n ? abscissa[o + 1] - abscissa[o] : 0.0);
+      for (std::size_t j = 0; j < n_moments; ++j) {
+        prefix[i + 1][j] = prefix[i][j] + width * scale[o] * mom[o][j];
+      }
+    }
+    // The heights ascend and the nodes in `order` descend, so the count reaching
+    // a height only falls: one merge over both. A retired cohort is passed over
+    // where it sits; its density is zero, so its moments are too.
+    std::size_t reach = n;
+    for (std::size_t k = 0; k < heights.size(); ++k) {
+      const value_type& height = heights[k];
+      if (scan.h_max < height) {
+        continue;  // no node reaches it; the empty split stands
+      }
+      while (reach > 0 && (frozen(order[reach - 1]) ||
+                           nodes[order[reach - 1]].height() < height)) {
+        --reach;
+      }
+      strategy->canopy_shape.height_weights(height, weight);
+      strategy->canopy_shape.height_weight_slopes(height, weight_slope);
+      competition_split& c = out[k];
+      for (std::size_t j = 0; j < n_moments; ++j) {
+        c.sum.value += weight[j] * prefix[reach][j];
+        c.sum.slope += weight_slope[j] * prefix[reach][j];
+      }
+      // The closing trapezium runs from the youngest node, wherever its height.
+      c.x1 = abscissa[n - 1];
+      c.at_x1 = nodes[n - 1].compute_competition_and_slope(height);
+      c.closes = closes_on(c.at_x1.value);
+    }
+    return;
+  }
 
   // The trapezium's intervals, accumulated in the order the walk accumulates them
   // so that a height reads a prefix rather than a re-association across nodes.
@@ -830,12 +884,7 @@ void Species<T,E>::field_splits_nodes(const std::vector<value_type>& heights,
   // a live cohort below it; it carries density zero, so its moments are exact
   // zeros in the prefix wherever it sits. The walk stops at the first LIVE cohort
   // below the height, and so does this.
-  const bool skip_retired = freezes_retired(control());
-  auto frozen = [&](std::size_t i) -> bool {
-    return skip_retired && nodes[i].retired();
-  };
   std::size_t crossing = n;
-  moments weight, weight_slope;
   for (std::size_t k = 0; k < heights.size(); ++k) {
     const value_type& height = heights[k];
     if (scan.h_max < height) {
@@ -958,11 +1007,10 @@ Species<T,E>::reduce_competition(const value_type& height,
 // overestimate it, so they stay in and the grid gets sorted.
 template <typename T, typename E>
 std::vector<std::size_t> Species<T,E>::ascending_by_abscissa() const {
-  const bool birth_date = control().node_density_in_birth_date;
   std::vector<double> at(size());
   std::vector<std::size_t> order(size());
   for (std::size_t i = 0; i < order.size(); ++i) {
-    at[i] = abscissa_of(nodes[i], birth_date);
+    at[i] = abscissa_of(nodes[i], false);
     order[i] = i;
   }
   std::sort(order.begin(), order.end(),
