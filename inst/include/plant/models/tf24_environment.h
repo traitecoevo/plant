@@ -271,7 +271,7 @@ public:
   // exists so nobody has to remember that order.
   void finalise_soil_geometry_() {
     vars = Internals<S>(soil_number_of_depths + aux_num);
-    initial_states = rebind_from(vars.states);
+    initial_states = rebind(vars.states);
 
     z_mid.resize(soil_number_of_depths);
     for (int i = 0; i < soil_number_of_depths; i++) {
@@ -377,7 +377,7 @@ public:
 
   // The values of an active vector, for the R boundary and for the state a run
   // restarts from.
-  static std::vector<double> rebind_from(const std::vector<S>& x) {
+  static std::vector<double> rebind(const std::vector<S>& x) {
     std::vector<double> out(x.size());
     for (size_t i = 0; i < x.size(); ++i) {
       out[i] = odelia::util::to_passive(x[i]);
@@ -411,7 +411,7 @@ public:
     for (size_t k = 0; k < m.size(); ++k) {
       util::write_iterator_scalar(it, m[k]);
     }
-    // The canopy top, because the field is held against height / height_max and
+    // The canopy top, because the field is tabulated against height / height_max and
     // a query divides by it: read the values and slopes without this and a
     // cohort's reads name every knot and not the grid they sit on.
     util::write_iterator_scalar(it, light_availability.height_max());
@@ -458,7 +458,7 @@ public:
       vars.states[i] = S(odelia::util::to_passive(src.vars.states[i]));
     }
     water_flux.assign(src.water_flux.size(), S(0.0));
-    resource_uptake.assign(src.resource_uptake.size(), 0.0);
+    resource_uptake.assign(src.resource_uptake.size(), S(0.0));
     z = src.z;
     z_mid = src.z_mid;
     dz = src.dz;
@@ -492,7 +492,7 @@ public:
   }
 
   template <class U>
-  TF24_Environment<U> rebind_from() const {
+  TF24_Environment<U> rebind() const {
     TF24_Environment<U> out;
     out.assign_from(*this);
     return out;
@@ -500,10 +500,9 @@ public:
 
   // The state the solver integrates, and the uptake compute_rates received.
   Internals<S> vars;
-  // Double: this is the uptake read back out through the R-facing aux interface,
-  // never an input to a rate, so holding it at the working scalar was a slot per
-  // layer per stage for a reading.
-  std::vector<double> resource_uptake;
+  // At the working scalar: a step that substeps the soil reads it as the
+  // layers' inputs, and the sweep differentiates through them.
+  std::vector<S> resource_uptake;
 
   // TODO: should we use auxilliary in internals
   std::vector<S> water_flux;
@@ -576,11 +575,11 @@ public:
   ResourceSpline<S> light_availability;
 
   // Every active value this environment holds: the integrated state and its
-  // rates, the per-layer flux, the potentials derived from the state, and the
-  // light field's knot values and slopes.
+  // rates, the per-layer flux and uptake, the potentials derived from the state,
+  // and the light field's knot values and slopes.
   template <class F>
   void for_each_active(F&& f) {
-    odelia::ode::visit_active(f, vars, water_flux, psi_soil_,
+    odelia::ode::visit_active(f, vars, water_flux, resource_uptake, psi_soil_,
                               light_availability);
   }
 
@@ -628,7 +627,7 @@ public:
 
   // The clamp sites the water balance reaches. The site list is shared with the
   // strategy's, so a tally reads the same however the site is reached; the
-  // differentiated half is shared through rebind_from for the same reason.
+  // differentiated half is shared through rebind for the same reason.
   // Mutable because it is a tally and not state: the reads that clamp are const,
   // and a clamp changes what they return to nobody.
   mutable clamp_counter clamps;
@@ -684,7 +683,7 @@ public:
   //   * water_in_0   = infiltration (rainfall reduced by a saturation-excess
   //                    runoff term controlled by a_infil/b_infil);
   //   * water_in_i>0 = drainage out of the layer above (water_flux[i-1]);
-  //   * water_out_i  = gravitational drainage = soil_K_from_soil_theta(theta_i),
+  //   * water_out_i  = gravitational drainage = conductivity(theta_i, i),
   //                    a Clapp & Hornberger (1978) / Zeng & Decker (2009)
   //                    unsaturated hydraulic conductivity;
   //   * root_uptake_i= resource_depletion[i], supplied by the plants via the
@@ -714,9 +713,7 @@ public:
   void compute_rates(std::vector<S> const &resource_depletion)
   {
     using std::max;
-    using std::pow;
 
-    S water_input;
     // Rainfall is floored at zero. Drivers are interpolated with a cubic
     // spline, which overshoots badly on intermittent forcing: a realistic daily
     // series with a ~10% wet-day fraction evaluates negative at ~45% of points,
@@ -741,59 +738,12 @@ public:
       note_clamp(CLAMP_RAINFALL);
     }
     double rainfall = std::max(0.0, rainfall_raw);
-    const double soil_moist_sat_0 =
-      soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, 0);
-    const S excess = S(1) - a_infil * pow(vars.state(0) / soil_moist_sat_0, b_infil);
-    // Counted: where the top layer is wet enough that this goes negative, the
-    // infiltrated fraction stops reading that layer's state at all.
-    if (excess < S(0.0)) {
-      note_clamp(CLAMP_INFILTRATION);
-    }
-    S infiltration = rainfall * max(S(0.0), excess);
+    const S infiltration =
+      layer_rates(rainfall, vars.states, resource_depletion, vars.rates,
+                  &water_flux, [this](int site) { note_clamp(site); });
     S total_resource_depletion = 0.0;
-
-
-    // treat each soil layer as a separate resource pool
-    for (size_t i = 0; i < soil_number_of_depths; i++)
-    {
-
-      // initial representation of drainage; to be improved
-      if (i == 0)
-      {
-        water_input = infiltration;
-      }
-      else
-      {
-        // m3 m^-2
-        water_input = water_flux[i-1];
-      }
-        // TODO: m3 m^-2
-      water_flux[i] = soil_K_from_soil_theta(vars.state(i), i);
-      // this function does runoff
-
-      // Positivity guard (issue #485): a layer at or below the residual
-      // moisture theta_r is not dried further (only rewetting is allowed). This
-      // keeps the explicit fixed-step solver from driving a drought-stressed
-      // layer to theta <= 0, where the retention curve psi_from_soil_moist and
-      // the conductivity curve soil_K_from_soil_theta go non-finite. Wetter
-      // layers are unaffected, so non-drought runs are unchanged.
-      const S theta = vars.state(i);
-      S rate = (water_input - water_flux[i] - resource_depletion[i]) / dz[i];
-      // Positivity guard (issue #485), hardened for #549: at/below the residual
-      // moisture a layer must not be dried further. The original `rate < 0.0`
-      // test let a *non-finite* rate through, because `NaN < 0.0` is false in
-      // IEEE 754 -- a NaN soil_consumption_ (from the retention curve's enormous
-      // psi_soil near theta_r) then wrote straight into the soil state. `!(rate
-      // > 0.0)` is true for NaN and for rate <= 0, so only genuine rewetting is
-      // allowed and NaN/negative rates are clamped to 0.
-      if (theta <= soil_moist_residual && !(rate > 0.0)) {
-        // Counted: a layer held here reads no uptake and no flux, so every route
-        // from a trait to this layer's state is cut for as long as it holds.
-        note_clamp(CLAMP_SOIL_POSITIVITY);
-        rate = 0.0;
-      }
-      vars.set_rate(i, rate);
-      resource_uptake[i] = odelia::util::to_passive(resource_depletion[i]);
+    for (size_t i = 0; i < soil_number_of_depths; i++) {
+      resource_uptake[i] = resource_depletion[i];
       total_resource_depletion += resource_depletion[i];
     }
       vars.set_rate(soil_number_of_depths, rainfall);
@@ -807,33 +757,82 @@ public:
 
   }
 
-  // calculate K from K_sat based on theta
-  S soil_K_from_soil_theta(S theta, size_t layer) const {
+  // The conductivity at theta held to [0, saturation], counting no clamp.
+  template <class U> U conductivity(const U& theta, size_t layer) const {
     using std::max;
     using std::min;
     using std::pow;
-    //Eq. 5 Zeng and Decker (2009), ref Clapp and Hornberger (1978)
-    // Clamp theta to [0, soil_moist_sat] (issue #485/#549): an intermediate
-    // explicit-RK stage can probe theta < 0 (std::pow(negative, non-integer) is
-    // NaN -> a non-positive layer drains nothing, K = 0) or, once the soil
-    // feedback is perturbed, a theta far above saturation, whose large positive
-    // exponent would otherwise make the inter-layer water_flux astronomically
-    // large and cascade the blow-up across layers. Physically K saturates at
-    // K_sat, so clamp there. Per-layer parameters (#558) fall back to the
-    // scalar default when no layered vector is set.
     const double k_sat_layer = soil_parameter_value(K_sat_layers, K_sat, layer);
     const double soil_moist_sat_layer =
       soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, layer);
     const double n_psi_layer = soil_parameter_value(n_psi_layers, n_psi, layer);
-    if (theta < S(0.0) || theta > S(soil_moist_sat_layer)) {
-      note_clamp(CLAMP_SOIL_CONDUCTIVITY);
-    }
-    const S t = min(max(theta, S(0.0)), S(soil_moist_sat_layer));
+    const U t = min(max(theta, U(0.0)), U(soil_moist_sat_layer));
     return k_sat_layer * pow(t / soil_moist_sat_layer, 2 * n_psi_layer + 3);
   }
 
-  S soil_K_from_soil_theta(S theta) {
-    return soil_K_from_soil_theta(theta, 0);
+  // The share of the rain the top layer takes at moisture theta, before it is
+  // floored at zero: one less the saturation-excess runoff.
+  template <class U> U infiltrated_share(const U& theta) const {
+    using std::pow;
+    const double soil_moist_sat_0 =
+      soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, 0);
+    return U(1) - a_infil * pow(theta / soil_moist_sat_0, b_infil);
+  }
+
+  // Each layer's rate under `rainfall`, less the uptake u from it, held at the
+  // residual moisture; returns the infiltration. `note` counts each clamp, and
+  // `drainage`, if given, takes each layer's.
+  template <class U, class Note>
+  U layer_rates(double rainfall, const std::vector<U>& theta,
+                const std::vector<U>& u, std::vector<U>& rate,
+                std::vector<U>* drainage, Note note) const {
+    using std::max;
+    const U share = infiltrated_share(theta[0]);
+    // Where the top layer is wet enough that this goes negative, the infiltrated
+    // fraction stops reading that layer's state at all.
+    if (share < U(0.0)) {
+      note(CLAMP_INFILTRATION);
+    }
+    const U infiltration = rainfall * max(U(0.0), share);
+    U water_input = infiltration;
+    for (size_t i = 0; i < soil_number_of_depths; ++i) {
+      const U& t = theta[i];
+      // An explicit stage can evaluate theta outside [0, saturation], where the
+      // conductivity curve is held.
+      if (t < U(0.0) ||
+          t > U(soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, i))) {
+        note(CLAMP_SOIL_CONDUCTIVITY);
+      }
+      const U k = conductivity(t, i);
+      if (drainage != nullptr) {
+        (*drainage)[i] = k;
+      }
+      rate[i] = (water_input - k - u[i]) / dz[i];
+      // At or below the residual moisture a layer is not dried further, and a
+      // NaN rate (from the retention curve near residual) is held too.
+      if (t <= soil_moist_residual && !(rate[i] > 0.0)) {
+        note(CLAMP_SOIL_POSITIVITY);
+        rate[i] = U(0.0);
+      }
+      water_input = k;
+    }
+    return infiltration;
+  }
+
+  // The times in (from, to) where the rain changes form: the soil's knots.
+  std::vector<double> rainfall_knots(double from, double to) const {
+    return extrinsic_drivers.knots("rainfall", from, to);
+  }
+
+  // The layers' rates at `time_` under a given uptake u from each, as
+  // compute_rates finds them.
+  template <class U>
+  void layer_rates(double time_, const std::vector<U>& theta,
+                   const std::vector<U>& u, std::vector<U>& rate) const {
+    rate.resize(theta.size());
+    layer_rates<U>(std::max(0.0, extrinsic_drivers.evaluate("rainfall", time_)),
+                   theta, u, rate, nullptr,
+                   [this](int site) { note_clamp(site); });
   }
 
 
@@ -901,7 +900,7 @@ public:
 
 
   std::vector<double> get_soil_water_state() const {
-    std::vector<double> out = rebind_from(vars.states);
+    std::vector<double> out = rebind(vars.states);
     out.resize(out.size() - aux_num);
     return out;
   }
@@ -917,7 +916,7 @@ public:
     return psi_soil_;
   }
   std::vector<double> get_soil_water_state_cumulative_flux() const {
-    const std::vector<double> all = rebind_from(vars.states);
+    const std::vector<double> all = rebind(vars.states);
     return {all.end() - aux_num, all.end()};
   }
   // Cumulative depth to the BOTTOM of each layer, m.
@@ -931,8 +930,8 @@ public:
   // TODO: I wonder if this needs a better name? See also environment.h
   Internals<double> r_internals() const {
     Internals<double> out(vars.state_size(), vars.aux_size(), vars.resource_size());
-    out.states = rebind_from(vars.states);
-    out.rates = rebind_from(vars.rates);
+    out.states = rebind(vars.states);
+    out.rates = rebind(vars.rates);
     return out;
   }
 
@@ -1021,7 +1020,7 @@ public:
         vars.set_state(i, 0);
       }
   }
-    initial_states = rebind_from(vars.states);
+    initial_states = rebind(vars.states);
     psi_soil_valid_ = false;
 }
 

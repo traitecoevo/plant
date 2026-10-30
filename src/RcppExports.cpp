@@ -3087,14 +3087,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // NodeSchedule__set_ode_steps
-void NodeSchedule__set_ode_steps(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_, std::vector<double> times, std::vector<double> sizes);
-RcppExport SEXP _plant_NodeSchedule__set_ode_steps(SEXP obj_SEXP, SEXP timesSEXP, SEXP sizesSEXP) {
+void NodeSchedule__set_ode_steps(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_, std::vector<double> times, std::vector<double> sizes, std::vector<std::vector<double> > input_slopes, std::vector<std::vector<double> > substep_ends);
+RcppExport SEXP _plant_NodeSchedule__set_ode_steps(SEXP obj_SEXP, SEXP timesSEXP, SEXP sizesSEXP, SEXP input_slopesSEXP, SEXP substep_endsSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::NodeSchedule> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type times(timesSEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type sizes(sizesSEXP);
-    NodeSchedule__set_ode_steps(obj_, times, sizes);
+    Rcpp::traits::input_parameter< std::vector<std::vector<double> > >::type input_slopes(input_slopesSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<double> > >::type substep_ends(substep_endsSEXP);
+    NodeSchedule__set_ode_steps(obj_, times, sizes, input_slopes, substep_ends);
     return R_NilValue;
 END_RCPP
 }
@@ -3248,6 +3250,28 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::NodeSchedule> >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(NodeSchedule__ode_step_sizes__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// NodeSchedule__ode_soil_input_slopes__get
+std::vector<std::vector<double> > NodeSchedule__ode_soil_input_slopes__get(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_);
+RcppExport SEXP _plant_NodeSchedule__ode_soil_input_slopes__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::NodeSchedule> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(NodeSchedule__ode_soil_input_slopes__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// NodeSchedule__ode_soil_substep_ends__get
+std::vector<std::vector<double> > NodeSchedule__ode_soil_substep_ends__get(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_);
+RcppExport SEXP _plant_NodeSchedule__ode_soil_substep_ends__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::NodeSchedule> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(NodeSchedule__ode_soil_substep_ends__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -7936,23 +7960,23 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Patch___FF16__FF16_Env__hold_field
-void Patch___FF16__FF16_Env__hold_field(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_);
-RcppExport SEXP _plant_Patch___FF16__FF16_Env__hold_field(SEXP obj_SEXP) {
+// Patch___FF16__FF16_Env__use_current_field
+void Patch___FF16__FF16_Env__use_current_field(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___FF16__FF16_Env__use_current_field(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
-    Patch___FF16__FF16_Env__hold_field(obj_);
+    Patch___FF16__FF16_Env__use_current_field(obj_);
     return R_NilValue;
 END_RCPP
 }
-// Patch___FF16__FF16_Env__release_field
-void Patch___FF16__FF16_Env__release_field(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_);
-RcppExport SEXP _plant_Patch___FF16__FF16_Env__release_field(SEXP obj_SEXP) {
+// Patch___FF16__FF16_Env__clear_constant_field
+void Patch___FF16__FF16_Env__clear_constant_field(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___FF16__FF16_Env__clear_constant_field(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
-    Patch___FF16__FF16_Env__release_field(obj_);
+    Patch___FF16__FF16_Env__clear_constant_field(obj_);
     return R_NilValue;
 END_RCPP
 }
@@ -8264,14 +8288,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Patch___FF16__FF16_Env__holds_field__get
-bool Patch___FF16__FF16_Env__holds_field__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_);
-RcppExport SEXP _plant_Patch___FF16__FF16_Env__holds_field__get(SEXP obj_SEXP) {
+// Patch___FF16__FF16_Env__has_constant_field__get
+bool Patch___FF16__FF16_Env__has_constant_field__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___FF16__FF16_Env__has_constant_field__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___FF16__FF16_Env__holds_field__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(Patch___FF16__FF16_Env__has_constant_field__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -8322,23 +8346,23 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Patch___TF24__TF24_Env__hold_field
-void Patch___TF24__TF24_Env__hold_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_Patch___TF24__TF24_Env__hold_field(SEXP obj_SEXP) {
+// Patch___TF24__TF24_Env__use_current_field
+void Patch___TF24__TF24_Env__use_current_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___TF24__TF24_Env__use_current_field(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    Patch___TF24__TF24_Env__hold_field(obj_);
+    Patch___TF24__TF24_Env__use_current_field(obj_);
     return R_NilValue;
 END_RCPP
 }
-// Patch___TF24__TF24_Env__release_field
-void Patch___TF24__TF24_Env__release_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_Patch___TF24__TF24_Env__release_field(SEXP obj_SEXP) {
+// Patch___TF24__TF24_Env__clear_constant_field
+void Patch___TF24__TF24_Env__clear_constant_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___TF24__TF24_Env__clear_constant_field(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    Patch___TF24__TF24_Env__release_field(obj_);
+    Patch___TF24__TF24_Env__clear_constant_field(obj_);
     return R_NilValue;
 END_RCPP
 }
@@ -8650,14 +8674,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Patch___TF24__TF24_Env__holds_field__get
-bool Patch___TF24__TF24_Env__holds_field__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_Patch___TF24__TF24_Env__holds_field__get(SEXP obj_SEXP) {
+// Patch___TF24__TF24_Env__has_constant_field__get
+bool Patch___TF24__TF24_Env__has_constant_field__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___TF24__TF24_Env__has_constant_field__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___TF24__TF24_Env__holds_field__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(Patch___TF24__TF24_Env__has_constant_field__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -8708,23 +8732,23 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Patch___TF24f__TF24_Env__hold_field
-void Patch___TF24f__TF24_Env__hold_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_Patch___TF24f__TF24_Env__hold_field(SEXP obj_SEXP) {
+// Patch___TF24f__TF24_Env__use_current_field
+void Patch___TF24f__TF24_Env__use_current_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___TF24f__TF24_Env__use_current_field(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    Patch___TF24f__TF24_Env__hold_field(obj_);
+    Patch___TF24f__TF24_Env__use_current_field(obj_);
     return R_NilValue;
 END_RCPP
 }
-// Patch___TF24f__TF24_Env__release_field
-void Patch___TF24f__TF24_Env__release_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_Patch___TF24f__TF24_Env__release_field(SEXP obj_SEXP) {
+// Patch___TF24f__TF24_Env__clear_constant_field
+void Patch___TF24f__TF24_Env__clear_constant_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___TF24f__TF24_Env__clear_constant_field(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    Patch___TF24f__TF24_Env__release_field(obj_);
+    Patch___TF24f__TF24_Env__clear_constant_field(obj_);
     return R_NilValue;
 END_RCPP
 }
@@ -9036,14 +9060,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Patch___TF24f__TF24_Env__holds_field__get
-bool Patch___TF24f__TF24_Env__holds_field__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_Patch___TF24f__TF24_Env__holds_field__get(SEXP obj_SEXP) {
+// Patch___TF24f__TF24_Env__has_constant_field__get
+bool Patch___TF24f__TF24_Env__has_constant_field__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___TF24f__TF24_Env__has_constant_field__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___TF24f__TF24_Env__holds_field__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(Patch___TF24f__TF24_Env__has_constant_field__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -9094,23 +9118,23 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Patch___TF24t__TF24_Env__hold_field
-void Patch___TF24t__TF24_Env__hold_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_Patch___TF24t__TF24_Env__hold_field(SEXP obj_SEXP) {
+// Patch___TF24t__TF24_Env__use_current_field
+void Patch___TF24t__TF24_Env__use_current_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___TF24t__TF24_Env__use_current_field(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    Patch___TF24t__TF24_Env__hold_field(obj_);
+    Patch___TF24t__TF24_Env__use_current_field(obj_);
     return R_NilValue;
 END_RCPP
 }
-// Patch___TF24t__TF24_Env__release_field
-void Patch___TF24t__TF24_Env__release_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_Patch___TF24t__TF24_Env__release_field(SEXP obj_SEXP) {
+// Patch___TF24t__TF24_Env__clear_constant_field
+void Patch___TF24t__TF24_Env__clear_constant_field(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___TF24t__TF24_Env__clear_constant_field(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    Patch___TF24t__TF24_Env__release_field(obj_);
+    Patch___TF24t__TF24_Env__clear_constant_field(obj_);
     return R_NilValue;
 END_RCPP
 }
@@ -9422,14 +9446,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Patch___TF24t__TF24_Env__holds_field__get
-bool Patch___TF24t__TF24_Env__holds_field__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_Patch___TF24t__TF24_Env__holds_field__get(SEXP obj_SEXP) {
+// Patch___TF24t__TF24_Env__has_constant_field__get
+bool Patch___TF24t__TF24_Env__has_constant_field__get(plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Patch___TF24t__TF24_Env__has_constant_field__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___TF24t__TF24_Env__holds_field__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(Patch___TF24t__TF24_Env__has_constant_field__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -9480,23 +9504,23 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Patch___K93__K93_Env__hold_field
-void Patch___K93__K93_Env__hold_field(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_);
-RcppExport SEXP _plant_Patch___K93__K93_Env__hold_field(SEXP obj_SEXP) {
+// Patch___K93__K93_Env__use_current_field
+void Patch___K93__K93_Env__use_current_field(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_);
+RcppExport SEXP _plant_Patch___K93__K93_Env__use_current_field(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    Patch___K93__K93_Env__hold_field(obj_);
+    Patch___K93__K93_Env__use_current_field(obj_);
     return R_NilValue;
 END_RCPP
 }
-// Patch___K93__K93_Env__release_field
-void Patch___K93__K93_Env__release_field(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_);
-RcppExport SEXP _plant_Patch___K93__K93_Env__release_field(SEXP obj_SEXP) {
+// Patch___K93__K93_Env__clear_constant_field
+void Patch___K93__K93_Env__clear_constant_field(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_);
+RcppExport SEXP _plant_Patch___K93__K93_Env__clear_constant_field(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    Patch___K93__K93_Env__release_field(obj_);
+    Patch___K93__K93_Env__clear_constant_field(obj_);
     return R_NilValue;
 END_RCPP
 }
@@ -9808,14 +9832,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Patch___K93__K93_Env__holds_field__get
-bool Patch___K93__K93_Env__holds_field__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_);
-RcppExport SEXP _plant_Patch___K93__K93_Env__holds_field__get(SEXP obj_SEXP) {
+// Patch___K93__K93_Env__has_constant_field__get
+bool Patch___K93__K93_Env__has_constant_field__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_);
+RcppExport SEXP _plant_Patch___K93__K93_Env__has_constant_field__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___K93__K93_Env__holds_field__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(Patch___K93__K93_Env__has_constant_field__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -9865,25 +9889,25 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// SCM___FF16__FF16_Env__run_mutant_held
-void SCM___FF16__FF16_Env__run_mutant_held(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_, plant::Parameters<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > p);
-RcppExport SEXP _plant_SCM___FF16__FF16_Env__run_mutant_held(SEXP obj_SEXP, SEXP pSEXP) {
+// SCM___FF16__FF16_Env__run_mutant_constant
+void SCM___FF16__FF16_Env__run_mutant_constant(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_, plant::Parameters<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > p);
+RcppExport SEXP _plant_SCM___FF16__FF16_Env__run_mutant_constant(SEXP obj_SEXP, SEXP pSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::Parameters<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > >::type p(pSEXP);
-    SCM___FF16__FF16_Env__run_mutant_held(obj_, p);
+    SCM___FF16__FF16_Env__run_mutant_constant(obj_, p);
     return R_NilValue;
 END_RCPP
 }
-// SCM___FF16__FF16_Env__store_trajectory
-Rcpp::List SCM___FF16__FF16_Env__store_trajectory(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___FF16__FF16_Env__store_trajectory(SEXP obj_SEXP) {
+// SCM___FF16__FF16_Env__store_recording
+Rcpp::List SCM___FF16__FF16_Env__store_recording(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_);
+RcppExport SEXP _plant_SCM___FF16__FF16_Env__store_recording(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__store_trajectory(obj_));
+    rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__store_recording(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -10096,6 +10120,28 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// SCM___FF16__FF16_Env__ode_soil_input_slopes__get
+std::vector<std::vector<double> > SCM___FF16__FF16_Env__ode_soil_input_slopes__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_);
+RcppExport SEXP _plant_SCM___FF16__FF16_Env__ode_soil_input_slopes__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__ode_soil_input_slopes__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// SCM___FF16__FF16_Env__ode_soil_substep_ends__get
+std::vector<std::vector<double> > SCM___FF16__FF16_Env__ode_soil_substep_ends__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_);
+RcppExport SEXP _plant_SCM___FF16__FF16_Env__ode_soil_substep_ends__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__ode_soil_substep_ends__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // SCM___FF16__FF16_Env__collect__get
 bool SCM___FF16__FF16_Env__collect__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_);
 RcppExport SEXP _plant_SCM___FF16__FF16_Env__collect__get(SEXP obj_SEXP) {
@@ -10140,25 +10186,25 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// SCM___FF16__FF16_Env__record_trajectory__get
-bool SCM___FF16__FF16_Env__record_trajectory__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___FF16__FF16_Env__record_trajectory__get(SEXP obj_SEXP) {
+// SCM___FF16__FF16_Env__keep_states__get
+bool SCM___FF16__FF16_Env__keep_states__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_);
+RcppExport SEXP _plant_SCM___FF16__FF16_Env__keep_states__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__record_trajectory__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__keep_states__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
-// SCM___FF16__FF16_Env__record_trajectory__set
-void SCM___FF16__FF16_Env__record_trajectory__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_, bool value);
-RcppExport SEXP _plant_SCM___FF16__FF16_Env__record_trajectory__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// SCM___FF16__FF16_Env__keep_states__set
+void SCM___FF16__FF16_Env__keep_states__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_, bool value);
+RcppExport SEXP _plant_SCM___FF16__FF16_Env__keep_states__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< bool >::type value(valueSEXP);
-    SCM___FF16__FF16_Env__record_trajectory__set(obj_, value);
+    SCM___FF16__FF16_Env__keep_states__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -10252,25 +10298,25 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// SCM___TF24__TF24_Env__run_mutant_held
-void SCM___TF24__TF24_Env__run_mutant_held(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Parameters<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > p);
-RcppExport SEXP _plant_SCM___TF24__TF24_Env__run_mutant_held(SEXP obj_SEXP, SEXP pSEXP) {
+// SCM___TF24__TF24_Env__run_mutant_constant
+void SCM___TF24__TF24_Env__run_mutant_constant(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Parameters<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > p);
+RcppExport SEXP _plant_SCM___TF24__TF24_Env__run_mutant_constant(SEXP obj_SEXP, SEXP pSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::Parameters<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > >::type p(pSEXP);
-    SCM___TF24__TF24_Env__run_mutant_held(obj_, p);
+    SCM___TF24__TF24_Env__run_mutant_constant(obj_, p);
     return R_NilValue;
 END_RCPP
 }
-// SCM___TF24__TF24_Env__store_trajectory
-Rcpp::List SCM___TF24__TF24_Env__store_trajectory(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___TF24__TF24_Env__store_trajectory(SEXP obj_SEXP) {
+// SCM___TF24__TF24_Env__store_recording
+Rcpp::List SCM___TF24__TF24_Env__store_recording(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_SCM___TF24__TF24_Env__store_recording(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24__TF24_Env__store_trajectory(obj_));
+    rcpp_result_gen = Rcpp::wrap(SCM___TF24__TF24_Env__store_recording(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -10483,6 +10529,28 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// SCM___TF24__TF24_Env__ode_soil_input_slopes__get
+std::vector<std::vector<double> > SCM___TF24__TF24_Env__ode_soil_input_slopes__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_SCM___TF24__TF24_Env__ode_soil_input_slopes__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___TF24__TF24_Env__ode_soil_input_slopes__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// SCM___TF24__TF24_Env__ode_soil_substep_ends__get
+std::vector<std::vector<double> > SCM___TF24__TF24_Env__ode_soil_substep_ends__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_SCM___TF24__TF24_Env__ode_soil_substep_ends__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___TF24__TF24_Env__ode_soil_substep_ends__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // SCM___TF24__TF24_Env__collect__get
 bool SCM___TF24__TF24_Env__collect__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
 RcppExport SEXP _plant_SCM___TF24__TF24_Env__collect__get(SEXP obj_SEXP) {
@@ -10527,25 +10595,25 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// SCM___TF24__TF24_Env__record_trajectory__get
-bool SCM___TF24__TF24_Env__record_trajectory__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___TF24__TF24_Env__record_trajectory__get(SEXP obj_SEXP) {
+// SCM___TF24__TF24_Env__keep_states__get
+bool SCM___TF24__TF24_Env__keep_states__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_SCM___TF24__TF24_Env__keep_states__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24__TF24_Env__record_trajectory__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(SCM___TF24__TF24_Env__keep_states__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
-// SCM___TF24__TF24_Env__record_trajectory__set
-void SCM___TF24__TF24_Env__record_trajectory__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_, bool value);
-RcppExport SEXP _plant_SCM___TF24__TF24_Env__record_trajectory__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// SCM___TF24__TF24_Env__keep_states__set
+void SCM___TF24__TF24_Env__keep_states__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_, bool value);
+RcppExport SEXP _plant_SCM___TF24__TF24_Env__keep_states__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< bool >::type value(valueSEXP);
-    SCM___TF24__TF24_Env__record_trajectory__set(obj_, value);
+    SCM___TF24__TF24_Env__keep_states__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -10639,25 +10707,25 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// SCM___TF24f__TF24_Env__run_mutant_held
-void SCM___TF24f__TF24_Env__run_mutant_held(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Parameters<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > p);
-RcppExport SEXP _plant_SCM___TF24f__TF24_Env__run_mutant_held(SEXP obj_SEXP, SEXP pSEXP) {
+// SCM___TF24f__TF24_Env__run_mutant_constant
+void SCM___TF24f__TF24_Env__run_mutant_constant(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Parameters<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > p);
+RcppExport SEXP _plant_SCM___TF24f__TF24_Env__run_mutant_constant(SEXP obj_SEXP, SEXP pSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::Parameters<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > >::type p(pSEXP);
-    SCM___TF24f__TF24_Env__run_mutant_held(obj_, p);
+    SCM___TF24f__TF24_Env__run_mutant_constant(obj_, p);
     return R_NilValue;
 END_RCPP
 }
-// SCM___TF24f__TF24_Env__store_trajectory
-Rcpp::List SCM___TF24f__TF24_Env__store_trajectory(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___TF24f__TF24_Env__store_trajectory(SEXP obj_SEXP) {
+// SCM___TF24f__TF24_Env__store_recording
+Rcpp::List SCM___TF24f__TF24_Env__store_recording(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_SCM___TF24f__TF24_Env__store_recording(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24f__TF24_Env__store_trajectory(obj_));
+    rcpp_result_gen = Rcpp::wrap(SCM___TF24f__TF24_Env__store_recording(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -10870,6 +10938,28 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// SCM___TF24f__TF24_Env__ode_soil_input_slopes__get
+std::vector<std::vector<double> > SCM___TF24f__TF24_Env__ode_soil_input_slopes__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_SCM___TF24f__TF24_Env__ode_soil_input_slopes__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___TF24f__TF24_Env__ode_soil_input_slopes__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// SCM___TF24f__TF24_Env__ode_soil_substep_ends__get
+std::vector<std::vector<double> > SCM___TF24f__TF24_Env__ode_soil_substep_ends__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_SCM___TF24f__TF24_Env__ode_soil_substep_ends__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___TF24f__TF24_Env__ode_soil_substep_ends__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // SCM___TF24f__TF24_Env__collect__get
 bool SCM___TF24f__TF24_Env__collect__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
 RcppExport SEXP _plant_SCM___TF24f__TF24_Env__collect__get(SEXP obj_SEXP) {
@@ -10914,25 +11004,25 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// SCM___TF24f__TF24_Env__record_trajectory__get
-bool SCM___TF24f__TF24_Env__record_trajectory__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___TF24f__TF24_Env__record_trajectory__get(SEXP obj_SEXP) {
+// SCM___TF24f__TF24_Env__keep_states__get
+bool SCM___TF24f__TF24_Env__keep_states__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_SCM___TF24f__TF24_Env__keep_states__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24f__TF24_Env__record_trajectory__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(SCM___TF24f__TF24_Env__keep_states__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
-// SCM___TF24f__TF24_Env__record_trajectory__set
-void SCM___TF24f__TF24_Env__record_trajectory__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_, bool value);
-RcppExport SEXP _plant_SCM___TF24f__TF24_Env__record_trajectory__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// SCM___TF24f__TF24_Env__keep_states__set
+void SCM___TF24f__TF24_Env__keep_states__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_, bool value);
+RcppExport SEXP _plant_SCM___TF24f__TF24_Env__keep_states__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< bool >::type value(valueSEXP);
-    SCM___TF24f__TF24_Env__record_trajectory__set(obj_, value);
+    SCM___TF24f__TF24_Env__keep_states__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -11026,25 +11116,25 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// SCM___TF24t__TF24_Env__run_mutant_held
-void SCM___TF24t__TF24_Env__run_mutant_held(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Parameters<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > p);
-RcppExport SEXP _plant_SCM___TF24t__TF24_Env__run_mutant_held(SEXP obj_SEXP, SEXP pSEXP) {
+// SCM___TF24t__TF24_Env__run_mutant_constant
+void SCM___TF24t__TF24_Env__run_mutant_constant(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Parameters<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > p);
+RcppExport SEXP _plant_SCM___TF24t__TF24_Env__run_mutant_constant(SEXP obj_SEXP, SEXP pSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::Parameters<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > >::type p(pSEXP);
-    SCM___TF24t__TF24_Env__run_mutant_held(obj_, p);
+    SCM___TF24t__TF24_Env__run_mutant_constant(obj_, p);
     return R_NilValue;
 END_RCPP
 }
-// SCM___TF24t__TF24_Env__store_trajectory
-Rcpp::List SCM___TF24t__TF24_Env__store_trajectory(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___TF24t__TF24_Env__store_trajectory(SEXP obj_SEXP) {
+// SCM___TF24t__TF24_Env__store_recording
+Rcpp::List SCM___TF24t__TF24_Env__store_recording(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_SCM___TF24t__TF24_Env__store_recording(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24t__TF24_Env__store_trajectory(obj_));
+    rcpp_result_gen = Rcpp::wrap(SCM___TF24t__TF24_Env__store_recording(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -11257,6 +11347,28 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// SCM___TF24t__TF24_Env__ode_soil_input_slopes__get
+std::vector<std::vector<double> > SCM___TF24t__TF24_Env__ode_soil_input_slopes__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_SCM___TF24t__TF24_Env__ode_soil_input_slopes__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___TF24t__TF24_Env__ode_soil_input_slopes__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// SCM___TF24t__TF24_Env__ode_soil_substep_ends__get
+std::vector<std::vector<double> > SCM___TF24t__TF24_Env__ode_soil_substep_ends__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_SCM___TF24t__TF24_Env__ode_soil_substep_ends__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___TF24t__TF24_Env__ode_soil_substep_ends__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // SCM___TF24t__TF24_Env__collect__get
 bool SCM___TF24t__TF24_Env__collect__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
 RcppExport SEXP _plant_SCM___TF24t__TF24_Env__collect__get(SEXP obj_SEXP) {
@@ -11301,25 +11413,25 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// SCM___TF24t__TF24_Env__record_trajectory__get
-bool SCM___TF24t__TF24_Env__record_trajectory__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
-RcppExport SEXP _plant_SCM___TF24t__TF24_Env__record_trajectory__get(SEXP obj_SEXP) {
+// SCM___TF24t__TF24_Env__keep_states__get
+bool SCM___TF24t__TF24_Env__keep_states__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_SCM___TF24t__TF24_Env__keep_states__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___TF24t__TF24_Env__record_trajectory__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(SCM___TF24t__TF24_Env__keep_states__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
-// SCM___TF24t__TF24_Env__record_trajectory__set
-void SCM___TF24t__TF24_Env__record_trajectory__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_, bool value);
-RcppExport SEXP _plant_SCM___TF24t__TF24_Env__record_trajectory__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// SCM___TF24t__TF24_Env__keep_states__set
+void SCM___TF24t__TF24_Env__keep_states__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_, bool value);
+RcppExport SEXP _plant_SCM___TF24t__TF24_Env__keep_states__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< bool >::type value(valueSEXP);
-    SCM___TF24t__TF24_Env__record_trajectory__set(obj_, value);
+    SCM___TF24t__TF24_Env__keep_states__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -11413,25 +11525,25 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// SCM___K93__K93_Env__run_mutant_held
-void SCM___K93__K93_Env__run_mutant_held(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::Parameters<plant::K93_Strategy,plant::K93_Environment> p);
-RcppExport SEXP _plant_SCM___K93__K93_Env__run_mutant_held(SEXP obj_SEXP, SEXP pSEXP) {
+// SCM___K93__K93_Env__run_mutant_constant
+void SCM___K93__K93_Env__run_mutant_constant(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::Parameters<plant::K93_Strategy,plant::K93_Environment> p);
+RcppExport SEXP _plant_SCM___K93__K93_Env__run_mutant_constant(SEXP obj_SEXP, SEXP pSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >::type p(pSEXP);
-    SCM___K93__K93_Env__run_mutant_held(obj_, p);
+    SCM___K93__K93_Env__run_mutant_constant(obj_, p);
     return R_NilValue;
 END_RCPP
 }
-// SCM___K93__K93_Env__store_trajectory
-Rcpp::List SCM___K93__K93_Env__store_trajectory(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_);
-RcppExport SEXP _plant_SCM___K93__K93_Env__store_trajectory(SEXP obj_SEXP) {
+// SCM___K93__K93_Env__store_recording
+Rcpp::List SCM___K93__K93_Env__store_recording(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_);
+RcppExport SEXP _plant_SCM___K93__K93_Env__store_recording(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__store_trajectory(obj_));
+    rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__store_recording(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -11644,6 +11756,28 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// SCM___K93__K93_Env__ode_soil_input_slopes__get
+std::vector<std::vector<double> > SCM___K93__K93_Env__ode_soil_input_slopes__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_);
+RcppExport SEXP _plant_SCM___K93__K93_Env__ode_soil_input_slopes__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__ode_soil_input_slopes__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// SCM___K93__K93_Env__ode_soil_substep_ends__get
+std::vector<std::vector<double> > SCM___K93__K93_Env__ode_soil_substep_ends__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_);
+RcppExport SEXP _plant_SCM___K93__K93_Env__ode_soil_substep_ends__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__ode_soil_substep_ends__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // SCM___K93__K93_Env__collect__get
 bool SCM___K93__K93_Env__collect__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_);
 RcppExport SEXP _plant_SCM___K93__K93_Env__collect__get(SEXP obj_SEXP) {
@@ -11688,25 +11822,25 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// SCM___K93__K93_Env__record_trajectory__get
-bool SCM___K93__K93_Env__record_trajectory__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_);
-RcppExport SEXP _plant_SCM___K93__K93_Env__record_trajectory__get(SEXP obj_SEXP) {
+// SCM___K93__K93_Env__keep_states__get
+bool SCM___K93__K93_Env__keep_states__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_);
+RcppExport SEXP _plant_SCM___K93__K93_Env__keep_states__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__record_trajectory__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__keep_states__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
-// SCM___K93__K93_Env__record_trajectory__set
-void SCM___K93__K93_Env__record_trajectory__set(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, bool value);
-RcppExport SEXP _plant_SCM___K93__K93_Env__record_trajectory__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// SCM___K93__K93_Env__keep_states__set
+void SCM___K93__K93_Env__keep_states__set(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, bool value);
+RcppExport SEXP _plant_SCM___K93__K93_Env__keep_states__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< bool >::type value(valueSEXP);
-    SCM___K93__K93_Env__record_trajectory__set(obj_, value);
+    SCM___K93__K93_Env__keep_states__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -16347,28 +16481,28 @@ BEGIN_RCPP
 END_RCPP
 }
 // ladder_census_initial_state_tangent_tf24
-Rcpp::List ladder_census_initial_state_tangent_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_, std::vector<double> direction, int range);
-RcppExport SEXP _plant_ladder_census_initial_state_tangent_tf24(SEXP obj_SEXP, SEXP directionSEXP, SEXP rangeSEXP) {
+Rcpp::List ladder_census_initial_state_tangent_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_, std::vector<double> direction, int segment);
+RcppExport SEXP _plant_ladder_census_initial_state_tangent_tf24(SEXP obj_SEXP, SEXP directionSEXP, SEXP segmentSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type direction(directionSEXP);
-    Rcpp::traits::input_parameter< int >::type range(rangeSEXP);
-    rcpp_result_gen = Rcpp::wrap(ladder_census_initial_state_tangent_tf24(obj_, direction, range));
+    Rcpp::traits::input_parameter< int >::type segment(segmentSEXP);
+    rcpp_result_gen = Rcpp::wrap(ladder_census_initial_state_tangent_tf24(obj_, direction, segment));
     return rcpp_result_gen;
 END_RCPP
 }
-// ladder_census_initial_state_replay_tf24
-std::vector<double> ladder_census_initial_state_replay_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_, std::vector<double> state0, int range);
-RcppExport SEXP _plant_ladder_census_initial_state_replay_tf24(SEXP obj_SEXP, SEXP state0SEXP, SEXP rangeSEXP) {
+// ladder_census_initial_state_pinned_tf24
+std::vector<double> ladder_census_initial_state_pinned_tf24(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > obj_, std::vector<double> state0, int segment);
+RcppExport SEXP _plant_ladder_census_initial_state_pinned_tf24(SEXP obj_SEXP, SEXP state0SEXP, SEXP segmentSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double>, plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type state0(state0SEXP);
-    Rcpp::traits::input_parameter< int >::type range(rangeSEXP);
-    rcpp_result_gen = Rcpp::wrap(ladder_census_initial_state_replay_tf24(obj_, state0, range));
+    Rcpp::traits::input_parameter< int >::type segment(segmentSEXP);
+    rcpp_result_gen = Rcpp::wrap(ladder_census_initial_state_pinned_tf24(obj_, state0, segment));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -17127,7 +17261,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_NodeSchedule__ctor", (DL_FUNC) &_plant_NodeSchedule__ctor, 1},
     {"_plant_NodeSchedule__expand", (DL_FUNC) &_plant_NodeSchedule__expand, 3},
     {"_plant_NodeSchedule__clear_times", (DL_FUNC) &_plant_NodeSchedule__clear_times, 2},
-    {"_plant_NodeSchedule__set_ode_steps", (DL_FUNC) &_plant_NodeSchedule__set_ode_steps, 3},
+    {"_plant_NodeSchedule__set_ode_steps", (DL_FUNC) &_plant_NodeSchedule__set_ode_steps, 5},
     {"_plant_NodeSchedule__clear_ode_steps", (DL_FUNC) &_plant_NodeSchedule__clear_ode_steps, 1},
     {"_plant_NodeSchedule__set_times", (DL_FUNC) &_plant_NodeSchedule__set_times, 3},
     {"_plant_NodeSchedule__times", (DL_FUNC) &_plant_NodeSchedule__times, 2},
@@ -17142,6 +17276,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_NodeSchedule__max_time__set", (DL_FUNC) &_plant_NodeSchedule__max_time__set, 2},
     {"_plant_NodeSchedule__ode_times__get", (DL_FUNC) &_plant_NodeSchedule__ode_times__get, 1},
     {"_plant_NodeSchedule__ode_step_sizes__get", (DL_FUNC) &_plant_NodeSchedule__ode_step_sizes__get, 1},
+    {"_plant_NodeSchedule__ode_soil_input_slopes__get", (DL_FUNC) &_plant_NodeSchedule__ode_soil_input_slopes__get, 1},
+    {"_plant_NodeSchedule__ode_soil_substep_ends__get", (DL_FUNC) &_plant_NodeSchedule__ode_soil_substep_ends__get, 1},
     {"_plant_NodeSchedule__using_ode_steps__get", (DL_FUNC) &_plant_NodeSchedule__using_ode_steps__get, 1},
     {"_plant_NodeSchedule__all_times__get", (DL_FUNC) &_plant_NodeSchedule__all_times__get, 1},
     {"_plant_NodeSchedule__all_times__set", (DL_FUNC) &_plant_NodeSchedule__all_times__set, 2},
@@ -17558,8 +17694,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___FF16__FF16_Env__ode_state_valid", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__ode_state_valid, 2},
     {"_plant_Patch___FF16__FF16_Env__introduce_new_node", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__introduce_new_node, 3},
     {"_plant_Patch___FF16__FF16_Env__compute_environment", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__compute_environment, 1},
-    {"_plant_Patch___FF16__FF16_Env__hold_field", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__hold_field, 1},
-    {"_plant_Patch___FF16__FF16_Env__release_field", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__release_field, 1},
+    {"_plant_Patch___FF16__FF16_Env__use_current_field", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__use_current_field, 1},
+    {"_plant_Patch___FF16__FF16_Env__clear_constant_field", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__clear_constant_field, 1},
     {"_plant_Patch___FF16__FF16_Env__reset", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__reset, 1},
     {"_plant_Patch___FF16__FF16_Env__set_ode_state", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__set_ode_state, 3},
     {"_plant_Patch___FF16__FF16_Env__set_ode_aux", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__set_ode_aux, 2},
@@ -17587,13 +17723,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___FF16__FF16_Env__ode_aux__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__ode_aux__get, 1},
     {"_plant_Patch___FF16__FF16_Env__node_ode_size__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__node_ode_size__get, 1},
     {"_plant_Patch___FF16__FF16_Env__state__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__state__get, 1},
-    {"_plant_Patch___FF16__FF16_Env__holds_field__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__holds_field__get, 1},
+    {"_plant_Patch___FF16__FF16_Env__has_constant_field__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__has_constant_field__get, 1},
     {"_plant_Patch___TF24__TF24_Env__ctor", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__ctor, 3},
     {"_plant_Patch___TF24__TF24_Env__ode_state_valid", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__ode_state_valid, 2},
     {"_plant_Patch___TF24__TF24_Env__introduce_new_node", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__introduce_new_node, 3},
     {"_plant_Patch___TF24__TF24_Env__compute_environment", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__compute_environment, 1},
-    {"_plant_Patch___TF24__TF24_Env__hold_field", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__hold_field, 1},
-    {"_plant_Patch___TF24__TF24_Env__release_field", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__release_field, 1},
+    {"_plant_Patch___TF24__TF24_Env__use_current_field", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__use_current_field, 1},
+    {"_plant_Patch___TF24__TF24_Env__clear_constant_field", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__clear_constant_field, 1},
     {"_plant_Patch___TF24__TF24_Env__reset", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__reset, 1},
     {"_plant_Patch___TF24__TF24_Env__set_ode_state", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__set_ode_state, 3},
     {"_plant_Patch___TF24__TF24_Env__set_ode_aux", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__set_ode_aux, 2},
@@ -17621,13 +17757,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___TF24__TF24_Env__ode_aux__get", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__ode_aux__get, 1},
     {"_plant_Patch___TF24__TF24_Env__node_ode_size__get", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__node_ode_size__get, 1},
     {"_plant_Patch___TF24__TF24_Env__state__get", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__state__get, 1},
-    {"_plant_Patch___TF24__TF24_Env__holds_field__get", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__holds_field__get, 1},
+    {"_plant_Patch___TF24__TF24_Env__has_constant_field__get", (DL_FUNC) &_plant_Patch___TF24__TF24_Env__has_constant_field__get, 1},
     {"_plant_Patch___TF24f__TF24_Env__ctor", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__ctor, 3},
     {"_plant_Patch___TF24f__TF24_Env__ode_state_valid", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__ode_state_valid, 2},
     {"_plant_Patch___TF24f__TF24_Env__introduce_new_node", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__introduce_new_node, 3},
     {"_plant_Patch___TF24f__TF24_Env__compute_environment", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__compute_environment, 1},
-    {"_plant_Patch___TF24f__TF24_Env__hold_field", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__hold_field, 1},
-    {"_plant_Patch___TF24f__TF24_Env__release_field", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__release_field, 1},
+    {"_plant_Patch___TF24f__TF24_Env__use_current_field", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__use_current_field, 1},
+    {"_plant_Patch___TF24f__TF24_Env__clear_constant_field", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__clear_constant_field, 1},
     {"_plant_Patch___TF24f__TF24_Env__reset", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__reset, 1},
     {"_plant_Patch___TF24f__TF24_Env__set_ode_state", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__set_ode_state, 3},
     {"_plant_Patch___TF24f__TF24_Env__set_ode_aux", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__set_ode_aux, 2},
@@ -17655,13 +17791,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___TF24f__TF24_Env__ode_aux__get", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__ode_aux__get, 1},
     {"_plant_Patch___TF24f__TF24_Env__node_ode_size__get", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__node_ode_size__get, 1},
     {"_plant_Patch___TF24f__TF24_Env__state__get", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__state__get, 1},
-    {"_plant_Patch___TF24f__TF24_Env__holds_field__get", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__holds_field__get, 1},
+    {"_plant_Patch___TF24f__TF24_Env__has_constant_field__get", (DL_FUNC) &_plant_Patch___TF24f__TF24_Env__has_constant_field__get, 1},
     {"_plant_Patch___TF24t__TF24_Env__ctor", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__ctor, 3},
     {"_plant_Patch___TF24t__TF24_Env__ode_state_valid", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__ode_state_valid, 2},
     {"_plant_Patch___TF24t__TF24_Env__introduce_new_node", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__introduce_new_node, 3},
     {"_plant_Patch___TF24t__TF24_Env__compute_environment", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__compute_environment, 1},
-    {"_plant_Patch___TF24t__TF24_Env__hold_field", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__hold_field, 1},
-    {"_plant_Patch___TF24t__TF24_Env__release_field", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__release_field, 1},
+    {"_plant_Patch___TF24t__TF24_Env__use_current_field", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__use_current_field, 1},
+    {"_plant_Patch___TF24t__TF24_Env__clear_constant_field", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__clear_constant_field, 1},
     {"_plant_Patch___TF24t__TF24_Env__reset", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__reset, 1},
     {"_plant_Patch___TF24t__TF24_Env__set_ode_state", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__set_ode_state, 3},
     {"_plant_Patch___TF24t__TF24_Env__set_ode_aux", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__set_ode_aux, 2},
@@ -17689,13 +17825,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___TF24t__TF24_Env__ode_aux__get", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__ode_aux__get, 1},
     {"_plant_Patch___TF24t__TF24_Env__node_ode_size__get", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__node_ode_size__get, 1},
     {"_plant_Patch___TF24t__TF24_Env__state__get", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__state__get, 1},
-    {"_plant_Patch___TF24t__TF24_Env__holds_field__get", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__holds_field__get, 1},
+    {"_plant_Patch___TF24t__TF24_Env__has_constant_field__get", (DL_FUNC) &_plant_Patch___TF24t__TF24_Env__has_constant_field__get, 1},
     {"_plant_Patch___K93__K93_Env__ctor", (DL_FUNC) &_plant_Patch___K93__K93_Env__ctor, 3},
     {"_plant_Patch___K93__K93_Env__ode_state_valid", (DL_FUNC) &_plant_Patch___K93__K93_Env__ode_state_valid, 2},
     {"_plant_Patch___K93__K93_Env__introduce_new_node", (DL_FUNC) &_plant_Patch___K93__K93_Env__introduce_new_node, 3},
     {"_plant_Patch___K93__K93_Env__compute_environment", (DL_FUNC) &_plant_Patch___K93__K93_Env__compute_environment, 1},
-    {"_plant_Patch___K93__K93_Env__hold_field", (DL_FUNC) &_plant_Patch___K93__K93_Env__hold_field, 1},
-    {"_plant_Patch___K93__K93_Env__release_field", (DL_FUNC) &_plant_Patch___K93__K93_Env__release_field, 1},
+    {"_plant_Patch___K93__K93_Env__use_current_field", (DL_FUNC) &_plant_Patch___K93__K93_Env__use_current_field, 1},
+    {"_plant_Patch___K93__K93_Env__clear_constant_field", (DL_FUNC) &_plant_Patch___K93__K93_Env__clear_constant_field, 1},
     {"_plant_Patch___K93__K93_Env__reset", (DL_FUNC) &_plant_Patch___K93__K93_Env__reset, 1},
     {"_plant_Patch___K93__K93_Env__set_ode_state", (DL_FUNC) &_plant_Patch___K93__K93_Env__set_ode_state, 3},
     {"_plant_Patch___K93__K93_Env__set_ode_aux", (DL_FUNC) &_plant_Patch___K93__K93_Env__set_ode_aux, 2},
@@ -17723,13 +17859,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___K93__K93_Env__ode_aux__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__ode_aux__get, 1},
     {"_plant_Patch___K93__K93_Env__node_ode_size__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__node_ode_size__get, 1},
     {"_plant_Patch___K93__K93_Env__state__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__state__get, 1},
-    {"_plant_Patch___K93__K93_Env__holds_field__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__holds_field__get, 1},
+    {"_plant_Patch___K93__K93_Env__has_constant_field__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__has_constant_field__get, 1},
     {"_plant_SCM___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__ctor, 4},
     {"_plant_SCM___FF16__FF16_Env__run", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__run, 1},
     {"_plant_SCM___FF16__FF16_Env__run_to", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__run_to, 2},
     {"_plant_SCM___FF16__FF16_Env__run_mutant", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__run_mutant, 2},
-    {"_plant_SCM___FF16__FF16_Env__run_mutant_held", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__run_mutant_held, 2},
-    {"_plant_SCM___FF16__FF16_Env__store_trajectory", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__store_trajectory, 1},
+    {"_plant_SCM___FF16__FF16_Env__run_mutant_constant", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__run_mutant_constant, 2},
+    {"_plant_SCM___FF16__FF16_Env__store_recording", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__store_recording, 1},
     {"_plant_SCM___FF16__FF16_Env__refine_schedule", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__refine_schedule, 1},
     {"_plant_SCM___FF16__FF16_Env__reset", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__reset, 1},
     {"_plant_SCM___FF16__FF16_Env__net_reproduction_ratio_for_species", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__net_reproduction_ratio_for_species, 2},
@@ -17749,12 +17885,14 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___FF16__FF16_Env__event_log__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__event_log__get, 1},
     {"_plant_SCM___FF16__FF16_Env__ode_times__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__ode_times__get, 1},
     {"_plant_SCM___FF16__FF16_Env__ode_step_sizes__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__ode_step_sizes__get, 1},
+    {"_plant_SCM___FF16__FF16_Env__ode_soil_input_slopes__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__ode_soil_input_slopes__get, 1},
+    {"_plant_SCM___FF16__FF16_Env__ode_soil_substep_ends__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__ode_soil_substep_ends__get, 1},
     {"_plant_SCM___FF16__FF16_Env__collect__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__collect__get, 1},
     {"_plant_SCM___FF16__FF16_Env__collect__set", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__collect__set, 2},
     {"_plant_SCM___FF16__FF16_Env__collect_refinement_errors__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__collect_refinement_errors__get, 1},
     {"_plant_SCM___FF16__FF16_Env__collect_refinement_errors__set", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__collect_refinement_errors__set, 2},
-    {"_plant_SCM___FF16__FF16_Env__record_trajectory__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__record_trajectory__get, 1},
-    {"_plant_SCM___FF16__FF16_Env__record_trajectory__set", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__record_trajectory__set, 2},
+    {"_plant_SCM___FF16__FF16_Env__keep_states__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__keep_states__get, 1},
+    {"_plant_SCM___FF16__FF16_Env__keep_states__set", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__keep_states__set, 2},
     {"_plant_SCM___FF16__FF16_Env__complete__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__complete__get, 1},
     {"_plant_SCM___FF16__FF16_Env__snapshot_interval__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__snapshot_interval__get, 1},
     {"_plant_SCM___FF16__FF16_Env__snapshot_interval__set", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__snapshot_interval__set, 2},
@@ -17763,8 +17901,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___TF24__TF24_Env__run", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__run, 1},
     {"_plant_SCM___TF24__TF24_Env__run_to", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__run_to, 2},
     {"_plant_SCM___TF24__TF24_Env__run_mutant", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__run_mutant, 2},
-    {"_plant_SCM___TF24__TF24_Env__run_mutant_held", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__run_mutant_held, 2},
-    {"_plant_SCM___TF24__TF24_Env__store_trajectory", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__store_trajectory, 1},
+    {"_plant_SCM___TF24__TF24_Env__run_mutant_constant", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__run_mutant_constant, 2},
+    {"_plant_SCM___TF24__TF24_Env__store_recording", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__store_recording, 1},
     {"_plant_SCM___TF24__TF24_Env__refine_schedule", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__refine_schedule, 1},
     {"_plant_SCM___TF24__TF24_Env__reset", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__reset, 1},
     {"_plant_SCM___TF24__TF24_Env__net_reproduction_ratio_for_species", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__net_reproduction_ratio_for_species, 2},
@@ -17784,12 +17922,14 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___TF24__TF24_Env__event_log__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__event_log__get, 1},
     {"_plant_SCM___TF24__TF24_Env__ode_times__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__ode_times__get, 1},
     {"_plant_SCM___TF24__TF24_Env__ode_step_sizes__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__ode_step_sizes__get, 1},
+    {"_plant_SCM___TF24__TF24_Env__ode_soil_input_slopes__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__ode_soil_input_slopes__get, 1},
+    {"_plant_SCM___TF24__TF24_Env__ode_soil_substep_ends__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__ode_soil_substep_ends__get, 1},
     {"_plant_SCM___TF24__TF24_Env__collect__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__collect__get, 1},
     {"_plant_SCM___TF24__TF24_Env__collect__set", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__collect__set, 2},
     {"_plant_SCM___TF24__TF24_Env__collect_refinement_errors__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__collect_refinement_errors__get, 1},
     {"_plant_SCM___TF24__TF24_Env__collect_refinement_errors__set", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__collect_refinement_errors__set, 2},
-    {"_plant_SCM___TF24__TF24_Env__record_trajectory__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__record_trajectory__get, 1},
-    {"_plant_SCM___TF24__TF24_Env__record_trajectory__set", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__record_trajectory__set, 2},
+    {"_plant_SCM___TF24__TF24_Env__keep_states__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__keep_states__get, 1},
+    {"_plant_SCM___TF24__TF24_Env__keep_states__set", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__keep_states__set, 2},
     {"_plant_SCM___TF24__TF24_Env__complete__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__complete__get, 1},
     {"_plant_SCM___TF24__TF24_Env__snapshot_interval__get", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__snapshot_interval__get, 1},
     {"_plant_SCM___TF24__TF24_Env__snapshot_interval__set", (DL_FUNC) &_plant_SCM___TF24__TF24_Env__snapshot_interval__set, 2},
@@ -17798,8 +17938,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___TF24f__TF24_Env__run", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__run, 1},
     {"_plant_SCM___TF24f__TF24_Env__run_to", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__run_to, 2},
     {"_plant_SCM___TF24f__TF24_Env__run_mutant", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__run_mutant, 2},
-    {"_plant_SCM___TF24f__TF24_Env__run_mutant_held", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__run_mutant_held, 2},
-    {"_plant_SCM___TF24f__TF24_Env__store_trajectory", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__store_trajectory, 1},
+    {"_plant_SCM___TF24f__TF24_Env__run_mutant_constant", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__run_mutant_constant, 2},
+    {"_plant_SCM___TF24f__TF24_Env__store_recording", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__store_recording, 1},
     {"_plant_SCM___TF24f__TF24_Env__refine_schedule", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__refine_schedule, 1},
     {"_plant_SCM___TF24f__TF24_Env__reset", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__reset, 1},
     {"_plant_SCM___TF24f__TF24_Env__net_reproduction_ratio_for_species", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__net_reproduction_ratio_for_species, 2},
@@ -17819,12 +17959,14 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___TF24f__TF24_Env__event_log__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__event_log__get, 1},
     {"_plant_SCM___TF24f__TF24_Env__ode_times__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__ode_times__get, 1},
     {"_plant_SCM___TF24f__TF24_Env__ode_step_sizes__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__ode_step_sizes__get, 1},
+    {"_plant_SCM___TF24f__TF24_Env__ode_soil_input_slopes__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__ode_soil_input_slopes__get, 1},
+    {"_plant_SCM___TF24f__TF24_Env__ode_soil_substep_ends__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__ode_soil_substep_ends__get, 1},
     {"_plant_SCM___TF24f__TF24_Env__collect__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__collect__get, 1},
     {"_plant_SCM___TF24f__TF24_Env__collect__set", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__collect__set, 2},
     {"_plant_SCM___TF24f__TF24_Env__collect_refinement_errors__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__collect_refinement_errors__get, 1},
     {"_plant_SCM___TF24f__TF24_Env__collect_refinement_errors__set", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__collect_refinement_errors__set, 2},
-    {"_plant_SCM___TF24f__TF24_Env__record_trajectory__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__record_trajectory__get, 1},
-    {"_plant_SCM___TF24f__TF24_Env__record_trajectory__set", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__record_trajectory__set, 2},
+    {"_plant_SCM___TF24f__TF24_Env__keep_states__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__keep_states__get, 1},
+    {"_plant_SCM___TF24f__TF24_Env__keep_states__set", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__keep_states__set, 2},
     {"_plant_SCM___TF24f__TF24_Env__complete__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__complete__get, 1},
     {"_plant_SCM___TF24f__TF24_Env__snapshot_interval__get", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__snapshot_interval__get, 1},
     {"_plant_SCM___TF24f__TF24_Env__snapshot_interval__set", (DL_FUNC) &_plant_SCM___TF24f__TF24_Env__snapshot_interval__set, 2},
@@ -17833,8 +17975,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___TF24t__TF24_Env__run", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__run, 1},
     {"_plant_SCM___TF24t__TF24_Env__run_to", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__run_to, 2},
     {"_plant_SCM___TF24t__TF24_Env__run_mutant", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__run_mutant, 2},
-    {"_plant_SCM___TF24t__TF24_Env__run_mutant_held", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__run_mutant_held, 2},
-    {"_plant_SCM___TF24t__TF24_Env__store_trajectory", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__store_trajectory, 1},
+    {"_plant_SCM___TF24t__TF24_Env__run_mutant_constant", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__run_mutant_constant, 2},
+    {"_plant_SCM___TF24t__TF24_Env__store_recording", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__store_recording, 1},
     {"_plant_SCM___TF24t__TF24_Env__refine_schedule", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__refine_schedule, 1},
     {"_plant_SCM___TF24t__TF24_Env__reset", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__reset, 1},
     {"_plant_SCM___TF24t__TF24_Env__net_reproduction_ratio_for_species", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__net_reproduction_ratio_for_species, 2},
@@ -17854,12 +17996,14 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___TF24t__TF24_Env__event_log__get", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__event_log__get, 1},
     {"_plant_SCM___TF24t__TF24_Env__ode_times__get", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__ode_times__get, 1},
     {"_plant_SCM___TF24t__TF24_Env__ode_step_sizes__get", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__ode_step_sizes__get, 1},
+    {"_plant_SCM___TF24t__TF24_Env__ode_soil_input_slopes__get", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__ode_soil_input_slopes__get, 1},
+    {"_plant_SCM___TF24t__TF24_Env__ode_soil_substep_ends__get", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__ode_soil_substep_ends__get, 1},
     {"_plant_SCM___TF24t__TF24_Env__collect__get", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__collect__get, 1},
     {"_plant_SCM___TF24t__TF24_Env__collect__set", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__collect__set, 2},
     {"_plant_SCM___TF24t__TF24_Env__collect_refinement_errors__get", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__collect_refinement_errors__get, 1},
     {"_plant_SCM___TF24t__TF24_Env__collect_refinement_errors__set", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__collect_refinement_errors__set, 2},
-    {"_plant_SCM___TF24t__TF24_Env__record_trajectory__get", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__record_trajectory__get, 1},
-    {"_plant_SCM___TF24t__TF24_Env__record_trajectory__set", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__record_trajectory__set, 2},
+    {"_plant_SCM___TF24t__TF24_Env__keep_states__get", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__keep_states__get, 1},
+    {"_plant_SCM___TF24t__TF24_Env__keep_states__set", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__keep_states__set, 2},
     {"_plant_SCM___TF24t__TF24_Env__complete__get", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__complete__get, 1},
     {"_plant_SCM___TF24t__TF24_Env__snapshot_interval__get", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__snapshot_interval__get, 1},
     {"_plant_SCM___TF24t__TF24_Env__snapshot_interval__set", (DL_FUNC) &_plant_SCM___TF24t__TF24_Env__snapshot_interval__set, 2},
@@ -17868,8 +18012,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___K93__K93_Env__run", (DL_FUNC) &_plant_SCM___K93__K93_Env__run, 1},
     {"_plant_SCM___K93__K93_Env__run_to", (DL_FUNC) &_plant_SCM___K93__K93_Env__run_to, 2},
     {"_plant_SCM___K93__K93_Env__run_mutant", (DL_FUNC) &_plant_SCM___K93__K93_Env__run_mutant, 2},
-    {"_plant_SCM___K93__K93_Env__run_mutant_held", (DL_FUNC) &_plant_SCM___K93__K93_Env__run_mutant_held, 2},
-    {"_plant_SCM___K93__K93_Env__store_trajectory", (DL_FUNC) &_plant_SCM___K93__K93_Env__store_trajectory, 1},
+    {"_plant_SCM___K93__K93_Env__run_mutant_constant", (DL_FUNC) &_plant_SCM___K93__K93_Env__run_mutant_constant, 2},
+    {"_plant_SCM___K93__K93_Env__store_recording", (DL_FUNC) &_plant_SCM___K93__K93_Env__store_recording, 1},
     {"_plant_SCM___K93__K93_Env__refine_schedule", (DL_FUNC) &_plant_SCM___K93__K93_Env__refine_schedule, 1},
     {"_plant_SCM___K93__K93_Env__reset", (DL_FUNC) &_plant_SCM___K93__K93_Env__reset, 1},
     {"_plant_SCM___K93__K93_Env__net_reproduction_ratio_for_species", (DL_FUNC) &_plant_SCM___K93__K93_Env__net_reproduction_ratio_for_species, 2},
@@ -17889,12 +18033,14 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___K93__K93_Env__event_log__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__event_log__get, 1},
     {"_plant_SCM___K93__K93_Env__ode_times__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__ode_times__get, 1},
     {"_plant_SCM___K93__K93_Env__ode_step_sizes__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__ode_step_sizes__get, 1},
+    {"_plant_SCM___K93__K93_Env__ode_soil_input_slopes__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__ode_soil_input_slopes__get, 1},
+    {"_plant_SCM___K93__K93_Env__ode_soil_substep_ends__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__ode_soil_substep_ends__get, 1},
     {"_plant_SCM___K93__K93_Env__collect__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__collect__get, 1},
     {"_plant_SCM___K93__K93_Env__collect__set", (DL_FUNC) &_plant_SCM___K93__K93_Env__collect__set, 2},
     {"_plant_SCM___K93__K93_Env__collect_refinement_errors__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__collect_refinement_errors__get, 1},
     {"_plant_SCM___K93__K93_Env__collect_refinement_errors__set", (DL_FUNC) &_plant_SCM___K93__K93_Env__collect_refinement_errors__set, 2},
-    {"_plant_SCM___K93__K93_Env__record_trajectory__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__record_trajectory__get, 1},
-    {"_plant_SCM___K93__K93_Env__record_trajectory__set", (DL_FUNC) &_plant_SCM___K93__K93_Env__record_trajectory__set, 2},
+    {"_plant_SCM___K93__K93_Env__keep_states__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__keep_states__get, 1},
+    {"_plant_SCM___K93__K93_Env__keep_states__set", (DL_FUNC) &_plant_SCM___K93__K93_Env__keep_states__set, 2},
     {"_plant_SCM___K93__K93_Env__complete__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__complete__get, 1},
     {"_plant_SCM___K93__K93_Env__snapshot_interval__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__snapshot_interval__get, 1},
     {"_plant_SCM___K93__K93_Env__snapshot_interval__set", (DL_FUNC) &_plant_SCM___K93__K93_Env__snapshot_interval__set, 2},
@@ -18311,7 +18457,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_ladder_boundary_density_tangent_tf24", (DL_FUNC) &_plant_ladder_boundary_density_tangent_tf24, 2},
     {"_plant_ladder_seed_geometry_tangent_tf24", (DL_FUNC) &_plant_ladder_seed_geometry_tangent_tf24, 2},
     {"_plant_ladder_census_initial_state_tangent_tf24", (DL_FUNC) &_plant_ladder_census_initial_state_tangent_tf24, 3},
-    {"_plant_ladder_census_initial_state_replay_tf24", (DL_FUNC) &_plant_ladder_census_initial_state_replay_tf24, 3},
+    {"_plant_ladder_census_initial_state_pinned_tf24", (DL_FUNC) &_plant_ladder_census_initial_state_pinned_tf24, 3},
     {"_plant_ladder_boundary_evaluations_tf24", (DL_FUNC) &_plant_ladder_boundary_evaluations_tf24, 1},
     {"_plant_ladder_trait_names_tf24", (DL_FUNC) &_plant_ladder_trait_names_tf24, 1},
     {"_plant_ladder_block_difference_tf24", (DL_FUNC) &_plant_ladder_block_difference_tf24, 3},

@@ -369,7 +369,7 @@ tf24_light_stand <- local({
 })
 
 test_that("the light interpolant's knot positions are run-constant", {
-  # The field is held on u = z / height_max at uniform fractions fixed for the
+  # The field is tabulated on u = z / height_max at uniform fractions fixed for the
   # run, so every build places its knots at u_k * height_max: the count is the
   # same at every stage and the positions are a function of height_max alone.
   scm <- tf24_light_stand()$scm

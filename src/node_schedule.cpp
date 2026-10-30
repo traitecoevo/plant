@@ -115,20 +115,25 @@ void NodeSchedule::set_all_events(const std::vector<Event>& events_) {
     if (e->is_node_introduction()) {
       insert(e->time_introduction(), e->target_index);
     } else {
-      std::vector<schedule_entry>::iterator it = entry_at(e->time_introduction());
-      std::vector<Event>::iterator a = it->actions.begin();
-      while (a != it->actions.end() &&
-             event_type_rank(a->type) <= event_type_rank(e->type)) {
-        ++a;
-      }
-      it->actions.insert(a, Event(e->time_introduction(), e->target_index,
-                                  e->type, e->target, e->params));
+      add_action(*e);
     }
   }
   reset();
 }
 
-// Find the instant, or make it. Every entry seeds `times` with its own time, so
+void NodeSchedule::add_action(const Event& e) {
+  std::vector<schedule_entry>::iterator it = entry_at(e.time_introduction());
+  std::vector<Event>::iterator a = it->actions.begin();
+  while (a != it->actions.end() &&
+         event_type_rank(a->type) <= event_type_rank(e.type)) {
+    ++a;
+  }
+  it->actions.insert(a, Event(e.time_introduction(), e.target_index, e.type,
+                              e.target, e.params));
+  reset();
+}
+
+// Find the instant, or make it. Every entry initialises `times` with its own time, so
 // time_introduction() and time_end() are answerable the moment it exists.
 std::vector<schedule_entry>::iterator NodeSchedule::entry_at(double time) {
   std::vector<schedule_entry>::iterator it = schedule.begin();
@@ -170,15 +175,15 @@ size_t NodeSchedule::remaining() const {
   return schedule.size() - at;
 }
 
-std::vector<odelia::ode::instruction>
-NodeSchedule::program_within(double start, double end) const {
-  std::vector<odelia::ode::instruction> ret;
-  for (const odelia::ode::instruction& s : ode_steps) {
-    if (s.time <= start || s.time >= end) {
+std::vector<odelia::ode::schedule_row>
+NodeSchedule::schedule_within(double start, double end) const {
+  std::vector<odelia::ode::schedule_row> ret;
+  for (const odelia::ode::schedule_row& s : ode_steps) {
+    if (s.time <= start || s.time > end) {
       continue;
     }
     if (ret.empty()) {
-      // The state the replay starts from, which no step reached.
+      // The state the pinned run starts from, which no step reached.
       ret.push_back({start, std::numeric_limits<double>::quiet_NaN()});
     }
     ret.push_back(s);
@@ -228,7 +233,7 @@ void NodeSchedule::r_set_max_time(double x) {
 std::vector<double> NodeSchedule::r_ode_times() const {
   std::vector<double> ret;
   ret.reserve(ode_steps.size());
-  for (const odelia::ode::instruction& r : ode_steps) {
+  for (const odelia::ode::schedule_row& r : ode_steps) {
     ret.push_back(r.time);
   }
   return ret;
@@ -237,23 +242,62 @@ std::vector<double> NodeSchedule::r_ode_times() const {
 std::vector<double> NodeSchedule::r_ode_step_sizes() const {
   std::vector<double> ret;
   ret.reserve(ode_steps.size());
-  for (const odelia::ode::instruction& r : ode_steps) {
+  for (const odelia::ode::schedule_row& r : ode_steps) {
     ret.push_back(r.step_size);
   }
   return ret;
 }
 
+std::vector<std::vector<double> >
+substep_field(const std::vector<odelia::ode::schedule_row>& steps,
+              std::vector<double> odelia::ode::subsystem_substeps::*field) {
+  std::vector<std::vector<double> > ret;
+  ret.reserve(steps.size());
+  for (const odelia::ode::schedule_row& step : steps) {
+    ret.push_back(step.subsystem ? (*step.subsystem).*field
+                                 : std::vector<double>());
+  }
+  return ret;
+}
+
+std::vector<std::vector<double> > NodeSchedule::r_ode_soil_input_slopes() const {
+  return substep_field(ode_steps, &odelia::ode::subsystem_substeps::input_slope);
+}
+
+std::vector<std::vector<double> > NodeSchedule::r_ode_soil_substep_ends() const {
+  return substep_field(ode_steps, &odelia::ode::subsystem_substeps::ends);
+}
+
 // The ODE schedule this run takes: times to stop at, and the sizes that reached
-// them where a recorded run is being replayed. Both at once, because a size
+// them where a run is pinned to a recording. Both at once, because a size
 // belongs to the time it was recorded with and there is no version of this that
 // takes one and keeps the other.
 //
 // Sizes may be omitted, and that is a grid a caller chose rather than a run a
 // caller recorded: the solver steps TO each time instead of by a recorded size.
-// A schedule holding either replays it -- there is no flag to turn that on, so to
+// A schedule holding either pins the run to it -- there is no flag to turn that on, so to
 // integrate freely instead, hand over no schedule.
-void NodeSchedule::r_set_ode_steps(std::vector<double> times,
-                                   std::vector<double> sizes) {
+//
+// Each step's record of substepping the soil goes with its size, and none may
+// be given at all: a recording that substepped the soil then pins a run only where
+// no step spans a knot of the rain, and is refused where one does.
+void NodeSchedule::r_set_ode_steps(
+    std::vector<double> times, std::vector<double> sizes,
+    std::vector<std::vector<double> > input_slopes,
+    std::vector<std::vector<double> > substep_ends) {
+  const bool recorded = !input_slopes.empty() || !substep_ends.empty();
+  if (recorded && (input_slopes.size() != sizes.size() ||
+                   substep_ends.size() != sizes.size())) {
+    Rcpp::stop("ode_soil_input_slopes and ode_soil_substep_ends must be as "
+               "long as ode_step_sizes, or both empty");
+  }
+  for (size_t i = 0; i < input_slopes.size(); ++i) {
+    if (input_slopes[i].empty() != substep_ends[i].empty()) {
+      Rcpp::stop("A step that substepped the soil needs both its input slopes "
+                 "and its substep ends; step " + std::to_string(i + 1) +
+                 " has one");
+    }
+  }
   if (times.empty()) {
     r_clear_ode_steps();
     return;
@@ -286,6 +330,10 @@ void NodeSchedule::r_set_ode_steps(std::vector<double> times,
   ode_steps.reserve(times.size());
   for (size_t i = 0; i < times.size(); ++i) {
     ode_steps.push_back({times[i], sizes[i]});
+    if (!input_slopes.empty() && !input_slopes[i].empty()) {
+      ode_steps.back().subsystem =
+        odelia::ode::subsystem_substeps{input_slopes[i], substep_ends[i]};
+    }
   }
   if (!util::is_finite(max_time)) {
     max_time = ode_steps.back().time;

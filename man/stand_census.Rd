@@ -26,7 +26,7 @@ smallest cohort is in the sum.
 }
 \details{
 \code{stand_fitness} reports, for a model that declares its fitness
-differentiable (FF16), each species' net reproduction ratio and offspring
+differentiable (FF16 and TF24), each species' net reproduction ratio and offspring
 production, named \code{"<species>.net_reproduction_ratio"} and
 \code{"<species>.offspring_production"}. They are the same numbers as
 \code{scm$net_reproduction_ratios} and \code{scm$offspring_production},

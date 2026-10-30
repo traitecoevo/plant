@@ -1097,8 +1097,8 @@ NodeSchedule__clear_times <- function(obj_, species_index) {
     invisible(.Call('_plant_NodeSchedule__clear_times', PACKAGE = 'plant', obj_, species_index))
 }
 
-NodeSchedule__set_ode_steps <- function(obj_, times, sizes) {
-    invisible(.Call('_plant_NodeSchedule__set_ode_steps', PACKAGE = 'plant', obj_, times, sizes))
+NodeSchedule__set_ode_steps <- function(obj_, times, sizes, input_slopes, substep_ends) {
+    invisible(.Call('_plant_NodeSchedule__set_ode_steps', PACKAGE = 'plant', obj_, times, sizes, input_slopes, substep_ends))
 }
 
 NodeSchedule__clear_ode_steps <- function(obj_) {
@@ -1155,6 +1155,14 @@ NodeSchedule__ode_times__get <- function(obj_) {
 
 NodeSchedule__ode_step_sizes__get <- function(obj_) {
     .Call('_plant_NodeSchedule__ode_step_sizes__get', PACKAGE = 'plant', obj_)
+}
+
+NodeSchedule__ode_soil_input_slopes__get <- function(obj_) {
+    .Call('_plant_NodeSchedule__ode_soil_input_slopes__get', PACKAGE = 'plant', obj_)
+}
+
+NodeSchedule__ode_soil_substep_ends__get <- function(obj_) {
+    .Call('_plant_NodeSchedule__ode_soil_substep_ends__get', PACKAGE = 'plant', obj_)
 }
 
 NodeSchedule__using_ode_steps__get <- function(obj_) {
@@ -2821,12 +2829,12 @@ Patch___FF16__FF16_Env__compute_environment <- function(obj_) {
     invisible(.Call('_plant_Patch___FF16__FF16_Env__compute_environment', PACKAGE = 'plant', obj_))
 }
 
-Patch___FF16__FF16_Env__hold_field <- function(obj_) {
-    invisible(.Call('_plant_Patch___FF16__FF16_Env__hold_field', PACKAGE = 'plant', obj_))
+Patch___FF16__FF16_Env__use_current_field <- function(obj_) {
+    invisible(.Call('_plant_Patch___FF16__FF16_Env__use_current_field', PACKAGE = 'plant', obj_))
 }
 
-Patch___FF16__FF16_Env__release_field <- function(obj_) {
-    invisible(.Call('_plant_Patch___FF16__FF16_Env__release_field', PACKAGE = 'plant', obj_))
+Patch___FF16__FF16_Env__clear_constant_field <- function(obj_) {
+    invisible(.Call('_plant_Patch___FF16__FF16_Env__clear_constant_field', PACKAGE = 'plant', obj_))
 }
 
 Patch___FF16__FF16_Env__reset <- function(obj_) {
@@ -2937,8 +2945,8 @@ Patch___FF16__FF16_Env__state__get <- function(obj_) {
     .Call('_plant_Patch___FF16__FF16_Env__state__get', PACKAGE = 'plant', obj_)
 }
 
-Patch___FF16__FF16_Env__holds_field__get <- function(obj_) {
-    .Call('_plant_Patch___FF16__FF16_Env__holds_field__get', PACKAGE = 'plant', obj_)
+Patch___FF16__FF16_Env__has_constant_field__get <- function(obj_) {
+    .Call('_plant_Patch___FF16__FF16_Env__has_constant_field__get', PACKAGE = 'plant', obj_)
 }
 
 Patch___TF24__TF24_Env__ctor <- function(parameters, environment, control) {
@@ -2957,12 +2965,12 @@ Patch___TF24__TF24_Env__compute_environment <- function(obj_) {
     invisible(.Call('_plant_Patch___TF24__TF24_Env__compute_environment', PACKAGE = 'plant', obj_))
 }
 
-Patch___TF24__TF24_Env__hold_field <- function(obj_) {
-    invisible(.Call('_plant_Patch___TF24__TF24_Env__hold_field', PACKAGE = 'plant', obj_))
+Patch___TF24__TF24_Env__use_current_field <- function(obj_) {
+    invisible(.Call('_plant_Patch___TF24__TF24_Env__use_current_field', PACKAGE = 'plant', obj_))
 }
 
-Patch___TF24__TF24_Env__release_field <- function(obj_) {
-    invisible(.Call('_plant_Patch___TF24__TF24_Env__release_field', PACKAGE = 'plant', obj_))
+Patch___TF24__TF24_Env__clear_constant_field <- function(obj_) {
+    invisible(.Call('_plant_Patch___TF24__TF24_Env__clear_constant_field', PACKAGE = 'plant', obj_))
 }
 
 Patch___TF24__TF24_Env__reset <- function(obj_) {
@@ -3073,8 +3081,8 @@ Patch___TF24__TF24_Env__state__get <- function(obj_) {
     .Call('_plant_Patch___TF24__TF24_Env__state__get', PACKAGE = 'plant', obj_)
 }
 
-Patch___TF24__TF24_Env__holds_field__get <- function(obj_) {
-    .Call('_plant_Patch___TF24__TF24_Env__holds_field__get', PACKAGE = 'plant', obj_)
+Patch___TF24__TF24_Env__has_constant_field__get <- function(obj_) {
+    .Call('_plant_Patch___TF24__TF24_Env__has_constant_field__get', PACKAGE = 'plant', obj_)
 }
 
 Patch___TF24f__TF24_Env__ctor <- function(parameters, environment, control) {
@@ -3093,12 +3101,12 @@ Patch___TF24f__TF24_Env__compute_environment <- function(obj_) {
     invisible(.Call('_plant_Patch___TF24f__TF24_Env__compute_environment', PACKAGE = 'plant', obj_))
 }
 
-Patch___TF24f__TF24_Env__hold_field <- function(obj_) {
-    invisible(.Call('_plant_Patch___TF24f__TF24_Env__hold_field', PACKAGE = 'plant', obj_))
+Patch___TF24f__TF24_Env__use_current_field <- function(obj_) {
+    invisible(.Call('_plant_Patch___TF24f__TF24_Env__use_current_field', PACKAGE = 'plant', obj_))
 }
 
-Patch___TF24f__TF24_Env__release_field <- function(obj_) {
-    invisible(.Call('_plant_Patch___TF24f__TF24_Env__release_field', PACKAGE = 'plant', obj_))
+Patch___TF24f__TF24_Env__clear_constant_field <- function(obj_) {
+    invisible(.Call('_plant_Patch___TF24f__TF24_Env__clear_constant_field', PACKAGE = 'plant', obj_))
 }
 
 Patch___TF24f__TF24_Env__reset <- function(obj_) {
@@ -3209,8 +3217,8 @@ Patch___TF24f__TF24_Env__state__get <- function(obj_) {
     .Call('_plant_Patch___TF24f__TF24_Env__state__get', PACKAGE = 'plant', obj_)
 }
 
-Patch___TF24f__TF24_Env__holds_field__get <- function(obj_) {
-    .Call('_plant_Patch___TF24f__TF24_Env__holds_field__get', PACKAGE = 'plant', obj_)
+Patch___TF24f__TF24_Env__has_constant_field__get <- function(obj_) {
+    .Call('_plant_Patch___TF24f__TF24_Env__has_constant_field__get', PACKAGE = 'plant', obj_)
 }
 
 Patch___TF24t__TF24_Env__ctor <- function(parameters, environment, control) {
@@ -3229,12 +3237,12 @@ Patch___TF24t__TF24_Env__compute_environment <- function(obj_) {
     invisible(.Call('_plant_Patch___TF24t__TF24_Env__compute_environment', PACKAGE = 'plant', obj_))
 }
 
-Patch___TF24t__TF24_Env__hold_field <- function(obj_) {
-    invisible(.Call('_plant_Patch___TF24t__TF24_Env__hold_field', PACKAGE = 'plant', obj_))
+Patch___TF24t__TF24_Env__use_current_field <- function(obj_) {
+    invisible(.Call('_plant_Patch___TF24t__TF24_Env__use_current_field', PACKAGE = 'plant', obj_))
 }
 
-Patch___TF24t__TF24_Env__release_field <- function(obj_) {
-    invisible(.Call('_plant_Patch___TF24t__TF24_Env__release_field', PACKAGE = 'plant', obj_))
+Patch___TF24t__TF24_Env__clear_constant_field <- function(obj_) {
+    invisible(.Call('_plant_Patch___TF24t__TF24_Env__clear_constant_field', PACKAGE = 'plant', obj_))
 }
 
 Patch___TF24t__TF24_Env__reset <- function(obj_) {
@@ -3345,8 +3353,8 @@ Patch___TF24t__TF24_Env__state__get <- function(obj_) {
     .Call('_plant_Patch___TF24t__TF24_Env__state__get', PACKAGE = 'plant', obj_)
 }
 
-Patch___TF24t__TF24_Env__holds_field__get <- function(obj_) {
-    .Call('_plant_Patch___TF24t__TF24_Env__holds_field__get', PACKAGE = 'plant', obj_)
+Patch___TF24t__TF24_Env__has_constant_field__get <- function(obj_) {
+    .Call('_plant_Patch___TF24t__TF24_Env__has_constant_field__get', PACKAGE = 'plant', obj_)
 }
 
 Patch___K93__K93_Env__ctor <- function(parameters, environment, control) {
@@ -3365,12 +3373,12 @@ Patch___K93__K93_Env__compute_environment <- function(obj_) {
     invisible(.Call('_plant_Patch___K93__K93_Env__compute_environment', PACKAGE = 'plant', obj_))
 }
 
-Patch___K93__K93_Env__hold_field <- function(obj_) {
-    invisible(.Call('_plant_Patch___K93__K93_Env__hold_field', PACKAGE = 'plant', obj_))
+Patch___K93__K93_Env__use_current_field <- function(obj_) {
+    invisible(.Call('_plant_Patch___K93__K93_Env__use_current_field', PACKAGE = 'plant', obj_))
 }
 
-Patch___K93__K93_Env__release_field <- function(obj_) {
-    invisible(.Call('_plant_Patch___K93__K93_Env__release_field', PACKAGE = 'plant', obj_))
+Patch___K93__K93_Env__clear_constant_field <- function(obj_) {
+    invisible(.Call('_plant_Patch___K93__K93_Env__clear_constant_field', PACKAGE = 'plant', obj_))
 }
 
 Patch___K93__K93_Env__reset <- function(obj_) {
@@ -3481,8 +3489,8 @@ Patch___K93__K93_Env__state__get <- function(obj_) {
     .Call('_plant_Patch___K93__K93_Env__state__get', PACKAGE = 'plant', obj_)
 }
 
-Patch___K93__K93_Env__holds_field__get <- function(obj_) {
-    .Call('_plant_Patch___K93__K93_Env__holds_field__get', PACKAGE = 'plant', obj_)
+Patch___K93__K93_Env__has_constant_field__get <- function(obj_) {
+    .Call('_plant_Patch___K93__K93_Env__has_constant_field__get', PACKAGE = 'plant', obj_)
 }
 
 SCM___FF16__FF16_Env__ctor <- function(parameters, environment, events, control) {
@@ -3501,12 +3509,12 @@ SCM___FF16__FF16_Env__run_mutant <- function(obj_, p) {
     invisible(.Call('_plant_SCM___FF16__FF16_Env__run_mutant', PACKAGE = 'plant', obj_, p))
 }
 
-SCM___FF16__FF16_Env__run_mutant_held <- function(obj_, p) {
-    invisible(.Call('_plant_SCM___FF16__FF16_Env__run_mutant_held', PACKAGE = 'plant', obj_, p))
+SCM___FF16__FF16_Env__run_mutant_constant <- function(obj_, p) {
+    invisible(.Call('_plant_SCM___FF16__FF16_Env__run_mutant_constant', PACKAGE = 'plant', obj_, p))
 }
 
-SCM___FF16__FF16_Env__store_trajectory <- function(obj_) {
-    .Call('_plant_SCM___FF16__FF16_Env__store_trajectory', PACKAGE = 'plant', obj_)
+SCM___FF16__FF16_Env__store_recording <- function(obj_) {
+    .Call('_plant_SCM___FF16__FF16_Env__store_recording', PACKAGE = 'plant', obj_)
 }
 
 SCM___FF16__FF16_Env__refine_schedule <- function(obj_) {
@@ -3585,6 +3593,14 @@ SCM___FF16__FF16_Env__ode_step_sizes__get <- function(obj_) {
     .Call('_plant_SCM___FF16__FF16_Env__ode_step_sizes__get', PACKAGE = 'plant', obj_)
 }
 
+SCM___FF16__FF16_Env__ode_soil_input_slopes__get <- function(obj_) {
+    .Call('_plant_SCM___FF16__FF16_Env__ode_soil_input_slopes__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___FF16__FF16_Env__ode_soil_substep_ends__get <- function(obj_) {
+    .Call('_plant_SCM___FF16__FF16_Env__ode_soil_substep_ends__get', PACKAGE = 'plant', obj_)
+}
+
 SCM___FF16__FF16_Env__collect__get <- function(obj_) {
     .Call('_plant_SCM___FF16__FF16_Env__collect__get', PACKAGE = 'plant', obj_)
 }
@@ -3601,12 +3617,12 @@ SCM___FF16__FF16_Env__collect_refinement_errors__set <- function(obj_, value) {
     invisible(.Call('_plant_SCM___FF16__FF16_Env__collect_refinement_errors__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___FF16__FF16_Env__record_trajectory__get <- function(obj_) {
-    .Call('_plant_SCM___FF16__FF16_Env__record_trajectory__get', PACKAGE = 'plant', obj_)
+SCM___FF16__FF16_Env__keep_states__get <- function(obj_) {
+    .Call('_plant_SCM___FF16__FF16_Env__keep_states__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FF16__FF16_Env__record_trajectory__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___FF16__FF16_Env__record_trajectory__set', PACKAGE = 'plant', obj_, value))
+SCM___FF16__FF16_Env__keep_states__set <- function(obj_, value) {
+    invisible(.Call('_plant_SCM___FF16__FF16_Env__keep_states__set', PACKAGE = 'plant', obj_, value))
 }
 
 SCM___FF16__FF16_Env__complete__get <- function(obj_) {
@@ -3641,12 +3657,12 @@ SCM___TF24__TF24_Env__run_mutant <- function(obj_, p) {
     invisible(.Call('_plant_SCM___TF24__TF24_Env__run_mutant', PACKAGE = 'plant', obj_, p))
 }
 
-SCM___TF24__TF24_Env__run_mutant_held <- function(obj_, p) {
-    invisible(.Call('_plant_SCM___TF24__TF24_Env__run_mutant_held', PACKAGE = 'plant', obj_, p))
+SCM___TF24__TF24_Env__run_mutant_constant <- function(obj_, p) {
+    invisible(.Call('_plant_SCM___TF24__TF24_Env__run_mutant_constant', PACKAGE = 'plant', obj_, p))
 }
 
-SCM___TF24__TF24_Env__store_trajectory <- function(obj_) {
-    .Call('_plant_SCM___TF24__TF24_Env__store_trajectory', PACKAGE = 'plant', obj_)
+SCM___TF24__TF24_Env__store_recording <- function(obj_) {
+    .Call('_plant_SCM___TF24__TF24_Env__store_recording', PACKAGE = 'plant', obj_)
 }
 
 SCM___TF24__TF24_Env__refine_schedule <- function(obj_) {
@@ -3725,6 +3741,14 @@ SCM___TF24__TF24_Env__ode_step_sizes__get <- function(obj_) {
     .Call('_plant_SCM___TF24__TF24_Env__ode_step_sizes__get', PACKAGE = 'plant', obj_)
 }
 
+SCM___TF24__TF24_Env__ode_soil_input_slopes__get <- function(obj_) {
+    .Call('_plant_SCM___TF24__TF24_Env__ode_soil_input_slopes__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___TF24__TF24_Env__ode_soil_substep_ends__get <- function(obj_) {
+    .Call('_plant_SCM___TF24__TF24_Env__ode_soil_substep_ends__get', PACKAGE = 'plant', obj_)
+}
+
 SCM___TF24__TF24_Env__collect__get <- function(obj_) {
     .Call('_plant_SCM___TF24__TF24_Env__collect__get', PACKAGE = 'plant', obj_)
 }
@@ -3741,12 +3765,12 @@ SCM___TF24__TF24_Env__collect_refinement_errors__set <- function(obj_, value) {
     invisible(.Call('_plant_SCM___TF24__TF24_Env__collect_refinement_errors__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___TF24__TF24_Env__record_trajectory__get <- function(obj_) {
-    .Call('_plant_SCM___TF24__TF24_Env__record_trajectory__get', PACKAGE = 'plant', obj_)
+SCM___TF24__TF24_Env__keep_states__get <- function(obj_) {
+    .Call('_plant_SCM___TF24__TF24_Env__keep_states__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24__TF24_Env__record_trajectory__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___TF24__TF24_Env__record_trajectory__set', PACKAGE = 'plant', obj_, value))
+SCM___TF24__TF24_Env__keep_states__set <- function(obj_, value) {
+    invisible(.Call('_plant_SCM___TF24__TF24_Env__keep_states__set', PACKAGE = 'plant', obj_, value))
 }
 
 SCM___TF24__TF24_Env__complete__get <- function(obj_) {
@@ -3781,12 +3805,12 @@ SCM___TF24f__TF24_Env__run_mutant <- function(obj_, p) {
     invisible(.Call('_plant_SCM___TF24f__TF24_Env__run_mutant', PACKAGE = 'plant', obj_, p))
 }
 
-SCM___TF24f__TF24_Env__run_mutant_held <- function(obj_, p) {
-    invisible(.Call('_plant_SCM___TF24f__TF24_Env__run_mutant_held', PACKAGE = 'plant', obj_, p))
+SCM___TF24f__TF24_Env__run_mutant_constant <- function(obj_, p) {
+    invisible(.Call('_plant_SCM___TF24f__TF24_Env__run_mutant_constant', PACKAGE = 'plant', obj_, p))
 }
 
-SCM___TF24f__TF24_Env__store_trajectory <- function(obj_) {
-    .Call('_plant_SCM___TF24f__TF24_Env__store_trajectory', PACKAGE = 'plant', obj_)
+SCM___TF24f__TF24_Env__store_recording <- function(obj_) {
+    .Call('_plant_SCM___TF24f__TF24_Env__store_recording', PACKAGE = 'plant', obj_)
 }
 
 SCM___TF24f__TF24_Env__refine_schedule <- function(obj_) {
@@ -3865,6 +3889,14 @@ SCM___TF24f__TF24_Env__ode_step_sizes__get <- function(obj_) {
     .Call('_plant_SCM___TF24f__TF24_Env__ode_step_sizes__get', PACKAGE = 'plant', obj_)
 }
 
+SCM___TF24f__TF24_Env__ode_soil_input_slopes__get <- function(obj_) {
+    .Call('_plant_SCM___TF24f__TF24_Env__ode_soil_input_slopes__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___TF24f__TF24_Env__ode_soil_substep_ends__get <- function(obj_) {
+    .Call('_plant_SCM___TF24f__TF24_Env__ode_soil_substep_ends__get', PACKAGE = 'plant', obj_)
+}
+
 SCM___TF24f__TF24_Env__collect__get <- function(obj_) {
     .Call('_plant_SCM___TF24f__TF24_Env__collect__get', PACKAGE = 'plant', obj_)
 }
@@ -3881,12 +3913,12 @@ SCM___TF24f__TF24_Env__collect_refinement_errors__set <- function(obj_, value) {
     invisible(.Call('_plant_SCM___TF24f__TF24_Env__collect_refinement_errors__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___TF24f__TF24_Env__record_trajectory__get <- function(obj_) {
-    .Call('_plant_SCM___TF24f__TF24_Env__record_trajectory__get', PACKAGE = 'plant', obj_)
+SCM___TF24f__TF24_Env__keep_states__get <- function(obj_) {
+    .Call('_plant_SCM___TF24f__TF24_Env__keep_states__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24f__TF24_Env__record_trajectory__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___TF24f__TF24_Env__record_trajectory__set', PACKAGE = 'plant', obj_, value))
+SCM___TF24f__TF24_Env__keep_states__set <- function(obj_, value) {
+    invisible(.Call('_plant_SCM___TF24f__TF24_Env__keep_states__set', PACKAGE = 'plant', obj_, value))
 }
 
 SCM___TF24f__TF24_Env__complete__get <- function(obj_) {
@@ -3921,12 +3953,12 @@ SCM___TF24t__TF24_Env__run_mutant <- function(obj_, p) {
     invisible(.Call('_plant_SCM___TF24t__TF24_Env__run_mutant', PACKAGE = 'plant', obj_, p))
 }
 
-SCM___TF24t__TF24_Env__run_mutant_held <- function(obj_, p) {
-    invisible(.Call('_plant_SCM___TF24t__TF24_Env__run_mutant_held', PACKAGE = 'plant', obj_, p))
+SCM___TF24t__TF24_Env__run_mutant_constant <- function(obj_, p) {
+    invisible(.Call('_plant_SCM___TF24t__TF24_Env__run_mutant_constant', PACKAGE = 'plant', obj_, p))
 }
 
-SCM___TF24t__TF24_Env__store_trajectory <- function(obj_) {
-    .Call('_plant_SCM___TF24t__TF24_Env__store_trajectory', PACKAGE = 'plant', obj_)
+SCM___TF24t__TF24_Env__store_recording <- function(obj_) {
+    .Call('_plant_SCM___TF24t__TF24_Env__store_recording', PACKAGE = 'plant', obj_)
 }
 
 SCM___TF24t__TF24_Env__refine_schedule <- function(obj_) {
@@ -4005,6 +4037,14 @@ SCM___TF24t__TF24_Env__ode_step_sizes__get <- function(obj_) {
     .Call('_plant_SCM___TF24t__TF24_Env__ode_step_sizes__get', PACKAGE = 'plant', obj_)
 }
 
+SCM___TF24t__TF24_Env__ode_soil_input_slopes__get <- function(obj_) {
+    .Call('_plant_SCM___TF24t__TF24_Env__ode_soil_input_slopes__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___TF24t__TF24_Env__ode_soil_substep_ends__get <- function(obj_) {
+    .Call('_plant_SCM___TF24t__TF24_Env__ode_soil_substep_ends__get', PACKAGE = 'plant', obj_)
+}
+
 SCM___TF24t__TF24_Env__collect__get <- function(obj_) {
     .Call('_plant_SCM___TF24t__TF24_Env__collect__get', PACKAGE = 'plant', obj_)
 }
@@ -4021,12 +4061,12 @@ SCM___TF24t__TF24_Env__collect_refinement_errors__set <- function(obj_, value) {
     invisible(.Call('_plant_SCM___TF24t__TF24_Env__collect_refinement_errors__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___TF24t__TF24_Env__record_trajectory__get <- function(obj_) {
-    .Call('_plant_SCM___TF24t__TF24_Env__record_trajectory__get', PACKAGE = 'plant', obj_)
+SCM___TF24t__TF24_Env__keep_states__get <- function(obj_) {
+    .Call('_plant_SCM___TF24t__TF24_Env__keep_states__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___TF24t__TF24_Env__record_trajectory__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___TF24t__TF24_Env__record_trajectory__set', PACKAGE = 'plant', obj_, value))
+SCM___TF24t__TF24_Env__keep_states__set <- function(obj_, value) {
+    invisible(.Call('_plant_SCM___TF24t__TF24_Env__keep_states__set', PACKAGE = 'plant', obj_, value))
 }
 
 SCM___TF24t__TF24_Env__complete__get <- function(obj_) {
@@ -4061,12 +4101,12 @@ SCM___K93__K93_Env__run_mutant <- function(obj_, p) {
     invisible(.Call('_plant_SCM___K93__K93_Env__run_mutant', PACKAGE = 'plant', obj_, p))
 }
 
-SCM___K93__K93_Env__run_mutant_held <- function(obj_, p) {
-    invisible(.Call('_plant_SCM___K93__K93_Env__run_mutant_held', PACKAGE = 'plant', obj_, p))
+SCM___K93__K93_Env__run_mutant_constant <- function(obj_, p) {
+    invisible(.Call('_plant_SCM___K93__K93_Env__run_mutant_constant', PACKAGE = 'plant', obj_, p))
 }
 
-SCM___K93__K93_Env__store_trajectory <- function(obj_) {
-    .Call('_plant_SCM___K93__K93_Env__store_trajectory', PACKAGE = 'plant', obj_)
+SCM___K93__K93_Env__store_recording <- function(obj_) {
+    .Call('_plant_SCM___K93__K93_Env__store_recording', PACKAGE = 'plant', obj_)
 }
 
 SCM___K93__K93_Env__refine_schedule <- function(obj_) {
@@ -4145,6 +4185,14 @@ SCM___K93__K93_Env__ode_step_sizes__get <- function(obj_) {
     .Call('_plant_SCM___K93__K93_Env__ode_step_sizes__get', PACKAGE = 'plant', obj_)
 }
 
+SCM___K93__K93_Env__ode_soil_input_slopes__get <- function(obj_) {
+    .Call('_plant_SCM___K93__K93_Env__ode_soil_input_slopes__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___K93__K93_Env__ode_soil_substep_ends__get <- function(obj_) {
+    .Call('_plant_SCM___K93__K93_Env__ode_soil_substep_ends__get', PACKAGE = 'plant', obj_)
+}
+
 SCM___K93__K93_Env__collect__get <- function(obj_) {
     .Call('_plant_SCM___K93__K93_Env__collect__get', PACKAGE = 'plant', obj_)
 }
@@ -4161,12 +4209,12 @@ SCM___K93__K93_Env__collect_refinement_errors__set <- function(obj_, value) {
     invisible(.Call('_plant_SCM___K93__K93_Env__collect_refinement_errors__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___K93__K93_Env__record_trajectory__get <- function(obj_) {
-    .Call('_plant_SCM___K93__K93_Env__record_trajectory__get', PACKAGE = 'plant', obj_)
+SCM___K93__K93_Env__keep_states__get <- function(obj_) {
+    .Call('_plant_SCM___K93__K93_Env__keep_states__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___K93__K93_Env__record_trajectory__set <- function(obj_, value) {
-    invisible(.Call('_plant_SCM___K93__K93_Env__record_trajectory__set', PACKAGE = 'plant', obj_, value))
+SCM___K93__K93_Env__keep_states__set <- function(obj_, value) {
+    invisible(.Call('_plant_SCM___K93__K93_Env__keep_states__set', PACKAGE = 'plant', obj_, value))
 }
 
 SCM___K93__K93_Env__complete__get <- function(obj_) {
@@ -5829,12 +5877,12 @@ ladder_seed_geometry_tangent_tf24 <- function(obj_, index) {
     .Call('_plant_ladder_seed_geometry_tangent_tf24', PACKAGE = 'plant', obj_, index)
 }
 
-ladder_census_initial_state_tangent_tf24 <- function(obj_, direction, range) {
-    .Call('_plant_ladder_census_initial_state_tangent_tf24', PACKAGE = 'plant', obj_, direction, range)
+ladder_census_initial_state_tangent_tf24 <- function(obj_, direction, segment) {
+    .Call('_plant_ladder_census_initial_state_tangent_tf24', PACKAGE = 'plant', obj_, direction, segment)
 }
 
-ladder_census_initial_state_replay_tf24 <- function(obj_, state0, range) {
-    .Call('_plant_ladder_census_initial_state_replay_tf24', PACKAGE = 'plant', obj_, state0, range)
+ladder_census_initial_state_pinned_tf24 <- function(obj_, state0, segment) {
+    .Call('_plant_ladder_census_initial_state_pinned_tf24', PACKAGE = 'plant', obj_, state0, segment)
 }
 
 ladder_boundary_evaluations_tf24 <- function(obj_) {

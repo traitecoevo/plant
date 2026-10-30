@@ -28,7 +28,7 @@ test_that("the marginal profit's factorisation is measured, not assumed", {
   # PASS is two things:
   #
   #   1. the second coefficient checked against its own closed form, at the
-  #      first coefficient held fixed. Checking the pair jointly cannot work:
+  #      first coefficient fixed. Checking the pair jointly cannot work:
   #      a joint residual is flat along the compensating direction.
   #   2. the factorisation's residual over all of the state directions -- the
   #      soil potentials, the per-layer root masses and leaf area -- at states
@@ -36,7 +36,7 @@ test_that("the marginal profit's factorisation is measured, not assumed", {
   #      equal-potentials branch.
   #
   # Everything the check needs is a forward quantity and each is reachable: the
-  # marginal profit at a held collar potential, total uptake at a held collar
+  # marginal profit at a fixed collar potential, total uptake at a fixed collar
   # potential, and the physiology re-set at a perturbed soil potential, root
   # network or leaf area. The residual is then three central differences per
   # direction and a two-column least squares.
@@ -333,16 +333,16 @@ test_that("the leaf's supplied rows are refereed against its own algebra", {
   ladder_require_regime(patch, "patch")
 
   n <- patch$ode_size
-  seed <- ladder_seeds(n, scale = ladder_block_scale(patch$ode_rates))
+  adjoint <- ladder_test_vector(n, scale = ladder_block_scale(patch$ode_rates))
   columns <- ladder_trait_names_tf24(patch)
-  sweep_row <- ladder_rhs_adjoint_tf24(patch, seed)$trait
+  sweep_row <- ladder_rhs_adjoint_tf24(patch, adjoint)$trait
   names(sweep_row) <- columns
 
   # Non-vacuity, and it is what the check rests on: the reference that is
   # normally used must be silent on these columns, or refereeing them here would
   # be redundant rather than necessary.
   prepared <- as.vector(crossprod(
-    ladder_rhs_trait_difference_tf24(patch, 1e-6), seed))
+    ladder_rhs_trait_difference_tf24(patch, 1e-6), adjoint))
   names(prepared) <- columns
 
   message("\n  leaf traits, refereed by a rebuilt forward model:")
@@ -355,8 +355,8 @@ test_that("the leaf's supplied rows are refereed against its own algebra", {
       if (name %in% ladder_zero_at_an_interior_optimum()) next
       expect_equal(prepared[[key]], 0,
                    label = paste("the prepared-strategy difference reaches", key))
-      coarse <- sum(ladder_rate_difference_rebuilt(patch, index, name, 1e-5) * seed)
-      fine <- sum(ladder_rate_difference_rebuilt(patch, index, name, 1e-6) * seed)
+      coarse <- sum(ladder_rate_difference_rebuilt(patch, index, name, 1e-5) * adjoint)
+      fine <- sum(ladder_rate_difference_rebuilt(patch, index, name, 1e-6) * adjoint)
       got <- sweep_row[[key]]
       scale <- max(abs(got), abs(fine))
       residual <- abs(got - fine) / scale

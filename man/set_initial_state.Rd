@@ -2,7 +2,7 @@
 % Please edit documentation in R/scm_support.R
 \name{set_initial_state}
 \alias{set_initial_state}
-\title{Seed Parameters with an initial patch state}
+\title{Give Parameters an initial patch state}
 \usage{
 set_initial_state(p, state)
 }
@@ -22,13 +22,13 @@ Write an exported patch state (from \code{\link{export_patch_state}}) into a
 \code{Parameters} object so that the next \code{\link{run_scm}} starts from
 that state instead of an empty patch. The state is carried on the
 \code{Parameters} object (rather than passed separately) so the run stays
-self-describing and reproducible, and so the seeding survives the reset at
+self-describing and reproducible, and so the initial state survives the reset at
 the start of every run / schedule refinement.
 }
 \details{
-Each seeded cohort's patch density and survival at birth are read from the
+Each initial cohort's patch density and survival at birth are read from the
 resuming parameters' own regime at its birth date, not taken from the
-export: a cohort seeded from a burn-in into a \code{\link{fitness_window}}
+export: a cohort initialised from a burn-in into a \code{\link{fitness_window}}
 run weighs what the window gives it. Under the regime that exported it they
 are the same numbers. The exported \code{patch_density} and
 \code{pr_patch_survival} are checked only for their lengths.

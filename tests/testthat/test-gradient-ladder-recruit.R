@@ -28,7 +28,7 @@ test_that("a marginal recruit's gradient exists, is finite, and tends to zero", 
   # establishment goes to zero, and the sensitivity of the log density diverges
   # with them. But the log density reaches everything downstream only through the
   # stem number, whose own sensitivity tends to zero, and the census carries stem
-  # number linearly. So the finite answer is reached by seeding the quantity that
+  # number linearly. So the finite answer is reached by setting the direction on the quantity that
   # has one, and a recruit that cannot pay for itself contributes at second order
   # -- exactly zero is the correct first-order answer.
   #
@@ -40,7 +40,7 @@ test_that("a marginal recruit's gradient exists, is finite, and tends to zero", 
   decay <- numeric(length(scales))
   for (k in seq_along(scales)) {
     stand <- ladder_stand_marginal_recruit(scales[[k]])
-    result <- stand_gradient(stand)
+    result <- stand_gradient(stand, hyperpar = NULL)
     expect_true(all(is.finite(result$gradient)))
     establishment[[k]] <- ladder_recruit_establishment(stand)[[1]]
     columns <- colnames(result$gradient)
@@ -80,7 +80,7 @@ test_that("the boundary's own term enters once per stage of every step", {
     p <- ladder_parameters("fast", lifetime = lifetime)
     p$node_schedule_times <- list(0)
     stand <- ladder_run(p)
-    trajectory <- stand$store_trajectory()
+    trajectory <- stand$store_recording()
     widths <- vapply(trajectory, function(s) length(s$state), numeric(1))
     got <- ladder_boundary_evaluations_tf24(stand)
     list(steps = ladder_step_count(trajectory),

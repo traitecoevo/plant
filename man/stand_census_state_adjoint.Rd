@@ -18,7 +18,7 @@ One row per metric -- the census metrics, then for a model that declares
 its fitness differentiable each species' net reproduction ratio and offspring
 production, named as \code{\link{stand_gradient}} names them -- and one
 column per ODE state entry, in the order
-\code{scm$patch$ode_state} writes. This is what the reverse pass is seeded
+\code{scm$patch$ode_state} writes. This is what the reverse pass starts
 with. The cohort-height columns carry the trapezium weights as well as the
 integrand only where the height is the coordinate integrated over; on the
 birth-date coordinate the weights are constants.

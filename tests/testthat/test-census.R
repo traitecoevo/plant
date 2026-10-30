@@ -69,14 +69,14 @@ census_r <- function(species, pars, eta, include_boundary = TRUE,
 # ⚠️ THE LIVE BOTTOM IS THE PREMISE EVERY CHECK HERE RESTS ON, and it is what a
 # grown distribution is expensive to reach. Where the boundary node's density has
 # underflowed to zero so has its neighbour's, the closing trapezium contributes
-# exactly nothing, and the reduction gate and the seed gates below go quiet
+# exactly nothing, and the reduction gate and the adjoint gates below go quiet
 # rather than failing. Measured: the bottom two densities are 9.96e-01 and
 # 9.92e-01, where the same recipe at a lifetime of 3 gives zero and a distribution
 # grown to a lifetime of 5 gives zero.
 #
 # ⚠️ SIX NODES RATHER THAN THE SEVENTY-EIGHT A DEFAULT SCHEDULE FILLS IN IS WHAT
 # MAKES THE BOUNDARY NODE READABLE. It is the reduction's closing grid point and
-# the one part of the seed no state column reports, so G3 reads it as the gap
+# the one part of the adjoint no state column reports, so G3 reads it as the gap
 # between two references -- and that gap is 2.5e-07 of the main term here against
 # 6.1e-09 under a default schedule, where the reference's own floor is 9.5e-11.
 #
@@ -107,7 +107,7 @@ census_stand <- local({
 })
 
 # The leaf-area census as a function of one entry of the ODE state, for
-# differencing against the seed. `scm$patch` is a copy, so the perturbation
+# differencing against the adjoint. `scm$patch` is a copy, so the perturbation
 # cannot reach the stand every other block shares.
 #
 # ⚠️ THE BOUNDARY NODE HAS TO MOVE WITH THE STATE, and a reference that holds it
@@ -160,7 +160,7 @@ test_that("G2: the boundary node is in the reduction", {
                tolerance = 1e-12)
 })
 
-test_that("G3: the seed is the census's derivative on the birth-date grid", {
+test_that("G3: the state adjoint is the census's derivative on the birth-date grid", {
   # A height is state and a birth date is not, so which one the grid is built
   # from decides whether a cohort's height moves the quadrature as well as the
   # integrand. On this coordinate it does not.
@@ -171,20 +171,20 @@ test_that("G3: the seed is the census's derivative on the birth-date grid", {
   # answering two questions with one number.
   #
   # NOT gated on a refusal. This fixture is written rather than reached, so the
-  # seed being refused here is the model having moved under a fixture that did
+  # adjoint being refused here is the model having moved under a fixture that did
   # not -- which is the finding, and a skip would report it as green.
   scm <- census_stand()
   species <- scm$patch$species[[1]]
   strategy <- scm$parameters$strategies[[1]]
   st <- species_state_r(species)
-  seed <- stand_census_state_adjoint(scm)
+  adjoint <- stand_census_state_adjoint(scm)
   names_i <- species$nodes[[1]]$ode_names
   stride <- length(names_i)
   n_node <- length(species$nodes)
 
   # The reference is taken on a copy of the patch, so the copy must start where
   # the stand is: a round trip through the state setter that moved anything
-  # would put every difference below at a different point from the seed.
+  # would put every difference below at a different point from the adjoint.
   expect_equal(census_of_state(scm, 1L)(scm$patch$ode_state[[1]]),
                unname(stand_census(scm)[["leaf_area"]]), tolerance = 1e-14)
 
@@ -214,7 +214,7 @@ test_that("G3: the seed is the census's derivative on the birth-date grid", {
       # takes it up its own axis instead.
       over_height <- c(over_height,
         -test_gradient_richardson(census_of_state(scm, col, FALSE), at, step, 4))
-      got <- c(got, seed["leaf_area", col])
+      got <- c(got, adjoint["leaf_area", col])
       # The same derivative with the boundary node pinned, which is what a
       # reduction written over a fixed state table gives.
       boundary_held <- c(boundary_held, w[k] * density[k] *
@@ -222,29 +222,29 @@ test_that("G3: the seed is the census's derivative on the birth-date grid", {
     }
   }
 
-  # The seed is the derivative on the coordinate the density is carried in.
+  # The adjoint is the derivative on the coordinate the density is carried in.
   # Measured, the worst node reads 9.5e-11 and most read below 1e-13.
   expect_lt(max(abs(got - over_birth_date) / abs(over_birth_date)), 1e-8)
   # And it is not the derivative on the other grid. Stated per node rather than
   # as one non-vacuity check: the two grids are 1.4x apart at the closest node
-  # and 54x at the furthest, so a seed built on the wrong one is nowhere a small
+  # and 54x at the furthest, so an adjoint built on the wrong one is nowhere a small
   # error.
   expect_gt(min(abs(got - over_height) / abs(over_birth_date)), 0.25)
-  # The boundary node's own response is in the seed. It is the one part of the
+  # The boundary node's own response is in the adjoint. It is the one part of the
   # answer no state column reports, and dropping it leaves every number finite:
   # scm.h says the contribution goes to exactly zero with nothing thrown. What
   # separates the two references is 2.5e-07, against the 9.5e-11 above.
   expect_gt(min(abs(got - boundary_held) / abs(got)), 1e-8)
 })
 
-test_that("G4: the seed reaches every state a metric reads", {
+test_that("G4: the state adjoint reaches every state a metric reads", {
   # An exact zero in this design is the signature of a missing accumulator and
   # never of true insensitivity, so a state a metric demonstrably reads must have
-  # a seed.
+  # an adjoint.
   #
   # `area_stem` sums bark, sapwood and heartwood AREA, and `mass_above_ground`
   # sums the three masses and heartwood MASS, so both read a heartwood state
-  # directly and linearly: the seed is the quadrature weight times the density,
+  # directly and linearly: the adjoint is the quadrature weight times the density,
   # with no allometry in between, which is what makes this checkable by hand.
   # G1 shows the census VALUE carries them, so the reduction is right and it is
   # the recording of it that would not be.
@@ -254,7 +254,7 @@ test_that("G4: the seed reaches every state a metric reads", {
   # boundary-node channel and nothing else stands between the weight and the
   # answer.
   scm <- census_stand()
-  seed <- stand_census_state_adjoint(scm)
+  adjoint <- stand_census_state_adjoint(scm)
   species <- scm$patch$species[[1]]
   names_i <- species$nodes[[1]]$ode_names
   stride <- length(names_i)
@@ -275,14 +275,14 @@ test_that("G4: the seed reaches every state a metric reads", {
   for (pair in list(c("area_stem", "area_heartwood"),
                     c("mass_above_ground", "mass_heartwood"))) {
     cols <- (seq_along(species$nodes) - 1) * stride + match(pair[2], names_i)
-    expect_equal(unname(seed[pair[1], cols]), expected,
+    expect_equal(unname(adjoint[pair[1], cols]), expected,
                  tolerance = 1e-12, info = paste(pair[1], "reads", pair[2]))
   }
 
-  # Non-vacuity: the states that DO have a seed, so a wholesale failure of the
+  # Non-vacuity: the states that DO have an adjoint, so a wholesale failure of the
   # recording would not pass this by looking like the defect above.
   h_cols <- (seq_along(species$nodes) - 1) * stride + match("height", names_i)
-  expect_true(any(seed["leaf_area", h_cols] != 0))
+  expect_true(any(adjoint["leaf_area", h_cols] != 0))
 })
 
 test_that("G5: the entry point refuses to compare across two Controls", {
@@ -297,20 +297,22 @@ test_that("G5: the entry point refuses to compare across two Controls", {
 })
 
 test_that("G6: no census metric has an all-zero state sensitivity", {
-  # A structural claim about the seed rather than one about the shape of the
+  # A structural claim about the adjoint rather than one about the shape of the
   # distribution, so it reads the stand every other block uses.
   scm <- census_stand()
-  seed <- stand_census_state_adjoint(scm)
-  expect_equal(nrow(seed), 3L)
+  # The census's rows; the fitness rows read the fecundity state.
+  adjoint <- stand_census_state_adjoint(scm)[names(stand_census(scm)), ,
+                                          drop = FALSE]
+  expect_equal(nrow(adjoint), 3L)
   # Every metric is built from height, and every cohort's log density multiplies
   # it, so both state families must move all three metrics.
   stride <- length(scm$patch$species[[1]]$new_node$ode_names)
   n_node <- scm$patch$species[[1]]$size
   height_cols <- (seq_len(n_node) - 1) * stride + 1
   density_cols <- (seq_len(n_node) - 1) * stride + stride
-  for (m in rownames(seed)) {
-    expect_true(any(seed[m, height_cols] != 0))
-    expect_true(any(seed[m, density_cols] != 0))
+  for (m in rownames(adjoint)) {
+    expect_true(any(adjoint[m, height_cols] != 0))
+    expect_true(any(adjoint[m, density_cols] != 0))
   }
 })
 
@@ -348,11 +350,11 @@ test_that("the trait gradient entry point is reachable", {
   expect_true(is.function(census_trait_gradient_tf24))
   # A column is named for its species as well as its parameter: a bare name would
   # resolve to species one's column silently on a multi-species stand.
-  got <- stand_gradient(scm, traits = "1.lma")
+  got <- stand_gradient(scm, traits = "1.lma", hyperpar = NULL)
   expect_equal(rownames(got$gradient), unname(census_metric_names_tf24(scm)))
   expect_equal(colnames(got$gradient), "1.lma")
   expect_false(any(stand_gradient_refused(got)))
   expect_true(all(is.finite(got$gradient)))
   # And the bare name refuses, naming the convention rather than only failing.
-  expect_error(stand_gradient(scm, traits = "lma"), "species index")
+  expect_error(stand_gradient(scm, traits = "lma", hyperpar = NULL), "species index")
 })
