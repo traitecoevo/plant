@@ -309,18 +309,21 @@ test_that("the demo's 'does not buy survival' claims still hold", {
   g <- allometry_drought_grid()
 
   ## 1. THE ORDERING, which is the section's decisive argument. At soil 0.145
-  ##    every plant is healthy and none thins; by 0.140 a 10 m plant is at one
-  ##    in a million and its canopy STILL has not moved. Mortality saturates at
-  ##    a milder drought than shedding begins at.
+  ##    no plant thins; by 0.140 a 10 m plant is dead. Mortality saturates
+  ##    ahead of shedding.
   mild <- g[g$theta_dry == 0.145, ]
   expect_true(all(mild$min_canopy > 0.99))
   expect_true(all(abs(mild$gain - 1) < 0.01))
 
-  ## (Under the v13 light chain it has thinned by 2.4%, where it used to be
-  ## untouched to 1e-3 -- still nowhere near the canopy a plant sheds to.)
+  ##    It does thin there -- an earlier version read the canopy after the
+  ##    recovery and called it the minimum -- so the claim is the ORDER in time:
+  ##    survivorship has collapsed before the canopy has moved.
   mid10 <- g[g$theta_dry == 0.140 & g$height == 10, ]
-  expect_gt(mid10$min_canopy, 0.95)                     # has barely thinned
-  expect_lt(mid10$S_fixed, 1e-5)                        # and is already dead
+  expect_lt(mid10$S_fixed, 1e-5)                        # dead
+  course <- allometry_drought_course(height = 10, theta_dry = 0.140)
+  first_move <- which(course$canopy < 0.999)[1]
+  expect_false(is.na(first_move))                       # it does thin
+  expect_lt(course$survivorship[[first_move]], 0.25)    # but only once dying
 
   ## 2. NO RESCUE. The large ratios sit between two very small numbers, so the
   ##    ratio alone must never be quoted as a survival benefit.
@@ -347,14 +350,8 @@ test_that("the demo's 'does not buy survival' claims still hold", {
   ##    stem path integral landed. An interior optimum, and still negative.
   ##    Since the v13 light chain the optimum sits near phi = -4, about 2% of
   ##    full canopy, so the grid runs past it.
-  per_area <- vapply(c(0, -0.7, -1.6, -2.3, -3.0, -4.0, -5.0), function(k) {
-    s <- TF24_Strategy(collect_all_auxiliary = TRUE)
-    ind <- TF24_Individual(s)
-    env <- tf24_demo_env(0.13)
-    tf24_seat(ind, env, 10, phi = k, psi = -k * 0.35)
-    ind$compute_rates(env)
-    ind$aux("net_mass_production_dt") / ind$aux("competition_effect")
-  }, numeric(1))
+  ##    The same function the page tabulates, so the two cannot disagree.
+  per_area <- allometry_thinning_per_area(height = 10, theta_soil = 0.13)$P_per_area
   expect_true(all(per_area < 0))                        # never reaches balance
   expect_gt(per_area[[4]], per_area[[1]])               # but thinning helps
   expect_gt(which.max(per_area), 1)                     # interior optimum

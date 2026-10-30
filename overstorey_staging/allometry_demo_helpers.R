@@ -71,17 +71,28 @@ allometry_gate_map <- function(a_pl0 = 1.0, height = 5,
 ## A wet stand left to self-thin, so suppressed plants can be compared with
 ## dominants. Shade is as much the point as drought: a plant losing the light
 ## race has the same problem as one losing water, and the same lever.
+##
+## `amplitude` makes the rain seasonal, rain * (1 + amplitude * sin(2 pi t)),
+## floored at zero; `a_sw` switches sapwood acclimation on as well.
 allometry_self_thinning <- function(a_pl0 = 1.0, mpl = 25, lma = 0.0825,
-                                    birth_rate = 20, rain = 1.5) {
+                                    birth_rate = 20, rain = 1.5,
+                                    amplitude = 0, a_sw = 0) {
   p <- scm_base_parameters("TF24")
   p$max_patch_lifetime <- mpl
   p <- add_strategies(p, trait_matrix(lma, "lma"), hyperpar = TF24_hyperpar,
                       birth_rate = birth_rate)
   p$strategies[[1]]$pars$a_pl0 <- a_pl0
+  p$strategies[[1]]$pars$a_sw <- a_sw
   env <- Environment("TF24")
   env$set_soil_number_of_depths(5)
   env$set_soil_water_state(rep(0.428 * 0.5, 5))
-  env$extrinsic_drivers_set_constant("rainfall", rain)
+  if (amplitude == 0) {
+    env$extrinsic_drivers_set_constant("rainfall", rain)
+  } else {
+    t <- seq(0, mpl, length.out = as.integer(ceiling(mpl * 48)) + 1L)
+    env$extrinsic_drivers_set_variable(
+      "rainfall", t, pmax(rain * (1 + amplitude * sin(2 * pi * t)), 0))
+  }
   out <- run_scm(p, env, Control(), collect = TRUE)
   d <- out$species
   d <- d[is.finite(d$height) & d$density > 0, ]
@@ -170,7 +181,8 @@ allometry_reference_curve <- function(s, heights) {
 ## departure by d and raise the sapwood departure by d, so A_s is unchanged. That
 ## is what real thinning does; letting A_s follow A down the pipe model measures
 ## something else entirely.
-allometry_carbon_terms <- function(height, theta_soil, d = 0.02, phi = 0) {
+allometry_carbon_terms <- function(height, theta_soil, d = 0.02, phi = 0,
+                                   psi = 0) {
   p <- TF24_Strategy()$pars
   eta_c <- 1 - 2 / (1 + p$eta) + 1 / (1 + 2 * p$eta)
   cc <- p$a_bio * p$a_y
@@ -188,8 +200,8 @@ allometry_carbon_terms <- function(height, theta_soil, d = 0.02, phi = 0) {
          P = i$aux("net_mass_production_dt"))
   }
 
-  a <- at(phi, 0)
-  b <- at(phi - d, d)                       # same A_s, less A
+  a <- at(phi, psi)
+  b <- at(phi - d, psi + d)                 # same A_s, less A
   stopifnot(abs(b$A_s / a$A_s - 1) < 1e-9)
 
   ## Costs that scale with leaf area: leaf, fine root, and bark (pinned to leaf
@@ -206,7 +218,8 @@ allometry_carbon_terms <- function(height, theta_soil, d = 0.02, phi = 0) {
   ## trajectory by ~2 per cent, which is small against the level but comparable
   ## to the difference being taken, so a direct estimate of eta is unusable
   ## while dP/dA -- a difference of P itself -- is not.
-  list(height = height, theta_soil = theta_soil,
+  list(height = height, theta_soil = theta_soil, psi = psi,
+       abar = a$abar,
        gain = cc * a$abar * a$A,
        g = per_area * a$A,
        s = cc * p$r_s * m_s + p$k_s * m_s,
@@ -252,12 +265,17 @@ allometry_drought <- function(a_pl0, height, theta_dry, years_dry = 4,
   s$pars$a_sw  <- a_sw
   ind <- TF24_Individual(s)
   tf24_seat(ind, tf24_demo_env(wet), height)
+  ## The canopy's lowest point, read at every step: by the end of the recovery
+  ## a surviving plant has rebuilt, so the final state would hide the thinning.
+  min_canopy <- 1
   run <- function(theta, years) {
     env <- tf24_demo_env(theta)
     for (k in seq_len(as.integer(round(years / dt)))) {
       res <- try(grow_individual_to_time(ind, dt, env), silent = TRUE)
       if (inherits(res, "try-error")) return(FALSE)
       ind$ode_state <- as.numeric(res$state[1, ])
+      min_canopy <<- min(min_canopy,
+                         exp(ind$state("log_area_leaf_departure")))
     }
     TRUE
   }
@@ -270,6 +288,7 @@ allometry_drought <- function(a_pl0, height, theta_dry, years_dry = 4,
              years_dry = years_dry,
              survivorship = exp(-st[["mortality"]]),
              canopy = exp(st[["log_area_leaf_departure"]]),
+             min_canopy = min_canopy,
              huber = exp(st[["log_area_sapwood_departure"]]))
 }
 
@@ -284,7 +303,66 @@ allometry_drought_grid <- function(heights = c(10, 20, 24),
     if (is.null(a) || is.null(b)) return(NULL)
     data.frame(height = g$height[i], theta_dry = g$theta_dry[i],
                S_fixed = a$survivorship, S_shed = b$survivorship,
-               min_canopy = b$canopy, gain = b$survivorship / a$survivorship)
+               min_canopy = b$min_canopy,
+               gain = b$survivorship / a$survivorship)
+  })
+  do.call(rbind, out)
+}
+
+## Maintenance -- respiration in carbon units plus turnover, fully charged -- by
+## tissue, as shares of the whole bill, for a plant on its allometry. Which
+## shares follow the canopy (leaf, fine root, bark) and which do not (sapwood) is
+## what bounds what thinning can save.
+allometry_cost_shares <- function(height) {
+  s <- TF24_Strategy()
+  p <- s$pars
+  z <- plant:::TF24_strategy_expand_allometry(s, height, 0, 0)
+  cc <- p$a_bio * p$a_y
+  bill <- c(leaf = cc * p$r_l * z$mass_leaf + p$k_l * z$mass_leaf,
+            bark = cc * p$r_b * z$mass_bark + p$k_b * z$mass_bark,
+            sapwood = cc * p$r_s * z$mass_sapwood + p$k_s * z$mass_sapwood,
+            root = cc * p$r_r * z$mass_root + p$k_r * z$mass_root)
+  bill / sum(bill)
+}
+
+## Net production per unit leaf area as a plant thins at fixed height, with the
+## stem kept at 0.35 of the leaf area it loses -- sapwood lost to heartwood
+## while the canopy goes faster -- so stem per leaf rises as it would.
+allometry_thinning_per_area <- function(height = 10, theta_soil = 0.13,
+                                        phi = c(0, -0.7, -1.6, -2.3, -3.0,
+                                                -4.0, -5.0)) {
+  out <- lapply(phi, function(k) {
+    ind <- TF24_Individual(TF24_Strategy(collect_all_auxiliary = TRUE))
+    env <- tf24_demo_env(theta_soil)
+    tf24_seat(ind, env, height, phi = k, psi = -k * 0.35)
+    ind$compute_rates(env)
+    data.frame(phi = k, canopy = exp(k), huber_ratio = exp(-k * 0.35),
+               P_per_area = ind$aux("net_mass_production_dt") /
+                 ind$aux("competition_effect"))
+  })
+  do.call(rbind, out)
+}
+
+## One shedding plant through a drought, step by step: acclimate wet, zero the
+## mortality integral, then record the canopy and survivorship every `dt` of the
+## drought. What it shows is the ORDER of the two -- whether a plant thins before
+## or after its survivorship collapses -- which an end-of-run summary cannot.
+allometry_drought_course <- function(height = 10, theta_dry = 0.140, years = 2,
+                                     wet = 0.30, acclimate = 2, dt = 0.1) {
+  ind <- TF24_Individual(tf24_allometry_strategy(1.0, collect_all_auxiliary = TRUE))
+  tf24_seat(ind, tf24_demo_env(wet), height)
+  step <- function(env) {
+    r <- grow_individual_to_time(ind, dt, env)
+    ind$ode_state <- as.numeric(r$state[1, ])
+  }
+  for (k in seq_len(round(acclimate / dt))) step(tf24_demo_env(wet))
+  ind$set_state("mortality", 0)
+  dry <- tf24_demo_env(theta_dry)
+  out <- lapply(seq_len(round(years / dt)), function(k) {
+    step(dry)
+    data.frame(year = k * dt,
+               canopy = exp(ind$state("log_area_leaf_departure")),
+               survivorship = exp(-ind$state("mortality")))
   })
   do.call(rbind, out)
 }
