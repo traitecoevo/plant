@@ -61,7 +61,7 @@ public:
   TF24_Environment(int soil_number_of_depths = 5,
                    double soil_moist_sat = 0.428, // saturated soil moisture content (m3 water m^-3 soil)
                    double K_sat = 163.0411, //saturated hydraulic conductivity of soil
-                   double a_psi = 1.78e3, // retention-curve scale (Pa)
+                   double a_psi = 1.78e-3, // retention-curve scale (MPa)
                    double n_psi = 6.57, // retention-curve exponent (unitless)
                    double a_infil = 1, // infiltration switch (0-1), 0 no runoff, 1 runoff
                    double b_infil = 8, // unitless, determines infiltration rate
@@ -671,6 +671,7 @@ public:
   double soil_moist_sat;
   //Saturated soil hydraulic conductivity
   double K_sat;
+  // Retention curve psi = a_psi (theta / theta_sat)^-n_psi, a_psi in MPa.
   double a_psi;
   double n_psi;
   std::vector<double> soil_moist_sat_layers;
@@ -938,7 +939,7 @@ public:
       soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, layer);
     const double n_psi_layer = soil_parameter_value(n_psi_layers, n_psi, layer);
     const S psi =
-      a_psi_layer * pow(t / soil_moist_sat_layer, -n_psi_layer) / 1e6; // Pa -> MPa
+      a_psi_layer * pow(t / soil_moist_sat_layer, -n_psi_layer);
     // Cap at a large-but-finite ceiling (#549): near theta_r the retention curve
     // gives psi ~ 1e8 MPa, which pushes the leaf hydraulic solve non-finite and
     // corrupts the soil feedback. Root conductivity is exactly 0 far below the
@@ -960,8 +961,7 @@ public:
     const double n_psi_layer = soil_parameter_value(n_psi_layers, n_psi, layer);
     const double soil_moist_sat_layer =
       soil_parameter_value(soil_moist_sat_layers, soil_moist_sat, layer);
-    // psi is in MPa; a_psi is in Pa.
-    return pow((psi * 1e6 / a_psi_layer), (-1 / n_psi_layer)) * soil_moist_sat_layer;
+    return pow((psi / a_psi_layer), (-1 / n_psi_layer)) * soil_moist_sat_layer;
   }
 
   double soil_moist_from_psi(double psi) const {

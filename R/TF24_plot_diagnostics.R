@@ -61,7 +61,7 @@ TF24_plot_diagnostics <- function(results, x, y) {
   # Soil water potential by depth over time
   results$env$soil_moist %>%
     dplyr::mutate(soil_depth = results$env$soil_depth$soil_depth) %>%
-    dplyr::mutate(psi_soil = (1.78e3 * (.data$soil_moist / 0.428)^-6.57) / 1e6) %>%
+    dplyr::mutate(psi_soil = 1.78e-3 * (.data$soil_moist / 0.428)^-6.57) %>%
     ggplot2::ggplot(ggplot2::aes(x = .data$time, y = .data$psi_soil, group = .data$soil_depth, colour = .data$soil_depth)) +
     ggplot2::geom_point(na.rm = TRUE) +
     ggplot2::geom_line(na.rm = TRUE) +
@@ -74,7 +74,7 @@ TF24_plot_diagnostics <- function(results, x, y) {
   # Soil moisture by depth over time
   results$env$soil_moist %>%
     dplyr::mutate(soil_depth = results$env$soil_depth$soil_depth) %>%
-    dplyr::mutate(psi_soil = (1.78e3 * (.data$soil_moist / 0.428)^-6.57) / 1e6) %>%
+    dplyr::mutate(psi_soil = 1.78e-3 * (.data$soil_moist / 0.428)^-6.57) %>%
     ggplot2::ggplot(ggplot2::aes(x = .data$time, y = .data$soil_moist, group = .data$soil_depth, colour = .data$soil_depth)) +
     ggplot2::geom_point(na.rm = TRUE) +
     ggplot2::geom_line(na.rm = TRUE) +
