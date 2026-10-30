@@ -142,7 +142,8 @@ soil_widths_graded <- function(depth = 1.5, n = 5, top = 0.02) {
 ##' @param soil_moist_sat,K_sat,a_psi,n_psi Per-layer soil parameters, each either
 ##'   \code{NULL} (use the scalar field for every layer) or a vector with one
 ##'   entry per layer. If all four are \code{NULL} the layered-parameter path is
-##'   not engaged at all.
+##'   not engaged at all. \code{a_psi} is the retention-curve scale in
+##'   MPa.
 ##' @return \code{env}, modified in place and returned invisibly.
 ##' @seealso \code{\link{soil_widths_graded}}
 ##' @export

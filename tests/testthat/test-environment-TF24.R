@@ -55,13 +55,13 @@ test_that("Environment-TF24 drivers", {
   expect_equal(num_depths, 5)
   
   theta_sat <- 0.428
-  a_psi <- 1.78e3
+  a_psi <- 1.78e-3
   
   expect_silent(env$set_soil_water_state(rep(theta_sat,num_depths)))
   expect_equal(env$get_soil_water_state(), rep(theta_sat,num_depths))
   expect_equal(env$get_soil_water_state_cumulative_flux(), rep(0,5))  
   
-  expect_equal(env$psi_from_soil_moist(theta_sat), a_psi/1e6)
+  expect_equal(env$psi_from_soil_moist(theta_sat), a_psi)
   
   # test handy wrappers
   expect_equal(env$get_SWdown(), env$extrinsic_drivers_evaluate("SWdown", 1))
@@ -252,7 +252,7 @@ test_that("Environment-TF24 running soil moisture profile", {
   # default values
   expect_equal(env$soil_moist_sat, 0.428)
   expect_equal(env$K_sat, 163.0411)
-  expect_equal(env$a_psi, 1.78e3)
+  expect_equal(env$a_psi, 1.78e-3)
   expect_equal(env$n_psi, 6.57)
   expect_equal(env$a_infil, 1)
   expect_equal(env$b_infil, 8)
@@ -327,12 +327,12 @@ test_that("Environment-TF24 allows per-layer soil parameters", {
 
   # Provided parameter vectors must match number of soil layers.
   expect_error(
-    env$set_soil_parameters(3, c(0.4, 0.5), c(10, 20, 30), c(1000, 2000, 3000), c(1, 1, 1)),
+    env$set_soil_parameters(3, c(0.4, 0.5), c(10, 20, 30), c(1e-3, 2e-3, 3e-3), c(1, 1, 1)),
     "soil_moist_sat"
   )
 
   expect_silent(
-    env$set_soil_parameters(3, c(0.4, 0.5, 0.6), c(10, 20, 30), c(1000, 2000, 3000), c(1, 1, 1))
+    env$set_soil_parameters(3, c(0.4, 0.5, 0.6), c(10, 20, 30), c(1e-3, 2e-3, 3e-3), c(1, 1, 1))
   )
   expect_silent(env$set_soil_water_state(rep(0.2, 3)))
 
@@ -344,7 +344,7 @@ test_that("Environment-TF24 allows per-layer soil parameters", {
   # from the scalar environment parameters across layers.
   env2 <- TF24_Environment()
   env2$soil_moist_sat <- 0.5
-  env2$a_psi <- 1e3
+  env2$a_psi <- 1e-3
   env2$n_psi <- 1
   expect_silent(env2$set_soil_parameters(2, NULL, NULL, NULL, NULL))
   expect_silent(env2$set_soil_water_state(rep(0.2, 2)))
@@ -386,7 +386,7 @@ test_that("Environment-TF24 set_soil_parameters validates each parameter length"
     "K_sat"
   )
   expect_error(
-    env$set_soil_parameters(3, NULL, NULL, c(1000, 2000), NULL),
+    env$set_soil_parameters(3, NULL, NULL, c(1e-3, 2e-3), NULL),
     "a_psi"
   )
   expect_error(

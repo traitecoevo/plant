@@ -29,7 +29,8 @@ layers start at half saturation, matching the constructor.}
 \item{soil_moist_sat, K_sat, a_psi, n_psi}{Per-layer soil parameters, each either
 \code{NULL} (use the scalar field for every layer) or a vector with one
 entry per layer. If all four are \code{NULL} the layered-parameter path is
-not engaged at all.}
+not engaged at all. \code{a_psi} is the retention-curve scale in
+MPa.}
 }
 \value{
 \code{env}, modified in place and returned invisibly.
