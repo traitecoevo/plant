@@ -219,10 +219,12 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
   ## where the old PPFD driver gave 1800) moved TF24 to 54 established and 2
   ## surviving. FF16 and K93 read no light driver and are unmoved. That is still
   ## the count at a zero storage relaxation offset, pinned below; the default
-  ## week's offset gives 45 and 1.
+  ## week's offset gives 45 and 1. The default stem curve moving to
+  ## TF24_hyperpar's (#611) moved both to 48 and 1: the offset no longer
+  ## changes this stand's counts.
   baseline <- list(
     FF16 = list(n_total = 83L, n_alive_final = 5L),
-    TF24 = list(n_total = 45L, n_alive_final = 1L),
+    TF24 = list(n_total = 48L, n_alive_final = 1L),
     K93  = list(n_total = 117L, n_alive_final = 3L)
   )
   for (x in names(strategy_types)) {
@@ -252,8 +254,8 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
   res <- run_stochastic_collect(p, Environment("TF24"),
                                 stochastic_control("TF24"))
   ia <- attr(res$species, "is_alive")[[1]]
-  expect_equal(dim(res$species[[1]])[3], 54L)
-  expect_equal(sum(ia[nrow(ia), ], na.rm = TRUE), 2L)
+  expect_equal(dim(res$species[[1]])[3], 48L)
+  expect_equal(sum(ia[nrow(ia), ], na.rm = TRUE), 1L)
 })
 
 test_that("TF24's environment states are integrated over a stochastic run", {

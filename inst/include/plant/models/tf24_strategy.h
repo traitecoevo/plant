@@ -127,7 +127,9 @@ struct TF24_Pars {
   // phylloptim takes (stem_P50, stem_c) and derives both itself, by these same
   // formulas -- so these two members are TF24_hyperpar's reporting copies, not
   // inputs to the model. Setting one does not change the curve.
-  S stem_P50 = 1.85;
+  // stem_P50 and stem_c are TF24_hyperpar's values at the default K_s, so a
+  // strategy built from traits and the bare default share one curve (#611).
+  S stem_P50 = 2.8887256653360196;
   // Sapwood-specific conductivity of the TERMINAL segment. Was 1, a whole-stem
   // value under the height-linear model; back-derived to the tip by
   // TF24_K_s_from_whole_stem(1) so that resistance is UNCHANGED at
@@ -137,7 +139,7 @@ struct TF24_Pars {
   // holds at exactly ONE height and nowhere else. That is by construction:
   // changing the height dependence is the object of the exercise.
   S K_s = 0.33577377016801868;
-  S stem_c = log(log(1-0.5)/log(1-0.88))/(log(stem_P50) - log(5.16));
+  S stem_c = 2.04;
   S stem_b = stem_P50 / power(-log(1 - 50.0 / 100.0), 1 / stem_c);
   S psi_crit = stem_b*power(log(1/0.05),1/stem_c); // derived from stem_b and stem_c
   // Read by nothing: not passed to the leaf, not read by any equation here. Kept
@@ -813,9 +815,6 @@ public:
   //   TF24t follow to v13.1 and v13.4.
   static constexpr int scientific_version = 13;
 
-  S compute_average_light_environment(const S& z, const S& height,
-                                      const TF24_Environment<S> &environment);
-
   // calculate the amount of water transpired relativised by leaf area index.
 
   S evapotranspiration_dt(const S& area_leaf_, int soil_layer);
@@ -1055,12 +1054,6 @@ public:
   void update_dependent_aux(const int index, Internals<S>& vars);
 
   // * Mass production
-  // [eqn 12] Gross annual CO2 assimilation
-  S assimilation(const TF24_Environment<S>& environment, const S& height,
-                 const S& area_leaf);
-  // [Appendix S6] Per-leaf photosynthetic rate.
-  S assimilation_leaf(const S& x) const;
-
   // [eqn 13] Total maintenance respiration
   S respiration(const S& mass_leaf, const S& mass_sapwood,
                 const S& mass_bark, const S& mass_root,
@@ -1337,6 +1330,7 @@ public:
     beta_R_H = src.beta_R_H;
     beta_R_V = src.beta_R_V;
     function_integrator = src.function_integrator;
+    crown = src.crown;
     // Shared, not copied: a clamp on this path fires inside a per-unit copy that
     // is then discarded, so the count has to land in storage the run still owns.
     // The missing-row flag is shared for the same reason.
@@ -1509,6 +1503,9 @@ public:
 
   // For integrating functions with using Gauss-Kronrod quadrature
   quadrature::QK function_integrator;
+  // The quadrature over this strategy's unit crown, which the mean light reads
+  // the light field on.
+  crown_rule crown;
 
   // Reusable per-layer root-carbon buffer, refilled (not reallocated) each
   // net_mass_production_dt call to avoid a heap allocation per derivs eval.
@@ -1631,26 +1628,6 @@ TF24_Strategy<S>::TF24_Strategy() {
   // build the string state/aux name to index map
   refresh_indices();
   this->name = "TF24";
-}
-
-// not sure 'average' is the right term here..
-template <typename S>
-S TF24_Strategy<S>::compute_average_light_environment(
-    const S& z, const S& height, const TF24_Environment<S> &environment) {
-// NOTE: the light environment is clamped to a small positive floor (1e-4)
-// rather than allowed to reach 0 (original rationale was never recorded;
-// preserved as-is).
-//
-// Counted, because this is where the floor binds first: the mean this feeds is
-// an integral of already-floored values against a shape that integrates to one,
-// so a floored point here cannot lower the mean below the floor and the read
-// downstream sees nothing.
-     using std::max;
-     const S light = environment.get_environment_at_height(z);
-     if (light < S(0.0001)) {
-       note_clamp(CLAMP_LIGHT_FLOOR_CROWN);
-     }
-     return max(light, S(0.0001)) * canopy_shape.q_from_height(z, height);
 }
 
 // assumes optimise_psi_stem_TF has been run for optimal psi_stem
@@ -2207,38 +2184,6 @@ void TF24_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,  In
 
 }
 
-// [eqn 12] Gross annual CO2 assimilation (!!not in use for TF24 model!!)
-template <typename S>
-S TF24_Strategy<S>::assimilation(const TF24_Environment<S>& environment,
-                                    const S& height,
-                                    const S& area_leaf) {
-
-
-  S A = 0.0;
-
-  // Define an anonymous function to integrate
-  // For given height in crown, take photosynthesis at depth multipled by 
-  //   amount of leaf at that depth
-  std::function<S(S)> f = [&](const S& z) -> S {
-    return assimilation_leaf(environment.get_environment_at_height(z)) *
-      canopy_shape.q_from_height(z, height);
-  };
-
-  // Integrate over crown depth using using Gauss-Kronrod quadrature.
-  // The number of points used in the integration is determined by the control parameter
-  // function_integration_rule. Rules defined in qk_rules.cpp
-  A = function_integrator.integrate(f, S(0.0), height);
-
-  return area_leaf * A;
-}
-
-// Photosynthetic rate per leaf area
-// `x` is openness, ranging from 0 to 1.
-template <typename S>
-S TF24_Strategy<S>::assimilation_leaf(const S& x) const {
-  return pars.a_p1 * x / (x + pars.a_p2);
-}
-
 // [eqn 13] Total maintenance respiration
 // NOTE: In contrast with Falster ref model, we do not normalise by pars.a_y*pars.a_bio.
 template <typename S>
@@ -2520,7 +2465,7 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
 
   // Convert canopy openness (0-1) into the intercepted PPFD per unit leaf area:
   // PPFD_above times openness times the extinction coefficient pars.k_I. The
-  // light floor (1e-4) matches compute_average_light_environment().
+  // light floor (1e-4) matches the mean light's.
   auto PPFD_int_at = [&](const S& light) -> S {
     // Counted, not merely applied. Where this binds the cohort's light is a
     // constant with respect to every other cohort's height, so the row is
@@ -2553,10 +2498,21 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
     // Leaf-area-weighted mean canopy openness = integral of (light * q) over the
     // crown (q integrates to one). PPFD_int_at then applies pars.k_I * PPFD_above,
     // exactly reproducing TF24's established average_radiation.
-    auto f = [&](const S& x) -> S {
-      return compute_average_light_environment(x, height, environment);
+    //
+    // Each point's light is floored at 1e-4 first (the original rationale was
+    // never recorded; preserved as-is). Counted here, because this is where the
+    // floor binds: the crown weights sum to one, so a mean of floored values
+    // cannot fall below the floor itself.
+    const auto floored = [this](const auto& light) {
+      using X = std::decay_t<decltype(light)>;
+      if (light < X(0.0001)) {
+        note_clamp(CLAMP_LIGHT_FLOOR_CROWN);
+        return X(0.0001);
+      }
+      return X(light);
     };
-    optimise_at(PPFD_int_at(function_integrator.integrate(f, S(0.0), height)));
+    optimise_at(PPFD_int_at(
+        environment.light_availability.crown_integral(height, crown, floored)));
   } else { // DeepCrown
     if constexpr (std::is_same_v<S, double>) {
       const std::vector<double> nodes =
@@ -3054,6 +3010,7 @@ void TF24_Strategy<S>::prepare_strategy() {
   }
 
   canopy_shape.initialise(pars.eta, shading_model_);
+  crown = canopy_shape.unit_crown(function_integrator);
 
   eta_c = CanopyShape<S>::eta_c(pars.eta);
   // NOTE: Also pre-computing, though less trivial

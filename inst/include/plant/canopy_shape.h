@@ -9,7 +9,9 @@
 #include <utility>
 #include <array>
 #include <cstddef>
+#include <vector>
 #include <odelia/ode_util.hpp>
+#include <plant/qk.h>
 
 namespace plant {
 
@@ -80,6 +82,13 @@ inline ShadingModel shading_model_from_string(const std::string& name,
   return shading_model_from_string(name);
 }
 
+// A quadrature over the unit crown with the leaf-area density in its weights.
+// For z = H s, q(z, H) dz = q(s, 1) ds, so an integral over a crown of height H
+// of f(z) q(z, H) dz is the sum of weight[j] * f(H * fraction[j]).
+struct crown_rule {
+  std::vector<double> fraction, weight;
+};
+
 // Canopy profile used by the FF16/TF24/K93 strategies. The equations follow
 // the Yokozawa (1995) foliage-profile model, written in terms of the
 // height-normalised coordinate u = z / H:
@@ -146,6 +155,17 @@ public:
   S q(const S& z_over_height, const S& z) const {
     const S u_eta = pow_eta(z_over_height);
     return 2.0 * eta_ * (1.0 - u_eta) * u_eta / z;
+  }
+
+  // `rule`'s points on the unit crown, weighted by this shape's q(s, 1).
+  crown_rule unit_crown(const quadrature::QK& rule) const {
+    crown_rule ret;
+    rule.unit_rule(ret.fraction, ret.weight);
+    for (std::size_t j = 0; j < ret.fraction.size(); ++j) {
+      const S s(ret.fraction[j]);
+      ret.weight[j] *= odelia::util::to_passive(q(s, s));
+    }
+    return ret;
   }
 
   S q_from_height(S z, S height) const {

@@ -42,13 +42,13 @@ test_that("Defaults", {
     theta  = 1.0/4669,
     k_I = 0.5,
     vcmax_25 = 96,
-    stem_P50 = 1.85,
+    stem_P50 = 2.8887256653360196,
     # Terminal-segment conductivity: the old whole-stem 1, back-derived so
     # resistance is unchanged at TF24_H_ANCHOR. Ratio 2.9782.
     K_s = TF24_K_s_from_whole_stem(1),
-    stem_c = log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16)),
-    stem_b = 1.85 /((-log(1 - 50.0 / 100.0))^(1 / (log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16))))),
-    psi_crit = (1.85 /((-log(1 - 50.0 / 100.0))^(1 / (log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16))))))*log(1/0.05)^(1/(log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16)))),
+    stem_c = 2.04,
+    stem_b = 2.8887256653360196 / (-log(1 - 50.0 / 100.0))^(1 / 2.04),
+    psi_crit = 2.8887256653360196 / (-log(1 - 50.0 / 100.0))^(1 / 2.04) * log(1/0.05)^(1/2.04),
     beta1 = 20000,
     TF24_beta2 = 1.5,
     TF24_cost_scale = 7.5,
@@ -242,6 +242,16 @@ test_that("TF24_Strategy hyper-parameterisation", {
   ## Empty trait matrix:
   ret <- TF24_hyperpar(trait_matrix(numeric(0), "lma"), s)
   expect_equal(ret, trait_matrix(numeric(0), "lma"))
+})
+
+test_that("TF24_hyperpar at the default traits keeps the default stem curve", {
+  ## A strategy built from traits and the bare default must share one
+  ## vulnerability curve (#611). r_l and nmass_l still differ (#579).
+  s <- TF24_Strategy()
+  ret <- TF24_hyperpar(trait_matrix(s$pars$K_s, "K_s"), s, filter = FALSE)
+  for (v in c("stem_P50", "stem_c", "stem_b", "psi_crit")) {
+    expect_equal(unname(ret[1, v]), s$pars[[v]], tolerance = 1e-14, info = v)
+  }
 })
 
 test_that("TF24_hyperpar no longer produces a_p1/a_p2 and k_I does not affect output", {
