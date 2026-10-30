@@ -609,6 +609,9 @@ private:
   size_t placed = 0;
 };
 
+// Selects TF24_Strategy's constructor from another strategy, which rebind() uses.
+struct tf24_strategy_from_t {};
+
 template <typename S = double>
 class TF24_Strategy: public Strategy<TF24_Environment<S>> {
 public:
@@ -616,6 +619,19 @@ public:
 
   typedef std::shared_ptr<TF24_Strategy> ptr;
   TF24_Strategy();
+
+  // Another strategy's values at this scalar, as assign_from() writes them.
+  //
+  // ⚠️ THE LEAF IS COPY-CONSTRUCTED, NOT DEFAULTED AND THEN ASSIGNED. A default
+  // phylloptim::Leaf computes both vulnerability tables from incomplete gamma
+  // functions, about 60 times the cost of copying them, and assign_from() would
+  // overwrite them at once. The sweep rebinds the patch on the order of once
+  // per recorded step, so each build it skips is one per step.
+  template <class S1>
+  TF24_Strategy(tf24_strategy_from_t, const TF24_Strategy<S1>& src)
+      : leaf(src.leaf) {
+    assign_from(src);
+  }
 
   // Scientific version. Bump ONLY when equations or default parameters change
   // the simulation output for identical inputs. Do NOT bump for refactors,
@@ -1354,9 +1370,7 @@ public:
   // parameter set for when it needs a slope with the parameters fixed.
   template <class U>
   TF24_Strategy<U> rebind() const {
-    TF24_Strategy<U> out;
-    out.assign_from(*this);
-    return out;
+    return TF24_Strategy<U>(tf24_strategy_from_t{}, *this);
   }
 
   // Birth height of a (germinated) seed. Strategy-agnostic accessor used by
