@@ -139,8 +139,9 @@ test_that("Campbell transport shuts off before the residual floor is reached", {
     env$K_sat * (theta / env$soil_moist_sat)^(2 * env$n_psi + 3)
   }
   expect_lt(k_at(0.05), 1e-10)                    # m yr^-1, against K_sat = 163
-  # psi at theta = 0.05 is far past any plausible root shutoff (~6 MPa).
-  expect_gt(env$psi_from_soil_moist(0.05), 100)   # MPa
+  # psi at theta = 0.05 is past the point where root conductivity is exactly 0
+  # at the default root curve (~46 MPa); the soil-potential ceiling holds it there.
+  expect_gt(env$psi_from_soil_moist(0.05), 46)    # MPa
 
   b <- tf24_water_budget(theta_0 = 0.05, rainfall = 0.0, lifetime = 20)
   expect_equal(b$min_theta, 0.05, tolerance = 1e-6)

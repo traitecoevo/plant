@@ -698,10 +698,12 @@ public:
   // the retention curve returns psi ~ 1e8 MPa, which drives the leaf hydraulic
   // solve non-finite and blows up the soil feedback. phylloptim bounds the root
   // vulnerability curves past their grid (traitecoevo/phylloptim#77), so root
-  // conductivity is exactly 0 above ~46 MPa at the root defaults: any ceiling
-  // above that leaves uptake unchanged, and tightening it cannot fix a drought
-  // symptom. Whether a lower value moves a run is #613.
-  double soil_psi_max_ = 1e3;
+  // conductivity is exactly 0 above ~46 MPa at the default root_P50 = 3.4, a
+  // point that scales with root_P50; at 50 MPa it is below 1e-22 for any
+  // root_P50 up to 10. So the ceiling leaves uptake unchanged and tightening it
+  // cannot fix a drought symptom. Dry runs do reach it (#613), so it is set
+  // near that point rather than at an oven-dry potential.
+  double soil_psi_max_ = 50;
 
   // The clamp sites the water balance reaches. The site list is shared with the
   // strategy's, so a tally reads the same however the site is reached; the
@@ -942,7 +944,7 @@ public:
       a_psi_layer * pow(t / soil_moist_sat_layer, -n_psi_layer);
     // Cap at a large-but-finite ceiling (#549): near theta_r the retention curve
     // gives psi ~ 1e8 MPa, which pushes the leaf hydraulic solve non-finite and
-    // corrupts the soil feedback. Root conductivity is exactly 0 far below the
+    // corrupts the soil feedback. Root conductivity is already negligible at the
     // ceiling (see soil_psi_max_), so the cap keeps every downstream
     // calculation finite without changing uptake.
     if (psi > S(soil_psi_max_)) {
