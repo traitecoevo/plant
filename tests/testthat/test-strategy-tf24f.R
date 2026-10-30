@@ -43,13 +43,13 @@ test_that("Defaults", {
     theta  = 1.0/4669,
     k_I = 0.5,
     vcmax_25 = 96,
-    stem_P50 = 1.85,
+    stem_P50 = 2.8887256653360196,
     # Terminal-segment conductivity: the old whole-stem 1, back-derived so
     # resistance is unchanged at TF24_H_ANCHOR. Ratio 2.9782.
     K_s = TF24_K_s_from_whole_stem(1),
-    stem_c = log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16)),
-    stem_b = 1.85 /((-log(1 - 50.0 / 100.0))^(1 / (log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16))))),
-    psi_crit = (1.85 /((-log(1 - 50.0 / 100.0))^(1 / (log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16))))))*log(1/0.05)^(1/(log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16)))),
+    stem_c = 2.04,
+    stem_b = 2.8887256653360196 / (-log(1 - 50.0 / 100.0))^(1 / 2.04),
+    psi_crit = 2.8887256653360196 / (-log(1 - 50.0 / 100.0))^(1 / 2.04) * log(1/0.05)^(1/2.04),
     beta1 = 20000,
     TF24_beta2 = 1.5,
     TF24_cost_scale = 7.5,
@@ -221,7 +221,9 @@ test_that("TF24f_Strategy hyper-parameterisation", {
   # sapwood conductivity and hydraulic traits
   K_s <- c(1, 2, 3)
   ret <- TF24f_hyperpar(trait_matrix(K_s, "K_s"), s)
-  expect_true(all(c("K_s", "stem_P50", "stem_c", "stem_b", "psi_crit") %in% colnames(ret)))
+  expect_true(all(c("K_s", "stem_P50", "stem_b", "psi_crit") %in% colnames(ret)))
+  # B_c2 = 0 makes stem_c the default at every K_s, so the filter drops it.
+  expect_false("stem_c" %in% colnames(ret))
   expect_equal(ret[, "K_s"], K_s)
   expect_true(all(diff(ret[, "stem_P50"]) < 0))
 
