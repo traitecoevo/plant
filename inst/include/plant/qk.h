@@ -22,6 +22,9 @@ namespace quadrature {
 
 class QK {
 public:
+  // The most points any rule has (QK61's); initialise refuses a rule with more.
+  static constexpr std::size_t max_points = 61;
+
   QK();
   QK(size_t rule);
   // The limits and the integrand's values carry the scalar the caller evaluates
@@ -35,6 +38,9 @@ public:
   // These two provide very low level access to the integration
   // routines.
   std::vector<double> integrate_vector_x(double a, double b) const;
+  // The rule on [0, 1]: its abscissae, in integrate_vector_x's order, and the
+  // weight each carries.
+  void unit_rule(std::vector<double>& x, std::vector<double>& w) const;
   double integrate_vector(const std::vector<double>& y,
                           double a, double b);
 
