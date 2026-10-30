@@ -182,3 +182,37 @@ test_that("interpolate_to_heights retains the largest size bracket on a coarse g
   # ... and no node is silently lost to NA
   expect_false(anyNA(out$height))
 })
+
+test_that("integrate_over_size_distribution integrates between given heights (#322)", {
+  # density = a*H^-b on a 0.01 grid from 1 to 20, as in the stand above
+  a <- 10
+  b <- 3 / 2
+  stand <- tibble::tibble(
+    time = 1, step = 2, patch_density = 1, species = 1,
+    height = seq(20, 1, by = -0.01)
+  ) %>%
+    dplyr::mutate(density = a * height^(-b), leaf_area = height^2)
+  N <- function(h1, h2) a / (1 - b) * (h2^(1 - b) - h1^(1 - b))
+
+  # bounds between nodes match the analytical total
+  out <- integrate_over_size_distribution(stand, lower = 5.003, upper = 10.007)
+  expect_equal(out$density, N(5.003, 10.007), tolerance = 1e-5)
+  expect_equal(out$min_height, 5.003)
+
+  # adjacent ranges sum exactly to the whole, for every column
+  whole <- integrate_over_size_distribution(stand)
+  below <- integrate_over_size_distribution(stand, upper = 7.005)
+  above <- integrate_over_size_distribution(stand, lower = 7.005)
+  cols <- c("density", "height", "leaf_area")
+  expect_equal(unlist(below[cols] + above[cols]), unlist(whole[cols]), tolerance = 1e-14)
+  expect_equal(whole$min_height, 1)
+
+  # bounds beyond the population clamp to it; a range missing it is empty
+  expect_equal(integrate_over_size_distribution(stand, lower = 0, upper = 50), whole)
+  empty <- integrate_over_size_distribution(stand, lower = 30, upper = 40)
+  expect_equal(empty$density, 0)
+  expect_true(is.na(empty$min_height))
+
+  expect_error(integrate_over_size_distribution(stand, lower = 5, upper = 5),
+               "lower < upper")
+})

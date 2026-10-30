@@ -5,13 +5,21 @@
 \title{Integrate over the size distribution for each species at each time point, to give totals of each variable
 Integrations are performed using trapezium integration}
 \usage{
-integrate_over_size_distribution(tidy_species_data)
+integrate_over_size_distribution(tidy_species_data, lower = -Inf, upper = Inf)
 }
 \arguments{
 \item{tidy_species_data}{output of either `tidy_patch` or `tidy_species`}
+
+\item{lower, upper}{heights bounding the integral; the defaults integrate over
+the whole size distribution. A bound that falls between two nodes takes the
+integrand by linear interpolation, as the trapezium rule already assumes, so
+totals over adjacent ranges sum to the total over their union. For a finer
+grid, interpolate with `interpolate_to_heights()` first.}
 }
 \value{
-a tibble whose columns provide metrics on integrated totals for each variable for each species at each time
+a tibble whose columns provide metrics on integrated totals for each variable for each species at each time.
+`min_height` is the lowest height in the integrated range, and is `NA`
+when the range holds no individuals (the totals are then zero).
 }
 \description{
 Integrate over the size distribution for each species at each time point, to give totals of each variable
