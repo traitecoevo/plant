@@ -85,7 +85,8 @@ test_that("Defaults", {
     use_energy_balance = 0,
     d = 0.05,
     alpha_PAR = 0.85,
-    alpha_NIR = 0.2)
+    alpha_NIR = 0.2,
+    L_crown = 2.0)
 
   # Top-level strategy fields: the pars sub-object plus infrastructure, and the
   # TF24f-specific acclimation knobs (gain + finite-difference step) (#525).

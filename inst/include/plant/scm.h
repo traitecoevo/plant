@@ -317,6 +317,15 @@ public:
   }
 
   void require_birth_date_coordinate(const char* entry) const {
+    // A private root-zone column couples cohorts through the patch -- the
+    // mixing and land-transfer terms of Patch::private_water_exchange -- outside
+    // the per-cohort block the recording describes, so its gradient would be a
+    // different function's (#681).
+    if constexpr (HasPrivateWater<T>) {
+      util::stop(std::string(entry) +
+                 ": TF24w's private root-zone water is not differentiable. "
+                 "Use TF24.");
+    }
     if (!control.node_density_in_birth_date) {
       util::stop(std::string(entry) +
                  ": the reverse-mode gradient runs on the birth-date "

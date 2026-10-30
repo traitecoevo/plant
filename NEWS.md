@@ -1095,6 +1095,29 @@ were not previously recorded here:
 
 ### Added
 
+* **TF24w: TF24 with a private root-zone soil column per cohort (#681).** TF24
+  integrates one soil column for the patch, which every plant reads and drains, so
+  water a plant does not transpire is water every plant gets. In `TF24w` each
+  cohort carries one water state per layer (`water_1`..`water_5`, appended after
+  TF24's six) for the ground under its own crown: it takes the rain that falls
+  there, loses its own uptake and deep drainage, and exchanges with the rest of
+  the patch at the environment's new `water_mixing_rate` (yr^-1; 0 is fully
+  private, large recovers TF24's water balance). Crown area is leaf area over the
+  new TF24 parameter `L_crown` (crown leaf area index); ground under no crown is
+  the environment's column; land moves between columns as crowns grow, die and
+  overlap, carrying its water, so the patch's water is conserved. The
+  environment's cumulative-flux accumulators are area-weighted totals over every
+  column. `scm_base_parameters("TF24w")`, `TF24w_hyperpar` (TF24's), version
+  `TF24w@v<TF24>.1`. Requires `control$node_density_in_birth_date = TRUE`; refuses
+  the gradient path and the stochastic patch; a patch with more than five soil
+  layers is refused. Its soil is never substepped, at `ode_soil_substep` or at a
+  knot of the rain, since a substep would integrate the bare column without the
+  exchange terms. TF24 is untouched: `L_crown` is inert there, each column's water
+  balance is the environment's own `layer_rates()`, and `scientific_version` is
+  deliberately **not** bumped (default baseline and scenario gateway
+  bit-identical). The model-version snapshot gains `pars.L_crown` for TF24, TF24f
+  and TF24t and an entry for TF24w.
+
 * **The gradient's incidence counters.** The leaf classifies its operating point
   by the branch taken and the next plant overwrites it, and a clamp that severs a
   row leaves a number indistinguishable from a true zero -- so neither was

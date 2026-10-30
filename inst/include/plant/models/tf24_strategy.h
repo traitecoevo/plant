@@ -280,6 +280,12 @@ struct TF24_Pars {
   // alpha_NIR only the energy balance, so it is inert while PM is off.
   S alpha_PAR = 0.85;
   S alpha_NIR = 0.20;
+  // Crown leaf area index: the leaf area a crown carries per unit of ground it
+  // covers, so crown area = area_leaf / L_crown. Read by TF24w alone (#681),
+  // where it sets the footprint of a plant's private root-zone soil column;
+  // TF24 reads nothing from it. Default to be set from crown allometry; 2 is a
+  // placeholder.
+  S L_crown = 2.0;
 
   // Where a parameter lives and what it is called. Nothing here says what its
   // gradient will be: the sweep computes one for every parameter except the
@@ -331,6 +337,10 @@ struct TF24_Pars {
                   "the coarse-root pool is opt-in and has no gradient fixture"},
       no_gradient{"r_cr", "the coarse-root pool is empty at the default a_cr1 = 0"},
       no_gradient{"k_cr", "the coarse-root pool is empty at the default a_cr1 = 0"},
+      no_gradient{"L_crown",
+                  "read by TF24w alone, which refuses the gradient path: its "
+                  "private root-zone water couples cohorts through the patch, "
+                  "outside the per-cohort block the recording describes"},
       // Refused by the model, so a row would describe half of it.
       no_gradient{"theta_c",
                   "prepare_strategy refuses any non-zero value, because theta "
@@ -439,7 +449,8 @@ struct TF24_Pars {
       PLANT_TF24_AD_PARAMETER(use_energy_balance),
       PLANT_TF24_AD_PARAMETER(d),
       PLANT_TF24_AD_PARAMETER(alpha_PAR),
-      PLANT_TF24_AD_PARAMETER(alpha_NIR)
+      PLANT_TF24_AD_PARAMETER(alpha_NIR),
+      PLANT_TF24_AD_PARAMETER(L_crown)
   };
 #undef PLANT_TF24_AD_PARAMETER
 
@@ -872,7 +883,10 @@ public:
   // and the solver rejects it and retries smaller.
   static std::vector<std::string> non_negative_states() { return {"storage"}; }
 
-  std::vector<std::string> aux_names() {
+  // Virtual so that a subclass can append its own readings (TF24w's per-column
+  // fluxes, #681): refresh_indices builds aux_index from this, and aux_size()
+  // counts it, so one override reaches both.
+  virtual std::vector<std::string> aux_names() {
     std::vector<std::string> ret({
       "competition_effect",
       "height_inverse",
@@ -1068,6 +1082,16 @@ public:
   virtual S net_mass_production_dt(const TF24_Environment<S>& environment,
                                 const S& height, const S& area_leaf_,
                                 const S& height_inverse);
+
+  // The soil water potentials the leaf's supply solve reads, one per layer.
+  // TF24 reads the patch's shared column; TF24w (#681) overrides this to hand
+  // over the cohort's own root-zone column, computed from its own water states
+  // before the base compute_rates runs. Virtual for the reason solve_leaf is:
+  // net_mass_production_dt is reused unchanged by the subclass.
+  virtual const std::vector<S>& soil_water_potential_for_leaf(
+      const TF24_Environment<S>& environment) {
+    return environment.get_soil_water_potential_state();
+  }
 
   // Resolve the leaf operating point on the already-set-up `leaf` (i.e. after
   // leaf.set_physiology(...)). Base TF24 optimises the root-collar psi via
@@ -2270,8 +2294,9 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
   // model and is computed below (just before the optimisation), once the
   // depth-independent inputs are ready.
 
-  // psi_soil (-MPa), computed once per soil state and cached in environment.
-  const std::vector<S>& psi_soil = environment.get_soil_water_potential_state();
+  // psi_soil (-MPa): the patch column's, computed once per soil state and cached
+  // in the environment -- or, in TF24w, this cohort's own column (#681).
+  const std::vector<S>& psi_soil = soil_water_potential_for_leaf(environment);
   
 // find leaf specific max hydraulic conductance (kg m^-2 LA s^-1 MPa ^-1)
   // pars.K_s: sapwood-specific conductivity of the TERMINAL segment -- which is

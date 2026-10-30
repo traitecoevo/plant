@@ -51,7 +51,7 @@ test_that("the hyperpar's own arguments are refused, and said to be arguments", 
 })
 
 test_that("every model refuses an unknown name", {
-  for (type in c("FF16", "K93", "TF24", "TF24f", "TF24t")) {
+  for (type in c("FF16", "K93", "TF24", "TF24f", "TF24t", "TF24w")) {
     p0 <- scm_base_parameters(type)
     expect_error(generate_strategy(p0, trait_matrix(1, "definitely_not_a_trait")),
                  sprintf("Unknown trait name for %s_Strategy", type),

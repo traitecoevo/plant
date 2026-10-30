@@ -466,6 +466,16 @@ The three shipped models:
 - **K93** — Kohyama 1993, a simpler size-structured model.
 - **TF24** — newer model using the leaf-level [Leaf](inst/include/plant/leaf_model.h)
   photosynthesis/hydraulics submodel (incl. the recently added Medlyn stomatal model).
+- **TF24w** — TF24 with a private root-zone soil column per cohort (#681;
+  [tf24w_strategy.h](inst/include/plant/models/tf24w_strategy.h)). A subclass
+  like TF24f, with five water states appended, because `state_size()` is static
+  and a parameter-dependent count is not feasible. Its coupling between cohorts
+  (mixing toward the patch mean, land transfer as crowns grow, die and overlap)
+  is two extra passes in `Patch::compute_rates` guarded by the
+  `HasPrivateWater<T>` concept, so no other model pays for them. Limits, each
+  refused where first seen: birth-date coordinate only, no gradient path, no
+  stochastic patch, at most five soil layers. The pooled limit (large
+  `water_mixing_rate`) reproduces TF24 to the mixing lag and is the validation.
 
 ### Scientific versioning — bump when the science changes
 
@@ -495,6 +505,9 @@ Rules:
   (in `tf24f_strategy.h`) only for changes specific to the fast approximation.
   `model_version()` therefore returns a **string** (`"1"`, `"2.1"`), not an
   integer.
+- **TF24w is a compound version the same way**, `"<TF24 version>.<private
+  water revision>"` (`TF24w@v11.1`); bump `private_water_revision` (in
+  `tf24w_strategy.h`) for changes to the private-water model itself.
 - A bump is deliberate: it invalidates that model's `logpile` cache and forces
   reruns. The drift-guard test [tests/testthat/test-model-version.R](tests/testthat/test-model-version.R)
   fails when a default changes without a bump (snapshot of each model's default
