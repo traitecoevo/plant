@@ -1,3 +1,4 @@
+#include <plant/fp_contract.h>
 #include <plant/qag.h>
 #include <plant/util.h>
 #include <plant/util_post_rcpp.h>

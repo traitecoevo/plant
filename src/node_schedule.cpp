@@ -1,3 +1,4 @@
+#include <plant/fp_contract.h>
 #include <plant/node_schedule.h>
 #include <plant/parameters.h>
 #include <plant/util.h>

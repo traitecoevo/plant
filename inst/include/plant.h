@@ -2,6 +2,9 @@
 #ifndef _PLANT_H_
 #define _PLANT_H_
 
+// First, before any header that defines arithmetic: see fp_contract.h.
+#include <plant/fp_contract.h>
+
 #include <plant/util.h>
 
 #include <plant/qk.h>

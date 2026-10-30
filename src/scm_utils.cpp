@@ -1,3 +1,4 @@
+#include <plant/fp_contract.h>
 #include <plant/scm_utils.h>
 #include <plant.h>
 

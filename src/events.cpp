@@ -1,3 +1,4 @@
+#include <plant/fp_contract.h>
 #include <plant/events.h>
 #include <Rcpp.h>
 
