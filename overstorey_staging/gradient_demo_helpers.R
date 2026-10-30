@@ -60,7 +60,7 @@ gd_parameters <- function(traits, lifetime = 40, birth_rate = 1.10,
 ## another point's, which is cheaper and is a different function -- see the
 ## note in the study on which the workflow wants.
 gd_point <- function(traits, lifetime = 40, schedule = NULL, refine = TRUE,
-                     ctrl = Control(node_density_in_birth_date = TRUE)) {
+                     ctrl = Control(node_density_coordinate = "birth_date")) {
   p <- gd_parameters(traits, lifetime = lifetime, schedule = schedule)
   scm <- run_scm(p, Environment("TF24"), ctrl, refine_schedule = refine,
                  collect = FALSE, keep_states = TRUE)

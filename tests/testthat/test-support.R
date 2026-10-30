@@ -31,7 +31,7 @@ test_that("control_tf24() sets TF24's step control and keeps the rest", {
   expect_equal(control_tf24(1e-6)$ode_tol_abs, 1e-6)
 
   ## Every other field is the base's.
-  base <- Control(node_density_in_birth_date = TRUE, schedule_eps = 1e-3)
+  base <- Control(node_density_coordinate = "birth_date", schedule_eps = 1e-3)
   set <- c("ode_tol_rel", "ode_tol_abs", "ode_soil_substep",
            "ode_tol_scale_soil")
   rest <- setdiff(names(base), set)

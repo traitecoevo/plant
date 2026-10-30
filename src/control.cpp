@@ -34,7 +34,7 @@ Control::Control() {
   node_gradient_direction = -1;
   node_gradient_richardson = false;
   node_gradient_richardson_depth = 4;
-  node_density_in_birth_date = false;
+  node_density_coordinate = "auto";
   absorb_epsilon = 0.0;
 
   ode_step_size_initial = 1e-6;

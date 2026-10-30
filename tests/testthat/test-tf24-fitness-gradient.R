@@ -28,7 +28,7 @@ fitness_stand_environment <- function() {
 }
 
 fitness_stand_control <- function() {
-  Control(node_density_in_birth_date = TRUE, ode_tol_rel = 1e-6,
+  Control(node_density_coordinate = "birth_date", ode_tol_rel = 1e-6,
           ode_tol_abs = 1e-6)
 }
 

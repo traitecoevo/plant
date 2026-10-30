@@ -326,11 +326,12 @@ public:
                  ": TF24w's private root-zone water is not differentiable. "
                  "Use TF24.");
     }
-    if (!control.node_density_in_birth_date) {
+    if (!plant::density_in_birth_date(control,
+                                      T::density_in_birth_date_default)) {
       util::stop(std::string(entry) +
                  ": the reverse-mode gradient runs on the birth-date "
                  "size-density coordinate only. Set "
-                 "control$node_density_in_birth_date = TRUE and re-run.");
+                 "control$node_density_coordinate = \"birth_date\" and re-run.");
     }
     // Absorption is a selection on state that moves density between blocks; its
     // transpose is not written, so a sweep across it would be a different

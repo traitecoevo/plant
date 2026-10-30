@@ -28,7 +28,7 @@ default_baseline_cases <- function() {
   p$patch_type <- "fixed"
   ev <- events(node_introductions(p), harvest(time = 20, fraction = 0.3))
   out$ff16_birth_date_harvest <-
-    outputs(run_scm(p, events = ev, ctrl = Control(node_density_in_birth_date = TRUE)))
+    outputs(run_scm(p, events = ev, ctrl = Control(node_density_coordinate = "birth_date")))
 
   ## An invasion of the default FF16 stand.
   scm <- run_scm(ff16(105.32))
@@ -57,7 +57,7 @@ default_baseline_cases <- function() {
                       birth_rate = 1)
   env <- Environment("TF24")
   env$extrinsic_drivers_set_constant("rainfall", 1)
-  out$tf24 <- outputs(run_scm(p, env, Control(node_density_in_birth_date = TRUE,
+  out$tf24 <- outputs(run_scm(p, env, Control(node_density_coordinate = "birth_date",
                                               ode_step_size_max = 0.05)))
   out
 }

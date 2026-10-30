@@ -62,7 +62,7 @@ ladder_parameters <- function(species = "fast", birth_rate = NULL,
 }
 
 ladder_control <- function(...) {
-  Control(node_density_in_birth_date = TRUE, ...)
+  Control(node_density_coordinate = "birth_date", ...)
 }
 
 # The patch fixtures, whose state is written rather than reached.
@@ -590,7 +590,7 @@ ladder_driver_stand <- function(rain, lifetime, k_I = 0.5, amplitude = 0,
       list(full[round(seq(1, length(full), length.out = introductions))])
   }
   ctrl <- Control()
-  ctrl$node_density_in_birth_date <- TRUE
+  ctrl$node_density_coordinate <- "birth_date"
   scm <- SCM("TF24", "TF24_Env")(p, ladder_environment(rain, amplitude, lifetime),
                                  empty_events(), ctrl)
   # The tallies accumulate, so a stand starts its own count rather than the

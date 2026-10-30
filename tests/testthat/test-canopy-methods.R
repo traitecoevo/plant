@@ -182,9 +182,9 @@ test_that("deep-crown reproduces the baseline SCM result", {
   env <- Environment("FF16")
   # shading_model defaults to "deep-crown"
   p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = FF16_hyperpar, birth_rate = list(20))
-  over_height <- run_scm(p1, env, Control(node_density_in_birth_date = FALSE))
+  over_height <- run_scm(p1, env, Control(node_density_coordinate = "height"))
   expect_equal(over_height$offspring_production, 16.8846, tolerance = 1e-4)
-  over_birth_date <- run_scm(p1, env, Control(node_density_in_birth_date = TRUE))
+  over_birth_date <- run_scm(p1, env, Control(node_density_coordinate = "birth_date"))
   expect_equal(over_birth_date$offspring_production, 17.1720, tolerance = 1e-4)
 })
 
@@ -344,6 +344,12 @@ test_that("TF24 shading models agree under uniform light", {
 #
 # Safe to share because `scm$patch` hands back a COPY -- the blocks below set an
 # ODE state on it and rebuild its environment, and neither reaches this stand.
+## On the height coordinate, named rather than taken from TF24's default:
+## the light-interpolant block below rebuilds a Patch from the run's state with
+## set_state(), which carries no per-node introduction times, and the
+## birth-date coordinate refuses nodes that share one.
+tf24_light_control <- function() Control(node_density_coordinate = "height")
+
 tf24_light_stand <- local({
   built <- NULL
   function() {
@@ -352,7 +358,7 @@ tf24_light_stand <- local({
       p0$max_patch_lifetime <- 2
       p <- add_strategies(p0, trait_matrix(0.1978791, "lma"))
       scm <- SCM("TF24", "TF24_Env")(p, Environment("TF24"), empty_events(),
-                                     Control())
+                                     tf24_light_control())
       scm$collect <- TRUE
       scm$run()
       # All three blocks read a light field, and a stand that cast no shade would
@@ -395,7 +401,7 @@ test_that("the light interpolant is a function of the state, not of the build be
   t <- ran$ode_time
   ran$set_ode_state(y, t)
 
-  fresh <- Patch("TF24", "TF24_Env")(p, Environment("TF24"), Control())
+  fresh <- Patch("TF24", "TF24_Env")(p, Environment("TF24"), tf24_light_control())
   fresh$set_state(t, y, n, c(0, 0.5, 1, 1, 1, 1, 0, 0, 0))
   fresh$set_ode_state(y, t)
 
@@ -433,7 +439,7 @@ test_that("on the birth-date coordinate the field takes crossed crowns tallest f
   p0$max_patch_lifetime <- 2
   p <- add_strategies(p0, trait_matrix(0.1978791, "lma"))
   scm <- SCM("TF24", "TF24_Env")(p, Environment("TF24"), empty_events(),
-                                 Control(node_density_in_birth_date = TRUE))
+                                 Control(node_density_coordinate = "birth_date"))
   scm$run()
   patch <- scm$patch
   heights <- patch$species[[1]]$heights
@@ -634,7 +640,7 @@ test_that("the competition reduction is invariant to the node order", {
   # crossing and a run has no such guard.
   build <- function(heights, log_densities) {
     ctrl <- Control()
-    ctrl$node_density_in_birth_date <- FALSE
+    ctrl$node_density_coordinate <- "height"
     st <- FF16_Strategy()
     st$control <- ctrl
     s <- Species("FF16", "FF16_Env")(st)

@@ -20,9 +20,9 @@ test_that("the recorded block has the shape the design is costed on", {
   inputs <- colnames(block)
   outputs <- rownames(block)
 
-  # Six own states, the field's knot values and slopes, the canopy top its knots
-  # are fractions of, the soil potentials and the traits in; six rates, the
-  # density rate and one draw per layer out. Both counts move with the
+  # The cohort's own states, the field's knot values and slopes, the canopy top
+  # its knots are fractions of, the soil potentials and the traits in; one rate
+  # per state, the density rate and one draw per layer out. Both counts move with the
   # configuration and neither is a property of the model; the shape is. Every
   # count is read off the names for that reason: a parameter added to the
   # strategy moves them together, where a restated total fails here and says
@@ -34,14 +34,14 @@ test_that("the recorded block has the shape the design is costed on", {
   # the grid they are on.
   n_knot <- sum(grepl("^light_value_", inputs))
   n_layer <- sum(grepl("^psi_soil_", inputs))
-  n_par <- length(inputs) - 6L - 2L * n_knot - 1L - n_layer
+  states <- TF24_Individual()$ode_names
+  n_state <- length(states)
+  n_par <- length(inputs) - n_state - 2L * n_knot - 1L - n_layer
   expect_equal(sum(grepl("^light_slope_", inputs)), n_knot)
   expect_equal(sum(inputs == "light_height_max"), 1L)
   expect_gt(n_par, 0L)
-  expect_equal(length(outputs), 6L + 1L + n_layer)
-  expect_equal(head(inputs, 6L),
-               c("height", "mortality", "fecundity", "area_heartwood",
-                 "mass_heartwood", "storage"))
+  expect_equal(length(outputs), n_state + 1L + n_layer)
+  expect_equal(head(inputs, n_state), states)
   expect_equal(tail(outputs, 5L), paste0("uptake_", 1:5))
   message(sprintf(
       "\n  block shape: %d inputs (%d knots, %d layers, %d traits) by %d outputs",

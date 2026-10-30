@@ -55,7 +55,7 @@ stand_metric_table <- function(scm) {
 ##' by.
 ##'
 ##' @param scm A run \code{SCM} object for the TF24 or FF16 model, on the
-##'   birth-date coordinate (\code{control(node_density_in_birth_date = TRUE)}).
+##'   birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).
 ##' @return A named numeric vector, one entry per metric.
 ##' @export
 stand_census <- function(scm) {
@@ -92,7 +92,7 @@ stand_metrics_of_kind <- function(scm, kind) {
 ##' birth-date coordinate the weights are constants.
 ##'
 ##' @param scm A run \code{SCM} object for the TF24 or FF16 model, on the
-##'   birth-date coordinate (\code{control(node_density_in_birth_date = TRUE)}).
+##'   birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).
 ##' @return A numeric matrix, metrics by ODE state entries.
 ##' @export
 stand_census_state_adjoint <- function(scm) {
@@ -114,7 +114,7 @@ stand_census_state_adjoint <- function(scm) {
 ##' \code{stand_gradient_compare} refuses a pair that disagrees.
 ##'
 ##' @param scm A run \code{SCM} object for the TF24 or FF16 model, on the
-##'   birth-date coordinate (\code{control(node_density_in_birth_date = TRUE)}).
+##'   birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).
 ##' @return A named numeric vector of length five.
 ##' @export
 gradient_control <- function(scm) census_backend(scm)$control(scm)
@@ -136,7 +136,7 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##' and so no sweep produces it.
 ##'
 ##' @param scm A run \code{SCM} object for the TF24 or FF16 model, on the
-##'   birth-date coordinate (\code{control(node_density_in_birth_date = TRUE)}).
+##'   birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).
 ##' @param metrics Metric names to differentiate; defaults to every metric the
 ##'   model declares: the census metrics (\code{\link{stand_census}}) and, for
 ##'   a model that declares its fitness differentiable, each species'

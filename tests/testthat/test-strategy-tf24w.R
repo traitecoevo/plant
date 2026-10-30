@@ -24,7 +24,7 @@ tf24w_stand <- function(type, mixing = 0, years = 6, birth_rate = 5,
   } else {
     ev <- events(node_introductions(p))
   }
-  ctrl <- control(node_density_in_birth_date = TRUE, ode_step_size_max = 0.05,
+  ctrl <- control(node_density_coordinate = "birth_date", ode_step_size_max = 0.05,
                   absorb_epsilon = absorb)
   run_scm(p, env, ctrl, events = ev, run = FALSE)
 }
@@ -48,7 +48,7 @@ test_that("TF24w refuses the height coordinate", {
   p$max_patch_lifetime <- 2
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = TF24w_hyperpar)
   expect_error(run_scm(p, Environment("TF24w"),
-                       control(node_density_in_birth_date = FALSE), run = FALSE),
+                       control(node_density_coordinate = "height"), run = FALSE),
                "birth-date")
 })
 
@@ -125,7 +125,7 @@ test_that("the resident's own copy, introduced as a rare second species, scores 
   env <- Environment("TF24w")
   env$extrinsic_drivers_set_constant("rainfall", 0.3)
   env$water_mixing_rate <- 1
-  scm <- run_scm(p, env, control(node_density_in_birth_date = TRUE,
+  scm <- run_scm(p, env, control(node_density_coordinate = "birth_date",
                                  ode_step_size_max = 0.05), run = FALSE)
   scm$run()
   R <- scm$net_reproduction_ratios

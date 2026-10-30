@@ -6,7 +6,7 @@
 # birth rate is a driver and has no column.
 
 birth_control <- function(...) {
-  Control(node_density_in_birth_date = TRUE, offspring_production_tol = 1e-12,
+  Control(node_density_coordinate = "birth_date", offspring_production_tol = 1e-12,
           ...)
 }
 
@@ -82,7 +82,7 @@ test_that("the birth-rate column passes through a hyperparameter function as its
   p$max_patch_lifetime <- 6
   p <- add_strategies(p, trait_matrix(c(0.0825, 3), c("lma", "hmat")),
                       birth_rate = 2)
-  scm <- run_scm(p, NULL, Control(node_density_in_birth_date = TRUE),
+  scm <- run_scm(p, NULL, Control(node_density_coordinate = "birth_date"),
                  keep_states = TRUE)
   through <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
                             traits = c("1.lma", "1.birth_rate"),

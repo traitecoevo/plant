@@ -535,7 +535,7 @@ template <> inline SEXP wrap(const plant::Control& x) {
   ret["node_gradient_direction"] = Rcpp::wrap(x.node_gradient_direction);
   ret["node_gradient_richardson"] = Rcpp::wrap(x.node_gradient_richardson);
   ret["node_gradient_richardson_depth"] = Rcpp::wrap(x.node_gradient_richardson_depth);
-  ret["node_density_in_birth_date"] = Rcpp::wrap(x.node_density_in_birth_date);
+  ret["node_density_coordinate"] = Rcpp::wrap(x.node_density_coordinate);
   ret["absorb_epsilon"] = Rcpp::wrap(x.absorb_epsilon);
   ret["ode_step_size_initial"] = Rcpp::wrap(x.ode_step_size_initial);
   ret["ode_step_size_min"] = Rcpp::wrap(x.ode_step_size_min);
@@ -588,8 +588,8 @@ template <> inline plant::Control as(SEXP x) {
   if (xl.containsElementNamed("node_gradient_richardson")) ret.node_gradient_richardson = Rcpp::as<bool >(xl["node_gradient_richardson"]);
   // ret.node_gradient_richardson_depth = Rcpp::as<decltype(retnode_gradient_richardson_depth) >(xl["node_gradient_richardson_depth"]);
   if (xl.containsElementNamed("node_gradient_richardson_depth")) ret.node_gradient_richardson_depth = Rcpp::as<size_t >(xl["node_gradient_richardson_depth"]);
-  // ret.node_density_in_birth_date = Rcpp::as<decltype(retnode_density_in_birth_date) >(xl["node_density_in_birth_date"]);
-  if (xl.containsElementNamed("node_density_in_birth_date")) ret.node_density_in_birth_date = Rcpp::as<bool >(xl["node_density_in_birth_date"]);
+  // ret.node_density_coordinate = Rcpp::as<decltype(retnode_density_coordinate) >(xl["node_density_coordinate"]);
+  if (xl.containsElementNamed("node_density_coordinate")) ret.node_density_coordinate = Rcpp::as<std::string >(xl["node_density_coordinate"]);
   // ret.absorb_epsilon = Rcpp::as<decltype(retabsorb_epsilon) >(xl["absorb_epsilon"]);
   if (xl.containsElementNamed("absorb_epsilon")) ret.absorb_epsilon = Rcpp::as<double >(xl["absorb_epsilon"]);
   // ret.ode_step_size_initial = Rcpp::as<decltype(retode_step_size_initial) >(xl["ode_step_size_initial"]);
@@ -630,6 +630,14 @@ template <> inline plant::Control as(SEXP x) {
   if (xl.containsElementNamed("ci_abs_tol")) ret.ci_abs_tol = Rcpp::as<double >(xl["ci_abs_tol"]);
   // ret.ci_niter = Rcpp::as<decltype(retci_niter) >(xl["ci_niter"]);
   if (xl.containsElementNamed("ci_niter")) ret.ci_niter = Rcpp::as<double >(xl["ci_niter"]);
+  // A Control saved before node_density_coordinate replaced the boolean
+  // node_density_in_birth_date carries the boolean: read it as the explicit
+  // coordinate it named, not as "auto".
+  if (!xl.containsElementNamed("node_density_coordinate") &&
+      xl.containsElementNamed("node_density_in_birth_date")) {
+    ret.node_density_coordinate =
+      Rcpp::as<bool>(xl["node_density_in_birth_date"]) ? "birth_date" : "height";
+  }
   return ret;
 }
 template <> inline SEXP wrap(const odelia::ode::OdeControl& x) {
@@ -1875,6 +1883,12 @@ template <> inline SEXP wrap(const plant::TF24_Pars<double>& x) {
   ret["a_st2"] = Rcpp::wrap(x.a_st2);
   ret["a_st3"] = Rcpp::wrap(x.a_st3);
   ret["storage_relaxation_offset"] = Rcpp::wrap(x.storage_relaxation_offset);
+  ret["a_pl0"] = Rcpp::wrap(x.a_pl0);
+  ret["a_pl1"] = Rcpp::wrap(x.a_pl1);
+  ret["a_pl2"] = Rcpp::wrap(x.a_pl2);
+  ret["a_pl3"] = Rcpp::wrap(x.a_pl3);
+  ret["a_pl4"] = Rcpp::wrap(x.a_pl4);
+  ret["a_sw"] = Rcpp::wrap(x.a_sw);
   ret["k_I"] = Rcpp::wrap(x.k_I);
   ret["vcmax_25"] = Rcpp::wrap(x.vcmax_25);
   ret["stem_P50"] = Rcpp::wrap(x.stem_P50);
@@ -1998,6 +2012,18 @@ template <> inline plant::TF24_Pars<double> as(SEXP x) {
   ret.a_st3 = Rcpp::as<double >(xl["a_st3"]);
   // ret.storage_relaxation_offset = Rcpp::as<decltype(retstorage_relaxation_offset) >(xl["storage_relaxation_offset"]);
   ret.storage_relaxation_offset = Rcpp::as<double >(xl["storage_relaxation_offset"]);
+  // ret.a_pl0 = Rcpp::as<decltype(reta_pl0) >(xl["a_pl0"]);
+  ret.a_pl0 = Rcpp::as<double >(xl["a_pl0"]);
+  // ret.a_pl1 = Rcpp::as<decltype(reta_pl1) >(xl["a_pl1"]);
+  ret.a_pl1 = Rcpp::as<double >(xl["a_pl1"]);
+  // ret.a_pl2 = Rcpp::as<decltype(reta_pl2) >(xl["a_pl2"]);
+  ret.a_pl2 = Rcpp::as<double >(xl["a_pl2"]);
+  // ret.a_pl3 = Rcpp::as<decltype(reta_pl3) >(xl["a_pl3"]);
+  ret.a_pl3 = Rcpp::as<double >(xl["a_pl3"]);
+  // ret.a_pl4 = Rcpp::as<decltype(reta_pl4) >(xl["a_pl4"]);
+  ret.a_pl4 = Rcpp::as<double >(xl["a_pl4"]);
+  // ret.a_sw = Rcpp::as<decltype(reta_sw) >(xl["a_sw"]);
+  ret.a_sw = Rcpp::as<double >(xl["a_sw"]);
   // ret.k_I = Rcpp::as<decltype(retk_I) >(xl["k_I"]);
   ret.k_I = Rcpp::as<double >(xl["k_I"]);
   // ret.vcmax_25 = Rcpp::as<decltype(retvcmax_25) >(xl["vcmax_25"]);

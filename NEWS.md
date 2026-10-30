@@ -13,6 +13,59 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **The density coordinate is now chosen per model, and TF24 defaults to birth
+  date (#516).** `Control`'s boolean flag becomes a three-valued string, so that
+  a model can carry a default a passed `Control` does not silently override.
+  Migration:
+
+  * `control(node_density_in_birth_date = TRUE)`  -> `control(node_density_coordinate = "birth_date")`
+  * `control(node_density_in_birth_date = FALSE)` -> `control(node_density_coordinate = "height")`
+  * `ctrl$node_density_in_birth_date`             -> `ctrl$node_density_coordinate` (`"auto"`/`"birth_date"`/`"height"`)
+  * *(resolved value, per species/node)*          -> `species$density_in_birth_date` / `node$density_in_birth_date`
+
+  ⚠️ **This changes results for identical inputs for every TF24-family model
+  run on the default `Control`**, by several times on offspring production.
+  It does not bump `scientific_version`: this batch of PRs takes one bump once
+  it has landed. `"auto"` is the new default and resolves to `"birth_date"` for
+  TF24, TF24f, TF24t and TF24w and `"height"` for FF16/K93, so **FF16 and K93
+  are bit-identical** — `auto` resolves to the same `false` the old default
+  carried, and their reference baselines are untouched. A run that already set
+  the boolean to `TRUE` is unchanged.
+
+  A `Control` saved with the boolean still loads: `TRUE` reads as
+  `"birth_date"` and `FALSE` as `"height"`, not as `"auto"`.
+
+  Why it is not merely a numerical preference: the height coordinate's density
+  rate carries a compression term that equals `d(growth)/d(height)` only when
+  growth is a function of size alone. TF24's reserve pool feeds back into
+  growth, so the finite-difference probe moves height at fixed *absolute*
+  carbon and shifts the reserve fraction, whereas a cohort actually grows at
+  roughly constant reserve fraction — a different derivative, not a coarser one
+  (#590). Refinement confirms it: the birth-date answers are converged at the
+  default schedule while the height ones keep climbing and the exclusion ratio
+  widens instead of closing.
+
+  An unrecognised value is refused rather than read as one of the two
+  coordinates, since a typo would otherwise return a plausible number. The
+  empty string is accepted as a synonym for `"auto"`, matching how
+  `shading_model` already spells "let the model decide".
+
+  ⚠️ **A `Species` built outside a `Patch` cannot use the birth-date coordinate.**
+  The no-argument `introduce_new_node()` leaves every node carrying the same
+  birth date, which spans zero width, so the competition integral collapses to
+  exactly `0` and `log_densities` is `NA`. A real run cannot reach this — `Patch`
+  checks the birth dates are distinct and errors — but bare-`Species` diagnostic
+  code should set `node_density_coordinate = "height"` explicitly.
+
+* **TF24 carries three more ODE states (#516):** `log_area_leaf_departure`,
+  `log_area_sapwood_departure` and `leaf_marginal_return_tracked`, appended
+  after `storage`, with two new aux values, `leaf_marginal_return` and
+  `sapwood_marginal_return`. Every TF24-family state vector is three longer,
+  and the states TF24f, TF24t and TF24w append move three slots along.
+  Migration: index states by name (`state_names`, `ode_names`), not position.
+  The flexible-allometry parameters `a_pl0`-`a_pl4` and `a_sw` are new
+  `TF24_Pars` fields and default to the fixed allometry.
+
 * **TF24's soil retention-curve scale `a_psi` is in MPa, where it was in Pa (#587).** It was the one water potential in plant not held in MPa. This covers `TF24_Environment`'s `a_psi` field, whose default is now `1.78e-3`, and the per-layer values `set_soil_parameters()` and `set_tf24_soil(a_psi = )` take. Results move by rounding only, which a run amplifies to at most 2e-5 in offspring production across the scenario gateway, inside its tolerance; the TF24 case of the default-run baseline is re-blessed, with no scientific version bump. Migration: divide `a_psi` by `1e6`, e.g. `env$a_psi <- 1780` -> `env$a_psi <- 1.78e-3`.
 
 * **`Control()`'s `GSS_tol_abs` defaults to `1e-3`, phylloptim's own value, where it was `1e-1` (#654).** Since phylloptim 0.16.0 it no longer sets how precisely the leaf's collar potential is solved. It is the width below which the feasible collar interval counts as collapsed, where the leaf holds the collar at the interval's midpoint without re-imposing continuity between collar and stem (the `determined` operating point, traitecoevo/phylloptim#145), so transpiration and uptake disagree there. At `1e-1` the seasonal parity stand reached that point in 3 of about 190,000 leaf solves; at `1e-3` no reference stand does, and those solves are pinned at the root's critical potential instead. Its census moves by at most 3e-13; the other reference stands and the stochastic baseline do not move. The model-version snapshots and the scenario gateway are re-blessed, with no scientific version bump. In the gateway, two scenarios move and no classification changes:
@@ -801,6 +854,15 @@ were not previously recorded here:
   the two. The depth profile itself is not exposed — a fixed-width aux slot
   cannot carry a per-node vector — so the second half of #625 (reporting each
   leaf output against crown depth) remains open.
+* **TF24 sapwood can track the Huber value that maximises growth (`a_sw`, #516).** `d(log A_s departure)/dt` gains `a_sw * R_s`, an integral controller on the marginal *growth* return of sapwood area. It converges onto `R_s = 0` rather than tracking with an offset, and because integrating is averaging, a small `a_sw` makes the stem follow the long-run mean of a signal that swings with the weather — no extra tracked state.
+
+  The objective is growth, not net production, and the distinction is the whole design: against production extra sapwood is nearly always worth building, because it raises `k_max` and nothing charges the plant for the leaf area it did not build instead. `R_s` subtracts that price, which moves the optimum from far out (production's) in to where height growth actually peaks. That optimum is **not a single number**: it rises with height (0.87x the pipe-model ratio at 5 m, 1.05x at 10 m, 1.21x at 16 m, 1.30x at 20 m, moist soil) and rises again as soil dries, so no single fixed `theta` reproduces it. Measured after #617; the levels are the hydraulics' to set.
+
+  ⚠️ `d(profit)/d(kmax)` costs a second full leaf solve, so `a_sw > 0` roughly doubles the leaf work per rate evaluation. The envelope-theorem shortcut — re-evaluate at the collar potential already found and the indirect term vanishes — **does not apply**: `opt_root_psi_` is a root-find (supply matching demand), not a maximisation, so the derivative of profit with respect to it is not zero. Holding it fixed under-reports the sensitivity by 15–19%. The default `a_sw = 0` skips the whole block.
+
+  **`a_sw = 0` is the default and the model is then bit-exact** — the controller block is skipped entirely, and the one expression that changed unconditionally (`theta` becomes `theta * exp(psi)` in the conductance) is `theta * 1.0` at rest.
+
+  ⚠️ **Refused with the deep-crown shading model.** The sensitivity is measured at a single radiation and deep-crown integrates profit over crown positions, so the difference is not its derivative. `prepare_strategy()` throws rather than skipping it, because skipping leaves the controller with only its negative cost term and the stem shrinks without bound while the run looks plausible the whole way down.
 
 * **The NSC storage pool is bounded by the shape of its own flow (`TF24@v9`,
   `TF24f@v9.1`).** `dS/dt` was `net_flux > 0 ? net_flux : floor_gate * net_flux`

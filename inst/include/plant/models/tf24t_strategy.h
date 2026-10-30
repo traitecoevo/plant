@@ -118,7 +118,10 @@ public:
   using base_type::net_mass_production_dt;
   S net_mass_production_dt(const TF24_Environment<S>& environment,
                            const S& height, const S& area_leaf_,
-                           const S& height_inverse) override;
+                           const S& height_inverse,
+                           const S& sapwood_departure,
+                           const S& leaf_departure,
+                           const S& tracked_marginal) override;
 
   // Seeds the shared TF24 states, then A at its equilibrium at the birth air
   // temperature -- the operating point, and so the leaf temperature, is not
@@ -293,9 +296,13 @@ std::array<double, 3> TF24t_Strategy<S>::leaf_damage_rates_per_year() const {
 template <typename S>
 S TF24t_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environment,
                                             const S& height, const S& area_leaf_,
-                                            const S& height_inverse) {
-  const S base = base_type::net_mass_production_dt(environment, height,
-                                                   area_leaf_, height_inverse);
+                                            const S& height_inverse,
+                                            const S& sapwood_departure,
+                                            const S& leaf_departure,
+                                            const S& tracked_marginal) {
+  const S base = base_type::net_mass_production_dt(
+      environment, height, area_leaf_, height_inverse, sapwood_departure,
+      leaf_departure, tracked_marginal);
 
   const S turnover_leaf_ = this->turnover_leaf(this->mass_leaf(area_leaf_));
   const S construction = c_build * std::max(0.0, topt_offset) * turnover_leaf_;

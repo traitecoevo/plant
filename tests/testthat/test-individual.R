@@ -87,8 +87,14 @@ for (x in names(strategy_types)) {
     if(grepl("K93", x))
       expect_equal(pl$ode_state, c(h0, m0, f0))
     else if(grepl("TF24", x))
-      # TF24 adds area_heartwood, mass_heartwood and the NSC storage pool (#517)
-      expect_equal(pl$ode_state, c(h0, m0, f0, 0, 0, 0))
+      # TF24 carries extra states beyond the shared height/mortality/fecundity
+      # -- area_heartwood, mass_heartwood, the NSC storage pool (#517) and the
+      # leaf-area departure (#516) -- all of which are zero at birth before
+      # set_initial_states() runs. Sized from ode_names rather than written out,
+      # so adding a state that is zero here does not need this line edited; what
+      # is being asserted is "the first three are h/m/f and the rest are zero".
+      expect_equal(pl$ode_state,
+                   c(h0, m0, f0, rep(0, length(pl$ode_names) - 3L)))
     else
       expect_equal(pl$ode_state, c(h0, m0, f0, 0, 0))
     

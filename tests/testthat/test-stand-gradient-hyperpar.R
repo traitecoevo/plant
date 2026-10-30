@@ -11,7 +11,7 @@ hyperpar_parameters <- function(lifetime = 3) {
 }
 
 hyperpar_run <- function(p = hyperpar_parameters()) {
-  ctrl <- Control(node_density_in_birth_date = TRUE)
+  ctrl <- Control(node_density_coordinate = "birth_date")
   list(p = p, ctrl = ctrl,
        scm = run_scm(p, Environment("TF24"), ctrl, refine_schedule = TRUE,
                      keep_states = TRUE))

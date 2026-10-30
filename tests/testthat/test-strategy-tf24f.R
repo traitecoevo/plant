@@ -25,6 +25,12 @@ test_that("Defaults", {
     a_st2 = 0.10,
     a_st3 = 0.8,
     storage_relaxation_offset = 7 / 365,
+    a_sw = 0.0,
+    a_pl0 = 0.0,
+    a_pl1 = 0.0,
+    a_pl2 = 0.2,
+    a_pl3 = 0.05,
+    a_pl4 = 3.0,
     a_p1   = 151.177775377968,
     a_p2   = 0.204716166503633,
     a_f1   = 1,
@@ -129,8 +135,8 @@ test_that("TF24f collect_all_auxiliary option", {
 
   s <- TF24f_Strategy()
   p <- TF24f_Individual(s)
-  expect_equal(p$aux_size, 13)
-  expect_equal(length(p$internals$auxs), 13)
+  expect_equal(p$aux_size, 15)
+  expect_equal(length(p$internals$auxs), 15)
 expect_equal(p$aux_names, c(
     "competition_effect",
     "height_inverse",
@@ -144,14 +150,14 @@ expect_equal(p$aux_names, c(
     "shadow_cost",
     "stom_cond_CO2",
     "assimilation",
-    "Tleaf"
+    "Tleaf", "leaf_marginal_return", "sapwood_marginal_return"
   ))
 
   s <- TF24f_Strategy(collect_all_auxiliary=TRUE)
   expect_true(s$collect_all_auxiliary)
   p <- TF24f_Individual(s)
-  expect_equal(p$aux_size, 14)
-  expect_equal(length(p$internals$auxs), 14)
+  expect_equal(p$aux_size, 16)
+  expect_equal(length(p$internals$auxs), 16)
   expect_equal(p$aux_names, c(
     "competition_effect",
     "height_inverse",
@@ -165,7 +171,7 @@ expect_equal(p$aux_names, c(
     "shadow_cost",
     "stom_cond_CO2",
     "assimilation",
-    "Tleaf",
+    "Tleaf", "leaf_marginal_return", "sapwood_marginal_return",
     "area_sapwood"
   ))
 })
@@ -309,8 +315,8 @@ test_that("acclimation runs, is active, and converges to TF24", {
   #     and a full patch runs end-to-end to a finite, positive offspring count.
   expect_true("opt_root_psi_state" %in% TF24f_Individual()$ode_names)
   pf <- mk("TF24f")
-  slow <- run_scm(set_k_acclim(pf, 0.1), Environment("TF24f"), Control())$offspring_production
-  fast <- run_scm(set_k_acclim(pf, 10),  Environment("TF24f"), Control())$offspring_production
+  slow <- run_scm(set_k_acclim(pf, 1),  Environment("TF24f"), Control())$offspring_production
+  fast <- run_scm(set_k_acclim(pf, 10), Environment("TF24f"), Control())$offspring_production
   expect_length(fast, 1)
   expect_true(is.finite(fast) && fast > 0)
 
@@ -318,20 +324,19 @@ test_that("acclimation runs, is active, and converges to TF24", {
   #     fitness, so the finite-difference psi optimisation is feeding back into
   #     the demography rather than being a no-op.
   #
-  #     ⚠️ Offspring production is NOT monotone in k_acclim: it rises to a
-  #     maximum near k = 0.1 and falls back. Measured here at hmat = 5,
-  #     max_patch_lifetime = 5:
+  #     ⚠️ Offspring production is NOT monotone in k_acclim, so the pair has to
+  #     sit on one side of its maximum: a pair straddling it can sit at the same
+  #     height on either side and differ by little with the feedback fully live.
+  #     Where the maximum sits moves with the model and the coordinate. Measured
+  #     here at hmat = 5, max_patch_lifetime = 5, on the birth-date coordinate
+  #     TF24f defaults to:
   #
   #       k_acclim    0.001    0.01     0.1      1       10      100
-  #       offspring   4.850   5.395   9.170   8.463   9.212   9.159
+  #       offspring   418.7   420.9   437.5   428.8   345.3   332.4
   #
-  #     A pair straddling the maximum, such as k = 0.1 and k = 10, can sit at
-  #     the same height on either side of it and differ by under 1% with the
-  #     feedback fully live. So the contrast is taken on the rising limb, below
-  #     the maximum, where it does not depend on where the far side falls.
-  sluggish <- run_scm(set_k_acclim(pf, 0.01), Environment("TF24f"),
-                      Control())$offspring_production
-  expect_gt(abs(slow - sluggish) / slow, 0.05)
+  #     The rising limb is shallow (4.5% from 0.001 to the peak) and the falling
+  #     one steep, so the contrast is taken on the falling limb.
+  expect_gt(abs(fast - slow) / slow, 0.1)
 
   # (3) Consistent with TF24 "within reason": as the acclimation gain grows,
   #     TF24f tracks the optimum that TF24 computes directly each step, so its

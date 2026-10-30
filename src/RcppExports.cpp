@@ -5883,6 +5883,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Node___FF16__FF16_Env__density_in_birth_date__get
+bool Node___FF16__FF16_Env__density_in_birth_date__get(plant::RcppR6::RcppR6<plant::Node<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_);
+RcppExport SEXP _plant_Node___FF16__FF16_Env__density_in_birth_date__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Node<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Node___FF16__FF16_Env__density_in_birth_date__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Node___FF16__FF16_Env__fecundity__get
 double Node___FF16__FF16_Env__fecundity__get(plant::RcppR6::RcppR6<plant::Node<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_);
 RcppExport SEXP _plant_Node___FF16__FF16_Env__fecundity__get(SEXP obj_SEXP) {
@@ -6061,6 +6072,17 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Node<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(Node___TF24__TF24_Env__growth_rate_at_birth__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Node___TF24__TF24_Env__density_in_birth_date__get
+bool Node___TF24__TF24_Env__density_in_birth_date__get(plant::RcppR6::RcppR6<plant::Node<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Node___TF24__TF24_Env__density_in_birth_date__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Node<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Node___TF24__TF24_Env__density_in_birth_date__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -6245,6 +6267,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Node___TF24f__TF24_Env__density_in_birth_date__get
+bool Node___TF24f__TF24_Env__density_in_birth_date__get(plant::RcppR6::RcppR6<plant::Node<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Node___TF24f__TF24_Env__density_in_birth_date__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Node<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Node___TF24f__TF24_Env__density_in_birth_date__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Node___TF24f__TF24_Env__fecundity__get
 double Node___TF24f__TF24_Env__fecundity__get(plant::RcppR6::RcppR6<plant::Node<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
 RcppExport SEXP _plant_Node___TF24f__TF24_Env__fecundity__get(SEXP obj_SEXP) {
@@ -6423,6 +6456,17 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Node<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(Node___TF24t__TF24_Env__growth_rate_at_birth__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Node___TF24t__TF24_Env__density_in_birth_date__get
+bool Node___TF24t__TF24_Env__density_in_birth_date__get(plant::RcppR6::RcppR6<plant::Node<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Node___TF24t__TF24_Env__density_in_birth_date__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Node<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Node___TF24t__TF24_Env__density_in_birth_date__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -6607,6 +6651,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Node___TF24w__TF24_Env__density_in_birth_date__get
+bool Node___TF24w__TF24_Env__density_in_birth_date__get(plant::RcppR6::RcppR6<plant::Node<plant::TF24w_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
+RcppExport SEXP _plant_Node___TF24w__TF24_Env__density_in_birth_date__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Node<plant::TF24w_Strategy<double> ,plant::TF24_Environment<double> > > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Node___TF24w__TF24_Env__density_in_birth_date__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Node___TF24w__TF24_Env__fecundity__get
 double Node___TF24w__TF24_Env__fecundity__get(plant::RcppR6::RcppR6<plant::Node<plant::TF24w_Strategy<double> ,plant::TF24_Environment<double> > > obj_);
 RcppExport SEXP _plant_Node___TF24w__TF24_Env__fecundity__get(SEXP obj_SEXP) {
@@ -6785,6 +6840,17 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Node<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(Node___K93__K93_Env__growth_rate_at_birth__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Node___K93__K93_Env__density_in_birth_date__get
+bool Node___K93__K93_Env__density_in_birth_date__get(plant::RcppR6::RcppR6<plant::Node<plant::K93_Strategy,plant::K93_Environment> > obj_);
+RcppExport SEXP _plant_Node___K93__K93_Env__density_in_birth_date__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Node<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Node___K93__K93_Env__density_in_birth_date__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -19957,6 +20023,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Node___FF16__FF16_Env__log_density__get", (DL_FUNC) &_plant_Node___FF16__FF16_Env__log_density__get, 1},
     {"_plant_Node___FF16__FF16_Env__introduction_time__get", (DL_FUNC) &_plant_Node___FF16__FF16_Env__introduction_time__get, 1},
     {"_plant_Node___FF16__FF16_Env__growth_rate_at_birth__get", (DL_FUNC) &_plant_Node___FF16__FF16_Env__growth_rate_at_birth__get, 1},
+    {"_plant_Node___FF16__FF16_Env__density_in_birth_date__get", (DL_FUNC) &_plant_Node___FF16__FF16_Env__density_in_birth_date__get, 1},
     {"_plant_Node___FF16__FF16_Env__fecundity__get", (DL_FUNC) &_plant_Node___FF16__FF16_Env__fecundity__get, 1},
     {"_plant_Node___FF16__FF16_Env__ode_size__get", (DL_FUNC) &_plant_Node___FF16__FF16_Env__ode_size__get, 1},
     {"_plant_Node___FF16__FF16_Env__ode_state__get", (DL_FUNC) &_plant_Node___FF16__FF16_Env__ode_state__get, 1},
@@ -19973,6 +20040,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Node___TF24__TF24_Env__log_density__get", (DL_FUNC) &_plant_Node___TF24__TF24_Env__log_density__get, 1},
     {"_plant_Node___TF24__TF24_Env__introduction_time__get", (DL_FUNC) &_plant_Node___TF24__TF24_Env__introduction_time__get, 1},
     {"_plant_Node___TF24__TF24_Env__growth_rate_at_birth__get", (DL_FUNC) &_plant_Node___TF24__TF24_Env__growth_rate_at_birth__get, 1},
+    {"_plant_Node___TF24__TF24_Env__density_in_birth_date__get", (DL_FUNC) &_plant_Node___TF24__TF24_Env__density_in_birth_date__get, 1},
     {"_plant_Node___TF24__TF24_Env__fecundity__get", (DL_FUNC) &_plant_Node___TF24__TF24_Env__fecundity__get, 1},
     {"_plant_Node___TF24__TF24_Env__ode_size__get", (DL_FUNC) &_plant_Node___TF24__TF24_Env__ode_size__get, 1},
     {"_plant_Node___TF24__TF24_Env__ode_state__get", (DL_FUNC) &_plant_Node___TF24__TF24_Env__ode_state__get, 1},
@@ -19989,6 +20057,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Node___TF24f__TF24_Env__log_density__get", (DL_FUNC) &_plant_Node___TF24f__TF24_Env__log_density__get, 1},
     {"_plant_Node___TF24f__TF24_Env__introduction_time__get", (DL_FUNC) &_plant_Node___TF24f__TF24_Env__introduction_time__get, 1},
     {"_plant_Node___TF24f__TF24_Env__growth_rate_at_birth__get", (DL_FUNC) &_plant_Node___TF24f__TF24_Env__growth_rate_at_birth__get, 1},
+    {"_plant_Node___TF24f__TF24_Env__density_in_birth_date__get", (DL_FUNC) &_plant_Node___TF24f__TF24_Env__density_in_birth_date__get, 1},
     {"_plant_Node___TF24f__TF24_Env__fecundity__get", (DL_FUNC) &_plant_Node___TF24f__TF24_Env__fecundity__get, 1},
     {"_plant_Node___TF24f__TF24_Env__ode_size__get", (DL_FUNC) &_plant_Node___TF24f__TF24_Env__ode_size__get, 1},
     {"_plant_Node___TF24f__TF24_Env__ode_state__get", (DL_FUNC) &_plant_Node___TF24f__TF24_Env__ode_state__get, 1},
@@ -20005,6 +20074,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Node___TF24t__TF24_Env__log_density__get", (DL_FUNC) &_plant_Node___TF24t__TF24_Env__log_density__get, 1},
     {"_plant_Node___TF24t__TF24_Env__introduction_time__get", (DL_FUNC) &_plant_Node___TF24t__TF24_Env__introduction_time__get, 1},
     {"_plant_Node___TF24t__TF24_Env__growth_rate_at_birth__get", (DL_FUNC) &_plant_Node___TF24t__TF24_Env__growth_rate_at_birth__get, 1},
+    {"_plant_Node___TF24t__TF24_Env__density_in_birth_date__get", (DL_FUNC) &_plant_Node___TF24t__TF24_Env__density_in_birth_date__get, 1},
     {"_plant_Node___TF24t__TF24_Env__fecundity__get", (DL_FUNC) &_plant_Node___TF24t__TF24_Env__fecundity__get, 1},
     {"_plant_Node___TF24t__TF24_Env__ode_size__get", (DL_FUNC) &_plant_Node___TF24t__TF24_Env__ode_size__get, 1},
     {"_plant_Node___TF24t__TF24_Env__ode_state__get", (DL_FUNC) &_plant_Node___TF24t__TF24_Env__ode_state__get, 1},
@@ -20021,6 +20091,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Node___TF24w__TF24_Env__log_density__get", (DL_FUNC) &_plant_Node___TF24w__TF24_Env__log_density__get, 1},
     {"_plant_Node___TF24w__TF24_Env__introduction_time__get", (DL_FUNC) &_plant_Node___TF24w__TF24_Env__introduction_time__get, 1},
     {"_plant_Node___TF24w__TF24_Env__growth_rate_at_birth__get", (DL_FUNC) &_plant_Node___TF24w__TF24_Env__growth_rate_at_birth__get, 1},
+    {"_plant_Node___TF24w__TF24_Env__density_in_birth_date__get", (DL_FUNC) &_plant_Node___TF24w__TF24_Env__density_in_birth_date__get, 1},
     {"_plant_Node___TF24w__TF24_Env__fecundity__get", (DL_FUNC) &_plant_Node___TF24w__TF24_Env__fecundity__get, 1},
     {"_plant_Node___TF24w__TF24_Env__ode_size__get", (DL_FUNC) &_plant_Node___TF24w__TF24_Env__ode_size__get, 1},
     {"_plant_Node___TF24w__TF24_Env__ode_state__get", (DL_FUNC) &_plant_Node___TF24w__TF24_Env__ode_state__get, 1},
@@ -20037,6 +20108,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Node___K93__K93_Env__log_density__get", (DL_FUNC) &_plant_Node___K93__K93_Env__log_density__get, 1},
     {"_plant_Node___K93__K93_Env__introduction_time__get", (DL_FUNC) &_plant_Node___K93__K93_Env__introduction_time__get, 1},
     {"_plant_Node___K93__K93_Env__growth_rate_at_birth__get", (DL_FUNC) &_plant_Node___K93__K93_Env__growth_rate_at_birth__get, 1},
+    {"_plant_Node___K93__K93_Env__density_in_birth_date__get", (DL_FUNC) &_plant_Node___K93__K93_Env__density_in_birth_date__get, 1},
     {"_plant_Node___K93__K93_Env__fecundity__get", (DL_FUNC) &_plant_Node___K93__K93_Env__fecundity__get, 1},
     {"_plant_Node___K93__K93_Env__ode_size__get", (DL_FUNC) &_plant_Node___K93__K93_Env__ode_size__get, 1},
     {"_plant_Node___K93__K93_Env__ode_state__get", (DL_FUNC) &_plant_Node___K93__K93_Env__ode_state__get, 1},

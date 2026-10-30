@@ -9,7 +9,7 @@ ff16_fixed_point <- function(b = 1, t_eq = 300, absorb = 0.02, by = 1) {
   p$max_patch_lifetime <- t_eq + 1
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = b)
   p$node_schedule_times <- list(node_schedule_times_periodic(0, t_eq + 1, by))
-  ctrl <- Control(node_density_in_birth_date = TRUE, absorb_epsilon = absorb)
+  ctrl <- Control(node_density_coordinate = "birth_date", absorb_epsilon = absorb)
   scm <- SCM("FF16", "FF16_Env")(p, Environment("FF16"), empty_events(), ctrl)
   scm$run_to(t_eq)
   list(scm = scm, p = p, ctrl = ctrl, t_eq = t_eq, b = b)
@@ -72,7 +72,7 @@ test_that("a constant field keeps the environment's own state", {
   p$node_schedule_times <- list(0:5)
   env <- Environment("TF24")
   env$extrinsic_drivers_set_constant("rainfall", 1)
-  ctrl <- Control(node_density_in_birth_date = TRUE, ode_step_size_max = 0.05)
+  ctrl <- Control(node_density_coordinate = "birth_date", ode_step_size_max = 0.05)
   scm <- SCM("TF24", "TF24_Env")(p, env, empty_events(), ctrl)
   scm$run_to(5)
   pa <- scm$patch
@@ -130,7 +130,7 @@ test_that("a constant field needs a resident to take it from", {
   p$patch_type <- "fixed"
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))
   scm <- SCM("FF16", "FF16_Env")(p, Environment("FF16"), empty_events(),
-                                 Control(node_density_in_birth_date = TRUE))
+                                 Control(node_density_coordinate = "birth_date"))
   expect_error(scm$run_mutant_constant(p), "fixed point")
 })
 

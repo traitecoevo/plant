@@ -17,7 +17,7 @@ tf24_env <- function() {
   env
 }
 tf24_control <- function() {
-  Control(node_density_in_birth_date = TRUE, ode_step_size_max = 0.05)
+  Control(node_density_coordinate = "birth_date", ode_step_size_max = 0.05)
 }
 
 test_that("a TF24 invader's census gradient is the difference across pinned runs", {

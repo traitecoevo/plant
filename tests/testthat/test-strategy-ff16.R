@@ -212,7 +212,7 @@ test_that("offspring arrival", {
   # Blessed on the birth-date coordinate, which this names rather than inherits:
   # Control() defaults to height, and a fixture that reads its coordinate from the
   # default silently re-points at another function when the default moves.
-  ctrl <- Control(node_density_in_birth_date = TRUE)
+  ctrl <- Control(node_density_coordinate = "birth_date")
 
   # one species
   p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = FF16_hyperpar, birth_rate = list(20))
@@ -222,7 +222,7 @@ test_that("offspring arrival", {
   # different function: these were 16.8842, 4.241633, c(11.9958, 16.47158) and
   # 256 there. Both are supported and neither is an approximation of the other,
   # so the coordinate is asserted rather than assumed.
-  expect_true(ctrl$node_density_in_birth_date)
+  expect_identical(ctrl$node_density_coordinate, "birth_date")
   out <- run_scm(p1, env, ctrl)
   expect_equal(out$offspring_production, 17.1720, tolerance=1e-4)
   expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.227769), tolerance=1e-5)
@@ -238,7 +238,7 @@ test_that("offspring arrival", {
   # different answer, or naming this one would be decoration. The magnitude is
   # left unpinned -- one blessed set per function is enough, and pinning two
   # doubles what has to be re-blessed whenever either moves.
-  height <- run_scm(p2, env, Control(node_density_in_birth_date = FALSE))
+  height <- run_scm(p2, env, Control(node_density_coordinate = "height"))
   expect_false(isTRUE(all.equal(height$offspring_production,
                                 out$offspring_production)))
 })

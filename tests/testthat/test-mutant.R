@@ -301,7 +301,7 @@ test_that("an invader replays a step too short to move its stages, TF24", {
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 10, 0.25))
   env <- Environment("TF24")
   env$extrinsic_drivers_set_constant("rainfall", 1)
-  ctrl <- Control(node_density_in_birth_date = TRUE, ode_step_size_max = 0.05)
+  ctrl <- Control(node_density_coordinate = "birth_date", ode_step_size_max = 0.05)
   scm <- run_scm(p, env, ctrl, keep_states = TRUE)
   expect_gt(sum(diff(scm$ode_times) < 1e-12), 0)
   resident_rr <- scm$net_reproduction_ratios
@@ -334,7 +334,7 @@ test_that("invaders from lma x0.7 to x2 run on the run's steps, TF24", {
     env$set_soil_water_state(rep(0.428 * 0.5, env$get_soil_number_of_depths()))
     env$extrinsic_drivers_set_constant("rainfall", 1)
     run_scm(stand(1, offset), env = env,
-            ctrl = Control(node_density_in_birth_date = TRUE))
+            ctrl = Control(node_density_coordinate = "birth_date"))
   }
 
   offset <- TF24_Strategy()$pars$storage_relaxation_offset

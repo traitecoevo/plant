@@ -306,7 +306,7 @@ test_that("the reverse pass refuses the coordinate it cannot transpose", {
   # forward model is not evaluating, and nothing about the arithmetic complains.
   p <- ladder_parameters("fast")
   p$node_schedule_times <- list(c(0, 0.63))
-  stand <- ladder_run(p, ctrl = Control(node_density_in_birth_date = FALSE))
+  stand <- ladder_run(p, ctrl = Control(node_density_coordinate = "height"))
 
   expect_error(stand_census_state_adjoint(stand), "birth-date")
   expect_error(stand_gradient(stand, hyperpar = NULL), "birth-date")

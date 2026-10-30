@@ -68,7 +68,7 @@ test_that("a window refuses what it cannot weight by", {
 
 test_that("the net reproduction ratio is the window average of per-node lifetime output", {
   p <- fitness_window(ff16(30), 10, 20)
-  scm <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE))
+  scm <- run_scm(p, ctrl = Control(node_density_coordinate = "birth_date"))
   sp <- scm$patch$species[[1]]
   t <- sp$node_times
   fec <- sp$net_reproduction_ratio_by_node
@@ -93,7 +93,7 @@ test_that("the net reproduction ratio is the window average of per-node lifetime
 test_that("offspring production is the window mean of output times birth rate", {
   p <- fitness_window(ff16(30), 10, 20)
   p$strategies[[1]]$birth_rate_y <- 3
-  scm <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE))
+  scm <- run_scm(p, ctrl = Control(node_density_coordinate = "birth_date"))
   expect_equal(scm$offspring_production, 3 * scm$net_reproduction_ratios,
                tolerance = 1e-12)
 })
@@ -129,7 +129,7 @@ test_that("the window survives the rebind a gradient runs on", {
   ## rebind rebuilds the regime from the parameters it copies; a copy
   ## that left the window behind could not build a "fitness_window" patch at all.
   p <- fitness_window(ff16(10), 2, 8)
-  scm <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE),
+  scm <- run_scm(p, ctrl = Control(node_density_coordinate = "birth_date"),
                  keep_states = TRUE)
   g <- stand_gradient(scm, metrics = "leaf_area", hyperpar = NULL)
   expect_true(all(is.finite(g$gradient)))
@@ -145,7 +145,7 @@ test_that("a converged stand's window average does not depend on the window", {
   p <- ff16(500)
   p$patch_type <- "fixed"
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 500, 1))
-  scm <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE))
+  scm <- run_scm(p, ctrl = Control(node_density_coordinate = "birth_date"))
   sp <- scm$patch$species[[1]]
   t <- sp$node_times
   out <- sp$net_reproduction_ratio_by_node * p$strategies[[1]]$pars$S_D
@@ -163,7 +163,7 @@ test_that("a converged stand's window average does not depend on the window", {
   expect_gt(abs(window_mean(400, 500) / early - 1), 1e-2)
   ## And the regime run with one of these windows agrees with the post-hoc mean.
   q <- fitness_window(p, 200, 300)
-  scm2 <- run_scm(q, ctrl = Control(node_density_in_birth_date = TRUE))
+  scm2 <- run_scm(q, ctrl = Control(node_density_coordinate = "birth_date"))
   expect_equal(scm2$net_reproduction_ratios, late, tolerance = 1e-10)
 })
 
@@ -175,7 +175,7 @@ test_that("cohorts seeded from a burn-in weigh nothing before the window", {
   p <- ff16(20)
   p$patch_type <- "fixed"
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 20, 1))
-  ctrl <- Control(node_density_in_birth_date = TRUE)
+  ctrl <- Control(node_density_coordinate = "birth_date")
   burn <- run_scm(p, ctrl = ctrl)
   state <- export_patch_state(burn)
   expect_true(all(state$patch_density[[1]] == 1))
@@ -217,7 +217,7 @@ test_that("cohorts outside the window do not move the ratio", {
   p <- fitness_window(p, 10, 20)
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 100, 1),
                                 node_schedule_times_periodic(10, 100, 1))
-  scm <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE))
+  scm <- run_scm(p, ctrl = Control(node_density_coordinate = "birth_date"))
   r <- scm$net_reproduction_ratios
   expect_gt(r[[1]], 1)
   expect_equal(r[[2]], r[[1]], tolerance = 1e-12)
@@ -232,7 +232,7 @@ test_that("a tabulated weight in a full run is the weighted mean of the cohorts"
   p$max_patch_lifetime <- 120
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 120, 1))
-  ctrl <- Control(node_density_in_birth_date = TRUE)
+  ctrl <- Control(node_density_coordinate = "birth_date")
   plain <- run_scm(p, ctrl = ctrl)
   sp <- plain$patch$species[[1]]
   t <- sp$node_times

@@ -611,6 +611,12 @@ private:
   // The private-water passes (#681); reached only for HasPrivateWater<T>.
   void private_water_aggregates();
   void private_water_exchange(const std::vector<value_type>& resource_depletion);
+  // The coordinate this model's densities are carried in, Control's "auto"
+  // resolved against the strategy (see control.h).
+  bool density_in_birth_date() const {
+    return plant::density_in_birth_date(control,
+                                        T::density_in_birth_date_default);
+  }
   // The top layer rests on density only ever falling, which holds on the
   // birth-date coordinate alone: on the height coordinate the transport term
   // can raise it. Refused at construction, where the control is first seen.
@@ -624,16 +630,17 @@ private:
     // term holds every other state fixed while it perturbs height (#516), which
     // is then the wrong derivative. The birth-date coordinate has no such term.
     if constexpr (HasPrivateWater<T>) {
-      if (!control.node_density_in_birth_date) {
+      if (!density_in_birth_date()) {
         util::stop("TF24w's private root-zone water needs the birth-date "
-                   "size-density coordinate (control$node_density_in_birth_date "
-                   "= TRUE)");
+                   "size-density coordinate (control$node_density_coordinate "
+                   "= \"birth_date\" or \"auto\")");
       }
     }
     if (control.absorb_epsilon > 0.0) {
-      if (!control.node_density_in_birth_date) {
+      if (!density_in_birth_date()) {
         util::stop("control$absorb_epsilon needs the birth-date size-density "
-                   "coordinate (control$node_density_in_birth_date = TRUE)");
+                   "coordinate (control$node_density_coordinate = "
+                   "\"birth_date\")");
       }
       if (!(control.absorb_epsilon < 0.5)) {
         util::stop("control$absorb_epsilon must lie in (0, 0.5): it is the "
@@ -996,7 +1003,7 @@ void Patch<T,E>::check_birth_dates_distinct() const {
                  "and resource integrals. Remove the repeat from the node "
                  "schedule, supply per-node introduction times "
                  "(parameters$initial_node_times) with an initial state, or run "
-                 "with control$node_density_in_birth_date = FALSE.");
+                 "with control$node_density_coordinate = \"height\".");
     }
   }
 }

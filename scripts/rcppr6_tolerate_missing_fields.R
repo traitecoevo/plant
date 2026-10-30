@@ -31,6 +31,31 @@ for (s in starts) {
     i <- i + 1L
   }
 }
+## A Control saved before node_density_coordinate replaced the boolean
+## node_density_in_birth_date (#516) carries the boolean. Tolerating the missing
+## field alone would read it as "auto", which for a size-only model is the
+## height coordinate whatever the boolean chose, so read the boolean as the
+## explicit coordinate it named.
+legacy <- c(
+  "  // A Control saved before node_density_coordinate replaced the boolean",
+  "  // node_density_in_birth_date carries the boolean: read it as the explicit",
+  "  // coordinate it named, not as \"auto\".",
+  "  if (!xl.containsElementNamed(\"node_density_coordinate\") &&",
+  "      xl.containsElementNamed(\"node_density_in_birth_date\")) {",
+  "    ret.node_density_coordinate =",
+  "      Rcpp::as<bool>(xl[\"node_density_in_birth_date\"]) ? \"birth_date\" : \"height\";",
+  "  }")
+control <- grep("^template <> inline plant::Control as\\(SEXP x\\) \\{$", lines)
+if (length(control) != 1L) {
+  stop("expected one Control converter in ", path)
+}
+if (!any(grepl("node_density_in_birth_date\"]) ?", lines, fixed = TRUE))) {
+  i <- control
+  while (!grepl("^\\s*return ret;$", lines[i])) {
+    i <- i + 1L
+  }
+  lines <- append(lines, legacy, after = i - 1L)
+}
 writeLines(lines, path)
 message("tolerated missing fields in ", length(starts), " converters (",
         n, " fields)")

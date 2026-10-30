@@ -76,7 +76,7 @@ test_that("run_until_converged stops when the block means settle", {
   p <- ff16(400)
   p$patch_type <- "fixed"
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 400, 1))
-  ctrl <- Control(node_density_in_birth_date = TRUE, absorb_epsilon = 0.02)
+  ctrl <- Control(node_density_coordinate = "birth_date", absorb_epsilon = 0.02)
   scm <- new_scm(p, ctrl)
   r <- run_until_converged(scm, block = 20, tol = 0.02)
   expect_true(r$converged)
@@ -151,7 +151,7 @@ test_that("run_until_converged() refuses what it cannot judge", {
   p <- ff16(100)
   p$patch_type <- "fixed"
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 100, 1))
-  ctrl <- Control(node_density_in_birth_date = TRUE, absorb_epsilon = 0.02)
+  ctrl <- Control(node_density_coordinate = "birth_date", absorb_epsilon = 0.02)
   expect_error(run_until_converged(run_scm(p, ctrl = ctrl)), "already finished")
   s <- function() run_scm(p, ctrl = ctrl, run = FALSE)
   expect_error(run_until_converged(s(), block = 0), "block")
@@ -178,7 +178,7 @@ test_that("a statistic that is undefined in a block cannot settle, and says so",
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
   p$strategies[[1]]$pars$r_l <- 1e6
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 60, 1))
-  s <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE), run = FALSE)
+  s <- run_scm(p, ctrl = Control(node_density_coordinate = "birth_date"), run = FALSE)
   expect_warning(r <- run_until_converged(s, block = 20, tol = 0.1,
                                           statistics = c("density", "height_max")),
                  "height_max")
@@ -195,7 +195,7 @@ test_that("a statistic is judged on its own scale, however small", {
     p$patch_type <- "fixed"
     p$strategies[[1]]$birth_rate_y <- b
     p$node_schedule_times <- list(node_schedule_times_periodic(0, 200, 1))
-    s <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE), run = FALSE)
+    s <- run_scm(p, ctrl = Control(node_density_coordinate = "birth_date"), run = FALSE)
     run_until_converged(s, block = 20, tol = 0.02, t_max = 120,
                         statistics = "density", ...)
   }
@@ -217,7 +217,7 @@ test_that("statistics that settle by construction are not judged by default", {
   p <- ff16(100)
   p$patch_type <- "fixed"
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 100, 1))
-  ctrl <- Control(node_density_in_birth_date = TRUE, absorb_epsilon = 0.02)
+  ctrl <- Control(node_density_coordinate = "birth_date", absorb_epsilon = 0.02)
   expect_warning(run_until_converged(run_scm(p, ctrl = ctrl, run = FALSE),
                                      block = 20, t_max = 40,
                                      statistics = c("density", "height_max")),
@@ -232,7 +232,7 @@ test_that("statistics that settle by construction are not judged by default", {
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = TF24_hyperpar,
                       birth_rate = 1)
   p$node_schedule_times <- list(0:3)
-  s <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE,
+  s <- run_scm(p, ctrl = Control(node_density_coordinate = "birth_date",
                                  ode_step_size_max = 0.05), run = FALSE)
   n_env <- s$patch$environment$ode_size
   n_acc <- length(s$patch$state$env$soil_moist_cumulative_flux)

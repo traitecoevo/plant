@@ -17,7 +17,7 @@
 # 1e-5, while the sweep's answer did not move with the tolerance at all. At
 # 1e-12 the two agree to 2.5e-8.
 referee_control <- function(...) {
-  Control(node_density_in_birth_date = TRUE, offspring_production_tol = 1e-12,
+  Control(node_density_coordinate = "birth_date", offspring_production_tol = 1e-12,
           ...)
 }
 
@@ -170,6 +170,6 @@ test_that("the gradient refuses what it cannot differentiate, by name", {
   p <- scm_base_parameters("K93")
   p$max_patch_lifetime <- 2
   p <- add_strategies(p, trait_matrix(0.059, "b_0"), birth_rate = list(1))
-  scm <- run_scm(p, NULL, Control(node_density_in_birth_date = TRUE))
+  scm <- run_scm(p, NULL, Control(node_density_coordinate = "birth_date"))
   expect_error(stand_gradient(scm, hyperpar = NULL), "No census is declared for the K93 model")
 })

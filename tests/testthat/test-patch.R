@@ -25,7 +25,7 @@ for (x in names(strategy_types)) {
   # species, but a standalone Node reads the coordinate from its own strategy's
   # control, so the comparison node below is only the same function as the
   # patch's node if the strategy carries the coordinate too.
-  ctrl <- Control(node_density_in_birth_date = TRUE)
+  ctrl <- Control(node_density_coordinate = "birth_date")
   p$strategies[[1]]$control <- ctrl
   patch <- Patch(x, e)(p, env, ctrl)
   cmp <- Node(x, e)(p$strategies[[1]])
@@ -105,7 +105,7 @@ for (x in names(strategy_types)) {
       # one, and the last entry of each vector is where they part company -- so
       # the two literals below are asserted alongside the relations that produce
       # them, which is what says WHICH function this is a reference for.
-      expect_true(ctrl$node_density_in_birth_date)
+      expect_identical(ctrl$node_density_coordinate, "birth_date")
       expect_equal(ode_state, c(0.3441947, 0.009159, 0, 0, 0, 0, -0.009159),
                    tolerance = 1e-4)
       expect_equal(ode_rates,
@@ -253,7 +253,11 @@ test_that("TF24 patch aux reports the per-layer uptake", {
   s$is_variable_birth_rate <- FALSE
   p <- Parameters("TF24", "TF24_Env")(strategies = list(s),
                                       patch_type = "meta-population")
-  patch <- Patch("TF24", "TF24_Env")(p, Environment("TF24"), Control())
+  # On the height coordinate, which this was written against when it was the
+  # default; TF24's default is now the birth-date coordinate, whose patch total
+  # integrates this one hand-placed node differently.
+  patch <- Patch("TF24", "TF24_Env")(p, Environment("TF24"),
+                                     Control(node_density_coordinate = "height"))
   patch$introduce_new_node(1, 0)
 
   # A node at its birth height takes up nothing measurable, so grow it and give

@@ -27,7 +27,7 @@ test_that("snapshots read the run and do not move it", {
     p$max_patch_lifetime <- 60
     p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
     p$node_schedule_times <- list(node_schedule_times_periodic(0, 60, 1))
-    s <- run_scm(p, ctrl = Control(node_density_in_birth_date = TRUE), run = FALSE)
+    s <- run_scm(p, ctrl = Control(node_density_coordinate = "birth_date"), run = FALSE)
     s$snapshot_interval <- interval
     s$run()
     s
@@ -48,7 +48,7 @@ test_that("a fitness window weights the run and does not move it", {
   p$max_patch_lifetime <- 60
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 60, 1))
-  ctrl <- Control(node_density_in_birth_date = TRUE)
+  ctrl <- Control(node_density_coordinate = "birth_date")
   a <- run_scm(p, ctrl = ctrl)
   b <- run_scm(fitness_window(p, 10, 30), ctrl = ctrl)
   expect_identical(b$patch$ode_state, a$patch$ode_state)

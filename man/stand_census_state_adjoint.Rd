@@ -8,7 +8,7 @@ stand_census_state_adjoint(scm)
 }
 \arguments{
 \item{scm}{A run \code{SCM} object for the TF24 or FF16 model, on the
-birth-date coordinate (\code{control(node_density_in_birth_date = TRUE)}).}
+birth-date coordinate (TF24's default; \code{control(node_density_coordinate = "birth_date")} for FF16).}
 }
 \value{
 A numeric matrix, metrics by ODE state entries.

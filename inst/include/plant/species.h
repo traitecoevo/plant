@@ -96,7 +96,7 @@ public:
   // that uptake to the pool, and give it no share.
   template <class F> void for_each_water_column(F&& f) {
     using odelia::util::to_passive;
-    const bool birth_date = control().node_density_in_birth_date;
+    const bool birth_date = density_in_birth_date();
     const size_t m = nodes.size();
     if (m > 0) {
       std::vector<double> x;
@@ -359,10 +359,13 @@ public:
   // initialised or imported without per-node times.
   bool birth_dates_are_distinct() const;
 
-  // Which coordinate this species' size distribution is carried in. Exposed so
-  // Patch can check every species agrees before summing their contributions.
+  // Which coordinate this species' size distribution is carried in: Control's
+  // node_density_coordinate with "auto" resolved against the model's own
+  // requirement (see control.h). Exposed so Patch can check every species agrees
+  // before summing their contributions.
   bool density_in_birth_date() const {
-    return control().node_density_in_birth_date;
+    return plant::density_in_birth_date(control(),
+                                        T::density_in_birth_date_default);
   }
 
   // * ODE interface
@@ -460,7 +463,7 @@ private:
   // single node has no interval but that one, and a birth-date abscissa does not
   // order with the support at all.
   bool closes_on(const value_type& value_at_x1) const {
-    return size() == 1 || control().node_density_in_birth_date ||
+    return size() == 1 || density_in_birth_date() ||
            value_at_x1 > 0;
   }
   competition_split compute_competition_and_slope_split(const value_type& height) const;
@@ -554,7 +557,7 @@ private:
   std::vector<double> quadrature_abscissae() const {
     std::vector<double> ret;
     ret.reserve(size());
-    const bool birth_date = control().node_density_in_birth_date;
+    const bool birth_date = density_in_birth_date();
     for (auto& c : nodes) {
       ret.push_back(abscissa_of(c, birth_date));
     }
@@ -776,7 +779,7 @@ void Species<T,E>::field_splits_nodes(const std::vector<value_type>& heights,
     return;
   }
   const HeightScan& scan = scan_heights();
-  const bool birth_date = control().node_density_in_birth_date;
+  const bool birth_date = density_in_birth_date();
   const std::size_t n_moments = strategy->canopy_shape.n_moments();
   if ((!scan.decreasing && !birth_date) || n_moments == 0) {
     for (std::size_t k = 0; k < heights.size(); ++k) {
@@ -946,7 +949,7 @@ template <typename T, typename E>
 typename Species<T,E>::competition_split
 Species<T,E>::reduce_competition(const value_type& height,
                                  const std::vector<std::size_t>& order) const {
-  const bool birth_date = control().node_density_in_birth_date;
+  const bool birth_date = density_in_birth_date();
   const HeightScan& scan = scan_heights();
   const bool skip_retired = freezes_retired(control());
   const bool permuted = !order.empty();
@@ -1030,7 +1033,7 @@ Species<T,E>::compute_competition_and_slope_split(const value_type& height) cons
   }
   // Introduction times ascend by construction; -height ascends only while the
   // heights fall, and TF24's reserve-gated growth lets two cohorts cross.
-  if (control().node_density_in_birth_date || scan.decreasing) {
+  if (density_in_birth_date() || scan.decreasing) {
     return reduce_competition(height, {});
   }
   return reduce_competition(height, ascending_by_abscissa());
@@ -1046,7 +1049,7 @@ Species<T,E>::close_competition_and_slope(const competition_split& c,
   const with_slope<value_type> fs0 =
     new_node.compute_competition_and_slope(height);
   const double x0 =
-    abscissa_of(new_node, control().node_density_in_birth_date);
+    abscissa_of(new_node, density_in_birth_date());
   return {(c.sum.value + (x0 - c.x1) * (c.at_x1.value + fs0.value)) / 2,
           (c.sum.slope + (x0 - c.x1) * (c.at_x1.slope + fs0.slope)) / 2};
 }
@@ -1262,7 +1265,7 @@ Species<T,E>::consumption_rate(int i) const {
   // an active one. Ascending in the abscissa is oldest first in birth date and
   // tallest first in height, and the closing node is both the newest and the
   // shortest, so it ends the grid either way.
-  const bool birth_date = control().node_density_in_birth_date;
+  const bool birth_date = density_in_birth_date();
   std::vector<double> x;
   std::vector<value_type> rates;
   x.reserve(size() + 1);
@@ -1312,7 +1315,7 @@ Species<T,E>::census_integral(const census_metric<T>& metric) const {
   }
   // The abscissa ascends as the nodes are walked in storage order and the
   // boundary node closes the grid: it is the youngest, and the shortest.
-  const bool birth_date = control().node_density_in_birth_date;
+  const bool birth_date = density_in_birth_date();
   if (!birth_date && !heights_are_decreasing()) {
     util::stop("The census needs the node heights in decreasing order; on a"
                " crossed grid neighbouring trapezia cancel instead of"
@@ -1359,7 +1362,7 @@ Rcpp::NumericMatrix Species<T, E>::r_get_state() const {
   // meaning, and the quantity actually integrated is reported alongside it as
   // `log_density_state`. Note export_patch_state() resumes from patch$ode_state,
   // not from here, so the raw state is what a resume reloads.
-  const size_t extra = control().node_density_in_birth_date ? 1 : 0;
+  const size_t extra = density_in_birth_date() ? 1 : 0;
 
   // Set output size. // +1 is seed
   Rcpp::NumericMatrix ret(static_cast<int>(ode_size + aux_size + extra), n_nodes + 1);
@@ -1527,7 +1530,7 @@ std::vector<double> Species<T,E>::r_log_densities_state() const {
 template <typename T, typename E>
 std::vector<double> Species<T,E>::r_log_densities() const {
   std::vector<double> ret = r_log_densities_state();
-  if (!control().node_density_in_birth_date) {
+  if (!density_in_birth_date()) {
     return ret;
   }
   // N = nu / |dh/dtau|. jac carries one extra trailing entry for the boundary

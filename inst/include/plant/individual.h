@@ -276,7 +276,8 @@ public:
   // and a block that emitted the height-coordinate term on the birth-date
   // coordinate would be differentiating a term that is identically zero.
   value_type log_density_rate(const environment_type& environment) const {
-    if (control().node_density_in_birth_date) {
+    if (plant::density_in_birth_date(control(),
+                                     T::density_in_birth_date_default)) {
       return -rate(MORTALITY_INDEX);
     }
     return -growth_rate_gradient(environment) - rate(MORTALITY_INDEX);

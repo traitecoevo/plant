@@ -13,7 +13,7 @@ ff16 <- function(lifetime) {
   p
 }
 ctrl <- function(absorb = 0) {
-  Control(node_density_in_birth_date = TRUE, absorb_epsilon = absorb)
+  Control(node_density_coordinate = "birth_date", absorb_epsilon = absorb)
 }
 new_scm <- function(p, c) SCM("FF16", "FF16_Env")(p, Environment("FF16"), empty_events(), c)
 trapezium <- function(x, y) sum(diff(x) * (head(y, -1) + tail(y, -1)) / 2)
@@ -280,7 +280,7 @@ test_that("TF24 absorbs at its own asymptotic height", {
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 25, 1))
   env <- Environment("TF24")
   env$extrinsic_drivers_set_constant("rainfall", 1)
-  s <- run_scm(p, env, Control(node_density_in_birth_date = TRUE, absorb_epsilon = 0.05,
+  s <- run_scm(p, env, Control(node_density_coordinate = "birth_date", absorb_epsilon = 0.05,
                                ode_step_size_max = 0.05))
   layer <- s$patch$species[[1]]$top_layer
   pars <- p$strategies[[1]]$pars

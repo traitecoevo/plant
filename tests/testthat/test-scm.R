@@ -267,7 +267,7 @@ test_that("TF24's soil is substepped where that lets a step grow", {
     e
   }
   run <- function(substep, tol = 1e-5) {
-    run_scm(p, wet(), Control(node_density_in_birth_date = TRUE,
+    run_scm(p, wet(), Control(node_density_coordinate = "birth_date",
                               ode_tol_rel = tol, ode_tol_abs = 1e-4 * tol,
                               ode_soil_substep = substep))
   }
@@ -289,7 +289,11 @@ test_that("TF24's soil is substepped where that lets a step grow", {
   ## coupled.
   tight <- fitness(run(FALSE, 1e-8))
   error <- function(scm) abs(fitness(scm) / tight - 1)
-  expect_lt(error(substepped), 1e-5)
+  ## Within twice the tolerance rather than once: the error control reads the
+  ## RMS over every state, and TF24's three flexible-allometry states (#516) are
+  ## held at zero error by default, which loosens the effective tolerance: a
+  ## cohort carries eleven states where it carried eight (1.1e-5 measured).
+  expect_lt(error(substepped), 2e-5)
   expect_lt(error(run(TRUE, 3e-6)), error(substepped))
 })
 
@@ -310,8 +314,11 @@ test_that("A run's steps answer to the soil's tolerance scale, and at one to not
   base <- run()
   same_run(run(ode_tol_scale_soil = 1), base)
 
-  ## The soil binds steps, so loosening it lengthens them.
-  soil <- run(ode_tol_scale_soil = 10)
+  ## The soil binds steps, so loosening it lengthens them. By a hundredfold:
+  ## the error is an RMS over every state, and TF24's three flexible-allometry
+  ## states (#516), held at zero error, dilute the soil's share of it, so a
+  ## tenfold loosening no longer removes a step on this stand.
+  soil <- run(ode_tol_scale_soil = 100)
   expect_lt(length(soil$ode_times), length(base$ode_times))
 
   ## The soil's substeps take their tolerance from the control: at its default
@@ -364,7 +371,7 @@ test_that("TF24 takes a daily rain record without being stopped at its knots", {
   ## At 1e-6 the match is 3e-6 on macOS but 5e-5 on Windows; at 1e-7 it is
   ## about 1e-7 here, so the bound holds with a margin on every platform.
   for (setting in list(c(substep = TRUE, tol = 1e-7), c(substep = FALSE, tol = 1e-7))) {
-    ctrl <- Control(node_density_in_birth_date = TRUE,
+    ctrl <- Control(node_density_coordinate = "birth_date",
                     ode_tol_rel = setting[["tol"]],
                     ode_tol_abs = 1e-4 * setting[["tol"]],
                     ode_soil_substep = as.logical(setting[["substep"]]))
@@ -408,7 +415,7 @@ test_that("A run that substepped the soil is rerun, swept and invaded as it ran"
                                      0.25 * (1 + 0.95 * sin(2 * pi * t)))
     e
   }
-  ctrl <- Control(node_density_in_birth_date = TRUE, ode_tol_abs = 1e-8,
+  ctrl <- Control(node_density_coordinate = "birth_date", ode_tol_abs = 1e-8,
                   ode_soil_substep = TRUE)
   substepped <- run_scm(p, env(), ctrl, keep_states = TRUE)
   expect_gt(mean(lengths(substepped$ode_soil_substep_ends) > 0), 0.5)

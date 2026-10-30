@@ -1,16 +1,18 @@
 strategy_types <- get_list_of_strategy_types()
 environment_types <- get_list_of_environment_types()
 
-# Every reference in this file is a trapezium over node HEIGHTS, so these tests are
-# about the height coordinate and now say so rather than taking it from the
-# default, which carries the density in birth date. The two are different
-# functions, not two discretisations of one: on the birth-date abscissa these nodes
-# share an introduction time, so they span zero width and drop out of the
-# reductions altogether.
+## The blocks below build a Species directly, outside any Patch, introduce nodes
+## with the no-argument introduce_new_node() -- which leaves every node carrying
+## the same birth date -- and compare the result against cmp_compute_competition,
+## a height-coordinate oracle. They are therefore tests of the height trapezium
+## and have to name that coordinate: TF24 resolves Control's "auto" to birth
+## date, where coincident birth dates span zero width and the integral collapses
+## to exactly 0. A real run cannot reach that state (Patch checks the birth dates
+## are distinct and errors), but a bare Species has no such hook.
 height_coordinate_strategy <- function(x) {
   s <- strategy_types[[x]]()
   ctrl <- s$control
-  ctrl$node_density_in_birth_date <- FALSE
+  ctrl$node_density_coordinate <- "height"
   s$control <- ctrl
   s
 }

@@ -138,6 +138,13 @@ public:
 
   individual_type individual;
 
+  // Which coordinate this node's density is carried in. Resolves Control's
+  // "auto" against the strategy's own requirement; see control.h.
+  bool density_in_birth_date() const {
+    return plant::density_in_birth_date(individual.control(),
+                                        T::density_in_birth_date_default);
+  }
+
   // The five this node carries beside the individual's. `density` is among them
   // although every load rewrites it: a write keeps whatever slot the value
   // already held.
@@ -282,7 +289,7 @@ void Node<T,E>::compute_initial_conditions(const environment_type& environment,
   // has an establishment probability of exactly zero on the arm below
   // threshold, so both this and its derivative are exactly zero there.
   const value_type density_at_birth =
-    individual.control().node_density_in_birth_date
+    density_in_birth_date()
       ? birth_rate * pr_estab
       : (g > 0 ? birth_rate * pr_estab / g : value_type(0.0));
   // log() reaches -Inf from that zero through 0/0, so it records a non-finite

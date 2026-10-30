@@ -131,7 +131,7 @@ test_that("an invader introduced at the resume instant stands in the resident's 
   ## that insertion is the recording's first row after its start, so no step
   ## has handed the invader the resident's field yet, and made in the invader's
   ## own empty canopy its first cohort would be far off the resident's.
-  ctrl <- Control(node_density_in_birth_date = TRUE)
+  ctrl <- Control(node_density_coordinate = "birth_date")
   mk <- function(lifetime) {
     p <- scm_base_parameters("FF16")
     p$patch_type <- "fixed"
@@ -163,7 +163,7 @@ test_that("an invader of a resumed resident starts empty, at the resume time", {
   ## add_mutant() on the resumed parameters keeps their initial state, which
   ## would seed the invader with the resident's exported stand under its own
   ## traits; and an invader left at time zero is not where the pinned run starts.
-  ctrl <- Control(node_density_in_birth_date = TRUE)
+  ctrl <- Control(node_density_coordinate = "birth_date")
   mk <- function(lifetime) {
     p <- scm_base_parameters("FF16")
     p$patch_type <- "fixed"
