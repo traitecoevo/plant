@@ -321,8 +321,11 @@ test_that("nodes sharing a birth date are rejected in birth-date coordinates", {
   expect_error(Patch(x, e)(p_bad, Environment(x), ctrl_bd),
                "sharing an introduction time")
 
-  ## The height coordinate never integrates over these, so it is unaffected.
-  expect_no_error(Patch(x, e)(p_bad, Environment(x), Control()))
+  ## The height coordinate never integrates over these, so it is unaffected. Named
+  ## rather than taken from the default, which is the birth-date coordinate.
+  ctrl_h <- Control()
+  ctrl_h$node_density_coordinate <- "height"
+  expect_no_error(Patch(x, e)(p_bad, Environment(x), ctrl_h))
 })
 
 ## The coordinate is stored per strategy but cannot differ between the species
@@ -349,10 +352,12 @@ test_that("the patch control decides the coordinate for every species", {
     expect_true(s$density_in_birth_date)
   }
 
-  ## And the other way round: a patch built with the default control carries
-  ## every species in height, whatever the strategies say.
+  ## And the other way round: a patch built on the height coordinate carries every
+  ## species in height, whatever the strategies say.
+  ctrl_h <- Control()
+  ctrl_h$node_density_coordinate <- "height"
   p$strategies[[1]]$control <- ctrl_bd
-  patch_h <- Patch(x, e)(p, Environment(x), Control())
+  patch_h <- Patch(x, e)(p, Environment(x), ctrl_h)
   for (s in patch_h$species) {
     expect_false(s$density_in_birth_date)
   }
@@ -748,4 +753,29 @@ test_that("an unrecognised coordinate is refused rather than guessed", {
   expect_false(run_scm(p, Environment("FF16"),
                        Control(node_density_coordinate = ""))$
                  patch$species[[1]]$density_in_birth_date)
+})
+
+test_that("a dense birth-date stand steps over its dying cohorts", {
+  # At a high birth rate FF16's shaded cohorts die at rates of order 1e3 per
+  # year, and each one's rates switch off when its density underflows and its
+  # hazard reaches establishment_failure_hazard. A Runge-Kutta stage straddling
+  # that switch weighs a rate of -1e3 against zero, some weights negative, and
+  # can put a trial log density far above any real one. On the birth-date
+  # coordinate nothing raises a density, so the guard rejects such a stage and
+  # the stepper retries it smaller, where a stop would end the run.
+  p <- scm_base_parameters("FF16")
+  p$patch_type <- "fixed"
+  p$max_patch_lifetime <- 20
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 10)
+  p$node_schedule_times <- list(seq(0, 20, by = 1))
+  scm <- run_scm(p, ctrl = Control(node_density_coordinate = "birth_date"))
+  sp <- scm$patch$species[[1]]
+  # The run reached its end, and the shaded cohorts did die.
+  expect_equal(scm$time, 20)
+  expect_true(any(exp(sp$log_densities_state) == 0))
+  # A birth-date density only falls: none exceeds the largest at birth, which
+  # is log(birth rate) plus at most a few units of establishment and patch
+  # density.
+  expect_lt(max(sp$log_densities_state), log(10) + 1)
+  expect_true(is.finite(scm$offspring_production))
 })

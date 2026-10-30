@@ -6,14 +6,20 @@ test_that("Defaults", {
     node_gradient_richardson = FALSE,
     node_gradient_richardson_depth = 4, # size_t, so not int
     node_density_coordinate = "auto",
+    absorb_epsilon = 0.0,
 
     ode_a_dydt = 0.0,
     ode_a_y = 1.0,
     ode_step_size_initial = 1e-6,
     ode_step_size_max = 5,
     ode_step_size_min = 1e-6,
-    ode_tol_abs = 1e-4,
-    ode_tol_rel = 1e-4,
+    ode_tol_abs = 1e-5,
+    ode_tol_rel = 1e-5,
+    # Only a step across a knot of the rain substeps the soil.
+    ode_soil_substep = FALSE,
+    ode_soil_substep_tol = 1e-9,
+    # A scale of one leaves the soil's tolerance as it was.
+    ode_tol_scale_soil = 1,
     fixed_time_step = 0.0,
 
     function_integration_rule = 21, # size_t so not int
@@ -23,15 +29,25 @@ test_that("Defaults", {
 
     offspring_production_iterations = 1000, # size_t
     offspring_production_tol = 1e-8, # 1e-6, Had to change this...
-    
-    save_RK45_cache = FALSE,
 
     schedule_nsteps   = 20, # size_t
     schedule_eps      = 2e-2,
     schedule_verbose  = FALSE,
     
-    GSS_tol_abs = 1e-3,
-    vulnerability_curve_ncontrol = 1e2,
+    # The smallest profit curvature the reverse-mode collar response will divide
+    # by. Measured rather than chosen: the smallest magnitude over 1351 solved
+    # interior leaf states is 0.0623, so this sits sixty times below the range the
+    # model occupies.
+    gradient_curvature_floor = 1e-3,
+
+    # The leaf's own default too: a wider collapse width puts stands on a branch
+    # of the leaf solve that phylloptim's default never reaches (#654).
+    GSS_tol_abs = phylloptim::leaf_control()$GSS_tol_abs,
+    # Read rather than restated: this is the leaf's choice, and it lived as four
+    # separate numbers -- here, plant's Control, phylloptim's Leaf and
+    # phylloptim's R control -- of which plant's was the one every stand ran on.
+    vulnerability_curve_ncontrol =
+      phylloptim::leaf_control()$vulnerability_curve_ncontrol,
     ci_abs_tol = 1e-3,
     ci_niter = 1000
   )
@@ -43,4 +59,40 @@ test_that("Defaults", {
 
   expect_identical(sort(names(ctrl)), keys)
   expect_identical(unclass(ctrl)[keys], expected[keys])
+})
+
+test_that("a Control or Parameters saved before a field existed still loads", {
+  ## A field added later is opt-in and inert at its default, so an object that
+  ## predates it means the default. Simulated by dropping the newest fields.
+  ctrl <- Control(node_density_coordinate = "birth_date")
+  ctrl[["absorb_epsilon"]] <- NULL
+  ctrl[["gradient_curvature_floor"]] <- NULL
+  p <- scm_base_parameters("FF16")
+  p$max_patch_lifetime <- 5
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"))
+  old <- p
+  for (f in c("fitness_window_start", "fitness_window_end",
+              "fitness_window_weight_x", "fitness_window_weight_y")) {
+    old[[f]] <- NULL
+  }
+  old$strategies[[1]]$control[["absorb_epsilon"]] <- NULL
+  expect_false("absorb_epsilon" %in% names(ctrl))
+  expect_false("fitness_window_start" %in% names(old))
+  a <- run_scm(old, ctrl = ctrl)
+  b <- run_scm(p, ctrl = Control(node_density_coordinate = "birth_date"))
+  expect_identical(a$net_reproduction_ratios, b$net_reproduction_ratios)
+  expect_equal(a$parameters$fitness_window_start, 0)
+})
+
+test_that("a tolerance the stepper cannot use is refused", {
+  ## Refused where a patch takes its control, so a run fails before its first
+  ## step rather than at the step that reads the scale.
+  patch <- function(...) {
+    Patch("FF16", "FF16_Env")(Parameters("FF16", "FF16_Env")(),
+                              Environment("FF16"), Control(...))
+  }
+  expect_error(patch(ode_tol_scale_soil = 0), "must be positive")
+  expect_error(patch(ode_tol_scale_soil = NaN), "must be positive")
+  expect_error(patch(ode_soil_substep_tol = 0), "must be positive")
+  expect_no_error(patch(ode_tol_scale_soil = 100, ode_soil_substep_tol = 1e-7))
 })

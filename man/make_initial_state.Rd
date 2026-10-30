@@ -33,7 +33,7 @@ Supply this or \code{log_densities}.}
 A state list suitable for \code{\link{set_initial_state}}.
 }
 \description{
-Build an initial patch state from a specified size distribution, for seeding
+Build an initial patch state from a specified size distribution, for initialising
 a patch at age 0 with pre-existing plants instead of growing it from empty
 (the ecological motivation of \code{plant} issue #304). The returned object
 is consumed by \code{\link{set_initial_state}}.
@@ -42,7 +42,7 @@ is consumed by \code{\link{set_initial_state}}.
 Each species' initial nodes are described by their heights and densities;
 the remaining ODE state (mortality, fecundity, accumulated reproduction,
 heartwood, ...) starts at zero, all nodes are introduced at patch age 0, and
-the recruitment schedule continues for \code{t > 0} (the seeded distribution
+the recruitment schedule continues for \code{t > 0} (the initialised distribution
 replaces the \code{t = 0} recruit). Pathologically large/dense initial
 conditions can produce non-finite densities; \code{run_scm} guards against
 this and errors with a suggestion to use more plausible inputs.

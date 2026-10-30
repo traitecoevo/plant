@@ -25,24 +25,32 @@ S ff16_area_leaf(S a_l1, S a_l2, S height) {
   return pow(height / a_l1, 1.0 / a_l2);
 }
 
-// [eqn 12] Photosynthetic rate per leaf area; x is openness in [0,1].
+// [eqn 12] Photosynthetic rate per leaf area; x is openness in [0,1]. By const
+// reference because it runs at every crown quadrature point, where a copy of an
+// active scalar is a tape statement.
 template <typename S>
-S ff16_assimilation_leaf(S a_p1, S a_p2, S x) {
+S ff16_assimilation_leaf(const S& a_p1, const S& a_p2, const S& x) {
   return a_p1 * x / (x + a_p2);
 }
 
 // [eqn 13] Total maintenance respiration (linear in the mass cascade).
+// The coarse-root term is appended last so that at the default a_cr1 = 0 (hence
+// mass_coarse_root == 0) the sum is bit-identical to the pre-#349 expression.
 template <typename S>
 S ff16_respiration(S mass_leaf, S mass_sapwood, S mass_bark, S mass_root,
-                   S r_l, S r_s, S r_b, S r_r) {
-  return r_l * mass_leaf + r_b * mass_bark + r_s * mass_sapwood + r_r * mass_root;
+                   S mass_coarse_root,
+                   S r_l, S r_s, S r_b, S r_r, S r_cr) {
+  return r_l * mass_leaf + r_b * mass_bark + r_s * mass_sapwood + r_r * mass_root
+    + r_cr * mass_coarse_root;
 }
 
 // [eqn 14] Total turnover.
 template <typename S>
 S ff16_turnover(S mass_leaf, S mass_bark, S mass_sapwood, S mass_root,
-                S k_l, S k_b, S k_s, S k_r) {
-  return k_l * mass_leaf + k_b * mass_bark + k_s * mass_sapwood + k_r * mass_root;
+                S mass_coarse_root,
+                S k_l, S k_b, S k_s, S k_r, S k_cr) {
+  return k_l * mass_leaf + k_b * mass_bark + k_s * mass_sapwood + k_r * mass_root
+    + k_cr * mass_coarse_root;
 }
 
 // [eqn 15] Net production from assimilation/respiration/turnover.
@@ -57,10 +65,10 @@ S ff16_net_production_A(S a_bio, S a_y, S assimilation, S respiration, S turnove
 // functions directly with pars.* members.
 template <typename S>
 struct FF16ProdPars {
-  S lma, rho, theta, a_b1, a_r1, eta_c;
+  S lma, rho, theta, a_b1, a_r1, a_cr1, eta_c;
   S a_p1, a_p2;
-  S r_l, r_s, r_b, r_r;
-  S k_l, k_b, k_s, k_r;
+  S r_l, r_s, r_b, r_r, r_cr;
+  S k_l, k_b, k_s, k_r, k_cr;
   S a_bio, a_y;
 };
 
@@ -82,11 +90,14 @@ S ff16_net_from_components(const FF16ProdPars<S>& p, S height, S area_leaf,
   const S area_bark    = p.a_b1 * area_leaf * p.theta;
   const S mass_bark    = area_bark * height * p.eta_c * p.rho;
   const S mass_root    = p.a_r1 * area_leaf;
+  const S mass_coarse_root = p.a_cr1 * mass_sapwood;
 
   const S respiration = ff16_respiration(mass_leaf, mass_sapwood, mass_bark, mass_root,
-                                         p.r_l, p.r_s, p.r_b, p.r_r);
+                                         mass_coarse_root,
+                                         p.r_l, p.r_s, p.r_b, p.r_r, p.r_cr);
   const S turnover    = ff16_turnover(mass_leaf, mass_bark, mass_sapwood, mass_root,
-                                      p.k_l, p.k_b, p.k_s, p.k_r);
+                                      mass_coarse_root,
+                                      p.k_l, p.k_b, p.k_s, p.k_r, p.k_cr);
   return ff16_net_production_A(p.a_bio, p.a_y, assimilation, respiration, turnover);
 }
 
@@ -97,17 +108,17 @@ S ff16_net_mass_production_crown_top(const FF16ProdPars<S>& p,
   return ff16_net_from_components(p, height, area_leaf, assimilation);
 }
 
-// Deep-crown assimilation as a FROZEN-REPLAY weighted sum (#472 scope B,
-// Milestone B). The production model's default assimilation integrates
+// Deep-crown assimilation as a weighted sum over nodes a first pass placed. The
+// production model's default assimilation integrates
 // assimilation_leaf(light(z)) * q(z/height, z) over crown depth with adaptive
-// Gauss-Kronrod. Per the two-pass plan we do NOT differentiate the adaptive
-// controller: pass 1 (double) discovers the nodes z_j and the COMBINED weights
+// Gauss-Kronrod, and the adaptive controller is NOT differentiated: pass 1
+// (double) discovers the nodes z_j and the COMBINED weights
 // wq_j = w_j * q(z_j/height, z_j) (the leaf-area density q is constant in the
-// physiology traits, so it folds into the frozen weight); pass 2 replays
+// physiology traits, so it folds into the held weight); pass 2 replays
 //   A = area_leaf * sum_j wq_j * assimilation_leaf(a_p1, a_p2, light(z_j)).
-// `light` is any callable z -> S (e.g. an AD-capable resident light spline,
-// odelia::interpolator::basic_interpolator<S>), so A is differentiable w.r.t.
-// a_p1/a_p2 and w.r.t. light's knot values (the resident self-shading coupling).
+// `light` is any callable z -> S. The resident field is a hermite_interpolator<S>
+// carrying a value and a slope at every knot, so A is differentiable w.r.t.
+// a_p1/a_p2 and w.r.t. both halves of the field's knot data.
 template <typename S, typename LightFn>
 S ff16_assimilation_deep_crown_replay(S a_p1, S a_p2, S area_leaf,
                                       const std::vector<double>& z,

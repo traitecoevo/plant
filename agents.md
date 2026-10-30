@@ -95,7 +95,7 @@ Key headers to know:
 | Config | [parameters.h](inst/include/plant/parameters.h), [control.h](inst/include/plant/control.h) |
 | Disturbance | [disturbances/weibull_disturbance.h](inst/include/plant/disturbances/weibull_disturbance.h), `no_disturbance.h` |
 | Leaf-level physiology | [leaf_model.h](inst/include/plant/leaf_model.h) (photosynthesis + hydraulics; used by TF24) |
-| Numerics | [ode_solver/](inst/include/plant/ode_solver/), [qag.h](inst/include/plant/qag.h)/[qk.h](inst/include/plant/qk.h) (adaptive quadrature), [interpolator.h](inst/include/plant/interpolator.h)/[adaptive_interpolator.h](inst/include/plant/adaptive_interpolator.h), [uniroot.h](inst/include/plant/uniroot.h), [gradient.h](inst/include/plant/gradient.h) |
+| Numerics | [qag.h](inst/include/plant/qag.h)/[qk.h](inst/include/plant/qk.h) (adaptive quadrature), [uniroot.h](inst/include/plant/uniroot.h), [gradient.h](inst/include/plant/gradient.h); the ODE solver, interpolators and splines come from `odelia` (`LinkingTo`) |
 
 ### The `Strategy` contract
 
@@ -208,8 +208,9 @@ knowing before you go looking for a leaf bug here:
 - **Fix leaf physiology in `phylloptim`, not here.** It has its own golden-file
   regression baseline over 288 operating points and its own hazard list; a change
   made here would be invisible to both.
-- **The two repos move together.** plant tracks the package's `master` via
-  `Remotes:`, so a merge there is what changes results here. Any coupled change
+- **The two repos move together.** plant pins phylloptim to a commit in
+  `Remotes:` (and an exact version in `LinkingTo`), so bumping that pin is what
+  changes results here. Any coupled change
   lands as a pair of PRs, and the plant half is what re-baselines the SCM values.
 - **The leaf is purely intensive.** Every input is per unit leaf area or an
   intensive driver — whole-plant allometry (`kmax(h)`, root carbon totals) is
@@ -220,11 +221,15 @@ knowing before you go looking for a leaf bug here:
   carbon compiles fine, quietly weakens the root system by the leaf area, and
   **the leaf can no longer detect it** — the division used to happen inside the
   leaf and now happens here. See the NEWS entry.
-- **Do not open-code the layer thickness.** `root_network_from_carbon` scales the
-  vertical resistance by `dz^2`, and `phylloptim::layer_thickness()` is the shared
-  definition of `dz` that `MultiLayerRoots::set_soil_state` also uses. Two copies
-  drifting apart puts a silent squared factor on every vertical resistance, with
-  both halves internally consistent and neither package able to notice.
+- **Do not open-code the layer thickness, and do not switch it to the
+  environment's `dz`.** `root_network_from_carbon` scales the vertical resistance
+  by `dz[i]^2`, per layer since phylloptim 0.9.0. `TF24_Strategy` hands it
+  `phylloptim::layer_thicknesses(z)`, the shared definition, at both of its call
+  sites. The widths are `TF24_Environment`'s input and `z` is built from them, so
+  the differences are those widths to within rounding -- but not bit-exact: on
+  the default 1.5 m over 5 layers, layers 3-5 differ from `depth / n` in the last
+  bit, so reading `environment.dz` instead would move every TF24 number. Make
+  that switch at the next rebaseline (marked TODO at the call site).
 - **`nm` is how you diagnose a stale build.** See the `R CMD INSTALL` note in §6 —
   a header-only dependency changing underneath a stale `.o` produces an error that
   names an untouched field accessor.
@@ -375,6 +380,7 @@ Use the [Makefile](Makefile) targets. The dependency you must internalise:
 | `make roxygen` | `devtools::document()` → `man/` + `NAMESPACE` |
 | `make rebuild` | **The full pipeline:** `clean` → `RcppR6` → `full_compile` → `roxygen` |
 | `make test` | `make all` then `devtools::test()` |
+| `make test-installed` | run the suite against the plant installed in `R_LIBS`, not this checkout (§8) |
 | `make check` / `make build` / `make install` | `R CMD check` / `build` / `INSTALL` |
 | `make benchmark` | run `scripts/benchmark.R` |
 | `make scenarios` | run the TF24 hydraulic scenario gateway → writes a scorecard RDS (`scripts/run_scenario_gateway.R`) |
@@ -388,8 +394,8 @@ Practical rules:
 - **Edited only R code / roxygen comments?** `make roxygen` (then `devtools::load_all()`).
 - During development, `devtools::load_all()` is the fastest way to test changes.
 
-C++ standard is **C++20** (`CXX_STD = CXX20` in [src/Makevars](src/Makevars));
-note the README still mentions C++14. Requires R ≥ 4.5.0.
+C++ standard is **C++20** (`CXX_STD = CXX20` in [src/Makevars](src/Makevars)).
+Requires R ≥ 4.5.0.
 
 ### `R CMD INSTALL` does not clean, and a stale `.o` fails in a misleading way
 
@@ -460,6 +466,16 @@ The three shipped models:
 - **K93** — Kohyama 1993, a simpler size-structured model.
 - **TF24** — newer model using the leaf-level [Leaf](inst/include/plant/leaf_model.h)
   photosynthesis/hydraulics submodel (incl. the recently added Medlyn stomatal model).
+- **TF24w** — TF24 with a private root-zone soil column per cohort (#681;
+  [tf24w_strategy.h](inst/include/plant/models/tf24w_strategy.h)). A subclass
+  like TF24f, with five water states appended, because `state_size()` is static
+  and a parameter-dependent count is not feasible. Its coupling between cohorts
+  (mixing toward the patch mean, land transfer as crowns grow, die and overlap)
+  is two extra passes in `Patch::compute_rates` guarded by the
+  `HasPrivateWater<T>` concept, so no other model pays for them. Limits, each
+  refused where first seen: birth-date coordinate only, no gradient path, no
+  stochastic patch, at most five soil layers. The pooled limit (large
+  `water_mixing_rate`) reproduces TF24 to the mixing lag and is the validation.
 
 ### Scientific versioning — bump when the science changes
 
@@ -483,17 +499,22 @@ Rules:
   often and will bump frequently. Read the current values with `model_id()` rather than trusting this line.
 - **TF24f is a compound version.** It is a fast *approximation* of TF24 that
   inherits TF24's equations/parameters, so its version is
-  `"<TF24 version>.<approximation revision>"` (`TF24f@v2.1`). The major
+  `"<TF24 version>.<approximation revision>"` (`TF24f@v5.1`). The major
   component auto-tracks `TF24_Strategy::scientific_version` (a TF24 change
   invalidates TF24f too — the safe direction); bump `approximation_revision`
   (in `tf24f_strategy.h`) only for changes specific to the fast approximation.
   `model_version()` therefore returns a **string** (`"1"`, `"2.1"`), not an
   integer.
+- **TF24w is a compound version the same way**, `"<TF24 version>.<private
+  water revision>"` (`TF24w@v11.1`); bump `private_water_revision` (in
+  `tf24w_strategy.h`) for changes to the private-water model itself.
 - A bump is deliberate: it invalidates that model's `logpile` cache and forces
   reruns. The drift-guard test [tests/testthat/test-model-version.R](tests/testthat/test-model-version.R)
   fails when a default changes without a bump (snapshot of each model's default
   `pars`/`control`); pure equation changes are not auto-detected and rely on
-  review. Adding a new model → add its constant and a dispatch arm in
+  review. **The drift guard skips on CRAN**, and so does the scenario gateway,
+  so in an invocation that sets that flag a bump has no live gate at all: check
+  both ran before believing one. Adding a new model → add its constant and a dispatch arm in
   `src/strategy_version.cpp` (the scaffolder should do this).
 
 ---
@@ -509,6 +530,25 @@ numerics you may need to regenerate these.
 
 Run the suite with `make test` or `devtools::test()`; a single file with
 `devtools::test_active_file()` or `testthat::test_file(...)`.
+
+To test an **installed** plant rather than this checkout (a build against a
+bumped odelia or phylloptim, say), run `R_LIBS=<lib> make test-installed`. It
+prints where plant was loaded from; read that line, because a missing library
+falls back silently to whichever plant is in the default library. The target
+exists because each of its settings fails quietly when left out:
+
+- It calls `test_check("plant")` from `tests/`. `test_check` evaluates the tests
+  in plant's namespace, where the RcppR6 internals (`Parameters`, `Species`,
+  `SCM`, ...) live. `test_dir()` uses the global environment and reports about
+  ninety "could not find function" errors that look like a broken build, and
+  `test_check` run from the package root finds no test files.
+- It sets `TESTTHAT_PARALLEL=false`, because the parallel workers do not inherit
+  `R_LIBS` and fail with an unrelated-looking `queue$poll` backtrace.
+- It sets `NOT_CRAN=true`, without which a set of tests skips, and a summary
+  reporter shows a skip no differently from a pass.
+
+The pass count depends on the environment, so compare it with a control run of
+the same invocation against a reference build, not with a remembered number.
 
 The suite runs under testthat **edition 3** and is parallelised by file
 (`Config/testthat/parallel: true` in `DESCRIPTION`). testthat takes the worker
@@ -639,6 +679,20 @@ repo's README for how it renders, freezes (`_freeze/`), and version-pins posts.
   The one deliberate asymmetry: `TF24_Pars` exposes `root_b` (the Weibull scale)
   where phylloptim takes `root_P50` (the quantile), so `prepare_strategy()`
   converts — those are different quantities, not a naming mismatch.
+- ⚠️ **Never put a non-finite number in an ODE state, and do not read
+  `check_finite_ode_state` as protection against one.** It tests the cohort
+  density (`exp(log_density)`, so `-Inf` passes as a finite zero) and the
+  environment's own states; the six slots `Strategy::state_names()` declares and
+  the node's two extras are not looked at. A `+Inf` hazard from `-log(0)` at an
+  establishment probability of exactly zero therefore ran for years: every reader
+  is guarded (`is_finite` tests, or `exp(-mortality)`, which is zero either way),
+  so the forward model is right and silent, while the recorded trajectory the
+  reverse sweep replays carries an entry no row can attach to and **every census
+  metric comes back not-a-number with no refusal declared** — which the parity
+  gate cannot see, because there is nothing to name. Where a sentinel is wanted,
+  pick a finite one whose consumers read the same numbers: `establishment_failure_hazard`
+  is 750 because `exp(-x)` is exactly zero past 745.14. `test-gradient-parity.R`
+  asserts every recorded state is finite on all five drivers.
 - ⚠️ **`phylloptim` and `odelia` are pinned with `==` in `LinkingTo`, deliberately.**
   Both are compiled into plant and plant's baselines are bit-exact, so a `>=`
   bound lets a later upstream release change plant's arithmetic with no local
@@ -683,16 +737,20 @@ follow-up [#470] (LTO).
   timestep by evaluating cumulative competition at a fixed set of heights; each
   individual then queries the environment with an O(1) spline lookup
   (`get_environment_at_height`). Cost becomes O(n) to build + O(1) per query.
-- **Uniform-grid O(1) spline index.** `tk::spline::operator()`
-  ([tk/spline.h](inst/include/tk/spline.h), [src/tk_spline.cpp](src/tk_spline.cpp))
-  detects an equidistant knot grid in `set_points()` and replaces the
-  `std::lower_bound` binary search with direct index arithmetic. Falls back to
-  binary search for adaptive/non-uniform grids. ([#435])
-- **Finite-difference gradient without reallocation.**
-  `Node::growth_rate_gradient()` ([node.h](inst/include/plant/node.h)) needs a
-  mutable `Individual` to perturb height on; it reuses a `thread_local` scratch
-  (copy-*assigned* each call, reusing vector storage) instead of
-  copy-constructing fresh `Internals` every call.
+- **O(1) spline lookup.** odelia's `hermite_spline` (`odelia/spline.hpp`)
+  checks in `set_nodes()` whether its knots are equally spaced. If they are, it
+  finds a point's span by arithmetic instead of a binary search; if not, it
+  guesses from the mean spacing and steps to the right span. ([#435])
+- **Finite-difference gradient: a copy, and deliberately not a scratch.**
+  `Individual::growth_rate_gradient()`
+  ([individual.h](inst/include/plant/individual.h)) needs a mutable `Individual` to
+  perturb height on, and copy-constructs one per call. A `thread_local` scratch was
+  tried and removed: three arrangements measured within 1.5%, and the function has
+  since moved to `Individual` and become scalar-templated, so a cached scratch would
+  exist at the active type and carry tape slots across recordings — the aliasing
+  failure `scm.h` records, for 1.5%. **Do not reintroduce it.** The copy is also
+  absent from the gradient path entirely: `log_density_rate` calls this only on the
+  height coordinate, and the reverse pass runs on the birth-date one.
 
 **Templated headers & inlining (this build has _no_ LTO).** `src/Makevars` uses
 `CXX_STD = CXX20` with no `-flto` and `DESCRIPTION` has no `UseLTO`, so a
@@ -769,6 +827,114 @@ explicit tolerance (noted in that file).
 [#466]: https://github.com/traitecoevo/plant/issues/466
 [#470]: https://github.com/traitecoevo/plant/issues/470
 
+---
+
+## 13. Writing a model that carries an active scalar
+
+A model is templated on the scalar `S` it carries: its state, its traits and
+everything derived from them. `double` is production; an active `S` records the
+computation so a derivative can be taken from it. Write the science once. If new
+physiology does not compile at the active scalar, that is the design working —
+it is telling you the quantity you just wrote is not differentiable the way you
+wrote it, and the rules below are the reasons why.
+
+**Fractions are `double`; positions and values carry `S`.** A knot fraction, a
+quadrature abscissa as a fraction of an interval and a sort key are decided on
+passive values, and declaring them `double` says so. The *position* built from
+one is not: a crown abscissa is `height · ξ`, and reading the field at the
+fraction rather than at the position makes `d/d(height)` exactly zero. A knot
+*count* that depends on an active value makes the recorded computation depend on
+the state.
+
+**Declare an inner solve by its residual**, through `implicit_value`. Never
+differentiate the iteration that found the root: a golden-section result is
+affine in its bracket and independent of the objective's values, so recording
+the search returns the bracket's derivative.
+
+**Never define a rate as a numerical derivative of an active quantity.** If a
+rate is a difference, difference on a grid the model already has.
+
+**A clamp, floor, `min`/`max` or `if` on a computed value is a derivative
+decision.** Record it with the incidence that justifies it.
+
+**Never give a deduced return type to anything returning an active value.** The
+AD operators return expression templates holding references to their operands,
+so a deduced return type hands the caller references to temporaries that die on
+return; the reverse sweep then reads reused stack memory and segfaults
+arbitrarily far from the cause, invisibly to valgrind. Declare the scalar return
+type on every such function and lambda, including one-line helpers:
+
+```cpp
+// BAD  -- returns a dangling expression template
+auto anchor = [](double v, S x) { return S(v) + (x - to_passive(x)); };
+// GOOD -- the same arithmetic, materialised while its operands are alive
+auto anchor = [](double v, const S& x) -> S { return S(v) + (x - to_passive(x)); };
+```
+
+The two differ only in `-> S` and taking `x` by reference. That is the whole
+lesson: the fix is the declared return type.
+
+**A supplied derivative cannot be checked against the value it is attached to.**
+Where a submodel hands back constants and its partials are attached by hand, the
+recorded expression is `value + Σ partial_i * (x_i - to_passive(x_i))`: exact in
+the derivative and **identically zero in the value**, by construction. So a finite
+difference of that function is zero on every supplied input whether the
+partials are there, wrong, or silently dropped — and dropping them gives a
+gradient column of exactly zero, which reads as an answer. Two rules follow.
+Build the input vector from the submodel's own `inputs()`, name-driven,
+with a hard stop on a name you cannot map, so a widened boundary is a compile or
+run failure rather than a shorter vector. And never `resize` a partials row to
+fit the inputs you happened to build: check the length and fail.
+
+**Two arguments of one type with unrelated meanings is a silent-swap hazard**,
+the more so under templating, because a template argument makes both of them the
+same type wherever it is instantiated. Prefer a named struct or distinct types;
+where you cannot, the call sites are a review checklist rather than a compiler's
+problem.
+
+### Adding a census metric
+
+A census metric is a weighted reduction over the size distribution: the
+trapezium integral of `n_k * psi(state_k)` over the cohort heights, with
+`n_k = exp(l_k)`. `Species::census(psi)` owns the reduction and `psi` owns the
+quantity. Because the metrics travel as a tuple, the codomain of a census — and
+of its gradient — is the tuple's size, so a metric is added without touching the
+reduction, the reverse pass or `odelia`. Four steps:
+
+1. **Write the metric** as a struct in `namespace census_metric`
+   ([inst/include/plant/species.h](inst/include/plant/species.h)), with a
+   templated `operator()(const Strategy&, const Individual&)` returning
+   `typename Individual::value_type`, and a `name()`. It reads the strategy and
+   one cohort and nothing else; a metric with a height cut of its own applies
+   the cut inside `operator()`. Declare the return type — the AD operators
+   return expression templates, and a deduced one dangles (above).
+2. **Add its name to `tf24_census`**, the tuple below the metrics in the same
+   file. That is the one-word change: `census()`,
+   `census_state_adjoint()` and `census_trait_gradient()` in
+   [inst/include/plant/scm.h](inst/include/plant/scm.h) all fold over the tuple,
+   and `census_metric_names_tf24()` reports it, so the new row appears in the
+   value, in the seed and in the gradient with no further edit.
+3. **Rebuild.** No export signature changes and no new symbol reaches R, so
+   `make RcppR6` and `make attributes` have nothing to do. `tf24_census` is named
+   in exactly one translation unit,
+   [src/census_gradient.cpp](src/census_gradient.cpp), so `touch` it and
+   `pkgbuild::compile_dll()` — one file compiles and the library relinks. Any
+   other edit to `species.h` needs `rm -f src/*.o` first, because the header is
+   inline and R's make does not track header dependencies.
+4. **Assert its value and one non-zero gradient row.** The value against an
+   independent R-side computation from the tidied output, and the gradient row
+   against a trait that genuinely moves it — a row of exact zeros reads as an
+   answer and is this design's worst failure mode, so name the trait and say why
+   it moves the metric.
+
+What a metric may *not* do: read another cohort, read the light field, or carry
+a state of its own. Each of those makes it a term in the rates rather than a
+functional of the state at one time, and the seeding in
+`SCM::census_state_adjoint` — one recording of the reduction with the ODE state
+as its inputs — would no longer be the whole derivative.
+
+---
+
 ## Issue & project-board conventions
 
 Development across `plant`, `regnans`, and `overstorey` is tracked on a
@@ -809,6 +975,22 @@ When opening an issue (including whenever the user asks you to create one), alwa
 Create issues with `gh issue create -R traitecoevo/plant --title "[tag] …"
 --label task` (swap in `bug`/`epic` as appropriate).
 
+
+## Writing in this guide
+
+This file is read in full at the start of every agent session, as current
+instructions, by a reader who was not in your session and cannot tell which
+parts are out of date. When you change it:
+
+- Write what is true now, in the present tense. If something here turns out to
+  be wrong, replace it; the story of how you found out belongs in the PR.
+- Give each rule its reason, in plain case. A reason persuades where capitals
+  and warning signs do not.
+- Point to where a value lives (`DESCRIPTION`, a header, a Makefile target)
+  rather than copying the value, and leave out anything a fresh clone cannot
+  resolve, such as local paths or notes from one session.
+- Write in complete sentences that say what happens and what it causes, using
+  names that already exist in the code.
 
 ## Plant family
 

@@ -152,10 +152,7 @@ test_that("the demo's equations reproduce the C++ departure rates", {
     g <- grid[i, ]
     env$set_soil_water_state(rep(g$theta_soil, 5))
     ind <- TF24_Individual(s)
-    ind$set_state("height", g$height)
-    ind$set_state("log_area_leaf_departure", g$phi)
-    ind$set_state("log_area_sapwood_departure", g$psi)
-    ind$set_initial_states(env)
+    tf24_seat(ind, env, g$height, phi = g$phi, psi = g$psi)
     ind$compute_rates(env)
 
     parts <- tf24_departure_rates_r(
@@ -195,7 +192,7 @@ test_that("the elasticity rises with height, and the criterion tracks dP/dA", {
   skip_on_cran()
   source(demo_helpers, local = TRUE)
 
-  z <- lapply(c(5, 10, 15, 20), allometry_carbon_terms, theta_soil = 0.20)
+  z <- lapply(c(5, 10, 15, 20, 25), allometry_carbon_terms, theta_soil = 0.20)
   eta   <- vapply(z, `[[`, numeric(1), "eta")
   kappa <- vapply(z, `[[`, numeric(1), "kappa")
   dPdA  <- vapply(z, `[[`, numeric(1), "dPdA")
@@ -210,8 +207,10 @@ test_that("the elasticity rises with height, and the criterion tracks dP/dA", {
   ## area is actively counterproductive: removing leaves raises TOTAL
   ## assimilation. Where the crossing sits is set by the height-resistance
   ## relation, so it moved when #617 replaced that with a path integral (eta at
-  ## 15 m went from above 1 to 1.03, and it is 1.40 at 20 m). The crossing
-  ## EXISTING is the claim; its location is the hydraulics' to set.
+  ## 15 m went from above 1 to 1.03, and 1.40 at 20 m), and again under the
+  ## v13 light chain, whose brighter default leaves plants less supply-limited
+  ## (0.82 at 20 m, 1.03 at 25 m). The crossing EXISTING is the claim; its
+  ## location is the hydraulics' to set.
   expect_lt(eta[[1]], 1)                      # short plants: supply is not binding
   expect_gt(eta[[length(eta)]], 1)            # tall ones: it is
 
@@ -222,7 +221,7 @@ test_that("the elasticity rises with height, and the criterion tracks dP/dA", {
 
   ## A short 5 m plant in moist soil should not shed; a tall one should.
   expect_gt(dPdA[[1]], 0)
-  expect_lt(dPdA[[4]], 0)
+  expect_lt(dPdA[[4]], 0)                     # 20 m
 })
 
 test_that("shedding is measured at fixed sapwood, which is what thinning does", {
@@ -234,16 +233,17 @@ test_that("shedding is measured at fixed sapwood, which is what thinning does", 
   ## ALONG the allometry, not thinning, and gets the sign wrong where it
   ## matters. allometry_carbon_terms() holds A_s fixed and asserts it does; this
   ## checks the assertion is load-bearing by confirming the two differ.
-  z <- allometry_carbon_terms(15, theta_soil = 0.20)
+  ## At 20 m, where shedding pays in this soil (since the v13 light chain it
+  ## does not yet at 15 m).
+  z <- allometry_carbon_terms(20, theta_soil = 0.20)
   expect_lt(z$dPdA, 0)                       # at fixed sapwood: shedding helps
 
   s <- TF24_Strategy(collect_all_auxiliary = TRUE)
   along <- function(phi) {
     e <- tf24_demo_env(0.20)
     i <- TF24_Individual(s)
-    i$set_state("height", 15)
-    i$set_state("log_area_leaf_departure", phi)   # psi left at 0: A_s follows A
-    i$set_initial_states(e); i$compute_rates(e)
+    tf24_seat(i, e, 20, phi = phi)   # psi left at 0: A_s follows A
+    i$compute_rates(e)
     c(A = i$aux("competition_effect"), P = i$aux("net_mass_production_dt"))
   }
   a <- along(0); b <- along(-0.02)
@@ -267,15 +267,19 @@ test_that("the demo's sapwood-controller claims hold", {
   ## for this purpose and it is also repelling (R_s jumps to +0.25 immediately
   ## above it), so a plant never rests there -- but min|R_s| finds it whenever
   ## the grid reaches far enough down, and reports the controller as broken.
+  ##
+  ## The zero lies between two grid points, so the claim is that the growth
+  ## peak is one of the two that bracket it. Asserting either one alone passes
+  ## or fails by where the peak happens to fall within the cell.
   crossing <- function(d) {
     sg <- sign(d$R_s)
     i <- which(sg[-length(sg)] > 0 & sg[-1] <= 0)
-    d$huber_ratio[i[length(i)]]
+    i[length(i)]
   }
   for (nm in names(ctl)) {
     d <- ctl[[nm]]
-    expect_equal(crossing(d), d$huber_ratio[which.max(d$dheight)],
-                 tolerance = 0.02)
+    i <- crossing(d)
+    expect_true(which.max(d$dheight) %in% c(i, i + 1L), info = nm)
   }
 
   ## The optimum moves with soil water: a drier plant wants MORE stem per leaf.
@@ -312,8 +316,10 @@ test_that("the demo's 'does not buy survival' claims still hold", {
   expect_true(all(mild$min_canopy > 0.99))
   expect_true(all(abs(mild$gain - 1) < 0.01))
 
+  ## (Under the v13 light chain it has thinned by 2.4%, where it used to be
+  ## untouched to 1e-3 -- still nowhere near the canopy a plant sheds to.)
   mid10 <- g[g$theta_dry == 0.140 & g$height == 10, ]
-  expect_equal(mid10$min_canopy, 1, tolerance = 1e-3)   # has not thinned
+  expect_gt(mid10$min_canopy, 0.95)                     # has barely thinned
   expect_lt(mid10$S_fixed, 1e-5)                        # and is already dead
 
   ## 2. NO RESCUE. The large ratios sit between two very small numbers, so the
@@ -339,14 +345,13 @@ test_that("the demo's 'does not buy survival' claims still hold", {
   ## 3. Thinning improves the per-leaf carbon balance but cannot close it --
   ##    the argument that REPLACED "thinning cuts income just as fast" when the
   ##    stem path integral landed. An interior optimum, and still negative.
-  per_area <- vapply(c(0, -0.7, -1.6, -2.3, -3.0, -4.0), function(k) {
+  ##    Since the v13 light chain the optimum sits near phi = -4, about 2% of
+  ##    full canopy, so the grid runs past it.
+  per_area <- vapply(c(0, -0.7, -1.6, -2.3, -3.0, -4.0, -5.0), function(k) {
     s <- TF24_Strategy(collect_all_auxiliary = TRUE)
     ind <- TF24_Individual(s)
-    ind$set_state("height", 10)
-    ind$set_state("log_area_leaf_departure", k)
-    ind$set_state("log_area_sapwood_departure", -k * 0.35)
     env <- tf24_demo_env(0.13)
-    ind$set_initial_states(env)
+    tf24_seat(ind, env, 10, phi = k, psi = -k * 0.35)
     ind$compute_rates(env)
     ind$aux("net_mass_production_dt") / ind$aux("competition_effect")
   }, numeric(1))

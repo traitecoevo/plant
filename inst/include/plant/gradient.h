@@ -4,46 +4,66 @@
 
 #include <vector>
 #include <cmath>
+#include <concepts>
 #include <cstddef>
 #include <limits>
+#include <type_traits>
 
 namespace plant {
 namespace util {
 
+// The scalar is deduced from the point the derivative is taken at, so a double
+// caller instantiates at double and gets the arithmetic that was here. The step
+// stays double: it is a spacing, not a position, and nothing differentiates it.
+
+// The integrand has to return the scalar of the point it is evaluated at. An
+// integrand returning double at an active point takes the value of an active
+// quantity, so every quotient below is exactly zero while the result's type
+// stays active and nothing is raised.
+template <typename Function, typename S>
+concept integrand_of =
+  std::same_as<std::invoke_result_t<Function&, const S&>, S>;
+
 // A. One-shot
 
 // 1. Forward difference:
-template <typename Function>
-double gradient_fd_forward(Function f, double x, double dx) {
-  return gradient_fd_forward(f, x, dx, f(x));
-}
-template <typename Function>
-double gradient_fd_forward(Function f, double x, double dx, double fx) {
+template <typename Function, typename S>
+  requires integrand_of<Function, S>
+S gradient_fd_forward(Function f, const S& x, double dx, const S& fx) {
   return (f(x + dx) - fx) / dx;
+}
+template <typename Function, typename S>
+  requires integrand_of<Function, S>
+S gradient_fd_forward(Function f, const S& x, double dx) {
+  return gradient_fd_forward(f, x, dx, S(f(x)));
 }
 
 // 2. Backward difference (just wraps around forward difference with
 // the direction flipped)
-template <typename Function>
-double gradient_fd_backward(Function f, double x, double dx) {
+template <typename Function, typename S>
+  requires integrand_of<Function, S>
+S gradient_fd_backward(Function f, const S& x, double dx) {
   return gradient_fd_forward(f, x, -dx);
 }
 
-template <typename Function>
-double gradient_fd_backward(Function f, double x, double dx, double fx) {
+template <typename Function, typename S>
+  requires integrand_of<Function, S>
+S gradient_fd_backward(Function f, const S& x, double dx, const S& fx) {
   return gradient_fd_forward(f, x, -dx, fx);
 }
 
 // 3. Centre (can't use f(x))
-template <typename Function>
-double gradient_fd_centre(Function f, double x, double dx) {
+template <typename Function, typename S>
+  requires integrand_of<Function, S>
+S gradient_fd_centre(Function f, const S& x, double dx) {
   const double dx2 = dx / 2;
   return (f(x + dx2) - f(x - dx2)) / dx;
 }
 
 // 4. Wrapper:
-template <typename Function>
-double gradient_fd(Function f, double x, double dx, int direction) {
+template <typename Function, typename S>
+  requires integrand_of<Function, S>
+S gradient_fd(Function f, const S& x, double dx, int direction) {
   if (direction < 0) {
     return gradient_fd_backward(f, x, dx);
   } else if (direction == 0) {
@@ -53,8 +73,9 @@ double gradient_fd(Function f, double x, double dx, int direction) {
   }
 }
 
-template <typename Function>
-double gradient_fd(Function f, double x, double dx, double fx, int direction) {
+template <typename Function, typename S>
+  requires integrand_of<Function, S>
+S gradient_fd(Function f, const S& x, double dx, const S& fx, int direction) {
   if (direction < 0) {
     return gradient_fd_backward(f, x, dx, fx);
   } else if (direction == 0) {
@@ -95,22 +116,26 @@ double gradient_fd(Function f, double x, double dx, double fx, int direction) {
 //       value of m by one each until m equals r-1
 //
 //-------------------------------------------------------------------------
-template <typename Function>
-double gradient_richardson(Function f, double x, double d, size_t r) {
+template <typename Function, typename S>
+  requires integrand_of<Function, S>
+S gradient_richardson(Function f, const S& x, double d, size_t r) {
   const size_t v = 2; // this value is required by scheme (above)
   const double zero_tol = sqrt(std::numeric_limits<double>::epsilon())/7e-7;
 
+  // Unqualified so an active scalar reaches its own abs by name, and std::abs
+  // still answers for double.
+  using std::abs;
   // Initial offset (see above).
-  double h = std::abs(d * x) + d * (std::abs(x) < zero_tol);
+  S h = abs(d * x) + d * (abs(x) < zero_tol);
 
-  std::vector<double> a;
+  std::vector<S> a;
   for (size_t i = 0; i < r; i++, h /= v) {
     a.push_back((f(x + h) - f(x - h))/(2*h));
   }
 
   for (size_t m = 1; m < r; ++m) {
     const double four_m = pow(4.0, m);
-    std::vector<double> a_next;
+    std::vector<S> a_next;
     for (size_t i = 0; i < r - m; ++i) {
       a_next.push_back((a[i+1]*four_m - a[i])/(four_m - 1));
     }

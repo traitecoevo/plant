@@ -5,11 +5,11 @@
 // Helpers for TF24f model
 
 // [[Rcpp::export]]
-plant::NodeSchedule node_schedule_default__Parameters___TF24f__TF24_Env(const plant::Parameters<plant::TF24f_Strategy,plant::TF24_Environment>& p) {
-   return plant::node_schedule_default<plant::Parameters<plant::TF24f_Strategy,plant::TF24_Environment> >(p);
+plant::NodeSchedule node_schedule_default__Parameters___TF24f__TF24_Env(const plant::Parameters<plant::TF24f_Strategy<double>,plant::TF24_Environment<double>>& p) {
+   return plant::node_schedule_default<plant::Parameters<plant::TF24f_Strategy<double>,plant::TF24_Environment<double>> >(p);
 }
 
 // [[Rcpp::export]]
-plant::NodeSchedule make_node_schedule__Parameters___TF24f__TF24_Env(const plant::Parameters<plant::TF24f_Strategy,plant::TF24_Environment>& p) {
-   return plant::make_node_schedule<plant::Parameters<plant::TF24f_Strategy,plant::TF24_Environment> >(p);
+plant::NodeSchedule make_node_schedule__Parameters___TF24f__TF24_Env(const plant::Parameters<plant::TF24f_Strategy<double>,plant::TF24_Environment<double>>& p) {
+   return plant::make_node_schedule<plant::Parameters<plant::TF24f_Strategy<double>,plant::TF24_Environment<double>> >(p);
 }

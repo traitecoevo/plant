@@ -5,15 +5,21 @@
 #include <plant/parameters.h>
 #include <plant/species.h>
 #include <plant/util.h>
-#include <plant/adaptive_interpolator.h> // interpolator::refinement_failure
+#include <plant/clamp_sites.h>
 #include <odelia/ode_interface.hpp>
+#include <odelia/sweep.hpp>
 #include <odelia/ode_util.hpp> // odelia::util::stop_domain
 
 #include <plant/disturbance_regime.h>
+#include <plant/with_slope.h>
 
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <optional>
+#include <sstream>
+#include <map>
+#include <memory>
 #include <string>
 #include <utility> // std::pair
 
@@ -21,10 +27,108 @@ using namespace Rcpp;
 
 namespace plant {
 
+// A strategy whose inner solve makes a choice the state leaves open, and which keeps
+// what it chose so a pass re-running the model over the same states places it rather
+// than searching for it again. The patch hands down the address of the rate
+// evaluation now running; a strategy with no such solve declares neither member and
+// the forwarding compiles away.
+template <typename T>
+concept KeepsSolvedChoices =
+  requires(T& s, typename T::solved_values& into,
+           const typename T::solved_values& from) {
+    s.store_solved(into);
+    s.load_solved(from);
+    s.end_solved();
+  };
+
+// A strategy or environment named at scalar U: the type its own rebind returns.
+// Named from the factory rather than from a second alias beside it, so there is
+// one answer to "what is this at another scalar" and a type that cannot rebind
+// says so here rather than further in.
+//
+// Written as a trait with a `void` fallback rather than a bare decltype alias,
+// and for a compiler reason: clang substitutes a member template's declaration
+// -- its default template arguments and its return type -- when the enclosing
+// class is instantiated, where GCC defers until the member is used. A bare
+// alias naming `X::rebind` is then a hard error the moment
+// `Patch<FF16_Strategy, ...>` exists, because FF16 and K93 declare no
+// `rebind`. The `void` fallback turns that into a type nothing
+// instantiates, and `Patch::rebind` is constrained on it below.
+template <typename X, typename U, typename = void>
+struct at_scalar_impl { using type = void; };
+template <typename X, typename U>
+struct at_scalar_impl<X, U,
+  std::void_t<decltype(std::declval<const X&>().template rebind<U>())>> {
+  using type = decltype(std::declval<const X&>().template rebind<U>());
+};
+template <typename X, typename U>
+using at_scalar = typename at_scalar_impl<X, U>::type;
+// Both halves of a patch can be named at scalar U.
+template <typename T, typename E, typename U>
+concept PatchRebindable =
+  !std::is_void_v<at_scalar<T, U>> && !std::is_void_v<at_scalar<E, U>>;
+
+// An environment with soil layers: its first n_resources() states, which read
+// the plants only through the uptake from each.
+template <typename E>
+concept HasSoil =
+  requires(const E& e, double time, std::vector<typename E::value_type>& u) {
+  { e.resource_uptake } -> std::convertible_to<std::vector<typename E::value_type>>;
+  e.layer_rates(time, u, u, u);
+  { e.rainfall_knots(time, time) } -> std::same_as<std::vector<double>>;
+};
+
+// The scalar a forward tangent runs on, and the two things done to one: set a
+// direction, read the derivative it produced. Brought in here once, so no header
+// in this package names the AD library at all -- and so that setting a direction
+// on an adjoint scalar by mistake, which the library spells identically and
+// answers with nothing, does not compile.
+using tangent = odelia::ode::tangent_scalar<double>;
+using odelia::ode::set_direction;
+using odelia::ode::derivative_along;
+
+// One accepted step. The state widens at an introduction, so the record is ragged.
+// ⚠️ DOUBLES, NOT AN ENVIRONMENT. A recording is taken at `double` and handed to
+// whatever scalar a later pass runs at -- the sweep lifts the system and replays
+// the same rows -- so a recorded number that carried the working scalar could not
+// be handed over at all. It is the same reason `leaf_solved_point` is a collar
+// and an arm rather than a Leaf. And it is the cheap form besides: what an
+// environment costs is its interpolant's adaptive builder and band-solve
+// workspace, which no replay reads.
+struct recorded_field {
+  // What Environment::r_init_interpolators() reads: knots, values, slopes.
+  std::vector<double> interpolators;
+  // The environment's own ODE state -- for TF24 the soil water, which is half of
+  // what a competitor competes for.
+  std::vector<double> state;
+  double time = 0.0;
+  // Said rather than inferred from the two being empty: an environment with no
+  // interpolant and no state of its own is a thing that exists.
+  bool kept = false;
+};
+
+// One rate evaluation's record: what each species solved for, and the field it
+// was taken in. Templated on the strategy's own recorded type rather than nested
+// in Patch, so that a patch and the same patch lifted to an active scalar name
+// ONE type -- see the alias in Patch for why that is load-bearing.
+template <typename StrategySolved>
+struct patch_solved_values {
+  // Empty for a strategy that solves for nothing, which is what keeps this
+  // well-formed for a patch whose state determines everything it does.
+  std::vector<StrategySolved> strategies;
+  recorded_field field;
+};
+
+// One step of a run as an invader reads it: the step, and the field each of its
+// rate evaluations was taken in, by stage.
+struct field_row : odelia::ode::schedule_row {
+  std::array<recorded_field, odelia::ode::end_stage + 1> fields;
+};
+
 template <typename T, typename E>
 class Patch {
 public:
-  using value_type = double;
+  using value_type = typename T::value_type;
 
   typedef T                 strategy_type;
   typedef E                 environment_type;
@@ -32,29 +136,67 @@ public:
   typedef Node<T,E>         node_type;
   typedef Species<T,E>      species_type;
   typedef Parameters<T,E>   parameters_type;
+  typedef typename strategy_type::ptr strategy_type_ptr;
 
   Patch(parameters_type p, environment_type e, plant::Control c);
   void reset();
+
+  // This patch at scalar U: strategies (already prepared), environment, node
+  // structure, ODE state, and the birth stamps that divide the fecundity rate.
+  // Constrained, so that for a strategy with no rebind (FF16, K93) the member
+  // does not exist: odelia's `Rebindable` concept then reads false instead of
+  // instantiating `Patch<void, void>`.
+  template <class U>
+    requires PatchRebindable<T, E, U>
+  Patch<at_scalar<T, U>, at_scalar<E, U>> rebind() const;
+
+
+  // Every scalar's Patch is one class, so a rebind reaches the rebound patch's
+  // members.
+  template <typename, typename> friend class Patch;
   size_t size() const {return species.size();}
 
   //Try using pointer in place of object itself
   double time() const {return environment.time;}
   double get_area() const { return area;}
-  double height_max() const;
+  value_type height_max() const;
 
-  double compute_competition(double height) const;
+  value_type compute_competition(double height) const;
 
-  // Describe the size distribution around `height`, for error messages. The
-  // light spline is built from the cohort heights, so when its refinement fails
-  // the useful thing to report is what the cohorts are doing there.
-  std::string describe_nodes_near(double height) const;
+  // The competition profile and its vertical derivative at z, from one pass over
+  // the species. The first entry equals compute_competition(z) bit for bit.
+  with_slope<value_type>
+  compute_competition_and_slope(double z) const;
+  // The same pair for R, which takes only doubles: value first, then slope.
+  std::vector<double> r_compute_competition_and_slope(double z) const {
+    const with_slope<value_type> fs =
+      compute_competition_and_slope(z);
+    return {odelia::util::to_passive(fs.value),
+            odelia::util::to_passive(fs.slope)};
+  }
+
 
   // * Lifetime fitness / offspring production
   // These are patch-level quantities: each integrates the per-node weighted
   // net reproduction over a species' node-introduction times.
-  // Integrate lifetime fitness of a species' nodes, scaled per node.
+  // One species' lifetime fitness integral at the scalar the patch carries:
+  // the trapezium over its cohorts' birth dates of the survival-weighted
+  // fecundity, each cohort scaled by `scalars` (one, or the birth rate at its
+  // birth), plus what the top layer's cohorts produced after they were absorbed;
+  // under an arrival weighting, the weighted mean over the window's cohorts
+  // instead. `birth_scaled` says the scalars are the birth rate at each birth
+  // date, so the top layer's seed output is read on the same scale. The two
+  // R-facing double forms below are this with the derivative dropped, so the
+  // number a sweep differentiates is the number R reports.
+  value_type fitness_integral(size_t species_index,
+                              const std::vector<value_type>& scalars,
+                              bool birth_scaled = false) const;
+  value_type net_reproduction_ratio_of(size_t species_index) const;
+  value_type offspring_production_of(size_t species_index) const;
+
   double net_reproduction_ratio_for_species(size_t species_index,
-                                            std::vector<double> const& scalars) const;
+                                            std::vector<double> const& scalars,
+                                            bool birth_scaled = false) const;
   // Offspring production: fitness scaled by the birth rate over time.
   std::vector<double> offspring_production() const;
   // Overall fitness (unscaled, scalars == 1).
@@ -65,17 +207,45 @@ public:
   std::vector<std::vector<double>> net_reproduction_ratio_errors() const;
 
   // * Schedule-refinement error collection
-  // Sample the competition error for each species introduced this step and
-  // fold it into the running per-node max (ignoring NA, matching na.rm=TRUE in
-  // R). Accumulated across the run; cleared by reset().
+  // Accumulated across the run and cleared by reset(); see the definition.
   void collect_competition_errors(const std::vector<size_t>& added);
-  // Combine the competition error (sampled during the run) with the
-  // reproduction error (computed now) into a single per-node error vector per
-  // species. An all-NA node yields -Inf. Drives schedule refinement.
+  // What drives schedule refinement; see the definition.
   std::vector<std::vector<double>> refinement_error_by_node() const;
 
-  void introduce_new_node(size_t species_index);
-  void introduce_new_nodes(const std::vector<size_t>& species_index);
+  // The species gaining a node at one introduction. Named here because it is
+  // this model's, not the solver's: a solver that walks a recording of this patch
+  // never learns what an inserted entry is.
+  using introduction = std::vector<size_t>;
+
+  // The one insertion. One node per species named, stamped with the time it is
+  // introduced at -- the time is an argument because it is the schedule's, and a
+  // patch that reads it off its own clock inserts whatever the last load left
+  // there. Brings the field and the rates up to date, because a node changes both.
+  void introduce_nodes(const introduction& species_index, double time);
+
+  // One species, for a caller building a patch by hand. The time is an argument
+  // for the same reason: routed through the clock instead, every node of a
+  // species shares a date and the grid the birth-date coordinate integrates over
+  // is tied.
+  void r_introduce_new_node(util::index species_index, double time) {
+    introduce_nodes(introduction{species_index.check_bounds(size())}, time);
+  }
+
+  // Apply the insertion: the state before it in, the whole wider state out, and
+  // nothing rebuilt. This is the map the sweep transposes, so it runs at whatever
+  // scalar it is called on and loads the state itself rather than asking the
+  // caller to. Pushing the nodes is how the wider state is computed, so this
+  // patch is left holding it and a walk rebinds again below it.
+  //
+  // The species are the schedule's, looked up by the time the insertion happened
+  // -- which is what lets the solver ask for this knowing only a recorded time.
+  template <typename It>
+  void apply_insertion(double time, It x, std::vector<value_type>& y);
+  // The same map for a caller naming the species itself, which a finite
+  // difference of one insertion does.
+  template <typename It>
+  void apply_insertion(const introduction& species_index, double time, It x,
+                       std::vector<value_type>& y);
 
   // Apply one non-introduction scheduled event (issue #628). Called between
   // solver legs, so it may change state and ODE size but must not move the
@@ -114,7 +284,7 @@ public:
   }
 
   // Patch disturbance
-  Disturbance_Regime* survival_weighting;
+  std::shared_ptr<Disturbance_Regime> survival_weighting;
 
   // * ODE interface
   // Caluclate size of ode system (number of equations). Is constantly changing as 
@@ -126,13 +296,81 @@ public:
   double ode_time() const;
 
   // Retrieve ode state from patch and save into the ode solver
-  odelia::ode::iterator ode_state(odelia::ode::iterator it) const;
+  template <typename It> It ode_state(It it) const;
   // Compute rates of change at the state currently loaded and save them into the
   // ode solver. Computing here rather than in set_ode_state is what makes the
   // rates always those of that state, however the caller arrived at it.
-  odelia::ode::iterator ode_rates(odelia::ode::iterator it);
+  template <typename It> It ode_rates(It it);
   // Retrieve auxillary variables and save into the ode solver
-  odelia::ode::iterator ode_aux(odelia::ode::iterator it) const;
+  template <typename It> It ode_aux(It it) const;
+  // Hand them back, in the order ode_aux wrote them
+  template <typename It> It set_ode_aux(It it);
+
+  // The soil, as odelia's subsystem: the environment's first states, which come
+  // last in the patch's. Not under private root-zone water (#681): the
+  // environment's column is then the bare ground, whose rates carry the
+  // exchange pass's terms, and a substep would integrate it without them.
+  static constexpr bool SoilSubsystem = HasSoil<E> && !HasPrivateWater<T>;
+  odelia::ode::state_range subsystem() const requires SoilSubsystem {
+    return {ode_size() - environment.ode_size(), environment.n_resources()};
+  }
+  // Where the rain changes form; a step that spans one substeps the soil.
+  std::vector<double> subsystem_knots(double from, double to) const
+    requires SoilSubsystem {
+    return environment.rainfall_knots(from, to);
+  }
+  void subsystem_inputs(std::vector<value_type>& u) const requires SoilSubsystem {
+    u = environment.resource_uptake;
+  }
+  // Zero in a given field, whose soil does not move.
+  template <class U>
+  void subsystem_rates(double t, const std::vector<U>& theta,
+                       const std::vector<U>& uptake,
+                       std::vector<U>& rate) const requires SoilSubsystem {
+    if (field_given()) {
+      rate.assign(theta.size(), U(0.0));
+      return;
+    }
+    environment.layer_rates(t, theta, uptake, rate);
+  }
+
+
+  // Every species' differentiable parameters, species-major: the order a trait
+  // row is indexed in, answered once rather than walked by each caller.
+  std::vector<typename T::value_type*> ad_parameters();
+
+  // Every active value this patch holds, wherever it lives. A walk that keeps a
+  // active patch across recordings hands each of these back before it clears the
+  // tape, and the tape then says whether any was missed.
+  //
+  // `area` and the disturbance regime are not here: they are double. Nor are the
+  // per-node error tallies, for the same reason.
+  template <class F>
+  void for_each_active(F&& f) {
+    odelia::ode::visit_active(f, parameters, environment, species,
+                              competition_capture);
+  }
+
+  size_t trait_adjoint_size() const;
+  // The same order, named. Each name carries its species index, because
+  // concatenating the strategies' own names repeats every one of them per
+  // species and character indexing then resolves each to species one's column,
+  // which an unknown-name check cannot see.
+  std::vector<std::string> trait_adjoint_names() const;
+
+  // The environment's own clamp tally. The site list is shared with the
+  // strategy's, so a caller adds the two rather than reading them apart; this is
+  // the one route to it, because the environment itself is not the caller's.
+  clamp_counter& environment_clamps() const { return environment.clamps; }
+
+  // The insertion map's whole Jacobian, by forward tangent: one row per wider state entry
+  // and one column per input, the state's entries first and the traits after.
+  // Forming it entirely is what localises a disagreement to a cell, which a
+  // contraction against the transpose cannot do.
+  std::vector<std::vector<double>>
+  introduction_jacobian(const std::vector<size_t>& species_index,
+                        const std::vector<double>& state_before,
+                        double time_before);
 
   // The strategy's own bound on its states, read by the solver: a step landing
   // on a state it refuses is rejected and retried smaller, rather than
@@ -140,18 +378,154 @@ public:
   // the order ode_state writes it.
   bool ode_state_valid(const std::vector<double>& y) const;
 
+  // Each state's tolerance multiplier on an adaptive step: the soil's on its
+  // layers and 1 elsewhere, whatever the step's start time.
+  void tolerance_scales(double time, std::vector<double>& scales) const;
+
   // Returns state in structure format as opposed to single 
   // vector as given by ode_state
   Rcpp::List r_get_state() const;
 
-  // Set state of patch, based on estimate of future state estimated by the solver
-  // There are two implementations.
-  //   - first function is for resident runs.
-  //   - second is for mutant runs.
-  // The second does not calculate environment when states are updated, as mutants only experience the environment
-  // The decision which to use is determined by `use_cached_environment` below
-  odelia::ode::const_iterator set_ode_state(odelia::ode::const_iterator it, double time);
-  odelia::ode::const_iterator set_ode_state(odelia::ode::const_iterator it, int index);
+  // Set state of patch, based on estimate of future state estimated by the solver,
+  // computing the environment as it goes.
+  template <typename It> It set_ode_state(It it, double time);
+
+  // One rate evaluation's extent, so every species that keeps a choice can reach
+  // what the run chose here. Opened by the walk around the whole evaluation, which
+  // is what puts it before the field build below -- the inflow condition's own leaf
+  // solves happen in there -- and closes it however the evaluation leaves.
+  // What one of this patch's rate evaluations solves for, in the order the run
+  // made them: each species' own inner solves, and -- where a run was asked to
+  // keep it -- the field the evaluation was taken in.
+  //
+  // ⚠️ THE FIELD IS WRITTEN, NEVER LOADED. A patch's field is recomputable from
+  // its own state, so loading it back as a recorded double would sever the tape
+  // there. It is kept for an invader, which reads it by stage and time (see
+  // field_from_run()) and never solves it.
+  // ⚠️ AN ALIAS AND NOT A NESTED STRUCT, because a nested struct of a class
+  // template is a DISTINCT TYPE per instantiation -- so the sweep, which hands a
+  // recording taken on the double patch to the patch lifted to an active scalar,
+  // could not hand it over at all. The alias makes both name one type, which is
+  // also what says a recorded value carries no scalar.
+  using solved_values =
+      patch_solved_values<odelia::ode::solved_values_t<strategy_type>>;
+
+  void store_solved(solved_values& into, std::size_t stage) {
+    if constexpr (KeepsSolvedChoices<strategy_type>) {
+      into.strategies.resize(species.size());
+      for (size_t i = 0; i < species.size(); ++i) {
+        species[i].strategy_ptr()->store_solved(into.strategies[i]);
+      }
+    }
+    // ⚠️ A DESTINATION, NOT A VALUE. The walk opens this extent BEFORE the state
+    // is loaded, so the field does not exist yet; compute_environment() fills it.
+    field_slot = keep_field ? &into.field : nullptr;
+    this->stage = stage;
+  }
+  // ⚠️ THE SPECIES COUNT IS CHECKED, because it is the one thing a recorded list can
+  // disagree with the patch about that would otherwise read as a species solving
+  // nothing.
+  void load_solved(const solved_values& from, std::size_t stage) {
+    if constexpr (KeepsSolvedChoices<strategy_type>) {
+      util::check_length(from.strategies.size(), species.size());
+      for (size_t i = 0; i < species.size(); ++i) {
+        species[i].strategy_ptr()->load_solved(from.strategies[i]);
+      }
+    }
+    this->stage = stage;
+  }
+  void end_solved() {
+    if constexpr (KeepsSolvedChoices<strategy_type>) {
+      for (species_type& s : species) {
+        s.strategy_ptr()->end_solved();
+      }
+    }
+    field_slot = nullptr;
+    stage.reset();
+  }
+
+  // Keep the field of every rate evaluation, so an invader can read it.
+  void set_keep_field(bool keep) { keep_field = keep; }
+  // Read the field of `run` at every rate evaluation, rather than build one from
+  // this patch's own nodes; null builds its own again.
+  void read_fields_of(std::shared_ptr<const std::vector<field_row>> run) {
+    field_run = std::move(run);
+  }
+
+  // The field this patch is in now, packaged as a recording keeps one.
+  recorded_field current_field() const {
+    recorded_field f;
+    f.interpolators = environment.get_interpolators_state();
+    f.state.assign(environment.ode_size(), 0.0);
+    environment.ode_state(f.state.begin());
+    f.time = environment.time;
+    f.kept = true;
+    return f;
+  }
+
+  // Stand in `f` at every rate evaluation of every later run, whatever the
+  // time: a stand at a fixed point makes one field, and an invader of it needs
+  // that field and nothing recorded (#519). The environment's own state is kept
+  // with it -- its rates are zero -- so TF24's soil does not move either.
+  // Survives reset(), unlike a recorded field, because the run that uses it
+  // begins with one.
+  //
+  // ⚠️ HELD BY VALUE, NOT POINTED AT. A pointer into the patch's own member
+  // dangles in every copy (#589), and the solver integrates a copy.
+  void use_constant_field(const recorded_field& f) { constant_field = f; }
+  void clear_constant_field() { constant_field.reset(); }
+  bool has_constant_field() const { return constant_field.has_value(); }
+  // From R: use the field this patch makes from its own state now, as a
+  // constant field.
+  void r_use_current_field() {
+    clear_constant_field();
+    compute_environment();
+    use_constant_field(current_field());
+  }
+
+  // A recorded state loaded as the run itself carries it. set_ode_state evaluates
+  // the inflow condition in the field that leaves the boundary interval off, then
+  // rebuilds the field including it; the run then rates the nodes and evaluates
+  // the condition a second time, in that second field. It is the second value an
+  // introduced node inherits and the census reads, so reloading a state without it
+  // linearises a boundary node the trajectory never carried.
+  template <typename It> It set_state_and_boundary(It it, double time);
+
+  // The same, at the node structure the record describes: whatever the patch was
+  // initialised with, plus one node per species named by each of the first `applied`
+  // insertions, each stamped with the recorded time it was inserted at.
+  //
+  // A reconciliation rather than a sequence of insertions and removals, so it is
+  // idempotent: being at a recorded step twice is being there once, and a walk
+  // can be run again over a recording it has already walked. Every node the
+  // structure gains carries three numbers that are not ODE state -- its birth
+  // date, and the patch density and survival there -- and all three are functions
+  // of the time it was inserted at, which is why the record needs to hold only
+  // WHICH species gained a node after which step.
+  void set_recorded_state(const std::vector<value_type>& y, double time);
+
+  // The species this patch is introduced at `time`, off the schedule it is run
+  // from. Equality on a scheduled time is exact: the run steps TO an
+  // introduction, so a recorded step at one carries that same double.
+  // The schedule this patch introduces nodes on. Held because a walk over a
+  // recording works out the shape at a step from it, and set here rather than
+  // only at construction because a caller may change the schedule between runs
+  // -- and then the plan a reconciliation reads has to be the one the run took.
+  void set_introduction_times(const std::vector<std::vector<double>>& times) {
+    parameters.node_schedule_times = times;
+  }
+
+  introduction introduced_at(double time) const;
+  // How many nodes species `i` holds at a recorded `time`: what it was initialised
+  // with, plus the introductions strictly below. Strictly, because an
+  // introduction at `time` follows the step recorded there.
+  size_t nodes_at(size_t i, double time) const;
+  // Become that shape, stamping what it gains with the date the schedule gives.
+  void reshape_to(double time);
+
+  // The inflow condition alone, in the field as it now stands. Public because the
+  // two evaluations above have to be taken one at a time to be told apart.
+  void compute_boundary_nodes();
 
   // * R interface
   // Data accessors:
@@ -170,52 +544,59 @@ public:
                    const std::vector<double>& state,
                    const std::vector<size_t>& n,
                    const std::vector<double>& light_availability);
-  void r_introduce_new_node(util::index species_index) {
-    introduce_new_node(species_index.check_bounds(size()));
-  }
   species_type r_at(util::index species_index) const {
-    at(species_index.check_bounds(size()));
+    return species[species_index.check_bounds(size())];
   }
   // This is only here because it wraps a private function.
-  void r_compute_environment() {compute_environment(false);}
+  void r_compute_environment() {compute_environment();}
 
-  // env. cache for assembly
-  std::vector<double> step_history{0.0};  // always start at zero
-  std::vector<std::vector<environment_type>> environment_history;
-  std::vector<environment_type> environment_cache;
-
-  void cache_ode_step();
-  void cache_RK45_step(int step);
-  void load_ode_step();
-  
-  // used cache_ode_step for mutant runs
-  bool save_RK45_cache;
-
-  // used in load_ode_step for mutant runs
-  bool use_cached_environment = false;
-
-  bool is_mutant_run = false;
-
-  void set_mutant();
   void add_strategies(std::vector<strategy_type> strategies);
   void overwrite_strategies(std::vector<strategy_type> strategies);
+  // Become the patch these parameters describe, in the environment and under
+  // the control this one has: their strategies, their regime, and the state
+  // they initialise the next reset() from. What an invasion needs, because an
+  // invader is a different community in the resident's world: replacing only
+  // the strategies left this patch initialising itself from the RESIDENT's exported
+  // state at every reset, so an invader of a resumed resident started as a copy
+  // of the resident's stand. Invisible from empty, where there is nothing to
+  // initialise.
+  void overwrite_parameters(const parameters_type& p);
 
 private:
-  int idx = 0; // used to access environment cache for mutant runs
-  void compute_environment(bool rescale);
+  // A patch whose species take the prepared strategies given, rather than
+  // preparing the ones in the parameters. rebind's only route in.
+  Patch(parameters_type p, environment_type e, plant::Control c,
+        const std::vector<strategy_type_ptr>& prepared);
+
+  // What each species' reduction had accumulated at each knot before its
+  // closing trapezium, kept from the field built without the boundary interval
+  // so the field built with it costs one trapezium per knot rather than a second
+  // walk over every node.
+  std::vector<std::vector<typename species_type::competition_split>>
+    competition_capture;
+  void compute_environment_excl_capturing();
+  void compute_environment_closing();
+
+  void compute_environment();
   void compute_rates();
 
-  // The environment the rates are computed against: the patch's own on a
-  // resident run, and on a mutant step the one recorded for that step, which the
-  // mutant experiences rather than shapes. Derived from what the patch owns, so
-  // it still refers into the patch after the patch is copied.
-  environment_type& rate_environment() {
-    return use_cached_environment
-      ? environment_history.at(idx).at(cached_environment_index)
-      : environment;
-  }
+  // Set where a run is asked to keep its field, read by store_solved().
+  bool keep_field = false;
+  // Where this rate evaluation's field is written, or null where it is not kept.
+  recorded_field* field_slot = nullptr;
+  // The run whose field this patch reads, or null where it builds its own. Shared,
+  // so every copy of the patch -- the solver's, a rebound one, R's -- keeps the
+  // run it reads alive.
+  std::shared_ptr<const std::vector<field_row>> field_run;
+  // This rate evaluation's stage in its step's row; none outside a step, where the
+  // patch is at a recorded state.
+  std::optional<std::size_t> stage;
+  const recorded_field& field_from_run() const;
+  bool field_given() const { return constant_field || field_run != nullptr; }
+  // See use_constant_field(). Takes precedence over a field read from a recording.
+  std::optional<recorded_field> constant_field;
 
-  // Seed the patch from parameters.initial_state (nodes + birth bookkeeping)
+  // Initialise the patch from parameters.initial_state (nodes + birth bookkeeping)
   // when present; called from reset(). Sets environment.time = initial_time.
   void set_initial_state();
   // Guard against initial conditions whose per-node log-density rates are so
@@ -227,24 +608,89 @@ private:
   // value can propagate into competition, resource uptake, or physiology and
   // surface as an opaque downstream error.
   void check_finite_ode_state() const;
+  // The private-water passes (#681); reached only for HasPrivateWater<T>.
+  void private_water_aggregates();
+  void private_water_exchange(const std::vector<value_type>& resource_depletion);
+  // The coordinate this model's densities are carried in, Control's "auto"
+  // resolved against the strategy (see control.h).
+  bool density_in_birth_date() const {
+    return plant::density_in_birth_date(control,
+                                        T::density_in_birth_date_default);
+  }
+  // The top layer rests on density only ever falling, which holds on the
+  // birth-date coordinate alone: on the height coordinate the transport term
+  // can raise it. Refused at construction, where the control is first seen.
+  void check_retirement_coordinate() const {
+    // A negative or NaN epsilon would read as "off" below, silently.
+    if (!(control.absorb_epsilon >= 0.0)) {
+      util::stop("control$absorb_epsilon must be zero (off) or in (0, 0.5)");
+    }
+    // A private root-zone column feeds back into growth through the leaf's
+    // supply, and on the height coordinate the density rate's growth-gradient
+    // term holds every other state fixed while it perturbs height (#516), which
+    // is then the wrong derivative. The birth-date coordinate has no such term.
+    if constexpr (HasPrivateWater<T>) {
+      if (!density_in_birth_date()) {
+        util::stop("TF24w's private root-zone water needs the birth-date "
+                   "size-density coordinate (control$node_density_coordinate "
+                   "= \"birth_date\" or \"auto\")");
+      }
+    }
+    if (control.absorb_epsilon > 0.0) {
+      if (!density_in_birth_date()) {
+        util::stop("control$absorb_epsilon needs the birth-date size-density "
+                   "coordinate (control$node_density_coordinate = "
+                   "\"birth_date\")");
+      }
+      if (!(control.absorb_epsilon < 0.5)) {
+        util::stop("control$absorb_epsilon must lie in (0, 0.5): it is the "
+                   "fraction of maximal allocation to reproduction not yet "
+                   "reached at the absorbing height");
+      }
+      if constexpr (!HasAsymptoticHeight<T>) {
+        util::stop("control$absorb_epsilon needs a strategy that declares an "
+                   "asymptotic height, and this one does not");
+      } else {
+        // A strategy answers NaN where its allocation curve has no such height
+        // (a_f2 <= 0: allocation to reproduction does not rise with height). A
+        // height that is not positive and finite would absorb nothing or every
+        // cohort bar the youngest.
+        for (const strategy_type& st : parameters.strategies) {
+          const double h = st.asymptotic_height(control.absorb_epsilon);
+          if (!(h > 0.0) || !util::is_finite(h)) {
+            util::stop("The absorbing height is " + util::to_string(h) +
+                       " for a strategy, from hmat and a_f2: it needs a "
+                       "positive hmat and a positive a_f2");
+          }
+        }
+      }
+    }
+  }
   // Guard the birth-date coordinate's quadrature grid: it is the per-node
   // introduction times, so nodes sharing one give zero-width intervals that drop
-  // silently out of the integral. Only reachable for a patch whose nodes were
-  // created outside the schedule (seeded or imported without per-node times).
+  // silently out of the integral. Reached by a schedule carrying a repeated time
+  // and by a patch whose nodes were initialised or imported without per-node times.
   void check_birth_dates_distinct() const;
+
+  // One node per species named, stamped from the time alone. The insertion and
+  // the reconciling loader share it, so a node the run made and a node a walk
+  // rebuilt are stamped by the same expression.
+  void push_nodes(const introduction& species_index, double time);
+
+  // The absorbing half of an introduction instant: every cohort that has
+  // reached its species' asymptotic height goes into the top layer
+  // (Species::absorb_tall) before the new cohort is pushed. Part of the
+  // insertion map and of nothing else, so a pinned run or a sweep that applies the
+  // map applies this too, and a reconciliation that only rebuilds the shape
+  // (reshape_to) does not -- the state it loads already carries the zeros and
+  // the layer. A no-op with control.absorb_epsilon zero.
+  void absorb_tall();
 
   parameters_type parameters;
 
   double area;
   environment_type environment;
   std::vector<species_type> species;
-
-  //TODO(#476): Move into environment?
-  std::vector<double> resource_depletion;
-
-  // Which recorded environment a mutant step is evaluated against; see
-  // rate_environment(). Unused on a resident run.
-  int cached_environment_index = 0;
 
   Control control;
 
@@ -259,13 +705,17 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
   : parameters(p),
     area(p.patch_area),
     environment(e),
-    control(c),
-    environment_cache(6) {  // length of odelia::ode::Step
-  
-  parameters.validate();
+    control(c) {
 
-  save_RK45_cache = control.save_RK45_cache;
-  survival_weighting = p.disturbance;
+  parameters.validate();
+  validate_ode_tolerances(control);
+
+  // The validated member, not the argument: validate() derives the regime from
+  // patch_type and max_patch_lifetime, so an argument whose lifetime was
+  // assigned after its own construction still carries the regime of the lifetime
+  // it was constructed with.
+  survival_weighting = parameters.disturbance;
+  check_retirement_coordinate();
 
   // Configure the light profile's shading model before the first
   // compute_environment() in reset(). No-op for environments without a light
@@ -280,9 +730,125 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
 }
 
 template <typename T, typename E>
+Patch<T,E>::Patch(parameters_type p, environment_type e, Control c,
+                  const std::vector<strategy_type_ptr>& prepared)
+  : parameters(p),
+    area(p.patch_area),
+    environment(e),
+    control(c) {
+
+  parameters.validate();
+  validate_ode_tolerances(control);
+
+  survival_weighting = parameters.disturbance;
+  check_retirement_coordinate();
+
+  environment.set_shading_model(control.shading_model,
+                                control.ppa_layer_optical_depth,
+                                control.ppa_layer_smoothing);
+
+  for (const strategy_type_ptr& s : prepared) {
+    species.push_back(Species<T,E>(s));
+  }
+
+  reset();
+}
+
+template <typename T, typename E>
+template <class U>
+  requires PatchRebindable<T, E, U>
+Patch<at_scalar<T, U>, at_scalar<E, U>> Patch<T,E>::rebind() const {
+  using T2 = at_scalar<T, U>;
+  using E2 = at_scalar<E, U>;
+  // What a rebound patch reads, and nothing else. patch_type and
+  // max_patch_lifetime are read by validate(), which the constructor below runs
+  // to rebuild the disturbance regime: without them the rebound patch gets a
+  // different one, pr_patch_survival moves, and the fecundity rates differ with
+  // nothing raised. node_schedule_times is length-checked there too.
+  //
+  // Left behind: ode_times and ode_step_sizes, which are a record of the last
+  // run rather than configuration and are read only by make_node_schedule, and
+  // n_patches, which nothing reads. A rebind happens once per width a sweep
+  // crosses, so copying two vectors of the whole trajectory into it was a copy
+  // per width per gradient, into an object that never looked at them.
+  Parameters<T2,E2> p2;
+  p2.patch_area = parameters.patch_area;
+  p2.patch_type = parameters.patch_type;
+  p2.max_patch_lifetime = parameters.max_patch_lifetime;
+  // The fitness window is built from these four by the same validate(): left
+  // behind, a "fitness_window" patch_type would refuse to build at all, and a copy
+  // that defaulted them silently would weight the rebound patch differently.
+  p2.fitness_window_start = parameters.fitness_window_start;
+  p2.fitness_window_end = parameters.fitness_window_end;
+  p2.fitness_window_weight_x = parameters.fitness_window_weight_x;
+  p2.fitness_window_weight_y = parameters.fitness_window_weight_y;
+  p2.node_schedule_times_default = parameters.node_schedule_times_default;
+  p2.node_schedule_times = parameters.node_schedule_times;
+  p2.initial_time = parameters.initial_time;
+  p2.strategy_default = parameters.strategy_default.template rebind<U>();
+
+  // The strategies the species run, not the ones in the parameters: those are
+  // the prepared copies, and preparing again is refused at an active scalar.
+  std::vector<typename T2::ptr> prepared;
+  for (const species_type& s : species) {
+    prepared.push_back(std::make_shared<T2>(
+      s.strategy_ptr()->template rebind<U>()));
+    p2.strategies.push_back(*prepared.back());
+  }
+
+  E2 env = environment.template rebind<U>();
+  Patch<T2,E2> out(p2, env, control, prepared);
+
+  for (size_t i = 0; i < species.size(); ++i) {
+    for (size_t j = 0; j < species[i].size(); ++j) {
+      out.species[i].introduce_new_node();
+    }
+    // Not in the ODE state, and pr_patch_survival_at_birth divides the
+    // fecundity rate: without these the rebound rates differ.
+    out.species[i].set_birth_state(species[i].node_times(),
+                                   species[i].r_patch_densities(),
+                                   species[i].r_pr_patch_survival_at_birth());
+  }
+
+  std::vector<U> node_state(node_ode_size());
+  odelia::ode::ode_state(species.begin(), species.end(), node_state.begin());
+  odelia::ode::set_ode_state(out.species.begin(), out.species.end(),
+                             node_state.begin());
+
+  // reset() in the constructor cleared the environment back to its initial
+  // soil state, so restore the current one before the spline is rebuilt. Moved,
+  // not copied: this is the last read of env, and the object carries the light
+  // spline and a vector per soil layer.
+  out.environment = std::move(env);
+  out.environment.set_shading_model(control.shading_model,
+                                    control.ppa_layer_optical_depth,
+                                    control.ppa_layer_smoothing);
+  out.field_run = field_run;
+  // The field and the boundary node are left to the caller. Every caller sets a
+  // state through set_ode_state or set_state_and_boundary before reading
+  // either, and both rebuild the field and re-evaluate the inflow condition, so
+  // computing them here solves the boundary leaf twice per right-hand side and
+  // then discards it. A caller that reads before setting gets an unbuilt field.
+  return out;
+}
+
+template <typename T, typename E>
 void Patch<T,E>::overwrite_strategies(std::vector<strategy_type> strategies) {
   species.clear();
   add_strategies(strategies);
+}
+
+template <typename T, typename E>
+void Patch<T,E>::overwrite_parameters(const parameters_type& p) {
+  parameters = p;
+  // As the constructor does: the validated member carries the regime.
+  parameters.validate();
+  survival_weighting = parameters.disturbance;
+  // The invaders' strategies are checked as the constructor checks the
+  // residents': an absorbing height they cannot have would absorb every cohort.
+  check_retirement_coordinate();
+  area = parameters.patch_area;
+  overwrite_strategies(parameters.strategies);
 }
 
 template <typename T, typename E>
@@ -296,39 +862,31 @@ void Patch<T,E>::add_strategies(std::vector<strategy_type> strategies) {
 }
 
 template <typename T, typename E>
-void Patch<T,E>::set_mutant() {
-    if (environment_history.empty()) {
-       util::stop("Run a resident first to generate a competitve landscape");
-    }
-
-    is_mutant_run = true;
-    save_RK45_cache = false;
-    use_cached_environment = true;
-  idx = 0;
-}
-
-template <typename T, typename E>
 void Patch<T,E>::reset() {
+  field_slot = nullptr;
    for (auto& s : species) {
     s.clear();
     // allocate variables for tracking resource consumption
     s.resize_consumption_rates(environment.n_resources());
   }
 
-  // resize to species count
-  resource_depletion.reserve(environment.n_resources());
-
   // compute ephemeral effects like light_availability
   environment.clear();
+  // clear() put the clock at zero. A patch that starts later than that -- an
+  // invader resumed into a resident's window, with no cohorts of its own yet --
+  // starts at the time its parameters name, and the field and rates below are
+  // built at that time. set_initial_state() sets the same clock for an initialised
+  // patch, and the default is zero, so a run from empty is unchanged.
+  environment.time = parameters.initial_time;
 
   if (!parameters.initial_state.empty()) {
-    // Seed the patch from an exported state / initial size distribution.
-    // set_initial_state() does its own compute_environment(false)/compute_rates
-    // (with the real node heights, no rescale), so skip the empty-patch path.
+    // Initialise the patch from an exported state / initial size distribution.
+    // set_initial_state() does its own compute_environment()/compute_rates at
+    // the real node heights, so skip the empty-patch path.
     set_initial_state();
     check_initial_density_rates();
   } else {
-    compute_environment(false);
+    compute_environment();
 
     // compute effects of resource consumption
     compute_rates();
@@ -336,16 +894,16 @@ void Patch<T,E>::reset() {
 
   // clear accumulated per-node competition error
   competition_error_by_node.assign(species.size(), {});
+
 }
 
-// Seed the patch from parameters.initial_state. Introduces the requested number
+// Initialise the patch from parameters.initial_state. Introduces the requested number
 // of nodes per species, loads the flat ODE state (nodes + environment) at the
 // resume time, restores per-node birth bookkeeping (not part of the ODE state
 // but feeds the rates and lifetime-fitness integrals), then computes the
-// environment and rates. We load the state directly (rather than via the
-// double-arg set_ode_state) so the first environment build is a full
-// compute_environment(false): a rescale of the not-yet-built light spline would
-// read uninitialised grid state.
+// environment and rates. We load the state directly, rather than via the
+// double-arg set_ode_state, so the first environment build reads node heights
+// that exist.
 template <typename T, typename E>
 void Patch<T,E>::set_initial_state() {
   const size_t n_species = species.size();
@@ -361,14 +919,14 @@ void Patch<T,E>::set_initial_state() {
 
   // Load the flat ODE state (all nodes, then environment).
   util::check_length(parameters.initial_state.size(), ode_size());
-  odelia::ode::const_iterator it = parameters.initial_state.begin();
+  auto it = parameters.initial_state.begin();
   it = odelia::ode::set_ode_state(species.begin(), species.end(), it);
   it = environment.set_ode_state(it);
   environment.time = parameters.initial_time;
 
   // Restore birth bookkeeping per node, sliced per species from the flat
   // parameter vectors. Skipped (left at defaults) when not supplied, e.g. a
-  // from-scratch distribution seeded at patch age 0.
+  // from-scratch distribution initialised at patch age 0.
   if (!parameters.initial_node_times.empty()) {
     util::check_length(parameters.initial_node_times.size(), total_nodes);
     util::check_length(parameters.initial_patch_density.size(), total_nodes);
@@ -378,9 +936,21 @@ void Patch<T,E>::set_initial_state() {
     auto s_it = parameters.initial_pr_patch_survival.begin();
     for (size_t i = 0; i < n_species; ++i) {
       const size_t n = parameters.n_initial_cohorts[i];
-      species[i].set_birth_state(std::vector<double>(t_it, t_it + n),
-                                 std::vector<double>(d_it, d_it + n),
-                                 std::vector<double>(s_it, s_it + n));
+      const std::vector<double> times(t_it, t_it + n);
+      // The patch density and survival at birth are THIS run's regime read at
+      // the birth date, not the stamps the exporting run made. A cohort initialised
+      // from a burn-in into a fitness window is born before the window and
+      // weighs nothing in it, where the burn-in stamped it one; and a resumed
+      // run whose regime differs (a Weibull over a longer lifetime) divides its
+      // own patch survival by the survival at birth, so both have to be its
+      // own. Under the regime that stamped them they are the same numbers. The
+      // exported stamps are read only for their lengths.
+      std::vector<double> patch_density(n), pr_survival(n);
+      for (size_t k = 0; k < n; ++k) {
+        patch_density[k] = survival_weighting->density(times[k]);
+        pr_survival[k] = survival_weighting->pr_survival(times[k]);
+      }
+      species[i].set_birth_state(times, patch_density, pr_survival);
       t_it += n;
       d_it += n;
       s_it += n;
@@ -389,9 +959,9 @@ void Patch<T,E>::set_initial_state() {
 
   check_birth_dates_distinct();
 
-  // Build the environment from the real node heights (full recompute, no
-  // rescale) and compute rates for the seeded population.
-  compute_environment(false);
+  // Build the environment from the real node heights and compute rates for the
+  // initialised population.
+  compute_environment();
   compute_rates();
 }
 
@@ -418,13 +988,22 @@ void Patch<T,E>::check_birth_dates_distinct() const {
       continue;
     }
     if (!species[i].birth_dates_are_distinct()) {
+      const std::vector<double> times = species[i].node_times();
+      double repeated = times.empty() ? 0.0 : times.front();
+      for (size_t k = 1; k < times.size(); ++k) {
+        if (times[k] == times[k - 1]) {
+          repeated = times[k];
+          break;
+        }
+      }
       util::stop("Species " + util::to_string(i + 1) + " has nodes sharing an "
-                 "introduction time, which the birth-date size-density "
-                 "coordinate integrates over: the repeated nodes span zero width "
-                 "and drop out of the competition and resource integrals. Supply "
-                 "per-node introduction times (parameters$initial_node_times) "
-                 "with the initial state, or run with "
-                 "control$node_density_coordinate = \"height\".");
+                 "introduction time (" + util::to_string(repeated) + "), which "
+                 "the birth-date size-density coordinate integrates over: the "
+                 "repeated nodes span zero width and drop out of the competition "
+                 "and resource integrals. Remove the repeat from the node "
+                 "schedule, supply per-node introduction times "
+                 "(parameters$initial_node_times) with an initial state, or run "
+                 "with control$node_density_coordinate = \"height\".");
     }
   }
 }
@@ -463,42 +1042,67 @@ void Patch<T,E>::check_finite_ode_state() const {
         // fail here with an actionable message rather than letting the +Inf
         // propagate into the competition integral or density-weighted resource
         // uptake, where it surfaces as an opaque downstream error.
-        util::stop("Non-finite cohort density in the SCM size-density "
-                   "(characteristic) equations: species " +
-                   util::to_string(i + 1) + " has a node with density=" +
-                   util::to_string(it->get_density()) + " (log_density=" +
-                   util::to_string(it->get_log_density()) + ", height=" +
-                   util::to_string(it->height()) + ") at time=" +
-                   util::to_string(environment.time) +
-                   ". The density derivative -d(growth)/d(height) - mortality "
-                   "can grow without bound when growth rate falls steeply with "
-                   "size under rapidly changing or extreme environmental "
-                   "forcing, driving density to overflow. Try a shorter "
-                   "max_patch_lifetime or less extreme environmental drivers.");
+        const std::string msg =
+          "Non-finite cohort density in the SCM size-density "
+          "(characteristic) equations: species " +
+          util::to_string(i + 1) + " has a node with density=" +
+          util::to_string(it->get_density()) + " (log_density=" +
+          util::to_string(it->get_log_density()) + ", height=" +
+          util::to_string(it->height()) + ") at time=" +
+          util::to_string(environment.time) +
+          ". The density derivative -d(growth)/d(height) - mortality "
+          "can grow without bound when growth rate falls steeply with "
+          "size under rapidly changing or extreme environmental "
+          "forcing, driving density to overflow. Try a shorter "
+          "max_patch_lifetime or less extreme environmental drivers.";
+        // ⚠️ ON THE BIRTH-DATE COORDINATE THIS IS A REJECTION, NOT A FAILURE.
+        // There the rate is -mortality and nothing raises a density, so a
+        // stage above the ceiling is the stepper's own overshoot, not the
+        // runaway above. It happens when a stage straddles a dying cohort's
+        // rates switching off: its log density underflowing (Node's density
+        // guard) or its hazard reaching establishment_failure_hazard (the
+        // strategy's mortality rate) zeroes a rate of order 1e3 per year, and
+        // the stage weights, some negative, turn that jump into a log density
+        // of +800 at a trial stage. A shorter step does not straddle as far,
+        // so hand it to the stepper. The height coordinate stays fatal.
+        if (species[i].density_in_birth_date()) {
+          odelia::util::stop_domain(msg);
+        }
+        util::stop(msg);
       }
     }
   }
 
-  // Mode (2): a non-finite environment state. `vars.states` is generic across
-  // environments (size 0 for light-only environments like FF16, so this loop is
-  // a no-op there and cannot false-positive). For TF24 these are the per-depth
-  // soil-water states.
-  const Internals& env_vars = environment.vars;
-  for (size_t i = 0; i < env_vars.state_size; ++i) {
-    if (!util::is_finite(env_vars.states[i])) {
-      // A rejection, not a failure. #608 measured every observed TF24 soil
-      // excursion to be explicit-integrator overshoot -- the step a leg
-      // inherits across a discrete change, not a defect in the water balance --
-      // and the same case integrates cleanly from a smaller step. So hand this
-      // to the stepper to shrink and retry (odelia #55/#56). If the minimum
-      // step still lands here, odelia stops and reports this message, so
-      // nothing is lost when it really is divergent.
-      //
-      // Contrast mode (1) above, which stays fatal: that divergence is in the
-      // equations rather than the stepper, so shrinking cannot recover it and
-      // trying would only burn steps before failing anyway.
+  // The top layer's numbers, which no node above reads. A rejection, as for the
+  // stage overshoot above: the layer's density decays linearly, and a stage can
+  // carry it past where the step will land.
+  for (size_t i = 0; i < species.size(); ++i) {
+    if (species[i].top_on() && !species[i].top_finite()) {
+      odelia::util::stop_domain("Non-finite top layer in species " +
+                                util::to_string(i + 1) + " at time=" +
+                                util::to_string(environment.time));
+    }
+  }
+
+  // Mode (2): a non-finite environment state, read through the ODE interface so
+  // an environment with no integrated state contributes an empty loop rather
+  // than a special case. For TF24 these are the per-depth soil-water states.
+  // Double, not the working scalar: this reads the state to test it for
+  // finiteness and never differentiates it, and the iterator write converts on
+  // the way out. Held at the working scalar it was a slot per entry per stage
+  // for a value flattened on the next line.
+  std::vector<double> env_state(environment.ode_size());
+  environment.ode_state(env_state.begin());
+  for (size_t i = 0; i < env_state.size(); ++i) {
+    const double state_i = env_state[i];
+    if (!util::is_finite(state_i)) {
+      // A rejection, not a failure: measured, every observed TF24 soil
+      // excursion is explicit-integrator overshoot across a discrete change and
+      // not a defect in the balance -- hand it to the stepper to shrink and
+      // retry rather than failing the run. Mode (1) above stays fatal on the
+      // height coordinate.
       odelia::util::stop_domain("Non-finite environment state (index " + util::to_string(i) +
-                 " = " + util::to_string(env_vars.states[i]) + ") at time=" +
+                 " = " + util::to_string(state_i) + ") at time=" +
                  util::to_string(environment.time) +
                  ". For TF24 this is a soil-water state driven non-finite by the "
                  "density-weighted resource uptake as a cohort density runs away "
@@ -510,69 +1114,159 @@ void Patch<T,E>::check_finite_ode_state() const {
 }
 
 template <typename T, typename E>
-double Patch<T,E>::height_max() const {
-  double ret = 0.0;
+typename Patch<T,E>::value_type Patch<T,E>::height_max() const {
+  value_type ret = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
-    if (!is_mutant_run) {
-      ret = std::max(ret, species[i].height_max());
+    const value_type h = species[i].height_max();
+    if (h > ret) {
+      ret = h;
     }
   }
   return ret;
 }
 
+// The pair's first entry, which is what the pair is built to be. Nothing on the
+// field's path arrives here -- that takes the split reduction and closes it -- so
+// this is an accessor, and an accessor paying one extra crown evaluation per node
+// is better than a second loop that can disagree with the one below it.
 template <typename T, typename E>
-double Patch<T,E>::compute_competition(double height) const {
-  double tot = 0.0;
+typename Patch<T,E>::value_type
+Patch<T,E>::compute_competition(double height) const {
+  return compute_competition_and_slope(height).value;
+}
+
+template <typename T, typename E>
+with_slope<typename Patch<T,E>::value_type>
+Patch<T,E>::compute_competition_and_slope(double z) const {
+  with_slope<value_type> sum{0.0, 0.0};
   for (size_t i = 0; i < species.size(); ++i) {
-    if (!is_mutant_run) {
-      tot += species[i].compute_competition(height) / area;
-    }
+    const with_slope<value_type> fs =
+      species[i].compute_competition_and_slope(z);
+    sum.value += fs.value / area;
+    sum.slope += fs.slope / area;
   }
-  return tot;
+  return sum;
 }
 
 template <typename T, typename E>
 std::vector<double> Patch<T,E>::r_compute_competition_effect_error_by_node_for_species_i(size_t species_index) const {
-  const double tot_competition_effect = compute_competition(0.0);
+  const double tot_competition_effect =
+    odelia::util::to_passive(compute_competition(0.0));
   return species[species_index].r_compute_competition_effect_by_nodes_error(tot_competition_effect);
 }
 
 // Integrate over lifetime fitness of individual nodes, scaled per node.
 template <typename T, typename E>
-double Patch<T,E>::net_reproduction_ratio_for_species(
-    size_t species_index, std::vector<double> const& scalars) const {
-  auto net_prod = species[species_index].net_reproduction_ratio_by_node_weighted();
+typename Patch<T,E>::value_type Patch<T,E>::fitness_integral(
+    size_t species_index, std::vector<value_type> const& scalars,
+    bool birth_scaled) const {
+  const std::vector<value_type> net_prod =
+    species[species_index].weighted_fecundity_by_node();
   auto const times = species[species_index].node_times();
-  auto net_prod_scaled = std::vector<double>(times.size());
+  auto net_prod_scaled = std::vector<value_type>(times.size());
   for (size_t i = 0; i < times.size(); ++i) {
     net_prod_scaled[i] = net_prod[i] * scalars[i];
   }
-  return util::trapezium(times, net_prod_scaled);
+  if (!survival_weighting->is_arrival_weighting()) {
+    // Fewer than two cohorts span no birth-date interval, so the integral is
+    // undefined. NaN rather than a throw, as for a window with no cohort: every
+    // stand metric is evaluated together, and a census of a stand holding a
+    // one-cohort species (a constant-field invader) would otherwise fail on a
+    // fitness nobody asked for.
+    if (times.size() < 2) {
+      return value_type(std::numeric_limits<double>::quiet_NaN());
+    }
+    // The seed output of cohorts absorbed into the top layer after they were
+    // absorbed: what they accrued before is still on their nodes.
+    return util::trapezium(times, net_prod_scaled) +
+      species[species_index].top_seeds(birth_scaled);
+  }
+  // An arrival weighting is the weighted mean of lifetime output over the
+  // cohorts the window weights, taken by the trapezium over THOSE cohorts
+  // alone: the span from the first to the last with positive weight, output
+  // times weight over weight. Nothing outside the span enters, so a species
+  // whose schedule starts at the window and a species with cohorts before it
+  // score the same cohorts the same way -- which is what makes a resident's
+  // own strategy, invading, score the resident's ratio. Over every node, a
+  // zero-weight cohort just outside the window would give the edge cohort a
+  // whole interval where a species without one gives it half; and without the
+  // normalisation a weight stepping to zero at the edges overstates the mean by
+  // spacing over width. The weights are the regime's, read at the birth dates,
+  // and carry no derivative: the denominator is a constant of the traits.
+  const std::vector<double> weight = species[species_index].r_patch_densities();
+  size_t first = times.size(), last = 0;
+  for (size_t i = 0; i < times.size(); ++i) {
+    if (weight[i] > 0.0) {
+      first = std::min(first, i);
+      last = i;
+    }
+  }
+  if (first == times.size()) {
+    // No cohort the window weights: the mean is undefined. NaN rather than a
+    // throw, which would fail every accessor after a finished run -- and with
+    // it run_scm()'s history -- for one species set up that way.
+    return value_type(std::numeric_limits<double>::quiet_NaN());
+  }
+  if (first == last) {
+    // One cohort in the window: its output is the mean.
+    return net_prod_scaled[first] / weight[first];
+  }
+  const std::vector<double> t(times.begin() + first, times.begin() + last + 1);
+  const std::vector<value_type> num(net_prod_scaled.begin() + first,
+                                    net_prod_scaled.begin() + last + 1);
+  const std::vector<double> den(weight.begin() + first, weight.begin() + last + 1);
+  // The top layer's seeds are left out: the window's cohorts are never
+  // absorbed, so nothing in the layer belongs to the window. What it carries
+  // was weighted by whatever regime absorbed it -- a burn-in run without the
+  // window stamps every cohort one -- and counted here it would score the
+  // burn-in's stand as the window's.
+  return util::trapezium(t, num) / util::trapezium(t, den);
+}
+
+template <typename T, typename E>
+double Patch<T,E>::net_reproduction_ratio_for_species(
+    size_t species_index, std::vector<double> const& scalars,
+    bool birth_scaled) const {
+  return odelia::util::to_passive(fitness_integral(
+      species_index, std::vector<value_type>(scalars.begin(), scalars.end()),
+      birth_scaled));
 }
 
 // Offspring production, equal to overall fitness scaled by the birth rate.
 template <typename T, typename E>
-std::vector<double> Patch<T,E>::offspring_production() const {
-  auto ret = std::vector<double>(species.size());
-  for (size_t i = 0; i < species.size(); ++i) {
-    // scale by birth rate function over time
-    auto const times = species[i].node_times();
-    auto scalars = std::vector<double>(times.size());
-    for (size_t j = 0; j < times.size(); ++j) {
-      scalars[j] = species[i].extrinsic_drivers().evaluate("birth_rate", times[j]);
-    }
-    ret[i] = net_reproduction_ratio_for_species(i, scalars);
+typename Patch<T,E>::value_type
+Patch<T,E>::offspring_production_of(size_t i) const {
+  // scale by birth rate function over time
+  auto const times = species[i].node_times();
+  auto scalars = std::vector<value_type>(times.size());
+  for (size_t j = 0; j < times.size(); ++j) {
+    scalars[j] = species[i].strategy_ptr()->birth_rate_at(times[j]);
   }
-  return ret;
+  return fitness_integral(i, scalars, true);
 }
 
 // Overall fitness (no scaling, ie scalars set to 1.0).
 template <typename T, typename E>
+typename Patch<T,E>::value_type
+Patch<T,E>::net_reproduction_ratio_of(size_t i) const {
+  auto scalars = std::vector<value_type>(species[i].size(), value_type(1.0));
+  return fitness_integral(i, scalars);
+}
+
+template <typename T, typename E>
+std::vector<double> Patch<T,E>::offspring_production() const {
+  auto ret = std::vector<double>(species.size());
+  for (size_t i = 0; i < species.size(); ++i) {
+    ret[i] = odelia::util::to_passive(offspring_production_of(i));
+  }
+  return ret;
+}
+
+template <typename T, typename E>
 std::vector<double> Patch<T,E>::net_reproduction_ratios() const {
   auto ret = std::vector<double>(species.size());
   for (size_t i = 0; i < species.size(); ++i) {
-    auto scalars = std::vector<double>(species[i].size(), 1.0);
-    ret[i] = net_reproduction_ratio_for_species(i, scalars);
+    ret[i] = odelia::util::to_passive(net_reproduction_ratio_of(i));
   }
   return ret;
 }
@@ -646,194 +1340,513 @@ std::vector<std::vector<double>> Patch<T,E>::refinement_error_by_node() const {
   return ret;
 }
 
-// Pre-compute environment, as shaped by residents
-// Creates splines of resource availability
+// Evaluate every species' inflow boundary condition in the field as it currently
+// stands. Owned by the field build rather than by compute_rates(), so that the
+// field reads a boundary density derived from this state instead of one carried
+// from the previous evaluation.
+// An invader reading a recorded field reaches this with that field already
+// installed, which is what makes its own inflow condition right to evaluate
+// here: the condition is what a species does IN the field, not to it.
 template <typename T, typename E>
-void Patch<T,E>::compute_environment(bool rescale) {
+void Patch<T,E>::compute_boundary_nodes() {
+  const double time_ = environment.time;
+  const double pr_patch_survival = survival_weighting->pr_survival(time_);
+  for (size_t i = 0; i < size(); ++i) {
+    const value_type birth_rate = species[i].strategy_ptr()->birth_rate_at(time_);
+    species[i].compute_boundary_node(environment, pr_patch_survival, birth_rate);
+  }
+}
 
+// The field `field_run` made at this evaluation. Inside a step it is the stage's,
+// in the first step at or after the time; where a step is too short to move its
+// stages past its start, the step after that one; and where a stage's time
+// rounds past the time its step is recorded to end at, the step before. Outside
+// a step the patch is at a recorded state, and it is the end stage of the last
+// row at the time, which is the state after any entry made there.
+template <typename T, typename E>
+const recorded_field& Patch<T,E>::field_from_run() const {
+  const auto& rec = *field_run;
+  const double t = environment.time;
+  const std::size_t at = stage.value_or(odelia::ode::end_stage);
+  const auto made_now = [&](auto row) {
+    const recorded_field& f = row->fields[at];
+    return f.kept && util::identical(f.time, t);
+  };
+  if (stage) {
+    auto row = std::lower_bound(
+        rec.begin(), rec.end(), t,
+        [](const auto& r, double u) { return r.time < u; });
+    if (row != rec.end() && made_now(row)) {
+      return row->fields[at];
+    }
+    if (row != rec.end()) {
+      auto next = std::next(row);
+      while (next != rec.end() && next->insertion) {
+        ++next;
+      }
+      if (next != rec.end() && made_now(next)) {
+        return next->fields[at];
+      }
+    }
+    if (row != rec.begin()) {
+      do {
+        --row;
+      } while (row != rec.begin() && row->insertion);
+      if (made_now(row)) {
+        return row->fields[at];
+      }
+    }
+  } else {
+    auto row = std::upper_bound(
+        rec.begin(), rec.end(), t,
+        [](double u, const auto& r) { return u < r.time; });
+    if (row != rec.begin() && made_now(--row)) {
+      return row->fields[at];
+    }
+  }
+  std::ostringstream m;
+  m.precision(17);
+  m << "The run this patch reads has no field at t=" << t;
+  if (stage) {
+    m << " at stage " << at;
+  }
+  m << ": the two runs did not take the same steps";
+  util::stop(m.str());
+  return rec.front().fields[at];
+}
+
+// Creates splines of resource availability.
+//
+// The reduction's closing trapezium is the inflow boundary condition
+// n_b = birth_rate * pr_estab / g, and n_b needs a field to be evaluated in --
+// so the field and the boundary condition are mutually dependent. Ordering the
+// build removes the cycle rather than iterating it:
+//
+//   A0  the reduction excluding the boundary interval   (the ODE state alone)
+//   n_b the boundary condition evaluated in A0          (the ODE state alone)
+//   A   A0 plus the boundary interval formed from n_b   (the ODE state alone)
+//
+// so a stage is a function of (y, t) and nothing else. Closing the fixed point by
+// iteration instead only attenuates the carried dependence by the contraction
+// modulus, which is ~1e-3.
+template <typename T, typename E>
+void Patch<T,E>::compute_environment() {
+  if (size() == 0) {
+    return;
+  }
   // The boundary node is one end of the birth-date quadrature and its birth date
-  // is the current time, so refresh it before the profile is built. Its own
+  // is the current time, so it is stamped before either profile is built. Its own
   // stamp is set in compute_rates(), which the stepper calls *after* the
   // set_ode_state() that brings us here, so reading that stamp would use the
   // previous derivs call's time and shorten the boundary interval by a
-  // Runge-Kutta stage. Measured effect on FF16 offspring production is below
-  // 1e-6 -- the boundary node carries almost no leaf area, so the segment it
-  // ends contributes little -- but the interval is then a function of the step
-  // size, which the spatial quadrature has no business depending on, and the
-  // whole integral *is* that one segment while a species has a single node.
-  // No-op for the height coordinate, where this abscissa is the constant
-  // initial height.
+  // Runge-Kutta stage. The measured effect is below 1e-6, but the interval is
+  // then a function of the step size, which the spatial quadrature has no
+  // business depending on, and the whole integral *is* that one interval while a
+  // species has a single node. No-op for the height coordinate, where this
+  // abscissa is the constant initial height.
   for (auto& s : species) {
     s.set_new_node_birth_date(environment.time);
   }
 
-  // Define an anonymous function to use in creation of environment
-  auto f = [&](double x) -> double { return compute_competition(x); };
+  // A constant field (use_constant_field) takes precedence over any loaded one.
+  if (constant_field) {
+    environment.r_init_interpolators(constant_field->interpolators);
+    environment.set_ode_state(constant_field->state.begin());
+    compute_boundary_nodes();
+    return;
+  }
+  // A field read from a run is exogenous, so this patch puts nothing into the
+  // reduction below. Only the inflow condition is its own.
+  if (field_run != nullptr) {
+    const recorded_field& f = field_from_run();
+    environment.r_init_interpolators(f.interpolators);
+    environment.set_ode_state(f.state.begin());
+    compute_boundary_nodes();
+    return;
+  }
 
-  if (size() > 0 & !is_mutant_run) {
-    try {
-      environment.compute_environment(f, height_max(), rescale);
-    } catch (const interpolator::refinement_failure& e) {
-      // The refiner can only say that the profile has a feature it cannot
-      // resolve, at some height. We know what is at that height, and it is
-      // usually the actual problem: cohorts stacked at one size put a step in
-      // the competition profile (#571). Say so rather than making the reader
-      // reconstruct the patch state by hand.
-      util::stop(std::string(e.what()) + " " +
-                 describe_nodes_near(e.report.x_lo));
-    }
+  compute_environment_excl_capturing();
+  compute_boundary_nodes();
+  compute_environment_closing();
+
+  // Kept here and nowhere else, because this is where the field comes to exist.
+  if (field_slot != nullptr) {
+    field_slot->interpolators = environment.get_interpolators_state();
+    field_slot->state.assign(environment.ode_size(), 0.0);
+    environment.ode_state(field_slot->state.begin());
+    field_slot->time = environment.time;
+    field_slot->kept = true;
   }
 }
 
-// Report what the size distribution is doing around `height`: how many cohorts
-// sit within a narrow window of it, and -- the usual culprit -- whether the node
-// list is still ordered by decreasing height. Species::compute_competition() and
-// Species::height_max() both take that ordering as given (see the invariant noted
-// on both), so once it is violated the competition profile they build has
-// fictitious steps in it, and the refiner fails on one of them (#571).
-//
-// A window rather than a single point because the unresolved interval is ~1e-5 m
-// wide, while what matters is whether cohorts share effectively the same size.
+// The field without the boundary interval, keeping each species' reduction at
+// the point its closing trapezium would be added.
 template <typename T, typename E>
-std::string Patch<T,E>::describe_nodes_near(double height) const {
-  const double window = 1e-3; // m
-
-  std::string ret = "Patch state at that height (time " +
-                    util::format_double(environment.time) + "):";
-
-  for (size_t i = 0; i < species.size(); ++i) {
-    size_t n_near = 0, n_inversions = 0, n_inversions_live = 0, n_zero_density = 0;
-    double h_near_min = std::numeric_limits<double>::infinity(),
-           h_near_max = -std::numeric_limits<double>::infinity(),
-           h_max = -std::numeric_limits<double>::infinity(),
-           h_front = NA_REAL, h_prev = NA_REAL;
-    bool prev_live = false;
-
-    for (auto it = species[i].node_begin(); it != species[i].node_end(); ++it) {
-      const double h = it->height();
-      const bool live = it->get_density() > 0.0;
-      if (!live) {
-        n_zero_density++;
-      }
-      if (!util::is_finite(h_front)) {
-        h_front = h;
-      } else if (h > h_prev) {
-        n_inversions++;
-        // Whether the *live* cohorts are still ordered is the question that
-        // matters: the method of characteristics guarantees it for them (growth
-        // trajectories sharing an environment cannot cross), so inversions among
-        // zero-density nodes are bookkeeping debris in the quadrature grid,
-        // whereas an inversion between two live cohorts would mean the
-        // characteristics themselves had crossed.
-        if (live && prev_live) {
-          n_inversions_live++;
-        }
-      }
-      h_prev = h;
-      prev_live = live;
-      h_max = std::max(h_max, h);
-      if (fabs(h - height) <= window) {
-        n_near++;
-        h_near_min = std::min(h_near_min, h);
-        h_near_max = std::max(h_near_max, h);
+void Patch<T,E>::compute_environment_excl_capturing() {
+  // The reduction fills one entry per knot, so the only thing needed here is one
+  // vector per species; field_splits sizes each of them.
+  competition_capture.resize(size());
+  auto f = [&](const std::vector<value_type>& x, std::vector<value_type>& y,
+               std::vector<value_type>& m) -> void {
+    for (size_t k = 0; k < x.size(); ++k) {
+      y[k] = 0.0;
+      m[k] = 0.0;
+    }
+    // Species-major, so each knot's sum still runs over the species in index
+    // order: the reduction is one pass over a species' nodes for the whole knot
+    // set, and asking it per knot is what made the build quadratic.
+    for (size_t i = 0; i < size(); ++i) {
+      species[i].field_splits(x, competition_capture[i]);
+      for (size_t k = 0; k < x.size(); ++k) {
+        const with_slope<value_type> open =
+          competition_capture[i][k].without_boundary();
+        y[k] += open.value / area;
+        m[k] += open.slope / area;
       }
     }
-
-    ret += " species " + util::to_string(i + 1) + ": " +
-           util::to_string(n_near) + " of " +
-           util::to_string(species[i].size()) + " cohorts within " +
-           util::format_double(window) + " m";
-    if (n_near > 0) {
-      ret += ", spanning [" + util::format_double(h_near_min) + ", " +
-             util::format_double(h_near_max) + "]";
-      // Several cohorts at one size means growth has stalled and the schedule is
-      // introducing new cohorts into a patch with nothing to separate them.
-      if (n_near > 1 && (h_near_max - h_near_min) < window / 100) {
-        ret += " -- effectively a single size, so the size distribution has"
-               " collapsed here";
-      }
-    }
-    if (n_inversions > 0) {
-      ret += "; node heights are NOT decreasing (" +
-             util::to_string(n_inversions) + " inversions, " +
-             util::to_string(n_inversions_live) +
-             " of them between two cohorts of non-zero density; " +
-             util::to_string(n_zero_density) + " of " +
-             util::to_string(species[i].size()) +
-             " nodes have zero density), which breaks the ordering that"
-             " Species::compute_competition() and height_max() assume: the"
-             " tallest cohort is " + util::format_double(h_max) +
-             " but height_max() reports " + util::format_double(h_front) +
-             " (the front node), so the competition profile is wrong and its"
-             " steps are an artefact rather than a feature of the model";
-      if (n_inversions_live == 0) {
-        ret += " (the live cohorts are still correctly ordered, so this is the"
-               " quadrature grid being scrambled by zero-density nodes rather"
-               " than growth trajectories crossing)";
-      }
-    }
-    ret += ";";
+  };
+  if (size() > 0) {
+    environment.compute_environment(f, height_max());
   }
-
-  return ret;
 }
+
+// The same field with the boundary interval closed, from the kept reductions and
+// the boundary node the call between the two established.
+template <typename T, typename E>
+void Patch<T,E>::compute_environment_closing() {
+  auto f = [&](const std::vector<value_type>& x, std::vector<value_type>& y,
+               std::vector<value_type>& m) -> void {
+    for (size_t k = 0; k < x.size(); ++k) {
+      y[k] = 0.0;
+      m[k] = 0.0;
+    }
+    for (size_t i = 0; i < species.size(); ++i) {
+      if (competition_capture[i].size() != x.size()) {
+        util::stop("compute_environment_closing: the field without the "
+                   "boundary interval was built over a different knot set");
+      }
+      for (size_t k = 0; k < x.size(); ++k) {
+        const with_slope<value_type> fs =
+          species[i].close_competition_and_slope(competition_capture[i][k], x[k]);
+        y[k] += fs.value / area;
+        m[k] += fs.slope / area;
+      }
+    }
+  };
+  if (size() > 0) {
+    environment.compute_environment(f, height_max());
+  }
+}
+
 
 
 template <typename T, typename E>
 void Patch<T,E>::compute_rates() {
 
   // Computes rates of change for the patch, including all the component species,
-  // against the environment the patch experiences (see rate_environment()).
-  environment_type& env = rate_environment();
+  // against the environment the patch experiences.
+  environment_type& env = environment;
   double time_ = env.time;
 
   double pr_patch_survival = survival_weighting->pr_survival(time_);
+  // The aggregates every private column reads -- the patch mean and the crown
+  // cover -- come from the columns' states, so they are formed before any column
+  // is rated (#681).
+  if constexpr (HasPrivateWater<T>) {
+    private_water_aggregates();
+  }
   for (size_t i = 0; i < size(); ++i) {
-    double birth_rate = species[i].extrinsic_drivers().evaluate("birth_rate", time_);
+    const value_type birth_rate = species[i].strategy_ptr()->birth_rate_at(time_);
 
     species[i].compute_rates(env, pr_patch_survival, birth_rate);
   }
 
+  // Produced here and drained by the call below, so it lives here. As a member
+  // it needed clearing by hand, and a refusal thrown between the fill and the
+  // clear left active values on a Patch across a tape reset.
+  std::vector<value_type> resource_depletion;
   resource_depletion.reserve(env.n_resources());
-  for(size_t i = 0; i < env.n_resources(); i++) {
-    double resource_consumed = std::accumulate(species.begin(), species.end(), 0.0, [i](double r, const species_type& s) {
-      return r + s.consumption_rate(i); // accumulates r from zero
+  for (size_t i = 0; i < env.n_resources(); i++) {
+    value_type resource_consumed = std::accumulate(
+      species.begin(), species.end(), value_type(0.0),
+      [i](const value_type& r, const species_type& s) -> value_type {
+        return r + s.consumption_rate(i);  // accumulates r from zero
+      });
+    resource_depletion.push_back(resource_consumed / area);
+  }
+  // A given field is exogenous: nothing the species take moves it.
+  if (!field_given()) {
+    if constexpr (HasPrivateWater<T>) {
+      // The uptake came out of each plant's own column in its compute_rates;
+      // the patch column is the bare ground and takes none. What couples the
+      // columns -- mixing, land transfer -- is added once every column has its
+      // own rates, below.
+      const std::vector<value_type> none(env.n_resources(), value_type(0.0));
+      env.compute_rates(none);
+      private_water_exchange(resource_depletion);
+    } else {
+      env.compute_rates(resource_depletion);
+    }
+  }
+}
+
+// The two passes of private root-zone water (TF24w, #681). Every quantity here
+// is a share of the patch's ground: a column's share is its crown area per m2
+// of patch, divided by the cover where crowns overlap, and the bare ground is
+// what crowns leave. Shares sum to one, which is what makes both the mixing and
+// the land transfer below conserve water.
+//
+// Pass 1, before the columns are rated: the area-weighted mean water content per
+// layer and the cover, cached on the environment for every column to read.
+template <typename T, typename E>
+void Patch<T,E>::private_water_aggregates() {
+  using odelia::util::to_passive;
+  environment_type& env = environment;
+  const size_t n = env.n_resources();
+  std::vector<double> sum(n, 0.0);
+  double cover = 0.0;
+  for (auto& sp : species) {
+    const auto& st = *sp.strategy_ptr();
+    const int first = st.state_idx_water_first;
+    sp.for_each_water_column([&](const typename species_type::individual_type& ind,
+                                 double nw, double, int kind) {
+      if (!(nw > 0.0) || kind == 1) {
+        return;
+      }
+      const double share = nw * to_passive(st.crown_area(ind.area_leaf()));
+      cover += share;
+      for (size_t i = 0; i < n; ++i) {
+        sum[i] += share * to_passive(ind.state(first + static_cast<int>(i)));
+      }
     });
-
-    resource_depletion.push_back(resource_consumed/area);
   }
-  
-
-  env.compute_rates(resource_depletion);
-
-  //todo do we need to clear this every step?
-  resource_depletion.clear();
-
+  const double scale = 1.0 / std::max(1.0, cover);
+  const double bare = std::max(0.0, 1.0 - cover);
+  std::vector<double> mean(n), newborn(n);
+  for (size_t i = 0; i < n; ++i) {
+    const double own = to_passive(env.vars.state(i));
+    mean[i] = sum[i] * scale + bare * own;
+    newborn[i] = cover < 1.0 ? own : (cover > 0.0 ? sum[i] / cover : own);
+  }
+  env.set_private_water_aggregates(mean, newborn, cover);
 }
 
-// TODO(#478): We should only be recomputing the light environment for the
-// points that are below the height of the seedling -- not the entire
-// light environment; probably worth just doing a rescale there?
+// Pass 2, after every column has its own rates: the terms that couple them.
+//
+// Land transfer. A column's share moves as its crown grows and its cohort dies,
+// and -- once the ground is covered -- as every other crown does the same:
+//   cover <= 1:  share' = share * g,  bare' = -sum(share')
+//   cover >  1:  share' = share * (g - cover'/cover),  bare' = 0
+// with g = A'/A - mu + w'/w: the crown's relative growth rate from the height
+// rate through the leaf-area allometry (crown area is leaf area over L_crown,
+// so the two have one relative rate), less the mortality rate, plus the growth
+// of the quadrature weight the youngest cohort and the boundary node carry
+// (Species::for_each_water_column). The two rates are what the species loop
+// just wrote. Land a shrinking share releases carries its water, and land a
+// growing share acquires arrives at the released land's mean content, so the
+// patch's water is unchanged by any re-tiling. The kink at cover = 1 is the
+// physics: expansion over bare ground is free, expansion into a neighbour is
+// not.
+//
+// Mixing. Every column relaxes toward the area-weighted mean at the
+// environment's water_mixing_rate; the private columns added their own term in
+// compute_rates, and the bare column's is added here.
+//
+// The accumulators the environment keeps (infiltration, drainage, uptake) are
+// overwritten with the area-weighted totals over every column, so a water
+// budget read off them still closes.
 template <typename T, typename E>
-void Patch<T,E>::introduce_new_node(size_t species_index) {
-  
-  species[species_index].introduce_new_node();
+void Patch<T,E>::private_water_exchange(const std::vector<value_type>& resource_depletion) {
+  using odelia::util::to_passive;
+  environment_type& env = environment;
+  const size_t n = env.n_resources();
+  const double cover = env.private_water_cover();
+  const double scale = 1.0 / std::max(1.0, cover);
+  const double bare = env.private_water_bare();
+  const double m = env.water_mixing_rate;
 
-  compute_environment(false);
+  struct column {
+    typename species_type::individual_type* ind;
+    int first;
+    double share;
+    double growth;  // A'/A - mu
+    double share_dt;
+  };
+  std::vector<column> cols;
+  // The boundary node's uptake per m2 of patch, charged to the pool below.
+  std::vector<double> boundary_uptake(n, 0.0);
+  double infiltration = 0.0, drainage = 0.0, cover_dt = 0.0;
+  for (auto& sp : species) {
+    const auto& st = *sp.strategy_ptr();
+    sp.for_each_water_column([&](typename species_type::individual_type& ind,
+                                 double nw, double weight_growth, int kind) {
+      if (!(nw > 0.0)) {
+        return;
+      }
+      if (kind == 1) {
+        for (size_t i = 0; i < n; ++i) {
+          boundary_uptake[i] +=
+            nw * to_passive(ind.consumption_rate(static_cast<int>(i))) / area;
+        }
+        return;
+      }
+      const double area_leaf = to_passive(ind.area_leaf());
+      const double share = nw * to_passive(st.crown_area(ind.area_leaf())) * scale;
+      // A share's relative rate: the crown's growth, less mortality, plus the
+      // growth of the ground the quadrature assigns the cohort.
+      const double growth =
+        to_passive(ind.rate(HEIGHT_INDEX)) * to_passive(ind.darea_leaf_dheight()) /
+          area_leaf -
+        to_passive(ind.rate(MORTALITY_INDEX)) + weight_growth;
+      cols.push_back({&ind, st.state_idx_water_first, share, growth, 0.0});
+      cover_dt += share * growth;
+      infiltration += share * to_passive(ind.aux(st.aux_idx_water_infiltration));
+      drainage += share * to_passive(ind.aux(st.aux_idx_water_drainage));
+    });
+  }
+  // Share rates, and the bare ground's.
+  double bare_dt = 0.0;
+  for (column& c : cols) {
+    c.share_dt = cover > 1.0 ? c.share * (c.growth - cover_dt)
+                             : c.share * c.growth;
+    bare_dt -= c.share_dt;
+  }
+  if (cover > 1.0) {
+    bare_dt = 0.0;
+  }
+  // The released land and its water.
+  std::vector<double> released(n, 0.0);
+  double released_area = 0.0;
+  for (const column& c : cols) {
+    if (c.share_dt < 0.0) {
+      released_area -= c.share_dt;
+      for (size_t i = 0; i < n; ++i) {
+        released[i] -= c.share_dt * to_passive(c.ind->state(c.first + static_cast<int>(i)));
+      }
+    }
+  }
+  if (bare_dt < 0.0) {
+    released_area -= bare_dt;
+    for (size_t i = 0; i < n; ++i) {
+      released[i] -= bare_dt * to_passive(env.vars.state(i));
+    }
+  }
+  // Acquiring columns take land at the released land's mean content. With
+  // nothing released nothing is acquired (the shares sum to one), so the
+  // branch is not reached with a zero divisor.
+  if (released_area > 0.0) {
+    for (size_t i = 0; i < n; ++i) {
+      released[i] /= released_area;
+    }
+    for (const column& c : cols) {
+      if (c.share_dt > 0.0 && c.share > 0.0) {
+        const double rel = c.share_dt / c.share;
+        for (size_t i = 0; i < n; ++i) {
+          const int slot = c.first + static_cast<int>(i);
+          c.ind->add_to_rate(slot, value_type((released[i] - to_passive(c.ind->state(slot))) * rel));
+        }
+      }
+    }
+    // A bare fraction below 1e-6 is treated as none: the relaxation rate
+    // bare'/bare it would carry is unbounded there, and the water involved is
+    // not.
+    if (bare_dt > 0.0 && bare >= 1e-6) {
+      const double rel = bare_dt / bare;
+      for (size_t i = 0; i < n; ++i) {
+        env.add_to_rate(i, value_type((released[i] - to_passive(env.vars.state(i))) * rel));
+      }
+    }
+  }
+  // The bare column's mixing term; the private columns carry their own.
+  if (m > 0.0 && bare >= 1e-6) {
+    for (size_t i = 0; i < n; ++i) {
+      env.add_to_rate(i, value_type(m * (env.private_water_mean(i) - to_passive(env.vars.state(i)))));
+    }
+  }
+  // The boundary node's uptake, charged to every column alike per unit of
+  // ground: the shares sum to one, so exactly that depth leaves the patch.
+  for (size_t i = 0; i < n; ++i) {
+    if (boundary_uptake[i] != 0.0) {
+      const double charge = boundary_uptake[i] / env.dz[i];
+      for (const column& c : cols) {
+        c.ind->add_to_rate(c.first + static_cast<int>(i), value_type(-charge));
+      }
+      env.add_to_rate(i, value_type(-charge));
+    }
+  }
+  // Accumulators: area-weighted over every column. The environment's own
+  // compute_rates just wrote the bare column's infiltration and drainage into
+  // slots 1 and 2, as if it were the whole patch.
+  value_type uptake = 0.0;
+  for (size_t i = 0; i < n; ++i) {
+    uptake += resource_depletion[i];
+  }
+  env.set_accumulator_rate(1, value_type(bare * to_passive(env.accumulator_rate(1)) + infiltration));
+  env.set_accumulator_rate(2, value_type(bare * to_passive(env.accumulator_rate(2)) + drainage));
+  env.set_accumulator_rate(3, uptake);
+}
+
+// The whole light environment is rebuilt here, where only the knots below the
+// seedling's height change. The knot fractions are fixed, so a narrower rebuild
+// would write a subrange of the same positions.
+template <typename T, typename E>
+void Patch<T,E>::introduce_nodes(const introduction& species_index, double time) {
+  absorb_tall();
+  push_nodes(species_index, time);
+
+  // A schedule carrying the same time twice for one species stamps two nodes
+  // with it, and the grid both reductions integrate over is those times.
+  check_birth_dates_distinct();
+
+  compute_environment();
+
+  // New nodes have just changed the state and the light field, so the stored
+  // rates now describe neither. The solver reads them next without checking, so
+  // they have to be brought up to date here.
+  compute_rates();
 }
 
 template <typename T, typename E>
-void Patch<T,E>::introduce_new_nodes(const std::vector<size_t>& species_index) {
-  // Record introduction time and patch-age density on each node as it is
-  // introduced, so lifetime-fitness calcs need not look these up later.
-  const double t = time();
-  const double patch_density = survival_weighting->density(t);
+void Patch<T,E>::absorb_tall() {
+  if (!(control.absorb_epsilon > 0.0)) {
+    return;
+  }
+  const bool arrival = survival_weighting->is_arrival_weighting();
+  for (species_type& s : species) {
+    s.absorb_tall(arrival);
+  }
+}
+
+// The three numbers a node carries that the ODE state does not: its birth date,
+// and the patch density and survival there. All three are functions of the time
+// it is introduced at, which is what lets a record hold only the time.
+template <typename T, typename E>
+void Patch<T,E>::push_nodes(const introduction& species_index, double time) {
+  const double patch_density = survival_weighting->density(time);
+  const double pr_survival = survival_weighting->pr_survival(time);
   for (size_t i : species_index) {
-    species[i].introduce_new_node(t, patch_density);
+    if (i >= species.size()) {
+      util::stop("introduce_nodes: species " +
+                 util::to_string(static_cast<int>(i)) + " of a patch holding " +
+                 util::to_string(static_cast<int>(species.size())));
+    }
+    // With the top layer on, a cohort born with no density is frozen at birth
+    // (freezes_retired), so a cohort the fitness integral weights would score
+    // zero output per seed where it would have accrued some. Refused rather
+    // than scored: a zero birth rate is the old idiom for a rare invader.
+    if (freezes_retired(control) && patch_density > 0.0 &&
+        !(odelia::util::to_passive(species[i].strategy_ptr()->birth_rate_at(time)) > 0.0)) {
+      util::stop("Species " + util::to_string(static_cast<int>(i + 1)) +
+                 " has birth rate zero at t = " + util::to_string(time) +
+                 ". With the top layer on (control$absorb_epsilon > 0) a cohort "
+                 "born with no density is frozen at birth and its output per "
+                 "seed reads zero. Give the species a small positive birth "
+                 "rate, e.g. 1e-6 of the resident's.");
+    }
+    species[i].introduce_new_node(time, patch_density, pr_survival);
   }
-
-  compute_environment(false);
 }
+
 
 template <typename T, typename E>
 template <typename Select>
@@ -842,15 +1855,24 @@ Patch<T,E>::scale_node_densities(size_t species_index, Select select) {
   species_type& sp = species[species_index];
   size_t n_affected = 0;
   double density_removed = 0.0;
+  // With the top layer on, a frozen cohort carries nothing and never moves again,
+  // so an event passes over it rather than count it.
+  const bool skip_retired = freezes_retired(control);
+  auto refuse_whole = []() {
+    util::stop("An event must leave a positive fraction of each cohort: "
+               "removing all of one would take its density to -Inf, which "
+               "the density transport cannot carry back.");
+  };
   for (auto n = sp.node_begin(); n != sp.node_end(); ++n) {
+    if (skip_retired && n->retired()) {
+      continue;
+    }
     const double phi = select(n->height());
     if (phi >= 1.0) {
       continue;
     }
     if (!(phi > 0.0)) {
-      util::stop("An event must leave a positive fraction of each cohort: "
-                 "removing all of one would take its density to -Inf, which "
-                 "the density transport cannot carry back.");
+      refuse_whole();
     }
     const double log_phi = std::log(phi);
     const double before = n->get_density();
@@ -861,6 +1883,17 @@ Patch<T,E>::scale_node_densities(size_t species_index, Select select) {
     n->individual.set_state("mortality",
                             n->individual.state(MORTALITY_INDEX) - log_phi);
     ++n_affected;
+  }
+  // The top layer holds trees at its height, and an event reaches them there.
+  if (sp.top_density() > 0.0) {
+    const double phi = select(sp.top_height());
+    if (phi < 1.0) {
+      if (!(phi > 0.0)) {
+        refuse_whole();
+      }
+      density_removed += sp.scale_top(phi);
+      ++n_affected;
+    }
   }
   return {n_affected, density_removed};
 }
@@ -901,8 +1934,44 @@ EventRecord Patch<T,E>::apply_event(const NodeScheduleEvent& event) {
                  " does not exist: this environment has " +
                  util::to_string(environment.n_resources()) + " resources");
     }
-    rec.applied = environment.add_resource_pulse(event.target_index,
-                                                 event.params.at(0));
+    if constexpr (HasPrivateWater<T>) {
+      // Every column takes the pulse, each capped at what its own layer can
+      // hold (#681). The environment's column books its own accepted depth and
+      // excess as though it were the whole patch; the accumulators are then
+      // corrected to the area-weighted totals, and the record reports those.
+      using odelia::util::to_passive;
+      private_water_aggregates();
+      const size_t layer = event.target_index;
+      const double depth = event.params.at(0);
+      const double scale = 1.0 / std::max(1.0, environment.private_water_cover());
+      const double bare = environment.private_water_bare();
+      double accepted_w = 0.0, excess_w = 0.0;
+      for (auto& sp : species) {
+        const auto& st = *sp.strategy_ptr();
+        const int slot = st.state_idx_water_first + static_cast<int>(layer);
+        sp.for_each_water_column([&](typename species_type::individual_type& ind,
+                                     double nw, double, int kind) {
+          if (kind == 1) {
+            return;
+          }
+          const double theta = to_passive(ind.state(slot));
+          const double accepted =
+            std::min(depth, environment.pulse_capacity(ind.state(slot), layer));
+          ind.set_state(slot, value_type(theta + accepted / environment.dz[layer]));
+          const double share = nw * to_passive(st.crown_area(ind.area_leaf())) * scale;
+          accepted_w += share * accepted;
+          excess_w += share * (depth - accepted);
+        });
+      }
+      const std::vector<double> own =
+        environment.add_resource_pulse(layer, depth);
+      environment.adjust_pulse_accumulators(accepted_w - (1.0 - bare) * own[0],
+                                            excess_w - (1.0 - bare) * own[1]);
+      rec.applied = {accepted_w + bare * own[0], excess_w + bare * own[1]};
+    } else {
+      rec.applied = environment.add_resource_pulse(event.target_index,
+                                                   event.params.at(0));
+    }
     break;
   }
 
@@ -991,7 +2060,11 @@ EventRecord Patch<T,E>::apply_event(const NodeScheduleEvent& event) {
   // Anything that changed the vegetation changes the light profile too, and
   // every cohort's rates are computed against it.
   if (event.type != EventType::ResourcePulse) {
-    compute_environment(false);
+    // No `rescale` argument: this branch's competition field is built on fixed
+    // knot fractions of height_max, so there is nothing to rescale and the
+    // parameter upstream threads here does not exist. The event SEMANTICS are
+    // upstream's; the field they recompute is this branch's.
+    compute_environment();
   }
   return rec;
 }
@@ -1036,9 +2109,8 @@ size_t Patch<T,E>::ode_size() const {
 
 template <typename T, typename E>
 size_t Patch<T,E>::aux_size() const {
-  // TODO(#478): Is this useful for environment vectors?
-  // no use for auxiliary environment variables (yet)
-  return odelia::ode::aux_size(species.begin(), species.end());// + environment.ode_size();
+  return odelia::ode::aux_size(species.begin(), species.end()) +
+    environment.aux_size();
 }
 
 template <typename T, typename E>
@@ -1046,11 +2118,10 @@ double Patch<T,E>::ode_time() const {
   return time();
 }
 
-// First set_ode_state function is for resident runs. Second is for mutant runs
 template <typename T, typename E>
-odelia::ode::const_iterator Patch<T,E>::set_ode_state(odelia::ode::const_iterator it,
-                                              double time) {
-  
+template <typename It>
+It Patch<T,E>::set_ode_state(It it, double time) {
+
   // Set ode states
   it = odelia::ode::set_ode_state(species.begin(), species.end(), it);
   it = environment.set_ode_state(it);
@@ -1063,87 +2134,23 @@ odelia::ode::const_iterator Patch<T,E>::set_ode_state(odelia::ode::const_iterato
   // physiology below and surfaces as an opaque downstream error (issue #550).
   check_finite_ode_state();
 
-  // Pre-compute environment, as shaped by residents
-  compute_environment(true);
+  // Build the field the rates will be taken in.
+  compute_environment();
 
   return it;
 }
 
-// used for mutant runs
-// -- differs from above in that an index is passed in as argument
-// -- environments are loaded from ODE history, instead of being calculated 
 template <typename T, typename E>
-odelia::ode::const_iterator Patch<T,E>::set_ode_state(odelia::ode::const_iterator it,
-                                              int index) {
-
-  it = odelia::ode::set_ode_state(species.begin(), species.end(), it);
-
-  // Record which of this step's cached environments the rates are evaluated
-  // against; rate_environment() reads it back without copying the object.
-  cached_environment_index = index;
-  const environment_type& cached = rate_environment();
-  environment.time = cached.time;
-
-  // increment the iterator by an appropriate amount, but don't actually do anything in the env
-  for (size_t i = 0; i < cached.ode_size(); i++) {*it++;}
-
+template <typename It>
+It Patch<T,E>::set_state_and_boundary(It it, double time) {
+  it = set_ode_state(it, time);
+  compute_boundary_nodes();
   return it;
 }
 
-// called from ode_solver->cache
-// saves cached set of environments(6) from each ODE step to the step history
 template <typename T, typename E>
-void Patch<T,E>::cache_ode_step() {
-  if(save_RK45_cache) { 
-    step_history.push_back(time());
-    environment_history.push_back(environment_cache);
-  }
-}
-
-// called from ode_step->cache
-// saves environment at each RK45 step to the environment cache
-template <typename T, typename E>
-void Patch<T,E>::cache_RK45_step(int step) {
-  if(save_RK45_cache) {  
-    if(step == 0) {
-      environment_cache.clear();
-    }
-    environment_cache.push_back(environment);
-  }
-}
-
-// called from ode_solver->load, only gets called for mutant runs
-template <typename T, typename E>
-void Patch<T,E>::load_ode_step() {
-  if (use_cached_environment)
-  {
-    // Minor optimization to check the current and next index before doing a search, as the most common case is that the ODE solver is stepping through the cached environments in order. If the call sequence was not strictly sequential, we fallback to a search through the step history to find the correct environment.
-
-    const double t = time();
-    const size_t n = step_history.size();
-
-    // Fast path: step_to() advances through ode_times in order, so this is
-    // usually either the current cached step index or the next one.
-    if (static_cast<size_t>(idx) < n && util::identical(step_history[idx], t)) {
-      return;
-    }
-    if (static_cast<size_t>(idx + 1) < n &&
-        util::identical(step_history[idx + 1], t)) {
-      ++idx;
-      return;
-    }
-
-    // Fallback to search if the call sequence was not strictly sequential.
-    auto step = std::find(step_history.begin(), step_history.end(), t);
-    if (step == step_history.end()) {
-      util::stop("ODE time not found in step history");
-    }
-    idx = static_cast<int>(std::distance(step_history.begin(), step));
-  }
-}
-
-template <typename T, typename E>
-odelia::ode::iterator Patch<T,E>::ode_state(odelia::ode::iterator it) const {
+template <typename It>
+It Patch<T,E>::ode_state(It it) const {
   it = odelia::ode::ode_state(species.begin(), species.end(), it);
   it = environment.ode_state(it);
   return it;
@@ -1167,17 +2174,230 @@ Rcpp::List Patch<T, E>::r_get_state() const
 }
 
 template <typename T, typename E>
-odelia::ode::iterator Patch<T,E>::ode_rates(odelia::ode::iterator it) {
+template <typename It>
+It Patch<T,E>::ode_rates(It it) {
   compute_rates();
   it = odelia::ode::ode_rates(species.begin(), species.end(), it);
+  if (field_given()) {
+    for (size_t k = 0; k < environment.ode_size(); ++k) {
+      *it = 0.0;
+      ++it;
+    }
+    return it;
+  }
   it = environment.ode_rates(it);
   return it;
 }
 
 template <typename T, typename E>
-odelia::ode::iterator Patch<T,E>::ode_aux(odelia::ode::iterator it) const {
+template <typename It>
+It Patch<T,E>::ode_aux(It it) const {
   it = odelia::ode::ode_aux(species.begin(), species.end(), it);
+  it = environment.ode_aux(it);
   return it;
+}
+
+template <typename T, typename E>
+template <typename It>
+It Patch<T,E>::set_ode_aux(It it) {
+  it = odelia::ode::set_ode_aux(species.begin(), species.end(), it);
+  it = environment.set_ode_aux(it);
+  return it;
+}
+
+
+// The differentiable parameters of every species, species-major, which is the
+// order every row indexed by a trait is in. A patch answers for this rather than
+// each caller walking the species, because the order is the layout of a gradient
+// and a caller that walks it itself is free to walk it differently.
+template <typename T, typename E>
+std::vector<typename T::value_type*> Patch<T,E>::ad_parameters() {
+  std::vector<typename T::value_type*> ret;
+  for (size_t i = 0; i < species.size(); ++i) {
+    for (typename T::value_type* p :
+         species[i].strategy_ptr()->ad_parameters()) {
+      ret.push_back(p);
+    }
+  }
+  return ret;
+}
+
+// Every species in a patch carries the same strategy type, so this is a count
+// per species rather than a walk that builds a vector of pointers to measure its
+// length. It is asked several times per gradient.
+template <typename T, typename E>
+size_t Patch<T,E>::trait_adjoint_size() const {
+  size_t n = 0;
+  for (size_t i = 0; i < species.size(); ++i) {
+    n += species[i].strategy_ptr()->ad_column_count();
+  }
+  return n;
+}
+
+template <typename T, typename E>
+std::vector<std::string> Patch<T,E>::trait_adjoint_names() const {
+  std::vector<std::string> ret;
+  ret.reserve(trait_adjoint_size());
+  for (size_t i = 0; i < species.size(); ++i) {
+    const std::string species_index =
+      util::to_string(static_cast<int>(i + 1)) + ".";
+    for (const std::string& n :
+         species[i].strategy_ptr()->ad_parameter_names()) {
+      ret.push_back(species_index + n);
+    }
+  }
+  return ret;
+}
+
+
+template <typename T, typename E>
+typename Patch<T,E>::introduction
+Patch<T,E>::introduced_at(double time) const {
+  introduction ret;
+  for (size_t i = 0; i < species.size(); ++i) {
+    for (const double t : parameters.node_schedule_times.at(i)) {
+      if (util::identical(t, time)) {
+        ret.push_back(i);
+        break;
+      }
+    }
+  }
+  return ret;
+}
+
+template <typename T, typename E>
+size_t Patch<T,E>::nodes_at(size_t i, double time) const {
+  const size_t base = parameters.initial_state.empty()
+                          ? 0
+                          : parameters.n_initial_cohorts.at(i);
+  size_t n = 0;
+  for (const double t : parameters.node_schedule_times.at(i)) {
+    if (t < time) {
+      ++n;
+    }
+  }
+  return base + n;
+}
+
+// Derived rather than read off the recording: the schedule this patch is run
+// from says which species gain a node when, so a walk that jumps into the middle of a recording
+// works out the shape there instead of being handed a list of what happened.
+template <typename T, typename E>
+void Patch<T,E>::reshape_to(double time) {
+  bool moved = false;
+  for (size_t i = 0; i < species.size(); ++i) {
+    const size_t target = nodes_at(i, time);
+    while (species[i].size() > target) {
+      species[i].remove_newest_node();
+      moved = true;
+    }
+    if (species[i].size() < target) {
+      const size_t base = parameters.initial_state.empty()
+                              ? 0
+                              : parameters.n_initial_cohorts.at(i);
+      // The values a pushed node carries are the state's and arrive with the
+      // load; only its stamps are its own, and those are the schedule's date.
+      const std::vector<double>& when = parameters.node_schedule_times.at(i);
+      const introduction one{i};
+      while (species[i].size() < target) {
+        push_nodes(one, when.at(species[i].size() - base));
+        moved = true;
+      }
+    }
+  }
+  if (moved) {
+    check_birth_dates_distinct();
+    compute_environment();
+    compute_rates();
+  }
+}
+
+template <typename T, typename E>
+template <typename It>
+void Patch<T,E>::apply_insertion(double time, It x,
+                                 std::vector<value_type>& y) {
+  apply_insertion(introduced_at(time), time, x, y);
+}
+
+template <typename T, typename E>
+template <typename It>
+void Patch<T,E>::apply_insertion(const introduction& species_index, double time,
+                                 It x, std::vector<value_type>& y) {
+  set_state_and_boundary(x, time);
+  absorb_tall();
+  push_nodes(species_index, time);
+  y.assign(ode_size(), value_type(0.0));
+  ode_state(y.begin());
+}
+
+// Be the shape this recorded time implies, then take these values. A run loads
+// into the shape it already built; a walk over a recording does not know it, so
+// it is derived here -- and the width arrived at is checked against the width the
+// caller brought, which is what says the schedule and the recording agree.
+template <typename T, typename E>
+void Patch<T,E>::set_recorded_state(const std::vector<value_type>& y,
+                                    double time) {
+  reshape_to(time);
+  util::check_length(y.size(), ode_size());
+  set_state_and_boundary(y.begin(), time);
+}
+
+// One tangent direction per input column, over the same map. The node the map pushes is
+// removed between columns, so every column is taken from the same width.
+template <typename T, typename E>
+std::vector<std::vector<double>>
+Patch<T,E>::introduction_jacobian(const std::vector<size_t>& species_index,
+                                  const std::vector<double>& state_before,
+                                  double time_before) {
+  const size_t n_state = ode_size();
+  const size_t n_trait = trait_adjoint_size();
+  const size_t n_out = n_state + species_index.size() * node_type::ode_size();
+  util::check_length(state_before.size(), n_state);
+
+  std::vector<double> in(state_before);
+  in.reserve(n_state + n_trait);
+  for (const typename T::value_type* p : ad_parameters()) {
+    in.push_back(odelia::util::to_passive(*p));
+  }
+  util::check_length(in.size(), n_state + n_trait);
+
+  auto active = this->template rebind<tangent>();
+  std::vector<std::vector<double>> ret(n_out,
+                                       std::vector<double>(in.size(), 0.0));
+  for (size_t c = 0; c < in.size(); ++c) {
+    std::vector<tangent> x(in.size());
+    for (size_t j = 0; j < in.size(); ++j) {
+      x[j] = in[j];
+      set_direction(x[j], (j == c) ? 1.0 : 0.0);
+    }
+    // The traits first, for the reason the transpose writes them first: a
+    // quantity the state determines reads them while deriving it.
+    size_t at = n_state;
+    for (tangent* p : active.ad_parameters()) {
+      *p = x[at++];
+    }
+    util::check_length(at, x.size());
+    std::vector<tangent> y(n_out);
+    active.apply_insertion(species_index, time_before, x.begin(), y);
+    for (size_t r = 0; r < n_out; ++r) {
+      ret[r][c] = derivative_along(y[r]);
+    }
+    for (size_t i : species_index) {
+      active.species[i].remove_newest_node();
+    }
+  }
+  return ret;
+}
+
+template <typename T, typename E>
+void Patch<T,E>::tolerance_scales(double, std::vector<double>& scales) const {
+  scales.assign(ode_size(), 1.0);
+  if constexpr (HasSoil<E>) {
+    const size_t first = ode_size() - environment.ode_size();
+    const size_t n = environment.n_resources();
+    std::fill_n(scales.begin() + static_cast<std::ptrdiff_t>(first), n,
+                control.ode_tol_scale_soil);
+  }
 }
 
 template <typename T, typename E>
@@ -1226,6 +2446,19 @@ bool Patch<T,E>::ode_state_valid(const std::vector<double>& y) const {
           return false;
         }
       }
+    }
+    // The top layer's block follows the species' nodes. Its individual holds the
+    // same bounded states as a node's; it is checked once it carries density.
+    if (sp.top_ode_size() > 0) {
+      const size_t density_at = at + individual_type::ode_size();
+      if (y[density_at] > 0.0) {
+        for (const size_t i : bounded) {
+          if (y[at + i] < 0.0) {
+            return false;
+          }
+        }
+      }
+      at += sp.top_ode_size();
     }
   }
   return true;

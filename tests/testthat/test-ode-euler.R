@@ -5,7 +5,7 @@
 ## on the Lorenz fixture) now lives with the solver itself in the odelia
 ## package; here we cover plant's use of it: (1) the SCM fixed_time_step path
 ## converging on the adaptive result, and (2) the guards against combining it
-## with the mutant-replay path.
+## with the mutant pinned-run path.
 ##
 ## These run on a shortened patch horizon (max_patch_lifetime = 40 vs the FF16
 ## default ~105): the convergence behaviour tested here -- first-order error
@@ -61,22 +61,16 @@ test_that("SCM fixed-step walks the expected uniform grid", {
   expect_gt(length(scm_fine$ode_times), length(ode_times))
 })
 
-test_that("fixed_time_step is rejected on the mutant-replay paths", {
+test_that("fixed_time_step is rejected on the mutant pinned-run paths", {
   x <- "FF16"
   p0 <- scm_base_parameters(x)
   p0$max_patch_lifetime <- 40
   p <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
   env <- Environment(x)
 
-  ## save_RK45_cache (the resident pass that feeds mutant fitness) has no Euler
-  ## analogue: refused at construction.
-  expect_error(
-    run_scm(p, env, Control(fixed_time_step = 0.5, save_RK45_cache = TRUE)),
-    "incompatible with save_RK45_cache")
-
-  ## Pinned ode-time replay (use_ode_times) is refused mid-run.
+  ## A pinned ODE schedule is refused with forward Euler.
   p$ode_times <- run_scm(p, env, Control())$ode_times
   expect_error(
-    run_scm(p, env, Control(fixed_time_step = 0.5), use_ode_times = TRUE),
-    "not supported for ode-time replay")
+    run_scm(p, env, Control(fixed_time_step = 0.5)),
+    "not supported for a pinned ODE schedule")
 })

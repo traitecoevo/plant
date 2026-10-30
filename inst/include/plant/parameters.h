@@ -10,9 +10,11 @@
 #include <plant/node_schedule.h>
 #include <plant/scm_utils.h> // Unfortunately needed for setup_node_schedule
 
+#include <memory>
 #include <plant/disturbance_regime.h>
 #include <plant/disturbances/no_disturbance.h>
 #include <plant/disturbances/weibull_disturbance.h>
+#include <plant/disturbances/fitness_window.h>
 
 // TODO(#483): I will possibly move out the "Patch" parameters out into
 // their own simple list class at some point, to make this a bit more
@@ -33,6 +35,8 @@ struct Parameters {
     n_patches(1),
     patch_type("meta-population"),
     max_patch_lifetime(105.32), // designed to agree with Daniel's implementation
+    fitness_window_start(0.0),
+    fitness_window_end(0.0),
     initial_time(0.0)
   {
     validate();
@@ -41,11 +45,32 @@ struct Parameters {
   // Data -- public for now (see github issue #17).
   double patch_area; // Size of the patch (m^2)
   size_t n_patches;  // Number of patches in the metacommunity
+  // "meta-population" (Weibull patch ages), "fixed" (no disturbance) or
+  // "fitness_window"; validate() refuses anything else.
   std::string patch_type;
   double max_patch_lifetime; // Disturbance interval (years)
+  // The arrival window and its weight, read when patch_type is "fitness_window": the
+  // continuous patch's regime (#519, disturbances/fitness_window.h). Both ends
+  // default to zero, which validate() refuses, so a window has to be chosen.
+  double fitness_window_start;
+  double fitness_window_end;
+  std::vector<double> fitness_window_weight_x;
+  std::vector<double> fitness_window_weight_y;
   std::vector<strategy_type> strategies;
+  // Every active value the strategies here carry. They are copies the patch does
+  // not run, and a recording does not read them -- but they hold slots, and a
+  // slot left registered is one the next clear reissues.
+  template <class F>
+  void for_each_active(F&& f) {
+    odelia::ode::visit_active(f, strategies, strategy_default);
+  }
 
-  Disturbance_Regime* disturbance;
+  // Owned, and shared with every copy of these parameters and with the patch
+  // that reads it. A raw pointer here was allocated on every validate() and
+  // freed nowhere, and the leak was load-bearing: the pointer is copied into
+  // each Parameters copy and aliased by the patch, so freeing it once would have
+  // left the others dangling.
+  std::shared_ptr<Disturbance_Regime> disturbance;
 
   // Default strategy.
   strategy_type strategy_default;
@@ -54,12 +79,22 @@ struct Parameters {
   std::vector<double> node_schedule_times_default;
   std::vector<std::vector<double> > node_schedule_times;
   std::vector<double> ode_times;
+  // The size of the step that reached each of ode_times, NaN first. Recorded
+  // beside the times because a schedule run by its times alone takes different
+  // steps: a size differenced back out of two recorded times is not the size
+  // that was taken. A run carrying both takes exactly the steps it recorded.
+  std::vector<double> ode_step_sizes;
+  // Each step's record of substepping the soil, beside its size: its input
+  // slopes and substep ends, both empty where the step took the soil with the
+  // rest.
+  std::vector<std::vector<double> > ode_soil_input_slopes;
+  std::vector<std::vector<double> > ode_soil_substep_ends;
 
-  // Initial patch state. When initial_state is non-empty the patch is seeded
+  // Initial patch state. When initial_state is non-empty the patch is initialised
   // with these nodes at reset() instead of starting empty -- used to resume an
-  // exported patch run or to seed an arbitrary initial size distribution.
+  // exported patch run or to initialise an arbitrary size distribution.
   // Carried here so a run stays fully self-describing/serialisable (see
-  // agents.md), and so the seeding survives the reset() at the start of every
+  // agents.md), and so the initial state survives the reset() at the start of every
   // SCM::run()/refine_schedule().
   //   initial_state             flat ODE state (all nodes, then environment),
   //                             in the order Patch::set_ode_state expects.
@@ -67,7 +102,7 @@ struct Parameters {
   //   initial_node_times        per-node introduction time (flat across species).
   //   initial_patch_density     per-node patch-age density at birth (flat).
   //   initial_pr_patch_survival per-node pr_patch_survival at birth (flat).
-  //   initial_time              patch age to resume at (0 for a fresh seed).
+  //   initial_time              patch age to resume at (0 for a fresh start).
   // Length consistency is checked in Patch::set_initial_state(), where the
   // node/ode sizes are known.
   std::vector<double> initial_state;
@@ -106,10 +141,21 @@ void Parameters<T,E>::validate() {
   // when calculating fitness, otherwise defaults to fixed-duration run without
   // disturbance
   if(patch_type == "meta-population") {
-    disturbance = new Weibull_Disturbance_Regime(max_patch_lifetime);
+    disturbance = std::make_shared<Weibull_Disturbance_Regime>(max_patch_lifetime);
+  }
+  else if (patch_type == "fitness_window") {
+    disturbance = std::make_shared<Fitness_Window>(fitness_window_start, fitness_window_end,
+                                                  fitness_window_weight_x,
+                                                  fitness_window_weight_y);
+  }
+  else if (patch_type == "fixed") {
+    disturbance = std::make_shared<No_Disturbance>();
   }
   else {
-    disturbance = new No_Disturbance();
+    // Named rather than defaulted: a misspelt type would otherwise run with no
+    // weighting at all and report a fitness for it.
+    util::stop("Unknown patch_type \"" + patch_type + "\": use "
+               "\"meta-population\", \"fixed\" or \"fitness_window\"");
   }
 }
 

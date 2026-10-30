@@ -1,3 +1,4 @@
+#include <plant/fp_contract.h>
 #include <plant/qk.h>
 #include <plant/qk_rules.h>
 
@@ -47,6 +48,20 @@ std::vector<double> QK::integrate_vector_x(double a, double b) const {
   }
 
   return x;
+}
+
+void QK::unit_rule(std::vector<double>& x, std::vector<double>& w) const {
+  x = integrate_vector_x(0.0, 1.0);
+  w.clear();
+  w.push_back(0.5 * wgk[n - 1]);
+  for (size_t j = 0; j < (n - 1) / 2; j++) {
+    w.push_back(0.5 * wgk[j * 2 + 1]);
+    w.push_back(0.5 * wgk[j * 2 + 1]);
+  }
+  for (size_t j = 0; j < n / 2; j++) {
+    w.push_back(0.5 * wgk[j * 2]);
+    w.push_back(0.5 * wgk[j * 2]);
+  }
 }
 
 double QK::integrate_vector(const std::vector<double>& y,
@@ -200,6 +215,10 @@ void QK::initialise(size_t rule) {
     std::copy(QK61::wgk, QK61::wgk + n,  wgk.begin());
   } else {
     Rcpp::stop("Unknown rule " + util::to_string(rule));
+  }
+  // Callers size fixed storage by max_points.
+  if (2 * n - 1 > max_points) {
+    Rcpp::stop("Rule " + util::to_string(rule) + " exceeds QK::max_points");
   }
   fv1.resize(n);
   fv2.resize(n);

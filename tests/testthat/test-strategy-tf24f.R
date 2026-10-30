@@ -9,8 +9,10 @@ test_that("Defaults", {
     a_y      = 0.7,
     a_l1     = 5.44,
     a_r1     = 0.07,
+    a_cr1    = 0,
     a_b1      = 0.17,
     r_b   = 8024 / 608,
+    r_cr  = 4012/608,
     r_l   = 39.27 / 0.1978791,
     r_r   = 217,
     r_s   = 4012/608,
@@ -22,6 +24,7 @@ test_that("Defaults", {
     a_st1 = 0.10,
     a_st2 = 0.10,
     a_st3 = 0.8,
+    storage_relaxation_offset = 7 / 365,
     a_sw = 0.0,
     a_pl0 = 0.0,
     a_pl1 = 0.0,
@@ -37,6 +40,7 @@ test_that("Defaults", {
     hmat   = 16.5958691,
     k_b    = 0.2,
     k_l   = 0.4565855,
+    k_cr   = 0.2,
     k_r    = 1,
     k_s   = 0.2,
     lma    = 0.1978791,
@@ -45,19 +49,20 @@ test_that("Defaults", {
     theta  = 1.0/4669,
     k_I = 0.5,
     vcmax_25 = 96,
-    stem_P50 = 1.85,
+    stem_P50 = 2.8887256653360196,
     # Terminal-segment conductivity: the old whole-stem 1, back-derived so
     # resistance is unchanged at TF24_H_ANCHOR. Ratio 2.9782.
     K_s = TF24_K_s_from_whole_stem(1),
-    stem_c = log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16)),
-    stem_b = 1.85 /((-log(1 - 50.0 / 100.0))^(1 / (log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16))))),
-    psi_crit = (1.85 /((-log(1 - 50.0 / 100.0))^(1 / (log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16))))))*log(1/0.05)^(1/(log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16)))),
+    stem_c = 2.04,
+    stem_b = 2.8887256653360196 / (-log(1 - 50.0 / 100.0))^(1 / 2.04),
+    psi_crit = 2.8887256653360196 / (-log(1 - 50.0 / 100.0))^(1 / 2.04) * log(1/0.05)^(1/2.04),
     beta1 = 20000,
     TF24_beta2 = 1.5,
     TF24_cost_scale = 7.5,
     TF24_floor_lambda_o = 0,
     jmax_25 = 157.44,
-    a = 0.3,
+    R_d_25 = 1.44,
+    phi_J = 0.3 / 0.85,
     curv_fact_elec_trans = 0.7,
     curv_fact_colim = 0.99,
     var_sapwood_volume_cost = 1,
@@ -67,9 +72,15 @@ test_that("Defaults", {
     nmass_r = 0.00335,
     dmass_dN = 0,
     root_depth_shape_eta = 0.2,
+    # (root_P50, root_c) is the pair the model carries; root_b and root_psi_crit
+    # are derived from it here the way TF24_Pars derives them, rather than pinned
+    # as literals. phylloptim takes the same pair and derives both itself, so a
+    # literal here would be a third spelling free to disagree with both.
+    root_P50 = 3.4,
     root_c = 2.680147,
-    root_b = 3.898245,
-    root_psi_crit = 3.898245 * log(1 / 0.05)^(1 / 2.680147),
+    root_b = 3.4 / (-log(1 - 50.0 / 100.0))^(1 / 2.680147),
+    root_psi_crit = (3.4 / (-log(1 - 50.0 / 100.0))^(1 / 2.680147)) *
+                      log(1 / 0.05)^(1 / 2.680147),
     rooting_depth_max = 1.5,
     # Stem hydraulic path. theta_c stays 0, so `theta` keeps its whole-plant
     # meaning. See plant/stem_hydraulics.h.
@@ -78,7 +89,10 @@ test_that("Defaults", {
     L_tip = 0.02,
     recruitment_decay = 0,
     use_energy_balance = 0,
-    d = 0.05)
+    d = 0.05,
+    alpha_PAR = 0.85,
+    alpha_NIR = 0.2,
+    L_crown = 2.0)
 
   # Top-level strategy fields: the pars sub-object plus infrastructure, and the
   # TF24f-specific acclimation knobs (gain + finite-difference step) (#525).
@@ -214,7 +228,9 @@ test_that("TF24f_Strategy hyper-parameterisation", {
   # sapwood conductivity and hydraulic traits
   K_s <- c(1, 2, 3)
   ret <- TF24f_hyperpar(trait_matrix(K_s, "K_s"), s)
-  expect_true(all(c("K_s", "stem_P50", "stem_c", "stem_b", "psi_crit") %in% colnames(ret)))
+  expect_true(all(c("K_s", "stem_P50", "stem_b", "psi_crit") %in% colnames(ret)))
+  # B_c2 = 0 makes stem_c the default at every K_s, so the filter drops it.
+  expect_false("stem_c" %in% colnames(ret))
   expect_equal(ret[, "K_s"], K_s)
   expect_true(all(diff(ret[, "stem_P50"]) < 0))
 
@@ -299,8 +315,8 @@ test_that("acclimation runs, is active, and converges to TF24", {
   #     and a full patch runs end-to-end to a finite, positive offspring count.
   expect_true("opt_root_psi_state" %in% TF24f_Individual()$ode_names)
   pf <- mk("TF24f")
-  slow <- run_scm(set_k_acclim(pf, 0.001), Environment("TF24f"), Control())$offspring_production
-  fast <- run_scm(set_k_acclim(pf, 1),   Environment("TF24f"), Control())$offspring_production
+  slow <- run_scm(set_k_acclim(pf, 1),  Environment("TF24f"), Control())$offspring_production
+  fast <- run_scm(set_k_acclim(pf, 10), Environment("TF24f"), Control())$offspring_production
   expect_length(fast, 1)
   expect_true(is.finite(fast) && fast > 0)
 
@@ -308,22 +324,18 @@ test_that("acclimation runs, is active, and converges to TF24", {
   #     fitness, so the finite-difference psi optimisation is feeding back into
   #     the demography rather than being a no-op.
   #
-  #     ⚠️ THE BRACKET STRADDLES A MAXIMUM, so it has to be chosen against the
-  #     coordinate in use, not carried over. Offspring production is NOT
-  #     monotone in k_acclim, and #516 moved where its peak sits: under the
-  #     height coordinate the maximum was near k = 0.1, and under the birth-date
-  #     coordinate TF24f now defaults to, it is near k = 1. Measured here at
-  #     hmat = 5, max_patch_lifetime = 5:
+  #     ⚠️ Offspring production is NOT monotone in k_acclim, so the pair has to
+  #     sit on one side of its maximum: a pair straddling it can sit at the same
+  #     height on either side and differ by little with the feedback fully live.
+  #     Where the maximum sits moves with the model and the coordinate. Measured
+  #     here at hmat = 5, max_patch_lifetime = 5, on the birth-date coordinate
+  #     TF24f defaults to:
   #
-  #       k_acclim      0.001     0.01      0.1        1       10
-  #       birth-date  388.267  390.547  409.512  439.537  397.309
-  #       height       15.416   16.442   22.066   22.233   24.365
+  #       k_acclim    0.001    0.01     0.1      1       10      100
+  #       offspring   418.7   420.9   437.5   428.8   345.3   332.4
   #
-  #     The old 0.1-vs-10 pair therefore compares two points on OPPOSITE SIDES
-  #     of the birth-date peak and reads only 3.0% -- which looks like weak
-  #     acclimation and is really a badly-placed bracket. Spanning 0.001 to 1
-  #     gives 13.2%, so the original 0.1 threshold stands rather than being
-  #     relaxed again.
+  #     The rising limb is shallow (4.5% from 0.001 to the peak) and the falling
+  #     one steep, so the contrast is taken on the falling limb.
   expect_gt(abs(fast - slow) / slow, 0.1)
 
   # (3) Consistent with TF24 "within reason": as the acclimation gain grows,
@@ -335,14 +347,20 @@ test_that("acclimation runs, is active, and converges to TF24", {
   #     residual tracking lag. Measured gap against TF24 as the gain rises:
   #
   #       k_acclim     10      30     100     300    1000
-  #       rel. gap  0.376%  0.132%  0.038%  0.012%  0.002%
+  #       rel. gap  0.113%  0.054%  0.041%  0.013%  0.002%
+  #
+  #     TF24 is integrated to 1e-6 here. At the default tolerance its own
+  #     time-integration error is about 0.2%, larger than the lag at k = 100.
   #
   #     Monotone to zero, which is what makes this a tracking lag and not a
   #     structural divergence between the two strategies. Note that the gap
   #     closing monotonically in k is compatible with offspring production
   #     itself being non-monotone in k (see assertion 2): the former is about
   #     TF24f approaching TF24, the latter about where each sits.
-  tf24 <- run_scm(mk("TF24"), Environment("TF24"), Control())$offspring_production
+  tight <- Control()
+  tight$ode_tol_rel <- 1e-6
+  tight$ode_tol_abs <- 1e-6
+  tf24 <- run_scm(mk("TF24"), Environment("TF24"), tight)$offspring_production
   converged <- run_scm(set_k_acclim(pf, 100), Environment("TF24f"),
                        Control())$offspring_production
   expect_equal(converged, tf24, tolerance = 1e-2)

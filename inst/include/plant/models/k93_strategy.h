@@ -6,6 +6,7 @@
 #include <plant/strategy.h>
 #include <plant/models/k93_environment.h>
 #include <plant/canopy_shape.h>
+#include <plant/with_slope.h>
 
 namespace plant {
 
@@ -36,6 +37,8 @@ struct K93_Pars {
 
 class K93_Strategy: public Strategy<K93_Environment> {
 public:
+  using value_type = double;
+
   typedef std::shared_ptr<K93_Strategy> ptr;
   K93_Strategy();
 
@@ -43,7 +46,12 @@ public:
   // the simulation output for identical inputs. Do NOT bump for refactors,
   // performance, interface, or serialisation changes. Bumping invalidates
   // logpile's cache for this model (see plant::model_version() / model_id()).
-  static constexpr int scientific_version = 1;
+  // v2: as FF16 v2 -- the reductions integrate over the coordinate the density
+  // is carried in, so a birth-date run's output moves and a height run's does
+  // not.
+  // v3: as FF16 v3 -- odelia 0.8.0's step-size rule and the default ode_tol
+  // 1e-4 -> 1e-5 move every adaptive run within the ODE tolerance.
+  static constexpr int scientific_version = 3;
 
   // Direct aux indices for the hot path, avoiding aux_index.at("...") string-map
   // lookups (these showed up in profiling; see #466). MUST stay in sync with the
@@ -69,7 +77,7 @@ public:
     return std::vector<std::string>({"competition_effect", "height_inverse"});
   }
 
-  void compute_rates(const K93_Environment& environment, Internals& vars);
+  void compute_rates(const K93_Environment& environment, Internals<double>& vars);
 
   void refresh_indices();
 
@@ -77,7 +85,7 @@ public:
   // The rates-carrying entry point Individual calls for every strategy. K93's
   // establishment reads no carbon budget, so the rates are unused here.
   double establishment_probability(const K93_Environment& environment,
-                                   const Internals&) {
+                                   const Internals<double>&) {
     return establishment_probability(environment);
   }
   double net_mass_production_dt(const K93_Environment& environment,
@@ -89,7 +97,7 @@ public:
   // carbon budget, so the worker ignores these arguments and returns NA; the
   // wrapper exists to keep Individual's interface uniform across strategies.
   double net_mass_production_dt(const K93_Environment& environment,
-                                const Internals& vars) {
+                                const Internals<double>& vars) {
     return net_mass_production_dt(environment, vars.state(HEIGHT_INDEX),
                                   vars.aux(COMPETITION_EFFECT_AUX_INDEX),
                                   vars.aux(HEIGHT_INVERSE_AUX_INDEX));
@@ -106,16 +114,30 @@ public:
   double compute_competition_by_ratio(double z_over_size,
                                       double whole_plant_competition) const {
     // Competition only felt if plant bigger than target size z.
-    return whole_plant_competition * canopy_shape.Q(z_over_size);
+    return whole_plant_competition * canopy_shape.leaf_area_above(z_over_size);
   }
   // Strategy-agnostic entry point used by Individual<K93> (#266): reads the
   // cached competition_effect and height_inverse aux slots itself.
-  double compute_competition(double z, const Internals& vars) const {
+  double compute_competition(double z, const Internals<double>& vars) const {
     return compute_competition(z, vars.aux(COMPETITION_EFFECT_AUX_INDEX),
                                vars.aux(HEIGHT_INVERSE_AUX_INDEX));
   }
 
-  void update_dependent_aux(const int index, Internals& vars);
+  // The competition contribution and its vertical derivative from one pass, so
+  // u^eta is evaluated once. The first entry is bit-for-bit the one
+  // compute_competition() returns: both read the shading model's own profile,
+  // which is what keeps them equal under a flat-top one.
+  with_slope<double>
+  compute_competition_and_slope(double z, const Internals<double>& vars) const {
+    const double whole_plant_competition = vars.aux(COMPETITION_EFFECT_AUX_INDEX);
+    const double height_inverse = vars.aux(HEIGHT_INVERSE_AUX_INDEX);
+    const std::pair<double, double> Qq =
+      canopy_shape.Q_and_q(z * height_inverse, z, height_inverse);
+    return {whole_plant_competition * Qq.first,
+            -(whole_plant_competition * Qq.second)};
+  }
+
+  void update_dependent_aux(const int index, Internals<double>& vars);
 
 
   // K93 Methods  ----------------------------------------------
@@ -142,10 +164,170 @@ public:
   K93_Pars pars;
 
   // Derived / precomputed in prepare_strategy() (NOT user-set)
-  CanopyShape canopy_shape;
+  CanopyShape<double> canopy_shape;
 };
 
-K93_Strategy::ptr make_strategy_ptr(K93_Strategy s);
+// Definitions ----------------------------------------------------------
+// Header-only, as FF16_Strategy is: the model is read in one place and the
+// per-node calls can inline into the SCM loop.
+
+inline K93_Strategy::K93_Strategy() {
+   // Empirical parameter defaults (Table 1) live in the K93_Pars struct
+   // member initialisers.
+
+   // build the string state/aux name to index map
+   refresh_indices();
+   name = "K93";
+}
+
+// Signatures fixed in plant.h
+inline void K93_Strategy::update_dependent_aux(const int index, Internals<double>& vars) {
+  if (index == HEIGHT_INDEX) {
+    double height = vars.state(HEIGHT_INDEX);
+    vars.set_aux(COMPETITION_EFFECT_AUX_INDEX,
+                 compute_competition_by_ratio(
+                   0.0, pars.k_I * size_to_basal_area(height)));
+    vars.set_aux(HEIGHT_INVERSE_AUX_INDEX, 1.0 / height);
+  }
+}
+
+inline double K93_Strategy::compute_competition(double z, double size) const {
+  return compute_competition(z, pars.k_I * size_to_basal_area(size), 1.0 / size);
+}
+
+inline double K93_Strategy::establishment_probability(const K93_Environment& environment){
+  (void) environment;
+  // K93 (Kohyama 1993) has no carbon-budget establishment filter:
+  // establishment is deterministic, so every dispersed seed establishes.
+  // Demographic filtering instead happens via growth suppression (size_dt is
+  // clamped to >= 0 under competition) and the g > 0 density guard in
+  // Node::compute_initial_conditions. This value is consumed by the SCM
+  // (initial mortality / density) and the stochastic germination test.
+  // Deliberately not gated on a positive growth rate, unlike FF16 and TF24
+  // (#480): gating here would filter twice.
+  return 1.0;
+}
+
+inline double K93_Strategy::net_mass_production_dt(const K93_Environment& environment,
+                                            double height, double area_leaf_) {
+  (void) environment;
+  (void) height;
+  (void) area_leaf_;
+  // K93 models growth directly (size_dt); it has no carbon mass-production
+  // budget, so net mass production is undefined for this strategy. The value
+  // is never consumed by compute_rates -- it is reachable only via the R
+  // diagnostic accessor and resource_compensation_point(). Return NA to make
+  // "not applicable" explicit rather than returning a misleading number.
+  return NA_REAL;
+}
+
+inline double K93_Strategy::net_mass_production_dt(const K93_Environment& environment,
+                                            double height, double area_leaf_,
+                                            double height_inverse) {
+  (void) height_inverse;
+  return net_mass_production_dt(environment, height, area_leaf_);
+}
+
+inline void K93_Strategy::refresh_indices () {
+  // Create and fill the name to state index maps
+  state_index = std::map<std::string,int>();
+  aux_index   = std::map<std::string,int>();
+  std::vector<std::string> aux_names_vec = aux_names();
+  std::vector<std::string> state_names_vec = state_names();
+  for (size_t i = 0; i < state_names_vec.size(); i++) {
+    state_index[state_names_vec[i]] = i;
+  }
+  for (size_t i = 0; i < aux_names_vec.size(); i++) {
+    aux_index[aux_names_vec[i]] = i;
+  }
+  check_state_layout(state_index, state_size(), "K93");
+}
+
+// i.e. setting rates of ode vars from the state and updating aux vars
+inline void K93_Strategy::compute_rates(const K93_Environment& environment, Internals<double>& vars) {
+
+  double height = vars.state(HEIGHT_INDEX);
+
+  // suppression integral mapped [0, 1] using adaptive spline
+  // back transform to basal area and add suppression from self
+  double competition = environment.get_environment_at_height(height);
+
+  double cumulative_basal_area = -log(competition) / pars.k_I;
+
+  if (!util::is_finite(cumulative_basal_area))
+  {
+    util::stop("Environmental interpolator has gone out of bounds, try lowering the extinction coefficient k_I");
+  }
+
+  vars.set_rate(HEIGHT_INDEX,
+    size_dt(height, cumulative_basal_area));
+
+  vars.set_rate(FECUNDITY_INDEX,
+    fecundity_dt(height, cumulative_basal_area));
+
+  vars.set_rate(MORTALITY_INDEX,
+    mortality_dt(cumulative_basal_area, vars.state(MORTALITY_INDEX)));
+}
+
+inline double K93_Strategy::size_to_basal_area(double size) const {
+  return M_PI / 4 * pow(size, 2);
+}
+
+// [eqn 10] Growth
+inline double K93_Strategy::size_dt(double size,
+                             double cumulative_basal_area) const {
+
+  double growth = size * (pars.b_0 - pars.b_1 * log(size) - pars.b_2 * cumulative_basal_area);
+
+  if(growth < 0.0) {
+    growth = 0.0;
+  }
+
+  return growth;
+}
+
+// [eqn 12] Reproduction
+inline double K93_Strategy::fecundity_dt(double size,
+                                  double cumulative_basal_area) const {
+  double basal_area = size_to_basal_area(size);
+  return pars.d_0 * basal_area * exp(-pars.d_1 * cumulative_basal_area);
+}
+
+// [eqn 11] Mortality
+inline double K93_Strategy::mortality_dt(double cumulative_basal_area,
+                                  double cumulative_mortality) const {
+  // Mortality probability is 1 past either test, so the rate calculations have
+  // nothing left to describe and the state does not move again.
+  //
+  // ⚠️ THE CEILING IS TESTED BESIDE FINITENESS, and the pair must not be reduced
+  // back to one test. compute_initial_conditions holds an unestablished
+  // recruit's hazard at establishment_failure_hazard rather than at the +Inf
+  // -log(0) gives, so this is the test that keeps such a cohort's rate parked.
+  if (util::is_finite(cumulative_mortality) &&
+      cumulative_mortality < establishment_failure_hazard) {
+    double mu = -pars.c_0 + pars.c_1 * cumulative_basal_area;
+    return (mu > 0)? mu:0.0;
+ } else {
+    return 0.0;
+  }
+}
+
+// useful for pre-computing expensive objects
+inline void K93_Strategy::prepare_strategy() {
+  canopy_shape.initialise(pars.eta);
+
+  if (is_variable_birth_rate) {
+    extrinsic_drivers.set_variable("birth_rate", birth_rate_x, birth_rate_y,
+                                   odelia::drivers::Slopes::monotone);
+  } else {
+    extrinsic_drivers.set_constant("birth_rate", birth_rate_y[0]);
+  }
+}
+
+inline K93_Strategy::ptr make_strategy_ptr(K93_Strategy s) {
+  s.prepare_strategy();
+  return std::make_shared<K93_Strategy>(s);
+}
 
 }
 

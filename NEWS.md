@@ -1,5 +1,11 @@
 ## Plant (development version)
 
+While the reverse-mode gradient work is in progress this file carries **breaking
+changes only**, and they are kept current because the `plant-update-interface`
+skill reads them as its spec. Everything else that was here -- what has been
+measured, what each defect excludes, and what is open -- was a development record
+rather than release notes, and is in the git history rather than the tree.
+
 ### Breaking changes
 
 These change the R-facing interface and require updating downstream code. Each
@@ -17,12 +23,17 @@ products using plant.
   * `ctrl$node_density_in_birth_date`             -> `ctrl$node_density_coordinate` (`"auto"`/`"birth_date"`/`"height"`)
   * *(resolved value, per species/node)*          -> `species$density_in_birth_date` / `node$density_in_birth_date`
 
-  ⚠️ **This changes TF24 and TF24f results for identical inputs**, by several
-  times on offspring production, and bumps `TF24@v9 -> v10` (`TF24f@v9.1 ->
-  v10.1`). `"auto"` is the new default and resolves to `"birth_date"` for
-  TF24/TF24f and `"height"` for FF16/K93, so **FF16 and K93 are bit-identical**
-  — `auto` resolves to the same `false` the old default carried, and their
-  reference baselines are untouched.
+  ⚠️ **This changes results for identical inputs for every TF24-family model
+  run on the default `Control`**, by several times on offspring production.
+  It does not bump `scientific_version`: this batch of PRs takes one bump once
+  it has landed. `"auto"` is the new default and resolves to `"birth_date"` for
+  TF24, TF24f, TF24t and TF24w and `"height"` for FF16/K93, so **FF16 and K93
+  are bit-identical** — `auto` resolves to the same `false` the old default
+  carried, and their reference baselines are untouched. A run that already set
+  the boolean to `TRUE` is unchanged.
+
+  A `Control` saved with the boolean still loads: `TRUE` reads as
+  `"birth_date"` and `FALSE` as `"height"`, not as `"auto"`.
 
   Why it is not merely a numerical preference: the height coordinate's density
   rate carries a compression term that equals `d(growth)/d(height)` only when
@@ -45,6 +56,103 @@ products using plant.
   exactly `0` and `log_densities` is `NA`. A real run cannot reach this — `Patch`
   checks the birth dates are distinct and errors — but bare-`Species` diagnostic
   code should set `node_density_coordinate = "height"` explicitly.
+
+* **TF24 carries three more ODE states (#516):** `log_area_leaf_departure`,
+  `log_area_sapwood_departure` and `leaf_marginal_return_tracked`, appended
+  after `storage`, with two new aux values, `leaf_marginal_return` and
+  `sapwood_marginal_return`. Every TF24-family state vector is three longer,
+  and the states TF24f, TF24t and TF24w append move three slots along.
+  Migration: index states by name (`state_names`, `ode_names`), not position.
+  The flexible-allometry parameters `a_pl0`-`a_pl4` and `a_sw` are new
+  `TF24_Pars` fields and default to the fixed allometry.
+
+* **TF24's soil retention-curve scale `a_psi` is in MPa, where it was in Pa (#587).** It was the one water potential in plant not held in MPa. This covers `TF24_Environment`'s `a_psi` field, whose default is now `1.78e-3`, and the per-layer values `set_soil_parameters()` and `set_tf24_soil(a_psi = )` take. Results move by rounding only, which a run amplifies to at most 2e-5 in offspring production across the scenario gateway, inside its tolerance; the TF24 case of the default-run baseline is re-blessed, with no scientific version bump. Migration: divide `a_psi` by `1e6`, e.g. `env$a_psi <- 1780` -> `env$a_psi <- 1.78e-3`.
+
+* **`Control()`'s `GSS_tol_abs` defaults to `1e-3`, phylloptim's own value, where it was `1e-1` (#654).** Since phylloptim 0.16.0 it no longer sets how precisely the leaf's collar potential is solved. It is the width below which the feasible collar interval counts as collapsed, where the leaf holds the collar at the interval's midpoint without re-imposing continuity between collar and stem (the `determined` operating point, traitecoevo/phylloptim#145), so transpiration and uptake disagree there. At `1e-1` the seasonal parity stand reached that point in 3 of about 190,000 leaf solves; at `1e-3` no reference stand does, and those solves are pinned at the root's critical potential instead. Its census moves by at most 3e-13; the other reference stands and the stochastic baseline do not move. The model-version snapshots and the scenario gateway are re-blessed, with no scientific version bump. In the gateway, two scenarios move and no classification changes:
+
+  | scenario | offspring_production before | after |
+  |---|---|---|
+  | S01 mesic traits, arid extremely-seasonal, shallow roots | 45.0794 | 44.9227 (−0.35%) |
+  | S05 xeric traits, wet extremely-seasonal, shallow roots | 8.54636e-09 | 8.54818e-09 (+0.02%) |
+
+  Migration: `Control(GSS_tol_abs = 1e-1)` gives the old value.
+
+* **TF24's default stem vulnerability curve is the one `TF24_hyperpar` gives at the default traits (#611).** The bare `TF24_Strategy()` had `stem_P50 = 1.85` MPa and `stem_c = 1.09`, from a formula tying shape to P50 that nothing else used, while every strategy built through `TF24_hyperpar` got `stem_P50 = 2.889` and `stem_c = 2.04` at the same `K_s`. The default is now the latter, so the two share one curve; c ≈ 2 matches measured angiosperm stems. `stem_b` and `psi_crit` follow. TF24f and TF24t inherit the change. Runs built from traits do not move; runs on the bare default strategy do. `r_l` and `nmass_l` still differ between the two (#579). Migration:
+  * to keep the old curve, set `s$pars$stem_P50 <- 1.85; s$pars$stem_c <- 1.0899851679673995`
+
+* **Requires odelia 0.10.5 and phylloptim 0.16.0.** odelia 0.10 renames its reverse-mode API (traitecoevo/odelia#66) and integrates a System's subsystem in substeps (TF24's soil); phylloptim 0.16.0 follows the rename and moves no number. Results move with the changes below, within develop's scientific versions, which are bumped once after this batch. Migration: install odelia 0.10.5 and phylloptim 0.16.0.
+
+* **The words for a run's record and an invader's field are odelia's.** What a run keeps is a recording, kept by `keep_states` as odelia's `set_keep_states()` keeps it, and read by `store_recording()`. An invader stands in either its residents' recorded field (`run_mutant()`) or one constant field (`run_mutant_constant()`, formerly "held"). Migration: `run_scm(..., record_trajectory = TRUE)` -> `run_scm(..., keep_states = TRUE)`; `scm$record_trajectory` -> `scm$keep_states`; `scm$store_trajectory()` -> `scm$store_recording()`; `scm$run_mutant_held(p)` -> `scm$run_mutant_constant(p)`; `patch$hold_field()` -> `patch$use_current_field()`; `patch$release_field()` -> `patch$clear_constant_field()`; `patch$holds_field` -> `patch$has_constant_field`. A gradient of a constant-field run is refused with "this run stands in a constant field" rather than "a held field".
+* **A trait's gradient follows the trade-off it was built along.** `stand_gradient()`'s columns were partials: with every parameter the hyperparameter function derives held fixed, `gradient[, "1.lma"]` left out `k_l` and `r_l`, which `TF24_hyperpar` sets from `lma`. It was 54 % off a central difference through `add_strategies()` on a six-year TF24 stand at its equilibrium. `hyperpar` now defaults to the function `add_strategies()` uses, `param_hyperpar(scm$parameters)`, and each trait's column is its total derivative. Each requested species' derived parameters are checked against its traits first, and a strategy that does not lie on the trade-off is refused. Every parameter the function derives (13 for `TF24_hyperpar`, among them `k_l`, `r_l`, `d_I`, `a_f3` and the stem curve; `colnames(hyperpar(matrix(numeric(0), 1, 0), s, filter = FALSE))` lists them) leaves the columns under a trade-off, and naming one is refused. TF24's default strategy is not on `TF24_hyperpar`'s trade-off, so a stand built from it by hand needs `hyperpar = NULL`. The `jacobian` element is gone. Migration: `stand_gradient(scm, ...)` for partials -> `stand_gradient(scm, ..., hyperpar = NULL)`; `stand_gradient(scm, traits, hyperpar = TF24_hyperpar)` -> `stand_gradient(scm, traits)`; a column such as `"1.k_l"` -> `hyperpar = NULL`, or the trait it is derived from.
+* **An invader reads its residents' field and solves its own leaf, and TF24's fitness is differentiable.** `run_mutant()` placed every TF24 invader's leaf at the resident's recorded root-collar water potential, so the fitness it reported for another trait was the resident's leaf on the invader's body, and an invasion by two species failed (`expected 2, received 1`). The invaders now take the residents' steps and, at each rate evaluation, read the field the residents made there (the light profile and the soil's state), found by the evaluation's slot and time (odelia 0.9.0). They solve their own operating points, in the run and in its sweep. A run that recorded its states keeps the field as it goes, so the first invasion no longer replays the residents; one that did not is run once more, keeping it. The invaders meet the residents' patch-wide harvests and climate extremes; one aimed at a single species is refused. An invasion of a resumed TF24 resident is now differentiable, and `run()` after `run_mutant()` runs the invaders as a community of their own. TF24 declares its fitness differentiable, as FF16 does: `"<species>.net_reproduction_ratio"` and `"<species>.offspring_production"` are stand metrics, `S_D` is a column (`census_undifferentiable_tf24()` no longer lists it), and a species run at a constant birth rate has a `"<species>.birth_rate"` column, last in its block, from which an equilibrium birth rate is found by Newton's method. `run_mutant()` refuses an invader introduced where the resident introduced nothing. Requires odelia 0.9.0. Migration: TF24 invaders' results change; TF24 carries one more column per constant-birth-rate species, so index columns by name; `stand_gradient()` on TF24 defaults to the census and the fitness metrics.
+
+* **TF24's soil can be stepped on its own** (`Control$ode_soil_substep`, default `FALSE`). A Cash-Karp step that spans a knot of a variable rainfall integrates the soil in substeps of its own, under the uptake extrapolated over the step, while the plants take the step's stages, and lands a substep on each knot. With `ode_soil_substep = TRUE` a step also substeps the soil where it is past Cash-Karp's stability limit on the soil, or where the soil's own error held back the step before and the coupling error of substepping is smaller; with it `FALSE` only the steps across a knot do. Migration: drop the zero-depth `rainfall_pulse()` events that stopped a run at each knot; kept, they change nothing. A run on a variable rainfall record given no such stops changes: it no longer misses the rain between a step's stages. The water-balance sums (`sum_rainfall`, `sum_infiltration`, `sum_drainage`, `sum_resource_depletion`) are still the main step's, so a run whose budget must close to the bit keeps the stops and `ode_soil_substep` off.
+
+* **A pinned ODE schedule carries each step's record of substepping the soil.** Migration: `sched$set_ode_steps(times, sizes)` -> `sched$set_ode_steps(times, sizes, input_slopes, substep_ends)`, passing a run's `ode_soil_input_slopes` and `ode_soil_substep_ends` with its `ode_times` and `ode_step_sizes`, or `list(), list()` where the run substepped nothing; parameters carry `ode_soil_input_slopes` and `ode_soil_substep_ends` beside `ode_times` and `ode_step_sizes`, empty by default. Sizes without their records are refused at a step that spans a knot of the rain, and a grid of times alone at a step that would substep the soil, rather than replayed with the soil stepped past its stability limit; with `ode_soil_substep` on, carry the records, since a step substepped for that reason has no such check. Requires odelia 0.8.1; plant keeps GSL's step-size rule (`Controller::gsl`), so no other step sequence moves.
+
+* **A week is added to the relaxation time of TF24's storage pool, and a stage below empty no longer refuses the step.** The new TF24 parameter `storage_relaxation_offset`, 7 days by default and a gradient column, is added to the pool's own relaxation time `storage_max / (charge + drain)`, which is hours in a seedling: the rate is divided by `1 + (charge + drain) * storage_relaxation_offset / storage_max`, which keeps its equilibrium and its sign at each bound. A negative offset is refused. Once production turns negative the pool trails it by about the offset: on a synthetic 41-year daily rainfall record a seedling's reserve falls to `1/a_dG2` of its maximum in 21.4 days, against 8.6 days at an offset of zero. The stage check and `storage_domain_tol` are gone: a stage below empty keeps finite rates, so the error estimate rejects the overshoot, and a step whose end leaves a pool below zero is still refused. On a stand on that record (108 introductions, birth date, `ode_tol` 1e-3) offspring production moves 12.417 -> 12.662 (+2.0%), accepted steps 10517 -> 9267, and invaders at `lma` x0.9, x1.2 and x2 run on the resident's steps, where before each was refused, x1.2 and x2 at their first step. Migration: none for the interface; TF24 results change, and `storage_relaxation_offset = 0` gives the previous rates (a run where the stage check fired still steps differently).
+
+* **FF16 and TF24 have a coarse-root pool, off by default (#349).** Coarse roots are the below-ground continuation of the sapwood cylinder, `m_cr = a_cr1 * m_s`, so they scale with height and the structural root:shoot ratio is size-invariant. They respire at `r_cr` and turn over at `k_cr` (defaulting to the sapwood rates), enter `mass_live` and `mass_total` but not `mass_above_ground`, and stay outside TF24's water uptake, which reads fine roots (`a_r1`) only. The growth allocation stays closed-form, since `d m_cr / d A_l = a_cr1 * d m_s / d A_l`. At the default `a_cr1 = 0` every result is bit-identical and no scientific version moves. In TF24 the three parameters carry no gradient column, as the pool is empty at the default. Migration: `*_expand_state()` gains a `mass_coarse_root` column; the strategies gain `a_cr1`, `r_cr` and `k_cr`.
+
+* **TF24's light driver is incoming shortwave, and the leaf absorbs its own light (requires phylloptim 0.13.0; pinned at 0.15.4).** The light chain now runs `SWdown` (incoming shortwave at the surface, horizontal, above the canopy, W m^-2) -> `PPFD_above = 4.57 * f_PAR * SWdown` -> `PPFD_int = k_I * openness * PPFD_above` (intercepted per unit leaf area; `k_I` carries the leaf-angle projection and is applied once) plus `NIR_int = k_I * openness * (1 - f_PAR) * SWdown`. The leaf takes the two intercepted bands and applies its own absorptances: `alpha_PAR = 0.85` drives photosynthesis (with `phi_J`) and the energy balance, `alpha_NIR = 0.20` only the energy balance. With the energy balance on, net radiation was `2 * PPFD / 4.57 - 40` (every intercepted watt absorbed) and is now `alpha_PAR * PPFD_int / 4.57 + alpha_NIR * NIR_int` plus a net longwave that follows air temperature and humidity in place of the constant -40 (phylloptim 0.14.0), about half the absorbed shortwave in daylight, so leaves run cooler. The default light moves too: `SWdown = 900` gives `PPFD_above = 2056.5`, where the `PPFD` driver defaulted to 1800. `scientific_version`: TF24 12 -> 13, TF24f 12.1 -> 13.1, TF24t 12.4 -> 13.4. Migration:
+  * `env$extrinsic_drivers_set_constant("PPFD", x)` -> `env$extrinsic_drivers_set_constant("SWdown", x / (0.5 * 4.57))` for the same light above the canopy (or the measured shortwave directly, e.g. PLUMBER2 `SWdown`)
+  * `env$extrinsic_drivers_set_variable("PPFD", t, y)` -> `env$extrinsic_drivers_set_variable("SWdown", t, y / (0.5 * 4.57))`
+  * `env$get_PPFD()` -> `4.57 * env$f_PAR * env$get_SWdown()` (PPFD above the canopy); new environment parameter `env$f_PAR` (PAR share of shortwave, energy basis, default 0.5), a fixed value like `env$b_infil` rather than a driver
+  * `s$pars$a` -> `s$pars$phi_J`, now per ABSORBED photon: `phi_J = a / 0.85` keeps the same J. The gradient column `"a"` -> `"phi_J"`
+  * new `s$pars$alpha_PAR` (0.85) and `s$pars$alpha_NIR` (0.20); neither carries a gradient column
+  * `Leaf(..., a = x, ...)` -> `Leaf(..., phi_J = x / 0.85, ...)`; a bare `Leaf` with `use_energy_balance_ <- TRUE` must also set `l$NIR_int_` (W m^-2) before `set_physiology()`, about `PPFD / 4.57` in daylight, or it refuses
+  * a result pinned or cached under `TF24@v12`, `TF24f@v12.1` or `TF24t@v12.4` -> re-run, or re-bless the pin
+
+* **Requires phylloptim 0.12.0, and adds the TF24t model.** phylloptim 0.12.0 adds a lasting leaf thermal-damage and acclimation layer behind `use_thermal_damage_`, off by default, so no FF16, K93, TF24 or TF24f result moves. Its dynamics live on the leaf: three fractions of leaf area, functional ⇌ impaired → damaged, plus acclimation, on leaf temperature, through `Leaf::damage_rates()`. `TF24t` turns it on: TF24 with the energy balance forced on, four appended ODE states (`acclim_thermostab`, `impaired`, `damaged`, `mean_leaf_temp`) integrated from the leaf's rates at the operating point, dilution of damaged leaf by turnover and growth, its thermal parameters at the top level of `TF24t_Strategy` with every rate constant per day, and the compound version `TF24t@v12.4`. It refuses the deep-crown shading model and has no stand gradient (#566, traitecoevo/phylloptim#162). Migration: none for existing models; install phylloptim 0.12.0.
+
+* **The adaptive stepper takes Hairer's step-size rule, and the default ODE tolerances are ten times tighter to match.** odelia 0.8.0 rescales the step after every accepted step and reads the error in the RMS norm over the whole state (plant runs it without odelia's stabilisation term, which costs a stand steps and buys nothing there), where the old rule read the worst component and kept the step unchanged while its error sat between 0.5 and 1.1 (traitecoevo/odelia#64). The RMS norm averages a stand's few fast-changing cohorts with all the others, so at the same tolerance a two-species FF16 stand's offspring production came out up to 90 times less accurate. `Control()`'s `ode_tol_rel` and `ode_tol_abs` therefore move from 1e-4 to 1e-5, and `control_accurate()`'s from 1e-6 to 1e-7. At these values, accuracy and step count over the default stands match the old rule's at the old values, with up to a quarter fewer attempts on K93 and TF24 stands. Every adaptive run's step sequence changes, so results move within the ODE tolerance, and `scientific_version` moves for every model: FF16 2 -> 3, K93 2 -> 3, TF24 11 -> 12, TF24f 11.1 -> 12.1. A single individual grown through `OdeRunner()` (`grow_individual_to_time()`, `grow_individual_bracket()`) takes the new rule too, at odelia's default `OdeControl()`, stabilisation included, so its output moves as well. Requires odelia 0.8.0, and phylloptim 0.10.3, which no longer pins odelia itself, so plant's `Remotes:` is the only place odelia is named (#678). Migration:
+  * `Control(ode_tol_rel = x, ode_tol_abs = y)` -> `Control(ode_tol_rel = x / 10, ode_tol_abs = y / 10)`, to keep the accuracy `x` and `y` gave
+  * a result pinned or cached under `FF16@v2`, `K93@v2`, `TF24@v11` or `TF24f@v11.1` -> re-run, or re-bless the pin
+
+* **An FF16 invader's fitness is differentiable with the canopy held at the recorded resident.** Set `record_trajectory = TRUE` on the run `SCM`, call `run_mutant(p)`, then `stand_gradient(scm, metrics = "1.net_reproduction_ratio")`: the invasion replay keeps its states, every row carries the resident's field it loaded, and the sweep loads it the same way, so the field is exogenous to the invader and carries no derivative. That is the rare-mutant derivative (plant#650 E2): several invaders share one replay, each with its own columns, though each metric is still a sweep, so a set of invaders costs about what running them one at a time does. An invader of a resumed resident starts at the resume time and stands in the resident's canopy there; for TF24 that case is refused until its replay pairs inner solves by cohort rather than position. A sweep of an invasion that kept no states, or that reaches an instant with no recorded field, is refused by name. Requires odelia 0.7.3 (a sweep across the steps an invader takes before its first cohort), and phylloptim 0.10.2, which pins the same odelia so that pak sees one (#658).
+
+* **The birth rate is a gradient column for an FF16 species run at a constant rate**, named `"<species>.birth_rate"` and last in that species' block. It reaches the inflow condition and the offspring integral, so `d(net_reproduction_ratio_i)/d(birth_rate_j)` over the species is the Jacobian of the offspring map an equilibrium solver iterates on (plant#650 E3). A species with a variable birth rate has one column fewer rather than a zero. Migration: the column count per FF16 species is no longer a compile-time constant; a caller indexing columns by position should index by name (#658).
+
+* **Each FF16 species' net reproduction ratio and offspring production are differentiable stand metrics.** `stand_gradient()` names them `"<species>.net_reproduction_ratio"` and `"<species>.offspring_production"`, differentiates them by every column the census has, and now defaults to every metric the model declares (the three census metrics and, for FF16, the two fitness metrics per species); each metric costs one sweep, so name the ones wanted. New `stand_fitness(scm)` reports their values, the same numbers as `scm$net_reproduction_ratios` and `scm$offspring_production` bit for bit. `S_D` is an FF16 column now, since the fitness reads it directly (`census_undifferentiable_ff16()` lists `eta` alone). TF24's metrics are unchanged: its fitness is offered once its fecundity channel is refereed. `stand_census_state_adjoint()` returns the same rows, so it gains two per FF16 species after the census's three, and `stand_fitness()` refuses a model that declares no fitness. A species with fewer than two cohorts has an undefined (`NaN`) fitness rather than an error. Migration: index `stand_census_state_adjoint()` rows by name; `census_metric_names_tf24()` and `census_metric_names_ff16()` (internal) take the run (`census_metric_names_tf24(scm)`), because the fitness metrics are one pair per species, and return the names with each one's kind (`"census"` or `"fitness"`) as the R names (#658).
+
+* **An unknown `patch_type` is refused.** Anything but `"meta-population"`, `"fixed"` or `"fitness_window"` used to run as `"fixed"`, with no weighting, so a misspelt `"fitness-window"` reported a fitness for no window. Migration: use `"fixed"` for a patch with no disturbance.
+
+* **Four runs that returned a wrong number are refused before they start.** With the top layer on (`Control$absorb_epsilon > 0`), a species with birth rate zero, whose cohorts would be frozen at birth and score zero per seed: give it a small positive birth rate. A resume with no introductions left, which stopped at its start time: keep an introduction ahead of the export. A `fitness_window()` ending at or after `max_patch_lifetime`, or holding no cohort of any species, which read `NaN` after the run. And `SCM$run_to(NaN)`.
+
+* **`run_until_converged()` judges the range of the last `window` block means** (new argument, default 3) against `tol` times their largest magnitude, where it judged each change against the previous block. A statistic near zero is judged on its own scale (it passed trivially below 1e-16), and `tol_abs` sets an absolute floor. By default the `"environment"` statistic leaves out TF24's cumulative flux accumulators, and `"height_max"` is left out when the top layer is on, since both settle whatever the stand does. Migration: `rel_*` in the trace is now that range; runs may converge a block or two later.
+
+* **`set_initial_state()`'s cohorts take their patch density and survival at birth from the resuming run's regime**, not from the export (#661). A resume under the regime that made the export is unchanged. A resume under a different one -- a Weibull regime over a longer `max_patch_lifetime`, or `fitness_window()` after a burn-in -- now weights and discounts the seeded cohorts as that regime does, where the exporter's stamps were carried before: under a longer Weibull lifetime that gave twice the straight run's ratio. `p$initial_patch_density` and `p$initial_pr_patch_survival` are read for their lengths only. Migration: none in code; the results of such resumes change.
+
+* **`run_mutant()` gives the invader its whole parameters**, not its strategies alone: its regime, `initial_time` and any initial state, as a run of those parameters would (#661). Parameters that carry an initial state are refused, since an invader starts from an empty patch, and an invader of a resumed resident must start at the resume time. Migration: build invader parameters without an initial state (`add_mutant()` on resumed parameters keeps one: clear `p$initial_state` and its four companions), and for a resumed resident set `p$initial_time` to the resume time.
+
+* **`FF16_Strategy`, `FF16_Environment` and `FF16_Pars` are class templates on the scalar, as TF24's are.** The R classes keep their names, fields and defaults, so R code does not change; forward output is bit-identical on every shading model and both density coordinates. Migration, C++ only: `plant::FF16_Strategy` -> `plant::FF16_Strategy<double>`, and the same for `FF16_Environment` and `FF16_Pars`. `src/ff16_strategy.cpp` is gone; the model's body is in its header, one body for the double path and the differentiated one (#657).
+
+* **`stand_gradient()`, `stand_census()`, `stand_census_state_adjoint()` and `gradient_control()` answer for FF16 as well as TF24**, choosing the model's entry points off the run's own class, and refuse K93 by name. The FF16 entry points mirror TF24's with an `_ff16` suffix (`census_metric_names_ff16()`, `census_ff16()`, `census_trait_names_ff16()`, `census_undifferentiable_ff16()`, `census_trait_gradient_ff16()`, `gradient_control_ff16()`). No migration for a TF24 caller. FF16's census is the same three metrics; its columns are every `FF16_Pars` entry bar `eta` and `S_D`; the PPA stepped light profile is refused, since a staircase has no derivative to carry. Refereed against a central difference of the perturbed runs pinned to the recorded steps, which is the discretisation the sweep transposes: a difference that lets the stepper re-choose its steps scatters at the percent level and is not the right referee for any model (#657).
+
+* **Requires odelia 0.7.1 and phylloptim 0.10.1** (the latter only re-pins odelia, so that pak sees one odelia). 0.7.0 filled a run's first recorded row from the next seeding while that row's state was empty, and FF16's is empty for real before its first cohort, so the row was overwritten and the sweep could not reconcile the run's start; it also refused the transpose of a map with no state inputs, which that first insertion is. TF24 was never affected: its soil state keeps the first row non-empty (#657).
+
+* **`Control$save_RK45_cache` is gone, and `run_mutant()` no longer needs it.**
+  Migration: delete the setting. It was the opt-in for the invasion-fitness
+  recorder, set on the RESIDENT run one call before the one that needed it -- so a
+  resident that had not set it recorded nothing, and the `run_mutant()` after it
+  failed with a message about the competitive landscape rather than about the
+  flag. `run_mutant()` now keeps what it needs when it is called, so there is
+  nothing to arrange beforehand and no way to ask for an invasion run and not get
+  one.
+
+  What it keeps is the same field, at the same address -- per (step, stage) -- but
+  in odelia's own store/load channel rather than three solver hooks that odelia's
+  rewrite deleted. And it keeps the NUMBERS a replay evaluates rather than the
+  environment holding them: the light interpolant's knots, values and slopes, and
+  the environment's own ODE state. That is what makes an invasion sweep affordable
+  -- a replay costs less than the resident run it stands in (0.06 s against 0.07 s
+  on a lifetime-30 FF16 stand), where copying whole environments per sub-step put
+  the old cache at 6.8 GB and out of memory past ~10 years.
+
+  ⚠️ **`SCM$environment_history` and `SCM$patch_step_history` were never on the
+  R interface**, whatever the #362/#379 note below says: neither is in
+  `RcppR6_classes.yml` on `develop`. `save_RK45_cache` is the one published name
+  this removes, and its removal had gone unrecorded here until now.
 
 * **An unknown trait name is now an error (#636).** `generate_strategy()` (and
   `add_strategies()` / `add_mutant()`, which route through it) refuse a trait
@@ -81,6 +189,67 @@ products using plant.
   `k_acclim`, `psi_fd_step` and `use_ad_gradient` are real settable fields that
   the trait mechanism cannot reach, and naming one is now an error rather than
   silence — which is the honest report, not the fix.
+
+* **Soil layers can have different widths (#626).** New
+  `TF24_Environment$set_soil_layer_widths(widths)`, taking the WIDTH of each layer
+  top down; `depth` becomes their total. Soil evaporation needs a very thin layer
+  at the top of the profile, which a layer count cannot express. Width is the
+  input, not depth, because "depth 0.3" is ambiguous between a top, a midpoint and
+  a bottom while "width 0.3" is not.
+
+  `set_soil_number_of_depths(n)` is unchanged, in signature and in arithmetic, and
+  is still the way to ask for equal layers. Also newly exposed:
+  `get_soil_layer_widths()`, `get_soil_depths()`, `get_soil_mid_depths()`, and a
+  `soil_layer_width` element in `get_state()` (so `tidy_env()` reports it).
+
+  Two R helpers: `soil_widths_graded(depth, n, top)` builds a geometric ladder
+  from a thin surface layer, and `set_tf24_soil(env, widths, theta, ...)` sets
+  geometry, per-layer parameters and water state in the one order that works.
+
+  ⚠️ **Layers may not get thinner with depth** (equal is fine, so a uniform
+  profile stays legal). Refining towards the surface is the standard and is what
+  the thin layer is for; refining at depth has no counterpart in TF24 -- a
+  contrast in soil properties is per-layer *parameters* (`set_soil_parameters()`),
+  not a thin layer, and TF24 has no water table -- while it does reach a failure
+  the model cannot absorb, driving the SCM size-density equations to overflow
+  (#550). Sampled over the basal thickness it fails at 5, 3, 2.5, 2 and 1.5 cm,
+  where all 18 profiles thickening with depth ran clean, including one with a 5 mm
+  surface layer. ⚠️ **Not a guarantee**: the blocked failures are ragged in the
+  geometry (5 cm fails, 4 cm passes, 3-1.5 cm fail, 1 cm passes) and 46 of 48
+  sampled thinning profiles ran fine, so this removes a foot-gun rather than
+  proving stability, and the underlying fragility is still #550's.
+
+  `old -> new`:
+
+  - `env$depth <- x` -> `env$set_soil_number_of_depths(n)` (equal layers spanning
+    the new depth) or `env$set_soil_layer_widths(w)`. **`depth` is now read-only**:
+    writing it rebuilt nothing, since only the geometry setters fill `z`/`z_mid`/
+    `dz`, so it silently left the old column in place.
+  - `sum(theta) * env$depth / n` -> `sum(theta * env$get_soil_layer_widths())`.
+    `theta` is intensive, so storage needs the per-layer width; the two agree only
+    for equal layers. Same for `results$env$soil_depth$soil_depth[[1]]` ->
+    `results$env$soil_layer_width$soil_layer_width`.
+
+  **No default output moves.** `run_scm` on the default environment is
+  bit-identical, and `scientific_version` is unchanged.
+
+  ⚠️ **A thin surface layer is permitted and not policed. Two things it costs.**
+  The water balance's Jacobian diagonal is `K'(theta)/dz`, so a 2 cm layer is 15x
+  stiffer than the 0.3 m default (2.6e5 vs 1.8e4 yr^-1 at 0.99*theta_sat, a
+  characteristic time of about two minutes). It bites only when the layer is wet,
+  i.e. just after rain, which is when an evaporation layer matters; and below
+  `dz ~ 2.6 mm` the stable step falls under `Control()$ode_step_size_min` and the
+  controller cannot satisfy stability at all. Separately, **runoff is
+  recalibrated**: the infiltration term keys off layer 0 alone through
+  `(theta_0/theta_sat)^b_infil` with `b_infil = 8`, and a thin layer 0 fills far
+  faster, so annual runoff moved 13.4% -> 20.4% under event-driven rainfall with
+  no parameter changed. `a_infil`/`b_infil` were calibrated against a 30 cm
+  surface layer. Both are in `notes/plan-626-soil-layer-widths.md` and in
+  `soil_widths_graded()`'s help.
+
+  Soil evaporation itself is **out of scope**: #626 is the enabling geometry
+  change. The follow-up needs the infiltration re-keying above, step control for a
+  thin wet layer, an upward capillary flux, and the evaporation sink.
 
 * **phylloptim 0.7.0 -> 0.8.0.** Bumped deliberately, which is what the `==` pin
   below exists to force. 0.8.0 (traitecoevo/phylloptim#133) reports the seated
@@ -192,6 +361,69 @@ products using plant.
   so archived TF24 results from before this change carry the same `TF24@v8` tag
   despite differing by ~0.36%.
 
+* **A finite-difference arm that crosses the feasible boundary now refuses.**
+  Requires the matching phylloptim. The leaf's environment rows are taken at a
+  frozen collar, and the entry point they went through clamped that collar into
+  whatever interval the PERTURBED state had -- so at a pinned operating point,
+  where the collar sits about a millionth of the interval's width off the wet
+  bound and a 1e-3 trait step moves that bound two orders further, one arm
+  answered about a different collar. No migration: the affected metrics were
+  returning a number and now report `refused` with the collar named. Measured at
+  psi_soil 5.0, `dprofit/droot_b` came back as 184.699 where the same difference
+  well inside the interval reads 0.0056.
+
+* **The dry pin is reported by its arm, and the inverted interval by its own
+  name.** Requires the matching phylloptim. Migration for anyone matching on the
+  kind a refusal message names:
+  * `"pinned-dry"`         -> `"pinned-dry-root-crit"` or `"pinned-dry-root-psi-crit"`
+  * `"hydraulic-shutdown"` -> unchanged, except the inverted-interval exit, which
+    is now `"infeasible-bracket"`
+
+  The two dry arms are different functions of the inputs -- the stem's continuity
+  root is a search result, the root's own critical potential is a registered
+  constant -- so a consumer forming the bound's row needs to know which bound.
+  Measured: at shipped defaults every dry pin is on the root-crit arm.
+
+* **`stand_gradient()`'s columns are partial derivatives, and `hyperpar =` gives
+  the trait derivative.** Each column is the derivative with every other
+  parameter held fixed, including those a hyperparameter function derives from
+  the trait. `TF24_hyperpar` sets `k_l`, `r_l` and `nmass_l` from `lma`, so
+  `gradient[, "1.lma"]` was 2.4 to 3.4 times a finite difference of `lma` through
+  `add_strategies()` on a 3-year stand. `stand_gradient(scm, traits = "1.lma",
+  hyperpar = TF24_hyperpar)` returns the total instead, agreeing with that
+  difference to 1e-4 or better. It also returns `$jacobian`, the derivative of
+  each derived parameter. Pass the function the stand was built with, because a
+  run does not record it. Without `hyperpar`, results are unchanged.
+
+* **Growth is billed on the carbon kept again, and an infeasible leaf solve is a
+  rejected step again.** Both regressed when TF24's model moved into its
+  templated header. `net_mass_production_dt` adds `leaf.shadow_cost()` back to
+  the objective, as it did before; without it, growth at a non-zero
+  `TF24_floor_lambda_o` was taxed 2.3% to 22.6% for carbon never spent, and the
+  gradient's active path carries the same term. Both TF24 and TF24f `solve_leaf`
+  once more translate phylloptim's `infeasible_error` into odelia's domain error
+  (#608), so the stepper shrinks and retries instead of ending the run. Both are
+  bit-neutral at the default price and on any feasible solve.
+
+* **The census trait gradient says why a metric has no numbers, instead of
+  raising.** A refusal used to escape to the R prompt as an error, with nothing a
+  caller could inspect and no way to keep the metrics that did answer.
+  Migration:
+  * `census_trait_gradient_tf24(scm, m)` (a list of numeric rows)
+    -> `census_trait_gradient_tf24(scm, m)$gradient` for the same rows
+  * `census_trait_gradient_split_tf24(scm, splits)`
+    -> `census_trait_gradient_split_tf24(scm, splits)$gradient`
+  * `stand_gradient(scm)` gains `$refusal`; `$gradient` is unchanged in shape and
+    meaning
+
+  Both C++ entry points now return `list(gradient, refusal)`. `refusal` carries
+  one entry per metric -- the reason, and the species it was found on -- or `NULL`
+  where the metric answered.
+
+  **A refused metric's whole gradient row is `NaN`.** Refusal is metric-level: a
+  sum has no defined value with an undefined term, so no localisation within a
+  metric is available. Metrics are independent of one another.
+
 * **`Leaf$set_physiology()` takes `root_network`, not `root_carbon_per_leaf_area`,
   and `Leaf()` no longer takes `beta_R_H` or `beta_R_V`.** Requires
   phylloptim >= 0.2.0 (phylloptim #33). Migration:
@@ -215,6 +447,38 @@ products using plant.
   (6 heights x 3 soil-moisture profiles) x 26 states, rates and auxiliaries,
   against `develop`; phylloptim's own 288-point golden file is bit-identical too.
   `scientific_version` is therefore unchanged.
+
+* **A census gradient's trait columns are named per species: `"lma"` -> `"1.lma"`.**
+  Migration:
+  * `colnames(stand_gradient(scm)$gradient)`  -> same, now `"<species>.<parameter>"`
+  * `stand_gradient(scm, traits = "lma")`     -> `stand_gradient(scm, traits = "1.lma")`
+  * `census_trait_names_tf24(scm)`            -> same, now prefixed
+  * `g$gradient[, "lma"]`                     -> `g$gradient[, "1.lma"]`, or
+    `g$gradient[, sub("^[0-9]+\\.", "", colnames(g$gradient)) == "lma"]` for every
+    species' column
+
+  Concatenating each species' parameter names with no prefix gave `S * P` columns
+  with every name repeated `S` times. Character indexing resolves a name to its
+  *first* match, so a multi-species gradient silently returned **species one's
+  column** for every named parameter, and the unknown-parameter check could not
+  see it because the name was present. A bare name now refuses, naming the
+  convention. The prefix is applied at every species count, including one, so a
+  single-species caller is not written against a shape that changes when a second
+  species arrives. Found by asserting the columns are unique; it was live in three
+  of this suite's own checks, one of which was comparing a quantity summed over
+  both species against species one's column.
+
+* **No trait is refused by name any more.** Migration: none mechanical, but the
+  *behaviour* changed and a caller relying on a by-name refusal will now get an
+  answer. Thirteen traits the leaf supplied no derivative for are now supplied,
+  and eleven of them come back live. `psi_crit` and `root_psi_crit` are the other
+  two, and they are not columns at all: each is derived from its curve's
+  `(P50, c)` pair, which `phylloptim` derives for itself, so setting one reaches
+  no equation. Both are listed in `TF24_Pars::undifferentiable`, which means
+  asking for one errors rather than returning a zero --
+  `census_undifferentiable_tf24()` reports the list and the reason beside each
+  name. What remains of the refusal mechanism is metric-level, reported through
+  `stand_gradient()`'s `refusal` and reduced by `stand_gradient_refused()`.
 
 * **`run_stochastic_collect()`'s environment field is `env`, not `light_env`.**
   Migration: `out$light_env -> out$env`. The old name was never produced by
@@ -370,8 +634,21 @@ products using plant.
   * `run_scm_collect(p, …)` -> `run_scm(p, …, collect = TRUE)`
   * `run_scm_error(p, …)` -> set `scm$collect_errors <- TRUE` then read
     `scm$combined_node_errors`
-* The argument order of `run_scm()` changed; `use_ode_times` is now the last
-  argument (after the new `refine_schedule` and `collect`).
+* **`run_scm()`'s fifth positional argument changed meaning**, which a
+  positional call cannot notice. The signature is
+  `run_scm(p, env, ctrl, refine_schedule, collect, record_trajectory, events)`;
+  where `use_ode_times` used to sit, `record_trajectory` now does. They are not
+  the same request -- `use_ode_times` REPLAYED a recorded schedule, while
+  `record_trajectory` asks the run to KEEP its state at every accepted step, which
+  is what `stand_gradient()` sweeps. Migration:
+  * `run_scm(p, env, ctrl, use_ode_times = TRUE)` -> take `scm$ode_times` and
+    `scm$ode_step_sizes` off the run that produced them onto `p`, and run again.
+    A schedule carrying both repeats the run exactly; times alone step TO each
+    time and leave the sub-steps to the controller. ⚠️ **Not `run_mutant()`**,
+    which this migration used to name: that replays a resident's FIELD for an
+    invader, where `use_ode_times` replayed a resident's own SCHEDULE for
+    itself.
+  * a positional fifth argument -> name it, and check which of the two you meant
 * Numeric `Control` defaults are now set in the C++ `Control()` constructor
   (the pragmatic "fast" settings), and the two R preset helpers were removed
   (#463). Raw `Control()` now means **fast**, not accurate. Migration:
@@ -486,7 +763,6 @@ were not previously recorded here:
     or better `ind$aux("area_sapwood")`
   * no other slot moves; `ind$aux(<name>)` needs no change anywhere
 
-### New features
 
 * **TF24 stem hydraulic resistance is now a path integral over the stem**, with
   three new `TF24_Pars` fields — `D_c` (conduit widening exponent, default
@@ -747,17 +1023,41 @@ were not previously recorded here:
   A runaway cohort density stays fatal, because that divergence is in the
   equations rather than the stepper and shrinking cannot recover it.
 
+* **Three `Control` defaults moved, and two of them move every TF24 number.**
+  Nothing in a caller's code changes; the answers do.
+  * `GSS_tol_abs` `1e-3` -> `1e-1`. The golden-section search that places the
+    leaf's operating point runs to a looser bracket.
+  * `vulnerability_curve_ncontrol` `100` -> `400`. The pre-integrated
+    vulnerability tables are built on four times the knots, which is what the
+    supplied leaf rows are read off. `phylloptim`'s `leaf_control()` carries the
+    same number, and nothing checks the two against each other.
+  * `gradient_curvature_floor`, new at `1e-3`. It moves NO forward number: it
+    decides which gradient rows exist, by refusing a collar response whose profit
+    curvature is too small to invert. It is in `gradient_control()` for that
+    reason -- two gradients are comparable only when taken at the same value.
+
+  Migration: none mechanical. A result pinned against an older TF24 run needs
+  re-blessing, and a caller who wants the previous leaf resolution sets both of
+  the first two back explicitly.
+
+* **FF16 and K93 `scientific_version` 1 -> 2.** Neither model's own equations
+  changed. Both read their trapezium widths from the coordinate the density is
+  carried in, and that is what `node_density_in_birth_date` moves -- so a run
+  with the flag set is a different quadrature of the same model and says so.
+  TF24 and TF24f are at `v10` / `v10.1`; the stem path integral that took them
+  there is `develop`'s, not this branch's.
+
+* **FF16 results move by up to 4e-4 relative, from the light field alone.** The
+  light interpolant is built on knots carrying a value and an exact slope, and is
+  4-470x closer to the exact canopy light than the values-only spline it replaces.
+  An FF16 resident's net reproduction ratio moves from 2.773227 to 2.773160 over a
+  50-year patch, and invaders against it by up to 4e-4. That is below the error
+  of the old spline: tightening its tolerance from 1e-4 to 1e-9 moves the same
+  ratios by up to 7e-4. Migration: a result pinned against an older FF16 run needs
+  re-measuring.
+
 * **`Control$node_density_in_birth_date`** (default `FALSE`) carries the SCM's
   size distribution as a density in birth date instead of in height.
-
-  The transport equation's compression term is the total derivative of the growth
-  rate along a cohort's own trajectory, which equals `∂g/∂h` only when growth is
-  a function of size. TF24's reserve gate breaks that: the finite-difference
-  probe in `Node::growth_rate_gradient` moves height while holding *absolute*
-  carbon fixed, so it shifts the reserve fraction `r = S/S_max`, whereas a cohort
-  actually grows with `r` roughly constant. The probe is accurate about a
-  quantity the plant never experiences, so this is a different derivative rather
-  than a worse approximation of the right one.
 
   In birth-date coordinates the density rate is mortality alone (nothing moves an
   individual along the birth-date axis), the birth density is
@@ -865,6 +1165,51 @@ were not previously recorded here:
   abscissa cannot invert (introduction times are fixed at birth), but the
   *height* early exit is skipped when the height ordering has broken, since a
   node below the query height can then be followed by a taller one.
+
+### Added
+
+* **TF24w: TF24 with a private root-zone soil column per cohort (#681).** TF24
+  integrates one soil column for the patch, which every plant reads and drains, so
+  water a plant does not transpire is water every plant gets. In `TF24w` each
+  cohort carries one water state per layer (`water_1`..`water_5`, appended after
+  TF24's six) for the ground under its own crown: it takes the rain that falls
+  there, loses its own uptake and deep drainage, and exchanges with the rest of
+  the patch at the environment's new `water_mixing_rate` (yr^-1; 0 is fully
+  private, large recovers TF24's water balance). Crown area is leaf area over the
+  new TF24 parameter `L_crown` (crown leaf area index); ground under no crown is
+  the environment's column; land moves between columns as crowns grow, die and
+  overlap, carrying its water, so the patch's water is conserved. The
+  environment's cumulative-flux accumulators are area-weighted totals over every
+  column. `scm_base_parameters("TF24w")`, `TF24w_hyperpar` (TF24's), version
+  `TF24w@v<TF24>.1`. Requires `control$node_density_in_birth_date = TRUE`; refuses
+  the gradient path and the stochastic patch; a patch with more than five soil
+  layers is refused. Its soil is never substepped, at `ode_soil_substep` or at a
+  knot of the rain, since a substep would integrate the bare column without the
+  exchange terms. TF24 is untouched: `L_crown` is inert there, each column's water
+  balance is the environment's own `layer_rates()`, and `scientific_version` is
+  deliberately **not** bumped (default baseline and scenario gateway
+  bit-identical). The model-version snapshot gains `pars.L_crown` for TF24, TF24f
+  and TF24t and an entry for TF24w.
+
+* **The gradient's incidence counters.** The leaf classifies its operating point
+  by the branch taken and the next plant overwrites it, and a clamp that severs a
+  row leaves a number indistinguishable from a true zero -- so neither was
+  recoverable after a run. Additions only:
+  * `census_operating_point_counts_tf24(scm)` -> per-species counts by kind
+  * `census_operating_point_names_tf24()`     -> the kinds, in that order
+  * `census_clamp_counts_tf24(scm)`           -> per-species counts by clamp site
+  * `census_clamp_names_tf24()`               -> the sites, in that order
+  * `census_clear_diagnostics_tf24(scm)`       -> reset both, per run
+
+* **The two readings a published counter does not give.** `census_clamp_counts_tf24`
+  counts every solve the forward run made, and a caller asking whether a
+  *gradient* carries a severance reads it and gets the wrong answer: the sweep
+  visits the recorded steps, and fewer of them. `gradient_control` publishes the
+  curvature floor and `stand_gradient_compare` refuses two gradients taken at
+  different ones, and nothing said how close a run came. Additions only:
+  * `census_clamp_counts_differentiated_tf24(scm)` -> per-species counts where the sweep ran
+  * `census_curvature_margin_tf24(scm)`            -> the smallest profit curvature met, or -1 for none
+
 * **A dry TF24f patch no longer aborts the whole run on the ci root-find.**
   `Leaf::dprofit_droot_collar_psi` — TF24f's exact AD/IFT gradient — called
   `psi_stem_to_ci()` before testing for hydraulic shut-down. In shut-down,
@@ -1025,6 +1370,53 @@ were not previously recorded here:
 * Added an HTML report (plots + analyses) for the FF16 strategy (#350).
 
 ### Known issues
+
+* **No correctness check reaches a production step count.** The gradient ladder's
+  longest stand accepts 68 steps; a century fixture accepts about 3,400. Range
+  count is covered -- `ladder_stand_many_ranges()` puts 62 ranges in a run of
+  under half a year, and the split identity holds there bit for bit, which
+  exercises the range loop, the narrowing across a widening and the re-entry a cut
+  forces at ten times the count every other rung runs at. What it does not cover
+  is the step loop and the recording's own footprint, both of which grow with run
+  length rather than with introductions.
+
+  The two were separated deliberately: they are confounded in the default
+  schedule, because that schedule derives its introduction count from the patch
+  lifetime. Written introduction times separate them, and range count is the half
+  that is cheap. The remaining half is not: one stand at the length a user runs
+  costs minutes to build and is dominated by regimes that refuse.
+
+* **An invasion replay cannot subdivide, so an invader that refuses a state fails
+  rather than shrinking.** The replay walks `step_by` with the resident's recorded
+  sizes, and that path has no domain handling — no `try`, no sub-step. This is
+  deliberate where it can be: it is what makes the replay exact and what makes the
+  answer independent of how many invaders share the call (traitecoevo/plant#646),
+  since no error norm is consulted.
+
+  It has not been seen to fire. TF24's identity case replays 28,813 steps at
+  `max_patch_lifetime = 14` — the fixture chosen because TF24's storage pool
+  refuses routinely, ~480 times in a resident run — and never refuses, which is
+  what an identity invader on the resident's own grid should do. **A genuinely
+  different TF24 invader is the untested case.** If it fires it will say so
+  loudly rather than quietly approximating, which is the choice made here:
+  `develop` subdivided instead, and its field then rewound once per sub-step,
+  which is the whole of its unexplained ~1e-6 on TF24 against ~1e-13 on FF16.
+
+* **`test-mutant.R`'s two ten-mutant panels are pinned to `develop`'s model, and
+  this branch's has moved.** `run_mutant()` itself is restored and exact: a
+  strategy replayed as an invader of itself returns the resident's own fitness to
+  **1e-15**, and it does so with two, three, five or nine invaders in the patch --
+  which is the statement that nothing in the replay builds an invader's own field,
+  since nine identical invaders would otherwise stand in a ninefold canopy.
+
+  What has moved is underneath. This branch's FF16 residents already differ from
+  the same file's resident pins: **2.7731596 against 2.77322 (-2.2e-5)** for one
+  resident, and **+4.7e-5** on the three-resident stand. Those sit inside the
+  1e-4 the resident assertions allow, so they pass; the mutant panels amplify the
+  same drift to 4e-4 and do not. The replay reproduces THIS branch's resident
+  exactly, so re-pinning the panels would accept a change to the model's science
+  -- which is the `scientific_version` decision, not this one. They are left
+  failing and named here rather than re-pinned.
 
 * **A dense TF24 stochastic run throws at the default ODE step cap** (#599). The
   soil water balance is stiff — the conductivity curve's exponent is
@@ -1330,6 +1722,12 @@ were not previously recorded here:
 
 ### Internals & performance
 
+* **`run_mutant()` costs linear, not quadratic, in the number of mutants: odelia 0.6.2 and phylloptim 0.9.2 (#656, odelia#69).** odelia's solver resized every stepper it holds whenever the state length changed, and its RODAS stepper zero-filled two n×n buffers each time even though plant steps with RKCK. plant grows its state at every cohort introduction, so each introduction cost the square of the state length, and putting many mutants in one `run_mutant()` call multiplies that length. Measured on FF16 over a 30-year patch with one resident and 51 mutants: one call over all 51 went from 45.2 s to 0.72 s (63×), now below the 1.1 s of running them one at a time; residents gain too, a three-species FF16 `run_scm()` going from 0.76 s to 0.37 s. Output is bit-identical: the fix moves only when the buffers are allocated. phylloptim 0.9.2 is 0.9.1 with its `Remotes:` moved to the same odelia, which plant must match.
+
+* **odelia 0.6.0 and phylloptim 0.9.1 (odelia#63, phylloptim#141, phylloptim#144).** odelia 0.6.0 adds an R-side ODE stepper, which regnans steps the canonical equation with; plant and phylloptim pin the same odelia, so plant moves with it off the phylloptim 0.8.x maintenance line onto master. The odelia change leaves plant's numbers alone (the step-size rule it adds is opt-in and the default is bit-identical). phylloptim 0.9.0 changes two things plant uses: `root_network_from_carbon()` takes per-layer thicknesses (`layer_thicknesses()`, the scalar `layer_thickness()` is gone — equal layers give the same widths exactly, so nothing moves for the profiles plant builds), and the collar solve's first-order condition gains the cost's own dependence on the collar potential, which TF24's `TF24_floor` curve has and so TF24 and TF24f feel: offspring production over a 5-year patch moves from 24.3274 to 24.3234 (−0.017 %) for TF24 and from 22.2374 to 22.2526 (+0.068 %) for TF24f, over a 10-year single-trait patch by +0.09 %, with step counts within ±2; FF16 is bit-identical. `Leaf$dz_` is gone from the R side with phylloptim's `MultiLayerRoots::dz_`; read widths off the profile with `phylloptim::layer_thicknesses()`.
+
+* **odelia 0.5.1 and phylloptim 0.8.3: the spline behind the light field is a local cubic Hermite (odelia#60, #61).** With values alone it reads the same natural cubic spline as before, so forward numbers move only at rounding, amplified through the run: offspring production changes by 8e-11 relative for FF16, 1.5e-6 for TF24 on the height coordinate and 5e-13 on the birth-date coordinate, with identical step and introduction counts. Runs are slightly faster than on odelia 0.4.0 (FF16 full lifetime 0.106 to 0.102 s, TF24 6 yr 2.35 to 2.31 s). The C++ front end is `odelia::interpolator::hermite_interpolator<S>`, formerly `basic_interpolator<S>`, which two AD tests named directly. phylloptim moves to its 0.8.x maintenance line because both packages must pin the same odelia.
+
 * The scenario gateway's seasonal rainfall driver places its spline knots **per
   year** (48 yr⁻¹) rather than per run, so the realised seasonality no longer
   depends on `max_patch_lifetime`. The previous `max(200, mpl × 6)` gave 6 knots
@@ -1404,6 +1802,10 @@ were not previously recorded here:
 * Upgraded the minimum C++ standard from C++14 — currently C++20 (#442).
 * Expanded the K93 (#421) and self-thinning (#369) vignettes; added a draft
   `extrinsic_drivers` vignette (#340).
+
+  Read off the live system, so take them from the object you ran. Measured on a
+  drought run that refuses: 99.71% interior, 0.29% pinned-dry -- and that 0.29%
+  is what makes every metric's gradient undefined.
 
 ## Plant 2.0.0 release notes
 

@@ -1,3 +1,4 @@
+#include <plant/fp_contract.h>
 #include <plant/util.h>
 #include <Rcpp.h>
 #include <iomanip>

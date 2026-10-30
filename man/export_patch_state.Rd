@@ -17,18 +17,34 @@ to have been performed with \code{collect = TRUE}); when \code{NULL}
 A list describing the patch state, suitable for
   \code{\link{set_initial_state}}: \code{time}, \code{n} (nodes per species),
   \code{ode_state} (flat), the per-species lists \code{node_times},
-  \code{patch_density} and \code{pr_patch_survival}, and the residual
-  \code{node_schedule_times}.
+  \code{patch_density} and \code{pr_patch_survival}, the residual
+  \code{node_schedule_times}, and \code{events}, the run's events still to
+  come -- its residual introductions and every action the run had not yet
+  applied when the state was taken (an action at the export time itself is
+  pending in a collected snapshot and in a run that \code{SCM$run_to()}
+  stopped there, and applied in a finished run's final patch). Events are a \code{\link{run_scm}} argument rather than a field
+  of \code{Parameters}, so pass \code{state$events} to the resumed run's
+  \code{events} argument; a resumed run given none re-runs the residual
+  introductions alone and silently loses any pulse or harvest still ahead.
+
+With the absorbing top layer on (\code{Control$absorb_epsilon}), each
+species' block of \code{ode_state} ends with the layer: its pinned
+individual's states, then its density, its two fitness weights and its two
+seed totals. A state exported without the layer has no such block, so
+resuming it with the layer on needs that many zeros inserted after each
+species' nodes.
 }
 \description{
 Export the full state of a patch from a (run) \code{SCM} so it can be
-re-imported to seed a new run (see \code{\link{set_initial_state}}). The
+re-imported to initialise a new run (see \code{\link{set_initial_state}}). The
 exported object captures everything needed to reproduce the patch's forward
 trajectory: every node's ODE state plus the per-node birth bookkeeping
 (introduction time, patch-age density and survival probability at birth)
 that is not part of the ODE state but feeds the rates and lifetime-fitness
 integrals, the patch age, and the not-yet-introduced ("residual") portion of
-the node-introduction schedule.
+the node-introduction schedule. A resume re-derives the two birth weights
+from its own regime (see \code{\link{set_initial_state}}); they are exported
+as a record of the run that made them.
 }
 \seealso{
 \code{\link{set_initial_state}}, \code{\link{run_scm}}

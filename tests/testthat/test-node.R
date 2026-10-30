@@ -46,9 +46,12 @@ for (x in names(strategy_types)) {
 
     ## With a plant, manually compute the growth rate gradient using
     ## Richarson extrapolation:
+    ## numDeriv halves its step from d * height four times, so for TF24 it
+    ## starts at d = 1e-2 to stay above the leaf solve's noise floor (below).
+    rich_args <- if (grepl("TF24", x)) list(d = 1e-2, eps = 1e-2) else method_args
     dgdh_richardson <- numDeriv::grad(growth_rate_given_height, plant$state("height"),
                                       plant=p2, env=env,
-                                      method.args=method_args)
+                                      method.args=rich_args)
     ## And also using plain forward and backward differencing:
     dgdh_forward <- grad_forward(growth_rate_given_height, plant$state("height"),
                                  method_args$eps, plant=p2, env=env)
@@ -59,7 +62,10 @@ for (x in names(strategy_types)) {
     ## part of net production times the reserve gate (#517), so it carries more
     ## curvature than FF16/K93 and the O(h) forward difference departs from the
     ## Richardson estimate a little more -- allow a looser tolerance there.
-    tol_grad <- if (grepl("TF24", x)) 1e-5 else 1e-6
+    ## TF24's leaf solve also leaves ~1e-11 of noise in the growth rate at the
+    ## default stem curve (#654), and at eps = 1e-6 that alone moves the
+    ## forward difference by ~4e-5 relative.
+    tol_grad <- if (grepl("TF24", x)) 1e-4 else 1e-6
     expect_equal(dgdh_forward, dgdh_richardson, tolerance = tol_grad)
 
     ## Now, do this with the node. The default control uses backward

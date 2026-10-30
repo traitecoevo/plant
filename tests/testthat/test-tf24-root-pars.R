@@ -11,7 +11,15 @@ test_that("root hydraulic parameters are exposed with unchanged defaults", {
   # change and should require editing this test deliberately.
   pars <- TF24_Strategy()$pars
   expect_equal(pars$root_c, 2.680147)
-  expect_equal(pars$root_b, 3.898245)
+  expect_equal(pars$root_P50, 3.4)
+  # ⚠️ AGAINST THE DERIVATION, NOT AGAINST THE OLD LITERAL. root_b was a
+  # hard-coded 3.898245 and is computed from (root_P50, root_c) now, which
+  # agrees with that seven-figure number to 3.1e-08 -- just outside
+  # expect_equal's default tolerance. The curve is the same curve, stated
+  # exactly rather than rounded, so the check is the identity rather than the
+  # digits.
+  expect_equal(pars$root_b,
+               pars$root_P50 / log(2)^(1 / pars$root_c))
   expect_equal(pars$rooting_depth_max, 1.5)
   # root_psi_crit is derived: the potential at 5% remaining root conductivity.
   expect_equal(pars$root_psi_crit,
@@ -39,9 +47,11 @@ test_that("root_b reaches the root vulnerability curve", {
 
   base <- TF24_Strategy()
   fragile <- TF24_Strategy()
-  fragile$pars$root_b <- 0.5
-  fragile$pars$root_psi_crit <-
-    fragile$pars$root_b * log(1 / 0.05)^(1 / fragile$pars$root_c)
+  # ⚠️ THROUGH root_P50, WHICH IS THE TRAIT. The strategy hands
+  # (root_P50, root_c) to the leaf and the leaf derives root_b and
+  # root_psi_crit, so writing either of those changes nothing -- and changes it
+  # SILENTLY, which is why this drives the knob that reaches the model.
+  fragile$pars$root_P50 <- 0.5 * log(2)^(1 / fragile$pars$root_c)
 
   a_base <- tf24_probe(base, wet)[["assimilation"]]
   a_fragile <- tf24_probe(fragile, wet)[["assimilation"]]
@@ -75,6 +85,80 @@ test_that("exposing the root parameters left default behaviour unchanged", {
   env <- Environment("TF24")
   env$set_soil_number_of_depths(5)
   env$set_soil_water_state(rep(0.25, 5))
+  p <- scm_base_parameters("TF24")
+  p$max_patch_lifetime <- 2
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"))
+  out <- run_scm(p, env)
+  expect_true(is.finite(out$offspring_production))
+  expect_gte(out$offspring_production, 0)
+})
+
+# ---------------------------------------------------------------------------
+# Per-layer layer thickness in the root network
+# ---------------------------------------------------------------------------
+
+probe_root_operating_point <- function(widths, theta = 0.25) {
+  ind <- TF24_Individual(TF24_Strategy())
+  ind$set_state("height", 5)
+  env <- TF24_Environment()
+  env$set_soil_layer_widths(widths)
+  env$set_soil_water_state(rep(theta, length(widths)))
+  ind$compute_rates(env)
+  stats::setNames(ind$internals$auxs, ind$aux_names)
+}
+
+test_that("plant hands the leaf each layer's own thickness, not a column average", {
+  # THE PLANT-SIDE PROOF THAT THE FIX LANDED, and it is a SIGN test rather than a
+  # tolerance, because a tolerance cannot see this. Vertical root resistance scales
+  # with the square of the thickness of the segment spanning each layer.
+  # phylloptim <= 0.8.0 took one scalar thickness (column depth / n), correct only
+  # for equal layers, and plant is what supplies it.
+  #
+  # Measured both ways, by building plant against each (theta = 0.25 everywhere,
+  # height 5 m, 1.5 m column):
+  #
+  #   profile            opt_root_psi (MPa)     assimilation
+  #                      scalar    per-layer    scalar    per-layer
+  #   uniform, 5 layers  1.661740  1.661740     15.464934 15.464934
+  #   2 cm surface layer 1.747280  0.598266     15.338550 17.251842
+  #
+  # Two things to read off it. The uniform column is BIT-IDENTICAL, which is why
+  # no default plant output moves. And on a graded column a scalar thickness lands
+  # within 6% of the uniform value and on the WRONG SIDE of it: the 2 cm surface
+  # layer is charged 0.3 m of root segment instead of 0.02 m, over-resisting by
+  # 225x in that layer and 3.7x in total, so the plant appears to need MORE suction
+  # when it needs far less. That sign flip is the discriminator, and unlike a
+  # tolerance it does not depend on the exact values surviving an unrelated solver
+  # change.
+  #
+  # (A thick-over-thin profile flips it the other way -- 1.654759 -> 4.211291 --
+  # which was the other half of this test until such profiles were refused
+  # outright; see the ordering test below.)
+  uniform <- probe_root_operating_point(rep(0.3, 5))
+  thin_top <- probe_root_operating_point(c(0.02, 0.28, 0.30, 0.40, 0.50))
+  steep <- probe_root_operating_point(soil_widths_graded(1.5, 5, top = 0.01))
+
+  for (p in list(uniform, thin_top, steep)) {
+    expect_true(is.finite(p[["assimilation"]]))
+    expect_true(is.finite(p[["opt_root_psi"]]))
+  }
+
+  # Thinning the surface layer moves root carbon deeper and cuts the vertical
+  # resistance it is charged, so the plant sits at LESS suction than uniform.
+  # Under a scalar thickness both inequalities reverse.
+  expect_lt(thin_top[["opt_root_psi"]], uniform[["opt_root_psi"]])
+  expect_gt(thin_top[["assimilation"]], uniform[["assimilation"]])
+  expect_lt(steep[["opt_root_psi"]], uniform[["opt_root_psi"]])
+
+  # And the effect is large, not marginal: a scalar thickness kept every graded
+  # profile inside 6% of the uniform operating point.
+  expect_gt(abs(thin_top[["opt_root_psi"]] / uniform[["opt_root_psi"]] - 1), 0.2)
+  expect_gt(abs(steep[["opt_root_psi"]] / uniform[["opt_root_psi"]] - 1), 0.2)
+})
+
+test_that("an unequal-layer column runs end to end", {
+  env <- Environment("TF24")
+  set_tf24_soil(env, soil_widths_graded(1.5, 5, top = 0.02), theta = 0.25)
   p <- scm_base_parameters("TF24")
   p$max_patch_lifetime <- 2
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))

@@ -5,6 +5,7 @@
 tidy_species <- function(results) {
 
   n_spp <- length(results[[1]]$species)
+  warn_top_layer(results)
 
    get_species_sdd <- function(i) {
      purrr::imap_dfr(results, ~ .x$species[[i]] |>
@@ -21,7 +22,21 @@ tidy_species <- function(results) {
 }
 
 
-#' Turn `env` component of solver output into a tidy data object 
+## The absorbing top layer (control$absorb_epsilon) is not a node, so the rows
+## tidy_species() returns, and every integral over them, leave out what it
+## carries. Said rather than refused: this runs at the end of a collected run.
+warn_top_layer <- function(results) {
+  top <- unlist(lapply(results, function(r)
+    lapply(r$species, function(s) attr(s, "top_density"))))
+  if (length(top) > 0 && any(top > 0)) {
+    warning("The absorbing top layer carries density (up to ",
+            signif(max(top), 3), ") that these node rows leave out, so ",
+            "integrals over them undercount the stand. Read the layer from ",
+            "species$top_layer or tidy_snapshots().", call. = FALSE)
+  }
+}
+
+#' Turn `env` component of solver output into a tidy data object
 #'
 #' @rdname tidy_patch
 #' @importFrom rlang .data
@@ -214,21 +229,56 @@ tidy_individual <- function(results) {
 #' Integrations are performed using trapezium integration
 #'
 #' @param tidy_species_data output of either `tidy_patch` or `tidy_species`
+#' @param lower,upper heights bounding the integral; the defaults integrate over
+#'   the whole size distribution. A bound that falls between two nodes takes the
+#'   integrand by linear interpolation, as the trapezium rule already assumes, so
+#'   totals over adjacent ranges sum to the total over their union. For a finer
+#'   grid, interpolate with `interpolate_to_heights()` first.
 #'
-#' @return a tibble whose columns provide metrics on integrated totals for each variable for each species at each time
+#' @return a tibble whose columns provide metrics on integrated totals for each variable for each species at each time.
+#'   `min_height` is the lowest height in the integrated range, and is `NA`
+#'   when the range holds no individuals (the totals are then zero).
 
 #' @export
 #'
 #' @importFrom rlang .data
-integrate_over_size_distribution <- function(tidy_species_data) {
+integrate_over_size_distribution <- function(tidy_species_data,
+                                             lower = -Inf, upper = Inf) {
+  if (!(length(lower) == 1 && length(upper) == 1 && lower < upper)) {
+    stop("'lower' and 'upper' must be single heights with lower < upper")
+  }
   tidy_species_data  %>%
     dplyr::select(-dplyr::any_of("node")) %>% stats::na.omit() %>%
     dplyr::filter(.data$step > 1) %>% 
-    dplyr::group_by(.data$step, .data$time, .data$patch_density, .data$species) %>% 
+    dplyr::group_by(.data$step, .data$time, .data$patch_density, .data$species) %>%
+    # This one really does integrate over height, so a crossed grid is a live
+    # hazard: reserve-gated growth lets a younger cohort overtake an older one,
+    # and neighbouring trapezia then cancel instead of accumulating. Ordering the
+    # grid first is what makes the rule below hold however the rows arrive.
+    dplyr::arrange(.data$height, .by_group = TRUE) %>%
     dplyr::reframe(
-      density_integrated = -trapezium(.data$height, .data$density), 
-      min_height = min(.data$height),
-      dplyr::across(tidyselect::where(is.double) & !c("density", "density_integrated", "min_height") , ~-trapezium(height, density * .x))
+      density_integrated = trapezium_between(.data$height, .data$density, lower, upper),
+      min_height = if (lower < max(.data$height) && upper > min(.data$height)) max(lower, min(.data$height)) else NA_real_,
+      dplyr::across(tidyselect::where(is.double) & !c("density", "density_integrated", "min_height") , ~trapezium_between(height, density * .x, lower, upper))
     ) %>%
     dplyr::rename(density = "density_integrated")
+}
+
+# Trapezium integral of y over sorted x, restricted to [lower, upper]. Each bound
+# takes y by linear interpolation, the integrand the rule already assumes, so
+# integrals over adjacent ranges add exactly. Bounds spanning x reduce to the
+# plain rule.
+trapezium_between <- function(x, y, lower, upper) {
+  n <- length(x)
+  if (lower <= x[1] && upper >= x[n]) {
+    return(trapezium(x, y))
+  }
+  lower <- max(lower, x[1])
+  upper <- min(upper, x[n])
+  if (lower >= upper) {
+    return(0)
+  }
+  at <- function(h) stats::approx(x, y, xout = h, ties = "ordered")$y
+  inside <- x > lower & x < upper
+  trapezium(c(lower, x[inside], upper), c(at(lower), y[inside], at(upper)))
 }

@@ -76,10 +76,10 @@ for (x in names(strategy_types)) {
 
     expect_equal(patch$deaths(), 0)
 
-    ci <- patch$environment$light_availability$spline
-    expect_equal(range(ci$x), c(0.0, cmp$state("height")))
-    expect_equal(max(ci$y), 1.0)
-    expect_lt(ci$y[[1]], 1.0)
+    light <- patch$environment$light_availability$state
+    expect_equal(range(light[, "height"]), c(0.0, cmp$state("height")))
+    expect_equal(max(light[, "light_availability"]), 1.0)
+    expect_lt(light[1, "light_availability"], 1.0)
 
     if (x == "FF16") {
       expect_true(all(patch$ode_rates > 0.0))

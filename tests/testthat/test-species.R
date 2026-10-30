@@ -135,7 +135,7 @@ for (x in names(strategy_types)) {
     ## Part way up (and above bottom offspring boundary condition)
     expect_equal(sp$compute_competition(h_top * .5), cmp_compute_competition(h_top * .5, sp))
 
-    ode_size <- Node(x, e)(strategy_types[[x]]())$ode_size
+    ode_size <- Node(x, e)(height_coordinate_strategy(x))$ode_size
     ode_state <- sp$ode_state
     p <- sp$node_at(1)
     expect_equal(sp$ode_size, ode_size)
@@ -161,7 +161,7 @@ for (x in names(strategy_types)) {
     ## Within the top pair (excluding the offspring)
     expect_equal(sp$compute_competition(h_top * .8), cmp_compute_competition(h_top * .8, sp))
 
-    ode_size <- Node(x, e)(strategy_types[[x]]())$ode_size
+    ode_size <- Node(x, e)(height_coordinate_strategy(x))$ode_size
     ode_state <- sp$ode_state
     nodes <- sp$nodes
     expect_equal(sp$ode_size, ode_size * sp$size)
@@ -198,10 +198,54 @@ for (x in names(strategy_types)) {
     expect_identical(sp$compute_competition_effect_by_nodes_error(1.0), cmp)
     expect_identical(sp$compute_competition_effect_by_nodes_error(pi), cmp_pi)
 
-    ode_size <- Node(x, e)(strategy_types[[x]]())$ode_size
+    ode_size <- Node(x, e)(height_coordinate_strategy(x))$ode_size
     ode_state <- sp$ode_state
     nodes <- sp$nodes
     expect_equal(length(ode_state), ode_size * sp$size)
     expect_identical(ode_state, unlist(lapply(nodes, function(p) p$ode_state)))
+  })
+
+  test_that("set_birth_state restores per-node birth bookkeeping", {
+    env <- Environment(x)
+    sp <- Species(x, e)(height_coordinate_strategy(x))
+    sp$compute_rates(env, pr_patch_survival = 1, birth_rate = 1)
+    for (i in seq_len(3)) sp$introduce_new_node()
+    sp$heights <- sp$height_max * 40 * c(1, .75, .6)
+
+    times   <- c(0.25, 0.50, 0.75)
+    density <- c(1.5, 2.5, 3.5)
+    pr_surv <- c(0.9, 0.8, 0.7)
+    sp$set_birth_state(times, density, pr_surv)
+
+    ## Each argument reaches its own destination, in node order: the three are
+    ## same-typed and unrelated in meaning, so a swap would only show here.
+    expect_identical(sp$node_times, times)
+    expect_identical(sp$patch_densities, density)
+    expect_identical(sp$pr_patch_survival_at_birth, pr_surv)
+
+    ## None of the three is part of the ODE state, so setting them moves none of it.
+    state <- sp$ode_state
+    sp$compute_rates(env, pr_patch_survival = 1, birth_rate = 1)
+    rates <- sp$ode_rates
+    sp$set_birth_state(times * 2, density * 2, pr_surv)
+    expect_identical(sp$ode_state, state)
+    sp$compute_rates(env, pr_patch_survival = 1, birth_rate = 1)
+    expect_identical(sp$ode_rates, rates)
+
+    ## pr_patch_survival_at_birth divides the fecundity rate, which is the one
+    ## rate it reaches: halving it doubles that rate and leaves the rest alone.
+    sp$set_birth_state(times, density, pr_surv / 2)
+    sp$compute_rates(env, pr_patch_survival = 1, birth_rate = 1)
+    halved <- sp$ode_rates
+    n <- Node(x, e)(height_coordinate_strategy(x))$ode_size
+    fecundity <- (seq_len(sp$size) - 1) * n + (n - 1)
+    expect_true(all(rates[fecundity] > 0))
+    expect_identical(halved[fecundity], rates[fecundity] * 2)
+    expect_identical(halved[-fecundity], rates[-fecundity])
+
+    ## Each length must match the node count.
+    expect_error(sp$set_birth_state(times[-1], density, pr_surv), "Incorrect length input")
+    expect_error(sp$set_birth_state(times, density[-1], pr_surv), "Incorrect length input")
+    expect_error(sp$set_birth_state(times, density, pr_surv[-1]), "Incorrect length input")
   })
 }

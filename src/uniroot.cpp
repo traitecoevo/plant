@@ -1,3 +1,4 @@
+#include <plant/fp_contract.h>
 #include <plant/uniroot.h>
 #include <plant/util_post_rcpp.h> // RFunctionWrapper
 #include <Rcpp.h>

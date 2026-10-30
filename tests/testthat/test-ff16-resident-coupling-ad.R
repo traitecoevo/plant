@@ -28,31 +28,40 @@ compile_ff16_resident_ad <- function() {
                     "odelia shared library not found for tape linking.")
   withr::local_envvar(
     PKG_CPPFLAGS = paste(paste0("-I", shQuote(plant_inc)),
-                         paste0("-I", shQuote(odelia_inc))),
+                         paste0("-I", shQuote(odelia_inc)),
+                         "-DXAD_NO_THREADLOCAL -DXAD_USE_STRONG_INLINE"),
     PKG_LIBS = shQuote(normalizePath(odelia_so)))
 
   res <- tryCatch({
     Rcpp::sourceCpp(code = '
       #include <Rcpp.h>
       #include <vector>
+      // [[Rcpp::plugins(cpp20)]]
+      // ^ NOT PKG_CPPFLAGS: R places that BEFORE its own -std=,
+      // which then wins, and the odelia headers name concepts.
+      #include <odelia/ode_interface.hpp>
       #include <cmath>
-      #include <XAD/XAD.hpp>
-      #include <odelia/interpolator.hpp>
+            #include <odelia/interpolator.hpp>
       #include <plant/models/ff16_production_kernel.h>
-      using adt = xad::adj<double>::active_type;
+      using adt = odelia::ode::adjoint_scalar<double>;
 
       template <typename S>
       S resident_net(S a_l1, S k_I, const plant::FF16ProdPars<S>& p,
                      double a_l2, double height, double density,
                      std::vector<double> xk, std::vector<double> qfrac_knot,
+                     std::vector<double> dqfrac_knot,
                      std::vector<double> z, std::vector<double> wq) {
         S area_leaf = plant::ff16_area_leaf<S>(a_l1, S(a_l2), S(height));
         // Resident light spline: Beer\'s law over its own competition.
-        std::vector<S> yk(xk.size());
-        for (size_t i = 0; i < xk.size(); ++i)
-          yk[i] = exp(-density * k_I * area_leaf * qfrac_knot[i]);
-        odelia::interpolator::basic_interpolator<S> light;
-        light.init(xk, yk);
+        // Value and slope at every knot, as the resident field carries them.
+        std::vector<S> yk(xk.size()), mk(xk.size());
+        for (size_t i = 0; i < xk.size(); ++i) {
+          const S tau = density * k_I * area_leaf;
+          yk[i] = exp(-tau * qfrac_knot[i]);
+          mk[i] = -tau * dqfrac_knot[i] * yk[i];
+        }
+        odelia::interpolator::hermite_interpolator<S> light;
+        light.init(xk, yk, mk);
         S assim = plant::ff16_assimilation_deep_crown_replay<S>(
             p.a_p1, p.a_p2, area_leaf, z, wq,
             [&](double zz){ return light.eval(zz); });
@@ -65,28 +74,31 @@ compile_ff16_resident_ad <- function() {
         p.lma=v[0];p.rho=v[1];p.theta=v[2];p.a_b1=v[3];p.a_r1=v[4];p.eta_c=v[5];
         p.a_p1=v[6];p.a_p2=v[7];p.r_l=v[8];p.r_s=v[9];p.r_b=v[10];p.r_r=v[11];
         p.k_l=v[12];p.k_b=v[13];p.k_s=v[14];p.k_r=v[15];p.a_bio=v[16];p.a_y=v[17];
+        p.a_cr1=v[18];p.r_cr=v[19];p.k_cr=v[20];
         return p;
       }
 
       // [[Rcpp::export]]
       Rcpp::NumericVector resident_grad(double a_l1, double k_I, std::vector<double> v,
           double a_l2, double height, double density, std::vector<double> xk,
-          std::vector<double> qfrac_knot, std::vector<double> z, std::vector<double> wq) {
-        xad::adj<double>::tape_type tape;
+          std::vector<double> qfrac_knot, std::vector<double> dqfrac_knot,
+          std::vector<double> z, std::vector<double> wq) {
+        odelia::ode::adjoint_tape<double> tape;
         adt al1 = a_l1, ki = k_I;
         tape.registerInput(al1); tape.registerInput(ki);
         tape.newRecording();
         adt y = resident_net<adt>(al1, ki, mkpod<adt>(v), a_l2, height, density,
-                                  xk, qfrac_knot, z, wq);
+                                  xk, qfrac_knot, dqfrac_knot, z, wq);
         tape.registerOutput(y); xad::derivative(y) = 1.0; tape.computeAdjoints();
         return Rcpp::NumericVector::create(xad::derivative(al1), xad::derivative(ki));
       }
       // [[Rcpp::export]]
       double resident_value(double a_l1, double k_I, std::vector<double> v,
           double a_l2, double height, double density, std::vector<double> xk,
-          std::vector<double> qfrac_knot, std::vector<double> z, std::vector<double> wq) {
+          std::vector<double> qfrac_knot, std::vector<double> dqfrac_knot,
+          std::vector<double> z, std::vector<double> wq) {
         return resident_net<double>(a_l1, k_I, mkpod<double>(v), a_l2, height, density,
-                                    xk, qfrac_knot, z, wq);
+                                    xk, qfrac_knot, dqfrac_knot, z, wq);
       }', verbose = FALSE)
     NULL
   }, error = function(e) e)
@@ -105,18 +117,23 @@ testthat::test_that("FF16 resident self-shading coupling differentiates end-to-e
   H <- 8; density <- 1.5
   xk <- seq(0, H, length.out = 11)
   qfrac_knot <- pmax(0, 1 - xk / H)        # leaf-above fraction at each spline knot
+  dqfrac_knot <- rep(-1 / H, length(xk))   # its slope in height, which the field needs
   nq <- 41; z <- seq(0, H, length.out = nq); dz <- H / (nq - 1)
   simp <- ifelse(seq_len(nq) %in% c(1, nq), 1, ifelse(seq_len(nq) %% 2 == 0, 4, 2))
   q <- pmax(0, 1 - z / H)
   wq <- simp * dz / 3 * q
 
   a_l1 <- 0.306; a_l2 <- 0.75; k_I <- 0.5
+  ## Trailing three are the coarse-root pool (#349): a_cr1, r_cr, k_cr, with a
+  ## non-zero a_cr1 so the a_l1 gradient runs through the new terms too.
   v <- c(0.1978791, 608, 0.0002141786, 0.17, 0.07, 0.5805, 151.177, 0.204,
-         0.01979, 0.0859, 0.04, 0.2086, 0.4565, 0.2, 0.0, 1.0, 0.0245, 0.7)
+         0.01979, 0.0859, 0.04, 0.2086, 0.4565, 0.2, 0.0, 1.0, 0.0245, 0.7,
+         0.2, 0.0859, 0.2)
 
-  g <- resident_grad(a_l1, k_I, v, a_l2, H, density, xk, qfrac_knot, z, wq)
+  g <- resident_grad(a_l1, k_I, v, a_l2, H, density, xk, qfrac_knot,
+                     dqfrac_knot, z, wq)
   f <- function(al1, ki) resident_value(al1, ki, v, a_l2, H, density, xk,
-                                        qfrac_knot, z, wq)
+                                        qfrac_knot, dqfrac_knot, z, wq)
   h <- 1e-6
   g_al1_fd <- (f(a_l1 + h, k_I) - f(a_l1 - h, k_I)) / (2 * h)
   g_kI_fd  <- (f(a_l1, k_I + h) - f(a_l1, k_I - h)) / (2 * h)

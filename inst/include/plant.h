@@ -2,18 +2,18 @@
 #ifndef _PLANT_H_
 #define _PLANT_H_
 
+// First, before any header that defines arithmetic: see fp_contract.h.
+#include <plant/fp_contract.h>
+
 #include <plant/util.h>
 
 #include <plant/qk.h>
 #include <plant/qag.h>
 
-#include <odelia/interpolator.hpp>
-#include <plant/adaptive_interpolator.h>
 
 #include <odelia/ode_control.hpp>
 #include <odelia/ode_step.hpp>
 #include <odelia/ode_solver.hpp>
-#include <odelia/solver_interface.hpp>
 
 #include <plant/environment.h>
 #include <plant/resource_spline.h>
@@ -33,6 +33,8 @@
 #include <plant/models/ff16_strategy.h>
 #include <plant/models/tf24_strategy.h>
 #include <plant/models/tf24f_strategy.h>
+#include <plant/models/tf24t_strategy.h>
+#include <plant/models/tf24w_strategy.h>
 #include <plant/models/k93_strategy.h>
 #include <plant/leaf_model.h>
 

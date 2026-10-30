@@ -19,6 +19,7 @@ full_compile:
 # generates 
 RcppR6:
 	Rscript -e "library(methods); RcppR6::RcppR6()"
+	Rscript scripts/rcppr6_tolerate_missing_fields.R
 
 # generates src/RcppExports.cpp, R/RcppExports.R from anything with Rcpp::export. 
 attributes:
@@ -31,6 +32,12 @@ roxygen:
 
 test: all
 	Rscript -e 'library(methods); devtools::test()'
+
+# Test the plant installed in R_LIBS (or the default library), not this
+# checkout. Each setting here is explained in agents.md, section 8.
+test-installed:
+	cd tests && TESTTHAT_PARALLEL=false NOT_CRAN=true $(RSCRIPT) -e \
+	  'library(testthat); library(plant); cat("plant from", find.package("plant"), "\n"); test_check("plant", reporter = "summary")'
 
 benchmark:
 	Rscript scripts/benchmark.R
@@ -60,4 +67,4 @@ check: build
 clean:
 	rm -f src/*.o src/*.so src/*.o.tmp
 
-.PHONY: all compile doc clean test attributes roxygen install build check benchmark scenarios bless-scenarios
+.PHONY: all compile doc clean test test-installed attributes roxygen install build check benchmark scenarios bless-scenarios

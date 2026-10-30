@@ -1,0 +1,15 @@
+# A checkout with core.autocrlf on rewrites LF to CRLF on the way out, which
+# reports files as modified while `git diff` shows no changed lines at all -- and
+# for anything with an interpreter line it is worse than cosmetic, because
+# `#!/bin/bash\r` fails with "cannot execute: required file not found".
+#
+# The index holds LF, so pinning these changes no content; it stops the checkout
+# undoing it.
+*.R     text eol=lf
+*.h     text eol=lf
+*.hpp   text eol=lf
+*.cpp   text eol=lf
+*.md    text eol=lf
+*.tsv   text eol=lf
+*.yml   text eol=lf
+*.sh    text eol=lf

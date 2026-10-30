@@ -8,8 +8,10 @@ test_that("Defaults", {
     a_y      = 0.7,
     a_l1     = 5.44,
     a_r1     = 0.07,
+    a_cr1    = 0,
     a_b1      = 0.17,
     r_b   = 8024 / 608,
+    r_cr  = 4012/608,
     r_l   = 39.27 / 0.1978791,
     r_r   = 217,
     r_s   = 4012/608,
@@ -21,6 +23,7 @@ test_that("Defaults", {
     a_st1 = 0.10,
     a_st2 = 0.10,
     a_st3 = 0.8,
+    storage_relaxation_offset = 7 / 365,
     a_sw = 0.0,
     a_pl0 = 0.0,
     a_pl1 = 0.0,
@@ -36,6 +39,7 @@ test_that("Defaults", {
     hmat   = 16.5958691,
     k_b    = 0.2,
     k_l   = 0.4565855,
+    k_cr   = 0.2,
     k_r    = 1,
     k_s   = 0.2,
     lma    = 0.1978791,
@@ -44,19 +48,20 @@ test_that("Defaults", {
     theta  = 1.0/4669,
     k_I = 0.5,
     vcmax_25 = 96,
-    stem_P50 = 1.85,
+    stem_P50 = 2.8887256653360196,
     # Terminal-segment conductivity: the old whole-stem 1, back-derived so
     # resistance is unchanged at TF24_H_ANCHOR. Ratio 2.9782.
     K_s = TF24_K_s_from_whole_stem(1),
-    stem_c = log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16)),
-    stem_b = 1.85 /((-log(1 - 50.0 / 100.0))^(1 / (log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16))))),
-    psi_crit = (1.85 /((-log(1 - 50.0 / 100.0))^(1 / (log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16))))))*log(1/0.05)^(1/(log(log(1-0.5)/log(1-0.88))/(log(1.85) - log(5.16)))),
+    stem_c = 2.04,
+    stem_b = 2.8887256653360196 / (-log(1 - 50.0 / 100.0))^(1 / 2.04),
+    psi_crit = 2.8887256653360196 / (-log(1 - 50.0 / 100.0))^(1 / 2.04) * log(1/0.05)^(1/2.04),
     beta1 = 20000,
     TF24_beta2 = 1.5,
     TF24_cost_scale = 7.5,
     TF24_floor_lambda_o = 0,
     jmax_25 = 157.44,
-    a = 0.3,
+    R_d_25 = 1.44,
+    phi_J = 0.3 / 0.85,
     curv_fact_elec_trans = 0.7,
     curv_fact_colim = 0.99,
     var_sapwood_volume_cost = 1,
@@ -66,9 +71,15 @@ test_that("Defaults", {
     nmass_r = 0.00335,
     dmass_dN = 0,
     root_depth_shape_eta = 0.2,
+    # (root_P50, root_c) is the pair the model carries; root_b and root_psi_crit
+    # are derived from it here the way TF24_Pars derives them, rather than pinned
+    # as literals. phylloptim takes the same pair and derives both itself, so a
+    # literal here would be a third spelling free to disagree with both.
+    root_P50 = 3.4,
     root_c = 2.680147,
-    root_b = 3.898245,
-    root_psi_crit = 3.898245 * log(1 / 0.05)^(1 / 2.680147),
+    root_b = 3.4 / (-log(1 - 50.0 / 100.0))^(1 / 2.680147),
+    root_psi_crit = (3.4 / (-log(1 - 50.0 / 100.0))^(1 / 2.680147)) *
+                      log(1 / 0.05)^(1 / 2.680147),
     rooting_depth_max = 1.5,
     # Stem hydraulic path. theta_c stays 0, so `theta` keeps its whole-plant
     # meaning. See plant/stem_hydraulics.h.
@@ -77,7 +88,10 @@ test_that("Defaults", {
     L_tip = 0.02,
     recruitment_decay = 0,
     use_energy_balance = 0,
-    d = 0.05)
+    d = 0.05,
+    alpha_PAR = 0.85,
+    alpha_NIR = 0.2,
+    L_crown = 2.0)
 
   # Top-level strategy fields: the pars sub-object plus infrastructure.
   expected_top <- c("pars", "control", "collect_all_auxiliary",
@@ -236,6 +250,16 @@ test_that("TF24_Strategy hyper-parameterisation", {
   expect_equal(ret, trait_matrix(numeric(0), "lma"))
 })
 
+test_that("TF24_hyperpar at the default traits keeps the default stem curve", {
+  ## A strategy built from traits and the bare default must share one
+  ## vulnerability curve (#611). r_l and nmass_l still differ (#579).
+  s <- TF24_Strategy()
+  ret <- TF24_hyperpar(trait_matrix(s$pars$K_s, "K_s"), s, filter = FALSE)
+  for (v in c("stem_P50", "stem_c", "stem_b", "psi_crit")) {
+    expect_equal(unname(ret[1, v]), s$pars[[v]], tolerance = 1e-14, info = v)
+  }
+})
+
 test_that("TF24_hyperpar no longer produces a_p1/a_p2 and k_I does not affect output", {
   m <- trait_matrix(c(0.1, 0.2), "lma")
   s <- TF24_Strategy()
@@ -309,24 +333,21 @@ test_that("offspring arrival", {
                        hyperpar = TF24_hyperpar, birth_rate = list(20))
 
   out <- run_scm(p1, env, ctrl)
-  expect_equal(out$offspring_production, 24.32140145, tolerance = 2e-2)
+  expect_equal(out$offspring_production, 9.12669320, tolerance = 2e-2)
 
   # two species: the second strategy has a moderately higher lma (0.10 vs
-  # 0.0825), so it grows more slowly and is more heavily shaded. In the height
-  # coordinate the slower species is excluded -- its offspring production is
-  # several orders of magnitude below the faster species. We pin the dominant
-  # species (loosely, for the cross-platform reasons above) and assert the
-  # excluded species stays negligible, rather than pinning its tiny value, which
-  # is too platform-fragile to compare at a fixed relative tolerance.
+  # 0.0825), so it grows more slowly and is more heavily shaded. We pin the
+  # dominant species (loosely, for the cross-platform reasons above) and assert
+  # the second stays negligible, rather than pinning its tiny value, which is
+  # too platform-fragile to compare at a fixed relative tolerance.
   #
-  # This exclusion is a property of the *coordinate*, not of reserve-gated
-  # growth. See the birth-date case below: an earlier version of this comment
-  # recorded it as a finding about #517, which it is not.
+  # The exclusion this pins is a property of the *height* coordinate, which the
+  # ctrl above selects; the birth-date run below names its own.
   p2 <- add_strategies(p0, trait_matrix(c(0.0825, 0.10, 5, 5), c("lma", "hmat")),
                        hyperpar = TF24_hyperpar, birth_rate = list(20, 20))
 
   out <- run_scm(p2, env, ctrl)
-  expect_equal(out$offspring_production[[1]], 18.54300907, tolerance = 2e-2)
+  expect_equal(out$offspring_production[[1]], 5.68263921, tolerance = 2e-2)
   expect_lt(out$offspring_production[[2]], 0.5)
 
   # Same two species, integrated in birth date (#590). They coexist at
@@ -361,22 +382,38 @@ test_that("offspring arrival", {
   # previously had no upper bound and the median cohort of a mature stand sat at
   # a reserve fraction of exactly 1 with the read clipped there, where it now
   # sits at 0.62 with nothing on the clip.
+  #
+  # TF24 v13 re-pinned all four, and the three single-run values above, at the
+  # new default light: the SWdown driver at 900 W m^-2 is 2056.5 umol m^-2 s^-1
+  # of PPFD above the canopy where the PPFD driver was 1800. They FALL with more
+  # light (24.32 -> 12.86 for one species) because this stand is already past
+  # its light optimum: offspring peak near 1400 and the extra light dries the
+  # soil faster. A build of v13 with the old light reproduced every old value
+  # to ~1e-12, so the change is the light and not the code.
   out_bd <- run_scm(p2, env, Control(node_density_coordinate = "birth_date"))
-  expect_equal(out_bd$offspring_production[[1]], 219.26680110, tolerance = 2e-2)
-  expect_equal(out_bd$offspring_production[[2]], 34.58766277, tolerance = 2e-2)
+  expect_equal(out_bd$offspring_production[[1]], 151.44086321, tolerance = 2e-2)
+  expect_equal(out_bd$offspring_production[[2]], 23.70609023, tolerance = 2e-2)
 })
 
 test_that("the height-linear parameters reproduce the pre-path-integral results", {
   # The stem path integral (plant/stem_hydraulics.h) replaced a resistance
   # strictly linear in height. Setting D_c, theta_c and L_tip to zero and K_s
-  # back to its old whole-stem value of 1 must recover that model exactly --
-  # end-to-end through a full SCM run, not just in the closed form.
+  # back to its old whole-stem value of 1, with no storage relaxation offset,
+  # must recover that model exactly -- end-to-end through a full SCM run, not
+  # just in the closed form.
   #
   # The values pinned here are develop's own, i.e. the ones the tests above this
   # one carried before the path integral landed, at the same 2e-2 tolerance and
   # for the same cross-platform reasons. They are adopted without modification,
   # which is the strongest available statement that the new machinery adds a
   # capability rather than changing the old behaviour.
+  #
+  # ⚠️ RE-PINNED AT TF24 v13, so they are no longer develop's numbers. The new
+  # default light (SWdown 900, i.e. 2056.5 PPFD above the canopy, where the old
+  # driver gave 1800) moves every run. The old values -- 30.22207354,
+  # 23.20349831, 233.05915606, 43.63800899 -- were reproduced to ~1e-12 by a v13
+  # build with SWdown set back to 1800 / (0.5 * 4.57), which is the statement
+  # this test exists to make, measured once rather than carried.
   linear <- function(p) {
     # Every strategy, not just the first: resetting only strategies[[1]] leaves
     # the second species on the path integral and silently compares two
@@ -387,6 +424,7 @@ test_that("the height-linear parameters reproduce the pre-path-integral results"
       s$pars$theta_c <- 0
       s$pars$L_tip <- 0
       s$pars$K_s <- 1
+      s$pars$storage_relaxation_offset <- 0
       p$strategies[[i]] <- s
     }
     p
@@ -406,17 +444,17 @@ test_that("the height-linear parameters reproduce the pre-path-integral results"
   p1 <- add_strategies(p0, trait_matrix(c(0.0825, 5), c("lma", "hmat")),
                        hyperpar = TF24_hyperpar, birth_rate = list(20))
   out <- run_scm(linear(p1), env, ctrl)
-  expect_equal(out$offspring_production, 30.22207354, tolerance = 2e-2)
+  expect_equal(out$offspring_production, 18.91718234, tolerance = 2e-2)
 
   p2 <- add_strategies(p0, trait_matrix(c(0.0825, 0.10, 5, 5), c("lma", "hmat")),
                        hyperpar = TF24_hyperpar, birth_rate = list(20, 20))
   out2 <- run_scm(linear(p2), env, ctrl)
-  expect_equal(out2$offspring_production[[1]], 23.20349831, tolerance = 2e-2)
+  expect_equal(out2$offspring_production[[1]], 12.23143319, tolerance = 2e-2)
   expect_lt(out2$offspring_production[[2]], 0.5)
 
   out_bd <- run_scm(linear(p2), env, Control(node_density_coordinate = "birth_date"))
-  expect_equal(out_bd$offspring_production[[1]], 233.05915606, tolerance = 2e-2)
-  expect_equal(out_bd$offspring_production[[2]], 43.63800899, tolerance = 2e-2)
+  expect_equal(out_bd$offspring_production[[1]], 185.29515663, tolerance = 2e-2)
+  expect_equal(out_bd$offspring_production[[2]], 37.56661294, tolerance = 2e-2)
 })
 
 # Water mass-balance: transpiration integrated up the stem side of every
@@ -607,7 +645,8 @@ test_that("the storage rate relaxes on the pool's own timescale near empty", {
   # times the accepted steps and 38 times the wall clock.
   #
   # Asserted as a ratio against the pool's own rate rather than as a step count,
-  # so it is a property of the form and not a benchmark.
+  # so it is a property of the form and not a benchmark. Posed at a zero
+  # relaxation offset, whose divisor lowers the rate this measures.
   height <- 5
   cap <- tf24_storage_capacity_r(height)
   light <- 0.05                        # deep shade, so the drain is what acts
@@ -615,17 +654,66 @@ test_that("the storage rate relaxes on the pool's own timescale near empty", {
   S0 <- r0 * cap
 
   s <- TF24_Strategy()
-  P <- tf24_storage_at(S0, height, light)$P
+  s$pars$storage_relaxation_offset <- 0
+  P <- tf24_storage_at(S0, height, light, s = s)$P
   expect_lt(P, 0)                      # non-vacuity: the pool is draining here
   Ppos <- 0.5 * (P + sqrt(P * P + 1e-4 * 1e-4))
   G <- 1 / (1 + exp(-(r0 - s$pars$a_st2) / 0.1))
   own_rate <- (Ppos * (1 - G) + (Ppos - P)) / cap
 
   h <- 1e-6 * cap
-  lambda <- (tf24_storage_at(S0 + h, height, light)$dS -
-             tf24_storage_at(S0 - h, height, light)$dS) / (2 * h)
+  lambda <- (tf24_storage_at(S0 + h, height, light, s = s)$dS -
+             tf24_storage_at(S0 - h, height, light, s = s)$dS) / (2 * h)
   expect_lt(lambda, 0)                 # the boundary attracts, as it must
   expect_lt(abs(lambda) / own_rate, 10)
+})
+
+test_that("the relaxation offset divides the pool's rate by 1 + its own rate times the offset", {
+  # For a seedling in deep shade the divisor is about 7; at an offset of zero the
+  # rate is the charge and the drain alone.
+  s <- TF24_Strategy()
+  env <- Environment("TF24")
+  env$set_fixed_environment(1, height_max = 150)
+  env$set_soil_water_state(rep(0.4, env$get_soil_number_of_depths()))
+  born <- Individual("TF24", "TF24_Env")(s)
+  born$set_initial_states(env)
+  height <- born$internals$states[[match("height", born$ode_names)]]
+  cap <- tf24_storage_capacity_r(height)
+  light <- 0.05
+  r0 <- 1e-3
+  S0 <- r0 * cap
+  offset <- s$pars$storage_relaxation_offset
+  no_offset <- TF24_Strategy()
+  no_offset$pars$storage_relaxation_offset <- 0
+
+  P <- tf24_storage_at(S0, height, light, s = s)$P
+  Ppos <- 0.5 * (P + sqrt(P * P + 1e-4 * 1e-4))
+  G <- 1 / (1 + exp(-(r0 - s$pars$a_st2) / 0.1))
+  charge <- Ppos * (1 - G)
+  drain <- Ppos - P
+  own_rate <- (charge + drain) / cap
+  expect_gt(own_rate * offset, 5)      # non-vacuity: the offset binds here
+
+  expect_equal(tf24_storage_at(S0, height, light, s = no_offset)$dS,
+               charge * (1 - r0) - drain * r0, tolerance = 1e-12)
+  expect_equal(tf24_storage_at(S0, height, light, s = s)$dS,
+               (charge * (1 - r0) - drain * r0) / (1 + own_rate * offset),
+               tolerance = 1e-12)
+
+  # The relaxation rate, -d(dS/dt)/dS, falls from 380 to 55 /yr, against
+  # 1/offset = 52 /yr: the gate's slope moves the divisor with the pool.
+  h <- 1e-6 * cap
+  relaxation <- function(strategy) {
+    -(tf24_storage_at(S0 + h, height, light, s = strategy)$dS -
+      tf24_storage_at(S0 - h, height, light, s = strategy)$dS) / (2 * h)
+  }
+  expect_gt(relaxation(no_offset) * offset, 5)
+  expect_lt(relaxation(s) * offset, 1.1)
+
+  negative <- TF24_Strategy()
+  negative$pars$storage_relaxation_offset <- -1 / 365
+  expect_error(TF24_Individual(negative),
+               "storage_relaxation_offset must be >= 0")
 })
 
 test_that("a run keeps every storage state inside [0, capacity]", {
@@ -635,9 +723,9 @@ test_that("a run keeps every storage state inside [0, capacity]", {
   #
   # Both bounds hold, and by different mechanisms. Above, the fill limiter goes
   # negative past capacity and pushes back, so nothing reaches it -- capping the
-  # ratio would have removed that term. Below, the rate refuses a negative pool
-  # and the solver rejects the step, so what used to be 3 per cent of records at
-  # 4.5 per cent of capacity is now none.
+  # ratio would have removed that term. Below, the solver refuses a step whose
+  # end leaves a pool negative, so what used to be 3 per cent of records at 4.5
+  # per cent of capacity is now none.
   p <- scm_base_parameters("TF24")
   p$max_patch_lifetime <- 10
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = TF24_hyperpar,
@@ -655,11 +743,9 @@ test_that("a run keeps every storage state inside [0, capacity]", {
   expect_gte(min(r), 0)
 })
 
-test_that("a negative storage state is refused by name, not floored", {
-  # The refusal is what replaces the read-clamp: the solver catches it, shrinks
-  # and retries, so a step that would leave the pool negative is never accepted.
-  # Posed directly here, because on a run it is unreachable -- which is the
-  # point, and is why the check needs an out-of-domain state written by hand.
+test_that("a stage below empty has finite rates that refill the pool", {
+  # A stage below empty is a step overshooting, so its rates must stay finite
+  # for the error estimate. Posed directly, since no run commits such a state.
   s <- TF24_Strategy()
   env <- Environment("TF24")
   env$set_fixed_environment(1, height_max = 150)
@@ -667,12 +753,10 @@ test_that("a negative storage state is refused by name, not floored", {
   ind <- Individual("TF24", "TF24_Env")(s)
   ind$set_state("height", 5)
   ind$set_state("storage", -1e-4)
-  expect_error(ind$compute_rates(env), "storage is negative")
-
-  # A positive pool is untouched by the refusal, so the check above is about the
-  # domain and not about compute_rates refusing generally.
-  ind$set_state("storage", 1e-4)
-  expect_no_error(ind$compute_rates(env))
+  ind$compute_rates(env)
+  rates <- ind$internals$rates
+  expect_true(all(is.finite(rates)))
+  expect_gt(rates[[match("storage", ind$ode_names)]], 0)
 })
 
 ## Leaf area as a state: the departure coordinate (#516) -------------------
@@ -740,14 +824,12 @@ test_that("leaf area is the allometric value times exp(departure)", {
 test_that("a thinned canopy is an ordinary state, not a domain violation", {
   env <- tf24_departure_env()
   ind <- TF24_Individual()
-  ind$set_state("height", 5.0)
 
   ## The departure is a signed log ratio, so it must not be bounded below --
   ## a non-negative declaration would reject ordinary canopy thinning once the
   ## plasticity terms are switched on. Half a canopy is -log(2).
   for (phi in c(-log(2), -2.0, -5.0)) {
-    ind$set_state("log_area_leaf_departure", phi)
-    ind$set_initial_states(env)
+    tf24_seat(ind, env, 5.0, phi = phi)
     expect_no_error(ind$compute_rates(env))
     expect_true(is.finite(ind$aux("net_mass_production_dt")))
     expect_gt(ind$aux("competition_effect"), 0)
@@ -792,14 +874,18 @@ test_that("sapwood area is theta * leaf area * exp(sapwood departure)", {
 test_that("a departed Huber value carries through to storage capacity", {
   env <- tf24_departure_env()
   s <- TF24_Strategy()
+  ## Read back from the model's own reserve fraction rather than from a seeded
+  ## pool, since tf24_seat() seeds from an R copy of the allometry and a ratio
+  ## of seeded pools would test that copy. Mortality is
+  ## d_I + a_dG1 exp(-a_dG2 S / S_max), so one known S recovers S_max.
   cap <- function(psi) {
     ind <- TF24_Individual(s)
-    ind$set_state("height", 5.0)
-    ind$set_state("log_area_sapwood_departure", psi)
-    ind$set_initial_states(env)
-    ## Seeded at a_st3 of capacity, so the state reports capacity up to a
-    ## constant -- which is all a ratio needs.
-    ind$state("storage")
+    tf24_seat(ind, env, 5.0, psi = psi)
+    S <- 1e-3
+    ind$set_state("storage", S)
+    ind$compute_rates(env)
+    excess <- ind$rate("mortality") - s$pars$d_I
+    -s$pars$a_dG2 * S / log(excess / s$pars$a_dG1)
   }
   ## Capacity is a_st1 * mass_sapwood, and mass_sapwood is linear in sapwood
   ## area, so it must inherit exp(psi) exactly. This is the route by which
@@ -821,8 +907,7 @@ test_that("the gate reads the marginal leaf, not the reserve pool", {
     env$set_soil_water_state(rep(theta_soil, 5))
     env$set_fixed_environment(1.0, 40)
     ind <- TF24_Individual(s)
-    ind$set_state("height", 5.0)
-    ind$set_initial_states(env)          # reserves at a_st3 = 0.8 of capacity
+    tf24_seat(ind, env, 5.0)             # reserves at a_st3 = 0.8 of capacity
     ind$compute_rates(env)
     list(dphi = ind$rate("log_area_leaf_departure"),
          dpsi = ind$rate("log_area_sapwood_departure"),
@@ -862,8 +947,7 @@ test_that("the gate reads a running mean, not the instantaneous balance", {
   dry$set_soil_water_state(rep(0.11, 5)); dry$set_fixed_environment(1.0, 40)
 
   ind <- TF24_Individual(s)
-  ind$set_state("height", 5.0)
-  ind$set_initial_states(wet)            # a history of good conditions
+  tf24_seat(ind, wet, 5.0)               # a history of good conditions
   ind$compute_rates(dry)                 # then one dry evaluation
 
   ## Assimilation swings with the weather. A plant that shed on the strength of
@@ -877,9 +961,9 @@ test_that("the gate reads a running mean, not the instantaneous balance", {
   expect_lt(ind$rate("leaf_marginal_return_tracked"), 0)
 
   ## Seeded from the plant's own first evaluation, so a newborn does not start
-  ## at the gate's centre withholding half its replacement.
+  ## at the gate's centre withholding half its replacement. A newborn, at seed
+  ## size: set_initial_states seats one there whatever height was set before.
   fresh <- TF24_Individual(s)
-  fresh$set_state("height", 5.0)
   fresh$set_initial_states(wet)
   fresh$compute_rates(wet)
   expect_equal(fresh$state("leaf_marginal_return_tracked"),
@@ -899,9 +983,7 @@ test_that("the canopy floor bounds thinning, by the shape of the flow", {
 
   rate_at <- function(phi) {
     ind <- TF24_Individual(s)
-    ind$set_state("height", 5.0)
-    ind$set_state("log_area_leaf_departure", phi)
-    ind$set_initial_states(env)
+    tf24_seat(ind, env, 5.0, phi = phi)
     ind$compute_rates(env)
     ind$rate("log_area_leaf_departure")
   }
@@ -938,8 +1020,7 @@ test_that("a plant whose leaves pay for themselves replaces all of them", {
   env$set_fixed_environment(1.0, 40)
 
   ind <- TF24_Individual(s)
-  ind$set_state("height", 5.0)
-  ind$set_initial_states(env)
+  tf24_seat(ind, env, 5.0)
   ind$compute_rates(env)
 
   expect_equal(ind$rate("log_area_leaf_departure"), 0, tolerance = 1e-9)
@@ -978,9 +1059,7 @@ test_that("the Huber value has a restoring force and cannot fall below preferred
   dry$set_fixed_environment(1.0, 40)
   rate_at <- function(psi, unused = 0) {
     ind <- TF24_Individual(s)
-    ind$set_state("height", 5.0)
-    ind$set_state("log_area_sapwood_departure", psi)
-    ind$set_initial_states(dry)
+    tf24_seat(ind, dry, 5.0, psi = psi)
     ind$compute_rates(dry)
     ind$rate("log_area_sapwood_departure")
   }
@@ -1006,9 +1085,7 @@ test_that("the Huber value has a restoring force and cannot fall below preferred
   wet$set_fixed_environment(1.0, 40)
   ample <- function(psi) {
     ind <- TF24_Individual(s)
-    ind$set_state("height", 5.0)
-    ind$set_state("log_area_sapwood_departure", psi)
-    ind$set_initial_states(wet)
+    tf24_seat(ind, wet, 5.0, psi = psi)
     ind$compute_rates(wet)
     ind$rate("log_area_sapwood_departure")
   }
@@ -1036,9 +1113,7 @@ test_that("rebuilding a canopy does not dilute the Huber value", {
   ## preferred ratio must not, so at psi = 0 the rebuild contributes nothing to
   ## the sapwood departure and the boundary flow stays non-negative.
   ind <- TF24_Individual(s)
-  ind$set_state("height", 5.0)
-  ind$set_state("log_area_leaf_departure", -0.5)
-  ind$set_initial_states(env)          # reserves ample, so rebuilding is on
+  tf24_seat(ind, env, 5.0, phi = -0.5)          # reserves ample, so rebuilding is on
   ind$compute_rates(env)
 
   expect_gt(ind$rate("log_area_leaf_departure"), 0)   # the canopy is rebuilding
@@ -1055,9 +1130,7 @@ test_that("new growth is priced at the Huber value the plant actually carries", 
   ## at 3.3x the pipe-model ratio; priced properly, GROWTH peaks near 1.4-1.8x.
   growth_at <- function(psi, h = 10) {
     ind <- TF24_Individual(s)
-    ind$set_state("height", h)
-    ind$set_state("log_area_sapwood_departure", psi)
-    ind$set_initial_states(env)
+    tf24_seat(ind, env, h, psi = psi)
     ind$compute_rates(env)
     c(P = ind$aux("net_mass_production_dt"), dh = ind$rate("height"))
   }
@@ -1098,9 +1171,7 @@ tf24_sapwood_probe <- function(psi, theta_soil, a_sw = 1.0, height = 10) {
   env$set_soil_water_state(rep(theta_soil, 5L))
   env$set_fixed_environment(1.0, 40)
   ind <- TF24_Individual(s)
-  ind$set_state("height", height)
-  ind$set_state("log_area_sapwood_departure", psi)
-  ind$set_initial_states(env)
+  tf24_seat(ind, env, height, psi = psi)
   ind$compute_rates(env)
   list(R_s = ind$aux("sapwood_marginal_return"),
        dpsi = ind$rate("log_area_sapwood_departure"),
@@ -1146,7 +1217,8 @@ test_that("the sapwood controller vanishes exactly at the growth optimum", {
   ## After #617 a 5 m plant wants less stem per leaf than the pipe model and a
   ## 20 m plant wants more, so it is the trend that is asserted rather than a
   ## level: the level moved from 1.35x to 1.05x when the path integral landed,
-  ## and would move again with the hydraulics.
+  ## and would move again with the hydraulics -- as it did under the v13 light
+  ## chain, which took the 16 m optimum from above 1.1x to 1.08x.
   peak_at <- function(h) {
     d <- vapply(psi, function(p) tf24_sapwood_probe(p, 0.20, height = h)$dheight,
                 numeric(1))
@@ -1155,7 +1227,7 @@ test_that("the sapwood controller vanishes exactly at the growth optimum", {
   expect_lt(peak_at(5), peak_at(10))
   expect_lt(peak_at(10), peak_at(16))
   expect_lt(peak_at(5), 1.0)          # a short plant wants LESS than the pipe model
-  expect_gt(peak_at(16), 1.1)         # a tall one wants more
+  expect_gt(peak_at(16), 1.0)         # a tall one wants more
 })
 
 test_that("the sapwood controller switches off when there is no carbon", {

@@ -23,7 +23,7 @@ tf24_aux <- function(strategy = TF24_Strategy(), height = 5, ppfd = 1800,
   ind <- individual(strategy)
   ind$set_state("height", height)
   env <- TF24_Environment()
-  env$extrinsic_drivers_set_constant("PPFD", ppfd)
+  env$extrinsic_drivers_set_constant("SWdown", ppfd / (0.5 * 4.57))  # PPFD above the canopy, as SWdown
   env$set_soil_number_of_depths(length(theta))
   env$set_soil_water_state(theta)
   ind$compute_rates(env)
@@ -126,6 +126,25 @@ test_that("net production is billed on carbon kept, not on the objective", {
   expect_gt(realised, 0)
 })
 
+test_that("growth is exactly linear in the carbon kept, not in the objective", {
+  # The identity the test above could only bound. At a fixed plant state,
+  # respiration and turnover are fixed, so net production is an exact linear
+  # function of the carbon it is billed on. So across three prices the points
+  # (carbon kept, net) are collinear, and (objective, net) are not -- which is
+  # the pair that would be collinear if growth were billed on the objective, as
+  # it was when the carry was dropped in the move to the templated header.
+  a <- lapply(c(0, 5e4, 1e5), priced)
+  kept <- vapply(a, function(x) x[["profit"]] + x[["shadow_cost"]], numeric(1))
+  objective <- vapply(a, function(x) x[["profit"]], numeric(1))
+  net <- vapply(a, function(x) x[["net_mass_production_dt"]], numeric(1))
+  off_line <- function(u, v) {
+    slope <- (v[2] - v[1]) / (u[2] - u[1])
+    (v[3] - (v[1] + slope * (u[3] - u[1]))) / v[3]
+  }
+  expect_lt(abs(off_line(kept, net)), 1e-10)
+  expect_gt(abs(off_line(objective, net)), 1e-2)
+})
+
 test_that("TF24f tracks the seated curve rather than TF24", {
   # ⚠️ THE FAILURE MODE THIS EXISTS FOR. Every phylloptim entry point TF24f calls
   # is templated on the cost curve, and each used to name TF24 at its call site --
@@ -155,7 +174,7 @@ test_that("TF24f tracks the seated curve rather than TF24", {
     ind$set_state("height", 5)
     ind$set_state("opt_root_psi_state", tracked)
     env <- TF24_Environment()
-    env$extrinsic_drivers_set_constant("PPFD", 1800)
+    env$extrinsic_drivers_set_constant("SWdown", 1800 / (0.5 * 4.57))  # PPFD above the canopy, as SWdown
     env$set_soil_number_of_depths(5)
     env$set_soil_water_state(rep(0.25, 5))
     ind$compute_rates(env)

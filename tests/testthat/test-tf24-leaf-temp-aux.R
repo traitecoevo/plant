@@ -20,7 +20,7 @@ tf24_temp_aux <- function(strategy = TF24_Strategy(), height = 5, ppfd = 1800,
   ind <- TF24_Individual(strategy)
   ind$set_state("height", height)
   env <- TF24_Environment()
-  env$extrinsic_drivers_set_constant("PPFD", ppfd)
+  env$extrinsic_drivers_set_constant("SWdown", ppfd / (0.5 * 4.57))  # PPFD above the canopy, as SWdown
   if (!is.null(leaf_temp)) {
     env$extrinsic_drivers_set_constant("leaf_temp", leaf_temp)
   }
@@ -29,9 +29,14 @@ tf24_temp_aux <- function(strategy = TF24_Strategy(), height = 5, ppfd = 1800,
   # shading models can disagree -- see the deep-crown test below).
   if (is.function(light)) {
     hh <- seq(0, height, length.out = 101)
-    ip <- Interpolator()
-    ip$init(hh, vapply(hh, light, numeric(1)))
-    env$light_availability$spline <- ip
+    yy <- vapply(hh, light, numeric(1))
+    # The field carries a slope per knot as well as a value, so it is set from
+    # heights, values and slopes rather than from a value-fitted interpolant --
+    # and it is a field, so reading it copies: mutate the copy and assign back.
+    mm <- stats::splinefun(hh, yy)(hh, deriv = 1)
+    field <- env$light_availability
+    field$init_interpolators(c(hh, yy, mm))
+    env$light_availability <- field
   } else if (!is.null(light)) {
     env$set_fixed_environment(light, height_max = height)
   }
@@ -83,7 +88,10 @@ test_that("with the energy balance on, Tleaf departs from air temperature", {
 })
 
 test_that("Tleaf rises with absorbed radiation under the energy balance", {
-  by_light <- vapply(c(0, 200, 800, 1800),
+  # Lit leaves only: from dark to dim light the stomata open, and the cooling
+  # from transpiration can outweigh the radiation absorbed, so a leaf at 200
+  # can sit below a dark one. The dark-vs-bright bracket is tested above.
+  by_light <- vapply(c(200, 800, 1800),
                      function(q) tf24_temp_aux(strategy = pm_strategy(),
                                                ppfd = q)[["Tleaf"]],
                      numeric(1))

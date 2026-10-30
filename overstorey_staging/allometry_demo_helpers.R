@@ -4,6 +4,31 @@
 ## rendering: a chunk that runs is not a chunk that is checked, and prose beside
 ## a number survives the number being falsified.
 
+## Seat a TF24 individual at a given size and allometric departure, with reserves
+## at a_st3 of ITS capacity and the tracked marginal leaf return at its own
+## current value -- what a newborn gets at birth size, moved to this size.
+##
+## set_initial_states() alone cannot do this: it seats a NEWBORN, writing the
+## seed's height over whatever height was set before it, so a plant set to 5 m
+## and then seeded comes back at birth size.
+##
+## A copy of tests/testthat/helper-tf24-seat.R, since this file renders outside
+## the test suite.
+tf24_seat <- function(ind, env, height, phi = 0, psi = 0) {
+  ind$set_initial_states(env)
+  ind$set_state("height", height)
+  ind$set_state("log_area_leaf_departure", phi)
+  ind$set_state("log_area_sapwood_departure", psi)
+  s <- ind$strategy
+  ## mass_sapwood is linear in sapwood area, A*(h) exp(phi) theta exp(psi).
+  mass_sapwood <- plant:::TF24_strategy_expand_allometry(s, height, 0, 0)$mass_sapwood *
+    exp(phi) * exp(psi)
+  ind$set_state("storage", s$pars$a_st3 * s$pars$a_st1 * mass_sapwood)
+  ind$compute_rates(env)
+  ind$set_state("leaf_marginal_return_tracked", ind$aux("leaf_marginal_return"))
+  invisible(ind)
+}
+
 ## A TF24 strategy with the plasticity switch at `a_pl0` (0 = fixed allometry).
 tf24_allometry_strategy <- function(a_pl0 = 1.0, ...) {
   s <- TF24_Strategy(...)
@@ -32,8 +57,7 @@ allometry_gate_map <- function(a_pl0 = 1.0, height = 5,
   out <- lapply(theta, function(th) {
     env <- tf24_demo_env(th)
     ind <- TF24_Individual(s)
-    ind$set_state("height", height)
-    ind$set_initial_states(env)      # reserves at a_st3 of capacity throughout
+    tf24_seat(ind, env, height)      # reserves at a_st3 of capacity throughout
     ind$compute_rates(env)
     data.frame(theta_soil = th,
                margin = ind$aux("leaf_marginal_return"),
@@ -76,8 +100,7 @@ allometry_self_thinning <- function(a_pl0 = 1.0, mpl = 25, lma = 0.0825,
 allometry_trajectory <- function(a_pl0, soil_history, dt = 0.1, height0 = 4) {
   s <- tf24_allometry_strategy(a_pl0, collect_all_auxiliary = TRUE)
   ind <- TF24_Individual(s)
-  ind$set_state("height", height0)
-  ind$set_initial_states(tf24_demo_env(soil_history$theta[[1]]))
+  tf24_seat(ind, tf24_demo_env(soil_history$theta[[1]]), height0)
 
   nms <- ind$ode_names
   rows <- vector("list", nrow(soil_history))
@@ -157,10 +180,7 @@ allometry_carbon_terms <- function(height, theta_soil, d = 0.02, phi = 0) {
   at <- function(ph, ps) {
     e <- tf24_demo_env(theta_soil)
     i <- TF24_Individual(s)
-    i$set_state("height", height)
-    i$set_state("log_area_leaf_departure", ph)
-    i$set_state("log_area_sapwood_departure", ps)
-    i$set_initial_states(e)
+    tf24_seat(i, e, height, phi = ph, psi = ps)
     i$compute_rates(e)
     A <- i$aux("competition_effect")
     list(A = A, A_s = i$aux("area_sapwood"),
@@ -207,9 +227,7 @@ allometry_sapwood_controller <- function(theta_soil, height = 10, a_sw = 1.0,
   out <- lapply(psi, function(p) {
     env <- tf24_demo_env(theta_soil)
     ind <- TF24_Individual(s)
-    ind$set_state("height", height)
-    ind$set_state("log_area_sapwood_departure", p)
-    ind$set_initial_states(env)
+    tf24_seat(ind, env, height, psi = p)
     ind$compute_rates(env)
     data.frame(psi = p, huber_ratio = exp(p),
                R_s = ind$aux("sapwood_marginal_return"),
@@ -233,8 +251,7 @@ allometry_drought <- function(a_pl0, height, theta_dry, years_dry = 4,
   s$pars$a_pl0 <- a_pl0
   s$pars$a_sw  <- a_sw
   ind <- TF24_Individual(s)
-  ind$set_state("height", height)
-  ind$set_initial_states(tf24_demo_env(wet))
+  tf24_seat(ind, tf24_demo_env(wet), height)
   run <- function(theta, years) {
     env <- tf24_demo_env(theta)
     for (k in seq_len(as.integer(round(years / dt)))) {

@@ -1,7 +1,7 @@
 # Scientific model versioning (see R/strategy_support.R, src/strategy_version.cpp,
 # and the `scientific_version` constant in inst/include/plant/models/*_strategy.h).
 
-models <- c("FF16", "K93", "TF24", "TF24f")
+models <- c("FF16", "K93", "TF24", "TF24f", "TF24t", "TF24w")
 
 test_that("model_version() returns a valid version string for every model", {
   for (type in models) {
@@ -13,12 +13,19 @@ test_that("model_version() returns a valid version string for every model", {
   }
 })
 
-test_that("TF24f carries a compound version that tracks TF24", {
-  expect_match(model_version("TF24f"), "\\.")
-  expect_identical(
-    sub("\\..*$", "", model_version("TF24f")),
-    model_version("TF24")
-  )
+test_that("TF24f and TF24w carry compound versions that track TF24", {
+  for (type in c("TF24f", "TF24w")) {
+    expect_match(model_version(type), "\\.")
+    expect_identical(
+      sub("\\..*$", "", model_version(type)),
+      model_version("TF24")
+    )
+  }
+})
+
+test_that("TF24t carries a compound version that tracks TF24", {
+  expect_identical(model_version("TF24t"),
+                   paste0(model_version("TF24"), ".4"))
 })
 
 test_that("model_id() is 'Model@vN' and agrees with model_version()", {
@@ -73,6 +80,18 @@ flatten_defaults <- function(lst, prefix) {
   out
 }
 
+# Scientific defaults a model keeps at the top level of its strategy rather than
+# in `pars`. TF24t's thermal layer lives there, and thermal_revision is the bump
+# that covers it, so it is snapshotted with the rest.
+top_level_science <- list(
+  TF24t = c("topt_offset", "impair_H", "impair_Tmid", "m_rep", "t_rep_cut",
+            "k_i", "k_i_Ea", "k_i_Tref", "k_rec", "k_mat", "dTopt_max",
+            "dTimpair_max", "K_A", "alpha", "beta", "t_accl", "softplus_s",
+            "k_mean_leaf_temp", "c_acclim_maint", "c_repair_maint",
+            "c_protect_maint", "c_repair_flux", "c_build", "c_accl_induct",
+            "induct_eps")
+)
+
 scientific_surface <- function(type) {
   s <- as.list(get(paste0(type, "_Strategy"))())
   extras <- list(
@@ -80,6 +99,7 @@ scientific_surface <- function(type) {
     birth_rate_y = s$birth_rate_y,
     is_variable_birth_rate = s$is_variable_birth_rate
   )
+  extras <- c(extras, s[top_level_science[[type]]])
   out <- c(
     model_id = model_id(type),
     flatten_defaults(s$pars, "pars"),

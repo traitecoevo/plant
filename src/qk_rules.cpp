@@ -1,3 +1,4 @@
+#include <plant/fp_contract.h>
 #include <plant/qk_rules.h>
 
 namespace plant {

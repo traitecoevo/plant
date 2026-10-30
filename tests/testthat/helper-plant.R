@@ -83,7 +83,9 @@ test_ode_make_solver <- function(sys) {
 # psi) and relies on birth-initialisation via Node::compute_initial_conditions, so
 # it does not satisfy the generic invariants these lists drive (5-state layout;
 # growth of a standalone Individual stepped a few times, which bypasses that
-# initialisation). TF24f is covered via the SCM in test-strategy-tf24f.R.
+# initialisation). TF24f is covered via the SCM in test-strategy-tf24f.R. TF24t
+# is excluded for the same reasons (four appended states, seeded in
+# set_initial_states) and is covered in test-strategy-tf24t.R.
 
 # ! Important the whitespace in the following function is used by the strategy scaffolder
 get_list_of_strategy_types <- function() {
@@ -111,3 +113,20 @@ get_list_of_hyperpar_functions <- function() {
     )
 }
 
+# How many processes a test may fork.
+#
+# ⚠️ TWO UNDER `R CMD check`, AND THAT IS NOT A PREFERENCE. The check sets
+# `_R_CHECK_LIMIT_CORES_`, and `mclapply` then ERRORS rather than warning on a
+# third process -- "3 simultaneous processes spawned" -- so `detectCores() - 1`
+# fails the file outright on any runner with more than three cores. plant's
+# workflow runs `--as-cran` with `error-on: "error"`, so that is a red leg on
+# every operating system.
+#
+# Named once because two files fork and a rule kept in both is a rule that has to
+# stay in sync; the third file to fork will find it here.
+plant_test_cores <- function(jobs) {
+  if (nzchar(Sys.getenv("_R_CHECK_LIMIT_CORES_"))) {
+    return(min(jobs, 2L))
+  }
+  min(jobs, max(1L, parallel::detectCores() - 1L))
+}

@@ -1,4 +1,7 @@
+#include <plant/fp_contract.h>
 #include <plant/control.h>
+#include <plant/util.h>
+#include <phylloptim/leaf_model.hpp>
 
 namespace plant {
 
@@ -32,14 +35,22 @@ Control::Control() {
   node_gradient_richardson = false;
   node_gradient_richardson_depth = 4;
   node_density_coordinate = "auto";
+  absorb_epsilon = 0.0;
 
   ode_step_size_initial = 1e-6;
   ode_step_size_min = 1e-6;
   ode_step_size_max = 5;
-  ode_tol_rel       = 1e-4;
-  ode_tol_abs       = 1e-4;
+  // odelia's step-size rule reads the error in the RMS norm over the whole
+  // state, so a stand's few fast-changing cohorts are bounded more loosely
+  // than these values say; 1e-5 gives the accuracy the worst-component rule
+  // gave at 1e-4, for no more steps.
+  ode_tol_rel       = 1e-5;
+  ode_tol_abs       = 1e-5;
   ode_a_y           = 1.0;
   ode_a_dydt        = 0.0;
+  ode_soil_substep  = false;
+  ode_soil_substep_tol = 1e-9;
+  ode_tol_scale_soil = 1.0;
 
   // 0 = adaptive RKCK (default); > 0 selects fixed-step forward Euler with this
   // spacing in years (see control.h).
@@ -49,12 +60,48 @@ Control::Control() {
   schedule_eps      = 2e-2;
   schedule_verbose  = false;
 
-  save_RK45_cache = false;
 
+  // Measured rather than chosen: over 5625 solved leaf states spanning stem_c
+  // 0.4 to 2.68, stem_b 2.5 to 6.0, beta2 0.5 to 3.0, radiation 15 to 2000 and
+  // soil potentials 0.1 to 5.5, every one of the 1351 interior points had a
+  // strictly negative curvature and the smallest magnitude was 0.0623. This sits
+  // sixty times below that, so it separates a divergence from the range the
+  // model occupies rather than narrowing what answers.
+  //
+  // ⚠️ The MAGNITUDE claim above is what this number rests on, and it holds. The
+  // SIGN claim -- "every one strictly negative" -- does not: the century stand in
+  // scripts/profile-stand-gradient.R refuses on an interior point whose curvature
+  // is +34.414226, and no floor admits that point. The sweep was over static leaf
+  // states in the box named above; a stand integrated for 105 years reaches
+  // operating points outside it. So the guard's sign limb is live in practice and
+  // is not a defensive branch -- which is why it says something different from the
+  // floor limb when it fires.
+  gradient_curvature_floor = 1e-3;
+
+  // phylloptim's own default. Despite its name it no longer sets the collar
+  // solve's precision (a root-find at the leaf's fixed collar_root_tol does). It
+  // is the width below which the feasible collar interval counts as collapsed,
+  // where the leaf holds the collar at the midpoint without re-imposing
+  // continuity (`Determined`, phylloptim#145), and the tolerance of the
+  // golden-section fallback. Raising it puts stands on that branch, whose answer
+  // is wrong and which the gradient refuses.
   GSS_tol_abs = 1e-3;
-  vulnerability_curve_ncontrol = 1e2;
+  // The leaf's own choice, read rather than restated: this was 1e2 while
+  // phylloptim's default was sixteen times finer, and since every stand builds its
+  // leaf through here, that number was the one the whole reverse sweep ran on.
+  vulnerability_curve_ncontrol = phylloptim::Leaf::ncontrol_default;
   ci_abs_tol = 1e-3;
   ci_niter = 1e3;
+}
+
+// Written so that a NaN fails it.
+void validate_ode_tolerances(const Control& control) {
+  if (!(control.ode_tol_scale_soil > 0.0)) {
+    util::stop("ode_tol_scale_soil must be positive");
+  }
+  if (!(control.ode_soil_substep_tol > 0.0)) {
+    util::stop("ode_soil_substep_tol must be positive");
+  }
 }
 
 }

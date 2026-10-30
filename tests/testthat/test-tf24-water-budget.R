@@ -15,9 +15,14 @@
 # Runoff never enters the column, so it cancels; `sum_rainfall` is only needed
 # to check the driver itself (see the rainfall-floor tests below).
 tf24_water_budget <- function(n_layers = 5, theta_0 = 0.25, rainfall = 1.0,
-                              lifetime = 2, lma = 0.0825) {
+                              lifetime = 2, lma = 0.0825, widths = NULL) {
   env <- Environment("TF24")
-  env$set_soil_number_of_depths(n_layers)
+  if (is.null(widths)) {
+    env$set_soil_number_of_depths(n_layers)
+  } else {
+    env$set_soil_layer_widths(widths)
+    n_layers <- length(widths)
+  }
   env$set_soil_water_state(rep(theta_0, n_layers))
   env$extrinsic_drivers_set_constant("rainfall", rainfall)
 
@@ -27,9 +32,11 @@ tf24_water_budget <- function(n_layers = 5, theta_0 = 0.25, rainfall = 1.0,
 
   out <- run_scm(p, env, collect = TRUE)
 
-  # Layers are uniform, so the first cumulative depth is the layer thickness.
-  dz <- out$env$soil_depth$soil_depth[[1]]
+  # theta is intensive (m3 m^-3), so storage is sum(theta * width) -- the WIDTH of
+  # each layer, one per row, not the first cumulative depth. Those coincide only
+  # for equal layers, and this harness runs graded profiles.
   moist <- out$env$soil_moist
+  dz <- out$env$soil_layer_width$soil_layer_width
   storage <- tapply(moist$soil_moist * dz, moist$step, sum)
 
   flux <- out$env$soil_moist_cumulative_flux
@@ -66,6 +73,30 @@ test_that("TF24 water budget closes across layer counts", {
     b <- tf24_water_budget(n_layers = n)
     expect_equal(b$supplied, b$accounted,
                  info = sprintf("n_layers = %d", n))
+    expect_lt(abs(b$rel_residual), 1e-12)
+  }
+})
+
+test_that("TF24 water budget closes on a graded layer profile", {
+  # THE GUARD ON THE INTER-LAYER CASCADE. Mass conservation,
+  # sum(dz[i] * dtheta_i/dt) = infiltration - drainage - uptake, is exact for any
+  # width distribution because the flux is free drainage: q = K(theta), with the
+  # matric gradient dropped, so it carries no internode distance and nothing in it
+  # needs rescaling when the layers stop being equal.
+  #
+  # ⚠️ This test is what breaks if a capillary or diffusive flux is ever added
+  # using the wrong distance. That term's distance is the INTERNODE separation
+  # z_mid[i+1] - z_mid[i], not dz[i]; the two coincide only for equal layers, so a
+  # uniform-profile budget test would pass on the mistake and this one will not.
+  profiles <- list(
+    "2 cm surface layer" = c(0.02, 0.28, 0.30, 0.40, 0.50),
+    "graded ladder" = soil_widths_graded(1.5, 5, top = 0.02),
+    "steeply graded" = c(0.01, 0.04, 0.15, 0.40, 0.90),
+    "single thin layer" = 0.02
+  )
+  for (label in names(profiles)) {
+    b <- tf24_water_budget(widths = profiles[[label]])
+    expect_equal(b$supplied, b$accounted, info = label)
     expect_lt(abs(b$rel_residual), 1e-12)
   }
 })
@@ -132,7 +163,14 @@ test_that("rainfall driver is floored at zero", {
   p <- scm_base_parameters("TF24")
   p$max_patch_lifetime <- 2
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))
-  out <- run_scm(p, env, collect = TRUE)
+  # ⚠️ The sums are the main step's states, read at its stages. A step across a
+  # knot of the rain substeps the soil but not them, so they miss the rain the
+  # soil takes between stages and the budget stops closing. Every control point
+  # here is a knot; stopped at each, every step lies inside one span.
+  knots <- times[times > 0 & times < 2]
+  stops <- events(events_default(p),
+                  rainfall_pulse(time = knots, depth = rep(0, length(knots))))
+  out <- run_scm(p, env, events = stops, collect = TRUE)
 
   flux <- out$env$soil_moist_cumulative_flux
   # Cumulative rainfall and infiltration are both monotone non-decreasing: the
@@ -141,8 +179,8 @@ test_that("rainfall driver is floored at zero", {
   expect_true(all(diff(flux$sum_infiltration) >= 0))
 
   # And the budget still closes under a driver that dips negative.
-  dz <- out$env$soil_depth$soil_depth[[1]]
   moist <- out$env$soil_moist
+  dz <- out$env$soil_layer_width$soil_layer_width
   storage <- tapply(moist$soil_moist * dz, moist$step, sum)
   final <- flux[nrow(flux), ]
   expect_equal(storage[[as.character(min(flux$step))]] + final$sum_infiltration,
@@ -150,9 +188,18 @@ test_that("rainfall driver is floored at zero", {
                  final$sum_resource_depletion)
 })
 
-test_that("check_driver_interpolation flags spline undershoot", {
+test_that("an interpolated driver cannot undershoot its own series", {
   env <- TF24_Environment()
-  # Intermittent daily rainfall: the case that motivated the floor.
+  # Intermittent daily rainfall: the case that motivated the floor, and the case
+  # this assertion used to record as broken. A driver arrives as values with no
+  # slopes, and the rule that chooses them decides whether a wet day can push the
+  # days beside it below zero. It can no longer: the fit is monotone on every span,
+  # so a read is bounded by the two control points that bracket it.
+  #
+  # What that replaced, on this exact series: 12% of points negative, reaching
+  # -1.86 mm, with the integral conserved -- so a total-rainfall check could not
+  # see it and this diagnostic had to exist to surface it. The diagnostic stays,
+  # because a caller can still supply a series that is itself negative.
   set.seed(42)
   n <- 365 * 3
   times <- seq(0, 3, length.out = n)
@@ -161,18 +208,17 @@ test_that("check_driver_interpolation flags spline undershoot", {
               stats::rexp(n, 1 / 8), 0)
   env$extrinsic_drivers_set_variable("rainfall", times, y)
 
-  expect_warning(
-    res <- suppressMessages(check_driver_interpolation(env, "rainfall", times, y)),
-    "interpolates negative")
+  expect_silent(
+    res <- suppressMessages(check_driver_interpolation(env, "rainfall", times, y)))
 
-  expect_true(res$min < 0)          # spline undershoots below every supplied value
   expect_equal(min(y), 0)
-  expect_gt(res$frac_negative, 0.1) # substantial, not a rounding artefact
-  expect_gt(res$negative_area, 0)
-  # The spline conserves the integral -- undershoot is compensated by
-  # overshoot -- which is why the problem is invisible in a total-rainfall check
-  # and needs this diagnostic to surface.
-  expect_equal(res$integral_evaluated, res$integral_supplied, tolerance = 1e-6)
+  expect_gte(res$min, 0)
+  expect_equal(res$frac_negative, 0)
+  expect_equal(res$negative_area, 0)
+  # And it stays a faithful total, which the overshooting fit also managed -- by
+  # cancelling one error against another rather than by making none.
+  expect_equal(res$integral_evaluated, res$integral_supplied, tolerance = 1e-5)
+  expect_lte(res$max, max(y))
 })
 
 test_that("check_driver_interpolation is quiet on a smooth series", {
