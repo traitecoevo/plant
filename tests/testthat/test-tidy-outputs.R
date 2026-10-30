@@ -183,7 +183,7 @@ test_that("interpolate_to_heights retains the largest size bracket on a coarse g
   expect_false(anyNA(out$height))
 })
 
-test_that("integrate_over_size_distribution integrates between given heights (#322)", {
+test_that("integrate_over_size_distribution integrates between given heights", {
   # density = a*H^-b on a 0.01 grid from 1 to 20, as in the stand above
   a <- 10
   b <- 3 / 2
