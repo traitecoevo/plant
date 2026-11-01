@@ -86,10 +86,11 @@ parity_of <- function(scm) {
 #                                                   hydraulic-shutdown
 #
 # ⚠️ SEASONAL KEEPS ITS WHOLE SCHEDULE AND IS THE REASON THIS IS PER DRIVER.
-# It is this file's only route to a hydraulic shutdown, which is one of the
-# operating-point kinds the gate exists to reach, and the thinned run reaches
-# boundary-root-crit instead. Every other driver's verdict, kinds and clamp sites
-# are the same at either length.
+# It was measured on phylloptim 0.16, where it was this file's only route to a
+# hydraulic shutdown and the thinned run reached boundary-root-crit instead. On
+# 0.26 neither kind exists in these stands and it reaches boundary-dry; the
+# full schedule is kept so the dry end is reached on a recorded step. Every
+# other driver's verdict, kinds and clamp sites are the same at either length.
 parity_introductions <- c(wet = 20L, drought = 20L, seasonal = NA_integer_,
                           shaded = 20L, clamped = 20L)
 
@@ -270,21 +271,21 @@ test_that("the driver that reaches a clamp says so, answered or not", {
 })
 
 test_that("each driver reaches the branch it is here for", {
-  # A fixture must be shown to reach what it tests. The drought and seasonal
-  # drivers exist to put PINNED operating points on the gradient's path, and a
-  # run that answered without ever reaching one would pass the gate while
-  # testing nothing; the shaded driver exists to reach the one branch that has
-  # no rows.
+  # A fixture must be shown to reach what it tests. The seasonal driver puts
+  # PINNED operating points (the collar's dry end) on the gradient's path, and
+  # the shaded and clamped drivers put shut leaves (the wet bound) there; a run
+  # that answered without ever reaching one would pass the gate while testing
+  # nothing. The drought driver used to pin at psi_crit, which is no longer a
+  # bound: its stem follows the soil, so it is interior throughout.
   by_name <- stats::setNames(parity_shared(), vapply(parity_shared(),
                                                      function(r) r$name, ""))
   reach <- function(nm, kind) {
     k <- by_name[[nm]]$kinds
     if (is.na(k[kind])) 0 else k[[kind]]
   }
-  expect_gt(reach("drought", "boundary-crit"), 0)
-  expect_gt(reach("seasonal", "boundary-crit"), 0)
-  expect_gt(reach("shaded", "shade-death"), 0)
-  expect_gt(reach("clamped", "shade-death"), 0)
+  expect_gt(reach("seasonal", "boundary-dry"), 0)
+  expect_gt(reach("shaded", "boundary-soil"), 0)
+  expect_gt(reach("clamped", "boundary-soil"), 0)
   # And the control has to be a control: the wet driver never leaves the branch
   # the gradient was first built for, which is what makes it the one fixture a
   # regression shows up against cleanly.

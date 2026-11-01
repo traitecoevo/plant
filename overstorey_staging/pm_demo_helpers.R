@@ -34,7 +34,7 @@ pm_make_leaf <- function() {
 ## degenerate). Override via ... to explore.
 pm_leaf_config <- function(...) {
   cfg <- list(root_carbon_per_leaf_area = 20.0, psi_soil = 0.3,
-              leaf_specific_conductance_max = 5e-3,
+              leaf_specific_conductance_max = 5e-4,
               ca = 40, atm_o2_kpa = 21, atm_kpa = 101.3, d = 0.05, wind_speed = 2.0)
   utils::modifyList(cfg, list(...))
 }
@@ -112,8 +112,15 @@ pm_solve_grid <- function(grid, cfg = pm_leaf_config()) {
 pm_collar_curve <- function(PAR, Tair, VPD, pm, root_psi_seq, cfg = pm_leaf_config()) {
   l <- pm_make_leaf()
   pm_set_physiology(l, PAR, Tair, VPD, pm, cfg)
+  # A collar outside the feasible interval is refused rather than moved onto its
+  # end, so the scan keeps the points that lie inside it.
   rows <- lapply(root_psi_seq, function(rp) {
-    profit <- l$evaluate_root_collar_psi(rp)
+    profit <- tryCatch(l$evaluate_root_collar_psi(rp),
+                       error = function(e) {
+                         if (grepl("prescribed_potential", conditionMessage(e))) NULL
+                         else stop(e)
+                       })
+    if (is.null(profit)) return(NULL)
     data.frame(pm = pm, root_psi = rp, psi_stem = l$opt_psi_stem_,
                profit = profit, assim = l$assim_colimited_,
                hydraulic_cost = l$hydraulic_cost_, E = l$transpiration_,

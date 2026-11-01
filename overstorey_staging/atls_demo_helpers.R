@@ -30,13 +30,13 @@ atls_make_leaf <- function() {
 ## The strategy axes as leaf inputs. `atls_traits()` is the default
 ## ("generalist") set; override any entry through `...`.
 ##   tolerance   -> topt_offset: one thermostability offset that moves T_opt AND
-##                  the impairment switch's midpoint together; the acclimated
+##                  the impairment's isokinetic temperature together; the acclimated
 ##                  parts saturate at dTopt_max and dTimpair_max, half-saturation
 ##                  K_A
 ##   acclimation -> A: the inducible thermostability state, here held at a
 ##                  standing value to represent an acclimated leaf
-##   repair      -> preventive k_i (rate of functional -> impaired once the
-##                  switch impair_H, impair_Tmid is on) and restorative k_rec
+##   repair      -> preventive k_i (rate of functional -> impaired at the
+##                  isokinetic temperature k_i_Tiso) and restorative k_rec
 ##                  (impaired -> functional); k_mat (impaired -> damaged) sets
 ##                  the lasting floor
 ##   impairment  -> I, D: the impaired and damaged fractions of leaf area, set
@@ -44,11 +44,9 @@ atls_make_leaf <- function() {
 ## Avoidance is not a leaf trait: it is transpirational cooling on the energy-
 ## balance path, dialled through the leaf configuration.
 atls_traits <- function(...) {
-  tr <- list(topt_offset = 0, impair_H = 200000,
-             impair_Tmid = 200000 / 650 - 273.15,
-             k_i = 0.5, k_i_Ea = 0, k_i_Tref = 25, k_rec = 0.25, k_mat = 0.02,
-             m_rep = 0.4, t_rep_cut = 45, dTopt_max = 6, dTimpair_max = 6,
-             K_A = 1, A = 0, I = 0, D = 0)
+  tr <- list(topt_offset = 0, k_i = 276, k_i_Ea = 316000, k_i_Tiso = 50.5,
+             k_rec = 0.25, k_rec_Ea = 0, k_mat = 0.02, k_mat_Ea = 0,
+             dTopt_max = 6, dTimpair_max = 6, K_A = 1, A = 0, I = 0, D = 0)
   utils::modifyList(tr, list(...))
 }
 
@@ -57,7 +55,7 @@ atls_strategies <- function() {
   list(
     "Generalist"  = atls_traits(),
     "Tolerant"    = atls_traits(topt_offset = 6),
-    "Repairer"    = atls_traits(k_rec = 2.0, k_i = 0.1),
+    "Repairer"    = atls_traits(k_rec = 2.0, k_i = 55.2),
     "Acclimated"  = atls_traits(A = 5)
   )
 }
@@ -66,15 +64,13 @@ atls_strategies <- function() {
 atls_apply_traits <- function(l, tr = atls_traits()) {
   l$use_thermal_damage_ <- TRUE
   l$topt_offset_  <- tr$topt_offset
-  l$impair_H_     <- tr$impair_H
-  l$impair_Tmid_  <- tr$impair_Tmid
   l$k_i_          <- tr$k_i
   l$k_i_Ea_       <- tr$k_i_Ea
-  l$k_i_Tref_     <- tr$k_i_Tref
+  l$k_i_Tiso_     <- tr$k_i_Tiso
   l$k_rec_        <- tr$k_rec
+  l$k_rec_Ea_     <- tr$k_rec_Ea
   l$k_mat_        <- tr$k_mat
-  l$m_rep_        <- tr$m_rep
-  l$t_rep_cut_    <- tr$t_rep_cut
+  l$k_mat_Ea_     <- tr$k_mat_Ea
   l$dTopt_max_    <- tr$dTopt_max
   l$dTimpair_max_ <- tr$dTimpair_max
   l$K_A_          <- tr$K_A
@@ -90,7 +86,7 @@ atls_apply_traits <- function(l, tr = atls_traits()) {
 ## higher conductance or more wind.
 atls_leaf_config <- function(...) {
   cfg <- list(root_carbon_per_leaf_area = 20.0, psi_soil = 0.3,
-              leaf_specific_conductance_max = 5e-3,
+              leaf_specific_conductance_max = 5e-4,
               ca = 40, atm_o2_kpa = 21, atm_kpa = 101.3, d = 0.05,
               wind_speed = 2.0)
   utils::modifyList(cfg, list(...))
@@ -120,11 +116,11 @@ atls_set_physiology <- function(l, PAR, Tenv, VPD, tr = atls_traits(),
   invisible(l)
 }
 
-## The impairment rate k_imp(Tleaf), per day, for a trait set: k_i times its
-## Arrhenius scale times the switch K/(1+K), which is half on at impair_Tmid
-## (34.5 deg C at the defaults) plus the tolerance and acclimation shifts. The
-## leaf temperature is prescribed, so this is the mechanism with no optimiser in
-## the loop.
+## The impairment rate k_imp(Tleaf), per day, for a trait set: k_i at the
+## isokinetic temperature k_i_Tiso (50.5 deg C at the defaults) plus the
+## tolerance and acclimation shifts, and an Arrhenius rise of tenfold about every
+## 6 K. The leaf temperature is prescribed, so this is the mechanism with no
+## optimiser in the loop.
 atls_k_imp_curve <- function(Tleaf_seq, tr = atls_traits(), PAR = 1500, VPD = 2,
                              cfg = atls_leaf_config()) {
   vapply(Tleaf_seq, function(T) {
@@ -214,7 +210,7 @@ atls_scm_strategies <- function() {
   list(
     "Generalist" = identity,
     "Tolerant"   = function(s) { s$topt_offset <- 6; s },
-    "Repairer"   = function(s) { s$k_rec <- 2.0; s$k_i <- 0.1; s },
+    "Repairer"   = function(s) { s$k_rec <- 2.0; s$k_i <- 55.2; s },
     "Acclimator" = function(s) { s$alpha <- 0.06; s })
 }
 

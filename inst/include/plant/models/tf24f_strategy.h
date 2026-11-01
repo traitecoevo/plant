@@ -139,13 +139,14 @@ void TF24f_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,
 }
 
 // Track instead of optimise: evaluate the leaf at the tracked collar psi and
-// supply d(profit)/d(psi) for the gradient-ascent rate. evaluate_root_collar_psi
-// clamps to the feasible interval, so we read back the *clamped* operating value
-// (`used` = opt_root_psi_) and form the gradient about it; this keeps the
+// supply d(profit)/d(psi) for the gradient-ascent rate. The tracked state is
+// clamped into the feasible interval here (phylloptim refuses a collar outside
+// it), and the gradient is formed about the clamped value `used`. This keeps the
 // gradient meaningful even when the tracked state has drifted outside the
-// interval (e.g. an uninitialised state at 0), pulling it back inside, and the
-// final evaluate leaves the leaf outputs at the operating point that
-// compute_rates' aux reads expect. Two gradient methods are available
+// interval (e.g. an uninitialised state at 0, or a wet bound that a drying soil
+// moves past the state during shutdown), pulling it back inside, and the final
+// evaluate leaves the leaf outputs at the operating point that compute_rates'
+// aux reads expect. Two gradient methods are available
 // (use_ad_gradient): the exact AD/IFT gradient (default, #527) or a centred
 // finite difference (#526); see the branches below.
 // A function-try-block, so every exit of the body is covered: phylloptim's
@@ -167,11 +168,24 @@ void TF24f_Strategy<S>::solve_leaf() try {
     // + IFT at the ci root-find + analytic spline derivatives for the transport.
     // No O(h) bias and no finite-difference step to tune.
     // Establish the operating point (and the clamped collar psi `used`) and leave
-    // the leaf outputs there for compute_rates' aux reads.
-    this->leaf.evaluate_root_collar_psi(tracked_root_psi_);
-    const double used = this->leaf.opt_root_psi_;
+    // the leaf outputs there for compute_rates' aux reads. Where feasibility
+    // handling fixes the operating point (shutdown / closed interval) `used` is
+    // the collar it chose.
+    double bound_a, bound_b;
+    const bool open = this->leaf.template prepare_collar_solve<
+        phylloptim::Leaf::CostCurve::TF24_floor>(bound_a, bound_b);
+    const double used =
+        open ? std::min(std::max(tracked_root_psi_, bound_a), bound_b)
+             : this->leaf.opt_root_psi_;
     dprofit_dpsi_ = this->leaf.dprofit_droot_collar_psi(used);
-    this->leaf.evaluate_root_collar_psi(used);  // restore operating-point outputs
+    // restore operating-point outputs
+    if (open) {
+      this->leaf.template profit_at_collar_psi<
+          phylloptim::Leaf::CostCurve::TF24_floor>(used, bound_a, bound_b);
+    } else {
+      this->leaf.template prepare_collar_solve<
+          phylloptim::Leaf::CostCurve::TF24_floor>(bound_a, bound_b);
+    }
   } else {
     // Centred finite-difference fallback (#526), perturbing about the clamped
     // operating value `used`. A one-sided difference biases the fixed point to
@@ -202,8 +216,9 @@ void TF24f_Strategy<S>::solve_leaf() try {
     // `used` is the tracked state clamped into the feasible interval -- the same
     // value the old leading evaluate_root_collar_psi(tracked_root_psi_) produced.
     const double used = std::min(std::max(tracked_root_psi_, bound_a), bound_b);
-    const double p_plus  = this->leaf.template profit_at_collar_psi<phylloptim::Leaf::CostCurve::TF24_floor>(used + h, bound_a, bound_b);
-    const double p_minus = this->leaf.template profit_at_collar_psi<phylloptim::Leaf::CostCurve::TF24_floor>(used - h, bound_a, bound_b);
+    // Each arm is clamped too, which is the one-sided degradation at a bound.
+    const double p_plus  = this->leaf.template profit_at_collar_psi<phylloptim::Leaf::CostCurve::TF24_floor>(std::min(used + h, bound_b), bound_a, bound_b);
+    const double p_minus = this->leaf.template profit_at_collar_psi<phylloptim::Leaf::CostCurve::TF24_floor>(std::max(used - h, bound_a), bound_a, bound_b);
     dprofit_dpsi_ = (p_plus - p_minus) / (2.0 * h);
     this->leaf.template profit_at_collar_psi<phylloptim::Leaf::CostCurve::TF24_floor>(used, bound_a, bound_b);  // restore operating point
   }

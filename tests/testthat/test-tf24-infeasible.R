@@ -5,11 +5,12 @@
 # which is what these check, for both solve_leaf bodies.
 
 infeasible_rates <- function(strategy, individual) {
-  # A stem conductance this small puts the transpiration the solve needs off the
-  # end of the stem curve's table, which phylloptim reports as infeasible.
-  p <- strategy$pars
-  p$K_s <- 1e-30
-  strategy$pars <- p
+  # A dry, dark or hot leaf is a value rather than an infeasibility since
+  # phylloptim 0.19, so what is left is a solver that cannot converge: a root-find
+  # held to one iteration, which phylloptim reports as infeasible.
+  ctrl <- strategy$control
+  ctrl$ci_niter <- 1
+  strategy$control <- ctrl
   ind <- individual(strategy)
   ind$set_state("height", 5)
   env <- TF24_Environment()

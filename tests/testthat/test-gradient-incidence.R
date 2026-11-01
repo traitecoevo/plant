@@ -83,55 +83,20 @@ test_that("the classification tally is the route to a regime's incidence", {
   expect_equal(sum(census_operating_point_counts_tf24(scm)[[1]]), 0)
 })
 
-test_that("the dry pins are most of a dry stand, and are not what refuses", {
+test_that("a dry stand is interior throughout, and answers", {
   # The number this exists to produce. It was first taken while this driver's
   # gradient was refused outright, to say how much answering the pinned branch
-  # would buy; the branch answers now, so the same number says what the answer
-  # rests on. It is not recoverable from a run afterwards either way -- the
-  # classification is overwritten by the next individual.
+  # would buy. On phylloptim 0.16 the stem was held at psi_crit, so 54% of this
+  # stand's solves were pinned there (`boundary-crit`). psi_crit is no longer a
+  # bound and the stem follows the soil past it, so every solve is interior. It
+  # is not recoverable from a run afterwards -- the classification is
+  # overwritten by the next individual.
   n <- incidence_of(0.25, 10)
-  total <- sum(n)
-  dry <- n[["boundary-crit"]] + n[["boundary-root-crit"]]
-  expect_gt(dry, 0)
   expect_gt(n[["interior"]], 0)
+  expect_equal(sum(n[names(n) != "interior"]), 0)
 
-  # Which arm bound is not a detail: the two are different functions of the
-  # inputs, so the row a pinned point needs depends on it. At shipped defaults
-  # the root's own critical potential never wins the min, which is why a fixture
-  # for that arm has to lower it deliberately rather than wait for one --
-  # phylloptim's `test_the_dry_end_reports_which_bound_closed_it` is that fixture.
-  expect_equal(n[["boundary-root-crit"]], 0)
-  expect_gt(n[["boundary-crit"]], 0)
-
-  share <- 100 * dry / total
-  message(sprintf("  dry pins: %.0f of %.0f solves (%.2f%%), all on the %s arm",
-                  dry, total, share, "continuity-root"))
-  # Stated as a band rather than a value: the exact count moves with the schedule
-  # the adaptive pass resolves. Bounded below as well as above, because what this
-  # stand is here for is that the pinned branch is the majority of it.
-  #
-  # ⚠️ THE PATH INTEGRAL'S SHAPE PUT THE PINS HERE AND ITS LEVEL DID NOT, which
-  # is the reverse of what the seedling penalty suggests. Held height-linear and
-  # raised uniformly by 1.2x to 2.978x, resistance takes this share to ZERO. Held
-  # at the 1 m anchor by re-deriving K_s through TF24_K_s_from_whole_stem and
-  # swept in D_c, it takes 0.90, 6.34, 16.53, 26.83, 46.96, 54.65 per cent at
-  # D_c = 0, 0.02, 0.05, 0.10, 0.15, 0.20, while the stand's minimum soil
-  # moisture falls 0.13204 -> 0.13017. So it is the channel tf24_strategy.h's v10
-  # note names: a plant taller than the anchor pays 0.35 of the height-linear
-  # resistance, transpires faster, and takes the shared soil column down with it.
-  #
-  # The band is wide because the share is a threshold in moisture and this stand
-  # is past it rather than on it. Rainfall 0.50, 0.40, 0.35, 0.30, 0.25, 0.20
-  # gives 0.11, 13.45, 45.40, 52.22, 54.65, 60.82 per cent: the knee is at 0.4
-  # and 0.25 is on the plateau, where a fifth of the rainfall is three points.
-  expect_gt(share, 40)
-  expect_lt(share, 70)
-
-  # And the reading that makes the number mean something: the pinned branch is
-  # not what costs the answer. This stand answers with a finite gradient while a
-  # majority of its solves are pinned, which is a sharper statement than the
-  # minority the band used to assert. Counted before it is read, because
-  # all(is.finite(x)) is TRUE of an empty vector.
+  # And it answers. Counted before it is read, because all(is.finite(x)) is
+  # TRUE of an empty vector.
   g <- incidence_swept(0.25, 10)$gradient
   expect_false(any(stand_gradient_refused(g)))
   expect_null(g$refusal[[1]])
@@ -257,26 +222,14 @@ clamp_class <- list(
   # derivative is differenced instead of read. Neither is a clamp, so neither is
   # counted here. A site that cannot fire reporting "never" is the one reading
   # this list must not produce.
-  # The leaf model's four, which are a different facility: the leaf solves in
-  # double on both paths, so these keep ONE tally and the forward share is the
-  # total less the delta measured across record_leaf_outputs. Every one of them
-  # already pairs its clamp with a matching derivative, so what is counted is the
-  # distance from a defect rather than one.
-  #
-  # ⚠️ THEIR NON-VACUITY PROOF IS NOT HERE, and cannot be. A stand cannot reach
-  # them: a layer has to be ROOTED to be evaluated and the plant has to be alive,
-  # so the wettest rooted layer stays wetter than psi_crit while these need a
-  # deeper one past 6.82 or 7.31 MPa -- a vertical gradient drainage opposes. The
-  # counters are exercised directly in phylloptim's own C++ suite, in
-  # test_root_vulnerability_is_bounded_past_its_grid, including that a copy counts
-  # into the tally the original reads.
-  root_vuln_integral_cap = "never",
-  root_vuln_argument     = "never",
-  # Behind use_energy_balance, which is off: Tleaf is the environment's own value.
-  leaf_temperature       = "never",
-  # Off TF24's differentiated path entirely -- profit_at_fixed_collar replaced it
-  # and refuses rather than clamping.
-  collar_potential       = "never"
+  # The leaf model's one, the stomatal corner E_s >= 0, which is a different
+  # facility: the leaf solves in double on both paths, so it keeps ONE tally and
+  # the forward share is the total less the delta measured across
+  # record_leaf_outputs. phylloptim measures it active at most solved points on a
+  # broad grid, mostly dark, hot or dry leaves. A stand never reaches it, the
+  # shaded and clamped drivers' shut leaves included: a shut leaf sits at its wet
+  # bound, where E_s is zero by construction rather than by the clamp.
+  stomatal_flux          = "never"
 )
 
 test_that("every clamp site is classified, and by a measured incidence", {
@@ -295,9 +248,8 @@ test_that("every clamp site is classified, and by a measured incidence", {
   }
 
   # Never means never, on both paths and both drivers. A site in this class that
-  # starts firing is a regime the suite has never seen — including the two the
-  # gradient would RECOVER from rather than refuse on (the kink step-off) and the
-  # four the leaf owns, whose thresholds a stand cannot reach.
+  # starts firing is a regime the suite has never seen — including the leaf's
+  # stomatal corner, which a stand does not reach.
   for (s in names(clamp_class)[unlist(clamp_class) == "never"]) {
     expect_equal(wet_s[[s]], 0, label = paste(s, "fired on the wet driver"))
     expect_equal(dry_s[[s]], 0, label = paste(s, "fired on the drought driver"))

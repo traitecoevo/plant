@@ -292,9 +292,11 @@ test_that("TF24 patch aux reports the per-layer uptake", {
   invisible(patch$ode_rates)
   uptake <- tail(patch$ode_aux, n_layers)
 
-  # The soil's cumulative total-uptake rate is the last environment rate and is
-  # accumulated on its own, so it checks the published values and not the width.
-  expect_equal(sum(uptake), tail(patch$ode_rates, 1))
+  # The soil's cumulative total-uptake rate is accumulated on its own, so it
+  # checks the published values and not the width. It is the fourth of the five
+  # trailing accumulators: pulse runoff, the fifth, is last.
+  env_rates <- tail(patch$ode_rates, Environment("TF24")$ode_size)
+  expect_equal(sum(uptake), env_rates[[n_layers + 4]])
   expect_true(all(is.finite(uptake)))
   expect_gt(uptake[[1]], 0)
   # Uptake is signed, and the state above is what makes that observable rather

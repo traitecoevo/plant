@@ -9,17 +9,17 @@ test_that("ATLS demo leaf helpers run end-to-end (impairment, strategies, avoida
   skip_if_not(file.exists(helpers), "overstorey_staging/ not present (built package)")
   source(helpers, local = TRUE)
 
-  # (1) The impairment switch k_imp / k_i (k_i_Ea = 0 by default): near zero
-  # when cold, rising through its midpoint (about 34.5 C), bounded, monotone,
-  # finite.
+  # (1) Impairment is a centred Arrhenius about the isokinetic temperature:
+  # k_imp / k_i is one at k_i_Tiso and rises tenfold about every 6 K below it.
   Ts <- seq(20, 50, by = 1)
   tr <- atls_traits()
-  sw <- atls_k_imp_curve(Ts, tr) / tr$k_i
-  expect_true(all(is.finite(sw)))
-  expect_true(all(sw >= 0 & sw <= 1))
-  expect_lt(sw[Ts == 20], 0.05)
-  expect_gt(sw[Ts == 45], 0.8)
-  expect_true(all(diff(sw) >= -1e-9))
+  sc <- atls_k_imp_curve(Ts, tr) / tr$k_i
+  R <- 8.314462618153240
+  expect_equal(sc, exp(tr$k_i_Ea / R * (1 / (tr$k_i_Tiso + 273.15) -
+                                        1 / (Ts + 273.15))),
+               tolerance = 1e-12)
+  expect_true(all(diff(sc) > 0))
+  expect_lt(sc[Ts == 50], 1)
 
   # (2) Tolerance, acclimation and repair each lower the standing impaired
   # fraction I* at a hot leaf.
@@ -47,10 +47,10 @@ test_that("ATLS demo leaf helpers run end-to-end (impairment, strategies, avoida
   # and is impaired more slowly at the same air temperature.
   poor <- atls_solve_cell(1500, 34, 2, atls_traits(), pm = TRUE,
                           cfg = atls_leaf_config(d = 0.10,
-                                                 leaf_specific_conductance_max = 2e-3))
+                                                 leaf_specific_conductance_max = 2e-4))
   good <- atls_solve_cell(1500, 34, 2, atls_traits(), pm = TRUE,
                           cfg = atls_leaf_config(d = 0.02,
-                                                 leaf_specific_conductance_max = 1e-2))
+                                                 leaf_specific_conductance_max = 1e-3))
   expect_true(is.finite(poor$Tleaf) && is.finite(good$Tleaf))
   expect_lt(good$Tleaf, poor$Tleaf)
   expect_lt(good$k_imp, poor$k_imp)

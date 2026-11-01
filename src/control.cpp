@@ -79,12 +79,8 @@ Control::Control() {
   gradient_curvature_floor = 1e-3;
 
   // phylloptim's own default. Despite its name it no longer sets the collar
-  // solve's precision (a root-find at the leaf's fixed collar_root_tol does). It
-  // is the width below which the feasible collar interval counts as collapsed,
-  // where the leaf holds the collar at the midpoint without re-imposing
-  // continuity (`Determined`, phylloptim#145), and the tolerance of the
-  // golden-section fallback. Raising it puts stands on that branch, whose answer
-  // is wrong and which the gradient refuses.
+  // solve's precision (a root-find at the leaf's fixed collar_root_tol does); it
+  // is the tolerance of the golden-section fallback only.
   GSS_tol_abs = 1e-3;
   // The leaf's own choice, read rather than restated: this was 1e2 while
   // phylloptim's default was sixteen times finer, and since every stand builds its

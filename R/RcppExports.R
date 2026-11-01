@@ -497,22 +497,6 @@ Leaf__topt_offset___set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__topt_offset___set', PACKAGE = 'plant', obj_, value))
 }
 
-Leaf__impair_H___get <- function(obj_) {
-    .Call('_plant_Leaf__impair_H___get', PACKAGE = 'plant', obj_)
-}
-
-Leaf__impair_H___set <- function(obj_, value) {
-    invisible(.Call('_plant_Leaf__impair_H___set', PACKAGE = 'plant', obj_, value))
-}
-
-Leaf__impair_Tmid___get <- function(obj_) {
-    .Call('_plant_Leaf__impair_Tmid___get', PACKAGE = 'plant', obj_)
-}
-
-Leaf__impair_Tmid___set <- function(obj_, value) {
-    invisible(.Call('_plant_Leaf__impair_Tmid___set', PACKAGE = 'plant', obj_, value))
-}
-
 Leaf__k_i___get <- function(obj_) {
     .Call('_plant_Leaf__k_i___get', PACKAGE = 'plant', obj_)
 }
@@ -529,12 +513,12 @@ Leaf__k_i_Ea___set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__k_i_Ea___set', PACKAGE = 'plant', obj_, value))
 }
 
-Leaf__k_i_Tref___get <- function(obj_) {
-    .Call('_plant_Leaf__k_i_Tref___get', PACKAGE = 'plant', obj_)
+Leaf__k_i_Tiso___get <- function(obj_) {
+    .Call('_plant_Leaf__k_i_Tiso___get', PACKAGE = 'plant', obj_)
 }
 
-Leaf__k_i_Tref___set <- function(obj_, value) {
-    invisible(.Call('_plant_Leaf__k_i_Tref___set', PACKAGE = 'plant', obj_, value))
+Leaf__k_i_Tiso___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__k_i_Tiso___set', PACKAGE = 'plant', obj_, value))
 }
 
 Leaf__k_i_baseline___get <- function(obj_) {
@@ -553,20 +537,12 @@ Leaf__k_rec___set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__k_rec___set', PACKAGE = 'plant', obj_, value))
 }
 
-Leaf__m_rep___get <- function(obj_) {
-    .Call('_plant_Leaf__m_rep___get', PACKAGE = 'plant', obj_)
+Leaf__k_rec_Ea___get <- function(obj_) {
+    .Call('_plant_Leaf__k_rec_Ea___get', PACKAGE = 'plant', obj_)
 }
 
-Leaf__m_rep___set <- function(obj_, value) {
-    invisible(.Call('_plant_Leaf__m_rep___set', PACKAGE = 'plant', obj_, value))
-}
-
-Leaf__t_rep_cut___get <- function(obj_) {
-    .Call('_plant_Leaf__t_rep_cut___get', PACKAGE = 'plant', obj_)
-}
-
-Leaf__t_rep_cut___set <- function(obj_, value) {
-    invisible(.Call('_plant_Leaf__t_rep_cut___set', PACKAGE = 'plant', obj_, value))
+Leaf__k_rec_Ea___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__k_rec_Ea___set', PACKAGE = 'plant', obj_, value))
 }
 
 Leaf__k_mat___get <- function(obj_) {
@@ -575,6 +551,14 @@ Leaf__k_mat___get <- function(obj_) {
 
 Leaf__k_mat___set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__k_mat___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__k_mat_Ea___get <- function(obj_) {
+    .Call('_plant_Leaf__k_mat_Ea___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__k_mat_Ea___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__k_mat_Ea___set', PACKAGE = 'plant', obj_, value))
 }
 
 Leaf__acclim_alpha___get <- function(obj_) {

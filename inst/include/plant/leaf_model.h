@@ -54,10 +54,6 @@ using ::phylloptim::umol_to_mol;
 // it, which was worth ~0.8% relative on every TF24 run. See the NEWS entry.
 // Setting the driver for altitude now moves those quantities too, as it should.
 
-// Penman-Monteith leaf energy balance (#523).
-using ::phylloptim::leaf_temp_max;
-using ::phylloptim::leaf_temp_min;
-
 } // namespace plant
 
 #endif

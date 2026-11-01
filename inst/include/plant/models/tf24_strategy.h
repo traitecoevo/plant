@@ -898,7 +898,16 @@ public:
   //   0.20), so on the energy-balance path net radiation falls to about half;
   //   and `a` is `phi_J` on an absorbed basis, which reassociates J. TF24f and
   //   TF24t follow to v13.1 and v13.4.
-  static constexpr int scientific_version = 13;
+  // v14: phylloptim 0.16.0 -> 0.26.2, the leaf where it stops moving water or
+  //   gas. A shut leaf is the ordinary evaluator at its wet bound, so in light it
+  //   nets zero instead of -R_d and profit no longer jumps at shutdown or at the
+  //   light-compensation point; psi_crit is no longer a bound, so the stem
+  //   follows a drying soil past it and the stands' dry pins at psi_crit become
+  //   interior points; shade death is gone as a kind; the vulnerability integral
+  //   is a C2 table; and the ci root-find is solved to 1e-13. Output moves near
+  //   the root limit, below light compensation and in heat. TF24f, TF24t and
+  //   TF24w follow; TF24t's thermal layer also moves (thermal_revision 5).
+  static constexpr int scientific_version = 14;
 
   // calculate the amount of water transpired relativised by leaf area index.
 
@@ -2007,7 +2016,7 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& PPFD_int,
       beta_R_H, beta_R_V, r_R_H_min, r_R_V_sum);
   // The supply as a VIEW over what this caller owns. The curve arrives as
   // (root_P50, root_c) -- root_b is derived and a row in it reaches nothing.
-  const phylloptim::SupplyAt<S> supply{psi_soil, r_R_H_min, r_R_V_sum,
+  const phylloptim::SupplyInputs<S> supply{psi_soil, r_R_H_min, r_R_V_sum,
                                        in[phylloptim::par_root_P50],
                                        in[phylloptim::par_root_c]};
 
@@ -2017,8 +2026,8 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& PPFD_int,
   const leaf_clamp_tally clamps_before = leaf_clamps();
   // ⚠️ THE SAME NUMBER THE INTERIOR CLOSURE DIVIDES BY, so a guard that tests a
   // different one passes while the closure divides by a bad slope.
-  // marginal_collar_slope() is dM/dp as a first derivative of the marginal the
-  // solve roots, and the rows are taped from M inside collar_at.
+  // profit_curvature_at_collar() is dM/dp as a first derivative of the marginal the
+  // solve roots, and the rows are taped from M inside operating_collar.
   // The marginal at the collar the solve left, for a refusal message. On a COPY
   // because dprofit_at_collar_psi drives the model to that collar and this sits
   // on a path that is about to throw with the leaf's own state still readable.
@@ -2030,7 +2039,7 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& PPFD_int,
     return ok ? m : std::numeric_limits<double>::quiet_NaN();
   };
   double slope = std::numeric_limits<double>::quiet_NaN();
-  Leaf::LeafOutputs<S> got;
+  Leaf::BilledOutputs<S> got;
   // Transpiration at the collar the solve placed, carrying its move: the draw is
   // taken at the passive collar, so its flux alone would miss dcollar/dtheta. The
   // step is zero in value and its slope is the draw's own. Read for the shadow
@@ -2038,7 +2047,7 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& PPFD_int,
   S transpiration_at = S(leaf.transpiration_);
   try {
     if (leaf.operating_point_kind() == Leaf::OperatingPointKind::Interior) {
-      slope = leaf.template marginal_collar_slope<
+      slope = leaf.template profit_curvature_at_collar<
           phylloptim::Leaf::CostCurve::TF24_floor>();
       // The interior derivation divides by the profit's curvature. At a bound
       // the slope is the bound's own and this floor is not about it.
@@ -2050,7 +2059,7 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& PPFD_int,
       // wrong in a way nothing else could see -- on the century stand it caught a
       // +34.41 where the difference said -9.63.
       //
-      // marginal_collar_slope IS that difference now, measured rather than
+      // profit_curvature_at_collar IS that difference now, measured rather than
       // assembled, so the probe would compare a difference with itself. The
       // reason it is a difference is in phylloptim: the analytic route needs four
       // significant digits held through a 1e+05 cancellation and then multiplied
@@ -2113,13 +2122,16 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& PPFD_int,
     // `slope` is NaN unless the point is interior, which is the one kind that
     // divides by it -- so this hands over the number the guard above refused on
     // and leaves every other kind to close on its own condition.
+    // `held` carries the stem potential and ci the interior arm solved on its way
+    // to the collar, so billing reads them rather than solving both again.
+    Leaf::HeldCoords<S> held;
     const S collar =
-        leaf.template collar_at<phylloptim::Leaf::CostCurve::TF24_floor, S>(draw, in,
-                                                                      slope);
-    got = leaf.template outputs_at<phylloptim::Leaf::CostCurve::TF24_floor, S>(
-        collar, draw, in);
+        leaf.template operating_collar<phylloptim::Leaf::CostCurve::TF24_floor, S>(
+            draw, in, slope, &held);
+    got = leaf.template billed_outputs_at<phylloptim::Leaf::CostCurve::TF24_floor,
+                                          S>(collar, draw, in, &held);
     transpiration_at =
-        draw.flux.value + draw.flux.slope * (collar - S(leaf.opt_root_psi_));
+        draw.E_up.value + draw.E_up.slope * (collar - S(leaf.opt_root_psi_));
   } catch (const std::runtime_error& e) {
     note_leaf_clamps(clamps_before);
     // The leaf produced nothing to record a row against, so every output takes
@@ -3235,7 +3247,7 @@ void TF24_Strategy<S>::solve_leaf() {
     } else {
       // ⚠️ ONE CALL, because the collar and the arm have to go back together:
       // evaluating at a target restores every number and then tags the point
-      // `prescribed`, and collar_at switches on the kind.
+      // `prescribed`, and operating_collar switches on the kind.
       leaf.replay_operating_point(recorded.collar, recorded.kind);
     }
   } catch (const phylloptim::util::infeasible_error& e) {

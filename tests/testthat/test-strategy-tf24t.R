@@ -10,34 +10,22 @@
 # ODE. So the physics is tested on single rate evaluations at preset states, and
 # the SCM runs are short.
 #
-# The dynamics are phylloptim's (Leaf$damage_rates, the impairment switch, the
-# repair gate, the costs in R_d) and are tested there (test-thermal-damage.R).
-# What is tested here is the plant's part: the states reach the leaf, the rates
-# come back on the per-year clock, and damaged leaf is diluted by turnover and
-# growth.
+# The dynamics are phylloptim's (Leaf$damage_rates, the centred Arrhenius rates,
+# the costs in R_d) and are tested there (test-thermal-damage.R). What is tested
+# here is the plant's part: the states reach the leaf, the rates come back on the
+# per-year clock, and damaged leaf is diluted by turnover and growth.
 
 tf24t_days <- 365.25
 tf24t_R <- 8.314462618153240  # phylloptim's exact gas constant
 tf24t_C_to_K <- 273.15
 
-# phylloptim's helpers, in R, for the closed forms the rates are checked against.
-tf24t_clamp <- function(x, lo = -30, hi = 30) pmin(pmax(x, lo), hi)
-tf24t_softplus <- function(x, s) log1p(exp(tf24t_clamp(s * x))) / s
-tf24t_logistic <- function(x) 1 / (1 + exp(-tf24t_clamp(x)))
+# phylloptim's forms, in R, for the closed forms the rates are checked against.
+tf24t_softplus <- function(x, s) log1p(exp(s * x)) / s
 
-# The impairment switch K/(1+K) at leaf temperature `Tleaf` (deg C), with its
-# midpoint `Tmid` moved up by `delta` deg C.
-tf24t_switch <- function(Tleaf, delta, H, Tmid) {
-  mid_K <- tf24t_clamp(Tmid + tf24t_C_to_K + delta, 250, 350)
-  T_K <- Tleaf + tf24t_C_to_K
-  K <- exp(tf24t_clamp(H / tf24t_R * (1 / mid_K - 1 / T_K)))
-  K / (1 + K)
-}
-
-# The impairment rate's Arrhenius scale, 1 at k_i_Tref.
-tf24t_k_i_scale <- function(Tleaf, Ea, Tref) {
-  exp(tf24t_clamp(Ea / tf24t_R * (1 / (Tref + tf24t_C_to_K) -
-                                  1 / (Tleaf + tf24t_C_to_K))))
+# A rate k at reference temperature `Tref` (deg C), at leaf temperature `Tleaf`.
+tf24t_arrhenius <- function(k, Ea, Tref, Tleaf) {
+  k * exp(Ea / tf24t_R * (1 / (Tref + tf24t_C_to_K) -
+                          1 / (Tleaf + tf24t_C_to_K)))
 }
 
 # Every thermal input at a setting that can neither impair nor cost: no
@@ -64,11 +52,9 @@ test_that("Defaults", {
   expect_identical(unclass(s$pars), unclass(TF24_Strategy()$pars))
   expect_identical(s$pars$use_energy_balance, 0.0)
 
-  thermal <- list(topt_offset = 0, impair_H = 200000,
-                  impair_Tmid = 200000 / 650 - 273.15,
-                  m_rep = 0.4, t_rep_cut = 45, k_i = 0.5, k_i_Ea = 0,
-                  k_i_Tref = 25, k_rec = 0.25, k_mat = 0.02, dTopt_max = 6,
-                  dTimpair_max = 6, K_A = 1,
+  thermal <- list(topt_offset = 0, k_i = 276, k_i_Ea = 316000,
+                  k_i_Tiso = 50.5, k_rec = 0.25, k_rec_Ea = 0, k_mat = 0.02,
+                  k_mat_Ea = 0, dTopt_max = 6, dTimpair_max = 6, K_A = 1,
                   alpha = 0.02, beta = 0.01, t_accl = 30, softplus_s = 1,
                   k_mean_leaf_temp = 0.0333,
                   c_acclim_maint = 0.02, c_repair_maint = 1e-5,
@@ -119,9 +105,9 @@ test_that("the thermal rates follow their equations at the operating point", {
   env$extrinsic_drivers_set_constant("leaf_temp", air)
   s <- TF24t_Strategy()
   s$topt_offset <- 1.5; s$dTopt_max <- 4; s$dTimpair_max <- 3; s$K_A <- 0.5
-  s$impair_H <- 250000; s$impair_Tmid <- 36
-  s$k_rec <- 0.4; s$m_rep <- 0.3; s$t_rep_cut <- 40
-  s$k_i <- 0.7; s$k_i_Ea <- 50000; s$k_i_Tref <- 30; s$k_mat <- 0.05
+  s$k_rec <- 0.4; s$k_rec_Ea <- 30000
+  s$k_i <- 300; s$k_i_Ea <- 250000; s$k_i_Tiso <- 48
+  s$k_mat <- 0.05; s$k_mat_Ea <- 20000
   s$alpha <- 0.03; s$beta <- 0.02; s$t_accl <- 28; s$softplus_s <- 0.8
   s$k_mean_leaf_temp <- 0.05
   A <- 2; I <- 0.2; D <- 0.1; Tbar <- 28
@@ -145,12 +131,12 @@ test_that("the thermal rates follow their equations at the operating point", {
                tolerance = 1e-12)
 
   delta <- s$topt_offset + s$dTimpair_max * A / (A + s$K_A)
-  k_imp <- s$k_i * tf24t_k_i_scale(Tleaf, s$k_i_Ea, s$k_i_Tref) *
-    tf24t_switch(Tleaf, delta, s$impair_H, s$impair_Tmid)
-  k_rec_eff <- s$k_rec * tf24t_logistic(-s$m_rep * (Tleaf - s$t_rep_cut))
+  k_imp <- tf24t_arrhenius(s$k_i, s$k_i_Ea, s$k_i_Tiso + delta, Tleaf)
+  k_rec_eff <- tf24t_arrhenius(s$k_rec, s$k_rec_Ea, 25, Tleaf)
+  k_mat_eff <- tf24t_arrhenius(s$k_mat, s$k_mat_Ea, 25, Tleaf)
   expect_gt(k_imp, 0)
   expect_equal(rt[["impaired"]],
-               tf24t_days * (k_imp * (1 - I - D) - (k_rec_eff + s$k_mat) * I),
+               tf24t_days * (k_imp * (1 - I - D) - (k_rec_eff + k_mat_eff) * I),
                tolerance = 1e-10)
 
   # Damaged leaf is diluted by leaf turnover and canopy expansion, both
@@ -161,7 +147,7 @@ test_that("the thermal rates follow their equations at the operating point", {
   dL_dt <- rt[["height"]] / (pars$a_l1 * pars$a_l2 * L^(pars$a_l2 - 1))
   dilution <- pars$k_l + max(0, dL_dt) / L
   expect_equal(rt[["damaged"]],
-               tf24t_days * s$k_mat * I - dilution * D, tolerance = 1e-10)
+               tf24t_days * k_mat_eff * I - dilution * D, tolerance = 1e-10)
 
   expect_equal(rt[["mean_leaf_temp"]],
                tf24t_days * s$k_mean_leaf_temp * (Tleaf - Tbar),
@@ -340,7 +326,9 @@ test_that("TF24t refuses misconfigured kinetics", {
   refuses(function(s) { s$k_i <- -1; s }, "damage kinetics")
   refuses(function(s) { s$k_rec <- -1; s }, "damage kinetics")
   refuses(function(s) { s$k_mat <- Inf; s }, "damage kinetics")
-  refuses(function(s) { s$impair_H <- 0; s }, "impair_H")
+  refuses(function(s) { s$k_i_Ea <- -1; s }, "activation energies")
+  refuses(function(s) { s$k_mat_Ea <- NaN; s }, "activation energies")
+  refuses(function(s) { s$k_i_Tiso <- Inf; s }, "k_i_Tiso")
 })
 
 test_that("TF24t refuses deep-crown shading and accepts the other two", {
@@ -499,8 +487,8 @@ test_that("faster repair lowers the share of impairment that becomes damage", {
 test_that("a single TF24t plant grows through the ODE runner, and costs slow it", {
   # At 15 deg C air, not the default 25. A lone plant in full light runs its
   # leaves 4-6 deg C above the air, and hotter as impairment closes its stomata,
-  # so at 25 the impairment switch climbs toward its midpoint, impairment
-  # ratchets into damage within a year at the default k_mat, and the dying
+  # so at 25 impairment, which rises tenfold every ~6 K, ratchets into damage
+  # within a year at the default k_mat, and the dying
   # plant's empty storage pool holds the stepper to tiny steps.
   #
   # The runner does not seed the initial states, so they are seeded here: an

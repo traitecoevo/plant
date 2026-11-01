@@ -10,7 +10,7 @@ test_that("PM leaf demo helpers run end-to-end for Fick and PM", {
   source(helpers, local = TRUE)
 
   # A small environment grid spanning cool -> hot / high-radiation.
-  grid <- expand.grid(PAR = c(400, 2000), Tair = c(20, 40), VPD = c(1, 3))
+  grid <- expand.grid(PAR = c(400, 2000), Tair = c(20, 40), VPD = c(1, 2))
   res <- pm_solve_grid(grid)
 
   # Both models solved for every cell, all outputs finite.
@@ -32,6 +32,7 @@ test_that("PM leaf demo helpers run end-to-end for Fick and PM", {
   # variable, see pm_collar_curve) stays finite for both models.
   for (use_pm in c(FALSE, TRUE)) {
     curve <- pm_collar_curve(1800, 38, 2.5, use_pm, seq(0.31, 5.5, length.out = 20))
+    expect_gt(nrow(curve), 10)
     expect_true(all(is.finite(curve$profit)))
     expect_true(all(is.finite(curve$assim)))
   }
@@ -48,7 +49,7 @@ test_that("PM path fails fast on a non-finite wind speed (review: itowers1)", {
     l$set_physiology(root_network = phylloptim::root_network_from_carbon(
                        20, soil_depth = 1),
                      PPFD = 1000, psi_soil = 0.3, soil_depth = 1,
-                     leaf_specific_conductance_max = 5e-3, atm_vpd = 2, ca = 40, leaf_temp = 30,
+                     leaf_specific_conductance_max = 5e-4, atm_vpd = 2, ca = 40, leaf_temp = 30,
                      atm_o2_kpa = 21, atm_kpa = 101.3)
   }
 

@@ -71,7 +71,7 @@ public:
   // component tracks TF24_Strategy::scientific_version, so a TF24 change also
   // invalidates TF24t (the safe direction). Bump thermal_revision for a change
   // to the thermal layer alone. See src/strategy_version.cpp.
-  static constexpr int thermal_revision = 4;
+  static constexpr int thermal_revision = 5;
 
   // TF24's states and the four thermal states, appended last. Static, and
   // resolved on the concrete type by Individual<TF24t, ...>.
@@ -142,19 +142,20 @@ public:
   // --- Leaf thermal traits, copied into the leaf in prepare_strategy ---------
   // Rate constants per day. Calibration targets, not measured values. The leaf's
   // field each one sets is named beside it; see phylloptim's Leaf.
-  double topt_offset = 0.0;  // constitutive shift of T_opt and the switch midpoint, deg C
-  double impair_H = phylloptim::jmax_H_d;                // impairment switch enthalpy, J mol^-1
-  double impair_Tmid = phylloptim::jmax_H_d / phylloptim::jmax_d_S -
-                       phylloptim::C_to_K;               // switch midpoint, deg C
-  double m_rep = 0.4;        // slope of the repair shut-off, deg C^-1
-  double t_rep_cut = 45.0;   // midpoint of the repair shut-off, deg C
-  double k_i = 0.5;          // impairment rate at k_i_Tref with the switch on, day^-1
-  double k_i_Ea = 0.0;       // its activation energy, J mol^-1 (0: constant)
-  double k_i_Tref = 25.0;    // its reference temperature, deg C
-  double k_rec = 0.25;       // repair I -> F when cool, day^-1
-  double k_mat = 0.02;       // maturation I -> D, day^-1
+  // Impairment is Bison & Michaletz's first-order heat inactivation, centred on
+  // the isokinetic temperature; repair and maturation are centred at 25 C. The
+  // defaults are the leaf's: their 177-species fit for impairment, placeholders
+  // for the other two.
+  double topt_offset = 0.0;  // constitutive shift of T_opt and of k_i_Tiso, deg C
+  double k_i = 276.0;        // impairment rate at the isokinetic temperature, day^-1
+  double k_i_Ea = 316.0e3;   // its activation energy, J mol^-1
+  double k_i_Tiso = 50.5;    // the isokinetic temperature, deg C
+  double k_rec = 0.25;       // repair I -> F at 25 C, day^-1
+  double k_rec_Ea = 0.0;     // its activation energy, J mol^-1 (0: constant)
+  double k_mat = 0.02;       // maturation I -> D at 25 C, day^-1
+  double k_mat_Ea = 0.0;     // its activation energy, J mol^-1 (0: constant)
   double dTopt_max = 6.0;    // largest acclimated rise in T_opt, deg C
-  double dTimpair_max = 6.0; // largest acclimated rise in the switch midpoint, deg C
+  double dTimpair_max = 6.0; // largest acclimated rise in k_i_Tiso, deg C
   double K_A = 1.0;          // half-saturation of both rises in A
 
   // --- Acclimation kinetics, on the LEAF temperature -------------------------
@@ -231,9 +232,14 @@ void TF24t_Strategy<S>::check_kinetics() const {
       !util::is_finite(k_mat) || k_mat < 0.0) {
     util::stop("TF24t: damage kinetics k_i,k_rec,k_mat must be finite and >= 0");
   }
-  if (!util::is_finite(impair_H) || impair_H <= 0.0) {
-    util::stop("TF24t: impair_H must be finite and > 0, so that impairment "
-               "switches on with temperature");
+  if (!util::is_finite(k_i_Ea) || k_i_Ea < 0.0 ||
+      !util::is_finite(k_rec_Ea) || k_rec_Ea < 0.0 ||
+      !util::is_finite(k_mat_Ea) || k_mat_Ea < 0.0) {
+    util::stop("TF24t: activation energies k_i_Ea,k_rec_Ea,k_mat_Ea must be "
+               "finite and >= 0");
+  }
+  if (!util::is_finite(k_i_Tiso)) {
+    util::stop("TF24t: k_i_Tiso must be finite");
   }
 }
 
@@ -256,15 +262,13 @@ void TF24t_Strategy<S>::prepare_strategy() {
   leaf.use_energy_balance_ = true;
   leaf.use_thermal_damage_ = true;
   leaf.topt_offset_ = topt_offset;
-  leaf.impair_H_ = impair_H;
-  leaf.impair_Tmid_ = impair_Tmid;
-  leaf.m_rep_ = m_rep;
-  leaf.t_rep_cut_ = t_rep_cut;
   leaf.k_i_ = k_i;
   leaf.k_i_Ea_ = k_i_Ea;
-  leaf.k_i_Tref_ = k_i_Tref;
+  leaf.k_i_Tiso_ = k_i_Tiso;
   leaf.k_rec_ = k_rec;
+  leaf.k_rec_Ea_ = k_rec_Ea;
   leaf.k_mat_ = k_mat;
+  leaf.k_mat_Ea_ = k_mat_Ea;
   // k_i_baseline_ keeps the leaf's default: the no-extra-protection baseline the
   // protection cost is measured from.
   leaf.dTopt_max_ = dTopt_max;

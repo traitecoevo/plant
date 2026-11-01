@@ -129,16 +129,14 @@ Leaf:
     Tleaf_: {type: double, access: field, readonly: true}
     use_thermal_damage_: {type: bool, access: field}
     topt_offset_: {type: double, access: field}
-    impair_H_: {type: double, access: field}
-    impair_Tmid_: {type: double, access: field}
     k_i_: {type: double, access: field}
     k_i_Ea_: {type: double, access: field}
-    k_i_Tref_: {type: double, access: field}
+    k_i_Tiso_: {type: double, access: field}
     k_i_baseline_: {type: double, access: field}
     k_rec_: {type: double, access: field}
-    m_rep_: {type: double, access: field}
-    t_rep_cut_: {type: double, access: field}
+    k_rec_Ea_: {type: double, access: field}
     k_mat_: {type: double, access: field}
+    k_mat_Ea_: {type: double, access: field}
     acclim_alpha_: {type: double, access: field}
     acclim_beta_: {type: double, access: field}
     acclim_T_: {type: double, access: field}
@@ -1714,15 +1712,13 @@ TF24t_Strategy:
     - is_variable_birth_rate: bool
     # Leaf thermal traits, copied into the Leaf in prepare_strategy:
     - topt_offset: double
-    - impair_H: double
-    - impair_Tmid: double
-    - m_rep: double
-    - t_rep_cut: double
     - k_i: double
     - k_i_Ea: double
-    - k_i_Tref: double
+    - k_i_Tiso: double
     - k_rec: double
+    - k_rec_Ea: double
     - k_mat: double
+    - k_mat_Ea: double
     - dTopt_max: double
     - dTimpair_max: double
     - K_A: double

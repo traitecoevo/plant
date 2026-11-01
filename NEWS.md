@@ -13,6 +13,14 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **TF24 moves to phylloptim 0.26.2 (#714).** A shut leaf is phylloptim's ordinary evaluator at its wet bound, so in light it nets zero instead of `-R_d`; `psi_crit` is no longer a bound, so the stem follows a drying soil past it. The operating-point kinds `boundary-crit`, `boundary-root-crit`, `determined` and `shade-death` are gone (`boundary-dry` replaces the first two). TF24t's impairment takes Bison & Michaletz's centred-Arrhenius kinetics. `scientific_version`: TF24 13 -> 14, TF24f 13.1 -> 14.1, TF24t 13.4 -> 14.5, TF24w 13.1 -> 14.1. Migration:
+
+  * `TF24t_Strategy` `impair_H`, `impair_Tmid`, `m_rep`, `t_rep_cut`, `k_i_Tref` -> removed; new `k_i_Tiso`, `k_rec_Ea`, `k_mat_Ea`. `k_i` defaults to 276 day^-1 at `k_i_Tiso` (was 0.5 with a logistic switch), `k_i_Ea` to 316 kJ mol^-1.
+  * `Leaf` fields `impair_H_`, `impair_Tmid_`, `m_rep_`, `t_rep_cut_`, `k_i_Tref_` -> removed; new `k_i_Tiso_`, `k_rec_Ea_`, `k_mat_Ea_`.
+  * `Leaf$transpiration(psi_stem, psi_upstream)` with `psi_stem < psi_upstream` -> an error (was a negative flux).
+  * drivers with `atm_vpd` at or above saturation -> an error.
+  * a result pinned or cached under `TF24@v13`, `TF24f@v13.1`, `TF24t@v13.4` or `TF24w@v13.1` -> re-run, or re-bless the pin.
+
 * **The density coordinate is now chosen per model, and TF24 defaults to birth
   date (#516).** `Control`'s boolean flag becomes a three-valued string, so that
   a model can carry a default a passed `Control` does not silently override.

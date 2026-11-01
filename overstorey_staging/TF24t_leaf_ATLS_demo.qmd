@@ -151,9 +151,9 @@ Avoidance is not a damage trait — it is the leaf keeping itself cooler than it
 ```{r avoidance}
 avoid_cfgs <- list(
   "poorly coupled (large leaf, low g)" =
-    atls_leaf_config(d = 0.10, leaf_specific_conductance_max = 2e-3),
+    atls_leaf_config(d = 0.10, leaf_specific_conductance_max = 2e-4),
   "well coupled (small leaf, high g)" =
-    atls_leaf_config(d = 0.02, leaf_specific_conductance_max = 1e-2))
+    atls_leaf_config(d = 0.02, leaf_specific_conductance_max = 1e-3))
 
 avoid <- bind_rows(lapply(names(avoid_cfgs), function(nm) {
   bind_rows(lapply(seq(24, 40, by = 0.5), function(Tair) {
