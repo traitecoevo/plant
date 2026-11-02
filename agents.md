@@ -935,6 +935,51 @@ as its inputs — would no longer be the whole derivative.
 
 ---
 
+## Independent review of every PR
+
+**When you open a PR, commission one independent review before telling the user it is ready.** Don't ask first; it is part of opening the PR. Commission another after a push that changes the PR's substance (a design revision, a new code path), not after a typo fix. Skip it only for a PR that changes nothing but a version or a typo, and say that you skipped it.
+
+**Reviewer:** Gemini through `/delegate-agy` (`gemini-4-argon-high`, never `flash`, which has invented quoted code) when its quota allows and the skill's data gate passes. Otherwise use a fresh-context Claude subagent (Agent tool, `general-purpose`, in the background). The brief is the same either way.
+
+**Set-up:**
+
+- Make a detached worktree of the PR head in your scratchpad: `git worktree add --detach <scratchpad>/rev-<PR> <branch>`. That way the review cannot touch your branch.
+- Give the reviewer a scratch directory of its own for builds and scripts.
+- Run it in the background and carry on. Don't also do the review yourself.
+
+**The brief** is the template below. Give the reviewer the code and the PR's claim, not your reasoning or conclusions. Tell it to form its view before reading the PR's first comment, which is your account. It is read-only: no edits, commits, pushes or GitHub comments.
+
+**When it reports:**
+
+1. **Verify every finding against the code before acting.** Read the cited lines, or reproduce the claim. Quotes, line numbers and counts are claims, not facts. Run any numerical claim. For "this test would catch X", show the test fails on the old code.
+2. **Fix what holds, on the same branch.** Re-run whatever the fix could affect: goldens, object identity, test suites.
+3. **Post one PR comment** with:
+   - what the reviewer checked and found clean;
+   - each finding you fixed, with the commit;
+   - each finding you rejected, and why;
+   - any correction to your own earlier comments. Correct the record there, never in a commit message.
+4. **Tell the user in plain words:** how many findings, what changed, what you rejected, and anything that needs their decision. A finding that is really a decision about scope, API or modelling goes to the user as an open question, not into a quiet fix.
+
+### Reviewer brief (fill the <…>)
+
+```
+You are an independent reviewer of a pull request to <repo>, <one line on what it is>.
+Find what is wrong, missing or unclear; do not assume it is right.
+
+Where: a detached worktree of the PR head at <path>. The PR is <url>; review
+`git diff <base>...HEAD`. Read the PR body, and form your own view before reading
+its first comment, which is the author's account. Do NOT modify files, commit,
+push, or comment on GitHub. Scratch files and builds go under <scratch dir>.
+<Environment: GIT_CONFIG_GLOBAL=/dev/null; how to build and test; library paths;
+how to read sibling repos read-only, e.g. `git -C <repo> show origin/<branch>:<path>`.>
+
+What it claims: <2–4 sentences: what changes, what must NOT change (e.g. "no
+number moves", "goldens bit-identical", "objects identical"), the issue it closes>.
+
+Read first: <the repo's CLAUDE.md and the sections that bind this change, the
+PLAN.md items, the hazards, the files touched>.
+```
+
 ## Issue & project-board conventions
 
 Development across `plant`, `regnans`, and `overstorey` is tracked on a
