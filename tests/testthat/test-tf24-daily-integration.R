@@ -87,3 +87,55 @@ test_that("what the new methods cannot honour is refused", {
   ## The default never reads the site, so it runs without one.
   expect_silent(tf24_day("fixed-12h", latitude = NaN))
 })
+
+test_that("a light-dependent c reads the crown's noon light, clamped", {
+  ## c(I) = c + s log(I'/500), I' the noon intercepted PPFD held to the
+  ## calibrated range. At full openness I is k_I * PPFD_above.
+  day <- function(...) {
+    s <- TF24_Strategy()
+    ctrl <- list(...)
+    for (k in names(ctrl)) s$control[[k]] <- ctrl[[k]]
+    env <- Environment("TF24")
+    env$latitude <- -33.6
+    env$time <- 0.2
+    env$set_fixed_environment(1, height_max = 150)
+    env$set_soil_water_state(rep(0.3, env$get_soil_number_of_depths()))
+    ind <- TF24_Individual(s)
+    ind$set_state("height", 5)
+    ind$compute_rates(env)
+    list(profit = ind$aux("profit"), k_I = s$pars$k_I,
+         I = s$pars$k_I * 4.57 * env$f_PAR * env$get_SWdown())
+  }
+  base <- day(daily_integration = "one-point")
+  lit <- day(daily_integration = "one-point", one_point_c_assimilation = 0.7,
+             one_point_c_assimilation_slope = 0.15)
+  expect_equal(lit$profit / base$profit, 0.7 + 0.15 * log(base$I / 500),
+               tolerance = 1e-12)
+  ## Above the range c is held at its value at the top.
+  capped <- day(daily_integration = "one-point", one_point_c_assimilation = 0.7,
+                one_point_c_assimilation_slope = 0.15, one_point_c_light_max = 300)
+  expect_equal(capped$profit / base$profit, 0.7 + 0.15 * log(300 / 500),
+               tolerance = 1e-12)
+  ## A zero slope is the constant c, exactly.
+  expect_identical(day(daily_integration = "one-point",
+                       one_point_c_assimilation = 0.7)$profit,
+                   day(daily_integration = "one-point",
+                       one_point_c_assimilation = 0.7,
+                       one_point_c_light_max = 300)$profit)
+  expect_error(day(daily_integration = "one-point",
+                   one_point_c_assimilation_slope = 0.1,
+                   one_point_c_light_min = 0), "light_min")
+  expect_error(day(daily_integration = "one-point",
+                   one_point_c_assimilation_slope = 0.1,
+                   shading_model = "deep-crown"), "deep-crown")
+})
+
+test_that("five-point Lobatto lands on the diurnal integral", {
+  ## Three solves; the dark sunrise and sunset nodes are -R_d and no water.
+  for (light in c(1, 0.2)) {
+    ref <- tf24_day("diurnal", n = 96L, light = light)
+    lob <- tf24_day("lobatto", light = light)
+    expect_lt(abs(lob$profit / ref$profit - 1), 0.02)
+    expect_lt(abs(sum(lob$consumption) / sum(ref$consumption) - 1), 0.02)
+  }
+})

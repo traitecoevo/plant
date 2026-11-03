@@ -28,6 +28,10 @@ Control::Control() {
   daily_integration_points = 48;
   one_point_c_assimilation = 1.0;
   one_point_c_transpiration = 1.0;
+  one_point_c_assimilation_slope = 0.0;
+  one_point_c_transpiration_slope = 0.0;
+  one_point_c_light_min = 50.0;
+  one_point_c_light_max = 2000.0;
 
   // PPA canopy layer thickness in optical-depth units (see Control header).
   ppa_layer_optical_depth = 0.5;

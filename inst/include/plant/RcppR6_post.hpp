@@ -531,6 +531,10 @@ template <> inline SEXP wrap(const plant::Control& x) {
   ret["daily_integration_points"] = Rcpp::wrap(x.daily_integration_points);
   ret["one_point_c_assimilation"] = Rcpp::wrap(x.one_point_c_assimilation);
   ret["one_point_c_transpiration"] = Rcpp::wrap(x.one_point_c_transpiration);
+  ret["one_point_c_assimilation_slope"] = Rcpp::wrap(x.one_point_c_assimilation_slope);
+  ret["one_point_c_transpiration_slope"] = Rcpp::wrap(x.one_point_c_transpiration_slope);
+  ret["one_point_c_light_min"] = Rcpp::wrap(x.one_point_c_light_min);
+  ret["one_point_c_light_max"] = Rcpp::wrap(x.one_point_c_light_max);
   ret["ppa_layer_optical_depth"] = Rcpp::wrap(x.ppa_layer_optical_depth);
   ret["ppa_layer_smoothing"] = Rcpp::wrap(x.ppa_layer_smoothing);
   ret["offspring_production_tol"] = Rcpp::wrap(x.offspring_production_tol);
@@ -584,6 +588,14 @@ template <> inline plant::Control as(SEXP x) {
   if (xl.containsElementNamed("one_point_c_assimilation")) ret.one_point_c_assimilation = Rcpp::as<double >(xl["one_point_c_assimilation"]);
   // ret.one_point_c_transpiration = Rcpp::as<decltype(retone_point_c_transpiration) >(xl["one_point_c_transpiration"]);
   if (xl.containsElementNamed("one_point_c_transpiration")) ret.one_point_c_transpiration = Rcpp::as<double >(xl["one_point_c_transpiration"]);
+  // ret.one_point_c_assimilation_slope = Rcpp::as<decltype(retone_point_c_assimilation_slope) >(xl["one_point_c_assimilation_slope"]);
+  if (xl.containsElementNamed("one_point_c_assimilation_slope")) ret.one_point_c_assimilation_slope = Rcpp::as<double >(xl["one_point_c_assimilation_slope"]);
+  // ret.one_point_c_transpiration_slope = Rcpp::as<decltype(retone_point_c_transpiration_slope) >(xl["one_point_c_transpiration_slope"]);
+  if (xl.containsElementNamed("one_point_c_transpiration_slope")) ret.one_point_c_transpiration_slope = Rcpp::as<double >(xl["one_point_c_transpiration_slope"]);
+  // ret.one_point_c_light_min = Rcpp::as<decltype(retone_point_c_light_min) >(xl["one_point_c_light_min"]);
+  if (xl.containsElementNamed("one_point_c_light_min")) ret.one_point_c_light_min = Rcpp::as<double >(xl["one_point_c_light_min"]);
+  // ret.one_point_c_light_max = Rcpp::as<decltype(retone_point_c_light_max) >(xl["one_point_c_light_max"]);
+  if (xl.containsElementNamed("one_point_c_light_max")) ret.one_point_c_light_max = Rcpp::as<double >(xl["one_point_c_light_max"]);
   // ret.ppa_layer_optical_depth = Rcpp::as<decltype(retppa_layer_optical_depth) >(xl["ppa_layer_optical_depth"]);
   if (xl.containsElementNamed("ppa_layer_optical_depth")) ret.ppa_layer_optical_depth = Rcpp::as<double >(xl["ppa_layer_optical_depth"]);
   // ret.ppa_layer_smoothing = Rcpp::as<decltype(retppa_layer_smoothing) >(xl["ppa_layer_smoothing"]);

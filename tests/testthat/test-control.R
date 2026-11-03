@@ -29,6 +29,10 @@ test_that("Defaults", {
     daily_integration_points = 48L,
     one_point_c_assimilation = 1.0,
     one_point_c_transpiration = 1.0,
+    one_point_c_assimilation_slope = 0.0,
+    one_point_c_transpiration_slope = 0.0,
+    one_point_c_light_min = 50,
+    one_point_c_light_max = 2000,
     ppa_layer_optical_depth = 0.5,
     ppa_layer_smoothing = 0.3,
 

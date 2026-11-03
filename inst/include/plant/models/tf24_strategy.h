@@ -684,7 +684,7 @@ struct tf24_strategy_from_t {};
 
 // TF24's daily integral; see Control::daily_integration. Outside the class so
 // that a rebind between scalars copies one type.
-enum class DailyIntegration { Fixed12h, OnePoint, Diurnal };
+enum class DailyIntegration { Fixed12h, OnePoint, Diurnal, Lobatto };
 
 template <typename S = double>
 class TF24_Strategy: public Strategy<TF24_Environment<S>> {
@@ -1577,6 +1577,10 @@ public:
     daily_integration_points_ = src.daily_integration_points_;
     one_point_c_assimilation_ = src.one_point_c_assimilation_;
     one_point_c_transpiration_ = src.one_point_c_transpiration_;
+    one_point_c_assimilation_slope_ = src.one_point_c_assimilation_slope_;
+    one_point_c_transpiration_slope_ = src.one_point_c_transpiration_slope_;
+    one_point_c_light_min_ = src.one_point_c_light_min_;
+    one_point_c_light_max_ = src.one_point_c_light_max_;
     eta_c = S(odelia::util::to_passive(src.eta_c));
     birth_rate_ = S(odelia::util::to_passive(src.birth_rate_));
     canopy_shape.initialise(pars.eta, shading_model_);
@@ -1633,6 +1637,10 @@ public:
   int daily_integration_points_ = 48;
   double one_point_c_assimilation_ = 1.0;
   double one_point_c_transpiration_ = 1.0;
+  double one_point_c_assimilation_slope_ = 0.0;
+  double one_point_c_transpiration_slope_ = 0.0;
+  double one_point_c_light_min_ = 50.0;
+  double one_point_c_light_max_ = 2000.0;
   // Seconds of daylight in a year of days like today. Set by the leaf-physiology
   // block under the two non-default integrations and read where the per-second
   // rates become annual ones; the fixed-12h path never touches it.
@@ -3119,6 +3127,12 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
   // diurnal:   n solves at the midpoints of n equal slices of the photoperiod,
   //            averaged and billed over the photoperiod. The slices are placed
   //            symmetrically about noon, so n = 1 is one-point with c = 1.
+  // lobatto:   5-point Gauss-Lobatto over the photoperiod. Its two end nodes sit
+  //            at sunrise and sunset, where there is no light: the leaf there
+  //            loses R_d and transpires nothing, known without a solve, so the
+  //            rule costs three solves. What a day's integral has to resolve is
+  //            the dawn and dusk shoulders, not the midday depression, and
+  //            Lobatto is the rule with nodes on them.
   //
   // Under the two new methods the leaf.* outputs hold DAYLIGHT MEANS of the
   // per-second rates, so every aux reports a daylight mean too.
@@ -3136,13 +3150,95 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
     const diurnal::SolarDay day(environment.time, environment.latitude);
     daylight_seconds_per_year_ = day.daylength * 3600.0 * 365.0;
 
-    if (daily_integration_ == DailyIntegration::OnePoint) {
-      solve_crown();
-      leaf.profit_ *= one_point_c_assimilation_;
-      leaf.transpiration_ *= one_point_c_transpiration_;
-      leaf.E_up_ *= one_point_c_transpiration_;
+    if (daily_integration_ == DailyIntegration::Lobatto) {
+      const double amp = environment.get_atm_vpd_diurnal_amp();
+      if (!(amp >= 0.0 && amp < 1.0)) {
+        util::stop("atm_vpd_diurnal_amp must lie in [0, 1); got " +
+                   util::to_string(amp));
+      }
+      const double peak = environment.vpd_peak_hour;
+      const double PPFD_above_noon = PPFD_above;
+      const double atm_vpd_noon = atm_vpd;
+      const double sin_elevation_noon = day.sin_elevation(12.0);
+      const double vpd_shape_noon = diurnal::vpd_shape(12.0, amp, peak);
+      // Interior nodes and weights on [0, 1] of the photoperiod; the end
+      // weights are 1/20 each. Noon first, so R_d is read off a solve before
+      // the end nodes need it.
+      const double off = 0.5 * std::sqrt(3.0 / 7.0);
+      const std::array<double, 3> u = {0.5, 0.5 - off, 0.5 + off};
+      const std::array<double, 3> w = {16.0 / 45.0, 49.0 / 180.0, 49.0 / 180.0};
+      const double w_end = 1.0 / 20.0;
+      double profit = 0.0, trans = 0.0, eup = 0.0, psi = 0.0, root_psi = 0.0,
+        gco2 = 0.0, assim = 0.0, tleaf = 0.0, R_d = 0.0;
+      day_soil_consumption_.assign(soil_number_of_depths_, 0.0);
+      for (size_t k = 0; k < u.size(); ++k) {
+        const double hour = 12.0 + (u[k] - 0.5) * day.daylength;
+        PPFD_above =
+          PPFD_above_noon * (day.sin_elevation(hour) / sin_elevation_noon);
+        atm_vpd = atm_vpd_noon *
+          (diurnal::vpd_shape(hour, amp, peak) / vpd_shape_noon);
+        solve_crown();
+        if (k == 0) {
+          // The dark ends transpire nothing only without residual conductance.
+          if (leaf.g_min_leaf_ > 0.0) {
+            util::stop("daily_integration 'lobatto' assumes no residual "
+                       "conductance at night; this leaf has g_min > 0");
+          }
+          R_d = leaf.R_d_;
+        }
+        profit   += w[k] * leaf.profit_;
+        trans    += w[k] * leaf.transpiration_;
+        eup      += w[k] * leaf.E_up_;
+        psi      += w[k] * leaf.opt_psi_stem_;
+        root_psi += w[k] * leaf.opt_root_psi_;
+        gco2     += w[k] * leaf.stom_cond_CO2_;
+        assim    += w[k] * leaf.assim_colimited_;
+        tleaf    += w[k] * leaf.Tleaf_;
+        for (int a = 0; a < soil_number_of_depths_; ++a) {
+          day_soil_consumption_[a] += w[k] * leaf.soil_consumption_[a];
+        }
+      }
+      // The dark ends: profit and net assimilation -R_d, no water. The
+      // diagnostics that have no dark value (water potentials, temperature) are
+      // the interior nodes' weighted mean.
+      const double w_in = 1.0 - 2.0 * w_end;
+      leaf.profit_          = profit - 2.0 * w_end * R_d;
+      leaf.transpiration_   = trans;
+      leaf.E_up_            = eup;
+      leaf.opt_psi_stem_    = psi / w_in;
+      leaf.opt_root_psi_    = root_psi / w_in;
+      leaf.stom_cond_CO2_   = gco2;
+      leaf.assim_colimited_ = assim - 2.0 * w_end * R_d;
+      leaf.Tleaf_           = tleaf / w_in;
       for (int a = 0; a < soil_number_of_depths_; ++a) {
-        leaf.soil_consumption_[a] *= one_point_c_transpiration_;
+        leaf.soil_consumption_[a] = day_soil_consumption_[a];
+      }
+      PPFD_above = PPFD_above_noon;
+      atm_vpd = atm_vpd_noon;
+    } else if (daily_integration_ == DailyIntegration::OnePoint) {
+      solve_crown();
+      double c_A = one_point_c_assimilation_;
+      double c_E = one_point_c_transpiration_;
+      if (one_point_c_assimilation_slope_ != 0.0 ||
+          one_point_c_transpiration_slope_ != 0.0) {
+        // PPFD_int_used is the crown's intercepted light at noon: the one
+        // solve just made.
+        const double I = std::min(std::max(PPFD_int_used, one_point_c_light_min_),
+                                  one_point_c_light_max_);
+        const double x = std::log(I / 500.0);
+        c_A += one_point_c_assimilation_slope_ * x;
+        c_E += one_point_c_transpiration_slope_ * x;
+        if (!(c_A > 0.0 && c_E > 0.0)) {
+          util::stop("one-point c is not positive at intercepted light " +
+                     util::to_string(I) + ": c_A = " + util::to_string(c_A) +
+                     ", c_E = " + util::to_string(c_E));
+        }
+      }
+      leaf.profit_ *= c_A;
+      leaf.transpiration_ *= c_E;
+      leaf.E_up_ *= c_E;
+      for (int a = 0; a < soil_number_of_depths_; ++a) {
+        leaf.soil_consumption_[a] *= c_E;
       }
     } else {
       const double amp = environment.get_atm_vpd_diurnal_amp();
@@ -3824,14 +3920,20 @@ void TF24_Strategy<S>::prepare_strategy() {
       daily_integration_ = DailyIntegration::OnePoint;
     } else if (method == "diurnal") {
       daily_integration_ = DailyIntegration::Diurnal;
+    } else if (method == "lobatto") {
+      daily_integration_ = DailyIntegration::Lobatto;
     } else {
       throw std::invalid_argument(
         "Unknown daily_integration '" + method +
-        "': expected 'fixed-12h', 'one-point' or 'diurnal'");
+        "': expected 'fixed-12h', 'one-point', 'diurnal' or 'lobatto'");
     }
     daily_integration_points_ = this->control.daily_integration_points;
     one_point_c_assimilation_ = this->control.one_point_c_assimilation;
     one_point_c_transpiration_ = this->control.one_point_c_transpiration;
+    one_point_c_assimilation_slope_ = this->control.one_point_c_assimilation_slope;
+    one_point_c_transpiration_slope_ = this->control.one_point_c_transpiration_slope;
+    one_point_c_light_min_ = this->control.one_point_c_light_min;
+    one_point_c_light_max_ = this->control.one_point_c_light_max;
     if (daily_integration_ != DailyIntegration::Fixed12h) {
       if (daily_integration_points_ < 1) {
         throw std::invalid_argument(
@@ -3842,6 +3944,22 @@ void TF24_Strategy<S>::prepare_strategy() {
         throw std::invalid_argument(
           "one_point_c_assimilation and one_point_c_transpiration must be "
           "positive");
+      }
+      const bool light_dependent = one_point_c_assimilation_slope_ != 0.0 ||
+                                   one_point_c_transpiration_slope_ != 0.0;
+      if (light_dependent) {
+        if (!(one_point_c_light_min_ > 0.0 &&
+              one_point_c_light_max_ > one_point_c_light_min_)) {
+          throw std::invalid_argument(
+            "one_point_c_light_min must be positive and below "
+            "one_point_c_light_max");
+        }
+        // Deep-crown solves the crown at many lights; c is a function of one.
+        if (shading_model_ == ShadingModel::DeepCrown) {
+          throw std::invalid_argument(
+            "a light-dependent one-point c is not supported with the "
+            "deep-crown shading model: c reads the crown's one noon light");
+        }
       }
       // TF24f carries one tracked collar state and TF24t bills thermal damage on
       // the leaf temperature of one solve; neither has a day of them.

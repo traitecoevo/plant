@@ -410,6 +410,10 @@ Control:
     - daily_integration_points: int
     - one_point_c_assimilation: double
     - one_point_c_transpiration: double
+    - one_point_c_assimilation_slope: double
+    - one_point_c_transpiration_slope: double
+    - one_point_c_light_min: double
+    - one_point_c_light_max: double
     - ppa_layer_optical_depth: double
     - ppa_layer_smoothing: double
     - offspring_production_tol: double

@@ -42,16 +42,29 @@ struct Control {
   //                     photoperiod and scaled by the two constants below
   //   "diurnal"         daily_integration_points solves spread across the
   //                     photoperiod, integrated by the midpoint rule
+  //   "lobatto"         5-point Gauss-Lobatto over the photoperiod: three
+  //                     solves, the dark sunrise and sunset nodes known
   //
   // The last two read the day from the environment's latitude, and SWdown and
   // atm_vpd as values at solar noon. Resolved once in prepare_strategy().
   std::string daily_integration;
   int daily_integration_points;
-  // The one-point method's calibration constants: the daily integral is taken
-  // as c times noon's rate times the photoperiod, with one c for carbon and one
-  // for water. 1 is uncalibrated.
+  // The one-point method's calibration: the daily integral is taken as c times
+  // noon's rate times the photoperiod, with one c for carbon and one for water.
+  // c may depend on the light the crown intercepts at noon, I (umol m^-2 s^-1):
+  //
+  //   c(I) = one_point_c_* + one_point_c_*_slope * log(I' / 500),
+  //   I' = I clamped to [one_point_c_light_min, one_point_c_light_max]
+  //
+  // so the constants are c at 500, and c is held flat outside the range it was
+  // calibrated on rather than extrapolated. A zero slope (the default) is one
+  // constant c; 1 with zero slope is uncalibrated.
   double one_point_c_assimilation;
   double one_point_c_transpiration;
+  double one_point_c_assimilation_slope;
+  double one_point_c_transpiration_slope;
+  double one_point_c_light_min;
+  double one_point_c_light_max;
 
   // PPA only: thickness of one discrete canopy layer, in optical-depth units
   // (tau = sum of k * leaf-area-index above a height). The stepped light
