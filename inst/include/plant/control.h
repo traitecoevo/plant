@@ -33,6 +33,26 @@ struct Control {
   // so it never costs a string comparison on the hot path.
   std::string shading_model;
 
+  // How TF24 builds a day's carbon and water from its leaf solves (#618,
+  // experiment branch):
+  //
+  //   "" / "fixed-12h"  one solve at the drivers, billed as twelve hours of
+  //                     daylight every day -- the model as it has always run
+  //   "one-point"       one solve at solar noon, billed over the day's
+  //                     photoperiod and scaled by the two constants below
+  //   "diurnal"         daily_integration_points solves spread across the
+  //                     photoperiod, integrated by the midpoint rule
+  //
+  // The last two read the day from the environment's latitude, and SWdown and
+  // atm_vpd as values at solar noon. Resolved once in prepare_strategy().
+  std::string daily_integration;
+  int daily_integration_points;
+  // The one-point method's calibration constants: the daily integral is taken
+  // as c times noon's rate times the photoperiod, with one c for carbon and one
+  // for water. 1 is uncalibrated.
+  double one_point_c_assimilation;
+  double one_point_c_transpiration;
+
   // PPA only: thickness of one discrete canopy layer, in optical-depth units
   // (tau = sum of k * leaf-area-index above a height). The stepped light
   // profile floors tau to integer multiples of this value. The default 0.5

@@ -18287,6 +18287,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// TF24_Environment__get_atm_vpd_diurnal_amp
+double TF24_Environment__get_atm_vpd_diurnal_amp(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_);
+RcppExport SEXP _plant_TF24_Environment__get_atm_vpd_diurnal_amp(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment<double> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(TF24_Environment__get_atm_vpd_diurnal_amp(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // TF24_Environment__compute_rates
 void TF24_Environment__compute_rates(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_, std::vector<double> resource_depletion);
 RcppExport SEXP _plant_TF24_Environment__compute_rates(SEXP obj_SEXP, SEXP resource_depletionSEXP) {
@@ -18504,6 +18515,50 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment<double> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type value(valueSEXP);
     TF24_Environment__f_PAR__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// TF24_Environment__latitude__get
+double TF24_Environment__latitude__get(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_);
+RcppExport SEXP _plant_TF24_Environment__latitude__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment<double> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(TF24_Environment__latitude__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// TF24_Environment__latitude__set
+void TF24_Environment__latitude__set(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_, double value);
+RcppExport SEXP _plant_TF24_Environment__latitude__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment<double> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    TF24_Environment__latitude__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// TF24_Environment__vpd_peak_hour__get
+double TF24_Environment__vpd_peak_hour__get(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_);
+RcppExport SEXP _plant_TF24_Environment__vpd_peak_hour__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment<double> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(TF24_Environment__vpd_peak_hour__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// TF24_Environment__vpd_peak_hour__set
+void TF24_Environment__vpd_peak_hour__set(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_, double value);
+RcppExport SEXP _plant_TF24_Environment__vpd_peak_hour__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::TF24_Environment<double> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    TF24_Environment__vpd_peak_hour__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -19303,6 +19358,31 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< std::string >::type type(typeSEXP);
     rcpp_result_gen = Rcpp::wrap(strategy_scientific_version(type));
+    return rcpp_result_gen;
+END_RCPP
+}
+// tf24_solar_day
+Rcpp::DataFrame tf24_solar_day(std::vector<double> time, double latitude);
+RcppExport SEXP _plant_tf24_solar_day(SEXP timeSEXP, SEXP latitudeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::vector<double> >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< double >::type latitude(latitudeSEXP);
+    rcpp_result_gen = Rcpp::wrap(tf24_solar_day(time, latitude));
+    return rcpp_result_gen;
+END_RCPP
+}
+// tf24_sin_elevation
+std::vector<double> tf24_sin_elevation(double time, std::vector<double> hour, double latitude);
+RcppExport SEXP _plant_tf24_sin_elevation(SEXP timeSEXP, SEXP hourSEXP, SEXP latitudeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type hour(hourSEXP);
+    Rcpp::traits::input_parameter< double >::type latitude(latitudeSEXP);
+    rcpp_result_gen = Rcpp::wrap(tf24_sin_elevation(time, hour, latitude));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -21088,6 +21168,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_TF24_Environment__get_leaf_temp", (DL_FUNC) &_plant_TF24_Environment__get_leaf_temp, 1},
     {"_plant_TF24_Environment__get_atm_o2_kpa", (DL_FUNC) &_plant_TF24_Environment__get_atm_o2_kpa, 1},
     {"_plant_TF24_Environment__get_atm_kpa", (DL_FUNC) &_plant_TF24_Environment__get_atm_kpa, 1},
+    {"_plant_TF24_Environment__get_atm_vpd_diurnal_amp", (DL_FUNC) &_plant_TF24_Environment__get_atm_vpd_diurnal_amp, 1},
     {"_plant_TF24_Environment__compute_rates", (DL_FUNC) &_plant_TF24_Environment__compute_rates, 2},
     {"_plant_TF24_Environment__time__get", (DL_FUNC) &_plant_TF24_Environment__time__get, 1},
     {"_plant_TF24_Environment__time__set", (DL_FUNC) &_plant_TF24_Environment__time__set, 2},
@@ -21108,6 +21189,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_TF24_Environment__b_infil__set", (DL_FUNC) &_plant_TF24_Environment__b_infil__set, 2},
     {"_plant_TF24_Environment__f_PAR__get", (DL_FUNC) &_plant_TF24_Environment__f_PAR__get, 1},
     {"_plant_TF24_Environment__f_PAR__set", (DL_FUNC) &_plant_TF24_Environment__f_PAR__set, 2},
+    {"_plant_TF24_Environment__latitude__get", (DL_FUNC) &_plant_TF24_Environment__latitude__get, 1},
+    {"_plant_TF24_Environment__latitude__set", (DL_FUNC) &_plant_TF24_Environment__latitude__set, 2},
+    {"_plant_TF24_Environment__vpd_peak_hour__get", (DL_FUNC) &_plant_TF24_Environment__vpd_peak_hour__get, 1},
+    {"_plant_TF24_Environment__vpd_peak_hour__set", (DL_FUNC) &_plant_TF24_Environment__vpd_peak_hour__set, 2},
     {"_plant_TF24_Environment__ode_size__get", (DL_FUNC) &_plant_TF24_Environment__ode_size__get, 1},
     {"_plant_TF24_Environment__light_availability__get", (DL_FUNC) &_plant_TF24_Environment__light_availability__get, 1},
     {"_plant_TF24_Environment__light_availability__set", (DL_FUNC) &_plant_TF24_Environment__light_availability__set, 2},
@@ -21177,6 +21262,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_TF24t_strategy_expand_allometry", (DL_FUNC) &_plant_TF24t_strategy_expand_allometry, 4},
     {"_plant_TF24w_strategy_expand_allometry", (DL_FUNC) &_plant_TF24w_strategy_expand_allometry, 4},
     {"_plant_strategy_scientific_version", (DL_FUNC) &_plant_strategy_scientific_version, 1},
+    {"_plant_tf24_solar_day", (DL_FUNC) &_plant_tf24_solar_day, 2},
+    {"_plant_tf24_sin_elevation", (DL_FUNC) &_plant_tf24_sin_elevation, 3},
     {"_plant_node_schedule_default__Parameters___TF24__TF24_Env", (DL_FUNC) &_plant_node_schedule_default__Parameters___TF24__TF24_Env, 1},
     {"_plant_make_node_schedule__Parameters___TF24__TF24_Env", (DL_FUNC) &_plant_make_node_schedule__Parameters___TF24__TF24_Env, 1},
     {"_plant_node_schedule_default__Parameters___TF24f__TF24_Env", (DL_FUNC) &_plant_node_schedule_default__Parameters___TF24f__TF24_Env, 1},

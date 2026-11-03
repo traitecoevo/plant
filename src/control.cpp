@@ -22,6 +22,13 @@ Control::Control() {
   // unchanged for both.
   shading_model = "";
 
+  // TF24's daily integral (see Control header). The default is the model as it
+  // has always run.
+  daily_integration = "";
+  daily_integration_points = 48;
+  one_point_c_assimilation = 1.0;
+  one_point_c_transpiration = 1.0;
+
   // PPA canopy layer thickness in optical-depth units (see Control header).
   ppa_layer_optical_depth = 0.5;
   // PPA layer-boundary smoothing fraction (see Control header).

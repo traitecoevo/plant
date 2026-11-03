@@ -6525,6 +6525,10 @@ TF24_Environment__get_atm_kpa <- function(obj_) {
     .Call('_plant_TF24_Environment__get_atm_kpa', PACKAGE = 'plant', obj_)
 }
 
+TF24_Environment__get_atm_vpd_diurnal_amp <- function(obj_) {
+    .Call('_plant_TF24_Environment__get_atm_vpd_diurnal_amp', PACKAGE = 'plant', obj_)
+}
+
 TF24_Environment__compute_rates <- function(obj_, resource_depletion) {
     invisible(.Call('_plant_TF24_Environment__compute_rates', PACKAGE = 'plant', obj_, resource_depletion))
 }
@@ -6603,6 +6607,22 @@ TF24_Environment__f_PAR__get <- function(obj_) {
 
 TF24_Environment__f_PAR__set <- function(obj_, value) {
     invisible(.Call('_plant_TF24_Environment__f_PAR__set', PACKAGE = 'plant', obj_, value))
+}
+
+TF24_Environment__latitude__get <- function(obj_) {
+    .Call('_plant_TF24_Environment__latitude__get', PACKAGE = 'plant', obj_)
+}
+
+TF24_Environment__latitude__set <- function(obj_, value) {
+    invisible(.Call('_plant_TF24_Environment__latitude__set', PACKAGE = 'plant', obj_, value))
+}
+
+TF24_Environment__vpd_peak_hour__get <- function(obj_) {
+    .Call('_plant_TF24_Environment__vpd_peak_hour__get', PACKAGE = 'plant', obj_)
+}
+
+TF24_Environment__vpd_peak_hour__set <- function(obj_, value) {
+    invisible(.Call('_plant_TF24_Environment__vpd_peak_hour__set', PACKAGE = 'plant', obj_, value))
 }
 
 TF24_Environment__ode_size__get <- function(obj_) {
@@ -6902,6 +6922,14 @@ TF24w_strategy_expand_allometry <- function(s, height, area_heartwood, mass_hear
 
 strategy_scientific_version <- function(type) {
     .Call('_plant_strategy_scientific_version', PACKAGE = 'plant', type)
+}
+
+tf24_solar_day <- function(time, latitude) {
+    .Call('_plant_tf24_solar_day', PACKAGE = 'plant', time, latitude)
+}
+
+tf24_sin_elevation <- function(time, hour, latitude) {
+    .Call('_plant_tf24_sin_elevation', PACKAGE = 'plant', time, hour, latitude)
 }
 
 node_schedule_default__Parameters___TF24__TF24_Env <- function(p) {

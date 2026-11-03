@@ -527,6 +527,10 @@ template <> inline SEXP wrap(const plant::Control& x) {
   Rcpp::List ret;
   ret["function_integration_rule"] = Rcpp::wrap(x.function_integration_rule);
   ret["shading_model"] = Rcpp::wrap(x.shading_model);
+  ret["daily_integration"] = Rcpp::wrap(x.daily_integration);
+  ret["daily_integration_points"] = Rcpp::wrap(x.daily_integration_points);
+  ret["one_point_c_assimilation"] = Rcpp::wrap(x.one_point_c_assimilation);
+  ret["one_point_c_transpiration"] = Rcpp::wrap(x.one_point_c_transpiration);
   ret["ppa_layer_optical_depth"] = Rcpp::wrap(x.ppa_layer_optical_depth);
   ret["ppa_layer_smoothing"] = Rcpp::wrap(x.ppa_layer_smoothing);
   ret["offspring_production_tol"] = Rcpp::wrap(x.offspring_production_tol);
@@ -572,6 +576,14 @@ template <> inline plant::Control as(SEXP x) {
   if (xl.containsElementNamed("function_integration_rule")) ret.function_integration_rule = Rcpp::as<size_t >(xl["function_integration_rule"]);
   // ret.shading_model = Rcpp::as<decltype(retshading_model) >(xl["shading_model"]);
   if (xl.containsElementNamed("shading_model")) ret.shading_model = Rcpp::as<std::string >(xl["shading_model"]);
+  // ret.daily_integration = Rcpp::as<decltype(retdaily_integration) >(xl["daily_integration"]);
+  if (xl.containsElementNamed("daily_integration")) ret.daily_integration = Rcpp::as<std::string >(xl["daily_integration"]);
+  // ret.daily_integration_points = Rcpp::as<decltype(retdaily_integration_points) >(xl["daily_integration_points"]);
+  if (xl.containsElementNamed("daily_integration_points")) ret.daily_integration_points = Rcpp::as<int >(xl["daily_integration_points"]);
+  // ret.one_point_c_assimilation = Rcpp::as<decltype(retone_point_c_assimilation) >(xl["one_point_c_assimilation"]);
+  if (xl.containsElementNamed("one_point_c_assimilation")) ret.one_point_c_assimilation = Rcpp::as<double >(xl["one_point_c_assimilation"]);
+  // ret.one_point_c_transpiration = Rcpp::as<decltype(retone_point_c_transpiration) >(xl["one_point_c_transpiration"]);
+  if (xl.containsElementNamed("one_point_c_transpiration")) ret.one_point_c_transpiration = Rcpp::as<double >(xl["one_point_c_transpiration"]);
   // ret.ppa_layer_optical_depth = Rcpp::as<decltype(retppa_layer_optical_depth) >(xl["ppa_layer_optical_depth"]);
   if (xl.containsElementNamed("ppa_layer_optical_depth")) ret.ppa_layer_optical_depth = Rcpp::as<double >(xl["ppa_layer_optical_depth"]);
   // ret.ppa_layer_smoothing = Rcpp::as<decltype(retppa_layer_smoothing) >(xl["ppa_layer_smoothing"]);

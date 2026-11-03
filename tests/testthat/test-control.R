@@ -24,6 +24,11 @@ test_that("Defaults", {
 
     function_integration_rule = 21, # size_t so not int
     shading_model = "", # empty = each strategy's own default
+    # TF24's daily integral: empty is the fixed twelve-hour day it always ran.
+    daily_integration = "",
+    daily_integration_points = 48L,
+    one_point_c_assimilation = 1.0,
+    one_point_c_transpiration = 1.0,
     ppa_layer_optical_depth = 0.5,
     ppa_layer_smoothing = 0.3,
 

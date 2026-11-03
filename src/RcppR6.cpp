@@ -7425,6 +7425,10 @@ double TF24_Environment__get_atm_kpa(plant::RcppR6::RcppR6<plant::TF24_Environme
   return obj_->get_atm_kpa();
 }
 // [[Rcpp::export]]
+double TF24_Environment__get_atm_vpd_diurnal_amp(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_) {
+  return obj_->get_atm_vpd_diurnal_amp();
+}
+// [[Rcpp::export]]
 void TF24_Environment__compute_rates(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_, std::vector<double> resource_depletion) {
   obj_->compute_rates(resource_depletion);
 }
@@ -7512,6 +7516,24 @@ double TF24_Environment__f_PAR__get(plant::RcppR6::RcppR6<plant::TF24_Environmen
 // [[Rcpp::export]]
 void TF24_Environment__f_PAR__set(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_, double value) {
   obj_->f_PAR = value;
+}
+
+// [[Rcpp::export]]
+double TF24_Environment__latitude__get(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_) {
+  return obj_->latitude;
+}
+// [[Rcpp::export]]
+void TF24_Environment__latitude__set(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_, double value) {
+  obj_->latitude = value;
+}
+
+// [[Rcpp::export]]
+double TF24_Environment__vpd_peak_hour__get(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_) {
+  return obj_->vpd_peak_hour;
+}
+// [[Rcpp::export]]
+void TF24_Environment__vpd_peak_hour__set(plant::RcppR6::RcppR6<plant::TF24_Environment<double> > obj_, double value) {
+  obj_->vpd_peak_hour = value;
 }
 
 // [[Rcpp::export]]

@@ -406,6 +406,10 @@ Control:
   list:
     - function_integration_rule: size_t
     - shading_model: std::string
+    - daily_integration: std::string
+    - daily_integration_points: int
+    - one_point_c_assimilation: double
+    - one_point_c_transpiration: double
     - ppa_layer_optical_depth: double
     - ppa_layer_smoothing: double
     - offspring_production_tol: double
@@ -1643,6 +1647,9 @@ TF24_Environment:
     get_atm_kpa:
       args: []
       return_type: double
+    get_atm_vpd_diurnal_amp:
+      args: []
+      return_type: double
     compute_rates:
       args: [resource_depletion: std::vector<double>]
       return_type: void
@@ -1661,6 +1668,8 @@ TF24_Environment:
     a_infil: {type: double, access: field}
     b_infil: {type: double, access: field}
     f_PAR: {type: double, access: field}
+    latitude: {type: double, access: field}
+    vpd_peak_hour: {type: double, access: field}
     ode_size: {type: size_t, access: member}
     light_availability:
       type: "plant::ResourceSpline<double>"

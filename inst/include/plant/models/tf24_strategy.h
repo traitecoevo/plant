@@ -7,6 +7,7 @@
 #include <plant/strategy.h>
 #include <odelia/ode_util.hpp>
 #include <plant/models/tf24_environment.h>
+#include <plant/models/tf24_diurnal.h>
 #include <plant/census_gradient.h>
 #include <plant/qag.h>
 #include <plant/leaf_model.h>
@@ -680,6 +681,10 @@ private:
 
 // Selects TF24_Strategy's constructor from another strategy, which rebind() uses.
 struct tf24_strategy_from_t {};
+
+// TF24's daily integral; see Control::daily_integration. Outside the class so
+// that a rebind between scalars copies one type.
+enum class DailyIntegration { Fixed12h, OnePoint, Diurnal };
 
 template <typename S = double>
 class TF24_Strategy: public Strategy<TF24_Environment<S>> {
@@ -1568,6 +1573,10 @@ public:
     }
 
     shading_model_ = src.shading_model_;
+    daily_integration_ = src.daily_integration_;
+    daily_integration_points_ = src.daily_integration_points_;
+    one_point_c_assimilation_ = src.one_point_c_assimilation_;
+    one_point_c_transpiration_ = src.one_point_c_transpiration_;
     eta_c = S(odelia::util::to_passive(src.eta_c));
     birth_rate_ = S(odelia::util::to_passive(src.birth_rate_));
     canopy_shape.initialise(pars.eta, shading_model_);
@@ -1616,6 +1625,21 @@ public:
   // prepare_strategy(). TF24 supports deep-crown, mean-light (its default)
   // and crown-centre; PPA is not available for TF24.
   ShadingModel shading_model_ = ShadingModel::MeanLight;
+
+  // How a day's carbon and water are built from leaf solves, resolved once from
+  // control.daily_integration in prepare_strategy() (#618, experiment). See
+  // Control::daily_integration.
+  DailyIntegration daily_integration_ = DailyIntegration::Fixed12h;
+  int daily_integration_points_ = 48;
+  double one_point_c_assimilation_ = 1.0;
+  double one_point_c_transpiration_ = 1.0;
+  // Seconds of daylight in a year of days like today. Set by the leaf-physiology
+  // block under the two non-default integrations and read where the per-second
+  // rates become annual ones; the fixed-12h path never touches it.
+  double daylight_seconds_per_year_ = 0.0;
+  // One evaluation's per-layer uptake summed over the day's solves. Rewritten
+  // before it is read.
+  std::vector<double> day_soil_consumption_;
 
   // Biological (user-settable) parameters; see TF24_Pars above.
   TF24_Pars<S> pars;
@@ -2432,7 +2456,11 @@ void TF24_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,  In
 
     // evapotranspiration (mol H20 m^-2 s^-1 layer^-1)
     // consumption rate (m yr^-1 layer ^-1)
-    vars.set_consumption_rate(i, evapotranspiration_dt(area_leaf_, i)*60*60*12*365/1000*kg_per_mol_h2o);
+    if (daily_integration_ == DailyIntegration::Fixed12h) {
+      vars.set_consumption_rate(i, evapotranspiration_dt(area_leaf_, i)*60*60*12*365/1000*kg_per_mol_h2o);
+    } else {
+      vars.set_consumption_rate(i, evapotranspiration_dt(area_leaf_, i)*daylight_seconds_per_year_/1000*kg_per_mol_h2o);
+    }
   }
 
   // A storage pool buffers demography against short-term productivity swings:
@@ -2912,8 +2940,12 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
     util::stop("TF24: the environment's f_PAR must lie in (0, 1]; got " +
                util::to_string(f_PAR));
   }
-  const double PPFD_above =
+  // Not const: the diurnal integral moves these two through the day (#618).
+  // Read at the drivers they are the values at solar noon, which is all any
+  // other integration sees.
+  double PPFD_above =
     phylloptim::umol_par_per_joule * f_PAR * environment.get_SWdown();
+  double atm_vpd = environment.get_atm_vpd();
   const double NIR_per_PPFD_int =
     (1.0 - f_PAR) / (phylloptim::umol_par_per_joule * f_PAR);
 
@@ -2945,7 +2977,7 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
     if constexpr (std::is_same_v<S, double>) {
       leaf.set_physiology(root_network_, PPFD_int, psi_soil, soil_depths_,
                           leaf_specific_conductance_max,
-                          environment.get_atm_vpd(), environment.get_ca(),
+                          atm_vpd, environment.get_ca(),
                           environment.get_leaf_temp(),
                           environment.get_atm_o2_kpa(),
                           environment.get_atm_kpa());
@@ -2958,7 +2990,7 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
       leaf.set_physiology(root_network_, to_passive(PPFD_int), psi_soil_value_,
                           soil_depths_,
                           to_passive(leaf_specific_conductance_max),
-                          environment.get_atm_vpd(), environment.get_ca(),
+                          atm_vpd, environment.get_ca(),
                           environment.get_leaf_temp(),
                           environment.get_atm_o2_kpa(),
                           environment.get_atm_kpa());
@@ -2995,8 +3027,13 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
   //                   (TF24's established default).
   //  - deep-crown:    one optimisation per crown-depth quadrature point, with
   //                   every leaf output integrated to a leaf-area-weighted mean.
+  //
+  // The crown's light depends on the canopy and not on the hour, so it is found
+  // once here and a day of solves reuses it: only PPFD_above and atm_vpd move
+  // through the day.
+  S crown_light = 0.0;
   if (shading_model_ == ShadingModel::CrownCentre) {
-    optimise_at(PPFD_int_at(environment.get_environment_at_height(height * eta_c)));
+    crown_light = environment.get_environment_at_height(height * eta_c);
   } else if (shading_model_ == ShadingModel::MeanLight) {
     // Leaf-area-weighted mean canopy openness = integral of (light * q) over the
     // crown (q integrates to one). PPFD_int_at then applies pars.k_I * PPFD_above,
@@ -3014,9 +3051,16 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
       }
       return X(light);
     };
-    optimise_at(PPFD_int_at(
-        environment.light_availability.crown_integral(height, crown, floored)));
-  } else { // DeepCrown
+    crown_light =
+      environment.light_availability.crown_integral(height, crown, floored);
+  }
+
+  // One solve of the whole crown at the current PPFD_above and atm_vpd.
+  auto solve_crown = [&]() -> void {
+    if (shading_model_ != ShadingModel::DeepCrown) {
+      optimise_at(PPFD_int_at(crown_light));
+      return;
+    }
     if constexpr (std::is_same_v<S, double>) {
       const std::vector<double> nodes =
         function_integrator.integrate_vector_x(0.0, height);
@@ -3066,10 +3110,92 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
                  "which carries double. Use crown-centre or mean-light "
                  "shading for a gradient.");
     }
+  };
+
+  // --- The day (#618, experiment) --------------------------------------------
+  // fixed-12h: one solve at the drivers, billed below as twelve hours of daylight.
+  // one-point: one solve at solar noon -- the drivers, as read above -- with c
+  //            applied to carbon and to water, billed over the photoperiod.
+  // diurnal:   n solves at the midpoints of n equal slices of the photoperiod,
+  //            averaged and billed over the photoperiod. The slices are placed
+  //            symmetrically about noon, so n = 1 is one-point with c = 1.
+  //
+  // Under the two new methods the leaf.* outputs hold DAYLIGHT MEANS of the
+  // per-second rates, so every aux reports a daylight mean too.
+  if (daily_integration_ == DailyIntegration::Fixed12h) {
+    solve_crown();
+  } else if constexpr (!std::is_same_v<S, double>) {
+    util::stop("daily_integration '" + this->control.daily_integration +
+               "' is not differentiable: a day of solves passes through Leaf, "
+               "which carries double");
+  } else {
+    if (!util::is_finite(environment.latitude)) {
+      util::stop("daily_integration '" + this->control.daily_integration +
+                 "' needs the site's latitude: set the environment's latitude");
+    }
+    const diurnal::SolarDay day(environment.time, environment.latitude);
+    daylight_seconds_per_year_ = day.daylength * 3600.0 * 365.0;
+
+    if (daily_integration_ == DailyIntegration::OnePoint) {
+      solve_crown();
+      leaf.profit_ *= one_point_c_assimilation_;
+      leaf.transpiration_ *= one_point_c_transpiration_;
+      leaf.E_up_ *= one_point_c_transpiration_;
+      for (int a = 0; a < soil_number_of_depths_; ++a) {
+        leaf.soil_consumption_[a] *= one_point_c_transpiration_;
+      }
+    } else {
+      const double amp = environment.get_atm_vpd_diurnal_amp();
+      if (!(amp >= 0.0 && amp < 1.0)) {
+        util::stop("atm_vpd_diurnal_amp must lie in [0, 1); got " +
+                   util::to_string(amp));
+      }
+      const double peak = environment.vpd_peak_hour;
+      const double PPFD_above_noon = PPFD_above;
+      const double atm_vpd_noon = atm_vpd;
+      const double sin_elevation_noon = day.sin_elevation(12.0);
+      const double vpd_shape_noon = diurnal::vpd_shape(12.0, amp, peak);
+
+      const int n = daily_integration_points_;
+      const double dh = day.daylength / n;
+      double profit = 0.0, trans = 0.0, eup = 0.0, psi = 0.0, root_psi = 0.0,
+        gco2 = 0.0, assim = 0.0, tleaf = 0.0;
+      day_soil_consumption_.assign(soil_number_of_depths_, 0.0);
+      for (int k = 0; k < n; ++k) {
+        const double hour = 12.0 + (k + 0.5 - 0.5 * n) * dh;
+        PPFD_above =
+          PPFD_above_noon * (day.sin_elevation(hour) / sin_elevation_noon);
+        atm_vpd = atm_vpd_noon *
+          (diurnal::vpd_shape(hour, amp, peak) / vpd_shape_noon);
+        solve_crown();
+        profit   += leaf.profit_;
+        trans    += leaf.transpiration_;
+        eup      += leaf.E_up_;
+        psi      += leaf.opt_psi_stem_;
+        root_psi += leaf.opt_root_psi_;
+        gco2     += leaf.stom_cond_CO2_;
+        assim    += leaf.assim_colimited_;
+        tleaf    += leaf.Tleaf_;
+        for (int a = 0; a < soil_number_of_depths_; ++a) {
+          day_soil_consumption_[a] += leaf.soil_consumption_[a];
+        }
+      }
+      leaf.profit_          = profit / n;
+      leaf.transpiration_   = trans / n;
+      leaf.E_up_            = eup / n;
+      leaf.opt_psi_stem_    = psi / n;
+      leaf.opt_root_psi_    = root_psi / n;
+      leaf.stom_cond_CO2_   = gco2 / n;
+      leaf.assim_colimited_ = assim / n;
+      leaf.Tleaf_           = tleaf / n;
+      for (int a = 0; a < soil_number_of_depths_; ++a) {
+        leaf.soil_consumption_[a] = day_soil_consumption_[a] / n;
+      }
+      PPFD_above = PPFD_above_noon;
+      atm_vpd = atm_vpd_noon;
+    }
   }
 
-
-  //TODO: one point constant ratio and integral width for daylength
   // convert assimilation per leaf area per second (umol m^-2 s^-1) to canopy-level total yearly assimilation (mol yr^-1)
   // converts to canopy area, then years, then mols
   //
@@ -3157,7 +3283,13 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
     solve_at(kmax);
   }
 
-  const S assimilation_ = profit_ * area_leaf_* 60*60*12*365/1e6;
+  // The fixed-12h line is the original expression, untouched: see DO NOT HOIST.
+  const S assimilation_ = [&]() -> S {
+    if (daily_integration_ == DailyIntegration::Fixed12h) {
+      return profit_ * area_leaf_* 60*60*12*365/1e6;
+    }
+    return profit_ * area_leaf_ * daylight_seconds_per_year_ / 1e6;
+  }();
   // const double assimilation_ = assimilation(environment, height, area_leaf_);
   const S mass_coarse_root_ = mass_coarse_root(mass_sapwood_);
   const S respiration_ =
@@ -3679,6 +3811,52 @@ void TF24_Strategy<S>::prepare_strategy() {
       "TF24 sapwood acclimation (a_sw > 0) is not supported with the "
       "deep-crown shading model: the sapwood sensitivity is measured at a "
       "single light and deep-crown integrates over the crown");
+  }
+
+  // The daily integral (#618, experiment). Everything the two new methods
+  // cannot honour is refused here, before a run, rather than at a rate
+  // evaluation part-way through one.
+  {
+    const std::string& method = this->control.daily_integration;
+    if (method.empty() || method == "fixed-12h") {
+      daily_integration_ = DailyIntegration::Fixed12h;
+    } else if (method == "one-point") {
+      daily_integration_ = DailyIntegration::OnePoint;
+    } else if (method == "diurnal") {
+      daily_integration_ = DailyIntegration::Diurnal;
+    } else {
+      throw std::invalid_argument(
+        "Unknown daily_integration '" + method +
+        "': expected 'fixed-12h', 'one-point' or 'diurnal'");
+    }
+    daily_integration_points_ = this->control.daily_integration_points;
+    one_point_c_assimilation_ = this->control.one_point_c_assimilation;
+    one_point_c_transpiration_ = this->control.one_point_c_transpiration;
+    if (daily_integration_ != DailyIntegration::Fixed12h) {
+      if (daily_integration_points_ < 1) {
+        throw std::invalid_argument(
+          "daily_integration_points must be at least 1");
+      }
+      if (!(one_point_c_assimilation_ > 0.0 &&
+            one_point_c_transpiration_ > 0.0)) {
+        throw std::invalid_argument(
+          "one_point_c_assimilation and one_point_c_transpiration must be "
+          "positive");
+      }
+      // TF24f carries one tracked collar state and TF24t bills thermal damage on
+      // the leaf temperature of one solve; neither has a day of them.
+      if (this->name == "TF24f" || this->name == "TF24t") {
+        throw std::invalid_argument(
+          "daily_integration '" + method + "' is not supported for " +
+          this->name);
+      }
+      // Sapwood acclimation differences the profit at one light.
+      if (odelia::util::to_passive(pars.a_sw) > 0.0) {
+        throw std::invalid_argument(
+          "daily_integration '" + method + "' is not supported with sapwood "
+          "acclimation (a_sw > 0): its sensitivity is measured at one light");
+      }
+    }
   }
 
   canopy_shape.initialise(pars.eta, shading_model_);

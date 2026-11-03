@@ -110,6 +110,9 @@ public:
     // re-baselining them against an accident. Set it per-site if you mean altitude.
     extrinsic_drivers_set_constant("atm_kpa",101.3);
     extrinsic_drivers_set_constant("wind_speed",2.0); // U0, m s^-1 (Penman-Monteith, #523)
+    // Relative amplitude of the VPD's daily cycle; read only by the "diurnal"
+    // daily integration (#618), and zero (a flat day) unless set.
+    extrinsic_drivers_set_constant("atm_vpd_diurnal_amp",0.0);
 
     set_soil_number_of_depths(soil_number_of_depths);
     set_soil_water_state(std::vector<double>(soil_number_of_depths, soil_moist_sat*0.5));
@@ -477,6 +480,8 @@ public:
     a_infil = src.a_infil;
     b_infil = src.b_infil;
     f_PAR = src.f_PAR;
+    latitude = src.latitude;
+    vpd_peak_hour = src.vpd_peak_hour;
     soil_moist_residual = src.soil_moist_residual;
     soil_psi_max_ = src.soil_psi_max_;
     water_mixing_rate = src.water_mixing_rate;
@@ -612,11 +617,12 @@ public:
     DRIVER_ATM_O2_KPA,
     DRIVER_ATM_KPA,
     DRIVER_WIND_SPEED,
+    DRIVER_ATM_VPD_DIURNAL_AMP,
     DRIVER_COUNT
   };
   static constexpr std::array<const char*, DRIVER_COUNT> driver_names_ = {
       "SWdown", "atm_vpd", "ca", "leaf_temp", "atm_o2_kpa", "atm_kpa",
-      "wind_speed"};
+      "wind_speed", "atm_vpd_diurnal_amp"};
 
   // What was read, and the one time every entry was read at. Each driver is a
   // function of that time and of nothing else, so the memo holds one time and
@@ -628,9 +634,9 @@ public:
   };
   mutable driver_memo drivers_;
 
-  // ⚠️ ONE DRIVER AT A TIME, AND NOT ALL SEVEN WHERE THE TIME IS SET. `evaluate`
+  // ⚠️ ONE DRIVER AT A TIME, AND NOT ALL OF THEM WHERE THE TIME IS SET. `evaluate`
   // raises for a driver that was never set and for a time outside a variable
-  // driver's control points, so refreshing seven to serve one would raise on an
+  // driver's control points, so refreshing all of them to serve one would raise on an
   // environment that only ever reads one of them.
   double driver_at(int d) const {
     if (drivers_.time != time) {
@@ -685,6 +691,16 @@ public:
   // property of the sky, about 0.45-0.5 and rising a little under cloud, so in
   // practice a constant: a fixed parameter rather than a driver.
   double f_PAR = 0.5;
+
+  // The site's day, read only when Control::daily_integration is "one-point" or
+  // "diurnal" (#618, experiment). Under those, SWdown and atm_vpd are the values
+  // AT SOLAR NOON of the day the time falls on; the photoperiod comes from the
+  // latitude and the course through the day from tf24_diurnal.h. NaN latitude is
+  // "not set", and both modes refuse it rather than assume a site.
+  //   latitude       degrees, south negative
+  //   vpd_peak_hour  solar hour of the VPD maximum
+  double latitude = std::numeric_limits<double>::quiet_NaN();
+  double vpd_peak_hour = 14.5;
 
   // Residual soil moisture floor (m3 m^-3). The water balance cannot dry a
   // layer below this (see the positivity guard in compute_rates), and
@@ -983,6 +999,10 @@ public:
   double get_atm_kpa()    const { return driver_at(DRIVER_ATM_KPA); }
   // Above-canopy wind speed U0 (m s^-1), Penman-Monteith aerodynamic resistance (#523)
   double get_wind_speed() const { return driver_at(DRIVER_WIND_SPEED); }
+  // Relative amplitude of the VPD's daily cycle (unitless, [0, 1)); see latitude.
+  double get_atm_vpd_diurnal_amp() const {
+    return driver_at(DRIVER_ATM_VPD_DIURNAL_AMP);
+  }
 
 
   std::vector<double> get_soil_water_state() const {
