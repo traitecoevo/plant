@@ -13,7 +13,50 @@ execute:
   message: false
 ---
 
-Render from this folder against a plant built from this branch, e.g. `R_LIBS=<lib with this build> quarto render analysis.qmd`. Expensive runs are cached as `.rds` beside this file; delete them to rerun. The plan is `notes/plan-618-daily-integral.md`.
+The plan is `notes/plan-618-daily-integral.md`.
+
+## Running this yourself
+
+The analysis needs plant built from this branch, against the exact versions of phylloptim and odelia it pins (`== 0.26.2` and `== 0.10.5`). Install all three into a private library folder, so nothing in your system or user R library changes. You need a C++20 compiler: Xcode Command Line Tools on macOS, Rtools on Windows.
+
+**1. Get the branch** (anywhere you like):
+
+```sh
+git clone --branch experiment/618-daily-integral https://github.com/traitecoevo/plant.git plant-618
+cd plant-618/notes/618-daily-integral
+```
+
+**2. Install into a private library**, from R started in that folder:
+
+```r
+lib <- normalizePath("Rlib-618", mustWork = FALSE)  # a folder beside this file
+dir.create(lib, showWarnings = FALSE)
+.libPaths(c(lib, .libPaths()))          # this session only
+if (!requireNamespace("remotes", quietly = TRUE))
+  install.packages("remotes", lib = lib)
+
+## Pinned upstreams first, then plant. upgrade = "never" stops remotes from
+## replacing them with newer releases; missing CRAN dependencies (Rcpp, BH, ...)
+## also go into `lib`.
+remotes::install_github("traitecoevo/odelia@v0.10.5", lib = lib, upgrade = "never")
+remotes::install_github("traitecoevo/phylloptim@v0.26.2", lib = lib, upgrade = "never")
+remotes::install_github("traitecoevo/plant@experiment/618-daily-integral",
+                        lib = lib, upgrade = "never")
+
+## Check: all three should report paths inside `lib`.
+sapply(c("plant", "phylloptim", "odelia"), find.package)
+packageVersion("phylloptim")             # 0.26.2
+```
+
+`.libPaths()` lasts only for that R session, so the system library is never written to. The plotting packages this file uses (ggplot2, dplyr, tidyr, knitr) can come from your normal library; if any are missing, install them with `lib = lib` too.
+
+**3. Render**, from the shell in the same folder, pointing R at the private library first:
+
+```sh
+R_LIBS="$PWD/Rlib-618" quarto render analysis.qmd
+```
+
+The `setup` chunk stops if it finds a plant without this branch's option or the wrong phylloptim. Runs are cached as `.rds` beside this file; delete them to rerun. A cold render runs all eight stands twice (once with a monthly census, once for timing): about 10 minutes, nearly all of it in the four diurnal runs. To try your own site, add an entry to `sites` in the helpers chunk.
 
 ## The question
 
@@ -41,9 +84,16 @@ Stage 1, two synthetic sites, 10-year stands (numbers from the tables below; wri
 ```{r setup}
 #| code-fold: true
 suppressMessages({library(plant); library(ggplot2); library(dplyr); library(tidyr)})
-commit <- system("git rev-parse --short HEAD", intern = TRUE)
-cat("plant from", find.package("plant"), "| branch commit", commit, "\n")
-stopifnot("daily_integration" %in% names(control()))
+commit <- tryCatch(system("git rev-parse --short HEAD", intern = TRUE),
+                   error = function(e) "unknown", warning = function(w) "unknown")
+cat("plant from", find.package("plant"), "| branch commit", commit,
+    "| phylloptim", format(packageVersion("phylloptim")), "\n")
+if (!"daily_integration" %in% names(control()))
+  stop("This plant has no daily_integration option: install it from the ",
+       "experiment/618-daily-integral branch (see 'Running this yourself')")
+if (packageVersion("phylloptim") != "0.26.2")
+  stop("plant on this branch is built against phylloptim 0.26.2; found ",
+       packageVersion("phylloptim"))
 
 ## Validated categorical slots 1-3 (dataviz reference palette, all-pairs), with
 ## the reference arm in ink.
@@ -411,7 +461,22 @@ Offspring production is not compared: at year 10 these stands have barely begun 
 ## Speed
 
 ```{r timing}
-timing <- cached("timing.rds", stop("run dev timing first"))
+## One plain run_scm() per arm -- no census loop -- timing the run and
+## counting leaf solves by the operating point each ended on.
+timing <- cached("timing.rds", {
+  kinds <- plant:::census_operating_point_names_tf24()
+  out <- list()
+  for (nm in names(sites)) for (arm in c("F", "O1", "Oc", "D")) {
+    scm <- run_scm(stand_parameters(10), site_env(sites[[nm]], 10),
+                   arm_control(arm, arms[[nm]]$cal$c_hat), run = FALSE)
+    el <- system.time(scm$run())[["elapsed"]]
+    counts <- colSums(do.call(rbind, plant:::census_operating_point_counts_tf24(scm)))
+    names(counts) <- kinds
+    out[[length(out) + 1]] <- data.frame(site = nm, arm = arm, elapsed = el,
+      steps = length(scm$ode_times), t(counts))
+  }
+  do.call(rbind, out)
+})
 kind_cols <- setdiff(names(timing), c("site", "arm", "elapsed", "steps"))
 timing$solves <- rowSums(timing[kind_cols])
 tt <- timing |> group_by(site) |>
