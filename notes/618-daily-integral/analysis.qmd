@@ -17,46 +17,58 @@ The plan is `notes/plan-618-daily-integral.md`.
 
 ## Running this yourself
 
-The analysis needs plant built from this branch, against the exact versions of phylloptim and odelia it pins (`== 0.26.2` and `== 0.10.5`). Install all three into a private library folder, so nothing in your system or user R library changes. You need a C++20 compiler: Xcode Command Line Tools on macOS, Rtools on Windows.
+Everything below is R; no shell needed. The analysis needs plant built from this branch, against the exact versions of phylloptim and odelia it pins (`== 0.26.2` and `== 0.10.5`). They are installed into a private library folder, `Rlib-618`, beside this file, so nothing in your system or user R library changes. You need a C++20 compiler (Xcode Command Line Tools on macOS, Rtools on Windows) and, to render, Quarto.
 
-**1. Get the branch** (anywhere you like):
-
-```sh
-git clone --branch experiment/618-daily-integral https://github.com/traitecoevo/plant.git plant-618
-cd plant-618/notes/618-daily-integral
-```
-
-**2. Install into a private library**, from R started in that folder:
+**1. Get this file**, if you do not have it yet, from any R session:
 
 ```r
-lib <- normalizePath("Rlib-618", mustWork = FALSE)  # a folder beside this file
+dir.create("onepoint-618", showWarnings = FALSE)
+download.file(paste0("https://raw.githubusercontent.com/traitecoevo/plant/",
+                     "experiment/618-daily-integral/notes/618-daily-integral/analysis.qmd"),
+              file.path("onepoint-618", "analysis.qmd"))
+```
+
+**2. Open it and run all chunks**, with the working directory set to this file's folder (RStudio does that for a `.qmd`; elsewhere `setwd()` to it). The first chunk below installs the three packages into `Rlib-618` if they are not already there (once; a few minutes of compiling), and every later chunk loads them from there. Or render the whole thing from R:
+
+```r
+quarto::quarto_render("analysis.qmd")   # needs the quarto R package and Quarto itself
+```
+
+Runs are cached as `.rds` beside this file; delete them to rerun. A cold run takes about an hour, nearly all of it the diurnal reference arm D. To try your own site, add an entry to `sites` in the helpers chunk.
+
+```{r install}
+#| code-fold: false
+## The private library, beside this file. Put first on the search path for
+## this R session only: the system and user libraries are never written to.
+lib <- normalizePath("Rlib-618", mustWork = FALSE)
 dir.create(lib, showWarnings = FALSE)
-.libPaths(c(lib, .libPaths()))          # this session only
-if (!requireNamespace("remotes", quietly = TRUE))
-  install.packages("remotes", lib = lib)
+.libPaths(c(lib, setdiff(.libPaths(), lib)))
 
-## Pinned upstreams first, then plant. upgrade = "never" stops remotes from
-## replacing them with newer releases; missing CRAN dependencies (Rcpp, BH, ...)
-## also go into `lib`.
-remotes::install_github("traitecoevo/odelia@v0.10.5", lib = lib, upgrade = "never")
-remotes::install_github("traitecoevo/phylloptim@v0.26.2", lib = lib, upgrade = "never")
-remotes::install_github("traitecoevo/plant@experiment/618-daily-integral",
-                        lib = lib, upgrade = "never")
-
-## Check: all three should report paths inside `lib`.
+installed_ok <- function() {
+  ok <- function(pkg, version = NULL) {
+    d <- file.path(lib, pkg, "DESCRIPTION")
+    file.exists(d) && (is.null(version) || read.dcf(d, "Version")[1] == version)
+  }
+  ok("odelia", "0.10.5") && ok("phylloptim", "0.26.2") && ok("plant") &&
+    "one_point_c_assimilation_slope" %in%
+      names(get("control", asNamespace("plant"))())
+}
+if (!isTRUE(tryCatch(installed_ok(), error = function(e) FALSE))) {
+  if (!requireNamespace("remotes", quietly = TRUE))
+    install.packages("remotes", lib = lib)
+  ## Pinned upstreams first, then plant. upgrade = "never" stops remotes from
+  ## replacing them with newer releases; missing CRAN dependencies (Rcpp, BH,
+  ## ...) also go into `lib`.
+  remotes::install_github("traitecoevo/odelia@v0.10.5", lib = lib, upgrade = "never")
+  remotes::install_github("traitecoevo/phylloptim@v0.26.2", lib = lib, upgrade = "never")
+  remotes::install_github("traitecoevo/plant@experiment/618-daily-integral",
+                          lib = lib, upgrade = "never", force = TRUE)
+}
+## Where each came from: all three should be inside `lib`.
 sapply(c("plant", "phylloptim", "odelia"), find.package)
-packageVersion("phylloptim")             # 0.26.2
 ```
 
-`.libPaths()` lasts only for that R session, so the system library is never written to. The plotting packages this file uses (ggplot2, dplyr, tidyr, knitr) can come from your normal library; if any are missing, install them with `lib = lib` too.
-
-**3. Render**, from the shell in the same folder, pointing R at the private library first:
-
-```sh
-R_LIBS="$PWD/Rlib-618" quarto render analysis.qmd
-```
-
-The `setup` chunk stops if it finds a plant without this branch's option or the wrong phylloptim. Runs are cached as `.rds` beside this file; delete them to rerun. A cold render runs every stand twice (once with a census, once for timing) and the 50-year patches: about an hour, nearly all of it in the diurnal arm D. To try your own site, add an entry to `sites` in the helpers chunk.
+If plant was already loaded in this R session from another library, restart R before running the chunks, or the old one stays in use (the setup chunk checks and stops). The plotting packages this file uses (ggplot2, dplyr, tidyr, knitr) can come from your normal library; if any are missing, `install.packages(..., lib = lib)`.
 
 ## The question
 
@@ -90,6 +102,9 @@ commit <- tryCatch(system("git rev-parse --short HEAD", intern = TRUE),
                    error = function(e) "unknown", warning = function(w) "unknown")
 cat("plant from", find.package("plant"), "| branch commit", commit,
     "| phylloptim", format(packageVersion("phylloptim")), "\n")
+if (!startsWith(normalizePath(find.package("plant")), lib))
+  stop("plant was loaded from ", find.package("plant"), ", not ", lib,
+       ": restart R and run the chunks from the top")
 if (!all(c("daily_integration", "one_point_c_assimilation_slope") %in% names(control())))
   stop("This plant lacks this branch's daily_integration options: install it from ",
        "experiment/618-daily-integral (see 'Running this yourself')")
