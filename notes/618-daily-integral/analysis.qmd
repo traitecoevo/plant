@@ -1,0 +1,432 @@
+---
+title: "TF24's daily integral: one noon solve × c, or a diurnal integral?"
+subtitle: "plant #618 · experiment branch `experiment/618-daily-integral` · not for merge"
+date: today
+format:
+  html:
+    embed-resources: true
+    toc: true
+    code-fold: true
+    fig-width: 9
+execute:
+  warning: false
+  message: false
+---
+
+Render from this folder against a plant built from this branch, e.g. `R_LIBS=<lib with this build> quarto render analysis.qmd`. Expensive runs are cached as `.rds` beside this file; delete them to rerun. The plan is `notes/plan-618-daily-integral.md`.
+
+## The question
+
+TF24 turns one leaf solve into a year's carbon and water by multiplying by a fixed twelve-hour day. Towers et al. (in prep., "CODA") argue that one solve at solar noon, times the photoperiod, times a calibration constant c, recovers the daily integral well enough for stand models. Here we test that claim inside plant: the same 10-year stand under the same forcing, integrated four ways.
+
+| Arm | `control$daily_integration` | What a rate evaluation does |
+|---|---|---|
+| **D** (reference) | `"diurnal"`, 48 points | 48 solves across the photoperiod, midpoint rule |
+| **Oc** | `"one-point"`, c = c̄ | one noon solve × photoperiod × c̄ (carbon and water each have their own c̄) |
+| **O1** | `"one-point"`, c = 1 | one noon solve × photoperiod, uncalibrated |
+| **F** | `""` (default) | one solve × 12 h, the model as it runs today |
+
+Every arm sees the same noon drivers; they differ only in how the day is integrated.
+
+## What we found
+
+Stage 1, two synthetic sites, 10-year stands (numbers from the tables below; written 2026-11-03):
+
+- **Speed.** The 48-point diurnal integral costs 46× (temperate) and 53× (arid) the calibrated one-point run: about 2 minutes against 3 seconds per stand. Cost follows the leaf-solve count, at roughly 4.5 µs per solve in every arm.
+- **Today's TF24 is far off where light and water allow growth.** One solve × 12 h (F), and noon × photoperiod uncalibrated (O1), overstate the day by 25–40% (calibrated c = 0.72–0.79). At the temperate site that nearly doubles above-ground biomass (+86%, +79%) and raises water use by 56%.
+- **The calibrated one-point method gets stand totals right.** Above-ground mass is −3% (temperate) and +7% (arid) from the diurnal reference; cumulative water use +1% and −13%.
+- **It gets the size structure wrong, because c is not one number.** The day-to-noon ratio falls from 0.80 in full sun to 0.58 at 20% canopy openness (temperate; 0.88 to 0.64 arid). A single c therefore over-credits shaded leaves and under-credits sunlit ones. In the closed temperate stand the understorey is over-fed: LAI +21%, 4.8× as many plants above 1 m, and the tallest cohort 22% shorter, with less self-thinning. In the open arid stand most leaves are sunlit and under-credited, and height growth is about 40% lower at every size, because growth is gain minus upkeep and amplifies a ~10% bias in gain.
+- **Implication.** A one-point method with a constant c is good bookkeeping for stand carbon and water, but it distorts competition between sizes, which is what plant exists to model. The next arm to test is a c that depends on the cohort's light: still one solve per evaluation.
+
+```{r setup}
+#| code-fold: true
+suppressMessages({library(plant); library(ggplot2); library(dplyr); library(tidyr)})
+commit <- system("git rev-parse --short HEAD", intern = TRUE)
+cat("plant from", find.package("plant"), "| branch commit", commit, "\n")
+stopifnot("daily_integration" %in% names(control()))
+
+## Validated categorical slots 1-3 (dataviz reference palette, all-pairs), with
+## the reference arm in ink.
+arm_cols <- c(D = "#0b0b0b", Oc = "#2a78d6", O1 = "#eb6834", F = "#1baf7a")
+arm_lty  <- c(D = "solid", Oc = "solid", O1 = "dashed", F = "dotted")
+arm_lab  <- c(D = "D: diurnal (reference)", Oc = "Oc: one-point × calibrated c",
+              O1 = "O1: one-point, c = 1", F = "F: fixed 12 h (today)")
+site_cols <- c(temperate = "#2a78d6", arid = "#eb6834")
+theme_set(theme_minimal(base_size = 11) +
+          theme(panel.grid.minor = element_blank(),
+                panel.grid.major = element_line(colour = "grey92"),
+                legend.position = "top"))
+scale_arm <- list(
+  scale_colour_manual(values = arm_cols, labels = arm_lab, name = NULL),
+  scale_linetype_manual(values = arm_lty, labels = arm_lab, name = NULL))
+
+cached <- function(file, expr) {
+  if (file.exists(file)) return(readRDS(file))
+  x <- expr; saveRDS(x, file); x
+}
+```
+
+## Helpers
+
+```{r helpers}
+
+## ---- sites ------------------------------------------------------------------
+sites <- list(
+  temperate = list(name = "temperate", latitude = -33.6, tau = 0.7,
+                   vpd_mean = 1.3, vpd_seasonal = 0.5, vpd_diurnal_amp = 0.4,
+                   rain_mean = 0.9, rain_seasonal = 0.3),
+  arid = list(name = "arid", latitude = -22.3, tau = 0.8,
+              vpd_mean = 2.1, vpd_seasonal = 0.5, vpd_diurnal_amp = 0.35,
+              rain_mean = 0.3, rain_seasonal = 0.8))
+vpd_peak_hour <- 14.5
+summer_peak <- 0.04   # years after 1 January: mid-January
+es_25 <- 0.6108 * exp(17.27 * 25 / (25 + 237.3))   # kPa, saturation at the pinned 25 C
+
+vpd_shape <- function(hour, amp, peak = vpd_peak_hour)
+  1 + amp * cos(2 * pi * (hour - peak) / 24)
+
+site_drivers <- function(site, years, knots_per_year = 48) {
+  t <- seq(0, years + 1, by = 1 / knots_per_year)
+  sun <- plant:::tf24_solar_day(t, site$latitude)
+  s <- sun$sin_elevation_noon
+  season <- cos(2 * pi * (t - summer_peak))
+  d <- data.frame(time = t, daylength = sun$daylength,
+                  SWdown = 1360 * site$tau^(1 / s) * s,
+                  atm_vpd = site$vpd_mean + site$vpd_seasonal * season,
+                  rainfall = site$rain_mean * (1 + site$rain_seasonal * season))
+  ## The day's VPD peak must stay below saturation at the pinned leaf
+  ## temperature, or the leaf refuses the solve.
+  peak <- max(d$atm_vpd) * (1 + site$vpd_diurnal_amp) /
+    vpd_shape(12, site$vpd_diurnal_amp)
+  stopifnot(peak < 0.95 * es_25)
+  d
+}
+
+site_env <- function(site, years) {
+  d <- site_drivers(site, years)
+  env <- Environment("TF24")
+  for (v in c("SWdown", "atm_vpd", "rainfall")) {
+    env$extrinsic_drivers_set_variable(v, d$time, d[[v]])
+  }
+  env$extrinsic_drivers_set_constant("atm_vpd_diurnal_amp", site$vpd_diurnal_amp)
+  env$latitude <- site$latitude
+  env$vpd_peak_hour <- vpd_peak_hour
+  env
+}
+
+## ---- stands and arms --------------------------------------------------------
+lma <- 0.1978791        # TF24 hyperpar's central lma
+birth_rate <- 20
+
+stand_parameters <- function(years) {
+  p <- scm_base_parameters("TF24")
+  p$max_patch_lifetime <- years
+  p$patch_type <- "fixed"
+  p <- add_strategies(p, trait_matrix(lma, "lma"), hyperpar = TF24_hyperpar,
+                      birth_rate = list(birth_rate))
+  ## The default schedule is dense early and years apart late; adding a monthly
+  ## grid keeps the early cohorts and gives a monthly census (run_to stops only
+  ## at introductions). Every arm runs on this one schedule.
+  sched <- p$node_schedule_times[[1]]
+  p$node_schedule_times[[1]] <-
+    sort(unique(c(sched, seq(0, years - 1 / 12, by = 1 / 12))))
+  p
+}
+
+arm_control <- function(arm, c_hat = c(A = 1, E = 1), n = 48L) {
+  switch(arm,
+    F  = control(),
+    O1 = control(daily_integration = "one-point"),
+    Oc = control(daily_integration = "one-point",
+                 one_point_c_assimilation = c_hat[["A"]],
+                 one_point_c_transpiration = c_hat[["E"]]),
+    D  = control(daily_integration = "diurnal", daily_integration_points = n),
+    stop("unknown arm ", arm))
+}
+
+## One stand, advanced a census interval at a time with run_to(). Records the
+## stand census, the soil, and every node's height (keyed by its introduction
+## time) so growth can be differenced along cohorts.
+run_arm <- function(site, arm, c_hat = c(A = 1, E = 1), years = 10,
+                    census_dt = 1 / 12, n = 48L) {
+  p <- stand_parameters(years)
+  scm <- run_scm(p, site_env(site, years), arm_control(arm, c_hat, n), run = FALSE)
+  times <- seq(census_dt, years, length.out = round(years / census_dt))
+  census <- vector("list", length(times))
+  nodes <- vector("list", length(times))
+  elapsed <- system.time({
+    for (i in seq_along(times)) {
+      scm$run_to(times[i])
+      env <- scm$patch$environment
+      sp <- scm$patch$species[[1]]
+      flux <- env$get_soil_water_state_cumulative_flux()
+      census[[i]] <- data.frame(time = scm$time, t(stand_census(scm)),
+                                theta = mean(env$get_soil_water_state()),
+                                uptake = flux[[4]])
+      nodes[[i]] <- data.frame(time = scm$time, birth = sp$node_times,
+                               height = sp$heights,
+                               log_density = sp$log_densities)
+    }
+    if (!scm$complete) scm$run()
+  })[["elapsed"]]
+  counts <- plant:::census_operating_point_counts_tf24(scm)
+  list(site = site$name, arm = arm, c_hat = c_hat,
+       census = do.call(rbind, census), nodes = do.call(rbind, nodes),
+       offspring = scm$offspring_production, elapsed = elapsed,
+       solves = sum(unlist(counts)), steps = length(scm$ode_times),
+       density_in_birth_date = scm$patch$species[[1]]$density_in_birth_date)
+}
+
+## ---- calibrating c ----------------------------------------------------------
+## The paper's simple calibration: on a training sample, c = sum(P*) / sum(P1),
+## per unit leaf area, for carbon (profit) and water (transpiration). Rates are
+## daylight means, so each is multiplied by its day's photoperiod first.
+calibration_sample <- function(site, theta, n_days = 100, heights = c(1, 4, 12),
+                               openness = c(1, 0.5, 0.2), seed = 1) {
+  set.seed(seed)
+  expand.grid(day = runif(n_days), height = heights, openness = openness,
+              theta = theta)
+}
+
+day_rates <- function(site, sample, method, n = 48L) {
+  s <- stand_parameters(1)$strategies[[1]]
+  s$control$daily_integration <- method
+  s$control$daily_integration_points <- as.integer(n)
+  env <- site_env(site, 1)
+  ind <- TF24_Individual(s)
+  nl <- env$get_soil_number_of_depths()
+  out <- matrix(NA_real_, nrow(sample), 2, dimnames = list(NULL, c("profit", "transpiration")))
+  for (i in seq_len(nrow(sample))) {
+    env$time <- sample$day[i]
+    env$set_fixed_environment(sample$openness[i], height_max = 150)
+    env$set_soil_water_state(rep(sample$theta[i], nl))
+    ind$set_state("height", sample$height[i])
+    ind$compute_rates(env)
+    out[i, ] <- c(ind$aux("profit"), ind$aux("transpiration"))
+  }
+  daylength <- plant:::tf24_solar_day(sample$day, site$latitude)$daylength
+  data.frame(sample, daylength = daylength,
+             P = out[, "profit"] * daylength, T = out[, "transpiration"] * daylength)
+}
+
+calibrate_c <- function(site, theta, ...) {
+  smp <- calibration_sample(site, theta, ...)
+  one <- day_rates(site, smp, "one-point")
+  d48 <- day_rates(site, smp, "diurnal", 48L)
+  list(c_hat = c(A = sum(d48$P) / sum(one$P), E = sum(d48$T) / sum(one$T)),
+       one = one, d48 = d48)
+}
+```
+
+## Two synthetic sites
+
+Illustrative climates, not cited climatologies: a **temperate** site at the latitude of Cumberland Plain (−33.6°, the paper's base site) and an **arid** one at Alice Springs Mulga's (−22.3°). Noon shortwave is clear-sky geometry times a transmissivity; noon VPD and rainfall are seasonal cosines peaking in mid-January. Through the day, shortwave follows sin(solar elevation) and VPD one cosine harmonic peaking at 14:30. Because plant pins leaf temperature at 25 °C and the leaf refuses VPD at or above saturation, the day's VPD peak is held below 0.95·e_s(25 °C) ≈ 3.0 kPa: the arid site is as dry as that pin allows.
+
+```{r fig-drivers}
+#| fig-height: 5
+#| fig-cap: "Noon drivers and photoperiod over one year at the two sites."
+drv <- bind_rows(lapply(names(sites), function(nm)
+  site_drivers(sites[[nm]], 1) |> mutate(site = nm))) |>
+  filter(time <= 1) |>
+  transmute(site, time,
+            `Noon shortwave (W/m2)` = SWdown, `Noon VPD (kPa)` = atm_vpd,
+            `Rainfall (m/yr)` = rainfall, `Photoperiod (h)` = daylength) |>
+  pivot_longer(-c(site, time))
+ggplot(drv, aes(time, value, colour = site)) +
+  geom_line(linewidth = 0.7) +
+  facet_wrap(~name, scales = "free_y") +
+  scale_colour_manual(values = site_cols, name = NULL) +
+  labs(x = "Time of year (years from 1 January)", y = NULL)
+```
+
+## Calibrating c
+
+Following the paper's simplest method, c̄ is a ratio of sums over a training sample: 100 random days × plant heights {1, 4, 12 m} × canopy openness {1, 0.5, 0.2} × three soil-water levels (the 10th, 50th and 90th percentiles of that site's soil water in arm F). Each sample is one TF24 individual evaluated through plant's own code path, with the diurnal integral (48 points) and with one noon solve; c̄ = ΣP\*/ΣP⁽¹⁾ per unit leaf area. A ratio of sums rather than a mean of ratios, because the mean blows up wherever noon profit is near zero.
+
+The sample weights the three openness levels equally. That is a choice, and the figure below shows why it matters: c̄ is a light-weighted average of a c that varies with light, so it fits a stand only as well as the sample's light distribution matches the stand's.
+
+```{r runs}
+arms <- cached("arms.rds", {
+  res <- list()
+  for (nm in names(sites)) {
+    site <- sites[[nm]]
+    F <- run_arm(site, "F")
+    theta <- unname(quantile(F$census$theta, c(0.1, 0.5, 0.9)))
+    cal <- calibrate_c(site, theta)
+    res[[nm]] <- list(F = F, cal = cal, O1 = run_arm(site, "O1"),
+                      Oc = run_arm(site, "Oc", cal$c_hat), D = run_arm(site, "D"))
+  }
+  res
+})
+c_tab <- bind_rows(lapply(names(arms), function(nm)
+  data.frame(site = nm, c_A = arms[[nm]]$cal$c_hat[["A"]],
+             c_E = arms[[nm]]$cal$c_hat[["E"]])))
+knitr::kable(c_tab, digits = 3, col.names = c("Site", "c̄ carbon", "c̄ water"))
+```
+
+```{r fig-c-light}
+#| fig-height: 3.2
+#| fig-cap: "c is not one number: the ratio of the diurnal integral to noon × photoperiod, by canopy openness. Shaded leaves respond almost linearly to light, so their day is a smaller fraction of noon's."
+c_by <- bind_rows(lapply(names(arms), function(nm) {
+  d <- arms[[nm]]$cal$d48; o <- arms[[nm]]$cal$one
+  data.frame(site = nm, openness = sort(unique(d$openness)),
+             carbon = as.vector(tapply(d$P, d$openness, sum) / tapply(o$P, o$openness, sum)),
+             water = as.vector(tapply(d$T, d$openness, sum) / tapply(o$T, o$openness, sum)))
+})) |> pivot_longer(c(carbon, water))
+ggplot(c_by, aes(factor(openness), value, colour = site, group = site)) +
+  geom_line(linewidth = 0.7) + geom_point(size = 2.5) +
+  geom_hline(data = c_tab |> pivot_longer(c(c_A, c_E)) |>
+               mutate(name = ifelse(name == "c_A", "carbon", "water")),
+             aes(yintercept = value, colour = site), linetype = "dashed", linewidth = 0.4) +
+  facet_wrap(~name) +
+  scale_colour_manual(values = site_cols, name = NULL) +
+  labs(x = "Canopy openness", y = "Diurnal / (noon × photoperiod)",
+       caption = "Dashed: the site's calibrated c, used in arm Oc.")
+```
+
+```{r convergence}
+## Is 48 points a converged reference? The same sample at 24 and 96 points.
+conv <- bind_rows(lapply(names(arms), function(nm) {
+  cal <- arms[[nm]]$cal
+  smp <- cal$one[, c("day", "height", "openness", "theta")]
+  d24 <- cached(sprintf("conv24_%s.rds", nm), day_rates(sites[[nm]], smp, "diurnal", 24L))
+  d96 <- cached(sprintf("conv96_%s.rds", nm), day_rates(sites[[nm]], smp, "diurnal", 96L))
+  data.frame(site = nm,
+             `48 vs 96, carbon` = sum(cal$d48$P) / sum(d96$P) - 1,
+             `24 vs 96, carbon` = sum(d24$P) / sum(d96$P) - 1,
+             `48 vs 96, water` = sum(cal$d48$T) / sum(d96$T) - 1,
+             check.names = FALSE)
+}))
+knitr::kable(conv, digits = 6, caption = "Relative difference of the summed daily integral from the 96-point one.")
+```
+
+## Ten-year stands
+
+One species at the TF24 hyperparameter defaults (lma `r lma`), seed rain `r birth_rate` m⁻² yr⁻¹, a fixed patch for 10 years. The cohort schedule is plant's default plus a monthly grid, the same in every arm, and the stand is censused monthly with plant's own `stand_census()`.
+
+```{r stand-series}
+series <- bind_rows(lapply(names(arms), function(nm)
+  bind_rows(lapply(c("D", "Oc", "O1", "F"), function(a)
+    arms[[nm]][[a]]$census |> mutate(site = nm, arm = a, i = row_number())))))
+series$arm <- factor(series$arm, levels = names(arm_cols))
+```
+
+```{r fig-stand}
+#| fig-height: 7.5
+#| fig-cap: "Stand trajectories. Rows: leaf area index, above-ground biomass, layer-mean soil water, cumulative transpiration."
+long <- series |>
+  transmute(site, arm, time,
+            `LAI (m2/m2)` = leaf_area, `Above-ground mass (kg/m2)` = mass_above_ground,
+            `Soil water (m3/m3)` = theta, `Cumulative uptake (m)` = uptake) |>
+  pivot_longer(-c(site, arm, time)) |>
+  mutate(name = factor(name, levels = unique(name)),
+         site = factor(site, levels = names(sites)))
+ggplot(long, aes(time, value, colour = arm, linetype = arm)) +
+  geom_line(linewidth = 0.7) +
+  facet_grid(name ~ site, scales = "free_y", switch = "y") +
+  scale_arm + labs(x = "Years", y = NULL) +
+  theme(strip.placement = "outside")
+```
+
+### Size structure and growth
+
+Density is carried per unit birth date (TF24's default coordinate), so the size distribution is shown as the number of plants at least a given height: the density integrated over birth date from the oldest cohort down, which needs no change of coordinate.
+
+```{r sizes}
+at_time <- function(nodes, t) {
+  tt <- unique(nodes$time); nodes[nodes$time == tt[which.min(abs(tt - t))], ]
+}
+taller_than <- function(n) {
+  n <- n[order(n$birth), ]; dens <- exp(n$log_density)
+  n$N_taller <- c(0, cumsum(0.5 * (head(dens, -1) + tail(dens, -1)) * diff(n$birth)))
+  n
+}
+sizes <- bind_rows(lapply(names(arms), function(nm)
+  bind_rows(lapply(c("D", "Oc", "O1", "F"), function(a)
+    bind_rows(lapply(c(2, 5, 10), function(t)
+      taller_than(at_time(arms[[nm]][[a]]$nodes, t)) |>
+        mutate(site = nm, arm = a, year = t)))))))
+sizes$arm <- factor(sizes$arm, levels = names(arm_cols))
+sizes$site <- factor(sizes$site, levels = names(sites))
+```
+
+```{r fig-sizes}
+#| fig-height: 5.5
+#| fig-cap: "Plants per m² at least a given height, at years 2, 5 and 10."
+ggplot(filter(sizes, N_taller > 1e-3), aes(height, N_taller, colour = arm, linetype = arm)) +
+  geom_line(linewidth = 0.7) +
+  facet_grid(site ~ factor(paste("Year", year), levels = paste("Year", c(2, 5, 10))), scales = "free") +
+  scale_y_log10() + scale_arm +
+  labs(x = "Height (m)", y = "Plants at least this tall (per m2)")
+```
+
+```{r fig-growth}
+#| fig-height: 5.5
+#| fig-cap: "Height growth rate of each cohort against its height, over the month ending at years 2, 5 and 10."
+growth <- bind_rows(lapply(names(arms), function(nm)
+  bind_rows(lapply(c("D", "Oc", "O1", "F"), function(a) {
+    nd <- arms[[nm]][[a]]$nodes; tt <- unique(nd$time)
+    bind_rows(lapply(c(2, 5, 10), function(t) {
+      k <- which.min(abs(tt - t))
+      b <- nd[nd$time == tt[k], ]; e <- nd[nd$time == tt[k - 1], ]
+      inner_join(e, b, by = "birth", suffix = c("0", "1")) |>
+        transmute(height = height0, dHdt = (height1 - height0) / (time1 - time0),
+                  site = nm, arm = a, year = t)
+    }))
+  }))))
+growth$arm <- factor(growth$arm, levels = names(arm_cols))
+growth$site <- factor(growth$site, levels = names(sites))
+ggplot(growth, aes(height, dHdt, colour = arm, linetype = arm)) +
+  geom_line(linewidth = 0.7) +
+  facet_grid(site ~ factor(paste("Year", year), levels = paste("Year", c(2, 5, 10))), scales = "free") +
+  scale_arm + labs(x = "Height (m)", y = "Height growth (m/yr)")
+```
+
+### How far each arm is from the reference
+
+```{r table-outcomes}
+end <- series |> group_by(site, arm) |> slice_max(i, n = 1) |> ungroup()
+tall <- sizes |> filter(year == 10) |> group_by(site, arm) |>
+  summarise(top_height = max(height[exp(log_density) > 1e-6]),
+            N_over_1m = max(N_taller[height >= 1], 0), .groups = "drop")
+lai_dev <- series |> filter(time >= 1) |>
+  group_by(site, i) |> mutate(ref = leaf_area[arm == "D"]) |> ungroup() |>
+  group_by(site, arm) |> summarise(max_lai_dev = max(abs(leaf_area / ref - 1)), .groups = "drop")
+outc <- end |> select(site, arm, leaf_area, mass_above_ground, uptake) |>
+  left_join(tall, by = c("site", "arm")) |> left_join(lai_dev, by = c("site", "arm"))
+rel <- outc |> group_by(site) |>
+  mutate(across(c(leaf_area, mass_above_ground, uptake, top_height, N_over_1m),
+                ~ .x / .x[arm == "D"] - 1)) |> ungroup()
+pct <- function(x) sprintf("%+.0f%%", 100 * x)
+rel |> filter(arm != "D") |>
+  transmute(Site = site, Arm = arm, `LAI` = pct(leaf_area),
+            `Above-ground mass` = pct(mass_above_ground), `Cumulative uptake` = pct(uptake),
+            `Tallest cohort` = pct(top_height), `Plants > 1 m` = pct(N_over_1m),
+            `Worst LAI, yr 1-10` = pct(max_lai_dev)) |>
+  knitr::kable(caption = "Difference from D at year 10 (last column: largest |relative LAI difference| over years 1-10).")
+```
+
+Offspring production is not compared: at year 10 these stands have barely begun reproducing (all arms below 10⁻⁵ seeds per seed), so it measures the onset of reproduction, not reproductive output. That question belongs to stage 2 (fitness, longer patches).
+
+## Speed
+
+```{r timing}
+timing <- cached("timing.rds", stop("run dev timing first"))
+kind_cols <- setdiff(names(timing), c("site", "arm", "elapsed", "steps"))
+timing$solves <- rowSums(timing[kind_cols])
+tt <- timing |> group_by(site) |>
+  mutate(`× time of Oc` = elapsed / elapsed[arm == "Oc"],
+         `µs per solve` = 1e6 * elapsed / solves) |> ungroup()
+knitr::kable(tt[c("site", "arm", "elapsed", "steps", "solves", "× time of Oc", "µs per solve")],
+             digits = c(0, 0, 1, 0, 0, 1, 1), big.mark = ",",
+             col.names = c("Site", "Arm", "Seconds", "ODE steps", "Leaf solves", "× time of Oc", "µs per solve"),
+             caption = "One plain run_scm() per arm, no census.")
+knitr::kable(timing[c("site", "arm", kind_cols)], big.mark = ",",
+             caption = "Leaf solves by the operating point they ended on.")
+```
+
+## Next
+
+- **Stage 2, fitness**: a meta-population patch, resident offspring production and an invader landscape over one trait, D against Oc.
+- **Light-dependent c**: the calibration shows c falling with canopy openness. A c that is a function of the cohort's light (one more parameter, still one solve) is the obvious next arm.
+- **Real sites**: Isaac's flux-tower drivers enter as the same three drivers (noon SWdown, noon VPD, relative VPD amplitude), but warm sites will push VPD past what the 25 °C leaf-temperature pin allows.

@@ -4,10 +4,26 @@
 
 ## Status
 
-- [ ] §1–§4 plant: Control option, environment geometry, daily integral, refusals
-- [ ] Verification 1–2: default bit-identical to develop; new tests
-- [ ] §5–§7 analysis stage 1: sites, c̄, 10-year runs, speed
+- [x] §1–§4 plant: Control option, environment geometry, daily integral, refusals
+- [x] Verification 1–2: default bit-identical to develop (full state history, soil, offspring production; bare and seasonal stands); new tests pass; model-version snapshot gains only the four Control keys (no `scientific_version` bump, as #661 did for `absorb_epsilon`)
+- [x] §5–§7 analysis stage 1: sites, c̄, 10-year runs, speed (`notes/618-daily-integral/analysis.qmd`)
 - [ ] §8 stage 2: fitness
+
+### Decisions taken during implementation
+
+- **Declination is `asin(0.39785 sin(...))`.** The expression is sin(δ) (0.39785 = sin 23.44°). plant's R `solar_angle()` uses it as δ itself, ~0.6° low at the solstices; left alone there, fixed in `tf24_diurnal.h`.
+- **The `DailyIntegration` enum is at namespace scope**, so a rebind between scalars copies one type.
+- **The crown light is computed once per evaluation**; only PPFD_above and VPD move through the day, so the diurnal arm pays for leaf solves, not repeated crown integrals.
+- **The #516 marginal-leaf gate needs no refusal**: it reads the daily `assimilation_`.
+- **Stand:** lma 0.1978791 (TF24 hyperpar centre), seed rain 20 m⁻² yr⁻¹, `patch_type = "fixed"`. **Cohort schedule = plant's default ∪ a monthly grid**, the same for every arm: `run_to()` stops only at introductions, and the default schedule is years apart late in a 10-year patch.
+- **Both synthetic sites persist under F**, so no rainfall adjustment was needed (temperate 0.9, arid 0.3 m yr⁻¹).
+
+### Stage 1 findings (2026-11-03)
+
+- c̄ (carbon, water) = 0.72, 0.74 temperate; 0.78, 0.79 arid. Noon × photoperiod overstates the day by 25–40%.
+- **c depends on light**: 0.58 at canopy openness 0.2, 0.80 at full light (arid 0.64 → 0.88); season and height matter much less. A constant c over-credits shaded leaves.
+- At year 10 Oc matches D on above-ground mass (−3% temperate, +7% arid), but LAI is +21% and +37%: the understorey keeps leaf area that the diurnal integral cannot pay for. O1 and F nearly double temperate biomass.
+- The diurnal arm costs 46× Oc (temperate, 141 s vs 3.1 s) and 53× (arid, 118 s vs 2.2 s), tracking the leaf-solve count (49×, 56×): about 4.3 µs per solve in every arm. A first arid D run took 1141 s under machine contention; the clean rerun is the number.
 
 ## Context
 
