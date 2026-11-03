@@ -40,8 +40,10 @@ Runs are cached as `.rds` beside this file; delete them to rerun. A cold run tak
 #| code-fold: false
 ## The private library, beside this file. Put first on the search path for
 ## this R session only: the system and user libraries are never written to.
-lib <- normalizePath("Rlib-618", mustWork = FALSE)
-dir.create(lib, showWarnings = FALSE)
+## Created before it is normalised: normalizePath() leaves a path that does not
+## exist yet as it was given.
+dir.create("Rlib-618", showWarnings = FALSE)
+lib <- normalizePath("Rlib-618")
 .libPaths(c(lib, setdiff(.libPaths(), lib)))
 
 installed_ok <- function() {
@@ -98,8 +100,10 @@ Two synthetic sites, written 2026-11-03 (numbers from the tables below):
 ```{r setup}
 #| code-fold: true
 suppressMessages({library(plant); library(ggplot2); library(dplyr); library(tidyr)})
-commit <- tryCatch(system("git rev-parse --short HEAD", intern = TRUE),
-                   error = function(e) "unknown", warning = function(w) "unknown")
+commit <- suppressWarnings(tryCatch(
+  system2("git", c("rev-parse", "--short", "HEAD"), stdout = TRUE, stderr = FALSE),
+  error = function(e) character()))
+if (length(commit) != 1) commit <- "unknown (not a git checkout)"
 cat("plant from", find.package("plant"), "| branch commit", commit,
     "| phylloptim", format(packageVersion("phylloptim")), "\n")
 if (!startsWith(normalizePath(find.package("plant")), lib))
