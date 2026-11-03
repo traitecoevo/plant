@@ -7,7 +7,8 @@
 - [x] §1–§4 plant: Control option, environment geometry, daily integral, refusals
 - [x] Verification 1–2: default bit-identical to develop (full state history, soil, offspring production; bare and seasonal stands); new tests pass; model-version snapshot gains only the four Control keys (no `scientific_version` bump, as #661 did for `absorb_epsilon`)
 - [x] §5–§7 analysis stage 1: sites, c̄, 10-year runs, speed (`notes/618-daily-integral/analysis.qmd`)
-- [ ] §8 stage 2: fitness
+- [x] Light-dependent one-point c (`one_point_c_*_slope`, `one_point_c_light_min/max`) and a 5-point Gauss–Lobatto method (`daily_integration = "lobatto"`), added 2026-11-03 at the user's request; the Lobatto idea is from `Falster-stomatal_analytical_analysis/notes/fast daily integration at fixed lambda.md`
+- [x] §8 stage 2: 50-year meta-population patches and resident fitness (invader landscapes not yet run)
 
 ### Decisions taken during implementation
 
@@ -17,6 +18,14 @@
 - **The #516 marginal-leaf gate needs no refusal**: it reads the daily `assimilation_`.
 - **Stand:** lma 0.1978791 (TF24 hyperpar centre), seed rain 20 m⁻² yr⁻¹, `patch_type = "fixed"`. **Cohort schedule = plant's default ∪ a monthly grid**, the same for every arm: `run_to()` stops only at introductions, and the default schedule is years apart late in a 10-year patch.
 - **Both synthetic sites persist under F**, so no rainfall adjustment was needed (temperate 0.9, arid 0.3 m yr⁻¹).
+
+### Findings with all six methods (2026-11-03, supersede the stage-1 list below where they differ)
+
+- **Gauss–Lobatto 5 (3 solves, no calibration) is the method to use**: leaf RMS 1.4–2.8%, 10-year stands within ~2% of D, 50-year temperate fitness +6%; 3.4–3.8× the one-point cost, 1/15 of D's.
+- **Light-dependent c**: c(I) = a + b log(I/500) of intercepted noon PPFD, the same at both sites (b = 0.158). Leaf RMS 4.5–5.5%, stand totals within 2–7%, but 31–71% more plants above 1 m and 50-year fitness −66%: the log-linear form over-credits I < ~80 µmol/m2/s.
+- **Constant c depends on its training sample**: widening the sample to 5% openness moved c̄ from 0.72 to 0.68 (temperate) and turned −3% biomass into −25%. 50-year fitness ~0 against D's 0.015.
+- Today's TF24 (F): 50-year fitness 180× D's.
+- The arid stand never reaches reproductive size in 50 years (fitness ~1e-14 in every arm), so fitness is compared at the temperate site only.
 
 ### Stage 1 findings (2026-11-03)
 
