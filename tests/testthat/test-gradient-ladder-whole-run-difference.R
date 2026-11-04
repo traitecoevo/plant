@@ -175,7 +175,7 @@ test_that("the sweep agrees with a difference of whole runs, over five regimes",
     # The reference's own resolution, with a floor: where its four steps agreed
     # to round-off, the sweep is still only asked to agree to the truncation the
     # coarsest of them carries. Over 270 answered columns a regime, the worst
-    # reads 1.1e-03 on drought, 7.6e-04 on seasonal and 6.3e-05 on wet -- and all
+    # reads 9.6e-04 on drought, 6.9e-05 on seasonal and 4.7e-05 on wet -- and all
     # three are `theta` or `omega`, which reach the census through the channels
     # the leaf boundary carries and are the last columns to resolve.
     tolerance <- pmax(3 * r$spread, 2e-3)

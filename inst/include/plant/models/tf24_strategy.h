@@ -898,13 +898,15 @@ public:
   //   0.20), so on the energy-balance path net radiation falls to about half;
   //   and `a` is `phi_J` on an absorbed basis, which reassociates J. TF24f and
   //   TF24t follow to v13.1 and v13.4.
-  // v14: phylloptim 0.16.0 -> 0.26.2, the leaf where it stops moving water or
+  // v14: phylloptim 0.16.0 -> 0.27.0, the leaf where it stops moving water or
   //   gas. A shut leaf is the ordinary evaluator at its wet bound, so in light it
   //   nets zero instead of -R_d and profit no longer jumps at shutdown or at the
   //   light-compensation point; psi_crit is no longer a bound, so the stem
   //   follows a drying soil past it and the stands' dry pins at psi_crit become
   //   interior points; shade death is gone as a kind; the vulnerability integral
-  //   is a C2 table; and the ci root-find is solved to 1e-13. Output moves near
+  //   is a C2 table; the ci root-find is solved to 1e-13; and whether a leaf is
+  //   held at the dry end is decided at that end, where it used to flip under
+  //   rounding and make the forward run jump. Output moves near
   //   the root limit, below light compensation and in heat. TF24f, TF24t and
   //   TF24w follow; TF24t's thermal layer also moves (thermal_revision 5).
   static constexpr int scientific_version = 14;
