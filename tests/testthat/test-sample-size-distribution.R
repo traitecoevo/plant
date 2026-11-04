@@ -26,6 +26,29 @@ test_that("sampling refuses a run carried in height, and bad arguments", {
   res <- sampling_run()
   expect_error(sample_size_distribution(res, area = -1), "positive")
   expect_error(sample_size_distribution(res, area = 10, times = 21), "within the run")
+  expect_error(sample_size_distribution(res, area = 10, times = c(5, NA)), "finite")
+})
+
+test_that("an empty sample has the same columns as a full one", {
+  res <- sampling_run()
+  set.seed(4)
+  full <- sample_size_distribution(res, area = 10)
+  empty <- sample_size_distribution(res, area = 1e-12)
+  expect_equal(nrow(empty), 0)
+  expect_equal(names(empty), names(full))
+})
+
+test_that("no individual is born before the first cohort", {
+  ## Knots at two requested times for a species first born at t = 5: births in
+  ## (1, 5] must not be drawn from a density extrapolated below the first knot.
+  knots <- list(
+    list(tau = 1, n = 2, mortality = 0, log_density_state = log(2), height = 0.4),
+    list(tau = c(5, 7, 10), n = c(2, 2, 2), mortality = c(0.1, 0.1, 0.1),
+         log_density_state = log(c(2, 2, 2)), height = c(2, 1, 0.4)))
+  set.seed(5)
+  x <- sample_species(knots, times = c(1, 10), area = 50, columns = "height")
+  expect_gt(nrow(x), 0)
+  expect_true(all(x$birth_time >= 5))
 })
 
 test_that("the number sampled is Poisson about the integrated density, at every time", {

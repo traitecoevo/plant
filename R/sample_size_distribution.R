@@ -51,7 +51,11 @@ sample_size_distribution <- function(results, area, times = NULL) {
     stop("'area' must be one positive number", call. = FALSE)
   }
   t_end <- max(sp$time)
-  times <- sort(unique(if (is.null(times)) t_end else times))
+  times <- if (is.null(times)) t_end else times
+  if (!is.numeric(times) || length(times) == 0 || any(!is.finite(times))) {
+    stop("'times' must be finite numbers", call. = FALSE)
+  }
+  times <- sort(unique(times))
   if (any(times < 0 | times > t_end)) {
     stop("'times' must lie within the run, from 0 to ", t_end, call. = FALSE)
   }
@@ -65,8 +69,11 @@ sample_size_distribution <- function(results, area, times = NULL) {
   })
   out <- dplyr::bind_rows(out)
   if (nrow(out) == 0) {
-    return(tibble::tibble(species = character(), individual = integer(),
-                          birth_time = numeric(), time = numeric()))
+    ## Same columns whether or not anything was drawn.
+    empty <- c(list(species = character(), individual = integer(),
+                    birth_time = numeric(), time = numeric()),
+               stats::setNames(rep(list(numeric()), length(columns)), columns))
+    return(tibble::as_tibble(empty))
   }
   key <- paste(out$species, out$individual)
   out$individual <- match(key, unique(key))
@@ -130,7 +137,8 @@ birth_date_knots <- function(d, times, columns) {
   })
   first_rows <- do.call(rbind, lapply(by_node, function(x) x[1, ]))
   boundary <- lapply(stats::setNames(cols, cols), function(col) {
-    stats::approx(first_rows$time, first_rows[[col]], times, rule = 2)$y
+    if (nrow(first_rows) == 1) rep(first_rows[[col]], length(times)) else
+      stats::approx(first_rows$time, first_rows[[col]], times, rule = 2)$y
   })
 
   lapply(seq_along(times), function(j) {
@@ -222,7 +230,9 @@ sample_species <- function(knots, times, area, columns) {
   born <- lapply(seq_along(times), function(j) {
     k <- knots[[j]]
     if (length(k$tau) < 2) return(numeric(0))
-    lower <- if (j == 1) min(k$tau) else times[j - 1]
+    ## Never below the first birth date: the interpolant would extrapolate a
+    ## density where no cohort exists (a resumed run, or a late first birth).
+    lower <- if (j == 1) min(k$tau) else max(times[j - 1], min(k$tau))
     x <- sort(unique(c(lower, k$tau[k$tau > lower])))
     if (length(x) < 2) return(numeric(0))
     f <- spline_density(k)
