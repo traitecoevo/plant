@@ -67,6 +67,7 @@ reference:
   - tidy_patch
   - tidy_individual
   - integrate_over_size_distribution
+  - sample_size_distribution
   - interpolate_to_heights
   - interpolate_to_times
   - plot_size_distribution
