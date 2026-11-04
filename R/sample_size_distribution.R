@@ -208,15 +208,17 @@ spline_segments <- function(f, x) {
   y <- f(x)
   dy <- f(x, deriv = 1)
   h <- diff(x)
-  pmax(h * (y[-length(y)] + y[-1]) / 2 + h^2 * (dy[-length(dy)] - dy[-1]) / 12, 0)
+  h * (y[-length(y)] + y[-1]) / 2 + h^2 * (dy[-length(dy)] - dy[-1]) / 12
 }
 
 ## Draw `n` birth dates from the spline density on the segments between
 ## breakpoints `x`, by segment and then by rejection: pchip() keeps each segment
 ## monotone, so its larger end value bounds it.
 draw_birth_dates <- function(f, x, n) {
+  ## A density's segment integrals are non-negative; the floor only absorbs
+  ## rounding, which sample.int() would refuse as a negative weight.
   seg <- sample.int(length(x) - 1, n, replace = TRUE,
-                    prob = spline_segments(f, x))
+                    prob = pmax(spline_segments(f, x), 0))
   lo <- x[seg]
   hi <- x[seg + 1]
   top <- pmax(f(lo), f(hi))
@@ -243,7 +245,7 @@ sample_species <- function(knots, times, area, columns) {
     x <- sort(unique(c(lower, k$tau[k$tau > lower])))
     if (length(x) < 2) return(numeric(0))
     f <- spline_density(k)
-    n <- stats::rpois(1, area * sum(spline_segments(f, x)))
+    n <- stats::rpois(1, area * sum(pmax(spline_segments(f, x), 0)))
     draw_birth_dates(f, x, n)
   })
   first <- rep(seq_along(times), lengths(born))

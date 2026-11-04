@@ -302,3 +302,30 @@ test_that("interpolating across heights keeps log density between the nodes'", {
   expect_true(all(m$log_density >= m$lo - 1e-9 & m$log_density <= m$hi + 1e-9))
   expect_true(all(is.finite(out$density)))
 })
+
+test_that("over birth date, a negative variable integrates to a negative total", {
+  sp <- birth_date_run()$species
+  sp$minus_one <- -1
+  out <- integrate_over_size_distribution(sp)
+  expect_equal(out$minus_one, -out$density)
+})
+
+test_that("cohorts tied at a height bound fall in exactly one of two ranges", {
+  ## Two cohorts share height 3, so the segment between them sits on the bound.
+  tau <- c(0, 1, 2, 3)
+  h <- c(5, 3, 3, 1)
+  y <- c(1, 1, 1, 1)
+  whole <- birth_date_between(tau, h, y, -Inf, Inf)
+  expect_equal(birth_date_between(tau, h, y, -Inf, 3) +
+                 birth_date_between(tau, h, y, 3, Inf), whole)
+  ## A range ending at the tallest cohort still includes it.
+  expect_equal(birth_date_between(tau, h, y, 2, 5) +
+                 birth_date_between(tau, h, y, -Inf, 2), whole)
+})
+
+test_that("interpolating to a missing time gives a missing value, not an error", {
+  df <- tibble::tibble(species = 1, node = 1, time = c(0, 1, 2),
+                       height = c(0, 2, 4), density = 1)
+  out <- interpolate_to_times(df, times = c(1, NA))
+  expect_equal(out$height, c(2, NA))
+})

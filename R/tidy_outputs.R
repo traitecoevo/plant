@@ -152,7 +152,7 @@ interpolator <- function(method) {
     x <- x[o]
     y <- y[o]
     out <- rep(NA_real_, length(xout))
-    ok <- xout >= x[1] & xout <= x[length(x)]
+    ok <- !is.na(xout) & xout >= x[1] & xout <= x[length(x)]
     if (!any(ok)) return(out)
     out[ok] <- if (length(x) == 1) y else if (method == "pchip")
       pchip(x, y)(xout[ok]) else stats::spline(x, y, xout = xout[ok], method = method)$y
@@ -349,8 +349,9 @@ add_birth_dates <- function(tidy_species_data) {
     dplyr::ungroup()
   births <- unique(d[c("species", "node", "birth_time")])
   if (anyDuplicated(births[c("species", "birth_time")]) > 0) {
-    stop("Nodes share a first appearance (seeded by an initial state?), so ",
-         "their birth dates cannot be recovered; use coordinate = \"height\"",
+    stop("Nodes share a first appearance, so their birth dates cannot be ",
+         "recovered: nodes seeded by an initial state, or a table filtered to ",
+         "fewer steps than the run collected? Use coordinate = \"height\"",
          call. = FALSE)
   }
   d
@@ -379,7 +380,10 @@ birth_date_between <- function(tau, h, y, lower, upper) {
   }
   x <- sort(unique(x))
   mid <- g((x[-1] + x[-length(x)]) / 2)
-  sum(spline_segments(f, x)[mid >= lower & mid <= upper])
+  ## Half-open, [lower, upper), so that cohorts tied at a bound fall in exactly
+  ## one of two adjacent ranges; closed above only at the tallest cohort.
+  inside <- mid >= lower & (mid < upper | upper >= max(h))
+  sum(spline_segments(f, x)[inside])
 }
 
 # Trapezium integral of y over sorted x, restricted to [lower, upper]. Each bound
