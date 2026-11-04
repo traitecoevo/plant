@@ -226,14 +226,30 @@ tidy_individual <- function(results) {
 
 
 #' Integrate over the size distribution for each species at each time point, to give totals of each variable
-#' Integrations are performed using trapezium integration
 #'
-#' @param tidy_species_data output of either `tidy_patch` or `tidy_species`
+#' A run carried in birth date (`control(node_density_coordinate =
+#' "birth_date")`, the default for the TF24 models) is integrated over birth
+#' date: the density per unit birth date, and its product with each variable,
+#' are interpolated between nodes with a shape-preserving cubic and integrated
+#' exactly. Across a cohort that has just formed, density per unit height can
+#' fall several hundredfold, and a trapezium in height overcounts there; in
+#' birth date the integrand is smooth. A run carried in height is integrated over
+#' height with the trapezium rule.
+#'
+#' @param tidy_species_data output of either `tidy_patch` or `tidy_species`.
+#'   Integrating over birth date needs every step of the run, because a node's
+#'   birth date is the time it first appears.
 #' @param lower,upper heights bounding the integral; the defaults integrate over
-#'   the whole size distribution. A bound that falls between two nodes takes the
-#'   integrand by linear interpolation, as the trapezium rule already assumes, so
-#'   totals over adjacent ranges sum to the total over their union. For a finer
-#'   grid, interpolate with `interpolate_to_heights()` first.
+#'   the whole size distribution. Over birth date, a bound cuts where the
+#'   interpolated height of the cohorts crosses it. Over height, a bound that
+#'   falls between two nodes takes the integrand by linear interpolation, as the
+#'   trapezium rule already assumes. Either way, totals over adjacent ranges sum
+#'   to the total over their union. For a finer height grid, interpolate with
+#'   `interpolate_to_heights()` first.
+#' @param coordinate `"auto"` (the default) integrates over birth date when the
+#'   run carries density in birth date, and over height otherwise; `"birth_date"`
+#'   and `"height"` choose one. `"height"` gives the trapezium totals this
+#'   function returned before it integrated over birth date.
 #'
 #' @return a tibble whose columns provide metrics on integrated totals for each variable for each species at each time.
 #'   `min_height` is the lowest height in the integrated range, and is `NA`
@@ -243,9 +259,23 @@ tidy_individual <- function(results) {
 #'
 #' @importFrom rlang .data
 integrate_over_size_distribution <- function(tidy_species_data,
-                                             lower = -Inf, upper = Inf) {
+                                             lower = -Inf, upper = Inf,
+                                             coordinate = c("auto", "birth_date", "height")) {
   if (!(length(lower) == 1 && length(upper) == 1 && lower < upper)) {
     stop("'lower' and 'upper' must be single heights with lower < upper")
+  }
+  coordinate <- match.arg(coordinate)
+  in_birth_date <- "log_density_state" %in% names(tidy_species_data)
+  if (coordinate == "auto") {
+    coordinate <- if (in_birth_date) "birth_date" else "height"
+  }
+  if (coordinate == "birth_date") {
+    if (!in_birth_date) {
+      stop("Integrating over birth date needs a run carried in birth date, ",
+           "control(node_density_coordinate = \"birth_date\"); ",
+           "or use coordinate = \"height\"", call. = FALSE)
+    }
+    return(integrate_over_birth_date(tidy_species_data, lower, upper))
   }
   tidy_species_data  %>%
     dplyr::select(-dplyr::any_of("node")) %>% stats::na.omit() %>%
@@ -262,6 +292,75 @@ integrate_over_size_distribution <- function(tidy_species_data,
       dplyr::across(tidyselect::where(is.double) & !c("density", "density_integrated", "min_height") , ~trapezium_between(height, density * .x, lower, upper))
     ) %>%
     dplyr::rename(density = "density_integrated")
+}
+
+## The same totals, over birth date. Nodes are ordered by birth date, which
+## never crosses, so unlike the height path the grid needs no reordering to be
+## valid; a younger cohort overtaking an older one only makes the height bound
+## cut a birth-date segment more than once, which birth_date_between() allows.
+integrate_over_birth_date <- function(tidy_species_data, lower, upper) {
+  tidy_species_data %>%
+    add_birth_dates() %>%
+    dplyr::select(-dplyr::any_of("node")) %>%
+    dplyr::filter(.data$step > 1, !is.na(.data$log_density_state),
+                  !is.na(.data$height)) %>%
+    dplyr::group_by(.data$step, .data$time, .data$patch_density, .data$species) %>%
+    dplyr::arrange(.data$birth_time, .by_group = TRUE) %>%
+    dplyr::reframe(
+      density_integrated = birth_date_between(.data$birth_time, .data$height,
+                                              exp(.data$log_density_state),
+                                              lower, upper),
+      min_height = if (lower < max(.data$height) && upper > min(.data$height)) max(lower, min(.data$height)) else NA_real_,
+      dplyr::across(tidyselect::where(is.double) &
+                      !c("density", "density_integrated", "min_height", "birth_time"),
+                    ~birth_date_between(birth_time, height,
+                                        exp(log_density_state) * .x, lower, upper))
+    ) %>%
+    dplyr::rename(density = "density_integrated")
+}
+
+## A node's birth date is the time it first appears: it enters the collected
+## output as the boundary at the moment it is born. Nodes seeded together at the
+## start of a run (an initial state) all first appear at once, and then their
+## birth dates cannot be told apart.
+add_birth_dates <- function(tidy_species_data) {
+  d <- tidy_species_data %>%
+    dplyr::group_by(.data$species, .data$node) %>%
+    dplyr::mutate(birth_time = min(.data$time)) %>%
+    dplyr::ungroup()
+  births <- unique(d[c("species", "node", "birth_time")])
+  if (anyDuplicated(births[c("species", "birth_time")]) > 0) {
+    stop("Nodes share a first appearance (seeded by an initial state?), so ",
+         "their birth dates cannot be recovered; use coordinate = \"height\"",
+         call. = FALSE)
+  }
+  d
+}
+
+## Integral over birth date of y, interpolated with pchip(), over the cohorts
+## whose interpolated height lies in [lower, upper]. Height is monotone on each
+## segment of its pchip(), so a bound crosses a segment at most once.
+birth_date_between <- function(tau, h, y, lower, upper) {
+  if (length(tau) < 2) return(0)
+  ## A variable missing at a node has no total (log_density, the density per
+  ## unit height, is missing wherever height does not vary with birth date).
+  if (any(!is.finite(y))) return(NA_real_)
+  f <- pchip(tau, y)
+  if (lower <= min(h) && upper >= max(h)) {
+    return(sum(spline_segments(f, tau)))
+  }
+  g <- pchip(tau, h)
+  x <- tau
+  for (b in c(lower, upper)) {
+    if (!is.finite(b)) next
+    for (i in which((h[-length(h)] - b) * (h[-1] - b) < 0)) {
+      x <- c(x, stats::uniroot(function(t) g(t) - b, c(tau[i], tau[i + 1]),
+                               tol = 1e-12 * (tau[i + 1] - tau[i]))$root)
+    }
+  }
+  x <- sort(unique(x))
+  mid <- g((x[-1] + x[-length(x)]) / 2)
+  sum(spline_segments(f, x)[mid >= lower & mid <= upper])
 }
 
 # Trapezium integral of y over sorted x, restricted to [lower, upper]. Each bound

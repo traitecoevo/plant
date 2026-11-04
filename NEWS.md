@@ -13,6 +13,19 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **`integrate_over_size_distribution()` integrates a run carried in birth date
+  over birth date (#722).** ⚠️ A semantic change, not a rename: for identical
+  inputs the totals of every run carried in birth date move — which includes every
+  TF24-family run on the default `Control` — because the density per unit birth
+  date is now integrated with a shape-preserving cubic instead of the density per
+  unit height with a trapezium. Runs carried in height (FF16 and K93 on the
+  default `Control`) are bit-identical. In birth date, the height bounds `lower`
+  and `upper` cut where the cohorts' interpolated height crosses them, and the
+  `log_density` column's total is `NA`. Migration:
+
+  * `integrate_over_size_distribution(x)` (the previous trapezium in height) -> `integrate_over_size_distribution(x, coordinate = "height")`
+  * `integrate_over_size_distribution(x)` in birth date on a table filtered to one step, or with nodes seeded by an initial state -> an error (their birth dates cannot be recovered); pass `coordinate = "height"`, or keep every step: a node's birth date is the time it first appears, so a table thinned to some steps gives coarsened birth dates
+
 * **TF24 moves to phylloptim 0.26.2 (#714).** A shut leaf is phylloptim's ordinary evaluator at its wet bound, so in light it nets zero instead of `-R_d`; `psi_crit` is no longer a bound, so the stem follows a drying soil past it. The operating-point kinds `boundary-crit`, `boundary-root-crit`, `determined` and `shade-death` are gone (`boundary-dry` replaces the first two). TF24t's impairment takes Bison & Michaletz's centred-Arrhenius kinetics. `scientific_version`: TF24 13 -> 14, TF24f 13.1 -> 14.1, TF24t 13.4 -> 14.5, TF24w 13.1 -> 14.1. Migration:
 
   * `TF24t_Strategy` `impair_H`, `impair_Tmid`, `m_rep`, `t_rep_cut`, `k_i_Tref` -> removed; new `k_i_Tiso`, `k_rec_Ea`, `k_mat_Ea`. `k_i` defaults to 276 day^-1 at `k_i_Tiso` (was 0.5 with a logistic switch), `k_i_Ea` to 316 kJ mol^-1.

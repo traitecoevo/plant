@@ -122,6 +122,10 @@ birth_date_knots <- function(d, times, columns) {
   cols <- unique(c("log_density_state", "mortality", columns))
   by_node <- lapply(split(d, d$node), function(x) x[!duplicated(x$time), ])
   birth <- vapply(by_node, function(x) x$time[1], 0)
+  if (anyDuplicated(birth) > 0) {
+    stop("Nodes share a first appearance (seeded by an initial state?), so ",
+         "their birth dates cannot be recovered for sampling", call. = FALSE)
+  }
 
   at_times <- function(time, value) {
     out <- rep(NA_real_, length(times))
