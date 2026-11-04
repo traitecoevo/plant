@@ -13,8 +13,12 @@
 #' fall in log density at its birth date since then exceeds that budget. In
 #' birth date a cohort's density changes only through mortality, so at every
 #' requested time the number of individuals is Poisson, with mean the area times
-#' the integral of the density over birth date, and the sample is exact apart
-#' from the interpolation between nodes. Every other state variable is interpolated to an individual's
+#' the integral of the density over birth date. The sample is exact apart from
+#' the interpolation between nodes. The set of nodes changes from frame to frame,
+#' so the interpolated density at a birth date can rise slightly; having no
+#' births to add, the sample then follows its running minimum. Individuals of a
+#' cohort that leaves the tracked nodes (as a continuous patch retires its oldest
+#' cohorts) drop out of the sample. Every other state variable is interpolated to an individual's
 #' birth date in the same way.
 #'
 #' The run must carry density in birth date,
@@ -272,7 +276,9 @@ sample_species <- function(knots, times, area, columns) {
     log_n <- log(at("n"))
     new <- first[i] == j
     log_n_first[i[new]] <- log_n[new]
-    dead <- log_n_first[i] - log_n > budget[i]
+    ## A birth date older than every tracked node has left them (a retired
+    ## cohort); there is no density there to follow.
+    dead <- log_n_first[i] - log_n > budget[i] | tau[i] < min(k$tau)
     alive[i[dead]] <- FALSE
     i <- i[!dead]
     if (length(i) == 0) next

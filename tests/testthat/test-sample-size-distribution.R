@@ -145,3 +145,17 @@ test_that("a sample is reproducible and defaults to a snapshot at the end", {
   expect_equal(unique(a$time), max(res$species$time))
   expect_true(all(c("height", "mortality", "area_heartwood") %in% names(a)))
 })
+
+test_that("individuals of a cohort that leaves the tracked nodes drop out", {
+  ## The oldest node (born at 0) is gone by the second frame, as when a
+  ## continuous patch retires a cohort.
+  knot <- function(tau) {
+    list(tau = tau, n = rep(2, length(tau)), mortality = rep(0.1, length(tau)),
+         log_density_state = rep(log(2), length(tau)), height = rev(seq_along(tau)))
+  }
+  set.seed(6)
+  x <- sample_species(list(knot(c(0, 1, 2)), knot(c(1, 2, 3))),
+                      times = c(2, 3), area = 50, columns = "height")
+  expect_true(any(x$time == 2 & x$birth_time < 1))
+  expect_false(any(x$time == 3 & x$birth_time < 1))
+})
