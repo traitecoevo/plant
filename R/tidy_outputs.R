@@ -114,26 +114,25 @@ tidy_patch <- function(results) {
 }
 
 
-#' Interpolate data on size distributions for each species to specific timer points, using specified interpolation method
+#' Interpolate data on size distributions for each species to specific time points
+#'
+#' Each node's state is interpolated through time with a shape-preserving cubic
+#' (PCHIP) by default, which stays between the values at neighbouring steps: a
+#' height or a cumulative mortality never falls, and a density never goes
+#' negative. A natural spline overshoots wherever a node's trajectory bends
+#' sharply, as when a cohort fails to establish.
 #'
 #' @param tidy_species_data output of either `tidy_patch` or `tidy_species`
 #' @param times times to interpolate to
-#' @param method Method for interpolation. For more info see help on stats::spline
+#' @param method `"pchip"` (the default), or a method for [stats::spline()],
+#'   such as `"natural"`, which this function used before.
 #'
-#' @return Returns a tibble of similar format to input, but with all outputs interpolated to specified hieghts.
+#' @return Returns a tibble of similar format to input, but with all outputs interpolated to specified times.
 #' @export
 #' @importFrom stats spline
 #' @importFrom rlang .data
-interpolate_to_times <- function(tidy_species_data, times, method="natural") {
-  
-  # helper function - predicts to new values with spline
-  # only needed to ensure predictions for xout outside the ange of x are set to NA
-  f <- function(x, y, xout) {
-    y_pred <- stats::spline(x, y, xout=xout, method=method)$y
-    y_pred[!dplyr::between(xout, min(x), max(x))] <- NA
-    y_pred
-  }
-  
+interpolate_to_times <- function(tidy_species_data, times, method = "pchip") {
+  f <- interpolator(method)
   tidy_species_data %>%
     tidyr::drop_na() %>%
     dplyr::group_by(.data$species, .data$node) %>%
@@ -142,26 +141,46 @@ interpolate_to_times <- function(tidy_species_data, times, method="natural") {
     )
 }
 
+## Interpolate y(x) to xout, NA outside the range of x. "pchip" keeps every
+## segment between its end values; anything else is a stats::spline() method.
+interpolator <- function(method) {
+  function(x, y, xout) {
+    keep <- !duplicated(x)
+    x <- x[keep]
+    y <- y[keep]
+    o <- order(x)
+    x <- x[o]
+    y <- y[o]
+    out <- rep(NA_real_, length(xout))
+    ok <- xout >= x[1] & xout <= x[length(x)]
+    if (!any(ok)) return(out)
+    out[ok] <- if (length(x) == 1) y else if (method == "pchip")
+      pchip(x, y)(xout[ok]) else stats::spline(x, y, xout = xout[ok], method = method)$y
+    out
+  }
+}
+
 
 #' Interpolate data on size distributions for each species to specific heights at every time point
 #'
+#' At each time, the state is interpolated across nodes in height with a
+#' shape-preserving cubic (PCHIP) by default, and density through its logarithm,
+#' so it stays between the values at neighbouring nodes. Density can fall several
+#' hundredfold between neighbouring nodes near the seedling end, and a natural
+#' spline through its logarithm then overshoots by orders of magnitude.
+#'
 #' @param tidy_species_data output of either `tidy_patch` or `tidy_species`
 #' @param heights heights to interpolate to
-#' @param method Method for interpolation. For more info see help on stats::spline
+#' @param method `"pchip"` (the default), or a method for [stats::spline()],
+#'   such as `"natural"`, which this function used before.
 #' @param min_log_density Set minimum possible value of log_density
 #' @return Returns a tibble of similar format to input, but with all outputs interpolated to specified hieghts.
 #' @export
 #' @importFrom stats spline
 #' @importFrom rlang .data
-interpolate_to_heights <- function(tidy_species_data, heights, method="natural", min_log_density = -100) {
+interpolate_to_heights <- function(tidy_species_data, heights, method = "pchip", min_log_density = -100) {
 
-  # helper function - predicts to new values with spline
-  # values for xout outside the range of x are set to NA (and dropped below)
-  f <- function(x, y, xout) {
-    y_pred <- stats::spline(x, y, xout=xout, method=method)$y
-    y_pred[!dplyr::between(xout, min(x), max(x))] <- NA
-    y_pred
-  }
+  f <- interpolator(method)
 
   if(!exists("step", tidy_species_data)){
     tidy_species_data <- tidy_species_data %>%

@@ -7,7 +7,7 @@
 interpolate_to_heights(
   tidy_species_data,
   heights,
-  method = "natural",
+  method = "pchip",
   min_log_density = -100
 )
 }
@@ -16,7 +16,8 @@ interpolate_to_heights(
 
 \item{heights}{heights to interpolate to}
 
-\item{method}{Method for interpolation. For more info see help on stats::spline}
+\item{method}{`"pchip"` (the default), or a method for [stats::spline()],
+such as `"natural"`, which this function used before.}
 
 \item{min_log_density}{Set minimum possible value of log_density}
 }
@@ -24,5 +25,9 @@ interpolate_to_heights(
 Returns a tibble of similar format to input, but with all outputs interpolated to specified hieghts.
 }
 \description{
-Interpolate data on size distributions for each species to specific heights at every time point
+At each time, the state is interpolated across nodes in height with a
+shape-preserving cubic (PCHIP) by default, and density through its logarithm,
+so it stays between the values at neighbouring nodes. Density can fall several
+hundredfold between neighbouring nodes near the seedling end, and a natural
+spline through its logarithm then overshoots by orders of magnitude.
 }

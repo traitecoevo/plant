@@ -278,3 +278,27 @@ test_that("over birth date, a coarse grid errs much less than the height trapezi
   }
   expect_lt(error("birth_date"), 0.5 * error("height"))
 })
+
+test_that("interpolating through time keeps cohorts growing and densities non-negative", {
+  sp <- birth_date_run()$species
+  out <- interpolate_to_times(sp, seq(0, 20, by = 0.1))
+  out <- out[order(out$species, out$node, out$time), ]
+  same <- diff(out$node) == 0 & out$species[-1] == out$species[-nrow(out)]
+  expect_true(all(out$density >= 0, na.rm = TRUE))
+  expect_true(all(diff(out$height)[same] >= 0, na.rm = TRUE))
+  expect_true(all(diff(out$mortality)[same] >= 0, na.rm = TRUE))
+  ## The natural spline this replaced did none of these on this run.
+  natural <- interpolate_to_times(sp, seq(0, 20, by = 0.1), method = "natural")
+  expect_true(any(natural$density < 0, na.rm = TRUE))
+})
+
+test_that("interpolating across heights keeps log density between the nodes'", {
+  sp <- birth_date_run()$species
+  out <- interpolate_to_heights(sp, seq(0, 20, by = 0.05))
+  range_at <- stats::aggregate(log_density ~ species + step, sp, range)
+  m <- merge(out, data.frame(range_at[c("species", "step")],
+                             lo = range_at$log_density[, 1],
+                             hi = range_at$log_density[, 2]))
+  expect_true(all(m$log_density >= m$lo - 1e-9 & m$log_density <= m$hi + 1e-9))
+  expect_true(all(is.finite(out$density)))
+})

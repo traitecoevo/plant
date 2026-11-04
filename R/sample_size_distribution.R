@@ -193,8 +193,11 @@ pchip <- function(x, y) {
     s <- xout - x[i]
     c2 <- (3 * delta[i] - 2 * d[i] - d[i + 1]) / h[i]
     c3 <- (d[i] + d[i + 1] - 2 * delta[i]) / h[i]^2
-    if (deriv == 0) y[i] + s * (d[i] + s * (c2 + s * c3))
-    else d[i] + s * (2 * c2 + 3 * s * c3)
+    if (deriv != 0) return(d[i] + s * (2 * c2 + 3 * s * c3))
+    ## Within the end values by construction; the clamp only absorbs rounding,
+    ## which near zero would otherwise leave a density at -1e-323.
+    v <- y[i] + s * (d[i] + s * (c2 + s * c3))
+    pmin(pmax(v, pmin(y[i], y[i + 1])), pmax(y[i], y[i + 1]))
   }
 }
 
