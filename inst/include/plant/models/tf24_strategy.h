@@ -907,7 +907,11 @@ public:
   //   is a C2 table; and the ci root-find is solved to 1e-13. Output moves near
   //   the root limit, below light compensation and in heat. TF24f, TF24t and
   //   TF24w follow; TF24t's thermal layer also moves (thermal_revision 5).
-  static constexpr int scientific_version = 14;
+  // v15: phylloptim 0.26.2 -> 0.27.0. Whether a leaf is held at the dry end of
+  //   its collar interval is decided at that end, where it used to flip under
+  //   rounding and make the forward run jump. Only stands that reach the dry
+  //   end move. TF24f, TF24t and TF24w follow to v15.1, v15.5 and v15.1.
+  static constexpr int scientific_version = 15;
 
   // calculate the amount of water transpired relativised by leaf area index.
 
