@@ -79,10 +79,13 @@ test_that("build_scenario takes a rainfall driver table, and the gateway's is a 
   expect_s3_class(drivers, "data.frame")
   expect_named(drivers, c("time", "rainfall"))
   expect_equal(range(drivers$time), c(0, 100))
-  ## The fixture is the former inline sinusoid, knot for knot.
+  ## The fixture is the former inline sinusoid, knot for knot. The grid is exact
+  ## arithmetic; the values go through sin(), which the fixture's macOS libm
+  ## and the CI runners' libms round differently in the last bit.
   t <- seq(0, 100, length.out = 4800L)
   expect_identical(drivers$time, t)
-  expect_identical(drivers$rainfall, pmax(1.5 * (1 + 0.5 * sin(2 * pi * t)), 0))
+  expect_equal(drivers$rainfall, pmax(1.5 * (1 + 0.5 * sin(2 * pi * t)), 0),
+               tolerance = 1e-14)
 
   built <- build_scenario(cfg, max_patch_lifetime = 100, drivers = drivers)
   at <- built$env$extrinsic_drivers_evaluate_range("rainfall", c(0, 0.25, 0.75))
