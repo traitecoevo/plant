@@ -211,7 +211,7 @@ test_that("TF24f tracks the seated curve rather than TF24", {
 # across species or sweep.
 
 test_that("the water price is settable as a trait", {
-  p0 <- scm_base_parameters("TF24")
+  p0 <- testing_parameters("TF24")
   prices <- c(0, 5e4, 1e5)
   ss <- generate_strategy(p0, trait_matrix(prices, "TF24_floor_lambda_o"))
 
@@ -225,7 +225,7 @@ test_that("a strategy built from the trait actually solves at that price", {
   # strategy; this shows `prepare_strategy()` carried it into the leaf and the
   # solve used it. A parameter that reaches `pars` but never reaches
   # `leaf.TF24_floor_lambda_o` looks completely fine from R.
-  p0 <- scm_base_parameters("TF24")
+  p0 <- testing_parameters("TF24")
   prices <- c(0, 5e4, 1e5)
   ss <- generate_strategy(p0, trait_matrix(prices, "TF24_floor_lambda_o"))
 
@@ -246,7 +246,7 @@ test_that("a strategy built from the trait actually solves at that price", {
 test_that("the price varies across species in one parameter set", {
   # The multi-species route, which is a different code path from
   # generate_strategy(): each species gets its own strategy and its own leaf.
-  p0 <- scm_base_parameters("TF24")
+  p0 <- testing_parameters("TF24")
   p <- add_strategies(p0, trait_matrix(c(0, 1e5), "TF24_floor_lambda_o"),
                       birth_rate = c(1, 1))
   expect_length(p$strategies, 2)
@@ -255,16 +255,16 @@ test_that("the price varies across species in one parameter set", {
                c(0, 1e5))
 })
 
-test_that("TF24_hyperpar passes the price through untouched", {
-  # ⚠️ NOT AUTOMATIC. TF24_hyperpar refuses to overwrite a parameter it derives
+test_that("the TF24 trade-off function passes the price through untouched", {
+  # ⚠️ NOT AUTOMATIC. the TF24 trade-off function refuses to overwrite a parameter it derives
   # itself ("Attempt to overwrite generated parameters"), which is what makes
   # `stem_P50`, `stem_c`, `stem_b`, `psi_crit` and `TF24_cost_scale` unusable as
   # input traits. The price is derived from nothing, so it must survive -- and if
   # someone ever adds a lambda_o ~ aridity relationship to the hyperpar, this is
   # the test that will tell them they have just made it unsettable.
-  p0 <- scm_base_parameters("TF24")
+  p0 <- testing_parameters("TF24")
   m <- trait_matrix(c(0, 1e5), "TF24_floor_lambda_o")
-  ret <- TF24_hyperpar(m, p0$strategy_default)
+  ret <- default_hyperpar("TF24")(m, p0$strategy_default)
   expect_true("TF24_floor_lambda_o" %in% colnames(ret))
   expect_equal(ret[, "TF24_floor_lambda_o"], c(0, 1e5))
 })
@@ -272,7 +272,7 @@ test_that("TF24_hyperpar passes the price through untouched", {
 test_that("TF24f takes the price as a trait too", {
   # TF24f shares TF24_Pars, so this is about the hyperpar and the strategy
   # template rather than about a second parameter.
-  pf <- scm_base_parameters("TF24f")
+  pf <- testing_parameters("TF24f")
   sf <- generate_strategy(pf, trait_matrix(1e5, "TF24_floor_lambda_o"))
   expect_equal(sf[[1]]$pars$TF24_floor_lambda_o, 1e5)
 })

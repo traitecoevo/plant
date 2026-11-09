@@ -14,7 +14,7 @@
 
 test_that("SCM fixed-step Euler converges on the adaptive result", {
   x <- "FF16"
-  p0 <- scm_base_parameters(x)
+  p0 <- testing_parameters(x)
   p0$max_patch_lifetime <- 40
   p <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
   env <- Environment(x)
@@ -40,7 +40,7 @@ test_that("SCM fixed-step Euler converges on the adaptive result", {
 
 test_that("SCM fixed-step walks the expected uniform grid", {
   x <- "FF16"
-  p0 <- scm_base_parameters(x)
+  p0 <- testing_parameters(x)
   p0$max_patch_lifetime <- 40
   p <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
   env <- Environment(x)
@@ -63,7 +63,7 @@ test_that("SCM fixed-step walks the expected uniform grid", {
 
 test_that("fixed_time_step is rejected on the mutant pinned-run paths", {
   x <- "FF16"
-  p0 <- scm_base_parameters(x)
+  p0 <- testing_parameters(x)
   p0$max_patch_lifetime <- 40
   p <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
   env <- Environment(x)

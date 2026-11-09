@@ -4,10 +4,10 @@
 # to 4 times the total.
 
 hyperpar_parameters <- function(lifetime = 3) {
-  p <- scm_base_parameters("TF24")
+  p <- testing_parameters("TF24")
   p$max_patch_lifetime <- lifetime
   add_strategies(p, trait_matrix(c(0.0825, 5.13), c("lma", "hmat")),
-                 hyperpar = TF24_hyperpar, birth_rate = list(1.10))
+                 hyperpar = default_hyperpar("TF24"), birth_rate = list(1.10))
 }
 
 hyperpar_run <- function(p = hyperpar_parameters()) {
@@ -22,11 +22,11 @@ test_that("a trait's column is its partial plus each derived parameter's, chaine
   tot <- stand_gradient(run$scm, traits = c("1.lma", "1.hmat"))
   par <- stand_gradient(run$scm, hyperpar = NULL)
 
-  # TF24_hyperpar derives k_l, r_l and nmass_l from lma; nmass_l reaches no
+  # the TF24 trade-off function derives k_l, r_l and nmass_l from lma; nmass_l reaches no
   # equation, so it has no column. Their derivatives, from the function itself.
   s <- run$scm$parameters$strategies[[1]]
   derived <- function(lma) {
-    TF24_hyperpar(trait_matrix(lma, "lma"), s, filter = FALSE)[1, c("k_l", "r_l")]
+    default_hyperpar("TF24")(trait_matrix(lma, "lma"), s, filter = FALSE)[1, c("k_l", "r_l")]
   }
   h <- 1e-6 * 0.0825
   d <- (derived(0.0825 + h) - derived(0.0825 - h)) / (2 * h)
@@ -49,10 +49,10 @@ test_that("the total agrees with a difference of the trait through add_strategie
   tot <- stand_gradient(run$scm, traits = "1.lma")
   sched <- run$scm$node_schedule$times(1)
   census_at <- function(lma) {
-    p <- scm_base_parameters("TF24")
+    p <- testing_parameters("TF24")
     p$max_patch_lifetime <- 3
     p <- add_strategies(p, trait_matrix(c(lma, 5.13), c("lma", "hmat")),
-                        hyperpar = TF24_hyperpar, birth_rate = list(1.10))
+                        hyperpar = default_hyperpar("TF24"), birth_rate = list(1.10))
     p$node_schedule_times <- list(sched)
     stand_census(run_scm(p, Environment("TF24"), run$ctrl,
                          refine_schedule = FALSE))
@@ -78,7 +78,7 @@ test_that("a derived parameter is not a column of its own under a trade-off", {
 test_that("a strategy that is not on the trade-off is refused, not chained", {
   p <- hyperpar_parameters(lifetime = 1)
   p <- add_strategies(p, trait_matrix(c(0.0825, 5.13), c("lma", "hmat")),
-                      hyperpar = TF24_hyperpar, birth_rate = list(1.10))
+                      hyperpar = default_hyperpar("TF24"), birth_rate = list(1.10))
   p$strategies[[2]]$pars$lma <- 0.09
   run <- hyperpar_run(p)
   expect_error(stand_gradient(run$scm, traits = "2.lma"),
@@ -88,17 +88,17 @@ test_that("a strategy that is not on the trade-off is refused, not chained", {
   expect_no_error(stand_gradient(run$scm, traits = "1.lma"))
   expect_no_error(stand_gradient(run$scm, traits = "2.lma", hyperpar = NULL))
   expect_error(stand_gradient(run$scm, traits = "1.lma", hyperpar = "TF24"),
-               "must be a hyperparameter function")
+               "must be a trade-off function")
 })
 
 test_that("a default strategy, or one built at an input it does not keep, is refused", {
   # TF24's defaults are not the trade-off's at its default traits.
-  expect_error(trade_off(scm_base_parameters("TF24")$strategy_default, 1,
-                         TF24_hyperpar), "built by hand")
-  p <- add_strategies(scm_base_parameters("FF16"),
+  expect_error(trade_off(testing_parameters("TF24")$strategy_default, 1,
+                         default_hyperpar("TF24")), "built by hand")
+  p <- add_strategies(testing_parameters("FF16"),
                       trait_matrix(c(0.1, 3e-3), c("lma", "narea")),
-                      hyperpar = FF16_hyperpar, birth_rate = list(1))
-  expect_error(trade_off(p$strategies[[1]], 1, FF16_hyperpar),
+                      hyperpar = default_hyperpar("FF16"), birth_rate = list(1))
+  expect_error(trade_off(p$strategies[[1]], 1, default_hyperpar("FF16")),
                "built at a narea the strategy does not keep")
-  expect_no_error(trade_off(p$strategies[[1]], 1, make_FF16_hyperpar(narea = 3e-3)))
+  expect_no_error(trade_off(p$strategies[[1]], 1, default_hyperpar("FF16", narea = 3e-3)))
 })

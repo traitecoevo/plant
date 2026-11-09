@@ -78,6 +78,47 @@ test_ode_make_solver <- function(sys) {
   OdeRunner(class(sys)[[1]])(sys)
 }
 
+# plant's testing parameter set, quietly: today's C++ defaults with the frozen
+# trade-off functions attached (see ?default_parameters). Every test that builds
+# strategies from traits uses this rather than scm_base_parameters(), which
+# attaches no trade-offs, so the goldens and baselines keep their numbers.
+testing_parameters <- function(model) {
+  default_parameters(model, quiet = TRUE)
+}
+
+# Soil layer widths grading geometrically from a thin surface layer, summing to
+# `depth` to the bit. The generator moved to fieldtrial (soil_widths_graded());
+# the tests that probe a graded column keep this copy of its arithmetic.
+graded_widths <- function(depth = 1.5, n = 5, top = 0.02) {
+  n <- as.integer(n)
+  stopifnot(n >= 1L, top < depth / n)
+  if (n == 1L) {
+    return(depth)
+  }
+  total <- function(r) top * (r^n - 1) / (r - 1)
+  upper <- 2
+  while (total(upper) < depth) {
+    upper <- upper * 2
+  }
+  r <- stats::uniroot(function(r) total(r) - depth,
+                      c(1 + 1e-12, upper), tol = .Machine$double.eps^0.75)$root
+  out <- top * r^(seq_len(n) - 1L)
+  out[[n]] <- depth - sum(out[-n])
+  out
+}
+
+# Rainfall as Poisson pulses over (from, to]: exponential inter-arrival at
+# `rate` per year, exponential depths with mean `mean_amount`. The generator
+# moved to fieldtrial (pulse_series_poisson()); TF24w's stand keeps its
+# arithmetic so the seeded series the test was tuned on is unchanged.
+poisson_pulses <- function(from, to, rate, mean_amount) {
+  n <- stats::rpois(1, rate * (to - from))
+  time <- sort(stats::runif(n, from, to))
+  amount <- stats::rexp(n, rate = 1 / mean_amount)
+  keep <- time > from
+  data.frame(time = time[keep], amount = amount[keep])
+}
+
 # NOTE: TF24f (#525) is intentionally excluded from these generic cross-strategy
 # lists. It is an experimental variant with a 6th ODE state (tracked root-collar
 # psi) and relies on birth-initialisation via Node::compute_initial_conditions, so
@@ -107,9 +148,9 @@ get_list_of_environment_types <- function() {
 # ! Important the whitespace in the following function is used by the strategy scaffolder
 get_list_of_hyperpar_functions <- function() {
   list(
-    FF16=FF16_hyperpar,
-    TF24=TF24_hyperpar,
-    K93=K93_hyperpar
+    FF16=default_hyperpar("FF16"),
+    TF24=default_hyperpar("TF24"),
+    K93=default_hyperpar("K93")
     )
 }
 

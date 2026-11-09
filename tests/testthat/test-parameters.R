@@ -110,12 +110,13 @@ test_that("scm_base_parameters", {
     e <- environment_types[[x]]
     p <- scm_base_parameters(x)
     expect_inherits(p, sprintf("Parameters<%s,%s>", x, e))
+    expect_null(p$hyperpar)
   }
 })
 
 test_that("Patch runtime", {
   for (x in names(strategy_types)[[1]]) {
-    p <- scm_base_parameters(x)
+    p <- testing_parameters(x)
     expect_equal(p$max_patch_lifetime, 105.32)
     p$strategies <- list(strategy_types[[x]]())
 

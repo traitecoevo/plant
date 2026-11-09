@@ -85,7 +85,7 @@ test_that("exposing the root parameters left default behaviour unchanged", {
   env <- Environment("TF24")
   env$set_soil_number_of_depths(5)
   env$set_soil_water_state(rep(0.25, 5))
-  p <- scm_base_parameters("TF24")
+  p <- testing_parameters("TF24")
   p$max_patch_lifetime <- 2
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))
   out <- run_scm(p, env)
@@ -136,7 +136,7 @@ test_that("plant hands the leaf each layer's own thickness, not a column average
   # outright; see the ordering test below.)
   uniform <- probe_root_operating_point(rep(0.3, 5))
   thin_top <- probe_root_operating_point(c(0.02, 0.28, 0.30, 0.40, 0.50))
-  steep <- probe_root_operating_point(soil_widths_graded(1.5, 5, top = 0.01))
+  steep <- probe_root_operating_point(graded_widths(1.5, 5, top = 0.01))
 
   for (p in list(uniform, thin_top, steep)) {
     expect_true(is.finite(p[["assimilation"]]))
@@ -158,8 +158,8 @@ test_that("plant hands the leaf each layer's own thickness, not a column average
 
 test_that("an unequal-layer column runs end to end", {
   env <- Environment("TF24")
-  set_tf24_soil(env, soil_widths_graded(1.5, 5, top = 0.02), theta = 0.25)
-  p <- scm_base_parameters("TF24")
+  set_tf24_soil(env, graded_widths(1.5, 5, top = 0.02), theta = 0.25)
+  p <- testing_parameters("TF24")
   p$max_patch_lifetime <- 2
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))
   out <- run_scm(p, env)

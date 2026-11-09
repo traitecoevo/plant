@@ -6,7 +6,7 @@ test_that("TF24_plot_diagnostics assembles a TF24 stand diagnostic figure", {
   # Minimal collected TF24 run carrying the soil-moisture environment series
   # and per-node leaf diagnostics that TF24_plot_diagnostics() consumes.
   max_patch_lifetime <- 2
-  p0 <- scm_base_parameters("TF24", "TF24_Env")
+  p0 <- testing_parameters("TF24")
   p0$max_patch_lifetime <- max_patch_lifetime
   p1 <- add_strategies(p0, trait_matrix(0.07, "lma"))
 

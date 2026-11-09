@@ -97,7 +97,7 @@ test_that("K93_Strategy hyper-parameterisation", {
   s <- K93_Strategy()
 
   ## Hyperpars should just pass through:
-  ret <- K93_hyperpar(trait_matrix(numeric(0), "b_0"), s)
+  ret <- default_hyperpar("K93")(trait_matrix(numeric(0), "b_0"), s)
   expect_equal(ret, trait_matrix(numeric(0), "b_0"))
 })
 
@@ -105,7 +105,7 @@ test_that("K93_Strategy hyper-parameterisation", {
 test_that("K93 offspring production is unchanged", {
 
   # Generic parameters
-  p0 <- scm_base_parameters("K93")
+  p0 <- testing_parameters("K93")
   p0$max_patch_lifetime <- 35.10667
   
   env <- Environment("K93")

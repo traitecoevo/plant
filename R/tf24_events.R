@@ -27,7 +27,7 @@
 ##' @seealso \code{\link{events}}, \code{\link{resource_pulse}}
 ##' @export
 ##' @examples
-##' p <- scm_base_parameters("TF24")
+##' p <- default_parameters("TF24", quiet = TRUE)
 ##' p <- add_strategies(p, trait_matrix(1, "lma"))
 ##' ev <- events(
 ##'   events_default(p),

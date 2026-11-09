@@ -67,7 +67,7 @@ test_that("a Control or Parameters saved before a field existed still loads", {
   ctrl <- Control(node_density_coordinate = "birth_date")
   ctrl[["absorb_epsilon"]] <- NULL
   ctrl[["gradient_curvature_floor"]] <- NULL
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$max_patch_lifetime <- 5
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))
   old <- p

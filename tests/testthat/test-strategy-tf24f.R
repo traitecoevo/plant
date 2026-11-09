@@ -92,7 +92,8 @@ test_that("Defaults", {
     d = 0.05,
     alpha_PAR = 0.85,
     alpha_NIR = 0.2,
-    L_crown = 2.0)
+    L_crown = 2.0,
+    g_min = 0.0)
 
   # Top-level strategy fields: the pars sub-object plus infrastructure, and the
   # TF24f-specific acclimation knobs (gain + finite-difference step) (#525).
@@ -117,14 +118,14 @@ test_that("Defaults", {
 
 test_that("TF24f validates acclimation knobs", {
   # k_acclim must be finite and >= 0; psi_fd_step must be finite and > 0.
-  p1 <- scm_base_parameters("TF24f") |>
+  p1 <- testing_parameters("TF24f") |>
     add_strategies(trait_matrix(0.0825, "lma"), birth_rate = 20)
   s1 <- p1$strategies[[1]]; s1$k_acclim <- -1; p1$strategies[[1]] <- s1
   expect_error(run_scm(p1, collect = FALSE, refine_schedule = FALSE), "k_acclim")
 
   # psi_fd_step is only used on the finite-difference path, so exercise it with
   # the AD gradient disabled.
-  p2 <- scm_base_parameters("TF24f") |>
+  p2 <- testing_parameters("TF24f") |>
     add_strategies(trait_matrix(0.0825, "lma"), birth_rate = 20)
   s2 <- p2$strategies[[1]]; s2$psi_fd_step <- 0; s2$use_ad_gradient <- FALSE
   p2$strategies[[1]] <- s2
@@ -207,7 +208,7 @@ test_that("TF24f_Strategy hyper-parameterisation", {
 
   # lma
   lma <- c(0.1,1)
-  ret <- TF24f_hyperpar(trait_matrix(lma, "lma"), s)
+  ret <- default_hyperpar("TF24")(trait_matrix(lma, "lma"), s)
 
   expect_true(all(c("lma", "k_l", "r_l", "nmass_l") %in% colnames(ret)))
   expect_equal(ret[, "lma"], lma)
@@ -217,7 +218,7 @@ test_that("TF24f_Strategy hyper-parameterisation", {
 
   # wood density
   rho <- c(200,300)
-  tf24f_hyperpar_rho <- make_TF24f_hyperpar(B_hks2 = 1)
+  tf24f_hyperpar_rho <- default_hyperpar("TF24", B_hks2 = 1)
   ret <- tf24f_hyperpar_rho(trait_matrix(rho, "rho"), s)
   expect_true(all(c("rho", "TF24_cost_scale", "r_s", "r_b") %in% colnames(ret)))
   expect_equal(ret[, "rho"], rho)
@@ -227,7 +228,7 @@ test_that("TF24f_Strategy hyper-parameterisation", {
 
   # sapwood conductivity and hydraulic traits
   K_s <- c(1, 2, 3)
-  ret <- TF24f_hyperpar(trait_matrix(K_s, "K_s"), s)
+  ret <- default_hyperpar("TF24")(trait_matrix(K_s, "K_s"), s)
   expect_true(all(c("K_s", "stem_P50", "stem_b", "psi_crit") %in% colnames(ret)))
   # B_c2 = 0 makes stem_c the default at every K_s, so the filter drops it.
   expect_false("stem_c" %in% colnames(ret))
@@ -236,7 +237,7 @@ test_that("TF24f_Strategy hyper-parameterisation", {
 
   # vcmax_25 contributes to leaf N and therefore respiration
   vcmax_25 <- c(0, 96, 160)
-  ret <- TF24f_hyperpar(trait_matrix(vcmax_25, "vcmax_25"), s)
+  ret <- default_hyperpar("TF24")(trait_matrix(vcmax_25, "vcmax_25"), s)
   expect_true(all(c("vcmax_25", "r_l", "nmass_l") %in% colnames(ret)))
   expect_equal(ret[, "vcmax_25"], vcmax_25)
   expect_true(all(diff(ret[, "r_l"]) > 0))
@@ -244,7 +245,7 @@ test_that("TF24f_Strategy hyper-parameterisation", {
 
   # seed mass
   omega <- 3.8e-5*c(1,2,3)
-  ret <- TF24f_hyperpar(trait_matrix(omega, "omega"), s)
+  ret <- default_hyperpar("TF24")(trait_matrix(omega, "omega"), s)
   expect_true(all(c("omega", "a_f3") %in% colnames(ret)))
   expect_equal(ret[, "omega"], omega)
   expect_equal(ret[, "a_f3"], 3*omega)
@@ -253,20 +254,20 @@ test_that("TF24f_Strategy hyper-parameterisation", {
 
 
   ## Empty trait matrix:
-  ret <- TF24f_hyperpar(trait_matrix(numeric(0), "lma"), s)
+  ret <- default_hyperpar("TF24")(trait_matrix(numeric(0), "lma"), s)
   expect_equal(ret, trait_matrix(numeric(0), "lma"))
 })
 
-test_that("TF24f_hyperpar sources k_I from the strategy", {
+test_that("the TF24 trade-off function sources k_I from the strategy", {
   m <- trait_matrix(c(96, 120), "vcmax_25")
 
   s <- TF24f_Strategy()
   expect_equal(s$pars$k_I, 0.5)
-  ret <- TF24f_hyperpar(m, s)
+  ret <- default_hyperpar("TF24")(m, s)
 
   s2 <- TF24f_Strategy()
   s2$pars$k_I <- 0.8
-  ret2 <- TF24f_hyperpar(m, s2)
+  ret2 <- default_hyperpar("TF24")(m, s2)
 
   # TF24f now follows TF24's updated hyperparameterisation, which no longer
   # computes the legacy assimilation-fit columns a_p1/a_p2 from k_I.
@@ -277,9 +278,9 @@ test_that("narea calculation", {
   x <- c(1.38, 3.07, 2.94)
   p0 <- TF24f_Parameters()
   m <- trait_matrix(x, "hmat")
-  expect_silent(sl <- plant:::generate_strategy(p0, m, hyperpar = TF24f_hyperpar, birth_rate = 1.0))
+  expect_silent(sl <- plant:::generate_strategy(p0, m, hyperpar = default_hyperpar("TF24"), birth_rate = 1.0))
 
-  cmp <- lapply(x, function(xi) generate_strategy(p0, trait_matrix(xi, "hmat"), hyperpar = TF24f_hyperpar, birth_rate = 1.0)[[1]])
+  cmp <- lapply(x, function(xi) generate_strategy(p0, trait_matrix(xi, "hmat"), hyperpar = default_hyperpar("TF24"), birth_rate = 1.0)[[1]])
   expect_equal(sl, cmp)
 })
 
@@ -299,10 +300,10 @@ test_that("narea calculation", {
 test_that("acclimation runs, is active, and converges to TF24", {
 
   mk <- function(strat) {
-    p0 <- scm_base_parameters(strat)
+    p0 <- testing_parameters(strat)
     p0$max_patch_lifetime <- 5
     add_strategies(p0, trait_matrix(c(0.0825, 5), c("lma", "hmat")),
-                   hyperpar = get(paste0(strat, "_hyperpar")), birth_rate = list(20))
+                   hyperpar = default_hyperpar(strat), birth_rate = list(20))
   }
   set_k_acclim <- function(p, k) {
     s <- p$strategies[[1]]
@@ -389,7 +390,7 @@ test_that("acclimation runs, is active, and converges to TF24", {
 test_that("E conservation", {
 
   max_patch_lifetime <- 10
-  p0 <- scm_base_parameters("TF24f", "TF24_Env")
+  p0 <- testing_parameters("TF24f")
   p0$max_patch_lifetime <- max_patch_lifetime
   traits <- trait_matrix(c(0.07), c("lma"))
   p1 <- add_strategies(p0, traits)
@@ -429,10 +430,10 @@ test_that("TF24f AD gradient tracks TF24 (#527)", {
   # length, so a 5-year patch reproduces it (cohorts agree to <1% at every step)
   # while running ~35x faster than the default horizon.
   base <- function(type) {
-    p0 <- scm_base_parameters(type)
+    p0 <- testing_parameters(type)
     p0$max_patch_lifetime <- 5
     add_strategies(p0, trait_matrix(c(0.0825, 5), c("lma", "hmat")),
-                   hyperpar = get(paste0(type, "_hyperpar")), birth_rate = 20)
+                   hyperpar = default_hyperpar(type), birth_rate = 20)
   }
   ref <- run_scm(base("TF24"), collect = TRUE, refine_schedule = FALSE)$species
 

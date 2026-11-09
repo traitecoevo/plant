@@ -91,7 +91,8 @@ test_that("Defaults", {
     d = 0.05,
     alpha_PAR = 0.85,
     alpha_NIR = 0.2,
-    L_crown = 2.0)
+    L_crown = 2.0,
+    g_min = 0.0)
 
   # Top-level strategy fields: the pars sub-object plus infrastructure.
   expected_top <- c("pars", "control", "collect_all_auxiliary",
@@ -188,7 +189,7 @@ test_that("TF24_Strategy hyper-parameterisation", {
 
   # lma
   lma <- c(0.1,1)
-  ret <- TF24_hyperpar(trait_matrix(lma, "lma"), s)
+  ret <- default_hyperpar("TF24")(trait_matrix(lma, "lma"), s)
 
   expect_true(all(c("lma", "k_l", "r_l") %in% colnames(ret)))
   expect_equal(ret[, "lma"], lma)
@@ -205,7 +206,7 @@ test_that("TF24_Strategy hyper-parameterisation", {
 
   # wood density
   rho <- c(200,300)
-  tf24_hyperpar_rho <- make_TF24_hyperpar(B_hks2 = 1)
+  tf24_hyperpar_rho <- default_hyperpar("TF24", B_hks2 = 1)
   ret <- tf24_hyperpar_rho(trait_matrix(rho, "rho"), s)
   expect_true(all(c("rho", "TF24_cost_scale", "r_s", "r_b") %in% colnames(ret)))
   expect_equal(ret[, "rho"], rho)
@@ -223,7 +224,7 @@ test_that("TF24_Strategy hyper-parameterisation", {
 
   # vcmax
   vcmax_25 <- c(0, 50,100)
-  ret <- TF24_hyperpar(trait_matrix(vcmax_25, "vcmax_25"), s)
+  ret <- default_hyperpar("TF24")(trait_matrix(vcmax_25, "vcmax_25"), s)
   expect_true(all(c("nmass_l", "r_l") %in% colnames(ret)))
   expect_equal(ret[, "vcmax_25"], vcmax_25)
   expect_equal(ret[, "r_l"], c(271.2375, 311.6662, 352.0949), tolerance=1e-5)
@@ -231,7 +232,7 @@ test_that("TF24_Strategy hyper-parameterisation", {
   
   # seed mass
   omega <- 3.8e-5*c(1,2,3)
-  ret <- TF24_hyperpar(trait_matrix(omega, "omega"), s)
+  ret <- default_hyperpar("TF24")(trait_matrix(omega, "omega"), s)
   expect_true(all(c("omega", "a_f3") %in% colnames(ret)))
   expect_equal(ret[, "omega"], omega)
   expect_equal(ret[, "a_f3"], 3*omega)
@@ -246,24 +247,24 @@ test_that("TF24_Strategy hyper-parameterisation", {
 
 
   ## Empty trait matrix:
-  ret <- TF24_hyperpar(trait_matrix(numeric(0), "lma"), s)
+  ret <- default_hyperpar("TF24")(trait_matrix(numeric(0), "lma"), s)
   expect_equal(ret, trait_matrix(numeric(0), "lma"))
 })
 
-test_that("TF24_hyperpar at the default traits keeps the default stem curve", {
+test_that("the TF24 trade-off function at the default traits keeps the default stem curve", {
   ## A strategy built from traits and the bare default must share one
   ## vulnerability curve (#611). r_l and nmass_l still differ (#579).
   s <- TF24_Strategy()
-  ret <- TF24_hyperpar(trait_matrix(s$pars$K_s, "K_s"), s, filter = FALSE)
+  ret <- default_hyperpar("TF24")(trait_matrix(s$pars$K_s, "K_s"), s, filter = FALSE)
   for (v in c("stem_P50", "stem_c", "stem_b", "psi_crit")) {
     expect_equal(unname(ret[1, v]), s$pars[[v]], tolerance = 1e-14, info = v)
   }
 })
 
-test_that("TF24_hyperpar no longer produces a_p1/a_p2 and k_I does not affect output", {
+test_that("the TF24 trade-off function no longer produces a_p1/a_p2 and k_I does not affect output", {
   m <- trait_matrix(c(0.1, 0.2), "lma")
   s <- TF24_Strategy()
-  ret <- TF24_hyperpar(m, s)
+  ret <- default_hyperpar("TF24")(m, s)
 
   ## Legacy assimilation parameters a_p1/a_p2 are no longer derived by the
   ## hyperpar function (they remain strategy-level constants, not traits).
@@ -274,7 +275,7 @@ test_that("TF24_hyperpar no longer produces a_p1/a_p2 and k_I does not affect ou
   ## strategy does not change the hyperpar output.
   s2 <- TF24_Strategy()
   s2$pars$k_I <- 0.8
-  ret2 <- TF24_hyperpar(m, s2)
+  ret2 <- default_hyperpar("TF24")(m, s2)
   expect_equal(ret, ret2)
 })
 
@@ -282,9 +283,9 @@ test_that("narea calculation", {
   x <- c(1.38, 3.07, 2.94)
   p0 <- TF24_Parameters()
   m <- trait_matrix(x, "hmat")
-  expect_silent(sl <- plant:::generate_strategy(p0, m, hyperpar = TF24_hyperpar, birth_rate = 1.0))
+  expect_silent(sl <- plant:::generate_strategy(p0, m, hyperpar = default_hyperpar("TF24"), birth_rate = 1.0))
 
-  cmp <- lapply(x, function(xi) generate_strategy(p0, trait_matrix(xi, "hmat"), hyperpar = TF24_hyperpar, birth_rate = 1.0)[[1]])
+  cmp <- lapply(x, function(xi) generate_strategy(p0, trait_matrix(xi, "hmat"), hyperpar = default_hyperpar("TF24"), birth_rate = 1.0)[[1]])
   expect_equal(sl, cmp)
 })
 
@@ -319,7 +320,7 @@ test_that("offspring arrival", {
   # ~1e-5 for the pre-#517 model. 2e-2 absorbs that with margin while still
   # catching any real regression, which moves these values by whole units or
   # orders of magnitude.
-  p0 <- scm_base_parameters("TF24")
+  p0 <- testing_parameters("TF24")
   env <- Environment("TF24")
   # The height arm of the comparison below, named explicitly: TF24's default is
   # now the birth-date coordinate ("auto" resolves to it), so a bare Control()
@@ -330,7 +331,7 @@ test_that("offspring arrival", {
 
   # one species
   p1 <- add_strategies(p0, trait_matrix(c(0.0825, 5), c("lma", "hmat")),
-                       hyperpar = TF24_hyperpar, birth_rate = list(20))
+                       hyperpar = default_hyperpar("TF24"), birth_rate = list(20))
 
   out <- run_scm(p1, env, ctrl)
   expect_equal(out$offspring_production, 9.12669320, tolerance = 2e-2)
@@ -344,7 +345,7 @@ test_that("offspring arrival", {
   # The exclusion this pins is a property of the *height* coordinate, which the
   # ctrl above selects; the birth-date run below names its own.
   p2 <- add_strategies(p0, trait_matrix(c(0.0825, 0.10, 5, 5), c("lma", "hmat")),
-                       hyperpar = TF24_hyperpar, birth_rate = list(20, 20))
+                       hyperpar = default_hyperpar("TF24"), birth_rate = list(20, 20))
 
   out <- run_scm(p2, env, ctrl)
   expect_equal(out$offspring_production[[1]], 5.68263921, tolerance = 2e-2)
@@ -430,7 +431,7 @@ test_that("the height-linear parameters reproduce the pre-path-integral results"
     p
   }
 
-  p0 <- scm_base_parameters("TF24")
+  p0 <- testing_parameters("TF24")
   env <- Environment("TF24")
   # ⚠️ PINNED TO THE HEIGHT COORDINATE. These are develop's pre-#516 values, and
   # they were taken when Control()'s default resolved to the height coordinate
@@ -442,12 +443,12 @@ test_that("the height-linear parameters reproduce the pre-path-integral results"
   p0$max_patch_lifetime <- 5
 
   p1 <- add_strategies(p0, trait_matrix(c(0.0825, 5), c("lma", "hmat")),
-                       hyperpar = TF24_hyperpar, birth_rate = list(20))
+                       hyperpar = default_hyperpar("TF24"), birth_rate = list(20))
   out <- run_scm(linear(p1), env, ctrl)
   expect_equal(out$offspring_production, 18.91718234, tolerance = 2e-2)
 
   p2 <- add_strategies(p0, trait_matrix(c(0.0825, 0.10, 5, 5), c("lma", "hmat")),
-                       hyperpar = TF24_hyperpar, birth_rate = list(20, 20))
+                       hyperpar = default_hyperpar("TF24"), birth_rate = list(20, 20))
   out2 <- run_scm(linear(p2), env, ctrl)
   expect_equal(out2$offspring_production[[1]], 12.23143319, tolerance = 2e-2)
   expect_lt(out2$offspring_production[[2]], 0.5)
@@ -468,7 +469,7 @@ test_that("the height-linear parameters reproduce the pre-path-integral results"
 test_that("E conservation", {
 
 max_patch_lifetime <-2
-p0 <- scm_base_parameters("TF24", "TF24_Env")
+p0 <- testing_parameters("TF24")
 p0$max_patch_lifetime <- max_patch_lifetime
 traits <- trait_matrix(c(0.07), c("lma"))
 p1 <- add_strategies(p0, traits)
@@ -514,7 +515,7 @@ test_that("SCM completes under extreme seasonal drought (#517, #550)", {
   # here to keep the test cheap. NSC makes completion platform-independent, so
   # this is no longer skipped on Windows (contrast the pre-#517 blow-up test).
   mpl <- 30
-  p0 <- scm_base_parameters("TF24", "TF24_Env")
+  p0 <- testing_parameters("TF24")
   p0$max_patch_lifetime <- mpl
   p1 <- add_strategies(p0, trait_matrix(0.07, "lma"))
 
@@ -726,9 +727,9 @@ test_that("a run keeps every storage state inside [0, capacity]", {
   # ratio would have removed that term. Below, the solver refuses a step whose
   # end leaves a pool negative, so what used to be 3 per cent of records at 4.5
   # per cent of capacity is now none.
-  p <- scm_base_parameters("TF24")
+  p <- testing_parameters("TF24")
   p$max_patch_lifetime <- 10
-  p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = TF24_hyperpar,
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("TF24"),
                       birth_rate = list(1.10))
   out <- run_scm(p, ctrl = Control(node_density_coordinate = "birth_date"),
                  collect = TRUE)

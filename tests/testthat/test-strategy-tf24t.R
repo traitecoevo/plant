@@ -239,7 +239,7 @@ test_that("at non-damaging settings TF24t is TF24 with the energy balance on", {
   }
 
   build <- function(type, mutate) {
-    p <- scm_base_parameters(type)
+    p <- testing_parameters(type)
     p$max_patch_lifetime <- 5
     p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 20)
     p$strategies[[1]] <- mutate(p$strategies[[1]])
@@ -309,7 +309,7 @@ test_that("mean_leaf_temp is a running mean of the operating leaf temperature", 
 
 test_that("TF24t refuses misconfigured kinetics", {
   mk <- function(mutate) {
-    p <- scm_base_parameters("TF24t") |>
+    p <- testing_parameters("TF24t") |>
       add_strategies(trait_matrix(0.0825, "lma"), birth_rate = 20)
     p$strategies[[1]] <- mutate(p$strategies[[1]])
     p
@@ -338,7 +338,7 @@ test_that("TF24t refuses deep-crown shading and accepts the other two", {
   s$control$shading_model <- "deep-crown"
   expect_error(TF24t_Individual(s), "deep-crown.*not supported for the TF24t")
 
-  p <- scm_base_parameters("TF24t") |>
+  p <- testing_parameters("TF24t") |>
     add_strategies(trait_matrix(0.0825, "lma"), birth_rate = 20)
   ctrl <- control()
   ctrl$shading_model <- "deep-crown"
@@ -352,7 +352,7 @@ test_that("TF24t refuses deep-crown shading and accepts the other two", {
 })
 
 test_that("TF24t has no stand gradient", {
-  p <- scm_base_parameters("TF24t")
+  p <- testing_parameters("TF24t")
   p$max_patch_lifetime <- 1
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 20)
   scm <- run_scm(p)
@@ -360,7 +360,7 @@ test_that("TF24t has no stand gradient", {
 })
 
 test_that("TF24t runs end-to-end; the fractions are bounded; A stays non-negative", {
-  p <- scm_base_parameters("TF24t")
+  p <- testing_parameters("TF24t")
   p$max_patch_lifetime <- 10
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 20)
   res <- run_scm(p, collect = TRUE, refine_schedule = FALSE)
@@ -389,7 +389,7 @@ test_that("TF24t runs end-to-end; the fractions are bounded; A stays non-negativ
 })
 
 test_that("with zero gain the acclimation state stays at zero", {
-  p <- scm_base_parameters("TF24t")
+  p <- testing_parameters("TF24t")
   p$max_patch_lifetime <- 10
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 20)
   s <- p$strategies[[1]]

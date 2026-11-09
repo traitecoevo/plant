@@ -16,16 +16,24 @@ strategy_list(
 }
 \arguments{
 \item{p}{A \code{Parameters} object containing a default strategy to
-modify.  Any hyperparameterisation included will be applied.}
+modify. The trade-off function it carries in \code{p$hyperpar} (see
+\code{\link{default_parameters}}) is applied unless \code{hyperpar} is
+given.}
 
 \item{traits}{Trait values as a \emph{matrix}, with column names
 corresponding to traits (see \code{\link{trait_matrix}}); one row per
-strategy.}
+strategy. A column may name a field of the strategy's \code{pars}, a
+trait the trade-off function reads, or a numeric top-level strategy
+field (TF24t's thermal parameters); \code{\link{parameter_table}} lists
+them.}
 
-\item{hyperpar}{Hyperparameter function to use. By default links to the
-standard function for this strategy type. It translates ecological traits
-(e.g. \code{lma}, wood density) into the low-level strategy parameters,
-encoding the model's trade-offs.}
+\item{hyperpar}{Trade-off (hyperparameter) function to use: a closure
+\code{f(m, s, filter = TRUE)} that translates ecological traits (e.g.
+\code{lma}, wood density) into the low-level strategy parameters,
+encoding the model's trade-offs. Defaults to the one \code{p} carries
+(\code{param_hyperpar(p)}); \code{NULL} is the explicit identity, which
+writes every trait straight to the strategy. A \code{p} carrying none is
+treated as the identity too, and said so once per session.}
 
 \item{birth_rate}{Birth rate(s) for each row of \code{traits}: a scalar or
 vector (constant birth rate, set as \code{strategy$birth_rate_y}) or a

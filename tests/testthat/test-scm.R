@@ -168,7 +168,7 @@ test_that("A pinned run on a run's own steps reproduces it", {
                  FF16r = trait_matrix(0.0825, "lma"),
                  K93 = trait_matrix(0.059, "b_0"))
   for (x in intersect(names(strategy_types), names(traits))) {
-    p <- add_strategies(scm_base_parameters(x), traits[[x]])
+    p <- add_strategies(testing_parameters(x), traits[[x]])
     env <- Environment(x)
 
     free <- SCM(x, environment_types[[x]])(p, env, empty_events(), Control())
@@ -203,7 +203,7 @@ test_that("A pinned run on a run's own steps reproduces it", {
 })
 
 test_that("an ODE schedule is installed whole or refused", {
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))
   scm <- SCM("FF16", "FF16_Env")(p, Environment("FF16"), empty_events(), Control())
   scm$run()
@@ -257,7 +257,7 @@ test_that("TF24's soil is substepped where that lets a step grow", {
   ## stability limit or its error. A wet year, whose rain the soil drains within
   ## days while the young stand takes up a small fraction of it, is where that
   ## pays.
-  p0 <- scm_base_parameters("TF24", "TF24_Env")
+  p0 <- testing_parameters("TF24")
   p0$max_patch_lifetime <- 1
   p0$patch_type <- "fixed"
   p <- add_strategies(p0, trait_matrix(0.1978791, "lma"))
@@ -300,7 +300,7 @@ test_that("TF24's soil is substepped where that lets a step grow", {
 test_that("A run's steps answer to the soil's tolerance scale, and at one to nothing", {
   ## TF24's environment holds the soil, so it is the model the scale reaches.
   ## One year is enough: what is checked is each step's decision.
-  p0 <- scm_base_parameters("TF24", "TF24_Env")
+  p0 <- testing_parameters("TF24")
   p0$max_patch_lifetime <- 1
   p <- add_strategies(p0, trait_matrix(0.1978791, "lma"))
   run <- function(...) run_scm(p, Environment("TF24"), Control(...))
@@ -330,13 +330,13 @@ test_that("A run's steps answer to the soil's tolerance scale, and at one to not
             substeps(substepped))
 
   ## A model with no soil gives the scale nothing to loosen.
-  ff <- add_strategies(scm_base_parameters("FF16"), trait_matrix(0.0825, "lma"))
+  ff <- add_strategies(testing_parameters("FF16"), trait_matrix(0.0825, "lma"))
   same_run(run_scm(ff, ctrl = Control(ode_tol_scale_soil = 100)),
            run_scm(ff, ctrl = Control()))
 })
 
 test_that("The stochastic runner warns that it ignores the soil's tolerance scale", {
-  p <- add_strategies(scm_base_parameters("FF16"), trait_matrix(0.0825, "lma"))
+  p <- add_strategies(testing_parameters("FF16"), trait_matrix(0.0825, "lma"))
   runner <- function(ctrl) {
     StochasticPatchRunner("FF16", "FF16_Env")(p, Environment("FF16"), ctrl)
   }
@@ -350,7 +350,7 @@ test_that("TF24 takes a daily rain record without being stopped at its knots", {
   ## what falls between, so a step that spans one substeps the soil, whatever the
   ## stand draws, and lands a substep on each. A run given no stops then matches
   ## one stopped at every knot, with ode_soil_substep on and off.
-  p0 <- scm_base_parameters("TF24", "TF24_Env")
+  p0 <- testing_parameters("TF24")
   p0$max_patch_lifetime <- 2
   p0$patch_type <- "fixed"
   p <- add_strategies(p0, trait_matrix(0.1978791, "lma"))
@@ -403,7 +403,7 @@ test_that("A run that substepped the soil is rerun, swept and invaded as it ran"
   ## Three years of seasonal rain, on most of whose steps the young stand takes
   ## up a small fraction of the water flowing through the soil. Each step keeps
   ## its record, so a pinned run, the sweep and an invader take it as the run did.
-  p0 <- scm_base_parameters("TF24", "TF24_Env")
+  p0 <- testing_parameters("TF24")
   p0$max_patch_lifetime <- 3
   p0$patch_type <- "fixed"
   lma <- 0.1978791
@@ -524,7 +524,7 @@ test_that("schedule setting", {
 test_that("Offspring production & error calculations correct", {
   for (x in c("FF16")) {
     e <- environment_types[[x]]
-    p0 <- scm_base_parameters(x)
+    p0 <- testing_parameters(x)
     p1 <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
     
     env <- Environment(x)
@@ -559,7 +559,7 @@ test_that("Offspring production & error calculations correct", {
 test_that("refinement_error_by_node collected in C++ matches per-step assembly", {
   for (x in c("FF16")) {
     e <- environment_types[[x]]
-    p0 <- scm_base_parameters(x)
+    p0 <- testing_parameters(x)
     p1 <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
     env <- Environment(x)
     ctrl <- Control()
@@ -637,7 +637,7 @@ test_that("A second run on one SCM reproduces the first", {
   ## introductions, so a longer run buys price and no signal. The schedule is NOT thinned with it
   ## -- its 81 introductions are what the reproducibility check below compares,
   ## and they are the cheap half.
-  p0 <- scm_base_parameters("TF24", "TF24_Env")
+  p0 <- testing_parameters("TF24")
   p0$max_patch_lifetime <- 2
   p <- add_strategies(p0, trait_matrix(0.1978791, "lma"))
   new_scm <- function() SCM("TF24", "TF24_Env")(p, Environment("TF24"), empty_events(), Control())

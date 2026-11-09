@@ -38,7 +38,7 @@ exceeds a moderately wet layer's capacity. \code{scm$event_log} reports how
 much of each pulse landed and how much was shed.
 }
 \examples{
-p <- scm_base_parameters("TF24")
+p <- default_parameters("TF24", quiet = TRUE)
 p <- add_strategies(p, trait_matrix(1, "lma"))
 ev <- events(
   events_default(p),

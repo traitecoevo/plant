@@ -4,7 +4,7 @@ sampling_run <- local({
   cache <- NULL
   function() {
     if (is.null(cache)) {
-      p <- scm_base_parameters("FF16")
+      p <- testing_parameters("FF16")
       p$max_patch_lifetime <- 20
       p <- add_strategies(p, trait_matrix(c(0.0825, 0.2), "lma"),
                           birth_rate = c(20, 20))
@@ -16,7 +16,7 @@ sampling_run <- local({
 })
 
 test_that("sampling refuses a run carried in height, and bad arguments", {
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$max_patch_lifetime <- 5
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 20)
   height_run <- run_scm(p, ctrl = control(node_density_coordinate = "height"),

@@ -670,6 +670,9 @@ Parameters:
     - initial_patch_density: "std::vector<double>"
     - initial_pr_patch_survival: "std::vector<double>"
     - initial_time: double
+    # The trade-off function the strategies were built with (an R closure or
+    # NULL). Opaque to C++; carried so it survives validate() and run_scm().
+    - hyperpar: SEXP
 
 Node:
   name_cpp: "plant::Node<T,E>"
@@ -1530,6 +1533,7 @@ TF24_Pars:
     - alpha_PAR: double
     - alpha_NIR: double
     - L_crown: double
+    - g_min: double
 
 TF24_Strategy:
   name_cpp: "plant::TF24_Strategy<double>"

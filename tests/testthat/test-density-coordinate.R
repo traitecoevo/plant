@@ -29,7 +29,7 @@ interleave_schedule <- function(p, n = 1) {
 }
 
 size_only_parameters <- function(x) {
-  p0 <- scm_base_parameters(x)
+  p0 <- testing_parameters(x)
   if (x == "FF16") {
     add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
   } else {
@@ -55,7 +55,7 @@ short_run <- local({
   function(x, birth_date, lifetime = 20) {
     key <- paste(x, birth_date, lifetime, sep = "/")
     if (is.null(cache[[key]])) {
-      p0 <- scm_base_parameters(x)
+      p0 <- testing_parameters(x)
       p0$max_patch_lifetime <- lifetime
       p <- if (x == "FF16") {
         add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
@@ -341,7 +341,7 @@ test_that("the patch control decides the coordinate for every species", {
   ctrl_bd <- Control()
   ctrl_bd$node_density_coordinate <- "birth_date"
 
-  p0 <- scm_base_parameters(x)
+  p0 <- testing_parameters(x)
   p <- add_strategies(p0, trait_matrix(c(0.08, 0.2), "lma"),
                       birth_rate = list(1.0, 1.0))
   ## Deliberately disagree with the patch control; it should be ignored.
@@ -375,7 +375,7 @@ test_that("the patch control decides the coordinate for every species", {
 ## is meaningless here because log_density crosses zero.
 log_density_gap <- function(refine) {
   p_of <- function() {
-    p0 <- scm_base_parameters("FF16")
+    p0 <- testing_parameters("FF16")
     p0$max_patch_lifetime <- 20
     add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
   }
@@ -535,7 +535,7 @@ test_that("resume reads the raw state, so it is unaffected by the conversion", {
 ## ---------------------------------------------------------------------------
 
 ff16_two_species_parameters <- function() {
-  p0 <- scm_base_parameters("FF16")
+  p0 <- testing_parameters("FF16")
   ## The published setup runs to the default patch lifetime (105 y). Shortening
   ## it to 20 y takes 1x + 2x from 23 s to 6.5 s and leaves the convergence
   ## *rate* intact -- per-halving gap ratios 3.9 and 4.1, against 3.9 and 3.1 at
@@ -546,12 +546,12 @@ ff16_two_species_parameters <- function() {
   ## case is asserted on; K93 below carries the tight absolute bound.
   p0$max_patch_lifetime <- 20
   add_strategies(p0, trait_matrix(c(0.0825, 0.2625), "lma"),
-                 hyperpar = FF16_hyperpar,
+                 hyperpar = default_hyperpar("FF16"),
                  birth_rate = list(11.99177, 16.51006))
 }
 
 k93_three_species_parameters <- function() {
-  p0 <- scm_base_parameters("K93")
+  p0 <- testing_parameters("K93")
   p0$max_patch_lifetime <- 35.10667
   sp <- trait_matrix(c(0.042, 0.063, 0.052,
                        8.5e-3, 0.014, 0.015,
@@ -708,13 +708,13 @@ test_that("auto resolves to the coordinate each model requires", {
   resolved <- function(x, ctrl = Control()) {
     ## K93 is parameterised on b_0, not lma, and an unknown trait name is now
     ## refused (#637), so each model gets a trait it actually has.
-    p <- scm_base_parameters(x)
+    p <- testing_parameters(x)
     p$max_patch_lifetime <- 5
     p <- if (x == "K93") {
       add_strategies(p, trait_matrix(0.059, "b_0"), birth_rate = list(20))
     } else {
       add_strategies(p, trait_matrix(0.0825, "lma"),
-                     hyperpar = hyperpar(x), birth_rate = list(20))
+                     hyperpar = default_hyperpar(x), birth_rate = list(20))
     }
     run_scm(p, Environment(x), ctrl)$patch$species[[1]]$density_in_birth_date
   }
@@ -734,7 +734,7 @@ test_that("auto resolves to the coordinate each model requires", {
 })
 
 test_that("an unrecognised coordinate is refused rather than guessed", {
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$max_patch_lifetime <- 5
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = list(20))
 
@@ -763,7 +763,7 @@ test_that("a dense birth-date stand steps over its dying cohorts", {
   # can put a trial log density far above any real one. On the birth-date
   # coordinate nothing raises a density, so the guard rejects such a stage and
   # the stepper retries it smaller, where a stop would end the run.
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$patch_type <- "fixed"
   p$max_patch_lifetime <- 20
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 10)

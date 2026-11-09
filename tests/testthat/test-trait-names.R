@@ -15,7 +15,7 @@
 # is not a parameter of any model.
 
 test_that("an unknown trait name is refused, not ignored", {
-  p0 <- scm_base_parameters("FF16")
+  p0 <- testing_parameters("FF16")
   # The regression: 'lmaa' used to be accepted and lma stayed at its default.
   expect_error(generate_strategy(p0, trait_matrix(0.5, "lmaa")),
                "Unknown trait name for FF16_Strategy")
@@ -24,7 +24,7 @@ test_that("an unknown trait name is refused, not ignored", {
 })
 
 test_that("the error names the model and every offender", {
-  p0 <- scm_base_parameters("FF16")
+  p0 <- testing_parameters("FF16")
   m <- trait_matrix(matrix(c(0.5, 600, 1), nrow = 1),
                     c("lma", "rhoo", "nonsense_xyz"))
   err <- tryCatch(generate_strategy(p0, m), error = conditionMessage)
@@ -42,17 +42,17 @@ test_that("the hyperpar's own arguments are refused, and said to be arguments", 
   # ⚠️ THE MISTAKE WORTH CATCHING BY NAME. `B_kl1` and friends parameterise the
   # trade-offs once, when the hyperpar is BUILT; they are not traits.
   # test-ode-individual-runner.R passed nine of them for years to no effect.
-  p0 <- scm_base_parameters("FF16")
-  expect_true("B_kl1" %in% names(formals(make_FF16_hyperpar)))
+  p0 <- testing_parameters("FF16")
+  expect_true("B_kl1" %in% names(formals(plant:::frozen_FF16_hyperpar)))
   expect_false("B_kl1" %in% names(p0$strategy_default$pars))
   err <- tryCatch(generate_strategy(p0, trait_matrix(0.5, "B_kl1")),
                   error = conditionMessage)
-  expect_match(err, "make_FF16_hyperpar\\(\\) instead", fixed = FALSE)
+  expect_match(err, "coefficients \\(B_kl1, B_ks1, ...\\) are NOT traits", fixed = FALSE)
 })
 
 test_that("every model refuses an unknown name", {
   for (type in c("FF16", "K93", "TF24", "TF24f", "TF24t", "TF24w")) {
-    p0 <- scm_base_parameters(type)
+    p0 <- testing_parameters(type)
     expect_error(generate_strategy(p0, trait_matrix(1, "definitely_not_a_trait")),
                  sprintf("Unknown trait name for %s_Strategy", type),
                  info = type)
@@ -60,7 +60,7 @@ test_that("every model refuses an unknown name", {
 })
 
 test_that("a legitimate trait sweep is unaffected", {
-  p0 <- scm_base_parameters("FF16")
+  p0 <- testing_parameters("FF16")
   lma <- c(0.05, 0.1, 0.5)
   ss <- generate_strategy(p0, trait_matrix(lma, "lma"))
   expect_equal(vapply(ss, function(s) s$pars$lma, numeric(1)), lma)
@@ -72,9 +72,9 @@ test_that("a trait the hyperpar consumes but never assigns is accepted", {
   # ⚠️ WITHOUT THE `input_traits` DECLARATION THIS IS THE FALSE POSITIVE the guard
   # would introduce: `narea` is not a parameter of FF16, so a `pars`-only check
   # rejects a sweep that works and matters.
-  p0 <- scm_base_parameters("FF16")
+  p0 <- testing_parameters("FF16")
   expect_false("narea" %in% names(p0$strategy_default$pars))
-  expect_identical(attr(make_FF16_hyperpar(), "input_traits"), "narea")
+  expect_identical(attr(default_hyperpar("FF16"), "input_traits"), "narea")
 
   narea <- c(0.001, 0.01)
   ss <- generate_strategy(p0, trait_matrix(narea, "narea"))
@@ -89,7 +89,7 @@ test_that("pars and consumed traits can be mixed in one matrix", {
   # The positional hazard: `xi` is unnamed and aligned with the column order, so
   # assigning by name would silently write NAs. A mixed matrix, where the assigned
   # columns are not a prefix of the trait names, is what catches that.
-  p0 <- scm_base_parameters("FF16")
+  p0 <- testing_parameters("FF16")
   m <- trait_matrix(matrix(c(0.005, 0.5, 700), nrow = 1),
                     c("narea", "lma", "rho"))
   s <- generate_strategy(p0, m)[[1]]
@@ -102,7 +102,7 @@ test_that("pars and consumed traits can be mixed in one matrix", {
 test_that("a caller-supplied hyperpar with no declaration gets pars alone", {
   # We cannot know what an arbitrary closure reads, so the honest default is the
   # narrow set. Documented rather than merely true.
-  p0 <- scm_base_parameters("FF16")
+  p0 <- testing_parameters("FF16")
   bare <- function(m, s, filter = TRUE) m
   expect_null(attr(bare, "input_traits", exact = TRUE))
   expect_silent(generate_strategy(p0, trait_matrix(0.5, "lma"), hyperpar = bare))
@@ -114,7 +114,7 @@ test_that("a caller-supplied hyperpar with no declaration gets pars alone", {
 test_that("add_strategies and add_mutant refuse it too", {
   # They route through generate_strategy, so this is about the routes a user
   # actually takes rather than about a second check.
-  p0 <- scm_base_parameters("FF16")
+  p0 <- testing_parameters("FF16")
   expect_error(add_strategies(p0, trait_matrix(0.5, "lmaa"), birth_rate = 1),
                "Unknown trait name")
   expect_error(add_mutant(p0, trait_matrix(0.5, "lmaa"), birth_rate = 1),

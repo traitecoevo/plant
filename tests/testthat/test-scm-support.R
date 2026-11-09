@@ -4,7 +4,7 @@ test_that("collect", {
   
   env <- Environment("FF16")
   ctrl <- Control()
-  p0 <- scm_base_parameters("FF16")
+  p0 <- testing_parameters("FF16")
   p0$disturbance_mean_interval <- 30.0
   p1 <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
 
@@ -18,8 +18,8 @@ test_that("collect", {
 
 test_that("expand_parameters & mutant_parameters", {
   
-  hyperpar <- make_FF16_hyperpar()
-  p0 <- scm_base_parameters("FF16")
+  hyperpar <- default_hyperpar("FF16")
+  p0 <- testing_parameters("FF16")
 
   expect_equal(p0$strategies |> length(), 0)
 
@@ -51,10 +51,10 @@ test_that("collect_auxiliary_variables", {
   
   env <- Environment("FF16")
   ctrl <- Control()
-  p0 <- scm_base_parameters("FF16")
+  p0 <- testing_parameters("FF16")
   p0$disturbance_mean_interval <- 30.0
   # two species
-  p1 <- add_strategies(p0, trait_matrix(0.082, "lma"), hyperpar = FF16_hyperpar, birth_rate = list(11.99177))
+  p1 <- add_strategies(p0, trait_matrix(0.082, "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(11.99177))
 
   results <- run_scm(p1, env, ctrl, collect = TRUE)
   

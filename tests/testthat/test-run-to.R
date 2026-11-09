@@ -2,7 +2,7 @@
 ## snapshot record, and the burn-in that stops when the stand has settled.
 
 ff16 <- function(lifetime) {
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$max_patch_lifetime <- lifetime
   p$node_schedule_times <- list()
   add_strategies(p, trait_matrix(0.0825, "lma"))
@@ -172,7 +172,7 @@ test_that("run_until_converged() refuses what it cannot judge", {
 test_that("a statistic that is undefined in a block cannot settle, and says so", {
   ## A strategy whose seedlings make no net carbon never establishes, so no
   ## cohort is alive and the tallest living cohort is undefined in every block.
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$patch_type <- "fixed"
   p$max_patch_lifetime <- 60
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
@@ -226,10 +226,10 @@ test_that("statistics that settle by construction are not judged by default", {
                "window")
   ## TF24's cumulative flux accumulators grow without bound: by default only the
   ## soil water is judged.
-  p <- scm_base_parameters("TF24")
+  p <- testing_parameters("TF24")
   p$patch_type <- "fixed"
   p$max_patch_lifetime <- 4
-  p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = TF24_hyperpar,
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("TF24"),
                       birth_rate = 1)
   p$node_schedule_times <- list(0:3)
   s <- run_scm(p, ctrl = Control(node_density_coordinate = "birth_date",

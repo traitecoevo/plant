@@ -53,7 +53,7 @@ and so no sweep produces it.
 A column is the derivative as its trait moves through the construction that
 built the strategy, which is what a difference through \code{add_strategies()}
 measures. The hyperparameter function derives some parameters from the traits
-(\code{TF24_hyperpar} sets 13, among them \code{k_l}, \code{r_l}, \code{d_I},
+(TF24's testing trade-offs, \code{default_hyperpar("TF24")}, set 13, among them \code{k_l}, \code{r_l}, \code{d_I},
 \code{a_f3} and the stem curve, from six traits including \code{lma}), so a
 trait's column is its own partial plus each derived parameter's partial times
 that parameter's derivative with respect to the trait. The function is

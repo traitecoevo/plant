@@ -12,7 +12,7 @@ birth_control <- function(...) {
 
 birth_parameters <- function(birth_rate, lma = c(0.0825, 0.2), hmat = 3,
                              lifetime = 8) {
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$max_patch_lifetime <- lifetime
   m <- trait_matrix(c(lma, rep(hmat, length(lma))), c("lma", "hmat"))
   add_strategies(p, m, birth_rate = as.list(birth_rate))
@@ -66,7 +66,7 @@ test_that("d(fitness)/d(birth rate) is the pinned-step central difference", {
 })
 
 test_that("a variable birth rate has no column rather than a zero", {
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$max_patch_lifetime <- 3
   p <- add_strategies(p, trait_matrix(c(0.0825, 3), c("lma", "hmat")),
                       birth_rate = list(list(x = c(0, 3), y = c(2, 2))))
@@ -78,7 +78,7 @@ test_that("a variable birth rate has no column rather than a zero", {
 })
 
 test_that("the birth-rate column passes through a hyperparameter function as itself", {
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$max_patch_lifetime <- 6
   p <- add_strategies(p, trait_matrix(c(0.0825, 3), c("lma", "hmat")),
                       birth_rate = 2)
@@ -86,7 +86,7 @@ test_that("the birth-rate column passes through a hyperparameter function as its
                  keep_states = TRUE)
   through <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
                             traits = c("1.lma", "1.birth_rate"),
-                            hyperpar = FF16_hyperpar)
+                            hyperpar = default_hyperpar("FF16"))
   partial <- stand_gradient(scm, metrics = "1.net_reproduction_ratio",
                             traits = "1.birth_rate", hyperpar = NULL)
   expect_identical(through$gradient[, "1.birth_rate"],

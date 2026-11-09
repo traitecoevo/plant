@@ -3,10 +3,10 @@
 # in the recorded field and whose sweep loads those solves.
 
 tf24_resident <- function(lifetime = 2) {
-  p <- scm_base_parameters("TF24")
+  p <- testing_parameters("TF24")
   p$patch_type <- "fixed"
   p$max_patch_lifetime <- lifetime
-  p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = TF24_hyperpar,
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("TF24"),
                       birth_rate = 1)
   p$node_schedule_times <- list(node_schedule_times_periodic(0, lifetime, 0.25))
   p
@@ -49,8 +49,8 @@ test_that("a TF24 invader solves its own leaf, alone or beside another", {
   scm <- run_scm(p, tf24_env(), tf24_control())
   resident <- scm$net_reproduction_ratios
   invaders <- function(lma) {
-    q <- add_strategies(scm_base_parameters("TF24"), trait_matrix(lma, "lma"),
-                        hyperpar = TF24_hyperpar,
+    q <- add_strategies(testing_parameters("TF24"), trait_matrix(lma, "lma"),
+                        hyperpar = default_hyperpar("TF24"),
                         birth_rate = rep(1, length(lma)))
     q$patch_type <- p$patch_type
     q$max_patch_lifetime <- p$max_patch_lifetime

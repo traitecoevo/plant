@@ -109,7 +109,7 @@ test_that("the K_s reparameterisation leaves the vulnerability curve alone", {
   # limitation. B_Hv1 was shifted to hold it.
   s <- TF24_Strategy()
   m <- trait_matrix(s$pars$lma, "lma")
-  derived <- TF24_hyperpar(m, s, filter = FALSE)
+  derived <- default_hyperpar("TF24")(m, s, filter = FALSE)
   expect_equal(derived[, "stem_P50"][[1]], 2.888725665336019, tolerance = 1e-10)
 
   # And the un-re-anchored value, recorded so the size of the averted leak stays

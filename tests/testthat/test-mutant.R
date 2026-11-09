@@ -11,7 +11,7 @@
 
 test_that("mutant method works", {
   # basic setup
-  p0 <- scm_base_parameters("FF16")
+  p0 <- testing_parameters("FF16")
   p0$max_patch_lifetime <- 50
 
   e <- Environment("FF16")
@@ -138,7 +138,7 @@ test_that("mutant method densities", {
   }
 
   run_case <- function(life, birth_rates) {
-    p0 <- scm_base_parameters("FF16")
+    p0 <- testing_parameters("FF16")
     p0$max_patch_lifetime <- life
     pr1 <- add_strategies(p0, traits, birth_rate = 1)
 
@@ -153,7 +153,7 @@ test_that("mutant method densities", {
 })
 
 test_that("an invasion meets the run's harvests, and introduces only where it did", {
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$max_patch_lifetime <- 20
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
   ev <- events(events_default(p), harvest(time = 8, fraction = 0.5),
@@ -182,7 +182,7 @@ test_that("an invasion meets the run's harvests, and introduces only where it di
 })
 
 test_that("a run after an invasion runs the invaders as a community of their own", {
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$max_patch_lifetime <- 20
   q <- add_strategies(p, trait_matrix(0.1, "lma"), birth_rate = 1)
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
@@ -199,7 +199,7 @@ test_that("a run after an invasion runs the invaders as a community of their own
 })
 
 test_that("an invader's patch reads its run after the SCM has let it go", {
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$max_patch_lifetime <- 20
   q <- add_strategies(p, trait_matrix(0.1, "lma"), birth_rate = 1)
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
@@ -260,10 +260,10 @@ test_that("mutant method densities, TF24", {
   ctrl <- Control()
   tol <- 1e-3
 
-  p0 <- scm_base_parameters("TF24")
+  p0 <- testing_parameters("TF24")
   p0$max_patch_lifetime <- 6
   p1 <- add_strategies(p0, trait_matrix(0, "TF24_floor_lambda_o"),
-                       hyperpar = TF24_hyperpar, birth_rate = 1)
+                       hyperpar = default_hyperpar("TF24"), birth_rate = 1)
   full <- p1$node_schedule_times[[1]]
   p1$node_schedule_times <-
     list(full[round(seq(1, length(full), length.out = 20))])
@@ -293,10 +293,10 @@ test_that("mutant method densities, TF24", {
 test_that("an invader replays a step too short to move its stages, TF24", {
   # With a step limit of 0.05, 2.70 + 0.05 rounds short of 2.75 and the run
   # takes a step of an ulp there; its stages sit where the step before ends.
-  p <- scm_base_parameters("TF24")
+  p <- testing_parameters("TF24")
   p$patch_type <- "fixed"
   p$max_patch_lifetime <- 10
-  p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = TF24_hyperpar,
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("TF24"),
                       birth_rate = 1)
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 10, 0.25))
   env <- Environment("TF24")
@@ -315,12 +315,12 @@ test_that("invaders from lma x0.7 to x2 run on the run's steps, TF24", {
   # offset holds that out to lma x2 on birth date; at a zero offset the invader
   # at x2 overflows its density.
   stand <- function(lma_factor, offset) {
-    p <- scm_base_parameters("TF24")
+    p <- testing_parameters("TF24")
     p$max_patch_lifetime <- 6
     lma <- p$strategy_default$pars[["lma"]]
     p <- add_strategies(p, trait_matrix(c(0, lma * lma_factor),
                                         c("TF24_floor_lambda_o", "lma")),
-                        hyperpar = TF24_hyperpar, birth_rate = 1)
+                        hyperpar = default_hyperpar("TF24"), birth_rate = 1)
     full <- p$node_schedule_times[[1]]
     p$node_schedule_times <-
       list(full[round(seq(1, length(full), length.out = 20))])

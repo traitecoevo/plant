@@ -36,25 +36,6 @@ TF24t_Parameters <- function(...) {
   Parameters("TF24t","TF24_Env")(...)
 }
 
-##' @export
-##' @rdname make_TF24_hyperpar
-make_TF24t_hyperpar <- function(...) {
-  ## TF24t_Strategy inherits TF24_Strategy and reuses TF24_Pars, so its
-  ## hyperparameterisation is TF24's. The thermal parameters are top-level
-  ## strategy fields, which a trait matrix does not reach.
-  make_TF24_hyperpar(...)
-}
-
-##' Hyperparameter function for TF24t physiological model
-##' @title Hyperparameter function for TF24t physiological model
-##' @param m A matrix of trait values, as returned by \code{trait_matrix}
-##' @param s A strategy object
-##' @param filter A flag indicating whether to filter columns. If TRUE, any numbers
-##' that are within eps of the default strategy are not replaced.
-##' @export
-##' @rdname TF24t_hyperpar
-TF24t_hyperpar <- make_TF24t_hyperpar()
-
 #' @export
 #' @importFrom rlang .data
 #' @rdname expand_state

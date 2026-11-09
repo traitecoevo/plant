@@ -50,7 +50,7 @@
 ##' @rdname events
 ##' @export
 ##' @examples
-##' p <- scm_base_parameters("FF16")
+##' p <- default_parameters("FF16", quiet = TRUE)
 ##' p <- add_strategies(p, trait_matrix(1, "lma"))
 ##' ev <- events(
 ##'   events_default(p),

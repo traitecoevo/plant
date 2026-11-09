@@ -43,9 +43,9 @@ gd_parameters <- function(traits, lifetime = 40, birth_rate = 1.10,
                           schedule = NULL) {
   m <- if (is.matrix(traits)) traits else
     matrix(traits, nrow = 1, dimnames = list(NULL, names(traits)))
-  p <- scm_base_parameters("TF24")
+  p <- default_parameters("TF24", quiet = TRUE)
   p$max_patch_lifetime <- lifetime
-  p <- add_strategies(p, m, hyperpar = TF24_hyperpar,
+  p <- add_strategies(p, m,
                       birth_rate = as.list(rep(birth_rate, nrow(m))))
   if (!is.null(schedule)) {
     p$node_schedule_times <- schedule
@@ -106,10 +106,10 @@ gd_elasticity <- function(gradient, value, x) {
 ## default is dropped, so the set of columns changes between the two evaluations
 ## of a difference and the Jacobian comes out ragged.
 gd_hyperpar_jacobian <- function(traits, strategy = NULL, rel_h = 1e-6) {
-  if (is.null(strategy)) strategy <- scm_base_parameters("TF24")$strategy_default
+  if (is.null(strategy)) strategy <- default_parameters("TF24", quiet = TRUE)$strategy_default
   m0 <- matrix(traits, nrow = 1, dimnames = list(NULL, names(traits)))
   at <- function(m) {
-    out <- TF24_hyperpar(m, strategy, filter = FALSE)
+    out <- default_hyperpar("TF24")(m, strategy, filter = FALSE)
     stats::setNames(as.numeric(out[1, ]), colnames(out))
   }
   base <- at(m0)

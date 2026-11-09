@@ -73,11 +73,11 @@ select_closest <- function(x, targets) {
 ```{r, echo = FALSE, eval=FALSE}
 
 # this is not run by default, just some code to generate some example data, if needed 
-p0 <- scm_base_parameters("FF16", "FF16_Env")
+p0 <- default_parameters("FF16", quiet = TRUE)
 p0$strategy_default$recruitment_decay <- 5
 p0$strategy_default$a_dG2 <- 30
 
-hyperpar <- make_FF16_hyperpar(B_dI1 = 0)
+hyperpar <- default_hyperpar("FF16", B_dI1 = 0)
 
 traits <- trait_matrix(c(0.7, 5), c("lma", "eta"))
 p1 <- add_strategies(p0, traits, hyperpar = hyperpar, birth_rate = list(

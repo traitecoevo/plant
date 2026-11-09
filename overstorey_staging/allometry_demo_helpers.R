@@ -77,9 +77,9 @@ allometry_gate_map <- function(a_pl0 = 1.0, height = 5,
 allometry_self_thinning <- function(a_pl0 = 1.0, mpl = 25, lma = 0.0825,
                                     birth_rate = 20, rain = 1.5,
                                     amplitude = 0, a_sw = 0) {
-  p <- scm_base_parameters("TF24")
+  p <- default_parameters("TF24", quiet = TRUE)
   p$max_patch_lifetime <- mpl
-  p <- add_strategies(p, trait_matrix(lma, "lma"), hyperpar = TF24_hyperpar,
+  p <- add_strategies(p, trait_matrix(lma, "lma"),
                       birth_rate = birth_rate)
   p$strategies[[1]]$pars$a_pl0 <- a_pl0
   p$strategies[[1]]$pars$a_sw <- a_sw

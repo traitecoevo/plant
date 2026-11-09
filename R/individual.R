@@ -264,9 +264,12 @@ resource_compensation_point <- function(p, ...) {
 #' @param size  The size of the individual to optimise the rate at
 #' @param size_name The name of the size variable specified by \code{size}
 #' @param rate The name of the rate to optimise. Defaults to \code{size_name}
-#' @param params The parameters of the model
+#' @param params The parameters of the model. Defaults to plant's testing set,
+#'   \code{\link{default_parameters}(type, quiet = TRUE)}, so that the
+#'   trade-offs apply to the trait being optimised.
 #' @param env The environment of the model
-#' @param hyperpars The hyperparameter function of the model
+#' @param hyperpars The trade-off function; defaults to the one \code{params}
+#'   carries (\code{param_hyperpar(params)})
 #' @param set_state_directly If TRUE, set the state directly to the size, otherwise grows the plant to that size. Defaults to FALSE
 #' @export
 #' @rdname optimise_individual_rate_at_size_by_trait
@@ -277,9 +280,9 @@ optimise_individual_rate_at_size_by_trait <- function(
     bounds, log_scale = TRUE, tol = 1e-3,
     size = 1, size_name = "height",
     rate = size_name,
-    params = scm_base_parameters(type),
+    params = default_parameters(type, quiet = TRUE),
     env = Environment(type),
-    hyperpars = hyperpar(type),
+    hyperpars = param_hyperpar(params),
     set_state_directly = FALSE) {
   
    # can't handle situations yet where bounds are outside of positive growth, not working for K93

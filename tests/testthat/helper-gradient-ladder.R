@@ -43,7 +43,7 @@ ladder_parameters <- function(species = "fast", birth_rate = NULL,
   if (is.null(birth_rate)) {
     birth_rate <- c(fast = 1.10, slow = 0.83)[species]
   }
-  p <- scm_base_parameters("TF24")
+  p <- testing_parameters("TF24")
   p$max_patch_lifetime <- lifetime
   for (i in seq_along(species)) {
     tr <- traits[[species[[i]]]]
@@ -55,7 +55,7 @@ ladder_parameters <- function(species = "fast", birth_rate = NULL,
       tr[["k_I"]] <- k_I
     }
     p <- add_strategies(p, trait_matrix(unname(tr), names(tr)),
-                        hyperpar = TF24_hyperpar,
+                        hyperpar = default_hyperpar("TF24"),
                         birth_rate = list(unname(birth_rate[[i]])))
   }
   p
@@ -579,11 +579,11 @@ ladder_environment <- function(rain = NULL, amplitude = 0, lifetime = 2) {
 # sites firing on both paths and the same overflow refusal either way.
 ladder_driver_stand <- function(rain, lifetime, k_I = 0.5, amplitude = 0,
                                 introductions = NULL) {
-  p <- scm_base_parameters("TF24")
+  p <- testing_parameters("TF24")
   p$max_patch_lifetime <- lifetime
   tr <- c(lma = 0.0825, hmat = 5.13, k_I = k_I, a_l1 = 5.44, a_l2 = 0.306)
   p <- add_strategies(p, trait_matrix(unname(tr), names(tr)),
-                      hyperpar = TF24_hyperpar, birth_rate = list(1.10))
+                      hyperpar = default_hyperpar("TF24"), birth_rate = list(1.10))
   if (!is.null(introductions)) {
     full <- p$node_schedule_times[[1]]
     p$node_schedule_times <-
@@ -1545,10 +1545,10 @@ ladder_assert_one_parameter <- function(before, after, name) {
 ladder_run_difference <- function(traits, name, rel = 1e-5, lifetime = 0.4,
                                   times = c(0, 0.29), birth_rate = 1.10) {
   build <- function() {
-    p <- scm_base_parameters("TF24")
+    p <- testing_parameters("TF24")
     p$max_patch_lifetime <- lifetime
     p <- add_strategies(p, trait_matrix(unname(traits), names(traits)),
-                        hyperpar = TF24_hyperpar,
+                        hyperpar = default_hyperpar("TF24"),
                         birth_rate = list(birth_rate))
     p$node_schedule_times <- list(times)
     p
@@ -1717,7 +1717,7 @@ ladder_birth_size_parameters <- function() {
 # difference taken on the trait vector would fold them all into one.
 ladder_trait_fanout <- function(traits, name, rel = 1e-6) {
   derived <- function(tr) {
-    unlist(as.data.frame(TF24_hyperpar(
+    unlist(as.data.frame(default_hyperpar("TF24")(
       trait_matrix(unname(tr), names(tr)), TF24_Strategy(), filter = FALSE))[1, ])
   }
   h <- abs(traits[[name]]) * rel

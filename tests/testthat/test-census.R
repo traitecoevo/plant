@@ -87,7 +87,7 @@ census_stand <- local({
   function() {
     if (is.null(built)) {
       ctrl <- Control(node_density_coordinate = "birth_date")
-      p <- scm_base_parameters("TF24")
+      p <- testing_parameters("TF24")
       p$max_patch_lifetime <- 2
       p <- add_strategies(p, trait_matrix(0.0825, "lma"))
       state <- make_initial_state(

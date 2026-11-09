@@ -141,19 +141,29 @@ scenario_control <- function() {
 ##'   which integrates in birth date rather than height -- see there for why
 ##'   that is the right coordinate for TF24.
 ##' @param birth_rate Birth rate passed to \code{add_strategies}.
+##' @param drivers A rainfall driver table: a data frame with \code{time}
+##'   (years from the start of the run) and \code{rainfall} (m per year),
+##'   covering the whole run; set on the environment through
+##'   \code{extrinsic_drivers_set_variable}. \code{NULL} (the default) sets
+##'   rainfall constant at \code{config$driver$rainfall_mean}. The gateway
+##'   passes \code{\link{scenario_rainfall_drivers}(config)}; a user builds a
+##'   table with \pkg{fieldtrial}'s driver tools.
 ##' @return \code{build_scenario} returns a list with the \code{Parameters}
 ##'   (\code{p}), configured \code{Environment} (\code{env}) and \code{Control}
 ##'   (\code{ctrl}) ready for \code{run_scm}.
 ##' @rdname scenario_eval
 ##' @export
 build_scenario <- function(config, max_patch_lifetime = 100,
-                           ctrl = scenario_control(), birth_rate = 1) {
-  p <- scm_base_parameters("TF24")
+                           ctrl = scenario_control(), birth_rate = 1,
+                           drivers = NULL) {
+  ## The scenarios are plant's own QA, pinned against plant's frozen testing
+  ## trade-offs; the gateway baseline was recorded with them.
+  p <- default_parameters("TF24", quiet = TRUE)
   p$max_patch_lifetime <- max_patch_lifetime
 
   tr <- config$traits
   traits <- trait_matrix(unname(tr), names(tr))
-  p <- add_strategies(p, traits, hyperpar = TF24_hyperpar, birth_rate = birth_rate)
+  p <- add_strategies(p, traits, birth_rate = birth_rate)
 
   env <- Environment("TF24")
   n_depths <- env$get_soil_number_of_depths()
@@ -163,37 +173,82 @@ build_scenario <- function(config, max_patch_lifetime = 100,
   ## Start each layer at half saturation for a reproducible initial condition.
   env$set_soil_water_state(rep(0.428 * 0.5, n_depths))
 
-  mean_rain <- config$driver[["rainfall_mean"]]
-  amp_frac  <- config$driver[["rainfall_amp_frac"]]
-  if (is.null(amp_frac)) {
-    amp_frac <- 0
-  }
-  if (!is.null(mean_rain)) {
-    if (amp_frac == 0) {
-      env$extrinsic_drivers_set_constant("rainfall", mean_rain)
-    } else {
-      ## Sinusoidal annual rainfall; trough clamped to zero (a trough of exactly
-      ## zero is the "amplitude = mean" extreme-seasonality case).
-      ##
-      ## Knots are placed per *year*, not per run, so the realised seasonality
-      ## does not depend on max_patch_lifetime. The previous
-      ## max(200, mpl * 6) gave 6 knots per annual cycle at the default
-      ## mpl = 100. Measured, that is better than it looks -- cubic
-      ## interpolation of a sine at 6 points/cycle is accurate to 5.4e-3 on a
-      ## peak of 3.0 (0.18%), and conserves the annual total to 1e-5 % -- but it
-      ## is 4th-order in the spacing and degrades with mpl, so pin the density
-      ## instead. At 48/yr the error is ~1e-6, i.e. numerically exact.
-      points_per_year <- 48L
-      t <- seq(0, max_patch_lifetime,
-               length.out = max(200L, as.integer(ceiling(max_patch_lifetime *
-                                                           points_per_year))))
-      y <- mean_rain * (1 + amp_frac * sin(2 * pi * t))
-      y <- pmax(y, 0)
-      env$extrinsic_drivers_set_variable("rainfall", t, y)
+  ## Rainfall: a driver table when one is given, else constant at the config's
+  ## mean. Generating a seasonal series is fieldtrial's job (the former sinusoid
+  ## is scenario_rainfall_drivers()'s committed fixture); this function only
+  ## applies what it is handed.
+  if (!is.null(drivers)) {
+    if (!is.data.frame(drivers) || !all(c("time", "rainfall") %in% names(drivers))) {
+      stop("`drivers` must be a data frame with `time` and `rainfall` columns",
+           call. = FALSE)
     }
+    if (!is.numeric(drivers$time) || !is.numeric(drivers$rainfall) ||
+        anyNA(drivers$time) || anyNA(drivers$rainfall) || nrow(drivers) < 2L ||
+        is.unsorted(drivers$time, strictly = TRUE)) {
+      stop("`drivers$time` must be strictly increasing and `drivers$rainfall` ",
+           "numeric, both without NA, with at least two rows", call. = FALSE)
+    }
+    if (max(drivers$time) < max_patch_lifetime) {
+      stop("`drivers` end at ", format(max(drivers$time)), " but the run lasts ",
+           format(max_patch_lifetime), " years; a driver is refused outside its knots",
+           call. = FALSE)
+    }
+    env$extrinsic_drivers_set_variable("rainfall", drivers$time, drivers$rainfall)
+  } else if (!is.null(config$driver[["rainfall_mean"]])) {
+    env$extrinsic_drivers_set_constant("rainfall", config$driver[["rainfall_mean"]])
   }
 
   list(p = p, env = env, ctrl = ctrl)
+}
+
+##' @param config For \code{scenario_rainfall_drivers}, a config list; its
+##'   \code{driver$rainfall_mean} and \code{driver$rainfall_amp_frac} select
+##'   the series.
+##' @return \code{scenario_rainfall_drivers} returns the committed rainfall
+##'   driver table for a scenario's \code{rainfall_mean} and
+##'   \code{rainfall_amp_frac} (a data frame with \code{time} and
+##'   \code{rainfall}), or \code{NULL} when the scenario's rain is constant
+##'   (\code{rainfall_amp_frac} absent or zero). The tables are a fixture,
+##'   \code{inst/scenarios/scenario_rainfall_drivers.rds}, written by
+##'   \code{scripts/make-scenario-drivers.R}: the sinusoid the gateway baseline
+##'   was recorded with, \code{mean * (1 + amp * sin(2 pi t))} clamped at zero
+##'   on 48 knots per year over 100 years. A shorter \code{max_patch_lifetime}
+##'   takes the same knots cut at the first one past the run's end; a longer one
+##'   is refused, because generating another series is \pkg{fieldtrial}'s job
+##'   and this one exists to keep the gateway's baseline reproducible.
+##' @rdname scenario_eval
+##' @export
+scenario_rainfall_drivers <- function(config, max_patch_lifetime = 100) {
+  amp <- config$driver[["rainfall_amp_frac"]]
+  mean_rain <- config$driver[["rainfall_mean"]]
+  if (is.null(amp) || amp == 0 || is.null(mean_rain)) {
+    return(NULL)
+  }
+  fixture <- readRDS(scenario_file("scenario_rainfall_drivers.rds"))
+  mpl <- attr(fixture, "max_patch_lifetime")
+  if (max_patch_lifetime > mpl) {
+    stop("The committed scenario rainfall series run to ", mpl, " years; a seasonal ",
+         "scenario at max_patch_lifetime = ", format(max_patch_lifetime),
+         " needs a driver table of its own (see fieldtrial), passed to ",
+         "build_scenario(drivers = )", call. = FALSE)
+  }
+  key <- sprintf("mean=%s;amp=%s", format(mean_rain), format(amp))
+  if (!key %in% names(fixture)) {
+    stop("No committed rainfall series for ", key, "; the fixture holds: ",
+         paste(names(fixture), collapse = ", "), call. = FALSE)
+  }
+  series <- fixture[[key]]
+  if (max_patch_lifetime < mpl) {
+    ## A shorter run takes the same knots up to its end, plus the first knot
+    ## past it so the driver covers the whole run (plant refuses to evaluate a
+    ## driver outside its knots). The knots are not on integer years, so the
+    ## cut is never exact; what the run sees is the 100-year series over [0,
+    ## max_patch_lifetime], bar the one-sided slope at the final knot.
+    last <- min(nrow(series), max(which(series$time <= max_patch_lifetime)) + 1L)
+    series <- series[seq_len(last), , drop = FALSE]
+    rownames(series) <- NULL
+  }
+  series
 }
 
 ## Demographic persistence, as distinct from the run completing.
@@ -278,7 +333,8 @@ evaluate_scenario <- function(row, mapping, ctrl = scenario_control(),
                               max_patch_lifetime = 100) {
   config <- scenario_to_config(row, mapping)
   built <- build_scenario(config, max_patch_lifetime = max_patch_lifetime,
-                          ctrl = ctrl)
+                          ctrl = ctrl,
+                          drivers = scenario_rainfall_drivers(config, max_patch_lifetime))
   run <- classify_scm_run(built$p, built$env, built$ctrl)
 
   tibble::tibble(
@@ -449,7 +505,8 @@ scenario_model_fingerprint <- function() {
   ## (present in a load_all dev tree; absent for an installed package).
   src <- c(list.files("R", pattern = "\\.[Rr]$", full.names = TRUE),
            scenario_file("model_scenarios_hydraulic.csv"),
-           scenario_file("scenario_mapping.csv"))
+           scenario_file("scenario_mapping.csv"),
+           scenario_file("scenario_rainfall_drivers.rds"))
   src <- src[file.exists(src)]
   src_hashes <- if (length(src)) unname(tools::md5sum(src)) else character(0)
 

@@ -4,7 +4,7 @@
 # stand, which sees the field the stand actually makes.
 
 ff16_fixed_point <- function(b = 1, t_eq = 300, absorb = 0.02, by = 1) {
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$patch_type <- "fixed"
   p$max_patch_lifetime <- t_eq + 1
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = b)
@@ -64,10 +64,10 @@ test_that("every invader stands in the field taken at the first call", {
 test_that("a constant field keeps the environment's own state", {
   # TF24's soil is part of the field. Held, the patch stands in it whatever state
   # it is set to, and the soil's own rates are zero, so it does not move either.
-  p <- scm_base_parameters("TF24")
+  p <- testing_parameters("TF24")
   p$patch_type <- "fixed"
   p$max_patch_lifetime <- 6
-  p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = TF24_hyperpar,
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("TF24"),
                       birth_rate = 1)
   p$node_schedule_times <- list(0:5)
   env <- Environment("TF24")
@@ -126,7 +126,7 @@ test_that("a field taken inside an interval scores as one taken at its start", {
 })
 
 test_that("a constant field needs a resident to take it from", {
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$patch_type <- "fixed"
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))
   scm <- SCM("FF16", "FF16_Env")(p, Environment("FF16"), empty_events(),

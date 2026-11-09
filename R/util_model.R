@@ -4,14 +4,22 @@
 ##'
 ##' @title Generate strategies from traits
 ##' @param p A \code{Parameters} object containing a default strategy to
-##'   modify.  Any hyperparameterisation included will be applied.
+##'   modify. The trade-off function it carries in \code{p$hyperpar} (see
+##'   \code{\link{default_parameters}}) is applied unless \code{hyperpar} is
+##'   given.
 ##' @param traits Trait values as a \emph{matrix}, with column names
 ##'   corresponding to traits (see \code{\link{trait_matrix}}); one row per
-##'   strategy.
-##' @param hyperpar Hyperparameter function to use. By default links to the
-##'   standard function for this strategy type. It translates ecological traits
-##'   (e.g. \code{lma}, wood density) into the low-level strategy parameters,
-##'   encoding the model's trade-offs.
+##'   strategy. A column may name a field of the strategy's \code{pars}, a
+##'   trait the trade-off function reads, or a numeric top-level strategy
+##'   field (TF24t's thermal parameters); \code{\link{parameter_table}} lists
+##'   them.
+##' @param hyperpar Trade-off (hyperparameter) function to use: a closure
+##'   \code{f(m, s, filter = TRUE)} that translates ecological traits (e.g.
+##'   \code{lma}, wood density) into the low-level strategy parameters,
+##'   encoding the model's trade-offs. Defaults to the one \code{p} carries
+##'   (\code{param_hyperpar(p)}); \code{NULL} is the explicit identity, which
+##'   writes every trait straight to the strategy. A \code{p} carrying none is
+##'   treated as the identity too, and said so once per session.
 ##' @param birth_rate Birth rate(s) for each row of \code{traits}: a scalar or
 ##'   vector (constant birth rate, set as \code{strategy$birth_rate_y}) or a
 ##'   list with \code{x}, \code{y} control points (a varying birth rate, which
@@ -30,6 +38,27 @@ generate_strategy <- function(p, traits, hyperpar = param_hyperpar(p),
   }
 
   strategy <- p$strategy_default
+
+  ## `hyperpar = NULL` is the explicit identity. A `p` with no trade-offs
+  ## attached gives the same identity through param_hyperpar(), but flagged, so
+  ## that a caller who expected a trade-off (TF24's K_s -> stem_P50, say) hears
+  ## that none ran. Once per session: this is information, not an error, and a
+  ## sweep would otherwise say it a thousand times.
+  if (is.null(hyperpar)) {
+    hyperpar <- identity_hyperpar
+  }
+  if (!is.function(hyperpar)) {
+    stop("`hyperpar` must be a trade-off function f(m, s, filter = TRUE), or NULL",
+         call. = FALSE)
+  }
+  if (isTRUE(attr(hyperpar, "unattached", exact = TRUE))) {
+    rlang::inform(paste0(
+      "No trade-off function is attached to these Parameters, so traits are ",
+      "written straight to the strategy. default_parameters(model) attaches ",
+      "plant's testing trade-offs; the fieldtrial package has the recommended ",
+      "ones and curated species/site sets. This message is shown once per session."),
+      .frequency = "once", .frequency_id = "plant_no_tradeoffs_attached")
+  }
   traits <- hyperpar(traits, strategy)
 
   trait_names <- colnames(traits)
@@ -52,15 +81,15 @@ generate_strategy <- function(p, traits, hyperpar = param_hyperpar(p),
   ## with something it derives. Checking the caller's original column names would
   ## reject every legitimate hyperparameterised trait.
   ##
-  ## ⚠️ THE VALID SET IS `pars` ONLY, and that is narrower than "settable on the
-  ## strategy". TF24f's `k_acclim`, `psi_fd_step` and `use_ad_gradient` are real
-  ## user-settable fields living at the TOP level, and the assignment below cannot
-  ## reach them, so they are not traits today. This turns that silence into an
-  ## error, which is the honest report; making them reachable is a feature and is
-  ## deliberately not done here (#636).
+  ## The valid set is `pars` plus the numeric top-level strategy fields (TF24t's
+  ## thermal parameters, TF24f's `k_acclim` and `psi_fd_step`), each assigned
+  ## where it lives below. A logical top-level field (TF24f's `use_ad_gradient`)
+  ## is not numeric and stays unreachable from a trait matrix, so it is refused
+  ## here rather than coerced.
   known <- names(strategy$pars)
+  fields <- strategy_field_names(strategy)
   ## Traits the hyperpar reads from the matrix but never assigns to the strategy.
-  ## It declares them itself (see `make_FF16_hyperpar`), because `pars` cannot
+  ## It declares them itself (see `frozen_FF16_hyperpar`), because `pars` cannot
   ## show them: FF16's `narea` derives `a_p1`, `a_p2` and `r_l` and is not a
   ## parameter, so a `narea` sweep is legitimate and must not be refused. A
   ## caller-supplied hyperpar with no declaration gets `pars` alone, which is the
@@ -68,12 +97,12 @@ generate_strategy <- function(p, traits, hyperpar = param_hyperpar(p),
   consumed <- attr(hyperpar, "input_traits", exact = TRUE)
   if (is.null(consumed)) consumed <- character(0)
 
-  unknown <- setdiff(trait_names, c(known, consumed))
+  unknown <- setdiff(trait_names, c(known, fields, consumed))
   if (length(unknown) > 0L) {
     ## Name the nearest valid parameter for each offender: the whole failure mode
     ## is a name that is almost right, so "did you mean" is the message doing the
     ## real work.
-    candidates <- c(known, consumed)
+    candidates <- c(known, fields, consumed)
     suggest <- vapply(unknown, function(u) {
       d <- utils::adist(u, candidates, ignore.case = TRUE)[1, ]
       near <- candidates[d == min(d) & d <= max(2L, ceiling(nchar(u) / 3))]
@@ -85,14 +114,15 @@ generate_strategy <- function(p, traits, hyperpar = param_hyperpar(p),
     model <- class(strategy)[[1L]]
     stop(sprintf(paste0(
       "Unknown trait name%s for %s: %s\n",
-      "A trait must name a parameter in the strategy's `pars`, or a trait the ",
-      "hyperpar consumes; see names(%s()$pars) for the %d available.\n",
-      "Note the hyperpar's own arguments (B_kl1, B_ks1, ...) are NOT traits: ",
-      "pass them to make_%s_hyperpar() instead."),
+      "A trait must name a parameter in the strategy's `pars`, a numeric ",
+      "top-level strategy field, or a trait the trade-off function consumes; ",
+      "parameter_table(\"%s\") lists the %d available.\n",
+      "Note the trade-off function's own coefficients (B_kl1, B_ks1, ...) are ",
+      "NOT traits: they are set where the trade-off is built."),
       if (length(unknown) > 1L) "s" else "",
       model,
       paste(suggest, collapse = ", "),
-      model, length(known), sub("_Strategy$", "", model)),
+      sub("_Strategy$", "", model), length(c(known, fields, consumed))),
       call. = FALSE)
   }
 
@@ -107,14 +137,21 @@ generate_strategy <- function(p, traits, hyperpar = param_hyperpar(p),
   ## a vector of NAs -- silently, and every parameter would land as NA.
   assign_at <- which(trait_names %in% known)
   assign_names <- trait_names[assign_at]
+  field_at <- which(trait_names %in% fields)
+  field_names <- trait_names[field_at]
 
   f <- function(xi, br) {
-    # Every column produced by hyperpar() is a biological parameter, which now
-    # lives in the nested `pars` sub-object. Copy-back form: active/nested list
+    # Every column produced by hyperpar() that is a biological parameter lives
+    # in the nested `pars` sub-object. Copy-back form: active/nested list
     # access returns a copy, so modify it then assign it back.
     pars <- strategy$pars
     pars[assign_names] <- xi[assign_at]
     strategy$pars <- pars
+    # A top-level strategy field (TF24t's thermal parameters) is assigned where
+    # it lives, beside `pars`.
+    for (j in seq_along(field_at)) {
+      strategy[[field_names[[j]]]] <- xi[[field_at[[j]]]]
+    }
     if (is.list(br)) {
       if (!is.numeric(br$x) || length(br$x) < 2) {
         stop("birth_rate$x must be a numeric vector of at least length 2")
@@ -174,8 +211,9 @@ trait_matrix <- function(x, trait_name) {
 ##' @param p A \code{Parameters} object.
 ##' @param traits A matrix of traits corresponding to the new strategies to
 ##'   introduce (see \code{\link{trait_matrix}}).
-##' @param hyperpar Hyperparameter function to use. By default links to the
-##'   standard function for this strategy type.
+##' @param hyperpar Trade-off (hyperparameter) function to use. Defaults to the
+##'   one \code{p} carries (\code{param_hyperpar(p)}, see
+##'   \code{\link{default_parameters}}); \code{NULL} is the explicit identity.
 ##' @param birth_rate Birth rate(s), one per row of \code{traits}. See
 ##'   \code{\link{generate_strategy}}.
 ##' @param keep_existing Should existing resident strategies be retained?

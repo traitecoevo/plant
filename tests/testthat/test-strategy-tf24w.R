@@ -8,10 +8,10 @@
 tf24w_stand <- function(type, mixing = 0, years = 6, birth_rate = 5,
                         rainfall_pulses = TRUE, absorb = 0, seed = 1,
                         schedule = seq(0, years - 1, by = 1), lma = 0.0825) {
-  p <- scm_base_parameters(type)
+  p <- testing_parameters(type)
   p$patch_type <- "fixed"
   p$max_patch_lifetime <- years
-  p <- add_strategies(p, trait_matrix(lma, "lma"), hyperpar = hyperpar(type),
+  p <- add_strategies(p, trait_matrix(lma, "lma"), hyperpar = default_hyperpar(type),
                       birth_rate = birth_rate)
   p$node_schedule_times <- list(schedule)
   env <- Environment(type)
@@ -19,7 +19,7 @@ tf24w_stand <- function(type, mixing = 0, years = 6, birth_rate = 5,
   env$water_mixing_rate <- mixing
   if (rainfall_pulses) {
     set.seed(seed)
-    s <- pulse_series_poisson(0, years, rate = 20, mean_amount = 0.014)
+    s <- poisson_pulses(0, years, rate = 20, mean_amount = 0.014)
     ev <- events(node_introductions(p), rainfall_pulse(s$time, s$amount))
   } else {
     ev <- events(node_introductions(p))
@@ -44,9 +44,9 @@ test_that("TF24w declares its states, readings and version", {
 })
 
 test_that("TF24w refuses the height coordinate", {
-  p <- scm_base_parameters("TF24w")
+  p <- testing_parameters("TF24w")
   p$max_patch_lifetime <- 2
-  p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = TF24w_hyperpar)
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("TF24"))
   expect_error(run_scm(p, Environment("TF24w"),
                        control(node_density_coordinate = "height"), run = FALSE),
                "birth-date")
@@ -116,11 +116,11 @@ test_that("the pooled limit reproduces TF24", {
 })
 
 test_that("the resident's own copy, introduced as a rare second species, scores exactly 0", {
-  p <- scm_base_parameters("TF24w")
+  p <- testing_parameters("TF24w")
   p$patch_type <- "fixed"
   p$max_patch_lifetime <- 4
   p <- add_strategies(p, trait_matrix(c(0.0825, 0.0825), "lma"),
-                      hyperpar = TF24w_hyperpar, birth_rate = list(5, 5e-6))
+                      hyperpar = default_hyperpar("TF24"), birth_rate = list(5, 5e-6))
   p$node_schedule_times <- list(0:3, 0:3)
   env <- Environment("TF24w")
   env$extrinsic_drivers_set_constant("rainfall", 0.3)

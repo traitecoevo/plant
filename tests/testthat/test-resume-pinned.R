@@ -4,7 +4,7 @@
 ## every later run is one of these (#519).
 
 ff16 <- function(lifetime) {
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$max_patch_lifetime <- lifetime
   p$node_schedule_times <- list()
   add_strategies(p, trait_matrix(0.0825, "lma"))
@@ -133,7 +133,7 @@ test_that("an invader introduced at the resume instant stands in the resident's 
   ## own empty canopy its first cohort would be far off the resident's.
   ctrl <- Control(node_density_coordinate = "birth_date")
   mk <- function(lifetime) {
-    p <- scm_base_parameters("FF16")
+    p <- testing_parameters("FF16")
     p$patch_type <- "fixed"
     p$max_patch_lifetime <- lifetime
     add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
@@ -165,7 +165,7 @@ test_that("an invader of a resumed resident starts empty, at the resume time", {
   ## traits; and an invader left at time zero is not where the pinned run starts.
   ctrl <- Control(node_density_coordinate = "birth_date")
   mk <- function(lifetime) {
-    p <- scm_base_parameters("FF16")
+    p <- testing_parameters("FF16")
     p$patch_type <- "fixed"
     p$max_patch_lifetime <- lifetime
     add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
