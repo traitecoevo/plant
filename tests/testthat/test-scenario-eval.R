@@ -94,8 +94,16 @@ test_that("build_scenario takes a rainfall driver table, and the gateway's is a 
   expect_error(build_scenario(cfg, max_patch_lifetime = 200, drivers = drivers),
                "end at 100")
   expect_error(build_scenario(cfg, drivers = data.frame(t = 1)), "time")
-  ## A seasonal scenario at another lifetime has no committed series.
-  expect_error(scenario_rainfall_drivers(cfg, max_patch_lifetime = 50), "fieldtrial")
+  expect_error(build_scenario(cfg, drivers = data.frame(time = c(0, NA), rainfall = c(1, 1))),
+               "without NA")
+  ## A shorter run takes the fixture's knots cut just past its end; a longer one
+  ## has no committed series.
+  short <- scenario_rainfall_drivers(cfg, max_patch_lifetime = 2)
+  expect_equal(short, drivers[seq_len(nrow(short)), ], ignore_attr = TRUE)
+  expect_gte(max(short$time), 2)
+  expect_lt(short$time[[nrow(short) - 1L]], 2)
+  expect_no_error(build_scenario(cfg, max_patch_lifetime = 2, drivers = short))
+  expect_error(scenario_rainfall_drivers(cfg, max_patch_lifetime = 200), "fieldtrial")
   expect_null(scenario_rainfall_drivers(list(driver = list(rainfall_mean = 1,
                                                            rainfall_amp_frac = 0))))
   ## Every mapped (mean, amplitude) pair has a series.
@@ -121,6 +129,11 @@ test_that("run_scenarios cache reuses unchanged scenarios", {
 
   cold <- run_scenarios(scen, map, max_patch_lifetime = 2, cache = cache)
   expect_true(file.exists(cache))
+  ## Both scenarios are seasonal, so each ran on the committed rainfall series
+  ## cut to two years; a lookup failure would be recorded as a crashed row and
+  ## the reuse checks below would still pass, which is why this is asserted.
+  expect_false(any(cold$crashed))
+  expect_true(all(is.na(cold$error_message) | !nzchar(cold$error_message)))
 
   ## A second identical run reuses everything and returns the same outcomes.
   expect_message(

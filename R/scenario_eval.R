@@ -182,6 +182,12 @@ build_scenario <- function(config, max_patch_lifetime = 100,
       stop("`drivers` must be a data frame with `time` and `rainfall` columns",
            call. = FALSE)
     }
+    if (!is.numeric(drivers$time) || !is.numeric(drivers$rainfall) ||
+        anyNA(drivers$time) || anyNA(drivers$rainfall) || nrow(drivers) < 2L ||
+        is.unsorted(drivers$time, strictly = TRUE)) {
+      stop("`drivers$time` must be strictly increasing and `drivers$rainfall` ",
+           "numeric, both without NA, with at least two rows", call. = FALSE)
+    }
     if (max(drivers$time) < max_patch_lifetime) {
       stop("`drivers` end at ", format(max(drivers$time)), " but the run lasts ",
            format(max_patch_lifetime), " years; a driver is refused outside its knots",
@@ -206,10 +212,10 @@ build_scenario <- function(config, max_patch_lifetime = 100,
 ##'   \code{inst/scenarios/scenario_rainfall_drivers.rds}, written by
 ##'   \code{scripts/make-scenario-drivers.R}: the sinusoid the gateway baseline
 ##'   was recorded with, \code{mean * (1 + amp * sin(2 pi t))} clamped at zero
-##'   on 48 knots per year over 100 years. A \code{max_patch_lifetime} other than
-##'   the fixture's is refused for a seasonal scenario: generating another series
-##'   is \pkg{fieldtrial}'s job, and this one exists to keep the gateway's
-##'   baseline reproducible.
+##'   on 48 knots per year over 100 years. A shorter \code{max_patch_lifetime}
+##'   takes the same knots cut at the first one past the run's end; a longer one
+##'   is refused, because generating another series is \pkg{fieldtrial}'s job
+##'   and this one exists to keep the gateway's baseline reproducible.
 ##' @rdname scenario_eval
 ##' @export
 scenario_rainfall_drivers <- function(config, max_patch_lifetime = 100) {
@@ -220,7 +226,7 @@ scenario_rainfall_drivers <- function(config, max_patch_lifetime = 100) {
   }
   fixture <- readRDS(scenario_file("scenario_rainfall_drivers.rds"))
   mpl <- attr(fixture, "max_patch_lifetime")
-  if (!isTRUE(all.equal(max_patch_lifetime, mpl))) {
+  if (max_patch_lifetime > mpl) {
     stop("The committed scenario rainfall series run to ", mpl, " years; a seasonal ",
          "scenario at max_patch_lifetime = ", format(max_patch_lifetime),
          " needs a driver table of its own (see fieldtrial), passed to ",
@@ -231,7 +237,18 @@ scenario_rainfall_drivers <- function(config, max_patch_lifetime = 100) {
     stop("No committed rainfall series for ", key, "; the fixture holds: ",
          paste(names(fixture), collapse = ", "), call. = FALSE)
   }
-  fixture[[key]]
+  series <- fixture[[key]]
+  if (max_patch_lifetime < mpl) {
+    ## A shorter run takes the same knots up to its end, plus the first knot
+    ## past it so the driver covers the whole run (plant refuses to evaluate a
+    ## driver outside its knots). The knots are not on integer years, so the
+    ## cut is never exact; what the run sees is the 100-year series over [0,
+    ## max_patch_lifetime], bar the one-sided slope at the final knot.
+    last <- min(nrow(series), max(which(series$time <= max_patch_lifetime)) + 1L)
+    series <- series[seq_len(last), , drop = FALSE]
+    rownames(series) <- NULL
+  }
+  series
 }
 
 ## Demographic persistence, as distinct from the run completing.

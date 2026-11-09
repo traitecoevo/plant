@@ -172,10 +172,10 @@ cache deliberately errs toward rerunning.}
   \code{inst/scenarios/scenario_rainfall_drivers.rds}, written by
   \code{scripts/make-scenario-drivers.R}: the sinusoid the gateway baseline
   was recorded with, \code{mean * (1 + amp * sin(2 pi t))} clamped at zero
-  on 48 knots per year over 100 years. A \code{max_patch_lifetime} other than
-  the fixture's is refused for a seasonal scenario: generating another series
-  is \pkg{fieldtrial}'s job, and this one exists to keep the gateway's
-  baseline reproducible.
+  on 48 knots per year over 100 years. A shorter \code{max_patch_lifetime}
+  takes the same knots cut at the first one past the run's end; a longer one
+  is refused, because generating another series is \pkg{fieldtrial}'s job
+  and this one exists to keep the gateway's baseline reproducible.
 
 \code{classify_scm_run} returns a list describing the run:
   \code{status} (\code{"success"}/\code{"failure"}),
