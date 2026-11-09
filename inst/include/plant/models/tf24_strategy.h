@@ -2926,7 +2926,8 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
   auto optimise_at = [&](const S& PPFD_int) -> void {
     PPFD_int_used = PPFD_int;
     // Read on the energy-balance path only, and carries no row: the derivative
-    // surface does not follow the energy balance.
+    // surface follows the energy balance but takes NIR as a driver, so with the
+    // balance on a derivative in light misses NIR's share of the heat load.
     leaf.NIR_int_ = NIR_per_PPFD_int * odelia::util::to_passive(PPFD_int);
     // The leaf takes double, and everything the environment supplies already is
     // one. Three of its arguments are this strategy's own and carry a derivative;

@@ -101,7 +101,7 @@ double Leaf__psi_stem_to_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_
 }
 // [[Rcpp::export]]
 double Leaf__hydraulic_cost_TF(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
-  return obj_->hydraulic_cost_TF(psi_stem);
+  return obj_->hydraulic_cost_TF24(psi_stem);
 }
 // [[Rcpp::export]]
 double Leaf__profit_psi_stem_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem, double psi_upstream) {
@@ -109,7 +109,7 @@ double Leaf__profit_psi_stem_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_, dou
 }
 // [[Rcpp::export]]
 double Leaf__profit_psi_stem_TF(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem, double psi_upstream) {
-  return obj_->profit_psi_leaf_TF(psi_stem, psi_upstream);
+  return obj_->profit_psi_leaf_TF24(psi_stem, psi_upstream);
 }
 // [[Rcpp::export]]
 void Leaf__set_model(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::string curve, std::string route) {
