@@ -37,13 +37,14 @@ products using plant.
   * `interpolate_to_times(x, times)` (the previous natural spline)     -> `interpolate_to_times(x, times, method = "natural")`
   * `interpolate_to_heights(x, heights)` (the previous natural spline) -> `interpolate_to_heights(x, heights, method = "natural")`
 
-* **TF24 moves to phylloptim 0.26.2 (#714).** A shut leaf is phylloptim's ordinary evaluator at its wet bound, so in light it nets zero instead of `-R_d`; `psi_crit` is no longer a bound, so the stem follows a drying soil past it. The operating-point kinds `boundary-crit`, `boundary-root-crit`, `determined` and `shade-death` are gone (`boundary-dry` replaces the first two). TF24t's impairment takes Bison & Michaletz's centred-Arrhenius kinetics. `scientific_version`: TF24 13 -> 14, TF24f 13.1 -> 14.1, TF24t 13.4 -> 14.5, TF24w 13.1 -> 14.1. Migration:
+* **TF24 moves to phylloptim 0.26.2 (#714), then 0.27.0, then 0.31.0.** A shut leaf is phylloptim's ordinary evaluator at its wet bound, so in light it nets zero instead of `-R_d`; `psi_crit` is no longer a bound, so the stem follows a drying soil past it. Whether a leaf is held at the dry end is decided at that end (traitecoevo/phylloptim#205), so the forward run no longer jumps where the decision flipped and the stand gradient at `boundary-dry` agrees with a difference of whole runs. The operating-point kinds `boundary-crit`, `boundary-root-crit`, `determined` and `shade-death` are gone (`boundary-dry` replaces the first two). TF24t's impairment takes Bison & Michaletz's centred-Arrhenius kinetics. `scientific_version`: TF24 13 -> 14, TF24f 13.1 -> 14.1, TF24t 13.4 -> 14.5, TF24w 13.1 -> 14.1; with 0.27.0, TF24 14 -> 15, TF24f 14.1 -> 15.1, TF24t 14.5 -> 15.5, TF24w 14.1 -> 15.1. With 0.31.0 TF24's growth books the leaf's carbon as phylloptim bills it (`Leaf$carbon()`, the objective plus `shadow_cost`), bit for bit what it summed itself, and no result moves; `Leaf()` from R is still seated on the layered supply with TF24 on the collar route, which a bare phylloptim leaf no longer is. Migration:
 
   * `TF24t_Strategy` `impair_H`, `impair_Tmid`, `m_rep`, `t_rep_cut`, `k_i_Tref` -> removed; new `k_i_Tiso`, `k_rec_Ea`, `k_mat_Ea`. `k_i` defaults to 276 day^-1 at `k_i_Tiso` (was 0.5 with a logistic switch), `k_i_Ea` to 316 kJ mol^-1.
   * `Leaf` fields `impair_H_`, `impair_Tmid_`, `m_rep_`, `t_rep_cut_`, `k_i_Tref_` -> removed; new `k_i_Tiso_`, `k_rec_Ea_`, `k_mat_Ea_`.
   * `Leaf$transpiration(psi_stem, psi_upstream)` with `psi_stem < psi_upstream` -> an error (was a negative flux).
   * drivers with `atm_vpd` at or above saturation -> an error.
   * a result pinned or cached under `TF24@v13`, `TF24f@v13.1`, `TF24t@v13.4` or `TF24w@v13.1` -> re-run, or re-bless the pin.
+  * `Leaf$set_model(curve, "stem")` -> `Leaf$set_model(curve, "leaf")` (phylloptim 0.30 renamed the route; there is no alias).
 
 * **The density coordinate is now chosen per model, and TF24 defaults to birth
   date (#516).** `Control`'s boolean flag becomes a three-valued string, so that

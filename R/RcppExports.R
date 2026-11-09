@@ -121,6 +121,10 @@ Leaf__shadow_cost <- function(obj_) {
     .Call('_plant_Leaf__shadow_cost', PACKAGE = 'plant', obj_)
 }
 
+Leaf__carbon <- function(obj_) {
+    .Call('_plant_Leaf__carbon', PACKAGE = 'plant', obj_)
+}
+
 Leaf__medlyn_model_gs <- function(obj_, assim_colimited_) {
     .Call('_plant_Leaf__medlyn_model_gs', PACKAGE = 'plant', obj_, assim_colimited_)
 }

@@ -52,7 +52,7 @@ double uniroot(Function f, double min, double max, double tol,
 // target, both leaf solvers are in fact smooth and strictly monotone over the
 // brackets they are actually handed, and both now use this solver at their
 // existing tolerances (same root, fewer evals):
-//   * psi_stem_to_ci (Phase 6): A_colim demand minus the linear gc supply over
+//   * psi_leaf_to_ci (Phase 6): A_colim demand minus the linear gc supply over
 //     (gamma*, ca]; ~29 -> ~9 evals at 1e-7.
 //   * find_root_psi (Phase 8): the soil->collar continuity residual over
 //     [-psi_crit, wettest_soil_layer]; ~15-16 -> ~6-8 evals at 1e-4. Its
@@ -65,7 +65,7 @@ double uniroot(Function f, double min, double max, double tol,
 // the whole bracket -- which the leaf solvers are, on their operating brackets.
 // One gotcha vs bisect: this validates its bracket and THROWS on non-finite or
 // same-sign endpoints where boost::bisect returned NaN silently (guard upstream
-// if a finite-but-degenerate bracket can occur; see psi_stem_to_ci's NA guard).
+// if a finite-but-degenerate bracket can occur; see psi_leaf_to_ci's NA guard).
 template <typename Function>
 double uniroot_smooth(Function f, double min, double max, double tol,
                       size_t max_iterations) {
