@@ -157,6 +157,11 @@ public:
   // construct a patch per insertion. rebind() is this applied to a freshly
   // constructed patch, so the two cannot list different members.
   //
+  // `from` is a patch built from the same parameters as this one -- the patch
+  // this one was rebound from, at another state -- since the parameters, the
+  // node schedule and the disturbance regime are this patch's own and are not
+  // rebuilt here.
+  //
   // ⚠️ EQUAL TO A REBIND IN EVERY MEMBER A RECORDING READS. A member written
   // here only by some earlier width's evaluation is read at the next as that
   // width left it, finite and wrong. Like a rebind, it leaves the field and the
@@ -819,6 +824,8 @@ template <typename T, typename E>
 template <typename T0, typename E0>
 void Patch<T,E>::assign_from(const Patch<T0,E0>& from) {
   util::check_length(from.species.size(), species.size());
+  area = from.area;
+  control = from.control;
   for (size_t i = 0; i < species.size(); ++i) {
     // The strategy object stays where it is, so every node pointing at it reads
     // the values written; a TF24 strategy's leaf is copied with them.
@@ -848,6 +855,9 @@ void Patch<T,E>::assign_from(const Patch<T0,E0>& from) {
   environment.set_shading_model(control.shading_model,
                                 control.ppa_layer_optical_depth,
                                 control.ppa_layer_smoothing);
+  // A rebound patch keeps no field and stands in none.
+  keep_field = false;
+  constant_field.reset();
   field_run = from.field_run;
   field_slot = nullptr;
   stage.reset();
