@@ -9,7 +9,7 @@ SEXP RootNetwork__ctor() {
 
 // [[Rcpp::export]]
 plant::Leaf Leaf__ctor(double vcmax_25, double stem_c, double stem_P50, double root_c, double root_P50, double TF24_beta2, double jmax_25, double phi_J, double curv_fact_elec_trans, double curv_fact_colim, double GSS_tol_abs, double vulnerability_curve_ncontrol, double ci_abs_tol, double ci_niter, double TF24_cost_scale) {
-  return plant::Leaf(vcmax_25, stem_c, stem_P50, root_c, root_P50, TF24_beta2, jmax_25, phi_J, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, TF24_cost_scale);
+  return plant::make_leaf(vcmax_25, stem_c, stem_P50, root_c, root_P50, TF24_beta2, jmax_25, phi_J, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs, vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, TF24_cost_scale);
 }
 // [[Rcpp::export]]
 void Leaf__initialize_integrator(plant::RcppR6::RcppR6<plant::Leaf> obj_, int integration_rule, double integration_tol) {
@@ -45,7 +45,7 @@ double Leaf__stom_cond_CO2(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_s
 }
 // [[Rcpp::export]]
 double Leaf__transpiration_to_psi_stem(plant::RcppR6::RcppR6<plant::Leaf> obj_, double transpiration_, double psi_upstream) {
-  return obj_->transpiration_to_psi_stem(transpiration_, psi_upstream);
+  return obj_->transpiration_to_psi_leaf(transpiration_, psi_upstream);
 }
 // [[Rcpp::export]]
 double Leaf__assim_rubisco_limited(plant::RcppR6::RcppR6<plant::Leaf> obj_, double ci_) {
@@ -69,7 +69,7 @@ double Leaf__electron_transport(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
 }
 // [[Rcpp::export]]
 void Leaf__set_leaf_states_rates_from_psi_stem(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem, double psi_upstream) {
-  obj_->set_leaf_states_rates_from_psi_stem(psi_stem, psi_upstream);
+  obj_->set_leaf_states_rates_from_psi_leaf(psi_stem, psi_upstream);
 }
 // [[Rcpp::export]]
 void Leaf__E_from_Soil_to_Root_Collar(plant::RcppR6::RcppR6<plant::Leaf> obj_, double P_x_r, std::vector<double> psi_soil) {
@@ -85,7 +85,7 @@ double Leaf__find_root_psi(plant::RcppR6::RcppR6<plant::Leaf> obj_, double wette
 }
 // [[Rcpp::export]]
 double Leaf__find_psi_stem_from_psi_root(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_root, std::vector<double> psi_soil) {
-  return obj_->find_psi_stem_from_psi_root(psi_root, psi_soil);
+  return obj_->find_psi_leaf_from_psi_root(psi_root, psi_soil);
 }
 // [[Rcpp::export]]
 double Leaf__evaluate_root_collar_psi(plant::RcppR6::RcppR6<plant::Leaf> obj_, double target_opt_root_psi) {
@@ -97,7 +97,7 @@ double Leaf__dprofit_droot_collar_psi(plant::RcppR6::RcppR6<plant::Leaf> obj_, d
 }
 // [[Rcpp::export]]
 double Leaf__psi_stem_to_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem, double psi_upstream) {
-  return obj_->psi_stem_to_ci(psi_stem, psi_upstream);
+  return obj_->psi_leaf_to_ci(psi_stem, psi_upstream);
 }
 // [[Rcpp::export]]
 double Leaf__hydraulic_cost_TF(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
@@ -105,11 +105,11 @@ double Leaf__hydraulic_cost_TF(plant::RcppR6::RcppR6<plant::Leaf> obj_, double p
 }
 // [[Rcpp::export]]
 double Leaf__profit_psi_stem_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem, double psi_upstream) {
-  return obj_->profit_psi_stem_ProfitMax(psi_stem, psi_upstream);
+  return obj_->profit_psi_leaf_ProfitMax(psi_stem, psi_upstream);
 }
 // [[Rcpp::export]]
 double Leaf__profit_psi_stem_TF(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem, double psi_upstream) {
-  return obj_->profit_psi_stem_TF(psi_stem, psi_upstream);
+  return obj_->profit_psi_leaf_TF(psi_stem, psi_upstream);
 }
 // [[Rcpp::export]]
 void Leaf__set_model(plant::RcppR6::RcppR6<plant::Leaf> obj_, std::string curve, std::string route) {
@@ -122,6 +122,10 @@ void Leaf__optimise(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
 // [[Rcpp::export]]
 double Leaf__shadow_cost(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   return obj_->shadow_cost();
+}
+// [[Rcpp::export]]
+double Leaf__carbon(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->carbon();
 }
 // [[Rcpp::export]]
 double Leaf__medlyn_model_gs(plant::RcppR6::RcppR6<plant::Leaf> obj_, double assim_colimited_) {
@@ -797,11 +801,11 @@ void Leaf__hydraulic_cost___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double 
 
 // [[Rcpp::export]]
 double Leaf__opt_psi_stem___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->opt_psi_stem_;
+  return obj_->opt_psi_leaf_;
 }
 // [[Rcpp::export]]
 void Leaf__opt_psi_stem___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
-  obj_->opt_psi_stem_ = value;
+  obj_->opt_psi_leaf_ = value;
 }
 
 // [[Rcpp::export]]

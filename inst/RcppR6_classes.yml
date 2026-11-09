@@ -27,6 +27,7 @@ RootNetwork:
 Leaf:
   name_cpp: "plant::Leaf"
   constructor:
+    name_cpp: "plant::make_leaf"
     roxygen: |
       Leaf model
 
@@ -158,7 +159,7 @@ Leaf:
     Rn_: {type: double, access: field}
     ra_: {type: double, access: field}
     hydraulic_cost_: {type: double, access: field}
-    opt_psi_stem_: {type: double, access: field}
+    opt_psi_stem_: {type: double, access: field, name_cpp: "opt_psi_leaf_"}
     opt_ci_: {type: double, access: field}
     E_up_: {type: double, access: field}
     f_r: {type: "std::vector<double>", access: field}
@@ -198,6 +199,7 @@ Leaf:
       return_type: double
       args: [psi_stem: double, psi_upstream: double]
     transpiration_to_psi_stem:
+      name_cpp: transpiration_to_psi_leaf
       return_type: double
       args: [transpiration_: double, psi_upstream: double]
     # assimilation functions 
@@ -217,6 +219,7 @@ Leaf:
       return_type: double
       args: []      
     set_leaf_states_rates_from_psi_stem:
+      name_cpp: set_leaf_states_rates_from_psi_leaf
       return_type: void
       args: [psi_stem: double, psi_upstream: double]
     E_from_Soil_to_Root_Collar:
@@ -229,6 +232,7 @@ Leaf:
       return_type: double
       args: [wettest_soil_layer: double, psi_soil: "std::vector<double>", find_root_crit: int]
     find_psi_stem_from_psi_root:
+      name_cpp: find_psi_leaf_from_psi_root
       return_type: double
       args: [psi_root: double, psi_soil: "std::vector<double>"]
 
@@ -241,6 +245,7 @@ Leaf:
       args: [opt_root_psi: double]
 
     psi_stem_to_ci:
+      name_cpp: psi_leaf_to_ci
       return_type: double
       args: [psi_stem: double, psi_upstream: double]
     #leaf economics functions
@@ -249,9 +254,10 @@ Leaf:
       args: [psi_stem: double]
     profit_psi_stem_Sperry:
       return_type: double
-      name_cpp: profit_psi_stem_ProfitMax
+      name_cpp: profit_psi_leaf_ProfitMax
       args: [psi_stem: double, psi_upstream: double]
     profit_psi_stem_TF:
+      name_cpp: profit_psi_leaf_TF
       return_type: double
       args: [psi_stem: double, psi_upstream: double]
       # optimiser functions
@@ -265,13 +271,15 @@ Leaf:
     optimise:
       return_type: void
       args: []
-    # The part of the cost the objective deducted that is a PRICE rather than a
-    # realised carbon loss: `TF24_floor_lambda_o * transpiration_` on that curve
-    # and exactly 0.0 on the other seven. `profit_ + shadow_cost()` is the carbon
-    # actually kept, which is what TF24 grows on (#634). Zero on another curve
-    # says that curve does not separate the two -- not that its cost is all
-    # realised carbon.
+    # The part of the cost that is a PRICE rather than carbon spent: `TF24_floor_lambda_o
+    # * transpiration_` on TF24_floor, 0 on TF24, the whole cost on CF77, JS22 and
+    # CMax, NA on the other curves (phylloptim 0.31, decision D6).
     shadow_cost:
+      return_type: double
+      args: []
+    # The carbon the leaf kept, which TF24 grows on: the objective plus the price
+    # on TF24_floor, the objective itself on TF24.
+    carbon:
       return_type: double
       args: []
     # Medlyn stomatal-conductance model (from develop #450)

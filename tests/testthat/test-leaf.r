@@ -414,7 +414,7 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   #first off- what happens when we moving psi_soil around
   # start with one soil layer. For the TF method, it will fail when there is more than one layer
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = PPFD, psi_soil = psi_crit + 1, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
-    l$set_model("TF24", "stem"); l$optimise()
+    l$set_model("TF24", "leaf"); l$optimise()
   
   expect_equal(l$transpiration_, 0)
   expect_equal(l$opt_psi_stem_, psi_crit+1)
@@ -428,7 +428,7 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   # check a more standard case, wet soil
 
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = PPFD, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
-  l$set_model("TF24", "stem"); l$optimise()
+  l$set_model("TF24", "leaf"); l$optimise()
   expect_true(l$profit_ > 0)
   expect_true(l$opt_psi_stem_ > 0)
   expect_true(l$stom_cond_CO2_ > 0)
@@ -444,7 +444,7 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   root_carbon = c(0.5, 1)
 
   l$set_physiology(root_network = net((root_carbon) / area_leaf_, soil_depth), PPFD = PPFD, psi_soil = psi_soil, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
-  expect_error({l$set_model("TF24", "stem"); l$optimise()}, "psi soil must have only one value to use non-root-based profit optimisation methods")
+  expect_error({l$set_model("TF24", "leaf"); l$optimise()}, "psi soil must have only one value to use non-root-based profit optimisation methods")
 
   #test various responses to environmental gradients to check that behaviour is being conserved
   
@@ -457,7 +457,7 @@ soil_depth = 1
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
     l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
-  l$set_model("TF24", "stem"); l$optimise()
+  l$set_model("TF24", "leaf"); l$optimise()
   
   high_light <- l$profit_
   
@@ -467,7 +467,7 @@ soil_depth = 1
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 100, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
-  l$set_model("TF24", "stem"); l$optimise()
+  l$set_model("TF24", "leaf"); l$optimise()
   
   low_light <- l$profit_
   
@@ -481,7 +481,7 @@ soil_depth = 1
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
-  l$set_model("TF24", "stem"); l$optimise()
+  l$set_model("TF24", "leaf"); l$optimise()
   
   high_moist <- l$profit_
   
@@ -491,7 +491,7 @@ soil_depth = 1
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 2, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
-  l$set_model("TF24", "stem"); l$optimise()
+  l$set_model("TF24", "leaf"); l$optimise()
   
   low_moist <- l$profit_
   
@@ -506,7 +506,7 @@ soil_depth = 1
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
-  l$set_model("TF24", "stem"); l$optimise()
+  l$set_model("TF24", "leaf"); l$optimise()
   
   low_vpd <- l$profit_
   
@@ -516,7 +516,7 @@ soil_depth = 1
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 2, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
-  l$set_model("TF24", "stem"); l$optimise()
+  l$set_model("TF24", "leaf"); l$optimise()
   
   high_vpd <- l$profit_
   
@@ -530,7 +530,7 @@ soil_depth = 1
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
-  l$set_model("TF24", "stem"); l$optimise()
+  l$set_model("TF24", "leaf"); l$optimise()
   
   low_vcmax <- l$profit_
   
@@ -540,7 +540,7 @@ soil_depth = 1
             GSS_tol_abs = GSS_tol_abs, vulnerability_curve_ncontrol = vulnerability_curve_ncontrol, ci_abs_tol = ci_abs_tol, 
             ci_niter = ci_niter, TF24_cost_scale = TF24_cost_scale)
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = 1000, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = 1, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)  
-  l$set_model("TF24", "stem"); l$optimise()
+  l$set_model("TF24", "leaf"); l$optimise()
   
   high_vcmax <- l$profit_
   
@@ -1297,4 +1297,20 @@ test_that("the polished collar operating point does not depend on the bracket to
   }
   cat(sprintf("\nbracket independence: worst |p(1e-3) - p(1e-1)| = %.3e, allowed %.3e\n",
               worst, allowed))
+})
+
+test_that("the leaf reports the carbon it kept, which TF24 grows on", {
+  # phylloptim bills it (decision D6): the objective plus the price of water,
+  # which on TF24 is zero, so carbon IS the objective there.
+  l <- Leaf(vcmax_25 = 100, jmax_25 = 167, stem_c = 2.04, stem_P50 = 3.4,
+            root_c = 2.04, root_P50 = 3.4, TF24_beta2 = 1.5, phi_J = 0.35,
+            curv_fact_elec_trans = 0.7, curv_fact_colim = 0.99,
+            GSS_tol_abs = 1e-8, vulnerability_curve_ncontrol = 100,
+            ci_abs_tol = 1e-6, ci_niter = 1000, TF24_cost_scale = 7.5)
+  depth <- c(0.5, 1.0)
+  roots <- net(c(10, 10), depth)
+  l$set_physiology(roots, 900, c(1.0, 1.5), depth, 3e-5, 2, 40, 25, 21, 101.3)
+  l$find_root_collar_psi()
+  expect_identical(l$shadow_cost(), 0)
+  expect_identical(l$carbon(), l$profit_)
 })

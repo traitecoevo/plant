@@ -402,6 +402,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Leaf__carbon
+double Leaf__carbon(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__carbon(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__carbon(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Leaf__medlyn_model_gs
 double Leaf__medlyn_model_gs(plant::RcppR6::RcppR6<plant::Leaf> obj_, double assim_colimited_);
 RcppExport SEXP _plant_Leaf__medlyn_model_gs(SEXP obj_SEXP, SEXP assim_colimited_SEXP) {
@@ -19487,6 +19498,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__set_model", (DL_FUNC) &_plant_Leaf__set_model, 3},
     {"_plant_Leaf__optimise", (DL_FUNC) &_plant_Leaf__optimise, 1},
     {"_plant_Leaf__shadow_cost", (DL_FUNC) &_plant_Leaf__shadow_cost, 1},
+    {"_plant_Leaf__carbon", (DL_FUNC) &_plant_Leaf__carbon, 1},
     {"_plant_Leaf__medlyn_model_gs", (DL_FUNC) &_plant_Leaf__medlyn_model_gs, 2},
     {"_plant_Leaf__solve_medlyn_ci_numerical", (DL_FUNC) &_plant_Leaf__solve_medlyn_ci_numerical, 1},
     {"_plant_Leaf__solve_medlyn_ci_analytical", (DL_FUNC) &_plant_Leaf__solve_medlyn_ci_analytical, 1},

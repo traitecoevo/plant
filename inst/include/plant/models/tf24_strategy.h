@@ -218,8 +218,8 @@ struct TF24_Pars {
   // regression baseline means a mistake rather than a new expected value.
   //
   // ⚠️ IT IS A SHADOW PRICE, NOT A COST, and that distinction is why
-  // net_mass_production_dt adds `leaf.shadow_cost()` back to `leaf.profit_` before
-  // converting to carbon. `Theta~` is carbon actually forgone; `lambda_o` is the
+  // net_mass_production_dt books phylloptim's `carbon()`, the objective with the
+  // price added back, before converting to carbon. `Theta~` is carbon actually forgone; `lambda_o` is the
   // value of water in its best alternative use, which for a leaf is assimilation
   // later. Paying it changes the aperture chosen and loses no carbon.
   //
@@ -1849,12 +1849,11 @@ public:
 
 
   // The leaf's two outputs on the active chain, carrying its supplied Jacobian.
-  // Written by net_mass_production_dt before compute_rates reads either.
-  S leaf_profit_;
+  // Written by net_mass_production_dt before compute_rates reads either. The
+  // carbon is the leaf's, the objective less the price of its water, as
+  // phylloptim bills it (net_mass_production_dt says why).
+  S leaf_carbon_;
   std::vector<S> leaf_soil_consumption_;
-  // The shadow price of the water the leaf used, `lambda_o * E`: added back to
-  // the objective to give the carbon kept (net_mass_production_dt says why).
-  S leaf_shadow_cost_;
 
   // Flexible allometry's working (#516), written by net_mass_production_dt and
   // read by compute_rates in the same evaluation.
@@ -1890,8 +1889,8 @@ public:
       f(pars.*field.at);
     }
     f(birth_rate_);
-    odelia::ode::visit_active(f, leaf_profit_, leaf_soil_consumption_,
-                              leaf_shadow_cost_, root_carbon_per_leaf_area_,
+    odelia::ode::visit_active(f, leaf_carbon_, leaf_soil_consumption_,
+                              root_carbon_per_leaf_area_,
                               marginal_leaf_return_, withheld_leaf_,
                               withheld_sapwood_, maintenance_flux_,
                               leaf_specific_conductance_max_);
@@ -2044,11 +2043,6 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& PPFD_int,
   };
   double slope = std::numeric_limits<double>::quiet_NaN();
   Leaf::BilledOutputs<S> got;
-  // Transpiration at the collar the solve placed, carrying its move: the draw is
-  // taken at the passive collar, so its flux alone would miss dcollar/dtheta. The
-  // step is zero in value and its slope is the draw's own. Read for the shadow
-  // cost below.
-  S transpiration_at = S(leaf.transpiration_);
   try {
     if (leaf.operating_point_kind() == Leaf::OperatingPointKind::Interior) {
       slope = leaf.template profit_curvature_at_collar<
@@ -2134,8 +2128,6 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& PPFD_int,
             draw, in, slope, &held);
     got = leaf.template billed_outputs_at<phylloptim::Leaf::CostCurve::TF24_floor,
                                           S>(collar, draw, in, &held);
-    transpiration_at =
-        draw.E_up.value + draw.E_up.slope * (collar - S(leaf.opt_root_psi_));
   } catch (const std::runtime_error& e) {
     note_leaf_clamps(clamps_before);
     // The leaf produced nothing to record a row against, so every output takes
@@ -2143,8 +2135,7 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& PPFD_int,
     // costs everywhere else here, and lets the sweep reach the poll that reads
     // this.
     refuse(std::string("TF24 gradient: ") + e.what());
-    leaf_profit_ = S(leaf.profit_);
-    leaf_shadow_cost_ = S(leaf.shadow_cost());
+    leaf_carbon_ = S(leaf.carbon());
     leaf_soil_consumption_.assign(n_layer, S(0.0));
     for (std::size_t j = 0; j < n_layer; ++j) {
       leaf_soil_consumption_[j] = S(leaf.soil_consumption_[j]);
@@ -2184,23 +2175,17 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& PPFD_int,
            report.why);
   };
 
-  carry(leaf.profit_, got.profit, leaf_profit_, true);
+  // The carbon kept is carried where the objective was, first and as the
+  // objective is: at the default price its rows ARE the objective's envelope
+  // rows (the price adds an exact zero), and the refusals that would cost it the
+  // collar's movement throw before here, into the value-only branch above.
+  carry(leaf.carbon(), got.carbon, leaf_carbon_, true);
   leaf_soil_consumption_.assign(n_layer, S(0.0));
   util::check_length(got.uptake.size(), n_layer);
   for (std::size_t j = 0; j < n_layer; ++j) {
     carry(leaf.soil_consumption_[j], got.uptake[j], leaf_soil_consumption_[j],
           false);
   }
-  // The shadow cost, recorded against the leaf's own value like every output
-  // here. It is `lambda_o * E` on TF24_floor and zero on any other curve -- the
-  // same condition phylloptim's shadow_cost() applies -- so a curve that reads no
-  // price carries no row through it. It reads the water, so a refused water row
-  // leaves it without one too.
-  const S shadow_rows =
-      leaf.cost_curve_ == Leaf::CostCurve::TF24_floor
-          ? in[phylloptim::par_TF24_floor_lambda_o] * transpiration_at
-          : S(0.0);
-  carry(leaf.shadow_cost(), shadow_rows, leaf_shadow_cost_, false);
 }
 
 template <typename S>
@@ -2405,7 +2390,7 @@ void TF24_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,  In
   // statement and registers nothing -- it is a newly constructed active scalar
   // that costs a slot, not a write to a live one.
   vars.set_aux(aux_idx_root_mass, mass_root(area_leaf_));
-  vars.set_aux(aux_idx_opt_psi_stem, leaf.opt_psi_stem_);
+  vars.set_aux(aux_idx_opt_psi_stem, leaf.opt_psi_leaf_);
   vars.set_aux(aux_idx_opt_root_psi, leaf.opt_root_psi_);
   vars.set_aux(aux_idx_transpiration, leaf.transpiration_);
   vars.set_aux(aux_idx_E_up, leaf.E_up_);
@@ -2923,7 +2908,7 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
 
   // Optimise the leaf at a given intercepted PPFD: rebuilds physiology and
   // solves the root-collar water potential, leaving the leaf.* outputs
-  // (profit_, transpiration_, soil_consumption_, opt_psi_stem_, ...) set. Only
+  // (profit_, transpiration_, soil_consumption_, opt_psi_leaf_, ...) set. Only
   // the light varies between calls; every other input is depth-independent and
   // already computed above.
   //
@@ -3035,7 +3020,7 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
         profit_y[i]   = leaf.profit_ * qi;
         trans_y[i]    = leaf.transpiration_ * qi;
         eup_y[i]      = leaf.E_up_ * qi;
-        psi_y[i]      = leaf.opt_psi_stem_ * qi;
+        psi_y[i]      = leaf.opt_psi_leaf_ * qi;
         root_psi_y[i] = leaf.opt_root_psi_ * qi;
         gco2_y[i]     = leaf.stom_cond_CO2_ * qi;
         assim_y[i]    = leaf.assim_colimited_ * qi;
@@ -3055,7 +3040,7 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
       leaf.profit_          = function_integrator.integrate_vector(profit_y, 0.0, height);
       leaf.transpiration_   = function_integrator.integrate_vector(trans_y, 0.0, height);
       leaf.E_up_            = function_integrator.integrate_vector(eup_y, 0.0, height);
-      leaf.opt_psi_stem_    = function_integrator.integrate_vector(psi_y, 0.0, height);
+      leaf.opt_psi_leaf_    = function_integrator.integrate_vector(psi_y, 0.0, height);
       leaf.opt_root_psi_    = function_integrator.integrate_vector(root_psi_y, 0.0, height);
       leaf.stom_cond_CO2_   = function_integrator.integrate_vector(gco2_y, 0.0, height);
       leaf.assim_colimited_ = function_integrator.integrate_vector(assim_y, 0.0, height);
@@ -3077,8 +3062,8 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
   // convert assimilation per leaf area per second (umol m^-2 s^-1) to canopy-level total yearly assimilation (mol yr^-1)
   // converts to canopy area, then years, then mols
   //
-  // ⚠️ GROWTH IS BILLED ON THE CARBON KEPT, `profit + shadow_cost`, NOT ON THE
-  // OBJECTIVE. On TF24_floor the objective deducts `lambda_o * E`, the shadow
+  // ⚠️ GROWTH IS BILLED ON THE CARBON KEPT, phylloptim's `carbon()` (the
+  // objective plus `shadow_cost`), NOT ON THE OBJECTIVE. On TF24_floor the objective deducts `lambda_o * E`, the shadow
   // price of water: the value of the water in its best alternative use, which for
   // a leaf is assimilation later. No carbon is lost when the plant pays it; it
   // changes the aperture chosen and nothing else, which is what a Lagrange
@@ -3087,16 +3072,16 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
   // 0.25, the objective understates the carbon kept by 2.3% at lambda_o = 1e4,
   // 9.4% at 5e4, 15.4% at 1e5 and 22.6% at 2e5.
   //
-  // `shadow_cost()` is exactly 0.0 on every curve but TF24_floor, and 0.0 there at
-  // the default price, so this is bit-neutral at TF24's defaults. No second
-  // canopy integral is needed: `shadow_cost()` reads the stored `transpiration_`,
-  // which the DeepCrown branch integrated against the same weights as `profit_`,
-  // and the shadow term is linear in E.
-  S profit_ = leaf.profit_ + leaf.shadow_cost();
+  // On TF24_floor `carbon()` is `profit_ + lambda_o * transpiration_`, bit for
+  // bit what this summed before phylloptim billed it, and `profit_` itself at the
+  // default price. No second canopy integral is needed: it reads the stored
+  // `profit_` and `transpiration_`, which the DeepCrown branch integrated against
+  // the same weights, and it is linear in both.
+  S profit_ = leaf.carbon();
   if constexpr (!std::is_same_v<S, double>) {
     record_leaf_outputs(PPFD_int_used, psi_soil,
                         leaf_specific_conductance_max);
-    profit_ = leaf_profit_ + leaf_shadow_cost_;
+    profit_ = leaf_carbon_;
   }
 
   // --- How much would more conducting area be worth? (#516) ------------------
@@ -3105,7 +3090,7 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
   // ⚠️ THIS COSTS TWO FURTHER LEAF SOLVES, and there is no way around it. The
   // obvious shortcut is the envelope theorem: profit is already optimised, so
   // re-evaluate at the collar potential already found and the indirect term
-  // vanishes. THAT ARGUMENT IS WRONG HERE. It holds for opt_psi_stem_, which
+  // vanishes. THAT ARGUMENT IS WRONG HERE. It holds for opt_psi_leaf_, which
   // really is chosen to maximise profit. It does NOT hold for opt_root_psi_,
   // which is found by a ROOT FIND -- the collar potential at which the soil-root
   // network's supply matches the leaf's demand. A constraint, not an optimum, so
@@ -3138,7 +3123,7 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
              "carries no rows");
     }
     const double kmax = to_passive(leaf_specific_conductance_max);
-    const double profit_base = leaf.profit_ + leaf.shadow_cost();
+    const double profit_base = leaf.carbon();
     const double dk = 1e-3 * kmax;
     psi_soil_value_.resize(psi_soil.size());
     for (size_t a = 0; a < psi_soil.size(); ++a) {
@@ -3154,7 +3139,7 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
       solve_leaf();
     };
     solve_at(kmax + dk);
-    dprofit_dkmax_ = (leaf.profit_ + leaf.shadow_cost() - profit_base) / dk;
+    dprofit_dkmax_ = (leaf.carbon() - profit_base) / dk;
     // Put the leaf back where it was. Every aux compute_rates writes reads the
     // leaf's members, and a leaf left at the perturbed conductance would report
     // a plant that does not exist.
@@ -3242,10 +3227,8 @@ void TF24_Strategy<S>::solve_leaf() {
   const leaf_solved_point recorded = leaf_points->load();
   try {
     if (recorded.kind == Leaf::OperatingPointKind::Unsolved) {
-      // ⚠️ THE CURVE-TYPED FORM. find_root_collar_psi() is the TF24 SHORTHAND
-      // and solves TF24 whatever set_model seated, so calling it here would
-      // optimise one curve, differentiate another, and report a shadow price the
-      // solve never paid.
+      // THE CURVE-TYPED FORM, which names the curve the surface below reads.
+      // (find_root_collar_psi() now solves the seated curve too.)
       leaf.template find_root_collar_psi_for<
           phylloptim::Leaf::CostCurve::TF24_floor>();
     } else {
@@ -3779,6 +3762,10 @@ void TF24_Strategy<S>::prepare_strategy() {
                 this->control.GSS_tol_abs, this->control.vulnerability_curve_ncontrol,
                 this->control.ci_abs_tol, this->control.ci_niter,
                 pars.TF24_cost_scale);
+    // phylloptim's Leaf defaults to the single-potential supply on the leaf
+    // route; this strategy builds a root network, so it asks for the layered
+    // supply, which also seats the collar route.
+    leaf.set_supply_multilayer();
     // Not a constructor argument, and written before any physiology is set, so
     // the temperature block derives R_d_ from it on the first call.
     leaf.R_d_25 = pars.R_d_25;
