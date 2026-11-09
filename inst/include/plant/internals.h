@@ -3,6 +3,7 @@
 #define PLANT_PLANT_INTERNALS_MINIMAL_H_
 
 #include <memory> // std::shared_ptr
+#include <utility>
 #include <odelia/ode_interface.hpp>
 #include <vector>
 // #include <plant/plant_internals.h>
@@ -78,9 +79,14 @@ public:
   const S& aux(int i) const { return auxs[i]; }
   const S& consumption_rate(int i) const { return consumption_rates[i]; }
 
+  // A temporary is moved in: at an active scalar that hands over its slot,
+  // where a copy records a statement.
   void set_state(int i, const S& v) { states[i] = v; }
+  void set_state(int i, S&& v) { states[i] = std::move(v); }
   void set_rate(int i, const S& v) { rates[i] = v; }
+  void set_rate(int i, S&& v) { rates[i] = std::move(v); }
   void set_aux(int i, const S& v) { auxs[i] = v; }
+  void set_aux(int i, S&& v) { auxs[i] = std::move(v); }
   void set_consumption_rate(int i, const S& v) { consumption_rates[i] = v; }
 
   void resize(size_t new_size, size_t new_aux_size) {

@@ -20,7 +20,7 @@ namespace plant {
 // allometric traits a_l1, a_l2, so it is the entry point through which a trait
 // reaches both the mass cascade and the resident competition / light spline.
 template <typename S>
-S ff16_area_leaf(S a_l1, S a_l2, S height) {
+S ff16_area_leaf(const S& a_l1, const S& a_l2, const S& height) {
   using std::pow;
   return pow(height / a_l1, 1.0 / a_l2);
 }
@@ -37,25 +37,27 @@ S ff16_assimilation_leaf(const S& a_p1, const S& a_p2, const S& x) {
 // The coarse-root term is appended last so that at the default a_cr1 = 0 (hence
 // mass_coarse_root == 0) the sum is bit-identical to the pre-#349 expression.
 template <typename S>
-S ff16_respiration(S mass_leaf, S mass_sapwood, S mass_bark, S mass_root,
-                   S mass_coarse_root,
-                   S r_l, S r_s, S r_b, S r_r, S r_cr) {
+S ff16_respiration(const S& mass_leaf, const S& mass_sapwood,
+                   const S& mass_bark, const S& mass_root,
+                   const S& mass_coarse_root, const S& r_l, const S& r_s,
+                   const S& r_b, const S& r_r, const S& r_cr) {
   return r_l * mass_leaf + r_b * mass_bark + r_s * mass_sapwood + r_r * mass_root
     + r_cr * mass_coarse_root;
 }
 
 // [eqn 14] Total turnover.
 template <typename S>
-S ff16_turnover(S mass_leaf, S mass_bark, S mass_sapwood, S mass_root,
-                S mass_coarse_root,
-                S k_l, S k_b, S k_s, S k_r, S k_cr) {
+S ff16_turnover(const S& mass_leaf, const S& mass_bark, const S& mass_sapwood,
+                const S& mass_root, const S& mass_coarse_root, const S& k_l,
+                const S& k_b, const S& k_s, const S& k_r, const S& k_cr) {
   return k_l * mass_leaf + k_b * mass_bark + k_s * mass_sapwood + k_r * mass_root
     + k_cr * mass_coarse_root;
 }
 
 // [eqn 15] Net production from assimilation/respiration/turnover.
 template <typename S>
-S ff16_net_production_A(S a_bio, S a_y, S assimilation, S respiration, S turnover) {
+S ff16_net_production_A(const S& a_bio, const S& a_y, const S& assimilation,
+                        const S& respiration, const S& turnover) {
   return a_bio * a_y * (assimilation - respiration) - turnover;
 }
 

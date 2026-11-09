@@ -186,7 +186,8 @@ public:
   // FlatTopSoftBox carries its own smoothstep derivative, below. FlatTopBox is a
   // hard step, so its slope is a point mass with no finite value to return -- and
   // that model already cannot build a light environment at all.
-  std::pair<S, S> Q_and_q(S z_over_height, S z, S height_inverse) const {
+  std::pair<S, S> Q_and_q(const S& z_over_height, const S& z,
+                          const S& height_inverse) const {
     if (shading_model_ == ShadingModel::FlatTopBox) {
       throw std::runtime_error("The flat-top-box competition profile is a step, "
                                "so it has no vertical slope and no light "
@@ -260,13 +261,28 @@ public:
   // the two cases Q_and_q takes by hand.
   void height_weight_slopes(const S& z, std::array<S, max_moments>& out) const {
     const S t = pow_eta(z);
-    const S t_over_z = z > 0.0 ? S(t / z) : (eta_ == 1.0 ? S(1.0) : S(0.0));
-    out[0] = S(0.0);
-    out[1] = -2.0 * eta_ * t_over_z;
-    out[2] = 2.0 * eta_ * t * t_over_z;
+    slopes_from(z, t, out);
   }
 
-  S Q(S z_over_height) const {
+  // Both of the above from one z^eta, for a reduction that reads the two at every
+  // knot: at an active scalar the power is a statement, and the two would take it
+  // twice.
+  void height_weights_and_slopes(const S& z, std::array<S, max_moments>& weight,
+                                 std::array<S, max_moments>& slope) const {
+    const S t = pow_eta(z);
+    weight[0] = S(1.0);
+    weight[1] = -2.0 * t;
+    weight[2] = t * t;
+    slopes_from(z, t, slope);
+  }
+
+  // Whether this is the smooth profile, whose Q is zero above the crown.
+  bool smooth_profile() const {
+    return shading_model_ != ShadingModel::FlatTopBox &&
+           shading_model_ != ShadingModel::FlatTopSoftBox;
+  }
+
+  S Q(const S& z_over_height) const {
     if (z_over_height > 1.0) {
       return S(0.0);
     }
@@ -293,12 +309,20 @@ public:
   }
 
 private:
+  // height_weight_slopes from a z^eta already taken.
+  void slopes_from(const S& z, const S& t, std::array<S, max_moments>& out) const {
+    const S t_over_z = z > 0.0 ? S(t / z) : (eta_ == 1.0 ? S(1.0) : S(0.0));
+    out[0] = S(0.0);
+    out[1] = -2.0 * eta_ * t_over_z;
+    out[2] = 2.0 * eta_ * t * t_over_z;
+  }
+
   // ⚠️ ACTIVE ARGUMENTS BY CONST REFERENCE, here and in pow_eta and q. XAD
   // records a copy of an active scalar as a tape statement, and these run at
   // every crown quadrature point of every cohort, so a copy taken by value is
   // a statement per point per cohort (#677).
   typedef S (*pow_eta_fn)(const S&, const S&);
-  typedef S (*leaf_above_fn)(const CanopyShape&, S);
+  typedef S (*leaf_above_fn)(const CanopyShape&, const S&);
 
   // u^eta, by THE SAME ALGORITHM AT BOTH SCALARS.
   //
@@ -330,13 +354,13 @@ private:
   }
 
   // Smooth Yokozawa profile -- the correct shading a crown casts.
-  static S leaf_above_deep(const CanopyShape& c, S z_over_height) {
+  static S leaf_above_deep(const CanopyShape& c, const S& z_over_height) {
     return c.Q(z_over_height);
   }
 
   // FlatTopBox: all leaf area collapsed into the thin crown-centre layer, so the
   // crown fully shades everything below z = H*eta_c and nothing above. A step.
-  static S leaf_above_box(const CanopyShape& c, S z_over_height) {
+  static S leaf_above_box(const CanopyShape& c, const S& z_over_height) {
     return z_over_height < c.eta_c_ ? S(1.0) : S(0.0);
   }
 
@@ -344,7 +368,7 @@ private:
   // to lo = max(0, 2*eta_c - 1) then a cubic-smoothstep fall to zero at the crown
   // top (so the transition is centred on the crown centre eta_c and the profile
   // is continuous -- buildable -- but still box-like, not the Yokozawa taper).
-  static S leaf_above_softbox(const CanopyShape& c, S z_over_height) {
+  static S leaf_above_softbox(const CanopyShape& c, const S& z_over_height) {
     const S lo = c.eta_c_ > 0.5 ? 2.0 * c.eta_c_ - 1.0 : S(0.0);
     if (z_over_height <= lo) {
       return S(1.0);
@@ -359,7 +383,8 @@ private:
   // The smoothstep above and its exact negative vertical derivative, from one
   // evaluation of t. d/dt of 1 - t^2(3 - 2t) is -6t(1 - t), so q = -dQ/dz is
   // 6t(1 - t) / ((1 - lo) H), and it vanishes at both ends of the transition.
-  std::pair<S, S> Q_and_q_softbox(S z_over_height, S height_inverse) const {
+  std::pair<S, S> Q_and_q_softbox(const S& z_over_height,
+                                  const S& height_inverse) const {
     const S lo = eta_c_ > 0.5 ? 2.0 * eta_c_ - 1.0 : S(0.0);
     if (z_over_height <= lo) {
       return {S(1.0), S(0.0)};

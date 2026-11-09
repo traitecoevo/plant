@@ -72,7 +72,9 @@ public:
     // The reduction's slope is per unit height and the interpolant's abscissa is
     // u, so the chain factor is the canopy top itself.
     for (size_t k = 0; k < n; ++k) { m[k] = m[k] * height_max; }
-    spline.set_data(y, m);
+    // Moved: the spline takes its knot data by value, and at an active scalar
+    // a copy is a statement per knot.
+    spline.set_data(std::move(y), std::move(m));
   };
 
   void set_fixed_value(S value, S height_max) {
@@ -102,7 +104,7 @@ public:
   // The canopy top the field is indexed against. A reader that queries the field
   // needs it, because the abscissa is height / height_max and that division is
   // where the field's dependence on the canopy top lives.
-  S height_max() const { return height_max_; }
+  const S& height_max() const { return height_max_; }
 
   S get_value_at_height(const S& height) const {
     return get_value_at_height(height, max_height());
@@ -365,9 +367,9 @@ void build_extinction_field(Field& field, Function f_competition_all_knots,
         std::vector<value_type>& m) -> void {
       f_competition_all_knots(x, y, m);
       for (std::size_t k = 0; k < x.size(); ++k) {
-        const value_type E = exp(-y[k]);
+        value_type E = exp(-y[k]);
         m[k] = -(m[k] * E);
-        y[k] = E;
+        y[k] = std::move(E);
       }
     },
     height_max);

@@ -28,7 +28,7 @@ public:
   // Wrapper to growth_rate_gradient for testing
   value_type r_growth_rate_gradient(const environment_type& environment);
 
-  value_type height() const {return individual.state(HEIGHT_INDEX);}
+  const value_type& height() const {return individual.state(HEIGHT_INDEX);}
   value_type compute_competition(const value_type& z) const;
   // The node's competition contribution and its vertical derivative, both
   // weighted by density. The first entry equals compute_competition(z) exactly.
