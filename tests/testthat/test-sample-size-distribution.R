@@ -53,16 +53,35 @@ test_that("no individual is born before the first cohort", {
 
 test_that("the number sampled is Poisson about the integrated density, at every time", {
   res <- sampling_run()
-  times <- c(2, 5, 10, 20)
-  area <- 100
-  expected <- birth_date_totals(res, times) * area
+  ## Dense frames, as an animation uses: individuals reach most of them only by
+  ## being followed from earlier ones, so this checks the thinning, which must
+  ## use the same interpolant the draws do.
+  frames <- seq(0.5, 20, by = 0.5)
+  check <- c(2, 5, 10, 20)
+  ## Large enough that the bias of thinning with a separately interpolated
+  ## mortality (about 17% low for species 1 at t = 20) is many SD out.
+  area <- 400
   set.seed(1)
-  x <- sample_size_distribution(res, area = area, times = times)
+  x <- sample_size_distribution(res, area = area, times = frames)
+  expected <- birth_date_totals(res, check) * area
   observed <- table(factor(x$species, rownames(expected)),
-                    factor(x$time, times))
-  ## Later times are reached only by following individuals drawn earlier, so
-  ## this also checks the thinning by mortality.
+                    factor(x$time, check))[, as.character(check)]
   expect_true(all(abs(observed - expected) < 4 * sqrt(expected) + 1))
+
+  ## Trees above 2 m, at collected steps, against plant's own integral.
+  steps <- vapply(c(10, 20), function(t) {
+    res$steps$time[which.min(abs(res$steps$time - t))]
+  }, 0)
+  set.seed(2)
+  y <- sample_size_distribution(res, area = area, times = sort(c(frames, steps)))
+  tall <- integrate_over_size_distribution(res$species, lower = 2)
+  for (s in rownames(expected)) {
+    for (t in steps) {
+      e <- tall$density[tall$species == s & tall$time == t] * area
+      o <- sum(y$species == s & y$time == t & y$height >= 2)
+      expect_lt(abs(o - e), 4 * sqrt(e) + 1)
+    }
+  }
 })
 
 test_that("the birth-date integral agrees with plant's own height integral", {
@@ -125,4 +144,18 @@ test_that("a sample is reproducible and defaults to a snapshot at the end", {
   expect_identical(a, b)
   expect_equal(unique(a$time), max(res$species$time))
   expect_true(all(c("height", "mortality", "area_heartwood") %in% names(a)))
+})
+
+test_that("individuals of a cohort that leaves the tracked nodes drop out", {
+  ## The oldest node (born at 0) is gone by the second frame, as when a
+  ## continuous patch retires a cohort.
+  knot <- function(tau) {
+    list(tau = tau, n = rep(2, length(tau)), mortality = rep(0.1, length(tau)),
+         log_density_state = rep(log(2), length(tau)), height = rev(seq_along(tau)))
+  }
+  set.seed(6)
+  x <- sample_species(list(knot(c(0, 1, 2)), knot(c(1, 2, 3))),
+                      times = c(2, 3), area = 50, columns = "height")
+  expect_true(any(x$time == 2 & x$birth_time < 1))
+  expect_false(any(x$time == 3 & x$birth_time < 1))
 })

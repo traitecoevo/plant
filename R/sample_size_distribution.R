@@ -9,12 +9,16 @@
 #' Individuals are drawn as a Poisson process over birth date, at the density at
 #' the first requested time they could be seen, interpolated between nodes with
 #' a shape-preserving cubic (PCHIP). Each then carries a fixed hazard budget, drawn from a
-#' unit exponential, and is dead from the first requested time at which its
-#' cumulative mortality since then exceeds that budget. In birth date a cohort's
-#' density changes only through mortality, so at every requested time the number
-#' of individuals is Poisson, with mean the area times the integral of the
-#' density over birth date, and the sample is exact apart from the interpolation
-#' between nodes. Every other state variable is interpolated to an individual's
+#' unit exponential, and is dead from the first requested time at which the
+#' fall in log density at its birth date since then exceeds that budget. In
+#' birth date a cohort's density changes only through mortality, so at every
+#' requested time the number of individuals is Poisson, with mean the area times
+#' the integral of the density over birth date. The sample is exact apart from
+#' the interpolation between nodes. The set of nodes changes from frame to frame,
+#' so the interpolated density at a birth date can rise slightly; having no
+#' births to add, the sample then follows its running minimum. Individuals of a
+#' cohort that leaves the tracked nodes (as a continuous patch retires its oldest
+#' cohorts) drop out of the sample. Every other state variable is interpolated to an individual's
 #' birth date in the same way.
 #'
 #' The run must carry density in birth date,
@@ -251,7 +255,7 @@ sample_species <- function(knots, times, area, columns) {
   first <- rep(seq_along(times), lengths(born))
   tau <- unlist(born)
   budget <- stats::rexp(length(tau))
-  m_first <- rep(NA_real_, length(tau))
+  log_n_first <- rep(NA_real_, length(tau))
   alive <- rep(TRUE, length(tau))
 
   rows <- vector("list", length(times))
@@ -263,10 +267,18 @@ sample_species <- function(knots, times, area, columns) {
       if (length(k$tau) < 2) rep(k[[col]], length(i)) else
         pchip(k$tau, k[[col]])(tau[i])
     }
-    m <- at("mortality")
+    ## Thin with the density interpolant the draws came from, not a separately
+    ## interpolated mortality: in birth date a cohort's density falls only by
+    ## mortality, but between nodes two interpolants disagree, most where
+    ## neighbouring cohorts meet different fates, and the disagreement builds
+    ## up frame by frame. With the same interpolant, the expected number alive
+    ## at every frame is the integral of the density there.
+    log_n <- log(at("n"))
     new <- first[i] == j
-    m_first[i[new]] <- m[new]
-    dead <- m - m_first[i] > budget[i]
+    log_n_first[i[new]] <- log_n[new]
+    ## A birth date older than every tracked node has left them (a retired
+    ## cohort); there is no density there to follow.
+    dead <- log_n_first[i] - log_n > budget[i] | tau[i] < min(k$tau)
     alive[i[dead]] <- FALSE
     i <- i[!dead]
     if (length(i) == 0) next
