@@ -1341,7 +1341,7 @@ public:
   // output that re-enters the active chain carrying that response. The leaf is
   // already driven and solved; nothing here re-supplies it.
   void record_leaf_outputs(const S& PPFD_int, const std::vector<S>& psi_soil,
-                           const S& conductance_max);
+                           const S& conductance_max, double NIR_per_PPFD_int);
   // Strategy-agnostic entry point used by Individual<TF24> (#266): reads the
   // height state and the cached aux slots itself, so the generic Individual
   // does not need to know TF24's state/aux layout.
@@ -1950,7 +1950,8 @@ S TF24_Strategy<S>::evapotranspiration_dt(const S& area_leaf_, int soil_layer) {
 template <typename S>
 void TF24_Strategy<S>::record_leaf_outputs(const S& PPFD_int,
                                            const std::vector<S>& psi_soil,
-                                           const S& conductance_max) {
+                                           const S& conductance_max,
+                                           double NIR_per_PPFD_int) {
   using phylloptim::Leaf;
   const std::size_t n_layer = psi_soil.size();
 
@@ -2000,6 +2001,10 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& PPFD_int,
   // number to passive for the leaf -- so what this line adds is the row, on
   // exactly the footing `kmax` is on.
   in[phylloptim::par_PPFD] = PPFD_int;
+  // The near-infrared is a fixed multiple of the same light (optimise_at seats
+  // its value), and with the energy balance on it heats the leaf: its row is
+  // light's other route to leaf temperature.
+  in[phylloptim::par_NIR] = NIR_per_PPFD_int * PPFD_int;
 
   std::vector<S> r_R_H_min, r_R_V_sum;
   // Carbon becomes resistance HERE, at this scalar, because the architecture
@@ -2925,9 +2930,8 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
   S PPFD_int_used = 0.0;
   auto optimise_at = [&](const S& PPFD_int) -> void {
     PPFD_int_used = PPFD_int;
-    // Read on the energy-balance path only, and carries no row: the derivative
-    // surface follows the energy balance but takes NIR as a driver, so with the
-    // balance on a derivative in light misses NIR's share of the heat load.
+    // Read on the energy-balance path only; record_leaf_outputs gives it the
+    // light's row through the pack's NIR slot.
     leaf.NIR_int_ = NIR_per_PPFD_int * odelia::util::to_passive(PPFD_int);
     // The leaf takes double, and everything the environment supplies already is
     // one. Three of its arguments are this strategy's own and carry a derivative;
@@ -3081,7 +3085,7 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
   S profit_ = leaf.carbon();
   if constexpr (!std::is_same_v<S, double>) {
     record_leaf_outputs(PPFD_int_used, psi_soil,
-                        leaf_specific_conductance_max);
+                        leaf_specific_conductance_max, NIR_per_PPFD_int);
     profit_ = leaf_carbon_;
   }
 
