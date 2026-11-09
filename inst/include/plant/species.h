@@ -659,7 +659,10 @@ const typename Species<T,E>::HeightScan& Species<T,E>::scan_heights() const {
 template <typename T, typename E>
 typename Species<T,E>::HeightScan Species<T,E>::compute_height_scan() const {
   HeightScan ret{value_type(-std::numeric_limits<double>::infinity()), true};
-  value_type h_prev = std::numeric_limits<double>::infinity();
+  // The ordering is a comparison of values and the maximum is one height, so
+  // only that one is copied: at an active scalar every copy is a statement.
+  double h_prev = std::numeric_limits<double>::infinity();
+  const value_type* tallest = nullptr;
   // ⚠️ WITH THE TOP LAYER ON, A FROZEN COHORT IS LEFT OUT OF THE SCAN. Its height
   // froze when it was absorbed (or reached zero density) and younger cohorts
   // grow past it, so counted it breaks the ordering and every field build falls
@@ -676,14 +679,17 @@ typename Species<T,E>::HeightScan Species<T,E>::compute_height_scan() const {
       continue;
     }
     any = true;
-    const value_type h = it->height();
+    const value_type& h = it->height();
     if (h > h_prev) {
       ret.decreasing = false;
     }
-    if (h > ret.h_max) {
-      ret.h_max = h;
+    if (tallest == nullptr || h > *tallest) {
+      tallest = &h;
     }
-    h_prev = h;
+    h_prev = odelia::util::to_passive(h);
+  }
+  if (tallest != nullptr) {
+    ret.h_max = *tallest;
   }
   // Every cohort retired: the canopy top is the seed's, as for an empty species.
   if (skip_retired && !any) {
@@ -848,8 +854,8 @@ void Species<T,E>::field_splits_nodes(const std::vector<value_type>& heights,
                            nodes[order[reach - 1]].height() < height)) {
         --reach;
       }
-      strategy->canopy_shape.height_weights(height, weight);
-      strategy->canopy_shape.height_weight_slopes(height, weight_slope);
+      strategy->canopy_shape.height_weights_and_slopes(height, weight,
+                                                       weight_slope);
       competition_split& c = out[k];
       for (std::size_t j = 0; j < n_moments; ++j) {
         c.sum.value += weight[j] * prefix[reach][j];
@@ -909,8 +915,8 @@ void Species<T,E>::field_splits_nodes(const std::vector<value_type>& heights,
     const std::size_t last = stop < n ? stop : n - 1;
     const std::size_t summed = last > 0 ? last - (stop < n ? 1 : 0) : 0;
 
-    strategy->canopy_shape.height_weights(height, weight);
-    strategy->canopy_shape.height_weight_slopes(height, weight_slope);
+    strategy->canopy_shape.height_weights_and_slopes(height, weight,
+                                                     weight_slope);
     with_slope<value_type> sum{value_type(0.0), value_type(0.0)};
     for (std::size_t j = 0; j < n_moments; ++j) {
       sum.value += weight[j] * prefix[summed][j];
@@ -922,7 +928,7 @@ void Species<T,E>::field_splits_nodes(const std::vector<value_type>& heights,
     // the polynomial would evaluate (z / H)^eta above one there rather than the
     // zero the profile has. It is the interval the walk closes by hand too.
     competition_split& c = out[k];
-    const with_slope<value_type> fs_last =
+    with_slope<value_type> fs_last =
       nodes[last].compute_competition_and_slope(height);
     if (stop < n) {
       const with_slope<value_type> fs_above =
@@ -932,9 +938,11 @@ void Species<T,E>::field_splits_nodes(const std::vector<value_type>& heights,
       sum.slope += width * (fs_above.slope + fs_last.slope);
     }
 
-    c.sum = sum;
+    // Moved: at an active scalar a copy is a statement, and neither is read
+    // again here.
+    c.sum = std::move(sum);
     c.x1 = abscissa[last];
-    c.at_x1 = fs_last;
+    c.at_x1 = std::move(fs_last);
     c.closes = closes_on(c.at_x1.value);
   }
 }

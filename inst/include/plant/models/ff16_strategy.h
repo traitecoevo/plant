@@ -499,7 +499,7 @@ public:
   // and lets the now-inline area_leaf fold in.
   void update_dependent_aux(const int index, Internals<S>& vars) {
     if (index == HEIGHT_INDEX) {
-      S height = vars.state(HEIGHT_INDEX);
+      const S& height = vars.state(HEIGHT_INDEX);
       vars.set_aux(COMPETITION_EFFECT_AUX_INDEX, area_leaf(height));
       vars.set_aux(HEIGHT_INVERSE_AUX_INDEX, 1.0 / height);
     }
@@ -622,7 +622,7 @@ public:
     return 1.0 / dheight_darea_leaf(area_leaf);
   }
   // Mass of leaf needed for new unit area leaf, d m_s / d a_l
-  S dmass_leaf_darea_leaf(const S& area_leaf) const;
+  const S& dmass_leaf_darea_leaf(const S& area_leaf) const;
   // Mass of stem needed for new unit area leaf, d m_s / d a_l
   S dmass_sapwood_darea_leaf(const S& area_leaf) const;
   // Overloads taking a precomputed pow(area_leaf, a_l2): compute_rates needs
@@ -636,7 +636,7 @@ public:
   // Mass of bark needed for new unit area leaf, d m_b / d a_l
   S dmass_bark_darea_leaf(const S& area_leaf) const;
   // Mass of root needed for new unit area leaf, d m_r / d a_l
-  S dmass_root_darea_leaf(const S& area_leaf) const;
+  const S& dmass_root_darea_leaf(const S& area_leaf) const;
   // Mass of coarse root needed for new unit area leaf, d m_cr / d a_l.
   // == a_cr1 * dmass_sapwood_darea_leaf, so it carries the same height scaling.
   S dmass_coarse_root_darea_leaf(const S& area_leaf) const;
@@ -668,7 +668,7 @@ public:
 
 
   S mortality_dt(const S& productivity_area, const S& cumulative_mortality) const;
-  S mortality_growth_independent_dt() const;
+  const S& mortality_growth_independent_dt() const;
   S mortality_growth_dependent_dt(const S& productivity_area) const;
 
   // The seed's height, written at birth. On double this is the height the
@@ -728,8 +728,18 @@ public:
   // compute_competition() returns.
   with_slope<S>
   compute_competition_and_slope(const S& z, const Internals<S>& vars) const {
-    const S area_leaf_ = vars.aux(COMPETITION_EFFECT_AUX_INDEX);
-    const S height_inverse = vars.aux(HEIGHT_INVERSE_AUX_INDEX);
+    const S& area_leaf_ = vars.aux(COMPETITION_EFFECT_AUX_INDEX);
+    const S& height_inverse = vars.aux(HEIGHT_INVERSE_AUX_INDEX);
+    if constexpr (odelia::CarriesAdjoint<S>) {
+      // Above the crown both are zero whatever scales them, and scaling a
+      // passive zero by active factors records statements for nothing. The
+      // signs are the ones the product below gives a positive scale.
+      using odelia::util::to_passive;
+      if (canopy_shape.smooth_profile() &&
+          to_passive(z) * to_passive(height_inverse) > 1.0) {
+        return {S(0.0), S(-0.0)};
+      }
+    }
     const S scale = pars.k_I * area_leaf_;
     const std::pair<S, S> Qq =
       canopy_shape.Q_and_q(z * height_inverse, z, height_inverse);
@@ -1009,9 +1019,9 @@ void FF16_Strategy<S>::compute_rates(const FF16_Environment<S>& environment,
                                      Internals<S>& vars) {
   using std::pow;
 
-  S height = vars.state(HEIGHT_INDEX);
-  S area_leaf_ = vars.aux(COMPETITION_EFFECT_AUX_INDEX);
-  S height_inverse = vars.aux(HEIGHT_INVERSE_AUX_INDEX);
+  const S& height = vars.state(HEIGHT_INDEX);
+  const S& area_leaf_ = vars.aux(COMPETITION_EFFECT_AUX_INDEX);
+  const S& height_inverse = vars.aux(HEIGHT_INVERSE_AUX_INDEX);
 
   // Reuse the sapwood intermediates the worker already computes (for
   // respiration/turnover) rather than recomputing them below; bit-identical.
@@ -1031,14 +1041,17 @@ void FF16_Strategy<S>::compute_rates(const FF16_Environment<S>& environment,
     // both rates rather than paying it twice per node per step (issue #361).
     const S area_leaf_pow_a_l2 = pow(area_leaf_, pars.a_l2);
     const S darea_leaf_dmass_live_ = darea_leaf_dmass_live(area_leaf_, area_leaf_pow_a_l2);
-    const S fraction_allocation_growth_ = fraction_allocation_growth(height);
+    // fraction_allocation_growth(height), from the reproduction fraction held
+    // above rather than evaluated again.
+    const S fraction_allocation_growth_ = 1.0 - fraction_allocation_reproduction_;
     const S area_leaf_dt = net_mass_production_dt_ * fraction_allocation_growth_ * darea_leaf_dmass_live_;
 
     vars.set_rate(HEIGHT_INDEX, dheight_darea_leaf(area_leaf_, area_leaf_pow_a_l2) * area_leaf_dt);
     vars.set_rate(FECUNDITY_INDEX,
       fecundity_dt(net_mass_production_dt_, fraction_allocation_reproduction_));
 
-    vars.set_rate(AREA_HEARTWOOD_INDEX, area_heartwood_dt(area_leaf_));
+    // area_heartwood_dt(area_leaf_), on the sapwood area the worker returned.
+    vars.set_rate(AREA_HEARTWOOD_INDEX, pars.k_s * area_sapwood_);
     vars.set_rate(MASS_HEARTWOOD_INDEX, mass_heartwood_dt(mass_sapwood_));
 
     if (this->collect_all_auxiliary) {
@@ -1299,7 +1312,7 @@ S FF16_Strategy<S>::dheight_darea_leaf(const S& area_leaf,
 
 // Mass of leaf needed for new unit area leaf, d m_s / d a_l
 template <typename S>
-S FF16_Strategy<S>::dmass_leaf_darea_leaf(const S& /* area_leaf */) const {
+const S& FF16_Strategy<S>::dmass_leaf_darea_leaf(const S& /* area_leaf */) const {
   return pars.lma;
 }
 
@@ -1324,7 +1337,7 @@ S FF16_Strategy<S>::dmass_bark_darea_leaf(const S& area_leaf) const {
 
 // Mass of root needed for new unit area leaf, d m_r / d a_l
 template <typename S>
-S FF16_Strategy<S>::dmass_root_darea_leaf(const S& /* area_leaf */) const {
+const S& FF16_Strategy<S>::dmass_root_darea_leaf(const S& /* area_leaf */) const {
   return pars.a_r1;
 }
 
@@ -1469,7 +1482,7 @@ S FF16_Strategy<S>::mortality_dt(const S& productivity_area,
 }
 
 template <typename S>
-S FF16_Strategy<S>::mortality_growth_independent_dt() const {
+const S& FF16_Strategy<S>::mortality_growth_independent_dt() const {
   return pars.d_I;
 }
 

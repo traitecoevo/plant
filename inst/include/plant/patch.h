@@ -51,9 +51,9 @@ concept KeepsSolvedChoices =
 // -- its default template arguments and its return type -- when the enclosing
 // class is instantiated, where GCC defers until the member is used. A bare
 // alias naming `X::rebind` is then a hard error the moment
-// `Patch<FF16_Strategy, ...>` exists, because FF16 and K93 declare no
-// `rebind`. The `void` fallback turns that into a type nothing
-// instantiates, and `Patch::rebind` is constrained on it below.
+// `Patch<K93_Strategy, ...>` exists, because K93 declares no `rebind`. The
+// `void` fallback turns that into a type nothing instantiates, and
+// `Patch::rebind` is constrained on it below.
 template <typename X, typename U, typename = void>
 struct at_scalar_impl { using type = void; };
 template <typename X, typename U>
@@ -143,12 +143,31 @@ public:
 
   // This patch at scalar U: strategies (already prepared), environment, node
   // structure, ODE state, and the birth stamps that divide the fecundity rate.
-  // Constrained, so that for a strategy with no rebind (FF16, K93) the member
-  // does not exist: odelia's `Rebindable` concept then reads false instead of
+  // Constrained, so that for a strategy with no rebind (K93) the member does
+  // not exist: odelia's `Rebindable` concept then reads false instead of
   // instantiating `Patch<void, void>`.
   template <class U>
     requires PatchRebindable<T, E, U>
   Patch<at_scalar<T, U>, at_scalar<E, U>> rebind() const;
+
+  // Become what `from.rebind<value_type>()` would be, written into this patch:
+  // the strategies, the node structure and birth stamps, the ODE state, the
+  // environment and the field this patch reads. A reverse sweep holds one active
+  // patch and brings it to each width through this, where a rebind would
+  // construct a patch per insertion. rebind() is this applied to a freshly
+  // constructed patch, so the two cannot list different members.
+  //
+  // `from` is a patch built from the same parameters as this one -- the patch
+  // this one was rebound from, at another state -- since the parameters, the
+  // node schedule and the disturbance regime are this patch's own and are not
+  // rebuilt here.
+  //
+  // ⚠️ EQUAL TO A REBIND IN EVERY MEMBER A RECORDING READS. A member written
+  // here only by some earlier width's evaluation is read at the next as that
+  // width left it, finite and wrong. Like a rebind, it leaves the field and the
+  // boundary node for the caller's next set_ode_state to build.
+  template <typename T0, typename E0>
+  void assign_from(const Patch<T0, E0>& from);
 
 
   // Every scalar's Patch is one class, so a rebind reaches the rebound patch's
@@ -796,40 +815,57 @@ Patch<at_scalar<T, U>, at_scalar<E, U>> Patch<T,E>::rebind() const {
     p2.strategies.push_back(*prepared.back());
   }
 
-  E2 env = environment.template rebind<U>();
-  Patch<T2,E2> out(p2, env, control, prepared);
+  Patch<T2,E2> out(p2, environment.template rebind<U>(), control, prepared);
+  out.assign_from(*this);
+  return out;
+}
 
+template <typename T, typename E>
+template <typename T0, typename E0>
+void Patch<T,E>::assign_from(const Patch<T0,E0>& from) {
+  util::check_length(from.species.size(), species.size());
+  area = from.area;
+  control = from.control;
   for (size_t i = 0; i < species.size(); ++i) {
-    for (size_t j = 0; j < species[i].size(); ++j) {
-      out.species[i].introduce_new_node();
+    // The strategy object stays where it is, so every node pointing at it reads
+    // the values written; a TF24 strategy's leaf is copied with them.
+    species[i].strategy_ptr()->assign_from(*from.species[i].strategy_ptr());
+    while (species[i].size() > from.species[i].size()) {
+      species[i].remove_newest_node();
+    }
+    while (species[i].size() < from.species[i].size()) {
+      species[i].introduce_new_node();
     }
     // Not in the ODE state, and pr_patch_survival_at_birth divides the
-    // fecundity rate: without these the rebound rates differ.
-    out.species[i].set_birth_state(species[i].node_times(),
-                                   species[i].r_patch_densities(),
-                                   species[i].r_pr_patch_survival_at_birth());
+    // fecundity rate: without these the rates differ.
+    species[i].set_birth_state(from.species[i].node_times(),
+                               from.species[i].r_patch_densities(),
+                               from.species[i].r_pr_patch_survival_at_birth());
   }
 
-  std::vector<U> node_state(node_ode_size());
-  odelia::ode::ode_state(species.begin(), species.end(), node_state.begin());
-  odelia::ode::set_ode_state(out.species.begin(), out.species.end(),
-                             node_state.begin());
+  std::vector<value_type> node_state(from.node_ode_size());
+  odelia::ode::ode_state(from.species.begin(), from.species.end(),
+                         node_state.begin());
+  odelia::ode::set_ode_state(species.begin(), species.end(), node_state.begin());
 
-  // reset() in the constructor cleared the environment back to its initial
-  // soil state, so restore the current one before the spline is rebuilt. Moved,
-  // not copied: this is the last read of env, and the object carries the light
-  // spline and a vector per soil layer.
-  out.environment = std::move(env);
-  out.environment.set_shading_model(control.shading_model,
-                                    control.ppa_layer_optical_depth,
-                                    control.ppa_layer_smoothing);
-  out.field_run = field_run;
+  // A fresh environment at this scalar, the one a rebind is constructed with:
+  // the current soil state, and none of the caches a previous width's
+  // evaluations left.
+  environment = from.environment.template rebind<value_type>();
+  environment.set_shading_model(control.shading_model,
+                                control.ppa_layer_optical_depth,
+                                control.ppa_layer_smoothing);
+  // A rebound patch keeps no field and stands in none.
+  keep_field = false;
+  constant_field.reset();
+  field_run = from.field_run;
+  field_slot = nullptr;
+  stage.reset();
   // The field and the boundary node are left to the caller. Every caller sets a
   // state through set_ode_state or set_state_and_boundary before reading
   // either, and both rebuild the field and re-evaluate the inflow condition, so
   // computing them here solves the boundary leaf twice per right-hand side and
   // then discards it. A caller that reads before setting gets an unbuilt field.
-  return out;
 }
 
 template <typename T, typename E>
@@ -1498,10 +1534,11 @@ void Patch<T,E>::compute_environment_excl_capturing() {
     for (size_t i = 0; i < size(); ++i) {
       species[i].field_splits(x, competition_capture[i]);
       for (size_t k = 0; k < x.size(); ++k) {
-        const with_slope<value_type> open =
-          competition_capture[i][k].without_boundary();
-        y[k] += open.value / area;
-        m[k] += open.slope / area;
+        // without_boundary()'s halves, inside the sums rather than named: at
+        // an active scalar a named pair is two statements.
+        const with_slope<value_type>& sum = competition_capture[i][k].sum;
+        y[k] += (sum.value / 2) / area;
+        m[k] += (sum.slope / 2) / area;
       }
     }
   };

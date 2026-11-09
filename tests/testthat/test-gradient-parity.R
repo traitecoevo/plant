@@ -75,7 +75,9 @@ parity_of <- function(scm) {
 # lifetime, so a driver pays for cohorts none of the checks below asks about.
 # Measured over all five, run and swept, against the three axes this file
 # reports: the verdict, the operating-point kinds reached, and the clamp sites
-# the SWEEP met.
+# the SWEEP met. The counts are phylloptim 0.16's; later releases take far fewer
+# steps on these stands (seasonal a few hundred at either length), so the table
+# says what thinning costs each driver, not what a run costs now.
 #
 #   driver      steps 88 -> 20   seconds 88 -> 20   what moves at 20
 #   wet            422 ->  368     16.4 ->   3.8    nothing
