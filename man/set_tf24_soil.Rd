@@ -17,10 +17,10 @@ set_tf24_soil(
 \arguments{
 \item{env}{A \code{\link{TF24_Environment}}.}
 
-\item{widths}{Layer widths, m, top down -- e.g. from
-\code{\link{soil_widths_graded}}. Must not get thinner with depth (equal
-is fine). A single number sets one layer of that width. If \code{NULL} the
-geometry is left alone.}
+\item{widths}{Layer widths, m, top down -- e.g. a profile grading from a
+thin surface layer, as \pkg{fieldtrial}'s \code{soil_widths_graded()}
+builds. Must not get thinner with depth (equal is fine). A single number
+sets one layer of that width. If \code{NULL} the geometry is left alone.}
 
 \item{theta}{Initial volumetric soil moisture. A single number is used for
 every layer; a vector must have one entry per layer. If \code{NULL} the
@@ -51,9 +51,6 @@ simply the previous one, and both are valid geometries.
 }
 \examples{
 env <- Environment("TF24")
-set_tf24_soil(env, soil_widths_graded(1.5, 5, top = 0.02), theta = 0.2)
+set_tf24_soil(env, c(0.02, 0.06, 0.18, 0.44, 0.80), theta = 0.2)
 env$get_soil_layer_widths()
-}
-\seealso{
-\code{\link{soil_widths_graded}}
 }

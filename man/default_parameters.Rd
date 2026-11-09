@@ -33,6 +33,10 @@ For \code{default_parameters}, a \code{Parameters} object with
 For \code{default_hyperpar}, the frozen trade-off closure for
   \code{model}. TF24's serves TF24, TF24f, TF24t and TF24w, which share
   \code{TF24_Pars}; K93 has no trade-offs and gets the identity function.
+  The closure carries \code{attr(f, "traits")} (every trait-matrix column
+  it reads), \code{attr(f, "input_traits")} (those that are not fields of
+  \code{pars}) and \code{attr(f, "coefficients")} (the coefficients it was
+  built with, overrides applied).
 
 For \code{param_hyperpar}, the trade-off function \code{parameters}
   carries in \code{$hyperpar}, or the identity when it carries none.

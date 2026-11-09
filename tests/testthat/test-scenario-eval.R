@@ -71,6 +71,41 @@ test_that("classify_scm_run returns a well-formed classification", {
   expect_true(is.numeric(run$run_seconds))
 })
 
+test_that("build_scenario takes a rainfall driver table, and the gateway's is a fixture", {
+  cfg <- list(traits = c(lma = 0.1978791), env = list(),
+              driver = list(rainfall_mean = 1.5, rainfall_amp_frac = 0.5),
+              expected = "success")
+  drivers <- scenario_rainfall_drivers(cfg)
+  expect_s3_class(drivers, "data.frame")
+  expect_named(drivers, c("time", "rainfall"))
+  expect_equal(range(drivers$time), c(0, 100))
+  ## The fixture is the former inline sinusoid, knot for knot.
+  t <- seq(0, 100, length.out = 4800L)
+  expect_identical(drivers$time, t)
+  expect_identical(drivers$rainfall, pmax(1.5 * (1 + 0.5 * sin(2 * pi * t)), 0))
+
+  built <- build_scenario(cfg, max_patch_lifetime = 100, drivers = drivers)
+  at <- built$env$extrinsic_drivers_evaluate_range("rainfall", c(0, 0.25, 0.75))
+  expect_equal(at, c(1.5, 2.25, 0.75), tolerance = 1e-6)
+
+  ## Constant rain when no table is given; a run longer than the table is refused.
+  built <- build_scenario(cfg, max_patch_lifetime = 2)
+  expect_equal(built$env$extrinsic_drivers_evaluate("rainfall", 1.3), 1.5)
+  expect_error(build_scenario(cfg, max_patch_lifetime = 200, drivers = drivers),
+               "end at 100")
+  expect_error(build_scenario(cfg, drivers = data.frame(t = 1)), "time")
+  ## A seasonal scenario at another lifetime has no committed series.
+  expect_error(scenario_rainfall_drivers(cfg, max_patch_lifetime = 50), "fieldtrial")
+  expect_null(scenario_rainfall_drivers(list(driver = list(rainfall_mean = 1,
+                                                           rainfall_amp_frac = 0))))
+  ## Every mapped (mean, amplitude) pair has a series.
+  map <- read_scenario_mapping()
+  for (row in seq_len(nrow(read_scenario_table()))) {
+    c0 <- scenario_to_config(read_scenario_table()[row, ], map)
+    expect_s3_class(scenario_rainfall_drivers(c0), "data.frame")
+  }
+})
+
 test_that("scenario_model_fingerprint is a stable, non-empty hash", {
   fp <- scenario_model_fingerprint()
   expect_type(fp, "character")

@@ -19,7 +19,7 @@ tf24w_stand <- function(type, mixing = 0, years = 6, birth_rate = 5,
   env$water_mixing_rate <- mixing
   if (rainfall_pulses) {
     set.seed(seed)
-    s <- pulse_series_poisson(0, years, rate = 20, mean_amount = 0.014)
+    s <- poisson_pulses(0, years, rate = 20, mean_amount = 0.014)
     ev <- events(node_introductions(p), rainfall_pulse(s$time, s$amount))
   } else {
     ev <- events(node_introductions(p))

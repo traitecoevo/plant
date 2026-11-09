@@ -104,29 +104,28 @@ test_that("the trade-offs survive validate(), run_scm() and a saved object", {
   expect_error(param_hyperpar(p), "must be a trade-off function")
 })
 
-test_that("the deprecated names warn and return the frozen trade-offs", {
+test_that("the old hyperpar names are gone, and default_hyperpar carries their job", {
+  gone <- c("FF16_hyperpar", "TF24_hyperpar", "TF24f_hyperpar", "TF24t_hyperpar",
+            "TF24w_hyperpar", "K93_hyperpar", "make_FF16_hyperpar",
+            "make_TF24_hyperpar", "make_TF24f_hyperpar", "make_TF24t_hyperpar",
+            "make_TF24w_hyperpar", "make_K93_hyperpar", "make_hyperpar", "hyperpar",
+            "pulse_series_poisson", "pulse_series_regular", "pulse_series_record",
+            "pulse_series_fit", "pulse_series_markov", "soil_widths_graded")
+  for (nm in gone) {
+    expect_false(exists(nm, envir = asNamespace("plant"), inherits = FALSE), info = nm)
+  }
+  # Coefficient overrides reach the frozen maker, and are recorded on the closure.
   m <- cbind(lma = 0.1, rho = 700, K_s = 0.3)
   s <- TF24_Strategy()
-  want <- default_hyperpar("TF24")(m, s, filter = FALSE)
-  expect_warning(f <- make_TF24_hyperpar(), class = "deprecatedWarning")
-  expect_identical(f(m, s, filter = FALSE), want)
-  expect_warning(out <- TF24_hyperpar(m, s, filter = FALSE), class = "deprecatedWarning")
-  expect_identical(out, want)
-  expect_warning(out <- TF24f_hyperpar(m, s, filter = FALSE), class = "deprecatedWarning")
-  expect_identical(out, want)
-  expect_warning(g <- make_hyperpar("TF24t"), class = "deprecatedWarning")
-  expect_identical(g()(m, s, filter = FALSE), want)
-  expect_warning(h <- hyperpar("FF16"), class = "deprecatedWarning")
-  expect_identical(attr(h, "input_traits"), "narea")
-  expect_warning(k <- make_K93_hyperpar(), class = "deprecatedWarning")
-  expect_identical(k(m, s), m)
-  expect_warning(out <- K93_hyperpar(m, s), class = "deprecatedWarning")
-  expect_identical(out, m)
-  expect_error(suppressWarnings(make_hyperpar("NOPE")), "Unknown type")
-  # Coefficient overrides still pass through.
-  expect_warning(f1 <- make_TF24_hyperpar(B_hks2 = 1), class = "deprecatedWarning")
-  expect_identical(f1(m, s, filter = FALSE),
-                   default_hyperpar("TF24", B_hks2 = 1)(m, s, filter = FALSE))
+  f0 <- default_hyperpar("TF24")
+  f1 <- default_hyperpar("TF24", B_hks2 = 1)
+  expect_false(identical(f0(m, s, filter = FALSE), f1(m, s, filter = FALSE)))
+  expect_identical(attr(f1, "coefficients")$B_hks2, 1)
+  expect_identical(attr(f0, "coefficients")$B_hks2, 0.0)
+  expect_true("B_kl1" %in% names(attr(default_hyperpar("FF16"), "coefficients")))
+  expect_identical(attr(default_hyperpar("FF16"), "input_traits"), "narea")
+  expect_error(default_hyperpar("K93", b_0 = 1), "no trade-off coefficients")
+  expect_error(default_hyperpar("NOPE"), "Unknown type")
 })
 
 test_that("parameter_table groups every parameter of a model", {

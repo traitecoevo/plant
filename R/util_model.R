@@ -89,7 +89,7 @@ generate_strategy <- function(p, traits, hyperpar = param_hyperpar(p),
   known <- names(strategy$pars)
   fields <- strategy_field_names(strategy)
   ## Traits the hyperpar reads from the matrix but never assigns to the strategy.
-  ## It declares them itself (see `make_FF16_hyperpar`), because `pars` cannot
+  ## It declares them itself (see `frozen_FF16_hyperpar`), because `pars` cannot
   ## show them: FF16's `narea` derives `a_p1`, `a_p2` and `r_l` and is not a
   ## parameter, so a `narea` sweep is legitimate and must not be refused. A
   ## caller-supplied hyperpar with no declaration gets `pars` alone, which is the

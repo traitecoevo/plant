@@ -90,7 +90,7 @@ test_that("TF24 water budget closes on a graded layer profile", {
   # uniform-profile budget test would pass on the mistake and this one will not.
   profiles <- list(
     "2 cm surface layer" = c(0.02, 0.28, 0.30, 0.40, 0.50),
-    "graded ladder" = soil_widths_graded(1.5, 5, top = 0.02),
+    "graded ladder" = graded_widths(1.5, 5, top = 0.02),
     "steeply graded" = c(0.01, 0.04, 0.15, 0.40, 0.90),
     "single thin layer" = 0.02
   )

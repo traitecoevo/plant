@@ -23,19 +23,28 @@ products using plant.
   `f(m, s, filter = TRUE)` or `NULL`), which `param_hyperpar(p)` reads and which
   survives `validate()`, `run_scm()` and a saved object. The recommended
   trade-off functions and curated species/site parameter sets move to the
-  `fieldtrial` package; plant keeps one frozen *testing* copy, reached only
-  through `default_parameters(model)`, which warns that it is not a recommended
-  parameterisation. The exported hyperpar names are deprecation shims for one
-  minor release. No `scientific_version` bump: every golden and default baseline
-  is bit-identical through `default_parameters()`. Migration:
+  `fieldtrial` package, and so do plant's driver generators; plant keeps one
+  frozen *testing* copy of the trade-offs, reached only through
+  `default_parameters(model)`, which warns that it is not a recommended
+  parameterisation. The exported hyperpar names and the generators are
+  **removed** (no deprecation period: regnans and logpile move in lockstep,
+  traitecoevo/regnans and traitecoevo/logpile PRs alongside). No
+  `scientific_version` bump: every golden, the default baseline and the
+  scenario gateway baseline are bit-identical through `default_parameters()`
+  and the committed rainfall fixture. Migration:
 
   * `p <- scm_base_parameters(m); add_strategies(p, tr)` (relying on the default trade-offs) -> `p <- default_parameters(m, quiet = TRUE); add_strategies(p, tr)`
   * `add_strategies(p, tr, hyperpar = TF24_hyperpar)` -> `add_strategies(default_parameters("TF24"), tr)`, or `hyperpar = default_hyperpar("TF24")`
-  * `make_FF16_hyperpar(...)` -> `default_hyperpar("FF16", ...)`
-  * `make_TF24_hyperpar(...)`, `make_TF24f_hyperpar(...)`, `make_TF24t_hyperpar(...)`, `make_TF24w_hyperpar(...)` -> `default_hyperpar("TF24", ...)`
-  * `make_K93_hyperpar(...)`, `K93_hyperpar` -> `hyperpar = NULL` (K93 has no trade-offs)
-  * `make_hyperpar(type)` -> `function(...) default_hyperpar(type, ...)`
-  * `hyperpar(type)` -> `default_hyperpar(type)`, or `param_hyperpar(p)` for what `p` carries
+  * `FF16_hyperpar`, `TF24_hyperpar`, `TF24f_hyperpar`, `TF24t_hyperpar`, `TF24w_hyperpar`, `K93_hyperpar` (removed) -> `default_hyperpar("FF16")`, `default_hyperpar("TF24")` (one closure serves TF24, TF24f, TF24t, TF24w), `NULL` for K93
+  * `make_FF16_hyperpar(...)` (removed) -> `default_hyperpar("FF16", ...)`; the coefficients used are `attr(f, "coefficients")`
+  * `make_TF24_hyperpar(...)`, `make_TF24f_hyperpar(...)`, `make_TF24t_hyperpar(...)`, `make_TF24w_hyperpar(...)` (removed) -> `default_hyperpar("TF24", ...)`
+  * `make_K93_hyperpar(...)` (removed) -> `hyperpar = NULL` (K93 has no trade-offs)
+  * `make_hyperpar(type)` (removed) -> `function(...) default_hyperpar(type, ...)`; `names(formals(make_hyperpar(type)))` -> `names(attr(default_hyperpar(type), "coefficients"))`
+  * `hyperpar(type)` (removed) -> `default_hyperpar(type)`, or `param_hyperpar(p)` for what `p` carries
+  * `pulse_series_poisson()`, `pulse_series_regular()`, `pulse_series_record()`, `pulse_series_fit()`, `pulse_series_markov()` (removed) -> `fieldtrial::pulse_series_*()`, same signatures; `rainfall_pulse()` stays here
+  * `soil_widths_graded()` (removed) -> `fieldtrial::soil_widths_graded()`, same signature; `set_tf24_soil()` stays here
+  * `plant:::solar_angle()`, `plant:::PAR_given_solar_angle()` (unexported, removed from `R/solar_model.R`) -> internal to the frozen FF16 trade-off; `fieldtrial::solar_declination()` and friends for driver work
+  * `build_scenario(config, ...)` with `config$driver$rainfall_amp_frac > 0` (an inline sinusoid) -> `build_scenario(config, ..., drivers = <table>)`; the gateway passes `scenario_rainfall_drivers(config)`, the former sinusoid as a committed fixture at `max_patch_lifetime = 100` (`inst/scenarios/scenario_rainfall_drivers.rds`, written by `scripts/make-scenario-drivers.R`); any other series comes from fieldtrial's driver tools
   * `param_hyperpar(p)` (name unchanged) -> returns `p$hyperpar`, or the identity when none is attached; a `p` from `scm_base_parameters()` therefore gives the identity where it gave the model's function
   * `stand_gradient(scm)` -> its default `hyperpar` is now `scm$parameters$hyperpar`; a stand built from a bare `p` gets partial derivatives, as with `hyperpar = NULL`
   * `optimise_individual_rate_at_size_by_trait(params = scm_base_parameters(type), hyperpars = hyperpar(type))` -> defaults are `default_parameters(type, quiet = TRUE)` and `param_hyperpar(params)` (same numbers)

@@ -186,7 +186,7 @@ test_that("Environment-TF24 refuses layers that get thinner with depth", {
 
   # As does anything thickening with depth, including what the issue asked for.
   expect_silent(env$set_soil_layer_widths(c(0.02, 0.28, 0.30, 0.40, 0.50)))
-  expect_silent(env$set_soil_layer_widths(soil_widths_graded(1.5, 5, top = 0.005)))
+  expect_silent(env$set_soil_layer_widths(graded_widths(1.5, 5, top = 0.005)))
   # A mix of equal runs and increases.
   expect_silent(env$set_soil_layer_widths(c(0.1, 0.1, 0.3, 0.5, 0.5)))
 

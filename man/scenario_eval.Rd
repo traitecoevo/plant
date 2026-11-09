@@ -7,6 +7,7 @@
 \alias{scenario_to_config}
 \alias{scenario_control}
 \alias{build_scenario}
+\alias{scenario_rainfall_drivers}
 \alias{classify_scm_run}
 \alias{evaluate_scenario}
 \alias{run_scenarios}
@@ -28,8 +29,11 @@ build_scenario(
   config,
   max_patch_lifetime = 100,
   ctrl = scenario_control(),
-  birth_rate = 1
+  birth_rate = 1,
+  drivers = NULL
 )
+
+scenario_rainfall_drivers(config, max_patch_lifetime = 100)
 
 classify_scm_run(p, env, ctrl = scenario_control())
 
@@ -70,7 +74,9 @@ scenario_generate_report(
 
 \item{mapping}{A mapping tibble from \code{read_scenario_mapping}.}
 
-\item{config}{A config list from \code{scenario_to_config}.}
+\item{config}{For \code{scenario_rainfall_drivers}, a config list; its
+\code{driver$rainfall_mean} and \code{driver$rainfall_amp_frac} select
+the series.}
 
 \item{max_patch_lifetime}{Patch lifetime (years) for the SCM run.}
 
@@ -79,6 +85,14 @@ which integrates in birth date rather than height -- see there for why
 that is the right coordinate for TF24.}
 
 \item{birth_rate}{Birth rate passed to \code{add_strategies}.}
+
+\item{drivers}{A rainfall driver table: a data frame with \code{time}
+(years from the start of the run) and \code{rainfall} (m per year),
+covering the whole run; set on the environment through
+\code{extrinsic_drivers_set_variable}. \code{NULL} (the default) sets
+rainfall constant at \code{config$driver$rainfall_mean}. The gateway
+passes \code{\link{scenario_rainfall_drivers}(config)}; a user builds a
+table with \pkg{fieldtrial}'s driver tools.}
 
 \item{p}{A built \code{Parameters} object (e.g. \code{build_scenario()$p}).}
 
@@ -149,6 +163,19 @@ cache deliberately errs toward rerunning.}
 \code{build_scenario} returns a list with the \code{Parameters}
   (\code{p}), configured \code{Environment} (\code{env}) and \code{Control}
   (\code{ctrl}) ready for \code{run_scm}.
+
+\code{scenario_rainfall_drivers} returns the committed rainfall
+  driver table for a scenario's \code{rainfall_mean} and
+  \code{rainfall_amp_frac} (a data frame with \code{time} and
+  \code{rainfall}), or \code{NULL} when the scenario's rain is constant
+  (\code{rainfall_amp_frac} absent or zero). The tables are a fixture,
+  \code{inst/scenarios/scenario_rainfall_drivers.rds}, written by
+  \code{scripts/make-scenario-drivers.R}: the sinusoid the gateway baseline
+  was recorded with, \code{mean * (1 + amp * sin(2 pi t))} clamped at zero
+  on 48 knots per year over 100 years. A \code{max_patch_lifetime} other than
+  the fixture's is refused for a seasonal scenario: generating another series
+  is \pkg{fieldtrial}'s job, and this one exists to keep the gateway's
+  baseline reproducible.
 
 \code{classify_scm_run} returns a list describing the run:
   \code{status} (\code{"success"}/\code{"failure"}),
