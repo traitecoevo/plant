@@ -250,6 +250,7 @@ Leaf:
       args: [psi_stem: double, psi_upstream: double]
     #leaf economics functions
     hydraulic_cost_TF:
+      name_cpp: hydraulic_cost_TF24
       return_type: double
       args: [psi_stem: double]
     profit_psi_stem_Sperry:
@@ -257,7 +258,7 @@ Leaf:
       name_cpp: profit_psi_leaf_ProfitMax
       args: [psi_stem: double, psi_upstream: double]
     profit_psi_stem_TF:
-      name_cpp: profit_psi_leaf_TF
+      name_cpp: profit_psi_leaf_TF24
       return_type: double
       args: [psi_stem: double, psi_upstream: double]
       # optimiser functions
