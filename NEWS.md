@@ -13,8 +13,8 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
-* **Trade-offs travel with `Parameters`, and the bare defaults attach none.**
-  ⚠️ A semantic change for identical inputs: `scm_base_parameters(model)`
+* **Trade-offs travel with `Parameters`, and the bare defaults attach none
+  (#731).** ⚠️ A semantic change for identical inputs: `scm_base_parameters(model)`
   followed by `add_strategies(p, traits)` no longer applies the model's trade-off
   (hyperparameter) function, so a trait such as `lma` or `K_s` is written
   straight to `pars` and the parameters it used to derive (`k_l`, `stem_P50`,
