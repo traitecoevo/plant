@@ -22,6 +22,24 @@ namespace plant {
 // The leaf model itself.
 using Leaf = ::phylloptim::Leaf;
 
+// The leaf R's `Leaf()` builds: phylloptim's positional constructor, seated as
+// this package's R code reads a leaf -- the layered supply, which also seats the
+// collar route, and TF24. From phylloptim 0.29 a bare Leaf is TF24_floor on the
+// leaf route over a single potential, which refuses the root network R hands it.
+inline Leaf make_leaf(double vcmax_25, double stem_c, double stem_P50,
+                      double root_c, double root_P50, double TF24_beta2,
+                      double jmax_25, double phi_J, double curv_fact_elec_trans,
+                      double curv_fact_colim, double GSS_tol_abs,
+                      double vulnerability_curve_ncontrol, double ci_abs_tol,
+                      double ci_niter, double TF24_cost_scale) {
+  Leaf l(vcmax_25, stem_c, stem_P50, root_c, root_P50, TF24_beta2, jmax_25,
+         phi_J, curv_fact_elec_trans, curv_fact_colim, GSS_tol_abs,
+         vulnerability_curve_ncontrol, ci_abs_tol, ci_niter, TF24_cost_scale);
+  l.set_supply_multilayer();
+  l.set_model(Leaf::CostCurve::TF24, true);
+  return l;
+}
+
 // Constants that plant's own sources read out of the leaf model. Only one is
 // actually used today (kg_per_mol_h2o, in TF24_Strategy::compute_rates, for the
 // molar -> mass conversion on the soil water consumption rate), but the rest are
