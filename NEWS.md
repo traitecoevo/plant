@@ -13,6 +13,30 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **`integrate_over_size_distribution()` integrates a run carried in birth date
+  over birth date (#722).** ⚠️ A semantic change, not a rename: for identical
+  inputs the totals of every run carried in birth date move — which includes every
+  TF24-family run on the default `Control` — because the density per unit birth
+  date is now integrated with a shape-preserving cubic instead of the density per
+  unit height with a trapezium. Runs carried in height (FF16 and K93 on the
+  default `Control`) are bit-identical. In birth date, the height bounds `lower`
+  and `upper` cut where the cohorts' interpolated height crosses them, and the
+  `log_density` column's total is `NA`. Migration:
+
+  * `integrate_over_size_distribution(x)` (the previous trapezium in height) -> `integrate_over_size_distribution(x, coordinate = "height")`
+  * `integrate_over_size_distribution(x)` in birth date on a table filtered to one step, or with nodes seeded by an initial state -> an error (their birth dates cannot be recovered); pass `coordinate = "height"`, or keep every step: a node's birth date is the time it first appears, so a table thinned to some steps gives coarsened birth dates
+
+* **`interpolate_to_times()` and `interpolate_to_heights()` default to a
+  shape-preserving cubic (#722).** ⚠️ A semantic change: for identical inputs the
+  interpolated values move, because `method` now defaults to `"pchip"`, which keeps
+  every value between its neighbouring nodes or steps. The previous default, a
+  natural spline, gave negative densities and cohorts whose height or mortality
+  fell through time, and overshot log density across heights by orders of
+  magnitude (to an infinite density). Migration:
+
+  * `interpolate_to_times(x, times)` (the previous natural spline)     -> `interpolate_to_times(x, times, method = "natural")`
+  * `interpolate_to_heights(x, heights)` (the previous natural spline) -> `interpolate_to_heights(x, heights, method = "natural")`
+
 * **TF24 moves to phylloptim 0.26.2 (#714), then 0.27.0.** A shut leaf is phylloptim's ordinary evaluator at its wet bound, so in light it nets zero instead of `-R_d`; `psi_crit` is no longer a bound, so the stem follows a drying soil past it. Whether a leaf is held at the dry end is decided at that end (traitecoevo/phylloptim#205), so the forward run no longer jumps where the decision flipped and the stand gradient at `boundary-dry` agrees with a difference of whole runs. The operating-point kinds `boundary-crit`, `boundary-root-crit`, `determined` and `shade-death` are gone (`boundary-dry` replaces the first two). TF24t's impairment takes Bison & Michaletz's centred-Arrhenius kinetics. `scientific_version`: TF24 13 -> 14, TF24f 13.1 -> 14.1, TF24t 13.4 -> 14.5, TF24w 13.1 -> 14.1; with 0.27.0, TF24 14 -> 15, TF24f 14.1 -> 15.1, TF24t 14.5 -> 15.5, TF24w 14.1 -> 15.1. Migration:
 
   * `TF24t_Strategy` `impair_H`, `impair_Tmid`, `m_rep`, `t_rep_cut`, `k_i_Tref` -> removed; new `k_i_Tiso`, `k_rec_Ea`, `k_mat_Ea`. `k_i` defaults to 276 day^-1 at `k_i_Tiso` (was 0.5 with a logistic switch), `k_i_Ea` to 316 kJ mol^-1.

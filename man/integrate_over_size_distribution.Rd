@@ -2,19 +2,32 @@
 % Please edit documentation in R/tidy_outputs.R
 \name{integrate_over_size_distribution}
 \alias{integrate_over_size_distribution}
-\title{Integrate over the size distribution for each species at each time point, to give totals of each variable
-Integrations are performed using trapezium integration}
+\title{Integrate over the size distribution for each species at each time point, to give totals of each variable}
 \usage{
-integrate_over_size_distribution(tidy_species_data, lower = -Inf, upper = Inf)
+integrate_over_size_distribution(
+  tidy_species_data,
+  lower = -Inf,
+  upper = Inf,
+  coordinate = c("auto", "birth_date", "height")
+)
 }
 \arguments{
-\item{tidy_species_data}{output of either `tidy_patch` or `tidy_species`}
+\item{tidy_species_data}{output of either `tidy_patch` or `tidy_species`.
+Integrating over birth date needs every step of the run, because a node's
+birth date is the time it first appears.}
 
 \item{lower, upper}{heights bounding the integral; the defaults integrate over
-the whole size distribution. A bound that falls between two nodes takes the
-integrand by linear interpolation, as the trapezium rule already assumes, so
-totals over adjacent ranges sum to the total over their union. For a finer
-grid, interpolate with `interpolate_to_heights()` first.}
+the whole size distribution. Over birth date, a bound cuts where the
+interpolated height of the cohorts crosses it. Over height, a bound that
+falls between two nodes takes the integrand by linear interpolation, as the
+trapezium rule already assumes. Either way, totals over adjacent ranges sum
+to the total over their union. For a finer height grid, interpolate with
+`interpolate_to_heights()` first.}
+
+\item{coordinate}{`"auto"` (the default) integrates over birth date when the
+run carries density in birth date, and over height otherwise; `"birth_date"`
+and `"height"` choose one. `"height"` gives the trapezium totals this
+function returned before it integrated over birth date.}
 }
 \value{
 a tibble whose columns provide metrics on integrated totals for each variable for each species at each time.
@@ -22,6 +35,12 @@ a tibble whose columns provide metrics on integrated totals for each variable fo
 when the range holds no individuals (the totals are then zero).
 }
 \description{
-Integrate over the size distribution for each species at each time point, to give totals of each variable
-Integrations are performed using trapezium integration
+A run carried in birth date (`control(node_density_coordinate =
+"birth_date")`, the default for the TF24 models) is integrated over birth
+date: the density per unit birth date, and its product with each variable,
+are interpolated between nodes with a shape-preserving cubic and integrated
+exactly. Across a cohort that has just formed, density per unit height can
+fall several hundredfold, and a trapezium in height overcounts there; in
+birth date the integrand is smooth. A run carried in height is integrated over
+height with the trapezium rule.
 }

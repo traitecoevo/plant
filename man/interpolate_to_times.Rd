@@ -2,20 +2,25 @@
 % Please edit documentation in R/tidy_outputs.R
 \name{interpolate_to_times}
 \alias{interpolate_to_times}
-\title{Interpolate data on size distributions for each species to specific timer points, using specified interpolation method}
+\title{Interpolate data on size distributions for each species to specific time points}
 \usage{
-interpolate_to_times(tidy_species_data, times, method = "natural")
+interpolate_to_times(tidy_species_data, times, method = "pchip")
 }
 \arguments{
 \item{tidy_species_data}{output of either `tidy_patch` or `tidy_species`}
 
 \item{times}{times to interpolate to}
 
-\item{method}{Method for interpolation. For more info see help on stats::spline}
+\item{method}{`"pchip"` (the default), or a method for [stats::spline()],
+such as `"natural"`, which this function used before.}
 }
 \value{
-Returns a tibble of similar format to input, but with all outputs interpolated to specified hieghts.
+Returns a tibble of similar format to input, but with all outputs interpolated to specified times.
 }
 \description{
-Interpolate data on size distributions for each species to specific timer points, using specified interpolation method
+Each node's state is interpolated through time with a shape-preserving cubic
+(PCHIP) by default, which stays between the values at neighbouring steps: a
+height or a cumulative mortality never falls, and a density never goes
+negative. A natural spline overshoots wherever a node's trajectory bends
+sharply, as when a cohort fails to establish.
 }

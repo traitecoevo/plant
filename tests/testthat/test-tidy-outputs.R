@@ -216,3 +216,116 @@ test_that("integrate_over_size_distribution integrates between given heights", {
   expect_error(integrate_over_size_distribution(stand, lower = 5, upper = 5),
                "lower < upper")
 })
+
+## A short FF16 stand carried in birth date.
+birth_date_run <- local({
+  cache <- NULL
+  function() {
+    if (is.null(cache)) {
+      p <- scm_base_parameters("FF16")
+      p$max_patch_lifetime <- 20
+      p <- add_strategies(p, trait_matrix(c(0.0825, 0.2), "lma"),
+                          birth_rate = c(20, 20))
+      cache <<- run_scm(p, ctrl = control(node_density_coordinate = "birth_date"),
+                        collect = TRUE)
+    }
+    cache
+  }
+})
+
+test_that("a run carried in birth date is integrated over birth date", {
+  res <- birth_date_run()
+  auto <- integrate_over_size_distribution(res$species)
+  expect_equal(auto, integrate_over_size_distribution(res$species,
+                                                      coordinate = "birth_date"))
+  ## The same integral the sampler draws from.
+  times <- unique(auto$time)[c(20, 50)]
+  totals <- birth_date_totals(res, times)
+  for (s in rownames(totals)) {
+    expect_equal(auto$density[auto$species == s & auto$time %in% times],
+                 unname(totals[s, ]))
+  }
+  ## A run carried in height has nothing to integrate over birth date.
+  height_run <- run_scm(res$p, ctrl = control(node_density_coordinate = "height"),
+                        collect = TRUE)
+  expect_error(integrate_over_size_distribution(height_run$species,
+                                                coordinate = "birth_date"),
+               "carried in birth date")
+})
+
+test_that("over birth date, totals over adjacent height ranges sum to the whole", {
+  sp <- birth_date_run()$species
+  whole <- integrate_over_size_distribution(sp)
+  below <- integrate_over_size_distribution(sp, upper = 2.5)
+  above <- integrate_over_size_distribution(sp, lower = 2.5)
+  expect_equal(below$density + above$density, whole$density, tolerance = 1e-10)
+  expect_equal(below$area_heartwood + above$area_heartwood, whole$area_heartwood,
+               tolerance = 1e-10)
+  expect_true(all(above$min_height[!is.na(above$min_height)] >= 2.5))
+})
+
+test_that("over birth date, a coarse grid errs much less than the height trapezium", {
+  sp <- birth_date_run()$species
+  ## Every fourth node, plus each step's boundary, against all nodes.
+  newest <- ave(sp$node, sp$step, FUN = max)
+  coarse <- sp[(sp$node - 1) %% 4 == 0 | sp$node == newest, ]
+  ref <- integrate_over_size_distribution(sp, coordinate = "birth_date")
+  error <- function(coordinate) {
+    m <- merge(integrate_over_size_distribution(coarse, coordinate = coordinate),
+               ref, by = c("time", "species"))
+    m <- m[m$time > 2, ]
+    mean(abs(m$density.x / m$density.y - 1))
+  }
+  expect_lt(error("birth_date"), 0.5 * error("height"))
+})
+
+test_that("interpolating through time keeps cohorts growing and densities non-negative", {
+  sp <- birth_date_run()$species
+  out <- interpolate_to_times(sp, seq(0, 20, by = 0.1))
+  out <- out[order(out$species, out$node, out$time), ]
+  same <- diff(out$node) == 0 & out$species[-1] == out$species[-nrow(out)]
+  expect_true(all(out$density >= 0, na.rm = TRUE))
+  expect_true(all(diff(out$height)[same] >= 0, na.rm = TRUE))
+  expect_true(all(diff(out$mortality)[same] >= 0, na.rm = TRUE))
+  ## The natural spline this replaced did none of these on this run.
+  natural <- interpolate_to_times(sp, seq(0, 20, by = 0.1), method = "natural")
+  expect_true(any(natural$density < 0, na.rm = TRUE))
+})
+
+test_that("interpolating across heights keeps log density between the nodes'", {
+  sp <- birth_date_run()$species
+  out <- interpolate_to_heights(sp, seq(0, 20, by = 0.05))
+  range_at <- stats::aggregate(log_density ~ species + step, sp, range)
+  m <- merge(out, data.frame(range_at[c("species", "step")],
+                             lo = range_at$log_density[, 1],
+                             hi = range_at$log_density[, 2]))
+  expect_true(all(m$log_density >= m$lo - 1e-9 & m$log_density <= m$hi + 1e-9))
+  expect_true(all(is.finite(out$density)))
+})
+
+test_that("over birth date, a negative variable integrates to a negative total", {
+  sp <- birth_date_run()$species
+  sp$minus_one <- -1
+  out <- integrate_over_size_distribution(sp)
+  expect_equal(out$minus_one, -out$density)
+})
+
+test_that("cohorts tied at a height bound fall in exactly one of two ranges", {
+  ## Two cohorts share height 3, so the segment between them sits on the bound.
+  tau <- c(0, 1, 2, 3)
+  h <- c(5, 3, 3, 1)
+  y <- c(1, 1, 1, 1)
+  whole <- birth_date_between(tau, h, y, -Inf, Inf)
+  expect_equal(birth_date_between(tau, h, y, -Inf, 3) +
+                 birth_date_between(tau, h, y, 3, Inf), whole)
+  ## A range ending at the tallest cohort still includes it.
+  expect_equal(birth_date_between(tau, h, y, 2, 5) +
+                 birth_date_between(tau, h, y, -Inf, 2), whole)
+})
+
+test_that("interpolating to a missing time gives a missing value, not an error", {
+  df <- tibble::tibble(species = 1, node = 1, time = c(0, 1, 2),
+                       height = c(0, 2, 4), density = 1)
+  out <- interpolate_to_times(df, times = c(1, NA))
+  expect_equal(out$height, c(2, NA))
+})
