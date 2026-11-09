@@ -677,6 +677,10 @@ parameter_table <- function(x, hyperpar = NULL) {
   if (is.null(hyperpar)) {
     hyperpar <- identity_hyperpar
   }
+  if (!is.function(hyperpar)) {
+    stop("`hyperpar` must be a trade-off function f(m, s, filter = TRUE), ",
+         "or NULL", call. = FALSE)
+  }
   s <- p$strategy_default
   pars <- s$pars
   ctrl <- s$control

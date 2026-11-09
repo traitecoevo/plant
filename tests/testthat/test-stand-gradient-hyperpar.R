@@ -88,7 +88,7 @@ test_that("a strategy that is not on the trade-off is refused, not chained", {
   expect_no_error(stand_gradient(run$scm, traits = "1.lma"))
   expect_no_error(stand_gradient(run$scm, traits = "2.lma", hyperpar = NULL))
   expect_error(stand_gradient(run$scm, traits = "1.lma", hyperpar = "TF24"),
-               "must be a hyperparameter function")
+               "must be a trade-off function")
 })
 
 test_that("a default strategy, or one built at an input it does not keep, is refused", {

@@ -159,7 +159,7 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##' A column is the derivative as its trait moves through the construction that
 ##' built the strategy, which is what a difference through \code{add_strategies()}
 ##' measures. The hyperparameter function derives some parameters from the traits
-##' (\code{TF24_hyperpar} sets 13, among them \code{k_l}, \code{r_l}, \code{d_I},
+##' (TF24's testing trade-offs, \code{default_hyperpar("TF24")}, set 13, among them \code{k_l}, \code{r_l}, \code{d_I},
 ##' \code{a_f3} and the stem curve, from six traits including \code{lma}), so a
 ##' trait's column is its own partial plus each derived parameter's partial times
 ##' that parameter's derivative with respect to the trait. The function is
@@ -288,8 +288,9 @@ stand_gradient <- function(scm, metrics = NULL, traits = NULL,
 # plus G[, derived] %*% d(derived)/d(trait), with the derived partials from the sweep.
 stand_gradient_through <- function(scm, metrics, traits, hyperpar) {
   if (!is.function(hyperpar)) {
-    stop("`hyperpar` must be a hyperparameter function, as TF24_hyperpar, or ",
-         "NULL for partial derivatives")
+    stop("`hyperpar` must be a trade-off function f(m, s, filter = TRUE), as ",
+         "param_hyperpar(p) or default_hyperpar(\"TF24\") give, or NULL for ",
+         "partial derivatives")
   }
   strategies <- scm$parameters$strategies
   species <- seq_along(strategies)

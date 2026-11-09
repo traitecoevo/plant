@@ -169,6 +169,7 @@ test_that("parameter_table groups every parameter of a model", {
   p <- scm_base_parameters("TF24")
   expect_false(any(parameter_table(p)$group == "derived"))
   expect_error(parameter_table(1), "model name or a Parameters")
+  expect_error(parameter_table("TF24", hyperpar = 1), "must be a trade-off function")
 })
 
 test_that("generate_strategy assigns TF24t's thermal fields from a trait matrix", {
