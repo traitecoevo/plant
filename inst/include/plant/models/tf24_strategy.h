@@ -1850,8 +1850,8 @@ public:
 
   // The leaf's two outputs on the active chain, carrying its supplied Jacobian.
   // Written by net_mass_production_dt before compute_rates reads either. The
-  // carbon is the leaf's, the objective less the price of its water, as
-  // phylloptim bills it (net_mass_production_dt says why).
+  // carbon is the leaf's, the objective plus the price it deducted for its water
+  // (`shadow_cost`), as phylloptim bills it (net_mass_production_dt says why).
   S leaf_carbon_;
   std::vector<S> leaf_soil_consumption_;
 

@@ -1313,4 +1313,13 @@ test_that("the leaf reports the carbon it kept, which TF24 grows on", {
   l$find_root_collar_psi()
   expect_identical(l$shadow_cost(), 0)
   expect_identical(l$carbon(), l$profit_)
+
+  # At a price, on the curve TF24 grows on: carbon is the objective plus the
+  # price of the water, lambda_o * E, and so exceeds it.
+  l$TF24_floor_lambda_o <- 1e4
+  l$set_model("TF24_floor", "collar")
+  l$find_root_collar_psi()
+  expect_identical(l$shadow_cost(), 1e4 * l$transpiration_)
+  expect_identical(l$carbon(), l$profit_ + l$shadow_cost())
+  expect_gt(l$carbon(), l$profit_)
 })
