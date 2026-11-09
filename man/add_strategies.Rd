@@ -39,8 +39,9 @@ mutant_parameters(
 \item{traits}{A matrix of traits corresponding to the new strategies to
 introduce (see \code{\link{trait_matrix}}).}
 
-\item{hyperpar}{Hyperparameter function to use. By default links to the
-standard function for this strategy type.}
+\item{hyperpar}{Trade-off (hyperparameter) function to use. Defaults to the
+one \code{p} carries (\code{param_hyperpar(p)}, see
+\code{\link{default_parameters}}); \code{NULL} is the explicit identity.}
 
 \item{birth_rate}{Birth rate(s), one per row of \code{traits}. See
 \code{\link{generate_strategy}}.}

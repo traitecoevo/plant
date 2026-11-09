@@ -42,7 +42,7 @@
 ##' s <- pulse_series_poisson(0, 100, rate = 20, mean_amount = 0.014)
 ##' nrow(s)                      # about 2000 pulses
 ##' sum(s$amount) / 100          # about 0.28 m of water a year
-##' p <- add_strategies(scm_base_parameters("TF24"), trait_matrix(0.0825, "lma"))
+##' p <- add_strategies(default_parameters("TF24", quiet = TRUE), trait_matrix(0.0825, "lma"))
 ##' ev <- events(events_default(p), rainfall_pulse(s$time, s$amount))
 pulse_series_poisson <- function(from, to, rate, mean_amount) {
   check_pulse_span(from, to)

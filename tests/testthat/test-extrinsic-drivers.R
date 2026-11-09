@@ -74,13 +74,13 @@ test_that("ExtrinsicDrivers extrapolation can be toggled", {
 })
 
 test_that("generate_strategy() gives a clear error when birth_rate$x is mis-specified (issue #381)", {
-  p0 <- scm_base_parameters("FF16")
+  p0 <- testing_parameters("FF16")
   lma <- trait_matrix(0.0825, "lma")
   max_life <- p0$max_patch_lifetime
 
   # x not starting at 0 → clear error
   expect_error(
-    add_strategies(p0, lma, hyperpar = FF16_hyperpar,
+    add_strategies(p0, lma, hyperpar = default_hyperpar("FF16"),
                    birth_rate = list(list(x = seq(1, max_life + 10), y = rep(1, max_life + 10))),
                    keep_existing = FALSE),
     regexp = "start at 0"
@@ -88,7 +88,7 @@ test_that("generate_strategy() gives a clear error when birth_rate$x is mis-spec
 
   # x not extending past max_patch_lifetime → clear error
   expect_error(
-    add_strategies(p0, lma, hyperpar = FF16_hyperpar,
+    add_strategies(p0, lma, hyperpar = default_hyperpar("FF16"),
                    birth_rate = list(list(x = seq(0, max_life - 1), y = rep(1, max_life))),
                    keep_existing = FALSE),
     regexp = "max_patch_lifetime"
@@ -98,13 +98,13 @@ test_that("generate_strategy() gives a clear error when birth_rate$x is mis-spec
 test_that("Variable birth rate is driven through the SCM", {
   # Closes the "scm untested" TODO on the variable extrinsic-driver path:
   # set a time-varying birth rate and confirm it flows through a full run.
-  p0 <- scm_base_parameters("FF16")
+  p0 <- testing_parameters("FF16")
   lma <- trait_matrix(0.0825, "lma")
 
   x_pts <- seq(0, 200)
   birth_rates <- list(sp1 = list(x = x_pts, y = 1 + 0.5 * sin(x_pts / 10)))
 
-  p1 <- add_strategies(p0, lma, hyperpar = FF16_hyperpar, birth_rate = birth_rates, keep_existing = FALSE)
+  p1 <- add_strategies(p0, lma, hyperpar = default_hyperpar("FF16"), birth_rate = birth_rates, keep_existing = FALSE)
 
   expect_true(p1$strategies[[1]]$is_variable_birth_rate)
 

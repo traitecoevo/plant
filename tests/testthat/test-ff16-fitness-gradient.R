@@ -14,7 +14,7 @@ fitness_control <- function(...) {
 
 fitness_parameters <- function(lifetime = 8, lma = 0.0825, hmat = 3,
                                birth_rate = 2) {
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$max_patch_lifetime <- lifetime
   m <- trait_matrix(c(lma, rep(hmat, length(lma))), c("lma", "hmat"))
   add_strategies(p, m, birth_rate = as.list(rep(birth_rate, length(lma))))

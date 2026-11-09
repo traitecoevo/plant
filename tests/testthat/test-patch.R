@@ -152,9 +152,9 @@ for (x in names(strategy_types)) {
     if (x == "TF24") {
       max_patch_lifetime <- 4
       mk_strategy <- function()
-        add_strategies(scm_base_parameters("TF24"),
+        add_strategies(testing_parameters("TF24"),
                        trait_matrix(c(0.0825, 5), c("lma", "hmat")),
-                       hyperpar = TF24_hyperpar, birth_rate = 1)$strategies[[1]]
+                       hyperpar = default_hyperpar("TF24"), birth_rate = 1)$strategies[[1]]
     } else {
       max_patch_lifetime <- 30
       mk_strategy <- function() strategy_types[[x]]()

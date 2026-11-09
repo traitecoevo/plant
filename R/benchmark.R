@@ -12,14 +12,14 @@
 run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy),
                                  iterations = 1) {
   f_scm <- function(x) {
-    p0 <- scm_base_parameters(x)
+    p0 <- default_parameters(x, quiet = TRUE)
     p <- add_strategies(p0, trait_matrix(0.0825, "lma"))
     run_scm(p)
     invisible(NULL)
   }
 
   f_build_schedule <- function(x) {
-    p <- scm_base_parameters(x)
+    p <- default_parameters(x, quiet = TRUE)
     p$strategies <- list(strategy_types[[x]]())
     p$birth_rate <- 0.1
     run_scm(p, refine_schedule = TRUE)
@@ -55,7 +55,7 @@ run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy),
 run_resource_consumption_benchmarks <- function(its = 10) {
   
   f_scm <- function(layers) {
-    p0 <- scm_base_parameters("TF24")
+    p0 <- default_parameters("TF24", quiet = TRUE)
     p0$max_patch_lifetime = 10
     
     p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"))

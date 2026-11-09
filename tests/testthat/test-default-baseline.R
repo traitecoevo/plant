@@ -22,7 +22,7 @@ test_that("default runs reproduce the baseline recorded before #661", {
 
 test_that("snapshots read the run and do not move it", {
   run <- function(interval) {
-    p <- scm_base_parameters("FF16")
+    p <- testing_parameters("FF16")
     p$patch_type <- "fixed"
     p$max_patch_lifetime <- 60
     p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
@@ -43,7 +43,7 @@ test_that("snapshots read the run and do not move it", {
 test_that("a fitness window weights the run and does not move it", {
   ## The window is a weighting of arrivals: the stand it weights is the stand
   ## an unweighted run makes, step for step.
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$patch_type <- "fixed"
   p$max_patch_lifetime <- 60
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)

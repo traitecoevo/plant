@@ -220,7 +220,7 @@ test_that("collect output is reproducible and matches a seeded baseline (#482)",
   ## surviving. FF16 and K93 read no light driver and are unmoved. That is still
   ## the count at a zero storage relaxation offset, pinned below; the default
   ## week's offset gives 45 and 1. The default stem curve moving to
-  ## TF24_hyperpar's (#611) moved both to 48 and 1: the offset no longer
+  ## the TF24 trade-off function's (#611) moved both to 48 and 1: the offset no longer
   ## changes this stand's counts.
   baseline <- list(
     FF16 = list(n_total = 83L, n_alive_final = 5L),

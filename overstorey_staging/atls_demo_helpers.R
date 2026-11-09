@@ -189,7 +189,7 @@ atls_solve_strategies <- function(Tenv_seq, strategies = atls_strategies(),
 ## for the acclimation kinetics), so a strategy here is a heritable trait set.
 atls_scm_fitness <- function(air_temp, type = "TF24t", mutate = identity,
                              lma = 0.0825, birth_rate = 20, PPFD = NULL) {
-  p <- scm_base_parameters(type) |>
+  p <- default_parameters(type, quiet = TRUE) |>
     add_strategies(trait_matrix(lma, "lma"), birth_rate = birth_rate)
   s <- p$strategies[[1]]
   if (identical(type, "TF24")) s$pars$use_energy_balance <- 1

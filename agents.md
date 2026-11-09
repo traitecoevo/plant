@@ -299,8 +299,10 @@ R files in [R/](R/) (ignore the two large generated files `RcppR6.R`,
 
 | File | Responsibility |
 |---|---|
-| [ff16.R](R/ff16.R), [tf24.R](R/tf24.R), [k93.R](R/k93.R) | Per-model constructors (`FF16_Individual`, `FF16_Parameters`, …), hyperpar functions, expand_state, stand reports |
-| [strategy_support.R](R/strategy_support.R) | **Dispatch tables** mapping a model name → its functions (`hyperpar`, `make_hyperpar`, `param_hyperpar`, `environment_type`, `Environment`, `expand_state`, node-schedule helpers). These are `switch()` statements that must list every model. |
+| [ff16.R](R/ff16.R), [tf24.R](R/tf24.R), [k93.R](R/k93.R) | Per-model constructors (`FF16_Individual`, `FF16_Parameters`, …), expand_state, stand reports |
+| [default_parameters.R](R/default_parameters.R) | `default_parameters()` (plant's frozen *testing* trade-offs attached to a `Parameters`), `default_hyperpar()`, `param_hyperpar()`, the frozen FF16/TF24 trade-off makers, `parameter_table()` (#698). The recommended trade-offs and curated parameter sets live in `fieldtrial`, not here. |
+| [hyperpar-deprecated.R](R/hyperpar-deprecated.R) | Deprecation shims for the old exported hyperpar names (`FF16_hyperpar`, `make_TF24_hyperpar`, `make_hyperpar(type)`, …); one minor release, then delete the file. |
+| [strategy_support.R](R/strategy_support.R) | **Dispatch tables** mapping a model name → its functions (`environment_type`, `Environment`, `expand_state`, `model_version`, node-schedule helpers). These are `switch()` statements that must list every model. |
 | [scm_support.R](R/scm_support.R) | `run_scm` (with `collect` / `refine_schedule` flags), `scm_base_parameters`, and the `Control` presets `control` (alias) / `control_accurate`. Fast settings are now C++ `Control()` defaults (§3.2); adaptive schedule refinement lives in C++ (`SCM::refine_schedule`, §3.1) — there is no longer an R `build_schedule.R` |
 | [stochastic.R](R/stochastic.R) | Stochastic simulation driver |
 | [individual.R](R/individual.R) | `grow_individual_to_{size,height,time}`, `optimise_individual_rate_*`, compensation points |
@@ -338,15 +340,38 @@ are read as `pars.<name>`; derived/precomputed quantities (e.g. `eta_c`,
 in `prepare_strategy()`, not in `pars`.
 
 Users normally set a smaller set of ecologically meaningful **traits** (e.g.
-LMA, wood density). The **hyperpar** functions (`FF16_hyperpar`, etc.) translate
-traits → strategy parameters and encode trade-offs. The pipe-friendly,
-object-first entry points are `generate_strategy(p, traits)` (→ a list of
-strategies) and `add_strategies(p, traits, …)` / `add_mutant(p, traits, …)` (→ a
-`Parameters` object); `trait_matrix()` builds the `traits` matrix. The former
-`strategy_list()` / `expand_parameters()` / `mutant_parameters()` are deprecated
-shims (see NEWS). Keep hyperpar functions and the
-[strategy_support.R](R/strategy_support.R) switch tables consistent — a comment
-there flags that the scaffolder also depends on these.
+LMA, wood density). A **trade-off (hyperpar) function** — a closure
+`f(m, s, filter = TRUE)` — translates traits → strategy parameters and encodes
+the trade-offs. **It travels with the `Parameters` object**, in `p$hyperpar`
+(a `SEXP` field of the C++ struct, held opaquely in an `RObjectHandle`, so it
+survives `validate()`, `run_scm()` and `scm$parameters`); `param_hyperpar(p)`
+reads it and `generate_strategy`, `add_strategies`, `add_mutant`,
+`stand_gradient` and `fixed_point_fitness` take that as their default. The
+rules:
+
+- `scm_base_parameters(model)` attaches **no** trade-offs: a trait is written
+  straight to `pars`, and `generate_strategy()` says so once per session.
+  `hyperpar = NULL` is the same identity, chosen explicitly.
+- `default_parameters(model)` attaches plant's **frozen testing trade-offs**
+  (`default_hyperpar(model)`, the old `make_FF16_hyperpar`/`make_TF24_hyperpar`
+  bodies moved verbatim into [default_parameters.R](R/default_parameters.R))
+  and warns that this is a testing set, not a recommended parameterisation.
+  Every test uses it through the `testing_parameters()` helper, which is why
+  the goldens did not move when the trade-offs left the model files. Changing
+  the frozen copy means re-blessing goldens; the *recommended*, living
+  trade-offs and the species/site parameter sets belong to `fieldtrial`.
+- A trait matrix may also name a numeric top-level strategy field (TF24t's
+  thermal parameters, TF24f's `k_acclim`); `parameter_table(model)` lists
+  every reachable name by group (`trait`, `derived`, `parameter`, `strategy`,
+  `control`).
+
+The pipe-friendly, object-first entry points are `generate_strategy(p, traits)`
+(→ a list of strategies) and `add_strategies(p, traits, …)` /
+`add_mutant(p, traits, …)` (→ a `Parameters` object); `trait_matrix()` builds
+the `traits` matrix. The former `strategy_list()` / `expand_parameters()` /
+`mutant_parameters()` and the exported hyperpar names (`FF16_hyperpar`,
+`make_TF24_hyperpar`, `make_hyperpar(type)`, …) are deprecated shims (see
+NEWS).
 
 Allometric/size functions (`area_leaf`, `diameter_stem`, the mass cascade) live
 only in C++; the R `*_expand_state()` helpers call them via the exported

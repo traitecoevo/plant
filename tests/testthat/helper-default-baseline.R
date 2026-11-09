@@ -10,7 +10,7 @@ default_baseline_cases <- function() {
          offspring_production = scm$offspring_production)
   }
   ff16 <- function(lifetime) {
-    p <- scm_base_parameters("FF16")
+    p <- testing_parameters("FF16")
     p$max_patch_lifetime <- lifetime
     p$node_schedule_times <- list()
     add_strategies(p, trait_matrix(0.0825, "lma"))
@@ -19,7 +19,7 @@ default_baseline_cases <- function() {
 
   ## FF16 and K93 on the defaults: Weibull patch ages, the height coordinate.
   out$ff16 <- outputs(run_scm(ff16(105.32)))
-  p <- scm_base_parameters("K93")
+  p <- testing_parameters("K93")
   p <- add_strategies(p, trait_matrix(0.059, "b_0"), birth_rate = 20)
   out$k93 <- outputs(run_scm(p))
 
@@ -51,9 +51,9 @@ default_baseline_cases <- function() {
   out$ff16_resumed <- outputs(run_scm(p2))
 
   ## A short TF24 stand under constant rain, on the birth-date coordinate.
-  p <- scm_base_parameters("TF24")
+  p <- testing_parameters("TF24")
   p$max_patch_lifetime <- 5
-  p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = TF24_hyperpar,
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("TF24"),
                       birth_rate = 1)
   env <- Environment("TF24")
   env$extrinsic_drivers_set_constant("rainfall", 1)

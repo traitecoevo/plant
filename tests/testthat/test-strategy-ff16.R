@@ -112,7 +112,7 @@ test_that("FF16_Strategy hyper-parameterisation", {
 
   # lma
   lma <- c(0.1,1)
-  ret <- FF16_hyperpar(trait_matrix(lma, "lma"), s)
+  ret <- default_hyperpar("FF16")(trait_matrix(lma, "lma"), s)
 
   expect_true(all(c("lma", "k_l", "r_l") %in% colnames(ret)))
   expect_equal(ret[, "lma"], lma)
@@ -129,7 +129,7 @@ test_that("FF16_Strategy hyper-parameterisation", {
 
   # wood density
   rho <- c(200,300)
-  ret <- FF16_hyperpar(trait_matrix(rho, "rho"), s)
+  ret <- default_hyperpar("FF16")(trait_matrix(rho, "rho"), s)
   expect_true(all(c("rho", "r_s", "r_b") %in% colnames(ret)))
   expect_equal(ret[, "rho"], rho)
   expect_equal(ret[, "r_s"], c(20.06000,13.37333), tolerance=1e-5)
@@ -145,7 +145,7 @@ test_that("FF16_Strategy hyper-parameterisation", {
 
   # narea
   narea <- c(0, 2E-3,2.3E-3)
-  ret <- FF16_hyperpar(trait_matrix(narea, "narea"), s)
+  ret <- default_hyperpar("FF16")(trait_matrix(narea, "narea"), s)
   expect_true(all(c("narea", "a_p1", "a_p2", "r_l") %in% colnames(ret)))
   expect_equal(ret[, "narea"], narea)
   expect_equal(ret[, "r_l"], c(0, 212.2508, 244.0884), tolerance=1e-5)
@@ -154,7 +154,7 @@ test_that("FF16_Strategy hyper-parameterisation", {
 
   # seed mass
   omega <- 3.8e-5*c(1,2,3)
-  ret <- FF16_hyperpar(trait_matrix(omega, "omega"), s)
+  ret <- default_hyperpar("FF16")(trait_matrix(omega, "omega"), s)
   expect_true(all(c("omega", "a_f3") %in% colnames(ret)))
   expect_equal(ret[, "omega"], omega)
   expect_equal(ret[, "a_f3"], 3*omega)
@@ -169,18 +169,18 @@ test_that("FF16_Strategy hyper-parameterisation", {
 
 
   ## Empty trait matrix:
-  ret <- FF16_hyperpar(trait_matrix(numeric(0), "lma"), s)
+  ret <- default_hyperpar("FF16")(trait_matrix(numeric(0), "lma"), s)
   expect_equal(ret, trait_matrix(numeric(0), "lma"))
 })
 
-test_that("FF16_hyperpar sources k_I from the strategy", {
+test_that("the FF16 trade-off function sources k_I from the strategy", {
   narea <- c(2E-3, 2.3E-3)
   m <- trait_matrix(narea, "narea")
 
   ## Default strategy: assimilation matches the existing reference values.
   s <- FF16_Strategy()
   expect_equal(s$pars$k_I, 0.5)
-  ret <- FF16_hyperpar(m, s)
+  ret <- default_hyperpar("FF16")(m, s)
   expect_equal(ret[, "a_p1"], c(162.2592, 188.1549), tolerance=1e-5)
 
   ## Varying the strategy's k_I must change the derived assimilation
@@ -188,7 +188,7 @@ test_that("FF16_hyperpar sources k_I from the strategy", {
   ## silently ignored the strategy value.
   s2 <- FF16_Strategy()
   s2$pars$k_I <- 0.8
-  ret2 <- FF16_hyperpar(m, s2)
+  ret2 <- default_hyperpar("FF16")(m, s2)
   expect_false(isTRUE(all.equal(ret[, "a_p1"], ret2[, "a_p1"])))
   expect_false(isTRUE(all.equal(ret[, "a_p2"], ret2[, "a_p2"])))
 })
@@ -197,9 +197,9 @@ test_that("narea calculation", {
   x <- c(1.38, 3.07, 2.94)
   p0 <- FF16_Parameters()
   m <- trait_matrix(x, "hmat")
-  expect_silent(sl <- plant:::generate_strategy(p0, m, hyperpar = FF16_hyperpar, birth_rate = 1.0))
+  expect_silent(sl <- plant:::generate_strategy(p0, m, hyperpar = default_hyperpar("FF16"), birth_rate = 1.0))
 
-  cmp <- lapply(x, function(xi) generate_strategy(p0, trait_matrix(xi, "hmat"), hyperpar = FF16_hyperpar, birth_rate = 1.0)[[1]])
+  cmp <- lapply(x, function(xi) generate_strategy(p0, trait_matrix(xi, "hmat"), hyperpar = default_hyperpar("FF16"), birth_rate = 1.0)[[1]])
   expect_equal(sl, cmp)
 })
 
@@ -207,7 +207,7 @@ test_that("narea calculation", {
 # the offspring arrival produced integrates all demographic behaviours
 test_that("offspring arrival", {
 
-  p0 <- scm_base_parameters("FF16")
+  p0 <- testing_parameters("FF16")
   env <- Environment("FF16")
   # Blessed on the birth-date coordinate, which this names rather than inherits:
   # Control() defaults to height, and a fixture that reads its coordinate from the
@@ -215,7 +215,7 @@ test_that("offspring arrival", {
   ctrl <- Control(node_density_coordinate = "birth_date")
 
   # one species
-  p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = FF16_hyperpar, birth_rate = list(20))
+  p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(20))
 
   # On the height coordinate the density boundary condition divides by the growth
   # rate and the density rate carries a compression term, so a whole run is a
@@ -228,7 +228,7 @@ test_that("offspring arrival", {
   expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.227769), tolerance=1e-5)
 
   # two species
-  p2 <- add_strategies(p0, trait_matrix(c(0.0825, 0.2625), "lma"), hyperpar = FF16_hyperpar, birth_rate = list(11.99177, 16.51006))
+  p2 <- add_strategies(p0, trait_matrix(c(0.0825, 0.2625), "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(11.99177, 16.51006))
 
   out <- run_scm(p2, env, ctrl)
   expect_equal(out$offspring_production, c(12.04841, 16.59391), tolerance=1e-5)
@@ -248,11 +248,11 @@ test_that("Report generation", {
   # that cannot answer this rather than one that fails it.
   skip_if_not_installed("ggridges")
 
-  p0 <- scm_base_parameters("FF16")
+  p0 <- testing_parameters("FF16")
   env <- Environment("FF16")
   ctrl <- Control()
   
-  p2 <- add_strategies(p0, trait_matrix(c(0.0825, 0.2625), "lma"), hyperpar = FF16_hyperpar, birth_rate = list(11.99177, 16.51006))
+  p2 <- add_strategies(p0, trait_matrix(c(0.0825, 0.2625), "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(11.99177, 16.51006))
 
   # test report generation
   out <- run_scm(p2, env, ctrl, collect = TRUE)

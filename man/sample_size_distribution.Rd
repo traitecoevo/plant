@@ -50,7 +50,7 @@ The run must carry density in birth date,
 }
 \examples{
 \dontrun{
-p <- scm_base_parameters("FF16")
+p <- default_parameters("FF16", quiet = TRUE)
 p$max_patch_lifetime <- 50
 p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 20)
 results <- run_scm(p, ctrl = control(node_density_coordinate = "birth_date"),

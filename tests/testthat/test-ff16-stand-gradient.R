@@ -13,7 +13,7 @@
 # theorem). A difference at the default `offspring_production_tol = 1e-8`
 # differentiates the iterate, whose stopping point moves with the trait
 # differently from the root: measured on this stand, d(mass)/d(lma) through
-# FF16_hyperpar was off by 6.8e-4 at a relative step of 1e-4 and by 1.8e-4 at
+# the FF16 trade-off function was off by 6.8e-4 at a relative step of 1e-4 and by 1.8e-4 at
 # 1e-5, while the sweep's answer did not move with the tolerance at all. At
 # 1e-12 the two agree to 2.5e-8.
 referee_control <- function(...) {
@@ -23,7 +23,7 @@ referee_control <- function(...) {
 
 ff16_stand <- function(lifetime = 5, lma = 0.0825, birth_rate = 2,
                        ctrl = referee_control(), ...) {
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$max_patch_lifetime <- lifetime
   p <- add_strategies(p, trait_matrix(lma, "lma"),
                       birth_rate = as.list(rep(birth_rate, length(lma))))
@@ -110,14 +110,14 @@ test_that("the FF16 stand gradient is the pinned-step central difference", {
   }
 })
 
-test_that("a trait's total through FF16_hyperpar is the difference through add_strategies", {
+test_that("a trait's total through the FF16 trade-off function is the difference through add_strategies", {
   scm <- ff16_stand(lifetime = 5)
-  # lma sets k_l and r_l through FF16_hyperpar, so its column carries both.
+  # lma sets k_l and r_l through the FF16 trade-off function, so its column carries both.
   g <- stand_gradient(scm, metrics = "mass_above_ground", traits = "1.lma")
   x <- 0.0825
   h <- 1e-4 * x
   at <- function(v) {
-    p <- scm_base_parameters("FF16")
+    p <- testing_parameters("FF16")
     p$max_patch_lifetime <- 5
     p <- add_strategies(p, trait_matrix(v, "lma"), birth_rate = list(2))
     p$ode_times <- scm$ode_times
@@ -167,7 +167,7 @@ test_that("the gradient refuses what it cannot differentiate, by name", {
   scm <- ff16_stand(lifetime = 2, ctrl = referee_control(shading_model = "ppa"))
   expect_error(stand_gradient(scm, hyperpar = NULL), "staircase")
   # A model that declares no census.
-  p <- scm_base_parameters("K93")
+  p <- testing_parameters("K93")
   p$max_patch_lifetime <- 2
   p <- add_strategies(p, trait_matrix(0.059, "b_0"), birth_rate = list(1))
   scm <- run_scm(p, NULL, Control(node_density_coordinate = "birth_date"))

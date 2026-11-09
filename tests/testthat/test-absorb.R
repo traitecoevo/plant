@@ -5,7 +5,7 @@
 ## oldest cohorts edge toward their asymptote for as long as they carry density.
 
 ff16 <- function(lifetime) {
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$patch_type <- "fixed"
   p$max_patch_lifetime <- lifetime
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
@@ -28,7 +28,7 @@ test_that("the top layer is off by default and refused where it cannot work", {
   expect_error(run_scm(ff16(5), ctrl = Control(absorb_epsilon = 0.01)), "birth-date")
   expect_error(run_scm(ff16(5), ctrl = ctrl(absorb = 0.5)), "\\(0, 0.5\\)")
   ## K93 has no maturation height, so nothing says where its growth stops.
-  p <- scm_base_parameters("K93")
+  p <- testing_parameters("K93")
   p$max_patch_lifetime <- 5
   p <- add_strategies(p, trait_matrix(0.059, "b_0"), birth_rate = 20)
   expect_error(run_scm(p, ctrl = ctrl(absorb = 0.01)), "asymptotic height")
@@ -183,7 +183,7 @@ test_that("a frozen cohort's height does not move the field", {
   ## matter -- not even out of the live cohorts' order, where a younger cohort
   ## that overtook an older one and then froze can put it. The fast field build
   ## once stopped its crossing search at such a cohort.
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$patch_type <- "fixed"
   p$max_patch_lifetime <- 10
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)
@@ -254,7 +254,7 @@ test_that("offspring production scales the layer's seeds by the birth rate", {
 test_that("each species has its own layer, at its own height", {
   ## Two strategies with different maturation heights, absorbed at their own
   ## heights, each conserving its density as the layer takes it.
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$patch_type <- "fixed"
   p$max_patch_lifetime <- 200
   p <- add_strategies(p, trait_matrix(c(0.0825, 0.0825), "lma"), birth_rate = list(1, 1))
@@ -272,11 +272,11 @@ test_that("each species has its own layer, at its own height", {
 test_that("TF24 absorbs at its own asymptotic height", {
   ## TF24 declares an asymptotic height from the same reproductive allocation
   ## curve; a short stand with a low maturation height reaches it.
-  p <- scm_base_parameters("TF24")
+  p <- testing_parameters("TF24")
   p$patch_type <- "fixed"
   p$max_patch_lifetime <- 25
   p <- add_strategies(p, trait_matrix(c(0.0825, 2), c("lma", "hmat")),
-                      hyperpar = TF24_hyperpar, birth_rate = 1)
+                      hyperpar = default_hyperpar("TF24"), birth_rate = 1)
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 25, 1))
   env <- Environment("TF24")
   env$extrinsic_drivers_set_constant("rainfall", 1)

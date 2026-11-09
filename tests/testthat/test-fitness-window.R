@@ -3,7 +3,7 @@
 ## reproduction ratio is the window average of a cohort's lifetime output.
 
 ff16 <- function(lifetime) {
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$max_patch_lifetime <- lifetime
   p$node_schedule_times <- list()
   add_strategies(p, trait_matrix(0.0825, "lma"))
@@ -209,7 +209,7 @@ test_that("cohorts outside the window do not move the ratio", {
   ## window would give its first window cohort a whole interval and the copy's
   ## half of one. Long enough for the window's cohorts to reproduce, or both
   ## ratios are near zero and agree vacuously.
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$max_patch_lifetime <- 100
   p$node_schedule_times <- list()
   p <- add_strategies(p, trait_matrix(c(0.0825, 0.0825), "lma"),
@@ -227,7 +227,7 @@ test_that("a tabulated weight in a full run is the weighted mean of the cohorts"
   ## A weight that rises and falls over the window, read at each cohort's birth
   ## date: the run's ratio is the weighted mean of the per-node outputs of the
   ## same run without the window, which the window does not change.
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$patch_type <- "fixed"
   p$max_patch_lifetime <- 120
   p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = 1)

@@ -1,6 +1,6 @@
 
 test_that("Can set birth rate splines correctly", {
-  p0 <- scm_base_parameters("FF16")
+  p0 <- testing_parameters("FF16")
   
   # two species
   lmas <- trait_matrix(c(0.0825, 0.125), "lma")

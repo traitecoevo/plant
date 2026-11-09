@@ -222,7 +222,9 @@ trait_without_species <- function(x) sub("^[0-9]+\\.", "", x)
 ##' @export
 stand_gradient <- function(scm, metrics = NULL, traits = NULL,
                            hyperpar = param_hyperpar(scm$parameters)) {
-  if (!is.null(hyperpar)) {
+  ## The identity (hyperpar = NULL, or Parameters carrying no trade-offs)
+  ## derives nothing, so the total is the partial.
+  if (!is.null(hyperpar) && !is_identity_hyperpar(hyperpar)) {
     return(stand_gradient_through(scm, metrics, traits, hyperpar))
   }
   b <- census_backend(scm)

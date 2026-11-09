@@ -22,7 +22,7 @@ test_that("scenario_to_config translates a row into concrete settings", {
   cfg <- scenario_to_config(tbl[1, ], map)
 
   expect_true(cfg$expected %in% c("failure", "success"))
-  ## K_s and lma are input traits; stem_P50/TF24_cost_scale are derived by TF24_hyperpar
+  ## K_s and lma are input traits; stem_P50/TF24_cost_scale are derived by the TF24 trade-off function
   ## (#548) and must NOT be passed as input traits.
   expect_true(all(c("K_s", "lma", "rho", "vcmax_25", "theta",
                     "root_depth_shape_eta") %in% names(cfg$traits)))

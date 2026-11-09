@@ -40,18 +40,22 @@ Invisibly, a list with the evaluated \code{min}, \code{max},
   Printed as a short summary as a side effect.
 }
 \description{
-Extrinsic drivers are interpolated with a cubic spline, which is a poor fit
-for intermittent forcing such as daily rainfall. Between mostly-zero control
-points a cubic overshoots in both directions: a realistic daily rainfall
-series with a ~10\% wet-day fraction evaluates *negative* at roughly 45\% of
-points, and overshoots pulse peaks several-fold. Negative rainfall is
-floored at zero inside the TF24 soil balance, but the distortion of pulse
-magnitudes remains, so it is worth inspecting a series before committing to
+Extrinsic drivers are interpolated with a monotone (shape-preserving) cubic
+Hermite spline, so an interpolated series stays between its neighbouring
+control points and a non-negative series never evaluates negative. What the
+interpolation does change is the integral: between two control points the
+curve is a cubic, not the series' own shape, so a daily record of discrete
+depths is smeared across each interval and the total it delivers departs
+from the sum supplied. For intermittent forcing such as daily rainfall,
+\code{\link{rainfall_pulse}} events are the faithful route; this check is
+for deciding whether a continuous driver is acceptable before committing to
 a long run.
 }
 \details{
 This runs that inspection: it evaluates the driver on a fine grid and
-compares the result against the control points you supplied.
+compares the result against the control points you supplied. The negative
+excursion statistics are kept for drivers set from a series that is itself
+partly negative, and as a guard should the interpolation ever change.
 }
 \examples{
 e <- TF24_Environment()

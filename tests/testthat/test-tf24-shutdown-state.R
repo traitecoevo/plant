@@ -105,7 +105,7 @@ test_that("a shut-down plant stops depleting the soil", {
   env$set_soil_water_state(rep(0.02, 5))
   env$extrinsic_drivers_set_constant("rainfall", 0)
 
-  p <- scm_base_parameters("TF24")
+  p <- testing_parameters("TF24")
   p$max_patch_lifetime <- 10
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))
   out <- run_scm(p, env, collect = TRUE)

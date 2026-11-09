@@ -85,7 +85,7 @@ test_that("exposing the root parameters left default behaviour unchanged", {
   env <- Environment("TF24")
   env$set_soil_number_of_depths(5)
   env$set_soil_water_state(rep(0.25, 5))
-  p <- scm_base_parameters("TF24")
+  p <- testing_parameters("TF24")
   p$max_patch_lifetime <- 2
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))
   out <- run_scm(p, env)
@@ -159,7 +159,7 @@ test_that("plant hands the leaf each layer's own thickness, not a column average
 test_that("an unequal-layer column runs end to end", {
   env <- Environment("TF24")
   set_tf24_soil(env, soil_widths_graded(1.5, 5, top = 0.02), theta = 0.25)
-  p <- scm_base_parameters("TF24")
+  p <- testing_parameters("TF24")
   p$max_patch_lifetime <- 2
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))
   out <- run_scm(p, env)

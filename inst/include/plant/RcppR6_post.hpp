@@ -801,6 +801,7 @@ template <> inline SEXP wrap(const plant::Parameters<plant::FF16_Strategy<double
   ret["initial_patch_density"] = Rcpp::wrap(x.initial_patch_density);
   ret["initial_pr_patch_survival"] = Rcpp::wrap(x.initial_pr_patch_survival);
   ret["initial_time"] = Rcpp::wrap(x.initial_time);
+  ret["hyperpar"] = Rcpp::wrap(x.hyperpar);
   ret.attr("class") = Rcpp::CharacterVector::create("Parameters<FF16,FF16_Env>", "Parameters");
   return ret;
 }
@@ -857,6 +858,8 @@ template <> inline plant::Parameters<plant::FF16_Strategy<double> ,plant::FF16_E
   if (xl.containsElementNamed("initial_pr_patch_survival")) ret.initial_pr_patch_survival = Rcpp::as<std::vector<double> >(xl["initial_pr_patch_survival"]);
   // ret.initial_time = Rcpp::as<decltype(retinitial_time) >(xl["initial_time"]);
   if (xl.containsElementNamed("initial_time")) ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
+  // ret.hyperpar = Rcpp::as<decltype(rethyperpar) >(xl["hyperpar"]);
+  if (xl.containsElementNamed("hyperpar")) ret.hyperpar = Rcpp::as<SEXP >(xl["hyperpar"]);
   ret.validate();
   return ret;
 }
@@ -885,6 +888,7 @@ template <> inline SEXP wrap(const plant::Parameters<plant::TF24_Strategy<double
   ret["initial_patch_density"] = Rcpp::wrap(x.initial_patch_density);
   ret["initial_pr_patch_survival"] = Rcpp::wrap(x.initial_pr_patch_survival);
   ret["initial_time"] = Rcpp::wrap(x.initial_time);
+  ret["hyperpar"] = Rcpp::wrap(x.hyperpar);
   ret.attr("class") = Rcpp::CharacterVector::create("Parameters<TF24,TF24_Env>", "Parameters");
   return ret;
 }
@@ -941,6 +945,8 @@ template <> inline plant::Parameters<plant::TF24_Strategy<double> ,plant::TF24_E
   if (xl.containsElementNamed("initial_pr_patch_survival")) ret.initial_pr_patch_survival = Rcpp::as<std::vector<double> >(xl["initial_pr_patch_survival"]);
   // ret.initial_time = Rcpp::as<decltype(retinitial_time) >(xl["initial_time"]);
   if (xl.containsElementNamed("initial_time")) ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
+  // ret.hyperpar = Rcpp::as<decltype(rethyperpar) >(xl["hyperpar"]);
+  if (xl.containsElementNamed("hyperpar")) ret.hyperpar = Rcpp::as<SEXP >(xl["hyperpar"]);
   ret.validate();
   return ret;
 }
@@ -969,6 +975,7 @@ template <> inline SEXP wrap(const plant::Parameters<plant::TF24f_Strategy<doubl
   ret["initial_patch_density"] = Rcpp::wrap(x.initial_patch_density);
   ret["initial_pr_patch_survival"] = Rcpp::wrap(x.initial_pr_patch_survival);
   ret["initial_time"] = Rcpp::wrap(x.initial_time);
+  ret["hyperpar"] = Rcpp::wrap(x.hyperpar);
   ret.attr("class") = Rcpp::CharacterVector::create("Parameters<TF24f,TF24_Env>", "Parameters");
   return ret;
 }
@@ -1025,6 +1032,8 @@ template <> inline plant::Parameters<plant::TF24f_Strategy<double> ,plant::TF24_
   if (xl.containsElementNamed("initial_pr_patch_survival")) ret.initial_pr_patch_survival = Rcpp::as<std::vector<double> >(xl["initial_pr_patch_survival"]);
   // ret.initial_time = Rcpp::as<decltype(retinitial_time) >(xl["initial_time"]);
   if (xl.containsElementNamed("initial_time")) ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
+  // ret.hyperpar = Rcpp::as<decltype(rethyperpar) >(xl["hyperpar"]);
+  if (xl.containsElementNamed("hyperpar")) ret.hyperpar = Rcpp::as<SEXP >(xl["hyperpar"]);
   ret.validate();
   return ret;
 }
@@ -1053,6 +1062,7 @@ template <> inline SEXP wrap(const plant::Parameters<plant::TF24t_Strategy<doubl
   ret["initial_patch_density"] = Rcpp::wrap(x.initial_patch_density);
   ret["initial_pr_patch_survival"] = Rcpp::wrap(x.initial_pr_patch_survival);
   ret["initial_time"] = Rcpp::wrap(x.initial_time);
+  ret["hyperpar"] = Rcpp::wrap(x.hyperpar);
   ret.attr("class") = Rcpp::CharacterVector::create("Parameters<TF24t,TF24_Env>", "Parameters");
   return ret;
 }
@@ -1109,6 +1119,8 @@ template <> inline plant::Parameters<plant::TF24t_Strategy<double> ,plant::TF24_
   if (xl.containsElementNamed("initial_pr_patch_survival")) ret.initial_pr_patch_survival = Rcpp::as<std::vector<double> >(xl["initial_pr_patch_survival"]);
   // ret.initial_time = Rcpp::as<decltype(retinitial_time) >(xl["initial_time"]);
   if (xl.containsElementNamed("initial_time")) ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
+  // ret.hyperpar = Rcpp::as<decltype(rethyperpar) >(xl["hyperpar"]);
+  if (xl.containsElementNamed("hyperpar")) ret.hyperpar = Rcpp::as<SEXP >(xl["hyperpar"]);
   ret.validate();
   return ret;
 }
@@ -1137,6 +1149,7 @@ template <> inline SEXP wrap(const plant::Parameters<plant::TF24w_Strategy<doubl
   ret["initial_patch_density"] = Rcpp::wrap(x.initial_patch_density);
   ret["initial_pr_patch_survival"] = Rcpp::wrap(x.initial_pr_patch_survival);
   ret["initial_time"] = Rcpp::wrap(x.initial_time);
+  ret["hyperpar"] = Rcpp::wrap(x.hyperpar);
   ret.attr("class") = Rcpp::CharacterVector::create("Parameters<TF24w,TF24_Env>", "Parameters");
   return ret;
 }
@@ -1193,6 +1206,8 @@ template <> inline plant::Parameters<plant::TF24w_Strategy<double> ,plant::TF24_
   if (xl.containsElementNamed("initial_pr_patch_survival")) ret.initial_pr_patch_survival = Rcpp::as<std::vector<double> >(xl["initial_pr_patch_survival"]);
   // ret.initial_time = Rcpp::as<decltype(retinitial_time) >(xl["initial_time"]);
   if (xl.containsElementNamed("initial_time")) ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
+  // ret.hyperpar = Rcpp::as<decltype(rethyperpar) >(xl["hyperpar"]);
+  if (xl.containsElementNamed("hyperpar")) ret.hyperpar = Rcpp::as<SEXP >(xl["hyperpar"]);
   ret.validate();
   return ret;
 }
@@ -1221,6 +1236,7 @@ template <> inline SEXP wrap(const plant::Parameters<plant::K93_Strategy,plant::
   ret["initial_patch_density"] = Rcpp::wrap(x.initial_patch_density);
   ret["initial_pr_patch_survival"] = Rcpp::wrap(x.initial_pr_patch_survival);
   ret["initial_time"] = Rcpp::wrap(x.initial_time);
+  ret["hyperpar"] = Rcpp::wrap(x.hyperpar);
   ret.attr("class") = Rcpp::CharacterVector::create("Parameters<K93,K93_Env>", "Parameters");
   return ret;
 }
@@ -1277,6 +1293,8 @@ template <> inline plant::Parameters<plant::K93_Strategy,plant::K93_Environment>
   if (xl.containsElementNamed("initial_pr_patch_survival")) ret.initial_pr_patch_survival = Rcpp::as<std::vector<double> >(xl["initial_pr_patch_survival"]);
   // ret.initial_time = Rcpp::as<decltype(retinitial_time) >(xl["initial_time"]);
   if (xl.containsElementNamed("initial_time")) ret.initial_time = Rcpp::as<double >(xl["initial_time"]);
+  // ret.hyperpar = Rcpp::as<decltype(rethyperpar) >(xl["hyperpar"]);
+  if (xl.containsElementNamed("hyperpar")) ret.hyperpar = Rcpp::as<SEXP >(xl["hyperpar"]);
   ret.validate();
   return ret;
 }
@@ -1926,6 +1944,7 @@ template <> inline SEXP wrap(const plant::TF24_Pars<double>& x) {
   ret["alpha_PAR"] = Rcpp::wrap(x.alpha_PAR);
   ret["alpha_NIR"] = Rcpp::wrap(x.alpha_NIR);
   ret["L_crown"] = Rcpp::wrap(x.L_crown);
+  ret["g_min"] = Rcpp::wrap(x.g_min);
   ret.attr("class") = "TF24_Pars";
   return ret;
 }
@@ -2098,6 +2117,8 @@ template <> inline plant::TF24_Pars<double> as(SEXP x) {
   ret.alpha_NIR = Rcpp::as<double >(xl["alpha_NIR"]);
   // ret.L_crown = Rcpp::as<decltype(retL_crown) >(xl["L_crown"]);
   ret.L_crown = Rcpp::as<double >(xl["L_crown"]);
+  // ret.g_min = Rcpp::as<decltype(retg_min) >(xl["g_min"]);
+  ret.g_min = Rcpp::as<double >(xl["g_min"]);
   return ret;
 }
 template <> inline SEXP wrap(const plant::TF24_Strategy<double>& x) {

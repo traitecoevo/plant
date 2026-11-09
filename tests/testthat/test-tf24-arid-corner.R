@@ -33,7 +33,7 @@ test_that("a dry TF24f patch no longer aborts on the ci root-find", {
   env$set_soil_water_state(rep(0.005, 5))
   env$extrinsic_drivers_set_constant("rainfall", 1)
 
-  p <- scm_base_parameters("TF24f")
+  p <- testing_parameters("TF24f")
   p$max_patch_lifetime <- 10
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))
 
@@ -63,7 +63,7 @@ tf24_dry_start <- function(model = "TF24", lifetime = 10, theta = 0.005,
   env$set_soil_water_state(rep(theta, 5))
   env$extrinsic_drivers_set_constant("rainfall", rain)
 
-  p <- scm_base_parameters(model)
+  p <- testing_parameters(model)
   p$max_patch_lifetime <- lifetime
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))
   list(p = p, env = env)

@@ -30,7 +30,7 @@ run_and_resume <- function(p, x, e, frac = 0.5) {
 
 test_that("FF16 single-species round-trip reproduces the run", {
   x <- "FF16"; e <- "FF16_Env"
-  p0 <- scm_base_parameters(x)
+  p0 <- testing_parameters(x)
   p1 <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
 
   r <- run_and_resume(p1, x, e)
@@ -59,7 +59,7 @@ test_that("FF16 single-species round-trip reproduces the run", {
 
 test_that("Resumed schedule excludes already-imported introductions", {
   x <- "FF16"; e <- "FF16_Env"
-  p0 <- scm_base_parameters(x)
+  p0 <- testing_parameters(x)
   p1 <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
 
   r <- run_and_resume(p1, x, e)
@@ -80,7 +80,7 @@ test_that("Resumed schedule excludes already-imported introductions", {
 
 test_that("K93 multi-species round-trip reproduces the run", {
   x <- "K93"; e <- "K93_Env"
-  p0 <- scm_base_parameters(x)
+  p0 <- testing_parameters(x)
   p0$max_patch_lifetime <- 35.10667
 
   # three species varying b_0 (growth scaling); other K93 traits at defaults
@@ -96,7 +96,7 @@ test_that("K93 multi-species round-trip reproduces the run", {
 
 test_that("make_initial_state seeds a patch from a size distribution", {
   x <- "FF16"; e <- "FF16_Env"
-  p0 <- scm_base_parameters(x)
+  p0 <- testing_parameters(x)
   p1 <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
   env <- Environment(x); ctrl <- Control()
 
@@ -126,7 +126,7 @@ test_that("make_initial_state seeds a patch from a size distribution", {
 
 test_that("implausibly dense initial conditions are rejected", {
   x <- "FF16"; e <- "FF16_Env"
-  p0 <- scm_base_parameters(x)
+  p0 <- testing_parameters(x)
   p1 <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
   env <- Environment(x); ctrl <- Control()
 
@@ -139,7 +139,7 @@ test_that("implausibly dense initial conditions are rejected", {
 
 test_that("seeded runs work with tidy outputs and plot_size_distribution", {
   x <- "FF16"
-  p0 <- scm_base_parameters(x)
+  p0 <- testing_parameters(x)
   p1 <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
 
   st  <- make_initial_state(p1, heights = seq(1, 8, length.out = 10),

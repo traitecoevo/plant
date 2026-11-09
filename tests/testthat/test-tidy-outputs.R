@@ -1,7 +1,7 @@
 for (x in c("FF16", "K93")) {
   
 
-  p0 <- scm_base_parameters(x)
+  p0 <- testing_parameters(x)
 
   if(x == "FF16")
     p1 <- add_strategies(p0, trait_matrix(0.08, "lma"), birth_rate = 1.0)
@@ -222,7 +222,7 @@ birth_date_run <- local({
   cache <- NULL
   function() {
     if (is.null(cache)) {
-      p <- scm_base_parameters("FF16")
+      p <- testing_parameters("FF16")
       p$max_patch_lifetime <- 20
       p <- add_strategies(p, trait_matrix(c(0.0825, 0.2), "lma"),
                           birth_rate = c(20, 20))

@@ -276,7 +276,7 @@ test_that("Environment-TF24 running soil moisture profile", {
   expect_equal(env$f_PAR, 0.45)
 
   # check values from above are inherited when apssed into scm
-  p0 <- scm_base_parameters("TF24")
+  p0 <- testing_parameters("TF24")
   p0$max_patch_lifetime <- 0.01  
   p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"))
   out <- run_scm(p1, env)
@@ -287,7 +287,7 @@ test_that("Environment-TF24 running soil moisture profile", {
   env <- Environment("TF24")
   env$set_soil_number_of_depths(1)
   env$set_soil_water_state(0.1)
-  p0 <- scm_base_parameters("TF24")
+  p0 <- testing_parameters("TF24")
   out <- run_scm(p1, env, collect = TRUE)
   expect_equal(length(unique(out$env$soil_depth$soil_depth)), 1)
 

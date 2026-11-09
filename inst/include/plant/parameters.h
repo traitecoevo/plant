@@ -25,6 +25,42 @@
 
 namespace plant {
 
+// An R object held across the boundary, protected for as long as this holds
+// it. Parameters carries the trade-off function its strategies were built with
+// (an R closure, or NULL) so that it survives the round trip through C++ that
+// validate(), run_scm() and every copy of a Parameters make; C++ never reads
+// it. Only RcppCommon.h is available here -- this header is included before
+// Rcpp.h, so Rcpp::RObject cannot be -- hence the hand-rolled preserve/release.
+class RObjectHandle {
+public:
+  RObjectHandle() : x_(R_NilValue) {}
+  RObjectHandle(SEXP x) : x_(x) { preserve(); }
+  RObjectHandle(const RObjectHandle& other) : x_(other.x_) { preserve(); }
+  RObjectHandle& operator=(const RObjectHandle& other) {
+    if (x_ != other.x_) {
+      release();
+      x_ = other.x_;
+      preserve();
+    }
+    return *this;
+  }
+  RObjectHandle& operator=(SEXP x) {
+    if (x_ != x) {
+      release();
+      x_ = x;
+      preserve();
+    }
+    return *this;
+  }
+  ~RObjectHandle() { release(); }
+  operator SEXP() const { return x_; }
+  SEXP get() const { return x_; }
+private:
+  void preserve() { if (x_ != R_NilValue) R_PreserveObject(x_); }
+  void release() { if (x_ != R_NilValue) R_ReleaseObject(x_); }
+  SEXP x_;
+};
+
 template <typename T, typename E>
 struct Parameters {
   typedef T strategy_type;
@@ -111,6 +147,12 @@ struct Parameters {
   std::vector<double> initial_patch_density;
   std::vector<double> initial_pr_patch_survival;
   double initial_time;
+
+  // The trade-off function (an R closure satisfying `f(m, s, filter = TRUE)`,
+  // or NULL) the strategies here were built with: R's `param_hyperpar(p)`
+  // reads it, and it rides along unchanged through validate() and run_scm().
+  // Opaque to C++, which is why it is a SEXP and not a Function.
+  RObjectHandle hyperpar;
 
   // Some little query functions for use on the C side:
   size_t size() const;

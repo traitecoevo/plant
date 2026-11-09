@@ -78,6 +78,14 @@ test_ode_make_solver <- function(sys) {
   OdeRunner(class(sys)[[1]])(sys)
 }
 
+# plant's testing parameter set, quietly: today's C++ defaults with the frozen
+# trade-off functions attached (see ?default_parameters). Every test that builds
+# strategies from traits uses this rather than scm_base_parameters(), which
+# attaches no trade-offs, so the goldens and baselines keep their numbers.
+testing_parameters <- function(model) {
+  default_parameters(model, quiet = TRUE)
+}
+
 # NOTE: TF24f (#525) is intentionally excluded from these generic cross-strategy
 # lists. It is an experimental variant with a 6th ODE state (tracked root-collar
 # psi) and relies on birth-initialisation via Node::compute_initial_conditions, so
@@ -107,9 +115,9 @@ get_list_of_environment_types <- function() {
 # ! Important the whitespace in the following function is used by the strategy scaffolder
 get_list_of_hyperpar_functions <- function() {
   list(
-    FF16=FF16_hyperpar,
-    TF24=TF24_hyperpar,
-    K93=K93_hyperpar
+    FF16=default_hyperpar("FF16"),
+    TF24=default_hyperpar("TF24"),
+    K93=default_hyperpar("K93")
     )
 }
 

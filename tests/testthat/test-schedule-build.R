@@ -4,7 +4,7 @@ environment_types <- get_list_of_environment_types()
 
 test_that("refine_schedule on no residents runs trivially", {
   for (x in names(strategy_types)) {
-    p <- scm_base_parameters(x)
+    p <- testing_parameters(x)
     expect_silent(scm <- run_scm(p, refine_schedule = TRUE))
     expect_equal(length(scm$parameters$strategies), 0)
   }
@@ -15,7 +15,7 @@ test_that("Schedule building", {
     ## This is a really dumb test but it should act as a regression test
     ## at least. Refinement now happens entirely in C++ via
     ## run_scm(refine_schedule = TRUE) -> SCM::refine_schedule().
-    p <- scm_base_parameters(x)
+    p <- testing_parameters(x)
     p$strategies <- list(strategy_types[[x]]())
     p$strategies[[1]]$birth_rate_y <- 0.1
 

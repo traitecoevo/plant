@@ -78,27 +78,6 @@ TF24w_generate_stand_report <- function(results,
   }
 }
 
-##' @export
-##' @rdname make_TF24_hyperpar
-##' @param ... Arguments passed to \code{\link{make_TF24_hyperpar}}
-make_TF24w_hyperpar <- function(...) {
-  ## TF24w is TF24 with a private root-zone soil column per cohort (#681):
-  ## TF24w_Strategy inherits TF24_Strategy and reuses TF24_Environment +
-  ## TF24_Pars, so its hyperparameterisation is identical to the parent.
-  ## Delegate to keep TF24 the single source of truth.
-  make_TF24_hyperpar(...)
-}
-
-##' Hyperparameter function for TF24w physiological model
-##' @title Hyperparameter function for TF24w physiological model
-##' @param m A matrix of trait values, as returned by \code{trait_matrix}
-##' @param s A strategy object
-##' @param filter A flag indicating whether to filter columns. If TRUE, any numbers
-##' that are within eps of the default strategy are not replaced.
-##' @export
-##' @rdname TF24w_hyperpar
-TF24w_hyperpar <- make_TF24w_hyperpar()
-
 #' @export
 #' @importFrom rlang .data
 #' @rdname expand_state

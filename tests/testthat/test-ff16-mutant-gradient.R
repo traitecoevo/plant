@@ -13,7 +13,7 @@ mutant_control <- function(...) {
 
 resident_parameters <- function(lma = 0.0825, hmat = 3, lifetime = 8,
                                 birth_rate = 2) {
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$max_patch_lifetime <- lifetime
   m <- trait_matrix(c(lma, rep(hmat, length(lma))), c("lma", "hmat"))
   add_strategies(p, m, birth_rate = as.list(rep(birth_rate, length(lma))))
@@ -24,7 +24,7 @@ resident_parameters <- function(lma = 0.0825, hmat = 3, lifetime = 8,
 mutant_parameters <- function(scm, lma, hmat = 3) {
   p <- scm$parameters
   m <- trait_matrix(c(lma, rep(hmat, length(lma))), c("lma", "hmat"))
-  q <- add_strategies(scm_base_parameters("FF16"), m,
+  q <- add_strategies(testing_parameters("FF16"), m,
                       birth_rate = as.list(rep(2, length(lma))))
   p$strategies <- q$strategies
   p$node_schedule_times <- rep(p$node_schedule_times[1], length(lma))

@@ -6,12 +6,12 @@
 # slot, the k_I column misses NIR's share of the heat load.
 
 eb_stand_parameters <- function() {
-  p <- scm_base_parameters("TF24")
+  p <- testing_parameters("TF24")
   p$max_patch_lifetime <- 6
   lma <- p$strategy_default$pars[["lma"]]
   p <- add_strategies(p, trait_matrix(c(0, 6, lma),
                                       c("TF24_floor_lambda_o", "hmat", "lma")),
-                      hyperpar = TF24_hyperpar, birth_rate = 10)
+                      hyperpar = default_hyperpar("TF24"), birth_rate = 10)
   p$strategies[[1]]$pars$use_energy_balance <- 1
   full <- p$node_schedule_times[[1]]
   p$node_schedule_times <-

@@ -26,7 +26,7 @@ tf24_water_budget <- function(n_layers = 5, theta_0 = 0.25, rainfall = 1.0,
   env$set_soil_water_state(rep(theta_0, n_layers))
   env$extrinsic_drivers_set_constant("rainfall", rainfall)
 
-  p <- scm_base_parameters("TF24")
+  p <- testing_parameters("TF24")
   p$max_patch_lifetime <- lifetime
   p <- add_strategies(p, trait_matrix(lma, "lma"))
 
@@ -161,7 +161,7 @@ test_that("rainfall driver is floored at zero", {
   env$extrinsic_drivers_set_variable("rainfall", times, rep(c(-1, 1), length.out = 21))
   expect_lt(min(env$extrinsic_drivers_evaluate_range("rainfall", seq(0, 2, 0.01))), 0)
 
-  p <- scm_base_parameters("TF24")
+  p <- testing_parameters("TF24")
   p$max_patch_lifetime <- 2
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))
   # ⚠️ The sums are the main step's states, read at its stages. A step across a

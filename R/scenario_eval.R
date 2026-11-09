@@ -148,12 +148,14 @@ scenario_control <- function() {
 ##' @export
 build_scenario <- function(config, max_patch_lifetime = 100,
                            ctrl = scenario_control(), birth_rate = 1) {
-  p <- scm_base_parameters("TF24")
+  ## The scenarios are plant's own QA, pinned against plant's frozen testing
+  ## trade-offs; the gateway baseline was recorded with them.
+  p <- default_parameters("TF24", quiet = TRUE)
   p$max_patch_lifetime <- max_patch_lifetime
 
   tr <- config$traits
   traits <- trait_matrix(unname(tr), names(tr))
-  p <- add_strategies(p, traits, hyperpar = TF24_hyperpar, birth_rate = birth_rate)
+  p <- add_strategies(p, traits, birth_rate = birth_rate)
 
   env <- Environment("TF24")
   n_depths <- env$get_soil_number_of_depths()

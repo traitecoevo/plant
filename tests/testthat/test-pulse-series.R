@@ -60,8 +60,8 @@ test_that("generators refuse what is not a series", {
 test_that("a series becomes rainfall pulses", {
   set.seed(2)
   s <- pulse_series_poisson(0, 2, rate = 10, mean_amount = 0.01)
-  p <- add_strategies(scm_base_parameters("TF24"), trait_matrix(0.0825, "lma"),
-                      hyperpar = TF24_hyperpar)
+  p <- add_strategies(testing_parameters("TF24"), trait_matrix(0.0825, "lma"),
+                      hyperpar = default_hyperpar("TF24"))
   ev <- events(events_default(p), rainfall_pulse(s$time, s$amount))
   pulses <- ev$type == "resource_pulse"
   expect_equal(sum(pulses), nrow(s))

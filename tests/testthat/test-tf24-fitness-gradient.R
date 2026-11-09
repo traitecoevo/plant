@@ -8,12 +8,12 @@
 # years, and it is dense enough at a birth rate of 10 to hold an equilibrium.
 
 fitness_stand_parameters <- function(birth_rate, lma_factor = 1) {
-  p <- scm_base_parameters("TF24")
+  p <- testing_parameters("TF24")
   p$max_patch_lifetime <- 6
   lma <- p$strategy_default$pars[["lma"]]
   p <- add_strategies(p, trait_matrix(c(0, 6, lma * lma_factor),
                                       c("TF24_floor_lambda_o", "hmat", "lma")),
-                      hyperpar = TF24_hyperpar, birth_rate = birth_rate)
+                      hyperpar = default_hyperpar("TF24"), birth_rate = birth_rate)
   full <- p$node_schedule_times[[1]]
   p$node_schedule_times <-
     list(full[round(seq(1, length(full), length.out = 12))])

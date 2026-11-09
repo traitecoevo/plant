@@ -80,7 +80,7 @@ test_that("Events validation rejects malformed input", {
 })
 
 test_that("node_introductions() reproduces the parameters' schedule", {
-  p <- add_strategies(scm_base_parameters("FF16"),
+  p <- add_strategies(testing_parameters("FF16"),
                       trait_matrix(c(0.08, 0.1), "lma"),
                       birth_rate = list(1, 1))
   ev <- node_introductions(p)
@@ -93,7 +93,7 @@ test_that("node_introductions() reproduces the parameters' schedule", {
 })
 
 test_that("events_default() is the schedule a run gets with no events", {
-  p <- add_strategies(scm_base_parameters("FF16"), trait_matrix(1, "lma"))
+  p <- add_strategies(testing_parameters("FF16"), trait_matrix(1, "lma"))
   ev <- events_default(p)
   expect_true(all(ev$type == "node_introduction"))
   expect_identical(ev$time, events(node_introductions(p))$time)
@@ -108,7 +108,7 @@ test_that("events_default() is the schedule a run gets with no events", {
 })
 
 test_that("an out-of-range species index is rejected", {
-  p <- add_strategies(scm_base_parameters("FF16"), trait_matrix(1, "lma"))
+  p <- add_strategies(testing_parameters("FF16"), trait_matrix(1, "lma"))
   ev <- events(node_introductions(p))
   ## One species, so index 2 has nowhere to go.
   bad <- Events(time = c(0, 1), type = rep("node_introduction", 2),
@@ -131,7 +131,7 @@ test_that("the events path reproduces the default path exactly", {
     ## the strategy's own default so this keeps working if the defaults move.
     tr <- if (x == "K93") "eta" else "lma"
     base <- do.call(sprintf("%s_Strategy", x), list())$pars[[tr]]
-    p <- add_strategies(scm_base_parameters(x),
+    p <- add_strategies(testing_parameters(x),
                         trait_matrix(c(base * 0.95, base * 1.05), tr),
                         birth_rate = list(1, 1))
 
@@ -149,7 +149,7 @@ test_that("the events path reproduces the default path exactly", {
 })
 
 test_that("a schedule round-trips through the events format", {
-  p <- add_strategies(scm_base_parameters("FF16"),
+  p <- add_strategies(testing_parameters("FF16"),
                       trait_matrix(c(0.08, 0.1), "lma"),
                       birth_rate = list(1, 1))
   ev <- events(node_introductions(p))
@@ -221,7 +221,7 @@ test_that("a resource pulse is refused by environments with no pools", {
   ## FF16 carries no soil state, so a pulse aimed at it is a modelling mistake
   ## and should say so rather than be quietly dropped. Tested through a run,
   ## which is the path a user actually takes.
-  p <- add_strategies(scm_base_parameters("FF16"), trait_matrix(1, "lma"))
+  p <- add_strategies(testing_parameters("FF16"), trait_matrix(1, "lma"))
   ev <- events(node_introductions(p), rainfall_pulse(time = 1, depth = 0.01))
   scm <- SCM("FF16", "FF16_Env")(p, Environment("FF16"), ev, control())
   ## FF16 declares no resources at all, so the patch catches it before the
@@ -236,7 +236,7 @@ test_that("pulses wet the soil during a run", {
   ## Shorten the run before adding strategies: clearing node_schedule_times
   ## only takes effect when Parameters next crosses into C++ and re-validates,
   ## which add_strategies() does.
-  p <- scm_base_parameters("TF24")
+  p <- testing_parameters("TF24")
   p$max_patch_lifetime <- 5
   p$node_schedule_times <- list()
   p <- add_strategies(p, trait_matrix(1, "lma"))
@@ -302,7 +302,7 @@ test_that("pulses wet the soil during a run", {
 
 ## A short FF16 run, used by the demographic-event tests below.
 ff16_run <- function(ev = NULL, max_lifetime = 20) {
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$max_patch_lifetime <- max_lifetime
   p$node_schedule_times <- list()
   p <- add_strategies(p, trait_matrix(1, "lma"))
@@ -435,7 +435,7 @@ test_that("the event log records every applied event, in order", {
 # the state is fine.
 
 test_that("the patch declares its state domain to the solver", {
-  p <- add_strategies(scm_base_parameters("TF24"), trait_matrix(1, "lma"))
+  p <- add_strategies(testing_parameters("TF24"), trait_matrix(1, "lma"))
   scm <- SCM("TF24", "TF24_Env")(p, Environment("TF24"), empty_events(), control())
   patch <- scm$patch
   y <- patch$ode_state
@@ -457,7 +457,7 @@ test_that("the patch declares its state domain to the solver", {
   ## A node's log_density is legitimately -Inf (a cohort that never
   ## established), so the species block must NOT be rejected for that -- a
   ## blanket finiteness test would stall the solver at its minimum step.
-  ff <- add_strategies(scm_base_parameters("FF16"), trait_matrix(1, "lma"))
+  ff <- add_strategies(testing_parameters("FF16"), trait_matrix(1, "lma"))
   scm_ff <- SCM("FF16", "FF16_Env")(ff, Environment("FF16"), empty_events(),
                                     control())
   expect_true(scm_ff$patch$ode_state_valid(c(-Inf, 1, 2)))
@@ -469,7 +469,7 @@ test_that("collected results carry the events and the log", {
   ## Events are supplied separately from `p`, so a collected result that drops
   ## them no longer records what was asked for or what was done -- including how
   ## much of a pulse the soil took and how much it shed.
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$max_patch_lifetime <- 2
   p$node_schedule_times <- list()
   p <- add_strategies(p, trait_matrix(1, "lma"))
@@ -501,7 +501,7 @@ test_that("collected results carry the events and the log", {
 })
 
 test_that("an event after the horizon is refused before the run starts", {
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$max_patch_lifetime <- 2
   p$node_schedule_times <- list()
   p <- add_strategies(p, trait_matrix(1, "lma"))
@@ -559,7 +559,7 @@ test_that("event parameters are checked before the run, not during it", {
 
 test_that("simultaneous events keep their type order and their input order", {
   ## Across types: environment, then removals, then introductions.
-  p <- scm_base_parameters("FF16")
+  p <- testing_parameters("FF16")
   p$max_patch_lifetime <- 20
   p$node_schedule_times <- list()
   p <- add_strategies(p, trait_matrix(1, "lma"))
@@ -580,7 +580,7 @@ test_that("simultaneous events keep their type order and their input order", {
   ## order decides which record is credited with the accepted water.
   env <- Environment("TF24")
   env$extrinsic_drivers_set_constant("rainfall", 0)
-  tf <- scm_base_parameters("TF24")
+  tf <- testing_parameters("TF24")
   tf$max_patch_lifetime <- 5
   tf$node_schedule_times <- list()
   tf <- add_strategies(tf, trait_matrix(1, "lma"))

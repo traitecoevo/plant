@@ -15,9 +15,9 @@ optimise_individual_rate_at_size_by_trait(
   size = 1,
   size_name = "height",
   rate = size_name,
-  params = scm_base_parameters(type),
+  params = default_parameters(type, quiet = TRUE),
   env = Environment(type),
-  hyperpars = hyperpar(type),
+  hyperpars = param_hyperpar(params),
   set_state_directly = FALSE
 )
 
@@ -38,11 +38,14 @@ optimise_individual_rate_at_height_by_trait(..., height = 1)
 
 \item{rate}{The name of the rate to optimise. Defaults to \code{size_name}}
 
-\item{params}{The parameters of the model}
+\item{params}{The parameters of the model. Defaults to plant's testing set,
+\code{\link{default_parameters}(type, quiet = TRUE)}, so that the
+trade-offs apply to the trait being optimised.}
 
 \item{env}{The environment of the model}
 
-\item{hyperpars}{The hyperparameter function of the model}
+\item{hyperpars}{The trade-off function; defaults to the one \code{params}
+carries (\code{param_hyperpar(params)})}
 
 \item{set_state_directly}{If TRUE, set the state directly to the size, otherwise grows the plant to that size. Defaults to FALSE}
 

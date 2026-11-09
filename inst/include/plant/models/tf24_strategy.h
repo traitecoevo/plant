@@ -336,6 +336,13 @@ struct TF24_Pars {
   // TF24 reads nothing from it. Default to be set from crown allometry; 2 is a
   // placeholder.
   S L_crown = 2.0;
+  // Residual (minimum) leaf conductance to water at 25 C, mol H2O m^-2 s^-1:
+  // phylloptim's `g_min` (phylloptim #182), the flux a leaf loses with its
+  // stomata shut. Zero by default, which is exactly the model without it: the
+  // leaf tests `g_min == 0.0` and returns exact zeros for the residual terms, so
+  // no result moves at the default. Carried here so a parameter set can reach
+  // every leaf trait through `pars`; a non-zero value is untested in plant.
+  S g_min = 0.0;
 
   // Where a parameter lives and what it is called. Nothing here says what its
   // gradient will be: the sweep computes one for every parameter except the
@@ -404,6 +411,13 @@ struct TF24_Pars {
                   "read by TF24w alone, which refuses the gradient path: its "
                   "private root-zone water couples cohorts through the patch, "
                   "outside the per-cohort block the recording describes"},
+      // The residual conductance is opt-in the same way: at the default
+      // g_min = 0 the leaf's residual terms are exact zeros by a test on the
+      // value, so a column would be an exact zero that reads as an answer.
+      no_gradient{"g_min",
+                  "the residual conductance is opt-in and has no gradient "
+                  "fixture; at the default g_min = 0 its column would be an "
+                  "exact zero"},
       // Refused by the model, so a row would describe half of it.
       no_gradient{"theta_c",
                   "prepare_strategy refuses any non-zero value, because theta "
@@ -519,7 +533,8 @@ struct TF24_Pars {
       PLANT_TF24_AD_PARAMETER(d),
       PLANT_TF24_AD_PARAMETER(alpha_PAR),
       PLANT_TF24_AD_PARAMETER(alpha_NIR),
-      PLANT_TF24_AD_PARAMETER(L_crown)
+      PLANT_TF24_AD_PARAMETER(L_crown),
+      PLANT_TF24_AD_PARAMETER(g_min)
   };
 #undef PLANT_TF24_AD_PARAMETER
 
@@ -3774,6 +3789,9 @@ void TF24_Strategy<S>::prepare_strategy() {
     // Not a constructor argument, and written before any physiology is set, so
     // the temperature block derives R_d_ from it on the first call.
     leaf.R_d_25 = pars.R_d_25;
+    // Not a constructor argument either. The leaf's own default is zero, so at
+    // the default this writes the value the leaf already held.
+    leaf.g_min = pars.g_min;
     // Penman-Monteith leaf energy balance (#523): enable per pars (default off,
     // backward-compatible) and pass the leaf-dimension trait. Wind speed is a
     // per-timestep driver, set from the environment before each set_physiology.

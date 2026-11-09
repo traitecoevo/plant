@@ -13,6 +13,38 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **Trade-offs travel with `Parameters`, and the bare defaults attach none.**
+  ⚠️ A semantic change for identical inputs: `scm_base_parameters(model)`
+  followed by `add_strategies(p, traits)` no longer applies the model's trade-off
+  (hyperparameter) function, so a trait such as `lma` or `K_s` is written
+  straight to `pars` and the parameters it used to derive (`k_l`, `stem_P50`,
+  ...) stay at their defaults; `generate_strategy()` says so once per session.
+  A `Parameters` object now carries its own trade-offs in `p$hyperpar` (a closure
+  `f(m, s, filter = TRUE)` or `NULL`), which `param_hyperpar(p)` reads and which
+  survives `validate()`, `run_scm()` and a saved object. The recommended
+  trade-off functions and curated species/site parameter sets move to the
+  `fieldtrial` package; plant keeps one frozen *testing* copy, reached only
+  through `default_parameters(model)`, which warns that it is not a recommended
+  parameterisation. The exported hyperpar names are deprecation shims for one
+  minor release. No `scientific_version` bump: every golden and default baseline
+  is bit-identical through `default_parameters()`. Migration:
+
+  * `p <- scm_base_parameters(m); add_strategies(p, tr)` (relying on the default trade-offs) -> `p <- default_parameters(m, quiet = TRUE); add_strategies(p, tr)`
+  * `add_strategies(p, tr, hyperpar = TF24_hyperpar)` -> `add_strategies(default_parameters("TF24"), tr)`, or `hyperpar = default_hyperpar("TF24")`
+  * `make_FF16_hyperpar(...)` -> `default_hyperpar("FF16", ...)`
+  * `make_TF24_hyperpar(...)`, `make_TF24f_hyperpar(...)`, `make_TF24t_hyperpar(...)`, `make_TF24w_hyperpar(...)` -> `default_hyperpar("TF24", ...)`
+  * `make_K93_hyperpar(...)`, `K93_hyperpar` -> `hyperpar = NULL` (K93 has no trade-offs)
+  * `make_hyperpar(type)` -> `function(...) default_hyperpar(type, ...)`
+  * `hyperpar(type)` -> `default_hyperpar(type)`, or `param_hyperpar(p)` for what `p` carries
+  * `param_hyperpar(p)` (name unchanged) -> returns `p$hyperpar`, or the identity when none is attached; a `p` from `scm_base_parameters()` therefore gives the identity where it gave the model's function
+  * `stand_gradient(scm)` -> its default `hyperpar` is now `scm$parameters$hyperpar`; a stand built from a bare `p` gets partial derivatives, as with `hyperpar = NULL`
+  * `optimise_individual_rate_at_size_by_trait(params = scm_base_parameters(type), hyperpars = hyperpar(type))` -> defaults are `default_parameters(type, quiet = TRUE)` and `param_hyperpar(params)` (same numbers)
+  * `build_scenario()` -> builds on `default_parameters("TF24", quiet = TRUE)` (same numbers)
+  * `Parameters(...)(hyperpar = f)` (new field), `default_parameters()`, `default_hyperpar()`, `parameter_table()` (#698) -> new
+  * `TF24_Pars` -> gains `g_min` (residual leaf conductance, default 0, forwarded to the leaf; bit-identical at the default). `TF24t`'s thermal fields and `TF24f`'s numeric settings can be named in a trait matrix; `parameter_table(model)` lists them under `strategy`
+  * `plant:::E_from_Soil_to_Root_Collar()`, `VC_l()`, `VC_r()`, `VC_sw()` (unexported, never called) -> removed
+  * `check_driver_interpolation()` documentation -> drivers are interpolated with a monotone cubic, not a natural spline; the function is unchanged
+
 * **`integrate_over_size_distribution()` integrates a run carried in birth date
   over birth date (#722).** ⚠️ A semantic change, not a rename: for identical
   inputs the totals of every run carried in birth date move — which includes every

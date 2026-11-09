@@ -76,10 +76,6 @@ public:
   {
     time = 0.0;
 
-
-
-    ExtrinsicDrivers extrinsic_drivers;
-
     // The light driver is incoming SHORTWAVE at the surface, on a horizontal plane
     // above the canopy (W m^-2) -- the quantity a flux tower reports as SWdown, and
     // NOT a top-of-atmosphere value. 900 is a clear-sky midday figure. The

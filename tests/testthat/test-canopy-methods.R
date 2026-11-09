@@ -101,9 +101,9 @@ test_that("flat-top-soft-box has a continuous competition profile and runs", {
   expect_equal(tail(soft, 1), 0)                  # zero leaf above the crown top
 
   # Being continuous, it builds a light environment and runs (unlike flat-top-box)
-  p0 <- scm_base_parameters("FF16")
+  p0 <- testing_parameters("FF16")
   p0$max_patch_lifetime <- 40
-  p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = FF16_hyperpar, birth_rate = list(20))
+  p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(20))
   ctrl <- Control(); ctrl$shading_model <- "flat-top-soft-box"
   out <- run_scm(p1, Environment("FF16"), ctrl)
   expect_true(is.finite(out$offspring_production))
@@ -121,9 +121,9 @@ test_that("flat-top-box cannot build a light environment (discontinuous competit
   # The step competition makes the patch light profile discontinuous, so the
   # adaptive light-environment spline cannot represent it and the SCM fails.
   # This is the point of the model: the competition profile must be continuous.
-  p0 <- scm_base_parameters("FF16")
+  p0 <- testing_parameters("FF16")
   p0$max_patch_lifetime <- 40
-  p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = FF16_hyperpar, birth_rate = list(20))
+  p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(20))
   ctrl <- Control(); ctrl$shading_model <- "flat-top-box"
   expect_error(run_scm(p1, Environment("FF16"), ctrl),
                "no light environment can be built from it")
@@ -153,9 +153,9 @@ test_that("mean-light assimilation >= deep-crown (Jensen, concave photosynthesis
   # Photosynthesis saturates (is concave) in light, so evaluating it at the mean
   # light (mean-light) is >= the mean of the rate over the light distribution
   # (deep-crown). The two are equal only under uniform light.
-  p0 <- scm_base_parameters("FF16")
+  p0 <- testing_parameters("FF16")
   p0$max_patch_lifetime <- 40
-  p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = FF16_hyperpar, birth_rate = list(20))
+  p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(20))
   run_op <- function(m) {
     ctrl <- Control(); ctrl$shading_model <- m
     run_scm(p1, Environment("FF16"), ctrl)$offspring_production
@@ -178,10 +178,10 @@ test_that("deep-crown reproduces the baseline SCM result", {
   # number there -- +1.70% -- and that is a property of the coordinate rather
   # than of the shading model. Both are pinned, because a change that moved only
   # one of them would be a change to the reduction and not to the coordinate.
-  p0 <- scm_base_parameters("FF16")
+  p0 <- testing_parameters("FF16")
   env <- Environment("FF16")
   # shading_model defaults to "deep-crown"
-  p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = FF16_hyperpar, birth_rate = list(20))
+  p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(20))
   over_height <- run_scm(p1, env, Control(node_density_coordinate = "height"))
   expect_equal(over_height$offspring_production, 16.8846, tolerance = 1e-4)
   over_birth_date <- run_scm(p1, env, Control(node_density_coordinate = "birth_date"))
@@ -189,9 +189,9 @@ test_that("deep-crown reproduces the baseline SCM result", {
 })
 
 test_that("crown-centre runs through the SCM and changes the outcome", {
-  p0 <- scm_base_parameters("FF16")
+  p0 <- testing_parameters("FF16")
   p0$max_patch_lifetime <- 40
-  p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = FF16_hyperpar, birth_rate = list(20))
+  p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(20))
   # Compare crown-centre against deep-crown at the *same* (shortened) horizon, so
   # any difference is purely the model, not the horizon -- no dependence on the
   # full-lifetime baseline constant.
@@ -256,9 +256,9 @@ test_that("PPA runs through the SCM (smoothed) and changes the outcome", {
   # is differentiable, so the normal adaptive solver integrates PPA without a
   # fixed schedule. The layered light reduces self-shading, so production differs
   # markedly from deep-crown.
-  p0 <- scm_base_parameters("FF16")
+  p0 <- testing_parameters("FF16")
   p0$max_patch_lifetime <- 40
-  p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = FF16_hyperpar, birth_rate = list(20))
+  p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(20))
   ctrl_deep <- Control(); ctrl_deep$shading_model <- "deep-crown"
   ctrl_ppa  <- Control(); ctrl_ppa$shading_model  <- "ppa"
   out_deep <- run_scm(p1, Environment("FF16"), ctrl_deep)
@@ -271,17 +271,17 @@ test_that("a hard PPA step (no smoothing) defeats the adaptive solver", {
   # ppa_layer_smoothing = 0 is a genuine discontinuity, which the error-controlled
   # solver cannot integrate (it shrinks the step indefinitely). This is why the
   # default smoothing exists.
-  p0 <- scm_base_parameters("FF16")
+  p0 <- testing_parameters("FF16")
   p0$max_patch_lifetime <- 40
-  p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = FF16_hyperpar, birth_rate = list(20))
+  p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(20))
   ctrl <- Control(); ctrl$shading_model <- "ppa"; ctrl$ppa_layer_smoothing <- 0
   expect_error(run_scm(p1, Environment("FF16"), ctrl))
 })
 
 test_that("adaptive and fixed-schedule PPA agree (well-behaved integration)", {
-  p0 <- scm_base_parameters("FF16")
+  p0 <- testing_parameters("FF16")
   p0$max_patch_lifetime <- 40
-  p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = FF16_hyperpar, birth_rate = list(20))
+  p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"), hyperpar = default_hyperpar("FF16"), birth_rate = list(20))
   ctrl <- Control(); ctrl$shading_model <- "ppa"
   adaptive <- run_scm(p1, Environment("FF16"), ctrl)$offspring_production
   pf <- p1; pf$ode_times <- seq(0, p0$max_patch_lifetime, length.out = 800)
@@ -354,7 +354,7 @@ tf24_light_stand <- local({
   built <- NULL
   function() {
     if (is.null(built)) {
-      p0 <- scm_base_parameters("TF24", "TF24_Env")
+      p0 <- testing_parameters("TF24")
       p0$max_patch_lifetime <- 2
       p <- add_strategies(p0, trait_matrix(0.1978791, "lma"))
       scm <- SCM("TF24", "TF24_Env")(p, Environment("TF24"), empty_events(),
@@ -435,7 +435,7 @@ test_that("on the birth-date coordinate the field takes crossed crowns tallest f
   # Cohorts whose heights cross, which TF24's reserve-gated growth allows: the
   # field at each knot is compute_competition_and_slope's there, which walks
   # every node in list order.
-  p0 <- scm_base_parameters("TF24", "TF24_Env")
+  p0 <- testing_parameters("TF24")
   p0$max_patch_lifetime <- 2
   p <- add_strategies(p0, trait_matrix(0.1978791, "lma"))
   scm <- SCM("TF24", "TF24_Env")(p, Environment("TF24"), empty_events(),
