@@ -21,15 +21,6 @@ struct index {
   operator size_t() {return x;}
 };
 
-inline std::vector<index> index_vector(const std::vector<size_t> x) {
-  std::vector<index> ret;
-  ret.reserve(x.size());
-  for (size_t i : x) {
-    ret.push_back(i);
-  }
-  return ret;
-}
-
 // Inline so the hot per-node competition loop (Species::compute_competition)
 // does not pay a cross-TU call for this trivial check (no LTO in this build).
 // std::isfinite inlines to a couple of FP instructions; R_FINITE() compiled to
@@ -52,8 +43,6 @@ bool is_finite(const T& x) {
 
 void check_length(size_t received, size_t expected);
 size_t check_bounds_r(size_t idx, size_t size);
-void check_dimensions(size_t recieved_rows, size_t recieved_cols,
-                      size_t expected_rows, size_t expected_cols);
 
 std::vector<double> seq_len(double from, double to, size_t len);
 
@@ -65,16 +54,6 @@ std::vector<double> seq_len(double from, double to, size_t len);
 inline
 bool identical(double a, double b) {
   return a == b;
-}
-
-// http://en.cppreference.com/w/cpp/types/numeric_limits/epsilon
-template<class T>
-bool almost_equal(T x, T y, int ulp) {
-  // the machine epsilon has to be scaled to the magnitude of the larger value
-  // and multiplied by the desired precision in ULPs (units in the last place)
-  return std::abs(x - y) <=   std::numeric_limits<T>::epsilon()
-    * std::max(std::abs(x), std::abs(y))
-    * ulp;
 }
 
 // Rcpp converts size_t -> numeric, and I want to be able to preserve

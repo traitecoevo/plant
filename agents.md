@@ -110,8 +110,9 @@ reference), the key overridable surface is:
   `height, mortality, fecundity, area_heartwood, mass_heartwood`).
 - `aux_size()` / `aux_names()` — derived/auxiliary outputs.
 - `compute_rates(env, vars)` — the ODE right-hand side for one plant.
-- `competition_effect(size)` — how the plant contributes to the shared environment.
-- `establishment_probability`, `fecundity_dt`, `mortality_dt`, `initial_size`.
+- `initial_height()` — the height a newborn plant starts at.
+- `compute_competition(z, vars)` — the leaf area the plant holds above height `z`, which is how it shades the others.
+- `establishment_probability`, `fecundity_dt`, `mortality_dt`.
 
 Every Strategy carries a `Control` and an `ExtrinsicDrivers` object.
 

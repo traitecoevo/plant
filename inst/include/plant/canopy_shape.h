@@ -242,31 +242,20 @@ public:
     out[2] = out[1] * out[1];
   }
 
-  // The polynomial's coefficients times the matching powers of z^eta, so that
-  // Q(z, H) is this dotted with crown_moments(1 / H).
+  // `weight`: the polynomial's coefficients times the matching powers of z^eta,
+  // so that Q(z, H) is `weight` dotted with crown_moments(1 / H).
   //
   // The magnitudes look alarming and are not: z^2eta and H^-2eta are large and
   // small respectively, but a height only ever reads the sums of crowns that reach
   // it, so H >= z wherever the two meet and their product is at most one.
-  void height_weights(const S& z, std::array<S, max_moments>& out) const {
-    const S t = pow_eta(z);
-    out[0] = S(1.0);
-    out[1] = -2.0 * t;
-    out[2] = t * t;
-  }
-
-  // d/dz of the above, which is what the field's slope channel reads from the same
-  // sums. z^eta differentiates to eta * z^(eta-1), and z^(eta-1) is 0/0 at the
-  // crown base: the limit is 0 for every eta above 1 and 1 at eta = 1, which are
-  // the two cases Q_and_q takes by hand.
-  void height_weight_slopes(const S& z, std::array<S, max_moments>& out) const {
-    const S t = pow_eta(z);
-    slopes_from(z, t, out);
-  }
-
-  // Both of the above from one z^eta, for a reduction that reads the two at every
-  // knot: at an active scalar the power is a statement, and the two would take it
-  // twice.
+  //
+  // `slope`: d/dz of `weight`, which is what the field's slope channel reads from
+  // the same sums. z^eta differentiates to eta * z^(eta-1), and z^(eta-1) is 0/0
+  // at the crown base: the limit is 0 for every eta above 1 and 1 at eta = 1,
+  // which are the two cases Q_and_q takes by hand.
+  //
+  // Both from one z^eta, because a reduction reads the two at every knot: at an
+  // active scalar the power is a statement, and taking it twice records it twice.
   void height_weights_and_slopes(const S& z, std::array<S, max_moments>& weight,
                                  std::array<S, max_moments>& slope) const {
     const S t = pow_eta(z);
@@ -309,7 +298,7 @@ public:
   }
 
 private:
-  // height_weight_slopes from a z^eta already taken.
+  // The `slope` half of height_weights_and_slopes, from a z^eta already taken.
   void slopes_from(const S& z, const S& t, std::array<S, max_moments>& out) const {
     const S t_over_z = z > 0.0 ? S(t / z) : (eta_ == 1.0 ? S(1.0) : S(0.0));
     out[0] = S(0.0);

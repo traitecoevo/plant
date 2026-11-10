@@ -170,7 +170,6 @@ public:
   // empty, the exported time for a resumed one. A recorded schedule's first
   // entry is the state the run started from, so it has to be this time, and a
   // pinned run of a resumed run starts there rather than at zero.
-  double get_start_time() const { return start_time; }
   void set_start_time(double t) { start_time = t; }
   std::vector<std::vector<double> > get_times() const;
   bool using_ode_steps() const { return !ode_steps.empty(); }

@@ -11,7 +11,6 @@
 #include <plant/util.h>
 #include <plant/uniroot.h>
 #include <RcppCommon.h> // NA_REAL
-#include <plant/uniroot.h>
 #include <plant/extrinsic_drivers.h>
 
 
@@ -114,10 +113,6 @@ public:
 
   void refresh_indices();
 
-  double competition_effect(double size) const;
-
-  double competition_effect_state(Internals<double>& vars);
-
   void compute_rates(const environment_type& environment, Internals<double>& vars);
 
   void update_dependent_aux(const int index, Internals<double>& vars);
@@ -142,10 +137,6 @@ public:
                       double fraction_allocation_reproduction) const;
 
   double mortality_dt(double productivity_area, double cumulative_mortality) const;
-
-  double compute_competition(double z, double size) const;
-
-  double initial_size(void) const;
 
   double size_0;
 
