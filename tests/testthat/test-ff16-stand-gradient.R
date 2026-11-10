@@ -102,6 +102,25 @@ test_that("the FF16 stand gradient is the pinned-step central difference", {
   }
 })
 
+test_that("respiration, turnover and net production differentiate in every parameter", {
+  # The mass cascade's remaining parameters, with coarse roots switched on so
+  # their respiration and turnover terms are live (a_cr1 is zero by default).
+  p <- testing_parameters("FF16")
+  p$max_patch_lifetime <- 5
+  p <- add_strategies(p, trait_matrix(0.0825, "lma"), birth_rate = list(2))
+  p$strategies[[1]]$pars$a_cr1 <- 0.25
+  scm <- run_scm(p, NULL, referee_control(), keep_states = TRUE)
+  g <- stand_gradient(scm, metrics = "mass_above_ground", hyperpar = NULL)
+  expect_false(any(stand_gradient_refused(g)))
+  q <- pinned(scm)
+  for (name in c("rho", "a_b1", "a_r1", "a_cr1", "r_s", "r_b", "r_r", "r_cr",
+                 "k_b", "k_s", "k_r", "k_cr", "a_bio", "a_y")) {
+    fd <- central_difference(q, 1, name, "mass_above_ground", census_of())
+    expect_equal(g$gradient["mass_above_ground", paste0("1.", name)], fd,
+                 tolerance = 1e-5, label = name)
+  }
+})
+
 test_that("a trait's total through the FF16 trade-off function is the difference through add_strategies", {
   scm <- ff16_stand(lifetime = 5)
   # lma sets k_l and r_l through the FF16 trade-off function, so its column carries both.
