@@ -60,6 +60,19 @@ inline void check_state_layout(const std::map<std::string, int>& state_index,
   }
 }
 
+// Whether a cohort's cumulative mortality hazard still moves: it is finite, and
+// below the establishment_failure_hazard an unestablished recruit is held at.
+// Every mortality_dt returns a zero rate when this is false. The pair of tests
+// must not be reduced to one: on finiteness alone the held recruit's finite
+// hazard passes, its rate returns, and the run is no longer bit-identical to
+// the one an infinite hazard gave; on the ceiling alone a hazard that arrives
+// non-finite by any other route would not be held.
+template <class S>
+inline bool mortality_hazard_live(const S& cumulative_mortality) {
+  return util::is_finite(cumulative_mortality) &&
+         cumulative_mortality < establishment_failure_hazard;
+}
+
 template <typename E> 
 class Strategy {
 public:
@@ -107,6 +120,17 @@ public:
   // column answers at its own scalar instead (FF16); this one is a double.
   double birth_rate_at(double t) const {
     return extrinsic_drivers.evaluate("birth_rate", t);
+  }
+  // Seats the birth rate as the "birth_rate" driver: a monotone spline through
+  // (birth_rate_x, birth_rate_y) when it varies, its first value when it does
+  // not. Every model's prepare_strategy() calls this.
+  void set_birth_rate_driver() {
+    if (is_variable_birth_rate) {
+      extrinsic_drivers.set_variable("birth_rate", birth_rate_x, birth_rate_y,
+                                     odelia::drivers::Slopes::monotone);
+    } else {
+      extrinsic_drivers.set_constant("birth_rate", birth_rate_y[0]);
+    }
   }
 
   bool collect_all_auxiliary;

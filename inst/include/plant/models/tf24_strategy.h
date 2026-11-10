@@ -2703,6 +2703,16 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
   // evapotranspiration_dt -- so a partial attaches to one expression per
   // output.
   S PPFD_int_used = 0.0;
+  // The leaf's inputs at one light, soil and conductance: everything else it
+  // reads is the environment's, the same at every call.
+  auto seat_leaf = [&](double PPFD, const std::vector<double>& psi,
+                       double conductance) -> void {
+    leaf.set_physiology(root_network_, PPFD, psi, soil_depths_, conductance,
+                        environment.get_atm_vpd(), environment.get_ca(),
+                        environment.get_leaf_temp(),
+                        environment.get_atm_o2_kpa(),
+                        environment.get_atm_kpa());
+  };
   auto optimise_at = [&](const S& PPFD_int) -> void {
     PPFD_int_used = PPFD_int;
     // Read on the energy-balance path only; record_leaf_outputs gives it the
@@ -2712,25 +2722,15 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
     // one. Three of its arguments are this strategy's own and carry a derivative;
     // psi_soil is the one that needs a buffer to be stripped into.
     if constexpr (std::is_same_v<S, double>) {
-      leaf.set_physiology(root_network_, PPFD_int, psi_soil, soil_depths_,
-                          leaf_specific_conductance_max,
-                          environment.get_atm_vpd(), environment.get_ca(),
-                          environment.get_leaf_temp(),
-                          environment.get_atm_o2_kpa(),
-                          environment.get_atm_kpa());
+      seat_leaf(PPFD_int, psi_soil, leaf_specific_conductance_max);
     } else {
       using odelia::util::to_passive;
       psi_soil_value_.resize(psi_soil.size());
       for (size_t a = 0; a < psi_soil.size(); ++a) {
         psi_soil_value_[a] = to_passive(psi_soil[a]);
       }
-      leaf.set_physiology(root_network_, to_passive(PPFD_int), psi_soil_value_,
-                          soil_depths_,
-                          to_passive(leaf_specific_conductance_max),
-                          environment.get_atm_vpd(), environment.get_ca(),
-                          environment.get_leaf_temp(),
-                          environment.get_atm_o2_kpa(),
-                          environment.get_atm_kpa());
+      seat_leaf(to_passive(PPFD_int), psi_soil_value_,
+                to_passive(leaf_specific_conductance_max));
     }
     solve_leaf();
   };
@@ -2910,12 +2910,7 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
       psi_soil_value_[a] = to_passive(psi_soil[a]);
     }
     auto solve_at = [&](double conductance) {
-      leaf.set_physiology(root_network_, to_passive(PPFD_int_used),
-                          psi_soil_value_, soil_depths_, conductance,
-                          environment.get_atm_vpd(), environment.get_ca(),
-                          environment.get_leaf_temp(),
-                          environment.get_atm_o2_kpa(),
-                          environment.get_atm_kpa());
+      seat_leaf(to_passive(PPFD_int_used), psi_soil_value_, conductance);
       solve_leaf();
     };
     solve_at(kmax + dk);
@@ -3144,15 +3139,7 @@ S TF24_Strategy<S>::mortality_dt(const S& relative_reserves,
   // r = S/S_max (in [0,1]) rather than instantaneous productivity, so the rate
   // is bounded (see mortality_storage_dependent_dt): death is gradual as
   // reserves deplete rather than spiking under a carbon deficit.
-  // ⚠️ THE TEST IS THE CEILING, NOT FINITENESS, and the two must not be
-  // swapped. A cohort that failed to establish has survival exactly zero, so
-  // parking its rate there says what a non-finite hazard would --
-  // and keeping the rate parked is what makes the finite sentinel
-  // bit-identical to an infinite hazard, in the state, in the rate and so in
-  // the step the controller chooses. Finiteness is also tested, because a
-  // hazard that arrives non-finite by any other route must park too.
-  if (util::is_finite(cumulative_mortality) &&
-      cumulative_mortality < establishment_failure_hazard) {
+  if (mortality_hazard_live(cumulative_mortality)) {
     return
       mortality_growth_independent_dt() +
       mortality_storage_dependent_dt(relative_reserves);
@@ -3439,11 +3426,8 @@ void TF24_Strategy<S>::prepare_strategy() {
     }
   }
 
-  if (this->is_variable_birth_rate) {
-    this->extrinsic_drivers.set_variable("birth_rate", this->birth_rate_x, this->birth_rate_y,
-                                         odelia::drivers::Slopes::monotone);
-  } else {
-    this->extrinsic_drivers.set_constant("birth_rate", this->birth_rate_y[0]);
+  this->set_birth_rate_driver();
+  if (!this->is_variable_birth_rate) {
     birth_rate_ = this->birth_rate_y[0];
   }
   if constexpr (std::is_same_v<S, double>) {

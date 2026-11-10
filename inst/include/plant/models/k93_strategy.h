@@ -286,15 +286,9 @@ inline double K93_Strategy::fecundity_dt(double size,
 // [eqn 11] Mortality
 inline double K93_Strategy::mortality_dt(double cumulative_basal_area,
                                   double cumulative_mortality) const {
-  // Mortality probability is 1 past either test, so the rate calculations have
-  // nothing left to describe and the state does not move again.
-  //
-  // ⚠️ THE CEILING IS TESTED BESIDE FINITENESS, and the pair must not be reduced
-  // back to one test. compute_initial_conditions holds an unestablished
-  // recruit's hazard at establishment_failure_hazard rather than at the +Inf
-  // -log(0) gives, so this is the test that keeps such a cohort's rate parked.
-  if (util::is_finite(cumulative_mortality) &&
-      cumulative_mortality < establishment_failure_hazard) {
+  // Mortality probability is 1 once the hazard is held, so the rate
+  // calculations have nothing left to describe and the state does not move again.
+  if (mortality_hazard_live(cumulative_mortality)) {
     double mu = -pars.c_0 + pars.c_1 * cumulative_basal_area;
     return (mu > 0)? mu:0.0;
  } else {
@@ -306,12 +300,7 @@ inline double K93_Strategy::mortality_dt(double cumulative_basal_area,
 inline void K93_Strategy::prepare_strategy() {
   canopy_shape.initialise(pars.eta);
 
-  if (is_variable_birth_rate) {
-    extrinsic_drivers.set_variable("birth_rate", birth_rate_x, birth_rate_y,
-                                   odelia::drivers::Slopes::monotone);
-  } else {
-    extrinsic_drivers.set_constant("birth_rate", birth_rate_y[0]);
-  }
+  set_birth_rate_driver();
 }
 
 inline K93_Strategy::ptr make_strategy_ptr(K93_Strategy s) {
