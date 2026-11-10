@@ -2,26 +2,17 @@
 % Please edit documentation in R/logging.R
 \name{plant_log_console}
 \alias{plant_log_console}
-\title{Activate logging}
+\title{Activate logging (deprecated)}
 \usage{
 plant_log_console(file_name = "console", colour = TRUE, threshold = "INFO")
 }
 \arguments{
-\item{file_name}{File to save output (default = "console")}
-
-\item{colour}{Use colour in console output?}
-
-\item{threshold}{Minimum log level to emit: "DEBUG", "INFO", etc.}
+\item{file_name, colour, threshold}{Ignored.}
 }
 \description{
-Activate logging
+Activate logging (deprecated)
 }
 \details{
-By default plant prints little information about its progress.
-This can be modified by enabling logging.  Log entries include a
-timestamp and, where applicable, a routine label indicating which
-part of the model is running.
-
-"Schedule" events (splitting) are sent to the DEBUG stream,
-everything else is sent to INFO.
+plant writes nothing to a log, so this has no effect. It is kept so that
+existing scripts still run, and will be removed in a later release.
 }

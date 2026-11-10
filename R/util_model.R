@@ -296,11 +296,3 @@ mutant_parameters <- function(trait_matrix, p, hyperpar = param_hyperpar(p),
                  keep_existing = keep_existing_strategies)
 }
 
-remove_residents <- function(p) {
-  if (length(p$strategies) > 0L) {
-    p$strategies <- list()
-    p$birth_rate <- numeric(0)
-    p$node_schedule_times <- list()
-  }
-  p
-}

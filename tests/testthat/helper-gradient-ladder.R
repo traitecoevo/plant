@@ -521,12 +521,6 @@ ladder_stand_trajectory <- function(lifetime = 2) {
   ladder_run(p)
 }
 
-ladder_stand_one <- function() {
-  p <- ladder_parameters("fast")
-  p$node_schedule_times <- list(c(0, 0.63))
-  ladder_run(p)
-}
-
 ladder_run <- function(p, ctrl = NULL, env = NULL) {
   if (is.null(ctrl)) ctrl <- ladder_control()
   if (is.null(env)) env <- Environment("TF24")

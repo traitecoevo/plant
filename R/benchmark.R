@@ -50,33 +50,3 @@ run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy),
                })
 }
 
-# Evaluate overheads of having multiple soil layers in TF24, to ensure that
-# our approach to computing individual resource consumption is scalable.
-run_resource_consumption_benchmarks <- function(its = 10) {
-  
-  f_scm <- function(layers) {
-    p0 <- default_parameters("TF24", quiet = TRUE)
-    p0$max_patch_lifetime = 10
-    
-    p1 <- add_strategies(p0, trait_matrix(0.0825, "lma"))
-    
-    env <- Environment("TF24")
-    env$set_soil_number_of_depths(layers)
-
-    ctrl <- Control()
-    out <- run_scm(p1, env, ctrl)
-    invisible(NULL)
-  }
-  
-  message("Running resource consumption benchmarks`")
-  soil_layers <- c(1, 10, 50, 100)
-  bench::press(soil_layers = soil_layers,
-               {
-                 bench::mark(
-                   check = FALSE,
-                   # We're not expecting different results to be equivalent
-                   iterations = its,
-                   scm = f_scm(soil_layers),
-                 )
-               })
-}

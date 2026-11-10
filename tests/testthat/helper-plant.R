@@ -50,34 +50,6 @@ tf24_probe <- function(strategy, soil_theta, height = 5) {
   stats::setNames(ind$internals$auxs, ind$aux_names)
 }
 
-test_ode_make_system <- function(obj) {
-  make_derivs <- function(obj) {
-    if (is.null(obj$set_ode_state)) {
-      function(y, t) {
-        obj$ode_state <- y
-        obj$ode_rates
-      }
-    } else {
-      function(y, t) {
-        obj$set_ode_state(y, t)
-        obj$ode_rates
-      }
-    }
-  }
-  ## Hmm, this is causing all sorts of trouble...
-  make_state <- function(obj) {
-    function() {
-      obj$ode_state
-    }
-  }
-  time <- if (is.null(obj$time)) 0.0 else obj$time
-  sys <- OdeR(make_derivs(obj), make_state(obj), time)
-}
-
-test_ode_make_solver <- function(sys) {
-  OdeRunner(class(sys)[[1]])(sys)
-}
-
 # plant's testing parameter set, quietly: today's C++ defaults with the frozen
 # trade-off functions attached (see ?default_parameters). Every test that builds
 # strategies from traits uses this rather than scm_base_parameters(), which
@@ -128,7 +100,6 @@ poisson_pulses <- function(from, to, rate, mean_amount) {
 # is excluded for the same reasons (four appended states, seeded in
 # set_initial_states) and is covered in test-strategy-tf24t.R.
 
-# ! Important the whitespace in the following function is used by the strategy scaffolder
 get_list_of_strategy_types <- function() {
   list(
     FF16=FF16_Strategy,
@@ -142,15 +113,6 @@ get_list_of_environment_types <- function() {
     FF16="FF16_Env",
     TF24="TF24_Env",
     K93="K93_Env"
-    )
-}
-
-# ! Important the whitespace in the following function is used by the strategy scaffolder
-get_list_of_hyperpar_functions <- function() {
-  list(
-    FF16=default_hyperpar("FF16"),
-    TF24=default_hyperpar("TF24"),
-    K93=default_hyperpar("K93")
     )
 }
 
