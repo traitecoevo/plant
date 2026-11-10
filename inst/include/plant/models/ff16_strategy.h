@@ -1255,13 +1255,8 @@ template <typename S>
 S FF16_Strategy<S>::mortality_dt(const S& productivity_area,
                                  const S& cumulative_mortality) const {
 
-  // NOTE: When plants are extremely inviable, the rate of change in
-  // mortality can be Inf, because net production is negative, leaf
-  // area is small and so we get exp(big number).  However, most of
-  // the time that happens we should get infinite mortality variable
-  // levels and the rate of change won't matter.  It is possible that
-  // we will need to trim this to some large finite value, but for
-  // now, just checking that the actual mortality rate is finite.
+  // A hazard that is non-finite or held at establishment_failure_hazard no
+  // longer moves; see mortality_hazard_live().
   if (mortality_hazard_live(cumulative_mortality)) {
     return
       mortality_growth_independent_dt() +

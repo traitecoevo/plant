@@ -286,8 +286,9 @@ inline double K93_Strategy::fecundity_dt(double size,
 // [eqn 11] Mortality
 inline double K93_Strategy::mortality_dt(double cumulative_basal_area,
                                   double cumulative_mortality) const {
-  // Mortality probability is 1 once the hazard is held, so the rate
-  // calculations have nothing left to describe and the state does not move again.
+  // Mortality probability is 1 once the hazard is non-finite or held, so the
+  // rate calculations have nothing left to describe and the state does not move
+  // again.
   if (mortality_hazard_live(cumulative_mortality)) {
     double mu = -pars.c_0 + pars.c_1 * cumulative_basal_area;
     return (mu > 0)? mu:0.0;

@@ -65,7 +65,8 @@ inline void check_state_layout(const std::map<std::string, int>& state_index,
 // Every mortality_dt returns a zero rate when this is false. The pair of tests
 // must not be reduced to one: on finiteness alone the held recruit's finite
 // hazard passes, its rate returns, and the run is no longer bit-identical to
-// the one an infinite hazard gave; on the ceiling alone a hazard that arrives
+// the one an infinite hazard gave, in the state, the rate and so the step the
+// controller chooses; on the ceiling alone a hazard that arrives
 // non-finite by any other route would not be held.
 template <class S>
 inline bool mortality_hazard_live(const S& cumulative_mortality) {
