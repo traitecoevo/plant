@@ -311,8 +311,8 @@ test_that("acclimation runs, is active, and converges to TF24", {
   expect_true(is.finite(fast) && fast > 0)
 
   # (2) Acclimation is genuinely active: the gain k_acclim materially changes
-  #     fitness, so the finite-difference psi optimisation is feeding back into
-  #     the demography rather than being a no-op.
+  #     fitness, so the tracked psi is feeding back into the demography rather
+  #     than being a no-op.
   #
   #     ⚠️ Offspring production is NOT monotone in k_acclim, so the pair has to
   #     sit on one side of its maximum: a pair straddling it can sit at the same

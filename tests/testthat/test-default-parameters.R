@@ -186,7 +186,12 @@ test_that("generate_strategy assigns TF24t's thermal fields from a trait matrix"
   ss <- generate_strategy(p, m)
   expect_equal(vapply(ss, function(s) s$k_mat, numeric(1)), c(0.02, 0.05))
 
-  # A logical top-level field stays out of reach; a numeric one is reachable.
+  # Only numeric scalars beyond the infrastructure are reachable: no model has
+  # another kind of top-level field today, so the filter is checked directly.
+  expect_identical(
+    strategy_field_names(list(pars = list(), control = list(), flag = TRUE,
+                              knots = c(1, 2), gain = 0.3)),
+    "gain")
   p <- default_parameters("TF24f", quiet = TRUE)
   expect_error(generate_strategy(p, trait_matrix(1, "collect_all_auxiliary")), "Unknown trait")
   expect_equal(generate_strategy(p, trait_matrix(0.3, "k_acclim"))[[1]]$k_acclim, 0.3)

@@ -59,7 +59,7 @@ public:
   void compute_rates(const TF24_Environment<S>& environment, Internals<S>& vars);
 
   // Override the leaf solve: instead of optimising the root-collar psi, evaluate
-  // the leaf at the tracked state and finite-difference the profit gradient
+  // the leaf at the tracked state and take the exact profit gradient there
   // (left in dprofit_dpsi_ for compute_rates to turn into the state's rate).
   void solve_leaf();
 
@@ -141,7 +141,8 @@ void TF24f_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,
 // moves past the state during shutdown), pulling it back inside, and the final
 // evaluate leaves the leaf outputs at the operating point that compute_rates'
 // aux reads expect. The gradient is exact: forward-mode AD over the leaf's
-// algebra, with the implicit-function theorem at the ci root-find.
+// algebra, the implicit-function theorem at the ci root-find, and analytic
+// spline derivatives for the transport.
 // A function-try-block, so every exit of the body is covered: phylloptim's
 // infeasible_error becomes odelia's DomainError, a rejected step rather than a
 // dead run, for the reason TF24_Strategy::solve_leaf gives. Only that error is
@@ -156,8 +157,6 @@ void TF24f_Strategy<S>::solve_leaf() try {
         phylloptim::Leaf::CostCurve::TF24_floor>();
     return;
   }
-  // Forward-mode AD over the analytic algebra, the implicit-function theorem at
-  // the ci root-find, and analytic spline derivatives for the transport.
   // Establish the operating point (and the clamped collar psi `used`) and leave
   // the leaf outputs there for compute_rates' aux reads. Where feasibility
   // handling fixes the operating point (shutdown / closed interval) `used` is

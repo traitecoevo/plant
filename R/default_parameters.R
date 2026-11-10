@@ -147,7 +147,7 @@ is_identity_hyperpar <- function(f) {
 
 ## Top-level numeric scalar fields of a strategy beyond the six every model
 ## carries (`pars`, `control`, the birth-rate trio and `collect_all_auxiliary`):
-## TF24t's thermal parameters and TF24f's acclimation settings. These are the
+## TF24t's thermal parameters and TF24f's acclimation gain. These are the
 ## fields a trait matrix can reach besides `pars` (see generate_strategy()).
 strategy_field_names <- function(strategy) {
   infrastructure <- c("pars", "control", "collect_all_auxiliary",
