@@ -17,7 +17,7 @@ namespace plant {
 // integrates no state of its own, so the field is the whole of what a cohort
 // reads from the environment and the whole of what a rebind carries across.
 template <typename S = double>
-class FF16_Environment : public Environment {
+class FF16_Environment final : public Environment {
 public:
   using value_type = S;
 

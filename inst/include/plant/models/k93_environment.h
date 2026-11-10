@@ -9,7 +9,7 @@ using namespace Rcpp;
 
 namespace plant {
 
-class K93_Environment : public Environment {
+class K93_Environment final : public Environment {
 public:
   K93_Environment() {
     time = 0.0;
