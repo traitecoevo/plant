@@ -207,23 +207,23 @@ check_convergence_args <- function(scm, block, tol, t_max, statistics, defaulted
   }
   if (!(length(window) == 1L && is.finite(window) && window >= 2 &&
         window == round(window))) {
-    stop("`window` must be a whole number of blocks, at least 2")
+    stop("`window` must be a whole number of blocks, at least 2", call. = FALSE)
   }
   if (!(length(tol_abs) == 1L && is.finite(tol_abs) && tol_abs >= 0)) {
-    stop("`tol_abs` must be a non-negative number")
+    stop("`tol_abs` must be a non-negative number", call. = FALSE)
   }
   if (isTRUE(scm$complete)) {
     stop("this SCM's run has already finished; build one with ",
-         "run_scm(p, ..., run = FALSE) and let run_until_converged() run it")
+         "run_scm(p, ..., run = FALSE) and let run_until_converged() run it", call. = FALSE)
   }
   if (!(length(block) == 1L && is.finite(block) && block > 0)) {
-    stop("`block` must be a positive number of years")
+    stop("`block` must be a positive number of years", call. = FALSE)
   }
   if (!(length(tol) == 1L && is.finite(tol) && tol > 0)) {
-    stop("`tol` must be a positive number")
+    stop("`tol` must be a positive number", call. = FALSE)
   }
   if (!(length(t_max) == 1L && is.finite(t_max) && t_max > scm$time)) {
-    stop("`t_max` must lie after the run's current time, ", scm$time)
+    stop("`t_max` must lie after the run's current time, ", scm$time, call. = FALSE)
   }
   n_env <- scm$patch$environment$ode_size
   if ("environment" %in% statistics && n_env == 0) {
@@ -233,16 +233,16 @@ check_convergence_args <- function(scm, block, tol, t_max, statistics, defaulted
       statistics <- setdiff(statistics, "environment")
     } else {
       stop("this model's environment carries no state, so \"environment\" ",
-           "cannot be judged; leave it out of `statistics`")
+           "cannot be judged; leave it out of `statistics`", call. = FALSE)
     }
   }
   if (!is.null(environment_entries)) {
     if (!"environment" %in% statistics) {
-      stop("`environment_entries` is read only by the \"environment\" statistic")
+      stop("`environment_entries` is read only by the \"environment\" statistic", call. = FALSE)
     }
     if (!all(environment_entries %in% seq_len(n_env))) {
       stop("`environment_entries` must index the environment's ", n_env,
-           " state entries")
+           " state entries", call. = FALSE)
     }
   } else if ("environment" %in% statistics) {
     # The accumulators are the last entries of the environment's state.
@@ -253,7 +253,7 @@ check_convergence_args <- function(scm, block, tol, t_max, statistics, defaulted
     scm$snapshot_interval <- snapshot_interval
   }
   if (scm$snapshot_interval > block) {
-    stop("the snapshot interval must not exceed the block")
+    stop("the snapshot interval must not exceed the block", call. = FALSE)
   }
   list(statistics = statistics, environment_entries = environment_entries)
 }

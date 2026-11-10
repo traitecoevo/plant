@@ -112,7 +112,7 @@ refuse_unknown_traits <- function(trait_names, strategy, known, fields, hyperpar
   ## Refuse a name that is not a parameter of this model (#636).
   ##
   ## ⚠️ WITHOUT THIS, A MISSPELT TRAIT IS A SILENT NO-OP AND THE RUN LOOKS FINE.
-  ## The assignment below is `pars[trait_names] <- xi` on a list, which APPENDS an
+  ## generate_strategy() assigns traits into `pars` as a list, which APPENDS an
   ## unknown name rather than dropping it -- so the junk element reaches the
   ## generated `Rcpp::as<*_Pars>`, which reads only the fields it knows and never
   ## looks at the extras (`RcppR6_post.hpp`: "No current support for a hook").
@@ -129,8 +129,8 @@ refuse_unknown_traits <- function(trait_names, strategy, known, fields, hyperpar
   ## reject every legitimate hyperparameterised trait.
   ##
   ## The valid set is `pars` plus the numeric top-level strategy fields (TF24t's
-  ## thermal parameters, TF24f's `k_acclim`), each assigned where it lives
-  ## below. `strategy_field_names()` keeps only numeric scalars, so a field of
+  ## thermal parameters, TF24f's `k_acclim`), each assigned where it lives by
+  ## generate_strategy(). `strategy_field_names()` keeps only numeric scalars, so a field of
   ## any other type stays unreachable from a trait matrix and is refused here
   ## rather than coerced.
   ## Traits the hyperpar reads from the matrix but never assigns to the strategy.
@@ -178,20 +178,20 @@ refuse_unknown_traits <- function(trait_names, strategy, known, fields, hyperpar
 set_strategy_birth_rate <- function(strategy, br, max_lifetime) {
   if (is.list(br)) {
     if (!is.numeric(br$x) || length(br$x) < 2) {
-      stop("birth_rate$x must be a numeric vector of at least length 2")
+      stop("birth_rate$x must be a numeric vector of at least length 2", call. = FALSE)
     }
     if (br$x[[1]] != 0) {
       stop(sprintf(
         "birth_rate$x must start at 0, not %g.\n",
         br$x[[1]]
-      ))
+      ), call. = FALSE)
     }
     if (!is.null(max_lifetime) && max(br$x) < max_lifetime) {
       stop(sprintf(paste0(
         "birth_rate$x must extend to at least max_patch_lifetime (%g), ",
         "but ends at %g.\n",
         "Extend birth_rate$x (and birth_rate$y) to cover the full simulation duration."
-      ), max_lifetime, max(br$x)))
+      ), max_lifetime, max(br$x)), call. = FALSE)
     }
     strategy$birth_rate_x <- br$x
     strategy$birth_rate_y <- br$y
@@ -200,7 +200,7 @@ set_strategy_birth_rate <- function(strategy, br, max_lifetime) {
     strategy$birth_rate_y <- br
     strategy$is_variable_birth_rate <- FALSE
   } else {
-    stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
+    stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric", call. = FALSE)
   }
   strategy
 }
