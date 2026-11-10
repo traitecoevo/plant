@@ -2,7 +2,7 @@
 #ifndef PLANT_PLANT_TF24F_STRATEGY_H_
 #define PLANT_PLANT_TF24F_STRATEGY_H_
 
-#include <plant/models/tf24_strategy.h>
+#include <plant/models/tf24_model.h>
 
 namespace plant {
 

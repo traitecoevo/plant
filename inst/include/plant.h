@@ -31,7 +31,7 @@
 
 // Specific models
 #include <plant/models/ff16_strategy.h>
-#include <plant/models/tf24_strategy.h>
+#include <plant/models/tf24_model.h>
 #include <plant/models/tf24f_strategy.h>
 #include <plant/models/tf24t_strategy.h>
 #include <plant/models/tf24w_strategy.h>

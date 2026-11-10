@@ -88,7 +88,7 @@ Key headers to know:
 | Concern | Header |
 |---|---|
 | Biological model interface | [strategy.h](inst/include/plant/strategy.h) |
-| Concrete models | [models/ff16_strategy.h](inst/include/plant/models/ff16_strategy.h), [models/tf24_strategy.h](inst/include/plant/models/tf24_strategy.h), [models/k93_strategy.h](inst/include/plant/models/k93_strategy.h) |
+| Concrete models | [models/ff16_strategy.h](inst/include/plant/models/ff16_strategy.h), [models/tf24_model.h](inst/include/plant/models/tf24_model.h) (with its parameters in `tf24_pars.h` and its definitions in `tf24_allometry.h`, `tf24_leaf.h` and `tf24_rates.h`), [models/k93_strategy.h](inst/include/plant/models/k93_strategy.h) |
 | Environments | [models/ff16_environment.h](inst/include/plant/models/ff16_environment.h) (and tf24/k93 variants) |
 | Single plant | [individual.h](inst/include/plant/individual.h), per-plant state in [internals.h](inst/include/plant/internals.h) |
 | Cohort / species / patch | [node.h](inst/include/plant/node.h), [species.h](inst/include/plant/species.h), [patch.h](inst/include/plant/patch.h) |
@@ -656,7 +656,7 @@ will see in the code:
   `.cpp`: `area_leaf`, `update_dependent_aux`, the `compute_competition`
   overloads, and `compute_competition_by_ratio` live in
   [ff16_strategy.h](inst/include/plant/models/ff16_strategy.h) /
-  [tf24_strategy.h](inst/include/plant/models/tf24_strategy.h); `util::is_finite`
+  [tf24_model.h](inst/include/plant/models/tf24_model.h); `util::is_finite`
   and the `Interpolator` accessors are inline in their headers. Moving them back
   into a `.cpp` re-introduces a cross-TU call and measurably slows the loop.
 - The cleanest fix for the remaining large cross-TU calls (`assimilation`,
