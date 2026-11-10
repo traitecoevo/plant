@@ -240,7 +240,8 @@ double StochasticSpecies<T,E>::consumption_rate(int i) const {
   return tot;
 }
 
-// Each individual's fecundity state as it stands, the dead included. This is
+// Each individual's fecundity state, the dead included at the value they died
+// with (only the living are integrated). This is
 // not yet a net reproduction ratio for the stochastic model: what that should
 // be, and whether an individual that has died still counts, is open.
 template <typename T, typename E>
