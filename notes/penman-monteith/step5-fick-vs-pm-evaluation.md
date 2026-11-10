@@ -1,9 +1,6 @@
 # Step 5 evaluation — Fick's law vs Penman-Monteith (leaf level)
 
-Implements the doc Section 7.5.1 factorial gate: does the Penman-Monteith leaf
-energy balance change leaf outputs enough, and in the predicted places, to be
-worth keeping? Companion to `implementation-plan.md` (Steps 1–4 built the
-feature; this is the "gate before keeping anything" measurement).
+The first of the four tests (7.5.1 to 7.5.4) that the Penman-Monteith design required before any PM output is used ([its §7.5](https://github.com/traitecoevo/plant/blob/f406b6d864f5a68b97c5acc68f6bcf44fb05cda6/notes/penman-monteith/penman_monteith_implementation.md#75-recommended-evaluation-protocol), in the history since the design retired): a factorial gate asking whether the leaf energy balance changes leaf outputs enough, and in the predicted places, to be worth keeping. The feature was built first; this is the "gate before keeping anything" measurement.
 
 The 2026-10 re-run comes first. The July run follows unchanged, as the record of what it found. The three sensitivity tests July left open (doc 7.5.2–7.5.4) are in [`sensitivity-results.md`](sensitivity-results.md).
 

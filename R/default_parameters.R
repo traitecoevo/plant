@@ -429,9 +429,7 @@ frozen_FF16_hyperpar <- function(
 ##'   describes a different physical quantity than it did before the stem path
 ##'   integral existed; it was re-anchored to hold stem_P50 fixed at the default
 ##'   parameters. Whether the Ks-p50 relation should be keyed on tip conductivity
-##'   at all is open -- twig segments are what people usually measure -- and is
-##'   logged as a staged inconsistency in
-##'   notes/plan-tf24-height-hydraulics.md.
+##'   at all is open -- twig segments are what people usually measure.
 ##' @param B_Hv2 Scaling slope for K_s in p50 [dimensionless]
 ##' @param B_c1 Shape parameter stem_c of the vulnerability curve at stem_P50 = 0 [dimensionless]
 ##' @param B_c2 Scaling slope for stem_P50 in the vulnerability-curve shape parameter stem_c [dimensionless]

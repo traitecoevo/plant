@@ -75,7 +75,7 @@ struct Control {
   // is not a free numerical choice for every model -- hence "auto", resolved
   // per model against Strategy::density_in_birth_date_default. An explicit
   // value is an override and always wins, so both coordinates stay available
-  // for the comparison tests. See notes/516-flexible-allometry.md.
+  // for the comparison tests.
   std::string node_density_coordinate;
 
   // The absorbing top layer of a continuous patch (#519): with epsilon > 0, a

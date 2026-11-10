@@ -98,7 +98,6 @@ public:
                                   vars.aux(HEIGHT_INVERSE_AUX_INDEX));
   }
 
-  double compute_competition(double z, double size) const;
   // Hot path (called per node from Species::compute_competition): defined inline
   // here so the no-LTO build folds it into the loop instead of paying a cross-TU
   // call (mirrors FF16_Strategy; see the profile-plant skill).
@@ -184,10 +183,6 @@ inline void K93_Strategy::update_dependent_aux(const int index, Internals<double
                    0.0, pars.k_I * size_to_basal_area(height)));
     vars.set_aux(HEIGHT_INVERSE_AUX_INDEX, 1.0 / height);
   }
-}
-
-inline double K93_Strategy::compute_competition(double z, double size) const {
-  return compute_competition(z, pars.k_I * size_to_basal_area(size), 1.0 / size);
 }
 
 inline double K93_Strategy::establishment_probability(const K93_Environment& environment){

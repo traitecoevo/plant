@@ -426,11 +426,6 @@ public:
     return ret;
   }
 
-  // Translate generic methods to FF16 strategy leaf area methods
-
-  S competition_effect(const S& height) const {
-    return area_leaf(height);
-  }
 
   void refresh_indices();
 
@@ -539,28 +534,16 @@ public:
                 const S& mass_bark, const S& mass_root,
                 const S& mass_coarse_root) const;
 
-  S respiration_leaf(const S& mass) const;
-  S respiration_bark(const S& mass) const;
-  S respiration_sapwood(const S& mass) const;
-  S respiration_root(const S& mass) const;
-  S respiration_coarse_root(const S& mass) const;
-
   // [eqn 14] Total turnover
   S turnover(const S& mass_leaf, const S& mass_bark,
              const S& mass_sapwood, const S& mass_root,
              const S& mass_coarse_root) const;
-  S turnover_leaf(const S& mass) const;
-  S turnover_bark(const S& mass) const;
   S turnover_sapwood(const S& mass) const;
-  S turnover_root(const S& mass) const;
-  S turnover_coarse_root(const S& mass) const;
 
   // [eqn 15] Net production
   S net_mass_production_dt_A(const S& assimilation, const S& respiration,
                              const S& turnover) const;
 
-  S net_mass_production_dt(const FF16_Environment<S>& environment,
-                           const S& height, const S& area_leaf_);
   S net_mass_production_dt(const FF16_Environment<S>& environment,
                            const S& height, const S& area_leaf_,
                            const S& height_inverse);
@@ -599,7 +582,6 @@ public:
     }
     return hmat * (1.0 + std::log((1.0 - epsilon) / epsilon) / a_f2);
   }
-  S fraction_allocation_growth(const S& height) const;
   // [eqn 17] Rate of offspring production
   S fecundity_dt(const S& net_mass_production_dt,
                  const S& fraction_allocation_reproduction) const;
@@ -632,27 +614,6 @@ public:
   // Mass of coarse root needed for new unit area leaf, d m_cr / d a_l.
   // == a_cr1 * dmass_sapwood_darea_leaf, so it carries the same height scaling.
   S dmass_coarse_root_darea_leaf(const S& area_leaf) const;
-  // Growth rate of basal diameter_stem per unit stem area
-  S ddiameter_stem_darea_stem(const S& area_stem) const;
-  // Growth rate of components per unit time:
-  S area_sapwood_dt(const S& area_leaf_dt) const;
-  S area_heartwood_dt(const S& area_leaf) const;
-  S area_bark_dt(const S& area_leaf_dt) const;
-  S area_stem_dt(const S& area_leaf, const S& area_leaf_dt) const;
-  S diameter_stem_dt(const S& area_stem, const S& area_stem_dt) const;
-  S mass_root_dt(const S& area_leaf, const S& area_leaf_dt) const;
-  S mass_coarse_root_dt(const S& area_leaf, const S& area_leaf_dt) const;
-  S mass_live_dt(const S& fraction_allocation_reproduction,
-                 const S& net_mass_production_dt) const;
-  S mass_total_dt(const S& fraction_allocation_reproduction,
-                  const S& net_mass_production_dt,
-                  const S& mass_heartwood_dt) const;
-  S mass_above_ground_dt(const S& area_leaf,
-                         const S& fraction_allocation_reproduction,
-                         const S& net_mass_production_dt,
-                         const S& mass_heartwood_dt,
-                         const S& area_leaf_dt) const;
-
   S mass_heartwood_dt(const S& mass_sapwood) const;
 
   S mass_live_given_height(const S& height) const;
@@ -691,13 +652,10 @@ public:
                               const S& seed_area_leaf);
 
   // * Competitive environment
-  // [eqn 11] total projected leaf area above height above height `z` for given plant
+  // [eqn 11] total projected leaf area above height `z` for a given plant
   // Inline (header) so the per-node hot competition path called from
   // Individual<FF16>::compute_competition can inline these tiny helpers
   // instead of paying a cross-TU call each iteration (no LTO build).
-  S compute_competition(const S& z, const S& height) const {
-    return compute_competition(z, area_leaf(height), 1.0 / height);
-  }
   S compute_competition(const S& z, const S& area_leaf_,
                         const S& height_inverse) const {
     return compute_competition_by_ratio(z * height_inverse, area_leaf_);
@@ -737,9 +695,6 @@ public:
       canopy_shape.Q_and_q(z * height_inverse, z, height_inverse);
     return {scale * Qq.first, -(scale * Qq.second)};
   }
-
-  // [      ] Inverse of Q: height above which fraction 'x' of leaf found
-  S Qp(const S& x, const S& height) const;
 
   // The aim is to find a plant height that gives the correct seed mass.
   double height_seed(void) const;
@@ -1033,8 +988,8 @@ void FF16_Strategy<S>::compute_rates(const FF16_Environment<S>& environment,
     // both rates rather than paying it twice per node per step (issue #361).
     const S area_leaf_pow_a_l2 = pow(area_leaf_, pars.a_l2);
     const S darea_leaf_dmass_live_ = darea_leaf_dmass_live(area_leaf_, area_leaf_pow_a_l2);
-    // fraction_allocation_growth(height), from the reproduction fraction held
-    // above rather than evaluated again.
+    // The fraction of production allocated to growth, from the reproduction
+    // fraction held above rather than evaluated again.
     const S fraction_allocation_growth_ = 1.0 - fraction_allocation_reproduction_;
     const S area_leaf_dt = net_mass_production_dt_ * fraction_allocation_growth_ * darea_leaf_dmass_live_;
 
@@ -1042,7 +997,7 @@ void FF16_Strategy<S>::compute_rates(const FF16_Environment<S>& environment,
     vars.set_rate(FECUNDITY_INDEX,
       fecundity_dt(net_mass_production_dt_, fraction_allocation_reproduction_));
 
-    // area_heartwood_dt(area_leaf_), on the sapwood area the worker returned.
+    // Heartwood area grows as k_s times the sapwood area the worker returned.
     vars.set_rate(AREA_HEARTWOOD_INDEX, pars.k_s * area_sapwood_);
     vars.set_rate(MASS_HEARTWOOD_INDEX, mass_heartwood_dt(mass_sapwood_));
 
@@ -1130,31 +1085,6 @@ S FF16_Strategy<S>::respiration(const S& mass_leaf, const S& mass_sapwood,
                           pars.r_l, pars.r_s, pars.r_b, pars.r_r, pars.r_cr);
 }
 
-template <typename S>
-S FF16_Strategy<S>::respiration_leaf(const S& mass) const {
-  return pars.r_l * mass;
-}
-
-template <typename S>
-S FF16_Strategy<S>::respiration_bark(const S& mass) const {
-  return pars.r_b * mass;
-}
-
-template <typename S>
-S FF16_Strategy<S>::respiration_sapwood(const S& mass) const {
-  return pars.r_s * mass;
-}
-
-template <typename S>
-S FF16_Strategy<S>::respiration_root(const S& mass) const {
-  return pars.r_r * mass;
-}
-
-template <typename S>
-S FF16_Strategy<S>::respiration_coarse_root(const S& mass) const {
-  return pars.r_cr * mass;
-}
-
 // [eqn 14] Total turnover
 template <typename S>
 S FF16_Strategy<S>::turnover(const S& mass_leaf, const S& mass_bark,
@@ -1167,28 +1097,8 @@ S FF16_Strategy<S>::turnover(const S& mass_leaf, const S& mass_bark,
 }
 
 template <typename S>
-S FF16_Strategy<S>::turnover_leaf(const S& mass) const {
-  return pars.k_l * mass;
-}
-
-template <typename S>
-S FF16_Strategy<S>::turnover_bark(const S& mass) const {
-  return pars.k_b * mass;
-}
-
-template <typename S>
 S FF16_Strategy<S>::turnover_sapwood(const S& mass) const {
   return pars.k_s * mass;
-}
-
-template <typename S>
-S FF16_Strategy<S>::turnover_root(const S& mass) const {
-  return pars.k_r * mass;
-}
-
-template <typename S>
-S FF16_Strategy<S>::turnover_coarse_root(const S& mass) const {
-  return pars.k_cr * mass;
 }
 
 // [eqn 15] Net production
@@ -1200,15 +1110,6 @@ S FF16_Strategy<S>::net_mass_production_dt_A(const S& assimilation, const S& res
                                              const S& turnover) const {
   // Single source: scalar-templated kernel (#472 scope B, Milestone A).
   return ff16_net_production_A(pars.a_bio, pars.a_y, assimilation, respiration, turnover);
-}
-
-// One shot calculation of net_mass_production_dt
-// Used by establishment_probability() and compute_rates().
-template <typename S>
-S FF16_Strategy<S>::net_mass_production_dt(const FF16_Environment<S>& environment,
-                                           const S& height, const S& area_leaf_) {
-  return net_mass_production_dt(environment, height, area_leaf_,
-                                1.0 / height);
 }
 
 template <typename S>
@@ -1248,12 +1149,6 @@ template <typename S>
 S FF16_Strategy<S>::fraction_allocation_reproduction(const S& height) const {
   using std::exp;
   return pars.a_f1 / (1.0 + exp(pars.a_f2 * (1.0 - height / pars.hmat)));
-}
-
-// Fraction of production allocated to growth
-template <typename S>
-S FF16_Strategy<S>::fraction_allocation_growth(const S& height) const {
-  return 1.0 - fraction_allocation_reproduction(height);
 }
 
 // [eqn 17] Rate of offspring production
@@ -1337,89 +1232,6 @@ const S& FF16_Strategy<S>::dmass_root_darea_leaf(const S& /* area_leaf */) const
 template <typename S>
 S FF16_Strategy<S>::dmass_coarse_root_darea_leaf(const S& area_leaf) const {
   return pars.a_cr1 * dmass_sapwood_darea_leaf(area_leaf);
-}
-
-// Growth rate of basal diameter_stem per unit time
-template <typename S>
-S FF16_Strategy<S>::ddiameter_stem_darea_stem(const S& area_stem) const {
-  using std::pow;
-  return pow(M_PI * area_stem, -0.5);
-}
-
-// Growth rate of sapwood area at base per unit time
-template <typename S>
-S FF16_Strategy<S>::area_sapwood_dt(const S& area_leaf_dt) const {
-  return area_leaf_dt * pars.theta;
-}
-
-// Note, unlike others, heartwood growth does not depend on leaf area growth, but
-// rather existing sapwood
-template <typename S>
-S FF16_Strategy<S>::area_heartwood_dt(const S& area_leaf) const {
-  return pars.k_s * area_sapwood(area_leaf);
-}
-
-// Growth rate of bark area at base per unit time
-template <typename S>
-S FF16_Strategy<S>::area_bark_dt(const S& area_leaf_dt) const {
-  return pars.a_b1 * area_leaf_dt * pars.theta;
-}
-
-// Growth rate of stem basal area per unit time
-template <typename S>
-S FF16_Strategy<S>::area_stem_dt(const S& area_leaf,
-                                 const S& area_leaf_dt) const {
-  return area_sapwood_dt(area_leaf_dt) +
-    area_bark_dt(area_leaf_dt) +
-    area_heartwood_dt(area_leaf);
-}
-
-// Growth rate of basal diameter_stem per unit time
-template <typename S>
-S FF16_Strategy<S>::diameter_stem_dt(const S& area_stem, const S& area_stem_dt) const {
-  return ddiameter_stem_darea_stem(area_stem) * area_stem_dt;
-}
-
-// Growth rate of root mass per unit time
-template <typename S>
-S FF16_Strategy<S>::mass_root_dt(const S& area_leaf,
-                                 const S& area_leaf_dt) const {
-  return area_leaf_dt * dmass_root_darea_leaf(area_leaf);
-}
-
-// Growth rate of coarse-root mass per unit time
-template <typename S>
-S FF16_Strategy<S>::mass_coarse_root_dt(const S& area_leaf,
-                                        const S& area_leaf_dt) const {
-  return area_leaf_dt * dmass_coarse_root_darea_leaf(area_leaf);
-}
-
-template <typename S>
-S FF16_Strategy<S>::mass_live_dt(const S& fraction_allocation_reproduction,
-                                 const S& net_mass_production_dt) const {
-  return (1 - fraction_allocation_reproduction) * net_mass_production_dt;
-}
-
-template <typename S>
-S FF16_Strategy<S>::mass_total_dt(const S& fraction_allocation_reproduction,
-                                  const S& net_mass_production_dt,
-                                  const S& mass_heartwood_dt) const {
-  return mass_live_dt(fraction_allocation_reproduction, net_mass_production_dt) +
-    mass_heartwood_dt;
-}
-
-template <typename S>
-S FF16_Strategy<S>::mass_above_ground_dt(const S& area_leaf,
-                                         const S& fraction_allocation_reproduction,
-                                         const S& net_mass_production_dt,
-                                         const S& mass_heartwood_dt,
-                                         const S& area_leaf_dt) const {
-  const S mass_root_dt =
-    area_leaf_dt * dmass_root_darea_leaf(area_leaf);
-  const S mass_coarse_root_dt =
-    area_leaf_dt * dmass_coarse_root_darea_leaf(area_leaf);
-  return mass_total_dt(fraction_allocation_reproduction, net_mass_production_dt,
-                        mass_heartwood_dt) - mass_root_dt - mass_coarse_root_dt;
 }
 
 template <typename S>
@@ -1542,13 +1354,6 @@ S FF16_Strategy<S>::establishment_probability(const FF16_Environment<S>& environ
 
 // compute_competition() overloads and compute_competition_by_ratio() are
 // defined inline in the class (per-node hot path).
-
-// (inverse of [eqn 10]; return the height above which fraction 'x' of
-// the leaf mass would be found).
-template <typename S>
-S FF16_Strategy<S>::Qp(const S& x, const S& height) const { // x in [0,1], unchecked.
-  return canopy_shape.Qp(x, height);
-}
 
 // The aim is to find a plant height that gives the correct seed mass.
 template <typename S>
