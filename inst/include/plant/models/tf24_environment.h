@@ -5,6 +5,7 @@
 #include <plant/clamp_sites.h>
 #include <plant/environment.h>
 #include <plant/resource_spline.h>
+#include <plant/leaf_model.h>
 #include <array>
 #include <limits>
 #include <cmath>
@@ -128,8 +129,8 @@ public:
   // ------------------------------------------------------------------
   // SOIL LAYER GEOMETRY
   // ------------------------------------------------------------------
-  // Three descriptions of the same discretisation, and each is read by a
-  // different part of the model, so all three are kept rather than derived on
+  // Four descriptions of the same discretisation, and each is read by a
+  // different part of the model, so all four are kept rather than derived on
   // demand:
   //
   //   dz[i]    the WIDTH of layer i (m). The water balance divides by it, and the
@@ -140,6 +141,9 @@ public:
   //            differences Q(z) across a layer -- correct only because these are
   //            boundaries and not sample depths.
   //   z_mid[i] the MIDPOINT of layer i. Read by the leaf's gravitational head.
+  //   z_thickness[i] the width of layer i as z's differences, through
+  //            phylloptim's layer_thicknesses. Read by the root network. It
+  //            equals dz only to rounding, so neither stands in for the other.
   //
   // ⚠️ WIDTH IS THE INPUT, NOT DEPTH. The two setters below differ only in
   // which they take, and a caller wanting unequal layers must go through
@@ -276,6 +280,7 @@ public:
         z_mid[i] = (z[i - 1] + z[i]) / 2.0;
       }
     }
+    z_thickness = phylloptim::layer_thicknesses(z);
 
     // positive downwards
     water_flux.resize(soil_number_of_depths);
@@ -435,7 +440,7 @@ public:
     return it;
   }
 
-  std::vector<double> get_soil_mid_depths() const { return z_mid; }
+  const std::vector<double>& get_soil_mid_depths() const { return z_mid; }
 
   // Another environment's values, written into this one.
   //
@@ -456,6 +461,7 @@ public:
     resource_uptake.assign(src.resource_uptake.size(), S(0.0));
     z = src.z;
     z_mid = src.z_mid;
+    z_thickness = src.z_thickness;
     dz = src.dz;
     initial_states = src.initial_states;
     soil_number_of_depths = src.soil_number_of_depths;
@@ -580,6 +586,7 @@ public:
   std::vector<S> water_flux;
   std::vector<double> z;
   std::vector<double> z_mid;
+  std::vector<double> z_thickness;
   std::vector<double> dz;
   // The potentials the moisture state implies, derived where they are asked for
   // and kept until the state moves. Every writer of that state clears the flag
@@ -658,7 +665,7 @@ public:
   int soil_number_of_depths;
 
   // Total column depth, m: the sum of the layer widths, and equal to z.back() by
-  // construction. READ-ONLY from R: only the geometry setters rebuild z/z_mid/dz,
+  // construction. READ-ONLY from R: only the geometry setters rebuild z/z_mid/z_thickness/dz,
   // so a raw write would leave them describing the old column. To change it, call set_soil_number_of_depths() again (equal layers spanning the
   // new depth) or set_soil_layer_widths() (which sets it from the widths).
   double depth;

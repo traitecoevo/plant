@@ -1,196 +1,84 @@
 ---
 name: profile-plant
 description: >-
-  Profile and benchmark the plant C++/R package — find hotspots, measure whether
+  Profile and benchmark the plant C++/R package: find hotspots, measure whether
   a change or branch helped or regressed, and compare performance across builds.
-  Use when asked to profile, benchmark, time, or optimize plant; to find what is
-  slow; to compare speed between two branches/commits; or to verify a change did
-  not regress timing. Covers the build-then-load workflow, the sample-off
-  same-machine A/B methodology (machine drift is large — only same-session ratios
-  are trustworthy), native /usr/bin/sample hotspot analysis (Rprof alone is too
-  coarse for C++), and the timing-history reporting convention.
+  Use when asked to profile, benchmark, time, or optimise plant; to find what is
+  slow; to compare speed between two branches or commits; or to show a change
+  did not regress timing. Covers building each arm into its own library, the
+  interleaved A/B method (wall-clock drifts more than most changes are worth),
+  instruction counts, compiled-code comparison, and native /usr/bin/sample
+  hotspot analysis.
 ---
 
-# Profiling & benchmarking plant
+# Profiling and benchmarking plant
 
-plant is a two-layer package (templated C++ core under `inst/include/plant/`,
-bridged to R via RcppR6). Almost all run time is inside the C++ `.Call`
-boundary, so profiling is really about **measuring the compiled binary
-carefully** and **localising C++ hotspots**.
+plant is a two-layer package (a templated C++ core under `inst/include/plant/`, bridged to R by RcppR6). Almost all run time is inside the C++ `.Call` boundary, so profiling is about measuring the compiled binary carefully and localising C++ hotspots. What counts as evidence of a speed change is set out in [.claude/measurements.md](../../measurements.md); this skill is the workflow.
 
-## Golden rules (read first — these are the mistakes that waste hours)
+## Rules
 
-1. **Build, then load the built DLL — never benchmark a `load_all()` rebuild.**
-   ```sh
-   make compile        # builds src/plant.so with the package's -O2 flags
-   ```
-   Then load with `pkgload::load_all(compile = FALSE, quiet = TRUE)` (the
-   scripts below do this). `devtools::load_all()` with recompilation can use
-   different flags and gives non-comparable numbers.
+1. **Benchmark an installed build, one library per arm.** `R CMD INSTALL --no-docs -l <lib> .` builds with the package's own flags; `devtools::load_all()` compiles with different ones and its numbers are not comparable. Two builds of plant cannot load into one R session, so each arm is its own library and its own `Rscript`.
+2. **Interleave, and compare medians.** Wall-clock on a laptop drifts by 10 to 30% between rounds of the same binary. Alternate base and head invocations for several rounds and compare each arm's median. Never compare against a number measured in another session.
+3. **Read the instruction count beside the time.** `/usr/bin/time -l Rscript ...` reports instructions retired, which repeats to within about 0.3% for a fixed script where the time does not. A change that saves time must also save instructions.
+4. **Know what the compiled code did.** Compare base and head objects function by function (the `compare-compiled-code` skill, with its positive control). A refactor that claims no change shows identical functions; a speed change shows exactly which functions moved.
+5. **The baselines do not move.** A speed change leaves `default_baseline.rds`, `reference-gradient.tsv`, `FF16_reference/` and the scenario gateway's scorecard bit-identical unless a moved number was agreed in advance. Reordering floating-point arithmetic is a moved number.
+6. **Native sampling perturbs timing.** Sample to find where time goes, never during an A/B.
 
-2. **Comparing a change → run with native sampling OFF.** `/usr/bin/sample`
-   runs concurrently with `Rprof()` and inflates the Rprof totals, which has
-   repeatedly produced false "regressions". Use `PLANT_PROFILE_REPEATS=20`
-   *without* `PLANT_SAMPLE_SECONDS` for A/B. Turn sampling ON only when you need
-   the native call stack to find *where* the time goes.
+## The benchmark scripts
 
-3. **Machine drift is large; only same-session, same-machine ratios are
-   trustworthy.** Absolute ms/s wander 10–30% between sessions. Always measure
-   both states **back-to-back, interleaved**, recompiling between them. Never
-   compare today's numbers to numbers written in a note last week — re-measure
-   the baseline now.
+| Script | What it times |
+|---|---|
+| `scripts/bench_run.R <model> [reps] [lifetime]` | One stand run on the default schedule, FF16 or TF24. A repeat is ten FF16 runs, or one TF24 run. |
+| `scripts/bench_gradient.R <model> [reps] [lifetime]` | The forward run that records the states, and the reverse sweep over every metric and column, FF16 or TF24. |
+| `run_plant_benchmarks()` (exported) | FF16's run and schedule refinement through `bench::mark`. |
 
-4. **Verify the change is bit-identical (or know why it isn't).** Run targeted
-   strategy/individual tests after each change. If you reorder floating-point
-   arithmetic (e.g. reciprocal-multiply), say so and check whether any test
-   tolerance had to move. Bit-identical refactors are the safe kind.
+Each prints one tab-separated line per repeat, so rounds from two builds can be pasted together and summarised in R.
 
-5. **You cannot load two builds of `plant` in one R session.** For cross-branch
-   work, build each in its own checkout/worktree and run one `Rscript` per
-   build.
-
-## The two canonical FF16 cases
-
-Both live in `scripts/profile-benchmarks.R` and `scripts/bench_ab.R`:
-
-- **`scm`** — `run_scm(p)` for an FF16 resident. The core SCM solve.
-- **`build_schedule`** — `run_scm(p, refine_schedule = TRUE)`. Adds the C++
-  cohort-refinement loop; assimilation-quadrature heavy, so it is the more
-  sensitive case for solver/spline/strategy changes.
-
-## Recipes
-
-### A. Profile one build (find current hotspots)
+## Recipe: A/B two commits
 
 ```sh
-make compile
-# Rprof totals + bench::mark, sample off (the comparable mode):
-PLANT_PROFILE_REPEATS=20 Rscript scripts/profile-benchmarks.R FF16
-# Add native call stacks (may need permission to inspect the R process):
-PLANT_PROFILE_REPEATS=30 PLANT_SAMPLE_SECONDS=8 Rscript scripts/profile-benchmarks.R FF16
-```
-Outputs go to `tmp/profile-benchmarks/<timestamp>/`:
-`benchmark-summary.csv`, `*-by-self.csv` / `*-by-total.csv` (Rprof),
-`*.sample.txt` (native).
-
-### B. A/B a source change (same branch, before/after)
-
-```sh
-git stash            # or commit the change
-make compile && Rscript scripts/bench_ab.R . before
-git stash pop
-make compile && Rscript scripts/bench_ab.R . after
-```
-Run each 2–3× and compare the medians; ignore differences inside ~10% noise.
-
-### C. A/B across branches (e.g. this branch vs develop)
-
-```sh
-git worktree add -f /private/tmp/plant-other develop
-( cd /private/tmp/plant-other && make compile )
-make compile                                   # this branch
-for r in 1 2; do
-  Rscript --no-init-file scripts/bench_ab.R "$(pwd)"               "this-r$r"
-  Rscript --no-init-file scripts/bench_ab.R /private/tmp/plant-other "other-r$r"
+S=<scratch dir>
+git worktree add --detach $S/base origin/develop
+for arm in base head; do
+  src=$S/base; [ $arm = head ] && src=.
+  mkdir -p $S/lib-$arm
+  R_MAKEVARS_USER= R CMD INSTALL --no-docs -l $S/lib-$arm $src
+done
+for round in 1 2 3 4 5; do
+  for arm in base head; do
+    R_LIBS=$S/lib-$arm Rscript scripts/bench_run.R TF24 3 | sed "s/^/$arm\t$round\t/"
+  done
+done > $S/times.tsv
+for arm in base head; do
+  R_LIBS=$S/lib-$arm /usr/bin/time -l Rscript scripts/bench_run.R TF24 3 2>&1 |
+    grep 'instructions retired'
 done
 ```
-Interleaving controls for machine drift. `git worktree remove /private/tmp/plant-other` when done.
 
-### D. TF24 single-species timing
+Run the gradient script the same way when the change reaches the reverse sweep or anything phylloptim computes.
 
-`scripts/bench_tf24.R` times one MPL=10 TF24 SCM run and prints a trajectory
-metric (so you can confirm bit-identity alongside timing). `BENCH_REPS` sets the
-rep count.
+## Finding hotspots
 
-## Reading the results
+Start a long run (`bench_run.R TF24 50`), find its process id, and sample it:
 
-- **Rprof is too coarse for C++.** `*-by-self.csv` will show ~97–99% in
-  `.Call` / `SCM___FF16__FF16_Env__run` — that only confirms time is in the core.
-- **Native `/usr/bin/sample` is where the real signal is.** In `*.sample.txt`,
-  the **`Sort by top of stack, same collapsed`** section lists leaf (self-time)
-  symbols with sample counts — diff this section between two builds to see which
-  symbol moved. Same sampling-window length on both → counts are comparable.
-- If `sample` prints `sample cannot examine process …; try running with sudo`,
-  it failed to attach; the Rprof run is then *un*-perturbed (which is fine for
-  A/B), you just don't get native stacks.
-- **FF16 hot path:** `SCM::run` → `ode::Solver::step` → `derivs` →
-  `Patch/Species/Node::compute_rates` → `Individual::growth_rate_given_height` →
-  `FF16_Strategy::compute_rates` → `net_mass_production_dt` → `assimilation`
-  (the crown quadrature). The recurring hotspots are the assimilation quadrature
-  callable, the environment **spline lookup** (`operator()`), competition, and
-  libm `pow`/`exp`.
+```sh
+/usr/bin/sample <pid> 10 -file $S/profile.txt
+```
 
-## Where FF16 time goes (levers that have worked)
+The "Sort by top of stack, same collapsed" section lists self-time symbols with sample counts; diff it between two builds to see which symbol moved. If `sample` cannot attach, it says so and the run is unperturbed. Rprof only shows that the time is inside `.Call`.
 
-A 2026-06 optimisation pass took FF16 ~2–3.5× faster end-to-end. The targets,
-hottest first, with the techniques that paid off — start here before
-re-deriving:
+## Where the time goes
 
-1. **Assimilation-quadrature callable.** `QK::integrate` is a template; pass the
-   integrand as a bare lambda (its closure type), not a `std::function`, so it
-   inlines at every quadrature point. Biggest single FF16 win.
-2. **Crown-shape `pow`.** `Q(z,H)` raises `(z/H)` to integer `eta`; specialise
-   common `eta` (1,2,4,8,10,12) as multiply chains (`CanopyShape`, issue #465)
-   instead of libm `pow` (issue #361), and hoist/cache the `1/height` reciprocal
-   (in aux) instead of recomputing it per quadrature point.
-3. **Environment spline lookup.** Hit per quadrature point × node × step. Use the
-   O(1) index — uniform fast path plus non-uniform proportional-guess+nudge —
-   instead of `std::lower_bound` (issue #435). odelia's `hermite_spline` provides
-   this.
-4. **Inline hot helpers across TU boundaries.** The no-LTO build forces a
-   cross-TU call for every out-of-line helper; moving small FF16 hot helpers
-   (`area_leaf`, `compute_competition*`) into the header lets the compiler fold
-   them into the per-node loops. (LTO itself was tried — issue #470 — for no
-   measurable gain, and declined.)
-5. **No `std::map<string,int>::at` in hot state/rate paths.** Resolve aux/ode
-   indices once; use direct integer indices.
+**FF16:** `SCM::run` → the stepper → `Patch::compute_rates` → `Species`/`Node::compute_rates` → `FF16_Strategy::compute_rates` → `net_mass_production_dt` → `assimilation`, the crown quadrature. The recurring hotspots are the quadrature integrand, the light spline lookup, competition, and libm `pow`/`exp`. What has paid off there, and is easy to undo by "tidying" (agents.md §12):
 
-Most of these were bit-identical (or a deliberate, documented reciprocal-multiply
-reorder).
+1. The quadrature integrand passed as its own closure type, not a `std::function`, so it inlines at every point.
+2. Integer `eta` in the crown shape as multiplication chains rather than `pow`, and `1/height` cached in an aux slot.
+3. The O(1) spline span lookup in odelia's `hermite_spline`.
+4. Small hot helpers defined in headers, since the build has no link-time optimisation and an out-of-line helper is a real call per node.
+5. Integer state and aux indices, never a `std::map<std::string, int>` lookup, on the hot path.
 
-**TF24 has a different hot path.** It is dominated by the plant hydraulic solver
-(`Leaf::find_root_collar_psi`, a Brent inner loop over the multi-layer root water
-balance), not the assimilation quadrature. Profile it with `scripts/bench_tf24.R`;
-to iterate quickly drop `max_patch_lifetime` (per-step cost is unchanged, only the
-number of steps). `set_physiology` is *not* on the hot path.
+**TF24:** dominated by the leaf's hydraulic solve in phylloptim (the root-collar solve over the layered root water balance), not the crown quadrature. Improvements to the solve land in phylloptim and are timed here on a TF24 run and a TF24 sweep. To iterate quickly, shorten `lifetime`: the cost per step is unchanged, only the number of steps.
 
-## Reporting convention
+## Reporting
 
-For each change report: the exact command; the one-iteration
-`scm`/`build_schedule` medians and the 20-repeat totals; **cumulative** speedup
-(vs the original baseline) and **incremental** speedup (vs the previous state);
-whether native sampling was on or off; and the bit-identity check (which tests
-passed). Keep a running timing-history table in the PR's first comment, so
-each change's gain is attributable, not just the aggregate.
-
-The full prior optimisation log (per-change timings, the sampler-effect audit,
-per-target detail) was `notes/profile-ff16-2026-06-16.md`, removed so this skill
-is the single source of truth. Recover it from git history:
-`git show a2e5e2ff:notes/profile-ff16-2026-06-16.md` (or
-github.com/traitecoevo/plant/blob/a2e5e2ff13c87b6561ea07ac412d0ada71d112b0/notes/profile-ff16-2026-06-16.md).
-
-## Need a full flamegraph?
-
-`/usr/bin/sample` (above) is the primary native path and is enough for almost
-all hotspot work. If you need a full call-graph image, the usual heavier tools
-apply — Xcode Instruments (macOS), Linux `perf` / `uProf`, or `gperftools` /
-`jointprof` + `pprof` with Rcpp. None is wired up in the repo; set them up
-against current upstream docs when needed.
-
-## Files
-
-| path | what |
-|---|---|
-| `scripts/profile-benchmarks.R` | canonical driver: bench::mark + Rprof (+ optional native sample) for FF16/K93/TF24 |
-| `scripts/bench_ab.R` | same-machine A/B harness (one-iter median + 20-rep total) for two builds |
-| `scripts/bench_tf24.R` | TF24 single-species timing + trajectory metric |
-
-## Environment variables (driver)
-
-| var | default | meaning |
-|---|---|---|
-| `PLANT_PROFILE_REPEATS` | 1 | repeats inside each profiled case (use 20+ for stable totals) |
-| `PLANT_SAMPLE_SECONDS` | 0 | seconds of `/usr/bin/sample`; 0 = off (use off for A/B) |
-| `PLANT_RPROF_INTERVAL` | 0.005 | Rprof sampling interval (s) |
-| `PLANT_BENCHMARK_ITERATIONS` | 1 | `bench::mark` iterations in `run_plant_benchmarks` |
-| `BENCH_REPS` | 5 | timed reps in `bench_tf24.R` |
+Put the evidence in the PR's first comment: the commands; each arm's median and the spread of its rounds; the instruction counts; the compiled-code comparison (which functions changed, and the positive control); and which baselines were checked bit-identical.

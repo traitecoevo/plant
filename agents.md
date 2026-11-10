@@ -158,7 +158,8 @@ knowing before you go looking for a leaf bug here:
   environment's `dz`.** `root_network_from_carbon` scales the vertical resistance
   by `dz[i]^2`, per layer since phylloptim 0.9.0. `TF24_Strategy` hands it
   `phylloptim::layer_thicknesses(z)`, the shared definition, at both of its call
-  sites. The widths are `TF24_Environment`'s input and `z` is built from them, so
+  sites (the rate evaluation reads it as `environment.z_thickness`, computed once
+  when the geometry is set). The widths are `TF24_Environment`'s input and `z` is built from them, so
   the differences are those widths to within rounding -- but not bit-exact: on
   the default 1.5 m over 5 layers, layers 3-5 differ from `depth / n` in the last
   bit, so reading `environment.dz` instead would move every TF24 number. Make

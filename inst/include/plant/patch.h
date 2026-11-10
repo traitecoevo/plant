@@ -1650,7 +1650,8 @@ void Patch<T,E>::private_water_aggregates() {
       if (!(nw > 0.0) || kind == 1) {
         return;
       }
-      const double share = nw * to_passive(st.crown_area(ind.area_leaf()));
+      const double share =
+        nw * to_passive(st.crown_area(ind.aux(st.aux_idx_competition_effect)));
       cover += share;
       for (size_t i = 0; i < n; ++i) {
         sum[i] += share * to_passive(ind.state(first + static_cast<int>(i)));
@@ -1727,12 +1728,13 @@ void Patch<T,E>::private_water_exchange(const std::vector<value_type>& resource_
         }
         return;
       }
-      const double area_leaf = to_passive(ind.area_leaf());
-      const double share = nw * to_passive(st.crown_area(ind.area_leaf())) * scale;
+      const value_type& area_leaf_a = ind.aux(st.aux_idx_competition_effect);
+      const double area_leaf = to_passive(area_leaf_a);
+      const double share = nw * to_passive(st.crown_area(area_leaf_a)) * scale;
       // A share's relative rate: the crown's growth, less mortality, plus the
       // growth of the ground the quadrature assigns the cohort.
       const double growth =
-        to_passive(ind.rate(HEIGHT_INDEX)) * to_passive(ind.darea_leaf_dheight()) /
+        to_passive(ind.rate(HEIGHT_INDEX)) * to_passive(st.darea_leaf_dheight(area_leaf_a)) /
           area_leaf -
         to_passive(ind.rate(MORTALITY_INDEX)) + weight_growth;
       cols.push_back({&ind, st.state_idx_water_first, share, growth, 0.0});
@@ -1995,7 +1997,9 @@ EventRecord Patch<T,E>::apply_event(const NodeScheduleEvent& event) {
           const double accepted =
             std::min(depth, environment.pulse_capacity(ind.state(slot), layer));
           ind.set_state(slot, value_type(theta + accepted / environment.dz[layer]));
-          const double share = nw * to_passive(st.crown_area(ind.area_leaf())) * scale;
+          const double share =
+            nw * to_passive(st.crown_area(ind.aux(st.aux_idx_competition_effect))) *
+            scale;
           accepted_w += share * accepted;
           excess_w += share * (depth - accepted);
         });

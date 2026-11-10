@@ -59,7 +59,7 @@ Each looks like a win and is not; try one again only with a new reason:
 
 ### 10. Two routes to the soil geometry must stay as they are
 
-- `TF24_Strategy` passes `phylloptim::layer_thicknesses(z)` to the root network, at both call sites, and must not switch to `environment.dz`: on the default 1.5 m over 5 layers, layers 3 to 5 differ from `depth / n` in the last bit, so the switch moves every TF24 number. Make it at the next rebaseline.
+- `TF24_Strategy` passes `phylloptim::layer_thicknesses(z)` to the root network, at both call sites (the rate evaluation reads the copy `TF24_Environment` computes once when its geometry is set, `z_thickness`; the gradient path takes it from the leaf's own profile), and must not switch to `environment.dz`: on the default 1.5 m over 5 layers, layers 3 to 5 differ from `depth / n` in the last bit, so the switch moves every TF24 number. Make it at the next rebaseline.
 - `set_soil_number_of_depths` builds `z[i] = (i+1) * delta_z` and must not be unified with `set_soil_layer_widths`' running sum. `z` feeds `Q()` and the gravitational head, so unifying them re-baselines every TF24 number for no gain. The geometry test in `test-environment-TF24.R` compares the two.
 
 ### 11. A thin wet layer has a stiffness floor

@@ -2640,16 +2640,17 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
   // nothing about root carbon, the horizontal/vertical split or the layer
   // thickness, so this strategy owns the model exactly as it already owns the
   // conductance-versus-height model above, and hands over the reduced quantity.
-  // layer_thicknesses is the shared definition of dz -- do not open-code it, since
-  // the vertical resistance scales with dz^2 and the two sides drifting apart
-  // would be a silent squared factor neither side could detect.
+  // The widths are phylloptim's layer_thicknesses of z, which the environment
+  // computes once when its geometry is set (z_thickness) -- do not open-code
+  // them, since the vertical resistance scales with dz^2 and the two sides
+  // drifting apart would be a silent squared factor neither side could detect.
   //
   // TODO(next rebaseline): pass environment.dz, the widths the environment was
   // given, instead of differencing `z`. The two agree only to rounding (on the
   // default 1.5 m over 5, layers 3-5 differ in the last bit), so the switch
   // moves every TF24 number.
   phylloptim::root_network_from_carbon(
-      root_carbon_value_, phylloptim::layer_thicknesses(soil_depths_), beta_R_H,
+      root_carbon_value_, environment.z_thickness, beta_R_H,
       beta_R_V, root_network_);
 
   // Reuse geometry precomputed by environment; avoids rebuilding z midpoints each call.

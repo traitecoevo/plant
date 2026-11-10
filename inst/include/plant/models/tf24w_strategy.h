@@ -111,7 +111,8 @@ protected:
   }
   // The column's potentials for the leaf, filled before the base rates run.
   std::vector<S> psi_soil_own_;
-  std::vector<S> water_flux_own_;
+  // Scratch for compute_rates, rewritten in full on every call.
+  std::vector<S> water_flux_own_, theta_own_, uptake_own_, rate_own_;
 };
 
 template <typename S>
@@ -170,7 +171,12 @@ void TF24w_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,
   const S area_eff = area / std::max(1.0, environment.private_water_cover());
 
   const double m = environment.water_mixing_rate;
-  std::vector<S> theta(n), uptake(n), rate(n);
+  std::vector<S>& theta = theta_own_;
+  std::vector<S>& uptake = uptake_own_;
+  std::vector<S>& rate = rate_own_;
+  theta.resize(n);
+  uptake.resize(n);
+  rate.resize(n);
   water_flux_own_.resize(n);
   for (int i = 0; i < n; ++i) {
     theta[i] = vars.state(state_idx_water_first + i);
