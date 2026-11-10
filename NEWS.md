@@ -319,7 +319,7 @@ products using plant.
   faster, so annual runoff moved 13.4% -> 20.4% under event-driven rainfall with
   no parameter changed. `a_infil`/`b_infil` were calibrated against a 30 cm
   surface layer. Both are in the design note
-  ([`plan-626-soil-layer-widths.md`](https://github.com/traitecoevo/plant/blob/cffdaf5943020d037e387cbba94e517ab66f8003/notes/plan-626-soil-layer-widths.md), since
+  ([`plan-626-soil-layer-widths.md`](https://github.com/traitecoevo/plant/blob/f406b6d864f5a68b97c5acc68f6bcf44fb05cda6/notes/plan-626-soil-layer-widths.md), since
   retired) and in `soil_widths_graded()`'s help.
 
   Soil evaporation itself is **out of scope**: #626 is the enabling geometry
@@ -901,7 +901,7 @@ were not previously recorded here:
   height dependence meanwhile and is unaffected — it enters through `k_s(L)`,
   which has no structural counterpart.
 
-  Design note: [`plan-tf24-height-hydraulics.md`](https://github.com/traitecoevo/plant/blob/cffdaf5943020d037e387cbba94e517ab66f8003/notes/plan-tf24-height-hydraulics.md)
+  Design note: [`plan-tf24-height-hydraulics.md`](https://github.com/traitecoevo/plant/blob/f406b6d864f5a68b97c5acc68f6bcf44fb05cda6/notes/plan-tf24-height-hydraulics.md)
   (since retired; the open design is on #615). The diurnal closure that
   the cost and gain terms need is tracked separately as #618.
 * **TF24 and TF24f report leaf temperature as an auxiliary variable, `Tleaf`
@@ -1078,7 +1078,7 @@ were not previously recorded here:
   events are instantaneous *to the solver* only — an action may sub-integrate its
   own fast model over a nominal duration with demography frozen, which is what
   `climate_extreme()` does. Design notes in
-  [`plan-events.md`](https://github.com/traitecoevo/plant/blob/cffdaf5943020d037e387cbba94e517ab66f8003/notes/plan-events.md), since retired.
+  [`plan-events.md`](https://github.com/traitecoevo/plant/blob/f406b6d864f5a68b97c5acc68f6bcf44fb05cda6/notes/plan-events.md), since retired.
 
   `collect = TRUE` returns `events` and `event_log` alongside the tidied output,
   since events are supplied separately from `p` and a collected result would

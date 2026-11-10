@@ -12,7 +12,7 @@ A run is bit-identical when its set of stop times and its actions are unchanged.
 
 ### 2. The step size is inherited across a leg boundary
 
-odelia's `step_size_last` survives `set_state_from_system()` and every `advance_*` call, so a leg that starts after a discrete change (a pulse, a harvest, an introduction) begins at whatever step the previous quiet leg grew to, up to `ode_step_size_max`. This was the trigger for TF24's blow-ups under rainfall pulses (PR #608), and pulses create far more leg boundaries than introductions do. `Control()$ode_step_size_max = 0.05` is a measured guard, not a fix. The same channel means swapping one `advance_*` for another moves every later step, even on an empty ODE system.
+odelia's `step_size_last` survives `set_state_from_system()` and every `advance_*` call, so a leg that starts after a discrete change (a pulse, a harvest, an introduction) begins at whatever step the previous quiet leg grew to, up to `ode_step_size_max` (5 years by default). It is what triggers TF24's failures under rainfall pulses (PR #608), and pulses create far more leg boundaries than introductions do. Setting `ode_step_size_max = 0.05` on a pulsed run is a measured guard, not a fix. The same channel means swapping one `advance_*` for another moves every later step, even on an empty ODE system.
 
 ### 3. A phylloptim exception must become a rejected step
 
@@ -32,7 +32,7 @@ Three parts of this are easy to undo by tidying:
 
 - Each species' strategy is re-assigned in `assign_from`, not kept. A TF24 strategy holds a `phylloptim::Leaf` reused across evaluations; a rebind copies the passive strategy's, and so does `assign_from`.
 - The environment is rebound afresh, so no cache a previous width's evaluations left (TF24's soil-potential and driver memos, the clamp counters) reaches the next.
-- `rebind_from` copies everything `validate()` reads, the fitness-window fields included, or the rebound patch runs a different regime with nothing raised.
+- `Patch::rebind()` copies every `Parameters` field that `validate()` reads, the fitness-window fields included, or the rebound patch runs a different regime with nothing raised.
 
 ### 6. The light spline's coefficients are double at every scalar
 
@@ -44,7 +44,7 @@ odelia's `hermite_spline` keeps its span coefficients in double, so a read at an
 
 ### 8. Four things tried on the sweep's cost and decided against
 
-Recorded so they are not tried again without a new reason:
+Each looks like a win and is not; try one again only with a new reason:
 
 - Moving stage states into the System (about 1% in a spike). XAD's move leaves the value and drops the slot, so a System that reads an iterator entry twice gets a value with no derivative and nothing reports it.
 - Field-reduction rows (2% at one metric, 6% at five). They are a second copy of `Species::field_splits_nodes` and `CanopyShape::Q_and_q` that must agree with the first bit for bit.
@@ -64,11 +64,11 @@ Recorded so they are not tried again without a new reason:
 
 ### 11. A thin wet layer has a stiffness floor
 
-Layer widths are validated only for being finite and positive. The cascade's diagonal `K'(theta)/dz` grows as the layer thins and as it wets: at 0.99 θ_sat it is 1.8e4 yr⁻¹ at the default 0.30 m (stable step 1.1e-4 yr) and 2.6e5 yr⁻¹ at 0.02 m (7.6e-6 yr, about 4 minutes); at 0.5 θ_sat and 0.02 m it is 8.5. So the hazard is the post-rain transient. `Control()$ode_step_size_min` is 1e-6 yr, which the stable step reaches at a layer of about 2.6 mm; below that the controller cannot be stable at all, which is a hard floor on layer thickness in this model. `soil_widths_graded()`'s documentation (now in `fieldtrial`) carries the same warning.
+Layer widths are validated for being finite, positive and not thinner with depth; nothing bounds how thin the top layer may be. The cascade's diagonal `K'(theta)/dz` grows as the layer thins and as it wets: at 0.99 θ_sat it is 1.8e4 yr⁻¹ at the default 0.30 m (stable step 1.1e-4 yr) and 2.6e5 yr⁻¹ at 0.02 m (7.6e-6 yr, about 4 minutes); at 0.5 θ_sat and 0.02 m it is 8.5. So the hazard is the post-rain transient. `Control()$ode_step_size_min` is 1e-6 yr, which the stable step reaches at a layer of about 2.6 mm; below that the controller cannot be stable at all, which is a hard floor on layer thickness in this model. `soil_widths_graded()`'s documentation (now in `fieldtrial`) carries the same warning. A thin top layer also shifts runoff: infiltration keys off layer 0 alone, through `(theta_0/theta_sat)^b_infil`, and `a_infil` and `b_infil` were calibrated against a 30 cm surface layer, so a thinner layer 0 saturates sooner in a pulse and sheds more.
 
 ### 12. Do not change the soil physics to fix a pulse failure
 
-The design pass for rainfall pulses (PR #608) found that θ_sat is already a barrier, that error control already rejects the steps that overshoot it, and that what killed runs was an inherited step (hazard 2) and where exceptions were thrown (hazard 3). Clamps in the water balance were measured ineffective (5 of 40 failing seeds to 4 of 40). Receiver-capacity limiting in `compute_rates`, a θ ≤ θ_sat clamp in `psi_from_soil_moist` and any change to the cascade are not needed. What the pulse feature did need, a cap on the pulse jump at free capacity with the excess to runoff, is in `TF24_Environment`.
+θ_sat is already a barrier, error control already rejects the steps that overshoot it, and what kills a pulsed run is an inherited step (hazard 2) or an exception thrown where the stepper cannot reject it (hazard 3); PR #608 has the measurements. Clamps in the water balance were measured and do not help (5 of 40 failing seeds became 4 of 40). Receiver-capacity limiting in `compute_rates`, a θ ≤ θ_sat clamp in `psi_from_soil_moist` and any change to the cascade are not needed. What the pulse feature did need, a cap on the pulse jump at free capacity with the excess to runoff, is in `TF24_Environment`.
 
 ## The continuous patch
 
@@ -78,9 +78,10 @@ Each species has one top cohort pinned at the height where its strategy allocate
 
 ### 14. The top layer's limits
 
-- The layer is birth-date coordinate only, and is refused on the height coordinate; the reverse sweep refuses that coordinate too.
+- The layer is birth-date coordinate only, and is refused on the height coordinate.
+- The reverse sweep and `run_mutant_constant` refuse the layer (`control$absorb_epsilon > 0`); it has no derivative yet.
 - Refining the schedule with the layer on is refused, because `refine_schedule` pairs per-node errors with schedule times.
-- The absorbing height is a selection on state. A trait perturbation that changes which cohorts merge makes a pinned-step finite difference disagree with the sweep at that kink, so a referee must hold the selection fixed.
+- The absorbing height is a selection on state. When the layer is made differentiable, a trait perturbation that changes which cohorts merge will make a pinned-step finite difference disagree with the sweep at that kink, so a referee must hold the selection fixed.
 - A younger TF24 cohort can overtake an older one (the reserve gate). Absorption reads each cohort's own height, so the younger goes first and the older when it arrives.
 - A spent layer is emptied, not left subnormal: at each introduction instant a density or weight below the smallest normal double is put to zero, keeping the seeds it accrued. Left alone, a decay step at the bottom of the subnormal range rounds back to where it started, and the layer pinned `height_max` and the light field's knots at the absorbing height. Anything that changes how the layer decays has to keep that.
 - A cohort born with no density is frozen at birth, so a species at birth rate zero would read zero per-capita output; `Patch::push_nodes` refuses it wherever the regime weights the cohort.
@@ -99,7 +100,8 @@ Each species has one top cohort pinned at the height where its strategy allocate
 ### 16. TF24t
 
 - `TF24t_Strategy::rebind` is deleted and must stay deleted until TF24t has a derivative of its own. The inherited one returns a `TF24_Strategy<U>`, so it would rebind a TF24t patch as a TF24 patch: no thermal states, no damage, every number finite.
-- The thermal parameters are top-level strategy fields, not `TF24_Pars`, as TF24f's are. A trait matrix cannot reach them (`add_strategies` refuses them by name); the drift guard snapshots them through `top_level_science` in `test-model-version.R`.
+- The thermal parameters are top-level strategy fields, not `TF24_Pars`, as TF24f's are. A trait matrix reaches them as numeric top-level fields (`generate_strategy` assigns them beside `pars`), and because they are outside `pars` the drift guard snapshots them only through the explicit `top_level_science` list in `test-model-version.R`: a new thermal parameter must be added there.
+- TF24t refuses the DeepCrown shading model: the leaf's damage rates are read at its leaf temperature after the crown loop, which under DeepCrown would be the last node's.
 - At non-damaging settings a rate evaluation is bit-identical to TF24 with `pars$use_energy_balance = 1` (alpha = 0, k_i = 0, topt_offset = 0, all costs 0).
 - The leaf's damage rates are per day; TF24t multiplies them by `DAYS_PER_YEAR = 365.25` for the yearly ODE clock, except leaf turnover and growth dilution, which are already per year.
 - `Individual$set_initial_states` must run before an `IndividualRunner` is built from a TF24t plant. The runner does not seed, and an unseeded storage pool starts empty, where a plant losing carbon has every step refused.
@@ -109,7 +111,7 @@ Each species has one top cohort pinned at the height where its strategy allocate
 - Height's monotonicity holds by construction: `dh/dt` is a product of non-negative factors. It has to stay structural, because the solver cannot check it.
 - Every expression in the carbon-to-growth and carbon-to-mortality maps must be smooth: no `min`, `max` or `?:`. Shape the flow so bounds follow from its form, as the storage rate in `TF24_Strategy::compute_rates` does.
 - `competition_effect` is load-bearing. `compute_rates` never calls `area_leaf`; it reads the aux written only by `update_dependent_aux`, so an allometry change not routed through that function passes every test that calls `area_leaf` directly.
-- `Individual::set_ode_state` refreshes aux per slot, in slot order, so a height-triggered write at slot 0 would read a leaf area still stale at a later slot. Write the aux after all states are in.
+- `Individual::set_ode_state` refreshes aux per slot, in slot order, so an aux that depends on several states sees the old value of any later slot when an earlier one fires. TF24's `update_dependent_aux` therefore recomputes the carried leaf area, in full, on both the height slot and the leaf-departure slot; whichever fires last leaves it consistent. Keep any such aux a full recomputation on every slot it depends on.
 - The allocation derivatives are differentiated by hand and move together: `dmass_sapwood_darea_leaf` carries an `(a_l2 + 1)` factor that is the product rule against `H(A)`, `dmass_bark_darea_leaf` inherits it, and `darea_leaf_dmass_live` is their reciprocal sum.
 - Canopy shape stays `Q(z/height)`, so a smaller leaf area at unchanged height is a sparser crown of the same depth, not a shallower one.
 - `set_initial_states` is not virtual; TF24f must keep chaining to the base, or the leaf-area seed is silently dropped.
@@ -124,4 +126,4 @@ Each species has one top cohort pinned at the height where its strategy allocate
 
 ### 18. A state held at zero error loosens every run's tolerance
 
-odelia's step rule reads the error as an RMS over every state. A state that is inert at the defaults (zero error every step) dilutes that mean, so adding one loosens the effective tolerance of every run that carries it, and default runs move inside the ODE tolerance though nothing they compute changed. Adding TF24's three allometry states moved the default-run baseline by 2e-7 and a substepped-soil stand by 1.1e-5. Expect it, measure it, and say so in the PR; it is not a bug in the new state.
+odelia's step rule reads the error as an RMS over every state. A state that is inert at the defaults (zero error every step) dilutes that mean, so adding one loosens the effective tolerance of every run that carries it, and default runs move inside the ODE tolerance though nothing they compute changed. For TF24's three allometry states the movement is 2e-7 on the default-run baseline and 1.1e-5 on a substepped-soil stand. Expect it, measure it, and say so in the PR; it is not a bug in the new state.
