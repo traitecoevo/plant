@@ -630,10 +630,6 @@ private:
   // The private-water passes (#681); reached only for HasPrivateWater<T>.
   void private_water_aggregates();
   void private_water_exchange(const std::vector<value_type>& resource_depletion);
-  // Each of the first `n` resources' uptake summed over species, per unit patch
-  // area. Out of line, so a model with no resources carries none of it in
-  // compute_rates.
-  std::vector<value_type> resource_depletion_rates(size_t n) const;
   // The coordinate this model's densities are carried in, Control's "auto"
   // resolved against the strategy (see control.h).
   bool density_in_birth_date() const {
@@ -1606,8 +1602,14 @@ void Patch<T,E>::compute_rates() {
   // it needed clearing by hand, and a refusal thrown between the fill and the
   // clear left active values on a Patch across a tape reset.
   std::vector<value_type> resource_depletion;
-  if (env.n_resources() > 0) {
-    resource_depletion = resource_depletion_rates(env.n_resources());
+  resource_depletion.reserve(env.n_resources());
+  for (size_t i = 0; i < env.n_resources(); i++) {
+    value_type resource_consumed = std::accumulate(
+      species.begin(), species.end(), value_type(0.0),
+      [i](const value_type& r, const species_type& s) -> value_type {
+        return r + s.consumption_rate(i);  // accumulates r from zero
+      });
+    resource_depletion.push_back(resource_consumed / area);
   }
   // A given field is exogenous: nothing the species take moves it.
   if (!field_given()) {
@@ -1623,29 +1625,6 @@ void Patch<T,E>::compute_rates() {
       env.compute_rates(resource_depletion);
     }
   }
-}
-
-// Each species' grid is built once and shared by every resource. The sum runs
-// over resources, then species, in the order a tape records it.
-template <typename T, typename E>
-[[gnu::noinline]] std::vector<typename Patch<T,E>::value_type>
-Patch<T,E>::resource_depletion_rates(size_t n) const {
-  std::vector<typename species_type::uptake_grid> grids;
-  grids.reserve(species.size());
-  for (const auto& s : species) {
-    grids.push_back(s.consumption_grid());
-  }
-  std::vector<value_type> depletion, rates;
-  depletion.reserve(n);
-  for (size_t i = 0; i < n; i++) {
-    value_type consumed = value_type(0.0);
-    for (size_t k = 0; k < species.size(); ++k) {
-      consumed = consumed +
-        species[k].consumption_rate(static_cast<int>(i), grids[k], rates);
-    }
-    depletion.push_back(consumed / area);
-  }
-  return depletion;
 }
 
 // The two passes of private root-zone water (TF24w, #681). Every quantity here

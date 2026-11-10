@@ -376,19 +376,7 @@ public:
   size_t aux_size() const;
 
   void resize_consumption_rates(int i);
-  // The grid consumption_rate integrates on: the nodes' positions, ascending,
-  // and the permutation that sorted them (empty when they arrived sorted).
-  // Positions are passive, so one grid serves every resource and records
-  // nothing on a tape.
-  struct uptake_grid {
-    std::vector<double> x;
-    std::vector<size_t> order;
-  };
-  uptake_grid consumption_grid() const;
-  // Resource `i`'s uptake, integrated over the size distribution on `grid`.
-  // `rates` is scratch.
-  value_type consumption_rate(int i, const uptake_grid& grid,
-                              std::vector<value_type>& rates) const;
+  value_type consumption_rate(int i) const;
 
   template <typename It> It ode_aux(It it) const;
 
@@ -1245,11 +1233,10 @@ void Species<T,E>::resize_consumption_rates(int r) {
 }
 
 template <typename T, typename E>
-typename Species<T,E>::uptake_grid
-Species<T,E>::consumption_grid() const {
-  uptake_grid grid;
+typename Species<T,E>::value_type
+Species<T,E>::consumption_rate(int i) const {
   if (size() == 0) {
-    return grid;
+    return value_type(0.0);
   }
   // The grid is abscissa_of, as the competition walk's is, so a width is a
   // position and not state on either coordinate and no reduction has a route to
@@ -1257,19 +1244,22 @@ Species<T,E>::consumption_grid() const {
   // tallest first in height, and the closing node is both the newest and the
   // shortest, so it ends the grid either way.
   const bool birth_date = density_in_birth_date();
-  std::vector<double>& x = grid.x;
+  std::vector<double> x;
+  std::vector<value_type> rates;
   x.reserve(size() + 1);
+  rates.reserve(size() + 1);
   for (auto& c : nodes) {
     x.push_back(abscissa_of(c, birth_date));
+    rates.push_back(c.consumption_rate(i));
   }
   x.push_back(abscissa_of(new_node, birth_date));
+  rates.push_back(new_node.consumption_rate(i));
 
   // Birth dates are strictly increasing by construction, so only the height
   // coordinate can arrive crossed -- and there neighbouring trapezia would cancel
   // instead of accumulating.
   if (!birth_date && !std::is_sorted(x.begin(), x.end())) {
-    std::vector<size_t>& order = grid.order;
-    order.resize(x.size());
+    std::vector<size_t> order(x.size());
     for (size_t j = 0; j < order.size(); ++j) {
       order[j] = j;
     }
@@ -1277,36 +1267,17 @@ Species<T,E>::consumption_grid() const {
       return x[a] < x[b];
     });
     std::vector<double> x_sorted;
+    std::vector<value_type> r_sorted;
     x_sorted.reserve(x.size());
+    r_sorted.reserve(rates.size());
     for (size_t j : order) {
       x_sorted.push_back(x[j]);
+      r_sorted.push_back(rates[j]);
     }
     x.swap(x_sorted);
+    rates.swap(r_sorted);
   }
-  return grid;
-}
-
-template <typename T, typename E>
-typename Species<T,E>::value_type
-Species<T,E>::consumption_rate(int i, const uptake_grid& grid,
-                               std::vector<value_type>& rates) const {
-  if (size() == 0) {
-    return value_type(0.0);
-  }
-  rates.clear();
-  if (grid.order.empty()) {
-    for (auto& c : nodes) {
-      rates.push_back(c.consumption_rate(i));
-    }
-    rates.push_back(new_node.consumption_rate(i));
-  } else {
-    // In the grid's sorted order: index nodes.size() is the closing node.
-    for (size_t j : grid.order) {
-      rates.push_back(j < nodes.size() ? nodes[j].consumption_rate(i)
-                                       : new_node.consumption_rate(i));
-    }
-  }
-  value_type ret = util::trapezium(grid.x, rates);
+  value_type ret = util::trapezium(x, rates);
   if (top_on() && top_density_ > 0.0) {
     ret += top_density_ * top_.consumption_rate(i);
   }
