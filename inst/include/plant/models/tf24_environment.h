@@ -180,7 +180,7 @@ public:
   // is about two minutes. It only bites when the layer is wet, i.e. just after
   // rain, which is exactly when an evaporation layer matters. Below dz ~ 2.6 mm
   // the stable step falls under Control()'s ode_step_size_min and the controller
-  // cannot satisfy stability at all. See notes/plan-626-soil-layer-widths.md.
+  // cannot satisfy stability at all. See .claude/hazards.md, hazard 11.
   //
   // ⚠️ AND IT RECALIBRATES RUNOFF. The infiltration term keys off layer 0 alone
   // through (theta_0/theta_sat)^b_infil with b_infil = 8, so a thin layer 0 fills

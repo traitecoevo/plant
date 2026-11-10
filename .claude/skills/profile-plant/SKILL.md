@@ -160,8 +160,8 @@ For each change report: the exact command; the one-iteration
 `scm`/`build_schedule` medians and the 20-repeat totals; **cumulative** speedup
 (vs the original baseline) and **incremental** speedup (vs the previous state);
 whether native sampling was on or off; and the bit-identity check (which tests
-passed). Keep a running timing-history table — in the PR or a fresh `notes/`
-file — so each change's gain is attributable, not just the aggregate.
+passed). Keep a running timing-history table in the PR's first comment, so
+each change's gain is attributable, not just the aggregate.
 
 The full prior optimisation log (per-change timings, the sampler-effect audit,
 per-target detail) was `notes/profile-ff16-2026-06-16.md`, removed so this skill

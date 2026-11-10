@@ -9,7 +9,7 @@
 # The replacement integrates two within-plant anatomical profiles (conduit
 # widening, and the Huber-value profile) along the flow path, so the height
 # exponent is derived from measurable quantities rather than assumed. See
-# plant/stem_hydraulics.h and notes/plan-tf24-height-hydraulics.md.
+# plant/stem_hydraulics.h.
 #
 # Setting D_c, theta_c and L_tip all to zero collapses the path integral back to
 # the linear model bit for bit. Several tests below exist to keep it that way.

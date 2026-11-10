@@ -9,7 +9,7 @@ namespace plant {
 namespace stem_hydraulics {
 
 // Effective hydraulic path length of a stem whose anatomy varies as a power of
-// distance-from-apex L. See notes/plan-tf24-height-hydraulics.md sec. 4.
+// distance-from-apex L.
 //
 // Two within-plant profiles, both anchored at the terminal segment:
 //

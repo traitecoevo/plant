@@ -4,8 +4,7 @@ The #566 evaluation gate, mirroring the #523 Step-5 factorial: does the
 Lumry–Eyring leaf thermal-damage feedback (TF24t) **materially** change carbon
 gain relative to PM-only (TF24 with the Penman–Monteith energy balance, no
 damage), under representative Australian heatwave leaf temperatures — and does it
-do so in the predicted place? Companion to `implementation-plan.md` (Phases 1–5
-built the layer; this is the "keep only if material" measurement).
+do so in the predicted place? The layer's July design is [`implementation-plan.md`](https://github.com/traitecoevo/plant/blob/cffdaf5943020d037e387cbba94e517ab66f8003/notes/atls/implementation-plan.md), in the history since it retired; this is its "keep only if material" measurement.
 
 Produced by `Rscript notes/atls/gate_atls_vs_pm.R notes/atls/gate_atls_vs_pm` (writes `gate_atls_vs_pm.rds` + `_A.csv`/`_B.csv`) at `9409f8f2` on the July branch `feature/tf24-atls-thermal-damage`, the N-switch revision of TF24t. The script is kept as the record of the method. It uses the pre-#591 `Leaf` and TF24t APIs, so it does not run on current code.
 

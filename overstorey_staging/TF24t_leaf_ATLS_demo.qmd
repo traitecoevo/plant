@@ -67,7 +67,7 @@ A thermal *strategy* is a point in a four-axis trait space, all plugging into th
 | **Repair** | preventive `k_i`, restorative `k_rec` | impair more slowly or repair faster (and cut the lasting floor) |
 | **Avoidance** | transpirational cooling (energy balance) | lowers the operating leaf temperature, hence `k_imp` |
 
-This demo drives a single well-watered leaf, then a single-species stand. It is a work-in-progress staging document, not a built vignette. See `notes/atls/implementation-plan.md` for the design and `notes/plan-atls-port.md` for the port to phylloptim.
+This demo drives a single well-watered leaf, then a single-species stand. It is a work-in-progress staging document, not a built vignette. Its July design is [`notes/atls/implementation-plan.md`](https://github.com/traitecoevo/plant/blob/cffdaf5943020d037e387cbba94e517ab66f8003/notes/atls/implementation-plan.md) and the port to phylloptim is [`notes/plan-atls-port.md`](https://github.com/traitecoevo/plant/blob/cffdaf5943020d037e387cbba94e517ab66f8003/notes/plan-atls-port.md), both in the history since they retired; what still constrains the code is hazard 16 in `.claude/hazards.md`, and the open work is on #566.
 
 ## 1. The impairment rate `k_imp(Tleaf)` and the impairment it drives
 

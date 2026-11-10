@@ -17,7 +17,7 @@ This document is the mathematical specification of the **ATLS** thermal-response
 - the leaf-level physics and the dynamics of the states, in phylloptim's `Leaf` behind the gate `use_thermal_damage_` (`inst/include/phylloptim/leaf_model.hpp`: `update_temperature_dependent_params`, `d_S_shifted`, and the `damage` namespace with `impair_switch`, `k_rec_eff` and `rates`);
 - the integration of those states on a plant, the dilution of damaged leaf by growth, and the whole-plant costs, in plant's `TF24t` strategy (`inst/include/plant/models/tf24t_strategy.h`).
 
-It began as a port of the July 2026 layer (`TF24t` thermal revision 3; §[-@sec-port]) and was then redesigned to three states with the dynamics on the leaf (thermal revision 4; §[-@sec-redesign]). The decisions behind both are in `notes/plan-atls-port.md`.
+It began as a port of the July 2026 layer (`TF24t` thermal revision 3; §[-@sec-port]) and was then redesigned to three states with the dynamics on the leaf (thermal revision 4; §[-@sec-redesign]). The decisions behind both are in [`notes/plan-atls-port.md`](https://github.com/traitecoevo/plant/blob/cffdaf5943020d037e387cbba94e517ab66f8003/notes/plan-atls-port.md), in the history.
 
 With the gate off every equation below collapses to its TF24 form (no lasting damage, no $T_\mathrm{opt}$ shift, no thermal cost), so TF24 and TF24 with the energy balance are bit-identical to a leaf without the layer. The `TF24t` strategy turns the gate on unconditionally and, because the dynamics are only physically meaningful at a real operating-point leaf temperature, also forces the energy balance on.
 
@@ -343,7 +343,7 @@ The layer first built in July used an instantaneous, reversible Lumry–Eyring f
 1. **One reversible decline, not two.** The deactivated fraction $\varphi_d=K/(1+K)$ came from the *same* $K(T)$ as the peaked Arrhenius, so the reversible response was counted once and the onset was emergent. (The October redesign gave impairment its own switch; §[-@sec-redesign].)
 2. **Damage with memory.** $N$ was memoryless; the revision added two slow pools, recoverable $I_r$ and permanent $I_p$, with both capacities discounted by $(1-I_r-I_p)$. (Merged into one impaired state in October.)
 
-The two acclimation states merged into one thermostability state $A$, and the running-mean leaf temperature was added at thermal revision 3. The phase history is in `notes/atls/implementation-plan.md`.
+The two acclimation states merged into one thermostability state $A$, and the running-mean leaf temperature was added at thermal revision 3. The phase history is in [`notes/atls/implementation-plan.md`](https://github.com/traitecoevo/plant/blob/cffdaf5943020d037e387cbba94e517ab66f8003/notes/atls/implementation-plan.md), in the history.
 
 ### October 2026: the port to phylloptim {#sec-port}
 
@@ -376,8 +376,8 @@ Mode timescales: $k_\mathrm{imp}(T_\ell)$ is algebraic, $I\sim$ 4 d, $A\sim 1/\b
 
 ## Cross-references
 
-- The port's decisions and invariants: `notes/plan-atls-port.md`.
-- Design and phase history: `notes/atls/implementation-plan.md`.
+- The port's decisions: [`notes/plan-atls-port.md`](https://github.com/traitecoevo/plant/blob/cffdaf5943020d037e387cbba94e517ab66f8003/notes/plan-atls-port.md), in the history; its invariants are hazard 16 in `.claude/hazards.md`.
+- Design and phase history: [`notes/atls/implementation-plan.md`](https://github.com/traitecoevo/plant/blob/cffdaf5943020d037e387cbba94e517ab66f8003/notes/atls/implementation-plan.md), in the history.
 - Materiality gate (July verdict: keep): `notes/atls/gate-atls-vs-pm-evaluation.md`.
 - Numerical demo of the equations above: `TF24t_leaf_ATLS_demo.qmd` (this folder).
 - Prerequisite energy balance: issue #523; this layer: #566; the leaf half: phylloptim#162.

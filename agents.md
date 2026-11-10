@@ -3,6 +3,8 @@
 This document orients coding agents working in the `plant` R package. Read it
 before making changes, especially changes that touch the C++/R boundary.
 
+Two companions sit beside it. [.claude/hazards.md](.claude/hazards.md) numbers the invariants a later edit can break without a test failing at once, each with its reason. [.claude/measurements.md](.claude/measurements.md) says where each baseline lives, what may re-bless it, how a build is validated and how a speed claim is measured. plant keeps no plan document: open work lives on its issue.
+
 `plant` is an extensible framework for modelling **size- and trait-structured
 demography, ecology and evolution in simulated forests**. It is an
 individual-based model in which plant physiology and demography are mediated by
@@ -545,6 +547,8 @@ Rules:
 
 ## 8. Testing
 
+Every baseline the suite compares against, and what may re-bless it, is listed in [.claude/measurements.md](.claude/measurements.md).
+
 `testthat` tests live in [tests/testthat/](tests/testthat/), roughly one file
 per component (`test-scm.R`, `test-patch.R`, `test-strategy-ff16.R`,
 `test-leaf.r`, …). Shared setup is in `helper-plant.R`. Regression baselines for
@@ -594,8 +598,11 @@ default `1e-3`), and prints the full per-scenario table on any failure. When a
 changed outcome is intended, re-bless the baseline with `make bless-scenarios`
 — **in its own commit, with the before/after table in NEWS**. A baseline diff
 only carries information while the baseline is current, and one that is not
-hands every later PR a failure it did not cause (#639). See
-[notes/plan-tf24-scenario-framework.md](notes/plan-tf24-scenario-framework.md).
+hands every later PR a failure it did not cause (#639). A scenario is scored on
+two axes, and neither is a headline: whether the model ran (`observed`), and
+whether the population replaced itself (`persists`, R0 >= 1). "Ran" alone is a
+weak test, because a run at an R0 of 1e-14 counts as one. The gateway runs on the
+birth-date coordinate, which TF24 needs (#590).
 
 CI: [.github/workflows/R-CMD-check.yaml](.github/workflows/R-CMD-check.yaml) and
 `benchmarks.yml`.
@@ -673,6 +680,8 @@ repo's README for how it renders, freezes (`_freeze/`), and version-pins posts.
 ---
 
 ## 11. Conventions & gotchas checklist
+
+The one-line rules. The invariants behind the solver, the reverse sweep, the soil column, the continuous patch and the TF24 variants are numbered, with their reasons, in [.claude/hazards.md](.claude/hazards.md).
 
 - ❌ Do not edit generated files: `R/RcppR6.R`, `R/RcppExports.R`,
   `src/RcppR6.cpp`, `src/RcppExports.cpp`, `RcppR6_pre/post.hpp`, `NAMESPACE`, `man/`.
@@ -1001,7 +1010,7 @@ What it claims: <2–4 sentences: what changes, what must NOT change (e.g. "no
 number moves", "goldens bit-identical", "objects identical"), the issue it closes>.
 
 Read first: <the repo's CLAUDE.md and the sections that bind this change, the
-PLAN.md items, the hazards, the files touched>.
+.claude/hazards.md entries that bind it, the files touched>.
 ```
 
 ## Issue & project-board conventions

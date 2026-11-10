@@ -318,8 +318,9 @@ products using plant.
   `(theta_0/theta_sat)^b_infil` with `b_infil = 8`, and a thin layer 0 fills far
   faster, so annual runoff moved 13.4% -> 20.4% under event-driven rainfall with
   no parameter changed. `a_infil`/`b_infil` were calibrated against a 30 cm
-  surface layer. Both are in `notes/plan-626-soil-layer-widths.md` and in
-  `soil_widths_graded()`'s help.
+  surface layer. Both are in the design note
+  ([`plan-626-soil-layer-widths.md`](https://github.com/traitecoevo/plant/blob/cffdaf5943020d037e387cbba94e517ab66f8003/notes/plan-626-soil-layer-widths.md), since
+  retired) and in `soil_widths_graded()`'s help.
 
   Soil evaporation itself is **out of scope**: #626 is the enabling geometry
   change. The follow-up needs the infiltration re-keying above, step control for a
@@ -900,7 +901,8 @@ were not previously recorded here:
   height dependence meanwhile and is unaffected — it enters through `k_s(L)`,
   which has no structural counterpart.
 
-  Design note: `notes/plan-tf24-height-hydraulics.md`. The diurnal closure that
+  Design note: [`plan-tf24-height-hydraulics.md`](https://github.com/traitecoevo/plant/blob/cffdaf5943020d037e387cbba94e517ab66f8003/notes/plan-tf24-height-hydraulics.md)
+  (since retired; the open design is on #615). The diurnal closure that
   the cost and gain terms need is tracked separately as #618.
 * **TF24 and TF24f report leaf temperature as an auxiliary variable, `Tleaf`
   (#625).** The leaf's own temperature at the optimal operating point, in deg C,
@@ -1075,7 +1077,8 @@ were not previously recorded here:
   differs from one without, at solver tolerance, even away from the events. And
   events are instantaneous *to the solver* only — an action may sub-integrate its
   own fast model over a nominal duration with demography frozen, which is what
-  `climate_extreme()` does. Design notes in `notes/plan-events.md`.
+  `climate_extreme()` does. Design notes in
+  [`plan-events.md`](https://github.com/traitecoevo/plant/blob/cffdaf5943020d037e387cbba94e517ab66f8003/notes/plan-events.md), since retired.
 
   `collect = TRUE` returns `events` and `event_log` alongside the tidied output,
   since events are supplied separately from `p` and a collected result would
