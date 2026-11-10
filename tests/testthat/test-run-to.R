@@ -1,19 +1,12 @@
 ## Driving a run from outside (#519): run_to() between legs, the thinned
 ## snapshot record, and the burn-in that stops when the stand has settled.
 
-ff16 <- function(lifetime) {
-  p <- testing_parameters("FF16")
-  p$max_patch_lifetime <- lifetime
-  p$node_schedule_times <- list()
-  add_strategies(p, trait_matrix(0.0825, "lma"))
-}
-
 new_scm <- function(p, ctrl = Control()) {
   SCM("FF16", "FF16_Env")(p, Environment("FF16"), empty_events(), ctrl)
 }
 
 test_that("a sequence of run_to() calls is a run, leg for leg", {
-  p <- ff16(20)
+  p <- ff16_parameters(20)
   a <- new_scm(p)
   a$run()
   b <- new_scm(p)
@@ -43,7 +36,7 @@ test_that("a sequence of run_to() calls is a run, leg for leg", {
 })
 
 test_that("snapshots thin the record and keep every node's lifetime output", {
-  p <- ff16(20)
+  p <- ff16_parameters(20)
   scm <- new_scm(p)
   scm$snapshot_interval <- 5
   scm$run()
@@ -73,7 +66,7 @@ test_that("snapshots thin the record and keep every node's lifetime output", {
 })
 
 test_that("run_until_converged stops when the block means settle", {
-  p <- ff16(400)
+  p <- ff16_parameters(400)
   p$patch_type <- "fixed"
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 400, 1))
   ctrl <- Control(node_density_coordinate = "birth_date", absorb_epsilon = 0.02)
@@ -104,7 +97,7 @@ test_that("run_until_converged stops when the block means settle", {
 })
 
 test_that("run_to() with collect on keeps the same history as run()", {
-  p <- ff16(15)
+  p <- ff16_parameters(15)
   ev <- events(node_introductions(p), harvest(time = 7.5, fraction = 0.3))
   a <- run_scm(p, events = ev, run = FALSE)
   a$collect <- TRUE
@@ -123,7 +116,7 @@ test_that("run_to() with collect on keeps the same history as run()", {
 test_that("an export where run_to() stopped keeps the action due there", {
   ## run_to() stops on arrival at an instant, before the instant's actions run,
   ## so a harvest due at the stop is still to come in the export.
-  p <- ff16(15)
+  p <- ff16_parameters(15)
   ev <- events(node_introductions(p), harvest(time = 7.5, fraction = 0.5))
   straight <- run_scm(p, events = ev)
   s <- run_scm(p, events = ev, run = FALSE)
@@ -139,7 +132,7 @@ test_that("an export where run_to() stopped keeps the action due there", {
 })
 
 test_that("run_scm(run = FALSE) returns an SCM to drive, and only that", {
-  p <- ff16(10)
+  p <- ff16_parameters(10)
   s <- run_scm(p, run = FALSE)
   expect_false(s$complete)
   expect_equal(s$time, 0)
@@ -148,7 +141,7 @@ test_that("run_scm(run = FALSE) returns an SCM to drive, and only that", {
 })
 
 test_that("run_until_converged() refuses what it cannot judge", {
-  p <- ff16(100)
+  p <- ff16_parameters(100)
   p$patch_type <- "fixed"
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 100, 1))
   ctrl <- Control(node_density_coordinate = "birth_date", absorb_epsilon = 0.02)
@@ -191,7 +184,7 @@ test_that("a statistic is judged on its own scale, however small", {
   ## against a floor of machine epsilon, a stand at 1e-300 read as settled two
   ## blocks in, while its density was still rising by 15 % a block.
   converge <- function(b, ...) {
-    p <- ff16(200)
+    p <- ff16_parameters(200)
     p$patch_type <- "fixed"
     p$strategies[[1]]$birth_rate_y <- b
     p$node_schedule_times <- list(node_schedule_times_periodic(0, 200, 1))
@@ -214,7 +207,7 @@ test_that("a statistic is judged on its own scale, however small", {
 
 test_that("statistics that settle by construction are not judged by default", {
   ## The top layer pins the tallest cohort: asked for, it warns.
-  p <- ff16(100)
+  p <- ff16_parameters(100)
   p$patch_type <- "fixed"
   p$node_schedule_times <- list(node_schedule_times_periodic(0, 100, 1))
   ctrl <- Control(node_density_coordinate = "birth_date", absorb_epsilon = 0.02)
@@ -243,6 +236,6 @@ test_that("statistics that settle by construction are not judged by default", {
 })
 
 test_that("run_to() refuses a time it cannot compare", {
-  s <- run_scm(ff16(10), run = FALSE)
+  s <- run_scm(ff16_parameters(10), run = FALSE)
   expect_error(s$run_to(NaN), "NaN")
 })

@@ -38,16 +38,8 @@ pinned <- function(scm) {
   p
 }
 
-central_difference <- function(p, species, name, metric, rel = 1e-4,
-                               ctrl = referee_control()) {
-  x <- p$strategies[[species]]$pars[[name]]
-  h <- rel * abs(x)
-  at <- function(v) {
-    q <- p
-    q$strategies[[species]]$pars[[name]] <- v
-    stand_census(run_scm(q, NULL, ctrl))[[metric]]
-  }
-  (at(x + h) - at(x - h)) / (2 * h)
+census_of <- function(ctrl = referee_control()) {
+  function(p) stand_census(run_scm(p, NULL, ctrl))
 }
 
 test_that("FF16 declares the three census metrics and names its columns", {
@@ -104,7 +96,7 @@ test_that("the FF16 stand gradient is the pinned-step central difference", {
   # leaf (a_p2), turnover (k_l), mortality (a_dG1, d_I) and establishment (a_d0).
   for (name in c("lma", "a_l1", "theta", "omega", "k_I", "a_p2", "k_l",
                  "a_dG1", "d_I", "a_d0")) {
-    fd <- central_difference(p, 1, name, "mass_above_ground")
+    fd <- central_difference(p, 1, name, "mass_above_ground", census_of())
     expect_equal(g$gradient["mass_above_ground", paste0("1.", name)], fd,
                  tolerance = 1e-5, label = name)
   }
@@ -140,7 +132,7 @@ test_that("both crown integrals differentiate through the light and the leaf rat
                         traits = c("1.lma", "1.a_p1"), hyperpar = NULL)
     for (trait in c("lma", "a_p1")) {
       fd <- central_difference(pinned(scm), 1, trait, "mass_above_ground",
-                               ctrl = ctrl)
+                               census_of(ctrl))
       expect_equal(g$gradient["mass_above_ground", paste0("1.", trait)], fd,
                    tolerance = 1e-5, label = paste(model, trait))
     }
@@ -153,7 +145,7 @@ test_that("two FF16 species carry each their own columns", {
                       traits = c("1.lma", "2.lma"), hyperpar = NULL)
   p <- pinned(scm)
   for (i in 1:2) {
-    fd <- central_difference(p, i, "lma", "mass_above_ground")
+    fd <- central_difference(p, i, "lma", "mass_above_ground", census_of())
     expect_equal(g$gradient["mass_above_ground", paste0(i, ".lma")], fd,
                  tolerance = 1e-5, label = paste0(i, ".lma"))
   }

@@ -58,6 +58,31 @@ testing_parameters <- function(model) {
   default_parameters(model, quiet = TRUE)
 }
 
+# Every model plant ships, for tests that check something of all of them.
+all_models <- c("FF16", "K93", "TF24", "TF24f", "TF24t", "TF24w")
+
+# One FF16 species at the testing parameters, run for `lifetime` years on the
+# default node schedule.
+ff16_parameters <- function(lifetime) {
+  p <- testing_parameters("FF16")
+  p$max_patch_lifetime <- lifetime
+  p$node_schedule_times <- list()
+  add_strategies(p, trait_matrix(0.0825, "lma"))
+}
+
+# d(metric)/d(name) for species `species` by a centred difference of two runs at
+# x * (1 +- rel), where `measure(p)` runs p and returns its named metrics.
+central_difference <- function(p, species, name, metric, measure, rel = 1e-4) {
+  x <- p$strategies[[species]]$pars[[name]]
+  h <- rel * abs(x)
+  at <- function(v) {
+    q <- p
+    q$strategies[[species]]$pars[[name]] <- v
+    measure(q)[[metric]]
+  }
+  (at(x + h) - at(x - h)) / (2 * h)
+}
+
 # Soil layer widths grading geometrically from a thin surface layer, summing to
 # `depth` to the bit. The generator moved to fieldtrial (soil_widths_graded());
 # the tests that probe a graded column keep this copy of its arithmetic.

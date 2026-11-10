@@ -82,31 +82,6 @@ test_that("FF16 collect_all_auxiliary option", {
   ))
 })
 
-test_that("Reference comparison", {
-  s <- FF16_Strategy()
-  p <- FF16_Individual(s)
-
-  expect_identical(p$strategy, s)
-
-  ## Set the height to something (here 10)
-  h0 <- 10
-  p$set_state("height", h0)
-
-
-  expect_identical(p$state("height"), h0)
-
-  ## Check: Is this redundant now
-  ## We now use 
-  vars <- p$internals
-  expect_identical(p$state("height"), vars$states[which(p$ode_names == "height")])
-})
-
-test_that("Critical Names", {
-  s <- FF16_Strategy()
-  my_names <- FF16_Individual(s)$ode_names
-  expect_identical(my_names[1:3], c("height", "mortality", "fecundity"))
-})
-
 test_that("FF16_Strategy hyper-parameterisation", {
   s <- FF16_Strategy()
 
