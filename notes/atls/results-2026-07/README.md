@@ -12,4 +12,4 @@ They predate phylloptim's leaf-temperature-in-the-optimiser (#84), the Q10 respi
 | `*-call.R` | The call that produced each file, as stored in its cache |
 | `../gate_atls_vs_pm_A.csv`, `_B.csv` | The verification gate's two tables, computed on the superseded N-switch version |
 
-The calls use helpers from the July branch's `overstorey_staging/atls_demo_helpers.R`.
+The calls use helpers from the July branch's `overstorey_staging/atls_demo_helpers.R`, kept here as `atls_demo_helpers-july.R`. The `scen5` and `scen6` scenario lists they take are defined in `overstorey_staging/TF24t_leaf_ATLS_demo.qmd`, whose port keeps the July definitions. Like the calls, the helpers do not run on current code.
