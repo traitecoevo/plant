@@ -358,7 +358,7 @@ Schedule:
   name_cpp: "plant::Schedule"
   constructor:
     roxygen: |
-      Schedule of node introduction times
+      The queue of scheduled events: node introductions, resource pulses, harvests and climate extremes
       @param n_species number of species
       @export
     args: [n_species: size_t]
