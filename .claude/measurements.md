@@ -30,7 +30,7 @@ Wall-clock on a Mac swings by up to 20% between rounds of the same binary, so a 
 - **Instructions retired** for a fixed script, from `/usr/bin/time -l`, which repeats to within about 0.3% where wall-clock drifts.
 - **Interleaved medians**, base and head alternated in one session, each build in its own library and one `Rscript` per build, since two builds of plant cannot load into one R session.
 
-The `profile-plant` skill has the profiling workflow. `run_plant_benchmarks()` times only FF16's run and schedule refinement; a change to TF24, to the reverse sweep or to anything phylloptim reaches needs those paths timed as well.
+The `profile-plant` skill has the profiling workflow. `scripts/bench_run.R` times a stand run and `scripts/bench_gradient.R` a reverse sweep, each for FF16 or TF24; `run_plant_benchmarks()` times only FF16's run and schedule refinement. A change to TF24, to the reverse sweep or to anything phylloptim reaches needs those paths timed as well as FF16's.
 
 ## Evaluation records kept in `notes/`
 
