@@ -70,9 +70,9 @@ inline int event_type_rank(EventType type) {
 class ScheduleEvent {
 public:
   ScheduleEvent(double introduction, size_t target_index_,
-                    EventType type_ = EventType::NodeIntroduction,
-                    EventTarget target_ = EventTarget::Species,
-                    std::vector<double> params_ = std::vector<double>())
+                EventType type_ = EventType::NodeIntroduction,
+                EventTarget target_ = EventTarget::Species,
+                std::vector<double> params_ = std::vector<double>())
     : type(type_), target(target_), target_index(target_index_),
       params(params_) {
     times.push_back(introduction);

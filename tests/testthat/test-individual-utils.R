@@ -31,7 +31,7 @@ test_that("Default times", {
   }
 })
 
-test_that("Node schedule max time", {
+test_that("Schedule max time", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)()

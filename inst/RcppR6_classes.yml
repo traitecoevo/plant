@@ -972,7 +972,7 @@ SCM:
     refinement_error_by_node:
       type: "std::vector<std::vector<double>>"
       access: member
-    # Node schedule
+    # The schedule of events
     schedule:
       type: "plant::Schedule"
       access: member
@@ -1177,7 +1177,7 @@ StochasticPatchRunner:
       type: "plant::StochasticPatch<T,E>"
       access: member
       name_cpp: r_patch
-    # Mirrors SCM's `schedule` (was `schedule`); both wrap a Schedule.
+    # Mirrors SCM's `schedule`; both wrap a Schedule.
     schedule:
       type: "plant::Schedule"
       access: member

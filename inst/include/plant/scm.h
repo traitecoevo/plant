@@ -590,7 +590,7 @@ public:
   std::vector<double>
   r_compute_competition_effect_error_by_node_for_species_i(util::index species_index) const;
 
-  // Node schedule access
+  // The schedule of events
   Schedule r_schedule() const { return schedule; }
   // The schedule read back out in the R-facing wire format, so that a run
   // whose schedule was refined can be re-run, or inspected, as events.

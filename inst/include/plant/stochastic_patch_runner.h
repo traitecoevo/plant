@@ -44,7 +44,7 @@ public:
   parameters_type r_parameters() const { return parameters; }
   const patch_type &r_patch() const { return patch; }
 
-  // R-facing names mirror SCM (schedule / set_schedule[_times]).
+  // R-facing names mirror SCM (schedule / set_schedule, set_node_schedule_times).
   Schedule r_schedule() const { return schedule; }
   void r_set_schedule(Schedule x);
   void r_set_node_schedule_times(std::vector<std::vector<double>> x);

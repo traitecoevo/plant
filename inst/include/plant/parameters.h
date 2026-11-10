@@ -8,7 +8,7 @@
 #include <plant/control.h>
 #include <plant/models/ff16_strategy.h>
 #include <plant/schedule.h>
-#include <plant/scm_utils.h> // Unfortunately needed for setup_schedule
+#include <plant/scm_utils.h> // Unfortunately needed for setup_node_schedule
 
 #include <memory>
 #include <plant/disturbance_regime.h>
@@ -159,7 +159,7 @@ struct Parameters {
   void validate();
 
 private:
-  void setup_schedule();
+  void setup_node_schedule();
 };
 
 template <typename T, typename E>
@@ -174,7 +174,7 @@ template <typename T, typename E>
 void Parameters<T,E>::validate() {
   const size_t n_spp = size();
 
-  setup_schedule();
+  setup_node_schedule();
   if (node_schedule_times.size() != n_spp) {
     util::stop("Incorrect length node_schedule_times");
   }
@@ -204,7 +204,7 @@ void Parameters<T,E>::validate() {
 // Separating this out just because it's a bit crap:
 // TODO(#483): Consider adding this to scm_utils.h perhaps?
 template <typename T, typename E>
-void Parameters<T,E>::setup_schedule() {
+void Parameters<T,E>::setup_node_schedule() {
   node_schedule_times_default =
       plant::node_schedule_times_default(max_patch_lifetime);
 

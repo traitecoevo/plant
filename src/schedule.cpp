@@ -25,7 +25,7 @@ size_t Schedule::get_n_species() const {
 }
 
 Schedule Schedule::expand(size_t n_extra,
-                                  std::vector<double> times) {
+                          std::vector<double> times) {
   Schedule ret = *this;
   ret.n_species += n_extra;
   for (size_t i = n_species; i < ret.n_species; ++i) {
@@ -61,7 +61,7 @@ std::vector<std::vector<double> > Schedule::get_times() const {
 }
 
 void Schedule::set_times(const std::vector<double>& times_,
-                               size_t species_index) {
+                         size_t species_index) {
   clear_times(species_index);
   for (std::vector<double>::const_iterator t = times_.begin();
        t != times_.end(); ++t) {
@@ -198,7 +198,7 @@ void Schedule::r_clear_times(util::index species_index) {
 }
 
 void Schedule::r_set_times(std::vector<double> times_,
-                                 util::index species_index) {
+                           util::index species_index) {
   if (!util::is_sorted(times_.begin(), times_.end())) {
     Rcpp::stop("Times must be sorted (increasing)");
   }

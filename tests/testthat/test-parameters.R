@@ -83,7 +83,7 @@ test_that("Nontrivial creation", {
 #   }
 # })
 
-test_that("Generate node schedule", {
+test_that("Generate the schedule", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()))
@@ -126,7 +126,7 @@ test_that("Patch runtime", {
     expect_lt(dplyr::last(p2$node_schedule_times_default), p2$max_patch_lifetime)
     expect_equal(p2$node_schedule_times, list(p2$node_schedule_times_default))
 
-    ## We will blow away any data that is stored in p$schedule*
+    ## We will blow away any data that is stored in p$node_schedule_times*
     p$node_schedule_times_default <- 1:10
     p$node_schedule_time <- list(1:11)
     expect_equal(plant:::validate(p), p2)
