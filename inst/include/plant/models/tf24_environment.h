@@ -769,7 +769,8 @@ public:
   //
   // This is an explicit, first-order representation; drainage is instantaneous
   // single-direction (no upward capillary flux between layers - that is handled
-  // hydraulically inside the plant, by the leaf's root network).
+  // hydraulically inside the plant, by the leaf's root network, phylloptim's
+  // E_from_Soil_to_Root_Collar).
   //
   // The inter-layer flux is FREE DRAINAGE, q = K(theta) evaluated at the donor
   // cell (Darcy's law with the matric gradient dropped). It contains no internode

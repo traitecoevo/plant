@@ -1,4 +1,3 @@
-// Built from src/tf24f_node.cpp for the strategy: TF24w (#681)
 #include <plant.h>
 
 // Helpers for TF24w model

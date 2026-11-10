@@ -697,7 +697,9 @@ typename Species<T,E>::HeightScan Species<T,E>::compute_height_scan() const {
 }
 
 // Leaf area above `height`, integrated over the species' cohorts by the
-// trapezium rule. Zero for an empty species.
+// trapezium rule. Zero for an empty species. The trapezium is written out
+// rather than handed to a general routine, because building and discarding the
+// intermediate storage per call is a real cost on this path.
 template <typename T, typename E>
 typename Species<T,E>::value_type
 Species<T,E>::compute_competition(const value_type& height) const {

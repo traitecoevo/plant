@@ -180,9 +180,9 @@ struct TF24_Pars {
   // K_s (frozen_TF24_hyperpar in R/default_parameters.R), so a
   // strategy built from traits and the bare default share one curve (#611).
   S stem_P50 = 2.8887256653360196;
-  // Sapwood-specific conductivity of the TERMINAL segment. Was 1, a whole-stem
-  // value under the height-linear model; back-derived to the tip by
-  // TF24_K_s_from_whole_stem(1) so that resistance is UNCHANGED at
+  // Sapwood-specific conductivity of the TERMINAL segment: the whole-stem value
+  // 1 of the height-linear model, back-derived to the tip by
+  // TF24_K_s_from_whole_stem(1), so that the two models' resistances agree at
   // TF24_H_ANCHOR = 1 m. The ratio is 2.9782.
   //
   // Only theta/K_s is identifiable, so agreement with the height-linear model
@@ -721,8 +721,11 @@ public:
   // the simulation output for identical inputs, never for a refactor or a
   // performance, interface or serialisation change: a bump invalidates logpile's
   // cache for this model (model_version(), model_id()). TF24f, TF24t and TF24w
-  // carry compound versions that follow this one. Each bump, and what it moved,
-  // is in NEWS.md.
+  // carry compound versions that follow this one. NEWS.md records each bump and
+  // what it moved, with two gaps: v11, which added R_d_25, moved the root curve
+  // to (root_P50, root_c) and vulnerability_curve_ncontrol from 100 to 400; and
+  // the half of v9 that took the light field's and the census's trapezium widths
+  // from the coordinate the density is carried in.
   static constexpr int scientific_version = 15;
 
   // calculate the amount of water transpired relativised by leaf area index.
@@ -3251,12 +3254,12 @@ S TF24_Strategy<S>::mortality_dt(const S& relative_reserves,
   // r = S/S_max (in [0,1]) rather than instantaneous productivity, so the rate
   // is bounded (see mortality_storage_dependent_dt): death is gradual as
   // reserves deplete rather than spiking under a carbon deficit.
-  // ⚠️ THE TEST IS THE CEILING, NOT FINITENESS, and the two must not be swapped
-  // back. A cohort that failed to establish has survival exactly
-  // zero, so parking its rate there says what a non-finite hazard would --
+  // ⚠️ THE TEST IS THE CEILING, NOT FINITENESS, and the two must not be
+  // swapped. A cohort that failed to establish has survival exactly zero, so
+  // parking its rate there says what a non-finite hazard would --
   // and keeping the rate parked is what makes the finite sentinel
   // bit-identical to an infinite hazard, in the state, in the rate and so in
-  // the step the controller chooses. Finiteness is still tested, because a
+  // the step the controller chooses. Finiteness is also tested, because a
   // hazard that arrives non-finite by any other route must park too.
   if (util::is_finite(cumulative_mortality) &&
       cumulative_mortality < establishment_failure_hazard) {

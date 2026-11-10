@@ -1,6 +1,3 @@
-# Built from tests/testthat/test-strategy-tf24.R on Thu Jun 25 06:01:09 2026 using the scaffolder, from the strategy: TF24
-# Built from  tests/testthat/test-strategy-ff16.R on Mon Feb 12 09:52:27 2024 using the scaffolder, from the strategy:  FF16
-
 test_that("Defaults", {
   # Biological parameters now live in the nested `pars` sub-object.
   expected_pars <- list(

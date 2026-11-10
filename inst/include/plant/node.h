@@ -244,7 +244,8 @@ void Node<T,E>::compute_rates(const environment_type& environment,
 // A new cohort's cumulative mortality starts at -log(establishment_probability),
 // so the hazard of failing to establish is paid at birth, and its log_density
 // at the log of the density it is born with. Where either is zero the state
-// takes a finite sentinel instead (establishment_failure_hazard).
+// takes a finite sentinel instead: establishment_failure_hazard for the
+// mortality, its negative for log_density.
 template <typename T, typename E>
 void Node<T,E>::compute_initial_conditions(const environment_type& environment,
                                              double pr_patch_survival,
