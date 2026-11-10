@@ -1,5 +1,5 @@
 #include <plant/fp_contract.h>
-#include <plant/node_schedule.h>
+#include <plant/schedule.h>
 #include <plant/parameters.h>
 #include <plant/util.h>
 #include <Rcpp.h>
@@ -9,24 +9,24 @@
 
 namespace plant {
 
-NodeSchedule::NodeSchedule(size_t n_species_)
+Schedule::Schedule(size_t n_species_)
   : n_species(n_species_),
     at(0),
     max_time(std::numeric_limits<double>::infinity()),
     start_time(0.0) {
 }
 
-size_t NodeSchedule::size() const {
+size_t Schedule::size() const {
   return schedule.size();
 }
 
-size_t NodeSchedule::get_n_species() const {
+size_t Schedule::get_n_species() const {
   return n_species;
 }
 
-NodeSchedule NodeSchedule::expand(size_t n_extra,
-                                  std::vector<double> times) {
-  NodeSchedule ret = *this;
+Schedule Schedule::expand(size_t n_extra,
+                          std::vector<double> times) {
+  Schedule ret = *this;
   ret.n_species += n_extra;
   for (size_t i = n_species; i < ret.n_species; ++i) {
     ret.set_times(times, i);
@@ -34,7 +34,7 @@ NodeSchedule NodeSchedule::expand(size_t n_extra,
   return ret;
 }
 
-void NodeSchedule::clear_times(size_t species_index) {
+void Schedule::clear_times(size_t species_index) {
   std::vector<schedule_entry>::iterator it = schedule.begin();
   while (it != schedule.end()) {
     std::vector<size_t>& species = it->species;
@@ -48,11 +48,11 @@ void NodeSchedule::clear_times(size_t species_index) {
   reset();
 }
 
-double NodeSchedule::get_max_time() const {
+double Schedule::get_max_time() const {
   return max_time;
 }
 
-std::vector<std::vector<double> > NodeSchedule::get_times() const {
+std::vector<std::vector<double> > Schedule::get_times() const {
   std::vector<std::vector<double> > ret;
   for (size_t i = 0; i < n_species; ++i) {
     ret.push_back(times(i));
@@ -60,8 +60,8 @@ std::vector<std::vector<double> > NodeSchedule::get_times() const {
   return ret;
 }
 
-void NodeSchedule::set_times(const std::vector<double>& times_,
-                               size_t species_index) {
+void Schedule::set_times(const std::vector<double>& times_,
+                         size_t species_index) {
   clear_times(species_index);
   for (std::vector<double>::const_iterator t = times_.begin();
        t != times_.end(); ++t) {
@@ -70,14 +70,14 @@ void NodeSchedule::set_times(const std::vector<double>& times_,
   reset();
 }
 
-void NodeSchedule::set_times(const std::vector<std::vector<double> >& times_) {
+void Schedule::set_times(const std::vector<std::vector<double> >& times_) {
   util::check_length(times_.size(), n_species);
   for (size_t i = 0; i < n_species; ++i) {
     set_times(times_[i], i);
   }
 }
 
-std::vector<double> NodeSchedule::times(size_t species_index) const {
+std::vector<double> Schedule::times(size_t species_index) const {
   std::vector<double> ret;
   for (const schedule_entry& i : schedule) {
     if (std::find(i.species.begin(), i.species.end(), species_index) !=
@@ -90,7 +90,7 @@ std::vector<double> NodeSchedule::times(size_t species_index) const {
 
 // The queue flattened back to the wire format: an instant's actions in their
 // application order, then its introductions, one Event each.
-std::vector<NodeScheduleEvent> NodeSchedule::get_events() const {
+std::vector<ScheduleEvent> Schedule::get_events() const {
   std::vector<Event> ret;
   for (const schedule_entry& e : schedule) {
     for (const Event& a : e.actions) {
@@ -109,7 +109,7 @@ std::vector<NodeScheduleEvent> NodeSchedule::get_events() const {
 // actions, held in event_type_rank order and stable within a rank -- two pulses
 // at one instant are capped in sequence against the same pool, so the order they
 // were given in is the order they must be applied in.
-void NodeSchedule::set_all_events(const std::vector<Event>& events_) {
+void Schedule::set_all_events(const std::vector<Event>& events_) {
   schedule.clear();
   for (std::vector<Event>::const_iterator e = events_.begin();
        e != events_.end(); ++e) {
@@ -122,7 +122,7 @@ void NodeSchedule::set_all_events(const std::vector<Event>& events_) {
   reset();
 }
 
-void NodeSchedule::add_action(const Event& e) {
+void Schedule::add_action(const Event& e) {
   std::vector<schedule_entry>::iterator it = entry_at(e.time_introduction());
   std::vector<Event>::iterator a = it->actions.begin();
   while (a != it->actions.end() &&
@@ -136,7 +136,7 @@ void NodeSchedule::add_action(const Event& e) {
 
 // Find the instant, or make it. Every entry initialises `times` with its own time, so
 // time_introduction() and time_end() are answerable the moment it exists.
-std::vector<schedule_entry>::iterator NodeSchedule::entry_at(double time) {
+std::vector<schedule_entry>::iterator Schedule::entry_at(double time) {
   std::vector<schedule_entry>::iterator it = schedule.begin();
   while (it != schedule.end() && it->time < time) {
     ++it;
@@ -147,37 +147,37 @@ std::vector<schedule_entry>::iterator NodeSchedule::entry_at(double time) {
   return it;
 }
 
-void NodeSchedule::reset() {
+void Schedule::reset() {
   at = 0;
 }
 
-const schedule_entry& NodeSchedule::next() const {
+const schedule_entry& Schedule::next() const {
   if (at >= schedule.size()) {
     Rcpp::stop("All introductions completed");
   }
   return schedule[at];
 }
 
-double NodeSchedule::time_end() const {
+double Schedule::time_end() const {
   if (at >= schedule.size()) {
     Rcpp::stop("All introductions completed");
   }
   return at + 1 < schedule.size() ? schedule[at + 1].time : max_time;
 }
 
-void NodeSchedule::pop() {
+void Schedule::pop() {
   if (at >= schedule.size()) {
     Rcpp::stop("Attempt to pop a completed schedule");
   }
   ++at;
 }
 
-size_t NodeSchedule::remaining() const {
+size_t Schedule::remaining() const {
   return schedule.size() - at;
 }
 
 std::vector<odelia::ode::schedule_row>
-NodeSchedule::schedule_within(double start, double end) const {
+Schedule::schedule_within(double start, double end) const {
   std::vector<odelia::ode::schedule_row> ret;
   for (const odelia::ode::schedule_row& s : ode_steps) {
     if (s.time <= start || s.time > end) {
@@ -193,12 +193,12 @@ NodeSchedule::schedule_within(double start, double end) const {
 }
 
 // * R interface
-void NodeSchedule::r_clear_times(util::index species_index) {
+void Schedule::r_clear_times(util::index species_index) {
   clear_times(species_index.check_bounds(n_species));
 }
 
-void NodeSchedule::r_set_times(std::vector<double> times_,
-                                 util::index species_index) {
+void Schedule::r_set_times(std::vector<double> times_,
+                           util::index species_index) {
   if (!util::is_sorted(times_.begin(), times_.end())) {
     Rcpp::stop("Times must be sorted (increasing)");
   }
@@ -214,11 +214,11 @@ void NodeSchedule::r_set_times(std::vector<double> times_,
   set_times(times_, species_index.check_bounds(n_species));
 }
 
-std::vector<double> NodeSchedule::r_times(util::index species_index) const {
+std::vector<double> Schedule::r_times(util::index species_index) const {
   return times(species_index.check_bounds(n_species));
 }
 
-void NodeSchedule::r_set_max_time(double x) {
+void Schedule::r_set_max_time(double x) {
   if (x < 0) {
     Rcpp::stop("max_time must be nonnegative");
   }
@@ -231,7 +231,7 @@ void NodeSchedule::r_set_max_time(double x) {
   reset();
 }
 
-std::vector<double> NodeSchedule::r_ode_times() const {
+std::vector<double> Schedule::r_ode_times() const {
   std::vector<double> ret;
   ret.reserve(ode_steps.size());
   for (const odelia::ode::schedule_row& r : ode_steps) {
@@ -240,7 +240,7 @@ std::vector<double> NodeSchedule::r_ode_times() const {
   return ret;
 }
 
-std::vector<double> NodeSchedule::r_ode_step_sizes() const {
+std::vector<double> Schedule::r_ode_step_sizes() const {
   std::vector<double> ret;
   ret.reserve(ode_steps.size());
   for (const odelia::ode::schedule_row& r : ode_steps) {
@@ -261,11 +261,11 @@ substep_field(const std::vector<odelia::ode::schedule_row>& steps,
   return ret;
 }
 
-std::vector<std::vector<double> > NodeSchedule::r_ode_soil_input_slopes() const {
+std::vector<std::vector<double> > Schedule::r_ode_soil_input_slopes() const {
   return substep_field(ode_steps, &odelia::ode::subsystem_substeps::input_slope);
 }
 
-std::vector<std::vector<double> > NodeSchedule::r_ode_soil_substep_ends() const {
+std::vector<std::vector<double> > Schedule::r_ode_soil_substep_ends() const {
   return substep_field(ode_steps, &odelia::ode::subsystem_substeps::ends);
 }
 
@@ -282,7 +282,7 @@ std::vector<std::vector<double> > NodeSchedule::r_ode_soil_substep_ends() const 
 // Each step's record of substepping the soil goes with its size, and none may
 // be given at all: a recording that substepped the soil then pins a run only where
 // no step spans a knot of the rain, and is refused where one does.
-void NodeSchedule::r_set_ode_steps(
+void Schedule::r_set_ode_steps(
     std::vector<double> times, std::vector<double> sizes,
     std::vector<std::vector<double> > input_slopes,
     std::vector<std::vector<double> > substep_ends) {
@@ -342,13 +342,13 @@ void NodeSchedule::r_set_ode_steps(
   reset();
 }
 
-void NodeSchedule::r_clear_ode_steps() {
+void Schedule::r_clear_ode_steps() {
   ode_steps.clear();
   reset();
 }
 
 
-SEXP NodeSchedule::r_next_introduction() const {
+SEXP Schedule::r_next_introduction() const {
   const schedule_entry& i = next();
   std::vector<size_t> species;
   species.reserve(i.species.size());
@@ -360,11 +360,11 @@ SEXP NodeSchedule::r_next_introduction() const {
                             Rcpp::_["time_end"] = time_end());
 }
 
-SEXP NodeSchedule::r_all_times() const {
+SEXP Schedule::r_all_times() const {
   return Rcpp::wrap(get_times());
 }
 
-void NodeSchedule::r_set_all_times(SEXP rx) {
+void Schedule::r_set_all_times(SEXP rx) {
   Rcpp::List x(Rcpp::as<Rcpp::List>(rx));
   // Ensure that we can get all the times out:
   std::vector< std::vector<double> > new_times;
@@ -377,7 +377,7 @@ void NodeSchedule::r_set_all_times(SEXP rx) {
   }
 }
 
-NodeSchedule NodeSchedule::r_copy() const {
+Schedule Schedule::r_copy() const {
   return *this;
 }
 
@@ -387,7 +387,7 @@ NodeSchedule NodeSchedule::r_copy() const {
 // it has arrived: a run steps TO a scheduled time and refuses a time that is not
 // the one it expected, so two species share an introduction when they share that
 // value and not otherwise.
-void NodeSchedule::insert(double time, size_t species_index) {
+void Schedule::insert(double time, size_t species_index) {
   std::vector<schedule_entry>::iterator it = entry_at(time);
   std::vector<size_t>& species = it->species;
   std::vector<size_t>::iterator s =

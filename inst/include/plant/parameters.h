@@ -7,7 +7,7 @@
 
 #include <plant/control.h>
 #include <plant/models/ff16_strategy.h>
-#include <plant/node_schedule.h>
+#include <plant/schedule.h>
 #include <plant/scm_utils.h> // Unfortunately needed for setup_node_schedule
 
 #include <memory>

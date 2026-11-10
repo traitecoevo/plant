@@ -44,7 +44,7 @@ stochastic_schedule <- function(p) {
   max_time  <- p$max_patch_lifetime
   n_species <- length(p$strategies)
 
-  sched <- NodeSchedule(n_species)
+  sched <- Schedule(n_species)
   sched$max_time <- max_time
 
   for (i in 1:n_species) {
@@ -96,7 +96,7 @@ run_stochastic_collect <- function(p, env = NULL,
   types <- extract_RcppR6_template_types(p, "Parameters")
   obj <- do.call('StochasticPatchRunner', types)(p, env, ctrl)
   if (random_schedule) {
-    obj$node_schedule <- stochastic_schedule(p)
+    obj$schedule <- stochastic_schedule(p)
   }
 
   res <- list(collect(obj))

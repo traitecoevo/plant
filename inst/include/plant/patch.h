@@ -272,7 +272,7 @@ public:
   // is free to reach the answer however it likes, including by integrating its
   // own fast sub-model over the event's nominal duration with the patch's
   // demography frozen; to this solver that is still one instantaneous jump.
-  EventRecord apply_event(const NodeScheduleEvent& event);
+  EventRecord apply_event(const ScheduleEvent& event);
 
   // Scale every selected node's density by phi, and report how many nodes were
   // touched. Shared by harvest and climate extremes, which differ only in how phi
@@ -786,7 +786,7 @@ Patch<at_scalar<T, U>, at_scalar<E, U>> Patch<T,E>::rebind() const {
   // nothing raised. node_schedule_times is length-checked there too.
   //
   // Left behind: ode_times and ode_step_sizes, which are a record of the last
-  // run rather than configuration and are read only by make_node_schedule, and
+  // run rather than configuration and are read only by make_schedule, and
   // n_patches, which nothing reads. A rebind happens once per width a sweep
   // crosses, so copying two vectors of the whole trajectory into it was a copy
   // per width per gradient, into an object that never looked at them.
@@ -1938,7 +1938,7 @@ Patch<T,E>::scale_node_densities(size_t species_index, Select select) {
 }
 
 template <typename T, typename E>
-EventRecord Patch<T,E>::apply_event(const NodeScheduleEvent& event) {
+EventRecord Patch<T,E>::apply_event(const ScheduleEvent& event) {
   EventRecord rec;
   rec.time = time();
   rec.type = event.type;

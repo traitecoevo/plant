@@ -94,12 +94,12 @@ expand_state <- function(results) {
   )
 }
 
-node_schedule_default <- function(p) {
-  parameters_export(p, "node_schedule_default")(p)
+schedule_default <- function(p) {
+  parameters_export(p, "schedule_default")(p)
 }
 
-make_node_schedule <- function(p) {
-  parameters_export(p, "make_node_schedule")(p)
+make_schedule <- function(p) {
+  parameters_export(p, "make_schedule")(p)
 }
 
 # The C++ helpers exported once per <Strategy, Environment> pair, from

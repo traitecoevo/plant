@@ -40,14 +40,14 @@ template <> odelia::ode::Solver<plant::tools::IndividualRunner<plant::TF24w_Stra
 
 template <> SEXP wrap(const odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> >&);
 template <> odelia::ode::Solver<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > as(SEXP);
-template <> SEXP wrap(const plant::NodeScheduleEvent&);
-template <> plant::NodeScheduleEvent as(SEXP);
+template <> SEXP wrap(const plant::ScheduleEvent&);
+template <> plant::ScheduleEvent as(SEXP);
 template <> SEXP wrap(const plant::Events&);
 template <> plant::Events as(SEXP);
 template <> SEXP wrap(const plant::EventLog&);
 template <> plant::EventLog as(SEXP);
-template <> SEXP wrap(const plant::NodeSchedule&);
-template <> plant::NodeSchedule as(SEXP);
+template <> SEXP wrap(const plant::Schedule&);
+template <> plant::Schedule as(SEXP);
 template <> SEXP wrap(const plant::Control&);
 template <> plant::Control as(SEXP);
 template <> SEXP wrap(const odelia::ode::OdeControl&);

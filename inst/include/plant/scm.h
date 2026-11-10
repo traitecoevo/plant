@@ -2,7 +2,7 @@
 #ifndef PLANT_PLANT_SCM_H_
 #define PLANT_PLANT_SCM_H_
 
-#include <plant/node_schedule.h>
+#include <plant/schedule.h>
 #include <plant/census_gradient.h>
 #include <odelia/ode_solver.hpp>
 #include <plant/patch.h>
@@ -70,7 +70,7 @@ void clear_recorded_refusal(Patch& patch) {
 // SCM: plant's deterministic solver, which integrates the size-density PDE by
 // the method of characteristics.
 //
-// Owns a Patch (the population being integrated), a NodeSchedule (when each
+// Owns a Patch (the population being integrated), a Schedule (when each
 // species' nodes are introduced), and an ODE Solver. It steps the patch
 // forward by repeatedly: introducing all nodes due at the current time, then
 // integrating the patch ODE system up to the next introduction time.
@@ -591,17 +591,17 @@ public:
   std::vector<double>
   r_compute_competition_effect_error_by_node_for_species_i(util::index species_index) const;
 
-  // Node schedule access
-  NodeSchedule r_node_schedule() const { return node_schedule; }
+  // The schedule of events
+  Schedule r_schedule() const { return schedule; }
   // The schedule read back out in the R-facing wire format, so that a run
   // whose schedule was refined can be re-run, or inspected, as events.
   Events r_events() const {
-    return events_from_schedule_events(node_schedule.get_events());
+    return events_from_schedule_events(schedule.get_events());
   }
   // What the events actually did, in the order they were applied. Cleared by
   // reset(), so it always describes the run you are looking at.
   EventLog r_event_log() const { return event_log_from_records(event_log); }
-  void r_set_node_schedule(NodeSchedule x);
+  void r_set_schedule(Schedule x);
   void r_set_node_schedule_times(std::vector<std::vector<double>> x);
 
   // ODE times: the step times the solver actually used on the last run. Carried
@@ -685,7 +685,7 @@ private:
   parameters_type parameters;
   Control control;
   patch_type patch;
-  NodeSchedule node_schedule;
+  Schedule schedule;
   // Lives on the runner rather than the patch: the patch is copied into
   // `history` once per step, and a log that grew with the run would be copied
   // with it every time.
@@ -698,7 +698,7 @@ private:
   // every patch that reads it, which keeps it alive however long they outlive it.
   std::shared_ptr<const std::vector<field_row>> invaded_run;
   // Its harvests and extremes, which its invaders meet too.
-  std::vector<NodeScheduleEvent> invaded_actions;
+  std::vector<ScheduleEvent> invaded_actions;
   // The stepper reads the patch's scales only through this concept, so a
   // signature that drifted from it would leave every run unscaled, silently.
   static_assert(odelia::ode::ScalesTolerances<patch_type>);
@@ -710,7 +710,7 @@ private:
 template <typename T, typename E>
 SCM<T, E>::SCM(parameters_type p, environment_type e, Events ev, Control c)
     : parameters(p), control(c), patch(parameters, e, c),
-      node_schedule(make_node_schedule(parameters, ev)),
+      schedule(make_schedule(parameters, ev)),
       solver(patch, make_ode_control(c)) {
 
   parameters.validate();
@@ -733,7 +733,7 @@ void SCM<T, E>::check_fitness_window() const {
   }
   const double start = parameters.fitness_window_start;
   const double end = parameters.fitness_window_end;
-  const double max_time = node_schedule.get_max_time();
+  const double max_time = schedule.get_max_time();
   // A cohort introduced at the run's end is never integrated, so the window
   // has to close before it -- by the longest lifespan that matters, which is
   // the caller's to judge.
@@ -744,7 +744,7 @@ void SCM<T, E>::check_fitness_window() const {
                "integrated. Run past the window by the longest lifespan.");
   }
   auto inside = [&](double t) { return t >= start && t <= end; };
-  for (const std::vector<double>& times : node_schedule.get_times()) {
+  for (const std::vector<double>& times : schedule.get_times()) {
     if (std::any_of(times.begin(), times.end(), inside)) {
       return;
     }
@@ -787,7 +787,7 @@ template <typename T, typename E> void SCM<T, E>::run() {
     patch.read_fields_of(nullptr);
     invaded_run.reset();
     invaded_actions.clear();
-    node_schedule = make_node_schedule(parameters);
+    schedule = make_schedule(parameters);
   }
   run_schedule();
 }
@@ -845,11 +845,11 @@ template <typename T, typename E> void SCM<T, E>::begin() {
   // introduction -- would report its initialised state as the run's end. A run from
   // empty with no schedule is an empty run, and stays one.
   if (!parameters.initial_state.empty() && complete() &&
-      time() < node_schedule.get_max_time()) {
+      time() < schedule.get_max_time()) {
     util::stop("This run has no introductions left (a resume exported after the "
                "last one?), so it would stop at t = " + util::to_string(time()) +
                " rather than run to max_patch_lifetime = " +
-               util::to_string(node_schedule.get_max_time()) +
+               util::to_string(schedule.get_max_time()) +
                ". Keep at least one introduction ahead of the export.");
   }
   // The solver owns the live patch system; operate on it directly during the
@@ -952,7 +952,7 @@ std::vector<size_t> SCM<T, E>::run_next() {
   // The live patch system is owned by the solver; mutate it in place.
   auto &sys = solver.get_system_ref();
 
-  const schedule_entry& intro = node_schedule.next();
+  const schedule_entry& intro = schedule.next();
 
   // Resume support: if the next scheduled entry is in the future, integrate
   // the gap up to it without introducing any node. This happens on the first
@@ -976,8 +976,8 @@ std::vector<size_t> SCM<T, E>::run_next() {
   // The species this introduction names, which the schedule grouped when it was
   // set rather than the run regrouping them by walking equal times.
   ret = intro.species;
-  const double t_end = node_schedule.time_end();
-  node_schedule.pop();
+  const double t_end = schedule.time_end();
+  schedule.pop();
 
   // Every action at this instant applies before the introductions, so a node
   // introduced here sees the post-event environment. The schedule holds
@@ -1011,7 +1011,7 @@ std::vector<size_t> SCM<T, E>::run_next() {
 //  - otherwise: adaptive, error-controlled RKCK to the next instant.
 template <typename T, typename E>
 void SCM<T, E>::integrate_to(double t0, double t_end) {
-  if (node_schedule.using_ode_steps()) {
+  if (schedule.using_ode_steps()) {
     if (control.fixed_time_step > 0.0) {
       // A recorded field is kept per rate evaluation, and forward Euler makes
       // one per step where RKCK makes six -- so a schedule recorded under one
@@ -1031,7 +1031,7 @@ void SCM<T, E>::integrate_to(double t0, double t_end) {
     // Deciding that per interval rather than per schedule is what silently
     // integrated those intervals adaptively.
     const std::vector<odelia::ode::schedule_row> inside =
-        node_schedule.schedule_within(t0, t_end);
+        schedule.schedule_within(t0, t_end);
     if (!inside.empty()) {
       solver.advance_schedule(inside);
     }
@@ -1059,13 +1059,13 @@ void SCM<T, E>::run_mutant(parameters_type p) {
       util::stop("Run a resident first to generate a competitive landscape");
     }
     if (entry_fields.empty()) {
-      node_schedule.set_ode_steps(solver.steps_taken());
+      schedule.set_ode_steps(solver.steps_taken());
       const bool kept = keep_states;
       keep_states = true;
       run_schedule();
       keep_states = kept;
     }
-    for (const auto& e : node_schedule.get_events()) {
+    for (const auto& e : schedule.get_events()) {
       if (e.type != EventType::Harvest && e.type != EventType::ClimateExtreme) {
         continue;
       }
@@ -1123,11 +1123,11 @@ void SCM<T, E>::run_mutant(parameters_type p) {
   parameters = p;
   patch.overwrite_parameters(parameters);
   patch.read_fields_of(invaded_run);
-  node_schedule = make_node_schedule(parameters);
+  schedule = make_schedule(parameters);
   for (const auto& a : invaded_actions) {
-    node_schedule.add_action(a);
+    schedule.add_action(a);
   }
-  node_schedule.set_ode_steps(*invaded_run);
+  schedule.set_ode_steps(*invaded_run);
   run_schedule();
 }
 
@@ -1149,7 +1149,7 @@ void SCM<T, E>::run_mutant_constant(parameters_type p) {
   parameters = p;
   patch.overwrite_parameters(parameters);
   patch.read_fields_of(nullptr);
-  node_schedule = make_node_schedule(parameters);
+  schedule = make_schedule(parameters);
   // reset() copies the patch into the solver, so the constant field reaches every
   // rate evaluation of the run.
   patch.use_constant_field(constant_field);
@@ -1241,16 +1241,16 @@ void SCM<T, E>::refine_schedule() {
     }
 
     // Bisect flagged intervals and install the denser schedule.
-    std::vector<std::vector<double>> times = node_schedule.get_times();
+    std::vector<std::vector<double>> times = schedule.get_times();
     for (size_t i = 0; i < times.size(); ++i) {
       times[i] = bisect_flagged_intervals(times[i], split[i]);
     }
-    node_schedule.set_times(times);
+    schedule.set_times(times);
   }
 
   // Leave Parameters self-describing: record the refined schedule and the
   // ode times from the final run (mirrors build_schedule.R).
-  parameters.node_schedule_times = node_schedule.get_times();
+  parameters.node_schedule_times = schedule.get_times();
   // Carried out in the parameters so a later run of them takes this schedule,
   // which is what these two fields are for on the way IN. Read off the solver's
   // one record rather than through two accessors: a time and the size that
@@ -1281,7 +1281,7 @@ template <typename T, typename E> void SCM<T, E>::reset() {
   // the patch and the solver are put back to t = 0.
   patch.set_introduction_times(parameters.node_schedule_times);
   patch.reset();
-  node_schedule.reset();
+  schedule.reset();
   // Initialise the solver's owned system from the freshly reset patch, then reset
   // the solver's time/step state and sync the snapshot back.
   solver.get_system_ref() = patch;
@@ -1296,7 +1296,7 @@ template <typename T, typename E> void SCM<T, E>::reset() {
 
 
 template <typename T, typename E> bool SCM<T, E>::complete() const {
-  return node_schedule.remaining() == 0;
+  return schedule.remaining() == 0;
 }
 
 template <typename T, typename E> double SCM<T, E>::time() const {
@@ -1357,7 +1357,7 @@ SCM<T, E>::r_compute_competition_effect_error_by_node_for_species_i(util::index 
 }
 
 template <typename T, typename E>
-void SCM<T, E>::r_set_node_schedule(NodeSchedule x) {
+void SCM<T, E>::r_set_schedule(Schedule x) {
   if (patch_has_nodes()) {
     util::stop("Cannot set schedule without resetting first");
   }
@@ -1365,11 +1365,11 @@ void SCM<T, E>::r_set_node_schedule(NodeSchedule x) {
   // The run starts where its parameters say, which a schedule built in R does
   // not know.
   x.set_start_time(parameters.initial_time);
-  node_schedule = x;
+  schedule = x;
 
   // Update here so that extracting Parameters reflects the new schedule,
   // keeping Parameters self-sufficient.
-  parameters.node_schedule_times = node_schedule.get_times();
+  parameters.node_schedule_times = schedule.get_times();
 }
 
 template <typename T, typename E>
@@ -1378,7 +1378,7 @@ void SCM<T, E>::r_set_node_schedule_times(
   if (patch_has_nodes()) {
     util::stop("Cannot set schedule without resetting first");
   }
-  node_schedule.set_times(x);
+  schedule.set_times(x);
   parameters.node_schedule_times = x;
 }
 

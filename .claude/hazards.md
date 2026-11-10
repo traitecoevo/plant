@@ -20,7 +20,7 @@ odelia's `step_size_last` survives `set_state_from_system()` and every `advance_
 
 ### 4. The event queue is built by a linear scan
 
-`NodeSchedule::entry_at` walks the schedule from the start for every event it places, so building a queue is quadratic in its length. It does not show at the hundreds of entries of a normal run; at the 10^4 to 10^5 events of a long pulsed run it will.
+`Schedule::entry_at` walks the schedule from the start for every event it places, so building a queue is quadratic in its length. It does not show at the hundreds of entries of a normal run; at the 10^4 to 10^5 events of a long pulsed run it will.
 
 ## The reverse sweep
 

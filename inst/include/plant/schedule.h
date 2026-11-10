@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef PLANT_PLANT_NODE_SCHEDULE_H_
-#define PLANT_PLANT_NODE_SCHEDULE_H_
+#ifndef PLANT_PLANT_SCHEDULE_H_
+#define PLANT_PLANT_SCHEDULE_H_
 
 #include <RcppCommon.h> // SEXP
 #include <plant/util.h>
@@ -67,12 +67,12 @@ inline int event_type_rank(EventType type) {
 // now.  The main reason for keeping this as a separate class is it
 // only makes sense to have a nontrivial constructor, and that's not
 // yet supported for RcppR6 lists.
-class NodeScheduleEvent {
+class ScheduleEvent {
 public:
-  NodeScheduleEvent(double introduction, size_t target_index_,
-                    EventType type_ = EventType::NodeIntroduction,
-                    EventTarget target_ = EventTarget::Species,
-                    std::vector<double> params_ = std::vector<double>())
+  ScheduleEvent(double introduction, size_t target_index_,
+                EventType type_ = EventType::NodeIntroduction,
+                EventTarget target_ = EventTarget::Species,
+                std::vector<double> params_ = std::vector<double>())
     : type(type_), target(target_), target_index(target_index_),
       params(params_) {
     times.push_back(introduction);
@@ -119,21 +119,21 @@ public:
 
 struct schedule_entry {
   double time;
-  std::vector<NodeScheduleEvent> actions;
+  std::vector<ScheduleEvent> actions;
   std::vector<size_t> species;
   std::vector<double> times;
   double time_introduction() const { return times.front(); }
   double time_end() const { return times.back(); }
 };
 
-class NodeSchedule {
+class Schedule {
 public:
-  typedef NodeScheduleEvent Event;
-  NodeSchedule(size_t n_species_);
+  typedef ScheduleEvent Event;
+  Schedule(size_t n_species_);
   // Introductions, not species-times: a time naming three species is one.
   size_t size() const;
   size_t get_n_species() const;
-  NodeSchedule expand(size_t n_extra, std::vector<double> times);
+  Schedule expand(size_t n_extra, std::vector<double> times);
   void clear_times(size_t species_index);
   void set_times(const std::vector<double>& times_, size_t species_index);
   void set_times(const std::vector<std::vector<double> >& times);
@@ -205,7 +205,7 @@ public:
   SEXP r_next_introduction() const;
   SEXP r_all_times() const;
   void r_set_all_times(SEXP x);
-  NodeSchedule r_copy() const;
+  Schedule r_copy() const;
 
 private:
   void insert(double time, size_t species_index);

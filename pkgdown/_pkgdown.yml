@@ -110,7 +110,7 @@ reference:
 - title: Internals
   desc: Classes and helpers exposed for testing and diagnosis.
   contents:
-  - NodeSchedule
+  - Schedule
   - OdeControl
   - QK
   - Internals

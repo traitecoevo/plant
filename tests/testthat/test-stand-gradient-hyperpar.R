@@ -47,7 +47,7 @@ test_that("the total agrees with a difference of the trait through add_strategie
   skip_on_cran()
   run <- hyperpar_run()
   tot <- stand_gradient(run$scm, traits = "1.lma")
-  sched <- run$scm$node_schedule$times(1)
+  sched <- run$scm$schedule$times(1)
   census_at <- function(lma) {
     p <- testing_parameters("TF24")
     p$max_patch_lifetime <- 3

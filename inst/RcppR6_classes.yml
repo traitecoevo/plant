@@ -320,8 +320,8 @@ OdeRunner:
     set_state: {return_type: void, args: [y: "std::vector<double>", time: double]}
     set_state_from_system: {return_type: void}
 
-NodeScheduleEvent:
-  name_cpp: "plant::NodeScheduleEvent"
+ScheduleEvent:
+  name_cpp: "plant::ScheduleEvent"
   constructor:
     args: [introduction: double, species_index: "plant::util::index"]
   active:
@@ -354,11 +354,11 @@ EventLog:
     - requested: "std::vector<std::vector<double> >"
     - applied: "std::vector<std::vector<double> >"
 
-NodeSchedule:
-  name_cpp: "plant::NodeSchedule"
+Schedule:
+  name_cpp: "plant::Schedule"
   constructor:
     roxygen: |
-      Schedule of node introduction times
+      The queue of scheduled events: node introductions, resource pulses, harvests and climate extremes
       @param n_species number of species
       @export
     args: [n_species: size_t]
@@ -376,7 +376,7 @@ NodeSchedule:
     all_times: {type: SEXP, access: member, name_cpp: r_all_times, name_cpp_set: r_set_all_times}
   methods:
     expand:
-      return_type: "plant::NodeSchedule"
+      return_type: "plant::Schedule"
       args: [n_extra: size_t, times: "std::vector<double>"]
     clear_times:
       return_type: void
@@ -401,7 +401,7 @@ NodeSchedule:
     pop:
       return_type: void
     copy:
-      return_type: "plant::NodeSchedule"
+      return_type: "plant::Schedule"
       name_cpp: r_copy
 
 Control:
@@ -972,12 +972,12 @@ SCM:
     refinement_error_by_node:
       type: "std::vector<std::vector<double>>"
       access: member
-    # Node schedule
-    node_schedule:
-      type: "plant::NodeSchedule"
+    # The schedule of events
+    schedule:
+      type: "plant::Schedule"
       access: member
-      name_cpp: r_node_schedule
-      name_cpp_set: r_set_node_schedule
+      name_cpp: r_schedule
+      name_cpp_set: r_set_schedule
     # The schedule as events; reflects any refinement that has happened.
     events:
       type: "plant::Events"
@@ -989,7 +989,7 @@ SCM:
       access: member
       name_cpp: r_event_log
     # ODE times: read-only view of the step times the solver actually used.
-    # Pinning integration to fixed times is toggled on the NodeSchedule.
+    # Pinning integration to fixed times is toggled on the Schedule.
     ode_times:
       type: "std::vector<double>"
       access: member
@@ -1164,7 +1164,7 @@ StochasticPatchRunner:
       name_cpp: r_run_next
     reset:
       return_type: void
-    # Named to mirror SCM (set_node_schedule_times); same NodeSchedule concept.
+    # Named to mirror SCM (set_node_schedule_times); same Schedule concept.
     set_node_schedule_times:
       args: [times: "std::vector<std::vector<double> >"]
       return_type: void
@@ -1177,12 +1177,12 @@ StochasticPatchRunner:
       type: "plant::StochasticPatch<T,E>"
       access: member
       name_cpp: r_patch
-    # Mirrors SCM's `node_schedule` (was `schedule`); both wrap a NodeSchedule.
-    node_schedule:
-      type: "plant::NodeSchedule"
+    # Mirrors SCM's `schedule`; both wrap a Schedule.
+    schedule:
+      type: "plant::Schedule"
       access: member
-      name_cpp: r_node_schedule
-      name_cpp_set: r_set_node_schedule
+      name_cpp: r_schedule
+      name_cpp_set: r_set_schedule
 
 ResourceSpline:
   name_cpp: "plant::ResourceSpline<double>"
