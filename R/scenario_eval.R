@@ -33,7 +33,7 @@ scenario_file <- function(name) {
 ##'   added \code{scenario_id} and \code{is_duplicate} flag; the raw descriptor
 ##'   columns are kept verbatim.
 ##' @rdname scenario_eval
-##' @export
+##' @keywords internal
 read_scenario_table <- function(
     path = scenario_file("model_scenarios_hydraulic.csv")) {
   ## fileEncoding = "UTF-8-BOM" transparently strips a leading BOM if present.
@@ -48,7 +48,7 @@ read_scenario_table <- function(
 }
 
 ##' @rdname scenario_eval
-##' @export
+##' @keywords internal
 read_scenario_mapping <- function(
     path = scenario_file("scenario_mapping.csv")) {
   raw <- utils::read.csv(path, check.names = FALSE, stringsAsFactors = FALSE,
@@ -63,7 +63,7 @@ read_scenario_mapping <- function(
 ##'   (named list of extrinsic-driver settings) and \code{expected}
 ##'   (\code{"failure"} or \code{"success"}).
 ##' @rdname scenario_eval
-##' @export
+##' @keywords internal
 scenario_to_config <- function(row, mapping) {
   row <- as.list(row)
   traits <- list()
@@ -127,7 +127,7 @@ scenario_to_config <- function(row, mapping) {
 ##'   TF24 gateway in the package default coordinate would score the model on a
 ##'   compression term that is wrong for it.
 ##' @rdname scenario_eval
-##' @export
+##' @keywords internal
 scenario_control <- function() {
   ## Set explicitly rather than left on "auto" (which TF24 now resolves to the
   ## same thing), so the coordinate recorded in a stored scorecard's metadata is
@@ -152,7 +152,7 @@ scenario_control <- function() {
 ##'   (\code{p}), configured \code{Environment} (\code{env}) and \code{Control}
 ##'   (\code{ctrl}) ready for \code{run_scm}.
 ##' @rdname scenario_eval
-##' @export
+##' @keywords internal
 build_scenario <- function(config, max_patch_lifetime = 100,
                            ctrl = scenario_control(), birth_rate = 1,
                            drivers = NULL) {
@@ -217,7 +217,7 @@ build_scenario <- function(config, max_patch_lifetime = 100,
 ##'   is refused, because generating another series is \pkg{fieldtrial}'s job
 ##'   and this one exists to keep the gateway's baseline reproducible.
 ##' @rdname scenario_eval
-##' @export
+##' @keywords internal
 scenario_rainfall_drivers <- function(config, max_patch_lifetime = 100) {
   amp <- config$driver[["rainfall_amp_frac"]]
   mean_rain <- config$driver[["rainfall_mean"]]
@@ -283,7 +283,7 @@ persists_at <- function(total, finite, threshold = 1) {
 ##'   ecological question — whether the strategy replaces itself, R0 >= 1 —
 ##'   which a run can fail while still counting as a numerical success.
 ##' @rdname scenario_eval
-##' @export
+##' @keywords internal
 classify_scm_run <- function(p, env, ctrl = scenario_control()) {
   ## The test suite sets options(warn = 2); make sure warnings raised during a
   ## scenario run are recorded, not escalated to errors.
@@ -328,7 +328,7 @@ classify_scm_run <- function(p, env, ctrl = scenario_control()) {
 
 ##' @return \code{evaluate_scenario} returns a one-row scorecard tibble.
 ##' @rdname scenario_eval
-##' @export
+##' @keywords internal
 evaluate_scenario <- function(row, mapping, ctrl = scenario_control(),
                               max_patch_lifetime = 100) {
   config <- scenario_to_config(row, mapping)
@@ -379,7 +379,7 @@ evaluate_scenario <- function(row, mapping, ctrl = scenario_control(),
 ##'   and editing one mapping cell reruns only the scenarios it touches. The
 ##'   cache deliberately errs toward rerunning.
 ##' @rdname scenario_eval
-##' @export
+##' @keywords internal
 run_scenarios <- function(scenarios = read_scenario_table(),
                           mapping = read_scenario_mapping(),
                           ctrl = scenario_control(), max_patch_lifetime = 100,
@@ -492,7 +492,7 @@ run_scenarios <- function(scenarios = read_scenario_table(),
 ##'   plus the scenario data files. It is intentionally broad — the cache should
 ##'   rerun rather than risk a stale result.
 ##' @rdname scenario_eval
-##' @export
+##' @keywords internal
 scenario_model_fingerprint <- function() {
   ## Compiled C++ (covers every strategy/environment/solver change).
   dll <- tryCatch(getLoadedDLLs()[["plant"]][["path"]],
@@ -532,7 +532,7 @@ control_values <- function(ctrl) {
 ##'   (git commit / branch / dirty flag, package version, R version, platform,
 ##'   timestamp) so a scorecard records the exact build it came from.
 ##' @rdname scenario_eval
-##' @export
+##' @keywords internal
 scenario_run_metadata <- function() {
   git <- function(args) {
     tryCatch(
@@ -580,7 +580,7 @@ scenario_run_metadata <- function() {
 ##'   "succeeds" but almost none persists is reporting that the model no longer
 ##'   crashes, not that the strategies live.
 ##' @rdname scenario_eval
-##' @export
+##' @keywords internal
 scenario_summary <- function(scorecard) {
   exp_fail <- scorecard$expected == "failure"
   exp_succ <- scorecard$expected == "success"
@@ -624,7 +624,7 @@ scenario_summary <- function(scorecard) {
 ##' @return \code{scenario_generate_report} renders the scorecard report and
 ##'   returns the output path (invisibly).
 ##' @rdname scenario_eval
-##' @export
+##' @keywords internal
 scenario_generate_report <- function(scorecard,
                                      output_file = "scenario_scorecard.html",
                                      input_file = system.file(

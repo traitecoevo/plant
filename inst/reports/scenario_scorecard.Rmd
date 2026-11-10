@@ -39,7 +39,7 @@ if (!is.null(meta)) {
 ## Summary
 
 ```{r summary}
-s <- plant::scenario_summary(scorecard)
+s <- plant:::scenario_summary(scorecard)
 knitr::kable(s, digits = 3)
 ```
 
