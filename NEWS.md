@@ -13,7 +13,7 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
-* **TF24's leaf potential is named for the leaf, and `tidy_individual()` keeps every state.** The aux `opt_psi_stem` and the `Leaf` field `opt_psi_stem_` hold the potential at the leaf, which the stem route stopped being when it became the leaf route; they are renamed. `tidy_individual()` read five states by position, which dropped TF24's later states and would mislabel a model laid out differently; it now returns every state the model integrates, by name, and FF16's columns are unchanged. Migration:
+* **TF24's leaf potential is named for the leaf, and `tidy_individual()` keeps every state (#746).** The aux `opt_psi_stem` and the `Leaf` field `opt_psi_stem_` hold the potential at the leaf, which the stem route stopped being when it became the leaf route; they are renamed. `tidy_individual()` read five states by position, which dropped TF24's later states and would mislabel a model laid out differently; it now returns every state the model integrates, by name, and FF16's columns are unchanged. Migration:
   * `aux "opt_psi_stem"` (TF24 family: `ind$aux("opt_psi_stem")`, the `opt_psi_stem` column of collected results) -> `"opt_psi_leaf"`
   * `leaf$opt_psi_stem_` -> `leaf$opt_psi_leaf_`
   * `tidy_individual(results)` returns one column per state, named by the model's `ode_names`. FF16's columns are unchanged; a TF24-family individual gains its later states (`storage` onwards, and each variant's own), and a K93 individual, which has three states and failed before, now works.
