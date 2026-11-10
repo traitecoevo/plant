@@ -240,17 +240,14 @@ double StochasticSpecies<T,E>::consumption_rate(int i) const {
   return tot;
 }
 
-// TODO(#479): This is going to change...
+// Each individual's fecundity state, the dead included at the value they died
+// with (only the living are integrated). This is
+// not yet a net reproduction ratio for the stochastic model: what that should
+// be, and whether an individual that has died still counts, is open.
 template <typename T, typename E>
 std::vector<double> StochasticSpecies<T,E>::net_reproduction_ratio_by_node() const {
   std::vector<double> ret;
   ret.reserve(size_individuals());
-  // I don't think that this is quite right; is it fecundity that we
-  // want to track here?  Or do we need to do some more magic to it?
-  //
-  // basically - I think I need to take the floor here or something?
-  //
-  // NOTE: dead plants count here!
   for (auto& n : nodes) {
     ret.push_back(
       odelia::util::to_passive(n.individual.state(FECUNDITY_INDEX)));
@@ -298,7 +295,6 @@ template <typename T, typename E>
 std::vector<double> StochasticSpecies<T,E>::r_heights() const {
   std::vector<double> ret;
   ret.reserve(size());
-  // TODO(#479): also simplify r_heights for Species?
   for (auto& n : nodes) {
     if (n.alive) {
       ret.push_back(odelia::util::to_passive(n.height()));
