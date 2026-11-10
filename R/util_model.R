@@ -38,7 +38,50 @@ generate_strategy <- function(p, traits, hyperpar = param_hyperpar(p),
   }
 
   strategy <- p$strategy_default
+  hyperpar <- resolve_hyperpar(hyperpar)
+  traits <- hyperpar(traits, strategy)
 
+  trait_names <- colnames(traits)
+  known <- names(strategy$pars)
+  fields <- strategy_field_names(strategy)
+  refuse_unknown_traits(trait_names, strategy, known, fields, hyperpar)
+
+  ## Assign only the columns that ARE parameters. A consumed trait like `narea`
+  ## has already done its work inside the hyperpar, and appending it to `pars`
+  ## would leave a junk element that the generated `Rcpp::as<*_Pars>` ignores --
+  ## harmless to the model, but it makes a strategy compare unequal to a default
+  ## one for a reason that has nothing to do with the model.
+  ##
+  ## ⚠️ `xi` below is UNNAMED and positional, aligned with `trait_names`, so this
+  ## has to carry the positions rather than the names. `xi[assign_names]` returns
+  ## a vector of NAs -- silently, and every parameter would land as NA.
+  assign_at <- which(trait_names %in% known)
+  assign_names <- trait_names[assign_at]
+  field_at <- which(trait_names %in% fields)
+  field_names <- trait_names[field_at]
+
+  f <- function(xi, br) {
+    # Every column produced by hyperpar() that is a biological parameter lives
+    # in the nested `pars` sub-object. Copy-back form: active/nested list
+    # access returns a copy, so modify it then assign it back.
+    pars <- strategy$pars
+    pars[assign_names] <- xi[assign_at]
+    strategy$pars <- pars
+    # A top-level strategy field (TF24t's thermal parameters) is assigned where
+    # it lives, beside `pars`.
+    for (j in seq_along(field_at)) {
+      strategy[[field_names[[j]]]] <- xi[[field_at[[j]]]]
+    }
+    set_strategy_birth_rate(strategy, br, p$max_patch_lifetime)
+  }
+
+  # insert custom traits and birth values into default strategy template
+  mapply(f, matrix_to_list(traits), birth_rate, SIMPLIFY = FALSE)
+}
+
+# The trade-off function generate_strategy() applies: `NULL` is the explicit
+# identity, and a function is used as given.
+resolve_hyperpar <- function(hyperpar) {
   ## `hyperpar = NULL` is the explicit identity. A `p` with no trade-offs
   ## attached gives the same identity through param_hyperpar(), but flagged, so
   ## that a caller who expected a trade-off (TF24's K_s -> stem_P50, say) hears
@@ -59,9 +102,13 @@ generate_strategy <- function(p, traits, hyperpar = param_hyperpar(p),
       "ones and curated species/site sets. This message is shown once per session."),
       .frequency = "once", .frequency_id = "plant_no_tradeoffs_attached")
   }
-  traits <- hyperpar(traits, strategy)
+  hyperpar
+}
 
-  trait_names <- colnames(traits)
+# Stops unless every trait column names something a strategy of this model
+# takes: a field of `pars`, a numeric top-level field, or a trait the trade-off
+# function declares it consumes.
+refuse_unknown_traits <- function(trait_names, strategy, known, fields, hyperpar) {
   ## Refuse a name that is not a parameter of this model (#636).
   ##
   ## ⚠️ WITHOUT THIS, A MISSPELT TRAIT IS A SILENT NO-OP AND THE RUN LOOKS FINE.
@@ -86,8 +133,6 @@ generate_strategy <- function(p, traits, hyperpar = param_hyperpar(p),
   ## below. `strategy_field_names()` keeps only numeric scalars, so a field of
   ## any other type stays unreachable from a trait matrix and is refused here
   ## rather than coerced.
-  known <- names(strategy$pars)
-  fields <- strategy_field_names(strategy)
   ## Traits the hyperpar reads from the matrix but never assigns to the strategy.
   ## It declares them itself (see `frozen_FF16_hyperpar`), because `pars` cannot
   ## show them: FF16's `narea` derives `a_p1`, `a_p2` and `r_l` and is not a
@@ -125,65 +170,39 @@ generate_strategy <- function(p, traits, hyperpar = param_hyperpar(p),
       sub("_Strategy$", "", model), length(c(known, fields, consumed))),
       call. = FALSE)
   }
+  invisible(NULL)
+}
 
-  ## Assign only the columns that ARE parameters. A consumed trait like `narea`
-  ## has already done its work inside the hyperpar, and appending it to `pars`
-  ## would leave a junk element that the generated `Rcpp::as<*_Pars>` ignores --
-  ## harmless to the model, but it makes a strategy compare unequal to a default
-  ## one for a reason that has nothing to do with the model.
-  ##
-  ## ⚠️ `xi` below is UNNAMED and positional, aligned with `trait_names`, so this
-  ## has to carry the positions rather than the names. `xi[assign_names]` returns
-  ## a vector of NAs -- silently, and every parameter would land as NA.
-  assign_at <- which(trait_names %in% known)
-  assign_names <- trait_names[assign_at]
-  field_at <- which(trait_names %in% fields)
-  field_names <- trait_names[field_at]
-
-  f <- function(xi, br) {
-    # Every column produced by hyperpar() that is a biological parameter lives
-    # in the nested `pars` sub-object. Copy-back form: active/nested list
-    # access returns a copy, so modify it then assign it back.
-    pars <- strategy$pars
-    pars[assign_names] <- xi[assign_at]
-    strategy$pars <- pars
-    # A top-level strategy field (TF24t's thermal parameters) is assigned where
-    # it lives, beside `pars`.
-    for (j in seq_along(field_at)) {
-      strategy[[field_names[[j]]]] <- xi[[field_at[[j]]]]
+# `strategy` with the birth rate `br` set: a constant, or a list of control
+# points `x` (from 0 to at least `max_lifetime`) and values `y`.
+set_strategy_birth_rate <- function(strategy, br, max_lifetime) {
+  if (is.list(br)) {
+    if (!is.numeric(br$x) || length(br$x) < 2) {
+      stop("birth_rate$x must be a numeric vector of at least length 2")
     }
-    if (is.list(br)) {
-      if (!is.numeric(br$x) || length(br$x) < 2) {
-        stop("birth_rate$x must be a numeric vector of at least length 2")
-      }
-      if (br$x[[1]] != 0) {
-        stop(sprintf(
-          "birth_rate$x must start at 0, not %g.\n",
-          br$x[[1]]
-        ))
-      }
-      max_lifetime <- p$max_patch_lifetime
-      if (!is.null(max_lifetime) && max(br$x) < max_lifetime) {
-        stop(sprintf(paste0(
-          "birth_rate$x must extend to at least max_patch_lifetime (%g), ",
-          "but ends at %g.\n",
-          "Extend birth_rate$x (and birth_rate$y) to cover the full simulation duration."
-        ), max_lifetime, max(br$x)))
-      }
-      strategy$birth_rate_x <- br$x
-      strategy$birth_rate_y <- br$y
-      strategy$is_variable_birth_rate <- TRUE
-    } else if (is.numeric(br)) {
-      strategy$birth_rate_y <- br
-      strategy$is_variable_birth_rate <- FALSE
-    } else {
-      stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
+    if (br$x[[1]] != 0) {
+      stop(sprintf(
+        "birth_rate$x must start at 0, not %g.\n",
+        br$x[[1]]
+      ))
     }
-    strategy
+    if (!is.null(max_lifetime) && max(br$x) < max_lifetime) {
+      stop(sprintf(paste0(
+        "birth_rate$x must extend to at least max_patch_lifetime (%g), ",
+        "but ends at %g.\n",
+        "Extend birth_rate$x (and birth_rate$y) to cover the full simulation duration."
+      ), max_lifetime, max(br$x)))
+    }
+    strategy$birth_rate_x <- br$x
+    strategy$birth_rate_y <- br$y
+    strategy$is_variable_birth_rate <- TRUE
+  } else if (is.numeric(br)) {
+    strategy$birth_rate_y <- br
+    strategy$is_variable_birth_rate <- FALSE
+  } else {
+    stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
   }
-
-  # insert custom traits and birth values into default strategy template
-  mapply(f, matrix_to_list(traits), birth_rate, SIMPLIFY = FALSE)
+  strategy
 }
 
 ##' Helper function to create trait matrices suitable for

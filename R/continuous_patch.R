@@ -121,7 +121,77 @@ run_until_converged <- function(scm, block = 20, tol = 0.02,
                                 statistics = c("density", "height_max", "environment"),
                                 snapshot_interval = 1, environment_entries = NULL,
                                 window = 3, tol_abs = 0) {
-  defaulted <- missing(statistics)
+  checked <- check_convergence_args(scm, block, tol, t_max, statistics,
+                                    missing(statistics), snapshot_interval,
+                                    environment_entries, window, tol_abs)
+  statistic <- convergence_statistic(checked$statistics,
+                                     checked$environment_entries)
+  t0 <- scm$time
+  trace <- list()
+  means <- list()
+  converged <- FALSE
+  undefined <- character(0)
+  k <- 0L
+  repeat {
+    k <- k + 1L
+    t_end <- t0 + k * block
+    if (t_end > t_max + 1e-8) {
+      break
+    }
+    scm$run_to(t_end)
+    snaps <- scm$snapshots
+    times <- vapply(snaps, `[[`, numeric(1), "time")
+    in_block <- times > t_end - block & times <= t_end
+    if (!any(in_block)) {
+      stop("no snapshot fell inside the block ending at ", t_end)
+    }
+    m <- rowMeans(do.call(cbind, lapply(snaps[in_block], statistic)))
+    undefined <- union(undefined, names(m)[is.na(m)])
+    means[[k]] <- m
+    rel <- rep(NA_real_, length(m))
+    settled <- FALSE
+    if (k >= window) {
+      # One row per statistic, one column per block of the window. The range
+      # is scaled by the largest magnitude in the window, not by the previous
+      # block alone, so a statistic near zero is judged on its own scale and
+      # one exactly zero throughout has settled.
+      w <- do.call(cbind, means[(k - window + 1L):k])
+      range <- apply(w, 1, function(x) max(x) - min(x))
+      scale <- apply(abs(w), 1, max)
+      rel <- ifelse(range == 0, 0, range / scale)
+      settled <- isTRUE(all(rel < tol | range < tol_abs))
+    }
+    names(rel) <- paste0("rel_", names(m))
+    trace[[k]] <- c(block = k, time = scm$time, m, rel)
+    if (settled) {
+      converged <- TRUE
+      break
+    }
+    if (scm$complete) {
+      break
+    }
+  }
+  # What is left of the run past the last whole block.
+  if (!converged && !isTRUE(scm$complete) && scm$time < t_max) {
+    scm$run_to(t_max)
+  }
+  if (length(undefined) > 0) {
+    warning("these statistics were NA in at least one block and could not ",
+            "settle: ", paste(undefined, collapse = ", "),
+            " (the tallest cohort of a stand with none alive is undefined)",
+            call. = FALSE)
+  }
+  list(converged = converged, time = scm$time,
+       trace = as.data.frame(do.call(rbind, trace)))
+}
+
+# The arguments of run_until_converged(), checked; returns the statistics and
+# environment entries it settles on. A defaulted statistic the stand cannot
+# judge is dropped quietly, and an explicitly requested one is refused or warned
+# about. Sets the SCM's snapshot interval when it has none.
+check_convergence_args <- function(scm, block, tol, t_max, statistics, defaulted,
+                                   snapshot_interval, environment_entries,
+                                   window, tol_abs) {
   statistics <- match.arg(statistics, c("density", "height_max", "n_live", "environment"),
                           several.ok = TRUE)
   layer_on <- any(vapply(scm$patch$species, function(s) isTRUE(s$top_layer$on),
@@ -185,7 +255,13 @@ run_until_converged <- function(scm, block = 20, tol = 0.02,
   if (scm$snapshot_interval > block) {
     stop("the snapshot interval must not exceed the block")
   }
-  statistic <- function(s) {
+  list(statistics = statistics, environment_entries = environment_entries)
+}
+
+# The function run_until_converged() reads from each snapshot: the named
+# statistics, as one numeric vector.
+convergence_statistic <- function(statistics, environment_entries) {
+  function(s) {
     out <- c()
     if ("density" %in% statistics) {
       out <- c(out, density = sum(vapply(s$species, `[[`, numeric(1), "density")))
@@ -207,63 +283,6 @@ run_until_converged <- function(scm, block = 20, tol = 0.02,
     }
     out
   }
-  t0 <- scm$time
-  trace <- list()
-  means <- list()
-  converged <- FALSE
-  undefined <- character(0)
-  k <- 0L
-  repeat {
-    k <- k + 1L
-    t_end <- t0 + k * block
-    if (t_end > t_max + 1e-8) {
-      break
-    }
-    scm$run_to(t_end)
-    snaps <- scm$snapshots
-    times <- vapply(snaps, `[[`, numeric(1), "time")
-    in_block <- times > t_end - block & times <= t_end
-    if (!any(in_block)) {
-      stop("no snapshot fell inside the block ending at ", t_end)
-    }
-    m <- rowMeans(do.call(cbind, lapply(snaps[in_block], statistic)))
-    undefined <- union(undefined, names(m)[is.na(m)])
-    means[[k]] <- m
-    rel <- rep(NA_real_, length(m))
-    settled <- FALSE
-    if (k >= window) {
-      # One row per statistic, one column per block of the window. The range
-      # is scaled by the largest magnitude in the window, not by the previous
-      # block alone, so a statistic near zero is judged on its own scale and
-      # one exactly zero throughout has settled.
-      w <- do.call(cbind, means[(k - window + 1L):k])
-      range <- apply(w, 1, function(x) max(x) - min(x))
-      scale <- apply(abs(w), 1, max)
-      rel <- ifelse(range == 0, 0, range / scale)
-      settled <- isTRUE(all(rel < tol | range < tol_abs))
-    }
-    names(rel) <- paste0("rel_", names(m))
-    trace[[k]] <- c(block = k, time = scm$time, m, rel)
-    if (settled) {
-      converged <- TRUE
-      break
-    }
-    if (scm$complete) {
-      break
-    }
-  }
-  # What is left of the run past the last whole block.
-  if (!converged && !isTRUE(scm$complete) && scm$time < t_max) {
-    scm$run_to(t_max)
-  }
-  if (length(undefined) > 0) {
-    warning("these statistics were NA in at least one block and could not ",
-            "settle: ", paste(undefined, collapse = ", "),
-            " (the tallest cohort of a stand with none alive is undefined)",
-            call. = FALSE)
-  }
-  list(converged = converged, time = scm$time,
-       trace = as.data.frame(do.call(rbind, trace)))
 }
 
 ##' Fitness of invaders at a resident's fixed point
