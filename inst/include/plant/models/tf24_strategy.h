@@ -1150,11 +1150,6 @@ public:
     return ret;
   }
 
-  // Translate generic methods to TF24 strategy leaf area methods
-
-  S competition_effect(const S& height) const {
-    return area_leaf(height);
-  }
 
   void refresh_indices();
 
@@ -1455,10 +1450,10 @@ public:
                               const S& net_mass_production_dt_);
 
   // * Competitive environment
-  // [eqn 11] total projected leaf area above height `z` for a given plant.
-  // Called from Individual<TF24>::compute_competition with the
-  // cached competition_effect (= area_leaf(height)) and height_inverse (= 1/height)
-  // aux values, matching the shared individual.h interface (no recompute per call).
+  // [eqn 11] total projected leaf area above height `z` for a given plant,
+  // from the plant's leaf area and 1/height. The overload below reads both from
+  // the cached aux slots, where competition_effect is the leaf area the plant
+  // carries (area_leaf_carried), so nothing is recomputed per call.
   S compute_competition(const S& z, const S& area_leaf_,
                         const S& height_inverse) const;
   // Strategy-agnostic entry point used by Individual<TF24> (#266): reads the

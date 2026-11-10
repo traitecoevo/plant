@@ -434,11 +434,6 @@ public:
     return ret;
   }
 
-  // Translate generic methods to FF16 strategy leaf area methods
-
-  S competition_effect(const S& height) const {
-    return area_leaf(height);
-  }
 
   void refresh_indices();
 
@@ -595,7 +590,6 @@ public:
     }
     return hmat * (1.0 + std::log((1.0 - epsilon) / epsilon) / a_f2);
   }
-  S fraction_allocation_growth(const S& height) const;
   // [eqn 17] Rate of offspring production
   S fecundity_dt(const S& net_mass_production_dt,
                  const S& fraction_allocation_reproduction) const;
@@ -666,7 +660,7 @@ public:
                               const S& seed_area_leaf);
 
   // * Competitive environment
-  // [eqn 11] total projected leaf area above height above height `z` for given plant
+  // [eqn 11] total projected leaf area above height `z` for a given plant
   // Inline (header) so the per-node hot competition path called from
   // Individual<FF16>::compute_competition can inline these tiny helpers
   // instead of paying a cross-TU call each iteration (no LTO build).
@@ -1002,8 +996,8 @@ void FF16_Strategy<S>::compute_rates(const FF16_Environment<S>& environment,
     // both rates rather than paying it twice per node per step (issue #361).
     const S area_leaf_pow_a_l2 = pow(area_leaf_, pars.a_l2);
     const S darea_leaf_dmass_live_ = darea_leaf_dmass_live(area_leaf_, area_leaf_pow_a_l2);
-    // fraction_allocation_growth(height), from the reproduction fraction held
-    // above rather than evaluated again.
+    // The fraction of production allocated to growth, from the reproduction
+    // fraction held above rather than evaluated again.
     const S fraction_allocation_growth_ = 1.0 - fraction_allocation_reproduction_;
     const S area_leaf_dt = net_mass_production_dt_ * fraction_allocation_growth_ * darea_leaf_dmass_live_;
 
@@ -1163,12 +1157,6 @@ template <typename S>
 S FF16_Strategy<S>::fraction_allocation_reproduction(const S& height) const {
   using std::exp;
   return pars.a_f1 / (1.0 + exp(pars.a_f2 * (1.0 - height / pars.hmat)));
-}
-
-// Fraction of production allocated to growth
-template <typename S>
-S FF16_Strategy<S>::fraction_allocation_growth(const S& height) const {
-  return 1.0 - fraction_allocation_reproduction(height);
 }
 
 // [eqn 17] Rate of offspring production

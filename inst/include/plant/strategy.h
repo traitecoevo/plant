@@ -113,8 +113,6 @@ public:
 
   void refresh_indices();
 
-  double competition_effect(double size) const;
-
   void compute_rates(const environment_type& environment, Internals<double>& vars);
 
   void update_dependent_aux(const int index, Internals<double>& vars);
