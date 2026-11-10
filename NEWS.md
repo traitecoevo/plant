@@ -13,6 +13,9 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **TF24f's finite-difference gradient is removed.** TF24f tracks its collar potential by the exact gradient of profit, which has been the default since #527; the centred finite difference that `use_ad_gradient = FALSE` selected, and its step `psi_fd_step`, are gone. Default runs are unchanged. Migration:
+  * `s$use_ad_gradient <- TRUE` (removed) -> delete the line; the exact gradient is the only one
+  * `s$use_ad_gradient <- FALSE`, `s$psi_fd_step <- h` (removed) -> no equivalent
 * **The TF24, TF24f and TF24w stand reports are removed, and `plant_log_console()` is deprecated (#535).** The three reports rendered templates that were never written, so every call failed; `FF16_generate_stand_report()` stays. plant writes nothing to a log, so `plant_log_console()` never had an effect; it now says so with a deprecation warning and will be removed in a later release. `logger` and `crayon` leave Imports. Migration:
   * `TF24_generate_stand_report(results, …)` (removed) -> no equivalent
   * `TF24f_generate_stand_report(results, …)` (removed) -> no equivalent

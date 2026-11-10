@@ -1702,8 +1702,6 @@ TF24f_Strategy:
     - birth_rate_y: std::vector<double>
     - is_variable_birth_rate: bool
     - k_acclim: double
-    - psi_fd_step: double
-    - use_ad_gradient: bool
 
 # TF24t inherits TF24_Strategy (see inst/include/plant/models/tf24t_strategy.h)
 # and reuses TF24_Pars, so no separate TF24t_Pars class is generated. Its thermal

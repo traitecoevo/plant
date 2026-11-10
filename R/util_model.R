@@ -82,10 +82,10 @@ generate_strategy <- function(p, traits, hyperpar = param_hyperpar(p),
   ## reject every legitimate hyperparameterised trait.
   ##
   ## The valid set is `pars` plus the numeric top-level strategy fields (TF24t's
-  ## thermal parameters, TF24f's `k_acclim` and `psi_fd_step`), each assigned
-  ## where it lives below. A logical top-level field (TF24f's `use_ad_gradient`)
-  ## is not numeric and stays unreachable from a trait matrix, so it is refused
-  ## here rather than coerced.
+  ## thermal parameters, TF24f's `k_acclim`), each assigned where it lives
+  ## below. A logical top-level field (`collect_all_auxiliary`) is not numeric
+  ## and stays unreachable from a trait matrix, so it is refused here rather
+  ## than coerced.
   known <- names(strategy$pars)
   fields <- strategy_field_names(strategy)
   ## Traits the hyperpar reads from the matrix but never assigns to the strategy.

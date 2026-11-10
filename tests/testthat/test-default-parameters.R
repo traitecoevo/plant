@@ -152,9 +152,9 @@ test_that("parameter_table groups every parameter of a model", {
   tab <- parameter_table("TF24t")
   expect_true(all(c("topt_offset", "k_i", "k_mat", "c_build") %in%
                     tab$name[tab$group == "strategy"]))
-  expect_false("use_ad_gradient" %in% tab$name)
+  expect_false("collect_all_auxiliary" %in% tab$name)
   tab <- parameter_table("TF24f")
-  expect_true(all(c("k_acclim", "psi_fd_step") %in% tab$name[tab$group == "strategy"]))
+  expect_true("k_acclim" %in% tab$name[tab$group == "strategy"])
 
   # With no trade-offs every field of pars is a plain parameter.
   tab <- parameter_table("TF24", hyperpar = NULL)
@@ -188,7 +188,7 @@ test_that("generate_strategy assigns TF24t's thermal fields from a trait matrix"
 
   # A logical top-level field stays out of reach; a numeric one is reachable.
   p <- default_parameters("TF24f", quiet = TRUE)
-  expect_error(generate_strategy(p, trait_matrix(1, "use_ad_gradient")), "Unknown trait")
+  expect_error(generate_strategy(p, trait_matrix(1, "collect_all_auxiliary")), "Unknown trait")
   expect_equal(generate_strategy(p, trait_matrix(0.3, "k_acclim"))[[1]]$k_acclim, 0.3)
   # Base TF24 has no such fields, so the same name is refused.
   expect_error(generate_strategy(default_parameters("TF24", quiet = TRUE),
