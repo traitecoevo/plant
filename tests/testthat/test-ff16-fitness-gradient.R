@@ -33,16 +33,7 @@ pinned <- function(scm) {
 
 # d(metric)/d(parameter) of species `species`, the perturbed runs stepping
 # where the recorded one stepped.
-central_difference <- function(p, species, name, metric, rel = 1e-4) {
-  x <- p$strategies[[species]]$pars[[name]]
-  h <- rel * abs(x)
-  at <- function(v) {
-    q <- p
-    q$strategies[[species]]$pars[[name]] <- v
-    stand_fitness(run_scm(q, NULL, fitness_control()))[[metric]]
-  }
-  (at(x + h) - at(x - h)) / (2 * h)
-}
+fitness_of <- function(p) stand_fitness(run_scm(p, NULL, fitness_control()))
 
 test_that("FF16 reports its fitness under the names the gradient uses", {
   scm <- fitness_stand(lma = c(0.0825, 0.2))
@@ -81,7 +72,7 @@ test_that("the fitness gradient is the pinned-step central difference", {
   for (name in c("hmat", "a_f1", "a_f2", "omega", "a_f3", "S_D", "lma", "k_I",
                  "a_dG1", "d_I", "a_d0")) {
     for (metric in c("1.net_reproduction_ratio", "1.offspring_production")) {
-      fd <- central_difference(p, 1, name, metric)
+      fd <- central_difference(p, 1, name, metric, fitness_of)
       # Relative to the difference, not absolute: a_dG1's column is ~2.6e-6, so
       # an absolute tolerance of 1e-5 would pass zero or its negative.
       expect_lt(abs(g$gradient[metric, paste0("1.", name)] - fd), 1e-5 * abs(fd),
@@ -117,7 +108,7 @@ test_that("one species' fitness responds to the other's traits through the canop
   # 1e-5), which is not the sweep's.
   for (i in 1:2) for (j in 1:2) for (name in c("lma", "k_I")) {
     metric <- paste0(i, ".net_reproduction_ratio")
-    fd <- central_difference(p, j, name, metric, rel = 1e-5)
+    fd <- central_difference(p, j, name, metric, fitness_of, rel = 1e-5)
     expect_equal(g$gradient[metric, paste0(j, ".", name)], fd,
                  tolerance = 1e-5, label = paste(metric, j, name))
   }
@@ -140,7 +131,7 @@ test_that("the fitness gradient over a window is the pinned-step central differe
   q <- pinned(scm)
   for (name in c("hmat", "lma", "S_D")) {
     for (metric in c("1.net_reproduction_ratio", "1.offspring_production")) {
-      fd <- central_difference(q, 1, name, metric)
+      fd <- central_difference(q, 1, name, metric, fitness_of)
       expect_equal(g$gradient[metric, paste0("1.", name)], fd,
                    tolerance = 1e-5, label = paste(metric, name))
     }
