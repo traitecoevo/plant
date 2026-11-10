@@ -1598,18 +1598,22 @@ void Patch<T,E>::compute_rates() {
     species[i].compute_rates(env, pr_patch_survival, birth_rate);
   }
 
+  // Each species' grid is built once and shared by every resource; a model with
+  // no resources builds none.
+  const size_t n_resources = env.n_resources();
+  std::vector<typename species_type::uptake_grid> grids;
+  if (n_resources > 0) {
+    grids.reserve(species.size());
+    for (const auto& s : species) {
+      grids.push_back(s.consumption_grid());
+    }
+  }
   // Produced here and drained by the call below, so it lives here. As a member
   // it needed clearing by hand, and a refusal thrown between the fill and the
   // clear left active values on a Patch across a tape reset.
-  // Each species' grid is built once and shared by every resource.
-  std::vector<typename species_type::uptake_grid> grids;
-  grids.reserve(species.size());
-  for (const auto& s : species) {
-    grids.push_back(s.consumption_grid());
-  }
   std::vector<value_type> resource_depletion, rates;
-  resource_depletion.reserve(env.n_resources());
-  for (size_t i = 0; i < env.n_resources(); i++) {
+  resource_depletion.reserve(n_resources);
+  for (size_t i = 0; i < n_resources; i++) {
     value_type resource_consumed = value_type(0.0);
     for (size_t k = 0; k < species.size(); ++k) {
       resource_consumed = resource_consumed +
