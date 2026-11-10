@@ -302,7 +302,7 @@ R files in [R/](R/) (ignore the two large generated files `RcppR6.R`,
 
 | File | Responsibility |
 |---|---|
-| [ff16.R](R/ff16.R), [tf24.R](R/tf24.R), [k93.R](R/k93.R) | Per-model constructors (`FF16_Individual`, `FF16_Parameters`, …), expand_state, stand reports |
+| [ff16.R](R/ff16.R), [k93.R](R/k93.R), [tf24.R](R/tf24.R), [tf24f.R](R/tf24f.R), [tf24t.R](R/tf24t.R), [tf24w.R](R/tf24w.R) | Per-model constructors (`FF16_Individual`, `FF16_Parameters`, …), expand_state, and FF16's stand report |
 | [default_parameters.R](R/default_parameters.R) | `default_parameters()` (plant's frozen *testing* trade-offs attached to a `Parameters`), `default_hyperpar()`, `param_hyperpar()`, the frozen FF16/TF24 trade-off makers, `parameter_table()` (#698). The recommended trade-offs and curated parameter sets live in `fieldtrial`, not here. |
 | [strategy_support.R](R/strategy_support.R) | **Dispatch tables** mapping a model name → its functions (`environment_type`, `Environment`, `expand_state`, `model_version`, node-schedule helpers). These are `switch()` statements that must list every model. |
 | [scm_support.R](R/scm_support.R) | `run_scm` (with `collect` / `refine_schedule` flags), `scm_base_parameters`, and the `Control` presets `control` (alias) / `control_accurate`. Fast settings are now C++ `Control()` defaults (§3.2); adaptive schedule refinement lives in C++ (`SCM::refine_schedule`, §3.1) — there is no longer an R `build_schedule.R` |
@@ -311,7 +311,8 @@ R files in [R/](R/) (ignore the two large generated files `RcppR6.R`,
 | [util_model.R](R/util_model.R) | `trait_matrix`, `generate_strategy`, `add_strategies`, `add_mutant` (and deprecated `strategy_list`/`expand_parameters`/`mutant_parameters` shims) |
 | [tidy_outputs.R](R/tidy_outputs.R) | `tidy_patch`, `tidy_species`, `tidy_env`, `interpolate_to_{times,heights}`, `integrate_over_size_distribution` |
 | [tidy_plots.R](R/tidy_plots.R) | Plotting helpers (`plot_size_distribution`) |
-| [logging.R](R/logging.R) | `plant_log_console` and logging via `loggr` |
+| [logging.R](R/logging.R) | `plant_log_console()`, deprecated: plant writes nothing to a log |
+| [zzz.R](R/zzz.R) | `.onLoad`, which wraps `Leaf()` so a misspelt argument name is refused rather than partially matched |
 | [benchmark.R](R/benchmark.R) | `run_plant_benchmarks` |
 | [util.R](R/util.R), [qk.R](R/qk.R), [utils-pipe.R](R/utils-pipe.R) | Misc utilities. Driver generators (`pulse_series_*`, the solar model, `soil_widths_graded`) left for `fieldtrial`; the thin C++ clients (`rainfall_pulse`, `set_tf24_soil`, `check_driver_interpolation`) stay |
 

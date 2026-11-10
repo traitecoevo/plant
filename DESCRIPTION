@@ -44,7 +44,6 @@ Suggests:
     RcppR6 (>= 0.2.3),
     knitr,
     rmarkdown,
-    markdown,
     bench,
     ggplot2,
     ggridges,

@@ -13,7 +13,11 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
-* **The TF24, TF24f and TF24w stand reports are removed, and `plant_log_console()` is deprecated (#535).** `TF24_generate_stand_report()`, `TF24f_generate_stand_report()` and `TF24w_generate_stand_report()` rendered templates that were never written, so every call failed; they are removed with no replacement (`FF16_generate_stand_report()` stays). plant writes nothing to a log, so `plant_log_console()` never had an effect; it now says so with a deprecation warning and will be removed in a later release. Migration: delete the call. `logger` and `crayon` leave Imports.
+* **The TF24, TF24f and TF24w stand reports are removed, and `plant_log_console()` is deprecated (#535).** The three reports rendered templates that were never written, so every call failed; `FF16_generate_stand_report()` stays. plant writes nothing to a log, so `plant_log_console()` never had an effect; it now says so with a deprecation warning and will be removed in a later release. `logger` and `crayon` leave Imports. Migration:
+  * `TF24_generate_stand_report(results, …)` (removed) -> no equivalent
+  * `TF24f_generate_stand_report(results, …)` (removed) -> no equivalent
+  * `TF24w_generate_stand_report(results, …)` (removed) -> no equivalent
+  * `plant_log_console(…)` (deprecated, no effect) -> delete the call
 * **Trade-offs travel with `Parameters`, and the bare defaults attach none
   (#731).** ⚠️ A semantic change for identical inputs: `scm_base_parameters(model)`
   followed by `add_strategies(p, traits)` no longer applies the model's trade-off
