@@ -105,12 +105,14 @@ make_node_schedule <- function(p) {
 # The C++ helpers exported once per <Strategy, Environment> pair, from
 # src/<model>_node.cpp, are named for the pair; this finds the one for `p`.
 parameters_export <- function(p, prefix) {
-  types <- extract_RcppR6_template_types(p, "Parameters")
-  name <- sprintf("%s__Parameters___%s__%s", prefix, types[[1]], types[[2]])
-  f <- get0(name, envir = asNamespace("plant"), mode = "function",
-            inherits = FALSE)
+  cl <- class(p)[[1]]
+  types <- regmatches(cl, regexec("^Parameters<([^,>]+),([^,>]+)>$", cl))[[1]]
+  f <- if (length(types) == 3L) {
+    get0(sprintf("%s__Parameters___%s__%s", prefix, types[[2]], types[[3]]),
+         envir = asNamespace("plant"), mode = "function", inherits = FALSE)
+  }
   if (is.null(f)) {
-    stop("Unknown type: ", class(p)[[1]])
+    stop("Unknown type: ", cl)
   }
   f
 }
