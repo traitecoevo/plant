@@ -436,9 +436,7 @@ public:
   // Inline (header) so it can inline into the hot competition/assimilation
   // paths that reach it from templated Individual<FF16> code (no LTO build).
   S area_leaf(const S& height) const {
-    // Single source: scalar-templated kernel (#472 scope B). Bit-identical to
-    // the previous std::pow(height/a_l1, 1/a_l2); validated by the FF16
-    // reference-comparison test.
+    // The expression lives in ff16_production_kernel.h, shared at every scalar.
     return ff16_area_leaf(pars.a_l1, pars.a_l2, height);
   }
 
@@ -1069,7 +1067,6 @@ S FF16_Strategy<S>::assimilation_crown_top(const FF16_Environment<S>& environmen
 // `x` is openness, ranging from 0 to 1.
 template <typename S>
 S FF16_Strategy<S>::assimilation_leaf(const S& x) const {
-  // Single source: scalar-templated kernel (#472 scope B, Milestone A).
   return ff16_assimilation_leaf(pars.a_p1, pars.a_p2, x);
 }
 
@@ -1079,7 +1076,6 @@ template <typename S>
 S FF16_Strategy<S>::respiration(const S& mass_leaf, const S& mass_sapwood,
                                 const S& mass_bark, const S& mass_root,
                                 const S& mass_coarse_root) const {
-  // Single source: scalar-templated kernel (#472 scope B, Milestone A).
   return ff16_respiration(mass_leaf, mass_sapwood, mass_bark, mass_root,
                           mass_coarse_root,
                           pars.r_l, pars.r_s, pars.r_b, pars.r_r, pars.r_cr);
@@ -1090,7 +1086,6 @@ template <typename S>
 S FF16_Strategy<S>::turnover(const S& mass_leaf, const S& mass_bark,
                              const S& mass_sapwood, const S& mass_root,
                              const S& mass_coarse_root) const {
-   // Single source: scalar-templated kernel (#472 scope B, Milestone A).
    return ff16_turnover(mass_leaf, mass_bark, mass_sapwood, mass_root,
                         mass_coarse_root,
                         pars.k_l, pars.k_b, pars.k_s, pars.k_r, pars.k_cr);
@@ -1108,7 +1103,6 @@ S FF16_Strategy<S>::turnover_sapwood(const S& mass) const {
 template <typename S>
 S FF16_Strategy<S>::net_mass_production_dt_A(const S& assimilation, const S& respiration,
                                              const S& turnover) const {
-  // Single source: scalar-templated kernel (#472 scope B, Milestone A).
   return ff16_net_production_A(pars.a_bio, pars.a_y, assimilation, respiration, turnover);
 }
 
