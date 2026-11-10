@@ -82,6 +82,7 @@ tidy_env <- function(results) {
 #' @param results output of run_scm(..., collect = TRUE)
 #'
 #' @return a list, containing outputs of plant solver in tidy format
+#' @keywords internal
 #' @importFrom rlang .data
 tidy_patch <- function(results) {
   time <- sapply(results, "[[", "time")

@@ -50,6 +50,7 @@ reference:
 - title: Running a stand
   contents:
   - run_scm
+  - environment_type
   - run_stochastic_collect
   - run_until_converged
   - events
@@ -82,7 +83,6 @@ reference:
 
 - title: Outputs
   contents:
-  - tidy_species
   - tidy_individual
   - tidy_snapshots
   - FF16_expand_state
@@ -110,7 +110,6 @@ reference:
 - title: Internals
   desc: Classes and helpers exposed for testing and diagnosis.
   contents:
-  - environment_type
   - NodeSchedule
   - OdeControl
   - QK

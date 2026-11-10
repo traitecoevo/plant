@@ -25,3 +25,4 @@ Turn `env` component of solver output into a tidy data object
 
 Turns output of plant solver into a tidy data object
 }
+\keyword{internal}
