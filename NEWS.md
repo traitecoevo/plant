@@ -17,6 +17,10 @@ products using plant.
   * `aux "opt_psi_stem"` (TF24 family: `ind$aux("opt_psi_stem")`, the `opt_psi_stem` column of collected results) -> `"opt_psi_leaf"`
   * `leaf$opt_psi_stem_` -> `leaf$opt_psi_leaf_`
   * `tidy_individual(results)` returns one column per state, named by the model's `ode_names`. FF16's columns are unchanged; a TF24-family individual gains its later states (`storage` onwards, and each variant's own), and a K93 individual, which has three states and failed before, now works.
+* **TF24f's finite-difference gradient is removed (#745).** TF24f tracks its collar potential by the exact gradient of profit, which has been the default since #527; the centred finite difference that `use_ad_gradient = FALSE` selected, and its step `psi_fd_step`, are gone. Default runs are unchanged. ⚠️ Setting either name on an existing strategy is silently ignored rather than refused (the strategy is a list, and its converter reads only the fields it knows), so an old script that asked for the finite difference now runs the exact gradient with no error; only `TF24f_Strategy(values = ...)` refuses an unknown field. Migration:
+  * `s$use_ad_gradient <- TRUE` (removed) -> delete the line; the exact gradient is the only one
+  * `s$use_ad_gradient <- FALSE` (removed) -> no equivalent: the finite-difference gradient is gone
+  * `s$psi_fd_step <- h` (removed) -> delete the line; it set the step of the finite difference only
 * **The TF24, TF24f and TF24w stand reports are removed, and `plant_log_console()` is deprecated (#535).** The three reports rendered templates that were never written, so every call failed; `FF16_generate_stand_report()` stays. plant writes nothing to a log, so `plant_log_console()` never had an effect; it now says so with a deprecation warning and will be removed in a later release. `logger` and `crayon` leave Imports. Migration:
   * `TF24_generate_stand_report(results, …)` (removed) -> no equivalent
   * `TF24f_generate_stand_report(results, …)` (removed) -> no equivalent

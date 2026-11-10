@@ -3,26 +3,19 @@
 ## still ahead of it. The burn-in of a long run is paid once and exported, so
 ## every later run is one of these (#519).
 
-ff16 <- function(lifetime) {
-  p <- testing_parameters("FF16")
-  p$max_patch_lifetime <- lifetime
-  p$node_schedule_times <- list()
-  add_strategies(p, trait_matrix(0.0825, "lma"))
-}
-
 ## A resident run to 10 and exported, then the parameters that resume it to 20.
 resumed_parameters <- function() {
-  p1 <- ff16(10)
+  p1 <- ff16_parameters(10)
   scm1 <- run_scm(p1)
   state <- export_patch_state(scm1)
-  p2 <- set_initial_state(ff16(20), state)
-  tt <- ff16(20)$node_schedule_times[[1]]
+  p2 <- set_initial_state(ff16_parameters(20), state)
+  tt <- ff16_parameters(20)$node_schedule_times[[1]]
   p2$node_schedule_times <- list(tt[tt > state$time])
   list(p2 = p2, state = state)
 }
 
 test_that("an empty patch starts at initial_time", {
-  p <- ff16(20)
+  p <- ff16_parameters(20)
   p$patch_type <- "fixed"
   tt <- p$node_schedule_times[[1]]
   p$initial_time <- 5
@@ -67,7 +60,7 @@ test_that("a mutant invades a resumed resident", {
   ## The invader starts where the resident resumed, with no cohorts of its own
   ## and the resident's residual schedule, and is the resident's own strategy,
   ## so its cohorts must reproduce the resident's cohorts born after the resume.
-  pm <- ff16(20)
+  pm <- ff16_parameters(20)
   pm$initial_time <- r$state$time
   pm$node_schedule_times <- r$p2$node_schedule_times
   scm2$run_mutant(pm)
@@ -79,7 +72,7 @@ test_that("a mutant invades a resumed resident", {
 })
 
 test_that("an exported state carries the events still to come", {
-  p <- ff16(20)
+  p <- ff16_parameters(20)
   ev <- events(events_default(p),
                harvest(time = 5, fraction = 0.3),
                harvest(time = 15, fraction = 0.2))
@@ -116,7 +109,7 @@ test_that("a resume with no introductions left is refused, not stopped at its st
 })
 
 test_that("an action applied at the export time is not exported again", {
-  p <- ff16(15)
+  p <- ff16_parameters(15)
   ev <- events(events_default(p), harvest(time = 15, fraction = 0.2))
   scm <- run_scm(p, events = ev)
   expect_equal(scm$event_log$time, 15)

@@ -1,7 +1,7 @@
 # Scientific model versioning (see R/strategy_support.R, src/strategy_version.cpp,
 # and the `scientific_version` constant in inst/include/plant/models/*_strategy.h).
 
-models <- c("FF16", "K93", "TF24", "TF24f", "TF24t", "TF24w")
+models <- all_models
 
 test_that("model_version() returns a valid version string for every model", {
   for (type in models) {

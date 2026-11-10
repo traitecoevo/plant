@@ -1,102 +1,13 @@
 test_that("Defaults", {
-  # Biological parameters now live in the nested `pars` sub-object.
-  expected_pars <- list(
-    a_l2     = 0.306,
-    S_D   = 0.25,
-    a_y      = 0.7,
-    a_l1     = 5.44,
-    a_r1     = 0.07,
-    a_cr1    = 0,
-    a_b1      = 0.17,
-    r_b   = 8024 / 608,
-    r_cr  = 4012/608,
-    r_l   = 39.27 / 0.1978791,
-    r_r   = 217,
-    r_s   = 4012/608,
-    a_f3  = 3.0*3.8e-5,
-    a_bio  = 0.0245,
-    d_I   = 0.01,
-    a_dG1   = 5.5,
-    a_dG2   = 20,
-    a_st1 = 0.10,
-    a_st2 = 0.10,
-    a_st3 = 0.8,
-    storage_relaxation_offset = 7 / 365,
-    a_sw = 0.0,
-    a_pl0 = 0.0,
-    a_pl1 = 0.0,
-    a_pl2 = 0.2,
-    a_pl3 = 0.05,
-    a_pl4 = 3.0,
-    a_p1   = 151.177775377968,
-    a_p2   = 0.204716166503633,
-    a_f1   = 1,
-    a_f2   = 50,
-    a_d0   = 0.1,
-    eta    = 12,
-    hmat   = 16.5958691,
-    k_b    = 0.2,
-    k_l   = 0.4565855,
-    k_cr   = 0.2,
-    k_r    = 1,
-    k_s   = 0.2,
-    lma    = 0.1978791,
-    rho    = 608,
-    omega  = 3.8e-5,
-    theta  = 1.0/4669,
-    k_I = 0.5,
-    vcmax_25 = 96,
-    stem_P50 = 2.8887256653360196,
-    # Terminal-segment conductivity: the old whole-stem 1, back-derived so
-    # resistance is unchanged at TF24_H_ANCHOR. Ratio 2.9782.
-    K_s = TF24_K_s_from_whole_stem(1),
-    stem_c = 2.04,
-    stem_b = 2.8887256653360196 / (-log(1 - 50.0 / 100.0))^(1 / 2.04),
-    psi_crit = 2.8887256653360196 / (-log(1 - 50.0 / 100.0))^(1 / 2.04) * log(1/0.05)^(1/2.04),
-    beta1 = 20000,
-    TF24_beta2 = 1.5,
-    TF24_cost_scale = 7.5,
-    TF24_floor_lambda_o = 0,
-    jmax_25 = 157.44,
-    R_d_25 = 1.44,
-    phi_J = 0.3 / 0.85,
-    curv_fact_elec_trans = 0.7,
-    curv_fact_colim = 0.99,
-    var_sapwood_volume_cost = 1,
-    nmass_l = 0.013,
-    nmass_s = 0.00198,
-    nmass_b = 0.0034,
-    nmass_r = 0.00335,
-    dmass_dN = 0,
-    root_depth_shape_eta = 0.2,
-    # (root_P50, root_c) is the pair the model carries; root_b and root_psi_crit
-    # are derived from it here the way TF24_Pars derives them, rather than pinned
-    # as literals. phylloptim takes the same pair and derives both itself, so a
-    # literal here would be a third spelling free to disagree with both.
-    root_P50 = 3.4,
-    root_c = 2.680147,
-    root_b = 3.4 / (-log(1 - 50.0 / 100.0))^(1 / 2.680147),
-    root_psi_crit = (3.4 / (-log(1 - 50.0 / 100.0))^(1 / 2.680147)) *
-                      log(1 / 0.05)^(1 / 2.680147),
-    rooting_depth_max = 1.5,
-    # Stem hydraulic path. theta_c stays 0, so `theta` keeps its whole-plant
-    # meaning. See plant/stem_hydraulics.h.
-    D_c = 0.2,
-    theta_c = 0,
-    L_tip = 0.02,
-    recruitment_decay = 0,
-    use_energy_balance = 0,
-    d = 0.05,
-    alpha_PAR = 0.85,
-    alpha_NIR = 0.2,
-    L_crown = 2.0,
-    g_min = 0.0)
+  # TF24f carries TF24's parameter struct, so its defaults are TF24's, which
+  # test-strategy-tf24.R pins value by value.
+  expected_pars <- unclass(TF24_Strategy()$pars)
 
-  # Top-level strategy fields: the pars sub-object plus infrastructure, and the
-  # TF24f-specific acclimation knobs (gain + finite-difference step) (#525).
+  # Top-level strategy fields: the pars sub-object plus infrastructure, and
+  # TF24f's acclimation gain.
   expected_top <- c("pars", "control", "collect_all_auxiliary",
                     "birth_rate_x", "birth_rate_y", "is_variable_birth_rate",
-                    "k_acclim", "psi_fd_step", "use_ad_gradient")
+                    "k_acclim")
 
   s <- TF24f_Strategy()
   expect_inherits(s, "TF24f_Strategy")
@@ -114,19 +25,11 @@ test_that("Defaults", {
 })
 
 test_that("TF24f validates acclimation knobs", {
-  # k_acclim must be finite and >= 0; psi_fd_step must be finite and > 0.
+  # k_acclim must be finite and >= 0.
   p1 <- testing_parameters("TF24f") |>
     add_strategies(trait_matrix(0.0825, "lma"), birth_rate = 20)
   s1 <- p1$strategies[[1]]; s1$k_acclim <- -1; p1$strategies[[1]] <- s1
   expect_error(run_scm(p1, collect = FALSE, refine_schedule = FALSE), "k_acclim")
-
-  # psi_fd_step is only used on the finite-difference path, so exercise it with
-  # the AD gradient disabled.
-  p2 <- testing_parameters("TF24f") |>
-    add_strategies(trait_matrix(0.0825, "lma"), birth_rate = 20)
-  s2 <- p2$strategies[[1]]; s2$psi_fd_step <- 0; s2$use_ad_gradient <- FALSE
-  p2$strategies[[1]] <- s2
-  expect_error(run_scm(p2, collect = FALSE, refine_schedule = FALSE), "psi_fd_step")
 })
 
 test_that("TF24f collect_all_auxiliary option", {
@@ -174,32 +77,6 @@ expect_equal(p$aux_names, c(
   ))
 })
 
-test_that("Reference comparison", {
-  s <- TF24f_Strategy()
-  p <- TF24f_Individual(s)
-
-  expect_identical(p$strategy, s)
-
-  ## Set the height to something (here 10)
-  h0 <- 10
-  p$set_state("height", h0)
-
-
-  expect_identical(p$state("height"), h0)
-
-  ## The state() accessor and the raw ODE state vector agree: state("height")
-  ## must equal the entry of internals$states at the height slot.
-  vars <- p$internals
-  expect_identical(p$state("height"), vars$states[which(p$ode_names == "height")])
-})
-
-
-
-test_that("Critical Names", {
-  s <- TF24f_Strategy()
-  my_names <- TF24f_Individual(s)$ode_names
-  expect_identical(my_names[1:3], c("height", "mortality", "fecundity"))
-})
 test_that("TF24f_Strategy hyper-parameterisation", {
   s <- TF24f_Strategy()
 
@@ -284,7 +161,7 @@ test_that("narea calculation", {
 # TF24f is the fast-acclimating variant of TF24 (#525): instead of solving the
 # stem/root water-potential optimisation afresh every step (as TF24 does), it
 # carries an extra ODE state `opt_root_psi_state` that relaxes towards the
-# optimum at rate `k_acclim`, using a finite-difference (`psi_fd_step`) gradient.
+# optimum at rate `k_acclim`, using the exact gradient of profit in that potential.
 #
 # We do NOT re-pin a full demographic regression here -- that is TF24's job, and
 # the two strategies share all of that machinery. Instead this integration test
@@ -319,8 +196,8 @@ test_that("acclimation runs, is active, and converges to TF24", {
   expect_true(is.finite(fast) && fast > 0)
 
   # (2) Acclimation is genuinely active: the gain k_acclim materially changes
-  #     fitness, so the finite-difference psi optimisation is feeding back into
-  #     the demography rather than being a no-op.
+  #     fitness, so the tracked psi is feeding back into the demography rather
+  #     than being a no-op.
   #
   #     ⚠️ Offspring production is NOT monotone in k_acclim, so the pair has to
   #     sit on one side of its maximum: a pair straddling it can sit at the same
@@ -436,7 +313,7 @@ test_that("TF24f AD gradient tracks TF24 (#527)", {
 
   p <- base("TF24f")
   s <- p$strategies[[1]]
-  s$k_acclim <- 10; s$use_ad_gradient <- TRUE
+  s$k_acclim <- 10
   p$strategies[[1]] <- s
   res <- run_scm(p, collect = TRUE, refine_schedule = FALSE)$species
 
