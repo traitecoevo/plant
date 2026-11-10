@@ -347,6 +347,7 @@ struct TF24_Pars {
   // gradient will be: the sweep computes one for every parameter except the
   // `undifferentiable` names below.
   using ad_parameter = pars_field<TF24_Pars, S>;
+  using no_gradient = plant::no_gradient;
 
   // The parameters with no gradient column, and why each has none. This is the
   // whole of what the gradient needs declared: everything else in the table gets

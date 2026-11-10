@@ -133,6 +133,7 @@ struct FF16_Pars {
 
   // One registered parameter: where it lives and what its column is called.
   using ad_parameter = pars_field<FF16_Pars, S>;
+  using no_gradient = plant::no_gradient;
 
   // The parameters no gradient exists for, each with the sentence that says why.
   // Each is excluded by name rather than given a silent zero, so asking for one
