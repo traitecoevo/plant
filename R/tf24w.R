@@ -1,4 +1,3 @@
-# Built from R/tf24f.R for the strategy: TF24w (#681)
 ##' @title Create a TF24w Plant or Node
 ##' @param s A \code{\link{TF24w_Strategy}} object
 ##' @export

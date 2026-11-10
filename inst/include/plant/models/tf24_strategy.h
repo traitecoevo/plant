@@ -1,4 +1,3 @@
-// Built from  inst/include/plant/models/ff16_strategy.h on Mon Feb 12 09:52:27 2024 using the scaffolder, from the strategy:  FF16
 // -*-c++-*-
 #ifndef PLANT_PLANT_TF24_STRATEGY_H_
 #define PLANT_PLANT_TF24_STRATEGY_H_
@@ -175,14 +174,15 @@ struct TF24_Pars {
   //
   // ⚠️ `stem_b` AND `psi_crit` ARE DERIVED HERE AND HANDED OVER TO NOBODY.
   // phylloptim takes (stem_P50, stem_c) and derives both itself, by these same
-  // formulas -- so these two members are TF24_hyperpar's reporting copies, not
-  // inputs to the model. Setting one does not change the curve.
-  // stem_P50 and stem_c are TF24_hyperpar's values at the default K_s, so a
+  // formulas -- so these two members are the trade-off function's reporting
+  // copies, not inputs to the model. Setting one does not change the curve.
+  // stem_P50 and stem_c are the frozen TF24 trade-offs' values at the default
+  // K_s (frozen_TF24_hyperpar in R/default_parameters.R), so a
   // strategy built from traits and the bare default share one curve (#611).
   S stem_P50 = 2.8887256653360196;
-  // Sapwood-specific conductivity of the TERMINAL segment. Was 1, a whole-stem
-  // value under the height-linear model; back-derived to the tip by
-  // TF24_K_s_from_whole_stem(1) so that resistance is UNCHANGED at
+  // Sapwood-specific conductivity of the TERMINAL segment: the whole-stem value
+  // 1 of the height-linear model, back-derived to the tip by
+  // TF24_K_s_from_whole_stem(1), so that the two models' resistances agree at
   // TF24_H_ANCHOR = 1 m. The ratio is 2.9782.
   //
   // Only theta/K_s is identifiable, so agreement with the height-linear model
@@ -716,215 +716,15 @@ public:
     assign_from(src);
   }
 
-  // Scientific version. Bump ONLY when equations or default parameters change
-  // the simulation output for identical inputs. Do NOT bump for refactors,
-  // performance, interface, or serialisation changes. Bumping invalidates
-  // logpile's cache for this model (see plant::model_version() / model_id()).
-  // Starts at 2: a published result exists using pre-versioning "v1" science.
-  // v3 (#517/#554): NSC storage pool + reserve-gated growth and reserves-based
-  // mortality change the simulation output for identical inputs; TF24f's
-  // compound version auto-tracks this to 3.1.
-  // v4: the hydraulic shut-down exits no longer leave the previous step's
-  // transport state in place, so a shut-down plant stops drawing water from the
-  // soil (it used to keep extracting its last wet-step uptake, because `Leaf`
-  // is reused across steps and soil_consumption_ feeds the patch water
-  // balance). Water-limited runs therefore change: on the scenario gateway,
-  // offspring production moves by up to 5e-3 relative on 5 of 8 scenarios,
-  // while every success/failure classification is unchanged. TF24f's compound
-  // version auto-tracks this to 4.1.
-  // v5: the leaf gas-exchange and hydraulics model is now the standalone
-  // `phylloptim` package rather than a copy in this repo, and the swap carries four science
-  // changes. Measured on the one-species SCM scenario of test-strategy-tf24.R
-  // (max_patch_lifetime = 5), offspring production moves 81.9083 -> 83.9026,
-  // i.e. **+2.4%**. Attributed by re-running both arms with the atm_kpa driver
-  // forced to 101.3, which removes the pressure change and leaves the rest:
-  //
-  //     arm                  atm_kpa 100.5     atm_kpa 101.3
-  //     this repo's leaf        81.9083           81.8201
-  //     the leaf package        83.9026           81.8985
-  //
-  // So **the pressure fix is ~25x the rest of the swap put together** (+2.4%
-  // against +0.10%), which was not the expectation going in. The leaf package's
-  // ppm-to-Pa conversion is derived from atm_kpa (phylloptim #15 item 10c) instead
-  // of hard-coded at 0.1013 = 1e-6 * 101300 Pa; TF24_Environment's atm_kpa driver
-  // defaults to **100.5**, so Gamma*, Kc, Ko, Km and the ci root-find bounds all
-  // move. Before the fix the conductance side of the model responded to atm_kpa
-  // while the photosynthesis side silently assumed sea level -- visible in the
-  // table as this repo's leaf moving only -0.11% across the same 0.8 kPa that
-  // moves the package -2.4%.
-  //
-  // The remaining +0.10% is the two further stale-state exits (phylloptim #26,
-  // ported from #585) plus the supply-path extraction (phylloptim #2). TF24f's
-  // compound version auto-tracks this to 5.1.
-  // v6: the leaf package moved to ONE representation for water potential --
-  // positive magnitudes throughout (phylloptim #25). Two consequences, and the first
-  // is why this is a version bump rather than a refactor:
-  //   * the **`opt_root_psi` aux changes sign**. It is now the positive magnitude,
-  //     which is what TF24f's `opt_root_psi_state` has always held. Before, the aux
-  //     reported the signed potential while tf24f_strategy.cpp negated it back for
-  //     the state -- an inconsistency in plant's own reported outputs, and the two
-  //     compensating negations are deleted here. Any stored output or cached
-  //     analysis reading that aux would silently change meaning, which is exactly
-  //     what model_version() exists to catch.
-  //   * outputs move slightly: one-species SCM offspring production 83.9026 ->
-  //     83.8761, i.e. **-3.2e-4 relative**. This is NOT an equation change. The
-  //     rewrite is exactly sign-symmetric in IEEE; what is not is boost's TOMS748,
-  //     whose iterates depend on the bracket's orientation, and #25 reverses it.
-  //     Measured there: 12 of 288 golden operating points differ by 1-3 ULP, the
-  //     rest exactly. The SCM's adaptive stepper and node schedule amplify that to
-  //     3e-4 -- within the ~GSS_tol_abs (1e-3) ceiling the leaf package documents,
-  //     and small enough that every pinned test value and the exact stochastic
-  //     TF24 counts (101/23) pass unchanged.
-  // TF24f's compound version auto-tracks this to 6.1.
-  // v7: the collar bracket is finally clamped to root_psi_crit, the potential at
-  // which root conductivity is down to 5% (phylloptim #24, plant #584). The clamp was
-  // written as a std::max against a *signed* root_psi_crit, so it could never bind
-  // and the solver optimised over a collar the root system cannot supply. **The
-  // window is 1.2 MPa wide at TF24's defaults** -- psi_crit = 7.085493 against
-  // root_psi_crit = 5.870283 -- so this is a dry-corner correction, not a rounding
-  // one. Two regimes inside it: the interval is tightened (the plant still
-  // transpires, at a wetter collar), or root_psi_crit lands below the zero-uptake
-  // collar and the plant shuts down because no operating point both moves water and
-  // stays inside the root limit.
-  //
-  // No tested scenario moves: the standard SCM run stays at 83.8761 offspring, bit
-  // for bit, because a mesic patch never drives the collar past 5.87 MPa. It is
-  // still a version bump -- a user running a dry scenario gets different (correct)
-  // numbers for identical inputs, and logpile's cache has to know.
-  // TF24f's compound version auto-tracks this to 7.1.
-  // v8: `TF24_Environment`'s `atm_kpa` driver default goes **100.5 -> 101.3**, and
-  // this is the entry to read if you only read one. It largely CANCELS v5.
-  //
-  // v5 recorded +2.4% from deriving the leaf's ppm -> Pa conversion from `atm_kpa`
-  // instead of hard-coding 0.1013. That constant *was* 101.3 kPa in disguise
-  // (1e-6 * 101300 Pa), so the shift was not the fix doing damage -- it was this
-  // driver disagreeing with the rest of the model. 100.5 arrived in `34d46ac2`
-  // ("Simplify scm & environment interface", #446), an interface refactor that does
-  // not mention atmospheric pressure, with no rationale recorded anywhere, while
-  // every leaf-level test used 101.3. An artefact, not a site elevation.
-  //
-  // Pinning it to the value the model already assumed collapses the whole branch's
-  // movement. Net effect of ALL of it (the swap, the #15 catch-up, the #26 ported
-  // fixes, #25 and #24) against `develop`:
-  //
-  //     one-species SCM offspring   81.9083 -> 81.7426     -0.20%
-  //     stochastic TF24 counts      103 / 28 -> 103 / 28   unchanged, exactly
-  //
-  // So **+2.43% became -0.20%**, and every pinned baseline reverts to develop's own
-  // values: the two SCM offspring figures pass at their original 82.09077702 /
-  // 67.54060383, and the seeded stochastic integers match bit for bit. That exact
-  // match on discrete counts is a sharper statement than any tolerance-based check
-  // that the swap preserves TF24's science.
-  //
-  // The fix itself is NOT undone -- an off-sea-level run still gets a self-consistent
-  // Gamma*/Kc/Ko/Km and conductance side, which is the whole point of item 10c. Set
-  // `atm_kpa` per site if you mean altitude; it just no longer defaults to an
-  // altitude nobody chose.
-  // v9: the storage pool's rate is a charge and a drain limited separately, so
-  // the pool stays within capacity by the shape of its own flow. Storage
-  // previously had no upper bound at all -- the read was clipped at capacity
-  // while the state ran to 1.035 of it, with half a full-lifetime stand sitting
-  // at or above the clip -- and that surplus now stays in production instead.
-  // v9 also: the light field and the census take their trapezium widths from the
-  // coordinate the density is carried in. TF24 defaults to the birth-date
-  // coordinate, so this moves its output; the water reduction already integrated
-  // over birth dates and is unchanged.
-  //
-  // v10 (#615): stem resistance becomes a path integral over two within-plant
-  // anatomical profiles instead of being linear in height, so the height
-  // exponent is derived rather than assumed. Defaults D_c = 0.2, L_tip = 0.02,
-  // theta_c = 0, giving R_L ~ H^0.6. K_s is reparameterised from the old
-  // whole-stem 1 to the terminal-segment 0.33577377016801868 (a factor 2.9782)
-  // so that resistance is UNCHANGED at TF24_H_ANCHOR = 1 m. theta_c stays at 0,
-  // so `theta` keeps its whole-plant meaning and no parameter file needs
-  // migrating.
-  //
-  // Only theta/K_s is identifiable, so there is one free scalar and the two
-  // models agree at exactly ONE height. It is a ROTATION about the anchor:
-  //
-  //     H (m)        0.394  1.00   5.00   8.00   16.60  30.0   60.0
-  //     R_new/R_old  1.38   1.00   0.55   0.46   0.35   0.28   0.21
-  //
-  // Only sub-metre plants pay more than they did; everything taller pays
-  // progressively less. Setting D_c, theta_c and L_tip to zero and K_s to 1
-  // recovers the previous model exactly, end-to-end through the SCM -- see the
-  // "height-linear parameters" test in tests/testthat/test-strategy-tf24.R,
-  // which reproduces the pinned values from before this change, unmodified.
-  //
-  // THE SIGN OF THE EFFECT DEPENDS ON DENSITY, which is the most important
-  // thing to know about this change. Individually, plants are better off
-  // wherever they are taller than the anchor (assimilation ratio 0.9968 at
-  // 0.5 m, 1.0006 at 1 m, 1.0543 at 5 m, 1.1410 at 10 m, single plant, wet soil,
-  // no competition). But lower resistance also means faster transpiration, so in a
-  // dense stand everyone draws the shared soil column down faster and the patch
-  // does WORSE. One-species SCM, hmat = 5, max_patch_lifetime = 5:
-  //
-  //     birth_rate    0.5      2       20
-  //     ratio        1.196   1.047   0.803
-  //
-  // The pinned scenarios below all run at birth_rate = 20, i.e. at the least
-  // favourable end of that range; they are not representative of the change's
-  // sign in general.
-  //
-  //     one-species SCM offspring      30.2980 ->  24.3214   -19.73%
-  //     two-species, fast              23.2557 ->  18.5430   -20.26%
-  //     two-species, slow            4.0284e-6 -> 1.8965e-6  -52.92%
-  //     birth-date coordinate, fast   233.3660 -> 219.2668    -6.04%
-  //     birth-date coordinate, slow    43.7240 ->  34.5877   -20.90%
-  //     seeded stochastic counts         79 / 3 ->  77 / 3
-  //
-  // The hydraulic gateway runs longer patches at the default hmat and moves the
-  // other way, up by 3.1x to 2208x on every scenario, with S01 and S02 crossing
-  // R0 = 1 so persistence goes 1/8 -> 3/8. 8/8 still run, 0 crash.
-  //
-  // theta_c is declared but REFUSED (prepare_strategy throws on any non-zero
-  // value). theta is read by the carbon budget as well as the hydraulic term,
-  // so a hydraulics-only profile would be an incoherent model rather than a
-  // staging step; it lands everywhere at once or not at all.
-  //
-  // stem_P50 is deliberately UNCHANGED (2.8887 MPa): make_TF24_hyperpar derives
-  // the vulnerability curve from K_s, so B_Hv1 was re-anchored 0.4607063 ->
-  // 0.36591565341924093 to stop the reparameterisation from also moving it.
-  // Left alone it would have gone to 3.5933 MPa.
-  // v11: three changes that move output at identical inputs.
-  //   * R_d_25 = 1.44, leaf dark respiration at 25 C, is a NEW parameter; it did
-  //     not exist on develop and it reaches phylloptim as par_R_d_25.
-  //   * The root vulnerability curve is reparameterised to (P50, c), matching
-  //     the stem side and phylloptim, so root_P50 = 3.4 is the free parameter
-  //     and root_b is derived from it. root_b 3.898245 -> 3.8982451221145307
-  //     and root_psi_crit 5.8702825428827037 -> 5.8702827267723245, both
-  //     +3.1e-10 relative.
-  //   * vulnerability_curve_ncontrol 100 -> 400, tracking phylloptim's
-  //     Leaf::ncontrol_default, so the pre-tabulated curve the root-finds run
-  //     on is four times finer.
-  //
-  // FF16 and K93 are NOT bumped. Their snapshots move on the same
-  // vulnerability_curve_ncontrol and on the new gradient_curvature_floor, and
-  // neither model reads either: the curve count is read at one site, building
-  // the Leaf, and the floor only by the sweep. Both suites are green on their
-  // pinned outputs.
-  // v12: as FF16 v3 -- odelia 0.8.0's step-size rule and the default ode_tol
-  // 1e-4 -> 1e-5 move every adaptive run within the ODE tolerance. TF24f
-  // follows to v12.1.
-  // v13: the light chain. The driver is SWdown (W m^-2, default 900) where it
-  //   was PPFD (1800), so the default PPFD above the canopy is 2056.5; the
-  //   leaf absorbs its intercepted light itself (alpha_PAR 0.85, alpha_NIR
-  //   0.20), so on the energy-balance path net radiation falls to about half;
-  //   and `a` is `phi_J` on an absorbed basis, which reassociates J. TF24f and
-  //   TF24t follow to v13.1 and v13.4.
-  // v14: phylloptim 0.16.0 -> 0.26.2, the leaf where it stops moving water or
-  //   gas. A shut leaf is the ordinary evaluator at its wet bound, so in light it
-  //   nets zero instead of -R_d and profit no longer jumps at shutdown or at the
-  //   light-compensation point; psi_crit is no longer a bound, so the stem
-  //   follows a drying soil past it and the stands' dry pins at psi_crit become
-  //   interior points; shade death is gone as a kind; the vulnerability integral
-  //   is a C2 table; and the ci root-find is solved to 1e-13. Output moves near
-  //   the root limit, below light compensation and in heat. TF24f, TF24t and
-  //   TF24w follow; TF24t's thermal layer also moves (thermal_revision 5).
-  // v15: phylloptim 0.26.2 -> 0.27.0. Whether a leaf is held at the dry end of
-  //   its collar interval is decided at that end, where it used to flip under
-  //   rounding and make the forward run jump. Only stands that reach the dry
-  //   end move. TF24f, TF24t and TF24w follow to v15.1, v15.5 and v15.1.
+  // Scientific version. Bump only when equations or default parameters change
+  // the simulation output for identical inputs, never for a refactor or a
+  // performance, interface or serialisation change: a bump invalidates logpile's
+  // cache for this model (model_version(), model_id()). TF24f, TF24t and TF24w
+  // carry compound versions that follow this one. NEWS.md records each bump and
+  // what it moved, with two gaps: v11, which added R_d_25, moved the root curve
+  // to (root_P50, root_c) and vulnerability_curve_ncontrol from 100 to 400; and
+  // the half of v9 that took the light field's and the census's trapezium widths
+  // from the coordinate the density is carried in.
   static constexpr int scientific_version = 15;
 
   // calculate the amount of water transpired relativised by leaf area index.
@@ -1059,12 +859,10 @@ public:
       // not the `leaf_temp` driver, and the distinction is the point of
       // reporting it. With pars.use_energy_balance off this equals the driver,
       // so the column is flat at TF24's defaults; with it on the leaf solves
-      // its own temperature from its transpiration per operating point, and
-      // that value was previously computed, used to re-derive the whole
-      // Farquhar block, and then discarded -- so the one quantity the
-      // Penman-Monteith path exists to produce was the one a canopy-level
-      // analysis could not read (#625). Reported here rather than left to be
-      // inferred from an assimilation that cannot be explained without it.
+      // its own temperature from its transpiration per operating point. It is
+      // the one quantity the Penman-Monteith path exists to produce, so it is
+      // reported rather than left to be inferred from an assimilation that
+      // cannot be explained without it.
       //
       // Under the deep-crown shading model this is the leaf-area-weighted crown
       // mean, integrated alongside the other leaf outputs; it is NOT the
@@ -1508,8 +1306,7 @@ public:
       // tangent, and a rebind CONSTRUCTS one -- whose Leaf member builds two
       // vulnerability curves from an incomplete gamma per knot, which
       // assign_from then overwrites with a copy. This runs per rate evaluation,
-      // so those curves were built and discarded about a hundred thousand times
-      // a gradient. prepare_strategy takes the tangent once instead.
+      // so prepare_strategy takes the tangent once and this reads it.
       const S h = odelia::implicit_value<S>(
         height_0, dmass_dheight_0,
         [this](const S& y) -> S {
@@ -1907,7 +1704,8 @@ TF24_Strategy<S>::TF24_Strategy() {
   this->name = "TF24";
 }
 
-// assumes optimise_psi_stem_TF has been run for optimal psi_stem
+// Reads the soil consumption the leaf's last solve left, so the leaf must have
+// been solved for this plant at this step.
 template <typename S>
 S TF24_Strategy<S>::evapotranspiration_dt(const S& area_leaf_, int soil_layer) {
   if constexpr (std::is_same_v<S, double>) {
@@ -2040,17 +1838,10 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& PPFD_int,
       // the slope is the bound's own and this floor is not about it.
       note_curvature(slope);
 
-      // ⚠️ THE DISAGREEMENT PROBE THAT SAT HERE IS GONE, AND SO IS WHAT IT
-      // CHECKED. It differenced the marginal and compared that against the
-      // curvature, because the curvature was an ANALYTIC assembly that could be
-      // wrong in a way nothing else could see -- on the century stand it caught a
-      // +34.41 where the difference said -9.63.
+      // profit_curvature_at_collar is a difference of the marginal, measured
+      // rather than assembled analytically (phylloptim says why), so there is no
+      // independent curvature to check it against here.
       //
-      // profit_curvature_at_collar IS that difference now, measured rather than
-      // assembled, so the probe would compare a difference with itself. The
-      // reason it is a difference is in phylloptim: the analytic route needs four
-      // significant digits held through a 1e+05 cancellation and then multiplied
-      // by 8.1e+04, and returns an eighth of the answer with the right sign.
       // Two findings, two messages: DO NOT merge them into one sentence. They
       // are not the same KIND of problem -- the floor limb is a real degeneracy
       // of the model, the sign limb is a SOLVER failure -- and one sentence
@@ -2384,10 +2175,9 @@ void TF24_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,  In
   vars.set_aux(aux_idx_transpiration, leaf.transpiration_);
   vars.set_aux(aux_idx_E_up, leaf.E_up_);
   vars.set_aux(aux_idx_profit, leaf.profit_);
-  // ⚠️ THE INDEX WAS DECLARED AND NEVER ASSIGNED, AND THE AUX NEVER WRITTEN, so
-  // shadow_cost reported whatever the slot last held -- zero at the default
-  // price, which is also its correct value there, so nothing could tell the two
-  // apart until a price was set.
+  // Written every step. At the default price the right value is zero, which is
+  // also what a slot nobody writes reads, so a missing write here would show
+  // only once a price is set.
   vars.set_aux(aux_idx_shadow_cost, S(leaf.shadow_cost()));
   vars.set_aux(aux_idx_stom_cond_CO2, leaf.stom_cond_CO2_);
   vars.set_aux(aux_idx_assimilation, leaf.assim_colimited_);
@@ -3349,16 +3139,16 @@ template <typename S>
 S TF24_Strategy<S>::mortality_dt(const S& relative_reserves,
                               const S& cumulative_mortality) const {
 
-  // Growth-dependent mortality is now driven by relative NSC reserves
+  // Growth-dependent mortality is driven by relative NSC reserves
   // r = S/S_max (in [0,1]) rather than instantaneous productivity, so the rate
-  // is bounded (see mortality_storage_dependent_dt): death becomes gradual as
-  // reserves deplete instead of spiking to ~1e32 under carbon deficit (#550).
-  // ⚠️ THE TEST IS THE CEILING, NOT FINITENESS, and the two must not be swapped
-  // back. A cohort that failed to establish has survival exactly
-  // zero, so parking its rate there is the same statement `!is_finite` used to
-  // make -- and keeping the rate parked is what makes a finite hazard
-  // bit-identical to the +Inf it replaces, in the state, in the rate and so in
-  // the step the controller chooses. Finiteness is still tested, because a
+  // is bounded (see mortality_storage_dependent_dt): death is gradual as
+  // reserves deplete rather than spiking under a carbon deficit.
+  // ⚠️ THE TEST IS THE CEILING, NOT FINITENESS, and the two must not be
+  // swapped. A cohort that failed to establish has survival exactly zero, so
+  // parking its rate there says what a non-finite hazard would --
+  // and keeping the rate parked is what makes the finite sentinel
+  // bit-identical to an infinite hazard, in the state, in the rate and so in
+  // the step the controller chooses. Finiteness is also tested, because a
   // hazard that arrives non-finite by any other route must park too.
   if (util::is_finite(cumulative_mortality) &&
       cumulative_mortality < establishment_failure_hazard) {

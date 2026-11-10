@@ -156,7 +156,6 @@ public:
   static size_t ode_size() { return strategy_type::state_size(); }
   static std::vector<std::string> ode_names() { return strategy_type::state_names(); }
 
-  // why doesn't strategy->aux_size() also need to be const-qualified? is it because strategy is a pointer?
   size_t aux_size() const { return strategy->aux_size(); }
   std::vector<std::string> aux_names() { return strategy->aux_names(); }
 
@@ -317,14 +316,14 @@ public:
 
   // Carries value_type in both directions. Declaring either side double would
   // still compile, because the value would be taken through a return type
-  // written as double, and Node::growth_rate_gradient differences this function:
+  // written as double, and Individual::growth_rate_gradient differences this function:
   // the transport term would then read a derivative of exactly zero with nothing
   // raised, and log_density_dt is built from it.
   value_type growth_rate_given_height(const value_type& height,
                                       const environment_type& environment) {
-    // Called repeatedly from the finite-difference gradient (Node::
-    // growth_rate_gradient), so address height by integer slot rather than the
-    // "height" string-map lookup (see #466).
+    // Called repeatedly from the finite-difference gradient
+    // (Individual::growth_rate_gradient), so height is addressed by its integer
+    // slot rather than through the string-keyed lookup.
     set_state(HEIGHT_INDEX, height);
     compute_rates(environment);
     return rate(HEIGHT_INDEX);

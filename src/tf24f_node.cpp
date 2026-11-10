@@ -1,5 +1,3 @@
-// Built from src/tf24_node.cpp on Thu Jun 25 06:01:09 2026 using the scaffolder, from the strategy: TF24
-// Built from  src/ff16_node.cpp on Mon Feb 12 09:52:27 2024 using the scaffolder, from the strategy:  FF16
 #include <plant.h>
 
 // Helpers for TF24f model

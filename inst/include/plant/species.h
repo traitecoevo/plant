@@ -665,12 +665,10 @@ typename Species<T,E>::HeightScan Species<T,E>::compute_height_scan() const {
   // ⚠️ WITH THE TOP LAYER ON, A FROZEN COHORT IS LEFT OUT OF THE SCAN. Its height
   // froze when it was absorbed (or reached zero density) and younger cohorts
   // grow past it, so counted it breaks the ordering and every field build falls
-  // back to a walk per height: measured, a continuous FF16 stand ran 1.6x SLOWER
-  // with frozen cohorts counted than with none frozen at all. It contributes
+  // back to a walk per height, which is much slower. It contributes
   // exactly zero to every reduction, so the ordering of the cohorts that
   // contribute is the one the fast build and the walk's early exit rest on.
-  // Gated on the top layer, so a run that has not opted in scans exactly as it
-  // always has.
+  // Gated on the top layer, so a run without it counts every cohort.
   const bool skip_retired = freezes_retired(control());
   bool any = false;
   for (nodes_const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
@@ -697,45 +695,18 @@ typename Species<T,E>::HeightScan Species<T,E>::compute_height_scan() const {
   return ret;
 }
 
-// Because of nodes are always ordered from largest to smallest, we
-// need not continue down the list once the leaf area above a certain
-// height is zero, because it will be zero for all nodes further down
-// the list.
-//
-// NOTE: This is simply performing numerical integration,  via the
-// trapezium rule, of the compute_competition with respect to plant
-// height.  You'd think that this would be nicer to do in terms of a
-// call to an external trapezium integration function, but building
-// and discarding the intermediate storage ends up being a nontrivial
-// cost.  A more general iterator version might be possible, but with
-// the fiddliness around the boundary conditions that won't likely be
-// useful.
-//
-// NOTE: In the cases where there is no individuals, we return 0 for
-// all heights.  The integral is not defined, but an empty light
-// environment seems appropriate.
-//
-// NOTE: A similar early-exit condition to the Plant version is used;
-// once the lower bound of the trazpeium is zero, we stop including
-// individuals.  Working with the boundary node is tricky here,
-// because we might need to include that, too: always in the case of a
-// single node (needed to be the second half of the trapezium) and
-// also needed if the last looked at plant was still contributing to
-// the integral).
+// Leaf area above `height`, integrated over the species' cohorts by the
+// trapezium rule. Zero for an empty species. The trapezium is written out
+// rather than handed to a general routine, because building and discarding the
+// intermediate storage per call is a real cost on this path.
 template <typename T, typename E>
 typename Species<T,E>::value_type
 Species<T,E>::compute_competition(const value_type& height) const {
-  // The value is the fused reduction's first entry, and taking it from there is
-  // what makes them equal rather than a test's business. The two walked the same
-  // grid with the same early exit and the same closing trapezium, and a value
-  // and a slope from sums that associate differently disagree in their last
-  // bits, so the agreement had to be asserted over a grid of heights and crown
-  // shapes. One walk cannot disagree with itself.
-  //
-  // The slope costs an extra evaluation per node. Nothing on the field build's
-  // path arrives here -- it takes compute_competition_and_slope_split() and
-  // closes it -- so this serves the accessors, where the pair was already being
-  // computed one call away.
+  // The value is the fused reduction's first entry, so the value and its slope
+  // come from one walk and cannot disagree in their last bits. The slope costs
+  // an extra evaluation per node; nothing on the field build's path arrives
+  // here (it takes compute_competition_and_slope_split() and closes it), so
+  // this serves the accessors.
   return compute_competition_and_slope(height).value;
 }
 

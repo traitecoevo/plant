@@ -1,4 +1,3 @@
-// Built from  inst/include/plant/models/ff16_strategy.h on Fri Jul 24 10:23:19 2020 using the scaffolder, from the strategy:  FF16
 // -*-c++-*-
 #ifndef PLANT_PLANT_K93_STRATEGY_H_
 #define PLANT_PLANT_K93_STRATEGY_H_
@@ -42,15 +41,11 @@ public:
   typedef std::shared_ptr<K93_Strategy> ptr;
   K93_Strategy();
 
-  // Scientific version. Bump ONLY when equations or default parameters change
-  // the simulation output for identical inputs. Do NOT bump for refactors,
-  // performance, interface, or serialisation changes. Bumping invalidates
-  // logpile's cache for this model (see plant::model_version() / model_id()).
-  // v2: as FF16 v2 -- the reductions integrate over the coordinate the density
-  // is carried in, so a birth-date run's output moves and a height run's does
-  // not.
-  // v3: as FF16 v3 -- odelia 0.8.0's step-size rule and the default ode_tol
-  // 1e-4 -> 1e-5 move every adaptive run within the ODE tolerance.
+  // Scientific version. Bump only when equations or default parameters change
+  // the simulation output for identical inputs, never for a refactor or a
+  // performance, interface or serialisation change: a bump invalidates logpile's
+  // cache for this model (model_version(), model_id()). Each bump, and what it
+  // moved, is in NEWS.md.
   static constexpr int scientific_version = 3;
 
   // Direct aux indices for the hot path, avoiding aux_index.at("...") string-map

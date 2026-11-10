@@ -171,7 +171,7 @@ private:
 
   value_type log_density;
   value_type log_density_dt;
-  value_type density; // hmm...
+  value_type density;  // exp(log_density), kept beside it for readers
   value_type offspring_produced_survival_weighted;
   value_type offspring_produced_survival_weighted_dt;
   double pr_patch_survival_at_birth;
@@ -241,12 +241,11 @@ void Node<T,E>::compute_rates(const environment_type& environment,
   compute_node_rates(environment, pr_patch_survival);
 }
 
-// NOTE: There will be a discussion of why the mortality rate initial
-// condition is -log(establishment_probability) in the documentation
-// that Daniel is working out.
-//
-// NOTE: The initial condition for log_density is also a bit tricky, and
-// defined on p 7 at the moment.
+// A new cohort's cumulative mortality starts at -log(establishment_probability),
+// so the hazard of failing to establish is paid at birth, and its log_density
+// at the log of the density it is born with. Where either is zero the state
+// takes a finite sentinel instead: establishment_failure_hazard for the
+// mortality, its negative for log_density.
 template <typename T, typename E>
 void Node<T,E>::compute_initial_conditions(const environment_type& environment,
                                              double pr_patch_survival,
@@ -308,9 +307,6 @@ void Node<T,E>::compute_initial_conditions(const environment_type& environment,
 
   // Now that the density and the hazard are seated, the node's own rates.
   compute_node_rates(environment, pr_patch_survival);
-  // NOTE: It's *possible* here that we need to set
-  // individual.vars.mortality_dt to zero here, but I don't see that's
-  // likely.
 }
 
 template <typename T, typename E>

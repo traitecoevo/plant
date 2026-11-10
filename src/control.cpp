@@ -7,11 +7,9 @@ namespace plant {
 
 Control::Control() {
   // These defaults are the pragmatic "fast-ish" settings used for essentially
-  // all of plant's runs. They previously lived in the R helpers fast_control()
-  // / scm_base_control(), which layered them on top of a tighter-tolerance
-  // constructor; those helpers have been removed and the values folded in here
-  // so Control() is the single source of truth. Tighten tolerances explicitly
-  // (e.g. ode_tol_rel/abs, schedule_eps) if you need a high-accuracy run.
+  // all of plant's runs, and this constructor is their only source.
+  // control_accurate() in R tightens ode_tol_rel/abs, ode_step_size_max and
+  // schedule_eps for a high-accuracy run.
 
   // Number of points used when numerically intergrating a function
   // using Gauss-Kronrod quadrature. Rules defined in qk_rules.cpp
@@ -78,13 +76,12 @@ Control::Control() {
   // floor limb when it fires.
   gradient_curvature_floor = 1e-3;
 
-  // phylloptim's own default. Despite its name it no longer sets the collar
-  // solve's precision (a root-find at the leaf's fixed collar_root_tol does); it
-  // is the tolerance of the golden-section fallback only.
+  // phylloptim's own default. It is the tolerance of the golden-section fallback
+  // only; the collar solve's precision is the leaf's fixed collar_root_tol.
   GSS_tol_abs = 1e-3;
-  // The leaf's own choice, read rather than restated: this was 1e2 while
-  // phylloptim's default was sixteen times finer, and since every stand builds its
-  // leaf through here, that number was the one the whole reverse sweep ran on.
+  // The leaf's own choice, read rather than restated: every stand builds its leaf
+  // through here, so a copy that drifted from phylloptim's default would be the
+  // resolution every TF24 run and the whole reverse sweep use.
   vulnerability_curve_ncontrol = phylloptim::Leaf::ncontrol_default;
   ci_abs_tol = 1e-3;
   ci_niter = 1e3;

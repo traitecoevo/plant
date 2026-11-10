@@ -275,19 +275,11 @@ public:
   typedef std::shared_ptr<FF16_Strategy> ptr;
   FF16_Strategy();
 
-  // Scientific version. Bump ONLY when equations or default parameters change
-  // the simulation output for identical inputs. Do NOT bump for refactors,
-  // performance, interface, or serialisation changes. Bumping invalidates
-  // logpile's cache for this model (see plant::model_version() / model_id()).
-  // v2: the reductions over the size distribution take their trapezium widths
-  // from the coordinate the density is carried in, so a run on the birth-date
-  // coordinate integrates over birth dates rather than over heights. Measured on
-  // the full-lifetime deep-crown anchor, offspring production moves
-  // 16.884586 -> 17.172004, i.e. **+1.70%**; on the height coordinate it is
-  // unchanged to the last bit.
-  // v3: the integrator, not the model. odelia 0.8.0's step-size rule and the
-  // default ode_tol 1e-4 -> 1e-5 give every adaptive run a different step
-  // sequence, so output moves within the ODE tolerance at identical inputs.
+  // Scientific version. Bump only when equations or default parameters change
+  // the simulation output for identical inputs, never for a refactor or a
+  // performance, interface or serialisation change: a bump invalidates logpile's
+  // cache for this model (model_version(), model_id()). Each bump, and what it
+  // moved, is in NEWS.md.
   static constexpr int scientific_version = 3;
 
   // Fixed integer slots for the hot ODE rate path, used instead of

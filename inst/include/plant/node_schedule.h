@@ -201,9 +201,7 @@ public:
     reset();
   }
   // Where the walk is, as a list: the time, the species from one, and the time
-  // its interval ends. The species are one number each, counted the way R counts
-  // them, where the class this replaces reported the same index twice under two
-  // names.
+  // its interval ends. Each species is one number, counted from one as R counts.
   SEXP r_next_introduction() const;
   SEXP r_all_times() const;
   void r_set_all_times(SEXP x);
