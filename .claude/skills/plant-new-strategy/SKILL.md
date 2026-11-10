@@ -10,7 +10,7 @@ description: >-
 
 # Adding a strategy model to plant
 
-A **strategy** is plant's biological model for one species (growth, mortality, reproduction, competition). An **environment** is the resource field a strategy reads (light, and for TF24 the soil column). The C++ core is templated on the `<Strategy, Environment>` pair, so a new model has to be named in every templated binding and every R dispatch table. There is no generator for this: the checklist in Step 2 is the wiring, and the commit that added TF24t is a complete worked example of it (`git show --stat 0b68e62f`, then `git show 0b68e62f -- <file>`).
+A **strategy** is plant's biological model for one species (growth, mortality, reproduction, competition). An **environment** is the resource field a strategy reads (light, and for TF24 the soil column). The C++ core is templated on the `<Strategy, Environment>` pair, so a new model has to be named in every templated binding and every R dispatch table. There is no generator for this: the checklist in Step 2 is the wiring. The commit that added TF24t is a worked example of it (`git show --stat 0b68e62f`, then `git show 0b68e62f -- <file>`), with one caveat: it predates #731, which moved trade-offs onto `Parameters`, so its `*_hyperpar` exports and the `make_hyperpar`/`hyperpar` arms in `R/strategy_support.R` no longer exist and must not be copied. Its trade-off wiring today is the `R/default_parameters.R` row below.
 
 Read [agents.md](../../../agents.md) §7 first. Never hand-edit generated files (`R/RcppR6.R`, `R/RcppExports.R`, `src/RcppR6.cpp`, `src/RcppExports.cpp`, `inst/include/plant/RcppR6_pre.hpp`, `RcppR6_post.hpp`, `NAMESPACE`, `man/`).
 
@@ -45,10 +45,12 @@ What makes it work, and what breaks it:
 
 - **Reuse the parent's `_Pars`.** The subclass's yml block lists `- pars: "plant::TF24_Pars<double>"` and no `<Name>_Pars` of its own exists. This is required: inherited methods read the inherited `pars`, so a shadowing struct would feed them the wrong values. New parameters go at the top level of the strategy, as TF24t's thermal traits and TF24f's acclimation settings do.
 - **Overrides resolve on the concrete type.** `Individual<Sub, Env>` holds a `Sub::ptr`, so inherited methods are reused, overrides win, and the statics `state_size()` and `state_names()` resolve on the subclass. A subclass that adds states appends them after the parent's (`base_type::state_size() + 4` in TF24t) and checks the layout in `refresh_indices()`.
-- **`virtual` only where a reused base method calls the step you replace.** `TF24_Strategy::net_mass_production_dt`, `fraction_allocation_reproduction`, `soil_water_potential_for_leaf` and `aux_names` are virtual for that reason. Making a base method virtual is a change to the parent and must leave its numbers bit-identical.
+- **`virtual` only where a reused base method calls the step you replace.** `TF24_Strategy::net_mass_production_dt`, `solve_leaf` (which TF24f overrides), `fraction_allocation_reproduction`, `soil_water_potential_for_leaf` and `aux_names` are virtual for that reason. Making a base method virtual is a change to the parent and must leave its numbers bit-identical.
+- **`set_initial_states()` is not virtual.** A subclass that defines it calls `base_type::set_initial_states()` first, or the parent's states (the storage pool among them) are never seeded, as TF24f, TF24t and TF24w do.
+- **A subclass that is not differentiable deletes `rebind()`** (`template <class U> void rebind() const = delete;`, as TF24t does). The inherited `TF24_Strategy::rebind<U>()` returns the parent's type, so a gradient entry point would otherwise silently run the parent model; deleting it makes that a compile error.
 - **A compound scientific version.** A subclass reports `"<parent version>.<revision>"` (TF24t is `TF24t@v<TF24 version>.<thermal_revision>`), so a change to the parent invalidates it too. See agents.md §7.
 
-For an own strategy or environment, copy the nearest model's header and its `_Pars` struct and rename throughout; the Strategy contract in agents.md §2 lists what the core calls.
+For an own strategy or environment, copy the nearest model's header and its `_Pars` struct and rename throughout; the Strategy contract in agents.md §2 lists what the core calls. An own strategy also needs its own `<Name>_Pars:` block in `inst/RcppR6_classes.yml`, and an own environment its own block and `templates:` entries.
 
 ## Step 2 — wire it through
 
@@ -61,14 +63,15 @@ Every file below names each model by hand. Search each one for the parent's name
 | `src/<name>_node.cpp` | The `node_schedule_default` and `make_node_schedule` exports for `Parameters<<Name>, <Env>>` (copy `src/tf24t_node.cpp`). |
 | `src/individual_runner.cpp` | `<Name>_oderunner_individual_internals`. |
 | `src/strategy_expand.cpp` | `<Name>_strategy_expand_allometry`. |
-| `src/strategy_version.cpp` | The model's arm in `model_version()`. |
+| `src/strategy_version.cpp` | The model's arm in `strategy_scientific_version()`, which R's `model_version()` reads. |
 | `R/<name>.R` | `<Name>_Individual()`, `<Name>_Parameters()` and `<Name>_expand_state()` (copy `R/tf24t.R`). |
 | `R/strategy_support.R` | Every `switch()` that has an arm per model: `environment_type()`, `Environment()`, `expand_state`, `node_schedule_default`, `make_node_schedule`. |
-| `R/default_parameters.R` | The `default_hyperpar()` arm. A TF24 subclass shares `frozen_TF24_hyperpar`. A new trade-off function belongs in the fieldtrial package, with only a frozen testing copy here. |
+| `R/default_parameters.R` | The `default_hyperpar()` arm, and for an own strategy its entry in the `attr(f, "traits")` switch below it, whose fallback lists TF24's traits. A TF24 subclass shares `frozen_TF24_hyperpar`. A new trade-off function belongs in the fieldtrial package, with only a frozen testing copy here. |
 | `R/stand_gradient.R` | The census arm: declare one, or refuse the model with a message saying why. |
 | `tests/testthat/test-model-version.R` | The model in `models`, a test of its compound version, and any top-level scientific fields in `top_level_science`; then accept the new snapshot in `_snaps/model-version.md`. |
 | `tests/testthat/test-strategy-<name>.R` | The model's own tests. |
 | `tests/testthat/test-trait-names.R`, `test-default-parameters.R` | The model in their per-model loops. |
+| `tests/testthat/helper-plant.R` | `get_list_of_strategy_types()` and `get_list_of_environment_types()`, which the generic strategy tests loop over. A subclass whose appended states need seeding is left out, as TF24f and TF24t are, and tested in its own file. |
 
 ## Step 3 — regenerate, build, test
 

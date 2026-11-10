@@ -122,7 +122,7 @@ Every Strategy carries a `Control` and an `ExtrinsicDrivers` object.
 
 `plant` solves the same model two ways:
 
-1. **Deterministic — SCM (Solver via method of Characteristics).** Cohorts (`Node`s) are introduced on a schedule and integrated as characteristic curves of the size-density PDE. Entry point: `SCM<T,E>` in C++, [run_scm()](R/scm_support.R) in R. Tidied-output collection and adaptive schedule refinement are now *options* on `run_scm()` (`collect = TRUE`, `refine_schedule = TRUE`); the refinement loop itself lives in `SCM::refine_schedule()` in C++ (see below).
+1. **Deterministic — SCM (Solver via method of Characteristics).** Cohorts (`Node`s) are introduced on a schedule and integrated as characteristic curves of the size-density PDE. Entry point: `SCM<T,E>` in C++, [run_scm()](R/scm_support.R) in R. Tidied-output collection and adaptive schedule refinement are options on `run_scm()` (`collect = TRUE`, `refine_schedule = TRUE`); the refinement loop itself lives in `SCM::refine_schedule()` in C++ (see below).
 
 2. **Stochastic — finite-size population.**
    Individuals arrive and die as discrete events.
@@ -133,7 +133,7 @@ Both share the same `Strategy`, `Environment`, `Individual`, and `Parameters`.
 
 ### Where the schedule and the control defaults live
 
-Adaptive schedule refinement is `SCM::refine_schedule()` in C++: it flags nodes whose error exceeds `schedule_eps`, bisects the interval below each, repeats up to `schedule_nsteps` times, and writes the refined schedule and ODE times back into its `parameters`, so the `Parameters` object stays self-describing. `run_scm(p, env, ctrl, refine_schedule = FALSE, collect = FALSE, use_ode_times = FALSE)` is the one R entry point; it returns the `SCM` object, or with `collect = TRUE` the tidied results list, whose `p` element holds the possibly-refined parameters. `SCM::run()` accumulates each node's refinement error when `collect_errors` is set, exposed as `combined_node_errors`, and each `Node` records its `introduction_time` and its patch-age density at introduction, so fitness and error calculations do not re-derive them after the run.
+Adaptive schedule refinement is `SCM::refine_schedule()` in C++: it flags nodes whose error exceeds `schedule_eps`, bisects the interval below each, repeats up to `schedule_nsteps` times, and writes the refined schedule and ODE times back into its `parameters`, so the `Parameters` object stays self-describing. `run_scm(p, env = NULL, ctrl = control(), refine_schedule = FALSE, collect = FALSE, keep_states = FALSE, events = NULL, run = TRUE)` is the one R entry point; it returns the `SCM` object, or with `collect = TRUE` the tidied results list, whose `p` element holds the possibly-refined parameters. With `collect_refinement_errors` set, `SCM::run()` accumulates each node's refinement error, read back as `refinement_error_by_node`; each `Node` records its introduction time and the patch density at its birth, so fitness and error calculations do not re-derive them after the run.
 
 The numeric defaults every run uses are set in one place, the C++ `Control()` constructor ([src/control.cpp](src/control.cpp)); `control_accurate()` tightens the ODE and schedule tolerances for a high-accuracy run.
 
@@ -372,7 +372,7 @@ doing unconditionally after any change to a `LinkingTo` dependency.
 
 ## 7. Adding a new model (strategy + environment)
 
-This is the most cross-cutting change in the package: every templated binding and every R dispatch table names each `<Strategy, Environment>` pair by hand, and nothing generates the wiring. The **`plant-new-strategy` skill** (`.claude/skills/plant-new-strategy/`) lists every file a new model touches and the subclass recipe; the commit that added TF24t (`0b68e62f`) is a complete worked example. Most new models are a subclass of an existing strategy, as TF24f, TF24t and TF24w are of TF24, and reuse its `_Pars` and environment.
+This is the most cross-cutting change in the package: every templated binding and every R dispatch table names each `<Strategy, Environment>` pair by hand, and nothing generates the wiring. The **`plant-new-strategy` skill** (`.claude/skills/plant-new-strategy/`) lists every file a new model touches and the subclass recipe; the commit that added TF24t (`0b68e62f`) is a worked example of the wiring, from before trade-offs moved onto `Parameters` (#731), so ignore its hyperpar lines. Most new models are a subclass of an existing strategy, as TF24f, TF24t and TF24w are of TF24, and reuse its `_Pars` and environment.
 
 The shipped models:
 
@@ -401,19 +401,17 @@ Rules:
   changes for identical inputs.
 - **Do NOT bump** for refactors, performance work, interface renames, or
   serialisation-format changes — the science is unchanged.
-- FF16/K93 are scientifically frozen and should rarely move; TF24/TF24f change
+- FF16/K93 are scientifically frozen and should rarely move; TF24 and its subclasses change
   often and will bump frequently. Read the current values with `model_id()` rather than trusting this line.
 - **TF24f is a compound version.** It is a fast *approximation* of TF24 that
   inherits TF24's equations/parameters, so its version is
-  `"<TF24 version>.<approximation revision>"` (`TF24f@v5.1`). The major
+  `"<TF24 version>.<approximation revision>"`. The major
   component auto-tracks `TF24_Strategy::scientific_version` (a TF24 change
   invalidates TF24f too — the safe direction); bump `approximation_revision`
   (in `tf24f_strategy.h`) only for changes specific to the fast approximation.
   `model_version()` therefore returns a **string** (`"1"`, `"2.1"`), not an
   integer.
-- **TF24w is a compound version the same way**, `"<TF24 version>.<private
-  water revision>"` (`TF24w@v11.1`); bump `private_water_revision` (in
-  `tf24w_strategy.h`) for changes to the private-water model itself.
+- **TF24t and TF24w are compound versions the same way**: `"<TF24 version>.<thermal revision>"`, bumped through `thermal_revision` in `tf24t_strategy.h` for a change to the thermal-damage layer, and `"<TF24 version>.<private water revision>"`, bumped through `private_water_revision` in `tf24w_strategy.h` for a change to the private-water model.
 - A bump is deliberate: it invalidates that model's `logpile` cache and forces
   reruns. The drift-guard test [tests/testthat/test-model-version.R](tests/testthat/test-model-version.R)
   fails when a default changes without a bump (snapshot of each model's default
@@ -576,7 +574,7 @@ The one-line rules. The invariants behind the solver, the reverse sweep, the soi
 - ⚠️ **Never put a non-finite number in an ODE state, and do not read
   `check_finite_ode_state` as protection against one.** It tests the cohort
   density (`exp(log_density)`, so `-Inf` passes as a finite zero) and the
-  environment's own states; the six slots `Strategy::state_names()` declares and
+  environment's own states; the slots `Strategy::state_names()` declares and
   the node's two extras are not looked at. A `+Inf` hazard from `-log(0)` at an
   establishment probability of exactly zero therefore ran for years: every reader
   is guarded (`is_finite` tests, or `exp(-mortality)`, which is zero either way),
