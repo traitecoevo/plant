@@ -156,8 +156,6 @@ expect_equal(p$aux_names, c(
   ))
 })
 
-
-
 test_that("TF24_Strategy hyper-parameterisation", {
   s <- TF24_Strategy()
 
@@ -870,7 +868,6 @@ test_that("a departed Huber value carries through to storage capacity", {
     expect_equal(cap(psi) / cap(0), exp(psi))
   }
 })
-
 
 test_that("the gate reads the marginal leaf, not the reserve pool", {
   s <- TF24_Strategy(collect_all_auxiliary = TRUE)

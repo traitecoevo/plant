@@ -111,18 +111,13 @@ test_that("a sweep of an invasion that kept no states runs it again, as an invas
   expect_identical(again$gradient, kept$gradient)
 })
 
-# d(metric)/d(name) of invader `i` by central difference across pinned runs, each
-# pinned run of `p` with that one parameter moved.
-rerun_difference <- function(scm, p, i, name, metric, rel = 1e-5) {
-  x <- p$strategies[[i]]$pars[[name]]
-  h <- rel * abs(x)
-  at <- function(v) {
-    q <- p
-    q$strategies[[i]]$pars[[name]] <- v
-    scm$run_mutant(q)
-    stand_fitness(scm)[[metric]]
+# The invaders' fitness when `p` is run as the mutant set in the resident `scm`,
+# which pins each run to the resident's steps.
+mutant_fitness_of <- function(scm) {
+  function(p) {
+    scm$run_mutant(p)
+    stand_fitness(scm)
   }
-  (at(x + h) - at(x - h)) / (2 * h)
 }
 
 test_that("invaders do not shade each other, and an invader's birth rate reaches only its output", {
@@ -158,7 +153,8 @@ test_that("an invader introduced after the pinned run starts has a gradient", {
                       traits = c("1.lma", "1.a_d0"), hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   for (name in c("lma", "a_d0")) {
-    fd <- rerun_difference(scm, p, 1, name, "1.net_reproduction_ratio")
+    fd <- central_difference(p, 1, name, "1.net_reproduction_ratio",
+                             mutant_fitness_of(scm), rel = 1e-5)
     expect_lt(abs(g$gradient["1.net_reproduction_ratio", paste0("1.", name)] - fd),
               1e-5 * abs(fd), label = name)
   }
@@ -190,7 +186,8 @@ test_that("an invader of a resumed resident is born in the resident's canopy at 
                       traits = c("1.lma", "1.a_d0", "1.omega"), hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   for (name in c("lma", "a_d0", "omega")) {
-    fd <- rerun_difference(scm, pm, 1, name, "1.net_reproduction_ratio")
+    fd <- central_difference(pm, 1, name, "1.net_reproduction_ratio",
+                             mutant_fitness_of(scm), rel = 1e-5)
     expect_lt(abs(g$gradient["1.net_reproduction_ratio", paste0("1.", name)] - fd),
               1e-5 * abs(fd), label = name)
   }
@@ -207,7 +204,8 @@ test_that("an invader's gradient through the run's harvest is the difference acr
                       traits = c("1.lma", "1.a_d0"), hyperpar = NULL)
   expect_false(any(stand_gradient_refused(g)))
   for (name in c("lma", "a_d0")) {
-    fd <- rerun_difference(scm, pm, 1, name, "1.net_reproduction_ratio")
+    fd <- central_difference(pm, 1, name, "1.net_reproduction_ratio",
+                             mutant_fitness_of(scm), rel = 1e-5)
     expect_lt(abs(g$gradient["1.net_reproduction_ratio", paste0("1.", name)] - fd),
               1e-5 * abs(fd), label = name)
   }

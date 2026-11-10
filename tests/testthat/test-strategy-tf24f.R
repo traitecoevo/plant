@@ -85,8 +85,6 @@ expect_equal(p$aux_names, c(
   ))
 })
 
-
-
 test_that("TF24f_Strategy hyper-parameterisation", {
   s <- TF24f_Strategy()
 

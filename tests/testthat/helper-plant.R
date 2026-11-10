@@ -58,6 +58,9 @@ testing_parameters <- function(model) {
   default_parameters(model, quiet = TRUE)
 }
 
+# Every model plant ships, for tests that check something of all of them.
+all_models <- c("FF16", "K93", "TF24", "TF24f", "TF24t", "TF24w")
+
 # One FF16 species at the testing parameters, run for `lifetime` years on the
 # default node schedule.
 ff16_parameters <- function(lifetime) {

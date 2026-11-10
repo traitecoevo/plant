@@ -31,8 +31,7 @@ pinned <- function(scm) {
   p
 }
 
-# d(metric)/d(parameter) of species `species`, the perturbed runs stepping
-# where the recorded one stepped.
+# The stand's fitness metrics for a run of `p`.
 fitness_of <- function(p) stand_fitness(run_scm(p, NULL, fitness_control()))
 
 test_that("FF16 reports its fitness under the names the gradient uses", {
