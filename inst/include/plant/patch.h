@@ -2097,10 +2097,8 @@ EventRecord Patch<T,E>::apply_event(const NodeScheduleEvent& event) {
   // Anything that changed the vegetation changes the light profile too, and
   // every cohort's rates are computed against it.
   if (event.type != EventType::ResourcePulse) {
-    // No `rescale` argument: this branch's competition field is built on fixed
-    // knot fractions of height_max, so there is nothing to rescale and the
-    // parameter upstream threads here does not exist. The event SEMANTICS are
-    // upstream's; the field they recompute is this branch's.
+    // The field is tabulated on fixed fractions of height_max, so a rebuild
+    // needs nothing rescaled.
     compute_environment();
   }
   return rec;

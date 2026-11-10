@@ -21,7 +21,7 @@ namespace plant {
 //
 // Adds one ODE state per soil layer, `water_1` .. `water_N`, volumetric water
 // content of the column's layers in the environment's units, appended after
-// TF24's six so their indices are unchanged. N is fixed at compile time
+// TF24's states so their indices are unchanged. N is fixed at compile time
 // because state_size() is static on the Strategy contract; a patch with more
 // layers is refused, one with fewer leaves the spare slots at rate zero.
 //

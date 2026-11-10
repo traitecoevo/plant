@@ -21,10 +21,9 @@ namespace plant {
 // Templated on the scalar S the resource values carry; the knot positions stay
 // double. S = double is production.
 //
-// The knot values and slopes live on the interpolant and are read back from it.
-// They were mirrored here once, on the ground that a slope recovered from a span
-// is not bit-identical -- true of a span, and not of what set_data was handed,
-// which the interpolant keeps unchanged.
+// The knot values and slopes live on the interpolant and are read back from it:
+// the interpolant keeps what set_data was handed unchanged, so nothing needs
+// mirroring here.
 template <typename S = double>
 class ResourceSpline {
 public:
@@ -37,13 +36,11 @@ public:
     // field is tabulated against u = height / height_max, so a build refreshes values
     // and slopes and never moves a knot. 1/64 is exact, so u_k is too.
     //
-    // ⚠️ DO NOT PUT THE KNOTS BACK IN HEIGHT. They were at u_k * height_max,
-    // laid out at to_passive(height_max) on the ground that the field's
-    // dependence on the cohorts travels in the values and slopes. It does not:
-    // the canopy top is the tallest cohort's height, so 64 of 65 positions moved
-    // with it and the field at a fixed height moved 2.4 per cent for a 0.1 per
-    // cent change in the top at k_I = 100 -- a channel no reader of this class
-    // could carry, because a position was an input nowhere.
+    // ⚠️ DO NOT LAY THE KNOTS OUT IN HEIGHT. The canopy top is the tallest
+    // cohort's height, so knots at u_k * height_max would move with it, and the
+    // field at a fixed height would then depend on the cohorts through the knot
+    // positions, a channel no reader of this class carries: at k_I = 100 a
+    // 0.1 per cent change in the top moves the field 2.4 per cent that way.
     knot_fractions_ = util::seq_len(0.0, 1.0, knot_count_);
 
     // A field to answer queries with until the first build.

@@ -1,4 +1,3 @@
-// Built from  inst/include/plant/models/ff16_environment.h on Mon Feb 12 09:52:27 2024 using the scaffolder, from the strategy:  FF16
 // -*-c++-*-
 #ifndef PLANT_PLANT_TF24_ENVIRONMENT_H_
 #define PLANT_PLANT_TF24_ENVIRONMENT_H_
@@ -770,7 +769,7 @@ public:
   //
   // This is an explicit, first-order representation; drainage is instantaneous
   // single-direction (no upward capillary flux between layers - that is handled
-  // hydraulically inside the plant via E_from_Soil_to_Root_Collar).
+  // hydraulically inside the plant, by the leaf's root network).
   //
   // The inter-layer flux is FREE DRAINAGE, q = K(theta) evaluated at the donor
   // cell (Darcy's law with the matric gradient dropped). It contains no internode

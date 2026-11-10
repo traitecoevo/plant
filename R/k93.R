@@ -1,5 +1,3 @@
-# Built from  R/ff16.R on Fri Jul 24 10:23:19 2020 using the scaffolder, from the strategy:  FF16
-
 ##' Create a K93 Individual or Node
 ##' @title Create a K93 Individual or Node
 ##' @param s A \code{\link{K93_Strategy}} object

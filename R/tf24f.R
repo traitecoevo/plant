@@ -1,5 +1,3 @@
-# Built from R/tf24.R on Thu Jun 25 06:01:09 2026 using the scaffolder, from the strategy: TF24
-# Built from  R/TF24f.R on Mon Feb 12 09:52:27 2024 using the scaffolder, from the strategy:  TF24f
 ##' @title Create a TF24f Plant or Node
 ##' @param s A \code{\link{TF24f_Strategy}} object
 ##' @export

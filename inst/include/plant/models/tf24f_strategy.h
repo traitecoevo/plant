@@ -18,7 +18,7 @@ namespace plant {
 // optimisation, solve_leaf() evaluates the leaf at the tracked state and the
 // state relaxes toward its optimum by gradient ascent on carbon profit
 // (dpsi/dt = k_acclim * d(profit)/d(psi)); the state is initialised at its optimum at
-// birth. The five states shared with TF24 are computed by the inherited
+// birth. The states shared with TF24 are computed by the inherited
 // compute_rates, so TF24f does NOT reproduce TF24 bit-for-bit -- it tracks the
 // optimum with a (gain-dependent) lag and is faster.
 template <typename S = double>
@@ -41,8 +41,8 @@ public:
   // rules match the other models (output-changing science only, not refactors).
   static constexpr int approximation_revision = 1;
 
-  // TF24's five states + the tracked root-collar psi (appended last so the
-  // inherited state indices 0..4 are unchanged). state_size()/state_names() are
+  // TF24's states + the tracked root-collar psi (appended last so the
+  // inherited state indices are unchanged). state_size()/state_names() are
   // static and resolved on the concrete type by Individual<TF24f, ...>.
   static size_t state_size() { return base_type::state_size() + 1; }
   static std::vector<std::string> state_names() {
@@ -114,12 +114,12 @@ void TF24f_Strategy<S>::refresh_indices() {
   const int idx = static_cast<int>(base_type::state_size());
   this->state_index["opt_root_psi_state"] = idx;
   state_idx_opt_root_psi_state = idx;
-  // Again on the concrete model: the base checked its own six names against its
+  // Again on the concrete model: the base checked its own names against its
   // own count, and the slot appended above is outside both.
   check_state_layout(this->state_index, state_size(), "TF24f");
 }
 
-// Reuse TF24's rates for the five shared states; the tracked-state value is fed
+// Reuse TF24's rates for the shared states; the tracked-state value is fed
 // to solve_leaf() (called from the reused net_mass_production_dt) via
 // tracked_root_psi_, and the resulting profit gradient comes back in
 // dprofit_dpsi_, which becomes the tracked state's rate (gradient ascent).

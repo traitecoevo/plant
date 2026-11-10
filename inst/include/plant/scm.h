@@ -451,12 +451,11 @@ public:
   // rows exist.
   //
   // ⚠️ EACH NAME BESIDE ITS VALUE, because two of the five are 1e-3 at the
-  // defaults. The names used to be attached positionally in R, one file away from
-  // the order built here -- so transposing ci_abs_tol and gradient_curvature_floor
-  // left both readable, both plausible, and stand_gradient_compare() refusing on
-  // the wrong pair. census_gradient.cpp states the rule this now follows: a name
-  // is what crosses, because a position means a different entry as soon as the
-  // list changes.
+  // defaults. Attached by position one file away, a transposed ci_abs_tol and
+  // gradient_curvature_floor would leave both readable and plausible, and
+  // stand_gradient_compare() refusing on the wrong pair. census_gradient.cpp
+  // states the rule: a name is what crosses, because a position means a
+  // different entry as soon as the list changes.
   std::vector<std::pair<std::string, double>> gradient_control() const {
     return {{"GSS_tol_abs", control.GSS_tol_abs},
             {"ci_abs_tol", control.ci_abs_tol},
@@ -1451,19 +1450,14 @@ std::vector<double> SCM<T, E>::census() const {
 //
 // One patch, one tape, one recording, and an adjoint per metric. The recording does
 // not depend on which metric is being asked for -- it writes every metric into y
-// and only the adjoint picks one out -- so a recording per metric was a recording
-// repeated.
+// and only the adjoint picks one out -- so one recording serves every metric.
 //
-// What made that repetition look necessary is real and is worth stating, because
-// it is the trap next door. Clearing a tape returns its derivative-slot counter
-// to zero, so an active value built outside a sweep loop and read inside it
-// refers, after the first clear, to a slot that now belongs to something else.
-// Measured when that was live: the second and third metrics' adjoints were wrong by
-// three orders and their heartwood columns read exactly zero -- the first metric
-// correct and lending its credibility to the rest. The answer is not a patch per
-// metric, it is to clear once and record once, which is what sweeping a batch
-// does: the clear happens before the recording, and between sweeps only the
-// derivative slots are returned to zero.
+// ⚠️ Clear the tape once, before the recording, and never between metrics.
+// Clearing a tape returns its derivative-slot counter to zero, so an active value
+// built outside a sweep loop and read inside it refers, after a clear, to a slot
+// that now belongs to something else: every metric after the first comes back
+// wrong, with nothing raised, while the first is right. Sweeping a batch keeps
+// to this: between sweeps only the derivative slots are returned to zero.
 template <typename T, typename E>
 census_rows SCM<T, E>::census_state_and_trait_rows() const {
   require_birth_date_coordinate("census_state_and_trait_rows");
@@ -1609,9 +1603,8 @@ SCM<T, E>::census_trait_gradient(const std::vector<size_t>& extra_stops,
   if (!why.happened()) {
     // Every metric's sweep visits the same trajectory and differs only in its
     // adjoint, so they are carried TOGETHER: a block is recorded once and swept once
-    // per metric, where the loop this replaces recorded it once per metric. The
-    // recording is a model evaluation and a sweep is arithmetic, so the second and
-    // third metrics were costing what the first did and now cost almost nothing.
+    // per metric. The recording is a model evaluation and a sweep is arithmetic,
+    // so each metric after the first costs almost nothing.
     odelia::ode::adjoint_batch lambda = both.state.select(rows);
 
     // The accumulator the sweep adds into, owned here for the length of the sweep

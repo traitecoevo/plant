@@ -171,21 +171,11 @@ StochasticSpecies<T,E>::height_max() const {
   return value_type(0.0);
 }
 
-// Because plants are always ordered from largest to smallest, we
-// need not continue down the list once the leaf area above a certain
-// height is zero, because it will be zero for all plants further down
-// the list.
-//
-// NOTE: In the cases where there is no individuals, we return 0 for
-// all heights, as sum(numeric(0)) -> 0
-//
-// NOTE: A similar early-exit condition to the Plant version is used;
-// once the lower bound of the trapezium is zero, we stop including
-// individuals.  Working with the boundary plant is tricky here,
-// because we might need to include that, too: always in the case of a
-// single plant (needed to be the second half of the trapezium) and
-// also needed if the last looked at plant was still contributing to
-// the integral).
+// Leaf area above `height`: the sum over living individuals taller than it.
+// Individuals are kept in order of arrival, oldest first, and the sum stops at
+// the first living one that is not taller than `height`. That is exact while
+// older individuals are taller, which a model whose cohorts can cross does not
+// guarantee. Zero for an empty species.
 template <typename T, typename E>
 typename StochasticSpecies<T,E>::value_type
 StochasticSpecies<T,E>::compute_competition(double height) const {
