@@ -1215,9 +1215,6 @@ public:
 
   void compute_rates(const TF24_Environment<S>& environment,
                 Internals<S>& vars);
-  
-  void compute_roots(const TF24_Environment<S>& environment,
-                Internals<S>& vars);
 
   void update_dependent_aux(const int index, Internals<S>& vars);
 
@@ -1422,30 +1419,9 @@ public:
   // and the same Huber value: coarse roots continue the sapwood the plant has.
   S dmass_coarse_root_darea_leaf(const S& area_leaf,
                                  const S& sapwood_departure) const;
-  // Growth rate of basal diameter_stem per unit stem area
-  S ddiameter_stem_darea_stem(const S& area_stem) const;
-  // Growth rate of components per unit time:
-  S area_leaf_dt(const S& area_leaf_dt) const;
-  S area_sapwood_dt(const S& area_leaf_dt) const;
+  // Growth rate of heartwood area: it depends on the sapwood already there,
+  // not on leaf-area growth.
   S area_heartwood_dt(const S& area_leaf, const S& sapwood_departure) const;
-  S area_bark_dt(const S& area_leaf_dt) const;
-  S area_stem_dt(const S& area_leaf, const S& area_leaf_dt) const;
-  S diameter_stem_dt(const S& area_stem, const S& area_stem_dt) const;
-  S mass_root_dt(const S& area_leaf,
-                 const S& area_leaf_dt) const;
-  S mass_coarse_root_dt(const S& area_leaf,
-                        const S& area_leaf_dt) const;
-  S mass_live_dt(const S& fraction_allocation_reproduction,
-                 const S& net_mass_production_dt) const;
-  S mass_total_dt(const S& fraction_allocation_reproduction,
-                  const S& net_mass_production_dt,
-                  const S& mass_heartwood_dt) const;
-  S mass_above_ground_dt(const S& area_leaf,
-                         const S& fraction_allocation_reproduction,
-                         const S& net_mass_production_dt,
-                         const S& mass_heartwood_dt,
-                         const S& area_leaf_dt) const;
-
   S mass_heartwood_dt(const S& mass_sapwood) const;
 
   S mass_live_given_height(const S& height) const;
@@ -1479,9 +1455,8 @@ public:
                               const S& net_mass_production_dt_);
 
   // * Competitive environment
-  // [eqn 11] total projected leaf area above height above height `z` for given plant
-  S compute_competition(const S& z, const S& height) const;
-  // Optimised overload called from Individual<TF24>::compute_competition with the
+  // [eqn 11] total projected leaf area above height `z` for a given plant.
+  // Called from Individual<TF24>::compute_competition with the
   // cached competition_effect (= area_leaf(height)) and height_inverse (= 1/height)
   // aux values, matching the shared individual.h interface (no recompute per call).
   S compute_competition(const S& z, const S& area_leaf_,
@@ -3347,91 +3322,11 @@ S TF24_Strategy<S>::dmass_coarse_root_darea_leaf(const S& area_leaf,
   return pars.a_cr1 * dmass_sapwood_darea_leaf(area_leaf, sapwood_departure);
 }
 
-// Growth rate of basal diameter_stem per unit time
-template <typename S>
-S TF24_Strategy<S>::ddiameter_stem_darea_stem(const S& area_stem) const {
-  return pow(M_PI * area_stem, -0.5);
-}
-
-// Growth rate of sapwood area at base per unit time
-template <typename S>
-S TF24_Strategy<S>::area_sapwood_dt(const S& area_leaf_dt) const {
-  return area_leaf_dt * pars.theta;
-}
-
-// Note, unlike others, heartwood growth does not depend on leaf area growth, but
-// rather existing sapwood
+// Heartwood grows from the sapwood already there, not from leaf-area growth.
 template <typename S>
 S TF24_Strategy<S>::area_heartwood_dt(const S& area_leaf,
                                       const S& sapwood_departure) const {
   return pars.k_s * area_sapwood(area_leaf, sapwood_departure);
-}
-
-// Growth rate of bark area at base per unit time
-template <typename S>
-S TF24_Strategy<S>::area_bark_dt(const S& area_leaf_dt) const {
-  return pars.a_b1 * area_leaf_dt * pars.theta;
-}
-
-// Growth rate of stem basal area per unit time
-template <typename S>
-S TF24_Strategy<S>::area_stem_dt(const S& area_leaf,
-                               const S& area_leaf_dt) const {
-  return area_sapwood_dt(area_leaf_dt) +
-    area_bark_dt(area_leaf_dt) +
-    // At the resting Huber value: this reporting helper is handed sizes, not a
-    // state vector, so it cannot see the departure. Its callers are the R-facing
-    // expansion path, which reconstructs a plant on its own trajectory.
-    area_heartwood_dt(area_leaf, S(0.0));
-}
-
-// Growth rate of basal diameter_stem per unit time
-template <typename S>
-S TF24_Strategy<S>::diameter_stem_dt(const S& area_stem, const S& area_stem_dt) const {
-  return ddiameter_stem_darea_stem(area_stem) * area_stem_dt;
-}
-
-// Growth rate of root mass per unit time
-template <typename S>
-S TF24_Strategy<S>::mass_root_dt(const S& area_leaf,
-                               const S& area_leaf_dt) const {
-  return area_leaf_dt * dmass_root_darea_leaf(area_leaf);
-}
-
-// Growth rate of coarse-root mass per unit time
-template <typename S>
-S TF24_Strategy<S>::mass_coarse_root_dt(const S& area_leaf,
-                                      const S& area_leaf_dt) const {
-  // At the resting Huber value, for the reason area_stem_dt is.
-  return area_leaf_dt * dmass_coarse_root_darea_leaf(area_leaf, S(0.0));
-}
-
-template <typename S>
-S TF24_Strategy<S>::mass_live_dt(const S& fraction_allocation_reproduction,
-                               const S& net_mass_production_dt) const {
-  return (1 - fraction_allocation_reproduction) * net_mass_production_dt;
-}
-
-template <typename S>
-S TF24_Strategy<S>::mass_total_dt(const S& fraction_allocation_reproduction,
-                                     const S& net_mass_production_dt,
-                                     const S& mass_heartwood_dt) const {
-  return mass_live_dt(fraction_allocation_reproduction, net_mass_production_dt) +
-    mass_heartwood_dt;
-}
-
-template <typename S>
-S TF24_Strategy<S>::mass_above_ground_dt(const S& area_leaf,
-                                       const S& fraction_allocation_reproduction,
-                                       const S& net_mass_production_dt,
-                                       const S& mass_heartwood_dt,
-                                       const S& area_leaf_dt) const {
-  const S mass_root_dt =
-    area_leaf_dt * dmass_root_darea_leaf(area_leaf);
-  const S mass_coarse_root_dt =
-    area_leaf_dt * dmass_coarse_root_darea_leaf(area_leaf);
-  return mass_total_dt(fraction_allocation_reproduction, net_mass_production_dt,
-                        mass_heartwood_dt) - mass_root_dt - mass_coarse_root_dt;
 }
 
 template <typename S>
@@ -3579,11 +3474,6 @@ S TF24_Strategy<S>::establishment_probability(const TF24_Environment<S>& environ
   } else {
     return 0.0;
   }
-}
-
-template <typename S>
-S TF24_Strategy<S>::compute_competition(const S& z, const S& height) const {
-  return pars.k_I * area_leaf(height) * canopy_shape.Q_from_height(z, height);
 }
 
 // Ratio-first hot-path overload (see header): receives the cached

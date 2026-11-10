@@ -109,7 +109,7 @@ reference), the key overridable surface is:
 - `aux_size()` / `aux_names()` — derived/auxiliary outputs.
 - `compute_rates(env, vars)` — the ODE right-hand side for one plant.
 - `competition_effect(size)` — how the plant contributes to the shared environment.
-- `establishment_probability`, `fecundity_dt`, `mortality_dt`, `initial_size`.
+- `establishment_probability`, `fecundity_dt`, `mortality_dt`.
 
 Every Strategy carries a `Control` and an `ExtrinsicDrivers` object.
 

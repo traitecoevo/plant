@@ -384,7 +384,6 @@ public:
 
   // * R interface
   std::vector<double> r_heights() const;
-  std::vector<double> r_heights_rev() const;
   void r_set_heights(std::vector<double> heights);
   const node_type& node_at(size_t i) const {return nodes[i];}
   const node_type& r_new_node() const {return new_node;}
@@ -1426,18 +1425,6 @@ std::vector<double> Species<T,E>::r_heights() const {
        it != nodes.end(); ++it) {
     ret.push_back(odelia::util::to_passive(it->height()));
   }
-  return ret;
-}
-
-template <typename T, typename E>
-std::vector<double> Species<T,E>::r_heights_rev() const {
-  std::vector<double> ret;
-  ret.reserve(size());
-  for (nodes_const_iterator it = nodes.begin();
-       it != nodes.end(); ++it) {
-    ret.push_back(odelia::util::to_passive(it->height()));
-  }
-  std::reverse(ret.begin(), ret.end());
   return ret;
 }
 
