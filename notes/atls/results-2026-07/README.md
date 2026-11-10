@@ -12,4 +12,4 @@ They predate phylloptim's leaf-temperature-in-the-optimiser (#84), the Q10 respi
 | `*-call.R` | The call that produced each file, as stored in its cache |
 | `../gate_atls_vs_pm_A.csv`, `_B.csv` | The verification gate's two tables, computed on the superseded N-switch version |
 
-The calls use helpers from the July branch's `overstorey_staging/atls_demo_helpers.R`.
+The calls use helpers from the July branch's `overstorey_staging/atls_demo_helpers.R`, kept here as `atls_demo_helpers-july.R`. Like the calls, it does not run on current code.

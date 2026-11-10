@@ -1,6 +1,6 @@
 # Plan: Modular thermal-response strategy layer for TF24 (ATLS / Lumry–Eyring, #566)
 
-> **Historical, July 2026.** This is the design and handoff record of the original implementation on `feature/tf24-atls-thermal-damage`, which could not merge after #591. The current plan is [`../plan-atls-port.md`](../plan-atls-port.md); where the two disagree, that file wins. File paths below refer to the July branch. Its kinetics are superseded by phylloptim#186: the `E_d` values below (400–500 "J/mol") were kJ/mol, so the Arrhenius factors were not near-flat and the logistic damage switch they motivated is gone.
+> **Historical, July 2026.** This is the design and handoff record of the original implementation on `feature/tf24-atls-thermal-damage`, which could not merge after #591. The current plan is [`../plan-atls-port.md`](../plan-atls-port.md); where the two disagree, that file wins. File paths below refer to the July branch, which has since been deleted; its gate script is kept as `gate_atls_vs_pm.R` here. Its kinetics are superseded by phylloptim#186: the `E_d` values below (400–500 "J/mol") were kJ/mol, so the Arrhenius factors were not near-flat and the logistic damage switch they motivated is gone.
 
 ## Context
 
