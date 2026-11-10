@@ -393,7 +393,7 @@ public:
 
   // FF16 Methods  ----------------------------------------------
 
-  // [eqn 2] area_leaf (inverse of [eqn 3])
+  // area_leaf
   // Inline (header) so it can inline into the hot competition/assimilation
   // paths that reach it from templated Individual<FF16> code (no LTO build).
   S area_leaf(const S& height) const {
@@ -401,14 +401,14 @@ public:
     return ff16_area_leaf(pars.a_l1, pars.a_l2, height);
   }
 
-  // [eqn 1] mass_leaf (inverse of [eqn 2])
+  // mass_leaf
   S mass_leaf(const S& area_leaf) const;
 
-  // [eqn 4] area and mass of sapwood
+  // Area and mass of sapwood
   S area_sapwood(const S& area_leaf) const;
   S mass_sapwood(const S& area_sapwood, const S& height) const;
 
-  // [eqn 5] area and mass of bark
+  // Area and mass of bark
   S area_bark(const S& area_leaf) const;
   S mass_bark (const S& area_bark, const S& height) const;
 
@@ -416,14 +416,14 @@ public:
               const S& area_heartwood) const;
   S diameter_stem(const S& area_stem) const;
 
-  // [eqn 7] Mass of (fine) roots
+  // Mass of (fine) roots
   S mass_root(const S& area_leaf) const;
 
-  // [eqn 7b] Mass of coarse (structural) roots, as a fraction of sapwood mass
+  // Mass of coarse (structural) roots, as a fraction of sapwood mass
   // (see FF16_Pars::a_cr1). Zero unless a_cr1 is set.
   S mass_coarse_root(const S& mass_sapwood) const;
 
-  // [eqn 8] Total Mass
+  // Total Mass
   S mass_live(const S& mass_leaf, const S& mass_bark,
               const S& mass_sapwood, const S& mass_root,
               const S& mass_coarse_root) const;
@@ -452,7 +452,7 @@ public:
   }
 
   // * Mass production
-  // [eqn 12] Gross annual CO2 assimilation. Thin dispatcher: forwards to the
+  // Gross annual CO2 assimilation. Thin dispatcher: forwards to the
   // shading-model implementation bound once in prepare_strategy(), so the
   // choice of crown model costs a single predicted indirect call per
   // derivative evaluation and never a string comparison.
@@ -488,18 +488,18 @@ public:
   // [Appendix S6] Per-leaf photosynthetic rate.
   S assimilation_leaf(const S& x) const;
 
-  // [eqn 13] Total maintenance respiration
+  // Total maintenance respiration
   S respiration(const S& mass_leaf, const S& mass_sapwood,
                 const S& mass_bark, const S& mass_root,
                 const S& mass_coarse_root) const;
 
-  // [eqn 14] Total turnover
+  // Total turnover
   S turnover(const S& mass_leaf, const S& mass_bark,
              const S& mass_sapwood, const S& mass_root,
              const S& mass_coarse_root) const;
   S turnover_sapwood(const S& mass) const;
 
-  // [eqn 15] Net production
+  // Net production
   S net_mass_production_dt_A(const S& assimilation, const S& respiration,
                              const S& turnover) const;
 
@@ -523,7 +523,7 @@ public:
                                   vars.aux(HEIGHT_INVERSE_AUX_INDEX));
   }
 
-  // [eqn 16] Fraction of whole plan growth that is leaf
+  // Fraction of whole plan growth that is leaf
   S fraction_allocation_reproduction(const S& height) const;
 
   // The height above which this strategy allocates at least 1 - epsilon of its
@@ -541,11 +541,11 @@ public:
     }
     return hmat * (1.0 + std::log((1.0 - epsilon) / epsilon) / a_f2);
   }
-  // [eqn 17] Rate of offspring production
+  // Rate of offspring production
   S fecundity_dt(const S& net_mass_production_dt,
                  const S& fraction_allocation_reproduction) const;
 
-  // [eqn 18] Fraction of mass growth that is leaves
+  // Fraction of mass growth that is leaves
   S darea_leaf_dmass_live(const S& area_leaf) const;
 
   // change in height per change in leaf area
@@ -590,7 +590,7 @@ public:
   void set_initial_states(const FF16_Environment<S>& environment,
                           Internals<S>& vars);
 
-  // [eqn 20] Survival of seedlings during establishment, from the carbon a
+  // Survival of seedlings during establishment, from the carbon a
   // seedling produces at birth size. This form works that carbon out.
   S establishment_probability(const FF16_Environment<S>& environment);
   // The same, for a newborn whose rates have just been computed. A newborn is
@@ -611,7 +611,7 @@ public:
                               const S& seed_area_leaf);
 
   // * Competitive environment
-  // [eqn 11] total projected leaf area above height `z` for a given plant
+  // Total projected leaf area above height `z` for a given plant
   // Inline (header) so the per-node hot competition path called from
   // Individual<FF16>::compute_competition can inline these tiny helpers
   // instead of paying a cross-TU call each iteration (no LTO build).
@@ -838,13 +838,13 @@ void FF16_Strategy<S>::refresh_indices () {
 
 // area_leaf() is defined inline in the class (hot path).
 
-// [eqn 1] mass_leaf (inverse of [eqn 2])
+// mass_leaf
 template <typename S>
 S FF16_Strategy<S>::mass_leaf(const S& area_leaf) const {
   return area_leaf * pars.lma;
 }
 
-// [eqn 4] area and mass of sapwood
+// Area and mass of sapwood
 template <typename S>
 S FF16_Strategy<S>::area_sapwood(const S& area_leaf) const {
   return area_leaf * pars.theta;
@@ -855,7 +855,7 @@ S FF16_Strategy<S>::mass_sapwood(const S& area_sapwood, const S& height) const {
   return area_sapwood * height * eta_c * pars.rho;
 }
 
-// [eqn 5] area and mass of bark
+// Area and mass of bark
 template <typename S>
 S FF16_Strategy<S>::area_bark(const S& area_leaf) const {
   return pars.a_b1 * area_leaf * pars.theta;
@@ -878,19 +878,19 @@ S FF16_Strategy<S>::diameter_stem(const S& area_stem) const {
   return sqrt(4 * area_stem / M_PI);
 }
 
-// [eqn 7] Mass of (fine) roots
+// Mass of (fine) roots
 template <typename S>
 S FF16_Strategy<S>::mass_root(const S& area_leaf) const {
   return pars.a_r1 * area_leaf;
 }
 
-// [eqn 7b] Mass of coarse (structural) roots
+// Mass of coarse (structural) roots
 template <typename S>
 S FF16_Strategy<S>::mass_coarse_root(const S& mass_sapwood) const {
   return pars.a_cr1 * mass_sapwood;
 }
 
-// [eqn 8] Total mass
+// Total mass
 // The coarse-root term is appended, not interleaved, so that with the default
 // a_cr1 = 0 the sum is bit-identical to the pre-#349 expression (x + 0.0 == x
 // exactly, and the association order of the other terms is untouched).
@@ -969,12 +969,12 @@ void FF16_Strategy<S>::compute_rates(const FF16_Environment<S>& environment,
     vars.set_rate(AREA_HEARTWOOD_INDEX, S(0.0));
     vars.set_rate(MASS_HEARTWOOD_INDEX, S(0.0));
   }
-  // [eqn 21] - Instantaneous mortality rate
+  // Instantaneous mortality rate
   vars.set_rate(MORTALITY_INDEX,
       mortality_dt(net_mass_production_dt_ / area_leaf_, vars.state(MORTALITY_INDEX)));
 }
 
-// [eqn 12] Gross annual CO2 assimilation -- deep-crown model.
+// Gross annual CO2 assimilation -- deep-crown model.
 // Integrate photosynthesis over crown depth: for a given height in the crown,
 // take photosynthesis at that depth multiplied by the amount of leaf there.
 template <typename S>
@@ -990,7 +990,7 @@ S FF16_Strategy<S>::assimilation_deep_crown(const FF16_Environment<S>& environme
       pars.a_p1, pars.a_p2);
 }
 
-// [eqn 12] Gross annual CO2 assimilation -- mean-light model.
+// Gross annual CO2 assimilation -- mean-light model.
 // Integrate the *light* over crown depth, weighted by the leaf-area density q
 // (which integrates to one over the crown), to get the leaf-area-weighted mean
 // light the crown experiences, then take a single photosynthesis evaluation of
@@ -1008,7 +1008,7 @@ S FF16_Strategy<S>::assimilation_average_light(const FF16_Environment<S>& enviro
   return area_leaf * assimilation_leaf(mean_light);
 }
 
-// [eqn 12] Gross annual CO2 assimilation -- crown-top model (crown-centre and PPA).
+// Gross annual CO2 assimilation -- crown-top model (crown-centre and PPA).
 // Leaf area is treated as a thin layer at the crown centre, so a single
 // evaluation of the light environment there replaces the crown-depth integral.
 // The crown-centre and PPA models share this code: under crown-centre the environment
@@ -1031,7 +1031,7 @@ S FF16_Strategy<S>::assimilation_leaf(const S& x) const {
   return ff16_assimilation_leaf(pars.a_p1, pars.a_p2, x);
 }
 
-// [eqn 13] Total maintenance respiration
+// Total maintenance respiration
 // NOTE: In contrast with Falster ref model, we do not normalise by pars.a_y*pars.a_bio.
 template <typename S>
 S FF16_Strategy<S>::respiration(const S& mass_leaf, const S& mass_sapwood,
@@ -1042,7 +1042,7 @@ S FF16_Strategy<S>::respiration(const S& mass_leaf, const S& mass_sapwood,
                           pars.r_l, pars.r_s, pars.r_b, pars.r_r, pars.r_cr);
 }
 
-// [eqn 14] Total turnover
+// Total turnover
 template <typename S>
 S FF16_Strategy<S>::turnover(const S& mass_leaf, const S& mass_bark,
                              const S& mass_sapwood, const S& mass_root,
@@ -1057,7 +1057,7 @@ S FF16_Strategy<S>::turnover_sapwood(const S& mass) const {
   return pars.k_s * mass;
 }
 
-// [eqn 15] Net production
+// Net production
 //
 // NOTE: Translation of variable names from the Falster 2011.  Everything
 // before the minus sign is SCM's N, our `net_mass_production_dt` is SCM's P.
@@ -1099,14 +1099,14 @@ S FF16_Strategy<S>::net_mass_production_dt(const FF16_Environment<S>& environmen
   return net_mass_production_dt_A(assimilation_, respiration_, turnover_);
 }
 
-// [eqn 16] Fraction of production allocated to reproduction
+// Fraction of production allocated to reproduction
 template <typename S>
 S FF16_Strategy<S>::fraction_allocation_reproduction(const S& height) const {
   using std::exp;
   return pars.a_f1 / (1.0 + exp(pars.a_f2 * (1.0 - height / pars.hmat)));
 }
 
-// [eqn 17] Rate of offspring production
+// Rate of offspring production
 template <typename S>
 S FF16_Strategy<S>::fecundity_dt(const S& net_mass_production_dt,
                                  const S& fraction_allocation_reproduction) const {
@@ -1260,7 +1260,7 @@ void FF16_Strategy<S>::set_initial_states(const FF16_Environment<S>& environment
   update_dependent_aux(HEIGHT_INDEX, vars);
 }
 
-// [eqn 20] Survival of seedlings during establishment
+// Survival of seedlings during establishment
 template <typename S>
 S FF16_Strategy<S>::establishment_probability(const FF16_Environment<S>& environment) {
   const SeedGeometry seed = seed_geometry();

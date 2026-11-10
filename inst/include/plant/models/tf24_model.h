@@ -373,10 +373,10 @@ public:
 
   // TF24 Methods  ----------------------------------------------
 
-  // [eqn 2] area_leaf (inverse of [eqn 3])
+  // area_leaf
   S area_leaf(const S& height) const;
 
-  // [eqn 1] mass_leaf (inverse of [eqn 2])
+  // mass_leaf
   S mass_leaf(const S& area_leaf) const;
 
   // Sapwood area per unit leaf area -- the Huber value, `theta` displaced by
@@ -389,14 +389,14 @@ public:
     return pars.theta * exp(sapwood_departure);
   }
 
-  // [eqn 4] area and mass of sapwood. The one-argument form is the resting
+  // Area and mass of sapwood. The one-argument form is the resting
   // allometry (used where a plant is on its trajectory by definition, e.g. the
   // germination inversion); the two-argument form reads the departure state.
   S area_sapwood(const S& area_leaf) const;
   S area_sapwood(const S& area_leaf, const S& sapwood_departure) const;
   S mass_sapwood(const S& area_sapwood, const S& height) const;
 
-  // [eqn 5] area and mass of bark
+  // Area and mass of bark
   S area_bark(const S& area_leaf) const;
   S mass_bark (const S& area_bark, const S& height) const;
 
@@ -404,14 +404,14 @@ public:
                             const S& area_heartwood) const;
   S diameter_stem(const S& area_stem) const;
 
-  // [eqn 7] Mass of (fine) roots
+  // Mass of (fine) roots
   S mass_root(const S& area_leaf) const;
 
-  // [eqn 7b] Mass of coarse (structural) roots, as a fraction of sapwood mass
+  // Mass of coarse (structural) roots, as a fraction of sapwood mass
   // (see TF24_Pars::a_cr1). Zero unless a_cr1 is set.
   S mass_coarse_root(const S& mass_sapwood) const;
 
-  // [eqn 8] Total Mass
+  // Total Mass
   S mass_live(const S& mass_leaf, const S& mass_bark,
               const S& mass_sapwood, const S& mass_root,
               const S& mass_coarse_root) const;
@@ -431,7 +431,7 @@ public:
   void update_dependent_aux(const int index, Internals<S>& vars);
 
   // * Mass production
-  // [eqn 13] Total maintenance respiration
+  // Total maintenance respiration
   S respiration(const S& mass_leaf, const S& mass_sapwood,
                 const S& mass_bark, const S& mass_root,
                 const S& mass_coarse_root) const;
@@ -442,7 +442,7 @@ public:
   S respiration_root(const S& mass) const;
   S respiration_coarse_root(const S& mass) const;
 
-  // [eqn 14] Total turnover
+  // Total turnover
   // Turnover the plant actually PAYS for. `replacement_leaf` and
   // `replacement_sapwood` are the fractions of the leaf and sapwood flux it
   // chooses to rebuild; the rest is not charged, and the matching tissue is lost
@@ -528,7 +528,7 @@ public:
       pars.theta * height * eta_c * pars.rho * (1.0 + pars.a_b1);
   }
 
-  // [eqn 15] Net production
+  // Net production
   S net_mass_production_dt_A(const S& assimilation, const S& respiration,
                              const S& turnover) const;
 
@@ -614,7 +614,7 @@ public:
         vars.state(state_idx_leaf_marginal_tracked));
   }
 
-  // [eqn 16] Fraction of whole plan growth that is leaf
+  // Fraction of whole plan growth that is leaf
   virtual S fraction_allocation_reproduction(const S& height) const;
 
   // The height above which this strategy allocates at least 1 - epsilon of its
@@ -633,11 +633,11 @@ public:
     return hmat * (1.0 + std::log((1.0 - epsilon) / epsilon) / a_f2);
   }
   S fraction_allocation_growth(const S& height) const;
-  // [eqn 17] Rate of offspring production
+  // Rate of offspring production
   S fecundity_dt(const S& net_mass_production_dt,
                  const S& fraction_allocation_reproduction) const;
 
-  // [eqn 18] Fraction of mass growth that is leaves
+  // Fraction of mass growth that is leaves
   // Leaf area bought per unit live mass. Takes the sapwood departure because
   // the stem that comes with a new leaf is priced at the Huber value the plant
   // ACTUALLY carries, not at pars.theta. Without that a plant holding extra
@@ -685,7 +685,7 @@ public:
                      const S& sapwood_departure) const;
   // Initialise the storage state for a newly germinated individual (#517).
   void set_initial_states(const TF24_Environment<S>& environment, Internals<S>& vars);
-  // [eqn 20] Survival of seedlings during establishment, from the carbon a
+  // Survival of seedlings during establishment, from the carbon a
   // seedling produces at birth size. This form works that carbon out.
   S establishment_probability(const TF24_Environment<S>& environment);
   // The same, for a newborn whose rates have just been computed. A newborn is
@@ -701,7 +701,7 @@ public:
                               const S& net_mass_production_dt_);
 
   // * Competitive environment
-  // [eqn 11] total projected leaf area above height `z` for a given plant,
+  // Total projected leaf area above height `z` for a given plant,
   // from the plant's leaf area and 1/height. The overload below reads both from
   // the cached aux slots, where competition_effect is the leaf area the plant
   // carries (area_leaf_carried), so nothing is recomputed per call.

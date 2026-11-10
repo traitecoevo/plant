@@ -141,7 +141,7 @@ public:
     }
   }
 
-  // [eqn 11] Fraction of projected leaf area above the height-normalised
+  // Fraction of projected leaf area above the height-normalised
   // coordinate u = z / H -- the shading a plant casts at u. Smooth Yokozawa Q
   // for every model except FlatTopBox, which uses a step at the crown centre.
   // Bound once in initialise(), so the competition hot path makes one predicted
@@ -290,7 +290,7 @@ public:
     return std::pow(1.0 - std::sqrt(x), eta_inverse_) * height;
   }
 
-  // [eqn 12] Crown-centre coordinate u = z / H. Static because the strategies
+  // Crown-centre coordinate u = z / H. Static because the strategies
   // need the same number for their sapwood and conductance terms, and one
   // formula is better than three.
   static S eta_c(S eta) {

@@ -263,7 +263,7 @@ inline double K93_Strategy::size_to_basal_area(double size) const {
   return M_PI / 4 * pow(size, 2);
 }
 
-// [eqn 10] Growth
+// Growth
 inline double K93_Strategy::size_dt(double size,
                              double cumulative_basal_area) const {
 
@@ -276,14 +276,14 @@ inline double K93_Strategy::size_dt(double size,
   return growth;
 }
 
-// [eqn 12] Reproduction
+// Reproduction
 inline double K93_Strategy::fecundity_dt(double size,
                                   double cumulative_basal_area) const {
   double basal_area = size_to_basal_area(size);
   return pars.d_0 * basal_area * exp(-pars.d_1 * cumulative_basal_area);
 }
 
-// [eqn 11] Mortality
+// Mortality
 inline double K93_Strategy::mortality_dt(double cumulative_basal_area,
                                   double cumulative_mortality) const {
   // Mortality probability is 1 once the hazard is non-finite or held, so the

@@ -38,7 +38,7 @@ public:
 
   value_type height_max() const;
 
-  // [eqn 11] Canopy openness at `height`
+  // Canopy openness at `height`
   value_type compute_competition(double height) const;
   // That profile and its vertical derivative, from one pass over the species.
   with_slope<value_type>

@@ -10,19 +10,19 @@
 
 namespace plant {
 
-// [eqn 2] area_leaf (inverse of [eqn 3])
+// area_leaf
 template <typename S>
 S TF24_Strategy<S>::area_leaf(const S& height) const {
   return pow(height / pars.a_l1, 1.0 / pars.a_l2);
 }
 
-// [eqn 1] mass_leaf (inverse of [eqn 2])
+// mass_leaf
 template <typename S>
 S TF24_Strategy<S>::mass_leaf(const S& area_leaf) const {
   return area_leaf * pars.lma;
 }
 
-// [eqn 4] area and mass of sapwood
+// Area and mass of sapwood
 template <typename S>
 S TF24_Strategy<S>::area_sapwood(const S& area_leaf) const {
   return area_leaf * pars.theta;
@@ -42,7 +42,7 @@ S TF24_Strategy<S>::mass_sapwood(const S& area_sapwood, const S& height) const {
   return area_sapwood * height * eta_c * pars.rho;
 }
 
-// [eqn 5] area and mass of bark
+// Area and mass of bark
 template <typename S>
 S TF24_Strategy<S>::area_bark(const S& area_leaf) const {
   return pars.a_b1 * area_leaf * pars.theta;
@@ -65,19 +65,19 @@ S TF24_Strategy<S>::diameter_stem(const S& area_stem) const {
   return sqrt(4 * area_stem / M_PI);
 }
 
-// [eqn 7] Mass of (fine) roots
+// Mass of (fine) roots
 template <typename S>
 S TF24_Strategy<S>::mass_root(const S& area_leaf) const {
   return pars.a_r1 * area_leaf;
 }
 
-// [eqn 7b] Mass of coarse (structural) roots
+// Mass of coarse (structural) roots
 template <typename S>
 S TF24_Strategy<S>::mass_coarse_root(const S& mass_sapwood) const {
   return pars.a_cr1 * mass_sapwood;
 }
 
-// [eqn 8] Total mass
+// Total mass
 // The coarse-root term is appended, not interleaved, so that with the default
 // a_cr1 = 0 the sum is bit-identical to the pre-#349 expression (x + 0.0 == x
 // exactly, and the association order of the other terms is untouched).
@@ -210,7 +210,7 @@ S TF24_Strategy<S>::height_given_mass_leaf(const S& mass_leaf) const {
   return pars.a_l1 * pow(mass_leaf / pars.lma, pars.a_l2);
 }
 
-// [eqn 10] Cumulative fraction of a quantity distributed over an extent with
+// Cumulative fraction of a quantity distributed over an extent with
 //          shape exponent 'eta_x', above coordinate 'z' of a total 'height'.
 //          Serves the root mass distribution over soil depth.
 template <typename S>

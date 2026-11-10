@@ -240,7 +240,7 @@ void TF24_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,  In
                   rebuild_rel * (exp(-sapwood_departure) - 1.0) +
                   pars.a_sw * sapwood_marginal_);
 
-  // [eqn 21] - Instantaneous mortality rate, now driven by relative reserves r.
+  // Instantaneous mortality rate, now driven by relative reserves r.
   vars.set_rate(MORTALITY_INDEX,
       mortality_dt(r, vars.state(MORTALITY_INDEX)));
 
@@ -342,7 +342,7 @@ S TF24_Strategy<S>::sapwood_marginal_return(
   return sapwood_marginal_;
 }
 
-// [eqn 13] Total maintenance respiration
+// Total maintenance respiration
 // NOTE: In contrast with Falster ref model, we do not normalise by pars.a_y*pars.a_bio.
 template <typename S>
 S TF24_Strategy<S>::respiration(const S& mass_leaf, const S& mass_sapwood,
@@ -380,7 +380,7 @@ S TF24_Strategy<S>::respiration_coarse_root(const S& mass) const {
   return pars.r_cr * mass;
 }
 
-// [eqn 14] Total turnover
+// Total turnover
 template <typename S>
 S TF24_Strategy<S>::turnover(const S& replacement_leaf,
                           const S& replacement_sapwood,
@@ -421,7 +421,7 @@ S TF24_Strategy<S>::turnover_coarse_root(const S& mass) const {
   return pars.k_cr * mass;
 }
 
-// [eqn 15] Net production
+// Net production
 //
 // NOTE: Translation of variable names from the Falster 2011.  Everything
 // before the minus sign is SCM's N, our `net_mass_production_dt` is SCM's P.
@@ -431,7 +431,7 @@ S TF24_Strategy<S>::net_mass_production_dt_A(const S& assimilation, const S& res
   return pars.a_bio * pars.a_y * (assimilation - respiration) - turnover;
 }
 
-// [eqn 16] Fraction of production allocated to reproduction
+// Fraction of production allocated to reproduction
 template <typename S>
 S TF24_Strategy<S>::fraction_allocation_reproduction(const S& height) const {
   return pars.a_f1 / (1.0 + exp(pars.a_f2 * (1.0 - height / pars.hmat)));
@@ -443,7 +443,7 @@ S TF24_Strategy<S>::fraction_allocation_growth(const S& height) const {
   return 1.0 - fraction_allocation_reproduction(height);
 }
 
-// [eqn 17] Rate of offspring production
+// Rate of offspring production
 template <typename S>
 S TF24_Strategy<S>::fecundity_dt(const S& net_mass_production_dt,
                                const S& fraction_allocation_reproduction) const {
@@ -536,7 +536,7 @@ void TF24_Strategy<S>::set_initial_states(const TF24_Environment<S>& environment
   vars.set_state(state_idx_leaf_marginal_tracked, tracked);
 }
 
-// [eqn 20] Survival of seedlings during establishment
+// Survival of seedlings during establishment
 template <typename S>
 S TF24_Strategy<S>::establishment_probability(const TF24_Environment<S>& environment) {
   const SeedGeometry seed = seed_geometry();
