@@ -409,7 +409,6 @@ Use the [Makefile](Makefile) targets. The dependency you must internalise:
 | `make test` | `make all` then `devtools::test()` |
 | `make test-installed` | run the suite against the plant installed in `R_LIBS`, not this checkout (§8) |
 | `make check` / `make build` / `make install` | `R CMD check` / `build` / `INSTALL` |
-| `make benchmark` | run `scripts/benchmark.R` |
 | `make scenarios` | run the TF24 hydraulic scenario gateway → writes a scorecard RDS (`scripts/run_scenario_gateway.R`) |
 | `make bless-scenarios` | regenerate the gateway test baseline (`tests/testthat/test_data/scenario_baseline.rds`) — only when a changed outcome is intended |
 
