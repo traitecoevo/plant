@@ -20,48 +20,30 @@ S TF24_Strategy<S>::evapotranspiration_dt(const S& area_leaf_, int soil_layer) {
   }
 }
 
-// Two of the leaf's outputs re-enter the active chain, and they reach the
-// operating point differently.
+// The two _25 traits and dark respiration enter as the temperature-adjusted
+// values the leaf's kernels take. The Arrhenius is linear in its reference
+// value, so the chain from the trait is the factor between them and the tape
+// carries the rest.
+// ⚠️ THE TRAITS THEMSELVES, AND EVERY SLOT NAMED. The pack is the leaf model's
+// own parameter enumeration, so the temperature responses, both Weibull scale
+// parameters and both critical potentials are DERIVED inside the leaf from
+// these -- which is what puts their chains on this tape instead of asking this
+// caller to hand over four numbers it would have to keep consistent.
 //
-// PROFIT is the objective at the point the leaf chose, so by the envelope
-// theorem its response at an interior optimum is the direct one and the point's
-// own movement drops out. PER-LAYER UPTAKE is set as a side effect AT that
-// point, so it consumes the choice rather than being it and the movement is part
-// of its answer.
+// Filled by NAMED INDEX rather than as an aggregate: an initialiser shorter
+// than the array zero-fills the rest with no diagnostic at all, and this list
+// has been the wrong length twice.
 //
-// The leaf answers at whatever scalar it is asked at, so this hands it the
-// inputs and takes the outputs back on the tape. Only one derivative crosses as
-// a number -- the gradient of the condition that places an interior collar --
-// and it crosses because reverse mode cannot nest a tangent above its own
-// scalar, where forward mode can.
+// ⚠️ SEATED FIRST, THEN OVERRIDDEN. Starting from the leaf's OWN pack means no
+// slot is left at a value this caller did not choose: the parameters of the
+// seven cost curves this strategy does not run are carried as the leaf's
+// constants rather than as zeros, which is what a bare fill() would have made
+// them -- a wrong VALUE, not merely a missing row, in any expression that
+// reads one.
 template <typename S>
-void TF24_Strategy<S>::record_leaf_outputs(const S& PPFD_int,
-                                           const std::vector<S>& psi_soil,
-                                           const S& conductance_max,
-                                           double NIR_per_PPFD_int) {
-  using phylloptim::Leaf;
-  const std::size_t n_layer = psi_soil.size();
-
-  // The two _25 traits and dark respiration enter as the temperature-adjusted
-  // values the leaf's kernels take. The Arrhenius is linear in its reference
-  // value, so the chain from the trait is the factor between them and the tape
-  // carries the rest.
-  // ⚠️ THE TRAITS THEMSELVES, AND EVERY SLOT NAMED. The pack is the leaf model's
-  // own parameter enumeration, so the temperature responses, both Weibull scale
-  // parameters and both critical potentials are DERIVED inside the leaf from
-  // these -- which is what puts their chains on this tape instead of asking this
-  // caller to hand over four numbers it would have to keep consistent.
-  //
-  // Filled by NAMED INDEX rather than as an aggregate: an initialiser shorter
-  // than the array zero-fills the rest with no diagnostic at all, and this list
-  // has been the wrong length twice.
-  //
-  // ⚠️ SEATED FIRST, THEN OVERRIDDEN. Starting from the leaf's OWN pack means no
-  // slot is left at a value this caller did not choose: the parameters of the
-  // seven cost curves this strategy does not run are carried as the leaf's
-  // constants rather than as zeros, which is what a bare fill() would have made
-  // them -- a wrong VALUE, not merely a missing row, in any expression that
-  // reads one.
+phylloptim::leaf_pars<S> TF24_Strategy<S>::leaf_pars_on_tape(
+    const S& PPFD_int, const S& conductance_max,
+    double NIR_per_PPFD_int) const {
   phylloptim::leaf_pars<S> in;
   const phylloptim::leaf_pars<double> seated = leaf.passive_pars();
   for (std::size_t i = 0; i < in.size(); ++i) {
@@ -92,6 +74,102 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& PPFD_int,
   // its value), and with the energy balance on it heats the leaf: its row is
   // light's other route to leaf temperature.
   in[phylloptim::par_NIR] = NIR_per_PPFD_int * PPFD_int;
+  return in;
+}
+
+// The marginal at the collar the solve left, for a refusal message. On a COPY
+// because dprofit_at_collar_psi drives the model to that collar and this sits
+// on a path that is about to throw with the leaf's own state still readable.
+template <typename S>
+double TF24_Strategy<S>::marginal_at_collar() const {
+  phylloptim::Leaf probe = leaf;
+  bool ok = false;
+  const double m = probe.dprofit_at_collar_psi<
+      phylloptim::Leaf::CostCurve::TF24_floor>(leaf.opt_root_psi_, &ok);
+  return ok ? m : std::numeric_limits<double>::quiet_NaN();
+}
+
+// The interior derivation divides by `slope`, the profit's curvature at the
+// collar; refuses where it cannot.
+//
+// profit_curvature_at_collar is a difference of the marginal, measured
+// rather than assembled analytically (phylloptim says why), so there is no
+// independent curvature to check it against here.
+//
+// Two findings, two messages: DO NOT merge them into one sentence. They
+// are not the same KIND of problem -- the floor limb is a real degeneracy
+// of the model, the sign limb is a SOLVER failure -- and one sentence
+// reports a positive curvature of 34.4 "against a floor of 0.001", four
+// orders of magnitude ABOVE that floor, which reads as a magnitude
+// failure and is not one.
+template <typename S>
+void TF24_Strategy<S>::refuse_unusable_curvature(double slope) {
+  if (!(slope < 0.0)) {
+    // ⚠️ A POSITIVE CURVATURE HERE IS EVIDENCE AGAINST THE CURVATURE, not
+    // against the operating point. An interior collar is reached only on a
+    // bracket the marginal crosses downward, so the curvature at it must be
+    // non-positive -- and the collar solve now probes dry of every root it
+    // returns and counts the exceptions. On the 105-year stand in
+    // scripts/profile-stand-gradient.R it found the marginal rising ZERO times
+    // in 2,829,445 interior solves, while this reported +34.4; a centred
+    // difference of the solve's own marginal at that collar gave -9.63.
+    //
+    // So the two spellings of the marginal disagree, and the one that matches
+    // the difference is the solve's. `condition.marginal` and
+    // `leaf.collar_resid_` are those two spellings, carried here because their
+    // disagreement is the finding -- both must be ~0 at an interior point, and
+    // where they are not, profit_at is not the function that placed this
+    // collar and its second derivative belongs to something else.
+    //
+    // format_double, not to_string: these numbers run to ~1e-6 and below,
+    // where to_string's six DECIMAL places print "0.000000". format_double
+    // keeps six SIGNIFICANT figures and exists in util.h for this.
+    refuse(std::string("TF24 gradient: the profit curvature at this "
+                       "operating point is ") +
+           util::format_double(slope) +
+           ", which is not negative -- so the interior derivation cannot "
+           "divide by it. The marginal at this collar is " +
+           util::format_double(marginal_at_collar()) +
+           "; the collar is " +
+           util::format_double(leaf.opt_root_psi_) +
+           ". An interior collar sits on a downward crossing, so a positive "
+           "curvature here indicts this derivation rather than the point. See "
+           "docs/design/leaf-derivatives.md");
+  } else if (std::abs(slope) < curvature_floor()) {
+    // format_double for the same reason: a curvature inside a floor of 1e-3 is
+    // where to_string's six decimal places start losing the number.
+    refuse("TF24 gradient: the leaf's profit curvature at this operating "
+           "point is " + util::format_double(slope) +
+           ", inside the floor of " + util::format_double(curvature_floor()) +
+           ", so the interior derivation would divide by too little to "
+           "answer");
+  }
+}
+
+// Two of the leaf's outputs re-enter the active chain, and they reach the
+// operating point differently.
+//
+// PROFIT is the objective at the point the leaf chose, so by the envelope
+// theorem its response at an interior optimum is the direct one and the point's
+// own movement drops out. PER-LAYER UPTAKE is set as a side effect AT that
+// point, so it consumes the choice rather than being it and the movement is part
+// of its answer.
+//
+// The leaf answers at whatever scalar it is asked at, so this hands it the
+// inputs and takes the outputs back on the tape. Only one derivative crosses as
+// a number -- the gradient of the condition that places an interior collar --
+// and it crosses because reverse mode cannot nest a tangent above its own
+// scalar, where forward mode can.
+template <typename S>
+void TF24_Strategy<S>::record_leaf_outputs(const S& PPFD_int,
+                                           const std::vector<S>& psi_soil,
+                                           const S& conductance_max,
+                                           double NIR_per_PPFD_int) {
+  using phylloptim::Leaf;
+  const std::size_t n_layer = psi_soil.size();
+
+  phylloptim::leaf_pars<S> in =
+      leaf_pars_on_tape(PPFD_int, conductance_max, NIR_per_PPFD_int);
 
   std::vector<S> r_R_H_min, r_R_V_sum;
   // Carbon becomes resistance HERE, at this scalar, because the architecture
@@ -123,16 +201,6 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& PPFD_int,
   // different one passes while the closure divides by a bad slope.
   // profit_curvature_at_collar() is dM/dp as a first derivative of the marginal the
   // solve roots, and the rows are taped from M inside operating_collar.
-  // The marginal at the collar the solve left, for a refusal message. On a COPY
-  // because dprofit_at_collar_psi drives the model to that collar and this sits
-  // on a path that is about to throw with the leaf's own state still readable.
-  auto marginal_here = [&]() -> double {
-    phylloptim::Leaf probe = leaf;
-    bool ok = false;
-    const double m = probe.dprofit_at_collar_psi<
-        phylloptim::Leaf::CostCurve::TF24_floor>(leaf.opt_root_psi_, &ok);
-    return ok ? m : std::numeric_limits<double>::quiet_NaN();
-  };
   double slope = std::numeric_limits<double>::quiet_NaN();
   Leaf::BilledOutputs<S> got;
   try {
@@ -142,57 +210,7 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& PPFD_int,
       // The interior derivation divides by the profit's curvature. At a bound
       // the slope is the bound's own and this floor is not about it.
       note_curvature(slope);
-
-      // profit_curvature_at_collar is a difference of the marginal, measured
-      // rather than assembled analytically (phylloptim says why), so there is no
-      // independent curvature to check it against here.
-      //
-      // Two findings, two messages: DO NOT merge them into one sentence. They
-      // are not the same KIND of problem -- the floor limb is a real degeneracy
-      // of the model, the sign limb is a SOLVER failure -- and one sentence
-      // reports a positive curvature of 34.4 "against a floor of 0.001", four
-      // orders of magnitude ABOVE that floor, which reads as a magnitude
-      // failure and is not one.
-      if (!(slope < 0.0)) {
-        // ⚠️ A POSITIVE CURVATURE HERE IS EVIDENCE AGAINST THE CURVATURE, not
-        // against the operating point. An interior collar is reached only on a
-        // bracket the marginal crosses downward, so the curvature at it must be
-        // non-positive -- and the collar solve now probes dry of every root it
-        // returns and counts the exceptions. On the 105-year stand in
-        // scripts/profile-stand-gradient.R it found the marginal rising ZERO times
-        // in 2,829,445 interior solves, while this reported +34.4; a centred
-        // difference of the solve's own marginal at that collar gave -9.63.
-        //
-        // So the two spellings of the marginal disagree, and the one that matches
-        // the difference is the solve's. `condition.marginal` and
-        // `leaf.collar_resid_` are those two spellings, carried here because their
-        // disagreement is the finding -- both must be ~0 at an interior point, and
-        // where they are not, profit_at is not the function that placed this
-        // collar and its second derivative belongs to something else.
-        //
-        // format_double, not to_string: these numbers run to ~1e-6 and below,
-        // where to_string's six DECIMAL places print "0.000000". format_double
-        // keeps six SIGNIFICANT figures and exists in util.h for this.
-        refuse(std::string("TF24 gradient: the profit curvature at this "
-                           "operating point is ") +
-               util::format_double(slope) +
-               ", which is not negative -- so the interior derivation cannot "
-               "divide by it. The marginal at this collar is " +
-               util::format_double(marginal_here()) +
-               "; the collar is " +
-               util::format_double(leaf.opt_root_psi_) +
-               ". An interior collar sits on a downward crossing, so a positive "
-               "curvature here indicts this derivation rather than the point. See "
-               "docs/design/leaf-derivatives.md");
-      } else if (std::abs(slope) < curvature_floor()) {
-        // format_double for the same reason: a curvature inside a floor of 1e-3 is
-        // where to_string's six decimal places start losing the number.
-        refuse("TF24 gradient: the leaf's profit curvature at this operating "
-               "point is " + util::format_double(slope) +
-               ", inside the floor of " + util::format_double(curvature_floor()) +
-               ", so the interior derivation would divide by too little to "
-               "answer");
-      }
+      refuse_unusable_curvature(slope);
     }
     // Placed, then evaluated. Which condition placed it is the leaf's to say;
     // whether the curvature it divides by is usable was this caller's, above.
@@ -273,39 +291,13 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& PPFD_int,
   }
 }
 
-// One shot calculation of net_mass_production_dt
-// Used by establishment_probability() and compute_rates().
+// The stem's leaf-specific conductance at this height and Huber value, the
+// one the leaf's supply solve is handed. Kept as
+// leaf_specific_conductance_max_ too, which the sapwood controller reads.
 template <typename S>
-S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environment,
-                                const S& height, const S& area_leaf_,
-                                const S& height_inverse,
-                                const S& sapwood_departure,
-                                const S& leaf_departure,
-                                const S& tracked_marginal) {
-  // height_inverse (= 1/height) is supplied by the shared individual.h interface
-  // (cached aux); unused here as the TF24 root-water path works in height directly.
-  (void)height_inverse;
-  const S mass_leaf_    = mass_leaf(area_leaf_);
-  const S area_sapwood_ = area_sapwood(area_leaf_, sapwood_departure);
-  const S mass_sapwood_ = mass_sapwood(area_sapwood_, height);
-  const S area_bark_    = area_bark(area_leaf_);
-  const S mass_bark_    = mass_bark(area_bark_, height);
-  const S mass_root_    = mass_root(area_leaf_);
-
-  int soil_number_of_depths_ = environment.get_soil_number_of_depths();
-  const std::vector<double>& soil_depths_ = environment.z;
-
-
-
-  // The intercepted light that drives the leaf optimisation depends on the shading
-  // model and is computed below (just before the optimisation), once the
-  // depth-independent inputs are ready.
-
-  // psi_soil (-MPa): the patch column's, computed once per soil state and cached
-  // in the environment -- or, in TF24w, this cohort's own column (#681).
-  const std::vector<S>& psi_soil = soil_water_potential_for_leaf(environment);
-  
-// find leaf specific max hydraulic conductance (kg m^-2 LA s^-1 MPa ^-1)
+S TF24_Strategy<S>::stem_conductance_max(const S& height,
+                                         const S& sapwood_departure) {
+  // find leaf specific max hydraulic conductance (kg m^-2 LA s^-1 MPa ^-1)
   // pars.K_s: sapwood-specific conductivity of the TERMINAL segment -- which is
   //   the whole-stem value while pars.D_c == 0 (kg m^-1 s^-1 MPa^-1)
   // pars.theta: huber value
@@ -332,9 +324,19 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
   // d(kmax)/d(psi) is just kmax. Stored so the controller reads the SAME value
   // rather than recomputing it -- recomputing it is how the two silently drift
   // apart when the denominator changes, as it did in #617.
-  const S leaf_specific_conductance_max =
+  S leaf_specific_conductance_max =
     pars.K_s * sapwood_per_leaf_area(sapwood_departure) / stem_path_length;
   leaf_specific_conductance_max_ = leaf_specific_conductance_max;
+  return leaf_specific_conductance_max;
+}
+
+// Fine-root carbon per unit leaf area in each soil layer, and the root
+// network it builds, both kept for the leaf's solve and the gradient.
+template <typename S>
+void TF24_Strategy<S>::build_root_network(
+    const TF24_Environment<S>& environment, const S& height) {
+  const int soil_number_of_depths_ = environment.get_soil_number_of_depths();
+  const std::vector<double>& soil_depths_ = environment.z;
 
   // Fine-root carbon is distributed over depth using the same cumulative shape
   // function Q() used for the leaf canopy, but parameterised over soil depth
@@ -398,67 +400,47 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
   phylloptim::root_network_from_carbon(
       root_carbon_value_, environment.z_thickness, beta_R_H,
       beta_R_V, root_network_);
+}
 
-  // Reuse geometry precomputed by environment; avoids rebuilding z midpoints each call.
-  leaf.roots_.z_soil_mid_ = environment.get_soil_mid_depths();
-  leaf.roots_.use_precomputed_z_soil_mid_ = true;
+// The leaf's inputs at one light, soil and conductance: everything else it
+// reads is the environment's, the same at every call.
+template <typename S>
+void TF24_Strategy<S>::seat_leaf(const TF24_Environment<S>& environment,
+                                 double PPFD, const std::vector<double>& psi,
+                                 double conductance) {
+  leaf.set_physiology(root_network_, PPFD, psi, environment.z, conductance,
+                      environment.get_atm_vpd(), environment.get_ca(),
+                      environment.get_leaf_temp(),
+                      environment.get_atm_o2_kpa(),
+                      environment.get_atm_kpa());
+}
 
-  // Per-timestep above-canopy wind, read only on the energy-balance path.
-  leaf.wind_speed_ = environment.get_wind_speed();
-
-  // The light chain, from the driver to the leaf. Each stage is named for what
-  // it is, because the stages differ by factors of 0.5 and a value handed over
-  // at the wrong stage is a plausible number:
-  //
-  //   SWdown      incoming shortwave, surface, horizontal, above canopy  W m^-2
-  //   PPFD_above  = umol_par_per_joule * f_PAR * SWdown                  umol m^-2 s^-1
-  //   PPFD_int    = k_I * openness(z) * PPFD_above                       umol m^-2 s^-1
-  //               intercepted per unit leaf area: k_I is the extinction
-  //               coefficient, which carries the leaf-angle projection
-  //   NIR_int     = k_I * openness(z) * (1 - f_PAR) * SWdown             W m^-2
-  //
-  // The leaf takes the two INTERCEPTED bands and applies its own absorptances
-  // (alpha_PAR, alpha_NIR); nothing upstream of it absorbs anything. Both bands
-  // see the same openness and k_I, so NIR_int is a fixed multiple of PPFD_int
-  // and is formed from it at the leaf rather than integrated over the crown a
-  // second time.
-  const double f_PAR = environment.f_PAR;
-  if (!(f_PAR > 0.0 && f_PAR <= 1.0)) {
-    util::stop("TF24: the environment's f_PAR must lie in (0, 1]; got " +
-               util::to_string(f_PAR));
-  }
-  const double PPFD_above =
-    phylloptim::umol_par_per_joule * f_PAR * environment.get_SWdown();
-  const double NIR_per_PPFD_int =
-    (1.0 - f_PAR) / (phylloptim::umol_par_per_joule * f_PAR);
-
-  // Optimise the leaf at a given intercepted PPFD: rebuilds physiology and
-  // solves the root-collar water potential, leaving the leaf.* outputs
-  // (profit_, transpiration_, soil_consumption_, opt_psi_leaf_, ...) set. Only
-  // the light varies between calls; every other input is depth-independent and
-  // already computed above.
-  //
-  // Leaf solves at double, so an active strategy hands it the VALUES of its
-  // inputs -- the light, the soil potentials and the conductance are all
-  // stripped below -- and record_leaf_outputs puts the rows back on afterwards,
-  // by asking the leaf for its own derivatives at the point this solve placed.
-  // So the active input has to OUTLIVE the call, which is what `PPFD_int_used`
-  // is for: the leaf is handed only its value and cannot give it back. Each leaf
-  // output enters the active chain at one place -- the aux stores and
-  // leaf.profit_ in net_mass_production_dt, and leaf.soil_consumption_ in
-  // evapotranspiration_dt -- so a partial attaches to one expression per
-  // output.
+// Solves the leaf over the crown as the shading model asks, leaving the
+// leaf.* outputs set, and returns the intercepted PPFD its last solve used.
+//
+// Optimise the leaf at a given intercepted PPFD: rebuilds physiology and
+// solves the root-collar water potential, leaving the leaf.* outputs
+// (profit_, transpiration_, soil_consumption_, opt_psi_leaf_, ...) set. Only
+// the light varies between calls; every other input is depth-independent and
+// already computed above.
+//
+// Leaf solves at double, so an active strategy hands it the VALUES of its
+// inputs -- the light, the soil potentials and the conductance are all
+// stripped below -- and record_leaf_outputs puts the rows back on afterwards,
+// by asking the leaf for its own derivatives at the point this solve placed.
+// So the active input has to OUTLIVE the call, which is what `PPFD_int_used`
+// is for: the leaf is handed only its value and cannot give it back. Each leaf
+// output enters the active chain at one place -- the aux stores and
+// leaf.profit_ in net_mass_production_dt, and leaf.soil_consumption_ in
+// evapotranspiration_dt -- so a partial attaches to one expression per
+// output.
+template <typename S>
+S TF24_Strategy<S>::solve_leaf_over_crown(
+    const TF24_Environment<S>& environment, const S& height,
+    const std::vector<S>& psi_soil, const S& leaf_specific_conductance_max,
+    double PPFD_above, double NIR_per_PPFD_int) {
+  const int soil_number_of_depths_ = environment.get_soil_number_of_depths();
   S PPFD_int_used = 0.0;
-  // The leaf's inputs at one light, soil and conductance: everything else it
-  // reads is the environment's, the same at every call.
-  auto seat_leaf = [&](double PPFD, const std::vector<double>& psi,
-                       double conductance) -> void {
-    leaf.set_physiology(root_network_, PPFD, psi, soil_depths_, conductance,
-                        environment.get_atm_vpd(), environment.get_ca(),
-                        environment.get_leaf_temp(),
-                        environment.get_atm_o2_kpa(),
-                        environment.get_atm_kpa());
-  };
   auto optimise_at = [&](const S& PPFD_int) -> void {
     PPFD_int_used = PPFD_int;
     // Read on the energy-balance path only; record_leaf_outputs gives it the
@@ -468,14 +450,14 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
     // one. Three of its arguments are this strategy's own and carry a derivative;
     // psi_soil is the one that needs a buffer to be stripped into.
     if constexpr (std::is_same_v<S, double>) {
-      seat_leaf(PPFD_int, psi_soil, leaf_specific_conductance_max);
+      seat_leaf(environment, PPFD_int, psi_soil, leaf_specific_conductance_max);
     } else {
       using odelia::util::to_passive;
       psi_soil_value_.resize(psi_soil.size());
       for (size_t a = 0; a < psi_soil.size(); ++a) {
         psi_soil_value_[a] = to_passive(psi_soil[a]);
       }
-      seat_leaf(to_passive(PPFD_int), psi_soil_value_,
+      seat_leaf(environment, to_passive(PPFD_int), psi_soil_value_,
                 to_passive(leaf_specific_conductance_max));
     }
     solve_leaf();
@@ -582,7 +564,171 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
                  "shading for a gradient.");
     }
   }
+  return PPFD_int_used;
+}
 
+// --- How much would more conducting area be worth? (#516) ------------------
+// d(profit)/d(kmax) at the operating point the leaf just found.
+//
+// ⚠️ THIS COSTS TWO FURTHER LEAF SOLVES, and there is no way around it. The
+// obvious shortcut is the envelope theorem: profit is already optimised, so
+// re-evaluate at the collar potential already found and the indirect term
+// vanishes. THAT ARGUMENT IS WRONG HERE. It holds for opt_psi_leaf_, which
+// really is chosen to maximise profit. It does NOT hold for opt_root_psi_,
+// which is found by a ROOT FIND -- the collar potential at which the soil-root
+// network's supply matches the leaf's demand. A constraint, not an optimum, so
+// d(profit)/d(collar) is not zero and dropping the indirect term drops a real
+// quantity. Measured: holding the collar fixed under-reports d(profit)/d(kmax)
+// by 15-19 per cent, which put the controller's zero at 1.22x the pipe-model
+// ratio where growth actually peaks at 1.28x. Re-solving matches a finite
+// difference of the model's own assimilation to 0.09 per cent.
+//
+// THE STEP IS MEASURED, NOT ASSUMED. profit comes through a solve with its own
+// internal tolerances, so its effective precision is far short of machine
+// epsilon. 1e-3 relative sits clear of that noise floor while staying deep in
+// the linear regime; sweeping it 1e-6 to 1e-3 moved the result by 0.3 per
+// cent, so the step is not what limits accuracy here.
+//
+// Placed after record_leaf_outputs, which reads the leaf at the operating point
+// the profit came from; the third solve then puts it back there for the aux
+// reads in compute_rates. The difference is taken in double and carries no
+// rows, so a gradient through it would be missing the controller's own
+// sensitivity: refused rather than returned. Skipped entirely at a_sw = 0, the
+// default, so the hot path is untouched unless sapwood acclimation is on.
+// (prepare_strategy refuses a_sw > 0 under deep-crown, whose profit is a crown
+// integral rather than one radiation's.)
+template <typename S>
+void TF24_Strategy<S>::measure_dprofit_dkmax(
+    const TF24_Environment<S>& environment, const S& PPFD_int_used,
+    const std::vector<S>& psi_soil, const S& leaf_specific_conductance_max) {
+  dprofit_dkmax_ = 0.0;
+  if (odelia::util::to_passive(pars.a_sw) > 0.0) {
+    using odelia::util::to_passive;
+    if constexpr (!std::is_same_v<S, double>) {
+      refuse("sapwood acclimation (a_sw > 0) is not differentiable: its "
+             "sensitivity is a finite difference through the leaf, which "
+             "carries no rows");
+    }
+    const double kmax = to_passive(leaf_specific_conductance_max);
+    const double profit_base = leaf.carbon();
+    const double dk = 1e-3 * kmax;
+    psi_soil_value_.resize(psi_soil.size());
+    for (size_t a = 0; a < psi_soil.size(); ++a) {
+      psi_soil_value_[a] = to_passive(psi_soil[a]);
+    }
+    auto solve_at = [&](double conductance) {
+      seat_leaf(environment, to_passive(PPFD_int_used), psi_soil_value_, conductance);
+      solve_leaf();
+    };
+    solve_at(kmax + dk);
+    dprofit_dkmax_ = (leaf.carbon() - profit_base) / dk;
+    // Put the leaf back where it was. Every aux compute_rates writes reads the
+    // leaf's members, and a leaf left at the perturbed conductance would report
+    // a plant that does not exist.
+    solve_at(kmax);
+  }
+}
+
+// --- Is the marginal leaf paying for itself? (#516) ------------------------
+// The gate reads this rather than the reserve pool, following Manzoni et al.
+// 2015: maximising a season's carbon gain over leaf area gives dG/dL = 0, i.e.
+// shed once a leaf stops covering its own upkeep. That criterion fires while
+// the plant is still carbon-rich -- waiting for reserves to run down IS the
+// evergreen strategy in that paper, and it is the one that loses a long
+// drought. Robinson's mulga agree from the field: 85 per cent of trees shed,
+// the healthiest included, and shedders are indistinguishable from survivors
+// until a year in.
+//
+// ⚠️ ONLY COSTS THAT SCALE WITH LEAF AREA BELONG HERE, because only those are
+// what a marginal leaf brings with it: its own upkeep, its fine root and its
+// bark (both pinned to leaf area). Sapwood is excluded deliberately -- it is
+// carried whether or not this leaf exists, so charging it here would make the
+// marginal leaf look unprofitable for a cost it is not responsible for, and
+// would make a tall plant shed for being tall.
+template <typename S>
+void TF24_Strategy<S>::update_marginal_leaf_return(const S& assimilation_,
+                                                   const S& mass_leaf_,
+                                                   const S& mass_bark_,
+                                                   const S& mass_root_) {
+  const S scaling_respiration_ =
+    respiration_leaf(mass_leaf_) + respiration_bark(mass_bark_) +
+    respiration_root(mass_root_);
+  const S scaling_turnover_ =
+    turnover_leaf(mass_leaf_) + turnover_bark(mass_bark_) +
+    turnover_root(mass_root_);
+  const S scaling_cost_ =
+    pars.a_bio * pars.a_y * scaling_respiration_ + scaling_turnover_;
+  const S scaling_gain_ = pars.a_bio * pars.a_y * assimilation_;
+  // Dimensionless, and zero exactly at Manzoni's break-even, so the gate's
+  // centre is a pure number whose default of 0 IS that optimum.
+  marginal_leaf_return_ = scaling_cost_ > 0.0
+    ? S((scaling_gain_ - scaling_cost_) / scaling_cost_)
+    : S(0.0);
+}
+
+// One shot calculation of net_mass_production_dt
+// Used by establishment_probability() and compute_rates().
+template <typename S>
+S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environment,
+                                const S& height, const S& area_leaf_,
+                                const S& height_inverse,
+                                const S& sapwood_departure,
+                                const S& leaf_departure,
+                                const S& tracked_marginal) {
+  // height_inverse (= 1/height) is supplied by the shared individual.h interface
+  // (cached aux); unused here as the TF24 root-water path works in height directly.
+  (void)height_inverse;
+  const S mass_leaf_    = mass_leaf(area_leaf_);
+  const S area_sapwood_ = area_sapwood(area_leaf_, sapwood_departure);
+  const S mass_sapwood_ = mass_sapwood(area_sapwood_, height);
+  const S area_bark_    = area_bark(area_leaf_);
+  const S mass_bark_    = mass_bark(area_bark_, height);
+  const S mass_root_    = mass_root(area_leaf_);
+
+  // psi_soil (-MPa): the patch column's, computed once per soil state and cached
+  // in the environment -- or, in TF24w, this cohort's own column (#681).
+  const std::vector<S>& psi_soil = soil_water_potential_for_leaf(environment);
+
+  const S leaf_specific_conductance_max =
+    stem_conductance_max(height, sapwood_departure);
+  build_root_network(environment, height);
+
+  // Reuse geometry precomputed by environment; avoids rebuilding z midpoints each call.
+  leaf.roots_.z_soil_mid_ = environment.get_soil_mid_depths();
+  leaf.roots_.use_precomputed_z_soil_mid_ = true;
+
+  // Per-timestep above-canopy wind, read only on the energy-balance path.
+  leaf.wind_speed_ = environment.get_wind_speed();
+
+  // The light chain, from the driver to the leaf. Each stage is named for what
+  // it is, because the stages differ by factors of 0.5 and a value handed over
+  // at the wrong stage is a plausible number:
+  //
+  //   SWdown      incoming shortwave, surface, horizontal, above canopy  W m^-2
+  //   PPFD_above  = umol_par_per_joule * f_PAR * SWdown                  umol m^-2 s^-1
+  //   PPFD_int    = k_I * openness(z) * PPFD_above                       umol m^-2 s^-1
+  //               intercepted per unit leaf area: k_I is the extinction
+  //               coefficient, which carries the leaf-angle projection
+  //   NIR_int     = k_I * openness(z) * (1 - f_PAR) * SWdown             W m^-2
+  //
+  // The leaf takes the two INTERCEPTED bands and applies its own absorptances
+  // (alpha_PAR, alpha_NIR); nothing upstream of it absorbs anything. Both bands
+  // see the same openness and k_I, so NIR_int is a fixed multiple of PPFD_int
+  // and is formed from it at the leaf rather than integrated over the crown a
+  // second time.
+  const double f_PAR = environment.f_PAR;
+  if (!(f_PAR > 0.0 && f_PAR <= 1.0)) {
+    util::stop("TF24: the environment's f_PAR must lie in (0, 1]; got " +
+               util::to_string(f_PAR));
+  }
+  const double PPFD_above =
+    phylloptim::umol_par_per_joule * f_PAR * environment.get_SWdown();
+  const double NIR_per_PPFD_int =
+    (1.0 - f_PAR) / (phylloptim::umol_par_per_joule * f_PAR);
+
+  const S PPFD_int_used = solve_leaf_over_crown(
+      environment, height, psi_soil, leaf_specific_conductance_max, PPFD_above,
+      NIR_per_PPFD_int);
 
   //TODO: one point constant ratio and integral width for daylength
   // convert assimilation per leaf area per second (umol m^-2 s^-1) to canopy-level total yearly assimilation (mol yr^-1)
@@ -610,62 +756,8 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
     profit_ = leaf_carbon_;
   }
 
-  // --- How much would more conducting area be worth? (#516) ------------------
-  // d(profit)/d(kmax) at the operating point the leaf just found.
-  //
-  // ⚠️ THIS COSTS TWO FURTHER LEAF SOLVES, and there is no way around it. The
-  // obvious shortcut is the envelope theorem: profit is already optimised, so
-  // re-evaluate at the collar potential already found and the indirect term
-  // vanishes. THAT ARGUMENT IS WRONG HERE. It holds for opt_psi_leaf_, which
-  // really is chosen to maximise profit. It does NOT hold for opt_root_psi_,
-  // which is found by a ROOT FIND -- the collar potential at which the soil-root
-  // network's supply matches the leaf's demand. A constraint, not an optimum, so
-  // d(profit)/d(collar) is not zero and dropping the indirect term drops a real
-  // quantity. Measured: holding the collar fixed under-reports d(profit)/d(kmax)
-  // by 15-19 per cent, which put the controller's zero at 1.22x the pipe-model
-  // ratio where growth actually peaks at 1.28x. Re-solving matches a finite
-  // difference of the model's own assimilation to 0.09 per cent.
-  //
-  // THE STEP IS MEASURED, NOT ASSUMED. profit comes through a solve with its own
-  // internal tolerances, so its effective precision is far short of machine
-  // epsilon. 1e-3 relative sits clear of that noise floor while staying deep in
-  // the linear regime; sweeping it 1e-6 to 1e-3 moved the result by 0.3 per
-  // cent, so the step is not what limits accuracy here.
-  //
-  // Placed after record_leaf_outputs, which reads the leaf at the operating point
-  // the profit came from; the third solve then puts it back there for the aux
-  // reads in compute_rates. The difference is taken in double and carries no
-  // rows, so a gradient through it would be missing the controller's own
-  // sensitivity: refused rather than returned. Skipped entirely at a_sw = 0, the
-  // default, so the hot path is untouched unless sapwood acclimation is on.
-  // (prepare_strategy refuses a_sw > 0 under deep-crown, whose profit is a crown
-  // integral rather than one radiation's.)
-  dprofit_dkmax_ = 0.0;
-  if (odelia::util::to_passive(pars.a_sw) > 0.0) {
-    using odelia::util::to_passive;
-    if constexpr (!std::is_same_v<S, double>) {
-      refuse("sapwood acclimation (a_sw > 0) is not differentiable: its "
-             "sensitivity is a finite difference through the leaf, which "
-             "carries no rows");
-    }
-    const double kmax = to_passive(leaf_specific_conductance_max);
-    const double profit_base = leaf.carbon();
-    const double dk = 1e-3 * kmax;
-    psi_soil_value_.resize(psi_soil.size());
-    for (size_t a = 0; a < psi_soil.size(); ++a) {
-      psi_soil_value_[a] = to_passive(psi_soil[a]);
-    }
-    auto solve_at = [&](double conductance) {
-      seat_leaf(to_passive(PPFD_int_used), psi_soil_value_, conductance);
-      solve_leaf();
-    };
-    solve_at(kmax + dk);
-    dprofit_dkmax_ = (leaf.carbon() - profit_base) / dk;
-    // Put the leaf back where it was. Every aux compute_rates writes reads the
-    // leaf's members, and a leaf left at the perturbed conductance would report
-    // a plant that does not exist.
-    solve_at(kmax);
-  }
+  measure_dprofit_dkmax(environment, PPFD_int_used, psi_soil,
+                        leaf_specific_conductance_max);
 
   const S assimilation_ = profit_ * area_leaf_* 60*60*12*365/1e6;
   // const double assimilation_ = assimilation(environment, height, area_leaf_);
@@ -673,37 +765,8 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
   const S respiration_ =
     respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_,
                 mass_coarse_root_);
-
-  // --- Is the marginal leaf paying for itself? (#516) ------------------------
-  // The gate reads this rather than the reserve pool, following Manzoni et al.
-  // 2015: maximising a season's carbon gain over leaf area gives dG/dL = 0, i.e.
-  // shed once a leaf stops covering its own upkeep. That criterion fires while
-  // the plant is still carbon-rich -- waiting for reserves to run down IS the
-  // evergreen strategy in that paper, and it is the one that loses a long
-  // drought. Robinson's mulga agree from the field: 85 per cent of trees shed,
-  // the healthiest included, and shedders are indistinguishable from survivors
-  // until a year in.
-  //
-  // ⚠️ ONLY COSTS THAT SCALE WITH LEAF AREA BELONG HERE, because only those are
-  // what a marginal leaf brings with it: its own upkeep, its fine root and its
-  // bark (both pinned to leaf area). Sapwood is excluded deliberately -- it is
-  // carried whether or not this leaf exists, so charging it here would make the
-  // marginal leaf look unprofitable for a cost it is not responsible for, and
-  // would make a tall plant shed for being tall.
-  const S scaling_respiration_ =
-    respiration_leaf(mass_leaf_) + respiration_bark(mass_bark_) +
-    respiration_root(mass_root_);
-  const S scaling_turnover_ =
-    turnover_leaf(mass_leaf_) + turnover_bark(mass_bark_) +
-    turnover_root(mass_root_);
-  const S scaling_cost_ =
-    pars.a_bio * pars.a_y * scaling_respiration_ + scaling_turnover_;
-  const S scaling_gain_ = pars.a_bio * pars.a_y * assimilation_;
-  // Dimensionless, and zero exactly at Manzoni's break-even, so the gate's
-  // centre is a pure number whose default of 0 IS that optimum.
-  marginal_leaf_return_ = scaling_cost_ > 0.0
-    ? S((scaling_gain_ - scaling_cost_) / scaling_cost_)
-    : S(0.0);
+  update_marginal_leaf_return(assimilation_, mass_leaf_, mass_bark_,
+                              mass_root_);
 
   // The gate reads the TRACKED marginal return, not the instantaneous one just
   // computed: assimilation swings with the weather, and a plant that shed on
