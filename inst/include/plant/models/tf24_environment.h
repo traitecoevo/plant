@@ -21,7 +21,7 @@ namespace plant {
 // potential derived from that state, so holding it at a value severs every
 // route from a trait to the soil and back.
 template <typename S = double>
-class TF24_Environment : public Environment {
+class TF24_Environment final : public Environment {
 public:
   using value_type = S;
 
