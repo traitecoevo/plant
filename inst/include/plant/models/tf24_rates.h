@@ -10,11 +10,12 @@
 namespace plant {
 
 // ⚠️ DO NOT HOIST the per-second -> annual factor 60*60*12*365 (seconds of
-// daylight per year, 12 h day x 365 d) to a constant. It recurs in
-// compute_rates below and in net_mass_production_dt (tf24_leaf.h); collapsing
-// the 4-step integer product into one double changes the floating-point
-// rounding, and the adaptive ODE amplifies it (offspring_production shifts
-// ~0.2%).
+// daylight per year, 12 h day x 365 d) into one constant. It recurs in
+// compute_rates below and in net_mass_production_dt (tf24_leaf.h), each time
+// after a double, so C++'s left-to-right evaluation makes it four rounded
+// double multiplications rather than one integer; a single constant rounds
+// differently, and the adaptive ODE amplifies that (offspring_production
+// shifts ~0.2%).
 
 // one-shot update of the scm variables
 // i.e. setting rates of ode vars from the state and updating aux vars
