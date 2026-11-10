@@ -7,7 +7,7 @@ damage), under representative Australian heatwave leaf temperatures — and does
 do so in the predicted place? Companion to `implementation-plan.md` (Phases 1–5
 built the layer; this is the "keep only if material" measurement).
 
-Produced by `Rscript notes/atls/gate_atls_vs_pm.R notes/atls/gate_atls_vs_pm` (writes `gate_atls_vs_pm.rds` + `_A.csv`/`_B.csv`) on the July branch `feature/tf24-atls-thermal-damage`. The script is kept as the record of the method, but it calls plant's own `Leaf`, which #591 moved into phylloptim, so it does not run on current code.
+Produced by `Rscript notes/atls/gate_atls_vs_pm.R notes/atls/gate_atls_vs_pm` (writes `gate_atls_vs_pm.rds` + `_A.csv`/`_B.csv`) at `9409f8f2` on the July branch `feature/tf24-atls-thermal-damage`, the N-switch revision of TF24t. The script is kept as the record of the method. It uses the pre-#591 `Leaf` and TF24t APIs, so it does not run on current code.
 
 ## Method
 

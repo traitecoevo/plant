@@ -1,6 +1,8 @@
-## Record of the July 2026 code, kept for its method. It ran on
-## feature/tf24-atls-thermal-damage (tip bee0a02a) against plant's own Leaf,
-## which #591 moved into phylloptim, so it does not run on current code.
+## Record of the July 2026 code, kept for its method. This is the version that
+## produced gate_atls_vs_pm_{A,B}.csv, at 9409f8f2 on
+## feature/tf24-atls-thermal-damage (the N-switch revision of TF24t). Later
+## commits on that branch removed fields it reads, and it uses the pre-#591
+## Leaf and TF24t APIs, so it does not run on current code.
 ##
 ## ATLS verification gate (#566, mirrors the #523 Step-5 factorial): does the
 ## Lumry-Eyring leaf thermal-damage feedback materially change carbon gain vs
@@ -106,7 +108,7 @@ zero_costs <- function(st) {
 }
 net_at <- function(type, Tmid, damage_only = FALSE) {
   env <- Environment(type)
-  env$extrinsic_drivers_set_constant("air_temp", Tmid)
+  env$extrinsic_drivers_set_constant("leaf_temp", Tmid)
   if (type == "TF24") {
     st <- TF24_Strategy(); st$pars$use_energy_balance <- 1
     ind <- TF24_Individual(st)
