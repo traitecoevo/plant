@@ -96,15 +96,9 @@ public:
   // that uptake to the pool, and give it no share.
   template <class F> void for_each_water_column(F&& f) {
     using odelia::util::to_passive;
-    const bool birth_date = density_in_birth_date();
     const size_t m = nodes.size();
     if (m > 0) {
-      std::vector<double> x;
-      x.reserve(m + 1);
-      for (auto& c : nodes) {
-        x.push_back(abscissa_of(c, birth_date));
-      }
-      x.push_back(abscissa_of(new_node, birth_date));
+      const std::vector<double> x = closed_quadrature_abscissae();
       for (size_t k = 0; k < m; ++k) {
         const double left = k > 0 ? x[k] - x[k - 1] : 0.0;
         const double right = x[k + 1] - x[k];
@@ -560,6 +554,19 @@ private:
     for (auto& c : nodes) {
       ret.push_back(abscissa_of(c, birth_date));
     }
+    return ret;
+  }
+  // The same positions closed by the boundary node, which is the newest and
+  // the shortest and so ends the grid on either coordinate: the grid every
+  // integral over the size distribution runs on.
+  std::vector<double> closed_quadrature_abscissae() const {
+    std::vector<double> ret;
+    ret.reserve(size() + 1);
+    const bool birth_date = density_in_birth_date();
+    for (auto& c : nodes) {
+      ret.push_back(abscissa_of(c, birth_date));
+    }
+    ret.push_back(abscissa_of(new_node, birth_date));
     return ret;
   }
 
@@ -1244,15 +1251,12 @@ Species<T,E>::consumption_rate(int i) const {
   // tallest first in height, and the closing node is both the newest and the
   // shortest, so it ends the grid either way.
   const bool birth_date = density_in_birth_date();
-  std::vector<double> x;
+  std::vector<double> x = closed_quadrature_abscissae();
   std::vector<value_type> rates;
-  x.reserve(size() + 1);
   rates.reserve(size() + 1);
   for (auto& c : nodes) {
-    x.push_back(abscissa_of(c, birth_date));
     rates.push_back(c.consumption_rate(i));
   }
-  x.push_back(abscissa_of(new_node, birth_date));
   rates.push_back(new_node.consumption_rate(i));
 
   // Birth dates are strictly increasing by construction, so only the height
@@ -1299,15 +1303,12 @@ Species<T,E>::census_integral(const census_metric<T>& metric) const {
                " crossed grid neighbouring trapezia cancel instead of"
                " accumulating");
   }
-  std::vector<double> x;
+  const std::vector<double> x = closed_quadrature_abscissae();
   std::vector<value_type> weighted;
-  x.reserve(size() + 1);
   weighted.reserve(size() + 1);
   for (auto& c : nodes) {
-    x.push_back(abscissa_of(c, birth_date));
     weighted.push_back(c.get_density() * c.individual.census_value(metric));
   }
-  x.push_back(abscissa_of(new_node, birth_date));
   weighted.push_back(new_node.get_density() *
                      new_node.individual.census_value(metric));
   value_type ret = util::trapezium(x, weighted);

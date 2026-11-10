@@ -1953,6 +1953,17 @@ EventRecord Patch<T,E>::apply_event(const NodeScheduleEvent& event) {
       targets.push_back(i);
     }
   }
+  // Scale the targets' node densities by select(size), summing what
+  // scale_node_densities reports: {nodes affected, density removed}.
+  auto scale_targets = [&](auto select) {
+    std::pair<size_t, double> total{0, 0.0};
+    for (size_t i : targets) {
+      const auto r = scale_node_densities(i, select);
+      total.first += r.first;
+      total.second += r.second;
+    }
+    return total;
+  };
 
   switch (event.type) {
   case EventType::NodeIntroduction:
@@ -2030,16 +2041,10 @@ EventRecord Patch<T,E>::apply_event(const NodeScheduleEvent& event) {
       util::stop("Harvest fraction must be in [0, 1)");
     }
     const double phi = 1.0 - fraction;
-    size_t n_affected = 0;
-    double removed = 0.0;
-    for (size_t i : targets) {
-      const auto r = scale_node_densities(i, [&](double size) {
-        return (size >= size_min && size <= size_max) ? phi : 1.0;
-      });
-      n_affected += r.first;
-      removed += r.second;
-    }
-    rec.applied = {fraction, static_cast<double>(n_affected), removed};
+    const auto r = scale_targets([&](double size) {
+      return (size >= size_min && size <= size_max) ? phi : 1.0;
+    });
+    rec.applied = {fraction, static_cast<double>(r.first), r.second};
     break;
   }
 
@@ -2082,14 +2087,8 @@ EventRecord Patch<T,E>::apply_event(const NodeScheduleEvent& event) {
     }
 
     const double phi = std::exp(-damage);
-    size_t n_affected = 0;
-    double removed = 0.0;
-    for (size_t i : targets) {
-      const auto r = scale_node_densities(i, [&](double) { return phi; });
-      n_affected += r.first;
-      removed += r.second;
-    }
-    rec.applied = {1.0 - phi, static_cast<double>(n_affected), removed};
+    const auto r = scale_targets([&](double) { return phi; });
+    rec.applied = {1.0 - phi, static_cast<double>(r.first), r.second};
     break;
   }
   }
