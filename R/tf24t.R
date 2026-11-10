@@ -18,15 +18,7 @@ TF24t_Individual <- function(s=TF24t_Strategy()) {
 
 ##' @title Set up a TF24t system with default or specified parameters
 ##' @description Set up a model system with default or specified parameters.
-##' @param ... Arguments to be passed to the model constructor. These include
-##'
-##'   *`patch_area`: Area of an individual patch. Only relevant for the stochastic model. Default is 1.0m2.
-##'   *`max_patch_lifetime`: The maximum time in years we want to simulate
-##'   *`strategies`: A list of strategies to simulate. The default is an empty list.
-##'   *`strategy_default`: Values for the default strategy. The default values are those specified in the C++ code for the model.
-##'   *`node_schedule_times_default`: Default vector of times at which to introduce nodes. The default is chosen to have close spacing at the start of the simulation.
-##'   *`node_schedule_times`: A list with each element containing the vector of times we want to introduce nodes for each strategy. The default is an empty list.
-##'   *`ode_times`: A vector of patch ages we want the ode solver to stop at
+##' @inheritParams FF16_Parameters
 ##' @export
 ##' @rdname TF24t_Parameters
 ##' @examples
@@ -40,20 +32,5 @@ TF24t_Parameters <- function(...) {
 #' @importFrom rlang .data
 #' @rdname expand_state
 TF24t_expand_state <- function(results) {
-  data <- split(results$species, results$species$species)
-
-  for (i in seq_len(results$n_spp)) {
-    s <- results$p$strategies[[i]]
-    d <- data[[i]]
-    # Derived size/mass columns are computed by the strategy's own C++
-    # allometry functions (see src/strategy_expand.cpp) rather than being
-    # re-derived here, so the formulas live in exactly one place.
-    allom <- TF24t_strategy_expand_allometry(s, d$height, d$area_heartwood,
-                                            d$mass_heartwood)
-    data[[i]] <- dplyr::bind_cols(d, allom)
-  }
-
-  results$species <- data %>% dplyr::bind_rows()
-
-  results
+  expand_state_by_allometry(results, TF24t_strategy_expand_allometry)
 }

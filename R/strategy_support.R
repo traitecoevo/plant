@@ -95,25 +95,37 @@ expand_state <- function(results) {
 }
 
 node_schedule_default <- function(p) {
-  cl <- class(p)[[1]]
-  switch(cl,
-         "Parameters<FF16,FF16_Env>"=`node_schedule_default__Parameters___FF16__FF16_Env`,
-         "Parameters<TF24,TF24_Env>"=`node_schedule_default__Parameters___TF24__TF24_Env`,
-         "Parameters<TF24f,TF24_Env>"=`node_schedule_default__Parameters___TF24f__TF24_Env`,
-         "Parameters<TF24t,TF24_Env>"=`node_schedule_default__Parameters___TF24t__TF24_Env`,
-         "Parameters<TF24w,TF24_Env>"=`node_schedule_default__Parameters___TF24w__TF24_Env`,
-         "Parameters<K93,K93_Env>"=`node_schedule_default__Parameters___K93__K93_Env`,
-         stop("Unknown type: ", cl))(p)
+  parameters_export(p, "node_schedule_default")(p)
 }
 
 make_node_schedule <- function(p) {
-  cl <- class(p)[[1]]
-  switch(cl,
-         "Parameters<FF16,FF16_Env>"=`make_node_schedule__Parameters___FF16__FF16_Env`,
-         "Parameters<TF24,TF24_Env>"=`make_node_schedule__Parameters___TF24__TF24_Env`,
-         "Parameters<TF24f,TF24_Env>"=`make_node_schedule__Parameters___TF24f__TF24_Env`,
-         "Parameters<TF24t,TF24_Env>"=`make_node_schedule__Parameters___TF24t__TF24_Env`,
-         "Parameters<TF24w,TF24_Env>"=`make_node_schedule__Parameters___TF24w__TF24_Env`,
-         "Parameters<K93,K93_Env>"=`make_node_schedule__Parameters___K93__K93_Env`,
-                  stop("Unknown type: ", cl))(p)
+  parameters_export(p, "make_node_schedule")(p)
+}
+
+# The C++ helpers exported once per <Strategy, Environment> pair, from
+# src/<model>_node.cpp, are named for the pair; this finds the one for `p`.
+parameters_export <- function(p, prefix) {
+  types <- extract_RcppR6_template_types(p, "Parameters")
+  name <- sprintf("%s__Parameters___%s__%s", prefix, types[[1]], types[[2]])
+  f <- get0(name, envir = asNamespace("plant"), mode = "function",
+            inherits = FALSE)
+  if (is.null(f)) {
+    stop("Unknown type: ", class(p)[[1]])
+  }
+  f
+}
+
+# Each model's expand_state: the derived size and mass columns, computed by the
+# strategy's own C++ allometry (src/strategy_expand.cpp) so the formulas live in
+# one place, bound onto each species' rows.
+expand_state_by_allometry <- function(results, allometry) {
+  data <- split(results$species, results$species$species)
+  for (i in seq_len(results$n_spp)) {
+    d <- data[[i]]
+    allom <- allometry(results$p$strategies[[i]], d$height, d$area_heartwood,
+                       d$mass_heartwood)
+    data[[i]] <- dplyr::bind_cols(d, allom)
+  }
+  results$species <- dplyr::bind_rows(data)
+  results
 }
