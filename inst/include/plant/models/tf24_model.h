@@ -822,7 +822,7 @@ public:
   // and crown-centre; PPA is not available for TF24.
   ShadingModel shading_model_ = ShadingModel::MeanLight;
 
-  // Biological (user-settable) parameters; see TF24_Pars above.
+  // Biological (user-settable) parameters; TF24_Pars is in tf24_pars.h.
   TF24_Pars<S> pars;
 
   // The exponent of the stem path integral, beta = 2*D_c + theta_c. The factor 2

@@ -655,8 +655,9 @@ will see in the code:
 - Small, hot strategy helpers are **defined inline in the header**, not in the
   `.cpp`: `area_leaf`, `update_dependent_aux`, the `compute_competition`
   overloads, and `compute_competition_by_ratio` live in
-  [ff16_strategy.h](inst/include/plant/models/ff16_strategy.h) /
-  [tf24_model.h](inst/include/plant/models/tf24_model.h); `util::is_finite`
+  [ff16_strategy.h](inst/include/plant/models/ff16_strategy.h) and, for TF24,
+  in [tf24_model.h](inst/include/plant/models/tf24_model.h) and the headers it
+  includes (`tf24_allometry.h`, `tf24_rates.h`); `util::is_finite`
   and the `Interpolator` accessors are inline in their headers. Moving them back
   into a `.cpp` re-introduces a cross-TU call and measurably slows the loop.
 - The cleanest fix for the remaining large cross-TU calls (`assimilation`,

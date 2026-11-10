@@ -1,6 +1,7 @@
 // -*-c++-*-
 // TF24_Strategy's allometry: the sizes and masses a plant of a given height
-// and leaf area has, their derivatives, and its seed and crown shape.
+// and leaf area has, their derivatives, its seed, and how its roots are
+// spread over soil depth.
 // The class is declared in tf24_model.h, which includes this file.
 #ifndef PLANT_PLANT_TF24_ALLOMETRY_H_
 #define PLANT_PLANT_TF24_ALLOMETRY_H_
