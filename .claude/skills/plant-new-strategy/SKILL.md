@@ -65,7 +65,7 @@ Every file below names each model by hand. Search each one for the parent's name
 | `src/strategy_expand.cpp` | `<Name>_strategy_expand_allometry`. |
 | `src/strategy_version.cpp` | The model's arm in `strategy_scientific_version()`, which R's `model_version()` reads. |
 | `R/<name>.R` | `<Name>_Individual()`, `<Name>_Parameters()` and `<Name>_expand_state()` (copy `R/tf24t.R`). |
-| `R/strategy_support.R` | Every `switch()` that has an arm per model: `environment_type()`, `Environment()`, `expand_state`, `node_schedule_default`, `make_node_schedule`. |
+| `R/strategy_support.R` | Every `switch()` that has an arm per model: `environment_type()`, `Environment()`, `expand_state`. The node-schedule helpers need no arm: they are found by the names `src/<name>_node.cpp` exports. |
 | `R/default_parameters.R` | The `default_hyperpar()` arm, and for an own strategy its entry in the `attr(f, "traits")` switch below it, whose fallback lists TF24's traits. A TF24 subclass shares `frozen_TF24_hyperpar`. A new trade-off function belongs in the fieldtrial package, with only a frozen testing copy here. |
 | `R/stand_gradient.R` | The census arm: declare one, or refuse the model with a message saying why. |
 | `tests/testthat/test-model-version.R` | The model in `models`, a test of its compound version, and any top-level scientific fields in `top_level_science`; then accept the new snapshot in `_snaps/model-version.md`. |
