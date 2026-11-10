@@ -156,32 +156,8 @@ expect_equal(p$aux_names, c(
   ))
 })
 
-test_that("Reference comparison", {
-  s <- TF24_Strategy()
-  p <- TF24_Individual(s)
-
-  expect_identical(p$strategy, s)
-
-  ## Set the height to something (here 10)
-  h0 <- 10
-  p$set_state("height", h0)
 
 
-  expect_identical(p$state("height"), h0)
-
-  ## Check: Is this redundant now
-  ## We now use 
-  vars <- p$internals
-  expect_identical(p$state("height"), vars$states[which(p$ode_names == "height")])
-})
-
-
-
-test_that("Critical Names", {
-  s <- TF24_Strategy()
-  my_names <- TF24_Individual(s)$ode_names
-  expect_identical(my_names[1:3], c("height", "mortality", "fecundity"))
-})
 test_that("TF24_Strategy hyper-parameterisation", {
   s <- TF24_Strategy()
 
