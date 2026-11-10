@@ -122,13 +122,7 @@ Every Strategy carries a `Control` and an `ExtrinsicDrivers` object.
 
 `plant` solves the same model two ways:
 
-1. **Deterministic — SCM (Solver via method of Characteristics).**
-   Cohorts (`Node`s) are introduced on a schedule and integrated as
-   characteristic curves of the size-density PDE. Entry point:
-   `SCM<T,E>` in C++, [run_scm()](R/scm_support.R) in R. Tidied-output
-   collection and adaptive schedule refinement are now *options* on `run_scm()`
-   (`collect = TRUE`, `refine_schedule = TRUE`); the refinement loop itself
-   lives in `SCM::refine_schedule()` in C++ (see §3.1).
+1. **Deterministic — SCM (Solver via method of Characteristics).** Cohorts (`Node`s) are introduced on a schedule and integrated as characteristic curves of the size-density PDE. Entry point: `SCM<T,E>` in C++, [run_scm()](R/scm_support.R) in R. Tidied-output collection and adaptive schedule refinement are options on `run_scm()` (`collect = TRUE`, `refine_schedule = TRUE`); the refinement loop itself lives in `SCM::refine_schedule()` in C++ (see below).
 
 2. **Stochastic — finite-size population.**
    Individuals arrive and die as discrete events.
@@ -137,75 +131,19 @@ Every Strategy carries a `Control` and an `ExtrinsicDrivers` object.
 
 Both share the same `Strategy`, `Environment`, `Individual`, and `Parameters`.
 
-### 3.1 Schedule refinement moved into C++ — API change (2026-06)
+### Where the schedule and the control defaults live
 
-The deterministic solver previously split its work across R and C++: R drove the
-adaptive node-schedule refinement (`build_schedule()`, internal
-`run_scm_error()`) and a separate function returned tidied output
-(`run_scm_collect()`). **This all now lives in C++ on `SCM<T,E>`, and the R
-surface is a single `run_scm()`.** See
-[issue #408](https://github.com/traitecoevo/plant/issues/408) for background.
+Adaptive schedule refinement is `SCM::refine_schedule()` in C++: it flags nodes whose error exceeds `schedule_eps`, bisects the interval below each, repeats up to `schedule_nsteps` times, and writes the refined schedule and ODE times back into its `parameters`, so the `Parameters` object stays self-describing. `run_scm(p, env = NULL, ctrl = control(), refine_schedule = FALSE, collect = FALSE, keep_states = FALSE, events = NULL, run = TRUE)` is the one R entry point; it returns the `SCM` object, or with `collect = TRUE` the tidied results list, whose `p` element holds the possibly-refined parameters. With `collect_refinement_errors` set, `SCM::run()` accumulates each node's refinement error, read back as `refinement_error_by_node`; each `Node` records its introduction time and the patch density at its birth, so fitness and error calculations do not re-derive them after the run.
 
-Migration map for callers (other repos/scripts must be updated):
+The numeric defaults every run uses are set in one place, the C++ `Control()` constructor ([src/control.cpp](src/control.cpp)); `control_accurate()` tightens the ODE and schedule tolerances for a high-accuracy run.
 
-| Removed (R)             | Replacement                                                              |
-|-------------------------|-------------------------------------------------------------------------|
-| `build_schedule(p, …)`  | `run_scm(p, …, refine_schedule = TRUE)$parameters`                      |
-| `run_scm_collect(p, …)` | `run_scm(p, …, collect = TRUE)`                                          |
-| `run_scm_error(p, …)`   | run with `scm$collect_errors <- TRUE`, then read `scm$combined_node_errors` |
-| `split_times()`         | internal to `SCM::refine_schedule()` (no R equivalent)                  |
-
-`run_scm(p, env, ctrl, refine_schedule = FALSE, collect = FALSE, use_ode_times =
-FALSE)` returns the `SCM` object by default, or — when `collect = TRUE` — the
-tidied results list (whose `p` element holds the possibly-refined parameters).
-
-### 3.2 Control defaults folded into C++ — API change (2026-06)
-
-The pragmatic "fast-ish" numeric settings that essentially every plant run uses
-previously lived in two R helpers (`fast_control()`, `scm_base_control()`) that
-layered them on top of a tight-tolerance `Control()` constructor. Those values
-are **now the defaults in the C++ `Control()` constructor itself**
-([src/control.cpp](src/control.cpp)) — a single source of truth — and the two R
-helpers are **removed**. `Control()` (lowercase alias `control()`) is therefore
-the fast default; `control_accurate()` opts back into tight ODE/schedule
-tolerances for high-accuracy runs.
-
-Migration map for callers (other repos/scripts must be updated):
-
-| Removed (R)            | Replacement                                              |
-|------------------------|---------------------------------------------------------|
-| `fast_control()`       | `Control()` / `control()` (these defaults are now built in) |
-| `scm_base_control()`   | `Control()` / `control()`                                |
-| *(high-accuracy run)*  | `control_accurate()` (tightens `ode_tol_rel/abs`, `ode_step_size_max`, `schedule_eps`) |
-
-`scm_base_parameters()` is **unaffected** — it builds a `Parameters` object, not
-a `Control`.
-
-What moved into C++ (all on `Node`/`Species`/`SCM` in
-[node.h](inst/include/plant/node.h), [species.h](inst/include/plant/species.h),
-[scm.h](inst/include/plant/scm.h)):
-
-- `Node` records its `introduction_time` and patch-age density **at
-  introduction**, so fitness/error calcs no longer re-derive these from
-  `node_schedule` or the disturbance regime after the run.
-- `SCM::run()` accumulates the per-node refinement error when `collect_errors`
-  is set; the combined competition + reproduction error is exposed as
-  `combined_node_errors`.
-- `SCM::refine_schedule()` runs the adaptive loop (flag nodes whose error
-  exceeds `schedule_eps`, bisect the interval below each, repeat up to
-  `schedule_nsteps`) and writes the refined schedule + ode times back into its
-  `parameters` so the `Parameters` object stays self-describing.
-
-**Known downstream breakage:** `regnans` calls the removed functions in
-`R/community_plant.R` and `scripts/example/ESA.Rmd`; update per the table above.
-
-### 3.4 The TF24 leaf model lives in another repo
+### 3.1 The TF24 leaf model lives in another repo
 
 TF24's leaf gas-exchange and hydraulics sub-model is **not in this repository**. It
 is the standalone header-only [`phylloptim`](https://github.com/traitecoevo/phylloptim)
 package, reached through `LinkingTo` and a compatibility shim at
 [inst/include/plant/leaf_model.h](inst/include/plant/leaf_model.h) that aliases
-`plant::Leaf = phylloptim::Leaf`. `src/leaf_model.cpp` is gone. Consequences worth
+`plant::Leaf = phylloptim::Leaf`. Consequences worth
 knowing before you go looking for a leaf bug here:
 
 - **Fix leaf physiology in `phylloptim`, not here.** It has its own golden-file
@@ -215,15 +153,7 @@ knowing before you go looking for a leaf bug here:
   `Remotes:` (and an exact version in `LinkingTo`), so bumping that pin is what
   changes results here. Any coupled change
   lands as a pair of PRs, and the plant half is what re-baselines the SCM values.
-- **The leaf is purely intensive.** Every input is per unit leaf area or an
-  intensive driver — whole-plant allometry (`kmax(h)`, root carbon totals) is
-  reduced *here* and passed in already divided. Since phylloptim #33 that includes
-  the ROOT RESISTANCES: `set_physiology` takes a `RootNetwork`, and
-  `TF24_Strategy` runs `phylloptim::root_network_from_carbon` on
-  `root_carbon_per_leaf_area_` to build it. Passing a network built from absolute
-  carbon compiles fine, quietly weakens the root system by the leaf area, and
-  **the leaf can no longer detect it** — the division used to happen inside the
-  leaf and now happens here. See the NEWS entry.
+- **The leaf is purely intensive.** Every input is per unit leaf area or an intensive driver — whole-plant allometry (`kmax(h)`, root carbon totals) is reduced *here* and passed in already divided. That includes the ROOT RESISTANCES: `set_physiology` takes a `RootNetwork`, and `TF24_Strategy` runs `phylloptim::root_network_from_carbon` on `root_carbon_per_leaf_area_` to build it. Passing a network built from absolute carbon compiles fine, quietly weakens the root system by the leaf area, and **the leaf cannot detect it**: the division happens here, not in the leaf.
 - **Do not open-code the layer thickness, and do not switch it to the
   environment's `dz`.** `root_network_from_carbon` scales the vertical resistance
   by `dz[i]^2`, per layer since phylloptim 0.9.0. `TF24_Strategy` hands it
@@ -237,20 +167,14 @@ knowing before you go looking for a leaf bug here:
   a header-only dependency changing underneath a stale `.o` produces an error that
   names an untouched field accessor.
 
-### 3.3 When you change the R-facing interface — record it for downstream migration
+### 3.2 When you change the R-facing interface — record it for downstream migration
 
 Renaming, removing, or changing the meaning of anything a user calls (functions,
 arguments, argument order, `Control`/`Parameters` fields, R6 types) breaks
 downstream products (analysis repos, `regnans`, notebooks). Two
 obligations whenever you make such a change:
 
-1. **Record an `old -> new` mapping in [NEWS.md](NEWS.md)** under the development
-   version's **"Breaking changes"** subsection. Write it to be *machine-actionable*
-   — explicit `old(...)` -> `new(...)` lines, one per affected symbol, the way
-   §3.1/§3.2's tables and the existing NEWS entries are. This section is the
-   single source of truth for migration; agents.md narrates the *why*, NEWS
-   carries the *exactly what changed*. Pure-internal/perf changes go under
-   "Internals & performance" instead and need no migration line.
+1. **Record an `old -> new` mapping in [NEWS.md](NEWS.md)** under the development version's **"Breaking changes"** subsection. Write it to be *machine-actionable* — explicit `old(...)` -> `new(...)` lines, one per affected symbol, the way the existing NEWS entries are. This section is the single source of truth for migration; agents.md narrates the *why*, NEWS carries the *exactly what changed*. Pure-internal/perf changes go under "Internals & performance" instead and need no migration line.
 2. **Downstream migration is a skill, not a manual chase.** The
    **`plant-update-interface` skill** (`.claude/skills/plant-update-interface/`)
    reads NEWS's "Breaking changes" entries and applies them to a product repo
@@ -289,9 +213,7 @@ much as the prose. Rules:
   from a grep and will (correctly) escalate it for human review.
 - **Argument-order / signature changes** get their own bullet; advise callers to
   switch to named arguments.
-- For larger reorganisations, also add a narrative subsection here in §3 (as
-  §3.1/§3.2 do) and link it from the NEWS bullet — NEWS carries the *exact what*,
-  agents.md the *why*.
+- For a larger reorganisation, describe the design it leaves in the section of this guide that covers that code, and keep the migration itself in NEWS.
 
 ---
 
@@ -305,7 +227,7 @@ R files in [R/](R/) (ignore the two large generated files `RcppR6.R`,
 | [ff16.R](R/ff16.R), [k93.R](R/k93.R), [tf24.R](R/tf24.R), [tf24f.R](R/tf24f.R), [tf24t.R](R/tf24t.R), [tf24w.R](R/tf24w.R) | Per-model constructors (`FF16_Individual`, `FF16_Parameters`, …), expand_state, and FF16's stand report |
 | [default_parameters.R](R/default_parameters.R) | `default_parameters()` (plant's frozen *testing* trade-offs attached to a `Parameters`), `default_hyperpar()`, `param_hyperpar()`, the frozen FF16/TF24 trade-off makers, `parameter_table()` (#698). The recommended trade-offs and curated parameter sets live in `fieldtrial`, not here. |
 | [strategy_support.R](R/strategy_support.R) | **Dispatch tables** mapping a model name → its functions (`environment_type`, `Environment`, `expand_state`, `model_version`, node-schedule helpers). These are `switch()` statements that must list every model. |
-| [scm_support.R](R/scm_support.R) | `run_scm` (with `collect` / `refine_schedule` flags), `scm_base_parameters`, and the `Control` presets `control` (alias) / `control_accurate`. Fast settings are now C++ `Control()` defaults (§3.2); adaptive schedule refinement lives in C++ (`SCM::refine_schedule`, §3.1) — there is no longer an R `build_schedule.R` |
+| [scm_support.R](R/scm_support.R) | `run_scm` (with `collect` / `refine_schedule` flags), `scm_base_parameters`, and the `Control` presets `control` (alias) / `control_accurate`. The fast settings are the C++ `Control()` defaults and schedule refinement is `SCM::refine_schedule` (§3) |
 | [stochastic.R](R/stochastic.R) | Stochastic simulation driver |
 | [individual.R](R/individual.R) | `grow_individual_to_{size,height,time}`, `optimise_individual_rate_*`, compensation points |
 | [util_model.R](R/util_model.R) | `trait_matrix`, `generate_strategy`, `add_strategies`, `add_mutant` (and deprecated `strategy_list`/`expand_parameters`/`mutant_parameters` shims) |
@@ -355,14 +277,7 @@ rules:
 - `scm_base_parameters(model)` attaches **no** trade-offs: a trait is written
   straight to `pars`, and `generate_strategy()` says so once per session.
   `hyperpar = NULL` is the same identity, chosen explicitly.
-- `default_parameters(model)` attaches plant's **frozen testing trade-offs**
-  (`default_hyperpar(model)`, the old `make_FF16_hyperpar`/`make_TF24_hyperpar`
-  bodies moved verbatim into [default_parameters.R](R/default_parameters.R))
-  and warns that this is a testing set, not a recommended parameterisation.
-  Every test uses it through the `testing_parameters()` helper, which is why
-  the goldens did not move when the trade-offs left the model files. Changing
-  the frozen copy means re-blessing goldens; the *recommended*, living
-  trade-offs and the species/site parameter sets belong to `fieldtrial`.
+- `default_parameters(model)` attaches plant's **frozen testing trade-offs** (`default_hyperpar(model)`, defined in [default_parameters.R](R/default_parameters.R)) and warns that this is a testing set, not a recommended parameterisation. Every test uses it through the `testing_parameters()` helper, so the goldens rest on it: changing the frozen copy means re-blessing them. The *recommended* trade-offs and the species/site parameter sets belong to `fieldtrial`.
 - A trait matrix may also name a numeric top-level strategy field (TF24t's
   thermal parameters, TF24f's `k_acclim`); `parameter_table(model)` lists
   every reachable name by group (`trait`, `derived`, `parameter`, `strategy`,
@@ -457,52 +372,16 @@ doing unconditionally after any change to a `LinkingTo` dependency.
 
 ## 7. Adding a new model (strategy + environment)
 
-This is the most cross-cutting change in the package because every templated
-class and every R dispatch table must learn the new `<Strategy, Environment>`
-pair. **Use the scaffolder** rather than doing it by hand:
+This is the most cross-cutting change in the package: every templated binding and every R dispatch table names each `<Strategy, Environment>` pair by hand, and nothing generates the wiring. The **`plant-new-strategy` skill** (`.claude/skills/plant-new-strategy/`) lists every file a new model touches and the subclass recipe; the commit that added TF24t (`0b68e62f`) is a worked example of the wiring, from before trade-offs moved onto `Parameters` (#731), so ignore its hyperpar lines. Most new models are a subclass of an existing strategy, as TF24f, TF24t and TF24w are of TF24, and reuse its `_Pars` and environment.
 
-```r
-source("scripts/new_strategy_scaffolder.R")
-create_strategy_scaffold("MyModel", "FF16")   # copy FF16 as the template
+The shipped models:
 
-# variant that reuses an existing environment (issue #274):
-create_strategy_scaffold("FF16r", "FF16", environment = "FF16")
-```
-
-The scaffolder ([scripts/new_strategy_scaffolder.R](scripts/new_strategy_scaffolder.R)):
-
-- adds the new pair to the `templates:` blocks in `RcppR6_classes.yml`,
-- copies and renames the strategy (and, in own-environment mode, the
-  environment) header + source files,
-- extends the R dispatch `switch()` tables and `helper-plant.R` lists,
-- with `environment = "<model>"`, reuses an existing environment instead of
-  generating a new one (no `<name>_Environment` files/bindings/tests).
-
-After scaffolding, implement the biology: growth/mortality/reproduction in the
-new strategy, map `competition_effect` to the environment, wire rates into
-`compute_rates`, and update `state_names()`/`state_size()`. Then run
-`make rebuild` and add tests. The **`plant-new-strategy` skill**
-(`.claude/skills/plant-new-strategy/`) captures the full workflow, including a worked
-walkthrough implementing Kohyama 1993 as K93
-(`.claude/skills/plant-new-strategy/worked-example-k93.md`).
-
-The three shipped models:
-
-- **FF16** — the default model (Falster et al. 2011, 2016, 2018). The reference
-  implementation to copy from.
-- **K93** — Kohyama 1993, a simpler size-structured model.
-- **TF24** — newer model using the leaf-level [Leaf](inst/include/plant/leaf_model.h)
-  photosynthesis/hydraulics submodel (incl. the recently added Medlyn stomatal model).
-- **TF24w** — TF24 with a private root-zone soil column per cohort (#681;
-  [tf24w_strategy.h](inst/include/plant/models/tf24w_strategy.h)). A subclass
-  like TF24f, with five water states appended, because `state_size()` is static
-  and a parameter-dependent count is not feasible. Its coupling between cohorts
-  (mixing toward the patch mean, land transfer as crowns grow, die and overlap)
-  is two extra passes in `Patch::compute_rates` guarded by the
-  `HasPrivateWater<T>` concept, so no other model pays for them. Limits, each
-  refused where first seen: birth-date coordinate only, no gradient path, no
-  stochastic patch, at most five soil layers. The pooled limit (large
-  `water_mixing_rate`) reproduces TF24 to the mixing lag and is the validation.
+- **FF16**: the default model (Falster et al. 2011, 2016, 2018).
+- **K93**: Kohyama 1993, a simpler size-structured model, and the smallest complete model to read.
+- **TF24**: plant's hydraulic model, whose leaf gas exchange and hydraulics are phylloptim's (§3.1).
+- **TF24f**: TF24 with fast acclimation, as a subclass.
+- **TF24t**: TF24 with leaf thermal damage and acclimation, as a subclass with four appended states ([tf24t_strategy.h](inst/include/plant/models/tf24t_strategy.h)). Its thermal parameters sit at the top level of the strategy, beside `pars`.
+- **TF24w**: TF24 with a private root-zone soil column per cohort ([tf24w_strategy.h](inst/include/plant/models/tf24w_strategy.h)). A subclass with five water states appended, because `state_size()` is static and a parameter-dependent count is not feasible. Its coupling between cohorts (mixing toward the patch mean, land transfer as crowns grow, die and overlap) is two extra passes in `Patch::compute_rates` guarded by the `HasPrivateWater<T>` concept, so no other model pays for them. Limits, each refused where first seen: birth-date coordinate only, no gradient path, no stochastic patch, at most five soil layers. The pooled limit (large `water_mixing_rate`) reproduces TF24 to the mixing lag and is the validation.
 
 ### Scientific versioning — bump when the science changes
 
@@ -522,19 +401,17 @@ Rules:
   changes for identical inputs.
 - **Do NOT bump** for refactors, performance work, interface renames, or
   serialisation-format changes — the science is unchanged.
-- FF16/K93 are scientifically frozen and should rarely move; TF24/TF24f change
+- FF16/K93 are scientifically frozen and should rarely move; TF24 and its subclasses change
   often and will bump frequently. Read the current values with `model_id()` rather than trusting this line.
 - **TF24f is a compound version.** It is a fast *approximation* of TF24 that
   inherits TF24's equations/parameters, so its version is
-  `"<TF24 version>.<approximation revision>"` (`TF24f@v5.1`). The major
+  `"<TF24 version>.<approximation revision>"`. The major
   component auto-tracks `TF24_Strategy::scientific_version` (a TF24 change
   invalidates TF24f too — the safe direction); bump `approximation_revision`
   (in `tf24f_strategy.h`) only for changes specific to the fast approximation.
   `model_version()` therefore returns a **string** (`"1"`, `"2.1"`), not an
   integer.
-- **TF24w is a compound version the same way**, `"<TF24 version>.<private
-  water revision>"` (`TF24w@v11.1`); bump `private_water_revision` (in
-  `tf24w_strategy.h`) for changes to the private-water model itself.
+- **TF24t and TF24w are compound versions the same way**: `"<TF24 version>.<thermal revision>"`, bumped through `thermal_revision` in `tf24t_strategy.h` for a change to the thermal-damage layer, and `"<TF24 version>.<private water revision>"`, bumped through `private_water_revision` in `tf24w_strategy.h` for a change to the private-water model.
 - A bump is deliberate: it invalidates that model's `logpile` cache and forces
   reruns. The drift-guard test [tests/testthat/test-model-version.R](tests/testthat/test-model-version.R)
   fails when a default changes without a bump (snapshot of each model's default
@@ -542,7 +419,7 @@ Rules:
   review. **The drift guard skips on CRAN**, and so does the scenario gateway,
   so in an invocation that sets that flag a bump has no live gate at all: check
   both ran before believing one. Adding a new model → add its constant and a dispatch arm in
-  `src/strategy_version.cpp` (the scaffolder should do this).
+  `src/strategy_version.cpp`.
 
 ---
 
@@ -641,10 +518,10 @@ Documentation is split across several homes — put new content in the right one
 
 | Content | Home | Source |
 |---|---|---|
-| **Narrative docs** — task-oriented guides, theory/maths, worked examples (the former `vignettes/`: `plant` overview, `individuals`, `patch`, `demography`, `parameters`, `extrinsic_drivers`, `emergent`, `self_thinning`) | **[Overstorey](https://traitecoevo.github.io/overstorey/)** | <https://github.com/traitecoevo/overstorey> (Quarto) |
-| **Blog / dated experiments** — posts pinned to the `plant` version they were built against (was `vignettes/blog/`) | Overstorey's **"Adaptively"** notebook | same repo |
+| **Narrative docs** — task-oriented guides, theory/maths, worked examples (`plant` overview, `individuals`, `patch`, `demography`, `parameters`, `extrinsic_drivers`, `emergent`, `self_thinning`) | **[Overstorey](https://traitecoevo.github.io/overstorey/)** | <https://github.com/traitecoevo/overstorey> (Quarto) |
+| **Blog / dated experiments** — posts pinned to the `plant` version they were built against | Overstorey's **"Adaptively"** notebook | same repo |
 | **Extending the model** — adding a new strategy/environment | **`plant-new-strategy` skill** (see §7) | this repo (`.claude/skills/plant-new-strategy/`) |
-| **Migrating downstream code** to a newer plant interface | **`plant-update-interface` skill** (see §3.3) | this repo (`.claude/skills/plant-update-interface/`) |
+| **Migrating downstream code** to a newer plant interface | **`plant-update-interface` skill** (see §3.2) | this repo (`.claude/skills/plant-update-interface/`) |
 | **Function/API reference** — per-function docs generated from roxygen | **pkgdown site** <https://traitecoevo.github.io/plant/> | this repo (`man/`, `pkgdown/_pkgdown.yml`) |
 | **Architecture / contributor guide** | this file ([agents.md](agents.md)) | this repo |
 | Installation & citation | [README.md](README.md) | this repo |
@@ -655,16 +532,9 @@ Rule of thumb: prose that a *user* reads → Overstorey; the docstring for a
 *function* → roxygen comment in `R/` (rebuilt into the pkgdown reference);
 guidance for someone *changing the code* → this file.
 
-The vignette content was migrated into Overstorey in
-[`799a668`](https://github.com/traitecoevo/overstorey/commit/799a668380e2679f3ca6a339f53796f83d1c4b0f)
-(guides, theory, and the dated posts, with committed Quarto freezes).
-
 ### Generating the website (pkgdown reference)
 
-The pkgdown site is the **function reference only** (narrative articles now live
-on Overstorey, §above). It is built from roxygen output and config in
-[pkgdown/](pkgdown/) (`_pkgdown.yml` defines the navbar + `reference:` layout).
-There is **no CI workflow** for it — build and deploy manually:
+The pkgdown site is the **function reference only** (narrative articles live on Overstorey, above). It is built from roxygen output and config in [pkgdown/](pkgdown/) (`_pkgdown.yml` defines the navbar + `reference:` layout). There is **no CI workflow** for it — build and deploy manually:
 
 ```r
 devtools::document()          # refresh man/ first (or: make roxygen)
@@ -689,23 +559,11 @@ The one-line rules. The invariants behind the solver, the reverse sweep, the soi
 - ✅ Edit headers in [inst/include/plant/](inst/include/plant/) and the yml; then regenerate.
 - ✅ Adding/removing strategy state → update `state_size()` **and** `state_names()`.
 - ✅ Exposing a new C++ method/field to R → add it to `RcppR6_classes.yml`, then `make RcppR6`.
-- ✅ Adding a model → use the scaffolder; remember the R `switch()` tables in
-  [strategy_support.R](R/strategy_support.R) and the hyperpar functions, and add
-  a `scientific_version` constant + dispatch arm in `src/strategy_version.cpp`.
+- ✅ Adding a model → follow the `plant-new-strategy` skill's checklist: nothing generates the wiring, and each R `switch()` table, binding and version arm names every model by hand (§7).
 - ✅ Changing a model's equations/default parameters (output changes for the
   same inputs) → bump its `scientific_version` in the model header (see §7).
 - ✅ After interface changes run the full `make rebuild`; after C++-only changes `make compile`.
-- ⚠️ **The leaf's cost curve is seated ONCE, in `TF24_Strategy::prepare_strategy()`,
-  and no call site may name a curve.** Every collar-solve entry point in phylloptim
-  is templated on the cost curve, and `find_root_collar_psi()`,
-  `evaluate_root_collar_psi()` and `dprofit_droot_collar_psi()` are its
-  TF24-hardwired shortcuts. Reintroducing one — or writing
-  `<Leaf::CostCurve::TF24>` at a call site — solves TF24 while `shadow_cost()`
-  reports a price the solve never saw, which is worse than not switching at all
-  and shows up as no error. Use `leaf.optimise()`, or
-  `Leaf::with_curve(leaf.cost_curve_, ...)` for the templated entry points
-  (`src/tf24f_strategy.cpp` dispatches once around its whole body for this
-  reason). See #634.
+- ⚠️ **TF24 and its subclasses run one cost curve, `TF24_floor`, seated once in `TF24_Strategy::prepare_strategy()`.** phylloptim's collar-solve entry points are templated on the curve, and plant's call sites name `Leaf::CostCurve::TF24_floor` explicitly. Each must name the curve that is seated: one that names another solves that curve while `shadow_cost()` reports the seated curve's price, and nothing errors. To change the curve, change the seat and every `CostCurve::TF24_floor` together (`git grep -n 'CostCurve::'`).
 - ⚠️ **TF24's leaf parameters must keep phylloptim's names.** They are handed to
   the `Leaf` constructor **positionally**, so a name that disagrees with the slot
   it lands in is silent, not a compile error. `stem_P50`, `stem_c`, `stem_b`,
@@ -716,7 +574,7 @@ The one-line rules. The invariants behind the solver, the reverse sweep, the soi
 - ⚠️ **Never put a non-finite number in an ODE state, and do not read
   `check_finite_ode_state` as protection against one.** It tests the cohort
   density (`exp(log_density)`, so `-Inf` passes as a finite zero) and the
-  environment's own states; the six slots `Strategy::state_names()` declares and
+  environment's own states; the slots `Strategy::state_names()` declares and
   the node's two extras are not looked at. A `+Inf` hazard from `-log(0)` at an
   establishment probability of exactly zero therefore ran for years: every reader
   is guarded (`is_finite` tests, or `exp(-mortality)`, which is zero either way),
@@ -841,19 +699,7 @@ will see in the code:
   `pow(area_leaf, a_l2)`, it is computed once (see
   `FF16_Strategy::darea_leaf_dmass_live`).
 
-**Measuring.** Always benchmark with `make compile` (matches release flags) —
-`devtools::load_all()` alone is not representative. Use
-[scripts/profile-benchmarks.R](scripts/profile-benchmarks.R):
-
-```sh
-make compile
-PLANT_PROFILE_REPEATS=20 Rscript scripts/profile-benchmarks.R FF16
-```
-
-Record results following the `profile-plant` skill (`.claude/skills/profile-plant/`).
-Bit-identical changes are strongly preferred; where a reciprocal-multiply
-reorders floating-point ops, the affected reference tests were relaxed to an
-explicit tolerance (noted in that file).
+**Measuring.** Benchmark an installed build (`R CMD INSTALL`), not `devtools::load_all()`, which compiles with different flags. What counts as evidence of a speed change, and why wall-clock alone does not, is in [.claude/measurements.md](.claude/measurements.md); the profiling workflow is the `profile-plant` skill. `run_plant_benchmarks()` times FF16 only. A speed change must leave the baselines bit-identical unless a moved number was agreed in advance.
 
 [#361]: https://github.com/traitecoevo/plant/issues/361
 [#435]: https://github.com/traitecoevo/plant/issues/435
