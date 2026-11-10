@@ -1,7 +1,7 @@
 # Soil-cascade experiments (Stage A design pass, #522 / #599)
 
 Standalone R replica of TF24's soil-water cascade — no `plant` build required. Backs the
-findings in [`../../plan-tf24-soil-redistribution.md`](../../plan-tf24-soil-redistribution.md).
+findings of PR #608's design pass, whose write-up is [`plan-tf24-soil-redistribution.md`](https://github.com/traitecoevo/plant/blob/f406b6d864f5a68b97c5acc68f6bcf44fb05cda6/notes/plan-tf24-soil-redistribution.md) in the history; what still constrains the code is hazards 9 to 12 in `.claude/hazards.md`.
 
 Run from this directory:
 

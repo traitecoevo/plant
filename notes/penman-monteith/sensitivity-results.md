@@ -1,6 +1,6 @@
 # Penman-Monteith sensitivity tests (doc 7.5.2–7.5.4), 2026-10
 
-The three tests `penman_monteith_implementation.md` §7.5 required before PM outputs are used, and which July's Step 5 left open. They were run against plant `develop` at `bd09645d` (2.0.0.9002), phylloptim `edaffe8` (0.10.2) and odelia `88cbff7` (0.7.3). The re-run of the Step 5 factorial (7.5.1) is in [`step5-fick-vs-pm-evaluation.md`](step5-fick-vs-pm-evaluation.md).
+The three tests [the Penman-Monteith design's §7.5](https://github.com/traitecoevo/plant/blob/f406b6d864f5a68b97c5acc68f6bcf44fb05cda6/notes/penman-monteith/penman_monteith_implementation.md#75-recommended-evaluation-protocol) required before PM outputs are used, and which July's Step 5 left open. They were run against plant `develop` at `bd09645d` (2.0.0.9002), phylloptim `edaffe8` (0.10.2) and odelia `88cbff7` (0.7.3). The re-run of the Step 5 factorial (7.5.1) is in [`step5-fick-vs-pm-evaluation.md`](step5-fick-vs-pm-evaluation.md).
 
 ## Verdict
 

@@ -275,8 +275,7 @@ struct TF24_Pars {
   // * Stem hydraulic path
   // Within-plant anatomical profiles along the flow path, parameterised by
   // distance from the apex L and anchored at the terminal segment. See
-  // plant/stem_hydraulics.h for the closed form and
-  // notes/plan-tf24-height-hydraulics.md for the derivation.
+  // plant/stem_hydraulics.h for the closed form and what it assumes.
   //
   // Setting all three to zero collapses the path integral to a resistance
   // linear in height -- the model before this existed -- bit for bit, which is
