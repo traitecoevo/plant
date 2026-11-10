@@ -13,9 +13,6 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
-* **The scenario gateway's functions are internal, and `optimise_individual_rate_at_height_by_trait()` is removed.** The thirteen functions behind plant's opt-in hydraulic scenario check are no longer exported; the check itself (`test-scenario-gateway.R`, `scripts/run_scenario_gateway.R`, `make bless-scenarios`) runs as before, and no package in the plant family calls them. Migration:
-  * `build_scenario()`, `run_scenarios()`, `evaluate_scenario()`, `classify_scm_run()`, `read_scenario_table()`, `read_scenario_mapping()`, `scenario_control()`, `scenario_generate_report()`, `scenario_model_fingerprint()`, `scenario_rainfall_drivers()`, `scenario_run_metadata()`, `scenario_summary()`, `scenario_to_config()` (unexported) -> `plant:::<name>()`
-  * `optimise_individual_rate_at_height_by_trait(..., height = h)` (removed) -> `optimise_individual_rate_at_size_by_trait(..., size = h, size_name = "height", set_state_directly = TRUE)`
 * **Trade-offs travel with `Parameters`, and the bare defaults attach none
   (#731).** ⚠️ A semantic change for identical inputs: `scm_base_parameters(model)`
   followed by `add_strategies(p, traits)` no longer applies the model's trade-off
@@ -57,6 +54,9 @@ products using plant.
   * `plant:::E_from_Soil_to_Root_Collar()`, `VC_l()`, `VC_r()`, `VC_sw()` (unexported, never called) -> removed
   * `check_driver_interpolation()` documentation -> drivers are interpolated with a monotone cubic, not a natural spline; the function is unchanged
 
+* **The scenario gateway's functions are internal, and `optimise_individual_rate_at_height_by_trait()` is removed.** The thirteen functions behind plant's opt-in hydraulic scenario check are no longer exported; the check itself (`test-scenario-gateway.R`, `scripts/run_scenario_gateway.R`, `make bless-scenarios`) runs as before, and no package in the plant family calls them. Migration:
+  * `build_scenario()`, `run_scenarios()`, `evaluate_scenario()`, `classify_scm_run()`, `read_scenario_table()`, `read_scenario_mapping()`, `scenario_control()`, `scenario_generate_report()`, `scenario_model_fingerprint()`, `scenario_rainfall_drivers()`, `scenario_run_metadata()`, `scenario_summary()`, `scenario_to_config()` (unexported) -> `plant:::<name>()`
+  * `optimise_individual_rate_at_height_by_trait(..., height = h)` (removed) -> `optimise_individual_rate_at_size_by_trait(..., size = h, size_name = "height", set_state_directly = TRUE)`
 * **`integrate_over_size_distribution()` integrates a run carried in birth date
   over birth date (#722).** ⚠️ A semantic change, not a rename: for identical
   inputs the totals of every run carried in birth date move — which includes every
