@@ -121,92 +121,11 @@ run_until_converged <- function(scm, block = 20, tol = 0.02,
                                 statistics = c("density", "height_max", "environment"),
                                 snapshot_interval = 1, environment_entries = NULL,
                                 window = 3, tol_abs = 0) {
-  defaulted <- missing(statistics)
-  statistics <- match.arg(statistics, c("density", "height_max", "n_live", "environment"),
-                          several.ok = TRUE)
-  layer_on <- any(vapply(scm$patch$species, function(s) isTRUE(s$top_layer$on),
-                         logical(1)))
-  if (layer_on && "height_max" %in% statistics) {
-    if (defaulted) {
-      statistics <- setdiff(statistics, "height_max")
-    } else {
-      warning("with the absorbing top layer on, \"height_max\" is pinned at the ",
-              "absorbing height once the layer fills, and settles whatever the ",
-              "stand does", call. = FALSE)
-    }
-  }
-  if (!(length(window) == 1L && is.finite(window) && window >= 2 &&
-        window == round(window))) {
-    stop("`window` must be a whole number of blocks, at least 2")
-  }
-  if (!(length(tol_abs) == 1L && is.finite(tol_abs) && tol_abs >= 0)) {
-    stop("`tol_abs` must be a non-negative number")
-  }
-  if (isTRUE(scm$complete)) {
-    stop("this SCM's run has already finished; build one with ",
-         "run_scm(p, ..., run = FALSE) and let run_until_converged() run it")
-  }
-  if (!(length(block) == 1L && is.finite(block) && block > 0)) {
-    stop("`block` must be a positive number of years")
-  }
-  if (!(length(tol) == 1L && is.finite(tol) && tol > 0)) {
-    stop("`tol` must be a positive number")
-  }
-  if (!(length(t_max) == 1L && is.finite(t_max) && t_max > scm$time)) {
-    stop("`t_max` must lie after the run's current time, ", scm$time)
-  }
-  n_env <- scm$patch$environment$ode_size
-  if ("environment" %in% statistics && n_env == 0) {
-    # In the default set it is simply not there to judge; asked for, it is a
-    # request that cannot be met.
-    if (defaulted) {
-      statistics <- setdiff(statistics, "environment")
-    } else {
-      stop("this model's environment carries no state, so \"environment\" ",
-           "cannot be judged; leave it out of `statistics`")
-    }
-  }
-  if (!is.null(environment_entries)) {
-    if (!"environment" %in% statistics) {
-      stop("`environment_entries` is read only by the \"environment\" statistic")
-    }
-    if (!all(environment_entries %in% seq_len(n_env))) {
-      stop("`environment_entries` must index the environment's ", n_env,
-           " state entries")
-    }
-  } else if ("environment" %in% statistics) {
-    # The accumulators are the last entries of the environment's state.
-    n_acc <- length(scm$patch$state$env$soil_moist_cumulative_flux)
-    environment_entries <- seq_len(n_env - n_acc)
-  }
-  if (scm$snapshot_interval <= 0) {
-    scm$snapshot_interval <- snapshot_interval
-  }
-  if (scm$snapshot_interval > block) {
-    stop("the snapshot interval must not exceed the block")
-  }
-  statistic <- function(s) {
-    out <- c()
-    if ("density" %in% statistics) {
-      out <- c(out, density = sum(vapply(s$species, `[[`, numeric(1), "density")))
-    }
-    if ("height_max" %in% statistics) {
-      h <- vapply(s$species, `[[`, numeric(1), "height_max")
-      out <- c(out, height_max = if (all(is.na(h))) NA_real_ else max(h, na.rm = TRUE))
-    }
-    if ("n_live" %in% statistics) {
-      out <- c(out, n_live = sum(vapply(s$species, `[[`, integer(1), "n_live")))
-    }
-    if ("environment" %in% statistics) {
-      env <- s$environment
-      names(env) <- paste0("env_", seq_along(env))
-      if (!is.null(environment_entries)) {
-        env <- env[environment_entries]
-      }
-      out <- c(out, env)
-    }
-    out
-  }
+  checked <- check_convergence_args(scm, block, tol, t_max, statistics,
+                                    missing(statistics), snapshot_interval,
+                                    environment_entries, window, tol_abs)
+  statistic <- convergence_statistic(checked$statistics,
+                                     checked$environment_entries)
   t0 <- scm$time
   trace <- list()
   means <- list()
@@ -264,6 +183,106 @@ run_until_converged <- function(scm, block = 20, tol = 0.02,
   }
   list(converged = converged, time = scm$time,
        trace = as.data.frame(do.call(rbind, trace)))
+}
+
+# The arguments of run_until_converged(), checked; returns the statistics and
+# environment entries it settles on. A defaulted statistic the stand cannot
+# judge is dropped quietly, and an explicitly requested one is refused or warned
+# about. Sets the SCM's snapshot interval when it has none.
+check_convergence_args <- function(scm, block, tol, t_max, statistics, defaulted,
+                                   snapshot_interval, environment_entries,
+                                   window, tol_abs) {
+  statistics <- match.arg(statistics, c("density", "height_max", "n_live", "environment"),
+                          several.ok = TRUE)
+  layer_on <- any(vapply(scm$patch$species, function(s) isTRUE(s$top_layer$on),
+                         logical(1)))
+  if (layer_on && "height_max" %in% statistics) {
+    if (defaulted) {
+      statistics <- setdiff(statistics, "height_max")
+    } else {
+      warning("with the absorbing top layer on, \"height_max\" is pinned at the ",
+              "absorbing height once the layer fills, and settles whatever the ",
+              "stand does", call. = FALSE)
+    }
+  }
+  if (!(length(window) == 1L && is.finite(window) && window >= 2 &&
+        window == round(window))) {
+    stop("`window` must be a whole number of blocks, at least 2", call. = FALSE)
+  }
+  if (!(length(tol_abs) == 1L && is.finite(tol_abs) && tol_abs >= 0)) {
+    stop("`tol_abs` must be a non-negative number", call. = FALSE)
+  }
+  if (isTRUE(scm$complete)) {
+    stop("this SCM's run has already finished; build one with ",
+         "run_scm(p, ..., run = FALSE) and let run_until_converged() run it", call. = FALSE)
+  }
+  if (!(length(block) == 1L && is.finite(block) && block > 0)) {
+    stop("`block` must be a positive number of years", call. = FALSE)
+  }
+  if (!(length(tol) == 1L && is.finite(tol) && tol > 0)) {
+    stop("`tol` must be a positive number", call. = FALSE)
+  }
+  if (!(length(t_max) == 1L && is.finite(t_max) && t_max > scm$time)) {
+    stop("`t_max` must lie after the run's current time, ", scm$time, call. = FALSE)
+  }
+  n_env <- scm$patch$environment$ode_size
+  if ("environment" %in% statistics && n_env == 0) {
+    # In the default set it is simply not there to judge; asked for, it is a
+    # request that cannot be met.
+    if (defaulted) {
+      statistics <- setdiff(statistics, "environment")
+    } else {
+      stop("this model's environment carries no state, so \"environment\" ",
+           "cannot be judged; leave it out of `statistics`", call. = FALSE)
+    }
+  }
+  if (!is.null(environment_entries)) {
+    if (!"environment" %in% statistics) {
+      stop("`environment_entries` is read only by the \"environment\" statistic", call. = FALSE)
+    }
+    if (!all(environment_entries %in% seq_len(n_env))) {
+      stop("`environment_entries` must index the environment's ", n_env,
+           " state entries", call. = FALSE)
+    }
+  } else if ("environment" %in% statistics) {
+    # The accumulators are the last entries of the environment's state.
+    n_acc <- length(scm$patch$state$env$soil_moist_cumulative_flux)
+    environment_entries <- seq_len(n_env - n_acc)
+  }
+  if (scm$snapshot_interval <= 0) {
+    scm$snapshot_interval <- snapshot_interval
+  }
+  if (scm$snapshot_interval > block) {
+    stop("the snapshot interval must not exceed the block", call. = FALSE)
+  }
+  list(statistics = statistics, environment_entries = environment_entries)
+}
+
+# The function run_until_converged() reads from each snapshot: the named
+# statistics, as one numeric vector.
+convergence_statistic <- function(statistics, environment_entries) {
+  function(s) {
+    out <- c()
+    if ("density" %in% statistics) {
+      out <- c(out, density = sum(vapply(s$species, `[[`, numeric(1), "density")))
+    }
+    if ("height_max" %in% statistics) {
+      h <- vapply(s$species, `[[`, numeric(1), "height_max")
+      out <- c(out, height_max = if (all(is.na(h))) NA_real_ else max(h, na.rm = TRUE))
+    }
+    if ("n_live" %in% statistics) {
+      out <- c(out, n_live = sum(vapply(s$species, `[[`, integer(1), "n_live")))
+    }
+    if ("environment" %in% statistics) {
+      env <- s$environment
+      names(env) <- paste0("env_", seq_along(env))
+      if (!is.null(environment_entries)) {
+        env <- env[environment_entries]
+      }
+      out <- c(out, env)
+    }
+    out
+  }
 }
 
 ##' Fitness of invaders at a resident's fixed point

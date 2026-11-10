@@ -125,6 +125,31 @@ struct field_row : odelia::ode::schedule_row {
   std::array<recorded_field, odelia::ode::end_stage + 1> fields;
 };
 
+// The survival fraction a climate extreme leaves: the dose accrued above
+// `threshold` over `duration` years, through half-hourly sub-steps of a
+// sinusoidal daily cycle peaking at `intensity`, as exp(-sensitivity * dose).
+inline double climate_extreme_survival(double intensity, double duration,
+                                       double threshold, double sensitivity) {
+  // Half-hourly sub-steps through a sinusoidal daily cycle peaking at
+  // `intensity`, with amplitude set by its excess over `threshold`. Dose
+  // accrues only above the threshold, so a mild episode accrues none at all.
+  const double dt_days = 0.5 / 24.0;
+  const size_t n_steps =
+    static_cast<size_t>(std::max(1.0, std::ceil(duration * 365.0 / dt_days)));
+  const double amplitude = std::max(0.0, intensity - threshold);
+  double damage = 0.0;
+  for (size_t k = 0; k < n_steps; ++k) {
+    const double day_fraction =
+      std::fmod(static_cast<double>(k) * dt_days, 1.0);
+    // Peak mid-cycle; the trough sits one amplitude below the threshold.
+    const double level =
+      threshold + amplitude * (2.0 * std::sin(M_PI * day_fraction) - 1.0);
+    const double excess = std::max(0.0, level - threshold);
+    damage += sensitivity * excess * dt_days / 365.0;
+  }
+  return std::exp(-damage);
+}
+
 template <typename T, typename E>
 class Patch {
 public:
@@ -629,6 +654,12 @@ private:
   void check_finite_ode_state() const;
   // The private-water passes (#681); reached only for HasPrivateWater<T>.
   void private_water_aggregates();
+  // A pulse of `depth` into `layer` with private water: every column takes it,
+  // each capped at what its own layer can hold. The environment's column books
+  // its own accepted depth and excess as though it were the whole patch; the
+  // accumulators are then corrected to the area-weighted totals, which are
+  // returned as {accepted, excess} for the event record.
+  std::vector<double> private_water_pulse(size_t layer, double depth);
   void private_water_exchange(const std::vector<value_type>& resource_depletion);
   // The coordinate this model's densities are carried in, Control's "auto"
   // resolved against the strategy (see control.h).
@@ -1627,6 +1658,39 @@ void Patch<T,E>::compute_rates() {
   }
 }
 
+template <typename T, typename E>
+std::vector<double> Patch<T,E>::private_water_pulse(size_t layer, double depth) {
+  using odelia::util::to_passive;
+  private_water_aggregates();
+  const double scale = 1.0 / std::max(1.0, environment.private_water_cover());
+  const double bare = environment.private_water_bare();
+  double accepted_w = 0.0, excess_w = 0.0;
+  for (auto& sp : species) {
+    const auto& st = *sp.strategy_ptr();
+    const int slot = st.state_idx_water_first + static_cast<int>(layer);
+    sp.for_each_water_column([&](typename species_type::individual_type& ind,
+                                 double nw, double, int kind) {
+      if (kind == 1) {
+        return;
+      }
+      const double theta = to_passive(ind.state(slot));
+      const double accepted =
+        std::min(depth, environment.pulse_capacity(ind.state(slot), layer));
+      ind.set_state(slot, value_type(theta + accepted / environment.dz[layer]));
+      const double share =
+        nw * to_passive(st.crown_area(ind.aux(st.aux_idx_competition_effect))) *
+        scale;
+      accepted_w += share * accepted;
+      excess_w += share * (depth - accepted);
+    });
+  }
+  const std::vector<double> own =
+    environment.add_resource_pulse(layer, depth);
+  environment.adjust_pulse_accumulators(accepted_w - (1.0 - bare) * own[0],
+                                        excess_w - (1.0 - bare) * own[1]);
+  return {accepted_w + bare * own[0], excess_w + bare * own[1]};
+}
+
 // The two passes of private root-zone water (TF24w, #681). Every quantity here
 // is a share of the patch's ground: a column's share is its crown area per m2
 // of patch, divided by the cover where crowns overlap, and the bare ground is
@@ -1985,41 +2049,7 @@ EventRecord Patch<T,E>::apply_event(const ScheduleEvent& event) {
                  util::to_string(environment.n_resources()) + " resources");
     }
     if constexpr (HasPrivateWater<T>) {
-      // Every column takes the pulse, each capped at what its own layer can
-      // hold (#681). The environment's column books its own accepted depth and
-      // excess as though it were the whole patch; the accumulators are then
-      // corrected to the area-weighted totals, and the record reports those.
-      using odelia::util::to_passive;
-      private_water_aggregates();
-      const size_t layer = event.target_index;
-      const double depth = event.params.at(0);
-      const double scale = 1.0 / std::max(1.0, environment.private_water_cover());
-      const double bare = environment.private_water_bare();
-      double accepted_w = 0.0, excess_w = 0.0;
-      for (auto& sp : species) {
-        const auto& st = *sp.strategy_ptr();
-        const int slot = st.state_idx_water_first + static_cast<int>(layer);
-        sp.for_each_water_column([&](typename species_type::individual_type& ind,
-                                     double nw, double, int kind) {
-          if (kind == 1) {
-            return;
-          }
-          const double theta = to_passive(ind.state(slot));
-          const double accepted =
-            std::min(depth, environment.pulse_capacity(ind.state(slot), layer));
-          ind.set_state(slot, value_type(theta + accepted / environment.dz[layer]));
-          const double share =
-            nw * to_passive(st.crown_area(ind.aux(st.aux_idx_competition_effect))) *
-            scale;
-          accepted_w += share * accepted;
-          excess_w += share * (depth - accepted);
-        });
-      }
-      const std::vector<double> own =
-        environment.add_resource_pulse(layer, depth);
-      environment.adjust_pulse_accumulators(accepted_w - (1.0 - bare) * own[0],
-                                            excess_w - (1.0 - bare) * own[1]);
-      rec.applied = {accepted_w + bare * own[0], excess_w + bare * own[1]};
+      rec.applied = private_water_pulse(event.target_index, event.params.at(0));
     } else {
       rec.applied = environment.add_resource_pulse(event.target_index,
                                                    event.params.at(0));
@@ -2072,25 +2102,8 @@ EventRecord Patch<T,E>::apply_event(const ScheduleEvent& event) {
       util::stop("Climate extreme duration must be finite and non-negative");
     }
 
-    // Half-hourly sub-steps through a sinusoidal daily cycle peaking at
-    // `intensity`, with amplitude set by its excess over `threshold`. Dose
-    // accrues only above the threshold, so a mild episode accrues none at all.
-    const double dt_days = 0.5 / 24.0;
-    const size_t n_steps =
-      static_cast<size_t>(std::max(1.0, std::ceil(duration * 365.0 / dt_days)));
-    const double amplitude = std::max(0.0, intensity - threshold);
-    double damage = 0.0;
-    for (size_t k = 0; k < n_steps; ++k) {
-      const double day_fraction =
-        std::fmod(static_cast<double>(k) * dt_days, 1.0);
-      // Peak mid-cycle; the trough sits one amplitude below the threshold.
-      const double level =
-        threshold + amplitude * (2.0 * std::sin(M_PI * day_fraction) - 1.0);
-      const double excess = std::max(0.0, level - threshold);
-      damage += sensitivity * excess * dt_days / 365.0;
-    }
-
-    const double phi = std::exp(-damage);
+    const double phi =
+      climate_extreme_survival(intensity, duration, threshold, sensitivity);
     const auto r = scale_targets([&](double) { return phi; });
     rec.applied = {1.0 - phi, static_cast<double>(r.first), r.second};
     break;
