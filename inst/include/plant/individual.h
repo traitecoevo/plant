@@ -94,14 +94,6 @@ public:
     return strategy->compute_competition_and_slope(z, vars);
   }
 
-  // d(leaf area)/d(height), for a caller pulling a leaf-area adjoint back.
-  value_type darea_leaf_dheight() const {
-    return strategy->darea_leaf_dheight(aux("competition_effect"));
-  }
-
-  // The leaf area that adjoint is taken in, for the same caller.
-  value_type area_leaf() const { return aux("competition_effect"); }
-
   // Initialise strategy-specific initial ODE states (e.g. an acclimating tracked
   // state) given the birth environment. No-op for strategies that don't need it.
   void set_initial_states(const environment_type& environment) {

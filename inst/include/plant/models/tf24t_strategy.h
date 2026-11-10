@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstring>
 #include <stdexcept>
 #include <type_traits>
 
@@ -101,7 +102,9 @@ public:
 
   // The leaf's damage rates at its operating-point temperature, per YEAR:
   // {dA/dt, dI/dt, dD/dt}, dD/dt without dilution. Reads the leaf's seated A_,
-  // I_ and D_, which compute_rates hands it.
+  // I_ and D_, which compute_rates hands it. Production and compute_rates both
+  // read them at one operating point, so the rates are kept with the leaf state
+  // they were taken at, and taken again only when that state has moved.
   std::array<double, 3> leaf_damage_rates_per_year() const;
 
   // TF24's net production less the two whole-plant thermal costs the leaf's R_d_
@@ -188,8 +191,15 @@ public:
 
 private:
   // A negative or non-finite rate would poison the state rates, so a
-  // misconfigured kinetic stops the run.
+  // misconfigured kinetic stops the run. Checked when the strategy is prepared.
   void check_kinetics() const;
+
+  // The leaf's (Tleaf_, A_, I_, D_) when the damage rates were last taken, and
+  // those rates; compared bit for bit, so the reuse returns exactly what a
+  // fresh evaluation would.
+  mutable bool damage_cached_ = false;
+  mutable std::array<double, 4> damage_state_{};
+  mutable std::array<double, 3> damage_rates_{};
 };
 
 template <typename S>
@@ -246,6 +256,8 @@ void TF24t_Strategy<S>::check_kinetics() const {
 template <typename S>
 void TF24t_Strategy<S>::prepare_strategy() {
   base_type::prepare_strategy();
+  check_kinetics();
+  damage_cached_ = false;
   // The damage rates are evaluated at the leaf temperature after the crown
   // loop. Deep-crown shading solves the leaf once per quadrature node and
   // integrates only the outputs TF24 names, so they would be the last node's
@@ -292,9 +304,18 @@ void TF24t_Strategy<S>::prepare_strategy() {
 template <typename S>
 std::array<double, 3> TF24t_Strategy<S>::leaf_damage_rates_per_year() const {
   const Leaf& leaf = this->leaf;
+  const std::array<double, 4> state{leaf.Tleaf_, leaf.A_, leaf.I_, leaf.D_};
+  if (damage_cached_ &&
+      std::memcmp(state.data(), damage_state_.data(), sizeof(state)) == 0) {
+    return damage_rates_;
+  }
   const std::vector<double> r =
     leaf.damage_rates(leaf.Tleaf_, leaf.A_, leaf.I_, leaf.D_);
-  return {DAYS_PER_YEAR * r[0], DAYS_PER_YEAR * r[1], DAYS_PER_YEAR * r[2]};
+  damage_rates_ = {DAYS_PER_YEAR * r[0], DAYS_PER_YEAR * r[1],
+                   DAYS_PER_YEAR * r[2]};
+  damage_state_ = state;
+  damage_cached_ = true;
+  return damage_rates_;
 }
 
 template <typename S>
@@ -334,8 +355,6 @@ S TF24t_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environme
 template <typename S>
 void TF24t_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,
                                       Internals<S>& vars) {
-  check_kinetics();
-
   const double A = vars.state(state_idx_acclim_A);
   const double I =
     std::min(std::max(static_cast<double>(vars.state(state_idx_impaired)), 0.0), 1.0);
@@ -381,7 +400,6 @@ void TF24t_Strategy<S>::set_initial_states(const TF24_Environment<S>& environmen
   // Non-virtual in the base, so the shared states (notably the storage pool)
   // are seeded only if this calls it.
   base_type::set_initial_states(environment, vars);
-  check_kinetics();
 
   const double T = environment.get_leaf_temp();
   const double A_eq =
