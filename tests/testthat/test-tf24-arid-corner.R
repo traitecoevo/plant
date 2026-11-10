@@ -131,33 +131,22 @@ test_that("a dry-start TF24 run completes (#571)", {
   }
 })
 
-test_that("TF24f survives hydraulic shutdown on both gradient branches (#576)", {
-  # A GUARD, NOT A REPRODUCER -- it passes on the parent commit too, so do not
-  # read it as covering the change beside it. #576 was "Extrapolation disabled and
-  # evaluation point outside of interpolated domain", from the LOWER end of
-  # phylloptim's psi_from_transpiration: in shutdown the AD branch asked for the
-  # stem potential carrying a negative sap flux, wetter than saturation, which
-  # does not exist. phylloptim 0.6.0 closed that instance upstream. What is worth
-  # keeping is the cheapest statement of the invariant it broke -- BOTH gradient
-  # branches complete a shutdown run -- because the collar solve is where a
-  # feasibility exit and a spline domain meet, and this is the arid corner where
-  # they meet first.
+test_that("TF24f survives hydraulic shutdown (#576)", {
+  # A GUARD, NOT A REPRODUCER. #576 was "Extrapolation disabled and evaluation
+  # point outside of interpolated domain", from the LOWER end of phylloptim's
+  # psi_from_transpiration: in shutdown the gradient asked for the stem
+  # potential carrying a negative sap flux, wetter than saturation, which does
+  # not exist. phylloptim 0.6.0 closed that instance upstream. What is worth
+  # keeping is the cheapest statement of the invariant it broke -- a shutdown run
+  # completes -- because the collar solve is where a feasibility exit and a
+  # spline domain meet, and this is the arid corner where they meet first.
   #
-  # It cannot assert that the two branches agree numerically: they are different
-  # gradients, and at rainfall 0.01 they give 5.8e-20 and 5.0e-20. Completion is
-  # the whole contract.
-  #
-  # One rainfall value each. The original failure was a knife-edge, not a
-  # threshold (AD failed at 0.01 and 0.03-0.06 but ran at 0, 0.02 and 0.07
-  # upwards), so a sweep buys breadth in the wrong dimension at a full SCM run
-  # apiece. The measured band is in #576 if it ever needs widening.
-  for (ad in c(TRUE, FALSE)) {
-    y <- tf24_dry_start("TF24f", rain = 0.04)
-    s <- y$p$strategies[[1]]
-    s$use_ad_gradient <- ad
-    y$p$strategies[[1]] <- s
-    expect_no_error(run_scm(y$p, y$env, collect = FALSE))
-  }
+  # One rainfall value. The original failure was a knife-edge, not a threshold
+  # (it failed at 0.01 and 0.03-0.06 but ran at 0, 0.02 and 0.07 upwards), so a
+  # sweep buys breadth in the wrong dimension at a full SCM run apiece. The
+  # measured band is in #576 if it ever needs widening.
+  y <- tf24_dry_start("TF24f", rain = 0.04)
+  expect_no_error(run_scm(y$p, y$env, collect = FALSE))
 })
 
 ## REMOVED: "a failed light spline reports the patch state that caused it".

@@ -92,11 +92,11 @@ test_that("Defaults", {
     L_crown = 2.0,
     g_min = 0.0)
 
-  # Top-level strategy fields: the pars sub-object plus infrastructure, and the
-  # TF24f-specific acclimation knobs (gain + finite-difference step) (#525).
+  # Top-level strategy fields: the pars sub-object plus infrastructure, and
+  # TF24f's acclimation gain.
   expected_top <- c("pars", "control", "collect_all_auxiliary",
                     "birth_rate_x", "birth_rate_y", "is_variable_birth_rate",
-                    "k_acclim", "psi_fd_step", "use_ad_gradient")
+                    "k_acclim")
 
   s <- TF24f_Strategy()
   expect_inherits(s, "TF24f_Strategy")
@@ -114,19 +114,11 @@ test_that("Defaults", {
 })
 
 test_that("TF24f validates acclimation knobs", {
-  # k_acclim must be finite and >= 0; psi_fd_step must be finite and > 0.
+  # k_acclim must be finite and >= 0.
   p1 <- testing_parameters("TF24f") |>
     add_strategies(trait_matrix(0.0825, "lma"), birth_rate = 20)
   s1 <- p1$strategies[[1]]; s1$k_acclim <- -1; p1$strategies[[1]] <- s1
   expect_error(run_scm(p1, collect = FALSE, refine_schedule = FALSE), "k_acclim")
-
-  # psi_fd_step is only used on the finite-difference path, so exercise it with
-  # the AD gradient disabled.
-  p2 <- testing_parameters("TF24f") |>
-    add_strategies(trait_matrix(0.0825, "lma"), birth_rate = 20)
-  s2 <- p2$strategies[[1]]; s2$psi_fd_step <- 0; s2$use_ad_gradient <- FALSE
-  p2$strategies[[1]] <- s2
-  expect_error(run_scm(p2, collect = FALSE, refine_schedule = FALSE), "psi_fd_step")
 })
 
 test_that("TF24f collect_all_auxiliary option", {
@@ -284,7 +276,7 @@ test_that("narea calculation", {
 # TF24f is the fast-acclimating variant of TF24 (#525): instead of solving the
 # stem/root water-potential optimisation afresh every step (as TF24 does), it
 # carries an extra ODE state `opt_root_psi_state` that relaxes towards the
-# optimum at rate `k_acclim`, using a finite-difference (`psi_fd_step`) gradient.
+# optimum at rate `k_acclim`, using the exact gradient of profit in that potential.
 #
 # We do NOT re-pin a full demographic regression here -- that is TF24's job, and
 # the two strategies share all of that machinery. Instead this integration test
@@ -319,8 +311,8 @@ test_that("acclimation runs, is active, and converges to TF24", {
   expect_true(is.finite(fast) && fast > 0)
 
   # (2) Acclimation is genuinely active: the gain k_acclim materially changes
-  #     fitness, so the finite-difference psi optimisation is feeding back into
-  #     the demography rather than being a no-op.
+  #     fitness, so the tracked psi is feeding back into the demography rather
+  #     than being a no-op.
   #
   #     ⚠️ Offspring production is NOT monotone in k_acclim, so the pair has to
   #     sit on one side of its maximum: a pair straddling it can sit at the same
@@ -436,7 +428,7 @@ test_that("TF24f AD gradient tracks TF24 (#527)", {
 
   p <- base("TF24f")
   s <- p$strategies[[1]]
-  s$k_acclim <- 10; s$use_ad_gradient <- TRUE
+  s$k_acclim <- 10
   p$strategies[[1]] <- s
   res <- run_scm(p, collect = TRUE, refine_schedule = FALSE)$species
 
