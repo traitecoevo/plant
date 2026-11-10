@@ -254,7 +254,7 @@ resource_compensation_point <- function(p, ...) {
   p$resource_compensation_point()
 }
 
-#' The function `optimise_individual_rate_at_height_by_trait` and `optimise_individual_rate_at_size_by_trait` solve for the maximum of
+#' `optimise_individual_rate_at_size_by_trait` solves for the maximum of
 #' some rate (e.g. growth rate) at a specified height within
 #' the interval of the bounds of a given trait
 #' @param type The type of model to use (e.g. "FF16"). Defaults to "FF16"
@@ -350,14 +350,6 @@ optimise_individual_rate_at_size_by_trait <- function(
 
   
   return(ret)
-}
-
-##' @param height Heigh at which grow is optimsied. Defaults to 1
-##' @param ... Additional parameters passed to \code{optimise_individual_rate_at_size_by_trait}
-#' @export
-#' @rdname optimise_individual_rate_at_size_by_trait
-optimise_individual_rate_at_height_by_trait <- function(..., height = 1) {
-  optimise_individual_rate_at_size_by_trait(..., size = height, size_name = "height", set_state_directly = TRUE)
 }
 
 solve_max_worker <- function(bounds, f, tol = 1e-3, outcome) {

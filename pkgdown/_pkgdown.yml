@@ -30,98 +30,89 @@ navbar:
 
 reference:
 
-- title: Setup
-  desc:  
+- title: Parameters and strategies
   contents:
-  - Control
-  - scm_base_control
-  - fast_control
-  - build_schedule
-  - plant_log_console
   - scm_base_parameters
+  - default_parameters
   - trait_matrix
-  - expand_parameters
-  - strategy_list
-  - make_hyperpar
+  - add_strategies
+  - generate_strategy
+  - parameter_table
+  - Control
+  - control
   - Disturbance_Regime
   - Weibull_Disturbance_Regime
   - No_Disturbance
+  - node_schedule_times_default
+  - node_schedule_times_periodic
+  - model_version
 
-- title: Growing individuals
+- title: Running a stand
+  contents:
+  - run_scm
+  - environment_type
+  - run_stochastic_collect
+  - run_until_converged
+  - events
+  - rainfall_pulse
+  - set_tf24_soil
+  - make_initial_state
+  - set_initial_state
+  - export_patch_state
+  - check_driver_interpolation
+
+- title: Fitness and gradients
+  contents:
+  - fitness_window
+  - fixed_point_fitness
+  - stand_census
+  - stand_census_state_adjoint
+  - stand_gradient
+  - stand_gradient_refused
+  - stand_gradient_compare
+  - gradient_control
+
+- title: Individuals
   contents:
   - Individual
   - grow_individual_to_size
   - grow_individual_to_time
   - optimise_individual_rate_at_size_by_trait
   - resource_compensation_point
+  - Leaf
 
-- title: Running patches
-  desc:  
+- title: Outputs
   contents:
-  - run_scm
-  - run_scm_collect
-  - run_stochastic_collect
-
-- title: Manipulating outputs
-  contents:
-  - tidy_patch
   - tidy_individual
+  - tidy_snapshots
+  - FF16_expand_state
   - integrate_over_size_distribution
   - sample_size_distribution
   - interpolate_to_heights
   - interpolate_to_times
   - plot_size_distribution
-
-- title: FF16 model
-  desc:  Functions for runnign the FF16 model
-  contents:
-  - contains("FF16_")
-
-- title: FF16r model
-  desc:  Functions for runnign the FF16r model
-  contents:
-  - contains("FF16r_")
-
-- title: TF24 model
-  desc:  Functions for runnign the TF24 model
-  contents:
-  - contains("TF24_")
-
-- title: K93 model
-  desc:  Functions for runnign the K93 model
-  contents:
-  - contains("K93_")
-
-- title: TF24 model
-  desc:  Functions for runnign the TF24 model
-  contents:
-  - contains("TF24_")
-
-- title: Development & testing
-  contents:
-  - run_plant_benchmarks
-
-- title: Helpers
-  desc:  Small function used in vignettes. (Remove from package or make private?)
-  contents:
   - seq_log
   - util_colour_set_opacity
 
-- title: Numerical methods
-  desc: You're unlikely to run these unless you're diving deep into the code. (Do these need to be exposed? Should they be private?)
+- title: FF16 model
   contents:
-  - environment_type
+  - starts_with("FF16_")
 
-- title: Review if still needed
+- title: K93 model
   contents:
-  - node_schedule_times_default
+  - starts_with("K93_")
 
-- title: Internal functions (for developers/advanced users only)
+- title: TF24 family of models
+  desc: TF24 and its subclasses TF24f, TF24t and TF24w.
+  contents:
+  - starts_with("TF24")
+
+- title: Internals
+  desc: Classes and helpers exposed for testing and diagnosis.
   contents:
   - NodeSchedule
   - OdeControl
   - QK
-  - validate
   - Internals
-
-
+  - run_plant_benchmarks
+  - plant_log_console

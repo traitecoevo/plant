@@ -2,8 +2,7 @@
 % Please edit documentation in R/individual.R
 \name{optimise_individual_rate_at_size_by_trait}
 \alias{optimise_individual_rate_at_size_by_trait}
-\alias{optimise_individual_rate_at_height_by_trait}
-\title{The function `optimise_individual_rate_at_height_by_trait` and `optimise_individual_rate_at_size_by_trait` solve for the maximum of
+\title{`optimise_individual_rate_at_size_by_trait` solves for the maximum of
 some rate (e.g. growth rate) at a specified height within
 the interval of the bounds of a given trait}
 \usage{
@@ -20,8 +19,6 @@ optimise_individual_rate_at_size_by_trait(
   hyperpars = param_hyperpar(params),
   set_state_directly = FALSE
 )
-
-optimise_individual_rate_at_height_by_trait(..., height = 1)
 }
 \arguments{
 \item{type}{The type of model to use (e.g. "FF16"). Defaults to "FF16"}
@@ -48,13 +45,9 @@ trade-offs apply to the trait being optimised.}
 carries (\code{param_hyperpar(params)})}
 
 \item{set_state_directly}{If TRUE, set the state directly to the size, otherwise grows the plant to that size. Defaults to FALSE}
-
-\item{...}{Additional parameters passed to \code{optimise_individual_rate_at_size_by_trait}}
-
-\item{height}{Heigh at which grow is optimsied. Defaults to 1}
 }
 \description{
-The function `optimise_individual_rate_at_height_by_trait` and `optimise_individual_rate_at_size_by_trait` solve for the maximum of
+`optimise_individual_rate_at_size_by_trait` solves for the maximum of
 some rate (e.g. growth rate) at a specified height within
 the interval of the bounds of a given trait
 }
