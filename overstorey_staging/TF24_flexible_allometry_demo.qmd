@@ -396,7 +396,7 @@ derivative with respect to a parameter is the *partial* derivative at the optimu
 already found: re-evaluate at the collar potential you have, and the indirect term
 vanishes because $\partial\,\text{profit}/\partial\psi^\ast = 0$ there.
 
-**Why it fails.** That holds for `opt_psi_stem_`, which really is chosen to
+**Why it fails.** That holds for `opt_psi_leaf_`, which really is chosen to
 maximise profit. It does not hold for `opt_root_psi_`, the *collar* potential,
 which is not maximised at all — it is found by a **root find**, the potential at
 which the soil-root network's supply matches the leaf's demand. A constraint, not
