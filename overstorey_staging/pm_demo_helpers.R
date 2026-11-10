@@ -77,7 +77,7 @@ pm_solve_cell <- function(PAR, Tair, VPD, pm, cfg = pm_leaf_config()) {
   l$find_root_collar_psi()
   data.frame(PAR = PAR, Tair = Tair, VPD = VPD, pm = pm,
              Tleaf = pm_leaf_temp(l, Tair),
-             opt_psi_stem = l$opt_psi_stem_,
+             opt_psi_leaf = l$opt_psi_leaf_,
              opt_root_psi = l$opt_root_psi_,
              A = l$assim_colimited_,
              gs = l$stom_cond_CO2_, E = l$transpiration_, profit = l$profit_)
@@ -121,7 +121,7 @@ pm_collar_curve <- function(PAR, Tair, VPD, pm, root_psi_seq, cfg = pm_leaf_conf
                          else stop(e)
                        })
     if (is.null(profit)) return(NULL)
-    data.frame(pm = pm, root_psi = rp, psi_stem = l$opt_psi_stem_,
+    data.frame(pm = pm, root_psi = rp, psi_stem = l$opt_psi_leaf_,
                profit = profit, assim = l$assim_colimited_,
                hydraulic_cost = l$hydraulic_cost_, E = l$transpiration_,
                leaf_temp = pm_leaf_temp(l, Tair))

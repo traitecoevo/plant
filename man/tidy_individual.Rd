@@ -10,7 +10,8 @@ tidy_individual(results)
 \item{results}{plant solver output.}
 }
 \value{
-a tibble whose columns provide metrics on each individual over time
+a tibble with the step, the time, and one column per state the
+  model integrates, named as the model names them
 }
 \description{
 Turn `results` of plant solver, when solving individuals into a tidy data object

@@ -1,8 +1,8 @@
 #' Diagnostic panel plot for a TF24 stand
 #'
 #' Assembles a multi-panel diagnostic figure from a collected TF24 SCM run:
-#' patch leaf area, the size distribution, soil water potential, stem and root
-#' water potentials, profit, stomatal conductance, transpiration (total and per
+#' patch leaf area, the size distribution, soil water potential, leaf and
+#' root-collar water potentials, profit, stomatal conductance, transpiration (total and per
 #' leaf area), the rainfall driver and leaf temperature. Panels are combined
 #' with `patchwork`.
 #'
@@ -84,15 +84,15 @@ TF24_plot_diagnostics <- function(results, x, y) {
     ggplot2::xlab("Time (years)") +
     ggplot2::labs(colour = "Soil depth (m)") -> soil_moisture
 
-  # Stem water potential by height over time
+  # Leaf water potential by height over time
   results$species %>%
-    ggplot2::ggplot(ggplot2::aes(x = .data$time, y = .data$opt_psi_stem)) +
+    ggplot2::ggplot(ggplot2::aes(x = .data$time, y = .data$opt_psi_leaf)) +
     ggplot2::geom_line(ggplot2::aes(colour = .data$height, group = .data$node), na.rm = TRUE) +
     ggplot2::theme_bw() +
     ggplot2::theme(text = ggplot2::element_text(size = 20)) +
-    ggplot2::ylab(expression(paste(psi[stem], " (", -Mpa, ")"))) +
+    ggplot2::ylab(expression(paste(psi[leaf], " (", -Mpa, ")"))) +
     ggplot2::xlab("Time (years)") +
-    ggplot2::labs(colour = "Height (m)") -> stem_water_potential
+    ggplot2::labs(colour = "Height (m)") -> leaf_water_potential
 
   # Root water potential by height over time
   results$species %>%
@@ -183,7 +183,7 @@ TF24_plot_diagnostics <- function(results, x, y) {
 
   # Assemble with patchwork and save
   combined <- (patch_leaf_area + size_distribution) /
-    ((soil_water_potential + root_water_potential) / (stem_water_potential + profit)) /
+    ((soil_water_potential + root_water_potential) / (leaf_water_potential + profit)) /
     (stomatal_conductance + transpiration) /
     (transpiration_per_leaf_area + rainfall) /
     leaf_temperature

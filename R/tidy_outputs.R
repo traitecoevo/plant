@@ -225,23 +225,15 @@ interpolate_to_heights <- function(tidy_species_data, heights, method = "pchip",
 #'
 #' @param results plant solver output.
 #'
-#' @return a tibble whose columns provide metrics on each individual over time
+#' @return a tibble with the step, the time, and one column per state the
+#'   model integrates, named as the model names them
 #'
 #' @export
 tidy_individual <- function(results) {
-  out <- dplyr::tibble(
-    step = seq_len(length(results$time)),
-    time = results$time
-  ) %>%
-    dplyr::bind_cols(
-      height = results$state[, 1],
-      mortality = results$state[, 2],
-      fecundity = results$state[, 3],
-      area_heartwood = results$state[, 4],
-      mass_heartwood = results$state[, 5]
-    )
-
-  out
+  dplyr::bind_cols(
+    dplyr::tibble(step = seq_len(length(results$time)), time = results$time),
+    dplyr::as_tibble(results$state)
+  )
 }
 
 

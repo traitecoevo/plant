@@ -13,6 +13,10 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
+* **TF24's leaf potential is named for the leaf, and `tidy_individual()` keeps every state (#746).** The aux `opt_psi_stem` and the `Leaf` field `opt_psi_stem_` hold the potential at the leaf, which the stem route stopped being when it became the leaf route; they are renamed. `tidy_individual()` read five states by position, which dropped TF24's later states and would mislabel a model laid out differently; it now returns every state the model integrates, by name, and FF16's columns are unchanged. Migration:
+  * `aux "opt_psi_stem"` (TF24 family: `ind$aux("opt_psi_stem")`, the `opt_psi_stem` column of collected results) -> `"opt_psi_leaf"`
+  * `leaf$opt_psi_stem_` -> `leaf$opt_psi_leaf_`
+  * `tidy_individual(results)` returns one column per state, named by the model's `ode_names`. FF16's columns are unchanged; a TF24-family individual gains its later states (`storage` onwards, and each variant's own), and a K93 individual, which has three states and failed before, now works.
 * **TF24f's finite-difference gradient is removed (#745).** TF24f tracks its collar potential by the exact gradient of profit, which has been the default since #527; the centred finite difference that `use_ad_gradient = FALSE` selected, and its step `psi_fd_step`, are gone. Default runs are unchanged. ⚠️ Setting either name on an existing strategy is silently ignored rather than refused (the strategy is a list, and its converter reads only the fields it knows), so an old script that asked for the finite difference now runs the exact gradient with no error; only `TF24f_Strategy(values = ...)` refuses an unknown field. Migration:
   * `s$use_ad_gradient <- TRUE` (removed) -> delete the line; the exact gradient is the only one
   * `s$use_ad_gradient <- FALSE` (removed) -> no equivalent: the finite-difference gradient is gone

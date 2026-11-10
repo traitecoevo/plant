@@ -159,7 +159,7 @@ Leaf:
     Rn_: {type: double, access: field}
     ra_: {type: double, access: field}
     hydraulic_cost_: {type: double, access: field}
-    opt_psi_stem_: {type: double, access: field, name_cpp: "opt_psi_leaf_"}
+    opt_psi_leaf_: {type: double, access: field}
     opt_ci_: {type: double, access: field}
     E_up_: {type: double, access: field}
     f_r: {type: "std::vector<double>", access: field}

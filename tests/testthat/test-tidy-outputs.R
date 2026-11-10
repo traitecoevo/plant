@@ -115,6 +115,23 @@ test_that("tidy_individual returns a tidy table of individual states over time",
   expect_true(all(diff(tidy$height) > 0))
 })
 
+test_that("tidy_individual keeps every state, by name", {
+  # TF24 integrates states after the five FF16 has; reading by position dropped
+  # them, and would mislabel any model whose states are laid out differently.
+  p <- testing_parameters("TF24")
+  s <- generate_strategy(p, trait_matrix(0.0825, "lma"))[[1]]
+  env <- Environment("TF24")
+  env$set_fixed_environment(1.0, 150)
+  res <- grow_individual_to_time(TF24_Individual(s), c(1, 2), env)
+  tidy <- tidy_individual(res)
+  expect_identical(names(tidy), c("step", "time", colnames(res$state)))
+  expect_true("storage" %in% names(tidy))
+  for (v in colnames(res$state)) {
+    expect_true(all(is.finite(tidy[[v]])))
+    expect_identical(tidy[[v]], unname(res$state[, v]))
+  }
+})
+
 test_that("interpolate_to_times recovers known values and NAs out-of-range", {
   # two nodes with height exactly linear in time: node 1 -> 2t, node 2 -> 3t.
   # A natural spline through collinear points is the line itself, so the

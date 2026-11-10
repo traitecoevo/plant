@@ -172,7 +172,7 @@ test_that("coarse roots stay out of TF24's water uptake", {
     ind <- Individual("TF24", "TF24_Env")(s)
     ind$set_state("height", 8)
     ind$compute_rates(env)
-    vapply(c("root_mass", "transpiration", "E_up_", "opt_psi_stem",
+    vapply(c("root_mass", "transpiration", "E_up_", "opt_psi_leaf",
              "opt_root_psi", "assimilation"),
            function(nm) ind$aux(nm), numeric(1))
   }

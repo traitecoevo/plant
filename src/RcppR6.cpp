@@ -800,11 +800,11 @@ void Leaf__hydraulic_cost___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double 
 }
 
 // [[Rcpp::export]]
-double Leaf__opt_psi_stem___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+double Leaf__opt_psi_leaf___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   return obj_->opt_psi_leaf_;
 }
 // [[Rcpp::export]]
-void Leaf__opt_psi_stem___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+void Leaf__opt_psi_leaf___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
   obj_->opt_psi_leaf_ = value;
 }
 

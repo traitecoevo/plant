@@ -23,7 +23,7 @@ test_that("TF24_plot_diagnostics assembles a TF24 stand diagnostic figure", {
   # Every aux the figure plots must have reached the collected per-node table.
   # ggplot's aes() is lazy, so a missing column would not error until the plot
   # were drawn -- which this test does not do. Check the columns directly.
-  expect_true(all(c("opt_psi_stem", "opt_root_psi", "profit", "stom_cond_CO2",
+  expect_true(all(c("opt_psi_leaf", "opt_root_psi", "profit", "stom_cond_CO2",
                     "Tleaf") %in% names(results$species)))
 
   p <- TF24_plot_diagnostics(results, x, y)

@@ -721,12 +721,12 @@ Leaf__hydraulic_cost___set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__hydraulic_cost___set', PACKAGE = 'plant', obj_, value))
 }
 
-Leaf__opt_psi_stem___get <- function(obj_) {
-    .Call('_plant_Leaf__opt_psi_stem___get', PACKAGE = 'plant', obj_)
+Leaf__opt_psi_leaf___get <- function(obj_) {
+    .Call('_plant_Leaf__opt_psi_leaf___get', PACKAGE = 'plant', obj_)
 }
 
-Leaf__opt_psi_stem___set <- function(obj_, value) {
-    invisible(.Call('_plant_Leaf__opt_psi_stem___set', PACKAGE = 'plant', obj_, value))
+Leaf__opt_psi_leaf___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__opt_psi_leaf___set', PACKAGE = 'plant', obj_, value))
 }
 
 Leaf__opt_ci___get <- function(obj_) {

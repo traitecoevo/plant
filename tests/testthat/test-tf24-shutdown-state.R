@@ -54,7 +54,7 @@ test_that("shut-down is not a one-way door", {
   after <- tf24_aux_at(ind, env, 0.30)     # rewet
 
   for (v in c("transpiration", "E_up_", "stom_cond_CO2", "assimilation",
-              "profit", "opt_psi_stem")) {
+              "profit", "opt_psi_leaf")) {
     expect_equal(after[[v]], before[[v]], info = v)
   }
 })
