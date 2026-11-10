@@ -78,7 +78,7 @@ events <- function(...) {
          params = ev$params[i])
 }
 
-## The within-time application order, mirroring EventType in node_schedule.h:
+## The within-time application order, mirroring EventType in schedule.h:
 ## environment first (it sets the conditions), then removals, then node
 ## introduction last so a newborn starts in the post-event environment.
 ## Kept in step with the C++ enum by the round-trip test in test-events.R.

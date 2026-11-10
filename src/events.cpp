@@ -249,9 +249,9 @@ void validate_event_horizon(const Events& events, double max_time) {
   }
 }
 
-std::vector<NodeScheduleEvent> to_schedule_events(const Events& events,
+std::vector<ScheduleEvent> to_schedule_events(const Events& events,
                                                   size_t n_species) {
-  std::vector<NodeScheduleEvent> ret;
+  std::vector<ScheduleEvent> ret;
   ret.reserve(events.size());
   for (size_t i = 0; i < events.size(); ++i) {
     const EventType type = event_type_from_string(events.type[i]);
@@ -275,21 +275,21 @@ std::vector<NodeScheduleEvent> to_schedule_events(const Events& events,
       }
       index = raw - 1;
     }
-    ret.push_back(NodeScheduleEvent(events.time[i], index, type, target,
+    ret.push_back(ScheduleEvent(events.time[i], index, type, target,
                                     events.params[i]));
   }
   return ret;
 }
 
 Events events_from_schedule_events(
-    const std::vector<NodeScheduleEvent>& events) {
+    const std::vector<ScheduleEvent>& events) {
   Events ret;
   ret.time.reserve(events.size());
   ret.type.reserve(events.size());
   ret.target.reserve(events.size());
   ret.target_index.reserve(events.size());
   ret.params.reserve(events.size());
-  for (std::vector<NodeScheduleEvent>::const_iterator e = events.begin();
+  for (std::vector<ScheduleEvent>::const_iterator e = events.begin();
        e != events.end(); ++e) {
     ret.time.push_back(e->time_introduction());
     ret.type.push_back(event_type_to_string(e->type));

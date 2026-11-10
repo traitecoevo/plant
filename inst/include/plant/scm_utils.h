@@ -2,7 +2,7 @@
 #ifndef PLANT_PLANT_SCM_UTILS_H_
 #define PLANT_PLANT_SCM_UTILS_H_
 
-#include <plant/node_schedule.h>
+#include <plant/schedule.h>
 #include <plant/events.h>
 
 namespace plant {
@@ -10,9 +10,9 @@ namespace plant {
 std::vector<double> node_schedule_times_default(double max_time);
 
 template <typename Parameters>
-NodeSchedule node_schedule_default(const Parameters& p) {
+Schedule schedule_default(const Parameters& p) {
   const double max_time = p.max_patch_lifetime;
-  NodeSchedule schedule(0);
+  Schedule schedule(0);
   schedule.r_set_max_time(max_time);
   std::vector<double> times = node_schedule_times_default(max_time);
   if (times.size() < 1) {
@@ -22,8 +22,8 @@ NodeSchedule node_schedule_default(const Parameters& p) {
 }
 
 template <typename Parameters>
-NodeSchedule make_node_schedule(const Parameters& p) {
-  NodeSchedule ret(p.size());
+Schedule make_schedule(const Parameters& p) {
+  Schedule ret(p.size());
   ret.r_set_max_time(p.max_patch_lifetime);
   ret.set_start_time(p.initial_time);
   ret.set_times(p.node_schedule_times);
@@ -37,12 +37,12 @@ NodeSchedule make_node_schedule(const Parameters& p) {
 // and falls back to the parameters -- which is what keeps every existing
 // caller on exactly the path it was on before events existed (#522).
 template <typename Parameters>
-NodeSchedule make_node_schedule(const Parameters& p, const Events& events) {
+Schedule make_schedule(const Parameters& p, const Events& events) {
   if (events.size() == 0) {
-    return make_node_schedule(p);
+    return make_schedule(p);
   }
   validate_event_horizon(events, p.max_patch_lifetime);
-  NodeSchedule ret(p.size());
+  Schedule ret(p.size());
   ret.r_set_max_time(p.max_patch_lifetime);
   ret.set_start_time(p.initial_time);
   ret.set_all_events(to_schedule_events(events, p.size()));

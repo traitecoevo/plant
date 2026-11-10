@@ -16,8 +16,8 @@ drain_column <- function(cmp, field) {
 }
 
 
-test_that("NodeScheduleEvent", {
-  e <- NodeScheduleEvent(pi, 1)
+test_that("ScheduleEvent", {
+  e <- ScheduleEvent(pi, 1)
 
   expect_identical(e$target_index, 1L)
   expect_identical(e$species_index_raw, 0.0)
@@ -31,11 +31,11 @@ test_that("NodeScheduleEvent", {
   expect_identical(e$time_end, pi)
 })
 
-test_that("Empty NodeSchedule", {
+test_that("Empty Schedule", {
   n_species <- 2
-  sched <- plant:::NodeSchedule(n_species)
+  sched <- plant:::Schedule(n_species)
 
-  expect_inherits(sched, "NodeSchedule")
+  expect_inherits(sched, "Schedule")
   expect_equal(sched$size, 0)
   expect_equal(sched$n_species, n_species)
 
@@ -48,7 +48,7 @@ test_that("Empty NodeSchedule", {
 
 test_that("Corner cases", {
   n_species <- 2
-  sched <- plant:::NodeSchedule(n_species)
+  sched <- plant:::Schedule(n_species)
 
   set.seed(1)
   t1 <- c(0.0, runif(10))
@@ -70,7 +70,7 @@ test_that("Set times (one species)", {
   t2 <- sort(c(0.0, runif(12)))
 
   n_species <- 2
-  sched <- plant:::NodeSchedule(n_species)
+  sched <- plant:::Schedule(n_species)
   sched$set_times(t1, 1L)
 
   expect_equal(sched$size, length(t1))
@@ -101,7 +101,7 @@ test_that("Set times (two species)", {
   t2 <- sort(c(0.0, runif(12)))
 
   n_species <- 2
-  sched <- plant:::NodeSchedule(n_species)
+  sched <- plant:::Schedule(n_species)
   sched$set_times(t1, 1L)
   sched$set_times(t2, 2L)
 
@@ -155,7 +155,7 @@ test_that("Resetting times replaces them", {
   t2 <- sort(c(0.0, runif(12)))
 
   n_species <- 2
-  sched <- plant:::NodeSchedule(n_species)
+  sched <- plant:::Schedule(n_species)
   sched$set_times(t1, 1L)
   sched$set_times(t2, 2L)
 
@@ -171,7 +171,7 @@ test_that("Setting max time behaves sensibly", {
   t1 <- sort(c(0.0, runif(10)))
   t2 <- sort(c(0.0, runif(12)))
 
-  sched <- plant:::NodeSchedule(2)
+  sched <- plant:::Schedule(2)
   sched$set_times(t1, 1)
 
   last_event <- function(x) {
@@ -206,11 +206,11 @@ test_that("Setting max time behaves sensibly", {
 
 test_that("max_time can be set on an empty schedule", {
   ## An empty schedule constrains max_time not at all, and this is the normal
-  ## case: make_node_schedule() and node_schedule_default() both set max_time
+  ## case: make_schedule() and schedule_default() both set max_time
   ## before adding any times. The bound is read off the last event, so the
   ## empty case has to be tested explicitly -- reading it unguarded was
   ## undefined behaviour that happened not to crash.
-  sched <- plant:::NodeSchedule(1)
+  sched <- plant:::Schedule(1)
   expect_equal(sched$size, 0)
   expect_silent(sched$max_time <- 10)
   expect_equal(sched$max_time, 10)
@@ -223,7 +223,7 @@ test_that("max_time can be set on an empty schedule", {
 
 test_that("Bulk get/set of times works", {
   n <- 3
-  sched <- plant:::NodeSchedule(n)
+  sched <- plant:::Schedule(n)
 
   set.seed(1)
   t_new <- lapply(seq_len(n), function(...) sort(runif(rpois(1, 10))))
@@ -245,7 +245,7 @@ test_that("ode_times", {
   n_species <- 2
   max_t <- max(c(t1, t2)) + mean(diff(sort(c(t1, t2))))
 
-  sched <- plant:::NodeSchedule(n_species)
+  sched <- plant:::Schedule(n_species)
   sched$set_times(t1, 1L)
   sched$set_times(t2, 2L)
   sched$max_time <- max_t
@@ -283,7 +283,7 @@ test_that("ode_times", {
 
   ## New schedule because setting and resetting may have changed node
   ## order.
-  sched <- plant:::NodeSchedule(n_species)
+  sched <- plant:::Schedule(n_species)
   sched$set_times(t1, 1L)
   sched$set_times(t2, 2L)
   sched$max_time <- max_t
@@ -318,8 +318,8 @@ test_that("ode_times", {
   expect_identical(sched$max_time, max(t_ode))
 })
 
-test_that("Can expand NodeSchedule", {
-  sched <- plant:::NodeSchedule(1)
+test_that("Can expand Schedule", {
+  sched <- plant:::Schedule(1)
   max_t <- 10
   times1 <- sort(runif(10))
   sched$max_time <- max_t

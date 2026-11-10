@@ -80,7 +80,7 @@ Species<T,E>                        all nodes/cohorts of one Strategy
 Patch<T,E>                          all Species sharing one Environment
 SCM<T,E>                            the deterministic solver (see §3)
 Parameters<T,E>                     model configuration (strategies, schedule, …)
-NodeSchedule                        the times at which cohorts are introduced
+Schedule                        the times at which cohorts are introduced
 ```
 
 Key headers to know:

@@ -44,9 +44,9 @@ public:
   parameters_type r_parameters() const { return parameters; }
   const patch_type &r_patch() const { return patch; }
 
-  // R-facing names mirror SCM (node_schedule / set_node_schedule[_times]).
-  NodeSchedule r_node_schedule() const { return node_schedule; }
-  void r_set_node_schedule(NodeSchedule x);
+  // R-facing names mirror SCM (schedule / set_schedule[_times]).
+  Schedule r_schedule() const { return schedule; }
+  void r_set_schedule(Schedule x);
   void r_set_node_schedule_times(std::vector<std::vector<double>> x);
   Rcpp::List r_get_state() const { return patch.r_get_state(); };
 
@@ -55,7 +55,7 @@ private:
 
   parameters_type parameters;
   patch_type patch;
-  NodeSchedule node_schedule;
+  Schedule schedule;
   odelia::ode::Solver<patch_type> solver;
 };
 
@@ -64,7 +64,7 @@ StochasticPatchRunner<T, E>::StochasticPatchRunner(parameters_type p,
                                                    environment_type e,
                                                    Control c)
     : parameters(p), patch(parameters, e, c),
-      node_schedule(make_empty_stochastic_schedule(parameters)),
+      schedule(make_empty_stochastic_schedule(parameters)),
       solver(patch, make_ode_control(c)) {
   parameters.validate();
   solver.set_collect(false);
@@ -86,7 +86,7 @@ size_t StochasticPatchRunner<T, E>::run_next() {
   const double t0 = time();
   auto& patch_solver = solver.get_system_ref();
 
-  const schedule_entry& intro = node_schedule.next();
+  const schedule_entry& intro = schedule.next();
   if (!util::identical(t0, intro.time)) {
     util::stop("Start time not what was expected");
   }
@@ -97,8 +97,8 @@ size_t StochasticPatchRunner<T, E>::run_next() {
     util::stop("The stochastic solver does not yet apply scheduled events "
                "other than node introductions");
   }
-  const double t_end = node_schedule.time_end();
-  node_schedule.pop();
+  const double t_end = schedule.time_end();
+  schedule.pop();
 
   // Arrival times are drawn from a continuous distribution, so an introduction
   // here names one species; the loop is what makes that an observation rather
@@ -141,7 +141,7 @@ template <typename T, typename E> bool StochasticPatchRunner<T, E>::deaths() {
 
 template <typename T, typename E>
 bool StochasticPatchRunner<T, E>::complete() const {
-  return node_schedule.remaining() == 0;
+  return schedule.remaining() == 0;
 }
 
 // NOTE: solver.reset() will set time within the solver to zero.
@@ -150,11 +150,11 @@ bool StochasticPatchRunner<T, E>::complete() const {
 // odelia::ode::Solver, and then here do explicitly ode_solver.set_time(0)?
 template <typename T, typename E> void StochasticPatchRunner<T, E>::reset() {
   patch.reset();
-  node_schedule.reset();
+  schedule.reset();
   solver.get_system_ref() = patch;
   solver.reset();
-  if (node_schedule.size() > 0) {
-    const double t = node_schedule.next().time;
+  if (schedule.size() > 0) {
+    const double t = schedule.next().time;
     if (t >= 0.0) {
       // One step of this length would be tens of years for a late first arrival,
       // and the environment's own states are integrated over it, so this leg
@@ -191,16 +191,16 @@ util::index StochasticPatchRunner<T, E>::r_run_next() {
 }
 
 template <typename T, typename E>
-void StochasticPatchRunner<T, E>::r_set_node_schedule(NodeSchedule x) {
+void StochasticPatchRunner<T, E>::r_set_schedule(Schedule x) {
   if (patch.node_ode_size() > 0) {
     util::stop("Cannot set schedule without resetting first");
   }
   util::check_length(x.get_n_species(), patch.size());
-  node_schedule = x;
+  schedule = x;
 
   // Update these here so that extracting Parameters would give the
   // new schedule, this making Parameters sufficient.
-  parameters.node_schedule_times = node_schedule.get_times();
+  parameters.node_schedule_times = schedule.get_times();
   reset();
 }
 
@@ -210,7 +210,7 @@ void StochasticPatchRunner<T, E>::r_set_node_schedule_times(
   if (patch.node_ode_size() > 0) {
     util::stop("Cannot set schedule without resetting first");
   }
-  node_schedule.set_times(x);
+  schedule.set_times(x);
   parameters.node_schedule_times = x;
   reset();
 }

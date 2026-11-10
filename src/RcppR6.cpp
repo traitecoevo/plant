@@ -1194,35 +1194,35 @@ plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> OdeR
 
 
 // [[Rcpp::export]]
-plant::NodeScheduleEvent NodeScheduleEvent__ctor(double introduction, plant::util::index species_index) {
-  return plant::NodeScheduleEvent(introduction, species_index);
+plant::ScheduleEvent ScheduleEvent__ctor(double introduction, plant::util::index species_index) {
+  return plant::ScheduleEvent(introduction, species_index);
 }
 // [[Rcpp::export]]
-plant::util::index NodeScheduleEvent__target_index__get(plant::RcppR6::RcppR6<plant::NodeScheduleEvent> obj_) {
+plant::util::index ScheduleEvent__target_index__get(plant::RcppR6::RcppR6<plant::ScheduleEvent> obj_) {
   return obj_->target_index;
 }
 // [[Rcpp::export]]
-void NodeScheduleEvent__target_index__set(plant::RcppR6::RcppR6<plant::NodeScheduleEvent> obj_, plant::util::index value) {
+void ScheduleEvent__target_index__set(plant::RcppR6::RcppR6<plant::ScheduleEvent> obj_, plant::util::index value) {
   obj_->target_index = value;
 }
 
 // [[Rcpp::export]]
-std::vector<double> NodeScheduleEvent__times__get(plant::RcppR6::RcppR6<plant::NodeScheduleEvent> obj_) {
+std::vector<double> ScheduleEvent__times__get(plant::RcppR6::RcppR6<plant::ScheduleEvent> obj_) {
   return obj_->times;
 }
 
 // [[Rcpp::export]]
-double NodeScheduleEvent__time_introduction__get(plant::RcppR6::RcppR6<plant::NodeScheduleEvent> obj_) {
+double ScheduleEvent__time_introduction__get(plant::RcppR6::RcppR6<plant::ScheduleEvent> obj_) {
   return obj_->time_introduction();
 }
 
 // [[Rcpp::export]]
-double NodeScheduleEvent__time_end__get(plant::RcppR6::RcppR6<plant::NodeScheduleEvent> obj_) {
+double ScheduleEvent__time_end__get(plant::RcppR6::RcppR6<plant::ScheduleEvent> obj_) {
   return obj_->time_end();
 }
 
 // [[Rcpp::export]]
-size_t NodeScheduleEvent__species_index_raw__get(plant::RcppR6::RcppR6<plant::NodeScheduleEvent> obj_) {
+size_t ScheduleEvent__species_index_raw__get(plant::RcppR6::RcppR6<plant::ScheduleEvent> obj_) {
   return obj_->species_index_raw();
 }
 
@@ -1248,105 +1248,105 @@ SEXP EventLog__vdor(SEXP obj) {
 
 
 // [[Rcpp::export]]
-plant::NodeSchedule NodeSchedule__ctor(size_t n_species) {
-  return plant::NodeSchedule(n_species);
+plant::Schedule Schedule__ctor(size_t n_species) {
+  return plant::Schedule(n_species);
 }
 // [[Rcpp::export]]
-plant::NodeSchedule NodeSchedule__expand(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_, size_t n_extra, std::vector<double> times) {
+plant::Schedule Schedule__expand(plant::RcppR6::RcppR6<plant::Schedule> obj_, size_t n_extra, std::vector<double> times) {
   return obj_->expand(n_extra, times);
 }
 // [[Rcpp::export]]
-void NodeSchedule__clear_times(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_, plant::util::index species_index) {
+void Schedule__clear_times(plant::RcppR6::RcppR6<plant::Schedule> obj_, plant::util::index species_index) {
   obj_->clear_times(species_index);
 }
 // [[Rcpp::export]]
-void NodeSchedule__set_ode_steps(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_, std::vector<double> times, std::vector<double> sizes, std::vector<std::vector<double> > input_slopes, std::vector<std::vector<double> > substep_ends) {
+void Schedule__set_ode_steps(plant::RcppR6::RcppR6<plant::Schedule> obj_, std::vector<double> times, std::vector<double> sizes, std::vector<std::vector<double> > input_slopes, std::vector<std::vector<double> > substep_ends) {
   obj_->r_set_ode_steps(times, sizes, input_slopes, substep_ends);
 }
 // [[Rcpp::export]]
-void NodeSchedule__clear_ode_steps(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_) {
+void Schedule__clear_ode_steps(plant::RcppR6::RcppR6<plant::Schedule> obj_) {
   obj_->r_clear_ode_steps();
 }
 // [[Rcpp::export]]
-void NodeSchedule__set_times(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_, std::vector<double> times, plant::util::index species_index) {
+void Schedule__set_times(plant::RcppR6::RcppR6<plant::Schedule> obj_, std::vector<double> times, plant::util::index species_index) {
   obj_->r_set_times(times, species_index);
 }
 // [[Rcpp::export]]
-std::vector<double> NodeSchedule__times(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_, plant::util::index species_index) {
+std::vector<double> Schedule__times(plant::RcppR6::RcppR6<plant::Schedule> obj_, plant::util::index species_index) {
   return obj_->r_times(species_index);
 }
 // [[Rcpp::export]]
-void NodeSchedule__reset(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_) {
+void Schedule__reset(plant::RcppR6::RcppR6<plant::Schedule> obj_) {
   obj_->reset();
 }
 // [[Rcpp::export]]
-void NodeSchedule__pop(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_) {
+void Schedule__pop(plant::RcppR6::RcppR6<plant::Schedule> obj_) {
   obj_->pop();
 }
 // [[Rcpp::export]]
-plant::NodeSchedule NodeSchedule__copy(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_) {
+plant::Schedule Schedule__copy(plant::RcppR6::RcppR6<plant::Schedule> obj_) {
   return obj_->r_copy();
 }
 // [[Rcpp::export]]
-size_t NodeSchedule__size__get(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_) {
+size_t Schedule__size__get(plant::RcppR6::RcppR6<plant::Schedule> obj_) {
   return obj_->size();
 }
 
 // [[Rcpp::export]]
-size_t NodeSchedule__n_species__get(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_) {
+size_t Schedule__n_species__get(plant::RcppR6::RcppR6<plant::Schedule> obj_) {
   return obj_->get_n_species();
 }
 
 // [[Rcpp::export]]
-SEXP NodeSchedule__next_introduction__get(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_) {
+SEXP Schedule__next_introduction__get(plant::RcppR6::RcppR6<plant::Schedule> obj_) {
   return obj_->r_next_introduction();
 }
 
 // [[Rcpp::export]]
-size_t NodeSchedule__remaining__get(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_) {
+size_t Schedule__remaining__get(plant::RcppR6::RcppR6<plant::Schedule> obj_) {
   return obj_->remaining();
 }
 
 // [[Rcpp::export]]
-double NodeSchedule__max_time__get(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_) {
+double Schedule__max_time__get(plant::RcppR6::RcppR6<plant::Schedule> obj_) {
   return obj_->get_max_time();
 }
 // [[Rcpp::export]]
-void NodeSchedule__max_time__set(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_, double value) {
+void Schedule__max_time__set(plant::RcppR6::RcppR6<plant::Schedule> obj_, double value) {
   obj_->r_set_max_time(value);
 }
 
 // [[Rcpp::export]]
-std::vector<double> NodeSchedule__ode_times__get(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_) {
+std::vector<double> Schedule__ode_times__get(plant::RcppR6::RcppR6<plant::Schedule> obj_) {
   return obj_->r_ode_times();
 }
 
 // [[Rcpp::export]]
-std::vector<double> NodeSchedule__ode_step_sizes__get(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_) {
+std::vector<double> Schedule__ode_step_sizes__get(plant::RcppR6::RcppR6<plant::Schedule> obj_) {
   return obj_->r_ode_step_sizes();
 }
 
 // [[Rcpp::export]]
-std::vector<std::vector<double> > NodeSchedule__ode_soil_input_slopes__get(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_) {
+std::vector<std::vector<double> > Schedule__ode_soil_input_slopes__get(plant::RcppR6::RcppR6<plant::Schedule> obj_) {
   return obj_->r_ode_soil_input_slopes();
 }
 
 // [[Rcpp::export]]
-std::vector<std::vector<double> > NodeSchedule__ode_soil_substep_ends__get(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_) {
+std::vector<std::vector<double> > Schedule__ode_soil_substep_ends__get(plant::RcppR6::RcppR6<plant::Schedule> obj_) {
   return obj_->r_ode_soil_substep_ends();
 }
 
 // [[Rcpp::export]]
-bool NodeSchedule__using_ode_steps__get(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_) {
+bool Schedule__using_ode_steps__get(plant::RcppR6::RcppR6<plant::Schedule> obj_) {
   return obj_->using_ode_steps();
 }
 
 // [[Rcpp::export]]
-SEXP NodeSchedule__all_times__get(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_) {
+SEXP Schedule__all_times__get(plant::RcppR6::RcppR6<plant::Schedule> obj_) {
   return obj_->r_all_times();
 }
 // [[Rcpp::export]]
-void NodeSchedule__all_times__set(plant::RcppR6::RcppR6<plant::NodeSchedule> obj_, SEXP value) {
+void Schedule__all_times__set(plant::RcppR6::RcppR6<plant::Schedule> obj_, SEXP value) {
   obj_->r_set_all_times(value);
 }
 
@@ -4615,12 +4615,12 @@ std::vector<std::vector<double>> SCM___FF16__FF16_Env__refinement_error_by_node_
 }
 
 // [[Rcpp::export]]
-plant::NodeSchedule SCM___FF16__FF16_Env__node_schedule__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
-  return obj_->r_node_schedule();
+plant::Schedule SCM___FF16__FF16_Env__schedule__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
+  return obj_->r_schedule();
 }
 // [[Rcpp::export]]
-void SCM___FF16__FF16_Env__node_schedule__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_, plant::NodeSchedule value) {
-  obj_->r_set_node_schedule(value);
+void SCM___FF16__FF16_Env__schedule__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_, plant::Schedule value) {
+  obj_->r_set_schedule(value);
 }
 
 // [[Rcpp::export]]
@@ -4785,12 +4785,12 @@ std::vector<std::vector<double>> SCM___TF24__TF24_Env__refinement_error_by_node_
 }
 
 // [[Rcpp::export]]
-plant::NodeSchedule SCM___TF24__TF24_Env__node_schedule__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->r_node_schedule();
+plant::Schedule SCM___TF24__TF24_Env__schedule__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_schedule();
 }
 // [[Rcpp::export]]
-void SCM___TF24__TF24_Env__node_schedule__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::NodeSchedule value) {
-  obj_->r_set_node_schedule(value);
+void SCM___TF24__TF24_Env__schedule__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Schedule value) {
+  obj_->r_set_schedule(value);
 }
 
 // [[Rcpp::export]]
@@ -4955,12 +4955,12 @@ std::vector<std::vector<double>> SCM___TF24f__TF24_Env__refinement_error_by_node
 }
 
 // [[Rcpp::export]]
-plant::NodeSchedule SCM___TF24f__TF24_Env__node_schedule__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->r_node_schedule();
+plant::Schedule SCM___TF24f__TF24_Env__schedule__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_schedule();
 }
 // [[Rcpp::export]]
-void SCM___TF24f__TF24_Env__node_schedule__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::NodeSchedule value) {
-  obj_->r_set_node_schedule(value);
+void SCM___TF24f__TF24_Env__schedule__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Schedule value) {
+  obj_->r_set_schedule(value);
 }
 
 // [[Rcpp::export]]
@@ -5125,12 +5125,12 @@ std::vector<std::vector<double>> SCM___TF24t__TF24_Env__refinement_error_by_node
 }
 
 // [[Rcpp::export]]
-plant::NodeSchedule SCM___TF24t__TF24_Env__node_schedule__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->r_node_schedule();
+plant::Schedule SCM___TF24t__TF24_Env__schedule__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_schedule();
 }
 // [[Rcpp::export]]
-void SCM___TF24t__TF24_Env__node_schedule__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::NodeSchedule value) {
-  obj_->r_set_node_schedule(value);
+void SCM___TF24t__TF24_Env__schedule__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Schedule value) {
+  obj_->r_set_schedule(value);
 }
 
 // [[Rcpp::export]]
@@ -5295,12 +5295,12 @@ std::vector<std::vector<double>> SCM___TF24w__TF24_Env__refinement_error_by_node
 }
 
 // [[Rcpp::export]]
-plant::NodeSchedule SCM___TF24w__TF24_Env__node_schedule__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->r_node_schedule();
+plant::Schedule SCM___TF24w__TF24_Env__schedule__get(plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_schedule();
 }
 // [[Rcpp::export]]
-void SCM___TF24w__TF24_Env__node_schedule__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::NodeSchedule value) {
-  obj_->r_set_node_schedule(value);
+void SCM___TF24w__TF24_Env__schedule__set(plant::RcppR6::RcppR6<plant::SCM<plant::TF24w_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Schedule value) {
+  obj_->r_set_schedule(value);
 }
 
 // [[Rcpp::export]]
@@ -5465,12 +5465,12 @@ std::vector<std::vector<double>> SCM___K93__K93_Env__refinement_error_by_node__g
 }
 
 // [[Rcpp::export]]
-plant::NodeSchedule SCM___K93__K93_Env__node_schedule__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  return obj_->r_node_schedule();
+plant::Schedule SCM___K93__K93_Env__schedule__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->r_schedule();
 }
 // [[Rcpp::export]]
-void SCM___K93__K93_Env__node_schedule__set(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::NodeSchedule value) {
-  obj_->r_set_node_schedule(value);
+void SCM___K93__K93_Env__schedule__set(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::Schedule value) {
+  obj_->r_set_schedule(value);
 }
 
 // [[Rcpp::export]]
@@ -6827,12 +6827,12 @@ plant::StochasticPatch<plant::FF16_Strategy<double> ,plant::FF16_Environment<dou
 }
 
 // [[Rcpp::export]]
-plant::NodeSchedule StochasticPatchRunner___FF16__FF16_Env__node_schedule__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
-  return obj_->r_node_schedule();
+plant::Schedule StochasticPatchRunner___FF16__FF16_Env__schedule__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_) {
+  return obj_->r_schedule();
 }
 // [[Rcpp::export]]
-void StochasticPatchRunner___FF16__FF16_Env__node_schedule__set(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_, plant::NodeSchedule value) {
-  obj_->r_set_node_schedule(value);
+void StochasticPatchRunner___FF16__FF16_Env__schedule__set(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16_Strategy<double> ,plant::FF16_Environment<double> > > obj_, plant::Schedule value) {
+  obj_->r_set_schedule(value);
 }
 
 
@@ -6877,12 +6877,12 @@ plant::StochasticPatch<plant::TF24_Strategy<double> ,plant::TF24_Environment<dou
 }
 
 // [[Rcpp::export]]
-plant::NodeSchedule StochasticPatchRunner___TF24__TF24_Env__node_schedule__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->r_node_schedule();
+plant::Schedule StochasticPatchRunner___TF24__TF24_Env__schedule__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_schedule();
 }
 // [[Rcpp::export]]
-void StochasticPatchRunner___TF24__TF24_Env__node_schedule__set(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::NodeSchedule value) {
-  obj_->r_set_node_schedule(value);
+void StochasticPatchRunner___TF24__TF24_Env__schedule__set(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Schedule value) {
+  obj_->r_set_schedule(value);
 }
 
 
@@ -6927,12 +6927,12 @@ plant::StochasticPatch<plant::TF24f_Strategy<double> ,plant::TF24_Environment<do
 }
 
 // [[Rcpp::export]]
-plant::NodeSchedule StochasticPatchRunner___TF24f__TF24_Env__node_schedule__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->r_node_schedule();
+plant::Schedule StochasticPatchRunner___TF24f__TF24_Env__schedule__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_schedule();
 }
 // [[Rcpp::export]]
-void StochasticPatchRunner___TF24f__TF24_Env__node_schedule__set(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::NodeSchedule value) {
-  obj_->r_set_node_schedule(value);
+void StochasticPatchRunner___TF24f__TF24_Env__schedule__set(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24f_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Schedule value) {
+  obj_->r_set_schedule(value);
 }
 
 
@@ -6977,12 +6977,12 @@ plant::StochasticPatch<plant::TF24t_Strategy<double> ,plant::TF24_Environment<do
 }
 
 // [[Rcpp::export]]
-plant::NodeSchedule StochasticPatchRunner___TF24t__TF24_Env__node_schedule__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->r_node_schedule();
+plant::Schedule StochasticPatchRunner___TF24t__TF24_Env__schedule__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_schedule();
 }
 // [[Rcpp::export]]
-void StochasticPatchRunner___TF24t__TF24_Env__node_schedule__set(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::NodeSchedule value) {
-  obj_->r_set_node_schedule(value);
+void StochasticPatchRunner___TF24t__TF24_Env__schedule__set(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24t_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Schedule value) {
+  obj_->r_set_schedule(value);
 }
 
 
@@ -7027,12 +7027,12 @@ plant::StochasticPatch<plant::TF24w_Strategy<double> ,plant::TF24_Environment<do
 }
 
 // [[Rcpp::export]]
-plant::NodeSchedule StochasticPatchRunner___TF24w__TF24_Env__node_schedule__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24w_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
-  return obj_->r_node_schedule();
+plant::Schedule StochasticPatchRunner___TF24w__TF24_Env__schedule__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24w_Strategy<double> ,plant::TF24_Environment<double> > > obj_) {
+  return obj_->r_schedule();
 }
 // [[Rcpp::export]]
-void StochasticPatchRunner___TF24w__TF24_Env__node_schedule__set(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24w_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::NodeSchedule value) {
-  obj_->r_set_node_schedule(value);
+void StochasticPatchRunner___TF24w__TF24_Env__schedule__set(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::TF24w_Strategy<double> ,plant::TF24_Environment<double> > > obj_, plant::Schedule value) {
+  obj_->r_set_schedule(value);
 }
 
 
@@ -7077,12 +7077,12 @@ plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> StochasticPat
 }
 
 // [[Rcpp::export]]
-plant::NodeSchedule StochasticPatchRunner___K93__K93_Env__node_schedule__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  return obj_->r_node_schedule();
+plant::Schedule StochasticPatchRunner___K93__K93_Env__schedule__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->r_schedule();
 }
 // [[Rcpp::export]]
-void StochasticPatchRunner___K93__K93_Env__node_schedule__set(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::NodeSchedule value) {
-  obj_->r_set_node_schedule(value);
+void StochasticPatchRunner___K93__K93_Env__schedule__set(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::Schedule value) {
+  obj_->r_set_schedule(value);
 }
 
 

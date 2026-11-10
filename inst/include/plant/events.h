@@ -2,7 +2,7 @@
 #ifndef PLANT_PLANT_EVENTS_H_
 #define PLANT_PLANT_EVENTS_H_
 
-#include <plant/node_schedule.h>
+#include <plant/schedule.h>
 #include <plant/util.h>
 
 #include <string>
@@ -114,11 +114,11 @@ void validate_event_horizon(const Events& events, double max_time);
 
 // Events -> queue entries. Validates species indices against the number of
 // species, which Events itself cannot know.
-std::vector<NodeScheduleEvent> to_schedule_events(const Events& events,
+std::vector<ScheduleEvent> to_schedule_events(const Events& events,
                                                   size_t n_species);
 
 // Queue entries -> Events, for reading a (possibly refined) schedule back out.
-Events events_from_schedule_events(const std::vector<NodeScheduleEvent>& events);
+Events events_from_schedule_events(const std::vector<ScheduleEvent>& events);
 
 }
 

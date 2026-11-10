@@ -43,12 +43,12 @@ test_that("Default schedule", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]](), strategy_types[[x]]()))
-    node_schedule <- node_schedule_default(p)
-    expect_inherits(node_schedule, "NodeSchedule")
-    expect_equal(node_schedule$n_species, length(p$strategies))
+    schedule <- schedule_default(p)
+    expect_inherits(schedule, "Schedule")
+    expect_equal(schedule$n_species, length(p$strategies))
     tt <- node_schedule_times_default(p$max_patch_lifetime)
-    expect_identical(node_schedule$times(1), tt)
-    expect_identical(node_schedule$times(2), tt)
+    expect_identical(schedule$times(1), tt)
+    expect_identical(schedule$times(2), tt)
   }
 })
 

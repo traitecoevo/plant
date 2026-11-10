@@ -37,23 +37,23 @@ test_that("Run SCM", {
     expect_inherits(scm$patch$species[[1]]$new_node, sprintf("Node<%s,%s>",x,e))
     expect_identical(scm$patch$time, 0.0)
 
-    sched <- scm$node_schedule
-    cmp_sched <- make_node_schedule(p)
+    sched <- scm$schedule
+    cmp_sched <- make_schedule(p)
     expect_equal(sched$size, cmp_sched$size)
     expect_equal(sched$all_times, cmp_sched$all_times)
 
     ## If the schedule is for the wrong number of species, it should cause
     ## an error...
-    sched2 <- plant:::NodeSchedule(sched$n_species + 1)
-    expect_error(scm$node_schedule <- sched2, "Incorrect length input; expected 1, received 2")
+    sched2 <- plant:::Schedule(sched$n_species + 1)
+    expect_error(scm$schedule <- sched2, "Incorrect length input; expected 1, received 2")
 
     ## Build a schedule for 14 introductions from t=0 to t=5
     t <- seq(0, 5, length.out=14)
     sched$set_times(t, 1)
     sched$max_time <- max(t) + diff(t)[[1]]
-    scm$node_schedule <- sched
+    scm$schedule <- sched
 
-    expect_identical(scm$node_schedule$all_times, sched$all_times)
+    expect_identical(scm$schedule$all_times, sched$all_times)
     ## Parameters has been updated:
     expect_identical(scm$parameters$node_schedule_times, sched$all_times)
 
@@ -63,7 +63,7 @@ test_that("Run SCM", {
     ## Before starting, check that the SCM is actually empty
     expect_equal(scm$time, 0.0)
     expect_equal(scm$patch$node_ode_size, 0)
-    expect_equal(scm$node_schedule$remaining, length(t))
+    expect_equal(scm$schedule$remaining, length(t))
 
     ode_size <- Node(x, e)(strategy_types[[x]]())$ode_size
 
@@ -71,7 +71,7 @@ test_that("Run SCM", {
     ## introduction so we can check per-step progression.
     scm$collect <- TRUE
     scm$run()
-    expect_equal(scm$node_schedule$remaining, 0)
+    expect_equal(scm$schedule$remaining, 0)
 
     ## history[[1]] is the initial (empty) patch; the remaining snapshots are
     ## the state after each of the scheduled introductions.
@@ -88,14 +88,14 @@ test_that("Run SCM", {
                  ode_size * seq_along(t))
 
     ## Trying to set a schedule without resetting first fails
-    expect_error(scm$node_schedule <- sched, "Cannot set schedule without resetting first")
+    expect_error(scm$schedule <- sched, "Cannot set schedule without resetting first")
 
     ## Reset everything
     ## "SCM reset successful"
     scm$reset()
     expect_equal(scm$time, 0.0)
     expect_equal(scm$patch$node_ode_size, 0)
-    expect_equal(scm$node_schedule$remaining, length(t))
+    expect_equal(scm$schedule$remaining, length(t))
 
     ## At this point, and possibly before scm$net_reproduction_ratio is corrupt.
 
@@ -136,11 +136,11 @@ test_that("Run SCM", {
     expect_identical(res_e_2, res_e_1)
 
     ## Pull the times out of the SCM and set them in the schedule:
-    sched <- scm$node_schedule
+    sched <- scm$schedule
     sched$set_ode_steps(scm$ode_times, scm$ode_step_sizes,
                         scm$ode_soil_input_slopes, scm$ode_soil_substep_ends)
     scm$reset() # must reset
-    scm$node_schedule <- sched
+    scm$schedule <- sched
 
     ## So; this does not actually produce *exactly* the same output, which
     ## is very surprising.  It's definitely "close enough" but not exactly
@@ -176,15 +176,15 @@ test_that("A pinned run on a run's own steps reproduces it", {
 
     rerun <- function(with_sizes) {
       scm <- SCM(x, environment_types[[x]])(p, env, empty_events(), Control())
-      sched <- scm$node_schedule
-      sched$all_times <- free$node_schedule$all_times
+      sched <- scm$schedule
+      sched$all_times <- free$schedule$all_times
       if (with_sizes) {
         sched$set_ode_steps(free$ode_times, free$ode_step_sizes,
                             free$ode_soil_input_slopes, free$ode_soil_substep_ends)
       } else {
         sched$set_ode_steps(free$ode_times, numeric(0), list(), list())
       }
-      scm$node_schedule <- sched
+      scm$schedule <- sched
       scm$run()
       scm
     }
@@ -207,7 +207,7 @@ test_that("an ODE schedule is installed whole or refused", {
   p <- add_strategies(p, trait_matrix(0.0825, "lma"))
   scm <- SCM("FF16", "FF16_Env")(p, Environment("FF16"), empty_events(), Control())
   scm$run()
-  sched <- scm$node_schedule
+  sched <- scm$schedule
 
   ## The times and the sizes are two halves of one schedule, so they go in
   ## together: there is no setter that takes one and keeps the other, and so no
@@ -423,12 +423,12 @@ test_that("A run that substepped the soil is rerun, swept and invaded as it ran"
   ## A pinned run of the schedule, records and all, repeats the run bit for bit.
   rerun <- function(q) {
     scm <- SCM("TF24", "TF24_Env")(q, env(), empty_events(), ctrl)
-    sched <- scm$node_schedule
-    sched$all_times <- substepped$node_schedule$all_times
+    sched <- scm$schedule
+    sched$all_times <- substepped$schedule$all_times
     sched$set_ode_steps(substepped$ode_times, substepped$ode_step_sizes,
                         substepped$ode_soil_input_slopes,
                         substepped$ode_soil_substep_ends)
-    scm$node_schedule <- sched
+    scm$schedule <- sched
     scm$run()
     scm
   }
@@ -498,12 +498,12 @@ test_that("schedule setting", {
 
     ## Then set a node schedule:
     ## Build a schedule for 14 introductions from t=0 to t=5
-    sched <- scm$node_schedule
+    sched <- scm$schedule
     t <- seq(0, sched$max_time, length.out=14)
     scm$set_node_schedule_times(list(t))
 
     ## Did set in the SCM:
-    expect_identical(scm$node_schedule$all_times, list(t))
+    expect_identical(scm$schedule$all_times, list(t))
 
     ## And updated in the parameters:
     p2 <- scm$parameters
@@ -511,13 +511,13 @@ test_that("schedule setting", {
     expect_identical(p2$node_schedule_times, list(t))
 
     ## Remake the schedule:
-    sched2 <- make_node_schedule(p2)
+    sched2 <- make_schedule(p2)
     expect_identical(sched2$max_time, sched$max_time)
     expect_identical(sched2$all_times, list(t))
 
     scm2 <- SCM(x, e)(p2, env, empty_events(), ctrl)
-    expect_identical(scm2$node_schedule$max_time, sched2$max_time)
-    expect_identical(scm2$node_schedule$all_times, sched2$all_times)
+    expect_identical(scm2$schedule$max_time, sched2$max_time)
+    expect_identical(scm2$schedule$all_times, sched2$all_times)
   }
 })
 
@@ -534,7 +534,7 @@ test_that("Offspring production & error calculations correct", {
     expect_inherits(scm, sprintf("SCM<%s,%s>", x, e))
 
     net_reproduction_ratio_R <- function(scm, error=FALSE) {
-      a <- scm$node_schedule$times(1)
+      a <- scm$schedule$times(1)
       density <- purrr::map_dbl(a, ~ scm$patch$density(.x))
       net_reproduction_ratio_by_node_weighted <- density *
         scm$patch$species[[1]]$net_reproduction_ratio_by_node *
@@ -675,11 +675,11 @@ test_that("store_recording records one state per schedule_row", {
     scm <- SCM(x, e)(p, Environment(x), empty_events(), Control())
 
     ## A short schedule: eight introductions from t = 0 to t = 2.
-    sched <- scm$node_schedule
+    sched <- scm$schedule
     t <- seq(0, 2, length.out = 8)
     sched$set_times(t, 1)
     sched$max_time <- max(t) + diff(t)[[1]]
-    scm$node_schedule <- sched
+    scm$schedule <- sched
 
     ## Recording moves nothing: the state the run ends on is the last recorded.
     scm$run()
