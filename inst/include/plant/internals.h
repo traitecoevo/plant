@@ -35,10 +35,10 @@ inline constexpr int FECUNDITY_INDEX = 2;
 // 745.14, so survival_individual() and mortality_probability() read the numbers
 // +Inf gave them.
 //
-// ⚠️ EVERY `mortality_dt` MUST TEST THIS BESIDE `is_finite`, and all three do.
-// That test is what stops a failed cohort's state moving again; keyed on
-// finiteness alone a finite hazard passes it, the rate returns, and the run is
-// no longer the one +Inf produced.
+// ⚠️ EVERY `mortality_dt` MUST TEST THIS BESIDE `is_finite`, through
+// mortality_hazard_live() in strategy.h. That test is what stops a failed
+// cohort's state moving again; keyed on finiteness alone a finite hazard passes
+// it, the rate returns, and the run is no longer the one +Inf produced.
 inline constexpr double establishment_failure_hazard = 750.0;
 
 // The scalar S carries the state, its rates, the auxiliary quantities derived

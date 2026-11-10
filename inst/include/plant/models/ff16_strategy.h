@@ -1255,20 +1255,9 @@ template <typename S>
 S FF16_Strategy<S>::mortality_dt(const S& productivity_area,
                                  const S& cumulative_mortality) const {
 
-  // NOTE: When plants are extremely inviable, the rate of change in
-  // mortality can be Inf, because net production is negative, leaf
-  // area is small and so we get exp(big number).  However, most of
-  // the time that happens we should get infinite mortality variable
-  // levels and the rate of change won't matter.  It is possible that
-  // we will need to trim this to some large finite value, but for
-  // now, just checking that the actual mortality rate is finite.
-  // ⚠️ THE CEILING IS TESTED BESIDE FINITENESS, and the pair must not be
-  // reduced back to one test. compute_initial_conditions holds an unestablished
-  // recruit's hazard at establishment_failure_hazard rather than at the +Inf
-  // -log(0) gives, so this is the test that keeps such a cohort's rate parked --
-  // which is what makes the finite hazard bit-identical to the infinite one.
-  if (util::is_finite(cumulative_mortality) &&
-      cumulative_mortality < establishment_failure_hazard) {
+  // A hazard that is non-finite or held at establishment_failure_hazard no
+  // longer moves; see mortality_hazard_live().
+  if (mortality_hazard_live(cumulative_mortality)) {
     return
       mortality_growth_independent_dt() +
       mortality_growth_dependent_dt(productivity_area);
@@ -1414,12 +1403,8 @@ void FF16_Strategy<S>::prepare_strategy() {
         at_tangent.mass_live_given_height(probe));
   }
 
-  if (this->is_variable_birth_rate) {
-    this->extrinsic_drivers.set_variable("birth_rate", this->birth_rate_x,
-                                         this->birth_rate_y,
-                                         odelia::drivers::Slopes::monotone);
-  } else {
-    this->extrinsic_drivers.set_constant("birth_rate", this->birth_rate_y[0]);
+  this->set_birth_rate_driver();
+  if (!this->is_variable_birth_rate) {
     birth_rate_ = this->birth_rate_y[0];
   }
 }
