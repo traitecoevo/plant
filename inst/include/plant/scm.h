@@ -67,7 +67,8 @@ void clear_recorded_refusal(Patch& patch) {
   }
 }
 
-// SCM: the "Solver for Characteristics Method" driver.
+// SCM: plant's deterministic solver, which integrates the size-density PDE by
+// the method of characteristics.
 //
 // Owns a Patch (the population being integrated), a NodeSchedule (when each
 // species' nodes are introduced), and an ODE Solver. It steps the patch

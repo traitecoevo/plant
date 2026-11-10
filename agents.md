@@ -122,7 +122,7 @@ Every Strategy carries a `Control` and an `ExtrinsicDrivers` object.
 
 `plant` solves the same model two ways:
 
-1. **Deterministic — SCM (Solver via method of Characteristics).** Cohorts (`Node`s) are introduced on a schedule and integrated as characteristic curves of the size-density PDE. Entry point: `SCM<T,E>` in C++, [run_scm()](R/scm_support.R) in R. Tidied-output collection and adaptive schedule refinement are options on `run_scm()` (`collect = TRUE`, `refine_schedule = TRUE`); the refinement loop itself lives in `SCM::refine_schedule()` in C++ (see below).
+1. **Deterministic — SCM, the solver by the method of characteristics.** Cohorts (`Node`s) are introduced on a schedule and integrated as characteristic curves of the size-density PDE. Entry point: `SCM<T,E>` in C++, [run_scm()](R/scm_support.R) in R. Tidied-output collection and adaptive schedule refinement are options on `run_scm()` (`collect = TRUE`, `refine_schedule = TRUE`); the refinement loop itself lives in `SCM::refine_schedule()` in C++ (see below).
 
 2. **Stochastic — finite-size population.**
    Individuals arrive and die as discrete events.
