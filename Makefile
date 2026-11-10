@@ -39,9 +39,6 @@ test-installed:
 	cd tests && TESTTHAT_PARALLEL=false NOT_CRAN=true $(RSCRIPT) -e \
 	  'library(testthat); library(plant); cat("plant from", find.package("plant"), "\n"); test_check("plant", reporter = "summary")'
 
-benchmark:
-	Rscript scripts/benchmark.R
-
 # Run the TF24 hydraulic scenario gateway and write a scorecard RDS.
 scenarios:
 	Rscript scripts/run_scenario_gateway.R
@@ -67,4 +64,4 @@ check: build
 clean:
 	rm -f src/*.o src/*.so src/*.o.tmp
 
-.PHONY: all compile doc clean test test-installed attributes roxygen install build check benchmark scenarios bless-scenarios
+.PHONY: all compile doc clean test test-installed attributes roxygen install build check scenarios bless-scenarios

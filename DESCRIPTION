@@ -23,8 +23,6 @@ LinkingTo: Rcpp, BH, odelia (== 0.11.0), phylloptim (== 0.36.0)
 Imports:
     Rcpp,
     R6,
-    logger,
-    crayon,
     magrittr,
     tibble,
     rlang,
@@ -46,7 +44,6 @@ Suggests:
     RcppR6 (>= 0.2.3),
     knitr,
     rmarkdown,
-    markdown,
     bench,
     ggplot2,
     ggridges,
