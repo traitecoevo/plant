@@ -346,12 +346,7 @@ struct TF24_Pars {
   // Where a parameter lives and what it is called. Nothing here says what its
   // gradient will be: the sweep computes one for every parameter except the
   // `undifferentiable` names below.
-  struct ad_parameter {
-    // A member pointer rather than an address in one instance, which is what
-    // lets the table below be constexpr.
-    S TF24_Pars::* at;
-    const char* name;
-  };
+  using ad_parameter = pars_field<TF24_Pars, S>;
 
   // The parameters with no gradient column, and why each has none. This is the
   // whole of what the gradient needs declared: everything else in the table gets
@@ -365,10 +360,6 @@ struct TF24_Pars {
   // parameter added to the model and never wired into it. `a_f3` is the contrast
   // and is NOT here: it reaches fecundity_dt, so it is registered, and its census
   // column is zero only because no census metric reads that rate.
-  struct no_gradient {
-    const char* name;
-    const char* why;
-  };
   static constexpr std::array undifferentiable{
       // No row can be recorded.
       no_gradient{"eta",
@@ -539,65 +530,25 @@ struct TF24_Pars {
 
   // Every entry of the table, which is the whole parameter set: a rebind carries
   // it across a scalar change. ad_parameters() is the subset with a column.
+  // Read off the two lists by plant/pars_table.h; see there for what each is.
   std::vector<S*> field_ptrs() {
-    std::vector<S*> ret;
-    ret.reserve(ad_parameter_fields.size());
-    for (const ad_parameter& f : ad_parameter_fields) {
-      ret.push_back(&(this->*f.at));
-    }
-    return ret;
+    return pars_table::field_ptrs(*this, ad_parameter_fields);
   }
-
-  // Read off the table, so a member added to one is added to both.
   static constexpr size_t field_count = ad_parameter_fields.size();
-
-  // A parameter carries a column unless the list above says no gradient exists
-  // for it. Derived rather than declared: adding a member gives it a column, and
-  // taking one away is a deliberate entry with a sentence attached.
   static constexpr bool has_column(std::string_view name) {
-    for (const no_gradient& n : undifferentiable) {
-      if (name == n.name) {
-        return false;
-      }
-    }
-    return true;
+    return pars_table::has_column(name, undifferentiable);
   }
-
-  // How many of them carry a gradient column. Counted here so a caller wanting
-  // the width does not build a vector of pointers to measure it.
-  static constexpr size_t column_count = [] {
-    size_t n = 0;
-    for (const ad_parameter& f : ad_parameter_fields) {
-      if (has_column(f.name)) ++n;
-    }
-    return n;
-  }();
-
+  static constexpr size_t column_count =
+      pars_table::column_count(ad_parameter_fields, undifferentiable);
   // A name matching no member excludes nothing, so the two counts stop adding
-  // up: a parameter renamed or removed is a compile error here rather than a
-  // list entry that has quietly stopped excluding anything. A name listed twice
-  // fails the same way.
+  // up: a parameter renamed or removed, or one listed twice, is a compile error
+  // here rather than a list entry that has quietly stopped excluding anything.
   static_assert(column_count + undifferentiable.size() == field_count,
                 "undifferentiable names a parameter ad_parameter_fields does "
                 "not carry, or names one twice");
-
-  // The entries that carry a column, filtered once here. Filtered per call, it
-  // was a string comparison against every undifferentiable name for each of the
-  // sixty fields -- and the gradient asks for this list once per recording.
   static constexpr std::array<ad_parameter, column_count> ad_parameter_columns =
-      [] {
-        std::array<ad_parameter, column_count> ret{};
-        std::size_t n = 0;
-        for (const ad_parameter& f : ad_parameter_fields) {
-          if (has_column(f.name)) {
-            ret[n++] = f;
-          }
-        }
-        return ret;
-      }();
-
-  static constexpr const auto& ad_parameter_table() { return ad_parameter_fields; }
-};
+      pars_table::columns<column_count>(ad_parameter_fields, undifferentiable);
+  static constexpr const auto& ad_parameter_table() { return ad_parameter_fields; }};
 
 // Every member of TF24_Pars is an S, so one added without extending
 // ad_parameter_table() changes this size and is refused rather than dropped.

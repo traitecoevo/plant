@@ -132,12 +132,7 @@ struct FF16_Pars {
   S k_I = 0.5;
 
   // One registered parameter: where it lives and what its column is called.
-  struct ad_parameter {
-    // A member pointer rather than an address in one instance, which is what
-    // lets the table below be constexpr.
-    S FF16_Pars::* at;
-    const char* name;
-  };
+  using ad_parameter = pars_field<FF16_Pars, S>;
 
   // The parameters no gradient exists for, each with the sentence that says why.
   // Each is excluded by name rather than given a silent zero, so asking for one
@@ -146,10 +141,6 @@ struct FF16_Pars {
   // multiplies the net reproduction ratio directly, and a_f1, a_f2 and a_f3
   // reach fecundity_dt, which the fitness metrics read and the census does not,
   // so their census columns are zero on any trajectory rather than absent.
-  struct no_gradient {
-    const char* name;
-    const char* why;
-  };
   static constexpr std::array undifferentiable{
       no_gradient{"eta",
                   "the canopy profile's u^eta reaches u = 0, where the recorded "
@@ -204,57 +195,25 @@ struct FF16_Pars {
 
   // Every entry of the table, which is the whole parameter set: a rebind carries
   // it across a scalar change. ad_parameters() is the subset with a column.
+  // Read off the two lists by plant/pars_table.h; see there for what each is.
   std::vector<S*> field_ptrs() {
-    std::vector<S*> ret;
-    ret.reserve(ad_parameter_fields.size());
-    for (const ad_parameter& f : ad_parameter_fields) {
-      ret.push_back(&(this->*f.at));
-    }
-    return ret;
+    return pars_table::field_ptrs(*this, ad_parameter_fields);
   }
-
   static constexpr size_t field_count = ad_parameter_fields.size();
-
-  // A parameter carries a column unless the list above says no gradient exists
-  // for it.
   static constexpr bool has_column(std::string_view name) {
-    for (const no_gradient& n : undifferentiable) {
-      if (name == n.name) {
-        return false;
-      }
-    }
-    return true;
+    return pars_table::has_column(name, undifferentiable);
   }
-
-  static constexpr size_t column_count = [] {
-    size_t n = 0;
-    for (const ad_parameter& f : ad_parameter_fields) {
-      if (has_column(f.name)) ++n;
-    }
-    return n;
-  }();
-
+  static constexpr size_t column_count =
+      pars_table::column_count(ad_parameter_fields, undifferentiable);
   // A name matching no member excludes nothing, so the two counts stop adding
-  // up: a parameter renamed or removed is a compile error here rather than a
-  // list entry that has quietly stopped excluding anything.
+  // up: a parameter renamed or removed, or one listed twice, is a compile error
+  // here rather than a list entry that has quietly stopped excluding anything.
   static_assert(column_count + undifferentiable.size() == field_count,
                 "undifferentiable names a parameter ad_parameter_fields does "
                 "not carry, or names one twice");
-
   static constexpr std::array<ad_parameter, column_count> ad_parameter_columns =
-      [] {
-        std::array<ad_parameter, column_count> ret{};
-        std::size_t n = 0;
-        for (const ad_parameter& f : ad_parameter_fields) {
-          if (has_column(f.name)) {
-            ret[n++] = f;
-          }
-        }
-        return ret;
-      }();
-
-  static constexpr const auto& ad_parameter_table() { return ad_parameter_fields; }
-};
+      pars_table::columns<column_count>(ad_parameter_fields, undifferentiable);
+  static constexpr const auto& ad_parameter_table() { return ad_parameter_fields; }};
 
 // Every member of FF16_Pars is an S, so one added without extending
 // ad_parameter_fields changes this size and is refused rather than dropped.

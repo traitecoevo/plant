@@ -12,6 +12,7 @@
 #include <plant/uniroot.h>
 #include <RcppCommon.h> // NA_REAL
 #include <plant/extrinsic_drivers.h>
+#include <plant/pars_table.h>
 
 
 namespace plant {
