@@ -13,7 +13,7 @@ entry gives the `old -> new` migration; the `plant-update-interface` skill
 (`.claude/skills/plant-update-interface/`) reads this section to migrate
 products using plant.
 
-* **TF24f's finite-difference gradient is removed.** TF24f tracks its collar potential by the exact gradient of profit, which has been the default since #527; the centred finite difference that `use_ad_gradient = FALSE` selected, and its step `psi_fd_step`, are gone. Default runs are unchanged. ⚠️ Setting either name on an existing strategy is silently ignored rather than refused (the strategy is a list, and its converter reads only the fields it knows), so an old script that asked for the finite difference now runs the exact gradient with no error; only `TF24f_Strategy(values = ...)` refuses an unknown field. Migration:
+* **TF24f's finite-difference gradient is removed (#745).** TF24f tracks its collar potential by the exact gradient of profit, which has been the default since #527; the centred finite difference that `use_ad_gradient = FALSE` selected, and its step `psi_fd_step`, are gone. Default runs are unchanged. ⚠️ Setting either name on an existing strategy is silently ignored rather than refused (the strategy is a list, and its converter reads only the fields it knows), so an old script that asked for the finite difference now runs the exact gradient with no error; only `TF24f_Strategy(values = ...)` refuses an unknown field. Migration:
   * `s$use_ad_gradient <- TRUE` (removed) -> delete the line; the exact gradient is the only one
   * `s$use_ad_gradient <- FALSE` (removed) -> no equivalent: the finite-difference gradient is gone
   * `s$psi_fd_step <- h` (removed) -> delete the line; it set the step of the finite difference only
