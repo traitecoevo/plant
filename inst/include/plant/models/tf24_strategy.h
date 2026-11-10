@@ -548,7 +548,8 @@ struct TF24_Pars {
                 "not carry, or names one twice");
   static constexpr std::array<ad_parameter, column_count> ad_parameter_columns =
       pars_table::columns<column_count>(ad_parameter_fields, undifferentiable);
-  static constexpr const auto& ad_parameter_table() { return ad_parameter_fields; }};
+  static constexpr const auto& ad_parameter_table() { return ad_parameter_fields; }
+};
 
 // Every member of TF24_Pars is an S, so one added without extending
 // ad_parameter_table() changes this size and is refused rather than dropped.
