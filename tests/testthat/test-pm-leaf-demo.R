@@ -16,7 +16,7 @@ test_that("PM leaf demo helpers run end-to-end for Fick and PM", {
   # Both models solved for every cell, all outputs finite.
   expect_equal(nrow(res), nrow(grid) * 2L)
   expect_true(all(c(FALSE, TRUE) %in% res$pm))
-  for (v in c("Tleaf", "opt_psi_stem", "A", "gs", "E", "profit")) {
+  for (v in c("Tleaf", "opt_psi_leaf", "A", "gs", "E", "profit")) {
     expect_true(all(is.finite(res[[v]])),
                 info = paste("non-finite", v, "in demo grid"))
   }

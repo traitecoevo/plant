@@ -86,7 +86,7 @@ TF24_plot_diagnostics <- function(results, x, y) {
 
   # Stem water potential by height over time
   results$species %>%
-    ggplot2::ggplot(ggplot2::aes(x = .data$time, y = .data$opt_psi_stem)) +
+    ggplot2::ggplot(ggplot2::aes(x = .data$time, y = .data$opt_psi_leaf)) +
     ggplot2::geom_line(ggplot2::aes(colour = .data$height, group = .data$node), na.rm = TRUE) +
     ggplot2::theme_bw() +
     ggplot2::theme(text = ggplot2::element_text(size = 20)) +

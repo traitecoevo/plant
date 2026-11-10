@@ -836,7 +836,7 @@ public:
       "height_inverse",
       "net_mass_production_dt",
       "root_mass",
-      "opt_psi_stem",
+      "opt_psi_leaf",
       "opt_root_psi",
       "transpiration",
       "E_up_",
@@ -1523,7 +1523,7 @@ public:
   int aux_idx_height_inverse = -1;
   int aux_idx_net_mass_production_dt = -1;
   int aux_idx_root_mass = -1;
-  int aux_idx_opt_psi_stem = -1;
+  int aux_idx_opt_psi_leaf = -1;
   int aux_idx_opt_root_psi = -1;
   int aux_idx_transpiration = -1;
   int aux_idx_E_up = -1;
@@ -1988,7 +1988,7 @@ void TF24_Strategy<S>::refresh_indices () {
   aux_idx_height_inverse        = this->aux_index.at("height_inverse");
   aux_idx_net_mass_production_dt = this->aux_index.at("net_mass_production_dt");
   aux_idx_root_mass             = this->aux_index.at("root_mass");
-  aux_idx_opt_psi_stem          = this->aux_index.at("opt_psi_stem");
+  aux_idx_opt_psi_leaf          = this->aux_index.at("opt_psi_leaf");
   aux_idx_opt_root_psi          = this->aux_index.at("opt_root_psi");
   aux_idx_transpiration         = this->aux_index.at("transpiration");
   aux_idx_E_up                  = this->aux_index.at("E_up_");
@@ -2170,7 +2170,7 @@ void TF24_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,  In
   // statement and registers nothing -- it is a newly constructed active scalar
   // that costs a slot, not a write to a live one.
   vars.set_aux(aux_idx_root_mass, mass_root(area_leaf_));
-  vars.set_aux(aux_idx_opt_psi_stem, leaf.opt_psi_leaf_);
+  vars.set_aux(aux_idx_opt_psi_leaf, leaf.opt_psi_leaf_);
   vars.set_aux(aux_idx_opt_root_psi, leaf.opt_root_psi_);
   vars.set_aux(aux_idx_transpiration, leaf.transpiration_);
   vars.set_aux(aux_idx_E_up, leaf.E_up_);

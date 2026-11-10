@@ -93,7 +93,7 @@ test_that("Basic functions", {
   expect_true(is.na(l$vcmax_))
   expect_true(is.na(l$jmax_))
   expect_true(is.na(l$opt_root_psi_))
-  expect_true(is.na(l$opt_psi_stem_))
+  expect_true(is.na(l$opt_psi_leaf_))
   expect_true(is.na(l$opt_ci_))
   expect_true(is.na(l$E_up_))
   expect_true(is.na(l$soil_number_of_depths_))
@@ -203,7 +203,7 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   expect_true(is.na(l$vcmax_))
   expect_true(is.na(l$jmax_))
   expect_true(is.na(l$opt_root_psi_))
-  expect_true(is.na(l$opt_psi_stem_))
+  expect_true(is.na(l$opt_psi_leaf_))
   expect_true(is.na(l$opt_ci_))
   expect_true(is.na(l$E_up_))
   expect_true(is.na(l$soil_number_of_depths_))
@@ -417,7 +417,7 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
     l$set_model("TF24", "leaf"); l$optimise()
   
   expect_equal(l$transpiration_, 0)
-  expect_equal(l$opt_psi_stem_, psi_crit+1)
+  expect_equal(l$opt_psi_leaf_, psi_crit+1)
   expect_equal(l$stom_cond_CO2_, 0)
   # shut in light, the leaf refixes its own respiration: A is zero at a ci
   # between the CO2 compensation point and ambient
@@ -430,7 +430,7 @@ expect_error(l$set_physiology(root_network = net(rep((root_carbon_) / area_leaf_
   l$set_physiology(root_network = net((1) / area_leaf_, soil_depth), PPFD = PPFD, psi_soil = 0, soil_depth = soil_depth, leaf_specific_conductance_max = leaf_specific_conductance_max, atm_vpd = atm_vpd, ca = ca, leaf_temp = leaf_temp_, atm_o2_kpa = atm_o2_kpa_, atm_kpa = atm_kpa_)
   l$set_model("TF24", "leaf"); l$optimise()
   expect_true(l$profit_ > 0)
-  expect_true(l$opt_psi_stem_ > 0)
+  expect_true(l$opt_psi_leaf_ > 0)
   expect_true(l$stom_cond_CO2_ > 0)
   expect_true(l$transpiration_ > 0)
   expect_true(l$hydraulic_cost_ > 0)
@@ -653,7 +653,7 @@ l$find_root_collar_psi()
 # Shut in light, the leaf nets zero and pays the hydraulic cost where its stem
 # holds. Read both off the leaf so this stays an identity.
 expect_identical(l$assim_colimited_, 0)
-expect_equal(l$profit_, -l$hydraulic_cost_TF(l$opt_psi_stem_))
+expect_equal(l$profit_, -l$hydraulic_cost_TF(l$opt_psi_leaf_))
 l$opt_root_psi_
 
 # assim_max_ < 0 early-exit: wet soil (so the upstream shut-down exits are NOT
@@ -670,15 +670,15 @@ expect_true(l$assim_max_ < 0)
 
 l$find_root_collar_psi()
 
-# opt_psi_stem_ is reported as a POSITIVE magnitude in every branch of
+# opt_psi_leaf_ is reported as a POSITIVE magnitude in every branch of
 # find_root_collar_psi (the assim_max_ < 0 exit used to leak the signed
 # root_zero_E here -- the sign wart fixed alongside review #7).
-expect_true(l$opt_psi_stem_ > 0)
+expect_true(l$opt_psi_leaf_ > 0)
 # opt_root_psi_ is a positive magnitude, like every other psi (phylloptim #25).
 expect_true(l$opt_root_psi_ > 0)
 # at zero transpiration the stem equilibrates with the collar: the same potential
 # to the step the shut state is taken inside its wet bound (1e-6 of its scale).
-expect_equal(l$opt_psi_stem_, l$opt_root_psi_, tolerance = 1e-6)
+expect_equal(l$opt_psi_leaf_, l$opt_root_psi_, tolerance = 1e-6)
 })
 
 # Medlyn stomatal-conductance model (ported/adapted from develop #450). The

@@ -79,7 +79,7 @@ test_that("a non-zero price closes the stomata", {
   expect_lt(costly[["transpiration"]], free[["transpiration"]])
   # And the leaf operates at a wetter stem potential, because it is moving less
   # water through the same conductance.
-  expect_lt(costly[["opt_psi_stem"]], free[["opt_psi_stem"]])
+  expect_lt(costly[["opt_psi_leaf"]], free[["opt_psi_leaf"]])
 })
 
 test_that("the shadow price is the price times the transpiration, exactly", {
