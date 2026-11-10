@@ -77,7 +77,7 @@ test_that("a non-zero price closes the stomata", {
   # flux both fall. This is the whole behavioural content of the curve.
   expect_lt(costly[["stom_cond_CO2"]], free[["stom_cond_CO2"]])
   expect_lt(costly[["transpiration"]], free[["transpiration"]])
-  # And the leaf operates at a wetter stem potential, because it is moving less
+  # And the leaf operates at a wetter leaf potential, because it is moving less
   # water through the same conductance.
   expect_lt(costly[["opt_psi_leaf"]], free[["opt_psi_leaf"]])
 })

@@ -676,7 +676,7 @@ l$find_root_collar_psi()
 expect_true(l$opt_psi_leaf_ > 0)
 # opt_root_psi_ is a positive magnitude, like every other psi (phylloptim #25).
 expect_true(l$opt_root_psi_ > 0)
-# at zero transpiration the stem equilibrates with the collar: the same potential
+# at zero transpiration the leaf equilibrates with the collar: the same potential
 # to the step the shut state is taken inside its wet bound (1e-6 of its scale).
 expect_equal(l$opt_psi_leaf_, l$opt_root_psi_, tolerance = 1e-6)
 })

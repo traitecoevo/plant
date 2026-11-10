@@ -120,11 +120,14 @@ test_that("tidy_individual keeps every state, by name", {
   # them, and would mislabel any model whose states are laid out differently.
   p <- testing_parameters("TF24")
   s <- generate_strategy(p, trait_matrix(0.0825, "lma"))[[1]]
-  res <- grow_individual_to_time(TF24_Individual(s), c(1, 2), Environment("TF24"))
+  env <- Environment("TF24")
+  env$set_fixed_environment(1.0, 150)
+  res <- grow_individual_to_time(TF24_Individual(s), c(1, 2), env)
   tidy <- tidy_individual(res)
   expect_identical(names(tidy), c("step", "time", colnames(res$state)))
   expect_true("storage" %in% names(tidy))
   for (v in colnames(res$state)) {
+    expect_true(all(is.finite(tidy[[v]])))
     expect_identical(tidy[[v]], unname(res$state[, v]))
   }
 })
