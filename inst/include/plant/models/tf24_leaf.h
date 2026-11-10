@@ -295,8 +295,8 @@ void TF24_Strategy<S>::record_leaf_outputs(const S& PPFD_int,
 // one the leaf's supply solve is handed. Kept as
 // leaf_specific_conductance_max_ too, which the sapwood controller reads.
 template <typename S>
-S TF24_Strategy<S>::stem_conductance_max(const S& height,
-                                         const S& sapwood_departure) {
+S TF24_Strategy<S>::update_leaf_specific_conductance_max(
+    const S& height, const S& sapwood_departure) {
   // find leaf specific max hydraulic conductance (kg m^-2 LA s^-1 MPa ^-1)
   // pars.K_s: sapwood-specific conductivity of the TERMINAL segment -- which is
   //   the whole-stem value while pars.D_c == 0 (kg m^-1 s^-1 MPa^-1)
@@ -418,22 +418,16 @@ void TF24_Strategy<S>::seat_leaf(const TF24_Environment<S>& environment,
 // Solves the leaf over the crown as the shading model asks, leaving the
 // leaf.* outputs set, and returns the intercepted PPFD its last solve used.
 //
-// Optimise the leaf at a given intercepted PPFD: rebuilds physiology and
-// solves the root-collar water potential, leaving the leaf.* outputs
-// (profit_, transpiration_, soil_consumption_, opt_psi_leaf_, ...) set. Only
-// the light varies between calls; every other input is depth-independent and
-// already computed above.
-//
 // Leaf solves at double, so an active strategy hands it the VALUES of its
 // inputs -- the light, the soil potentials and the conductance are all
 // stripped below -- and record_leaf_outputs puts the rows back on afterwards,
 // by asking the leaf for its own derivatives at the point this solve placed.
 // So the active input has to OUTLIVE the call, which is what `PPFD_int_used`
 // is for: the leaf is handed only its value and cannot give it back. Each leaf
-// output enters the active chain at one place -- the aux stores and
-// leaf.profit_ in net_mass_production_dt, and leaf.soil_consumption_ in
-// evapotranspiration_dt -- so a partial attaches to one expression per
-// output.
+// output enters the active chain at one place -- the carbon kept in
+// net_mass_production_dt, the aux stores in write_leaf_readings, and
+// leaf.soil_consumption_ in evapotranspiration_dt -- so a partial attaches to
+// one expression per output.
 template <typename S>
 S TF24_Strategy<S>::solve_leaf_over_crown(
     const TF24_Environment<S>& environment, const S& height,
@@ -441,6 +435,11 @@ S TF24_Strategy<S>::solve_leaf_over_crown(
     double PPFD_above, double NIR_per_PPFD_int) {
   const int soil_number_of_depths_ = environment.get_soil_number_of_depths();
   S PPFD_int_used = 0.0;
+  // Optimise the leaf at a given intercepted PPFD: rebuilds physiology and
+  // solves the root-collar water potential, leaving the leaf.* outputs
+  // (profit_, transpiration_, soil_consumption_, opt_psi_leaf_, ...) set. Only
+  // the light varies between calls; every other input is depth-independent and
+  // handed in.
   auto optimise_at = [&](const S& PPFD_int) -> void {
     PPFD_int_used = PPFD_int;
     // Read on the energy-balance path only; record_leaf_outputs gives it the
@@ -690,7 +689,7 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
   const std::vector<S>& psi_soil = soil_water_potential_for_leaf(environment);
 
   const S leaf_specific_conductance_max =
-    stem_conductance_max(height, sapwood_departure);
+    update_leaf_specific_conductance_max(height, sapwood_departure);
   build_root_network(environment, height);
 
   // Reuse geometry precomputed by environment; avoids rebuilding z midpoints each call.
@@ -756,6 +755,8 @@ S TF24_Strategy<S>::net_mass_production_dt(const TF24_Environment<S>& environmen
     profit_ = leaf_carbon_;
   }
 
+  // After record_leaf_outputs, which reads the leaf where the profit came from;
+  // measure_dprofit_dkmax says why.
   measure_dprofit_dkmax(environment, PPFD_int_used, psi_soil,
                         leaf_specific_conductance_max);
 

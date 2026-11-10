@@ -566,16 +566,18 @@ public:
   // already driven and solved; nothing here re-supplies it.
   void record_leaf_outputs(const S& PPFD_int, const std::vector<S>& psi_soil,
                            const S& conductance_max, double NIR_per_PPFD_int);
-  // Three steps of record_leaf_outputs (tf24_leaf.h says what each does).
+  // Two steps of record_leaf_outputs, and the marginal its curvature guard
+  // reports (tf24_leaf.h says what each does).
   phylloptim::leaf_pars<S> leaf_pars_on_tape(const S& PPFD_int,
                                              const S& conductance_max,
                                              double NIR_per_PPFD_int) const;
   double marginal_at_collar() const;
   void refuse_unusable_curvature(double slope);
 
-  // The steps of net_mass_production_dt, in the order it takes them
-  // (tf24_leaf.h says what each computes).
-  S stem_conductance_max(const S& height, const S& sapwood_departure);
+  // The steps of net_mass_production_dt, in the order it takes them, and
+  // seat_leaf, which two of them use (tf24_leaf.h says what each computes).
+  S update_leaf_specific_conductance_max(const S& height,
+                                         const S& sapwood_departure);
   void build_root_network(const TF24_Environment<S>& environment,
                           const S& height);
   void seat_leaf(const TF24_Environment<S>& environment, double PPFD,
@@ -1265,8 +1267,8 @@ void TF24_Strategy<S>::prepare_strategy() {
   construct_leaf();
 }
 
-// The traits declared but refused at these values, checked once the seed
-// size is known since one of them is measured against it.
+// The trait values the model cannot run, refused once the seed size is known,
+// since L_tip is measured against it.
 template <typename S>
 void TF24_Strategy<S>::refuse_unsupported_traits() const {
   // theta_c is declared but NOT YET USABLE. It profiles theta along the flow

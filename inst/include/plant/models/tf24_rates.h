@@ -11,8 +11,8 @@ namespace plant {
 
 // ⚠️ DO NOT HOIST the per-second -> annual factor 60*60*12*365 (seconds of
 // daylight per year, 12 h day x 365 d) into one constant. It recurs in
-// compute_rates below and in net_mass_production_dt (tf24_leaf.h), each time
-// after a double, so C++'s left-to-right evaluation makes it four rounded
+// compute_rates and sapwood_marginal_return below and in
+// net_mass_production_dt (tf24_leaf.h), each time after a double, so C++'s left-to-right evaluation makes it four rounded
 // double multiplications rather than one integer; a single constant rounds
 // differently, and the adaptive ODE amplifies that (offspring_production
 // shifts ~0.2%).
@@ -246,8 +246,8 @@ void TF24_Strategy<S>::compute_rates(const TF24_Environment<S>& environment,  In
 
 }
 
-// The rest are readings: their only consumers are r_internals and ode_aux,
-// both R-facing. Writing them at double alone was tried and measured at no
+// The leaf's outputs and the root mass, written as readings: their only
+// consumers are r_internals and ode_aux, both R-facing. Writing them at double alone was tried and measured at no
 // difference, because a store into a slot the vector already holds pushes a
 // statement and registers nothing -- it is a newly constructed active scalar
 // that costs a slot, not a write to a live one.
