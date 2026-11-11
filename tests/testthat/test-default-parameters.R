@@ -3,7 +3,7 @@
 # testing trade-offs, and the bare scm_base_parameters() attaches none.
 
 tf24_derived <- c("k_l", "d_I", "TF24_cost_scale", "k_s", "r_s", "r_b", "a_f3",
-                  "r_l", "nmass_l", "stem_c", "stem_P50", "stem_b", "psi_crit")
+                  "r_l", "stem_c", "stem_P50", "stem_b", "psi_crit")
 
 test_that("scm_base_parameters attaches no trade-offs: traits go straight to pars", {
   p <- scm_base_parameters("TF24")

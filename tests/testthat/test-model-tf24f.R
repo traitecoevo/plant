@@ -84,11 +84,10 @@ test_that("TF24f_Model hyper-parameterisation", {
   lma <- c(0.1,1)
   ret <- default_hyperpar("TF24")(trait_matrix(lma, "lma"), s)
 
-  expect_true(all(c("lma", "k_l", "r_l", "nmass_l") %in% colnames(ret)))
+  expect_true(all(c("lma", "k_l", "r_l") %in% colnames(ret)))
   expect_equal(ret[, "lma"], lma)
   expect_equal(ret[, "k_l"], c(1.46678,0.028600), tolerance=1e-5)
   expect_equal(ret[, "r_l"], c(505.33080, 220.63308), tolerance=1e-5)
-  expect_equal(ret[, "nmass_l"], c(0.01944952, 0.010044952), tolerance=1e-8)
 
   # wood density
   rho <- c(200,300)
@@ -112,10 +111,9 @@ test_that("TF24f_Model hyper-parameterisation", {
   # vcmax_25 contributes to leaf N and therefore respiration
   vcmax_25 <- c(0, 96, 160)
   ret <- default_hyperpar("TF24")(trait_matrix(vcmax_25, "vcmax_25"), s)
-  expect_true(all(c("vcmax_25", "r_l", "nmass_l") %in% colnames(ret)))
+  expect_true(all(c("vcmax_25", "r_l") %in% colnames(ret)))
   expect_equal(ret[, "vcmax_25"], vcmax_25)
   expect_true(all(diff(ret[, "r_l"]) > 0))
-  expect_true(all(diff(ret[, "nmass_l"]) > 0))
 
   # seed mass
   omega <- 3.8e-5*c(1,2,3)

@@ -400,8 +400,8 @@ frozen_FF16_hyperpar <- function(
 ##' \code{lma}; \code{d_I}, \code{TF24_cost_scale}, \code{k_s}, \code{r_s} and
 ##' \code{r_b} from \code{rho}; \code{a_f3} from \code{omega}; \code{stem_P50},
 ##' \code{stem_c}, \code{stem_b} and \code{psi_crit} from \code{K_s}; and
-##' \code{nmass_l} and \code{r_l} from \code{lma}, \code{vcmax_25} and
-##' \code{jmax_25} (Dong et al. 2022): thirteen parameters. TF24's C++ default
+##' \code{r_l} from \code{lma}, \code{vcmax_25} and \code{jmax_25}, through leaf
+##' nitrogen (Dong et al. 2022): twelve parameters. TF24's C++ default
 ##' \code{stem_P50} is this function's value at the default \code{K_s}, so a
 ##' strategy built from traits and the bare default share one curve.
 ##'
@@ -570,7 +570,6 @@ frozen_TF24_hyperpar <- function(lma_0=0.1978791,
     
     nmass_ls <- narea_ls / lma
     nmass_lp <- narea_lp / lma
-    nmass_l <- nmass_ls + nmass_lp
     ## Respiration rates are per unit mass, so convert to mass-based
     ## rate by dividing with lma
     ## So respiration rates per unit mass vary with lma, while
@@ -583,7 +582,7 @@ frozen_TF24_hyperpar <- function(lma_0=0.1978791,
     extra <- cbind(k_l,                              # lma
                    d_I, TF24_cost_scale, k_s, r_s, r_b, # rho
                    a_f3,                              # omega
-                   r_l, nmass_l,                      # lma, narea
+                   r_l,                               # lma, narea
                    stem_c, stem_P50, stem_b, psi_crit) # K_s
 
     overlap <- intersect(colnames(m), colnames(extra))
