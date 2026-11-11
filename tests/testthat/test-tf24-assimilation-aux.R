@@ -5,9 +5,9 @@
 # reported whatever Internals happened to hold. That made carbon uptake
 # unavailable as a model output. These tests pin the slot's content and units.
 #
-# Units: umol CO2 m^-2 leaf s^-1, and NET of dark respiration, because
+# Units: umol CO2 m^-2 leaf s^-1, and NET of day respiration, because
 # Leaf::assim_colimited() subtracts R_d_. Gross = assimilation + R_d_, with
-# R_d_ = 0.015 * vcmax_ at the acclimated vcmax_.
+# R_d_ = R_d_25 * q10^((leaf_temp - 25) / 10) inside phylloptim.
 
 tf24_aux <- function(strategy = TF24_Model(), height = 5, ppfd = 1800,
                      theta = rep(0.25, 5)) {

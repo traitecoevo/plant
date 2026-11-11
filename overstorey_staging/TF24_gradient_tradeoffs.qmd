@@ -141,8 +141,8 @@ so compensating means moving one back.
 
 The columns above are **partial** derivatives: each holds all other parameters
 fixed. That is not what an ecologist means by "the LMA derivative", because
-`TF24_hyperpar` derives further parameters from the traits — `k_l`, `r_l` and
-`nmass_l` from `lma`; `d_I`, `g1_TF24`, `k_s`, `r_s`, `r_b` from `rho`; `a_f3`
+`TF24_hyperpar` derives further parameters from the traits — `k_l` and `r_l`
+from `lma`; `d_I`, `g1_TF24`, `k_s`, `r_s`, `r_b` from `rho`; `a_f3`
 from `omega`; and `c`, `p_50`, `b`, `psi_crit` from `K_s`. Raising LMA in the
 field raises those with it.
 

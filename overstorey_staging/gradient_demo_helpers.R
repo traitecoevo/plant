@@ -17,7 +17,7 @@
 ##                          parameter, so d(mass)/d(omega) and d(mass)/d(lma) are
 ##                          not comparable and the larger one is usually just the
 ##                          one with the smaller units.
-##   gd_hyperpar_jacobian() TF24_hyperpar derives k_l, r_l, nmass_l from lma;
+##   gd_hyperpar_jacobian() TF24_hyperpar derives k_l, r_l from lma;
 ##                          d_I, TF24_cost_scale, k_s, r_s, r_b from rho; a_f3
 ##                          from omega; and stem_P50, stem_c from K_s. The
 ##                          gradient's `lma` column holds those fixed, so it is
@@ -127,7 +127,7 @@ gd_hyperpar_jacobian <- function(traits, strategy = NULL, rel_h = 1e-6) {
 ## The trait derivative: the gradient chained through the hyperpar map, so a
 ## column is d(metric)/d(trait) with every parameter the trait drives moving with
 ## it. Columns the gradient does not carry contribute nothing, which is right for
-## the ones the model declares undifferentiable (nmass_l among them).
+## the ones the model declares undifferentiable (stem_b and psi_crit among them).
 ##
 ## Single species: the gradient's columns are matched on the parameter name with
 ## the species prefix stripped.

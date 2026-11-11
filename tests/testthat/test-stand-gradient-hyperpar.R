@@ -32,8 +32,8 @@ test_that("a trait's column is its partial plus each derived parameter's, chaine
   tot <- stand_gradient(run$scm, traits = c("1.lma", "1.hmat"))
   par <- stand_gradient(run$scm, hyperpar = NULL)
 
-  # the TF24 trade-off function derives k_l, r_l and nmass_l from lma; nmass_l reaches no
-  # equation, so it has no column. Their derivatives, from the function itself.
+  # the TF24 trade-off function derives k_l and r_l from lma. Their derivatives,
+  # from the function itself.
   s <- run$scm$parameters$strategies[[1]]
   derived <- function(lma) {
     default_hyperpar("TF24")(trait_matrix(lma, "lma"), s, filter = FALSE)[1, c("k_l", "r_l")]
@@ -92,7 +92,7 @@ test_that("a strategy that is not on the trade-off is refused, not chained", {
   p$strategies[[2]]$pars$lma <- 0.09
   run <- hyperpar_run(p)
   expect_error(stand_gradient(run$scm, traits = "2.lma"),
-               "Species 2's k_l, r_l, nmass_l are not what `hyperpar` gives")
+               "Species 2's k_l, r_l are not what `hyperpar` gives")
   expect_error(stand_gradient(run$scm), "Species 2's")
   # Only the species asked about is checked.
   expect_no_error(stand_gradient(run$scm, traits = "1.lma"))
