@@ -31,7 +31,7 @@ environment_type <- function(type) {
 ##'
 ##' The number is authored in C++ (the \code{scientific_version},
 ##' \code{approximation_revision} and \code{thermal_revision} constants on each
-##' strategy class, see \code{inst/include/plant/models/*_model.h}) and read
+##' model class, see \code{inst/include/plant/models/*_model.h}) and read
 ##' here through the
 ##' compiled \code{strategy_scientific_version()}; there is no duplicated copy
 ##' in R.
@@ -42,7 +42,7 @@ environment_type <- function(type) {
 ##'   (model name and scientific version).
 ##' @rdname model_version
 ##' @export
-# if you add a new strategy, add its `scientific_version` constant to the model
+# if you add a new model, add its `scientific_version` constant to the model
 # header and a dispatch arm to strategy_scientific_version() in src/strategy_version.cpp
 model_version <- function(type) {
   strategy_scientific_version(type)

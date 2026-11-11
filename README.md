@@ -117,7 +117,7 @@ p <- add_strategies(p, trait_matrix(0.0825, "lma"))
 results <- run_scm(p, collect = TRUE)
 ```
 
-If you want to develop or extend `plant` (e.g. add a new strategy/model), see [agents.md](agents.md) and the `plant-new-model` skill (`.claude/skills/plant-new-model/`).
+If you want to develop or extend `plant` (e.g. add a new model), see [agents.md](agents.md) and the `plant-new-model` skill (`.claude/skills/plant-new-model/`).
 
 ## Benchmarking
 

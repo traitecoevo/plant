@@ -73,7 +73,7 @@ inline ShadingModel shading_model_from_string(const std::string& name) {
 }
 
 // As above, but an empty string selects the supplied per-strategy default
-// (the shared Control default is "" so each strategy picks its own).
+// (the shared Control default is "" so each model picks its own).
 inline ShadingModel shading_model_from_string(const std::string& name,
                                               ShadingModel fallback) {
   if (name.empty()) {

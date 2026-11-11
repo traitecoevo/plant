@@ -2273,7 +2273,7 @@ std::vector<typename T::value_type*> Patch<T,E>::ad_parameters() {
   return ret;
 }
 
-// Every species in a patch carries the same strategy type, so this is a count
+// Every species in a patch runs the same model, so this is a count
 // per species rather than a walk that builds a vector of pointers to measure its
 // length. It is asked several times per gradient.
 template <typename T, typename E>

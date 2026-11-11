@@ -29,7 +29,7 @@ struct Control {
   // photosynthesis evaluation of the mean), "crown-centre" (single evaluation at
   // the crown centre), or "ppa" (FF16 only: discrete stepped light layers). The
   // empty default "" means "use the strategy's own default": FF16 -> deep-crown,
-  // TF24 -> mean-light. Resolved once in each strategy's prepare_strategy(),
+  // TF24 -> mean-light. Resolved once in each model's prepare_strategy(),
   // so it never costs a string comparison on the hot path.
   std::string shading_model;
 

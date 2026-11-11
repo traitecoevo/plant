@@ -2,7 +2,7 @@
 #include <string>
 
 // Scientific version of a model, read from the `scientific_version` constant
-// declared on each strategy class (see inst/include/plant/models/*_model.h).
+// declared on each model class (see inst/include/plant/models/*_model.h).
 // Returned as a string so it can carry a compound version: TF24f is a fast
 // approximation of TF24, so its version is "<TF24 version>.<revision>" (e.g.
 // "2.1") -- the major component auto-tracks TF24 (a TF24 science change

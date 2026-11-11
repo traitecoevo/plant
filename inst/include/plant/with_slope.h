@@ -24,7 +24,7 @@ using odelia::with_slope;
 //
 // `slope` is the SIGNED d(value)/d(height), so it is negative wherever the
 // profile falls with height. The canopy shape forms the pair the other way round
-// -- q is exactly -dQ/dz -- and each strategy's compute_competition_and_slope
+// -- q is exactly -dQ/dz -- and each model's compute_competition_and_slope
 // negates it on the way out, which is the one place the convention turns over.
 // Above there it is signed, which is what build_extinction_field's chain rule
 // assumes.

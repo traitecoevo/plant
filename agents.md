@@ -387,7 +387,7 @@ The shipped models:
 ### Scientific versioning — bump when the science changes
 
 Each model carries a **scientific version** separate from the package `Version`:
-a `static constexpr int scientific_version` on the strategy class in
+a `static constexpr int scientific_version` on the model class in
 [inst/include/plant/models/](inst/include/plant/models/), surfaced to R as
 `model_version(type)` / `model_id(type)` (`"FF16@v1"`) via
 [src/strategy_version.cpp](src/strategy_version.cpp) and
@@ -521,7 +521,7 @@ Documentation is split across several homes — put new content in the right one
 |---|---|---|
 | **Narrative docs** — task-oriented guides, theory/maths, worked examples (`plant` overview, `individuals`, `patch`, `demography`, `parameters`, `extrinsic_drivers`, `emergent`, `self_thinning`) | **[Overstorey](https://traitecoevo.github.io/overstorey/)** | <https://github.com/traitecoevo/overstorey> (Quarto) |
 | **Blog / dated experiments** — posts pinned to the `plant` version they were built against | Overstorey's **"Adaptively"** notebook | same repo |
-| **Extending the model** — adding a new strategy/environment | **`plant-new-model` skill** (see §7) | this repo (`.claude/skills/plant-new-model/`) |
+| **Extending the model** — adding a new model/environment | **`plant-new-model` skill** (see §7) | this repo (`.claude/skills/plant-new-model/`) |
 | **Migrating downstream code** to a newer plant interface | **`plant-update-interface` skill** (see §3.2) | this repo (`.claude/skills/plant-update-interface/`) |
 | **Function/API reference** — per-function docs generated from roxygen | **pkgdown site** <https://traitecoevo.github.io/plant/> | this repo (`man/`, `pkgdown/_pkgdown.yml`) |
 | **Architecture / contributor guide** | this file ([agents.md](agents.md)) | this repo |
