@@ -121,3 +121,93 @@ test_that("Variable birth rate is driven through the SCM", {
   # and the run itself produces a finite reproductive output
   expect_true(is.finite(out$net_reproduction_ratios))
 })
+
+# --- Time-varying climate drivers in TF24 ------------------------------------
+#
+# A step in incoming shortwave from 900 to 300 W m^-2 just after t = 1. The
+# monotone spline gives a flat segment exactly between equal control points, so
+# the stepped driver is identical to a constant 900 on [0, 1] and to a constant
+# 300 from t = 1.1. The control points run well past the last time asked for,
+# because an adaptive step may evaluate beyond it and a spline does not
+# extrapolate by default.
+swdown_step <- list(x = c(0, 0.5, 1, 1.1, 1.5, 2, 3, 5),
+                    y = c(900, 900, 900, 300, 300, 300, 300, 300))
+
+tf24_env_with_swdown <- function(swdown) {
+  env <- Environment("TF24")
+  env$set_soil_number_of_depths(5)
+  env$set_soil_water_state(rep(0.2, 5))
+  if (is.list(swdown)) {
+    env$extrinsic_drivers_set_variable("SWdown", swdown$x, swdown$y)
+  } else {
+    env$extrinsic_drivers_set_constant("SWdown", swdown)
+  }
+  env
+}
+
+test_that("The stepped SWdown driver is flat either side of its step", {
+  env <- tf24_env_with_swdown(swdown_step)
+  expect_equal(env$extrinsic_drivers_evaluate_range("SWdown", seq(0, 1, by = 0.05)),
+               rep(900, 21))
+  expect_equal(env$extrinsic_drivers_evaluate_range("SWdown", seq(1.1, 5, by = 0.05)),
+               rep(300, 79))
+})
+
+test_that("A lone TF24 individual follows a time-varying SWdown", {
+  # A lone individual reads the atmospheric drivers at the runner's time. (Its
+  # soil water is not integrated, so a rainfall driver would have no effect
+  # here; that is a patch-level process.)
+  grow <- function(swdown) {
+    env <- tf24_env_with_swdown(swdown)
+    env$set_fixed_environment(1.0, 150)
+    ind <- Individual("TF24", "TF24_Env")(TF24_Strategy())
+    res <- grow_individual_to_time(ind, c(0.5, 1, 2), env)
+    res$state[, "height"]
+  }
+  h_hi <- grow(900)
+  h_lo <- grow(300)
+  h_step <- grow(swdown_step)
+
+  # Less light, slower growth: the comparison means something.
+  expect_true(all(h_lo < h_hi))
+
+  # Before the step the stepped run sees the same driver as the constant 900
+  # run. The solver's step grid near t = 1 can differ between the two, so this
+  # is equal to within tolerance rather than identical.
+  expect_equal(h_step[1:2], h_hi[1:2])
+
+  # After it, growth slows: the stepped plant ends between the two constants.
+  expect_lt(h_step[3], h_hi[3])
+  expect_gt(h_step[3], h_lo[3])
+})
+
+test_that("A TF24 patch follows a time-varying SWdown", {
+  # Height of the tallest node at each recorded time. Offspring production is
+  # no use here: nothing is mature after two years, so it is below 1e-14 in
+  # every run.
+  tallest <- function(swdown) {
+    p <- testing_parameters("TF24")
+    p$max_patch_lifetime <- 2
+    p <- add_strategies(p, trait_matrix(0.07, "lma"))
+    d <- run_scm(p, env = tf24_env_with_swdown(swdown), collect = TRUE)$species
+    tapply(d$height, d$time, max, na.rm = TRUE)
+  }
+  h_hi <- tallest(900)
+  h_lo <- tallest(300)
+  h_step <- tallest(swdown_step)
+
+  # The node schedule fixes the recorded times, so the runs line up.
+  expect_identical(names(h_step), names(h_hi))
+  t <- as.numeric(names(h_hi))
+  n <- length(t)
+
+  expect_lt(h_lo[[n]], h_hi[[n]])
+
+  # Before the step the stepped patch sees the same driver as the constant 900
+  # patch.
+  expect_equal(h_step[t <= 1], h_hi[t <= 1])
+
+  # After it, growth slows: the stepped patch ends between the two constants.
+  expect_lt(h_step[[n]], h_hi[[n]])
+  expect_gt(h_step[[n]], h_lo[[n]])
+})
