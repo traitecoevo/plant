@@ -17,8 +17,18 @@ hyperpar_run <- function(p = hyperpar_parameters()) {
                      keep_states = TRUE))
 }
 
+# The default run, made once: two tests read it, and neither changes it (a
+# sweep reads a finished run's record and leaves it as it was).
+default_hyperpar_run <- local({
+  run <- NULL
+  function() {
+    if (is.null(run)) run <<- hyperpar_run()
+    run
+  }
+})
+
 test_that("a trait's column is its partial plus each derived parameter's, chained", {
-  run <- hyperpar_run()
+  run <- default_hyperpar_run()
   tot <- stand_gradient(run$scm, traits = c("1.lma", "1.hmat"))
   par <- stand_gradient(run$scm, hyperpar = NULL)
 
@@ -45,7 +55,7 @@ test_that("a trait's column is its partial plus each derived parameter's, chaine
 
 test_that("the total agrees with a difference of the trait through add_strategies", {
   skip_on_cran()
-  run <- hyperpar_run()
+  run <- default_hyperpar_run()
   tot <- stand_gradient(run$scm, traits = "1.lma")
   sched <- run$scm$schedule$times(1)
   census_at <- function(lma) {
