@@ -1,4 +1,4 @@
-##' Convert a matrix of trait values into a list of \code{Model} objects,
+##' Convert a matrix of trait values into a list of strategies (\code{<Name>_Model} objects),
 ##' one per row, by applying the hyperparameter function and inserting the
 ##' resulting parameters into a copy of the default strategy.
 ##'

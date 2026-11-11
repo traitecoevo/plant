@@ -31,7 +31,7 @@ Reference: Falster et al. (2016) *Methods in Ecology and Evolution* 7:136–146,
                             │   RcppR6 + Rcpp generated bindings
 ┌───────────────────────────▼─────────────────────────────────┐
 │  C++ core  (inst/include/plant/*.h  +  src/*.cpp)            │
-│  - templated class hierarchy: Model, Environment,         │
+│  - templated class hierarchy: Model, Environment,            │
 │    Individual, Node, Species, Patch, SCM, Stochastic*        │
 │  - numerics: ODE solver, adaptive quadrature, interpolators  │
 └─────────────────────────────────────────────────────────────┘
@@ -64,19 +64,19 @@ in [src/](src/). Headers are included via `-isystem../inst/include/` (see
 
 The core classes are **templated on two type parameters**:
 
-- `T` = a **Model** type (the biological/physiological model)
-- `E` = an **Environment** type (the resource environment the strategy reads)
+- `T` = a **Model** type (the rules for growth, mortality and reproduction)
+- `E` = an **Environment** type (the resource environment the model reads)
 
 ```
-Model<E>                         the biological model for one species
+Model<E>                            the rules a species' plants follow
   └─ concrete: FF16_Model, TF24_Model, K93_Model
 
 Environment                         resource environment (e.g. light profile)
   └─ concrete: FF16_Environment, TF24_Environment, K93_Environment
 
-Individual<T,E>                     one plant: state + rates from a Model
+Individual<T,E>                     one plant: state + rates from its model
 Node<T,E>                           a cohort in the method-of-characteristics
-Species<T,E>                        all nodes/cohorts of one Model
+Species<T,E>                        all nodes/cohorts of one strategy
 Patch<T,E>                          all Species sharing one Environment
 SCM<T,E>                            the deterministic solver (see §3)
 Parameters<T,E>                     model configuration (strategies, schedule, …)
@@ -371,9 +371,9 @@ doing unconditionally after any change to a `LinkingTo` dependency.
 
 ---
 
-## 7. Adding a new model (strategy + environment)
+## 7. Adding a new model (and its environment)
 
-This is the most cross-cutting change in the package: every templated binding and every R dispatch table names each `<Model, Environment>` pair by hand, and nothing generates the wiring. The **`plant-new-model` skill** (`.claude/skills/plant-new-model/`) lists every file a new model touches and the subclass recipe; the commit that added TF24t (`0b68e62f`) is a worked example of the wiring, from before trade-offs moved onto `Parameters` (#731), so ignore its hyperpar lines. Most new models are a subclass of an existing strategy, as TF24f, TF24t and TF24w are of TF24, and reuse its `_Pars` and environment.
+This is the most cross-cutting change in the package: every templated binding and every R dispatch table names each `<Model, Environment>` pair by hand, and nothing generates the wiring. The **`plant-new-model` skill** (`.claude/skills/plant-new-model/`) lists every file a new model touches and the subclass recipe; the commit that added TF24t (`0b68e62f`) is a worked example of the wiring, from before trade-offs moved onto `Parameters` (#731), so ignore its hyperpar lines. Most new models are a subclass of an existing model, as TF24f, TF24t and TF24w are of TF24, and reuse its `_Pars` and environment.
 
 The shipped models:
 
@@ -668,7 +668,7 @@ will see in the code:
 
 - **Integer index slots instead of string-map lookups.** State/aux/rate access
   in the hot path uses fixed integer constants (`HEIGHT_INDEX`,
-  `MORTALITY_INDEX`, `*_AUX_INDEX` `constexpr`s in the strategy headers, and the
+  `MORTALITY_INDEX`, `*_AUX_INDEX` `constexpr`s in the model headers, and the
   cached `*_aux_index` members in [individual.h](inst/include/plant/individual.h))
   rather than `std::map<std::string,int>::at("name")`. **These constants must
   stay in sync with the order of `state_names()`/`aux_names()`** — there are
@@ -882,7 +882,7 @@ When opening an issue (including whenever the user asks you to create one), alwa
 
   | Tag | Scope |
   |---|---|
-  | `[TF24 hydraulics]` | Hydraulics component of the TF24 strategy |
+  | `[TF24 hydraulics]` | Hydraulics component of the TF24 model |
   | `[TF24 allometry]` | Flexible allometry for the TF24 model |
   | `[TF24 nsc]` | Non-structural carbohydrate storage in TF24 |
   | `[acclimation]` | Acclimation of leaf and other traits |

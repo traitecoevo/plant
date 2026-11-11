@@ -15,11 +15,11 @@ format:
 This document is the mathematical specification of the **ATLS** thermal-response layer of the TF24 leaf (issue #566), built on the Penman–Monteith leaf energy balance (#523). It states the equations as implemented, in two places:
 
 - the leaf-level physics and the dynamics of the states, in phylloptim's `Leaf` behind the gate `use_thermal_damage_` (`inst/include/phylloptim/leaf_model.hpp`: `update_temperature_dependent_params`, `d_S_shifted`, and the `damage` namespace with `impair_switch`, `k_rec_eff` and `rates`);
-- the integration of those states on a plant, the dilution of damaged leaf by growth, and the whole-plant costs, in plant's `TF24t` strategy (`inst/include/plant/models/tf24t_model.h`).
+- the integration of those states on a plant, the dilution of damaged leaf by growth, and the whole-plant costs, in plant's `TF24t` model (`inst/include/plant/models/tf24t_model.h`).
 
 It began as a port of the July 2026 layer (`TF24t` thermal revision 3; §[-@sec-port]) and was then redesigned to three states with the dynamics on the leaf (thermal revision 4; §[-@sec-redesign]). The decisions behind both are in [`notes/plan-atls-port.md`](https://github.com/traitecoevo/plant/blob/f406b6d864f5a68b97c5acc68f6bcf44fb05cda6/notes/plan-atls-port.md), in the history.
 
-With the gate off every equation below collapses to its TF24 form (no lasting damage, no $T_\mathrm{opt}$ shift, no thermal cost), so TF24 and TF24 with the energy balance are bit-identical to a leaf without the layer. The `TF24t` strategy turns the gate on unconditionally and, because the dynamics are only physically meaningful at a real operating-point leaf temperature, also forces the energy balance on.
+With the gate off every equation below collapses to its TF24 form (no lasting damage, no $T_\mathrm{opt}$ shift, no thermal cost), so TF24 and TF24 with the energy balance are bit-identical to a leaf without the layer. The `TF24t` model turns the gate on unconditionally and, because the dynamics are only physically meaningful at a real operating-point leaf temperature, also forces the energy balance on.
 
 The companion `TF24t_leaf_ATLS_demo.qmd` exercises these equations numerically; this document states them.
 
@@ -240,7 +240,7 @@ Standing maintenance is paid whether or not used — for repair *capacity* ($k_\
 
 ### Whole-plant net production
 
-The TF24t strategy overrides net mass production to subtract two costs that are not leaf-local respiration (`TF24t_Model::net_mass_production_dt`):
+The TF24t model overrides net mass production to subtract two costs that are not leaf-local respiration (`TF24t_Model::net_mass_production_dt`):
 
 $$
 \dot m_\mathrm{net}^{\,\mathrm{TF24t}} = \dot m_\mathrm{net}^{\,\mathrm{TF24}}

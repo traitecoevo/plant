@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppR6.R
 \name{TF24_Model}
 \alias{TF24_Model}
-\title{Model parameters}
+\title{The TF24 model}
 \usage{
 TF24_Model(..., values = list(...))
 }
@@ -11,5 +11,7 @@ TF24_Model(..., values = list(...))
 variadic arguments, or as a list, but not both).}
 }
 \description{
-Model parameters that tune various aspects of the biological model.
+The TF24 model: the rules that map a plant's traits, size and
+environment to its growth, fecundity and mortality, with the parameters
+(\code{pars}) and controls they read.
 }

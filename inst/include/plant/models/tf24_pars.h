@@ -11,7 +11,7 @@
 
 namespace plant {
 
-// Biological (user-settable) parameters for the TF24 strategy. Held as a value
+// Biological (user-settable) parameters for the TF24 model. Held as a value
 // member `pars` on TF24_Model and exposed to R as a nested RcppR6 list class
 // (access as `s$pars$lma`). Only R-settable parameters live here; derived
 // quantities (eta_c, height_0, ...), the embedded Leaf model, solver

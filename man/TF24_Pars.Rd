@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppR6.R
 \name{TF24_Pars}
 \alias{TF24_Pars}
-\title{TF24 strategy parameters}
+\title{TF24 model parameters}
 \usage{
 TF24_Pars(..., values = list(...))
 }
@@ -11,7 +11,7 @@ TF24_Pars(..., values = list(...))
 variadic arguments, or as a list, but not both).}
 }
 \description{
-Biological trait/parameters for the TF24 strategy. Held as the nested
+Biological trait/parameters for the TF24 model. Held as the nested
 \code{pars} element of a \code{\link{TF24_Model}} (access as
 \code{s$pars$lma}).
 }

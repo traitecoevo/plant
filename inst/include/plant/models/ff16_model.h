@@ -19,7 +19,7 @@
 
 namespace plant {
 
-// Biological (user-settable) parameters for the FF16 strategy. Held as a value
+// Biological (user-settable) parameters for the FF16 model. Held as a value
 // member `pars` on FF16_Model and exposed to R as a nested RcppR6 list class
 // (so R access is `s$pars$lma`). Derived/precomputed quantities (eta_c,
 // height_0, canopy_shape, ...) are NOT here -- they are outputs of

@@ -24,21 +24,21 @@ namespace plant {
 // them -- and the sweep then walks whatever the reused stack holds. A plain
 // function pointer is what makes that a compile error here rather than a
 // conversion that succeeds.
-template <class Model>
+template <class M>
 struct census_metric {
-  using value_type = typename Model::value_type;
+  using value_type = typename M::value_type;
   const char* name;
-  value_type (*of)(const Model&, const Internals<value_type>&);
+  value_type (*of)(const M&, const Internals<value_type>&);
 };
 
 // A strategy that says what a census of it reads. Asserted where a census is
 // taken rather than here: a model nothing censuses owes this nothing, and a
 // model that is censused says so at the call site with the member named instead
 // of failing inside whatever loop reached for it.
-template <class Model>
+template <class M>
 concept Censusable = requires {
-  { *Model::census_metrics().begin() } ->
-      std::convertible_to<census_metric<Model>>;
+  { *M::census_metrics().begin() } ->
+      std::convertible_to<census_metric<M>>;
 };
 
 // A strategy whose fitness -- each species' net reproduction ratio and offspring
@@ -47,19 +47,19 @@ concept Censusable = requires {
 // state, because a model has to say its fecundity channel is refereed: the
 // reverse pass sweeps every state either way, and a row nobody checked would
 // read as an answer.
-template <class Model>
+template <class M>
 concept DeclaresFitnessMetrics = requires {
-  { Model::differentiable_fitness } -> std::convertible_to<bool>;
-} && bool(Model::differentiable_fitness);
+  { M::differentiable_fitness } -> std::convertible_to<bool>;
+} && bool(M::differentiable_fitness);
 
 // The names of a strategy's metrics, in the order it reports them. Read off the
 // metrics themselves, so a name and the quantity it belongs to cannot be listed
 // in two places.
-template <class Model>
-  requires Censusable<Model>
+template <class M>
+  requires Censusable<M>
 std::vector<std::string> census_metric_names() {
   std::vector<std::string> ret;
-  for (const census_metric<Model>& m : Model::census_metrics()) {
+  for (const census_metric<M>& m : M::census_metrics()) {
     ret.push_back(m.name);
   }
   return ret;

@@ -9,7 +9,7 @@
 
 namespace plant {
 
-// Biological (user-settable) parameters for the K93 strategy. Held as a value
+// Biological (user-settable) parameters for the K93 model. Held as a value
 // member `pars` on K93_Model and exposed to R as a nested RcppR6 list class
 // (access as `s$pars$b_0`). Derived quantities (canopy_shape) stay as plain
 // members on the strategy.

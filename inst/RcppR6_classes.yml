@@ -1264,10 +1264,10 @@ Weibull_Disturbance_Regime:
 FF16_Pars:
   name_cpp: "plant::FF16_Pars<double>"
   roxygen: |
-    Biological trait/parameters for the FF16 strategy. Held as the nested
+    Biological trait/parameters for the FF16 model. Held as the nested
     \code{pars} element of an \code{\link{FF16_Model}} (access as
     \code{s$pars$lma}).
-    @title FF16 strategy parameters
+    @title FF16 model parameters
     @param ...,values Values to initialise the struct with (either as
     variadic arguments, or as a list, but not both).
     @export
@@ -1311,8 +1311,10 @@ FF16_Pars:
 FF16_Model:
   name_cpp: "plant::FF16_Model<double>"
   roxygen: |
-    Model parameters that tune various aspects of the biological model.
-    @title Model parameters
+    The FF16 model: the rules that map a plant's traits, size and
+    environment to its growth, fecundity and mortality, with the parameters
+    (\code{pars}) and controls they read.
+    @title The FF16 model
     @param ...,values Values to initialise the struct with (either as
     variadic arguments, or as a list, but not both).
     @export
@@ -1356,10 +1358,10 @@ FF16_Environment:
 K93_Pars:
   name_cpp: "plant::K93_Pars"
   roxygen: |
-    Biological trait/parameters for the K93 strategy. Held as the nested
+    Biological trait/parameters for the K93 model. Held as the nested
     \code{pars} element of a \code{\link{K93_Model}} (access as
     \code{s$pars$b_0}).
-    @title K93 strategy parameters
+    @title K93 model parameters
     @param ...,values Values to initialise the struct with (either as
     variadic arguments, or as a list, but not both).
     @export
@@ -1379,8 +1381,10 @@ K93_Pars:
 K93_Model:
   name_cpp: "plant::K93_Model"
   roxygen: |
-    Model parameters that tune various aspects of the biological model.
-    @title Model parameters
+    The K93 model: the rules that map a plant's traits, size and
+    environment to its growth, fecundity and mortality, with the parameters
+    (\code{pars}) and controls they read.
+    @title The K93 model
     @param ...,values Values to initialise the struct with (either as
     variadic arguments, or as a list, but not both).
     @export
@@ -1436,10 +1440,10 @@ ExtrinsicDrivers:
 TF24_Pars:
   name_cpp: "plant::TF24_Pars<double>"
   roxygen: |
-    Biological trait/parameters for the TF24 strategy. Held as the nested
+    Biological trait/parameters for the TF24 model. Held as the nested
     \code{pars} element of a \code{\link{TF24_Model}} (access as
     \code{s$pars$lma}).
-    @title TF24 strategy parameters
+    @title TF24 model parameters
     @param ...,values Values to initialise the struct with (either as
     variadic arguments, or as a list, but not both).
     @export
@@ -1538,8 +1542,10 @@ TF24_Pars:
 TF24_Model:
   name_cpp: "plant::TF24_Model<double>"
   roxygen: |
-    Model parameters that tune various aspects of the biological model.
-    @title Model parameters
+    The TF24 model: the rules that map a plant's traits, size and
+    environment to its growth, fecundity and mortality, with the parameters
+    (\code{pars}) and controls they read.
+    @title The TF24 model
     @param ...,values Values to initialise the struct with (either as
     variadic arguments, or as a list, but not both).
     @export
@@ -1556,7 +1562,7 @@ TF24_Environment:
   constructor:
     roxygen: |
       @title Create an TF24_Environment object.
-      @description This environment is used for the TF24 strategy, which includes soil moisture and hydraulic
+      @description This environment is used for the TF24 model, which includes soil moisture and hydraulic
       conductivity parameters.
       @rdname TF24_Environment
       @export
@@ -1689,8 +1695,10 @@ TF24_Environment:
 TF24f_Model:
   name_cpp: "plant::TF24f_Model<double>"
   roxygen: |
-    Model parameters that tune various aspects of the biological model.
-    @title Model parameters
+    The TF24f model: the rules that map a plant's traits, size and
+    environment to its growth, fecundity and mortality, with the parameters
+    (\code{pars}) and controls they read.
+    @title The TF24f model
     @param ...,values Values to initialise the struct with (either as
     variadic arguments, or as a list, but not both).
     @export
@@ -1709,8 +1717,10 @@ TF24f_Model:
 TF24t_Model:
   name_cpp: "plant::TF24t_Model<double>"
   roxygen: |
-    Model parameters that tune various aspects of the biological model.
-    @title Model parameters
+    The TF24t model: the rules that map a plant's traits, size and
+    environment to its growth, fecundity and mortality, with the parameters
+    (\code{pars}) and controls they read.
+    @title The TF24t model
     @param ...,values Values to initialise the struct with (either as
     variadic arguments, or as a list, but not both).
     @export
@@ -1754,8 +1764,10 @@ TF24t_Model:
 TF24w_Model:
   name_cpp: "plant::TF24w_Model<double>"
   roxygen: |
-    Model parameters that tune various aspects of the biological model.
-    @title Model parameters
+    The TF24w model: the rules that map a plant's traits, size and
+    environment to its growth, fecundity and mortality, with the parameters
+    (\code{pars}) and controls they read.
+    @title The TF24w model
     @param ...,values Values to initialise the struct with (either as
     variadic arguments, or as a list, but not both).
     @export
