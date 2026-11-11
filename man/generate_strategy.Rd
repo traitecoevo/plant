@@ -48,7 +48,7 @@ also sets \code{strategy$birth_rate_x} and
 \item{birth_rate_list}{Deprecated; use \code{birth_rate}.}
 }
 \description{
-Convert a matrix of trait values into a list of \code{Strategy} objects,
+Convert a matrix of trait values into a list of \code{Model} objects,
 one per row, by applying the hyperparameter function and inserting the
 resulting parameters into a copy of the default strategy.
 }

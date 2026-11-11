@@ -12,6 +12,6 @@ variadic arguments, or as a list, but not both).}
 }
 \description{
 Biological trait/parameters for the K93 strategy. Held as the nested
-\code{pars} element of a \code{\link{K93_Strategy}} (access as
+\code{pars} element of a \code{\link{K93_Model}} (access as
 \code{s$pars$b_0}).
 }

@@ -4,10 +4,10 @@
 \alias{TF24f_Individual}
 \title{Create a TF24f Plant or Node}
 \usage{
-TF24f_Individual(s = TF24f_Strategy())
+TF24f_Individual(s = TF24f_Model())
 }
 \arguments{
-\item{s}{A \code{\link{TF24f_Strategy}} object}
+\item{s}{A \code{\link{TF24f_Model}} object}
 }
 \description{
 Create a TF24f Plant or Node

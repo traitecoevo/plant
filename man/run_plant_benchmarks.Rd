@@ -4,10 +4,7 @@
 \alias{run_plant_benchmarks}
 \title{Check performance on current system using package bench}
 \usage{
-run_plant_benchmarks(
-  strategy_types = list(FF16 = FF16_Strategy),
-  iterations = 1
-)
+run_plant_benchmarks(strategy_types = list(FF16 = FF16_Model), iterations = 1)
 }
 \arguments{
 \item{strategy_types}{A list of name strategy types to be tests}

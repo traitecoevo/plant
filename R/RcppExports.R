@@ -6285,8 +6285,8 @@ FF16_Pars__ctor <- function() {
     .Call('_plant_FF16_Pars__ctor', PACKAGE = 'plant')
 }
 
-FF16_Strategy__ctor <- function() {
-    .Call('_plant_FF16_Strategy__ctor', PACKAGE = 'plant')
+FF16_Model__ctor <- function() {
+    .Call('_plant_FF16_Model__ctor', PACKAGE = 'plant')
 }
 
 FF16_Environment__ctor <- function() {
@@ -6337,8 +6337,8 @@ K93_Pars__ctor <- function() {
     .Call('_plant_K93_Pars__ctor', PACKAGE = 'plant')
 }
 
-K93_Strategy__ctor <- function() {
-    .Call('_plant_K93_Strategy__ctor', PACKAGE = 'plant')
+K93_Model__ctor <- function() {
+    .Call('_plant_K93_Model__ctor', PACKAGE = 'plant')
 }
 
 K93_Environment__ctor <- function() {
@@ -6409,8 +6409,8 @@ TF24_Pars__ctor <- function() {
     .Call('_plant_TF24_Pars__ctor', PACKAGE = 'plant')
 }
 
-TF24_Strategy__ctor <- function() {
-    .Call('_plant_TF24_Strategy__ctor', PACKAGE = 'plant')
+TF24_Model__ctor <- function() {
+    .Call('_plant_TF24_Model__ctor', PACKAGE = 'plant')
 }
 
 TF24_Environment__ctor <- function() {
@@ -6625,16 +6625,16 @@ TF24_Environment__soil__get <- function(obj_) {
     .Call('_plant_TF24_Environment__soil__get', PACKAGE = 'plant', obj_)
 }
 
-TF24f_Strategy__ctor <- function() {
-    .Call('_plant_TF24f_Strategy__ctor', PACKAGE = 'plant')
+TF24f_Model__ctor <- function() {
+    .Call('_plant_TF24f_Model__ctor', PACKAGE = 'plant')
 }
 
-TF24t_Strategy__ctor <- function() {
-    .Call('_plant_TF24t_Strategy__ctor', PACKAGE = 'plant')
+TF24t_Model__ctor <- function() {
+    .Call('_plant_TF24t_Model__ctor', PACKAGE = 'plant')
 }
 
-TF24w_Strategy__ctor <- function() {
-    .Call('_plant_TF24w_Strategy__ctor', PACKAGE = 'plant')
+TF24w_Model__ctor <- function() {
+    .Call('_plant_TF24w_Model__ctor', PACKAGE = 'plant')
 }
 
 census_metric_names_tf24 <- function(obj_) {

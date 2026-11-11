@@ -12,6 +12,6 @@ variadic arguments, or as a list, but not both).}
 }
 \description{
 Biological trait/parameters for the TF24 strategy. Held as the nested
-\code{pars} element of a \code{\link{TF24_Strategy}} (access as
+\code{pars} element of a \code{\link{TF24_Model}} (access as
 \code{s$pars$lma}).
 }

@@ -12,6 +12,6 @@ variadic arguments, or as a list, but not both).}
 }
 \description{
 Biological trait/parameters for the FF16 strategy. Held as the nested
-\code{pars} element of an \code{\link{FF16_Strategy}} (access as
+\code{pars} element of an \code{\link{FF16_Model}} (access as
 \code{s$pars$lma}).
 }

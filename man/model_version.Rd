@@ -37,7 +37,7 @@ change to its thermal-damage layer.
 
 The number is authored in C++ (the \code{scientific_version},
 \code{approximation_revision} and \code{thermal_revision} constants on each
-strategy class, see \code{inst/include/plant/models/*_strategy.h}) and read
+model class, see \code{inst/include/plant/models/*_model.h}) and read
 here through the
 compiled \code{strategy_scientific_version()}; there is no duplicated copy
 in R.
