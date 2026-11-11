@@ -1,6 +1,6 @@
 # The model registry: the equations of the size-structured layer plant's
-# models share and of each model (the models' entries arrive in later PRs),
-# the parameters those equations read, and the C++ symbol that evaluates
+# models share and of each model (FF16 and K93 so far; the TF24 family's
+# entries arrive in later PRs), the parameters those equations read, and the C++ symbol that evaluates
 # each, in one file that documents are generated FROM rather than written
 # beside. It follows phylloptim's registry
 # (traitecoevo/phylloptim#168), so the two read alike.
@@ -26,35 +26,59 @@
 #
 # `sections` is id: title, in document order.
 #
+# `models` is keyed by model id (FF16, K93, ...). Each has title and header (the
+# model's C++ header), and optionally extends (the model it subclasses, whose
+# entries it inherits) and unfilled (slot: why this model supplies no such
+# quantity).
+#
+# A model's own entries carry `model:` and an id `<model>.<name>` (FF16.lma),
+# since models share names; a shared-layer entry has neither. A subclass
+# records only what it changes.
+#
 # `slots` are the quantities the shared layer reads and every model supplies
 # (growth, mortality, fecundity, establishment, leaf area, crown shape, birth
 # size). Each has symbol (LaTeX, no $), units, meaning and code (the generic C++
 # symbol through which the shared layer reads it). A model's equations say which
-# slot they fill with `fills:`.
+# slot they fill with `fills:`. A slot with per_model: false is supplied once
+# for every model (by a shared entry, or by the base class); otherwise every
+# model fills it, through an equation or a parameter with `fills:`, or lists it
+# under its `unfilled`.
 #
 # `parameters` is keyed by the name in code. Each has section, symbol, units,
 # class (trait | hyperparameter | constant | driver | setting), meaning, source
 # (free text), placeholder (true where the value is an uncalibrated default or no
 # source is recorded) and code (the qualified C++ member that holds it). Optional:
-# cite (a Zotero key, Surname-Year), literal (see rule 1), field (the R binding's
-# name, where it is not the member name) and aliases (other symbols the same
-# quantity is read through).
+# model, fills (a slot this parameter supplies), cite (a Zotero key,
+# Surname-Year), literal (see rule 1), field (the R binding's name, where it is
+# not the member name) and aliases (other symbols the same quantity is read
+# through).
 #
 # `equations` is keyed by id. Each has section, title, latex, code (the symbol
 # that evaluates it, or ~ for an identity with none), reads (parameter or slot
 # ids), writes (bound fields or outputs it seats; may be empty) and kind
 # (closed_form | identity | derivative | integrator: what sort of statement the
-# LaTeX is). Optional: also (further symbols involved), fills (a slot id), cite,
-# note and overstorey (the Overstorey page the LaTeX follows).
+# LaTeX is). Optional: model, also (further symbols involved), fills (a slot
+# id), cite, note and overstorey (the Overstorey page the LaTeX follows).
 #
-# `not_parameters` is keyed by a bound field of a covered class that is neither a
-# parameter nor written by an equation (a numerical schedule, a stored state, a
-# container), each with a reason, so every bound field is accounted for.
+# `not_parameters` is keyed by a bound field of Parameters, or `<model>.<field>`
+# for a field of a model's pars, that is neither a parameter nor written by an
+# equation (a numerical schedule, a stored state, a container), each with a
+# reason, so every bound field is accounted for.
 #
 # YAML 1.1 reads `1e-3` as a string: write floats with a point and a signed
 # exponent (1.0e-3, 2.45e+6).
 
 package: plant
+
+models:
+  FF16:
+    title: 'FF16: Falster et al. 2011, 2016, 2018'
+    header: inst/include/plant/models/ff16_model.h
+  K93:
+    title: 'K93: Kohyama 1993'
+    header: inst/include/plant/models/k93_model.h
+    unfilled:
+      w: 'K93 declares no census_metrics(), so a census of it is refused at compile time (SCM::metrics_of) and it has no per-individual quantity for a stand total to sum.'
 
 sections:
   individual: Individual plants along their characteristic
@@ -64,6 +88,17 @@ sections:
   patch_age: Patch-age structure and disturbance
   reproduction: Offspring production and fitness
   stand: Stand totals
+  ff16_production: 'FF16: photosynthesis and net mass production'
+  ff16_growth: 'FF16: allocation and growth'
+  ff16_allometry: 'FF16: the functional-balance allometry'
+  ff16_fecundity: 'FF16: seed production'
+  ff16_mortality: 'FF16: mortality and establishment'
+  ff16_competition: 'FF16: birth size, competition and census'
+  k93_growth: 'K93: growth'
+  k93_fecundity: 'K93: fecundity'
+  k93_mortality: 'K93: mortality'
+  k93_competition: 'K93: size-structured competition'
+  k93_establishment: 'K93: birth size, dispersal and establishment'
 
 slots:
   g:
@@ -88,19 +123,20 @@ slots:
     code: plant::Individual::establishment_probability_of_newborn
   H_0:
     symbol: 'H_0(x)'
-    units: 'm'
-    meaning: 'height at birth; the strategy''s initial_height(), seated on the height state when an individual is constructed, and seated again at birth by a model that sets initial states there (the TF24 family, through set_initial_states)'
+    units: 'the model''s size unit (m of height for FF16 and the TF24 family; cm of diameter for K93)'
+    meaning: 'size at birth, in the size the model integrates (height, or K93''s stem diameter); the strategy''s initial_height(), seated on the height state when an individual is constructed, and seated again at birth by a model that sets initial states there (the TF24 family, through set_initial_states)'
     code: plant::Individual::Individual
   A_l:
     symbol: 'A_{\rm l}(H)'
-    units: 'm²'
-    meaning: 'leaf area of a plant of height $H$; the shared layer reads it only inside the product $k_{\rm I} A_{\rm l}(H) Q(z, H)$ a model returns as its competition contribution'
+    units: 'm² of leaf area (FF16, TF24); cm² of basal area (K93)'
+    meaning: 'the competitive size of a plant of size $H$: leaf area, or K93''s basal area; the shared layer reads it only inside the product $k_{\rm I} A_{\rm l}(H) Q(z, H)$ a model returns as its competition contribution'
     code: plant::Individual::compute_competition
   Q:
     symbol: 'Q(z, H)'
     units: '–'
     meaning: 'fraction of a plant''s leaf area above height $z$; shared by the models through CanopyShape'
     code: plant::CanopyShape::Q
+    per_model: false
   eta:
     symbol: '\eta'
     units: '–'
@@ -108,8 +144,8 @@ slots:
     code: plant::CanopyShape::initialise
   k_I:
     symbol: 'k_{\rm I}'
-    units: '–'
-    meaning: 'light extinction coefficient; held in each model''s pars and read only inside the competition contribution the model returns'
+    units: '– (FF16, TF24); m² cm⁻² of basal area (K93)'
+    meaning: 'light extinction coefficient (K93: the scale of its basal-area environment); held in each model''s pars and read only inside the competition contribution the model returns'
     code: plant::Individual::compute_competition
   S_D:
     symbol: 'S_{\rm D}'
@@ -119,8 +155,9 @@ slots:
   Y_x:
     symbol: 'Y_x'
     units: 'm⁻² yr⁻¹'
-    meaning: 'rate at which offspring of strategy $x$ arrive in the patch (the birth rate); constant by default, a monotone spline of time when the strategy sets a variable birth rate'
+    meaning: 'rate at which offspring of strategy $x$ arrive in the patch (the birth rate); constant by default, a monotone spline of time when the strategy sets a variable birth rate. One rule for every model: the base class holds the fields and the driver, and FF16 and TF24 re-declare birth_rate_at only to evaluate it at their own number type'
     code: plant::Model::birth_rate_at
+    per_model: false
   w:
     symbol: 'w(x, H, E_a)'
     units: 'varies'
@@ -216,6 +253,522 @@ parameters:
     placeholder: false
     code: plant::Parameters::fitness_window_weight_y
 
+  # --- FF16: production ---------------------------------------------------------
+  FF16.a_p1:
+    model: FF16
+    section: ff16_production
+    symbol: '\alpha_{\rm p1}'
+    units: 'mol yr⁻¹ m⁻²'
+    class: trait
+    meaning: 'maximum annual leaf photosynthesis per leaf area, the asymptote of the saturating light response'
+    source: 'FF16_Pars default; the frozen trade-off (frozen_FF16_hyperpar) fits it with a_p2 from leaf nitrogen per area (narea) and latitude, integrating a non-rectangular hyperbola over a solar year (Overstorey eq-ptss, eq-amax)'
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::a_p1
+  FF16.a_p2:
+    model: FF16
+    section: ff16_production
+    symbol: '\alpha_{\rm p2}'
+    units: '–'
+    class: trait
+    meaning: 'canopy openness at which leaf photosynthesis is half its maximum'
+    source: 'FF16_Pars default; fitted with a_p1 by the frozen trade-off from narea and latitude'
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::a_p2
+  FF16.a_y:
+    model: FF16
+    section: ff16_production
+    symbol: '\alpha_{\rm y}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'yield: the fraction of assimilated carbon retained after growth respiration'
+    source: FF16_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::a_y
+  FF16.a_bio:
+    model: FF16
+    section: ff16_production
+    symbol: '\alpha_{\rm bio}'
+    units: 'kg mol⁻¹'
+    class: constant
+    meaning: 'dry mass per mol of assimilated CO₂'
+    source: 'FF16_Pars default; header: 12e-3 / 0.49 (the mass of a mol of carbon over the carbon fraction of dry mass)'
+    placeholder: false
+    code: plant::FF16_Pars::a_bio
+  FF16.r_l:
+    model: FF16
+    section: ff16_production
+    symbol: 'r_{\rm l}'
+    units: 'mol yr⁻¹ kg⁻¹'
+    class: trait
+    meaning: 'leaf maintenance respiration per leaf mass'
+    source: 'FF16_Pars default, 39.27 / 0.1978791: respiration per leaf area at the default narea (B_lf4 narea = 21000 × 1.87e-3) over the default lma, written out so that setting lma does not move it; the frozen trade-off derives it as $\beta_{\rm lf4} \nu / \phi$ (Overstorey eq-rl)'
+    cite: Wright-2004
+    placeholder: false
+    code: plant::FF16_Pars::r_l
+  FF16.r_s:
+    model: FF16
+    section: ff16_production
+    symbol: 'r_{\rm s}'
+    units: 'mol yr⁻¹ kg⁻¹'
+    class: trait
+    meaning: 'sapwood maintenance respiration per sapwood mass'
+    source: 'FF16_Pars default, 4012 / 608: respiration per sapwood volume over the default wood density; the frozen trade-off derives it as $\beta_{\rm rs1} / \rho$ (Overstorey eq-rs)'
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::r_s
+  FF16.r_b:
+    model: FF16
+    section: ff16_production
+    symbol: 'r_{\rm b}'
+    units: 'mol yr⁻¹ kg⁻¹'
+    class: trait
+    meaning: 'bark maintenance respiration per bark mass'
+    source: 'FF16_Pars default, twice the default r_s (header: a re-parametrisation of the paper''s fixed factor of 2; a default, not a link to r_s); the frozen trade-off derives it as $\beta_{\rm rb1} / \rho$ with $\beta_{\rm rb1} = 2 \beta_{\rm rs1}$ (Overstorey eq-rb)'
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::r_b
+  FF16.r_r:
+    model: FF16
+    section: ff16_production
+    symbol: 'r_{\rm r}'
+    units: 'mol yr⁻¹ kg⁻¹'
+    class: hyperparameter
+    meaning: 'fine-root maintenance respiration per root mass'
+    source: FF16_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::r_r
+  FF16.r_cr:
+    model: FF16
+    section: ff16_production
+    symbol: 'r_{\rm cr}'
+    units: 'mol yr⁻¹ kg⁻¹'
+    class: hyperparameter
+    meaning: 'coarse-root maintenance respiration per coarse-root mass; inert while a_cr1 is zero'
+    source: 'FF16_Pars default: the default sapwood rate, by analogy (coarse roots are woody); a default, not a link to r_s'
+    placeholder: true
+    code: plant::FF16_Pars::r_cr
+  FF16.k_l:
+    model: FF16
+    section: ff16_production
+    symbol: 'k_{\rm l}'
+    units: 'yr⁻¹'
+    class: trait
+    meaning: 'leaf turnover rate'
+    source: 'FF16_Pars default ($\beta_{\rm kl1}$ at $\phi_0$); the frozen trade-off derives it from lma as $\beta_{\rm kl1} (\phi / \phi_0)^{-\beta_{\rm kl2}}$ (Overstorey eq-k-l)'
+    cite: Wright-2004
+    placeholder: false
+    code: plant::FF16_Pars::k_l
+  FF16.k_s:
+    model: FF16
+    section: ff16_production
+    symbol: 'k_{\rm s}'
+    units: 'yr⁻¹'
+    class: trait
+    meaning: 'sapwood turnover rate; also the rate sapwood becomes heartwood'
+    source: 'FF16_Pars default; the frozen trade-off derives it from wood density as $\beta_{\rm ks1} (\rho / \rho_0)^{-\beta_{\rm ks2}}$ (Overstorey eq-ks), flat at the default $\beta_{\rm ks2} = 0$'
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::k_s
+  FF16.k_b:
+    model: FF16
+    section: ff16_production
+    symbol: 'k_{\rm b}'
+    units: 'yr⁻¹'
+    class: hyperparameter
+    meaning: 'bark turnover rate'
+    source: FF16_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::k_b
+  FF16.k_r:
+    model: FF16
+    section: ff16_production
+    symbol: 'k_{\rm r}'
+    units: 'yr⁻¹'
+    class: hyperparameter
+    meaning: 'fine-root turnover rate'
+    source: FF16_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::k_r
+  FF16.k_cr:
+    model: FF16
+    section: ff16_production
+    symbol: 'k_{\rm cr}'
+    units: 'yr⁻¹'
+    class: hyperparameter
+    meaning: 'coarse-root turnover rate; inert while a_cr1 is zero'
+    source: 'FF16_Pars default: the default sapwood rate, by analogy (coarse roots are woody); a default, not a link to k_s'
+    placeholder: true
+    code: plant::FF16_Pars::k_cr
+
+  # --- FF16: allometry ----------------------------------------------------------
+  FF16.eta:
+    model: FF16
+    section: ff16_allometry
+    symbol: '\eta'
+    units: '–'
+    class: hyperparameter
+    meaning: 'crown-shape parameter: 1 gives a conical crown, larger values a more top-heavy one'
+    source: FF16_Pars default
+    cite: Yokozawa-1995
+    placeholder: false
+    code: plant::FF16_Pars::eta
+    fills: eta
+  FF16.lma:
+    model: FF16
+    section: ff16_allometry
+    symbol: '\phi'
+    units: 'kg m⁻²'
+    class: trait
+    meaning: 'leaf mass per area'
+    source: 'FF16_Pars default, the global mean $\phi_0$ the frozen trade-off is centred on'
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::lma
+  FF16.rho:
+    model: FF16
+    section: ff16_allometry
+    symbol: '\rho'
+    units: 'kg m⁻³'
+    class: trait
+    meaning: 'wood density'
+    source: 'FF16_Pars default, the global mean $\rho_0$ the frozen trade-off is centred on'
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::rho
+  FF16.theta:
+    model: FF16
+    section: ff16_allometry
+    symbol: '\theta'
+    units: '–'
+    class: hyperparameter
+    meaning: 'sapwood area per unit leaf area (the pipe model)'
+    source: 'FF16_Pars default (1/4669)'
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::theta
+  FF16.a_l1:
+    model: FF16
+    section: ff16_allometry
+    symbol: '\alpha_{\rm l1}'
+    units: 'm'
+    class: hyperparameter
+    meaning: 'height of a plant with 1 m² of leaf area'
+    source: FF16_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::a_l1
+  FF16.a_l2:
+    model: FF16
+    section: ff16_allometry
+    symbol: '\alpha_{\rm l2}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'exponent of the relationship between height and leaf area'
+    source: FF16_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::a_l2
+  FF16.a_r1:
+    model: FF16
+    section: ff16_allometry
+    symbol: '\alpha_{\rm r1}'
+    units: 'kg m⁻²'
+    class: hyperparameter
+    meaning: 'fine-root mass per unit leaf area'
+    source: 'FF16_Pars default (the header comment gives its units as kg m⁻¹; it is a mass per leaf area)'
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::a_r1
+  FF16.a_cr1:
+    model: FF16
+    section: ff16_allometry
+    symbol: '\alpha_{\rm cr1}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'coarse-root mass per unit sapwood mass; coarse roots continue the sapwood cylinder below ground, so the structural root:shoot ratio is size-invariant'
+    source: 'FF16_Pars default, zero: the pool is absent unless switched on, so FF16 reproduces the published model'
+    placeholder: false
+    code: plant::FF16_Pars::a_cr1
+  FF16.a_b1:
+    model: FF16
+    section: ff16_allometry
+    symbol: '\alpha_{\rm b1}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'ratio of bark area to sapwood area (and so of bark mass to sapwood mass)'
+    source: FF16_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::a_b1
+
+  # --- FF16: fecundity ----------------------------------------------------------
+  FF16.omega:
+    model: FF16
+    section: ff16_fecundity
+    symbol: '\omega'
+    units: 'kg'
+    class: trait
+    meaning: 'seed mass; also sets the height at birth'
+    source: FF16_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::omega
+  FF16.hmat:
+    model: FF16
+    section: ff16_fecundity
+    symbol: 'H_{{\rm mat}}'
+    units: 'm'
+    class: trait
+    meaning: 'height at maturation, about which allocation shifts from growth to reproduction'
+    source: FF16_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::hmat
+  FF16.a_f1:
+    model: FF16
+    section: ff16_fecundity
+    symbol: '\alpha_{\rm f1}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'maximum fraction of production allocated to reproduction'
+    source: FF16_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::a_f1
+  FF16.a_f2:
+    model: FF16
+    section: ff16_fecundity
+    symbol: '\alpha_{\rm f2}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'how abruptly allocation to reproduction rises about $H_{\rm mat}$'
+    source: FF16_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::a_f2
+  FF16.a_f3:
+    model: FF16
+    section: ff16_fecundity
+    symbol: '\alpha_{\rm f3}'
+    units: 'kg'
+    class: trait
+    meaning: 'accessory cost per seed (flowers, fruit, dispersal structures)'
+    source: 'FF16_Pars default, three times the default seed mass; the frozen trade-off derives it as $\beta_{\rm f1} \omega$ (Overstorey eq-a-f3)'
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::a_f3
+
+  # --- FF16: mortality ----------------------------------------------------------
+  FF16.S_D:
+    model: FF16
+    section: ff16_mortality
+    symbol: 'S_{\rm D}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'probability an offspring survives dispersal'
+    source: FF16_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::S_D
+    fills: S_D
+  FF16.a_d0:
+    model: FF16
+    section: ff16_mortality
+    symbol: '\alpha_{\rm d0}'
+    units: 'kg yr⁻¹ m⁻²'
+    class: hyperparameter
+    meaning: 'production per leaf area at which a seedling''s establishment probability is one half'
+    source: FF16_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::a_d0
+  FF16.d_I:
+    model: FF16
+    section: ff16_mortality
+    symbol: 'd_{\rm I}'
+    units: 'yr⁻¹'
+    class: trait
+    meaning: 'growth-independent (intrinsic) mortality rate'
+    source: 'FF16_Pars default; the frozen trade-off derives it from wood density as $\beta_{\rm dI1} (\rho / \rho_0)^{-\beta_{\rm dI2}}$ (Overstorey eq-di), flat at the default $\beta_{\rm dI2} = 0$'
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::d_I
+  FF16.a_dG1:
+    model: FF16
+    section: ff16_mortality
+    symbol: '\alpha_{\rm dG1}'
+    units: 'yr⁻¹'
+    class: hyperparameter
+    meaning: 'growth-dependent mortality rate at zero production per leaf area'
+    source: FF16_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::a_dG1
+  FF16.a_dG2:
+    model: FF16
+    section: ff16_mortality
+    symbol: '\alpha_{\rm dG2}'
+    units: 'yr m² kg⁻¹'
+    class: hyperparameter
+    meaning: 'how fast growth-dependent mortality falls with production per leaf area'
+    source: FF16_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::a_dG2
+  FF16.recruitment_decay:
+    model: FF16
+    section: ff16_mortality
+    symbol: '\kappa_{\rm G}'
+    units: 'yr⁻¹'
+    class: hyperparameter
+    meaning: 'rate at which establishment probability decays with the patch age at birth'
+    source: 'FF16_Pars default, zero: no decay, so FF16 reproduces the published model; not on an Overstorey page'
+    placeholder: false
+    code: plant::FF16_Pars::recruitment_decay
+
+  # --- FF16: competition --------------------------------------------------------
+  FF16.k_I:
+    model: FF16
+    section: ff16_competition
+    symbol: 'k_{\rm I}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'light extinction coefficient; scales FF16''s competition contribution, and the frozen trade-off reads it when it fits a_p1 and a_p2'
+    source: FF16_Pars default
+    cite: Falster-2016
+    placeholder: false
+    code: plant::FF16_Pars::k_I
+    fills: k_I
+
+  # --- K93 ------------------------------------------------------------------------
+  K93.b_0:
+    model: K93
+    section: k93_growth
+    symbol: 'b_0'
+    units: 'yr⁻¹'
+    class: trait
+    meaning: 'growth intercept: relative diameter growth rate of an unsuppressed tree of diameter 1 cm'
+    source: 'K93_Pars default; the constructor attributes the defaults to Table 1 of Kohyama-1993, not yet checked against the paper'
+    cite: Kohyama-1993
+    placeholder: false
+    code: plant::K93_Pars::b_0
+  K93.b_1:
+    model: K93
+    section: k93_growth
+    symbol: 'b_1'
+    units: 'yr⁻¹ (ln cm)⁻¹'
+    class: trait
+    meaning: 'decline of relative growth rate with log diameter (sets the asymptotic size)'
+    source: 'K93_Pars default; attributed by the constructor to Table 1 of Kohyama-1993, not yet checked against the paper'
+    cite: Kohyama-1993
+    placeholder: false
+    code: plant::K93_Pars::b_1
+  K93.b_2:
+    model: K93
+    section: k93_growth
+    symbol: 'b_2'
+    units: 'm² cm⁻² yr⁻¹'
+    class: trait
+    meaning: 'growth suppression per unit basal area of larger trees'
+    source: 'K93_Pars default; attributed by the constructor to Table 1 of Kohyama-1993, not yet checked against the paper'
+    cite: Kohyama-1993
+    placeholder: false
+    code: plant::K93_Pars::b_2
+  K93.d_0:
+    model: K93
+    section: k93_fecundity
+    symbol: 'd_0'
+    units: 'cm⁻² yr⁻¹'
+    class: trait
+    meaning: 'recruitment (offspring production) per unit basal area of the parent'
+    source: 'K93_Pars default; attributed by the constructor to Table 1 of Kohyama-1993, not yet checked against the paper. The header comment gives the units as cm² yr⁻¹; $d_0 B_0$ is a rate per tree, so $d_0$ is per cm² of basal area'
+    cite: Kohyama-1993
+    placeholder: false
+    code: plant::K93_Pars::d_0
+  K93.d_1:
+    model: K93
+    section: k93_fecundity
+    symbol: 'd_1'
+    units: 'm² cm⁻²'
+    class: trait
+    meaning: 'reduction of recruitment per unit basal area of larger trees'
+    source: 'K93_Pars default; attributed by the constructor to Table 1 of Kohyama-1993, not yet checked against the paper. The header comment gives the units as m² cm⁻² yr⁻¹; $d_1 B$ is an exponent, so $d_1$ carries no yr⁻¹'
+    cite: Kohyama-1993
+    placeholder: false
+    code: plant::K93_Pars::d_1
+  K93.c_0:
+    model: K93
+    section: k93_mortality
+    symbol: 'c_0'
+    units: 'yr⁻¹'
+    class: trait
+    meaning: 'mortality intercept, subtracted: individual mortality is zero until $c_1 B$ exceeds it'
+    source: 'K93_Pars default; attributed by the constructor to Table 1 of Kohyama-1993, not yet checked against the paper'
+    cite: Kohyama-1993
+    placeholder: false
+    code: plant::K93_Pars::c_0
+  K93.c_1:
+    model: K93
+    section: k93_mortality
+    symbol: 'c_1'
+    units: 'm² cm⁻² yr⁻¹'
+    class: trait
+    meaning: 'mortality per unit basal area of larger trees'
+    source: 'K93_Pars default; attributed by the constructor to Table 1 of Kohyama-1993, not yet checked against the paper'
+    cite: Kohyama-1993
+    placeholder: false
+    code: plant::K93_Pars::c_1
+  K93.eta:
+    model: K93
+    section: k93_competition
+    symbol: '\eta'
+    units: '–'
+    class: hyperparameter
+    meaning: 'smoothing parameter of the crown profile through which a larger tree''s basal area is felt, so the competition field is a continuous function of size'
+    source: 'K93_Pars default; a plant addition, not in Kohyama-1993'
+    placeholder: true
+    code: plant::K93_Pars::eta
+    fills: eta
+  K93.k_I:
+    model: K93
+    section: k93_competition
+    symbol: 'k_{\rm I}'
+    units: 'm² cm⁻²'
+    class: hyperparameter
+    meaning: 'scale of the map between basal area above and the [0, 1] environment the shared layer interpolates, $E = \exp(-k_{\rm I} B)$. Each species adds $k_{\rm I} B$ to the one shared environment and reads it back divided by its own $k_{\rm I}$, so it cancels only when every species shares it; where species differ it weights each one''s basal area in the others'' competition (species $j$ sees $\sum_i (k_{{\rm I},i} / k_{{\rm I},j}) B_i$)'
+    source: 'K93_Pars default; a plant addition, not in Kohyama-1993'
+    placeholder: true
+    code: plant::K93_Pars::k_I
+    fills: k_I
+  K93.height_0:
+    model: K93
+    section: k93_establishment
+    symbol: 'x_0'
+    units: 'cm'
+    class: hyperparameter
+    meaning: 'diameter at breast height at birth, seated on the generic height state; read through initial_height()'
+    source: 'K93_Pars default'
+    placeholder: true
+    code: plant::K93_Pars::height_0
+    fills: H_0
+  K93.S_D:
+    model: K93
+    section: k93_establishment
+    symbol: 'S_{\rm D}'
+    units: '–'
+    class: hyperparameter
+    meaning: 'probability an offspring survives dispersal; 1, so dispersal is neutral'
+    source: 'K93_Pars default; not part of Kohyama-1993, so set to 1 (Overstorey k93.qmd)'
+    placeholder: false
+    code: plant::K93_Pars::S_D
+    fills: S_D
+
 equations:
   # --- individual plants --------------------------------------------------------
   height_trajectory:
@@ -280,7 +833,7 @@ equations:
     fills: Q
     cite: Yokozawa-1995
     overstorey: theory/models/ff16.qmd
-    note: 'Zero above the crown ($z > H$). Shared by FF16 and the TF24 family; written on the page for FF16.'
+    note: 'Zero above the crown ($z > H$). Shared by every model (FF16, K93 and the TF24 family); written on the page for FF16.'
   crown_density:
     section: light
     title: Vertical distribution of leaf area
@@ -579,6 +1132,541 @@ equations:
     kind: integrator
     overstorey: theory/size-structured-pde.qmd
     note: 'At the current patch age, per patch (not divided by the patch area). A trapezium over the nodes in the density''s own coordinate ($\int \nu\, w \, {\rm d}a_0$ on the birth-date one), plus the absorbed top layer. The page''s upper summation limit $N$ is the number of species ($K$ elsewhere on the page).'
+
+  # --- FF16: production -----------------------------------------------------------
+  FF16.leaf_photosynthesis:
+    model: FF16
+    section: ff16_production
+    title: Leaf photosynthesis
+    latex: |
+      p(x, E(z)) = \alpha_{{\rm p1}} \frac{ E(z)}{E(z) + \alpha_{{\rm p2}}}
+    code: plant::FF16_Model::assimilation_leaf
+    also: [plant::ff16_assimilation_leaf]
+    reads: [FF16.a_p1, FF16.a_p2]
+    writes: []
+    kind: closed_form
+    cite: Falster-2011
+    overstorey: theory/models/ff16.qmd
+  FF16.crown_photosynthesis:
+    model: FF16
+    section: ff16_production
+    title: Photosynthesis averaged over the crown
+    latex: |
+      \bar{p}(x, H, E_{a}) = \int_0^H p(x, E_a(z)) \, q(z, H) \, {\rm d}z
+    code: plant::FF16_Model::assimilation_deep_crown
+    also: [plant::FF16_Model::assimilation, plant::FF16_Model::assimilation_average_light, plant::FF16_Model::assimilation_crown_top, plant::ResourceSpline::crown_integral]
+    reads: [FF16.a_p1, FF16.a_p2, FF16.eta]
+    writes: []
+    kind: integrator
+    cite: Falster-2011
+    overstorey: theory/models/ff16.qmd
+    note: 'The code returns the whole-plant assimilation $A_{\rm l} \, \bar{p}$, the product the page writes inside the net production. This is the default (deep-crown) shading model, a Gauss-Kronrod rule over the unit crown. Control shading_model can replace it: mean-light takes $p$ of the leaf-weighted mean openness, $p(x, \int_0^H E_a(z) \, q(z, H) \, {\rm d}z)$; crown-centre, flat-top-box, flat-top-soft-box and PPA take $p(x, E_a(\eta_{\rm c} H))$, differing only in how the light profile is built.'
+  FF16.respiration:
+    model: FF16
+    section: ff16_production
+    title: Maintenance respiration
+    latex: |
+      \textrm{respiration} = \sum_{i = {\rm l}, {\rm b}, {\rm s}, {\rm r}, {\rm cr}}{M_i \, r_i}
+    code: plant::FF16_Model::respiration
+    also: [plant::ff16_respiration]
+    reads: [FF16.r_l, FF16.r_b, FF16.r_s, FF16.r_r, FF16.r_cr]
+    writes: []
+    kind: closed_form
+    cite: Falster-2011
+    overstorey: theory/models/ff16.qmd
+    note: 'The respiration term of the page''s net production. The code adds coarse roots (cr), which the page omits; the term is zero at the default $\alpha_{\rm cr1} = 0$.'
+  FF16.turnover:
+    model: FF16
+    section: ff16_production
+    title: Tissue turnover
+    latex: |
+      \textrm{turnover} = \sum_{i = {\rm l}, {\rm b}, {\rm s},  {\rm r}, {\rm cr}}{M_i \, k_i}
+    code: plant::FF16_Model::turnover
+    also: [plant::ff16_turnover, plant::FF16_Model::turnover_sapwood]
+    reads: [FF16.k_l, FF16.k_b, FF16.k_s, FF16.k_r, FF16.k_cr]
+    writes: []
+    kind: closed_form
+    cite: Falster-2011
+    overstorey: theory/models/ff16.qmd
+    note: 'The turnover term of the page''s net production. The code adds coarse roots (cr), which the page omits; the term is zero at the default $\alpha_{\rm cr1} = 0$.'
+  FF16.net_production:
+    model: FF16
+    section: ff16_production
+    title: Net biomass production
+    latex: |
+      \underbrace{\strut \frac{{\rm d}B}{{\rm d}t}}_\textrm{net biomass production}
+      = \underbrace{\strut \alpha_{\rm bio} }_\textrm{mass per C} \,
+      \underbrace{\strut \alpha_{\rm y} }_\textrm{yield}
+      \big( \underbrace{\strut A_{\rm l} \, \bar{p}}_\textrm{photosynthesis} -
+      \underbrace{\strut \, \sum_{i = {\rm l}, {\rm b}, {\rm s}, {\rm r}, {\rm cr}}{M_i \, r_i}}_\textrm{respiration}\big)
+      - \underbrace{\strut \sum_{i = {\rm l}, {\rm b}, {\rm s},  {\rm r}, {\rm cr}}{M_i \, k_i}}_\textrm{turnover}
+    code: plant::FF16_Model::net_mass_production_dt
+    also: [plant::FF16_Model::net_mass_production_dt_A, plant::ff16_net_production_A]
+    reads: [FF16.a_bio, FF16.a_y]
+    writes: []
+    kind: closed_form
+    cite: Falster-2011
+    overstorey: theory/models/ff16.qmd
+    note: 'The page''s sums run over l, b, s and r; the code''s also include coarse roots (cr), zero at the default $\alpha_{\rm cr1} = 0$. Stored on the individual as the auxiliary net_mass_production_dt.'
+
+  # --- FF16: allocation and growth --------------------------------------------------
+  FF16.allocation:
+    model: FF16
+    section: ff16_growth
+    title: Allocation to growth
+    latex: |
+      \frac{{\rm d}M_{\rm a}}{{\rm d}B}(H) = 1 -
+      \frac{\alpha_{{\rm f1}}} {1 + \exp\left(\alpha_{{\rm f2}} \left(1 - H / H_{\rm mat}\right)\right)}
+    code: plant::FF16_Model::fraction_allocation_reproduction
+    also: [plant::FF16_Model::compute_rates]
+    reads: [FF16.a_f1, FF16.a_f2, FF16.hmat]
+    writes: []
+    kind: closed_form
+    cite: Falster-2011
+    overstorey: theory/models/ff16.qmd
+    note: 'fraction_allocation_reproduction evaluates the subtracted logistic, the fraction allocated to reproduction; compute_rates takes one minus it.'
+  FF16.leaf_area_cost:
+    model: FF16
+    section: ff16_growth
+    title: Leaf area per unit of live mass
+    latex: |
+      \frac{{\rm d}A_{\rm l}}{{\rm d}M_{\rm a}}
+      = \bigg( \frac{{\rm d}M_{\rm l}}{{\rm d}A_{\rm l}} + \frac{{\rm d}M_{\rm s}}{{\rm d}A_{\rm l}} + \frac{{\rm d}M_{\rm b}}{{\rm d}A_{\rm l}} + \frac{{\rm d}M_{\rm r}}{{\rm d}A_{\rm l}} + \frac{{\rm d}M_{\rm cr}}{{\rm d}A_{\rm l}}\bigg)^{-1}
+    code: plant::FF16_Model::darea_leaf_dmass_live
+    reads: [FF16.lma, FF16.a_b1, FF16.a_r1, FF16.a_cr1]
+    writes: []
+    kind: closed_form
+    cite: Falster-2011
+    overstorey: theory/models/ff16.qmd
+    note: 'The code adds the coarse-root cost ${\rm d}M_{\rm cr}/{\rm d}A_{\rm l}$, which the page omits; zero at the default $\alpha_{\rm cr1} = 0$.'
+  FF16.tissue_costs:
+    model: FF16
+    section: ff16_growth
+    title: Marginal tissue costs of leaf area
+    latex: |
+      \frac{{\rm d}M_{\rm l}}{{\rm d}A_{\rm l}} = \phi, \qquad
+      \frac{{\rm d}M_{\rm s}}{{\rm d}A_{\rm l}} = \rho \, \theta \, \eta_{\rm c} \, \big(H + A_{\rm l} \, \frac{{\rm d}H}{{\rm d}A_{\rm l}} \big), \qquad
+      \frac{{\rm d}M_{\rm b}}{{\rm d}A_{\rm l}} = \alpha_{{\rm b1}} \, \rho \, \theta \, \eta_{\rm c}\big(H + A_{\rm l} \, \frac{{\rm d}H}{{\rm d}A_{\rm l}} \big), \qquad
+      \frac{{\rm d}M_{\rm r}}{{\rm d}A_{\rm l}} = \alpha_{{\rm r1}}, \qquad
+      \frac{{\rm d}M_{\rm cr}}{{\rm d}A_{\rm l}} = \alpha_{{\rm cr1}} \, \frac{{\rm d}M_{\rm s}}{{\rm d}A_{\rm l}}
+    code: plant::FF16_Model::dmass_sapwood_darea_leaf
+    also: [plant::FF16_Model::dmass_leaf_darea_leaf, plant::FF16_Model::dmass_bark_darea_leaf, plant::FF16_Model::dmass_root_darea_leaf, plant::FF16_Model::dmass_coarse_root_darea_leaf]
+    reads: [FF16.lma, FF16.rho, FF16.theta, FF16.eta, FF16.a_l1, FF16.a_l2, FF16.a_b1, FF16.a_r1, FF16.a_cr1]
+    writes: []
+    kind: closed_form
+    overstorey: theory/models/ff16.qmd
+    note: 'From the page''s allometry table (tbl-allometry). The code writes the sapwood cost as $\rho \, \eta_{\rm c} \, \alpha_{\rm l1} \, \theta \, (\alpha_{\rm l2} + 1) A_{\rm l}^{\alpha_{\rm l2}}$, the same number, since $A_{\rm l} \, {\rm d}H/{\rm d}A_{\rm l} = \alpha_{\rm l2} H$.'
+  FF16.height_leaf_area_slope:
+    model: FF16
+    section: ff16_growth
+    title: Height gained per unit leaf area
+    latex: |
+      \frac{{\rm d}H}{{\rm d}A_{\rm l}} = \alpha_{{\rm l2}} \alpha_{{\rm l1}} \left(A_{\rm l} \, {\rm m^{-2}} \right)^{\alpha_{{\rm l2}}-1}
+    code: plant::FF16_Model::dheight_darea_leaf
+    also: [plant::FF16_Model::darea_leaf_dheight]
+    reads: [FF16.a_l1, FF16.a_l2]
+    writes: []
+    kind: closed_form
+    overstorey: theory/models/ff16.qmd
+    note: 'From the page''s allometry table (tbl-allometry).'
+  FF16.height_growth:
+    model: FF16
+    section: ff16_growth
+    title: Height growth rate
+    latex: |
+      g(x, H, E_{a}) = \frac{{\rm d}H}{{\rm d}t} = \frac{{\rm d}H}{{\rm d}A_{\rm l}}
+      \times \frac{{\rm d}A_{\rm l} }{{\rm d}M_{\rm a}}
+      \times \frac{{\rm d}M_{\rm a}}{{\rm d}B}
+      \times \frac{{\rm d}B}{{\rm d}t}
+    code: plant::FF16_Model::compute_rates
+    also: [plant::FF16_Model::dheight_darea_leaf, plant::FF16_Model::darea_leaf_dmass_live, plant::FF16_Model::fraction_allocation_reproduction, plant::FF16_Model::net_mass_production_dt]
+    reads: [FF16.a_l1, FF16.a_l2, FF16.a_f1, FF16.a_f2, FF16.hmat]
+    writes: []
+    kind: derivative
+    fills: g
+    cite: Falster-2011
+    overstorey: theory/models/ff16.qmd
+    note: 'Zero wherever ${\rm d}B/{\rm d}t \le 0$: the code sets the height, fecundity and heartwood rates to zero there, where the page''s product would be negative.'
+  FF16.heartwood:
+    model: FF16
+    section: ff16_growth
+    title: Heartwood formation
+    latex: |
+      \frac{{\rm d}A_{\rm h}}{{\rm d}t} = k_{\rm s} \, A_{\rm s}, \qquad \frac{{\rm d}M_{\rm h}}{{\rm d}t} = k_{\rm s} \, M_{\rm s}
+    code: plant::FF16_Model::mass_heartwood_dt
+    also: [plant::FF16_Model::compute_rates, plant::FF16_Model::turnover_sapwood]
+    reads: [FF16.k_s]
+    writes: []
+    kind: derivative
+    overstorey: theory/models/ff16.qmd
+    note: 'The page uses ${\rm d}A_{\rm h}/{\rm d}t$ (eq-dast) without defining it. Sapwood turned over becomes heartwood, carried as the states area_heartwood and mass_heartwood. Both rates are zero wherever ${\rm d}B/{\rm d}t \le 0$, though sapwood turnover is still charged in the net production.'
+  FF16.stem:
+    model: FF16
+    section: ff16_growth
+    title: Stem basal area and diameter
+    latex: |
+      A_{\rm st} = A_{\rm b} + A_{\rm s} + A_{\rm h}, \qquad D = \left(\frac{4 A_{\rm st}}{\pi}\right)^{0.5}
+    code: plant::FF16_Model::area_stem
+    also: [plant::FF16_Model::diameter_stem]
+    reads: [FF16.theta, FF16.a_b1]
+    writes: []
+    kind: closed_form
+    overstorey: theory/models/ff16.qmd
+    note: 'The page writes the rates (eq-dA-dst, eq-dast, eq-dDdt); the code carries $A_{\rm h}$ as a state and evaluates $A_{\rm st}$ and $D$ themselves, of which the page''s rates are the time derivatives. $A_{\rm st}$ is a census metric; $D$ is reported only.'
+  FF16.asymptotic_height:
+    model: FF16
+    section: ff16_growth
+    title: Height at which reproduction takes nearly all it can
+    latex: |
+      H_{\rm abs}(\epsilon_{\rm abs}) = H_{\rm mat} \left(1 + \frac{1}{\alpha_{{\rm f2}}} \ln \frac{1 - \epsilon_{\rm abs}}{\epsilon_{\rm abs}}\right)
+    code: plant::FF16_Model::asymptotic_height
+    reads: [FF16.hmat, FF16.a_f2]
+    writes: []
+    kind: closed_form
+    note: 'Not on an Overstorey page. The inverse of the allocation logistic: above it reproduction takes at least $(1 - \epsilon_{\rm abs}) \alpha_{\rm f1}$. Where the continuous patch''s absorbing top layer sits (Control absorb_epsilon); NaN where $\alpha_{\rm f2} \le 0$ or $H_{\rm mat} \le 0$.'
+
+  # --- FF16: allometry --------------------------------------------------------------
+  FF16.leaf_area:
+    model: FF16
+    section: ff16_allometry
+    title: Leaf area and height
+    latex: |
+      H = \alpha_{{\rm l1}} \, \left(A_{\rm l} \, {\rm m^{-2}}\right)^{\alpha_{{\rm l2}}}
+    code: plant::FF16_Model::area_leaf
+    also: [plant::ff16_area_leaf, plant::FF16_Model::height_given_mass_leaf]
+    reads: [FF16.a_l1, FF16.a_l2]
+    writes: []
+    kind: closed_form
+    fills: A_l
+    cite: Falster-2011
+    overstorey: theory/models/ff16.qmd
+    note: 'The code evaluates the inverse, $A_{\rm l} = (H / \alpha_{\rm l1})^{1/\alpha_{\rm l2}}$; it is cached as the auxiliary competition_effect.'
+  FF16.leaf_mass:
+    model: FF16
+    section: ff16_allometry
+    title: Leaf mass
+    latex: |
+      M_{\rm l} = \phi \, A_{\rm l}
+    code: plant::FF16_Model::mass_leaf
+    reads: [FF16.lma]
+    writes: []
+    kind: closed_form
+    overstorey: theory/models/ff16.qmd
+    note: 'From the page''s allometry table (tbl-allometry); the text writes $A_{\rm l} = M_{\rm l} / \phi$.'
+  FF16.sapwood_area:
+    model: FF16
+    section: ff16_allometry
+    title: Sapwood area (the pipe model)
+    latex: |
+      A_{\rm s} = \theta \, A_{\rm l}
+    code: plant::FF16_Model::area_sapwood
+    reads: [FF16.theta]
+    writes: []
+    kind: closed_form
+    cite: Falster-2011
+    overstorey: theory/models/ff16.qmd
+  FF16.sapwood_mass:
+    model: FF16
+    section: ff16_allometry
+    title: Sapwood mass
+    latex: |
+      M_{\rm s}  = \rho \int_0^H A_{{\rm s},z} \, {\rm d}z = \rho A_{\rm s} H \eta_{\rm c}
+    code: plant::FF16_Model::mass_sapwood
+    also: [plant::CanopyShape::eta_c]
+    reads: [FF16.rho, FF16.eta]
+    writes: []
+    kind: closed_form
+    cite: Yokozawa-1995
+    overstorey: theory/models/ff16.qmd
+    note: '$\eta_{\rm c}$ is the shared crown_centre, computed once in prepare_strategy. With the pipe model this is $\rho \, \eta_{\rm c} \, \theta \, A_{\rm l} \, H$ (eq-ms2).'
+  FF16.bark_area:
+    model: FF16
+    section: ff16_allometry
+    title: Bark area
+    latex: |
+      A_{\rm b} = \alpha_{{\rm b1}} \, \theta \, A_{\rm l}
+    code: plant::FF16_Model::area_bark
+    reads: [FF16.a_b1, FF16.theta]
+    writes: []
+    kind: closed_form
+    overstorey: theory/models/ff16.qmd
+    note: 'From the page''s allometry table (tbl-allometry).'
+  FF16.bark_mass:
+    model: FF16
+    section: ff16_allometry
+    title: Bark mass
+    latex: |
+      M_{\rm b} = \alpha_{{\rm b1}} M_{\rm s}
+    code: plant::FF16_Model::mass_bark
+    reads: [FF16.a_b1, FF16.rho, FF16.theta, FF16.eta]
+    writes: []
+    kind: closed_form
+    overstorey: theory/models/ff16.qmd
+    note: 'The code forms it as $\rho \, A_{\rm b} \, H \, \eta_{\rm c}$, the same number.'
+  FF16.root_mass:
+    model: FF16
+    section: ff16_allometry
+    title: Fine-root mass
+    latex: |
+      M_{\rm r} = \alpha_{{\rm r1}} \, A_{\rm l}
+    code: plant::FF16_Model::mass_root
+    reads: [FF16.a_r1]
+    writes: []
+    kind: closed_form
+    overstorey: theory/models/ff16.qmd
+  FF16.coarse_root_mass:
+    model: FF16
+    section: ff16_allometry
+    title: Coarse-root mass
+    latex: |
+      M_{\rm cr} = \alpha_{{\rm cr1}} \, M_{\rm s}
+    code: plant::FF16_Model::mass_coarse_root
+    reads: [FF16.a_cr1]
+    writes: []
+    kind: closed_form
+    overstorey: theory/models/ff16.qmd
+    note: 'From the page''s allometry table (tbl-allometry); the page''s text and equations otherwise leave coarse roots out. Zero at the default $\alpha_{\rm cr1} = 0$.'
+  FF16.live_mass:
+    model: FF16
+    section: ff16_allometry
+    title: Live mass
+    latex: |
+      M_{\rm a}=M_{\rm l}+M_{\rm b}+M_{\rm s}+M_{\rm r}+M_{\rm cr}
+    code: plant::FF16_Model::mass_live
+    also: [plant::FF16_Model::mass_live_given_height]
+    reads: [FF16.a_cr1]
+    writes: []
+    kind: identity
+    overstorey: theory/models/ff16.qmd
+    note: 'The page''s $M_{\rm a}$ omits coarse roots; the code adds them (zero at the default $\alpha_{\rm cr1} = 0$).'
+  FF16.total_mass:
+    model: FF16
+    section: ff16_allometry
+    title: Total and above-ground mass
+    latex: |
+      M_{\rm tot} = M_{\rm l} + M_{\rm b} + M_{\rm s} + M_{\rm h} + M_{\rm r} + M_{\rm cr}, \qquad M_{\rm ag} = M_{\rm l} + M_{\rm b} + M_{\rm s} + M_{\rm h}
+    code: plant::FF16_Model::mass_total
+    also: [plant::FF16_Model::mass_above_ground]
+    reads: []
+    writes: []
+    kind: identity
+    note: 'Not on an Overstorey page. Reported only; $M_{\rm ag}$ is a census metric. Heartwood $M_{\rm h}$ is the integrated state, not an allometry.'
+
+  # --- FF16: fecundity --------------------------------------------------------------
+  FF16.fecundity:
+    model: FF16
+    section: ff16_fecundity
+    title: Seed production
+    latex: |
+      f(x, H, E_{a}) = \frac{(1 - \frac{{\rm d}M_{\rm a}}{{\rm d}B}) \times \frac{{\rm d}B}{{\rm d}t}}{
+      \omega + \alpha_{{\rm f3}}}
+    code: plant::FF16_Model::fecundity_dt
+    also: [plant::FF16_Model::compute_rates, plant::FF16_Model::fraction_allocation_reproduction]
+    reads: [FF16.omega, FF16.a_f3, FF16.a_f1, FF16.a_f2, FF16.hmat]
+    writes: []
+    kind: closed_form
+    fills: f
+    cite: Falster-2011
+    overstorey: theory/models/ff16.qmd
+    note: 'Zero wherever ${\rm d}B/{\rm d}t \le 0$ (compute_rates), where the page''s expression would be negative.'
+
+  # --- FF16: mortality and establishment ---------------------------------------------
+  FF16.mortality:
+    model: FF16
+    section: ff16_mortality
+    title: Mortality rate
+    latex: |
+      d(x, H, E_{a}) = d_{{\rm I}}(x, H) + d_{{\rm G}}(x, H, E_{a})
+    code: plant::FF16_Model::mortality_dt
+    also: [plant::FF16_Model::compute_rates, plant::mortality_hazard_live]
+    reads: [FF16.d_I, FF16.a_dG1, FF16.a_dG2]
+    writes: []
+    kind: closed_form
+    fills: d
+    cite: Falster-2011
+    overstorey: theory/models/ff16.qmd
+    note: 'Held at zero once the cumulative hazard is non-finite or at the establishment-failure sentinel (mortality_hazard_live), where survival is already zero.'
+  FF16.mortality_intrinsic:
+    model: FF16
+    section: ff16_mortality
+    title: Growth-independent mortality
+    latex: |
+      d_{{\rm I}}(x, H) = d_{\rm I}
+    code: plant::FF16_Model::mortality_growth_independent_dt
+    reads: [FF16.d_I]
+    writes: []
+    kind: identity
+    overstorey: theory/models/ff16.qmd
+    note: 'Constant in size and light. Varies among strategies only through the trade-off from wood density (eq-di), which sets the parameter.'
+  FF16.mortality_growth:
+    model: FF16
+    section: ff16_mortality
+    title: Growth-dependent mortality
+    latex: |
+      d_{{\rm G}}(x, H, E_{a}) = \alpha_{{\rm dG1}} \exp(-\alpha_{{\rm dG2}} X), \qquad X=({\rm d}B/{\rm d}t)/A_{\rm l}
+    code: plant::FF16_Model::mortality_growth_dependent_dt
+    reads: [FF16.a_dG1, FF16.a_dG2]
+    writes: []
+    kind: closed_form
+    cite: Falster-2011
+    overstorey: theory/models/ff16.qmd
+    note: '$X$ may be negative, which raises $d_{\rm G}$ above $\alpha_{\rm dG1}$.'
+  FF16.establishment:
+    model: FF16
+    section: ff16_mortality
+    title: Establishment probability
+    latex: |
+      S_{\rm G} (x^\prime, H_0, E_{{\rm a}0}) = \frac{\exp(-\kappa_{\rm G} \, a_0)}{1 + X^2}, \qquad X = \alpha_{{\rm d0}} \frac{A_{\rm l}}{{\rm d}B / {\rm d}t}
+    code: plant::FF16_Model::establishment_probability
+    also: [plant::FF16_Model::seed_geometry, plant::FF16_Model::net_mass_production_dt]
+    reads: [FF16.a_d0, FF16.recruitment_decay, H_0]
+    writes: []
+    kind: closed_form
+    fills: S_G
+    cite: Falster-2011
+    overstorey: theory/models/ff16.qmd
+    note: 'The page writes $1 / (1 + X^2)$; the code multiplies by $\exp(-\kappa_{\rm G} a_0)$, the patch age at birth (recruitment_decay, 1 at its default of 0), and returns 0 where ${\rm d}B/{\rm d}t \le 0$. $A_{\rm l}$ and ${\rm d}B/{\rm d}t$ are the seed''s, at $H_0$ in the birth light environment.'
+
+  # --- FF16: birth size, competition, census ---------------------------------------
+  FF16.seed_height:
+    model: FF16
+    section: ff16_competition
+    title: Height at birth
+    latex: |
+      M_{\rm a}(H_0) = \omega
+    code: plant::FF16_Model::height_seed
+    also: [plant::FF16_Model::prepare_strategy, plant::FF16_Model::mass_live_given_height, plant::FF16_Model::seed_geometry, plant::FF16_Model::set_initial_states, plant::FF16_Model::initial_height]
+    reads: [FF16.omega, FF16.lma, FF16.rho, FF16.theta, FF16.eta, FF16.a_l1, FF16.a_l2, FF16.a_b1, FF16.a_r1, FF16.a_cr1]
+    writes: []
+    kind: closed_form
+    fills: H_0
+    overstorey: theory/models/ff16.qmd
+    note: 'The page says only that seed mass determines the initial height. The live mass of the newborn (coarse roots included, no heartwood) equals the seed mass; prepare_strategy solves it by bisection, and on an active scalar seed_geometry declares the same residual through implicit_value, so $H_0$ carries the traits'' derivatives.'
+  FF16.competition:
+    model: FF16
+    section: ff16_competition
+    title: FF16's competition contribution
+    latex: |
+      \textrm{competition}(z, H) = k_{\rm I} \, A_{\rm l}(H) \, Q(z, H)
+    code: plant::FF16_Model::compute_competition
+    also: [plant::FF16_Model::compute_competition_by_ratio, plant::FF16_Model::compute_competition_and_slope]
+    reads: [FF16.k_I, A_l, Q]
+    writes: []
+    kind: closed_form
+    overstorey: theory/size-structured-pde.qmd
+    note: 'The integrand of canopy_openness for one plant. Under the flat-top-box shading models CanopyShape replaces $Q$ by a step at the crown centre.'
+  FF16.census:
+    model: FF16
+    section: ff16_competition
+    title: FF16's census metrics
+    latex: |
+      w \in \left\{ A_{\rm l}(H), \; M_{\rm l} + M_{\rm b} + M_{\rm s} + M_{\rm h}, \; A_{\rm b} + A_{\rm s} + A_{\rm h} \right\}
+    code: plant::FF16_Model::census_metrics
+    also: [plant::FF16_Model::area_leaf, plant::FF16_Model::mass_above_ground, plant::FF16_Model::area_stem]
+    reads: [FF16.a_l1, FF16.a_l2]
+    writes: []
+    kind: identity
+    fills: w
+    note: 'Not on an Overstorey page. Reported as leaf_area, mass_above_ground and area_stem, in that order.'
+
+  # --- K93 -------------------------------------------------------------------------
+  K93.growth:
+    model: K93
+    section: k93_growth
+    title: Diameter growth
+    latex: |
+      G(t, a, x) = \max\Bigg(0, \; x \cdot \Bigg(b_0 - b_1 \cdot \ln{x} - b_2 \cdot B(t, a, x)\Bigg)\Bigg)
+    code: plant::K93_Model::size_dt
+    also: [plant::K93_Model::compute_rates]
+    reads: [K93.b_0, K93.b_1, K93.b_2]
+    writes: []
+    kind: closed_form
+    fills: g
+    cite: Kohyama-1993
+    overstorey: theory/models/k93.qmd
+    note: 'Eq. 10 of Kohyama-1993, which the page writes without the floor; the code clamps negative growth to zero. $x$ is diameter at breast height in cm, carried on the generic height state, so $G$ is in cm yr⁻¹.'
+  K93.fecundity:
+    model: K93
+    section: k93_fecundity
+    title: Fecundity
+    latex: |
+      R(t, a, x) = d_0 \cdot B_0 \cdot \exp{(-d_1 \cdot B(t, a, x))}
+    code: plant::K93_Model::fecundity_dt
+    also: [plant::K93_Model::size_to_basal_area, plant::K93_Model::compute_rates]
+    reads: [K93.d_0, K93.d_1, A_l]
+    writes: []
+    kind: closed_form
+    fills: f
+    cite: Kohyama-1993
+    overstorey: theory/models/k93.qmd
+    note: 'The page (Eq. 12) writes $R(t, a, x_0)$ with the suppression $B(t, a, x_0)$; the code evaluates both at the parent''s own diameter $x$, with $B_0$ its basal area (K93.basal_area).'
+  K93.mortality:
+    model: K93
+    section: k93_mortality
+    title: Mortality
+    latex: |
+      \mu(t, a, x) = \max\left(0, \; - c_0 + c_1 \cdot B(t, a, x)\right)
+    code: plant::K93_Model::mortality_dt
+    also: [plant::K93_Model::compute_rates, plant::mortality_hazard_live]
+    reads: [K93.c_0, K93.c_1]
+    writes: []
+    kind: closed_form
+    fills: d
+    cite: Kohyama-1993
+    overstorey: theory/models/k93.qmd
+    note: 'Eq. 11; the page states the floor at zero in its text, not its equation. At the defaults it is zero until $B > c_0 / c_1$. Held at zero once the cumulative hazard is non-finite or at the establishment-failure sentinel. Competition-independent mortality is the patch disturbance regime.'
+  K93.basal_area:
+    model: K93
+    section: k93_competition
+    title: Basal area of one tree
+    latex: |
+      B_0 = \frac{\pi}{4} x^2
+    code: plant::K93_Model::size_to_basal_area
+    reads: []
+    writes: []
+    kind: closed_form
+    fills: A_l
+    overstorey: theory/models/k93.qmd
+    note: 'The page interprets $B_0$ as one individual''s basal area and computes it this way in its example. K93 has no leaf area: basal area takes the place of $A_{\rm l}$ in the competition contribution, in cm² (the slot''s units say so).'
+  K93.basal_area_above:
+    model: K93
+    section: k93_competition
+    title: Basal area of larger trees
+    latex: |
+      B(t, a, x) = - \frac{\ln E_a(x)}{k_{\rm I}} = \frac{\pi}{4 \cdot A_{\rm P}} \int_{x}^{x_{max}} y^2 \cdot Q(x, y) \cdot f(t, a, y) \, dy
+    code: plant::K93_Model::compute_rates
+    also: [plant::K93_Model::compute_competition, plant::build_extinction_field]
+    reads: [K93.k_I, K93.eta, Q, patch_area]
+    writes: []
+    kind: integrator
+    cite: Kohyama-1993
+    overstorey: theory/models/k93.qmd
+    note: 'Eq. 8 of Kohyama-1993 writes $\frac{\pi}{4 \cdot s(t, a)} \int_{x}^{x_{max}} y^2 \cdot f(t, a, y) \, dy$. The code builds the shared environment $E_a = \exp(-k_{\rm I} B)$ from every species'' contributions and back-transforms it, so each larger tree is weighted by $Q(x, y)$ (the smoothing $\eta$; 1 in the page''s limit $\eta \to \infty$), the page''s $s(t, a)$ is the patch area $A_{\rm P}$, and $k_{\rm I}$ cancels when every species shares it (otherwise it weights each species, as K93.k_I says). The focal tree''s own basal area is not counted ($Q(x, x) = 0$). $f$ is the page''s size density, not the fecundity slot. The run stops if $B$ is not finite.'
+  K93.competition:
+    model: K93
+    section: k93_competition
+    title: K93's competition contribution
+    latex: |
+      \textrm{competition}(z, x) = k_{\rm I} \, B_0 \, Q(z, x)
+    code: plant::K93_Model::compute_competition
+    also: [plant::K93_Model::compute_competition_by_ratio, plant::K93_Model::compute_competition_and_slope, plant::K93_Model::update_dependent_aux]
+    reads: [K93.k_I, A_l, Q]
+    writes: []
+    kind: closed_form
+    note: 'Not on an Overstorey page as such: the integrand of canopy_openness for one tree, whose integral is $k_{\rm I} B$. $k_{\rm I} B_0$ is cached as the auxiliary competition_effect.'
+  K93.establishment:
+    model: K93
+    section: k93_establishment
+    title: Establishment
+    latex: |
+      S_{\rm G} (x^\prime, H_0, E_{{\rm a}0}) = 1
+    code: plant::K93_Model::establishment_probability
+    reads: []
+    writes: []
+    kind: identity
+    fills: S_G
+    overstorey: theory/models/k93.qmd
+    note: 'Establishment is not part of Kohyama-1993, so every dispersed offspring establishes. Not gated on positive growth, unlike FF16: a recruit that cannot grow is filtered by the $g > 0$ inflow guard (density_boundary_height) instead.'
 
 not_parameters:
   n_patches: 'Not read by any C++ code.'

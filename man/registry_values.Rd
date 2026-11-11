@@ -18,6 +18,8 @@ registry_values(registry = model_registry(), model = "FF16")
 The registry stores no values; this reads each parameter's current default
 off the model, so a table rendered from the registry shows the number the
 model runs with. Parameters held on \code{Parameters} are read from
-\code{scm_base_parameters(model)}; a \code{literal} gives its own value.
-Parameters held elsewhere are \code{NA}.
+\code{scm_base_parameters(model)}, and a model's own parameters (those of
+\code{model} and of any model it extends) from its default strategy's
+\code{pars}; a \code{literal} gives its own value. Other models'
+parameters, and any not held as a single number, are \code{NA}.
 }
