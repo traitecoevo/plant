@@ -348,3 +348,12 @@ test_that("the demo's 'does not buy survival' claims still hold", {
   expect_gt(which.max(per_area), 1)                     # interior optimum
   expect_lt(which.max(per_area), length(per_area))
 })
+
+test_that("the guide's copy of tf24_seat is the tests' own", {
+  # The guide cannot read tests/, so it carries its own copy; this keeps the two
+  # from drifting. Source references are dropped, so comments may differ.
+  guide <- new.env()
+  sys.source(demo_helpers, envir = guide)
+  expect_identical(deparse(utils::removeSource(guide$tf24_seat)),
+                   deparse(utils::removeSource(tf24_seat)))
+})
