@@ -94,6 +94,13 @@ reference:
   - seq_log
   - util_colour_set_opacity
 
+- title: Model registry
+  desc: The equations and parameters as data, which documents render from.
+  contents:
+  - model_registry
+  - registry_equation
+  - registry_values
+
 - title: FF16 model
   contents:
   - starts_with("FF16_")

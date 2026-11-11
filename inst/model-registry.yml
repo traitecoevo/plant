@@ -1,0 +1,599 @@
+# The model registry: the equations of the size-structured layer plant's
+# models share and of each model (the models' entries arrive in later PRs),
+# the parameters those equations read, and the C++ symbol that evaluates
+# each, in one file that documents are generated FROM rather than written
+# beside. It follows phylloptim's registry
+# (traitecoevo/phylloptim#168), so the two read alike.
+#
+# Four rules, so it does not rot:
+#
+#   1. Nothing here stores a line number or a default value. A parameter's value
+#      is read off the live model (registry_values()). A `literal:` is the one
+#      exception: a number that IS part of an equation's form rather than a
+#      default.
+#   2. CI checks it. tests/testthat/test-registry.R asserts that every symbol
+#      named here is in the headers on its class, that every `reads` names a
+#      parameter or a slot, and that every bound field of the classes it covers
+#      (Parameters, and each model's _Pars as its entries arrive) is accounted
+#      for. The LaTeX is not checked against the code: this is a record, not a
+#      second implementation.
+#   3. The notation is Overstorey's. Where an Overstorey theory page already
+#      writes an equation, the entry takes its symbols and LaTeX.
+#   4. One registry per package. An equation or parameter phylloptim computes is
+#      phylloptim's entry, and plant's points at it rather than copying it.
+#
+# Schema.
+#
+# `sections` is id: title, in document order.
+#
+# `slots` are the quantities the shared layer reads and every model supplies
+# (growth, mortality, fecundity, establishment, leaf area, crown shape, birth
+# size). Each has symbol (LaTeX, no $), units, meaning and code (the generic C++
+# symbol through which the shared layer reads it). A model's equations say which
+# slot they fill with `fills:`.
+#
+# `parameters` is keyed by the name in code. Each has section, symbol, units,
+# class (trait | hyperparameter | constant | driver | setting), meaning, source
+# (free text), placeholder (true where the value is an uncalibrated default or no
+# source is recorded) and code (the qualified C++ member that holds it). Optional:
+# cite (a Zotero key, Surname-Year), literal (see rule 1), field (the R binding's
+# name, where it is not the member name) and aliases (other symbols the same
+# quantity is read through).
+#
+# `equations` is keyed by id. Each has section, title, latex, code (the symbol
+# that evaluates it, or ~ for an identity with none), reads (parameter or slot
+# ids), writes (bound fields or outputs it seats; may be empty) and kind
+# (closed_form | identity | derivative | integrator: what sort of statement the
+# LaTeX is). Optional: also (further symbols involved), fills (a slot id), cite,
+# note and overstorey (the Overstorey page the LaTeX follows).
+#
+# `not_parameters` is keyed by a bound field of a covered class that is neither a
+# parameter nor written by an equation (a numerical schedule, a stored state, a
+# container), each with a reason, so every bound field is accounted for.
+#
+# YAML 1.1 reads `1e-3` as a string: write floats with a point and a signed
+# exponent (1.0e-3, 2.45e+6).
+
+package: plant
+
+sections:
+  individual: Individual plants along their characteristic
+  light: The light environment and crown shape
+  size_density: The size-density equation
+  characteristics: Solving along characteristics
+  patch_age: Patch-age structure and disturbance
+  reproduction: Offspring production and fitness
+  stand: Stand totals
+
+slots:
+  g:
+    symbol: 'g(x, H, E_a)'
+    units: 'm yr⁻¹'
+    meaning: 'height growth rate; read as the rate of the height state, rate(HEIGHT_INDEX)'
+    code: plant::Individual::rate
+  d:
+    symbol: 'd(x, H, E_a)'
+    units: 'yr⁻¹'
+    meaning: 'instantaneous mortality rate; read as the rate of the cumulative-mortality state, rate(MORTALITY_INDEX)'
+    code: plant::Individual::rate
+  f:
+    symbol: 'f(x, H, E_a)'
+    units: 'yr⁻¹'
+    meaning: 'offspring (seed) production rate; read as the rate of the fecundity state, rate(FECUNDITY_INDEX)'
+    code: plant::Individual::rate
+  S_G:
+    symbol: 'S_{\rm G} (x, H_0, E_{{\rm a}0})'
+    units: '–'
+    meaning: 'probability that an arriving offspring establishes at birth height in the birth light environment (the code''s pr_estab)'
+    code: plant::Individual::establishment_probability_of_newborn
+  H_0:
+    symbol: 'H_0(x)'
+    units: 'm'
+    meaning: 'height at birth; the strategy''s initial_height(), seated on the height state when an individual is constructed, and seated again at birth by a model that sets initial states there (the TF24 family, through set_initial_states)'
+    code: plant::Individual::Individual
+  A_l:
+    symbol: 'A_{\rm l}(H)'
+    units: 'm²'
+    meaning: 'leaf area of a plant of height $H$; the shared layer reads it only inside the product $k_{\rm I} A_{\rm l}(H) Q(z, H)$ a model returns as its competition contribution'
+    code: plant::Individual::compute_competition
+  Q:
+    symbol: 'Q(z, H)'
+    units: '–'
+    meaning: 'fraction of a plant''s leaf area above height $z$; shared by the models through CanopyShape'
+    code: plant::CanopyShape::Q
+  eta:
+    symbol: '\eta'
+    units: '–'
+    meaning: 'crown-shape parameter of the Yokozawa profile; held in each model''s pars and handed to the shared CanopyShape'
+    code: plant::CanopyShape::initialise
+  k_I:
+    symbol: 'k_{\rm I}'
+    units: '–'
+    meaning: 'light extinction coefficient; held in each model''s pars and read only inside the competition contribution the model returns'
+    code: plant::Individual::compute_competition
+  S_D:
+    symbol: 'S_{\rm D}'
+    units: '–'
+    meaning: 'probability an offspring survives dispersal; read generically as strategy->pars.S_D'
+    code: plant::Species::weighted_fecundity_by_node
+  Y_x:
+    symbol: 'Y_x'
+    units: 'm⁻² yr⁻¹'
+    meaning: 'rate at which offspring of strategy $x$ arrive in the patch (the birth rate); constant by default, a monotone spline of time when the strategy sets a variable birth rate'
+    code: plant::Model::birth_rate_at
+  w:
+    symbol: 'w(x, H, E_a)'
+    units: 'varies'
+    meaning: 'a per-individual quantity a stand total sums (a census metric the model declares)'
+    code: plant::Individual::census_value
+
+parameters:
+  # --- light ------------------------------------------------------------------
+  patch_area:
+    section: light
+    symbol: 'A_{\rm P}'
+    units: 'm²'
+    class: setting
+    meaning: 'ground area of the patch; the summed competition contribution is divided by it'
+    source: Parameters default; the SCM warns unless it is 1
+    placeholder: false
+    code: plant::Parameters::patch_area
+
+  # --- patch age --------------------------------------------------------------
+  patch_type:
+    section: patch_age
+    symbol: '\text{patch type}'
+    units: '–'
+    class: setting
+    meaning: 'the disturbance regime: "meta-population" (Weibull patch ages), "fixed" (no disturbance) or "fitness_window" (an arrival window)'
+    source: Parameters default
+    placeholder: false
+    code: plant::Parameters::patch_type
+  max_patch_lifetime:
+    section: patch_age
+    symbol: 'a_{\rm max}'
+    units: 'yr'
+    class: setting
+    meaning: 'the patch age at which Weibull patch survival falls to $\epsilon$, from which the mean disturbance interval is derived; also the end of the run, so the horizon of every lifetime integral'
+    source: Parameters default, chosen to agree with the original implementation
+    placeholder: false
+    code: plant::Parameters::max_patch_lifetime
+  shape:
+    section: patch_age
+    symbol: '\psi'
+    units: '–'
+    class: constant
+    meaning: 'Weibull shape of the patch-disturbance hazard; 2 makes the hazard rise linearly with patch age'
+    source: fixed in the regime's constructor
+    placeholder: false
+    code: plant::Weibull_Disturbance_Regime::shape
+    literal: 2.0
+  icdf_limit:
+    section: patch_age
+    symbol: '\epsilon'
+    units: '–'
+    class: constant
+    meaning: 'Weibull patch survival at $a_{\rm max}$, which ties the mean disturbance interval to max_patch_lifetime'
+    source: chosen to match Falster-2011
+    cite: Falster-2011
+    placeholder: false
+    code: plant::Weibull_Disturbance_Regime::icdf_limit
+    literal: 6.25302620663814e-05
+  fitness_window_start:
+    section: patch_age
+    symbol: 'a_{\rm start}'
+    units: 'yr'
+    class: setting
+    meaning: 'first arrival date the fitness window weights; read when patch_type is "fitness_window"'
+    source: no default (0, which the window refuses)
+    placeholder: false
+    code: plant::Parameters::fitness_window_start
+  fitness_window_end:
+    section: patch_age
+    symbol: 'a_{\rm end}'
+    units: 'yr'
+    class: setting
+    meaning: 'last arrival date the fitness window weights; must exceed the start and fall before the end of the run'
+    source: no default (0, which the window refuses)
+    placeholder: false
+    code: plant::Parameters::fitness_window_end
+  fitness_window_weight_x:
+    section: patch_age
+    symbol: 'a_k'
+    units: 'yr'
+    class: setting
+    meaning: 'arrival dates of the knots of the window''s piecewise-linear weight; empty for a uniform window'
+    source: no default (empty)
+    placeholder: false
+    code: plant::Parameters::fitness_window_weight_x
+  fitness_window_weight_y:
+    section: patch_age
+    symbol: 'v_k'
+    units: '–'
+    class: setting
+    meaning: 'the window''s weight at each knot, non-negative; normalised over the window'
+    source: no default (empty)
+    placeholder: false
+    code: plant::Parameters::fitness_window_weight_y
+
+equations:
+  # --- individual plants --------------------------------------------------------
+  height_trajectory:
+    section: individual
+    title: Height along a life history
+    latex: |
+      H(x, a_0, a) = H_0(x) + \int_{a_0}^{a} g(x, H(x, a_0, a^\prime), E_{a^\prime}) \, {\rm d}a^\prime
+    code: plant::Individual::compute_rates
+    also: [plant::Individual::Individual, plant::Node::compute_initial_conditions]
+    reads: [H_0, g]
+    writes: []
+    kind: integrator
+    overstorey: theory/size-structured-pde.qmd
+    note: 'Integrated as the height state, seated at $H_0$ when the individual is constructed; the model sets its rate in compute_rates.'
+  survival_individual:
+    section: individual
+    title: Survival of an individual
+    latex: |
+      S_{\rm I} (x, a_0, a) = S_{\rm G} (x, H_0, E_{{\rm a}0}) \, \exp\left(- \int_{a_0}^{a} d(x, H(x, a_0, a^\prime), E_{a^\prime}) \, {\rm d} a^\prime \right)
+    code: plant::Node::survival_individual
+    reads: [S_G, d]
+    writes: []
+    kind: integrator
+    overstorey: theory/size-structured-pde.qmd
+    note: 'The exponential of minus the cumulative-mortality state, which starts at $-\ln S_{\rm G}$ (mortality_ode); zero rather than non-finite where that state has run away.'
+  lifetime_offspring:
+    section: individual
+    title: Cumulative offspring of an individual
+    latex: |
+      \tilde{R}(x, a_0, a) = \int_{a_0}^{a} f(x, H(x, a_0, a^\prime), E_{a^\prime}) \, S_{\rm I} (x, a_0, a^\prime) \, S_{\rm P} (a_0, a^\prime) \, {\rm d} a^\prime
+    code: plant::Node::fecundity
+    also: [plant::Node::compute_node_rates]
+    reads: [f, S_G, d]
+    writes: []
+    kind: integrator
+    overstorey: theory/size-structured-pde.qmd
+    note: 'The code includes the patch-survival factor $S_{\rm P}(a_0, a^\prime)$, which the page''s equation omits; it does not include $S_{\rm D}$, which adaptive-dynamics.qmd puts inside $\tilde{R}$ and plant applies afterwards (net_reproduction_ratio). Carried as the node state offspring_produced_survival_weighted.'
+
+  # --- light and crown shape ----------------------------------------------------
+  canopy_openness:
+    section: light
+    title: Canopy openness
+    latex: |
+      E_a(z) = \exp \left(-\frac{k_{\rm I}}{A_{\rm P}} \sum_{i = 1}^{K} \int_{0}^{\infty} A_{\rm l}(H) \, Q(z, H) \, N(H | x_i, a) \, {\rm d}H \right)
+    code: plant::build_extinction_field
+    also: [plant::Patch::compute_environment, plant::Patch::compute_competition_and_slope, plant::Species::compute_competition_and_slope, plant::Node::compute_competition, plant::Individual::compute_competition]
+    reads: [k_I, A_l, Q, patch_area]
+    writes: []
+    kind: integrator
+    overstorey: theory/size-structured-pde.qmd
+    note: 'The code divides the summed contribution by the patch area $A_{\rm P}$, which the page omits (it is 1 by default). Each model returns $k_{\rm I} A_{\rm l}(H) Q(z, H)$ as one competition contribution (K93 returns $k_{\rm I}$ times basal area times $Q$: basal area takes the place of $A_{\rm l}$). The integral is a trapezium over the nodes in the coordinate the density is carried in (over birth date, $\int \nu(a_0) \ldots {\rm d}a_0$, on that coordinate), and $E_a$ is then interpolated by a spline in height. The Control shading model can replace $Q$ (flat-top boxes) or step the profile (PPA).'
+  crown_profile:
+    section: light
+    title: Leaf area above a height
+    latex: |
+      Q(z, H) = \left(1-\left(\frac{z}{H}\right)^\eta\right)^2
+    code: plant::CanopyShape::Q
+    also: [plant::CanopyShape::leaf_area_above, plant::CanopyShape::Q_from_height]
+    reads: [eta]
+    writes: []
+    kind: closed_form
+    fills: Q
+    cite: Yokozawa-1995
+    overstorey: theory/models/ff16.qmd
+    note: 'Zero above the crown ($z > H$). Shared by FF16 and the TF24 family; written on the page for FF16.'
+  crown_density:
+    section: light
+    title: Vertical distribution of leaf area
+    latex: |
+      q(z, H) = 2\frac{\eta}{H}\left(1-\left(\frac{z}{H}\right)^{\eta}\right) \left(\frac{z}{H}\right)^{\eta-1}
+    code: plant::CanopyShape::q
+    also: [plant::CanopyShape::q_from_height, plant::CanopyShape::Q_and_q]
+    reads: [eta]
+    writes: []
+    kind: closed_form
+    cite: Yokozawa-1995
+    overstorey: theory/models/ff16.qmd
+    note: 'Exactly $-\partial Q / \partial z$. The code writes it as $2\eta(1 - u^\eta)u^\eta / z$ with $u = z/H$ and takes the limit at the crown base (0 for $\eta > 1$, $2/H$ at $\eta = 1$).'
+  crown_centre:
+    section: light
+    title: Crown-shape factor
+    latex: |
+      \eta_{\rm c} = 1 - \frac{2}{1 + \eta} + \frac{1}{1 + 2\eta}
+    code: plant::CanopyShape::eta_c
+    reads: [eta]
+    writes: []
+    kind: closed_form
+    cite: Yokozawa-1995
+    overstorey: theory/models/ff16.qmd
+    note: 'Inline on the page, in the sapwood-mass section. The code also uses $z = \eta_{\rm c} H$ as the crown centre for the crown-centre shading models.'
+
+  # --- the size-density equation ------------------------------------------------
+  density_pde_height:
+    section: size_density
+    title: The size-density PDE in height
+    latex: |
+      \frac{\partial}{\partial a} N(H | x, a) = - d(x, H, E_a) \, N(H | x, a) - \frac{\partial}{\partial H} \left[g(x, H, E_a) \, N(H | x, a)\right]
+    code: plant::Individual::log_density_rate
+    also: [plant::Node::compute_node_rates]
+    reads: [g, d]
+    writes: []
+    kind: derivative
+    cite: DeRoos-1997
+    overstorey: theory/size-structured-pde.qmd
+    note: 'plant never discretises the PDE on a size grid: it integrates it along characteristics (log_density_height, or log_density_birth_date). The height form needs $g$ to depend on size and the light field alone, so a model carrying state that feeds back into growth (TF24) carries the density in birth date.'
+  density_boundary_height:
+    section: size_density
+    title: Inflow at birth height
+    latex: |
+      N(H_0 | x, a_0) = \left\{
+      \begin{array}{ll} \frac{Y_{x}(a_0) \, S_{\rm G} (x, H_0, E_{{\rm a}0}) }{ g(x, H_0, E_{{\rm a}0}) } & \textrm{if } g(x, H_0, E_{{\rm a}0}) > 0 \\
+      0 & \textrm{otherwise.}
+      \end{array} \right.
+    code: plant::Node::compute_initial_conditions
+    also: [plant::Species::compute_boundary_node]
+    reads: [Y_x, S_G, g, H_0]
+    writes: []
+    kind: closed_form
+    cite: Falster-2011
+    overstorey: theory/size-structured-pde.qmd
+    note: 'The code reads the arrival rate at the birth date, $Y_x(a_0)$ (birth_rate_at), where the page writes a constant $Y_x$; the two agree for the default constant birth rate. The boundary node is re-evaluated every step and copied when a cohort is introduced.'
+  density_initial:
+    section: size_density
+    title: An empty patch after disturbance
+    latex: |
+      N\left(H|x,0\right) = 0
+    code: plant::Patch::reset
+    reads: []
+    writes: []
+    kind: identity
+    overstorey: theory/size-structured-pde.qmd
+    note: 'The default. A non-empty Parameters initial_state starts the patch from that stand instead (a resumed run or a given size distribution), the alternative the page mentions.'
+
+  # --- along characteristics ----------------------------------------------------
+  height_ode:
+    section: characteristics
+    title: Height along a characteristic
+    latex: |
+      \frac{dy}{dt} = g(x, y, t), \qquad y(0) = H_0(x)
+    code: plant::Individual::compute_rates
+    also: [plant::Individual::Individual, plant::Node::compute_initial_conditions]
+    reads: [g, H_0]
+    writes: []
+    kind: derivative
+    overstorey: theory/implementation/characteristic-method.qmd
+    note: 'Time $t$ runs from the birth date $a_0$; $y$ is the height state.'
+  mortality_ode:
+    section: characteristics
+    title: Cumulative mortality along a characteristic
+    latex: |
+      \frac{dy}{dt} = d(x, H_i(t) , E_t), \qquad y(0) = - \ln\left(S_{\rm G} (x, H_0, E_{a0})\right), \qquad S_{\rm I} (x, a_0, a) = \exp\left( - y(a) \right)
+    code: plant::Node::compute_initial_conditions
+    also: [plant::Individual::compute_rates, plant::Node::survival_individual, plant::establishment_failure_hazard]
+    reads: [d, S_G]
+    writes: []
+    kind: derivative
+    overstorey: theory/implementation/characteristic-method.qmd
+    note: 'compute_initial_conditions seats $y(0)$; the model sets the rate. Where $S_{\rm G} = 0$ the code seats a finite sentinel (establishment_failure_hazard) instead of $+\infty$.'
+  offspring_ode:
+    section: characteristics
+    title: Offspring along a characteristic
+    latex: |
+      \frac{dy}{dt} = f(x, H_i(t), E_t) \, S_{\rm I} (x, a_0,t) \, S_{\rm P} (a_0, t), \qquad y(0) = 0
+    code: plant::Node::compute_node_rates
+    also: [plant::Node::offspring_dt_dfecundity_rate, plant::Node::survival_individual]
+    reads: [f, S_G, d]
+    writes: []
+    kind: derivative
+    overstorey: theory/implementation/characteristic-method.qmd
+    note: 'The page multiplies the rate by $S_{\rm D}$; the code does not, and applies $S_{\rm D}$ once to the lifetime total (Node::weighted_fecundity). $S_{\rm P}(a_0, t)$ is formed as $S_{\rm P}(0, t) / S_{\rm P}(0, a_0)$.'
+  log_density_height:
+    section: characteristics
+    title: Log density along a characteristic, in height
+    latex: |
+      \frac{dy}{dt} = \frac{\partial g(x, H_i(t), E_t)}{\partial H} + d(x, H_i(t), E_t), \qquad y(0) = - \ln N(H_0 | x, a_0), \qquad N(H_i(t) | x, t) = \exp( - y(t))
+    code: plant::Individual::log_density_rate
+    also: [plant::Node::compute_node_rates, plant::Node::compute_initial_conditions, plant::Individual::growth_rate_gradient]
+    reads: [g, d, Y_x, S_G]
+    writes: []
+    kind: derivative
+    cite: DeRoos-1997
+    overstorey: theory/implementation/characteristic-method.qmd
+    note: 'The code carries $\ln N = -y$. The page writes $y(0) = -\ln(N(H_0 | x, a_0)\, S_{\rm G})$, a second factor of $S_{\rm G}$ on top of the one already in the boundary density; the code applies $S_{\rm G}$ once, through density_boundary_height. The page also labels the result $N(H_0 | x, a_0)$ where it means $N(H | x, a)$. $\partial g / \partial H$ is a finite difference (or Richardson extrapolation) by a further rate evaluation at a displaced height. The rate is held at zero for a cohort with no density.'
+  density_characteristic_height:
+    section: characteristics
+    title: Density along a characteristic, in height
+    latex: |
+      N(H | x, a) = N(H_0 | x, a_0)
+      \exp \left( - \int _{a_0}^{a} \left[\frac{\partial g(x, H(x, a_0, a^\prime), E_{a^\prime})}{\partial H} + d(x, H(x, a_0, a^\prime), E_{a^\prime})\right] {\rm d} a^\prime \right)
+    code: plant::Node::get_density
+    reads: [g, d]
+    writes: []
+    kind: integrator
+    cite: DeRoos-1997
+    overstorey: theory/implementation/characteristic-method.qmd
+  log_density_birth_date:
+    section: characteristics
+    title: Log density along a characteristic, in birth date
+    latex: |
+      \frac{dy}{dt} = d(x, H_i(t), E_t), \qquad y(0) = - \ln\left(Y_x(a_0) \, S_{\rm G} (x, H_0, E_{{\rm a}0})\right), \qquad \nu(a_0 | x, t) = \exp( - y(t))
+    code: plant::Individual::log_density_rate
+    also: [plant::Node::compute_node_rates, plant::Node::compute_initial_conditions, plant::density_in_birth_date]
+    reads: [d, Y_x, S_G]
+    writes: []
+    kind: derivative
+    note: 'Not on an Overstorey page. $\nu$ is the density per unit birth date: nothing moves a cohort along the birth-date axis, so there is no compression term and the inflow is not divided by $g$. Chosen by Control node_density_coordinate ("auto" takes the model''s default: birth date for TF24, height otherwise).'
+  birth_date_jacobian:
+    section: characteristics
+    title: From a density in birth date to a density in height
+    latex: |
+      N(H | x, a) = \nu(a_0 | x, a) \left| \frac{\partial H(x, a_0, a)}{\partial a_0} \right|^{-1}, \qquad \left. \frac{\partial H}{\partial a_0} \right|_{a = a_0} = - g(x, H_0, E_{{\rm a}0})
+    code: plant::Species::height_jacobian
+    also: [plant::Node::growth_rate_at_birth]
+    reads: [g, H_0]
+    writes: []
+    kind: identity
+    overstorey: theory/size-structured-pde.qmd
+    note: 'The page''s change of size unit, $N^\prime(H) = N(M)\, {\rm d}M / {\rm d}H$, with birth date $a_0$ as $M$. Exact at the boundary node; a difference of node heights over birth dates elsewhere: central for interior nodes, one-sided for the oldest. Used to report densities in height, not to integrate.'
+
+  # --- patch age ----------------------------------------------------------------
+  patch_age_ode:
+    section: patch_age
+    title: Equilibrium patch-age dynamics
+    latex: |
+      \frac{{\rm d}}{{\rm d} a} P(a) = - d_{\rm P}(a) \, P(a), \qquad P(0) = \int_0^\infty d_{\rm P}(a) \, P(a) \, {\rm d} a
+    code: ~
+    reads: []
+    writes: []
+    kind: derivative
+    cite: McKendrick-1926
+    overstorey: theory/size-structured-pde.qmd
+    note: 'Never integrated: each regime supplies its solution in closed form (patch_age_density).'
+  patch_survival:
+    section: patch_age
+    title: Patch survival
+    latex: |
+      S_{\rm P} (a_0, a) = \exp\left( - \int_{a_0}^{a} d_{\rm P}(a^\prime) \, {\rm d} a^\prime \right)
+    code: plant::Disturbance_Regime::pr_survival
+    also: [plant::Node::offspring_dt_dfecundity_rate]
+    reads: [patch_type]
+    writes: []
+    kind: integrator
+    overstorey: theory/size-structured-pde.qmd
+    note: 'The regime evaluates $S_{\rm P}(0, a)$ in closed form; a node stores it at its birth and forms $S_{\rm P}(a_0, a)$ as the ratio.'
+  patch_age_density:
+    section: patch_age
+    title: Equilibrium patch-age distribution
+    latex: |
+      P(a) = P(0) S_{\rm P} (0, a), \qquad P(0) = \frac1{\int_0^\infty S_{\rm P} (0, a) {\rm d}a}
+    code: plant::Disturbance_Regime::density
+    also: [plant::Node::patch_density]
+    reads: [patch_type]
+    writes: []
+    kind: closed_form
+    overstorey: theory/size-structured-pde.qmd
+    note: 'Read at each cohort''s birth date and stored on the node, where the fitness integrals weight by it.'
+  weibull_patch_ages:
+    section: patch_age
+    title: Weibull disturbance
+    latex: |
+      d_{\rm P}(a) = \lambda \psi a^{\psi-1}, \qquad S_{\rm P}(0, a) = \exp(-\lambda a^\psi), \qquad P(0) = \frac{\psi \lambda^{\frac1{\psi}}}{\Gamma\left(\frac1{\psi}\right)}
+    code: plant::Weibull_Disturbance_Regime::pr_survival
+    also: [plant::Weibull_Disturbance_Regime::density, plant::Weibull_Disturbance_Regime::Weibull_Disturbance_Regime]
+    reads: [shape, patch_type]
+    writes: []
+    kind: closed_form
+    overstorey: theory/size-structured-pde.qmd
+    note: 'patch_type "meta-population". The hazard $d_{\rm P}$ is implied by $S_{\rm P}$; no function evaluates it.'
+  weibull_scale:
+    section: patch_age
+    title: Weibull scale from the mean disturbance interval
+    latex: |
+      \lambda = \left(\frac{\Gamma\left(\frac1{\psi}\right)}{\psi \bar{a}}\right)^{\psi}
+    code: plant::Weibull_Disturbance_Regime::Weibull_Disturbance_Regime
+    reads: [shape]
+    writes: []
+    kind: closed_form
+    overstorey: theory/size-structured-pde.qmd
+    note: 'The code writes $\Gamma(1 + 1/\psi)/\bar{a}$, the same number.'
+  weibull_mean_interval:
+    section: patch_age
+    title: Mean disturbance interval from max_patch_lifetime
+    latex: |
+      \bar{a} = \frac{a_{\rm max} \, \Gamma\left(\frac1{\psi}\right)}{\psi \sqrt{-\ln \epsilon}}
+    code: plant::Weibull_Disturbance_Regime::Weibull_Disturbance_Regime
+    also: [plant::Weibull_Disturbance_Regime::r_mean_interval]
+    reads: [max_patch_lifetime, shape, icdf_limit]
+    writes: []
+    kind: closed_form
+    note: 'Not on an Overstorey page, which takes $\bar{a}$ as the single parameter; plant takes $a_{\rm max}$ and derives $\bar{a}$ so that $S_{\rm P}(0, a_{\rm max}) = \epsilon$. The square root is $(-\ln \epsilon)^{1/\psi}$ at $\psi = 2$, the only shape the code uses.'
+  no_disturbance:
+    section: patch_age
+    title: No disturbance
+    latex: |
+      P(a) = 1, \qquad S_{\rm P}(a_0, a) = 1
+    code: plant::No_Disturbance::density
+    also: [plant::No_Disturbance::pr_survival]
+    reads: [patch_type]
+    writes: []
+    kind: identity
+    note: 'Not on an Overstorey page. patch_type "fixed": a single patch run to max_patch_lifetime; $P$ is a unit weight rather than a density, so fitness is the unweighted integral of lifetime output over birth dates.'
+  fitness_window_weight:
+    section: patch_age
+    title: The fitness window's arrival weight
+    latex: |
+      P(a_0) = \frac{v(a_0)}{\int_{a_{\rm start}}^{a_{\rm end}} v(a) \, {\rm d}a} \text{ for } a_{\rm start} \le a_0 \le a_{\rm end}, \text{ and } 0 \text{ otherwise}, \qquad S_{\rm P}(a_0, a) = 1
+    code: plant::Fitness_Window::density
+    also: [plant::Fitness_Window::pr_survival, plant::Fitness_Window::Fitness_Window]
+    reads: [patch_type, fitness_window_start, fitness_window_end, fitness_window_weight_x, fitness_window_weight_y]
+    writes: []
+    kind: closed_form
+    note: 'Not on an Overstorey page. patch_type "fitness_window": one long run with no disturbance, weighting arrivals by date. $v$ is piecewise linear through the knots $(a_k, v_k)$, constant beyond the end knots, and 1 with no knots.'
+
+  # --- reproduction ---------------------------------------------------------------
+  net_reproduction_ratio:
+    section: reproduction
+    title: Net reproduction ratio
+    latex: |
+      R\left(x^\prime,x\right) = \int _0^{a_{\rm max}} P\left(a_0\right) \, S_{\rm D} \, \tilde{R}\left(x^\prime, a_0, a_{\rm max} \right) \, {\rm d}a_0
+    code: plant::Patch::net_reproduction_ratio_of
+    also: [plant::Patch::fitness_integral, plant::Node::weighted_fecundity, plant::Species::weighted_fecundity_by_node, plant::util::trapezium]
+    reads: [S_D, f, d, S_G, patch_type, max_patch_lifetime]
+    writes: []
+    kind: integrator
+    overstorey: theory/adaptive-dynamics.qmd
+    note: 'Here $\tilde{R}$ is lifetime_offspring, without $S_{\rm D}$; the page puts $S_{\rm D}$ inside $\tilde{R}$ and integrates to $\infty$, where the code stops at the end of the run, $a_{\rm max}$. A trapezium over the cohorts'' birth dates; with the absorbing top layer on, the seeds its cohorts produce after absorption are added.'
+  net_reproduction_ratio_window:
+    section: reproduction
+    title: Net reproduction ratio over a fitness window
+    latex: |
+      R = \frac{\int_{a_{\rm first}}^{a_{\rm last}} P(a_0) \, S_{\rm D} \, \tilde{R}(x, a_0, a_{\rm max}) \, {\rm d}a_0}{\int_{a_{\rm first}}^{a_{\rm last}} P(a_0) \, {\rm d}a_0}
+    code: plant::Patch::fitness_integral
+    also: [plant::Fitness_Window::density]
+    reads: [S_D, f, fitness_window_start, fitness_window_end]
+    writes: []
+    kind: integrator
+    note: 'Not on an Overstorey page. The weighted mean lifetime output over the cohorts the window weights, $a_{\rm first}$ and $a_{\rm last}$ being the first and last of them; normalised over those cohorts so the edge cohorts get half an interval however the schedule sits against the window.'
+  offspring_production:
+    section: reproduction
+    title: Offspring production
+    latex: |
+      Y_x^{\rm out} = \int_0^{a_{\rm max}} Y_x(a_0) \, P(a_0) \, S_{\rm D} \, \tilde{R}(x, a_0, a_{\rm max}) \, {\rm d} a_0
+    code: plant::Patch::offspring_production_of
+    also: [plant::Patch::fitness_integral, plant::Model::birth_rate_at]
+    reads: [Y_x, S_D, f, max_patch_lifetime]
+    writes: []
+    kind: integrator
+    overstorey: theory/size-structured-pde.qmd
+    note: 'The page writes the seed rain over heights and patch ages, $Y_x = \int_0^{\infty} \int_0^{\infty} P(a) \, S_{\rm D} \, f(x, H, E_a) \, N(H | x, a) \, {\rm d} H \, {\rm d} a$; the code evaluates the same total over birth dates (substituting $N\,{\rm d}H = Y_x(a_0) S_{\rm I}\,{\rm d}a_0$ and $P(a) = P(a_0) S_{\rm P}(a_0, a)$), to the end of the run rather than $\infty$, with an arrival rate that may vary with $a_0$. At demographic equilibrium $Y_x^{\rm out} = Y_x$.'
+
+  # --- stand totals -------------------------------------------------------------
+  stand_total:
+    section: stand
+    title: A stand total within a patch
+    latex: |
+      W(a) = \sum_{i = 1}^{N} \int_{0}^{\infty} N(H | x_i, a)\, w(x_i, H, E_a) \, {\rm d}H
+    code: plant::SCM::census_sum
+    also: [plant::Species::census_integral, plant::Individual::census_value, plant::SCM::census]
+    reads: [w]
+    writes: []
+    kind: integrator
+    overstorey: theory/size-structured-pde.qmd
+    note: 'At the current patch age, per patch (not divided by the patch area). A trapezium over the nodes in the density''s own coordinate ($\int \nu\, w \, {\rm d}a_0$ on the birth-date one), plus the absorbed top layer. The page''s upper summation limit $N$ is the number of species ($K$ elsewhere on the page).'
+
+not_parameters:
+  n_patches: 'Not read by any C++ code.'
+  strategies: 'The species'' strategies: a container; their parameters are each model''s entries.'
+  strategy_default: 'The template new strategies are built from: a container of model parameters.'
+  node_schedule_times_default: 'A numerical schedule of cohort introduction times, derived from max_patch_lifetime.'
+  node_schedule_times: 'The cohort introduction times per species: the quadrature grid over birth dates, a numerical choice.'
+  ode_times: 'A record of the last run''s step times, replayed to reproduce it.'
+  ode_step_sizes: 'A record of the last run''s step sizes, replayed to reproduce it.'
+  ode_soil_input_slopes: 'A record of the last run''s soil substepping, replayed to reproduce it.'
+  ode_soil_substep_ends: 'A record of the last run''s soil substepping, replayed to reproduce it.'
+  initial_state: 'A stored patch state to start from instead of an empty patch (resume or a given stand).'
+  n_initial_cohorts: 'Node counts per species of the stored initial state.'
+  initial_node_times: 'Birth dates of the stored initial state''s nodes.'
+  initial_patch_density: 'Patch-age density at birth of the stored initial state''s nodes.'
+  initial_pr_patch_survival: 'Patch survival at birth of the stored initial state''s nodes.'
+  initial_time: 'The patch age a resumed run starts at; 0 for a fresh one.'
+  hyperpar: 'The R trade-off function the strategies were built with; opaque to C++.'

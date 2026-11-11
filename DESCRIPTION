@@ -33,7 +33,8 @@ Imports:
     odelia (>= 0.11.0),
     withr,
     parallel,
-    tools
+    tools,
+    yaml
 Suggests:
     phylloptim,
     testthat,
