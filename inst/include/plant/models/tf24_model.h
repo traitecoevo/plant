@@ -272,8 +272,8 @@ public:
       "stom_cond_CO2",
       // Net CO2 assimilation at the optimal operating point, per unit leaf
       // area (umol CO2 m^-2 s^-1). Net, not gross: Leaf::assim_colimited()
-      // subtracts day respiration R_d_, so gross = assimilation + R_d_ with
-      // R_d_ = 0.015 * vcmax_ at the acclimated vcmax_.
+      // subtracts day respiration R_d_, so gross = assimilation + R_d_, with
+      // R_d_ = R_d_25 * q10^((leaf_temp - 25) / 10) inside phylloptim.
       "assimilation",
       // Leaf temperature at the optimal operating point (deg C) -- an OUTPUT,
       // not the `leaf_temp` driver, and the distinction is the point of

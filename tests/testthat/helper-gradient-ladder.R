@@ -1507,7 +1507,7 @@ ladder_column_residual <- function(got, reference, trajectory = NULL) {
 # A differenced column moves one registered parameter and no other.
 #
 # A trait set through the hyperparameter function moves several: lma carries leaf
-# turnover and leaf dark respiration with it, and each of those is a separate
+# turnover and leaf maintenance respiration with it, and each of those is a separate
 # gradient column. A difference taken that way is the derivative along a
 # direction in parameter space, and the sweep's column is the derivative along a
 # basis vector. Both are finite, plausible and the same sign, and on lma at four

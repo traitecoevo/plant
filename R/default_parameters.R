@@ -582,7 +582,7 @@ frozen_TF24_hyperpar <- function(lma_0=0.1978791,
     extra <- cbind(k_l,                              # lma
                    d_I, TF24_cost_scale, k_s, r_s, r_b, # rho
                    a_f3,                              # omega
-                   r_l,                               # lma, narea
+                   r_l,                               # lma, vcmax_25, jmax_25
                    stem_c, stem_P50, stem_b, psi_crit) # K_s
 
     overlap <- intersect(colnames(m), colnames(extra))
