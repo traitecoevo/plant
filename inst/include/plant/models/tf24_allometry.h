@@ -10,13 +10,13 @@
 
 namespace plant {
 
-// area_leaf
+// Leaf area from height
 template <typename S>
 S TF24_Strategy<S>::area_leaf(const S& height) const {
   return pow(height / pars.a_l1, 1.0 / pars.a_l2);
 }
 
-// mass_leaf
+// Leaf mass from leaf area
 template <typename S>
 S TF24_Strategy<S>::mass_leaf(const S& area_leaf) const {
   return area_leaf * pars.lma;
@@ -211,8 +211,8 @@ S TF24_Strategy<S>::height_given_mass_leaf(const S& mass_leaf) const {
 }
 
 // Cumulative fraction of a quantity distributed over an extent with
-//          shape exponent 'eta_x', above coordinate 'z' of a total 'height'.
-//          Serves the root mass distribution over soil depth.
+// shape exponent 'eta_x', above coordinate 'z' of a total 'height'.
+// Serves the root mass distribution over soil depth.
 template <typename S>
 S TF24_Strategy<S>::Q(const S& z, const S& rooting_depth, const S& eta_x) const {
   if (z > rooting_depth) {

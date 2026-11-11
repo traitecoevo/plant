@@ -373,10 +373,10 @@ public:
 
   // TF24 Methods  ----------------------------------------------
 
-  // area_leaf
+  // Leaf area from height
   S area_leaf(const S& height) const;
 
-  // mass_leaf
+  // Leaf mass from leaf area
   S mass_leaf(const S& area_leaf) const;
 
   // Sapwood area per unit leaf area -- the Huber value, `theta` displaced by
@@ -411,7 +411,7 @@ public:
   // (see TF24_Pars::a_cr1). Zero unless a_cr1 is set.
   S mass_coarse_root(const S& mass_sapwood) const;
 
-  // Total Mass
+  // Total mass
   S mass_live(const S& mass_leaf, const S& mass_bark,
               const S& mass_sapwood, const S& mass_root,
               const S& mass_coarse_root) const;
@@ -614,7 +614,7 @@ public:
         vars.state(state_idx_leaf_marginal_tracked));
   }
 
-  // Fraction of whole plan growth that is leaf
+  // Fraction of production allocated to reproduction
   virtual S fraction_allocation_reproduction(const S& height) const;
 
   // The height above which this strategy allocates at least 1 - epsilon of its

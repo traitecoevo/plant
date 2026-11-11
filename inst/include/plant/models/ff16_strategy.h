@@ -393,7 +393,7 @@ public:
 
   // FF16 Methods  ----------------------------------------------
 
-  // area_leaf
+  // Leaf area from height
   // Inline (header) so it can inline into the hot competition/assimilation
   // paths that reach it from templated Individual<FF16> code (no LTO build).
   S area_leaf(const S& height) const {
@@ -401,7 +401,7 @@ public:
     return ff16_area_leaf(pars.a_l1, pars.a_l2, height);
   }
 
-  // mass_leaf
+  // Leaf mass from leaf area
   S mass_leaf(const S& area_leaf) const;
 
   // Area and mass of sapwood
@@ -423,7 +423,7 @@ public:
   // (see FF16_Pars::a_cr1). Zero unless a_cr1 is set.
   S mass_coarse_root(const S& mass_sapwood) const;
 
-  // Total Mass
+  // Total mass
   S mass_live(const S& mass_leaf, const S& mass_bark,
               const S& mass_sapwood, const S& mass_root,
               const S& mass_coarse_root) const;
@@ -523,7 +523,7 @@ public:
                                   vars.aux(HEIGHT_INVERSE_AUX_INDEX));
   }
 
-  // Fraction of whole plan growth that is leaf
+  // Fraction of production allocated to reproduction
   S fraction_allocation_reproduction(const S& height) const;
 
   // The height above which this strategy allocates at least 1 - epsilon of its
@@ -838,7 +838,7 @@ void FF16_Strategy<S>::refresh_indices () {
 
 // area_leaf() is defined inline in the class (hot path).
 
-// mass_leaf
+// Leaf mass from leaf area
 template <typename S>
 S FF16_Strategy<S>::mass_leaf(const S& area_leaf) const {
   return area_leaf * pars.lma;
