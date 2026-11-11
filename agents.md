@@ -386,10 +386,10 @@ The shipped models:
 
 ### The model registry — the equations as data
 
-[inst/model-registry.yml](inst/model-registry.yml) records every equation of plant's models and of the size-structured layer they share, every parameter those equations read, and the C++ symbol that evaluates or holds each. Documents render their equations from it (`model_registry()`, `registry_equation()`, `registry_values()`), so a page's LaTeX is the registry's. Its header is the schema; it follows phylloptim's registry (traitecoevo/phylloptim#168). The rules:
+[inst/model-registry.yml](inst/model-registry.yml) records the equations of the size-structured layer plant's models share and (as each model's entries are added) of each model, the parameters those equations read, and the C++ symbol that evaluates or holds each. Documents render their equations from it (`model_registry()`, `registry_equation()`, `registry_values()`), so a page's LaTeX is the registry's. Its header is the schema; it follows phylloptim's registry (traitecoevo/phylloptim#168). The rules:
 
 - **A change to a model's equations, parameters or defaults updates the registry in the same PR.** Nothing checks the LaTeX against the code, so re-read the entry whenever its function changes.
-- **It is a record, not a check.** No replicas or probes of the equations. `test-registry.R` checks only that named symbols and fields exist, that every `reads` resolves, and that every bound field is accounted for.
+- **It is a record, not a check.** No replicas or probes of the equations. `test-registry.R` checks only that named symbols exist on their class, that every `reads` resolves, and that every bound field is accounted for.
 - **No line numbers and no default values in it.** Values are read off the live model.
 - **Overstorey's notation.** Where an Overstorey theory page already writes an equation, the entry takes its LaTeX (`overstorey:` names the page).
 - **The shared layer is written once.** The quantities every model supplies to it (`g`, `d`, `f`, `S_G`, ...) are `slots`, and a model's equation says which slot it `fills`. An equation phylloptim computes (TF24's leaf) is phylloptim's entry, pointed at rather than copied.

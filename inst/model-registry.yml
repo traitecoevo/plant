@@ -1,7 +1,8 @@
-# The model registry: the equations of plant's models and of the
-# size-structured layer they share, the parameters those equations read, and
-# the C++ symbol that evaluates each, in one file that documents are generated
-# FROM rather than written beside. It follows phylloptim's registry
+# The model registry: the equations of the size-structured layer plant's
+# models share and of each model (the models' entries arrive in later PRs),
+# the parameters those equations read, and the C++ symbol that evaluates
+# each, in one file that documents are generated FROM rather than written
+# beside. It follows phylloptim's registry
 # (traitecoevo/phylloptim#168), so the two read alike.
 #
 # Four rules, so it does not rot:
@@ -10,9 +11,10 @@
 #      is read off the live model (registry_values()). A `literal:` is the one
 #      exception: a number that IS part of an equation's form rather than a
 #      default.
-#   2. CI checks it. tests/testthat/test-registry.R asserts that every symbol and
-#      bound field named here exists, that every `reads` names a parameter or a
-#      slot, and that every bound field of the classes it covers is accounted
+#   2. CI checks it. tests/testthat/test-registry.R asserts that every symbol
+#      named here is in the headers on its class, that every `reads` names a
+#      parameter or a slot, and that every bound field of the classes it covers
+#      (Parameters, and each model's _Pars as its entries arrive) is accounted
 #      for. The LaTeX is not checked against the code: this is a record, not a
 #      second implementation.
 #   3. The notation is Overstorey's. Where an Overstorey theory page already
@@ -87,7 +89,7 @@ slots:
   H_0:
     symbol: 'H_0(x)'
     units: 'm'
-    meaning: 'height at birth; the strategy''s initial_height(), seated on the height state when an individual is constructed'
+    meaning: 'height at birth; the strategy''s initial_height(), seated on the height state when an individual is constructed, and seated again at birth by a model that sets initial states there (the TF24 family, through set_initial_states)'
     code: plant::Individual::Individual
   A_l:
     symbol: 'A_{\rm l}(H)'
@@ -222,7 +224,7 @@ equations:
     latex: |
       H(x, a_0, a) = H_0(x) + \int_{a_0}^{a} g(x, H(x, a_0, a^\prime), E_{a^\prime}) \, {\rm d}a^\prime
     code: plant::Individual::compute_rates
-    also: [plant::Individual::Individual]
+    also: [plant::Individual::Individual, plant::Node::compute_initial_conditions]
     reads: [H_0, g]
     writes: []
     kind: integrator
@@ -264,7 +266,7 @@ equations:
     writes: []
     kind: integrator
     overstorey: theory/size-structured-pde.qmd
-    note: 'The code divides the summed contribution by the patch area $A_{\rm P}$, which the page omits (it is 1 by default). Each model returns $k_{\rm I} A_{\rm l}(H) Q(z, H)$ as one competition contribution (K93 returns $k_{\rm I}$ times basal area instead). The integral is a trapezium over the nodes in the coordinate the density is carried in (over birth date, $\int \nu(a_0) \ldots {\rm d}a_0$, on that coordinate), and $E_a$ is then interpolated by a spline in height. The Control shading model can replace $Q$ (flat-top boxes) or step the profile (PPA).'
+    note: 'The code divides the summed contribution by the patch area $A_{\rm P}$, which the page omits (it is 1 by default). Each model returns $k_{\rm I} A_{\rm l}(H) Q(z, H)$ as one competition contribution (K93 returns $k_{\rm I}$ times basal area times $Q$: basal area takes the place of $A_{\rm l}$). The integral is a trapezium over the nodes in the coordinate the density is carried in (over birth date, $\int \nu(a_0) \ldots {\rm d}a_0$, on that coordinate), and $E_a$ is then interpolated by a spline in height. The Control shading model can replace $Q$ (flat-top boxes) or step the profile (PPA).'
   crown_profile:
     section: light
     title: Leaf area above a height
@@ -354,7 +356,7 @@ equations:
     latex: |
       \frac{dy}{dt} = g(x, y, t), \qquad y(0) = H_0(x)
     code: plant::Individual::compute_rates
-    also: [plant::Individual::Individual]
+    also: [plant::Individual::Individual, plant::Node::compute_initial_conditions]
     reads: [g, H_0]
     writes: []
     kind: derivative
@@ -431,7 +433,7 @@ equations:
     writes: []
     kind: identity
     overstorey: theory/size-structured-pde.qmd
-    note: 'The page''s change of size unit, $N^\prime(H) = N(M)\, {\rm d}M / {\rm d}H$, with birth date $a_0$ as $M$. Exact at the boundary node; a central difference of node heights over birth dates elsewhere. Used to report densities in height, not to integrate.'
+    note: 'The page''s change of size unit, $N^\prime(H) = N(M)\, {\rm d}M / {\rm d}H$, with birth date $a_0$ as $M$. Exact at the boundary node; a difference of node heights over birth dates elsewhere: central for interior nodes, one-sided for the oldest. Used to report densities in height, not to integrate.'
 
   # --- patch age ----------------------------------------------------------------
   patch_age_ode:
@@ -535,7 +537,7 @@ equations:
       R\left(x^\prime,x\right) = \int _0^{a_{\rm max}} P\left(a_0\right) \, S_{\rm D} \, \tilde{R}\left(x^\prime, a_0, a_{\rm max} \right) \, {\rm d}a_0
     code: plant::Patch::net_reproduction_ratio_of
     also: [plant::Patch::fitness_integral, plant::Node::weighted_fecundity, plant::Species::weighted_fecundity_by_node, plant::util::trapezium]
-    reads: [S_D, f, max_patch_lifetime]
+    reads: [S_D, f, d, S_G, patch_type, max_patch_lifetime]
     writes: []
     kind: integrator
     overstorey: theory/adaptive-dynamics.qmd
@@ -558,7 +560,7 @@ equations:
       Y_x^{\rm out} = \int_0^{a_{\rm max}} Y_x(a_0) \, P(a_0) \, S_{\rm D} \, \tilde{R}(x, a_0, a_{\rm max}) \, {\rm d} a_0
     code: plant::Patch::offspring_production_of
     also: [plant::Patch::fitness_integral, plant::Model::birth_rate_at]
-    reads: [Y_x, S_D, f]
+    reads: [Y_x, S_D, f, max_patch_lifetime]
     writes: []
     kind: integrator
     overstorey: theory/size-structured-pde.qmd

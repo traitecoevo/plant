@@ -5,9 +5,10 @@
 
 ##' The model registry
 ##'
-##' Reads plant's model registry: one record per equation of plant's models and
-##' of the size-structured layer they share, per parameter those equations read,
-##' and per slot (a quantity the shared layer reads and every model supplies).
+##' Reads plant's model registry: one record per equation of the
+##' size-structured layer plant's models share (and, as they are added, of each
+##' model), per parameter those equations read, and per slot (a quantity the
+##' shared layer reads and every model supplies).
 ##' Each record names the C++ symbol that evaluates or holds it. The registry is
 ##' a record of the model, not a second implementation of it; documents render
 ##' their equations from it (see \code{\link{registry_equation}}).
@@ -103,9 +104,6 @@ registry_values <- function(registry = model_registry(), model = "FF16") {
 
 ## Read and validate the registry file against the schema in its header.
 registry_read <- function(path) {
-  if (!requireNamespace("yaml", quietly = TRUE)) {
-    stop("The model registry needs the 'yaml' package", call. = FALSE)
-  }
   if (!nzchar(path) || !file.exists(path)) {
     stop("Model registry not found: ", path, call. = FALSE)
   }
@@ -125,9 +123,14 @@ registry_read <- function(path) {
          toString(dup))
   }
   sections <- names(raw$sections)
+  # A required field must be present and, except `code` (where ~ marks an
+  # identity with no function), not null.
   need <- function(entries, kind, fields) {
     for (id in names(entries)) {
-      absent <- setdiff(fields, names(entries[[id]]))
+      e <- entries[[id]]
+      null <- names(e)[vapply(e, is.null, logical(1))]
+      absent <- union(setdiff(fields, names(e)),
+                      intersect(setdiff(fields, "code"), null))
       if (length(absent) > 0L) {
         fail(sprintf("%s '%s' lacks %s", kind, id, toString(absent)))
       }
@@ -142,7 +145,11 @@ registry_read <- function(path) {
 
   classes <- c("trait", "hyperparameter", "constant", "driver", "setting")
   kinds <- c("closed_form", "identity", "derivative", "integrator")
-  cite_ok <- function(x) is.null(x) || grepl("^[A-Za-z][A-Za-z-]*-[0-9]{4}[a-z]?$", x)
+  cite_ok <- function(x) {
+    is.null(x) ||
+      (is.character(x) && length(x) == 1L &&
+         grepl("^[A-Za-z][A-Za-z-]*-[0-9]{4}[a-z]?$", x))
+  }
   for (id in names(raw$parameters)) {
     e <- raw$parameters[[id]]
     if (!e$section %in% sections) fail(sprintf("parameter '%s': unknown section '%s'", id, e$section))
