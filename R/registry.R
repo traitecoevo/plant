@@ -169,6 +169,18 @@ registry_read <- function(path) {
     if (length(bad) > 0L) {
       fail(sprintf("model '%s' leaves unknown slots unfilled: %s", id, toString(bad)))
     }
+    for (u in names(m$unfilled)) {
+      if (!is.character(m$unfilled[[u]]) || !nzchar(m$unfilled[[u]])) {
+        fail(sprintf("model '%s' leaves '%s' unfilled with no reason", id, u))
+      }
+    }
+    seen <- id
+    parent <- m$extends
+    while (!is.null(parent)) {
+      if (parent %in% seen) fail(sprintf("model '%s' extends itself through %s", id, toString(seen)))
+      seen <- c(seen, parent)
+      parent <- raw$models[[parent]]$extends
+    }
   }
   for (id in slots) {
     pm <- raw$slots[[id]]$per_model
@@ -177,11 +189,19 @@ registry_read <- function(path) {
     }
   }
   # A model's entry says so, and its id is `<model>.<name>`; a shared entry
-  # has neither.
+  # has neither. A shared entry may fill only a slot supplied once for every
+  # model (per_model: false), and a model's entry only a per-model slot.
+  shared_slots <- slots[vapply(raw$slots, function(x) isFALSE(x$per_model), logical(1))]
   owner_ok <- function(kind, id, e) {
+    if (!is.null(e$fills) && !e$fills %in% slots) {
+      fail(sprintf("%s '%s' fills unknown slot '%s'", kind, id, e$fills))
+    }
     if (is.null(e$model)) {
       if (grepl(".", id, fixed = TRUE)) {
         fail(sprintf("%s '%s' is named like a model's entry but has no model", kind, id))
+      }
+      if (!is.null(e$fills) && !e$fills %in% shared_slots) {
+        fail(sprintf("%s '%s' is shared but fills per-model slot '%s'", kind, id, e$fills))
       }
       return(invisible())
     }
@@ -189,8 +209,8 @@ registry_read <- function(path) {
     if (!startsWith(id, paste0(e$model, "."))) {
       fail(sprintf("%s '%s' belongs to %s, so its id starts '%s.'", kind, id, e$model, e$model))
     }
-    if (!is.null(e$fills) && !e$fills %in% slots) {
-      fail(sprintf("%s '%s' fills unknown slot '%s'", kind, id, e$fills))
+    if (!is.null(e$fills) && e$fills %in% shared_slots) {
+      fail(sprintf("%s '%s' fills '%s', which every model shares", kind, id, e$fills))
     }
   }
   for (id in names(raw$parameters)) {
@@ -220,6 +240,9 @@ registry_read <- function(path) {
     }
   }
   for (id in names(raw$not_parameters)) {
+    if (grepl(".", id, fixed = TRUE) && !sub("[.].*$", "", id) %in% models) {
+      fail(sprintf("not_parameters '%s' names an unknown model", id))
+    }
     if (!is.character(raw$not_parameters[[id]]) || !nzchar(raw$not_parameters[[id]])) {
       fail(sprintf("not_parameters '%s' needs a reason", id))
     }

@@ -107,6 +107,8 @@ test_that("every model fills every per-model slot, or says why not", {
     expect_true(length(missing) == 0L,
                 info = sprintf("%s fills no %s", m, toString(missing)))
     expect_length(intersect(filled, unfilled), 0L)
+    expect_false(anyDuplicated(filled) > 0L,
+                 info = sprintf("%s fills %s twice", m, toString(filled[duplicated(filled)])))
   }
 })
 
@@ -131,7 +133,8 @@ test_that("the values are read off the live model, not stored", {
   expect_identical(v$value[[j]], FF16_Model()$pars$lma)
   # and another model's is not this model's to give.
   k <- match("K93.b_0", v$id)
-  if (!is.na(k)) expect_true(is.na(v$value[[k]]))
+  expect_false(is.na(k))
+  expect_true(is.na(v$value[[k]]))
 })
 
 test_that("the reader refuses what the schema forbids", {
@@ -166,4 +169,15 @@ test_that("the reader refuses what the schema forbids", {
     x$parameters[["NOPE.made_up"]] <- e; x
   }, "unknown model 'NOPE'")
   refuse(function(x) { x$models$K93$extends <- "NOPE"; x }, "extends unknown model")
+  refuse(function(x) { x$models$K93$extends <- "FF16"; x$models$FF16$extends <- "K93"; x },
+         "extends itself")
+  refuse(function(x) { x$parameters[[first_par]]$fills <- "nonsense"; x },
+         "fills unknown slot")
+  refuse(function(x) { x$parameters[[first_par]]$fills <- "g"; x },
+         "is shared but fills per-model slot")
+  refuse(function(x) { x$parameters[["K93.eta"]]$fills <- "Q"; x },
+         "which every model shares")
+  refuse(function(x) { x$not_parameters[["FF61.foo"]] <- "typo"; x },
+         "names an unknown model")
+  refuse(function(x) { x$models$K93$unfilled$w <- ""; x }, "with no reason")
 })

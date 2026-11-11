@@ -144,8 +144,8 @@ slots:
     code: plant::CanopyShape::initialise
   k_I:
     symbol: 'k_{\rm I}'
-    units: '–'
-    meaning: 'light extinction coefficient; held in each model''s pars and read only inside the competition contribution the model returns'
+    units: '– (FF16, TF24); m² cm⁻² of basal area (K93)'
+    meaning: 'light extinction coefficient (K93: the scale of its basal-area environment); held in each model''s pars and read only inside the competition contribution the model returns'
     code: plant::Individual::compute_competition
   S_D:
     symbol: 'S_{\rm D}'
@@ -155,7 +155,7 @@ slots:
   Y_x:
     symbol: 'Y_x'
     units: 'm⁻² yr⁻¹'
-    meaning: 'rate at which offspring of strategy $x$ arrive in the patch (the birth rate); constant by default, a monotone spline of time when the strategy sets a variable birth rate'
+    meaning: 'rate at which offspring of strategy $x$ arrive in the patch (the birth rate); constant by default, a monotone spline of time when the strategy sets a variable birth rate. One rule for every model: the base class holds the fields and the driver, and FF16 and TF24 re-declare birth_rate_at only to evaluate it at their own number type'
     code: plant::Model::birth_rate_at
     per_model: false
   w:
@@ -654,7 +654,7 @@ parameters:
     units: 'yr⁻¹'
     class: trait
     meaning: 'growth intercept: relative diameter growth rate of an unsuppressed tree of diameter 1 cm'
-    source: 'K93_Pars default; the constructor attributes the defaults to Table 1 of Kohyama-1993'
+    source: 'K93_Pars default; the constructor attributes the defaults to Table 1 of Kohyama-1993, not yet checked against the paper'
     cite: Kohyama-1993
     placeholder: false
     code: plant::K93_Pars::b_0
@@ -665,7 +665,7 @@ parameters:
     units: 'yr⁻¹ (ln cm)⁻¹'
     class: trait
     meaning: 'decline of relative growth rate with log diameter (sets the asymptotic size)'
-    source: 'K93_Pars default; Table 1 of Kohyama-1993'
+    source: 'K93_Pars default; attributed by the constructor to Table 1 of Kohyama-1993, not yet checked against the paper'
     cite: Kohyama-1993
     placeholder: false
     code: plant::K93_Pars::b_1
@@ -676,7 +676,7 @@ parameters:
     units: 'm² cm⁻² yr⁻¹'
     class: trait
     meaning: 'growth suppression per unit basal area of larger trees'
-    source: 'K93_Pars default; Table 1 of Kohyama-1993'
+    source: 'K93_Pars default; attributed by the constructor to Table 1 of Kohyama-1993, not yet checked against the paper'
     cite: Kohyama-1993
     placeholder: false
     code: plant::K93_Pars::b_2
@@ -687,7 +687,7 @@ parameters:
     units: 'cm⁻² yr⁻¹'
     class: trait
     meaning: 'recruitment (offspring production) per unit basal area of the parent'
-    source: 'K93_Pars default; Table 1 of Kohyama-1993. The header comment gives the units as cm² yr⁻¹; $d_0 B_0$ is a rate per tree, so $d_0$ is per cm² of basal area'
+    source: 'K93_Pars default; attributed by the constructor to Table 1 of Kohyama-1993, not yet checked against the paper. The header comment gives the units as cm² yr⁻¹; $d_0 B_0$ is a rate per tree, so $d_0$ is per cm² of basal area'
     cite: Kohyama-1993
     placeholder: false
     code: plant::K93_Pars::d_0
@@ -698,7 +698,7 @@ parameters:
     units: 'm² cm⁻²'
     class: trait
     meaning: 'reduction of recruitment per unit basal area of larger trees'
-    source: 'K93_Pars default; Table 1 of Kohyama-1993. The header comment gives the units as m² cm⁻² yr⁻¹; $d_1 B$ is an exponent, so $d_1$ carries no yr⁻¹'
+    source: 'K93_Pars default; attributed by the constructor to Table 1 of Kohyama-1993, not yet checked against the paper. The header comment gives the units as m² cm⁻² yr⁻¹; $d_1 B$ is an exponent, so $d_1$ carries no yr⁻¹'
     cite: Kohyama-1993
     placeholder: false
     code: plant::K93_Pars::d_1
@@ -709,7 +709,7 @@ parameters:
     units: 'yr⁻¹'
     class: trait
     meaning: 'mortality intercept, subtracted: individual mortality is zero until $c_1 B$ exceeds it'
-    source: 'K93_Pars default; Table 1 of Kohyama-1993'
+    source: 'K93_Pars default; attributed by the constructor to Table 1 of Kohyama-1993, not yet checked against the paper'
     cite: Kohyama-1993
     placeholder: false
     code: plant::K93_Pars::c_0
@@ -720,7 +720,7 @@ parameters:
     units: 'm² cm⁻² yr⁻¹'
     class: trait
     meaning: 'mortality per unit basal area of larger trees'
-    source: 'K93_Pars default; Table 1 of Kohyama-1993'
+    source: 'K93_Pars default; attributed by the constructor to Table 1 of Kohyama-1993, not yet checked against the paper'
     cite: Kohyama-1993
     placeholder: false
     code: plant::K93_Pars::c_1
@@ -740,8 +740,8 @@ parameters:
     section: k93_competition
     symbol: 'k_{\rm I}'
     units: 'm² cm⁻²'
-    class: setting
-    meaning: 'scale of the map between basal area above and the [0, 1] environment the shared layer interpolates, $E = \exp(-k_{\rm I} B)$; it cancels from $B$, so it moves results only through the interpolation and the out-of-range stop'
+    class: hyperparameter
+    meaning: 'scale of the map between basal area above and the [0, 1] environment the shared layer interpolates, $E = \exp(-k_{\rm I} B)$. Each species adds $k_{\rm I} B$ to the one shared environment and reads it back divided by its own $k_{\rm I}$, so it cancels only when every species shares it; where species differ it weights each one''s basal area in the others'' competition (species $j$ sees $\sum_i (k_{{\rm I},i} / k_{{\rm I},j}) B_i$)'
     source: 'K93_Pars default; a plant addition, not in Kohyama-1993'
     placeholder: true
     code: plant::K93_Pars::k_I
@@ -1160,7 +1160,7 @@ equations:
     kind: integrator
     cite: Falster-2011
     overstorey: theory/models/ff16.qmd
-    note: 'The code returns the whole-plant assimilation $A_{\rm l} \, \bar{p}$, the product the page writes inside the net production. This is the default (deep-crown) shading model, a Gauss-Kronrod rule over the unit crown. Control shading_model can replace it: mean-light takes $p$ of the leaf-weighted mean openness, $p(x, \int_0^H E_a(z) \, q(z, H) \, {\rm d}z)$; crown-centre, flat-top-box and PPA take $p(x, E_a(\eta_{\rm c} H))$, differing only in how the light profile is built.'
+    note: 'The code returns the whole-plant assimilation $A_{\rm l} \, \bar{p}$, the product the page writes inside the net production. This is the default (deep-crown) shading model, a Gauss-Kronrod rule over the unit crown. Control shading_model can replace it: mean-light takes $p$ of the leaf-weighted mean openness, $p(x, \int_0^H E_a(z) \, q(z, H) \, {\rm d}z)$; crown-centre, flat-top-box, flat-top-soft-box and PPA take $p(x, E_a(\eta_{\rm c} H))$, differing only in how the light profile is built.'
   FF16.respiration:
     model: FF16
     section: ff16_production
@@ -1627,7 +1627,7 @@ equations:
     kind: closed_form
     fills: A_l
     overstorey: theory/models/k93.qmd
-    note: 'The page interprets $B_0$ as one individual''s basal area and computes it this way in its example. K93 has no leaf area: basal area takes the place of $A_{\rm l}$ in the competition contribution, in cm² where the slot says m².'
+    note: 'The page interprets $B_0$ as one individual''s basal area and computes it this way in its example. K93 has no leaf area: basal area takes the place of $A_{\rm l}$ in the competition contribution, in cm² (the slot''s units say so).'
   K93.basal_area_above:
     model: K93
     section: k93_competition
@@ -1641,7 +1641,7 @@ equations:
     kind: integrator
     cite: Kohyama-1993
     overstorey: theory/models/k93.qmd
-    note: 'Eq. 8 of Kohyama-1993 writes $\frac{\pi}{4 \cdot s(t, a)} \int_{x}^{x_{max}} y^2 \cdot f(t, a, y) \, dy$. The code builds the shared environment $E_a = \exp(-k_{\rm I} B)$ from every species'' contributions and back-transforms it, so each larger tree is weighted by $Q(x, y)$ (the smoothing $\eta$; 1 in the page''s limit $\eta \to \infty$), the page''s $s(t, a)$ is the patch area $A_{\rm P}$, and $k_{\rm I}$ cancels but for the spline''s interpolation. The focal tree''s own basal area is not counted ($Q(x, x) = 0$). $f$ is the page''s size density, not the fecundity slot. The run stops if $B$ is not finite.'
+    note: 'Eq. 8 of Kohyama-1993 writes $\frac{\pi}{4 \cdot s(t, a)} \int_{x}^{x_{max}} y^2 \cdot f(t, a, y) \, dy$. The code builds the shared environment $E_a = \exp(-k_{\rm I} B)$ from every species'' contributions and back-transforms it, so each larger tree is weighted by $Q(x, y)$ (the smoothing $\eta$; 1 in the page''s limit $\eta \to \infty$), the page''s $s(t, a)$ is the patch area $A_{\rm P}$, and $k_{\rm I}$ cancels when every species shares it (otherwise it weights each species, as K93.k_I says). The focal tree''s own basal area is not counted ($Q(x, x) = 0$). $f$ is the page''s size density, not the fecundity slot. The run stops if $B$ is not finite.'
   K93.competition:
     model: K93
     section: k93_competition
