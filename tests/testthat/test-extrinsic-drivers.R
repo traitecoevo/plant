@@ -171,7 +171,9 @@ test_that("A lone TF24 individual follows a time-varying SWdown", {
   # Less light, slower growth: the comparison means something.
   expect_true(all(h_lo < h_hi))
 
-  # Before the step the stepped run sees exactly the constant 900 driver.
+  # Before the step the stepped run sees the same driver as the constant 900
+  # run. The solver's step grid near t = 1 can differ between the two, so this
+  # is equal to within tolerance rather than identical.
   expect_equal(h_step[1:2], h_hi[1:2])
 
   # After it, growth slows: the stepped plant ends between the two constants.
@@ -181,7 +183,8 @@ test_that("A lone TF24 individual follows a time-varying SWdown", {
 
 test_that("A TF24 patch follows a time-varying SWdown", {
   # Height of the tallest node at each recorded time. Offspring production is
-  # no use here: nothing is mature after two years, so it is ~1e-15 in all runs.
+  # no use here: nothing is mature after two years, so it is below 1e-14 in
+  # every run.
   tallest <- function(swdown) {
     p <- testing_parameters("TF24")
     p$max_patch_lifetime <- 2
@@ -200,7 +203,8 @@ test_that("A TF24 patch follows a time-varying SWdown", {
 
   expect_lt(h_lo[[n]], h_hi[[n]])
 
-  # Before the step the stepped patch sees exactly the constant 900 driver.
+  # Before the step the stepped patch sees the same driver as the constant 900
+  # patch.
   expect_equal(h_step[t <= 1], h_hi[t <= 1])
 
   # After it, growth slows: the stepped patch ends between the two constants.
