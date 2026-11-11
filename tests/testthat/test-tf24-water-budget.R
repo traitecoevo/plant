@@ -84,23 +84,30 @@ test_that("TF24 water budget closes on a graded layer profile", {
   # matric gradient dropped, so it carries no internode distance and nothing in it
   # needs rescaling when the layers stop being equal.
   #
-  # ⚠️ This test is what breaks if a capillary or diffusive flux is ever added
-  # using the wrong distance. That term's distance is the INTERNODE separation
-  # z_mid[i+1] - z_mid[i], not dz[i]; the two coincide only for equal layers, so a
-  # uniform-profile budget test would pass on the mistake and this one will not.
+  # What this test catches is a layer's rate turned into moisture with the wrong
+  # width. Dividing every layer's rate by the top layer's width leaves 10% of the
+  # water unaccounted for within half a year, against 1e-16 when correct, and a
+  # uniform-profile budget would pass on that mistake, since every width is the
+  # same. ⚠️ It cannot catch a capillary or diffusive flux added with the wrong
+  # distance (the INTERNODE separation z_mid[i+1] - z_mid[i], not dz[i]): a flux
+  # between layers leaves one and enters the next by the same amount, so the
+  # budget closes whatever distance computed it. Such a term needs a test of its
+  # own size.
   #
-  # Half a year is enough: dividing every layer's rate by the top layer's width
-  # leaves 10% of the water unaccounted for by then, against 1e-16 when correct.
-  # The column does not dry below its start in that time; the tests either side
-  # of this one close the budget on a drying column.
+  # Three profiles run half a year, in which the column does not dry below its
+  # start. The graded ladder runs two years, which dries it (to 0.145), so the
+  # budget is also closed on a drying column of unequal layers.
   profiles <- list(
     "2 cm surface layer" = c(0.02, 0.28, 0.30, 0.40, 0.50),
     "graded ladder" = graded_widths(1.5, 5, top = 0.02),
     "steeply graded" = c(0.01, 0.04, 0.15, 0.40, 0.90),
     "single thin layer" = 0.02
   )
+  lifetime <- c("2 cm surface layer" = 0.5, "graded ladder" = 2,
+                "steeply graded" = 0.5, "single thin layer" = 0.5)
   for (label in names(profiles)) {
-    b <- tf24_water_budget(widths = profiles[[label]], lifetime = 0.5)
+    b <- tf24_water_budget(widths = profiles[[label]],
+                           lifetime = lifetime[[label]])
     expect_equal(b$supplied, b$accounted, info = label)
     expect_lt(abs(b$rel_residual), 1e-12)
   }

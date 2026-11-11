@@ -489,7 +489,7 @@ test_that("SCM completes under extreme seasonal drought (#517, #550)", {
   #
   # Completion alone no longer tells the fixed model from the broken one: with
   # productivity per leaf area put back in the mortality exponent, the run now
-  # completes too, but the drought kills the stand (offspring ~1e-9, against
+  # completes too, but the drought kills the stand (offspring ~3e-9, against
   # ~5 here). The floor on offspring is what catches that. Fifteen years is
   # fifteen rainfall cycles; the cost of the run is linear in the lifetime.
   mpl <- 15
