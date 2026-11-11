@@ -28,8 +28,6 @@ test_that("Defaults", {
     a_pl2 = 0.2,
     a_pl3 = 0.05,
     a_pl4 = 3.0,
-    a_p1   = 151.177775377968,
-    a_p2   = 0.204716166503633,
     a_f1   = 1,
     a_f2   = 50,
     a_d0   = 0.1,
@@ -53,7 +51,6 @@ test_that("Defaults", {
     stem_c = 2.04,
     stem_b = 2.8887256653360196 / (-log(1 - 50.0 / 100.0))^(1 / 2.04),
     psi_crit = 2.8887256653360196 / (-log(1 - 50.0 / 100.0))^(1 / 2.04) * log(1/0.05)^(1/2.04),
-    beta1 = 20000,
     TF24_beta2 = 1.5,
     TF24_cost_scale = 7.5,
     TF24_floor_lambda_o = 0,
@@ -62,12 +59,6 @@ test_that("Defaults", {
     phi_J = 0.3 / 0.85,
     curv_fact_elec_trans = 0.7,
     curv_fact_colim = 0.99,
-    var_sapwood_volume_cost = 1,
-    nmass_l = 0.013,
-    nmass_s = 0.00198,
-    nmass_b = 0.0034,
-    nmass_r = 0.00335,
-    dmass_dN = 0,
     root_depth_shape_eta = 0.2,
     # (root_P50, root_c) is the pair the model carries; root_b and root_psi_crit
     # are derived from it here the way TF24_Pars derives them, rather than pinned
@@ -168,14 +159,6 @@ test_that("TF24_Model hyper-parameterisation", {
   expect_equal(ret[, "k_l"], c(1.46678,0.028600), tolerance=1e-5)
   expect_equal(ret[, "r_l"], c(505.331, 220.633), tolerance=1e-5)
 
-  ## This happens on Linux (and therefore on travis) due to numerical
-  ## differences in the integration.
-  if ("a_p1" %in% colnames(ret)) {
-    a_p1 <- ret[, "a_p1"]
-    expect_equal(length(unique(a_p1)), 1L)
-    expect_equal(a_p1[[1]], s$pars$a_p1, tolerance=1e-7)
-  }
-
   # wood density
   rho <- c(200,300)
   tf24_hyperpar_rho <- default_hyperpar("TF24", B_hks2 = 1)
@@ -186,21 +169,14 @@ test_that("TF24_Model hyper-parameterisation", {
   expect_equal(ret[, "r_s"], c(20.06000,13.37333), tolerance=1e-5)
   expect_equal(ret[, "r_b"], 2*ret[, "r_s"])
 
-  ## This happens on Linux (and therefore on travis) due to numerical
-  ## differences in the integration.
-  if ("a_p1" %in% colnames(ret)) {
-    a_p1 <- ret[, "a_p1"]
-    expect_equal(length(unique(a_p1)), 1L)
-    expect_equal(a_p1[[1]], s$pars$a_p1, tolerance=1e-7)
-  }
-
   # vcmax
   vcmax_25 <- c(0, 50,100)
   ret <- default_hyperpar("TF24")(trait_matrix(vcmax_25, "vcmax_25"), s)
-  expect_true(all(c("nmass_l", "r_l") %in% colnames(ret)))
+  expect_true("r_l" %in% colnames(ret))
+  # Leaf nitrogen is how r_l is built, not a parameter of its own (#611).
+  expect_false("nmass_l" %in% colnames(ret))
   expect_equal(ret[, "vcmax_25"], vcmax_25)
   expect_equal(ret[, "r_l"], c(271.2375, 311.6662, 352.0949), tolerance=1e-5)
-  expect_equal(ret[, "nmass_l"], c(0.01234018, 0.01335090, 0.01436162), tolerance=1e-5)
   
   # seed mass
   omega <- 3.8e-5*c(1,2,3)
@@ -208,14 +184,6 @@ test_that("TF24_Model hyper-parameterisation", {
   expect_true(all(c("omega", "a_f3") %in% colnames(ret)))
   expect_equal(ret[, "omega"], omega)
   expect_equal(ret[, "a_f3"], 3*omega)
-
-  ## This happens on Linux (and therefore on travis) due to numerical
-  ## differences in the integration.
-  if ("a_p1" %in% colnames(ret)) {
-    a_p1 <- ret[, "a_p1"]
-    expect_equal(length(unique(a_p1)), 1L)
-    expect_equal(a_p1[[1]], s$pars$a_p1, tolerance=1e-7)
-  }
 
 
   ## Empty trait matrix:
@@ -225,7 +193,7 @@ test_that("TF24_Model hyper-parameterisation", {
 
 test_that("the TF24 trade-off function at the default traits keeps the default stem curve", {
   ## A strategy built from traits and the bare default must share one
-  ## vulnerability curve (#611). r_l and nmass_l still differ (#579).
+  ## vulnerability curve (#611). r_l still differs (#579).
   s <- TF24_Model()
   ret <- default_hyperpar("TF24")(trait_matrix(s$pars$K_s, "K_s"), s, filter = FALSE)
   for (v in c("stem_P50", "stem_c", "stem_b", "psi_crit")) {

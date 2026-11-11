@@ -20,7 +20,7 @@ S TF24_Model<S>::evapotranspiration_dt(const S& area_leaf_, int soil_layer) {
   }
 }
 
-// The two _25 traits and dark respiration enter as the temperature-adjusted
+// The two _25 traits and day respiration enter as the temperature-adjusted
 // values the leaf's kernels take. The Arrhenius is linear in its reference
 // value, so the chain from the trait is the factor between them and the tape
 // carries the rest.

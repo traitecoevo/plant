@@ -54,7 +54,10 @@ struct TF24_Pars {
   // Coarse roots are woody, so this defaults to the sapwood rate. As with r_b,
   // a default and not a link: setting r_s afterwards does not move it.
   S r_cr   = r_s;            // Coarse-root respiration per mass
-  S r_l    = 39.27 / 0.1978791; // Leaf dark respiration per leaf mass
+  // Leaf maintenance respiration per leaf mass: the tissue's upkeep, charged
+  // day and night. Not the day respiration R_d inside the leaf, which runs only
+  // while it photosynthesises.
+  S r_l    = 39.27 / 0.1978791;
   S a_y    = 0.7;            // Carbon conversion parameter
   S a_bio  = 2.45e-2;        // CO2 -> dry mass [kg / mol]
   S k_l    = 0.4565855;      // Leaf turnover [/yr]
@@ -62,8 +65,6 @@ struct TF24_Pars {
   S k_s    = 0.2;            // Sapwood turnover [/yr]
   S k_r    = 1.0;            // Fine-root turnover [/yr]
   S k_cr   = k_s;            // Coarse-root turnover [/yr] (woody)
-  S a_p1   = 151.177775377968;   // LRC hyperbola [mol CO2 / yr / m2]
-  S a_p2   = 0.204716166503633;  // LRC hyperbola shape
   // * Seed production
   S a_f3   = 3.0 *  3.8e-5;  // Accessory cost of reproduction [kg/seed]
   S a_f1   = 1.0;            // Maximum allocation to reproduction
@@ -179,9 +180,6 @@ struct TF24_Pars {
   S stem_c = 2.04;
   S stem_b = stem_P50 / power(-log(1 - 50.0 / 100.0), 1 / stem_c);
   S psi_crit = stem_b*power(log(1/0.05),1/stem_c); // derived from stem_b and stem_c
-  // Read by nothing: not passed to the leaf, not read by any equation here. Kept
-  // only because it is in the R-visible parameter list.
-  S beta1 = 20000;
   S TF24_beta2 = 1.5;
   S TF24_cost_scale = 7.5;
   // THE PRICE OF WATER AS TRANSPIRATION GOES TO ZERO, umol C (kg H2O)^-1: the
@@ -222,17 +220,11 @@ struct TF24_Pars {
   S phi_J = 0.30 / 0.85;
   S curv_fact_elec_trans = 0.7;
   S curv_fact_colim = 0.99;
-  // Dark respiration at 25 C, the term net assimilation subtracts. It is handed
+  // Day respiration at 25 C, the term net assimilation subtracts: respiration
+  // of the photosynthesising leaf, distinct from r_l's maintenance. It is handed
   // over now that set_traits takes it, rather than left to the leaf's own
   // default -- so a parameter can move it and a gradient can see it.
   S R_d_25 = 1.44;
-  S var_sapwood_volume_cost = 1;
-  // nitrogen allocation traits (parameterised from Austraits 4.1.0)
-  S nmass_l = 13e-3; // kg N kg^-1 mass
-  S nmass_s = 1.98e-3; // kg N kg^-1 mass
-  S nmass_b = 3.40e-3; // kg N kg^-1 mass
-  S nmass_r = 3.35e-3; // kg N kg^-1 mass
-  S dmass_dN = 0; // change in mass per change in kg kg^-1 N
   // shape exponent for the Q() root-fraction-with-depth profile
   S root_depth_shape_eta = 0.2;
   // * Root hydraulics
@@ -408,17 +400,7 @@ struct TF24_Pars {
       no_gradient{"stem_b", "derived from (stem_P50, stem_c); phylloptim derives it itself, so setting it reaches nothing and a row here would describe a path the model does not take"},
       no_gradient{"psi_crit", "derived from (stem_P50, stem_c), as above"},
       no_gradient{"root_b", "derived from (root_P50, root_c), as above"},
-      no_gradient{"root_psi_crit", "derived from (root_P50, root_c), as above"},
-      no_gradient{"a_p1", "the light-response curve the Farquhar leaf replaced"},
-      no_gradient{"a_p2", "the light-response curve the Farquhar leaf replaced"},
-      no_gradient{"beta1", "no equation on this path reads it"},
-      no_gradient{"var_sapwood_volume_cost", "declared and carried; no equation "
-                                             "on this path reads it"},
-      no_gradient{"nmass_l", "declared and carried; no equation reads it"},
-      no_gradient{"nmass_s", "declared and carried; no equation reads it"},
-      no_gradient{"nmass_b", "declared and carried; no equation reads it"},
-      no_gradient{"nmass_r", "declared and carried; no equation reads it"},
-      no_gradient{"dmass_dN", "declared and carried; no equation reads it"}};
+      no_gradient{"root_psi_crit", "derived from (root_P50, root_c), as above"}};
 
   // Every member above, in declaration order. field_ptrs() and both
   // ad_parameter_* projections read this, so a member reaches all of them or
@@ -448,8 +430,6 @@ struct TF24_Pars {
       PLANT_TF24_AD_PARAMETER(k_s),
       PLANT_TF24_AD_PARAMETER(k_r),
       PLANT_TF24_AD_PARAMETER(k_cr),
-      PLANT_TF24_AD_PARAMETER(a_p1),
-      PLANT_TF24_AD_PARAMETER(a_p2),
       // Occurs only in fecundity_dt's denominator, which the fitness metrics
       // read and no census metric does: its census column is zero on any
       // trajectory. `ladder_zero_outside_the_metric_support` checks that claim.
@@ -478,7 +458,6 @@ struct TF24_Pars {
       PLANT_TF24_AD_PARAMETER(stem_c),
       PLANT_TF24_AD_PARAMETER(stem_b),
       PLANT_TF24_AD_PARAMETER(psi_crit),
-      PLANT_TF24_AD_PARAMETER(beta1),
       PLANT_TF24_AD_PARAMETER(TF24_beta2),
       PLANT_TF24_AD_PARAMETER(TF24_cost_scale),
       PLANT_TF24_AD_PARAMETER(TF24_floor_lambda_o),
@@ -487,12 +466,6 @@ struct TF24_Pars {
       PLANT_TF24_AD_PARAMETER(curv_fact_elec_trans),
       PLANT_TF24_AD_PARAMETER(curv_fact_colim),
       PLANT_TF24_AD_PARAMETER(R_d_25),
-      PLANT_TF24_AD_PARAMETER(var_sapwood_volume_cost),
-      PLANT_TF24_AD_PARAMETER(nmass_l),
-      PLANT_TF24_AD_PARAMETER(nmass_s),
-      PLANT_TF24_AD_PARAMETER(nmass_b),
-      PLANT_TF24_AD_PARAMETER(nmass_r),
-      PLANT_TF24_AD_PARAMETER(dmass_dN),
       PLANT_TF24_AD_PARAMETER(root_depth_shape_eta),
       PLANT_TF24_AD_PARAMETER(root_c),
       PLANT_TF24_AD_PARAMETER(root_P50),
