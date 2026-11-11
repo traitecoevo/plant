@@ -26,35 +26,57 @@
 #
 # `sections` is id: title, in document order.
 #
+# `models` is keyed by model id (FF16, K93, ...). Each has title and header (the
+# model's C++ header), and optionally extends (the model it subclasses, whose
+# entries it inherits) and unfilled (slot: why this model supplies no such
+# quantity).
+#
+# A model's own entries carry `model:` and an id `<model>.<name>` (FF16.lma),
+# since models share names; a shared-layer entry has neither. A subclass
+# records only what it changes.
+#
 # `slots` are the quantities the shared layer reads and every model supplies
 # (growth, mortality, fecundity, establishment, leaf area, crown shape, birth
 # size). Each has symbol (LaTeX, no $), units, meaning and code (the generic C++
 # symbol through which the shared layer reads it). A model's equations say which
-# slot they fill with `fills:`.
+# slot they fill with `fills:`. A slot with per_model: false is supplied once
+# for every model (by a shared entry, or by the base class); otherwise every
+# model fills it, through an equation or a parameter with `fills:`, or lists it
+# under its `unfilled`.
 #
 # `parameters` is keyed by the name in code. Each has section, symbol, units,
 # class (trait | hyperparameter | constant | driver | setting), meaning, source
 # (free text), placeholder (true where the value is an uncalibrated default or no
 # source is recorded) and code (the qualified C++ member that holds it). Optional:
-# cite (a Zotero key, Surname-Year), literal (see rule 1), field (the R binding's
-# name, where it is not the member name) and aliases (other symbols the same
-# quantity is read through).
+# model, fills (a slot this parameter supplies), cite (a Zotero key,
+# Surname-Year), literal (see rule 1), field (the R binding's name, where it is
+# not the member name) and aliases (other symbols the same quantity is read
+# through).
 #
 # `equations` is keyed by id. Each has section, title, latex, code (the symbol
 # that evaluates it, or ~ for an identity with none), reads (parameter or slot
 # ids), writes (bound fields or outputs it seats; may be empty) and kind
 # (closed_form | identity | derivative | integrator: what sort of statement the
-# LaTeX is). Optional: also (further symbols involved), fills (a slot id), cite,
-# note and overstorey (the Overstorey page the LaTeX follows).
+# LaTeX is). Optional: model, also (further symbols involved), fills (a slot
+# id), cite, note and overstorey (the Overstorey page the LaTeX follows).
 #
-# `not_parameters` is keyed by a bound field of a covered class that is neither a
-# parameter nor written by an equation (a numerical schedule, a stored state, a
-# container), each with a reason, so every bound field is accounted for.
+# `not_parameters` is keyed by a bound field of Parameters, or `<model>.<field>`
+# for a field of a model's pars, that is neither a parameter nor written by an
+# equation (a numerical schedule, a stored state, a container), each with a
+# reason, so every bound field is accounted for.
 #
 # YAML 1.1 reads `1e-3` as a string: write floats with a point and a signed
 # exponent (1.0e-3, 2.45e+6).
 
 package: plant
+
+models:
+  FF16:
+    title: 'FF16: Falster et al. 2011, 2016, 2018'
+    header: inst/include/plant/models/ff16_model.h
+  K93:
+    title: 'K93: Kohyama 1993'
+    header: inst/include/plant/models/k93_model.h
 
 sections:
   individual: Individual plants along their characteristic

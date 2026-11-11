@@ -31,16 +31,19 @@ model_registry <- function(path = system.file("model-registry.yml",
   structure(list(
     package = raw$package,
     sections = unlist(raw$sections),
+    models = registry_models(raw$models),
     slots = registry_frame(raw$slots,
-                           c("symbol", "units", "meaning", "code")),
+                           c("symbol", "units", "meaning", "code",
+                             "per_model")),
     parameters = registry_frame(raw$parameters,
-                                c("section", "symbol", "units", "class",
-                                  "meaning", "source", "placeholder", "code",
-                                  "cite", "literal", "field"),
+                                c("model", "section", "symbol", "units",
+                                  "class", "meaning", "source", "placeholder",
+                                  "code", "cite", "literal", "field", "fills"),
                                 list_cols = "aliases"),
     equations = registry_frame(raw$equations,
-                               c("section", "title", "latex", "code", "kind",
-                                 "fills", "cite", "note", "overstorey"),
+                               c("model", "section", "title", "latex", "code",
+                                 "kind", "fills", "cite", "note",
+                                 "overstorey"),
                                list_cols = c("reads", "writes", "also")),
     not_parameters = unlist(raw$not_parameters),
     raw = raw,
@@ -50,8 +53,8 @@ model_registry <- function(path = system.file("model-registry.yml",
 
 ##' @export
 print.plant_model_registry <- function(x, ...) {
-  cat(sprintf("<%s model registry: %d sections, %d slots, %d parameters, %d equations>\n",
-              x$package, length(x$sections), nrow(x$slots),
+  cat(sprintf("<%s model registry: %d models, %d sections, %d slots, %d parameters, %d equations>\n",
+              x$package, nrow(x$models), length(x$sections), nrow(x$slots),
               nrow(x$parameters), nrow(x$equations)))
   invisible(x)
 }
@@ -79,8 +82,10 @@ registry_equation <- function(id, registry = model_registry()) {
 ##' The registry stores no values; this reads each parameter's current default
 ##' off the model, so a table rendered from the registry shows the number the
 ##' model runs with. Parameters held on \code{Parameters} are read from
-##' \code{scm_base_parameters(model)}; a \code{literal} gives its own value.
-##' Parameters held elsewhere are \code{NA}.
+##' \code{scm_base_parameters(model)}, and a model's own parameters (those of
+##' \code{model} and of any model it extends) from its default strategy's
+##' \code{pars}; a \code{literal} gives its own value. Other models'
+##' parameters, and any not held as a single number, are \code{NA}.
 ##'
 ##' @param registry A registry from \code{\link{model_registry}}.
 ##' @param model The model whose defaults to read, e.g. \code{"FF16"}.
@@ -89,13 +94,15 @@ registry_equation <- function(id, registry = model_registry()) {
 registry_values <- function(registry = model_registry(), model = "FF16") {
   pars <- registry$parameters
   p <- scm_base_parameters(model)
+  s <- get(paste0(model, "_Model"), mode = "function")()
   field <- ifelse(is.na(pars$field), sub("^.*::", "", pars$code), pars$field)
   on_parameters <- grepl("^plant::Parameters::", pars$code)
+  on_model <- !is.na(pars$model) &
+    pars$model %in% registry_lineage(registry$models, model)
   value <- rep(NA_real_, nrow(pars))
-  for (i in which(on_parameters)) {
-    v <- p[[field[[i]]]]
-    if (is.numeric(v) && length(v) == 1L) value[[i]] <- v
-  }
+  scalar <- function(v) if (is.numeric(v) && length(v) == 1L) v else NA_real_
+  for (i in which(on_parameters)) value[[i]] <- scalar(p[[field[[i]]]])
+  for (i in which(on_model)) value[[i]] <- scalar(s$pars[[field[[i]]]])
   lit <- !is.na(pars$literal)
   value[lit] <- as.numeric(pars$literal[lit])
   pars$value <- value
@@ -109,8 +116,8 @@ registry_read <- function(path) {
   }
   raw <- yaml::read_yaml(path)
   fail <- function(...) stop("Model registry: ", ..., call. = FALSE)
-  top <- c("package", "sections", "slots", "parameters", "equations",
-           "not_parameters")
+  top <- c("package", "sections", "models", "slots", "parameters",
+           "equations", "not_parameters")
   missing <- setdiff(top, names(raw))
   if (length(missing) > 0L) fail("missing top-level keys: ", toString(missing))
   unknown <- setdiff(names(raw), top)
@@ -136,6 +143,7 @@ registry_read <- function(path) {
       }
     }
   }
+  need(raw$models, "model", c("title", "header"))
   need(raw$slots, "slot", c("symbol", "units", "meaning", "code"))
   need(raw$parameters, "parameter",
        c("section", "symbol", "units", "class", "meaning", "source",
@@ -150,8 +158,44 @@ registry_read <- function(path) {
       (is.character(x) && length(x) == 1L &&
          grepl("^[A-Za-z][A-Za-z-]*-[0-9]{4}[a-z]?$", x))
   }
+  models <- names(raw$models)
+  slots <- names(raw$slots)
+  for (id in models) {
+    m <- raw$models[[id]]
+    if (!is.null(m$extends) && !m$extends %in% models) {
+      fail(sprintf("model '%s' extends unknown model '%s'", id, m$extends))
+    }
+    bad <- setdiff(names(m$unfilled), slots)
+    if (length(bad) > 0L) {
+      fail(sprintf("model '%s' leaves unknown slots unfilled: %s", id, toString(bad)))
+    }
+  }
+  for (id in slots) {
+    pm <- raw$slots[[id]]$per_model
+    if (!is.null(pm) && !isTRUE(pm) && !isFALSE(pm)) {
+      fail(sprintf("slot '%s': per_model must be true or false", id))
+    }
+  }
+  # A model's entry says so, and its id is `<model>.<name>`; a shared entry
+  # has neither.
+  owner_ok <- function(kind, id, e) {
+    if (is.null(e$model)) {
+      if (grepl(".", id, fixed = TRUE)) {
+        fail(sprintf("%s '%s' is named like a model's entry but has no model", kind, id))
+      }
+      return(invisible())
+    }
+    if (!e$model %in% models) fail(sprintf("%s '%s': unknown model '%s'", kind, id, e$model))
+    if (!startsWith(id, paste0(e$model, "."))) {
+      fail(sprintf("%s '%s' belongs to %s, so its id starts '%s.'", kind, id, e$model, e$model))
+    }
+    if (!is.null(e$fills) && !e$fills %in% slots) {
+      fail(sprintf("%s '%s' fills unknown slot '%s'", kind, id, e$fills))
+    }
+  }
   for (id in names(raw$parameters)) {
     e <- raw$parameters[[id]]
+    owner_ok("parameter", id, e)
     if (!e$section %in% sections) fail(sprintf("parameter '%s': unknown section '%s'", id, e$section))
     if (!e$class %in% classes) fail(sprintf("parameter '%s': unknown class '%s'", id, e$class))
     if (!cite_ok(e$cite)) fail(sprintf("parameter '%s': cite '%s' is not Surname-Year", id, e$cite))
@@ -162,6 +206,7 @@ registry_read <- function(path) {
   readable <- c(names(raw$parameters), names(raw$slots))
   for (id in names(raw$equations)) {
     e <- raw$equations[[id]]
+    owner_ok("equation", id, e)
     if (!e$section %in% sections) fail(sprintf("equation '%s': unknown section '%s'", id, e$section))
     if (!e$kind %in% kinds) fail(sprintf("equation '%s': unknown kind '%s'", id, e$kind))
     if (!cite_ok(e$cite)) fail(sprintf("equation '%s': cite '%s' is not Surname-Year", id, e$cite))
@@ -180,6 +225,26 @@ registry_read <- function(path) {
     }
   }
   raw
+}
+
+## The models, one row each: title, header, the model it extends (NA for none)
+## and the slots it leaves unfilled, with why.
+registry_models <- function(models) {
+  out <- registry_frame(models, c("title", "header", "extends"))
+  out$unfilled <- lapply(models, function(m) unlist(m$unfilled))
+  names(out$unfilled) <- NULL
+  out
+}
+
+## A model and every model it extends, nearest first.
+registry_lineage <- function(models, model) {
+  out <- character()
+  while (!is.na(model) && !model %in% out) {
+    out <- c(out, model)
+    i <- match(model, models$id)
+    model <- if (is.na(i)) NA_character_ else models$extends[[i]]
+  }
+  out
 }
 
 ## One row per entry, keyed by id. Scalar fields become character columns (NA

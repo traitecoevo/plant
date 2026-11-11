@@ -70,9 +70,44 @@ test_that("every field Parameters binds is a parameter or a listed non-parameter
   on_parameters <- grepl("^plant::Parameters::", reg$parameters$code)
   field <- ifelse(is.na(reg$parameters$field),
                   sub("^.*::", "", reg$parameters$code), reg$parameters$field)
-  covered <- c(field[on_parameters], names(reg$not_parameters))
+  shared <- names(reg$not_parameters)[!grepl(".", names(reg$not_parameters), fixed = TRUE)]
+  covered <- c(field[on_parameters], shared)
   expect_setequal(covered, bound)
   expect_false(anyDuplicated(covered) > 0L)
+})
+
+test_that("every field of each model's pars is a parameter or a listed non-parameter", {
+  reg <- model_registry()
+  for (m in reg$models$id) {
+    bound <- names(get(paste0(m, "_Model"))()$pars)
+    lineage <- plant:::registry_lineage(reg$models, m)
+    own <- reg$parameters[!is.na(reg$parameters$model) &
+                            reg$parameters$model %in% lineage, ]
+    field <- ifelse(is.na(own$field), sub("^.*::", "", own$code), own$field)
+    np <- names(reg$not_parameters)
+    listed <- unlist(lapply(lineage, function(l)
+      sub(paste0("^", l, "[.]"), "", np[startsWith(np, paste0(l, "."))])))
+    covered <- c(field, listed)
+    expect_setequal(covered, bound)
+    expect_false(anyDuplicated(covered) > 0L, info = m)
+  }
+})
+
+test_that("every model fills every per-model slot, or says why not", {
+  reg <- model_registry()
+  per_model <- reg$slots$id[!(reg$slots$per_model %in% "FALSE")]
+  entries <- rbind(reg$parameters[c("id", "model", "fills")],
+                   reg$equations[c("id", "model", "fills")])
+  for (i in seq_len(nrow(reg$models))) {
+    m <- reg$models$id[[i]]
+    lineage <- plant:::registry_lineage(reg$models, m)
+    filled <- entries$fills[!is.na(entries$model) & entries$model %in% lineage]
+    unfilled <- names(reg$models$unfilled[[i]])
+    missing <- setdiff(per_model, c(filled, unfilled))
+    expect_true(length(missing) == 0L,
+                info = sprintf("%s fills no %s", m, toString(missing)))
+    expect_length(intersect(filled, unfilled), 0L)
+  }
 })
 
 test_that("a document takes an equation's LaTeX from the registry", {
@@ -90,6 +125,13 @@ test_that("the values are read off the live model, not stored", {
   i <- match("plant::Parameters::max_patch_lifetime", v$code)
   expect_false(is.na(i))
   expect_identical(v$value[[i]], p$max_patch_lifetime)
+  # A model's own parameter is read off its default strategy.
+  j <- match("FF16.lma", v$id)
+  expect_false(is.na(j))
+  expect_identical(v$value[[j]], FF16_Model()$pars$lma)
+  # and another model's is not this model's to give.
+  k <- match("K93.b_0", v$id)
+  if (!is.na(k)) expect_true(is.na(v$value[[k]]))
 })
 
 test_that("the reader refuses what the schema forbids", {
@@ -112,4 +154,16 @@ test_that("the reader refuses what the schema forbids", {
   refuse(function(x) { x$equations[[first_eq]]$latex <- NULL; x },
          "lacks latex")
   refuse(function(x) { x$extra <- 1; x }, "unknown top-level keys")
+  first_par <- names(base$parameters)[[1]]
+  refuse(function(x) { x$parameters[["FF16.made_up"]] <- x$parameters[[first_par]]; x },
+         "named like a model's entry but has no model")
+  refuse(function(x) {
+    e <- x$parameters[[first_par]]; e$model <- "FF16"
+    x$parameters[["K93.made_up"]] <- e; x
+  }, "so its id starts 'FF16.'")
+  refuse(function(x) {
+    e <- x$parameters[[first_par]]; e$model <- "NOPE"
+    x$parameters[["NOPE.made_up"]] <- e; x
+  }, "unknown model 'NOPE'")
+  refuse(function(x) { x$models$K93$extends <- "NOPE"; x }, "extends unknown model")
 })
