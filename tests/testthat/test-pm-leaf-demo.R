@@ -1,13 +1,10 @@
-# Smoke test for the staging Penman-Monteith leaf demo (#523). Exercises the
-# exact leaf-driving helpers the overstorey_staging/ vignette uses, so the demo
-# cannot silently rot. overstorey_staging/ is .Rbuildignore'd (not installed), so
-# this is dev-only: skip when the helper file is absent (installed/CRAN checks).
+# Smoke test for the Penman-Monteith leaf guide (#523). Exercises the exact
+# leaf-driving helpers the guide sources (inst/guide-helpers/), so the guide
+# cannot silently rot.
 
 test_that("PM leaf demo helpers run end-to-end for Fick and PM", {
   skip_on_cran()
-  helpers <- test_path("..", "..", "overstorey_staging", "pm_demo_helpers.R")
-  skip_if_not(file.exists(helpers), "overstorey_staging/ not present (built package)")
-  source(helpers, local = TRUE)
+  source(guide_helpers("pm_demo_helpers.R"), local = TRUE)
 
   # A small environment grid spanning cool -> hot / high-radiation.
   grid <- expand.grid(PAR = c(400, 2000), Tair = c(20, 40), VPD = c(1, 2))
@@ -40,9 +37,7 @@ test_that("PM leaf demo helpers run end-to-end for Fick and PM", {
 
 test_that("PM path fails fast on a non-finite wind speed (review: itowers1)", {
   skip_on_cran()
-  helpers <- test_path("..", "..", "overstorey_staging", "pm_demo_helpers.R")
-  skip_if_not(file.exists(helpers), "overstorey_staging/ not present (built package)")
-  source(helpers, local = TRUE)
+  source(guide_helpers("pm_demo_helpers.R"), local = TRUE)
 
   set_phys <- function(l) {
     l$NIR_int_ <- 1000 / 4.57  # daylight NIR for the PPFD below

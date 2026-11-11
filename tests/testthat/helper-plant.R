@@ -158,3 +158,11 @@ plant_test_cores <- function(jobs) {
   }
   min(jobs, max(1L, parallel::detectCores() - 1L))
 }
+
+# The path of a guide's helper file, installed with the package
+# (inst/guide-helpers/), so the guides and the tests that guard them read one
+# copy. A missing file is an error, not a skip: a guard that skips guards
+# nothing.
+guide_helpers <- function(name) {
+  system.file("guide-helpers", name, package = "plant", mustWork = TRUE)
+}

@@ -7,11 +7,9 @@
 # drought than the one plotted, and a caption promising arrows that were never
 # drawn -- and both rendered clean.
 
-demo_helpers <- test_path("..", "..", "overstorey_staging",
-                          "allometry_demo_helpers.R")
+demo_helpers <- guide_helpers("allometry_demo_helpers.R")
 
 test_that("the flexible-allometry demo's claims still hold", {
-  skip_if_not(file.exists(demo_helpers), "demo helpers not present")
   skip_on_cran()
   source(demo_helpers, local = TRUE)
 
@@ -51,7 +49,6 @@ test_that("the flexible-allometry demo's claims still hold", {
 })
 
 test_that("the gate responds to soil water, not to the reserve pool", {
-  skip_if_not(file.exists(demo_helpers), "demo helpers not present")
   skip_on_cran()
   source(demo_helpers, local = TRUE)
 
@@ -72,7 +69,6 @@ test_that("the gate responds to soil water, not to the reserve pool", {
 })
 
 test_that("suppressed plants in a wet stand thin; dominants do not", {
-  skip_if_not(file.exists(demo_helpers), "demo helpers not present")
   skip_on_cran()
   source(demo_helpers, local = TRUE)
 
@@ -172,7 +168,6 @@ test_that("the demo's equations reproduce the C++ departure rates", {
 })
 
 test_that("the shedding criterion's carbon decomposition is exact", {
-  skip_if_not(file.exists(demo_helpers), "demo helpers not present")
   skip_on_cran()
   source(demo_helpers, local = TRUE)
 
@@ -188,7 +183,6 @@ test_that("the shedding criterion's carbon decomposition is exact", {
 })
 
 test_that("the elasticity rises with height, and the criterion tracks dP/dA", {
-  skip_if_not(file.exists(demo_helpers), "demo helpers not present")
   skip_on_cran()
   source(demo_helpers, local = TRUE)
 
@@ -225,7 +219,6 @@ test_that("the elasticity rises with height, and the criterion tracks dP/dA", {
 })
 
 test_that("shedding is measured at fixed sapwood, which is what thinning does", {
-  skip_if_not(file.exists(demo_helpers), "demo helpers not present")
   skip_on_cran()
   source(demo_helpers, local = TRUE)
 
@@ -251,7 +244,6 @@ test_that("shedding is measured at fixed sapwood, which is what thinning does", 
 })
 
 test_that("the demo's sapwood-controller claims hold", {
-  skip_if_not(file.exists(demo_helpers), "demo helpers not present")
   skip_on_cran()
   source(demo_helpers, local = TRUE)
 
@@ -299,7 +291,6 @@ test_that("the demo's sapwood-controller claims hold", {
 })
 
 test_that("the demo's 'does not buy survival' claims still hold", {
-  skip_if_not(file.exists(demo_helpers), "demo helpers not present")
   skip_on_cran()
   source(demo_helpers, local = TRUE)
 
@@ -356,4 +347,13 @@ test_that("the demo's 'does not buy survival' claims still hold", {
   expect_gt(per_area[[4]], per_area[[1]])               # but thinning helps
   expect_gt(which.max(per_area), 1)                     # interior optimum
   expect_lt(which.max(per_area), length(per_area))
+})
+
+test_that("the guide's copy of tf24_seat is the tests' own", {
+  # The guide cannot read tests/, so it carries its own copy; this keeps the two
+  # from drifting. Source references are dropped, so comments may differ.
+  guide <- new.env()
+  sys.source(demo_helpers, envir = guide)
+  expect_identical(deparse(utils::removeSource(guide$tf24_seat)),
+                   deparse(utils::removeSource(tf24_seat)))
 })

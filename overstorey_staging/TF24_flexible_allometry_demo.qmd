@@ -26,7 +26,7 @@ library(tidyr)
 
 # Shared computation, kept out of this file so a test can exercise it: a chunk
 # that runs is not a chunk that is checked.
-source(file.path(pkg_root, "overstorey_staging", "allometry_demo_helpers.R"))
+source(system.file("guide-helpers", "allometry_demo_helpers.R", package = "plant", mustWork = TRUE))
 
 theme_set(theme_bw(base_size = 12))
 ```

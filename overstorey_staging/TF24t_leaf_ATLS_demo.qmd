@@ -13,7 +13,8 @@ format:
 # the package root whether rendered from the repo root or from
 # overstorey_staging/. Set ATLS_DEMO_PLANT=installed to render against the
 # installed plant instead of a pkgload::load_all() build, which compiles without
-# optimisation and makes the SCM sections far slower.
+# optimisation and makes the SCM sections far slower. The helpers sourced below
+# then come from that installed plant too, so reinstall after editing them.
 pkg_root <- if (file.exists("DESCRIPTION")) "." else ".."
 if (identical(Sys.getenv("ATLS_DEMO_PLANT"), "installed") ||
     !requireNamespace("pkgload", quietly = TRUE)) {
@@ -28,7 +29,7 @@ library(tidyr)
 
 # Shared driving code (also exercised by tests/testthat/test-atls-leaf-demo.R,
 # so this demo cannot silently rot).
-source(file.path(pkg_root, "overstorey_staging", "atls_demo_helpers.R"))
+source(system.file("guide-helpers", "atls_demo_helpers.R", package = "plant", mustWork = TRUE))
 
 theme_set(theme_bw(base_size = 12))
 # One colour per strategy archetype, reused across the document.

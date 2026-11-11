@@ -6,8 +6,9 @@
 ## seed's height over whatever height was set before it, so a plant set to 5 m
 ## and then seeded comes back at birth size.
 ##
-## A copy of this lives in overstorey_staging/allometry_demo_helpers.R, which
-## renders outside the test suite.
+## A copy of this lives in inst/guide-helpers/allometry_demo_helpers.R, for the
+## guide, which cannot read tests/. test-allometry-demo.R checks that the two
+## copies are the same function.
 tf24_seat <- function(ind, env, height, phi = 0, psi = 0) {
   ind$set_initial_states(env)
   ind$set_state("height", height)

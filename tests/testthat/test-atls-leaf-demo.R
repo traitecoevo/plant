@@ -1,13 +1,9 @@
-# Smoke test for the staging ATLS demo (#566). Exercises the exact helpers the
-# overstorey_staging/ demo uses, so the demo cannot silently rot.
-# overstorey_staging/ is .Rbuildignore'd (not installed), so this is dev-only:
-# it skips where the helper file is absent.
+# Smoke test for the ATLS guide (#566). Exercises the exact helpers the guide
+# sources (inst/guide-helpers/), so the guide cannot silently rot.
 
 test_that("ATLS demo leaf helpers run end-to-end (impairment, strategies, avoidance)", {
   skip_on_cran()
-  helpers <- test_path("..", "..", "overstorey_staging", "atls_demo_helpers.R")
-  skip_if_not(file.exists(helpers), "overstorey_staging/ not present (built package)")
-  source(helpers, local = TRUE)
+  source(guide_helpers("atls_demo_helpers.R"), local = TRUE)
 
   # (1) Impairment is a centred Arrhenius about the isokinetic temperature:
   # k_imp / k_i is one at k_i_Tiso and rises tenfold about every 6 K below it.
@@ -57,13 +53,13 @@ test_that("ATLS demo leaf helpers run end-to-end (impairment, strategies, avoida
 })
 
 test_that("ATLS demo SCM helpers return sane stand fitness", {
-  # Three SCM runs over a full patch lifetime, about two minutes on one core.
+  # Three SCM runs over 15 years rather than the default 105, about 2 s each,
+  # one after another. The direction asserted below holds at both lengths:
+  # tolerant over generalist by 29x at 15 years and 6e4x at 105.
   skip_on_cran()
-  helpers <- test_path("..", "..", "overstorey_staging", "atls_demo_helpers.R")
-  skip_if_not(file.exists(helpers), "overstorey_staging/ not present (built package)")
-  source(helpers, local = TRUE)
+  source(guide_helpers("atls_demo_helpers.R"), local = TRUE)
 
-  f <- atls_scm_fitness(25, type = "TF24t")
+  f <- atls_scm_fitness(25, type = "TF24t", lifetime = 15)
   expect_true(is.finite(f$R0) && f$R0 >= 0)
   expect_true(is.finite(f$offspring) && f$offspring >= 0)
   expect_identical(f$type, "TF24t")
@@ -82,7 +78,7 @@ test_that("ATLS demo SCM helpers return sane stand fitness", {
     "Generalist" = list(type = "TF24t", mutate = function(s) { s$k_mat <- km; s }),
     "Tolerant"   = list(type = "TF24t",
                         mutate = function(s) { s$topt_offset <- 6; s$k_mat <- km; s }))
-  v <- atls_scm_viability(28, scen, birth_rate = 1, workers = 2)
+  v <- atls_scm_viability(28, scen, birth_rate = 1, workers = 1, lifetime = 15)
   expect_setequal(v$scenario, c("Generalist", "Tolerant"))
   expect_true(all(is.finite(v$R0) & v$R0 >= 0))
   expect_gt(v$R0[v$scenario == "Tolerant"], v$R0[v$scenario == "Generalist"])
